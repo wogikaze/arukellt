@@ -11,7 +11,7 @@ fn parse_decls(src: String) -> Vec<AstNode> {
     let p = core_api_token::Parser_new(tokens)
     let decls = decl::parse_module(p)
     if len(p.errors) != 0 {
-        stdio::println(text::concat("Resolver parse errors: ", to_string(len(p.errors))))
+        stdio::println("Resolver parse errors: ".concat(to_string(len(p.errors))))
     }
     decls
 }
@@ -21,7 +21,7 @@ fn main() {
     let ctx = program::resolve_program(decls, Vec::new<ModuleDecls>(), Vec::new<String>())
     let error_count = context::ResolveCtx_reported_error_count(ctx)
     if error_count != 0 {
-        stdio::println(text::concat("Resolver errors: ", to_string(error_count)))
+        stdio::println("Resolver errors: ".concat(to_string(error_count)))
         return
     }
     stdio::println("Resolver OK.")

@@ -8,7 +8,7 @@ struct Dog {
 
 impl Greet for Dog {
     fn greet(self: Dog) -> String {
-        text::concat(String_from("Woof! I'm "), self.name)
+        String_from("Woof! I'm ").concat(self.name)
     }
 }
 

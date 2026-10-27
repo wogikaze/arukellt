@@ -4,13 +4,13 @@ use std::text
 fn main() {
     // to_lower(to_lower(x)) == to_lower(x)
     let s = "HeLLo WoRLd"
-    test::assert_eq_string(text::to_lower(text::to_lower(s)), text::to_lower(s))
+    test::assert_eq_string(s.to_lower().to_lower(), s.to_lower())
     // to_upper(to_upper(x)) == to_upper(x)
-    test::assert_eq_string(text::to_upper(text::to_upper(s)), text::to_upper(s))
+    test::assert_eq_string(s.to_upper().to_upper(), s.to_upper())
     // Empty string is idempotent
-    test::assert_eq_string(text::to_lower(text::to_lower("")), "")
-    test::assert_eq_string(text::to_upper(text::to_upper("")), "")
+    test::assert_eq_string("".to_lower().to_lower(), "")
+    test::assert_eq_string("".to_upper().to_upper(), "")
     // Digits and symbols unchanged by both
-    test::assert_eq_string(text::to_lower("123!@#"), "123!@#")
-    test::assert_eq_string(text::to_upper("123!@#"), "123!@#")
+    test::assert_eq_string("123!@#".to_lower(), "123!@#")
+    test::assert_eq_string("123!@#".to_upper(), "123!@#")
 }

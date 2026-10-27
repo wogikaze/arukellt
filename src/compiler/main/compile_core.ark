@@ -132,12 +132,12 @@ fn write_compile_output(path: String, bytes: Vec<i32>, json_mode: bool) -> bool 
     match write_result {
         Result::Ok(_) => {
             if !json_mode {
-                stdio::eprintln(text::concat("wrote ", text::concat(to_string(len(bytes)), text::concat(" bytes to ", clone(path)))))
+                stdio::eprintln("wrote ".concat(to_string(len(bytes)).concat(" bytes to ".concat(clone(path)))))
             }
             true
         },
         Result::Err(e) => {
-            stdio::eprintln(text::concat("error writing output: ", e))
+            stdio::eprintln("error writing output: ".concat(e))
             false
         },
     }
@@ -158,7 +158,7 @@ fn wasm_path_for_all(opts: CliOptions) -> String {
     if args_record::cli_has_output_file(opts) {
         return args_record::cli_output_file(opts)
     }
-    text::concat(stem_from_input(args_record::cli_input_file(opts)), ".wasm")
+    stem_from_input(args_record::cli_input_file(opts)).concat(".wasm")
 }
 
 fn component_path_for_all(opts: CliOptions) -> String {
@@ -168,12 +168,12 @@ fn component_path_for_all(opts: CliOptions) -> String {
         if n > 5 {
             let ext = substring(clone(out), n - 5, n)
             if eq(ext, ".wasm") {
-                return text::concat(substring(out, 0, n - 5), ".component.wasm")
+                return substring(out, 0, n - 5).concat(".component.wasm")
             }
         }
-        return text::concat(out, ".component.wasm")
+        return out.concat(".component.wasm")
     }
-    text::concat(stem_from_input(args_record::cli_input_file(opts)), ".component.wasm")
+    stem_from_input(args_record::cli_input_file(opts)).concat(".component.wasm")
 }
 
 pub fn cmd_compile_single(opts: CliOptions) {
@@ -214,7 +214,7 @@ fn print_compile_success(input_file: String, result: CompileResult, json_mode: b
         stdio::println(output::format_success_json(clone(input_file), result_record::compile_result_phase_reached(result), result_record::compile_result_output_byte_count(result)))
         return
     }
-    stdio::eprintln(text::concat("compilation succeeded (phase ", text::concat(to_string(result_record::compile_result_phase_reached(result)), ")")))
+    stdio::eprintln("compilation succeeded (phase ".concat(to_string(result_record::compile_result_phase_reached(result)).concat(")")))
 }
 
 fn handle_single_compile_success(opts: CliOptions, input_file: String, result: CompileResult, json_mode: bool) -> i32 {
@@ -226,7 +226,7 @@ fn handle_single_compile_success(opts: CliOptions, input_file: String, result: C
         return 0
     }
     if !json_mode {
-        stdio::println(text::concat("ok: ", text::concat(to_string(result_record::compile_result_output_byte_count(result)), " bytes")))
+        stdio::println("ok: ".concat(to_string(result_record::compile_result_output_byte_count(result)).concat(" bytes")))
     }
     0
 }
@@ -240,7 +240,7 @@ fn validate_wit_paths(opts: CliOptions) -> bool {
             Result::Ok(_) => {
             },
             Result::Err(e) => {
-                stdio::eprintln(text::concat("error: unable to read WIT file ", text::concat(clone(path), text::concat(": ", e))))
+                stdio::eprintln("error: unable to read WIT file ".concat(clone(path).concat(": ".concat(e))))
                 return false
             },
         }
@@ -291,7 +291,7 @@ fn enforce_capability_denies(opts: CliOptions, input_file: String) -> bool {
             true
         },
         Result::Err(e) => {
-            stdio::eprintln(text::concat(String_from("error: unable to read input file "), text::concat(clone(input_file), text::concat(String_from(": "), e))))
+            stdio::eprintln(String_from("error: unable to read input file ").concat(clone(input_file).concat(String_from(": ").concat(e))))
             false
         },
     }

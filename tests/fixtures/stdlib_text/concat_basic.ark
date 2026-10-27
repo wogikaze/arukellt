@@ -2,9 +2,9 @@ use std::test
 use std::text
 
 fn main() {
-    test::assert_eq_string(text::concat("foo", "bar"), "foobar")
-    test::assert_eq_string(text::concat("hello", " "), "hello ")
-    test::assert_eq_string(text::concat("", "abc"), "abc")
-    test::assert_eq_string(text::concat("abc", ""), "abc")
-    test::assert_eq_string(text::concat("a", "b"), "ab")
+    test::assert_eq_string("foo".concat("bar"), "foobar")
+    test::assert_eq_string("hello".concat(" "), "hello ")
+    test::assert_eq_string("".concat("abc"), "abc")
+    test::assert_eq_string("abc".concat(""), "abc")
+    test::assert_eq_string("a".concat("b"), "ab")
 }

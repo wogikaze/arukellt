@@ -545,7 +545,7 @@ fn report_capture_conflict(env: TypeEnv, node: AstNode, name: String, reason: St
         ast_access::node_span_start(node),
         ast_access::node_span_end(node)
     )
-    let message = text::concat(reason, text::concat(": `", text::concat(name, "`")))
+    let message = reason.concat(": `".concat(name.concat("`")))
     let diag = diag_mod::Diagnostic_new(
         codes::DIAG_TYPE_CLOSURE_BORROW_CONFLICT(),
         diag_mod::SEV_ERROR(),

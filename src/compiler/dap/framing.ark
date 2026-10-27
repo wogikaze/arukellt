@@ -8,8 +8,8 @@ struct DapFrameResult {
 }
 
 fn dap_frame(body: String) -> String {
-    let header = text::concat("Content-Length: ", text::concat(to_string(len(clone(body))), "\r\n\r\n"))
-    text::concat(header, body)
+    let header = "Content-Length: ".concat(to_string(len(clone(body))).concat("\r\n\r\n"))
+    header.concat(body)
 }
 
 fn dap_parse_frame(input: String, pos: i32) -> DapFrameResult {

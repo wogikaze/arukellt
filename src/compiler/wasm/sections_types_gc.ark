@@ -207,7 +207,7 @@ fn gc_struct_type_sig_from_byte_size(byte_size: i32) -> String {
             field_count + 1
         }
     }
-    text::concat("gcref", (offset).to_string())
+    "gcref".concat((offset).to_string())
 }
 
 fn gc_vec_type_sig() -> String {
@@ -264,7 +264,7 @@ fn gc_hashmap_str_fn_type_sig() -> String {
 
 fn gc_struct_sig_as_final(sig: String) -> String {
     if starts_with(clone(sig), "GS_f") {
-        return text::concat("SubF_", sig)
+        return "SubF_".concat(sig)
     }
     sig
 }

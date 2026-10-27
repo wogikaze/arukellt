@@ -14,7 +14,7 @@ fn ascii_lower_str(s: String) -> String {
     let mut out = String_new()
     let mut i = 0
     while i < n {
-        out = text::concat(out, char_to_string(ascii_lower_char(byte_at(s, i))))
+        out = out.concat(char_to_string(ascii_lower_char(byte_at(s, i))))
         i = i + 1
     }
     out
@@ -28,7 +28,7 @@ fn name_matches_query(name: String, query: String) -> bool {
 }
 
 fn result_key(uri: String, name: String) -> String {
-    text::concat(text::concat(uri, ":"), name)
+    uri.concat(":").concat(name)
 }
 
 fn results_contains(results: Vec<symbol_index_record::IndexedSymbol>, uri: String, name: String) -> bool {

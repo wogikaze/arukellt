@@ -13,10 +13,10 @@ pub fn native_output_bytes_from_string(text: String) -> Vec<i32> {
 
 pub fn emit_native_llvm_scaffold(_mir: MirModule) -> Vec<i32> {
     let asm = "; Arukellt native-llvm scaffold (#641)\n"
-    let asm = text::concat(asm, ".text\n")
-    let asm = text::concat(asm, ".globl main\n")
-    let asm = text::concat(asm, "main:\n")
-    let asm = text::concat(asm, "    xor %eax, %eax\n")
-    let asm = text::concat(asm, "    ret\n")
+    let asm = asm.concat(".text\n")
+    let asm = asm.concat(".globl main\n")
+    let asm = asm.concat("main:\n")
+    let asm = asm.concat("    xor %eax, %eax\n")
+    let asm = asm.concat("    ret\n")
     native_output_bytes_from_string(asm)
 }

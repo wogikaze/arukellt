@@ -26,6 +26,6 @@ fn main() {
                 None => panic("expected key d"),
             }
         },
-        Result::Err(e) => panic(text::concat("parse large object failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse large object failed: ".concat(json::parse_error_message(e))),
     }
 }

@@ -35,7 +35,7 @@ fn main() {
             let keys = toml::toml_table_keys(table)
             stdio::println((len(keys)).to_string())
         },
-        Result::Err(e) => stdio::println(text::concat("error:", e)),
+        Result::Err(e) => stdio::println("error:".concat(e)),
     }
 }
 // toml_parse recognises a valid key=value document

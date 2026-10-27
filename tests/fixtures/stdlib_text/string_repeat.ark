@@ -2,10 +2,10 @@ use std::host::stdio
 use std::text
 
 fn main() {
-    stdio::println(text::repeat("ab", 3))
-    stdio::println(text::repeat("x", 5))
-    let empty = text::repeat("hi", 0)
-    stdio::println((text::len_bytes(empty)).to_string())
-    stdio::println((text::is_empty(empty)).to_string())
-    stdio::println((text::is_empty("hello")).to_string())
+    stdio::println("ab".repeat(3))
+    stdio::println("x".repeat(5))
+    let empty = "hi".repeat(0)
+    stdio::println((empty.len_bytes()).to_string())
+    stdio::println((empty.is_empty()).to_string())
+    stdio::println(("hello".is_empty()).to_string())
 }

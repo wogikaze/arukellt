@@ -15,7 +15,7 @@ fn churn(slots: i32) -> i32 {
 
 fn main() {
     let m = HashMap::new<String, String>()
-    let _ = m.insert(text::concat("gree", "ting"), text::concat("hel", "lo"))
+    let _ = m.insert("gree".concat("ting"), "hel".concat("lo"))
     let _ = m.insert("farewell", "goodbye")
     let _ = m.insert("color", "red")
     let _ = m.insert("color", "blue")
@@ -24,13 +24,13 @@ fn main() {
     while i < 160 {
         let _n = churn(262144)
         if i == 80 {
-            let _ = m.insert("late", text::concat("va", "lue"))
+            let _ = m.insert("late", "va".concat("lue"))
         }
         i = i + 1
     }
 
     test::assert_eq_i32(m.len(), 4)
-    match m.get(text::concat("gree", "ting")) {
+    match m.get("gree".concat("ting")) {
         Option::Some(v) => test::assert_eq_string(v, "hello"),
         None => panic("expected Some(hello)"),
     }

@@ -58,7 +58,7 @@ fn verify_report_print_largest_function(m: MirModule) {
         }
         fi = fi + 1
     }
-    stdio::eprintln(text::concat("mir-verify: largest function ", text::concat(max_name, text::concat(" = ", to_string(max_count)))))
+    stdio::eprintln("mir-verify: largest function ".concat(max_name.concat(" = ".concat(to_string(max_count)))))
 }
 
 fn verify_mir(m: MirModule) -> i32 {

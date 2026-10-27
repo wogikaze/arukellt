@@ -62,7 +62,7 @@ fn emit_output(
     if eq(clone(emit_mode), "component") {
         return emit_component_output(mir_module, program, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
     }
-    result_record::CompileResult_err(phases::PHASE_EMIT(), text::concat(String_from("unsupported emit mode: "), clone(emit_mode)))
+    result_record::CompileResult_err(phases::PHASE_EMIT(), String_from("unsupported emit mode: ").concat(clone(emit_mode)))
 }
 
 fn emit_component_output(
@@ -92,7 +92,7 @@ fn emit_component_output(
         report_timing
     )
     if config_record::config_dump_wasm(config) {
-        stdio::eprintln(text::concat(String_from("core wasm size: "), text::concat(to_string(len(core_wasm)), String_from(" bytes"))))
+        stdio::eprintln(String_from("core wasm size: ").concat(to_string(len(core_wasm)).concat(String_from(" bytes"))))
     }
     let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
     // Component packaging is owned by the official wasm-tools pipeline in the

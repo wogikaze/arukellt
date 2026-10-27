@@ -8,5 +8,5 @@ fn main() {
     } else {
         20
     }
-    stdio::println(text::concat(String_from("value="), to_string(value)))
+    stdio::println(String_from("value=").concat(to_string(value)))
 }

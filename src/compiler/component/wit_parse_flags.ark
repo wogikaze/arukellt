@@ -48,7 +48,7 @@ fn wit_flags_member_names(text: String) -> Vec<String> {
             }
             part = String_new()
         } else {
-            part = text::builder_append(part, substring(body, i, i + 1))
+            part = part.concat(substring(body, i, i + 1))
         }
     }
     let trimmed = wit_trim_ws(part)
@@ -62,9 +62,9 @@ fn wit_flags_type_text(member_names: Vec<String>) -> String {
     let mut out = "flags {"
     for i in 0..len(member_names) {
         if i > 0 {
-            out = text::builder_append(out, ", ")
+            out = out.concat(", ")
         }
-        out = text::builder_append(out, get_unchecked(member_names, i))
+        out = out.concat(get_unchecked(member_names, i))
     }
-    text::concat(out, "}")
+    out.concat("}")
 }

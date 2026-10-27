@@ -269,7 +269,7 @@ pub fn probe_f64_bits_ops() -> bool {
 }
 
 pub fn probe_format_f64_ops() -> bool {
-    let text = text::format_f64(0.5)
+    let text = (0.5).to_string()
     text.len() == 3 && text.char_at(0) == 48 && text.char_at(1) == 46 && text.char_at(2) == 53
 }
 

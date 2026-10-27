@@ -4,6 +4,6 @@ use std::text
 fn main() {
     match json::parse("{}") {
         Result::Ok(v) => test::assert_eq_bool(json::is_object(v), true),
-        Result::Err(e) => panic(text::concat("parse empty object failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse empty object failed: ".concat(json::parse_error_message(e))),
     }
 }

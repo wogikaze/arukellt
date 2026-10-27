@@ -176,7 +176,7 @@ fn register_imported_enum_exports(ctx: ResolveCtx, module_name: String, enum_dec
     while vi < child_count {
         let variant = ast_access::node_child_at(enum_decl, vi)
         let variant_name = ast_access::node_text(variant)
-        let bare_variant = text::concat(clone(enum_name), text::concat(String_from("::"), clone(variant_name)))
+        let bare_variant = clone(enum_name).concat(String_from("::").concat(clone(variant_name)))
         let existing_variant = scope_lookup::lookup(ctx, clone(bare_variant))
         if existing_variant < 0 {
             scope_define::define_with_vis(ctx, clone(bare_variant), commands::SYM_VARIANT(), is_pub)
@@ -196,7 +196,7 @@ fn register_variants_only(ctx: ResolveCtx, module_name: String, enum_decl: AstNo
     while vi < child_count {
         let variant = ast_access::node_child_at(enum_decl, vi)
         let variant_name = ast_access::node_text(variant)
-        let bare_variant = text::concat(clone(enum_name), text::concat(String_from("::"), clone(variant_name)))
+        let bare_variant = clone(enum_name).concat(String_from("::").concat(clone(variant_name)))
         let existing_variant = scope_lookup::lookup(ctx, clone(bare_variant))
         if existing_variant < 0 {
             scope_define::define_with_vis(ctx, clone(bare_variant), commands::SYM_VARIANT(), is_pub)
@@ -286,16 +286,16 @@ fn pub_use_source_key(source: String, modules: Vec<ModuleDecls>) -> String {
     if !modules::module_registered(modules, clone(parent_leaf)) {
         return clone(source)
     }
-    text::concat(parent_leaf, text::concat("::", leaf))
+    parent_leaf.concat("::".concat(leaf))
 }
 
 // True when at least one new qualified symbol was defined.
 fn reexport_module_symbols(ctx: ResolveCtx, target_module: String, source_module: String) -> bool {
     let source_root = paths::path_module_part(clone(source_module))
     let selected_symbol = paths::path_symbol_part(clone(source_module))
-    let module_prefix = text::concat(clone(source_root), "::")
+    let module_prefix = clone(source_root).concat("::")
     let module_prefix_len = len(clone(module_prefix))
-    let selected_prefix = text::concat(clone(source_module), "::")
+    let selected_prefix = clone(source_module).concat("::")
     let scope = scope_stack_scopes::ResolveCtx_scope_at(ctx, 0)
     let sym_count = scope_stack_scopes::Scope_symbol_count(scope)
     let mut defined_any = false
@@ -310,7 +310,7 @@ fn reexport_module_symbols(ctx: ResolveCtx, target_module: String, source_module
         }
         if matches_source && scope_stack_symbols::Symbol_is_pub(sym) {
             let suffix = substring(clone(sym_name), module_prefix_len, len(clone(sym_name)))
-            let qualified = text::concat(clone(target_module), text::concat("::", clone(suffix)))
+            let qualified = clone(target_module).concat("::".concat(clone(suffix)))
             let existing = scope_lookup::lookup(ctx, clone(qualified))
             if existing < 0 {
                 let kind = scope_stack_symbols::Symbol_kind(sym)

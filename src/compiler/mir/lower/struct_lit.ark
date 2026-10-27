@@ -94,19 +94,19 @@ fn mir_struct_lit_instance_name(ctx: LowerCtx, base_name: String, field_names: V
         i = i + 1
     }
     let mut all_bound = true
-    let mut inst = text::concat(clone(canon), String_from("<"))
+    let mut inst = clone(canon).concat(String_from("<"))
     let mut bi = 0
     while bi < len(params) {
         if !get_unchecked(bound, bi) {
             all_bound = false
         }
         if bi > 0 {
-            inst = text::concat(inst, String_from(","))
+            inst = inst.concat(String_from(","))
         }
-        inst = text::concat(inst, clone(get_unchecked(args, bi)))
+        inst = inst.concat(clone(get_unchecked(args, bi)))
         bi = bi + 1
     }
-    inst = text::concat(inst, String_from(">"))
+    inst = inst.concat(String_from(">"))
     if !all_bound {
         return canon
     }
@@ -190,36 +190,20 @@ fn struct_lit_field_type_mentions_params(ft: String, params: Vec<String>) -> boo
 // canonical vec:/option:/result: space used by declared field types.
 fn struct_lit_canonical_type_spelling(name: String) -> String {
     if starts_with(clone(name), String_from("Vec<")) && ends_with(clone(name), String_from(">")) {
-        return text::concat(
-            String_from("vec:"),
-            struct_lit_canonical_type_spelling(substring(clone(name), 4, len(name) - 1))
-        )
+        return String_from("vec:").concat(struct_lit_canonical_type_spelling(substring(clone(name), 4, len(name) - 1)))
     }
     if starts_with(clone(name), String_from("Option<")) && ends_with(clone(name), String_from(">")) {
-        return text::concat(
-            String_from("option:"),
-            struct_lit_canonical_type_spelling(substring(clone(name), 7, len(name) - 1))
-        )
+        return String_from("option:").concat(struct_lit_canonical_type_spelling(substring(clone(name), 7, len(name) - 1)))
     }
     if starts_with(clone(name), String_from("Option_")) {
-        return text::concat(
-            String_from("option:"),
-            struct_lit_canonical_type_spelling(substring(clone(name), 7, len(name)))
-        )
+        return String_from("option:").concat(struct_lit_canonical_type_spelling(substring(clone(name), 7, len(name))))
     }
     if starts_with(clone(name), String_from("Result<")) && ends_with(clone(name), String_from(">")) {
         let inner = substring(clone(name), 7, len(name) - 1)
         let parts = ctx_mono_type_params::ctx_split_top_level_type_args(inner)
         if len(parts) == 2 {
-            return text::concat(
-                String_from("result:"),
-                text::concat(
-                    struct_lit_canonical_type_spelling(clone(get_unchecked(parts, 0))),
-                    text::concat(
-                        String_from(":"),
-                        struct_lit_canonical_type_spelling(clone(get_unchecked(parts, 1)))
-                    )
-                )
+            return String_from("result:").concat(
+                struct_lit_canonical_type_spelling(clone(get_unchecked(parts, 0))).concat(String_from(":").concat(struct_lit_canonical_type_spelling(clone(get_unchecked(parts, 1)))))
             )
         }
         return name
@@ -228,18 +212,11 @@ fn struct_lit_canonical_type_spelling(name: String) -> String {
         let inner = substring(clone(name), 7, len(name))
         let us = index_of(clone(inner), String_from("_"))
         if us > 0 && us + 1 < len(inner) {
-            return text::concat(
-                String_from("result:"),
-                text::concat(
-                    struct_lit_canonical_type_spelling(substring(clone(inner), 0, us)),
-                    text::concat(
-                        String_from(":"),
-                        struct_lit_canonical_type_spelling(substring(clone(inner), us + 1, len(inner)))
-                    )
-                )
+            return String_from("result:").concat(
+                struct_lit_canonical_type_spelling(substring(clone(inner), 0, us)).concat(String_from(":").concat(struct_lit_canonical_type_spelling(substring(clone(inner), us + 1, len(inner)))))
             )
         }
-        return text::concat(String_from("result:"), inner)
+        return String_from("result:").concat(inner)
     }
     name
 }
@@ -313,13 +290,13 @@ fn struct_lit_fnref_value_spelling(f: String, v: String, params: Vec<String>) ->
     let mut k = 1
     while k < len(f_segs) {
         if k > 1 {
-            out = text::concat(out, String_from(";"))
+            out = out.concat(String_from(";"))
         }
         let f_seg = get_unchecked(f_segs, k)
         if struct_lit_param_index(params, clone(f_seg)) >= 0 {
-            out = text::concat(out, clone(get_unchecked(family, k - 1)))
+            out = out.concat(clone(get_unchecked(family, k - 1)))
         } else {
-            out = text::concat(out, f_seg)
+            out = out.concat(f_seg)
         }
         k = k + 1
     }
@@ -458,7 +435,7 @@ fn struct_lit_enum_head_matches(ft: String, vt: String) -> bool {
     }
     if starts_with(clone(ft), String_from("enum:")) {
         let want = substring(clone(ft), 5, len(ft))
-        return eq(clone(vt), text::concat(String_from("enum:"), want))
+        return eq(clone(vt), String_from("enum:").concat(want))
     }
     false
 }

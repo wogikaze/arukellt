@@ -21,18 +21,18 @@ fn ManifestParseState_new() -> ManifestParseState {
 
 fn stdlib_module_to_source_uri(module_path: String) -> String {
     let rel = replace(clone(module_path), String_from("::"), String_from("/"))
-    symbol_index_paths::file_path_to_uri(text::concat(rel, String_from(".ark")))
+    symbol_index_paths::file_path_to_uri(rel.concat(String_from(".ark")))
 }
 
 fn render_manifest_signature(name: String, params: String, returns: String) -> String {
-    let mut sig = text::concat(String_from("fn "), clone(name))
-    sig = text::builder_append(sig, String_from("("))
+    let mut sig = String_from("fn ").concat(clone(name))
+    sig = sig.concat(String_from("("))
     if len(params) > 0 {
-        sig = text::builder_append(sig, text::concat(String_from("s: "), params))
+        sig = sig.concat(String_from("s: ").concat(params))
     }
-    sig = text::builder_append(sig, String_from(")"))
+    sig = sig.concat(String_from(")"))
     if len(returns) > 0 {
-        sig = text::builder_append(sig, text::concat(String_from(" -> "), returns))
+        sig = sig.concat(String_from(" -> ").concat(returns))
     }
     sig
 }
@@ -43,7 +43,7 @@ fn push_function_symbol(out: Vec<symbol_index_record::StdlibIndexedSymbol>, name
 }
 
 fn push_type_symbol(out: Vec<symbol_index_record::StdlibIndexedSymbol>, name: String) {
-    let detail = text::concat(String_from("type "), clone(name))
+    let detail = String_from("type ").concat(clone(name))
     push(out, symbol_index_record::StdlibIndexedSymbol_new(name, kinds::LSP_SYMBOL_STRUCT(), detail, String_new(), String_new(), 0, len(detail), String_new()))
 }
 

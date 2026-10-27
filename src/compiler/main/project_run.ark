@@ -44,21 +44,21 @@ fn run_output_path(opts: CliOptions, input_file: String) -> String {
     if base_len > 4 {
         let ext = substring(base, base_len - 4, base_len)
         if eq(ext, ".ark") {
-            return text::concat(substring(base, 0, base_len - 4), ".wasm")
+            return substring(base, 0, base_len - 4).concat(".wasm")
         }
     }
-    text::concat(clone(base), ".wasm")
+    clone(base).concat(".wasm")
 }
 
 fn write_run_output(input_file: String, out_path: String, bytes: Vec<i32>) {
     let write_result = fs::write_bytes(clone(out_path), bytes)
     match write_result {
         Result::Ok(_) => {
-            stdio::eprintln(text::concat("compiled ", text::concat(clone(input_file), text::concat(" -> ", clone(out_path)))))
+            stdio::eprintln("compiled ".concat(clone(input_file).concat(" -> ".concat(clone(out_path)))))
             stdio::eprintln("run: execute with `wasmtime <output.wasm>`")
         },
         Result::Err(e) => {
-            stdio::eprintln(text::concat("error writing output: ", e))
+            stdio::eprintln("error writing output: ".concat(e))
             process::exit(1)
         },
     }
@@ -108,16 +108,16 @@ fn exit_test_failure() {
 }
 
 fn print_test_start(input_file: String) {
-    stdio::eprintln(text::concat("testing ", input_file))
+    stdio::eprintln("testing ".concat(input_file))
 }
 
 fn print_test_fail(input_file: String, result: CompileResult) {
-    stdio::println(text::concat("  FAIL  ", clone(input_file)))
+    stdio::println("  FAIL  ".concat(clone(input_file)))
     let err_count = result_record::compile_result_error_count(result)
     let mut i = 0
     while i < err_count {
         let msg = result_record::compile_result_error_message_at(result, i)
-        stdio::eprintln(text::concat("    ", clone(msg)))
+        stdio::eprintln("    ".concat(clone(msg)))
         i = i + 1
     }
 }
@@ -199,15 +199,15 @@ fn make_test_prefix(prefix: String, name: String) -> String {
     if len(clone(prefix)) == 0 {
         return name
     }
-    text::concat(prefix, text::concat("::", name))
+    prefix.concat("::".concat(name))
 }
 
 fn print_test_entry(prefix: String, name: String) {
     if len(clone(prefix)) == 0 {
-        stdio::eprintln(text::concat("  test  ", name))
+        stdio::eprintln("  test  ".concat(name))
         return
     }
-    stdio::eprintln(text::concat("  test  ", text::concat(prefix, text::concat("::", name))))
+    stdio::eprintln("  test  ".concat(prefix.concat("::".concat(name))))
 }
 
 // ADR-041 Phase 1: in-file test adoption should not fail on pre-existing stdlib lint.

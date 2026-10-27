@@ -7,7 +7,7 @@ fn main() -> i32 {
     }
     let mut i = 0
     while i < 16 {
-        let junk = text::concat(String_from("e"), String_from("r"))
+        let junk = String_from("e").concat(String_from("r"))
         let _n = len(junk)
         i = i + 1
     }

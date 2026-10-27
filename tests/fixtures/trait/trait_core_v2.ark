@@ -39,5 +39,5 @@ fn main() {
     let boxed = Boxed::make(7)
     let item = get_item(boxed)
     let typed = get_typed(Boxed::make(9))
-    stdio::println(text::concat((item).to_string(), (typed).to_string()))
+    stdio::println((item).to_string().concat((typed).to_string()))
 }

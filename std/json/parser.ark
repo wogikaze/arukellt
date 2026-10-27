@@ -41,7 +41,7 @@ pub fn json_stringify_bool(val: bool) -> String {
 /// Stringify a string by wrapping it in double quotes.
 /// NOTE: does not escape special characters — use `json_encode_string` instead.
 pub fn json_stringify_string(val: String) -> String {
-    text::concat("\"", text::concat(val, "\""))
+    "\"".concat(val.concat("\""))
 }
 
 /// Return the JSON null literal.
@@ -336,7 +336,7 @@ pub fn json_parse_step_next(step: JsonParseStep) -> i32 {
 pub fn parse_error_message(err: JsonParseError) -> String {
     match err {
         JsonParseError::EmptyInput => "empty input",
-        JsonParseError::InvalidLiteral(kind) => text::concat("invalid ", kind),
+        JsonParseError::InvalidLiteral(kind) => "invalid ".concat(kind),
         JsonParseError::TrailingCharacters => "trailing characters",
         JsonParseError::UnexpectedCharacter(_) => "unexpected character",
     }
@@ -521,12 +521,12 @@ fn stringify_array(items: Vec<JsonValue>) -> String {
     let mut i = 0
     while i < n {
         if i > 0 {
-            out = text::concat(out, ",")
+            out = out.concat(",")
         }
-        out = text::concat(out, stringify(get_unchecked(items, i)))
+        out = out.concat(stringify(get_unchecked(items, i)))
         i = i + 1
     }
-    text::concat(out, "]")
+    out.concat("]")
 }
 
 fn stringify_object(fields: Vec<JsonField>) -> String {
@@ -535,13 +535,13 @@ fn stringify_object(fields: Vec<JsonField>) -> String {
     let mut i = 0
     while i < n {
         if i > 0 {
-            out = text::concat(out, ",")
+            out = out.concat(",")
         }
         let f = get_unchecked(fields, i)
-        out = text::concat(out, text::concat(json_encode_string(f.key), text::concat(":", stringify(f.value))))
+        out = out.concat(json_encode_string(f.key).concat(":".concat(stringify(f.value))))
         i = i + 1
     }
-    text::concat(out, "}")
+    out.concat("}")
 }
 
 fn repeat_spaces(count: i32) -> String {
@@ -552,7 +552,7 @@ fn repeat_spaces(count: i32) -> String {
     let mut s = ""
     let mut i = 0
     while i < n {
-        s = text::concat(s, " ")
+        s = s.concat(" ")
         i = i + 1
     }
     s
@@ -587,13 +587,13 @@ fn stringify_array_pretty(items: Vec<JsonValue>, indent: i32, depth: i32) -> Str
     let mut i = 0
     while i < n {
         if i > 0 {
-            result = text::concat(result, ",\n")
+            result = result.concat(",\n")
         }
-        result = text::concat(result, child_pad)
-        result = text::concat(result, stringify_pretty_at(get_unchecked(items, i), indent, depth + 1))
+        result = result.concat(child_pad)
+        result = result.concat(stringify_pretty_at(get_unchecked(items, i), indent, depth + 1))
         i = i + 1
     }
-    text::concat(text::concat(text::concat(result, "\n"), close_pad), "]")
+    result.concat("\n").concat(close_pad).concat("]")
 }
 
 fn stringify_object_pretty(fields: Vec<JsonField>, indent: i32, depth: i32) -> String {
@@ -607,16 +607,16 @@ fn stringify_object_pretty(fields: Vec<JsonField>, indent: i32, depth: i32) -> S
     let mut i = 0
     while i < n {
         if i > 0 {
-            result = text::concat(result, ",\n")
+            result = result.concat(",\n")
         }
         let f = get_unchecked(fields, i)
-        result = text::concat(result, child_pad)
-        result = text::concat(result, json_encode_string(f.key))
-        result = text::concat(result, ": ")
-        result = text::concat(result, stringify_pretty_at(f.value, indent, depth + 1))
+        result = result.concat(child_pad)
+        result = result.concat(json_encode_string(f.key))
+        result = result.concat(": ")
+        result = result.concat(stringify_pretty_at(f.value, indent, depth + 1))
         i = i + 1
     }
-    text::concat(text::concat(text::concat(result, "\n"), close_pad), "}")
+    result.concat("\n").concat(close_pad).concat("}")
 }
 
 fn format_array_pretty(raw: String, indent: i32, depth: i32) -> String {
@@ -642,11 +642,11 @@ fn format_array_pretty(raw: String, indent: i32, depth: i32) -> String {
         match parse(slice(raw, i, elem_end)) {
             Result::Ok(elem) => {
                 if !first {
-                    result = text::concat(result, ",\n")
+                    result = result.concat(",\n")
                 }
                 first = false
-                result = text::concat(result, child_pad)
-                result = text::concat(result, stringify_pretty_at(elem, indent, depth + 1))
+                result = result.concat(child_pad)
+                result = result.concat(stringify_pretty_at(elem, indent, depth + 1))
                 i = skip_ws(raw, elem_end)
                 if i < n && byte_at(raw, i) == 44 {
                     i = i + 1
@@ -657,7 +657,7 @@ fn format_array_pretty(raw: String, indent: i32, depth: i32) -> String {
             },
         }
     }
-    text::concat(text::concat(text::concat(result, "\n"), close_pad), "]")
+    result.concat("\n").concat(close_pad).concat("]")
 }
 
 fn format_object_pretty(raw: String, indent: i32, depth: i32) -> String {
@@ -697,13 +697,13 @@ fn format_object_pretty(raw: String, indent: i32, depth: i32) -> String {
         match parse(slice(raw, val_start, val_end)) {
             Result::Ok(v) => {
                 if !first {
-                    result = text::concat(result, ",\n")
+                    result = result.concat(",\n")
                 }
                 first = false
-                result = text::concat(result, child_pad)
-                result = text::concat(result, key_raw)
-                result = text::concat(result, ": ")
-                result = text::concat(result, stringify_pretty_at(v, indent, depth + 1))
+                result = result.concat(child_pad)
+                result = result.concat(key_raw)
+                result = result.concat(": ")
+                result = result.concat(stringify_pretty_at(v, indent, depth + 1))
                 i = skip_ws(raw, val_end)
                 if i < n && byte_at(raw, i) == 44 {
                     i = i + 1
@@ -714,7 +714,7 @@ fn format_object_pretty(raw: String, indent: i32, depth: i32) -> String {
             },
         }
     }
-    text::concat(text::concat(text::concat(result, "\n"), close_pad), "}")
+    result.concat("\n").concat(close_pad).concat("}")
 }
 
 /// Serialize a `JsonValue` with newlines and indentation for arrays and objects.
@@ -926,42 +926,42 @@ fn json_decode_string(s: String) -> String {
         if c == 92 && i + 1 < n {
             let nxt = byte_at(s, i + 1)
             if nxt == 34 {
-                result = text::concat(result, "\"")
+                result = result.concat("\"")
                 i = i + 2
             } else {
                 if nxt == 92 {
-                    result = text::concat(result, "\\")
+                    result = result.concat("\\")
                     i = i + 2
                 } else {
                     if nxt == 110 {
-                        result = text::concat(result, "\n")
+                        result = result.concat("\n")
                         i = i + 2
                     } else {
                         if nxt == 116 {
-                            result = text::concat(result, "\t")
+                            result = result.concat("\t")
                             i = i + 2
                         } else {
                             if nxt == 114 {
-                                result = text::concat(result, "\r")
+                                result = result.concat("\r")
                                 i = i + 2
                             } else {
                                 if nxt == 98 {
-                                    result = text::concat(result, char_to_string(8))
+                                    result = result.concat(char_to_string(8))
                                     i = i + 2
                                 } else {
                                     if nxt == 102 {
-                                        result = text::concat(result, char_to_string(12))
+                                        result = result.concat(char_to_string(12))
                                         i = i + 2
                                     } else {
                                         if nxt == 47 {
-                                            result = text::concat(result, "/")
+                                            result = result.concat("/")
                                             i = i + 2
                                         } else {
                                             if nxt == 117 && i + 5 < n {
-                                                result = text::concat(result, json_decode_unicode_ascii(s, i + 1))
+                                                result = result.concat(json_decode_unicode_ascii(s, i + 1))
                                                 i = i + 6
                                             } else {
-                                                result = text::concat(result, slice(s, i + 1, i + 2))
+                                                result = result.concat(slice(s, i + 1, i + 2))
                                                 i = i + 2
                                             }
                                         }
@@ -973,7 +973,7 @@ fn json_decode_string(s: String) -> String {
                 }
             }
         } else {
-            result = text::concat(result, slice(s, i, i + 1))
+            result = result.concat(slice(s, i, i + 1))
             i = i + 1
         }
     }
@@ -993,31 +993,31 @@ pub fn json_encode_string(s: String) -> String {
     while i < n {
         let c = byte_at(s, i)
         if c == 34 {
-            result = text::concat(result, "\\\"")
+            result = result.concat("\\\"")
         } else {
             if c == 92 {
-                result = text::concat(result, "\\\\")
+                result = result.concat("\\\\")
             } else {
                 if c == 10 {
-                    result = text::concat(result, "\\n")
+                    result = result.concat("\\n")
                 } else {
                     if c == 13 {
-                        result = text::concat(result, "\\r")
+                        result = result.concat("\\r")
                     } else {
                         if c == 9 {
-                            result = text::concat(result, "\\t")
+                            result = result.concat("\\t")
                         } else {
                             if c == 8 {
-                                result = text::concat(result, "\\b")
+                                result = result.concat("\\b")
                             } else {
                                 if c == 12 {
-                                    result = text::concat(result, "\\f")
+                                    result = result.concat("\\f")
                                 } else {
                                     if c < 32 {
-                                        result = text::concat(result, "\\u00")
-                                        result = text::concat(result, json_hex_byte(c))
+                                        result = result.concat("\\u00")
+                                        result = result.concat(json_hex_byte(c))
                                     } else {
-                                        result = text::concat(result, slice(s, i, i + 1))
+                                        result = result.concat(slice(s, i, i + 1))
                                     }
                                 }
                             }
@@ -1028,7 +1028,7 @@ pub fn json_encode_string(s: String) -> String {
         }
         i = i + 1
     }
-    text::concat(result, "\"")
+    result.concat("\"")
 }
 
 // ─── Streaming parser utilities ──────────────────────────────────────────────

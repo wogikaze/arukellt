@@ -3,7 +3,7 @@ use std::text
 fn main() {
     let prefix = String_from("move:")
     let format = move |n: i32| -> String {
-        text::concat(prefix, n.to_string())
+        prefix.concat(n.to_string())
     }
     stdio::println(format(4))
 }

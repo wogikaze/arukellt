@@ -49,15 +49,8 @@ fn validate_hashmap_pair(env: TypeEnv, key_ty: TypeInfo, value_ty: TypeInfo) -> 
     }
     let key_name = hashmap_type_name(key_ty)
     let value_name = hashmap_type_name(value_ty)
-    let message = text::concat(
-        String_from("unsupported HashMap type pair: "),
-        text::concat(
-            key_name,
-            text::concat(
-                String_from(", "),
-                text::concat(value_name, String_from("; supported pairs are i32/String keys with i32, String, or fn(i32) -> i32 values"))
-            )
-        )
+    let message = String_from("unsupported HashMap type pair: ").concat(
+        key_name.concat(String_from(", ").concat(value_name.concat(String_from("; supported pairs are i32/String keys with i32, String, or fn(i32) -> i32 values"))))
     )
     unify::type_error(env, message)
     false

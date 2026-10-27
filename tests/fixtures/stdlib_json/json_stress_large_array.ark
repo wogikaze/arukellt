@@ -27,6 +27,6 @@ fn main() {
                 None => panic("expected element at 19"),
             }
         },
-        Result::Err(e) => panic(text::concat("parse large array failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse large array failed: ".concat(json::parse_error_message(e))),
     }
 }

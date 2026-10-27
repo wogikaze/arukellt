@@ -33,6 +33,6 @@ fn main() {
                 None => panic("expected key o"),
             }
         },
-        Result::Err(e) => panic(text::concat("parse all-types object failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse all-types object failed: ".concat(json::parse_error_message(e))),
     }
 }

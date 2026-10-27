@@ -105,7 +105,7 @@ fn core_op_registry_canonical_id_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = text::concat(out, substring(piece, local, local + take))
+        out = out.concat(substring(piece, local, local + take))
         i = i + take
     }
     return out
@@ -280,7 +280,7 @@ fn core_op_registry_target_id_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = text::concat(out, substring(piece, local, local + take))
+        out = out.concat(substring(piece, local, local + take))
         i = i + take
     }
     return out
@@ -382,7 +382,7 @@ fn core_op_registry_runtime_symbol_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = text::concat(out, substring(piece, local, local + take))
+        out = out.concat(substring(piece, local, local + take))
         i = i + take
     }
     return out
@@ -588,7 +588,7 @@ fn core_op_registry_mir_operation_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = text::concat(out, substring(piece, local, local + take))
+        out = out.concat(substring(piece, local, local + take))
         i = i + take
     }
     return out
@@ -706,7 +706,7 @@ fn core_op_registry_fallback_symbol_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = text::concat(out, substring(piece, local, local + take))
+        out = out.concat(substring(piece, local, local + take))
         i = i + take
     }
     return out

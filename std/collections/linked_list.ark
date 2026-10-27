@@ -699,7 +699,7 @@ impl<T: Eq> Eq for LinkedList<T> {
 
 impl<T: Debug> Debug for LinkedList<T> {
     fn fmt_debug(self: LinkedList<T>) -> String {
-        text::concat(String_from("LinkedList "), linked_list_debug_items(self))
+        String_from("LinkedList ").concat(linked_list_debug_items(self))
     }
 }
 
@@ -747,13 +747,13 @@ fn linked_list_debug_items<T: Debug>(list: LinkedList<T>) -> String {
     let mut first: bool = true
     while node != NIL {
         if !first {
-            out = text::concat(out, String_from(", "))
+            out = out.concat(String_from(", "))
         }
-        out = text::concat(out, (linked_list_value_at(list, node)).fmt_debug())
+        out = out.concat((linked_list_value_at(list, node)).fmt_debug())
         first = false
         node = get_unchecked(list.next_links, node)
     }
-    text::concat(out, String_from("]"))
+    out.concat(String_from("]"))
 }
 
 test mod "linked_list" {

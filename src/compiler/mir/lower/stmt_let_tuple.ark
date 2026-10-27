@@ -155,9 +155,9 @@ fn tuple_struct_name_from_byte_size(byte_size_str: String) -> String {
     let mut i = 0
     while i < field_count {
         if i > 0 {
-            name = text::concat(name, ",")
+            name = name.concat(",")
         }
-        name = text::concat(name, "i32")
+        name = name.concat("i32")
         i = i + 1
     }
     name

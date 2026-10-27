@@ -242,17 +242,9 @@ fn mir_report_weak_payload_scrutinee(ctx: LowerCtx, variant_name: String, payloa
     contains(function_identity::MirFunction_name(cur_fn), String_from("?")) {
         return
     }
-    let message = text::concat(
-        String_from("unsupported match on an untyped Option/Result scrutinee: cannot determine the payload type for `"),
-        text::concat(
-            clone(variant_name),
-            text::concat(
-                String_from("` in body `"),
-                text::concat(
-                    function_identity::MirFunction_name(cur_fn),
-                    String_from("` — annotate the scrutinee with a concrete type (e.g. `let x: Option<i32> = ...`)")
-                )
-            )
+    let message = String_from("unsupported match on an untyped Option/Result scrutinee: cannot determine the payload type for `").concat(
+        clone(variant_name).concat(
+            String_from("` in body `").concat(function_identity::MirFunction_name(cur_fn).concat(String_from("` — annotate the scrutinee with a concrete type (e.g. `let x: Option<i32> = ...`)")))
         )
     )
     let m = ctx_api_module::ctx_current_module(ctx)

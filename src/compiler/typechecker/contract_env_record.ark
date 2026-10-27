@@ -145,7 +145,7 @@ fn type_env_finalize_unused_bindings(env: TypeEnv) {
             let name = clone(get_unchecked(env.tracked_binding_names, i))
             let span_start = get_unchecked(env.tracked_binding_spans_start, i)
             let span_end = get_unchecked(env.tracked_binding_spans_end, i)
-            let msg = text::concat("unused binding `", text::concat(name, "`"))
+            let msg = "unused binding `".concat(name.concat("`"))
             let span = record::DiagnosticSpan_from_raw(span_start, span_end)
             let warn = diag_mod::Diagnostic_new(codes::DIAG_WARN_UNUSED_BINDING(), diag_mod::SEV_WARNING(), span, msg)
             push(env.warnings, warn)

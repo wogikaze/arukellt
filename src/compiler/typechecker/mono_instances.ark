@@ -41,7 +41,7 @@ fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeI
     let mut i = 0
     while i < count {
         let ty = get_unchecked(resolved_types, i)
-        mangled = text::builder_append(mangled, text::concat("__", mono_key::mono_type_key(ty)))
+        mangled = mangled.concat("__".concat(mono_key::mono_type_key(ty)))
         i = i + 1
     }
     record_template_site_if_generic(env, clone(fn_name), clone(mangled), clone(resolved_types))
@@ -129,7 +129,7 @@ fn record_var_method_site(env: TypeEnv, method_name: String, recv_ty: TypeInfo) 
         return
     }
     let mut mangled = clone(method_name)
-    mangled = text::builder_append(mangled, text::concat(String_from("__"), mono_key::mono_type_key(clone(recv_ty))))
+    mangled = mangled.concat(String_from("__").concat(mono_key::mono_type_key(clone(recv_ty))))
     let site_count = len(env.mono_template_sites)
     let mut s = 0
     while s < site_count {
@@ -213,7 +213,7 @@ fn erase_impl_owner_args(name: String) -> String {
     if gt < 0 {
         return name
     }
-    text::concat(substring(name, 0, lt), substring(name, gt + 1, n))
+    substring(name, 0, lt).concat(substring(name, gt + 1, n))
 }
 
 // `enclosing_fn` stores FnSig_name of the body being checked: bare decl
@@ -433,10 +433,7 @@ fn mint_trait_method_instance(env: TypeEnv, entry: TraitMethodEntry, method_name
                 i = i + 1
                 continue
             }
-            let method_fn = text::concat(
-                clone(owner_name),
-                text::concat(String_from("::"), clone(method_name))
-            )
+            let method_fn = clone(owner_name).concat(String_from("::").concat(clone(method_name)))
             // Only impl-defined methods have a body to monomorphize;
             // trait defaults live under the trait's own owner name and
             // would record a phantom instance here.

@@ -19,6 +19,6 @@ fn main() {
                 None => panic("expected element 2"),
             }
         },
-        Result::Err(e) => panic(text::concat("parse string array failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse string array failed: ".concat(json::parse_error_message(e))),
     }
 }

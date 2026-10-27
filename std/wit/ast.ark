@@ -385,9 +385,9 @@ fn wit_import_serialized_string_list(values: Vec<String>) -> String {
     let mut out = String_new()
     for i in 0..len(values) {
         if i > 0 {
-            out = text::concat(out, String_from("~"))
+            out = out.concat(String_from("~"))
         }
-        out = text::concat(out, clone(get_unchecked(values, i)))
+        out = out.concat(clone(get_unchecked(values, i)))
     }
     out
 }
@@ -396,9 +396,9 @@ fn wit_import_serialized_param_types(params: Vec<types::WitParam>) -> String {
     let mut out = String_new()
     for i in 0..len(params) {
         if i > 0 {
-            out = text::concat(out, String_from("~"))
+            out = out.concat(String_from("~"))
         }
-        out = text::concat(out, get_unchecked(params, i).ty.wit_text())
+        out = out.concat(get_unchecked(params, i).ty.wit_text())
     }
     out
 }
@@ -415,9 +415,9 @@ fn wit_import_serialized_field_types(fields: Vec<types::WitField>) -> String {
     let mut out = String_new()
     for i in 0..len(fields) {
         if i > 0 {
-            out = text::concat(out, String_from("~"))
+            out = out.concat(String_from("~"))
         }
-        out = text::concat(out, get_unchecked(fields, i).ty.wit_text())
+        out = out.concat(get_unchecked(fields, i).ty.wit_text())
     }
     out
 }
@@ -438,25 +438,25 @@ fn wit_import_serialized_variant_payloads(cases: Vec<types::WitVariantCase>) -> 
     let mut out = String_new()
     for i in 0..len(cases) {
         if i > 0 {
-            out = text::concat(out, String_from("~"))
+            out = out.concat(String_from("~"))
         }
         let case_ty: Option<types::WitType> = get_unchecked(cases, i).ty
         let payload = match case_ty {
             Option::Some(ty) => ty.wit_text(),
             Option::None => String_new(),
         }
-        out = text::concat(out, payload)
+        out = out.concat(payload)
     }
     out
 }
 
 fn wit_import_serialized_entry(kind: String, name: String, first: String, second: String) -> String {
-    let mut entry = text::concat(String_from(";"), text::concat(kind, String_from("|")))
-    entry = text::concat(entry, name)
-    entry = text::concat(entry, String_from("|"))
-    entry = text::concat(entry, first)
-    entry = text::concat(entry, String_from("|"))
-    text::concat(entry, text::concat(second, String_from(";")))
+    let mut entry = String_from(";").concat(kind.concat(String_from("|")))
+    entry = entry.concat(name)
+    entry = entry.concat(String_from("|"))
+    entry = entry.concat(first)
+    entry = entry.concat(String_from("|"))
+    entry.concat(second.concat(String_from(";")))
 }
 
 /// Parse a canonical WIT document and seal its import metadata inside the
@@ -470,11 +470,11 @@ pub fn parse_import_text(source: String) -> String {
 fn wit_import_serialized_interface(package: String, name: String, items: Vec<WitNode>) -> String {
     let package_name = wit_import_package_name(clone(package))
     let package_version = wit_import_package_version(package)
-    let mut out = text::concat(String_from("header|"), package_name)
-    out = text::concat(out, String_from("|"))
-    out = text::concat(out, package_version)
-    out = text::concat(out, String_from("|"))
-    out = text::concat(out, text::concat(name, String_from(";")))
+    let mut out = String_from("header|").concat(package_name)
+    out = out.concat(String_from("|"))
+    out = out.concat(package_version)
+    out = out.concat(String_from("|"))
+    out = out.concat(name.concat(String_from(";")))
     for i in 0..len(items) {
         match get_unchecked(items, i) {
             WitNode::Func(func_name, params, result) => {
@@ -483,7 +483,7 @@ fn wit_import_serialized_interface(package: String, name: String, items: Vec<Wit
                     Option::Some(ty) => ty.wit_text(),
                     Option::None => String_new(),
                 }
-                out = text::concat(out, wit_import_serialized_entry(
+                out = out.concat(wit_import_serialized_entry(
                         String_from("func"),
                         func_name,
                         wit_import_serialized_param_types(params),
@@ -491,7 +491,7 @@ fn wit_import_serialized_interface(package: String, name: String, items: Vec<Wit
                     ))
             },
             WitNode::Record(record_name, fields) => {
-                out = text::concat(out, wit_import_serialized_entry(
+                out = out.concat(wit_import_serialized_entry(
                         String_from("record"),
                         record_name,
                         wit_import_serialized_field_names(fields),
@@ -499,7 +499,7 @@ fn wit_import_serialized_interface(package: String, name: String, items: Vec<Wit
                     ))
             },
             WitNode::Enum(enum_name, variants) => {
-                out = text::concat(out, wit_import_serialized_entry(
+                out = out.concat(wit_import_serialized_entry(
                         String_from("enum"),
                         enum_name,
                         wit_import_serialized_enum_variants(variants),
@@ -507,7 +507,7 @@ fn wit_import_serialized_interface(package: String, name: String, items: Vec<Wit
                     ))
             },
             WitNode::Variant(variant_name, cases) => {
-                out = text::concat(out, wit_import_serialized_entry(
+                out = out.concat(wit_import_serialized_entry(
                         String_from("variant"),
                         variant_name,
                         wit_import_serialized_variant_names(cases),
@@ -772,7 +772,7 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
             if i < n && byte_at(s, i) == 62 {
                 i = i + 1
             }
-            return (types::WitType::Resource(text::concat("own<", text::concat(inner.wit_text(), ">"))), i)
+            return (types::WitType::Resource("own<".concat(inner.wit_text().concat(">"))), i)
         }
         return (types::WitType::Resource(String_new()), i)
     }
@@ -784,7 +784,7 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
             if i < n && byte_at(s, i) == 62 {
                 i = i + 1
             }
-            return (types::WitType::Resource(text::concat("borrow<", text::concat(inner.wit_text(), ">"))), i)
+            return (types::WitType::Resource("borrow<".concat(inner.wit_text().concat(">"))), i)
         }
         return (types::WitType::Resource(String_new()), i)
     }
@@ -796,22 +796,22 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
         }
         let (first, p7) = p_type(s, i + 1)
         i = p_skip_ws_comments(s, p7)
-        let mut rendered = text::concat(constructor, "<")
-        rendered = text::concat(rendered, first.wit_text())
+        let mut rendered = constructor.concat("<")
+        rendered = rendered.concat(first.wit_text())
         if i < n && byte_at(s, i) == 44 {
             let (second, p8) = p_type(s, i + 1)
-            rendered = text::concat(rendered, text::concat(", ", second.wit_text()))
+            rendered = rendered.concat(", ".concat(second.wit_text()))
             i = p_skip_ws_comments(s, p8)
         }
         if i < n && byte_at(s, i) == 62 {
             i = i + 1
         }
-        return (types::WitType::Resource(text::concat(rendered, ">")), i)
+        return (types::WitType::Resource(rendered.concat(">")), i)
     }
     // Preserve package-qualified type references for the resolver.
     if i < n && byte_at(s, i) == 58 {
         let (suffix, p9) = p_path(s, i)
-        return (types::WitType::Resource(text::concat(word, suffix)), p9)
+        return (types::WitType::Resource(word.concat(suffix)), p9)
     }
     let fallback_type = p_type_name(word)
     return (fallback_type, i)
@@ -1165,7 +1165,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         return (func_node, func_pos)
     }
     // Skip unknown token
-    let error = WitNode::Error(text::concat(String_from("unknown declaration: "), kw))
+    let error = WitNode::Error(String_from("unknown declaration: ").concat(kw))
     return (error, p1)
 }
 

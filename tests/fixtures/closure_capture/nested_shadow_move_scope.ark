@@ -5,7 +5,7 @@ fn main() {
     let outer = || {
         let source = String_from("inner:")
         let inner = move || {
-            text::concat(source, "!")
+            source.concat("!")
         }
         inner()
     }

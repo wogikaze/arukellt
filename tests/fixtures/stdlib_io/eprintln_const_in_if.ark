@@ -7,7 +7,7 @@ use std::text
 fn maybe_dump(flag: bool, n: i32) {
     if flag {
         stdio::eprintln(String_from("=== WASM ==="))
-        stdio::eprintln(text::concat(String_from("output size: "), text::concat(to_string(n), String_from(" bytes"))))
+        stdio::eprintln(String_from("output size: ").concat(to_string(n).concat(String_from(" bytes"))))
     }
 }
 

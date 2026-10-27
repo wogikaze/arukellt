@@ -62,12 +62,12 @@ fn format_preds(preds: Vec<i32>) -> String {
     let mut i = 0
     while i < count {
         if i > 0 {
-            out = text::concat(out, String_from(","))
+            out = out.concat(String_from(","))
         }
-        out = text::concat(out, to_string(get_unchecked(preds, i)))
+        out = out.concat(to_string(get_unchecked(preds, i)))
         i = i + 1
     }
-    text::concat(out, String_from("]"))
+    out.concat(String_from("]"))
 }
 
 fn main() {
@@ -87,7 +87,7 @@ fn main() {
     let mut i = 0
     while i < len(blocks) {
         let block = get_unchecked(blocks, i)
-        stdio::println(text::concat(text::concat(String_from("bb"), to_string(i)), text::concat(String_from(" preds="), format_preds(block.preds))))
+        stdio::println(String_from("bb").concat(to_string(i)).concat(String_from(" preds=").concat(format_preds(block.preds))))
         i = i + 1
     }
 }

@@ -6,7 +6,7 @@ use std::host::stdio
 use std::prelude::{clone}
 use std::text
 fn line_for(i: i32) -> String {
-    text::concat(text::concat(text::concat("record:", (i).to_string()), ":payload:abcdefghijklmnopqrstuvwxyz0123456789"), "\n")
+    "record:".concat((i).to_string()).concat(":payload:abcdefghijklmnopqrstuvwxyz0123456789").concat("\n")
 }
 
 fn main() {
@@ -14,7 +14,7 @@ fn main() {
     let mut data = String_new()
     let mut i: i32 = 0
     while i < 200 {
-        data = text::concat(data, line_for(i))
+        data = data.concat(line_for(i))
         i = i + 1
     }
 
@@ -25,7 +25,7 @@ fn main() {
         match write_result {
             Result::Ok(_) => {},
             Result::Err(e) => {
-                stdio::println(text::concat("write error: ", e))
+                stdio::println("write error: ".concat(e))
                 return
             },
         }
@@ -36,7 +36,7 @@ fn main() {
                 checksum = checksum + len(contents)
             },
             Result::Err(e) => {
-                stdio::println(text::concat("read error: ", e))
+                stdio::println("read error: ".concat(e))
                 return
             },
         }

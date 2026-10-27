@@ -37,9 +37,7 @@ pub fn parse_block(p: Parser) -> AstNode {
         if term != tokens::TK_NEWLINE() && term != tokens::TK_SEMI() &&
         term != tokens::TK_RBRACE() && term != tokens::TK_EOF() &&
         prev != tokens::TK_NEWLINE() && prev != tokens::TK_SEMI() {
-            core_api_expect::error(p, text::concat(
-                    "unexpected token after statement (expected newline or `;`): ",
-                    peek_text(p)))
+            core_api_expect::error(p, "unexpected token after statement (expected newline or `;`): ".concat(peek_text(p)))
         }
         skip_newlines(p)
     }

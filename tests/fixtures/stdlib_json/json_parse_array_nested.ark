@@ -28,6 +28,6 @@ fn main() {
                 None => panic("expected outer element 1"),
             }
         },
-        Result::Err(e) => panic(text::concat("parse nested array failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse nested array failed: ".concat(json::parse_error_message(e))),
     }
 }

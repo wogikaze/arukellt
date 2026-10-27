@@ -157,7 +157,7 @@ fn core_op_binding_callee_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = text::concat(out, substring(piece, local, local + take))
+        out = out.concat(substring(piece, local, local + take))
         i = i + take
     }
     return out
@@ -299,7 +299,7 @@ fn core_op_binding_core_op_id_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = text::concat(out, substring(piece, local, local + take))
+        out = out.concat(substring(piece, local, local + take))
         i = i + take
     }
     return out

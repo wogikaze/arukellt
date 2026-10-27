@@ -31,7 +31,7 @@ fn parse_type(p: Parser) -> AstNode {
     if type_token_predicates::is_fn_start(kind) {
         return parse_fn_type(p, t)
     }
-    core_api_expect::error(p, text::concat("expected type, got ", to_string(kind)))
+    core_api_expect::error(p, "expected type, got ".concat(to_string(kind)))
     core_ast_factory::AstNode_leaf(kinds::NK_TYPE_NAMED(), "_error", core_api_expect::tok_span(t))
 }
 
@@ -48,7 +48,7 @@ fn parse_dyn_type(p: Parser, dyn_token: Token) -> AstNode {
     )
     core_ast_text_fields::AstNode_set_text(
         node,
-        text::concat("dyn ", core_ast_text_fields::AstNode_text(trait_ty))
+        "dyn ".concat(core_ast_text_fields::AstNode_text(trait_ty))
     )
     node
 }
@@ -59,7 +59,7 @@ fn parse_named_type(p: Parser, t: Token) -> AstNode {
     while type_token_predicates::is_path_sep(core_api_cursor::peek_kind(p)) {
         p.pos = p.pos + 1
         let seg = type_token_expect::expect_ident(p)
-        type_name = text::builder_append(type_name, text::concat("::", token_state::Token_text(seg)))
+        type_name = type_name.concat("::".concat(token_state::Token_text(seg)))
     }
     core_ast_factory::AstNode_leaf(kinds::NK_TYPE_NAMED(), clone(type_name), core_api_expect::tok_span(t))
 }

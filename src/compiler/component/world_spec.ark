@@ -19,14 +19,14 @@ fn world_spec_world_name(world: String) -> String {
 fn world_spec_parse_error(world: String) -> String {
     if len(world) == 0 { return String_new() }
     if world_spec_kind(clone(world)) != constants_world_spec::WORLD_KIND_NONE() { return String_new() }
-    text::concat("unknown world `", text::concat(clone(world), "` (supported: wasi:cli/command)"))
+    "unknown world `".concat(clone(world).concat("` (supported: wasi:cli/command)"))
 }
 
 fn world_spec_emit_use_block(world: String) -> String {
     let kind = world_spec_kind(clone(world))
     let mut out = String_new()
     if kind == constants_world_spec::WORLD_KIND_CLI_COMMAND() {
-        out = text::builder_append(out, world_spec_wasi_imports())
+        out = out.concat(world_spec_wasi_imports())
         return out
     }
     world_spec_wasi_imports()
@@ -37,18 +37,18 @@ fn world_spec_wasi_imports() -> String {
     // module. Keeping these imports in the WIT world lets wasm-tools perform
     // the official P2 lift without a repository-owned adapter.
     let mut out = "    import wasi:cli/environment@0.2.0;\n"
-    out = text::builder_append(out, "    import wasi:cli/exit@0.2.0;\n")
-    out = text::builder_append(out, "    import wasi:io/error@0.2.0;\n")
-    out = text::builder_append(out, "    import wasi:io/streams@0.2.0;\n")
-    out = text::builder_append(out, "    import wasi:cli/stdin@0.2.0;\n")
-    out = text::builder_append(out, "    import wasi:cli/stdout@0.2.0;\n")
-    out = text::builder_append(out, "    import wasi:cli/stderr@0.2.0;\n")
-    out = text::builder_append(out, "    import wasi:clocks/monotonic-clock@0.2.0;\n")
-    out = text::builder_append(out, "    import wasi:clocks/wall-clock@0.2.0;\n")
-    out = text::builder_append(out, "    import wasi:filesystem/types@0.2.0;\n")
-    out = text::builder_append(out, "    import wasi:filesystem/preopens@0.2.0;\n")
-    out = text::builder_append(out, "    import wasi:random/random@0.2.0;\n")
-    text::builder_append(out, "\n")
+    out = out.concat("    import wasi:cli/exit@0.2.0;\n")
+    out = out.concat("    import wasi:io/error@0.2.0;\n")
+    out = out.concat("    import wasi:io/streams@0.2.0;\n")
+    out = out.concat("    import wasi:cli/stdin@0.2.0;\n")
+    out = out.concat("    import wasi:cli/stdout@0.2.0;\n")
+    out = out.concat("    import wasi:cli/stderr@0.2.0;\n")
+    out = out.concat("    import wasi:clocks/monotonic-clock@0.2.0;\n")
+    out = out.concat("    import wasi:clocks/wall-clock@0.2.0;\n")
+    out = out.concat("    import wasi:filesystem/types@0.2.0;\n")
+    out = out.concat("    import wasi:filesystem/preopens@0.2.0;\n")
+    out = out.concat("    import wasi:random/random@0.2.0;\n")
+    out.concat("\n")
 }
 
 fn world_target_error(world: String, target: String, emit_mode: String) -> String {

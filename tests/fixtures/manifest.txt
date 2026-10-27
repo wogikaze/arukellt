@@ -243,6 +243,8 @@ diag:diagnostics/deprecated_seq_sum_i32_wasm32.ark
 diag:diagnostics/deprecated_numeric_conversion.ark
 diag:diagnostics/deprecated_numeric_conversion_wasm32.ark
 diag:diagnostics/deprecated_vec_intrinsic.ark
+diag:diagnostics/deprecated_text_qualified.ark
+diag:diagnostics/deprecated_text_qualified_wasm32.ark
 diag:diagnostics/deprecated_vec_intrinsic_wasm32.ark
 diag:diagnostics/deprecated_assertion_free.ark
 diag:diagnostics/deprecated_assertion_free_wasm32.ark

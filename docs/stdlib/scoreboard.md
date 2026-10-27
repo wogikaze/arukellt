@@ -27,7 +27,7 @@
 | `std::host::process` | 3 | 3 | 0 | 0 | 0 | 3/3 (100%) | yes |
 | `std::host::random` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
 | `std::host::stdio` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
-| `std::io` | 20 | 5 | 0 | 0 | 15 | 4/5 (80%) | no |
+| `std::io` | 7 | 5 | 0 | 0 | 2 | 4/5 (80%) | no |
 | `std::json` | 32 | 0 | 0 | 32 | 0 | 27/32 (84%) | no |
 | `std::path` | 9 | 9 | 0 | 0 | 0 | 9/9 (100%) | no |
 | `std::process` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | no |
@@ -46,13 +46,12 @@
 | `std::simd::u8x16` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::simd::v128` | 7 | 0 | 0 | 7 | 0 | 4/7 (57%) | no |
 | `std::test` | 18 | 17 | 0 | 1 | 0 | 18/18 (100%) | no |
-| `std::text` | 39 | 36 | 0 | 3 | 0 | 39/39 (100%) | no |
-| `std::text::rope` | 8 | 0 | 0 | 8 | 0 | 8/8 (100%) | no |
+| `std::text` | 36 | 0 | 0 | 0 | 36 | 0/0 (—) | no |
 | `std::time` | 3 | 3 | 0 | 0 | 0 | 2/3 (67%) | no |
 | `std::toml` | 14 | 0 | 0 | 14 | 0 | 12/14 (86%) | no |
 | `std::wasm` | 77 | 0 | 0 | 77 | 0 | **35/77 (45%)** | no |
 
-**Total**: 685 APIs, 287 stable, 19 provisional, 298 experimental, 81 deprecated, 529/604 (88%) fixture coverage
+**Total**: 661 APIs, 251 stable, 19 provisional, 287 experimental, 104 deprecated, 482/557 (87%) fixture coverage
 
 ## Legend
 

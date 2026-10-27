@@ -191,7 +191,7 @@ fn gc_enum_build_payload_field_sigs_for_type(ctx: LowerCtx, variant_name: String
                 if fi == 1 {
                     payload_ft = clone(raw_ft)
                 }
-                row_sig = text::builder_append(row_sig, ctx_gc_enum_sig::gc_enum_field_sig_for_type_ctx(ctx, clone(ft)))
+                row_sig = row_sig.concat(ctx_gc_enum_sig::gc_enum_field_sig_for_type_ctx(ctx, clone(ft)))
                 fi = fi + 1
             }
             if len(first_sig) == 0 {

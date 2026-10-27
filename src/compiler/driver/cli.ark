@@ -14,7 +14,7 @@ fn write_legacy_compile_result(output_path: String, result: CompileResult) {
             Result::Ok(_) => {
             },
             Result::Err(e) => {
-                stdio::eprintln(text::concat("error writing output: ", e))
+                stdio::eprintln("error writing output: ".concat(e))
                 process::exit(1)
             },
         }
@@ -23,7 +23,7 @@ fn write_legacy_compile_result(output_path: String, result: CompileResult) {
         let mut j = 0
         while j < err_count {
             let msg = result_record::compile_result_error_message_at(result, j)
-            stdio::eprintln(text::concat("error: ", clone(msg)))
+            stdio::eprintln("error: ".concat(clone(msg)))
             j = j + 1
         }
         process::exit(1)
@@ -40,7 +40,7 @@ fn main() {
     }
     let subcommand = get_unchecked(args, arg_start)
     if !eq(clone(subcommand), "compile") {
-        stdio::eprintln(text::concat("unknown subcommand: ", clone(subcommand)))
+        stdio::eprintln("unknown subcommand: ".concat(clone(subcommand)))
         process::exit(1)
     }
     let config = config_record::DriverConfig_default()

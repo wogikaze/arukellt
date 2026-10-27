@@ -18,10 +18,10 @@ fn main() {
     let mut steps = 0
     while !hash::hashmap_contains(visited, node) && steps < 10 {
         hash::hashmap_set(visited, node, 1)
-        out = text::concat(out, text::concat((node).to_string(), String_from(" ")))
+        out = out.concat((node).to_string().concat(String_from(" ")))
         node = hash::hashmap_get(next, node)
         steps = steps + 1
     }
     stdio::println(out)
-    stdio::println(text::concat(String_from("cycle at "), (node).to_string()))
+    stdio::println(String_from("cycle at ").concat((node).to_string()))
 }

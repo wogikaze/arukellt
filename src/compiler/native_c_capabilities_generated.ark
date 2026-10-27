@@ -206,7 +206,7 @@ fn native_c_capability_opcode_name(op: i32) -> String {
     if op == opcodes::MIR_REF_FUNC() {
         return "MIR_REF_FUNC"
     }
-    text::concat("MIR_OPCODE_", (op).to_string())
+    "MIR_OPCODE_".concat((op).to_string())
 }
 
 fn native_c_capability_status_detail(op: i32) -> String {
@@ -599,7 +599,7 @@ fn native_c_core_capability_status_row_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = text::concat(out, substring(piece, local, local + take))
+        out = out.concat(substring(piece, local, local + take))
         i = i + take
     }
     return out

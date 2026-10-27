@@ -49,9 +49,9 @@ fn wit_borrow_inner_name(text: String) -> String {
 }
 
 fn wit_own_type_text(resource_name: String) -> String {
-    text::concat("own<", text::concat(resource_name, ">"))
+    "own<".concat(resource_name.concat(">"))
 }
 
 fn wit_borrow_type_text(resource_name: String) -> String {
-    text::concat("borrow<", text::concat(resource_name, ">"))
+    "borrow<".concat(resource_name.concat(">"))
 }

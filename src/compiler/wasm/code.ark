@@ -55,21 +55,8 @@ fn emit_slow_fn_note(enabled: i32, idx: i32, f: MirFunction, t_start: i64) -> bo
         return false
     }
     stdio::eprintln(
-        text::concat(
-            "[arukellt] emit.slow_fn: idx=",
-            text::concat(
-                to_string(idx),
-                text::concat(
-                    " insts=",
-                    text::concat(
-                        to_string(emit_function_inst_count(f)),
-                        text::concat(
-                            " ms=",
-                            text::concat(to_string(ms), text::concat(" ", function_identity::MirFunction_name(f)))
-                        )
-                    )
-                )
-            )
+        "[arukellt] emit.slow_fn: idx=".concat(
+            to_string(idx).concat(" insts=".concat(to_string(emit_function_inst_count(f)).concat(" ms=".concat(to_string(ms).concat(" ".concat(function_identity::MirFunction_name(f)))))))
         )
     )
     true

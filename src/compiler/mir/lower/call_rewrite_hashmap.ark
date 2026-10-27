@@ -94,9 +94,9 @@ fn hashmap_family_method_target(family: String, method: String) -> String {
         return hashmap_i32_i32_method_target(method)
     }
     if eq(clone(method), String_from("contains_key")) {
-        return text::concat(clone(family), String_from("_contains"))
+        return clone(family).concat(String_from("_contains"))
     }
-    text::concat(clone(family), text::concat(String_from("_"), method))
+    clone(family).concat(String_from("_").concat(method))
 }
 
 fn mir_hashmap_target_is_adapter(callee_name: String) -> bool {
@@ -109,13 +109,10 @@ fn mir_hashmap_target_is_adapter(callee_name: String) -> bool {
 }
 
 fn hashmap_constructor_matches(callee_name: String, key_name: String, value_name: String) -> bool {
-    let suffix = text::concat(
-        String_from("__"),
-        text::concat(key_name, text::concat(String_from("__"), value_name))
-    )
-    let safe_prefix = text::concat(String_from("HashMap__new"), suffix)
-    let source_prefix = text::concat(String_from("HashMap::new"), suffix)
-    let legacy_safe_prefix = text::concat(String_from("HashMap_new"), suffix)
+    let suffix = String_from("__").concat(key_name.concat(String_from("__").concat(value_name)))
+    let safe_prefix = String_from("HashMap__new").concat(suffix)
+    let source_prefix = String_from("HashMap::new").concat(suffix)
+    let legacy_safe_prefix = String_from("HashMap_new").concat(suffix)
     eq(clone(callee_name), safe_prefix) ||
     eq(clone(callee_name), source_prefix) ||
     eq(clone(callee_name), legacy_safe_prefix) ||
@@ -128,15 +125,12 @@ fn hashmap_constructor_matches_sig(callee_name: String, key_name: String, value_
     if !eq(clone(value_name), String_from("fn")) {
         return false
     }
-    let suffix = text::concat(
-        String_from("__"),
-        text::concat(key_name, String_from("__fn_i32_i32_"))
-    )
+    let suffix = String_from("__").concat(key_name.concat(String_from("__fn_i32_i32_")))
     // The incoming name may still carry the raw fn<i32,i32> spelling or the
     // HashMap:: prefix; normalize once so every variant compares equal.
     let safe = mono_names::mono_safe_name(callee_name)
-    eq(clone(safe), text::concat(String_from("HashMap__new"), clone(suffix))) ||
-    eq(clone(safe), text::concat(String_from("HashMap_new"), suffix))
+    eq(clone(safe), String_from("HashMap__new").concat(clone(suffix))) ||
+    eq(clone(safe), String_from("HashMap_new").concat(suffix))
 }
 
 fn hashmap_method_name(callee_name: String) -> String {
@@ -222,7 +216,7 @@ fn hashmap_pair_alias_for_type_name(type_name: String) -> String {
     if len(key) == 0 || len(val) == 0 {
         return type_name
     }
-    text::concat(String_from("hashmap:"), text::concat(key, val))
+    String_from("hashmap:").concat(key.concat(val))
 }
 
 // Index of the comma separating the two HashMap type arguments, skipping

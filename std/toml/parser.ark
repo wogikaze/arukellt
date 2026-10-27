@@ -179,43 +179,43 @@ fn toml_decode_basic_content(s: String) -> String {
         if c == 92 && i + 1 < n {
             let nxt = byte_at(s, i + 1)
             if nxt == 34 {
-                result = text::concat(result, "\"")
+                result = result.concat("\"")
                 i = i + 2
             } else {
                 if nxt == 92 {
-                    result = text::concat(result, "\\")
+                    result = result.concat("\\")
                     i = i + 2
                 } else {
                     if nxt == 110 {
-                        result = text::concat(result, "\n")
+                        result = result.concat("\n")
                         i = i + 2
                     } else {
                         if nxt == 116 {
-                            result = text::concat(result, "\t")
+                            result = result.concat("\t")
                             i = i + 2
                         } else {
                             if nxt == 114 {
-                                result = text::concat(result, "\r")
+                                result = result.concat("\r")
                                 i = i + 2
                             } else {
                                 if nxt == 98 {
-                                    result = text::concat(result, char_to_string(8))
+                                    result = result.concat(char_to_string(8))
                                     i = i + 2
                                 } else {
                                     if nxt == 102 {
-                                        result = text::concat(result, char_to_string(12))
+                                        result = result.concat(char_to_string(12))
                                         i = i + 2
                                     } else {
                                         if nxt == 117 {
-                                            result = text::concat(result, toml_decode_unicode(s, i + 1, 4))
+                                            result = result.concat(toml_decode_unicode(s, i + 1, 4))
                                             i = i + 6
                                         } else {
                                             if nxt == 85 {
-                                                result = text::concat(result, toml_decode_unicode(s, i + 1, 8))
+                                                result = result.concat(toml_decode_unicode(s, i + 1, 8))
                                                 i = i + 10
                                             } else {
                                                 // Unknown escape: keep the escaped char literally.
-                                                result = text::concat(result, slice(s, i + 1, i + 2))
+                                                result = result.concat(slice(s, i + 1, i + 2))
                                                 i = i + 2
                                             }
                                         }
@@ -227,7 +227,7 @@ fn toml_decode_basic_content(s: String) -> String {
                 }
             }
         } else {
-            result = text::concat(result, slice(s, i, i + 1))
+            result = result.concat(slice(s, i, i + 1))
             i = i + 1
         }
     }
@@ -371,7 +371,7 @@ fn toml_strip_underscores(s: String) -> String {
     while i < n {
         let c = byte_at(s, i)
         if c != 95 {
-            out = text::concat(out, slice(s, i, i + 1))
+            out = out.concat(slice(s, i, i + 1))
         }
         i = i + 1
     }
@@ -521,7 +521,7 @@ fn toml_parse_number_or_datetime_at(s: String, pos: i32) -> TomlValStep {
         }
         match toml_parse_float_token(core) {
             Result::Ok(f) => return TomlValStep_ok(TomlValue::Float(f), end),
-            Result::Err(e) => return TomlValStep_err(text::concat("invalid float: ", e), pos),
+            Result::Err(e) => return TomlValStep_err("invalid float: ".concat(e), pos),
         }
     }
     // Decimal integer.
@@ -532,7 +532,7 @@ fn toml_parse_number_or_datetime_at(s: String, pos: i32) -> TomlValStep {
     }
     match parse_i64(core) {
         Result::Ok(v) => return TomlValStep_ok(TomlValue::Integer(v), end),
-        Result::Err(e) => return TomlValStep_err(text::concat("invalid integer: ", e), pos),
+        Result::Err(e) => return TomlValStep_err("invalid integer: ".concat(e), pos),
     }
 }
 
@@ -780,7 +780,7 @@ fn toml_navigate_table_count(root: Vec<TomlField>, path: Vec<String>, count: i32
                         _ => return Err("array element is not a table"),
                     }
                 },
-                _ => return Err(text::concat("key exists as non-table: ", seg)),
+                _ => return Err("key exists as non-table: ".concat(seg)),
             }
         } else {
             let new_fields = Vec::new<TomlField>()
@@ -818,7 +818,7 @@ fn toml_append_array_table(root: Vec<TomlField>, path: Vec<String>) -> Result<Ve
                 push(arr, TomlValue::Table(new_fields))
                 Ok(new_fields)
             },
-            _ => Err(text::concat("key exists as non-array: ", last_seg)),
+            _ => Err("key exists as non-array: ".concat(last_seg)),
         }
     } else {
         let arr = Vec::new<TomlValue>()
@@ -842,7 +842,7 @@ fn toml_insert_key(fields: Vec<TomlField>, key_path: Vec<String>, value: TomlVal
     }
     let last_seg = get_unchecked(key_path, klen - 1)
     if toml_find_field_index(parent, last_seg) >= 0 {
-        return Err(text::concat("duplicate key: ", last_seg))
+        return Err("duplicate key: ".concat(last_seg))
     }
     push(parent, TomlField { key: last_seg, value: value })
     Ok(())
@@ -939,7 +939,7 @@ pub fn toml_parse(s: String) -> Result<TomlValue, String> {
 /// Serialize a `TomlValue` back to text.
 pub fn toml_stringify(v: TomlValue) -> String {
     match v {
-        TomlValue::String(s) => text::concat("\"", text::concat(s, "\"")),
+        TomlValue::String(s) => "\"".concat(s.concat("\"")),
         TomlValue::Integer(i) => (i).to_string(),
         TomlValue::Float(f) => (f).to_string(),
         TomlValue::Boolean(b) => if b { "true" } else { "false" },
@@ -954,10 +954,10 @@ fn toml_stringify_table(fields: Vec<TomlField>) -> String {
     let mut i = 0
     while i < n {
         if i > 0 {
-            out = text::concat(out, "\n")
+            out = out.concat("\n")
         }
         let f = get_unchecked(fields, i)
-        out = text::concat(out, text::concat(f.key, text::concat(" = ", toml_stringify(f.value))))
+        out = out.concat((f.key).concat(" = ".concat(toml_stringify(f.value))))
         i = i + 1
     }
     out
@@ -969,12 +969,12 @@ fn toml_stringify_array(items: Vec<TomlValue>) -> String {
     let mut i = 0
     while i < n {
         if i > 0 {
-            out = text::concat(out, ", ")
+            out = out.concat(", ")
         }
-        out = text::concat(out, toml_stringify(get_unchecked(items, i)))
+        out = out.concat(toml_stringify(get_unchecked(items, i)))
         i = i + 1
     }
-    text::concat(out, "]")
+    out.concat("]")
 }
 
 // ─── Value extractors ────────────────────────────────────────────────────────

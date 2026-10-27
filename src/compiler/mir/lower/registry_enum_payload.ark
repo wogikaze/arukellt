@@ -21,7 +21,7 @@ fn mir_register_payload_variant_layout(ctx: LowerCtx, full_name: String, variant
         let effective_name = if len(field_name) > 0 {
             field_name
         } else {
-            text::concat("_", to_string(pfi))
+            "_".concat(to_string(pfi))
         }
         // Normalize Vec</Result</Option< so GC enum sigs and match binds
         // see vec:/result:/option: prefixes (#726 toml Table / json Result).

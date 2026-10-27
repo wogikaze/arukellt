@@ -218,6 +218,23 @@ owner = "703"
 replacement = "Iterator adapters / Vec methods (#691)"
 
 [[rules]]
+label = "deprecated std::text frees"
+module_pfx = "std::text"
+deprecated = true
+class = "must delete"
+owner = "917"
+replacement = "String methods (len_bytes/trim*/slice_*/split/lines/chars/...), String::new / from_utf8_lossy / try_from_utf8, Vec<String>::join, and DebugFormat associated renderings. The 36 entries are the ADR-087 Wave-1 deprecation set; physical deletion is Wave 2."
+
+# The non-deprecated `std::text` surface was retired on 2026-10-27:
+#   std::text 3 experimental utf8 frees -> String::from_utf8_lossy /
+#     String::try_from_utf8 / String::to_utf8_bytes
+#   std::text::rope 8 experimental frees -> String::new / clone / len /
+#     insert_text / delete_range / slice / line_count
+#   std::text::fmt 11 unregistered frees -> value.fmt_debug(),
+#     buf.concat(value.fmt_debug()), and DebugFormat associated renderings
+# The remaining text frees are stable and deprecated above.
+
+[[rules]]
 label = "deprecated module frees"
 deprecated = true
 class = "must delete"
@@ -270,13 +287,6 @@ module_pfx = "std::collections"
 class = "associated-or-method"
 owner = "917"
 replacement = "collection type methods (HashMap/HashSet/Deque/BTree/SortedMap/etc.)"
-
-[[rules]]
-label = "std::text frees"
-module_pfx = "std::text"
-class = "associated-or-method"
-owner = "917"
-replacement = "String/str methods, Builder methods, Rope methods"
 
 [[rules]]
 label = "std::json/toml/csv frees"

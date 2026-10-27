@@ -285,7 +285,7 @@ fn match_enum_info(enum_defs: Vec<EnumInfo>, scrutinee_ty: TypeInfo) -> EnumInfo
     while i < len(enum_defs) {
         let info = get_unchecked(enum_defs, i)
         let declared = contract_enum_info::EnumInfo_name(info)
-        if eq(clone(declared), clone(enum_name)) || ends_with(clone(declared), text::concat("::", clone(enum_name))) {
+        if eq(clone(declared), clone(enum_name)) || ends_with(clone(declared), "::".concat(clone(enum_name))) {
             return info
         }
         i = i + 1

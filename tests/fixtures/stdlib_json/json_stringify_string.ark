@@ -4,14 +4,14 @@ use std::text
 fn main() {
     match json::parse("\"hello\"") {
         Result::Ok(v) => test::assert_eq_string(json::stringify(v), "\"hello\""),
-        Result::Err(e) => panic(text::concat("parse failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse failed: ".concat(json::parse_error_message(e))),
     }
     match json::parse("\"\"") {
         Result::Ok(v) => test::assert_eq_string(json::stringify(v), "\"\""),
-        Result::Err(e) => panic(text::concat("parse empty failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse empty failed: ".concat(json::parse_error_message(e))),
     }
     match json::parse("\"a\\nb\"") {
         Result::Ok(v) => test::assert_eq_string(json::stringify(v), "\"a\\nb\""),
-        Result::Err(e) => panic(text::concat("parse escaped failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse escaped failed: ".concat(json::parse_error_message(e))),
     }
 }

@@ -120,7 +120,7 @@ pub fn check_unused_imports(decls: Vec<AstNode>) -> Vec<Diagnostic> {
         }
         if !name_in_vec(clone(short_name), referenced) {
             let path = use_decl_info_path(info)
-            let msg = text::concat("unused import `", text::concat(clone(path), "`"))
+            let msg = "unused import `".concat(clone(path).concat("`"))
             let span = record::DiagnosticSpan_from_raw(use_decl_info_span_start(info), use_decl_info_span_end(info))
             push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_UNUSED_IMPORT(), diag_mod::SEV_WARNING(), span, msg))
         }

@@ -3,7 +3,7 @@ fn render() -> String {
     let open = String_from("([{")
     let close = String_from(")]}")
     if len(open) > 0 {
-        return text::concat(open, close)
+        return open.concat(close)
     }
     String_new()
 }

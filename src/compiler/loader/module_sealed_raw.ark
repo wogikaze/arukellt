@@ -18,13 +18,7 @@ pub fn sealed_raw_api_stdlib_path(path: String) -> String {
 }
 
 pub fn sealed_raw_api_reject_message(path: String) -> String {
-    text::concat(
-        "error: module `",
-        text::concat(
-            clone(path),
-            "` is a sealed stdlib raw API (RFC-006); user code cannot import it"
-        )
-    )
+    "error: module `".concat(clone(path).concat("` is a sealed stdlib raw API (RFC-006); user code cannot import it"))
 }
 
 test mod "sealed_raw_path" {

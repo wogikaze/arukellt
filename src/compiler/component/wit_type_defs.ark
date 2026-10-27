@@ -15,16 +15,16 @@ fn emit_wit_type_defs(decls: Vec<AstNode>) -> String {
         // pinned bootstrap predates the index-loop continue fix.
         if !wit_decl::wit_decl_is_generic(d) {
             if wit_decl::wit_decl_is_record(d) {
-                out = text::builder_append(out, emit_wit_record_type_def(d))
+                out = out.concat(emit_wit_record_type_def(d))
             }
             if wit_decl::wit_decl_is_resource(d) {
-                out = text::builder_append(out, emit_wit_resource_type_def(d))
+                out = out.concat(emit_wit_resource_type_def(d))
             }
             if wit_decl::wit_decl_is_enum(d) {
-                out = text::builder_append(out, emit_wit_enum_type_def(d))
+                out = out.concat(emit_wit_enum_type_def(d))
             }
             if component_decl_is_perms_flags_shape(get_unchecked(decls, i)) {
-                out = text::builder_append(out, emit_wit_flags_type_def(get_unchecked(decls, i)))
+                out = out.concat(emit_wit_flags_type_def(get_unchecked(decls, i)))
             }
         }
     }
@@ -33,44 +33,44 @@ fn emit_wit_type_defs(decls: Vec<AstNode>) -> String {
 
 fn emit_wit_record_type_def(d: ComponentWitDecl) -> String {
     let mut out = "  record "
-    out = text::builder_append(out, wit_names::wit_type_name(wit_decl::wit_decl_name(d)))
-    out = text::builder_append(out, " {\n")
+    out = out.concat(wit_names::wit_type_name(wit_decl::wit_decl_name(d)))
+    out = out.concat(" {\n")
     let mut fi = 0
     while fi < wit_decl::wit_decl_member_count(d) {
         let field = wit_decl::wit_decl_member_at(d, fi)
-        out = text::builder_append(out, "    ")
-        out = text::builder_append(out, wit_names::wit_export_name(wit_decl::wit_decl_member_name(field)))
-        out = text::builder_append(out, ": ")
+        out = out.concat("    ")
+        out = out.concat(wit_names::wit_export_name(wit_decl::wit_decl_member_name(field)))
+        out = out.concat(": ")
         if wit_decl::wit_decl_member_has_type(field) {
-            out = text::builder_append(out, wit_types::component_wit_type_to_text(wit_decl::wit_decl_member_type_view(field)))
+            out = out.concat(wit_types::component_wit_type_to_text(wit_decl::wit_decl_member_type_view(field)))
         } else {
-            out = text::builder_append(out, "s32")
+            out = out.concat("s32")
         }
-        out = text::builder_append(out, ",\n")
+        out = out.concat(",\n")
         fi = fi + 1
     }
-    text::concat(out, "  }\n\n")
+    out.concat("  }\n\n")
 }
 
 fn emit_wit_resource_type_def(d: ComponentWitDecl) -> String {
     let mut out = "  resource "
-    out = text::builder_append(out, wit_names::wit_type_name(wit_decl::wit_decl_name(d)))
-    out = text::builder_append(out, " {\n")
+    out = out.concat(wit_names::wit_type_name(wit_decl::wit_decl_name(d)))
+    out = out.concat(" {\n")
     let mut fi = 0
     while fi < wit_decl::wit_decl_member_count(d) {
         let field = wit_decl::wit_decl_member_at(d, fi)
-        out = text::builder_append(out, "    ")
-        out = text::builder_append(out, wit_names::wit_export_name(wit_decl::wit_decl_member_name(field)))
-        out = text::builder_append(out, ": ")
+        out = out.concat("    ")
+        out = out.concat(wit_names::wit_export_name(wit_decl::wit_decl_member_name(field)))
+        out = out.concat(": ")
         if wit_decl::wit_decl_member_has_type(field) {
-            out = text::builder_append(out, wit_types::component_wit_type_to_text(wit_decl::wit_decl_member_type_view(field)))
+            out = out.concat(wit_types::component_wit_type_to_text(wit_decl::wit_decl_member_type_view(field)))
         } else {
-            out = text::builder_append(out, "s32")
+            out = out.concat("s32")
         }
-        out = text::builder_append(out, ",\n")
+        out = out.concat(",\n")
         fi = fi + 1
     }
-    text::concat(out, "  }\n\n")
+    out.concat("  }\n\n")
 }
 
 fn wit_export_flags_type_name() -> String {
@@ -82,7 +82,7 @@ fn wit_export_resource_type_name() -> String {
 }
 
 fn wit_export_own_handle_type() -> String {
-    text::concat("own<", text::concat(wit_export_resource_type_name(), ">"))
+    "own<".concat(wit_export_resource_type_name().concat(">"))
 }
 
 fn component_decl_is_perms_flags_shape(d: AstNode) -> bool {
@@ -109,39 +109,39 @@ fn component_decl_is_perms_flags_shape(d: AstNode) -> bool {
 fn emit_wit_flags_type_def(d: AstNode) -> String {
     let decl = wit_decl::wit_decl_from_node(d)
     let mut out = "  flags "
-    out = text::builder_append(out, wit_export_flags_type_name())
-    out = text::builder_append(out, " {\n")
+    out = out.concat(wit_export_flags_type_name())
+    out = out.concat(" {\n")
     let mut fi = 0
     while fi < wit_decl::wit_decl_member_count(decl) {
-        out = text::builder_append(out, "    ")
-        out = text::builder_append(out, wit_names::wit_export_name(wit_decl::wit_decl_member_name(wit_decl::wit_decl_member_at(decl, fi))))
-        out = text::builder_append(out, ",\n")
+        out = out.concat("    ")
+        out = out.concat(wit_names::wit_export_name(wit_decl::wit_decl_member_name(wit_decl::wit_decl_member_at(decl, fi))))
+        out = out.concat(",\n")
         fi = fi + 1
     }
-    text::concat(out, "  }\n\n")
+    out.concat("  }\n\n")
 }
 
 fn emit_wit_enum_type_def(d: ComponentWitDecl) -> String {
     let mut out = ""
     if wit_decl::wit_decl_enum_has_payloads(d) {
-        out = text::builder_append(out, "  variant ")
+        out = out.concat("  variant ")
     } else {
-        out = text::builder_append(out, "  enum ")
+        out = out.concat("  enum ")
     }
-    out = text::builder_append(out, wit_names::wit_type_name(wit_decl::wit_decl_name(d)))
-    out = text::builder_append(out, " {\n")
+    out = out.concat(wit_names::wit_type_name(wit_decl::wit_decl_name(d)))
+    out = out.concat(" {\n")
     let mut vi = 0
     while vi < wit_decl::wit_decl_member_count(d) {
         let variant = wit_decl::wit_decl_member_at(d, vi)
-        out = text::builder_append(out, "    ")
-        out = text::builder_append(out, wit_names::wit_type_name(wit_decl::wit_decl_member_name(variant)))
+        out = out.concat("    ")
+        out = out.concat(wit_names::wit_type_name(wit_decl::wit_decl_member_name(variant)))
         if wit_decl::wit_decl_member_has_type(variant) {
-            out = text::builder_append(out, "(")
-            out = text::builder_append(out, wit_types::component_wit_type_to_text(wit_decl::wit_decl_member_type_view(variant)))
-            out = text::builder_append(out, ")")
+            out = out.concat("(")
+            out = out.concat(wit_types::component_wit_type_to_text(wit_decl::wit_decl_member_type_view(variant)))
+            out = out.concat(")")
         }
-        out = text::builder_append(out, ",\n")
+        out = out.concat(",\n")
         vi = vi + 1
     }
-    text::concat(out, "  }\n\n")
+    out.concat("  }\n\n")
 }

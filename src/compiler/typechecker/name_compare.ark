@@ -31,17 +31,17 @@ fn same_type_name(left: String, right: String) -> bool {
     if eq(clone(left), clone(right)) {
         return true
     }
-    if index_of(left, "::") < 0 && ends_with(clone(right), text::concat("::", clone(left))) {
+    if index_of(left, "::") < 0 && ends_with(clone(right), "::".concat(clone(left))) {
         return true
     }
-    if index_of(right, "::") < 0 && ends_with(clone(left), text::concat("::", clone(right))) {
+    if index_of(right, "::") < 0 && ends_with(clone(left), "::".concat(clone(right))) {
         return true
     }
     // Imported module aliases can leave both names qualified: `iter::VecIter`
     // versus the canonical `std::core::iter::VecIter`. Treat a complete path
     // suffix as the same nominal name until module identity is structural.
-    if ends_with(clone(left), text::concat("::", clone(right))) {
+    if ends_with(clone(left), "::".concat(clone(right))) {
         return true
     }
-    ends_with(clone(right), text::concat("::", clone(left)))
+    ends_with(clone(right), "::".concat(clone(left)))
 }

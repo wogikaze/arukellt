@@ -787,7 +787,7 @@ compatibility aliases.
 
 A qualified call references a function or symbol that does not exist in the
 imported module. For example, `string::nonexistent(...)` will trigger this
-error if `nonexistent` is not a public function in `std::text::string`.
+error if `nonexistent` is not a public function in `std::collections::string`.
 Check the spelling or verify the function is exported by the module.
 
 ---

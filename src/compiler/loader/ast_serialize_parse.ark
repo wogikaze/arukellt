@@ -49,7 +49,7 @@ fn read_string(data: String, pos: i32, limit: i32) -> (String, i32) {
     // Byte-faithful slice keeps multi-byte UTF-8 text intact; a length
     // that lands mid-codepoint means the payload was hand-crafted or
     // corrupt (valid writers always end on a boundary), so fail closed.
-    match text::try_slice_bytes(data, start, start + n) {
+    match data.try_slice_bytes(start, start + n) {
         Option::Some(s) => { return (s, start + n) }
         Option::None => { return (String_new(), -1) }
     }

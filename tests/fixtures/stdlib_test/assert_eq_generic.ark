@@ -17,7 +17,7 @@ impl Eq for Point {
 
 impl Debug for Point {
     fn fmt_debug(self: Point) -> String {
-        text::concat("Point { x: ", text::concat((self.x).to_string(), text::concat(", y: ", text::concat((self.y).to_string(), " }"))))
+        "Point { x: ".concat((self.x).to_string().concat(", y: ".concat((self.y).to_string().concat(" }"))))
     }
 }
 
@@ -29,7 +29,7 @@ fn main() {
     let p = Point { x: 1, y: 2 }
     let q = Point { x: 1, y: 2 }
     test::assert_eq_debug(p, q)
-    test::assert_eq_string(fmt::format_debug(p), "Point { x: 1, y: 2 }")
+    test::assert_eq_string(p.fmt_debug(), "Point { x: 1, y: 2 }")
     test::assert_eq_string(f"{p:?}", "Point { x: 1, y: 2 }")
 
     stdio::println("assert_eq_generic ok")

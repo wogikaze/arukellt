@@ -49,12 +49,12 @@ fn vec_ann_local_type_name(ann: AstNode) -> String {
     // Vec<(A, B)> keeps the tuple:<k,...> element spelling; decl_ann_name on
     // a tuple node is empty and collapses the elem to i32 (#888).
     if decl_ann_name::decl_ann_is_tuple(elem) {
-        return text::concat(String_from("vec:"), type_ann_node::type_ann_tuple_local_name(elem))
+        return String_from("vec:").concat(type_ann_node::type_ann_tuple_local_name(elem))
     }
     if decl_ann_name::decl_ann_is_generic(elem) && decl_ann_name::decl_ann_is_name(elem, String_from("Vec")) {
-        return text::concat(String_from("vec:"), vec_ann_local_type_name(elem))
+        return String_from("vec:").concat(vec_ann_local_type_name(elem))
     }
-    text::concat(String_from("vec:"), decl_ann_name::decl_ann_name(elem))
+    String_from("vec:").concat(decl_ann_name::decl_ann_name(elem))
 }
 
 fn fn_param_local_type_name(node: AstNode) -> String {
@@ -120,18 +120,12 @@ fn fn_param_local_type_name(node: AstNode) -> String {
             if decl_ann_name::decl_ann_is_name(elem2, String_from("i32")) {
                 return String_from("Option_i32")
             }
-            return text::concat(String_from("option:"), nested_payload_local_type_name(elem2))
+            return String_from("option:").concat(nested_payload_local_type_name(elem2))
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("Result")) && decl_ann_children::decl_ann_child_count(ann) >= 3 {
             let ok_ty = decl_ann_children::decl_ann_child_at(ann, 1)
             let err_ty = decl_ann_children::decl_ann_child_at(ann, 2)
-            return text::concat(
-                String_from("result:"),
-                text::concat(
-                    nested_payload_local_type_name(ok_ty),
-                    text::concat(String_from(":"), nested_payload_local_type_name(err_ty))
-                )
-            )
+            return String_from("result:").concat(nested_payload_local_type_name(ok_ty).concat(String_from(":").concat(nested_payload_local_type_name(err_ty))))
         }
         let generic_user_type = generic_user_type_local_name(ann)
         if len(generic_user_type) > 0 {
@@ -205,18 +199,12 @@ fn method_param_local_type_name(node: AstNode) -> String {
             if decl_ann_name::decl_ann_is_name(elem2, String_from("i32")) {
                 return String_from("Option_i32")
             }
-            return text::concat(String_from("option:"), nested_payload_local_type_name(elem2))
+            return String_from("option:").concat(nested_payload_local_type_name(elem2))
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("Result")) && decl_ann_children::decl_ann_child_count(ann) >= 3 {
             let ok_ty = decl_ann_children::decl_ann_child_at(ann, 1)
             let err_ty = decl_ann_children::decl_ann_child_at(ann, 2)
-            return text::concat(
-                String_from("result:"),
-                text::concat(
-                    nested_payload_local_type_name(ok_ty),
-                    text::concat(String_from(":"), nested_payload_local_type_name(err_ty))
-                )
-            )
+            return String_from("result:").concat(nested_payload_local_type_name(ok_ty).concat(String_from(":").concat(nested_payload_local_type_name(err_ty))))
         }
         let generic_user_type = generic_user_type_local_name(ann)
         if len(generic_user_type) > 0 {
@@ -252,11 +240,11 @@ fn generic_user_type_local_name(ann: AstNode) -> String {
         // spelling so field access derives the substituted layout.
         return type_ann_local_name::type_ann_generic_inst_local_name(ann)
     }
-    let mut marker = text::concat(String_from("?"), clone(name))
+    let mut marker = String_from("?").concat(clone(name))
     i = 1
     while i < arg_count {
         let arg_name = decl_ann_name::decl_ann_name(decl_ann_children::decl_ann_child_at(ann, i))
-        marker = text::concat(marker, text::concat(String_from(":"), arg_name))
+        marker = marker.concat(String_from(":").concat(arg_name))
         i = i + 1
     }
     marker

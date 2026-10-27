@@ -4,10 +4,10 @@ use std::text
 fn main() {
     match json::parse("true") {
         Result::Ok(v) => test::assert_eq_string(json::stringify(v), "true"),
-        Result::Err(e) => panic(text::concat("parse true failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse true failed: ".concat(json::parse_error_message(e))),
     }
     match json::parse("false") {
         Result::Ok(v) => test::assert_eq_string(json::stringify(v), "false"),
-        Result::Err(e) => panic(text::concat("parse false failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse false failed: ".concat(json::parse_error_message(e))),
     }
 }

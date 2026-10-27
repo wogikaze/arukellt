@@ -614,16 +614,16 @@ fn emit_struct_input_conversion(
 }
 
 fn p2_variant_family_matches(family: String, variant_name: String) -> bool {
-    starts_with(clone(variant_name), text::concat(clone(family), String_from("::"))) ||
+    starts_with(clone(variant_name), clone(family).concat(String_from("::"))) ||
     contains(
         clone(variant_name),
-        text::concat(String_from("::"), text::concat(clone(family), String_from("::")))
+        String_from("::").concat(clone(family).concat(String_from("::")))
     )
 }
 
 fn p2_variant_name_matches(family: String, variant: String, name: String) -> bool {
-    let wanted = text::concat(clone(family), text::concat(String_from("::"), clone(variant)))
-    eq(clone(name), clone(wanted)) || contains(clone(name), text::concat(String_from("::"), clone(wanted)))
+    let wanted = clone(family).concat(String_from("::").concat(clone(variant)))
+    eq(clone(name), clone(wanted)) || contains(clone(name), String_from("::").concat(clone(wanted)))
 }
 
 fn p2_variant_type_named(

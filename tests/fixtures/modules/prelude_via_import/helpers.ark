@@ -1,6 +1,6 @@
 use std::text
 pub fn greet(name: String) -> String {
-    text::concat(String_from("hello "), name)
+    String_from("hello ").concat(name)
 }
 
 pub fn make_vec() -> Vec<i32> {

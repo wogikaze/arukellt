@@ -163,11 +163,11 @@ impl WitType {
             WitType::String => "string",
             WitType::List(inner) => {
                 let inner_ty = unbox(inner)
-                text::concat("list<", text::concat(inner_ty.wit_text(), ">"))
+                "list<".concat(inner_ty.wit_text().concat(">"))
             },
             WitType::Option(inner) => {
                 let inner_ty = unbox(inner)
-                text::concat("option<", text::concat(inner_ty.wit_text(), ">"))
+                "option<".concat(inner_ty.wit_text().concat(">"))
             },
             WitType::Tuple(_) => "tuple",
             WitType::Record(_) => "record",

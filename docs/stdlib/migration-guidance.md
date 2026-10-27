@@ -234,6 +234,42 @@ The following public entries currently carry `deprecated_by` in
 | `std::seq::binary_search` | `std::seq::binary_search_by` |
 | `std::seq::min_i32` | `std::seq::min_by` |
 | `std::seq::max_i32` | `std::seq::max_by` |
+| `text::len_bytes` | `s.len_bytes()` |
+| `text::is_empty` | `s.is_empty()` |
+| `text::index_of` | `s.index_of(sub)` |
+| `text::trim` | `s.trim()` |
+| `text::trim_start` | `s.trim_start()` |
+| `text::trim_end` | `s.trim_end()` |
+| `text::replace` | `s.replace(from, to)` |
+| `text::lines` | `s.lines()` |
+| `text::chars` | `s.chars()` |
+| `text::pad_left` | `s.pad_left_with(width, fill)` |
+| `text::pad_right` | `s.pad_right_with(width, fill)` |
+| `text::format_i32` | `(n).to_string() on i32` |
+| `text::format_i64` | `(n).to_string() on i64` |
+| `text::format_f64` | `(n).to_string() on f64` |
+| `text::format_bool` | `(b).to_string() on bool` |
+| `text::repeat` | `s.repeat(n)` |
+| `text::len_chars` | `s.len_chars()` |
+| `text::codepoint_at` | `s.codepoint_at(i)` |
+| `text::slice_bytes` | `s.slice_bytes(start, end)` |
+| `text::try_slice_bytes` | `s.try_slice_bytes(start, end)` |
+| `text::slice_chars` | `s.slice_chars(start, end)` |
+| `text::try_slice_chars` | `s.try_slice_chars(start, end)` |
+| `text::split` | `s.split(sep)` |
+| `text::join` | `parts.join(sep)` |
+| `text::concat` | `a.concat(b)` |
+| `text::starts_with` | `s.starts_with(prefix)` |
+| `text::ends_with` | `s.ends_with(suffix)` |
+| `text::contains` | `s.contains(sub)` |
+| `text::to_lower` | `s.to_lower()` |
+| `text::to_upper` | `s.to_upper()` |
+| `text::builder_new` | `String::new()` |
+| `text::builder_append` | `s.concat(text)` |
+| `text::builder_append_char` | `s.concat(c.to_string())` |
+| `text::builder_append_line` | `s.concat(text).concat("\n")` |
+| `text::builder_build` | `the builder value directly` |
+| `text::builder_len` | `s.len()` |
 | `std::collections::linear::deque_new` | `Deque::new<T>()` or `Deque::with_capacity<T>(n)` |
 | `std::collections::linear::deque_push_front` | `d.push_front(v)` |
 | `std::collections::linear::deque_push_back` | `d.push_back(v)` |
@@ -495,6 +531,93 @@ The migrated fixtures (`tests/fixtures/stdlib_core/iter_*.ark` and
 `stdlib_trait/iterator_*.ark`) and the new
 `stdlib_trait/iterator_method_surface*.ark` pair cover the method surface on
 both `wasm32-gc` and linear-memory `wasm32`.
+
+## Removed in the #917 std::text wave (2026-10-27)
+
+### Removed now (experimental / unregistered)
+
+These calls are gone. Qualified calls fail resolution with an E0100 hint
+from `resolver::removed_names`.
+
+| Removed | Replacement |
+|---------|-------------|
+| `text::from_utf8(bytes)` | `String::from_utf8_lossy(bytes)` |
+| `text::try_from_utf8(bytes)` | `String::try_from_utf8(bytes)` |
+| `text::to_utf8_bytes(s)` | `s.to_utf8_bytes()` |
+| `rope::rope_new()` | `String::new()` |
+| `rope::rope_from_string(s)` | `s.clone()` |
+| `rope::rope_len(r)` | `r.len()` |
+| `rope::rope_to_string(r)` | `r.clone()` |
+| `rope::rope_insert(r, pos, text)` | `r.insert_text(pos, text)` |
+| `rope::rope_delete(r, start, end)` | `r.delete_range(start, end)` |
+| `rope::rope_slice(r, start, end)` | `r.slice(start, end)` |
+| `rope::rope_line_count(r)` | `r.line_count()` |
+| `fmt::format_i32(n)` | `(n).to_string()` |
+| `fmt::format_i64(n)` | `(n).to_string()` |
+| `fmt::format_f64(n)` | `(n).to_string()` |
+| `fmt::format_bool(b)` | `(b).to_string()` |
+| `fmt::pad_left(s, width, fill)` | `s.pad_left_with(width, fill)` |
+| `fmt::pad_right(s, width, fill)` | `s.pad_right_with(width, fill)` |
+| `fmt::format_debug(v)` | `v.fmt_debug()` |
+| `fmt::write_debug_to(buf, v)` | `buf.concat(v.fmt_debug())` |
+| `fmt::debug_format_vec_i32(v)` | `fmt::DebugFormat::vec_i32(v)` |
+| `fmt::debug_format_vec_i64(v)` | `fmt::DebugFormat::vec_i64(v)` |
+| `fmt::debug_format_vec_f64(v)` | `fmt::DebugFormat::vec_f64(v)` |
+| `fmt::debug_format_vec_bool(v)` | `fmt::DebugFormat::vec_bool(v)` |
+| `fmt::debug_format_vec_string(v)` | `fmt::DebugFormat::vec_string(v)` |
+| `fmt::debug_format_option_i32(o)` | `fmt::DebugFormat::option_i32(o)` |
+| `fmt::debug_format_option_string(o)` | `fmt::DebugFormat::option_string(o)` |
+| `fmt::debug_format_result_i32_string(r)` | `fmt::DebugFormat::result_i32_string(r)` |
+| `fmt::debug_format_result_string_string(r)` | `fmt::DebugFormat::result_string_string(r)` |
+
+The six `fmt::format_*` / `fmt::pad_*` entries above were duplicate
+declarations of the corresponding `std::text` manifest entries, so they are
+not counted as additional removals in the eradication scorecard.
+
+### Deprecated (Wave 1)
+
+These 36 `stable` entries remain callable through the ADR-087 window and emit
+W0009 on qualified `text::*` calls. Their method/associated replacements are
+available now; physical deletion is Wave 2.
+
+| Deprecated | Replacement |
+|------------|-------------|
+| `text::len_bytes` | `s.len_bytes()` |
+| `text::is_empty` | `s.is_empty()` |
+| `text::index_of` | `s.index_of(sub)` |
+| `text::trim` | `s.trim()` |
+| `text::trim_start` | `s.trim_start()` |
+| `text::trim_end` | `s.trim_end()` |
+| `text::replace` | `s.replace(from, to)` |
+| `text::lines` | `s.lines()` |
+| `text::chars` | `s.chars()` |
+| `text::pad_left` | `s.pad_left_with(width, fill)` |
+| `text::pad_right` | `s.pad_right_with(width, fill)` |
+| `text::format_i32` | `(n).to_string() on i32` |
+| `text::format_i64` | `(n).to_string() on i64` |
+| `text::format_f64` | `(n).to_string() on f64` |
+| `text::format_bool` | `(b).to_string() on bool` |
+| `text::repeat` | `s.repeat(n)` |
+| `text::len_chars` | `s.len_chars()` |
+| `text::codepoint_at` | `s.codepoint_at(i)` |
+| `text::slice_bytes` | `s.slice_bytes(start, end)` |
+| `text::try_slice_bytes` | `s.try_slice_bytes(start, end)` |
+| `text::slice_chars` | `s.slice_chars(start, end)` |
+| `text::try_slice_chars` | `s.try_slice_chars(start, end)` |
+| `text::split` | `s.split(sep)` |
+| `text::join` | `parts.join(sep)` |
+| `text::concat` | `a.concat(b)` |
+| `text::starts_with` | `s.starts_with(prefix)` |
+| `text::ends_with` | `s.ends_with(suffix)` |
+| `text::contains` | `s.contains(sub)` |
+| `text::to_lower` | `s.to_lower()` |
+| `text::to_upper` | `s.to_upper()` |
+| `text::builder_new` | `String::new()` |
+| `text::builder_append` | `s.concat(text)` |
+| `text::builder_append_char` | `s.concat(c.to_string())` |
+| `text::builder_append_line` | `s.concat(text).concat("\n")` |
+| `text::builder_build` | `the builder value directly` |
+| `text::builder_len` | `s.len()` |
 
 ## std::io trait migration (ADR-085 Phase E/F, 2026-10-27)
 

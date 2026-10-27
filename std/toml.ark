@@ -28,7 +28,7 @@ pub fn toml_parse_line(line: String) -> String {
 /// Returns the text between the section header and the next section header
 /// (or end of content).  Returns an empty string if the section is not found.
 pub fn toml_find_section(content: String, section: String) -> String {
-    let section_header = text::concat(String_from("["), text::concat(clone(section), String_from("]")))
+    let section_header = (String_from("[")).concat(clone(section).concat(String_from("]")))
     let header_len = len(section_header)
     let content_len = len(content)
     let mut i = 0

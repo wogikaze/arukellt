@@ -18,7 +18,7 @@ fn named_type_name(ty: HirType) -> String {
         return type_contracts::HirType_name(ty)
     }
     if type_contracts::HirType_tag(ty) == commands::TY_TYPE_VAR() {
-        return text::concat("?", type_contracts::HirType_name(ty))
+        return "?".concat(type_contracts::HirType_name(ty))
     }
     if type_contracts::HirType_tag(ty) == commands::TY_TRAIT() {
         return type_contracts::HirType_name(ty)

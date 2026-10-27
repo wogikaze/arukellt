@@ -11,10 +11,10 @@ fn main() {
             test::assert_false(json::is_string(v))
             test::assert_false(json::is_array(v))
         },
-        Result::Err(e) => panic(text::concat("parse failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse failed: ".concat(json::parse_error_message(e))),
     }
     match json::parse("{}") {
         Result::Ok(v) => test::assert_true(json::is_object(v)),
-        Result::Err(e) => panic(text::concat("parse empty object failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse empty object failed: ".concat(json::parse_error_message(e))),
     }
 }

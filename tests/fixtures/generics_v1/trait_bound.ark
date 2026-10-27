@@ -11,7 +11,7 @@ struct Point {
 
 impl Printable for Point {
     fn show(self: Point) -> String {
-        text::concat("Point(", text::concat((self.x).to_string(), text::concat(", ", text::concat((self.y).to_string(), ")"))))
+        "Point(".concat((self.x).to_string().concat(", ".concat((self.y).to_string().concat(")"))))
     }
 }
 

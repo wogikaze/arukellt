@@ -16,18 +16,18 @@ fn print_ast(node: AstNode, depth: i32) {
     let mut indent = String_new()
     let mut d = 0
     while d < depth {
-        indent = text::builder_append(indent, "  ")
+        indent = indent.concat("  ")
         d = d + 1
     }
     let node_kind = ast_kind_fields::AstNode_kind(node)
     let kind_str = node_kind_name(node_kind)
-    let mut line = text::concat(indent, kind_str)
+    let mut line = indent.concat(kind_str)
     let node_text = core_ast_text_fields::AstNode_text(node)
     if len(node_text) > 0 {
-        line = text::builder_append(line, text::concat("(", text::concat(node_text, ")")))
+        line = line.concat("(".concat(node_text.concat(")")))
     }
     if node_kind == kinds::NK_INT_LIT() {
-        line = text::builder_append(line, text::concat("(", text::concat(to_string(core_ast_literal_fields::AstNode_int_val(node)), ")")))
+        line = line.concat("(".concat(to_string(core_ast_literal_fields::AstNode_int_val(node)).concat(")")))
     }
     stdio::println(line)
     let mut i = 0

@@ -5,18 +5,18 @@ use analysis::snapshot_state_record
 use lsp::diag_object
 pub fn build_publish_diagnostics(uri: String, text: String, snap: AnalysisSnapshot) -> String {
     let mut body = String_from("{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/publishDiagnostics\",\"params\":{\"uri\":")
-    body = text::concat(body, json::quote_string(uri))
-    body = text::concat(body, String_from(",\"diagnostics\":["))
+    body = body.concat(json::quote_string(uri))
+    body = body.concat(String_from(",\"diagnostics\":["))
     let n = snapshot_state_record::snapshot_diagnostic_count(snap)
     let mut i = 0
     while i < n {
         let d = snapshot_state_record::snapshot_diagnostic_at(snap, i)
         if i > 0 {
-            body = text::concat(body, String_from(","))
+            body = body.concat(String_from(","))
         }
-        body = text::concat(body, diag_object::build_diagnostic_object(clone(text), d))
+        body = body.concat(diag_object::build_diagnostic_object(clone(text), d))
         i = i + 1
     }
-    body = text::concat(body, String_from("]}}"))
+    body = body.concat(String_from("]}}"))
     body
 }

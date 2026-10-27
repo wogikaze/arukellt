@@ -166,6 +166,10 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
     if len(msg5) > 0 {
         return msg5
     }
+    let msg6 = deprecated_text_qualified_message(path)
+    if len(msg6) > 0 {
+        return msg6
+    }
     return deprecated_hash_qualified_message(path)
 }
 
@@ -243,6 +247,122 @@ fn deprecated_seq_qualified_message(path: String) -> String {
     }
     if eq(clone(path), "seq::count_eq") {
         return "use `v.iter().count_eq(target)` instead"
+    }
+    String_new()
+}
+
+// The stable std::text frees are deprecated under ADR-087 while their
+// receiver / associated replacements are already available. The qualified
+// alias is `text`; aliases of the removed `fmt` / `rope` helpers are no longer
+// live calls and are covered by resolver::removed_names instead.
+fn deprecated_text_qualified_message(path: String) -> String {
+    if eq(clone(path), "text::len_bytes") {
+        return "use `s.len_bytes()` on `String` instead"
+    }
+    if eq(clone(path), "text::is_empty") {
+        return "use `s.is_empty()` on `String` instead"
+    }
+    if eq(clone(path), "text::index_of") {
+        return "use `s.index_of(sub)` on `String` instead"
+    }
+    if eq(clone(path), "text::trim") {
+        return "use `s.trim()` on `String` instead"
+    }
+    if eq(clone(path), "text::trim_start") {
+        return "use `s.trim_start()` on `String` instead"
+    }
+    if eq(clone(path), "text::trim_end") {
+        return "use `s.trim_end()` on `String` instead"
+    }
+    if eq(clone(path), "text::replace") {
+        return "use `s.replace(from, to)` on `String` instead"
+    }
+    if eq(clone(path), "text::lines") {
+        return "use `s.lines()` on `String` instead"
+    }
+    if eq(clone(path), "text::chars") {
+        return "use `s.chars()` on `String` instead"
+    }
+    if eq(clone(path), "text::pad_left") {
+        return "use `s.pad_left_with(width, fill)` on `String` instead"
+    }
+    if eq(clone(path), "text::pad_right") {
+        return "use `s.pad_right_with(width, fill)` on `String` instead"
+    }
+    if eq(clone(path), "text::format_i32") {
+        return "use `(n).to_string()` on `i32` instead"
+    }
+    if eq(clone(path), "text::format_i64") {
+        return "use `(n).to_string()` on `i64` instead"
+    }
+    if eq(clone(path), "text::format_f64") {
+        return "use `(n).to_string()` on `f64` instead"
+    }
+    if eq(clone(path), "text::format_bool") {
+        return "use `(b).to_string()` on `bool` instead"
+    }
+    if eq(clone(path), "text::repeat") {
+        return "use `s.repeat(n)` on `String` instead"
+    }
+    if eq(clone(path), "text::len_chars") {
+        return "use `s.len_chars()` on `String` instead"
+    }
+    if eq(clone(path), "text::codepoint_at") {
+        return "use `s.codepoint_at(i)` on `String` instead"
+    }
+    if eq(clone(path), "text::slice_bytes") {
+        return "use `s.slice_bytes(start, end)` on `String` instead"
+    }
+    if eq(clone(path), "text::try_slice_bytes") {
+        return "use `s.try_slice_bytes(start, end)` on `String` instead"
+    }
+    if eq(clone(path), "text::slice_chars") {
+        return "use `s.slice_chars(start, end)` on `String` instead"
+    }
+    if eq(clone(path), "text::try_slice_chars") {
+        return "use `s.try_slice_chars(start, end)` on `String` instead"
+    }
+    if eq(clone(path), "text::split") {
+        return "use `s.split(sep)` on `String` instead"
+    }
+    if eq(clone(path), "text::join") {
+        return "use `parts.join(sep)` on `Vec<String>` instead"
+    }
+    if eq(clone(path), "text::concat") {
+        return "use `a.concat(b)` on `String` instead"
+    }
+    if eq(clone(path), "text::starts_with") {
+        return "use `s.starts_with(prefix)` on `String` instead"
+    }
+    if eq(clone(path), "text::ends_with") {
+        return "use `s.ends_with(suffix)` on `String` instead"
+    }
+    if eq(clone(path), "text::contains") {
+        return "use `s.contains(sub)` on `String` instead"
+    }
+    if eq(clone(path), "text::to_lower") {
+        return "use `s.to_lower()` on `String` instead"
+    }
+    if eq(clone(path), "text::to_upper") {
+        return "use `s.to_upper()` on `String` instead"
+    }
+    if eq(clone(path), "text::builder_new") {
+        return "use `String::new()` instead"
+    }
+    if eq(clone(path), "text::builder_append") {
+        return "use `s.concat(text)` instead"
+    }
+    if eq(clone(path), "text::builder_append_char") {
+        return "use `s.concat(c.to_string())` instead"
+    }
+    if eq(clone(path), "text::builder_append_line") {
+        return "use `s.concat(text).concat(newline)` instead"
+    }
+    if eq(clone(path), "text::builder_build") {
+        return "use the builder string directly instead"
+    }
+    if eq(clone(path), "text::builder_len") {
+        return "use `s.len()` on `String` instead"
     }
     String_new()
 }

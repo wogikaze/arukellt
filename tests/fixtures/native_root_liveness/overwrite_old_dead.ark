@@ -1,6 +1,6 @@
 use std::text
 fn main() -> i32 {
     let mut slot = String_from("old")
-    slot = text::concat(String_from("new-"), String_from("value"))
+    slot = String_from("new-").concat(String_from("value"))
     len(slot) - len(slot)
 }

@@ -10,46 +10,46 @@ fn main() {
     let mut iter: i32 = 0
     while iter < 200 {
         // Trim
-        let trimmed = text::trim(base)
-        checksum = checksum + text::len_bytes(trimmed)
+        let trimmed = base.trim()
+        checksum = checksum + trimmed.len_bytes()
 
         // Split and join
-        let parts = text::split(trimmed, " ")
-        let rejoined = text::join(parts, ",")
-        checksum = checksum + text::len_bytes(rejoined)
+        let parts = trimmed.split(" ")
+        let rejoined = parts.join(",")
+        checksum = checksum + rejoined.len_bytes()
 
         // Replace
-        let replaced = text::replace(rejoined, "Arukellt", "STDLIB")
-        checksum = checksum + text::len_bytes(replaced)
+        let replaced = rejoined.replace("Arukellt", "STDLIB")
+        checksum = checksum + replaced.len_bytes()
 
         // Case conversion
-        let lower = text::to_lower(replaced)
-        let upper = text::to_upper(replaced)
-        checksum = checksum + text::len_bytes(lower)
-        checksum = checksum + text::len_bytes(upper)
+        let lower = replaced.to_lower()
+        let upper = replaced.to_upper()
+        checksum = checksum + lower.len_bytes()
+        checksum = checksum + upper.len_bytes()
 
         // Contains
-        if text::contains(replaced, "STDLIB") {
+        if replaced.contains("STDLIB") {
             checksum = checksum + 1
         }
-        if text::starts_with(replaced, "Hello") {
+        if replaced.starts_with("Hello") {
             checksum = checksum + 2
         }
-        if text::ends_with(replaced, "!") {
+        if replaced.ends_with("!") {
             checksum = checksum + 4
         }
 
         // Repeat
-        let repeated = text::repeat("x", 10)
-        checksum = checksum + text::len_bytes(repeated)
+        let repeated = "x".repeat(10)
+        checksum = checksum + repeated.len_bytes()
 
         // Builder
-        let mut sb = text::builder_new()
-        sb = text::builder_append(sb, "a")
-        sb = text::builder_append(sb, "b")
-        sb = text::builder_append_line(sb, "c")
-        sb = text::builder_build(sb)
-        checksum = checksum + text::len_bytes(sb)
+        let mut sb = String::new()
+        sb = sb.concat("a")
+        sb = sb.concat("b")
+        sb = sb.concat("c").concat("\n")
+        sb = sb
+        checksum = checksum + sb.len_bytes()
 
         iter = iter + 1
     }

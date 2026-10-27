@@ -94,7 +94,7 @@ fn gc_layout_plan_find_struct_type(table: TypeTable, name: String) -> TypeId {
         return found
     }
     if !starts_with(clone(name), "struct:") {
-        let prefixed = text::concat("struct:", clone(name))
+        let prefixed = "struct:".concat(clone(name))
         let prefixed_id = gc_layout_plan_find_named_type(
             table,
             kinds::TYPE_KIND_STRUCT(),
@@ -159,7 +159,7 @@ fn gc_layout_plan_type_id_for_variant_slot(
     sig: String
 ) -> TypeId {
     let kind = gc_layout_plan_variant_type_kind(clone(name))
-    let intern_name = text::concat(name, text::concat("#", sig))
+    let intern_name = name.concat("#".concat(sig))
     let found = gc_layout_plan_find_named_type(table, kind, clone(intern_name))
     if type_id::type_id_is_valid(found) {
         return found
@@ -177,7 +177,7 @@ fn mir_gc_layout_bind_struct_slot(module: MirModule, slot: i32) {
     let tid = gc_layout_plan_type_id_for_struct_slot(table, name)
     if !type_id::type_id_is_valid(tid) {
         stdio::eprintln(
-            text::concat("compiler ICE: GC struct slot has no semantic TypeId: ", name)
+            "compiler ICE: GC struct slot has no semantic TypeId: ".concat(name)
         )
         process::exit(1)
     }
@@ -196,7 +196,7 @@ fn mir_gc_layout_bind_enum_variant_slot(module: MirModule, slot: i32) {
     let tid = gc_layout_plan_type_id_for_variant_slot(table, name, sig)
     if !type_id::type_id_is_valid(tid) {
         stdio::eprintln(
-            text::concat("compiler ICE: GC enum variant slot has no semantic TypeId: ", name)
+            "compiler ICE: GC enum variant slot has no semantic TypeId: ".concat(name)
         )
         process::exit(1)
     }

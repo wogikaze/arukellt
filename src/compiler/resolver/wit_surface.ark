@@ -42,7 +42,7 @@ fn wit_component_interface_id(doc: wit_parse_text::WitParsedInterface) -> String
     if len(version) == 0 {
         return interface_id
     }
-    text::concat(interface_id, text::concat("@", wit_parse_text_scan::wit_component_version_txt(version)))
+    interface_id.concat("@".concat(wit_parse_text_scan::wit_component_version_txt(version)))
 }
 
 fn wit_import_id(doc: wit_parse_text::WitParsedInterface) -> String {
@@ -83,5 +83,5 @@ fn wit_func_ret_ark_type(func: wit_parse_text::WitParsedFunc, alias: String, doc
 }
 
 fn wit_binding_key(interface_id: String, wit_func_name: String) -> String {
-    text::concat(clone(interface_id), text::concat("\x1f", clone(wit_func_name)))
+    clone(interface_id).concat("\x1f".concat(clone(wit_func_name)))
 }

@@ -7,6 +7,6 @@ fn main() {
             Option::Some(s) => test::assert_eq_string(s, "say \"hi\""),
             None => panic("expected string"),
         },
-        Result::Err(e) => panic(text::concat("parse quote failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse quote failed: ".concat(json::parse_error_message(e))),
     }
 }

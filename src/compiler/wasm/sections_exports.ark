@@ -357,10 +357,10 @@ fn emit_p2_library_function_exports(
     } else {
         wasm_function_export_index(function_idx, clone(target), clone(wasi_version), wit_import_count)
     }
-    writer_string::emit_string(export_sec, text::concat("cm32p2||", clone(wit_name)))
+    writer_string::emit_string(export_sec, "cm32p2||".concat(clone(wit_name)))
     writer_core::emit_byte(export_sec, 0)
     writer_core::emit_leb128_u(export_sec, function_export_idx)
-    writer_string::emit_string(export_sec, text::concat("cm32p2||", text::concat(clone(wit_name), "_post")))
+    writer_string::emit_string(export_sec, "cm32p2||".concat(clone(wit_name).concat("_post")))
     writer_core::emit_byte(export_sec, 0)
     writer_core::emit_leb128_u(
         export_sec,

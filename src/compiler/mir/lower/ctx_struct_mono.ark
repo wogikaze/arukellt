@@ -131,7 +131,7 @@ fn ctx_substitute_generic_field_type(ft: String, params: Vec<String>, args: Vec<
     while i < n {
         let ch = byte_at(clone(ft), i)
         if !type_ident_char(ch) {
-            out = text::concat(out, substring(clone(ft), i, i + 1))
+            out = out.concat(substring(clone(ft), i, i + 1))
             i = i + 1
             continue
         }
@@ -144,14 +144,14 @@ fn ctx_substitute_generic_field_type(ft: String, params: Vec<String>, args: Vec<
         let mut pi = 0
         while pi < len(params) {
             if pi < len(args) && eq(get_unchecked(params, pi), clone(tok)) {
-                out = text::concat(out, clone(get_unchecked(args, pi)))
+                out = out.concat(clone(get_unchecked(args, pi)))
                 replaced = true
                 pi = len(params)
             }
             pi = pi + 1
         }
         if !replaced {
-            out = text::concat(out, tok)
+            out = out.concat(tok)
         }
     }
     out

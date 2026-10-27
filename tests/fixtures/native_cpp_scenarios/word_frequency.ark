@@ -8,12 +8,12 @@ fn main() {
     let _ = m.insert("sat", 1)
     let _ = m.insert("the", 2)
     match m.get("the") {
-        Option::Some(n) => stdio::println(text::concat(String_from("the="), to_string(n))),
+        Option::Some(n) => stdio::println(String_from("the=").concat(to_string(n))),
         None => stdio::println(String_from("the=0")),
     }
     match m.get("cat") {
-        Option::Some(n) => stdio::println(text::concat(String_from("cat="), to_string(n))),
+        Option::Some(n) => stdio::println(String_from("cat=").concat(to_string(n))),
         None => stdio::println(String_from("cat=0")),
     }
-    stdio::println(text::concat(String_from("size="), to_string(m.len())))
+    stdio::println(String_from("size=").concat(to_string(m.len())))
 }

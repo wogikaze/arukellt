@@ -269,7 +269,7 @@ use std::text
 fn main() {
     let a: String = String_from("hello")
     let b: String = String_from(" world")
-    let c: String = text::concat(a, b)
+    let c: String = a.concat(b)
     test::assert_eq_string(c, "hello world")
 
     let s = String_from("original")
@@ -452,7 +452,7 @@ use std::host::stdio
 use std::text
 fn describe(opt: Option<i32>) -> String {
     match opt {
-        Some(val) => text::concat(String_from("got "), val.to_string()),
+        Some(val) => String_from("got ").concat(val.to_string()),
         None => String_from("nothing"),
     }
 }
@@ -537,7 +537,7 @@ fn main() {
     let r: Result<i32, String> = Err(String_from("bad input"))
     match r {
         Ok(val) => stdio::println(val.to_string()),
-        Err(e) => stdio::println(text::concat(String_from("error: "), e)),
+        Err(e) => stdio::println(String_from("error: ").concat(e)),
     }
 }
 ```
@@ -579,7 +579,7 @@ fn try_parse(s: String) -> Result<i32, String> {
     if eq(s, "42") {
         Ok(42)
     } else {
-        Err(text::concat("parse error: ", s))
+        Err("parse error: ".concat(s))
     }
 }
 
@@ -596,8 +596,8 @@ fn main() {
     // match でエラーメッセージを取り出す
     let r3 = try_parse("xyz")
     let msg = match r3 {
-        Result::Ok(v) => text::concat("got: ", (v).to_string()),
-        Result::Err(e) => text::concat("fail: ", e),
+        Result::Ok(v) => "got: ".concat((v).to_string()),
+        Result::Err(e) => "fail: ".concat(e),
     }
     stdio::println(msg)  // fail: parse error: xyz
 }

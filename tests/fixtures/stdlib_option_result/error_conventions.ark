@@ -8,7 +8,7 @@ fn try_parse(s: String) -> Result<i32, String> {
         if eq(s, "0") {
             Ok(0)
         } else {
-            Err(text::concat("parse error: ", s))
+            Err("parse error: ".concat(s))
         }
     }
 }
@@ -37,14 +37,14 @@ fn main() {
     stdio::println((unwrap_or(n1, 77)).to_string())
     let r5 = try_parse("42")
     let msg = match r5 {
-        Result::Ok(v) => text::concat("got: ", (v).to_string()),
-        Result::Err(e) => text::concat("fail: ", e),
+        Result::Ok(v) => "got: ".concat((v).to_string()),
+        Result::Err(e) => "fail: ".concat(e),
     }
     stdio::println(msg)
     let r6 = try_parse("xyz")
     let msg2 = match r6 {
-        Result::Ok(v) => text::concat("got: ", (v).to_string()),
-        Result::Err(e) => text::concat("fail: ", e),
+        Result::Ok(v) => "got: ".concat((v).to_string()),
+        Result::Err(e) => "fail: ".concat(e),
     }
     stdio::println(msg2)
 }

@@ -70,7 +70,7 @@ fn emit_wasi_import_entries(
 }
 
 fn p2_module_name(interface_name: String) -> String {
-    text::concat("cm32p2|wasi:", text::concat(interface_name, "@0.2"))
+    "cm32p2|wasi:".concat(interface_name.concat("@0.2"))
 }
 
 fn emit_p2_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>) {

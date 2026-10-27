@@ -7,6 +7,6 @@ fn main() {
             Option::Some(b) => test::assert_eq_bool(b, true),
             None => panic("expected bool"),
         },
-        Result::Err(e) => panic(text::concat("parse whitespace failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse whitespace failed: ".concat(json::parse_error_message(e))),
     }
 }

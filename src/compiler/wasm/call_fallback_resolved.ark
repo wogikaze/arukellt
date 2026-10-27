@@ -173,7 +173,7 @@ fn call_param_type_is_enum_like(ctx: SelfEmitCtx, param_type_name: String) -> bo
     } else {
         clone(param_type_name)
     }
-    let prefix = text::concat(clone(bare), "::")
+    let prefix = clone(bare).concat("::")
     let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let mut ei = 0
     while ei < len(ev_names) {

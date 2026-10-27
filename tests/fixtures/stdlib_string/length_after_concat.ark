@@ -3,8 +3,8 @@ use std::text
 fn main() {
     let a = String_from("abc")
     let b = String_from("def")
-    let c = text::concat(a, b)
+    let c = a.concat(b)
     test::assert_eq_i32(len(c), 6)
-    let d = text::concat(c, String_from("gh"))
+    let d = c.concat(String_from("gh"))
     test::assert_eq_i32(len(d), 8)
 }

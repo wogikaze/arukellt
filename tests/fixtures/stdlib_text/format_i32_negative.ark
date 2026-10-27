@@ -2,9 +2,9 @@ use std::test
 use std::text
 
 fn main() {
-    test::assert_eq_string(text::format_i32(-1), "-1")
-    test::assert_eq_string(text::format_i32(-42), "-42")
-    test::assert_eq_string(text::format_i32(-100), "-100")
-    test::assert_eq_string(text::format_i32(-999999), "-999999")
-    test::assert_eq_string(text::format_i32(-2147483647), "-2147483647")
+    test::assert_eq_string((-1).to_string(), "-1")
+    test::assert_eq_string((-42).to_string(), "-42")
+    test::assert_eq_string((-100).to_string(), "-100")
+    test::assert_eq_string((-999999).to_string(), "-999999")
+    test::assert_eq_string((-2147483647).to_string(), "-2147483647")
 }

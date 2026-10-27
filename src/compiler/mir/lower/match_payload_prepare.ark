@@ -328,7 +328,7 @@ fn mir_match_option_scrutinee_type(ctx: LowerCtx, node: AstNode, child_count: i3
     while arm_scan < child_count {
         let scan_arm = ast_node::node_child_at(node, arm_scan)
         if mir_arm_is_option_bind_return(scan_arm) {
-            return text::concat(String_from("option:"), rtn)
+            return String_from("option:").concat(rtn)
         }
         arm_scan = arm_scan + 1
     }

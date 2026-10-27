@@ -7,14 +7,14 @@ fn main() {
             Option::Some(n) => test::assert_eq_i32(n, 42),
             None => panic("expected Some(42)"),
         },
-        Result::Err(e) => panic(text::concat("parse failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse failed: ".concat(json::parse_error_message(e))),
     }
     match json::parse("-7") {
         Result::Ok(v) => match json::json_as_i32(v) {
             Option::Some(n) => test::assert_eq_i32(n, -7),
             None => panic("expected Some(-7)"),
         },
-        Result::Err(e) => panic(text::concat("parse -7 failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse -7 failed: ".concat(json::parse_error_message(e))),
     }
     // Type mismatch: json_as_i32 on non-number returns None
     match json::parse("true") {
@@ -22,6 +22,6 @@ fn main() {
             Option::Some(_) => panic("expected None for non-number"),
             None => {},
         },
-        Result::Err(e) => panic(text::concat("parse true failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse true failed: ".concat(json::parse_error_message(e))),
     }
 }

@@ -4,7 +4,7 @@ fn main() {
     let mut s: String = String_from("")
     let mut i: i32 = 0
     while i < 100 {
-        s = text::concat(s, String_from("x"))
+        s = s.concat(String_from("x"))
         i = i + 1
     }
     stdio::println((len(s)).to_string())

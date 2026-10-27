@@ -129,7 +129,7 @@ use std::wit::types
 let mut i = 1
 while i <= 13 {
     let wit_ty = types::WitType::from_id(i)
-    stdio::println(text::concat((wit_ty.id()).to_string(), text::concat(": ", wit_ty.name())))
+    stdio::println((wit_ty.id()).to_string().concat(": ".concat(wit_ty.name())))
     i = i + 1
 }
 // 1: bool, 2: u8, ..., 13: string

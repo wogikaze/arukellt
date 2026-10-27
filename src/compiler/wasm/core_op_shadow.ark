@@ -40,10 +40,7 @@ fn core_op_shadow_log_unresolved(ctx: SelfEmitCtx, callee: String, func_id_raw: 
     }
     ctx_record::SelfEmitCtx_core_op_shadow_dec_mismatch_budget(ctx)
     stdio::eprintln(
-        text::concat(
-            "core-op-shadow unresolved callee=",
-            text::concat(callee, text::concat(" function_id=", (func_id_raw).to_string()))
-        )
+        "core-op-shadow unresolved callee=".concat(callee.concat(" function_id=".concat((func_id_raw).to_string())))
     )
 }
 
@@ -58,22 +55,7 @@ fn core_op_shadow_log_mismatch(
     }
     ctx_record::SelfEmitCtx_core_op_shadow_dec_mismatch_budget(ctx)
     stdio::eprintln(
-        text::concat(
-            "core-op-shadow mismatch callee=",
-            text::concat(
-                clone(callee),
-                text::concat(
-                    " legacy_handler=",
-                    text::concat(
-                        clone(legacy.handler_id),
-                        text::concat(
-                            " modern_handler=",
-                            clone(modern.handler_id)
-                        )
-                    )
-                )
-            )
-        )
+        "core-op-shadow mismatch callee=".concat(clone(callee).concat(" legacy_handler=".concat(clone(legacy.handler_id).concat(" modern_handler=".concat(clone(modern.handler_id))))))
     )
 }
 
@@ -90,28 +72,9 @@ fn core_op_shadow_print_summary(ctx: SelfEmitCtx) {
     let matched = ctx_record::SelfEmitCtx_core_op_shadow_matched(ctx)
     let mismatched = ctx_record::SelfEmitCtx_core_op_shadow_mismatched(ctx)
     let unresolved = ctx_record::SelfEmitCtx_core_op_shadow_unresolved(ctx)
-    let line = text::concat(
-        "core-op-shadow: summary candidates=",
-        text::concat(
-            (candidates).to_string(),
-            text::concat(
-                " matched=",
-                text::concat(
-                    (matched).to_string(),
-                    text::concat(
-                        " mismatched=",
-                        text::concat(
-                            (mismatched).to_string(),
-                            text::concat(
-                                " unresolved=",
-                                (unresolved).to_string()
-                            )
-                        )
-                    )
-                )
-            )
-        )
+    let line = "core-op-shadow: summary candidates=".concat(
+        (candidates).to_string().concat(" matched=".concat((matched).to_string().concat(" mismatched=".concat((mismatched).to_string().concat(" unresolved=".concat((unresolved).to_string()))))))
     )
     let spine = if ctx_record::SelfEmitCtx_spine_populated(ctx) { "1" } else { "0" }
-    stdio::eprintln(text::concat(line, text::concat(" spine=", spine)))
+    stdio::eprintln(line.concat(" spine=".concat(spine)))
 }

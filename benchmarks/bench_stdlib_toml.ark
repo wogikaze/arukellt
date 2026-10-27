@@ -5,10 +5,7 @@ use std::host::stdio
 use std::toml
 use std::text
 pub fn main() {
-    let simple_toml = text::concat(
-        "name = \"bench\"\n",
-        text::concat("count = 42\n", "active = true\n")
-    )
+    let simple_toml = "name = \"bench\"\n".concat("count = 42\n".concat("active = true\n"))
     let array_toml = "tags = [\"a\", \"b\", \"c\"]\n"
 
     let mut checksum: i32 = 0

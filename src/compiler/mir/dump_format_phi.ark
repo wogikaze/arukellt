@@ -11,23 +11,23 @@ fn mir_format_phi_args(f: MirFunction, args: Vec<MirPhiArg>) -> String {
     while i < count {
         let arg = get_unchecked(args, i)
         if i > 0 {
-            out = text::builder_append(out, ", ")
+            out = out.concat(", ")
         }
-        out = text::builder_append(out, "bb")
-        out = text::builder_append(out, to_string(phi_access::MirPhiArg_pred_block(arg)))
-        out = text::builder_append(out, " -> ")
-        out = text::builder_append(out, dump_format_local::mir_format_local_ref(f, phi_access::MirPhiArg_local(arg)))
+        out = out.concat("bb")
+        out = out.concat(to_string(phi_access::MirPhiArg_pred_block(arg)))
+        out = out.concat(" -> ")
+        out = out.concat(dump_format_local::mir_format_local_ref(f, phi_access::MirPhiArg_local(arg)))
         i = i + 1
     }
-    text::concat(out, "]")
+    out.concat("]")
 }
 
 fn mir_format_phi(f: MirFunction, phi: MirPhi) -> String {
     let mut out = dump_op_names::mir_op_name(phi_access::MirPhi_op(phi))
-    out = text::builder_append(out, " ")
-    out = text::builder_append(out, dump_format_local::mir_format_local_ref(f, phi_access::MirPhi_dest(phi)))
-    out = text::builder_append(out, " = ")
-    out = text::builder_append(out, mir_format_phi_args(f, phi_access::MirPhi_args(phi)))
-    out = text::builder_append(out, " : ")
-    text::concat(out, dump_format_types::mir_value_type_name(phi_access::MirPhi_val_type(phi)))
+    out = out.concat(" ")
+    out = out.concat(dump_format_local::mir_format_local_ref(f, phi_access::MirPhi_dest(phi)))
+    out = out.concat(" = ")
+    out = out.concat(mir_format_phi_args(f, phi_access::MirPhi_args(phi)))
+    out = out.concat(" : ")
+    out.concat(dump_format_types::mir_value_type_name(phi_access::MirPhi_val_type(phi)))
 }

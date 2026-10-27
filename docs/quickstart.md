@@ -95,19 +95,17 @@ fn main() {
 
 ## String
 
-`concat()`のprelude wrapperはADR-046の0.x例外で削除済みです。現在利用可能な
-`std::text::concat`を明示importします。planned method syntaxはcore pathで
-案内しません。
+`concat()`のprelude wrapperはADR-046の0.x例外で削除済みです。現在は
+`String` のレシーバメソッド `s1.concat(s2)` を使います。
 
 <!-- fixture: quickstart/string_basic.ark -->
 ```ark
 use std::host::stdio
-use std::text
 
 fn main() {
     let s1 = String_from("hello")
     let s2 = String_from(" world")
-    let s3 = text::concat(s1, s2)
+    let s3 = s1.concat(s2)
     stdio::println(s3)
 
     let sub = slice(s3, 0, 5)

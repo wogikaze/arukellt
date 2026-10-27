@@ -323,7 +323,7 @@ fn mir_payload_elem_type_from_scrut(scrut_type: String, is_some_or_ok: bool) -> 
         if starts_with(clone(scrut_type), String_from("enum:Result:")) {
             return match_payload_bind_types::normalize_payload_elem_type_name(
                 match_payload_bind_types::extract_first_result_type_param(
-                    text::concat(String_from("result:"), substring(scrut_type, 12, len(scrut_type)))
+                    String_from("result:").concat(substring(scrut_type, 12, len(scrut_type)))
                 )
             )
         }
@@ -338,7 +338,7 @@ fn mir_payload_elem_type_from_scrut(scrut_type: String, is_some_or_ok: bool) -> 
     }
     if starts_with(clone(scrut_type), String_from("enum:Result:")) {
         return match_payload_bind_types::extract_second_result_type_param(
-            text::concat(String_from("result:"), substring(scrut_type, 12, len(scrut_type)))
+            String_from("result:").concat(substring(scrut_type, 12, len(scrut_type)))
         )
     }
     String_new()
@@ -383,7 +383,7 @@ fn mir_infer_payload_set_type(ctx: LowerCtx, elem_ty: String) -> String {
                 if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(derived)) {
                     set_type = derived
                 } else {
-                    set_type = text::concat(String_from("enum:"), clone(elem_ty))
+                    set_type = String_from("enum:").concat(clone(elem_ty))
                 }
             }
         }

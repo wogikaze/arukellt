@@ -99,7 +99,7 @@ fn mono_type_var_name_at(index: i32) -> String {
     if index == 2 { return "U" }
     if index == 3 { return "V" }
     if index == 4 { return "W" }
-    text::concat("T", (index).to_string())
+    "T".concat((index).to_string())
 }
 
 fn extract_first_type_var(rest: String) -> String {

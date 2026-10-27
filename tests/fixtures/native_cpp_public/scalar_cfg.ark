@@ -15,6 +15,6 @@ fn main() {
     if total == 3 {
         stdio::println(String_from("scalar-ok"))
     } else {
-        stdio::println(text::concat(String_from("bad="), to_string(total)))
+        stdio::println(String_from("bad=").concat(to_string(total)))
     }
 }

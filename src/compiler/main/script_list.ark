@@ -54,5 +54,5 @@ fn print_script_line(scripts_content: String, line_start: i32, i: i32, sc_len: i
         j = j + 1
     }
     let val = substring(line, val_start, j)
-    stdio::println(text::concat("  ", text::concat(clone(key), text::concat(" = ", clone(val)))))
+    stdio::println("  ".concat(clone(key).concat(" = ".concat(clone(val)))))
 }

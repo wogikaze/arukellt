@@ -24,7 +24,7 @@ fn should_export_func(name: String) -> bool {
 }
 
 fn component_error(fn_name: String) -> String {
-    text::concat("E0401: component export uses a special adapter signature not supported by canonical ABI: ", fn_name)
+    "E0401: component export uses a special adapter signature not supported by canonical ABI: ".concat(fn_name)
 }
 
 fn component_func_name(f: AstNode) -> String {

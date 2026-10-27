@@ -5,6 +5,6 @@ fn main() {
     let doc = "# comment line\nname = \"arukellt\"\n\ncount = 42"
     match toml::toml_parse(doc) {
         Result::Ok(_) => stdio::println("ok"),
-        Result::Err(e) => stdio::println(text::concat("error:", e)),
+        Result::Err(e) => stdio::println("error:".concat(e)),
     }
 }

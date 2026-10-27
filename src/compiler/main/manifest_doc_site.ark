@@ -10,17 +10,9 @@ fn doc_site_escape(raw: String) -> String {
 }
 
 fn doc_site_signature(e: manifest_doc_record::DocFnEntry) -> String {
-    text::concat(
-        String_from("fn "),
-        text::concat(
-            manifest_doc_record::DocFnEntry_name(e),
-            text::concat(
-                String_from("("),
-                text::concat(
-                    manifest_doc_record::DocFnEntry_params(e),
-                    text::concat(String_from(") -> "), manifest_doc_record::DocFnEntry_returns(e))
-                )
-            )
+    String_from("fn ").concat(
+        manifest_doc_record::DocFnEntry_name(e).concat(
+            (String_from("(")).concat(manifest_doc_record::DocFnEntry_params(e).concat((String_from(") -> ")).concat(manifest_doc_record::DocFnEntry_returns(e))))
         )
     )
 }
@@ -45,101 +37,86 @@ fn doc_site_card(e: manifest_doc_record::DocFnEntry) -> String {
     let sig = doc_site_escape(doc_site_signature(e))
     let doc = doc_site_escape(manifest_doc_record::DocFnEntry_doc(e))
     let target = doc_site_escape(doc_site_target_badge(e))
-    let search = doc_site_escape(text::concat(name, text::concat(String_from(" "), text::concat(module, text::concat(String_from(" "), sig)))))
+    let search = doc_site_escape(name.concat(String_from(" ").concat(module.concat(String_from(" ").concat(sig)))))
     let mut out = String_from("<article class=\"api-card\" data-module=\"")
-    out = text::builder_append(out, module)
-    out = text::builder_append(out, String_from("\" data-stability=\""))
-    out = text::builder_append(out, stability)
-    out = text::builder_append(out, String_from("\" data-search=\""))
-    out = text::builder_append(out, search)
-    out = text::builder_append(out, String_from("\"><div class=\"api-card-head\"><a class=\"api-name\" id=\""))
-    out = text::builder_append(out, name)
-    out = text::builder_append(out, String_from("\" href=\"#"))
-    out = text::builder_append(out, name)
-    out = text::builder_append(out, String_from("\">"))
-    out = text::builder_append(out, name)
-    out = text::builder_append(out, String_from("</a><span class=\"badge stability\">"))
-    out = text::builder_append(out, stability)
-    out = text::builder_append(out, String_from("</span><span class=\"badge target\">"))
-    out = text::builder_append(out, target)
-    out = text::builder_append(out, String_from("</span></div><div class=\"module\">"))
-    out = text::builder_append(out, module)
-    out = text::builder_append(out, String_from("</div><pre><code>"))
-    out = text::builder_append(out, sig)
-    out = text::builder_append(out, String_from("</code></pre><p>"))
+    out = out.concat(module)
+    out = out.concat(String_from("\" data-stability=\""))
+    out = out.concat(stability)
+    out = out.concat(String_from("\" data-search=\""))
+    out = out.concat(search)
+    out = out.concat(String_from("\"><div class=\"api-card-head\"><a class=\"api-name\" id=\""))
+    out = out.concat(name)
+    out = out.concat(String_from("\" href=\"#"))
+    out = out.concat(name)
+    out = out.concat(String_from("\">"))
+    out = out.concat(name)
+    out = out.concat(String_from("</a><span class=\"badge stability\">"))
+    out = out.concat(stability)
+    out = out.concat(String_from("</span><span class=\"badge target\">"))
+    out = out.concat(target)
+    out = out.concat(String_from("</span></div><div class=\"module\">"))
+    out = out.concat(module)
+    out = out.concat(String_from("</div><pre><code>"))
+    out = out.concat(sig)
+    out = out.concat(String_from("</code></pre><p>"))
     if len(doc) > 0 {
-        out = text::builder_append(out, doc)
+        out = out.concat(doc)
     } else {
-        out = text::builder_append(out, String_from("No manifest documentation yet."))
+        out = out.concat(String_from("No manifest documentation yet."))
     }
-    text::builder_append(out, String_from("</p></article>\n"))
+    out.concat(String_from("</p></article>\n"))
 }
 
 fn doc_site_module_link(name: String) -> String {
     let safe = doc_site_escape(name)
-    text::concat(String_from("<a href=\"#\" data-module-filter=\""), text::concat(safe, text::concat(String_from("\">"), text::concat(safe, String_from("</a>\n")))))
+    String_from("<a href=\"#\" data-module-filter=\"").concat(safe.concat(String_from("\">").concat(safe.concat(String_from("</a>\n")))))
 }
 
 fn doc_site_header() -> String {
     let mut out = String_from("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">")
-    out = text::builder_append(out, String_from("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"))
-    out = text::builder_append(out, String_from("<title>Arukellt std docs</title><style>"))
-    out = text::builder_append(out, String_from(":root{color-scheme:light;--bg:#f7f8fb;--panel:#fff;--ink:#17202a;--muted:#5c6675;--line:#d8dee8;--accent:#0b6b"))
-    out = text::builder_append(out, String_from("cb;--ok:#1f7a4d;--warn:#9a6700}*{box-sizing:border-box}body{margin:0;font:15px/1.55 system-ui,-apple-system,Se"))
-    out = text::builder_append(out, String_from("goe UI,sans-serif;background:var(--bg);color:var(--ink)}header{background:#111827;color:white;padding:28px 32p"))
-    out = text::builder_append(out, String_from("x}header h1{margin:0 0 8px;font-size:32px;letter-spacing:0}header p{margin:0;color:#d1d5db;max-width:880px}.la"))
-    out = text::builder_append(out, String_from("yout{display:grid;grid-template-columns:280px 1fr;gap:24px;padding:24px}.sidebar{position:sticky;top:16px;alig"))
-    out = text::builder_append(out, String_from("n-self:start;background:var(--panel);border:1px solid var(--line);padding:16px}.sidebar a{display:block;color:"))
-    out = text::builder_append(out, String_from("var(--accent);text-decoration:none;padding:4px 0}.toolbar{display:grid;grid-template-columns:1fr 180px;gap:12p"))
-    out = text::builder_append(out, String_from("x;margin-bottom:16px}.toolbar input,.toolbar select{width:100%;padding:10px;border:1px solid var(--line);backg"))
-    out = text::builder_append(out, String_from("round:white}.stats{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}.stat{background:white;border:1px solid "))
-    out = text::builder_append(out, String_from("var(--line);padding:10px 12px}.api-grid{display:grid;gap:12px}.api-card{background:var(--panel);border:1px sol"))
-    out = text::builder_append(out, String_from("id var(--line);padding:16px}.api-card-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.api-name{fo"))
-    out = text::builder_append(out, String_from("nt-size:19px;font-weight:700;color:var(--accent);text-decoration:none}.module{color:var(--muted);font-family:u"))
-    out = text::builder_append(out, String_from("i-monospace,monospace;margin:6px 0}.badge{border:1px solid var(--line);padding:2px 7px;font-size:12px}.stabili"))
-    out = text::builder_append(out, String_from("ty{color:var(--ok)}.target{color:var(--warn)}pre{overflow:auto;background:#f3f5f8;border:1px solid var(--line)"))
-    out = text::builder_append(out, String_from(";padding:10px}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}@media(max-width:860px){.layout{gri"))
-    out = text::builder_append(out, String_from("d-template-columns:1fr}.sidebar{position:static}.toolbar{grid-template-columns:1fr}}</style></head><body>"))
-    out = text::builder_append(out, String_from("<header><h1>Arukellt Standard Library</h1>"))
-    out = text::builder_append(
-        out,
-        String_from("<p>Manifest-backed API reference generated by <code>arukellt doc --html</code>. ")
-    )
-    out = text::builder_append(
-        out,
-        String_from("Search by function, module, signature, or stability.</p></header>")
-    )
-    text::builder_append(
-        out,
-        String_from("<main class=\"layout\"><aside class=\"sidebar\"><strong>Modules</strong><a href=\"#\" data-module-filter=\"\">All modules</a>")
-    )
+    out = out.concat(String_from("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"))
+    out = out.concat(String_from("<title>Arukellt std docs</title><style>"))
+    out = out.concat(String_from(":root{color-scheme:light;--bg:#f7f8fb;--panel:#fff;--ink:#17202a;--muted:#5c6675;--line:#d8dee8;--accent:#0b6b"))
+    out = out.concat(String_from("cb;--ok:#1f7a4d;--warn:#9a6700}*{box-sizing:border-box}body{margin:0;font:15px/1.55 system-ui,-apple-system,Se"))
+    out = out.concat(String_from("goe UI,sans-serif;background:var(--bg);color:var(--ink)}header{background:#111827;color:white;padding:28px 32p"))
+    out = out.concat(String_from("x}header h1{margin:0 0 8px;font-size:32px;letter-spacing:0}header p{margin:0;color:#d1d5db;max-width:880px}.la"))
+    out = out.concat(String_from("yout{display:grid;grid-template-columns:280px 1fr;gap:24px;padding:24px}.sidebar{position:sticky;top:16px;alig"))
+    out = out.concat(String_from("n-self:start;background:var(--panel);border:1px solid var(--line);padding:16px}.sidebar a{display:block;color:"))
+    out = out.concat(String_from("var(--accent);text-decoration:none;padding:4px 0}.toolbar{display:grid;grid-template-columns:1fr 180px;gap:12p"))
+    out = out.concat(String_from("x;margin-bottom:16px}.toolbar input,.toolbar select{width:100%;padding:10px;border:1px solid var(--line);backg"))
+    out = out.concat(String_from("round:white}.stats{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}.stat{background:white;border:1px solid "))
+    out = out.concat(String_from("var(--line);padding:10px 12px}.api-grid{display:grid;gap:12px}.api-card{background:var(--panel);border:1px sol"))
+    out = out.concat(String_from("id var(--line);padding:16px}.api-card-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.api-name{fo"))
+    out = out.concat(String_from("nt-size:19px;font-weight:700;color:var(--accent);text-decoration:none}.module{color:var(--muted);font-family:u"))
+    out = out.concat(String_from("i-monospace,monospace;margin:6px 0}.badge{border:1px solid var(--line);padding:2px 7px;font-size:12px}.stabili"))
+    out = out.concat(String_from("ty{color:var(--ok)}.target{color:var(--warn)}pre{overflow:auto;background:#f3f5f8;border:1px solid var(--line)"))
+    out = out.concat(String_from(";padding:10px}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}@media(max-width:860px){.layout{gri"))
+    out = out.concat(String_from("d-template-columns:1fr}.sidebar{position:static}.toolbar{grid-template-columns:1fr}}</style></head><body>"))
+    out = out.concat(String_from("<header><h1>Arukellt Standard Library</h1>"))
+    out = out.concat(String_from("<p>Manifest-backed API reference generated by <code>arukellt doc --html</code>. "))
+    out = out.concat(String_from("Search by function, module, signature, or stability.</p></header>"))
+    out.concat(String_from("<main class=\"layout\"><aside class=\"sidebar\"><strong>Modules</strong><a href=\"#\" data-module-filter=\"\">All modules</a>"))
 }
 
 fn doc_site_footer() -> String {
     let mut out = String_from("")
-    out = text::builder_append(out, String_from("</div></section></main><script>"))
-    out = text::builder_append(out, String_from("const q=document.getElementById('q');"))
-    out = text::builder_append(out, String_from("const st=document.getElementById('stability');"))
-    out = text::builder_append(out, String_from("let mod='';"))
-    out = text::builder_append(out, String_from("function apply(){"))
-    out = text::builder_append(out, String_from("const needle=(q.value||'').toLowerCase();"))
-    out = text::builder_append(out, String_from("document.querySelectorAll('.api-card').forEach(c=>{"))
-    out = text::builder_append(
-        out,
-        String_from("const okText=!needle||(c.dataset.search||'').toLowerCase().includes(needle);")
-    )
-    out = text::builder_append(out, String_from("const okSt=!st.value||c.dataset.stability===st.value;"))
-    out = text::builder_append(out, String_from("const okMod=!mod||c.dataset.module===mod;"))
-    out = text::builder_append(out, String_from("c.style.display=okText&&okSt&&okMod?'block':'none';"))
-    out = text::builder_append(out, String_from("});}"))
-    out = text::builder_append(
-        out,
-        String_from("document.querySelectorAll('[data-module-filter]').forEach(a=>a.addEventListener('click',e=>{")
-    )
-    out = text::builder_append(out, String_from("e.preventDefault();mod=a.dataset.moduleFilter||'';apply();}));"))
-    out = text::builder_append(out, String_from("q.addEventListener('input',apply);"))
-    out = text::builder_append(out, String_from("st.addEventListener('change',apply);"))
-    out = text::builder_append(out, String_from("</script></body></html>\n"))
+    out = out.concat(String_from("</div></section></main><script>"))
+    out = out.concat(String_from("const q=document.getElementById('q');"))
+    out = out.concat(String_from("const st=document.getElementById('stability');"))
+    out = out.concat(String_from("let mod='';"))
+    out = out.concat(String_from("function apply(){"))
+    out = out.concat(String_from("const needle=(q.value||'').toLowerCase();"))
+    out = out.concat(String_from("document.querySelectorAll('.api-card').forEach(c=>{"))
+    out = out.concat(String_from("const okText=!needle||(c.dataset.search||'').toLowerCase().includes(needle);"))
+    out = out.concat(String_from("const okSt=!st.value||c.dataset.stability===st.value;"))
+    out = out.concat(String_from("const okMod=!mod||c.dataset.module===mod;"))
+    out = out.concat(String_from("c.style.display=okText&&okSt&&okMod?'block':'none';"))
+    out = out.concat(String_from("});}"))
+    out = out.concat(String_from("document.querySelectorAll('[data-module-filter]').forEach(a=>a.addEventListener('click',e=>{"))
+    out = out.concat(String_from("e.preventDefault();mod=a.dataset.moduleFilter||'';apply();}));"))
+    out = out.concat(String_from("q.addEventListener('input',apply);"))
+    out = out.concat(String_from("st.addEventListener('change',apply);"))
+    out = out.concat(String_from("</script></body></html>\n"))
     out
 }
 
@@ -150,20 +127,20 @@ pub fn doc_render_stdlib_html(table: manifest_doc_record::DocManifestTable) -> S
     let mut mi = 0
     while mi < module_count {
         let m = manifest_doc_record::DocManifestTable_module_at(table, mi)
-        out = text::builder_append(out, doc_site_module_link(manifest_doc_record::DocModuleEntry_name(m)))
+        out = out.concat(doc_site_module_link(manifest_doc_record::DocModuleEntry_name(m)))
         mi = mi + 1
     }
-    out = text::builder_append(out, String_from("</aside><section><div class=\"toolbar\"><input id=\"q\" placeholder=\"Search std APIs\"><select id=\"stability\"><opti"))
-    out = text::builder_append(out, String_from("on value=\"\">All stability tiers</option><option>stable</option><option>provisional</option><option>experimenta"))
-    out = text::builder_append(out, String_from("l</option><option>deprecated</option></select></div><div class=\"stats\"><div class=\"stat\"><strong>"))
-    out = text::builder_append(out, (function_count).to_string())
-    out = text::builder_append(out, String_from("</strong> functions</div><div class=\"stat\"><strong>"))
-    out = text::builder_append(out, (module_count).to_string())
-    out = text::builder_append(out, String_from("</strong> modules</div></div><div id=\"api\" class=\"api-grid\">"))
+    out = out.concat(String_from("</aside><section><div class=\"toolbar\"><input id=\"q\" placeholder=\"Search std APIs\"><select id=\"stability\"><opti"))
+    out = out.concat(String_from("on value=\"\">All stability tiers</option><option>stable</option><option>provisional</option><option>experimenta"))
+    out = out.concat(String_from("l</option><option>deprecated</option></select></div><div class=\"stats\"><div class=\"stat\"><strong>"))
+    out = out.concat((function_count).to_string())
+    out = out.concat(String_from("</strong> functions</div><div class=\"stat\"><strong>"))
+    out = out.concat((module_count).to_string())
+    out = out.concat(String_from("</strong> modules</div></div><div id=\"api\" class=\"api-grid\">"))
     let mut i = 0
     while i < function_count {
-        out = text::builder_append(out, doc_site_card(manifest_doc_record::DocManifestTable_function_at(table, i)))
+        out = out.concat(doc_site_card(manifest_doc_record::DocManifestTable_function_at(table, i)))
         i = i + 1
     }
-    text::builder_append(out, doc_site_footer())
+    out.concat(doc_site_footer())
 }

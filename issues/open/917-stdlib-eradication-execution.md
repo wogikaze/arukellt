@@ -305,6 +305,36 @@ classified there, in dependency-safe waves.
   wit/component, host/core, io, test, collections, json/toml/csv) and the
   `filter_i32` deferral are untouched.
 
+### Landed slice (wave/next-text Wave 1, 2026-10-27)
+
+- Converted the `std::text` free surface to receiver / associated methods.
+  Removed the 22 counted non-stable symbols (3 experimental UTF-8 frees, 8
+  experimental `std::text::rope` frees, 11 unregistered `std::text::fmt`
+  container formatters) and the duplicate `std/text/builder.ark` /
+  `std/text/string.ark` declarations. Deprecated the 36 remaining `stable`
+  `std::text` frees with `deprecated_by`, `deprecated_since = "0.1.0"`,
+  `remove_in = "1.0.0"`, and W0009 coverage.
+- Replacement surface: `String` methods (`len_bytes`, `trim*`, `slice_*`,
+  `split`, `lines`, `chars`, `replace`, `repeat`, `pad_*_with`,
+  `to_utf8_bytes`, `insert_text`, `delete_range`, `line_count`), associated
+  `String::new` / `from_utf8_lossy` / `try_from_utf8`, `Vec<String>::join`,
+  `value.fmt_debug()`, `buf.concat(value.fmt_debug())`, and the `DebugFormat`
+  associated renderings. `String` receivers were probed on `wasm32-gc` and
+  linear `wasm32`; the `Vec<T>` inherent `fmt_debug` receiver is a known
+  lowering gap, so the container renderings stay associated.
+- E0100 hints for the removed `fmt` / `rope` / `text` members; the new
+  `diagnostics/deprecated_text_qualified*.ark` pair asserts W0009 on both
+  targets.
+- Scorecard: 1060 -> **1025** public symbols; manifest public entries 685 ->
+  **661**; `pub fn` declarations 1235 -> **1162**; unregistered 375 -> **364**;
+  `associated-or-method` 977 -> **919**; `must delete` 83 -> **106**. The
+  `deprecated std::text frees` rule owns the 36 Wave-2 deletions.
+- Evidence: stage-2 rebuild; 299/299 targeted fixtures
+  (`stdlib_text` / `stdlib_trait` / `module_import` / `stdlib_test` /
+  `stdlib_collections_compiler`); `selfhost diag-parity` PASS; docs generated
+  and checked; `check-stdlib-eradication` and `check-compat-orphans` clean.
+- Residual: the 36 deprecated `std::text` frees are deleted in Wave 2.
+
 ## Required work
 
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate
@@ -348,6 +378,10 @@ classified there, in dependency-safe waves.
         `std::core::iter` constructor / collector frees retired after the
         `VecIter` adapter method surface (`chain`/`enumerate`/`zip`/`all`
         landed with the wave) replaced them.
+      - Landed 2026-10-27 (`wave/next-text` Wave 1): the 22 non-stable
+        `std::text` frees were removed and the 36 stable frees deprecated
+        with W0009 after the String / Vec<String> / DebugFormat replacement
+        surface landed. Wave 2 deletes the deprecated set.
 - [x] Keep the scorecard at zero-unclassified while waves land: update
       the TOML rules as symbols retire so the checker stays green.
 - [x] Update user-facing docs/examples in the same PR that retires a

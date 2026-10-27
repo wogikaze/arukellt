@@ -82,7 +82,7 @@ pub fn io_error_message(err: IoError) -> String {
 /// Display implementation for the typed I/O error surface.
 impl Display for IoError {
     fn to_string(self: IoError) -> String {
-        text::concat("IoError: ", io_error_message(self))
+        "IoError: ".concat(io_error_message(self))
     }
 }
 
@@ -330,7 +330,7 @@ impl Writer {
 
     /// Writes `text` as UTF-8 bytes and returns the accepted byte count.
     fn write_string(self: Writer, text: String) -> Result<i32, IoError> {
-        self.write(text::to_utf8_bytes(text))
+        self.write(text.to_utf8_bytes())
     }
 }
 
@@ -404,9 +404,9 @@ impl Io {
                 Result::Err(err) => return Err(err),
             }
             if len(chunk) == 0 {
-                let needed: String = text::format_i32(amount)
-                let have: String = text::format_i32(len(out))
-                let message: String = text::concat("need ", text::concat(needed, text::concat(" have ", have)))
+                let needed: String = amount.to_string()
+                let have: String = len(out).to_string()
+                let message: String = "need ".concat(needed.concat(" have ".concat(have)))
                 return Err(IoError::UnexpectedEof(message))
             }
             if len(chunk) > remaining {
@@ -485,7 +485,7 @@ impl Io {
             Result::Ok(data) => data,
             Result::Err(err) => return Err(err),
         }
-        match text::try_from_utf8(bytes) {
+        match String::try_from_utf8(bytes) {
             Option::Some(decoded) => Ok(decoded),
             Option::None => Err(IoError::Other("read_to_string: input is not valid UTF-8")),
         }
@@ -629,7 +629,7 @@ impl<R: Read> BufRead for BufReader<R> {
                 if byte == NEWLINE_BYTE {
                     found_newline = true
                 } else {
-                    line = text::concat(line, char_to_string(byte))
+                    line = line.concat(char_to_string(byte))
                 }
             }
             if pos > self.start {
@@ -702,7 +702,7 @@ impl<W: Write> BufWriter<W> {
 
     /// Writes `text` as UTF-8 bytes through the buffer.
     fn write_string(self: BufWriter<W>, text: String) -> Result<i32, IoError> {
-        self.append(text::to_utf8_bytes(text))
+        self.append(text.to_utf8_bytes())
     }
 
     /// Flushes the buffer and returns the owned inner handle.

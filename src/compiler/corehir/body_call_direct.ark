@@ -84,7 +84,7 @@ fn corehir_direct_call_callee_name(callee: AstNode) -> String {
     } else {
         "Vec__with_capacity__"
     }
-    text::concat(constructor, element_name)
+    constructor.concat(element_name)
 }
 
 fn corehir_hashmap_constructor_name(callee: AstNode) -> String {
@@ -99,10 +99,7 @@ fn corehir_hashmap_constructor_name(callee: AstNode) -> String {
     contains(clone(key_name), "::") || contains(clone(value_name), "::") {
         return "HashMap::new"
     }
-    text::concat(
-        "HashMap__new__",
-        text::concat(key_name, text::concat("__", value_name))
-    )
+    "HashMap__new__".concat(key_name.concat("__".concat(value_name)))
 }
 
 // Same spelling rule as mir_hashmap_ctor_type_arg_name: fn(i32) -> i32

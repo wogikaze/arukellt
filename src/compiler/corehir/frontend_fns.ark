@@ -76,7 +76,7 @@ fn module_qualified_fn_name(modules: Vec<CoreHirModuleInfo>, decl_index: i32, fn
         if decl_index >= decl_start && decl_index < decl_end {
             let module_name = clone(module_info.name)
             if !eq(clone(module_name), "<main>") {
-                return text::concat(module_name, text::concat("::", fn_name))
+                return module_name.concat("::".concat(fn_name))
             }
             return String_new()
         }

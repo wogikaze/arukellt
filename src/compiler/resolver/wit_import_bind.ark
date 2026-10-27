@@ -89,20 +89,20 @@ fn wit_push_bindings_for_import(bindings: Vec<WitImportBinding>, wit_paths: Vec<
         return
     }
     if eq(clone(package_id), "test:host/math") {
-        push(bindings, WitImportBinding_new("i32_i32_1i32", "test:host/math", "test:host/math", "test:host/math", "add", text::concat(clone(alias), "::add")))
+        push(bindings, WitImportBinding_new("i32_i32_1i32", "test:host/math", "test:host/math", "test:host/math", "add", clone(alias).concat("::add")))
         return
     }
     if eq(clone(package_id), "test:doc/parse") {
-        push(bindings, WitImportBinding_new("String_1i32", "test:doc/parse", "test:doc/parse", "test:doc/parse", "parse-markdown", text::concat(clone(alias), "::parse_markdown")))
+        push(bindings, WitImportBinding_new("String_1i32", "test:doc/parse", "test:doc/parse", "test:doc/parse", "parse-markdown", clone(alias).concat("::parse_markdown")))
         return
     }
     if eq(clone(package_id), "test:host/host") {
-        push(bindings, WitImportBinding_new("i32_0", "test:host/host", "test:host/host", "test:host/host", "set-perms", text::concat(clone(alias), "::set_perms")))
+        push(bindings, WitImportBinding_new("i32_0", "test:host/host", "test:host/host", "test:host/host", "set-perms", clone(alias).concat("::set_perms")))
         return
     }
     if eq(clone(package_id), "test:host/handles") {
-        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "take", text::concat(clone(alias), "::take")))
-        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "peek", text::concat(clone(alias), "::peek")))
+        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "take", clone(alias).concat("::take")))
+        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "peek", clone(alias).concat("::peek")))
     }
 }
 

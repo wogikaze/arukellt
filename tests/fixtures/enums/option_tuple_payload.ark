@@ -22,7 +22,7 @@ fn main() {
         None => stdio::println("none"),
     }
     match mk_mixed() {
-        Some((s, n)) => stdio::println(text::concat(s, n.to_string())),
+        Some((s, n)) => stdio::println(s.concat(n.to_string())),
         None => stdio::println("none"),
     }
 
@@ -31,13 +31,13 @@ fn main() {
     m.insert("k", 17)
     let es = m.entries()
     match es.get(0) {
-        Some((k, v)) => stdio::println(text::concat(k, v.to_string())),
+        Some((k, v)) => stdio::println(k.concat(v.to_string())),
         None => stdio::println("none"),
     }
     match es.pop() {
         Some(p) => {
             let (k, v) = p
-            stdio::println(text::concat(k, v.to_string()))
+            stdio::println(k.concat(v.to_string()))
         }
         None => stdio::println("none"),
     }

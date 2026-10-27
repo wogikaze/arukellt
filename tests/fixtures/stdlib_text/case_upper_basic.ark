@@ -2,11 +2,11 @@ use std::test
 use std::text
 
 fn main() {
-    test::assert_eq_string(text::to_upper("hello"), "HELLO")
-    test::assert_eq_string(text::to_upper("Hello World"), "HELLO WORLD")
-    test::assert_eq_string(text::to_upper("abcdef"), "ABCDEF")
-    test::assert_eq_string(text::to_upper("already upper"), "ALREADY UPPER")
-    test::assert_eq_string(text::to_upper("MixedCaseString"), "MIXEDCASESTRING")
-    test::assert_eq_string(text::to_upper("a"), "A")
-    test::assert_eq_string(text::to_upper("z"), "Z")
+    test::assert_eq_string("hello".to_upper(), "HELLO")
+    test::assert_eq_string("Hello World".to_upper(), "HELLO WORLD")
+    test::assert_eq_string("abcdef".to_upper(), "ABCDEF")
+    test::assert_eq_string("already upper".to_upper(), "ALREADY UPPER")
+    test::assert_eq_string("MixedCaseString".to_upper(), "MIXEDCASESTRING")
+    test::assert_eq_string("a".to_upper(), "A")
+    test::assert_eq_string("z".to_upper(), "Z")
 }

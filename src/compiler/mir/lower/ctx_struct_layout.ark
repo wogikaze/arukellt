@@ -87,7 +87,7 @@ fn ctx_generic_enum_type_name(ctx: LowerCtx, type_name: String) -> String {
         gi = gi + 1
     }
     if ctx_is_registered_enum_type(ctx, clone(base)) {
-        return text::concat(String_from("enum:"), base)
+        return String_from("enum:").concat(base)
     }
     String_new()
 }
@@ -160,14 +160,14 @@ fn ctx_maybe_enum_return_type_name(ctx: LowerCtx, type_name: String) -> String {
     }
     if ctx_is_registered_struct_type(ctx, clone(type_name)) {
         let byte_size = ctx_struct_byte_size(ctx, clone(type_name))
-        return text::concat(text::concat("struct:", type_name), text::concat(":", (byte_size).to_string()))
+        return "struct:".concat(type_name).concat(":".concat((byte_size).to_string()))
     }
     let generic_enum = ctx_generic_enum_type_name(ctx, clone(type_name))
     if len(generic_enum) > 0 {
         return generic_enum
     }
     if ctx_is_registered_enum_type(ctx, clone(type_name)) {
-        return text::concat("enum:", type_name)
+        return "enum:".concat(type_name)
     }
     type_name
 }
@@ -198,11 +198,11 @@ fn is_builtin_type_name(type_name: String) -> bool {
 fn ctx_normalize_generic_type_name(type_name: String) -> String {
     if starts_with(clone(type_name), "Vec<") && ends_with(clone(type_name), ">") {
         let inner = substring(clone(type_name), 4, len(type_name) - 1)
-        return text::concat("vec:", inner)
+        return "vec:".concat(inner)
     }
     if starts_with(clone(type_name), "Option<") && ends_with(clone(type_name), ">") {
         let inner = substring(clone(type_name), 7, len(type_name) - 1)
-        return text::concat("option:", inner)
+        return "option:".concat(inner)
     }
     if starts_with(clone(type_name), "Result<") && ends_with(clone(type_name), ">") {
         let inner = substring(clone(type_name), 7, len(type_name) - 1)
@@ -219,9 +219,9 @@ fn ctx_normalize_generic_type_name(type_name: String) -> String {
             // result:vec:T:String (#726 toml navigate Result match).
             let ok_norm = ctx_normalize_generic_type_name(ok_ty)
             let err_norm = ctx_normalize_generic_type_name(err)
-            return text::concat(text::concat("result:", ok_norm), text::concat(":", err_norm))
+            return "result:".concat(ok_norm).concat(":".concat(err_norm))
         }
-        return text::concat("result:", inner)
+        return "result:".concat(inner)
     }
     type_name
 }

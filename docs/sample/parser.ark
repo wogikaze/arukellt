@@ -595,7 +595,7 @@ fn emit_fn_section(fn_defs: Vec<FnDef>, fn_refs: Vec<String>, events: Vec<Event>
     while i < len(fn_defs) {
         let def = get(fn_defs, i)
         if !fn_refs_contains(fn_refs, def.id) {
-            ctx_warn(ctx, warnings, FOOTNOTE_UNUSED_DEF(), text::concat("Footnote '[^", text::concat(def.id, text::concat("' is defined but never referenced.", ""))), 0)
+            ctx_warn(ctx, warnings, FOOTNOTE_UNUSED_DEF(), "Footnote '[^".concat((def.id).concat("' is defined but never referenced.".concat(""))), 0)
         }
         i = i + 1
     }
@@ -646,14 +646,14 @@ fn parse_blocks(lines: Vec<String>, events: Vec<Event>, warnings: Vec<Warning>, 
                                 if starts_with(after, "(") && ends_with(after, ")") {
                                     let url = substring(after, 1, len(after) - 1)
                                     if !starts_with(url, "http://") && !starts_with(url, "https://") {
-                                        ctx_warn(ctx, warnings, CARD_NON_HTTP(), text::concat("Card link URL '", text::concat(url, "' should start with http:// or https://")), 0)
+                                        ctx_warn(ctx, warnings, CARD_NON_HTTP(), "Card link URL '".concat(url.concat("' should start with http:// or https://")), 0)
                                     }
                                     push(events, Event::CardLink(url))
                                 } else {
-                                    ctx_warn(ctx, warnings, CARD_MALFORMED(), text::concat("Malformed @[card] syntax near '", text::concat(substring(tline, 0, min_i32(len(tline), 40)), "'.")), 0)
+                                    ctx_warn(ctx, warnings, CARD_MALFORMED(), "Malformed @[card] syntax near '".concat(substring(tline, 0, min_i32(len(tline), 40)).concat("'.")), 0)
                                 }
                             } else {
-                                ctx_warn(ctx, warnings, CARD_UNKNOWN_TYPE(), text::concat("Unknown embed type '", text::concat(type_name, "': only 'card' is supported.")), 0)
+                                ctx_warn(ctx, warnings, CARD_UNKNOWN_TYPE(), "Unknown embed type '".concat(type_name.concat("': only 'card' is supported.")), 0)
                             }
                         },
                         None => {
@@ -1168,7 +1168,7 @@ fn parse_inline(text: String, events: Vec<Event>, warnings: Vec<Warning>, ctx: P
                                                                 }
                                                                 push(events, Event::FootnoteRef(num))
                                                             } else {
-                                                                ctx_warn(ctx, warnings, FOOTNOTE_UNDEFINED_REF(), text::concat("Footnote reference '[^", text::concat(id, "]' has no matching definition.")), pos)
+                                                                ctx_warn(ctx, warnings, FOOTNOTE_UNDEFINED_REF(), "Footnote reference '[^".concat(id.concat("]' has no matching definition.")), pos)
                                                                 push(events, Event::Text(substring(remaining, 0, total_len)))
                                                             }
                                                             pos = pos + total_len
@@ -1212,23 +1212,23 @@ fn parse_inline(text: String, events: Vec<Event>, warnings: Vec<Warning>, ctx: P
                                                                         let ruby = substring(content, si + 1, len(content))
                                                                         let token = substring(remaining, 0, cb + 1)
                                                                         if len(base) == 0 {
-                                                                            ctx_warn(ctx, warnings, RUBY_EMPTY_BASE(), text::concat("Ruby '[", text::concat(content, "': base text is empty.")), pos)
+                                                                            ctx_warn(ctx, warnings, RUBY_EMPTY_BASE(), "Ruby '[".concat(content.concat("': base text is empty.")), pos)
                                                                         }
                                                                         if len(ruby) == 0 {
-                                                                            ctx_warn(ctx, warnings, RUBY_EMPTY_READING(), text::concat("Ruby '[", text::concat(content, "': reading is empty.")), pos)
+                                                                            ctx_warn(ctx, warnings, RUBY_EMPTY_READING(), "Ruby '[".concat(content.concat("': reading is empty.")), pos)
                                                                         }
                                                                         if len(base) > 0 && len(ruby) > 0 && base == ruby {
-                                                                            ctx_warn(ctx, warnings, RUBY_SELF_REFERENTIAL(), text::concat("Ruby '[", text::concat(base, text::concat("/", text::concat(ruby, "': base and reading are identical.")))), pos)
+                                                                            ctx_warn(ctx, warnings, RUBY_SELF_REFERENTIAL(), "Ruby '[".concat(base.concat("/".concat(ruby.concat("': base and reading are identical.")))), pos)
                                                                         }
                                                                         if is_purely_katakana(base) && is_purely_hiragana(ruby) {
-                                                                            ctx_warn(ctx, warnings, RUBY_KATAKANA_HIRAGANA(), text::concat("Ruby '[", text::concat(base, text::concat("/", text::concat(ruby, "': katakana base with hiragana reading.")))), pos)
+                                                                            ctx_warn(ctx, warnings, RUBY_KATAKANA_HIRAGANA(), "Ruby '[".concat(base.concat("/".concat(ruby.concat("': katakana base with hiragana reading.")))), pos)
                                                                         } else {
                                                                             if len(base) > 0 && has_kana(base) {
-                                                                                ctx_warn(ctx, warnings, RUBY_KANA_BASE(), text::concat("Ruby '[", text::concat(base, text::concat("/", text::concat(ruby, "': base text contains kana.")))), pos)
+                                                                                ctx_warn(ctx, warnings, RUBY_KANA_BASE(), "Ruby '[".concat(base.concat("/".concat(ruby.concat("': base text contains kana.")))), pos)
                                                                             }
                                                                         }
                                                                         if len(ruby) > 0 && has_kanji(ruby) {
-                                                                            ctx_warn(ctx, warnings, RUBY_KANJI_READING(), text::concat("Ruby '[", text::concat(base, text::concat("/", text::concat(ruby, "': reading contains kanji.")))), pos)
+                                                                            ctx_warn(ctx, warnings, RUBY_KANJI_READING(), "Ruby '[".concat(base.concat("/".concat(ruby.concat("': reading contains kanji.")))), pos)
                                                                         }
                                                                         push(events, Event::Start(Tag::Ruby(ruby)))
                                                                         parse_inline(base, events, warnings, ctx, true, fn_defs, fn_refs)
@@ -1237,7 +1237,7 @@ fn parse_inline(text: String, events: Vec<Event>, warnings: Vec<Warning>, ctx: P
                                                                     },
                                                                     None => {
                                                                         if is_some(str_find(content, "/")) {
-                                                                            ctx_warn(ctx, warnings, RUBY_MALFORMED(), text::concat("Possibly malformed ruby syntax '[", text::concat(substring(content, 0, min_i32(len(content), 30)), "'].")), pos)
+                                                                            ctx_warn(ctx, warnings, RUBY_MALFORMED(), "Possibly malformed ruby syntax '[".concat(substring(content, 0, min_i32(len(content), 30)).concat("'].")), pos)
                                                                         }
                                                                         push(events, Event::Text(substring(remaining, 0, 1)))
                                                                         pos = pos + 1
@@ -1247,7 +1247,7 @@ fn parse_inline(text: String, events: Vec<Event>, warnings: Vec<Warning>, ctx: P
                                                         },
                                                         None => {
                                                             if is_some(str_find(substring(remaining, 1, len(remaining)), "/")) || is_some(str_find(substring(remaining, 1, len(remaining)), "]")) {
-                                                                ctx_warn(ctx, warnings, RUBY_MALFORMED(), text::concat("Possibly malformed ruby syntax near '", text::concat(substring(remaining, 0, min_i32(len(remaining), 30)), "'.")), pos)
+                                                                ctx_warn(ctx, warnings, RUBY_MALFORMED(), "Possibly malformed ruby syntax near '".concat(substring(remaining, 0, min_i32(len(remaining), 30)).concat("'.")), pos)
                                                             }
                                                             push(events, Event::Text(substring(remaining, 0, 1)))
                                                             pos = pos + 1
@@ -1269,10 +1269,10 @@ fn parse_inline(text: String, events: Vec<Event>, warnings: Vec<Warning>, ctx: P
                                                                         ni = ni + 1
                                                                     }
                                                                     if len(base) == 0 {
-                                                                        ctx_warn(ctx, warnings, ANNO_EMPTY_BASE(), text::concat("Anno '", text::concat(content, "': base text is empty.")), pos)
+                                                                        ctx_warn(ctx, warnings, ANNO_EMPTY_BASE(), "Anno '".concat(content.concat("': base text is empty.")), pos)
                                                                     }
                                                                     if len(notes) == 1 && contains_kanji(base) && is_purely_kana_or_punct(get(notes, 0)) {
-                                                                        ctx_warn(ctx, warnings, ANNO_LOOKS_LIKE_RUBY(), text::concat("Anno '{", text::concat(base, text::concat("/", text::concat(get(notes, 0), "}' looks like a Ruby reading.")))), pos)
+                                                                        ctx_warn(ctx, warnings, ANNO_LOOKS_LIKE_RUBY(), "Anno '{".concat(base.concat("/".concat(get(notes, 0).concat("}' looks like a Ruby reading.")))), pos)
                                                                     }
                                                                     push(events, Event::Start(Tag::Anno(clone(notes))))
                                                                     parse_inline(base, events, warnings, ctx, true, fn_defs, fn_refs)
@@ -1291,7 +1291,7 @@ fn parse_inline(text: String, events: Vec<Event>, warnings: Vec<Warning>, ctx: P
                                                                 }
                                                             },
                                                             None => {
-                                                                ctx_warn(ctx, warnings, ANNO_MALFORMED(), text::concat("Possibly malformed anno syntax near '", text::concat(substring(remaining, 0, min_i32(len(remaining), 30)), "'.")), pos)
+                                                                ctx_warn(ctx, warnings, ANNO_MALFORMED(), "Possibly malformed anno syntax near '".concat(substring(remaining, 0, min_i32(len(remaining), 30)).concat("'.")), pos)
                                                                 push(events, Event::Text(substring(remaining, 0, 1)))
                                                                 pos = pos + 1
                                                             },
@@ -1303,14 +1303,14 @@ fn parse_inline(text: String, events: Vec<Event>, warnings: Vec<Warning>, ctx: P
                                                             let ch_len = char_byte_len(ch)
                                                             let t = substring(remaining, 0, ch_len)
                                                             if !in_annotation && contains_kanji(t) {
-                                                                ctx_warn(ctx, warnings, KANJI_NO_RUBY(), text::concat("Kanji without ruby: '", text::concat(trim(t), "'")), pos)
+                                                                ctx_warn(ctx, warnings, KANJI_NO_RUBY(), "Kanji without ruby: '".concat(trim(t).concat("'")), pos)
                                                             }
                                                             push(events, Event::Text(t))
                                                             pos = pos + ch_len
                                                         } else {
                                                             let t = substring(remaining, 0, next_special)
                                                             if !in_annotation && contains_kanji(t) {
-                                                                ctx_warn(ctx, warnings, KANJI_NO_RUBY(), text::concat("Kanji without ruby: '", text::concat(trim(t), "'")), pos)
+                                                                ctx_warn(ctx, warnings, KANJI_NO_RUBY(), "Kanji without ruby: '".concat(trim(t).concat("'")), pos)
                                                             }
                                                             push(events, Event::Text(t))
                                                             pos = pos + next_special

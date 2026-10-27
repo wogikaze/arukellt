@@ -75,11 +75,8 @@ fn sig_reg_log_count_match(expected_fn_names: Vec<String>, registry: SignatureRe
     let builtin_count = signature_registry::signature_registry_builtin_count(registry)
     let reg_function = reg_count - host_count - builtin_count
     if fn_count != reg_function {
-        let counts = text::concat(
-            (fn_count).to_string(),
-            text::concat(String_from(" reg="), (reg_function).to_string())
-        )
-        stdio::eprintln(text::concat(String_from("sig-reg: fn_index/registry count mismatch fn="), counts))
+        let counts = (fn_count).to_string().concat(String_from(" reg=").concat((reg_function).to_string()))
+        stdio::eprintln(String_from("sig-reg: fn_index/registry count mismatch fn=").concat(counts))
     }
 }
 

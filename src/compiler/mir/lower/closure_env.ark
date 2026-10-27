@@ -50,15 +50,15 @@ fn closure_rawfnref_type_name() -> String {
 }
 
 fn closure_env_type_name(synth: String) -> String {
-    text::concat("__env_", synth)
+    "__env_".concat(synth)
 }
 
 fn closure_tramp_name(synth: String) -> String {
-    text::concat(synth, "_env")
+    synth.concat("_env")
 }
 
 fn closure_thunk_name(fn_name: String) -> String {
-    text::concat("__fnthunk_", fn_name)
+    "__fnthunk_".concat(fn_name)
 }
 
 fn closure_pair_byte_size() -> i32 {
@@ -131,7 +131,7 @@ fn closure_register_env_type(ctx: LowerCtx, env_name: String, cap_types: Vec<Str
         // Capture types arrive as local spellings (struct:Name:size); the
         // layout registry and named GC slots key on the bare name.
         let cap_type = aggregate_field::strip_struct_type_prefix(clone(get_unchecked(cap_types, i)))
-        sig = text::concat(sig, ctx_gc_struct::gc_struct_field_sig_for_type(ctx, cap_type, i))
+        sig = sig.concat(ctx_gc_struct::gc_struct_field_sig_for_type(ctx, cap_type, i))
         i = i + 1
     }
     ctx_gc_struct::ctx_register_gc_struct(ctx, env_name, sig)
@@ -153,7 +153,7 @@ fn closure_emit_env_alloc(ctx: LowerCtx, env_name: String, cap_names: Vec<String
     ctx_api_local_types::ctx_set_local_type(
         ctx,
         env_local,
-        text::concat("struct:", text::concat(clone(env_name), text::concat(":", (total).to_string())))
+        "struct:".concat(clone(env_name).concat(":".concat((total).to_string())))
     )
     ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new_named(env_local, clone(env_name), total))
     let mut off = 0
@@ -453,15 +453,15 @@ fn closure_flush_pending_fn_thunks(ctx: LowerCtx) {
 // wildcard for ignored results.
 fn closure_pair_seg_norm(name: String, vt: i32) -> String {
     if len(name) == 0 {
-        return text::concat("~", (vt).to_string())
+        return "~".concat((vt).to_string())
     }
     // Normalize container spellings toward the fnsig segment form so a
     // fnsig:vec:i32;i32 callee matches a Vec<i32>-typed producer param.
     if starts_with(clone(name), "Vec<") && ends_with(clone(name), ">") {
-        return text::concat("vec:", substring(name, 4, len(name) - 1))
+        return "vec:".concat(substring(name, 4, len(name) - 1))
     }
     if starts_with(clone(name), "Option<") && ends_with(clone(name), ">") {
-        return text::concat("option:", substring(name, 7, len(name) - 1))
+        return "option:".concat(substring(name, 7, len(name) - 1))
     }
     name
 }
@@ -474,8 +474,8 @@ fn closure_pair_call_hint(ctx: LowerCtx, type_name: String, arg_lis: Vec<i32>, d
     let mut i = 0
     while i < len(arg_lis) {
         if i > 0 {
-            nk = text::concat(nk, ",")
-            vk = text::concat(vk, ",")
+            nk = nk.concat(",")
+            vk = vk.concat(",")
         }
         let li = get_unchecked(arg_lis, i)
         let avt = if li >= 0 {
@@ -488,12 +488,12 @@ fn closure_pair_call_hint(ctx: LowerCtx, type_name: String, arg_lis: Vec<i32>, d
         } else {
             String_new()
         }
-        nk = text::concat(nk, closure_pair_seg_norm(aname, avt))
-        vk = text::concat(vk, (avt).to_string())
+        nk = nk.concat(closure_pair_seg_norm(aname, avt))
+        vk = vk.concat((avt).to_string())
         i = i + 1
     }
-    nk = text::concat(nk, ";")
-    vk = text::concat(vk, ";")
+    nk = nk.concat(";")
+    vk = vk.concat(";")
     if dest >= 0 {
         let dvt = ctx_api_local_types::ctx_local_vt(ctx, dest)
         let dname = ctx_api_local_types::ctx_get_local_type(ctx, dest)
@@ -504,11 +504,11 @@ fn closure_pair_call_hint(ctx: LowerCtx, type_name: String, arg_lis: Vec<i32>, d
             // emitting "~<vt>" there pinned a wrong ret to every thunk key
             // and Option-returning multi-param calls fell to the i32 binary
             // fallback (#881 / #874).
-            nk = text::concat(nk, closure_pair_seg_norm(clone(dname), dvt))
-            vk = text::concat(vk, (dvt).to_string())
+            nk = nk.concat(closure_pair_seg_norm(clone(dname), dvt))
+            vk = vk.concat((dvt).to_string())
         }
     }
-    text::concat(type_name, text::concat("|", text::concat(nk, text::concat("|", vk))))
+    type_name.concat("|".concat(nk.concat("|".concat(vk))))
 }
 
 fn closure_type_name_is_fn_value(type_name: String) -> bool {

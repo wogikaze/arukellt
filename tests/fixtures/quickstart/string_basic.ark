@@ -1,10 +1,9 @@
 use std::host::stdio
-use std::text
 use std::prelude::{slice}
 fn main() {
     let s1 = String_from("hello")
     let s2 = String_from(" world")
-    let s3 = text::concat(s1, s2)
+    let s3 = s1.concat(s2)
     stdio::println(s3)
 
     let sub = slice(s3, 0, 5)

@@ -48,19 +48,19 @@ fn node_is_impl_decl(node: AstNode) -> bool {
 }
 
 fn render_fn_detail(name: String) -> String {
-    text::concat(text::concat("fn ", clone(name)), "()")
+    "fn ".concat(clone(name)).concat("()")
 }
 
 fn render_struct_detail(name: String) -> String {
-    text::concat("struct ", name)
+    "struct ".concat(name)
 }
 
 fn render_enum_detail(name: String) -> String {
-    text::concat("enum ", name)
+    "enum ".concat(name)
 }
 
 fn render_trait_detail(name: String) -> String {
-    text::concat("trait ", name)
+    "trait ".concat(name)
 }
 
 fn node_decl_name_span_start(node: AstNode) -> i32 {

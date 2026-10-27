@@ -6,13 +6,13 @@ fn main() {
     let a = "ab"
     let b = "cd"
     let n = 3
-    let left = text::repeat(text::concat(a, b), n)
+    let left = a.concat(b).repeat(n)
     test::assert_eq_string(left, "abcdabcdabcd")
 
     // repeat(a, m+n) == concat(repeat(a, m), repeat(a, n))
     let m = 2
     let nn = 3
-    let left2 = text::repeat("x", m + nn)
-    let right2 = text::concat(text::repeat("x", m), text::repeat("x", nn))
+    let left2 = "x".repeat(m + nn)
+    let right2 = "x".repeat(m).concat("x".repeat(nn))
     test::assert_eq_string(left2, right2)
 }

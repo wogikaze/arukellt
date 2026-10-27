@@ -260,7 +260,7 @@ fn sig_reg_params_from_fn_info_mono(
             if len(concrete) == 0 {
                 return type_name
             }
-            return text::concat("vec:", concrete)
+            return "vec:".concat(concrete)
         }
         if starts_with(clone(type_name), "option:") {
             let elem = substring(clone(type_name), 7, len(type_name))
@@ -271,7 +271,7 @@ fn sig_reg_params_from_fn_info_mono(
             if len(concrete) == 0 {
                 return type_name
             }
-            return text::concat("option:", concrete)
+            return "option:".concat(concrete)
         }
         if mono_suffix_parse::is_mono_type_var_name(clone(type_name)) {
             let concrete = sig_reg_resolve_mono_type_key(clone(type_name), clone(suffix), type_params)
@@ -327,7 +327,7 @@ fn sig_reg_params_from_fn_info_mono(
             }
             let key = sig_reg_mono_instance_arg_key(inst, clone(elem), type_params)
             if len(key) > 0 {
-                return text::concat("vec:", key)
+                return "vec:".concat(key)
             }
             return type_name
         }
@@ -338,7 +338,7 @@ fn sig_reg_params_from_fn_info_mono(
             }
             let key = sig_reg_mono_instance_arg_key(inst, clone(elem), type_params)
             if len(key) > 0 {
-                return text::concat("option:", key)
+                return "option:".concat(key)
             }
             return type_name
         }

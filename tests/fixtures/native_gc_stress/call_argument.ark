@@ -8,7 +8,7 @@ fn main() -> i32 {
     let keep = String_from("keep-arg")
     let mut i = 0
     while i < 64 {
-        let arg = text::concat(String_from("call-arg-"), String_from("payload"))
+        let arg = String_from("call-arg-").concat(String_from("payload"))
         let n = consume(arg)
         if n < 1 {
             return 1

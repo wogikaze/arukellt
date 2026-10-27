@@ -6,9 +6,9 @@ fn closure_pack_caps(caps: Vec<String>) -> String {
     let mut i = 0
     while i < c {
         if i > 0 {
-            s = text::builder_append(s, ",")
+            s = s.concat(",")
         }
-        s = text::builder_append(s, clone(get_unchecked(caps, i)))
+        s = s.concat(clone(get_unchecked(caps, i)))
         i = i + 1
     }
     s

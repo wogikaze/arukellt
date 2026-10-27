@@ -29,9 +29,9 @@ fn main() {
                         None => panic("expected key z"),
                     }
                 },
-                Result::Err(e) => panic(text::concat("re-parse failed: ", json::parse_error_message(e))),
+                Result::Err(e) => panic("re-parse failed: ".concat(json::parse_error_message(e))),
             }
         },
-        Result::Err(e) => panic(text::concat("parse failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse failed: ".concat(json::parse_error_message(e))),
     }
 }

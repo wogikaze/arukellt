@@ -5,7 +5,7 @@ fn main() {
     let mut s = String_from("")
     let mut i = 0
     while i < 20 {
-        s = text::concat(s, String_from("ab"))
+        s = s.concat(String_from("ab"))
         i = i + 1
     }
     test::assert_eq_i32(len(s), 40)

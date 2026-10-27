@@ -18,7 +18,7 @@ fn parse_multiclause_fn_decl(p: Parser, is_pub: bool, is_async: bool) -> AstNode
         if nc_param_count != param_count {
             core_api_expect::error(
                 p,
-                text::concat("clause has ", text::concat(to_string(nc_param_count), text::concat(" parameters but previous clauses have ", text::concat(to_string(param_count), ""))))
+                "clause has ".concat(to_string(nc_param_count).concat(" parameters but previous clauses have ".concat(to_string(param_count).concat(""))))
             )
             let stub = fn_clause::make_clause_error_stub(next_clause, is_pub, is_async)
             clauses = Vec::new<AstNode>()

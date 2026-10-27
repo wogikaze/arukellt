@@ -1,0 +1,5 @@
+use std::text
+
+fn main() {
+    let _trimmed = text::trim("  text  ")
+}

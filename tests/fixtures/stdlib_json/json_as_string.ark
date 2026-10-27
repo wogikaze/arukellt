@@ -7,7 +7,7 @@ fn main() {
             Option::Some(s) => test::assert_eq_string(s, "hello"),
             None => panic("expected Some(hello)"),
         },
-        Result::Err(e) => panic(text::concat("parse failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse failed: ".concat(json::parse_error_message(e))),
     }
     // Type mismatch: json_as_string on non-string returns None
     match json::parse("42") {
@@ -15,6 +15,6 @@ fn main() {
             Option::Some(_) => panic("expected None for non-string"),
             None => {},
         },
-        Result::Err(e) => panic(text::concat("parse 42 failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse 42 failed: ".concat(json::parse_error_message(e))),
     }
 }

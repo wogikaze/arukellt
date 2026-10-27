@@ -60,10 +60,7 @@ fn check_for_source(
     let source_name = names::type_display_name(resolved_source_ty)
     unify::type_error(
         env,
-        text::concat(
-            String_from("non-iterable source: expected IntoIterator or Iterator, found "),
-            source_name
-        )
+        String_from("non-iterable source: expected IntoIterator or Iterator, found ").concat(source_name)
     )
 }
 
@@ -152,7 +149,7 @@ fn record_for_method_mono(
     if len(owner_name) == 0 {
         owner_name = for_desugar_builtin_owner_name(owner_ty)
     }
-    let fn_name = text::concat(clone(owner_name), text::concat("::", clone(method)))
+    let fn_name = clone(owner_name).concat("::".concat(clone(method)))
     let sig = sigs::lookup_fn_sig(env, fn_sigs, clone(fn_name))
     if !contract_fn_sig::FnSig_has_name(sig) {
         return unknown
@@ -208,7 +205,7 @@ fn record_for_method_mono(
         mono::record_mono_call_site(
             env,
             span,
-            text::concat(clone(inst_owner), text::concat(String_from("::"), clone(method))),
+            clone(inst_owner).concat(String_from("::").concat(clone(method))),
             clone(mangled)
         )
     }
@@ -252,10 +249,7 @@ fn check_generic_for_source(env: TypeEnv, source_ty: TypeInfo) {
     }
     unify::type_error(
         env,
-        text::concat(
-            String_from("non-iterable source: expected IntoIterator or Iterator bound, found "),
-            var_name
-        )
+        String_from("non-iterable source: expected IntoIterator or Iterator bound, found ").concat(var_name)
     )
 }
 
@@ -275,7 +269,7 @@ fn record_generic_for_desugar_sites(env: TypeEnv, source_ty: TypeInfo, via_into_
         let var_name = contract_type_access::TypeInfo_name(source_ty)
         let iterator_proj = contract_type_constructors::TypeInfo_named(
             commands::TY_STRUCT(),
-            text::concat(clone(var_name), String_from("::IntoIter"))
+            clone(var_name).concat(String_from("::IntoIter"))
         )
         mono_instances::record_var_method_site(env, String_from("next"), iterator_proj)
         return
@@ -291,7 +285,7 @@ fn has_structural_next(env: TypeEnv, fn_sigs: Vec<FnSig>, source_ty: TypeInfo) -
     let next_sig = sigs::lookup_fn_sig(
         env,
         fn_sigs,
-        text::concat(clone(source_name), String_from("::next"))
+        clone(source_name).concat(String_from("::next"))
     )
     if !contract_fn_sig::FnSig_has_name(next_sig) {
         return false

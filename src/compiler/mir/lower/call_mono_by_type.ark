@@ -29,16 +29,16 @@ fn mir_resolve_mono_call_by_type(ctx: LowerCtx, resolved: String, first_arg_idx:
     if len(mono_type_key) == 0 {
         return out
     }
-    let mono_candidate = mono::mono_safe_name(text::concat(clone(out), text::concat("__", mono_type_key)))
+    let mono_candidate = mono::mono_safe_name(clone(out).concat("__".concat(mono_type_key)))
     if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate)) {
         return mono_candidate
     }
-    let type_method = text::concat(clone(mono_type_key), text::concat("::", clone(out)))
+    let type_method = clone(mono_type_key).concat("::".concat(clone(out)))
     if ctx_fn_exists::ctx_has_fn_name(ctx, clone(type_method)) {
         return type_method
     }
     if eq(clone(mono_type_key), "string") {
-        let mono_candidate_string = mono::mono_safe_name(text::concat(clone(out), "__String"))
+        let mono_candidate_string = mono::mono_safe_name(clone(out).concat("__String"))
         if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate_string)) {
             return mono_candidate_string
         }
@@ -62,7 +62,7 @@ fn resolve_special_mono_target(ctx: LowerCtx, out: String, mono_type_key: String
             key = "String"
         }
         if len(key) > 0 && !starts_with(clone(key), "?") {
-            let trait_method = text::concat(clone(key), "::fmt_debug")
+            let trait_method = clone(key).concat("::fmt_debug")
             if ctx_fn_exists::ctx_has_fn_name(ctx, clone(trait_method)) {
                 return trait_method
             }
@@ -78,7 +78,7 @@ fn resolve_special_mono_target(ctx: LowerCtx, out: String, mono_type_key: String
             key = "String"
         }
         if len(key) > 0 && !starts_with(clone(key), "?") {
-            let mono_candidate = mono::mono_safe_name(text::concat("write_debug_to__", key))
+            let mono_candidate = mono::mono_safe_name("write_debug_to__".concat(key))
             if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate)) {
                 return mono_candidate
             }
@@ -116,7 +116,7 @@ fn call_mono_by_type_scalar_key_from_local(ctx: LowerCtx, arg_idx: i32) -> Strin
 fn mono_type_key_from_local_type_name(type_name: String) -> String {
     if starts_with(clone(type_name), "vec:") {
         let inner = mono_type_key_from_local_type_name(substring(clone(type_name), 4, len(type_name)))
-        return text::concat("Vec<", text::concat(inner, ">"))
+        return "Vec<".concat(inner.concat(">"))
     }
     if eq(clone(type_name), "Vec") {
         return "Vec<i32>"

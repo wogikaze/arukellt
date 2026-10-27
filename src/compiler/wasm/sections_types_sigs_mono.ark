@@ -127,7 +127,7 @@ fn try_mono_gc_struct_param_sig(fn_name: String, type_var_name: String, _param_o
     let key = get_unchecked(type_keys, type_idx)
     let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(key))
     if slot >= 0 {
-        return text::concat("gcsref", (slot).to_string())
+        return "gcsref".concat((slot).to_string())
     }
     String_new()
 }
@@ -161,7 +161,7 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
     if len(full_suffix) == 0 {
         return String_new()
     }
-    let suffix_with_sep = text::concat("__", clone(full_suffix))
+    let suffix_with_sep = "__".concat(clone(full_suffix))
     let fn_len = len(fn_name)
     let suffix_sep_len = len(suffix_with_sep)
     if fn_len <= suffix_sep_len || !ends_with(clone(fn_name), clone(suffix_with_sep)) {
@@ -180,7 +180,7 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
     if len(receiver) == 0 {
         return String_new()
     }
-    if !starts_with(clone(fn_name), text::concat(clone(receiver), "__")) {
+    if !starts_with(clone(fn_name), clone(receiver).concat("__")) {
         return String_new()
     }
     // The suffix keys bind the method's type arguments; they double as the
@@ -214,7 +214,7 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
     }
     let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(last_key))
     if slot >= 0 {
-        return text::concat("gcsref", (slot).to_string())
+        return "gcsref".concat((slot).to_string())
     }
     String_new()
 }

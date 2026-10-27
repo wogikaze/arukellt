@@ -52,27 +52,27 @@ fn infer_let_type(decl: AstNode) -> String {
 pub fn render_signature(decl: AstNode) -> String {
     if node_is_fn_decl(decl) {
         let mut sig = "fn "
-        sig = text::builder_append(sig, node_text(decl))
-        sig = text::builder_append(sig, "(")
+        sig = sig.concat(node_text(decl))
+        sig = sig.concat("(")
         let cn = node_child_count(decl)
         let last = if cn > 0 { cn - 1 } else { 0 }
         let mut i = 0
         let mut first = true
         while i < last {
             let p = node_child_at(decl, i)
-            if !first { sig = text::builder_append(sig, ", ") }
+            if !first { sig = sig.concat(", ") }
             first = false
-            sig = text::builder_append(sig, node_text(p))
+            sig = sig.concat(node_text(p))
             i = i + 1
         }
-        sig = text::builder_append(sig, ")")
+        sig = sig.concat(")")
         let ret = fn_return_type_text(decl)
-        if len(ret) > 0 { sig = text::builder_append(sig, text::concat(" -> ", ret)) }
+        if len(ret) > 0 { sig = sig.concat(" -> ".concat(ret)) }
         return sig
     }
-    if node_is_struct_decl(decl) { return text::concat("struct ", node_text(decl)) }
-    if node_is_enum_decl(decl) { return text::concat("enum ", node_text(decl)) }
-    if node_is_let(decl) { return text::concat("let ", node_text(decl)) }
+    if node_is_struct_decl(decl) { return "struct ".concat(node_text(decl)) }
+    if node_is_enum_decl(decl) { return "enum ".concat(node_text(decl)) }
+    if node_is_let(decl) { return "let ".concat(node_text(decl)) }
     node_text(decl)
 }
 
@@ -80,7 +80,7 @@ pub fn enrich_signature_for_decl(decl: AstNode, name: String, kind: i32, base_si
     if kind == AT_NK_LET() {
         let ty = infer_let_type(decl)
         if len(ty) > 0 {
-            return text::concat(text::concat("let ", clone(name)), text::concat(": ", ty))
+            return "let ".concat(clone(name)).concat(": ".concat(ty))
         }
     }
     base_sig
@@ -90,7 +90,7 @@ pub fn use_site_signature(decl: AstNode, name: String) -> String {
     if node_is_let(decl) {
         let ty = infer_let_type(decl)
         if len(ty) > 0 {
-            return text::concat(text::concat(clone(name), ": "), ty)
+            return clone(name).concat(": ").concat(ty)
         }
     }
     String_new()

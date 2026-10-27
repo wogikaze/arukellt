@@ -41,8 +41,8 @@ let label   = pad_right(format_i32(42), 6, " ")  // "42    "
 ## Module `std::text`
 
 - Source: [`../../../std/text/mod.ark`](../../../std/text/mod.ark)
-- Manifest-backed functions: 39
-- Stability: experimental 3, stable 36
+- Manifest-backed functions: 36
+- Stability: deprecated 36
 
 Extended string operations beyond the prelude.
 
@@ -65,33 +65,30 @@ surfaces, not a guaranteed-stable text-processing facade.
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `len_bytes` | `(String) -> i32` | `stable` | ✅ functional | Returns the length of the string in bytes. |
-| `len_chars` | `(String) -> i32` | `stable` | ✅ functional | Returns the number of Unicode scalar values. |
-| `is_empty` | `(String) -> bool` | `stable` | ✅ functional | Returns true when the string has zero bytes. |
-| `repeat` | `(String, i32) -> String` | `stable` | ✅ functional | - |
-| `split` | `(String, String) -> Vec<String>` | `stable` | ✅ functional | Splits s on sep and returns the resulting parts. |
-| `join` | `(Vec<String>, String) -> String` | `stable` | ✅ functional | Joins a vector of strings with sep between each element. |
-| `concat` | `(String, String) -> String` | `stable` | ✅ functional | Concatenates two strings. |
-| `starts_with` | `(String, String) -> bool` | `stable` | ✅ functional | Returns true when s starts with prefix. |
-| `ends_with` | `(String, String) -> bool` | `stable` | ✅ functional | Returns true when s ends with suffix. |
-| `to_lower` | `(String) -> String` | `stable` | ✅ functional | Converts all ASCII uppercase letters to lowercase. |
-| `to_upper` | `(String) -> String` | `stable` | ✅ functional | Converts all ASCII lowercase letters to uppercase. |
-| `slice_bytes` | `(String, i32, i32) -> String` | `stable` | ✅ functional | Extracts a byte-range substring. Returns empty string if boundaries are invalid. |
-| `try_slice_bytes` | `(String, i32, i32) -> Option<String>` | `stable` | ✅ functional | - |
-| `codepoint_at` | `(String, i32) -> Option<char>` | `stable` | ✅ functional | - |
-| `slice_chars` | `(String, i32, i32) -> String` | `stable` | ✅ functional | - |
-| `try_slice_chars` | `(String, i32, i32) -> Option<String>` | `stable` | ✅ functional | - |
-| `from_utf8` | `(Vec<i32>) -> String` | `experimental` | ✅ functional | Converts bytes to UTF-8, replacing each invalid sequence with U+FFFD. |
-| `try_from_utf8` | `(Vec<i32>) -> Option<String>` | `experimental` | ✅ functional | - |
-| `to_utf8_bytes` | `(String) -> Vec<i32>` | `experimental` | ✅ functional | Converts a string to its UTF-8 byte values as Vec<i32>. |
-| `contains` | `(String, String) -> bool` | `stable` | ✅ functional | Returns true when the substring appears at least once. |
-| `index_of` | `(String, String) -> i32` | `stable` | ✅ functional | Returns the byte index of the first matching substring, or -1. |
-| `trim` | `(String) -> String` | `stable` | ✅ functional | Removes ASCII whitespace from both ends of the string. |
-| `trim_start` | `(String) -> String` | `stable` | ✅ functional | Removes ASCII whitespace from the start of the string. |
-| `trim_end` | `(String) -> String` | `stable` | ✅ functional | Removes ASCII whitespace from the end of the string. |
-| `replace` | `(String, String, String) -> String` | `stable` | ✅ functional | Replaces each non-overlapping match of from with to. |
-| `lines` | `(String) -> Vec<String>` | `stable` | ✅ functional | Splits the string on newlines and returns the resulting lines. |
-| `chars` | `(String) -> Vec<String>` | `stable` | ✅ functional | Returns one valid UTF-8 String per Unicode scalar value. |
+| ~~`len_bytes`~~ ⚠️ Deprecated → `String::len_bytes` | `(String) -> i32` | `deprecated` | ✅ functional | Returns the length of the string in bytes. |
+| ~~`len_chars`~~ ⚠️ Deprecated → `String::len_chars` | `(String) -> i32` | `deprecated` | ✅ functional | Returns the number of Unicode scalar values. |
+| ~~`is_empty`~~ ⚠️ Deprecated → `String::is_empty` | `(String) -> bool` | `deprecated` | ✅ functional | Returns true when the string has zero bytes. |
+| ~~`repeat`~~ ⚠️ Deprecated → `String::repeat` | `(String, i32) -> String` | `deprecated` | ✅ functional | - |
+| ~~`split`~~ ⚠️ Deprecated → `String::split` | `(String, String) -> Vec<String>` | `deprecated` | ✅ functional | Splits s on sep and returns the resulting parts. |
+| ~~`join`~~ ⚠️ Deprecated → `Vec::join` | `(Vec<String>, String) -> String` | `deprecated` | ✅ functional | Joins a vector of strings with sep between each element. |
+| ~~`concat`~~ ⚠️ Deprecated → `String::concat` | `(String, String) -> String` | `deprecated` | ✅ functional | Concatenates two strings. |
+| ~~`starts_with`~~ ⚠️ Deprecated → `String::starts_with` | `(String, String) -> bool` | `deprecated` | ✅ functional | Returns true when s starts with prefix. |
+| ~~`ends_with`~~ ⚠️ Deprecated → `String::ends_with` | `(String, String) -> bool` | `deprecated` | ✅ functional | Returns true when s ends with suffix. |
+| ~~`to_lower`~~ ⚠️ Deprecated → `String::to_lower` | `(String) -> String` | `deprecated` | ✅ functional | Converts all ASCII uppercase letters to lowercase. |
+| ~~`to_upper`~~ ⚠️ Deprecated → `String::to_upper` | `(String) -> String` | `deprecated` | ✅ functional | Converts all ASCII lowercase letters to uppercase. |
+| ~~`slice_bytes`~~ ⚠️ Deprecated → `String::slice_bytes` | `(String, i32, i32) -> String` | `deprecated` | ✅ functional | Extracts a byte-range substring. Returns empty string if boundaries are invalid. |
+| ~~`try_slice_bytes`~~ ⚠️ Deprecated → `String::try_slice_bytes` | `(String, i32, i32) -> Option<String>` | `deprecated` | ✅ functional | - |
+| ~~`codepoint_at`~~ ⚠️ Deprecated → `String::codepoint_at` | `(String, i32) -> Option<char>` | `deprecated` | ✅ functional | - |
+| ~~`slice_chars`~~ ⚠️ Deprecated → `String::slice_chars` | `(String, i32, i32) -> String` | `deprecated` | ✅ functional | - |
+| ~~`try_slice_chars`~~ ⚠️ Deprecated → `String::try_slice_chars` | `(String, i32, i32) -> Option<String>` | `deprecated` | ✅ functional | - |
+| ~~`contains`~~ ⚠️ Deprecated → `String::contains` | `(String, String) -> bool` | `deprecated` | ✅ functional | Returns true when the substring appears at least once. |
+| ~~`index_of`~~ ⚠️ Deprecated → `String::index_of` | `(String, String) -> i32` | `deprecated` | ✅ functional | Returns the byte index of the first matching substring, or -1. |
+| ~~`trim`~~ ⚠️ Deprecated → `String::trim` | `(String) -> String` | `deprecated` | ✅ functional | Removes ASCII whitespace from both ends of the string. |
+| ~~`trim_start`~~ ⚠️ Deprecated → `String::trim_start` | `(String) -> String` | `deprecated` | ✅ functional | Removes ASCII whitespace from the start of the string. |
+| ~~`trim_end`~~ ⚠️ Deprecated → `String::trim_end` | `(String) -> String` | `deprecated` | ✅ functional | Removes ASCII whitespace from the end of the string. |
+| ~~`replace`~~ ⚠️ Deprecated → `String::replace` | `(String, String, String) -> String` | `deprecated` | ✅ functional | Replaces each non-overlapping match of from with to. |
+| ~~`lines`~~ ⚠️ Deprecated → `String::lines` | `(String) -> Vec<String>` | `deprecated` | ✅ functional | Splits the string on newlines and returns the resulting lines. |
+| ~~`chars`~~ ⚠️ Deprecated → `String::chars` | `(String) -> Vec<String>` | `deprecated` | ✅ functional | Returns one valid UTF-8 String per Unicode scalar value. |
 
 #### `std::text::len_chars`
 
@@ -117,18 +114,6 @@ Return the scalar-indexed slice in the half-open range; invalid ranges return an
 
 Return the scalar-indexed slice, or None for an invalid range.
 
-#### `std::text::from_utf8`
-
-Decode bytes as UTF-8, replacing each invalid sequence with U+FFFD.
-
-#### `std::text::try_from_utf8`
-
-Decode bytes as UTF-8 and return None when the complete input is invalid.
-
-#### `std::text::to_utf8_bytes`
-
-Return the canonical UTF-8 bytes of the string.
-
 #### `std::text::chars`
 
 Split into one valid UTF-8 String per Unicode scalar value.
@@ -137,15 +122,17 @@ Split into one valid UTF-8 String per Unicode scalar value.
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `pad_left` | `(String, i32, String) -> String` | `stable` | ✅ functional | Left-pads the string with fill until width bytes are reached. |
-| `pad_right` | `(String, i32, String) -> String` | `stable` | ✅ functional | Right-pads the string with fill until width bytes are reached. |
-| `format_i32` | `(i32) -> String` | `stable` | ✅ functional | Formats an i32 as a decimal string. |
-| `format_i64` | `(i64) -> String` | `stable` | ✅ functional | Formats an i64 as a decimal string. |
-| `format_f64` | `(f64) -> String` | `stable` | ✅ functional | Formats an f64 using the sealed-raw formatter. |
-| `format_bool` | `(bool) -> String` | `stable` | ✅ functional | Formats a boolean as true or false. |
-| `builder_new` | `() -> String` | `stable` | ✅ functional | Creates a new empty StringBuilder (represented internally as a String). |
-| `builder_append` | `(String, String) -> String` | `stable` | ✅ functional | Appends a string to the builder and returns the updated builder. |
-| `builder_append_char` | `(String, char) -> String` | `stable` | ✅ functional | Appends a single character to the builder and returns the updated builder. |
-| `builder_append_line` | `(String, String) -> String` | `stable` | ✅ functional | Appends a string followed by a newline to the builder. |
-| `builder_build` | `(String) -> String` | `stable` | ✅ functional | Produces the final string from the builder. |
-| `builder_len` | `(String) -> i32` | `stable` | ✅ functional | Returns the current byte length of the builder's content. |
+| ~~`pad_left`~~ ⚠️ Deprecated → `String::pad_left_with` | `(String, i32, String) -> String` | `deprecated` | ✅ functional | Left-pads the string with fill until width bytes are reached. |
+| ~~`pad_right`~~ ⚠️ Deprecated → `String::pad_right_with` | `(String, i32, String) -> String` | `deprecated` | ✅ functional | Right-pads the string with fill until width bytes are reached. |
+| ~~`format_i32`~~ ⚠️ Deprecated → `i32::to_string` | `(i32) -> String` | `deprecated` | ✅ functional | Formats an i32 as a decimal string. |
+| ~~`format_i64`~~ ⚠️ Deprecated → `i64::to_string` | `(i64) -> String` | `deprecated` | ✅ functional | Formats an i64 as a decimal string. |
+| ~~`format_f64`~~ ⚠️ Deprecated → `f64::to_string` | `(f64) -> String` | `deprecated` | ✅ functional | Formats an f64 using the sealed-raw formatter. |
+| ~~`format_bool`~~ ⚠️ Deprecated → `bool::to_string` | `(bool) -> String` | `deprecated` | ✅ functional | Formats a boolean as true or false. |
+| ~~`builder_new`~~ ⚠️ Deprecated → `String::new` | `() -> String` | `deprecated` | ✅ functional | Creates a new empty StringBuilder (represented internally as a String). |
+| ~~`builder_append`~~ ⚠️ Deprecated → `String::concat` | `(String, String) -> String` | `deprecated` | ✅ functional | Appends a string to the builder and returns the updated builder. |
+| ~~`builder_append_char`~~ ⚠️ Deprecated → `String::concat` | `(String, char) -> String` | `deprecated` | ✅ functional | Appends a single character to the builder and returns the updated builder. |
+| ~~`builder_append_line`~~ ⚠️ Deprecated → `String::concat` | `(String, String) -> String` | `deprecated` | ✅ functional | Appends a string followed by a newline to the builder. |
+| ~~`builder_build`~~ ⚠️ Deprecated → `String::clone` | `(String) -> String` | `deprecated` | ✅ functional | Produces the final string from the builder. |
+| ~~`builder_len`~~ ⚠️ Deprecated → `String::len` | `(String) -> i32` | `deprecated` | ✅ functional | Returns the current byte length of the builder's content. |
+
+> ⚠️ **36 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.

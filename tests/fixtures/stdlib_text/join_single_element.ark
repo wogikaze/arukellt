@@ -3,8 +3,8 @@ use std::text
 
 fn main() {
     // Single element join — separator not inserted
-    let parts = text::split("hello", ",")
+    let parts = "hello".split(",")
     test::assert_eq_i32(len(parts), 1)
-    test::assert_eq_string(text::join(parts, "-"), "hello")
-    test::assert_eq_string(text::join(parts, ""), "hello")
+    test::assert_eq_string(parts.join("-"), "hello")
+    test::assert_eq_string(parts.join(""), "hello")
 }

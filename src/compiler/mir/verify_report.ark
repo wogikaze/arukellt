@@ -98,44 +98,10 @@ fn mir_verify_report_print_summary(report: MirVerifyReport) {
         return
     }
     // Split concat depth: deep nesting breaks selfhost wasm emission (s2 load).
-    let head = text::concat(
-        "mir-verify: W001=",
-        text::concat(
-            (report.w001).to_string(),
-            text::concat(
-                " W002=",
-                text::concat((report.w002).to_string(), text::concat(" W003=", (report.w003).to_string()))
-            )
-        )
+    let head = "mir-verify: W001=".concat((report.w001).to_string().concat(" W002=".concat((report.w002).to_string().concat(" W003=".concat((report.w003).to_string())))))
+    let middle = " W004=".concat((report.w004).to_string().concat(" W005=".concat((report.w005).to_string().concat(" W006=".concat((report.w006).to_string())))))
+    let tail = " W007=".concat(
+        (report.w007).to_string().concat(" W008=".concat((report.w008).to_string().concat(" W009=".concat((report.w009).to_string().concat(" W010=".concat((report.w010).to_string()))))))
     )
-    let middle = text::concat(
-        " W004=",
-        text::concat(
-            (report.w004).to_string(),
-            text::concat(
-                " W005=",
-                text::concat((report.w005).to_string(), text::concat(" W006=", (report.w006).to_string()))
-            )
-        )
-    )
-    let tail = text::concat(
-        " W007=",
-        text::concat(
-            (report.w007).to_string(),
-            text::concat(
-                " W008=",
-                text::concat(
-                    (report.w008).to_string(),
-                    text::concat(
-                        " W009=",
-                        text::concat(
-                            (report.w009).to_string(),
-                            text::concat(" W010=", (report.w010).to_string())
-                        )
-                    )
-                )
-            )
-        )
-    )
-    stdio::eprintln(text::concat(head, text::concat(middle, tail)))
+    stdio::eprintln(head.concat(middle.concat(tail)))
 }

@@ -7,14 +7,14 @@ fn mir_format_local_ref(f: MirFunction, local_id: i32) -> String {
         return "%-"
     }
     if local_id >= function_locals_view::MirFunction_local_count(f) {
-        return text::concat("%", to_string(local_id))
+        return "%".concat(to_string(local_id))
     }
     let local = function_locals_view::MirFunction_local_at(f, local_id)
     if local_access::MirLocal_ssa_version(local) >= 0 {
         let mut out = "%"
-        out = text::builder_append(out, local_access::MirLocal_ssa_name(local))
-        out = text::builder_append(out, ".")
-        return text::concat(out, to_string(local_access::MirLocal_ssa_version(local)))
+        out = out.concat(local_access::MirLocal_ssa_name(local))
+        out = out.concat(".")
+        return out.concat(to_string(local_access::MirLocal_ssa_version(local)))
     }
-    text::concat("%", to_string(local_id))
+    "%".concat(to_string(local_id))
 }

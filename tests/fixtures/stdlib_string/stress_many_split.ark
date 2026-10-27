@@ -5,8 +5,8 @@ fn main() {
     let mut s = String_from("")
     let mut i = 0
     while i < 10 {
-        s = text::concat(s, (i).to_string())
-        s = text::concat(s, String_from(","))
+        s = s.concat((i).to_string())
+        s = s.concat(String_from(","))
         i = i + 1
     }
     let parts = split(s, String_from(","))

@@ -1,18 +1,17 @@
 use std::host::stdio
-use std::text::rope
 
 fn main() {
-    let r = rope::rope_new()
-    stdio::println((rope::rope_len(r)).to_string())
-    let r2 = rope::rope_from_string("hello")
-    stdio::println((rope::rope_len(r2)).to_string())
-    stdio::println(rope::rope_to_string(r2))
-    let r3 = rope::rope_insert(r2, 5, " world")
-    stdio::println(rope::rope_to_string(r3))
-    let r4 = rope::rope_delete(r3, 5, 11)
-    stdio::println(rope::rope_to_string(r4))
-    let r5 = rope::rope_slice(r3, 6, 11)
+    let r = String::new()
+    stdio::println((r.len()).to_string())
+    let r2 = "hello".clone()
+    stdio::println((r2.len()).to_string())
+    stdio::println(r2.clone())
+    let r3 = r2.insert_text(5, " world")
+    stdio::println(r3.clone())
+    let r4 = r3.delete_range(5, 11)
+    stdio::println(r4.clone())
+    let r5 = r3.slice(6, 11)
     stdio::println(r5)
-    let r6 = rope::rope_from_string("line1\nline2\nline3")
-    stdio::println((rope::rope_line_count(r6)).to_string())
+    let r6 = "line1\nline2\nline3".clone()
+    stdio::println((r6.line_count()).to_string())
 }

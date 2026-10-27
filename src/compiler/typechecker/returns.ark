@@ -27,24 +27,18 @@ fn check_return_type_compat(env: TypeEnv, fn_name: String, ret_type: TypeInfo, v
     if ret_tag != val_tag {
         let ret_name = names::type_display_name(resolved_ret)
         let val_name = names::type_display_name(resolved_val)
-        let prefix = text::concat(String_from("return type mismatch: '"), clone(fn_name))
-        let expected = text::concat(prefix, text::concat(String_from("' declared to return "), ret_name))
-        unify::type_error(env, text::concat(expected, text::concat(String_from(" but body returns "), val_name)))
+        let prefix = String_from("return type mismatch: '").concat(clone(fn_name))
+        let expected = prefix.concat(String_from("' declared to return ").concat(ret_name))
+        unify::type_error(env, expected.concat(String_from(" but body returns ").concat(val_name)))
         return
     }
     if (ret_tag == commands::TY_STRUCT() || ret_tag == commands::TY_ENUM() || ret_tag == commands::TY_RESOURCE())
     && !names::same_type_name(contract_type_access::TypeInfo_name(resolved_ret), contract_type_access::TypeInfo_name(resolved_val)) {
-        let prefix = text::concat(String_from("return type mismatch: '"), clone(fn_name))
-        let expected = text::concat(
-            prefix,
-            text::concat(String_from("' declared to return "), contract_type_access::TypeInfo_name(resolved_ret))
-        )
+        let prefix = String_from("return type mismatch: '").concat(clone(fn_name))
+        let expected = prefix.concat(String_from("' declared to return ").concat(contract_type_access::TypeInfo_name(resolved_ret)))
         unify::type_error(
             env,
-            text::concat(
-                expected,
-                text::concat(String_from(" but body returns "), contract_type_access::TypeInfo_name(resolved_val))
-            )
+            expected.concat(String_from(" but body returns ").concat(contract_type_access::TypeInfo_name(resolved_val)))
         )
     }
 }

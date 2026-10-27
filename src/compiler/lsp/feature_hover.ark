@@ -16,10 +16,10 @@ fn render_index_hover_markdown(detail: String, doc: String, minimal: bool) -> St
         return detail
     }
     let mut out = "```ark\n"
-    out = text::concat(out, detail)
-    out = text::concat(out, "\n```")
+    out = out.concat(detail)
+    out = out.concat("\n```")
     if len(doc) > 0 {
-        out = text::concat(out, text::concat("\n\n", doc))
+        out = out.concat("\n\n".concat(doc))
     }
     out
 }

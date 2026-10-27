@@ -16,6 +16,48 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — std::text free surface converted (ADR-087 Wave 1, #917)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2/D4,
+  [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2/D3, and the
+  [#917](https://github.com/wogikaze/arukellt/issues/917) execution lane.
+- **Removed (22 counted)**: the 3 `experimental` `std::text` UTF-8 frees
+  (`from_utf8`, `try_from_utf8`, `to_utf8_bytes`), the 8 `experimental`
+  `std::text::rope` frees, and the 11 unregistered `std::text::fmt`
+  container-formatting frees. The experimental lifecycle allows direct
+  removal under ADR-014; the unregistered declarations have no manifest
+  stability contract. The duplicate declarations in `std/text/builder.ark`
+  and `std/text/string.ark` were retired with the same wave.
+- **Deprecated (36)**: every remaining `stable` `std::text` free now carries
+  `stability = "deprecated"`, `deprecated_by`, `deprecated_since = "0.1.0"`,
+  and `remove_in = "1.0.0"`. W0009 fires for qualified `text::*` calls through
+  `lint::deprecated_table::deprecated_text_qualified_message`; the message
+  names the receiver/associated replacement. Physical deletion is Wave 2.
+- **Replacement surface**: `String::len_bytes` / `trim*` / `slice_*` /
+  `split` / `lines` / `chars` / `replace` / `repeat` / `pad_*_with` /
+  `to_utf8_bytes` / `insert_text` / `delete_range` / `line_count`;
+  `String::new` / `String::from_utf8_lossy` / `String::try_from_utf8`;
+  `Vec<String>::join`; `value.fmt_debug()` and
+  `buf.concat(value.fmt_debug())`; and the `DebugFormat` associated
+  renderings (`vec_i32` … `result_string_string`). `i32`/`i64`/`f64`/`bool`
+  formatting uses the existing `to_string()` methods.
+- **E0100**: removed `fmt` / `rope` / `text` members get hints from
+  `resolver::removed_names::removed_fmt_member_hint`,
+  `removed_rope_member_hint`, and `removed_text_member_hint`.
+- **Scorecard**: public surface 1060 → **1025** symbols; manifest public
+  entries 685 → **661**; `pub fn` declarations 1235 → **1162**; unregistered
+  declarations 375 → **364**; `associated-or-method` 977 → **919**;
+  `must delete` 83 → **106**. The new `deprecated std::text frees` rule owns
+  the 36 pending deletions; the `std::text frees` rule retired with the
+  non-deprecated surface.
+- **Evidence**: stage-2 rebuild; 299/299 targeted fixture parity
+  (`stdlib_text`, `stdlib_trait`, `module_import`, `stdlib_test`,
+  `stdlib_collections_compiler`); `selfhost diag-parity` PASS; the new
+  `diagnostics/deprecated_text_qualified*.ark` fixtures assert the W0009
+  message on `wasm32-gc` and `--target wasm32`; `docs check`; the eradication
+  and compat-orphan checks are clean.
+- **Residual**: the 36 deprecated `std::text` frees are deleted in Wave 2.
+
 ## 2026-10-27 — eager iterator constructor/collector frees removed (#917)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2/D4 and

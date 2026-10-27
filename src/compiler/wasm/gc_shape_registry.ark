@@ -66,17 +66,17 @@ fn GcShapeRegistry_struct_sig(reg: GcShapeRegistry, idx: i32) -> String {
     let fc = len(types_code)
     let mut fi = 0
     while fi < fc {
-        sig = text::builder_append(sig, "_f")
-        sig = text::builder_append(sig, to_string(fi))
-        sig = text::builder_append(sig, "_")
-        sig = text::builder_append(sig, code_to_gc_sig(byte_at(clone(types_code), fi)))
+        sig = sig.concat("_f")
+        sig = sig.concat(to_string(fi))
+        sig = sig.concat("_")
+        sig = sig.concat(code_to_gc_sig(byte_at(clone(types_code), fi)))
         fi = fi + 1
     }
     sig
 }
 
 fn GcShapeRegistry_array_sig(reg: GcShapeRegistry, idx: i32) -> String {
-    text::concat("A_", val_type_to_gc_sig(get_unchecked(reg.array_elem_types, idx)))
+    "A_".concat(val_type_to_gc_sig(get_unchecked(reg.array_elem_types, idx)))
 }
 
 fn GcShapeRegistry_total_gc_type_count(reg: GcShapeRegistry) -> i32 {

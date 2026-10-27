@@ -13,6 +13,6 @@ fn main() {
                 None => panic("expected key \"key\""),
             }
         },
-        Result::Err(e) => panic(text::concat("parse object failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse object failed: ".concat(json::parse_error_message(e))),
     }
 }

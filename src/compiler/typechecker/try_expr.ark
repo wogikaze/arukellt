@@ -48,21 +48,12 @@ fn infer_result_try(env: TypeEnv, operand_ty: TypeInfo, return_ty: TypeInfo) -> 
     if conversion_count > 1 {
         report_try_error(
             env,
-            text::concat(
-                "? operator has ambiguous From conversion for ",
-                text::concat(names::type_display_name(source_error), " error")
-            )
+            "? operator has ambiguous From conversion for ".concat(names::type_display_name(source_error).concat(" error"))
         )
     } else {
         report_try_error(
             env,
-            text::concat(
-                "? operator cannot convert error type ",
-                text::concat(
-                    names::type_display_name(source_error),
-                    " via From"
-                )
-            )
+            "? operator cannot convert error type ".concat(names::type_display_name(source_error).concat(" via From"))
         )
     }
     contract_type_access::TypeInfo_type_arg_at(operand_ty, 0)

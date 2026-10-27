@@ -28,56 +28,56 @@ pub fn assert_false(cond: bool) {
 /// mis-lowers scalar monomorphizations (`structref` vs `i32`).
 pub fn assert_eq_debug<T: Eq + Debug>(actual: T, expected: T) {
     if !actual.eq(expected) {
-        let msg = text::concat("assert_eq failed: expected ", text::concat(expected.fmt_debug(), text::concat(", got ", actual.fmt_debug())))
+        let msg = "assert_eq failed: expected ".concat(expected.fmt_debug().concat(", got ".concat(actual.fmt_debug())))
         panic(msg)
     }
 }
 
 pub fn assert_eq_i32(actual: i32, expected: i32) {
     if actual != expected {
-        let msg = text::concat("assert_eq_i32 failed: expected ", text::concat((expected).fmt_debug(), text::concat(", got ", (actual).fmt_debug())))
+        let msg = "assert_eq_i32 failed: expected ".concat((expected).fmt_debug().concat(", got ".concat((actual).fmt_debug())))
         panic(msg)
     }
 }
 
 pub fn assert_eq_i64(actual: i64, expected: i64) {
     if actual != expected {
-        let msg = text::concat("assert_eq_i64 failed: expected ", text::concat((expected).fmt_debug(), text::concat(", got ", (actual).fmt_debug())))
+        let msg = "assert_eq_i64 failed: expected ".concat((expected).fmt_debug().concat(", got ".concat((actual).fmt_debug())))
         panic(msg)
     }
 }
 
 pub fn assert_eq_f64(actual: f64, expected: f64) {
     if actual != expected {
-        let msg = text::concat("assert_eq_f64 failed: expected ", text::concat((expected).fmt_debug(), text::concat(", got ", (actual).fmt_debug())))
+        let msg = "assert_eq_f64 failed: expected ".concat((expected).fmt_debug().concat(", got ".concat((actual).fmt_debug())))
         panic(msg)
     }
 }
 
 pub fn assert_eq_string(actual: String, expected: String) {
     if !__intrinsic_string_eq(actual, expected) {
-        let msg = text::concat("assert_eq_string failed: expected ", text::concat((expected).fmt_debug(), text::concat(", got ", (actual).fmt_debug())))
+        let msg = "assert_eq_string failed: expected ".concat((expected).fmt_debug().concat(", got ".concat((actual).fmt_debug())))
         panic(msg)
     }
 }
 
 pub fn assert_eq_bool(actual: bool, expected: bool) {
     if actual != expected {
-        let msg = text::concat("assert_eq_bool failed: expected ", text::concat((expected).fmt_debug(), text::concat(", got ", (actual).fmt_debug())))
+        let msg = "assert_eq_bool failed: expected ".concat((expected).fmt_debug().concat(", got ".concat((actual).fmt_debug())))
         panic(msg)
     }
 }
 
 pub fn assert_ne_i32(actual: i32, unexpected: i32) {
     if actual == unexpected {
-        let msg = text::concat("assert_ne_i32 failed: values should differ, both are ", (actual).to_string())
+        let msg = "assert_ne_i32 failed: values should differ, both are ".concat((actual).to_string())
         panic(msg)
     }
 }
 
 pub fn assert_ne_string(actual: String, unexpected: String) {
     if actual == unexpected {
-        let msg = text::concat("assert_ne_string failed: values should differ, both are \"", text::concat(actual, "\""))
+        let msg = "assert_ne_string failed: values should differ, both are \"".concat(actual.concat("\""))
         panic(msg)
     }
 }
@@ -87,7 +87,7 @@ pub fn expect_ok_i32(r: Result<i32, String>) -> i32 {
     match r {
         Result::Ok(v) => v,
         Result::Err(e) => {
-            let msg = text::concat("expect_ok_i32: got Err(\"", text::concat(e, "\")"))
+            let msg = "expect_ok_i32: got Err(\"".concat(e.concat("\")"))
             panic(msg)
             0
         },
@@ -97,7 +97,7 @@ pub fn expect_ok_i32(r: Result<i32, String>) -> i32 {
 pub fn expect_err_string(r: Result<i32, String>) -> String {
     match r {
         Result::Ok(v) => {
-            let msg = text::concat("expect_err_string: got Ok(", text::concat((v).to_string(), ")"))
+            let msg = "expect_err_string: got Ok(".concat((v).to_string().concat(")"))
             panic(msg)
             String_new()
         },
@@ -118,7 +118,7 @@ pub fn expect_some_i32(o: Option<i32>) -> i32 {
 pub fn expect_none_i32(o: Option<i32>) {
     match o {
         Option::Some(v) => {
-            let msg = text::concat("expect_none_i32: got Some(", text::concat((v).to_string(), ")"))
+            let msg = "expect_none_i32: got Some(".concat((v).to_string().concat(")"))
             panic(msg)
         },
         None => {
@@ -130,7 +130,7 @@ pub fn expect_none_i32(o: Option<i32>) {
 /// Assert that a string contains a given substring.
 pub fn assert_contains(haystack: String, needle: String) {
     if !contains(haystack, needle) {
-        let msg = text::concat("assert_contains failed: \"", text::concat(haystack, text::concat("\" does not contain \"", text::concat(needle, "\""))))
+        let msg = "assert_contains failed: \"".concat(haystack.concat("\" does not contain \"".concat(needle.concat("\""))))
         panic(msg)
     }
 }
@@ -138,7 +138,7 @@ pub fn assert_contains(haystack: String, needle: String) {
 /// Assert that two strings are equal, showing expected and actual blocks on failure.
 pub fn assert_eq_snapshot(actual: String, expected: String) {
     if actual != expected {
-        let msg = text::concat("snapshot mismatch:\n--- expected ---\n", text::concat(expected, text::concat("\n--- actual ---\n", actual)))
+        let msg = "snapshot mismatch:\n--- expected ---\n".concat(expected.concat("\n--- actual ---\n".concat(actual)))
         panic(msg)
     }
 }
@@ -146,7 +146,7 @@ pub fn assert_eq_snapshot(actual: String, expected: String) {
 /// Assert that a boolean condition holds, with a custom failure message.
 pub fn assert_msg(cond: bool, message: String) {
     if !cond {
-        panic(text::concat("assertion failed: ", message))
+        panic("assertion failed: ".concat(message))
     }
 }
 
@@ -166,6 +166,6 @@ pub fn bench(name: String, iterations: i32, f: fn() -> ()) {
         i = i + 1
     }
     let elapsed: i64 = __intrinsic_clock_now() - start
-    let msg = text::concat("bench: ", text::concat(name, text::concat(": total=", text::concat((elapsed).to_string(), text::concat("ns iters=", (iterations).to_string())))))
+    let msg = "bench: ".concat(name.concat(": total=".concat((elapsed).to_string().concat("ns iters=".concat((iterations).to_string())))))
     __intrinsic_eprintln(msg)
 }

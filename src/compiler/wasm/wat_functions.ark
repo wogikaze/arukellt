@@ -7,12 +7,12 @@ use mir::local_access
 use wasm::wat_function_body
 use wasm::wat_types
 fn emit_wat_function(f: MirFunction) -> String {
-    let mut out = text::concat(String_from("  (func $"), function_identity::MirFunction_name(f))
+    let mut out = (String_from("  (func $")).concat(function_identity::MirFunction_name(f))
     out = emit_wat_signature(out, f)
-    out = text::builder_append(out, String_from("\n"))
-    out = text::builder_append(out, wat_function_body::emit_wat_locals(f))
-    out = text::builder_append(out, wat_function_body::emit_wat_instructions(f))
-    out = text::builder_append(out, String_from("  )\n"))
+    out = out.concat(String_from("\n"))
+    out = out.concat(wat_function_body::emit_wat_locals(f))
+    out = out.concat(wat_function_body::emit_wat_instructions(f))
+    out = out.concat(String_from("  )\n"))
     emit_wat_start_export(out, f)
 }
 
@@ -20,7 +20,7 @@ fn emit_wat_signature(out: String, f: MirFunction) -> String {
     let mut result = emit_wat_params(out, f)
     let return_type = function_return_view::MirFunction_return_type(f)
     if return_type != 0 {
-        result = text::builder_append(result, text::concat(String_from(" (result "), text::concat(wat_types::val_type_name(return_type), String_from(")"))))
+        result = result.concat((String_from(" (result ")).concat(wat_types::val_type_name(return_type).concat(String_from(")"))))
     }
     result
 }
@@ -31,7 +31,7 @@ fn emit_wat_params(out: String, f: MirFunction) -> String {
     let mut pi = 0
     while pi < param_count {
         let param = function_param_view::MirFunction_param_at(f, pi)
-        result = text::builder_append(result, text::concat(String_from(" (param "), text::concat(wat_types::val_type_name(local_access::MirLocal_val_type(param)), String_from(")"))))
+        result = result.concat((String_from(" (param ")).concat(wat_types::val_type_name(local_access::MirLocal_val_type(param)).concat(String_from(")"))))
         pi = pi + 1
     }
     result
@@ -40,7 +40,7 @@ fn emit_wat_params(out: String, f: MirFunction) -> String {
 fn emit_wat_start_export(out: String, f: MirFunction) -> String {
     let fname = function_identity::MirFunction_name(f)
     if eq(clone(fname), "main") || eq(clone(fname), "_start") {
-        return text::concat(out, text::concat(String_from("  (export \"_start\" (func $"), text::concat(clone(fname), String_from("))\n"))))
+        return out.concat((String_from("  (export \"_start\" (func $")).concat(clone(fname).concat(String_from("))\n"))))
     }
     out
 }

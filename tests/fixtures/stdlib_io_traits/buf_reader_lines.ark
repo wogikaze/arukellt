@@ -34,7 +34,7 @@ fn position_of<T: io::Seek>(source: T) -> Result<i64, io::IoError> {
 
 fn main() {
     let lines: BufReader<Reader> = BufReader::new<Reader>(
-        Reader::from_bytes(text::to_utf8_bytes("alpha\nbeta\n\ngamma")),
+        Reader::from_bytes("alpha\nbeta\n\ngamma".to_utf8_bytes()),
         3
     )
     let mut line_index: i32 = 0
@@ -50,7 +50,7 @@ fn main() {
     }
 
     let buffered: BufReader<Reader> = BufReader::new<Reader>(
-        Reader::from_bytes(text::to_utf8_bytes("abcdef")),
+        Reader::from_bytes("abcdef".to_utf8_bytes()),
         4
     )
     match fill_of(buffered) {
@@ -79,7 +79,7 @@ fn main() {
     }
 
     let seekable: BufReader<Reader> = BufReader::new<Reader>(
-        Reader::from_bytes(text::to_utf8_bytes("abcdef")),
+        Reader::from_bytes("abcdef".to_utf8_bytes()),
         4
     )
     match read_some(seekable, 2) {
@@ -133,7 +133,7 @@ fn main() {
     }
 
     let tiny: BufReader<Reader> = BufReader::new<Reader>(
-        Reader::from_bytes(text::to_utf8_bytes("AB")),
+        Reader::from_bytes("AB".to_utf8_bytes()),
         0
     )
     match read_some(tiny, 4) {
@@ -145,7 +145,7 @@ fn main() {
     }
 
     let unterminated: BufReader<Reader> = BufReader::new<Reader>(
-        Reader::from_bytes(text::to_utf8_bytes("hello")),
+        Reader::from_bytes("hello".to_utf8_bytes()),
         2
     )
     match read_line_of(unterminated) {

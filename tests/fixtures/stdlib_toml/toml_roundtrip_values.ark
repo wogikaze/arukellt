@@ -35,6 +35,6 @@ fn main() {
                 None => stdio::println("missing ratio"),
             }
         },
-        Result::Err(e) => stdio::println(text::concat("error:", e)),
+        Result::Err(e) => stdio::println("error:".concat(e)),
     }
 }

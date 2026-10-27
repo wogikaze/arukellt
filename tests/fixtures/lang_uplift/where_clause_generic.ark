@@ -14,7 +14,7 @@ fn main() {
     push(many, 2)
     push(many, 3)
 
-    __intrinsic_print(text::concat(classify_len(empty), "\n"))
-    __intrinsic_print(text::concat(classify_len(single), "\n"))
-    __intrinsic_print(text::concat(classify_len(many), "\n"))
+    __intrinsic_print(classify_len(empty).concat("\n"))
+    __intrinsic_print(classify_len(single).concat("\n"))
+    __intrinsic_print(classify_len(many).concat("\n"))
 }

@@ -44,7 +44,7 @@ fn main() {
     let p = core_api_token::Parser_new(tokens)
     let decls = decl::parse_module(p)
     let n = len(decls)
-    stdio::println(text::concat("Parsed ", text::concat(to_string(n), " declaration(s)")))
+    stdio::println("Parsed ".concat(to_string(n).concat(" declaration(s)")))
     let mut i = 0
     while i < n {
         let d = get_unchecked(decls, i)
@@ -53,11 +53,11 @@ fn main() {
     }
     let err_count = state_record::parser_error_count(p)
     if err_count > 0 {
-        stdio::println(text::concat("Parse errors: ", to_string(err_count)))
+        stdio::println("Parse errors: ".concat(to_string(err_count)))
         let mut j = 0
         while j < err_count {
             let e = state_record::parser_error_at(p, j)
-            stdio::println(text::concat("  ", clone(e.message)))
+            stdio::println("  ".concat(clone(e.message)))
             j = j + 1
         }
     } else {

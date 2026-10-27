@@ -6,7 +6,7 @@ pub fn cmd_component_inspect(opts: CliOptions) {
     stdio::eprintln("error: component inspect is not yet implemented in the selfhost compiler")
     stdio::eprintln("")
     stdio::eprintln("Use wasm-tools instead:")
-    stdio::eprintln(text::concat("  wasm-tools component wit ", args_record::cli_input_file(opts)))
+    stdio::eprintln("  wasm-tools component wit ".concat(args_record::cli_input_file(opts)))
     process::exit(1)
 }
 
@@ -14,7 +14,7 @@ pub fn cmd_component_validate(opts: CliOptions) {
     stdio::eprintln("error: component validate is not yet implemented in the selfhost compiler")
     stdio::eprintln("")
     stdio::eprintln("Use wasm-tools instead:")
-    stdio::eprintln(text::concat("  wasm-tools validate ", args_record::cli_input_file(opts)))
+    stdio::eprintln("  wasm-tools validate ".concat(args_record::cli_input_file(opts)))
     process::exit(1)
 }
 

@@ -26,7 +26,7 @@ fn emit_wit_import_entries(
 
 fn wit_import_module_name(binding: wit_import_bind::WitImportBinding, wasi_version: String) -> String {
     if emit_target::is_p2_wasi(clone(wasi_version)) {
-        return text::concat("cm32p2|", wit_import_bind::wit_import_binding_component_interface_id(binding))
+        return "cm32p2|".concat(wit_import_bind::wit_import_binding_component_interface_id(binding))
     }
     wit_import_bind::wit_import_binding_interface_id(binding)
 }

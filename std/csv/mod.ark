@@ -26,14 +26,14 @@ pub fn csv_parse_row(line: String) -> Vec<String> {
                 let c = byte_at(line, i)
                 if c == 34 {
                     if i + 1 < n && byte_at(line, i + 1) == 34 {
-                        field = text::concat(field, "\"")
+                        field = field.concat("\"")
                         i = i + 2
                     } else {
                         i = i + 1
                         break
                     }
                 } else {
-                    field = text::concat(field, slice(line, i, i + 1))
+                    field = field.concat(slice(line, i, i + 1))
                     i = i + 1
                 }
             }
@@ -70,15 +70,15 @@ pub fn csv_stringify_row(fields: Vec<String>) -> String {
     let mut i = 0
     while i < n {
         if i > 0 {
-            result = text::concat(result, ",")
+            result = result.concat(",")
         }
         let field = get_unchecked(fields, i)
         let needs_quote = contains(field, ",") || contains(field, "\"") || contains(field, "\n")
         if needs_quote {
             let escaped = replace(field, "\"", "\"\"")
-            result = text::concat(result, text::concat("\"", text::concat(escaped, "\"")))
+            result = result.concat("\"".concat(escaped.concat("\"")))
         } else {
-            result = text::concat(result, field)
+            result = result.concat(field)
         }
         i = i + 1
     }
@@ -152,9 +152,9 @@ pub fn csv_stringify(rows: Vec<Vec<String>>) -> String {
     let mut i = 0
     while i < n {
         if i > 0 {
-            out = text::concat(out, "\n")
+            out = out.concat("\n")
         }
-        out = text::concat(out, csv_stringify_row(get_unchecked(rows, i)))
+        out = out.concat(csv_stringify_row(get_unchecked(rows, i)))
         i = i + 1
     }
     out

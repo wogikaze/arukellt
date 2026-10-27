@@ -141,7 +141,7 @@ fn native_c_funcref_typedef_name(table: TypeTable, signature: SignatureEntry) ->
     if len(parameters) == 0 || len(results) == 0 {
         return String_new()
     }
-    text::concat(String_from("ark_fnptr__P_"), text::concat(parameters, text::concat(String_from("__R_"), results)))
+    String_from("ark_fnptr__P_").concat(parameters.concat(String_from("__R_").concat(results)))
 }
 
 fn native_c_funcref_typedef_decl(
@@ -163,27 +163,18 @@ fn native_c_funcref_typedef_decl(
         params = String_new()
         let mut index = 0
         while index < param_count {
-            if index > 0 { params = text::concat(params, String_from(", ")) }
+            if index > 0 { params = params.concat(String_from(", ")) }
             let param_type = native_c_type_for_value(
                 table,
                 signature_entry::signature_entry_param_at(signature, index),
                 heap_enum_flags
             )
             if len(param_type) == 0 { return String_new() }
-            params = text::concat(params, param_type)
+            params = params.concat(param_type)
             index = index + 1
         }
     }
-    text::concat(
-        String_from("typedef "),
-        text::concat(
-            return_type,
-            text::concat(
-                String_from(" (*"),
-                text::concat(typedef_name, text::concat(String_from(")("), text::concat(params, String_from(");\n"))))
-            )
-        )
-    )
+    String_from("typedef ").concat(return_type.concat((String_from(" (*")).concat(typedef_name.concat(String_from(")(").concat(params.concat(String_from(");\n")))))))
 }
 
 fn native_c_type_encoding(table: TypeTable, value_type: MirValueType) -> String {
@@ -213,7 +204,7 @@ fn native_c_type_encoding(table: TypeTable, value_type: MirValueType) -> String 
     } else {
         "r"
     }
-    text::concat(prefix, (raw_type_id).to_string())
+    prefix.concat((raw_type_id).to_string())
 }
 
 fn native_c_signature_parameter_encoding(table: TypeTable, signature: SignatureEntry) -> String {
@@ -224,10 +215,10 @@ fn native_c_signature_parameter_encoding(table: TypeTable, signature: SignatureE
     let mut encoding = String_new()
     let mut index = 0
     while index < count {
-        if index > 0 { encoding = text::concat(encoding, "_") }
+        if index > 0 { encoding = encoding.concat("_") }
         let part = native_c_type_encoding(table, signature_entry::signature_entry_param_at(signature, index))
         if len(part) == 0 { return String_new() }
-        encoding = text::concat(encoding, part)
+        encoding = encoding.concat(part)
         index = index + 1
     }
     encoding
@@ -241,10 +232,10 @@ fn native_c_signature_result_encoding(table: TypeTable, signature: SignatureEntr
     let mut encoding = String_new()
     let mut index = 0
     while index < count {
-        if index > 0 { encoding = text::concat(encoding, "_") }
+        if index > 0 { encoding = encoding.concat("_") }
         let part = native_c_type_encoding(table, signature_entry::signature_entry_return_at(signature, index))
         if len(part) == 0 { return String_new() }
-        encoding = text::concat(encoding, part)
+        encoding = encoding.concat(part)
         index = index + 1
     }
     encoding
@@ -256,13 +247,7 @@ fn native_c_function_symbol(table: TypeTable, function_id_raw: i32, signature: S
     if len(parameters) == 0 || len(results) == 0 {
         return String_new()
     }
-    text::concat(
-        "ark_f_",
-        text::concat(
-            (function_id_raw).to_string(),
-            text::concat("__P_", text::concat(parameters, text::concat("__R_", results)))
-        )
-    )
+    "ark_f_".concat((function_id_raw).to_string().concat("__P_".concat(parameters.concat("__R_".concat(results)))))
 }
 
 fn native_c_signature_return_type(
@@ -300,11 +285,8 @@ fn native_c_signature_parameters(
             heap_enum_flags
         )
         if len(c_type) == 0 { return String_new() }
-        if index > 0 { parameters = text::concat(parameters, ", ") }
-        parameters = text::concat(
-            parameters,
-            text::concat(c_type, text::concat(" ark_v_", (index).to_string()))
-        )
+        if index > 0 { parameters = parameters.concat(", ") }
+        parameters = parameters.concat(c_type.concat(" ark_v_".concat((index).to_string())))
         index = index + 1
     }
     parameters

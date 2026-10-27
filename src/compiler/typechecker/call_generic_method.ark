@@ -53,7 +53,7 @@ fn infer_generic_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<
     let mut mono_fn_name = clone(method_name)
     let type_prefix = type_name_for_mono(resolved_recv_ty)
     if len(type_prefix) > 0 {
-        mono_fn_name = text::builder_append(type_prefix, text::concat("::", method_name))
+        mono_fn_name = type_prefix.concat("::".concat(method_name))
     }
     if !hashmap_api::validate_hashmap_method(env, clone(mono_fn_name), resolved_recv_ty) {
         return ret_ty
@@ -100,7 +100,7 @@ fn report_unresolved_fresh_type_params(env: TypeEnv, infer_env: TypeEnv, var_nam
     while i < len(var_types) {
         let resolved = unify::resolve_type(infer_env, get_unchecked(var_types, i))
         if call_generic_resolve::is_unresolved_fresh_type_var(infer_env, resolved) {
-            unify::type_error(env, text::concat("cannot infer type parameter ", text::concat(get_unchecked(var_names, i), text::concat(" in method call ", method_name))))
+            unify::type_error(env, "cannot infer type parameter ".concat(get_unchecked(var_names, i).concat(" in method call ".concat(method_name))))
             return
         }
         i = i + 1

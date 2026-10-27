@@ -6,7 +6,7 @@ fn mir_dump_dominance_fixture_print_string_interns(m: MirModule) {
     let s0 = module_strings::intern_string(m, "hello")
     let s1 = module_strings::intern_string(m, "world")
     let s2 = module_strings::intern_string(m, "hello")
-    stdio::println(text::concat("intern 'hello': ", to_string(s0)))
-    stdio::println(text::concat("intern 'world': ", to_string(s1)))
-    stdio::println(text::concat("intern 'hello' again: ", to_string(s2)))
+    stdio::println("intern 'hello': ".concat(to_string(s0)))
+    stdio::println("intern 'world': ".concat(to_string(s1)))
+    stdio::println("intern 'hello' again: ".concat(to_string(s2)))
 }

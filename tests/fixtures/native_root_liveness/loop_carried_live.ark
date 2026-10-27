@@ -3,7 +3,7 @@ fn main() -> i32 {
     let mut acc = String_from("x")
     let mut i = 0
     while i < 24 {
-        acc = text::concat(acc, String_from("y"))
+        acc = acc.concat(String_from("y"))
         i = i + 1
     }
     if len(acc) == 25 { 0 } else { 1 }

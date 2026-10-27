@@ -62,12 +62,8 @@ fn report_struct_enum_shadow_conflict(env: TypeEnv, decls: Vec<AstNode>, node: A
             j = j + 1
             continue
         }
-        let message = text::concat(
-            String_from("ambiguous type name '"),
-            text::concat(
-                clone(struct_name),
-                String_from("': only a non-generic struct may shadow a generic enum; rename the struct or drop its type parameters")
-            )
+        let message = String_from("ambiguous type name '").concat(
+            clone(struct_name).concat(String_from("': only a non-generic struct may shadow a generic enum; rename the struct or drop its type parameters"))
         )
         env.error_count = env.error_count + 1
         push(env.errors, clone(message))

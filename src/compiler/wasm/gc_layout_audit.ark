@@ -13,16 +13,7 @@ fn gc_layout_audit_print_summary(ctx: SelfEmitCtx) {
     if typed_count <= 0 && conflict_count <= 0 {
         return
     }
-    let line = text::concat(
-        "gc-layout-audit: summary typed=",
-        text::concat(
-            (typed_count).to_string(),
-            text::concat(
-                " name=0 fallback=0 conflict=",
-                (conflict_count).to_string()
-            )
-        )
-    )
+    let line = "gc-layout-audit: summary typed=".concat((typed_count).to_string().concat(" name=0 fallback=0 conflict=".concat((conflict_count).to_string())))
     stdio::eprintln(line)
     if conflict_count > 0 {
         stdio::eprintln(String_from("compiler ICE: conflicting explicit backend GC layout plan"))

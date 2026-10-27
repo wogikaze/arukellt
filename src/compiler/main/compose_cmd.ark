@@ -27,10 +27,10 @@ fn compose_paths_conflict(provider: String, socket: String, output: String) -> b
 
 fn compose_print_graph(provider: String, socket: String, output: String) {
     stdio::println("compose dependency graph:")
-    stdio::println(text::concat("  [provider] ", clone(provider)))
-    stdio::println(text::concat("  [socket]   ", clone(socket)))
+    stdio::println("  [provider] ".concat(clone(provider)))
+    stdio::println("  [socket]   ".concat(clone(socket)))
     stdio::println("  edge: provider --plug--> socket")
-    stdio::println(text::concat("  output: ", clone(output)))
+    stdio::println("  output: ".concat(clone(output)))
 }
 
 fn compose_validate_paths(provider: String, socket: String, output: String) -> bool {
@@ -41,14 +41,14 @@ fn compose_validate_paths(provider: String, socket: String, output: String) -> b
     match fs::read_to_string(clone(provider)) {
         Result::Ok(_) => {},
         Result::Err(_) => {
-            stdio::eprintln(text::concat("error: provider component not found: ", clone(provider)))
+            stdio::eprintln("error: provider component not found: ".concat(clone(provider)))
             return false
         },
     }
     match fs::read_to_string(clone(socket)) {
         Result::Ok(_) => {},
         Result::Err(_) => {
-            stdio::eprintln(text::concat("error: socket component not found: ", clone(socket)))
+            stdio::eprintln("error: socket component not found: ".concat(clone(socket)))
             return false
         },
     }
@@ -65,19 +65,7 @@ fn compose_validate_wit_surfaces(provider: String, socket: String) -> bool {
 }
 
 fn compose_wac_plug_command(provider: String, socket: String, output: String) -> String {
-    text::concat(
-        "wac plug --plug ",
-        text::concat(
-            clone(provider),
-            text::concat(
-                " ",
-                text::concat(
-                    clone(socket),
-                    text::concat(" -o ", clone(output))
-                )
-            )
-        )
-    )
+    "wac plug --plug ".concat(clone(provider).concat(" ".concat(clone(socket).concat(" -o ".concat(clone(output))))))
 }
 
 fn compose_print_delegate_hint(provider: String, socket: String, output: String) {
@@ -85,18 +73,15 @@ fn compose_print_delegate_hint(provider: String, socket: String, output: String)
     stdio::println("")
     stdio::println("note: binary composition delegates to `wac plug` (ADR-034 Phase 3).")
     stdio::println("Install wac or run the validated plan manually:")
-    stdio::println(text::concat("  ", compose_wac_plug_command(clone(provider), clone(socket), clone(output))))
+    stdio::println("  ".concat(compose_wac_plug_command(clone(provider), clone(socket), clone(output))))
 }
 
 fn compose_request_wac_plug(provider: String, socket: String, output: String) {
     stdio::println("compose: wac-plug")
-    stdio::println(text::concat("compose: provider ", clone(provider)))
-    stdio::println(text::concat("compose: socket ", clone(socket)))
-    stdio::println(text::concat("compose: output ", clone(output)))
-    stdio::println(text::concat(
-            "compose: command ",
-            compose_wac_plug_command(clone(provider), clone(socket), clone(output))
-        ))
+    stdio::println("compose: provider ".concat(clone(provider)))
+    stdio::println("compose: socket ".concat(clone(socket)))
+    stdio::println("compose: output ".concat(clone(output)))
+    stdio::println("compose: command ".concat(compose_wac_plug_command(clone(provider), clone(socket), clone(output))))
 }
 
 pub fn cmd_compose(opts: CliOptions) {

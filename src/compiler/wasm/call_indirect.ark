@@ -78,13 +78,13 @@ fn fn_is_pair_trampoline(f: MirFunction) -> bool {
 // agree on container spellings.
 fn pair_seg_norm(name: String, vt: i32) -> String {
     if len(name) == 0 {
-        return text::concat("~", (vt).to_string())
+        return "~".concat((vt).to_string())
     }
     if starts_with(clone(name), "Vec<") && ends_with(clone(name), ">") {
-        return text::concat("vec:", substring(name, 4, len(name) - 1))
+        return "vec:".concat(substring(name, 4, len(name) - 1))
     }
     if starts_with(clone(name), "Option<") && ends_with(clone(name), ">") {
-        return text::concat("option:", substring(name, 7, len(name) - 1))
+        return "option:".concat(substring(name, 7, len(name) - 1))
     }
     name
 }
@@ -101,23 +101,23 @@ fn pair_tramp_sig_key(f: MirFunction, use_names: bool) -> String {
     let mut i = 1
     while i < pc {
         if i > 1 {
-            key = text::concat(key, ",")
+            key = key.concat(",")
         }
         let p = function_param_view::MirFunction_param_at(f, i)
         let pvt = local_access::MirLocal_val_type(p)
         if use_names {
-            key = text::concat(key, pair_seg_norm(local_access::MirLocal_type_name(p), pvt))
+            key = key.concat(pair_seg_norm(local_access::MirLocal_type_name(p), pvt))
         } else {
-            key = text::concat(key, (pvt).to_string())
+            key = key.concat((pvt).to_string())
         }
         i = i + 1
     }
-    key = text::concat(key, ";")
+    key = key.concat(";")
     let rvt = function_return_view::MirFunction_return_type(f)
     if use_names {
-        key = text::concat(key, pair_seg_norm(function_return_view::MirFunction_return_type_name(f), rvt))
+        key = key.concat(pair_seg_norm(function_return_view::MirFunction_return_type_name(f), rvt))
     } else {
-        key = text::concat(key, (rvt).to_string())
+        key = key.concat((rvt).to_string())
     }
     key
 }
@@ -317,8 +317,8 @@ fn pair_call_sig_from_hint(hint: String, dest_vt: i32, memory64: bool, gc_struct
                 let seg = substring(clone(params_part), seg_start, i)
                 let vt = pair_sig_parse_vt(seg)
                 if vt >= 0 && pair_call_sig_vt_is_scalar(vt) {
-                    sig = text::concat(sig, String_from("_"))
-                    sig = text::concat(sig, sections_type_plan::val_type_to_target_sig(vt, true, memory64))
+                    sig = sig.concat(String_from("_"))
+                    sig = sig.concat(sections_type_plan::val_type_to_target_sig(vt, true, memory64))
                 } else {
                     let name_tok = pair_sig_named_sig_token(
                         pair_key_param_seg(clone(nk_params), pi),
@@ -328,8 +328,8 @@ fn pair_call_sig_from_hint(hint: String, dest_vt: i32, memory64: bool, gc_struct
                     if len(name_tok) == 0 {
                         return String_new()
                     }
-                    sig = text::concat(sig, String_from("_"))
-                    sig = text::concat(sig, name_tok)
+                    sig = sig.concat(String_from("_"))
+                    sig = sig.concat(name_tok)
                 }
                 seg_start = i + 1
                 pi = pi + 1
@@ -345,16 +345,10 @@ fn pair_call_sig_from_hint(hint: String, dest_vt: i32, memory64: bool, gc_struct
         ret_vt = dest_vt
     }
     if ret_vt == value_types::VT_VOID() {
-        return text::concat(sig, String_from("_0"))
+        return sig.concat(String_from("_0"))
     }
     if pair_call_sig_vt_is_scalar(ret_vt) {
-        return text::concat(
-            clone(sig),
-            text::concat(
-                String_from("_1"),
-                sections_type_plan::val_type_to_target_sig(ret_vt, true, memory64)
-            )
-        )
+        return clone(sig).concat(String_from("_1").concat(sections_type_plan::val_type_to_target_sig(ret_vt, true, memory64)))
     }
     // Ref-family return: the nk return name carries the declared type, so
     // resolve the exact ref token instead of dropping to the arity scan.
@@ -362,7 +356,7 @@ fn pair_call_sig_from_hint(hint: String, dest_vt: i32, memory64: bool, gc_struct
     if len(ret_tok) == 0 {
         return String_new()
     }
-    text::concat(sig, text::concat(String_from("_1"), ret_tok))
+    sig.concat(String_from("_1").concat(ret_tok))
 }
 
 // Segment at position idx inside a comma-separated pair-key params part
@@ -426,13 +420,13 @@ fn pair_sig_ref_name_token(name: String, gc_struct_names: Vec<String>) -> String
         // fn values are __fnpair records under the pair ABI.
         let pair_slot = pair_sig_struct_slot(gc_struct_names, String_from("__fnpair"))
         if pair_slot >= 0 {
-            return text::concat(String_from("gcsref"), (pair_slot).to_string())
+            return String_from("gcsref").concat((pair_slot).to_string())
         }
         return String_new()
     }
     let slot = pair_sig_struct_slot(gc_struct_names, clone(name))
     if slot >= 0 {
-        return text::concat(String_from("gcsref"), (slot).to_string())
+        return String_from("gcsref").concat((slot).to_string())
     }
     String_new()
 }

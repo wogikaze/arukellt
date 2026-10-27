@@ -39,25 +39,13 @@ fn native_c_phi_edge_copies(
         }
         if source >= 0 && dest >= 0 && source != dest {
             if native_c_phi_edge_needs_scratch(block, pred_block, dest, source) {
-                out = text::concat(
-                    out,
-                    text::concat(
-                        String_from("    { int64_t ark_phi_scratch = 0; memcpy(&ark_phi_scratch, &ark_v_"),
-                        text::concat(
-                            (source).to_string(),
-                            text::concat(
-                                String_from(", sizeof(ark_v_"),
-                                text::concat(
-                                    (source).to_string(),
-                                    text::concat(
-                                        String_from(")); memcpy(&ark_v_"),
-                                        text::concat(
-                                            (dest).to_string(),
-                                            text::concat(
-                                                String_from(", &ark_phi_scratch, sizeof(ark_v_"),
-                                                text::concat((dest).to_string(), String_from(")); }\n"))
-                                            )
-                                        )
+                out = out.concat(
+                    (String_from("    { int64_t ark_phi_scratch = 0; memcpy(&ark_phi_scratch, &ark_v_")).concat(
+                        (source).to_string().concat(
+                            (String_from(", sizeof(ark_v_")).concat(
+                                (source).to_string().concat(
+                                    (String_from(")); memcpy(&ark_v_")).concat(
+                                        (dest).to_string().concat((String_from(", &ark_phi_scratch, sizeof(ark_v_")).concat((dest).to_string().concat(String_from(")); }\n"))))
                                     )
                                 )
                             )
@@ -65,19 +53,7 @@ fn native_c_phi_edge_copies(
                     )
                 )
             } else {
-                out = text::concat(
-                    out,
-                    text::concat(
-                        String_from("    ark_v_"),
-                        text::concat(
-                            (dest).to_string(),
-                            text::concat(
-                                String_from(" = ark_v_"),
-                                text::concat((source).to_string(), String_from(";\n"))
-                            )
-                        )
-                    )
-                )
+                out = out.concat(String_from("    ark_v_").concat((dest).to_string().concat(String_from(" = ark_v_").concat((source).to_string().concat(String_from(";\n"))))))
             }
         }
         phi_index = phi_index + 1

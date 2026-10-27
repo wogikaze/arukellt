@@ -94,10 +94,7 @@ fn report_unbindable_type_params(env: TypeEnv, infer_env: TypeEnv, var_names: Ve
             if !type_mentions_var(ret_ty, var_name) {
                 unify::type_error(
                     env,
-                    text::concat(
-                        "cannot infer type parameter ",
-                        text::concat(get_unchecked(var_names, i), text::concat(" in call ", clone(fn_name)))
-                    )
+                    "cannot infer type parameter ".concat(get_unchecked(var_names, i).concat(" in call ".concat(clone(fn_name))))
                 )
             }
         }

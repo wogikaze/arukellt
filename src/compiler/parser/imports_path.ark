@@ -10,7 +10,7 @@ fn parse_first_use_segment(p: Parser) -> String {
 
 fn parse_next_use_segment(p: Parser, path: String) -> String {
     let seg = expect_use_path_segment(p)
-    text::concat(path, text::concat("::", token_state::Token_text(seg)))
+    path.concat("::".concat(token_state::Token_text(seg)))
 }
 
 // `match` is a keyword in expression position but is also the name of the

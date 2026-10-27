@@ -8,10 +8,10 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 287 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 251 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 19 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 298 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 81 | Superseded — see migration guidance. |
+| `experimental` | 287 | API may change without notice. Functionality is available but not finalized. |
+| [deprecated](#deprecated-apis) | 104 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -608,26 +608,13 @@ let input = read_to_string()
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| ~~`buf_reader_new`~~ ⚠️ Deprecated → `BufReader::new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated compatibility adapter over the legacy [cursor, ...] layout; use BufReader::new. |
-| ~~`buf_reader_read_line`~~ ⚠️ Deprecated → `BufReader::read_line` | `(Vec<i32>) -> Result<String, IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated compatibility line reader over the legacy layout; use BufRead::read_line (`Option<Strin… |
-| ~~`buf_writer_flush`~~ ⚠️ Deprecated → `BufWriter::flush` | `(Vec<i32>) -> Result<(), IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`buf_writer_new`~~ ⚠️ Deprecated → `BufWriter::new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated compatibility adapter over the legacy [fd_tag, ...] layout; use BufWriter::new. |
-| ~~`buf_writer_write_str`~~ ⚠️ Deprecated → `BufWriter::write_string` | `(Vec<i32>, String) -> Result<i32, IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated compatibility string writer over the legacy layout; use BufWriter::write_string. |
-| ~~`buffered_reader`~~ ⚠️ Deprecated → `BufReader::new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated alias for buf_reader_new; use BufReader::new. |
-| ~~`buffered_writer`~~ ⚠️ Deprecated → `BufWriter::new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated alias for buf_writer_new; use BufWriter::new. |
 | `print_bytes` | `(Vec<i32>) -> ()` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `read_stdin_line` | `() -> Result<String, IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| ~~`reader_from_bytes`~~ ⚠️ Deprecated → `Reader::from_bytes` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated legacy constructor for the [cursor, ...] layout; use Reader::from_bytes. Retained whi… |
 | `stderr` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `stdin` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `stdout` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| ~~`write_all`~~ ⚠️ Deprecated → `Io::write_all` | `(Vec<i32>, Vec<i32>) -> Result<(), IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated convenience wrapper; use Io::write_all. |
-| ~~`write_string`~~ ⚠️ Deprecated → `Writer::write_string` | `(Vec<i32>, String) -> Result<(), IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated convenience wrapper; use Writer::write_string. |
-| ~~`writer_flush`~~ ⚠️ Deprecated → `Writer::flush` | `(Vec<i32>) -> Result<(), IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated no-op flush over the legacy tagged layout; use Writer::flush. |
-| ~~`writer_new`~~ ⚠️ Deprecated → `Writer::new` | `() -> Vec<i32>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated legacy tagged-layout constructor; use Writer::new. |
-| ~~`writer_to_bytes`~~ ⚠️ Deprecated → `Writer::into_bytes` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated legacy image accessor; use Writer::into_bytes. |
-| ~~`writer_write`~~ ⚠️ Deprecated → `Writer::write` | `(Vec<i32>, Vec<i32>) -> Result<i32, IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated legacy tagged write (memory or stdout/stderr tags); use Writer::write for memory handle… |
-| ~~`writer_write_str`~~ ⚠️ Deprecated → `Writer::write_string` | `(Vec<i32>, String) -> Result<i32, IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated legacy tagged string write; use Writer::write_string for memory handles. |
+| ~~`writer_write`~~ ⚠️ Deprecated → `Writer::write` | `(Vec<i32>, Vec<i32>) -> Result<i32, IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated tagged write for stdout() / stderr(); use Writer::write for memory handles. Stays until… |
+| ~~`writer_write_str`~~ ⚠️ Deprecated → `Writer::write_string` | `(Vec<i32>, String) -> Result<i32, IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated tagged string write for stdout() / stderr(); use Writer::write_string for memory handle… |
 
 ## Json
 
@@ -956,53 +943,42 @@ let input = read_to_string()
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `builder_append` | `(String, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `builder_append_char` | `(String, char) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `builder_append_line` | `(String, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `builder_build` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `builder_len` | `(String) -> i32` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `builder_new` | `() -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `chars` | `(String) -> Vec<String>` | `std::text` | `stable` | `functional` | `builtin` | no | - | Split into one valid UTF-8 String per Unicode scalar value. |
-| `codepoint_at` | `(String, i32) -> Option<char>` | `std::text` | `stable` | `functional` | `builtin` | no | - | Return the Unicode scalar at a scalar index, or None when out of range. |
-| `concat` | `(String, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_concat` | - |
-| `contains` | `(String, String) -> bool` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_contains` | - |
-| `ends_with` | `(String, String) -> bool` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_ends_with` | - |
-| `format_bool` | `(bool) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `format_f64` | `(f64) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `format_i32` | `(i32) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `format_i64` | `(i64) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `from_utf8` | `(Vec<i32>) -> String` | `std::text` | `experimental` | `functional` | `builtin` | no | - | Decode bytes as UTF-8, replacing each invalid sequence with U+FFFD. |
-| `index_of` | `(String, String) -> i32` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_index_of` | - |
-| `is_empty` | `(String) -> bool` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `join` | `(Vec<String>, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_join` | - |
-| `len_bytes` | `(String) -> i32` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `len_chars` | `(String) -> i32` | `std::text` | `stable` | `functional` | `builtin` | no | - | Return the number of Unicode scalar values. |
-| `lines` | `(String) -> Vec<String>` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `pad_left` | `(String, i32, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `pad_right` | `(String, i32, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `repeat` | `(String, i32) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `replace` | `(String, String, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `rope_delete` | `(String, i32, i32) -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Delete bytes [start, end) from the Rope, returning the new Rope. |
-| `rope_from_string` | `(String) -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Create a Rope from an existing String. |
-| `rope_insert` | `(String, i32, String) -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Insert text at byte position pos, returning the new Rope. |
-| `rope_len` | `(String) -> i32` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Return the byte length of the Rope. |
-| `rope_line_count` | `(String) -> i32` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Count the number of lines (newlines + 1) in the Rope. |
-| `rope_new` | `() -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Create a new empty Rope. |
-| `rope_slice` | `(String, i32, i32) -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Extract the substring [start, end) from the Rope. |
-| `rope_to_string` | `(String) -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Convert the Rope to a String. |
-| `slice_bytes` | `(String, i32, i32) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | Return a byte slice only when both bounds are UTF-8 boundaries; otherwise return an empty string. |
-| `slice_chars` | `(String, i32, i32) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | Return the scalar-indexed slice in the half-open range; invalid ranges return an empty string. |
-| `split` | `(String, String) -> Vec<String>` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_split` | - |
-| `starts_with` | `(String, String) -> bool` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_starts_with` | - |
-| `to_lower` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_to_lower` | - |
-| `to_upper` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_to_upper` | - |
-| `to_utf8_bytes` | `(String) -> Vec<i32>` | `std::text` | `experimental` | `functional` | `builtin` | no | - | Return the canonical UTF-8 bytes of the string. |
-| `trim` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `trim_end` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `trim_start` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `try_from_utf8` | `(Vec<i32>) -> Option<String>` | `std::text` | `experimental` | `functional` | `builtin` | no | - | Decode bytes as UTF-8 and return None when the complete input is invalid. |
-| `try_slice_bytes` | `(String, i32, i32) -> Option<String>` | `std::text` | `stable` | `functional` | `builtin` | no | - | Return a byte slice when both bounds are UTF-8 boundaries, or None. |
-| `try_slice_chars` | `(String, i32, i32) -> Option<String>` | `std::text` | `stable` | `functional` | `builtin` | no | - | Return the scalar-indexed slice, or None for an invalid range. |
+| ~~`builder_append`~~ ⚠️ Deprecated → `String::concat` | `(String, String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`builder_append_char`~~ ⚠️ Deprecated → `String::concat` | `(String, char) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`builder_append_line`~~ ⚠️ Deprecated → `String::concat` | `(String, String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`builder_build`~~ ⚠️ Deprecated → `String::clone` | `(String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`builder_len`~~ ⚠️ Deprecated → `String::len` | `(String) -> i32` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`builder_new`~~ ⚠️ Deprecated → `String::new` | `() -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`chars`~~ ⚠️ Deprecated → `String::chars` | `(String) -> Vec<String>` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | Split into one valid UTF-8 String per Unicode scalar value. |
+| ~~`codepoint_at`~~ ⚠️ Deprecated → `String::codepoint_at` | `(String, i32) -> Option<char>` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | Return the Unicode scalar at a scalar index, or None when out of range. |
+| ~~`concat`~~ ⚠️ Deprecated → `String::concat` | `(String, String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_concat` | - |
+| ~~`contains`~~ ⚠️ Deprecated → `String::contains` | `(String, String) -> bool` | `std::text` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_contains` | - |
+| ~~`ends_with`~~ ⚠️ Deprecated → `String::ends_with` | `(String, String) -> bool` | `std::text` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_ends_with` | - |
+| ~~`format_bool`~~ ⚠️ Deprecated → `bool::to_string` | `(bool) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`format_f64`~~ ⚠️ Deprecated → `f64::to_string` | `(f64) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`format_i32`~~ ⚠️ Deprecated → `i32::to_string` | `(i32) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`format_i64`~~ ⚠️ Deprecated → `i64::to_string` | `(i64) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`index_of`~~ ⚠️ Deprecated → `String::index_of` | `(String, String) -> i32` | `std::text` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_index_of` | - |
+| ~~`is_empty`~~ ⚠️ Deprecated → `String::is_empty` | `(String) -> bool` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`join`~~ ⚠️ Deprecated → `Vec::join` | `(Vec<String>, String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_join` | - |
+| ~~`len_bytes`~~ ⚠️ Deprecated → `String::len_bytes` | `(String) -> i32` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`len_chars`~~ ⚠️ Deprecated → `String::len_chars` | `(String) -> i32` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | Return the number of Unicode scalar values. |
+| ~~`lines`~~ ⚠️ Deprecated → `String::lines` | `(String) -> Vec<String>` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`pad_left`~~ ⚠️ Deprecated → `String::pad_left_with` | `(String, i32, String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`pad_right`~~ ⚠️ Deprecated → `String::pad_right_with` | `(String, i32, String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`repeat`~~ ⚠️ Deprecated → `String::repeat` | `(String, i32) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`replace`~~ ⚠️ Deprecated → `String::replace` | `(String, String, String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`slice_bytes`~~ ⚠️ Deprecated → `String::slice_bytes` | `(String, i32, i32) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | Return a byte slice only when both bounds are UTF-8 boundaries; otherwise return an empty string. |
+| ~~`slice_chars`~~ ⚠️ Deprecated → `String::slice_chars` | `(String, i32, i32) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | Return the scalar-indexed slice in the half-open range; invalid ranges return an empty string. |
+| ~~`split`~~ ⚠️ Deprecated → `String::split` | `(String, String) -> Vec<String>` | `std::text` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_split` | - |
+| ~~`starts_with`~~ ⚠️ Deprecated → `String::starts_with` | `(String, String) -> bool` | `std::text` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_starts_with` | - |
+| ~~`to_lower`~~ ⚠️ Deprecated → `String::to_lower` | `(String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_to_lower` | - |
+| ~~`to_upper`~~ ⚠️ Deprecated → `String::to_upper` | `(String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_to_upper` | - |
+| ~~`trim`~~ ⚠️ Deprecated → `String::trim` | `(String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`trim_end`~~ ⚠️ Deprecated → `String::trim_end` | `(String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`trim_start`~~ ⚠️ Deprecated → `String::trim_start` | `(String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`try_slice_bytes`~~ ⚠️ Deprecated → `String::try_slice_bytes` | `(String, i32, i32) -> Option<String>` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | Return a byte slice when both bounds are UTF-8 boundaries, or None. |
+| ~~`try_slice_chars`~~ ⚠️ Deprecated → `String::try_slice_chars` | `(String, i32, i32) -> Option<String>` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | Return the scalar-indexed slice, or None for an invalid range. |
 
 ## Time
 
@@ -1115,7 +1091,7 @@ let input = read_to_string()
 
 ## Deprecated APIs
 
-> ⚠️ **81 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **104 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -1125,13 +1101,16 @@ let input = read_to_string()
 | ~~`assert_eq_str`~~ | `std::test::assert_eq_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `std::test::assert_ne_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `std::seq::binary_search_by` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_reader_new`~~ | `BufReader::new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_reader_read_line`~~ | `BufReader::read_line` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_writer_flush`~~ | `BufWriter::flush` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_writer_new`~~ | `BufWriter::new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_writer_write_str`~~ | `BufWriter::write_string` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buffered_reader`~~ | `BufReader::new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buffered_writer`~~ | `BufWriter::new` | [migration-guidance.md](migration-guidance.md) |
+| ~~`builder_append`~~ | `String::concat` | [migration-guidance.md](migration-guidance.md) |
+| ~~`builder_append_char`~~ | `String::concat` | [migration-guidance.md](migration-guidance.md) |
+| ~~`builder_append_line`~~ | `String::concat` | [migration-guidance.md](migration-guidance.md) |
+| ~~`builder_build`~~ | `String::clone` | [migration-guidance.md](migration-guidance.md) |
+| ~~`builder_len`~~ | `String::len` | [migration-guidance.md](migration-guidance.md) |
+| ~~`builder_new`~~ | `String::new` | [migration-guidance.md](migration-guidance.md) |
+| ~~`chars`~~ | `String::chars` | [migration-guidance.md](migration-guidance.md) |
+| ~~`codepoint_at`~~ | `String::codepoint_at` | [migration-guidance.md](migration-guidance.md) |
+| ~~`concat`~~ | `String::concat` | [migration-guidance.md](migration-guidance.md) |
+| ~~`contains`~~ | `String::contains` | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `VecIter::count_eq` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | [migration-guidance.md](migration-guidance.md) |
@@ -1144,6 +1123,7 @@ let input = read_to_string()
 | ~~`deque_push_back`~~ | `Deque::push_back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_push_front`~~ | `Deque::push_front` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_to_vec`~~ | `Deque::iter` | [migration-guidance.md](migration-guidance.md) |
+| ~~`ends_with`~~ | `String::ends_with` | [migration-guidance.md](migration-guidance.md) |
 | ~~`exists`~~ | `is_readable_file` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f32_to_f64`~~ | `f32::to_f64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_hi`~~ | `f64::to_bits_hi` | [migration-guidance.md](migration-guidance.md) |
@@ -1151,6 +1131,10 @@ let input = read_to_string()
 | ~~`f64_to_f32`~~ | `f64::to_f32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`filter_i32`~~ | `VecIter::filter` | [migration-guidance.md](migration-guidance.md) |
 | ~~`fold_i32_i32`~~ | `VecIter::fold` | [migration-guidance.md](migration-guidance.md) |
+| ~~`format_bool`~~ | `bool::to_string` | [migration-guidance.md](migration-guidance.md) |
+| ~~`format_f64`~~ | `f64::to_string` | [migration-guidance.md](migration-guidance.md) |
+| ~~`format_i32`~~ | `i32::to_string` | [migration-guidance.md](migration-guidance.md) |
+| ~~`format_i64`~~ | `i64::to_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get`~~ | `Vec::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | [migration-guidance.md](migration-guidance.md) |
@@ -1162,7 +1146,13 @@ let input = read_to_string()
 | ~~`i32_to_u32`~~ | `i32::to_u32_bits` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_u8`~~ | `i32::to_u8_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i64_to_i32`~~ | `i64::to_i32_checked` | [migration-guidance.md](migration-guidance.md) |
+| ~~`index_of`~~ | `String::index_of` | [migration-guidance.md](migration-guidance.md) |
+| ~~`is_empty`~~ | `String::is_empty` | [migration-guidance.md](migration-guidance.md) |
+| ~~`join`~~ | `Vec::join` | [migration-guidance.md](migration-guidance.md) |
 | ~~`len`~~ | `Vec::len` | [migration-guidance.md](migration-guidance.md) |
+| ~~`len_bytes`~~ | `String::len_bytes` | [migration-guidance.md](migration-guidance.md) |
+| ~~`len_chars`~~ | `String::len_chars` | [migration-guidance.md](migration-guidance.md) |
+| ~~`lines`~~ | `String::lines` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_back`~~ | `LinkedList::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_clear`~~ | `LinkedList::clear` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_front`~~ | `LinkedList::front` | [migration-guidance.md](migration-guidance.md) |
@@ -1177,26 +1167,35 @@ let input = read_to_string()
 | ~~`map_i32_i32`~~ | `VecIter::map` | [migration-guidance.md](migration-guidance.md) |
 | ~~`max_i32`~~ | `std::seq::max_by` | [migration-guidance.md](migration-guidance.md) |
 | ~~`min_i32`~~ | `std::seq::min_by` | [migration-guidance.md](migration-guidance.md) |
+| ~~`pad_left`~~ | `String::pad_left_with` | [migration-guidance.md](migration-guidance.md) |
+| ~~`pad_right`~~ | `String::pad_right_with` | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | [migration-guidance.md](migration-guidance.md) |
-| ~~`reader_from_bytes`~~ | `Reader::from_bytes` | [migration-guidance.md](migration-guidance.md) |
+| ~~`repeat`~~ | `String::repeat` | [migration-guidance.md](migration-guidance.md) |
+| ~~`replace`~~ | `String::replace` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `VecIter::contains` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `VecIter::rev` | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | [migration-guidance.md](migration-guidance.md) |
 | ~~`skip_i32`~~ | `VecIter::skip` | [migration-guidance.md](migration-guidance.md) |
+| ~~`slice_bytes`~~ | `String::slice_bytes` | [migration-guidance.md](migration-guidance.md) |
+| ~~`slice_chars`~~ | `String::slice_chars` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_get`~~ | `Slice::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_len`~~ | `Slice::len` | [migration-guidance.md](migration-guidance.md) |
+| ~~`split`~~ | `String::split` | [migration-guidance.md](migration-guidance.md) |
+| ~~`starts_with`~~ | `String::starts_with` | [migration-guidance.md](migration-guidance.md) |
 | ~~`sum_i32`~~ | `VecIter::sum` | [migration-guidance.md](migration-guidance.md) |
 | ~~`take_i32`~~ | `VecIter::take` | [migration-guidance.md](migration-guidance.md) |
+| ~~`to_lower`~~ | `String::to_lower` | [migration-guidance.md](migration-guidance.md) |
+| ~~`to_upper`~~ | `String::to_upper` | [migration-guidance.md](migration-guidance.md) |
+| ~~`trim`~~ | `String::trim` | [migration-guidance.md](migration-guidance.md) |
+| ~~`trim_end`~~ | `String::trim_end` | [migration-guidance.md](migration-guidance.md) |
+| ~~`trim_start`~~ | `String::trim_start` | [migration-guidance.md](migration-guidance.md) |
+| ~~`try_slice_bytes`~~ | `String::try_slice_bytes` | [migration-guidance.md](migration-guidance.md) |
+| ~~`try_slice_chars`~~ | `String::try_slice_chars` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u16_to_i32`~~ | `u16::to_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u32_to_u64`~~ | `u32::to_u64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u64_to_u32`~~ | `u64::to_u32_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | `u8::to_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`unique`~~ | `VecIter::unique` | [migration-guidance.md](migration-guidance.md) |
-| ~~`write_all`~~ | `Io::write_all` | [migration-guidance.md](migration-guidance.md) |
-| ~~`write_string`~~ | `Writer::write_string` | [migration-guidance.md](migration-guidance.md) |
-| ~~`writer_flush`~~ | `Writer::flush` | [migration-guidance.md](migration-guidance.md) |
-| ~~`writer_new`~~ | `Writer::new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`writer_to_bytes`~~ | `Writer::into_bytes` | [migration-guidance.md](migration-guidance.md) |
 | ~~`writer_write`~~ | `Writer::write` | [migration-guidance.md](migration-guidance.md) |
 | ~~`writer_write_str`~~ | `Writer::write_string` | [migration-guidance.md](migration-guidance.md) |

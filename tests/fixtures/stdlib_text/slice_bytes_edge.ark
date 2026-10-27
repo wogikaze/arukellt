@@ -3,11 +3,11 @@ use std::text
 
 fn main() {
     // Empty range — start == end
-    test::assert_eq_string(text::slice_bytes("hello", 2, 2), "")
+    test::assert_eq_string("hello".slice_bytes(2, 2), "")
     // Full string
-    test::assert_eq_string(text::slice_bytes("hello", 0, 5), "hello")
+    test::assert_eq_string("hello".slice_bytes(0, 5), "hello")
     // Empty string
-    test::assert_eq_string(text::slice_bytes("", 0, 0), "")
+    test::assert_eq_string("".slice_bytes(0, 0), "")
     // Single char slice
-    test::assert_eq_string(text::slice_bytes("abc", 1, 2), "b")
+    test::assert_eq_string("abc".slice_bytes(1, 2), "b")
 }

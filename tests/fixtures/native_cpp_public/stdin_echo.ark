@@ -2,5 +2,5 @@ use std::host::stdio
 use std::text
 fn main() {
     let text = stdio::read_stdin()
-    stdio::println(text::concat(String_from("in="), text))
+    stdio::println(String_from("in=").concat(text))
 }

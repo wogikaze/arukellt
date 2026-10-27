@@ -2,9 +2,9 @@ use std::test
 use std::text
 
 fn main() {
-    test::assert_eq_string(text::format_f64(0.0), "0")
-    test::assert_eq_string(text::format_f64(1.0), "1")
-    test::assert_eq_string(text::format_f64(3.14), "3.14")
-    test::assert_eq_string(text::format_f64(100.0), "100")
-    test::assert_eq_string(text::format_f64(0.5), "0.5")
+    test::assert_eq_string((0.0).to_string(), "0")
+    test::assert_eq_string((1.0).to_string(), "1")
+    test::assert_eq_string((3.14).to_string(), "3.14")
+    test::assert_eq_string((100.0).to_string(), "100")
+    test::assert_eq_string((0.5).to_string(), "0.5")
 }

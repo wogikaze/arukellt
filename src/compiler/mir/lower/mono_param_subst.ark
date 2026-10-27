@@ -77,7 +77,7 @@ fn mono_subst_wrapped_param(ctx: LowerCtx, p: i32, ty_name: String, mono_suffix:
             concrete = resolve_nested_vec_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
         }
         if len(concrete) > 0 {
-            mono_set_param_gc_type(ctx, p, text::concat(String_from("vec:"), concrete))
+            mono_set_param_gc_type(ctx, p, String_from("vec:").concat(concrete))
         }
         return true
     }
@@ -86,13 +86,13 @@ fn mono_subst_wrapped_param(ctx: LowerCtx, p: i32, ty_name: String, mono_suffix:
         if !mono_suffix_parse::is_mono_type_var_name(clone(type_var)) {
             // Concrete payloads still need the canonical option: prefix.
             if starts_with(clone(ty_name), String_from("Option:")) {
-                mono_set_param_gc_type(ctx, p, text::concat(String_from("option:"), type_var))
+                mono_set_param_gc_type(ctx, p, String_from("option:").concat(type_var))
             }
             return true
         }
         let concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
         if len(concrete) > 0 {
-            mono_set_param_gc_type(ctx, p, text::concat(String_from("option:"), concrete))
+            mono_set_param_gc_type(ctx, p, String_from("option:").concat(concrete))
         }
         return true
     }
@@ -101,12 +101,12 @@ fn mono_subst_wrapped_param(ctx: LowerCtx, p: i32, ty_name: String, mono_suffix:
         if !mono_suffix_parse::is_mono_type_var_name(clone(type_var)) {
             // Already-concrete "?Option:String" must drop the generic marker
             // so wasm emit does not treat the whole function as unreachable.
-            mono_set_param_gc_type(ctx, p, text::concat(String_from("option:"), type_var))
+            mono_set_param_gc_type(ctx, p, String_from("option:").concat(type_var))
             return true
         }
         let concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
         if len(concrete) > 0 {
-            mono_set_param_gc_type(ctx, p, text::concat(String_from("option:"), concrete))
+            mono_set_param_gc_type(ctx, p, String_from("option:").concat(concrete))
         }
         return true
     }
@@ -153,9 +153,9 @@ fn mono_subst_fnsig_param(ctx: LowerCtx, p: i32, ty_name: String, mono_suffix: S
             if !eq(clone(resolved), clone(seg)) {
                 changed = true
             }
-            out = text::concat(out, resolved)
+            out = out.concat(resolved)
             if i < n {
-                out = text::concat(out, String_from(";"))
+                out = out.concat(String_from(";"))
             }
             seg_start = i + 1
         }
@@ -235,7 +235,7 @@ fn mono_subst_named_generic_param(ctx: LowerCtx, p: i32, ty_name: String, mono_s
         gi = gi + 1
     }
     if !base_is_generic_struct && ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(base)) {
-        mono_set_param_gc_type(ctx, p, text::concat(String_from("enum:"), base))
+        mono_set_param_gc_type(ctx, p, String_from("enum:").concat(base))
         return true
     }
     // ?Pair:T inside a mono body denotes the instantiated layout
@@ -252,7 +252,7 @@ fn mono_subst_named_generic_param(ctx: LowerCtx, p: i32, ty_name: String, mono_s
         return true
     }
     let ref_type = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(base))
-    let canonical = if len(ref_type) > 0 { ref_type } else { text::concat(String_from("enum:"), base) }
+    let canonical = if len(ref_type) > 0 { ref_type } else { String_from("enum:").concat(base) }
     mono_set_param_gc_type(ctx, p, canonical)
     true
 }
@@ -400,7 +400,7 @@ fn mono_subst_result_type_args(
     let t_needs = mono_suffix_parse::is_mono_type_var_name(clone(t_var))
     let e_needs = len(e_var) > 0 && mono_suffix_parse::is_mono_type_var_name(clone(e_var))
     if !t_needs && !e_needs {
-        mono_set_param_gc_type(ctx, p, text::concat(String_from("result:"), clone(rest)))
+        mono_set_param_gc_type(ctx, p, String_from("result:").concat(clone(rest)))
         return
     }
     let mut t_concrete = clone(t_var)
@@ -418,11 +418,11 @@ fn mono_subst_result_type_args(
         mono_set_param_gc_type(
             ctx,
             p,
-            text::concat(String_from("result:"), text::concat(clone(t_concrete), text::concat(String_from(":"), e_concrete)))
+            String_from("result:").concat(clone(t_concrete).concat(String_from(":").concat(e_concrete)))
         )
         return
     }
-    mono_set_param_gc_type(ctx, p, text::concat(String_from("result:"), t_concrete))
+    mono_set_param_gc_type(ctx, p, String_from("result:").concat(t_concrete))
 }
 
 fn extract_result_err_type_var(rest: String) -> String {
