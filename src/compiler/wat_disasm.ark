@@ -2070,6 +2070,10 @@ fn section_name(id: i32) -> String {
     return "section ".concat(to_string(id))
 }
 
+/// Disassembles a core Wasm module into WAT text for `--emit wat`.
+///
+/// Unsupported opcodes/sections are rendered as `;; GAP:` comments so a
+/// partial disassembly never masquerades as valid WAT.
 pub fn wasm_to_wat(bytes: Vec<i32>) -> String {
     let o: Out = Out { lines: Vec::new<String>() }
     let n: i32 = len(bytes)
