@@ -1,4 +1,5 @@
 use std::prelude::{byte_at, clone, eq, substring}
+use corehir::callee_spelling
 use mir::lower::ctx_fn_index
 fn ctx_fn_return_type_name(ctx: LowerCtx, name: String) -> String {
     let found = ctx_fn_index::ctx_fn_index_find(ctx, clone(name))
@@ -8,6 +9,19 @@ fn ctx_fn_return_type_name(ctx: LowerCtx, name: String) -> String {
     let qualified = ctx_fn_index::ctx_qualified_fn_index_find(ctx, clone(name))
     if qualified >= 0 {
         return ctx_fn_index::ctx_qualified_fn_return_type_name_at(ctx, qualified)
+    }
+    // Loaded-module calls keep `module::Type::method`; the fn index holds the
+    // impl method under `Type::method`. Resolve that spelling before the
+    // last-segment fallback so call destinations get the constructed type.
+    let variants = callee_spelling::callee_spelling_variants(clone(name))
+    let mut vi = 0
+    while vi < len(variants) {
+        let variant = clone(get_unchecked(variants, vi))
+        let variant_found = ctx_fn_index::ctx_fn_index_find(ctx, clone(variant))
+        if variant_found >= 0 {
+            return ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, variant_found)
+        }
+        vi = vi + 1
     }
     let base_name = mono_strip_suffix_for_lookup(clone(name))
     if !eq(clone(base_name), clone(name)) {

@@ -1,0 +1,13 @@
+// E0100: the json/toml/csv text and constructor frees were retired in the
+// #917 associated-conversion wave; the hints name the namespace replacement.
+use std::csv
+use std::json
+use std::toml
+
+fn main() {
+    let _ = json::quote_string("x")
+    let _ = json::skip_ws(" x", 0)
+    let _ = json::json_i32(1)
+    let _ = toml::toml_find_value("a = \"x\"\n", "a")
+    let _ = csv::csv_parse_row("a,b")
+}

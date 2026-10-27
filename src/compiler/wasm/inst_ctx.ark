@@ -1,4 +1,5 @@
 use std::prelude::{byte_at, clone, eq, substring}
+use corehir::callee_spelling
 use mir::function_identity
 use wasm::call_resolve
 use wasm::ctx_record
@@ -67,6 +68,23 @@ fn resolve_fn_index(ctx: SelfEmitCtx, name: String) -> i32 {
             exact_idx,
             clone(name)
         )
+    }
+    // A loaded-module call keeps `module::Type::method`; try the registered
+    // `Type::method` (and after-first-segment) spellings before the last
+    // segment fallback so the drain can patch fid<0 calls by name.
+    let variants = callee_spelling::callee_spelling_variants(clone(name))
+    let mut vi = 0
+    while vi < len(variants) {
+        let variant_idx = resolve_fn_index_by_name(ctx, clone(get_unchecked(variants, vi)))
+        if variant_idx >= 0 {
+            return call_resolve::mir_resolve_self_delegate_collision(
+                functions,
+                ctx.function_name_counts,
+                variant_idx,
+                clone(name)
+            )
+        }
+        vi = vi + 1
     }
     let short_name = strip_module_prefix(clone(name))
     if !eq(clone(short_name), clone(name)) {

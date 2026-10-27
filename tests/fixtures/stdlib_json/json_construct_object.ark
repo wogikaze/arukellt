@@ -2,10 +2,10 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    let fields = json::json_obj_new()
-    push(fields, json::json_field("name", json::json_str("alice")))
-    push(fields, json::json_field("age", json::json_i32(30)))
-    let s = json::json_obj_string(fields)
+    let fields = Vec::new<json::JsonField>()
+    push(fields, json::JsonField::new("name", json::JsonValue::string("alice")))
+    push(fields, json::JsonField::new("age", json::JsonValue::int(30)))
+    let s = json::JsonValue::object(fields).to_text()
     test::assert_eq_string(s, "{\"name\":\"alice\",\"age\":30}")
     // Verify the constructed object parses back correctly
     match json::parse(s) {

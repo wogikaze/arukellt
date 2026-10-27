@@ -3,28 +3,28 @@ use std::json
 
 fn main() {
     let n = 42
-    let s = json::json_stringify_i32(n)
-    let back = json::json_parse_i32(s)
+    let s = json::JsonValue::stringify_i32(n)
+    let back = json::JsonValue::parse_i32(s)
     stdio::println((back).to_string())
     let b = true
-    let bs = json::json_stringify_bool(b)
-    let bb = json::json_parse_bool(bs)
+    let bs = json::JsonValue::stringify_bool(b)
+    let bb = json::JsonValue::parse_bool(bs)
     stdio::println((bb).to_string())
     let neg = -7
-    let ns = json::json_stringify_i32(neg)
-    let nb = json::json_parse_i32(ns)
+    let ns = json::JsonValue::stringify_i32(neg)
+    let nb = json::JsonValue::parse_i32(ns)
     stdio::println((nb).to_string())
     let z = 0
-    let zs = json::json_stringify_i32(z)
-    let zb = json::json_parse_i32(zs)
+    let zs = json::JsonValue::stringify_i32(z)
+    let zb = json::JsonValue::parse_i32(zs)
     stdio::println((zb).to_string())
     let f = false
-    let fs = json::json_stringify_bool(f)
-    let fb = json::json_parse_bool(fs)
+    let fs = json::JsonValue::stringify_bool(f)
+    let fb = json::JsonValue::parse_bool(fs)
     stdio::println((fb).to_string())
-    let st = json::json_stringify_string("hello world")
+    let st = json::JsonValue::stringify_string("hello world")
     stdio::println(st)
-    stdio::println(json::json_null())
+    stdio::println(json::JsonValue::null_text())
 }
 // i32 roundtrip: stringify then parse
 // bool roundtrip: stringify then parse

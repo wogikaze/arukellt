@@ -1,16 +1,17 @@
 //! TOML streaming scanner utilities for `std::toml`.
 //!
-//! This top-level file contains only the low-level section/value
-//! extraction functions that the compiler's manifest/script/project
-//! parsers need. The full TOML parser with `pub enum TomlValue` lives
-//! in `std/toml/parser.ark` (loaded as `std::toml::parser`) to avoid
-//! the bootstrap compiler stubbing the entire module.
+//! The public scanning surface is the `TomlText` namespace (`parse_line`,
+//! `find_section`, `find_value`, `find_raw_value`, `parse_string_array`) used
+//! by the compiler's manifest/script/project parsers (#917, ADR-046). The full
+//! TOML parser with `pub enum TomlValue` lives in `std/toml/parser.ark` (loaded
+//! as `std::toml::parser`) to avoid the bootstrap compiler stubbing the entire
+//! module.
 
 use std::prelude::{byte_at, clone, eq, slice, substring}
 use std::text
 /// Filter a single TOML source line: returns the line unchanged for key=value
 /// lines and returns `""` for comments and blank lines.
-pub fn toml_parse_line(line: String) -> String {
+fn toml_text_parse_line(line: String) -> String {
     let n: i32 = len(line)
     if n == 0 {
         ""
@@ -27,7 +28,7 @@ pub fn toml_parse_line(line: String) -> String {
 /// Extract the body of a TOML section `[section]` from `content`.
 /// Returns the text between the section header and the next section header
 /// (or end of content).  Returns an empty string if the section is not found.
-pub fn toml_find_section(content: String, section: String) -> String {
+fn toml_text_find_section(content: String, section: String) -> String {
     let section_header = (String_from("[")).concat(clone(section).concat(String_from("]")))
     let header_len = len(section_header)
     let content_len = len(content)
@@ -65,7 +66,7 @@ pub fn toml_find_section(content: String, section: String) -> String {
 /// Scans line-by-line for a line starting with `key` followed by optional
 /// whitespace, `=`, optional whitespace, and a double-quoted string.
 /// Returns the unquoted string value, or an empty string if not found.
-pub fn toml_find_value(content: String, key: String) -> String {
+fn toml_text_find_value(content: String, key: String) -> String {
     let content_len = len(content)
     let key_len = len(key)
     let mut line_start = 0
@@ -98,22 +99,10 @@ pub fn toml_find_value(content: String, key: String) -> String {
     String_new()
 }
 
-// ─── Public find_toml_section / find_toml_value aliases (#705) ───────────────
-// Canonical public names for streaming section/value extraction. Compiler
-// callers use these (or toml_find_*) directly so no local TOML scanners remain.
-
-pub fn find_toml_section(content: String, section: String) -> String {
-    toml_find_section(content, section)
-}
-
-pub fn find_toml_value(content: String, key: String) -> String {
-    toml_find_value(content, key)
-}
-
 /// Extract the raw value text after `key =` from a TOML content block.
-/// Unlike `toml_find_value` (quoted strings only), this returns the remainder
+/// Unlike `toml_text_find_value` (quoted strings only), this returns the remainder
 /// of the line so array values like `["W0006", "unused-import"]` can be parsed.
-pub fn toml_find_raw_value(content: String, key: String) -> String {
+fn toml_text_find_raw_value(content: String, key: String) -> String {
     let content_len = len(content)
     let key_len = len(key)
     let mut line_start = 0
@@ -142,7 +131,7 @@ pub fn toml_find_raw_value(content: String, key: String) -> String {
 }
 
 /// Parse a TOML array string like `["W0006", "unused-import"]` into a Vec<String>.
-pub fn toml_parse_string_array(raw: String) -> Vec<String> {
+fn toml_text_parse_string_array(raw: String) -> Vec<String> {
     let result = Vec::new<String>()
     let raw_len = len(raw)
     if raw_len == 0 {
@@ -177,6 +166,36 @@ pub fn toml_parse_string_array(raw: String) -> Vec<String> {
 // std/toml/parser.ark.  These wrappers delegate to the parser submodule so
 // that `use std::toml` callers can invoke `toml::toml_parse(...)` directly.
 
+/// Namespace for TOML text scanning helpers.
+pub struct TomlText {}
+
+impl TomlText {
+    /// Filter one TOML source line; comments and blank lines become "".
+    fn parse_line(line: String) -> String {
+        toml_text_parse_line(line)
+    }
+
+    /// Extract the body of `[section]` from raw TOML text.
+    fn find_section(content: String, section: String) -> String {
+        toml_text_find_section(content, section)
+    }
+
+    /// Extract a quoted string value for `key = "..."` from raw TOML text.
+    fn find_value(content: String, key: String) -> String {
+        toml_text_find_value(content, key)
+    }
+
+    /// Extract the raw text after `key =` (arrays and unquoted values).
+    fn find_raw_value(content: String, key: String) -> String {
+        toml_text_find_raw_value(content, key)
+    }
+
+    /// Parse a TOML string-array literal into its element strings.
+    fn parse_string_array(raw: String) -> Vec<String> {
+        toml_text_parse_string_array(raw)
+    }
+}
+
 use std::toml::parser
 
 pub fn toml_parse(s: String) -> Result<parser::TomlValue, String> {
@@ -185,8 +204,4 @@ pub fn toml_parse(s: String) -> Result<parser::TomlValue, String> {
 
 pub fn toml_stringify(v: parser::TomlValue) -> String {
     parser::toml_stringify(v)
-}
-
-pub fn toml_test_wrapper() -> String {
-    String_from("wrapper_ok")
 }

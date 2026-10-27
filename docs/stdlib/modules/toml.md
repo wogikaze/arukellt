@@ -7,7 +7,7 @@ Source-backed docs for the current TOML helpers.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::toml` module provides a TOML 1.0 parser/serializer plus streaming section/value scanners for compiler manifests. `toml_parse` accepts table headers, arrays of tables, inline tables, dotted keys, multiline strings, and datetime literals; malformed input returns `Err(String)`. Nested tables are traversed with `v.get_field(key)` / `v.table_keys()` and decoded with `v.as_string()` / `v.as_int()` / `v.as_bool()` / `v.as_float()` / `v.as_array()` / `v.as_table()`. `find_toml_section` / `find_toml_value` remain free streaming scanners.
+The `std::toml` module provides a TOML 1.0 parser/serializer plus the `TomlText` streaming namespace for compiler manifests. `toml_parse` accepts table headers, arrays of tables, inline tables, dotted keys, multiline strings, and datetime literals; malformed input returns `Err(String)`. Nested tables are traversed with `v.get_field(key)` / `v.table_keys()` and decoded with `v.as_string()` / `v.as_int()` / `v.as_bool()` / `v.as_float()` / `v.as_array()` / `v.as_table()`. `TomlText::find_section` / `TomlText::find_value` / `TomlText::find_raw_value` scan raw text.
 
 **Recommended API highlights:**
 
@@ -16,7 +16,7 @@ The `std::toml` module provides a TOML 1.0 parser/serializer plus streaming sect
 | `toml_parse(doc)` | Parse a TOML 1.0 document into a `TomlValue` tree; `Err` on malformed input. |
 | `v.get_field(key)` / `v.table_keys()` | Traverse nested tables and list keys. |
 | `v.as_string()` / `v.as_int()` / `v.as_array()` / `v.as_table()` | Decode a value without re-parsing its raw text. |
-| `find_toml_section` / `find_toml_value` | Streaming scanners for `[section]` bodies and quoted string values. |
+| `toml::TomlText::find_section` / `find_value` / `find_raw_value` | Streaming scanners for `[section]` bodies, quoted values, and raw values. |
 
 **Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
@@ -39,54 +39,30 @@ match toml_parse("[server]\nhost = \"localhost\"") {
 ## Module `std::toml`
 
 - Source: [`../../../std/toml.ark`](../../../std/toml.ark)
-- Manifest-backed functions: 9
-- Stability: experimental 9
+- Manifest-backed functions: 2
+- Stability: experimental 2
 
 TOML streaming scanner utilities for `std::toml`.
 
-This top-level file contains only the low-level section/value
-extraction functions that the compiler's manifest/script/project
-parsers need. The full TOML parser with `pub enum TomlValue` lives
-in `std/toml/parser.ark` (loaded as `std::toml::parser`) to avoid
-the bootstrap compiler stubbing the entire module.
+The public scanning surface is the `TomlText` namespace (`parse_line`,
+`find_section`, `find_value`, `find_raw_value`, `parse_string_array`) used
+by the compiler's manifest/script/project parsers (#917, ADR-046). The full
+TOML parser with `pub enum TomlValue` lives in `std/toml/parser.ark` (loaded
+as `std::toml::parser`) to avoid the bootstrap compiler stubbing the entire
+module.
+
+### `std::toml` — Public Types
+
+| Name | Kind | Summary |
+|------|------|---------|
+| `TomlText` | `struct` | Namespace for TOML text scanning helpers. |
 
 ### `std::toml` — Public API
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `toml_parse_line` | `(String) -> String` | `experimental` | ✅ functional | Filter a single TOML source line: returns the line unchanged for key=value |
-| `toml_find_section` | `(String, String) -> String` | `experimental` | ✅ functional | Extract the body of a TOML section [section] from content. |
-| `toml_find_value` | `(String, String) -> String` | `experimental` | ✅ functional | Extract the string value of key = "value" from a TOML content block. |
-| `find_toml_section` | `(String, String) -> String` | `experimental` | ✅ functional | - |
-| `find_toml_value` | `(String, String) -> String` | `experimental` | ✅ functional | - |
-| `toml_find_raw_value` | `(String, String) -> String` | `experimental` | ✅ functional | Extract the raw value text after key = from a TOML content block. |
-| `toml_parse_string_array` | `(String) -> Vec<String>` | `experimental` | ✅ functional | Parse a TOML array string like ["W0006", "unused-import"] into a Vec<String>. |
 | `toml_parse` | `(String) -> Result<TomlValue, String>` | `experimental` | ✅ functional | - |
 | `toml_stringify` | `(TomlValue) -> String` | `experimental` | ✅ functional | - |
-
-#### `std::toml::toml_find_section`
-
-Extract the body of a [section] from raw TOML text.
-
-#### `std::toml::toml_find_value`
-
-Extract a double-quoted string value for key = "..." from raw TOML text.
-
-#### `std::toml::find_toml_section`
-
-Public alias of toml_find_section.
-
-#### `std::toml::find_toml_value`
-
-Public alias of toml_find_value.
-
-#### `std::toml::toml_find_raw_value`
-
-Extract the raw text after key = (for arrays and unquoted values).
-
-#### `std::toml::toml_parse_string_array`
-
-Parse a TOML string-array literal like ["a", "b"] into Vec<String>.
 
 #### `std::toml::toml_parse`
 

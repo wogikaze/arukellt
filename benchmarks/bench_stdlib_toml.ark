@@ -71,8 +71,8 @@ pub fn main() {
         }
 
         // ── Legacy line-level parse ─────────────────────────────────────
-        let _ = toml::toml_parse_line("key = \"val\"")
-        let _ = toml::toml_parse_line("# comment")
+        let _ = toml::TomlText::parse_line("key = \"val\"")
+        let _ = toml::TomlText::parse_line("# comment")
 
         iter = iter + 1
     }

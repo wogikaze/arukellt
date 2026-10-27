@@ -2,6 +2,6 @@ use std::json
 use std::test
 
 fn main() {
-    test::assert_eq_bool(json::json_parse_bool(json::json_stringify_bool(true)), true)
-    test::assert_eq_bool(json::json_parse_bool(json::json_stringify_bool(false)), false)
+    test::assert_eq_bool(json::JsonValue::parse_bool(json::JsonValue::stringify_bool(true)), true)
+    test::assert_eq_bool(json::JsonValue::parse_bool(json::JsonValue::stringify_bool(false)), false)
 }

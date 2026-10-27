@@ -62,7 +62,7 @@ fn main() {
                 }
                 // Stringify
                 let _ = val.to_text()
-                let _ = parser::stringify_pretty(val, 2)
+                let _ = parser::JsonValue::pretty_text(val, 2)
             },
             Result::Err(_) => sum = sum + 1000,
         }

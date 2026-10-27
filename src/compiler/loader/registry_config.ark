@@ -15,11 +15,11 @@ pub fn registry_url_for_root(package_root: String) -> String {
     if len(content) == 0 {
         return String_new()
     }
-    let registry_section = toml::find_toml_section(clone(content), String_from("registry"))
+    let registry_section = toml::TomlText::find_section(clone(content), String_from("registry"))
     if len(registry_section) == 0 {
         return String_new()
     }
-    toml::find_toml_value(clone(registry_section), String_from("url"))
+    toml::TomlText::find_value(clone(registry_section), String_from("url"))
 }
 
 pub fn dependency_version_for_package(package_root: String, package_name: String) -> String {
@@ -27,11 +27,11 @@ pub fn dependency_version_for_package(package_root: String, package_name: String
     if len(content) == 0 {
         return String_new()
     }
-    let deps_section = toml::find_toml_section(clone(content), String_from("dependencies"))
+    let deps_section = toml::TomlText::find_section(clone(content), String_from("dependencies"))
     if len(deps_section) == 0 {
         return String_new()
     }
-    toml::find_toml_value(clone(deps_section), clone(package_name))
+    toml::TomlText::find_value(clone(deps_section), clone(package_name))
 }
 
 pub fn is_registry_dependency(package_root: String, package_name: String) -> bool {

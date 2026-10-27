@@ -16,9 +16,9 @@ fn build_import_action(title: String, uri: String, import_path: String, text: St
     let offset = import_graph::first_use_insert_offset(clone(text))
     let pos = positions::offset_to_position(clone(text), offset)
     let mut out = String_from("{\"title\":")
-    out = out.concat(json::quote_string(title))
+    out = out.concat(json::JsonText::quote(title))
     out = out.concat(String_from(",\"kind\":\"quickfix\",\"edit\":{\"changes\":{"))
-    out = out.concat(json::quote_string(uri))
+    out = out.concat(json::JsonText::quote(uri))
     out = out.concat(String_from(":[{\"range\":{\"start\":{\"line\":"))
     out = out.concat(to_string(positions::lsp_position_line(pos)))
     out = out.concat(String_from(",\"character\":"))
@@ -28,7 +28,7 @@ fn build_import_action(title: String, uri: String, import_path: String, text: St
     out = out.concat(String_from(",\"character\":"))
     out = out.concat(to_string(positions::lsp_position_character(pos)))
     out = out.concat(String_from("}},\"newText\":"))
-    out = out.concat(json::quote_string(import_graph::build_use_statement(import_path)))
+    out = out.concat(json::JsonText::quote(import_graph::build_use_statement(import_path)))
     out = out.concat(String_from("}]}}}"))
     out
 }

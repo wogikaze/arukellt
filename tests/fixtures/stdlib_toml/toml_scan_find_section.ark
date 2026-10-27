@@ -4,7 +4,7 @@ use std::test
 
 fn main() {
     let content = "[server]\nhost = \"x\"\nport = 80\n[client]\nname = \"y\""
-    let body = toml::find_toml_section(content, "server")
+    let body = toml::TomlText::find_section(content, "server")
     test::assert_eq_string(body, "host = \"x\"\nport = 80")
     stdio::println("OK")
 }

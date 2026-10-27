@@ -41,7 +41,7 @@ fn collect_wit_paths_from_manifest(package_root: String) -> Vec<String> {
     if len(content) == 0 {
         return paths
     }
-    let deps_section = toml::find_toml_section(clone(content), String_from("dependencies"))
+    let deps_section = toml::TomlText::find_section(clone(content), String_from("dependencies"))
     if len(deps_section) == 0 {
         return paths
     }

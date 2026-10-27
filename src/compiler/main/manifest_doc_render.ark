@@ -80,7 +80,7 @@ pub fn doc_print_function(e: manifest_doc_record::DocFnEntry, filter_target: Str
 fn doc_json_string_field(out: String, key: String, value: String, comma: bool) -> String {
     let mut r = out
     if comma { r = r.concat(String_from(",")) }
-    r = r.concat(String_from("\"").concat(clone(key)).concat(String_from("\":\"")).concat(json::json_escape(value).concat(String_from("\""))))
+    r = r.concat(String_from("\"").concat(clone(key)).concat(String_from("\":\"")).concat(json::JsonText::escape(value).concat(String_from("\""))))
     r
 }
 

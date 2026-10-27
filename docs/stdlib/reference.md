@@ -10,7 +10,7 @@
 |------|-------|-------------|
 | `stable` | 191 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 19 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 123 | API may change without notice. Functionality is available but not finalized. |
+| `experimental` | 91 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 68 | Superseded — see migration guidance. |
 
 ## Public Types
@@ -392,18 +392,6 @@ Expected output: `42`
 | `range_len` | `(Range) -> i32` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
 | `range_new` | `(i32, i32) -> Range` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
 
-## Csv
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `csv_count_rows` | `(String) -> i32` | `std::csv` | `experimental` | `functional` | `builtin` | no | - | Count the number of non-empty lines in a CSV string. |
-| `csv_get_row_raw` | `(String, i32) -> String` | `std::csv` | `experimental` | `functional` | `builtin` | no | - | Return the raw text of row at row_index (0-based, skipping empty lines). |
-| `csv_parse_row` | `(String) -> Vec<String>` | `std::csv` | `experimental` | `functional` | `builtin` | no | - | Parse a single CSV line into fields (handles RFC 4180 quoting). |
-| `csv_parse_row_at` | `(String, i32) -> Vec<String>` | `std::csv` | `experimental` | `functional` | `builtin` | no | - | Parse row at row_index from a multi-row CSV string. |
-| `csv_parse_with_header` | `(String) -> Result<Vec<String>, String>` | `std::csv` | `experimental` | `functional` | `builtin` | no | - | Parse a CSV document and return the header row fields. |
-| `csv_split_line` | `(String) -> Vec<String>` | `std::csv` | `experimental` | `functional` | `builtin` | no | - | - |
-| `csv_stringify_row` | `(Vec<String>) -> String` | `std::csv` | `experimental` | `functional` | `builtin` | no | - | Serialize a row of fields to a CSV line. |
-
 ## Env
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
@@ -592,25 +580,7 @@ let input = read_to_string()
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `find_key_pos` | `(String, String, i32) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Find the position after the first "key" occurrence at or after from. |
-| `json_decode_escape` | `(String, i32) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Decode one JSON string escape at pos (char after backslash). |
-| `json_encode_string` | `(String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Encode a plain string as a JSON string literal with escape sequences. |
-| `json_escape` | `(String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Escape a plain string for use inside a JSON string (no surrounding quotes). |
-| `json_get_int` | `(String, String) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Extract an integer field by key from a JSON object text. |
-| `json_get_str` | `(String, String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Extract a string field by key from a JSON object text. |
-| `json_null` | `() -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
-| `json_parse_bool` | `(String) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
-| `json_parse_i32` | `(String) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
-| `json_parse_string_at` | `(String, i32) -> JsonStrResult` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Parse a JSON string literal at pos; supports escapes and surrogate pairs. |
-| `json_stringify_bool` | `(bool) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
-| `json_stringify_i32` | `(i32) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
-| `json_stringify_string` | `(String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Parse a full JSON document and reject trailing non-whitespace after the first top-level value. |
-| `parse_content_length` | `(String) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Extract Content-Length from an LSP/DAP header block, or -1 if absent. |
-| `parse_int_at` | `(String, i32) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Parse a signed decimal integer starting at pos (after optional whitespace). |
-| `quote_string` | `(String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Quote and escape a plain string as a JSON string literal. |
-| `skip_ws` | `(String, i32) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Skip JSON whitespace starting at pos; return index of next non-whitespace. |
-| `stringify_pretty` | `(JsonValue, i32) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Serialize with newlines and per-level space indentation for arrays and objects; scalars unchanged. |
 
 ## Math
 
@@ -813,14 +783,7 @@ let input = read_to_string()
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `find_toml_section` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Public alias of toml_find_section. |
-| `find_toml_value` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Public alias of toml_find_value. |
-| `toml_find_raw_value` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Extract the raw text after key = (for arrays and unquoted values). |
-| `toml_find_section` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Extract the body of a [section] from raw TOML text. |
-| `toml_find_value` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Extract a double-quoted string value for key = "..." from raw TOML text. |
 | `toml_parse` | `(String) -> Result<TomlValue, String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Parse a TOML 1.0 document into a TomlValue tree. |
-| `toml_parse_line` | `(String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | - |
-| `toml_parse_string_array` | `(String) -> Vec<String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Parse a TOML string-array literal like ["a", "b"] into Vec<String>. |
 | `toml_stringify` | `(TomlValue) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Serialize a TomlValue back to text. |
 
 ## Wasm

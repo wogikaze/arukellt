@@ -2,10 +2,10 @@ use std::json
 use std::test
 
 fn main() {
-    test::assert_eq_string(json::json_encode_string("hello"), "\"hello\"")
-    test::assert_eq_string(json::json_encode_string(""), "\"\"")
-    test::assert_eq_string(json::json_encode_string("a\"b"), "\"a\\\"b\"")
-    test::assert_eq_string(json::json_encode_string("a\\b"), "\"a\\\\b\"")
-    test::assert_eq_string(json::json_encode_string("a\tb"), "\"a\\tb\"")
-    test::assert_eq_string(json::json_encode_string("a\nb"), "\"a\\nb\"")
+    test::assert_eq_string(json::JsonValue::encode_string("hello"), "\"hello\"")
+    test::assert_eq_string(json::JsonValue::encode_string(""), "\"\"")
+    test::assert_eq_string(json::JsonValue::encode_string("a\"b"), "\"a\\\"b\"")
+    test::assert_eq_string(json::JsonValue::encode_string("a\\b"), "\"a\\\\b\"")
+    test::assert_eq_string(json::JsonValue::encode_string("a\tb"), "\"a\\tb\"")
+    test::assert_eq_string(json::JsonValue::encode_string("a\nb"), "\"a\\nb\"")
 }

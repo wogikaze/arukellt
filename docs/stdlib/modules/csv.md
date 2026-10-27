@@ -7,13 +7,15 @@ Source-backed docs for CSV parsing helpers.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::csv` module provides minimal experimental CSV helpers. The current implementation exposes only line-level splitting and does not yet handle full RFC 4180 quoting rules.
+The `std::csv` module exposes RFC 4180 row and document helpers on the `Csv` namespace: `Csv::parse_row` / `Csv::stringify_row` for one row, `Csv::split_line` for a simple comma split, and `Csv::parse` / `Csv::stringify` / `Csv::parse_with_header` for whole documents. Quoted fields, escaped double quotes, and embedded commas are supported; the module is still experimental.
 
 **Recommended API highlights:**
 
 | API | Purpose |
 |-----|---------|
-| `csv_split_line(line)` | Split a comma-separated line into a `Vec<String>` of fields. |
+| `csv::Csv::parse_row(line)` | Parse one CSV line into a `Vec<String>` with quoted-field handling. |
+| `csv::Csv::stringify_row(fields)` | Serialize one row with RFC 4180 quoting. |
+| `csv::Csv::parse(doc)` / `csv::Csv::parse_with_header(doc)` | Parse a whole document (and return its header row). |
 
 **Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
@@ -22,8 +24,9 @@ The `std::csv` module provides minimal experimental CSV helpers. The current imp
 ```ark
 import std::csv
 
-let fields = csv_split_line("name,age,city")
-// fields == ["name", "age", "city"]
+let row = csv::Csv::parse_row(""Smith, John",30")
+// row == ["Smith, John", "30"]
+let text = csv::Csv::stringify_row(row)
 ```
 
 ---
@@ -31,45 +34,21 @@ let fields = csv_split_line("name,age,city")
 ## Module `std::csv`
 
 - Source: [`../../../std/csv/mod.ark`](../../../std/csv/mod.ark)
-- Manifest-backed functions: 7
-- Stability: experimental 7
+- Manifest-backed functions: 0
+- Stability: n/a
 
 CSV parser/serializer for std::csv.
 
-Supports RFC 4180 quoted fields and basic multi-row documents.
+Supports RFC 4180 quoted fields and basic multi-row documents. The public
+surface is the `Csv` namespace (`split_line`, `parse_row`, `stringify_row`,
+`count_rows`, `get_row_raw`, `parse_row_at`, `parse`, `stringify`,
+`parse_with_header`); the former `csv_*` frees are private implementation
+details (#917, ADR-046).
 
-### `std::csv` — Public API
+### `std::csv` — Public Types
 
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `csv_split_line` | `(String) -> Vec<String>` | `experimental` | ✅ functional | Split a single CSV line on commas (no quote handling). |
-| `csv_parse_row` | `(String) -> Vec<String>` | `experimental` | ✅ functional | Parse a single CSV line into fields, handling RFC 4180 quoted fields. |
-| `csv_stringify_row` | `(Vec<String>) -> String` | `experimental` | ✅ functional | Serialize a row of fields back to a CSV line. |
-| `csv_count_rows` | `(String) -> i32` | `experimental` | ✅ functional | Count the number of non-empty lines in a CSV string. |
-| `csv_get_row_raw` | `(String, i32) -> String` | `experimental` | ✅ functional | Return the raw text of row row_index (0-based, skipping empty lines). |
-| `csv_parse_row_at` | `(String, i32) -> Vec<String>` | `experimental` | ✅ functional | Parse row row_index from a multi-row CSV string. |
-| `csv_parse_with_header` | `(String) -> Result<Vec<String>, String>` | `experimental` | ✅ functional | Parse a CSV document with a header row. |
+| Name | Kind | Summary |
+|------|------|---------|
+| `Csv` | `struct` | Namespace for RFC 4180 CSV row and document helpers. |
 
-#### `std::csv::csv_parse_row`
-
-Parse a single CSV line into fields (handles RFC 4180 quoting).
-
-#### `std::csv::csv_stringify_row`
-
-Serialize a row of fields to a CSV line.
-
-#### `std::csv::csv_count_rows`
-
-Count the number of non-empty lines in a CSV string.
-
-#### `std::csv::csv_get_row_raw`
-
-Return the raw text of row at row_index (0-based, skipping empty lines).
-
-#### `std::csv::csv_parse_row_at`
-
-Parse row at row_index from a multi-row CSV string.
-
-#### `std::csv::csv_parse_with_header`
-
-Parse a CSV document and return the header row fields.
+_No manifest-backed functions in this module._

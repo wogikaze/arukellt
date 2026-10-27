@@ -7,32 +7,31 @@ Source-backed docs for the current JSON helpers.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::json` module provides the `JsonValue` DOM plus the free streaming scanner / escape utilities. DOM values are inspected with `v.is_*()` / `v.as_*()`, traversed with `v.get_field(key)` / `v.get_index(i)`, and serialized with `v.to_text()`. Primitive helpers (`json_stringify_i32`, `json_parse_i32`, …) and the scanner (`skip_ws`, `quote_string`, …) remain free functions.
+The `std::json` module provides the `JsonValue` DOM plus the `JsonText` scanner/escape namespace. DOM values are inspected with `v.is_*()` / `v.as_*()`, traversed with `v.get_field(key)` / `v.get_index(i)`, and serialized with `v.to_text()`. Construction uses `JsonValue::null/bool/int/string/raw/array/object`, `JsonField::new`, and `JsonValue::pretty_text`; text scanning uses `JsonText::quote`, `JsonText::escape`, `JsonText::get_str`, and the other `JsonText` helpers. Only `json::parse` remains a free document entry point.
 
 **Recommended API highlights:**
 
 | API | Purpose |
 |-----|---------|
-| `json_parse(doc)` | Parse a full JSON document into a `JsonValue`; `Err(JsonParseError)` on malformed input. |
+| `json::parse(doc)` | Parse a full JSON document into a `JsonValue`; `Err(JsonParseError)` on malformed input. |
 | `v.is_null()` / `v.as_i32()` / `v.as_string()` | Type predicates and typed accessors on the DOM value. |
 | `v.get_field(key)` / `v.get_index(i)` | Look up an object field or array element. |
 | `v.to_text()` | Serialize a `JsonValue` back to compact JSON text. |
-| `json_stringify_i32(n)` / `json_parse_i32(s)` | Legacy primitive stringify / parse helpers. |
-| `quote_string(s)` / `json_escape(s)` | Quote or escape a string for framed protocols. |
+| `json::JsonValue::int(n)` / `json::JsonValue::string(s)` / `json::JsonField::new(k, v)` | Construct DOM values and object fields. |
+| `json::JsonValue::pretty_text(v, indent)` | Serialize with newlines and per-level indentation. |
+| `json::JsonText::quote(s)` / `json::JsonText::escape(s)` / `json::JsonText::get_str(j, k)` | Quote, escape, and scan JSON text without building a DOM. |
 
 **Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 
-> ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
-
 ```ark
 import std::json
 
-let n = json_stringify_i32(42)       // "42"
-let b = json_stringify_bool(true)    // "true"
-let s = json_stringify_string("hi")  // ""hi""
-let parsed = json_parse_i32("42")    // 42
+let n = json::JsonValue::int(42)
+let text = n.to_text()                       // "42"
+let quoted = json::JsonText::quote("a"b")  // ""a\"b""
+let parsed = json::parse("{"a":1}")
 ```
 
 ---
@@ -40,12 +39,16 @@ let parsed = json_parse_i32("42")    // 42
 ## Module `std::json`
 
 - Source: [`../../../std/json.ark`](../../../std/json.ark)
-- Manifest-backed functions: 19
-- Stability: experimental 19
+- Manifest-backed functions: 1
+- Stability: experimental 1
 
 JSON streaming scanner and escape utilities for `std::json`.
 
-Low-level functions used by the compiler's LSP/DAP/diagnostics.
+The public surface is the `JsonText` namespace (`quote`, `escape`,
+`json_text_skip_ws`, `json_text_parse_int_at`, `content_length`, `json_text_find_key_pos`,
+`parse_string_at`, `decode_escape_at`, `get_str`, `get_int`, ...) plus the
+`JsonStrResult` / `JsonEscapeResult` accessors. The former free helpers are
+private implementation details behind those functions (#917, ADR-046).
 The full JSON parser with `pub enum JsonValue` lives in
 `std/json/parser.ark` (loaded as `std::json::parser`).
 
@@ -55,79 +58,14 @@ The full JSON parser with `pub enum JsonValue` lives in
 |------|------|---------|
 | `JsonStrResult` | `struct` | Result of a streaming string parse. |
 | `JsonEscapeResult` | `struct` | Result of decoding one JSON string escape sequence. |
+| `JsonText` | `struct` | Namespace for JSON text scanning and quoting helpers. |
 
 ### `std::json` — Public API
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `skip_ws` | `(String, i32) -> i32` | `experimental` | ✅ functional | Skip whitespace (space, tab, LF, CR) starting at pos, returning the |
-| `json_escape` | `(String) -> String` | `experimental` | ✅ functional | Encode a plain string as a JSON string body (without surrounding quotes), |
-| `quote_string` | `(String) -> String` | `experimental` | ✅ functional | Quote and escape s as a JSON string literal (including surrounding quotes). |
-| `parse_int_at` | `(String, i32) -> i32` | `experimental` | ✅ functional | Parse a decimal integer (optionally signed) starting at pos, skipping |
-| `parse_content_length` | `(String) -> i32` | `experimental` | ✅ functional | Extract the Content-Length value from an LSP/DAP header block. |
-| `find_key_pos` | `(String, String, i32) -> i32` | `experimental` | ✅ functional | Find the position immediately after the first occurrence of "key" in |
-| `json_decode_escape` | `(String, i32) -> String` | `experimental` | ✅ functional | Decode a single JSON string escape character. pos points at the |
-| `json_parse_string_at` | `(String, i32) -> JsonStrResult` | `experimental` | ✅ functional | Parse a JSON string literal starting at pos (which must point at "). |
-| `json_get_str` | `(String, String) -> String` | `experimental` | ✅ functional | Extract the string value of field key from json, searching from |
-| `json_get_int` | `(String, String) -> i32` | `experimental` | ✅ functional | Extract the integer value of field key from json, searching from |
 | `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `experimental` | ✅ functional | - |
-| `json_encode_string` | `(String) -> String` | `experimental` | ✅ functional | - |
-| `json_null` | `() -> String` | `experimental` | ✅ functional | - |
-| `json_parse_bool` | `(String) -> bool` | `experimental` | ✅ functional | - |
-| `json_parse_i32` | `(String) -> i32` | `experimental` | ✅ functional | - |
-| `json_stringify_bool` | `(bool) -> String` | `experimental` | ✅ functional | - |
-| `json_stringify_i32` | `(i32) -> String` | `experimental` | ✅ functional | - |
-| `json_stringify_string` | `(String) -> String` | `experimental` | ✅ functional | - |
-| `stringify_pretty` | `(JsonValue, i32) -> String` | `experimental` | ✅ functional | - |
-
-#### `std::json::skip_ws`
-
-Skip JSON whitespace starting at pos; return index of next non-whitespace.
-
-#### `std::json::json_escape`
-
-Escape a plain string for use inside a JSON string (no surrounding quotes).
-
-#### `std::json::quote_string`
-
-Quote and escape a plain string as a JSON string literal.
-
-#### `std::json::parse_int_at`
-
-Parse a signed decimal integer starting at pos (after optional whitespace).
-
-#### `std::json::parse_content_length`
-
-Extract Content-Length from an LSP/DAP header block, or -1 if absent.
-
-#### `std::json::find_key_pos`
-
-Find the position after the first "key" occurrence at or after from.
-
-#### `std::json::json_decode_escape`
-
-Decode one JSON string escape at pos (char after backslash).
-
-#### `std::json::json_parse_string_at`
-
-Parse a JSON string literal at pos; supports escapes and surrogate pairs.
-
-#### `std::json::json_get_str`
-
-Extract a string field by key from a JSON object text.
-
-#### `std::json::json_get_int`
-
-Extract an integer field by key from a JSON object text.
 
 #### `std::json::parse`
 
 Parse a full JSON document and reject trailing non-whitespace after the first top-level value.
-
-#### `std::json::json_encode_string`
-
-Encode a plain string as a JSON string literal with escape sequences.
-
-#### `std::json::stringify_pretty`
-
-Serialize with newlines and per-level space indentation for arrays and objects; scalars unchanged.

@@ -2,7 +2,7 @@ use std::json
 use std::test
 
 fn main() {
-    let v = json::json_null_val()
+    let v = json::JsonValue::null()
     test::assert_true(v.is_null())
     test::assert_eq_string(v.to_text(), "null")
 }

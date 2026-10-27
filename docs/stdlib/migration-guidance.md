@@ -806,17 +806,72 @@ E0100 goldens are `diagnostics/removed_bytes_free*.ark`.
 | `toml::toml_as_string(v)` / `toml::toml_as_int(v)` / `toml::toml_as_bool(v)` | `v.as_string()` / `v.as_int()` / `v.as_bool()` |
 | `toml::toml_as_float(v)` / `toml::toml_as_array(v)` / `toml::toml_as_table(v)` | `v.as_float()` / `v.as_array()` / `v.as_table()` |
 
+### Associated-conversion wave (2026-10-27, #917 / wave/non-main-module)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the
+  ADR-014 D4 experimental-entry rule. Every removed manifest entry was
+  `experimental`; the unregistered declarations were never part of the stable
+  64. Qualified and bare callers get **E0100** hints from
+  `removed_json_member_hint` / `removed_toml_member_hint` /
+  `removed_csv_member_hint` and the bare-name fallback in `removed_name_hint`.
+- **Compiler unblock**: loaded-module bodies keep the source spelling
+  `module::Type::method` because the resolver only canonicalizes the entry
+  module. Lowering's signature-registry lookup missed the registered
+  `Type::method` entry, so the call kept `fid=-1`; the fused in-loop emitter
+  then emitted a permanent `drop; unreachable` instead of deferring, and the
+  reachability worklist could drop the impl body. The fix canonicalizes the
+  callee through `callee_spelling_variants` in lowering, the typechecker,
+  edge discovery, the in-loop discovery oracle, and the drain-time name
+  fallback. The impl and its mono instance were already in the fn table.
+- **Removed**: 32 `std/manifest.toml` entries plus 25 unregistered
+  declarations across `std/json.ark`, `std/json/parser.ark`,
+  `std/toml.ark`, and `std/csv/mod.ark`. The text helpers are now private
+  implementation details of the namespace types.
+- **Fixtures**: `stdlib_json/json_associated_surface*.ark`,
+  `stdlib_toml/toml_text_surface*.ark`,
+  `stdlib_csv/csv_namespace_surface*.ark`, and the two-module regression
+  `modules/non_main_associated_call/` (helper.ark calls the associated
+  surface, main.ark asserts the output). Each pair compiles and runs on
+  `wasm32-gc` (P2 component) and `--target wasm32` (linear).
+- **Scorecard**: 588 → **531** public symbols; `associated-or-method`
+  518 → **461**; manifest functions 417 → **385**; unregistered declarations
+  172 → **147**. `must delete` stays 70 and `intrinsic-only` stays 1.
+
+| Before | After |
+|--------|-------|
+| `json::quote_string(s)` / `json::json_escape(s)` | `json::JsonText::quote(s)` / `json::JsonText::escape(s)` |
+| `json::skip_ws(s, pos)` / `json::parse_int_at(s, pos)` | `json::JsonText::skip_ws(s, pos)` / `json::JsonText::parse_int_at(s, pos)` |
+| `json::parse_content_length(h)` / `json::find_key_pos(j, k, from)` | `json::JsonText::content_length(h)` / `json::JsonText::find_key_pos(j, k, from)` |
+| `json::json_hex_byte(b)` / `json::json_hex_value(c)` | `json::JsonText::hex_byte(b)` / `json::JsonText::hex_value(c)` |
+| `json::json_parse_string_at(s, p)` / `json::json_decode_escape_at(s, p)` | `json::JsonText::parse_string_at(s, p)` / `json::JsonText::decode_escape_at(s, p)` |
+| `json::json_decode_escape(s, p)` / `json::json_decode_unicode_ascii(s, p)` | `json::JsonText::decode_escape(s, p)` / `json::JsonText::decode_unicode_ascii(s, p)` |
+| `json::json_get_str(j, k)` / `json::json_get_str_after(j, k, f)` | `json::JsonText::get_str(j, k)` / `json::JsonText::get_str_after(j, k, f)` |
+| `json::json_get_int(j, k)` | `json::JsonText::get_int(j, k)` |
+| `json::json_str_result_ok(r)` / `_value(r)` / `_next(r)` | `r.is_ok()` / `r.value()` / `r.next()` on `JsonStrResult` |
+| `json::JsonStrResult_new(...)` / `json::JsonEscapeResult_new(...)` | `json::JsonStrResult::new(...)` / `json::JsonEscapeResult::new(...)` |
+| `json::json_stringify_i32(n)` / `_bool(b)` / `_string(s)` | `json::JsonValue::stringify_i32(n)` / `stringify_bool(b)` / `stringify_string(s)` |
+| `json::json_null()` | `json::JsonValue::null_text()` |
+| `json::json_parse_i32(s)` / `json::json_parse_bool(s)` | `json::JsonValue::parse_i32(s)` / `json::JsonValue::parse_bool(s)` |
+| `json::stringify_pretty(v, indent)` | `json::JsonValue::pretty_text(v, indent)` |
+| `json::json_field(k, v)` | `json::JsonField::new(k, v)` |
+| `json::json_str(s)` / `json::json_i32(n)` / `json::json_bool(b)` | `json::JsonValue::string(s)` / `int(n)` / `bool(b)` |
+| `json::json_null_val()` / `json::json_raw(s)` | `json::JsonValue::null()` / `json::JsonValue::raw(s)` |
+| `json::json_obj_new()` / `json::json_arr_new()` | `Vec::new<json::JsonField>()` / `Vec::new<json::JsonValue>()` |
+| `json::json_obj_string(f)` / `json::json_arr_string(i)` | `json::JsonValue::object(f).to_text()` / `json::JsonValue::array(i).to_text()` |
+| `json::json_encode_string(s)` | `json::JsonValue::encode_string(s)` |
+| `toml::toml_parse_line(line)` | `toml::TomlText::parse_line(line)` |
+| `toml::toml_find_section(c, s)` / `toml::find_toml_section(c, s)` | `toml::TomlText::find_section(c, s)` |
+| `toml::toml_find_value(c, k)` / `toml::find_toml_value(c, k)` | `toml::TomlText::find_value(c, k)` |
+| `toml::toml_find_raw_value(c, k)` | `toml::TomlText::find_raw_value(c, k)` |
+| `toml::toml_parse_string_array(raw)` | `toml::TomlText::parse_string_array(raw)` |
+| `csv::csv_split_line(l)` / `csv::csv_parse_row(l)` | `csv::Csv::split_line(l)` / `csv::Csv::parse_row(l)` |
+| `csv::csv_stringify_row(f)` / `csv::csv_stringify(rows)` | `csv::Csv::stringify_row(f)` / `csv::Csv::stringify(rows)` |
+| `csv::csv_count_rows(s)` / `csv::csv_get_row_raw(s, i)` | `csv::Csv::count_rows(s)` / `csv::Csv::get_row_raw(s, i)` |
+| `csv::csv_parse_row_at(s, i)` / `csv::csv_parse(s)` | `csv::Csv::parse_row_at(s, i)` / `csv::Csv::parse(s)` |
+| `csv::csv_parse_with_header(s)` | `csv::Csv::parse_with_header(s)` |
+
 ### Retained by lowering blocks (not fakes)
 
-- **Non-main-module associated calls**: an associated function or namespace
-  type that returns a constructed value (`JsonText` / `TomlText` / `Csv`
-  helpers, `JsonValue::*` constructors, `JsonField::new`,
-  `JsonValue::pretty_text`) compiles to an unresolved-call `unreachable` when
-  called from a helper module rather than `main`. A two-module probe fails on
-  both the pinned bootstrap and the rebuilt s2 (`compiler produced invalid
-  core Wasm`) while the same call in `main` validates. The free helpers,
-  constructors, and CSV frees therefore stay public until the compiler
-  registers associated return types for non-main modules.
 - **Associated `parse`**: `JsonValue::parse` / `TomlValue::parse` return a
   generic `Result`; an unannotated `match` loses the payload type
   (`unsupported match on an untyped Option/Result scrutinee`). `json::parse`
@@ -824,6 +879,16 @@ E0100 goldens are `diagnostics/removed_bytes_free*.ark`.
 - **`TomlValue::to_text`**: a method returning `String` on a receiver whose
   enum has an `i64` payload emits an invalid return type on wasm32-gc
   (expected `ref`, found `i64`); `toml::toml_stringify` stays.
+- **`Vec<String>::concat`**: the method lowers to a `String::concat` receiver
+  on wasm32-gc and fails validation for a `Vec<String>` local (pre-existing,
+  independent of the associated-call fix). Join with an explicit loop or use
+  `len` / `get_unchecked` in the meantime.
+- **Bootstrap adapter**: the committed pin predates the non-main
+  associated-call fix, so the generated flat overlay routes the compiler's
+  own TOML manifest scans through free `bootstrap_toml_*` shims
+  (`scripts/selfhost/checks.py::_patch_bootstrap_manifest_scanner_paths`).
+  The checked-in `std` / `src/compiler` source keeps the associated surface;
+  delete the adapter when the pin is refreshed.
 
 ## std::io trait migration (ADR-085 Phase E/F, 2026-10-27)
 

@@ -18,8 +18,8 @@ fn main() {
         Result::Ok(v) => stdio::println(v.to_text()),
         Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
-    stdio::println(json::json_encode_string("hello"))
-    stdio::println(json::json_encode_string("a\"b"))
+    stdio::println(json::JsonValue::encode_string("hello"))
+    stdio::println(json::JsonValue::encode_string("a\"b"))
 }
 // stringify null → "null"
 // stringify bool

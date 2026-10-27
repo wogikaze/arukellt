@@ -42,9 +42,9 @@ fn build_diagnostic_object(text: String, diag: AnalysisDiagnostic) -> String {
     }
     out = out.concat(to_string(sev))
     out = out.concat(String_from(",\"source\":\"arukellt\",\"code\":"))
-    out = out.concat(json::quote_string(phase_code(diagnostic_record::analysis_diagnostic_phase(diag))))
+    out = out.concat(json::JsonText::quote(phase_code(diagnostic_record::analysis_diagnostic_phase(diag))))
     out = out.concat(String_from(",\"message\":"))
-    out = out.concat(json::quote_string(diagnostic_record::analysis_diagnostic_message(diag)))
+    out = out.concat(json::JsonText::quote(diagnostic_record::analysis_diagnostic_message(diag)))
     out = out.concat(String_from("}"))
     out
 }

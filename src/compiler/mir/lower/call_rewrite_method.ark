@@ -5,7 +5,9 @@
 
 use std::prelude::{byte_at, clone, contains, eq, starts_with, substring}
 use std::text
+use corehir::callee_spelling
 use mir::lower::ctx_fn_exists
+use mir::lower::ctx_fn_index
 use mir::lower::ctx_api_local_types
 use mir::lower::method_resolve
 use mir::value_types
@@ -53,6 +55,33 @@ fn mir_bare_receiver_type_name(arg_type: String) -> String {
     // so the lookup spelling must flatten the argument list the same
     // way impl_self_type_name does.
     method_resolve::mir_inst_owner_name(arg_type)
+}
+
+// A loaded-module body keeps the source `module::Owner::method` spelling
+// because the resolver only canonicalizes the entry module. The fn index
+// registers the impl method as `Owner::method`; return that registered
+// spelling so dest typing, mono lookup, and fid attachment see one identity.
+// Two-segment names are already canonical (or are builtin constructors the
+// mono paths own) and are left unchanged.
+fn mir_canonicalize_qualified_callee(ctx: LowerCtx, callee_name: String) -> String {
+    let variants = callee_spelling::callee_spelling_variants(clone(callee_name))
+    if len(variants) == 0 {
+        return callee_name
+    }
+    let exact = ctx_fn_index::ctx_fn_index_find(ctx, clone(callee_name))
+    if exact >= 0 {
+        return callee_name
+    }
+    let mut i = 0
+    while i < len(variants) {
+        let variant = clone(get_unchecked(variants, i))
+        let idx = ctx_fn_index::ctx_fn_index_find(ctx, clone(variant))
+        if idx >= 0 {
+            return ctx_fn_index::ctx_fn_index_name_at(ctx, idx)
+        }
+        i = i + 1
+    }
+    callee_name
 }
 
 fn mir_try_resolve_impl_method(ctx: LowerCtx, bare_method: String, first_arg_idx: i32) -> String {

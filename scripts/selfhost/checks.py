@@ -240,6 +240,69 @@ def _rewrite_bootstrap_wit_type_paths_text(text: str) -> str:
     return re.sub(rf"\b(?:ast|types|world)::({names})\b", r"\1", text)
 
 
+def _patch_bootstrap_manifest_scanner_paths(workspace_root: Path) -> None:
+    """Route the bootstrap compiler's TOML manifest scans through free shims.
+
+    The committed pin predates the non-main associated-call fix, so a
+    ``toml::TomlText::*`` call inside a compiler module compiles to the
+    unresolved-call fallback and traps in ``collect_wit_paths_from_manifest``
+    during every compile that sees an ``ark.toml``. The overlay keeps the
+    checked-in ``TomlText`` namespace for user code and adds free adapters only
+    to the generated compiler copy. Delete this patch when the pin is
+    refreshed (ADR-029).
+    """
+    toml_path = workspace_root / "std" / "toml.ark"
+    if not toml_path.is_file():
+        return
+    text = toml_path.read_text(encoding="utf-8")
+    if "bootstrap_toml_find_section" not in text:
+        text += """
+// Bootstrap adapter (see scripts/selfhost/checks.py). The pinned bootstrap
+// cannot lower non-main `TomlText::*` calls; the generated compiler uses
+// these free entry points until the pin is refreshed.
+pub fn bootstrap_toml_find_section(content: String, section: String) -> String {
+    toml_text_find_section(content, section)
+}
+
+pub fn bootstrap_toml_find_value(content: String, key: String) -> String {
+    toml_text_find_value(content, key)
+}
+
+pub fn bootstrap_toml_find_raw_value(content: String, key: String) -> String {
+    toml_text_find_raw_value(content, key)
+}
+
+pub fn bootstrap_toml_parse_string_array(raw: String) -> Vec<String> {
+    toml_text_parse_string_array(raw)
+}
+
+pub fn bootstrap_toml_parse_line(line: String) -> String {
+    toml_text_parse_line(line)
+}
+"""
+        toml_path.write_text(text, encoding="utf-8")
+
+    replacements = (
+        ("toml::TomlText::find_section(", "toml::bootstrap_toml_find_section("),
+        ("toml::TomlText::find_value(", "toml::bootstrap_toml_find_value("),
+        ("toml::TomlText::find_raw_value(", "toml::bootstrap_toml_find_raw_value("),
+        ("toml::TomlText::parse_string_array(", "toml::bootstrap_toml_parse_string_array("),
+        ("toml::TomlText::parse_line(", "toml::bootstrap_toml_parse_line("),
+    )
+    compiler_root = workspace_root / "src" / "compiler"
+    for path in compiler_root.rglob("*.ark"):
+        # The flattened resolver file is resolver_removed_names.ark; keep its
+        # E0100 hint strings on the checked-in associated spelling.
+        if "removed_names" in path.name:
+            continue
+        source = path.read_text(encoding="utf-8")
+        patched = source
+        for old, new in replacements:
+            patched = patched.replace(old, new)
+        if patched != source:
+            path.write_text(patched, encoding="utf-8")
+
+
 def _patch_bootstrap_wit_type_paths(workspace_root: Path) -> None:
     """Apply the flat-namespace WIT type normalization to an overlay only."""
     wit_root = workspace_root / "std" / "wit"
@@ -3053,7 +3116,7 @@ _FLAT_OVERLAY_CACHE: tuple[float, Path] | None = None
 _FLAT_OVERLAY_DISK_CACHE_REL = ".build/selfhost/flat-overlay-cache.json"
 # v2: stage-2 bootstrap skips full MIR verify (see _patch_bootstrap_skip_mir_verify).
 # v4: static-dispatch stub names Option<(A, B)> as option:tuple:k1,k2 (#890).
-_FLAT_OVERLAY_DISK_CACHE_VERSION = 5
+_FLAT_OVERLAY_DISK_CACHE_VERSION = 7
 
 
 def _bootstrap_overlay_root(root: Path) -> Path:
@@ -4479,6 +4542,7 @@ def _prepare_flattened_selfhost_source_locked(
             )
         shutil.copyfile(source_path, wit_dst / name)
     _patch_bootstrap_wit_type_paths(overlay_root)
+    _patch_bootstrap_manifest_scanner_paths(overlay_root)
     error_src = root / "std" / "core" / "error.ark"
     if not error_src.is_file():
         raise BootstrapOverlayError(

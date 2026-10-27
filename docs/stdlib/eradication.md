@@ -15,22 +15,22 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 626 `pub fn` declarations under
-`std/**/*.ark`; 455 map to a manifest entry and
-171 are unregistered. Eradication scope = 401 manifest
-public entries + 171 unregistered declarations = **572 symbols**.
+**Real surface denominator:** 569 `pub fn` declarations under
+`std/**/*.ark`; 423 map to a manifest entry and
+146 are unregistered. Eradication scope = 369 manifest
+public entries + 146 unregistered declarations = **515 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 572 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 626 | — |
-| Unregistered std declarations (no manifest entry) | 171 | 0 |
+| Eradication-scope symbols (real std surface) | 515 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 569 | — |
+| Unregistered std declarations (no manifest entry) | 146 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
-| Manifest public entries (registered scope) | 401 | 0 |
+| Manifest public entries (registered scope) | 369 | 0 |
 | `prelude_wrapper` entries | 65 | 0 |
-| Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 65 | 0 |
+| Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 57 | 0 |
 | `intrinsic-only` bridges (non-public) | 1 | — |
 
 ## Classification
@@ -38,7 +38,7 @@ public entries + 171 unregistered declarations = **572 symbols**.
 | Class | Meaning | Symbols |
 |-------|---------|---------|
 | `must delete` | Replacement already exists or functionality retires | 70 |
-| `associated-or-method` | Replacement must land as method/associated first | 502 |
+| `associated-or-method` | Replacement must land as method/associated first | 445 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
 ## Execution Rules
@@ -67,7 +67,7 @@ registered entries and unregistered `pub fn` declarations.
 | std::test assert frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 18 | 0 | std::test module functions; the Test associated API referenced by #719 was never implemented, so the harness-surface replacement is still open |
 | std::seq remaining | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 9 | 0 | Slice/Vec methods (sort_by, binary_search family) |
 | std::collections frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 100 | 20 | collection type methods (HashMap/HashSet/Deque/BTree/SortedMap/etc.) |
-| std::json/toml/csv frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 35 | 33 | JsonValue / TomlValue value methods (`v.is_null()`, `v.as_i32()`, `v.get_field(key)`, `v.to_text()`, `v.as_string()`, `v.table_keys()`, `e.message()`). The associated constructors, `JsonText` / `TomlText` namespaces, `Csv` namespace, and parse/stringify entry points stay free because associated calls from non-main modules emit an unresolved-call fallback on both the pinned bootstrap and s2. |
+| std::json/toml/csv frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 3 | 8 | JsonValue / TomlValue value methods (`v.is_null()`, `v.as_i32()`, `v.get_field(key)`, `v.to_text()`, `v.as_string()`, `v.table_keys()`, `e.message()`); the `JsonText` / `TomlText` text namespaces (`JsonText::quote`, `JsonText::get_str`, `TomlText::find_value`, ...); `JsonValue` constructors (`JsonValue::int`, `JsonValue::string`, `JsonValue::array`, `JsonValue::object`, ...); `JsonField::new`; and `JsonValue::pretty_text`. `json::parse`, `toml::toml_parse`, and `toml::toml_stringify` remain the document entry points. |
 | std::simd frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 37 | 76 | SIMD lane namespace associated functions (`F32x4::add`, `I64x2::eq`, `V128::any_true`, …) for the 132 ops whose lowering is valid on both targets; the remaining 130 frees stay experimental until the SIMD emitter validates (98) or stops trapping / corrupting the value (32). See issue #917. |
 | std::wasm v128 memory frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 5 | 0 | The `V128Memory::load` / `store` / `load_splat` / `load_lane` / `store_lane` associated form is blocked together with the free form: the `__wasm_v128_load*` / `__wasm_v128_store*` intrinsics have no emitter lowering, so every call compiles to `unreachable` (valid Wasm, but it traps) on wasm32-gc and wasm32. Neither spelling emits `v128.load` / `v128.store`. The five frees stay experimental until the emitter implements the intrinsic lowering; they then move to `V128Memory`. |
 | host/core namespace frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 63 | 21 | Fs/Env/Process/Clock/Random/Cli/Path/Signal associated functions and methods |
@@ -317,13 +317,6 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `range_new` | `std::core` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `error_message` | `std::core::error` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `combine` | `std::core::hash` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `csv_count_rows` | `std::csv` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `csv_get_row_raw` | `std::csv` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `csv_parse_row` | `std::csv` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `csv_parse_row_at` | `std::csv` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `csv_parse_with_header` | `std::csv` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `csv_split_line` | `std::csv` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `csv_stringify_row` | `std::csv` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `arg_at` | `std::env` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `arg_count` | `std::env` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `args` | `std::env` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
@@ -370,25 +363,7 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `stderr` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
 | `stdin` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
 | `stdout` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
-| `find_key_pos` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_decode_escape` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_encode_string` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_escape` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_get_int` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_get_str` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_null` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_parse_bool` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_parse_i32` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_parse_string_at` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_stringify_bool` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_stringify_i32` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_stringify_string` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `parse` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `parse_content_length` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `parse_int_at` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `quote_string` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `skip_ws` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `stringify_pretty` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `abort` | `std::process` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `exit` | `std::process` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `binary_search_by` | `std::seq` | `associated-or-method` | std::seq remaining | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
@@ -465,14 +440,7 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `expect_none_i32` | `std::test` | `associated-or-method` | std::test assert frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `expect_ok_i32` | `std::test` | `associated-or-method` | std::test assert frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `expect_some_i32` | `std::test` | `associated-or-method` | std::test assert frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `find_toml_section` | `std::toml` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `find_toml_value` | `std::toml` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `toml_find_raw_value` | `std::toml` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `toml_find_section` | `std::toml` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `toml_find_value` | `std::toml` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `toml_parse` | `std::toml` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `toml_parse_line` | `std::toml` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `toml_parse_string_array` | `std::toml` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `toml_stringify` | `std::toml` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `v128_load` | `std::wasm` | `associated-or-method` | std::wasm v128 memory frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `v128_load_lane` | `std::wasm` | `associated-or-method` | std::wasm v128 memory frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
@@ -549,36 +517,12 @@ manifest-only scorecard could not see before #703.
 | `raw_parse_i32` | `std/core/raw.ark:104` | `std::core::raw` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `raw_parse_i64` | `std/core/raw.ark:109` | `std::core::raw` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `raw_parse_f64` | `std/core/raw.ark:114` | `std::core::raw` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `csv_parse` | `std/csv/mod.ark:130` | `std::csv` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `csv_stringify` | `std/csv/mod.ark:149` | `std::csv` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `read_stdin` | `std/host/stdio.ark:13` | `std::host::stdio` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
 | `io_error_message` | `std/io/mod.ark:75` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
-| `json_hex_nibble` | `std/json.ark:99` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_hex_byte` | `std/json.ark:108` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_hex_value` | `std/json.ark:197` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `JsonEscapeResult_new` | `std/json.ark:211` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_decode_unicode_at` | `std/json.ark:243` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_decode_unicode_ascii` | `std/json.ark:266` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_decode_escape_at` | `std/json.ark:278` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `JsonStrResult_new` | `std/json.ark:324` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_str_result_ok` | `std/json.ark:329` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_str_result_value` | `std/json.ark:334` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_str_result_next` | `std/json.ark:339` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_get_str_after` | `std/json.ark:399` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `JsonParseStep_ok` | `std/json/parser.ark:531` | `std::json::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `JsonParseStep_err` | `std/json/parser.ark:535` | `std::json::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_parse_step_value` | `std/json/parser.ark:539` | `std::json::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_parse_step_next` | `std/json/parser.ark:543` | `std::json::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_field` | `std/json/parser.ark:938` | `std::json::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_str` | `std/json/parser.ark:943` | `std::json::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_i32` | `std/json/parser.ark:948` | `std::json::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_bool` | `std/json/parser.ark:953` | `std::json::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_null_val` | `std/json/parser.ark:958` | `std::json::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_raw` | `std/json/parser.ark:963` | `std::json::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_obj_new` | `std/json/parser.ark:968` | `std::json::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_arr_new` | `std/json/parser.ark:973` | `std::json::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_obj_string` | `std/json/parser.ark:978` | `std::json::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `json_arr_string` | `std/json/parser.ark:983` | `std::json::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `JsonParseStep_ok` | `std/json/parser.ark:613` | `std::json::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `JsonParseStep_err` | `std/json/parser.ark:617` | `std::json::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `json_parse_step_value` | `std/json/parser.ark:621` | `std::json::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `json_parse_step_next` | `std/json/parser.ark:625` | `std::json::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `add_sat_s` | `std/simd/i16x8.ark:206` | `std::simd::i16x8` | `associated-or-method` | std::simd frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `add_sat_u` | `std/simd/i16x8.ark:211` | `std::simd::i16x8` | `associated-or-method` | std::simd frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `sub_sat_s` | `std/simd/i16x8.ark:216` | `std::simd::i16x8` | `associated-or-method` | std::simd frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
@@ -655,7 +599,6 @@ manifest-only scorecard could not see before #703.
 | `shl` | `std/simd/u8x16.ark:174` | `std::simd::u8x16` | `associated-or-method` | std::simd frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `shr_u` | `std/simd/u8x16.ark:179` | `std::simd::u8x16` | `associated-or-method` | std::simd frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `new` | `std/simd/v128.ark:77` | `std::simd::v128` | `associated-or-method` | std::simd frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `toml_test_wrapper` | `std/toml.ark:190` | `std::toml` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `TomlValStep_ok` | `std/toml/parser.ark:178` | `std::toml::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `TomlValStep_err` | `std/toml/parser.ark:182` | `std::toml::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `TomlKeyStep_ok` | `std/toml/parser.ark:186` | `std::toml::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |

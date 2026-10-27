@@ -5,13 +5,25 @@
 // undefined-name error. Keep aligned with std/manifest.toml
 // deprecations and docs/stdlib/migration-guidance.md;
 // scripts/check/check-compat-orphans.py verifies both directions.
-use std::prelude::{clone, eq}
+use std::prelude::{clone, eq, starts_with, substring}
 use std::text
 
 pub fn removed_name_hint(name: String) -> String {
     let specific = removed_name_specific_hint(clone(name))
     if len(clone(specific)) > 0 {
         return specific
+    }
+    let json_hint = removed_json_member_hint(clone(name))
+    if len(clone(json_hint)) > 0 {
+        return json_hint
+    }
+    let toml_hint = removed_toml_member_hint(clone(name))
+    if len(clone(toml_hint)) > 0 {
+        return toml_hint
+    }
+    let csv_hint = removed_csv_member_hint(clone(name))
+    if len(clone(csv_hint)) > 0 {
+        return csv_hint
     }
     return removed_gated_prelude_hint(name)
 }
@@ -150,6 +162,14 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
         return removed_wit_ast_member_hint(name)
     }
     if eq(clone(module), "parser") {
+        let parser_json_hint = removed_json_member_hint(clone(name))
+        if len(clone(parser_json_hint)) > 0 {
+            return parser_json_hint
+        }
+        let parser_toml_hint = removed_toml_member_hint(clone(name))
+        if len(clone(parser_toml_hint)) > 0 {
+            return parser_toml_hint
+        }
         return removed_wit_parser_member_hint(name)
     }
     if eq(clone(module), "component") {
@@ -196,6 +216,9 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     }
     if eq(clone(module), "toml") {
         return removed_toml_member_hint(name)
+    }
+    if eq(clone(module), "csv") {
+        return removed_csv_member_hint(name)
     }
     let simd_type = removed_simd_lane_type(clone(module))
     if len(clone(simd_type)) > 0 {
@@ -342,6 +365,44 @@ fn removed_json_member_hint(name: String) -> String {
     if eq(clone(name), "is_object") { return "use `v.is_object()` on `JsonValue` instead" }
     if eq(clone(name), "stringify") { return "use `v.to_text()` on `JsonValue` instead" }
     if eq(clone(name), "parse_error_message") { return "use `e.message()` on `JsonParseError` instead" }
+    if eq(clone(name), "json_escape") { return "use `json::JsonText::escape(s)` via `use std::json` instead" }
+    if eq(clone(name), "quote_string") { return "use `json::JsonText::quote(s)` via `use std::json` instead" }
+    if eq(clone(name), "skip_ws") { return "use `json::JsonText::skip_ws(s, pos)` via `use std::json` instead" }
+    if eq(clone(name), "parse_int_at") { return "use `json::JsonText::parse_int_at(s, pos)` via `use std::json` instead" }
+    if eq(clone(name), "parse_content_length") { return "use `json::JsonText::content_length(header_block)` via `use std::json` instead" }
+    if eq(clone(name), "find_key_pos") { return "use `json::JsonText::find_key_pos(json, key, from)` via `use std::json` instead" }
+    if eq(clone(name), "json_hex_byte") { return "use `json::JsonText::hex_byte(b)` via `use std::json` instead" }
+    if eq(clone(name), "json_hex_value") { return "use `json::JsonText::hex_value(c)` via `use std::json` instead" }
+    if eq(clone(name), "json_parse_string_at") { return "use `json::JsonText::parse_string_at(s, pos)` via `use std::json` instead" }
+    if eq(clone(name), "json_decode_escape_at") { return "use `json::JsonText::decode_escape_at(s, pos)` via `use std::json` instead" }
+    if eq(clone(name), "json_decode_escape") { return "use `json::JsonText::decode_escape(s, pos)` via `use std::json` instead" }
+    if eq(clone(name), "json_decode_unicode_ascii") { return "use `json::JsonText::decode_unicode_ascii(s, pos)` via `use std::json` instead" }
+    if eq(clone(name), "json_get_str") { return "use `json::JsonText::get_str(json, key)` via `use std::json` instead" }
+    if eq(clone(name), "json_get_str_after") { return "use `json::JsonText::get_str_after(json, key, from)` via `use std::json` instead" }
+    if eq(clone(name), "json_get_int") { return "use `json::JsonText::get_int(json, key)` via `use std::json` instead" }
+    if eq(clone(name), "json_str_result_ok") { return "use `result.is_ok()` on `JsonStrResult` instead" }
+    if eq(clone(name), "json_str_result_value") { return "use `result.value()` on `JsonStrResult` instead" }
+    if eq(clone(name), "json_str_result_next") { return "use `result.next()` on `JsonStrResult` instead" }
+    if eq(clone(name), "JsonStrResult_new") { return "use `JsonStrResult::new(value, next, ok)` instead" }
+    if eq(clone(name), "JsonEscapeResult_new") { return "use `JsonEscapeResult::new(value, advance, ok)` instead" }
+    if eq(clone(name), "json_stringify_i32") { return "use `json::JsonValue::stringify_i32(n)` via `use std::json` instead" }
+    if eq(clone(name), "json_stringify_bool") { return "use `json::JsonValue::stringify_bool(b)` via `use std::json` instead" }
+    if eq(clone(name), "json_stringify_string") { return "use `json::JsonValue::stringify_string(s)` via `use std::json` instead" }
+    if eq(clone(name), "json_null") { return "use `json::JsonValue::null_text()` via `use std::json` instead" }
+    if eq(clone(name), "json_parse_i32") { return "use `json::JsonValue::parse_i32(s)` via `use std::json` instead" }
+    if eq(clone(name), "json_parse_bool") { return "use `json::JsonValue::parse_bool(s)` via `use std::json` instead" }
+    if eq(clone(name), "stringify_pretty") { return "use `json::JsonValue::pretty_text(v, indent)` via `use std::json` instead" }
+    if eq(clone(name), "json_field") { return "use `json::JsonField::new(key, value)` via `use std::json` instead" }
+    if eq(clone(name), "json_str") { return "use `json::JsonValue::string(s)` via `use std::json` instead" }
+    if eq(clone(name), "json_i32") { return "use `json::JsonValue::int(n)` via `use std::json` instead" }
+    if eq(clone(name), "json_bool") { return "use `json::JsonValue::bool(b)` via `use std::json` instead" }
+    if eq(clone(name), "json_null_val") { return "use `json::JsonValue::null()` via `use std::json` instead" }
+    if eq(clone(name), "json_raw") { return "use `json::JsonValue::raw(s)` via `use std::json` instead" }
+    if eq(clone(name), "json_obj_new") { return "use `Vec::new<json::JsonField>()` via `use std::json` instead" }
+    if eq(clone(name), "json_arr_new") { return "use `Vec::new<json::JsonValue>()` via `use std::json` instead" }
+    if eq(clone(name), "json_obj_string") { return "use `json::JsonValue::object(fields).to_text()` via `use std::json` instead" }
+    if eq(clone(name), "json_arr_string") { return "use `json::JsonValue::array(items).to_text()` via `use std::json` instead" }
+    if eq(clone(name), "json_encode_string") { return "use `json::JsonValue::encode_string(s)` via `use std::json` instead" }
     String_new()
 }
 
@@ -354,7 +415,28 @@ fn removed_toml_member_hint(name: String) -> String {
     if eq(clone(name), "toml_as_float") { return "use `v.as_float()` on `TomlValue` instead" }
     if eq(clone(name), "toml_as_array") { return "use `v.as_array()` on `TomlValue` instead" }
     if eq(clone(name), "toml_as_table") { return "use `v.as_table()` on `TomlValue` instead" }
+    if eq(clone(name), "toml_parse_line") { return "use `toml::TomlText::parse_line(line)` via `use std::toml` instead" }
+    if eq(clone(name), "toml_find_section") || eq(clone(name), "find_toml_section") {
+        return "use `toml::TomlText::find_section(content, section)` via `use std::toml` instead"
+    }
+    if eq(clone(name), "toml_find_value") || eq(clone(name), "find_toml_value") {
+        return "use `toml::TomlText::find_value(content, key)` via `use std::toml` instead"
+    }
+    if eq(clone(name), "toml_find_raw_value") { return "use `toml::TomlText::find_raw_value(content, key)` via `use std::toml` instead" }
+    if eq(clone(name), "toml_parse_string_array") { return "use `toml::TomlText::parse_string_array(raw)` via `use std::toml` instead" }
     String_new()
+}
+
+// CSV row/document helpers moved onto the `Csv` namespace. The leaf name is
+// the same, so one prefix rule covers the whole family.
+fn removed_csv_member_hint(name: String) -> String {
+    if !starts_with(clone(name), String_from("csv_")) {
+        return String_new()
+    }
+    let leaf = substring(clone(name), 4, len(name))
+    "use `csv::Csv::".concat(
+        clone(leaf)
+    ).concat("(...)` via `use std::csv` instead")
 }
 
 fn removed_fmt_member_hint(name: String) -> String {
@@ -914,6 +996,12 @@ test mod "removed_names" {
     test "removed json/toml value frees have method hints" {
         assert(len(removed_module_member_hint(String_from("json"), String_from("json_get"))) > 0)
         assert(len(removed_module_member_hint(String_from("json"), String_from("json_as_i32"))) > 0)
+        assert(len(removed_module_member_hint(String_from("json"), String_from("quote_string"))) > 0)
+        assert(len(removed_module_member_hint(String_from("json"), String_from("json_i32"))) > 0)
+        assert(len(removed_module_member_hint(String_from("parser"), String_from("json_parse_string_at"))) > 0)
+        assert(len(removed_module_member_hint(String_from("toml"), String_from("toml_find_value"))) > 0)
+        assert(len(removed_module_member_hint(String_from("csv"), String_from("csv_parse_row"))) > 0)
+        assert(len(removed_name_hint(String_from("csv_parse_row"))) > 0)
         assert(len(removed_module_member_hint(String_from("json"), String_from("stringify"))) > 0)
         assert(len(removed_module_member_hint(String_from("json"), String_from("parse_error_message"))) > 0)
         assert(len(removed_module_member_hint(String_from("toml"), String_from("toml_get"))) > 0)

@@ -1,0 +1,10 @@
+use std::host::stdio
+use helper
+
+fn main() {
+    stdio::println(helper::json_text("a\"b"))
+    stdio::println(helper::json_object("z"))
+    stdio::println(helper::json_pretty())
+    stdio::println(helper::toml_value("a = \"x\"\n"))
+    stdio::println(helper::csv_row("\"Smith, John\",30"))
+}

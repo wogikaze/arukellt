@@ -6,20 +6,20 @@ use diagnostics::record
 use diagnostics::severity
 
 fn diagnostic_span_to_json(span: DiagnosticSpan) -> String {
-    let fields = parser::json_obj_new()
-    push(fields, parser::json_field("file", parser::json_str(record::diagnostic_span_file(span))))
-    push(fields, parser::json_field("line", parser::json_i32(record::diagnostic_span_line(span))))
-    push(fields, parser::json_field("col", parser::json_i32(record::diagnostic_span_column(span))))
-    push(fields, parser::json_field("start", parser::json_i32(record::diagnostic_span_start(span))))
-    push(fields, parser::json_field("end", parser::json_i32(record::diagnostic_span_end(span))))
-    parser::json_obj_string(fields)
+    let fields = Vec::new<parser::JsonField>()
+    push(fields, parser::JsonField::new("file", parser::JsonValue::string(record::diagnostic_span_file(span))))
+    push(fields, parser::JsonField::new("line", parser::JsonValue::int(record::diagnostic_span_line(span))))
+    push(fields, parser::JsonField::new("col", parser::JsonValue::int(record::diagnostic_span_column(span))))
+    push(fields, parser::JsonField::new("start", parser::JsonValue::int(record::diagnostic_span_start(span))))
+    push(fields, parser::JsonField::new("end", parser::JsonValue::int(record::diagnostic_span_end(span))))
+    parser::JsonValue::object(fields).to_text()
 }
 
 fn diagnostic_to_json(diag: Diagnostic) -> String {
-    let fields = parser::json_obj_new()
-    push(fields, parser::json_field("code", parser::json_str(record::diagnostic_code(diag))))
-    push(fields, parser::json_field("severity", parser::json_str(severity::severity_name(record::diagnostic_severity(diag)))))
-    push(fields, parser::json_field("span", parser::json_raw(diagnostic_span_to_json(record::diagnostic_span(diag)))))
-    push(fields, parser::json_field("message", parser::json_str(record::diagnostic_message(diag))))
-    parser::json_obj_string(fields)
+    let fields = Vec::new<parser::JsonField>()
+    push(fields, parser::JsonField::new("code", parser::JsonValue::string(record::diagnostic_code(diag))))
+    push(fields, parser::JsonField::new("severity", parser::JsonValue::string(severity::severity_name(record::diagnostic_severity(diag)))))
+    push(fields, parser::JsonField::new("span", parser::JsonValue::raw(diagnostic_span_to_json(record::diagnostic_span(diag)))))
+    push(fields, parser::JsonField::new("message", parser::JsonValue::string(record::diagnostic_message(diag))))
+    parser::JsonValue::object(fields).to_text()
 }
