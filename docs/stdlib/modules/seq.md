@@ -48,8 +48,8 @@ Sequence helpers over `Vec<i32>`.
 `map`/`filter`/`take`/`skip`/`fold`/`sum` and the query helpers
 (`binary_search`, `min_i32`, `max_i32`, `seq_reverse`,
 `seq_contains`, `unique`, `count_eq`) are deprecated compatibility
-entries. They delegate to the lazy `std::core::iter` pipeline or the
-generic `Ord`-based algorithms below (ADR-076).
+entries. They delegate to the lazy iterator methods or the generic
+`Ord`-based algorithms below (ADR-076).
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
@@ -57,19 +57,19 @@ generic `Ord`-based algorithms below (ADR-076).
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| ~~`map_i32_i32`~~ ⚠️ Deprecated → `std::core::iter::collect_map_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `deprecated` | ✅ functional | Apply f to every element of v and collect the results. |
-| ~~`filter_i32`~~ ⚠️ Deprecated → `std::core::iter::collect_filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `deprecated` | ✅ functional | Keep only elements of v for which f returns true. |
-| ~~`take_i32`~~ ⚠️ Deprecated → `std::core::iter::collect_take_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `deprecated` | ✅ functional | Return the first n elements of v. |
-| ~~`skip_i32`~~ ⚠️ Deprecated → `std::core::iter::collect_skip_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `deprecated` | ✅ functional | Return all elements of v after skipping the first n. |
-| ~~`fold_i32_i32`~~ ⚠️ Deprecated → `std::core::iter::iter_fold_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `deprecated` | ✅ functional | Reduce v to a single value using f, starting from init. |
+| ~~`map_i32_i32`~~ ⚠️ Deprecated → `VecIter::map` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `deprecated` | ✅ functional | Apply f to every element of v and collect the results. |
+| ~~`filter_i32`~~ ⚠️ Deprecated → `VecIter::filter` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `deprecated` | ✅ functional | Keep only elements of v for which f returns true. |
+| ~~`take_i32`~~ ⚠️ Deprecated → `VecIter::take` | `(Vec<i32>, i32) -> Vec<i32>` | `deprecated` | ✅ functional | Return the first n elements of v. |
+| ~~`skip_i32`~~ ⚠️ Deprecated → `VecIter::skip` | `(Vec<i32>, i32) -> Vec<i32>` | `deprecated` | ✅ functional | Return all elements of v after skipping the first n. |
+| ~~`fold_i32_i32`~~ ⚠️ Deprecated → `VecIter::fold` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `deprecated` | ✅ functional | Reduce v to a single value using f, starting from init. |
 | ~~`binary_search`~~ ⚠️ Deprecated → `std::seq::binary_search_by` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | - |
 | ~~`min_i32`~~ ⚠️ Deprecated → `std::seq::min_by` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
 | ~~`max_i32`~~ ⚠️ Deprecated → `std::seq::max_by` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
-| ~~`sum_i32`~~ ⚠️ Deprecated → `std::core::iter::iter_sum_i32` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
-| ~~`seq_reverse`~~ ⚠️ Deprecated → `std::core::iter::iter_reverse_i32` | `(Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | - |
-| ~~`seq_contains`~~ ⚠️ Deprecated → `std::core::iter::iter_contains_i32` | `(Vec<i32>, i32) -> bool` | `deprecated` | ✅ functional | - |
-| ~~`unique`~~ ⚠️ Deprecated → `std::core::iter::iter_unique_i32` | `(Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | - |
-| ~~`count_eq`~~ ⚠️ Deprecated → `std::core::iter::iter_count_eq_i32` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | - |
+| ~~`sum_i32`~~ ⚠️ Deprecated → `VecIter::sum` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
+| ~~`seq_reverse`~~ ⚠️ Deprecated → `VecIter::rev` | `(Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | - |
+| ~~`seq_contains`~~ ⚠️ Deprecated → `VecIter::contains` | `(Vec<i32>, i32) -> bool` | `deprecated` | ✅ functional | - |
+| ~~`unique`~~ ⚠️ Deprecated → `VecIter::unique` | `(Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | - |
+| ~~`count_eq`~~ ⚠️ Deprecated → `VecIter::count_eq` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | - |
 | `binary_search_by` | `(Vec<T>, T) -> i32` | `provisional` | ✅ functional | - |
 | `binary_search_by_key` | `(Vec<T>, K, fn(T) -> K) -> i32` | `provisional` | ✅ functional | - |
 | `lower_bound` | `(Vec<T>, T) -> i32` | `provisional` | ✅ functional | - |
@@ -82,23 +82,23 @@ generic `Ord`-based algorithms below (ADR-076).
 
 #### `std::seq::map_i32_i32`
 
-Deprecated eager helper. Use the lazy pipeline v.iter().map(f).collect() or std::core::iter::collect_map_i32(v, f).
+Deprecated eager helper. Use the lazy pipeline v.iter().map(f).collect().
 
 #### `std::seq::filter_i32`
 
-Deprecated eager helper. Use the lazy pipeline v.iter().filter(f).collect() or std::core::iter::collect_filter_i32(v, f).
+Deprecated eager helper. Use the lazy pipeline v.iter().filter(f).collect().
 
 #### `std::seq::take_i32`
 
-Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect() or std::core::iter::collect_take_i32(v, n).
+Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect().
 
 #### `std::seq::skip_i32`
 
-Deprecated eager helper. Use the lazy pipeline v.iter().skip(n).collect() or std::core::iter::collect_skip_i32(v, n).
+Deprecated eager helper. Use the lazy pipeline v.iter().skip(n).collect().
 
 #### `std::seq::fold_i32_i32`
 
-Deprecated eager helper. Use the IteratorFold capability v.iter().fold(init, f) or std::core::iter::iter_fold_i32(v, init, f).
+Deprecated eager helper. Use the IteratorFold capability v.iter().fold(init, f).
 
 #### `std::seq::binary_search`
 
@@ -114,23 +114,23 @@ Deprecated monomorphic wrapper. Use the generic std::seq::max_by(v) over T: Ord.
 
 #### `std::seq::sum_i32`
 
-Deprecated eager helper. Use the IteratorSum capability v.iter().sum() or std::core::iter::iter_sum_i32(v).
+Deprecated eager helper. Use the IteratorSum capability v.iter().sum().
 
 #### `std::seq::seq_reverse`
 
-Deprecated eager helper. Use the lazy pipeline v.iter().rev().collect() or std::core::iter::iter_reverse_i32(v).
+Deprecated eager helper. Use the lazy pipeline v.iter().rev().collect().
 
 #### `std::seq::seq_contains`
 
-Deprecated eager helper. Use the IteratorContains capability v.iter().contains(target) or std::core::iter::iter_contains_i32(v, target).
+Deprecated eager helper. Use the IteratorContains capability v.iter().contains(target).
 
 #### `std::seq::unique`
 
-Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect() or std::core::iter::iter_unique_i32(v).
+Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect().
 
 #### `std::seq::count_eq`
 
-Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target) or std::core::iter::iter_count_eq_i32(v, target).
+Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target).
 
 #### `std::seq::binary_search_by`
 

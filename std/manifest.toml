@@ -3231,402 +3231,6 @@ stability = "provisional"
 generic_params = ["Item", "Accumulator"]
 prelude = false
 
-[[functions]]
-name = "vec_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>"]
-returns = "VecIter"
-doc = "Construct the canonical lazy VecIter over v (same as v.iter())."
-
-[[functions]]
-name = "range_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Range"]
-returns = "RangeIter"
-doc = "Construct a lazy iterator over a half-open Range."
-
-[[functions]]
-name = "range_inclusive_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["RangeInclusive"]
-returns = "RangeInclusiveIter"
-doc = "Construct a lazy iterator over a closed RangeInclusive."
-
-[[functions]]
-name = "map_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "fn(i32) -> i32"]
-returns = "MapIter<i32, i32>"
-doc = "Compatibility constructor for the lazy map adapter (canonical form: v.iter().map(f))."
-
-[[functions]]
-name = "filter_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "fn(i32) -> bool"]
-returns = "FilterIter<i32>"
-doc = "Compatibility constructor for the lazy filter adapter (canonical form: v.iter().filter(f))."
-
-[[functions]]
-name = "take_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "i32"]
-returns = "TakeIter<VecIter>"
-doc = "Compatibility constructor for the lazy take adapter (canonical form: v.iter().take(n))."
-
-[[functions]]
-name = "skip_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "i32"]
-returns = "SkipIter<VecIter>"
-doc = "Compatibility constructor for the lazy skip adapter (canonical form: v.iter().skip(n))."
-
-[[functions]]
-name = "chain_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "Vec<i32>"]
-returns = "ChainIter<VecIter>"
-doc = "Construct a lazy iterator chaining two vectors in order; wraps both sources as VecIter."
-
-[[functions]]
-name = "enumerate_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>"]
-returns = "EnumerateIter<VecIter>"
-doc = "Lazy enumerate adapter; yields Pair<i32, i32> index/value items."
-
-[[functions]]
-name = "zip_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "Vec<i32>"]
-returns = "ZipIter<VecIter, VecIter>"
-doc = "Lazy zip over two vectors, stopping at the shorter length; yields Pair<i32, i32> items."
-
-[[functions]]
-name = "flat_map_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "fn(i32) -> Vec<i32>"]
-returns = "FlatMapIter<i32>"
-doc = "Lazy flat_map adapter; expands each element through f into a Vec and drains the produced items in order."
-
-[[functions]]
-name = "peek_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>"]
-returns = "PeekIter<i32>"
-doc = "Lazy peekable adapter; peek() inspects the upcoming item without consuming it."
-
-[[functions]]
-name = "step_by_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "i32"]
-returns = "StepByIter<i32>"
-doc = "Lazy step_by adapter; yields every n-th element, clamping non-positive steps to 1."
-
-[[functions]]
-name = "scan_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "i32", "fn(i32, i32) -> Option<i32>"]
-returns = "ScanIter<i32>"
-doc = "Lazy scan adapter; threads a state through f and yields each intermediate result until f returns None."
-
-[[functions]]
-name = "collect_vec_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["VecIter"]
-returns = "Vec<i32>"
-doc = "Drain a VecIter into a new Vec<i32> via Iterator::collect."
-
-[[functions]]
-name = "collect_map_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["MapIter<i32, i32>"]
-returns = "Vec<i32>"
-doc = "Drain a MapIter into a new Vec<i32> via Iterator::collect."
-
-[[functions]]
-name = "collect_filter_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["FilterIter<i32>"]
-returns = "Vec<i32>"
-doc = "Drain a FilterIter into a new Vec<i32> via Iterator::collect."
-
-[[functions]]
-name = "collect_take_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["TakeIter<VecIter>"]
-returns = "Vec<i32>"
-doc = "Drain a TakeIter into a new Vec<i32> via Iterator::collect."
-
-[[functions]]
-name = "collect_skip_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["SkipIter<VecIter>"]
-returns = "Vec<i32>"
-doc = "Drain a SkipIter into a new Vec<i32> via Iterator::collect."
-
-[[functions]]
-name = "collect_chain_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["ChainIter<VecIter>"]
-returns = "Vec<i32>"
-doc = "Drain a ChainIter into a new Vec<i32> via Iterator::collect."
-
-[[functions]]
-name = "collect_flat_map_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["FlatMapIter<i32>"]
-returns = "Vec<i32>"
-doc = "Drain a FlatMapIter into a new Vec<i32> via Iterator::collect."
-
-[[functions]]
-name = "collect_peek_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["PeekIter<i32>"]
-returns = "Vec<i32>"
-doc = "Drain a PeekIter into a new Vec<i32> via Iterator::collect."
-
-[[functions]]
-name = "collect_step_by_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["StepByIter<i32>"]
-returns = "Vec<i32>"
-doc = "Drain a StepByIter into a new Vec<i32> via Iterator::collect."
-
-[[functions]]
-name = "collect_scan_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["ScanIter<i32>"]
-returns = "Vec<i32>"
-doc = "Drain a ScanIter into a new Vec<i32> via Iterator::collect."
-
-[[functions]]
-name = "collect_range_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["RangeIter"]
-returns = "Vec<i32>"
-doc = "Drain a RangeIter into a new Vec<i32> via Iterator::collect."
-
-[[functions]]
-name = "collect_map_i32"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "fn(i32) -> i32"]
-returns = "Vec<i32>"
-doc = "Map f over v and collect into a new Vec<i32> — the lazy-pipeline replacement for std::seq::map_i32_i32."
-
-[[functions]]
-name = "collect_filter_i32"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "fn(i32) -> bool"]
-returns = "Vec<i32>"
-doc = "Filter v with f and collect into a new Vec<i32> — the lazy-pipeline replacement for std::seq::filter_i32."
-
-[[functions]]
-name = "collect_take_i32"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "i32"]
-returns = "Vec<i32>"
-doc = "Take the first n elements of v — the lazy-pipeline replacement for std::seq::take_i32."
-
-[[functions]]
-name = "collect_skip_i32"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "i32"]
-returns = "Vec<i32>"
-doc = "Skip the first n elements of v — the lazy-pipeline replacement for std::seq::skip_i32."
-
-[[functions]]
-name = "collect_chain_i32"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "Vec<i32>"]
-returns = "Vec<i32>"
-doc = "Chain two vectors and collect into a new Vec<i32>."
-
-[[functions]]
-name = "collect_range_i32"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Range"]
-returns = "Vec<i32>"
-doc = "Collect a half-open Range into a new Vec<i32>."
-
-[[functions]]
-name = "collect_map_filter_i32"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "fn(i32) -> i32", "fn(i32) -> bool"]
-returns = "Vec<i32>"
-doc = "Map then filter in a single lazy pass — no intermediate Vec allocation."
-
-[[functions]]
-name = "collect_map_filter_take_i32"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "fn(i32) -> i32", "fn(i32) -> bool", "i32"]
-returns = "Vec<i32>"
-doc = "Map, filter, then take in a single lazy pass — the canonical v.iter().map(f).filter(g).take(n).collect() pipeline."
-
-[[functions]]
-name = "iter_fold_i32"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "i32", "fn(i32, i32) -> i32"]
-returns = "i32"
-doc = "Fold v into a single value via IteratorFold — the lazy-pipeline replacement for std::seq::fold_i32_i32."
-
-[[functions]]
-name = "iter_count_i32"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Count the elements a Vec<i32> iterator would yield."
-
-[[functions]]
-name = "iter_sum_i32"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Sum all elements of v via IteratorSum — the lazy-pipeline replacement for std::seq::sum_i32."
-
-[[functions]]
-name = "iter_any_i32"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "fn(i32) -> bool"]
-returns = "bool"
-doc = "Return true if any element of v satisfies f."
-
-[[functions]]
-name = "iter_all_i32"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "fn(i32) -> bool"]
-returns = "bool"
-doc = "Return true if all elements of v satisfy f."
-
-[[functions]]
-name = "iter_contains_i32"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "i32"]
-returns = "bool"
-doc = "Return true if v contains target via IteratorContains — the lazy-pipeline replacement for std::seq::seq_contains."
-
-[[functions]]
-name = "iter_count_eq_i32"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>", "i32"]
-returns = "i32"
-doc = "Count elements equal to target via IteratorCountEq — the lazy-pipeline replacement for std::seq::count_eq."
-
-[[functions]]
-name = "iter_unique_i32"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>"]
-returns = "Vec<i32>"
-doc = "Yield first occurrences in source order via UniqueIter — the lazy-pipeline replacement for std::seq::unique."
-
-[[functions]]
-name = "iter_reverse_i32"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>"]
-returns = "Vec<i32>"
-doc = "Yield elements in reverse order via RevIter — the lazy-pipeline replacement for std::seq::seq_reverse."
-
-[[functions]]
-name = "unique_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>"]
-returns = "UniqueIter"
-doc = "Compatibility constructor for the lazy unique adapter (canonical form: v.iter().unique())."
-
-[[functions]]
-name = "rev_iter"
-module = "std::core::iter"
-doc_category = "iter"
-stability = "provisional"
-params = ["Vec<i32>"]
-returns = "RevIter"
-doc = "Compatibility constructor for the lazy reverse adapter (canonical form: v.iter().rev())."
-
 # === std::seq ===
 
 [[functions]]
@@ -3634,50 +3238,50 @@ name = "map_i32_i32"
 module = "std::seq"
 doc_category = "seq"
 stability = "deprecated"
-deprecated_by = "std::core::iter::collect_map_i32"
+deprecated_by = "VecIter::map"
 params = ["Vec<i32>", "fn(i32) -> i32"]
 returns = "Vec<i32>"
-doc = "Deprecated eager helper. Use the lazy pipeline v.iter().map(f).collect() or std::core::iter::collect_map_i32(v, f)."
+doc = "Deprecated eager helper. Use the lazy pipeline v.iter().map(f).collect()."
 
 [[functions]]
 name = "filter_i32"
 module = "std::seq"
 doc_category = "seq"
 stability = "deprecated"
-deprecated_by = "std::core::iter::collect_filter_i32"
+deprecated_by = "VecIter::filter"
 params = ["Vec<i32>", "fn(i32) -> bool"]
 returns = "Vec<i32>"
-doc = "Deprecated eager helper. Use the lazy pipeline v.iter().filter(f).collect() or std::core::iter::collect_filter_i32(v, f)."
+doc = "Deprecated eager helper. Use the lazy pipeline v.iter().filter(f).collect()."
 
 [[functions]]
 name = "take_i32"
 module = "std::seq"
 doc_category = "seq"
 stability = "deprecated"
-deprecated_by = "std::core::iter::collect_take_i32"
+deprecated_by = "VecIter::take"
 params = ["Vec<i32>", "i32"]
 returns = "Vec<i32>"
-doc = "Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect() or std::core::iter::collect_take_i32(v, n)."
+doc = "Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect()."
 
 [[functions]]
 name = "skip_i32"
 module = "std::seq"
 doc_category = "seq"
 stability = "deprecated"
-deprecated_by = "std::core::iter::collect_skip_i32"
+deprecated_by = "VecIter::skip"
 params = ["Vec<i32>", "i32"]
 returns = "Vec<i32>"
-doc = "Deprecated eager helper. Use the lazy pipeline v.iter().skip(n).collect() or std::core::iter::collect_skip_i32(v, n)."
+doc = "Deprecated eager helper. Use the lazy pipeline v.iter().skip(n).collect()."
 
 [[functions]]
 name = "fold_i32_i32"
 module = "std::seq"
 doc_category = "seq"
 stability = "deprecated"
-deprecated_by = "std::core::iter::iter_fold_i32"
+deprecated_by = "VecIter::fold"
 params = ["Vec<i32>", "i32", "fn(i32, i32) -> i32"]
 returns = "i32"
-doc = "Deprecated eager helper. Use the IteratorFold capability v.iter().fold(init, f) or std::core::iter::iter_fold_i32(v, init, f)."
+doc = "Deprecated eager helper. Use the IteratorFold capability v.iter().fold(init, f)."
 
 [[functions]]
 name = "binary_search"
@@ -3714,50 +3318,50 @@ name = "sum_i32"
 module = "std::seq"
 doc_category = "seq"
 stability = "deprecated"
-deprecated_by = "std::core::iter::iter_sum_i32"
+deprecated_by = "VecIter::sum"
 params = ["Vec<i32>"]
 returns = "i32"
-doc = "Deprecated eager helper. Use the IteratorSum capability v.iter().sum() or std::core::iter::iter_sum_i32(v)."
+doc = "Deprecated eager helper. Use the IteratorSum capability v.iter().sum()."
 
 [[functions]]
 name = "seq_reverse"
 module = "std::seq"
 doc_category = "seq"
 stability = "deprecated"
-deprecated_by = "std::core::iter::iter_reverse_i32"
+deprecated_by = "VecIter::rev"
 params = ["Vec<i32>"]
 returns = "Vec<i32>"
-doc = "Deprecated eager helper. Use the lazy pipeline v.iter().rev().collect() or std::core::iter::iter_reverse_i32(v)."
+doc = "Deprecated eager helper. Use the lazy pipeline v.iter().rev().collect()."
 
 [[functions]]
 name = "seq_contains"
 module = "std::seq"
 doc_category = "seq"
 stability = "deprecated"
-deprecated_by = "std::core::iter::iter_contains_i32"
+deprecated_by = "VecIter::contains"
 params = ["Vec<i32>", "i32"]
 returns = "bool"
-doc = "Deprecated eager helper. Use the IteratorContains capability v.iter().contains(target) or std::core::iter::iter_contains_i32(v, target)."
+doc = "Deprecated eager helper. Use the IteratorContains capability v.iter().contains(target)."
 
 [[functions]]
 name = "unique"
 module = "std::seq"
 doc_category = "seq"
 stability = "deprecated"
-deprecated_by = "std::core::iter::iter_unique_i32"
+deprecated_by = "VecIter::unique"
 params = ["Vec<i32>"]
 returns = "Vec<i32>"
-doc = "Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect() or std::core::iter::iter_unique_i32(v)."
+doc = "Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect()."
 
 [[functions]]
 name = "count_eq"
 module = "std::seq"
 doc_category = "seq"
 stability = "deprecated"
-deprecated_by = "std::core::iter::iter_count_eq_i32"
+deprecated_by = "VecIter::count_eq"
 params = ["Vec<i32>", "i32"]
 returns = "i32"
-doc = "Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target) or std::core::iter::iter_count_eq_i32(v, target)."
+doc = "Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target)."
 
 [[functions]]
 name = "binary_search_by"

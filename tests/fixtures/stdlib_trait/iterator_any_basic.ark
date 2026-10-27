@@ -10,5 +10,5 @@ fn main() {
     push(v, 5)
     push(v, 8)
 
-    test::assert_true(iter::iter_any_i32(v, is_even))
+    test::assert_true(v.iter().any(is_even))
 }

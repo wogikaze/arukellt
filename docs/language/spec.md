@@ -1104,9 +1104,9 @@ contract to arbitrary item representations or dynamic dispatch.
 The same fixture instantiates a generic `T: IntoIterator` `for` consumer with
 the composed adapter, proving that the identity conversion remains visible
 after adapter monomorphization.
-The compatibility helpers `collect_map_filter_i32` and
-`collect_map_filter_take_i32` delegate to these same lazy chains and the
-canonical `collect` method; they do not maintain a second eager traversal.
+The `iter().map(f).filter(g).take(n).collect()` spelling is the only reachable
+form: the eager `std::core::iter` constructor and collector frees were retired
+(#917), so no helper maintains a second eager traversal.
 The concrete `iter().map(f).take(n).collect()` composition is also implemented
 by the lazy `TakeIter<MapIter>` adapter; `iterator_adapters.ark` verifies the
 two-element `Vec<i32>` case on both published Wasm targets. Arbitrary adapter
@@ -1128,11 +1128,14 @@ fixture verifies direct collection, source-qualified construction, generic
 Wasm. This is concrete numeric evidence, not arbitrary item-generic adapter
 support.
 The compatibility helpers in `std::seq` (`map_i32_i32`, `filter_i32`,
-`take_i32`, `skip_i32`, and `fold_i32_i32`) now delegate to these canonical
-iterator consumers. The `seq_map_filter.ark` and `seq_take_skip_fold.ark`
-fixtures compile, validate, and produce identical output on `wasm32-gc` and
-linear-memory `wasm32`; qualified `std::seq` calls no longer use the legacy
-eager HOF lowering path.
+`take_i32`, `skip_i32`, and `fold_i32_i32`) keep their eager signatures.
+`map` / `filter` / `fold` delegate to the canonical iterator methods;
+`take` / `skip` currently copy the bounded range eagerly because the
+`TakeIter` / `SkipIter` collector mis-resolves its item type when instantiated
+from a std module, while the same method chain compiles from user code (#691).
+The `seq_map_filter.ark` and `seq_take_skip_fold.ark` fixtures compile,
+validate, and produce identical output on `wasm32-gc` and linear-memory
+`wasm32`.
 
 ### 4.6 Semicolons
 

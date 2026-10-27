@@ -1,1 +1,1 @@
-use `v.iter().sum()` or `std::core::iter::iter_sum_i32(v)` instead
+use `v.iter().sum()` instead

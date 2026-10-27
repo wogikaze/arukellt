@@ -77,12 +77,12 @@ fn removed_name_specific_hint(name: String) -> String {
     if eq(clone(name), "contains_string") {
         return "removed free function; use the String method `s.contains(sub)`"
     }
-    if eq(clone(name), "take_i32") { return "removed free function; import `use std::core::iter::{collect_take_i32}`" }
-    if eq(clone(name), "skip_i32") { return "removed free function; import `use std::core::iter::{collect_skip_i32}`" }
-    if eq(clone(name), "seq_reverse") { return "removed free function; import `use std::core::iter::{iter_reverse_i32}`" }
-    if eq(clone(name), "seq_contains") { return "removed free function; import `use std::core::iter::{iter_contains_i32}`" }
-    if eq(clone(name), "unique") { return "removed free function; import `use std::core::iter::{iter_unique_i32}`" }
-    if eq(clone(name), "count_eq") { return "removed free function; import `use std::core::iter::{iter_count_eq_i32}`" }
+    if eq(clone(name), "take_i32") { return "removed free function; use `v.iter().take(n).collect()` via `use std::core::iter`" }
+    if eq(clone(name), "skip_i32") { return "removed free function; use `v.iter().skip(n).collect()` via `use std::core::iter`" }
+    if eq(clone(name), "seq_reverse") { return "removed free function; use `v.iter().rev().collect()` via `use std::core::iter`" }
+    if eq(clone(name), "seq_contains") { return "removed free function; use `v.iter().contains(x)` via `use std::core::iter`" }
+    if eq(clone(name), "unique") { return "removed free function; use `v.iter().unique().collect()` via `use std::core::iter`" }
+    if eq(clone(name), "count_eq") { return "removed free function; use `v.iter().count_eq(x)` via `use std::core::iter`" }
     if eq(clone(name), "binary_search") { return "removed free function; import `use std::seq::{binary_search_by}`" }
     if eq(clone(name), "min_i32") { return "removed free function; import `use std::seq::{min_by}`" }
     if eq(clone(name), "max_i32") { return "removed free function; import `use std::seq::{max_by}`" }
@@ -121,6 +121,9 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "printer") && eq(clone(name), "print_wit") {
         return String_from("use `w.to_wit()` on `World` instead")
     }
+    if eq(clone(module), "iter") {
+        return removed_iter_member_hint(name)
+    }
     if !eq(clone(module), "io") {
         return String_new()
     }
@@ -142,6 +145,57 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(name), "file_from_fd") { return "the experimental fd lane was retired; use `std::host::fs::File::open(path)` instead" }
     if eq(clone(name), "file_read") { return "the experimental fd lane was retired; use `Read::read` on `std::host::fs::File` instead" }
     if eq(clone(name), "file_write") { return "the experimental fd lane was retired; use `std::host::fs::File::create` and `Write::write` instead (write side open under #693)" }
+    String_new()
+}
+
+// The 44 eager iterator constructor / collector frees were retired (#917);
+// the lazy adapter methods on `VecIter` and the `Iterator` capabilities are
+// the only reachable spellings now.
+fn removed_iter_member_hint(name: String) -> String {
+    if eq(clone(name), "vec_iter") { return String_from("use `v.iter()` instead") }
+    if eq(clone(name), "range_iter") { return String_from("use `r.into_iter()` instead") }
+    if eq(clone(name), "range_inclusive_iter") { return String_from("use `r.into_iter()` instead") }
+    if eq(clone(name), "map_iter") { return String_from("use `v.iter().map(f)` instead") }
+    if eq(clone(name), "filter_iter") { return String_from("use `v.iter().filter(f)` instead") }
+    if eq(clone(name), "take_iter") { return String_from("use `v.iter().take(n)` instead") }
+    if eq(clone(name), "skip_iter") { return String_from("use `v.iter().skip(n)` instead") }
+    if eq(clone(name), "chain_iter") { return String_from("use `a.iter().chain(b.iter())` instead") }
+    if eq(clone(name), "enumerate_iter") { return String_from("use `v.iter().enumerate()` instead") }
+    if eq(clone(name), "zip_iter") { return String_from("use `a.iter().zip(b.iter())` instead") }
+    if eq(clone(name), "flat_map_iter") { return String_from("use `v.iter().flat_map(f)` instead") }
+    if eq(clone(name), "peek_iter") { return String_from("use `v.iter().peekable()` instead") }
+    if eq(clone(name), "step_by_iter") { return String_from("use `v.iter().step_by(n)` instead") }
+    if eq(clone(name), "scan_iter") { return String_from("use `v.iter().scan(init, f)` instead") }
+    if eq(clone(name), "unique_iter") { return String_from("use `v.iter().unique()` instead") }
+    if eq(clone(name), "rev_iter") { return String_from("use `v.iter().rev()` instead") }
+    if eq(clone(name), "collect_vec_iter") { return String_from("use `it.collect()` instead") }
+    if eq(clone(name), "collect_map_iter") { return String_from("use `it.collect()` instead") }
+    if eq(clone(name), "collect_filter_iter") { return String_from("use `it.collect()` instead") }
+    if eq(clone(name), "collect_take_iter") { return String_from("use `it.collect()` instead") }
+    if eq(clone(name), "collect_skip_iter") { return String_from("use `it.collect()` instead") }
+    if eq(clone(name), "collect_chain_iter") { return String_from("use `it.collect()` instead") }
+    if eq(clone(name), "collect_flat_map_iter") { return String_from("use `it.collect()` instead") }
+    if eq(clone(name), "collect_peek_iter") { return String_from("use `it.collect()` instead") }
+    if eq(clone(name), "collect_step_by_iter") { return String_from("use `it.collect()` instead") }
+    if eq(clone(name), "collect_scan_iter") { return String_from("use `it.collect()` instead") }
+    if eq(clone(name), "collect_range_iter") { return String_from("use `it.collect()` instead") }
+    if eq(clone(name), "collect_map_i32") { return String_from("use `v.iter().map(f).collect()` instead") }
+    if eq(clone(name), "collect_filter_i32") { return String_from("use `v.iter().filter(f).collect()` instead") }
+    if eq(clone(name), "collect_take_i32") { return String_from("use `v.iter().take(n).collect()` instead") }
+    if eq(clone(name), "collect_skip_i32") { return String_from("use `v.iter().skip(n).collect()` instead") }
+    if eq(clone(name), "collect_chain_i32") { return String_from("use `a.iter().chain(b.iter()).collect()` instead") }
+    if eq(clone(name), "collect_range_i32") { return String_from("use `r.into_iter().collect()` instead") }
+    if eq(clone(name), "collect_map_filter_i32") { return String_from("use `v.iter().map(f).filter(g).collect()` instead") }
+    if eq(clone(name), "collect_map_filter_take_i32") { return String_from("use `v.iter().map(f).filter(g).take(n).collect()` instead") }
+    if eq(clone(name), "iter_fold_i32") { return String_from("use `v.iter().fold(init, f)` instead") }
+    if eq(clone(name), "iter_count_i32") { return String_from("use `v.iter().count()` instead") }
+    if eq(clone(name), "iter_sum_i32") { return String_from("use `v.iter().sum()` instead") }
+    if eq(clone(name), "iter_any_i32") { return String_from("use `v.iter().any(f)` instead") }
+    if eq(clone(name), "iter_all_i32") { return String_from("use `v.iter().all(f)` instead") }
+    if eq(clone(name), "iter_contains_i32") { return String_from("use `v.iter().contains(target)` instead") }
+    if eq(clone(name), "iter_count_eq_i32") { return String_from("use `v.iter().count_eq(target)` instead") }
+    if eq(clone(name), "iter_unique_i32") { return String_from("use `v.iter().unique().collect()` instead") }
+    if eq(clone(name), "iter_reverse_i32") { return String_from("use `v.iter().rev().collect()` instead") }
     String_new()
 }
 
@@ -361,6 +415,15 @@ test mod "removed_names" {
         assert(len(removed_module_member_hint(String_from("scan"), String_from("wit_trim"))) > 0)
         assert(len(removed_module_member_hint(String_from("names"), String_from("kebab_name"))) > 0)
         assert(len(removed_module_member_hint(String_from("printer"), String_from("print_wit"))) > 0)
+    }
+    test "removed iter module members have hints" {
+        assert(len(removed_module_member_hint(String_from("iter"), String_from("vec_iter"))) > 0)
+        assert(len(removed_module_member_hint(String_from("iter"), String_from("collect_map_i32"))) > 0)
+        assert(len(removed_module_member_hint(String_from("iter"), String_from("iter_fold_i32"))) > 0)
+    }
+    test "live iter members keep no removal hint" {
+        assert(len(removed_module_member_hint(String_from("iter"), String_from("Iterator"))) == 0)
+        assert(len(removed_module_member_hint(String_from("iter"), String_from("VecIter"))) == 0)
     }
     test "live wit members keep no removal hint" {
         assert(len(removed_module_member_hint(String_from("parser"), String_from("parse_full"))) == 0)

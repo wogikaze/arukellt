@@ -5,6 +5,6 @@ fn add(a: i32, b: i32) -> i32 { a + b }
 
 fn main() {
     let v: Vec<i32> = Vec::new<i32>()
-    let sum = iter::iter_fold_i32(v, 42, add)
+    let sum = v.iter().fold(42, add)
     test::assert_eq_i32(sum, 42)
 }

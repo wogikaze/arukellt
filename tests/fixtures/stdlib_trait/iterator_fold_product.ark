@@ -9,6 +9,6 @@ fn main() {
     push(v, 3)
     push(v, 4)
 
-    let product = iter::iter_fold_i32(v, 1, mul)
+    let product = v.iter().fold(1, mul)
     test::assert_eq_i32(product, 24)
 }

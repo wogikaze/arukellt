@@ -7,7 +7,7 @@ fn main() {
     push(v, 2)
     push(v, 3)
 
-    let skipped = iter::collect_skip_i32(v, 0)
+    let skipped = v.iter().skip(0).collect()
     test::assert_eq_i32(len(skipped), 3)
     test::assert_eq_i32(get_unchecked(skipped, 0), 1)
     test::assert_eq_i32(get_unchecked(skipped, 1), 2)

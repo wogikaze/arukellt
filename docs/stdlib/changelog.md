@@ -16,6 +16,64 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — eager iterator constructor/collector frees removed (#917)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2/D4 and
+  the [#917](https://github.com/wogikaze/arukellt/issues/917) execution lane.
+  All 44 symbols were `provisional` manifest entries with top-level `pub fn`
+  declarations; the provisional lifecycle allows a minor-version change with
+  changelog notice, so no ADR-087 `stable` exception and no W0009 deprecation
+  window applied.
+- **Removed (44)**: the eager `std::core::iter` constructors (`vec_iter`,
+  `range_iter`, `range_inclusive_iter`, `map_iter`, `filter_iter`, `take_iter`,
+  `skip_iter`, `chain_iter`, `enumerate_iter`, `zip_iter`, `flat_map_iter`,
+  `peek_iter`, `step_by_iter`, `scan_iter`, `unique_iter`, `rev_iter`) and the
+  collectors/consumers (`collect_vec_iter` … `collect_range_iter`,
+  `collect_map_i32`, `collect_filter_i32`, `collect_take_i32`,
+  `collect_skip_i32`, `collect_chain_i32`, `collect_range_i32`,
+  `collect_map_filter_i32`, `collect_map_filter_take_i32`, `iter_fold_i32`,
+  `iter_count_i32`, `iter_sum_i32`, `iter_any_i32`, `iter_all_i32`,
+  `iter_contains_i32`, `iter_count_eq_i32`, `iter_unique_i32`,
+  `iter_reverse_i32`).
+- **Replacement**: the lazy adapter method surface on `VecIter<T>`.
+  `chain`, `enumerate`, `zip`, and `all` landed in the same change so every
+  removed constructor has a method spelling; the collectors are
+  `collect` / `count` and the numeric capabilities
+  (`sum`, `fold`, `contains`, `count_eq`) are trait methods. `iter::*`
+  qualified calls now fail resolution with an **E0100** hint from
+  `resolver::removed_names`; every before/after row is in
+  [migration-guidance.md](migration-guidance.md).
+- **In-tree callers**: the 10 deprecated `std::seq` compatibility helpers were
+  migrated too; map / filter / fold now use the methods, while take / skip
+  keep an eager bounded copy because the `TakeIter` / `SkipIter` collector
+  mis-resolves its item type when instantiated from a std module (#691; the
+  same chain compiles from user code).
+- **Scorecard**: public surface 1104 → **1060** symbols; manifest public
+  entries 729 → **685**; `pub fn` declarations 1279 → **1235**;
+  `associated-or-method` 1021 → **977**; monomorphic `*_i32` manifest helpers
+  114 → **97**. `must delete` 83, `intrinsic-only` 1, `prelude_wrapper` 65,
+  and the 375 unregistered declarations are unchanged. The
+  `std::core::iter frees` classification rule retired with the family, and the
+  module's 44-API row dropped from the coverage scoreboard.
+- **Evidence**: stage-2 rebuild; full fixture parity **1839/1839**
+  compile+validate PASS with 105 runtime smoke fixtures (the two new
+  `stdlib_trait/iterator_method_surface*.ark` fixtures cover the method
+  surface on `wasm32-gc` and linear `wasm32`); the 56 migrated
+  `stdlib_core/iter_*` and `stdlib_trait/iterator_*` fixtures compile and
+  validate on both targets; `selfhost diag-parity` **117/117** PASS including
+  the two new `diagnostics/removed_iter_constructor*.ark` E0100 goldens;
+  cross-backend parity **2/2** for the new pair; `verify lane` PASS;
+  `check-stdlib-eradication`, `check-compat-orphans`, and `docs check` 6/6
+  clean.
+- **Residuals**: the `.unique().collect()` / `.rev().collect()` runtime lane
+  traps inside the shared generic `collect_iterator` on both targets
+  (pre-existing: `.next()` / `.count()` work, and the retired
+  `iter_unique_i32` / `iter_reverse_i32` frees used the same trapping collect
+  path), so the new fixture pins the reachable next/count paths. Methods of
+  `std::core::iter` resolve without importing the module but miscompile, so
+  migrated call sites keep `use std::core::iter`; this loader/lowering gap is
+  separate from the eradication wave.
+
 ## 2026-10-27 — stable seq/combinator frees removed (ADR-087 Wave 2, #703 / #917)
 
 - **Basis**: [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2/D3,

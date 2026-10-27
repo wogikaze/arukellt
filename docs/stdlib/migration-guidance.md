@@ -221,16 +221,16 @@ The following public entries currently carry `deprecated_by` in
 | `concat` | `std::text::concat` |
 | `std::env::get_var` | `std::env::var` |
 | `std::host::fs::exists` | `std::host::fs::is_readable_file` |
-| `std::seq::map_i32_i32` | `v.iter().map(f).collect()` or `std::core::iter::collect_map_i32` |
-| `std::seq::filter_i32` | `v.iter().filter(f).collect()` or `std::core::iter::collect_filter_i32` |
-| `std::seq::take_i32` | `v.iter().take(n).collect()` or `std::core::iter::collect_take_i32` |
-| `std::seq::skip_i32` | `v.iter().skip(n).collect()` or `std::core::iter::collect_skip_i32` |
-| `std::seq::fold_i32_i32` | `v.iter().fold(init, f)` or `std::core::iter::iter_fold_i32` |
-| `std::seq::sum_i32` | `v.iter().sum()` or `std::core::iter::iter_sum_i32` |
-| `std::seq::seq_reverse` | `v.iter().rev().collect()` or `std::core::iter::iter_reverse_i32` |
-| `std::seq::seq_contains` | `v.iter().contains(target)` or `std::core::iter::iter_contains_i32` |
-| `std::seq::unique` | `v.iter().unique().collect()` or `std::core::iter::iter_unique_i32` |
-| `std::seq::count_eq` | `v.iter().count_eq(target)` or `std::core::iter::iter_count_eq_i32` |
+| `std::seq::map_i32_i32` | `v.iter().map(f).collect()` |
+| `std::seq::filter_i32` | `v.iter().filter(f).collect()` |
+| `std::seq::take_i32` | `v.iter().take(n).collect()` |
+| `std::seq::skip_i32` | `v.iter().skip(n).collect()` |
+| `std::seq::fold_i32_i32` | `v.iter().fold(init, f)` |
+| `std::seq::sum_i32` | `v.iter().sum()` |
+| `std::seq::seq_reverse` | `v.iter().rev().collect()` |
+| `std::seq::seq_contains` | `v.iter().contains(target)` |
+| `std::seq::unique` | `v.iter().unique().collect()` |
+| `std::seq::count_eq` | `v.iter().count_eq(target)` |
 | `std::seq::binary_search` | `std::seq::binary_search_by` |
 | `std::seq::min_i32` | `std::seq::min_by` |
 | `std::seq::max_i32` | `std::seq::max_by` |
@@ -443,6 +443,69 @@ submodules; import `std::wit::types`, `std::wit::scan`, `std::wit::names`,
 exercised on both targets by `tests/fixtures/stdlib_wit/wit_basic.ark`,
 `wit_types.ark`, `wit_type_basic.ark`, `wit_names.ark`, `wit_print.ark`,
 `world_build.ark`, and `wit_methods_wasm32.ark`.
+
+## Removed in the #917 eager-iterator wave (2026-10-27)
+
+The 44 eager `std::core::iter` constructor and collector free functions were
+retired. They were `provisional` manifest entries, so ADR-014 required a
+changelog notice and a documented replacement, but no deprecation window;
+W0009 therefore does not apply. The replacement is the lazy adapter method
+surface on `VecIter<T>`: `chain`, `enumerate`, `zip`, and `all` landed in the
+same change so the whole family is expressible as method chains. Old
+module-qualified calls fail resolution with an **E0100** hint from
+`resolver::removed_names`.
+
+| Removed API | Replacement |
+|-------------|-------------|
+| `iter::vec_iter(v)` | `v.iter()` |
+| `iter::range_iter(r)` | `r.into_iter()` |
+| `iter::range_inclusive_iter(r)` | `r.into_iter()` |
+| `iter::map_iter(v, f)` | `v.iter().map(f)` |
+| `iter::filter_iter(v, f)` | `v.iter().filter(f)` |
+| `iter::take_iter(v, n)` | `v.iter().take(n)` |
+| `iter::skip_iter(v, n)` | `v.iter().skip(n)` |
+| `iter::chain_iter(a, b)` | `a.iter().chain(b.iter())` |
+| `iter::enumerate_iter(v)` | `v.iter().enumerate()` |
+| `iter::zip_iter(a, b)` | `a.iter().zip(b.iter())` |
+| `iter::flat_map_iter(v, f)` | `v.iter().flat_map(f)` |
+| `iter::peek_iter(v)` | `v.iter().peekable()` |
+| `iter::step_by_iter(v, n)` | `v.iter().step_by(n)` |
+| `iter::scan_iter(v, init, f)` | `v.iter().scan(init, f)` |
+| `iter::unique_iter(v)` | `v.iter().unique()` |
+| `iter::rev_iter(v)` | `v.iter().rev()` |
+| `iter::collect_vec_iter(it)` | `it.collect()` |
+| `iter::collect_map_iter(it)` | `it.collect()` |
+| `iter::collect_filter_iter(it)` | `it.collect()` |
+| `iter::collect_take_iter(it)` | `it.collect()` |
+| `iter::collect_skip_iter(it)` | `it.collect()` |
+| `iter::collect_chain_iter(it)` | `it.collect()` |
+| `iter::collect_flat_map_iter(it)` | `it.collect()` |
+| `iter::collect_peek_iter(it)` | `it.collect()` |
+| `iter::collect_step_by_iter(it)` | `it.collect()` |
+| `iter::collect_scan_iter(it)` | `it.collect()` |
+| `iter::collect_range_iter(it)` | `it.collect()` |
+| `iter::collect_map_i32(v, f)` | `v.iter().map(f).collect()` |
+| `iter::collect_filter_i32(v, f)` | `v.iter().filter(f).collect()` |
+| `iter::collect_take_i32(v, n)` | `v.iter().take(n).collect()` |
+| `iter::collect_skip_i32(v, n)` | `v.iter().skip(n).collect()` |
+| `iter::collect_chain_i32(a, b)` | `a.iter().chain(b.iter()).collect()` |
+| `iter::collect_range_i32(r)` | `r.into_iter().collect()` |
+| `iter::collect_map_filter_i32(v, f, g)` | `v.iter().map(f).filter(g).collect()` |
+| `iter::collect_map_filter_take_i32(v, f, g, n)` | `v.iter().map(f).filter(g).take(n).collect()` |
+| `iter::iter_fold_i32(v, init, f)` | `v.iter().fold(init, f)` |
+| `iter::iter_count_i32(v)` | `v.iter().count()` |
+| `iter::iter_sum_i32(v)` | `v.iter().sum()` |
+| `iter::iter_any_i32(v, f)` | `v.iter().any(f)` |
+| `iter::iter_all_i32(v, f)` | `v.iter().all(f)` |
+| `iter::iter_contains_i32(v, t)` | `v.iter().contains(t)` |
+| `iter::iter_count_eq_i32(v, t)` | `v.iter().count_eq(t)` |
+| `iter::iter_unique_i32(v)` | `v.iter().unique().collect()` |
+| `iter::iter_reverse_i32(v)` | `v.iter().rev().collect()` |
+
+The migrated fixtures (`tests/fixtures/stdlib_core/iter_*.ark` and
+`stdlib_trait/iterator_*.ark`) and the new
+`stdlib_trait/iterator_method_surface*.ark` pair cover the method surface on
+both `wasm32-gc` and linear-memory `wasm32`.
 
 ## std::io trait migration (ADR-085 Phase E/F, 2026-10-27)
 
@@ -688,8 +751,11 @@ The numeric lane now also covers `skip(n).map(f)` and `skip(n).filter(g)` via
 `Vec::from_iter`, generic `T: IntoIterator`, and numeric `sum` on both
 published targets. This remains concrete `Vec<i32>` evidence rather than a
 claim that arbitrary adapter combinations are item-generic.
-The existing `std::seq` compatibility helpers for map, filter, take, skip, and
-fold now delegate to the same canonical iterator consumers. The
+The existing `std::seq` compatibility helpers keep their eager signatures:
+map / filter / fold delegate to the canonical iterator methods, while take /
+skip copy the bounded range eagerly because the `TakeIter` / `SkipIter`
+collector mis-resolves its item type when instantiated from a std module
+(#691; the same chain compiles from user code). The
 `stdlib_seq/seq_map_filter.ark` and `stdlib_seq/seq_take_skip_fold.ark`
 fixtures compile, validate, and run with identical output on `wasm32-gc` and
 linear-memory `wasm32`. This is an implementation migration receipt, not a

@@ -9,7 +9,7 @@
 | Tier | Count | Description |
 |------|-------|-------------|
 | `stable` | 287 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
-| `provisional` | 63 | API is usable but may change in minor versions based on feedback. |
+| `provisional` | 19 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 298 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 81 | Superseded — see migration guidance. |
 
@@ -629,55 +629,6 @@ let input = read_to_string()
 | ~~`writer_write`~~ ⚠️ Deprecated → `Writer::write` | `(Vec<i32>, Vec<i32>) -> Result<i32, IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated legacy tagged write (memory or stdout/stderr tags); use Writer::write for memory handle… |
 | ~~`writer_write_str`~~ ⚠️ Deprecated → `Writer::write_string` | `(Vec<i32>, String) -> Result<i32, IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated legacy tagged string write; use Writer::write_string for memory handles. |
 
-## Iter
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `chain_iter` | `(Vec<i32>, Vec<i32>) -> ChainIter<VecIter>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Construct a lazy iterator chaining two vectors in order; wraps both sources as VecIter. |
-| `collect_chain_i32` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Chain two vectors and collect into a new Vec<i32>. |
-| `collect_chain_iter` | `(ChainIter<VecIter>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a ChainIter into a new Vec<i32> via Iterator::collect. |
-| `collect_filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Filter v with f and collect into a new Vec<i32> — the lazy-pipeline replacement for std::seq::filter… |
-| `collect_filter_iter` | `(FilterIter<i32>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a FilterIter into a new Vec<i32> via Iterator::collect. |
-| `collect_flat_map_iter` | `(FlatMapIter<i32>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a FlatMapIter into a new Vec<i32> via Iterator::collect. |
-| `collect_map_filter_i32` | `(Vec<i32>, fn(i32) -> i32, fn(i32) -> bool) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Map then filter in a single lazy pass — no intermediate Vec allocation. |
-| `collect_map_filter_take_i32` | `(Vec<i32>, fn(i32) -> i32, fn(i32) -> bool, i32) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Map, filter, then take in a single lazy pass — the canonical v.iter().map(f).filter(g).take(n).colle… |
-| `collect_map_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Map f over v and collect into a new Vec<i32> — the lazy-pipeline replacement for std::seq::map_i32_i… |
-| `collect_map_iter` | `(MapIter<i32, i32>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a MapIter into a new Vec<i32> via Iterator::collect. |
-| `collect_peek_iter` | `(PeekIter<i32>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a PeekIter into a new Vec<i32> via Iterator::collect. |
-| `collect_range_i32` | `(Range) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Collect a half-open Range into a new Vec<i32>. |
-| `collect_range_iter` | `(RangeIter) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a RangeIter into a new Vec<i32> via Iterator::collect. |
-| `collect_scan_iter` | `(ScanIter<i32>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a ScanIter into a new Vec<i32> via Iterator::collect. |
-| `collect_skip_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Skip the first n elements of v — the lazy-pipeline replacement for std::seq::skip_i32. |
-| `collect_skip_iter` | `(SkipIter<VecIter>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a SkipIter into a new Vec<i32> via Iterator::collect. |
-| `collect_step_by_iter` | `(StepByIter<i32>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a StepByIter into a new Vec<i32> via Iterator::collect. |
-| `collect_take_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Take the first n elements of v — the lazy-pipeline replacement for std::seq::take_i32. |
-| `collect_take_iter` | `(TakeIter<VecIter>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a TakeIter into a new Vec<i32> via Iterator::collect. |
-| `collect_vec_iter` | `(VecIter) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a VecIter into a new Vec<i32> via Iterator::collect. |
-| `enumerate_iter` | `(Vec<i32>) -> EnumerateIter<VecIter>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Lazy enumerate adapter; yields Pair<i32, i32> index/value items. |
-| `filter_iter` | `(Vec<i32>, fn(i32) -> bool) -> FilterIter<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Compatibility constructor for the lazy filter adapter (canonical form: v.iter().filter(f)). |
-| `flat_map_iter` | `(Vec<i32>, fn(i32) -> Vec<i32>) -> FlatMapIter<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Lazy flat_map adapter; expands each element through f into a Vec and drains the produced items in or… |
-| `iter_all_i32` | `(Vec<i32>, fn(i32) -> bool) -> bool` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Return true if all elements of v satisfy f. |
-| `iter_any_i32` | `(Vec<i32>, fn(i32) -> bool) -> bool` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Return true if any element of v satisfies f. |
-| `iter_contains_i32` | `(Vec<i32>, i32) -> bool` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Return true if v contains target via IteratorContains — the lazy-pipeline replacement for std::seq::… |
-| `iter_count_eq_i32` | `(Vec<i32>, i32) -> i32` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Count elements equal to target via IteratorCountEq — the lazy-pipeline replacement for std::seq::cou… |
-| `iter_count_i32` | `(Vec<i32>) -> i32` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Count the elements a Vec<i32> iterator would yield. |
-| `iter_fold_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Fold v into a single value via IteratorFold — the lazy-pipeline replacement for std::seq::fold_i32_i… |
-| `iter_reverse_i32` | `(Vec<i32>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Yield elements in reverse order via RevIter — the lazy-pipeline replacement for std::seq::seq_revers… |
-| `iter_sum_i32` | `(Vec<i32>) -> i32` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Sum all elements of v via IteratorSum — the lazy-pipeline replacement for std::seq::sum_i32. |
-| `iter_unique_i32` | `(Vec<i32>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Yield first occurrences in source order via UniqueIter — the lazy-pipeline replacement for std::seq:… |
-| `map_iter` | `(Vec<i32>, fn(i32) -> i32) -> MapIter<i32, i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Compatibility constructor for the lazy map adapter (canonical form: v.iter().map(f)). |
-| `peek_iter` | `(Vec<i32>) -> PeekIter<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Lazy peekable adapter; peek() inspects the upcoming item without consuming it. |
-| `range_inclusive_iter` | `(RangeInclusive) -> RangeInclusiveIter` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Construct a lazy iterator over a closed RangeInclusive. |
-| `range_iter` | `(Range) -> RangeIter` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Construct a lazy iterator over a half-open Range. |
-| `rev_iter` | `(Vec<i32>) -> RevIter` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Compatibility constructor for the lazy reverse adapter (canonical form: v.iter().rev()). |
-| `scan_iter` | `(Vec<i32>, i32, fn(i32, i32) -> Option<i32>) -> ScanIter<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Lazy scan adapter; threads a state through f and yields each intermediate result until f returns Non… |
-| `skip_iter` | `(Vec<i32>, i32) -> SkipIter<VecIter>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Compatibility constructor for the lazy skip adapter (canonical form: v.iter().skip(n)). |
-| `step_by_iter` | `(Vec<i32>, i32) -> StepByIter<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Lazy step_by adapter; yields every n-th element, clamping non-positive steps to 1. |
-| `take_iter` | `(Vec<i32>, i32) -> TakeIter<VecIter>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Compatibility constructor for the lazy take adapter (canonical form: v.iter().take(n)). |
-| `unique_iter` | `(Vec<i32>) -> UniqueIter` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Compatibility constructor for the lazy unique adapter (canonical form: v.iter().unique()). |
-| `vec_iter` | `(Vec<i32>) -> VecIter` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Construct the canonical lazy VecIter over v (same as v.iter()). |
-| `zip_iter` | `(Vec<i32>, Vec<i32>) -> ZipIter<VecIter, VecIter>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Lazy zip over two vectors, stopping at the shorter length; yields Pair<i32, i32> items. |
-
 ## Json
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
@@ -799,24 +750,24 @@ let input = read_to_string()
 | ~~`binary_search`~~ ⚠️ Deprecated → `std::seq::binary_search_by` | `(Vec<i32>, i32) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated monomorphic wrapper. Use the generic std::seq::binary_search_by(v, target) over T: Ord. |
 | `binary_search_by` | `(Vec<T>, T) -> i32` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Binary search on a sorted Vec<T> using T: Ord. Returns the index of target or -1. |
 | `binary_search_by_key` | `(Vec<T>, K, fn(T) -> K) -> i32` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Binary search on a sorted Vec<T> by extracted key. Returns the index of the element whose key equals… |
-| ~~`count_eq`~~ ⚠️ Deprecated → `std::core::iter::iter_count_eq_i32` | `(Vec<i32>, i32) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target) or std::core::… |
-| ~~`filter_i32`~~ ⚠️ Deprecated → `std::core::iter::collect_filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().filter(f).collect() or std::core::iter::coll… |
-| ~~`fold_i32_i32`~~ ⚠️ Deprecated → `std::core::iter::iter_fold_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorFold capability v.iter().fold(init, f) or std::core::iter::… |
+| ~~`count_eq`~~ ⚠️ Deprecated → `VecIter::count_eq` | `(Vec<i32>, i32) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target). |
+| ~~`filter_i32`~~ ⚠️ Deprecated → `VecIter::filter` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().filter(f).collect(). |
+| ~~`fold_i32_i32`~~ ⚠️ Deprecated → `VecIter::fold` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorFold capability v.iter().fold(init, f). |
 | `lower_bound` | `(Vec<T>, T) -> i32` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Return the index of the first element >= target in a sorted Vec<T: Ord>; len(v) if all elements are … |
-| ~~`map_i32_i32`~~ ⚠️ Deprecated → `std::core::iter::collect_map_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().map(f).collect() or std::core::iter::collect… |
+| ~~`map_i32_i32`~~ ⚠️ Deprecated → `VecIter::map` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().map(f).collect(). |
 | `max_by` | `(Vec<T>) -> T` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Return the maximum element of v under T: Ord. |
 | `max_by_key` | `(Vec<T>, fn(T) -> K) -> T` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Return the element of v whose key(element) is maximal under K: Ord. |
 | ~~`max_i32`~~ ⚠️ Deprecated → `std::seq::max_by` | `(Vec<i32>) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated monomorphic wrapper. Use the generic std::seq::max_by(v) over T: Ord. |
 | `min_by` | `(Vec<T>) -> T` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Return the minimum element of v under T: Ord. |
 | `min_by_key` | `(Vec<T>, fn(T) -> K) -> T` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Return the element of v whose key(element) is minimal under K: Ord. |
 | ~~`min_i32`~~ ⚠️ Deprecated → `std::seq::min_by` | `(Vec<i32>) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated monomorphic wrapper. Use the generic std::seq::min_by(v) over T: Ord. |
-| ~~`seq_contains`~~ ⚠️ Deprecated → `std::core::iter::iter_contains_i32` | `(Vec<i32>, i32) -> bool` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorContains capability v.iter().contains(target) or std::core:… |
-| ~~`seq_reverse`~~ ⚠️ Deprecated → `std::core::iter::iter_reverse_i32` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().rev().collect() or std::core::iter::iter_rev… |
-| ~~`skip_i32`~~ ⚠️ Deprecated → `std::core::iter::collect_skip_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().skip(n).collect() or std::core::iter::collec… |
+| ~~`seq_contains`~~ ⚠️ Deprecated → `VecIter::contains` | `(Vec<i32>, i32) -> bool` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorContains capability v.iter().contains(target). |
+| ~~`seq_reverse`~~ ⚠️ Deprecated → `VecIter::rev` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().rev().collect(). |
+| ~~`skip_i32`~~ ⚠️ Deprecated → `VecIter::skip` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().skip(n).collect(). |
 | `sort_by` | `(Vec<T>) -> Vec<T>` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Sort v into ascending order under T: Ord (stable insertion sort, in place; returns the same vector). |
-| ~~`sum_i32`~~ ⚠️ Deprecated → `std::core::iter::iter_sum_i32` | `(Vec<i32>) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorSum capability v.iter().sum() or std::core::iter::iter_sum_… |
-| ~~`take_i32`~~ ⚠️ Deprecated → `std::core::iter::collect_take_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect() or std::core::iter::collec… |
-| ~~`unique`~~ ⚠️ Deprecated → `std::core::iter::iter_unique_i32` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect() or std::core::iter::iter_… |
+| ~~`sum_i32`~~ ⚠️ Deprecated → `VecIter::sum` | `(Vec<i32>) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorSum capability v.iter().sum(). |
+| ~~`take_i32`~~ ⚠️ Deprecated → `VecIter::take` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect(). |
+| ~~`unique`~~ ⚠️ Deprecated → `VecIter::unique` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect(). |
 | `upper_bound` | `(Vec<T>, T) -> i32` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Return the index of the first element > target in a sorted Vec<T: Ord>; len(v) if all elements are <… |
 
 ## Signal
@@ -1181,7 +1132,7 @@ let input = read_to_string()
 | ~~`buf_writer_write_str`~~ | `BufWriter::write_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`buffered_reader`~~ | `BufReader::new` | [migration-guidance.md](migration-guidance.md) |
 | ~~`buffered_writer`~~ | `BufWriter::new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`count_eq`~~ | `std::core::iter::iter_count_eq_i32` | [migration-guidance.md](migration-guidance.md) |
+| ~~`count_eq`~~ | `VecIter::count_eq` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_front`~~ | `Deque::front` | [migration-guidance.md](migration-guidance.md) |
@@ -1198,8 +1149,8 @@ let input = read_to_string()
 | ~~`f64_bits_hi`~~ | `f64::to_bits_hi` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_lo`~~ | `f64::to_bits_lo` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_to_f32`~~ | `f64::to_f32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`filter_i32`~~ | `std::core::iter::collect_filter_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`fold_i32_i32`~~ | `std::core::iter::iter_fold_i32` | [migration-guidance.md](migration-guidance.md) |
+| ~~`filter_i32`~~ | `VecIter::filter` | [migration-guidance.md](migration-guidance.md) |
+| ~~`fold_i32_i32`~~ | `VecIter::fold` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get`~~ | `Vec::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | [migration-guidance.md](migration-guidance.md) |
@@ -1223,25 +1174,25 @@ let input = read_to_string()
 | ~~`linked_list_push_back`~~ | `LinkedList::push_back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_push_front`~~ | `LinkedList::push_front` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_to_vec`~~ | `LinkedList::iter` | [migration-guidance.md](migration-guidance.md) |
-| ~~`map_i32_i32`~~ | `std::core::iter::collect_map_i32` | [migration-guidance.md](migration-guidance.md) |
+| ~~`map_i32_i32`~~ | `VecIter::map` | [migration-guidance.md](migration-guidance.md) |
 | ~~`max_i32`~~ | `std::seq::max_by` | [migration-guidance.md](migration-guidance.md) |
 | ~~`min_i32`~~ | `std::seq::min_by` | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | [migration-guidance.md](migration-guidance.md) |
 | ~~`reader_from_bytes`~~ | `Reader::from_bytes` | [migration-guidance.md](migration-guidance.md) |
-| ~~`seq_contains`~~ | `std::core::iter::iter_contains_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`seq_reverse`~~ | `std::core::iter::iter_reverse_i32` | [migration-guidance.md](migration-guidance.md) |
+| ~~`seq_contains`~~ | `VecIter::contains` | [migration-guidance.md](migration-guidance.md) |
+| ~~`seq_reverse`~~ | `VecIter::rev` | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | [migration-guidance.md](migration-guidance.md) |
-| ~~`skip_i32`~~ | `std::core::iter::collect_skip_i32` | [migration-guidance.md](migration-guidance.md) |
+| ~~`skip_i32`~~ | `VecIter::skip` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_get`~~ | `Slice::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_len`~~ | `Slice::len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`sum_i32`~~ | `std::core::iter::iter_sum_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`take_i32`~~ | `std::core::iter::collect_take_i32` | [migration-guidance.md](migration-guidance.md) |
+| ~~`sum_i32`~~ | `VecIter::sum` | [migration-guidance.md](migration-guidance.md) |
+| ~~`take_i32`~~ | `VecIter::take` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u16_to_i32`~~ | `u16::to_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u32_to_u64`~~ | `u32::to_u64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u64_to_u32`~~ | `u64::to_u32_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | `u8::to_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`unique`~~ | `std::core::iter::iter_unique_i32` | [migration-guidance.md](migration-guidance.md) |
+| ~~`unique`~~ | `VecIter::unique` | [migration-guidance.md](migration-guidance.md) |
 | ~~`write_all`~~ | `Io::write_all` | [migration-guidance.md](migration-guidance.md) |
 | ~~`write_string`~~ | `Writer::write_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`writer_flush`~~ | `Writer::flush` | [migration-guidance.md](migration-guidance.md) |

@@ -1,0 +1,110 @@
+// The eager std::core::iter constructor/collector frees were retired (#917);
+// this fixture pins the lazy method surface that replaced them.
+use std::core
+use std::core::iter
+use std::test
+
+fn is_pos(x: i32) -> bool { x > 0 }
+fn is_even(x: i32) -> bool { x / 2 * 2 == x }
+fn double(x: i32) -> i32 { x * 2 }
+fn add(a: i32, b: i32) -> i32 { a + b }
+fn running_sum(acc: i32, x: i32) -> Option<i32> { Some(acc + x) }
+fn dup(x: i32) -> Vec<i32> {
+    let out: Vec<i32> = Vec::new<i32>()
+    push(out, x)
+    push(out, x)
+    out
+}
+
+fn main() {
+    let a: Vec<i32> = Vec::new<i32>()
+    push(a, 1)
+    push(a, 2)
+    push(a, 3)
+    push(a, 4)
+    let b: Vec<i32> = Vec::new<i32>()
+    push(b, 10)
+    push(b, 20)
+    push(b, 30)
+    let empty: Vec<i32> = Vec::new<i32>()
+
+    // Numeric consumers keep the capability-based method spelling.
+    test::assert_eq_i32(a.iter().count(), 4)
+    test::assert_eq_i32(a.iter().sum(), 10)
+    test::assert_eq_i32(a.iter().fold(0, add), 10)
+    test::assert_true(a.iter().any(is_even))
+    test::assert_true(a.iter().contains(3))
+    test::assert_eq_i32(a.iter().count_eq(2), 1)
+
+    // all: true, false, and vacuously true on an empty range.
+    test::assert_true(a.iter().all(is_pos))
+    test::assert_false(a.iter().all(is_even))
+    test::assert_true(empty.iter().all(is_pos))
+
+    // chain: both sources in order, plus the generic IntoIterator path.
+    let chained = a.iter().chain(b.iter()).collect()
+    test::assert_eq_i32(len(chained), 7)
+    test::assert_eq_i32(get_unchecked(chained, 4), 10)
+    let mut chained_total: i32 = 0
+    for value in a.iter().chain(b.iter()) {
+        chained_total = chained_total + value
+    }
+    test::assert_eq_i32(chained_total, 70)
+
+    // enumerate: zero-based Pair positions.
+    let enumerated = a.iter().enumerate().collect()
+    test::assert_eq_i32(len(enumerated), 4)
+    test::assert_eq_i32(get_unchecked(enumerated, 3).first, 3)
+    test::assert_eq_i32(get_unchecked(enumerated, 3).second, 4)
+
+    // zip: stops at the shorter source and keeps both payloads.
+    let zipped = a.iter().zip(b.iter()).collect()
+    test::assert_eq_i32(len(zipped), 3)
+    test::assert_eq_i32(get_unchecked(zipped, 2).first, 3)
+    test::assert_eq_i32(get_unchecked(zipped, 2).second, 30)
+    let short: Vec<i32> = Vec::new<i32>()
+    push(short, 99)
+    let narrow = a.iter().zip(short.iter()).collect()
+    test::assert_eq_i32(len(narrow), 1)
+    test::assert_eq_i32(get_unchecked(narrow, 0).second, 99)
+
+    // Collector chains: map, filter, take, skip, flat_map, step_by, scan.
+    let mapped = a.iter().map(double).collect()
+    test::assert_eq_i32(get_unchecked(mapped, 3), 8)
+    let filtered = a.iter().filter(is_even).collect()
+    test::assert_eq_i32(len(filtered), 2)
+    let pipeline = a.iter().map(double).filter(is_even).take(2).collect()
+    test::assert_eq_i32(len(pipeline), 2)
+    test::assert_eq_i32(get_unchecked(pipeline, 1), 4)
+    let skipped = a.iter().skip(2).collect()
+    test::assert_eq_i32(get_unchecked(skipped, 0), 3)
+    let flattened = a.iter().flat_map(dup).collect()
+    test::assert_eq_i32(len(flattened), 8)
+    let peeked = a.iter().peekable().collect()
+    test::assert_eq_i32(len(peeked), 4)
+    let stepped = a.iter().step_by(2).collect()
+    test::assert_eq_i32(len(stepped), 2)
+    let scanned = a.iter().scan(0, running_sum).collect()
+    test::assert_eq_i32(get_unchecked(scanned, 3), 10)
+    // The eager `collect` lane on UniqueIter / RevIter traps in the shared
+    // generic collector (pre-existing iterator residual, independent of the
+    // free-function retirement), so pin the working next / count paths.
+    test::assert_eq_i32(a.iter().unique().count(), 4)
+    let mut unique_iter = a.iter().unique()
+    match unique_iter.next() {
+        Some(value) => test::assert_eq_i32(value, 1),
+        None => panic("expected Some"),
+    }
+    test::assert_eq_i32(a.iter().rev().count(), 4)
+    let mut reversed_iter = a.iter().rev()
+    match reversed_iter.next() {
+        Some(value) => test::assert_eq_i32(value, 4),
+        None => panic("expected Some"),
+    }
+
+    // Range constructors expose the same into_iter entry point.
+    let ranged = core::range_new(0, 3).into_iter().collect()
+    test::assert_eq_i32(len(ranged), 3)
+    let inclusive = core::range_inclusive_new(0, 2).into_iter().collect()
+    test::assert_eq_i32(len(inclusive), 3)
+}

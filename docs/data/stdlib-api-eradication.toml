@@ -257,12 +257,12 @@ class = "associated-or-method"
 owner = "917"
 replacement = "Slice/Vec methods (sort_by, binary_search family)"
 
-[[rules]]
-label = "std::core::iter frees"
-module = "std::core::iter"
-class = "associated-or-method"
-owner = "917"
-replacement = "Iterator trait methods / adapter associated fns"
+# The 44 eager std::core::iter constructor / collector frees were retired by
+# #917 on 2026-10-27. They were `provisional`, source-declared and manifest
+# registered, so ADR-014's provisional notice rule applied (changelog +
+# migration guide) and no ADR-087 stable window or W0009 entry was involved.
+# The lazy `VecIter` / `Iterator` method surface is the only spelling now;
+# qualified old calls get an E0100 hint from resolver::removed_names.
 
 [[rules]]
 label = "std::collections frees"

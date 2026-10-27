@@ -15,22 +15,22 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 1279 `pub fn` declarations under
-`std/**/*.ark`; 904 map to a manifest entry and
-375 are unregistered. Eradication scope = 729 manifest
-public entries + 375 unregistered declarations = **1104 symbols**.
+**Real surface denominator:** 1235 `pub fn` declarations under
+`std/**/*.ark`; 860 map to a manifest entry and
+375 are unregistered. Eradication scope = 685 manifest
+public entries + 375 unregistered declarations = **1060 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 1104 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 1279 | — |
+| Eradication-scope symbols (real std surface) | 1060 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 1235 | — |
 | Unregistered std declarations (no manifest entry) | 375 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
-| Manifest public entries (registered scope) | 729 | 0 |
+| Manifest public entries (registered scope) | 685 | 0 |
 | `prelude_wrapper` entries | 65 | 0 |
-| Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 114 | 0 |
+| Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 97 | 0 |
 | `intrinsic-only` bridges (non-public) | 1 | — |
 
 ## Classification
@@ -38,7 +38,7 @@ public entries + 375 unregistered declarations = **1104 symbols**.
 | Class | Meaning | Symbols |
 |-------|---------|---------|
 | `must delete` | Replacement already exists or functionality retires | 83 |
-| `associated-or-method` | Replacement must land as method/associated first | 1021 |
+| `associated-or-method` | Replacement must land as method/associated first | 977 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
 ## Execution Rules
@@ -70,7 +70,6 @@ registered entries and unregistered `pub fn` declarations.
 | std::io and host stdio frees | `associated-or-method` | [#693](../../issues/open/693-read-write-traits-io-unification.md) | 9 | 2 | Read / Write / BufRead / Seek trait methods and a host stdio namespace for stdin / stdout / stderr / print_bytes (the typed-handle replacement is still open under #693; the remaining free functions are the host-backed compatibility surface, not the target API) |
 | std::test assert frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 18 | 0 | std::test module functions; the Test associated API referenced by #719 was never implemented, so the harness-surface replacement is still open |
 | std::seq remaining | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 9 | 0 | Slice/Vec methods (sort_by, binary_search family) |
-| std::core::iter frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 44 | 0 | Iterator trait methods / adapter associated fns |
 | std::collections frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 100 | 20 | collection type methods (HashMap/HashSet/Deque/BTree/SortedMap/etc.) |
 | std::text frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 47 | 11 | String/str methods, Builder methods, Rope methods |
 | std::json/toml/csv frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 53 | 42 | Json/Toml/Csv value methods and associated parse/stringify |
@@ -390,50 +389,6 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `range_new` | `std::core` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `error_message` | `std::core::error` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `combine` | `std::core::hash` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `chain_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_chain_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_chain_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_filter_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_filter_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_flat_map_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_map_filter_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_map_filter_take_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_map_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_map_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_peek_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_range_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_range_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_scan_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_skip_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_skip_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_step_by_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_take_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_take_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_vec_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `enumerate_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `filter_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `flat_map_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `iter_all_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `iter_any_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `iter_contains_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `iter_count_eq_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `iter_count_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `iter_fold_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `iter_reverse_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `iter_sum_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `iter_unique_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `map_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `peek_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `range_inclusive_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `range_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `rev_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `scan_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `skip_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `step_by_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `take_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `unique_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `vec_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `zip_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `csv_count_rows` | `std::csv` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `csv_get_row_raw` | `std::csv` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `csv_parse_row` | `std::csv` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |

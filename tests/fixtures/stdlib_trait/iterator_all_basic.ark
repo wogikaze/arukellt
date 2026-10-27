@@ -9,5 +9,5 @@ fn main() {
     push(v, 2)
     push(v, 3)
 
-    test::assert_true(iter::iter_all_i32(v, is_positive))
+    test::assert_true(v.iter().all(is_positive))
 }
