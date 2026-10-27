@@ -7,5 +7,10 @@
   },
   "gitlens.integrations.enabled": false,
   "gitlens.advanced.repositorySearch.enabled": false,
-  "gitlens.plusFeatures.enabled": false
+  "gitlens.plusFeatures.enabled": false,
+  "gitlens.ai.enabled": false,
+  "gitlens.graph.followTerminal.enabled": false,
+  "gitlens.gitkraken.mcp.autoEnabled": false,
+  "git.autoRepositoryDetection": false,
+  "git.openRepositoryInParentFolders": "never"
 }

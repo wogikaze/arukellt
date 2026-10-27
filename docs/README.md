@@ -8,7 +8,7 @@
 - **Release readiness: NOT READY**
 - Failing release checks: 3
 - Distinct incidents: 3
-- Updated: 2026-10-25
+- Updated: 2026-10-27
 - CLI default target: `wasm32-gc`
 - Canonical target: `wasm32-gc`
 - Component emit: multi-axis on `wasm32-gc`: `command_component`=`available_on_pinned`; `library_component`=`requires_s2`; `wit_emit`=`partial`; `jco_transpile`=`smoke`; `component_cli`=`provisional` — The selfhost compiler emits the standard WASI P2 core ABI and the launcher uses the official wasm-tools component pipeline. Repository-specific bridges, post-linkers, and legacy compatibility paths are not supported. ([axes](data/component-availability.md))
@@ -16,7 +16,7 @@
 - ADR-057 current-only fixture gate: `python3 scripts/manager.py verify fixtures` — 1691 compile/validate passed, 0 failed; 100 runtime executed; 2 runtime contracts delegated to native-cpp.
 - Observed quick gate: `python3 scripts/manager.py verify quick` — 151/151 checks pass.
 - Coverage: not exhaustive runtime or pinned/reference parity; not a release-readiness receipt. Historical failures are not individually resolved by this observation.
-- Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588); registry: 3271 manifest entries
+- Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588); registry: 3273 manifest entries
 - Historical verification: `python3 scripts/manager.py verify quick` — 166/166 checks pass
 - Stdlib manifest-backed public API: 625 functions
 

@@ -3,7 +3,7 @@
 # Every public stdlib free / monomorphic / prelude_wrapper symbol in
 # std/manifest.toml resolves to exactly one class here. The same rules
 # also classify top-level `pub fn` declarations under std/**/*.ark that
-# have no manifest entry (413 today); those are the unregistered public
+# have no manifest entry (255 today); those are the unregistered public
 # free functions that made the "0 public free functions" scorecard
 # unmeasurable before issue #703. The generated scorecard and inventory
 # live in docs/stdlib/eradication.md (scripts/gen/generate-docs.py);
@@ -205,6 +205,20 @@ replacement = "Iterator adapters / Vec methods (#691)"
 # No std::text free symbol remains, so this family has no live rule.
 
 [[rules]]
+label = "deprecated std::bytes frees"
+module = "std::bytes"
+deprecated = true
+class = "must delete"
+owner = "917"
+replacement = "Byte-vector methods on `Vec<i32>` (`b.push_byte`, `b.len`, `b.get_unchecked`, `b.equals_bytes`, `b.concat_bytes`, `b.slice_bytes`, `b.to_hex`/`Bytes::from_hex`, `b.to_base64`/`Bytes::from_base64`, the endian pairs, the buffer pushes, and `data.byte_cursor()` with the cursor readers) plus the `Bytes` namespace for receiver-less constructors"
+# Landed by #917 on 2026-10-27 (wave/next-bytes): the 45 stable manifest entries
+# are deprecated with W0009 and remove_in = 1.0.0, and the method / associated
+# replacement is already live, so this family is now deletion work (must
+# delete). The 8 unregistered helpers (hex_char / hex_val_char /
+# try_hex_val_char / try_read_*) were retired with E0100 hints, so the rule has
+# no source declarations left. Deletion waits for the ADR-087 wave.
+
+[[rules]]
 label = "deprecated module frees"
 deprecated = true
 class = "must delete"
@@ -264,13 +278,6 @@ module_pfx = ["std::json", "std::toml", "std::csv"]
 class = "associated-or-method"
 owner = "917"
 replacement = "Json/Toml/Csv value methods and associated parse/stringify"
-
-[[rules]]
-label = "std::bytes frees"
-module = "std::bytes"
-class = "associated-or-method"
-owner = "917"
-replacement = "Bytes/Buf/Cursor methods and associated encoders"
 
 [[rules]]
 label = "std::simd frees"

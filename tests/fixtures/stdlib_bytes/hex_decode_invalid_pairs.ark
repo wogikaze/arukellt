@@ -1,0 +1,9 @@
+use std::bytes
+use std::bytes::Bytes
+use std::test
+
+fn main() {
+    test::assert_eq_i32(Bytes::from_hex("zz").len(), 0)
+    test::assert_eq_i32(Bytes::from_hex("0g").len(), 0)
+    test::assert_eq_i32(Bytes::from_hex("g0").len(), 0)
+}

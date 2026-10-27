@@ -8,10 +8,10 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 251 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 206 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 19 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 287 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 68 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 113 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -143,51 +143,51 @@
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `base64_decode` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Decode a standard base64 string into a byte buffer. Silently skips invalid characters. |
-| `base64_encode` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Encode a byte buffer as standard base64 (RFC 4648, with padding). |
-| `buf_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Append all bytes from a Bytes slice onto a ByteBuf. |
-| `buf_freeze` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Freeze a ByteBuf into an immutable Bytes value. In the current runtime both are Vec<i32>, so this is… |
-| `buf_len` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Return the number of bytes in a ByteBuf. |
-| `buf_new` | `() -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Create a new empty ByteBuf (represented as Vec<i32>). |
-| `buf_push_u16_le` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Push a 16-bit value in little-endian byte order onto a ByteBuf. |
-| `buf_push_u32_le` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Push a 32-bit value in little-endian byte order onto a ByteBuf. |
-| `buf_push_u64_le` | `(Vec<i32>, i64) -> ()` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Push a 64-bit value in little-endian byte order onto a ByteBuf. x is i64. |
-| `buf_push_u8` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Push a single byte (0-255) onto a ByteBuf. |
-| `buf_with_capacity` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Create a new ByteBuf with a capacity hint. Capacity is advisory only in the current runtime. |
-| `byte_length` | `(String) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
-| `bytes_concat` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
-| `bytes_eq` | `(Vec<i32>, Vec<i32>) -> bool` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
-| `bytes_from_array` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Create an immutable Bytes value from an array of byte values (Vec<i32>, values 0-255). NOTE: Vec<u8>… |
-| `bytes_from_string` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
-| `bytes_get` | `(Vec<i32>, i32) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
-| `bytes_len` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
-| `bytes_new` | `() -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
-| `bytes_push` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
-| `bytes_slice` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
-| `cursor_new` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Create a ByteCursor from a Bytes value. Index 0 is the position; remaining indices are data bytes. |
-| `cursor_pos` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Return the current byte position of a ByteCursor. |
-| `cursor_remaining` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Return the number of bytes remaining in a ByteCursor. |
-| `hex_decode` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
-| `hex_encode` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
-| `leb128_decode_i32` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Decode a signed LEB128 i32 from a ByteCursor. Advances the cursor. |
-| `leb128_decode_u32` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Decode an unsigned LEB128 u32 from a ByteCursor. Advances the cursor. |
-| `leb128_decode_u64` | `(Vec<i32>) -> i64` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Decode an unsigned LEB128 u64 from a ByteCursor. Returns i64. Advances the cursor. |
-| `leb128_encode_i32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
-| `leb128_encode_u32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
-| `leb128_encode_u64` | `(i64) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Encode a 64-bit unsigned value as LEB128 bytes. x is passed as i64. NOTE: u64 is not a distinct type… |
-| `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Read n bytes from a ByteCursor into a new Bytes buffer. Returns empty buffer on underflow. |
-| `read_u16_le` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Read two bytes little-endian from a ByteCursor. Returns -1 on underflow. |
-| `read_u32_be` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Read four bytes big-endian from a ByteCursor. Returns -1 on underflow. |
-| `read_u32_le` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Read four bytes little-endian from a ByteCursor. Returns -1 on underflow. |
-| `read_u64_le` | `(Vec<i32>) -> i64` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Read eight bytes little-endian from a ByteCursor as i64. Returns -1 on underflow. |
-| `read_u8` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Read one byte from a ByteCursor and advance the position. Returns -1 on underflow. |
-| `string_from_bytes` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
-| `u16_from_le_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
-| `u16_to_le_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
-| `u32_from_be_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
-| `u32_from_le_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
-| `u32_to_be_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
-| `u32_to_le_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| ~~`base64_decode`~~ ⚠️ Deprecated → `Bytes::from_base64` | `(String) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Decode a standard base64 string into a byte buffer. Silently skips invalid characters. |
+| ~~`base64_encode`~~ ⚠️ Deprecated → `Vec::to_base64` | `(Vec<i32>) -> String` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Encode a byte buffer as standard base64 (RFC 4648, with padding). |
+| ~~`buf_extend`~~ ⚠️ Deprecated → `Vec::extend_bytes` | `(Vec<i32>, Vec<i32>) -> ()` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Append all bytes from a Bytes slice onto a ByteBuf. |
+| ~~`buf_freeze`~~ ⚠️ Deprecated → `Vec::freeze` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Freeze a ByteBuf into an immutable Bytes value. In the current runtime both are Vec<i32>, so this is… |
+| ~~`buf_len`~~ ⚠️ Deprecated → `Vec::len` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Return the number of bytes in a ByteBuf. |
+| ~~`buf_new`~~ ⚠️ Deprecated → `Vec::new` | `() -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Create a new empty ByteBuf (represented as Vec<i32>). |
+| ~~`buf_push_u16_le`~~ ⚠️ Deprecated → `Vec::push_u16_le` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Push a 16-bit value in little-endian byte order onto a ByteBuf. |
+| ~~`buf_push_u32_le`~~ ⚠️ Deprecated → `Vec::push_u32_le` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Push a 32-bit value in little-endian byte order onto a ByteBuf. |
+| ~~`buf_push_u64_le`~~ ⚠️ Deprecated → `Vec::push_u64_le` | `(Vec<i32>, i64) -> ()` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Push a 64-bit value in little-endian byte order onto a ByteBuf. x is i64. |
+| ~~`buf_push_u8`~~ ⚠️ Deprecated → `Vec::push_byte` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Push a single byte (0-255) onto a ByteBuf. |
+| ~~`buf_with_capacity`~~ ⚠️ Deprecated → `Vec::with_capacity` | `(i32) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Create a new ByteBuf with a capacity hint. Capacity is advisory only in the current runtime. |
+| ~~`byte_length`~~ ⚠️ Deprecated → `String::len_bytes` | `(String) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`bytes_concat`~~ ⚠️ Deprecated → `Vec::concat_bytes` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`bytes_eq`~~ ⚠️ Deprecated → `Vec::equals_bytes` | `(Vec<i32>, Vec<i32>) -> bool` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`bytes_from_array`~~ ⚠️ Deprecated → `Bytes::from_array` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Create an immutable Bytes value from an array of byte values (Vec<i32>, values 0-255). NOTE: Vec<u8>… |
+| ~~`bytes_from_string`~~ ⚠️ Deprecated → `String::to_utf8_bytes` | `(String) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`bytes_get`~~ ⚠️ Deprecated → `Vec::get_unchecked` | `(Vec<i32>, i32) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`bytes_len`~~ ⚠️ Deprecated → `Vec::len` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`bytes_new`~~ ⚠️ Deprecated → `Vec::new` | `() -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`bytes_push`~~ ⚠️ Deprecated → `Vec::push_byte` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`bytes_slice`~~ ⚠️ Deprecated → `Vec::slice_bytes` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`cursor_new`~~ ⚠️ Deprecated → `Vec::byte_cursor` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Create a ByteCursor from a Bytes value. Index 0 is the position; remaining indices are data bytes. |
+| ~~`cursor_pos`~~ ⚠️ Deprecated → `Vec::cursor_pos` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Return the current byte position of a ByteCursor. |
+| ~~`cursor_remaining`~~ ⚠️ Deprecated → `Vec::cursor_remaining` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Return the number of bytes remaining in a ByteCursor. |
+| ~~`hex_decode`~~ ⚠️ Deprecated → `Bytes::from_hex` | `(String) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`hex_encode`~~ ⚠️ Deprecated → `Vec::to_hex` | `(Vec<i32>) -> String` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`leb128_decode_i32`~~ ⚠️ Deprecated → `Vec::read_leb128_i32` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Decode a signed LEB128 i32 from a ByteCursor. Advances the cursor. |
+| ~~`leb128_decode_u32`~~ ⚠️ Deprecated → `Vec::read_leb128_u32` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Decode an unsigned LEB128 u32 from a ByteCursor. Advances the cursor. |
+| ~~`leb128_decode_u64`~~ ⚠️ Deprecated → `Vec::read_leb128_u64` | `(Vec<i32>) -> i64` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Decode an unsigned LEB128 u64 from a ByteCursor. Returns i64. Advances the cursor. |
+| ~~`leb128_encode_i32`~~ ⚠️ Deprecated → `Bytes::from_leb128_i32` | `(i32) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`leb128_encode_u32`~~ ⚠️ Deprecated → `Bytes::from_leb128_u32` | `(i32) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`leb128_encode_u64`~~ ⚠️ Deprecated → `Bytes::from_leb128_u64` | `(i64) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Encode a 64-bit unsigned value as LEB128 bytes. x is passed as i64. NOTE: u64 is not a distinct type… |
+| ~~`read_bytes`~~ ⚠️ Deprecated → `Vec::read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Read n bytes from a ByteCursor into a new Bytes buffer. Returns empty buffer on underflow. |
+| ~~`read_u16_le`~~ ⚠️ Deprecated → `Vec::read_u16_le` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Read two bytes little-endian from a ByteCursor. Returns -1 on underflow. |
+| ~~`read_u32_be`~~ ⚠️ Deprecated → `Vec::read_u32_be` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Read four bytes big-endian from a ByteCursor. Returns -1 on underflow. |
+| ~~`read_u32_le`~~ ⚠️ Deprecated → `Vec::read_u32_le` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Read four bytes little-endian from a ByteCursor. Returns -1 on underflow. |
+| ~~`read_u64_le`~~ ⚠️ Deprecated → `Vec::read_u64_le` | `(Vec<i32>) -> i64` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Read eight bytes little-endian from a ByteCursor as i64. Returns -1 on underflow. |
+| ~~`read_u8`~~ ⚠️ Deprecated → `Vec::read_u8` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Read one byte from a ByteCursor and advance the position. Returns -1 on underflow. |
+| ~~`string_from_bytes`~~ ⚠️ Deprecated → `String::from_utf8_lossy` | `(Vec<i32>) -> String` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`u16_from_le_bytes`~~ ⚠️ Deprecated → `Vec::to_u16_le` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`u16_to_le_bytes`~~ ⚠️ Deprecated → `Bytes::from_u16_le` | `(i32) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`u32_from_be_bytes`~~ ⚠️ Deprecated → `Vec::to_u32_be` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`u32_from_le_bytes`~~ ⚠️ Deprecated → `Vec::to_u32_le` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`u32_to_be_bytes`~~ ⚠️ Deprecated → `Bytes::from_u32_be` | `(i32) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`u32_to_le_bytes`~~ ⚠️ Deprecated → `Bytes::from_u32_le` | `(i32) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
 
 ## Cli
 
@@ -1050,7 +1050,7 @@ let input = read_to_string()
 
 ## Deprecated APIs
 
-> ⚠️ **68 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **113 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -1059,8 +1059,32 @@ let input = read_to_string()
 | ~~`assert_eq_i64`~~ | `std::test::assert_eq_i64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_eq_str`~~ | `std::test::assert_eq_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `std::test::assert_ne_i32` | [migration-guidance.md](migration-guidance.md) |
+| ~~`base64_decode`~~ | `Bytes::from_base64` | [migration-guidance.md](migration-guidance.md) |
+| ~~`base64_encode`~~ | `Vec::to_base64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `std::seq::binary_search_by` | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_extend`~~ | `Vec::extend_bytes` | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_freeze`~~ | `Vec::freeze` | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_len`~~ | `Vec::len` | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_new`~~ | `Vec::new` | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_push_u16_le`~~ | `Vec::push_u16_le` | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_push_u32_le`~~ | `Vec::push_u32_le` | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_push_u64_le`~~ | `Vec::push_u64_le` | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_push_u8`~~ | `Vec::push_byte` | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_with_capacity`~~ | `Vec::with_capacity` | [migration-guidance.md](migration-guidance.md) |
+| ~~`byte_length`~~ | `String::len_bytes` | [migration-guidance.md](migration-guidance.md) |
+| ~~`bytes_concat`~~ | `Vec::concat_bytes` | [migration-guidance.md](migration-guidance.md) |
+| ~~`bytes_eq`~~ | `Vec::equals_bytes` | [migration-guidance.md](migration-guidance.md) |
+| ~~`bytes_from_array`~~ | `Bytes::from_array` | [migration-guidance.md](migration-guidance.md) |
+| ~~`bytes_from_string`~~ | `String::to_utf8_bytes` | [migration-guidance.md](migration-guidance.md) |
+| ~~`bytes_get`~~ | `Vec::get_unchecked` | [migration-guidance.md](migration-guidance.md) |
+| ~~`bytes_len`~~ | `Vec::len` | [migration-guidance.md](migration-guidance.md) |
+| ~~`bytes_new`~~ | `Vec::new` | [migration-guidance.md](migration-guidance.md) |
+| ~~`bytes_push`~~ | `Vec::push_byte` | [migration-guidance.md](migration-guidance.md) |
+| ~~`bytes_slice`~~ | `Vec::slice_bytes` | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `VecIter::count_eq` | [migration-guidance.md](migration-guidance.md) |
+| ~~`cursor_new`~~ | `Vec::byte_cursor` | [migration-guidance.md](migration-guidance.md) |
+| ~~`cursor_pos`~~ | `Vec::cursor_pos` | [migration-guidance.md](migration-guidance.md) |
+| ~~`cursor_remaining`~~ | `Vec::cursor_remaining` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_front`~~ | `Deque::front` | [migration-guidance.md](migration-guidance.md) |
@@ -1082,6 +1106,8 @@ let input = read_to_string()
 | ~~`get`~~ | `Vec::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hex_decode`~~ | `Bytes::from_hex` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hex_encode`~~ | `Vec::to_hex` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i16_to_i32`~~ | `i16::to_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i16`~~ | `i32::to_i16_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i64`~~ | `i32::into` | [migration-guidance.md](migration-guidance.md) |
@@ -1090,6 +1116,12 @@ let input = read_to_string()
 | ~~`i32_to_u32`~~ | `i32::to_u32_bits` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_u8`~~ | `i32::to_u8_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i64_to_i32`~~ | `i64::to_i32_checked` | [migration-guidance.md](migration-guidance.md) |
+| ~~`leb128_decode_i32`~~ | `Vec::read_leb128_i32` | [migration-guidance.md](migration-guidance.md) |
+| ~~`leb128_decode_u32`~~ | `Vec::read_leb128_u32` | [migration-guidance.md](migration-guidance.md) |
+| ~~`leb128_decode_u64`~~ | `Vec::read_leb128_u64` | [migration-guidance.md](migration-guidance.md) |
+| ~~`leb128_encode_i32`~~ | `Bytes::from_leb128_i32` | [migration-guidance.md](migration-guidance.md) |
+| ~~`leb128_encode_u32`~~ | `Bytes::from_leb128_u32` | [migration-guidance.md](migration-guidance.md) |
+| ~~`leb128_encode_u64`~~ | `Bytes::from_leb128_u64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`len`~~ | `Vec::len` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_back`~~ | `LinkedList::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_clear`~~ | `LinkedList::clear` | [migration-guidance.md](migration-guidance.md) |
@@ -1107,15 +1139,28 @@ let input = read_to_string()
 | ~~`min_i32`~~ | `std::seq::min_by` | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | [migration-guidance.md](migration-guidance.md) |
+| ~~`read_bytes`~~ | `Vec::read_bytes` | [migration-guidance.md](migration-guidance.md) |
+| ~~`read_u16_le`~~ | `Vec::read_u16_le` | [migration-guidance.md](migration-guidance.md) |
+| ~~`read_u32_be`~~ | `Vec::read_u32_be` | [migration-guidance.md](migration-guidance.md) |
+| ~~`read_u32_le`~~ | `Vec::read_u32_le` | [migration-guidance.md](migration-guidance.md) |
+| ~~`read_u64_le`~~ | `Vec::read_u64_le` | [migration-guidance.md](migration-guidance.md) |
+| ~~`read_u8`~~ | `Vec::read_u8` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `VecIter::contains` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `VecIter::rev` | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | [migration-guidance.md](migration-guidance.md) |
 | ~~`skip_i32`~~ | `VecIter::skip` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_get`~~ | `Slice::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_len`~~ | `Slice::len` | [migration-guidance.md](migration-guidance.md) |
+| ~~`string_from_bytes`~~ | `String::from_utf8_lossy` | [migration-guidance.md](migration-guidance.md) |
 | ~~`sum_i32`~~ | `VecIter::sum` | [migration-guidance.md](migration-guidance.md) |
 | ~~`take_i32`~~ | `VecIter::take` | [migration-guidance.md](migration-guidance.md) |
+| ~~`u16_from_le_bytes`~~ | `Vec::to_u16_le` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u16_to_i32`~~ | `u16::to_i32` | [migration-guidance.md](migration-guidance.md) |
+| ~~`u16_to_le_bytes`~~ | `Bytes::from_u16_le` | [migration-guidance.md](migration-guidance.md) |
+| ~~`u32_from_be_bytes`~~ | `Vec::to_u32_be` | [migration-guidance.md](migration-guidance.md) |
+| ~~`u32_from_le_bytes`~~ | `Vec::to_u32_le` | [migration-guidance.md](migration-guidance.md) |
+| ~~`u32_to_be_bytes`~~ | `Bytes::from_u32_be` | [migration-guidance.md](migration-guidance.md) |
+| ~~`u32_to_le_bytes`~~ | `Bytes::from_u32_le` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u32_to_u64`~~ | `u32::to_u64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u64_to_u32`~~ | `u64::to_u32_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | `u8::to_i32` | [migration-guidance.md](migration-guidance.md) |

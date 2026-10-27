@@ -158,21 +158,22 @@ STDLIB_MODULE_PAGES = [
                 "LEB128 variable-length encoding, and little-/big-endian integer conversions."
             ),
             "highlights": [
-                ("`bytes_from_string(s)` / `string_from_bytes(buf)`", "Convert between UTF-8 strings and byte buffers."),
-                ("`hex_encode(buf)` / `hex_decode(s)`", "Hex-encode a buffer or decode a hex string."),
-                ("`leb128_encode_u32(n)` / `leb128_encode_i32(n)`", "Variable-length LEB128 encoding."),
-                ("`u32_to_le_bytes(n)` / `u32_from_le_bytes(buf)`", "Little-endian u32 ↔ byte conversion."),
-                ("`bytes_slice(buf, start, end)`", "Extract a sub-range of bytes as a new buffer."),
-                ("`bytes_concat(a, b)`", "Concatenate two byte buffers into a new one."),
+                ("`String::to_utf8_bytes` / `String::from_utf8_lossy`", "Convert between UTF-8 strings and byte buffers."),
+                ("`Bytes::from_hex(s)` / `b.to_hex()`", "Hex-encode a buffer or decode a hex string."),
+                ("`Bytes::from_leb128_u32(n)` / `c.read_leb128_u32()`", "Variable-length LEB128 encoding."),
+                ("`Bytes::from_u32_le(n)` / `b.to_u32_le()`", "Little-endian u32 ↔ byte conversion."),
+                ("`b.slice_bytes(start, end)`", "Extract a sub-range of bytes as a new buffer."),
+                ("`a.concat_bytes(b)`", "Concatenate two byte buffers into a new one."),
             ],
             "typical_usage": """\
 ```ark
-import std::bytes
+use std::bytes
+use std::bytes::Bytes
 
-let buf = bytes_from_string("hello")
-let hex = hex_encode(buf)        // "68656c6c6f"
-let back = hex_decode(hex)       // [104, 101, 108, 108, 111]
-let s = string_from_bytes(back)  // "hello"
+let buf: Vec<i32> = "hello".to_utf8_bytes()
+let hex: String = buf.to_hex()                    // "68656c6c6f"
+let back: Vec<i32> = Bytes::from_hex(hex)         // [104, 101, 108, 108, 111]
+let text: String = String::from_utf8_lossy(back) // "hello"
 ```""",
         },
     },

@@ -16,6 +16,49 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — std::bytes method surface and deprecation wave (#917)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) /
+  [ADR-087](../adr/ADR-087-0x-deprecation-exception.md), executed by
+  [#917](https://github.com/wogikaze/arukellt/issues/917) on
+  `wave/next-bytes`.
+- **Added**: the canonical byte surface over the shared `Vec<i32>` layout:
+  `push_byte`/`push_u16_le`/`push_u32_le`/`push_u64_le`/`extend_bytes`/
+  `freeze`/`byte_cursor`/`cursor_pos`/`cursor_remaining`, the `read_*` and
+  `try_read_*` cursor readers, `read_leb128_*`, `equals_bytes`/`concat_bytes`/
+  `slice_bytes`, `to_hex`/`to_base64`, the `to_u16_le`/`to_u32_le`/`to_u32_be`
+  decoders, and the `Bytes` namespace (`from_array`, `from_hex`,
+  `from_base64`, `from_u16_le`, `from_u32_le`, `from_u32_be`,
+  `from_leb128_u32`, `from_leb128_i32`, `from_leb128_u64`).
+- **Deprecated (45)**: every registered `std::bytes` free function now carries
+  `stability = "deprecated"`, its `deprecated_by` method/associated target,
+  `deprecated_since = "0.1.0"`, and `remove_in = "1.0.0"`. Qualified calls emit
+  W0009 from `deprecated_bytes_qualified_message`. They remain callable until
+  the ADR-087 deletion wave.
+- **Removed (8, E0100)**: the unregistered helpers `hex_char`,
+  `hex_val_char`, `try_hex_val_char`, `try_read_u8`, `try_read_u16_le`,
+  `try_read_u32_le`, `try_read_u32_be`, and `try_read_bytes`. Qualified calls
+  now fail resolution with a `resolver::removed_names` hint naming the method
+  or `Bytes::from_*` replacement.
+- **Fixtures**: added the dual-target
+  `stdlib_bytes/bytes_method_surface.ark` / `_wasm32.ark` run pair and the
+  `diagnostics/deprecated_bytes_free.ark` / `_wasm32.ark` W0009 goldens. The
+  six cursor `try_read_*` fixtures and five hex-helper fixtures were migrated
+  to the method surface (the helper-only fixtures became
+  `hex_encode_nibbles`, `hex_decode_digit_values`, `hex_decode_invalid_pairs`,
+  `hex_decode_single_digit`, and `hex_decode_partial_invalid`).
+- **Scorecard delta**: 888 → **880** eradication-scope symbols; 263 → **255**
+  unregistered declarations; 1012 → **1004** `pub fn` declarations under
+  `std/`. The 45 newly deprecated entries moved from `associated-or-method`
+  to `must delete` because their replacements are live (818 → **765**
+  associated, 70 → **115** must delete). Manifest public entries stay 625 and
+  the 45 deprecated bytes entries stay counted until deletion.
+- **Residuals**: the 45 deprecated `std::bytes` frees await the ADR-087
+  deletion wave; `read_u64_le` keeps its `-1` sentinel because `Some(i64)`
+  construction still emits invalid Wasm, and `try_read_u64_le` stays
+  deferred. The fixture call sites outside the migrated families still use
+  the deprecated spellings during the warning window.
+
 ## 2026-10-27 — iterator collect lane fixes (#917, #691)
 
 - **Basis**: the iterator-collect residuals reported by the

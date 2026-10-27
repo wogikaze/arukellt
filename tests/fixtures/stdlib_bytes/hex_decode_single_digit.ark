@@ -1,0 +1,10 @@
+use std::bytes
+use std::bytes::Bytes
+use std::test
+
+fn main() {
+    test::assert_eq_i32(Bytes::from_hex("a").len(), 0)
+    let b: Vec<i32> = Bytes::from_hex("0a")
+    test::assert_eq_i32(b.len(), 1)
+    test::assert_eq_i32(b.get_unchecked(0), 10)
+}

@@ -5,8 +5,8 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 557
-- **Historical/deprecated names:** 68
+- **Canonical names:** 512
+- **Historical/deprecated names:** 113
 - **Total entries:** 625
 
 Related:
@@ -72,8 +72,6 @@ Current public API names, sorted alphabetically.
 | `assert_ne_i32` | `std::test` | `stable` | Test |
 | `assert_ne_string` | `std::test` | `stable` | Test |
 | `assert_true` | `std::test` | `stable` | Test |
-| `base64_decode` | `std::bytes` | `stable` | Bytes |
-| `base64_encode` | `std::bytes` | `stable` | Bytes |
 | `bench` | `std::test` | `experimental` | Test |
 | `binary_search_by` | `std::seq` | `provisional` | Seq |
 | `binary_search_by_key` | `std::seq` | `provisional` | Seq |
@@ -102,27 +100,8 @@ Current public API names, sorted alphabetically.
 | `btree_set_insert` | `std::collections::ordered` | `experimental` | Collections |
 | `btree_set_len` | `std::collections::ordered` | `experimental` | Collections |
 | `btree_set_new` | `std::collections::ordered` | `experimental` | Collections |
-| `buf_extend` | `std::bytes` | `stable` | Bytes |
-| `buf_freeze` | `std::bytes` | `stable` | Bytes |
-| `buf_len` | `std::bytes` | `stable` | Bytes |
-| `buf_new` | `std::bytes` | `stable` | Bytes |
-| `buf_push_u16_le` | `std::bytes` | `stable` | Bytes |
-| `buf_push_u32_le` | `std::bytes` | `stable` | Bytes |
-| `buf_push_u64_le` | `std::bytes` | `stable` | Bytes |
-| `buf_push_u8` | `std::bytes` | `stable` | Bytes |
-| `buf_with_capacity` | `std::bytes` | `stable` | Bytes |
 | `byte_at` | `prelude` | `stable` | String |
 | `byte_len` | `prelude` | `stable` | String |
-| `byte_length` | `std::bytes` | `stable` | Bytes |
-| `bytes_concat` | `std::bytes` | `stable` | Bytes |
-| `bytes_eq` | `std::bytes` | `stable` | Bytes |
-| `bytes_from_array` | `std::bytes` | `stable` | Bytes |
-| `bytes_from_string` | `std::bytes` | `stable` | Bytes |
-| `bytes_get` | `std::bytes` | `stable` | Bytes |
-| `bytes_len` | `std::bytes` | `stable` | Bytes |
-| `bytes_new` | `std::bytes` | `stable` | Bytes |
-| `bytes_push` | `std::bytes` | `stable` | Bytes |
-| `bytes_slice` | `std::bytes` | `stable` | Bytes |
 | `canonical_abi_version` | `std::component` | `experimental` | Component |
 | `ceil` | `std::simd::f32x4` | `experimental` | Simd |
 | `char_to_string` | `prelude` | `stable` | Conversion |
@@ -142,9 +121,6 @@ Current public API names, sorted alphabetically.
 | `csv_parse_with_header` | `std::csv` | `experimental` | Csv |
 | `csv_split_line` | `std::csv` | `experimental` | Csv |
 | `csv_stringify_row` | `std::csv` | `experimental` | Csv |
-| `cursor_new` | `std::bytes` | `stable` | Bytes |
-| `cursor_pos` | `std::bytes` | `stable` | Bytes |
-| `cursor_remaining` | `std::bytes` | `stable` | Bytes |
 | `div` | `std::simd::f32x4` | `experimental` | Simd |
 | `div` | `std::simd::f64x2` | `experimental` | Simd |
 | `duration_ms` | `std::time` | `stable` | Time |
@@ -240,8 +216,6 @@ Current public API names, sorted alphabetically.
 | `hashset_str_remove` | `std::collections::hash` | `stable` | Collections |
 | `hashset_to_vec` | `std::collections::hash` | `stable` | Collections |
 | `hashset_union` | `std::collections::hash` | `stable` | Collections |
-| `hex_decode` | `std::bytes` | `stable` | Bytes |
-| `hex_encode` | `std::bytes` | `stable` | Bytes |
 | `i8_to_i32` | `prelude` | `stable` | Scalar Conversion |
 | `id` | `std::host::process` | `stable` | Host Process |
 | `ifft` | `std::signal` | `stable` | Signal |
@@ -298,13 +272,7 @@ Current public API names, sorted alphabetically.
 | `json_stringify_i32` | `std::json` | `experimental` | Json |
 | `json_stringify_string` | `std::json` | `experimental` | Json |
 | `le` | `std::simd::f32x4` | `experimental` | Simd |
-| `leb128_decode_i32` | `std::bytes` | `stable` | Bytes |
-| `leb128_decode_u32` | `std::bytes` | `stable` | Bytes |
-| `leb128_decode_u64` | `std::bytes` | `stable` | Bytes |
-| `leb128_encode_i32` | `std::bytes` | `stable` | Bytes |
-| `leb128_encode_u32` | `std::bytes` | `stable` | Bytes |
 | `leb128_encode_u32` | `std::wasm` | `experimental` | Wasm |
-| `leb128_encode_u64` | `std::bytes` | `stable` | Bytes |
 | `leb128_size_u32` | `std::wasm` | `experimental` | Wasm |
 | `limits_bounded` | `std::wasm` | `experimental` | Wasm |
 | `limits_has_max` | `std::wasm` | `experimental` | Wasm |
@@ -410,17 +378,11 @@ Current public API names, sorted alphabetically.
 | `range_len` | `std::core` | `stable` | Core |
 | `range_new` | `std::core` | `stable` | Core |
 | `read_bytes` | `std::host::fs` | `experimental` | Host Fs |
-| `read_bytes` | `std::bytes` | `stable` | Bytes |
 | `read_dir` | `std::fs` | `provisional` | Fs |
 | `read_stdin_line` | `std::io` | `stable` | Io |
 | `read_string` | `std::fs` | `stable` | Fs |
 | `read_to_string` | `std::host::fs` | `provisional` | Host Fs |
 | `read_to_string` | `std::host::stdio` | `stable` | Host Stdio |
-| `read_u16_le` | `std::bytes` | `stable` | Bytes |
-| `read_u32_be` | `std::bytes` | `stable` | Bytes |
-| `read_u32_le` | `std::bytes` | `stable` | Bytes |
-| `read_u64_le` | `std::bytes` | `stable` | Bytes |
-| `read_u8` | `std::bytes` | `stable` | Bytes |
 | `reftype_externref` | `std::wasm` | `experimental` | Wasm |
 | `reftype_funcref` | `std::wasm` | `experimental` | Wasm |
 | `repeat` | `prelude` | `stable` | String |
@@ -484,7 +446,6 @@ Current public API names, sorted alphabetically.
 | `stdout` | `std::io` | `stable` | Io |
 | `stem` | `std::path` | `stable` | Path |
 | `String_from` | `prelude` | `stable` | String |
-| `string_from_bytes` | `std::bytes` | `stable` | Bytes |
 | `String_new` | `prelude` | `stable` | String |
 | `stringify` | `std::json` | `experimental` | Json |
 | `stringify_pretty` | `std::json` | `experimental` | Json |
@@ -521,12 +482,6 @@ Current public API names, sorted alphabetically.
 | `trim_end` | `prelude` | `stable` | String |
 | `trim_start` | `prelude` | `stable` | String |
 | `trunc` | `std::simd::f32x4` | `experimental` | Simd |
-| `u16_from_le_bytes` | `std::bytes` | `stable` | Bytes |
-| `u16_to_le_bytes` | `std::bytes` | `stable` | Bytes |
-| `u32_from_be_bytes` | `std::bytes` | `stable` | Bytes |
-| `u32_from_le_bytes` | `std::bytes` | `stable` | Bytes |
-| `u32_to_be_bytes` | `std::bytes` | `stable` | Bytes |
-| `u32_to_le_bytes` | `std::bytes` | `stable` | Bytes |
 | `unbox` | `prelude` | `stable` | Box |
 | `unwrap` | `prelude` | `stable` | Option Result |
 | `unwrap_or` | `prelude` | `stable` | Option Result |
@@ -592,8 +547,32 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`assert_eq_i64`~~ | `std::test::assert_eq_i64` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_eq_str`~~ | `std::test::assert_eq_string` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `std::test::assert_ne_i32` | Assert | [migration-guidance.md](migration-guidance.md) |
+| ~~`base64_decode`~~ | `Bytes::from_base64` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`base64_encode`~~ | `Vec::to_base64` | Bytes | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `std::seq::binary_search_by` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_extend`~~ | `Vec::extend_bytes` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_freeze`~~ | `Vec::freeze` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_len`~~ | `Vec::len` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_new`~~ | `Vec::new` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_push_u16_le`~~ | `Vec::push_u16_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_push_u32_le`~~ | `Vec::push_u32_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_push_u64_le`~~ | `Vec::push_u64_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_push_u8`~~ | `Vec::push_byte` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_with_capacity`~~ | `Vec::with_capacity` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`byte_length`~~ | `String::len_bytes` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`bytes_concat`~~ | `Vec::concat_bytes` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`bytes_eq`~~ | `Vec::equals_bytes` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`bytes_from_array`~~ | `Bytes::from_array` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`bytes_from_string`~~ | `String::to_utf8_bytes` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`bytes_get`~~ | `Vec::get_unchecked` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`bytes_len`~~ | `Vec::len` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`bytes_new`~~ | `Vec::new` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`bytes_push`~~ | `Vec::push_byte` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`bytes_slice`~~ | `Vec::slice_bytes` | Bytes | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `VecIter::count_eq` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`cursor_new`~~ | `Vec::byte_cursor` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`cursor_pos`~~ | `Vec::cursor_pos` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`cursor_remaining`~~ | `Vec::cursor_remaining` | Bytes | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_front`~~ | `Deque::front` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -615,6 +594,8 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`get`~~ | `Vec::get` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | Env | [migration-guidance.md](migration-guidance.md) |
+| ~~`hex_decode`~~ | `Bytes::from_hex` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`hex_encode`~~ | `Vec::to_hex` | Bytes | [migration-guidance.md](migration-guidance.md) |
 | ~~`i16_to_i32`~~ | `i16::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i16`~~ | `i32::to_i16_wrapping` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i64`~~ | `i32::into` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
@@ -623,6 +604,12 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`i32_to_u32`~~ | `i32::to_u32_bits` | Convert | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_u8`~~ | `i32::to_u8_wrapping` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`i64_to_i32`~~ | `i64::to_i32_checked` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
+| ~~`leb128_decode_i32`~~ | `Vec::read_leb128_i32` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`leb128_decode_u32`~~ | `Vec::read_leb128_u32` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`leb128_decode_u64`~~ | `Vec::read_leb128_u64` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`leb128_encode_i32`~~ | `Bytes::from_leb128_i32` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`leb128_encode_u32`~~ | `Bytes::from_leb128_u32` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`leb128_encode_u64`~~ | `Bytes::from_leb128_u64` | Bytes | [migration-guidance.md](migration-guidance.md) |
 | ~~`len`~~ | `Vec::len` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_back`~~ | `LinkedList::back` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_clear`~~ | `LinkedList::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -640,15 +627,28 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`min_i32`~~ | `std::seq::min_by` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`read_bytes`~~ | `Vec::read_bytes` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`read_u16_le`~~ | `Vec::read_u16_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`read_u32_be`~~ | `Vec::read_u32_be` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`read_u32_le`~~ | `Vec::read_u32_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`read_u64_le`~~ | `Vec::read_u64_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`read_u8`~~ | `Vec::read_u8` | Bytes | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `VecIter::contains` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `VecIter::rev` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`skip_i32`~~ | `VecIter::skip` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_get`~~ | `Slice::get` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_len`~~ | `Slice::len` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`string_from_bytes`~~ | `String::from_utf8_lossy` | Bytes | [migration-guidance.md](migration-guidance.md) |
 | ~~`sum_i32`~~ | `VecIter::sum` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`take_i32`~~ | `VecIter::take` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`u16_from_le_bytes`~~ | `Vec::to_u16_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
 | ~~`u16_to_i32`~~ | `u16::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
+| ~~`u16_to_le_bytes`~~ | `Bytes::from_u16_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`u32_from_be_bytes`~~ | `Vec::to_u32_be` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`u32_from_le_bytes`~~ | `Vec::to_u32_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`u32_to_be_bytes`~~ | `Bytes::from_u32_be` | Bytes | [migration-guidance.md](migration-guidance.md) |
+| ~~`u32_to_le_bytes`~~ | `Bytes::from_u32_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
 | ~~`u32_to_u64`~~ | `u32::to_u64` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`u64_to_u32`~~ | `u64::to_u32_wrapping` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | `u8::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
@@ -720,8 +720,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `assert_ne_i32` | ✅ `stable` | `std::test` | Test |
 | `assert_ne_string` | ✅ `stable` | `std::test` | Test |
 | `assert_true` | ✅ `stable` | `std::test` | Test |
-| `base64_decode` | ✅ `stable` | `std::bytes` | Bytes |
-| `base64_encode` | ✅ `stable` | `std::bytes` | Bytes |
+| ~~`base64_decode`~~ | ⚠️ deprecated | `std::bytes` | → `Bytes::from_base64` · [migration guide](migration-guidance.md) |
+| ~~`base64_encode`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::to_base64` · [migration guide](migration-guidance.md) |
 | `bench` | ✅ `experimental` | `std::test` | Test |
 | ~~`binary_search`~~ | ⚠️ deprecated | `std::seq` | → `std::seq::binary_search_by` · [migration guide](migration-guidance.md) |
 | `binary_search_by` | ✅ `provisional` | `std::seq` | Seq |
@@ -751,27 +751,27 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `btree_set_insert` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `btree_set_len` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `btree_set_new` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `buf_extend` | ✅ `stable` | `std::bytes` | Bytes |
-| `buf_freeze` | ✅ `stable` | `std::bytes` | Bytes |
-| `buf_len` | ✅ `stable` | `std::bytes` | Bytes |
-| `buf_new` | ✅ `stable` | `std::bytes` | Bytes |
-| `buf_push_u16_le` | ✅ `stable` | `std::bytes` | Bytes |
-| `buf_push_u32_le` | ✅ `stable` | `std::bytes` | Bytes |
-| `buf_push_u64_le` | ✅ `stable` | `std::bytes` | Bytes |
-| `buf_push_u8` | ✅ `stable` | `std::bytes` | Bytes |
-| `buf_with_capacity` | ✅ `stable` | `std::bytes` | Bytes |
+| ~~`buf_extend`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::extend_bytes` · [migration guide](migration-guidance.md) |
+| ~~`buf_freeze`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::freeze` · [migration guide](migration-guidance.md) |
+| ~~`buf_len`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::len` · [migration guide](migration-guidance.md) |
+| ~~`buf_new`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::new` · [migration guide](migration-guidance.md) |
+| ~~`buf_push_u16_le`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::push_u16_le` · [migration guide](migration-guidance.md) |
+| ~~`buf_push_u32_le`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::push_u32_le` · [migration guide](migration-guidance.md) |
+| ~~`buf_push_u64_le`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::push_u64_le` · [migration guide](migration-guidance.md) |
+| ~~`buf_push_u8`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::push_byte` · [migration guide](migration-guidance.md) |
+| ~~`buf_with_capacity`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::with_capacity` · [migration guide](migration-guidance.md) |
 | `byte_at` | ✅ `stable` | `prelude` | String |
 | `byte_len` | ✅ `stable` | `prelude` | String |
-| `byte_length` | ✅ `stable` | `std::bytes` | Bytes |
-| `bytes_concat` | ✅ `stable` | `std::bytes` | Bytes |
-| `bytes_eq` | ✅ `stable` | `std::bytes` | Bytes |
-| `bytes_from_array` | ✅ `stable` | `std::bytes` | Bytes |
-| `bytes_from_string` | ✅ `stable` | `std::bytes` | Bytes |
-| `bytes_get` | ✅ `stable` | `std::bytes` | Bytes |
-| `bytes_len` | ✅ `stable` | `std::bytes` | Bytes |
-| `bytes_new` | ✅ `stable` | `std::bytes` | Bytes |
-| `bytes_push` | ✅ `stable` | `std::bytes` | Bytes |
-| `bytes_slice` | ✅ `stable` | `std::bytes` | Bytes |
+| ~~`byte_length`~~ | ⚠️ deprecated | `std::bytes` | → `String::len_bytes` · [migration guide](migration-guidance.md) |
+| ~~`bytes_concat`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::concat_bytes` · [migration guide](migration-guidance.md) |
+| ~~`bytes_eq`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::equals_bytes` · [migration guide](migration-guidance.md) |
+| ~~`bytes_from_array`~~ | ⚠️ deprecated | `std::bytes` | → `Bytes::from_array` · [migration guide](migration-guidance.md) |
+| ~~`bytes_from_string`~~ | ⚠️ deprecated | `std::bytes` | → `String::to_utf8_bytes` · [migration guide](migration-guidance.md) |
+| ~~`bytes_get`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::get_unchecked` · [migration guide](migration-guidance.md) |
+| ~~`bytes_len`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::len` · [migration guide](migration-guidance.md) |
+| ~~`bytes_new`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::new` · [migration guide](migration-guidance.md) |
+| ~~`bytes_push`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::push_byte` · [migration guide](migration-guidance.md) |
+| ~~`bytes_slice`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::slice_bytes` · [migration guide](migration-guidance.md) |
 | `canonical_abi_version` | ✅ `experimental` | `std::component` | Component |
 | `ceil` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `char_to_string` | ✅ `stable` | `prelude` | Conversion |
@@ -792,9 +792,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `csv_parse_with_header` | ✅ `experimental` | `std::csv` | Csv |
 | `csv_split_line` | ✅ `experimental` | `std::csv` | Csv |
 | `csv_stringify_row` | ✅ `experimental` | `std::csv` | Csv |
-| `cursor_new` | ✅ `stable` | `std::bytes` | Bytes |
-| `cursor_pos` | ✅ `stable` | `std::bytes` | Bytes |
-| `cursor_remaining` | ✅ `stable` | `std::bytes` | Bytes |
+| ~~`cursor_new`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::byte_cursor` · [migration guide](migration-guidance.md) |
+| ~~`cursor_pos`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::cursor_pos` · [migration guide](migration-guidance.md) |
+| ~~`cursor_remaining`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::cursor_remaining` · [migration guide](migration-guidance.md) |
 | ~~`deque_back`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::back` · [migration guide](migration-guidance.md) |
 | ~~`deque_clear`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::clear` · [migration guide](migration-guidance.md) |
 | ~~`deque_front`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::front` · [migration guide](migration-guidance.md) |
@@ -911,8 +911,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `hashset_str_remove` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_to_vec` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_union` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hex_decode` | ✅ `stable` | `std::bytes` | Bytes |
-| `hex_encode` | ✅ `stable` | `std::bytes` | Bytes |
+| ~~`hex_decode`~~ | ⚠️ deprecated | `std::bytes` | → `Bytes::from_hex` · [migration guide](migration-guidance.md) |
+| ~~`hex_encode`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::to_hex` · [migration guide](migration-guidance.md) |
 | ~~`i16_to_i32`~~ | ⚠️ deprecated | `prelude` | → `i16::to_i32` · [migration guide](migration-guidance.md) |
 | ~~`i32_to_i16`~~ | ⚠️ deprecated | `prelude` | → `i32::to_i16_wrapping` · [migration guide](migration-guidance.md) |
 | ~~`i32_to_i64`~~ | ⚠️ deprecated | `prelude` | → `i32::into` · [migration guide](migration-guidance.md) |
@@ -977,13 +977,13 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `json_stringify_i32` | ✅ `experimental` | `std::json` | Json |
 | `json_stringify_string` | ✅ `experimental` | `std::json` | Json |
 | `le` | ✅ `experimental` | `std::simd::f32x4` | Simd |
-| `leb128_decode_i32` | ✅ `stable` | `std::bytes` | Bytes |
-| `leb128_decode_u32` | ✅ `stable` | `std::bytes` | Bytes |
-| `leb128_decode_u64` | ✅ `stable` | `std::bytes` | Bytes |
-| `leb128_encode_i32` | ✅ `stable` | `std::bytes` | Bytes |
-| `leb128_encode_u32` | ✅ `stable` | `std::bytes` | Bytes |
+| ~~`leb128_decode_i32`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::read_leb128_i32` · [migration guide](migration-guidance.md) |
+| ~~`leb128_decode_u32`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::read_leb128_u32` · [migration guide](migration-guidance.md) |
+| ~~`leb128_decode_u64`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::read_leb128_u64` · [migration guide](migration-guidance.md) |
+| ~~`leb128_encode_i32`~~ | ⚠️ deprecated | `std::bytes` | → `Bytes::from_leb128_i32` · [migration guide](migration-guidance.md) |
 | `leb128_encode_u32` | ✅ `experimental` | `std::wasm` | Wasm |
-| `leb128_encode_u64` | ✅ `stable` | `std::bytes` | Bytes |
+| ~~`leb128_encode_u32`~~ | ⚠️ deprecated | `std::bytes` | → `Bytes::from_leb128_u32` · [migration guide](migration-guidance.md) |
+| ~~`leb128_encode_u64`~~ | ⚠️ deprecated | `std::bytes` | → `Bytes::from_leb128_u64` · [migration guide](migration-guidance.md) |
 | `leb128_size_u32` | ✅ `experimental` | `std::wasm` | Wasm |
 | ~~`len`~~ | ⚠️ deprecated | `prelude` | → `Vec::len` · [migration guide](migration-guidance.md) |
 | `limits_bounded` | ✅ `experimental` | `std::wasm` | Wasm |
@@ -1106,17 +1106,17 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `range_len` | ✅ `stable` | `std::core` | Core |
 | `range_new` | ✅ `stable` | `std::core` | Core |
 | `read_bytes` | ✅ `experimental` | `std::host::fs` | Host Fs |
-| `read_bytes` | ✅ `stable` | `std::bytes` | Bytes |
+| ~~`read_bytes`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::read_bytes` · [migration guide](migration-guidance.md) |
 | `read_dir` | ✅ `provisional` | `std::fs` | Fs |
 | `read_stdin_line` | ✅ `stable` | `std::io` | Io |
 | `read_string` | ✅ `stable` | `std::fs` | Fs |
 | `read_to_string` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `read_to_string` | ✅ `stable` | `std::host::stdio` | Host Stdio |
-| `read_u16_le` | ✅ `stable` | `std::bytes` | Bytes |
-| `read_u32_be` | ✅ `stable` | `std::bytes` | Bytes |
-| `read_u32_le` | ✅ `stable` | `std::bytes` | Bytes |
-| `read_u64_le` | ✅ `stable` | `std::bytes` | Bytes |
-| `read_u8` | ✅ `stable` | `std::bytes` | Bytes |
+| ~~`read_u16_le`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::read_u16_le` · [migration guide](migration-guidance.md) |
+| ~~`read_u32_be`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::read_u32_be` · [migration guide](migration-guidance.md) |
+| ~~`read_u32_le`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::read_u32_le` · [migration guide](migration-guidance.md) |
+| ~~`read_u64_le`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::read_u64_le` · [migration guide](migration-guidance.md) |
+| ~~`read_u8`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::read_u8` · [migration guide](migration-guidance.md) |
 | `reftype_externref` | ✅ `experimental` | `std::wasm` | Wasm |
 | `reftype_funcref` | ✅ `experimental` | `std::wasm` | Wasm |
 | `repeat` | ✅ `stable` | `prelude` | String |
@@ -1186,7 +1186,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `stdout` | ✅ `stable` | `std::io` | Io |
 | `stem` | ✅ `stable` | `std::path` | Path |
 | `String_from` | ✅ `stable` | `prelude` | String |
-| `string_from_bytes` | ✅ `stable` | `std::bytes` | Bytes |
+| ~~`string_from_bytes`~~ | ⚠️ deprecated | `std::bytes` | → `String::from_utf8_lossy` · [migration guide](migration-guidance.md) |
 | `String_new` | ✅ `stable` | `prelude` | String |
 | `stringify` | ✅ `experimental` | `std::json` | Json |
 | `stringify_pretty` | ✅ `experimental` | `std::json` | Json |
@@ -1225,13 +1225,13 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `trim_end` | ✅ `stable` | `prelude` | String |
 | `trim_start` | ✅ `stable` | `prelude` | String |
 | `trunc` | ✅ `experimental` | `std::simd::f32x4` | Simd |
-| `u16_from_le_bytes` | ✅ `stable` | `std::bytes` | Bytes |
+| ~~`u16_from_le_bytes`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::to_u16_le` · [migration guide](migration-guidance.md) |
 | ~~`u16_to_i32`~~ | ⚠️ deprecated | `prelude` | → `u16::to_i32` · [migration guide](migration-guidance.md) |
-| `u16_to_le_bytes` | ✅ `stable` | `std::bytes` | Bytes |
-| `u32_from_be_bytes` | ✅ `stable` | `std::bytes` | Bytes |
-| `u32_from_le_bytes` | ✅ `stable` | `std::bytes` | Bytes |
-| `u32_to_be_bytes` | ✅ `stable` | `std::bytes` | Bytes |
-| `u32_to_le_bytes` | ✅ `stable` | `std::bytes` | Bytes |
+| ~~`u16_to_le_bytes`~~ | ⚠️ deprecated | `std::bytes` | → `Bytes::from_u16_le` · [migration guide](migration-guidance.md) |
+| ~~`u32_from_be_bytes`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::to_u32_be` · [migration guide](migration-guidance.md) |
+| ~~`u32_from_le_bytes`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::to_u32_le` · [migration guide](migration-guidance.md) |
+| ~~`u32_to_be_bytes`~~ | ⚠️ deprecated | `std::bytes` | → `Bytes::from_u32_be` · [migration guide](migration-guidance.md) |
+| ~~`u32_to_le_bytes`~~ | ⚠️ deprecated | `std::bytes` | → `Bytes::from_u32_le` · [migration guide](migration-guidance.md) |
 | ~~`u32_to_u64`~~ | ⚠️ deprecated | `prelude` | → `u32::to_u64` · [migration guide](migration-guidance.md) |
 | ~~`u64_to_u32`~~ | ⚠️ deprecated | `prelude` | → `u64::to_u32_wrapping` · [migration guide](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | ⚠️ deprecated | `prelude` | → `u8::to_i32` · [migration guide](migration-guidance.md) |

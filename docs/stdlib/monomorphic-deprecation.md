@@ -39,6 +39,51 @@ helpers are included alongside any other deprecated public entry.
 | `u32_to_u64` | `prelude` | `deprecated` | `u32::to_u64` | `0.1.0` | `1.0.0` | Superseded API |
 | `u64_to_u32` | `prelude` | `deprecated` | `u64::to_u32_wrapping` | `0.1.0` | `1.0.0` | Superseded API |
 | `u8_to_i32` | `prelude` | `deprecated` | `u8::to_i32` | `0.1.0` | `1.0.0` | Superseded API |
+| `base64_decode` | `std::bytes` | `deprecated` | `Bytes::from_base64` | `0.1.0` | `1.0.0` | Decode a standard base64 string into a byte buffer. Silently skips invalid characters. |
+| `base64_encode` | `std::bytes` | `deprecated` | `Vec::to_base64` | `0.1.0` | `1.0.0` | Encode a byte buffer as standard base64 (RFC 4648, with padding). |
+| `buf_extend` | `std::bytes` | `deprecated` | `Vec::extend_bytes` | `0.1.0` | `1.0.0` | Append all bytes from a Bytes slice onto a ByteBuf. |
+| `buf_freeze` | `std::bytes` | `deprecated` | `Vec::freeze` | `0.1.0` | `1.0.0` | Freeze a ByteBuf into an immutable Bytes value. In the current runtime both are Vec<i32>, so this is identity. |
+| `buf_len` | `std::bytes` | `deprecated` | `Vec::len` | `0.1.0` | `1.0.0` | Return the number of bytes in a ByteBuf. |
+| `buf_new` | `std::bytes` | `deprecated` | `Vec::new` | `0.1.0` | `1.0.0` | Create a new empty ByteBuf (represented as Vec<i32>). |
+| `buf_push_u16_le` | `std::bytes` | `deprecated` | `Vec::push_u16_le` | `0.1.0` | `1.0.0` | Push a 16-bit value in little-endian byte order onto a ByteBuf. |
+| `buf_push_u32_le` | `std::bytes` | `deprecated` | `Vec::push_u32_le` | `0.1.0` | `1.0.0` | Push a 32-bit value in little-endian byte order onto a ByteBuf. |
+| `buf_push_u64_le` | `std::bytes` | `deprecated` | `Vec::push_u64_le` | `0.1.0` | `1.0.0` | Push a 64-bit value in little-endian byte order onto a ByteBuf. x is i64. |
+| `buf_push_u8` | `std::bytes` | `deprecated` | `Vec::push_byte` | `0.1.0` | `1.0.0` | Push a single byte (0-255) onto a ByteBuf. |
+| `buf_with_capacity` | `std::bytes` | `deprecated` | `Vec::with_capacity` | `0.1.0` | `1.0.0` | Create a new ByteBuf with a capacity hint. Capacity is advisory only in the current runtime. |
+| `byte_length` | `std::bytes` | `deprecated` | `String::len_bytes` | `0.1.0` | `1.0.0` | Superseded API |
+| `bytes_concat` | `std::bytes` | `deprecated` | `Vec::concat_bytes` | `0.1.0` | `1.0.0` | Superseded API |
+| `bytes_eq` | `std::bytes` | `deprecated` | `Vec::equals_bytes` | `0.1.0` | `1.0.0` | Superseded API |
+| `bytes_from_array` | `std::bytes` | `deprecated` | `Bytes::from_array` | `0.1.0` | `1.0.0` | Create an immutable Bytes value from an array of byte values (Vec<i32>, values 0-255). NOTE: Vec<u8> is not a distinct type; Vec<i32> is used. |
+| `bytes_from_string` | `std::bytes` | `deprecated` | `String::to_utf8_bytes` | `0.1.0` | `1.0.0` | Superseded API |
+| `bytes_get` | `std::bytes` | `deprecated` | `Vec::get_unchecked` | `0.1.0` | `1.0.0` | Superseded API |
+| `bytes_len` | `std::bytes` | `deprecated` | `Vec::len` | `0.1.0` | `1.0.0` | Superseded API |
+| `bytes_new` | `std::bytes` | `deprecated` | `Vec::new` | `0.1.0` | `1.0.0` | Superseded API |
+| `bytes_push` | `std::bytes` | `deprecated` | `Vec::push_byte` | `0.1.0` | `1.0.0` | Superseded API |
+| `bytes_slice` | `std::bytes` | `deprecated` | `Vec::slice_bytes` | `0.1.0` | `1.0.0` | Superseded API |
+| `cursor_new` | `std::bytes` | `deprecated` | `Vec::byte_cursor` | `0.1.0` | `1.0.0` | Create a ByteCursor from a Bytes value. Index 0 is the position; remaining indices are data bytes. |
+| `cursor_pos` | `std::bytes` | `deprecated` | `Vec::cursor_pos` | `0.1.0` | `1.0.0` | Return the current byte position of a ByteCursor. |
+| `cursor_remaining` | `std::bytes` | `deprecated` | `Vec::cursor_remaining` | `0.1.0` | `1.0.0` | Return the number of bytes remaining in a ByteCursor. |
+| `hex_decode` | `std::bytes` | `deprecated` | `Bytes::from_hex` | `0.1.0` | `1.0.0` | Superseded API |
+| `hex_encode` | `std::bytes` | `deprecated` | `Vec::to_hex` | `0.1.0` | `1.0.0` | Superseded API |
+| `leb128_decode_i32` | `std::bytes` | `deprecated` | `Vec::read_leb128_i32` | `0.1.0` | `1.0.0` | Decode a signed LEB128 i32 from a ByteCursor. Advances the cursor. |
+| `leb128_decode_u32` | `std::bytes` | `deprecated` | `Vec::read_leb128_u32` | `0.1.0` | `1.0.0` | Decode an unsigned LEB128 u32 from a ByteCursor. Advances the cursor. |
+| `leb128_decode_u64` | `std::bytes` | `deprecated` | `Vec::read_leb128_u64` | `0.1.0` | `1.0.0` | Decode an unsigned LEB128 u64 from a ByteCursor. Returns i64. Advances the cursor. |
+| `leb128_encode_i32` | `std::bytes` | `deprecated` | `Bytes::from_leb128_i32` | `0.1.0` | `1.0.0` | Superseded API |
+| `leb128_encode_u32` | `std::bytes` | `deprecated` | `Bytes::from_leb128_u32` | `0.1.0` | `1.0.0` | Superseded API |
+| `leb128_encode_u64` | `std::bytes` | `deprecated` | `Bytes::from_leb128_u64` | `0.1.0` | `1.0.0` | Encode a 64-bit unsigned value as LEB128 bytes. x is passed as i64. NOTE: u64 is not a distinct type. |
+| `read_bytes` | `std::bytes` | `deprecated` | `Vec::read_bytes` | `0.1.0` | `1.0.0` | Read n bytes from a ByteCursor into a new Bytes buffer. Returns empty buffer on underflow. |
+| `read_u16_le` | `std::bytes` | `deprecated` | `Vec::read_u16_le` | `0.1.0` | `1.0.0` | Read two bytes little-endian from a ByteCursor. Returns -1 on underflow. |
+| `read_u32_be` | `std::bytes` | `deprecated` | `Vec::read_u32_be` | `0.1.0` | `1.0.0` | Read four bytes big-endian from a ByteCursor. Returns -1 on underflow. |
+| `read_u32_le` | `std::bytes` | `deprecated` | `Vec::read_u32_le` | `0.1.0` | `1.0.0` | Read four bytes little-endian from a ByteCursor. Returns -1 on underflow. |
+| `read_u64_le` | `std::bytes` | `deprecated` | `Vec::read_u64_le` | `0.1.0` | `1.0.0` | Read eight bytes little-endian from a ByteCursor as i64. Returns -1 on underflow. |
+| `read_u8` | `std::bytes` | `deprecated` | `Vec::read_u8` | `0.1.0` | `1.0.0` | Read one byte from a ByteCursor and advance the position. Returns -1 on underflow. |
+| `string_from_bytes` | `std::bytes` | `deprecated` | `String::from_utf8_lossy` | `0.1.0` | `1.0.0` | Superseded API |
+| `u16_from_le_bytes` | `std::bytes` | `deprecated` | `Vec::to_u16_le` | `0.1.0` | `1.0.0` | Superseded API |
+| `u16_to_le_bytes` | `std::bytes` | `deprecated` | `Bytes::from_u16_le` | `0.1.0` | `1.0.0` | Superseded API |
+| `u32_from_be_bytes` | `std::bytes` | `deprecated` | `Vec::to_u32_be` | `0.1.0` | `1.0.0` | Superseded API |
+| `u32_from_le_bytes` | `std::bytes` | `deprecated` | `Vec::to_u32_le` | `0.1.0` | `1.0.0` | Superseded API |
+| `u32_to_be_bytes` | `std::bytes` | `deprecated` | `Bytes::from_u32_be` | `0.1.0` | `1.0.0` | Superseded API |
+| `u32_to_le_bytes` | `std::bytes` | `deprecated` | `Bytes::from_u32_le` | `0.1.0` | `1.0.0` | Superseded API |
 | `deque_back` | `std::collections::linear` | `deprecated` | `Deque::back` | `0.1.0` | `1.0.0` | Peek at the back element without removing it. Returns 0 when empty. |
 | `deque_clear` | `std::collections::linear` | `deprecated` | `Deque::clear` | `0.1.0` | `1.0.0` | Reset the deque to empty (preserves allocated capacity). |
 | `deque_front` | `std::collections::linear` | `deprecated` | `Deque::front` | `0.1.0` | `1.0.0` | Peek at the front element without removing it. Returns 0 when empty. |
@@ -79,4 +124,4 @@ helpers are included alongside any other deprecated public entry.
 | `take_i32` | `std::seq` | `deprecated` | `VecIter::take` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect(). |
 | `unique` | `std::seq` | `deprecated` | `VecIter::unique` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect(). |
 
-Total deprecated public entries: **68**.
+Total deprecated public entries: **113**.
