@@ -1,4 +1,4 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::host::process
 use std::host::stdio
 use std::prelude::{clone}
@@ -38,14 +38,14 @@ fn compose_validate_paths(provider: String, socket: String, output: String) -> b
         stdio::eprintln("error: compose conflict — provider, socket, and output paths must differ")
         return false
     }
-    match fs::read_to_string(clone(provider)) {
+    match Fs::read_to_string(clone(provider)) {
         Result::Ok(_) => {},
         Result::Err(_) => {
             stdio::eprintln("error: provider component not found: ".concat(clone(provider)))
             return false
         },
     }
-    match fs::read_to_string(clone(socket)) {
+    match Fs::read_to_string(clone(socket)) {
         Result::Ok(_) => {},
         Result::Err(_) => {
             stdio::eprintln("error: socket component not found: ".concat(clone(socket)))

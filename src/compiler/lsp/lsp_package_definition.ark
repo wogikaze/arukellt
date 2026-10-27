@@ -1,4 +1,4 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::prelude::{clone, contains, eq, index_of, substring}
 use lsp::symbol_index_paths
 fn roots_contains(roots: Vec<String>, path: String) -> bool {
@@ -78,9 +78,9 @@ pub fn find_package_root(start_dir: String) -> String {
     if len(start_dir) == 0 {
         return String_new()
     }
-    // Avoid fs::exists on wasm32-gc (GC String → i64 scratch validate fail).
+    // Avoid the `Fs` read probe on wasm32-gc (GC String → i64 scratch validate fail).
     let manifest = symbol_index_paths::join_path(clone(start_dir), "ark.toml")
-    match fs::read_to_string(clone(manifest)) {
+    match Fs::read_to_string(clone(manifest)) {
         Result::Ok(_) => {
             return start_dir
         },

@@ -1,6 +1,6 @@
 // WIT import document parser — std::wit AST to compiler metadata (#653, #706).
 
-use std::host::fs
+use std::host::fs::Fs
 use std::wit::ast
 use std::prelude::{byte_at, clone, eq, substring, values}
 use compiler::wit_identity
@@ -158,7 +158,7 @@ fn parse_wit_import_text(source: String) -> WitParsedInterface {
 }
 
 fn parse_wit_import_file(path: String) -> WitParsedInterface {
-    match fs::read_to_string(clone(path)) {
+    match Fs::read_to_string(clone(path)) {
         Result::Ok(source) => parse_wit_import_text(source),
         Result::Err(_) => wit_parse_text::WitParsedInterface_empty(),
     }

@@ -1,4 +1,4 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::prelude::{clone, eq}
 use std::text
 use loader::module_path_local
@@ -6,7 +6,7 @@ pub fn find_package_root(base_dir: String) -> String {
     // Prefer read_to_string over exists: wasm32-gc exists lowering stores a
     // GC String ref into an i64 linear-memory scratch (validate fail).
     let manifest = clone(base_dir).concat("/ark.toml")
-    let read = fs::read_to_string(clone(manifest))
+    let read = Fs::read_to_string(clone(manifest))
     match read {
         Result::Ok(_) => {
             clone(base_dir)

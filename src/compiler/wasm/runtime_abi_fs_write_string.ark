@@ -17,7 +17,7 @@ use wasm::intrinsics::helpers_numeric_i64_const
 use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::string_gc_helpers
 
-// Handler for: fs::write_string / __runtime_abi_fs_write_file
+// Handler for: Fs::write_string / __runtime_abi_fs_write_file
 fn emit_fs_write_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_path_w = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_content = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)

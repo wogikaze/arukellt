@@ -166,7 +166,38 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
     if len(msg5) > 0 {
         return msg5
     }
+    let msg6 = deprecated_host_fs_qualified_message(path)
+    if len(msg6) > 0 {
+        return msg6
+    }
     return deprecated_hash_qualified_message(path)
+}
+
+// ── Deprecated host filesystem frees (ADR-087) ────────────────────────
+//
+// `Fs` is the canonical namespace. The five stable free names stay callable
+// through the ADR-087 window, so a qualified old call names its `Fs::`
+// replacement. The provisional/experimental frees are already deleted and
+// produce E0100 instead.
+fn is_host_fs_qualified_member(path: String, member: String) -> bool {
+    eq(clone(path), "fs::".concat(clone(member))) ||
+    eq(clone(path), "std::fs::".concat(clone(member))) ||
+    eq(clone(path), "host::fs::".concat(clone(member))) ||
+    eq(clone(path), "std::host::fs::".concat(clone(member)))
+}
+
+fn deprecated_host_fs_qualified_message(path: String) -> String {
+    if is_host_fs_qualified_member(clone(path), String_from("read_string")) {
+        return "use `Fs::read_to_string(path)` from `use std::host::fs::Fs` instead"
+    }
+    if is_host_fs_qualified_member(clone(path), String_from("write_string")) {
+        return "use `Fs::write_string(path, contents)` from `use std::host::fs::Fs` instead"
+    }
+    if is_host_fs_qualified_member(clone(path), String_from("is_readable_file")) ||
+    is_host_fs_qualified_member(clone(path), String_from("exists")) {
+        return "use `Fs::is_readable_file(path)` from `use std::host::fs::Fs` instead"
+    }
+    String_new()
 }
 
 // ── Deprecated std::io tagged output writers (ADR-085 Phase F) ────────
@@ -338,6 +369,21 @@ test mod "deprecated" {
     test "io_tagged_writers_warn_w0009" {
         assert(len(deprecated_qualified_call_message("io::writer_write")) > 0)
         assert(len(deprecated_qualified_call_message("io::writer_write_str")) > 0)
+    }
+    test "host_fs_stable_frees_warn_w0009" {
+        assert(len(deprecated_qualified_call_message("fs::read_string")) > 0)
+        assert(len(deprecated_qualified_call_message("fs::write_string")) > 0)
+        assert(len(deprecated_qualified_call_message("fs::is_readable_file")) > 0)
+        assert(len(deprecated_qualified_call_message("fs::exists")) > 0)
+        assert(len(deprecated_qualified_call_message("std::fs::read_string")) > 0)
+        assert(len(deprecated_qualified_call_message("std::host::fs::is_readable_file")) > 0)
+        // The provisional/experimental frees were deleted; E0100 owns them.
+        assert(len(deprecated_qualified_call_message("fs::read_to_string")) == 0)
+        assert(len(deprecated_qualified_call_message("fs::read_bytes")) == 0)
+        assert(len(deprecated_qualified_call_message("fs::write_bytes")) == 0)
+        assert(len(deprecated_qualified_call_message("fs::is_file")) == 0)
+        assert(len(deprecated_qualified_call_message("fs::is_dir")) == 0)
+        assert(len(deprecated_qualified_call_message("Fs::read_to_string")) == 0)
     }
     test "removed_io_frees_have_no_w0009_entry" {
         // These are E0100 removals; a live W0009 entry would be a dead warning.

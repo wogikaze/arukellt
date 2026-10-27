@@ -286,7 +286,7 @@ label = "host/core namespace frees"
 module_pfx = ["std::host", "std::fs", "std::env", "std::process", "std::random", "std::time", "std::signal", "std::cli", "std::core", "std::path"]
 class = "associated-or-method"
 owner = "917"
-replacement = "Fs/Env/Process/Clock/Random/Cli/Path/Signal associated functions and methods; the std::core range/order/error/hash frees retired behind `Range::new` / `r.contains(value)` / `r.len()` / `RangeInclusive::new` / `r.contains(value)` / `a.cmp(b)` / `e.message()` / `h1.combine_hash(h2)`; the sealed raw bridges are `RawArray` / `RawString` / `RawFloat` associated functions (stdlib-only)"
+replacement = "Fs / Env / Process / Clock / Random / Cli / Path / Signal associated functions and methods; the std::host::fs and legacy std::fs path frees are `Fs::read_to_string` / `read_bytes` / `write_string` / `write_bytes` / `is_readable_file` / `is_file` / `is_dir` / `read_dir` / `metadata` from `use std::host::fs::Fs` (the stable wrappers remain under the ADR-087 W0009 window); the std::core range/order/error/hash frees retired behind `Range::new` / `r.contains(value)` / `r.len()` / `RangeInclusive::new` / `r.contains(value)` / `a.cmp(b)` / `e.message()` / `h1.combine_hash(h2)`; the sealed raw bridges are `RawArray` / `RawString` / `RawFloat` associated functions (stdlib-only)"
 # Retired by #917 (2026-10-26) core-helper wave — unregistered declarations,
 # so no manifest deprecation window was involved:
 #   std::core::either (12 counted)   -> Either enum constructors + methods
@@ -305,7 +305,13 @@ replacement = "Fs/Env/Process/Clock/Random/Cli/Path/Signal associated functions 
 #   RawFloat associated functions in the sealed stdlib module. The public
 #   surface no longer exports a free spelling; copied bare names get E0100
 #   hints that point at the public Vec / String / scalar replacements.
-# The other families (host, fs, cli, process, signal, …) are untouched.
+# Retired by the #917 std::host::fs `Fs` wave (2026-10-27, ADR-046 + ADR-087):
+#   std::host::fs path frees (7 counted in this family) and std::fs
+#   provisional frees (4) -> `Fs` namespace; the 5 stable wrappers moved to
+#   the `deprecated module frees` rule with live W0009 and await Wave 2.
+#   The experimental fd_seek / fd_tell / fd_fdstat_errno frees remain
+#   (wasm32-only; no wasm32-gc parity fixture).
+# The other families (env, cli, process, signal, clock, random) are untouched.
 
 # -- Catch-all for unregistered std declarations --
 #

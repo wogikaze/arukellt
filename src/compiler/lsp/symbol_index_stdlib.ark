@@ -1,4 +1,4 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::toml
 use std::text
 use std::prelude::{byte_at, clone, contains, index_of, replace, substring}
@@ -56,7 +56,7 @@ fn flush_function_symbol(out: Vec<symbol_index_record::StdlibIndexedSymbol>, sta
 
 fn apply_manifest_line(out: Vec<symbol_index_record::StdlibIndexedSymbol>, state: ManifestParseState, line: String) -> ManifestParseState {
     // Full TOML walk poisoned ManifestParseState locals to String on wasm32-gc
-    // (#730). fs::read_to_string is already a GC stub, so stdlib symbols stay
+    // (#730). Fs::read_to_string is already a GC stub, so stdlib symbols stay
     // empty at runtime; keep a validate-safe passthrough until record locals fix.
     let _out = out
     let _line = line
@@ -120,7 +120,7 @@ fn manifest_load_path() -> String {
 }
 
 pub fn symbol_index_load_stdlib(state: LspState) {
-    let read_result = fs::read_to_string(manifest_load_path())
+    let read_result = Fs::read_to_string(manifest_load_path())
     match read_result {
         Result::Ok(content) => {
             state_record::lsp_state_set_symbol_stdlib_symbols(state, parse_manifest_symbols(content))

@@ -3,12 +3,13 @@
 // reject read, close commits an untouched image as a truncate, and writing
 // past the end extends the image with zero bytes.
 use std::host::fs
+use std::host::fs::Fs
 use std::host::stdio
 use std::io
 use std::io::{Io, Read, Seek, SeekFrom, Write}
 
 fn print_image(path: String) {
-    match fs::read_bytes(path) {
+    match Fs::read_bytes(path) {
         Result::Ok(image) => {
             let image: Vec<i32> = image
             stdio::println((len(image)).to_string())
@@ -23,7 +24,7 @@ fn print_image(path: String) {
 }
 
 fn main() {
-    match fs::write_bytes(".build/file_write_contract.bin", "OLD".to_utf8_bytes()) {
+    match Fs::write_bytes(".build/file_write_contract.bin", "OLD".to_utf8_bytes()) {
         Result::Ok(_) => stdio::println("seeded"),
         Result::Err(err) => stdio::println(err),
     }
@@ -34,7 +35,7 @@ fn main() {
                 Result::Ok(count) => stdio::println((count).to_string()),
                 Result::Err(err) => stdio::println(io::io_error_message(err)),
             }
-            match fs::read_bytes(".build/file_write_contract.bin") {
+            match Fs::read_bytes(".build/file_write_contract.bin") {
                 Result::Ok(image) => stdio::println(String::from_utf8_lossy(image)),
                 Result::Err(err) => stdio::println(err),
             }
@@ -42,7 +43,7 @@ fn main() {
                 Result::Ok(_) => stdio::println("flushed"),
                 Result::Err(err) => stdio::println(io::io_error_message(err)),
             }
-            match fs::read_bytes(".build/file_write_contract.bin") {
+            match Fs::read_bytes(".build/file_write_contract.bin") {
                 Result::Ok(image) => stdio::println(String::from_utf8_lossy(image)),
                 Result::Err(err) => stdio::println(err),
             }
@@ -55,7 +56,7 @@ fn main() {
                 Result::Ok(_) => stdio::println("flushed2"),
                 Result::Err(err) => stdio::println(io::io_error_message(err)),
             }
-            match fs::read_bytes(".build/file_write_contract.bin") {
+            match Fs::read_bytes(".build/file_write_contract.bin") {
                 Result::Ok(image) => stdio::println(String::from_utf8_lossy(image)),
                 Result::Err(err) => stdio::println(err),
             }

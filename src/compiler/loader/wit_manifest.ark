@@ -1,4 +1,4 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::toml
 use std::prelude::{byte_at, clone, ends_with, eq, index_of, starts_with, substring}
 use std::text
@@ -139,15 +139,15 @@ fn wit_resolve_relative_path(base: String, rel: String) -> String {
 }
 
 fn wit_vendor_wit_file(vendor_dir: String) -> String {
-    // Avoid fs::exists on wasm32-gc (GC String → i64 scratch validate fail).
+    // Avoid the `Fs` read probe on wasm32-gc (GC String → i64 scratch validate fail).
     let mod_wit = wit_join_path(clone(vendor_dir), String_from("mod.wit"))
-    match fs::read_to_string(clone(mod_wit)) {
+    match Fs::read_to_string(clone(mod_wit)) {
         Result::Ok(_) => {
             mod_wit
         },
         Result::Err(_) => {
             let iface_wit = wit_join_path(clone(vendor_dir), String_from("interface.wit"))
-            match fs::read_to_string(clone(iface_wit)) {
+            match Fs::read_to_string(clone(iface_wit)) {
                 Result::Ok(_) => {
                     iface_wit
                 },

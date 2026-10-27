@@ -30,7 +30,7 @@
 // abs-normalized), matching std::core::hash policy.  Constants mirrored
 // in ast_serialize_parse.ark must stay in sync (no pub const in Ark).
 
-use std::host::fs
+use std::host::fs::Fs
 use std::prelude::{byte_at, clone, eq, to_string}
 use std::core::ops
 use loader::ast_serialize_parse
@@ -159,7 +159,8 @@ pub fn write_ast_cache(path: String, nodes: Vec<AstNode>) -> bool {
         return false
     }
     let bytes = serialize_ast_nodes(nodes)
-    match fs::write_bytes(clone(path), bytes) {
+    let write: Result<(), String> = Fs::write_bytes(clone(path), bytes)
+    match write {
         Result::Ok(_) => true,
         Result::Err(_) => false,
     }
@@ -182,7 +183,7 @@ fn count_nodes_vec(nodes: Vec<AstNode>) -> i32 {
 // well-formed v2 cache — callers must treat it as a cache miss, never as
 // an empty AST.
 pub fn read_ast_cache(path: String) -> Result<Vec<AstNode>, String> {
-    match fs::read_to_string(clone(path)) {
+    match Fs::read_to_string(clone(path)) {
         Result::Ok(data) => { return ast_serialize_parse::deserialize_ast_nodes(data) }
         Result::Err(e) => { return Result::Err(e) }
     }

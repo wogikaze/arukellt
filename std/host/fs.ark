@@ -11,36 +11,98 @@
 //! has no descriptor open / read / write / close API, so the image is the
 //! visibility boundary: other readers see the old bytes until a flush succeeds.
 //!
-//! `write_string` and `write_bytes` are defined in the `write` child module and
-//! re-exported here. Keeping them out of this file avoids a resolver collision
-//! between their names and the legacy `std::io` helpers, which would otherwise
-//! be visible through the `std::io` import used by `File`.
+//! `Fs` is the namespace for the one-shot path operations (ADR-046):
+//! `Fs::read_to_string`, `Fs::read_bytes`, `Fs::write_string`,
+//! `Fs::write_bytes`, the `is_readable_file` / `is_file` / `is_dir` probes, and
+//! the honest unsupported `read_dir` / `metadata` rejections. The module
+//! exports no free path function; the whole-path API is `Fs` plus `File`.
 use std::io::{IoError, Read, Reader, Seek, SeekFrom, Write}
 use std::prelude::{clone, i32_to_i64, i64_to_i32}
 use std::text
-pub use std::host::fs::write::{write_bytes, write_string}
 
 const BYTE_MASK: i32 = 255
 // The write cursor is an i32 for the same reason as Reader's cursor; a larger
 // Seek coordinate is rejected instead of silently truncating (ADR-067).
 const MAX_CURSOR_POSITION: i32 = 2147483647
 
-pub fn read_to_string(path: String) -> Result<String, String> {
-    __runtime_abi_fs_read_file(path)
-}
-
-/// Reads the entire file at `path` as raw byte values (0–255).
+/// Namespace for the one-shot whole-path host filesystem operations.
 ///
-/// Unlike `read_to_string`, the result is not decoded: every file byte is
-/// preserved, including NUL and invalid UTF-8. The fs read intrinsic stores
-/// the raw file bytes in the returned `String` without UTF-8 validation, so
-/// `to_utf8_bytes` copies that byte image rather than decoding it. The
-/// whole-file image is the current host capability; this is the byte-oriented
-/// primitive behind `File::open` (#693 Phase D).
-pub fn read_bytes(path: String) -> Result<Vec<i32>, String> {
-    match __runtime_abi_fs_read_file(path) {
-        Result::Ok(contents) => Result::Ok(contents.to_utf8_bytes()),
-        Result::Err(message) => Result::Err(message),
+/// The associated functions are the canonical surface (ADR-046); `File` owns
+/// the image handle and the `Read` / `Write` / `Seek` adapters, while `Fs`
+/// owns the whole-file reads, writes, and read probes. The host descriptors
+/// stay behind the intrinsic calls in this impl.
+pub struct Fs {}
+
+impl Fs {
+    /// Reads the entire file at `path` as a UTF-8 string.
+    fn read_to_string(path: String) -> Result<String, String> {
+        __runtime_abi_fs_read_file(path)
+    }
+
+    /// Reads the entire file at `path` as raw byte values (0–255).
+    ///
+    /// The bytes are not decoded: the fs read intrinsic stores the raw file
+    /// bytes in the returned `String`, so `to_utf8_bytes` copies that image
+    /// rather than validating UTF-8.
+    fn read_bytes(path: String) -> Result<Vec<i32>, String> {
+        match __runtime_abi_fs_read_file(path) {
+            Result::Ok(contents) => Result::Ok(contents.to_utf8_bytes()),
+            Result::Err(message) => Result::Err(message),
+        }
+    }
+
+    /// Writes `contents` to `path`, creating or truncating the file.
+    fn write_string(path: String, contents: String) -> Result<(), String> {
+        __runtime_abi_fs_write_file(path, contents)
+    }
+
+    /// Writes byte values (0–255) to `path`, creating or truncating the file.
+    fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String> {
+        __runtime_abi_fs_write_bytes(path, bytes)
+    }
+
+    /// Read probe: `true` when a full read of `path` succeeds.
+    ///
+    /// This is a readability check, not a path-existence or file-type query.
+    fn is_readable_file(path: String) -> bool {
+        match __runtime_abi_fs_read_file(path) {
+            Result::Ok(_) => true,
+            Result::Err(_) => false,
+        }
+    }
+
+    /// Returns `true` when `path` is a readable file.
+    ///
+    /// The current intrinsic layer has no file-type metadata, so this is the
+    /// same read probe as `is_readable_file` and not a type test.
+    fn is_file(path: String) -> bool {
+        Fs::is_readable_file(path)
+    }
+
+    /// Returns `false` on current targets.
+    ///
+    /// The intrinsic layer exposes no directory metadata; this honest
+    /// rejection stays until a WASI `path_filestat_get`-class intrinsic lands.
+    fn is_dir(_path: String) -> bool {
+        false
+    }
+
+    /// Lists the entries in a directory.
+    ///
+    /// Not yet supported: the current WASI intrinsic layer exposes no
+    /// directory iteration, so this returns an error instead of a fabricated
+    /// listing.
+    fn read_dir(path: String) -> Result<Vec<String>, String> {
+        Result::Err("directory listing not yet supported: ".concat(path))
+    }
+
+    /// Queries file metadata for a path.
+    ///
+    /// Not yet supported: the current WASI intrinsic layer exposes no
+    /// `path_filestat_get`, so this returns an error instead of fabricated
+    /// metadata.
+    fn metadata(path: String) -> Result<String, String> {
+        Result::Err("metadata not yet supported: ".concat(path))
     }
 }
 
@@ -67,7 +129,7 @@ pub struct File {
 impl File {
     /// Opens `path` as a read-only byte image.
     fn open(path: String) -> Result<File, IoError> {
-        match read_bytes(clone(path)) {
+        match Fs::read_bytes(clone(path)) {
             Result::Ok(image) => Ok(File {
                     reader: Reader::from_bytes(image),
                     image: Vec::new<i32>(),
@@ -121,10 +183,7 @@ impl File {
         if !self.writable || !self.dirty {
             return Ok(())
         }
-        // Call the host intrinsic directly: the bare `write_bytes` name would
-        // resolve to the retired `std::io::write_bytes` still visible through
-        // this module's `std::io` import, which lowers to an `unreachable` stub.
-        match __runtime_abi_fs_write_bytes(clone(self.path), clone(self.image)) {
+        match Fs::write_bytes(clone(self.path), clone(self.image)) {
             Result::Ok(_) => {
                 self.dirty = false
                 Ok(())
@@ -221,30 +280,17 @@ impl Write for File {
     }
 }
 
-pub fn exists(path: String) -> bool {
-    match __runtime_abi_fs_read_file(path) {
-        Result::Ok(_) => true,
-        Result::Err(_) => false,
-    }
-}
-
+/// Read probe / readable-file check via the host read intrinsic.
+///
+/// Deprecated: use `Fs::is_readable_file(path)` from
+/// `use std::host::fs::Fs`. False does not distinguish missing, unreadable,
+/// and directory paths, so this is not a path-existence query.
 pub fn is_readable_file(path: String) -> bool {
-    match __runtime_abi_fs_read_file(path) {
-        Result::Ok(_) => true,
-        Result::Err(_) => false,
-    }
-}
-
-pub fn is_file(path: String) -> bool {
-    is_readable_file(path)
-}
-
-pub fn is_dir(_path: String) -> bool {
-    false
+    Fs::is_readable_file(path)
 }
 
 // Raw descriptor helpers remain experimental and are intentionally separate
-// from the stable path-based facade above.
+// from the `Fs` path surface above.
 pub fn fd_seek(fd: i32, offset: i64, whence: i32) -> i64 {
     __intrinsic_fd_seek(fd, offset, whence)
 }

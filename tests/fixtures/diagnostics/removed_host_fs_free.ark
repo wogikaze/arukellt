@@ -1,0 +1,7 @@
+// E0100: the provisional std::host::fs path frees were retired in the
+// ADR-046 wave; the qualified old call names the Fs replacement.
+use std::host::fs
+
+fn main() {
+    let _read = fs::read_to_string("missing.txt")
+}

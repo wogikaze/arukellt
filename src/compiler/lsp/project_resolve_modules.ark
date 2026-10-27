@@ -1,4 +1,4 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::prelude::{byte_at, clone, eq, substring}
 use compiler::session_parse
 use lsp::state_docs
@@ -41,7 +41,7 @@ fn module_text_for_uri(state: LspState, uri: String) -> String {
     if len(path) == 0 {
         return String_new()
     }
-    let read_result = fs::read_to_string(path)
+    let read_result = Fs::read_to_string(path)
     match read_result {
         Result::Ok(text) => {
             text

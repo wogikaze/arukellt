@@ -3,6 +3,7 @@
 // goes through fs::read_bytes and a fresh File::open so both host read paths
 // see the committed bytes.
 use std::host::fs
+use std::host::fs::Fs
 use std::host::stdio
 use std::io
 use std::io::{Read, Seek, SeekFrom, Write}
@@ -46,7 +47,7 @@ fn main() {
         Result::Err(err) => stdio::println(io::io_error_message(err)),
     }
 
-    match fs::read_bytes(".build/file_write_roundtrip.bin") {
+    match Fs::read_bytes(".build/file_write_roundtrip.bin") {
         Result::Ok(image) => {
             let image: Vec<i32> = image
             print_byte_values(image)

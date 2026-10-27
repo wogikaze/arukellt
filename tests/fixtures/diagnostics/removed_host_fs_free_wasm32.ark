@@ -1,0 +1,7 @@
+// E0100 on the linear wasm32 target: the experimental byte-write free names
+// the Fs replacement.
+use std::host::fs
+
+fn main() {
+    let _write = fs::write_bytes("out.bin", Vec::new<i32>())
+}

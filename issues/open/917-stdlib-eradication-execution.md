@@ -817,3 +817,61 @@ classified there, in dependency-safe waves.
   `scripts/check/check-stdlib-eradication.py`,
   `std/manifest.toml`
 
+### Landed slice (wave/host-fs, 2026-10-27)
+
+- **Surface**: `std::host::fs::Fs` is the namespace for the one-shot path
+  operations: `Fs::read_to_string`, `Fs::read_bytes`, `Fs::write_string`,
+  `Fs::write_bytes`, `Fs::is_readable_file`, `Fs::is_file`, `Fs::is_dir`, and
+  the honest unsupported `Fs::read_dir` / `Fs::metadata` rejections. `File`
+  keeps the image handle and the `Read` / `Write` / `Seek` impls. `std::fs`
+  is now a deprecated facade that re-exports `Fs` and keeps four stable
+  wrappers.
+- **Removed (11)**: the provisional / experimental / deprecated frees
+  `std::host::fs::{read_to_string, read_bytes, write_string, write_bytes,
+  is_file, is_dir, exists}` and `std::fs::{is_file, is_dir, read_dir,
+  metadata}`. Qualified old calls fail with **E0100** and the
+  `resolver::removed_names` hint; `read_dir` / `metadata` state the
+  unsupported host capability instead of promising a replacement.
+- **Deprecated with live W0009 (5)**: `std::host::fs::is_readable_file`,
+  `std::fs::read_string`, `std::fs::write_string`, `std::fs::exists`, and
+  `std::fs::is_readable_file`. They stay callable for the ADR-087 window;
+  physical deletion is the Wave 2 change.
+- **Compiler**: added `Fs` result-type fallbacks for `read_bytes`,
+  `write_string`, and `write_bytes`; the `Fs::` spellings lower on both
+  targets. The committed pin predates loading the namespace source into the
+  flat overlay and resolves the `std::host::fs` frees as builtins, so
+  `scripts/selfhost/checks.py::_patch_bootstrap_host_fs_paths` rewrites
+  `Fs::*` call sites to the free builtins **only in** the generated compiler
+  overlay. Checked-in compiler source keeps `Fs`; delete the adapter when the
+  pin is refreshed (ADR-029). The pin cannot resolve `std::host::fs::Fs` in a
+  compiler module directly: the first attempt emitted `drop; unreachable` and
+  trapped in `find_package_root`.
+- **Stale manifest entry**: `std::host::stdio::read_to_string` had no source
+  declaration (the implementation is `read_stdin`); the entry now matches the
+  declaration. This removes one unregistered declaration from the scorecard
+  without changing the callable surface.
+- **Fixtures**: dual-target `stdlib_fs/fs_namespace_surface*` (compile,
+  validate, run), `diagnostics/removed_host_fs_free*` E0100 goldens, and
+  `diagnostics/deprecated_host_fs_free*` W0009 goldens on wasm32-gc and
+  `--target wasm32`. Migrated the stdlib_fs / stdlib_io / stdlib_io_traits /
+  native-cpp / host / quickstart / benchmark call sites to `Fs`.
+- **Scorecard**: public surface 358 -> **346**; the
+  `host/core namespace frees` family drops 55 -> **40** (10 retired + 5 stable
+  entries now classified under `deprecated module frees`);
+  `deprecated module frees` 2 -> **7**; `associated-or-method` 288 -> **272**;
+  `must delete` 70 -> **74**; manifest functions 325 -> **314**; unregistered
+  declarations 34 -> **33** (the stale stdio entry). `prelude_wrapper` stays
+  65.
+- **Residual / lowering note**: an inline `match Fs::read_bytes(...)` payload
+  combined with the `File` image lane still types an emit temp as i64; the
+  fixture uses an explicit `Result<Vec<i32>, String>` scrutinee binding. The
+  experimental `fd_seek` / `fd_tell` / `fd_fdstat_errno` frees stay free:
+  `t3 = false` (wasm32 / WASI P1 only), so they have no gc parity fixture.
+- **Verification**: `verify fixtures` **1897 PASS / 0 FAIL**
+  (1897 compile+validate, 110 runtime smoke, 2 runtime-unsupported, 1 `test:`
+  fixture PASS); `selfhost diag-parity` PASS including the new W0009 / E0100
+  goldens; `docs check` 6/6; `verify lane` PASS; both-target
+  `stdlib_fs/fs_namespace_surface*` compile, `wasm-tools validate`, and run
+  (`fs-namespace-ok`); ADR-029 fixpoint PASS: s2 == s3 at sha256
+  `58861e17cbe0d4d9e05422ddd9c4f961a4911ae2b0e0179e7b00b8f1a1b0aa85`
+  (pinned base `04d4446b…`).

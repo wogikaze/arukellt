@@ -3,6 +3,7 @@
 // image. file_image.bin contains NUL and invalid-UTF-8 bytes so the host
 // primitive is proven to be byte-oriented rather than UTF-8 decoded.
 use std::host::fs
+use std::host::fs::Fs
 use std::host::stdio
 use std::io
 use std::io::{Read, Seek, SeekFrom}
@@ -36,13 +37,17 @@ fn print_seek<T: io::Seek>(source: T, from: SeekFrom) {
 }
 
 fn main() {
-    match fs::read_bytes("tests/fixtures/stdlib_io_traits/file_image.bin") {
+    // Annotate the scrutinee: the inline Fs::read_bytes Result<Vec<i32>, String>
+    // payload combined with the File image lane still types a temp as i64 in
+    // emit. The explicit Result binding keeps that residual out of the
+    // byte/EOF/seek/close contract.
+    let image_result: Result<Vec<i32>, String> = Fs::read_bytes("tests/fixtures/stdlib_io_traits/file_image.bin")
+    match image_result {
         Result::Ok(image) => {
             // Explicit Vec binding for the inline Result<Vec<i32>, String>
             // match payload: the GC emitter still declares the get_unchecked
             // array.get temp with the size-class struct layout placeholder
-            // (the 0x1813 validation mismatch). Typing the image here keeps
-            // that compiler residual out of the byte/EOF/seek/close contract.
+            // (the 0x1813 validation mismatch).
             let image: Vec<i32> = image
             stdio::println((len(image)).to_string())
             stdio::println((get_unchecked(image, 0)).to_string())
@@ -93,7 +98,8 @@ fn main() {
         Result::Ok(_) => stdio::println("unexpected open"),
         Result::Err(err) => stdio::println(io::io_error_message(err)),
     }
-    match fs::read_bytes("tests/fixtures/stdlib_io_traits/missing_image.bin") {
+    let missing_result: Result<Vec<i32>, String> = Fs::read_bytes("tests/fixtures/stdlib_io_traits/missing_image.bin")
+    match missing_result {
         Result::Ok(_) => stdio::println("unexpected read"),
         Result::Err(err) => stdio::println(err),
     }

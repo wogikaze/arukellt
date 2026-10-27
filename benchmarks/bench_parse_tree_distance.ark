@@ -1,4 +1,4 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::host::stdio
 use std::core::iter
 use std::collections::vec
@@ -18,7 +18,7 @@ fn ascending(a: i32, b: i32) -> Ordering {
 }
 
 fn main() {
-    let read_result: Result<String, String> = fs::read_to_string("benchmarks/bench_parse_tree_distance.input.txt")
+    let read_result: Result<String, String> = Fs::read_to_string("benchmarks/bench_parse_tree_distance.input.txt")
     match read_result {
         Result::Ok(raw) => {
             let mut pos = 0

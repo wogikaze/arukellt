@@ -814,7 +814,7 @@ fn mark_local_flag(flags: Vec<i32>, local_idx: i32) {
     }
 }
 
-// fs::write_string / read_to_string lower as MIR_CALL with VT_GC_REF; without
+// Fs::write_string / read_to_string lower as MIR_CALL with VT_GC_REF; without
 // this, Result dest locals demote to i32 (#834).
 fn inst_is_ref_result_call(op: i32, inst: MirInst) -> bool {
     if op != opcodes::MIR_CALL() {

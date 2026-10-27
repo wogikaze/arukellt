@@ -1,4 +1,4 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::json
 use std::prelude::{clone}
 use lsp::framing
@@ -23,7 +23,7 @@ pub fn handle_workspace_symbol(state: LspState, body: String) {
             push(source_texts, doc_text)
         } else {
             let file_path = symbol_index_paths::uri_to_file_path(clone(uri))
-            let read_result = fs::read_to_string(clone(file_path))
+            let read_result = Fs::read_to_string(clone(file_path))
             match read_result {
                 Result::Ok(text) => {
                     push(source_texts, text)

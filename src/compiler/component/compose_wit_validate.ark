@@ -1,4 +1,4 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::prelude::{clone, ends_with, eq, index_of, substring}
 use std::text
 use component::wit_parse_flags
@@ -83,7 +83,7 @@ fn compose_wit_parse_world_text(text: String) -> ComposeWitWorld {
 }
 
 fn compose_wit_load_world(path: String) -> ComposeWitWorld {
-    let read_result = fs::read_to_string(clone(path))
+    let read_result = Fs::read_to_string(clone(path))
     match read_result {
         Result::Ok(text) => compose_wit_parse_world_text(text),
         Result::Err(_) => ComposeWitWorld_empty(),
@@ -121,7 +121,7 @@ fn compose_wit_validate_imports(socket_imports: Vec<ComposeWitFuncSig>, provider
 fn validate_plug_surfaces(provider_wasm: String, socket_wasm: String) -> String {
     let provider_wit = compose_wit_sidecar_for_wasm(clone(provider_wasm))
     let socket_wit = compose_wit_sidecar_for_wasm(clone(socket_wasm))
-    let provider_has = match fs::read_to_string(clone(provider_wit)) {
+    let provider_has = match Fs::read_to_string(clone(provider_wit)) {
         Result::Ok(_) => {
             true
         },
@@ -129,7 +129,7 @@ fn validate_plug_surfaces(provider_wasm: String, socket_wasm: String) -> String 
             false
         },
     }
-    let socket_has = match fs::read_to_string(clone(socket_wit)) {
+    let socket_has = match Fs::read_to_string(clone(socket_wit)) {
         Result::Ok(_) => {
             true
         },

@@ -1,4 +1,4 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::prelude::{abs, clone, eq, index_of, substring}
 use lsp::lsp_package_definition
 use lsp::state_record
@@ -73,7 +73,7 @@ fn discover_path_dependency_roots(seed_root: String) -> Vec<String> {
         }
         visited = roots_push_unique(visited, clone(next))
         let manifest_path = symbol_index_paths::join_path(clone(next), "ark.toml")
-        let read_result = fs::read_to_string(clone(manifest_path))
+        let read_result = Fs::read_to_string(clone(manifest_path))
         match read_result {
             Result::Ok(content) => {
                 ordered = roots_push_unique(ordered, clone(next))

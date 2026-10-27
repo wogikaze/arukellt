@@ -37,6 +37,12 @@ fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) 
         set_stdlib_result_type(ctx, dest, String_from("result:String:String"))
         return true
     }
+    // Fs::read_bytes returns Result<Vec<i32>, String>; keep the Vec payload so
+    // an unannotated match in user code resolves the byte vector.
+    if ends_with(clone(callee_name), String_from("Fs::read_bytes")) {
+        set_stdlib_result_type(ctx, dest, String_from("result:vec:i32:String"))
+        return true
+    }
     if is_host_fs_write_string_callee(clone(callee_name)) ||
     eq(clone(cn), "fs_write_file") ||
     eq(clone(cn), "__runtime_abi_fs_write_file") {
@@ -47,9 +53,7 @@ fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) 
     // std::io memory-buffer helper was retired in ADR-085 Phase F (#807).
     if eq(clone(cn), "fs_write_bytes") ||
     eq(clone(cn), "__runtime_abi_fs_write_bytes") ||
-    eq(clone(callee_name), String_from("fs::write_bytes")) ||
-    ends_with(clone(callee_name), String_from("host::fs::write_bytes")) ||
-    ends_with(clone(callee_name), String_from("fs::write_bytes")) {
+    ends_with(clone(callee_name), String_from("Fs::write_bytes")) {
         // Without this, Result dest locals stay Memory64 i64 and ref.null/Ok
         // from the GC intrinsic fails validate (#730 write_compile_output).
         set_stdlib_result_type(ctx, dest, String_from("result:unit:String"))
@@ -98,10 +102,7 @@ fn is_parse_callee(callee_name: String, leaf: String) -> bool {
 }
 
 fn is_host_fs_write_string_callee(callee_name: String) -> bool {
-    eq(clone(callee_name), String_from("fs::write_string")) ||
-    eq(clone(callee_name), String_from("std::fs::write_string")) ||
-    eq(clone(callee_name), String_from("host::fs::write_string")) ||
-    eq(clone(callee_name), String_from("std::host::fs::write_string"))
+    ends_with(clone(callee_name), String_from("Fs::write_string"))
 }
 
 fn mark_toml_result_vec_call_type(ctx: LowerCtx, callee_name: String, dest: i32) -> bool {

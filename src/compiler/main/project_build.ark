@@ -1,4 +1,4 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::toml
 use std::host::process
 use std::host::stdio
@@ -69,7 +69,7 @@ fn build_output_path(opts: CliOptions, info: ProjectBuildManifest) -> String {
 
 fn write_build_output(entry: String, out_path: String, bytes: Vec<i32>) {
     let byte_count = len(bytes)
-    let write_result = fs::write_bytes(clone(out_path), bytes)
+    let write_result: Result<(), String> = Fs::write_bytes(clone(out_path), bytes)
     match write_result {
         Result::Ok(_) => {
             let size_label = (String_from(" (")).concat(to_string(byte_count).concat(String_from(" bytes)")))
@@ -87,7 +87,7 @@ fn write_build_output(entry: String, out_path: String, bytes: Vec<i32>) {
 
 pub fn cmd_build(opts: CliOptions) {
     let manifest_path = build_manifest_path(opts)
-    let manifest_result = fs::read_to_string(clone(manifest_path))
+    let manifest_result = Fs::read_to_string(clone(manifest_path))
     match manifest_result {
         Result::Ok(content) => {
             let info = parse_project_manifest(content)

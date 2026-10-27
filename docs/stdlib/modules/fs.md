@@ -7,17 +7,19 @@ Source-backed docs for explicit host filesystem operations.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-`std::host::fs` is the primary host filesystem module: whole-file reads, string and byte writes, an `exists` read probe / readable-file check (not path existence), the `File` whole-file image handle (`File::open` + `Read` / `Seek`, `File::create` + `Write` / `flush`), and experimental fd helpers, all backed by the current WASI filesystem intrinsics. `std::fs` is a smaller compact module over the same intrinsics (`read_string` / `write_string` / `exists`) — useful when you want a minimal API, with the understanding that it exposes only a subset of the `std::host::fs` operations. Neither module is a complete filesystem facade (no directory listing, metadata, or streaming I/O in-tree yet). Pure path manipulation lives in `std::path`; for the full host family overview, see [io.md](io.md).
+`std::host::fs` is the primary host filesystem module. `Fs` is the namespace for the one-shot path operations: `Fs::read_to_string` / `Fs::read_bytes`, `Fs::write_string` / `Fs::write_bytes`, the `Fs::is_readable_file` / `Fs::is_file` / `Fs::is_dir` probes, and the honest unsupported `Fs::read_dir` / `Fs::metadata` rejections. `File` is the whole-file image handle (`File::open` + `Read` / `Seek`, `File::create` + `Write` / `flush`), and the experimental fd helpers remain `wasm32`-only. `std::fs` is a deprecated facade that re-exports `Fs` and keeps its stable wrappers under the ADR-087 window. Neither module is a complete filesystem facade (no directory listing, metadata, or streaming I/O in-tree yet). Pure path manipulation lives in `std::path`; for the full host family overview, see [io.md](io.md).
 
 **Recommended API highlights:**
 
 | API | Purpose |
 |-----|---------|
-| `read_to_string(path)` / `read_string(path)` | Read a whole file as a UTF-8 string, returning `Result<String, String>`. |
-| `write_string(path, content)` | Write or replace a UTF-8 file. |
-| `write_bytes(path, buf)` | Write a byte array to a file. |
+| `Fs::read_to_string(path)` | Read a whole file as a UTF-8 string, returning `Result<String, String>`. |
+| `Fs::read_bytes(path)` | Read the whole file as raw bytes (0–255). |
+| `Fs::write_string(path, content)` | Write or replace a UTF-8 file. |
+| `Fs::write_bytes(path, buf)` | Write a byte array to a file. |
+| `Fs::is_readable_file(path)` | Read probe: `true` when a full read succeeds; not a general path-existence check. |
 | `File::open(path)` / `File::create(path)` | Open a read-only image or start a write image implementing `Read` / `Write` / `Seek`; `flush` commits the image. |
-| `exists(path)` | Read probe: `true` when a full read succeeds; not a general path-existence check. |
+| `Fs::read_dir(path)` / `Fs::metadata(path)` | Honest unsupported rejections until the corresponding WASI intrinsics land. |
 
 **Target constraints:** Target/profile availability: mixed — see individual symbols. Host dependency: yes. Explicit runtime permission: `--dir` (or equivalent) for file I/O.
 
@@ -25,14 +27,15 @@ Source-backed docs for explicit host filesystem operations.
 
 ```ark
 import std::host::fs
+use std::host::fs::Fs
 
-let content = read_to_string("data.txt")
+let content = Fs::read_to_string("data.txt")
 match content {
     Ok(text) => println(text),
     Err(e)   => eprintln("read error: " + e),
 }
 
-write_string("output.txt", "hello")
+Fs::write_string("output.txt", "hello")
 ```
 
 ---
@@ -40,10 +43,10 @@ write_string("output.txt", "hello")
 ## Module `std::host::fs`
 
 - Source: [`../../../std/host/fs.ark`](../../../std/host/fs.ark)
-- Manifest-backed functions: 11
-- Stability: deprecated 1, experimental 4, provisional 5, stable 1
+- Manifest-backed functions: 4
+- Stability: deprecated 1, experimental 3
 
-> ⚠️ **Availability:** mixed — see individual symbols · ⚠️ **Status:** partial — 2/11 APIs have limited or placeholder semantics
+> ⚠️ **Availability:** mixed — see individual symbols · ✅ **Status:** implemented
 
 Host filesystem helpers backed directly by WASI file-descriptor calls.
 
@@ -58,79 +61,33 @@ path's bytes once, and `File::create` starts an empty write image that
 has no descriptor open / read / write / close API, so the image is the
 visibility boundary: other readers see the old bytes until a flush succeeds.
 
-`write_string` and `write_bytes` are defined in the `write` child module and
-re-exported here. Keeping them out of this file avoids a resolver collision
-between their names and the legacy `std::io` helpers, which would otherwise
-be visible through the `std::io` import used by `File`.
+`Fs` is the namespace for the one-shot path operations (ADR-046):
+`Fs::read_to_string`, `Fs::read_bytes`, `Fs::write_string`,
+`Fs::write_bytes`, the `is_readable_file` / `is_file` / `is_dir` probes, and
+the honest unsupported `read_dir` / `metadata` rejections. The module
+exports no free path function; the whole-path API is `Fs` plus `File`.
 
 ### `std::host::fs` — Public Types
 
 | Name | Kind | Methods | Trait impls | Summary |
 |------|------|---------|-------------|---------|
+| `Fs` | `struct` | `read_to_string`, `read_bytes`, `write_string`, `write_bytes`, `is_readable_file`, `is_file`, `is_dir`, `read_dir`, `metadata` | - | Namespace for the one-shot whole-path host filesystem operations. |
 | `File` | `struct` | `open`, `create`, `close` | `Read`, `Write`, `Seek` | Whole-file image handle opened for reading or writing. |
 
 ### `std::host::fs` — Public API
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `read_to_string` | `(String) -> Result<String, String>` | `provisional` | ✅ functional | - |
-| `read_bytes` | `(String) -> Result<Vec<i32>, String>` | `experimental` | ✅ functional | Reads the entire file at path as raw byte values (0–255). |
-| ~~`exists`~~ ⚠️ Deprecated → `is_readable_file` | `(String) -> bool` | `deprecated` | ✅ functional | - |
-| `is_readable_file` | `(String) -> bool` | `stable` | ✅ functional | - |
-| `is_file` | `(String) -> bool` | `provisional` | ⚠️ limited semantics | - |
-| `is_dir` | `(String) -> bool` | `provisional` | ⚠️ limited semantics | - |
+| ~~`is_readable_file`~~ ⚠️ Deprecated → `Fs::is_readable_file` | `(String) -> bool` | `deprecated` | ✅ functional | Read probe / readable-file check via the host read intrinsic. |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `experimental` | ✅ functional | - |
 | `fd_tell` | `(i32) -> i64` | `experimental` | ✅ functional | - |
 | `fd_fdstat_errno` | `(i32) -> i32` | `experimental` | ✅ functional | - |
-| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `provisional` | ✅ functional | - |
-| `write_string` | `(String, String) -> Result<(), String>` | `provisional` | ✅ functional | - |
-
-#### `std::host::fs::read_to_string`
-
-Read the entire contents of a file at the given path and return them as a UTF-8 string.
-
-**Availability:** Requires the --dir capability flag at runtime.
-
-**Errors:** Returns Err if the file does not exist, permission is denied, or the content is not valid UTF-8.
-
-_Example — Read a text file and print it:_
-
-```ark
-let txt = fs::read_to_string("data.txt")
-match txt { Ok(s) => println(s), Err(e) => eprintln(e) }
-```
-
-#### `std::host::fs::read_bytes`
-
-Read the entire file at the given path as raw byte values (0–255), preserving NUL and invalid UTF-8.
-
-**Availability:** Requires the --dir capability flag at runtime.
-
-**Errors:** Returns Err if the file does not exist or permission is denied.
-
-#### `std::host::fs::exists`
-
-Deprecated alias for is_readable_file. Same read-probe semantics — NOT a general path-existence query.
-
-**Availability:** Requires the --dir capability flag at runtime.
 
 #### `std::host::fs::is_readable_file`
 
 Read-probe / readable-file check via __runtime_abi_fs_read_file. False does not distinguish missing vs unreadable vs directory; not a path-existence query.
 
 **Availability:** Requires the --dir capability flag at runtime.
-
-#### `std::host::fs::is_file`
-
-Read-probe equivalent to is_readable_file on current targets. Does not distinguish file types until metadata intrinsics land.
-
-**Availability:** Requires the --dir capability flag at runtime.
-
-#### `std::host::fs::is_dir`
-
-Always false on current targets — directory-type detection requires path_filestat_get-style intrinsics not yet exposed.
-
-**Availability:** Honest stub: no directory metadata intrinsic yet.
 
 #### `std::host::fs::fd_seek`
 
@@ -150,66 +107,30 @@ Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success).
 
 **Availability:** ⚠️ Not available on `wasm32-gc` — `wasm32` / WASI P1 only.
 
-#### `std::host::fs::write_bytes`
-
-Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path.
-
-**Availability:** Requires the --dir capability flag at runtime.
-
-**Errors:** Returns Err if the path is not writable or any byte value is out of range 0–255.
-
-#### `std::host::fs::write_string`
-
-Write a UTF-8 string to the given file path, creating or truncating the file.
-
-**Availability:** Requires the --dir capability flag at runtime.
-
-**Errors:** Returns Err if the path is not writable or the directory does not exist.
-
 > ⚠️ **1 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
 
 ## Module `std::fs`
 
 - Source: [`../../../std/fs/mod.ark`](../../../std/fs/mod.ark)
-- Manifest-backed functions: 8
-- Stability: provisional 4, stable 4
+- Manifest-backed functions: 4
+- Stability: deprecated 4
 
-Small host-backed file helpers — a compact filesystem API.
+`std::fs` — deprecated compatibility facade over `std::host::fs`.
 
-`std::fs` exposes a narrow, stable-shaped subset of the same official WASI
-filesystem intrinsics as `std::host::fs` (`read_string` / `write_string`
-plus `is_readable_file` and `exists` read probes). Prefer `std::host::fs`
-when the whole-file byte API or experimental fd helpers are needed.
-
-There is no in-tree directory listing, metadata API, or streaming I/O yet; do
-not treat this as a complete POSIX-style facade. Broader
-`wasi:filesystem/types`-class coverage remains future work.
-
-Paths are plain `String` values using `/` as the separator (POSIX/WASI
-convention). For pure path manipulation helpers see `std::path`.
-
-**Probe notice**: `exists` / `is_readable_file` are **read probes** / readable-file
-checks: they succeed only when the same read operation as `read_string` succeeds.
-They are not general path-existence or metadata queries. Directories, missing
-paths, and unreadable paths may return `false`.
-
-**`wasm32` / `wasm32-gc` availability**: The three base operations (`read_string`, `write_string`,
-`is_readable_file`) are available on both `wasm32` (WASI P1) and `wasm32-gc` (WASI P2) targets.
-Directory and metadata operations (`read_dir`, `metadata`, `is_dir`) are not yet
-supported on any target.
+ADR-046 moved the whole-path helpers to `std::host::fs::Fs`. The module
+re-exports that type and keeps four stable wrappers through the ADR-087
+deprecation window: importing it still emits the "module `std::fs` has
+moved to `std::host::fs`" warning. New code should use
+`Fs::read_to_string`, `Fs::write_string`, and `Fs::is_readable_file`.
 
 ### `std::fs` — Public API
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `read_string` | `(String) -> Result<String, String>` | `stable` | ✅ functional | Reads the entire contents of a file into a UTF-8 string. |
-| `write_string` | `(String, String) -> Result<(), String>` | `stable` | ✅ functional | Writes a UTF-8 string to a file, creating or truncating it. |
-| `exists` | `(String) -> bool` | `stable` | ✅ functional | Read probe / readable-file check: true when a full read succeeds; not a path-existence query. |
-| `is_readable_file` | `(String) -> bool` | `stable` | ✅ functional | Read probe — the new recommended name for the probe check. |
-| `is_file` | `(String) -> bool` | `provisional` | ✅ functional | Returns true when the path is a readable file. |
-| `is_dir` | `(String) -> bool` | `provisional` | ⚠️ limited semantics | Returns false unconditionally on current targets. |
-| `read_dir` | `(String) -> Result<Vec<String>, String>` | `provisional` | ⚠️ limited semantics | List the entries in a directory. |
-| `metadata` | `(String) -> Result<String, String>` | `provisional` | ⚠️ limited semantics | Query file metadata for a given path. |
+| ~~`read_string`~~ ⚠️ Deprecated → `Fs::read_to_string` | `(String) -> Result<String, String>` | `deprecated` | ✅ functional | Reads the entire contents of a file into a UTF-8 string. |
+| ~~`write_string`~~ ⚠️ Deprecated → `Fs::write_string` | `(String, String) -> Result<(), String>` | `deprecated` | ✅ functional | Writes a UTF-8 string to a file, creating or truncating it. |
+| ~~`exists`~~ ⚠️ Deprecated → `Fs::is_readable_file` | `(String) -> bool` | `deprecated` | ✅ functional | Read probe / readable-file check; not a path-existence query. |
+| ~~`is_readable_file`~~ ⚠️ Deprecated → `Fs::is_readable_file` | `(String) -> bool` | `deprecated` | ✅ functional | Read probe / readable-file check; not a path-existence query. |
 
 #### `std::fs::read_string`
 
@@ -229,7 +150,7 @@ Write a UTF-8 string to a file, creating or truncating it.
 
 #### `std::fs::exists`
 
-Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_string); not a path-existence query. Directories, missing paths, and unreadable paths may return false.
+Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_string); not a path-existence query.
 
 **Availability:** Requires the --dir capability flag at runtime.
 
@@ -239,26 +160,4 @@ Preferred read-probe name; semantics identical to exists.
 
 **Availability:** Requires the --dir capability flag at runtime.
 
-#### `std::fs::is_file`
-
-Read-probe equivalent to is_readable_file on current targets.
-
-**Availability:** Requires the --dir capability flag at runtime.
-
-#### `std::fs::is_dir`
-
-Always false on current targets (honest stub until metadata intrinsics land).
-
-**Availability:** Honest stub.
-
-#### `std::fs::read_dir`
-
-Always Err on current targets — directory listing not yet supported.
-
-**Availability:** Honest rejection.
-
-#### `std::fs::metadata`
-
-Always Err on current targets — path metadata not yet supported.
-
-**Availability:** Honest rejection.
+> ⚠️ **4 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.

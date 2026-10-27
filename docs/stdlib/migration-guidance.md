@@ -220,7 +220,7 @@ The following public entries currently carry `deprecated_by` in
 | `char_at` | `byte_at` |
 | `concat` | `a.concat(b)` |
 | `std::env::get_var` | `std::env::var` |
-| `std::host::fs::exists` | `std::host::fs::is_readable_file` |
+| `std::host::fs::Fs::read_to_string` | `std::host::fs::is_readable_file` |
 | `std::seq::map_i32_i32` | `v.iter().map(f).collect()` |
 | `std::seq::filter_i32` | `v.iter().filter(f).collect()` |
 | `std::seq::take_i32` | `v.iter().take(n).collect()` |
@@ -1459,6 +1459,70 @@ The `stdlib_core/raw_consumer_surface*` pair compiles, validates, and runs on
 `wasm32-gc`; the gc test wrapper does not package the P2 core module as a
 component, so that direct test execution is a harness residual. Production
 call sites bind the CoreOp and the consumer fixtures pass on both targets.
+
+## std::host::fs `Fs` namespace wave (ADR-046, ADR-087, 2026-10-27)
+
+The whole-path host filesystem helpers moved from free functions to the `Fs`
+namespace type. `File` keeps the image-handle / `Read` / `Write` / `Seek`
+surface; `Fs` owns the one-shot reads, writes, probes, and the honest
+unsupported `read_dir` / `metadata` rejections.
+
+Import the namespace explicitly:
+
+```ark
+use std::host::fs::Fs
+
+let text = Fs::read_to_string("data.txt")
+match text {
+    Ok(contents) => println(contents),
+    Err(message) => eprintln(message),
+}
+```
+
+### Removed now: provisional / experimental / deprecated frees (11)
+
+These entries were non-stable (or already-deprecated aliases), so ADR-046 D4
+allowed removal with a migration note. Qualified old calls fail with **E0100**
+and the `resolver::removed_names` hint.
+
+| Old API | Replacement |
+|---------|-------------|
+| `std::host::fs::read_to_string(path)` | `Fs::read_to_string(path)` |
+| `std::host::fs::read_bytes(path)` | `Fs::read_bytes(path)` |
+| `std::host::fs::write_string(path, contents)` | `Fs::write_string(path, contents)` |
+| `std::host::fs::write_bytes(path, bytes)` | `Fs::write_bytes(path, bytes)` |
+| `std::host::fs::is_file(path)` | `Fs::is_file(path)` |
+| `std::host::fs::is_dir(path)` | `Fs::is_dir(path)` |
+| `std::host::fs::exists(path)` | `Fs::is_readable_file(path)` (read probe, not path existence) |
+| `std::fs::read_dir(path)` | `Fs::read_dir(path)` (returns the unsupported-capability error) |
+| `std::fs::metadata(path)` | `Fs::metadata(path)` (returns the unsupported-capability error) |
+| `std::fs::is_file(path)` | `Fs::is_file(path)` |
+| `std::fs::is_dir(path)` | `Fs::is_dir(path)` |
+
+`std::fs` remains as a deprecated facade that re-exports `std::host::fs::Fs`;
+the module-level W0009 hint points at `std::host::fs`.
+
+### Retained until Wave 2: stable wrappers (5)
+
+ADR-087 requires a W0009 window for `stable` entries. These stay callable and
+emit **W0009** with the `Fs` replacement; the physical deletion follows in the
+Wave 2 change:
+
+| Deprecated API | Replacement |
+|----------------|-------------|
+| `std::host::fs::is_readable_file(path)` | `Fs::is_readable_file(path)` |
+| `std::fs::read_string(path)` | `Fs::read_to_string(path)` |
+| `std::fs::write_string(path, contents)` | `Fs::write_string(path, contents)` |
+| `std::fs::exists(path)` | `Fs::is_readable_file(path)` |
+| `std::fs::is_readable_file(path)` | `Fs::is_readable_file(path)` |
+
+### Retained: experimental fd helpers (3)
+
+`fd_seek`, `fd_tell`, and `fd_fdstat_errno` stay experimental free functions.
+They are `wasm32` / WASI P1 only (`t3 = false`), so they cannot be exercised on
+`wasm32-gc`; moving them to `Fs` without a target-parity fixture would claim a
+surface that does not lower on the primary target. They remain a reported
+residual.
 
 ## Planned Deprecations
 

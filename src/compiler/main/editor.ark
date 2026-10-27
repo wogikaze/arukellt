@@ -1,4 +1,4 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::host::process
 use std::host::stdio
 use std::prelude::{clone}
@@ -9,7 +9,7 @@ use lsp
 use main::args_record
 pub fn cmd_ide_analyze(opts: CliOptions) {
     let input_file = args_record::cli_input_file(opts)
-    let read_result = fs::read_to_string(clone(input_file))
+    let read_result = Fs::read_to_string(clone(input_file))
     match read_result {
         Result::Ok(text) => {
             let snap = analysis::analyze(clone(input_file), text)
@@ -28,7 +28,7 @@ pub fn cmd_dap(opts: CliOptions) {
         return
     }
     let input_file = args_record::cli_input_file(opts)
-    let read_result = fs::read_to_string(clone(input_file))
+    let read_result = Fs::read_to_string(clone(input_file))
     match read_result {
         Result::Ok(text) => {
             stdio::print(dap::run_dap_session(text))
@@ -46,7 +46,7 @@ pub fn cmd_lsp(opts: CliOptions) {
         return
     }
     let input_file = args_record::cli_input_file(opts)
-    let read_result = fs::read_to_string(clone(input_file))
+    let read_result = Fs::read_to_string(clone(input_file))
     match read_result {
         Result::Ok(text) => {
             stdio::print(lsp::run_session(text))

@@ -1,4 +1,4 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::text
 use std::prelude::{byte_at, clone, contains, eq, to_string}
 use component::wit_decl
@@ -145,7 +145,7 @@ fn string_to_bytes(text: String) -> Vec<i32> {
 fn validate_wit_import_surface(paths: Vec<String>) -> String {
     for i in 0..len(paths) {
         let path = get_unchecked(paths, i)
-        let read_result = fs::read_to_string(clone(path))
+        let read_result = Fs::read_to_string(clone(path))
         match read_result {
             Result::Err(e) => {
                 return "unable to read WIT file ".concat(clone(path).concat(": ".concat(e)))

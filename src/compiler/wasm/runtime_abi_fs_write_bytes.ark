@@ -15,7 +15,7 @@ use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i64_const
 
-// Handler for: fs::write_bytes
+// Handler for: Fs::write_bytes
 fn emit_fs_write_bytes(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return runtime_abi_fs_write_bytes_gc::emit_fs_write_bytes_gc(w, inst, ctx)
