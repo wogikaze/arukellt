@@ -10,6 +10,30 @@ fn simple_type(tag: i32) -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(tag)
 }
 
+// Scalar conversion wrappers in `std/prelude.ark` declare concrete signatures
+// but keep `panic` bodies; the emitter lowers them by name. Unlike the
+// polymorphic prelude operations (`len`, `clone`, ...), their parameters carry
+// the whole contract, so the checker must not treat the name alone as a
+// licence to skip argument checking.
+fn is_scalar_conversion_builtin(name: String) -> bool {
+    if eq(clone(name), "u8_to_i32") || eq(clone(name), "u16_to_i32") ||
+    eq(clone(name), "i8_to_i32") || eq(clone(name), "i16_to_i32") {
+        return true
+    }
+    if eq(clone(name), "i32_to_u8") || eq(clone(name), "i32_to_u16") ||
+    eq(clone(name), "i32_to_i8") || eq(clone(name), "i32_to_i16") {
+        return true
+    }
+    if eq(clone(name), "i32_to_u32") || eq(clone(name), "u32_to_u64") ||
+    eq(clone(name), "u64_to_u32") {
+        return true
+    }
+    if eq(clone(name), "i32_to_i64") || eq(clone(name), "i64_to_i32") {
+        return true
+    }
+    eq(clone(name), "f32_to_f64") || eq(clone(name), "f64_to_f32")
+}
+
 fn builtin_call_return_type(name: String) -> TypeInfo {
     if eq(clone(name), "String_from") ||
     eq(clone(name), "i32_to_string") ||

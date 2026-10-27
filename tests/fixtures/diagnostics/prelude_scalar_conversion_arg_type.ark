@@ -1,0 +1,9 @@
+use std::host::clock::Clock
+use std::prelude::{i32_to_i64, i64_to_i32}
+
+fn main() -> i32 {
+    let elapsed: i64 = Clock::monotonic_now()
+    let _widened: i64 = i32_to_i64(elapsed)
+    let _narrowed: i32 = i64_to_i32(1)
+    0
+}
