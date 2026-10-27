@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined name: combine; use `h1.combine_hash(h2)` on the first hash value instead

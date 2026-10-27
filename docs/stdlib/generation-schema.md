@@ -13,7 +13,7 @@ The role is inferred from the combination of `kind` and `module` fields:
 | Role | Condition | Example |
 |------|-----------|---------|
 | **prelude** | has `kind`, no `module` (or `prelude = true`) | `concat`, `println` |
-| **module** | has `module`, no `kind` | `range_new` in `std::core` |
+| **module** | has `module`, no `kind` | `assert_eq_i32` in `std::test` |
 | **host_stub** | `kind = "host_stub"` | `read_to_string` in `std::host::fs` |
 | **mixed** | has both `kind` and `module` | `memory_copy` in `std::wasm` |
 

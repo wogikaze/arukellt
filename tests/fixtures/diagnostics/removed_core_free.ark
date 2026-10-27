@@ -1,0 +1,8 @@
+// E0100: the std::core range frees were removed in the ADR-087 Wave 2
+// deletion; the qualified old call names the Range replacement.
+use std::core
+
+fn main() {
+    let r = core::range_new(0, 5)
+    let _ = core::range_contains(r, 3)
+}

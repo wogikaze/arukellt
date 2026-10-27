@@ -246,6 +246,8 @@ diag:diagnostics/deprecated_vec_intrinsic.ark
 diag:diagnostics/deprecated_vec_intrinsic_wasm32.ark
 diag:diagnostics/deprecated_assertion_free.ark
 diag:diagnostics/deprecated_assertion_free_wasm32.ark
+diag:diagnostics/removed_core_free.ark
+diag:diagnostics/removed_core_free_wasm32.ark
 diag:diagnostics/removed_bytes_free.ark
 diag:diagnostics/removed_bytes_free_wasm32.ark
 diag:diagnostics/removed_json_toml_csv_free.ark
@@ -979,6 +981,8 @@ run:stdlib_core/to_string_bool.ark
 run:stdlib_core/to_string_f64.ark
 run:stdlib_core/to_string_i32.ark
 run:stdlib_core/to_string_i64.ark
+run:stdlib_core/core_method_surface.ark
+run:stdlib_core/core_method_surface_wasm32.ark
 run:stdlib_csv/csv_basic.ark
 run:stdlib_csv/csv_parse_doc.ark
 run:stdlib_csv/csv_parse_row.ark
@@ -3362,3 +3366,9 @@ run:native_root_liveness/dead_after_last_use.ark
 run:native_root_liveness/early_return_live.ark
 run:native_root_liveness/loop_carried_live.ark
 run:native_root_liveness/overwrite_old_dead.ark
+run:stdlib_path/path_method_surface.ark
+run:stdlib_path/path_method_surface_wasm32.ark
+run:stdlib_time/duration_methods.ark
+run:stdlib_time/duration_methods_wasm32.ark
+run:stdlib_random/rng_methods.ark
+run:stdlib_random/rng_methods_wasm32.ark

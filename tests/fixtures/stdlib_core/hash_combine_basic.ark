@@ -4,8 +4,8 @@ use std::test
 fn main() {
     let h1 = 42.hash()
     let h2 = "hello".hash()
-    let combined = hash::combine(h1, h2)
+    let combined = h1.combine_hash(h2)
     test::assert_true(combined >= 0)
-    // combine is deterministic
-    test::assert_eq_i32(combined, hash::combine(h1, h2))
+    // combine_hash is deterministic
+    test::assert_eq_i32(combined, h1.combine_hash(h2))
 }

@@ -525,74 +525,67 @@ classified there, in dependency-safe waves.
   pre-fix artifact, so the two-module probe fails under it; the rebuilt s2
   (and its self-built s3 successor) pass.
 
-### Landed slice (wave/hashset-agg, 2026-10-27)
+### Landed slice (wave/host-core2, 2026-10-27)
 
-- **Concrete `HashSet<i32>` aggregate surface**: `to_vec`, `union`,
-  `intersection`, `difference`, `capacity`, `reserve`, `shrink_to_fit`,
-  `clear`, and `extend` are receiver methods over the flat
-  `hash::hashset_*` store. Set-returning methods carry the HashSet marker onto
-  the result temporary, so `s.union(t).len()` and chained membership calls
-  lower to the set store rather than the Vec path.
-- **`HashSet<String>` membership**: `HashSet::new<String>()` plus `insert`,
-  `contains`, `remove`, `len`, and `is_empty` lower to the
-  `hash_string::hashset_str_*` facade (bare `hashset_str_*` targets resolve to
-  the loaded implementation module). The `vec:String` receiver/parameter
-  marker selects the String family on both targets.
-- **ADR-086 trait impls (i32)**: `IntoIterator` snapshots `to_vec` into the
-  shared `VecIter<i32>`, and `Clone`, `Eq`, and `Debug` are implemented over
-  the set semantics. `for value in set` now calls `HashSet_i32::into_iter` (not
-  the raw Vec cursor over the hash bucket layout) in both the legacy and
-  CoreHIR for lowering paths.
-- **Retired (21 adapters)**: the 15 `hash_set::hashset_i32_*` adapters and the
-  6 `hash_set::hashset_str_*` functions (including `hashset_str_new`).
-  `resolver::removed_names::hashset_method_replacement_hint` supplies the
-  E0100 replacement text for qualified `hash_set::` calls and bare
-  `hashset_i32_*` / `hashset_str_*` names; unit assertions cover both paths.
-  The `hash::hashset_*` / `hash_string::hashset_str_*` implementation
-  functions stay as internal lowering targets. The scorecard delta is 15 because the six `hashset_str_*` names duplicate manifest-registered implementation functions and were therefore not counted as unregistered declarations.
-- **Compiler changes**: `call_rewrite_hashset` gained the aggregate / trait
-  target table, String constructor and method families, and a
-  set-result marker. `params_method` marks self and `other` for concrete impl
-  owners (`HashSet_i32` / `HashSet_String`), and `params_fn` marks HashSet
-  arguments. `sections_types_gc_override` emits the flat Vec alias for the
-  `Clone` / set-returning impl results. The marker-less fallback is restricted
-  to `insert` / `contains` / `remove` so the String store's own
-  `hashset_str_len` body (`len(s)`) is not rewritten to itself.
-- **Fixtures**: the existing `stdlib_hashset/hashset_methods.ark` +
-  `_wasm32.ark` pair now covers membership, aggregates, chained set results,
-  the String lane, direct `into_iter`, `for` iteration, `Clone`, `Eq`, and
-  `Debug`. Four `stdlib_hashmap` fixtures were migrated off the adapters.
-  Added `diagnostics/removed_hashset_adapter.ark` +
-  `_wasm32.ark` E0100 goldens (registry 3313 -> 3315 entries; the `run:`
-  count stays 1867).
-- **Scorecard delta**: 515 -> **500** public symbols; unregistered
-  declarations 146 -> **131**; `pub fn` declarations 569 -> **548**;
-  `associated-or-method` 445 -> **430**. Manifest public entries 369,
-  `prelude_wrapper` 65, monomorphic manifest helpers 57, `must delete` 70,
-  and `intrinsic-only` 1 are unchanged.
-- **Verification**: both targets compile, `wasm-tools validate`, and run for
-  the extended surface fixture (P2 component on `wasm32-gc`, linear on
-  `--target wasm32`); `verify fixtures` **1867/1867 PASS**, 0 FAIL (108 runtime
-  smoke, 1 `test:` fixture PASS); `selfhost diag-parity` PASS including the two
-  new E0100 goldens; `verify lane` PASS; `docs check` 6/6;
-  `check-stdlib-eradication`, `check-compat-orphans`, and
-  `check-comment-policy` clean; ADR-029 fixpoint PASS: s2 == s3 at sha256
-  `912139c9223b4f710825c90c84f202b2b3a64f37868f9ca2900711fe9d32e5db`
+- **ADR-087 Wave 2 conversion (8 manifest + 1 unregistered)**: the `std::core`
+  frees `range_new` / `range_contains` / `range_len` /
+  `range_inclusive_new` / `range_inclusive_contains` / `cmp_i32`,
+  `std::core::error::error_message`, `std::core::hash::combine`, and the
+  unregistered `std::core::identity`. Wave 1 (`3e1b307d8`) landed the
+  receiver surface and `deprecated` manifest entries with live W0009
+  qualified-call warnings and dual-target goldens; Wave 2 deletes the
+  entries/declarations and leaves E0100 hints.
+- **Replacement surface**: `Range::new` / `r.contains(value)` / `r.len()`,
+  `RangeInclusive::new` / `r.contains(value)`, `a.cmp(b)` through the `Ord`
+  trait, `Error::message`, and `i32::combine_hash`; `identity` has no
+  replacement. `Range::new` is bound to the `core.range_new` CoreOp (new
+  legacy alias + regenerated binding table), so the GC struct constructor and
+  the linear-memory 8-byte record path keep their existing lowering.
+- **Compiler fix (measured)**: an enum-variant struct literal
+  (`Error::IndexOutOfBounds { .. }`) keeps the variant payload layout as the
+  binding's local type, so `e.message()` resolved
+  `IndexOutOfBounds::message`; the ambiguous bare-name fallback (`message` is
+  also `JsonParseError::message`) emitted `drop; unreachable` and failed Wasm
+  validation. Method-call resolution now maps a registered payload-variant
+  receiver to the owning enum (`ctx_variant_owner_name` in
+  `mir_initial_method_callee`) when that enum declares the method. Stamping
+  the local as `enum:<Enum>` instead resolved the method but trapped on the
+  linear target for struct-payload variants, so the resolution stays at the
+  callee spelling and keeps the payload layout for emit. A value returned
+  from a function or bound through an explicit annotation already lowered
+  correctly.
+- **Fixtures**: dual-target `stdlib_core/core_method_surface*` pair (compile,
+  validate, run), `diagnostics/removed_core_free*` E0100 goldens, and the
+  migrated `stdlib_core`, `stdlib_trait`, `stdlib_inline`,
+  `stdlib_component`, and `generics_v1` call sites. The #914 shadow fixture
+  is retargeted from the removed `std::core::identity` to the live
+  `std::collections::string::to_lower`. Run count 1867 -> 1869.
+- **Scorecard**: 515 -> **506** public symbols; `associated-or-method`
+  445 -> **436**; manifest public entries 369 -> **361**; unregistered
+  declarations 146 -> **145**; `pub fn` declarations 569 -> **560**;
+  monomorphic `*_i32` helpers 57 -> **56** (`cmp_i32`); `must delete` 70,
+  `intrinsic-only` 1, and `prelude_wrapper` 65 unchanged. The
+  `host/core namespace frees` family drops from 63 manifest / 21 source to
+  **55 manifest / 20 source**.
+- **Verification**: `verify fixtures` **1869/1869 PASS**, 0 FAIL (1869
+  compile+validate, 108 runtime smoke, 2 runtime-unsupported, 1 `test:`
+  fixture PASS) with the rebuilt s2; `selfhost diag-parity` PASS with the
+  new E0100 `removed_core_free*` goldens (the Wave 1 W0009 goldens fired on
+  both `wasm32-gc` and `--target wasm32` before the rename); `docs check`
+  6/6; `check-stdlib-eradication`, `check-compat-orphans`,
+  `check-ark-code-quality`, and `check-comment-policy` clean; `verify lane`
+  PASS. `stdlib_core/core_method_surface*` compiles, validates, and runs on
+  `wasm32-gc` (P2 component) and `--target wasm32` (linear), including the
+  `Error::IndexOutOfBounds { .. }` / `Error::ParseError { .. }` payload
+  variants; `check-cross-backend-parity.py` reports 4/4 parity for the
+  surface, `error_basic`, `range`, and `iterator_range_basic`. ADR-029
+  fixpoint PASS: s2 == s3 at sha256
+  `9779dc820e01a54cd09a8374b94c5e5941baa378602e0803cf3e89a5bbb57d4b`
   (pinned base `04d4446b…`).
-- **Blockers / residuals**: `FromIterator` stays unlanded. The concrete
-  `impl FromIterator<VecIter<i32>> for HashSet<i32>` registers under the
-  per-instantiation / conversion-source owner
-  `HashSet_i32::from_iter__VecIter_i32`, while the source path
-  `HashSet::from_iter(...)` is resolved against the bare `HashSet` owner and
-  fails with ``undefined variant: hash_set::HashSet::from_iter``;
-  `HashSet<i32>::from_iter` is not valid source syntax. A resolver fallback
-  that selects a concrete conversion impl from the source argument is the
-  unblock. `HashSet<String>` aggregates and trait impls wait on a store-level
-  snapshot accessor for the `Vec<String>` facade (the `hash_string` module
-  only exposes membership operations); without a String `IntoIterator`, a
-  `for word in set` over `HashSet<String>` fails typechecking with
-  `non-iterable source ... found HashSet`. The remaining 430
-  `associated-or-method` symbols and the `filter_i32` deferral are untouched.
+- **Residuals**: the 20 `std::core::raw` representation bridges still need a
+  `RawArray` / `RawString` namespace surface; the other host families
+  (`std::host::{env,fs,clock,random,process}`, `std::fs`, `std::env`,
+  `std::cli`, `std::process`, `std::signal`) are untouched.
 
 ## Required work
 
@@ -641,6 +634,10 @@ classified there, in dependency-safe waves.
         `std::core::iter` constructor / collector frees retired after the
         `VecIter` adapter method surface (`chain`/`enumerate`/`zip`/`all`
         landed with the wave) replaced them.
+      - Landed 2026-10-27 (`wave/host-core2`): the 8 `std::core`
+        range/order/error/hash manifest frees and the unregistered
+        `std::core::identity` retired after the `Range` / `RangeInclusive` /
+        `i32` / `Error` receiver surface landed.
 - [x] Keep the scorecard at zero-unclassified while waves land: update
       the TOML rules as symbols retire so the checker stays green.
 - [x] Update user-facing docs/examples in the same PR that retires a

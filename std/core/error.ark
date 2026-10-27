@@ -39,7 +39,7 @@ pub enum Error {
 }
 
 /// Converts an `Error` value into a human-readable message.
-pub fn error_message(e: Error) -> String {
+fn __core_error_message_impl(e: Error) -> String {
     match e {
         Error::InvalidArgument(msg) => __intrinsic_concat("InvalidArgument: ", msg),
         Error::IndexOutOfBounds { index, len } => {
@@ -61,9 +61,16 @@ pub fn error_message(e: Error) -> String {
     }
 }
 
+impl Error {
+    /// Converts this `Error` value into a human-readable message.
+    fn message(self: Error) -> String {
+        __core_error_message_impl(self)
+    }
+}
+
 test mod "error_message" {
-    test "invalid" { assert(len(error_message(Error::InvalidArgument("x"))) > 0) }
-    test "not_found" { assert(len(error_message(Error::NotFound("m"))) > 0) }
-    test "timeout" { assert(len(error_message(Error::Timeout)) > 0) }
-    test "utf8" { assert(len(error_message(Error::Utf8Error)) > 0) }
+    test "invalid" { assert(len(Error::InvalidArgument("x").message()) > 0) }
+    test "not_found" { assert(len(Error::NotFound("m").message()) > 0) }
+    test "timeout" { assert(len(Error::Timeout.message()) > 0) }
+    test "utf8" { assert(len(Error::Utf8Error.message()) > 0) }
 }

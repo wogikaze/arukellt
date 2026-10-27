@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, index_of, substring}
+use std::prelude::{byte_at, clone, eq, index_of, substring}
 use mir::lower::ctx_variant_storage
 use mir::lower::ctx_variants_builtin
 fn ctx_strip_first_path_segment(name: String) -> String {
@@ -7,6 +7,28 @@ fn ctx_strip_first_path_segment(name: String) -> String {
         return String_new()
     }
     substring(name, pos + 2, len(name))
+}
+
+// Enum owner of a registered variant spelling:
+// "Error::IndexOutOfBounds" -> "Error". Returns "" when the name has no
+// enum owner segment. Used to type an enum-variant struct literal as the
+// enum, not the payload struct it constructs.
+fn ctx_variant_owner_name(name: String) -> String {
+    let n = len(name)
+    let mut last_sep = 0 - 1
+    let mut i = 0
+    while i + 1 < n {
+        if byte_at(name, i) == 58 && byte_at(name, i + 1) == 58 {
+            last_sep = i
+            i = i + 2
+            continue
+        }
+        i = i + 1
+    }
+    if last_sep < 0 {
+        return String_new()
+    }
+    substring(name, 0, last_sep)
 }
 
 // Resolve module::Enum::Variant spellings to the registered layout name

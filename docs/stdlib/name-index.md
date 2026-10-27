@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 301
+- **Canonical names:** 293
 - **Historical/deprecated names:** 68
-- **Total entries:** 369
+- **Total entries:** 361
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -93,15 +93,12 @@ Current public API names, sorted alphabetically.
 | `clamp_i32` | `prelude` | `stable` | Math |
 | `clone` | `prelude` | `stable` | String |
 | `clone_f64` | `std::signal` | `stable` | Signal |
-| `cmp_i32` | `std::core` | `stable` | Core |
-| `combine` | `std::core::hash` | `stable` | Core |
 | `contains` | `prelude` | `stable` | String |
 | `cos_approx` | `std::signal` | `stable` | Signal |
 | `div` | `std::simd::f64x2` | `experimental` | Simd |
 | `ends_with` | `prelude` | `stable` | String |
 | `eprintln` | `std::host::stdio` | `stable` | Host Stdio |
 | `eq` | `prelude` | `stable` | String |
-| `error_message` | `std::core::error` | `stable` | Core |
 | `exists` | `std::fs` | `stable` | Fs |
 | `exit` | `prelude` | `stable` | Host Process |
 | `exit` | `std::host::process` | `stable` | Host Process |
@@ -241,11 +238,6 @@ Current public API names, sorted alphabetically.
 | `random_bool` | `std::host::random` | `stable` | Host Random |
 | `random_i32` | `std::host::random` | `stable` | Host Random |
 | `random_i32_range` | `std::host::random` | `stable` | Host Random |
-| `range_contains` | `std::core` | `stable` | Core |
-| `range_inclusive_contains` | `std::core` | `stable` | Core |
-| `range_inclusive_new` | `std::core` | `stable` | Core |
-| `range_len` | `std::core` | `stable` | Core |
-| `range_new` | `std::core` | `stable` | Core |
 | `read_bytes` | `std::host::fs` | `experimental` | Host Fs |
 | `read_dir` | `std::fs` | `provisional` | Fs |
 | `read_stdin_line` | `std::io` | `stable` | Io |
@@ -486,8 +478,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `clamp_i32` | ✅ `stable` | `prelude` | Math |
 | `clone` | ✅ `stable` | `prelude` | String |
 | `clone_f64` | ✅ `stable` | `std::signal` | Signal |
-| `cmp_i32` | ✅ `stable` | `std::core` | Core |
-| `combine` | ✅ `stable` | `std::core::hash` | Core |
 | `contains` | ✅ `stable` | `prelude` | String |
 | `cos_approx` | ✅ `stable` | `std::signal` | Signal |
 | ~~`count_eq`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::count_eq` · [migration guide](migration-guidance.md) |
@@ -506,7 +496,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `ends_with` | ✅ `stable` | `prelude` | String |
 | `eprintln` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `eq` | ✅ `stable` | `prelude` | String |
-| `error_message` | ✅ `stable` | `std::core::error` | Core |
 | `exists` | ✅ `stable` | `std::fs` | Fs |
 | ~~`exists`~~ | ⚠️ deprecated | `std::host::fs` | → `is_readable_file` · [migration guide](migration-guidance.md) |
 | `exit` | ✅ `stable` | `prelude` | Host Process |
@@ -681,11 +670,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `random_bool` | ✅ `stable` | `std::host::random` | Host Random |
 | `random_i32` | ✅ `stable` | `std::host::random` | Host Random |
 | `random_i32_range` | ✅ `stable` | `std::host::random` | Host Random |
-| `range_contains` | ✅ `stable` | `std::core` | Core |
-| `range_inclusive_contains` | ✅ `stable` | `std::core` | Core |
-| `range_inclusive_new` | ✅ `stable` | `std::core` | Core |
-| `range_len` | ✅ `stable` | `std::core` | Core |
-| `range_new` | ✅ `stable` | `std::core` | Core |
 | `read_bytes` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `read_dir` | ✅ `provisional` | `std::fs` | Fs |
 | `read_stdin_line` | ✅ `stable` | `std::io` | Io |

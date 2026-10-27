@@ -9,14 +9,14 @@ fn main() {
             stdio::println((slice.len).to_string())
             match Component::lift_string(scratch, slice) {
                 Result::Ok(s) => stdio::println(s),
-                Result::Err(e) => stdio::println(error::error_message(e)),
+                Result::Err(e) => stdio::println(e.message()),
             }
             match Component::lift_string_at(scratch, slice.ptr, slice.len) {
                 Result::Ok(s) => stdio::println(s),
-                Result::Err(e) => stdio::println(error::error_message(e)),
+                Result::Err(e) => stdio::println(e.message()),
             }
         },
-        Result::Err(e) => stdio::println(error::error_message(e)),
+        Result::Err(e) => stdio::println(e.message()),
     }
 }
 // canonical string lower/lift round-trip on wasm32 linear

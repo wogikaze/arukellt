@@ -1,6 +1,6 @@
 // The eager std::core::iter constructor/collector frees were retired (#917);
 // this fixture pins the lazy method surface that replaced them.
-use std::core
+use std::core::{Range, RangeInclusive}
 use std::core::iter
 use std::test
 
@@ -100,8 +100,8 @@ fn main() {
     test::assert_eq_i32(a.iter().rev().count(), 4)
 
     // Range constructors expose the same into_iter entry point.
-    let ranged = core::range_new(0, 3).into_iter().collect()
+    let ranged = Range::new(0, 3).into_iter().collect()
     test::assert_eq_i32(len(ranged), 3)
-    let inclusive = core::range_inclusive_new(0, 2).into_iter().collect()
+    let inclusive = RangeInclusive::new(0, 2).into_iter().collect()
     test::assert_eq_i32(len(inclusive), 3)
 }

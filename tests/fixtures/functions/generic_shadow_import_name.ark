@@ -1,22 +1,23 @@
 // A generic fn declared in the entry module must win the bare-name slot
-// over imported decls sharing the name: `use std::test` transitively
-// loads std::core::identity(i32). Loaded-module decls register in the
-// flat signature index first, so without entry-module priority the local
-// generic could never be found by unqualified calls - annotated lets
-// failed with E0200 (i32 vs String) and unannotated calls skipped
-// mono-instance minting, leaving wasm32-gc to emit an invalid module and
-// wasm32 to silently bind the imported i64 body.
+// over imported decls sharing the name: `use std::test` transitively loads
+// std::collections::string::to_lower(String). Loaded-module decls register in
+// the flat signature index first, so without entry-module priority the local
+// generic could never be found by unqualified calls - annotated lets failed
+// with E0200 (i32 vs String) and unannotated calls skipped mono-instance
+// minting, leaving wasm32-gc to emit an invalid module and wasm32 to silently
+// bind the imported body. The original report used std::core::identity, which
+// the #917 std::core receiver wave removed.
 use std::test
 
-fn identity<T>(x: T) -> T {
+fn to_lower<T>(x: T) -> T {
     x
 }
 
 fn main() {
-    let a: i32 = identity(7)
-    let b: String = identity(String_from("ok"))
-    let c = identity(11)
-    let d = identity(String_from("second"))
+    let a: i32 = to_lower(7)
+    let b: String = to_lower(String_from("ok"))
+    let c = to_lower(11)
+    let d = to_lower(String_from("second"))
     test::assert_eq_i32(a, 7)
     test::assert_eq_string(b, String_from("ok"))
     test::assert_eq_i32(c, 11)

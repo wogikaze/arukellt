@@ -123,10 +123,10 @@ fn mir_type_contains_type_var(ty: TypeInfo) -> bool {
 // A decl owns mono instances only while its typed signature still carries
 // type variables. The flat mono index groups instances by bare decl name,
 // so an imported concrete decl sharing the name with an entry-module
-// generic (std::core::identity vs the program's `fn identity<T>`) sees the
-// same variants. A concrete decl must not claim them: registering
-// `identity__String` under the imported i64 signature produces a
-// param-i64/result-String func that fails wasm validation (#914).
+// generic (std::collections::string::to_lower vs the program's
+// `fn to_lower<T>`) sees the same variants. A concrete decl must not claim
+// them: registering `to_lower__String` under the imported String signature
+// produces a param-String/result-i32 func that fails wasm validation (#914).
 fn mir_fn_index_source_decl_is_generic(source: MirLowerFnIndexSource, typed_index: i32) -> bool {
     let param_count = mir_fn_index_source_typed_param_count(source, typed_index)
     let mut i = 0

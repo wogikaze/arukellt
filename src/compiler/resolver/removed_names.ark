@@ -69,6 +69,10 @@ fn is_retired_hashset_adapter_name(name: String) -> bool {
 }
 
 fn removed_name_specific_hint(name: String) -> String {
+    let core_hint = removed_core_free_hint(clone(name))
+    if len(clone(core_hint)) > 0 {
+        return core_hint
+    }
     if clone(name).starts_with(String_from("HashMap_")) {
         return hashmap_method_replacement_hint()
     }
@@ -237,6 +241,15 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     }
     if eq(clone(module), "random") {
         return removed_random_member_hint(name)
+    }
+    if eq(clone(module), "core") {
+        return removed_core_free_hint(name)
+    }
+    if eq(clone(module), "error") {
+        return removed_error_member_hint(name)
+    }
+    if eq(clone(module), "hash") {
+        return removed_hash_member_hint(name)
     }
     if eq(clone(module), "canonical") {
         return removed_canonical_member_hint(name)
@@ -852,6 +865,29 @@ fn removed_time_member_hint(name: String) -> String {
     String_new()
 }
 
+fn removed_core_free_hint(name: String) -> String {
+    if eq(clone(name), "range_new") { return String_from("use `Range::new(start, end)` from `use std::core::{Range}` instead") }
+    if eq(clone(name), "range_contains") { return String_from("use `r.contains(value)` on the `Range` value instead") }
+    if eq(clone(name), "range_len") { return String_from("use `r.len()` on the `Range` value instead") }
+    if eq(clone(name), "range_inclusive_new") { return String_from("use `RangeInclusive::new(start, end)` from `use std::core::{RangeInclusive}` instead") }
+    if eq(clone(name), "range_inclusive_contains") { return String_from("use `r.contains(value)` on the `RangeInclusive` value instead") }
+    if eq(clone(name), "cmp_i32") { return String_from("use `a.cmp(b)` via `use std::core::cmp` instead") }
+    if eq(clone(name), "error_message") { return String_from("use `e.message()` on the `Error` value instead") }
+    if eq(clone(name), "combine") { return String_from("use `h1.combine_hash(h2)` on the first hash value instead") }
+    if eq(clone(name), "identity") { return String_from("removed identity helper; delete the call (no replacement)") }
+    String_new()
+}
+
+fn removed_error_member_hint(name: String) -> String {
+    if eq(clone(name), "error_message") { return String_from("use `e.message()` on the `Error` value instead") }
+    String_new()
+}
+
+fn removed_hash_member_hint(name: String) -> String {
+    if eq(clone(name), "combine") { return String_from("use `h1.combine_hash(h2)` on the first hash value instead") }
+    String_new()
+}
+
 fn removed_random_member_hint(name: String) -> String {
     if eq(clone(name), "seeded_random") { return String_from("use `Rng::new(seed).next()` from `use std::random::Rng` instead") }
     if eq(clone(name), "seeded_range") { return String_from("use `Rng::new(seed).range(lo, hi)` from `use std::random::Rng` instead") }
@@ -1052,6 +1088,18 @@ test mod "removed_names" {
         assert(len(removed_module_member_hint(String_from("time"), String_from("duration_ns"))) > 0)
         assert(len(removed_module_member_hint(String_from("random"), String_from("seeded_random"))) > 0)
         assert(len(removed_module_member_hint(String_from("random"), String_from("shuffle_i32"))) > 0)
+    }
+    test "removed core frees have receiver hints" {
+        assert(len(removed_module_member_hint(String_from("core"), String_from("range_new"))) > 0)
+        assert(len(removed_module_member_hint(String_from("core"), String_from("range_contains"))) > 0)
+        assert(len(removed_module_member_hint(String_from("core"), String_from("range_inclusive_new"))) > 0)
+        assert(len(removed_module_member_hint(String_from("core"), String_from("cmp_i32"))) > 0)
+        assert(len(removed_module_member_hint(String_from("core"), String_from("identity"))) > 0)
+        assert(len(removed_module_member_hint(String_from("error"), String_from("error_message"))) > 0)
+        assert(len(removed_module_member_hint(String_from("hash"), String_from("combine"))) > 0)
+        assert(len(removed_name_hint(String_from("range_new"))) > 0)
+        assert(len(removed_name_hint(String_from("identity"))) > 0)
+        assert(len(removed_name_hint(String_from("combine"))) > 0)
     }
     test "live path/time/random members keep no removal hint" {
         assert(len(removed_module_member_hint(String_from("path"), String_from("Path"))) == 0)

@@ -8,7 +8,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 191 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 183 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 19 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 91 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 68 | Superseded — see migration guidance. |
@@ -108,6 +108,7 @@
 | `DequeIntoIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIterMut` | `set_current` | `Iterator`, `IntoIterator` |
+| `Error` | `message` | - |
 | `F32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `div`, `sqrt`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `min`, `max`, `ceil`, `floor`, `trunc`, `nearest`, `abs` | - |
 | `F64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `ceil`, `floor`, `trunc`, `nearest`, `promote_low_f32x4`, `convert_low_i32x4_s`, `convert_low_i32x4_u` | - |
 | `File` | `open`, `create`, `close` | `Read`, `Write`, `Seek` |
@@ -134,7 +135,8 @@
 | `Opcode` | `unreachable`, `nop`, `block`, `loop_`, `if_`, `else_`, `end`, `br`, `br_if`, `return_`, `call`, `drop`, `select`, `local_get`, `local_set`, `local_tee`, `global_get`, `global_set`, `i32_load`, `i32_store`, `memory_size`, `memory_grow`, `i32_const`, `i64_const`, `f32_const`, `f64_const`, `i32_eqz`, `i32_eq`, `i32_ne`, `i32_lt_s`, `i32_gt_s`, `i32_le_s`, `i32_ge_s`, `i32_add`, `i32_sub`, `i32_mul`, `i32_div_s`, `i32_and`, `i32_or`, `i32_xor`, `i32_shl`, `i32_shr_s`, `i64_add`, `i64_sub`, `i64_mul` | - |
 | `Ordering` | `is_less`, `is_less_or_equal`, `is_greater`, `is_greater_or_equal` | - |
 | `Queue` | `new`, `with_capacity`, `push`, `pop`, `front`, `back`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
-| `Range` | `contains`, `len` | - |
+| `Range` | `new`, `contains`, `len` | - |
+| `RangeInclusive` | `new`, `contains` | - |
 | `Read` | `read` | - |
 | `Reader` | `from_bytes`, `new`, `len`, `is_eof`, `into_bytes` | `Read`, `BufRead`, `Seek` |
 | `Section` | `type_id`, `import_id`, `function_id`, `table_id`, `memory_id`, `global_id`, `export_id`, `start_id`, `element_id`, `code_id`, `data_id` | - |
@@ -378,19 +380,6 @@ Expected output: `42`
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `f32_to_string` | `(f32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_f32_to_string` | - |
 | ~~`i32_to_u32`~~ ⚠️ Deprecated → `i32::to_u32_bits` | `(i32) -> u32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u32` | - |
-
-## Core
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `cmp_i32` | `(i32, i32) -> Ordering` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
-| `combine` | `(i32, i32) -> i32` | `std::core::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `error_message` | `(Error) -> String` | `std::core::error` | `stable` | `functional` | `builtin` | no | - | - |
-| `range_contains` | `(Range, i32) -> bool` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
-| `range_inclusive_contains` | `(RangeInclusive, i32) -> bool` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
-| `range_inclusive_new` | `(i32, i32) -> RangeInclusive` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
-| `range_len` | `(Range) -> i32` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
-| `range_new` | `(i32, i32) -> Range` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
 
 ## Env
 

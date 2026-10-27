@@ -1,4 +1,4 @@
-use std::core
+use std::core::{Range, RangeInclusive}
 use std::core::iter
 use std::test
 
@@ -21,7 +21,7 @@ fn sum_into_for<T: iter::IntoIterator>(source: T) -> i32 {
 fn add_i32(a: i32, b: i32) -> i32 { a + b }
 
 fn main() {
-    let r = core::range_new(0, 5)
+    let r = Range::new(0, 5)
     let collected = r.into_iter().collect()
     test::assert_eq_i32(len(collected), 5)
     test::assert_eq_i32(get_unchecked(collected, 0), 0)
@@ -30,20 +30,20 @@ fn main() {
     test::assert_eq_i32(get_unchecked(collected, 3), 3)
     test::assert_eq_i32(get_unchecked(collected, 4), 4)
 
-    let source = core::range_new(2, 5)
+    let source = Range::new(2, 5)
     let iterator = source.into_iter()
     match iterator.next() {
         Some(value) => test::assert_eq_i32(value, 2),
         None => panic("expected first range item"),
     }
 
-    let generic_source = core::range_new(7, 9)
+    let generic_source = Range::new(7, 9)
     match first_from_source(generic_source) {
         Some(value) => test::assert_eq_i32(value, 7),
         None => panic("expected generic range item"),
     }
 
-    let inclusive_source = core::range_inclusive_new(3, 5)
+    let inclusive_source = RangeInclusive::new(3, 5)
     let inclusive_iterator = inclusive_source.into_iter()
     match inclusive_iterator.next() {
         Some(value) => test::assert_eq_i32(value, 3),
@@ -51,29 +51,29 @@ fn main() {
     }
     test::assert_eq_i32(inclusive_iterator.count(), 2)
 
-    let collected_inclusive: Vec<i32> = core::range_inclusive_new(4, 6).into_iter().collect()
+    let collected_inclusive: Vec<i32> = RangeInclusive::new(4, 6).into_iter().collect()
     test::assert_eq_i32(len(collected_inclusive), 3)
     test::assert_eq_i32(get_unchecked(collected_inclusive, 2), 6)
 
-    let from_iter_range: Vec<i32> = Vec::from_iter(core::range_new(8, 11).into_iter())
+    let from_iter_range: Vec<i32> = Vec::from_iter(Range::new(8, 11).into_iter())
     test::assert_eq_i32(len(from_iter_range), 3)
     test::assert_eq_i32(get_unchecked(from_iter_range, 2), 10)
 
-    let from_iter_inclusive: Vec<i32> = Vec::from_iter(core::range_inclusive_new(9, 11).into_iter())
+    let from_iter_inclusive: Vec<i32> = Vec::from_iter(RangeInclusive::new(9, 11).into_iter())
     test::assert_eq_i32(len(from_iter_inclusive), 3)
     test::assert_eq_i32(get_unchecked(from_iter_inclusive, 2), 11)
 
-    test::assert_eq_i32(fold_values(core::range_new(2, 5).into_iter(), 10, add_i32), 19)
-    test::assert_eq_i32(fold_values(core::range_inclusive_new(1, 3).into_iter(), 0, add_i32), 6)
+    test::assert_eq_i32(fold_values(Range::new(2, 5).into_iter(), 10, add_i32), 19)
+    test::assert_eq_i32(fold_values(RangeInclusive::new(1, 3).into_iter(), 0, add_i32), 6)
 
-    let direct_range = core::range_new(2, 5)
+    let direct_range = Range::new(2, 5)
     let mut direct_range_total: i32 = 0
     for value in direct_range {
         direct_range_total = direct_range_total + value
     }
     test::assert_eq_i32(direct_range_total, 9)
 
-    let direct_inclusive = core::range_inclusive_new(3, 5)
+    let direct_inclusive = RangeInclusive::new(3, 5)
     let mut direct_inclusive_total: i32 = 0
     for value in direct_inclusive {
         direct_inclusive_total = direct_inclusive_total + value
@@ -81,17 +81,17 @@ fn main() {
     test::assert_eq_i32(direct_inclusive_total, 12)
 
     let mut direct_expression_total: i32 = 0
-    for value in core::range_new(2, 5) {
+    for value in Range::new(2, 5) {
         direct_expression_total = direct_expression_total + value
     }
     test::assert_eq_i32(direct_expression_total, 9)
 
     let mut direct_method_total: i32 = 0
-    for value in core::range_inclusive_new(3, 5).into_iter() {
+    for value in RangeInclusive::new(3, 5).into_iter() {
         direct_method_total = direct_method_total + value
     }
     test::assert_eq_i32(direct_method_total, 12)
 
-    test::assert_eq_i32(sum_into_for(core::range_new(2, 5)), 9)
-    test::assert_eq_i32(sum_into_for(core::range_inclusive_new(3, 5)), 12)
+    test::assert_eq_i32(sum_into_for(Range::new(2, 5)), 9)
+    test::assert_eq_i32(sum_into_for(RangeInclusive::new(3, 5)), 12)
 }

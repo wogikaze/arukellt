@@ -2,7 +2,7 @@ use std::prelude::{abs, clamp_i32, f32_to_string, f64_bits_hi, f64_bits_lo, form
 use std::prelude::{min, parse_f64, parse_i32, parse_i64, push_char}
 use std::prelude::{sqrt, trim_end, trim_start, values}
 use std::collections::vec
-use std::core
+use std::core::{Range}
 use std::core::cmp
 use std::core::iter
 use std::seq
@@ -33,12 +33,12 @@ pub fn probe_pow(base: i32, exponent: i32) -> i32 {
 }
 
 pub fn probe_range_contains(value: i32) -> bool {
-    let range: Range = core::range_new(3, 8)
+    let range: Range = Range::new(3, 8)
     range.contains(value)
 }
 
 pub fn probe_range_len() -> i32 {
-    let range: Range = core::range_new(3, 8)
+    let range: Range = Range::new(3, 8)
     range.len()
 }
 
@@ -251,7 +251,7 @@ pub fn probe_char_to_string_ops() -> bool {
 pub fn probe_range_new_ops() -> bool {
     // Avoid `range.len() == N` in the same expression as contains: O1 inlining
     // of range_len currently drops the left operand of `==` (#822 follow-up).
-    let range: Range = core::range_new(3, 8)
+    let range: Range = Range::new(3, 8)
     let length = range.len()
     range.contains(5) && length == 5 && !range.contains(8)
 }

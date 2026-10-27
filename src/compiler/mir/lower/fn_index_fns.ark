@@ -41,8 +41,9 @@ fn mir_index_top_level_fn(
         push(fn_return_type_names, clone(rtn))
         // Mono variants belong to the generic decl only. A concrete decl
         // sharing the bare name with an entry-module generic (imported
-        // std::core::identity vs the program's identity<T>) would otherwise
-        // publish identity__String with its own i64 signature (#914).
+        // std::collections::string::to_lower vs the program's to_lower<T>)
+        // would otherwise publish to_lower__String with its own signature
+        // (#914).
         if fn_index_source::mir_fn_index_source_decl_is_generic(source, typed_index) {
             fn_index_mono::mir_index_mono_variants(fn_names, fn_return_vts, fn_return_type_names, midx, clone(decl_name), rvt, clone(rtn), mono_instances, generic_return_ty)
             // Instances of a module member record under the qualified fn_name

@@ -1140,6 +1140,7 @@ doc_category = "host_process"
 name = "Error"
 kind = "enum"
 doc = "Portable error category for fallible APIs."
+methods = ["message"]
 module = "std::core::error"
 stability = "stable"
 prelude = false
@@ -1164,7 +1165,7 @@ prelude = false
 name = "Range"
 kind = "struct"
 doc = "Half-open integer range `[start, end)`."
-methods = ["contains", "len"]
+methods = ["new", "contains", "len"]
 module = "std::core"
 stability = "stable"
 prelude = false
@@ -1173,80 +1174,17 @@ prelude = false
 name = "RangeInclusive"
 kind = "struct"
 doc = "Closed integer range `[start, end]`."
+methods = ["new", "contains"]
 module = "std::core"
 stability = "stable"
 prelude = false
 
 # ── std::core Functions (v3) ─────────────
-[[functions]]
-name = "range_new"
-module = "std::core"
-doc_category = "core"
-stability = "stable"
-params = ["i32", "i32"]
-returns = "Range"
-
-[[functions]]
-name = "range_contains"
-module = "std::core"
-doc_category = "core"
-stability = "stable"
-params = ["Range", "i32"]
-returns = "bool"
-
-[[functions]]
-name = "range_len"
-module = "std::core"
-doc_category = "core"
-stability = "stable"
-params = ["Range"]
-returns = "i32"
-
-[[functions]]
-name = "range_inclusive_new"
-module = "std::core"
-doc_category = "core"
-stability = "stable"
-params = ["i32", "i32"]
-returns = "RangeInclusive"
-
-[[functions]]
-name = "range_inclusive_contains"
-module = "std::core"
-doc_category = "core"
-stability = "stable"
-params = ["RangeInclusive", "i32"]
-returns = "bool"
-
-[[functions]]
-name = "cmp_i32"
-module = "std::core"
-doc_category = "core"
-stability = "stable"
-params = ["i32", "i32"]
-returns = "Ordering"
-
-[[functions]]
-name = "error_message"
-module = "std::core::error"
-doc_category = "core"
-stability = "stable"
-params = ["Error"]
-returns = "String"
-
 [[modules]]
 name = "std::core::raw"
 stability = "internal"
 doc = "Sealed Vec/String representation API (RFC-006 / #817). Not importable from user code."
 availability = { t1 = true, t3 = true }
-
-[[functions]]
-name = "combine"
-module = "std::core::hash"
-doc_category = "core"
-stability = "stable"
-params = ["i32", "i32"]
-returns = "i32"
 
 [[modules]]
 name = "std::time"

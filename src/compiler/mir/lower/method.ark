@@ -2,6 +2,8 @@ use std::prelude::{clone, eq, starts_with, substring}
 use std::text
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_variants
+use mir::lower::ctx_struct_layout
 use mir::lower::ctx_fn_exists
 use mir::lower::ctx_mono_type_params
 use mir::lower::method_emit
@@ -13,6 +15,24 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     let mut struct_name = ""
     if receiver_idx >= 0 {
         struct_name = ctx_get_local_type(ctx, receiver_idx)
+    }
+    // An enum-variant struct literal constructs the payload layout, so the
+    // binding's local type is `Enum::Variant` rather than the enum. Resolve a
+    // method that exists on the owning enum (Error::message) instead of
+    // falling through the ambiguous bare-name fallback; the payload value is
+    // a subtype/pointer-compatible receiver on both targets.
+    if len(clone(struct_name)) > 0 {
+        let variant = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(struct_name))
+        if ctx_api_variants::ctx_variant_tag(ctx, clone(variant)) >= 0 {
+            let owner = ctx_api_variants::ctx_variant_owner_name(clone(variant))
+            let enum_name = ctx_struct_layout::ctx_struct_basename(clone(owner))
+            if len(clone(enum_name)) > 0 {
+                let candidate = clone(enum_name).concat(String_from("::").concat(clone(method_name)))
+                if ctx_has_fn_name(ctx, clone(candidate)) {
+                    return candidate
+                }
+            }
+        }
     }
     // When the receiver type is a type variable (e.g. "?T"), try to
     // resolve it to a concrete type via the monomorphization type

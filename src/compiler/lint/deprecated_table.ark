@@ -248,8 +248,8 @@ fn deprecated_seq_qualified_message(path: String) -> String {
 }
 
 fn deprecated_hash_qualified_message(path: String) -> String {
-    // std::core::hash only exposes 'combine'; removed names are covered by
-    // resolver::removed_names instead of this live-call table.
+    // std::core::hash exposes no callable free functions after the #917
+    // receiver wave; removed names are covered by resolver::removed_names.
     String_new()
 }
 
@@ -268,6 +268,11 @@ test mod "deprecated" {
         assert(len(deprecated_call_message("char_at")) == 0)
     }
     test "math_helpers_removed" { assert(len(deprecated_qualified_call_message("math::popcount")) == 0) }
+    test "core_frees_removed" {
+        assert(len(deprecated_qualified_call_message("core::range_new")) == 0)
+        assert(len(deprecated_qualified_call_message("error::error_message")) == 0)
+        assert(len(deprecated_qualified_call_message("hash::combine")) == 0)
+    }
     test "non_deprecated" { assert(len(deprecated_qualified_call_message("math::gcd")) == 0) }
     test "seq_deprecated_helpers" {
         assert(len(deprecated_qualified_call_message("seq::map_i32_i32")) > 0)
