@@ -4,13 +4,13 @@ Created: 2026-10-27
 Updated: 2026-10-27
 ID: 944
 Track: typecheck
-Depends on: "#943"
-Orchestration class: blocked-by-upstream
-Orchestration upstream: "#943"
+Depends on: none
+Orchestration class: implementation-ready
+Orchestration upstream: none
 Blocks v{N}: none
 Priority: 0
 Source: "P0 design/implementation audit (2026-10-27)"
-Related: "ADR-059, E0212, #943, #945"
+Related: "ADR-059, ADR-088, E0212, #943, #945, #951"
 ---
 
 # 944 — use of a moved binding is not diagnosed when the use is a call argument
@@ -71,17 +71,17 @@ Observed with `.build/selfhost/arukellt-s2-runtime.wasm`
 
 ## Expected
 
-Under the current ADR-059 text, both repros are E0212 at the second use of
-the moved binding. The final rule follows the #943 decision. Even under
-reference semantics, `let b = a` must not leave a "moved" binding usable
-while documentation says it is moved.
+ADR-059 §4 and ADR-088 §1 (decided 2026-10-27 for #943): passing a moved
+binding as an argument is E0212, like any other use. Both repros are E0212
+at the use of the moved binding (`show(a)`, `push(v1, 1)`). Passing a
+non-moved binding is a call-scoped borrow and does not move it.
 
 ## Acceptance
 
 - [ ] Binding state (moved / Copy / borrowed) is checked at every use of an
       identifier in one place, not per AST shape.
-- [ ] Both repros are registered fixtures with the outcome defined by #943,
-      on both targets.
+- [ ] Both repros are registered compile-error fixtures (E0212) on both
+      targets.
 - [ ] Existing ownership / closure-capture fixtures (E0212–E0214) stay
       green.
 - [ ] `python3 scripts/manager.py selfhost fixpoint` stays green (selfhost

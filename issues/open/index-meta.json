@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-27T03:43:10Z",
+  "generated_at": "2026-10-27T03:52:22Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -606,15 +606,30 @@
       "track": "language-design",
       "status": "open",
       "depends_on": [],
-      "blocks_issue_ids": [
-        "944"
-      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 2,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "944",
+      "path": "944-move-after-use-not-diagnosed.md",
+      "title": "944 — use of a moved binding is not diagnosed when the use is a call argument",
+      "track": "typecheck",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 4
       },
       "orchestration": {
-        "class": "design-needed",
+        "class": "implementation-ready",
         "upstream_notes": "none"
       }
     },
@@ -644,11 +659,11 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 3
+        "checked": 1,
+        "unchecked": 4
       },
       "orchestration": {
-        "class": "design-then-implement",
+        "class": "implementation-ready",
         "upstream_notes": "none"
       }
     },
@@ -717,6 +732,23 @@
       },
       "orchestration": {
         "class": "verification-contract",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "951",
+      "path": "951-mut-parameter-mode-and-call-borrow-checks.md",
+      "title": "951 — implement ADR-088: `mut` parameter mode, mutable-place and same-place conflict checks",
+      "track": "typecheck",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "implementation-ready",
         "upstream_notes": "none"
       }
     },
@@ -844,25 +876,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#934"
-      }
-    },
-    {
-      "id": "944",
-      "path": "944-move-after-use-not-diagnosed.md",
-      "title": "944 — use of a moved binding is not diagnosed when the use is a call argument",
-      "track": "typecheck",
-      "status": "open",
-      "depends_on": [
-        "943"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#943"
       }
     },
     {

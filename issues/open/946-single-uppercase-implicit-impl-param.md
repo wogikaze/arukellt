@@ -5,12 +5,12 @@ Updated: 2026-10-27
 ID: 946
 Track: typecheck
 Depends on: none
-Orchestration class: design-then-implement
+Orchestration class: implementation-ready
 Orchestration upstream: none
 Blocks v{N}: none
 Priority: 0
 Source: "P0 design/implementation audit (2026-10-27)"
-Related: "ADR-062, ADR-078, #945"
+Related: "ADR-062, ADR-078, ADR-089, #945"
 ---
 
 # 946 — single-uppercase type names in impl heads are treated as implicit type parameters
@@ -39,17 +39,24 @@ of `Holder`. Observed with `.build/selfhost/arukellt-s2-runtime.wasm`
 error[E0216|typecheck]: blanket trait impl is not allowed for user code: Copy
 ```
 
-## Expected
+## Expected (ADR-089, 2026-10-27)
 
-A name that resolves to a declared type is that type. Type parameters are
-introduced only by an explicit binder (`impl<T> …`), or the implicit rule
-applies only to names that do not resolve to a declared type.
+Impl type parameters are introduced only by an explicit binder
+(`impl<T, U: Bound> …`), for trait and inherent impls alike. Every other
+name in an impl head resolves as an ordinary type name; an unresolved name
+is an undefined-type diagnostic that suggests adding a binder. Name length
+or case never decides type vs. type parameter. The implicit form goes
+through a migration warning before it becomes an error (ADR-014).
 
 ## Acceptance
 
-- [ ] An ADR-062/078 amendment (or a new ADR) fixes the rule: explicit binder
-      required, or resolution-first with the implicit rule as fallback, plus
-      a migration diagnostic for the old form.
+- [x] The rule is decided: ADR-089 (explicit binder required).
+- [ ] Binder-less impl heads with implicit parameters produce a migration
+      warning that shows the binder form; the warning becomes an error after
+      the migration (ADR-014).
+- [ ] stdlib / selfhost impl heads that rely on the implicit form are
+      migrated to binders (`impl … for Ctor<T>` and inherent `impl Ctor<T>`
+      under `std/` and `src/compiler/`).
 - [ ] `impl Trait for S {}` with `struct S` resolves to the struct (fixture).
 - [ ] Existing parametric-impl fixtures stay green or are migrated to the
       binder form.
