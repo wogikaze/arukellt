@@ -16,6 +16,52 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — iterator collect lane fixes (#917, #691)
+
+- **Basis**: the iterator-collect residuals reported by the
+  [#917](https://github.com/wogikaze/arukellt/issues/917) `next1054` lane and
+  the lazy-adapter lane of [#691](https://github.com/wogikaze/arukellt/issues/691).
+  No public signature is removed or renamed in this entry.
+- **Fixed**: `UniqueIter` / `RevIter` `.collect()` now emits the method body;
+  the AST edge worklist could infer the receiver of
+  `a.iter().unique().collect()` as the inner `VecIter`, keep
+  `VecIter::collect`, and drop `UniqueIter::collect`, so the call lowered to
+  the unresolved `drop; unreachable` fallback while `.next()` / `.count()`
+  worked.
+- **Fixed**: `TakeIter` / `SkipIter` `.collect()` instantiated inside a std
+  module resolved its `for item in self` desugar to the first concrete
+  `into_iter` variant (`TakeIter<MapIter<..>>`), which does not match the
+  emitted `TakeIter<VecIter<i32>>` signature. Both adapters now drain through
+  an explicit `self.next()` loop in their collect hook (the same item
+  protocol, without the `for` desugar), so `I::Item` resolves per instance.
+  The deprecated
+  `std::seq::take_i32` / `skip_i32` shims are lazy again
+  (`v.iter().take(n).collect()` / `v.iter().skip(n).collect()`) with the same
+  signatures and boundary results.
+- **Fixed**: `std::core::iter` method calls in a module that omits
+  `use std::core::iter` now fail type checking with
+  ``method `<name>` requires `use std::core::iter` `` instead of silently
+  lowering to the unresolved `drop; unreachable` fallback. Auto-loading the
+  module from the prelude is not viable yet: its `Pair<A, B>` / `Range`
+  declarations collide with same-named user types in the shared type registry,
+  so the diagnostic keeps the explicit-import contract that the migration
+  docs already use.
+- **Fixtures**: `stdlib_trait/iterator_unique_rev_collect*.ark`,
+  `stdlib_seq/seq_take_skip_collect*.ark`, and the
+  `diagnostics/iterator_methods_no_import.ark` E0200 golden; the
+  `iterator_method_surface*.ark` pair now asserts the `unique` / `rev`
+  `collect` values instead of only `next` / `count`. Each pair compiles,
+  validates, and runs on `wasm32-gc` (memory32 / P2) and `--target wasm32`
+  (wasi-p1).
+- **Residuals**: a negative `n` passed to the `std::seq` take shim still traps
+  on linear-memory `wasm32`; the same call traps with the previous eager
+  implementation, so it is a separate pre-existing linear lowering bug. The
+  new fixtures pin the supported 0 / positive / over-length boundaries. The
+  underlying generic-`for` site selection still pins the first concrete
+  `into_iter` instance for other adapter bodies; fixing that needs
+  per-enclosing-instance call-site records and is not required for the two
+  collect hooks fixed here.
+
 ## 2026-10-27 — eager iterator constructor/collector frees removed (#917)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2/D4 and

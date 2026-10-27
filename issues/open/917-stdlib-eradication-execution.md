@@ -305,6 +305,43 @@ classified there, in dependency-safe waves.
   wit/component, host/core, io, test, collections, json/toml/csv) and the
   `filter_i32` deferral are untouched.
 
+### Landed slice (wave/iter-collect-fix, 2026-10-27)
+
+- Fixed the three iterator-collect residuals from the `next1054` lane.
+- `UniqueIter` / `RevIter` `.collect()`: the AST edge type memo keyed only on
+  `(span_start, span_end)`, but every method-call node in one postfix chain
+  shares that span; `a.iter().unique().collect()` cached `VecIter<i32>` for the
+  `unique` receiver, kept `VecIter::collect`, and dropped
+  `UniqueIter::collect`, so emit used the unresolved `drop; unreachable`
+  fallback. The memo key now includes the method name, and a duplicated
+  `(span, name)` key is treated as ambiguous instead of returning another
+  node's type.
+- `TakeIter` / `SkipIter` `.collect()`: a generic method body's `for`
+  desugar records `TakeIter::into_iter` at one span per source site; the
+  first concrete instantiation (`MapIter<String,String>`) pinned the site and
+  every other instance emitted that wrong callee (invalid Wasm signature).
+  Both adapters now drain through an explicit `self.next()` loop in their
+  collect hook, so `I::Item` resolves per instance without the `for` desugar.
+  `std::seq::take_i32` / `skip_i32` are lazy again. The generic-`for` site selection itself remains
+  a residual for other adapter bodies (it needs per-enclosing-instance
+  call-site records).
+- Import-less `std::core::iter` methods: the typechecker silently returned
+  `TY_UNKNOWN` when the module was not loaded, and lowering emitted the
+  unresolved fallback. An unresolved iterator method on a `Vec` / iterator
+  receiver now reports ``method `<name>` requires `use std::core::iter` ``
+  (E0200). Auto-loading the module was rejected because iter's
+  `Pair<A, B>` / `Range` declarations collide with same-named user types in
+  the shared type registry.
+- Fixtures: `stdlib_trait/iterator_unique_rev_collect*.ark`,
+  `stdlib_trait/iterator_methods_no_import*.ark`,
+  `stdlib_seq/seq_take_skip_collect*.ark`, and the updated
+  `iterator_method_surface*.ark` pair, verified on `wasm32-gc` (memory32/P2)
+  and `--target wasm32`.
+- Residuals: negative `n` to the `std::seq` take shim still traps on linear
+  `wasm32` (the eager implementation traps the same way, so it is a separate
+  pre-existing linear lowering bug), and the generic-`for` site pinning
+  remains for adapter bodies other than the two collect hooks fixed here.
+
 ## Required work
 
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate

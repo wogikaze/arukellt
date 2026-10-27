@@ -766,16 +766,15 @@ The numeric lane now also covers `skip(n).map(f)` and `skip(n).filter(g)` via
 `Vec::from_iter`, generic `T: IntoIterator`, and numeric `sum` on both
 published targets. This remains concrete `Vec<i32>` evidence rather than a
 claim that arbitrary adapter combinations are item-generic.
-The existing `std::seq` compatibility helpers keep their eager signatures:
-map / filter / fold delegate to the canonical iterator methods, while take /
-skip copy the bounded range eagerly because the `TakeIter` / `SkipIter`
-collector mis-resolves its item type when instantiated from a std module
-(#691; the same chain compiles from user code). The
-`stdlib_seq/seq_map_filter.ark` and `stdlib_seq/seq_take_skip_fold.ark`
-fixtures compile, validate, and run with identical output on `wasm32-gc` and
-linear-memory `wasm32`. This is an implementation migration receipt, not a
-manifest-level deprecation: the deprecation boundary still requires the
-method-level manifest contract described above.
+The existing `std::seq` compatibility helpers keep their eager signatures and
+all delegate to the canonical iterator methods, including the lazy
+`TakeIter` / `SkipIter` collectors (#691). The
+`stdlib_seq/seq_map_filter.ark`, `stdlib_seq/seq_take_skip_fold.ark`, and
+`stdlib_seq/seq_take_skip_collect.ark` fixtures compile, validate, and run
+with identical output on `wasm32-gc` and linear-memory `wasm32`. This is an
+implementation migration receipt, not a manifest-level deprecation: the
+deprecation boundary still requires the method-level manifest contract
+described above.
 
 The first non-numeric item lane is `Vec<String> -> VecIter<String>`. The
 `stdlib_trait/iterator_string.ark` fixture checks direct `next`, generic
