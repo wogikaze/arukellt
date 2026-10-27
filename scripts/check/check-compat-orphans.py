@@ -51,6 +51,9 @@ QUALIFIED_WARN_MODULES = {
     "hash": "std::core::hash",
     "math": "std::core::math",
     "seq": "std::seq",
+    "path": "std::path",
+    "time": "std::time",
+    "random": "std::random",
 }
 
 
@@ -143,6 +146,9 @@ def main() -> int:
         "deprecated_hash_qualified_message",
         "deprecated_seq_qualified_message",
         "deprecated_io_qualified_message",
+        "deprecated_path_qualified_message",
+        "deprecated_time_qualified_message",
+        "deprecated_random_qualified_message",
     ):
         qual_warn_paths += table_names(lint_text, fn)
     # The bare-name table is split into family helpers for readability; the

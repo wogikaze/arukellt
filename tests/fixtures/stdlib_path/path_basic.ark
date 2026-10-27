@@ -1,18 +1,18 @@
 use std::host::stdio
-use std::path
+use std::path::Path
 
 fn main() {
-    stdio::println(path::join("/usr", "bin"))
-    stdio::println(path::join("/usr/", "bin"))
-    stdio::println(path::join("", "file.txt"))
-    stdio::println(path::parent("/usr/bin/ls"))
-    stdio::println(path::parent("/"))
-    stdio::println(path::file_name("/usr/bin/ls"))
-    stdio::println(path::extension("main.ark"))
-    stdio::println(path::extension("Makefile"))
-    stdio::println(path::with_extension("main.rs", "ark"))
-    stdio::println((path::is_absolute("/usr")).to_string())
-    stdio::println((path::is_absolute("relative")).to_string())
+    stdio::println(Path::new("/usr").join("bin"))
+    stdio::println(Path::new("/usr/").join("bin"))
+    stdio::println(Path::new("").join("file.txt"))
+    stdio::println(Path::new("/usr/bin/ls").parent())
+    stdio::println(Path::new("/").parent())
+    stdio::println(Path::new("/usr/bin/ls").file_name())
+    stdio::println(Path::new("main.ark").extension())
+    stdio::println(Path::new("Makefile").extension())
+    stdio::println(Path::new("main.rs").with_extension("ark"))
+    stdio::println((Path::new("/usr").is_absolute()).to_string())
+    stdio::println((Path::new("relative").is_absolute()).to_string())
 }
 // join
 // parent

@@ -7,28 +7,26 @@ Source-backed docs for pseudo-random utilities.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::random` module provides deterministic pseudo-random helpers that take an explicit seed, making results reproducible across runs. For host-entropy (non-deterministic) random numbers, use `std::host::random` instead (see [host family overview](io.md)).
+The `std::random` module provides deterministic pseudo-random helpers that take an explicit seed, making results reproducible across runs. The canonical API is the `Rng` receiver type: `Rng::new(seed)` then `next`, `range`, or `shuffle`. For host-entropy (non-deterministic) random numbers, use `std::host::random` instead (see [host family overview](io.md)).
 
 **Recommended API highlights:**
 
 | API | Purpose |
 |-----|---------|
-| `seeded_random(seed)` | Generate a pseudo-random `i32` from a seed value. |
-| `seeded_range(seed, lo, hi)` | Generate a pseudo-random value in `[lo, hi)`. |
-| `shuffle_i32(vec, seed)` | Return a shuffled copy of a `Vec<i32>`. |
+| `Rng::new(seed).next()` | Generate a pseudo-random `i32` from a seed value. |
+| `Rng::new(seed).range(lo, hi)` | Generate a pseudo-random value in `[lo, hi)`. |
+| `Rng::new(seed).shuffle(vec)` | Return a shuffled copy of a `Vec<i32>`. |
 
 **Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 
-> ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
-
 ```ark
-import std::random
+use std::random::Rng
 
-let r = seeded_random(42)           // deterministic i32
-let v = seeded_range(42, 0, 100)    // deterministic value in [0, 100)
-let shuffled = shuffle_i32(vec, 42) // deterministic shuffle
+let r = Rng::new(42).next()            // deterministic i32
+let v = Rng::new(42).range(0, 100)     // deterministic value in [0, 100)
+let shuffled = Rng::new(42).shuffle(vec) // deterministic shuffle
 ```
 
 ---
@@ -37,17 +35,29 @@ let shuffled = shuffle_i32(vec, 42) // deterministic shuffle
 
 - Source: [`../../../std/random/mod.ark`](../../../std/random/mod.ark)
 - Manifest-backed functions: 3
-- Stability: stable 3
+- Stability: deprecated 3
 
 Deterministic pseudo-random helper functions.
 
 Host entropy lives in `std::host::random`. This module only provides
 seeded helpers so callers can reason about reproducibility.
 
+The canonical surface is the `Rng` receiver type: `Rng::new(seed)` wraps
+the normalized seed, then `next`, `range`, or `shuffle` derive values from
+it without touching host entropy.
+
+### `std::random` — Public Types
+
+| Name | Kind | Summary |
+|------|------|---------|
+| `Rng` | `struct` | Deterministic xorshift32 random source. |
+
 ### `std::random` — Public API
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `seeded_random` | `(i32) -> i32` | `stable` | ✅ functional | Generate the next deterministic pseudo-random value from a seed. |
-| `seeded_range` | `(i32, i32, i32) -> i32` | `stable` | ✅ functional | Map a seed to a deterministic value in [lo, hi). |
-| `shuffle_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | ✅ functional | Return a shuffled copy of v using the deterministic seeded RNG. |
+| ~~`seeded_random`~~ ⚠️ Deprecated → `Rng::next` | `(i32) -> i32` | `deprecated` | ✅ functional | Generate the next deterministic pseudo-random value from a seed. |
+| ~~`seeded_range`~~ ⚠️ Deprecated → `Rng::range` | `(i32, i32, i32) -> i32` | `deprecated` | ✅ functional | Map a seed to a deterministic value in [lo, hi). |
+| ~~`shuffle_i32`~~ ⚠️ Deprecated → `Rng::shuffle` | `(Vec<i32>, i32) -> Vec<i32>` | `deprecated` | ✅ functional | Return a shuffled copy of v using the deterministic seeded RNG. |
+
+> ⚠️ **3 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.

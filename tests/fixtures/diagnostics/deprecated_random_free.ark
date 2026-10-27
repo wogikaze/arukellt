@@ -1,0 +1,6 @@
+// W0009: the std::random seeded helpers are deprecated in favour of Rng.
+use std::random
+
+fn main() {
+    let _ = random::seeded_random(42)
+}

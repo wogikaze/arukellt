@@ -166,7 +166,82 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
     if len(msg5) > 0 {
         return msg5
     }
+    let msg6 = deprecated_path_qualified_message(clone(path))
+    if len(msg6) > 0 {
+        return msg6
+    }
+    let msg7 = deprecated_time_qualified_message(clone(path))
+    if len(msg7) > 0 {
+        return msg7
+    }
+    let msg8 = deprecated_random_qualified_message(clone(path))
+    if len(msg8) > 0 {
+        return msg8
+    }
     return deprecated_hash_qualified_message(path)
+}
+
+// ── Deprecated std::path / std::time / std::random frees (ADR-087) ─────
+//
+// These entries are keyed by the qualified call text because the bare names
+// overlap unrelated prelude helpers (`join`, `range`, …). Physical deletion
+// is the ADR-087 Wave 2 step of the same #917 wave.
+
+fn deprecated_path_qualified_message(path: String) -> String {
+    if eq(clone(path), "path::join") {
+        return "use `Path::new(base).join(child)` from `use std::path::Path` instead"
+    }
+    if eq(clone(path), "path::parent") {
+        return "use `Path::new(path).parent()` from `use std::path::Path` instead"
+    }
+    if eq(clone(path), "path::file_name") {
+        return "use `Path::new(path).file_name()` from `use std::path::Path` instead"
+    }
+    if eq(clone(path), "path::extension") {
+        return "use `Path::new(path).extension()` from `use std::path::Path` instead"
+    }
+    if eq(clone(path), "path::with_extension") {
+        return "use `Path::new(path).with_extension(ext)` from `use std::path::Path` instead"
+    }
+    if eq(clone(path), "path::is_absolute") {
+        return "use `Path::new(path).is_absolute()` from `use std::path::Path` instead"
+    }
+    if eq(clone(path), "path::stem") {
+        return "use `Path::new(path).stem()` from `use std::path::Path` instead"
+    }
+    if eq(clone(path), "path::normalize") {
+        return "use `Path::new(path).normalize()` from `use std::path::Path` instead"
+    }
+    if eq(clone(path), "path::components") {
+        return "use `Path::new(path).components()` from `use std::path::Path` instead"
+    }
+    String_new()
+}
+
+fn deprecated_time_qualified_message(path: String) -> String {
+    if eq(clone(path), "time::duration_ms") {
+        return "use `Duration::between(start, end).as_ms()` from `use std::time::Duration` instead"
+    }
+    if eq(clone(path), "time::duration_us") {
+        return "use `Duration::between(start, end).as_us()` from `use std::time::Duration` instead"
+    }
+    if eq(clone(path), "time::duration_ns") {
+        return "use `Duration::between(start, end).as_ns()` from `use std::time::Duration` instead"
+    }
+    String_new()
+}
+
+fn deprecated_random_qualified_message(path: String) -> String {
+    if eq(clone(path), "random::seeded_random") {
+        return "use `Rng::new(seed).next()` from `use std::random::Rng` instead"
+    }
+    if eq(clone(path), "random::seeded_range") {
+        return "use `Rng::new(seed).range(lo, hi)` from `use std::random::Rng` instead"
+    }
+    if eq(clone(path), "random::shuffle_i32") {
+        return "use `Rng::new(seed).shuffle(v)` from `use std::random::Rng` instead"
+    }
+    String_new()
 }
 
 // ── Deprecated std::io tagged output writers (ADR-085 Phase F) ────────
@@ -372,5 +447,22 @@ test mod "deprecated" {
         assert(len(deprecated_call_message("clear")) == 0)
         assert(len(deprecated_call_message("map_option_String_String")) == 0)
         assert(len(deprecated_call_message("map_result_i32_i32")) == 0)
+    }
+    test "path_time_random_frees_warn_w0009" {
+        assert(len(deprecated_qualified_call_message("path::join")) > 0)
+        assert(len(deprecated_qualified_call_message("path::parent")) > 0)
+        assert(len(deprecated_qualified_call_message("path::file_name")) > 0)
+        assert(len(deprecated_qualified_call_message("path::extension")) > 0)
+        assert(len(deprecated_qualified_call_message("path::with_extension")) > 0)
+        assert(len(deprecated_qualified_call_message("path::is_absolute")) > 0)
+        assert(len(deprecated_qualified_call_message("path::stem")) > 0)
+        assert(len(deprecated_qualified_call_message("path::normalize")) > 0)
+        assert(len(deprecated_qualified_call_message("path::components")) > 0)
+        assert(len(deprecated_qualified_call_message("time::duration_ms")) > 0)
+        assert(len(deprecated_qualified_call_message("time::duration_us")) > 0)
+        assert(len(deprecated_qualified_call_message("time::duration_ns")) > 0)
+        assert(len(deprecated_qualified_call_message("random::seeded_random")) > 0)
+        assert(len(deprecated_qualified_call_message("random::seeded_range")) > 0)
+        assert(len(deprecated_qualified_call_message("random::shuffle_i32")) > 0)
     }
 }

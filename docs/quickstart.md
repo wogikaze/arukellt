@@ -181,17 +181,17 @@ runtimeではfilesystem accessは拒否されます。現行`arukellt run`には
 
 <!-- fixture: quickstart/clock_random.ark -->
 ```ark
-use std::random
+use std::random::Rng
 use std::host::stdio
 
 fn main() {
-    let r = random::seeded_random(1)
+    let r = Rng::new(1).next()
     stdio::println(to_string(r))
 }
 ```
 
 > `std::host::clock::monotonic_now()` は `i64` を返しますが、現行 selfhost で
-> `to_string` 経由の出力に制約があるため、この例では `std::random::seeded_random`（決定論的）のみ使用しています。
+> `to_string` 経由の出力に制約があるため、この例では `std::random::Rng`（決定論的）のみ使用しています。
 
 ## v1 features
 

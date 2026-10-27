@@ -118,14 +118,14 @@ assert_eq(unwrap(m.get("b")), 2)
 
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::path
+use std::path::Path
 
-assert_eq_str(path::join("/usr", "local"), "/usr/local")
-assert_eq_str(path::file_name("/a/b/c.txt"), "c.txt")
-assert_eq_str(path::extension("file.tar.gz"), "gz")
-assert_eq_str(path::parent("/a/b/c"), "/a/b")
-assert(path::is_absolute("/home"))
-assert(path::is_absolute("relative") == false)
+assert_eq_str(Path::new("/usr").join("local"), "/usr/local")
+assert_eq_str(Path::new("/a/b/c.txt").file_name(), "c.txt")
+assert_eq_str(Path::new("file.tar.gz").extension(), "gz")
+assert_eq_str(Path::new("/a/b/c").parent(), "/a/b")
+assert(Path::new("/home").is_absolute())
+assert(Path::new("relative").is_absolute() == false)
 ```
 
 ## Testing with Error Cases
@@ -150,13 +150,13 @@ Each test file has a `main()` that runs assertions directly:
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" -->
 ```ark
 // tests/fixtures/test_path.ark
-use std::path
+use std::path::Path
 use std::host::stdio
 
 fn main() {
-    assert_eq_str(path::join("a", "b"), "a/b")
-    assert_eq_str(path::parent("a/b"), "a")
-    assert_eq_str(path::extension("f.txt"), "txt")
+    assert_eq_str(Path::new("a").join("b"), "a/b")
+    assert_eq_str(Path::new("a/b").parent(), "a")
+    assert_eq_str(Path::new("f.txt").extension(), "txt")
     stdio::println("all path tests passed")
 }
 ```

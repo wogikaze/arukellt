@@ -1,10 +1,10 @@
 use std::host::stdio
-use std::time
+use std::time::Duration
 use std::prelude::{assert_eq_i64}
 fn main() {
-    let d1 = time::duration_ms(0i64, 5000000i64)
+    let d1 = Duration::between(0i64, 5000000i64).as_ms()
     assert_eq_i64(d1, 5i64)
-    let d2 = time::duration_ms(10000000i64, 5000000i64)
+    let d2 = Duration::between(10000000i64, 5000000i64).as_ms()
     assert_eq_i64(d2, 0i64)
     stdio::println("duration ok")
 }

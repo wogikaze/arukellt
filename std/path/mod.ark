@@ -3,9 +3,10 @@
 //! Paths are represented as `String` values and always use `/` as the
 //! separator to match POSIX and WASI conventions.
 //!
-//! Provides `join`, `normalize`, `parent`, `stem`, `extension`,
-//! `with_extension`, `file_name`, `is_absolute`, and `components`
-//! operations that work on plain strings without host I/O.
+//! The canonical surface is the `Path` receiver type: wrap a path string with
+//! `Path::new`, then call `join`, `normalize`, `parent`, `stem`, `extension`,
+//! `with_extension`, `file_name`, `is_absolute`, or `components`. These
+//! operations work on plain strings without host I/O.
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
@@ -13,7 +14,7 @@ use std::text
 use std::prelude::{byte_at, eq, slice}
 
 /// Joins two path segments with a single `/` separator.
-pub fn join(base: String, child: String) -> String {
+fn path_join(base: String, child: String) -> String {
     if base.is_empty() {
         "".concat(child)
     } else {
@@ -32,7 +33,7 @@ pub fn join(base: String, child: String) -> String {
 }
 
 /// Returns the final path segment after the last `/`.
-pub fn file_name(p: String) -> String {
+fn path_file_name(p: String) -> String {
     let idx = last_index_of(p, "/")
     if idx < 0 {
         "".concat(p)
@@ -42,8 +43,8 @@ pub fn file_name(p: String) -> String {
 }
 
 /// Returns the extension without the leading `.`.
-pub fn extension(p: String) -> String {
-    let name = file_name(p)
+fn path_extension(p: String) -> String {
+    let name = path_file_name(p)
     let idx = last_index_of(name, ".")
     if idx <= 0 {
         ""
@@ -53,7 +54,7 @@ pub fn extension(p: String) -> String {
 }
 
 /// Replaces the current extension, or appends one when missing.
-pub fn with_extension(p: String, ext: String) -> String {
+fn path_with_extension(p: String, ext: String) -> String {
     let dot_idx = last_index_of(p, ".")
     let slash_idx = last_index_of(p, "/")
     if dot_idx > slash_idx {
@@ -73,7 +74,7 @@ pub fn with_extension(p: String, ext: String) -> String {
 }
 
 /// Returns true when the path starts with `/`.
-pub fn is_absolute(p: String) -> bool {
+fn path_is_absolute(p: String) -> bool {
     if p.is_empty() {
         false
     } else {
@@ -82,7 +83,7 @@ pub fn is_absolute(p: String) -> bool {
 }
 
 /// Returns the parent directory path, or an empty string at the root.
-pub fn parent(p: String) -> String {
+fn path_parent(p: String) -> String {
     let idx = last_index_of(p, "/")
     if idx <= 0 {
         ""
@@ -98,8 +99,8 @@ pub fn parent(p: String) -> String {
 /// stem("foo.tar.gz")   -> "foo.tar"
 /// stem("noext")        -> "noext"
 /// stem(".hidden")      -> ".hidden"   (leading dot is not an extension)
-pub fn stem(p: String) -> String {
-    let name = file_name(p)
+fn path_stem(p: String) -> String {
+    let name = path_file_name(p)
     let dot_idx = last_index_of(name, ".")
     if dot_idx <= 0 {
         name
@@ -114,7 +115,7 @@ pub fn stem(p: String) -> String {
 /// normalize("/foo/./bar/../baz")  -> "/foo/baz"
 /// normalize("a/b/../c")          -> "a/c"
 /// normalize("/foo//bar")         -> "/foo/bar"
-pub fn normalize(p: String) -> String {
+fn path_normalize(p: String) -> String {
     let parts: Vec<String> = __intrinsic_split(p, "/")
     let out: Vec<String> = Vec::new<String>()
     let n = len(parts)
@@ -134,7 +135,7 @@ pub fn normalize(p: String) -> String {
         i = i + 1
     }
     let joined = __intrinsic_join(out, "/")
-    if is_absolute(p) {
+    if path_is_absolute(p) {
         "/".concat(joined)
     } else {
         joined
@@ -147,7 +148,7 @@ pub fn normalize(p: String) -> String {
 /// components("/usr/local/bin")  -> ["usr", "local", "bin"]
 /// components("a/b/c")          -> ["a", "b", "c"]
 /// components("")               -> []
-pub fn components(p: String) -> Vec<String> {
+fn path_components(p: String) -> Vec<String> {
     let raw: Vec<String> = __intrinsic_split(p, "/")
     let out: Vec<String> = Vec::new<String>()
     let n = len(raw)
@@ -160,6 +161,117 @@ pub fn components(p: String) -> Vec<String> {
         i = i + 1
     }
     out
+}
+
+/// A path string with the path-manipulation methods attached.
+///
+/// The wrapper keeps the receiver form explicit without changing the
+/// underlying representation: paths remain plain `String` values and use `/`
+/// as the separator.
+pub struct Path {
+    value: String,
+}
+
+impl Path {
+    /// Wraps a path string.
+    fn new(value: String) -> Path {
+        Path { value: value }
+    }
+
+    /// Returns the wrapped path string.
+    fn into_string(self: Path) -> String {
+        self.value
+    }
+
+    /// Joins this path with `child` using a single `/` separator.
+    fn join(self: Path, child: String) -> String {
+        path_join(self.value, child)
+    }
+
+    /// Returns the final path segment after the last `/`.
+    fn file_name(self: Path) -> String {
+        path_file_name(self.value)
+    }
+
+    /// Returns the extension without the leading `.`.
+    fn extension(self: Path) -> String {
+        path_extension(self.value)
+    }
+
+    /// Replaces the current extension, or appends one when missing.
+    fn with_extension(self: Path, ext: String) -> String {
+        path_with_extension(self.value, ext)
+    }
+
+    /// Returns true when the path starts with `/`.
+    fn is_absolute(self: Path) -> bool {
+        path_is_absolute(self.value)
+    }
+
+    /// Returns the parent directory path, or an empty string at the root.
+    fn parent(self: Path) -> String {
+        path_parent(self.value)
+    }
+
+    /// Returns the file stem (the file name without the final extension).
+    fn stem(self: Path) -> String {
+        path_stem(self.value)
+    }
+
+    /// Resolves `.` and `..` components and collapses redundant `/` separators.
+    fn normalize(self: Path) -> String {
+        path_normalize(self.value)
+    }
+
+    /// Returns the non-empty path segments split by `/`.
+    fn components(self: Path) -> Vec<String> {
+        path_components(self.value)
+    }
+}
+
+/// Joins two path segments with a single `/` separator.
+pub fn join(base: String, child: String) -> String {
+    path_join(base, child)
+}
+
+/// Returns the final path segment after the last `/`.
+pub fn file_name(p: String) -> String {
+    path_file_name(p)
+}
+
+/// Returns the extension without the leading `.`.
+pub fn extension(p: String) -> String {
+    path_extension(p)
+}
+
+/// Replaces the current extension, or appends one when missing.
+pub fn with_extension(p: String, ext: String) -> String {
+    path_with_extension(p, ext)
+}
+
+/// Returns true when the path starts with `/`.
+pub fn is_absolute(p: String) -> bool {
+    path_is_absolute(p)
+}
+
+/// Returns the parent directory path, or an empty string at the root.
+pub fn parent(p: String) -> String {
+    path_parent(p)
+}
+
+/// Returns the file stem (the file name without the final extension).
+pub fn stem(p: String) -> String {
+    path_stem(p)
+}
+
+/// Resolves `.` and `..` components and collapses redundant `/` separators.
+pub fn normalize(p: String) -> String {
+    path_normalize(p)
+}
+
+/// Returns the non-empty path segments split by `/`.
+pub fn components(p: String) -> Vec<String> {
+    path_components(p)
 }
 
 pub fn last_index_of(s: String, needle: String) -> i32 {
@@ -196,8 +308,3 @@ pub fn last_index_of(s: String, needle: String) -> i32 {
         }
     }
 }
-// skip current dir markers and empty segments from // or leading /
-// Single-char fast path: avoid allocating sub-strings in the loop.
-// For multi-char needles, verify the rest.
-// For single-char (the common case), we are done.
-// Multi-char verification via slice (rare path).

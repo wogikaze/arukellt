@@ -7,28 +7,28 @@ Source-backed docs for pure duration helpers.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::time` module provides pure duration arithmetic over caller-supplied timestamps. It computes elapsed time in milliseconds, microseconds, or nanoseconds given two `i64` timestamps. Host clock reads live in `std::host::clock` (see [host family overview](io.md)); this module only does pure math.
+The `std::time` module provides pure duration arithmetic over caller-supplied timestamps. The canonical API is the `Duration` receiver type: `Duration::between(start, end)` then `as_ms`, `as_us`, or `as_ns`. Host clock reads live in `std::host::clock` (see [host family overview](io.md)); this module only does pure math.
 
 **Recommended API highlights:**
 
 | API | Purpose |
 |-----|---------|
-| `duration_ms(start, end)` | Elapsed time in milliseconds. |
-| `duration_us(start, end)` | Elapsed time in microseconds. |
-| `duration_ns(start, end)` | Elapsed time in nanoseconds (identity: `end - start`). |
+| `Duration::between(start, end).as_ms()` | Elapsed time in milliseconds. |
+| `Duration::between(start, end).as_us()` | Elapsed time in microseconds. |
+| `Duration::between(start, end).as_ns()` | Elapsed time in nanoseconds. |
 
 **Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 
 ```ark
-import std::time
+use std::time::Duration
 import std::host::clock
 
 let t0 = monotonic_now()
 // ... do work ...
 let t1 = monotonic_now()
-let elapsed = duration_ms(t0, t1)  // milliseconds
+let elapsed = Duration::between(t0, t1).as_ms()  // milliseconds
 ```
 
 ---
@@ -37,13 +37,16 @@ let elapsed = duration_ms(t0, t1)  // milliseconds
 
 - Source: [`../../../std/time/mod.ark`](../../../std/time/mod.ark)
 - Manifest-backed functions: 3
-- Stability: stable 3
+- Stability: deprecated 3
 
 Pure duration helpers.
 
 This module is intentionally **pure**: it only provides arithmetic
 over timestamps supplied by the caller. It does not read the host
 clock and requires no host capability.
+
+The canonical surface is the `Duration` receiver type:
+`Duration::between(start, end).as_ms()` (or `as_us` / `as_ns`).
 
 ### Honesty caveats (see #604 — issues/done/604-stdlib-baseline-contract-honesty.md)
 
@@ -53,10 +56,18 @@ clock and requires no host capability.
 - All inputs are caller-supplied `i64` timestamps; the semantics of
 those timestamps are the caller's responsibility.
 
+### `std::time` — Public Types
+
+| Name | Kind | Summary |
+|------|------|---------|
+| `Duration` | `struct` | A non-negative elapsed duration stored as nanoseconds. |
+
 ### `std::time` — Public API
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `duration_ms` | `(i64, i64) -> i64` | `stable` | ✅ functional | - |
-| `duration_us` | `(i64, i64) -> i64` | `stable` | ✅ functional | - |
-| `duration_ns` | `(i64, i64) -> i64` | `stable` | ✅ functional | - |
+| ~~`duration_ms`~~ ⚠️ Deprecated → `Duration::as_ms` | `(i64, i64) -> i64` | `deprecated` | ✅ functional | - |
+| ~~`duration_us`~~ ⚠️ Deprecated → `Duration::as_us` | `(i64, i64) -> i64` | `deprecated` | ✅ functional | - |
+| ~~`duration_ns`~~ ⚠️ Deprecated → `Duration::as_ns` | `(i64, i64) -> i64` | `deprecated` | ✅ functional | - |
+
+> ⚠️ **3 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.

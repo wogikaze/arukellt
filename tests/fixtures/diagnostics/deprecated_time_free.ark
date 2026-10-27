@@ -1,0 +1,6 @@
+// W0009: the std::time duration helpers are deprecated in favour of Duration.
+use std::time
+
+fn main() {
+    let _ = time::duration_ms(0i64, 5000000i64)
+}

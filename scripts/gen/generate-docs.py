@@ -470,24 +470,27 @@ let parsed = json_parse_i32("42")    // 42
             "summary": (
                 "The `std::path` module provides pure string-based path manipulation helpers. "
                 "Paths are represented as `String` values and always use `/` as the separator "
-                "to match POSIX and WASI conventions. This module requires no host access; for "
-                "file I/O see `std::host::fs` or the [host family overview](io.md)."
+                "to match POSIX and WASI conventions. The canonical API is the `Path` receiver "
+                "type: wrap a string with `Path::new`, then call `join`, `parent`, `file_name`, "
+                "`extension`, `with_extension`, `is_absolute`, `stem`, `normalize`, or "
+                "`components`. This module requires no host access; for file I/O see "
+                "`std::host::fs` or the [host family overview](io.md)."
             ),
             "highlights": [
-                ("`join(base, segment)`", "Join two path segments with a single `/` separator."),
-                ("`file_name(path)`", "Returns the final path segment after the last `/`."),
-                ("`extension(path)`", "Returns the extension without the leading `.`."),
-                ("`parent(path)`", "Returns the parent directory path."),
-                ("`is_absolute(path)`", "Returns `true` when the path starts with `/`."),
+                ("`Path::new(base).join(segment)`", "Join two path segments with a single `/` separator."),
+                ("`Path::new(path).file_name()`", "Returns the final path segment after the last `/`."),
+                ("`Path::new(path).extension()`", "Returns the extension without the leading `.`."),
+                ("`Path::new(path).parent()`", "Returns the parent directory path."),
+                ("`Path::new(path).is_absolute()`", "Returns `true` when the path starts with `/`."),
             ],
             "typical_usage": """\
 ```ark
-import std::path
+use std::path::Path
 
-let p = join("/home/user", "data.txt")  // "/home/user/data.txt"
-let name = file_name(p)                 // "data.txt"
-let ext  = extension(p)                 // "txt"
-let dir  = parent(p)                    // "/home/user"
+let full = Path::new("/home/user").join("data.txt") // "/home/user/data.txt"
+let name = Path::new("/home/user/data.txt").file_name() // "data.txt"
+let ext  = Path::new("/home/user/data.txt").extension() // "txt"
+let dir  = Path::new("/home/user/data.txt").parent()    // "/home/user"
 ```""",
         },
     },
@@ -533,24 +536,23 @@ println("Running as: " + name)
         "overview": {
             "summary": (
                 "The `std::random` module provides deterministic pseudo-random helpers that "
-                "take an explicit seed, making results reproducible across runs. For "
-                "host-entropy (non-deterministic) random numbers, use `std::host::random` "
-                "instead (see [host family overview](io.md))."
+                "take an explicit seed, making results reproducible across runs. The canonical "
+                "API is the `Rng` receiver type: `Rng::new(seed)` then `next`, `range`, or "
+                "`shuffle`. For host-entropy (non-deterministic) random numbers, use "
+                "`std::host::random` instead (see [host family overview](io.md))."
             ),
             "highlights": [
-                ("`seeded_random(seed)`", "Generate a pseudo-random `i32` from a seed value."),
-                ("`seeded_range(seed, lo, hi)`", "Generate a pseudo-random value in `[lo, hi)`."),
-                ("`shuffle_i32(vec, seed)`", "Return a shuffled copy of a `Vec<i32>`."),
+                ("`Rng::new(seed).next()`", "Generate a pseudo-random `i32` from a seed value."),
+                ("`Rng::new(seed).range(lo, hi)`", "Generate a pseudo-random value in `[lo, hi)`."),
+                ("`Rng::new(seed).shuffle(vec)`", "Return a shuffled copy of a `Vec<i32>`."),
             ],
             "typical_usage": """\
-> ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
-
 ```ark
-import std::random
+use std::random::Rng
 
-let r = seeded_random(42)           // deterministic i32
-let v = seeded_range(42, 0, 100)    // deterministic value in [0, 100)
-let shuffled = shuffle_i32(vec, 42) // deterministic shuffle
+let r = Rng::new(42).next()            // deterministic i32
+let v = Rng::new(42).range(0, 100)     // deterministic value in [0, 100)
+let shuffled = Rng::new(42).shuffle(vec) // deterministic shuffle
 ```""",
         },
     },
@@ -663,25 +665,25 @@ let label   = pad_right(format_i32(42), 6, " ")  // "42    "
         "overview": {
             "summary": (
                 "The `std::time` module provides pure duration arithmetic over caller-supplied "
-                "timestamps. It computes elapsed time in milliseconds, microseconds, or "
-                "nanoseconds given two `i64` timestamps. Host clock reads live in "
-                "`std::host::clock` (see [host family overview](io.md)); this module only "
-                "does pure math."
+                "timestamps. The canonical API is the `Duration` receiver type: "
+                "`Duration::between(start, end)` then `as_ms`, `as_us`, or `as_ns`. Host clock "
+                "reads live in `std::host::clock` (see [host family overview](io.md)); this "
+                "module only does pure math."
             ),
             "highlights": [
-                ("`duration_ms(start, end)`", "Elapsed time in milliseconds."),
-                ("`duration_us(start, end)`", "Elapsed time in microseconds."),
-                ("`duration_ns(start, end)`", "Elapsed time in nanoseconds (identity: `end - start`)."),
+                ("`Duration::between(start, end).as_ms()`", "Elapsed time in milliseconds."),
+                ("`Duration::between(start, end).as_us()`", "Elapsed time in microseconds."),
+                ("`Duration::between(start, end).as_ns()`", "Elapsed time in nanoseconds."),
             ],
             "typical_usage": """\
 ```ark
-import std::time
+use std::time::Duration
 import std::host::clock
 
 let t0 = monotonic_now()
 // ... do work ...
 let t1 = monotonic_now()
-let elapsed = duration_ms(t0, t1)  // milliseconds
+let elapsed = Duration::between(t0, t1).as_ms()  // milliseconds
 ```""",
         },
     },

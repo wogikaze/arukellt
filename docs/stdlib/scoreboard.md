@@ -26,9 +26,9 @@
 | `std::host::stdio` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
 | `std::io` | 7 | 5 | 0 | 0 | 2 | 4/5 (80%) | no |
 | `std::json` | 19 | 0 | 0 | 19 | 0 | 14/19 (74%) | no |
-| `std::path` | 9 | 9 | 0 | 0 | 0 | 9/9 (100%) | no |
+| `std::path` | 9 | 0 | 0 | 0 | 9 | 0/0 (—) | no |
 | `std::process` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | no |
-| `std::random` | 3 | 3 | 0 | 0 | 0 | 3/3 (100%) | no |
+| `std::random` | 3 | 0 | 0 | 0 | 3 | 0/0 (—) | no |
 | `std::seq` | 22 | 0 | 9 | 0 | 13 | 9/9 (100%) | no |
 | `std::signal` | 10 | 10 | 0 | 0 | 0 | 7/10 (70%) | no |
 | `std::simd::f32x4` | 1 | 0 | 0 | 1 | 0 | 1/1 (100%) | no |
@@ -41,11 +41,11 @@
 | `std::simd::u64x2` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::simd::u8x16` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::test` | 18 | 17 | 0 | 1 | 0 | 18/18 (100%) | no |
-| `std::time` | 3 | 3 | 0 | 0 | 0 | 2/3 (67%) | no |
+| `std::time` | 3 | 0 | 0 | 0 | 3 | 0/0 (—) | no |
 | `std::toml` | 9 | 0 | 0 | 9 | 0 | 7/9 (78%) | no |
 | `std::wasm` | 5 | 0 | 0 | 5 | 0 | **0/5 (0%)** | no |
 
-**Total**: 416 APIs, 206 stable, 19 provisional, 123 experimental, 68 deprecated, 322/348 (93%) fixture coverage
+**Total**: 416 APIs, 191 stable, 19 provisional, 123 experimental, 83 deprecated, 308/333 (92%) fixture coverage
 
 ## Legend
 

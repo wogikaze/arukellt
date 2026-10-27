@@ -7,29 +7,29 @@ Source-backed docs for path manipulation helpers.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::path` module provides pure string-based path manipulation helpers. Paths are represented as `String` values and always use `/` as the separator to match POSIX and WASI conventions. This module requires no host access; for file I/O see `std::host::fs` or the [host family overview](io.md).
+The `std::path` module provides pure string-based path manipulation helpers. Paths are represented as `String` values and always use `/` as the separator to match POSIX and WASI conventions. The canonical API is the `Path` receiver type: wrap a string with `Path::new`, then call `join`, `parent`, `file_name`, `extension`, `with_extension`, `is_absolute`, `stem`, `normalize`, or `components`. This module requires no host access; for file I/O see `std::host::fs` or the [host family overview](io.md).
 
 **Recommended API highlights:**
 
 | API | Purpose |
 |-----|---------|
-| `join(base, segment)` | Join two path segments with a single `/` separator. |
-| `file_name(path)` | Returns the final path segment after the last `/`. |
-| `extension(path)` | Returns the extension without the leading `.`. |
-| `parent(path)` | Returns the parent directory path. |
-| `is_absolute(path)` | Returns `true` when the path starts with `/`. |
+| `Path::new(base).join(segment)` | Join two path segments with a single `/` separator. |
+| `Path::new(path).file_name()` | Returns the final path segment after the last `/`. |
+| `Path::new(path).extension()` | Returns the extension without the leading `.`. |
+| `Path::new(path).parent()` | Returns the parent directory path. |
+| `Path::new(path).is_absolute()` | Returns `true` when the path starts with `/`. |
 
 **Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 
 ```ark
-import std::path
+use std::path::Path
 
-let p = join("/home/user", "data.txt")  // "/home/user/data.txt"
-let name = file_name(p)                 // "data.txt"
-let ext  = extension(p)                 // "txt"
-let dir  = parent(p)                    // "/home/user"
+let full = Path::new("/home/user").join("data.txt") // "/home/user/data.txt"
+let name = Path::new("/home/user/data.txt").file_name() // "data.txt"
+let ext  = Path::new("/home/user/data.txt").extension() // "txt"
+let dir  = Path::new("/home/user/data.txt").parent()    // "/home/user"
 ```
 
 ---
@@ -38,32 +38,39 @@ let dir  = parent(p)                    // "/home/user"
 
 - Source: [`../../../std/path/mod.ark`](../../../std/path/mod.ark)
 - Manifest-backed functions: 9
-- Stability: stable 9
+- Stability: deprecated 9
 
 Pure string-based path manipulation helpers.
 
 Paths are represented as `String` values and always use `/` as the
 separator to match POSIX and WASI conventions.
 
-Provides `join`, `normalize`, `parent`, `stem`, `extension`,
-`with_extension`, `file_name`, `is_absolute`, and `components`
-operations that work on plain strings without host I/O.
+The canonical surface is the `Path` receiver type: wrap a path string with
+`Path::new`, then call `join`, `normalize`, `parent`, `stem`, `extension`,
+`with_extension`, `file_name`, `is_absolute`, or `components`. These
+operations work on plain strings without host I/O.
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
+
+### `std::path` — Public Types
+
+| Name | Kind | Summary |
+|------|------|---------|
+| `Path` | `struct` | A path string with the path-manipulation methods attached. |
 
 ### `std::path` — Public API
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `join` | `(String, String) -> String` | `stable` | ✅ functional | Joins two path segments with a single / separator. |
-| `file_name` | `(String) -> String` | `stable` | ✅ functional | Returns the final path segment after the last /. |
-| `extension` | `(String) -> String` | `stable` | ✅ functional | Returns the extension without the leading .. |
-| `with_extension` | `(String, String) -> String` | `stable` | ✅ functional | Replaces the current extension, or appends one when missing. |
-| `is_absolute` | `(String) -> bool` | `stable` | ✅ functional | Returns true when the path starts with /. |
-| `parent` | `(String) -> String` | `stable` | ✅ functional | Returns the parent directory path, or an empty string at the root. |
-| `stem` | `(String) -> String` | `stable` | ✅ functional | Returns the file stem (the file name without the final extension). |
-| `normalize` | `(String) -> String` | `stable` | ✅ functional | Resolves . and .. components and collapses redundant / separators. |
-| `components` | `(String) -> Vec<String>` | `stable` | ✅ functional | Returns the non-empty path segments split by /. |
+| ~~`join`~~ ⚠️ Deprecated → `Path::join` | `(String, String) -> String` | `deprecated` | ✅ functional | Joins two path segments with a single / separator. |
+| ~~`file_name`~~ ⚠️ Deprecated → `Path::file_name` | `(String) -> String` | `deprecated` | ✅ functional | Returns the final path segment after the last /. |
+| ~~`extension`~~ ⚠️ Deprecated → `Path::extension` | `(String) -> String` | `deprecated` | ✅ functional | Returns the extension without the leading .. |
+| ~~`with_extension`~~ ⚠️ Deprecated → `Path::with_extension` | `(String, String) -> String` | `deprecated` | ✅ functional | Replaces the current extension, or appends one when missing. |
+| ~~`is_absolute`~~ ⚠️ Deprecated → `Path::is_absolute` | `(String) -> bool` | `deprecated` | ✅ functional | Returns true when the path starts with /. |
+| ~~`parent`~~ ⚠️ Deprecated → `Path::parent` | `(String) -> String` | `deprecated` | ✅ functional | Returns the parent directory path, or an empty string at the root. |
+| ~~`stem`~~ ⚠️ Deprecated → `Path::stem` | `(String) -> String` | `deprecated` | ✅ functional | Returns the file stem (the file name without the final extension). |
+| ~~`normalize`~~ ⚠️ Deprecated → `Path::normalize` | `(String) -> String` | `deprecated` | ✅ functional | Resolves . and .. components and collapses redundant / separators. |
+| ~~`components`~~ ⚠️ Deprecated → `Path::components` | `(String) -> Vec<String>` | `deprecated` | ✅ functional | Returns the non-empty path segments split by /. |
 
 #### `std::path::stem`
 
@@ -76,3 +83,5 @@ Resolves `.` and `..` components and collapses redundant `/` separators.
 #### `std::path::components`
 
 Returns the non-empty path segments as a vector. E.g. components("/usr/bin") -> ["usr", "bin"].
+
+> ⚠️ **9 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.

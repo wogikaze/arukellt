@@ -5,8 +5,8 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 348
-- **Historical/deprecated names:** 68
+- **Canonical names:** 333
+- **Historical/deprecated names:** 83
 - **Total entries:** 416
 
 Related:
@@ -95,7 +95,6 @@ Current public API names, sorted alphabetically.
 | `clone_f64` | `std::signal` | `stable` | Signal |
 | `cmp_i32` | `std::core` | `stable` | Core |
 | `combine` | `std::core::hash` | `stable` | Core |
-| `components` | `std::path` | `stable` | Path |
 | `contains` | `prelude` | `stable` | String |
 | `cos_approx` | `std::signal` | `stable` | Signal |
 | `csv_count_rows` | `std::csv` | `experimental` | Csv |
@@ -106,9 +105,6 @@ Current public API names, sorted alphabetically.
 | `csv_split_line` | `std::csv` | `experimental` | Csv |
 | `csv_stringify_row` | `std::csv` | `experimental` | Csv |
 | `div` | `std::simd::f64x2` | `experimental` | Simd |
-| `duration_ms` | `std::time` | `stable` | Time |
-| `duration_ns` | `std::time` | `stable` | Time |
-| `duration_us` | `std::time` | `stable` | Time |
 | `ends_with` | `prelude` | `stable` | String |
 | `eprintln` | `std::host::stdio` | `stable` | Host Stdio |
 | `eq` | `prelude` | `stable` | String |
@@ -121,13 +117,11 @@ Current public API names, sorted alphabetically.
 | `expect_none_i32` | `std::test` | `stable` | Test |
 | `expect_ok_i32` | `std::test` | `stable` | Test |
 | `expect_some_i32` | `std::test` | `stable` | Test |
-| `extension` | `std::path` | `stable` | Path |
 | `f32_to_string` | `prelude` | `stable` | Convert |
 | `fd_fdstat_errno` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_seek` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_tell` | `std::host::fs` | `experimental` | Host Fs |
 | `fft` | `std::signal` | `stable` | Signal |
-| `file_name` | `std::path` | `stable` | Path |
 | `filter_i32` | `prelude` | `provisional` | Collections |
 | `find_key_pos` | `std::json` | `experimental` | Json |
 | `find_toml_section` | `std::toml` | `experimental` | Toml |
@@ -197,7 +191,6 @@ Current public API names, sorted alphabetically.
 | `interner_len` | `std::collections::compiler` | `experimental` | Collections |
 | `interner_lookup` | `std::collections::compiler` | `experimental` | Collections |
 | `interner_new` | `std::collections::compiler` | `experimental` | Collections |
-| `is_absolute` | `std::path` | `stable` | Path |
 | `is_dir` | `std::fs` | `provisional` | Fs |
 | `is_dir` | `std::host::fs` | `provisional` | Host Fs |
 | `is_empty` | `prelude` | `stable` | String |
@@ -210,7 +203,6 @@ Current public API names, sorted alphabetically.
 | `is_readable_file` | `std::host::fs` | `stable` | Host Fs |
 | `is_some` | `prelude` | `stable` | Option Result |
 | `join` | `prelude` | `stable` | String |
-| `join` | `std::path` | `stable` | Path |
 | `json_decode_escape` | `std::json` | `experimental` | Json |
 | `json_encode_string` | `std::json` | `experimental` | Json |
 | `json_escape` | `std::json` | `experimental` | Json |
@@ -246,13 +238,11 @@ Current public API names, sorted alphabetically.
 | `neg` | `std::simd::i8x16` | `experimental` | Simd |
 | `neg` | `std::simd::i16x8` | `experimental` | Simd |
 | `next_f64` | `std::host::random` | `stable` | Host Random |
-| `normalize` | `std::path` | `stable` | Path |
 | `now_ms` | `std::host::clock` | `stable` | Host Clock |
 | `option` | `std::cli` | `stable` | Cli |
 | `pad_left` | `prelude` | `stable` | String |
 | `pad_right` | `prelude` | `stable` | String |
 | `panic` | `prelude` | `stable` | Control |
-| `parent` | `std::path` | `stable` | Path |
 | `parse` | `std::json` | `experimental` | Json |
 | `parse_args` | `std::cli` | `stable` | Cli |
 | `parse_content_length` | `std::json` | `experimental` | Json |
@@ -289,9 +279,6 @@ Current public API names, sorted alphabetically.
 | `read_to_string` | `std::host::stdio` | `stable` | Host Stdio |
 | `repeat` | `prelude` | `stable` | String |
 | `replace` | `prelude` | `stable` | String |
-| `seeded_random` | `std::random` | `stable` | Random |
-| `seeded_range` | `std::random` | `stable` | Random |
-| `shuffle_i32` | `std::random` | `stable` | Random |
 | `sin_approx` | `std::signal` | `stable` | Signal |
 | `skip_ws` | `std::json` | `experimental` | Json |
 | `slice` | `prelude` | `stable` | String |
@@ -319,7 +306,6 @@ Current public API names, sorted alphabetically.
 | `stderr` | `std::io` | `stable` | Io |
 | `stdin` | `std::io` | `stable` | Io |
 | `stdout` | `std::io` | `stable` | Io |
-| `stem` | `std::path` | `stable` | Path |
 | `String_from` | `prelude` | `stable` | String |
 | `String_new` | `prelude` | `stable` | String |
 | `stringify_pretty` | `std::json` | `experimental` | Json |
@@ -360,7 +346,6 @@ Current public API names, sorted alphabetically.
 | `var` | `std::host::env` | `stable` | Host Env |
 | `var` | `std::env` | `stable` | Env |
 | `var_or_default` | `std::env` | `stable` | Env |
-| `with_extension` | `std::path` | `stable` | Path |
 | `write_bytes` | `std::host::fs` | `provisional` | Host Fs |
 | `write_string` | `std::fs` | `stable` | Fs |
 | `write_string` | `std::host::fs` | `provisional` | Host Fs |
@@ -384,6 +369,7 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`assert_eq_str`~~ | `std::test::assert_eq_string` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `std::test::assert_ne_i32` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `std::seq::binary_search_by` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`components`~~ | `Path::components` | Path | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `VecIter::count_eq` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -396,11 +382,16 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`deque_push_back`~~ | `Deque::push_back` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_push_front`~~ | `Deque::push_front` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_to_vec`~~ | `Deque::iter` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`duration_ms`~~ | `Duration::as_ms` | Time | [migration-guidance.md](migration-guidance.md) |
+| ~~`duration_ns`~~ | `Duration::as_ns` | Time | [migration-guidance.md](migration-guidance.md) |
+| ~~`duration_us`~~ | `Duration::as_us` | Time | [migration-guidance.md](migration-guidance.md) |
 | ~~`exists`~~ | `is_readable_file` | Host Fs | [migration-guidance.md](migration-guidance.md) |
+| ~~`extension`~~ | `Path::extension` | Path | [migration-guidance.md](migration-guidance.md) |
 | ~~`f32_to_f64`~~ | `f32::to_f64` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_hi`~~ | `f64::to_bits_hi` | Numeric | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_lo`~~ | `f64::to_bits_lo` | Numeric | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_to_f32`~~ | `f64::to_f32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
+| ~~`file_name`~~ | `Path::file_name` | Path | [migration-guidance.md](migration-guidance.md) |
 | ~~`filter_i32`~~ | `VecIter::filter` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`fold_i32_i32`~~ | `VecIter::fold` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`get`~~ | `Vec::get` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -414,6 +405,8 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`i32_to_u32`~~ | `i32::to_u32_bits` | Convert | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_u8`~~ | `i32::to_u8_wrapping` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`i64_to_i32`~~ | `i64::to_i32_checked` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
+| ~~`is_absolute`~~ | `Path::is_absolute` | Path | [migration-guidance.md](migration-guidance.md) |
+| ~~`join`~~ | `Path::join` | Path | [migration-guidance.md](migration-guidance.md) |
 | ~~`len`~~ | `Vec::len` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_back`~~ | `LinkedList::back` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_clear`~~ | `LinkedList::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -429,14 +422,20 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`map_i32_i32`~~ | `VecIter::map` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`max_i32`~~ | `std::seq::max_by` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`min_i32`~~ | `std::seq::min_by` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`normalize`~~ | `Path::normalize` | Path | [migration-guidance.md](migration-guidance.md) |
+| ~~`parent`~~ | `Path::parent` | Path | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`seeded_random`~~ | `Rng::next` | Random | [migration-guidance.md](migration-guidance.md) |
+| ~~`seeded_range`~~ | `Rng::range` | Random | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `VecIter::contains` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `VecIter::rev` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`shuffle_i32`~~ | `Rng::shuffle` | Random | [migration-guidance.md](migration-guidance.md) |
 | ~~`skip_i32`~~ | `VecIter::skip` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_get`~~ | `Slice::get` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_len`~~ | `Slice::len` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`stem`~~ | `Path::stem` | Path | [migration-guidance.md](migration-guidance.md) |
 | ~~`sum_i32`~~ | `VecIter::sum` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`take_i32`~~ | `VecIter::take` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`u16_to_i32`~~ | `u16::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
@@ -444,6 +443,7 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`u64_to_u32`~~ | `u64::to_u32_wrapping` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | `u8::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`unique`~~ | `VecIter::unique` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`with_extension`~~ | `Path::with_extension` | Path | [migration-guidance.md](migration-guidance.md) |
 | ~~`writer_write`~~ | `Writer::write` | Io | [migration-guidance.md](migration-guidance.md) |
 | ~~`writer_write_str`~~ | `Writer::write_string` | Io | [migration-guidance.md](migration-guidance.md) |
 
@@ -535,7 +535,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `clone_f64` | ✅ `stable` | `std::signal` | Signal |
 | `cmp_i32` | ✅ `stable` | `std::core` | Core |
 | `combine` | ✅ `stable` | `std::core::hash` | Core |
-| `components` | ✅ `stable` | `std::path` | Path |
+| ~~`components`~~ | ⚠️ deprecated | `std::path` | → `Path::components` · [migration guide](migration-guidance.md) |
 | `contains` | ✅ `stable` | `prelude` | String |
 | `cos_approx` | ✅ `stable` | `std::signal` | Signal |
 | ~~`count_eq`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::count_eq` · [migration guide](migration-guidance.md) |
@@ -558,9 +558,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`deque_push_front`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::push_front` · [migration guide](migration-guidance.md) |
 | ~~`deque_to_vec`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::iter` · [migration guide](migration-guidance.md) |
 | `div` | ✅ `experimental` | `std::simd::f64x2` | Simd |
-| `duration_ms` | ✅ `stable` | `std::time` | Time |
-| `duration_ns` | ✅ `stable` | `std::time` | Time |
-| `duration_us` | ✅ `stable` | `std::time` | Time |
+| ~~`duration_ms`~~ | ⚠️ deprecated | `std::time` | → `Duration::as_ms` · [migration guide](migration-guidance.md) |
+| ~~`duration_ns`~~ | ⚠️ deprecated | `std::time` | → `Duration::as_ns` · [migration guide](migration-guidance.md) |
+| ~~`duration_us`~~ | ⚠️ deprecated | `std::time` | → `Duration::as_us` · [migration guide](migration-guidance.md) |
 | `ends_with` | ✅ `stable` | `prelude` | String |
 | `eprintln` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `eq` | ✅ `stable` | `prelude` | String |
@@ -574,7 +574,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `expect_none_i32` | ✅ `stable` | `std::test` | Test |
 | `expect_ok_i32` | ✅ `stable` | `std::test` | Test |
 | `expect_some_i32` | ✅ `stable` | `std::test` | Test |
-| `extension` | ✅ `stable` | `std::path` | Path |
+| ~~`extension`~~ | ⚠️ deprecated | `std::path` | → `Path::extension` · [migration guide](migration-guidance.md) |
 | ~~`f32_to_f64`~~ | ⚠️ deprecated | `prelude` | → `f32::to_f64` · [migration guide](migration-guidance.md) |
 | `f32_to_string` | ✅ `stable` | `prelude` | Convert |
 | ~~`f64_bits_hi`~~ | ⚠️ deprecated | `prelude` | → `f64::to_bits_hi` · [migration guide](migration-guidance.md) |
@@ -584,7 +584,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `fd_seek` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `fd_tell` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `fft` | ✅ `stable` | `std::signal` | Signal |
-| `file_name` | ✅ `stable` | `std::path` | Path |
+| ~~`file_name`~~ | ⚠️ deprecated | `std::path` | → `Path::file_name` · [migration guide](migration-guidance.md) |
 | `filter_i32` | ✅ `provisional` | `prelude` | Collections |
 | ~~`filter_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::filter` · [migration guide](migration-guidance.md) |
 | `find_key_pos` | ✅ `experimental` | `std::json` | Json |
@@ -667,7 +667,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `interner_len` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `interner_lookup` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `interner_new` | ✅ `experimental` | `std::collections::compiler` | Collections |
-| `is_absolute` | ✅ `stable` | `std::path` | Path |
+| ~~`is_absolute`~~ | ⚠️ deprecated | `std::path` | → `Path::is_absolute` · [migration guide](migration-guidance.md) |
 | `is_dir` | ✅ `provisional` | `std::fs` | Fs |
 | `is_dir` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `is_empty` | ✅ `stable` | `prelude` | String |
@@ -680,7 +680,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `is_readable_file` | ✅ `stable` | `std::host::fs` | Host Fs |
 | `is_some` | ✅ `stable` | `prelude` | Option Result |
 | `join` | ✅ `stable` | `prelude` | String |
-| `join` | ✅ `stable` | `std::path` | Path |
+| ~~`join`~~ | ⚠️ deprecated | `std::path` | → `Path::join` · [migration guide](migration-guidance.md) |
 | `json_decode_escape` | ✅ `experimental` | `std::json` | Json |
 | `json_encode_string` | ✅ `experimental` | `std::json` | Json |
 | `json_escape` | ✅ `experimental` | `std::json` | Json |
@@ -731,13 +731,13 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `neg` | ✅ `experimental` | `std::simd::i8x16` | Simd |
 | `neg` | ✅ `experimental` | `std::simd::i16x8` | Simd |
 | `next_f64` | ✅ `stable` | `std::host::random` | Host Random |
-| `normalize` | ✅ `stable` | `std::path` | Path |
+| ~~`normalize`~~ | ⚠️ deprecated | `std::path` | → `Path::normalize` · [migration guide](migration-guidance.md) |
 | `now_ms` | ✅ `stable` | `std::host::clock` | Host Clock |
 | `option` | ✅ `stable` | `std::cli` | Cli |
 | `pad_left` | ✅ `stable` | `prelude` | String |
 | `pad_right` | ✅ `stable` | `prelude` | String |
 | `panic` | ✅ `stable` | `prelude` | Control |
-| `parent` | ✅ `stable` | `std::path` | Path |
+| ~~`parent`~~ | ⚠️ deprecated | `std::path` | → `Path::parent` · [migration guide](migration-guidance.md) |
 | `parse` | ✅ `experimental` | `std::json` | Json |
 | `parse_args` | ✅ `stable` | `std::cli` | Cli |
 | `parse_content_length` | ✅ `experimental` | `std::json` | Json |
@@ -776,12 +776,12 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `read_to_string` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `repeat` | ✅ `stable` | `prelude` | String |
 | `replace` | ✅ `stable` | `prelude` | String |
-| `seeded_random` | ✅ `stable` | `std::random` | Random |
-| `seeded_range` | ✅ `stable` | `std::random` | Random |
+| ~~`seeded_random`~~ | ⚠️ deprecated | `std::random` | → `Rng::next` · [migration guide](migration-guidance.md) |
+| ~~`seeded_range`~~ | ⚠️ deprecated | `std::random` | → `Rng::range` · [migration guide](migration-guidance.md) |
 | ~~`seq_contains`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::contains` · [migration guide](migration-guidance.md) |
 | ~~`seq_reverse`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::rev` · [migration guide](migration-guidance.md) |
 | ~~`set`~~ | ⚠️ deprecated | `prelude` | → `Vec::set` · [migration guide](migration-guidance.md) |
-| `shuffle_i32` | ✅ `stable` | `std::random` | Random |
+| ~~`shuffle_i32`~~ | ⚠️ deprecated | `std::random` | → `Rng::shuffle` · [migration guide](migration-guidance.md) |
 | `sin_approx` | ✅ `stable` | `std::signal` | Signal |
 | ~~`skip_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::skip` · [migration guide](migration-guidance.md) |
 | `skip_ws` | ✅ `experimental` | `std::json` | Json |
@@ -812,7 +812,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `stderr` | ✅ `stable` | `std::io` | Io |
 | `stdin` | ✅ `stable` | `std::io` | Io |
 | `stdout` | ✅ `stable` | `std::io` | Io |
-| `stem` | ✅ `stable` | `std::path` | Path |
+| ~~`stem`~~ | ⚠️ deprecated | `std::path` | → `Path::stem` · [migration guide](migration-guidance.md) |
 | `String_from` | ✅ `stable` | `prelude` | String |
 | `String_new` | ✅ `stable` | `prelude` | String |
 | `stringify_pretty` | ✅ `experimental` | `std::json` | Json |
@@ -860,7 +860,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `var` | ✅ `stable` | `std::host::env` | Host Env |
 | `var` | ✅ `stable` | `std::env` | Env |
 | `var_or_default` | ✅ `stable` | `std::env` | Env |
-| `with_extension` | ✅ `stable` | `std::path` | Path |
+| ~~`with_extension`~~ | ⚠️ deprecated | `std::path` | → `Path::with_extension` · [migration guide](migration-guidance.md) |
 | `write_bytes` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `write_string` | ✅ `stable` | `std::fs` | Fs |
 | `write_string` | ✅ `provisional` | `std::host::fs` | Host Fs |

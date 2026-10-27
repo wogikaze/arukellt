@@ -2,6 +2,11 @@
 //!
 //! Host entropy lives in `std::host::random`. This module only provides
 //! seeded helpers so callers can reason about reproducibility.
+//!
+//! The canonical surface is the `Rng` receiver type: `Rng::new(seed)` wraps
+//! the normalized seed, then `next`, `range`, or `shuffle` derive values from
+//! it without touching host entropy.
+
 fn normalize_seed(seed_val: i32) -> i32 {
     if seed_val == 0 {
         42
@@ -13,7 +18,7 @@ fn normalize_seed(seed_val: i32) -> i32 {
 /// Generate the next deterministic pseudo-random value from a seed.
 ///
 /// Uses a xorshift32-style step and never returns zero.
-pub fn seeded_random(seed_val: i32) -> i32 {
+fn next_seeded(seed_val: i32) -> i32 {
     let mut x = normalize_seed(seed_val)
     x = x ^ (x << 13)
     x = x ^ (x >> 17)
@@ -28,8 +33,8 @@ pub fn seeded_random(seed_val: i32) -> i32 {
 /// Map a seed to a deterministic value in `[lo, hi)`.
 ///
 /// If `hi <= lo`, returns `lo`.
-pub fn seeded_range(seed_val: i32, lo: i32, hi: i32) -> i32 {
-    let r = seeded_random(seed_val)
+fn seeded_range_from(seed_val: i32, lo: i32, hi: i32) -> i32 {
+    let r = next_seeded(seed_val)
     let range = hi - lo
     if range <= 0 {
         lo
@@ -43,8 +48,7 @@ pub fn seeded_range(seed_val: i32, lo: i32, hi: i32) -> i32 {
     }
 }
 
-/// Return a shuffled copy of `v` using the deterministic seeded RNG.
-pub fn shuffle_i32(v: Vec<i32>, seed_val: i32) -> Vec<i32> {
+fn shuffle_i32_from(v: Vec<i32>, seed_val: i32) -> Vec<i32> {
     let n = len(v)
     let mut result = Vec::new<i32>()
     let mut i = 0
@@ -55,8 +59,8 @@ pub fn shuffle_i32(v: Vec<i32>, seed_val: i32) -> Vec<i32> {
     let mut seed = normalize_seed(seed_val)
     let mut j = n - 1
     while j > 0 {
-        seed = seeded_random(seed)
-        let idx = seeded_range(seed, 0, j + 1)
+        seed = next_seeded(seed)
+        let idx = seeded_range_from(seed, 0, j + 1)
         let tmp = get_unchecked(result, j)
         set(result, j, get_unchecked(result, idx))
         set(result, idx, tmp)
@@ -64,5 +68,49 @@ pub fn shuffle_i32(v: Vec<i32>, seed_val: i32) -> Vec<i32> {
     }
     result
 }
-// xorshift32 inline
-// Fisher-Yates shuffle
+
+/// Deterministic xorshift32 random source.
+pub struct Rng {
+    seed: i32,
+}
+
+impl Rng {
+    /// Creates a deterministic source from an explicit seed.
+    ///
+    /// Seed `0` is normalized to `42`, matching the former seeded helpers.
+    fn new(seed_val: i32) -> Rng {
+        Rng { seed: normalize_seed(seed_val) }
+    }
+
+    /// Returns the next pseudo-random value; never zero.
+    fn next(self: Rng) -> i32 {
+        next_seeded(self.seed)
+    }
+
+    /// Returns a deterministic value in `[lo, hi)`.
+    ///
+    /// If `hi <= lo`, returns `lo`.
+    fn range(self: Rng, lo: i32, hi: i32) -> i32 {
+        seeded_range_from(self.seed, lo, hi)
+    }
+
+    /// Returns a shuffled copy of `v`.
+    fn shuffle(self: Rng, v: Vec<i32>) -> Vec<i32> {
+        shuffle_i32_from(v, self.seed)
+    }
+}
+
+/// Generate the next deterministic pseudo-random value from a seed.
+pub fn seeded_random(seed_val: i32) -> i32 {
+    next_seeded(seed_val)
+}
+
+/// Map a seed to a deterministic value in `[lo, hi)`.
+pub fn seeded_range(seed_val: i32, lo: i32, hi: i32) -> i32 {
+    seeded_range_from(seed_val, lo, hi)
+}
+
+/// Return a shuffled copy of `v` using the deterministic seeded RNG.
+pub fn shuffle_i32(v: Vec<i32>, seed_val: i32) -> Vec<i32> {
+    shuffle_i32_from(v, seed_val)
+}

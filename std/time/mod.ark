@@ -4,6 +4,9 @@
 //! over timestamps supplied by the caller. It does not read the host
 //! clock and requires no host capability.
 //!
+//! The canonical surface is the `Duration` receiver type:
+//! `Duration::between(start, end).as_ms()` (or `as_us` / `as_ns`).
+//!
 //! ## Honesty caveats (see #604 — issues/done/604-stdlib-baseline-contract-honesty.md)
 //!
 //! - Host clock reads live in `std::host::clock` and are deliberately
@@ -12,29 +15,53 @@
 //! - All inputs are caller-supplied `i64` timestamps; the semantics of
 //!   those timestamps are the caller's responsibility.
 
-pub fn duration_ms(start: i64, end: i64) -> i64 {
-    let diff = end - start
-    if diff < 0i64 {
-        0i64
-    } else {
-        diff / 1000000i64
-    }
-}
-
-pub fn duration_us(start: i64, end: i64) -> i64 {
-    let diff = end - start
-    if diff < 0i64 {
-        0i64
-    } else {
-        diff / 1000i64
-    }
-}
-
-pub fn duration_ns(start: i64, end: i64) -> i64 {
+fn elapsed_ns(start: i64, end: i64) -> i64 {
     let diff = end - start
     if diff < 0i64 {
         0i64
     } else {
         diff
     }
+}
+
+/// A non-negative elapsed duration stored as nanoseconds.
+pub struct Duration {
+    ns: i64,
+}
+
+impl Duration {
+    /// Computes the elapsed time between two caller-supplied timestamps.
+    ///
+    /// Negative spans clamp to zero, matching the former `duration_*`
+    /// helpers' contract.
+    fn between(start: i64, end: i64) -> Duration {
+        Duration { ns: elapsed_ns(start, end) }
+    }
+
+    /// Returns the duration in milliseconds.
+    fn as_ms(self: Duration) -> i64 {
+        self.ns / 1000000i64
+    }
+
+    /// Returns the duration in microseconds.
+    fn as_us(self: Duration) -> i64 {
+        self.ns / 1000i64
+    }
+
+    /// Returns the duration in nanoseconds.
+    fn as_ns(self: Duration) -> i64 {
+        self.ns
+    }
+}
+
+pub fn duration_ms(start: i64, end: i64) -> i64 {
+    Duration::between(start, end).as_ms()
+}
+
+pub fn duration_us(start: i64, end: i64) -> i64 {
+    Duration::between(start, end).as_us()
+}
+
+pub fn duration_ns(start: i64, end: i64) -> i64 {
+    Duration::between(start, end).as_ns()
 }

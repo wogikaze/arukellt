@@ -1,12 +1,12 @@
 use std::host::stdio
-use std::random
+use std::random::Rng
 use std::prelude::{assert_eq}
 fn main() {
-    let a = random::seeded_random(1)
+    let a = Rng::new(1).next()
     assert_eq(a, 270369)
-    let b = random::seeded_random(1)
+    let b = Rng::new(1).next()
     assert_eq(a, b)
-    let r = random::seeded_range(42, 0, 10)
+    let r = Rng::new(42).range(0, 10)
     assert_eq(r, 2)
     stdio::println("random_basic ok")
 }

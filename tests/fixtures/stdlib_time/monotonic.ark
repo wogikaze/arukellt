@@ -1,6 +1,6 @@
 use std::host::clock
 use std::host::stdio
-use std::time
+use std::time::Duration
 
 fn main() {
     let t1 = clock::monotonic_now()
@@ -9,7 +9,7 @@ fn main() {
         x = x + 1
     }
     let t2 = clock::monotonic_now()
-    let elapsed = time::duration_ns(t1, t2)
+    let elapsed = Duration::between(t1, t2).as_ns()
     assert(elapsed >= 0i64)
     stdio::println("monotonic ok")
 }

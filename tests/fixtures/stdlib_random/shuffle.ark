@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::random
+use std::random::Rng
 use std::prelude::{assert_eq}
 fn main() {
     let v = Vec::new<i32>()
@@ -8,7 +8,7 @@ fn main() {
     push(v, 30)
     push(v, 40)
     push(v, 50)
-    let shuffled = random::shuffle_i32(v, 42)
+    let shuffled = Rng::new(42).shuffle(v)
     assert_eq(len(shuffled), 5)
     assert_eq(get_unchecked(shuffled, 0), 30)
     assert_eq(get_unchecked(shuffled, 1), 40)

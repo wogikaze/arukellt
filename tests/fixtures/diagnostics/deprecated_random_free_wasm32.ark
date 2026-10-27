@@ -1,0 +1,8 @@
+// W0009 on the linear target: shuffle_i32 is deprecated in favour of Rng.
+use std::random
+
+fn main() {
+    let v: Vec<i32> = Vec::new<i32>()
+    push(v, 1)
+    let _ = random::shuffle_i32(v, 42)
+}
