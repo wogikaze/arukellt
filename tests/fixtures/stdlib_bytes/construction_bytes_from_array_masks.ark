@@ -1,4 +1,5 @@
 use std::bytes
+use std::bytes::Bytes
 use std::test
 
 fn main() {
@@ -6,8 +7,8 @@ fn main() {
     push(xs, 256)
     push(xs, 257)
     push(xs, 255)
-    let b: Vec<i32> = bytes::bytes_from_array(xs)
-    test::assert_eq_i32(bytes::bytes_get(b, 0), 0)
-    test::assert_eq_i32(bytes::bytes_get(b, 1), 1)
-    test::assert_eq_i32(bytes::bytes_get(b, 2), 255)
+    let b: Vec<i32> = Bytes::from_array(xs)
+    test::assert_eq_i32(b.get_unchecked(0), 0)
+    test::assert_eq_i32(b.get_unchecked(1), 1)
+    test::assert_eq_i32(b.get_unchecked(2), 255)
 }

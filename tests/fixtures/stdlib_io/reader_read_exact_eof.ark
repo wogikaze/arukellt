@@ -4,9 +4,9 @@ use std::test
 use std::prelude::{contains}
 
 fn main() {
-    let data: Vec<i32> = bytes::bytes_new()
-    bytes::bytes_push(data, 72)
-    bytes::bytes_push(data, 73)
+    let data: Vec<i32> = Vec::new<i32>()
+    data.push_byte(72)
+    data.push_byte(73)
     let r: io::Reader = io::Reader::from_bytes(data)
     match io::Io::read_exact(r, 5) {
         Result::Ok(_) => panic("expected error"),

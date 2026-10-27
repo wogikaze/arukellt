@@ -1,0 +1,10 @@
+// E0100: the std::bytes free surface was removed in the ADR-087 Wave 2
+// deletion; the qualified old call names the method replacement.
+use std::bytes
+
+fn main() {
+    let b: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(b, 1)
+    let _ = bytes::bytes_len(b)
+    let _ = bytes::hex_encode(b)
+}

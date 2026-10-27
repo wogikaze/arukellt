@@ -2,6 +2,6 @@ use std::bytes
 use std::host::stdio
 
 fn main() {
-    let n: i32 = bytes::byte_length("hello")
-    stdio::println((n).to_string())
+    let b: Vec<i32> = bytes::Bytes::from_hex("68656c6c6f")
+    stdio::println((b.len()).to_string())
 }

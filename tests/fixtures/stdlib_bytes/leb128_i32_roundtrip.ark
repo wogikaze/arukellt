@@ -1,4 +1,5 @@
 use std::bytes
+use std::bytes::Bytes
 use std::test
 
 fn main() {
@@ -12,9 +13,9 @@ fn main() {
     let mut i = 0
     while i < n {
         let v = get_unchecked(vals, i)
-        let enc: Vec<i32> = bytes::leb128_encode_i32(v)
-        let c: Vec<i32> = bytes::cursor_new(enc)
-        let dec: i32 = bytes::leb128_decode_i32(c)
+        let enc: Vec<i32> = Bytes::from_leb128_i32(v)
+        let c: Vec<i32> = enc.byte_cursor()
+        let dec: i32 = c.read_leb128_i32()
         test::assert_eq_i32(dec, v)
         i = i + 1
     }

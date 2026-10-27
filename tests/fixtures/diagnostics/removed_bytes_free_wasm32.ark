@@ -1,0 +1,8 @@
+// E0100 on the linear wasm32 target for the std::bytes removal wave.
+use std::bytes
+
+fn main() {
+    let b: Vec<i32> = bytes::buf_new()
+    bytes::buf_push_u16_le(b, 258)
+    let _ = bytes::buf_len(b)
+}

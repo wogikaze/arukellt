@@ -166,10 +166,6 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
     if len(msg5) > 0 {
         return msg5
     }
-    let msg6 = deprecated_bytes_qualified_message(path)
-    if len(msg6) > 0 {
-        return msg6
-    }
     return deprecated_hash_qualified_message(path)
 }
 
@@ -248,65 +244,6 @@ fn deprecated_seq_qualified_message(path: String) -> String {
     if eq(clone(path), "seq::count_eq") {
         return "use `v.iter().count_eq(target)` instead"
     }
-    String_new()
-}
-
-// The stable std::text frees are deprecated under ADR-087 while their
-// receiver / associated replacements are already available. The qualified
-// alias is `text`; aliases of the removed `fmt` / `rope` helpers are no longer
-// live calls and are covered by resolver::removed_names instead.
-// ── Deprecated std::bytes free functions (ADR-087) ─────────────────────
-//
-// The method / associated surface landed in the 2026-10-27 bytes wave:
-// byte-vector methods on `Vec<i32>` plus the `Bytes` namespace for
-// receiver-less decoders/encoders. Free names stay callable through the
-// 0.x window, so these entries are live W0009 warnings.
-fn deprecated_bytes_qualified_message(path: String) -> String {
-    if eq(clone(path), "bytes::bytes_new") { return String_from("use `Vec::new<i32>()` instead") }
-    if eq(clone(path), "bytes::bytes_len") { return String_from("use `b.len()` on the byte vector instead") }
-    if eq(clone(path), "bytes::bytes_get") { return String_from("use `b.get_unchecked(i)` instead") }
-    if eq(clone(path), "bytes::bytes_push") { return String_from("use `b.push_byte(x)` instead") }
-    if eq(clone(path), "bytes::bytes_eq") { return String_from("use `a.equals_bytes(b)` instead") }
-    if eq(clone(path), "bytes::bytes_from_string") { return String_from("use `s.to_utf8_bytes()` on the `String` instead") }
-    if eq(clone(path), "bytes::string_from_bytes") { return String_from("use `String::from_utf8_lossy(b)` instead") }
-    if eq(clone(path), "bytes::bytes_concat") { return String_from("use `a.concat_bytes(b)` instead") }
-    if eq(clone(path), "bytes::bytes_slice") { return String_from("use `b.slice_bytes(start, end)` instead") }
-    if eq(clone(path), "bytes::byte_length") { return String_from("use `s.len_bytes()` on the `String` instead") }
-    if eq(clone(path), "bytes::hex_encode") { return String_from("use `b.to_hex()` instead") }
-    if eq(clone(path), "bytes::hex_decode") { return String_from("use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(path), "bytes::leb128_encode_u32") { return String_from("use `Bytes::from_leb128_u32(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(path), "bytes::leb128_encode_i32") { return String_from("use `Bytes::from_leb128_i32(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(path), "bytes::u16_to_le_bytes") { return String_from("use `Bytes::from_u16_le(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(path), "bytes::u16_from_le_bytes") { return String_from("use `b.to_u16_le()` instead") }
-    if eq(clone(path), "bytes::u32_to_le_bytes") { return String_from("use `Bytes::from_u32_le(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(path), "bytes::u32_from_le_bytes") { return String_from("use `b.to_u32_le()` instead") }
-    if eq(clone(path), "bytes::u32_to_be_bytes") { return String_from("use `Bytes::from_u32_be(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(path), "bytes::u32_from_be_bytes") { return String_from("use `b.to_u32_be()` instead") }
-    if eq(clone(path), "bytes::bytes_from_array") { return String_from("use `Bytes::from_array(xs)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(path), "bytes::buf_new") { return String_from("use `Vec::new<i32>()` instead") }
-    if eq(clone(path), "bytes::buf_with_capacity") { return String_from("use `Vec::with_capacity<i32>(cap)` instead") }
-    if eq(clone(path), "bytes::buf_push_u8") { return String_from("use `b.push_byte(x)` instead") }
-    if eq(clone(path), "bytes::buf_push_u16_le") { return String_from("use `b.push_u16_le(x)` instead") }
-    if eq(clone(path), "bytes::buf_push_u32_le") { return String_from("use `b.push_u32_le(x)` instead") }
-    if eq(clone(path), "bytes::buf_push_u64_le") { return String_from("use `b.push_u64_le(x)` instead") }
-    if eq(clone(path), "bytes::buf_extend") { return String_from("use `b.extend_bytes(other)` instead") }
-    if eq(clone(path), "bytes::buf_freeze") { return String_from("use the buffer directly; `Bytes` and `ByteBuf` share the `Vec<i32>` layout") }
-    if eq(clone(path), "bytes::buf_len") { return String_from("use `b.len()` on the byte vector instead") }
-    if eq(clone(path), "bytes::cursor_new") { return String_from("use `data.byte_cursor()` instead") }
-    if eq(clone(path), "bytes::cursor_pos") { return String_from("use `c.cursor_pos()` instead") }
-    if eq(clone(path), "bytes::cursor_remaining") { return String_from("use `c.cursor_remaining()` instead") }
-    if eq(clone(path), "bytes::read_u8") { return String_from("use `c.read_u8()` instead") }
-    if eq(clone(path), "bytes::read_u16_le") { return String_from("use `c.read_u16_le()` instead") }
-    if eq(clone(path), "bytes::read_u32_le") { return String_from("use `c.read_u32_le()` instead") }
-    if eq(clone(path), "bytes::read_u64_le") { return String_from("use `c.read_u64_le()` instead") }
-    if eq(clone(path), "bytes::read_u32_be") { return String_from("use `c.read_u32_be()` instead") }
-    if eq(clone(path), "bytes::read_bytes") { return String_from("use `c.read_bytes(n)` instead") }
-    if eq(clone(path), "bytes::base64_encode") { return String_from("use `b.to_base64()` instead") }
-    if eq(clone(path), "bytes::base64_decode") { return String_from("use `Bytes::from_base64(s)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(path), "bytes::leb128_decode_u32") { return String_from("use `c.read_leb128_u32()` instead") }
-    if eq(clone(path), "bytes::leb128_decode_i32") { return String_from("use `c.read_leb128_i32()` instead") }
-    if eq(clone(path), "bytes::leb128_encode_u64") { return String_from("use `Bytes::from_leb128_u64(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(path), "bytes::leb128_decode_u64") { return String_from("use `c.read_leb128_u64()` instead") }
     String_new()
 }
 
@@ -435,58 +372,5 @@ test mod "deprecated" {
         assert(len(deprecated_call_message("clear")) == 0)
         assert(len(deprecated_call_message("map_option_String_String")) == 0)
         assert(len(deprecated_call_message("map_result_i32_i32")) == 0)
-    }
-    test "bytes_deprecated_frees_warn_w0009" {
-        let names = Vec::new<String>()
-        push(names, "bytes::bytes_new")
-        push(names, "bytes::bytes_len")
-        push(names, "bytes::bytes_get")
-        push(names, "bytes::bytes_push")
-        push(names, "bytes::bytes_eq")
-        push(names, "bytes::bytes_from_string")
-        push(names, "bytes::string_from_bytes")
-        push(names, "bytes::bytes_concat")
-        push(names, "bytes::bytes_slice")
-        push(names, "bytes::byte_length")
-        push(names, "bytes::hex_encode")
-        push(names, "bytes::hex_decode")
-        push(names, "bytes::leb128_encode_u32")
-        push(names, "bytes::leb128_encode_i32")
-        push(names, "bytes::u16_to_le_bytes")
-        push(names, "bytes::u16_from_le_bytes")
-        push(names, "bytes::u32_to_le_bytes")
-        push(names, "bytes::u32_from_le_bytes")
-        push(names, "bytes::u32_to_be_bytes")
-        push(names, "bytes::u32_from_be_bytes")
-        push(names, "bytes::bytes_from_array")
-        push(names, "bytes::buf_new")
-        push(names, "bytes::buf_with_capacity")
-        push(names, "bytes::buf_push_u8")
-        push(names, "bytes::buf_push_u16_le")
-        push(names, "bytes::buf_push_u32_le")
-        push(names, "bytes::buf_push_u64_le")
-        push(names, "bytes::buf_extend")
-        push(names, "bytes::buf_freeze")
-        push(names, "bytes::buf_len")
-        push(names, "bytes::cursor_new")
-        push(names, "bytes::cursor_pos")
-        push(names, "bytes::cursor_remaining")
-        push(names, "bytes::read_u8")
-        push(names, "bytes::read_u16_le")
-        push(names, "bytes::read_u32_le")
-        push(names, "bytes::read_u64_le")
-        push(names, "bytes::read_u32_be")
-        push(names, "bytes::read_bytes")
-        push(names, "bytes::base64_encode")
-        push(names, "bytes::base64_decode")
-        push(names, "bytes::leb128_decode_u32")
-        push(names, "bytes::leb128_decode_i32")
-        push(names, "bytes::leb128_encode_u64")
-        push(names, "bytes::leb128_decode_u64")
-        let mut i = 0
-        while i < len(names) {
-            assert(len(deprecated_qualified_call_message(get_unchecked(names, i))) > 0)
-            i = i + 1
-        }
     }
 }

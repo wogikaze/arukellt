@@ -1,13 +1,14 @@
 use std::bytes
+use std::bytes::Bytes
 use std::test
 
 fn main() {
-    let b: Vec<i32> = bytes::bytes_new()
-    bytes::bytes_push(b, 0)
-    bytes::bytes_push(b, 127)
-    bytes::bytes_push(b, 128)
-    bytes::bytes_push(b, 255)
-    let enc: String = bytes::hex_encode(b)
-    let dec: Vec<i32> = bytes::hex_decode(enc)
-    test::assert_true(bytes::bytes_eq(b, dec))
+    let b: Vec<i32> = Vec::new<i32>()
+    b.push_byte(0)
+    b.push_byte(127)
+    b.push_byte(128)
+    b.push_byte(255)
+    let enc: String = b.to_hex()
+    let dec: Vec<i32> = Bytes::from_hex(enc)
+    test::assert_true(b.equals_bytes(dec))
 }

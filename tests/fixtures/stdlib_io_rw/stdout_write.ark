@@ -18,5 +18,5 @@ fn main() {
         Result::Ok(_) => stdio::println("write ok"),
         Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
-    stdio::println(bytes::string_from_bytes(w2.into_bytes()))
+    stdio::println(String::from_utf8_lossy(w2.into_bytes()))
 }

@@ -2,8 +2,8 @@ use std::bytes
 use std::test
 
 fn main() {
-    let b: Vec<i32> = bytes::bytes_from_string("hi")
-    test::assert_eq_i32(bytes::bytes_len(b), 2)
-    test::assert_eq_i32(bytes::bytes_get(b, 0), 104)
-    test::assert_eq_i32(bytes::bytes_get(b, 1), 105)
+    let b: Vec<i32> = "hi".to_utf8_bytes()
+    test::assert_eq_i32(b.len(), 2)
+    test::assert_eq_i32(b.get_unchecked(0), 104)
+    test::assert_eq_i32(b.get_unchecked(1), 105)
 }

@@ -1,4 +1,5 @@
 use std::bytes
+use std::bytes::Bytes
 use std::test
 
 fn main() {
@@ -13,10 +14,10 @@ fn main() {
     let mut i = 0
     while i < n {
         let v = get_unchecked(vals, i)
-        let le: Vec<i32> = bytes::u32_to_le_bytes(v)
-        test::assert_eq_i32(bytes::u32_from_le_bytes(le), v)
-        let be: Vec<i32> = bytes::u32_to_be_bytes(v)
-        test::assert_eq_i32(bytes::u32_from_be_bytes(be), v)
+        let le: Vec<i32> = Bytes::from_u32_le(v)
+        test::assert_eq_i32(le.to_u32_le(), v)
+        let be: Vec<i32> = Bytes::from_u32_be(v)
+        test::assert_eq_i32(be.to_u32_be(), v)
         i = i + 1
     }
 }

@@ -17,7 +17,7 @@ fn main() {
     }
     let inner_result: Result<Writer, io::IoError> = bw.into_inner()
     match inner_result {
-        Result::Ok(inner) => test::assert_eq_string(bytes::string_from_bytes(inner.into_bytes()), "short"),
+        Result::Ok(inner) => test::assert_eq_string(String::from_utf8_lossy(inner.into_bytes()), "short"),
         Result::Err(e) => panic(io::io_error_message(e)),
     }
 }

@@ -21,8 +21,8 @@ fn main() {
     match inner_result {
         Result::Ok(inner) => {
             let b: Vec<i32> = inner.into_bytes()
-            test::assert_eq_i32(bytes::bytes_len(b), 5)
-            test::assert_eq_string(bytes::string_from_bytes(b), "hello")
+            test::assert_eq_i32(b.len(), 5)
+            test::assert_eq_string(String::from_utf8_lossy(b), "hello")
         },
         Result::Err(e) => panic(io::io_error_message(e)),
     }

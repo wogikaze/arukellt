@@ -11,7 +11,7 @@ fn main() {
     let r: io::Reader = w.into_reader()
     let res: Result<Vec<i32>, io::IoError> = io::Io::read_to_end(r)
     match res {
-        Result::Ok(chunk) => test::assert_eq_string(bytes::string_from_bytes(chunk), "roundtrip"),
+        Result::Ok(chunk) => test::assert_eq_string(String::from_utf8_lossy(chunk), "roundtrip"),
         Result::Err(e) => panic(io::io_error_message(e)),
     }
 }

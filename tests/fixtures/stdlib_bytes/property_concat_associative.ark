@@ -2,14 +2,14 @@ use std::bytes
 use std::test
 
 fn main() {
-    let a: Vec<i32> = bytes::bytes_new()
-    bytes::bytes_push(a, 1)
-    let b: Vec<i32> = bytes::bytes_new()
-    bytes::bytes_push(b, 2)
-    let c: Vec<i32> = bytes::bytes_new()
-    bytes::bytes_push(c, 3)
-    let left: Vec<i32> = bytes::bytes_concat(bytes::bytes_concat(a, b), c)
-    let right: Vec<i32> = bytes::bytes_concat(a, bytes::bytes_concat(b, c))
-    test::assert_true(bytes::bytes_eq(left, right))
-    test::assert_eq_i32(bytes::bytes_len(left), 3)
+    let a: Vec<i32> = Vec::new<i32>()
+    a.push_byte(1)
+    let b: Vec<i32> = Vec::new<i32>()
+    b.push_byte(2)
+    let c: Vec<i32> = Vec::new<i32>()
+    c.push_byte(3)
+    let left: Vec<i32> = a.concat_bytes(b).concat_bytes(c)
+    let right: Vec<i32> = a.concat_bytes(b.concat_bytes(c))
+    test::assert_true(left.equals_bytes(right))
+    test::assert_eq_i32(left.len(), 3)
 }

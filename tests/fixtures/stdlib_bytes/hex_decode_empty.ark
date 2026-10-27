@@ -1,7 +1,8 @@
 use std::bytes
+use std::bytes::Bytes
 use std::test
 
 fn main() {
-    let d: Vec<i32> = bytes::hex_decode("")
-    test::assert_eq_i32(bytes::bytes_len(d), 0)
+    let d: Vec<i32> = Bytes::from_hex("")
+    test::assert_eq_i32(d.len(), 0)
 }

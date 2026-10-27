@@ -371,6 +371,50 @@ classified there, in dependency-safe waves.
   method lowering. The `hashset_i32_*` / `hashset_str_*` rows above stay in
   the `std::collections frees` family.
 
+### Landed slice (wave/bytes-deletion, 2026-10-27)
+
+- **ADR-087 Wave 2 physical deletion**: the 45 `stable` `std::bytes` free
+  functions were deleted after their 2026-10-27 Wave 1 conversion
+  (`deprecated` + W0009, `deprecated_since = "0.1.0"`,
+  `remove_in = "1.0.0"`). Both the `std/manifest.toml` entries and the
+  `pub fn` declarations in `std/bytes/mod.ark` are gone; the module keeps the
+  `Bytes` namespace and the `Vec<i32>` byte methods.
+- **E0100 conversion**: the 45 W0009 rows were replaced by
+  `resolver::removed_names::removed_bytes_member_hint` entries with the same
+  replacement text. The eight unregistered Wave-1 removals (`hex_char`,
+  `hex_val_char`, `try_hex_val_char`, and the five `try_read_*` readers) keep
+  their hints in the same table — the earlier `merge 917 wit ast methods`
+  conflict resolution had dropped the whole table, so this wave restores it
+  together with the 45 additions. `deprecated_bytes_qualified_message` and
+  the `check-compat-orphans` `bytes` alias mapping are removed.
+- **Call sites**: 150 fixture files (869 `bytes::*` calls) moved to the
+  method surface (`b.push_byte`, `b.len`, `b.get_unchecked`, `a.equals_bytes`,
+  `a.concat_bytes`, `b.slice_bytes`, `b.to_hex`, `b.to_base64`, the endian
+  `to_*` / `push_*` pairs, `data.byte_cursor()` + `c.read_*`) and the `Bytes`
+  namespace (`Bytes::from_hex` / `from_base64` / `from_array` /
+  `from_u16_le` / `from_u32_le` / `from_u32_be` / `from_leb128_*`).
+  `modules/use_qualified_call` now exercises `bytes::Bytes::from_hex`; the
+  cookbook `wasm-binary` blocks and the language spec bytes section were
+  updated.
+- **Fixtures**: `diagnostics/deprecated_bytes_free*.ark` became
+  `diagnostics/removed_bytes_free*.ark` (E0100 goldens on wasm32-gc and
+  `--target wasm32`).
+- **Scorecard delta**: 858 → **813** public symbols; `must delete` 115 →
+  **70**; manifest functions 626 → **581** (public 625 → **580**); `pub fn`
+  declarations 981 → **936**; `associated-or-method` 743 and
+  `intrinsic-only` 1 unchanged. The `deprecated std::bytes frees` rule is
+  removed from `docs/data/stdlib-api-eradication.toml` (no live match).
+- **Verification**: `verify fixtures` **1845/1845 PASS** (0 FAIL);
+  `selfhost diag-parity` **124 PASS / 0 FAIL** (the two
+  `removed_hashmap_adapter*` goldens now pass with the `146f35153` hint);
+  every changed fixture compiles and validates on `wasm32-gc` (P2) and
+  `--target wasm32` (P1); `docs check` 6/6; `check-stdlib-eradication` and
+  `check-compat-orphans` clean; ADR-029 fixpoint s2 == s3.
+- **Residual**: `Bytes::from_base64` keeps the skipping decoder semantics;
+  `try_read_u64_le` stays deferred (`Some(i64)` still emits invalid Wasm);
+  the `std::io` / `std::host::fs` byte-layout adapters and the 743
+  `associated-or-method` symbols remain in their own lanes.
+
 ## Required work
 
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate
@@ -394,6 +438,10 @@ classified there, in dependency-safe waves.
       - Landed 2026-10-27 (`wave/917-seq33`): the 31 stable seq/combinator
         prelude frees were deleted after the Wave 1 W0009 window; E0100
         hints replace the W0009 rows and `filter_i32` remains provisional.
+      - Landed 2026-10-27 (`wave/bytes-deletion`): the 45 stable `std::bytes`
+        frees were deleted after their Wave 1 W0009 window; the E0100 member
+        hints carry the method / `Bytes` replacements and the unregistered
+        helper hints are restored.
 - [ ] Wave B — `associated-or-method` entries: land the inherent /
       trait / associated replacement first (per-owner issues #693,
       #702, #703, #708, #710, and the future Test / IO / collection
