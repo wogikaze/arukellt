@@ -384,6 +384,54 @@ def _patch_bootstrap_host_clock_paths(workspace_root: Path) -> None:
             path.write_text(patched, encoding="utf-8")
 
 
+def _assert_bootstrap_overlay_clock_reads_stubbed(workspace_root: Path) -> None:
+    """Reject an overlay that leaves a host clock read in an i32 timing slot.
+
+    The overlay narrows the driver timing slots to i32 and re-widens them with
+    ``i32_to_i64(<slot>)`` at the emit call sites. A clock read that escapes
+    the stub keeps its i64 result, so the widening becomes
+    ``i32_to_i64(<i64>)`` and the generated compiler is invalid core Wasm
+    (``type mismatch: expected i32, found i64``) after a 25+ minute build.
+
+    Also rejects any remaining ``Clock::*`` namespace spelling: the overlay
+    does not ship ``std/host/clock.ark``, so the namespace call lowers to the
+    unresolved-call ``drop; unreachable`` fallback.
+
+    Keep this check adjacent to the patches it guards: an overlay/pin merge
+    that drops one of them must fail here, not inside ``wasm-tools validate``.
+    """
+    compiler_root = workspace_root / "src" / "compiler"
+    if not compiler_root.is_dir():
+        return
+    offenders: list[str] = []
+    for path in sorted(compiler_root.rglob("*.ark")):
+        # Hint tables spell `Clock::` inside diagnostic strings; not call sites.
+        if "removed_names" in path.name or "deprecated_table" in path.name:
+            continue
+        text = path.read_text(encoding="utf-8")
+        for spelling in ("Clock::monotonic_now(", "Clock::now_ms("):
+            if spelling in text:
+                offenders.append(
+                    f"{path.relative_to(workspace_root)}: {spelling} "
+                    "(overlay does not ship std/host/clock.ark)"
+                )
+        if not path.name.startswith("driver_"):
+            continue
+        # keep_clock mode wraps the read as i64_to_i32(... / 1000000i64); that
+        # form yields the i32 the timing slots expect.
+        if re.search(r"(?<!i64_to_i32\()clock::monotonic_now\(", text):
+            offenders.append(
+                f"{path.relative_to(workspace_root)}: unstubbed "
+                "clock::monotonic_now() in an i32 driver timing slot"
+            )
+    if offenders:
+        raise BootstrapOverlayError(
+            "bootstrap overlay clock stubbing is incomplete; the driver timing "
+            "slots are i32 and would receive i64 clock reads (invalid "
+            "i32_to_i64, expected i32 found i64): " + "; ".join(offenders[:5])
+        )
+
+
 def _patch_bootstrap_wit_type_paths(workspace_root: Path) -> None:
     """Apply the flat-namespace WIT type normalization to an overlay only."""
     wit_root = workspace_root / "std" / "wit"
@@ -1994,18 +2042,27 @@ def _driver_timing_groups(*, keep_clock: bool) -> frozenset[str]:
     return frozenset(selected)
 
 
+# Host clock reads accept both the pre-#917 module spelling and the canonical
+# ``Clock`` namespace spelling. The overlay stubs driver timing during seeding,
+# before ``_patch_bootstrap_host_clock_paths`` normalizes the namespace
+# spelling, so a single-spelling match silently leaves an i64 clock read in an
+# i32 timing slot (#917, bootstrap i32/i64 lowering mismatch).
+CLOCK_READ_SPELLINGS = ("clock::monotonic_now()", "Clock::monotonic_now()")
+
+
 def _patch_bootstrap_driver_timing_clock(text: str, *, keep_clock: bool) -> str:
-    """Group 1: rewrite ``clock::monotonic_now()`` (and diff-ms double-divide)."""
+    """Group 1: rewrite the monotonic clock read (any spelling) and diff-ms."""
     if keep_clock:
         # Milliseconds as i32: matches overlay i32 timestamp slots. wasm32
         # bootstrap field setters are (i32, i32); leaving ns i64 in record
         # fields fails validate (expected i32, found i64).
-        text = _replace_optional(
-            text,
-            "clock::monotonic_now()",
-            "i64_to_i32(clock::monotonic_now() / 1000000i64)",
-            "driver_timing: keep_clock monotonic_now → i32 ms",
-        )
+        for spelling in CLOCK_READ_SPELLINGS:
+            text = _replace_optional(
+                text,
+                spelling,
+                "i64_to_i32(clock::monotonic_now() / 1000000i64)",
+                f"driver_timing: keep_clock {spelling} → i32 ms",
+            )
         # Stored values are already ms; do not divide again in phase_timing_ms.
         text = _replace_optional(
             text,
@@ -2014,9 +2071,10 @@ def _patch_bootstrap_driver_timing_clock(text: str, *, keep_clock: bool) -> str:
             "driver_timing: keep_clock phase_timing_ms already ms",
         )
     else:
-        text = _replace_optional(
-            text, "clock::monotonic_now()", "0", "driver_timing: stub clock::monotonic_now"
-        )
+        for spelling in CLOCK_READ_SPELLINGS:
+            text = _replace_optional(
+                text, spelling, "0", f"driver_timing: stub {spelling}"
+            )
     phase_calls = (
         (
             'debug::note_phase_if_enabled(config, "driver.lex", t0, t_lex)',
@@ -2394,12 +2452,14 @@ def _patch_bootstrap_mir_lower_phase_timing(text: str, *, keep_clock: bool = Fal
     if keep_clock:
         # Real ns clocks; mir_lower_phase_ms keeps ``diff / 1000000i64``.
         return text
-    return _replace_optional(
-        text,
-        "clock::monotonic_now()",
-        "i32_to_i64(0)",
-        "mir_lower_timing: stub clock::monotonic_now",
-    )
+    for spelling in CLOCK_READ_SPELLINGS:
+        text = _replace_optional(
+            text,
+            spelling,
+            "i32_to_i64(0)",
+            f"mir_lower_timing: stub {spelling}",
+        )
+    return text
 
 
 def _git_compiler_file(root: Path, rev: str, rel_name: str) -> str | None:
@@ -4599,6 +4659,7 @@ def _prepare_flattened_selfhost_source_locked(
     _patch_bootstrap_manifest_scanner_paths(overlay_root)
     _patch_bootstrap_host_fs_paths(overlay_root)
     _patch_bootstrap_host_clock_paths(overlay_root)
+    _assert_bootstrap_overlay_clock_reads_stubbed(overlay_root)
     error_src = root / "std" / "core" / "error.ark"
     if not error_src.is_file():
         raise BootstrapOverlayError(
