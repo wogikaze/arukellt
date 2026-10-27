@@ -280,15 +280,6 @@ impl Write for File {
     }
 }
 
-/// Read probe / readable-file check via the host read intrinsic.
-///
-/// Deprecated: use `Fs::is_readable_file(path)` from
-/// `use std::host::fs::Fs`. False does not distinguish missing, unreadable,
-/// and directory paths, so this is not a path-existence query.
-pub fn is_readable_file(path: String) -> bool {
-    Fs::is_readable_file(path)
-}
-
 // Raw descriptor helpers remain experimental and are intentionally separate
 // from the `Fs` path surface above.
 pub fn fd_seek(fd: i32, offset: i64, whence: i32) -> i64 {

@@ -1,7 +1,0 @@
-// W0009 on the linear wasm32 target: the legacy std::fs stable wrapper stays
-// callable through the ADR-087 window and names the Fs replacement.
-use std::fs
-
-fn main() {
-    let _read = fs::read_string("missing.txt")
-}

@@ -1,0 +1,7 @@
+// E0100 on the linear wasm32 target: the stable clock free was deleted in the
+// ADR-087 Wave 2 change; the old call names the Clock replacement.
+use std::host::clock
+
+fn main() {
+    let _probe = clock::now_ms()
+}

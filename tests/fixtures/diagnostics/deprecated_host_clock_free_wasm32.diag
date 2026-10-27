@@ -1,1 +1,0 @@
-use `Clock::now_ms()` from `use std::host::clock::Clock` instead

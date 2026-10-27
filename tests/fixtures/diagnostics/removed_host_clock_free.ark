@@ -1,0 +1,7 @@
+// E0100: the stable `std::host::clock::monotonic_now` free was deleted in the
+// ADR-087 Wave 2 change; the qualified old call names the `Clock` replacement.
+use std::host::clock
+
+fn main() {
+    let _probe = clock::monotonic_now()
+}

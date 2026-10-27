@@ -11,7 +11,7 @@
 | `stable` | 176 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 10 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 45 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 74 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 67 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -22,7 +22,7 @@
 | `Box` | T | yes | provisional | Heap-allocated owned value. |
 | `BufReader` | R | no | experimental | Buffered byte source over a Read handle; implements Read and BufRead, and Seek when the inner handle is Seek. |
 | `BufWriter` | W | no | experimental | Buffered byte sink over a Write handle; flushes at capacity and on flush/into_inner. |
-| `Clock` | - | no | provisional | Namespace for the host clock reads: Clock::monotonic_now() returns nanoseconds from the monotonic clock and Clock::now_ms() returns milliseconds since the Unix epoch. The WASI clock intrinsics stay behind this impl; the deprecated free functions delegate to it. |
+| `Clock` | - | no | provisional | Namespace for the host clock reads: Clock::monotonic_now() returns nanoseconds from the monotonic clock and Clock::now_ms() returns milliseconds since the Unix epoch. The WASI clock intrinsics stay behind this impl. The stable free functions were deleted in the ADR-087 Wave 2 change. |
 | `Component` | - | no | experimental | Namespace for Component Model version constants and canonical ABI scratch lift/lower helpers; all entries are associated functions. |
 | `Deque` | T | no | provisional | Double-ended queue with amortized O(1) push/pop at both ends. |
 | `DequeIntoIter` | T | no | provisional | Owning front-to-back cursor over a Deque<T>. |
@@ -410,30 +410,6 @@ Expected output: `42`
 | `var` | `(String) -> Option<String>` | `std::env` | `stable` | `functional` | `builtin` | no | - | Look up an environment variable by name. |
 | `var_or_default` | `(String, String) -> String` | `std::env` | `stable` | `functional` | `builtin` | no | - | Return the environment variable value, or the default when absent. |
 
-## Fs
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| ~~`exists`~~ ⚠️ Deprecated → `Fs::is_readable_file` | `(String) -> bool` | `std::fs` | `deprecated` | `functional` | `builtin` | no | - | Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_string); no… |
-| ~~`is_readable_file`~~ ⚠️ Deprecated → `Fs::is_readable_file` | `(String) -> bool` | `std::fs` | `deprecated` | `functional` | `builtin` | no | - | Preferred read-probe name; semantics identical to exists. |
-| ~~`read_string`~~ ⚠️ Deprecated → `Fs::read_to_string` | `(String) -> Result<String, String>` | `std::fs` | `deprecated` | `functional` | `builtin` | no | `__runtime_abi_fs_read_file` | Read the entire contents of a file into a UTF-8 string. |
-| ~~`write_string`~~ ⚠️ Deprecated → `Fs::write_string` | `(String, String) -> Result<(), String>` | `std::fs` | `deprecated` | `functional` | `builtin` | no | `__runtime_abi_fs_write_file` | Write a UTF-8 string to a file, creating or truncating it. |
-
-### `read_string` — `std::fs`
-
-**Errors:** Returns Err if the file does not exist, permission is denied, or content is not valid UTF-8.
-
-### `write_string` — `std::fs`
-
-**Errors:** Returns Err if the path is not writable or the parent directory does not exist.
-
-## Host Clock
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| ~~`monotonic_now`~~ ⚠️ Deprecated → `Clock::monotonic_now` | `() -> i64` | `std::host::clock` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_clock_now` | Return the current monotonic clock value in nanoseconds. Suitable for measuring elapsed time; not a … |
-| ~~`now_ms`~~ ⚠️ Deprecated → `Clock::now_ms` | `() -> i64` | `std::host::clock` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_clock_now_ms` | Return the current wall-clock time in milliseconds since the Unix epoch. |
-
 ## Host Env
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
@@ -463,7 +439,6 @@ match home { Some(p) => println(p), None => println("not set") }
 | `fd_fdstat_errno` | `(i32) -> i32` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__intrinsic_fd_fdstat_get` | Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success). |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__intrinsic_fd_seek` | Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset. |
 | `fd_tell` | `(i32) -> i64` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__intrinsic_fd_tell` | Return the current file offset for an open file descriptor. |
-| ~~`is_readable_file`~~ ⚠️ Deprecated → `Fs::is_readable_file` | `(String) -> bool` | `std::host::fs` | `deprecated` | `functional` | `builtin` | no | - | Read-probe / readable-file check via __runtime_abi_fs_read_file. False does not distinguish missing … |
 
 ## Host Process
 
@@ -706,7 +681,7 @@ let input = stdio::read_stdin()
 
 ## Deprecated APIs
 
-> ⚠️ **74 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **67 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -728,7 +703,6 @@ let input = stdio::read_stdin()
 | ~~`deque_push_back`~~ | `Deque::push_back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_push_front`~~ | `Deque::push_front` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_to_vec`~~ | `Deque::iter` | [migration-guidance.md](migration-guidance.md) |
-| ~~`exists`~~ | `Fs::is_readable_file` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f32_to_f64`~~ | `f32::to_f64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_hi`~~ | `f64::to_bits_hi` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_lo`~~ | `f64::to_bits_lo` | [migration-guidance.md](migration-guidance.md) |
@@ -746,8 +720,6 @@ let input = stdio::read_stdin()
 | ~~`i32_to_u32`~~ | `i32::to_u32_bits` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_u8`~~ | `i32::to_u8_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i64_to_i32`~~ | `i64::to_i32_checked` | [migration-guidance.md](migration-guidance.md) |
-| ~~`is_readable_file`~~ | `Fs::is_readable_file` | [migration-guidance.md](migration-guidance.md) |
-| ~~`is_readable_file`~~ | `Fs::is_readable_file` | [migration-guidance.md](migration-guidance.md) |
 | ~~`len`~~ | `Vec::len` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_back`~~ | `LinkedList::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_clear`~~ | `LinkedList::clear` | [migration-guidance.md](migration-guidance.md) |
@@ -763,11 +735,8 @@ let input = stdio::read_stdin()
 | ~~`map_i32_i32`~~ | `VecIter::map` | [migration-guidance.md](migration-guidance.md) |
 | ~~`max_i32`~~ | `std::seq::max_by` | [migration-guidance.md](migration-guidance.md) |
 | ~~`min_i32`~~ | `std::seq::min_by` | [migration-guidance.md](migration-guidance.md) |
-| ~~`monotonic_now`~~ | `Clock::monotonic_now` | [migration-guidance.md](migration-guidance.md) |
-| ~~`now_ms`~~ | `Clock::now_ms` | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | [migration-guidance.md](migration-guidance.md) |
-| ~~`read_string`~~ | `Fs::read_to_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `VecIter::contains` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `VecIter::rev` | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | [migration-guidance.md](migration-guidance.md) |
@@ -781,6 +750,5 @@ let input = stdio::read_stdin()
 | ~~`u64_to_u32`~~ | `u64::to_u32_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | `u8::to_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`unique`~~ | `VecIter::unique` | [migration-guidance.md](migration-guidance.md) |
-| ~~`write_string`~~ | `Fs::write_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`writer_write`~~ | `Writer::write` | [migration-guidance.md](migration-guidance.md) |
 | ~~`writer_write_str`~~ | `Writer::write_string` | [migration-guidance.md](migration-guidance.md) |

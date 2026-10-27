@@ -1,36 +1,10 @@
 //! `std::fs` — deprecated compatibility facade over `std::host::fs`.
 //!
-//! ADR-046 moved the whole-path helpers to `std::host::fs::Fs`. The module
-//! re-exports that type and keeps four stable wrappers through the ADR-087
-//! deprecation window: importing it still emits the "module `std::fs` has
-//! moved to `std::host::fs`" warning. New code should use
-//! `Fs::read_to_string`, `Fs::write_string`, and `Fs::is_readable_file`.
+//! ADR-046 moved the whole-path helpers to `std::host::fs::Fs`; the stable
+//! free wrappers were deleted in the ADR-087 Wave 2 change, so this module now
+//! only re-exports `Fs`. Importing it still emits the "module `std::fs` has
+//! moved to `std::host::fs`" warning, and a qualified old free call fails with
+//! an E0100 hint that names the `Fs` replacement. New code should import
+//! `use std::host::fs::Fs` and call `Fs::read_to_string`,
+//! `Fs::write_string`, and `Fs::is_readable_file`.
 pub use std::host::fs::Fs
-
-/// Reads the entire contents of a file into a UTF-8 string.
-///
-/// Deprecated: use `Fs::read_to_string(path)` from `std::host::fs::Fs`.
-pub fn read_string(path: String) -> Result<String, String> {
-    Fs::read_to_string(path)
-}
-
-/// Writes a UTF-8 string to a file, creating or truncating it.
-///
-/// Deprecated: use `Fs::write_string(path, contents)`.
-pub fn write_string(path: String, contents: String) -> Result<(), String> {
-    Fs::write_string(path, contents)
-}
-
-/// Read probe / readable-file check; not a path-existence query.
-///
-/// Deprecated: use `Fs::is_readable_file(path)`.
-pub fn exists(path: String) -> bool {
-    Fs::is_readable_file(path)
-}
-
-/// Read probe / readable-file check; not a path-existence query.
-///
-/// Deprecated: use `Fs::is_readable_file(path)`.
-pub fn is_readable_file(path: String) -> bool {
-    Fs::is_readable_file(path)
-}

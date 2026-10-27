@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: fs::read_string; use `Fs::read_to_string(path)` from `use std::host::fs::Fs` instead

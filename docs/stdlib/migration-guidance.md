@@ -220,7 +220,6 @@ The following public entries currently carry `deprecated_by` in
 | `char_at` | `byte_at` |
 | `concat` | `a.concat(b)` |
 | `std::env::get_var` | `std::env::var` |
-| `std::host::fs::Fs::read_to_string` | `std::host::fs::is_readable_file` |
 | `std::seq::map_i32_i32` | `v.iter().map(f).collect()` |
 | `std::seq::filter_i32` | `v.iter().filter(f).collect()` |
 | `std::seq::take_i32` | `v.iter().take(n).collect()` |
@@ -1571,19 +1570,21 @@ and the `resolver::removed_names` hint.
 `std::fs` remains as a deprecated facade that re-exports `std::host::fs::Fs`;
 the module-level W0009 hint points at `std::host::fs`.
 
-### Retained until Wave 2: stable wrappers (5)
+### Removed in Wave 2: stable wrappers (5)
 
-ADR-087 requires a W0009 window for `stable` entries. These stay callable and
-emit **W0009** with the `Fs` replacement; the physical deletion follows in the
-Wave 2 change:
+The ADR-087 W0009 window closed with the Wave 2 change (2026-10-28): the five
+`stable` entries and their declarations are gone, and a qualified old call
+fails with **E0100** plus the `resolver::removed_names` hint.
 
-| Deprecated API | Replacement |
-|----------------|-------------|
+| Old API | Replacement |
+|---------|-------------|
 | `std::host::fs::is_readable_file(path)` | `Fs::is_readable_file(path)` |
 | `std::fs::read_string(path)` | `Fs::read_to_string(path)` |
 | `std::fs::write_string(path, contents)` | `Fs::write_string(path, contents)` |
 | `std::fs::exists(path)` | `Fs::is_readable_file(path)` |
 | `std::fs::is_readable_file(path)` | `Fs::is_readable_file(path)` |
+
+The E0100 goldens are `diagnostics/removed_host_fs_stable_free*`.
 
 ### Retained: experimental fd helpers (3)
 
@@ -1608,21 +1609,20 @@ let started = Clock::monotonic_now()
 let wall = Clock::now_ms()
 ```
 
-### Deprecated now: stable clock frees (2)
+### Removed in Wave 2: stable clock frees (2)
 
-ADR-087 requires a W0009 window for `stable` entries. Both stay callable and
-emit **W0009** with the `Clock` replacement; the physical deletion follows in
-the Wave 2 change:
+The ADR-087 W0009 window closed with the Wave 2 change (2026-10-28): both
+`stable` entries and their declarations are gone, and a qualified old call
+fails with **E0100** plus the `resolver::removed_names` hint.
 
-| Deprecated API | Replacement |
-|----------------|-------------|
+| Old API | Replacement |
+|---------|-------------|
 | `std::host::clock::monotonic_now()` | `Clock::monotonic_now()` |
 | `std::host::clock::now_ms()` | `Clock::now_ms()` |
 
-The warning covers the `clock::`, `host::clock::`, and
-`std::host::clock::` qualified spellings. The `Clock` namespace itself is
-`provisional`; promoting it to `stable` is separate from the free-function
-removal.
+The hint covers the `clock::`, `host::clock::`, and `std::host::clock::`
+qualified spellings. The `Clock` namespace itself is `provisional`; promoting
+it to `stable` is separate from the free-function removal.
 
 The in-tree compiler call sites use `Clock::` directly. The committed pinned
 bootstrap predates loading the namespace source into its flat overlay, so
@@ -1631,8 +1631,8 @@ free builtins in the generated overlay only. Checked-in source keeps the
 namespace; delete the adapter when the pin is refreshed (ADR-029).
 
 The `stdlib_host/clock_namespace_surface*` fixture pair compiles, validates,
-and executes the two reads on both `wasm32-gc` and `--target wasm32`; the
-W0009 goldens are `diagnostics/deprecated_host_clock_free*`.
+and executes the two reads on both `wasm32-gc` and `--target wasm32`; the E0100
+goldens are `diagnostics/removed_host_clock_free*`.
 
 ### Related residual: host env getters
 

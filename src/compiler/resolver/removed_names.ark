@@ -217,9 +217,25 @@ fn removed_host_fs_member_hint(name: String) -> String {
     String_new()
 }
 
+// The stable host clock free reads moved to the `Clock` namespace (ADR-046,
+// #917). Both names were deleted in the ADR-087 Wave 2 change, so a qualified
+// old call states the replacement instead of a bare undefined-member error.
+fn removed_host_clock_member_hint(name: String) -> String {
+    if eq(clone(name), "monotonic_now") {
+        return String_from("use `Clock::monotonic_now()` from `use std::host::clock::Clock` instead")
+    }
+    if eq(clone(name), "now_ms") {
+        return String_from("use `Clock::now_ms()` from `use std::host::clock::Clock` instead")
+    }
+    String_new()
+}
+
 pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "fs") || eq(clone(module), "host::fs") || eq(clone(module), "std::fs") || eq(clone(module), "std::host::fs") {
         return removed_host_fs_member_hint(name)
+    }
+    if eq(clone(module), "clock") || eq(clone(module), "host::clock") || eq(clone(module), "std::host::clock") {
+        return removed_host_clock_member_hint(name)
     }
     if is_retired_hashmap_module(clone(module)) {
         return hashmap_method_replacement_hint()
@@ -1110,6 +1126,13 @@ test mod "removed_names" {
         assert(len(removed_module_member_hint(String_from("fs"), String_from("read_string"))) > 0)
         assert(len(removed_module_member_hint(String_from("fs"), String_from("read_dir"))) > 0)
         assert(len(removed_module_member_hint(String_from("fs"), String_from("metadata"))) > 0)
+    }
+    test "removed host clock module members have hints" {
+        assert(len(removed_module_member_hint(String_from("clock"), String_from("monotonic_now"))) > 0)
+        assert(len(removed_module_member_hint(String_from("host::clock"), String_from("now_ms"))) > 0)
+        assert(len(removed_module_member_hint(String_from("std::host::clock"), String_from("monotonic_now"))) > 0)
+        assert(len(removed_module_member_hint(String_from("std::host::clock"), String_from("now_ms"))) > 0)
+        assert(len(removed_module_member_hint(String_from("clock"), String_from("Clock"))) == 0)
     }
     test "removed io module members have hints" {
         assert(len(removed_module_member_hint(String_from("io"), String_from("reader_read"))) > 0)

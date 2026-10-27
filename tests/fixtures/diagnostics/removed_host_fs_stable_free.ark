@@ -1,0 +1,7 @@
+// E0100: the stable `std::host::fs::is_readable_file` free was deleted in the
+// ADR-087 Wave 2 change; the qualified old call names the `Fs` replacement.
+use std::host::fs
+
+fn main() {
+    let _probe = fs::is_readable_file("missing.txt")
+}

@@ -7,7 +7,7 @@ Source-backed docs for explicit host filesystem operations.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-`std::host::fs` is the primary host filesystem module. `Fs` is the namespace for the one-shot path operations: `Fs::read_to_string` / `Fs::read_bytes`, `Fs::write_string` / `Fs::write_bytes`, the `Fs::is_readable_file` / `Fs::is_file` / `Fs::is_dir` probes, and the honest unsupported `Fs::read_dir` / `Fs::metadata` rejections. `File` is the whole-file image handle (`File::open` + `Read` / `Seek`, `File::create` + `Write` / `flush`), and the experimental fd helpers remain `wasm32`-only. `std::fs` is a deprecated facade that re-exports `Fs` and keeps its stable wrappers under the ADR-087 window. Neither module is a complete filesystem facade (no directory listing, metadata, or streaming I/O in-tree yet). Pure path manipulation lives in `std::path`; for the full host family overview, see [io.md](io.md).
+`std::host::fs` is the primary host filesystem module. `Fs` is the namespace for the one-shot path operations: `Fs::read_to_string` / `Fs::read_bytes`, `Fs::write_string` / `Fs::write_bytes`, the `Fs::is_readable_file` / `Fs::is_file` / `Fs::is_dir` probes, and the honest unsupported `Fs::read_dir` / `Fs::metadata` rejections. `File` is the whole-file image handle (`File::open` + `Read` / `Seek`, `File::create` + `Write` / `flush`), and the experimental fd helpers remain `wasm32`-only. `std::fs` is a deprecated facade that re-exports `Fs`; its stable wrappers were deleted in the ADR-087 Wave 2 change, so a qualified old call fails with an E0100 hint that names the `Fs` replacement. Neither module is a complete filesystem facade (no directory listing, metadata, or streaming I/O in-tree yet). Pure path manipulation lives in `std::path`; for the full host family overview, see [io.md](io.md).
 
 **Recommended API highlights:**
 
@@ -21,7 +21,7 @@ Source-backed docs for explicit host filesystem operations.
 | `File::open(path)` / `File::create(path)` | Open a read-only image or start a write image implementing `Read` / `Write` / `Seek`; `flush` commits the image. |
 | `Fs::read_dir(path)` / `Fs::metadata(path)` | Honest unsupported rejections until the corresponding WASI intrinsics land. |
 
-**Target constraints:** Target/profile availability: mixed — see individual symbols. Host dependency: yes. Explicit runtime permission: `--dir` (or equivalent) for file I/O.
+**Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: yes. Explicit runtime permission: `--dir` (or equivalent) for file I/O.
 
 **Typical usage:**
 
@@ -43,10 +43,10 @@ Fs::write_string("output.txt", "hello")
 ## Module `std::host::fs`
 
 - Source: [`../../../std/host/fs.ark`](../../../std/host/fs.ark)
-- Manifest-backed functions: 4
-- Stability: deprecated 1, experimental 3
+- Manifest-backed functions: 3
+- Stability: experimental 3
 
-> ⚠️ **Availability:** mixed — see individual symbols · ✅ **Status:** implemented
+> 🎯 **Availability:** `wasm32` and `wasm32-gc` · ✅ **Status:** implemented
 
 Host filesystem helpers backed directly by WASI file-descriptor calls.
 
@@ -78,16 +78,9 @@ exports no free path function; the whole-path API is `Fs` plus `File`.
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| ~~`is_readable_file`~~ ⚠️ Deprecated → `Fs::is_readable_file` | `(String) -> bool` | `deprecated` | ✅ functional | Read probe / readable-file check via the host read intrinsic. |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `experimental` | ✅ functional | - |
 | `fd_tell` | `(i32) -> i64` | `experimental` | ✅ functional | - |
 | `fd_fdstat_errno` | `(i32) -> i32` | `experimental` | ✅ functional | - |
-
-#### `std::host::fs::is_readable_file`
-
-Read-probe / readable-file check via __runtime_abi_fs_read_file. False does not distinguish missing vs unreadable vs directory; not a path-existence query.
-
-**Availability:** Requires the --dir capability flag at runtime.
 
 #### `std::host::fs::fd_seek`
 
@@ -107,57 +100,20 @@ Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success).
 
 **Availability:** ⚠️ Not available on `wasm32-gc` — `wasm32` / WASI P1 only.
 
-> ⚠️ **1 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
-
 ## Module `std::fs`
 
 - Source: [`../../../std/fs/mod.ark`](../../../std/fs/mod.ark)
-- Manifest-backed functions: 4
-- Stability: deprecated 4
+- Manifest-backed functions: 0
+- Stability: n/a
 
 `std::fs` — deprecated compatibility facade over `std::host::fs`.
 
-ADR-046 moved the whole-path helpers to `std::host::fs::Fs`. The module
-re-exports that type and keeps four stable wrappers through the ADR-087
-deprecation window: importing it still emits the "module `std::fs` has
-moved to `std::host::fs`" warning. New code should use
-`Fs::read_to_string`, `Fs::write_string`, and `Fs::is_readable_file`.
+ADR-046 moved the whole-path helpers to `std::host::fs::Fs`; the stable
+free wrappers were deleted in the ADR-087 Wave 2 change, so this module now
+only re-exports `Fs`. Importing it still emits the "module `std::fs` has
+moved to `std::host::fs`" warning, and a qualified old free call fails with
+an E0100 hint that names the `Fs` replacement. New code should import
+`use std::host::fs::Fs` and call `Fs::read_to_string`,
+`Fs::write_string`, and `Fs::is_readable_file`.
 
-### `std::fs` — Public API
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| ~~`read_string`~~ ⚠️ Deprecated → `Fs::read_to_string` | `(String) -> Result<String, String>` | `deprecated` | ✅ functional | Reads the entire contents of a file into a UTF-8 string. |
-| ~~`write_string`~~ ⚠️ Deprecated → `Fs::write_string` | `(String, String) -> Result<(), String>` | `deprecated` | ✅ functional | Writes a UTF-8 string to a file, creating or truncating it. |
-| ~~`exists`~~ ⚠️ Deprecated → `Fs::is_readable_file` | `(String) -> bool` | `deprecated` | ✅ functional | Read probe / readable-file check; not a path-existence query. |
-| ~~`is_readable_file`~~ ⚠️ Deprecated → `Fs::is_readable_file` | `(String) -> bool` | `deprecated` | ✅ functional | Read probe / readable-file check; not a path-existence query. |
-
-#### `std::fs::read_string`
-
-Read the entire contents of a file into a UTF-8 string.
-
-**Availability:** Requires the --dir capability flag at runtime.
-
-**Errors:** Returns Err if the file does not exist, permission is denied, or content is not valid UTF-8.
-
-#### `std::fs::write_string`
-
-Write a UTF-8 string to a file, creating or truncating it.
-
-**Availability:** Requires the --dir capability flag at runtime.
-
-**Errors:** Returns Err if the path is not writable or the parent directory does not exist.
-
-#### `std::fs::exists`
-
-Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_string); not a path-existence query.
-
-**Availability:** Requires the --dir capability flag at runtime.
-
-#### `std::fs::is_readable_file`
-
-Preferred read-probe name; semantics identical to exists.
-
-**Availability:** Requires the --dir capability flag at runtime.
-
-> ⚠️ **4 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
+_No manifest-backed functions in this module._

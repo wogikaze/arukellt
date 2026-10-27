@@ -1050,3 +1050,64 @@ classified there, in dependency-safe waves.
   (`fs-namespace-ok`); ADR-029 fixpoint PASS: s2 == s3 at sha256
   `58861e17cbe0d4d9e05422ddd9c4f961a4911ae2b0e0179e7b00b8f1a1b0aa85`
   (pinned base `04d4446b…`).
+
+### Landed slice (wave/wave2-fs-clock, 2026-10-28)
+
+- **ADR-087 Wave 2 physical deletion (7 stable frees)**: the retained host
+  fs / clock stable frees from the 2026-10-27 host waves are gone —
+  `std::host::fs::is_readable_file`; `std::fs::{read_string, write_string,
+  exists, is_readable_file}`; `std::host::clock::{monotonic_now, now_ms}`.
+  The manifest entries, the `pub fn` declarations, and the W0009 rows were
+  deleted together.
+- **Replacement coverage (verified before deletion)**: `Fs::read_to_string`,
+  `Fs::write_string`, and `Fs::is_readable_file` exist in
+  `std/host/fs.ark` with the documented signatures and semantics
+  (`is_readable_file` is the read probe, not a path-existence query);
+  `Clock::monotonic_now()` / `Clock::now_ms()` exist in `std/host/clock.ark`
+  and are the only host clock surface. The two namespace-surface fixture
+  pairs still compile, validate, and run on both targets.
+- **E0100 hints**: `resolver::removed_names::removed_host_fs_member_hint`
+  already named the `Fs` replacements for all five fs names; this wave adds
+  `removed_host_clock_member_hint` for the `clock::` / `host::clock::` /
+  `std::host::clock::` spellings of `monotonic_now` / `now_ms`.
+  `lint::deprecated_table` drops the two host W0009 branches, and its tests
+  now assert that no W0009 entry remains for the seven names.
+- **Goldens (both targets)**: `diagnostics/deprecated_host_fs_free*` ->
+  `diagnostics/removed_host_fs_stable_free*` and
+  `diagnostics/deprecated_host_clock_free*` ->
+  `diagnostics/removed_host_clock_free*`. The four fixtures now assert
+  `error[E0100|resolve]: undefined module member: ...` with the exact
+  replacement hint on `wasm32-gc` and `--target wasm32`; the compiler output
+  matches each golden byte-for-byte.
+- **In-tree call sites**: none remained. A repo-wide scan for
+  `fs::read_string`, `fs::write_string`, `fs::exists`,
+  `fs::is_readable_file`, `clock::monotonic_now`, and `clock::now_ms` finds
+  only the four new E0100 goldens; the earlier host waves had migrated the
+  compiler, stdlib, fixture, example, and benchmark call sites to `Fs::` /
+  `Clock::`. The bootstrap overlay adapters still rewrite `Fs::` / `Clock::`
+  call spellings for the committed pin; they are unchanged and remain
+  pin-refresh debt (ADR-029).
+- **Docs**: migration-guidance now lists the five fs and two clock entries
+  under "Removed in Wave 2" with E0100 semantics; the changelog entry is
+  2026-10-28; the generated `std::fs` / `std::host::fs` module page,
+  reference, name index, scoreboard, monomorphic-deprecation table, and
+  eradication scorecard were regenerated. `std::fs` remains documented as a
+  deprecated `Fs` re-export facade.
+- **Scorecard delta**: eradication scope 330 -> **323** (`pub fn`
+  declarations 359 -> 352, manifest public entries 305 -> 298); `must delete`
+  76 -> **69**; `deprecated module frees` 8 -> **1** (`std::env::get_var`);
+  `deprecated` entries 74 -> **67**; `associated-or-method` stays 254,
+  `prelude_wrapper` stays 65, unregistered declarations stay 25, fixture
+  registry stays 3365. `check-stdlib-eradication.py`: 299/299 manifest
+  functions and 25/25 unregistered declarations classified.
+- **Verification**: `verify fixtures` **1901/1901 PASS / 0 FAIL** (1901
+  compile+validate, 110 runtime smoke, 2 runtime-unsupported, 1 `test:`
+  fixture PASS); `selfhost diag-parity` PASS; `docs check` 6/6; `verify lane`
+  PASS; `selfhost build-compiler` succeeded (43.3 s) after the compiler-table
+  edits.
+- **Out of scope (unchanged)**: the experimental `fd_seek` / `fd_tell` /
+  `fd_fdstat_errno` frees stay (`t3 = false`, wasm32 / WASI P1 only, no
+  gc parity fixture); `std::env::get_var` remains the only
+  `deprecated module frees` entry; `std::host::env` stays on free functions
+  because `Env::*` still fails to lower on `wasm32-gc`.
+

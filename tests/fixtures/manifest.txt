@@ -254,12 +254,12 @@ diag:diagnostics/removed_bytes_free.ark
 diag:diagnostics/removed_bytes_free_wasm32.ark
 diag:diagnostics/removed_json_toml_csv_free.ark
 diag:diagnostics/removed_json_toml_csv_free_wasm32.ark
-diag:diagnostics/deprecated_host_fs_free.ark
+diag:diagnostics/removed_host_fs_stable_free.ark
 diag:diagnostics/removed_host_fs_free.ark
 diag:diagnostics/removed_host_fs_free_wasm32.ark
-diag:diagnostics/deprecated_host_fs_free_wasm32.ark
-diag:diagnostics/deprecated_host_clock_free.ark
-diag:diagnostics/deprecated_host_clock_free_wasm32.ark
+diag:diagnostics/removed_host_fs_stable_free_wasm32.ark
+diag:diagnostics/removed_host_clock_free.ark
+diag:diagnostics/removed_host_clock_free_wasm32.ark
 diag:diagnostics/deprecated_seq_monomorphic.ark
 diag:diagnostics/deprecated_seq_monomorphic_wasm32.ark
 diag:diagnostics/deprecated_io_free_function.ark

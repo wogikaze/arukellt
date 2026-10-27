@@ -16,6 +16,47 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-28 — ADR-087 Wave 2: stable host fs / clock frees (#917, ADR-046, ADR-087)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the
+  [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) 0.x deprecation window.
+  The seven `stable` entries deprecated in the 2026-10-27 host fs / clock waves
+  completed their **W0009** window (migration rows and changelog entries in
+  place), so this Wave 2 step deletes the manifest entries, the `pub fn`
+  declarations, and the W0009 rows. Qualified old calls now fail with
+  **E0100**.
+- **Removed (7)**: `std::host::fs::is_readable_file`;
+  `std::fs::{read_string, write_string, exists, is_readable_file}`;
+  `std::host::clock::{monotonic_now, now_ms}`.
+- **Replacement**: `Fs::read_to_string` / `Fs::write_string` /
+  `Fs::is_readable_file` from `use std::host::fs::Fs`, and
+  `Clock::monotonic_now()` / `Clock::now_ms()` from
+  `use std::host::clock::Clock`. `std::fs` stays as a deprecated facade that
+  re-exports `Fs` and warns on import.
+- **E0100**: `resolver::removed_names::removed_host_fs_member_hint` already
+  named the `Fs` replacements; this wave adds
+  `removed_host_clock_member_hint` for the `clock::`, `host::clock::`, and
+  `std::host::clock::` spellings. The W0009 rows and their unit assertions were
+  removed from `lint::deprecated_table`; tests now assert that no W0009 entry
+  remains for the seven names.
+- **Goldens**: `diagnostics/deprecated_host_fs_free*` and
+  `diagnostics/deprecated_host_clock_free*` became
+  `diagnostics/removed_host_fs_stable_free*` and
+  `diagnostics/removed_host_clock_free*`, with E0100 expectations on
+  `wasm32-gc` and `--target wasm32`.
+- **Scorecard**: eradication scope 330 -> **323** (`pub fn` declarations
+  359 -> 352, manifest public entries 305 -> 298); `must delete` 76 -> **69**;
+  `deprecated module frees` 8 -> **1** (`std::env::get_var`); `deprecated`
+  entries 74 -> **67**; `associated-or-method` stays 254, `prelude_wrapper`
+  stays 65, and unregistered declarations stay 25. The fixture registry stays
+  3365 (four goldens renamed, none added). The monomorphic-helper metric drops
+  53 -> 51 only because `read_string` / `write_string` matched its
+  `*_string` name suffix.
+- **Verification**: `verify fixtures` **1901/1901 PASS**, 0 FAIL (110 runtime
+  smoke, 2 runtime-unsupported, 1 `test:` fixture PASS); `selfhost diag-parity`
+  PASS; `docs check` 6/6; `verify lane` PASS; the four E0100 goldens match the
+  compiler output byte-for-byte on both targets.
+
 ## 2026-10-27 — std::host::clock `Clock` namespace (#917, ADR-046, ADR-087)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the

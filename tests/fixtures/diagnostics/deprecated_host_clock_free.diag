@@ -1,1 +1,0 @@
-use `Clock::monotonic_now()` from `use std::host::clock::Clock` instead
