@@ -12,7 +12,7 @@ fn main() {
     let mut iter: i32 = 0
     while iter < 50 {
         // Parse
-        match parser::parse(json_str) {
+        match parser::JsonValue::parse(json_str) {
             Result::Ok(val) => {
                 // Object field access
                 let name = val.get_field("name")

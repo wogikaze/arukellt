@@ -443,6 +443,11 @@ fn removed_canonical_member_hint(name: String) -> String {
 }
 
 fn removed_json_member_hint(name: String) -> String {
+    if eq(clone(name), "parse") { return "removed free function; use `JsonValue::parse(s)` on `json::JsonValue` instead" }
+    if eq(clone(name), "JsonParseStep_ok") { return "use `JsonParseStep::ok(v, next)` instead" }
+    if eq(clone(name), "JsonParseStep_err") { return "use `JsonParseStep::err(e, next)` instead" }
+    if eq(clone(name), "json_parse_step_value") { return "use `step.value()` on `JsonParseStep` instead" }
+    if eq(clone(name), "json_parse_step_next") { return "use `step.next()` on `JsonParseStep` instead" }
     if eq(clone(name), "json_get") { return "use `v.get_field(key)` on `JsonValue` instead" }
     if eq(clone(name), "json_get_index") { return "use `v.get_index(index)` on `JsonValue` instead" }
     if eq(clone(name), "json_as_string") { return "use `v.as_string()` on `JsonValue` instead" }
@@ -500,6 +505,12 @@ fn removed_json_member_hint(name: String) -> String {
 }
 
 fn removed_toml_member_hint(name: String) -> String {
+    if eq(clone(name), "toml_parse") { return "removed free function; use `TomlValue::parse(s)` on `toml::TomlValue` instead" }
+    if eq(clone(name), "toml_stringify") { return "removed free function; use `v.to_text()` on `TomlValue` instead" }
+    if eq(clone(name), "TomlValStep_ok") { return "use `TomlValStep::ok(v, next)` instead" }
+    if eq(clone(name), "TomlValStep_err") { return "use `TomlValStep::err(e, next)` instead" }
+    if eq(clone(name), "TomlKeyStep_ok") { return "use `TomlKeyStep::ok(parts, next)` instead" }
+    if eq(clone(name), "TomlKeyStep_err") { return "use `TomlKeyStep::err(e, next)` instead" }
     if eq(clone(name), "toml_get") { return "use `v.get_field(key)` on `TomlValue` instead" }
     if eq(clone(name), "toml_table_keys") { return "use `v.table_keys()` on `TomlValue` instead" }
     if eq(clone(name), "toml_as_string") { return "use `v.as_string()` on `TomlValue` instead" }

@@ -3,7 +3,7 @@ use std::json
 use std::text
 fn main() {
     // null scalar
-    match json::parse("null") {
+    match json::JsonValue::parse("null") {
         Result::Ok(v) => {
             stdio::println((v.is_null()).to_string())
             stdio::println(v.to_text())
@@ -11,7 +11,7 @@ fn main() {
         Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
     // bool true
-    match json::parse("true") {
+    match json::JsonValue::parse("true") {
         Result::Ok(v) => {
             match v.as_bool() {
                 Option::Some(b) => stdio::println((b).to_string()),
@@ -21,7 +21,7 @@ fn main() {
         Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
     // bool false
-    match json::parse("false") {
+    match json::JsonValue::parse("false") {
         Result::Ok(v) => {
             match v.as_bool() {
                 Option::Some(b) => stdio::println((b).to_string()),
@@ -31,7 +31,7 @@ fn main() {
         Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
     // number zero
-    match json::parse("0") {
+    match json::JsonValue::parse("0") {
         Result::Ok(v) => {
             match v.as_i32() {
                 Option::Some(n) => stdio::println((n).to_string()),
@@ -41,7 +41,7 @@ fn main() {
         Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
     // negative number
-    match json::parse("-42") {
+    match json::JsonValue::parse("-42") {
         Result::Ok(v) => {
             match v.as_i32() {
                 Option::Some(n) => stdio::println((n).to_string()),
@@ -51,11 +51,11 @@ fn main() {
         Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
     // type checks
-    match json::parse("null") {
+    match json::JsonValue::parse("null") {
         Result::Ok(v) => stdio::println((v.is_bool()).to_string()),
         Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
-    match json::parse("true") {
+    match json::JsonValue::parse("true") {
         Result::Ok(v) => stdio::println((v.is_bool()).to_string()),
         Result::Err(e) => stdio::println("error:".concat(e.message())),
     }

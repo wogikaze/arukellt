@@ -3,7 +3,7 @@ use std::toml
 use std::test
 
 fn main() {
-    let t = toml::toml_parse("pts = [{ x = 1 }, { x = 2 }]")
+    let t = toml::TomlValue::parse("pts = [{ x = 1 }, { x = 2 }]")
     match t {
         Result::Ok(table) => match table.get_field("pts") {
             Option::Some(v) => match v.as_array() {

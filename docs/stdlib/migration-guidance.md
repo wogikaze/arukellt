@@ -883,15 +883,68 @@ E0100 goldens are `diagnostics/removed_bytes_free*.ark`.
 | `csv::csv_parse_row_at(s, i)` / `csv::csv_parse(s)` | `csv::Csv::parse_row_at(s, i)` / `csv::Csv::parse(s)` |
 | `csv::csv_parse_with_header(s)` | `csv::Csv::parse_with_header(s)` |
 
-### Retained by lowering blocks (not fakes)
+### Document entry-point wave (2026-10-27, #917 / wave/json-csv)
 
-- **Associated `parse`**: `JsonValue::parse` / `TomlValue::parse` return a
-  generic `Result`; an unannotated `match` loses the payload type
-  (`unsupported match on an untyped Option/Result scrutinee`). `json::parse`
-  and `toml::toml_parse` stay the document entry points.
-- **`TomlValue::to_text`**: a method returning `String` on a receiver whose
-  enum has an `i64` payload emits an invalid return type on wasm32-gc
-  (expected `ref`, found `i64`); `toml::toml_stringify` stays.
+- **Removed**: 3 `std/manifest.toml` entries (`json::parse`,
+  `toml::toml_parse`, `toml::toml_stringify`) and 8 unregistered parse-step
+  helpers (`JsonParseStep_ok` / `_err`, `json_parse_step_value` / `_next`,
+  `TomlValStep_ok` / `_err`, `TomlKeyStep_ok` / `_err`). Everything was
+  `experimental` (ADR-014 D4) or outside the manifest, so no W0009 window
+  applies; qualified and bare calls get E0100 hints from
+  `removed_json_member_hint` / `removed_toml_member_hint`.
+- **Replacement**: `JsonValue::parse(doc)` / `v.to_text()`,
+  `TomlValue::parse(doc)` / `v.to_text()`, `JsonParseStep::ok` / `err` with
+  `step.value()` / `step.next()`, `TomlValStep::ok` / `err`, and
+  `TomlKeyStep::ok` / `err`.
+- **Payload inference (retested)**: with the rebuilt s2 (which contains
+  `3472c53af` plus the payload/condition inference fixes), an **unannotated**
+  `match json::JsonValue::parse(doc)` / `match toml::TomlValue::parse(doc)`
+  infers `Result::Ok` / `Result::Err` correctly and validates on both targets.
+  The committed pinned bootstrap predates those fixes, so fixture parity
+  records its compile failure as a non-fatal note and validates/runs the s2
+  artifact; the source-facing surface is not gated on the pin.
+- **i64 payload (diagnosed and fixed)**: `TomlValue::to_text` itself was not
+  the defect. The failing shape was a direct `TomlValue::Integer(42)`
+  construction: the unannotated literal reached `gc_struct_set` as `i32`
+  while the resolved variant layout declared an `i64` field, and
+  `wasm-tools validate` rejected the module (`expected i64, found i32` in the
+  WAT `struct.set`). `emit_gc_variant_payload_fields` now widens an `i32`
+  payload to `i64` when the resolved variant layout declares `i64`. Values
+  produced by `TomlValue::parse` were already i64 and validated before and
+  after the change.
+- **Same-name private helper collision (diagnosed and avoided)**: using both
+  `JsonValue::to_text` and `TomlValue::to_text` in one program resolved the
+  calls correctly in WAT (`call $JsonValue::to_text` /
+  `call $TomlValue::to_text`), but the TOML body called a bare private
+  `stringify_value`, and the two parser modules both declared that name. The
+  resolver bound the JSON implementation inside the TOML method, so a
+  TomlValue was stringified through the JsonValue layout (blank output on the
+  linear target, a `ref.cast` trap on wasm32-gc). The private parser helpers
+  are now module-prefixed (`json_parse_document` / `json_stringify_value` /
+  `json_stringify_array`, `toml_*` counterparts); no duplicate top-level
+  helper name remains between the two modules. The two-module regression
+  fixture covers the combined surface.
+- **Fixtures**: `stdlib_json/json_associated_surface*.ark` and
+  `stdlib_toml/toml_text_surface*.ark` now cover the unannotated parse match
+  and integer `to_text`; `modules/non_main_associated_call/` calls both
+  parsers from a helper module. Each pair compiles, validates, and runs on
+  `wasm32-gc` (P2 component) and `--target wasm32` (linear).
+- **Scorecard**: 358 -> **347** public symbols; `associated-or-method`
+  288 -> **277**; manifest functions 325 -> **322**; unregistered declarations
+  34 -> **26**. `must delete` 70 and `intrinsic-only` 1 unchanged.
+
+| Before | After |
+|--------|-------|
+| `json::parse(doc)` | `json::JsonValue::parse(doc)` |
+| `toml::toml_parse(doc)` | `toml::TomlValue::parse(doc)` |
+| `toml::toml_stringify(v)` | `v.to_text()` |
+| `json::JsonParseStep_ok(v, n)` / `json::JsonParseStep_err(e, n)` | `json::JsonParseStep::ok(v, n)` / `json::JsonParseStep::err(e, n)` |
+| `json::json_parse_step_value(step)` / `json::json_parse_step_next(step)` | `step.value()` / `step.next()` |
+| `toml::TomlValStep_ok(v, n)` / `toml::TomlValStep_err(e, n)` | `toml::TomlValStep::ok(v, n)` / `toml::TomlValStep::err(e, n)` |
+| `toml::TomlKeyStep_ok(p, n)` / `toml::TomlKeyStep_err(e, n)` | `toml::TomlKeyStep::ok(p, n)` / `toml::TomlKeyStep::err(e, n)` |
+
+### Residual blocks
+
 - **`Vec<String>::concat`**: the method lowers to a `String::concat` receiver
   on wasm32-gc and fails validation for a `Vec<String>` local (pre-existing,
   independent of the associated-call fix). Join with an explicit loop or use

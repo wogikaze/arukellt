@@ -5,7 +5,7 @@ use std::test
 /// Nested table sections and array-of-tables are accepted by full TOML 1.0.
 fn main() {
     let multi = "[database]\nhost = \"localhost\"\nport = 5432\n\n[server]\nhost = \"example.com\""
-    match toml::toml_parse(multi) {
+    match toml::TomlValue::parse(multi) {
         Result::Ok(table) => {
             match table.get_field("database") {
                 Option::Some(db) => match db.get_field("port") {
@@ -32,7 +32,7 @@ fn main() {
     }
 
     let single_section = "[package]\nname = \"arukellt\""
-    match toml::toml_parse(single_section) {
+    match toml::TomlValue::parse(single_section) {
         Result::Ok(table) => match table.get_field("package") {
             Option::Some(pkg) => match pkg.get_field("name") {
                 Option::Some(v) => match v.as_string() {
@@ -47,7 +47,7 @@ fn main() {
     }
 
     let flat = "host = \"localhost\"\nport = 5432"
-    match toml::toml_parse(flat) {
+    match toml::TomlValue::parse(flat) {
         Result::Ok(_) => stdio::println("OK"),
         Result::Err(_) => assert(false),
     }

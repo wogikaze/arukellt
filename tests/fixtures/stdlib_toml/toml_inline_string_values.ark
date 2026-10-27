@@ -3,7 +3,7 @@ use std::toml
 use std::test
 
 fn main() {
-    let t = toml::toml_parse("meta = { name = \"tom\", role = \"admin\" }")
+    let t = toml::TomlValue::parse("meta = { name = \"tom\", role = \"admin\" }")
     match t {
         Result::Ok(table) => match table.get_field("meta") {
             Option::Some(m) => match m.get_field("name") {

@@ -3,7 +3,7 @@ use std::test
 use std::prelude::{byte_at}
 use std::text
 fn main() {
-    match json::parse("\"\\\"\\\\\\/\\b\\f\\n\\r\\t\"") {
+    match json::JsonValue::parse("\"\\\"\\\\\\/\\b\\f\\n\\r\\t\"") {
         Result::Ok(v) => match v.as_string() {
             Option::Some(s) => {
                 test::assert_eq_i32(len(s), 8)

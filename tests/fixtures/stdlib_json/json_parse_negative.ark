@@ -2,21 +2,21 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("-1") {
+    match json::JsonValue::parse("-1") {
         Result::Ok(v) => match v.as_i32() {
             Option::Some(n) => test::assert_eq_i32(n, -1),
             None => panic("expected Some(-1)"),
         },
         Result::Err(e) => panic("parse -1 failed: ".concat(e.message())),
     }
-    match json::parse("-42") {
+    match json::JsonValue::parse("-42") {
         Result::Ok(v) => match v.as_i32() {
             Option::Some(n) => test::assert_eq_i32(n, -42),
             None => panic("expected Some(-42)"),
         },
         Result::Err(e) => panic("parse -42 failed: ".concat(e.message())),
     }
-    match json::parse("-999999") {
+    match json::JsonValue::parse("-999999") {
         Result::Ok(v) => match v.as_i32() {
             Option::Some(n) => test::assert_eq_i32(n, -999999),
             None => panic("expected Some(-999999)"),

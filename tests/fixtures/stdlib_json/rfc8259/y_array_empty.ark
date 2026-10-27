@@ -2,7 +2,7 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("[]") {
+    match json::JsonValue::parse("[]") {
         Result::Ok(v) => test::assert_eq_bool(v.is_array(), true),
         Result::Err(e) => panic("parse empty array failed: ".concat(e.message())),
     }

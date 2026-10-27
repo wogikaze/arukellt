@@ -3,7 +3,7 @@ use std::toml
 use std::test
 
 fn main() {
-    let t = toml::toml_parse("[empty]")
+    let t = toml::TomlValue::parse("[empty]")
     match t {
         Result::Ok(table) => match table.get_field("empty") {
             Option::Some(e) => {

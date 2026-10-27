@@ -2,7 +2,7 @@ use std::host::stdio
 use std::json
 use std::text
 fn main() {
-    match json::parse("tru") {
+    match json::JsonValue::parse("tru") {
         Result::Ok(v) => stdio::println(v.to_text()),
         Result::Err(err) => match err {
             json::JsonParseError::EmptyInput => stdio::println("empty-input"),

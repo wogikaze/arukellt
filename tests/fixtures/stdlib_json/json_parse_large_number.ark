@@ -2,14 +2,14 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("1000000") {
+    match json::JsonValue::parse("1000000") {
         Result::Ok(v) => match v.as_i32() {
             Option::Some(n) => test::assert_eq_i32(n, 1000000),
             None => panic("expected 1000000"),
         },
         Result::Err(e) => panic("parse large number failed: ".concat(e.message())),
     }
-    match json::parse("-2147483648") {
+    match json::JsonValue::parse("-2147483648") {
         Result::Ok(v) => match v.as_i32() {
             Option::Some(n) => test::assert_eq_i32(n, -2147483648),
             None => panic("expected min i32"),

@@ -2,7 +2,7 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("{}") {
+    match json::JsonValue::parse("{}") {
         Result::Ok(v) => {
             test::assert_true(v.is_object())
             test::assert_false(v.is_array())

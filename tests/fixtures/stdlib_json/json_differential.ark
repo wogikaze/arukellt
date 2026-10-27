@@ -5,7 +5,7 @@ fn main() {
     // Differential test: parse then stringify, compare against known-correct golden output
     // Golden: {"a":1,"b":false,"c":null}
     let raw = "{\"a\":1,\"b\":false,\"c\":null}"
-    match json::parse(raw) {
+    match json::JsonValue::parse(raw) {
         Result::Ok(v) => {
             let out = v.to_text()
             // Verify individual fields match golden values
@@ -32,7 +32,7 @@ fn main() {
                 None => stdio::println("not found"),
             }
             // Re-parse the stringified output and verify it still has same structure
-            match json::parse(out) {
+            match json::JsonValue::parse(out) {
                 Result::Ok(v2) => {
                     stdio::println((v2.is_object()).to_string())
                 },

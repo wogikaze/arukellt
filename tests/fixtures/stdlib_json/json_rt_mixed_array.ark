@@ -3,11 +3,11 @@ use std::test
 use std::text
 fn main() {
     let raw = "[1,\"two\",true,null,42]"
-    match json::parse(raw) {
+    match json::JsonValue::parse(raw) {
         Result::Ok(v) => {
             let s = v.to_text()
             test::assert_eq_string(s, raw)
-            match json::parse(s) {
+            match json::JsonValue::parse(s) {
                 Result::Ok(v2) => {
                     match v2.get_index(0) {
                         Option::Some(e) => match e.as_i32() {

@@ -12,4 +12,17 @@ fn main() {
     test::assert_eq_i32(len(arr), 2)
     test::assert_eq_string(get_unchecked(arr, 0), "x")
     test::assert_eq_string(get_unchecked(arr, 1), "y")
+
+    // The document entry points are TomlValue::parse and v.to_text(); the
+    // unannotated match infers the Result payload from the declared return.
+    match toml::TomlValue::parse("n = 42\ns = \"hi\"") {
+        Result::Ok(v) => {
+            test::assert_eq_string(v.to_text(), "n = 42\ns = \"hi\"")
+            match v.get_field("n") {
+                Option::Some(n) => test::assert_eq_string(n.to_text(), "42"),
+                Option::None => test::assert_true(false),
+            }
+        },
+        Result::Err(e) => test::assert_eq_string(e, "unexpected failure"),
+    }
 }

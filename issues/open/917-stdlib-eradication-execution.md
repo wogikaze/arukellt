@@ -687,6 +687,66 @@ classified there, in dependency-safe waves.
   at sha256 `5b0455216247ab3bf2563a67b0c7f6aa23bb77d468d4c5f8449255ab203646af`
   (pinned base `04d4446b…`).
 
+### Landed slice (wave/json-csv, 2026-10-27)
+
+- **Surface**: the final `std::json` / `std::toml` / `std::csv` document
+  entry points are associated functions / methods:
+  `JsonValue::parse(text)` / `v.to_text()`, `TomlValue::parse(text)` /
+  `v.to_text()`, `JsonParseStep::ok` / `err` with `step.value()` /
+  `step.next()`, and `TomlValStep` / `TomlKeyStep` `ok` / `err`.
+  `json::parse`, `toml::toml_parse`, `toml::toml_stringify`, and the eight
+  unregistered parse-step helpers are deleted. All were `experimental`
+  (ADR-014 D4) or outside the manifest, so no W0009 window applies; qualified
+  old calls get E0100 hints from `removed_json_member_hint` /
+  `removed_toml_member_hint`. `std::csv` already had no public free helper.
+- **Payload inference (retested)**: under the rebuilt s2 (which contains
+  `3472c53af` plus the payload/condition inference fixes), an unannotated
+  `match json::JsonValue::parse(doc)` / `match toml::TomlValue::parse(doc)`
+  infers `Result::Ok` / `Result::Err` correctly and validates on
+  `wasm32-gc` and `--target wasm32`. The committed pinned bootstrap predates
+  those fixes and cannot compile the associated form; the fixture gate uses
+  the current s2 and records the pin only as a non-fatal parity note.
+- **i64 payload (fixed)**: direct `TomlValue::Integer(42)` construction
+  stored an unannotated `i32` literal into the declared `i64` variant field
+  (`struct.set` type mismatch in WAT; `expected i64, found i32` on
+  wasm32-gc). `emit_gc_variant_payload_fields` now resolves the variant
+  layout and widens an `i32` payload to `i64` before `gc_struct_set`. Parsed
+  TOML integers were already i64 and remain valid.
+- **Same-name helper collision (fixed)**: a non-main module using both
+  `JsonValue::to_text` and `TomlValue::to_text` bound the bare private
+  `stringify_value` to the JSON implementation inside the TOML method (blank
+  output on linear, `ref.cast` trap on wasm32-gc). The private parser helpers
+  are now `json_*` / `toml_*` prefixed
+  (`json_parse_document` / `json_stringify_value` / `json_stringify_array`
+  and TOML counterparts); no duplicate top-level helper name remains.
+- **Fixtures**: `stdlib_json/json_associated_surface*.ark` and
+  `stdlib_toml/toml_text_surface*.ark` now cover the unannotated parse match,
+  the error path, and integer `to_text`;
+  `modules/non_main_associated_call/` calls both parsers from a helper
+  module. The E0100 goldens are
+  `diagnostics/removed_json_toml_csv_free*.ark`. The 244 migrated
+  fixture/benchmark call sites compile and validate; targeted parity for the
+  three stdlib families is 262 compile+validate, 0 FAIL.
+- **Scorecard**: 358 -> **347** public symbols; `associated-or-method`
+  288 -> **277**; manifest functions 325 -> **322**; unregistered declarations
+  34 -> **26**; `must delete` 70 and `intrinsic-only` 1 unchanged. Generated
+  scoreboard: 324 -> **321** APIs (experimental 54 -> **51**), fixture
+  coverage 241/256 -> **238/253**. The module families now have zero
+  manifest function entries and `docs/stdlib/eradication.md` has no live
+  json/toml/csv rule.
+- **Verification**: `verify fixtures` **1895/1895 PASS**, 0 FAIL (110
+  runtime smoke, 2 runtime-unsupported, 1 `test:` fixture PASS); both-target
+  compile + `wasm-tools validate` for the surface and two-module fixtures
+  (`wasm32-gc` P2 component and `--target wasm32` linear); `selfhost
+  diag-parity` PASS; `docs check` 6/6; `verify lane` PASS; ADR-029 fixpoint
+  PASS: s2 == s3 at sha256
+  `cf1bc74e6a5abcc94a5c345fb86291703afd7297f523a68a256f76b14b48ce1e`
+  (pinned base `04d4446b…`).
+- **Residual**: the pinned bootstrap cannot lower the associated document
+  entry points, so the flat-overlay `bootstrap_toml_*` adapter stays until
+  the pin is refreshed. `Vec<String>::concat` remains invalid on wasm32-gc
+  independently of this wave.
+
 ## Required work
 
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate

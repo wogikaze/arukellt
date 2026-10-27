@@ -3,10 +3,10 @@ use std::toml
 use std::test
 
 fn main() {
-    let t = toml::toml_parse("name = \"hi\"")
+    let t = toml::TomlValue::parse("name = \"hi\"")
     match t {
         Result::Ok(table) => match table.get_field("name") {
-            Option::Some(v) => test::assert_eq_string(toml::toml_stringify(v), "\"hi\""),
+            Option::Some(v) => test::assert_eq_string(v.to_text(), "\"hi\""),
             None => assert(false),
         },
         Result::Err(_) => assert(false),

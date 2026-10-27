@@ -3,7 +3,7 @@ use std::toml
 use std::test
 
 fn main() {
-    let t = toml::toml_parse("count = 42")
+    let t = toml::TomlValue::parse("count = 42")
     match t {
         Result::Ok(table) => match table.get_field("count") {
             Option::Some(v) => match v.as_int() {

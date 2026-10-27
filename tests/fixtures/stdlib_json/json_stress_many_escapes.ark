@@ -3,7 +3,7 @@ use std::test
 use std::text
 fn main() {
     let raw = "\"\\n\\t\\r\\\\\\\"\\b\\f\""
-    match json::parse(raw) {
+    match json::JsonValue::parse(raw) {
         Result::Ok(v) => match v.as_string() {
             Option::Some(s) => test::assert_eq_i32(len(s), 7),
             None => panic("expected string"),
@@ -11,7 +11,7 @@ fn main() {
         Result::Err(e) => panic("parse many escapes failed: ".concat(e.message())),
     }
     // Round-trip the escaped string
-    match json::parse(raw) {
+    match json::JsonValue::parse(raw) {
         Result::Ok(v) => test::assert_eq_string(v.to_text(), raw),
         Result::Err(e) => panic("re-parse failed: ".concat(e.message())),
     }

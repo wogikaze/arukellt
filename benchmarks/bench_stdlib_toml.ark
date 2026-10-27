@@ -12,7 +12,7 @@ pub fn main() {
     let mut iter: i32 = 0
     while iter < 100 {
         // ── Parse simple key=value TOML ─────────────────────────────────
-        match toml::toml_parse(simple_toml) {
+        match toml::TomlValue::parse(simple_toml) {
             Result::Ok(v) => {
                 // String field: name
                 match v.get_field("name") {
@@ -47,13 +47,13 @@ pub fn main() {
                     None => checksum = checksum + 1000000,
                 }
                 // Serialize back to string
-                let _ = toml::toml_stringify(v)
+                let _ = v.to_text()
             },
             Result::Err(_) => checksum = checksum + 10000000,
         }
 
         // ── Parse TOML with array values ────────────────────────────────
-        match toml::toml_parse(array_toml) {
+        match toml::TomlValue::parse(array_toml) {
             Result::Ok(v) => {
                 match v.get_field("tags") {
                     Option::Some(tv) => {
@@ -65,7 +65,7 @@ pub fn main() {
                     },
                     None => checksum = checksum + 300,
                 }
-                let _ = toml::toml_stringify(v)
+                let _ = v.to_text()
             },
             Result::Err(_) => checksum = checksum + 3000,
         }

@@ -5,12 +5,13 @@
 //!
 //! ## Honesty caveats (see #604 — issues/done/604-stdlib-baseline-contract-honesty.md)
 //!
-//! - The `JsonValue` DOM surface (`parse`, `to_text`, type predicates,
-//!   accessors) is stable for well-formed JSON. Constructors and primitive
-//!   helpers are associated functions: `JsonValue::null/bool/int/string/raw/
-//!   array/object`, `JsonValue::stringify_i32`, `JsonValue::parse_i32`,
-//!   `JsonValue::encode_string`, and `JsonValue::pretty_text`. `JsonField::new`
-//!   builds object fields (#917, ADR-046).
+//! - The `JsonValue` DOM surface is the associated `JsonValue::parse(text)` /
+//!   receiver `to_text()`, type predicates, and accessors. Constructors and
+//!   primitive helpers are associated functions: `JsonValue::null/bool/int/
+//!   string/raw/array/object`, `JsonValue::stringify_i32`,
+//!   `JsonValue::parse_i32`, `JsonValue::encode_string`, and
+//!   `JsonValue::pretty_text`. `JsonField::new` builds object fields
+//!   (#917, ADR-046).
 //! - Streaming scanner utilities live on the `JsonText` namespace in
 //!   `std/json.ark`; they provide low-level field extraction without building
 //!   a DOM.  `\uXXXX` surrogate pairs and invalid string escapes are checked.
@@ -324,7 +325,12 @@ impl JsonValue {
 
     /// Serialize this value back to its JSON text.
     fn to_text(self: JsonValue) -> String {
-        stringify_value(self)
+        json_stringify_value(self)
+    }
+
+    /// Parse a full JSON document into a `JsonValue`.
+    fn parse(s: String) -> Result<JsonValue, JsonParseError> {
+        json_parse_document(s)
     }
 
     /// Construct the JSON `null` value.
@@ -610,23 +616,25 @@ pub struct JsonParseStep {
     next: i32,
 }
 
-pub fn JsonParseStep_ok(v: JsonValue, next: i32) -> JsonParseStep {
-    JsonParseStep { value: Ok(v), next: next }
+impl JsonParseStep {
+    fn ok(v: JsonValue, next: i32) -> JsonParseStep {
+        JsonParseStep { value: Ok(v), next: next }
+    }
+
+    fn err(e: JsonParseError, next: i32) -> JsonParseStep {
+        JsonParseStep { value: Err(e), next: next }
+    }
+
+    fn value(self: JsonParseStep) -> Result<JsonValue, JsonParseError> {
+        self.value
+    }
+
+    fn next(self: JsonParseStep) -> i32 {
+        self.next
+    }
 }
 
-pub fn JsonParseStep_err(e: JsonParseError, next: i32) -> JsonParseStep {
-    JsonParseStep { value: Err(e), next: next }
-}
-
-pub fn json_parse_step_value(step: JsonParseStep) -> Result<JsonValue, JsonParseError> {
-    step.value
-}
-
-pub fn json_parse_step_next(step: JsonParseStep) -> i32 {
-    step.next
-}
-
-// ─── Public parse / stringify ────────────────────────────────────────────────
+// ─── Document parse / stringify ──────────────────────────────────────────────
 /// Parse a full JSON document from `s` and reject trailing non-whitespace after
 /// the first top-level value.
 ///
@@ -636,33 +644,33 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
     let pos = json::JsonText::skip_ws(s, pos)
     let n = len(s)
     if pos >= n {
-        return JsonParseStep_err(JsonParseError::EmptyInput, pos)
+        return JsonParseStep::err(JsonParseError::EmptyInput, pos)
     }
     let c = byte_at(s, pos)
     if c == 110 {
         if n >= pos + 4 && eq(slice(s, pos, pos + 4), "null") {
-            return JsonParseStep_ok(JsonValue::Null, pos + 4)
+            return JsonParseStep::ok(JsonValue::Null, pos + 4)
         }
-        return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("null")), pos)
+        return JsonParseStep::err(JsonParseError::InvalidLiteral(String_from("null")), pos)
     }
     if c == 116 {
         if n >= pos + 4 && eq(slice(s, pos, pos + 4), "true") {
-            return JsonParseStep_ok(JsonValue::Bool(true), pos + 4)
+            return JsonParseStep::ok(JsonValue::Bool(true), pos + 4)
         }
-        return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("true")), pos)
+        return JsonParseStep::err(JsonParseError::InvalidLiteral(String_from("true")), pos)
     }
     if c == 102 {
         if n >= pos + 5 && eq(slice(s, pos, pos + 5), "false") {
-            return JsonParseStep_ok(JsonValue::Bool(false), pos + 5)
+            return JsonParseStep::ok(JsonValue::Bool(false), pos + 5)
         }
-        return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("false")), pos)
+        return JsonParseStep::err(JsonParseError::InvalidLiteral(String_from("false")), pos)
     }
     if c == 34 {
         let parsed = json::JsonText::parse_string_at(s, pos)
         if !parsed.is_ok() {
-            return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("string")), pos)
+            return JsonParseStep::err(JsonParseError::InvalidLiteral(String_from("string")), pos)
         }
-        return JsonParseStep_ok(
+        return JsonParseStep::ok(
             JsonValue::Str(parsed.value()),
             parsed.next()
         )
@@ -676,30 +684,30 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
             i = json::JsonText::skip_ws(s, i)
             if i < n && byte_at(s, i) == 93 {
                 if !has_value || !expect_value {
-                    return JsonParseStep_ok(JsonValue::Array(arr), i + 1)
+                    return JsonParseStep::ok(JsonValue::Array(arr), i + 1)
                 }
-                return JsonParseStep_err(JsonParseError::UnexpectedCharacter(93), i)
+                return JsonParseStep::err(JsonParseError::UnexpectedCharacter(93), i)
             }
             if !expect_value {
                 if i >= n || byte_at(s, i) != 44 {
-                    return JsonParseStep_err(JsonParseError::UnexpectedCharacter(byte_at(s, i)), i)
+                    return JsonParseStep::err(JsonParseError::UnexpectedCharacter(byte_at(s, i)), i)
                 }
                 i = json::JsonText::skip_ws(s, i + 1)
                 if i >= n || byte_at(s, i) == 93 {
-                    return JsonParseStep_err(JsonParseError::UnexpectedCharacter(93), i)
+                    return JsonParseStep::err(JsonParseError::UnexpectedCharacter(93), i)
                 }
                 expect_value = true
             }
             let step = parse_value_at(s, i)
             match step.value {
                 Result::Ok(v) => push(arr, v),
-                Result::Err(e) => return JsonParseStep_err(e, i),
+                Result::Err(e) => return JsonParseStep::err(e, i),
             }
             i = json::JsonText::skip_ws(s, step.next)
             has_value = true
             expect_value = false
         }
-        return JsonParseStep_err(JsonParseError::UnexpectedCharacter(c), pos)
+        return JsonParseStep::err(JsonParseError::UnexpectedCharacter(c), pos)
     }
     if c == 123 {
         let fields = Vec::new<JsonField>()
@@ -710,55 +718,55 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
             i = json::JsonText::skip_ws(s, i)
             if i < n && byte_at(s, i) == 125 {
                 if !has_field || !expect_field {
-                    return JsonParseStep_ok(JsonValue::Object(fields), i + 1)
+                    return JsonParseStep::ok(JsonValue::Object(fields), i + 1)
                 }
-                return JsonParseStep_err(JsonParseError::UnexpectedCharacter(125), i)
+                return JsonParseStep::err(JsonParseError::UnexpectedCharacter(125), i)
             }
             if !expect_field {
                 if i >= n || byte_at(s, i) != 44 {
-                    return JsonParseStep_err(JsonParseError::UnexpectedCharacter(byte_at(s, i)), i)
+                    return JsonParseStep::err(JsonParseError::UnexpectedCharacter(byte_at(s, i)), i)
                 }
                 i = json::JsonText::skip_ws(s, i + 1)
                 if i >= n || byte_at(s, i) == 125 {
-                    return JsonParseStep_err(JsonParseError::UnexpectedCharacter(125), i)
+                    return JsonParseStep::err(JsonParseError::UnexpectedCharacter(125), i)
                 }
                 expect_field = true
             }
             if byte_at(s, i) != 34 {
-                return JsonParseStep_err(JsonParseError::UnexpectedCharacter(byte_at(s, i)), i)
+                return JsonParseStep::err(JsonParseError::UnexpectedCharacter(byte_at(s, i)), i)
             }
             let parsed_key = json::JsonText::parse_string_at(s, i)
             if !parsed_key.is_ok() {
-                return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("string")), i)
+                return JsonParseStep::err(JsonParseError::InvalidLiteral(String_from("string")), i)
             }
             let key = parsed_key.value()
             i = json::JsonText::skip_ws(s, parsed_key.next())
             if i >= n || byte_at(s, i) != 58 {
-                return JsonParseStep_err(JsonParseError::UnexpectedCharacter(58), i)
+                return JsonParseStep::err(JsonParseError::UnexpectedCharacter(58), i)
             }
             let step = parse_value_at(s, json::JsonText::skip_ws(s, i + 1))
             match step.value {
                 Result::Ok(v) => push(fields, JsonField { key: key, value: v }),
-                Result::Err(e) => return JsonParseStep_err(e, i),
+                Result::Err(e) => return JsonParseStep::err(e, i),
             }
             i = json::JsonText::skip_ws(s, step.next)
             has_field = true
             expect_field = false
         }
-        return JsonParseStep_err(JsonParseError::UnexpectedCharacter(c), pos)
+        return JsonParseStep::err(JsonParseError::UnexpectedCharacter(c), pos)
     }
     if c >= 48 && c <= 57 || c == 45 {
         let end = find_number_end(s, pos)
         let raw = slice(s, pos, end)
         if json_number_is_valid(s, pos, end) {
-            return JsonParseStep_ok(JsonValue::Number(raw), end)
+            return JsonParseStep::ok(JsonValue::Number(raw), end)
         }
-        return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("number")), pos)
+        return JsonParseStep::err(JsonParseError::InvalidLiteral(String_from("number")), pos)
     }
-    JsonParseStep_err(JsonParseError::UnexpectedCharacter(c), pos)
+    JsonParseStep::err(JsonParseError::UnexpectedCharacter(c), pos)
 }
 
-pub fn parse(s: String) -> Result<JsonValue, JsonParseError> {
+fn json_parse_document(s: String) -> Result<JsonValue, JsonParseError> {
     let pos = json::JsonText::skip_ws(s, 0)
     let n = len(s)
     if pos >= n {
@@ -779,7 +787,7 @@ pub fn parse(s: String) -> Result<JsonValue, JsonParseError> {
 }
 
 /// Serialize a `JsonValue` back to its JSON text.
-fn stringify_value(v: JsonValue) -> String {
+fn json_stringify_value(v: JsonValue) -> String {
     match v {
         JsonValue::Null => "null",
         // Bind payload then branch — Bool(true)/Bool(false) arms do not
@@ -794,12 +802,12 @@ fn stringify_value(v: JsonValue) -> String {
         JsonValue::Number(n) => n,
         JsonValue::Str(s) => json_value_encode_string(s),
         JsonValue::Raw(s) => s,
-        JsonValue::Array(items) => stringify_array(items),
+        JsonValue::Array(items) => json_stringify_array(items),
         JsonValue::Object(fields) => stringify_object(fields),
     }
 }
 
-fn stringify_array(items: Vec<JsonValue>) -> String {
+fn json_stringify_array(items: Vec<JsonValue>) -> String {
     let n = len(items)
     let mut out = "["
     let mut i = 0
@@ -807,7 +815,7 @@ fn stringify_array(items: Vec<JsonValue>) -> String {
         if i > 0 {
             out = out.concat(",")
         }
-        out = out.concat(stringify_value(get_unchecked(items, i)))
+        out = out.concat(json_stringify_value(get_unchecked(items, i)))
         i = i + 1
     }
     out.concat("]")
@@ -822,7 +830,7 @@ fn stringify_object(fields: Vec<JsonField>) -> String {
             out = out.concat(",")
         }
         let f = get_unchecked(fields, i)
-        out = out.concat(json_value_encode_string(f.key).concat(":".concat(stringify_value(f.value))))
+        out = out.concat(json_value_encode_string(f.key).concat(":".concat(json_stringify_value(f.value))))
         i = i + 1
     }
     out.concat("}")
@@ -1058,12 +1066,12 @@ fn json_value_arr_new() -> Vec<JsonValue> {
 
 /// Build a JSON object string from a Vec<JsonField>.
 fn json_value_obj_string(fields: Vec<JsonField>) -> String {
-    stringify_value(JsonValue::Object(fields))
+    json_stringify_value(JsonValue::Object(fields))
 }
 
 /// Build a JSON array string from a Vec<JsonValue>.
 fn json_value_arr_string(items: Vec<JsonValue>) -> String {
-    stringify_value(JsonValue::Array(items))
+    json_stringify_value(JsonValue::Array(items))
 }
 
 // ─── String encoding ─────────────────────────────────────────────────────────

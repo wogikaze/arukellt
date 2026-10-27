@@ -2,19 +2,19 @@ use std::host::stdio
 use std::json
 use std::text
 fn main() {
-    match json::parse("null") {
+    match json::JsonValue::parse("null") {
         Result::Ok(v) => stdio::println(v.to_text()),
         Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
-    match json::parse("true") {
+    match json::JsonValue::parse("true") {
         Result::Ok(v) => stdio::println(v.to_text()),
         Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
-    match json::parse("123") {
+    match json::JsonValue::parse("123") {
         Result::Ok(v) => stdio::println(v.to_text()),
         Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
-    match json::parse("\"world\"") {
+    match json::JsonValue::parse("\"world\"") {
         Result::Ok(v) => stdio::println(v.to_text()),
         Result::Err(e) => stdio::println("error:".concat(e.message())),
     }

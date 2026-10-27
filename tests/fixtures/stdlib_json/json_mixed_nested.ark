@@ -2,7 +2,7 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("{\"data\":[{\"name\":\"alice\",\"scores\":[90,85,95]}]}") {
+    match json::JsonValue::parse("{\"data\":[{\"name\":\"alice\",\"scores\":[90,85,95]}]}") {
         Result::Ok(v) => {
             match v.get_field("data") {
                 Option::Some(data) => match data.get_index(0) {

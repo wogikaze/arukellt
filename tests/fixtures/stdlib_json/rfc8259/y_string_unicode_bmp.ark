@@ -4,7 +4,7 @@ use std::prelude::{byte_at}
 use std::text
 fn main() {
     // U+00E9 LATIN SMALL LETTER E WITH ACUTE
-    match json::parse("\"\\u00E9\"") {
+    match json::JsonValue::parse("\"\\u00E9\"") {
         Result::Ok(v) => match v.as_string() {
             Option::Some(s) => {
                 test::assert_eq_i32(len(s), 2)

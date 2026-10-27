@@ -23,6 +23,20 @@ pub fn toml_value(s: String) -> String {
     toml::TomlText::find_value(s, String_from("a"))
 }
 
+pub fn json_document(s: String) -> String {
+    match json::JsonValue::parse(s) {
+        Result::Ok(v) => v.to_text(),
+        Result::Err(e) => e.message(),
+    }
+}
+
+pub fn toml_document(s: String) -> String {
+    match toml::TomlValue::parse(s) {
+        Result::Ok(v) => v.to_text(),
+        Result::Err(e) => e,
+    }
+}
+
 pub fn csv_row(s: String) -> String {
     let row = csv::Csv::parse_row(s)
     csv::Csv::stringify_row(row)

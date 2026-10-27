@@ -14,19 +14,19 @@ Parse and stringify JSON primitive values using `std::json`.
 use std::json
 
 // Numbers
-let age = json::json_stringify_i32(30)
+let age = json::JsonValue::int(30).to_text()
 println(age) // "30"
 
 // Booleans
-let active = json::json_stringify_bool(true)
+let active = json::JsonValue::bool(true).to_text()
 println(active) // "true"
 
 // Strings (wraps in double quotes)
-let name = json::json_stringify_string("Alice")
+let name = json::JsonValue::string("Alice").to_text()
 println(name) // "\"Alice\""
 
 // Null
-let empty = json::json_null()
+let empty = json::JsonValue::null_text()
 println(empty) // "null"
 ```
 
@@ -37,18 +37,18 @@ println(empty) // "null"
 use std::json
 
 // Parse integer from JSON
-let n = json::json_parse_i32("42")
+let n = json::JsonValue::parse_i32("42")
 assert_eq(n, 42)
 
 // Parse negative integer
-let neg = json::json_parse_i32("-7")
+let neg = json::JsonValue::parse_i32("-7")
 assert_eq(neg, 0 - 7)
 
 // Parse boolean
-let b = json::json_parse_bool("true")
+let b = json::JsonValue::parse_bool("true")
 assert(b)
 
-let b2 = json::json_parse_bool("false")
+let b2 = json::JsonValue::parse_bool("false")
 assert(b2 == false)
 ```
 
@@ -57,7 +57,7 @@ assert(b2 == false)
 ```ark
 use std::json
 
-match json::parse("{\"port\":8080}") {
+match json::JsonValue::parse("{\"port\":8080}") {
     Result::Ok(root) => match root.get_field("port") {
         Option::Some(port) => match port.as_i32() {
             Option::Some(n) => println(n.to_string()),
@@ -77,14 +77,14 @@ use std::json
 
 // Manually build a key-value line for logging
 fn json_field(key: String, value: String) -> String {
-    concat(json::json_stringify_string(key),
+    concat(json::JsonValue::string(key).to_text(),
         concat(": ", value))
 }
 
 let line = concat(
-    json_field("name", json::json_stringify_string("Alice")),
+    json_field("name", json::JsonValue::string("Alice").to_text()),
     concat(", ",
-        json_field("age", json::json_stringify_i32(30))))
+        json_field("age", json::JsonValue::int(30).to_text())))
 println(line)
 // "name": "Alice", "age": 30
 ```

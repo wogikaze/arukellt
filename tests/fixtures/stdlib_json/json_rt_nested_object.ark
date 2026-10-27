@@ -4,7 +4,7 @@ use std::text
 fn main() {
     // Round-trip: parse a nested object, then stringify it and re-parse to verify values
     let raw = "{\"person\":{\"name\":\"bob\",\"age\":25},\"active\":true}"
-    match json::parse(raw) {
+    match json::JsonValue::parse(raw) {
         Result::Ok(top) => {
             match top.get_field("person") {
                 Option::Some(person) => {
@@ -40,7 +40,7 @@ fn main() {
             }
             // Stringify and re-parse to confirm round-trip
             let s = top.to_text()
-            match json::parse(s) {
+            match json::JsonValue::parse(s) {
                 Result::Ok(top2) => {
                     match top2.get_field("person") {
                         Option::Some(p2) => {

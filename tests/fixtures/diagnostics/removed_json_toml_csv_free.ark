@@ -10,4 +10,7 @@ fn main() {
     let _ = json::json_i32(1)
     let _ = toml::toml_find_value("a = \"x\"\n", "a")
     let _ = csv::csv_parse_row("a,b")
+    let _ = json::parse("null")
+    let _ = toml::toml_parse("a = 1")
+    let _ = toml::toml_stringify(toml::TomlValue::Integer(1))
 }

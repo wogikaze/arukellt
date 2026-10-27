@@ -2030,29 +2030,33 @@ bulk `memory.copy` / `memory.fill` are compiler intrinsics only
 `hashmap_size(m: Vec<i32>) -> i32`
 
 **JSON**:
-primitive helpers `json_null()`, `json_parse_i32(s)` / `json_parse_bool(s)`,
-`json_stringify_i32(n)` / `json_stringify_bool(b)` /
-`json_stringify_string(s)`; the DOM scanner free helpers (`skip_ws`,
-`quote_string`, `json_escape`, `json_get_str`, …); and the `JsonValue`
-value methods `v.is_null()` / `v.is_bool()` / `v.is_number()` /
+the `JsonValue` DOM is the public surface. Parse with
+`JsonValue::parse(doc)` and serialize with `v.to_text()`; construct values
+with `JsonValue::null/bool/int/string/raw/array/object` and `JsonField::new`;
+inspect with `v.is_null()` / `v.is_bool()` / `v.is_number()` /
 `v.is_string()` / `v.is_array()` / `v.is_object()`, `v.as_bool()` /
 `v.as_string()` / `v.as_i32()` / `v.as_f64()` / `v.as_array()`,
-`v.get_field(key)` / `v.get_index(i)`, `v.to_text()`, plus
-`e.message()` on `JsonParseError`. `json::parse(doc)` remains the document
-entry point.
+`v.get_field(key)` / `v.get_index(i)`; report failures with
+`e.message()` on `JsonParseError`. Text scanning without a DOM uses
+`JsonText::quote` / `escape` / `skip_ws` / `parse_int_at` / `get_str` and the
+other `JsonText` helpers. The former `json::parse` and `json_*` frees are
+retired (E0100).
 
 **CSV**:
-`csv_split_line(line: String) -> Vec<String>` and the row/document helpers
-(`csv_parse_row`, `csv_stringify_row`, `csv_count_rows`, `csv_get_row_raw`,
-`csv_parse_row_at`, `csv_parse`, `csv_stringify`, `csv_parse_with_header`).
+the `Csv` namespace owns every helper: `Csv::split_line(line)`,
+`Csv::parse_row(line)`, `Csv::stringify_row(fields)`, `Csv::count_rows(s)`,
+`Csv::get_row_raw(s, i)`, `Csv::parse_row_at(s, i)`, `Csv::parse(s)`,
+`Csv::stringify(rows)`, and `Csv::parse_with_header(s)`. No `csv_*` free
+function remains.
 
 **TOML**:
-`toml_parse_line(line)`, the `find_toml_section` / `find_toml_value` /
-`toml_find_raw_value` / `toml_parse_string_array` scanners, and the
-`TomlValue` methods `v.as_string()` / `v.as_int()` / `v.as_bool()` /
-`v.as_float()` / `v.as_array()` / `v.as_table()`, `v.get_field(key)`,
-`v.table_keys()`. `toml::toml_parse(doc)` and `toml::toml_stringify(v)`
-remain the document entry points.
+parse with `TomlValue::parse(doc)` and serialize with `v.to_text()`; traverse
+with `v.get_field(key)` / `v.table_keys()` and decode with `v.as_string()` /
+`v.as_int()` / `v.as_bool()` / `v.as_float()` / `v.as_array()` /
+`v.as_table()`. Text scanning without a DOM uses
+`TomlText::parse_line` / `find_section` / `find_value` / `find_raw_value` /
+`parse_string_array`. The former `toml::toml_parse` / `toml::toml_stringify`
+frees are retired (E0100).
 
 **Testing (non-prelude)**:
 `assert_true(b: bool)`,

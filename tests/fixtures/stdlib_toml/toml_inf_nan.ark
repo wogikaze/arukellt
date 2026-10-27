@@ -3,7 +3,7 @@ use std::toml
 use std::test
 
 fn main() {
-    let t = toml::toml_parse("a = inf\nb = nan")
+    let t = toml::TomlValue::parse("a = inf\nb = nan")
     match t {
         Result::Ok(table) => {
             match table.get_field("a") {

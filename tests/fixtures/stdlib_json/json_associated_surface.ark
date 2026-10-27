@@ -56,4 +56,15 @@ fn main() {
     test::assert_true(json::JsonValue::parse_bool("true"))
     test::assert_eq_string(json::JsonValue::encode_string("a\"b"), "\"a\\\"b\"")
     test::assert_eq_string(json::JsonValue::pretty_text(json::JsonValue::int(1), 2), "1")
+
+    // The document entry point is the associated JsonValue::parse. The
+    // unannotated match infers the Result payload from the declared return.
+    match json::JsonValue::parse("{\"n\":42}") {
+        Result::Ok(v) => test::assert_eq_string(v.to_text(), "{\"n\":42}"),
+        Result::Err(e) => test::assert_eq_string(e.message(), "unexpected failure"),
+    }
+    match json::JsonValue::parse("@") {
+        Result::Ok(_) => test::assert_true(false),
+        Result::Err(e) => test::assert_eq_string(e.message(), "unexpected character"),
+    }
 }

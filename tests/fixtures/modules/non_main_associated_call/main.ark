@@ -6,5 +6,7 @@ fn main() {
     stdio::println(helper::json_object("z"))
     stdio::println(helper::json_pretty())
     stdio::println(helper::toml_value("a = \"x\"\n"))
+    stdio::println(helper::json_document("{\"k\":\"z\"}"))
+    stdio::println(helper::toml_document("n = 42\ns = \"hi\""))
     stdio::println(helper::csv_row("\"Smith, John\",30"))
 }

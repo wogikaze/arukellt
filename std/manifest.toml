@@ -2515,19 +2515,35 @@ methods = ["new", "insert", "get", "remove", "len"]
 
 # === std::json ===
 
-# === std::json ===
+[[types]]
+name = "JsonValue"
+module = "std::json"
+stability = "experimental"
+prelude = false
+kind = "enum"
+doc = "JSON DOM value. Construct with the associated functions (`JsonValue::null` / `bool` / `int` / `string` / `raw` / `array` / `object`), parse with `JsonValue::parse(text)`, inspect with the `is_*` / `as_*` methods, traverse with `get_field` / `get_index`, and serialize with `to_text`."
+methods = ["parse", "to_text", "is_null", "is_bool", "is_number", "is_string", "is_array", "is_object", "as_bool", "as_string", "as_i32", "as_f64", "as_array", "get_field", "get_index", "null", "bool", "int", "string", "raw", "array", "object", "stringify_i32", "stringify_bool", "stringify_string", "null_text", "parse_i32", "parse_bool", "encode_string", "pretty_text"]
+
+[[types]]
+name = "TomlValue"
+module = "std::toml"
+stability = "experimental"
+prelude = false
+kind = "enum"
+doc = "TOML 1.0 value tree. Parse with `TomlValue::parse(text)`, traverse with `get_field` / `table_keys`, decode with the `as_*` methods, and serialize with `to_text`."
+methods = ["parse", "to_text", "as_string", "as_int", "as_bool", "as_float", "as_array", "as_table", "get_field", "table_keys"]
 
 [[modules]]
 name = "std::json"
 stability = "experimental"
 family = "data"
-doc = "Bounded JSON parser/serializer over a tagged JsonValue. Whole-document parse rejects trailing non-whitespace; nested object/array access re-parses raw text rather than maintaining structural state. Subset-only by design; full RFC 8259 coverage and zero-copy access are out of scope for this baseline."
+doc = "Bounded JSON parser/serializer over a tagged JsonValue. Whole-document parse rejects trailing non-whitespace; nested object/array access re-parses raw text rather than maintaining structural state. Subset-only by design; full RFC 8259 coverage and zero-copy access are out of scope for this baseline. The public surface is the JsonValue type and its associated functions/methods plus the JsonText scanner namespace."
 
 [[modules]]
 name = "std::toml"
 stability = "experimental"
 family = "data"
-doc = "TOML 1.0 parser/serializer plus streaming section/value scanners. Supports table headers, arrays of tables, inline tables, dotted keys, multiline strings, and datetime literals; exposes toml_get / toml_table_keys for nested tables and find_toml_* helpers for compiler manifests."
+doc = "TOML 1.0 parser/serializer plus streaming section/value scanners. Supports table headers, arrays of tables, inline tables, dotted keys, multiline strings, and datetime literals; the public surface is the TomlValue type and its associated functions/methods plus the TomlText scanner namespace for compiler manifests."
 
 [[functions]]
 name = "pi"
@@ -3391,34 +3407,16 @@ params = ["Vec<String>", "String"]
 returns = "Option<String>"
 doc = "Return the value associated with the named option, or None."
 
-# ── std::json module functions ────────────────────────────────────────────────
+# ── std::json / std::toml value types ────────────────────────────────────────
+#
+# The document entry points retired by #917 (ADR-046) are associated functions
+# on the value types: `JsonValue::parse` / `JsonValue::to_text` and
+# `TomlValue::parse` / `TomlValue::to_text`. The 2026-10-27 wave also retired
+# the JSON/TOML parse-step helper frees onto `JsonParseStep`, `TomlValStep`,
+# and `TomlKeyStep`. All removed entries were experimental (ADR-014 D4), so no
+# W0009 window applies; qualified calls get E0100 hints from
+# `resolver::removed_names::removed_{json,toml}_member_hint`.
 
-[[functions]]
-name = "parse"
-module = "std::json"
-doc_category = "json"
-stability = "experimental"
-params = ["String"]
-returns = "Result<JsonValue, JsonParseError>"
-doc = "Parse a full JSON document and reject trailing non-whitespace after the first top-level value."
-
-[[functions]]
-name = "toml_parse"
-module = "std::toml"
-doc_category = "toml"
-stability = "experimental"
-params = ["String"]
-returns = "Result<TomlValue, String>"
-doc = "Parse a TOML 1.0 document into a TomlValue tree."
-
-[[functions]]
-name = "toml_stringify"
-module = "std::toml"
-doc_category = "toml"
-stability = "experimental"
-params = ["TomlValue"]
-returns = "String"
-doc = "Serialize a TomlValue back to text."
 
 [[functions]]
 name = "btree_new"

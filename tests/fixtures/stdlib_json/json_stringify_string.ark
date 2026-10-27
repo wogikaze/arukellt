@@ -2,15 +2,15 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("\"hello\"") {
+    match json::JsonValue::parse("\"hello\"") {
         Result::Ok(v) => test::assert_eq_string(v.to_text(), "\"hello\""),
         Result::Err(e) => panic("parse failed: ".concat(e.message())),
     }
-    match json::parse("\"\"") {
+    match json::JsonValue::parse("\"\"") {
         Result::Ok(v) => test::assert_eq_string(v.to_text(), "\"\""),
         Result::Err(e) => panic("parse empty failed: ".concat(e.message())),
     }
-    match json::parse("\"a\\nb\"") {
+    match json::JsonValue::parse("\"a\\nb\"") {
         Result::Ok(v) => test::assert_eq_string(v.to_text(), "\"a\\nb\""),
         Result::Err(e) => panic("parse escaped failed: ".concat(e.message())),
     }

@@ -7,13 +7,13 @@ Source-backed docs for the current TOML helpers.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::toml` module provides a TOML 1.0 parser/serializer plus the `TomlText` streaming namespace for compiler manifests. `toml_parse` accepts table headers, arrays of tables, inline tables, dotted keys, multiline strings, and datetime literals; malformed input returns `Err(String)`. Nested tables are traversed with `v.get_field(key)` / `v.table_keys()` and decoded with `v.as_string()` / `v.as_int()` / `v.as_bool()` / `v.as_float()` / `v.as_array()` / `v.as_table()`. `TomlText::find_section` / `TomlText::find_value` / `TomlText::find_raw_value` scan raw text.
+The `std::toml` module provides a TOML 1.0 parser/serializer plus the `TomlText` streaming namespace for compiler manifests. `TomlValue::parse(doc)` accepts table headers, arrays of tables, inline tables, dotted keys, multiline strings, and datetime literals; malformed input returns `Err(String)`. Nested tables are traversed with `v.get_field(key)` / `v.table_keys()` and decoded with `v.as_string()` / `v.as_int()` / `v.as_bool()` / `v.as_float()` / `v.as_array()` / `v.as_table()`. `TomlText::find_section` / `TomlText::find_value` / `TomlText::find_raw_value` scan raw text.
 
 **Recommended API highlights:**
 
 | API | Purpose |
 |-----|---------|
-| `toml_parse(doc)` | Parse a TOML 1.0 document into a `TomlValue` tree; `Err` on malformed input. |
+| `toml::TomlValue::parse(doc)` | Parse a TOML 1.0 document into a `TomlValue` tree; `Err` on malformed input. |
 | `v.get_field(key)` / `v.table_keys()` | Traverse nested tables and list keys. |
 | `v.as_string()` / `v.as_int()` / `v.as_array()` / `v.as_table()` | Decode a value without re-parsing its raw text. |
 | `toml::TomlText::find_section` / `find_value` / `find_raw_value` | Streaming scanners for `[section]` bodies, quoted values, and raw values. |
@@ -25,8 +25,8 @@ The `std::toml` module provides a TOML 1.0 parser/serializer plus the `TomlText`
 ```ark
 import std::toml
 
-match toml_parse("[server]\nhost = \"localhost\"") {
-    Result::Ok(root) => match toml_get(root, "server") {
+match toml::TomlValue::parse("[server]\nhost = \"localhost\"") {
+    Result::Ok(root) => match root.get_field("server") {
         Option::Some(server) => { /* nested table */ },
         Option::None => {},
     },
@@ -39,17 +39,17 @@ match toml_parse("[server]\nhost = \"localhost\"") {
 ## Module `std::toml`
 
 - Source: [`../../../std/toml.ark`](../../../std/toml.ark)
-- Manifest-backed functions: 2
-- Stability: experimental 2
+- Manifest-backed functions: 0
+- Stability: n/a
 
 TOML streaming scanner utilities for `std::toml`.
 
-The public scanning surface is the `TomlText` namespace (`parse_line`,
+The text-scanning surface is the `TomlText` namespace (`parse_line`,
 `find_section`, `find_value`, `find_raw_value`, `parse_string_array`) used
-by the compiler's manifest/script/project parsers (#917, ADR-046). The full
-TOML parser with `pub enum TomlValue` lives in `std/toml/parser.ark` (loaded
-as `std::toml::parser`) to avoid the bootstrap compiler stubbing the entire
-module.
+by the compiler's manifest/script/project parsers (#917, ADR-046). The DOM
+with `pub enum TomlValue` lives in `std/toml/parser.ark` (re-exported as
+`std::toml`) to avoid the bootstrap compiler stubbing the entire module; the
+document entry points are `TomlValue::parse` and `v.to_text()`.
 
 ### `std::toml` — Public Types
 
@@ -57,17 +57,4 @@ module.
 |------|------|---------|
 | `TomlText` | `struct` | Namespace for TOML text scanning helpers. |
 
-### `std::toml` — Public API
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `toml_parse` | `(String) -> Result<TomlValue, String>` | `experimental` | ✅ functional | - |
-| `toml_stringify` | `(TomlValue) -> String` | `experimental` | ✅ functional | - |
-
-#### `std::toml::toml_parse`
-
-Parse a TOML 1.0 document into a TomlValue tree.
-
-#### `std::toml::toml_stringify`
-
-Serialize a TomlValue back to text.
+_No manifest-backed functions in this module._

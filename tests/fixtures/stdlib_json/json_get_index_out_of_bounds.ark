@@ -2,7 +2,7 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("[1,2,3]") {
+    match json::JsonValue::parse("[1,2,3]") {
         Result::Ok(v) => {
             match v.get_index(5) {
                 Option::Some(_) => panic("expected None for out-of-bounds"),

@@ -3,10 +3,10 @@ use std::toml
 use std::test
 
 fn main() {
-    let t = toml::toml_parse("f = 1.5")
+    let t = toml::TomlValue::parse("f = 1.5")
     match t {
         Result::Ok(table) => match table.get_field("f") {
-            Option::Some(v) => test::assert_eq_string(toml::toml_stringify(v), "1.5"),
+            Option::Some(v) => test::assert_eq_string(v.to_text(), "1.5"),
             None => assert(false),
         },
         Result::Err(_) => assert(false),

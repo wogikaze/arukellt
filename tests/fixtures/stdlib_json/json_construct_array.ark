@@ -9,7 +9,7 @@ fn main() {
     let s = json::JsonValue::array(items).to_text()
     test::assert_eq_string(s, "[1,2,3]")
     // Verify the constructed array parses back correctly
-    match json::parse(s) {
+    match json::JsonValue::parse(s) {
         Result::Ok(v) => match v.get_index(1) {
             Option::Some(e) => match e.as_i32() {
                 Option::Some(n) => test::assert_eq_i32(n, 2),

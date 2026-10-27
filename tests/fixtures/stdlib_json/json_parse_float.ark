@@ -2,7 +2,7 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("3.14") {
+    match json::JsonValue::parse("3.14") {
         Result::Ok(v) => {
             test::assert_true(v.is_number())
             match v.as_f64() {
@@ -12,14 +12,14 @@ fn main() {
         },
         Result::Err(e) => panic("parse 3.14 failed: ".concat(e.message())),
     }
-    match json::parse("0.5") {
+    match json::JsonValue::parse("0.5") {
         Result::Ok(v) => match v.as_f64() {
             Option::Some(n) => test::assert_eq_f64(n, 0.5),
             None => panic("expected Some(0.5)"),
         },
         Result::Err(e) => panic("parse 0.5 failed: ".concat(e.message())),
     }
-    match json::parse("-2.5") {
+    match json::JsonValue::parse("-2.5") {
         Result::Ok(v) => match v.as_f64() {
             Option::Some(n) => test::assert_eq_f64(n, -2.5),
             None => panic("expected Some(-2.5)"),

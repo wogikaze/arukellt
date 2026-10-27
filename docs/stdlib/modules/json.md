@@ -7,13 +7,13 @@ Source-backed docs for the current JSON helpers.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::json` module provides the `JsonValue` DOM plus the `JsonText` scanner/escape namespace. DOM values are inspected with `v.is_*()` / `v.as_*()`, traversed with `v.get_field(key)` / `v.get_index(i)`, and serialized with `v.to_text()`. Construction uses `JsonValue::null/bool/int/string/raw/array/object`, `JsonField::new`, and `JsonValue::pretty_text`; text scanning uses `JsonText::quote`, `JsonText::escape`, `JsonText::get_str`, and the other `JsonText` helpers. Only `json::parse` remains a free document entry point.
+The `std::json` module provides the `JsonValue` DOM plus the `JsonText` scanner/escape namespace. DOM values are inspected with `v.is_*()` / `v.as_*()`, traversed with `v.get_field(key)` / `v.get_index(i)`, and serialized with `v.to_text()`. Construction uses `JsonValue::null/bool/int/string/raw/array/object`, `JsonField::new`, and `JsonValue::pretty_text`; text scanning uses `JsonText::quote`, `JsonText::escape`, `JsonText::get_str`, and the other `JsonText` helpers. The document entry point is the associated `JsonValue::parse(doc)`.
 
 **Recommended API highlights:**
 
 | API | Purpose |
 |-----|---------|
-| `json::parse(doc)` | Parse a full JSON document into a `JsonValue`; `Err(JsonParseError)` on malformed input. |
+| `json::JsonValue::parse(doc)` | Parse a full JSON document into a `JsonValue`; `Err(JsonParseError)` on malformed input. |
 | `v.is_null()` / `v.as_i32()` / `v.as_string()` | Type predicates and typed accessors on the DOM value. |
 | `v.get_field(key)` / `v.get_index(i)` | Look up an object field or array element. |
 | `v.to_text()` | Serialize a `JsonValue` back to compact JSON text. |
@@ -31,7 +31,7 @@ import std::json
 let n = json::JsonValue::int(42)
 let text = n.to_text()                       // "42"
 let quoted = json::JsonText::quote("a"b")  // ""a\"b""
-let parsed = json::parse("{"a":1}")
+let parsed = json::JsonValue::parse("{"a":1}")
 ```
 
 ---
@@ -39,18 +39,19 @@ let parsed = json::parse("{"a":1}")
 ## Module `std::json`
 
 - Source: [`../../../std/json.ark`](../../../std/json.ark)
-- Manifest-backed functions: 1
-- Stability: experimental 1
+- Manifest-backed functions: 0
+- Stability: n/a
 
 JSON streaming scanner and escape utilities for `std::json`.
 
-The public surface is the `JsonText` namespace (`quote`, `escape`,
-`json_text_skip_ws`, `json_text_parse_int_at`, `content_length`, `json_text_find_key_pos`,
-`parse_string_at`, `decode_escape_at`, `get_str`, `get_int`, ...) plus the
-`JsonStrResult` / `JsonEscapeResult` accessors. The former free helpers are
-private implementation details behind those functions (#917, ADR-046).
-The full JSON parser with `pub enum JsonValue` lives in
-`std/json/parser.ark` (loaded as `std::json::parser`).
+The text-scanning surface is the `JsonText` namespace (`quote`, `escape`,
+`skip_ws`, `parse_int_at`, `content_length`,
+`find_key_pos`, `parse_string_at`, `decode_escape_at`, `get_str`, `get_int`,
+...) plus the `JsonStrResult` / `JsonEscapeResult` accessors. The former
+free helpers are private implementation details behind those functions
+(#917, ADR-046). The DOM with `pub enum JsonValue` lives in
+`std/json/parser.ark` (re-exported as `std::json`); the document entry point
+is `JsonValue::parse`.
 
 ### `std::json` — Public Types
 
@@ -60,12 +61,4 @@ The full JSON parser with `pub enum JsonValue` lives in
 | `JsonEscapeResult` | `struct` | Result of decoding one JSON string escape sequence. |
 | `JsonText` | `struct` | Namespace for JSON text scanning and quoting helpers. |
 
-### `std::json` — Public API
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `experimental` | ✅ functional | - |
-
-#### `std::json::parse`
-
-Parse a full JSON document and reject trailing non-whitespace after the first top-level value.
+_No manifest-backed functions in this module._

@@ -11,6 +11,8 @@ use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
 use mir::lower::match_payload_field_type
 use mir::inst_const_i32
+use mir::inst_convert
+use mir::inst_local_get
 use mir::inst_struct_new
 use mir::inst_struct_set
 use mir::inst_gc_struct
@@ -58,7 +60,7 @@ fn lower_gc_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals:
             }
             ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_new(dest, dest_slot))
             emit_variant_tag_field(ctx, dest, tag, dest_slot)
-            emit_gc_variant_payload_fields(ctx, dest, dest_slot, payload_locals, effective_vts)
+            emit_gc_variant_payload_fields(ctx, dest, dest_slot, payload_locals, effective_vts, clone(variant_name))
             // Value lives in `dest`; callers load via local_set_from / return_value.
             return dest
         } else {
@@ -75,7 +77,7 @@ fn lower_gc_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals:
     }
     ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_new(dest, type_slot))
     emit_variant_tag_field(ctx, dest, tag, type_slot)
-    emit_gc_variant_payload_fields(ctx, dest, type_slot, payload_locals, payload_vts)
+    emit_gc_variant_payload_fields(ctx, dest, type_slot, payload_locals, payload_vts, clone(variant_name))
     dest
 }
 
@@ -338,21 +340,44 @@ fn emit_variant_tag_field(ctx: LowerCtx, dest: i32, tag: i32, type_slot: i32) {
     }
 }
 
-fn emit_gc_variant_payload_fields(ctx: LowerCtx, dest: i32, type_slot: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>) {
+fn emit_gc_variant_payload_fields(ctx: LowerCtx, dest: i32, type_slot: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, variant_name: String) {
+    let layout_name = ctx_struct_field_type::ctx_resolve_variant_layout_name(ctx, clone(variant_name))
     let mut fi = 0
     let child_count = len(payload_locals)
     while fi < child_count {
-        let field_local = get_unchecked(payload_locals, fi)
+        let mut field_local = get_unchecked(payload_locals, fi)
         let field_vt = get_unchecked(payload_vts, fi)
         let mut set_vt = value_types::VT_VOID()
+        let mut needs_i64_widen = false
+        if field_vt == value_types::VT_I32() {
+            needs_i64_widen = ctx_struct_layout::ctx_struct_field_is_i64(
+                ctx,
+                clone(layout_name),
+                fi + 1
+            )
+        }
         if field_vt == value_types::VT_F64() {
             set_vt = value_types::VT_F64()
         } else if field_vt == value_types::VT_I64() {
             set_vt = value_types::VT_I64()
         } else if field_vt == value_types::VT_FUNCREF() {
             set_vt = value_types::VT_FUNCREF()
+        } else if needs_i64_widen {
+            // User enums declare an i64 payload (for example
+            // TomlValue::Integer) while the constructor argument is an
+            // unannotated integer literal. The variant layout keeps the
+            // declared i64 field, so widen before struct.set instead of
+            // emitting an i32 store into an i64 field.
+            let ext = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I64())
+            ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(field_local))
+            ctx_api_emit::ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64(ext, field_local))
+            field_local = ext
+            set_vt = value_types::VT_I64()
         }
-        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_set(dest, field_local, type_slot, fi + 1, set_vt))
+        ctx_api_emit::ctx_emit(
+            ctx,
+            inst_gc_struct::MirInst_gc_struct_set(dest, field_local, type_slot, fi + 1, set_vt)
+        )
         fi = fi + 1
     }
 }

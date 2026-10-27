@@ -3,7 +3,7 @@ use std::toml
 use std::test
 
 fn main() {
-    let t = toml::toml_parse("d = 1979-05-27")
+    let t = toml::TomlValue::parse("d = 1979-05-27")
     match t {
         Result::Ok(table) => match table.get_field("d") {
             Option::Some(v) => match v.as_string() {

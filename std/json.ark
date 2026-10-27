@@ -1,12 +1,13 @@
 //! JSON streaming scanner and escape utilities for `std::json`.
 //!
-//! The public surface is the `JsonText` namespace (`quote`, `escape`,
-//! `json_text_skip_ws`, `json_text_parse_int_at`, `content_length`, `json_text_find_key_pos`,
-//! `parse_string_at`, `decode_escape_at`, `get_str`, `get_int`, ...) plus the
-//! `JsonStrResult` / `JsonEscapeResult` accessors. The former free helpers are
-//! private implementation details behind those functions (#917, ADR-046).
-//! The full JSON parser with `pub enum JsonValue` lives in
-//! `std/json/parser.ark` (loaded as `std::json::parser`).
+//! The text-scanning surface is the `JsonText` namespace (`quote`, `escape`,
+//! `skip_ws`, `parse_int_at`, `content_length`,
+//! `find_key_pos`, `parse_string_at`, `decode_escape_at`, `get_str`, `get_int`,
+//! ...) plus the `JsonStrResult` / `JsonEscapeResult` accessors. The former
+//! free helpers are private implementation details behind those functions
+//! (#917, ADR-046). The DOM with `pub enum JsonValue` lives in
+//! `std/json/parser.ark` (re-exported as `std::json`); the document entry point
+//! is `JsonValue::parse`.
 
 use std::prelude::{byte_at, index_of, slice, substring}
 use std::text
@@ -540,12 +541,8 @@ fn json_text_get_int(json: String, key: String) -> i32 {
 }
 
 // ─── Re-exports from std/json/parser.ark ────────────────────────────────────
-// The full JsonValue parser lives in std/json/parser.ark and is re-exported
-// by the pub use above. The wrappers below keep parse / stringify spelled
-// with the re-exported names (#726 json_perf_decode).
+// The DOM types and their associated functions live in std/json/parser.ark and
+// are re-exported by the pub use below, so callers spell the document entry
+// point as `JsonValue::parse` (#917, ADR-046).
 
 pub use std::json::parser
-
-pub fn parse(s: String) -> Result<parser::JsonValue, parser::JsonParseError> {
-    parser::parse(s)
-}

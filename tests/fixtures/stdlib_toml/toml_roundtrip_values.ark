@@ -16,22 +16,22 @@ use std::text
 /// serialised primitive text, the subset parser is in parity for that value.
 fn main() {
     let doc = "title = \"hello world\"\nport = 8080\nflag = false\nratio = 1.5"
-    match toml::toml_parse(doc) {
+    match toml::TomlValue::parse(doc) {
         Result::Ok(table) => {
             match table.get_field("title") {
-                Option::Some(v) => stdio::println(toml::toml_stringify(v)),
+                Option::Some(v) => stdio::println(v.to_text()),
                 None => stdio::println("missing title"),
             }
             match table.get_field("port") {
-                Option::Some(v) => stdio::println(toml::toml_stringify(v)),
+                Option::Some(v) => stdio::println(v.to_text()),
                 None => stdio::println("missing port"),
             }
             match table.get_field("flag") {
-                Option::Some(v) => stdio::println(toml::toml_stringify(v)),
+                Option::Some(v) => stdio::println(v.to_text()),
                 None => stdio::println("missing flag"),
             }
             match table.get_field("ratio") {
-                Option::Some(v) => stdio::println(toml::toml_stringify(v)),
+                Option::Some(v) => stdio::println(v.to_text()),
                 None => stdio::println("missing ratio"),
             }
         },

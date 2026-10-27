@@ -2,17 +2,17 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("1e5") {
+    match json::JsonValue::parse("1e5") {
         Result::Ok(v) => {
             test::assert_true(v.is_number())
         },
         Result::Err(e) => panic("parse 1e5 failed: ".concat(e.message())),
     }
-    match json::parse("1.5e3") {
+    match json::JsonValue::parse("1.5e3") {
         Result::Ok(v) => test::assert_true(v.is_number()),
         Result::Err(e) => panic("parse 1.5e3 failed: ".concat(e.message())),
     }
-    match json::parse("2E10") {
+    match json::JsonValue::parse("2E10") {
         Result::Ok(v) => test::assert_true(v.is_number()),
         Result::Err(e) => panic("parse 2E10 failed: ".concat(e.message())),
     }

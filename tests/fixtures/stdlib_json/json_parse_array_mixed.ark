@@ -2,7 +2,7 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("[1,\"two\",true,null]") {
+    match json::JsonValue::parse("[1,\"two\",true,null]") {
         Result::Ok(v) => {
             match v.get_index(0) {
                 Option::Some(e) => match e.as_i32() {

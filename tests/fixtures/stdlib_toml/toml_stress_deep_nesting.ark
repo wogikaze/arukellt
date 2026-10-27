@@ -4,7 +4,7 @@ use std::test
 
 fn main() {
     let doc = "[a.b.c.d.e]\nval = 1"
-    match toml::toml_parse(doc) {
+    match toml::TomlValue::parse(doc) {
         Result::Ok(table) => match table.get_field("a") {
             Option::Some(a) => match a.get_field("b") {
                 Option::Some(b) => match b.get_field("c") {
