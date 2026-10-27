@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use mir::lower::ctx_locals_type
 use mir::lower::ctx_typed_mir_sync
 
@@ -9,3 +10,33 @@ fn ctx_set_local_mvt(ctx: LowerCtx, idx: i32, value_type: MirValueType) { ctx_ty
 fn ctx_local_mvt(ctx: LowerCtx, idx: i32) -> MirValueType { ctx_typed_mir_sync::ctx_local_mvt(ctx, idx) }
 fn ctx_set_local_variant_slot(ctx: LowerCtx, local_idx: i32, variant_slot: i32) { ctx_locals_type::ctx_set_local_variant_slot(ctx, local_idx, variant_slot) }
 fn ctx_get_local_variant_slot(ctx: LowerCtx, local_idx: i32) -> i32 { ctx_locals_type::ctx_get_local_variant_slot(ctx, local_idx) }
+
+// HashSet<T> lowers to a flat Vec alias, so the marker carries the element
+// family across let bindings and calls. 1 = i32, 2 = String, 0 = not a set.
+fn ctx_mark_hashset_local(ctx: LowerCtx, local_idx: i32, family: String) {
+    if local_idx < 0 {
+        return
+    }
+    while len(ctx.hashset_locals) <= local_idx {
+        push(ctx.hashset_locals, 0)
+    }
+    if eq(clone(family), String_from("String")) {
+        set(ctx.hashset_locals, local_idx, 2)
+    } else {
+        set(ctx.hashset_locals, local_idx, 1)
+    }
+}
+
+fn ctx_hashset_local_family(ctx: LowerCtx, local_idx: i32) -> String {
+    if local_idx < 0 || local_idx >= len(ctx.hashset_locals) {
+        return String_new()
+    }
+    let code = get_unchecked(ctx.hashset_locals, local_idx)
+    if code == 1 {
+        return String_from("i32")
+    }
+    if code == 2 {
+        return String_from("String")
+    }
+    String_new()
+}

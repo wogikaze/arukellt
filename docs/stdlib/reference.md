@@ -28,6 +28,7 @@
 | `DequeIterMut` | T | no | provisional | Writable front-to-back cursor over a Deque<T> with set_current. |
 | `File` | - | no | experimental | Read-only whole-file image handle opened by File::open; implements std::io Read and Seek over the loaded byte image. The host surface has no descriptor open/read/write/close yet, so the image is the visibility boundary (ADR-085 D6). |
 | `HashMap` | K, V | yes | provisional | Hash-based key/value map. |
+| `HashSet` | T | no | provisional | Set of unique i32 values; new, insert, contains, remove, len, is_empty lower to the flat hash store. |
 | `Io` | - | no | experimental | Namespace type for receiver-less generic algorithms over the I/O traits: copy, read_exact, read_to_end, read_to_string, and write_all. |
 | `LinkedList` | T | no | provisional | Doubly-linked list with O(1) push/pop at both ends. |
 | `LinkedListIntoIter` | T | no | provisional | Owning front-to-back cursor over a LinkedList<T>. |
@@ -92,6 +93,7 @@
 | `DequeIterMut` | `set_current` | `Iterator`, `IntoIterator` |
 | `File` | `open`, `close` | `Read`, `Seek` |
 | `FromIterator` | `from_iter` | - |
+| `HashSet` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty` | - |
 | `IntoIterator` | `into_iter` | - |
 | `Io` | `copy`, `read_exact`, `read_to_end`, `read_to_string`, `write_all` | - |
 | `IoError` | - | `Display`, `Error` |

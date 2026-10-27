@@ -16,44 +16,29 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
-## 2026-10-27 — WIT AST method wave（#917、wave/wit-ast-methods）
+## 2026-10-27 — concrete `HashSet<i32>` membership surface (#917)
 
-- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の
-  free-function 根絶と [ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)
-  の method-first surface。対象は `std::wit::ast` の **23 source 宣言**
-  （`ast_*` accessor 20、`parse_import_text`、`ast_import_serialized`、
-  `parse`）。manifest entry を持たない未登録宣言なので ADR-014 の
-  deprecation window は適用されない。E0100 は
-  `resolver::removed_names::removed_module_member_hint` の `ast` alias に
-  追加した。
-- **Compiler fix**: recursive enum の receiver method で `self` local が
-  bare impl-owner 名（`WitNode`）で宣言され、receiver を copy する match
-  wildcard が struct table 経由で string 型（`(ref null 0)`）に落ちていた。
-  free function の parameter は `enum:WitNode` を使うため valid。method
-  receiver の local type name を enum-open spelling に正規化し、wildcard
-  local を `(ref null 14)`（open enum）で宣言する。同じ body の
-  free-function WAT は不変。
-- **Replacement**: `WitNode` receiver method `kind` / `name` /
-  `child_count` / `child_at` / `first_interface_name` /
-  `field_name_at` / `field_type_at` / `enum_variant_at` /
-  `flags_member_at` / `variant_case_name_at` /
-  `variant_case_has_payload` / `variant_case_type_at` /
-  `func_param_count` / `func_param_name_at` / `func_param_type_at` /
-  `func_has_result` / `func_result` / `type_alias_target` /
-  `use_path` / `use_alias` / `import_serialized`、associated function
-  `WitNode::parse(source)` / `WitNode::import_metadata(source)`。
-- **Scorecard**: `pub fn` 宣言 1012 → **989**、unregistered 263 → **241**、
-  eradication scope 888 → **866**（`associated-or-method`）。
-  manifest 公開 entry 625 と `prelude_wrapper` 65 は不変。
-- **Evidence**: `verify fixtures` 1845 compile+validate / 0 FAIL（105
-  runtime smoke）。新 fixture `stdlib_wit/wit_ast_methods.ark` は
-  wasm32-gc component で `OK`、linear twin は `--target wasm32` で
-  compile+validate+実行 `OK`。旧 fixture `wit_ast_parse.ark` は全
-  accessor を method で実行し `OK`。E0100 は
-  `diagnostics/removed_wit_ast_free*.ark` で両 target を検査。
-- **Residual**: `std::wit::parser` の 3 free（`parse_full` /
-  `parse_full_import_text` / `parse_wit`）と `std::component` /
-  `std::component::handle` は #917 に残る。
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and
+  [ADR-086](../adr/ADR-086-linear-collection-adts.md) §2/§4: public collection
+  types use associated constructors and receiver methods. This is an
+  incremental slice of the [#917](https://github.com/wogikaze/arukellt/issues/917)
+  execution lane; the aggregate and `String` lanes are not part of it.
+- **Added**: `HashSet<i32>` (`std::collections::hash_set::HashSet`) with
+  `HashSet::new<i32>()` and the receiver methods `insert`, `contains`,
+  `remove`, `len`, `is_empty`. They lower through the compiler method rewrite
+  to the flat `hash::hashset_*` store.
+- **Retained, deprecated (20)**: the 15 `hash_set::hashset_i32_*` adapters and
+  the 5 `hash_set::hashset_str_*` `Vec<String>` facade adapters. They stay for
+  the aggregate i32 and `String` lanes, whose GC lowering is not fixed yet;
+  no manifest lifecycle or E0100 removal applies.
+- **Fixtures**: `stdlib_hashset/hashset_methods.ark` and
+  `stdlib_hashset/hashset_methods_wasm32.ark` (both targets, compile + run).
+  No aggregate, `String`, or `union`/`reserve`/`extend` fixture is registered.
+- **Residual**: `HashSet<T>` has no aggregate methods (`to_vec`, `union`,
+  `intersection`, `difference`, `capacity`, `reserve`, `shrink_to_fit`,
+  `clear`, `extend`) or `HashSet<String>` methods until the GC method
+  lowering is fixed; those users keep the deprecated adapters. No
+  `IntoIterator` / `FromIterator` / `Clone` / `Eq` / `Debug` impls yet.
 
 ## 2026-10-27 — iterator collect lane fixes (#917, #691)
 

@@ -23,6 +23,7 @@ use mir::lower::for_iter_resolve
 use mir::lower::mono_suffix_parse
 use mir::lower::call_rewrite_method
 use mir::lower::call_rewrite_hashmap
+use mir::lower::call_rewrite_hashset
 use mir::lower::call_rewrite_vec
 use mir::lower::ctx_struct_lookup
 use mir::lower::method_resolve
@@ -453,6 +454,16 @@ fn edge_fn_index_return_type(ctx: LowerCtx, name: String) -> String {
 // HashMap::new decl whose return is the unsubstituted HashMap<K, V>, so
 // the concrete pair must come from the rewrite rather than the bare decl.
 fn edge_call_return_type(ctx: LowerCtx, name: String) -> String {
+    let hs_ctor = call_rewrite_hashset::mir_rewrite_hashset_constructor(clone(name))
+    if len(hs_ctor) > 0 {
+        // HashSet<i32> / HashSet<String> lowers to the flat store, whose
+        // declared return is Vec<i32> / Vec<String>; the source expression
+        // keeps the set type for receiver dispatch (#917).
+        let hs_rt = call_rewrite_hashset::mir_hashset_constructor_type_name(clone(name))
+        if len(hs_rt) > 0 {
+            return hs_rt
+        }
+    }
     let ctor = call_rewrite_hashmap::mir_rewrite_hashmap_constructor(clone(name))
     if len(ctor) > 0 {
         // HashMap<i32,i32> lowers to the flat store, whose declared return
@@ -540,6 +551,17 @@ fn edge_push_typed_method_candidates(out: Vec<String>, recv_ty: String, method: 
         let pair_owner = method_resolve::mir_hashmap_impl_owner_name(clone(owner_ty))
         if len(pair_owner) > 0 {
             push(out, clone(pair_owner).concat(String_from("::").concat(clone(method))))
+        }
+    }
+    let hs_family = call_rewrite_hashset::hashset_family_for_type(clone(owner_ty))
+    if len(hs_family) > 0 {
+        let hs_target = call_rewrite_hashset::hashset_method_target_for_family(clone(hs_family), clone(method))
+        if len(hs_target) > 0 {
+            push(out, hs_target)
+        }
+        let hs_owner = method_resolve::mir_inst_owner_name(clone(recv_ty))
+        if len(hs_owner) > 0 {
+            push(out, clone(hs_owner).concat(String_from("::").concat(clone(method))))
         }
     }
     let bare_owner = call_rewrite_method::mir_bare_receiver_type_name(clone(owner_ty))
@@ -1508,6 +1530,14 @@ fn edge_rewrite_targets(name: String, out: Vec<String>) {
         if len(target) > 0 {
             push(out, target)
         }
+    }
+    let hs_ctor = call_rewrite_hashset::mir_rewrite_hashset_constructor(clone(name))
+    if len(hs_ctor) > 0 {
+        push(out, hs_ctor)
+    }
+    let hs_meth = call_rewrite_hashset::mir_rewrite_hashset_method(clone(name))
+    if len(hs_meth) > 0 {
+        push(out, hs_meth)
     }
     let vec_coreop = method_resolve::mir_vec_method_prefer_coreop_name(clone(name))
     if len(vec_coreop) > 0 {

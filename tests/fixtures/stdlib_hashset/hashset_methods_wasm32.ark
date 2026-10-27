@@ -1,0 +1,19 @@
+// Concrete HashSet<i32> membership surface over the flat hash store (#917).
+use std::collections::hash_set::HashSet
+use std::test
+
+fn main() {
+    let s: HashSet<i32> = HashSet::new<i32>()
+    test::assert_true(s.is_empty())
+    test::assert_eq_i32(s.len(), 0)
+    test::assert_true(s.insert(1))
+    test::assert_true(s.insert(2))
+    test::assert_false(s.insert(1))
+    test::assert_eq_i32(s.len(), 2)
+    test::assert_true(s.contains(2))
+    test::assert_false(s.contains(3))
+    test::assert_true(s.remove(2))
+    test::assert_false(s.remove(2))
+    test::assert_eq_i32(s.len(), 1)
+    test::assert_true(s.contains(1))
+}

@@ -1,6 +1,7 @@
 use std::prelude::{clone, ends_with, eq}
 use mir::lower::call_type_fallback
 use mir::lower::call_type_hash
+use mir::lower::call_rewrite_hashset
 use mir::lower::call_type_vec
 use mir::inst_accessors_operands
 use mir::lower::ctx_gc_enum
@@ -11,6 +12,7 @@ use mir::lower::core_call_arg_names
 use mir::lower::gc_layout_plan_build
 use mir::value_types
 fn mir_mark_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
+    call_rewrite_hashset::mark_hashset_result_type(ctx, clone(callee_name), dest)
     // seq::sort_by<T>(v: Vec<T>) -> Vec<T> is the identity on its receiver.
     // Copy the receiver's typed-MIR Vec type before the generic fallback can
     // leave the dest at vec:i32; skip the other markers when handled (#695).
