@@ -116,6 +116,9 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "names") {
         return removed_wit_name_member_hint(name)
     }
+    if eq(clone(module), "ast") {
+        return removed_wit_ast_member_hint(name)
+    }
     if eq(clone(module), "printer") && eq(clone(name), "print_wit") {
         return String_from("use `w.to_wit()` on `World` instead")
     }
@@ -353,6 +356,33 @@ fn removed_wit_name_member_hint(name: String) -> String {
     String_new()
 }
 
+fn removed_wit_ast_member_hint(name: String) -> String {
+    if eq(clone(name), "ast_kind") { return String_from("use `node.kind()` on `WitNode` instead") }
+    if eq(clone(name), "ast_name") { return String_from("use `node.name()` on `WitNode` instead") }
+    if eq(clone(name), "ast_child_count") { return String_from("use `node.child_count()` on `WitNode` instead") }
+    if eq(clone(name), "ast_child_at") { return String_from("use `node.child_at(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_first_interface_name") { return String_from("use `node.first_interface_name()` on `WitNode` instead") }
+    if eq(clone(name), "ast_field_name_at") { return String_from("use `node.field_name_at(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_field_type_at") { return String_from("use `node.field_type_at(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_enum_variant_at") { return String_from("use `node.enum_variant_at(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_flags_member_at") { return String_from("use `node.flags_member_at(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_variant_case_name_at") { return String_from("use `node.variant_case_name_at(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_variant_case_has_payload") { return String_from("use `node.variant_case_has_payload(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_variant_case_type_at") { return String_from("use `node.variant_case_type_at(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_func_param_count") { return String_from("use `node.func_param_count()` on `WitNode` instead") }
+    if eq(clone(name), "ast_func_param_name_at") { return String_from("use `node.func_param_name_at(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_func_param_type_at") { return String_from("use `node.func_param_type_at(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_func_has_result") { return String_from("use `node.func_has_result()` on `WitNode` instead") }
+    if eq(clone(name), "ast_func_result") { return String_from("use `node.func_result()` on `WitNode` instead") }
+    if eq(clone(name), "ast_type_alias_target") { return String_from("use `node.type_alias_target()` on `WitNode` instead") }
+    if eq(clone(name), "ast_use_path") { return String_from("use `node.use_path()` on `WitNode` instead") }
+    if eq(clone(name), "ast_use_alias") { return String_from("use `node.use_alias()` on `WitNode` instead") }
+    if eq(clone(name), "parse") { return String_from("use `WitNode::parse(source)` instead") }
+    if eq(clone(name), "parse_import_text") { return String_from("use `WitNode::import_metadata(source)` instead") }
+    if eq(clone(name), "ast_import_serialized") { return String_from("use `node.import_serialized()` on `WitNode` instead") }
+    String_new()
+}
+
 // Prelude decls outside the ADR-072 stable set: still public in
 // std::prelude but no longer auto-imported. The hint keeps the call
 // working through an explicit selective import.
@@ -552,5 +582,16 @@ test mod "removed_names" {
     test "live wit members keep no removal hint" {
         assert(len(removed_module_member_hint(String_from("parser"), String_from("parse_full"))) == 0)
         assert(len(removed_module_member_hint(String_from("types"), String_from("WitParam"))) == 0)
+    }
+    test "removed wit ast frees have method hints" {
+        assert(len(removed_module_member_hint(String_from("ast"), String_from("ast_kind"))) > 0)
+        assert(len(removed_module_member_hint(String_from("ast"), String_from("ast_child_at"))) > 0)
+        assert(len(removed_module_member_hint(String_from("ast"), String_from("ast_field_name_at"))) > 0)
+        assert(len(removed_module_member_hint(String_from("ast"), String_from("parse_import_text"))) > 0)
+        assert(len(removed_module_member_hint(String_from("ast"), String_from("ast_import_serialized"))) > 0)
+        assert(len(removed_module_member_hint(String_from("ast"), String_from("parse"))) > 0)
+    }
+    test "live wit ast members keep no removal hint" {
+        assert(len(removed_module_member_hint(String_from("ast"), String_from("WitNode"))) == 0)
     }
 }

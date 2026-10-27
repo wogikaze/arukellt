@@ -153,8 +153,20 @@ fn mir_bind_method_self_param(ctx: LowerCtx, struct_name: String, param: CoreHir
     } else {
         clone(self_type_name)
     }
+    // The receiver local carries the same enum-open spelling a free-function
+    // parameter gets. With the bare owner name, a match wildcard that copies
+    // `self` resolves through the struct/type table and falls back to the
+    // string storage type; the resulting `(ref null <string>)` local cannot
+    // accept the enum-open receiver (#917).
+    let mut self_local_type_name = clone(self_type_name)
+    if self_vt == value_types::VT_GC_REF() {
+        let enum_spelling = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(self_type_name))
+        if starts_with(clone(enum_spelling), String_from("enum:")) {
+            self_local_type_name = enum_spelling
+        }
+    }
     ctx_push_func_param(ctx, local_factory::MirLocal_new("self", self_vt, clone(self_sig_type_name)))
-    ctx_set_local_type(ctx, self_local, clone(self_type_name))
+    ctx_set_local_type(ctx, self_local, clone(self_local_type_name))
     mir_apply_param_mvt_override(ctx, self_local)
 }
 

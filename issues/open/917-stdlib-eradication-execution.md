@@ -342,6 +342,51 @@ classified there, in dependency-safe waves.
   pre-existing linear lowering bug), and the generic-`for` site pinning
   remains for adapter bodies other than the two collect hooks fixed here.
 
+### Landed slice (wave/wit-ast-methods, 2026-10-27)
+
+- Fixed the compiler gap that deferred `std::wit::ast`: a receiver method on a
+  recursive enum bound its `self` local with the bare impl-owner name
+  (`WitNode`) instead of the canonical open-enum spelling (`enum:WitNode`).
+  The match wildcard that copies the receiver then resolved through the
+  struct/type table and declared a `(ref null <string>)` local, which cannot
+  accept the `(ref null <open-enum>)` receiver; the same bodies as free
+  functions validate because free params already use the enum spelling.
+  The fix normalizes the method receiver's local type name in
+  `mir/lower/params_method.ark`; the WAT diff is a local decl
+  `(ref null 0)` → `(ref null 14)` plus the matching wildcard copy store.
+- Retired the 22 `std::wit::ast` source declarations (20 `ast_*` accessors,
+  `parse_import_text`, `ast_import_serialized`) plus `parse`: `WitNode`
+  receiver methods (`kind`, `name`, `child_count`, `child_at`,
+  `first_interface_name`, `field_name_at`, …, `use_alias`,
+  `import_serialized`) and associated functions `WitNode::parse` /
+  `WitNode::import_metadata`. The accessors use explicit variant arms /
+  or-pattern fallbacks so the pinned bootstrap (which predates the receiver
+  fix) can still compile the module.
+- E0100: `resolver::removed_names::removed_module_member_hint` now maps the
+  `ast` module alias to method/migration hints, with unit assertions.
+- Fixtures: `stdlib_wit/wit_ast_parse.ark` migrated to the method surface and
+  extended over every accessor; new `stdlib_wit/wit_ast_methods.ark`
+  (+ `_wasm32` linear twin) reproduces the recursive-enum receiver form with
+  wildcard payload binds; new `diagnostics/removed_wit_ast_free*.ark` assert
+  the E0100 hints.
+- Scorecard: `pub fn` declarations 1012 → **989**, unregistered 263 → **241**,
+  eradication scope 888 → **866** (`associated-or-method` 796,
+  `must delete` 70, `intrinsic-only` 1). Manifest public entries 625 and
+  `prelude_wrapper` 65 unchanged.
+- Verification: s2 rebuild from the pinned bootstrap PASS; `verify fixtures`
+  **1845 PASS / 0 FAIL** (1845 compile+validate, 105 runtime smoke); the new
+  gc method fixture executes as a WASI P2 component and prints `OK`; the
+  linear twin compiles, validates and executes `OK` on `--target wasm32`;
+  wasm32-gc / wasm32 WAT diff for the probe is the wildcard local decl
+  `(ref null 0)` → `(ref null 14)` only; `selfhost fixpoint --build` PASS
+  (s2 == s3 at `1d38bc97…`); `docs regenerate` / `docs check` 6/6;
+  `verify lane` (quality changed) PASS.
+- Residual: the 3 `std::wit::parser` frees and the `std::component` /
+  `std::component::handle` families remain in the `std::wit/component frees`
+  rule. `verify lane --gate diag-parity` still reports the 2 pre-existing
+  `removed_hashmap_adapter*` fixtures (the base `removed_names.ark` has no
+  `hash_map` module hint); this change neither introduces nor fixes them.
+
 ## Required work
 
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate
@@ -378,9 +423,11 @@ classified there, in dependency-safe waves.
         deletion is Wave 2.
       - Landed 2026-10-27 (`wave/917-nextgroup`): the 33 non-AST
         `std::wit` symbols retired after `WitType` methods, the `WitText` /
-        `WitName` namespace types, and `World::to_wit` landed. `std::wit::ast`
-        and the parser frees stay deferred with the recursive `WitNode`
-        receiver shape.
+        `WitName` namespace types, and `World::to_wit` landed.
+      - Landed 2026-10-27 (`wave/wit-ast-methods`): the 23 `std::wit::ast`
+        symbols retired after the method-receiver enum-open lowering fix
+        landed (`WitNode::parse` / `WitNode::import_metadata` and the
+        `WitNode` accessor methods); only the parser frees remain deferred.
       - Landed 2026-10-27 (`wave/917-iter44`): the 44 eager
         `std::core::iter` constructor / collector frees retired after the
         `VecIter` adapter method surface (`chain`/`enumerate`/`zip`/`all`

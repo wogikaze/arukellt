@@ -309,17 +309,19 @@ replacement = "Wit/Component/Handle associated functions and methods"
 #   std::wit::scan (8)    -> WitText namespace associated functions
 #   std::wit::names (4)   -> WitName namespace associated functions
 #   std::wit::printer (1) -> World::to_wit  [wave/917-nextgroup]
+#   std::wit::ast (23)    -> WitNode receiver methods (kind / name /
+#                            child_count / child_at / field_name_at / ...),
+#                            WitNode::parse / WitNode::import_metadata
+#                            associated functions, and node.import_serialized()
+#                            [wave/wit-ast-methods]
 # The qualified-removal E0100 hints live in
 # resolver::removed_names::removed_module_member_hint for the `wit`, `types`,
-# `scan`, `names`, and `printer` aliases.
-# Residual in this rule: std::wit::ast (23 declarations) stays deferred
-# because its accessors bind payloads of the recursive WitNode enum; that
-# receiver shape still emits invalid Wasm under wasm32-gc until method-receiver
-# monomorphization handles it. The three `std::wit::parser` frees
+# `scan`, `names`, `ast`, and `printer` aliases.
+# Residual in this rule: the three `std::wit::parser` frees
 # (parse_full, parse_full_import_text, parse_wit) and the std::component /
-# std::component::handle families also remain in this rule. WitType's own
-# recursive receiver methods (List/Option payload binds) were probed and do
-# validate on wasm32-gc, so the deferral is WitNode-specific.
+# std::component::handle families remain in this rule. The WitNode accessors
+# landed after the method-receiver enum-open lowering fix; the parser frees
+# are a separate module surface.
 
 [[rules]]
 label = "host/core namespace frees"

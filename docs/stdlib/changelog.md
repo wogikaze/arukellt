@@ -16,6 +16,45 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — WIT AST method wave（#917、wave/wit-ast-methods）
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の
+  free-function 根絶と [ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)
+  の method-first surface。対象は `std::wit::ast` の **23 source 宣言**
+  （`ast_*` accessor 20、`parse_import_text`、`ast_import_serialized`、
+  `parse`）。manifest entry を持たない未登録宣言なので ADR-014 の
+  deprecation window は適用されない。E0100 は
+  `resolver::removed_names::removed_module_member_hint` の `ast` alias に
+  追加した。
+- **Compiler fix**: recursive enum の receiver method で `self` local が
+  bare impl-owner 名（`WitNode`）で宣言され、receiver を copy する match
+  wildcard が struct table 経由で string 型（`(ref null 0)`）に落ちていた。
+  free function の parameter は `enum:WitNode` を使うため valid。method
+  receiver の local type name を enum-open spelling に正規化し、wildcard
+  local を `(ref null 14)`（open enum）で宣言する。同じ body の
+  free-function WAT は不変。
+- **Replacement**: `WitNode` receiver method `kind` / `name` /
+  `child_count` / `child_at` / `first_interface_name` /
+  `field_name_at` / `field_type_at` / `enum_variant_at` /
+  `flags_member_at` / `variant_case_name_at` /
+  `variant_case_has_payload` / `variant_case_type_at` /
+  `func_param_count` / `func_param_name_at` / `func_param_type_at` /
+  `func_has_result` / `func_result` / `type_alias_target` /
+  `use_path` / `use_alias` / `import_serialized`、associated function
+  `WitNode::parse(source)` / `WitNode::import_metadata(source)`。
+- **Scorecard**: `pub fn` 宣言 1012 → **989**、unregistered 263 → **241**、
+  eradication scope 888 → **866**（`associated-or-method`）。
+  manifest 公開 entry 625 と `prelude_wrapper` 65 は不変。
+- **Evidence**: `verify fixtures` 1845 compile+validate / 0 FAIL（105
+  runtime smoke）。新 fixture `stdlib_wit/wit_ast_methods.ark` は
+  wasm32-gc component で `OK`、linear twin は `--target wasm32` で
+  compile+validate+実行 `OK`。旧 fixture `wit_ast_parse.ark` は全
+  accessor を method で実行し `OK`。E0100 は
+  `diagnostics/removed_wit_ast_free*.ark` で両 target を検査。
+- **Residual**: `std::wit::parser` の 3 free（`parse_full` /
+  `parse_full_import_text` / `parse_wit`）と `std::component` /
+  `std::component::handle` は #917 に残る。
+
 ## 2026-10-27 — iterator collect lane fixes (#917, #691)
 
 - **Basis**: the iterator-collect residuals reported by the

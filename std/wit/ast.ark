@@ -6,7 +6,7 @@
 //! declarations.
 //!
 //! The parser produces a `WitNode` tree that can be inspected with
-//! `ast_kind`, `ast_name`, and other accessor helpers.
+//! `WitNode::kind`, `WitNode::name`, and other accessor methods.
 
 use std::wit::types
 use std::wit::types::{WitType}
@@ -33,333 +33,572 @@ pub enum WitNode {
     Error(String),
 }
 
-// ─── Accessor helpers ────────────────────────────────────────────
+// ─── AST accessors ───────────────────────────────────────────────
 
-/// Return the kind string of a `WitNode` (e.g. `"world"`, `"record"`).
-pub fn ast_kind(node: WitNode) -> String {
-    match node {
-        WitNode::Package(_, _) => "package",
-        WitNode::World(_, _) => "world",
-        WitNode::Interface(_, _) => "interface",
-        WitNode::Record(_, _) => "record",
-        WitNode::Enum(_, _) => "enum",
-        WitNode::Flags(_, _) => "flags",
-        WitNode::Variant(_, _) => "variant",
-        WitNode::Resource(_, _) => "resource",
-        WitNode::TypeAlias(_, _) => "type",
-        WitNode::Use(_, _) => "use",
-        WitNode::Func(_, _, _) => "func",
-        WitNode::Import(_, _) => "import",
-        WitNode::Export(_, _) => "export",
-        WitNode::Error(_) => "error",
+impl WitNode {
+    /// Return the kind string of this node (e.g. `"world"`, `"record"`).
+    fn kind(self: WitNode) -> String {
+        match self {
+            WitNode::Package(_, _) => "package",
+            WitNode::World(_, _) => "world",
+            WitNode::Interface(_, _) => "interface",
+            WitNode::Record(_, _) => "record",
+            WitNode::Enum(_, _) => "enum",
+            WitNode::Flags(_, _) => "flags",
+            WitNode::Variant(_, _) => "variant",
+            WitNode::Resource(_, _) => "resource",
+            WitNode::TypeAlias(_, _) => "type",
+            WitNode::Use(_, _) => "use",
+            WitNode::Func(_, _, _) => "func",
+            WitNode::Import(_, _) => "import",
+            WitNode::Export(_, _) => "export",
+            WitNode::Error(_) => "error",
+        }
     }
-}
 
-/// Return the name string of a `WitNode`.
-pub fn ast_name(node: WitNode) -> String {
-    match node {
-        WitNode::Package(name, _) => clone(name),
-        WitNode::World(name, _) => clone(name),
-        WitNode::Interface(name, _) => clone(name),
-        WitNode::Record(name, _) => clone(name),
-        WitNode::Enum(name, _) => clone(name),
-        WitNode::Flags(name, _) => clone(name),
-        WitNode::Variant(name, _) => clone(name),
-        WitNode::Resource(name, _) => clone(name),
-        WitNode::TypeAlias(name, _) => clone(name),
-        WitNode::Use(path, _) => clone(path),
-        WitNode::Func(name, _, _) => clone(name),
-        WitNode::Import(path, _) => clone(path),
-        WitNode::Export(path, _) => clone(path),
-        WitNode::Error(msg) => clone(msg),
+    /// Return the name string of this node.
+    fn name(self: WitNode) -> String {
+        match self {
+            WitNode::Package(name, _) => clone(name),
+            WitNode::World(name, _) => clone(name),
+            WitNode::Interface(name, _) => clone(name),
+            WitNode::Record(name, _) => clone(name),
+            WitNode::Enum(name, _) => clone(name),
+            WitNode::Flags(name, _) => clone(name),
+            WitNode::Variant(name, _) => clone(name),
+            WitNode::Resource(name, _) => clone(name),
+            WitNode::TypeAlias(name, _) => clone(name),
+            WitNode::Use(path, _) => clone(path),
+            WitNode::Func(name, _, _) => clone(name),
+            WitNode::Import(path, _) => clone(path),
+            WitNode::Export(path, _) => clone(path),
+            WitNode::Error(msg) => clone(msg),
+        }
     }
-}
 
-/// Return the number of child items in a container `WitNode`
-/// (package, world, interface).  Returns 0 for leaf nodes.
-pub fn ast_child_count(node: WitNode) -> i32 {
-    match node {
-        WitNode::Package(_, items) => len(items),
-        WitNode::World(_, items) => len(items),
-        WitNode::Interface(_, items) => len(items),
-        WitNode::Record(_, fields) => len(fields),
-        WitNode::Enum(_, variants) => len(variants),
-        WitNode::Flags(_, members) => len(members),
-        WitNode::Variant(_, cases) => len(cases),
-        WitNode::Resource(_, fields) => len(fields),
-        WitNode::Func(_, params, _) => len(params),
-        _ => 0,
+    /// Return the number of child items in a container node
+    /// (package, world, interface).  Returns 0 for leaf nodes.
+    fn child_count(self: WitNode) -> i32 {
+        match self {
+            WitNode::Package(_, items) => len(items),
+            WitNode::World(_, items) => len(items),
+            WitNode::Interface(_, items) => len(items),
+            WitNode::Record(_, fields) => len(fields),
+            WitNode::Enum(_, variants) => len(variants),
+            WitNode::Flags(_, members) => len(members),
+            WitNode::Variant(_, cases) => len(cases),
+            WitNode::Resource(_, fields) => len(fields),
+            WitNode::Func(_, params, _) => len(params),
+            WitNode::TypeAlias(_, _) |
+            WitNode::Use(_, _) |
+            WitNode::Import(_, _) |
+            WitNode::Export(_, _) |
+            WitNode::Error(_) => 0,
+        }
     }
-}
 
-/// Return the child `WitNode` at `index` for container nodes
-/// (package, world, interface).  Returns `WitNode::Error` on out-of-bounds.
-pub fn ast_child_at(node: WitNode, index: i32) -> WitNode {
-    match node {
-        WitNode::Package(_, items) => {
-            if index < 0 || index >= len(items) {
-                WitNode::Error(String_from("ast_child_at: index out of bounds"))
-            } else {
-                get_unchecked(items, index)
-            }
-        },
-        WitNode::World(_, items) => {
-            if index < 0 || index >= len(items) {
-                WitNode::Error(String_from("ast_child_at: index out of bounds"))
-            } else {
-                get_unchecked(items, index)
-            }
-        },
-        WitNode::Interface(_, items) => {
-            if index < 0 || index >= len(items) {
-                WitNode::Error(String_from("ast_child_at: index out of bounds"))
-            } else {
-                get_unchecked(items, index)
-            }
-        },
-        _ => WitNode::Error(String_from("ast_child_at: not a container node")),
+    /// Return the child `WitNode` at `index` for container nodes
+    /// (package, world, interface).  Returns `WitNode::Error` on out-of-bounds.
+    fn child_at(self: WitNode, index: i32) -> WitNode {
+        match self {
+            WitNode::Package(_, items) => {
+                if index < 0 || index >= len(items) {
+                    WitNode::Error(String_from("child_at: index out of bounds"))
+                } else {
+                    get_unchecked(items, index)
+                }
+            },
+            WitNode::World(_, items) => {
+                if index < 0 || index >= len(items) {
+                    WitNode::Error(String_from("child_at: index out of bounds"))
+                } else {
+                    get_unchecked(items, index)
+                }
+            },
+            WitNode::Interface(_, items) => {
+                if index < 0 || index >= len(items) {
+                    WitNode::Error(String_from("child_at: index out of bounds"))
+                } else {
+                    get_unchecked(items, index)
+                }
+            },
+            WitNode::Record(_, _) |
+            WitNode::Enum(_, _) |
+            WitNode::Flags(_, _) |
+            WitNode::Variant(_, _) |
+            WitNode::Resource(_, _) |
+            WitNode::TypeAlias(_, _) |
+            WitNode::Use(_, _) |
+            WitNode::Func(_, _, _) |
+            WitNode::Import(_, _) |
+            WitNode::Export(_, _) |
+            WitNode::Error(_) => WitNode::Error(String_from("child_at: not a container node")),
+        }
     }
-}
 
-/// Return the first interface name reachable from a package or world node.
-/// This keeps traversal in the AST module without exposing a recursive enum
-/// value to callers that only need metadata.
-pub fn ast_first_interface_name(node: WitNode) -> String {
-    match node {
-        WitNode::Interface(name, _) => clone(name),
-        WitNode::Package(_, items) => {
-            for i in 0..len(items) {
-                match get_unchecked(items, i) {
-                    WitNode::Interface(name, _) => return clone(name),
-                    WitNode::World(_, world_items) => {
-                        for j in 0..len(world_items) {
-                            match get_unchecked(world_items, j) {
-                                WitNode::Interface(name, _) => return clone(name),
-                                _ => {},
+    /// Return the first interface name reachable from a package or world node.
+    /// This keeps traversal in the AST module without exposing a recursive enum
+    /// value to callers that only need metadata.
+    fn first_interface_name(self: WitNode) -> String {
+        match self {
+            WitNode::Interface(name, _) => clone(name),
+            WitNode::Package(_, items) => {
+                for i in 0..len(items) {
+                    match get_unchecked(items, i) {
+                        WitNode::Interface(name, _) => return clone(name),
+                        WitNode::World(_, world_items) => {
+                            for j in 0..len(world_items) {
+                                match get_unchecked(world_items, j) {
+                                    WitNode::Interface(name, _) => return clone(name),
+                                    _ => {},
+                                }
                             }
-                        }
-                    },
-                    _ => {},
+                        },
+                        _ => {},
+                    }
                 }
-            }
-            String_new()
-        },
-        WitNode::World(_, items) => {
-            for i in 0..len(items) {
-                match get_unchecked(items, i) {
-                    WitNode::Interface(name, _) => return clone(name),
-                    _ => {},
+                String_new()
+            },
+            WitNode::World(_, items) => {
+                for i in 0..len(items) {
+                    match get_unchecked(items, i) {
+                        WitNode::Interface(name, _) => return clone(name),
+                        _ => {},
+                    }
                 }
-            }
-            String_new()
-        },
-        _ => String_new(),
-    }
-}
-
-/// Return the field name at `index` for record/resource nodes.
-pub fn ast_field_name_at(node: WitNode, index: i32) -> String {
-    match node {
-        WitNode::Record(_, fields) => {
-            if index < 0 || index >= len(fields) {
                 String_new()
-            } else {
-                clone(get_unchecked(fields, index).name)
-            }
-        },
-        WitNode::Resource(_, fields) => {
-            if index < 0 || index >= len(fields) {
-                String_new()
-            } else {
-                clone(get_unchecked(fields, index).name)
-            }
-        },
-        _ => String_new(),
+            },
+            WitNode::Record(_, _) |
+            WitNode::Enum(_, _) |
+            WitNode::Flags(_, _) |
+            WitNode::Variant(_, _) |
+            WitNode::Resource(_, _) |
+            WitNode::TypeAlias(_, _) |
+            WitNode::Use(_, _) |
+            WitNode::Func(_, _, _) |
+            WitNode::Import(_, _) |
+            WitNode::Export(_, _) |
+            WitNode::Error(_) => String_new(),
+        }
     }
-}
 
-/// Return the field type at `index` for record/resource nodes.
-pub fn ast_field_type_at(node: WitNode, index: i32) -> types::WitType {
-    match node {
-        WitNode::Record(_, fields) => {
-            if index < 0 || index >= len(fields) {
-                WitType::Unknown(0)
-            } else {
-                get_unchecked(fields, index).ty
-            }
-        },
-        WitNode::Resource(_, fields) => {
-            if index < 0 || index >= len(fields) {
-                WitType::Unknown(0)
-            } else {
-                get_unchecked(fields, index).ty
-            }
-        },
-        _ => WitType::Unknown(0),
+    /// Return the field name at `index` for record/resource nodes.
+    fn field_name_at(self: WitNode, index: i32) -> String {
+        match self {
+            WitNode::Record(_, fields) => {
+                if index < 0 || index >= len(fields) {
+                    String_new()
+                } else {
+                    clone(get_unchecked(fields, index).name)
+                }
+            },
+            WitNode::Resource(_, fields) => {
+                if index < 0 || index >= len(fields) {
+                    String_new()
+                } else {
+                    clone(get_unchecked(fields, index).name)
+                }
+            },
+            WitNode::Package(_, _) |
+            WitNode::World(_, _) |
+            WitNode::Interface(_, _) |
+            WitNode::Enum(_, _) |
+            WitNode::Flags(_, _) |
+            WitNode::Variant(_, _) |
+            WitNode::TypeAlias(_, _) |
+            WitNode::Use(_, _) |
+            WitNode::Func(_, _, _) |
+            WitNode::Import(_, _) |
+            WitNode::Export(_, _) |
+            WitNode::Error(_) => String_new(),
+        }
     }
-}
 
-/// Return the enum variant name at `index`.
-pub fn ast_enum_variant_at(node: WitNode, index: i32) -> String {
-    match node {
-        WitNode::Enum(_, variants) => {
-            if index < 0 || index >= len(variants) {
-                String_new()
-            } else {
-                clone(get_unchecked(variants, index))
-            }
-        },
-        _ => String_new(),
+    /// Return the field type at `index` for record/resource nodes.
+    fn field_type_at(self: WitNode, index: i32) -> types::WitType {
+        match self {
+            WitNode::Record(_, fields) => {
+                if index < 0 || index >= len(fields) {
+                    WitType::Unknown(0)
+                } else {
+                    get_unchecked(fields, index).ty
+                }
+            },
+            WitNode::Resource(_, fields) => {
+                if index < 0 || index >= len(fields) {
+                    WitType::Unknown(0)
+                } else {
+                    get_unchecked(fields, index).ty
+                }
+            },
+            WitNode::Package(_, _) |
+            WitNode::World(_, _) |
+            WitNode::Interface(_, _) |
+            WitNode::Enum(_, _) |
+            WitNode::Flags(_, _) |
+            WitNode::Variant(_, _) |
+            WitNode::TypeAlias(_, _) |
+            WitNode::Use(_, _) |
+            WitNode::Func(_, _, _) |
+            WitNode::Import(_, _) |
+            WitNode::Export(_, _) |
+            WitNode::Error(_) => WitType::Unknown(0),
+        }
     }
-}
 
-/// Return the flags member name at `index`.
-pub fn ast_flags_member_at(node: WitNode, index: i32) -> String {
-    match node {
-        WitNode::Flags(_, members) => {
-            if index < 0 || index >= len(members) {
-                String_new()
-            } else {
-                clone(get_unchecked(members, index))
-            }
-        },
-        _ => String_new(),
+    /// Return the enum variant name at `index`.
+    fn enum_variant_at(self: WitNode, index: i32) -> String {
+        match self {
+            WitNode::Enum(_, variants) => {
+                if index < 0 || index >= len(variants) {
+                    String_new()
+                } else {
+                    clone(get_unchecked(variants, index))
+                }
+            },
+            WitNode::Package(_, _) |
+            WitNode::World(_, _) |
+            WitNode::Interface(_, _) |
+            WitNode::Record(_, _) |
+            WitNode::Flags(_, _) |
+            WitNode::Variant(_, _) |
+            WitNode::Resource(_, _) |
+            WitNode::TypeAlias(_, _) |
+            WitNode::Use(_, _) |
+            WitNode::Func(_, _, _) |
+            WitNode::Import(_, _) |
+            WitNode::Export(_, _) |
+            WitNode::Error(_) => String_new(),
+        }
     }
-}
 
-/// Return the variant case name at `index`.
-pub fn ast_variant_case_name_at(node: WitNode, index: i32) -> String {
-    match node {
-        WitNode::Variant(_, cases) => {
-            if index < 0 || index >= len(cases) {
-                String_new()
-            } else {
-                clone(get_unchecked(cases, index).name)
-            }
-        },
-        _ => String_new(),
+    /// Return the flags member name at `index`.
+    fn flags_member_at(self: WitNode, index: i32) -> String {
+        match self {
+            WitNode::Flags(_, members) => {
+                if index < 0 || index >= len(members) {
+                    String_new()
+                } else {
+                    clone(get_unchecked(members, index))
+                }
+            },
+            WitNode::Package(_, _) |
+            WitNode::World(_, _) |
+            WitNode::Interface(_, _) |
+            WitNode::Record(_, _) |
+            WitNode::Enum(_, _) |
+            WitNode::Variant(_, _) |
+            WitNode::Resource(_, _) |
+            WitNode::TypeAlias(_, _) |
+            WitNode::Use(_, _) |
+            WitNode::Func(_, _, _) |
+            WitNode::Import(_, _) |
+            WitNode::Export(_, _) |
+            WitNode::Error(_) => String_new(),
+        }
     }
-}
 
-/// Return whether the variant case at `index` has a payload type.
-pub fn ast_variant_case_has_payload(node: WitNode, index: i32) -> bool {
-    match node {
-        WitNode::Variant(_, cases) => {
-            if index < 0 || index >= len(cases) {
-                return false
-            }
-            let case_ty: Option<types::WitType> = get_unchecked(cases, index).ty
-            match case_ty {
-                Option::Some(_) => true,
-                Option::None => false,
-            }
-        },
-        _ => false,
+    /// Return the variant case name at `index`.
+    fn variant_case_name_at(self: WitNode, index: i32) -> String {
+        match self {
+            WitNode::Variant(_, cases) => {
+                if index < 0 || index >= len(cases) {
+                    String_new()
+                } else {
+                    clone(get_unchecked(cases, index).name)
+                }
+            },
+            WitNode::Package(_, _) |
+            WitNode::World(_, _) |
+            WitNode::Interface(_, _) |
+            WitNode::Record(_, _) |
+            WitNode::Enum(_, _) |
+            WitNode::Flags(_, _) |
+            WitNode::Resource(_, _) |
+            WitNode::TypeAlias(_, _) |
+            WitNode::Use(_, _) |
+            WitNode::Func(_, _, _) |
+            WitNode::Import(_, _) |
+            WitNode::Export(_, _) |
+            WitNode::Error(_) => String_new(),
+        }
     }
-}
 
-/// Return the variant case payload type (or `Unknown(0)` if none).
-pub fn ast_variant_case_type_at(node: WitNode, index: i32) -> types::WitType {
-    match node {
-        WitNode::Variant(_, cases) => {
-            if index < 0 || index >= len(cases) {
-                return WitType::Unknown(0)
-            }
-            let case_ty: Option<types::WitType> = get_unchecked(cases, index).ty
-            match case_ty {
-                Option::Some(ty) => ty,
-                Option::None => WitType::Unknown(0),
-            }
-        },
-        _ => WitType::Unknown(0),
+    /// Return whether the variant case at `index` has a payload type.
+    fn variant_case_has_payload(self: WitNode, index: i32) -> bool {
+        match self {
+            WitNode::Variant(_, cases) => {
+                if index < 0 || index >= len(cases) {
+                    return false
+                }
+                let case_ty: Option<types::WitType> = get_unchecked(cases, index).ty
+                match case_ty {
+                    Option::Some(_) => true,
+                    Option::None => false,
+                }
+            },
+            WitNode::Package(_, _) |
+            WitNode::World(_, _) |
+            WitNode::Interface(_, _) |
+            WitNode::Record(_, _) |
+            WitNode::Enum(_, _) |
+            WitNode::Flags(_, _) |
+            WitNode::Resource(_, _) |
+            WitNode::TypeAlias(_, _) |
+            WitNode::Use(_, _) |
+            WitNode::Func(_, _, _) |
+            WitNode::Import(_, _) |
+            WitNode::Export(_, _) |
+            WitNode::Error(_) => false,
+        }
     }
-}
 
-/// Return the func param count.
-pub fn ast_func_param_count(node: WitNode) -> i32 {
-    match node {
-        WitNode::Func(_, params, _) => len(params),
-        _ => 0,
+    /// Return the variant case payload type (or `Unknown(0)` if none).
+    fn variant_case_type_at(self: WitNode, index: i32) -> types::WitType {
+        match self {
+            WitNode::Variant(_, cases) => {
+                if index < 0 || index >= len(cases) {
+                    return WitType::Unknown(0)
+                }
+                let case_ty: Option<types::WitType> = get_unchecked(cases, index).ty
+                match case_ty {
+                    Option::Some(ty) => ty,
+                    Option::None => WitType::Unknown(0),
+                }
+            },
+            WitNode::Package(_, _) |
+            WitNode::World(_, _) |
+            WitNode::Interface(_, _) |
+            WitNode::Record(_, _) |
+            WitNode::Enum(_, _) |
+            WitNode::Flags(_, _) |
+            WitNode::Resource(_, _) |
+            WitNode::TypeAlias(_, _) |
+            WitNode::Use(_, _) |
+            WitNode::Func(_, _, _) |
+            WitNode::Import(_, _) |
+            WitNode::Export(_, _) |
+            WitNode::Error(_) => WitType::Unknown(0),
+        }
     }
-}
 
-/// Return the func param name at `index`.
-pub fn ast_func_param_name_at(node: WitNode, index: i32) -> String {
-    match node {
-        WitNode::Func(_, params, _) => {
-            if index < 0 || index >= len(params) {
-                String_new()
-            } else {
-                clone(get_unchecked(params, index).name)
-            }
-        },
-        _ => String_new(),
+    /// Return the func param count.
+    fn func_param_count(self: WitNode) -> i32 {
+        match self {
+            WitNode::Func(_, params, _) => len(params),
+            WitNode::Package(_, _) |
+            WitNode::World(_, _) |
+            WitNode::Interface(_, _) |
+            WitNode::Record(_, _) |
+            WitNode::Enum(_, _) |
+            WitNode::Flags(_, _) |
+            WitNode::Variant(_, _) |
+            WitNode::Resource(_, _) |
+            WitNode::TypeAlias(_, _) |
+            WitNode::Use(_, _) |
+            WitNode::Import(_, _) |
+            WitNode::Export(_, _) |
+            WitNode::Error(_) => 0,
+        }
     }
-}
 
-/// Return the func param type at `index`.
-pub fn ast_func_param_type_at(node: WitNode, index: i32) -> types::WitType {
-    match node {
-        WitNode::Func(_, params, _) => {
-            if index < 0 || index >= len(params) {
-                WitType::Unknown(0)
-            } else {
-                get_unchecked(params, index).ty
-            }
-        },
-        _ => WitType::Unknown(0),
+    /// Return the func param name at `index`.
+    fn func_param_name_at(self: WitNode, index: i32) -> String {
+        match self {
+            WitNode::Func(_, params, _) => {
+                if index < 0 || index >= len(params) {
+                    String_new()
+                } else {
+                    clone(get_unchecked(params, index).name)
+                }
+            },
+            WitNode::Package(_, _) |
+            WitNode::World(_, _) |
+            WitNode::Interface(_, _) |
+            WitNode::Record(_, _) |
+            WitNode::Enum(_, _) |
+            WitNode::Flags(_, _) |
+            WitNode::Variant(_, _) |
+            WitNode::Resource(_, _) |
+            WitNode::TypeAlias(_, _) |
+            WitNode::Use(_, _) |
+            WitNode::Import(_, _) |
+            WitNode::Export(_, _) |
+            WitNode::Error(_) => String_new(),
+        }
     }
-}
 
-/// Return whether a func has a result type.
-pub fn ast_func_has_result(node: WitNode) -> bool {
-    match node {
-        WitNode::Func(_, _, result) => {
-            let r: Option<types::WitType> = result
-            match r {
-                Option::Some(_) => true,
-                Option::None => false,
-            }
-        },
-        _ => false,
+    /// Return the func param type at `index`.
+    fn func_param_type_at(self: WitNode, index: i32) -> types::WitType {
+        match self {
+            WitNode::Func(_, params, _) => {
+                if index < 0 || index >= len(params) {
+                    WitType::Unknown(0)
+                } else {
+                    get_unchecked(params, index).ty
+                }
+            },
+            WitNode::Package(_, _) |
+            WitNode::World(_, _) |
+            WitNode::Interface(_, _) |
+            WitNode::Record(_, _) |
+            WitNode::Enum(_, _) |
+            WitNode::Flags(_, _) |
+            WitNode::Variant(_, _) |
+            WitNode::Resource(_, _) |
+            WitNode::TypeAlias(_, _) |
+            WitNode::Use(_, _) |
+            WitNode::Import(_, _) |
+            WitNode::Export(_, _) |
+            WitNode::Error(_) => WitType::Unknown(0),
+        }
     }
-}
 
-/// Return the func result type (or `Unknown(0)` if none).
-pub fn ast_func_result(node: WitNode) -> types::WitType {
-    match node {
-        WitNode::Func(_, _, result) => {
-            let r: Option<types::WitType> = result
-            match r {
-                Option::Some(ty) => ty,
-                Option::None => WitType::Unknown(0),
-            }
-        },
-        _ => WitType::Unknown(0),
+    /// Return whether a func has a result type.
+    fn func_has_result(self: WitNode) -> bool {
+        match self {
+            WitNode::Func(_, _, result) => {
+                let r: Option<types::WitType> = result
+                match r {
+                    Option::Some(_) => true,
+                    Option::None => false,
+                }
+            },
+            WitNode::Package(_, _) |
+            WitNode::World(_, _) |
+            WitNode::Interface(_, _) |
+            WitNode::Record(_, _) |
+            WitNode::Enum(_, _) |
+            WitNode::Flags(_, _) |
+            WitNode::Variant(_, _) |
+            WitNode::Resource(_, _) |
+            WitNode::TypeAlias(_, _) |
+            WitNode::Use(_, _) |
+            WitNode::Import(_, _) |
+            WitNode::Export(_, _) |
+            WitNode::Error(_) => false,
+        }
     }
-}
 
-/// Return the type alias target type.
-pub fn ast_type_alias_target(node: WitNode) -> types::WitType {
-    match node {
-        WitNode::TypeAlias(_, ty) => ty,
-        _ => WitType::Unknown(0),
+    /// Return the func result type (or `Unknown(0)` if none).
+    fn func_result(self: WitNode) -> types::WitType {
+        match self {
+            WitNode::Func(_, _, result) => {
+                let r: Option<types::WitType> = result
+                match r {
+                    Option::Some(ty) => ty,
+                    Option::None => WitType::Unknown(0),
+                }
+            },
+            WitNode::Package(_, _) |
+            WitNode::World(_, _) |
+            WitNode::Interface(_, _) |
+            WitNode::Record(_, _) |
+            WitNode::Enum(_, _) |
+            WitNode::Flags(_, _) |
+            WitNode::Variant(_, _) |
+            WitNode::Resource(_, _) |
+            WitNode::TypeAlias(_, _) |
+            WitNode::Use(_, _) |
+            WitNode::Import(_, _) |
+            WitNode::Export(_, _) |
+            WitNode::Error(_) => WitType::Unknown(0),
+        }
     }
-}
 
-/// Return the use path.
-pub fn ast_use_path(node: WitNode) -> String {
-    match node {
-        WitNode::Use(path, _) => clone(path),
-        _ => String_new(),
+    /// Return the type alias target type.
+    fn type_alias_target(self: WitNode) -> types::WitType {
+        match self {
+            WitNode::TypeAlias(_, ty) => ty,
+            WitNode::Package(_, _) |
+            WitNode::World(_, _) |
+            WitNode::Interface(_, _) |
+            WitNode::Record(_, _) |
+            WitNode::Enum(_, _) |
+            WitNode::Flags(_, _) |
+            WitNode::Variant(_, _) |
+            WitNode::Resource(_, _) |
+            WitNode::Use(_, _) |
+            WitNode::Func(_, _, _) |
+            WitNode::Import(_, _) |
+            WitNode::Export(_, _) |
+            WitNode::Error(_) => WitType::Unknown(0),
+        }
     }
-}
 
-/// Return the use alias (may be empty).
-pub fn ast_use_alias(node: WitNode) -> String {
-    match node {
-        WitNode::Use(_, alias) => clone(alias),
-        _ => String_new(),
+    /// Return the use path.
+    fn use_path(self: WitNode) -> String {
+        match self {
+            WitNode::Use(path, _) => clone(path),
+            WitNode::Package(_, _) |
+            WitNode::World(_, _) |
+            WitNode::Interface(_, _) |
+            WitNode::Record(_, _) |
+            WitNode::Enum(_, _) |
+            WitNode::Flags(_, _) |
+            WitNode::Variant(_, _) |
+            WitNode::Resource(_, _) |
+            WitNode::TypeAlias(_, _) |
+            WitNode::Func(_, _, _) |
+            WitNode::Import(_, _) |
+            WitNode::Export(_, _) |
+            WitNode::Error(_) => String_new(),
+        }
+    }
+
+    /// Return the use alias (may be empty).
+    fn use_alias(self: WitNode) -> String {
+        match self {
+            WitNode::Use(_, alias) => clone(alias),
+            WitNode::Package(_, _) |
+            WitNode::World(_, _) |
+            WitNode::Interface(_, _) |
+            WitNode::Record(_, _) |
+            WitNode::Enum(_, _) |
+            WitNode::Flags(_, _) |
+            WitNode::Variant(_, _) |
+            WitNode::Resource(_, _) |
+            WitNode::TypeAlias(_, _) |
+            WitNode::Func(_, _, _) |
+            WitNode::Import(_, _) |
+            WitNode::Export(_, _) |
+            WitNode::Error(_) => String_new(),
+        }
+    }
+
+    /// Parse a canonical WIT document into a `WitNode` tree.
+    fn parse(source: String) -> WitNode {
+        parse_wit_document(source)
+    }
+
+    /// Parse a canonical WIT document and seal its import metadata inside the
+    /// AST module.  Keeping the recursive `WitNode` local to this module avoids
+    /// passing its GC enum representation through the parser/compiler boundary.
+    fn import_metadata(source: String) -> String {
+        let parsed = parse_wit_document(source)
+        parsed.import_serialized()
+    }
+
+    /// Serialize canonical WIT metadata while the recursive AST remains inside
+    /// `std::wit`. Compiler callers receive only String data, which is stable on
+    /// both the linear-memory bootstrap host and the wasm32-gc target.
+    fn import_serialized(self: WitNode) -> String {
+        match self {
+            WitNode::Interface(name, items) => wit_import_serialized_interface(String_new(), name, items),
+            WitNode::Package(package, items) => wit_import_serialized_container(package, items),
+            WitNode::World(_, items) => wit_import_serialized_container(String_new(), items),
+            WitNode::Record(_, _) |
+            WitNode::Enum(_, _) |
+            WitNode::Flags(_, _) |
+            WitNode::Variant(_, _) |
+            WitNode::Resource(_, _) |
+            WitNode::TypeAlias(_, _) |
+            WitNode::Use(_, _) |
+            WitNode::Func(_, _, _) |
+            WitNode::Import(_, _) |
+            WitNode::Export(_, _) |
+            WitNode::Error(_) => String_new(),
+        }
     }
 }
 
@@ -459,14 +698,6 @@ fn wit_import_serialized_entry(kind: String, name: String, first: String, second
     String::concat(entry, String::concat(second, String_from(";")))
 }
 
-/// Parse a canonical WIT document and seal its import metadata inside the
-/// AST module.  Keeping the recursive `WitNode` local to this module avoids
-/// passing its GC enum representation through the parser/compiler boundary.
-pub fn parse_import_text(source: String) -> String {
-    let parsed = parse_wit_document(source)
-    ast_import_serialized(parsed)
-}
-
 fn wit_import_serialized_interface(package: String, name: String, items: Vec<WitNode>) -> String {
     let package_name = wit_import_package_name(clone(package))
     let package_version = wit_import_package_version(package)
@@ -540,18 +771,6 @@ fn wit_import_serialized_container(package: String, items: Vec<WitNode>) -> Stri
         }
     }
     String_new()
-}
-
-/// Serialize canonical WIT metadata while the recursive AST remains inside
-/// `std::wit`. Compiler callers receive only String data, which is stable on
-/// both the linear-memory bootstrap host and the wasm32-gc target.
-pub fn ast_import_serialized(node: WitNode) -> String {
-    match node {
-        WitNode::Interface(name, items) => wit_import_serialized_interface(String_new(), name, items),
-        WitNode::Package(package, items) => wit_import_serialized_container(package, items),
-        WitNode::World(_, items) => wit_import_serialized_container(String_new(), items),
-        _ => String_new(),
-    }
 }
 
 // ─── Parser ──────────────────────────────────────────────────────
@@ -1161,7 +1380,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
     // Rewind to the start of the word and try parsing as func
     i = p_skip_ws_comments(s, pos)
     let (func_node, func_pos) = p_func(s, i)
-    if !eq(ast_kind(func_node), "error") {
+    if !eq(func_node.kind(), "error") {
         return (func_node, func_pos)
     }
     // Skip unknown token
@@ -1180,11 +1399,11 @@ fn p_body(s: String, pos: i32) -> (Vec<WitNode>, i32) {
             return (items, i)
         }
         let (node, p1) = p_decl(s, i)
-        if !eq(ast_kind(node), "error") {
+        if !eq(node.kind(), "error") {
             push(items, node)
         } else {
             // Check if it's just a closing brace marker
-            if eq(ast_name(node), "}") {
+            if eq(node.name(), "}") {
                 return (items, i)
             }
         }
@@ -1298,7 +1517,7 @@ fn parse_wit_document(source: String) -> WitNode {
                 } else {
                     // Try generic decl
                     let (node, p2) = p_decl(source, i)
-                    if !eq(ast_kind(node), "error") {
+                    if !eq(node.kind(), "error") {
                         push(items, node)
                     }
                     i = p2
@@ -1320,8 +1539,4 @@ fn parse_wit_document(source: String) -> WitNode {
     // Try as a single declaration (record, enum, flags, variant, resource, type, use, func)
     let (node, _) = p_decl(source, i)
     node
-}
-
-pub fn parse(source: String) -> WitNode {
-    parse_wit_document(source)
 }
