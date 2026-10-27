@@ -277,6 +277,15 @@ whether the backend stores the value as a Wasm GC object, a tagged/unboxed
 value, or a linear-memory record. See [ADR-059](../adr/ADR-059-language-v2-ownership-copy-mutability.md)
 and [ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md).
 
+A `let` binding is an ownership boundary: `let b = a` moves a non-`Copy` `a`.
+A function call is not: a non-`Copy` argument is borrowed for the duration of
+the call and the caller's binding stays usable. Mutation across a call requires
+a `mut` parameter and a mutable place at the call site; a value that a callee
+stores or returns is shared, not copied
+([ADR-088](../adr/ADR-088-language-v2-call-boundary-borrow-and-mut-parameters.md)).
+The call-boundary rules are specified in §3.5.1 and are not yet enforced by the
+current compiler.
+
 ### 2.5 Type Inference
 
 - Integer literals without suffix default to `i32`.
@@ -284,8 +293,8 @@ and [ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md).
 - A suffix selects the literal's concrete type; a type annotation does not
   implicitly convert a literal to another numeric type.
 - `let` bindings infer their type from the initialiser expression.
-- Empty collections require explicit type annotation or a typed
-  constructor (e.g., `Vec_new_i32()`).
+- Empty collections require an explicit type argument or annotation
+  (e.g., `Vec::new<i32>()` or `let v: Vec<i32> = Vec::new<i32>()`).
 - Functions with no declared return type default to `()`.
 
 ### 2.6 Numeric Conversion and Literal Inference
@@ -431,7 +440,7 @@ let s: String = id("hello")  // fresh t2, unified with String
 <!-- skip-doc-check reason="syntax/notation sketch with metavariables; not a runnable program" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 trait Display {
-    fn to_string(self: Display) -> String
+    fn to_string(self: Self) -> String
 }
 
 impl Display for Point {
@@ -558,6 +567,55 @@ name(arg1, arg2, …)
 name::<T>(arg1, …)      // with explicit type arguments
 ```
 
+#### 3.5.1 Argument Passing and Parameter Modes <!-- stability: unimplemented -->
+
+Specified by [ADR-088](../adr/ADR-088-language-v2-call-boundary-borrow-and-mut-parameters.md).
+
+```text
+fn read_only(p: Point) -> i32 { p.x }        // shared parameter
+fn bump(mut p: Point) { p.x = p.x + 1 }      // mutable parameter
+
+let a = Point { x: 1 }
+read_only(a)          // OK: `a` is borrowed for the call, not moved
+let mut b = Point { x: 1 }
+bump(b)               // OK: `b` is a mutable place
+bump(a)               // error: `a` is an immutable binding
+```
+
+- **Borrow, not move.** Passing a non-`Copy` value borrows it for the
+  duration of the call; the caller's binding is not moved. Passing a binding
+  that was already moved is E0212. `Copy` values are copied.
+- **Shared parameters.** `p: T` is a shared borrow. The callee must not assign
+  to a place reachable through `p`, pass `p` to a `mut` parameter, or call a
+  `mut self` method on it.
+- **Mutable parameters.** `mut p: T` is a mutable borrow; mutation through `p`
+  is visible to the caller. Reassigning `p` itself only rebinds the callee's
+  local name. For a `Copy` type, `mut p` mutates the callee's copy only.
+- **Mutable places.** An argument for a `mut` parameter must be a `let mut`
+  binding, a `mut` parameter or `mut self` of the enclosing function, a field
+  or element place rooted at one of these, or a temporary (call result,
+  literal, constructor expression).
+- **No overlapping borrows.** The same root place must not be passed to a
+  `mut` parameter and to another parameter in one call. The check is syntactic
+  on the place path.
+- **Escape shares.** A callee may return, store, or `move`-capture a borrowed
+  parameter; the value is shared as a reference, not copied. The language
+  guarantees that no mutation happens through a path rooted at an immutable
+  binding or a shared parameter; a mutation through another alias is visible
+  through every alias, identically on every target. `Box<T>` is excluded: a
+  borrowed `Box<T>` parameter cannot be returned, stored, or `unbox`ed.
+- **Function types.** The mode is part of the signature and of function types
+  (`fn(mut Vec<i32>) -> i32`). A function value with a shared parameter is
+  assignable where the same position is `mut`; the reverse is rejected.
+  Closure parameters use the same form (`|mut v| …`).
+
+**Current implementation.** The compiler does not parse `mut` parameters yet,
+accepts mutation through any parameter or receiver, and does not report E0212
+for every use of a moved binding as an argument. Tracked by
+[#951](../../issues/open/951-mut-parameter-mode-and-call-borrow-checks.md) and
+[#944](../../issues/open/944-move-after-use-not-diagnosed.md); see
+[../current-state.md](../current-state.md).
+
 ### 3.6 Method Call
 
 ```
@@ -565,6 +623,9 @@ expr.method(arg1, …)
 ```
 
 Resolved via `impl` blocks. The receiver is the first parameter.
+A `self: T` receiver is a shared borrow and a `mut self: T` receiver is a
+mutable borrow; calling a `mut self` method requires a mutable place as the
+receiver (§3.5.1, ADR-088).
 The compiler chooses private backend symbols for methods. A concrete symbol
 spelling is not part of the language or stable ABI contract.
 
@@ -802,8 +863,10 @@ obj.field = expr
 v[i] = expr
 ```
 
-Assignment target must be a mutable variable, field, or index
-expression. Assignment returns `()`.
+Assignment target must be a `let mut` binding, or a field or index place
+rooted at a `let mut` binding or a `mut` parameter; otherwise it is E0207
+(ADR-059). Places rooted at a shared parameter or a `self: T` receiver are
+not mutable (ADR-088, §3.5.1; not yet enforced). Assignment returns `()`.
 
 ### 3.20 Array Comprehension <!-- stability: provisional -->
 
@@ -1256,6 +1319,8 @@ pub export fn public_component_name(param: i32) -> i32 {
 - `export` is valid only on function declarations. Modifier order is
   `[pub] [async] export fn`.
 - Return type defaults to `()` if omitted.
+- A parameter may be declared `mut name: T` to receive a mutable borrow
+  (§3.5.1, ADR-088; not yet parsed by the current compiler).
 
 #### 6.1.1 Multi-Clause Function Definitions <!-- stability: provisional -->
 
@@ -1435,7 +1500,24 @@ impl Name {
 impl Trait for Name {
     fn method(self) -> R { … }
 }
+
+impl<T: Bound> Trait for Ctor<T> {
+    fn method(self) -> R { … }
+}
 ```
+
+Impl type parameters are introduced only by the `impl<…>` binder, for trait
+and inherent impls alike. Every other name in the impl head resolves as an
+ordinary type name, so `impl Copy for S {}` targets a declared `struct S`.
+Name length or case never decides whether a name is a type or a type
+parameter ([ADR-089](../adr/ADR-089-language-v2-explicit-impl-type-parameter-binders.md)).
+Parametric and blanket impls are classified as in
+[ADR-078](../adr/ADR-078-language-v2-parametric-trait-impl.md).
+
+**Current implementation.** A binder-less head still treats single-uppercase
+names as implicit type parameters, which makes `impl Trait for S {}` with a
+`struct S` fail as a blanket impl (E0216). Removal is tracked by
+[#946](../../issues/open/946-single-uppercase-implicit-impl-param.md).
 
 ---
 
@@ -1511,10 +1593,11 @@ The v2 stable Prelude is the fixed set in the `[prelude_policy]` table of
 **Stable functions**: `panic`, `assert`, `String_from`, `String_new`,
 `char_to_string`
 
-The current resolver still auto-imports the broader set of entries marked
-`prelude = true` for compatibility. That legacy behavior is explicitly
-recorded by `legacy_auto_import = true` and is not a v2 stability promise;
-the remaining reduction is tracked by #703/#917.
+Only this stable set is auto-imported (`legacy_auto_import = false`, #878).
+Every other `prelude = true` declaration requires an explicit
+`use std::prelude::{name}`; the resolver reports a missing import as
+`undefined name …; no longer auto-imported`. Retirement of the remaining
+compatibility free functions is tracked by #703/#917 (ADR-046).
 
 ---
 
@@ -2054,7 +2137,8 @@ clause_param  = pattern ;
 struct_def  = "struct" IDENT type_params? "{" field_list? "}" ;
 enum_def    = "enum" IDENT type_params? "{" variant_list? "}" ;
 trait_def   = "trait" IDENT type_params? "{" trait_item* "}" ;
-impl_block  = "impl" type_expr ("for" type_expr)? "{" impl_item* "}" ;
+impl_block  = "impl" type_params? type_expr ("for" type_expr)? "{" impl_item* "}" ;
+              (* impl type parameters come only from type_params (ADR-089) *)
 trait_item  = associated_type_decl | method_sig ;
 impl_item   = associated_type_def | fn_def ;
 associated_type_decl
@@ -2065,7 +2149,8 @@ associated_type_def
 type_params = "<" type_param ("," type_param)* ">" ;
 type_param  = IDENT (":" IDENT ("+" IDENT)*)? ;
 param_list  = param ("," param)* ","? ;
-param       = IDENT ":" type_expr ;
+param       = "mut"? IDENT ":" type_expr ;
+              (* "mut": mutable borrow, ADR-088 §3.5.1; not yet parsed *)
 field_list  = field ("," field)* ","? ;
 field       = IDENT ":" type_expr ;
 variant_list= variant ("," variant)* ","? ;
@@ -2134,7 +2219,8 @@ struct_fields = (IDENT ":" expr) ("," IDENT ":" expr)*
                 ("," ".." expr)? ;
 match_arm   = pattern ("if" expr)? "=>" expr ","? ;
 closure_params = closure_param ("," closure_param)* ;
-closure_param  = IDENT (":" type_expr)? ;
+closure_param  = "mut"? IDENT (":" type_expr)? ;
+                 (* "mut": ADR-088 §3.5.1; not yet parsed *)
 
 pattern     = "_"
             | IDENT
@@ -2169,7 +2255,7 @@ canonical compilation targets are:
 |--------|------|-------|
 | `wasm32-gc` | **primary** | Wasm GC value representation. Default host profile = WASI P2. Component emit (ADR-054). |
 | `wasm32` | supported | Same language semantics, linear-memory lowering. AtCoder / non-GC compatibility. |
-| `native-cpp` | scaffold | Experimental selfhost executor design accepted in ADR-049; C99 lowering remains unimplemented. |
+| `native-cpp` | scaffold | Experimental `run --target native-cpp` and `compile --emit c` (ADR-049 / ADR-050); implementation partial. |
 | `native-llvm` | scaffold | Experimental. ABI and semantics remain undecided. |
 
 Retired / not public contracts:
@@ -2187,7 +2273,7 @@ are defined in ADR-007; implementation migration status is in `docs/current-stat
 | ADR | Decision |
 |-----|----------|
 | ADR-002 | Wasm GC adopted as language memory semantics; `wasm32` is linear lowering |
-| ADR-003 | Limited monomorphisation for generics |
+| ADR-003 | Monomorphisation for generics; no language-level limit on parameters or nesting |
 | ADR-006 | Public ABI categories: compiler-private / stable WIT-canonical / experimental raw Wasm / reserved native |
 | ADR-007 | Canonical targets `wasm32` / `wasm32-gc` / `native-*` (T1–T5 retired) |
 | ADR-054 | compiler emits standard WASI P2 core/WIT inputs; official `wasm-tools` packages components; bridge and legacy ABI paths are deleted |
@@ -2199,3 +2285,22 @@ are defined in ADR-007; implementation migration status is in `docs/current-stat
 | ADR-044 | Trait / method syntax adopted (supersedes ADR-004) |
 | ADR-045 | Native/LLVM decision deferral, superseded by ADR-049 for the limited native-cpp executor scope |
 | ADR-049 | Native C99 selfhost executor with a compiler-private ABI; current implementation remains scaffold |
+| ADR-046 | Free-function eradication: public API is trait / method / associated function |
+| ADR-059 | Ownership, `Copy`, and mutability of bindings (`let` moves, explicit `impl Copy`, `let mut`) |
+| ADR-060 | Owned ADTs, unique-owner `Box<T>`, read-only `Slice<T>` view |
+| ADR-061 / ADR-081 / ADR-083 | Closure capture modes, escape via promoted shared cells, nested capture-through |
+| ADR-062 / ADR-078 | Trait core and coherence; parametric (non-blanket) trait impls |
+| ADR-063 / ADR-064 / ADR-084 | `?` conversion boundary, `Error` trait, explicit fallible conversion |
+| ADR-065 | Operator syntax resolves through canonical operator traits |
+| ADR-066 | Generic public API (e.g. `HashMap<K, V>`) |
+| ADR-067 / ADR-068 | No implicit numeric conversion; arithmetic evaluation semantics |
+| ADR-069 | String UTF-8 and Unicode scalar semantics |
+| ADR-070 | Let-generalization with value restriction |
+| ADR-072 / ADR-073 | Fixed Prelude and keyword policy; multi-clause / `where` / semicolon grammar |
+| ADR-074 | Target capability configuration |
+| ADR-076 / ADR-077 | Iterator consumer boundary; hygienic desugaring |
+| ADR-079 / ADR-080 | Method-level generics; generic element storage policy |
+| ADR-082 | Match exhaustiveness is a compile-time requirement |
+| ADR-085 / ADR-086 | I/O trait unification; linear collection ADTs |
+| ADR-088 | Call boundary: implicit borrow, `mut` parameters, mutable places |
+| ADR-089 | Impl type parameters only via explicit `impl<…>` binders |

@@ -25,7 +25,7 @@
 [[rules]]
 id = "alias_move_after_use_value"
 domain = "alias"
-statement = "Moving a value into a let/call ends the source binding; using it afterwards is a compile-time error."
+statement = "Moving a value into a `let` binding ends the source binding; using it afterwards is a compile-time error."
 fixtures = ["ownership/copy_and_mutability.ark"]
 diagnostics = ["diagnostics/ownership_move_after_use.ark"]
 adrs = ["ADR-059"]
@@ -55,6 +55,15 @@ statement = "Struct elements inside a Vec keep observable field values across pu
 fixtures = ["structs/vec_in_struct_alias_live.ark", "structs/vec_in_struct_rebuild3.ark", "structs/vec_elem_field_get.ark"]
 adrs = ["ADR-059"]
 status = "verified"
+
+[[rules]]
+id = "call_boundary_borrow_mut_param"
+domain = "alias"
+statement = "Passing a non-Copy argument borrows it for the call rather than ending the source binding; mutating the caller's value through a parameter requires a `mut` parameter receiving a mutable place."
+fixtures = ["ownership/call_borrow_keeps_binding.ark"]
+adrs = ["ADR-088"]
+status = "unimplemented"
+issue = "#951"
 
 [[rules]]
 id = "copy_scalar_implicit"

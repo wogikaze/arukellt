@@ -61,6 +61,13 @@ let v: Vec<i32> = Vec::new<i32>()
 
 まで実装が進んでいます。
 
+impl の型パラメータは `impl<T>` の明示 binder によってのみ導入されます
+（[ADR-089](../adr/ADR-089-language-v2-explicit-impl-type-parameter-binders.md)、
+[spec.md §6.5](spec.md#65-impl-block)）。binder のない impl head で
+単一大文字名を書いても暗黙の型パラメータにはなりません。
+実装状態: binder のない impl head の単一大文字名は、現行実装ではまだ
+暗黙の型パラメータとして扱われます（#946）。
+
 ## Option / Result
 
 Option と Result の型定義は [spec.md §2.2](spec.md#22-composite-types)、
@@ -71,10 +78,10 @@ API 一覧は [spec.md §9.10–9.11](spec.md#910-option-prelude) を参照し�
 
 <!-- skip-doc-check reason="syntax/notation sketch with metavariables; not a runnable program" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
-unwrap(x)
-unwrap_or(x, 0)
-is_some(x)
-is_none(x)
+o.unwrap()
+o.unwrap_or(0)
+o.is_some()
+o.is_none()
 ```
 
 ## 型推論
@@ -84,7 +91,7 @@ is_none(x)
 実用的な注意点:
 
 - 数値や文字列は素直な型推論が入ります
-- 空コレクションは `Vec_new_T()` のような型特化コンストラクタを使う方が安全です
+- 空コレクションは `Vec::new<T>()` のような明示的な型引数付きコンストラクタを使う方が安全です
 
 `let` の多相化は、immutable binding の literal、closure、または既に generalized された
 immutable binding の alias に限られます。
@@ -96,11 +103,16 @@ call、aggregate、block、`let mut` は value restriction により monomorphic
 
 値型・参照型の分類は [spec.md §2.4 Value vs Reference Semantics](spec.md#24-value-vs-reference-semantics) を参照してください。
 実装上のメモリ表現については [memory-model.md](memory-model.md) を参照。
+関数呼び出しは非 `Copy` 実引数を呼び出しの間だけ借用し、パラメータ経由の
+mutation には `mut` パラメータが必要です
+（[spec.md §3.5.1](spec.md#351-argument-passing-and-parameter-modes)、ADR-088）。
+現行コンパイラではまだ強制されていません（#951）。
 
 ## 現在の実装メモ
 
-- 実装基盤は linear memory + compiler intrinsic (詳細は [memory-model.md](memory-model.md))
-- 一部 docs には Wasm GC 表現が出てきますが、それは設計資料寄りです
+- primary ターゲットは `wasm32-gc` で、GC オブジェクトへ lowering します
+  （現在は partial。ADR-002 / ADR-013 / ADR-035、詳細は [memory-model.md](memory-model.md)）
+- `wasm32` は同じ言語意味論を linear memory へ lowering する supported ターゲットです (ADR-075)
 - いま動く型の範囲は `current-state.md` を見てください
 
 ## 関連

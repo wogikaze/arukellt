@@ -1,9 +1,9 @@
 use std::host::stdio
 fn main() {
-    let v1: Vec<i32> = Vec::new<i32>()
-    push(v1, 10)
+    let mut v1: Vec<i32> = Vec::new<i32>()
+    v1.push(10)
     // let v2 = v1 moves the Vec: v1 is no longer usable below.
-    let v2 = v1
-    push(v2, 20)
-    stdio::println(len(v2).to_string())
+    let mut v2 = v1
+    v2.push(20)
+    stdio::println(v2.len().to_string())
 }
