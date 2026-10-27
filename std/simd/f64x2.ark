@@ -7,10 +7,7 @@
 
 /// Namespace for the f64x2 lane operations.
 ///
-/// The associated functions cover the lane operations whose emitter
-/// lowering is valid on both targets. Operations that still fail
-/// validation, trap, or produce wrong values stay as experimental
-/// free functions below until the SIMD lowering is fixed (#917).
+/// The associated functions cover every lane operation in this module.
 pub struct F64x2 {}
 
 impl F64x2 {
@@ -128,56 +125,48 @@ impl F64x2 {
     fn convert_low_i32x4_u(a: v128) -> v128 {
         __simd_f64x2_convert_low_i32x4_u(a)
     }
-}
 
-// --- Lowering-blocked operations ---
-//
-// The emitter cannot yet lower these operations to valid Wasm on both
-// targets, or lowers them to the wrong value / a trap. They stay as
-// experimental free functions until the SIMD lowering is fixed; migrating
-// them to the associated surface would advertise a replacement that does not
-// work. See issue #917 for the per-op evidence.
+    // --- Arithmetic ---
 
-// --- Arithmetic ---
+    /// Lane-wise addition: a + b
+    fn add(a: v128, b: v128) -> v128 {
+        __simd_f64x2_add(a, b)
+    }
 
-/// Lane-wise addition: a + b
-pub fn add(a: v128, b: v128) -> v128 {
-    __simd_f64x2_add(a, b)
-}
+    /// Lane-wise subtraction: a - b
+    fn sub(a: v128, b: v128) -> v128 {
+        __simd_f64x2_sub(a, b)
+    }
 
-/// Lane-wise subtraction: a - b
-pub fn sub(a: v128, b: v128) -> v128 {
-    __simd_f64x2_sub(a, b)
-}
+    /// Lane-wise multiplication: a * b
+    fn mul(a: v128, b: v128) -> v128 {
+        __simd_f64x2_mul(a, b)
+    }
 
-/// Lane-wise multiplication: a * b
-pub fn mul(a: v128, b: v128) -> v128 {
-    __simd_f64x2_mul(a, b)
-}
+    /// Lane-wise division: a / b
+    fn div(a: v128, b: v128) -> v128 {
+        __simd_f64x2_div(a, b)
+    }
 
-/// Lane-wise division: a / b
-pub fn div(a: v128, b: v128) -> v128 {
-    __simd_f64x2_div(a, b)
-}
+    /// Lane-wise negation: -a
+    fn neg(a: v128) -> v128 {
+        __simd_f64x2_neg(a)
+    }
 
-/// Lane-wise negation: -a
-pub fn neg(a: v128) -> v128 {
-    __simd_f64x2_neg(a)
-}
+    /// Lane-wise square root.
+    fn sqrt(a: v128) -> v128 {
+        __simd_f64x2_sqrt(a)
+    }
 
-/// Lane-wise square root.
-pub fn sqrt(a: v128) -> v128 {
-    __simd_f64x2_sqrt(a)
-}
+    // --- Min / Max ---
 
-// --- Min / Max ---
+    /// Lane-wise minimum.
+    fn min(a: v128, b: v128) -> v128 {
+        __simd_f64x2_min(a, b)
+    }
 
-/// Lane-wise minimum.
-pub fn min(a: v128, b: v128) -> v128 {
-    __simd_f64x2_min(a, b)
-}
-
-/// Lane-wise maximum.
-pub fn max(a: v128, b: v128) -> v128 {
-    __simd_f64x2_max(a, b)
+    /// Lane-wise maximum.
+    fn max(a: v128, b: v128) -> v128 {
+        __simd_f64x2_max(a, b)
+    }
 }

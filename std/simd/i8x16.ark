@@ -7,10 +7,7 @@
 
 /// Namespace for the i8x16 lane operations.
 ///
-/// The associated functions cover the lane operations whose emitter
-/// lowering is valid on both targets. Operations that still fail
-/// validation, trap, or produce wrong values stay as experimental
-/// free functions below until the SIMD lowering is fixed (#917).
+/// The associated functions cover every lane operation in this module.
 pub struct I8x16 {}
 
 impl I8x16 {
@@ -197,78 +194,70 @@ impl I8x16 {
     fn narrow_i16x8_u(a: v128, b: v128) -> v128 {
         __simd_i8x16_narrow_i16x8_u(a, b)
     }
-}
 
-// --- Lowering-blocked operations ---
-//
-// The emitter cannot yet lower these operations to valid Wasm on both
-// targets, or lowers them to the wrong value / a trap. They stay as
-// experimental free functions until the SIMD lowering is fixed; migrating
-// them to the associated surface would advertise a replacement that does not
-// work. See issue #917 for the per-op evidence.
+    // --- Arithmetic ---
 
-// --- Arithmetic ---
+    /// Lane-wise addition: a + b
+    fn add(a: v128, b: v128) -> v128 {
+        __simd_i8x16_add(a, b)
+    }
 
-/// Lane-wise addition: a + b
-pub fn add(a: v128, b: v128) -> v128 {
-    __simd_i8x16_add(a, b)
-}
+    /// Lane-wise subtraction: a - b
+    fn sub(a: v128, b: v128) -> v128 {
+        __simd_i8x16_sub(a, b)
+    }
 
-/// Lane-wise subtraction: a - b
-pub fn sub(a: v128, b: v128) -> v128 {
-    __simd_i8x16_sub(a, b)
-}
+    /// Lane-wise multiplication: a * b
+    fn mul(a: v128, b: v128) -> v128 {
+        __simd_i8x16_mul(a, b)
+    }
 
-/// Lane-wise multiplication: a * b
-pub fn mul(a: v128, b: v128) -> v128 {
-    __simd_i8x16_mul(a, b)
-}
+    /// Lane-wise negation: -a
+    fn neg(a: v128) -> v128 {
+        __simd_i8x16_neg(a)
+    }
 
-/// Lane-wise negation: -a
-pub fn neg(a: v128) -> v128 {
-    __simd_i8x16_neg(a)
-}
+    // --- Saturating arithmetic ---
 
-// --- Saturating arithmetic ---
+    /// Lane-wise addition with signed saturation.
+    fn add_sat_s(a: v128, b: v128) -> v128 {
+        __simd_i8x16_add_sat_s(a, b)
+    }
 
-/// Lane-wise addition with signed saturation.
-pub fn add_sat_s(a: v128, b: v128) -> v128 {
-    __simd_i8x16_add_sat_s(a, b)
-}
+    /// Lane-wise addition with unsigned saturation.
+    fn add_sat_u(a: v128, b: v128) -> v128 {
+        __simd_i8x16_add_sat_u(a, b)
+    }
 
-/// Lane-wise addition with unsigned saturation.
-pub fn add_sat_u(a: v128, b: v128) -> v128 {
-    __simd_i8x16_add_sat_u(a, b)
-}
+    /// Lane-wise subtraction with signed saturation.
+    fn sub_sat_s(a: v128, b: v128) -> v128 {
+        __simd_i8x16_sub_sat_s(a, b)
+    }
 
-/// Lane-wise subtraction with signed saturation.
-pub fn sub_sat_s(a: v128, b: v128) -> v128 {
-    __simd_i8x16_sub_sat_s(a, b)
-}
+    /// Lane-wise subtraction with unsigned saturation.
+    fn sub_sat_u(a: v128, b: v128) -> v128 {
+        __simd_i8x16_sub_sat_u(a, b)
+    }
 
-/// Lane-wise subtraction with unsigned saturation.
-pub fn sub_sat_u(a: v128, b: v128) -> v128 {
-    __simd_i8x16_sub_sat_u(a, b)
-}
+    // --- Comparison ---
 
-// --- Comparison ---
+    /// Lane-wise less-than-or-equal (signed).
+    fn le_s(a: v128, b: v128) -> v128 {
+        __simd_i8x16_le_s(a, b)
+    }
 
-/// Lane-wise less-than-or-equal (signed).
-pub fn le_s(a: v128, b: v128) -> v128 {
-    __simd_i8x16_le_s(a, b)
-}
+    /// Lane-wise greater-than-or-equal (signed).
+    fn ge_s(a: v128, b: v128) -> v128 {
+        __simd_i8x16_ge_s(a, b)
+    }
 
-/// Lane-wise greater-than-or-equal (signed).
-pub fn ge_s(a: v128, b: v128) -> v128 {
-    __simd_i8x16_ge_s(a, b)
-}
+    /// Lane-wise less-than-or-equal (unsigned).
+    fn le_u(a: v128, b: v128) -> v128 {
+        __simd_i8x16_le_u(a, b)
+    }
 
-/// Lane-wise less-than-or-equal (unsigned).
-pub fn le_u(a: v128, b: v128) -> v128 {
-    __simd_i8x16_le_u(a, b)
-}
-
-/// Lane-wise greater-than-or-equal (unsigned).
-pub fn ge_u(a: v128, b: v128) -> v128 {
-    __simd_i8x16_ge_u(a, b)
+    /// Lane-wise greater-than-or-equal (unsigned).
+    fn ge_u(a: v128, b: v128) -> v128 {
+        __simd_i8x16_ge_u(a, b)
+    }
 }

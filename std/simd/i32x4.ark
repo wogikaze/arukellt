@@ -7,10 +7,7 @@
 
 /// Namespace for the i32x4 lane operations.
 ///
-/// The associated functions cover the lane operations whose emitter
-/// lowering is valid on both targets. Operations that still fail
-/// validation, trap, or produce wrong values stay as experimental
-/// free functions below until the SIMD lowering is fixed (#917).
+/// The associated functions cover every lane operation in this module.
 pub struct I32x4 {}
 
 impl I32x4 {
@@ -171,19 +168,11 @@ impl I32x4 {
     fn min_u(a: v128, b: v128) -> v128 {
         __simd_i32x4_min_u(a, b)
     }
-}
 
-// --- Lowering-blocked operations ---
-//
-// The emitter cannot yet lower these operations to valid Wasm on both
-// targets, or lowers them to the wrong value / a trap. They stay as
-// experimental free functions until the SIMD lowering is fixed; migrating
-// them to the associated surface would advertise a replacement that does not
-// work. See issue #917 for the per-op evidence.
+    // --- Min / Max ---
 
-// --- Min / Max ---
-
-/// Lane-wise maximum (unsigned).
-pub fn max_u(a: v128, b: v128) -> v128 {
-    __simd_i32x4_max_u(a, b)
+    /// Lane-wise maximum (unsigned).
+    fn max_u(a: v128, b: v128) -> v128 {
+        __simd_i32x4_max_u(a, b)
+    }
 }

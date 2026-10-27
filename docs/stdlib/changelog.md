@@ -16,6 +16,31 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — std::simd lane namespace completion (#917, ADR-046)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the
+  ADR-014 D4 exception for `experimental` entries. The first lane wave moved
+  132 operations to `F32x4` … `V128`; this wave fixes the emitter and moves the
+  remaining 130, so no `std::simd` top-level free function remains.
+- **Emitter fixes**: corrected the 0xfd sub-opcode table (i8x16/i16x8/i32x4/
+  i64x2/f32x4/f64x2 arithmetic, neg, and load/store-lane values), registered
+  the missing comparison/min/max operations and dispatch branches, added the
+  unsigned-lane aliases plus `U8x16`/`U16x8`/`U32x4`/`U64x2` namespaces,
+  emulated `i8x16::mul` and the four unsigned `i64x2` compares, kept the i64x2
+  shift amount at wasm `i32`, and rebuilt `v128::new` from `i8x16` lanes.
+- **Removed**: the 130 remaining `pub fn` declarations and the 37 `std::simd`
+  `[[functions]]` manifest entries. `U8x16`, `U16x8`, `U32x4`, and `U64x2`
+  are new `[[types]]` entries; the existing type method lists now cover every
+  lane operation.
+- **Replacement**: the namespace associated functions on `F32x4`, `F64x2`,
+  `I8x16`, `I16x8`, `I32x4`, `I64x2`, `U8x16`, `U16x8`, `U32x4`, `U64x2`, and
+  `V128`. Qualified old calls keep the E0100 hint from
+  `resolver::removed_names`.
+- **Evidence**: `simd_conformance/{u8x16,u16x8,u32x4,u64x2,signed,float,v128_new}`
+  `_lane_ops`/`_new` fixtures plus their `_wasm32` twins execute on
+  `wasm32-gc` components and `--target wasm32`; the full fixture harness,
+  `selfhost fixpoint`, and the ADR-029 gate are recorded in the wave receipt.
+
 ## 2026-10-27 — std::core range/error/hash receiver surface (#917, ADR-087 Wave 2)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the

@@ -168,10 +168,10 @@ def render_generated_ark(
         "// Run scripts/check/check-native-cpp-capabilities.py --write-generated.",
         "// Compact table + index for CoreOp capabilities. Do not edit by hand.",
         "",
-        "use corehir::table_blob",
-        "use mir::opcodes",
         "use std::prelude::{substring}",
         "use std::text",
+        "use corehir::table_blob",
+        "use mir::opcodes",
         "",
         "fn native_c_capability_opcode_name(op: i32) -> String {",
     ]

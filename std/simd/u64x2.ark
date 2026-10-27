@@ -3,110 +3,117 @@
 //! Each value is a v128 with 2 u64 lanes.
 //! All APIs are experimental (ADR-014).
 
-// --- Construct ---
+// --- Namespace ---
 
-/// Create a v128 with all 2 lanes set to the same u64 value.
-pub fn splat(x: i64) -> v128 {
-    __simd_u64x2_splat(x)
-}
+/// Namespace for the u64x2 lane operations.
+pub struct U64x2 {}
 
-/// Create a v128 from 2 u64 lane values.
-pub fn new(a: i64, b: i64) -> v128 {
-    let mut v = splat(a)
-    v = __simd_u64x2_replace_lane(v, 1, b)
-    v
-}
+impl U64x2 {
+    // --- Construct ---
 
-/// Create a v128 with all lanes zeroed.
-pub fn zero() -> v128 {
-    splat(0)
-}
+    /// Create a v128 with all 2 lanes set to the same u64 value.
+    fn splat(x: i64) -> v128 {
+        __simd_u64x2_splat(x)
+    }
 
-// --- Lane access ---
+    /// Create a v128 from 2 u64 lane values.
+    fn new(a: i64, b: i64) -> v128 {
+        let mut v = U64x2::splat(a)
+        v = __simd_u64x2_replace_lane(v, 1, b)
+        v
+    }
 
-/// Extract a single u64 lane (0..1) from a v128.
-pub fn extract_lane(v: v128, lane: i32) -> i64 {
-    if lane == 0 { return __simd_u64x2_extract_lane(v, 0) }
-    if lane == 1 { return __simd_u64x2_extract_lane(v, 1) }
-    panic("u64x2::extract_lane: lane out of range")
-    0i64
-}
+    /// Create a v128 with all lanes zeroed.
+    fn zero() -> v128 {
+        U64x2::splat(0)
+    }
 
-/// Replace a single u64 lane (0..1) in a v128, returning a new v128.
-pub fn replace_lane(v: v128, lane: i32, x: i64) -> v128 {
-    if lane == 0 { return __simd_u64x2_replace_lane(v, 0, x) }
-    if lane == 1 { return __simd_u64x2_replace_lane(v, 1, x) }
-    panic("u64x2::replace_lane: lane out of range")
-    v
-}
+    // --- Lane access ---
 
-// --- Arithmetic ---
+    /// Extract a single u64 lane (0..1) from a v128.
+    fn extract_lane(v: v128, lane: i32) -> i64 {
+        if lane == 0 { return __simd_u64x2_extract_lane(v, 0) }
+        if lane == 1 { return __simd_u64x2_extract_lane(v, 1) }
+        panic("U64x2::extract_lane: lane out of range")
+        0i64
+    }
 
-/// Lane-wise addition: a + b
-pub fn add(a: v128, b: v128) -> v128 {
-    __simd_u64x2_add(a, b)
-}
+    /// Replace a single u64 lane (0..1) in a v128, returning a new v128.
+    fn replace_lane(v: v128, lane: i32, x: i64) -> v128 {
+        if lane == 0 { return __simd_u64x2_replace_lane(v, 0, x) }
+        if lane == 1 { return __simd_u64x2_replace_lane(v, 1, x) }
+        panic("U64x2::replace_lane: lane out of range")
+        v
+    }
 
-/// Lane-wise subtraction: a - b
-pub fn sub(a: v128, b: v128) -> v128 {
-    __simd_u64x2_sub(a, b)
-}
+    // --- Arithmetic ---
 
-/// Lane-wise multiplication: a * b
-pub fn mul(a: v128, b: v128) -> v128 {
-    __simd_u64x2_mul(a, b)
-}
+    /// Lane-wise addition: a + b
+    fn add(a: v128, b: v128) -> v128 {
+        __simd_u64x2_add(a, b)
+    }
 
-/// Lane-wise negation: -a
-pub fn neg(a: v128) -> v128 {
-    __simd_u64x2_neg(a)
-}
+    /// Lane-wise subtraction: a - b
+    fn sub(a: v128, b: v128) -> v128 {
+        __simd_u64x2_sub(a, b)
+    }
 
-/// Lane-wise absolute value.
-pub fn abs(a: v128) -> v128 {
-    __simd_u64x2_abs(a)
-}
+    /// Lane-wise multiplication: a * b
+    fn mul(a: v128, b: v128) -> v128 {
+        __simd_u64x2_mul(a, b)
+    }
 
-// --- Comparison ---
+    /// Lane-wise negation: -a
+    fn neg(a: v128) -> v128 {
+        __simd_u64x2_neg(a)
+    }
 
-/// Lane-wise equality. Each lane is all-1s if equal, all-0s otherwise.
-pub fn eq(a: v128, b: v128) -> v128 {
-    __simd_u64x2_eq(a, b)
-}
+    /// Lane-wise absolute value.
+    fn abs(a: v128) -> v128 {
+        __simd_u64x2_abs(a)
+    }
 
-/// Lane-wise inequality. Each lane is all-1s if not equal, all-0s otherwise.
-pub fn ne(a: v128, b: v128) -> v128 {
-    __simd_u64x2_ne(a, b)
-}
+    // --- Comparison ---
 
-/// Lane-wise less-than (unsigned). Each lane is all-1s if a < b, all-0s otherwise.
-pub fn lt_u(a: v128, b: v128) -> v128 {
-    __simd_u64x2_lt_u(a, b)
-}
+    /// Lane-wise equality. Each lane is all-1s if equal, all-0s otherwise.
+    fn eq(a: v128, b: v128) -> v128 {
+        __simd_u64x2_eq(a, b)
+    }
 
-/// Lane-wise less-than-or-equal (unsigned).
-pub fn le_u(a: v128, b: v128) -> v128 {
-    __simd_u64x2_le_u(a, b)
-}
+    /// Lane-wise inequality. Each lane is all-1s if not equal, all-0s otherwise.
+    fn ne(a: v128, b: v128) -> v128 {
+        __simd_u64x2_ne(a, b)
+    }
 
-/// Lane-wise greater-than (unsigned).
-pub fn gt_u(a: v128, b: v128) -> v128 {
-    __simd_u64x2_gt_u(a, b)
-}
+    /// Lane-wise less-than (unsigned). Each lane is all-1s if a < b, all-0s otherwise.
+    fn lt_u(a: v128, b: v128) -> v128 {
+        __simd_u64x2_lt_u(a, b)
+    }
 
-/// Lane-wise greater-than-or-equal (unsigned).
-pub fn ge_u(a: v128, b: v128) -> v128 {
-    __simd_u64x2_ge_u(a, b)
-}
+    /// Lane-wise less-than-or-equal (unsigned).
+    fn le_u(a: v128, b: v128) -> v128 {
+        __simd_u64x2_le_u(a, b)
+    }
 
-// --- Shift ---
+    /// Lane-wise greater-than (unsigned).
+    fn gt_u(a: v128, b: v128) -> v128 {
+        __simd_u64x2_gt_u(a, b)
+    }
 
-/// Lane-wise left shift by a scalar shift amount.
-pub fn shl(a: v128, shift: i32) -> v128 {
-    __simd_u64x2_shl(a, shift)
-}
+    /// Lane-wise greater-than-or-equal (unsigned).
+    fn ge_u(a: v128, b: v128) -> v128 {
+        __simd_u64x2_ge_u(a, b)
+    }
 
-/// Lane-wise right shift (unsigned / logical).
-pub fn shr_u(a: v128, shift: i32) -> v128 {
-    __simd_u64x2_shr_u(a, shift)
+    // --- Shift ---
+
+    /// Lane-wise left shift by a scalar shift amount.
+    fn shl(a: v128, shift: i32) -> v128 {
+        __simd_u64x2_shl(a, shift)
+    }
+
+    /// Lane-wise right shift (unsigned / logical).
+    fn shr_u(a: v128, shift: i32) -> v128 {
+        __simd_u64x2_shr_u(a, shift)
+    }
 }

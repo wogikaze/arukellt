@@ -275,23 +275,6 @@ owner = "917"
 replacement = "JsonValue / TomlValue value methods (`v.is_null()`, `v.as_i32()`, `v.get_field(key)`, `v.to_text()`, `v.as_string()`, `v.table_keys()`, `e.message()`); the `JsonText` / `TomlText` text namespaces (`JsonText::quote`, `JsonText::get_str`, `TomlText::find_value`, ...); `JsonValue` constructors (`JsonValue::int`, `JsonValue::string`, `JsonValue::array`, `JsonValue::object`, ...); `JsonField::new`; and `JsonValue::pretty_text`. `json::parse`, `toml::toml_parse`, and `toml::toml_stringify` remain the document entry points."
 
 [[rules]]
-label = "std::simd frees"
-module_pfx = "std::simd"
-class = "associated-or-method"
-owner = "917"
-replacement = "SIMD lane namespace associated functions (`F32x4::add`, `I64x2::eq`, `V128::any_true`, …) for the 132 ops whose lowering is valid on both targets; the remaining 130 frees stay experimental until the SIMD emitter validates (98) or stops trapping / corrupting the value (32). See issue #917."
-
-# The std::wasm builder family was retired by #917 on 2026-10-27. 72 of the
-# 77 manifest entries and all 34 source-only declarations became associated
-# functions / methods on Section, ValType, Opcode, FuncType, Limits,
-# WasmModuleBuilder, and Leb128. The v128 bitwise frees point at
-# std::simd::v128::V128 and the six identity v128_reinterpret_* helpers retire
-# because v128 is one type. Every entry was `experimental`, so ADR-014 D4
-# allowed direct deletion with a migration note; no ADR-087 window or W0009
-# entry applies. The five v128 load/store frees stay in the `std::wasm v128
-# memory frees` rule below because the intrinsic still has no emitter lowering.
-
-[[rules]]
 label = "std::wasm v128 memory frees"
 module = "std::wasm"
 class = "associated-or-method"

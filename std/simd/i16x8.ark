@@ -7,10 +7,7 @@
 
 /// Namespace for the i16x8 lane operations.
 ///
-/// The associated functions cover the lane operations whose emitter
-/// lowering is valid on both targets. Operations that still fail
-/// validation, trap, or produce wrong values stay as experimental
-/// free functions below until the SIMD lowering is fixed (#917).
+/// The associated functions cover every lane operation in this module.
 pub struct I16x8 {}
 
 impl I16x8 {
@@ -173,98 +170,90 @@ impl I16x8 {
     fn narrow_i32x4_u(a: v128, b: v128) -> v128 {
         __simd_i16x8_narrow_i32x4_u(a, b)
     }
-}
 
-// --- Lowering-blocked operations ---
-//
-// The emitter cannot yet lower these operations to valid Wasm on both
-// targets, or lowers them to the wrong value / a trap. They stay as
-// experimental free functions until the SIMD lowering is fixed; migrating
-// them to the associated surface would advertise a replacement that does not
-// work. See issue #917 for the per-op evidence.
+    // --- Arithmetic ---
 
-// --- Arithmetic ---
+    /// Lane-wise multiplication: a * b
+    fn mul(a: v128, b: v128) -> v128 {
+        __simd_i16x8_mul(a, b)
+    }
 
-/// Lane-wise multiplication: a * b
-pub fn mul(a: v128, b: v128) -> v128 {
-    __simd_i16x8_mul(a, b)
-}
+    /// Lane-wise negation: -a
+    fn neg(a: v128) -> v128 {
+        __simd_i16x8_neg(a)
+    }
 
-/// Lane-wise negation: -a
-pub fn neg(a: v128) -> v128 {
-    __simd_i16x8_neg(a)
-}
+    /// Lane-wise absolute value.
+    fn abs(a: v128) -> v128 {
+        __simd_i16x8_abs(a)
+    }
 
-/// Lane-wise absolute value.
-pub fn abs(a: v128) -> v128 {
-    __simd_i16x8_abs(a)
-}
+    // --- Saturating arithmetic ---
 
-// --- Saturating arithmetic ---
+    /// Lane-wise addition with signed saturation.
+    fn add_sat_s(a: v128, b: v128) -> v128 {
+        __simd_i16x8_add_sat_s(a, b)
+    }
 
-/// Lane-wise addition with signed saturation.
-pub fn add_sat_s(a: v128, b: v128) -> v128 {
-    __simd_i16x8_add_sat_s(a, b)
-}
+    /// Lane-wise addition with unsigned saturation.
+    fn add_sat_u(a: v128, b: v128) -> v128 {
+        __simd_i16x8_add_sat_u(a, b)
+    }
 
-/// Lane-wise addition with unsigned saturation.
-pub fn add_sat_u(a: v128, b: v128) -> v128 {
-    __simd_i16x8_add_sat_u(a, b)
-}
+    /// Lane-wise subtraction with signed saturation.
+    fn sub_sat_s(a: v128, b: v128) -> v128 {
+        __simd_i16x8_sub_sat_s(a, b)
+    }
 
-/// Lane-wise subtraction with signed saturation.
-pub fn sub_sat_s(a: v128, b: v128) -> v128 {
-    __simd_i16x8_sub_sat_s(a, b)
-}
+    /// Lane-wise subtraction with unsigned saturation.
+    fn sub_sat_u(a: v128, b: v128) -> v128 {
+        __simd_i16x8_sub_sat_u(a, b)
+    }
 
-/// Lane-wise subtraction with unsigned saturation.
-pub fn sub_sat_u(a: v128, b: v128) -> v128 {
-    __simd_i16x8_sub_sat_u(a, b)
-}
+    // --- Comparison ---
 
-// --- Comparison ---
+    /// Lane-wise equality. Each lane is all-1s if equal, all-0s otherwise.
+    fn eq(a: v128, b: v128) -> v128 {
+        __simd_i16x8_eq(a, b)
+    }
 
-/// Lane-wise equality. Each lane is all-1s if equal, all-0s otherwise.
-pub fn eq(a: v128, b: v128) -> v128 {
-    __simd_i16x8_eq(a, b)
-}
+    /// Lane-wise inequality. Each lane is all-1s if not equal, all-0s otherwise.
+    fn ne(a: v128, b: v128) -> v128 {
+        __simd_i16x8_ne(a, b)
+    }
 
-/// Lane-wise inequality. Each lane is all-1s if not equal, all-0s otherwise.
-pub fn ne(a: v128, b: v128) -> v128 {
-    __simd_i16x8_ne(a, b)
-}
+    /// Lane-wise less-than (signed). Each lane is all-1s if a < b, all-0s otherwise.
+    fn lt_s(a: v128, b: v128) -> v128 {
+        __simd_i16x8_lt_s(a, b)
+    }
 
-/// Lane-wise less-than (signed). Each lane is all-1s if a < b, all-0s otherwise.
-pub fn lt_s(a: v128, b: v128) -> v128 {
-    __simd_i16x8_lt_s(a, b)
-}
+    /// Lane-wise less-than-or-equal (signed).
+    fn le_s(a: v128, b: v128) -> v128 {
+        __simd_i16x8_le_s(a, b)
+    }
 
-/// Lane-wise less-than-or-equal (signed).
-pub fn le_s(a: v128, b: v128) -> v128 {
-    __simd_i16x8_le_s(a, b)
-}
+    /// Lane-wise greater-than (signed).
+    fn gt_s(a: v128, b: v128) -> v128 {
+        __simd_i16x8_gt_s(a, b)
+    }
 
-/// Lane-wise greater-than (signed).
-pub fn gt_s(a: v128, b: v128) -> v128 {
-    __simd_i16x8_gt_s(a, b)
-}
+    /// Lane-wise greater-than-or-equal (signed).
+    fn ge_s(a: v128, b: v128) -> v128 {
+        __simd_i16x8_ge_s(a, b)
+    }
 
-/// Lane-wise greater-than-or-equal (signed).
-pub fn ge_s(a: v128, b: v128) -> v128 {
-    __simd_i16x8_ge_s(a, b)
-}
+    /// Lane-wise less-than (unsigned).
+    fn lt_u(a: v128, b: v128) -> v128 {
+        __simd_i16x8_lt_u(a, b)
+    }
 
-/// Lane-wise less-than (unsigned).
-pub fn lt_u(a: v128, b: v128) -> v128 {
-    __simd_i16x8_lt_u(a, b)
-}
+    /// Lane-wise less-than-or-equal (unsigned).
+    fn le_u(a: v128, b: v128) -> v128 {
+        __simd_i16x8_le_u(a, b)
+    }
 
-/// Lane-wise less-than-or-equal (unsigned).
-pub fn le_u(a: v128, b: v128) -> v128 {
-    __simd_i16x8_le_u(a, b)
-}
-
-/// Lane-wise greater-than (unsigned).
-pub fn gt_u(a: v128, b: v128) -> v128 {
-    __simd_i16x8_gt_u(a, b)
+    /// Lane-wise greater-than (unsigned).
+    fn gt_u(a: v128, b: v128) -> v128 {
+        __simd_i16x8_gt_u(a, b)
+    }
 }

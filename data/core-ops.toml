@@ -913,6 +913,374 @@ alias = "__simd_v128_xor"
 core_op_id = "simd.v128.xor"
 
 [[legacy_bindings]]
+alias = "__simd_u8x16_splat"
+core_op_id = "simd.i8x16.splat"
+
+[[legacy_bindings]]
+alias = "__simd_u8x16_replace_lane"
+core_op_id = "simd.i8x16.replace.lane"
+
+[[legacy_bindings]]
+alias = "__simd_u8x16_add"
+core_op_id = "simd.i8x16.add"
+
+[[legacy_bindings]]
+alias = "__simd_u8x16_sub"
+core_op_id = "simd.i8x16.sub"
+
+[[legacy_bindings]]
+alias = "__simd_u8x16_mul"
+core_op_id = "simd.i8x16.mul"
+
+[[legacy_bindings]]
+alias = "__simd_u8x16_neg"
+core_op_id = "simd.i8x16.neg"
+
+[[legacy_bindings]]
+alias = "__simd_u8x16_abs"
+core_op_id = "simd.i8x16.abs"
+
+[[legacy_bindings]]
+alias = "__simd_u8x16_eq"
+core_op_id = "simd.i8x16.eq"
+
+[[legacy_bindings]]
+alias = "__simd_u8x16_ne"
+core_op_id = "simd.i8x16.ne"
+
+[[legacy_bindings]]
+alias = "__simd_u8x16_shl"
+core_op_id = "simd.i8x16.shl"
+
+[[legacy_bindings]]
+alias = "__simd_u8x16_shr_u"
+core_op_id = "simd.i8x16.shr.u"
+
+[[legacy_bindings]]
+alias = "__simd_u8x16_extract_lane_u"
+core_op_id = "simd.i8x16.extract.lane.u"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_splat"
+core_op_id = "simd.i16x8.splat"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_replace_lane"
+core_op_id = "simd.i16x8.replace.lane"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_add"
+core_op_id = "simd.i16x8.add"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_sub"
+core_op_id = "simd.i16x8.sub"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_mul"
+core_op_id = "simd.i16x8.mul"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_neg"
+core_op_id = "simd.i16x8.neg"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_abs"
+core_op_id = "simd.i16x8.abs"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_eq"
+core_op_id = "simd.i16x8.eq"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_ne"
+core_op_id = "simd.i16x8.ne"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_shl"
+core_op_id = "simd.i16x8.shl"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_shr_u"
+core_op_id = "simd.i16x8.shr.u"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_extract_lane_u"
+core_op_id = "simd.i16x8.extract.lane.u"
+
+[[legacy_bindings]]
+alias = "__simd_u32x4_splat"
+core_op_id = "simd.i32x4.splat"
+
+[[legacy_bindings]]
+alias = "__simd_u32x4_replace_lane"
+core_op_id = "simd.i32x4.replace.lane"
+
+[[legacy_bindings]]
+alias = "__simd_u32x4_add"
+core_op_id = "simd.i32x4.add"
+
+[[legacy_bindings]]
+alias = "__simd_u32x4_sub"
+core_op_id = "simd.i32x4.sub"
+
+[[legacy_bindings]]
+alias = "__simd_u32x4_mul"
+core_op_id = "simd.i32x4.mul"
+
+[[legacy_bindings]]
+alias = "__simd_u32x4_neg"
+core_op_id = "simd.i32x4.neg"
+
+[[legacy_bindings]]
+alias = "__simd_u32x4_abs"
+core_op_id = "simd.i32x4.abs"
+
+[[legacy_bindings]]
+alias = "__simd_u32x4_eq"
+core_op_id = "simd.i32x4.eq"
+
+[[legacy_bindings]]
+alias = "__simd_u32x4_ne"
+core_op_id = "simd.i32x4.ne"
+
+[[legacy_bindings]]
+alias = "__simd_u32x4_shl"
+core_op_id = "simd.i32x4.shl"
+
+[[legacy_bindings]]
+alias = "__simd_u32x4_shr_u"
+core_op_id = "simd.i32x4.shr.u"
+
+[[legacy_bindings]]
+alias = "__simd_u32x4_extract_lane"
+core_op_id = "simd.i32x4.extract.lane"
+
+[[legacy_bindings]]
+alias = "__simd_u64x2_splat"
+core_op_id = "simd.i64x2.splat"
+
+[[legacy_bindings]]
+alias = "__simd_u64x2_replace_lane"
+core_op_id = "simd.i64x2.replace.lane"
+
+[[legacy_bindings]]
+alias = "__simd_u64x2_add"
+core_op_id = "simd.i64x2.add"
+
+[[legacy_bindings]]
+alias = "__simd_u64x2_sub"
+core_op_id = "simd.i64x2.sub"
+
+[[legacy_bindings]]
+alias = "__simd_u64x2_mul"
+core_op_id = "simd.i64x2.mul"
+
+[[legacy_bindings]]
+alias = "__simd_u64x2_neg"
+core_op_id = "simd.i64x2.neg"
+
+[[legacy_bindings]]
+alias = "__simd_u64x2_abs"
+core_op_id = "simd.i64x2.abs"
+
+[[legacy_bindings]]
+alias = "__simd_u64x2_eq"
+core_op_id = "simd.i64x2.eq"
+
+[[legacy_bindings]]
+alias = "__simd_u64x2_ne"
+core_op_id = "simd.i64x2.ne"
+
+[[legacy_bindings]]
+alias = "__simd_u64x2_shl"
+core_op_id = "simd.i64x2.shl"
+
+[[legacy_bindings]]
+alias = "__simd_u64x2_shr_u"
+core_op_id = "simd.i64x2.shr.u"
+
+[[legacy_bindings]]
+alias = "__simd_u64x2_extract_lane"
+core_op_id = "simd.i64x2.extract.lane"
+
+[[legacy_bindings]]
+alias = "__simd_u8x16_lt_u"
+core_op_id = "simd.i8x16.lt.u"
+
+[[legacy_bindings]]
+alias = "__simd_u8x16_le_u"
+core_op_id = "simd.i8x16.le.u"
+
+[[legacy_bindings]]
+alias = "__simd_u8x16_gt_u"
+core_op_id = "simd.i8x16.gt.u"
+
+[[legacy_bindings]]
+alias = "__simd_u8x16_ge_u"
+core_op_id = "simd.i8x16.ge.u"
+
+[[legacy_bindings]]
+alias = "__simd_u8x16_min_u"
+core_op_id = "simd.i8x16.min.u"
+
+[[legacy_bindings]]
+alias = "__simd_u8x16_max_u"
+core_op_id = "simd.i8x16.max.u"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_lt_u"
+core_op_id = "simd.i16x8.lt.u"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_le_u"
+core_op_id = "simd.i16x8.le.u"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_gt_u"
+core_op_id = "simd.i16x8.gt.u"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_ge_u"
+core_op_id = "simd.i16x8.ge.u"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_min_u"
+core_op_id = "simd.i16x8.min.u"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_max_u"
+core_op_id = "simd.i16x8.max.u"
+
+[[legacy_bindings]]
+alias = "__simd_u32x4_lt_u"
+core_op_id = "simd.i32x4.lt.u"
+
+[[legacy_bindings]]
+alias = "__simd_u32x4_le_u"
+core_op_id = "simd.i32x4.le.u"
+
+[[legacy_bindings]]
+alias = "__simd_u32x4_gt_u"
+core_op_id = "simd.i32x4.gt.u"
+
+[[legacy_bindings]]
+alias = "__simd_u32x4_ge_u"
+core_op_id = "simd.i32x4.ge.u"
+
+[[legacy_bindings]]
+alias = "__simd_u32x4_min_u"
+core_op_id = "simd.i32x4.min.u"
+
+[[legacy_bindings]]
+alias = "__simd_u32x4_max_u"
+core_op_id = "simd.i32x4.max.u"
+
+[[legacy_bindings]]
+alias = "__simd_u8x16_add_sat_u"
+core_op_id = "simd.i8x16.add.sat.u"
+
+[[legacy_bindings]]
+alias = "__simd_u8x16_sub_sat_u"
+core_op_id = "simd.i8x16.sub.sat.u"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_add_sat_u"
+core_op_id = "simd.i16x8.add.sat.u"
+
+[[legacy_bindings]]
+alias = "__simd_u16x8_sub_sat_u"
+core_op_id = "simd.i16x8.sub.sat.u"
+
+[[legacy_bindings]]
+alias = "__simd_u64x2_lt_u"
+core_op_id = "simd.u64x2.lt.u"
+
+[[legacy_bindings]]
+alias = "__simd_u64x2_le_u"
+core_op_id = "simd.u64x2.le.u"
+
+[[legacy_bindings]]
+alias = "__simd_u64x2_gt_u"
+core_op_id = "simd.u64x2.gt.u"
+
+[[legacy_bindings]]
+alias = "__simd_u64x2_ge_u"
+core_op_id = "simd.u64x2.ge.u"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_le_s"
+core_op_id = "simd.i8x16.le.s"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_le_u"
+core_op_id = "simd.i8x16.le.u"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_ge_s"
+core_op_id = "simd.i8x16.ge.s"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_ge_u"
+core_op_id = "simd.i8x16.ge.u"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_eq"
+core_op_id = "simd.i16x8.eq"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_ne"
+core_op_id = "simd.i16x8.ne"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_lt_s"
+core_op_id = "simd.i16x8.lt.s"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_lt_u"
+core_op_id = "simd.i16x8.lt.u"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_gt_s"
+core_op_id = "simd.i16x8.gt.s"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_gt_u"
+core_op_id = "simd.i16x8.gt.u"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_le_s"
+core_op_id = "simd.i16x8.le.s"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_le_u"
+core_op_id = "simd.i16x8.le.u"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_ge_s"
+core_op_id = "simd.i16x8.ge.s"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_extend_low_i8x16_u"
+core_op_id = "simd.i16x8.extend.low.i8x16.u"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_max_u"
+core_op_id = "simd.i32x4.max.u"
+
+[[legacy_bindings]]
+alias = "__simd_i64x2_gt_s"
+core_op_id = "simd.i64x2.gt.s"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_min"
+core_op_id = "simd.f64x2.min"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_max"
+core_op_id = "simd.f64x2.max"
+
+[[legacy_bindings]]
 alias = "abs"
 core_op_id = "math.abs"
 
@@ -6696,6 +7064,82 @@ required_target_features = ["simd128"]
 required = false
 
 [[operations]]
+id = "simd.f64x2.max"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Legacy handler branch → __simd_f64x2_max (aliases: 1; __simd_f64x2_max)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "f64x2.max"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "simd.f64x2.min"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Legacy handler branch → __simd_f64x2_min (aliases: 1; __simd_f64x2_min)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "f64x2.min"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
 id = "simd.f64x2.mul"
 visibility = "internal"
 classification = { layer = "target_raw" }
@@ -7304,6 +7748,44 @@ required_target_features = ["simd128"]
 required = false
 
 [[operations]]
+id = "simd.i16x8.eq"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Legacy handler branch → __simd_i16x8_eq (aliases: 1; __simd_i16x8_eq)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "i16x8.eq"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
 id = "simd.i16x8.extadd.pairwise.i8x16.s"
 visibility = "internal"
 classification = { layer = "target_raw" }
@@ -7494,6 +7976,44 @@ required_target_features = ["simd128"]
 required = false
 
 [[operations]]
+id = "simd.i16x8.extend.low.i8x16.u"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Legacy handler branch → __simd_i16x8_extend_low_i8x16_u (aliases: 1; __simd_i16x8_extend_low_i8x16_u)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "i16x8.extend.low.i8x16.u"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
 id = "simd.i16x8.extract.lane.s"
 visibility = "internal"
 classification = { layer = "target_raw" }
@@ -7570,6 +8090,44 @@ required_target_features = ["simd128"]
 required = false
 
 [[operations]]
+id = "simd.i16x8.ge.s"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Legacy handler branch → __simd_i16x8_ge_s (aliases: 1; __simd_i16x8_ge_s)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "i16x8.ge.s"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
 id = "simd.i16x8.ge.u"
 visibility = "internal"
 classification = { layer = "target_raw" }
@@ -7602,6 +8160,234 @@ kind = "target_intrinsic"
 [operations.lowering.target]
 target_family = "wasm"
 target_id = "i16x8.ge.u"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "simd.i16x8.gt.s"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Legacy handler branch → __simd_i16x8_gt_s (aliases: 1; __simd_i16x8_gt_s)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "i16x8.gt.s"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "simd.i16x8.gt.u"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Legacy handler branch → __simd_i16x8_gt_u (aliases: 1; __simd_i16x8_gt_u)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "i16x8.gt.u"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "simd.i16x8.le.s"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Legacy handler branch → __simd_i16x8_le_s (aliases: 1; __simd_i16x8_le_s)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "i16x8.le.s"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "simd.i16x8.le.u"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Legacy handler branch → __simd_i16x8_le_u (aliases: 1; __simd_i16x8_le_u)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "i16x8.le.u"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "simd.i16x8.lt.s"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Legacy handler branch → __simd_i16x8_lt_s (aliases: 1; __simd_i16x8_lt_s)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "i16x8.lt.s"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "simd.i16x8.lt.u"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Legacy handler branch → __simd_i16x8_lt_u (aliases: 1; __simd_i16x8_lt_u)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "i16x8.lt.u"
 required_capabilities = []
 required_target_features = ["simd128"]
 [operations.fallback]
@@ -7868,6 +8654,44 @@ kind = "target_intrinsic"
 [operations.lowering.target]
 target_family = "wasm"
 target_id = "i16x8.narrow.i32x4.u"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "simd.i16x8.ne"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Legacy handler branch → __simd_i16x8_ne (aliases: 1; __simd_i16x8_ne)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "i16x8.ne"
 required_capabilities = []
 required_target_features = ["simd128"]
 [operations.fallback]
@@ -8748,6 +9572,44 @@ required_target_features = ["simd128"]
 required = false
 
 [[operations]]
+id = "simd.i32x4.max.u"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Legacy handler branch → __simd_i32x4_max_u (aliases: 1; __simd_i32x4_max_u)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "i32x4.max.u"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
 id = "simd.i32x4.min.s"
 visibility = "internal"
 classification = { layer = "target_raw" }
@@ -9388,6 +10250,44 @@ kind = "target_intrinsic"
 [operations.lowering.target]
 target_family = "wasm"
 target_id = "i64x2.ge.s"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "simd.i64x2.gt.s"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Legacy handler branch → __simd_i64x2_gt_s (aliases: 1; __simd_i64x2_gt_s)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "i64x2.gt.s"
 required_capabilities = []
 required_target_features = ["simd128"]
 [operations.fallback]
@@ -10154,6 +11054,82 @@ required_target_features = ["simd128"]
 required = false
 
 [[operations]]
+id = "simd.i8x16.ge.s"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Legacy handler branch → __simd_i8x16_ge_s (aliases: 1; __simd_i8x16_ge_s)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "i8x16.ge.s"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "simd.i8x16.ge.u"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Legacy handler branch → __simd_i8x16_ge_u (aliases: 1; __simd_i8x16_ge_u)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "i8x16.ge.u"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
 id = "simd.i8x16.gt.s"
 visibility = "internal"
 classification = { layer = "target_raw" }
@@ -10224,6 +11200,82 @@ kind = "target_intrinsic"
 [operations.lowering.target]
 target_family = "wasm"
 target_id = "i8x16.gt.u"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "simd.i8x16.le.s"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Legacy handler branch → __simd_i8x16_le_s (aliases: 1; __simd_i8x16_le_s)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "i8x16.le.s"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "simd.i8x16.le.u"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Legacy handler branch → __simd_i8x16_le_u (aliases: 1; __simd_i8x16_le_u)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "i8x16.le.u"
 required_capabilities = []
 required_target_features = ["simd128"]
 [operations.fallback]
@@ -10946,6 +11998,158 @@ kind = "target_intrinsic"
 [operations.lowering.target]
 target_family = "wasm"
 target_id = "i8x16.sub.sat.u"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "simd.u64x2.ge.u"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Unsigned i64x2 ge order compare emulated with a sign-bit flip over the signed compare (aliases: 1; __simd_u64x2_ge_u)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "u64x2.ge.u"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "simd.u64x2.gt.u"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Unsigned i64x2 gt order compare emulated with a sign-bit flip over the signed compare (aliases: 1; __simd_u64x2_gt_u)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "u64x2.gt.u"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "simd.u64x2.le.u"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Unsigned i64x2 le order compare emulated with a sign-bit flip over the signed compare (aliases: 1; __simd_u64x2_le_u)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "u64x2.le.u"
+required_capabilities = []
+required_target_features = ["simd128"]
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "simd.u64x2.lt.u"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Unsigned i64x2 lt order compare emulated with a sign-bit flip over the signed compare (aliases: 1; __simd_u64x2_lt_u)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "u64x2.lt.u"
 required_capabilities = []
 required_target_features = ["simd128"]
 [operations.fallback]

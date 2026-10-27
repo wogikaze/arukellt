@@ -13,12 +13,10 @@
 //! - `f64x2`             — 2 × 64-bit floats
 //! - `v128`              — low-level raw 128-bit type
 //!
-//! Each lane module whose lowering is valid on both targets exposes one
-//! namespace type (`I8x16`, `F32x4`, …, `V128`) whose associated functions
-//! perform the lane operations, for example `F32x4::add(a, b)` and
-//! `F64x2::extract_lane(v, 0)`. Operations that still fail Wasm validation,
-//! trap, or produce a wrong value stay as experimental free functions in
-//! their lane module until the SIMD lowering is fixed (#917).
+//! Every lane module exposes one namespace type (`I8x16`, `U8x16`, `F32x4`,
+//! …, `V128`) whose associated functions perform the lane operations, for
+//! example `F32x4::add(a, b)` and `F64x2::extract_lane(v, 0)`. There are no
+//! top-level free functions in these modules.
 //!
 //! # Stability
 //!

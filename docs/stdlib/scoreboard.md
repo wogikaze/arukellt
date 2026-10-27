@@ -25,20 +25,11 @@
 | `std::process` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | no |
 | `std::seq` | 22 | 0 | 9 | 0 | 13 | 9/9 (100%) | no |
 | `std::signal` | 10 | 10 | 0 | 0 | 0 | 7/10 (70%) | no |
-| `std::simd::f32x4` | 1 | 0 | 0 | 1 | 0 | 1/1 (100%) | no |
-| `std::simd::f64x2` | 8 | 0 | 0 | 8 | 0 | 8/8 (100%) | no |
-| `std::simd::i16x8` | 3 | 0 | 0 | 3 | 0 | 3/3 (100%) | no |
-| `std::simd::i64x2` | 5 | 0 | 0 | 5 | 0 | 5/5 (100%) | no |
-| `std::simd::i8x16` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
-| `std::simd::u16x8` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
-| `std::simd::u32x4` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
-| `std::simd::u64x2` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
-| `std::simd::u8x16` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::test` | 18 | 17 | 0 | 1 | 0 | 18/18 (100%) | no |
 | `std::toml` | 2 | 0 | 0 | 2 | 0 | 2/2 (100%) | no |
 | `std::wasm` | 5 | 0 | 0 | 5 | 0 | **0/5 (0%)** | no |
 
-**Total**: 361 APIs, 183 stable, 19 provisional, 91 experimental, 68 deprecated, 278/293 (95%) fixture coverage
+**Total**: 324 APIs, 183 stable, 19 provisional, 54 experimental, 68 deprecated, 241/256 (94%) fixture coverage
 
 ## Legend
 

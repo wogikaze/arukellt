@@ -4,6 +4,7 @@ use mir::inst_accessors_operands
 use mir::inst_accessors_literals
 use wasm::call_simd_emit
 use wasm::constants
+use wasm::ctx_scratch
 use wasm::opcodes
 use wasm::writer_core
 
@@ -11,6 +12,7 @@ fn try_emit_simd_native(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: Self
     let dest = inst_accessors_operands::MirInst_dest(inst)
     let arg0 = inst_accessors_operands::MirInst_arg0(inst)
     let arg1 = inst_accessors_operands::MirInst_arg1(inst)
+    if try_emit_simd_native_emulated(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) { return true }
     if try_emit_simd_native_v128(w, handler_id, inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
     if try_emit_simd_native_f32x4(w, handler_id, inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
     if try_emit_simd_native_f64x2(w, handler_id, inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
@@ -19,6 +21,37 @@ fn try_emit_simd_native(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: Self
     if try_emit_simd_native_i8x16(w, handler_id, inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
     if try_emit_simd_native_i16x8(w, handler_id, inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
     if try_emit_simd_native_alltrue_bitmask(w, handler_id, inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
+    false
+}
+
+// Operations with no direct Wasm instruction. They stay here instead of the
+// per-family dispatchers because the lowering needs SelfEmitCtx for its
+// scratch locals.
+fn try_emit_simd_native_emulated(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_mul() {
+        emit_simd_i8x16_mul(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_u64x2_lt_u() {
+        emit_simd_u64x2_unsigned_operands(w, ctx)
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I64X2_LT_S(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_u64x2_le_u() {
+        emit_simd_u64x2_unsigned_operands(w, ctx)
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I64X2_LE_S(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_u64x2_gt_u() {
+        emit_simd_u64x2_unsigned_operands(w, ctx)
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I64X2_GT_S(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_u64x2_ge_u() {
+        emit_simd_u64x2_unsigned_operands(w, ctx)
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I64X2_GE_S(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
     false
 }
 
@@ -235,6 +268,14 @@ fn try_emit_simd_native_f64x2(w: WasmWriter, handler_id: i32, inst: MirInst, des
         call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_F64X2_GE(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_min() {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_F64X2_MIN(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_max() {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_F64X2_MAX(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_ceil() {
         call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_F64X2_CEIL(), next_op, next_arg0, next_arg1, next2_op)
         return true
@@ -351,6 +392,10 @@ fn try_emit_simd_native_i32x4(w: WasmWriter, handler_id: i32, inst: MirInst, des
         call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I32X4_MAX_S(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_max_u() {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I32X4_MAX_U(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_shl() {
         call_simd_emit::emit_simd_shift(w, inst, opcodes::SIMD_I32X4_SHL(), next_op, next_arg0, next_arg1, next2_op)
         return true
@@ -411,6 +456,10 @@ fn try_emit_simd_native_i64x2(w: WasmWriter, handler_id: i32, inst: MirInst, des
         call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I64X2_LT_S(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_gt_s() {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I64X2_GT_S(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_le_s() {
         call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I64X2_LE_S(), next_op, next_arg0, next_arg1, next2_op)
         return true
@@ -441,10 +490,6 @@ fn try_emit_simd_native_i8x16(w: WasmWriter, handler_id: i32, inst: MirInst, des
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_sub() {
         call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I8X16_SUB(), next_op, next_arg0, next_arg1, next2_op)
-        return true
-    }
-    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_mul() {
-        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I8X16_MUL(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_neg() {
@@ -493,6 +538,22 @@ fn try_emit_simd_native_i8x16(w: WasmWriter, handler_id: i32, inst: MirInst, des
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_gt_u() {
         call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I8X16_GT_U(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_le_s() {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I8X16_LE_S(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_le_u() {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I8X16_LE_U(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_ge_s() {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I8X16_GE_S(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_ge_u() {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I8X16_GE_U(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_min_s() {
@@ -591,6 +652,42 @@ fn try_emit_simd_native_i16x8(w: WasmWriter, handler_id: i32, inst: MirInst, des
         call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_GE_U(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_eq() {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_EQ(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_ne() {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_NE(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_lt_s() {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_LT_S(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_lt_u() {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_LT_U(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_gt_s() {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_GT_S(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_gt_u() {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_GT_U(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_le_s() {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_LE_S(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_le_u() {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_LE_U(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_ge_s() {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_GE_S(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_min_s() {
         call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_MIN_S(), next_op, next_arg0, next_arg1, next2_op)
         return true
@@ -663,6 +760,10 @@ fn try_emit_simd_native_i16x8(w: WasmWriter, handler_id: i32, inst: MirInst, des
         call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I16X8_EXTEND_HIGH_I8X16_U(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_extend_low_i8x16_u() {
+        call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I16X8_EXTEND_LOW_I8X16_U(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
     false
 }
 
@@ -673,6 +774,10 @@ fn try_emit_simd_native_alltrue_bitmask(w: WasmWriter, handler_id: i32, inst: Mi
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_bitmask() {
         call_simd_emit::emit_simd_reduce_i32(w, inst, opcodes::SIMD_I8X16_BITMASK(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_all_true() {
+        call_simd_emit::emit_simd_reduce_i32(w, inst, opcodes::SIMD_I16X8_ALL_TRUE(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_bitmask() {
@@ -696,4 +801,72 @@ fn try_emit_simd_native_alltrue_bitmask(w: WasmWriter, handler_id: i32, inst: Mi
         return true
     }
     false
+}
+
+fn emit_simd_local_set(w: WasmWriter, local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, local)
+}
+
+// i8x16.mul has no Wasm instruction. Multiply the low and high 8-bit halves
+// as 16-bit products, mask each to its low byte, then pack with unsigned
+// narrowing (the masked values are already <= 0xff, so saturation is exact).
+fn emit_simd_i8x16_mul(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+    let scratch_a = ctx_scratch::SelfEmitCtx_scratch_v128_local(ctx, 0)
+    let scratch_b = ctx_scratch::SelfEmitCtx_scratch_v128_local(ctx, 1)
+    // Staged operands are [a b].
+    emit_simd_local_set(w, scratch_b)
+    emit_simd_local_set(w, scratch_a)
+    writer_core::emit_local_get(w, scratch_a)
+    call_simd_emit::emit_simd_prefix(w, opcodes::SIMD_I16X8_EXTEND_LOW_I8X16_S())
+    writer_core::emit_local_get(w, scratch_b)
+    call_simd_emit::emit_simd_prefix(w, opcodes::SIMD_I16X8_EXTEND_LOW_I8X16_S())
+    call_simd_emit::emit_simd_prefix(w, opcodes::SIMD_I16X8_MUL())
+    emit_simd_i16x8_low_byte_mask(w)
+    writer_core::emit_local_get(w, scratch_a)
+    call_simd_emit::emit_simd_prefix(w, opcodes::SIMD_I16X8_EXTEND_HIGH_I8X16_S())
+    writer_core::emit_local_get(w, scratch_b)
+    call_simd_emit::emit_simd_prefix(w, opcodes::SIMD_I16X8_EXTEND_HIGH_I8X16_S())
+    call_simd_emit::emit_simd_prefix(w, opcodes::SIMD_I16X8_MUL())
+    emit_simd_i16x8_low_byte_mask(w)
+    call_simd_emit::emit_simd_prefix(w, opcodes::SIMD_I8X16_NARROW_I16X8_U())
+    call_simd_emit::emit_store_result(w, inst, next_op, next_arg0, next_arg1, next2_op)
+}
+
+fn emit_simd_i16x8_low_byte_mask(w: WasmWriter) {
+    call_simd_emit::emit_simd_prefix(w, opcodes::SIMD_V128_CONST())
+    let mut lane = 0
+    while lane < 8 {
+        writer_core::emit_byte(w, 0xff)
+        writer_core::emit_byte(w, 0)
+        lane = lane + 1
+    }
+    call_simd_emit::emit_simd_prefix(w, opcodes::SIMD_V128_AND())
+}
+
+// Wasm SIMD has no unsigned i64x2 comparison. Flipping each lane's sign bit
+// maps unsigned order onto the signed instruction's order; the caller then
+// emits the matching signed compare.
+fn emit_simd_u64x2_unsigned_operands(w: WasmWriter, ctx: SelfEmitCtx) {
+    let scratch = ctx_scratch::SelfEmitCtx_scratch_v128_local(ctx, 0)
+    // Staged operands are [a b].
+    emit_simd_u64x2_sign_mask(w)
+    call_simd_emit::emit_simd_prefix(w, opcodes::SIMD_V128_XOR())
+    emit_simd_local_set(w, scratch)
+    emit_simd_u64x2_sign_mask(w)
+    call_simd_emit::emit_simd_prefix(w, opcodes::SIMD_V128_XOR())
+    writer_core::emit_local_get(w, scratch)
+}
+
+fn emit_simd_u64x2_sign_mask(w: WasmWriter) {
+    call_simd_emit::emit_simd_prefix(w, opcodes::SIMD_V128_CONST())
+    let mut byte = 0
+    while byte < 16 {
+        if byte == 7 || byte == 15 {
+            writer_core::emit_byte(w, 0x80)
+        } else {
+            writer_core::emit_byte(w, 0)
+        }
+        byte = byte + 1
+    }
 }

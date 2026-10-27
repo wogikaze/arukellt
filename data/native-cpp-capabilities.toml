@@ -471,6 +471,13 @@ phase = 3
 implementation = "c_emitter"
 
 [[core_ops]]
+id = "simd.f64x2.max"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
 id = "string.starts_with"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
@@ -1427,6 +1434,13 @@ status = "unsupported"
 reason = "SIMD is outside the native-cpp MVP scope"
 
 [[core_ops]]
+id = "simd.f64x2.min"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
 id = "simd.f64x2.mul"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
@@ -1539,6 +1553,13 @@ status = "unsupported"
 reason = "SIMD is outside the native-cpp MVP scope"
 
 [[core_ops]]
+id = "simd.i16x8.eq"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
 id = "simd.i16x8.extadd.pairwise.i8x16.s"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
@@ -1574,6 +1595,13 @@ status = "unsupported"
 reason = "SIMD is outside the native-cpp MVP scope"
 
 [[core_ops]]
+id = "simd.i16x8.extend.low.i8x16.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
 id = "simd.i16x8.extract.lane.s"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
@@ -1588,7 +1616,56 @@ status = "unsupported"
 reason = "SIMD is outside the native-cpp MVP scope"
 
 [[core_ops]]
+id = "simd.i16x8.ge.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
 id = "simd.i16x8.ge.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.gt.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.gt.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.le.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.le.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.lt.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.lt.u"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
 status = "unsupported"
@@ -1638,6 +1715,13 @@ reason = "SIMD is outside the native-cpp MVP scope"
 
 [[core_ops]]
 id = "simd.i16x8.narrow.i32x4.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.ne"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
 status = "unsupported"
@@ -1805,6 +1889,13 @@ status = "unsupported"
 reason = "SIMD is outside the native-cpp MVP scope"
 
 [[core_ops]]
+id = "simd.i32x4.max.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
 id = "simd.i32x4.min.s"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
@@ -1918,6 +2009,13 @@ reason = "SIMD is outside the native-cpp MVP scope"
 
 [[core_ops]]
 id = "simd.i64x2.ge.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i64x2.gt.s"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
 status = "unsupported"
@@ -2064,6 +2162,20 @@ status = "unsupported"
 reason = "SIMD is outside the native-cpp MVP scope"
 
 [[core_ops]]
+id = "simd.i8x16.ge.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.ge.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
 id = "simd.i8x16.gt.s"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
@@ -2072,6 +2184,20 @@ reason = "SIMD is outside the native-cpp MVP scope"
 
 [[core_ops]]
 id = "simd.i8x16.gt.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.le.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.le.u"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
 status = "unsupported"
@@ -2205,6 +2331,34 @@ reason = "SIMD is outside the native-cpp MVP scope"
 
 [[core_ops]]
 id = "simd.i8x16.sub.sat.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.u64x2.ge.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.u64x2.gt.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.u64x2.le.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.u64x2.lt.u"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
 status = "unsupported"

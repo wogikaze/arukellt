@@ -3888,321 +3888,12 @@ returns = "i32"
 doc = "Return the number of interned strings."
 
 # ─────────────────────────────────────────────
-# std::simd — lane namespace types + lowering-blocked frees (ADR-046 / #917)
+# std::simd — lane namespace types (ADR-046 / #917)
 # ─────────────────────────────────────────────
 #
-# The associated functions on `F32x4` … `V128` are the canonical surface.
-# Operations whose emitter lowering still fails validation, traps, or
-# produces a wrong value stay as experimental free functions in their lane
-# module (and remain registered here) until the SIMD lowering is fixed.
-
-[[functions]]
-name = "neg"
-module = "std::simd::f32x4"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128"]
-returns = "v128"
-
-[[functions]]
-name = "add"
-module = "std::simd::f64x2"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-[[functions]]
-name = "sub"
-module = "std::simd::f64x2"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-[[functions]]
-name = "mul"
-module = "std::simd::f64x2"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-[[functions]]
-name = "div"
-module = "std::simd::f64x2"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-[[functions]]
-name = "neg"
-module = "std::simd::f64x2"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128"]
-returns = "v128"
-
-[[functions]]
-name = "sqrt"
-module = "std::simd::f64x2"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128"]
-returns = "v128"
-
-[[functions]]
-name = "min"
-module = "std::simd::f64x2"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-[[functions]]
-name = "max"
-module = "std::simd::f64x2"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-# --- std::simd::i64x2 ---
-
-[[functions]]
-name = "add"
-module = "std::simd::i64x2"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-[[functions]]
-name = "sub"
-module = "std::simd::i64x2"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-[[functions]]
-name = "mul"
-module = "std::simd::i64x2"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-[[functions]]
-name = "neg"
-module = "std::simd::i64x2"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128"]
-returns = "v128"
-
-[[functions]]
-name = "abs"
-module = "std::simd::i64x2"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128"]
-returns = "v128"
-
-# --- std::simd::i8x16 ---
-
-[[functions]]
-name = "add"
-module = "std::simd::i8x16"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-[[functions]]
-name = "sub"
-module = "std::simd::i8x16"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-[[functions]]
-name = "mul"
-module = "std::simd::i8x16"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-[[functions]]
-name = "neg"
-module = "std::simd::i8x16"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128"]
-returns = "v128"
-
-[[functions]]
-name = "mul"
-module = "std::simd::i16x8"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-[[functions]]
-name = "neg"
-module = "std::simd::i16x8"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128"]
-returns = "v128"
-
-[[functions]]
-name = "abs"
-module = "std::simd::i16x8"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128"]
-returns = "v128"
-
-# --- std::simd::u8x16 ---
-
-[[functions]]
-name = "splat"
-module = "std::simd::u8x16"
-doc_category = "simd"
-stability = "experimental"
-params = ["i32"]
-returns = "v128"
-
-[[functions]]
-name = "zero"
-module = "std::simd::u8x16"
-doc_category = "simd"
-stability = "experimental"
-params = []
-returns = "v128"
-
-[[functions]]
-name = "add"
-module = "std::simd::u8x16"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-[[functions]]
-name = "sub"
-module = "std::simd::u8x16"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-# --- std::simd::u16x8 ---
-
-[[functions]]
-name = "splat"
-module = "std::simd::u16x8"
-doc_category = "simd"
-stability = "experimental"
-params = ["i32"]
-returns = "v128"
-
-[[functions]]
-name = "zero"
-module = "std::simd::u16x8"
-doc_category = "simd"
-stability = "experimental"
-params = []
-returns = "v128"
-
-[[functions]]
-name = "add"
-module = "std::simd::u16x8"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-[[functions]]
-name = "sub"
-module = "std::simd::u16x8"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-# --- std::simd::u32x4 ---
-
-[[functions]]
-name = "splat"
-module = "std::simd::u32x4"
-doc_category = "simd"
-stability = "experimental"
-params = ["i32"]
-returns = "v128"
-
-[[functions]]
-name = "zero"
-module = "std::simd::u32x4"
-doc_category = "simd"
-stability = "experimental"
-params = []
-returns = "v128"
-
-[[functions]]
-name = "add"
-module = "std::simd::u32x4"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-[[functions]]
-name = "sub"
-module = "std::simd::u32x4"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-# --- std::simd::u64x2 ---
-
-[[functions]]
-name = "splat"
-module = "std::simd::u64x2"
-doc_category = "simd"
-stability = "experimental"
-params = ["i64"]
-returns = "v128"
-
-[[functions]]
-name = "zero"
-module = "std::simd::u64x2"
-doc_category = "simd"
-stability = "experimental"
-params = []
-returns = "v128"
-
-[[functions]]
-name = "add"
-module = "std::simd::u64x2"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-
-[[functions]]
-name = "sub"
-module = "std::simd::u64x2"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
+# Every lane operation is an associated function on its lane namespace type
+# (`F32x4` … `V128`, including `U8x16` … `U64x2`). The emitter lowers all of
+# them on wasm32-gc and --target wasm32, so no top-level free function remains.
 
 # --- std::simd lane namespace types ---
 
@@ -4236,6 +3927,7 @@ methods = [
     "trunc",
     "nearest",
     "abs",
+    "neg",
 ]
 
 [[types]]
@@ -4264,6 +3956,14 @@ methods = [
     "promote_low_f32x4",
     "convert_low_i32x4_s",
     "convert_low_i32x4_u",
+    "add",
+    "sub",
+    "mul",
+    "div",
+    "neg",
+    "sqrt",
+    "min",
+    "max",
 ]
 
 [[types]]
@@ -4296,6 +3996,18 @@ methods = [
     "bitmask",
     "narrow_i16x8_s",
     "narrow_i16x8_u",
+    "add",
+    "sub",
+    "mul",
+    "neg",
+    "add_sat_s",
+    "add_sat_u",
+    "sub_sat_s",
+    "sub_sat_u",
+    "le_s",
+    "le_u",
+    "ge_s",
+    "ge_u",
 ]
 
 [[types]]
@@ -4328,6 +4040,22 @@ methods = [
     "extend_high_i8x16_u",
     "narrow_i32x4_s",
     "narrow_i32x4_u",
+    "mul",
+    "neg",
+    "abs",
+    "add_sat_s",
+    "add_sat_u",
+    "sub_sat_s",
+    "sub_sat_u",
+    "eq",
+    "ne",
+    "lt_s",
+    "le_s",
+    "gt_s",
+    "ge_s",
+    "lt_u",
+    "le_u",
+    "gt_u",
 ]
 
 [[types]]
@@ -4363,6 +4091,7 @@ methods = [
     "min_s",
     "max_s",
     "min_u",
+    "max_u",
 ]
 
 [[types]]
@@ -4382,6 +4111,133 @@ methods = [
     "lt_s",
     "le_s",
     "ge_s",
+    "add",
+    "sub",
+    "mul",
+    "neg",
+    "abs",
+    "gt_s",
+    "shl",
+    "shr_s",
+    "shr_u",
+]
+
+[[types]]
+name = "U8x16"
+kind = "struct"
+module = "std::simd::u8x16"
+stability = "experimental"
+doc = "16 × 8-bit unsigned integer lane associated operations over `v128`."
+methods = [
+    "splat",
+    "new",
+    "zero",
+    "extract_lane",
+    "replace_lane",
+    "add",
+    "sub",
+    "mul",
+    "neg",
+    "abs",
+    "add_sat_u",
+    "sub_sat_u",
+    "eq",
+    "ne",
+    "lt_u",
+    "le_u",
+    "gt_u",
+    "ge_u",
+    "min_u",
+    "max_u",
+    "shl",
+    "shr_u",
+]
+
+[[types]]
+name = "U16x8"
+kind = "struct"
+module = "std::simd::u16x8"
+stability = "experimental"
+doc = "8 × 16-bit unsigned integer lane associated operations over `v128`."
+methods = [
+    "splat",
+    "new",
+    "zero",
+    "extract_lane",
+    "replace_lane",
+    "add",
+    "sub",
+    "mul",
+    "neg",
+    "abs",
+    "add_sat_u",
+    "sub_sat_u",
+    "eq",
+    "ne",
+    "lt_u",
+    "le_u",
+    "gt_u",
+    "ge_u",
+    "min_u",
+    "max_u",
+    "shl",
+    "shr_u",
+]
+
+[[types]]
+name = "U32x4"
+kind = "struct"
+module = "std::simd::u32x4"
+stability = "experimental"
+doc = "4 × 32-bit unsigned integer lane associated operations over `v128`."
+methods = [
+    "splat",
+    "new",
+    "zero",
+    "extract_lane",
+    "replace_lane",
+    "add",
+    "sub",
+    "mul",
+    "neg",
+    "abs",
+    "eq",
+    "ne",
+    "lt_u",
+    "le_u",
+    "gt_u",
+    "ge_u",
+    "min_u",
+    "max_u",
+    "shl",
+    "shr_u",
+]
+
+[[types]]
+name = "U64x2"
+kind = "struct"
+module = "std::simd::u64x2"
+stability = "experimental"
+doc = "2 × 64-bit unsigned integer lane associated operations over `v128`."
+methods = [
+    "splat",
+    "new",
+    "zero",
+    "extract_lane",
+    "replace_lane",
+    "add",
+    "sub",
+    "mul",
+    "neg",
+    "abs",
+    "eq",
+    "ne",
+    "lt_u",
+    "le_u",
+    "gt_u",
+    "ge_u",
+    "shl",
+    "shr_u",
 ]
 
 [[types]]
@@ -4399,6 +4255,7 @@ methods = [
     "not",
     "bitselect",
     "any_true",
+    "new",
 ]
 
 # === std::wasm type surface (ADR-046) ===
