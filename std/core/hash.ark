@@ -174,10 +174,6 @@ impl i32 {
     }
 }
 
-pub fn combine(h1: i32, h2: i32) -> i32 {
-    h1.combine_hash(h2)
-}
-
 // Simple multiplicative hash (Knuth variant)
 test mod "hash" {
     test "i32_zero" { assert(0.hash() >= 0) }

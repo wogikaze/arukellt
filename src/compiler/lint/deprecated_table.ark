@@ -166,50 +166,7 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
     if len(msg5) > 0 {
         return msg5
     }
-    let msg6 = deprecated_core_qualified_message(path)
-    if len(msg6) > 0 {
-        return msg6
-    }
-    let msg7 = deprecated_error_qualified_message(path)
-    if len(msg7) > 0 {
-        return msg7
-    }
     return deprecated_hash_qualified_message(path)
-}
-
-// ── Deprecated std::core range / ordering frees (ADR-087) ─────────────
-//
-// The receiver surface (`Range::new`, `r.contains(x)`, `a.cmp(b)`) landed in
-// the same wave; the frees stay callable until the Wave 2 deletion. The
-// entries are keyed by qualified call text because a bare `range_new` could
-// also name a user declaration.
-fn deprecated_core_qualified_message(path: String) -> String {
-    if eq(clone(path), "core::range_new") {
-        return "use `Range::new(start, end)` from `use std::core::{Range}` instead"
-    }
-    if eq(clone(path), "core::range_contains") {
-        return "use `r.contains(value)` on the `Range` value instead"
-    }
-    if eq(clone(path), "core::range_len") {
-        return "use `r.len()` on the `Range` value instead"
-    }
-    if eq(clone(path), "core::range_inclusive_new") {
-        return "use `RangeInclusive::new(start, end)` from `use std::core::{RangeInclusive}` instead"
-    }
-    if eq(clone(path), "core::range_inclusive_contains") {
-        return "use `r.contains(value)` on the `RangeInclusive` value instead"
-    }
-    if eq(clone(path), "core::cmp_i32") {
-        return "use `a.cmp(b)` via `use std::core::cmp` instead"
-    }
-    String_new()
-}
-
-fn deprecated_error_qualified_message(path: String) -> String {
-    if eq(clone(path), "error::error_message") {
-        return "use `e.message()` on the `Error` value instead"
-    }
-    String_new()
 }
 
 // ── Deprecated std::io tagged output writers (ADR-085 Phase F) ────────
@@ -291,9 +248,8 @@ fn deprecated_seq_qualified_message(path: String) -> String {
 }
 
 fn deprecated_hash_qualified_message(path: String) -> String {
-    if eq(clone(path), "hash::combine") {
-        return "use `h1.combine_hash(h2)` on the first hash value instead"
-    }
+    // std::core::hash exposes no callable free functions after the #917
+    // receiver wave; removed names are covered by resolver::removed_names.
     String_new()
 }
 
@@ -312,15 +268,10 @@ test mod "deprecated" {
         assert(len(deprecated_call_message("char_at")) == 0)
     }
     test "math_helpers_removed" { assert(len(deprecated_qualified_call_message("math::popcount")) == 0) }
-    test "core_frees_deprecated" {
-        assert(len(deprecated_qualified_call_message("core::range_new")) > 0)
-        assert(len(deprecated_qualified_call_message("core::range_contains")) > 0)
-        assert(len(deprecated_qualified_call_message("core::range_len")) > 0)
-        assert(len(deprecated_qualified_call_message("core::range_inclusive_new")) > 0)
-        assert(len(deprecated_qualified_call_message("core::range_inclusive_contains")) > 0)
-        assert(len(deprecated_qualified_call_message("core::cmp_i32")) > 0)
-        assert(len(deprecated_qualified_call_message("error::error_message")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::combine")) > 0)
+    test "core_frees_removed" {
+        assert(len(deprecated_qualified_call_message("core::range_new")) == 0)
+        assert(len(deprecated_qualified_call_message("error::error_message")) == 0)
+        assert(len(deprecated_qualified_call_message("hash::combine")) == 0)
     }
     test "non_deprecated" { assert(len(deprecated_qualified_call_message("math::gcd")) == 0) }
     test "seq_deprecated_helpers" {

@@ -1,9 +1,9 @@
-use std::core
+use std::core::{Range}
 use std::core::iter
 use std::test
 
 fn main() {
-    let r = core::range_new(5, 5)
+    let r = Range::new(5, 5)
     let collected = r.into_iter().collect()
     test::assert_eq_i32(len(collected), 0)
 }

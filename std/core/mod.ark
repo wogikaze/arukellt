@@ -26,17 +26,9 @@ fn __core_range_new_impl(start: i32, end: i32) -> Range {
     Range { start: start, end: end }
 }
 
-pub fn range_new(start: i32, end: i32) -> Range {
-    __core_range_new_impl(start, end)
-}
-
 /// Returns true when `value` lies inside the half-open range.
 fn __core_range_contains_impl(r: Range, value: i32) -> bool {
     value >= r.start && value < r.end
-}
-
-pub fn range_contains(r: Range, value: i32) -> bool {
-    __core_range_contains_impl(r, value)
 }
 
 /// Returns the non-negative length of the half-open range.
@@ -48,24 +40,12 @@ fn __core_range_len_impl(r: Range) -> i32 {
     }
 }
 
-pub fn range_len(r: Range) -> i32 {
-    __core_range_len_impl(r)
-}
-
 fn __core_range_inclusive_new_impl(start: i32, end: i32) -> RangeInclusive {
     RangeInclusive { start: start, end: end }
 }
 
-pub fn range_inclusive_new(start: i32, end: i32) -> RangeInclusive {
-    __core_range_inclusive_new_impl(start, end)
-}
-
 fn __core_range_inclusive_contains_impl(r: RangeInclusive, value: i32) -> bool {
     value >= r.start && value <= r.end
-}
-
-pub fn range_inclusive_contains(r: RangeInclusive, value: i32) -> bool {
-    __core_range_inclusive_contains_impl(r, value)
 }
 
 impl Range {
@@ -94,17 +74,6 @@ impl RangeInclusive {
     /// Returns true when `value` lies inside the closed range.
     fn contains(self: RangeInclusive, value: i32) -> bool {
         __core_range_inclusive_contains_impl(self, value)
-    }
-}
-
-/// Compares two integers and returns their ordering relationship.
-pub fn cmp_i32(a: i32, b: i32) -> Ordering {
-    if a < b {
-        Ordering::Less
-    } else if a > b {
-        Ordering::Greater
-    } else {
-        Ordering::Equal
     }
 }
 
@@ -140,8 +109,4 @@ impl Ordering {
             Ordering::Greater => true,
         }
     }
-}
-
-pub fn identity(x: i32) -> i32 {
-    x
 }

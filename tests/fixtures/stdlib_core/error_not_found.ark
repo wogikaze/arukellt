@@ -3,11 +3,11 @@ use std::test
 
 fn main() {
     let e = Error::NotFound("missing.txt")
-    test::assert_eq_string(error::error_message(e), "NotFound: missing.txt")
+    test::assert_eq_string(e.message(), "NotFound: missing.txt")
 
     let e2 = Error::WasmError("bad opcode")
-    test::assert_eq_string(error::error_message(e2), "WasmError: bad opcode")
+    test::assert_eq_string(e2.message(), "WasmError: bad opcode")
 
     let e3 = Error::ComponentError("link failed")
-    test::assert_eq_string(error::error_message(e3), "ComponentError: link failed")
+    test::assert_eq_string(e3.message(), "ComponentError: link failed")
 }

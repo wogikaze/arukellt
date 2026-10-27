@@ -68,11 +68,6 @@ impl Error {
     }
 }
 
-/// Converts an `Error` value into a human-readable message.
-pub fn error_message(e: Error) -> String {
-    __core_error_message_impl(e)
-}
-
 test mod "error_message" {
     test "invalid" { assert(len(Error::InvalidArgument("x").message()) > 0) }
     test "not_found" { assert(len(Error::NotFound("m").message()) > 0) }

@@ -6,8 +6,8 @@
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
 - **Canonical names:** 293
-- **Historical/deprecated names:** 76
-- **Total entries:** 369
+- **Historical/deprecated names:** 68
+- **Total entries:** 361
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -329,8 +329,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`assert_eq_str`~~ | `std::test::assert_eq_string` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `std::test::assert_ne_i32` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `std::seq::binary_search_by` | Seq | [migration-guidance.md](migration-guidance.md) |
-| ~~`cmp_i32`~~ | `i32::cmp` | Core | [migration-guidance.md](migration-guidance.md) |
-| ~~`combine`~~ | `i32::combine_hash` | Core | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `VecIter::count_eq` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -343,7 +341,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`deque_push_back`~~ | `Deque::push_back` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_push_front`~~ | `Deque::push_front` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_to_vec`~~ | `Deque::iter` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`error_message`~~ | `Error::message` | Core | [migration-guidance.md](migration-guidance.md) |
 | ~~`exists`~~ | `is_readable_file` | Host Fs | [migration-guidance.md](migration-guidance.md) |
 | ~~`f32_to_f64`~~ | `f32::to_f64` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_hi`~~ | `f64::to_bits_hi` | Numeric | [migration-guidance.md](migration-guidance.md) |
@@ -379,11 +376,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`min_i32`~~ | `std::seq::min_by` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`range_contains`~~ | `Range::contains` | Core | [migration-guidance.md](migration-guidance.md) |
-| ~~`range_inclusive_contains`~~ | `RangeInclusive::contains` | Core | [migration-guidance.md](migration-guidance.md) |
-| ~~`range_inclusive_new`~~ | `RangeInclusive::new` | Core | [migration-guidance.md](migration-guidance.md) |
-| ~~`range_len`~~ | `Range::len` | Core | [migration-guidance.md](migration-guidance.md) |
-| ~~`range_new`~~ | `Range::new` | Core | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `VecIter::contains` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `VecIter::rev` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -486,8 +478,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `clamp_i32` | ✅ `stable` | `prelude` | Math |
 | `clone` | ✅ `stable` | `prelude` | String |
 | `clone_f64` | ✅ `stable` | `std::signal` | Signal |
-| ~~`cmp_i32`~~ | ⚠️ deprecated | `std::core` | → `i32::cmp` · [migration guide](migration-guidance.md) |
-| ~~`combine`~~ | ⚠️ deprecated | `std::core::hash` | → `i32::combine_hash` · [migration guide](migration-guidance.md) |
 | `contains` | ✅ `stable` | `prelude` | String |
 | `cos_approx` | ✅ `stable` | `std::signal` | Signal |
 | ~~`count_eq`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::count_eq` · [migration guide](migration-guidance.md) |
@@ -506,7 +496,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `ends_with` | ✅ `stable` | `prelude` | String |
 | `eprintln` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `eq` | ✅ `stable` | `prelude` | String |
-| ~~`error_message`~~ | ⚠️ deprecated | `std::core::error` | → `Error::message` · [migration guide](migration-guidance.md) |
 | `exists` | ✅ `stable` | `std::fs` | Fs |
 | ~~`exists`~~ | ⚠️ deprecated | `std::host::fs` | → `is_readable_file` · [migration guide](migration-guidance.md) |
 | `exit` | ✅ `stable` | `prelude` | Host Process |
@@ -681,11 +670,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `random_bool` | ✅ `stable` | `std::host::random` | Host Random |
 | `random_i32` | ✅ `stable` | `std::host::random` | Host Random |
 | `random_i32_range` | ✅ `stable` | `std::host::random` | Host Random |
-| ~~`range_contains`~~ | ⚠️ deprecated | `std::core` | → `Range::contains` · [migration guide](migration-guidance.md) |
-| ~~`range_inclusive_contains`~~ | ⚠️ deprecated | `std::core` | → `RangeInclusive::contains` · [migration guide](migration-guidance.md) |
-| ~~`range_inclusive_new`~~ | ⚠️ deprecated | `std::core` | → `RangeInclusive::new` · [migration guide](migration-guidance.md) |
-| ~~`range_len`~~ | ⚠️ deprecated | `std::core` | → `Range::len` · [migration guide](migration-guidance.md) |
-| ~~`range_new`~~ | ⚠️ deprecated | `std::core` | → `Range::new` · [migration guide](migration-guidance.md) |
 | `read_bytes` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `read_dir` | ✅ `provisional` | `std::fs` | Fs |
 | `read_stdin_line` | ✅ `stable` | `std::io` | Io |

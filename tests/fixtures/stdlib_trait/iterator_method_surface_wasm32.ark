@@ -1,6 +1,6 @@
 // Same lazy iterator method surface as iterator_method_surface.ark on the
 // linear wasm32 target; the .flags sidecar selects the target.
-use std::core
+use std::core::{Range, RangeInclusive}
 use std::core::iter
 use std::test
 
@@ -92,8 +92,8 @@ fn main() {
     test::assert_eq_i32(get_unchecked(reversed, 3), 1)
     test::assert_eq_i32(a.iter().rev().count(), 4)
 
-    let ranged = core::range_new(0, 3).into_iter().collect()
+    let ranged = Range::new(0, 3).into_iter().collect()
     test::assert_eq_i32(len(ranged), 3)
-    let inclusive = core::range_inclusive_new(0, 2).into_iter().collect()
+    let inclusive = RangeInclusive::new(0, 2).into_iter().collect()
     test::assert_eq_i32(len(inclusive), 3)
 }

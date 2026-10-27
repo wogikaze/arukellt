@@ -1,0 +1,7 @@
+// E0100 on the linear wasm32 target: the bare hash helper names the
+// combine_hash replacement.
+use std::core::hash
+
+fn main() {
+    let _ = combine(0, 0)
+}

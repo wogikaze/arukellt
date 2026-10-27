@@ -40,8 +40,8 @@ let len = r.len()  // 10
 ## Module `std::core`
 
 - Source: [`../../../std/core/mod.ark`](../../../std/core/mod.ark)
-- Manifest-backed functions: 6
-- Stability: deprecated 6
+- Manifest-backed functions: 0
+- Stability: n/a
 
 Fundamental types and helpers shared across the standard library.
 
@@ -56,24 +56,13 @@ that other stdlib modules build upon.
 | `Range` | `struct` | `new`, `contains`, `len` | - | Half-open integer range [start, end). |
 | `RangeInclusive` | `struct` | `new`, `contains` | - | Closed integer range [start, end]. |
 
-### `std::core` — Public API
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| ~~`range_new`~~ ⚠️ Deprecated → `Range::new` | `(i32, i32) -> Range` | `deprecated` | ✅ functional | - |
-| ~~`range_contains`~~ ⚠️ Deprecated → `Range::contains` | `(Range, i32) -> bool` | `deprecated` | ✅ functional | - |
-| ~~`range_len`~~ ⚠️ Deprecated → `Range::len` | `(Range) -> i32` | `deprecated` | ✅ functional | - |
-| ~~`range_inclusive_new`~~ ⚠️ Deprecated → `RangeInclusive::new` | `(i32, i32) -> RangeInclusive` | `deprecated` | ✅ functional | - |
-| ~~`range_inclusive_contains`~~ ⚠️ Deprecated → `RangeInclusive::contains` | `(RangeInclusive, i32) -> bool` | `deprecated` | ✅ functional | - |
-| ~~`cmp_i32`~~ ⚠️ Deprecated → `i32::cmp` | `(i32, i32) -> Ordering` | `deprecated` | ✅ functional | Compares two integers and returns their ordering relationship. |
-
-> ⚠️ **6 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
+_No manifest-backed functions in this module._
 
 ## Module `std::core::error`
 
 - Source: [`../../../std/core/error.ark`](../../../std/core/error.ark)
-- Manifest-backed functions: 1
-- Stability: deprecated 1
+- Manifest-backed functions: 0
+- Stability: n/a
 
 Shared error types for manifest-backed stdlib modules.
 
@@ -102,19 +91,13 @@ variant and document the legacy form as deprecated.
 |------|------|---------|-------------|---------|
 | `Error` | `enum` | `message` | - | - |
 
-### `std::core::error` — Public API
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| ~~`error_message`~~ ⚠️ Deprecated → `Error::message` | `(Error) -> String` | `deprecated` | ✅ functional | Converts an Error value into a human-readable message. |
-
-> ⚠️ **1 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
+_No manifest-backed functions in this module._
 
 ## Module `std::core::hash`
 
 - Source: [`../../../std/core/hash.ark`](../../../std/core/hash.ark)
-- Manifest-backed functions: 1
-- Stability: deprecated 1
+- Manifest-backed functions: 0
+- Stability: n/a
 
 Small hashing helpers used by the current collection implementations.
 
@@ -129,13 +112,7 @@ and provides reasonable distribution for hash table operations.
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
-### `std::core::hash` — Public API
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| ~~`combine`~~ ⚠️ Deprecated → `i32::combine_hash` | `(i32, i32) -> i32` | `deprecated` | ✅ functional | - |
-
-> ⚠️ **1 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
+_No manifest-backed functions in this module._
 
 ## Module `std::error`
 

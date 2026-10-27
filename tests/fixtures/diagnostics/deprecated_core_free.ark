@@ -1,8 +1,0 @@
-// W0009: the std::core range frees are deprecated in favour of the receiver
-// surface (ADR-087).
-use std::core
-
-fn main() {
-    let r = core::range_new(0, 5)
-    let _ = core::range_contains(r, 3)
-}

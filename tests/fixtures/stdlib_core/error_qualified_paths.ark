@@ -13,11 +13,11 @@ fn nest_err() -> Result<i32, Error> {
 fn main() {
     // Fully qualified constructor path (module::Enum::Variant).
     let timeout = error::Error::Timeout
-    test::assert_eq_string(error::error_message(timeout), "Timeout")
+    test::assert_eq_string(timeout.message(), "Timeout")
 
     // Bare Enum::Variant after `use std::core::error`.
     let bad = Error::InvalidArgument("x")
-    test::assert_eq_string(error::error_message(bad), "InvalidArgument: x")
+    test::assert_eq_string(bad.message(), "InvalidArgument: x")
 
     // Module-qualified IoError constructors.
     let eof = io::IoError::UnexpectedEof("short")
@@ -32,6 +32,6 @@ fn main() {
     }
     match nest_err() {
         Result::Ok(_) => panic("expected Err"),
-        Result::Err(e) => test::assert_eq_string(error::error_message(e), "NotFound: missing"),
+        Result::Err(e) => test::assert_eq_string(e.message(), "NotFound: missing"),
     }
 }

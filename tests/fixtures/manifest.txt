@@ -246,8 +246,8 @@ diag:diagnostics/deprecated_vec_intrinsic.ark
 diag:diagnostics/deprecated_vec_intrinsic_wasm32.ark
 diag:diagnostics/deprecated_assertion_free.ark
 diag:diagnostics/deprecated_assertion_free_wasm32.ark
-diag:diagnostics/deprecated_core_free.ark
-diag:diagnostics/deprecated_core_free_wasm32.ark
+diag:diagnostics/removed_core_free.ark
+diag:diagnostics/removed_core_free_wasm32.ark
 diag:diagnostics/removed_bytes_free.ark
 diag:diagnostics/removed_bytes_free_wasm32.ark
 diag:diagnostics/removed_json_toml_csv_free.ark

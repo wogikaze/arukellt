@@ -16,6 +16,53 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — std::core range/error/hash receiver surface (#917, ADR-087 Wave 2)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the
+  [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) 0.x exception. The
+  eight `stable` targets were converted to `deprecated` in Wave 1 (commit
+  `3e1b307d8`) with `deprecated_since = "0.1.0"`, `remove_in = "1.0.0"`,
+  live **W0009** qualified-call warnings, and dual-target diag goldens. Wave 2
+  deletes the manifest entries and `pub fn` declarations after the migration
+  rows and this entry landed; the unregistered `std::core::identity` has no
+  replacement.
+- **Removed (8 manifest + 1 unregistered)**: `range_new`, `range_contains`,
+  `range_len`, `range_inclusive_new`, `range_inclusive_contains`, `cmp_i32`,
+  `error_message`, `combine`, and `identity`.
+- **Replacement**: `Range::new(start, end)` / `r.contains(value)` / `r.len()`,
+  `RangeInclusive::new(start, end)` / `r.contains(value)`, `a.cmp(b)` through
+  the `Ord` trait, `e.message()`, and `h1.combine_hash(h2)`. `Range::new` is
+  bound to the `core.range_new` CoreOp, so the GC struct constructor and the
+  linear-memory 8-byte record path keep their existing lowering. Qualified
+  old calls now fail with **E0100** plus the receiver hint from
+  `resolver::removed_names`; bare names carry the same hint.
+- **Compiler fix**: an enum-variant struct literal
+  (`Error::IndexOutOfBounds { .. }`) keeps the variant payload layout as its
+  local type, so `e.message()` resolved `IndexOutOfBounds::message`; the
+  ambiguous bare-name fallback (`message` is also `JsonParseError::message`)
+  emitted `drop; unreachable` and failed Wasm validation. Method-call
+  resolution now maps a registered payload-variant receiver to the owning
+  enum when that enum declares the method, keeping the payload layout for
+  emit (stamping the local as the enum resolved the method but trapped on the
+  linear target). A value returned from a function or bound through an
+  explicit annotation already lowered correctly.
+- **Fixtures**: dual-target `stdlib_core/core_method_surface*` pair (compile,
+  validate, run), `diagnostics/removed_core_free*` E0100 goldens, and the
+  migrated `stdlib_core`, `stdlib_trait`, `stdlib_inline`,
+  `stdlib_component`, and `generics_v1` call sites. The #914 shadow fixture
+  is retargeted from the removed `std::core::identity` to the live
+  `std::collections::string::to_lower`.
+- **Scorecard**: 515 → **506** public symbols; `associated-or-method`
+  445 → **436**; manifest public entries 369 → **361**; unregistered
+  declarations 146 → **145**; `pub fn` declarations 569 → **560**;
+  monomorphic `*_i32` helpers 57 → **56** (`cmp_i32`); `must delete` 70,
+  `intrinsic-only` 1, and `prelude_wrapper` 65 unchanged. The
+  `host/core namespace frees` family drops from 63/21 to **55/20**.
+- **Residuals**: the 20 `std::core::raw` representation bridges still need a
+  `RawArray` / `RawString` namespace surface; the other host families
+  (`std::host::{env,fs,clock,random,process}`, `std::fs`, `std::env`,
+  `std::cli`, `std::process`, `std::signal`) are untouched.
+
 ## 2026-10-27 — std::json / std::toml / std::csv associated conversions (#917, ADR-046)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the

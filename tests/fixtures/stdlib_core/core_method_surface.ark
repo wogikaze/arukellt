@@ -22,6 +22,14 @@ fn main() {
 
     test::assert_eq_string(Error::InvalidArgument("bad").message(), "InvalidArgument: bad")
     test::assert_eq_string(Error::Timeout.message(), "Timeout")
+    test::assert_eq_string(
+        Error::IndexOutOfBounds { index: 7, len: 3 }.message(),
+        "IndexOutOfBounds: index=7 len=3"
+    )
+    test::assert_eq_string(
+        Error::ParseError { kind: "integer", input: "abc" }.message(),
+        "ParseError: integer input=abc"
+    )
 
     test::assert_true(1.cmp(2).is_less())
     test::assert_true(2.cmp(2).is_less_or_equal())

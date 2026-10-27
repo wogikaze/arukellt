@@ -1,11 +1,11 @@
-use std::core
+use std::core::{Range}
 use std::host::stdio
 
 fn main() {
-    let r = core::range_new(0, 5)
-    let inside = core::range_contains(r, 3)
-    let outside = core::range_contains(r, 5)
-    let length = core::range_len(r)
+    let r = Range::new(0, 5)
+    let inside = r.contains(3)
+    let outside = r.contains(5)
+    let length = r.len()
     stdio::println((inside).to_string())
     stdio::println((outside).to_string())
     stdio::println((length).to_string())

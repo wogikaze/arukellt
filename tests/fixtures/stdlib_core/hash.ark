@@ -10,6 +10,6 @@ fn main() {
     stdio::println((h1 == h2).to_string())
     stdio::println((h1 != h3).to_string())
     stdio::println((hs1 == hs2).to_string())
-    let combined = hash::combine(h1, hs1)
+    let combined = h1.combine_hash(hs1)
     stdio::println((combined != 0).to_string())
 }

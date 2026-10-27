@@ -1,5 +1,4 @@
 use mir::lower::ctx_api_local_types
-use mir::lower::ctx_api_variants
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_struct_layout
@@ -469,25 +468,6 @@ fn struct_lit_decl_is_fn_value(type_name: String) -> bool {
     starts_with(clone(type_name), String_from("fnref")) ||
     starts_with(clone(type_name), String_from("fnsig:")) ||
     starts_with(clone(type_name), String_from("fn("))
-}
-
-// An enum-variant struct literal constructs the variant payload struct, a
-// subtype of the open enum. The literal's source type is the enum, and
-// method resolution keys on the local type name, so stamping the variant name
-// (`Error::IndexOutOfBounds`) would make a later `.message()` look for
-// `IndexOutOfBounds::message` and fall through the ambiguous bare-name
-// fallback. Return the owning enum spelling instead; plain structs return "".
-fn mir_enum_variant_local_type_name(ctx: LowerCtx, variant_name: String) -> String {
-    let canonical = ctx_api_variants::ctx_canonical_variant_name(ctx, variant_name)
-    let owner = ctx_api_variants::ctx_variant_owner_name(clone(canonical))
-    if len(owner) == 0 {
-        return String_new()
-    }
-    let enum_name = ctx_struct_layout::ctx_struct_basename(clone(owner))
-    if !ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(enum_name)) {
-        return String_new()
-    }
-    String_from("enum:").concat(enum_name)
 }
 
 fn mir_emit_struct_new(ctx: LowerCtx, struct_name: String) -> i32 {

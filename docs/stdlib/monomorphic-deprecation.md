@@ -61,14 +61,6 @@ helpers are included alongside any other deprecated public entry.
 | `linked_list_push_back` | `std::collections::linked_list` | `deprecated` | `LinkedList::push_back` | `0.1.0` | `1.0.0` | Push a value to the back of the legacy i32 list. |
 | `linked_list_push_front` | `std::collections::linked_list` | `deprecated` | `LinkedList::push_front` | `0.1.0` | `1.0.0` | Push a value to the front of the legacy i32 list. |
 | `linked_list_to_vec` | `std::collections::linked_list` | `deprecated` | `LinkedList::iter` | `0.1.0` | `1.0.0` | Copy the legacy i32 list into a Vec<i32> in front-to-back order. |
-| `cmp_i32` | `std::core` | `deprecated` | `i32::cmp` | `0.1.0` | `1.0.0` | Superseded API |
-| `range_contains` | `std::core` | `deprecated` | `Range::contains` | `0.1.0` | `1.0.0` | Superseded API |
-| `range_inclusive_contains` | `std::core` | `deprecated` | `RangeInclusive::contains` | `0.1.0` | `1.0.0` | Superseded API |
-| `range_inclusive_new` | `std::core` | `deprecated` | `RangeInclusive::new` | `0.1.0` | `1.0.0` | Superseded API |
-| `range_len` | `std::core` | `deprecated` | `Range::len` | `0.1.0` | `1.0.0` | Superseded API |
-| `range_new` | `std::core` | `deprecated` | `Range::new` | `0.1.0` | `1.0.0` | Superseded API |
-| `error_message` | `std::core::error` | `deprecated` | `Error::message` | `0.1.0` | `1.0.0` | Superseded API |
-| `combine` | `std::core::hash` | `deprecated` | `i32::combine_hash` | `0.1.0` | `1.0.0` | Superseded API |
 | `get_var` | `std::env` | `deprecated` | `var` | `0.1.0` | `1.0.0` | Alias for env::var. Use var instead. |
 | `exists` | `std::host::fs` | `deprecated` | `is_readable_file` | `0.1.0` | `1.0.0` | Deprecated alias for is_readable_file. Same read-probe semantics — NOT a general path-existence query. |
 | `writer_write` | `std::io` | `deprecated` | `Writer::write` | `0.1.0` | `1.0.0` | Deprecated tagged write for stdout() / stderr(); use Writer::write for memory handles. Stays until std::host::stdio exposes typed Write handles (ADR-085 D9). |
@@ -87,4 +79,4 @@ helpers are included alongside any other deprecated public entry.
 | `take_i32` | `std::seq` | `deprecated` | `VecIter::take` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect(). |
 | `unique` | `std::seq` | `deprecated` | `VecIter::unique` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect(). |
 
-Total deprecated public entries: **76**.
+Total deprecated public entries: **68**.

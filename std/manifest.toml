@@ -1180,99 +1180,11 @@ stability = "stable"
 prelude = false
 
 # ── std::core Functions (v3) ─────────────
-[[functions]]
-name = "range_new"
-module = "std::core"
-doc_category = "core"
-stability = "deprecated"
-deprecated_by = "Range::new"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["i32", "i32"]
-returns = "Range"
-
-[[functions]]
-name = "range_contains"
-module = "std::core"
-doc_category = "core"
-stability = "deprecated"
-deprecated_by = "Range::contains"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["Range", "i32"]
-returns = "bool"
-
-[[functions]]
-name = "range_len"
-module = "std::core"
-doc_category = "core"
-stability = "deprecated"
-deprecated_by = "Range::len"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["Range"]
-returns = "i32"
-
-[[functions]]
-name = "range_inclusive_new"
-module = "std::core"
-doc_category = "core"
-stability = "deprecated"
-deprecated_by = "RangeInclusive::new"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["i32", "i32"]
-returns = "RangeInclusive"
-
-[[functions]]
-name = "range_inclusive_contains"
-module = "std::core"
-doc_category = "core"
-stability = "deprecated"
-deprecated_by = "RangeInclusive::contains"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["RangeInclusive", "i32"]
-returns = "bool"
-
-[[functions]]
-name = "cmp_i32"
-module = "std::core"
-doc_category = "core"
-stability = "deprecated"
-deprecated_by = "i32::cmp"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["i32", "i32"]
-returns = "Ordering"
-
-[[functions]]
-name = "error_message"
-module = "std::core::error"
-doc_category = "core"
-stability = "deprecated"
-deprecated_by = "Error::message"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["Error"]
-returns = "String"
-
 [[modules]]
 name = "std::core::raw"
 stability = "internal"
 doc = "Sealed Vec/String representation API (RFC-006 / #817). Not importable from user code."
 availability = { t1 = true, t3 = true }
-
-[[functions]]
-name = "combine"
-module = "std::core::hash"
-doc_category = "core"
-stability = "deprecated"
-deprecated_by = "i32::combine_hash"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["i32", "i32"]
-returns = "i32"
 
 [[modules]]
 name = "std::time"

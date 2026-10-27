@@ -1032,8 +1032,8 @@ without an `IntoIterator` implementation retain the structural `next()`
 fallback until their trait implementation is available.
 
 The iterable source may be a direct call or method expression, not only a
-pre-bound local. For example, `for item in core::range_new(0, 3)` and
-`for item in core::range_inclusive_new(0, 2).into_iter()` use the same
+pre-bound local. For example, `for item in Range::new(0, 3)` and
+`for item in RangeInclusive::new(0, 2).into_iter()` use the same
 conversion and `next()` sequence as their equivalent local-binding forms.
 Concrete source dispatch remains static; this does not imply dynamic dispatch
 for an unregistered source. A generic function bounded by `Iterator` may use
@@ -1905,34 +1905,30 @@ the ADR-014 migration window and are not the recommended source form.
 
 These functions are available via stdlib modules, not auto-imported.
 
-**Time/Duration**:
-`duration_ms(a: i64, b: i64) -> i64`,
-`duration_us(a: i64, b: i64) -> i64`,
-`duration_ns(a: i64, b: i64) -> i64`
+**Time/Duration** (`std::time`):
+`Duration::between(start: i64, end: i64)`; methods `d.as_ms()`, `d.as_us()`,
+`d.as_ns()`
 
 **Hash**:
-`combine(a: i32, b: i32) -> i32`; the canonical hash surface is the `Hash`
-trait method `value.hash()`
+`h1.combine_hash(h2)` on the first hash value; the canonical hash surface is
+the `Hash` trait method `value.hash()`
 
-**Seeded Random**:
-`seeded_random(seed: i32) -> i32`,
-`seeded_range(seed: i32, lo: i32, hi: i32) -> i32`,
-`shuffle_i32(v: Vec<i32>, seed: i32) -> Vec<i32>`
+**Seeded Random** (`std::random`):
+`Rng::new(seed)`; methods `rng.next()`, `rng.range(lo, hi)`,
+`rng.shuffle(v)`
 
 **Range**:
-`range_new(start: i32, end: i32) -> Range`,
-`range_contains(r: Range, x: i32) -> bool`,
-`range_len(r: Range) -> i32`
+`Range::new(start: i32, end: i32)` and
+`RangeInclusive::new(start: i32, end: i32)`; methods `r.contains(x)` and
+`r.len()` on `Range`, `r.contains(x)` on `RangeInclusive`
 
 **Error**:
-`error_message(e: Error) -> String`
+`e.message()` on the `Error` value
 
-**Path**:
-`extension(path: String) -> String`,
-`file_name(path: String) -> String`,
-`parent(path: String) -> String`,
-`is_absolute(path: String) -> bool`,
-`with_extension(path: String, ext: String) -> String`
+**Path** (`std::path`):
+`Path::new(path)`; methods `p.extension()`, `p.file_name()`, `p.parent()`,
+`p.is_absolute()`, `p.with_extension(ext)`, `p.join(segment)`, `p.stem()`,
+`p.normalize()`, `p.components()`, `p.into_string()`
 
 **Text**:
 `trim_start(s: String) -> String`,

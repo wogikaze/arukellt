@@ -1074,14 +1074,14 @@ trait-first design. The following path is implemented and verified for both
 `wasm32-gc` and `wasm32`:
 
 ```ark
-use std::core
+use std::core::{Range, RangeInclusive}
 use std::core::iter
 
 fn main() {
-    let values: Vec<i32> = core::range_inclusive_new(4, 6).into_iter().collect()
-    let collected: Vec<i32> = Vec::from_iter(core::range_new(0, 3).into_iter())
-    let count = core::range_new(0, 3).into_iter().count()
-    let total = core::range_new(0, 3).into_iter().sum()
+    let values: Vec<i32> = RangeInclusive::new(4, 6).into_iter().collect()
+    let collected: Vec<i32> = Vec::from_iter(Range::new(0, 3).into_iter())
+    let count = Range::new(0, 3).into_iter().count()
+    let total = Range::new(0, 3).into_iter().sum()
 }
 ```
 
@@ -1095,8 +1095,8 @@ the iterator's canonical `next` method. The GC and linear-memory backends
 therefore observe the same source conversion and item sequence. `values(v)`
 remains an explicit compatibility form.
 The source can be a direct call or method expression as well as a named local;
-the range fixture verifies `for item in core::range_new(2, 5)` and
-`for item in core::range_inclusive_new(3, 5).into_iter()` on both backends.
+the range fixture verifies `for item in Range::new(2, 5)` and
+`for item in RangeInclusive::new(3, 5).into_iter()` on both backends.
 Concrete source dispatch remains static, and unregistered sources still require
 the corresponding concrete trait implementation. A generic function bounded by
 `Iterator` can use its parameter directly as a `for` source; after
@@ -1363,6 +1363,42 @@ both `wasm32-gc` and `--target wasm32`; the moved W0009 goldens were replaced
 by `diagnostics/removed_{path,time,random}_free*` E0100 goldens.
 
 ---
+
+## std::core receiver wave (ADR-046, ADR-087, 2026-10-27)
+
+The eight `stable` free helpers in `std::core` plus the unregistered
+`identity` declaration completed the
+[ADR-087](ADR-087-0x-deprecation-exception.md) 0.x window as `deprecated`
+entries (`deprecated_since = "0.1.0"`, `remove_in = "1.0.0"`) with live
+**W0009** qualified-call warnings, then were removed in the Wave 2 step.
+Qualified old calls now fail name resolution with **E0100** plus the receiver
+replacement hint from `resolver::removed_names`.
+
+The canonical surface is the inherent / associated form:
+`Range::new(start, end)`, `r.contains(value)`, `r.len()`,
+`RangeInclusive::new(start, end)`, `r.contains(value)`, `a.cmp(b)` from the
+`Ord` trait, `e.message()`, and `h1.combine_hash(h2)`. `Range::new` stays
+bound to the `core.range_new` CoreOp, so the GC struct constructor and the
+linear-memory 8-byte record path keep their existing lowering. Receiver
+methods on an enum-variant struct literal (`Error::IndexOutOfBounds { .. }`)
+resolve against the owning enum while the payload layout stays in place for
+emit, so the method call lowers and runs on both targets.
+
+| Before | After |
+|--------|-------|
+| `core::range_new(start, end)` | `Range::new(start, end)` from `use std::core::{Range}` |
+| `core::range_contains(r, value)` | `r.contains(value)` |
+| `core::range_len(r)` | `r.len()` |
+| `core::range_inclusive_new(start, end)` | `RangeInclusive::new(start, end)` from `use std::core::{RangeInclusive}` |
+| `core::range_inclusive_contains(r, value)` | `r.contains(value)` |
+| `core::cmp_i32(a, b)` | `a.cmp(b)` from `use std::core::cmp` |
+| `error::error_message(e)` | `e.message()` |
+| `hash::combine(h1, h2)` | `h1.combine_hash(h2)` |
+| `core::identity(x)` | removed; delete the call (no replacement) |
+
+The `stdlib_core/core_method_surface*` fixture pair compiles, validates, and
+executes the surface on both `wasm32-gc` and `--target wasm32`; the W0009
+goldens were replaced by `diagnostics/removed_core_free*` E0100 goldens.
 
 ## Planned Deprecations
 
