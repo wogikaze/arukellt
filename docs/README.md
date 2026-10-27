@@ -18,7 +18,7 @@
 - Coverage: not exhaustive runtime or pinned/reference parity; not a release-readiness receipt. Historical failures are not individually resolved by this observation.
 - Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588); registry: 3315 manifest entries
 - Historical verification: `python3 scripts/manager.py verify quick` — 166/166 checks pass
-- Stdlib manifest-backed public API: 416 functions
+- Stdlib manifest-backed public API: 401 functions
 
 - [Current state](current-state.md)
 - [Quickstart](quickstart.md)

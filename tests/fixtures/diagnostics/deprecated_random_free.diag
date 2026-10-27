@@ -1,1 +1,0 @@
-use `Rng::new(seed).next()` from `use std::random::Rng` instead

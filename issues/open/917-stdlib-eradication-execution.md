@@ -451,6 +451,47 @@ classified there, in dependency-safe waves.
   fixtures; full `verify fixtures`, `docs check`, `verify lane`, and the
   ADR-029 fixpoint are the wave gates.
 
+### Landed slice (wave/host-core, 2026-10-27)
+
+- Retired the 15 `stable` free helpers of the three pure receiver modules and
+  the unregistered `path::last_index_of` helper: `std::path` (9 + 1),
+  `std::time` (3), and `std::random` (3). The replacements are the
+  `Path` / `Duration` / `Rng` receiver types; no host capability or
+  non-main-module associated call is involved (all methods take a plain
+  receiver and the fixtures compile on both targets).
+- **ADR-087 two-step**: Wave 1 (commit `4be2ec4e5`) added the receiver
+  surface, converted the manifest entries to `deprecated`
+  (`deprecated_since = "0.1.0"`, `remove_in = "1.0.0"`) and pinned live
+  **W0009** qualified-call warnings with six diag goldens (3 symbols × 2
+  targets). Wave 2 deleted the manifest entries and `pub fn` declarations and
+  replaced the W0009 rows with E0100 hints in
+  `resolver::removed_names::removed_{path,time,random}_member_hint` plus the
+  `path::last_index_of` hint.
+- **Replacement surface**: `Path::new` / `into_string` / `join` / `parent` /
+  `file_name` / `extension` / `with_extension` / `is_absolute` / `stem` /
+  `normalize` / `components`; `Duration::between` / `as_ms` / `as_us` /
+  `as_ns`; `Rng::new` / `next` / `range` / `shuffle`. The private free
+  helpers stay as implementation details of the methods.
+- **Fixtures**: migrated the 12 existing path/time/random call-site fixtures
+  plus the quickstart example; added the dual-target
+  `stdlib_path/path_method_surface*`, `stdlib_time/duration_methods*`, and
+  `stdlib_random/rng_methods*` pairs (compile + execute on `wasm32-gc` and
+  `--target wasm32`); renamed the six W0009 diag fixtures to
+  `removed_{path,time,random}_free*` E0100 goldens (no fixture-count change).
+- **Scorecard delta**: 588 -> **572** public symbols; `associated-or-method`
+  518 -> **502**; manifest functions 417 -> **402**; `pub fn` declarations
+  642 -> **626**; unregistered declarations 172 -> **171**; `must delete`
+  85 -> **70**; `prelude_wrapper` 65 and `intrinsic-only` 1 unchanged. The
+  `host/core namespace frees` group drops from 78 manifest + 22 source to
+  **63 + 21**.
+- **Residual in the group**: the host side (`std::host::fs` / `env` /
+  `process` / `clock` / `random`, `std::fs` / `env` / `cli` / `signal`) and
+  `std::core` (`Range` / `RangeInclusive` / `Error::message` / `combine` /
+  `identity` plus the 20 `std::core::raw` bridges). The host families depend
+  on the separate non-main-module associated-call lane; `std::host::stdio`
+  stays with #693. The raw bridges need a `RawArray` / `RawString` namespace
+  surface.
+
 ## Required work
 
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate
@@ -498,6 +539,12 @@ classified there, in dependency-safe waves.
         `std::core::iter` constructor / collector frees retired after the
         `VecIter` adapter method surface (`chain`/`enumerate`/`zip`/`all`
         landed with the wave) replaced them.
+      - Landed 2026-10-27 (`wave/host-core`): the 15 pure
+        `std::path` / `std::time` / `std::random` frees and the unregistered
+        `path::last_index_of` retired after the `Path` / `Duration` / `Rng`
+        receiver surface landed; the stable entries completed the ADR-087
+        W0009 window in Wave 1 before deletion. The remaining host/core
+        families stay in the rule with their lowering constraints recorded.
 - [x] Keep the scorecard at zero-unclassified while waves land: update
       the TOML rules as symbols retire so the checker stays green.
 - [x] Update user-facing docs/examples in the same PR that retires a

@@ -65,18 +65,6 @@ helpers are included alongside any other deprecated public entry.
 | `exists` | `std::host::fs` | `deprecated` | `is_readable_file` | `0.1.0` | `1.0.0` | Deprecated alias for is_readable_file. Same read-probe semantics — NOT a general path-existence query. |
 | `writer_write` | `std::io` | `deprecated` | `Writer::write` | `0.1.0` | `1.0.0` | Deprecated tagged write for stdout() / stderr(); use Writer::write for memory handles. Stays until std::host::stdio exposes typed Write handles (ADR-085 D9). |
 | `writer_write_str` | `std::io` | `deprecated` | `Writer::write_string` | `0.1.0` | `1.0.0` | Deprecated tagged string write for stdout() / stderr(); use Writer::write_string for memory handles. Stays until std::host::stdio exposes typed Write handles (ADR-085 D9). |
-| `components` | `std::path` | `deprecated` | `Path::components` | `0.1.0` | `1.0.0` | Returns the non-empty path segments as a vector. E.g. components("/usr/bin") -> ["usr", "bin"]. |
-| `extension` | `std::path` | `deprecated` | `Path::extension` | `0.1.0` | `1.0.0` | Superseded API |
-| `file_name` | `std::path` | `deprecated` | `Path::file_name` | `0.1.0` | `1.0.0` | Superseded API |
-| `is_absolute` | `std::path` | `deprecated` | `Path::is_absolute` | `0.1.0` | `1.0.0` | Superseded API |
-| `join` | `std::path` | `deprecated` | `Path::join` | `0.1.0` | `1.0.0` | Superseded API |
-| `normalize` | `std::path` | `deprecated` | `Path::normalize` | `0.1.0` | `1.0.0` | Resolves . and .. components and collapses redundant / separators. |
-| `parent` | `std::path` | `deprecated` | `Path::parent` | `0.1.0` | `1.0.0` | Superseded API |
-| `stem` | `std::path` | `deprecated` | `Path::stem` | `0.1.0` | `1.0.0` | Returns the file stem (file name without final extension). E.g. stem("hello.txt") -> "hello". |
-| `with_extension` | `std::path` | `deprecated` | `Path::with_extension` | `0.1.0` | `1.0.0` | Superseded API |
-| `seeded_random` | `std::random` | `deprecated` | `Rng::next` | `0.1.0` | `1.0.0` | Superseded API |
-| `seeded_range` | `std::random` | `deprecated` | `Rng::range` | `0.1.0` | `1.0.0` | Superseded API |
-| `shuffle_i32` | `std::random` | `deprecated` | `Rng::shuffle` | `0.1.0` | `1.0.0` | Superseded API |
 | `binary_search` | `std::seq` | `deprecated` | `std::seq::binary_search_by` | `0.1.0` | `1.0.0` | Deprecated monomorphic wrapper. Use the generic std::seq::binary_search_by(v, target) over T: Ord. |
 | `count_eq` | `std::seq` | `deprecated` | `VecIter::count_eq` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target). |
 | `filter_i32` | `std::seq` | `deprecated` | `VecIter::filter` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().filter(f).collect(). |
@@ -90,8 +78,5 @@ helpers are included alongside any other deprecated public entry.
 | `sum_i32` | `std::seq` | `deprecated` | `VecIter::sum` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the IteratorSum capability v.iter().sum(). |
 | `take_i32` | `std::seq` | `deprecated` | `VecIter::take` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect(). |
 | `unique` | `std::seq` | `deprecated` | `VecIter::unique` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect(). |
-| `duration_ms` | `std::time` | `deprecated` | `Duration::as_ms` | `0.1.0` | `1.0.0` | Superseded API |
-| `duration_ns` | `std::time` | `deprecated` | `Duration::as_ns` | `0.1.0` | `1.0.0` | Superseded API |
-| `duration_us` | `std::time` | `deprecated` | `Duration::as_us` | `0.1.0` | `1.0.0` | Superseded API |
 
-Total deprecated public entries: **83**.
+Total deprecated public entries: **68**.

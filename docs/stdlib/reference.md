@@ -11,7 +11,7 @@
 | `stable` | 191 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 19 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 123 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 83 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 68 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -641,34 +641,12 @@ let input = read_to_string()
 | `unwrap` | `(Option<T>) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `unwrap_or` | `(Option<T>, T) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 
-## Path
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| ~~`components`~~ ⚠️ Deprecated → `Path::components` | `(String) -> Vec<String>` | `std::path` | `deprecated` | `functional` | `builtin` | no | - | Returns the non-empty path segments as a vector. E.g. components("/usr/bin") -> ["usr", "bin"]. |
-| ~~`extension`~~ ⚠️ Deprecated → `Path::extension` | `(String) -> String` | `std::path` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`file_name`~~ ⚠️ Deprecated → `Path::file_name` | `(String) -> String` | `std::path` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`is_absolute`~~ ⚠️ Deprecated → `Path::is_absolute` | `(String) -> bool` | `std::path` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`join`~~ ⚠️ Deprecated → `Path::join` | `(String, String) -> String` | `std::path` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`normalize`~~ ⚠️ Deprecated → `Path::normalize` | `(String) -> String` | `std::path` | `deprecated` | `functional` | `builtin` | no | - | Resolves . and .. components and collapses redundant / separators. |
-| ~~`parent`~~ ⚠️ Deprecated → `Path::parent` | `(String) -> String` | `std::path` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`stem`~~ ⚠️ Deprecated → `Path::stem` | `(String) -> String` | `std::path` | `deprecated` | `functional` | `builtin` | no | - | Returns the file stem (file name without final extension). E.g. stem("hello.txt") -> "hello". |
-| ~~`with_extension`~~ ⚠️ Deprecated → `Path::with_extension` | `(String, String) -> String` | `std::path` | `deprecated` | `functional` | `builtin` | no | - | - |
-
 ## Process
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `abort` | `() -> ()` | `std::process` | `stable` | `functional` | `builtin` | no | - | Terminate the process immediately (exit code 134, SIGABRT convention). |
 | `exit` | `(i32) -> ()` | `std::process` | `stable` | `functional` | `builtin` | no | - | Terminate the process with the given exit code. |
-
-## Random
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| ~~`seeded_random`~~ ⚠️ Deprecated → `Rng::next` | `(i32) -> i32` | `std::random` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`seeded_range`~~ ⚠️ Deprecated → `Rng::range` | `(i32, i32, i32) -> i32` | `std::random` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`shuffle_i32`~~ ⚠️ Deprecated → `Rng::shuffle` | `(Vec<i32>, i32) -> Vec<i32>` | `std::random` | `deprecated` | `functional` | `builtin` | no | - | - |
 
 ## Scalar Conversion
 
@@ -831,14 +809,6 @@ let input = read_to_string()
 | `expect_ok_i32` | `(Result<i32, String>) -> i32` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
 | `expect_some_i32` | `(Option<i32>) -> i32` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
 
-## Time
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| ~~`duration_ms`~~ ⚠️ Deprecated → `Duration::as_ms` | `(i64, i64) -> i64` | `std::time` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`duration_ns`~~ ⚠️ Deprecated → `Duration::as_ns` | `(i64, i64) -> i64` | `std::time` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`duration_us`~~ ⚠️ Deprecated → `Duration::as_us` | `(i64, i64) -> i64` | `std::time` | `deprecated` | `functional` | `builtin` | no | - | - |
-
 ## Toml
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
@@ -865,7 +835,7 @@ let input = read_to_string()
 
 ## Deprecated APIs
 
-> ⚠️ **83 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **68 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -875,7 +845,6 @@ let input = read_to_string()
 | ~~`assert_eq_str`~~ | `std::test::assert_eq_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `std::test::assert_ne_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `std::seq::binary_search_by` | [migration-guidance.md](migration-guidance.md) |
-| ~~`components`~~ | `Path::components` | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `VecIter::count_eq` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | [migration-guidance.md](migration-guidance.md) |
@@ -888,16 +857,11 @@ let input = read_to_string()
 | ~~`deque_push_back`~~ | `Deque::push_back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_push_front`~~ | `Deque::push_front` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_to_vec`~~ | `Deque::iter` | [migration-guidance.md](migration-guidance.md) |
-| ~~`duration_ms`~~ | `Duration::as_ms` | [migration-guidance.md](migration-guidance.md) |
-| ~~`duration_ns`~~ | `Duration::as_ns` | [migration-guidance.md](migration-guidance.md) |
-| ~~`duration_us`~~ | `Duration::as_us` | [migration-guidance.md](migration-guidance.md) |
 | ~~`exists`~~ | `is_readable_file` | [migration-guidance.md](migration-guidance.md) |
-| ~~`extension`~~ | `Path::extension` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f32_to_f64`~~ | `f32::to_f64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_hi`~~ | `f64::to_bits_hi` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_lo`~~ | `f64::to_bits_lo` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_to_f32`~~ | `f64::to_f32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`file_name`~~ | `Path::file_name` | [migration-guidance.md](migration-guidance.md) |
 | ~~`filter_i32`~~ | `VecIter::filter` | [migration-guidance.md](migration-guidance.md) |
 | ~~`fold_i32_i32`~~ | `VecIter::fold` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get`~~ | `Vec::get` | [migration-guidance.md](migration-guidance.md) |
@@ -911,8 +875,6 @@ let input = read_to_string()
 | ~~`i32_to_u32`~~ | `i32::to_u32_bits` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_u8`~~ | `i32::to_u8_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i64_to_i32`~~ | `i64::to_i32_checked` | [migration-guidance.md](migration-guidance.md) |
-| ~~`is_absolute`~~ | `Path::is_absolute` | [migration-guidance.md](migration-guidance.md) |
-| ~~`join`~~ | `Path::join` | [migration-guidance.md](migration-guidance.md) |
 | ~~`len`~~ | `Vec::len` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_back`~~ | `LinkedList::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_clear`~~ | `LinkedList::clear` | [migration-guidance.md](migration-guidance.md) |
@@ -928,20 +890,14 @@ let input = read_to_string()
 | ~~`map_i32_i32`~~ | `VecIter::map` | [migration-guidance.md](migration-guidance.md) |
 | ~~`max_i32`~~ | `std::seq::max_by` | [migration-guidance.md](migration-guidance.md) |
 | ~~`min_i32`~~ | `std::seq::min_by` | [migration-guidance.md](migration-guidance.md) |
-| ~~`normalize`~~ | `Path::normalize` | [migration-guidance.md](migration-guidance.md) |
-| ~~`parent`~~ | `Path::parent` | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | [migration-guidance.md](migration-guidance.md) |
-| ~~`seeded_random`~~ | `Rng::next` | [migration-guidance.md](migration-guidance.md) |
-| ~~`seeded_range`~~ | `Rng::range` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `VecIter::contains` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `VecIter::rev` | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | [migration-guidance.md](migration-guidance.md) |
-| ~~`shuffle_i32`~~ | `Rng::shuffle` | [migration-guidance.md](migration-guidance.md) |
 | ~~`skip_i32`~~ | `VecIter::skip` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_get`~~ | `Slice::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_len`~~ | `Slice::len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`stem`~~ | `Path::stem` | [migration-guidance.md](migration-guidance.md) |
 | ~~`sum_i32`~~ | `VecIter::sum` | [migration-guidance.md](migration-guidance.md) |
 | ~~`take_i32`~~ | `VecIter::take` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u16_to_i32`~~ | `u16::to_i32` | [migration-guidance.md](migration-guidance.md) |
@@ -949,6 +905,5 @@ let input = read_to_string()
 | ~~`u64_to_u32`~~ | `u64::to_u32_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | `u8::to_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`unique`~~ | `VecIter::unique` | [migration-guidance.md](migration-guidance.md) |
-| ~~`with_extension`~~ | `Path::with_extension` | [migration-guidance.md](migration-guidance.md) |
 | ~~`writer_write`~~ | `Writer::write` | [migration-guidance.md](migration-guidance.md) |
 | ~~`writer_write_str`~~ | `Writer::write_string` | [migration-guidance.md](migration-guidance.md) |

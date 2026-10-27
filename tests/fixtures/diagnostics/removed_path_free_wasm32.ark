@@ -1,0 +1,6 @@
+// E0100 on the linear target: the std::path free helpers were removed.
+use std::path
+
+fn main() {
+    let _ = path::file_name("/usr/bin/ls")
+}

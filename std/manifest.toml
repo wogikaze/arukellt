@@ -1248,84 +1248,18 @@ stability = "stable"
 params = ["i32", "i32"]
 returns = "i32"
 
-[[functions]]
-name = "duration_ms"
-module = "std::time"
-doc_category = "time"
-stability = "deprecated"
-deprecated_by = "Duration::as_ms"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["i64", "i64"]
-returns = "i64"
-
-[[functions]]
-name = "duration_us"
-module = "std::time"
-doc_category = "time"
-stability = "deprecated"
-deprecated_by = "Duration::as_us"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["i64", "i64"]
-returns = "i64"
-
-[[functions]]
-name = "duration_ns"
-module = "std::time"
-doc_category = "time"
-stability = "deprecated"
-deprecated_by = "Duration::as_ns"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["i64", "i64"]
-returns = "i64"
-
 [[modules]]
 name = "std::time"
 stability = "stable"
-doc = "Pure duration arithmetic over caller-supplied i64 nanosecond timestamps. Host clock reads live in std::host::clock; this module only provides the arithmetic."
+doc = "Pure duration arithmetic over caller-supplied i64 nanosecond timestamps. Use the Duration receiver type: Duration::between(start, end).as_ms()/as_us()/as_ns(). Host clock reads live in std::host::clock."
 availability = { t1 = true, t3 = true }
 
 # === std::random ===
 
-[[functions]]
-name = "seeded_random"
-module = "std::random"
-doc_category = "random"
-stability = "deprecated"
-deprecated_by = "Rng::next"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["i32"]
-returns = "i32"
-
-[[functions]]
-name = "seeded_range"
-module = "std::random"
-doc_category = "random"
-stability = "deprecated"
-deprecated_by = "Rng::range"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["i32", "i32", "i32"]
-returns = "i32"
-
-[[functions]]
-name = "shuffle_i32"
-module = "std::random"
-doc_category = "random"
-stability = "deprecated"
-deprecated_by = "Rng::shuffle"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["Vec<i32>", "i32"]
-returns = "Vec<i32>"
-
 [[modules]]
 name = "std::random"
 stability = "stable"
-doc = "Deterministic pseudo-random helpers backed by xorshift32. All functions take an explicit seed so results are reproducible. Host-entropy random numbers live in std::host::random."
+doc = "Deterministic pseudo-random helpers backed by xorshift32. Use the Rng receiver type: Rng::new(seed).next()/range(lo, hi)/shuffle(v). Host-entropy random numbers live in std::host::random."
 availability = { t1 = true, t3 = true }
 
 # === std::test ===
@@ -1575,108 +1509,6 @@ doc = "Return true if the given flag (e.g. \"--verbose\") was passed as a comman
 availability = { t1 = true, t3 = true }
 
 # === std::path ===
-
-[[functions]]
-name = "join"
-module = "std::path"
-doc_category = "path"
-stability = "deprecated"
-deprecated_by = "Path::join"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["String", "String"]
-returns = "String"
-
-[[functions]]
-name = "parent"
-module = "std::path"
-doc_category = "path"
-stability = "deprecated"
-deprecated_by = "Path::parent"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["String"]
-returns = "String"
-
-[[functions]]
-name = "file_name"
-module = "std::path"
-doc_category = "path"
-stability = "deprecated"
-deprecated_by = "Path::file_name"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["String"]
-returns = "String"
-
-[[functions]]
-name = "extension"
-module = "std::path"
-doc_category = "path"
-stability = "deprecated"
-deprecated_by = "Path::extension"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["String"]
-returns = "String"
-
-[[functions]]
-name = "with_extension"
-module = "std::path"
-doc_category = "path"
-stability = "deprecated"
-deprecated_by = "Path::with_extension"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["String", "String"]
-returns = "String"
-
-[[functions]]
-name = "is_absolute"
-module = "std::path"
-doc_category = "path"
-stability = "deprecated"
-deprecated_by = "Path::is_absolute"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["String"]
-returns = "bool"
-
-[[functions]]
-name = "stem"
-module = "std::path"
-doc_category = "path"
-stability = "deprecated"
-deprecated_by = "Path::stem"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["String"]
-returns = "String"
-doc = "Returns the file stem (file name without final extension). E.g. stem(\"hello.txt\") -> \"hello\"."
-
-[[functions]]
-name = "normalize"
-module = "std::path"
-doc_category = "path"
-stability = "deprecated"
-deprecated_by = "Path::normalize"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["String"]
-returns = "String"
-doc = "Resolves `.` and `..` components and collapses redundant `/` separators."
-
-[[functions]]
-name = "components"
-module = "std::path"
-doc_category = "path"
-stability = "deprecated"
-deprecated_by = "Path::components"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["String"]
-returns = "Vec<String>"
-doc = "Returns the non-empty path segments as a vector. E.g. components(\"/usr/bin\") -> [\"usr\", \"bin\"]."
 
 # === std::fs ===
 

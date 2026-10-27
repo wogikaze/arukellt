@@ -1,1 +1,0 @@
-use `Duration::between(start, end).as_ms()` from `use std::time::Duration` instead

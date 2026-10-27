@@ -1257,6 +1257,48 @@ String migration receipt, not completion of arbitrary adapter combinations.
 
 ---
 
+## std::path / std::time / std::random receiver wave (ADR-046, ADR-087, 2026-10-27)
+
+The 15 `stable` free helpers in these three pure modules completed the
+[ADR-087](ADR-087-0x-deprecation-exception.md) 0.x window as `deprecated`
+entries (`deprecated_since = "0.1.0"`, `remove_in = "1.0.0"`) with live
+**W0009** warnings, then were removed in the Wave 2 step. Qualified old calls
+now fail name resolution with **E0100** plus the receiver replacement hint
+from `resolver::removed_names`.
+
+The canonical surface is a receiver type in each module: `std::path::Path`,
+`std::time::Duration`, and `std::random::Rng`. The unregistered
+`path::last_index_of` helper also became private; its E0100 hint points at the
+`Path` methods (`file_name`, `extension`, `parent`, `stem`, `normalize`) and
+`String::index_of`.
+
+| Before | After |
+|--------|-------|
+| `path::join(base, child)` | `Path::new(base).join(child)` |
+| `path::parent(path)` | `Path::new(path).parent()` |
+| `path::file_name(path)` | `Path::new(path).file_name()` |
+| `path::extension(path)` | `Path::new(path).extension()` |
+| `path::with_extension(path, ext)` | `Path::new(path).with_extension(ext)` |
+| `path::is_absolute(path)` | `Path::new(path).is_absolute()` |
+| `path::stem(path)` | `Path::new(path).stem()` |
+| `path::normalize(path)` | `Path::new(path).normalize()` |
+| `path::components(path)` | `Path::new(path).components()` |
+| `time::duration_ms(start, end)` | `Duration::between(start, end).as_ms()` |
+| `time::duration_us(start, end)` | `Duration::between(start, end).as_us()` |
+| `time::duration_ns(start, end)` | `Duration::between(start, end).as_ns()` |
+| `random::seeded_random(seed)` | `Rng::new(seed).next()` |
+| `random::seeded_range(seed, lo, hi)` | `Rng::new(seed).range(lo, hi)` |
+| `random::shuffle_i32(vec, seed)` | `Rng::new(seed).shuffle(vec)` |
+
+`Path`, `Duration`, and `Rng` are value wrappers over the former argument
+shapes, and `Path::into_string()` returns the wrapped string. The
+`stdlib_path/path_method_surface*`, `stdlib_time/duration_methods*`, and
+`stdlib_random/rng_methods*` fixture pairs compile and execute the surface on
+both `wasm32-gc` and `--target wasm32`; the moved W0009 goldens were replaced
+by `diagnostics/removed_{path,time,random}_free*` E0100 goldens.
+
+---
+
 ## Planned Deprecations
 
 The following APIs are scheduled for deprecation via the same monomorphic →

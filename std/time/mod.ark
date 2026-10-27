@@ -15,15 +15,6 @@
 //! - All inputs are caller-supplied `i64` timestamps; the semantics of
 //!   those timestamps are the caller's responsibility.
 
-fn elapsed_ns(start: i64, end: i64) -> i64 {
-    let diff = end - start
-    if diff < 0i64 {
-        0i64
-    } else {
-        diff
-    }
-}
-
 /// A non-negative elapsed duration stored as nanoseconds.
 pub struct Duration {
     ns: i64,
@@ -35,7 +26,12 @@ impl Duration {
     /// Negative spans clamp to zero, matching the former `duration_*`
     /// helpers' contract.
     fn between(start: i64, end: i64) -> Duration {
-        Duration { ns: elapsed_ns(start, end) }
+        let diff = end - start
+        if diff < 0i64 {
+            Duration { ns: 0i64 }
+        } else {
+            Duration { ns: diff }
+        }
     }
 
     /// Returns the duration in milliseconds.
@@ -52,16 +48,4 @@ impl Duration {
     fn as_ns(self: Duration) -> i64 {
         self.ns
     }
-}
-
-pub fn duration_ms(start: i64, end: i64) -> i64 {
-    Duration::between(start, end).as_ms()
-}
-
-pub fn duration_us(start: i64, end: i64) -> i64 {
-    Duration::between(start, end).as_us()
-}
-
-pub fn duration_ns(start: i64, end: i64) -> i64 {
-    Duration::between(start, end).as_ns()
 }

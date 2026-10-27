@@ -1,0 +1,7 @@
+// E0100: the std::time duration helpers were removed in the ADR-087 Wave 2
+// deletion; the qualified old call names the Duration replacement.
+use std::time
+
+fn main() {
+    let _ = time::duration_ms(0i64, 5000000i64)
+}

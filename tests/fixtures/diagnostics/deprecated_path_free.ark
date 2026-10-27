@@ -1,7 +1,0 @@
-// W0009: the std::path free helpers are deprecated in favour of Path methods.
-use std::path
-
-fn main() {
-    let _ = path::join("/usr", "bin")
-    let _ = path::normalize("a/../b")
-}

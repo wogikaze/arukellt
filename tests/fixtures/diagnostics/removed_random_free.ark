@@ -1,0 +1,7 @@
+// E0100: the std::random seeded helpers were removed in the ADR-087 Wave 2
+// deletion; the qualified old call names the Rng replacement.
+use std::random
+
+fn main() {
+    let _ = random::seeded_random(42)
+}

@@ -1,0 +1,6 @@
+// E0100 on the linear target: the std::time duration helper was removed.
+use std::time
+
+fn main() {
+    let _ = time::duration_ns(1i64, 3i64)
+}

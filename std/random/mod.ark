@@ -99,18 +99,3 @@ impl Rng {
         shuffle_i32_from(v, self.seed)
     }
 }
-
-/// Generate the next deterministic pseudo-random value from a seed.
-pub fn seeded_random(seed_val: i32) -> i32 {
-    next_seeded(seed_val)
-}
-
-/// Map a seed to a deterministic value in `[lo, hi)`.
-pub fn seeded_range(seed_val: i32, lo: i32, hi: i32) -> i32 {
-    seeded_range_from(seed_val, lo, hi)
-}
-
-/// Return a shuffled copy of `v` using the deterministic seeded RNG.
-pub fn shuffle_i32(v: Vec<i32>, seed_val: i32) -> Vec<i32> {
-    shuffle_i32_from(v, seed_val)
-}

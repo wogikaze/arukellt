@@ -229,52 +229,7 @@ impl Path {
     }
 }
 
-/// Joins two path segments with a single `/` separator.
-pub fn join(base: String, child: String) -> String {
-    path_join(base, child)
-}
-
-/// Returns the final path segment after the last `/`.
-pub fn file_name(p: String) -> String {
-    path_file_name(p)
-}
-
-/// Returns the extension without the leading `.`.
-pub fn extension(p: String) -> String {
-    path_extension(p)
-}
-
-/// Replaces the current extension, or appends one when missing.
-pub fn with_extension(p: String, ext: String) -> String {
-    path_with_extension(p, ext)
-}
-
-/// Returns true when the path starts with `/`.
-pub fn is_absolute(p: String) -> bool {
-    path_is_absolute(p)
-}
-
-/// Returns the parent directory path, or an empty string at the root.
-pub fn parent(p: String) -> String {
-    path_parent(p)
-}
-
-/// Returns the file stem (the file name without the final extension).
-pub fn stem(p: String) -> String {
-    path_stem(p)
-}
-
-/// Resolves `.` and `..` components and collapses redundant `/` separators.
-pub fn normalize(p: String) -> String {
-    path_normalize(p)
-}
-
-/// Returns the non-empty path segments split by `/`.
-pub fn components(p: String) -> Vec<String> {
-    path_components(p)
-}
-
-pub fn last_index_of(s: String, needle: String) -> i32 {
+fn last_index_of(s: String, needle: String) -> i32 {
     let n = len(s)
     let nlen = len(needle)
     if nlen > n {

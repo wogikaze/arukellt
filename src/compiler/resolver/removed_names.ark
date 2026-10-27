@@ -179,6 +179,15 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "bytes") {
         return removed_bytes_member_hint(name)
     }
+    if eq(clone(module), "path") {
+        return removed_path_member_hint(name)
+    }
+    if eq(clone(module), "time") {
+        return removed_time_member_hint(name)
+    }
+    if eq(clone(module), "random") {
+        return removed_random_member_hint(name)
+    }
     if eq(clone(module), "canonical") {
         return removed_canonical_member_hint(name)
     }
@@ -710,6 +719,34 @@ fn removed_simd_lane_type(module: String) -> String {
     String_new()
 }
 
+fn removed_path_member_hint(name: String) -> String {
+    if eq(clone(name), "join") { return String_from("use `Path::new(base).join(child)` from `use std::path::Path` instead") }
+    if eq(clone(name), "parent") { return String_from("use `Path::new(path).parent()` from `use std::path::Path` instead") }
+    if eq(clone(name), "file_name") { return String_from("use `Path::new(path).file_name()` from `use std::path::Path` instead") }
+    if eq(clone(name), "extension") { return String_from("use `Path::new(path).extension()` from `use std::path::Path` instead") }
+    if eq(clone(name), "with_extension") { return String_from("use `Path::new(path).with_extension(ext)` from `use std::path::Path` instead") }
+    if eq(clone(name), "is_absolute") { return String_from("use `Path::new(path).is_absolute()` from `use std::path::Path` instead") }
+    if eq(clone(name), "stem") { return String_from("use `Path::new(path).stem()` from `use std::path::Path` instead") }
+    if eq(clone(name), "normalize") { return String_from("use `Path::new(path).normalize()` from `use std::path::Path` instead") }
+    if eq(clone(name), "components") { return String_from("use `Path::new(path).components()` from `use std::path::Path` instead") }
+    if eq(clone(name), "last_index_of") { return String_from("removed helper; use the `Path` methods (`file_name`, `extension`, `parent`, `stem`, `normalize`) or `String::index_of` for forward searches") }
+    String_new()
+}
+
+fn removed_time_member_hint(name: String) -> String {
+    if eq(clone(name), "duration_ms") { return String_from("use `Duration::between(start, end).as_ms()` from `use std::time::Duration` instead") }
+    if eq(clone(name), "duration_us") { return String_from("use `Duration::between(start, end).as_us()` from `use std::time::Duration` instead") }
+    if eq(clone(name), "duration_ns") { return String_from("use `Duration::between(start, end).as_ns()` from `use std::time::Duration` instead") }
+    String_new()
+}
+
+fn removed_random_member_hint(name: String) -> String {
+    if eq(clone(name), "seeded_random") { return String_from("use `Rng::new(seed).next()` from `use std::random::Rng` instead") }
+    if eq(clone(name), "seeded_range") { return String_from("use `Rng::new(seed).range(lo, hi)` from `use std::random::Rng` instead") }
+    if eq(clone(name), "shuffle_i32") { return String_from("use `Rng::new(seed).shuffle(v)` from `use std::random::Rng` instead") }
+    String_new()
+}
+
 test mod "removed_names" {
     test "to_string family" {
         assert(len(removed_name_hint("i32_to_string")) > 0)
@@ -881,6 +918,20 @@ test mod "removed_names" {
         assert(len(removed_module_member_hint(String_from("json"), String_from("parse_error_message"))) > 0)
         assert(len(removed_module_member_hint(String_from("toml"), String_from("toml_get"))) > 0)
         assert(len(removed_module_member_hint(String_from("toml"), String_from("toml_as_string"))) > 0)
+    }
+    test "removed path/time/random frees have receiver hints" {
+        assert(len(removed_module_member_hint(String_from("path"), String_from("join"))) > 0)
+        assert(len(removed_module_member_hint(String_from("path"), String_from("file_name"))) > 0)
+        assert(len(removed_module_member_hint(String_from("path"), String_from("last_index_of"))) > 0)
+        assert(len(removed_module_member_hint(String_from("time"), String_from("duration_ms"))) > 0)
+        assert(len(removed_module_member_hint(String_from("time"), String_from("duration_ns"))) > 0)
+        assert(len(removed_module_member_hint(String_from("random"), String_from("seeded_random"))) > 0)
+        assert(len(removed_module_member_hint(String_from("random"), String_from("shuffle_i32"))) > 0)
+    }
+    test "live path/time/random members keep no removal hint" {
+        assert(len(removed_module_member_hint(String_from("path"), String_from("Path"))) == 0)
+        assert(len(removed_module_member_hint(String_from("time"), String_from("Duration"))) == 0)
+        assert(len(removed_module_member_hint(String_from("random"), String_from("Rng"))) == 0)
     }
 
 }

@@ -16,6 +16,41 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — std::path / std::time / std::random receiver wave (#917, ADR-087 Wave 2)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D1/D2/D4
+  and the [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) 0.x exception.
+  The 15 targets were `stable`; Wave 1 (commit `4be2ec4e5`) converted them to
+  `deprecated` with `deprecated_since = "0.1.0"`, `remove_in = "1.0.0"`, live
+  **W0009** qualified-call warnings, and six diag goldens (three symbols on
+  each target). Wave 2 deletes the manifest entries and `pub fn` declarations
+  after the migration rows and this entry landed.
+- **Removed (15 manifest + 1 unregistered)**: `path::join`, `parent`,
+  `file_name`, `extension`, `with_extension`, `is_absolute`, `stem`,
+  `normalize`, `components`; `time::duration_ms`, `duration_us`,
+  `duration_ns`; `random::seeded_random`, `seeded_range`, `shuffle_i32`;
+  and the unregistered `path::last_index_of` helper, which becomes private.
+- **Replacement**: `std::path::Path` receiver methods
+  (`Path::new(p).join(child)`, `.parent()`, `.file_name()`, `.extension()`,
+  `.with_extension(ext)`, `.is_absolute()`, `.stem()`, `.normalize()`,
+  `.components()`, `.into_string()`), `std::time::Duration`
+  (`Duration::between(start, end).as_ms()/as_us()/as_ns()`), and
+  `std::random::Rng` (`Rng::new(seed).next()/range(lo, hi)/shuffle(v)`).
+  Qualified old calls now fail with **E0100** plus the receiver hint from
+  `resolver::removed_names`.
+- **Fixtures**: the existing path/time/random fixtures moved to the receiver
+  spelling; `stdlib_path/path_method_surface*`,
+  `stdlib_time/duration_methods*`, and `stdlib_random/rng_methods*` add
+  compile+execute coverage on `wasm32-gc` and `--target wasm32`. The W0009
+  goldens were replaced by `diagnostics/removed_{path,time,random}_free*`
+  E0100 goldens.
+- **Scorecard**: 588 → **572** public symbols; `associated-or-method`
+  518 → **502**; manifest functions 417 → **402**; unregistered declarations
+  172 → **171**; `pub fn` declarations 642 → **626**; `must delete` 85 → 70
+  (the 15 deprecated entries left the scope with their deletion);
+  `intrinsic-only` 1 and `prelude_wrapper` 65 unchanged; monomorphic
+  `*_i32` / `*_f64` manifest helpers 66 → **65** (`shuffle_i32` retired).
+
 ## 2026-10-27 — std::json / std::toml value methods (#917, ADR-046)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the

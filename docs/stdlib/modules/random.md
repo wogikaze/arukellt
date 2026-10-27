@@ -34,8 +34,8 @@ let shuffled = Rng::new(42).shuffle(vec) // deterministic shuffle
 ## Module `std::random`
 
 - Source: [`../../../std/random/mod.ark`](../../../std/random/mod.ark)
-- Manifest-backed functions: 3
-- Stability: deprecated 3
+- Manifest-backed functions: 0
+- Stability: n/a
 
 Deterministic pseudo-random helper functions.
 
@@ -52,12 +52,4 @@ it without touching host entropy.
 |------|------|---------|
 | `Rng` | `struct` | Deterministic xorshift32 random source. |
 
-### `std::random` — Public API
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| ~~`seeded_random`~~ ⚠️ Deprecated → `Rng::next` | `(i32) -> i32` | `deprecated` | ✅ functional | Generate the next deterministic pseudo-random value from a seed. |
-| ~~`seeded_range`~~ ⚠️ Deprecated → `Rng::range` | `(i32, i32, i32) -> i32` | `deprecated` | ✅ functional | Map a seed to a deterministic value in [lo, hi). |
-| ~~`shuffle_i32`~~ ⚠️ Deprecated → `Rng::shuffle` | `(Vec<i32>, i32) -> Vec<i32>` | `deprecated` | ✅ functional | Return a shuffled copy of v using the deterministic seeded RNG. |
-
-> ⚠️ **3 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
+_No manifest-backed functions in this module._

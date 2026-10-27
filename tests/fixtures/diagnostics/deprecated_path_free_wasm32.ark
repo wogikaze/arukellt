@@ -1,6 +1,0 @@
-// W0009 on the linear target: the std::path free helpers are deprecated.
-use std::path
-
-fn main() {
-    let _ = path::file_name("/usr/bin/ls")
-}

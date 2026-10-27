@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: random::shuffle_i32; use `Rng::new(seed).shuffle(v)` from `use std::random::Rng` instead

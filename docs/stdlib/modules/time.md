@@ -36,8 +36,8 @@ let elapsed = Duration::between(t0, t1).as_ms()  // milliseconds
 ## Module `std::time`
 
 - Source: [`../../../std/time/mod.ark`](../../../std/time/mod.ark)
-- Manifest-backed functions: 3
-- Stability: deprecated 3
+- Manifest-backed functions: 0
+- Stability: n/a
 
 Pure duration helpers.
 
@@ -62,12 +62,4 @@ those timestamps are the caller's responsibility.
 |------|------|---------|
 | `Duration` | `struct` | A non-negative elapsed duration stored as nanoseconds. |
 
-### `std::time` — Public API
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| ~~`duration_ms`~~ ⚠️ Deprecated → `Duration::as_ms` | `(i64, i64) -> i64` | `deprecated` | ✅ functional | - |
-| ~~`duration_us`~~ ⚠️ Deprecated → `Duration::as_us` | `(i64, i64) -> i64` | `deprecated` | ✅ functional | - |
-| ~~`duration_ns`~~ ⚠️ Deprecated → `Duration::as_ns` | `(i64, i64) -> i64` | `deprecated` | ✅ functional | - |
-
-> ⚠️ **3 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
+_No manifest-backed functions in this module._

@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: random::seeded_random; use `Rng::new(seed).next()` from `use std::random::Rng` instead

@@ -1,4 +1,4 @@
-// W0009 on the linear target: shuffle_i32 is deprecated in favour of Rng.
+// E0100 on the linear target: shuffle_i32 was removed in favour of Rng.
 use std::random
 
 fn main() {

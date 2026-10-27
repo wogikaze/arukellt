@@ -1,0 +1,8 @@
+// E0100: the std::path free helpers were removed in the ADR-087 Wave 2
+// deletion; the qualified old call names the Path replacement.
+use std::path
+
+fn main() {
+    let _ = path::join("/usr", "bin")
+    let _ = path::normalize("a/../b")
+}

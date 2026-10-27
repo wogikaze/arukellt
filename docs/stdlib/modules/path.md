@@ -37,8 +37,8 @@ let dir  = Path::new("/home/user/data.txt").parent()    // "/home/user"
 ## Module `std::path`
 
 - Source: [`../../../std/path/mod.ark`](../../../std/path/mod.ark)
-- Manifest-backed functions: 9
-- Stability: deprecated 9
+- Manifest-backed functions: 0
+- Stability: n/a
 
 Pure string-based path manipulation helpers.
 
@@ -58,30 +58,4 @@ operations work on plain strings without host I/O.
 |------|------|---------|
 | `Path` | `struct` | A path string with the path-manipulation methods attached. |
 
-### `std::path` — Public API
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| ~~`join`~~ ⚠️ Deprecated → `Path::join` | `(String, String) -> String` | `deprecated` | ✅ functional | Joins two path segments with a single / separator. |
-| ~~`file_name`~~ ⚠️ Deprecated → `Path::file_name` | `(String) -> String` | `deprecated` | ✅ functional | Returns the final path segment after the last /. |
-| ~~`extension`~~ ⚠️ Deprecated → `Path::extension` | `(String) -> String` | `deprecated` | ✅ functional | Returns the extension without the leading .. |
-| ~~`with_extension`~~ ⚠️ Deprecated → `Path::with_extension` | `(String, String) -> String` | `deprecated` | ✅ functional | Replaces the current extension, or appends one when missing. |
-| ~~`is_absolute`~~ ⚠️ Deprecated → `Path::is_absolute` | `(String) -> bool` | `deprecated` | ✅ functional | Returns true when the path starts with /. |
-| ~~`parent`~~ ⚠️ Deprecated → `Path::parent` | `(String) -> String` | `deprecated` | ✅ functional | Returns the parent directory path, or an empty string at the root. |
-| ~~`stem`~~ ⚠️ Deprecated → `Path::stem` | `(String) -> String` | `deprecated` | ✅ functional | Returns the file stem (the file name without the final extension). |
-| ~~`normalize`~~ ⚠️ Deprecated → `Path::normalize` | `(String) -> String` | `deprecated` | ✅ functional | Resolves . and .. components and collapses redundant / separators. |
-| ~~`components`~~ ⚠️ Deprecated → `Path::components` | `(String) -> Vec<String>` | `deprecated` | ✅ functional | Returns the non-empty path segments split by /. |
-
-#### `std::path::stem`
-
-Returns the file stem (file name without final extension). E.g. stem("hello.txt") -> "hello".
-
-#### `std::path::normalize`
-
-Resolves `.` and `..` components and collapses redundant `/` separators.
-
-#### `std::path::components`
-
-Returns the non-empty path segments as a vector. E.g. components("/usr/bin") -> ["usr", "bin"].
-
-> ⚠️ **9 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
+_No manifest-backed functions in this module._
