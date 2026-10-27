@@ -1,5 +1,6 @@
 use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
 use std::text
+use corehir::callee_spelling
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
@@ -190,9 +191,12 @@ fn vec_new_type_name_is_unresolved(tname: String) -> bool {
 }
 
 fn is_raw_array_new_call_name(callee: String) -> bool {
-    eq(clone(callee), String_from("raw_array_new")) ||
-    eq(clone(callee), String_from("raw::raw_array_new")) ||
-    ends_with(clone(callee), String_from("::raw_array_new"))
+    callee_spelling::is_namespace_member_callee(
+        clone(callee),
+        String_from("raw_array_new"),
+        String_from("RawArray"),
+        String_from("new")
+    )
 }
 
 fn raw_ctor_fn_return_vec_type_name(ctx: SelfEmitCtx) -> String {

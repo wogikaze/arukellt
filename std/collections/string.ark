@@ -1,7 +1,7 @@
 //! std::collections::string — String manipulation functions
 //!
 //! Representation-sensitive helpers go through `std::core::raw` (RFC-006).
-use std::core::raw
+use std::core::raw::{RawArray, RawString}
 use std::prelude::{to_lowercase}
 pub fn eq(a: String, b: String) -> bool {
     __core_string_eq_impl(a, b)
@@ -16,11 +16,11 @@ pub fn slice(s: String, start: i32, end: i32) -> String {
 }
 
 fn __core_string_len_impl(s: String) -> i32 {
-    raw::raw_string_len_bytes(s)
+    RawString::len_bytes(s)
 }
 
 fn __core_string_char_at_impl(s: String, index: i32) -> i32 {
-    raw::raw_string_byte_at_unchecked(s, index)
+    RawString::byte_at_unchecked(s, index)
 }
 
 fn __core_string_is_continuation_byte(byte: i32) -> bool {
@@ -31,11 +31,11 @@ fn __core_string_is_continuation_byte(byte: i32) -> bool {
 // represented by zero internally; public scalar APIs convert that condition to
 // None or advance one replacement byte, so it never becomes a public sentinel.
 fn __core_string_utf8_width_impl(s: String, index: i32) -> i32 {
-    let string_len = raw::raw_string_len_bytes(s)
+    let string_len = RawString::len_bytes(s)
     if index < 0 || index >= string_len {
         return 0
     }
-    let first = raw::raw_string_byte_at_unchecked(s, index)
+    let first = RawString::byte_at_unchecked(s, index)
     if first <= 127 {
         return 1
     }
@@ -44,7 +44,7 @@ fn __core_string_utf8_width_impl(s: String, index: i32) -> i32 {
             return 0
         }
         if __core_string_is_continuation_byte(
-            raw::raw_string_byte_at_unchecked(s, index + 1)
+            RawString::byte_at_unchecked(s, index + 1)
         ) {
             return 2
         }
@@ -54,8 +54,8 @@ fn __core_string_utf8_width_impl(s: String, index: i32) -> i32 {
         if index + 2 >= string_len {
             return 0
         }
-        let second = raw::raw_string_byte_at_unchecked(s, index + 1)
-        let third = raw::raw_string_byte_at_unchecked(s, index + 2)
+        let second = RawString::byte_at_unchecked(s, index + 1)
+        let third = RawString::byte_at_unchecked(s, index + 2)
         if !__core_string_is_continuation_byte(second) ||
         !__core_string_is_continuation_byte(third) {
             return 0
@@ -72,9 +72,9 @@ fn __core_string_utf8_width_impl(s: String, index: i32) -> i32 {
         if index + 3 >= string_len {
             return 0
         }
-        let second = raw::raw_string_byte_at_unchecked(s, index + 1)
-        let third = raw::raw_string_byte_at_unchecked(s, index + 2)
-        let fourth = raw::raw_string_byte_at_unchecked(s, index + 3)
+        let second = RawString::byte_at_unchecked(s, index + 1)
+        let third = RawString::byte_at_unchecked(s, index + 2)
+        let fourth = RawString::byte_at_unchecked(s, index + 3)
         if !__core_string_is_continuation_byte(second) ||
         !__core_string_is_continuation_byte(third) ||
         !__core_string_is_continuation_byte(fourth) {
@@ -158,33 +158,33 @@ fn __core_string_utf8_width_vec_impl(bytes: Vec<i32>, index: i32) -> i32 {
 }
 
 fn __core_string_is_utf8_boundary_impl(s: String, index: i32) -> bool {
-    let string_len = raw::raw_string_len_bytes(s)
+    let string_len = RawString::len_bytes(s)
     if index < 0 || index > string_len {
         return false
     }
     if index == 0 || index == string_len {
         return true
     }
-    !__core_string_is_continuation_byte(raw::raw_string_byte_at_unchecked(s, index))
+    !__core_string_is_continuation_byte(RawString::byte_at_unchecked(s, index))
 }
 
 // The public API exposes a character, but scalar values use the same i32
 // runtime representation as the compiler's character literals. Keep this
 // decoder numeric so arithmetic remains explicit at the representation boundary.
 fn __core_string_decode_codepoint_impl(s: String, index: i32, width: i32) -> i32 {
-    let first = raw::raw_string_byte_at_unchecked(s, index)
+    let first = RawString::byte_at_unchecked(s, index)
     if width == 1 {
         return first
     }
-    let second = raw::raw_string_byte_at_unchecked(s, index + 1)
+    let second = RawString::byte_at_unchecked(s, index + 1)
     if width == 2 {
         return (first - 192) * 64 + second - 128
     }
-    let third = raw::raw_string_byte_at_unchecked(s, index + 2)
+    let third = RawString::byte_at_unchecked(s, index + 2)
     if width == 3 {
         return (first - 224) * 4096 + (second - 128) * 64 + third - 128
     }
-    let fourth = raw::raw_string_byte_at_unchecked(s, index + 3)
+    let fourth = RawString::byte_at_unchecked(s, index + 3)
     (first - 240) * 262144 + (second - 128) * 4096 +
     (third - 128) * 64 + fourth - 128
 }
@@ -193,7 +193,7 @@ fn __core_string_char_byte_index_impl(s: String, char_index: i32) -> i32 {
     if char_index < 0 {
         return 0 - 1
     }
-    let string_len = raw::raw_string_len_bytes(s)
+    let string_len = RawString::len_bytes(s)
     let mut byte_index = 0
     let mut scalar_index = 0
     while byte_index < string_len && scalar_index < char_index {
@@ -212,7 +212,7 @@ fn __core_string_char_byte_index_impl(s: String, char_index: i32) -> i32 {
 }
 
 fn __core_string_char_len_impl(s: String) -> i32 {
-    let string_len = raw::raw_string_len_bytes(s)
+    let string_len = RawString::len_bytes(s)
     let mut byte_index = 0
     let mut count = 0
     while byte_index < string_len {
@@ -229,7 +229,7 @@ fn __core_string_char_len_impl(s: String) -> i32 {
 
 fn __core_string_codepoint_at_impl(s: String, char_index: i32) -> Option<char> {
     let byte_index = __core_string_char_byte_index_impl(s, char_index)
-    let string_len = raw::raw_string_len_bytes(s)
+    let string_len = RawString::len_bytes(s)
     if byte_index < 0 || byte_index >= string_len {
         return None
     }
@@ -241,7 +241,7 @@ fn __core_string_codepoint_at_impl(s: String, char_index: i32) -> Option<char> {
 }
 
 fn __core_string_try_slice_bytes_impl(s: String, start: i32, end: i32) -> Option<String> {
-    let string_len = raw::raw_string_len_bytes(s)
+    let string_len = RawString::len_bytes(s)
     if start < 0 || end < start || end > string_len {
         return None
     }
@@ -254,12 +254,12 @@ fn __core_string_try_slice_bytes_impl(s: String, start: i32, end: i32) -> Option
 
 fn __core_string_slice_chars_impl(s: String, start: i32, end: i32) -> String {
     if start < 0 || end < start {
-        return raw::raw_string_new()
+        return RawString::new()
     }
     let byte_start = __core_string_char_byte_index_impl(s, start)
     let byte_end = __core_string_char_byte_index_impl(s, end)
     if byte_start < 0 || byte_end < 0 {
-        return raw::raw_string_new()
+        return RawString::new()
     }
     __core_string_slice_impl(s, byte_start, byte_end)
 }
@@ -277,34 +277,34 @@ fn __core_string_try_slice_chars_impl(s: String, start: i32, end: i32) -> Option
 }
 
 fn __core_string_new_impl() -> String {
-    raw::raw_string_new()
+    RawString::new()
 }
 
 fn __core_string_clone_impl(s: String) -> String {
-    raw::raw_string_clone(s)
+    RawString::clone(s)
 }
 
 fn __core_string_from_bytes_impl(bytes: Vec<i32>) -> String {
-    raw::raw_string_from_bytes(bytes)
+    RawString::from_bytes(bytes)
 }
 
 fn __core_string_len_bytes_impl(s: String) -> i32 {
-    raw::raw_string_len_bytes(s)
+    RawString::len_bytes(s)
 }
 
 fn __core_string_is_empty_impl(s: String) -> bool {
-    raw::raw_string_len_bytes(s) == 0
+    RawString::len_bytes(s) == 0
 }
 
 fn __core_string_eq_impl(a: String, b: String) -> bool {
-    let string_len = raw::raw_string_len_bytes(a)
-    if string_len != raw::raw_string_len_bytes(b) {
+    let string_len = RawString::len_bytes(a)
+    if string_len != RawString::len_bytes(b) {
         return false
     }
     let mut index = 0
     while index < string_len {
-        if raw::raw_string_byte_at_unchecked(a, index) !=
-        raw::raw_string_byte_at_unchecked(b, index) {
+        if RawString::byte_at_unchecked(a, index) !=
+        RawString::byte_at_unchecked(b, index) {
             return false
         }
         index = index + 1
@@ -316,7 +316,7 @@ fn __core_string_push_range(bytes: Vec<i32>, s: String, start: i32, end: i32) {
     let mut index = start
     while index < end {
         // Concrete i32 push CoreOp body (generic Vec<T> push is unreachable on LM).
-        push(bytes, raw::raw_string_byte_at_unchecked(s, index))
+        push(bytes, RawString::byte_at_unchecked(s, index))
         index = index + 1
     }
 }
@@ -326,30 +326,30 @@ fn __core_string_push_byte(bytes: Vec<i32>, byte: i32) {
 }
 
 fn __core_string_slice_impl(s: String, start: i32, end: i32) -> String {
-    let string_len = raw::raw_string_len_bytes(s)
+    let string_len = RawString::len_bytes(s)
     if start < 0 || end < start || end > string_len {
-        return raw::raw_string_new()
+        return RawString::new()
     }
-    let bytes = raw::raw_array_new(end - start)
+    let bytes = RawArray::new<i32>(end - start)
     __core_string_push_range(bytes, s, start, end)
-    raw::raw_string_from_bytes(bytes)
+    RawString::from_bytes(bytes)
 }
 
 fn __core_string_concat_impl(a: String, b: String) -> String {
-    let a_len = raw::raw_string_len_bytes(a)
-    let b_len = raw::raw_string_len_bytes(b)
-    let bytes = raw::raw_array_new(a_len + b_len)
+    let a_len = RawString::len_bytes(a)
+    let b_len = RawString::len_bytes(b)
+    let bytes = RawArray::new<i32>(a_len + b_len)
     __core_string_push_range(bytes, a, 0, a_len)
     __core_string_push_range(bytes, b, 0, b_len)
-    raw::raw_string_from_bytes(bytes)
+    RawString::from_bytes(bytes)
 }
 
 fn __core_string_ascii_case_impl(s: String, to_lowercase: bool) -> String {
-    let string_len = raw::raw_string_len_bytes(s)
-    let bytes = raw::raw_array_new(string_len)
+    let string_len = RawString::len_bytes(s)
+    let bytes = RawArray::new<i32>(string_len)
     let mut index = 0
     while index < string_len {
-        let mut byte = raw::raw_string_byte_at_unchecked(s, index)
+        let mut byte = RawString::byte_at_unchecked(s, index)
         if to_lowercase && byte >= 65 && byte <= 90 {
             byte = byte + 32
         }
@@ -359,7 +359,7 @@ fn __core_string_ascii_case_impl(s: String, to_lowercase: bool) -> String {
         push(bytes, byte)
         index = index + 1
     }
-    raw::raw_string_from_bytes(bytes)
+    RawString::from_bytes(bytes)
 }
 
 fn __core_string_to_lowercase_impl(s: String) -> String {
@@ -375,10 +375,10 @@ fn __core_string_is_ascii_whitespace(byte: i32) -> bool {
 }
 
 fn __core_string_trim_start_index(s: String) -> i32 {
-    let string_len = raw::raw_string_len_bytes(s)
+    let string_len = RawString::len_bytes(s)
     let mut index = 0
     while index < string_len {
-        if !__core_string_is_ascii_whitespace(raw::raw_string_byte_at_unchecked(s, index)) {
+        if !__core_string_is_ascii_whitespace(RawString::byte_at_unchecked(s, index)) {
             return index
         }
         index = index + 1
@@ -387,9 +387,9 @@ fn __core_string_trim_start_index(s: String) -> i32 {
 }
 
 fn __core_string_trim_end_index(s: String) -> i32 {
-    let mut index = raw::raw_string_len_bytes(s)
+    let mut index = RawString::len_bytes(s)
     while index > 0 {
-        if !__core_string_is_ascii_whitespace(raw::raw_string_byte_at_unchecked(s, index - 1)) {
+        if !__core_string_is_ascii_whitespace(RawString::byte_at_unchecked(s, index - 1)) {
             return index
         }
         index = index - 1
@@ -398,7 +398,7 @@ fn __core_string_trim_end_index(s: String) -> i32 {
 }
 
 fn __core_string_trim_start_impl(s: String) -> String {
-    __core_string_slice_impl(s, __core_string_trim_start_index(s), raw::raw_string_len_bytes(s))
+    __core_string_slice_impl(s, __core_string_trim_start_index(s), RawString::len_bytes(s))
 }
 
 fn __core_string_trim_end_impl(s: String) -> String {
@@ -411,16 +411,16 @@ fn __core_string_trim_impl(s: String) -> String {
 
 fn __core_string_repeat_impl(s: String, count: i32) -> String {
     if count <= 0 {
-        return raw::raw_string_new()
+        return RawString::new()
     }
-    let string_len = raw::raw_string_len_bytes(s)
-    let bytes = raw::raw_array_new(string_len * count)
+    let string_len = RawString::len_bytes(s)
+    let bytes = RawArray::new<i32>(string_len * count)
     let mut repetition = 0
     while repetition < count {
         __core_string_push_range(bytes, s, 0, string_len)
         repetition = repetition + 1
     }
-    raw::raw_string_from_bytes(bytes)
+    RawString::from_bytes(bytes)
 }
 
 fn __core_string_pad_left_impl(s: String, width: i32) -> String {
@@ -432,18 +432,18 @@ fn __core_string_pad_right_impl(s: String, width: i32) -> String {
 }
 
 fn __core_string_pad_left_fill_impl(s: String, width: i32, fill: String) -> String {
-    let string_len = raw::raw_string_len_bytes(s)
+    let string_len = RawString::len_bytes(s)
     if string_len >= width {
         return s
     }
     let padding = __core_string_repeat_impl(fill, width - string_len)
     let padded = __core_string_concat_impl(padding, s)
-    let padded_len = raw::raw_string_len_bytes(padded)
+    let padded_len = RawString::len_bytes(padded)
     __core_string_slice_impl(padded, padded_len - width, padded_len)
 }
 
 fn __core_string_pad_right_fill_impl(s: String, width: i32, fill: String) -> String {
-    let string_len = raw::raw_string_len_bytes(s)
+    let string_len = RawString::len_bytes(s)
     if string_len >= width {
         return s
     }
@@ -452,28 +452,29 @@ fn __core_string_pad_right_fill_impl(s: String, width: i32, fill: String) -> Str
 }
 
 fn __core_string_replace_impl(s: String, from: String, replacement: String) -> String {
-    let string_len = raw::raw_string_len_bytes(s)
-    let pattern_len = raw::raw_string_len_bytes(from)
+    let string_len = RawString::len_bytes(s)
+    let pattern_len = RawString::len_bytes(from)
     if pattern_len == 0 {
         return __core_string_slice_impl(s, 0, string_len)
     }
-    let replacement_len = raw::raw_string_len_bytes(replacement)
-    let bytes = raw::raw_array_new(string_len)
+    let replacement_len = RawString::len_bytes(replacement)
+    let bytes = RawArray::new<i32>(string_len)
     let mut index = 0
     while index < string_len {
         if index + pattern_len <= string_len && __core_string_region_matches(s, from, index) {
             __core_string_push_range(bytes, replacement, 0, replacement_len)
             index = index + pattern_len
         } else {
-            __core_string_push_byte(bytes, raw::raw_string_byte_at_unchecked(s, index))
+            __core_string_push_byte(bytes, RawString::byte_at_unchecked(s, index))
             index = index + 1
         }
     }
-    raw::raw_string_from_bytes(bytes)
+    RawString::from_bytes(bytes)
 }
 
 fn __core_string_push_part(parts: Vec<String>, part: String) {
-    // Avoid generic push shell: use free CoreOp aliases (not raw:: Ark shells).
+    // Avoid generic push shell: use the free CoreOp aliases, not the sealed
+    // raw namespace wrappers.
     let n: i32 = raw_array_len(parts)
     let grown: Vec<String> = raw_array_grow(parts, n + 1)
     raw_array_set_unchecked(grown, n, part)
@@ -481,8 +482,8 @@ fn __core_string_push_part(parts: Vec<String>, part: String) {
 
 fn __core_string_split_impl(s: String, delimiter: String) -> Vec<String> {
     let parts = Vec::new<String>()
-    let string_len = raw::raw_string_len_bytes(s)
-    let delimiter_len = raw::raw_string_len_bytes(delimiter)
+    let string_len = RawString::len_bytes(s)
+    let delimiter_len = RawString::len_bytes(delimiter)
     if delimiter_len == 0 {
         // Empty haystack + empty delimiter → one empty part (chars(""), split("","")).
         if string_len == 0 {
@@ -534,7 +535,7 @@ fn __core_string_lines_impl(s: String) -> Vec<String> {
 
 fn __core_string_chars_impl(s: String) -> Vec<String> {
     let parts = Vec::new<String>()
-    let string_len = raw::raw_string_len_bytes(s)
+    let string_len = RawString::len_bytes(s)
     if string_len == 0 {
         __core_string_push_part(parts, __core_string_slice_impl(s, 0, 0))
         return parts
@@ -552,11 +553,11 @@ fn __core_string_chars_impl(s: String) -> Vec<String> {
 }
 
 fn __core_string_region_matches(s: String, needle: String, start: i32) -> bool {
-    let needle_len = raw::raw_string_len_bytes(needle)
+    let needle_len = RawString::len_bytes(needle)
     let mut index = 0
     while index < needle_len {
-        if raw::raw_string_byte_at_unchecked(s, start + index) !=
-        raw::raw_string_byte_at_unchecked(needle, index) {
+        if RawString::byte_at_unchecked(s, start + index) !=
+        RawString::byte_at_unchecked(needle, index) {
             return false
         }
         index = index + 1
@@ -565,26 +566,26 @@ fn __core_string_region_matches(s: String, needle: String, start: i32) -> bool {
 }
 
 fn __core_string_starts_with_impl(s: String, prefix: String) -> bool {
-    if raw::raw_string_len_bytes(prefix) > raw::raw_string_len_bytes(s) {
+    if RawString::len_bytes(prefix) > RawString::len_bytes(s) {
         return false
     }
     __core_string_region_matches(s, prefix, 0)
 }
 
 fn __core_string_ends_with_impl(s: String, suffix: String) -> bool {
-    if raw::raw_string_len_bytes(suffix) > raw::raw_string_len_bytes(s) {
+    if RawString::len_bytes(suffix) > RawString::len_bytes(s) {
         return false
     }
     __core_string_region_matches(
         s,
         suffix,
-        raw::raw_string_len_bytes(s) - raw::raw_string_len_bytes(suffix)
+        RawString::len_bytes(s) - RawString::len_bytes(suffix)
     )
 }
 
 fn __core_string_index_of_impl(s: String, needle: String) -> i32 {
-    let string_len = raw::raw_string_len_bytes(s)
-    let needle_len = raw::raw_string_len_bytes(needle)
+    let string_len = RawString::len_bytes(s)
+    let needle_len = RawString::len_bytes(needle)
     if needle_len == 0 {
         return 0
     }

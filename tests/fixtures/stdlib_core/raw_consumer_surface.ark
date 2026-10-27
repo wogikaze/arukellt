@@ -1,0 +1,50 @@
+// Raw representation consumers (ADR-046 / #917) on wasm32-gc: the sealed
+// RawArray / RawString / RawFloat bridges lower through the public Vec / String
+// / scalar method surface.
+use std::collections::string
+use std::collections::vec
+use std::core::convert
+use std::host::stdio
+use std::prelude::push_char
+use std::test
+
+fn main() {
+    let values: Vec<i32> = Vec::with_capacity<i32>(2)
+    values.push(11)
+    test::assert_eq_i32(values.len(), 1)
+    test::assert_eq_i32(values.get_unchecked(0), 11)
+    values.set(0, 17)
+    test::assert_eq_i32(values.get_unchecked(0), 17)
+
+    let text = String_new()
+    push_char(text, 79)
+    push_char(text, 75)
+    test::assert_eq_i32(text.len_bytes(), 2)
+    test::assert_eq_i32(text.byte_at(0), 79)
+    test::assert_eq_string(text.clone(), "OK")
+
+    let parsed: Result<i32, String> = i32::try_from("42")
+    match parsed {
+        Ok(value) => test::assert_eq_i32(value, 42),
+        Err(_) => test::assert_true(false),
+    }
+    let wide: Result<i64, String> = i64::try_from("9001")
+    match wide {
+        Ok(value) => test::assert_eq_i64(value, 9001i64),
+        Err(_) => test::assert_true(false),
+    }
+    let real: Result<f64, String> = f64::try_from("1.5")
+    match real {
+        Ok(value) => test::assert_true(value == 1.5f64),
+        Err(_) => test::assert_true(false),
+    }
+
+    let root = 9.0f64.sqrt()
+    test::assert_true(root == 3.0f64)
+    let widened: f64 = 1.5f32.to_f64()
+    test::assert_true(widened == 1.5f64)
+    test::assert_eq_i32(1.5f64.to_bits_lo(), 0)
+    test::assert_true(1.5f64.to_bits_hi() != 0)
+    test::assert_eq_string(1.5f64.to_string(), "1.5")
+    stdio::println("raw consumers ok")
+}

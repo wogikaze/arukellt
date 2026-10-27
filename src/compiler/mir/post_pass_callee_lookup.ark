@@ -7,6 +7,7 @@ use mir::opcodes
 use mir::post_pass_callee_cache
 use mir::post_pass_enum_normalize
 use mir::typed_mir_sync_module
+use corehir::callee_spelling
 use corehir::type_info_to_mir_value
 //
 // Extracted from post_pass_type_propagate.ark to reduce import fan-out.
@@ -143,6 +144,8 @@ fn is_generic_clone_intrinsic(name: String) -> bool {
     eq(clone(name), "__intrinsic_string_clone") ||
     eq(clone(name), "__core_string_clone_impl") ||
     eq(clone(name), "raw_string_clone") ||
+    eq(clone(name), "RawString__clone") ||
+    starts_with(clone(name), "RawString__clone__") ||
     ends_with(clone(name), "::clone") ||
     ends_with(clone(name), "__clone") ||
     ends_with(clone(name), "::raw_string_clone") ||
@@ -153,7 +156,12 @@ fn is_get_unchecked_callee(name: String) -> bool {
     if eq(clone(name), "vec_get_unchecked") ||
     eq(clone(name), "get_unchecked") ||
     eq(clone(name), "__intrinsic_get_unchecked") ||
-    eq(clone(name), "raw_array_get_unchecked") {
+    callee_spelling::is_namespace_member_callee(
+        clone(name),
+        String_from("raw_array_get_unchecked"),
+        String_from("RawArray"),
+        String_from("get_unchecked")
+    ) {
         return true
     }
     starts_with(clone(name), "get_unchecked__") ||
@@ -427,7 +435,25 @@ fn is_raw_string_intrinsic_returning_string(name: String) -> bool {
     || eq(clone(name), "raw::raw_string_from_bytes")
     || eq(clone(name), "std::core::raw::raw_string_new")
     || eq(clone(name), "std::core::raw::raw_string_clone")
-    || eq(clone(name), "std::core::raw::raw_string_from_bytes") {
+    || eq(clone(name), "std::core::raw::raw_string_from_bytes")
+    || callee_spelling::is_namespace_member_callee(
+        clone(name),
+        String_from("raw_string_new"),
+        String_from("RawString"),
+        String_from("new")
+    )
+    || callee_spelling::is_namespace_member_callee(
+        clone(name),
+        String_from("raw_string_clone"),
+        String_from("RawString"),
+        String_from("clone")
+    )
+    || callee_spelling::is_namespace_member_callee(
+        clone(name),
+        String_from("raw_string_from_bytes"),
+        String_from("RawString"),
+        String_from("from_bytes")
+    ) {
         return true
     }
     false

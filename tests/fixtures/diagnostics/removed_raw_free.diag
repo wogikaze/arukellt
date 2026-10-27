@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined name: raw_array_new; the sealed raw bridge was retired; use `Vec::new<T>()` or `Vec::with_capacity<T>(cap)`

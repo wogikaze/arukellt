@@ -1,5 +1,5 @@
 //! Internal scalar formatting bodies selected by the CoreOp registry.
-use std::core::raw
+use std::core::raw::{RawArray, RawFloat, RawString}
 
 fn __core_i64_digit_ascii(digit: i64) -> i32 {
     if digit == 0_i64 { return 48 }
@@ -15,7 +15,7 @@ fn __core_i64_digit_ascii(digit: i64) -> i32 {
 }
 
 fn __core_format_bool_impl(value: bool) -> String {
-    let bytes = raw::raw_array_new(5)
+    let bytes = RawArray::new<i32>(5)
     if value {
         push(bytes, 116)
         push(bytes, 114)
@@ -28,7 +28,7 @@ fn __core_format_bool_impl(value: bool) -> String {
         push(bytes, 115)
         push(bytes, 101)
     }
-    raw::raw_string_from_bytes(bytes)
+    RawString::from_bytes(bytes)
 }
 
 // CoreOp inputs use the runtime representation of char, which is i32 on both
@@ -49,7 +49,7 @@ fn __core_char_to_string_impl(value: i32) -> String {
     } else {
         4
     }
-    let bytes = raw::raw_array_new(width)
+    let bytes = RawArray::new<i32>(width)
     if width == 1 {
         push(bytes, codepoint)
     } else if width == 2 {
@@ -65,47 +65,47 @@ fn __core_char_to_string_impl(value: i32) -> String {
         push(bytes, 128 + codepoint / 64 % 64)
         push(bytes, 128 + codepoint % 64)
     }
-    raw::raw_string_from_bytes(bytes)
+    RawString::from_bytes(bytes)
 }
 
 fn __core_math_sqrt_impl(value: f64) -> f64 {
-    raw::raw_f64_sqrt(value)
+    RawFloat::sqrt(value)
 }
 
 fn __core_scalar_f64_bits_lo_impl(value: f64) -> i32 {
-    raw::raw_f64_bits_lo(value)
+    RawFloat::bits_lo(value)
 }
 
 fn __core_scalar_f64_bits_hi_impl(value: f64) -> i32 {
-    raw::raw_f64_bits_hi(value)
+    RawFloat::bits_hi(value)
 }
 
 fn __core_format_f64_impl(value: f64) -> String {
-    raw::raw_f64_to_string(value)
+    RawFloat::to_string(value)
 }
 
 fn __core_f32_to_string_impl(value: f32) -> String {
-    raw::raw_f64_to_string(raw::raw_f32_promote_f64(value))
+    RawFloat::to_string(RawFloat::promote_f32(value))
 }
 
 fn __core_push_char_impl(s: String, value: char) {
-    raw::raw_string_push_char(s, value)
+    RawString::push_char(s, value)
 }
 
 fn __core_parse_i32_impl(s: String) -> Result<i32, String> {
-    raw::raw_parse_i32(s)
+    RawString::parse_i32(s)
 }
 
 fn __core_parse_i64_impl(s: String) -> Result<i64, String> {
-    raw::raw_parse_i64(s)
+    RawString::parse_i64(s)
 }
 
 fn __core_parse_f64_impl(s: String) -> Result<f64, String> {
-    raw::raw_parse_f64(s)
+    RawString::parse_f64(s)
 }
 
 fn __core_format_i32_impl(value: i32) -> String {
-    let reversed = raw::raw_array_new(12)
+    let reversed = RawArray::new<i32>(12)
     let mut remaining = value
     if remaining > 0 {
         remaining = 0 - remaining
@@ -117,7 +117,7 @@ fn __core_format_i32_impl(value: i32) -> String {
     }
     push(reversed, 48 + (0 - remaining))
 
-    let bytes = raw::raw_array_new(len(reversed) + 1)
+    let bytes = RawArray::new<i32>(len(reversed) + 1)
     if value < 0 {
         push(bytes, 45)
     }
@@ -126,11 +126,11 @@ fn __core_format_i32_impl(value: i32) -> String {
         push(bytes, get_unchecked(reversed, index - 1))
         index = index - 1
     }
-    raw::raw_string_from_bytes(bytes)
+    RawString::from_bytes(bytes)
 }
 
 fn __core_format_i64_impl(value: i64) -> String {
-    let reversed = raw::raw_array_new(21)
+    let reversed = RawArray::new<i32>(21)
     let mut remaining = value
     if remaining > 0_i64 {
         remaining = 0_i64 - remaining
@@ -142,7 +142,7 @@ fn __core_format_i64_impl(value: i64) -> String {
     }
     push(reversed, __core_i64_digit_ascii(0_i64 - remaining))
 
-    let bytes = raw::raw_array_new(len(reversed) + 1)
+    let bytes = RawArray::new<i32>(len(reversed) + 1)
     if value < 0_i64 {
         push(bytes, 45)
     }
@@ -151,5 +151,5 @@ fn __core_format_i64_impl(value: i64) -> String {
         push(bytes, get_unchecked(reversed, index - 1))
         index = index - 1
     }
-    raw::raw_string_from_bytes(bytes)
+    RawString::from_bytes(bytes)
 }

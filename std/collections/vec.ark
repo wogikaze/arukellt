@@ -17,12 +17,12 @@
 use std::core
 use std::core::cmp
 use std::core::iter
-use std::core::raw
+use std::core::raw::RawArray
 use std::prelude::Slice
 
 /// Creates a new empty `Vec<i32>`.
 pub fn new_i32() -> Vec<i32> {
-    raw::raw_array_new(0)
+    RawArray::new<i32>(0)
 }
 
 // ---------------------------------------------------------------------------
@@ -31,9 +31,9 @@ pub fn new_i32() -> Vec<i32> {
 // Bodies call free CoreOp aliases (`vec_len` / `push` / …). Those lower via
 // #822 normal_call fallbacks or MIR rewrites to sealed raw.
 //
-// Constructors call `raw::raw_array_new` directly (same as free `new_i32`) so
-// mono bodies lower through the `raw.array_new` CoreOp. Extension helpers with
-// an explicit `self: Vec<T>` receiver instantiate `Vec::with_capacity<T>`
+// Constructors call `RawArray::new` directly (same as free `new_i32`) so mono
+// bodies lower through the `raw.array_new` CoreOp. Extension helpers with an
+// explicit `self: Vec<T>` receiver instantiate `Vec::with_capacity<T>`
 // correctly and use the source constructor instead.
 // ---------------------------------------------------------------------------
 
@@ -65,12 +65,12 @@ fn ordering_is_equal(ordering: Ordering) -> bool {
 impl Vec<T> {
     /// Creates a new empty vector.
     fn new() -> Vec<T> {
-        raw::raw_array_new(0)
+        RawArray::new<T>(0)
     }
 
     /// Creates a new empty vector with at least `cap` capacity.
     fn with_capacity(cap: i32) -> Vec<T> {
-        raw::raw_array_new(cap)
+        RawArray::new<T>(cap)
     }
 
     /// Appends `x` to the end of the vector.

@@ -1,142 +1,270 @@
 //! Sealed raw representation API for Vec/String/float primitives (RFC-006 / #817).
 //!
 //! User code must not import this module. Only compiler-shipped stdlib modules
-//! may depend on `std::core::raw`. Public Vec/String APIs stay method-shaped.
+//! may depend on `std::core::raw`. The public surface is namespaced through
+//! `RawArray`, `RawString`, and `RawFloat` associated functions so the module
+//! exports no user-reachable free function (ADR-044 / ADR-046).
 //!
-//! GC/LM representation differences are absorbed by the CoreOp / target
-//! intrinsic handlers behind these entry points (see RFC-006 D5).
+//! The private `raw_*` helpers keep the canonical CoreOp spellings from
+//! `data/core-ops.toml`; the namespace functions above them are the only
+//! stdlib-visible entry points. GC/LM representation differences are absorbed
+//! by the CoreOp / target intrinsic handlers behind those helpers (RFC-006 D5).
 
-use std::prelude::{byte_at, eq, values}
-/// Allocates a new empty raw array with the requested capacity hint.
-///
-/// Lowered by `raw.array_new` target_intrinsic (#822). The shell exists for
-/// typechecking only.
-pub fn raw_array_new<T>(cap: i32) -> Vec<T> {
+use std::prelude::{byte_at, eq, f32_to_f64}
+
+fn raw_array_new<T>(cap: i32) -> Vec<T> {
     panic(String_new()); return raw_array_new(cap)
 }
 
-/// Returns the number of elements in a raw array.
-pub fn raw_array_len<T>(a: Vec<T>) -> i32 {
-    len(a)
+fn raw_array_len<T>(values: Vec<T>) -> i32 {
+    len(values)
 }
 
-/// Returns the element at `i` without bounds checking.
-pub fn raw_array_get_unchecked<T>(a: Vec<T>, i: i32) -> T {
-    get_unchecked(a, i)
+fn raw_array_get_unchecked<T>(values: Vec<T>, index: i32) -> T {
+    get_unchecked(values, index)
 }
 
-/// Writes `v` at index `i` without bounds checking.
-pub fn raw_array_set_unchecked<T>(a: Vec<T>, i: i32, v: T) {
-    set(a, i, v)
+fn raw_array_set_unchecked<T>(values: Vec<T>, index: i32, value: T) {
+    set(values, index, value)
 }
 
-/// Ensures storage for `new_len` elements and extends the raw logical length.
-///
-/// Newly exposed slots are uninitialized until written through
-/// `raw_array_set_unchecked`.
-pub fn raw_array_grow<T>(a: Vec<T>, new_len: i32) -> Vec<T> {
-    return a
+fn raw_array_grow<T>(values: Vec<T>, new_len: i32) -> Vec<T> {
+    return values
 }
 
-/// Sets the logical length without changing capacity.
-///
-/// Caller must ensure `new_len <= capacity`. Lowered by `raw.array_set_len`.
-pub fn raw_array_set_len<T>(a: Vec<T>, new_len: i32) {
+fn raw_array_set_len<T>(values: Vec<T>, new_len: i32) {
     return
 }
 
-/// Creates an empty raw string.
-pub fn raw_string_new() -> String {
-    __intrinsic_string_new()
+// `String_new()` instead of `__intrinsic_string_new`: the emitted body temp for
+// the intrinsic defaults to i64 on wasm32-gc, so a test-mode export of this
+// private shell would fail validation. Production call sites bind raw.string_new.
+fn raw_string_new() -> String {
+    String_new()
 }
 
-/// Creates raw string storage from byte values.
-pub fn raw_string_from_bytes(bytes: Vec<i32>) -> String {
+fn raw_string_from_bytes(bytes: Vec<i32>) -> String {
     __intrinsic_string_from_bytes(bytes)
 }
 
-/// Returns the byte length of a raw string.
-pub fn raw_string_len_bytes(s: String) -> i32 {
-    len(s)
+fn raw_string_len_bytes(text: String) -> i32 {
+    len(text)
 }
 
-/// Returns the byte at `i` without bounds checking.
-pub fn raw_string_byte_at_unchecked(s: String, i: i32) -> i32 {
-    byte_at(s, i)
+fn raw_string_byte_at_unchecked(text: String, index: i32) -> i32 {
+    byte_at(text, index)
 }
 
-/// Clones raw string storage.
-pub fn raw_string_clone(s: String) -> String {
-    __intrinsic_string_clone(s)
+fn raw_string_clone(text: String) -> String {
+    __intrinsic_string_clone(text)
 }
 
-/// Wasm `f64.sqrt` for sealed float primitives.
-pub fn raw_f64_sqrt(value: f64) -> f64 {
+fn raw_string_push_char(text: String, value: char) {
+    __intrinsic_push_char(text, value)
+}
+
+fn raw_parse_i32(text: String) -> Result<i32, String> {
+    __intrinsic_parse_i32(text)
+}
+
+fn raw_parse_i64(text: String) -> Result<i64, String> {
+    __intrinsic_parse_i64(text)
+}
+
+fn raw_parse_f64(text: String) -> Result<f64, String> {
+    __intrinsic_parse_f64(text)
+}
+
+fn raw_f64_sqrt(value: f64) -> f64 {
     __intrinsic_sqrt(value)
 }
 
-/// Low 32 bits of an `f64` bit pattern.
-pub fn raw_f64_bits_lo(value: f64) -> i32 {
+fn raw_f64_bits_lo(value: f64) -> i32 {
     __intrinsic_f64_bits_lo(value)
 }
 
-/// High 32 bits of an `f64` bit pattern.
-pub fn raw_f64_bits_hi(value: f64) -> i32 {
+fn raw_f64_bits_hi(value: f64) -> i32 {
     __intrinsic_f64_bits_hi(value)
 }
 
-/// Shortest round-trip decimal formatting for an `f64`.
-pub fn raw_f64_to_string(value: f64) -> String {
+fn raw_f64_to_string(value: f64) -> String {
     __intrinsic_f64_to_string(value)
 }
 
-/// Wasm `f64.promote_f32` for sealed typed `f32` formatting.
-pub fn raw_f32_promote_f64(value: f32) -> f64 {
-    __intrinsic_f32_promote_f64(value)
+// `f32_to_f64` instead of `__intrinsic_f32_promote_f64`: the emitted f64 temp for
+// the intrinsic defaults to i64 when the shell body is exported.
+fn raw_f32_promote_f64(value: f32) -> f64 {
+    f32_to_f64(value)
 }
 
-/// Appends one byte to sealed string storage in place.
-pub fn raw_string_push_char(s: String, value: char) {
-    __intrinsic_push_char(s, value)
+/// Namespace for sealed raw `Vec<T>` representation operations.
+pub struct RawArray {}
+
+impl RawArray {
+    /// Allocates a new empty raw array with the requested capacity hint.
+    ///
+    /// Lowered by `raw.array_new` target_intrinsic (#822). The shell exists for
+    /// typechecking only.
+    fn new<T>(cap: i32) -> Vec<T> {
+        raw_array_new(cap)
+    }
+
+    /// Returns the number of elements in a raw array.
+    fn len<T>(values: Vec<T>) -> i32 {
+        raw_array_len(values)
+    }
+
+    /// Returns the element at `index` without bounds checking.
+    fn get_unchecked<T>(values: Vec<T>, index: i32) -> T {
+        raw_array_get_unchecked(values, index)
+    }
+
+    /// Writes `value` at `index` without bounds checking.
+    fn set_unchecked<T>(values: Vec<T>, index: i32, value: T) {
+        raw_array_set_unchecked(values, index, value)
+    }
+
+    /// Ensures storage for `new_len` elements and extends the raw logical length.
+    ///
+    /// Newly exposed slots are uninitialized until written through
+    /// `set_unchecked`.
+    fn grow<T>(values: Vec<T>, new_len: i32) -> Vec<T> {
+        raw_array_grow(values, new_len)
+    }
+
+    /// Sets the logical length without changing capacity.
+    ///
+    /// Caller must ensure `new_len <= capacity`. Lowered by `raw.array_set_len`.
+    fn set_len<T>(values: Vec<T>, new_len: i32) {
+        raw_array_set_len(values, new_len)
+    }
 }
 
-/// Parses a decimal `i32`, returning `Result` (canonical parse ABI).
-pub fn raw_parse_i32(s: String) -> Result<i32, String> {
-    __intrinsic_parse_i32(s)
+/// Namespace for sealed raw `String` representation operations.
+pub struct RawString {}
+
+impl RawString {
+    /// Creates an empty raw string.
+    fn new() -> String {
+        raw_string_new()
+    }
+
+    /// Creates raw string storage from byte values.
+    fn from_bytes(bytes: Vec<i32>) -> String {
+        raw_string_from_bytes(bytes)
+    }
+
+    /// Returns the byte length of a raw string.
+    fn len_bytes(text: String) -> i32 {
+        raw_string_len_bytes(text)
+    }
+
+    /// Returns the byte at `index` without bounds checking.
+    fn byte_at_unchecked(text: String, index: i32) -> i32 {
+        raw_string_byte_at_unchecked(text, index)
+    }
+
+    /// Clones raw string storage.
+    fn clone(text: String) -> String {
+        raw_string_clone(text)
+    }
+
+    /// Appends one byte to sealed string storage in place.
+    fn push_char(text: String, value: char) {
+        raw_string_push_char(text, value)
+    }
+
+    /// Parses a decimal `i32`, returning `Result` (canonical parse ABI).
+    fn parse_i32(text: String) -> Result<i32, String> {
+        raw_parse_i32(text)
+    }
+
+    /// Parses a decimal `i64`, returning `Result` (canonical parse ABI).
+    fn parse_i64(text: String) -> Result<i64, String> {
+        raw_parse_i64(text)
+    }
+
+    /// Parses a decimal `f64`, returning `Result` (canonical parse ABI).
+    fn parse_f64(text: String) -> Result<f64, String> {
+        raw_parse_f64(text)
+    }
 }
 
-/// Parses a decimal `i64`, returning `Result` (canonical parse ABI).
-pub fn raw_parse_i64(s: String) -> Result<i64, String> {
-    __intrinsic_parse_i64(s)
-}
+/// Namespace for sealed `f64` / `f32` scalar representation operations.
+pub struct RawFloat {}
 
-/// Parses a decimal `f64`, returning `Result` (canonical parse ABI).
-pub fn raw_parse_f64(s: String) -> Result<f64, String> {
-    __intrinsic_parse_f64(s)
+impl RawFloat {
+    /// Wasm `f64.sqrt` for sealed float primitives.
+    fn sqrt(value: f64) -> f64 {
+        raw_f64_sqrt(value)
+    }
+
+    /// Low 32 bits of an `f64` bit pattern.
+    fn bits_lo(value: f64) -> i32 {
+        raw_f64_bits_lo(value)
+    }
+
+    /// High 32 bits of an `f64` bit pattern.
+    fn bits_hi(value: f64) -> i32 {
+        raw_f64_bits_hi(value)
+    }
+
+    /// Shortest round-trip decimal formatting for an `f64`.
+    fn to_string(value: f64) -> String {
+        raw_f64_to_string(value)
+    }
+
+    /// Wasm `f64.promote_f32` for sealed typed `f32` formatting.
+    fn promote_f32(value: f32) -> f64 {
+        raw_f32_promote_f64(value)
+    }
 }
 
 test mod "raw_storage" {
     test "array_primitives" {
-        let values = raw_array_new(2)
+        let values: Vec<i32> = RawArray::new<i32>(2)
         push(values, 11)
-        assert(raw_array_len(values) == 1)
-        assert(raw_array_get_unchecked(values, 0) == 11)
-        raw_array_set_unchecked(values, 0, 17)
-        let grown = raw_array_grow(values, 8)
-        assert(raw_array_len(grown) == 8)
-        assert(raw_array_get_unchecked(grown, 0) == 17)
-        raw_array_set_unchecked(grown, 7, 23)
-        assert(raw_array_get_unchecked(grown, 7) == 23)
+        assert(RawArray::len(values) == 1)
+        assert(RawArray::get_unchecked(values, 0) == 11)
+        RawArray::set_unchecked(values, 0, 17)
+        let grown: Vec<i32> = RawArray::grow(values, 8)
+        assert(RawArray::len(grown) == 8)
+        assert(RawArray::get_unchecked(grown, 0) == 17)
+        RawArray::set_unchecked(grown, 7, 23)
+        assert(RawArray::get_unchecked(grown, 7) == 23)
     }
 
     test "string_primitives" {
-        let bytes = raw_array_new(2)
+        let bytes: Vec<i32> = RawArray::new<i32>(2)
         push(bytes, 79)
         push(bytes, 75)
-        let text = raw_string_from_bytes(bytes)
-        assert(raw_string_len_bytes(text) == 2)
-        assert(raw_string_byte_at_unchecked(text, 0) == 79)
-        assert(eq(raw_string_clone(text), "OK"))
-        assert(raw_string_len_bytes(raw_string_new()) == 0)
+        let text = RawString::from_bytes(bytes)
+        assert(RawString::len_bytes(text) == 2)
+        assert(RawString::byte_at_unchecked(text, 0) == 79)
+        assert(eq(RawString::clone(text), "OK"))
+        assert(RawString::len_bytes(RawString::new()) == 0)
+    }
+
+    test "scalar_primitives" {
+        assert(RawFloat::sqrt(9.0) == 3.0)
+        assert(RawFloat::bits_lo(1.0) == 0)
+        assert(RawFloat::bits_hi(1.0) == 1072693248)
+        assert(eq(RawFloat::to_string(1.5), "1.5"))
+        assert(RawFloat::promote_f32(1.5f32) == 1.5f64)
+
+        match RawString::parse_i32("42") {
+            Result::Ok(value) => { assert(value == 42) },
+            Result::Err(_) => { assert(false) },
+        }
+        match RawString::parse_i64("9000000000") {
+            Result::Ok(value) => { assert(value == 9000000000) },
+            Result::Err(_) => { assert(false) },
+        }
+        match RawString::parse_f64("1.5") {
+            Result::Ok(value) => { assert(value == 1.5) },
+            Result::Err(_) => { assert(false) },
+        }
+
+        RawString::push_char(RawString::new(), 65)
     }
 }

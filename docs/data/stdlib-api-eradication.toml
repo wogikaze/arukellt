@@ -303,7 +303,7 @@ label = "host/core namespace frees"
 module_pfx = ["std::host", "std::fs", "std::env", "std::process", "std::random", "std::time", "std::signal", "std::cli", "std::core", "std::path"]
 class = "associated-or-method"
 owner = "917"
-replacement = "Fs/Env/Process/Clock/Random/Cli/Path/Signal associated functions and methods; the std::core range/order/error/hash frees retired behind `Range::new` / `r.contains(value)` / `r.len()` / `RangeInclusive::new` / `r.contains(value)` / `a.cmp(b)` / `e.message()` / `h1.combine_hash(h2)`"
+replacement = "Fs/Env/Process/Clock/Random/Cli/Path/Signal associated functions and methods; the std::core range/order/error/hash frees retired behind `Range::new` / `r.contains(value)` / `r.len()` / `RangeInclusive::new` / `r.contains(value)` / `a.cmp(b)` / `e.message()` / `h1.combine_hash(h2)`; the sealed raw bridges are `RawArray` / `RawString` / `RawFloat` associated functions (stdlib-only)"
 # Retired by #917 (2026-10-26) core-helper wave — unregistered declarations,
 # so no manifest deprecation window was involved:
 #   std::core::either (12 counted)   -> Either enum constructors + methods
@@ -317,9 +317,12 @@ replacement = "Fs/Env/Process/Clock/Random/Cli/Path/Signal associated functions 
 #   range_inclusive_contains / cmp_i32 / error_message / combine (8 manifest)
 #   -> Range / RangeInclusive / i32 / Error receiver surface above; the
 #   unregistered std::core::identity has no replacement.
-# Residual in this rule: the 20 std::core::raw representation bridges, which
-# need a RawArray/RawString namespace surface before they can retire. The
-# other families (host, fs, cli, process, signal, …) are untouched.
+# Retired by the #917 raw namespace wave (2026-10-27):
+#   the 20 std::core::raw representation bridges -> RawArray / RawString /
+#   RawFloat associated functions in the sealed stdlib module. The public
+#   surface no longer exports a free spelling; copied bare names get E0100
+#   hints that point at the public Vec / String / scalar replacements.
+# The other families (host, fs, cli, process, signal, …) are untouched.
 
 # -- Catch-all for unregistered std declarations --
 #

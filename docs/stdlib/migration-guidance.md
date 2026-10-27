@@ -1411,6 +1411,46 @@ The `stdlib_core/core_method_surface*` fixture pair compiles, validates, and
 executes the surface on both `wasm32-gc` and `--target wasm32`; the W0009
 goldens were replaced by `diagnostics/removed_core_free*` E0100 goldens.
 
+## std::core raw namespace wave (ADR-046, 2026-10-27)
+
+The sealed `std::core::raw` module no longer exports free functions. Its 20
+representation bridges are now associated functions on `RawArray`,
+`RawString`, and `RawFloat`; the canonical `raw_*` spellings remain private
+CoreOp-bound helpers so the GC / linear-memory lowering table in
+`data/core-ops.toml` is unchanged. User code cannot import the sealed module
+(RFC-006), so there is no user migration; copied bare spellings fail with
+**E0100** and a hint that names the public replacement.
+
+| Old sealed bridge | Namespace spelling | Public replacement |
+|-------------------|--------------------|--------------------|
+| `raw_array_new(cap)` | `RawArray::new<T>(cap)` | `Vec::new<T>()` / `Vec::with_capacity<T>(cap)` |
+| `raw_array_len(v)` | `RawArray::len(v)` | `v.len()` |
+| `raw_array_get_unchecked(v, i)` | `RawArray::get_unchecked(v, i)` | `v.get_unchecked(i)` via `use std::collections::vec` |
+| `raw_array_set_unchecked(v, i, x)` | `RawArray::set_unchecked(v, i, x)` | `v.set(i, x)` via `use std::collections::vec` |
+| `raw_array_grow(v, n)` | `RawArray::grow(v, n)` | stdlib-only; no public replacement |
+| `raw_array_set_len(v, n)` | `RawArray::set_len(v, n)` | stdlib-only; no public replacement |
+| `raw_string_new()` | `RawString::new()` | `String_new()` |
+| `raw_string_from_bytes(b)` | `RawString::from_bytes(b)` | `String::from_utf8_lossy(b)` for validated UTF-8 input |
+| `raw_string_len_bytes(s)` | `RawString::len_bytes(s)` | `s.len_bytes()` |
+| `raw_string_byte_at_unchecked(s, i)` | `RawString::byte_at_unchecked(s, i)` | `s.byte_at(i)` |
+| `raw_string_clone(s)` | `RawString::clone(s)` | `s.clone()` |
+| `raw_string_push_char(s, c)` | `RawString::push_char(s, c)` | `push_char(s, c)` |
+| `raw_parse_i32(s)` | `RawString::parse_i32(s)` | `i32::try_from(s)` |
+| `raw_parse_i64(s)` | `RawString::parse_i64(s)` | `i64::try_from(s)` |
+| `raw_parse_f64(s)` | `RawString::parse_f64(s)` | `f64::try_from(s)` |
+| `raw_f64_sqrt(x)` | `RawFloat::sqrt(x)` | `x.sqrt()` via `use std::core::convert` |
+| `raw_f64_bits_lo(x)` | `RawFloat::bits_lo(x)` | `x.to_bits_lo()` |
+| `raw_f64_bits_hi(x)` | `RawFloat::bits_hi(x)` | `x.to_bits_hi()` |
+| `raw_f64_to_string(x)` | `RawFloat::to_string(x)` | `x.to_string()` |
+| `raw_f32_promote_f64(x)` | `RawFloat::promote_f32(x)` | `f32_to_f64(x)` / `x.to_f64()` |
+
+The `stdlib_core/raw_consumer_surface*` pair compiles, validates, and runs on
+`wasm32-gc` and `--target wasm32`. The sealed module's own test module passes on
+`--target wasm32` (array, string, and scalar suites) and compiles/validates on
+`wasm32-gc`; the gc test wrapper does not package the P2 core module as a
+component, so that direct test execution is a harness residual. Production
+call sites bind the CoreOp and the consumer fixtures pass on both targets.
+
 ## Planned Deprecations
 
 The following APIs are scheduled for deprecation via the same monomorphic →

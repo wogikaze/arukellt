@@ -63,6 +63,38 @@ fn callee_spelling_last_two_segments(name: String) -> String {
     substring(name, previous + 2, n)
 }
 
+// Namespace spellings for a sealed raw bridge: the canonical CoreOp callee
+// (`raw_array_new`), the module-qualified form, the associated form
+// (`RawArray::new`), and the monomorphized form (`RawArray__new__String`).
+pub fn is_namespace_member_callee(
+    callee: String,
+    raw_name: String,
+    owner_name: String,
+    method_name: String
+) -> bool {
+    if eq(clone(callee), clone(raw_name)) {
+        return true
+    }
+    if ends_with(clone(callee), String_from("::").concat(clone(raw_name))) {
+        return true
+    }
+    let associated = clone(owner_name).concat(String_from("::")).concat(clone(method_name))
+    if eq(clone(callee), clone(associated)) {
+        return true
+    }
+    if ends_with(clone(callee), String_from("::").concat(clone(associated))) {
+        return true
+    }
+    let mono = clone(owner_name).concat(String_from("__")).concat(clone(method_name))
+    if eq(clone(callee), clone(mono)) {
+        return true
+    }
+    if starts_with(clone(callee), clone(mono).concat(String_from("__"))) {
+        return true
+    }
+    index_of(clone(callee), String_from("::").concat(clone(mono)).concat(String_from("__"))) >= 0
+}
+
 fn callee_spelling_variants(name: String) -> Vec<String> {
     let variants = Vec::new<String>()
     if callee_spelling_segment_count(clone(name)) < 3 {

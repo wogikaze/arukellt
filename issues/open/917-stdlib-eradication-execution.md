@@ -642,6 +642,51 @@ classified there, in dependency-safe waves.
   (`std::host::{env,fs,clock,random,process}`, `std::fs`, `std::env`,
   `std::cli`, `std::process`, `std::signal`) are untouched.
 
+### Landed slice (wave/core-raw, 2026-10-27)
+
+- **Surface**: the 20 `std::core::raw` bridges are now associated functions on
+  `RawArray` (`new`, `len`, `get_unchecked`, `set_unchecked`, `grow`,
+  `set_len`), `RawString` (`new`, `from_bytes`, `len_bytes`,
+  `byte_at_unchecked`, `clone`, `push_char`, `parse_i32`, `parse_i64`,
+  `parse_f64`), and `RawFloat` (`sqrt`, `bits_lo`, `bits_hi`, `to_string`,
+  `promote_f32`). The canonical `raw_*` spellings stay as private
+  CoreOp-bound helpers, so `data/core-ops.toml` keeps driving GC/LM lowering
+  and no CoreOp operation table changed.
+- **E0100**: `resolver::removed_names::removed_raw_member_hint` covers the 20
+  bare names and `raw::` members with public Vec / String / scalar
+  replacement hints; the dual-target goldens are
+  `diagnostics/removed_raw_free*`.
+- **Compiler fixes (measured)**: the text parsers gained exact
+  `result:i32:String` / `result:i64:String` / `result:f64:String` rules (the
+  old leaf-name match also claimed `JsonValue::parse_i32`, an i32 reader), and
+  `parse_i32` / `parse_i64` / `parse_f64` were removed from the
+  Option-returning builtin list (they declare `Result`). `RawArray` namespace
+  calls rewrite to the canonical `raw_array_*` CoreOp spellings before mono
+  resolution, so `Vec::new<String>` no longer instantiates the i32 wrapper
+  (the five fixture regressions this caught are fixed). The private
+  `raw_string_new` shell uses `String_new()` because an emitted
+  `__intrinsic_string_new` body defaults its temp to i64;
+  `raw_f32_promote_f64` calls `f32_to_f64` so the emitted f64 return types.
+- **Fixtures**: dual-target `stdlib_core/raw_consumer_surface*` (compile,
+  validate, run; `raw consumers ok`) and the E0100 pair. The sealed module's
+  `test mod` passes all three suites on `--target wasm32` and compiles and
+  validates on `wasm32-gc`. The gc test wrapper does not package the P2 core
+  module as a component, so direct test execution is a harness residual; the
+  production consumer fixtures pass on both targets. This is reported as a
+  test-harness residual, not a skip.
+- **Scorecard**: 491 -> **471** public symbols; `associated-or-method`
+  421 -> **401**; `pub fn` 539 -> **519**; unregistered 130 -> **110**;
+  manifest public 361 unchanged. The `host/core namespace frees` family drops
+  from 55/20 to **55/0**.
+- **Verification**: the rebuilt s2 compiles/runs the consumer pair on
+  wasm32-gc (P2) and `--target wasm32` (linear); the linear raw test module
+  PASSes 3/3 suites and the gc test module compiles/validates; `verify
+  fixtures` **1879/1879 PASS**, 0 FAIL (base gate 1875 + 4 new fixtures);
+  `selfhost diag-parity` PASS; `docs check` 6/6; `verify lane` PASS;
+  cross-backend parity 2/2 for the new pair; ADR-029 fixpoint PASS: s2 == s3
+  at sha256 `5b0455216247ab3bf2563a67b0c7f6aa23bb77d468d4c5f8449255ab203646af`
+  (pinned base `04d4446b…`).
+
 ## Required work
 
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate

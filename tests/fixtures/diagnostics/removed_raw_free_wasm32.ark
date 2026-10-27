@@ -1,0 +1,7 @@
+// E0100 on the linear wasm32 target: the sealed std::core::raw bridges were retired behind the
+// RawArray / RawString namespace surface; the bare names point at the public
+// Vec / String replacements.
+fn main() {
+    let _ = raw_array_new(0)
+    let _ = raw_string_len_bytes("x")
+}
