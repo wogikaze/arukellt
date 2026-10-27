@@ -77,8 +77,11 @@ infers types.
       `post_pass_callee_lookup` are deleted (not kept as fallback).
 - [ ] A missing type or target at lowering time is an internal compiler
       error, not a guess (ADR-040 §3).
-- [ ] `MirLocal` carries a TypeId instead of `type_name: String` (aligns with
-      ADR-053 Phase 4 "typed-by-construction").
+- [ ] No lowering / emit decision reads a local's interned type-name string
+      (`MirLocal_type_name()` over `type_name_id`); decisions use the TypeId /
+      `MirValueType` that the checker's table supplies (aligns with ADR-053
+      Phase 4 "typed-by-construction"). `MirLocal` itself already stores an
+      interned id, not a `String` field (see the #949 correction).
 - [ ] The repro fixtures registered by #935–#941 pass on both `wasm32` and
       `wasm32-gc`; `python3 scripts/manager.py verify fixtures` and
       `python3 scripts/manager.py selfhost fixpoint` stay green.
