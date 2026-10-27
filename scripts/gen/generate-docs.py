@@ -228,23 +228,37 @@ let exists = map.contains_key(42) // true
         "modules": ["std::component", "std::component::handle"],
         "overview": {
             "summary": (
-                "The `std::component` module exposes Component Model version constants and a "
-                "SlotMap-backed handle table. `Component` owns the version associated "
-                "functions; `HandleTableI32` owns the insert / get / remove / len receiver "
-                "methods. The former free functions were retired by the #917 component wave "
+                "The `std::component` module exposes Component Model version constants, "
+                "canonical ABI scratch lift/lower helpers, and a SlotMap-backed handle table. "
+                "`Component` owns the version and canonical ABI associated functions; "
+                "`HandleTableI32` owns the insert / get / remove / len receiver methods. The "
+                "former free functions were retired by the #917 component waves "
                 "(ADR-044/ADR-046)."
             ),
             "highlights": [
                 ("`Component::canonical_abi_version()` / `Component::model_version()`", "Return the canonical ABI version and component model version string."),
+                ("`Component::scratch_new()` / `Component::lower_string(scratch, s)` / `Component::lift_string(scratch, slice)`", "Lower and lift a string through canonical ABI scratch storage."),
+                ("`Component::lower_list_i32(scratch, items)` / `Component::lift_list_i32(scratch, slice)`", "Lower and lift an i32 list through canonical ABI scratch storage."),
                 ("`HandleTableI32::new()` / `t.insert(value)` / `t.get(handle)` / `t.remove(handle)` / `t.len()`", "Create a SlotMap-backed handle table and mutate it through receiver methods."),
             ],
             "typical_usage": """\
 ```ark
-use std::component
+use std::component::Component
 use std::component::handle
 
-let abi = component::Component::canonical_abi_version()  // e.g. 1
-let ver = component::Component::model_version()          // e.g. "0.2.0"
+let abi = Component::canonical_abi_version()  // e.g. 1
+let ver = Component::model_version()          // e.g. "0.2.0"
+
+let scratch = Component::scratch_new()
+match Component::lower_string(scratch, String_from("hi")) {
+    Result::Ok(slice) => {
+        match Component::lift_string(scratch, slice) {
+            Result::Ok(text) => stdio::println(text),  // hi
+            Result::Err(_) => stdio::println("lift failed"),
+        }
+    },
+    Result::Err(_) => stdio::println("lower failed"),
+}
 
 let table = handle::HandleTableI32::new()
 let h = table.insert(42)

@@ -16,6 +16,63 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — std::component::canonical surface moved onto Component (#917)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2. The 7
+  `std::component::canonical` entries were unregistered source declarations in
+  an `experimental` module, so no deprecation window applies.
+- **Removed (7)**: `canonical_lower_string`, `canonical_lift_string`,
+  `canonical_lift_string_at`, `canonical_lower_list_i32`,
+  `canonical_lift_list_i32`, `canonical_lift_list_i32_at`,
+  `canonical_scratch_new`.
+- **Replacement**: associated functions on `Component` from
+  `use std::component::Component` — `Component::lower_string(scratch, s)`,
+  `Component::lift_string(scratch, slice)`,
+  `Component::lift_string_at(scratch, ptr, len)`,
+  `Component::lower_list_i32(scratch, items)`,
+  `Component::lift_list_i32(scratch, slice)`,
+  `Component::lift_list_i32_at(scratch, ptr, count)`, and
+  `Component::scratch_new()`. `CanonicalSlice` moved from
+  `std::component::canonical` to `std::component`.
+- **Why the owner moved**: the resolver exports impl members only from the
+  module that declares the public owner type, so `impl Component` in
+  `std::component::canonical` would not resolve for qualified calls. The
+  `std::component::canonical` module stays as an E0100 anchor with no callable
+  declaration.
+- **Diagnostics**: `resolver::removed_names::removed_canonical_member_hint`
+  owns the `canonical` module alias (7 hints) and the matching bare names.
+  Dual-target goldens are `diagnostics/removed_canonical_free.ark` and
+  `removed_canonical_free_wasm32.ark`; `diag:` count 134 → **136**.
+- **Fixtures**: `stdlib_component/canonical_string.ark` and
+  `canonical_list.ark` moved to the `Component` surface and gained `.expected`
+  goldens; `_wasm32` pairs (`--target wasm32 --wasi-version wasi-p1
+  --memory-width memory32`) exercise the linear target. Both cover the
+  explicit-pointer `lift_*_at` forms. `run:` count 1856 → **1858**.
+- **Scorecard**: public surface 728 → **721**; `associated-or-method` 658 →
+  **651**; `pub fn` declarations under `std/` 789 → **782**; unregistered
+  declarations 222 → **215**; manifest public entries, `must delete` (70),
+  and `prelude_wrapper` (65) counts unchanged.
+- **Lowering note**: the earlier "`Result<String, error::Error>` prints two
+  NUL bytes" report was a probe-side scratch-index error (the probe wrote at
+  `base + i` while the lift read slot `ptr - 256 + 1 + i`). WAT inspection
+  shows the Ok payload is materialized with the correct string-array store
+  and the caller reads it back as a string; a corrected probe and the
+  `Component` surface lift `hi` on wasm32-gc and wasm32 linear. No compiler
+  lowering change was required for this wave.
+- **Verification**: `verify fixtures` **1858/1858 PASS / 0 FAIL** (107
+  runtime smoke); `selfhost diag-parity` **136/136 PASS**; both targets
+  compile + `wasm-tools validate` + `wasmtime run` against the new
+  `.expected` goldens; `docs check` 6/6; `verify lane` PASS;
+  `check-stdlib-eradication` / `check-compat-orphans` clean; ADR-029
+  fixpoint s2 == s3 at `5744cb7c…` (pinned base `04d4446b…`). The
+  `19f3ac7b0` merge also dropped the `bytes` removed-member hint table;
+  this wave restores it so the `removed_bytes_free*` diag goldens pass.
+- **Residual**: impl members are still exported only by the module that
+  declares the public owner type; associated/method surfaces for a type must
+  stay co-located with that type's declaration. The separate
+  `Result<World, error::Error>` associated-return blocker for `World::parse`
+  is unchanged (the WIT parser keeps `WitNode::parse` + `World` builders).
+
 ## 2026-10-27 — std::bytes free surface removed (#917, ADR-087 Wave 2)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2/D4, the

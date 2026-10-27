@@ -1,0 +1,5 @@
+use std::component::canonical
+
+fn main() {
+    let _slice = canonical::canonical_lift_string(Vec::new<i32>(), 256, 2)
+}

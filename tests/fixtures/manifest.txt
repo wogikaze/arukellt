@@ -266,6 +266,8 @@ diag:diagnostics/removed_component_free.ark
 diag:diagnostics/removed_component_free_wasm32.ark
 diag:diagnostics/removed_component_handle_free.ark
 diag:diagnostics/removed_component_handle_free_wasm32.ark
+diag:diagnostics/removed_canonical_free.ark
+diag:diagnostics/removed_canonical_free_wasm32.ark
 diag:diagnostics/removed_hashmap_adapter.ark
 diag:diagnostics/removed_hashmap_adapter_wasm32.ark
 diag:diagnostics/deprecated_time_monotonic_now.ark
@@ -863,7 +865,9 @@ run:stdlib_collections_ordered/index_map_order.ark
 run:stdlib_collections_ordered/index_set.ark
 run:stdlib_compiler/compiler_basic.ark
 run:stdlib_component/canonical_list.ark
+run:stdlib_component/canonical_list_wasm32.ark
 run:stdlib_component/canonical_string.ark
+run:stdlib_component/canonical_string_wasm32.ark
 run:stdlib_component/component_helpers.ark
 run:stdlib_component/component_helpers_wasm32.ark
 run:stdlib_component/handle_basic.ark
