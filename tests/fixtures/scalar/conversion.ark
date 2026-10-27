@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::prelude::{i32_to_u8, i8_to_i32, u16_to_i32, u32_to_u64, u8_to_i32}
+use std::prelude::{i32_to_i64, i32_to_u32, i32_to_u8, i8_to_i32, i64_to_i32, u16_to_i32, u32_to_u64, u8_to_i32}
 fn main() {
     let a: u8 = 255u8
     let a_i32: i32 = u8_to_i32(a)
@@ -16,6 +16,12 @@ fn main() {
     let e: u32 = 1000000u32
     let e_u64: u64 = u32_to_u64(e)
     stdio::println(e_u64)
+    let f: i64 = i32_to_i64(1)
+    stdio::println(f)
+    let g: i32 = i64_to_i32(f)
+    stdio::println(g)
+    let h: u32 = i32_to_u32(7)
+    stdio::println(h)
 }
 // u8 → i32 (widening, no-op in Wasm: u8 is stored as i32)
 // i32 → u8 (masking with 0xFF: 300 & 0xFF = 44)

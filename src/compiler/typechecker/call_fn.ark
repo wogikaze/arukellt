@@ -6,6 +6,7 @@ use resolver::paths
 use typechecker::kinds
 use typechecker::ast_expr_predicates
 use typechecker::ast_access
+use typechecker::builtins
 use typechecker::call_args
 use typechecker::closure_capture
 use typechecker::call_generic
@@ -16,6 +17,7 @@ use typechecker::call_vec_ctor
 use typechecker::enum_expr
 use typechecker::contract_fn_sig
 use typechecker::contract_type_access
+use typechecker::names
 use typechecker::scope
 use typechecker::sigs
 use typechecker::unify
@@ -225,8 +227,8 @@ fn infer_concrete_call_expr(
     arg_count: i32
 ) -> TypeInfo {
     let param_count = contract_fn_sig::FnSig_param_count(sig)
+    let fname = contract_fn_sig::FnSig_name(sig)
     if arg_count != param_count {
-        let fname = contract_fn_sig::FnSig_name(sig)
         unify::type_error_bad_arity(
             env,
             String_from("wrong number of arguments for `").concat(
@@ -236,11 +238,68 @@ fn infer_concrete_call_expr(
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, arg_count)
         return TypeInfo_simple(commands::TY_UNKNOWN())
     }
+    if builtins::is_scalar_conversion_builtin(clone(fname)) {
+        infer_scalar_conversion_call_args(env, scope, fn_sigs, enum_defs, node, sig, arg_count)
+        return contract_fn_sig::FnSig_return_type(sig)
+    }
     // Infer argument expressions for side effects / nested diagnostics, but do not
     // unify against FnSig params yet: flat name lookup is not overload-aware and
     // would false-fail stdlib bodies that share short names.
     call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, arg_count)
     contract_fn_sig::FnSig_return_type(sig)
+}
+
+// Scalar conversion wrappers are lowered by name from their prelude
+// signatures, so checking only the arity lets a wrong argument reach the
+// emitter: `i32_to_i64(<i64>)` used to truncate silently or emit invalid
+// Wasm. Polymorphic prelude operations keep the unchecked path above because
+// their declared signatures are placeholders (#936).
+fn infer_scalar_conversion_call_args(
+    env: TypeEnv,
+    scope: LocalScope,
+    fn_sigs: Vec<FnSig>,
+    enum_defs: Vec<EnumInfo>,
+    node: AstNode,
+    sig: FnSig,
+    arg_count: i32
+) {
+    let callee_name = contract_fn_sig::FnSig_name(sig)
+    let mut i = 0
+    while i < arg_count {
+        let arg_node = ast_access::node_child_at(node, i + 1)
+        let arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
+        let param_ty = unify::resolve_type(env, contract_fn_sig::FnSig_param_at(sig, i))
+        let resolved_arg_ty = unify::resolve_type(env, arg_ty)
+        if has_scalar_conversion_arg_conflict(param_ty, resolved_arg_ty) {
+            let mut message = String_from("type mismatch in call to `")
+            message = message.concat(clone(callee_name))
+            message = message.concat(String_from("`: argument "))
+            message = message.concat(to_string(i + 1))
+            message = message.concat(String_from(" has type "))
+            message = message.concat(names::type_display_name(resolved_arg_ty))
+            message = message.concat(String_from(", expected "))
+            message = message.concat(names::type_display_name(param_ty))
+            unify::type_error(env, message)
+        } else {
+            let _unified = unify::unify(env, param_ty, arg_ty)
+        }
+        i = i + 1
+    }
+}
+
+// Unknown and type-variable arguments are left to `unify` so a generic caller
+// can still bind the parameter; only two concrete, different tags are a
+// definite mismatch.
+fn has_scalar_conversion_arg_conflict(param_ty: TypeInfo, arg_ty: TypeInfo) -> bool {
+    let param_tag = contract_type_access::TypeInfo_tag(param_ty)
+    let arg_tag = contract_type_access::TypeInfo_tag(arg_ty)
+    if param_tag == commands::TY_UNKNOWN() || param_tag == commands::TY_TYPE_VAR() {
+        return false
+    }
+    if arg_tag == commands::TY_UNKNOWN() || arg_tag == commands::TY_TYPE_VAR() {
+        return false
+    }
+    param_tag != arg_tag
 }
 
 fn tc_strip_module_prefix(name: String) -> String {
