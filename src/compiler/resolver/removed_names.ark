@@ -145,6 +145,13 @@ fn removed_name_specific_hint(name: String) -> String {
 // only knows the removed member name after the module head resolved. Keep the
 // per-module entries here so ADR-085 Phase F removals still produce an E0100
 // migration hint instead of a bare "undefined module member".
+fn removed_wasm_member_hint(name: String) -> String {
+    if eq(clone(name), "module_new") { return String_from("removed free function; use the `WasmModuleBuilder` associated function from `use std::wasm` instead") }
+    if eq(clone(name), "wasm_magic") { return String_from("removed free function; use the `WasmModuleBuilder` associated function from `use std::wasm` instead") }
+    if eq(clone(name), "wasm_version") { return String_from("removed free function; use the `WasmModuleBuilder` associated function from `use std::wasm` instead") }
+    String_from("removed free function; use the owning type from `use std::wasm` instead")
+}
+
 pub fn removed_module_member_hint(module: String, name: String) -> String {
     if is_retired_hashmap_module(clone(module)) {
         return hashmap_method_replacement_hint()
@@ -195,6 +202,9 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     }
     if eq(clone(module), "iter") {
         return removed_iter_member_hint(name)
+    }
+    if eq(clone(module), "wasm") {
+        return removed_wasm_member_hint(name)
     }
     if eq(clone(module), "bytes") {
         return removed_bytes_member_hint(name)
