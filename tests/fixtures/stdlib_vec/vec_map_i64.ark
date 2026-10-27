@@ -1,5 +1,5 @@
 use std::test
-use std::prelude::{map_i64_i64}
+
 fn double(x: i64) -> i64 {
     x * 2i64
 }
@@ -10,7 +10,12 @@ fn main() {
     let b: i64 = 20i64
     push(v, a)
     push(v, b)
-    let result: Vec<i64> = map_i64_i64(v, double)
+    let result: Vec<i64> = Vec::new<i64>()
+    let mut map_index: i32 = 0
+    while map_index < len(v) {
+        push(result, double(get_unchecked(v, map_index)))
+        map_index = map_index + 1
+    }
     test::assert_eq_i32(len(result), 2)
     test::assert_eq_i64(get_unchecked(result, 0), 20i64)
     test::assert_eq_i64(get_unchecked(result, 1), 40i64)

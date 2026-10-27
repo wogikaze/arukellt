@@ -5,7 +5,7 @@
 
 | Family | APIs | Stable | Provisional | Experimental | Deprecated | Fixture Coverage | Host Dep |
 |--------|------|--------|-------------|--------------|------------|------------------|----------|
-| `prelude` | 117 | 56 | 1 | 0 | 60 | 57/57 (100%) | no |
+| `prelude` | 86 | 56 | 1 | 0 | 29 | 57/57 (100%) | no |
 | `std::bytes` | 45 | 45 | 0 | 0 | 0 | 45/45 (100%) | no |
 | `std::cli` | 6 | 6 | 0 | 0 | 0 | 6/6 (100%) | no |
 | `std::collections::compiler` | 14 | 0 | 0 | 14 | 0 | 14/14 (100%) | no |
@@ -52,8 +52,9 @@
 | `std::time` | 3 | 3 | 0 | 0 | 0 | 2/3 (67%) | no |
 | `std::toml` | 14 | 0 | 0 | 14 | 0 | 12/14 (86%) | no |
 | `std::wasm` | 77 | 0 | 0 | 77 | 0 | **35/77 (45%)** | no |
+| `std::wit` | 16 | 0 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 760 APIs, 287 stable, 63 provisional, 298 experimental, 112 deprecated, 552/648 (85%) fixture coverage
+**Total**: 745 APIs, 287 stable, 63 provisional, 314 experimental, 81 deprecated, 559/664 (84%) fixture coverage
 
 ## Legend
 
@@ -69,4 +70,4 @@
 
 Families below 50% fixture coverage (denominator excludes deprecated APIs):
 
-`std::wasm` (45%).
+`std::wasm` (45%), `std::wit` (44%).

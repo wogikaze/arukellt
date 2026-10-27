@@ -1,5 +1,6 @@
 use std::test
-use std::prelude::{fold_i32_i32}
+use std::core::iter
+
 fn mul(acc: i32, x: i32) -> i32 {
     acc * x
 }
@@ -10,6 +11,6 @@ fn main() {
     push(v, 2)
     push(v, 3)
     push(v, 4)
-    let result: i32 = fold_i32_i32(v, 1, mul)
+    let result: i32 = v.iter().fold(1, mul)
     test::assert_eq_i32(result, 24)
 }

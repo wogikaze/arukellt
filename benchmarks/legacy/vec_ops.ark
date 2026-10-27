@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::prelude::{contains_i32}
+use std::core::iter
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
@@ -15,12 +15,12 @@ fn main() {
         j = j + 1
     }
     stdio::println((sum).to_string())
-    if contains_i32(v, 500) {
+    if v.iter().contains(500) {
         stdio::println("found 500")
     } else {
         stdio::println("not found 500")
     }
-    if contains_i32(v, 9999) {
+    if v.iter().contains(9999) {
         stdio::println("found 9999")
     } else {
         stdio::println("not found 9999")

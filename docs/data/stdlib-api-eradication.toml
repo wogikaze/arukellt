@@ -46,12 +46,13 @@
 #
 # Ownership split for #703 (single owner per family): #703 owns the
 # monomorphic cutover families — "deprecated std::seq helpers" (13) and
-# "monomorphic seq/combinator frees" (34). The 31 callable stable entries
+# "monomorphic seq/combinator frees" (32). The 31 callable stable entries
 # were deprecated (W0009 + migration guide + changelog) in the ADR-087 0.x
-# wave; their physical deletion is Wave 2. The provisional `filter_i32`
-# remains an individual deferral, and the two stale, non-callable builtin
+# wave and deleted in Wave 2 on 2026-10-27; their bare names now fail with
+# E0100 hints. The provisional `filter_i32` remains the only member of that
+# family (individual deferral), and the two stale, non-callable builtin
 # entries (`map_option_String_String`, `map_result_i32_i32`) were retired in
-# the same wave. #917 owns every other family as the execution umbrella.
+# the earlier wave. #917 owns every other family as the execution umbrella.
 
 [meta]
 policy_adr = "ADR-046"
@@ -157,12 +158,15 @@ prefix = ["sort_", "map_", "filter_", "fold_", "any_", "find_", "contains_", "re
 class = "must delete"
 owner = "703"
 replacement = "Vec / iterator methods: v.sort_by(cmp), v.iter().map(f).collect(), v.iter().filter(f).collect(), v.iter().fold(init, f), v.iter().sum(), v.iter().any(f), v.iter().find(f), v.iter().contains(x), v.iter().rev().collect(), v.drain(idx, idx + 1); Option::map / Result::map via std::core::container"
-# Wave 1 landed 2026-10-26 under ADR-087: the 31 callable stable entries carry
-# stability = "deprecated", deprecated_by, deprecated_since, and remove_in,
-# and the bare names have W0009 coverage. The i64/f64/String iterator lanes
-# remain planned, so those rows describe the target shape rather than a
-# verified call path yet. `filter_i32` stays provisional (deferred). Physical
-# deletion is Wave 2 after the W0009 window.
+# Wave 1 landed 2026-10-26 under ADR-087: the 31 callable stable entries carried
+# stability = "deprecated", deprecated_by, deprecated_since, and remove_in, and
+# the bare names had W0009 coverage. Wave 2 (2026-10-27) deleted those 31
+# manifest entries and their `std/prelude.ark` declarations; bare calls now
+# fail with E0100 hints from resolver::removed_names. `filter_i32` stays
+# provisional (deferred) and is the only row this rule still matches. The
+# i64/f64 numeric iterator lanes remain planned, so the replacement text
+# describes the target shape plus the reachable loop / std::seq::sort_by
+# fallback recorded in docs/stdlib/migration-guidance.md.
 
 [[rules]]
 label = "monomorphic numeric conversions"

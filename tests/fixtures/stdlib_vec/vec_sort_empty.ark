@@ -1,7 +1,14 @@
 use std::test
-use std::prelude::{sort_i32}
+use std::collections::vec
+use std::core
+use std::core::cmp
+
+fn ascending(a: i32, b: i32) -> Ordering {
+    a.cmp(b)
+}
+
 fn main() {
     let v: Vec<i32> = Vec::new<i32>()
-    sort_i32(v)
+    v.sort_by(ascending)
     test::assert_eq_i32(len(v), 0)
 }

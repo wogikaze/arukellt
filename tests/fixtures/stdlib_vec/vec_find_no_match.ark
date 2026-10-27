@@ -1,5 +1,6 @@
 use std::test
-use std::prelude::{find_i32}
+use std::core::iter
+
 fn is_large(x: i32) -> bool {
     x > 100
 }
@@ -9,7 +10,7 @@ fn main() {
     push(v, 1)
     push(v, 2)
     push(v, 3)
-    let result = find_i32(v, is_large)
+    let result = v.iter().find(is_large)
     match result {
         Option::Some(val) => panic("expected None, got Some"),
         None => {

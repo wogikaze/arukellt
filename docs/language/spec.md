@@ -1646,43 +1646,41 @@ Non-prelude: `f32_to_string(f: f32) -> String`.
 | `clear(v: Vec<T>)` | Remove all elements |
 | `as_slice(v: Vec<T>) -> Vec<T>` | View as slice |
 
-### 9.7 Vec — Sorting (prelude)
+### 9.7 Vec — Sorting
 
-| Signature | Description |
+The monomorphic prelude sort frees (`sort_i32`, `sort_i64`, `sort_f64`,
+`sort_String`) were removed in the ADR-087 Wave 2 (issue #703 / #917). Use the
+`Vec` method `v.sort_by(cmp)` from `std::collections::vec` for the verified
+`Vec<i32>` / `Vec<String>` lanes. The `i64` / `f64` `Vec` receiver lanes still
+emit invalid Wasm; `std::seq::sort_by(v)` is the reachable generic
+`Ord`-based fallback until those lanes land.
+
+### 9.8 Vec — Higher-Order Functions
+
+The monomorphic higher-order prelude frees (`map_*`, `filter_*`, `fold_*`,
+`any_*`, `find_*`) were removed in the ADR-087 Wave 2. Use the lazy iterator
+methods from `std::core::iter`:
+
+| Signature | Replacement |
 |-----------|-------------|
-| `sort_i32(v: Vec<i32>)` | In-place sort (bubble sort) |
-| `sort_i64(v: Vec<i64>)` | In-place sort |
-| `sort_f64(v: Vec<f64>)` | In-place sort |
-| `sort_String(v: Vec<String>)` | In-place sort |
+| `map_i32_i32`, `map_String_String` | `v.iter().map(f).collect()` |
+| `filter_String` | `v.iter().filter(f).collect()` |
+| `fold_i32_i32` | `v.iter().fold(init, f)` |
+| `any_i32`, `any_String` | `v.iter().any(f)` |
+| `find_i32`, `find_String` | `v.iter().find(f)` |
 
-### 9.8 Vec — Higher-Order Functions (prelude)
+The `i64` / `f64` numeric consumers are not lowered by the iterator backend
+yet; use an explicit `while` loop until those lanes land. The provisional
+`filter_i32` remains callable (individual deferral).
 
-| Signature | Description |
-|-----------|-------------|
-| `map_i32_i32(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32>` | Map |
-| `map_i64_i64(v: Vec<i64>, f: fn(i64) -> i64) -> Vec<i64>` | Map |
-| `map_f64_f64(v: Vec<f64>, f: fn(f64) -> f64) -> Vec<f64>` | Map |
-| `map_String_String(v: Vec<String>, f: fn(String) -> String) -> Vec<String>` | Map |
-| `filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32>` | Filter |
-| `filter_i64(v: Vec<i64>, f: fn(i64) -> bool) -> Vec<i64>` | Filter |
-| `filter_f64(v: Vec<f64>, f: fn(f64) -> bool) -> Vec<f64>` | Filter |
-| `filter_String(v: Vec<String>, f: fn(String) -> bool) -> Vec<String>` | Filter |
-| `fold_i32_i32(v: Vec<i32>, init: i32, f: fn(i32, i32) -> i32) -> i32` | Fold |
-| `fold_i64_i64(v: Vec<i64>, init: i64, f: fn(i64, i64) -> i64) -> i64` | Fold |
-| `any_i32(v: Vec<i32>, f: fn(i32) -> bool) -> bool` | Any match |
-| `find_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Option<i32>` | Find first |
+### 9.9 Vec — Aggregation & Mutation
 
-### 9.9 Vec — Aggregation & Mutation (prelude)
-
-| Signature | Description |
-|-----------|-------------|
-| `sum_i32(v: Vec<i32>) -> i32` | Sum |
-| `product_i32(v: Vec<i32>) -> i32` | Product |
-| `contains_i32(v: Vec<i32>, x: i32) -> bool` | Membership test |
-| `contains_String(v: Vec<String>, x: String) -> bool` | Membership test |
-| `reverse_i32(v: Vec<i32>)` | In-place reverse |
-| `reverse_String(v: Vec<String>)` | In-place reverse |
-| `remove_i32(v: Vec<i32>, index: i32)` | Remove at index |
+The aggregation and mutation frees (`sum_i32`, `product_i32`, `contains_*`,
+`reverse_*`, `remove_i32`) were removed in the ADR-087 Wave 2. Use
+`v.iter().sum()`, `v.iter().fold(1, mul)`, `v.iter().contains(x)`,
+`v = v.iter().rev().collect()`, and `v.drain(i, i + 1)` respectively. The
+`Vec<String>` reverse/contains lanes use an explicit swap / loop until the
+lane lands; `s.contains(sub)` replaces the String substring helper.
 
 <a id="910-option"></a>
 
@@ -1696,8 +1694,8 @@ Non-prelude: `f32_to_string(f: f32) -> String`.
 | `is_some(o: Option<T>) -> bool` | Some test |
 | `is_none(o: Option<T>) -> bool` | None test |
 | `expect(o: Option<T>, msg: String) -> T` | Extract or panic with message |
-| `map_option_i32_i32(o: Option<i32>, f: fn(i32) -> i32) -> Option<i32>` | Map over Option |
-| `map_option_String_String(o: Option<String>, f: fn(String) -> String) -> Option<String>` | Map over Option |
+| `map_option_i32_i32` (removed in Wave 2) | `o.map(f)` via `std::core::container` |
+| `map_option_String_String` (retired) | `match o { Some(v) => Some(f(v)), None => None }` |
 
 <a id="911-result"></a>
 

@@ -1,11 +1,12 @@
 use std::host::stdio
 use std::test
-use std::prelude::{map_option_i32_i32}
+use std::core::container
+
 fn double(x: i32) -> i32 { x * 2 }
 fn main() {
     for i in 0..20 {
         let opt: Option<i32> = if i % 3 == 0 { None } else { Some(i) }
-        let m = map_option_i32_i32(opt, double)
+        let m = opt.map(double)
         if i % 3 == 0 {
             match m { Option::Some(v) => panic("some"), None => {} }
         } else {

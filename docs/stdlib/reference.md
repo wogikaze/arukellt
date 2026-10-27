@@ -10,8 +10,8 @@
 |------|-------|-------------|
 | `stable` | 287 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 63 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 298 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 112 | Superseded — see migration guidance. |
+| `experimental` | 314 | API may change without notice. Functionality is available but not finalized. |
+| [deprecated](#deprecated-apis) | 81 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -204,10 +204,6 @@
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| ~~`any_String`~~ ⚠️ Deprecated → `VecIter::any` | `(Vec<String>, fn(String) -> bool) -> bool` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_any_String` | - |
-| ~~`any_f64`~~ ⚠️ Deprecated → `VecIter::any` | `(Vec<f64>, fn(f64) -> bool) -> bool` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_any_f64` | - |
-| ~~`any_i32`~~ ⚠️ Deprecated → `VecIter::any` | `(Vec<i32>, fn(i32) -> bool) -> bool` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_any_i32` | - |
-| ~~`any_i64`~~ ⚠️ Deprecated → `VecIter::any` | `(Vec<i64>, fn(i64) -> bool) -> bool` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_any_i64` | - |
 | `arena_alloc` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Allocate a value in the Arena, returning a stable ArenaId. |
 | `arena_get` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Get the value at the given ArenaId. |
 | `arena_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Return the number of allocated entries in the Arena. |
@@ -235,8 +231,6 @@
 | `btree_set_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Insert into a BTreeSet<i32>. Returns true if the value was newly inserted. |
 | `btree_set_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return the number of elements in a BTreeSet<i32>. |
 | `btree_set_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Create a new BTreeSet<i32> (sorted unique values). |
-| ~~`contains_String`~~ ⚠️ Deprecated → `VecIter::contains` | `(Vec<String>, String) -> bool` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_contains_String` | - |
-| ~~`contains_i32`~~ ⚠️ Deprecated → `VecIter::contains` | `(Vec<i32>, i32) -> bool` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_contains_i32` | - |
 | ~~`deque_back`~~ ⚠️ Deprecated → `Deque::back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Peek at the back element without removing it. Returns 0 when empty. |
 | ~~`deque_clear`~~ ⚠️ Deprecated → `Deque::clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Reset the deque to empty (preserves allocated capacity). |
 | ~~`deque_front`~~ ⚠️ Deprecated → `Deque::front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Peek at the front element without removing it. Returns 0 when empty. |
@@ -248,17 +242,7 @@
 | ~~`deque_push_back`~~ ⚠️ Deprecated → `Deque::push_back` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Append a value to the back of the deque. |
 | ~~`deque_push_front`~~ ⚠️ Deprecated → `Deque::push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Prepend a value to the front of the deque. |
 | ~~`deque_to_vec`~~ ⚠️ Deprecated → `Deque::iter` | `(Vec<i32>) -> Vec<i32>` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Copy all deque elements (front to back) into a new Vec<i32>. |
-| ~~`filter_String`~~ ⚠️ Deprecated → `VecIter::filter` | `(Vec<String>, fn(String) -> bool) -> Vec<String>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_String` | - |
-| ~~`filter_f64`~~ ⚠️ Deprecated → `VecIter::filter` | `(Vec<f64>, fn(f64) -> bool) -> Vec<f64>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_f64` | - |
 | `filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `prelude` | `provisional` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_i32` | - |
-| ~~`filter_i64`~~ ⚠️ Deprecated → `VecIter::filter` | `(Vec<i64>, fn(i64) -> bool) -> Vec<i64>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_i64` | - |
-| ~~`find_String`~~ ⚠️ Deprecated → `VecIter::find` | `(Vec<String>, fn(String) -> bool) -> Option<String>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_find_String` | - |
-| ~~`find_f64`~~ ⚠️ Deprecated → `VecIter::find` | `(Vec<f64>, fn(f64) -> bool) -> Option<f64>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_find_f64` | - |
-| ~~`find_i32`~~ ⚠️ Deprecated → `VecIter::find` | `(Vec<i32>, fn(i32) -> bool) -> Option<i32>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_find_i32` | - |
-| ~~`find_i64`~~ ⚠️ Deprecated → `VecIter::find` | `(Vec<i64>, fn(i64) -> bool) -> Option<i64>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_find_i64` | - |
-| ~~`fold_f64_f64`~~ ⚠️ Deprecated → `VecIter::fold` | `(Vec<f64>, f64, fn(f64, f64) -> f64) -> f64` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_fold_f64_f64` | - |
-| ~~`fold_i32_i32`~~ ⚠️ Deprecated → `VecIter::fold` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_fold_i32_i32` | - |
-| ~~`fold_i64_i64`~~ ⚠️ Deprecated → `VecIter::fold` | `(Vec<i64>, i64, fn(i64, i64) -> i64) -> i64` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_fold_i64_i64` | - |
 | ~~`get`~~ ⚠️ Deprecated → `Vec::get` | `(Vec<T>, i32) -> Option<T>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | ~~`get_unchecked`~~ ⚠️ Deprecated → `Vec::get_unchecked` | `(Vec<T>, i32) -> T` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | `hashmap_capacity` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
@@ -328,10 +312,6 @@
 | ~~`linked_list_push_back`~~ ⚠️ Deprecated → `LinkedList::push_back` | `(Vec<i32>, i32) -> ()` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Push a value to the back of the legacy i32 list. |
 | ~~`linked_list_push_front`~~ ⚠️ Deprecated → `LinkedList::push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Push a value to the front of the legacy i32 list. |
 | ~~`linked_list_to_vec`~~ ⚠️ Deprecated → `LinkedList::iter` | `(Vec<i32>) -> Vec<i32>` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Copy the legacy i32 list into a Vec<i32> in front-to-back order. |
-| ~~`map_String_String`~~ ⚠️ Deprecated → `VecIter::map` | `(Vec<String>, fn(String) -> String) -> Vec<String>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_map_String_String` | - |
-| ~~`map_f64_f64`~~ ⚠️ Deprecated → `VecIter::map` | `(Vec<f64>, fn(f64) -> f64) -> Vec<f64>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_map_f64_f64` | - |
-| ~~`map_i32_i32`~~ ⚠️ Deprecated → `VecIter::map` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_map_i32_i32` | - |
-| ~~`map_i64_i64`~~ ⚠️ Deprecated → `VecIter::map` | `(Vec<i64>, fn(i64) -> i64) -> Vec<i64>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_map_i64_i64` | - |
 | ~~`pop`~~ ⚠️ Deprecated → `Vec::pop` | `(Vec<T>) -> Option<T>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | Remove and return the last element of a Vec. Returns None if the Vec is empty. |
 | `pq_clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Reset the priority queue to empty (preserves allocated storage). |
 | `pq_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Return true if the priority queue contains no elements. |
@@ -340,11 +320,7 @@
 | `pq_peek` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Return the minimum element without removing it. Panics if empty. |
 | `pq_pop` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Remove and return the minimum element. Panics if empty. |
 | `pq_push` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Insert a value into the priority queue. |
-| ~~`product_i32`~~ ⚠️ Deprecated → `VecIter::fold` | `(Vec<i32>) -> i32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | - | - |
 | ~~`push`~~ ⚠️ Deprecated → `Vec::push` | `(Vec<T>, T) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | Append an element to the end of a Vec, mutating it in place. |
-| ~~`remove_i32`~~ ⚠️ Deprecated → `Vec::drain` | `(Vec<i32>, i32) -> ()` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_remove_i32` | - |
-| ~~`reverse_String`~~ ⚠️ Deprecated → `VecIter::rev` | `(Vec<String>) -> ()` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_reverse_String` | - |
-| ~~`reverse_i32`~~ ⚠️ Deprecated → `VecIter::rev` | `(Vec<i32>) -> ()` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_reverse_i32` | - |
 | ~~`set`~~ ⚠️ Deprecated → `Vec::set` | `(Vec<T>, i32, T) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | ~~`slice_get`~~ ⚠️ Deprecated → `Slice::get` | `(Slice<T>, i32) -> T` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | ~~`slice_len`~~ ⚠️ Deprecated → `Slice::len` | `(Slice<T>) -> i32` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
@@ -354,17 +330,12 @@
 | `slotmap_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Return the number of active entries in the SlotMap. |
 | `slotmap_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Create a new SlotMap (deletion-safe handle map for i32 values). |
 | `slotmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Remove and return the value at the given SlotKey, or None if already removed. |
-| ~~`sort_String`~~ ⚠️ Deprecated → `Vec::sort_by` | `(Vec<String>) -> ()` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_sort_String` | - |
-| ~~`sort_f64`~~ ⚠️ Deprecated → `Vec::sort_by` | `(Vec<f64>) -> ()` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_sort_f64` | - |
-| ~~`sort_i32`~~ ⚠️ Deprecated → `Vec::sort_by` | `(Vec<i32>) -> ()` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_sort_i32` | - |
-| ~~`sort_i64`~~ ⚠️ Deprecated → `Vec::sort_by` | `(Vec<i64>) -> ()` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_sort_i64` | - |
 | `sorted_map_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
 | `sorted_map_find_idx` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
 | `sorted_map_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
 | `sorted_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
 | `sorted_map_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
 | `sorted_map_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
-| ~~`sum_i32`~~ ⚠️ Deprecated → `VecIter::sum` | `(Vec<i32>) -> i32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | - | - |
 | `values` | `(Vec<i32>) -> Vec<i32>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_values` | - |
 
 ### `len` — `prelude`
@@ -770,7 +741,6 @@ let input = read_to_string()
 | `is_none` | `(Option<T>) -> bool` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `is_ok` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `is_some` | `(Option<T>) -> bool` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
-| ~~`map_option_i32_i32`~~ ⚠️ Deprecated → `Option::map` | `(Option<i32>, fn(i32) -> i32) -> Option<i32>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_map_option_i32_i32` | - |
 | `unwrap` | `(Option<T>) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `unwrap_or` | `(Option<T>, T) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 
@@ -983,7 +953,6 @@ let input = read_to_string()
 | `byte_len` | `(String) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_byte_len` | - |
 | `clone` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_clone` | - |
 | `contains` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_contains` | - |
-| ~~`contains_string`~~ ⚠️ Deprecated → `String::contains` | `(String, String) -> bool` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_contains` | - |
 | `ends_with` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_ends_with` | - |
 | `eq` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_eq` | - |
 | `format_bool` | `(bool) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | - | - |
@@ -1193,16 +1162,33 @@ let input = read_to_string()
 | `wasm_magic` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
 | `wasm_version` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
 
+## Wit
+
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `wit_type_bool` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_char` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_f32` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_f64` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_from_id` | `(i32) -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_id` | `(WitType) -> i32` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_name` | `(WitType) -> String` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_s16` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_s32` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_s64` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_s8` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_string` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_u16` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_u32` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_u64` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_u8` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+
 ## Deprecated APIs
 
-> ⚠️ **112 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **81 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
-| ~~`any_String`~~ | `VecIter::any` | [migration-guidance.md](migration-guidance.md) |
-| ~~`any_f64`~~ | `VecIter::any` | [migration-guidance.md](migration-guidance.md) |
-| ~~`any_i32`~~ | `VecIter::any` | [migration-guidance.md](migration-guidance.md) |
-| ~~`any_i64`~~ | `VecIter::any` | [migration-guidance.md](migration-guidance.md) |
 | ~~`as_slice`~~ | `Vec::as_slice` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_eq`~~ | `std::test::assert_eq_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_eq_i64`~~ | `std::test::assert_eq_i64` | [migration-guidance.md](migration-guidance.md) |
@@ -1216,9 +1202,6 @@ let input = read_to_string()
 | ~~`buf_writer_write_str`~~ | `BufWriter::write_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`buffered_reader`~~ | `BufReader::new` | [migration-guidance.md](migration-guidance.md) |
 | ~~`buffered_writer`~~ | `BufWriter::new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`contains_String`~~ | `VecIter::contains` | [migration-guidance.md](migration-guidance.md) |
-| ~~`contains_i32`~~ | `VecIter::contains` | [migration-guidance.md](migration-guidance.md) |
-| ~~`contains_string`~~ | `String::contains` | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `std::core::iter::iter_count_eq_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | [migration-guidance.md](migration-guidance.md) |
@@ -1236,18 +1219,8 @@ let input = read_to_string()
 | ~~`f64_bits_hi`~~ | `f64::to_bits_hi` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_lo`~~ | `f64::to_bits_lo` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_to_f32`~~ | `f64::to_f32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`filter_String`~~ | `VecIter::filter` | [migration-guidance.md](migration-guidance.md) |
-| ~~`filter_f64`~~ | `VecIter::filter` | [migration-guidance.md](migration-guidance.md) |
 | ~~`filter_i32`~~ | `std::core::iter::collect_filter_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`filter_i64`~~ | `VecIter::filter` | [migration-guidance.md](migration-guidance.md) |
-| ~~`find_String`~~ | `VecIter::find` | [migration-guidance.md](migration-guidance.md) |
-| ~~`find_f64`~~ | `VecIter::find` | [migration-guidance.md](migration-guidance.md) |
-| ~~`find_i32`~~ | `VecIter::find` | [migration-guidance.md](migration-guidance.md) |
-| ~~`find_i64`~~ | `VecIter::find` | [migration-guidance.md](migration-guidance.md) |
-| ~~`fold_f64_f64`~~ | `VecIter::fold` | [migration-guidance.md](migration-guidance.md) |
-| ~~`fold_i32_i32`~~ | `VecIter::fold` | [migration-guidance.md](migration-guidance.md) |
 | ~~`fold_i32_i32`~~ | `std::core::iter::iter_fold_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`fold_i64_i64`~~ | `VecIter::fold` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get`~~ | `Vec::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | [migration-guidance.md](migration-guidance.md) |
@@ -1271,32 +1244,18 @@ let input = read_to_string()
 | ~~`linked_list_push_back`~~ | `LinkedList::push_back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_push_front`~~ | `LinkedList::push_front` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_to_vec`~~ | `LinkedList::iter` | [migration-guidance.md](migration-guidance.md) |
-| ~~`map_String_String`~~ | `VecIter::map` | [migration-guidance.md](migration-guidance.md) |
-| ~~`map_f64_f64`~~ | `VecIter::map` | [migration-guidance.md](migration-guidance.md) |
-| ~~`map_i32_i32`~~ | `VecIter::map` | [migration-guidance.md](migration-guidance.md) |
 | ~~`map_i32_i32`~~ | `std::core::iter::collect_map_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`map_i64_i64`~~ | `VecIter::map` | [migration-guidance.md](migration-guidance.md) |
-| ~~`map_option_i32_i32`~~ | `Option::map` | [migration-guidance.md](migration-guidance.md) |
 | ~~`max_i32`~~ | `std::seq::max_by` | [migration-guidance.md](migration-guidance.md) |
 | ~~`min_i32`~~ | `std::seq::min_by` | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | [migration-guidance.md](migration-guidance.md) |
-| ~~`product_i32`~~ | `VecIter::fold` | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | [migration-guidance.md](migration-guidance.md) |
 | ~~`reader_from_bytes`~~ | `Reader::from_bytes` | [migration-guidance.md](migration-guidance.md) |
-| ~~`remove_i32`~~ | `Vec::drain` | [migration-guidance.md](migration-guidance.md) |
-| ~~`reverse_String`~~ | `VecIter::rev` | [migration-guidance.md](migration-guidance.md) |
-| ~~`reverse_i32`~~ | `VecIter::rev` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `std::core::iter::iter_contains_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `std::core::iter::iter_reverse_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | [migration-guidance.md](migration-guidance.md) |
 | ~~`skip_i32`~~ | `std::core::iter::collect_skip_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_get`~~ | `Slice::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_len`~~ | `Slice::len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`sort_String`~~ | `Vec::sort_by` | [migration-guidance.md](migration-guidance.md) |
-| ~~`sort_f64`~~ | `Vec::sort_by` | [migration-guidance.md](migration-guidance.md) |
-| ~~`sort_i32`~~ | `Vec::sort_by` | [migration-guidance.md](migration-guidance.md) |
-| ~~`sort_i64`~~ | `Vec::sort_by` | [migration-guidance.md](migration-guidance.md) |
-| ~~`sum_i32`~~ | `VecIter::sum` | [migration-guidance.md](migration-guidance.md) |
 | ~~`sum_i32`~~ | `std::core::iter::iter_sum_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`take_i32`~~ | `std::core::iter::collect_take_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u16_to_i32`~~ | `u16::to_i32` | [migration-guidance.md](migration-guidance.md) |

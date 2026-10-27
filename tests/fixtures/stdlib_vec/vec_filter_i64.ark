@@ -1,5 +1,5 @@
 use std::test
-use std::prelude::{filter_i64}
+
 fn is_even(x: i64) -> bool {
     x % 2i64 == 0i64
 }
@@ -12,7 +12,15 @@ fn main() {
     push(v, a)
     push(v, b)
     push(v, c)
-    let result: Vec<i64> = filter_i64(v, is_even)
+    let result: Vec<i64> = Vec::new<i64>()
+    let mut filter_index: i32 = 0
+    while filter_index < len(v) {
+        let filter_value = get_unchecked(v, filter_index)
+        if is_even(filter_value) {
+            push(result, filter_value)
+        }
+        filter_index = filter_index + 1
+    }
     test::assert_eq_i32(len(result), 2)
     test::assert_eq_i64(get_unchecked(result, 0), 10i64)
     test::assert_eq_i64(get_unchecked(result, 1), 20i64)

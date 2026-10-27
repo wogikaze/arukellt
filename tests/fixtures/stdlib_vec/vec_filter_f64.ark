@@ -1,5 +1,5 @@
 use std::test
-use std::prelude::{filter_f64}
+
 fn is_large(x: f64) -> bool {
     x > 2.5
 }
@@ -10,7 +10,15 @@ fn main() {
     push(v, 2.0)
     push(v, 3.0)
     push(v, 4.0)
-    let result: Vec<f64> = filter_f64(v, is_large)
+    let result: Vec<f64> = Vec::new<f64>()
+    let mut filter_index: i32 = 0
+    while filter_index < len(v) {
+        let filter_value = get_unchecked(v, filter_index)
+        if is_large(filter_value) {
+            push(result, filter_value)
+        }
+        filter_index = filter_index + 1
+    }
     test::assert_eq_i32(len(result), 2)
     test::assert_eq_f64(get_unchecked(result, 0), 3.0)
     test::assert_eq_f64(get_unchecked(result, 1), 4.0)

@@ -1,6 +1,13 @@
 use std::prelude::{abs, clamp_i32, f32_to_string, f64_bits_hi, f64_bits_lo, format_bool, is_empty, join, max}
-use std::prelude::{min, parse_f64, parse_i32, parse_i64, product_i32, push_char, remove_i32, reverse_String}
-use std::prelude::{reverse_i32, sort_f64, sort_i32, sort_i64, sqrt, sum_i32, trim_end, trim_start, values}
+use std::prelude::{min, parse_f64, parse_i32, parse_i64, push_char}
+use std::prelude::{sqrt, trim_end, trim_start, values}
+use std::collections::vec
+use std::core
+use std::core::cmp
+use std::core::iter
+use std::seq
+use std::text
+
 pub fn probe_abs(x: i32) -> i32 {
     abs(x)
 }
@@ -165,17 +172,25 @@ pub fn probe_string_concat() -> bool {
 }
 
 pub fn probe_vec_read_ops() -> bool {
-    let values = Vec::new<i32>()
+    let mut values = Vec::new<i32>()
     push(values, 4)
     push(values, 7)
     set(values, 0, 9)
-    reverse_i32(values)
+    values = values.iter().rev().collect()
     len(values) == 2 && !is_empty(values) && get_unchecked(values, 0) == 7 && get_unchecked(values, 1) == 9
 }
 
 pub fn probe_vec_string_mutation() -> bool {
-    let values = "left,right".split(",")
-    reverse_String(values)
+    let mut values = "left,right".split(",")
+    let mut reverse_lo = 0
+    let mut reverse_hi = len(values) - 1
+    while reverse_lo < reverse_hi {
+        let reverse_tmp = values.get_unchecked(reverse_lo)
+        values.set(reverse_lo, values.get_unchecked(reverse_hi))
+        values.set(reverse_hi, reverse_tmp)
+        reverse_lo = reverse_lo + 1
+        reverse_hi = reverse_hi - 1
+    }
     let first = get_unchecked(values, 0)
     let second = get_unchecked(values, 1)
     first.len() == 5 &&
@@ -190,7 +205,7 @@ pub fn probe_seq_read_ops() -> bool {
     push(values, 3)
     push(values, 3)
     push(values, 7)
-    sum_i32(values) == 15 && product_i32(values) == 126
+    values.iter().sum() == 15 && values.iter().fold(1, mul_i32) == 126
 }
 
 pub fn probe_seq_allocation_ops() -> bool {
@@ -211,11 +226,11 @@ pub fn probe_seq_allocation_ops() -> bool {
 }
 
 pub fn probe_seq_sort_i32() -> bool {
-    let i32_values = Vec::new<i32>()
+    let mut i32_values = Vec::new<i32>()
     push(i32_values, 7)
     push(i32_values, 2)
     push(i32_values, 4)
-    sort_i32(i32_values)
+    i32_values.sort_by(ascending)
     get_unchecked(i32_values, 0) == 2 && get_unchecked(i32_values, 2) == 7
 }
 
@@ -275,7 +290,7 @@ pub fn probe_sort_i64_ops() -> bool {
     push(values, 30_i64)
     push(values, 10_i64)
     push(values, 20_i64)
-    sort_i64(values)
+    values = seq::sort_by(values)
     len(values) == 3 && get_unchecked(values, 0) == 10_i64 && get_unchecked(values, 1) == 20_i64 && get_unchecked(values, 2) == 30_i64
 }
 
@@ -284,7 +299,17 @@ pub fn probe_sort_f64_ops() -> bool {
     push(values, 3.0)
     push(values, 1.0)
     push(values, 2.0)
-    sort_f64(values)
+    let mut sort_index = 1
+    while sort_index < len(values) {
+        let sort_value = get_unchecked(values, sort_index)
+        let mut sort_slot = sort_index
+        while sort_slot > 0 && get_unchecked(values, sort_slot - 1) > sort_value {
+            set(values, sort_slot, get_unchecked(values, sort_slot - 1))
+            sort_slot = sort_slot - 1
+        }
+        set(values, sort_slot, sort_value)
+        sort_index = sort_index + 1
+    }
     len(values) == 3 && get_unchecked(values, 0) == 1.0 && get_unchecked(values, 1) == 2.0 && get_unchecked(values, 2) == 3.0
 }
 
@@ -293,7 +318,7 @@ pub fn probe_remove_i32_ops() -> bool {
     push(values, 1)
     push(values, 2)
     push(values, 3)
-    remove_i32(values, 1)
+    values.drain(1, 2)
     len(values) == 2 && get_unchecked(values, 0) == 1 && get_unchecked(values, 1) == 3
 }
 
@@ -386,7 +411,12 @@ pub fn probe_parse_ops() -> bool {
     ok_i32 && bad_i32 && ok_i64 && ok_f64 && opt_ok && opt_bad
 }
 
+fn ascending(a: i32, b: i32) -> Ordering {
+    a.cmp(b)
+}
+
+fn mul_i32(a: i32, b: i32) -> i32 {
+    a * b
+}
+
 fn main() {}
-use std::core
-use std::seq
-use std::text

@@ -1,5 +1,6 @@
 use std::test
-use std::prelude::{any_i32, find_i32}
+use std::core::iter
+
 fn is_even(x: i32) -> bool {
     x % 2 == 0
 }
@@ -14,20 +15,20 @@ fn main() {
     push(v, 2)
     push(v, 3)
     push(v, 4)
-    let has_even: bool = any_i32(v, is_even)
+    let has_even: bool = v.iter().any(is_even)
     test::assert_true(has_even)
 
-    let found = find_i32(v, is_even)
+    let found = v.iter().find(is_even)
     match found {
         Option::Some(x) => test::assert_eq_i32(x, 2),
         None => panic("expected Some, got None"),
     }
 
     let empty = Vec::new<i32>()
-    let any_empty: bool = any_i32(empty, is_even)
+    let any_empty: bool = empty.iter().any(is_even)
     test::assert_false(any_empty)
 
-    let find_neg = find_i32(v, is_negative)
+    let find_neg = v.iter().find(is_negative)
     match find_neg {
         Option::Some(x) => panic("expected None, got Some"),
         None => {

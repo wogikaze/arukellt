@@ -13,7 +13,7 @@
 
 // ── i32 ↔ i32 Bimap ─────────────────────────────────────────────────────────
 
-use std::prelude::{remove_i32}
+use std::collections::vec
 /// Create a new empty `Bimap<i32, i32>`.
 pub fn bimap_i32_i32_new() -> Vec<i32> {
     Vec::new<i32>()
@@ -47,8 +47,8 @@ fn bimap_find_value(buf: Vec<i32>, value: i32) -> i32 {
 
 fn bimap_remove_pair(buf: Vec<i32>, pair_index: i32) {
     let key_index: i32 = pair_index * 2
-    remove_i32(buf, key_index + 1)
-    remove_i32(buf, key_index)
+    buf.drain(key_index + 1, key_index + 2)
+    buf.drain(key_index, key_index + 1)
 }
 
 /// Insert a (key, value) pair. If the key or value already exists, the old

@@ -1,5 +1,6 @@
 use std::test
-use std::prelude::{any_i32}
+use std::core::iter
+
 fn is_five(x: i32) -> bool {
     x == 5
 }
@@ -9,5 +10,5 @@ fn main() {
     push(v, 5)
     push(v, 10)
     push(v, 15)
-    test::assert_true(any_i32(v, is_five))
+    test::assert_true(v.iter().any(is_five))
 }

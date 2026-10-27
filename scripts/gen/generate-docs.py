@@ -549,12 +549,12 @@ let shuffled = shuffle_i32(vec, 42) // deterministic shuffle
 > ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
 
 ```ark
-import std::seq
+use std::seq
 
 let nums = vec![3, 1, 4, 1, 5, 9]
-let total = sum_i32(nums)           // 23
-let lo    = min_i32(nums)           // 1
-let dedup = unique(nums)            // [3, 1, 4, 5, 9]
+let total = seq::sum_i32(nums)          // 23
+let lo    = seq::min_i32(nums)          // 1
+let dedup = seq::unique(nums)           // [3, 1, 4, 5, 9]
 ```""",
         },
     },

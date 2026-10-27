@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::prelude::{filter_f64}
+
 fn is_large(x: f64) -> bool {
     x > 5.0
 }
@@ -10,7 +10,15 @@ fn main() {
     push(v, 7.0)
     push(v, 3.0)
     push(v, 10.5)
-    let large: Vec<f64> = filter_f64(v, is_large)
+    let large: Vec<f64> = Vec::new<f64>()
+    let mut filter_index: i32 = 0
+    while filter_index < len(v) {
+        let filter_value = get_unchecked(v, filter_index)
+        if is_large(filter_value) {
+            push(large, filter_value)
+        }
+        filter_index = filter_index + 1
+    }
     let mut i: i32 = 0
     while i < len(large) {
         stdio::println((get_unchecked(large, i)).to_string())

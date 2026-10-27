@@ -759,74 +759,7 @@ deprecated_since = "0.1.0"
 remove_in = "1.0.0"
 doc_category = "collections"
 
-# ── Vec sorting ──────────────────────────────
-
-[[functions]]
-name = "sort_i32"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_sort_i32"
-params = ["Vec<i32>"]
-returns = "()"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Vec::sort_by"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "sort_i64"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_sort_i64"
-params = ["Vec<i64>"]
-returns = "()"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Vec::sort_by"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "sort_f64"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_sort_f64"
-params = ["Vec<f64>"]
-returns = "()"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Vec::sort_by"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "sort_String"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_sort_String"
-params = ["Vec<String>"]
-returns = "()"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Vec::sort_by"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-# ── Vec higher-order (i32) ───────────────────
-
-[[functions]]
-name = "map_i32_i32"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_map_i32_i32"
-params = ["Vec<i32>", "fn(i32) -> i32"]
-returns = "Vec<i32>"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::map"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
+# ── Vec higher-order (i32) — filter_i32 remains provisional ──
 
 [[functions]]
 name = "filter_i32"
@@ -837,233 +770,6 @@ returns = "Vec<i32>"
 prelude = true
 stability = "provisional"
 doc_category = "collections"
-
-[[functions]]
-name = "fold_i32_i32"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_fold_i32_i32"
-params = ["Vec<i32>", "i32", "fn(i32, i32) -> i32"]
-returns = "i32"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::fold"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "any_i32"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_any_i32"
-params = ["Vec<i32>", "fn(i32) -> bool"]
-returns = "bool"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::any"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "find_i32"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_find_i32"
-params = ["Vec<i32>", "fn(i32) -> bool"]
-returns = "Option<i32>"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::find"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "contains_i32"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_contains_i32"
-params = ["Vec<i32>", "i32"]
-returns = "bool"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::contains"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "reverse_i32"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_reverse_i32"
-params = ["Vec<i32>"]
-returns = "()"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::rev"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "remove_i32"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_remove_i32"
-params = ["Vec<i32>", "i32"]
-returns = "()"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Vec::drain"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "sum_i32"
-kind = "prelude_wrapper"
-params = ["Vec<i32>"]
-returns = "i32"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::sum"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "product_i32"
-kind = "prelude_wrapper"
-params = ["Vec<i32>"]
-returns = "i32"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::fold"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-# ── Vec higher-order (i64) ───────────────────
-
-[[functions]]
-name = "map_i64_i64"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_map_i64_i64"
-params = ["Vec<i64>", "fn(i64) -> i64"]
-returns = "Vec<i64>"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::map"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "filter_i64"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_filter_i64"
-params = ["Vec<i64>", "fn(i64) -> bool"]
-returns = "Vec<i64>"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::filter"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "fold_i64_i64"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_fold_i64_i64"
-params = ["Vec<i64>", "i64", "fn(i64, i64) -> i64"]
-returns = "i64"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::fold"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-# ── Vec higher-order (f64) ───────────────────
-
-[[functions]]
-name = "map_f64_f64"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_map_f64_f64"
-params = ["Vec<f64>", "fn(f64) -> f64"]
-returns = "Vec<f64>"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::map"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "filter_f64"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_filter_f64"
-params = ["Vec<f64>", "fn(f64) -> bool"]
-returns = "Vec<f64>"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::filter"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-# ── Vec higher-order (String) ────────────────
-
-[[functions]]
-name = "map_String_String"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_map_String_String"
-params = ["Vec<String>", "fn(String) -> String"]
-returns = "Vec<String>"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::map"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "filter_String"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_filter_String"
-params = ["Vec<String>", "fn(String) -> bool"]
-returns = "Vec<String>"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::filter"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "contains_String"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_contains_String"
-params = ["Vec<String>", "String"]
-returns = "bool"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::contains"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "reverse_String"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_reverse_String"
-params = ["Vec<String>"]
-returns = "()"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::rev"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-# ── Option/Result operations (direct builtins) ─
 
 [[functions]]
 name = "unwrap"
@@ -1127,20 +833,6 @@ doc_category = "option_result"
 # NOTE: ok_or / ok / err / expect were removed from the prelude surface; bare
 # calls now report E0100 with resolver::removed_names hints.
 
-[[functions]]
-name = "map_option_i32_i32"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_map_option_i32_i32"
-params = ["Option<i32>", "fn(i32) -> i32"]
-returns = "Option<i32>"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Option::map"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "option_result"
-
-# NOTE: map_option_String_String is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
 [[functions]]
 name = "Box_new"
 kind = "builtin"
@@ -1275,7 +967,6 @@ name = "i16"
 kind = "primitive"
 doc = "Signed 16-bit integer."
 prelude = true
-
 
 # ── Compat-only prelude decls (recorded for #878) ────────────────────
 # These decls exist in std/prelude.ark but were missing from the manifest.
@@ -7714,104 +7405,6 @@ returns = "v128"
 doc = "Reinterpret v128 as f64x2 (no-op, same bits)."
 
 [[functions]]
-name = "any_i64"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_any_i64"
-params = ["Vec<i64>", "fn(i64) -> bool"]
-returns = "bool"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::any"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-
-[[functions]]
-name = "any_f64"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_any_f64"
-params = ["Vec<f64>", "fn(f64) -> bool"]
-returns = "bool"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::any"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-
-[[functions]]
-name = "any_String"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_any_String"
-params = ["Vec<String>", "fn(String) -> bool"]
-returns = "bool"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::any"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-
-[[functions]]
-name = "find_i64"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_find_i64"
-params = ["Vec<i64>", "fn(i64) -> bool"]
-returns = "Option<i64>"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::find"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-
-[[functions]]
-name = "find_f64"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_find_f64"
-params = ["Vec<f64>", "fn(f64) -> bool"]
-returns = "Option<f64>"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::find"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-
-[[functions]]
-name = "find_String"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_find_String"
-params = ["Vec<String>", "fn(String) -> bool"]
-returns = "Option<String>"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::find"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-
-[[functions]]
-name = "fold_f64_f64"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_fold_f64_f64"
-params = ["Vec<f64>", "f64", "fn(f64, f64) -> f64"]
-returns = "f64"
-prelude = true
-stability = "deprecated"
-deprecated_by = "VecIter::fold"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-
-[[functions]]
 name = "byte_at"
 kind = "prelude_wrapper"
 intrinsic = "__intrinsic_byte_at"
@@ -7820,7 +7413,6 @@ returns = "i32"
 prelude = true
 stability = "stable"
 doc_category = "string"
-
 
 [[functions]]
 name = "byte_len"
@@ -7832,21 +7424,6 @@ prelude = true
 stability = "stable"
 doc_category = "string"
 
-
-[[functions]]
-name = "contains_string"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_contains"
-params = ["String", "String"]
-returns = "bool"
-prelude = true
-stability = "deprecated"
-deprecated_by = "String::contains"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "string"
-
-
 [[functions]]
 name = "to_uppercase"
 kind = "prelude_wrapper"
@@ -7856,7 +7433,6 @@ returns = "String"
 prelude = true
 stability = "stable"
 doc_category = "string"
-
 
 [[functions]]
 name = "to_lowercase"
@@ -7868,7 +7444,6 @@ prelude = true
 stability = "stable"
 doc_category = "string"
 
-
 [[functions]]
 name = "gcd"
 kind = "prelude_wrapper"
@@ -7879,7 +7454,6 @@ prelude = true
 stability = "stable"
 doc_category = "math"
 
-
 [[functions]]
 name = "values"
 kind = "prelude_wrapper"
@@ -7889,7 +7463,6 @@ returns = "Vec<i32>"
 prelude = true
 stability = "stable"
 doc_category = "collections"
-
 
 [[functions]]
 name = "i32_to_u32"
@@ -7903,7 +7476,6 @@ deprecated_by = "i32::to_u32_bits"
 deprecated_since = "0.1.0"
 remove_in = "1.0.0"
 doc_category = "convert"
-
 
 # === WASI P2 host surface production additions (#676) ===
 

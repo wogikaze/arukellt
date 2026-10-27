@@ -1,5 +1,6 @@
 use std::host::stdio
-use std::prelude::{map_option_i32_i32}
+use std::core::container
+
 fn double(x: i32) -> i32 {
     x * 2
 }
@@ -7,8 +8,8 @@ fn double(x: i32) -> i32 {
 fn main() {
     let a: Option<i32> = Some(21)
     let b: Option<i32> = None
-    let mapped_a: Option<i32> = map_option_i32_i32(a, double)
-    let mapped_b: Option<i32> = map_option_i32_i32(b, double)
+    let mapped_a: Option<i32> = a.map(double)
+    let mapped_b: Option<i32> = b.map(double)
     match mapped_a {
         Option::Some(val) => stdio::println((val).to_string()),
         None => stdio::println("none"),

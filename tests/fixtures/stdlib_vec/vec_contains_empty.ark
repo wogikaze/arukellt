@@ -1,6 +1,7 @@
 use std::test
-use std::prelude::{contains_i32}
+use std::core::iter
+
 fn main() {
     let v: Vec<i32> = Vec::new<i32>()
-    test::assert_false(contains_i32(v, 10))
+    test::assert_false(v.iter().contains(10))
 }

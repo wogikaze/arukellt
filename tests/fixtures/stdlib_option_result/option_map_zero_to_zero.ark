@@ -1,10 +1,11 @@
 use std::host::stdio
 use std::test
-use std::prelude::{map_option_i32_i32}
+use std::core::container
+
 fn double(x: i32) -> i32 { x * 2 }
 fn main() {
     let a: Option<i32> = Some(0)
-    let m = map_option_i32_i32(a, double)
+    let m = a.map(double)
     match m { Option::Some(v) => test::assert_eq_i32(v, 0), None => panic("none") }
     stdio::println("ok")
 }

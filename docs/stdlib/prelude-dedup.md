@@ -18,12 +18,12 @@ There are **no dual-exposed functions** — no function has both `prelude = true
 ## Prelude Categories
 
 Prelude functions are grouped by `doc_category` for documentation purposes only.
-These categories do **not** correspond to importable modules:
+These categories do **not** correspond to importable modules. The counts are illustrative; `std/manifest.toml` is the source of truth:
 
 | doc_category | Count | Examples | Importable? |
 |---|---|---|---|
 | `string` | 19 | `concat`, `trim`, `split` | No — prelude only |
-| `collections` | 36 | `push`, `pop`, `len`, `sort_i32` | No — prelude only |
+| `collections` | 11 | `push`, `pop`, `len`, `filter_i32` | No — prelude only |
 | `conversion` | 8 | `to_string`, `parse_i32` | No — prelude only |
 | `math` | 5 | `sqrt`, `abs`, `min`, `max` | No — prelude only |
 | `option_result` | 15 | `unwrap`, `is_some`, `is_ok` | No — prelude only |

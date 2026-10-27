@@ -142,6 +142,43 @@ classified there, in dependency-safe waves.
   the 20 `std::core::raw` representation bridges (need a RawArray/RawString
   namespace surface). No stable manifest entry was touched.
 
+### Landed slice (wave/917-seq33, 2026-10-27)
+
+- Deleted the 31 callable `stable` seq/combinator prelude frees (the
+  [#703](703-monomorphic-api-bold-cutover.md) family) under ADR-087 Wave 2:
+  `sort_*`, `map_*`, `filter_*` (except the provisional `filter_i32`),
+  `fold_*`, `any_*`, `find_*`, `contains_i32` / `contains_String`,
+  `reverse_*`, `remove_i32`, `sum_i32`, `product_i32`,
+  `map_option_i32_i32`, and `contains_string`. Manifest entries and
+  `std/prelude.ark` declarations are gone; bare calls now fail with E0100 and
+  a `resolver::removed_names` hint.
+- Migrated the in-tree call sites: compiler/std call sites, 84 fixture files,
+  benchmarks, and the non-generated docs examples. The i32 and
+  `Vec<String>` map/filter lanes use `v.iter()...`; the i64/f64 numeric
+  consumers, the `Vec<String>` reverse/contains lanes, and the generic
+  `Vec::sort_by` receiver for i64/f64 use the documented explicit loop /
+  `std::seq::sort_by` fallback because their emitter lanes still fail Wasm
+  validation.
+- Diagnostics: the two `deprecated_seq_monomorphic*` fixtures now assert the
+  E0100 removed-name hint; the qualified `std::seq` W0009 fixtures are
+  unchanged.
+- Scorecard delta: 1168 → **1137** public symbols; manifest public entries
+  776 → **745**; `prelude_wrapper` 96 → **65**; `pub fn` declarations 1359 →
+  **1328**; `must delete` 114 → **83**; `associated-or-method` 1054 unchanged.
+  The monomorphic seq/combinator family drops from 32 rows to **1**
+  (`filter_i32`, provisional deferral).
+- Verification: `verify fixtures` 1836/1836 compile+validate PASS (105
+  runtime smoke, 1 `test:` fixture PASS); cross-backend parity 81/81 for the
+  changed run fixtures; `selfhost diag-parity` PASS; `check-stdlib-eradication`
+  and `check-compat-orphans` clean; `docs check` 6/6; `verify lane` PASS with
+  the pinned bootstrap lint CLI (the stage-2 stub host traps in `lint`
+  `parse_args`, a pre-existing tooling residual). The ADR-029 fixpoint result
+  is recorded in the wave receipt.
+- Residuals: the i64/f64 numeric iterator consumer lanes, the
+  `Vec<String>` reverse/contains lanes, the `Vec::sort_by` receiver gap for
+  i64/f64, the provisional `filter_i32`, the 1054
+  `associated-or-method` replacements, and the #693 io residuals.
+
 ### Landed slice (wave/917-hashmap, 2026-10-27)
 
 - Retired the 20 `provisional` monomorphic `HashMap_*` builtins and the
@@ -229,6 +266,9 @@ classified there, in dependency-safe waves.
       - Landed 2026-10-27 (`wave/917-hashmap`): the 20 `HashMap_*` builtins
         and the i32→i32 adapters were retired; the compiler registrations
         and fixtures migrated to `HashMap<K, V>` methods.
+      - Landed 2026-10-27 (`wave/917-seq33`): the 31 stable seq/combinator
+        prelude frees were deleted after the Wave 1 W0009 window; E0100
+        hints replace the W0009 rows and `filter_i32` remains provisional.
 - [ ] Wave B — `associated-or-method` entries: land the inherent /
       trait / associated replacement first (per-owner issues #693,
       #702, #703, #708, #710, and the future Test / IO / collection
