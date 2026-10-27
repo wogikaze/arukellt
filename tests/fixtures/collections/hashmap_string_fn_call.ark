@@ -1,4 +1,3 @@
-use std::collections::hash_str_fn
 use std::host::stdio
 
 fn double(n: i32) -> i32 {
@@ -6,9 +5,9 @@ fn double(n: i32) -> i32 {
 }
 
 fn main() {
-    let m = hash_str_fn::hashmap_str_fn_new()
-    let _ = hash_str_fn::hashmap_str_fn_set(m, "x", double)
-    match hash_str_fn::hashmap_str_fn_get(m, "x") {
+    let m = HashMap::new<String, fn(i32) -> i32>()
+    let _ = m.insert("x", double)
+    match m.get("x") {
         Some(f) => stdio::println((f(5)).to_string()),
         None => stdio::println("missing"),
     }

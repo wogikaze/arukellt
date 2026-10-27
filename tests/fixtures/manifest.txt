@@ -252,6 +252,8 @@ diag:diagnostics/deprecated_io_free_function.ark
 diag:diagnostics/removed_io_free_function.ark
 diag:diagnostics/removed_iter_constructor.ark
 diag:diagnostics/removed_iter_constructor_wasm32.ark
+diag:diagnostics/removed_hashmap_adapter.ark
+diag:diagnostics/removed_hashmap_adapter_wasm32.ark
 diag:diagnostics/deprecated_time_monotonic_now.ark
 diag:diagnostics/deprecated_import_syntax.ark
 diag:diagnostics/duplicate_def.ark

@@ -16,9 +16,10 @@ and linear-memory implementation layer. It is backed by a flat `Vec<i32>`:
 [capacity, size, keys..., values..., flags...]
 ```
 
-Typed adapters in `std::collections::hash_map` connect the source methods to
-the concrete GC or linear-memory implementation. Compatibility wrapper
-functions remain available during the ADR-014 migration window.
+The compiler rewrites the generic methods to non-public implementation
+functions in `std::collections::hash_string` / `hash_fn` / `hash_str_fn` for
+the concrete GC pairs. The typed `hash_map::hashmap_*` adapter frees were
+retired by #917; the receiver methods are the only user spelling.
 
 ## Hashing Policy
 
@@ -51,8 +52,8 @@ system can represent it:
 
 - `hashmap_insert` returns the previous `Option<i32>`.
 - `hashmap_get_option` and `hashmap_remove` return `Option<i32>`.
-- `hash_map::*_insert` wrappers return the previous value for supported
-  monomorphized `HashMap` pairs.
+- `m.insert(k, v)` returns the previous `Option<V>` for every supported
+  monomorphized `HashMap` pair.
 
 The older raw `hashmap_set` remains as a compatibility primitive returning
 `bool` to report whether storage succeeded.

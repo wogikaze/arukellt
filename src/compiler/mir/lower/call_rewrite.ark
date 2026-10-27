@@ -141,7 +141,7 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
     let is_seq_extremum_alias = eq(clone(rewritten), String_from("seq::min_i32")) ||
     eq(clone(rewritten), String_from("seq::max_i32"))
     if !is_seq_extremum_alias &&
-    !call_rewrite_hashmap::mir_hashmap_target_is_adapter(clone(rewritten)) &&
+    !call_rewrite_hashmap::mir_hashmap_target_is_lowering(clone(rewritten)) &&
     !call_rewrite_vec::mir_vec_call_target_is_intrinsic(clone(rewritten)) &&
     !skip_first_arg_mono {
         rewritten = call_mono::mir_resolve_mono_call_target(ctx, rewritten, first_arg_idx, span_start)

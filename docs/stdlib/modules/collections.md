@@ -151,8 +151,8 @@ Hash-based collection helpers.
 Provides the raw HashMap and HashSet implementation layer backed by a flat
 `Vec<i32>` with open addressing and linear probing. The canonical source
 surface is `HashMap::new<K,V>()` and receiver methods; the compiler
-monomorphizes those calls to typed adapters and uses these helpers where
-the selected representation is linear memory.
+monomorphizes those calls to per-pair implementation functions and uses
+these helpers where the selected representation is linear memory.
 
 ### Generic dispatch
 
@@ -161,9 +161,9 @@ spelling: `HashMap::new<K,V>()` plus receiver methods. The `i32`->`i32`
 pair lowers directly to the flat store functions in this module
 (`hashmap_new`, `hashmap_insert`, `hashmap_get_option`,
 `hashmap_contains`, `hashmap_remove`, `hashmap_size`, `hashmap_keys`,
-`hashmap_values`, `hashmap_entry_pairs`); the other supported pairs use
-the typed `hash_map::hashmap_*` adapters. No `HashMap_*` free builtins
-remain.
+`hashmap_values`, `hashmap_entry_pairs`); the other supported pairs lower
+to the non-public functions in `std::collections::hash_string` / `hash_fn`
+/ `hash_str_fn`. No `HashMap_*` free builtins remain.
 
 ### Compatibility implementation
 

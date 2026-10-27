@@ -6,8 +6,8 @@
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
 - **Canonical names:** 604
-- **Historical/deprecated names:** 81
-- **Total entries:** 685
+- **Historical/deprecated names:** 68
+- **Total entries:** 672
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -640,13 +640,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`assert_eq_str`~~ | `std::test::assert_eq_string` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `std::test::assert_ne_i32` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `std::seq::binary_search_by` | Seq | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_reader_new`~~ | `BufReader::new` | Io | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_reader_read_line`~~ | `BufReader::read_line` | Io | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_writer_flush`~~ | `BufWriter::flush` | Io | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_writer_new`~~ | `BufWriter::new` | Io | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_writer_write_str`~~ | `BufWriter::write_string` | Io | [migration-guidance.md](migration-guidance.md) |
-| ~~`buffered_reader`~~ | `BufReader::new` | Io | [migration-guidance.md](migration-guidance.md) |
-| ~~`buffered_writer`~~ | `BufWriter::new` | Io | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `VecIter::count_eq` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -694,7 +687,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`min_i32`~~ | `std::seq::min_by` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`reader_from_bytes`~~ | `Reader::from_bytes` | Io | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `VecIter::contains` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `VecIter::rev` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -708,11 +700,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`u64_to_u32`~~ | `u64::to_u32_wrapping` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | `u8::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`unique`~~ | `VecIter::unique` | Seq | [migration-guidance.md](migration-guidance.md) |
-| ~~`write_all`~~ | `Io::write_all` | Io | [migration-guidance.md](migration-guidance.md) |
-| ~~`write_string`~~ | `Writer::write_string` | Io | [migration-guidance.md](migration-guidance.md) |
-| ~~`writer_flush`~~ | `Writer::flush` | Io | [migration-guidance.md](migration-guidance.md) |
-| ~~`writer_new`~~ | `Writer::new` | Io | [migration-guidance.md](migration-guidance.md) |
-| ~~`writer_to_bytes`~~ | `Writer::into_bytes` | Io | [migration-guidance.md](migration-guidance.md) |
 | ~~`writer_write`~~ | `Writer::write` | Io | [migration-guidance.md](migration-guidance.md) |
 | ~~`writer_write_str`~~ | `Writer::write_string` | Io | [migration-guidance.md](migration-guidance.md) |
 
@@ -819,14 +806,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `buf_push_u32_le` | ✅ `stable` | `std::bytes` | Bytes |
 | `buf_push_u64_le` | ✅ `stable` | `std::bytes` | Bytes |
 | `buf_push_u8` | ✅ `stable` | `std::bytes` | Bytes |
-| ~~`buf_reader_new`~~ | ⚠️ deprecated | `std::io` | → `BufReader::new` · [migration guide](migration-guidance.md) |
-| ~~`buf_reader_read_line`~~ | ⚠️ deprecated | `std::io` | → `BufReader::read_line` · [migration guide](migration-guidance.md) |
 | `buf_with_capacity` | ✅ `stable` | `std::bytes` | Bytes |
-| ~~`buf_writer_flush`~~ | ⚠️ deprecated | `std::io` | → `BufWriter::flush` · [migration guide](migration-guidance.md) |
-| ~~`buf_writer_new`~~ | ⚠️ deprecated | `std::io` | → `BufWriter::new` · [migration guide](migration-guidance.md) |
-| ~~`buf_writer_write_str`~~ | ⚠️ deprecated | `std::io` | → `BufWriter::write_string` · [migration guide](migration-guidance.md) |
-| ~~`buffered_reader`~~ | ⚠️ deprecated | `std::io` | → `BufReader::new` · [migration guide](migration-guidance.md) |
-| ~~`buffered_writer`~~ | ⚠️ deprecated | `std::io` | → `BufWriter::new` · [migration guide](migration-guidance.md) |
 | `builder_append` | ✅ `stable` | `std::text` | Text |
 | `builder_append_char` | ✅ `stable` | `std::text` | Text |
 | `builder_append_line` | ✅ `stable` | `std::text` | Text |
@@ -1208,7 +1188,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `read_u32_le` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_u64_le` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_u8` | ✅ `stable` | `std::bytes` | Bytes |
-| ~~`reader_from_bytes`~~ | ⚠️ deprecated | `std::io` | → `Reader::from_bytes` · [migration guide](migration-guidance.md) |
 | `reftype_externref` | ✅ `experimental` | `std::wasm` | Wasm |
 | `reftype_funcref` | ✅ `experimental` | `std::wasm` | Wasm |
 | `repeat` | ✅ `stable` | `prelude` | String |
@@ -1387,14 +1366,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `wasm_magic` | ✅ `experimental` | `std::wasm` | Wasm |
 | `wasm_version` | ✅ `experimental` | `std::wasm` | Wasm |
 | `with_extension` | ✅ `stable` | `std::path` | Path |
-| ~~`write_all`~~ | ⚠️ deprecated | `std::io` | → `Io::write_all` · [migration guide](migration-guidance.md) |
 | `write_bytes` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `write_string` | ✅ `stable` | `std::fs` | Fs |
 | `write_string` | ✅ `provisional` | `std::host::fs` | Host Fs |
-| ~~`write_string`~~ | ⚠️ deprecated | `std::io` | → `Writer::write_string` · [migration guide](migration-guidance.md) |
-| ~~`writer_flush`~~ | ⚠️ deprecated | `std::io` | → `Writer::flush` · [migration guide](migration-guidance.md) |
-| ~~`writer_new`~~ | ⚠️ deprecated | `std::io` | → `Writer::new` · [migration guide](migration-guidance.md) |
-| ~~`writer_to_bytes`~~ | ⚠️ deprecated | `std::io` | → `Writer::into_bytes` · [migration guide](migration-guidance.md) |
 | ~~`writer_write`~~ | ⚠️ deprecated | `std::io` | → `Writer::write` · [migration guide](migration-guidance.md) |
 | ~~`writer_write_str`~~ | ⚠️ deprecated | `std::io` | → `Writer::write_string` · [migration guide](migration-guidance.md) |
 | `xor` | ✅ `experimental` | `std::simd::v128` | Simd |

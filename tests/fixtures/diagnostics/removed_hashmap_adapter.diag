@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: hash_map::hashmap_str_i32_new; removed HashMap helper; use `HashMap::new<K, V>()` plus receiver methods (`m.insert(k, v)`, `m.get(k)`, `m.contains_key(k)`, `m.remove(k)`, `m.len()`, `m.is_empty()`, `m.keys()`, `m.values()`, `m.entries()`)

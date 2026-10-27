@@ -16,6 +16,55 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — hash-family adapters removed; HashMap methods are the lowering target (#917)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2/D4 and
+  the [#917](https://github.com/wogikaze/arukellt/issues/917) execution lane.
+  All 101 symbols were unregistered top-level `pub fn` declarations, so no
+  manifest deprecation window, ADR-087 exception, or W0009 row applied.
+- **Lowering first**: the compiler now rewrites the `HashMap<K, V>` methods
+  directly to the per-pair implementation functions
+  (`hash_string::hashmap_str_get`, `hash_string::hashmap_i32_str_insert`,
+  `hash_fn::hashmap_i32_fn_insert`, `hash_str_fn::hashmap_str_fn_get`, …).
+  The old `hash_map::hashmap_*` adapters are gone; `insert` keeps the
+  previous-value `Option<V>` contract. The implementation functions stay as
+  module-private MIR targets, not public API.
+- **Removed (101)**: the 50 `std::collections::hash_map` adapters, the 29
+  `std::collections::hash_string` implementation frees, and the 11 + 11
+  `std::collections::hash_fn` / `hash_str_fn` implementation frees. The two
+  `hashmap_str_val_*` forwarders and the six duplicate
+  `hash_map::hashset_str_*` frees were deleted with them (fixtures now use
+  the `hash_set::hashset_str_*` facade).
+- **Replacement**: `HashMap::new<K, V>()` plus `insert` / `get` /
+  `contains_key` / `remove` / `len` / `is_empty` / `keys` / `values` /
+  `entries` on the receiver. Qualified old calls fail with an **E0100**
+  hint from `resolver::removed_names` (bare and module-qualified forms);
+  every before/after row is in [migration-guidance.md](migration-guidance.md).
+- **In-tree callers**: 11 fixtures migrated to the method surface. The
+  fn-valued maps previously used `hash_fn::hashmap_i32_fn_set` /
+  `hash_str_fn::hashmap_str_fn_set`; `m.insert(k, v)` has the same
+  store-and-return-previous semantics.
+- **Scorecard (regenerated)**: public surface 1047 → **946** symbols;
+  `associated-or-method` 977 → **876**; unregistered declarations 375 →
+  **274**; `pub fn` declarations 1222 → **1115**. Manifest public entries
+  (672), `must delete` (70), `prelude_wrapper` (65), and `intrinsic-only`
+  (1) are unchanged. The four hash adapter rules retired from
+  `docs/data/stdlib-api-eradication.toml`; the `hash set monomorphic
+  adapters` rule keeps 15 rows with the missing `HashSet<T>` surface as the
+  recorded blocker. The committed scorecard was 13 symbols stale
+  (1060/685 vs the real 1047/672) before this regeneration.
+- **Evidence**: stage-2 rebuild; the 11 migrated fixtures run with identical
+  stdout on `wasm32-gc` and linear `wasm32` (cross-backend parity 11/11);
+  `verify fixtures` **1839/1839** compile+validate PASS; `selfhost
+  diag-parity` **119/119** PASS including the new
+  `diagnostics/removed_hashmap_adapter*.ark` goldens;
+  `check-stdlib-eradication` and `docs check` clean after the
+  `project-state.toml` fixture-registry sync (3260 → 3262).
+- **Residual**: the 15 `hashset_i32_*` adapters remain blocked on a
+  `HashSet<T>` nominal type (no receiver surface for a method rewrite; the
+  `Vec<i32>`/`Vec<String>` facades are not types). Deleting them now would
+  remove the only user spelling without a replacement.
+
 ## 2026-10-27 — eager iterator constructor/collector frees removed (#917)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2/D4 and

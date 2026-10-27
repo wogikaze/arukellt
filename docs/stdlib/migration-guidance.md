@@ -919,6 +919,19 @@ bound, and `drain` / `splice` return the removed elements as an owned `Vec<T>`.
 | `HashMap_i32_i32_remove(m, k)` | `m.remove(k)` |
 | `HashMap_i32_i32_len(m)` | `m.len()` |
 | `HashMap_i32_i32_is_empty(m)` | `m.is_empty()` |
+| `hash_map::hashmap_str_i32_new()` | `HashMap::new<String, i32>()` |
+| `hash_map::hashmap_str_i32_insert(m, k, v)` | `m.insert(k, v)` |
+| `hash_map::hashmap_str_i32_get(m, k)` | `m.get(k)` |
+| `hash_map::hashmap_str_i32_contains(m, k)` | `m.contains_key(k)` |
+| `hash_map::hashmap_str_i32_remove(m, k)` | `m.remove(k)` |
+| `hash_map::hashmap_str_i32_len(m)` | `m.len()` |
+| `hash_map::hashmap_str_i32_is_empty(m)` | `m.is_empty()` |
+| `hash_map::hashmap_str_i32_keys/values/entries(m)` | `m.keys()` / `m.values()` / `m.entries()` |
+| `hash_map::hashmap_i32_str_*` | the same methods on `HashMap<i32, String>` |
+| `hash_map::hashmap_str_str_*` | the same methods on `HashMap<String, String>` |
+| `hash_map::hashmap_i32_fn_*` / `hash_fn::hashmap_i32_fn_*` | the same methods on `HashMap<i32, fn(i32) -> i32>`; `set` becomes `insert` (the previous `Option<V>` is the return value) |
+| `hash_map::hashmap_str_fn_*` / `hash_str_fn::hashmap_str_fn_*` | the same methods on `HashMap<String, fn(i32) -> i32>`; `set` becomes `insert` |
+| `hash_string::hashmap_str_*` / `hash_string::hashmap_i32_str_*` / `hash_string::hashmap_str_str_*` | the matching `HashMap<K, V>` methods |
 
 **Before:**
 
@@ -943,11 +956,13 @@ match when the previous value must be inspected. `contains_key`, `len`, and `is_
 are direct receiver methods. The currently supported concrete pairs and the removal
 conditions for the compatibility names are fixed in [ADR-066](../adr/ADR-066-language-v2-generic-public-api.md).
 
-The old HashMap names remain callable during the ADR-014 compatibility window. The
-manifest now classifies them as `must delete` because `impl HashMap<K, V>` methods
-already exist. Method-level `deprecated_by` targets such as `HashMap::insert` can now be
-validated by the compat-orphan audit; adding them belongs to the #917 deprecation wave,
-not to this foundation change.
+The typed `hash_map::` / `hash_string::` / `hash_fn::` / `hash_str_fn::` adapter
+frees were retired by #917 on 2026-10-27. The `impl HashMap<K, V>` methods are the
+only spelling: the compiler rewrites each supported pair directly to the
+non-public implementation functions, and the old qualified names fail resolution
+with an E0100 hint that points at the method surface. `insert` keeps the
+`Option<V>` previous-value contract, so `let old = m.insert(k, v)` is the exact
+replacement for the old `*_insert` adapters.
 
 ### Option/Result Map
 

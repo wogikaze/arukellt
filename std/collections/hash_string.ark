@@ -1,8 +1,10 @@
-//! String-keyed HashMap helpers for GC and linear-memory targets.
+//! String-keyed HashMap implementation for GC and linear-memory targets.
 //!
 //! Uses target-aware builtins (`__hm_si_*`) so open-addressing logic stays in
 //! Ark while backing storage differs between flat `HashMap<String, i32>` (T1) and a GC
-//! struct with parallel arrays (T3).
+//! struct with parallel arrays (T3). The functions here are non-public MIR
+//! lowering targets for the `impl HashMap<K, V>` methods; the user spelling
+//! is `HashMap::new<K, V>()` plus receiver methods.
 
 use std::core::hash
 use std::prelude::{clone, eq}
@@ -16,7 +18,7 @@ fn hm_si_clear_slots(m: HashMap<String, i32>, cap: i32) {
 }
 
 /// Create a HashMap<String, i32> backing store.
-pub fn hashmap_str_i32_new() -> HashMap<String, i32> {
+fn hashmap_str_i32_new() -> HashMap<String, i32> {
     __hm_si_new()
 }
 
@@ -49,7 +51,7 @@ fn hm_si_ensure_insert_capacity(m: HashMap<String, i32>, key: String) {
 
 /// String-keyed set: store key in keys array, value in values array.
 /// The table grows before the load factor exceeds 0.75.
-pub fn hashmap_str_set(m: HashMap<String, i32>, key: String, value: i32) -> bool {
+fn hashmap_str_set(m: HashMap<String, i32>, key: String, value: i32) -> bool {
     hm_si_ensure_insert_capacity(m, clone(key))
     hashmap_str_set_probe(m, key, value)
 }
@@ -85,7 +87,7 @@ fn hashmap_str_set_probe(m: HashMap<String, i32>, key: String, value: i32) -> bo
 }
 
 /// String-keyed get: return Some(value) or None.
-pub fn hashmap_str_get(m: HashMap<String, i32>, key: String) -> Option<i32> {
+fn hashmap_str_get(m: HashMap<String, i32>, key: String) -> Option<i32> {
     let cap: i32 = __hm_si_cap(m)
     let h: i32 = key.hash()
     let mut idx: i32 = h % cap
@@ -115,7 +117,7 @@ pub fn hashmap_str_get(m: HashMap<String, i32>, key: String) -> Option<i32> {
 }
 
 /// String-keyed contains.
-pub fn hashmap_str_contains(m: HashMap<String, i32>, key: String) -> bool {
+fn hashmap_str_contains(m: HashMap<String, i32>, key: String) -> bool {
     let cap: i32 = __hm_si_cap(m)
     let h: i32 = key.hash()
     let mut idx: i32 = h % cap
@@ -145,7 +147,7 @@ pub fn hashmap_str_contains(m: HashMap<String, i32>, key: String) -> bool {
 }
 
 /// String-keyed remove.
-pub fn hashmap_str_remove(m: HashMap<String, i32>, key: String) -> Option<i32> {
+fn hashmap_str_remove(m: HashMap<String, i32>, key: String) -> Option<i32> {
     let cap: i32 = __hm_si_cap(m)
     let h: i32 = key.hash()
     let mut idx: i32 = h % cap
@@ -177,13 +179,25 @@ pub fn hashmap_str_remove(m: HashMap<String, i32>, key: String) -> Option<i32> {
 }
 
 /// String-keyed len.
-pub fn hashmap_str_len(m: HashMap<String, i32>) -> i32 {
+fn hashmap_str_len(m: HashMap<String, i32>) -> i32 {
     __hm_si_size(m)
+}
+
+/// `HashMap::insert` for HashMap<String, i32>: return the previous value.
+fn hashmap_str_insert(m: HashMap<String, i32>, key: String, value: i32) -> Option<i32> {
+    let old: Option<i32> = hashmap_str_get(m, clone(key))
+    let _stored: bool = hashmap_str_set(m, key, value)
+    old
+}
+
+/// `HashMap::is_empty` for HashMap<String, i32>.
+fn hashmap_str_is_empty(m: HashMap<String, i32>) -> bool {
+    hashmap_str_len(m) == 0
 }
 
 /// Return a Vec<String> of all keys currently in the map.
 /// Bucket order is implementation-defined; callers must not rely on it.
-pub fn hashmap_str_i32_keys(m: HashMap<String, i32>) -> Vec<String> {
+fn hashmap_str_i32_keys(m: HashMap<String, i32>) -> Vec<String> {
     let cap: i32 = __hm_si_cap(m)
     let result: Vec<String> = Vec::new<String>()
     let mut i: i32 = 0
@@ -198,7 +212,7 @@ pub fn hashmap_str_i32_keys(m: HashMap<String, i32>) -> Vec<String> {
 
 /// Return a Vec<i32> of all values currently in the map.
 /// Bucket order is implementation-defined; callers must not rely on it.
-pub fn hashmap_str_i32_values(m: HashMap<String, i32>) -> Vec<i32> {
+fn hashmap_str_i32_values(m: HashMap<String, i32>) -> Vec<i32> {
     let cap: i32 = __hm_si_cap(m)
     let result: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
@@ -213,7 +227,7 @@ pub fn hashmap_str_i32_values(m: HashMap<String, i32>) -> Vec<i32> {
 
 /// Return a Vec<(String, i32)> snapshot of all entries currently in the map.
 /// Bucket order is implementation-defined; callers must not rely on it.
-pub fn hashmap_str_i32_entries(m: HashMap<String, i32>) -> Vec<(String, i32)> {
+fn hashmap_str_i32_entries(m: HashMap<String, i32>) -> Vec<(String, i32)> {
     let cap: i32 = __hm_si_cap(m)
     let result: Vec<(String, i32)> = Vec::new<(String, i32)>()
     let mut i: i32 = 0
@@ -228,7 +242,7 @@ pub fn hashmap_str_i32_entries(m: HashMap<String, i32>) -> Vec<(String, i32)> {
 
 // ─── HashMap<i32,String> — GC-aware implementation using __hm_is_* primitives ─────
 
-pub fn hashmap_i32_str_new() -> HashMap<i32, String> {
+fn hashmap_i32_str_new() -> HashMap<i32, String> {
     __hm_is_new()
 }
 
@@ -256,7 +270,7 @@ fn hm_is_ensure_insert_capacity(m: HashMap<i32, String>, key: i32) {
 }
 
 /// i32-keyed set: grows before the load factor exceeds 0.75 (#895).
-pub fn hashmap_i32_str_set(m: HashMap<i32, String>, key: i32, value: String) -> bool {
+fn hashmap_i32_str_set(m: HashMap<i32, String>, key: i32, value: String) -> bool {
     hm_is_ensure_insert_capacity(m, key)
     hashmap_i32_str_set_probe(m, key, value)
 }
@@ -291,7 +305,7 @@ fn hashmap_i32_str_set_probe(m: HashMap<i32, String>, key: i32, value: String) -
     done
 }
 
-pub fn hashmap_i32_str_get(m: HashMap<i32, String>, key: i32) -> Option<String> {
+fn hashmap_i32_str_get(m: HashMap<i32, String>, key: i32) -> Option<String> {
     let cap: i32 = __hm_is_cap(m)
     let h: i32 = key.hash()
     let mut idx: i32 = h % cap
@@ -320,7 +334,7 @@ pub fn hashmap_i32_str_get(m: HashMap<i32, String>, key: i32) -> Option<String> 
     result
 }
 
-pub fn hashmap_i32_str_contains(m: HashMap<i32, String>, key: i32) -> bool {
+fn hashmap_i32_str_contains(m: HashMap<i32, String>, key: i32) -> bool {
     let cap: i32 = __hm_is_cap(m)
     let h: i32 = key.hash()
     let mut idx: i32 = h % cap
@@ -349,7 +363,7 @@ pub fn hashmap_i32_str_contains(m: HashMap<i32, String>, key: i32) -> bool {
     found
 }
 
-pub fn hashmap_i32_str_remove(m: HashMap<i32, String>, key: i32) -> Option<String> {
+fn hashmap_i32_str_remove(m: HashMap<i32, String>, key: i32) -> Option<String> {
     let cap: i32 = __hm_is_cap(m)
     let h: i32 = key.hash()
     let mut idx: i32 = h % cap
@@ -380,13 +394,25 @@ pub fn hashmap_i32_str_remove(m: HashMap<i32, String>, key: i32) -> Option<Strin
     result
 }
 
-pub fn hashmap_i32_str_len(m: HashMap<i32, String>) -> i32 {
+fn hashmap_i32_str_len(m: HashMap<i32, String>) -> i32 {
     __hm_is_size(m)
+}
+
+/// `HashMap::insert` for HashMap<i32, String>: return the previous value.
+fn hashmap_i32_str_insert(m: HashMap<i32, String>, key: i32, value: String) -> Option<String> {
+    let old: Option<String> = hashmap_i32_str_get(m, key)
+    let _stored: bool = hashmap_i32_str_set(m, key, value)
+    old
+}
+
+/// `HashMap::is_empty` for HashMap<i32, String>.
+fn hashmap_i32_str_is_empty(m: HashMap<i32, String>) -> bool {
+    hashmap_i32_str_len(m) == 0
 }
 
 /// Return a Vec<i32> of all keys currently in the map.
 /// Bucket order is implementation-defined; callers must not rely on it.
-pub fn hashmap_i32_str_keys(m: HashMap<i32, String>) -> Vec<i32> {
+fn hashmap_i32_str_keys(m: HashMap<i32, String>) -> Vec<i32> {
     let cap: i32 = __hm_is_cap(m)
     let result: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
@@ -401,7 +427,7 @@ pub fn hashmap_i32_str_keys(m: HashMap<i32, String>) -> Vec<i32> {
 
 /// Return a Vec<String> of all values currently in the map.
 /// Bucket order is implementation-defined; callers must not rely on it.
-pub fn hashmap_i32_str_values(m: HashMap<i32, String>) -> Vec<String> {
+fn hashmap_i32_str_values(m: HashMap<i32, String>) -> Vec<String> {
     let cap: i32 = __hm_is_cap(m)
     let result: Vec<String> = Vec::new<String>()
     let mut i: i32 = 0
@@ -416,7 +442,7 @@ pub fn hashmap_i32_str_values(m: HashMap<i32, String>) -> Vec<String> {
 
 /// Return a Vec<(i32, String)> snapshot of all entries currently in the map.
 /// Bucket order is implementation-defined; callers must not rely on it.
-pub fn hashmap_i32_str_entries(m: HashMap<i32, String>) -> Vec<(i32, String)> {
+fn hashmap_i32_str_entries(m: HashMap<i32, String>) -> Vec<(i32, String)> {
     let cap: i32 = __hm_is_cap(m)
     let result: Vec<(i32, String)> = Vec::new<(i32, String)>()
     let mut i: i32 = 0
@@ -431,7 +457,7 @@ pub fn hashmap_i32_str_entries(m: HashMap<i32, String>) -> Vec<(i32, String)> {
 
 // ─── HashMap<String,String> — GC-aware implementation using __hm_ss_* primitives ─
 
-pub fn hashmap_str_str_new() -> HashMap<String, String> {
+fn hashmap_str_str_new() -> HashMap<String, String> {
     __hm_ss_new()
 }
 
@@ -459,7 +485,7 @@ fn hm_ss_ensure_insert_capacity(m: HashMap<String, String>, key: String) {
 }
 
 /// String→String set: grows before the load factor exceeds 0.75 (#895).
-pub fn hashmap_str_str_set(m: HashMap<String, String>, key: String, value: String) -> bool {
+fn hashmap_str_str_set(m: HashMap<String, String>, key: String, value: String) -> bool {
     hm_ss_ensure_insert_capacity(m, clone(key))
     hashmap_str_str_set_probe(m, key, value)
 }
@@ -494,7 +520,7 @@ fn hashmap_str_str_set_probe(m: HashMap<String, String>, key: String, value: Str
     done
 }
 
-pub fn hashmap_str_str_get(m: HashMap<String, String>, key: String) -> Option<String> {
+fn hashmap_str_str_get(m: HashMap<String, String>, key: String) -> Option<String> {
     let cap: i32 = __hm_ss_cap(m)
     let h: i32 = key.hash()
     let mut idx: i32 = h % cap
@@ -523,7 +549,7 @@ pub fn hashmap_str_str_get(m: HashMap<String, String>, key: String) -> Option<St
     result
 }
 
-pub fn hashmap_str_str_contains(m: HashMap<String, String>, key: String) -> bool {
+fn hashmap_str_str_contains(m: HashMap<String, String>, key: String) -> bool {
     let cap: i32 = __hm_ss_cap(m)
     let h: i32 = key.hash()
     let mut idx: i32 = h % cap
@@ -552,7 +578,7 @@ pub fn hashmap_str_str_contains(m: HashMap<String, String>, key: String) -> bool
     found
 }
 
-pub fn hashmap_str_str_remove(m: HashMap<String, String>, key: String) -> Option<String> {
+fn hashmap_str_str_remove(m: HashMap<String, String>, key: String) -> Option<String> {
     let cap: i32 = __hm_ss_cap(m)
     let h: i32 = key.hash()
     let mut idx: i32 = h % cap
@@ -583,13 +609,25 @@ pub fn hashmap_str_str_remove(m: HashMap<String, String>, key: String) -> Option
     result
 }
 
-pub fn hashmap_str_str_len(m: HashMap<String, String>) -> i32 {
+fn hashmap_str_str_len(m: HashMap<String, String>) -> i32 {
     __hm_ss_size(m)
+}
+
+/// `HashMap::insert` for HashMap<String, String>: return the previous value.
+fn hashmap_str_str_insert(m: HashMap<String, String>, key: String, value: String) -> Option<String> {
+    let old: Option<String> = hashmap_str_str_get(m, clone(key))
+    let _stored: bool = hashmap_str_str_set(m, key, value)
+    old
+}
+
+/// `HashMap::is_empty` for HashMap<String, String>.
+fn hashmap_str_str_is_empty(m: HashMap<String, String>) -> bool {
+    hashmap_str_str_len(m) == 0
 }
 
 /// Return a Vec<String> of all keys currently in the map.
 /// Bucket order is implementation-defined; callers must not rely on it.
-pub fn hashmap_str_str_keys(m: HashMap<String, String>) -> Vec<String> {
+fn hashmap_str_str_keys(m: HashMap<String, String>) -> Vec<String> {
     let cap: i32 = __hm_ss_cap(m)
     let result: Vec<String> = Vec::new<String>()
     let mut i: i32 = 0
@@ -604,7 +642,7 @@ pub fn hashmap_str_str_keys(m: HashMap<String, String>) -> Vec<String> {
 
 /// Return a Vec<String> of all values currently in the map.
 /// Bucket order is implementation-defined; callers must not rely on it.
-pub fn hashmap_str_str_values(m: HashMap<String, String>) -> Vec<String> {
+fn hashmap_str_str_values(m: HashMap<String, String>) -> Vec<String> {
     let cap: i32 = __hm_ss_cap(m)
     let result: Vec<String> = Vec::new<String>()
     let mut i: i32 = 0
@@ -619,7 +657,7 @@ pub fn hashmap_str_str_values(m: HashMap<String, String>) -> Vec<String> {
 
 /// Return a Vec<(String, String)> snapshot of all entries currently in the map.
 /// Bucket order is implementation-defined; callers must not rely on it.
-pub fn hashmap_str_str_entries(m: HashMap<String, String>) -> Vec<(String, String)> {
+fn hashmap_str_str_entries(m: HashMap<String, String>) -> Vec<(String, String)> {
     let cap: i32 = __hm_ss_cap(m)
     let result: Vec<(String, String)> = Vec::new<(String, String)>()
     let mut i: i32 = 0
@@ -630,16 +668,6 @@ pub fn hashmap_str_str_entries(m: HashMap<String, String>) -> Vec<(String, Strin
         i = i + 1
     }
     result
-}
-
-// ─── Old i32→String stubs replaced by __hm_is_* above ──────────────────────
-
-pub fn hashmap_str_val_set(_m: HashMap<i32, String>, _key: i32, _value: String) -> bool {
-    hashmap_i32_str_set(_m, _key, _value)
-}
-
-pub fn hashmap_str_val_get(_m: HashMap<i32, String>, _key: i32) -> Option<String> {
-    hashmap_i32_str_get(_m, _key)
 }
 
 // ─── HashSet<String> API (linear scan over Vec<String>) ──────────────────────
