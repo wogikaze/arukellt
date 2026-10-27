@@ -12,6 +12,7 @@ use mir::lower::call_type_fallback
 use mir::lower::call_rewrite_vec
 use mir::module_spine
 use mir::typed_mir_compat
+use corehir::callee_spelling
 use corehir::type_info_to_mir_value
 use mir::value_types
 use wasm::sections_types_gc_phase7
@@ -171,15 +172,24 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
     }
     if eq(clone(callee_name), "vec_len") ||
     eq(clone(callee_name), "len") ||
-    eq(clone(callee_name), "raw_array_len") {
+    callee_spelling::is_namespace_member_callee(
+        clone(callee_name),
+        String_from("raw_array_len"),
+        String_from("RawArray"),
+        String_from("len")
+    ) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i32"))
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
     }
     // raw_array_grow returns the same vec kind as its vec argument; the sealed
     // CoreOp keeps a declared Vec<T> whose unresolved type param would pin the
     // dest to the i32-vec dead-shell layout (#872 __core_string_push_part).
-    if eq(clone(callee_name), "raw_array_grow") ||
-    ends_with(clone(callee_name), "::raw_array_grow") {
+    if callee_spelling::is_namespace_member_callee(
+        clone(callee_name),
+        String_from("raw_array_grow"),
+        String_from("RawArray"),
+        String_from("grow")
+    ) {
         mark_vec_push_result_type(ctx, dest, first_arg_idx)
     }
     if eq(clone(callee_name), "vec_is_empty") || eq(clone(callee_name), "is_empty") {
@@ -240,7 +250,12 @@ fn is_get_unchecked_callee(callee_name: String) -> bool {
     if eq(clone(callee_name), "vec_get_unchecked") ||
     eq(clone(callee_name), "get_unchecked") ||
     eq(clone(callee_name), "__intrinsic_get_unchecked") ||
-    eq(clone(callee_name), "raw_array_get_unchecked") {
+    callee_spelling::is_namespace_member_callee(
+        clone(callee_name),
+        String_from("raw_array_get_unchecked"),
+        String_from("RawArray"),
+        String_from("get_unchecked")
+    ) {
         return true
     }
     starts_with(clone(callee_name), String_from("get_unchecked__")) ||
@@ -267,18 +282,36 @@ fn is_vec_receiver_recording_callee(callee_name: String) -> bool {
     if is_get_unchecked_callee(clone(callee_name)) {
         return true
     }
-    eq(clone(callee_name), String_from("raw_array_set_unchecked")) ||
+    callee_spelling::is_namespace_member_callee(
+        clone(callee_name),
+        String_from("raw_array_set_unchecked"),
+        String_from("RawArray"),
+        String_from("set_unchecked")
+    ) ||
     eq(clone(callee_name), String_from("vec_set")) ||
     eq(clone(callee_name), String_from("vec_get")) ||
-    eq(clone(callee_name), String_from("raw_array_grow")) ||
-    eq(clone(callee_name), String_from("raw_array_set_len")) ||
+    callee_spelling::is_namespace_member_callee(
+        clone(callee_name),
+        String_from("raw_array_grow"),
+        String_from("RawArray"),
+        String_from("grow")
+    ) ||
+    callee_spelling::is_namespace_member_callee(
+        clone(callee_name),
+        String_from("raw_array_set_len"),
+        String_from("RawArray"),
+        String_from("set_len")
+    ) ||
     eq(clone(callee_name), String_from("push_char"))
 }
 
 fn is_raw_array_new_callee(callee_name: String) -> bool {
-    eq(clone(callee_name), String_from("raw_array_new")) ||
-    eq(clone(callee_name), String_from("raw::raw_array_new")) ||
-    ends_with(clone(callee_name), String_from("::raw_array_new"))
+    callee_spelling::is_namespace_member_callee(
+        clone(callee_name),
+        String_from("raw_array_new"),
+        String_from("RawArray"),
+        String_from("new")
+    )
 }
 
 fn strip_module_prefix_elem_name(elem_ty: String) -> String {

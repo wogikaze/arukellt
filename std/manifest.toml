@@ -1183,7 +1183,7 @@ prelude = false
 [[modules]]
 name = "std::core::raw"
 stability = "internal"
-doc = "Sealed Vec/String representation API (RFC-006 / #817). Not importable from user code."
+doc = "Sealed Vec/String/scalar representation API (RFC-006 / #817). Not importable from user code; stdlib uses the RawArray / RawString / RawFloat associated functions."
 availability = { t1 = true, t3 = true }
 
 [[modules]]

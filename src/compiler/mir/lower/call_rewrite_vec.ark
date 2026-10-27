@@ -1,5 +1,6 @@
 use std::prelude::{clone, contains, ends_with, eq, starts_with, substring}
 use std::text
+use corehir::callee_spelling
 use mir::lower::call_rewrite_vec_access
 use mir::lower::call_rewrite_vec_push
 use mir::lower::ctx_api_emit
@@ -90,8 +91,66 @@ fn mir_rewrite_vec_access_after_mono(ctx: LowerCtx, callee_name: String, first_a
     callee_name
 }
 
+// Namespace members lower to the canonical sealed-raw CoreOp spellings before
+// method mono resolution. The associated wrappers stay for the sealed stdlib
+// surface, but a call site must bind the CoreOp so the emitter can pick the
+// concrete Vec element type from the enclosing return (#917).
+fn mir_rewrite_raw_array_namespace(callee_name: String) -> String {
+    if callee_spelling::is_namespace_member_callee(
+        clone(callee_name),
+        String_from("raw_array_new"),
+        String_from("RawArray"),
+        String_from("new")
+    ) {
+        return String_from("raw_array_new")
+    }
+    if callee_spelling::is_namespace_member_callee(
+        clone(callee_name),
+        String_from("raw_array_len"),
+        String_from("RawArray"),
+        String_from("len")
+    ) {
+        return String_from("raw_array_len")
+    }
+    if callee_spelling::is_namespace_member_callee(
+        clone(callee_name),
+        String_from("raw_array_get_unchecked"),
+        String_from("RawArray"),
+        String_from("get_unchecked")
+    ) {
+        return String_from("raw_array_get_unchecked")
+    }
+    if callee_spelling::is_namespace_member_callee(
+        clone(callee_name),
+        String_from("raw_array_set_unchecked"),
+        String_from("RawArray"),
+        String_from("set_unchecked")
+    ) {
+        return String_from("raw_array_set_unchecked")
+    }
+    if callee_spelling::is_namespace_member_callee(
+        clone(callee_name),
+        String_from("raw_array_grow"),
+        String_from("RawArray"),
+        String_from("grow")
+    ) {
+        return String_from("raw_array_grow")
+    }
+    if callee_spelling::is_namespace_member_callee(
+        clone(callee_name),
+        String_from("raw_array_set_len"),
+        String_from("RawArray"),
+        String_from("set_len")
+    ) {
+        return String_from("raw_array_set_len")
+    }
+    callee_name
+}
+
 fn mir_rewrite_vec_call(ctx: LowerCtx, callee_name: String, first_arg_idx: i32, second_arg_idx: i32, stage_call_args: bool) -> MirVecCallRewrite {
-    let mut rewritten = normalize_vec_constructor_callee(callee_name)
+    let mut rewritten = mir_rewrite_raw_array_namespace(
+        normalize_vec_constructor_callee(callee_name)
+    )
     let mut push_i64_needs_extend = false
     if is_vec_len_callee(clone(rewritten)) {
         rewritten = mir_rewrite_vec_len(ctx, rewritten, first_arg_idx)

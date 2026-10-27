@@ -55,15 +55,46 @@ fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) 
         set_stdlib_result_type(ctx, dest, String_from("result:unit:String"))
         return true
     }
-    if eq(clone(cn), "parse_f64") || ends_with(clone(callee_name), String_from("::parse_f64")) {
-        set_stdlib_result_type(ctx, dest, String_from("result:f64:String"))
+    if is_parse_callee(clone(callee_name), String_from("parse_i32")) {
+        set_stdlib_result_type(ctx, dest, String_from("result:i32:String"))
         return true
     }
-    if eq(clone(cn), "parse_i64") || ends_with(clone(callee_name), String_from("::parse_i64")) {
+    if is_parse_callee(clone(callee_name), String_from("parse_i64")) {
         set_stdlib_result_type(ctx, dest, String_from("result:i64:String"))
         return true
     }
+    if is_parse_callee(clone(callee_name), String_from("parse_f64")) {
+        set_stdlib_result_type(ctx, dest, String_from("result:f64:String"))
+        return true
+    }
     false
+}
+
+// Only the text parsers return Result. JsonValue::parse_i32 is an unrelated
+// i32 reader with the same leaf name, so do not match every `::parse_i32`.
+fn is_parse_callee(callee_name: String, leaf: String) -> bool {
+    if eq(clone(callee_name), clone(leaf)) {
+        return true
+    }
+    if eq(clone(callee_name), String_from("raw_").concat(clone(leaf))) {
+        return true
+    }
+    if eq(clone(callee_name), String_from("__intrinsic_").concat(clone(leaf))) {
+        return true
+    }
+    if eq(clone(callee_name), String_from("RawString::").concat(clone(leaf))) {
+        return true
+    }
+    if ends_with(clone(callee_name), String_from("::raw_").concat(clone(leaf))) {
+        return true
+    }
+    if ends_with(clone(callee_name), String_from("::__intrinsic_").concat(clone(leaf))) {
+        return true
+    }
+    starts_with(
+        clone(callee_name),
+        String_from("RawString__").concat(clone(leaf)).concat(String_from("__"))
+    )
 }
 
 fn is_host_fs_write_string_callee(callee_name: String) -> bool {
