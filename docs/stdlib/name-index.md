@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 664
+- **Canonical names:** 648
 - **Historical/deprecated names:** 81
-- **Total entries:** 745
+- **Total entries:** 729
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -652,22 +652,6 @@ Current public API names, sorted alphabetically.
 | `vec_iter` | `std::core::iter` | `provisional` | Iter |
 | `wasm_magic` | `std::wasm` | `experimental` | Wasm |
 | `wasm_version` | `std::wasm` | `experimental` | Wasm |
-| `wit_type_bool` | `std::wit` | `experimental` | Wit |
-| `wit_type_char` | `std::wit` | `experimental` | Wit |
-| `wit_type_f32` | `std::wit` | `experimental` | Wit |
-| `wit_type_f64` | `std::wit` | `experimental` | Wit |
-| `wit_type_from_id` | `std::wit` | `experimental` | Wit |
-| `wit_type_id` | `std::wit` | `experimental` | Wit |
-| `wit_type_name` | `std::wit` | `experimental` | Wit |
-| `wit_type_s16` | `std::wit` | `experimental` | Wit |
-| `wit_type_s32` | `std::wit` | `experimental` | Wit |
-| `wit_type_s64` | `std::wit` | `experimental` | Wit |
-| `wit_type_s8` | `std::wit` | `experimental` | Wit |
-| `wit_type_string` | `std::wit` | `experimental` | Wit |
-| `wit_type_u16` | `std::wit` | `experimental` | Wit |
-| `wit_type_u32` | `std::wit` | `experimental` | Wit |
-| `wit_type_u64` | `std::wit` | `experimental` | Wit |
-| `wit_type_u8` | `std::wit` | `experimental` | Wit |
 | `with_extension` | `std::path` | `stable` | Path |
 | `write_bytes` | `std::host::fs` | `provisional` | Host Fs |
 | `write_string` | `std::fs` | `stable` | Fs |
@@ -1489,22 +1473,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `vec_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `wasm_magic` | ✅ `experimental` | `std::wasm` | Wasm |
 | `wasm_version` | ✅ `experimental` | `std::wasm` | Wasm |
-| `wit_type_bool` | ✅ `experimental` | `std::wit` | Wit |
-| `wit_type_char` | ✅ `experimental` | `std::wit` | Wit |
-| `wit_type_f32` | ✅ `experimental` | `std::wit` | Wit |
-| `wit_type_f64` | ✅ `experimental` | `std::wit` | Wit |
-| `wit_type_from_id` | ✅ `experimental` | `std::wit` | Wit |
-| `wit_type_id` | ✅ `experimental` | `std::wit` | Wit |
-| `wit_type_name` | ✅ `experimental` | `std::wit` | Wit |
-| `wit_type_s16` | ✅ `experimental` | `std::wit` | Wit |
-| `wit_type_s32` | ✅ `experimental` | `std::wit` | Wit |
-| `wit_type_s64` | ✅ `experimental` | `std::wit` | Wit |
-| `wit_type_s8` | ✅ `experimental` | `std::wit` | Wit |
-| `wit_type_string` | ✅ `experimental` | `std::wit` | Wit |
-| `wit_type_u16` | ✅ `experimental` | `std::wit` | Wit |
-| `wit_type_u32` | ✅ `experimental` | `std::wit` | Wit |
-| `wit_type_u64` | ✅ `experimental` | `std::wit` | Wit |
-| `wit_type_u8` | ✅ `experimental` | `std::wit` | Wit |
 | `with_extension` | ✅ `stable` | `std::path` | Path |
 | ~~`write_all`~~ | ⚠️ deprecated | `std::io` | → `Io::write_all` · [migration guide](migration-guidance.md) |
 | `write_bytes` | ✅ `provisional` | `std::host::fs` | Host Fs |

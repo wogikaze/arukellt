@@ -52,9 +52,8 @@
 | `std::time` | 3 | 3 | 0 | 0 | 0 | 2/3 (67%) | no |
 | `std::toml` | 14 | 0 | 0 | 14 | 0 | 12/14 (86%) | no |
 | `std::wasm` | 77 | 0 | 0 | 77 | 0 | **35/77 (45%)** | no |
-| `std::wit` | 16 | 0 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 745 APIs, 287 stable, 63 provisional, 314 experimental, 81 deprecated, 559/664 (84%) fixture coverage
+**Total**: 729 APIs, 287 stable, 63 provisional, 298 experimental, 81 deprecated, 552/648 (85%) fixture coverage
 
 ## Legend
 
@@ -70,4 +69,4 @@
 
 Families below 50% fixture coverage (denominator excludes deprecated APIs):
 
-`std::wasm` (45%), `std::wit` (44%).
+`std::wasm` (45%).

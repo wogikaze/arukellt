@@ -10,7 +10,7 @@
 |------|-------|-------------|
 | `stable` | 287 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 63 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 314 | API may change without notice. Functionality is available but not finalized. |
+| `experimental` | 298 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 81 | Superseded — see migration guidance. |
 
 ## Public Types
@@ -1161,27 +1161,6 @@ let input = read_to_string()
 | `valtype_v128` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Value type byte for SIMD v128 (0x7b). Requires SIMD proposal. |
 | `wasm_magic` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
 | `wasm_version` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
-
-## Wit
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `wit_type_bool` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
-| `wit_type_char` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
-| `wit_type_f32` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
-| `wit_type_f64` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
-| `wit_type_from_id` | `(i32) -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
-| `wit_type_id` | `(WitType) -> i32` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
-| `wit_type_name` | `(WitType) -> String` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
-| `wit_type_s16` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
-| `wit_type_s32` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
-| `wit_type_s64` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
-| `wit_type_s8` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
-| `wit_type_string` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
-| `wit_type_u16` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
-| `wit_type_u32` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
-| `wit_type_u64` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
-| `wit_type_u8` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
 
 ## Deprecated APIs
 
