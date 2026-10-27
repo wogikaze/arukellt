@@ -1,8 +1,7 @@
 use std::host::stdio
 use std::seq
-use std::prelude::{sort_i32}
 fn main() {
-    let v: Vec<i32> = Vec::new<i32>()
+    let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 3)
     push(v, 1)
     push(v, 4)
@@ -14,7 +13,7 @@ fn main() {
     stdio::println((seq::seq_contains(v, 4)).to_string())
     stdio::println((seq::seq_contains(v, 9)).to_string())
     stdio::println((seq::count_eq(v, 1)).to_string())
-    sort_i32(v)
+    v = seq::sort_by(v)
     let idx: i32 = seq::binary_search(v, 4)
     stdio::println((idx).to_string())
     let u: Vec<i32> = seq::unique(v)

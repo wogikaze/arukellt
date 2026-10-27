@@ -102,17 +102,25 @@ registered entries owned by #917).
 - [x] Add the matching rows to `docs/stdlib/migration-guidance.md`.
 - [x] W0009 diagnostic coverage for the 31 stable frees (bare-name table +
       per-symbol unit assertions + live diag fixtures on wasm32-gc/wasm32).
-- [ ] Update in-tree callers (compiler source, fixtures, benchmarks) to
-      `v.sort()`, `v.iter().map(f).collect()`, `v.iter().sum()`, … as the
-      method replacements land (#697 for `Vec::sort`). This is Wave 2 work:
-      the i64/f64/String consumer lanes and collected-Vec receiver methods
-      still hit compiler emitter gaps.
+- [x] Update in-tree callers (compiler source, fixtures, benchmarks) to
+      `v.sort_by(cmp)`, `v.iter().map(f).collect()`, `v.iter().sum()`, … as the
+      method replacements land (#697 for `Vec::sort`). Landed 2026-10-27 for
+      the 31 stable seq/combinator entries: the i32 and `Vec<String>`
+      map/filter lanes use the iterator chain; the i64/f64 numeric consumers
+      and the `Vec<String>` reverse/contains lanes use the documented explicit
+      loop / `std::seq::sort_by` fallback because those emitter lanes still
+      emit invalid Wasm. `filter_i32` remains callable.
 
 ### Wave 2 — delete inside the 1.0.0 window
 
 - [ ] Delete the 49 remaining manifest entries and their prelude / `std::seq`
       implementations after the W0009 window / ADR-087 conditions are
       recorded. Two stale entries were already retired in Wave 1.
+- [x] Landed 2026-10-27: deleted the 31 stable seq/combinator manifest entries
+      and `std/prelude.ark` declarations, added E0100
+      `resolver::removed_names` hints, and migrated the in-tree call sites. The
+      provisional `filter_i32` is the one deferral; the 13 deprecated `std::seq`
+      helpers and 4 deprecated prelude wrappers remain in their own lanes.
 - [ ] Do **not** delete the whole `std::seq` module in this issue: the
       nine non-deprecated generic helpers belong to #917.
 - [ ] Update `std/manifest.toml`, generated docs, and the fixture set

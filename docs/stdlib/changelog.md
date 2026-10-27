@@ -16,6 +16,59 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — stable seq/combinator frees removed (ADR-087 Wave 2, #703 / #917)
+
+- **Basis**: [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2/D3,
+  [ADR-046](../adr/ADR-046-free-function-eradication.md), and the
+  [#703](https://github.com/wogikaze/arukellt/issues/703) /
+  [#917](https://github.com/wogikaze/arukellt/issues/917) execution lanes.
+- **Conditions**: (1) the 31 entries carried `deprecated_since = "0.1.0"` and
+  `remove_in = "1.0.0"` from the Wave 1 deprecation on 2026-10-26, with live
+  W0009 coverage and diagnostic fixtures; (2) `docs/stdlib/migration-guidance.md`
+  records the before/after and the reachable replacement for every symbol;
+  (3) this entry. The 31 bare names now fail resolution with **E0100** and the
+  `resolver::removed_names` hint, replacing the W0009 warning.
+- **Removed (31)**: `sort_i32`, `sort_i64`, `sort_f64`, `sort_String`,
+  `map_i32_i32`, `map_i64_i64`, `map_f64_f64`, `map_String_String`,
+  `filter_i64`, `filter_f64`, `filter_String`, `fold_i32_i32`,
+  `fold_i64_i64`, `fold_f64_f64`, `any_i32`, `any_i64`, `any_f64`,
+  `any_String`, `find_i32`, `find_i64`, `find_f64`, `find_String`,
+  `contains_i32`, `contains_String`, `reverse_i32`, `reverse_String`,
+  `remove_i32`, `sum_i32`, `product_i32`, `map_option_i32_i32`, and
+  `contains_string` (manifest entries and `std/prelude.ark` declarations).
+- **Reason**: ADR-046 eradication of the user-reachable monomorphic prelude
+  surface; the replacement is the `Vec` / iterator method surface, with the
+  concrete reachable fallback recorded per row in the migration guide.
+  `filter_i32` remains `provisional` (individual deferral) and was not
+  removed.
+- **Replacement**: `v.sort_by(cmp)` for `Vec<i32>` / `Vec<String>` and
+  `std::seq::sort_by(v)` for the `i64` / `f64` sort lanes;
+  `v.iter().map(f).collect()`, `v.iter().filter(f).collect()`,
+  `v.iter().fold(init, f)`, `v.iter().sum()`, `v.iter().any(f)`,
+  `v.iter().find(f)`, `v.iter().contains(x)`, and
+  `v.iter().rev().collect()` for the verified item lanes; `v.drain(i, i + 1)`
+  for `remove_i32`; `o.map(f)` via `std::core::container` for
+  `map_option_i32_i32`; and `s.contains(sub)` for `contains_string`. The
+  `i64` / `f64` numeric consumers, the `Vec<String>` reverse/contains lanes,
+  and the generic `Vec::sort_by` receiver for `i64` / `f64` still emit invalid
+  Wasm, so those rows document an explicit loop / `std::seq::sort_by`
+  fallback until the lane lands.
+- **Scorecard**: public surface 1168 → **1137** symbols; manifest public
+  entries 776 → **745**; `prelude_wrapper` entries 96 → **65**; `pub fn`
+  declarations 1359 → **1328**; `must delete` 114 → **83**
+  (`associated-or-method` unchanged at 1054). The family count is 32 → **1**
+  (`filter_i32` only).
+- **Evidence**: stage-2 rebuild; full fixture parity **1836/1836**
+  compile+validate PASS (105 runtime smoke, 1 `test:` fixture PASS);
+  cross-backend parity **81/81** for the changed run fixtures
+  (`wasm32-gc` component vs `wasm32` linear core, stdout identical);
+  `selfhost diag-parity` PASS with the new E0100 goldens;
+  `check-stdlib-eradication`, `check-compat-orphans`, and `docs check` 6/6
+  clean. `verify lane` PASS after forcing single-file lint with the pinned
+  bootstrap CLI: the stage-2 stub host traps in its `lint` `parse_args` path
+  before per-file fallback (pre-existing tooling residual, not a source
+  failure). The ADR-029 fixpoint result is recorded in the wave receipt.
+
 ## 2026-10-27 — std::io trait cutover (ADR-085 Phase E/F, #693)
 
 - **Basis**: [ADR-085](../adr/ADR-085-io-trait-unification.md) D1–D10,

@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::prelude::{filter_i64}
+
 fn is_positive(x: i64) -> bool {
     x > 0i64
 }
@@ -10,7 +10,15 @@ fn main() {
     push(v, 10i64)
     push(v, -3i64)
     push(v, 20i64)
-    let pos: Vec<i64> = filter_i64(v, is_positive)
+    let pos: Vec<i64> = Vec::new<i64>()
+    let mut filter_index: i32 = 0
+    while filter_index < len(v) {
+        let filter_value = get_unchecked(v, filter_index)
+        if is_positive(filter_value) {
+            push(pos, filter_value)
+        }
+        filter_index = filter_index + 1
+    }
     let mut i: i32 = 0
     while i < len(pos) {
         stdio::println((get_unchecked(pos, i)).to_string())

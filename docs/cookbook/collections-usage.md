@@ -70,45 +70,60 @@ println(name) // "bob"
 
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
+use std::collections::vec
+use std::core
+use std::core::cmp
+use std::core::iter
+
+fn ascending(a: i32, b: i32) -> Ordering {
+    a.cmp(b)
+}
+
+fn mul_i32(a: i32, b: i32) -> i32 {
+    a * b
+}
+
 let v = Vec_new_i32()
 push(v, 5)  push(v, 2)  push(v, 8)  push(v, 1)  push(v, 3)
 
-sort_i32(v)
+v.sort_by(ascending)
 // v is now [1, 2, 3, 5, 8]
 
 assert_eq(get(v, 0), 1)
 assert_eq(get(v, 4), 8)
 
 // Check membership
-assert(contains_i32(v, 3))
-assert(contains_i32(v, 9) == false)
+assert(v.iter().contains(3))
+assert(v.iter().contains(9) == false)
 
 // Sum and product
-println(to_string(sum_i32(v)))     // 19
-println(to_string(product_i32(v))) // 240
+println(to_string(v.iter().sum()))                  // 19
+println(to_string(v.iter().fold(1, mul_i32)))      // 240
 ```
 
 ## Vec — Functional Transforms
 
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
+use std::core::iter
+
 let nums = Vec_new_i32()
 push(nums, 1)  push(nums, 2)  push(nums, 3)  push(nums, 4)  push(nums, 5)
 
 // Double each value
-let doubled = map_i32_i32(nums, fn(x: i32) -> i32 { x * 2 })
+let doubled = nums.iter().map(fn(x: i32) -> i32 { x * 2 }).collect()
 // [2, 4, 6, 8, 10]
 
 // Keep only even values
-let evens = filter_i32(nums, fn(x: i32) -> bool { x % 2 == 0 })
+let evens = nums.iter().filter(fn(x: i32) -> bool { x % 2 == 0 }).collect()
 // [2, 4]
 
 // Sum with fold
-let total = fold_i32_i32(nums, 0, fn(acc: i32, x: i32) -> i32 { acc + x })
+let total = nums.iter().fold(0, fn(acc: i32, x: i32) -> i32 { acc + x })
 println(to_string(total)) // 15
 
 // Check if any element matches
-let has_big = any_i32(nums, fn(x: i32) -> bool { x > 3 })
+let has_big = nums.iter().any(fn(x: i32) -> bool { x > 3 })
 assert(has_big)
 ```
 

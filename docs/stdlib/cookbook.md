@@ -112,7 +112,7 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::prelude::{filter_i32, fold_i32_i32, map_i32_i32}
+use std::core::iter
 use std::test
 fn double(x: i32) -> i32 { x * 2 }
 fn is_even(x: i32) -> bool { x % 2 == 0 }
@@ -126,9 +126,9 @@ fn main() {
     push(v, 4)
     push(v, 5)
 
-    let doubled: Vec<i32> = map_i32_i32(v, double)
-    let evens: Vec<i32> = filter_i32(doubled, is_even)
-    let total: i32 = fold_i32_i32(evens, 0, add)
+    let doubled: Vec<i32> = v.iter().map(double).collect()
+    let evens: Vec<i32> = doubled.iter().filter(is_even).collect()
+    let total: i32 = evens.iter().fold(0, add)
     test::assert_eq_i32(total, 12)
 }
 ```
@@ -142,7 +142,15 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
+use std::collections::vec
+use std::core
+use std::core::cmp
+use std::core::iter
 use std::test
+fn ascending(a: i32, b: i32) -> Ordering {
+    a.cmp(b)
+}
+
 fn is_even(x: i32) -> bool { x % 2 == 0 }
 
 fn main() {
@@ -151,15 +159,15 @@ fn main() {
     push(v, 10)
     push(v, 20)
 
-    sort_i32(v)                          // [10, 20, 30]
-    reverse_i32(v)                       // [30, 20, 10]
+    v.sort_by(ascending)                 // [10, 20, 30]
+    v = v.iter().rev().collect()         // [30, 20, 10]
 
-    let has_20: bool = contains_i32(v, 20)   // true
-    let has_even: bool = any_i32(v, is_even) // true
+    let has_20: bool = v.iter().contains(20) // true
+    let has_even: bool = v.iter().any(is_even) // true
     test::assert_true(has_20)
     test::assert_true(has_even)
 
-    let found = find_i32(v, is_even)
+    let found = v.iter().find(is_even)
     match found {
         Option::Some(x) => test::assert_eq_i32(x, 30),
         None => panic("expected Some, got None"),
@@ -174,8 +182,9 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
+use std::collections::vec
+use std::core::iter
 use std::host::stdio
-use std::prelude::{sum_i32}
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 10)
@@ -183,9 +192,9 @@ fn main() {
     push(v, 30)
     push(v, 40)
 
-    stdio::println((sum_i32(v)).to_string())  // 100
+    stdio::println((v.iter().sum()).to_string())  // 100
 
-    remove_i32(v, 1)                           // removes element at index 1
+    v.drain(1, 2)                              // removes element at index 1
     stdio::println(len(v).to_string())      // 3
 }
 ```
@@ -491,14 +500,15 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
+use std::core::container
 use std::host::stdio
 fn double(x: i32) -> i32 { x * 2 }
 
 fn main() {
     let a: Option<i32> = Some(21)
     let b: Option<i32> = None
-    let mapped_a: Option<i32> = map_option_i32_i32(a, double)
-    let mapped_b: Option<i32> = map_option_i32_i32(b, double)
+    let mapped_a: Option<i32> = a.map(double)
+    let mapped_b: Option<i32> = b.map(double)
     match mapped_a {
         Some(val) => stdio::println(val.to_string()),  // 42
         None => stdio::println("none"),
@@ -781,14 +791,22 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
+use std::collections::vec
+use std::core
+use std::core::cmp
 use std::host::stdio
+
+fn ascending(a: i32, b: i32) -> Ordering {
+    a.cmp(b)
+}
+
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 5)
     push(v, 3)
     push(v, 8)
     push(v, 1)
-    sort_i32(v)
+    v.sort_by(ascending)
 
     let mut parts: Vec<String> = Vec::new<String>()
     let mut i: i32 = 0

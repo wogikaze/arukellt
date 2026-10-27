@@ -1,5 +1,6 @@
 use std::host::stdio
-use std::prelude::{filter_i32, map_i32_i32, to_string}
+use std::prelude::{filter_i32, to_string}
+use std::core::iter
 fn double(x: i32) -> i32 {
     x * 2
 }
@@ -14,7 +15,7 @@ fn main() {
     push(xs, 2)
     push(xs, 3)
     push(xs, 0)
-    let mapped = map_i32_i32(xs, double)
+    let mapped: Vec<i32> = xs.iter().map(double).collect()
     let filtered = filter_i32(mapped, is_positive)
     let mut i = 0
     let n = len(filtered)

@@ -1,5 +1,6 @@
+use std::seq
 use std::test
-use std::prelude::{sort_i64}
+
 fn main() {
     let mut v: Vec<i64> = Vec::new<i64>()
     let a: i64 = 30i64
@@ -8,7 +9,7 @@ fn main() {
     push(v, a)
     push(v, b)
     push(v, c)
-    sort_i64(v)
+    v = seq::sort_by(v)
     test::assert_eq_i64(get_unchecked(v, 0), 10i64)
     test::assert_eq_i64(get_unchecked(v, 1), 20i64)
     test::assert_eq_i64(get_unchecked(v, 2), 30i64)

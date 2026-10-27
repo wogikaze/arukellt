@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::prelude::{map_f64_f64}
+
 fn square(x: f64) -> f64 {
     x * x
 }
@@ -9,7 +9,12 @@ fn main() {
     push(v, 2.0)
     push(v, 3.0)
     push(v, 4.0)
-    let squared: Vec<f64> = map_f64_f64(v, square)
+    let squared: Vec<f64> = Vec::new<f64>()
+    let mut map_index: i32 = 0
+    while map_index < len(v) {
+        push(squared, square(get_unchecked(v, map_index)))
+        map_index = map_index + 1
+    }
     let mut i: i32 = 0
     while i < len(squared) {
         stdio::println((get_unchecked(squared, i)).to_string())

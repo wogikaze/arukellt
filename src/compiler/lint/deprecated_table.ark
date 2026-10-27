@@ -37,7 +37,7 @@ pub fn deprecated_call_message(name: String) -> String {
     if len(assertion) > 0 {
         return assertion
     }
-    return deprecated_seq_call_message(name)
+    String_new()
 }
 
 // The stable must-delete wave converted 60 entries to `deprecated` under
@@ -145,102 +145,6 @@ fn deprecated_assert_call_message(name: String) -> String {
     String_new()
 }
 
-fn deprecated_seq_call_message(name: String) -> String {
-    if eq(clone(name), "sort_i32") {
-        return "use `v.sort_by(cmp)` instead"
-    }
-    if eq(clone(name), "sort_i64") {
-        return "use `v.sort_by(cmp)` instead"
-    }
-    if eq(clone(name), "sort_f64") {
-        return "use `v.sort_by(cmp)` instead"
-    }
-    if eq(clone(name), "sort_String") {
-        return "use `v.sort_by(cmp)` instead"
-    }
-    if eq(clone(name), "map_i32_i32") {
-        return "use `v.iter().map(f).collect()` instead"
-    }
-    if eq(clone(name), "map_i64_i64") {
-        return "use `v.iter().map(f).collect()` instead"
-    }
-    if eq(clone(name), "map_f64_f64") {
-        return "use `v.iter().map(f).collect()` instead"
-    }
-    if eq(clone(name), "map_String_String") {
-        return "use `v.iter().map(f).collect()` instead"
-    }
-    if eq(clone(name), "filter_i64") {
-        return "use `v.iter().filter(f).collect()` instead"
-    }
-    if eq(clone(name), "filter_f64") {
-        return "use `v.iter().filter(f).collect()` instead"
-    }
-    if eq(clone(name), "filter_String") {
-        return "use `v.iter().filter(f).collect()` instead"
-    }
-    if eq(clone(name), "fold_i32_i32") {
-        return "use `v.iter().fold(init, f)` instead"
-    }
-    if eq(clone(name), "fold_i64_i64") {
-        return "use `v.iter().fold(init, f)` instead"
-    }
-    if eq(clone(name), "fold_f64_f64") {
-        return "use `v.iter().fold(init, f)` instead"
-    }
-    if eq(clone(name), "any_i32") {
-        return "use `v.iter().any(f)` instead"
-    }
-    if eq(clone(name), "any_i64") {
-        return "use `v.iter().any(f)` instead"
-    }
-    if eq(clone(name), "any_f64") {
-        return "use `v.iter().any(f)` instead"
-    }
-    if eq(clone(name), "any_String") {
-        return "use `v.iter().any(f)` instead"
-    }
-    if eq(clone(name), "find_i32") {
-        return "use `v.iter().find(f)` instead"
-    }
-    if eq(clone(name), "find_i64") {
-        return "use `v.iter().find(f)` instead"
-    }
-    if eq(clone(name), "find_f64") {
-        return "use `v.iter().find(f)` instead"
-    }
-    if eq(clone(name), "find_String") {
-        return "use `v.iter().find(f)` instead"
-    }
-    if eq(clone(name), "contains_i32") {
-        return "use `v.iter().contains(target)` instead"
-    }
-    if eq(clone(name), "contains_String") {
-        return "use `v.iter().contains(target)` instead"
-    }
-    if eq(clone(name), "reverse_i32") {
-        return "use `v.iter().rev().collect()` instead"
-    }
-    if eq(clone(name), "reverse_String") {
-        return "use `v.iter().rev().collect()` (the String rev lane is planned) instead"
-    }
-    if eq(clone(name), "remove_i32") {
-        return "use `v.drain(idx, idx + 1)` instead"
-    }
-    if eq(clone(name), "sum_i32") {
-        return "use `v.iter().sum()` instead"
-    }
-    if eq(clone(name), "product_i32") {
-        return "use `v.iter().fold(1, mul)` instead"
-    }
-    if eq(clone(name), "map_option_i32_i32") {
-        return "use `o.map(f)` via `use std::core::container` instead"
-    }
-    if eq(clone(name), "contains_string") {
-        return "use the String method `s.contains(sub)` instead"
-    }
-    String_new()
-}
 // ── Deprecated qualified path calls (math::abs_i32 → x.abs()) ──────────
 
 // Returns a non-empty replacement message if the qualified path call is deprecated.
@@ -464,39 +368,6 @@ test mod "deprecated" {
         assert(len(deprecated_call_message("assert_eq_i64")) > 0)
         assert(len(deprecated_call_message("assert_eq_str")) > 0)
     }
-    test "seq_frees_warn_w0009" {
-        assert(len(deprecated_call_message("sort_i32")) > 0)
-        assert(len(deprecated_call_message("sort_i64")) > 0)
-        assert(len(deprecated_call_message("sort_f64")) > 0)
-        assert(len(deprecated_call_message("sort_String")) > 0)
-        assert(len(deprecated_call_message("map_i32_i32")) > 0)
-        assert(len(deprecated_call_message("map_i64_i64")) > 0)
-        assert(len(deprecated_call_message("map_f64_f64")) > 0)
-        assert(len(deprecated_call_message("map_String_String")) > 0)
-        assert(len(deprecated_call_message("filter_i64")) > 0)
-        assert(len(deprecated_call_message("filter_f64")) > 0)
-        assert(len(deprecated_call_message("filter_String")) > 0)
-        assert(len(deprecated_call_message("fold_i32_i32")) > 0)
-        assert(len(deprecated_call_message("fold_i64_i64")) > 0)
-        assert(len(deprecated_call_message("fold_f64_f64")) > 0)
-        assert(len(deprecated_call_message("any_i32")) > 0)
-        assert(len(deprecated_call_message("any_i64")) > 0)
-        assert(len(deprecated_call_message("any_f64")) > 0)
-        assert(len(deprecated_call_message("any_String")) > 0)
-        assert(len(deprecated_call_message("find_i32")) > 0)
-        assert(len(deprecated_call_message("find_i64")) > 0)
-        assert(len(deprecated_call_message("find_f64")) > 0)
-        assert(len(deprecated_call_message("find_String")) > 0)
-        assert(len(deprecated_call_message("contains_i32")) > 0)
-        assert(len(deprecated_call_message("contains_String")) > 0)
-        assert(len(deprecated_call_message("reverse_i32")) > 0)
-        assert(len(deprecated_call_message("reverse_String")) > 0)
-        assert(len(deprecated_call_message("remove_i32")) > 0)
-        assert(len(deprecated_call_message("sum_i32")) > 0)
-        assert(len(deprecated_call_message("product_i32")) > 0)
-        assert(len(deprecated_call_message("map_option_i32_i32")) > 0)
-        assert(len(deprecated_call_message("contains_string")) > 0)
-    }
     test "io_compat_frees_warn_w0009" {
         assert(len(deprecated_qualified_call_message("io::reader_from_bytes")) > 0)
         assert(len(deprecated_qualified_call_message("io::writer_new")) > 0)
@@ -521,6 +392,16 @@ test mod "deprecated" {
         assert(len(deprecated_qualified_call_message("io::new_memory_buffer")) == 0)
         assert(len(deprecated_qualified_call_message("io::seek_to")) == 0)
         assert(len(deprecated_qualified_call_message("io::print_bytes")) == 0)
+    }
+
+    test "removed_seq_frees_have_no_w0009_entry" {
+        // These are E0100 removals (ADR-087 Wave 2); a live W0009 entry
+        // would be a dead warning.
+        assert(len(deprecated_call_message("sort_i32")) == 0)
+        assert(len(deprecated_call_message("sum_i32")) == 0)
+        assert(len(deprecated_call_message("map_option_i32_i32")) == 0)
+        assert(len(deprecated_call_message("contains_string")) == 0)
+        assert(len(deprecated_call_message("filter_i32")) == 0)
     }
     test "retired_stale_builtin_entries_are_not_warned" {
         // `clear`, `map_option_String_String`, and `map_result_i32_i32`

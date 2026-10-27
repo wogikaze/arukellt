@@ -1,5 +1,6 @@
 use std::test
-use std::prelude::{find_i32}
+use std::core::iter
+
 fn is_three(x: i32) -> bool {
     x == 3
 }
@@ -11,7 +12,7 @@ fn main() {
     push(v, 3)
     push(v, 4)
     push(v, 5)
-    let result = find_i32(v, is_three)
+    let result = v.iter().find(is_three)
     match result {
         Option::Some(val) => test::assert_eq_i32(val, 3),
         None => panic("expected Some, got None"),

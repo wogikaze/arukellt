@@ -1,11 +1,19 @@
 use std::host::stdio
-use std::prelude::{reverse_String}
+
 fn main() {
     let mut v: Vec<String> = Vec::new<String>()
     push(v, String_from("a"))
     push(v, String_from("b"))
     push(v, String_from("c"))
-    reverse_String(v)
+    let mut reverse_lo = 0
+    let mut reverse_hi = len(v) - 1
+    while reverse_lo < reverse_hi {
+        let reverse_tmp = v.get_unchecked(reverse_lo)
+        v.set(reverse_lo, v.get_unchecked(reverse_hi))
+        v.set(reverse_hi, reverse_tmp)
+        reverse_lo = reverse_lo + 1
+        reverse_hi = reverse_hi - 1
+    }
     let mut i: i32 = 0
     while i < len(v) {
         stdio::println(get_unchecked(v, i))

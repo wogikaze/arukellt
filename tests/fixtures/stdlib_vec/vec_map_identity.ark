@@ -1,5 +1,6 @@
 use std::test
-use std::prelude::{map_i32_i32}
+use std::core::iter
+
 fn identity(x: i32) -> i32 {
     x
 }
@@ -9,7 +10,7 @@ fn main() {
     push(v, 10)
     push(v, 20)
     push(v, 30)
-    let result: Vec<i32> = map_i32_i32(v, identity)
+    let result: Vec<i32> = v.iter().map(identity).collect()
     test::assert_eq_i32(len(result), 3)
     test::assert_eq_i32(get_unchecked(result, 0), 10)
     test::assert_eq_i32(get_unchecked(result, 1), 20)

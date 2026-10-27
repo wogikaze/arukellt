@@ -1,5 +1,5 @@
 use std::test
-use std::prelude::{fold_f64_f64}
+
 fn add(acc: f64, x: f64) -> f64 {
     acc + x
 }
@@ -9,6 +9,11 @@ fn main() {
     push(v, 1.5)
     push(v, 2.5)
     push(v, 3.0)
-    let result: f64 = fold_f64_f64(v, 0.0, add)
+    let mut result: f64 = 0.0
+    let mut fold_index: i32 = 0
+    while fold_index < len(v) {
+        result = add(result, get_unchecked(v, fold_index))
+        fold_index = fold_index + 1
+    }
     test::assert_eq_f64(result, 7.0)
 }

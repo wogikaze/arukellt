@@ -90,9 +90,17 @@ assert_eq(get(v, 0), 10)
 assert_eq(get(v, 2), 30)
 
 // Test after sort
+use std::collections::vec
+use std::core
+use std::core::cmp
+
+fn ascending(a: i32, b: i32) -> Ordering {
+    a.cmp(b)
+}
+
 let unsorted = Vec_new_i32()
 push(unsorted, 3)  push(unsorted, 1)  push(unsorted, 2)
-sort_i32(unsorted)
+unsorted.sort_by(ascending)
 assert_eq(get(unsorted, 0), 1)
 assert_eq(get(unsorted, 1), 2)
 assert_eq(get(unsorted, 2), 3)

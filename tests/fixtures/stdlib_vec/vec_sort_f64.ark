@@ -1,5 +1,5 @@
 use std::test
-use std::prelude::{sort_f64}
+
 fn main() {
     let mut v: Vec<f64> = Vec::new<f64>()
     let a: f64 = 3.5
@@ -8,7 +8,17 @@ fn main() {
     push(v, a)
     push(v, b)
     push(v, c)
-    sort_f64(v)
+    let mut sort_index = 1
+    while sort_index < len(v) {
+        let sort_value = get_unchecked(v, sort_index)
+        let mut sort_slot = sort_index
+        while sort_slot > 0 && get_unchecked(v, sort_slot - 1) > sort_value {
+            set(v, sort_slot, get_unchecked(v, sort_slot - 1))
+            sort_slot = sort_slot - 1
+        }
+        set(v, sort_slot, sort_value)
+        sort_index = sort_index + 1
+    }
     test::assert_eq_f64(get_unchecked(v, 0), 1.2)
     test::assert_eq_f64(get_unchecked(v, 1), 2.8)
     test::assert_eq_f64(get_unchecked(v, 2), 3.5)

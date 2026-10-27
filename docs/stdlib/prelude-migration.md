@@ -55,6 +55,12 @@ Do **not** treat the counts and timeline here as the current source of truth for
 | `f64_to_string(x)` | `text::format_f64(x)` |
 | `i64_to_string(x)` | `text::format_i64(x)` |
 
+> The bare seq names in this historical table (`sort_i32`, `sort_String`,
+> `reverse_i32`, `contains_i32`, `remove_i32`) were removed in the ADR-087
+> Wave 2 on 2026-10-27. Use the `Vec` / iterator method replacements in
+> [migration-guidance.md](migration-guidance.md); the table above is retained
+> as migration history, not as a current call path.
+
 ## Migration Steps
 
 1. Add explicit `use std::text`, `use std::seq`, `use std::collections`, etc. imports.

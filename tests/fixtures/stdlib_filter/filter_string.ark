@@ -1,5 +1,6 @@
 use std::host::stdio
-use std::prelude::{filter_String}
+use std::core::iter
+
 fn is_long(s: String) -> bool {
     len(s) > 3
 }
@@ -11,7 +12,7 @@ fn main() {
     push(v, String_from("ok"))
     push(v, String_from("world"))
     push(v, String_from("no"))
-    let result: Vec<String> = filter_String(v, is_long)
+    let result: Vec<String> = v.iter().filter(is_long).collect()
     let mut i: i32 = 0
     while i < len(result) {
         stdio::println(get_unchecked(result, i))

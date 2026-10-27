@@ -55,10 +55,12 @@ to `stability = "deprecated"` with `deprecated_by`, `deprecated_since = "0.1.0"`
 and `remove_in = "1.0.0"` (60 entries; `i8_to_i32` is an individual deferral). The bare names emit **W0009** while they remain
 resolvable; the gated prelude names also need an explicit
 `use std::prelude::{name}` before the warning can fire. `remove_in` is an upper
-bound under ADR-087, not the earliest removal. Physical deletion is Wave 2: the
-`vec` intrinsic-compat names are compiler lowering targets used throughout the
-compiler/std sources, and the `i64` / `f64` / `String` iterator lanes listed as
-*planned* below are not callable yet.
+bound under ADR-087, not the earliest removal. Wave 2 (2026-10-27) deleted the
+31 seq/combinator entries from that set; the numeric, `vec` intrinsic-compat,
+and assertion families remain deprecated for their own waves. The `i64` /
+`f64` / `String` iterator consumer lanes listed as *planned* below are still
+not callable for every row, so the removal table names the reachable loop or
+`std::seq::sort_by` fallback alongside the target method shape.
 
 Three stale, non-callable builtin manifest entries were retired directly in the
 same wave because they had no declaration and no resolver registration:
@@ -133,47 +135,53 @@ exception before ADR-087; their migration rows remain in
 | `assert_eq_i64(a, b)` | `test::assert_eq_i64(a, b)` |
 | `assert_eq_str(a, b)` | `test::assert_eq_string(a, b)` |
 
-### Monomorphic seq/combinator frees (33)
+### Removed in Wave 2: monomorphic seq/combinator frees (31)
 
-The `Vec` / iterator replacements are the target shape. The `i32` and `String`
-producer adapters are the verified lanes; rows marked *planned* describe the
-`i64` / `f64` / `String` consumer lanes that are pending. `filter_i32` is
-provisional and remains an individual deferral, not part of this table.
+The 31 callable `stable` entries were deprecated in Wave 1 and deleted on
+2026-10-27 under ADR-087 D2/D3 (#703 / #917). Bare calls now fail with
+**E0100** and a `resolver::removed_names` hint; `filter_i32` remains
+provisional (individual deferral) and is not part of this removal.
 
-| Deprecated API | Replacement |
-|----------------|-------------|
+The `i32` producer/consumer lanes and the `Vec<String>` `map` / `filter` /
+`any` / `find` lanes are verified on both targets. The `i64` / `f64` numeric
+consumers, the `Vec<String>` reverse/contains lanes, and the generic
+`Vec::sort_by` receiver for `i64` / `f64` still emit invalid Wasm in the
+current emitter. Their rows give the **reachable** loop or
+`std::seq::sort_by` replacement and mark the method shape they will move to.
+`v.sort_by(cmp)` works for `Vec<i32>` and `Vec<String>`.
+
+| Removed API | Replacement |
+|-------------|-------------|
 | `sort_i32(v)` | `v.sort_by(cmp)` |
-| `sort_i64(v)` | `v.sort_by(cmp)` |
-| `sort_f64(v)` | `v.sort_by(cmp)` |
-| `sort_String(v)` | `v.sort_by(cmp)` |
+| `sort_i64(v)` | `std::seq::sort_by(v)` (the `Vec` receiver lane is pending) |
+| `sort_f64(v)` | `std::seq::sort_by(v)` (the `Vec` receiver lane is pending) |
+| `sort_String(v)` | `std::seq::sort_by(v)` or `v.sort_by(cmp)` |
 | `map_i32_i32(v, f)` | `v.iter().map(f).collect()` |
-| `map_i64_i64(v, f)` | `v.iter().map(f).collect()` (i64 lane planned) |
-| `map_f64_f64(v, f)` | `v.iter().map(f).collect()` (f64 lane planned) |
+| `map_i64_i64(v, f)` | explicit `while` loop over `v.get_unchecked(i)` (the i64 lane is pending) |
+| `map_f64_f64(v, f)` | explicit `while` loop over `v.get_unchecked(i)` (the f64 lane is pending) |
 | `map_String_String(v, f)` | `v.iter().map(f).collect()` |
-| `filter_i64(v, f)` | `v.iter().filter(f).collect()` (i64 lane planned) |
-| `filter_f64(v, f)` | `v.iter().filter(f).collect()` (f64 lane planned) |
+| `filter_i64(v, f)` | explicit `while` loop (the i64 lane is pending) |
+| `filter_f64(v, f)` | explicit `while` loop (the f64 lane is pending) |
 | `filter_String(v, f)` | `v.iter().filter(f).collect()` |
 | `fold_i32_i32(v, init, f)` | `v.iter().fold(init, f)` |
-| `fold_i64_i64(v, init, f)` | `v.iter().fold(init, f)` (i64 lane planned) |
-| `fold_f64_f64(v, init, f)` | `v.iter().fold(init, f)` (f64 lane planned) |
+| `fold_i64_i64(v, init, f)` | explicit `while` loop (the i64 lane is pending) |
+| `fold_f64_f64(v, init, f)` | explicit `while` loop (the f64 lane is pending) |
 | `any_i32(v, f)` | `v.iter().any(f)` |
-| `any_i64(v, f)` | `v.iter().any(f)` (i64 lane planned) |
-| `any_f64(v, f)` | `v.iter().any(f)` (f64 lane planned) |
-| `any_String(v, f)` | `v.iter().any(f)` (String lane planned) |
+| `any_i64(v, f)` | explicit `while` loop (the i64 lane is pending) |
+| `any_f64(v, f)` | explicit `while` loop (the f64 lane is pending) |
+| `any_String(v, f)` | `v.iter().any(f)` |
 | `find_i32(v, f)` | `v.iter().find(f)` |
-| `find_i64(v, f)` | `v.iter().find(f)` (i64 lane planned) |
-| `find_f64(v, f)` | `v.iter().find(f)` (f64 lane planned) |
-| `find_String(v, f)` | `v.iter().find(f)` (String lane planned) |
+| `find_i64(v, f)` | explicit `while` loop (the i64 lane is pending) |
+| `find_f64(v, f)` | explicit `while` loop (the f64 lane is pending) |
+| `find_String(v, f)` | `v.iter().find(f)` |
 | `contains_i32(v, x)` | `v.iter().contains(x)` |
-| `contains_String(v, x)` | `v.iter().contains(x)` |
-| `reverse_i32(v)` | `v.iter().rev().collect()` |
-| `reverse_String(v)` | `v.iter().rev().collect()` (String rev lane planned) |
+| `contains_String(v, x)` | explicit `while` loop (the String lane is pending) |
+| `reverse_i32(v)` | `v = v.iter().rev().collect()` |
+| `reverse_String(v)` | explicit in-place swap over `v.get_unchecked` / `v.set` (the String rev lane is pending) |
 | `remove_i32(v, i)` | `v.drain(i, i + 1)` |
 | `sum_i32(v)` | `v.iter().sum()` |
 | `product_i32(v)` | `v.iter().fold(1, mul)` |
 | `map_option_i32_i32(o, f)` | `o.map(f)` via `use std::core::container`, or a `match` |
-| `map_option_String_String(o, f)` | stale non-callable entry, retired; use a `match` |
-| `map_result_i32_i32(r, f)` | stale non-callable entry, retired; use a `match` |
 | `contains_string(s, sub)` | `s.contains(sub)` |
 
 **Before:**
@@ -183,24 +191,20 @@ provisional and remains an individual deferral, not part of this table.
 let doubled = map_i32_i32(values, double)
 let total = sum_i32(values)
 sort_i32(values)
-push(values, 4)
-let msg = assert_eq_i64(a, b)
 ```
 
 **After:**
 
 <!-- skip-doc-check reason="migration shape example; not fixture-backed" owner="#917" kind="non-runnable" expires="2026-12-31" -->
 ```ark
-use std::core::container
-use std::core::iter
 use std::collections::vec
-use std::test
+use std::core
+use std::core::cmp
+use std::core::iter
 
-let doubled = values.iter().map(double).collect()
-let total = values.iter().sum()
+let doubled: Vec<i32> = values.iter().map(double).collect()
+let total: i32 = values.iter().sum()
 values.sort_by(cmp)
-values.push(4)
-test::assert_eq_i64(a, b)
 ```
 
 ---
@@ -726,108 +730,21 @@ let v = Vec::new<f64>()
 let buf = Vec::with_capacity<i32>(64)
 ```
 
-### Sort
+### Sort and collection operations
 
-`sort<T>(v)` is not a public generic free function; the canonical shape is
-the `Vec<T>` method surface from `std::collections::vec`. The comparator and
-key forms landed under #697:
-
-| Old API | Replacement |
-|---------|-------------|
-| `sort_i32(v)` | `v.sort_by(cmp)` / `v.sort_by_key(key)` |
-| `sort_i64(v)` | `v.sort_by(cmp)` / `v.sort_by_key(key)` |
-| `sort_f64(v)` | `v.sort_by(cmp)` / `v.sort_by_key(key)` |
-| `sort_String(v)` | `v.sort_by(cmp)` / `v.sort_by_key(key)` |
-
-The no-argument `v.sort()`, plus `is_sorted`, `dedup`, `binary_search_by`, and
-`select_nth`, are not shipped yet. Both an `Ord`-bounded inherent impl on
-`Vec<T>` and a concrete `impl Vec<i32>` lower to an unreachable body with the
-current selfhost compiler, so those methods stay as the #697 residual and the
-monomorphic wrappers remain available. The comparator surface that does work is
-`sort_by`, `sort_by_key`, `sort_unstable_by`, `sort_unstable_by_key`,
-`dedup_by`, `partition`, `is_sorted_by`, and `binary_search_by_key`. Window and
-chunk helpers (`windows`, `chunks`, `chunks_exact`) return an eager
+`sort_i32` / `sort_i64` / `sort_f64` / `sort_String` and the monomorphic
+map/filter/fold/any/find/contains/reverse/remove/sum/product helpers were
+removed in the ADR-087 Wave 2; see the
+[removal table](#removed-in-wave-2-monomorphic-seqcombinator-frees-31).
+`Vec` exposes `sort_by` / `sort_by_key` / `sort_unstable_by` /
+`sort_unstable_by_key` / `dedup_by` / `partition` / `is_sorted_by` /
+`binary_search_by_key`; `std::seq::sort_by` remains the generic `Ord`-based
+algorithm and is the reachable sort fallback for the `i64` / `f64` / `String`
+lanes until their `Vec` receiver methods lower correctly. The no-argument
+`v.sort()`, `is_sorted`, `dedup`, and `select_nth` remain the #697 residual.
+Window and chunk helpers (`windows`, `chunks`, `chunks_exact`) return an eager
 `Vec<Vec<T>>`; `resize` and `extend` copy element handles without a `Clone`
 bound, and `drain` / `splice` return the removed elements as an owned `Vec<T>`.
-
-**Before:**
-
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
-```ark
-sort_i32(numbers)
-sort_String(names)
-```
-
-**After:**
-
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
-```ark
-// Comparator forms are available from std::collections::vec (#697).
-numbers.sort_by(cmp)
-names.sort_by(cmp)
-```
-
-### Collection Operations (map, filter, fold, etc.)
-
-> Note: for the `i32` pipeline helpers the canonical replacement is the lazy
-> `std::core::iter` method chain — for example `v.iter().map(f).collect()` —
-> not a generic free function such as `map<i32, i32>(v, f)`, which does not
-> exist. The 31 callable `stable` prelude monomorphic frees were deprecated in
-> the [ADR-087 wave](#stable-64-deprecation-wave-adr-087-2026-10-26) (W0009,
-> migration guide, changelog); two stale entries were retired and `filter_i32`
-> remains deferred. The set remains owned by #703 for Wave 2 deletion.
-> The provisional `filter_i32` follows an individual provisional decision.
-> Rows marked *planned* describe the target method/iterator shape; they are
-> not callable yet. The verified lanes are the concrete `i32` and `String`
-> iterator paths documented above.
-
-| Old API | Replacement |
-|---------|-------------|
-| `map_i32_i32(v, f)` | `v.iter().map(f).collect()` |
-| `map_i64_i64(v, f)` | `v.iter().map(f).collect()` |
-| `map_f64_f64(v, f)` | `v.iter().map(f).collect()` |
-| `map_String_String(v, f)` | `v.iter().map(f).collect()` |
-| `filter_i64(v, f)` | `v.iter().filter(f).collect()` |
-| `filter_f64(v, f)` | `v.iter().filter(f).collect()` |
-| `filter_String(v, f)` | `v.iter().filter(f).collect()` |
-| `fold_i32_i32(v, init, f)` | `v.iter().fold(init, f)` |
-| `fold_i64_i64(v, init, f)` | `v.iter().fold(init, f)` |
-| `fold_f64_f64(v, init, f)` | `v.iter().fold(init, f)` |
-| `contains_i32(v, x)` | `v.iter().contains(x)` |
-| `contains_String(v, x)` | `v.iter().contains(x)` |
-| `reverse_i32(v)` | `v.iter().rev().collect()` |
-| `reverse_String(v)` | `v.iter().rev().collect()` |
-| `remove_i32(v, idx)` | `v.remove(idx)` *(planned)* |
-| `sum_i32(v)` | `v.iter().sum()` |
-| `sum_i64(v)` | `v.iter().sum()` |
-| `sum_f64(v)` | `v.iter().sum()` |
-| `product_i32(v)` | `v.iter().fold(1, fn(acc: i32, x: i32) -> i32 { acc * x })` |
-| `product_i64(v)` | `v.iter().fold(1, fn(acc: i64, x: i64) -> i64 { acc * x })` |
-| `product_f64(v)` | `v.iter().fold(1, fn(acc: f64, x: f64) -> f64 { acc * x })` |
-| `any_i32(v, f)` | `v.iter().any(f)` *(planned)* |
-| `any_String(v, f)` | `v.iter().any(f)` *(planned)* |
-| `find_i32(v, f)` | `v.iter().find(f)` *(planned)* |
-| `find_String(v, f)` | `v.iter().find(f)` *(planned)* |
-
-**Before:**
-
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
-```ark
-let doubled = map_i32_i32(numbers, fn(x: i32) -> i32 { x * 2 })
-let total = fold_i32_i32(numbers, 0, fn(acc: i32, x: i32) -> i32 { acc + x })
-let has_it = contains_i32(numbers, 42)
-reverse_i32(numbers)
-```
-
-**After:**
-
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
-```ark
-let doubled = numbers.iter().map(fn(x: i32) -> i32 { x * 2 }).collect()
-let total = numbers.iter().fold(0, fn(acc: i32, x: i32) -> i32 { acc + x })
-let has_it = numbers.iter().contains(42)
-let reversed = numbers.iter().rev().collect()
-```
 
 ### HashMap Constructors and Operations
 

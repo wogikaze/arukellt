@@ -15,29 +15,29 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 1359 `pub fn` declarations under
-`std/**/*.ark`; 967 map to a manifest entry and
-392 are unregistered. Eradication scope = 776 manifest
-public entries + 392 unregistered declarations = **1168 symbols**.
+**Real surface denominator:** 1328 `pub fn` declarations under
+`std/**/*.ark`; 936 map to a manifest entry and
+392 are unregistered. Eradication scope = 745 manifest
+public entries + 392 unregistered declarations = **1137 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 1168 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 1359 | — |
+| Eradication-scope symbols (real std surface) | 1137 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 1328 | — |
 | Unregistered std declarations (no manifest entry) | 392 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
-| Manifest public entries (registered scope) | 776 | 0 |
-| `prelude_wrapper` entries | 96 | 0 |
-| Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 146 | 0 |
+| Manifest public entries (registered scope) | 745 | 0 |
+| `prelude_wrapper` entries | 65 | 0 |
+| Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 122 | 0 |
 | `intrinsic-only` bridges (non-public) | 1 | — |
 
 ## Classification
 
 | Class | Meaning | Symbols |
 |-------|---------|---------|
-| `must delete` | Replacement already exists or functionality retires | 114 |
+| `must delete` | Replacement already exists or functionality retires | 83 |
 | `associated-or-method` | Replacement must land as method/associated first | 1054 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
@@ -59,7 +59,7 @@ registered entries and unregistered `pub fn` declarations.
 | panic | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 1 | 0 | associated on a core namespace type (e.g. Std::panic) or an explicit ADR exception |
 | vec intrinsic-compat frees | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 9 | 0 | Vec<T> methods: v.push(x), v.pop(), v.len(), v.get(idx), v.set(idx, val), v.get_unchecked(idx), v.as_slice(start, end); Slice<T> methods: view.len(), view.get(idx). `clear` was a stale non-callable entry and was retired directly. |
 | assertion frees | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 4 | 0 | std::test::assert_eq_i32(actual, expected), assert_ne_i32(actual, unexpected), assert_eq_i64(...), assert_eq_string(...); the deprecated prelude wrappers delegate to the same assertions |
-| monomorphic seq/combinator frees | `must delete` | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) | 32 | 0 | Vec / iterator methods: v.sort_by(cmp), v.iter().map(f).collect(), v.iter().filter(f).collect(), v.iter().fold(init, f), v.iter().sum(), v.iter().any(f), v.iter().find(f), v.iter().contains(x), v.iter().rev().collect(), v.drain(idx, idx + 1); Option::map / Result::map via std::core::container |
+| monomorphic seq/combinator frees | `must delete` | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) | 1 | 0 | Vec / iterator methods: v.sort_by(cmp), v.iter().map(f).collect(), v.iter().filter(f).collect(), v.iter().fold(init, f), v.iter().sum(), v.iter().any(f), v.iter().find(f), v.iter().contains(x), v.iter().rev().collect(), v.drain(idx, idx + 1); Option::map / Result::map via std::core::container |
 | monomorphic numeric conversions | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 17 | 0 | canonical scalar conversion methods (ADR-067): u8/u16/i16::to_i32 (`i8_to_i32` deferred: its method frame still traps under wasm32-gc), u32::to_u64, u64::to_u32_wrapping, i32::to_u8_wrapping/to_u16_wrapping/to_i8_wrapping/to_i16_wrapping/to_u32_bits, i32::into, i64::to_i32_checked, f32::to_f64, f64::to_f32, f64::to_bits_lo/to_bits_hi |
 | legacy linear deque frees | `must delete` | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) | 11 | 0 | Deque<T> methods (new/with_capacity/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear); ADR-086 §8 keeps the Vec<i32> layout through the ADR-014 deprecation window |
 | legacy linked_list frees | `must delete` | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) | 11 | 0 | LinkedList<T> methods (new/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear/iter); ADR-086 §8 |
@@ -86,33 +86,16 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 
 | Symbol | Module | Class | Rule | Owner |
 |--------|--------|-------|------|-------|
-| `any_String` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `any_f64` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `any_i32` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `any_i64` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `as_slice` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `assert_eq` | `(prelude)` | `must delete` | assertion frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `assert_eq_i64` | `(prelude)` | `must delete` | assertion frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `assert_eq_str` | `(prelude)` | `must delete` | assertion frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `assert_ne` | `(prelude)` | `must delete` | assertion frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `contains_String` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `contains_i32` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `contains_string` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `f32_to_f64` | `(prelude)` | `must delete` | monomorphic numeric conversions | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `f64_bits_hi` | `(prelude)` | `must delete` | monomorphic numeric conversions | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `f64_bits_lo` | `(prelude)` | `must delete` | monomorphic numeric conversions | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `f64_to_f32` | `(prelude)` | `must delete` | monomorphic numeric conversions | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `filter_String` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `filter_f64` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `filter_i32` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `filter_i64` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `find_String` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `find_f64` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `find_i32` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `find_i64` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `fold_f64_f64` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `fold_i32_i32` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `fold_i64_i64` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `get` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `get_unchecked` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `i16_to_i32` | `(prelude)` | `must delete` | monomorphic numeric conversions | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
@@ -125,25 +108,11 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `i64_to_i32` | `(prelude)` | `must delete` | monomorphic numeric conversions | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `i8_to_i32` | `(prelude)` | `must delete` | monomorphic numeric conversions | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `len` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `map_String_String` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `map_f64_f64` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `map_i32_i32` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `map_i64_i64` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `map_option_i32_i32` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `pop` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `product_i32` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `push` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `remove_i32` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `reverse_String` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `reverse_i32` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `set` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `slice_get` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `slice_len` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `sort_String` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `sort_f64` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `sort_i32` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `sort_i64` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `sum_i32` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `u16_to_i32` | `(prelude)` | `must delete` | monomorphic numeric conversions | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `u32_to_u64` | `(prelude)` | `must delete` | monomorphic numeric conversions | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `u64_to_u32` | `(prelude)` | `must delete` | monomorphic numeric conversions | [#917](../../issues/open/917-stdlib-eradication-execution.md) |

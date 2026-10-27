@@ -5,7 +5,7 @@
 // Compilation: RFC-005 / #816 restores prelude decls to the backend combine
 // path. CoreOp-bound symbols and intrinsic shims defer MIR body lowering until
 // #821/#822 (see mir/lower/stdlib_body_defer.ark). Pure Ark helpers such as
-// contains_i32 are lowered now.
+// `assert` are lowered now.
 //
 // ## Tiny Prelude (canonical v3+ surface — ≤ 15 symbols)
 //
@@ -21,37 +21,26 @@
 //     char_to_string  (essential conversion)
 //     plus len, push, pop, get, set, get_unchecked (compiler intrinsics)
 //
-// ## Legacy / Compat Section (deprecated — bold cutover per ADR-036)
+// ## Legacy / Compat Section
 //
-// Monomorphic higher-order functions (`map_i32_i32`, `filter_i32`, …) are
-// **deprecated** and will be removed via **bold cutover** (ADR-036 D2) once
-// issues #688–#697 (trait-based stdlib redesign) are complete.
-// Vec constructors (`Vec_new_*`) were removed in #845; use `Vec::new<T>()`.
-//
-use std::collections::string
-use std::core::scalar_format
-
-// The correct migration target is **trait-based method syntax**, not the
-// intermediate `std::text` / `std::seq` explicit-import style:
-//
-//   | Deprecated (this file)        | Trait-based replacement (post-#688) |
-//   |-------------------------------|--------------------------------------|
-//   | `map_i32_i32(v, f)`           | `v.map(f)` (Iterator trait, #691)    |
-//   | `filter_i32(v, f)`            | `v.filter(f)` (Iterator trait, #691) |
-//   | `sort_i32(v)`                 | `v.sort_by(cmp)` (Vec method, #697)  |
-//   | `concat(a, b)`                | `a.concat(b)` (String method)        |
-//   | `(n).to_string()`            | `n.to_string()` (Display trait, #702)|
-//   | `clone(s)`                    | `s.clone()` (Clone trait, #692)       |
-//   | `eq(a, b)`                    | `a.eq(b)` (Eq trait, #695)            |
-//
-// Per ADR-036 D5, free functions like `clone`, `eq`, `i32_to_string` will
-// remain as thin wrappers delegating to their trait impls, so existing
-// call sites continue to work during the transition.
+// The stable monomorphic seq/combinator frees (`map_i32_i32`, `sort_i32`, …)
+// were deleted in the ADR-087 Wave 2 (#703 / #917). Bare calls now fail with
+// E0100 plus a `resolver::removed_names` migration hint. The replacements are
+// the Vec / iterator methods: `v.sort_by(cmp)`, `v.iter().map(f).collect()`,
+// `v.iter().filter(f).collect()`, `v.iter().fold(init, f)`, `v.iter().sum()`,
+// `v.iter().any(f)`, `v.iter().find(f)`, `v.iter().contains(x)`,
+// `v.iter().rev().collect()`, and `v.drain(i, i + 1)`; Option::map lives in
+// `std::core::container`. `filter_i32` remains provisional (individual
+// deferral). Vec constructors (`Vec_new_*`) were removed in #845; use
+// `Vec::new<T>()`.
 //
 // Design ADR:    docs/adr/ADR-036-trait-stdlib-redesign.md
 // Prelude design: docs/stdlib/prelude.md
 //
 // =============================================================================
+use std::collections::string
+use std::core::scalar_format
+
 // String construction
 pub enum Box<T> {
     Owned(T),
@@ -265,11 +254,11 @@ pub fn panic(s: String) {
 }
 
 // =============================================================================
-// LEGACY COMPAT — @deprecated, will be removed via bold cutover (ADR-036 D2)
-// once issues #688–#697 are complete. Use trait-based method syntax instead.
+// Legacy compatibility bodies. The remaining private `__core_*` functions are
+// core-op fallbacks; their public prelude wrappers were deleted in the
+// ADR-087 Wave 2. `filter_i32` is the one still-public provisional entry.
 // =============================================================================
-// Vec sorting (deprecated)
-// @deprecated: use `v.sort_by(cmp)` (Vec method, #697) instead. See ADR-036.
+// Core-op fallback for seq.sort_i32 (public wrapper deleted in ADR-087 Wave 2).
 fn __core_seq_sort_i32_impl(v: Vec<i32>) {
     let mut index = 1
     while index < len(v) {
@@ -283,70 +272,10 @@ fn __core_seq_sort_i32_impl(v: Vec<i32>) {
         index = index + 1
     }
 }
-
-pub fn sort_i32(v: Vec<i32>) {
-    __core_seq_sort_i32_impl(v)
-}
-
-pub fn sort_String(v: Vec<String>) {
-    panic(String_new())
-}
-
-// Vec higher-order (deprecated)
-// @deprecated: use `v.map(f)` (Iterator trait, #691) instead. See ADR-036.
-pub fn map_i32_i32(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32> {
-    // Real Ark body: `__intrinsic_map_i32_i32` has no wasm emitter (#807).
-    let n = len(v)
-    let out: Vec<i32> = Vec::new<i32>()
-    let mut i = 0
-    while i < n {
-        push(out, f(get_unchecked(v, i)))
-        i = i + 1
-    }
-    out
-}
-
-// @deprecated: use `v.filter(f)` (Iterator trait, #691) instead. See ADR-036.
+// Provisional individual deferral (#703): the eager i32 filter stays callable.
 pub fn filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32> {
     __intrinsic_filter_i32(v, f)
 }
-
-// @deprecated: use `v.fold(init, f)` (Iterator trait, #691) instead. See ADR-036.
-pub fn fold_i32_i32(v: Vec<i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
-    __intrinsic_fold_i32_i32(v, init, f)
-}
-
-pub fn map_option_i32_i32(o: Option<i32>, f: fn(i32) -> i32) -> Option<i32> {
-    __intrinsic_map_option_i32_i32(o, f)
-}
-
-pub fn any_i32(v: Vec<i32>, f: fn(i32) -> bool) -> bool {
-    // Real Ark body: `__intrinsic_any_i32` has no wasm emitter (#807).
-    let n = len(v)
-    let mut i = 0
-    while i < n {
-        if f(get_unchecked(v, i)) {
-            return true
-        }
-        i = i + 1
-    }
-    false
-}
-
-pub fn find_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Option<i32> {
-    // Real Ark body: `__intrinsic_find_i32` has no wasm emitter (#807).
-    let n = len(v)
-    let mut i = 0
-    while i < n {
-        let x = get_unchecked(v, i)
-        if f(x) {
-            return Some(x)
-        }
-        i = i + 1
-    }
-    None
-}
-
 // String: split/join/push_char
 // @deprecated: use `s.split(delim)` (String method) instead. See ADR-036.
 pub fn split(s: String, delim: String) -> Vec<String> {
@@ -362,7 +291,7 @@ pub fn push_char(s: String, c: char) {
     __core_push_char_impl(s, c)
 }
 
-// Vec: additional sorting (typed LM set unblocked for i64/f64, #822).
+// Core-op fallback for seq.sort_i64 (public wrapper deleted in ADR-087 Wave 2).
 fn __core_seq_sort_i64_impl(v: Vec<i64>) {
     let mut index = 1
     while index < len(v) {
@@ -376,11 +305,7 @@ fn __core_seq_sort_i64_impl(v: Vec<i64>) {
         index = index + 1
     }
 }
-
-pub fn sort_i64(v: Vec<i64>) {
-    __core_seq_sort_i64_impl(v)
-}
-
+// Core-op fallback for seq.sort_f64 (public wrapper deleted in ADR-087 Wave 2).
 fn __core_seq_sort_f64_impl(v: Vec<f64>) {
     let mut index = 1
     while index < len(v) {
@@ -394,20 +319,6 @@ fn __core_seq_sort_f64_impl(v: Vec<f64>) {
         index = index + 1
     }
 }
-
-pub fn sort_f64(v: Vec<f64>) {
-    __core_seq_sort_f64_impl(v)
-}
-
-// Vec: higher-order (String variants)
-pub fn map_String_String(v: Vec<String>, f: fn(String) -> String) -> Vec<String> {
-    __intrinsic_map_String_String(v, f)
-}
-
-pub fn filter_String(v: Vec<String>, f: fn(String) -> bool) -> Vec<String> {
-    __intrinsic_filter_String(v, f)
-}
-
 // Assertions
 pub fn assert(cond: bool) {
     if !cond {
@@ -453,28 +364,6 @@ pub fn assert_eq_str(a: String, b: String) {
         let msg = string::concat("assert_eq_str failed: expected \"", expected)
         panic(msg)
     }
-}
-
-// --- HOF i64 ---
-pub fn map_i64_i64(v: Vec<i64>, f: fn(i64) -> i64) -> Vec<i64> {
-    __intrinsic_map_i64_i64(v, f)
-}
-
-pub fn filter_i64(v: Vec<i64>, f: fn(i64) -> bool) -> Vec<i64> {
-    __intrinsic_filter_i64(v, f)
-}
-
-pub fn fold_i64_i64(v: Vec<i64>, init: i64, f: fn(i64, i64) -> i64) -> i64 {
-    __intrinsic_fold_i64_i64(v, init, f)
-}
-
-// --- HOF f64 ---
-pub fn map_f64_f64(v: Vec<f64>, f: fn(f64) -> f64) -> Vec<f64> {
-    __intrinsic_map_f64_f64(v, f)
-}
-
-pub fn filter_f64(v: Vec<f64>, f: fn(f64) -> bool) -> Vec<f64> {
-    __intrinsic_filter_f64(v, f)
 }
 
 // Sealed-raw CoreOp aliases (no `use std::core::raw`) so bootstrap overlays
@@ -550,6 +439,8 @@ fn __core_vec_new_f64_impl(cap: i32) -> Vec<f64> {
     raw_array_new(cap)
 }
 
+// Core-op fallbacks for vec.contains / vec.reverse / vec.remove. The public
+// prelude wrappers were deleted in the ADR-087 Wave 2.
 fn __core_vec_contains_i32_impl(v: Vec<i32>, x: i32) -> bool {
     let mut i: i32 = 0
     while i < raw_array_len(v) {
@@ -560,22 +451,6 @@ fn __core_vec_contains_i32_impl(v: Vec<i32>, x: i32) -> bool {
     }
     false
 }
-
-pub fn contains_i32(v: Vec<i32>, x: i32) -> bool {
-    __core_vec_contains_i32_impl(v, x)
-}
-
-pub fn contains_String(v: Vec<String>, x: String) -> bool {
-    let mut i: i32 = 0
-    while i < len(v) {
-        if eq(get_unchecked(v, i), x) {
-            return true
-        }
-        i = i + 1
-    }
-    false
-}
-
 fn __core_vec_reverse_i32_impl(v: Vec<i32>) {
     let n: i32 = raw_array_len(v)
     let mut lo: i32 = 0
@@ -588,11 +463,6 @@ fn __core_vec_reverse_i32_impl(v: Vec<i32>) {
         hi = hi - 1
     }
 }
-
-pub fn reverse_i32(v: Vec<i32>) {
-    __core_vec_reverse_i32_impl(v)
-}
-
 fn __core_vec_reverse_string_impl(v: Vec<String>) {
     let n: i32 = len(v)
     let mut lo: i32 = 0
@@ -605,11 +475,6 @@ fn __core_vec_reverse_string_impl(v: Vec<String>) {
         hi = hi - 1
     }
 }
-
-pub fn reverse_String(v: Vec<String>) {
-    __core_vec_reverse_string_impl(v)
-}
-
 fn __core_vec_remove_i32_impl(v: Vec<i32>, index: i32) {
     let n: i32 = raw_array_len(v)
     let mut i: i32 = index
@@ -619,12 +484,8 @@ fn __core_vec_remove_i32_impl(v: Vec<i32>, index: i32) {
     }
     pop(v)
 }
-
-pub fn remove_i32(v: Vec<i32>, index: i32) {
-    __core_vec_remove_i32_impl(v, index)
-}
-
-// Vec aggregation (Ark-native)
+// Core-op fallbacks for seq.sum_i32 / seq.product_i32 (public wrappers deleted
+// in the ADR-087 Wave 2).
 fn __core_seq_sum_i32_impl(v: Vec<i32>) -> i32 {
     let mut total: i32 = 0
     let mut i: i32 = 0
@@ -634,11 +495,6 @@ fn __core_seq_sum_i32_impl(v: Vec<i32>) -> i32 {
     }
     total
 }
-
-pub fn sum_i32(v: Vec<i32>) -> i32 {
-    __core_seq_sum_i32_impl(v)
-}
-
 fn __core_seq_product_i32_impl(v: Vec<i32>) -> i32 {
     let mut total: i32 = 1
     let mut i: i32 = 0
@@ -648,11 +504,6 @@ fn __core_seq_product_i32_impl(v: Vec<i32>) -> i32 {
     }
     total
 }
-
-pub fn product_i32(v: Vec<i32>) -> i32 {
-    __core_seq_product_i32_impl(v)
-}
-
 // =============================================================================
 // Extended prelude compatibility functions.
 // CoreOp-bound and transitional intrinsic bodies are typechecked but deferred
@@ -771,12 +622,7 @@ impl Slice<T> {
         }
     }
 }
-
-// Collections
-pub fn contains_string(s: String, sub: String) -> bool {
-    panic(String_new()); return false
-}
-
+// String collection helpers
 pub fn contains(s: String, sub: String) -> bool {
     panic(String_new()); return false
 }
@@ -885,46 +731,6 @@ pub fn format_i32(n: i32) -> String {
 pub fn format_bool(b: bool) -> String {
     __core_format_bool_impl(b)
 }
-
-// HOF extended (types not in prelude's monomorphic set)
-pub fn any_i64(v: Vec<i64>, f: fn(i64) -> bool) -> bool {
-    __intrinsic_any_i64(v, f)
-}
-
-pub fn any_f64(v: Vec<f64>, f: fn(f64) -> bool) -> bool {
-    __intrinsic_any_f64(v, f)
-}
-
-pub fn any_String(v: Vec<String>, f: fn(String) -> bool) -> bool {
-    __intrinsic_any_String(v, f)
-}
-
-pub fn find_i64(v: Vec<i64>, f: fn(i64) -> bool) -> Option<i64> {
-    // Real Ark body: `__intrinsic_find_i64` has no wasm emitter (#807).
-    let n = len(v)
-    let mut i = 0
-    while i < n {
-        let x = get_unchecked(v, i)
-        if f(x) {
-            return Some(x)
-        }
-        i = i + 1
-    }
-    None
-}
-
-pub fn find_f64(v: Vec<f64>, f: fn(f64) -> bool) -> Option<f64> {
-    __intrinsic_find_f64(v, f)
-}
-
-pub fn find_String(v: Vec<String>, f: fn(String) -> bool) -> Option<String> {
-    __intrinsic_find_String(v, f)
-}
-
-pub fn fold_f64_f64(v: Vec<f64>, init: f64, f: fn(f64, f64) -> f64) -> f64 {
-    __intrinsic_fold_f64_f64(v, init, f)
-}
-
 // Conversions extended
 pub fn i32_to_u32(n: i32) -> u32 {
     panic(String_new()); return 0

@@ -1,5 +1,5 @@
 use std::test
-use std::prelude::{fold_i64_i64}
+
 fn add(acc: i64, x: i64) -> i64 {
     acc + x
 }
@@ -12,6 +12,11 @@ fn main() {
     push(v, a)
     push(v, b)
     push(v, c)
-    let result: i64 = fold_i64_i64(v, 0i64, add)
+    let mut result: i64 = 0i64
+    let mut fold_index: i32 = 0
+    while fold_index < len(v) {
+        result = add(result, get_unchecked(v, fold_index))
+        fold_index = fold_index + 1
+    }
     test::assert_eq_i64(result, 60i64)
 }

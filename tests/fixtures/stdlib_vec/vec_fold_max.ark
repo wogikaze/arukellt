@@ -1,5 +1,6 @@
 use std::test
-use std::prelude::{fold_i32_i32}
+use std::core::iter
+
 fn max_of(acc: i32, x: i32) -> i32 {
     if x > acc {
         x
@@ -15,6 +16,6 @@ fn main() {
     push(v, 50)
     push(v, 20)
     push(v, 40)
-    let result: i32 = fold_i32_i32(v, 0, max_of)
+    let result: i32 = v.iter().fold(0, max_of)
     test::assert_eq_i32(result, 50)
 }

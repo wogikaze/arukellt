@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::prelude::{fold_i64_i64}
+
 fn add(acc: i64, x: i64) -> i64 {
     acc + x
 }
@@ -9,6 +9,11 @@ fn main() {
     push(v, 10)
     push(v, 20)
     push(v, 30)
-    let total: i64 = fold_i64_i64(v, 0, add)
+    let mut total: i64 = 0i64
+    let mut fold_index: i32 = 0
+    while fold_index < len(v) {
+        total = add(total, get_unchecked(v, fold_index))
+        fold_index = fold_index + 1
+    }
     stdio::println((total).to_string())
 }
