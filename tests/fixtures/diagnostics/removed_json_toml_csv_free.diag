@@ -8,3 +8,9 @@ error[E0100|resolve]: undefined module member: toml::toml_find_value; use `toml:
   --> tests/fixtures/diagnostics/removed_json_toml_csv_free.ark
 error[E0100|resolve]: undefined module member: csv::csv_parse_row; use `csv::Csv::parse_row(...)` via `use std::csv` instead
   --> tests/fixtures/diagnostics/removed_json_toml_csv_free.ark
+error[E0100|resolve]: undefined module member: json::parse; removed free function; use `JsonValue::parse(s)` on `json::JsonValue` instead
+  --> tests/fixtures/diagnostics/removed_json_toml_csv_free.ark
+error[E0100|resolve]: undefined module member: toml::toml_parse; removed free function; use `TomlValue::parse(s)` on `toml::TomlValue` instead
+  --> tests/fixtures/diagnostics/removed_json_toml_csv_free.ark
+error[E0100|resolve]: undefined module member: toml::toml_stringify; removed free function; use `v.to_text()` on `TomlValue` instead
+  --> tests/fixtures/diagnostics/removed_json_toml_csv_free.ark

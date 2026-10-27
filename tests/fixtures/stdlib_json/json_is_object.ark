@@ -2,7 +2,7 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("{\"a\":1}") {
+    match json::JsonValue::parse("{\"a\":1}") {
         Result::Ok(v) => {
             test::assert_true(v.is_object())
             test::assert_false(v.is_null())
@@ -13,7 +13,7 @@ fn main() {
         },
         Result::Err(e) => panic("parse failed: ".concat(e.message())),
     }
-    match json::parse("{}") {
+    match json::JsonValue::parse("{}") {
         Result::Ok(v) => test::assert_true(v.is_object()),
         Result::Err(e) => panic("parse empty object failed: ".concat(e.message())),
     }

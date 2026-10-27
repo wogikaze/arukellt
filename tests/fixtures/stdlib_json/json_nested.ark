@@ -2,7 +2,7 @@ use std::host::stdio
 use std::json
 use std::text
 fn main() {
-    match json::parse("{\"name\":\"alice\",\"age\":30}") {
+    match json::JsonValue::parse("{\"name\":\"alice\",\"age\":30}") {
         Result::Ok(obj) => {
             match obj.get_field("name") {
                 Option::Some(v) => {
@@ -25,7 +25,7 @@ fn main() {
         },
         Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
-    match json::parse("[10,20,30]") {
+    match json::JsonValue::parse("[10,20,30]") {
         Result::Ok(arr) => {
             match arr.get_index(0) {
                 Option::Some(v) => {

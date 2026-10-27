@@ -2,7 +2,7 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("[1,2,3]") {
+    match json::JsonValue::parse("[1,2,3]") {
         Result::Ok(v) => {
             // json_as_array(Option<Vec<JsonValue>>) still mis-lowers on
             // wasm32-gc (#807); exercise array shape via is_array/get_index.
@@ -29,7 +29,7 @@ fn main() {
         Result::Err(e) => panic("parse failed: ".concat(e.message())),
     }
     // Type mismatch: non-array is not an array
-    match json::parse("{\"a\":1}") {
+    match json::JsonValue::parse("{\"a\":1}") {
         Result::Ok(v) => {
             test::assert_true(!v.is_array())
             match v.get_index(0) {

@@ -3,7 +3,7 @@ use std::toml
 use std::test
 
 fn main() {
-    let t = toml::toml_parse("a = 1")
+    let t = toml::TomlValue::parse("a = 1")
     match t {
         Result::Ok(table) => match table.get_field("missing") {
             Option::Some(_) => assert(false),

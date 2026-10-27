@@ -2,7 +2,7 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("\n\t true \r\n") {
+    match json::JsonValue::parse("\n\t true \r\n") {
         Result::Ok(v) => match v.as_bool() {
             Option::Some(b) => test::assert_eq_bool(b, true),
             None => panic("expected bool"),

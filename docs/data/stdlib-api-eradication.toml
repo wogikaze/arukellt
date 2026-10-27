@@ -257,22 +257,12 @@ class = "associated-or-method"
 owner = "917"
 replacement = "collection type methods (HashMap/HashSet/Deque/BTree/SortedMap/etc.)"
 
-# The json/toml/csv text and constructor helpers were retired by #917 on
-# 2026-10-27 after the non-main-module associated-call lowering fix
-# (wave/non-main-module). Loaded-module bodies keep `module::Type::method`;
-# lowering now canonicalizes that spelling through the fn index/signature
-# registry, and the in-loop emit oracle/reachability resolve the same
-# variants, so an associated call in helper.ark no longer falls back to
-# `drop; unreachable`. The document entry points (`json::parse`,
-# `toml::toml_parse`, `toml::toml_stringify`) stay free: associated `parse`
-# loses its Result payload type in an unannotated match, and
-# `TomlValue::to_text` still emits an i64 return on wasm32-gc.
-[[rules]]
-label = "std::json/toml/csv frees"
-module_pfx = ["std::json", "std::toml", "std::csv"]
-class = "associated-or-method"
-owner = "917"
-replacement = "JsonValue / TomlValue value methods (`v.is_null()`, `v.as_i32()`, `v.get_field(key)`, `v.to_text()`, `v.as_string()`, `v.table_keys()`, `e.message()`); the `JsonText` / `TomlText` text namespaces (`JsonText::quote`, `JsonText::get_str`, `TomlText::find_value`, ...); `JsonValue` constructors (`JsonValue::int`, `JsonValue::string`, `JsonValue::array`, `JsonValue::object`, ...); `JsonField::new`; and `JsonValue::pretty_text`. `json::parse`, `toml::toml_parse`, and `toml::toml_stringify` remain the document entry points."
+# The json/toml/csv public free surface is fully retired by #917. The 2026-10-27
+# waves moved the text/constructor helpers onto JsonText / TomlText / JsonValue /
+# JsonField / Csv, and the final wave moved the document entry points onto
+# `JsonValue::parse` / `TomlValue::parse` / `v.to_text()` and the parse-step
+# helpers onto `JsonParseStep` / `TomlValStep` / `TomlKeyStep`. No rule is
+# needed: the family has no remaining function entry or top-level `pub fn`.
 
 [[rules]]
 label = "std::wasm v128 memory frees"

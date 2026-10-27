@@ -2,7 +2,7 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("{\"a\":{\"b\":{\"c\":{\"d\":42}}}}") {
+    match json::JsonValue::parse("{\"a\":{\"b\":{\"c\":{\"d\":42}}}}") {
         Result::Ok(v) => {
             match v.get_field("a") {
                 Option::Some(a) => match a.get_field("b") {

@@ -16,6 +16,46 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — std::json / std::toml document entry points and parse-step helpers (#917, ADR-046)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the
+  ADR-014 D4 exception for `experimental` entries. This wave closes the
+  `std::json` / `std::toml` / `std::csv` associated-or-method family; no public
+  free function remains in those modules.
+- **Removed**: `json::parse`, `toml::toml_parse`, `toml::toml_stringify`, and
+  the unregistered `JsonParseStep_ok` / `JsonParseStep_err` /
+  `json_parse_step_value` / `json_parse_step_next` / `TomlValStep_ok` /
+  `TomlValStep_err` / `TomlKeyStep_ok` / `TomlKeyStep_err`.
+- **Replacement**: `JsonValue::parse(doc)` / `v.to_text()`,
+  `TomlValue::parse(doc)` / `v.to_text()`, `JsonParseStep::ok` / `err` with
+  `step.value()` / `step.next()`, and the `TomlValStep` / `TomlKeyStep`
+  associated constructors. Qualified calls get E0100 hints from
+  `resolver::removed_names::removed_json_member_hint` /
+  `removed_toml_member_hint`.
+- **Compiler fix**: direct `TomlValue::Integer(42)` construction stored an
+  unannotated `i32` literal into the declared `i64` payload
+  (`struct.set` type mismatch on wasm32-gc). `emit_gc_variant_payload_fields`
+  now widens an `i32` payload when the resolved variant layout declares
+  `i64`; parsed TOML integers already used i64 and were unaffected. The
+  unannotated associated `Result` match now infers its payload under the
+  rebuilt s2.
+- **Name-collision fix**: the JSON and TOML parsers each declared private
+  `parse_document` / `stringify_value` / `stringify_array`. A non-main module
+  using both `JsonValue::to_text` and `TomlValue::to_text` bound the bare
+  helper to the wrong module (blank output on wasm32, `ref.cast` trap on
+  wasm32-gc). The private helpers are now `json_*` / `toml_*` prefixed and no
+  duplicate top-level name remains; the two-module regression covers both
+  value types.
+- **Fixtures**: `stdlib_json/json_associated_surface*.ark`,
+  `stdlib_toml/toml_text_surface*.ark`, and
+  `modules/non_main_associated_call/` cover both parsers, `to_text` on an
+  integer payload, and the two-module call path on `wasm32-gc` and
+  `--target wasm32`. The E0100 goldens are
+  `diagnostics/removed_json_toml_csv_free*.ark`.
+- **Scorecard**: 358 -> **347** public symbols; `associated-or-method`
+  288 -> **277**; manifest functions 325 -> **322**; unregistered declarations
+  34 -> **26**. `must delete` 70 and `intrinsic-only` 1 unchanged.
+
 ## 2026-10-27 — std::simd lane namespace completion (#917, ADR-046)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the

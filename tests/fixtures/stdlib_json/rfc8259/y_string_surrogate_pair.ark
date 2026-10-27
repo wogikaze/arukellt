@@ -4,7 +4,7 @@ use std::prelude::{byte_at}
 use std::text
 fn main() {
     // U+1F600 GRINNING FACE as UTF-16 surrogate pair \uD83D\uDE00
-    match json::parse("\"\\uD83D\\uDE00\"") {
+    match json::JsonValue::parse("\"\\uD83D\\uDE00\"") {
         Result::Ok(v) => match v.as_string() {
             Option::Some(s) => {
                 // UTF-8 encoding is 4 bytes: F0 9F 98 80

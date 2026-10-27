@@ -3,7 +3,7 @@ use std::json
 use std::prelude::{to_string}
 use std::text
 fn main() {
-    match json::parse(String_from("{\"port\":8080,\"name\":\"svc\"}")) {
+    match json::JsonValue::parse(String_from("{\"port\":8080,\"name\":\"svc\"}")) {
         Result::Ok(root) => match root.get_field(String_from("port")) {
             Option::Some(port_v) => match port_v.as_i32() {
                 Option::Some(port) => stdio::println(String_from("json.port=").concat(to_string(port))),
@@ -14,7 +14,7 @@ fn main() {
         Result::Err(_) => stdio::println(String_from("json.parse=err")),
     }
 
-    match json::parse(String_from("{\"name\":\"toml-svc\"}")) {
+    match json::JsonValue::parse(String_from("{\"name\":\"toml-svc\"}")) {
         Result::Ok(root) => match root.get_field(String_from("name")) {
             Option::Some(name_v) => match name_v.as_string() {
                 Option::Some(name) => stdio::println(String_from("toml.name=").concat(name)),

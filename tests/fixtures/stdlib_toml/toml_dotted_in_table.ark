@@ -3,7 +3,7 @@ use std::toml
 use std::test
 
 fn main() {
-    let t = toml::toml_parse("[section]\na.b = 5")
+    let t = toml::TomlValue::parse("[section]\na.b = 5")
     match t {
         Result::Ok(table) => match table.get_field("section") {
             Option::Some(s) => match s.get_field("a") {

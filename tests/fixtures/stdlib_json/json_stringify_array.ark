@@ -2,15 +2,15 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("[1,2,3]") {
+    match json::JsonValue::parse("[1,2,3]") {
         Result::Ok(v) => test::assert_eq_string(v.to_text(), "[1,2,3]"),
         Result::Err(e) => panic("parse array failed: ".concat(e.message())),
     }
-    match json::parse("[]") {
+    match json::JsonValue::parse("[]") {
         Result::Ok(v) => test::assert_eq_string(v.to_text(), "[]"),
         Result::Err(e) => panic("parse empty array failed: ".concat(e.message())),
     }
-    match json::parse("[true,null,\"x\"]") {
+    match json::JsonValue::parse("[true,null,\"x\"]") {
         Result::Ok(v) => test::assert_eq_string(v.to_text(), "[true,null,\"x\"]"),
         Result::Err(e) => panic("parse mixed array failed: ".concat(e.message())),
     }

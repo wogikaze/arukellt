@@ -3,7 +3,7 @@ use std::toml
 use std::test
 
 fn main() {
-    let t = toml::toml_parse("my_key = 1")
+    let t = toml::TomlValue::parse("my_key = 1")
     match t {
         Result::Ok(table) => match table.get_field("my_key") {
             Option::Some(v) => match v.as_int() {

@@ -2,14 +2,14 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("42") {
+    match json::JsonValue::parse("42") {
         Result::Ok(v) => match v.as_i32() {
             Option::Some(n) => test::assert_eq_i32(n, 42),
             None => panic("expected Some(42)"),
         },
         Result::Err(e) => panic("parse failed: ".concat(e.message())),
     }
-    match json::parse("-7") {
+    match json::JsonValue::parse("-7") {
         Result::Ok(v) => match v.as_i32() {
             Option::Some(n) => test::assert_eq_i32(n, -7),
             None => panic("expected Some(-7)"),
@@ -17,7 +17,7 @@ fn main() {
         Result::Err(e) => panic("parse -7 failed: ".concat(e.message())),
     }
     // Type mismatch: json_as_i32 on non-number returns None
-    match json::parse("true") {
+    match json::JsonValue::parse("true") {
         Result::Ok(v) => match v.as_i32() {
             Option::Some(_) => panic("expected None for non-number"),
             None => {},

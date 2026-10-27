@@ -3,7 +3,7 @@ use std::toml
 use std::test
 
 fn main() {
-    let t = toml::toml_parse("# first\n# second\n# third")
+    let t = toml::TomlValue::parse("# first\n# second\n# third")
     match t {
         Result::Ok(table) => {
             let keys = table.table_keys()

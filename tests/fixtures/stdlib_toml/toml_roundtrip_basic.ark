@@ -11,9 +11,9 @@ use std::text
 /// (no whitespace normalisation, no key reordering).
 fn main() {
     let doc = "name = \"arukellt\"\ncount = 42"
-    match toml::toml_parse(doc) {
+    match toml::TomlValue::parse(doc) {
         Result::Ok(table) => {
-            let back = toml::toml_stringify(table)
+            let back = table.to_text()
             if eq(back, doc) {
                 stdio::println("roundtrip ok")
             } else {

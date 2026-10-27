@@ -15,7 +15,7 @@ fn main() {
     stdio::println(bs)
     stdio::println(quotes)
     // Round-trip: parse escaped JSON string → check decoded length and content
-    match json::parse("\"hello\\nworld\"") {
+    match json::JsonValue::parse("\"hello\\nworld\"") {
         Result::Ok(v) => {
             match v.as_string() {
                 Option::Some(s) => {

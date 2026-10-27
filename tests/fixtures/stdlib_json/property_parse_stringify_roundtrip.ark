@@ -6,10 +6,10 @@ use std::json
 use std::test
 use std::text
 fn check_roundtrip(raw: String) {
-    match json::parse(raw) {
+    match json::JsonValue::parse(raw) {
         Result::Ok(v) => {
             let s1 = v.to_text()
-            match json::parse(s1) {
+            match json::JsonValue::parse(s1) {
                 Result::Ok(v2) => {
                     let s2 = v2.to_text()
                     test::assert_eq_string(s1, s2)

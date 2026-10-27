@@ -2,7 +2,7 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("\"a\\fb\"") {
+    match json::JsonValue::parse("\"a\\fb\"") {
         Result::Ok(v) => match v.as_string() {
             Option::Some(s) => test::assert_eq_i32(len(s), 3),
             None => panic("expected string"),

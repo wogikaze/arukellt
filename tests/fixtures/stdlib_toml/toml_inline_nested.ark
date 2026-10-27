@@ -3,7 +3,7 @@ use std::toml
 use std::test
 
 fn main() {
-    let t = toml::toml_parse("outer = { inner = { val = 9 } }")
+    let t = toml::TomlValue::parse("outer = { inner = { val = 9 } }")
     match t {
         Result::Ok(table) => match table.get_field("outer") {
             Option::Some(o) => match o.get_field("inner") {

@@ -2,11 +2,11 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("true") {
+    match json::JsonValue::parse("true") {
         Result::Ok(v) => test::assert_eq_string(v.to_text(), "true"),
         Result::Err(e) => panic("parse true failed: ".concat(e.message())),
     }
-    match json::parse("false") {
+    match json::JsonValue::parse("false") {
         Result::Ok(v) => test::assert_eq_string(v.to_text(), "false"),
         Result::Err(e) => panic("parse false failed: ".concat(e.message())),
     }

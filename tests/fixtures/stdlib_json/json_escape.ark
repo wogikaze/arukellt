@@ -10,7 +10,7 @@ fn main() {
     stdio::println(quote_str)
     let backslash_str = json::JsonValue::encode_string("a\\b")
     stdio::println(backslash_str)
-    match json::parse("\"hello\\nworld\"") {
+    match json::JsonValue::parse("\"hello\\nworld\"") {
         Result::Ok(v) => {
             match v.as_string() {
                 Option::Some(s) => stdio::println((len(s)).to_string()),

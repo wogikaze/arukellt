@@ -6,7 +6,7 @@ use std::text
 fn main() {
     // Table header + key=value entries
     let input = String_from("[server]\nhost = \"localhost\"\nport = 8080")
-    match toml::toml_parse(input) {
+    match toml::TomlValue::parse(input) {
         Result::Ok(table) => {
             // toml_get on nested table
             match table.get_field(String_from("server")) {

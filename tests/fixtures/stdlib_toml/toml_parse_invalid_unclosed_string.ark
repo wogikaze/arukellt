@@ -3,7 +3,7 @@ use std::toml
 use std::text
 fn main() {
     let doc = "name = \"unclosed"
-    match toml::toml_parse(doc) {
+    match toml::TomlValue::parse(doc) {
         Result::Ok(_) => stdio::println("unexpected ok"),
         Result::Err(e) => stdio::println("error:".concat(e)),
     }

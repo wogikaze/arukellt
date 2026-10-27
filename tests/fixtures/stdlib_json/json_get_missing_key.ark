@@ -2,7 +2,7 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("{\"a\":1}") {
+    match json::JsonValue::parse("{\"a\":1}") {
         Result::Ok(v) => {
             match v.get_field("missing") {
                 Option::Some(_) => panic("expected None for missing key"),

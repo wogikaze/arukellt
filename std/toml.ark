@@ -1,11 +1,11 @@
 //! TOML streaming scanner utilities for `std::toml`.
 //!
-//! The public scanning surface is the `TomlText` namespace (`parse_line`,
+//! The text-scanning surface is the `TomlText` namespace (`parse_line`,
 //! `find_section`, `find_value`, `find_raw_value`, `parse_string_array`) used
-//! by the compiler's manifest/script/project parsers (#917, ADR-046). The full
-//! TOML parser with `pub enum TomlValue` lives in `std/toml/parser.ark` (loaded
-//! as `std::toml::parser`) to avoid the bootstrap compiler stubbing the entire
-//! module.
+//! by the compiler's manifest/script/project parsers (#917, ADR-046). The DOM
+//! with `pub enum TomlValue` lives in `std/toml/parser.ark` (re-exported as
+//! `std::toml`) to avoid the bootstrap compiler stubbing the entire module; the
+//! document entry points are `TomlValue::parse` and `v.to_text()`.
 
 use std::prelude::{byte_at, clone, eq, slice, substring}
 use std::text
@@ -162,9 +162,9 @@ fn toml_text_parse_string_array(raw: String) -> Vec<String> {
 }
 
 // ─── Re-exports from std/toml/parser.ark ────────────────────────────────────
-// The full TOML parser (toml_parse, toml_stringify, toml_get, etc.) lives in
-// std/toml/parser.ark.  These wrappers delegate to the parser submodule so
-// that `use std::toml` callers can invoke `toml::toml_parse(...)` directly.
+// The DOM types and their associated functions live in std/toml/parser.ark and
+// are re-exported by the pub use below, so callers spell the document entry
+// points as `TomlValue::parse` and `v.to_text()` (#917, ADR-046).
 
 /// Namespace for TOML text scanning helpers.
 pub struct TomlText {}
@@ -196,12 +196,4 @@ impl TomlText {
     }
 }
 
-use std::toml::parser
-
-pub fn toml_parse(s: String) -> Result<parser::TomlValue, String> {
-    parser::toml_parse(s)
-}
-
-pub fn toml_stringify(v: parser::TomlValue) -> String {
-    parser::toml_stringify(v)
-}
+pub use std::toml::parser

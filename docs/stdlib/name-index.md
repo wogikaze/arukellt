@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 256
+- **Canonical names:** 253
 - **Historical/deprecated names:** 68
-- **Total entries:** 324
+- **Total entries:** 321
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -197,7 +197,6 @@ Current public API names, sorted alphabetically.
 | `pad_left` | `prelude` | `stable` | String |
 | `pad_right` | `prelude` | `stable` | String |
 | `panic` | `prelude` | `stable` | Control |
-| `parse` | `std::json` | `experimental` | Json |
 | `parse_args` | `std::cli` | `stable` | Cli |
 | `parse_f64` | `prelude` | `stable` | Conversion |
 | `parse_i32` | `prelude` | `stable` | Conversion |
@@ -255,8 +254,6 @@ Current public API names, sorted alphabetically.
 | `to_string` | `prelude` | `stable` | Conversion |
 | `to_upper` | `prelude` | `stable` | String |
 | `to_uppercase` | `prelude` | `stable` | String |
-| `toml_parse` | `std::toml` | `experimental` | Toml |
-| `toml_stringify` | `std::toml` | `experimental` | Toml |
 | `trim` | `prelude` | `stable` | String |
 | `trim_end` | `prelude` | `stable` | String |
 | `trim_start` | `prelude` | `stable` | String |
@@ -590,7 +587,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `pad_left` | ✅ `stable` | `prelude` | String |
 | `pad_right` | ✅ `stable` | `prelude` | String |
 | `panic` | ✅ `stable` | `prelude` | Control |
-| `parse` | ✅ `experimental` | `std::json` | Json |
 | `parse_args` | ✅ `stable` | `std::cli` | Cli |
 | `parse_f64` | ✅ `stable` | `prelude` | Conversion |
 | `parse_i32` | ✅ `stable` | `prelude` | Conversion |
@@ -658,8 +654,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `to_string` | ✅ `stable` | `prelude` | Conversion |
 | `to_upper` | ✅ `stable` | `prelude` | String |
 | `to_uppercase` | ✅ `stable` | `prelude` | String |
-| `toml_parse` | ✅ `experimental` | `std::toml` | Toml |
-| `toml_stringify` | ✅ `experimental` | `std::toml` | Toml |
 | `trim` | ✅ `stable` | `prelude` | String |
 | `trim_end` | ✅ `stable` | `prelude` | String |
 | `trim_start` | ✅ `stable` | `prelude` | String |

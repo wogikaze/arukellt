@@ -17,27 +17,27 @@ fn check_exactly_one(v: json::JsonValue) {
 }
 
 fn main() {
-    match json::parse("null") {
+    match json::JsonValue::parse("null") {
         Result::Ok(v) => check_exactly_one(v),
         Result::Err(e) => panic("parse null failed: ".concat(e.message())),
     }
-    match json::parse("true") {
+    match json::JsonValue::parse("true") {
         Result::Ok(v) => check_exactly_one(v),
         Result::Err(e) => panic("parse true failed: ".concat(e.message())),
     }
-    match json::parse("42") {
+    match json::JsonValue::parse("42") {
         Result::Ok(v) => check_exactly_one(v),
         Result::Err(e) => panic("parse 42 failed: ".concat(e.message())),
     }
-    match json::parse("\"str\"") {
+    match json::JsonValue::parse("\"str\"") {
         Result::Ok(v) => check_exactly_one(v),
         Result::Err(e) => panic("parse str failed: ".concat(e.message())),
     }
-    match json::parse("[1]") {
+    match json::JsonValue::parse("[1]") {
         Result::Ok(v) => check_exactly_one(v),
         Result::Err(e) => panic("parse array failed: ".concat(e.message())),
     }
-    match json::parse("{\"a\":1}") {
+    match json::JsonValue::parse("{\"a\":1}") {
         Result::Ok(v) => check_exactly_one(v),
         Result::Err(e) => panic("parse object failed: ".concat(e.message())),
     }

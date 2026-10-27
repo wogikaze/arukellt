@@ -8,7 +8,7 @@ fn main() {
     let s = json::JsonValue::object(fields).to_text()
     test::assert_eq_string(s, "{\"name\":\"alice\",\"age\":30}")
     // Verify the constructed object parses back correctly
-    match json::parse(s) {
+    match json::JsonValue::parse(s) {
         Result::Ok(v) => match v.get_field("name") {
             Option::Some(nv) => match nv.as_string() {
                 Option::Some(name) => test::assert_eq_string(name, "alice"),

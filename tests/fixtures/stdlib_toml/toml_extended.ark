@@ -3,7 +3,7 @@ use std::toml
 use std::text
 fn main() {
     let doc = "name = \"arukellt\"\nversion = \"0.1.0\"\nenabled = true\ncount = 42"
-    match toml::toml_parse(doc) {
+    match toml::TomlValue::parse(doc) {
         Result::Ok(table) => {
             match table.get_field("name") {
                 Option::Some(v) => {

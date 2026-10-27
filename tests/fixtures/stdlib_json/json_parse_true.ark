@@ -2,7 +2,7 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("true") {
+    match json::JsonValue::parse("true") {
         Result::Ok(v) => {
             test::assert_true(v.is_bool())
             match v.as_bool() {

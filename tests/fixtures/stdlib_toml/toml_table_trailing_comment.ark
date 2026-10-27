@@ -3,7 +3,7 @@ use std::toml
 use std::test
 
 fn main() {
-    let t = toml::toml_parse("[server] # comment\nhost = \"x\"")
+    let t = toml::TomlValue::parse("[server] # comment\nhost = \"x\"")
     match t {
         Result::Ok(table) => match table.get_field("server") {
             Option::Some(s) => match s.get_field("host") {

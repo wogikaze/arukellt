@@ -16,12 +16,16 @@
 //! `TomlValue` is a recursive enum for structured TOML values.  Nested
 //! tables are `TomlValue::Table(Vec<TomlField>)`; arrays of tables are
 //! `TomlValue::Array(Vec<TomlValue>)` whose elements are `Table` values.
+//! Parse documents with `TomlValue::parse(text)` and serialize with
+//! `v.to_text()`; both are the canonical associated/method surface
+//! (#917, ADR-046).
 //!
 //! ## Streaming scanner utilities
 //!
-//! `toml_find_section` and `toml_find_value` (in `std/toml.ark`) provide
-//! low-level section/value extraction without building a full DOM.  These
-//! are used by the compiler's manifest/script/project parsers.
+//! `TomlText::find_section` / `find_value` / `find_raw_value` (in
+//! `std/toml.ark`) provide low-level section/value extraction without building
+//! a full DOM.  These are used by the compiler's manifest/script/project
+//! parsers.
 //!
 //! ## Honesty caveats
 //!
@@ -154,6 +158,16 @@ impl TomlValue {
         }
         result
     }
+
+    /// Parse a full TOML 1.0 document into a `TomlValue`.
+    fn parse(s: String) -> Result<TomlValue, String> {
+        toml_parse_document(s)
+    }
+
+    /// Serialize this value back to TOML text.
+    fn to_text(self: TomlValue) -> String {
+        toml_stringify_value(self)
+    }
 }
 
 /// Legacy tagged struct accessors — prefer `TomlValue` enum variants.
@@ -175,20 +189,24 @@ pub struct TomlKeyStep {
     next: i32,
 }
 
-pub fn TomlValStep_ok(v: TomlValue, next: i32) -> TomlValStep {
-    TomlValStep { value: Ok(v), next: next }
+impl TomlValStep {
+    fn ok(v: TomlValue, next: i32) -> TomlValStep {
+        TomlValStep { value: Ok(v), next: next }
+    }
+
+    fn err(e: String, next: i32) -> TomlValStep {
+        TomlValStep { value: Err(e), next: next }
+    }
 }
 
-pub fn TomlValStep_err(e: String, next: i32) -> TomlValStep {
-    TomlValStep { value: Err(e), next: next }
-}
+impl TomlKeyStep {
+    fn ok(parts: Vec<String>, next: i32) -> TomlKeyStep {
+        TomlKeyStep { parts: Ok(parts), next: next }
+    }
 
-pub fn TomlKeyStep_ok(parts: Vec<String>, next: i32) -> TomlKeyStep {
-    TomlKeyStep { parts: Ok(parts), next: next }
-}
-
-pub fn TomlKeyStep_err(e: String, next: i32) -> TomlKeyStep {
-    TomlKeyStep { parts: Err(e), next: next }
+    fn err(e: String, next: i32) -> TomlKeyStep {
+        TomlKeyStep { parts: Err(e), next: next }
+    }
 }
 
 // ─── Character classification helpers ────────────────────────────────────────
@@ -373,10 +391,10 @@ fn toml_find_basic_string_end(s: String, pos: i32) -> i32 {
 fn toml_parse_basic_string_at(s: String, pos: i32) -> TomlValStep {
     let end = toml_find_basic_string_end(s, pos)
     if end < 0 {
-        return TomlValStep_err("unterminated basic string", pos)
+        return TomlValStep::err("unterminated basic string", pos)
     }
     let content = toml_decode_basic_content(slice(s, pos, end))
-    TomlValStep_ok(TomlValue::String(content), end + 1)
+    TomlValStep::ok(TomlValue::String(content), end + 1)
 }
 
 /// Parse a literal string `'…'`. `pos` is just after the opening `'`.
@@ -386,14 +404,14 @@ fn toml_parse_literal_string_at(s: String, pos: i32) -> TomlValStep {
     while i < n {
         let c = byte_at(s, i)
         if c == 10 || c == 13 {
-            return TomlValStep_err("literal string cannot contain newline", pos)
+            return TomlValStep::err("literal string cannot contain newline", pos)
         }
         if c == 39 {
-            return TomlValStep_ok(TomlValue::String(slice(s, pos, i)), i + 1)
+            return TomlValStep::ok(TomlValue::String(slice(s, pos, i)), i + 1)
         }
         i = i + 1
     }
-    TomlValStep_err("unterminated literal string", pos)
+    TomlValStep::err("unterminated literal string", pos)
 }
 
 /// Find the closing `"""` for a multiline basic string. `pos` is just after
@@ -434,10 +452,10 @@ fn toml_parse_multiline_basic_at(s: String, pos: i32) -> TomlValStep {
     }
     let end = toml_find_multiline_basic_end(s, start)
     if end < 0 {
-        return TomlValStep_err("unterminated multiline basic string", pos)
+        return TomlValStep::err("unterminated multiline basic string", pos)
     }
     let content = toml_decode_basic_content(slice(s, start, end))
-    TomlValStep_ok(TomlValue::String(content), end + 3)
+    TomlValStep::ok(TomlValue::String(content), end + 3)
 }
 
 /// Find the closing `'''` for a multiline literal string. `pos` is just after
@@ -467,9 +485,9 @@ fn toml_parse_multiline_literal_at(s: String, pos: i32) -> TomlValStep {
     }
     let end = toml_find_multiline_literal_end(s, start)
     if end < 0 {
-        return TomlValStep_err("unterminated multiline literal string", pos)
+        return TomlValStep::err("unterminated multiline literal string", pos)
     }
-    TomlValStep_ok(TomlValue::String(slice(s, start, end)), end + 3)
+    TomlValStep::ok(TomlValue::String(slice(s, start, end)), end + 3)
 }
 
 // ─── Number / datetime parsing ───────────────────────────────────────────────
@@ -580,25 +598,25 @@ fn toml_parse_number_or_datetime_at(s: String, pos: i32) -> TomlValStep {
     let t = trim(raw)
     let tn = len(t)
     if tn == 0 {
-        return TomlValStep_err("empty value", pos)
+        return TomlValStep::err("empty value", pos)
     }
     // Booleans (also reachable directly from value dispatch).
     if eq(t, "true") {
-        return TomlValStep_ok(TomlValue::Boolean(true), end)
+        return TomlValStep::ok(TomlValue::Boolean(true), end)
     }
     if eq(t, "false") {
-        return TomlValStep_ok(TomlValue::Boolean(false), end)
+        return TomlValStep::ok(TomlValue::Boolean(false), end)
     }
     // inf / nan — stored as String (no f64 inf/nan constructor in runtime).
     if eq(t, "inf") || eq(t, "+inf") || eq(t, "-inf") || eq(t, "nan") || eq(t, "+nan") || eq(t, "-nan") {
-        return TomlValStep_ok(TomlValue::String(t), end)
+        return TomlValStep::ok(TomlValue::String(t), end)
     }
     // Datetime: contains ':' (time), or YYYY-MM-DD date pattern.
     if contains(t, ":") {
-        return TomlValStep_ok(TomlValue::String(t), end)
+        return TomlValStep::ok(TomlValue::String(t), end)
     }
     if tn >= 8 && toml_is_digit(byte_at(t, 0)) && byte_at(t, 4) == 45 {
-        return TomlValStep_ok(TomlValue::String(t), end)
+        return TomlValStep::ok(TomlValue::String(t), end)
     }
     // Hex / octal / binary integers.
     if tn >= 3 && byte_at(t, 0) == 48 {
@@ -606,17 +624,17 @@ fn toml_parse_number_or_datetime_at(s: String, pos: i32) -> TomlValStep {
         if p1 == 120 || p1 == 88 {
             let neg = false
             let digits = slice(t, 2, tn)
-            return TomlValStep_ok(TomlValue::Integer(toml_parse_int_radix(digits, 16, neg)), end)
+            return TomlValStep::ok(TomlValue::Integer(toml_parse_int_radix(digits, 16, neg)), end)
         }
         if p1 == 111 {
             let neg = false
             let digits = slice(t, 2, tn)
-            return TomlValStep_ok(TomlValue::Integer(toml_parse_int_radix(digits, 8, false)), end)
+            return TomlValStep::ok(TomlValue::Integer(toml_parse_int_radix(digits, 8, false)), end)
         }
         if p1 == 98 {
             let neg = false
             let digits = slice(t, 2, tn)
-            return TomlValStep_ok(TomlValue::Integer(toml_parse_int_radix(digits, 2, false)), end)
+            return TomlValStep::ok(TomlValue::Integer(toml_parse_int_radix(digits, 2, false)), end)
         }
     }
     // Float vs integer. Runtime parse_f64 rejects scientific notation, so
@@ -630,8 +648,8 @@ fn toml_parse_number_or_datetime_at(s: String, pos: i32) -> TomlValStep {
             core = slice(core, 1, len(core))
         }
         match toml_parse_float_token(core) {
-            Result::Ok(f) => return TomlValStep_ok(TomlValue::Float(f), end),
-            Result::Err(e) => return TomlValStep_err("invalid float: ".concat(e), pos),
+            Result::Ok(f) => return TomlValStep::ok(TomlValue::Float(f), end),
+            Result::Err(e) => return TomlValStep::err("invalid float: ".concat(e), pos),
         }
     }
     // Decimal integer.
@@ -641,8 +659,8 @@ fn toml_parse_number_or_datetime_at(s: String, pos: i32) -> TomlValStep {
         core = slice(core, 1, len(core))
     }
     match parse_i64(core) {
-        Result::Ok(v) => return TomlValStep_ok(TomlValue::Integer(v), end),
-        Result::Err(e) => return TomlValStep_err("invalid integer: ".concat(e), pos),
+        Result::Ok(v) => return TomlValStep::ok(TomlValue::Integer(v), end),
+        Result::Err(e) => return TomlValStep::err("invalid integer: ".concat(e), pos),
     }
 }
 
@@ -652,7 +670,7 @@ fn toml_parse_value_at(s: String, pos: i32) -> TomlValStep {
     let n = len(s)
     let p = toml_skip_inline_ws(s, pos)
     if p >= n {
-        return TomlValStep_err("unexpected end of input", pos)
+        return TomlValStep::err("unexpected end of input", pos)
     }
     let c = byte_at(s, p)
     if c == 34 {
@@ -674,10 +692,10 @@ fn toml_parse_value_at(s: String, pos: i32) -> TomlValStep {
         return toml_parse_inline_table_at(s, p + 1)
     }
     if c == 116 && p + 3 < n && eq(slice(s, p, p + 4), "true") {
-        return TomlValStep_ok(TomlValue::Boolean(true), p + 4)
+        return TomlValStep::ok(TomlValue::Boolean(true), p + 4)
     }
     if c == 102 && p + 4 < n && eq(slice(s, p, p + 5), "false") {
-        return TomlValStep_ok(TomlValue::Boolean(false), p + 5)
+        return TomlValStep::ok(TomlValue::Boolean(false), p + 5)
     }
     toml_parse_number_or_datetime_at(s, p)
 }
@@ -689,7 +707,7 @@ fn toml_parse_array_at(s: String, pos: i32) -> TomlValStep {
     let mut i = toml_skip_ws_nl_comments(s, pos)
     while i < n {
         if byte_at(s, i) == 93 {
-            return TomlValStep_ok(TomlValue::Array(arr), i + 1)
+            return TomlValStep::ok(TomlValue::Array(arr), i + 1)
         }
         let vs = toml_parse_value_at(s, i)
         match vs.value {
@@ -697,7 +715,7 @@ fn toml_parse_array_at(s: String, pos: i32) -> TomlValStep {
                 push(arr, v)
                 i = vs.next
             },
-            Result::Err(e) => return TomlValStep_err(e, i),
+            Result::Err(e) => return TomlValStep::err(e, i),
         }
         i = toml_skip_ws_nl_comments(s, i)
         if i < n && byte_at(s, i) == 44 {
@@ -705,15 +723,15 @@ fn toml_parse_array_at(s: String, pos: i32) -> TomlValStep {
             i = toml_skip_ws_nl_comments(s, i)
         } else {
             if i < n && byte_at(s, i) == 93 {
-                return TomlValStep_ok(TomlValue::Array(arr), i + 1)
+                return TomlValStep::ok(TomlValue::Array(arr), i + 1)
             }
             if i >= n {
-                return TomlValStep_err("unterminated array", pos)
+                return TomlValStep::err("unterminated array", pos)
             }
-            return TomlValStep_err("expected ',' or ']' in array", pos)
+            return TomlValStep::err("expected ',' or ']' in array", pos)
         }
     }
-    TomlValStep_err("unterminated array", pos)
+    TomlValStep::err("unterminated array", pos)
 }
 
 /// Parse an inline table. `pos` is just after the opening `{`.
@@ -723,14 +741,14 @@ fn toml_parse_inline_table_at(s: String, pos: i32) -> TomlValStep {
     let mut i = toml_skip_ws_nl_comments(s, pos)
     while i < n {
         if byte_at(s, i) == 125 {
-            return TomlValStep_ok(TomlValue::Table(fields), i + 1)
+            return TomlValStep::ok(TomlValue::Table(fields), i + 1)
         }
         let ks = toml_parse_key_at(s, i)
         match ks.parts {
             Result::Ok(parts) => {
                 i = toml_skip_inline_ws(s, ks.next)
                 if i >= n || byte_at(s, i) != 61 {
-                    return TomlValStep_err("expected '=' in inline table", i)
+                    return TomlValStep::err("expected '=' in inline table", i)
                 }
                 i = i + 1
                 let vs = toml_parse_value_at(s, i)
@@ -738,14 +756,14 @@ fn toml_parse_inline_table_at(s: String, pos: i32) -> TomlValStep {
                     Result::Ok(v) => {
                         match toml_insert_key(fields, parts, v) {
                             Result::Ok(_) => {},
-                            Result::Err(e) => return TomlValStep_err(e, i),
+                            Result::Err(e) => return TomlValStep::err(e, i),
                         }
                         i = vs.next
                     },
-                    Result::Err(e) => return TomlValStep_err(e, i),
+                    Result::Err(e) => return TomlValStep::err(e, i),
                 }
             },
-            Result::Err(e) => return TomlValStep_err(e, i),
+            Result::Err(e) => return TomlValStep::err(e, i),
         }
         i = toml_skip_ws_nl_comments(s, i)
         if i < n && byte_at(s, i) == 44 {
@@ -753,15 +771,15 @@ fn toml_parse_inline_table_at(s: String, pos: i32) -> TomlValStep {
             i = toml_skip_ws_nl_comments(s, i)
         } else {
             if i < n && byte_at(s, i) == 125 {
-                return TomlValStep_ok(TomlValue::Table(fields), i + 1)
+                return TomlValStep::ok(TomlValue::Table(fields), i + 1)
             }
             if i >= n {
-                return TomlValStep_err("unterminated inline table", pos)
+                return TomlValStep::err("unterminated inline table", pos)
             }
-            return TomlValStep_err("expected ',' or '}' in inline table", pos)
+            return TomlValStep::err("expected ',' or '}' in inline table", pos)
         }
     }
-    TomlValStep_err("unterminated inline table", pos)
+    TomlValStep::err("unterminated inline table", pos)
 }
 
 // ─── Key parsing ─────────────────────────────────────────────────────────────
@@ -776,7 +794,7 @@ fn toml_parse_key_at(s: String, pos: i32) -> TomlKeyStep {
         if c == 34 {
             let end = toml_find_basic_string_end(s, i + 1)
             if end < 0 {
-                return TomlKeyStep_err("unterminated quoted key", pos)
+                return TomlKeyStep::err("unterminated quoted key", pos)
             }
             push(parts, toml_decode_basic_content(slice(s, i + 1, end)))
             i = end + 1
@@ -787,7 +805,7 @@ fn toml_parse_key_at(s: String, pos: i32) -> TomlKeyStep {
                 while j < n {
                     let jc = byte_at(s, j)
                     if jc == 10 || jc == 13 {
-                        return TomlKeyStep_err("literal key cannot contain newline", pos)
+                        return TomlKeyStep::err("literal key cannot contain newline", pos)
                     }
                     if jc == 39 {
                         found = true
@@ -796,7 +814,7 @@ fn toml_parse_key_at(s: String, pos: i32) -> TomlKeyStep {
                     j = j + 1
                 }
                 if !found {
-                    return TomlKeyStep_err("unterminated literal key", pos)
+                    return TomlKeyStep::err("unterminated literal key", pos)
                 }
                 push(parts, slice(s, i + 1, j))
                 i = j + 1
@@ -809,7 +827,7 @@ fn toml_parse_key_at(s: String, pos: i32) -> TomlKeyStep {
                     push(parts, slice(s, i, j))
                     i = j
                 } else {
-                    return TomlKeyStep_err("expected key", pos)
+                    return TomlKeyStep::err("expected key", pos)
                 }
             }
         }
@@ -818,10 +836,10 @@ fn toml_parse_key_at(s: String, pos: i32) -> TomlKeyStep {
             i = i + 1
             i = toml_skip_inline_ws(s, i)
         } else {
-            return TomlKeyStep_ok(parts, i)
+            return TomlKeyStep::ok(parts, i)
         }
     }
-    TomlKeyStep_ok(parts, i)
+    TomlKeyStep::ok(parts, i)
 }
 
 /// Parse a table header path `[a.b.c]` or `[[a.b.c]]`. `pos` is just after
@@ -834,18 +852,18 @@ fn toml_parse_header_path(s: String, pos: i32, is_array: bool) -> TomlKeyStep {
         Result::Ok(parts) => {
             let mut i = toml_skip_inline_ws(s, ks.next)
             if i >= n || byte_at(s, i) != 93 {
-                return TomlKeyStep_err("expected ']' in table header", i)
+                return TomlKeyStep::err("expected ']' in table header", i)
             }
             i = i + 1
             if is_array {
                 if i >= n || byte_at(s, i) != 93 {
-                    return TomlKeyStep_err("expected ']]' in array-of-tables header", i)
+                    return TomlKeyStep::err("expected ']]' in array-of-tables header", i)
                 }
                 i = i + 1
             }
-            TomlKeyStep_ok(parts, i)
+            TomlKeyStep::ok(parts, i)
         },
-        Result::Err(e) => TomlKeyStep_err(e, pos),
+        Result::Err(e) => TomlKeyStep::err(e, pos),
     }
 }
 
@@ -958,13 +976,13 @@ fn toml_insert_key(fields: Vec<TomlField>, key_path: Vec<String>, value: TomlVal
     Ok(())
 }
 
-// ─── Public parse / stringify ────────────────────────────────────────────────
+// ─── Document parse / stringify ──────────────────────────────────────────────
 /// Parse a full TOML 1.0 document into a `TomlValue::Table`.
 ///
 /// Supports table headers, arrays of tables, inline tables, dotted keys,
 /// multiline strings, datetime literals, arrays, and primitive values.
 /// Malformed input is rejected with `Err(String)`.
-pub fn toml_parse(s: String) -> Result<TomlValue, String> {
+fn toml_parse_document(s: String) -> Result<TomlValue, String> {
     let n = len(s)
     let root = Vec::new<TomlField>()
     let mut current_path = Vec::new<String>()
@@ -1047,7 +1065,7 @@ pub fn toml_parse(s: String) -> Result<TomlValue, String> {
 }
 
 /// Serialize a `TomlValue` back to text.
-pub fn toml_stringify(v: TomlValue) -> String {
+fn toml_stringify_value(v: TomlValue) -> String {
     match v {
         TomlValue::String(s) => "\"".concat(s.concat("\"")),
         TomlValue::Integer(i) => (i).to_string(),
@@ -1067,7 +1085,7 @@ fn toml_stringify_table(fields: Vec<TomlField>) -> String {
             out = out.concat("\n")
         }
         let f = get_unchecked(fields, i)
-        out = out.concat((f.key).concat(" = ".concat(toml_stringify(f.value))))
+        out = out.concat((f.key).concat(" = ".concat(toml_stringify_value(f.value))))
         i = i + 1
     }
     out
@@ -1081,7 +1099,7 @@ fn toml_stringify_array(items: Vec<TomlValue>) -> String {
         if i > 0 {
             out = out.concat(", ")
         }
-        out = out.concat(toml_stringify(get_unchecked(items, i)))
+        out = out.concat(toml_stringify_value(get_unchecked(items, i)))
         i = i + 1
     }
     out.concat("]")

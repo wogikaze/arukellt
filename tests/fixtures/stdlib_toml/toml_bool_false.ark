@@ -3,7 +3,7 @@ use std::toml
 use std::test
 
 fn main() {
-    let t = toml::toml_parse("flag = false")
+    let t = toml::TomlValue::parse("flag = false")
     match t {
         Result::Ok(table) => match table.get_field("flag") {
             Option::Some(v) => match v.as_bool() {

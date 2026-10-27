@@ -2,11 +2,11 @@ use std::json
 use std::test
 
 fn main() {
-    match json::parse("\"\\u12\"") {
+    match json::JsonValue::parse("\"\\u12\"") {
         Result::Ok(_) => panic("expected error for incomplete \\u escape"),
         Result::Err(_) => {},
     }
-    match json::parse("\"\\uXXXX\"") {
+    match json::JsonValue::parse("\"\\uXXXX\"") {
         Result::Ok(_) => panic("expected error for non-hex \\u escape"),
         Result::Err(_) => {},
     }

@@ -4,7 +4,7 @@ use std::text
 fn main() {
     // Round-trip: parse an array, stringify, re-parse, and access elements
     let raw = "[1,2,3,99]"
-    match json::parse(raw) {
+    match json::JsonValue::parse(raw) {
         Result::Ok(arr) => {
             match arr.get_index(0) {
                 Option::Some(v) => {
@@ -26,7 +26,7 @@ fn main() {
             }
             // Stringify and re-parse
             let s = arr.to_text()
-            match json::parse(s) {
+            match json::JsonValue::parse(s) {
                 Result::Ok(arr2) => {
                     match arr2.get_index(2) {
                         Option::Some(v2) => {

@@ -2,11 +2,11 @@ use std::json
 use std::test
 
 fn main() {
-    match json::parse("\"hello") {
+    match json::JsonValue::parse("\"hello") {
         Result::Ok(_) => panic("expected error for unterminated string"),
         Result::Err(_) => {},
     }
-    match json::parse("\"") {
+    match json::JsonValue::parse("\"") {
         Result::Ok(_) => panic("expected error for lone quote"),
         Result::Err(_) => {},
     }

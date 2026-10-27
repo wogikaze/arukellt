@@ -97,11 +97,11 @@ All 18 module pages carry curated overviews.
 
 ## Current Snapshot
 
-- Manifest-backed public functions: **324**
+- Manifest-backed public functions: **321**
 - Prelude wrappers: 86
 - Prelude types: `Option`, `Result`, `String`, `Vec`, `HashMap`, `u8`, `u16`, `u32`, `u64`, `i8`, `i16`, `Box`, `Slice`
 - Prelude values: `Some`, `None`, `Ok`, `Err`
-- Categories: `assert` 5, `box` 2, `cli` 6, `collections` 133, `control` 1, `conversion` 5, `convert` 2, `env` 6, `fs` 8, `host_clock` 2, `host_env` 6, `host_fs` 11, `host_process` 4, `host_random` 4, `host_stdio` 4, `io` 7, `json` 1, `math` 6, `numeric` 2, `option_result` 6, `process` 2, `scalar_conversion` 14, `seq` 22, `signal` 10, `string` 30, `test` 18, `toml` 2, `wasm` 5
+- Categories: `assert` 5, `box` 2, `cli` 6, `collections` 133, `control` 1, `conversion` 5, `convert` 2, `env` 6, `fs` 8, `host_clock` 2, `host_env` 6, `host_fs` 11, `host_process` 4, `host_random` 4, `host_stdio` 4, `io` 7, `math` 6, `numeric` 2, `option_result` 6, `process` 2, `scalar_conversion` 14, `seq` 22, `signal` 10, `string` 30, `test` 18, `wasm` 5
 - Source-backed modules: 38
 - Source of truth: [../current-state.md](../current-state.md), [`../../std/manifest.toml`](../../std/manifest.toml), `std/*.ark` source files
 

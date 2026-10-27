@@ -3,7 +3,7 @@ use std::test
 use std::text
 fn main() {
     let raw = "\"hello\\nworld\\ttab\""
-    match json::parse(raw) {
+    match json::JsonValue::parse(raw) {
         Result::Ok(v) => {
             let s = v.to_text()
             test::assert_eq_string(s, raw)

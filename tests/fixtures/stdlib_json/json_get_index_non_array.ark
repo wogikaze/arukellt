@@ -2,7 +2,7 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("42") {
+    match json::JsonValue::parse("42") {
         Result::Ok(v) => {
             match v.get_index(0) {
                 Option::Some(_) => panic("expected None: get_index on non-array"),
@@ -11,7 +11,7 @@ fn main() {
         },
         Result::Err(e) => panic("parse failed: ".concat(e.message())),
     }
-    match json::parse("{\"a\":1}") {
+    match json::JsonValue::parse("{\"a\":1}") {
         Result::Ok(v) => {
             match v.get_index(0) {
                 Option::Some(_) => panic("expected None: get_index on object"),

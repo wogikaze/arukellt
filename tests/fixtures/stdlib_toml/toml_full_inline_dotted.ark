@@ -5,7 +5,7 @@ use std::toml
 fn main() {
     // Inline table
     let input1 = String_from("point = { x = 1, y = 2 }")
-    match toml::toml_parse(input1) {
+    match toml::TomlValue::parse(input1) {
         Result::Ok(table) => {
             match table.get_field(String_from("point")) {
                 Option::Some(pt) => {
@@ -36,7 +36,7 @@ fn main() {
 
     // Dotted keys
     let input2 = String_from("a.b.c = 42")
-    match toml::toml_parse(input2) {
+    match toml::TomlValue::parse(input2) {
         Result::Ok(table) => {
             match table.get_field(String_from("a")) {
                 Option::Some(a) => {
@@ -63,7 +63,7 @@ fn main() {
 
     // Array of tables
     let input3 = String_from("[[items]]\nname = \"first\"\n[[items]]\nname = \"second\"")
-    match toml::toml_parse(input3) {
+    match toml::TomlValue::parse(input3) {
         Result::Ok(table) => {
             match table.get_field(String_from("items")) {
                 Option::Some(arr) => {

@@ -3,7 +3,7 @@ use std::json
 use std::text
 fn main() {
     // Stress-test json_decode_string via json_as_string with escape sequences
-    match json::parse("\"hello\\nworld\\ttabbed\"") {
+    match json::JsonValue::parse("\"hello\\nworld\\ttabbed\"") {
         Result::Ok(v) => {
             match v.as_string() {
                 Option::Some(s) => {
@@ -17,7 +17,7 @@ fn main() {
     }
     // Long string with no escapes (tests plain-text batching)
     let long = "\"abcdefghijklmnopqrstuvwxyz0123456789\""
-    match json::parse(long) {
+    match json::JsonValue::parse(long) {
         Result::Ok(v) => {
             match v.as_string() {
                 Option::Some(s) => stdio::println((len(s)).to_string()),

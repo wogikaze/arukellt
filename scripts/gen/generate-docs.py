@@ -449,10 +449,11 @@ match content {
                 "with `v.to_text()`. Construction uses `JsonValue::null/bool/int/string/raw/"
                 "array/object`, `JsonField::new`, and `JsonValue::pretty_text`; text scanning "
                 "uses `JsonText::quote`, `JsonText::escape`, `JsonText::get_str`, and the other "
-                "`JsonText` helpers. Only `json::parse` remains a free document entry point."
+                "`JsonText` helpers. The document entry point is the associated "
+                "`JsonValue::parse(doc)`."
             ),
             "highlights": [
-                ("`json::parse(doc)`", "Parse a full JSON document into a `JsonValue`; `Err(JsonParseError)` on malformed input."),
+                ("`json::JsonValue::parse(doc)`", "Parse a full JSON document into a `JsonValue`; `Err(JsonParseError)` on malformed input."),
                 ("`v.is_null()` / `v.as_i32()` / `v.as_string()`", "Type predicates and typed accessors on the DOM value."),
                 ("`v.get_field(key)` / `v.get_index(i)`", "Look up an object field or array element."),
                 ("`v.to_text()`", "Serialize a `JsonValue` back to compact JSON text."),
@@ -467,7 +468,7 @@ import std::json
 let n = json::JsonValue::int(42)
 let text = n.to_text()                       // "42"
 let quoted = json::JsonText::quote("a\"b")  // "\"a\\\"b\""
-let parsed = json::parse("{\"a\":1}")
+let parsed = json::JsonValue::parse("{\"a\":1}")
 ```""",
         },
     },
@@ -705,16 +706,17 @@ let elapsed = Duration::between(t0, t1).as_ms()  // milliseconds
         "overview": {
             "summary": (
                 "The `std::toml` module provides a TOML 1.0 parser/serializer plus the "
-                "`TomlText` streaming namespace for compiler manifests. `toml_parse` accepts "
-                "table headers, arrays of tables, inline tables, dotted keys, multiline strings, "
-                "and datetime literals; malformed input returns `Err(String)`. Nested tables are "
-                "traversed with `v.get_field(key)` / `v.table_keys()` and decoded with "
-                "`v.as_string()` / `v.as_int()` / `v.as_bool()` / `v.as_float()` / "
-                "`v.as_array()` / `v.as_table()`. `TomlText::find_section` / "
-                "`TomlText::find_value` / `TomlText::find_raw_value` scan raw text."
+                "`TomlText` streaming namespace for compiler manifests. "
+                "`TomlValue::parse(doc)` accepts table headers, arrays of tables, inline tables, "
+                "dotted keys, multiline strings, and datetime literals; malformed input returns "
+                "`Err(String)`. Nested tables are traversed with `v.get_field(key)` / "
+                "`v.table_keys()` and decoded with `v.as_string()` / `v.as_int()` / "
+                "`v.as_bool()` / `v.as_float()` / `v.as_array()` / `v.as_table()`. "
+                "`TomlText::find_section` / `TomlText::find_value` / "
+                "`TomlText::find_raw_value` scan raw text."
             ),
             "highlights": [
-                ("`toml_parse(doc)`", "Parse a TOML 1.0 document into a `TomlValue` tree; `Err` on malformed input."),
+                ("`toml::TomlValue::parse(doc)`", "Parse a TOML 1.0 document into a `TomlValue` tree; `Err` on malformed input."),
                 ("`v.get_field(key)` / `v.table_keys()`", "Traverse nested tables and list keys."),
                 ("`v.as_string()` / `v.as_int()` / `v.as_array()` / `v.as_table()`", "Decode a value without re-parsing its raw text."),
                 ("`toml::TomlText::find_section` / `find_value` / `find_raw_value`", "Streaming scanners for `[section]` bodies, quoted values, and raw values."),
@@ -723,8 +725,8 @@ let elapsed = Duration::between(t0, t1).as_ms()  // milliseconds
 ```ark
 import std::toml
 
-match toml_parse("[server]\\nhost = \\"localhost\\"") {
-    Result::Ok(root) => match toml_get(root, "server") {
+match toml::TomlValue::parse("[server]\\nhost = \\"localhost\\"") {
+    Result::Ok(root) => match root.get_field("server") {
         Option::Some(server) => { /* nested table */ },
         Option::None => {},
     },

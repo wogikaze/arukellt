@@ -2,7 +2,7 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    match json::parse("\"hello\"") {
+    match json::JsonValue::parse("\"hello\"") {
         Result::Ok(v) => match v.as_string() {
             Option::Some(s) => test::assert_eq_string(s, "hello"),
             None => panic("expected Some(hello)"),
@@ -10,7 +10,7 @@ fn main() {
         Result::Err(e) => panic("parse failed: ".concat(e.message())),
     }
     // Type mismatch: json_as_string on non-string returns None
-    match json::parse("42") {
+    match json::JsonValue::parse("42") {
         Result::Ok(v) => match v.as_string() {
             Option::Some(_) => panic("expected None for non-string"),
             None => {},

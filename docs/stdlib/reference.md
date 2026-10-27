@@ -10,7 +10,7 @@
 |------|-------|-------------|
 | `stable` | 183 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 19 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 54 | API may change without notice. Functionality is available but not finalized. |
+| `experimental` | 51 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 68 | Superseded — see migration guidance. |
 
 ## Public Types
@@ -33,7 +33,7 @@
 | `FuncType` | - | no | experimental | A Wasm function signature: parameter types followed by result types. Both lists hold ValType constants. |
 | `HandleTableI32` | - | no | experimental | SlotMap-backed Component Model handle table for i32 payloads; new, insert, get, remove, and len are receiver methods. |
 | `HashMap` | K, V | yes | provisional | Hash-based key/value map. |
-| `HashSet` | T | no | provisional | Set of unique i32 / String values; the i32 surface covers membership and aggregates, and the String surface covers membership. |
+| `HashSet` | T | no | provisional | Set of unique i32 / String values; the i32 surface covers membership and aggregates, and the String surface covers membership plus the to_vec snapshot used by its trait impls. Both families implement FromIterator<VecIter<T>>. |
 | `I16x8` | - | no | experimental | 8 × 16-bit signed integer lane associated operations over v128. |
 | `I32x4` | - | no | experimental | 4 × 32-bit signed integer lane associated operations over v128. |
 | `I64x2` | - | no | experimental | 2 × 64-bit signed integer lane associated operations over v128. |
@@ -70,10 +70,12 @@
 |------|----------------|---------|-----------|---------|
 | `Error` | - | no | stable | Portable error category for fallible APIs. |
 | `IoError` | - | no | stable | Typed I/O error with UnexpectedEof and Other variants; implements Display and Error. |
+| `JsonValue` | - | no | experimental | JSON DOM value. Construct with the associated functions (JsonValue::null / bool / int / string / raw / array / object), parse with JsonValue::parse(text), inspect with the is_ / as_ methods, traverse with get_field / get_index, and serialize with to_text. |
 | `Option` | T | yes | stable | Optional value: either Some(T) or None. |
 | `Ordering` | - | no | stable | Result of an ordering comparison: Less, Equal, or Greater. |
 | `Result` | T, E | yes | stable | Operation result: either Ok(T) or Err(E). |
 | `SeekFrom` | - | no | experimental | Offset origin for Seek: Start(i64), Current(i64), or End(i64). |
+| `TomlValue` | - | no | experimental | TOML 1.0 value tree. Parse with TomlValue::parse(text), traverse with get_field / table_keys, decode with the as_ methods, and serialize with to_text. |
 
 ### Traits
 
@@ -119,7 +121,7 @@
 | `FromIterator` | `from_iter` | - |
 | `FuncType` | `new`, `param_count`, `result_count`, `get_param`, `get_result` | - |
 | `HandleTableI32` | `new`, `insert`, `get`, `remove`, `len` | - |
-| `HashSet` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend` | `IntoIterator`, `Clone`, `Eq`, `Debug` |
+| `HashSet` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend` | `FromIterator`, `IntoIterator`, `Clone`, `Eq`, `Debug` |
 | `I16x8` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `ge_u`, `min_s`, `min_u`, `max_s`, `max_u`, `shl`, `shr_s`, `shr_u`, `extadd_pairwise_i8x16_s`, `extadd_pairwise_i8x16_u`, `extend_low_i8x16_s`, `extend_high_i8x16_s`, `extend_low_i8x16_u`, `extend_high_i8x16_u`, `narrow_i32x4_s`, `narrow_i32x4_u`, `mul`, `neg`, `abs`, `add_sat_s`, `add_sat_u`, `sub_sat_s`, `sub_sat_u`, `eq`, `ne`, `lt_s`, `le_s`, `gt_s`, `ge_s`, `lt_u`, `le_u`, `gt_u` | - |
 | `I32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `and`, `or`, `xor`, `not`, `shl`, `shr_s`, `shr_u`, `min_s`, `max_s`, `min_u`, `max_u` | - |
 | `I64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `eq`, `ne`, `lt_s`, `le_s`, `ge_s`, `add`, `sub`, `mul`, `neg`, `abs`, `gt_s`, `shl`, `shr_s`, `shr_u` | - |
@@ -130,6 +132,7 @@
 | `Iterator` | `next`, `collect`, `count` | - |
 | `IteratorFold` | `fold` | - |
 | `IteratorSum` | `sum` | - |
+| `JsonValue` | `parse`, `to_text`, `is_null`, `is_bool`, `is_number`, `is_string`, `is_array`, `is_object`, `as_bool`, `as_string`, `as_i32`, `as_f64`, `as_array`, `get_field`, `get_index`, `null`, `bool`, `int`, `string`, `raw`, `array`, `object`, `stringify_i32`, `stringify_bool`, `stringify_string`, `null_text`, `parse_i32`, `parse_bool`, `encode_string`, `pretty_text` | - |
 | `Leb128` | `encode_u32`, `size_u32` | - |
 | `Limits` | `unbounded`, `bounded`, `min`, `has_max`, `max` | - |
 | `LinkedList` | `new`, `push_front`, `push_back`, `pop_front`, `pop_back`, `front`, `back`, `len`, `is_empty`, `clear`, `iter`, `iter_mut` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
@@ -146,6 +149,7 @@
 | `Section` | `type_id`, `import_id`, `function_id`, `table_id`, `memory_id`, `global_id`, `export_id`, `start_id`, `element_id`, `code_id`, `data_id` | - |
 | `Seek` | `seek`, `position` | - |
 | `Stack` | `new`, `with_capacity`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
+| `TomlValue` | `parse`, `to_text`, `as_string`, `as_int`, `as_bool`, `as_float`, `as_array`, `as_table`, `get_field`, `table_keys` | - |
 | `U16x8` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `add_sat_u`, `sub_sat_u`, `eq`, `ne`, `lt_u`, `le_u`, `gt_u`, `ge_u`, `min_u`, `max_u`, `shl`, `shr_u` | - |
 | `U32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt_u`, `le_u`, `gt_u`, `ge_u`, `min_u`, `max_u`, `shl`, `shr_u` | - |
 | `U64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt_u`, `le_u`, `gt_u`, `ge_u`, `shl`, `shr_u` | - |
@@ -573,12 +577,6 @@ let input = read_to_string()
 | ~~`writer_write`~~ ⚠️ Deprecated → `Writer::write` | `(Vec<i32>, Vec<i32>) -> Result<i32, IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated tagged write for stdout() / stderr(); use Writer::write for memory handles. Stays until… |
 | ~~`writer_write_str`~~ ⚠️ Deprecated → `Writer::write_string` | `(Vec<i32>, String) -> Result<i32, IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated tagged string write for stdout() / stderr(); use Writer::write_string for memory handle… |
 
-## Json
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Parse a full JSON document and reject trailing non-whitespace after the first top-level value. |
-
 ## Math
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
@@ -733,13 +731,6 @@ let input = read_to_string()
 | `expect_none_i32` | `(Option<i32>) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
 | `expect_ok_i32` | `(Result<i32, String>) -> i32` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
 | `expect_some_i32` | `(Option<i32>) -> i32` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
-
-## Toml
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `toml_parse` | `(String) -> Result<TomlValue, String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Parse a TOML 1.0 document into a TomlValue tree. |
-| `toml_stringify` | `(TomlValue) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Serialize a TomlValue back to text. |
 
 ## Wasm
 

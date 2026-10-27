@@ -3,7 +3,7 @@ use std::toml
 use std::test
 
 fn main() {
-    let t = toml::toml_parse("cfg = {}")
+    let t = toml::TomlValue::parse("cfg = {}")
     match t {
         Result::Ok(table) => match table.get_field("cfg") {
             Option::Some(cfg) => {

@@ -3,7 +3,7 @@ use std::toml
 use std::test
 
 fn main() {
-    let t = toml::toml_parse("val = ")
+    let t = toml::TomlValue::parse("val = ")
     match t {
         Result::Ok(_) => assert(false),
         Result::Err(_) => {},
