@@ -2,16 +2,14 @@ use std::host::stdio
 use std::wasm
 
 fn main() {
-    stdio::println((wasm::valtype_i32()).to_string())
-    stdio::println((wasm::valtype_i64()).to_string())
-    stdio::println((wasm::valtype_f32()).to_string())
-    stdio::println((wasm::valtype_f64()).to_string())
-    stdio::println((wasm::valtype_v128()).to_string())
-    stdio::println((wasm::valtype_funcref()).to_string())
-    stdio::println((wasm::valtype_externref()).to_string())
-    stdio::println((wasm::reftype_funcref()).to_string())
-    stdio::println((wasm::reftype_externref()).to_string())
+    stdio::println((wasm::ValType::i32()).to_string())
+    stdio::println((wasm::ValType::i64()).to_string())
+    stdio::println((wasm::ValType::f32()).to_string())
+    stdio::println((wasm::ValType::f64()).to_string())
+    stdio::println((wasm::ValType::v128()).to_string())
+    stdio::println((wasm::ValType::funcref()).to_string())
+    stdio::println((wasm::ValType::externref()).to_string())
 }
-// Original value types
+// Numeric value types
 // Extended value types
-// RefType constants
+// Reference types share the same encoding namespace

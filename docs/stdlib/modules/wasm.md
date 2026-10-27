@@ -7,30 +7,35 @@ Source-backed docs for WebAssembly helpers.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::wasm` module exposes WebAssembly binary-format constants and low-level v128 memory access helpers. It provides the magic bytes, version bytes, section IDs, and value-type constants needed to build or inspect Wasm modules programmatically. Bulk memory copy/fill are compiler intrinsics only (`__intrinsic_memory_*`); ADR-046 keeps no public free wrapper.
+The `std::wasm` module exposes the WebAssembly binary format as associated functions and receiver methods: the module header, section IDs, value types, opcodes, FuncType / Limits values, a minimal module builder, and LEB128 encoding. The v128 bitwise operations live on `std::simd::v128::V128`; the five experimental v128 load/store frees remain until their associated form lowers. Bulk memory copy/fill are compiler intrinsics only (`__intrinsic_memory_*`); ADR-046 keeps no public free wrapper.
 
 **Recommended API highlights:**
 
 | API | Purpose |
 |-----|---------|
-| `wasm_magic()` / `wasm_version()` | The 4-byte Wasm magic number and version bytes. |
-| `section_type()` … `section_data()` | Section ID constants for all standard Wasm sections. |
-| `valtype_i32()` … `valtype_f64()` | Value-type constants matching the Wasm binary encoding. |
-| `v128_load(ptr, offset)` / `v128_store(ptr, offset, v)` | v128 memory access helpers (ADR-037). |
+| `WasmModuleBuilder::new()` / `m.add_type(ft)` / `m.type_count()` / `WasmModuleBuilder::encode_header()` | Minimal module builder with the magic / version header and the current section-count stubs. |
+| `Section::type_id()` … `Section::data_id()` | Section ID constants for all standard Wasm sections. |
+| `ValType::i32()` … `ValType::externref()`, `Opcode::i32_add()` | Value-type and opcode constants matching the Wasm binary encoding. |
+| `FuncType::new(params, results)` / `ft.get_param(idx)`, `Limits::bounded(min, max)` / `l.has_max()` | Nominal function-signature and memory-limit values with validated receiver methods. |
+| `Leb128::encode_u32(x)` / `Leb128::size_u32(x)` | Unsigned LEB128 encoding and size helpers. |
 
 **Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 
-> ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
+> **Eradication note (ADR-046):** the old free spellings are retired. A
+> qualified call such as `wasm::module_new()` fails resolution with an E0100
+> migration hint (issue #917).
 
 ```ark
-import std::wasm
+use std::wasm
 
-let magic = wasm_magic()    // [0x00, 0x61, 0x73, 0x6d]
-let ver   = wasm_version()  // [0x01, 0x00, 0x00, 0x00]
-let type_section = section_type()  // 1
-let i32_type = valtype_i32()       // 0x7f
+let m: wasm::WasmModuleBuilder = wasm::WasmModuleBuilder::new()
+let ft: wasm::FuncType = wasm::FuncType::new(params, results)
+let type_index: i32 = m.add_type(ft)
+let section: i32 = wasm::Section::type_id()
+let opcode: i32 = wasm::Opcode::i32_add()
+let encoded: Vec<i32> = wasm::Leb128::encode_u32(128)
 ```
 
 ---
@@ -38,275 +43,34 @@ let i32_type = valtype_i32()       // 0x7f
 ## Module `std::wasm`
 
 - Source: [`../../../std/wasm/mod.ark`](../../../std/wasm/mod.ark)
-- Manifest-backed functions: 77
-- Stability: experimental 77
+- Manifest-backed functions: 5
+- Stability: experimental 5
 
 Experimental WebAssembly helpers.
 
-Exposes magic bytes, version bytes, section IDs, value-type constants,
-opcode constants, FuncType/Limits constructors, a minimal WasmModuleBuilder,
-and LEB128 encoding utilities.
+Exposes the Wasm module header, section IDs, value-type constants, opcode
+constants, FuncType / Limits values, a minimal Wasm module builder, LEB128
+encoding, and the five experimental v128 load/store helpers. The builder
+and constant helpers are associated functions or methods on their owning
+types; the v128 load/store helpers stay top-level free functions because
+their method form does not lower yet (ADR-046). The raw v128 bitwise
+operations live on `std::simd::v128::V128`.
 
 All APIs are Experimental and may change in v4+.
 
-### `std::wasm` — Public API
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `wasm_magic` | `() -> Vec<i32>` | `experimental` | ✅ functional | - |
-| `wasm_version` | `() -> Vec<i32>` | `experimental` | ✅ functional | - |
-| `section_type` | `() -> i32` | `experimental` | ✅ functional | - |
-| `section_import` | `() -> i32` | `experimental` | ✅ functional | - |
-| `section_function` | `() -> i32` | `experimental` | ✅ functional | - |
-| `section_table` | `() -> i32` | `experimental` | ✅ functional | - |
-| `section_memory` | `() -> i32` | `experimental` | ✅ functional | - |
-| `section_global` | `() -> i32` | `experimental` | ✅ functional | - |
-| `section_export` | `() -> i32` | `experimental` | ✅ functional | - |
-| `section_start` | `() -> i32` | `experimental` | ✅ functional | - |
-| `section_element` | `() -> i32` | `experimental` | ✅ functional | - |
-| `section_code` | `() -> i32` | `experimental` | ✅ functional | - |
-| `section_data` | `() -> i32` | `experimental` | ✅ functional | - |
-| `valtype_i32` | `() -> i32` | `experimental` | ✅ functional | - |
-| `valtype_i64` | `() -> i32` | `experimental` | ✅ functional | - |
-| `valtype_f32` | `() -> i32` | `experimental` | ✅ functional | - |
-| `valtype_f64` | `() -> i32` | `experimental` | ✅ functional | - |
-| `valtype_v128` | `() -> i32` | `experimental` | ✅ functional | - |
-| `valtype_funcref` | `() -> i32` | `experimental` | ✅ functional | - |
-| `valtype_externref` | `() -> i32` | `experimental` | ✅ functional | - |
-| `reftype_funcref` | `() -> i32` | `experimental` | ✅ functional | - |
-| `reftype_externref` | `() -> i32` | `experimental` | ✅ functional | - |
-
-#### `std::wasm::valtype_v128`
-
-Value type byte for SIMD v128 (0x7b). Requires SIMD proposal.
-
-#### `std::wasm::valtype_funcref`
-
-Value type byte for funcref (0x70). Reference-types proposal.
-
-#### `std::wasm::valtype_externref`
-
-Value type byte for externref (0x6f). Reference-types proposal.
-
-#### `std::wasm::reftype_funcref`
-
-Reference type byte for funcref.
-
-#### `std::wasm::reftype_externref`
-
-Reference type byte for externref.
-
-### `std::wasm` — FuncType
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `functype_new` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `experimental` | ✅ functional | - |
-| `functype_param_count` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
-| `functype_result_count` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
-| `functype_get_param` | `(Vec<i32>, i32) -> i32` | `experimental` | ✅ functional | - |
-| `functype_get_result` | `(Vec<i32>, i32) -> i32` | `experimental` | ✅ functional | - |
-
-#### `std::wasm::functype_new`
-
-Construct a FuncType from param types and result types (both as Vec<i32> of valtype constants).
-
-#### `std::wasm::functype_param_count`
-
-Return the number of parameter types in a FuncType.
-
-#### `std::wasm::functype_result_count`
-
-Return the number of result types in a FuncType.
-
-#### `std::wasm::functype_get_param`
-
-Get the valtype constant for the i-th parameter of a FuncType.
-
-#### `std::wasm::functype_get_result`
-
-Get the valtype constant for the i-th result of a FuncType.
-
-### `std::wasm` — Limits
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `limits_unbounded` | `(i32) -> Vec<i32>` | `experimental` | ✅ functional | - |
-| `limits_bounded` | `(i32, i32) -> Vec<i32>` | `experimental` | ✅ functional | - |
-| `limits_min` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
-| `limits_has_max` | `(Vec<i32>) -> bool` | `experimental` | ✅ functional | - |
-| `limits_max` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
-
-#### `std::wasm::limits_unbounded`
-
-Construct a Limits with only a minimum (no maximum).
-
-#### `std::wasm::limits_bounded`
-
-Construct a Limits with both minimum and maximum.
-
-#### `std::wasm::limits_min`
-
-Get the minimum of a Limits.
-
-#### `std::wasm::limits_has_max`
-
-Return true if this Limits has a maximum.
-
-#### `std::wasm::limits_max`
-
-Get the maximum of a Limits (only valid if limits_has_max is true).
-
-### `std::wasm` — WasmModuleBuilder
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `module_new` | `() -> Vec<i32>` | `experimental` | ✅ functional | - |
-| `module_add_type` | `(Vec<i32>, Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
-| `module_add_func` | `(Vec<i32>, i32) -> i32` | `experimental` | ✅ functional | - |
-| `module_add_memory` | `(Vec<i32>, Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
-| `module_add_export_func` | `(Vec<i32>, String, i32) -> ()` | `experimental` | ✅ functional | - |
-| `module_type_count` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
-| `module_func_count` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
-| `module_mem_count` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
-| `module_export_count` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
-| `module_encode_header` | `() -> Vec<i32>` | `experimental` | ✅ functional | Encode the module to a Wasm binary header (magic + version). |
-
-#### `std::wasm::module_new`
-
-Create a new empty WasmModuleBuilder.
-
-#### `std::wasm::module_add_type`
-
-Register a FuncType in the module type section. Returns its index.
-
-#### `std::wasm::module_add_func`
-
-Add a function with the given type index to the module. Returns its function index.
-
-#### `std::wasm::module_add_memory`
-
-Add a memory with the given Limits to the module. Returns its memory index.
-
-#### `std::wasm::module_add_export_func`
-
-Add a function export to the module.
-
-#### `std::wasm::module_type_count`
-
-Get the number of registered types in the module builder.
-
-#### `std::wasm::module_func_count`
-
-Get the number of functions added to the module builder.
-
-#### `std::wasm::module_mem_count`
-
-Get the number of memories added to the module builder.
-
-#### `std::wasm::module_export_count`
-
-Get the number of exports added to the module builder.
-
-#### `std::wasm::module_encode_header`
-
-Return the Wasm binary magic+version header (8 bytes).
-
-### `std::wasm` — LEB128 encoding
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `leb128_encode_u32` | `(i32) -> Vec<i32>` | `experimental` | ✅ functional | Encode a u32 as unsigned LEB128. Returns Vec<i32> of bytes. |
-| `leb128_size_u32` | `(i32) -> i32` | `experimental` | ✅ functional | Return the number of bytes needed to encode x as unsigned LEB128. |
-
-#### `std::wasm::leb128_encode_u32`
-
-Encode a u32 as unsigned LEB128. Returns the bytes as Vec<i32>.
-
-#### `std::wasm::leb128_size_u32`
-
-Return the number of bytes needed to encode x as unsigned LEB128.
-
-### `std::wasm` — Opcode constants (Wasm MVP subset)
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `op_unreachable` | `() -> i32` | `experimental` | ✅ functional | - |
-| `op_nop` | `() -> i32` | `experimental` | ✅ functional | - |
-| `op_end` | `() -> i32` | `experimental` | ✅ functional | - |
-| `op_return` | `() -> i32` | `experimental` | ✅ functional | - |
-| `op_call` | `() -> i32` | `experimental` | ✅ functional | - |
-| `op_local_get` | `() -> i32` | `experimental` | ✅ functional | - |
-| `op_local_set` | `() -> i32` | `experimental` | ✅ functional | - |
-| `op_local_tee` | `() -> i32` | `experimental` | ✅ functional | - |
-| `op_i32_const` | `() -> i32` | `experimental` | ✅ functional | - |
-| `op_i64_const` | `() -> i32` | `experimental` | ✅ functional | - |
-| `op_i32_eqz` | `() -> i32` | `experimental` | ✅ functional | - |
-| `op_i32_eq` | `() -> i32` | `experimental` | ✅ functional | - |
-| `op_i32_add` | `() -> i32` | `experimental` | ✅ functional | - |
-| `op_i32_sub` | `() -> i32` | `experimental` | ✅ functional | - |
-| `op_i32_mul` | `() -> i32` | `experimental` | ✅ functional | - |
-
-#### `std::wasm::op_unreachable`
-
-Wasm opcode: unreachable (0x00).
-
-#### `std::wasm::op_nop`
-
-Wasm opcode: nop (0x01).
-
-#### `std::wasm::op_end`
-
-Wasm opcode: end (0x0b).
-
-#### `std::wasm::op_return`
-
-Wasm opcode: return (0x0f).
-
-#### `std::wasm::op_call`
-
-Wasm opcode: call (0x10).
-
-#### `std::wasm::op_local_get`
-
-Wasm opcode: local.get (0x20).
-
-#### `std::wasm::op_local_set`
-
-Wasm opcode: local.set (0x21).
-
-#### `std::wasm::op_local_tee`
-
-Wasm opcode: local.tee (0x22).
-
-#### `std::wasm::op_i32_const`
-
-Wasm opcode: i32.const (0x41).
-
-#### `std::wasm::op_i64_const`
-
-Wasm opcode: i64.const (0x42).
-
-#### `std::wasm::op_i32_eqz`
-
-Wasm opcode: i32.eqz (0x45).
-
-#### `std::wasm::op_i32_eq`
-
-Wasm opcode: i32.eq (0x46).
-
-#### `std::wasm::op_i32_add`
-
-Wasm opcode: i32.add (0x6a).
-
-#### `std::wasm::op_i32_sub`
-
-Wasm opcode: i32.sub (0x6b).
-
-#### `std::wasm::op_i32_mul`
-
-Wasm opcode: i32.mul (0x6c).
-
-### `std::wasm` — v128 intrinsics (ADR-037 §10-11, issue #698 Phase 3)
+### `std::wasm` — Public Types
+
+| Name | Kind | Methods | Trait impls | Summary |
+|------|------|---------|-------------|---------|
+| `Section` | `struct` | `type_id`, `import_id`, `function_id`, `table_id`, `memory_id`, `global_id`, `export_id`, `start_id`, `element_id`, `code_id`, `data_id` | - | Section IDs for the standard Wasm sections. |
+| `ValType` | `struct` | `i32`, `i64`, `f32`, `f64`, `v128`, `funcref`, `externref` | - | Value-type constants matching the Wasm binary encoding. |
+| `Opcode` | `struct` | `unreachable`, `nop`, `block`, `loop_`, `if_`, `else_`, `end`, `br`, `br_if`, `return_`, `call`, `drop`, `select`, `local_get`, `local_set`, `local_tee`, `global_get`, `global_set`, `i32_load`, `i32_store`, `memory_size`, `memory_grow`, `i32_const`, `i64_const`, `f32_const`, `f64_const`, `i32_eqz`, `i32_eq`, `i32_ne`, `i32_lt_s`, `i32_gt_s`, `i32_le_s`, `i32_ge_s`, `i32_add`, `i32_sub`, `i32_mul`, `i32_div_s`, `i32_and`, `i32_or`, `i32_xor`, `i32_shl`, `i32_shr_s`, `i64_add`, `i64_sub`, `i64_mul` | - | Opcode constants for the Wasm MVP instruction subset. |
+| `FuncType` | `struct` | `new`, `param_count`, `result_count`, `get_param`, `get_result` | - | A Wasm function signature: parameter types followed by result types. |
+| `Limits` | `struct` | `unbounded`, `bounded`, `min`, `has_max`, `max` | - | Memory limits: a minimum page count plus an optional maximum. |
+| `WasmModuleBuilder` | `struct` | `new`, `add_type`, `add_func`, `add_memory`, `add_export_func`, `type_count`, `func_count`, `mem_count`, `export_count`, `magic`, `version`, `encode_header` | - | Minimal Wasm module builder. |
+| `Leb128` | `struct` | `encode_u32`, `size_u32` | - | Unsigned LEB128 encoding utilities. |
+
+### `std::wasm` — v128 memory access (ADR-037 §11)
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
@@ -315,13 +79,6 @@ Wasm opcode: i32.mul (0x6c).
 | `v128_load_splat` | `(i32, i32) -> v128` | `experimental` | ✅ functional | Load a single byte and splat to all 16 lanes. |
 | `v128_load_lane` | `(i32, i32, v128, i32) -> v128` | `experimental` | ✅ functional | Load a single lane from linear memory. |
 | `v128_store_lane` | `(i32, i32, v128, i32) -> ()` | `experimental` | ✅ functional | Store a single lane to linear memory. |
-| `v128_and` | `(v128, v128) -> v128` | `experimental` | ✅ functional | Bitwise AND of two v128 vectors. |
-| `v128_or` | `(v128, v128) -> v128` | `experimental` | ✅ functional | Bitwise OR of two v128 vectors. |
-| `v128_xor` | `(v128, v128) -> v128` | `experimental` | ✅ functional | Bitwise XOR of two v128 vectors. |
-| `v128_not` | `(v128) -> v128` | `experimental` | ✅ functional | Bitwise NOT of a v128 vector. |
-| `v128_andnot` | `(v128, v128) -> v128` | `experimental` | ✅ functional | Bitwise ANDNOT (a & ~b) of two v128 vectors. |
-| `v128_bitselect` | `(v128, v128, v128) -> v128` | `experimental` | ✅ functional | Bitwise select: for each bit, choose a if c bit is 1 else b. |
-| `v128_any_true` | `(v128) -> i32` | `experimental` | ✅ functional | Return 1 if any bit in the v128 is set, 0 otherwise. |
 
 #### `std::wasm::v128_load`
 
@@ -342,66 +99,3 @@ Load a single lane from linear memory into a v128 vector.
 #### `std::wasm::v128_store_lane`
 
 Store a single lane from a v128 vector to linear memory.
-
-#### `std::wasm::v128_and`
-
-Bitwise AND of two v128 vectors.
-
-#### `std::wasm::v128_or`
-
-Bitwise OR of two v128 vectors.
-
-#### `std::wasm::v128_xor`
-
-Bitwise XOR of two v128 vectors.
-
-#### `std::wasm::v128_not`
-
-Bitwise NOT of a v128 vector.
-
-#### `std::wasm::v128_andnot`
-
-Bitwise ANDNOT (a & ~b) of two v128 vectors.
-
-#### `std::wasm::v128_bitselect`
-
-Bitwise select: for each bit, choose a if c bit is 1 else b.
-
-#### `std::wasm::v128_any_true`
-
-Return 1 if any bit in the v128 is set, 0 otherwise.
-
-### `std::wasm` — v128 reinterpret family (no-op at v128 level, just type casting)
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `v128_reinterpret_i8x16` | `(v128) -> v128` | `experimental` | ✅ functional | Reinterpret v128 as i8x16 (no-op, same bits). |
-| `v128_reinterpret_i16x8` | `(v128) -> v128` | `experimental` | ✅ functional | Reinterpret v128 as i16x8 (no-op, same bits). |
-| `v128_reinterpret_i32x4` | `(v128) -> v128` | `experimental` | ✅ functional | Reinterpret v128 as i32x4 (no-op, same bits). |
-| `v128_reinterpret_i64x2` | `(v128) -> v128` | `experimental` | ✅ functional | Reinterpret v128 as i64x2 (no-op, same bits). |
-| `v128_reinterpret_f32x4` | `(v128) -> v128` | `experimental` | ✅ functional | Reinterpret v128 as f32x4 (no-op, same bits). |
-| `v128_reinterpret_f64x2` | `(v128) -> v128` | `experimental` | ✅ functional | Reinterpret v128 as f64x2 (no-op, same bits). |
-
-#### `std::wasm::v128_reinterpret_i8x16`
-
-Reinterpret v128 as i8x16 (no-op, same bits).
-
-#### `std::wasm::v128_reinterpret_i16x8`
-
-Reinterpret v128 as i16x8 (no-op, same bits).
-
-#### `std::wasm::v128_reinterpret_i32x4`
-
-Reinterpret v128 as i32x4 (no-op, same bits).
-
-#### `std::wasm::v128_reinterpret_i64x2`
-
-Reinterpret v128 as i64x2 (no-op, same bits).
-
-#### `std::wasm::v128_reinterpret_f32x4`
-
-Reinterpret v128 as f32x4 (no-op, same bits).
-
-#### `std::wasm::v128_reinterpret_f64x2`
-
-Reinterpret v128 as f64x2 (no-op, same bits).

@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: wasm::module_new; removed free function; use the `WasmModuleBuilder` associated function from `use std::wasm` instead

@@ -2745,522 +2745,6 @@ params = ["Vec<T>", "fn(T) -> K"]
 returns = "T"
 doc = "Return the element of v whose key(element) is maximal under K: Ord."
 
-# === std::wasm ===
-
-[[functions]]
-name = "wasm_magic"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "Vec<i32>"
-
-[[functions]]
-name = "wasm_version"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "Vec<i32>"
-
-[[functions]]
-name = "section_type"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-
-[[functions]]
-name = "section_import"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-
-[[functions]]
-name = "section_function"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-
-[[functions]]
-name = "section_table"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-
-[[functions]]
-name = "section_memory"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-
-[[functions]]
-name = "section_global"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-
-[[functions]]
-name = "section_export"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-
-[[functions]]
-name = "section_start"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-
-[[functions]]
-name = "section_element"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-
-[[functions]]
-name = "section_code"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-
-[[functions]]
-name = "section_data"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-
-[[functions]]
-name = "valtype_i32"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-
-[[functions]]
-name = "valtype_i64"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-
-[[functions]]
-name = "valtype_f32"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-
-[[functions]]
-name = "valtype_f64"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-
-[[functions]]
-name = "valtype_v128"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Value type byte for SIMD v128 (0x7b). Requires SIMD proposal."
-
-[[functions]]
-name = "valtype_funcref"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Value type byte for funcref (0x70). Reference-types proposal."
-
-[[functions]]
-name = "valtype_externref"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Value type byte for externref (0x6f). Reference-types proposal."
-
-[[functions]]
-name = "reftype_funcref"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Reference type byte for funcref."
-
-[[functions]]
-name = "reftype_externref"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Reference type byte for externref."
-
-[[functions]]
-name = "functype_new"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["Vec<i32>", "Vec<i32>"]
-returns = "Vec<i32>"
-doc = "Construct a FuncType from param types and result types (both as Vec<i32> of valtype constants)."
-
-[[functions]]
-name = "functype_param_count"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Return the number of parameter types in a FuncType."
-
-[[functions]]
-name = "functype_result_count"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Return the number of result types in a FuncType."
-
-[[functions]]
-name = "functype_get_param"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["Vec<i32>", "i32"]
-returns = "i32"
-doc = "Get the valtype constant for the i-th parameter of a FuncType."
-
-[[functions]]
-name = "functype_get_result"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["Vec<i32>", "i32"]
-returns = "i32"
-doc = "Get the valtype constant for the i-th result of a FuncType."
-
-[[functions]]
-name = "limits_unbounded"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["i32"]
-returns = "Vec<i32>"
-doc = "Construct a Limits with only a minimum (no maximum)."
-
-[[functions]]
-name = "limits_bounded"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["i32", "i32"]
-returns = "Vec<i32>"
-doc = "Construct a Limits with both minimum and maximum."
-
-[[functions]]
-name = "limits_min"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Get the minimum of a Limits."
-
-[[functions]]
-name = "limits_has_max"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["Vec<i32>"]
-returns = "bool"
-doc = "Return true if this Limits has a maximum."
-
-[[functions]]
-name = "limits_max"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Get the maximum of a Limits (only valid if limits_has_max is true)."
-
-[[functions]]
-name = "module_new"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "Vec<i32>"
-doc = "Create a new empty WasmModuleBuilder."
-
-[[functions]]
-name = "module_add_type"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["Vec<i32>", "Vec<i32>"]
-returns = "i32"
-doc = "Register a FuncType in the module type section. Returns its index."
-
-[[functions]]
-name = "module_add_func"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["Vec<i32>", "i32"]
-returns = "i32"
-doc = "Add a function with the given type index to the module. Returns its function index."
-
-[[functions]]
-name = "module_add_memory"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["Vec<i32>", "Vec<i32>"]
-returns = "i32"
-doc = "Add a memory with the given Limits to the module. Returns its memory index."
-
-[[functions]]
-name = "module_add_export_func"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["Vec<i32>", "String", "i32"]
-returns = "()"
-doc = "Add a function export to the module."
-
-[[functions]]
-name = "module_type_count"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Get the number of registered types in the module builder."
-
-[[functions]]
-name = "module_func_count"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Get the number of functions added to the module builder."
-
-[[functions]]
-name = "module_mem_count"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Get the number of memories added to the module builder."
-
-[[functions]]
-name = "module_export_count"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Get the number of exports added to the module builder."
-
-[[functions]]
-name = "module_encode_header"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "Vec<i32>"
-doc = "Return the Wasm binary magic+version header (8 bytes)."
-
-[[functions]]
-name = "leb128_encode_u32"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["i32"]
-returns = "Vec<i32>"
-doc = "Encode a u32 as unsigned LEB128. Returns the bytes as Vec<i32>."
-
-[[functions]]
-name = "leb128_size_u32"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["i32"]
-returns = "i32"
-doc = "Return the number of bytes needed to encode x as unsigned LEB128."
-
-[[functions]]
-name = "op_unreachable"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Wasm opcode: unreachable (0x00)."
-
-[[functions]]
-name = "op_nop"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Wasm opcode: nop (0x01)."
-
-[[functions]]
-name = "op_end"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Wasm opcode: end (0x0b)."
-
-[[functions]]
-name = "op_return"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Wasm opcode: return (0x0f)."
-
-[[functions]]
-name = "op_call"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Wasm opcode: call (0x10)."
-
-[[functions]]
-name = "op_local_get"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Wasm opcode: local.get (0x20)."
-
-[[functions]]
-name = "op_local_set"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Wasm opcode: local.set (0x21)."
-
-[[functions]]
-name = "op_local_tee"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Wasm opcode: local.tee (0x22)."
-
-[[functions]]
-name = "op_i32_const"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Wasm opcode: i32.const (0x41)."
-
-[[functions]]
-name = "op_i64_const"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Wasm opcode: i64.const (0x42)."
-
-[[functions]]
-name = "op_i32_eqz"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Wasm opcode: i32.eqz (0x45)."
-
-[[functions]]
-name = "op_i32_eq"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Wasm opcode: i32.eq (0x46)."
-
-[[functions]]
-name = "op_i32_add"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Wasm opcode: i32.add (0x6a)."
-
-[[functions]]
-name = "op_i32_sub"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Wasm opcode: i32.sub (0x6b)."
-
-[[functions]]
-name = "op_i32_mul"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = []
-returns = "i32"
-doc = "Wasm opcode: i32.mul (0x6c)."
-
 # === std::wit ===
 #
 # The 16 experimental `wit_type_*` entries were retired by the #917 WIT wave.
@@ -5534,7 +5018,148 @@ methods = [
     "any_true",
 ]
 
-# === std::wasm v128 intrinsics ===
+# === std::wasm type surface (ADR-046) ===
+
+[[types]]
+name = "Section"
+kind = "struct"
+module = "std::wasm"
+stability = "experimental"
+doc = "Section IDs for the standard Wasm sections."
+methods = [
+    "type_id",
+    "import_id",
+    "function_id",
+    "table_id",
+    "memory_id",
+    "global_id",
+    "export_id",
+    "start_id",
+    "element_id",
+    "code_id",
+    "data_id",
+]
+
+[[types]]
+name = "ValType"
+kind = "struct"
+module = "std::wasm"
+stability = "experimental"
+doc = "Value-type constants matching the Wasm binary encoding, including the reference types."
+methods = [
+    "i32",
+    "i64",
+    "f32",
+    "f64",
+    "v128",
+    "funcref",
+    "externref",
+]
+
+[[types]]
+name = "Opcode"
+kind = "struct"
+module = "std::wasm"
+stability = "experimental"
+doc = "Opcode constants for the Wasm MVP instruction subset."
+methods = [
+    "unreachable",
+    "nop",
+    "block",
+    "loop_",
+    "if_",
+    "else_",
+    "end",
+    "br",
+    "br_if",
+    "return_",
+    "call",
+    "drop",
+    "select",
+    "local_get",
+    "local_set",
+    "local_tee",
+    "global_get",
+    "global_set",
+    "i32_load",
+    "i32_store",
+    "memory_size",
+    "memory_grow",
+    "i32_const",
+    "i64_const",
+    "f32_const",
+    "f64_const",
+    "i32_eqz",
+    "i32_eq",
+    "i32_ne",
+    "i32_lt_s",
+    "i32_gt_s",
+    "i32_le_s",
+    "i32_ge_s",
+    "i32_add",
+    "i32_sub",
+    "i32_mul",
+    "i32_div_s",
+    "i32_and",
+    "i32_or",
+    "i32_xor",
+    "i32_shl",
+    "i32_shr_s",
+    "i64_add",
+    "i64_sub",
+    "i64_mul",
+]
+
+[[types]]
+name = "FuncType"
+kind = "struct"
+module = "std::wasm"
+stability = "experimental"
+doc = "A Wasm function signature: parameter types followed by result types. Both lists hold ValType constants."
+methods = ["new", "param_count", "result_count", "get_param", "get_result"]
+
+[[types]]
+name = "Limits"
+kind = "struct"
+module = "std::wasm"
+stability = "experimental"
+doc = "Memory limits: a minimum page count plus an optional maximum."
+methods = ["unbounded", "bounded", "min", "has_max", "max"]
+
+[[types]]
+name = "WasmModuleBuilder"
+kind = "struct"
+module = "std::wasm"
+stability = "experimental"
+doc = "Minimal Wasm module builder that counts signatures, functions, memories, and exports and encodes the module header."
+methods = [
+    "new",
+    "add_type",
+    "add_func",
+    "add_memory",
+    "add_export_func",
+    "type_count",
+    "func_count",
+    "mem_count",
+    "export_count",
+    "magic",
+    "version",
+    "encode_header",
+]
+
+[[types]]
+name = "Leb128"
+kind = "struct"
+module = "std::wasm"
+stability = "experimental"
+doc = "Unsigned LEB128 encoding utilities."
+methods = ["encode_u32", "size_u32"]
+
+# === std::wasm v128 memory frees (lowering-blocked) ===
+#
+# These stay free functions: an associated/method form lowers the
+# `__wasm_v128_*` intrinsic to an unresolved trap stub on both targets. The
+# top-level decl still emits `v128.load` / `v128.store`.
 
 [[functions]]
 name = "v128_load"
@@ -5581,123 +5206,6 @@ stability = "experimental"
 params = ["i32", "i32", "v128", "i32"]
 returns = "()"
 doc = "Store a single lane from a v128 vector to linear memory."
-
-[[functions]]
-name = "v128_and"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-doc = "Bitwise AND of two v128 vectors."
-
-[[functions]]
-name = "v128_or"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-doc = "Bitwise OR of two v128 vectors."
-
-[[functions]]
-name = "v128_xor"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-doc = "Bitwise XOR of two v128 vectors."
-
-[[functions]]
-name = "v128_not"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["v128"]
-returns = "v128"
-doc = "Bitwise NOT of a v128 vector."
-
-[[functions]]
-name = "v128_andnot"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["v128", "v128"]
-returns = "v128"
-doc = "Bitwise ANDNOT (a & ~b) of two v128 vectors."
-
-[[functions]]
-name = "v128_bitselect"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["v128", "v128", "v128"]
-returns = "v128"
-doc = "Bitwise select: for each bit, choose a if c bit is 1 else b."
-
-[[functions]]
-name = "v128_any_true"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["v128"]
-returns = "i32"
-doc = "Return 1 if any bit in the v128 is set, 0 otherwise."
-
-[[functions]]
-name = "v128_reinterpret_i8x16"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["v128"]
-returns = "v128"
-doc = "Reinterpret v128 as i8x16 (no-op, same bits)."
-
-[[functions]]
-name = "v128_reinterpret_i16x8"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["v128"]
-returns = "v128"
-doc = "Reinterpret v128 as i16x8 (no-op, same bits)."
-
-[[functions]]
-name = "v128_reinterpret_i32x4"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["v128"]
-returns = "v128"
-doc = "Reinterpret v128 as i32x4 (no-op, same bits)."
-
-[[functions]]
-name = "v128_reinterpret_i64x2"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["v128"]
-returns = "v128"
-doc = "Reinterpret v128 as i64x2 (no-op, same bits)."
-
-[[functions]]
-name = "v128_reinterpret_f32x4"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["v128"]
-returns = "v128"
-doc = "Reinterpret v128 as f32x4 (no-op, same bits)."
-
-[[functions]]
-name = "v128_reinterpret_f64x2"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["v128"]
-returns = "v128"
-doc = "Reinterpret v128 as f64x2 (no-op, same bits)."
 
 [[functions]]
 name = "byte_at"

@@ -1,0 +1,5 @@
+use std::wasm
+
+fn main() {
+    let _m = wasm::module_new()
+}

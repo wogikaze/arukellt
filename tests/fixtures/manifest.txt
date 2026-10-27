@@ -254,6 +254,8 @@ diag:diagnostics/deprecated_io_free_function.ark
 diag:diagnostics/removed_io_free_function.ark
 diag:diagnostics/removed_simd_free.ark
 diag:diagnostics/removed_simd_free_wasm32.ark
+diag:diagnostics/removed_wasm_free.ark
+diag:diagnostics/removed_wasm_free_wasm32.ark
 diag:diagnostics/removed_iter_constructor.ark
 diag:diagnostics/removed_text_free.ark
 diag:diagnostics/removed_text_free_wasm32.ark
@@ -2152,6 +2154,8 @@ run:stdlib_wasm/module_builder.ark
 run:stdlib_wasm/opcode_basic.ark
 run:stdlib_wasm/valtype_ext.ark
 run:stdlib_wasm/wasm_basic.ark
+run:stdlib_wasm/wasm_method_surface.ark
+run:stdlib_wasm/wasm_method_surface_wasm32.ark
 run:stdlib_wit/wit_ast_parse.ark
 run:stdlib_wit/wit_ast_parse_wasm32.ark
 run:stdlib_wit/wit_ast_methods.ark

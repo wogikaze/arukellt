@@ -415,6 +415,58 @@ classified there, in dependency-safe waves.
   the `std::io` / `std::host::fs` byte-layout adapters and the 743
   `associated-or-method` symbols remain in their own lanes.
 
+### Landed slice (wave/wasm-group, 2026-10-27)
+
+- **std::wasm builder namespace surface**: converted 72 of the 77 manifest
+  entries and all 34 unregistered declarations (106 of the 111-symbol
+  `std::wasm builder frees` group) to seven namespace / value types:
+  `Section` (11), `ValType` (7, collapsing the 9 `valtype_*` / `reftype_*`
+  and 4 `numtype_*` names), `Opcode` (45), `FuncType` (5), `Limits` (5),
+  `WasmModuleBuilder` (12), and `Leb128` (2) — 87 associated functions
+  replacing 93 free symbols. All entries were `experimental`, so ADR-014 D4
+  allowed direct deletion with migration rows and no ADR-087 window or W0009
+  entry. `FuncType` and `Limits` are nominal values with private fields; the
+  former `Vec<i32>` builder state is now `WasmModuleBuilder` with receiver
+  methods (`m.add_type(ft)`, `m.type_count()`, …).
+- **v128 split**: the 7 bitwise frees point at the already-landed
+  `std::simd::v128::V128` associated functions; the 6 identity
+  `v128_reinterpret_*` frees retire with no replacement (v128 is one type).
+- **Residual (5, lowering-blocked)**: `v128_load`, `v128_store`,
+  `v128_load_splat`, `v128_load_lane`, and `v128_store_lane` stay
+  experimental free functions. The `__wasm_v128_load*` /
+  `__wasm_v128_store*` intrinsics have no emitter lowering: the call compiles
+  to `unreachable` (the module validates, but every call traps) in the
+  top-level and `impl` spellings alike, and `wasm-tools print` shows zero
+  `v128.load` / `v128.store` instructions in either (`wasm-tools print` on the
+  free-function fixture: 0 instructions; the body ends in `unreachable`). No
+  `V128Memory` method surface is advertised until the intrinsic lowering
+  lands. The rule is now `std::wasm v128 memory frees` (5 manifest, 0 source).
+  This is a pre-existing intrinsic-lowering gap, not a regression from the
+  wave.
+- **E0100**: `resolver::removed_names::removed_module_member_hint` maps module
+  alias `wasm` to the owning type and is pinned by unit assertions; the 5
+  retained memory frees keep no hint. Dual-target goldens are
+  `diagnostics/removed_wasm_free.ark` + `_wasm32.ark`.
+- **Fixtures**: migrated `stdlib_wasm/{wasm_basic,valtype_ext,opcode_basic,
+  leb128_basic,module_builder}.ark` (the `valtype_ext` golden drops the two
+  duplicate `reftype_*` lines); added
+  `stdlib_wasm/wasm_method_surface.ark` + `_wasm32.ark` asserting the whole
+  associated surface (including builder mutation persistence and the `V128`
+  bitwise replacement). `run:` 1856 → 1858; `diag:` 134 → 136.
+- **Scorecard (regenerated)**: the committed `eradication.md` at the base was
+  stale (it still reported the pre-simd 813 symbols). Regeneration now
+  reflects the tree: 728 → **622** public symbols; `associated-or-method`
+  658 → **552**; manifest public entries 506 → **434**; unregistered
+  declarations 222 → **188**; `pub fn` declarations 789 → **683**;
+  `must delete` 70 and `intrinsic-only` 1 unchanged. The group itself is
+  now 5 manifest + 0 source.
+- **Verification**: both-target compile + `wasm-tools validate` + runtime for
+  the 5 migrated fixtures and the new surface pair; `verify fixtures`
+  1858/1858 PASS / 0 FAIL (runtime smoke included); `selfhost diag-parity`
+  including the 2 new E0100 goldens; `docs check` 6/6; `verify lane` PASS;
+  `check-stdlib-eradication` 622-symbol receipt; `check-compat-orphans`
+  clean; ADR-029 fixpoint result recorded in the wave receipt (s2 == s3).
+
 ## Required work
 
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate
@@ -462,6 +514,12 @@ classified there, in dependency-safe waves.
         `std::core::iter` constructor / collector frees retired after the
         `VecIter` adapter method surface (`chain`/`enumerate`/`zip`/`all`
         landed with the wave) replaced them.
+      - Landed 2026-10-27 (`wave/wasm-group`): 106 of the 111 `std::wasm
+        builder frees` symbols retired after the `Section` / `ValType` /
+        `Opcode` / `FuncType` / `Limits` / `WasmModuleBuilder` / `Leb128`
+        surface landed; the `V128` bitwise frees point at `std::simd`, the
+        reinterprets retire, and the 5 v128 load/store frees stay blocked on
+        the impl-body intrinsic lowering.
 - [x] Keep the scorecard at zero-unclassified while waves land: update
       the TOML rules as symbols retire so the checker stays green.
 - [x] Update user-facing docs/examples in the same PR that retires a

@@ -15,22 +15,22 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 789 `pub fn` declarations under
-`std/**/*.ark`; 567 map to a manifest entry and
-222 are unregistered. Eradication scope = 506 manifest
-public entries + 222 unregistered declarations = **728 symbols**.
+**Real surface denominator:** 683 `pub fn` declarations under
+`std/**/*.ark`; 495 map to a manifest entry and
+188 are unregistered. Eradication scope = 434 manifest
+public entries + 188 unregistered declarations = **622 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 728 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 789 | — |
-| Unregistered std declarations (no manifest entry) | 222 | 0 |
+| Eradication-scope symbols (real std surface) | 622 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 683 | — |
+| Unregistered std declarations (no manifest entry) | 188 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
-| Manifest public entries (registered scope) | 506 | 0 |
+| Manifest public entries (registered scope) | 434 | 0 |
 | `prelude_wrapper` entries | 65 | 0 |
-| Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 80 | 0 |
+| Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 74 | 0 |
 | `intrinsic-only` bridges (non-public) | 1 | — |
 
 ## Classification
@@ -38,7 +38,7 @@ public entries + 222 unregistered declarations = **728 symbols**.
 | Class | Meaning | Symbols |
 |-------|---------|---------|
 | `must delete` | Replacement already exists or functionality retires | 70 |
-| `associated-or-method` | Replacement must land as method/associated first | 658 |
+| `associated-or-method` | Replacement must land as method/associated first | 552 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
 ## Execution Rules
@@ -69,7 +69,7 @@ registered entries and unregistered `pub fn` declarations.
 | std::collections frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 100 | 20 | collection type methods (HashMap/HashSet/Deque/BTree/SortedMap/etc.) |
 | std::json/toml/csv frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 53 | 42 | Json/Toml/Csv value methods and associated parse/stringify |
 | std::simd frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 37 | 76 | SIMD lane namespace associated functions (`F32x4::add`, `I64x2::eq`, `V128::any_true`, …) for the 132 ops whose lowering is valid on both targets; the remaining 130 frees stay experimental until the SIMD emitter validates (98) or stops trapping / corrupting the value (32). See issue #917. |
-| std::wasm builder frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 77 | 34 | WasmBuilder/Module/Type associated functions and methods |
+| std::wasm v128 memory frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 5 | 0 | The `V128Memory::load` / `store` / `load_splat` / `load_lane` / `store_lane` associated form is blocked together with the free form: the `__wasm_v128_load*` / `__wasm_v128_store*` intrinsics have no emitter lowering, so every call compiles to `unreachable` (valid Wasm, but it traps) on wasm32-gc and wasm32. Neither spelling emits `v128.load` / `v128.store`. The five frees stay experimental until the emitter implements the intrinsic lowering; they then move to `V128Memory`. |
 | std::wit/component frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 0 | 7 | Wit/Component/Handle associated functions and methods |
 | host/core namespace frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 78 | 22 | Fs/Env/Process/Clock/Random/Cli/Path/Signal associated functions and methods |
 
@@ -508,83 +508,11 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `toml_parse_string_array` | `std::toml` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `toml_stringify` | `std::toml` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `toml_table_keys` | `std::toml` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `functype_get_param` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `functype_get_result` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `functype_new` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `functype_param_count` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `functype_result_count` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `leb128_encode_u32` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `leb128_size_u32` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `limits_bounded` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `limits_has_max` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `limits_max` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `limits_min` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `limits_unbounded` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `module_add_export_func` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `module_add_func` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `module_add_memory` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `module_add_type` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `module_encode_header` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `module_export_count` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `module_func_count` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `module_mem_count` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `module_new` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `module_type_count` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_call` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_end` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i32_add` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i32_const` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i32_eq` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i32_eqz` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i32_mul` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i32_sub` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i64_const` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_local_get` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_local_set` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_local_tee` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_nop` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_return` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_unreachable` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `reftype_externref` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `reftype_funcref` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `section_code` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `section_data` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `section_element` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `section_export` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `section_function` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `section_global` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `section_import` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `section_memory` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `section_start` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `section_table` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `section_type` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_and` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_andnot` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_any_true` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_bitselect` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_load` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_load_lane` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_load_splat` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_not` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_or` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_reinterpret_f32x4` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_reinterpret_f64x2` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_reinterpret_i16x8` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_reinterpret_i32x4` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_reinterpret_i64x2` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_reinterpret_i8x16` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_store` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_store_lane` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_xor` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `valtype_externref` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `valtype_f32` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `valtype_f64` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `valtype_funcref` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `valtype_i32` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `valtype_i64` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `valtype_v128` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `wasm_magic` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `wasm_version` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `v128_load` | `std::wasm` | `associated-or-method` | std::wasm v128 memory frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `v128_load_lane` | `std::wasm` | `associated-or-method` | std::wasm v128 memory frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `v128_load_splat` | `std::wasm` | `associated-or-method` | std::wasm v128 memory frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `v128_store` | `std::wasm` | `associated-or-method` | std::wasm v128 memory frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `v128_store_lane` | `std::wasm` | `associated-or-method` | std::wasm v128 memory frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `__intrinsic_string_is_empty` | `(prelude)` | `intrinsic-only` | private intrinsics | — |
 
 ## Inventory (unregistered std declarations)
@@ -783,37 +711,3 @@ manifest-only scorecard could not see before #703.
 | `toml_as_float` | `std/toml/parser.ark:1002` | `std::toml::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `toml_as_array` | `std/toml/parser.ark:1009` | `std::toml::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `toml_as_table` | `std/toml/parser.ark:1016` | `std::toml::parser` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `numtype_i32` | `std/wasm/mod.ark:103` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `numtype_i64` | `std/wasm/mod.ark:107` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `numtype_f32` | `std/wasm/mod.ark:111` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `numtype_f64` | `std/wasm/mod.ark:115` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_block` | `std/wasm/mod.ark:321` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_loop` | `std/wasm/mod.ark:325` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_if` | `std/wasm/mod.ark:329` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_else` | `std/wasm/mod.ark:333` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_br` | `std/wasm/mod.ark:341` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_br_if` | `std/wasm/mod.ark:345` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_drop` | `std/wasm/mod.ark:357` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_select` | `std/wasm/mod.ark:361` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_global_get` | `std/wasm/mod.ark:377` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_global_set` | `std/wasm/mod.ark:381` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i32_load` | `std/wasm/mod.ark:385` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i32_store` | `std/wasm/mod.ark:389` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_memory_size` | `std/wasm/mod.ark:393` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_memory_grow` | `std/wasm/mod.ark:397` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_f32_const` | `std/wasm/mod.ark:409` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_f64_const` | `std/wasm/mod.ark:413` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i32_ne` | `std/wasm/mod.ark:425` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i32_lt_s` | `std/wasm/mod.ark:429` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i32_gt_s` | `std/wasm/mod.ark:433` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i32_le_s` | `std/wasm/mod.ark:437` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i32_ge_s` | `std/wasm/mod.ark:441` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i32_div_s` | `std/wasm/mod.ark:457` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i32_and` | `std/wasm/mod.ark:461` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i32_or` | `std/wasm/mod.ark:465` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i32_xor` | `std/wasm/mod.ark:469` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i32_shl` | `std/wasm/mod.ark:473` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i32_shr_s` | `std/wasm/mod.ark:477` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i64_add` | `std/wasm/mod.ark:481` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i64_sub` | `std/wasm/mod.ark:485` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `op_i64_mul` | `std/wasm/mod.ark:489` | `std::wasm` | `associated-or-method` | std::wasm builder frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |

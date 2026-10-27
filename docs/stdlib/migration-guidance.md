@@ -871,6 +871,79 @@ Evidence for the wave:
 - `use std::io` no longer emits the retired "moved to `std::host::stdio`"
   W0009 warning (ADR-085 D1); `std::io` is the canonical abstraction module.
 
+## std::wasm builder namespace wave (ADR-046, 2026-10-27)
+
+The `std::wasm` builder family was an `experimental` free-function module. The
+wave moves 72 manifest entries and all 34 unregistered declarations to seven
+namespace / value types. The qualified call shape changes from a module free
+call to an associated function or receiver method:
+
+<!-- skip-doc-check reason="migration shape example; not fixture-backed" owner="#917" kind="non-runnable" expires="2026-12-31" -->
+```ark
+// before
+use std::wasm
+let m = wasm::module_new()
+let ft = wasm::functype_new(params, results)
+let ti = wasm::module_add_type(m, ft)
+let op = wasm::op_i32_add()
+
+// after
+use std::wasm
+let m: wasm::WasmModuleBuilder = wasm::WasmModuleBuilder::new()
+let ft: wasm::FuncType = wasm::FuncType::new(params, results)
+let ti: i32 = m.add_type(ft)
+let op: i32 = wasm::Opcode::i32_add()
+```
+
+Because every entry was `experimental`, ADR-014 D4 allows direct deletion; no
+W0009 deprecation window was opened and no `deprecated_by` entry was added. A
+qualified old call such as `wasm::module_new()` fails resolution with an
+**E0100** hint that names the owning type.
+
+| Family | Before | After |
+|--------|--------|-------|
+| Module header | `wasm_magic`, `wasm_version`, `module_encode_header` | `WasmModuleBuilder::magic()`, `::version()`, `::encode_header()` |
+| Module builder | `module_new`, `module_add_type`, `module_add_func`, `module_add_memory`, `module_add_export_func`, `module_type_count`, `module_func_count`, `module_mem_count`, `module_export_count` | `WasmModuleBuilder::new()`, `m.add_type(ft)`, `m.add_func(type_idx)`, `m.add_memory(limits)`, `m.add_export_func(name, func_idx)`, `m.type_count()`, `m.func_count()`, `m.mem_count()`, `m.export_count()` |
+| Function type | `functype_new`, `functype_param_count`, `functype_result_count`, `functype_get_param`, `functype_get_result` | `FuncType::new(params, results)`, `ft.param_count()`, `ft.result_count()`, `ft.get_param(idx)`, `ft.get_result(idx)` |
+| Limits | `limits_unbounded`, `limits_bounded`, `limits_min`, `limits_has_max`, `limits_max` | `Limits::unbounded(min)`, `Limits::bounded(min, max)`, `l.min()`, `l.has_max()`, `l.max()` |
+| Section IDs | `section_type`, `section_import`, `section_function`, `section_table`, `section_memory`, `section_global`, `section_export`, `section_start`, `section_element`, `section_code`, `section_data` | `Section::type_id()`, `::import_id()`, `::function_id()`, `::table_id()`, `::memory_id()`, `::global_id()`, `::export_id()`, `::start_id()`, `::element_id()`, `::code_id()`, `::data_id()` |
+| Value types | `valtype_i32` … `valtype_externref`, `reftype_funcref`, `reftype_externref`, `numtype_i32` … `numtype_f64` | `ValType::i32()`, `i64()`, `f32()`, `f64()`, `v128()`, `funcref()`, `externref()` |
+| Opcodes | `op_unreachable` … `op_i64_mul` (45 entries) | `Opcode::unreachable()`, `nop()`, `block()`, `loop_()`, `if_()`, `else_()`, `end()`, `br()`, `br_if()`, `return_()`, `call()`, `drop()`, `select()`, `local_get()`, `local_set()`, `local_tee()`, `global_get()`, `global_set()`, `i32_load()`, `i32_store()`, `memory_size()`, `memory_grow()`, `i32_const()`, `i64_const()`, `f32_const()`, `f64_const()`, `i32_eqz()`, `i32_eq()`, `i32_ne()`, `i32_lt_s()`, `i32_gt_s()`, `i32_le_s()`, `i32_ge_s()`, `i32_add()`, `i32_sub()`, `i32_mul()`, `i32_div_s()`, `i32_and()`, `i32_or()`, `i32_xor()`, `i32_shl()`, `i32_shr_s()`, `i64_add()`, `i64_sub()`, `i64_mul()` |
+| LEB128 | `leb128_encode_u32`, `leb128_size_u32` | `Leb128::encode_u32(x)`, `Leb128::size_u32(x)` |
+| v128 bitwise | `v128_and`, `v128_or`, `v128_xor`, `v128_not`, `v128_andnot`, `v128_bitselect`, `v128_any_true` | `V128::and`, `or`, `xor`, `not`, `andnot`, `bitselect`, `any_true` from `use std::simd::v128::V128` |
+| v128 reinterpret (removed) | `v128_reinterpret_i8x16`, `_i16x8`, `_i32x4`, `_i64x2`, `_f32x4`, `_f64x2` | no replacement: v128 is one type in Ark, so the old identity helper is unnecessary; pass the value directly |
+
+`Section::import_id` / `export_id` and `Opcode::loop_` / `if_` / `else_` /
+`return_` carry the suffix because `import`, `export`, `loop`, `if`, `else`,
+and `return` are hard keywords.
+
+### Retained: v128 memory frees (5)
+
+The five load/store frees stay as experimental free functions because the
+underlying intrinsics have no emitter lowering in either spelling:
+
+- `v128_load`, `v128_store`, `v128_load_splat`, `v128_load_lane`, and
+  `v128_store_lane` validate on both targets, but the
+  `__wasm_v128_load*` / `__wasm_v128_store*` call compiles to `unreachable`,
+  so every call traps. `wasm-tools print` shows zero `v128.load` /
+  `v128.store` instructions in the compiled free function (the same is true
+  for an `impl`-body spelling; the marshal prologue is unrelated to the
+  instruction). This is a pre-existing intrinsic-lowering gap.
+- No `V128Memory` associated surface is advertised while the replacement
+  cannot run. The method surface lands when the emitter implements the five
+  intrinsics (then the frees migrate to `V128Memory`).
+
+### Evidence
+
+- `tests/fixtures/stdlib_wasm/{wasm_basic,valtype_ext,opcode_basic,leb128_basic,module_builder}.ark`
+  were migrated to the associated spelling; their `.expected` output is
+  unchanged except `valtype_ext` (the `reftype_*` duplicates collapsed into
+  `ValType`).
+- `tests/fixtures/stdlib_wasm/wasm_method_surface.ark` + `_wasm32.ark` assert
+  the whole builder surface and the `V128` bitwise replacement on both targets.
+- `tests/fixtures/diagnostics/removed_wasm_free.ark` + `_wasm32.ark` pin the
+  E0100 hint.
+
 ## Iterator v2 status
 
 The current iterator implementation is intentionally narrower than the final

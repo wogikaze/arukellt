@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 438
+- **Canonical names:** 366
 - **Historical/deprecated names:** 68
-- **Total entries:** 506
+- **Total entries:** 434
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -135,11 +135,6 @@ Current public API names, sorted alphabetically.
 | `flag` | `std::cli` | `stable` | Cli |
 | `format_bool` | `prelude` | `stable` | String |
 | `format_i32` | `prelude` | `stable` | String |
-| `functype_get_param` | `std::wasm` | `experimental` | Wasm |
-| `functype_get_result` | `std::wasm` | `experimental` | Wasm |
-| `functype_new` | `std::wasm` | `experimental` | Wasm |
-| `functype_param_count` | `std::wasm` | `experimental` | Wasm |
-| `functype_result_count` | `std::wasm` | `experimental` | Wasm |
 | `gcd` | `prelude` | `stable` | Math |
 | `has_flag` | `std::host::env` | `stable` | Host Env |
 | `has_flag` | `std::cli` | `stable` | Cli |
@@ -240,13 +235,6 @@ Current public API names, sorted alphabetically.
 | `json_stringify_bool` | `std::json` | `experimental` | Json |
 | `json_stringify_i32` | `std::json` | `experimental` | Json |
 | `json_stringify_string` | `std::json` | `experimental` | Json |
-| `leb128_encode_u32` | `std::wasm` | `experimental` | Wasm |
-| `leb128_size_u32` | `std::wasm` | `experimental` | Wasm |
-| `limits_bounded` | `std::wasm` | `experimental` | Wasm |
-| `limits_has_max` | `std::wasm` | `experimental` | Wasm |
-| `limits_max` | `std::wasm` | `experimental` | Wasm |
-| `limits_min` | `std::wasm` | `experimental` | Wasm |
-| `limits_unbounded` | `std::wasm` | `experimental` | Wasm |
 | `lines` | `prelude` | `stable` | String |
 | `lower_bound` | `std::seq` | `provisional` | Seq |
 | `magnitude` | `std::signal` | `stable` | Signal |
@@ -259,16 +247,6 @@ Current public API names, sorted alphabetically.
 | `min` | `std::simd::f64x2` | `experimental` | Simd |
 | `min_by` | `std::seq` | `provisional` | Seq |
 | `min_by_key` | `std::seq` | `provisional` | Seq |
-| `module_add_export_func` | `std::wasm` | `experimental` | Wasm |
-| `module_add_func` | `std::wasm` | `experimental` | Wasm |
-| `module_add_memory` | `std::wasm` | `experimental` | Wasm |
-| `module_add_type` | `std::wasm` | `experimental` | Wasm |
-| `module_encode_header` | `std::wasm` | `experimental` | Wasm |
-| `module_export_count` | `std::wasm` | `experimental` | Wasm |
-| `module_func_count` | `std::wasm` | `experimental` | Wasm |
-| `module_mem_count` | `std::wasm` | `experimental` | Wasm |
-| `module_new` | `std::wasm` | `experimental` | Wasm |
-| `module_type_count` | `std::wasm` | `experimental` | Wasm |
 | `monotonic_now` | `std::host::clock` | `stable` | Host Clock |
 | `mul` | `std::simd::f64x2` | `experimental` | Simd |
 | `mul` | `std::simd::i64x2` | `experimental` | Simd |
@@ -282,21 +260,6 @@ Current public API names, sorted alphabetically.
 | `next_f64` | `std::host::random` | `stable` | Host Random |
 | `normalize` | `std::path` | `stable` | Path |
 | `now_ms` | `std::host::clock` | `stable` | Host Clock |
-| `op_call` | `std::wasm` | `experimental` | Wasm |
-| `op_end` | `std::wasm` | `experimental` | Wasm |
-| `op_i32_add` | `std::wasm` | `experimental` | Wasm |
-| `op_i32_const` | `std::wasm` | `experimental` | Wasm |
-| `op_i32_eq` | `std::wasm` | `experimental` | Wasm |
-| `op_i32_eqz` | `std::wasm` | `experimental` | Wasm |
-| `op_i32_mul` | `std::wasm` | `experimental` | Wasm |
-| `op_i32_sub` | `std::wasm` | `experimental` | Wasm |
-| `op_i64_const` | `std::wasm` | `experimental` | Wasm |
-| `op_local_get` | `std::wasm` | `experimental` | Wasm |
-| `op_local_set` | `std::wasm` | `experimental` | Wasm |
-| `op_local_tee` | `std::wasm` | `experimental` | Wasm |
-| `op_nop` | `std::wasm` | `experimental` | Wasm |
-| `op_return` | `std::wasm` | `experimental` | Wasm |
-| `op_unreachable` | `std::wasm` | `experimental` | Wasm |
 | `option` | `std::cli` | `stable` | Cli |
 | `pad_left` | `prelude` | `stable` | String |
 | `pad_right` | `prelude` | `stable` | String |
@@ -336,21 +299,8 @@ Current public API names, sorted alphabetically.
 | `read_string` | `std::fs` | `stable` | Fs |
 | `read_to_string` | `std::host::fs` | `provisional` | Host Fs |
 | `read_to_string` | `std::host::stdio` | `stable` | Host Stdio |
-| `reftype_externref` | `std::wasm` | `experimental` | Wasm |
-| `reftype_funcref` | `std::wasm` | `experimental` | Wasm |
 | `repeat` | `prelude` | `stable` | String |
 | `replace` | `prelude` | `stable` | String |
-| `section_code` | `std::wasm` | `experimental` | Wasm |
-| `section_data` | `std::wasm` | `experimental` | Wasm |
-| `section_element` | `std::wasm` | `experimental` | Wasm |
-| `section_export` | `std::wasm` | `experimental` | Wasm |
-| `section_function` | `std::wasm` | `experimental` | Wasm |
-| `section_global` | `std::wasm` | `experimental` | Wasm |
-| `section_import` | `std::wasm` | `experimental` | Wasm |
-| `section_memory` | `std::wasm` | `experimental` | Wasm |
-| `section_start` | `std::wasm` | `experimental` | Wasm |
-| `section_table` | `std::wasm` | `experimental` | Wasm |
-| `section_type` | `std::wasm` | `experimental` | Wasm |
 | `seeded_random` | `std::random` | `stable` | Random |
 | `seeded_range` | `std::random` | `stable` | Random |
 | `shuffle_i32` | `std::random` | `stable` | Random |
@@ -419,37 +369,15 @@ Current public API names, sorted alphabetically.
 | `unwrap` | `prelude` | `stable` | Option Result |
 | `unwrap_or` | `prelude` | `stable` | Option Result |
 | `upper_bound` | `std::seq` | `provisional` | Seq |
-| `v128_and` | `std::wasm` | `experimental` | Wasm |
-| `v128_andnot` | `std::wasm` | `experimental` | Wasm |
-| `v128_any_true` | `std::wasm` | `experimental` | Wasm |
-| `v128_bitselect` | `std::wasm` | `experimental` | Wasm |
 | `v128_load` | `std::wasm` | `experimental` | Wasm |
 | `v128_load_lane` | `std::wasm` | `experimental` | Wasm |
 | `v128_load_splat` | `std::wasm` | `experimental` | Wasm |
-| `v128_not` | `std::wasm` | `experimental` | Wasm |
-| `v128_or` | `std::wasm` | `experimental` | Wasm |
-| `v128_reinterpret_f32x4` | `std::wasm` | `experimental` | Wasm |
-| `v128_reinterpret_f64x2` | `std::wasm` | `experimental` | Wasm |
-| `v128_reinterpret_i16x8` | `std::wasm` | `experimental` | Wasm |
-| `v128_reinterpret_i32x4` | `std::wasm` | `experimental` | Wasm |
-| `v128_reinterpret_i64x2` | `std::wasm` | `experimental` | Wasm |
-| `v128_reinterpret_i8x16` | `std::wasm` | `experimental` | Wasm |
 | `v128_store` | `std::wasm` | `experimental` | Wasm |
 | `v128_store_lane` | `std::wasm` | `experimental` | Wasm |
-| `v128_xor` | `std::wasm` | `experimental` | Wasm |
-| `valtype_externref` | `std::wasm` | `experimental` | Wasm |
-| `valtype_f32` | `std::wasm` | `experimental` | Wasm |
-| `valtype_f64` | `std::wasm` | `experimental` | Wasm |
-| `valtype_funcref` | `std::wasm` | `experimental` | Wasm |
-| `valtype_i32` | `std::wasm` | `experimental` | Wasm |
-| `valtype_i64` | `std::wasm` | `experimental` | Wasm |
-| `valtype_v128` | `std::wasm` | `experimental` | Wasm |
 | `values` | `prelude` | `stable` | Collections |
 | `var` | `std::host::env` | `stable` | Host Env |
 | `var` | `std::env` | `stable` | Env |
 | `var_or_default` | `std::env` | `stable` | Env |
-| `wasm_magic` | `std::wasm` | `experimental` | Wasm |
-| `wasm_version` | `std::wasm` | `experimental` | Wasm |
 | `with_extension` | `std::path` | `stable` | Path |
 | `write_bytes` | `std::host::fs` | `provisional` | Host Fs |
 | `write_string` | `std::fs` | `stable` | Fs |
@@ -684,11 +612,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`fold_i32_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::fold` · [migration guide](migration-guidance.md) |
 | `format_bool` | ✅ `stable` | `prelude` | String |
 | `format_i32` | ✅ `stable` | `prelude` | String |
-| `functype_get_param` | ✅ `experimental` | `std::wasm` | Wasm |
-| `functype_get_result` | ✅ `experimental` | `std::wasm` | Wasm |
-| `functype_new` | ✅ `experimental` | `std::wasm` | Wasm |
-| `functype_param_count` | ✅ `experimental` | `std::wasm` | Wasm |
-| `functype_result_count` | ✅ `experimental` | `std::wasm` | Wasm |
 | `gcd` | ✅ `stable` | `prelude` | Math |
 | ~~`get`~~ | ⚠️ deprecated | `prelude` | → `Vec::get` · [migration guide](migration-guidance.md) |
 | ~~`get_unchecked`~~ | ⚠️ deprecated | `prelude` | → `Vec::get_unchecked` · [migration guide](migration-guidance.md) |
@@ -800,14 +723,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `json_stringify_bool` | ✅ `experimental` | `std::json` | Json |
 | `json_stringify_i32` | ✅ `experimental` | `std::json` | Json |
 | `json_stringify_string` | ✅ `experimental` | `std::json` | Json |
-| `leb128_encode_u32` | ✅ `experimental` | `std::wasm` | Wasm |
-| `leb128_size_u32` | ✅ `experimental` | `std::wasm` | Wasm |
 | ~~`len`~~ | ⚠️ deprecated | `prelude` | → `Vec::len` · [migration guide](migration-guidance.md) |
-| `limits_bounded` | ✅ `experimental` | `std::wasm` | Wasm |
-| `limits_has_max` | ✅ `experimental` | `std::wasm` | Wasm |
-| `limits_max` | ✅ `experimental` | `std::wasm` | Wasm |
-| `limits_min` | ✅ `experimental` | `std::wasm` | Wasm |
-| `limits_unbounded` | ✅ `experimental` | `std::wasm` | Wasm |
 | `lines` | ✅ `stable` | `prelude` | String |
 | ~~`linked_list_back`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::back` · [migration guide](migration-guidance.md) |
 | ~~`linked_list_clear`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::clear` · [migration guide](migration-guidance.md) |
@@ -834,16 +750,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `min_by` | ✅ `provisional` | `std::seq` | Seq |
 | `min_by_key` | ✅ `provisional` | `std::seq` | Seq |
 | ~~`min_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::seq::min_by` · [migration guide](migration-guidance.md) |
-| `module_add_export_func` | ✅ `experimental` | `std::wasm` | Wasm |
-| `module_add_func` | ✅ `experimental` | `std::wasm` | Wasm |
-| `module_add_memory` | ✅ `experimental` | `std::wasm` | Wasm |
-| `module_add_type` | ✅ `experimental` | `std::wasm` | Wasm |
-| `module_encode_header` | ✅ `experimental` | `std::wasm` | Wasm |
-| `module_export_count` | ✅ `experimental` | `std::wasm` | Wasm |
-| `module_func_count` | ✅ `experimental` | `std::wasm` | Wasm |
-| `module_mem_count` | ✅ `experimental` | `std::wasm` | Wasm |
-| `module_new` | ✅ `experimental` | `std::wasm` | Wasm |
-| `module_type_count` | ✅ `experimental` | `std::wasm` | Wasm |
 | `monotonic_now` | ✅ `stable` | `std::host::clock` | Host Clock |
 | `mul` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `mul` | ✅ `experimental` | `std::simd::i64x2` | Simd |
@@ -857,21 +763,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `next_f64` | ✅ `stable` | `std::host::random` | Host Random |
 | `normalize` | ✅ `stable` | `std::path` | Path |
 | `now_ms` | ✅ `stable` | `std::host::clock` | Host Clock |
-| `op_call` | ✅ `experimental` | `std::wasm` | Wasm |
-| `op_end` | ✅ `experimental` | `std::wasm` | Wasm |
-| `op_i32_add` | ✅ `experimental` | `std::wasm` | Wasm |
-| `op_i32_const` | ✅ `experimental` | `std::wasm` | Wasm |
-| `op_i32_eq` | ✅ `experimental` | `std::wasm` | Wasm |
-| `op_i32_eqz` | ✅ `experimental` | `std::wasm` | Wasm |
-| `op_i32_mul` | ✅ `experimental` | `std::wasm` | Wasm |
-| `op_i32_sub` | ✅ `experimental` | `std::wasm` | Wasm |
-| `op_i64_const` | ✅ `experimental` | `std::wasm` | Wasm |
-| `op_local_get` | ✅ `experimental` | `std::wasm` | Wasm |
-| `op_local_set` | ✅ `experimental` | `std::wasm` | Wasm |
-| `op_local_tee` | ✅ `experimental` | `std::wasm` | Wasm |
-| `op_nop` | ✅ `experimental` | `std::wasm` | Wasm |
-| `op_return` | ✅ `experimental` | `std::wasm` | Wasm |
-| `op_unreachable` | ✅ `experimental` | `std::wasm` | Wasm |
 | `option` | ✅ `stable` | `std::cli` | Cli |
 | `pad_left` | ✅ `stable` | `prelude` | String |
 | `pad_right` | ✅ `stable` | `prelude` | String |
@@ -913,21 +804,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `read_string` | ✅ `stable` | `std::fs` | Fs |
 | `read_to_string` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `read_to_string` | ✅ `stable` | `std::host::stdio` | Host Stdio |
-| `reftype_externref` | ✅ `experimental` | `std::wasm` | Wasm |
-| `reftype_funcref` | ✅ `experimental` | `std::wasm` | Wasm |
 | `repeat` | ✅ `stable` | `prelude` | String |
 | `replace` | ✅ `stable` | `prelude` | String |
-| `section_code` | ✅ `experimental` | `std::wasm` | Wasm |
-| `section_data` | ✅ `experimental` | `std::wasm` | Wasm |
-| `section_element` | ✅ `experimental` | `std::wasm` | Wasm |
-| `section_export` | ✅ `experimental` | `std::wasm` | Wasm |
-| `section_function` | ✅ `experimental` | `std::wasm` | Wasm |
-| `section_global` | ✅ `experimental` | `std::wasm` | Wasm |
-| `section_import` | ✅ `experimental` | `std::wasm` | Wasm |
-| `section_memory` | ✅ `experimental` | `std::wasm` | Wasm |
-| `section_start` | ✅ `experimental` | `std::wasm` | Wasm |
-| `section_table` | ✅ `experimental` | `std::wasm` | Wasm |
-| `section_type` | ✅ `experimental` | `std::wasm` | Wasm |
 | `seeded_random` | ✅ `stable` | `std::random` | Random |
 | `seeded_range` | ✅ `stable` | `std::random` | Random |
 | ~~`seq_contains`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::contains` · [migration guide](migration-guidance.md) |
@@ -1009,37 +887,15 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `unwrap` | ✅ `stable` | `prelude` | Option Result |
 | `unwrap_or` | ✅ `stable` | `prelude` | Option Result |
 | `upper_bound` | ✅ `provisional` | `std::seq` | Seq |
-| `v128_and` | ✅ `experimental` | `std::wasm` | Wasm |
-| `v128_andnot` | ✅ `experimental` | `std::wasm` | Wasm |
-| `v128_any_true` | ✅ `experimental` | `std::wasm` | Wasm |
-| `v128_bitselect` | ✅ `experimental` | `std::wasm` | Wasm |
 | `v128_load` | ✅ `experimental` | `std::wasm` | Wasm |
 | `v128_load_lane` | ✅ `experimental` | `std::wasm` | Wasm |
 | `v128_load_splat` | ✅ `experimental` | `std::wasm` | Wasm |
-| `v128_not` | ✅ `experimental` | `std::wasm` | Wasm |
-| `v128_or` | ✅ `experimental` | `std::wasm` | Wasm |
-| `v128_reinterpret_f32x4` | ✅ `experimental` | `std::wasm` | Wasm |
-| `v128_reinterpret_f64x2` | ✅ `experimental` | `std::wasm` | Wasm |
-| `v128_reinterpret_i16x8` | ✅ `experimental` | `std::wasm` | Wasm |
-| `v128_reinterpret_i32x4` | ✅ `experimental` | `std::wasm` | Wasm |
-| `v128_reinterpret_i64x2` | ✅ `experimental` | `std::wasm` | Wasm |
-| `v128_reinterpret_i8x16` | ✅ `experimental` | `std::wasm` | Wasm |
 | `v128_store` | ✅ `experimental` | `std::wasm` | Wasm |
 | `v128_store_lane` | ✅ `experimental` | `std::wasm` | Wasm |
-| `v128_xor` | ✅ `experimental` | `std::wasm` | Wasm |
-| `valtype_externref` | ✅ `experimental` | `std::wasm` | Wasm |
-| `valtype_f32` | ✅ `experimental` | `std::wasm` | Wasm |
-| `valtype_f64` | ✅ `experimental` | `std::wasm` | Wasm |
-| `valtype_funcref` | ✅ `experimental` | `std::wasm` | Wasm |
-| `valtype_i32` | ✅ `experimental` | `std::wasm` | Wasm |
-| `valtype_i64` | ✅ `experimental` | `std::wasm` | Wasm |
-| `valtype_v128` | ✅ `experimental` | `std::wasm` | Wasm |
 | `values` | ✅ `stable` | `prelude` | Collections |
 | `var` | ✅ `stable` | `std::host::env` | Host Env |
 | `var` | ✅ `stable` | `std::env` | Env |
 | `var_or_default` | ✅ `stable` | `std::env` | Env |
-| `wasm_magic` | ✅ `experimental` | `std::wasm` | Wasm |
-| `wasm_version` | ✅ `experimental` | `std::wasm` | Wasm |
 | `with_extension` | ✅ `stable` | `std::path` | Path |
 | `write_bytes` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `write_string` | ✅ `stable` | `std::fs` | Fs |
