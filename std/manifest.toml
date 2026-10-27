@@ -4301,57 +4301,25 @@ stability = "experimental"
 doc = "Unsigned LEB128 encoding utilities."
 methods = ["encode_u32", "size_u32"]
 
-# === std::wasm v128 memory frees (lowering-blocked) ===
-#
-# These stay free functions: an associated/method form lowers the
-# `__wasm_v128_*` intrinsic to an unresolved trap stub on both targets. The
-# top-level decl still emits `v128.load` / `v128.store`.
-
-[[functions]]
-name = "v128_load"
+[[types]]
+name = "V128Memory"
+kind = "struct"
 module = "std::wasm"
-doc_category = "wasm"
 stability = "experimental"
-core_op_id = "wasm.v128.load"
-params = ["i32", "i32"]
-returns = "v128"
-doc = "Load a v128 from linear memory at ptr + offset."
-
-[[functions]]
-name = "v128_store"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["i32", "i32", "v128"]
-returns = "()"
-doc = "Store a v128 to linear memory at ptr + offset."
-
-[[functions]]
-name = "v128_load_splat"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["i32", "i32"]
-returns = "v128"
-doc = "Load a single byte from linear memory and splat it to all 16 lanes."
-
-[[functions]]
-name = "v128_load_lane"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["i32", "i32", "v128", "i32"]
-returns = "v128"
-doc = "Load a single lane from linear memory into a v128 vector."
-
-[[functions]]
-name = "v128_store_lane"
-module = "std::wasm"
-doc_category = "wasm"
-stability = "experimental"
-params = ["i32", "i32", "v128", "i32"]
-returns = "()"
-doc = "Store a single lane from a v128 vector to linear memory."
+doc = "Raw v128 linear-memory load and store associated operations."
+methods = [
+    "load",
+    "store",
+    "load_splat",
+    "load_lane",
+    "store_lane",
+    "load8x8_s",
+    "load8x8_u",
+    "load16x4_s",
+    "load16x4_u",
+    "load32x2_s",
+    "load32x2_u",
+]
 
 [[functions]]
 name = "byte_at"

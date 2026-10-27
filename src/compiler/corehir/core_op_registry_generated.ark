@@ -6,7 +6,7 @@ use std::text
 use corehir::table_blob
 
 fn core_op_registry_entry_count() -> i32 {
-    317
+    327
 }
 
 fn core_op_registry_canonical_id_off_hex_chunk(chunk: i32) -> String {
@@ -27,12 +27,13 @@ fn core_op_registry_canonical_id_off_hex_chunk(chunk: i32) -> String {
     if chunk == 14 { return "2e1000004210000051100000601000006f1000007e1000008b1000009b100000ad100000c0100000cf100000dc100000e8100000f510000003110000101100001f1100002f110000" }
     if chunk == 15 { return "3e11000049110000531100005f1100006e1100008211000092110000a7110000b4110000c2110000d0110000dc110000e8110000fa1100000d120000201200002b1200003a120000" }
     if chunk == 16 { return "4b1200005a1200006d120000771200008112000093120000a3120000b2120000c1120000ce120000dc120000ea120000f81200000e1300001c1300002c1300003313000044130000" }
-    if chunk == 17 { return "591300006e1300007a1300008113000088130000901300009c130000a8130000b6130000c5130000cc130000da130000" }
+    if chunk == 17 { return "591300006e1300007a1300008113000088130000901300009c130000a8130000b6130000c5130000cc130000da130000ee13000002140000161400002a1400003d14000050140000" }
+    if chunk == 18 { return "6314000077140000861400009a140000" }
     return String_new()
 }
 
 fn core_op_registry_canonical_id_off_at(index: i32) -> i32 {
-    if index < 0 || index >= 318 {
+    if index < 0 || index >= 328 {
         return 0
     }
     let chunk = index / 18
@@ -76,12 +77,13 @@ fn core_op_registry_canonical_id_data_chunk(chunk: i32) -> String {
     if chunk == 32 { return ".to_lowercasestring.to_uppercasestring.trimstring.trim_endstring.trim_starttext.String_newtext.char_to_stringtext.charstext.clonetext.f32_to_str" }
     if chunk == 33 { return "ingtext.format_booltext.format_f64text.format_i64text.is_emptytext.len_bytestext.push_chartext.string_eqtext.string_from_bytestext.to_stringvec." }
     if chunk == 34 { return "contains_i32vec.getvec.get_uncheckedvec.get_unchecked_f64vec.get_unchecked_i64vec.is_emptyvec.lenvec.popvec.pushvec.push_f64vec.push_i64vec.remo" }
-    if chunk == 35 { return "ve_i32vec.reverse_i32vec.setwasm.v128.load" }
+    if chunk == 35 { return "ve_i32vec.reverse_i32vec.setwasm.v128.loadwasm.v128.load16x4.swasm.v128.load16x4.uwasm.v128.load32x2.swasm.v128.load32x2.uwasm.v128.load8x8.swas" }
+    if chunk == 36 { return "m.v128.load8x8.uwasm.v128.load_lanewasm.v128.load_splatwasm.v128.storewasm.v128.store_lane" }
     return String_new()
 }
 
 fn core_op_registry_canonical_id_at(index: i32) -> String {
-    if index < 0 || index >= 317 {
+    if index < 0 || index >= 327 {
         return String_new()
     }
     let start = core_op_registry_canonical_id_off_at(index)
@@ -133,12 +135,13 @@ fn core_op_registry_lowering_kind_hex_chunk(chunk: i32) -> String {
     if chunk == 14 { return "040000000400000004000000040000000400000004000000040000000400000004000000040000000400000004000000040000000100000001000000010000000100000001000000" }
     if chunk == 15 { return "010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000" }
     if chunk == 16 { return "010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000" }
-    if chunk == 17 { return "0100000001000000010000000100000001000000010000000100000001000000010000000100000004000000" }
+    if chunk == 17 { return "010000000100000001000000010000000100000001000000010000000100000001000000010000000400000004000000040000000400000004000000040000000400000004000000" }
+    if chunk == 18 { return "040000000400000004000000" }
     return String_new()
 }
 
 fn core_op_registry_lowering_kind_at(index: i32) -> i32 {
-    if index < 0 || index >= 317 {
+    if index < 0 || index >= 327 {
         return 0 - 1
     }
     let chunk = index / 18
@@ -164,12 +167,13 @@ fn core_op_registry_layer_hex_chunk(chunk: i32) -> String {
     if chunk == 14 { return "040000000400000004000000040000000400000004000000040000000400000004000000040000000400000004000000040000000300000003000000030000000300000003000000" }
     if chunk == 15 { return "030000000300000003000000030000000300000003000000030000000300000003000000030000000300000003000000030000000300000003000000030000000300000003000000" }
     if chunk == 16 { return "030000000300000003000000030000000300000003000000030000000300000003000000030000000300000003000000030000000300000003000000030000000300000003000000" }
-    if chunk == 17 { return "0300000003000000030000000300000003000000030000000300000003000000030000000300000004000000" }
+    if chunk == 17 { return "030000000300000003000000030000000300000003000000030000000300000003000000030000000400000004000000040000000400000004000000040000000400000004000000" }
+    if chunk == 18 { return "040000000400000004000000" }
     return String_new()
 }
 
 fn core_op_registry_layer_at(index: i32) -> i32 {
-    if index < 0 || index >= 317 {
+    if index < 0 || index >= 327 {
         return 0 - 1
     }
     let chunk = index / 18
@@ -195,12 +199,13 @@ fn core_op_registry_inline_policy_hex_chunk(chunk: i32) -> String {
     if chunk == 14 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000001000000010000000100000001000000" }
     if chunk == 15 { return "010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000" }
     if chunk == 16 { return "010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000" }
-    if chunk == 17 { return "0100000001000000010000000100000001000000010000000100000001000000010000000100000001000000" }
+    if chunk == 17 { return "010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000" }
+    if chunk == 18 { return "010000000100000001000000" }
     return String_new()
 }
 
 fn core_op_registry_inline_policy_at(index: i32) -> i32 {
-    if index < 0 || index >= 317 {
+    if index < 0 || index >= 327 {
         return 0
     }
     let chunk = index / 18
@@ -226,12 +231,13 @@ fn core_op_registry_target_id_off_hex_chunk(chunk: i32) -> String {
     if chunk == 14 { return "f2080000010900000b090000150900001f09000029090000310900003c09000049090000570900006109000069090000700900007809000078090000780900007809000078090000" }
     if chunk == 15 { return "780900007809000078090000780900007809000078090000780900007809000078090000780900007809000078090000780900007809000078090000780900007809000078090000" }
     if chunk == 16 { return "780900007809000078090000780900007809000078090000780900007809000078090000780900007809000078090000780900007809000078090000780900007809000078090000" }
-    if chunk == 17 { return "780900007809000078090000780900007809000078090000780900007809000078090000780900007809000081090000" }
+    if chunk == 17 { return "780900007809000078090000780900007809000078090000780900007809000078090000780900007809000081090000900900009f090000ae090000bd090000cb090000d9090000" }
+    if chunk == 18 { return "e9090000f9090000030a0000140a0000" }
     return String_new()
 }
 
 fn core_op_registry_target_id_off_at(index: i32) -> i32 {
-    if index < 0 || index >= 318 {
+    if index < 0 || index >= 328 {
         return 0
     }
     let chunk = index / 18
@@ -256,12 +262,13 @@ fn core_op_registry_target_id_data_chunk(chunk: i32) -> String {
     if chunk == 13 { return "ui64x2.splati64x2.subi8x16.absi8x16.addi8x16.add.sat.si8x16.add.sat.ui8x16.all.truei8x16.bitmaski8x16.eqi8x16.extract.lane.si8x16.extract.lane.u" }
     if chunk == 14 { return "i8x16.ge.si8x16.ge.ui8x16.gt.si8x16.gt.ui8x16.le.si8x16.le.ui8x16.lt.si8x16.lt.ui8x16.max.si8x16.max.ui8x16.min.si8x16.min.ui8x16.muli8x16.narro" }
     if chunk == 15 { return "w.i16x8.si8x16.narrow.i16x8.ui8x16.nei8x16.negi8x16.replace.lanei8x16.shli8x16.shr.si8x16.shr.ui8x16.splati8x16.subi8x16.sub.sat.si8x16.sub.sat." }
-    if chunk == 16 { return "uu64x2.ge.uu64x2.gt.uu64x2.le.uu64x2.lt.uv128.andv128.andnotv128.any.truev128.bitselectv128.constv128.notv128.orv128.xorv128.load" }
+    if chunk == 16 { return "uu64x2.ge.uu64x2.gt.uu64x2.le.uu64x2.lt.uv128.andv128.andnotv128.any.truev128.bitselectv128.constv128.notv128.orv128.xorv128.loadv128.load16x4.s" }
+    if chunk == 17 { return "v128.load16x4.uv128.load32x2.sv128.load32x2.uv128.load8x8.sv128.load8x8.uv128.load32.lanev128.load8.splatv128.storev128.store32.lane" }
     return String_new()
 }
 
 fn core_op_registry_target_id_at(index: i32) -> String {
-    if index < 0 || index >= 317 {
+    if index < 0 || index >= 327 {
         return String_new()
     }
     let start = core_op_registry_target_id_off_at(index)
@@ -313,12 +320,13 @@ fn core_op_registry_runtime_kind_hex_chunk(chunk: i32) -> String {
     if chunk == 14 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
     if chunk == 15 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
     if chunk == 16 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
-    if chunk == 17 { return "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
+    if chunk == 17 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
+    if chunk == 18 { return "000000000000000000000000" }
     return String_new()
 }
 
 fn core_op_registry_runtime_kind_at(index: i32) -> i32 {
-    if index < 0 || index >= 317 {
+    if index < 0 || index >= 327 {
         return 0
     }
     let chunk = index / 18
@@ -344,12 +352,13 @@ fn core_op_registry_runtime_symbol_off_hex_chunk(chunk: i32) -> String {
     if chunk == 14 { return "8c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c010000" }
     if chunk == 15 { return "8c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c010000" }
     if chunk == 16 { return "8c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c010000" }
-    if chunk == 17 { return "8c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c010000" }
+    if chunk == 17 { return "8c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c0100008c010000" }
+    if chunk == 18 { return "8c0100008c0100008c0100008c010000" }
     return String_new()
 }
 
 fn core_op_registry_runtime_symbol_off_at(index: i32) -> i32 {
-    if index < 0 || index >= 318 {
+    if index < 0 || index >= 328 {
         return 0
     }
     let chunk = index / 18
@@ -365,7 +374,7 @@ fn core_op_registry_runtime_symbol_data_chunk(chunk: i32) -> String {
 }
 
 fn core_op_registry_runtime_symbol_at(index: i32) -> String {
-    if index < 0 || index >= 317 {
+    if index < 0 || index >= 327 {
         return String_new()
     }
     let start = core_op_registry_runtime_symbol_off_at(index)
@@ -417,12 +426,13 @@ fn core_op_registry_wit_package_off_hex_chunk(chunk: i32) -> String {
     if chunk == 14 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
     if chunk == 15 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
     if chunk == 16 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
-    if chunk == 17 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
+    if chunk == 17 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
+    if chunk == 18 { return "00000000000000000000000000000000" }
     return String_new()
 }
 
 fn core_op_registry_wit_package_off_at(index: i32) -> i32 {
-    if index < 0 || index >= 318 {
+    if index < 0 || index >= 328 {
         return 0
     }
     let chunk = index / 18
@@ -452,12 +462,13 @@ fn core_op_registry_wit_interface_off_hex_chunk(chunk: i32) -> String {
     if chunk == 14 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
     if chunk == 15 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
     if chunk == 16 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
-    if chunk == 17 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
+    if chunk == 17 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
+    if chunk == 18 { return "00000000000000000000000000000000" }
     return String_new()
 }
 
 fn core_op_registry_wit_interface_off_at(index: i32) -> i32 {
-    if index < 0 || index >= 318 {
+    if index < 0 || index >= 328 {
         return 0
     }
     let chunk = index / 18
@@ -487,12 +498,13 @@ fn core_op_registry_wit_function_off_hex_chunk(chunk: i32) -> String {
     if chunk == 14 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
     if chunk == 15 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
     if chunk == 16 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
-    if chunk == 17 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
+    if chunk == 17 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
+    if chunk == 18 { return "00000000000000000000000000000000" }
     return String_new()
 }
 
 fn core_op_registry_wit_function_off_at(index: i32) -> i32 {
-    if index < 0 || index >= 318 {
+    if index < 0 || index >= 328 {
         return 0
     }
     let chunk = index / 18
@@ -522,12 +534,13 @@ fn core_op_registry_wit_version_off_hex_chunk(chunk: i32) -> String {
     if chunk == 14 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
     if chunk == 15 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
     if chunk == 16 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
-    if chunk == 17 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
+    if chunk == 17 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
+    if chunk == 18 { return "00000000000000000000000000000000" }
     return String_new()
 }
 
 fn core_op_registry_wit_version_off_at(index: i32) -> i32 {
-    if index < 0 || index >= 318 {
+    if index < 0 || index >= 328 {
         return 0
     }
     let chunk = index / 18
@@ -557,12 +570,13 @@ fn core_op_registry_mir_operation_off_hex_chunk(chunk: i32) -> String {
     if chunk == 14 { return "160000001600000016000000160000001600000016000000160000001600000016000000160000001600000016000000160000001600000016000000160000001600000016000000" }
     if chunk == 15 { return "160000001600000016000000160000001600000016000000160000001600000016000000160000001600000016000000160000001600000016000000160000001600000016000000" }
     if chunk == 16 { return "160000001600000016000000160000001600000016000000160000001600000016000000160000001600000016000000160000001600000016000000160000001600000016000000" }
-    if chunk == 17 { return "160000001600000016000000160000001600000016000000160000001600000016000000160000001600000016000000" }
+    if chunk == 17 { return "160000001600000016000000160000001600000016000000160000001600000016000000160000001600000016000000160000001600000016000000160000001600000016000000" }
+    if chunk == 18 { return "16000000160000001600000016000000" }
     return String_new()
 }
 
 fn core_op_registry_mir_operation_off_at(index: i32) -> i32 {
-    if index < 0 || index >= 318 {
+    if index < 0 || index >= 328 {
         return 0
     }
     let chunk = index / 18
@@ -576,7 +590,7 @@ fn core_op_registry_mir_operation_data_chunk(chunk: i32) -> String {
 }
 
 fn core_op_registry_mir_operation_at(index: i32) -> String {
-    if index < 0 || index >= 317 {
+    if index < 0 || index >= 327 {
         return String_new()
     }
     let start = core_op_registry_mir_operation_off_at(index)
@@ -628,12 +642,13 @@ fn core_op_registry_legacy_handler_id_off_hex_chunk(chunk: i32) -> String {
     if chunk == 14 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
     if chunk == 15 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
     if chunk == 16 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
-    if chunk == 17 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
+    if chunk == 17 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
+    if chunk == 18 { return "00000000000000000000000000000000" }
     return String_new()
 }
 
 fn core_op_registry_legacy_handler_id_off_at(index: i32) -> i32 {
-    if index < 0 || index >= 318 {
+    if index < 0 || index >= 328 {
         return 0
     }
     let chunk = index / 18
@@ -663,12 +678,13 @@ fn core_op_registry_fallback_symbol_off_hex_chunk(chunk: i32) -> String {
     if chunk == 14 { return "c7020000c7020000c7020000c7020000c7020000c7020000c7020000c7020000c7020000c7020000c7020000c7020000c7020000c7020000e1020000fa0200001503000031030000" }
     if chunk == 15 { return "4c030000630300007903000091030000ac030000cc030000e803000009040000220400003c0400005a040000720400008a040000a8040000c7040000e6040000fd04000018050000" }
     if chunk == 16 { return "350500004b050000650500007d05000095050000ae050000c5050000db050000f10500000c060000280600003d060000520600006f06000085060000a1060000b4060000d1060000" }
-    if chunk == 17 { return "f2060000130700002b0700003e07000051070000690700008107000099070000b3070000ce070000e1070000e1070000" }
+    if chunk == 17 { return "f2060000130700002b0700003e07000051070000690700008107000099070000b3070000ce070000e1070000e1070000e1070000e1070000e1070000e1070000e1070000e1070000" }
+    if chunk == 18 { return "e1070000e1070000e1070000e1070000" }
     return String_new()
 }
 
 fn core_op_registry_fallback_symbol_off_at(index: i32) -> i32 {
-    if index < 0 || index >= 318 {
+    if index < 0 || index >= 328 {
         return 0
     }
     let chunk = index / 18
@@ -696,7 +712,7 @@ fn core_op_registry_fallback_symbol_data_chunk(chunk: i32) -> String {
 }
 
 fn core_op_registry_fallback_symbol_at(index: i32) -> String {
-    if index < 0 || index >= 317 {
+    if index < 0 || index >= 327 {
         return String_new()
     }
     let start = core_op_registry_fallback_symbol_off_at(index)
@@ -2010,6 +2026,46 @@ fn core_op_handler_wasm_v128_load() -> i32 {
     316
 }
 
+fn core_op_handler_wasm_v128_load16x4_s() -> i32 {
+    317
+}
+
+fn core_op_handler_wasm_v128_load16x4_u() -> i32 {
+    318
+}
+
+fn core_op_handler_wasm_v128_load32x2_s() -> i32 {
+    319
+}
+
+fn core_op_handler_wasm_v128_load32x2_u() -> i32 {
+    320
+}
+
+fn core_op_handler_wasm_v128_load8x8_s() -> i32 {
+    321
+}
+
+fn core_op_handler_wasm_v128_load8x8_u() -> i32 {
+    322
+}
+
+fn core_op_handler_wasm_v128_load_lane() -> i32 {
+    323
+}
+
+fn core_op_handler_wasm_v128_load_splat() -> i32 {
+    324
+}
+
+fn core_op_handler_wasm_v128_store() -> i32 {
+    325
+}
+
+fn core_op_handler_wasm_v128_store_lane() -> i32 {
+    326
+}
+
 fn core_op_registry_bucket_hex_chunk(chunk: i32) -> String {
     if chunk == 0 { return "ffffffffcd000000ffffffffffffffffd2000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
     if chunk == 1 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
@@ -2018,19 +2074,19 @@ fn core_op_registry_bucket_hex_chunk(chunk: i32) -> String {
     if chunk == 4 { return "ffffffffffffffffc0000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9d000000640000009c000000d40000000f00000018000000" }
     if chunk == 5 { return "ffffffffffffffffffffffff09010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff35000000ffffffffffffffffffffffff8f000000b9000000" }
     if chunk == 6 { return "8e000000ba000000fe0000002d010000380100008200000030010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 7 { return "ffffffffffffffffffffffff1d00000077000000ffffffffffffffffffffffff67000000bf000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 7 { return "ffffffffffffffffffffffff1d00000077000000ffffffffffffffffffffffff67000000bf000000ffffffffffffffffffffffff3d010000ffffffff3e010000ffffffffffffffff" }
     if chunk == 8 { return "ffffffff78000000ffffffffe1000000ffffffffc6000000ffffffffffffffffffffffffffffffffffffffffffffffffe5000000ffffffffe4000000ffffffffffffffffffffffff" }
     if chunk == 9 { return "ffffffffffffffffffffffff40000000200000006300000075000000d5000000ea000000ffffffffcc00000033000000ffffffffffffffffeb00000017010000ffffffffffffffff" }
     if chunk == 10 { return "ffffffff14010000ffffffffffffffff76000000ffffffffb2000000ffffffffffffffff06010000fffffffff0000000ffffffffffffffffffffffffffffffffffffffffffffffff" }
     if chunk == 11 { return "ffffffffffffffffffffffffffffffffffffffffffffffffd00000002900000050000000c20000001b0000001f010000ffffffff4a000000ffffffff19000000ce0000005b000000" }
     if chunk == 12 { return "18010000a700000021010000ffffffff24000000ffffffffffffffffa80000002f000000440000004c00000093000000d10000000c00000092000000070100001c000000ffffffff" }
-    if chunk == 13 { return "fffffffffffffffffffffffffffffffffffffffffffffffffffffffff4000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 13 { return "fffffffffffffffffffffffffffffffffffffffffffffffffffffffff4000000ffffffff3f010000ffffffff40010000ffffffffffffffffffffffffffffffffffffffffffffffff" }
     if chunk == 14 { return "ffffffffffffffff69000000ffffffffffffffffffffffffffffffffffffffffffffffff1000000028010000ffffffffffffffffffffffffffffffffffffffffffffffff35010000" }
     if chunk == 15 { return "ffffffffffffffffffffffffffffffffd70000002c000000ffffffff26010000ffffffffffffffffd800000011000000ffffffffd6000000ffffffffffffffffffffffffffffffff" }
-    if chunk == 16 { return "ffffffffffffffffffffffff04010000300000003e000000ffffffffffffffffffffffffffffffff0f0100003b0000007a000000ffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 16 { return "ffffffffffffffffffffffff04010000300000003e000000ffffffffffffffffffffffff460100000f0100003b0000007a000000ffffffffffffffffffffffffffffffffffffffff" }
     if chunk == 17 { return "ffffffffffffffffda000000ffffffff4d000000ffffffffffffffff54000000ffffffffffffffff41000000ffffffff51000000fffffffffffffffffffffffffffffffff7000000" }
     if chunk == 18 { return "fffffffff8000000ae0000000d010000ffffffffffffffffffffffff8300000016010000ffffffff3200000012010000ffffffff98000000ffffffffffffffff22010000ffffffff" }
-    if chunk == 19 { return "22000000990000000e010000ffffffffffffffffffffffffffffffffca000000ffffffffffffffffffffffffa1000000fffffffff2000000fffffffff10000000c010000a2000000" }
+    if chunk == 19 { return "22000000990000000e010000ffffffffffffffffffffffffffffffffca00000045010000ffffffffffffffffa1000000fffffffff2000000fffffffff10000000c010000a2000000" }
     if chunk == 20 { return "ffffffffffffffffffffffffffffffff9e000000ffffffff9f000000ffffffff89000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00010000" }
     if chunk == 21 { return "01010000ffffffffffffffffffffffffffffffffffffffff0e000000ffffffffffffffffffffffff39000000ffffffff27000000ffffffffffffffff3c000000ad00000096000000" }
     if chunk == 22 { return "e20000006c00000097000000e3000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff24010000ffffffffffffffffffffffffffffffffffffffff" }
@@ -2045,19 +2101,19 @@ fn core_op_registry_bucket_hex_chunk(chunk: i32) -> String {
     if chunk == 31 { return "5a000000ffffffff34000000ffffffff02010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff36000000ffffffffffffffffffffffffffffffff" }
     if chunk == 32 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1001000019010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
     if chunk == 33 { return "ffffffff1c010000ffffffffffffffffffffffffffffffff66000000ffffffffffffffffffffffffffffffff84000000ffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 34 { return "ffffffffffffffffffffffff3701000086000000ffffffffffffffffffffffff31010000ffffffffffffffffffffffffffffffff48000000ffffffffffffffffffffffffffffffff" }
+    if chunk == 34 { return "ffffffffffffffff440100003701000086000000ffffffffffffffffffffffff31010000ffffffffffffffffffffffffffffffff48000000ffffffffffffffffffffffffffffffff" }
     if chunk == 35 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa9000000ffffffffffffffff560000002c010000" }
     if chunk == 36 { return "ffffffffffffffffffffffffffffffffffffffff1a010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
     if chunk == 37 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff2a010000ffffffff" }
-    if chunk == 38 { return "7f000000df0000001400000085000000ffffffffe9000000ffffffff15000000ffffffffffffffffffffffffe8000000ffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 39 { return "03000000ffffffffffffffffffffffffffffffffffffffffffffffff39010000ffffffffffffffffffffffffffffffffe0000000ffffffffffffffff7e00000006000000ffffffff" }
+    if chunk == 38 { return "7f000000df0000001400000085000000ffffffffe9000000ffffffff15000000ffffffffffffffffffffffffe800000041010000ffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 39 { return "0300000042010000ffffffffffffffffffffffffffffffffffffffff39010000ffffffffffffffffffffffffffffffffe0000000ffffffffffffffff7e00000006000000ffffffff" }
     if chunk == 40 { return "ffffffffffffffffbc00000036010000bb00000042000000ffffffff74000000ffffffffffffffff2e0000007300000081000000ac000000ab000000ffffffff2b00000055000000" }
     if chunk == 41 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff17000000ffffffffffffffffffffffffffffffffffffffff3c010000ffffffffffffffff" }
     if chunk == 42 { return "ffffffffffffffffffffffffffffffffcf000000ffffffffffffffffffffffffffffffffffffffffffffffff26000000ffffffffffffffff15010000ffffffffffffffffffffffff" }
     if chunk == 43 { return "c8000000a0000000ffffffffffffffffffffffff0a010000ffffffffffffffffffffffffffffffffffffffffffffffff05000000ffffffffffffffffffffffff6d000000ffffffff" }
     if chunk == 44 { return "ffffffffffffffffffffffffe7000000ffffffffe6000000ffffffff16000000ffffffffffffffff2f010000ffffffff0700000060000000ffffffffffffffffffffffffffffffff" }
     if chunk == 45 { return "ffffffffffffffffd900000031000000ffffffffffffffffffffffffffffffffffffffff5f0000000d000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 46 { return "ffffffff04000000ffffffffffffffffdc000000ffffffff910000005e0000001b01000080000000ffffffffffffffff90000000a4000000ffffffffffffffffffffffffffffffff" }
+    if chunk == 46 { return "ffffffff04000000ffffffffffffffffdc000000ffffffff910000005e0000001b01000080000000ffffffffffffffff90000000a400000043010000ffffffffffffffffffffffff" }
     if chunk == 47 { return "a6000000ffffffffffffffffffffffff9a0000007b0000005d000000ffffffffffffffffffffffff9b000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
     if chunk == 48 { return "ffffffffffffffffffffffffffffffffffffffffffffffff2e010000ffffffffffffffffffffffffffffffffb7000000ffffffffb8000000fffffffffd000000ffffffffffffffff" }
     if chunk == 49 { return "8c000000ffffffff8d000000ffffffffffffffffffffffffffffffffffffffff29010000ffffffff2500000062000000110100000a000000ffffffff1f000000ffffffff02000000" }

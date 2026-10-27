@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 241
+- **Canonical names:** 236
 - **Historical/deprecated names:** 72
-- **Total entries:** 313
+- **Total entries:** 308
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -252,11 +252,6 @@ Current public API names, sorted alphabetically.
 | `unwrap` | `prelude` | `stable` | Option Result |
 | `unwrap_or` | `prelude` | `stable` | Option Result |
 | `upper_bound` | `std::seq` | `provisional` | Seq |
-| `v128_load` | `std::wasm` | `experimental` | Wasm |
-| `v128_load_lane` | `std::wasm` | `experimental` | Wasm |
-| `v128_load_splat` | `std::wasm` | `experimental` | Wasm |
-| `v128_store` | `std::wasm` | `experimental` | Wasm |
-| `v128_store_lane` | `std::wasm` | `experimental` | Wasm |
 | `values` | `prelude` | `stable` | Collections |
 | `var` | `std::host::env` | `stable` | Host Env |
 | `var` | `std::env` | `stable` | Env |
@@ -652,11 +647,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `unwrap` | ✅ `stable` | `prelude` | Option Result |
 | `unwrap_or` | ✅ `stable` | `prelude` | Option Result |
 | `upper_bound` | ✅ `provisional` | `std::seq` | Seq |
-| `v128_load` | ✅ `experimental` | `std::wasm` | Wasm |
-| `v128_load_lane` | ✅ `experimental` | `std::wasm` | Wasm |
-| `v128_load_splat` | ✅ `experimental` | `std::wasm` | Wasm |
-| `v128_store` | ✅ `experimental` | `std::wasm` | Wasm |
-| `v128_store_lane` | ✅ `experimental` | `std::wasm` | Wasm |
 | `values` | ✅ `stable` | `prelude` | Collections |
 | `var` | ✅ `stable` | `std::host::env` | Host Env |
 | `var` | ✅ `stable` | `std::env` | Env |

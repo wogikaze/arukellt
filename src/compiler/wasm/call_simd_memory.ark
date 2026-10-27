@@ -1,0 +1,184 @@
+// Emits the v128 linear-memory instructions: 0xfd prefix + LEB128 sub-opcode
+// + memarg (align, offset). The MIR call stages [address, offset] for loads and
+// [address, offset, value] for stores; the offset is a runtime operand, so the
+// lowering adds the two and leaves the memarg offset at zero.
+
+use mir::inst_accessors_operands
+use corehir::core_op_registry_generated
+use wasm::call_simd_emit
+use wasm::ctx_scratch
+use wasm::intrinsics::helpers_numeric_i32
+use wasm::opcodes
+use wasm::writer_core
+
+fn try_emit_simd_native_memory(
+    w: WasmWriter,
+    handler_id: i32,
+    inst: MirInst,
+    ctx: SelfEmitCtx,
+    next_op: i32,
+    next_arg0: i32,
+    next_arg1: i32,
+    next2_op: i32
+) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_wasm_v128_load() {
+        emit_v128_load(
+            w, inst, opcodes::SIMD_V128_LOAD(), opcodes::SIMD_ALIGN_V128(),
+            next_op, next_arg0, next_arg1, next2_op
+        )
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_wasm_v128_load8x8_s() {
+        emit_v128_load(
+            w, inst, opcodes::SIMD_V128_LOAD8X8_S(), opcodes::SIMD_ALIGN_I64(),
+            next_op, next_arg0, next_arg1, next2_op
+        )
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_wasm_v128_load8x8_u() {
+        emit_v128_load(
+            w, inst, opcodes::SIMD_V128_LOAD8X8_U(), opcodes::SIMD_ALIGN_I64(),
+            next_op, next_arg0, next_arg1, next2_op
+        )
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_wasm_v128_load16x4_s() {
+        emit_v128_load(
+            w, inst, opcodes::SIMD_V128_LOAD16X4_S(), opcodes::SIMD_ALIGN_I64(),
+            next_op, next_arg0, next_arg1, next2_op
+        )
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_wasm_v128_load16x4_u() {
+        emit_v128_load(
+            w, inst, opcodes::SIMD_V128_LOAD16X4_U(), opcodes::SIMD_ALIGN_I64(),
+            next_op, next_arg0, next_arg1, next2_op
+        )
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_wasm_v128_load32x2_s() {
+        emit_v128_load(
+            w, inst, opcodes::SIMD_V128_LOAD32X2_S(), opcodes::SIMD_ALIGN_I64(),
+            next_op, next_arg0, next_arg1, next2_op
+        )
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_wasm_v128_load32x2_u() {
+        emit_v128_load(
+            w, inst, opcodes::SIMD_V128_LOAD32X2_U(), opcodes::SIMD_ALIGN_I64(),
+            next_op, next_arg0, next_arg1, next2_op
+        )
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_wasm_v128_load_splat() {
+        emit_v128_load(
+            w, inst, opcodes::SIMD_V128_LOAD8_SPLAT(), opcodes::SIMD_ALIGN_I8(),
+            next_op, next_arg0, next_arg1, next2_op
+        )
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_wasm_v128_store() {
+        emit_v128_store(w, ctx, opcodes::SIMD_V128_STORE(), opcodes::SIMD_ALIGN_V128())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_wasm_v128_load_lane() {
+        return emit_v128_load_lane(
+            w, inst, ctx, opcodes::SIMD_V128_LOAD32_LANE(), opcodes::SIMD_ALIGN_I32(),
+            next_op, next_arg0, next_arg1, next2_op
+        )
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_wasm_v128_store_lane() {
+        return emit_v128_store_lane(
+            w, inst, ctx, opcodes::SIMD_V128_STORE32_LANE(), opcodes::SIMD_ALIGN_I32()
+        )
+    }
+    false
+}
+
+// Lane loads/stores need a compile-time lane index. A non-literal lane leaves
+// the value staged, so report "not handled" and let the unresolved call
+// fallback drop the operands and trap instead of emitting an invalid immediate.
+fn emit_v128_load_lane(
+    w: WasmWriter,
+    inst: MirInst,
+    ctx: SelfEmitCtx,
+    sub_opcode: i32,
+    align: i32,
+    next_op: i32,
+    next_arg0: i32,
+    next_arg1: i32,
+    next2_op: i32
+) -> bool {
+    let lane = inst_accessors_operands::MirInst_arg1(inst)
+    if lane < 0 {
+        return false
+    }
+    emit_v128_vector_above_address(w, ctx)
+    call_simd_emit::emit_simd_prefix(w, sub_opcode)
+    emit_v128_memarg(w, align)
+    writer_core::emit_byte(w, lane)
+    call_simd_emit::emit_store_result(w, inst, next_op, next_arg0, next_arg1, next2_op)
+    true
+}
+
+fn emit_v128_store_lane(
+    w: WasmWriter,
+    inst: MirInst,
+    ctx: SelfEmitCtx,
+    sub_opcode: i32,
+    align: i32
+) -> bool {
+    let lane = inst_accessors_operands::MirInst_arg1(inst)
+    if lane < 0 {
+        return false
+    }
+    emit_v128_vector_above_address(w, ctx)
+    call_simd_emit::emit_simd_prefix(w, sub_opcode)
+    emit_v128_memarg(w, align)
+    writer_core::emit_byte(w, lane)
+    true
+}
+
+// Load: [address, offset] -> [effective address].
+fn emit_v128_load(
+    w: WasmWriter,
+    inst: MirInst,
+    sub_opcode: i32,
+    align: i32,
+    next_op: i32,
+    next_arg0: i32,
+    next_arg1: i32,
+    next2_op: i32
+) {
+    emit_v128_effective_address(w)
+    call_simd_emit::emit_simd_prefix(w, sub_opcode)
+    emit_v128_memarg(w, align)
+    call_simd_emit::emit_store_result(w, inst, next_op, next_arg0, next_arg1, next2_op)
+}
+
+// Store: [address, offset, value] -> [effective address, value].
+fn emit_v128_store(w: WasmWriter, ctx: SelfEmitCtx, sub_opcode: i32, align: i32) {
+    emit_v128_vector_above_address(w, ctx)
+    call_simd_emit::emit_simd_prefix(w, sub_opcode)
+    emit_v128_memarg(w, align)
+}
+
+// Lane load/store share the operand shape of a store: the vector sits on top
+// of the two address operands, so park it in a scratch slot and put it back
+// above the effective address.
+fn emit_v128_vector_above_address(w: WasmWriter, ctx: SelfEmitCtx) {
+    let scratch = ctx_scratch::SelfEmitCtx_scratch_v128_local(ctx, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, scratch)
+    emit_v128_effective_address(w)
+    writer_core::emit_local_get(w, scratch)
+}
+
+fn emit_v128_effective_address(w: WasmWriter) {
+    helpers_numeric_i32::emit_i32_or_widened_op(w, opcodes::OP_I32_ADD(), opcodes::OP_I64_ADD())
+}
+
+fn emit_v128_memarg(w: WasmWriter, align: i32) {
+    writer_core::emit_byte(w, align)
+    writer_core::emit_leb128_u(w, 0)
+}

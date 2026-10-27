@@ -117,6 +117,12 @@ fn simd_return_wasm_v128(name: String) -> bool {
     if eq(clone(name), "__wasm_v128_load") { return true }
     if eq(clone(name), "__wasm_v128_load_splat") { return true }
     if eq(clone(name), "__wasm_v128_load_lane") { return true }
+    if eq(clone(name), "__wasm_v128_load8x8_s") { return true }
+    if eq(clone(name), "__wasm_v128_load8x8_u") { return true }
+    if eq(clone(name), "__wasm_v128_load16x4_s") { return true }
+    if eq(clone(name), "__wasm_v128_load16x4_u") { return true }
+    if eq(clone(name), "__wasm_v128_load32x2_s") { return true }
+    if eq(clone(name), "__wasm_v128_load32x2_u") { return true }
     false
 }
 

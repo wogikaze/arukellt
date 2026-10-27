@@ -1,0 +1,12 @@
+// E0100: the std::wasm v128 memory frees were retired by the #917
+// associated-conversion wave; each hint names the V128Memory replacement.
+use std::wasm
+
+fn main() {
+    let ptr = 1024
+    let v = wasm::v128_load(ptr, 0)
+    wasm::v128_store(ptr, 16, v)
+    let _ = wasm::v128_load_splat(ptr, 32)
+    let _ = wasm::v128_load_lane(ptr, 48, v, 0)
+    wasm::v128_store_lane(ptr, 64, v, 0)
+}

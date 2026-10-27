@@ -27,9 +27,8 @@
 | `std::signal` | 10 | 10 | 0 | 0 | 0 | 7/10 (70%) | no |
 | `std::test` | 18 | 17 | 0 | 1 | 0 | 18/18 (100%) | no |
 | `std::toml` | 2 | 0 | 0 | 2 | 0 | 2/2 (100%) | no |
-| `std::wasm` | 5 | 0 | 0 | 5 | 0 | **0/5 (0%)** | no |
 
-**Total**: 313 APIs, 178 stable, 10 provisional, 53 experimental, 72 deprecated, 227/241 (94%) fixture coverage
+**Total**: 308 APIs, 178 stable, 10 provisional, 48 experimental, 72 deprecated, 227/236 (96%) fixture coverage
 
 ## Legend
 
@@ -45,4 +44,4 @@
 
 Families below 50% fixture coverage (denominator excludes deprecated APIs):
 
-`std::host::fs` (0%), `std::wasm` (0%).
+`std::host::fs` (0%).

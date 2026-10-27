@@ -1,0 +1,10 @@
+error[E0100|resolve]: undefined module member: wasm::v128_load; removed free function; use `V128Memory::load(address, offset)` from `use std::wasm` instead
+  --> tests/fixtures/diagnostics/removed_wasm_v128_memory_free_wasm32.ark
+error[E0100|resolve]: undefined module member: wasm::v128_store; removed free function; use `V128Memory::store(address, offset, value)` from `use std::wasm` instead
+  --> tests/fixtures/diagnostics/removed_wasm_v128_memory_free_wasm32.ark
+error[E0100|resolve]: undefined module member: wasm::v128_load_splat; removed free function; use `V128Memory::load_splat(address, offset)` from `use std::wasm` instead
+  --> tests/fixtures/diagnostics/removed_wasm_v128_memory_free_wasm32.ark
+error[E0100|resolve]: undefined module member: wasm::v128_load_lane; removed free function; use `V128Memory::load_lane(address, offset, value, lane)` from `use std::wasm` instead
+  --> tests/fixtures/diagnostics/removed_wasm_v128_memory_free_wasm32.ark
+error[E0100|resolve]: undefined module member: wasm::v128_store_lane; removed free function; use `V128Memory::store_lane(address, offset, value, lane)` from `use std::wasm` instead
+  --> tests/fixtures/diagnostics/removed_wasm_v128_memory_free_wasm32.ark

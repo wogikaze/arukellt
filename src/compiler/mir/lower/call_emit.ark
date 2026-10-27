@@ -10,6 +10,22 @@ use mir::lower::call_rewrite
 use mir::lower::call_type_vec
 use mir::lower::call_types
 use mir::value_types
+// Position (1-based argument index) of the compile-time lane operand, or -1
+// when the callee has none. The SIMD lane intrinsics put the lane second;
+// the v128 memory lane intrinsics are (address, offset, value, lane).
+fn mir_simd_lane_immediate_argument_index(callee_name: String) -> i32 {
+    if eq(clone(callee_name), "__wasm_v128_load_lane") {
+        return 4
+    }
+    if eq(clone(callee_name), "__wasm_v128_store_lane") {
+        return 4
+    }
+    if mir_is_simd_lane_immediate_callee(clone(callee_name)) {
+        return 2
+    }
+    0 - 1
+}
+
 fn mir_is_simd_lane_immediate_callee(callee_name: String) -> bool {
     if starts_with(clone(callee_name), String_from("__simd_")) && ends_with(clone(callee_name), String_from("_replace_lane")) {
         return true
@@ -90,7 +106,7 @@ fn mir_emit_direct_call(
         call_type_vec::is_vec_receiver_recording_callee(clone(callee_name))
     ) {
         ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_first_arg_vt(clone(callee_name), arg_count, dest, recorded_first, dest_vt))
-    } else if lane_immediate >= 0 && mir_is_simd_lane_immediate_callee(clone(callee_name)) {
+    } else if lane_immediate >= 0 && mir_simd_lane_immediate_argument_index(clone(callee_name)) >= 0 {
         ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_lane_vt(clone(callee_name), arg_count, dest, lane_immediate, dest_vt))
     } else {
         ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_val_type(clone(callee_name), arg_count, dest, dest_vt))

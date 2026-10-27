@@ -46,12 +46,13 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
     let mut second_arg_idx = 0 - 1
     let mut lane_immediate = 0 - 1
     let mut receiver_writeback = 0 - 1
+    let lane_immediate_position = call_emit::mir_simd_lane_immediate_argument_index(clone(callee_name))
     let mut a = 1
     while a < child_count {
         let arg = ast_node::node_child_at(node, a)
         let mut arg_idx = 0 - 1
         let param_idx = a - 1
-        let is_lane_immediate = a == 2 && call_emit::mir_is_simd_lane_immediate_callee(clone(callee_name)) && ast_node::node_kind_is(arg, lower_kinds::NK_INT_LIT())
+        let is_lane_immediate = a == lane_immediate_position && ast_node::node_kind_is(arg, lower_kinds::NK_INT_LIT())
         if is_lane_immediate {
             lane_immediate = ast_node::node_int_val(arg)
             a = a + 1

@@ -43,17 +43,15 @@ let encoded: Vec<i32> = wasm::Leb128::encode_u32(128)
 ## Module `std::wasm`
 
 - Source: [`../../../std/wasm/mod.ark`](../../../std/wasm/mod.ark)
-- Manifest-backed functions: 5
-- Stability: experimental 5
+- Manifest-backed functions: 0
+- Stability: n/a
 
 Experimental WebAssembly helpers.
 
 Exposes the Wasm module header, section IDs, value-type constants, opcode
 constants, FuncType / Limits values, a minimal Wasm module builder, LEB128
-encoding, and the five experimental v128 load/store helpers. The builder
-and constant helpers are associated functions or methods on their owning
-types; the v128 load/store helpers stay top-level free functions because
-their method form does not lower yet (ADR-046). The raw v128 bitwise
+encoding, and raw v128 linear-memory access. Every entry is an associated
+function or method on its owning type (ADR-046); the raw v128 bitwise
 operations live on `std::simd::v128::V128`.
 
 All APIs are Experimental and may change in v4+.
@@ -69,33 +67,6 @@ All APIs are Experimental and may change in v4+.
 | `Limits` | `struct` | `unbounded`, `bounded`, `min`, `has_max`, `max` | - | Memory limits: a minimum page count plus an optional maximum. |
 | `WasmModuleBuilder` | `struct` | `new`, `add_type`, `add_func`, `add_memory`, `add_export_func`, `type_count`, `func_count`, `mem_count`, `export_count`, `magic`, `version`, `encode_header` | - | Minimal Wasm module builder. |
 | `Leb128` | `struct` | `encode_u32`, `size_u32` | - | Unsigned LEB128 encoding utilities. |
+| `V128Memory` | `struct` | `load`, `store`, `load_splat`, `load_lane`, `store_lane`, `load8x8_s`, `load8x8_u`, `load16x4_s`, `load16x4_u`, `load32x2_s`, `load32x2_u` | - | Raw v128 linear-memory access. |
 
-### `std::wasm` — v128 memory access (ADR-037 §11)
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `v128_load` | `(i32, i32) -> v128` | `experimental` | ✅ functional | Load a v128 from linear memory at ptr + offset. |
-| `v128_store` | `(i32, i32, v128) -> ()` | `experimental` | ✅ functional | Store a v128 to linear memory at ptr + offset. |
-| `v128_load_splat` | `(i32, i32) -> v128` | `experimental` | ✅ functional | Load a single byte and splat to all 16 lanes. |
-| `v128_load_lane` | `(i32, i32, v128, i32) -> v128` | `experimental` | ✅ functional | Load a single lane from linear memory. |
-| `v128_store_lane` | `(i32, i32, v128, i32) -> ()` | `experimental` | ✅ functional | Store a single lane to linear memory. |
-
-#### `std::wasm::v128_load`
-
-Load a v128 from linear memory at ptr + offset.
-
-#### `std::wasm::v128_store`
-
-Store a v128 to linear memory at ptr + offset.
-
-#### `std::wasm::v128_load_splat`
-
-Load a single byte from linear memory and splat it to all 16 lanes.
-
-#### `std::wasm::v128_load_lane`
-
-Load a single lane from linear memory into a v128 vector.
-
-#### `std::wasm::v128_store_lane`
-
-Store a single lane from a v128 vector to linear memory.
+_No manifest-backed functions in this module._

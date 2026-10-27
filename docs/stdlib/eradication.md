@@ -15,20 +15,20 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 378 `pub fn` declarations under
-`std/**/*.ark`; 345 map to a manifest entry and
-33 are unregistered. Eradication scope = 313 manifest
-public entries + 33 unregistered declarations = **346 symbols**.
+**Real surface denominator:** 373 `pub fn` declarations under
+`std/**/*.ark`; 340 map to a manifest entry and
+33 are unregistered. Eradication scope = 308 manifest
+public entries + 33 unregistered declarations = **341 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 346 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 378 | — |
+| Eradication-scope symbols (real std surface) | 341 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 373 | — |
 | Unregistered std declarations (no manifest entry) | 33 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
-| Manifest public entries (registered scope) | 313 | 0 |
+| Manifest public entries (registered scope) | 308 | 0 |
 | `prelude_wrapper` entries | 65 | 0 |
 | Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 53 | 0 |
 | `intrinsic-only` bridges (non-public) | 1 | — |
@@ -38,7 +38,7 @@ public entries + 33 unregistered declarations = **346 symbols**.
 | Class | Meaning | Symbols |
 |-------|---------|---------|
 | `must delete` | Replacement already exists or functionality retires | 74 |
-| `associated-or-method` | Replacement must land as method/associated first | 272 |
+| `associated-or-method` | Replacement must land as method/associated first | 267 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
 ## Execution Rules
@@ -67,7 +67,6 @@ registered entries and unregistered `pub fn` declarations.
 | std::seq remaining | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 9 | 0 | Slice/Vec methods (sort_by, binary_search family) |
 | std::collections frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 100 | 20 | collection type methods (HashMap/HashSet/Deque/BTree/SortedMap/etc.) |
 | std::json/toml/csv frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 3 | 8 | JsonValue / TomlValue value methods (`v.is_null()`, `v.as_i32()`, `v.get_field(key)`, `v.to_text()`, `v.as_string()`, `v.table_keys()`, `e.message()`); the `JsonText` / `TomlText` text namespaces (`JsonText::quote`, `JsonText::get_str`, `TomlText::find_value`, ...); `JsonValue` constructors (`JsonValue::int`, `JsonValue::string`, `JsonValue::array`, `JsonValue::object`, ...); `JsonField::new`; and `JsonValue::pretty_text`. `json::parse`, `toml::toml_parse`, and `toml::toml_stringify` remain the document entry points. |
-| std::wasm v128 memory frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 5 | 0 | The `V128Memory::load` / `store` / `load_splat` / `load_lane` / `store_lane` associated form is blocked together with the free form: the `__wasm_v128_load*` / `__wasm_v128_store*` intrinsics have no emitter lowering, so every call compiles to `unreachable` (valid Wasm, but it traps) on wasm32-gc and wasm32. Neither spelling emits `v128.load` / `v128.store`. The five frees stay experimental until the emitter implements the intrinsic lowering; they then move to `V128Memory`. |
 | host/core namespace frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 40 | 0 | Fs / Env / Process / Clock / Random / Cli / Path / Signal associated functions and methods; the std::host::fs and legacy std::fs path frees are `Fs::read_to_string` / `read_bytes` / `write_string` / `write_bytes` / `is_readable_file` / `is_file` / `is_dir` / `read_dir` / `metadata` from `use std::host::fs::Fs` (the stable wrappers remain under the ADR-087 W0009 window); the std::core range/order/error/hash frees retired behind `Range::new` / `r.contains(value)` / `r.len()` / `RangeInclusive::new` / `r.contains(value)` / `a.cmp(b)` / `e.message()` / `h1.combine_hash(h2)`; the sealed raw bridges are `RawArray` / `RawString` / `RawFloat` associated functions (stdlib-only) |
 
 ## Inventory (manifest entries)
@@ -384,11 +383,6 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `expect_some_i32` | `std::test` | `associated-or-method` | std::test assert frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `toml_parse` | `std::toml` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `toml_stringify` | `std::toml` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_load` | `std::wasm` | `associated-or-method` | std::wasm v128 memory frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_load_lane` | `std::wasm` | `associated-or-method` | std::wasm v128 memory frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_load_splat` | `std::wasm` | `associated-or-method` | std::wasm v128 memory frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_store` | `std::wasm` | `associated-or-method` | std::wasm v128 memory frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_store_lane` | `std::wasm` | `associated-or-method` | std::wasm v128 memory frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `__intrinsic_string_is_empty` | `(prelude)` | `intrinsic-only` | private intrinsics | — |
 
 ## Inventory (unregistered std declarations)

@@ -738,6 +738,9 @@ classified there, in dependency-safe waves.
         range/order/error/hash manifest frees and the unregistered
         `std::core::identity` retired after the `Range` / `RangeInclusive` /
         `i32` / `Error` receiver surface landed.
+      - Landed 2026-10-27 (`wave/v128-memory`): the last 5 `std::wasm`
+        v128 memory frees retired onto `V128Memory` after the 0xfd
+        linear-memory lowering landed.
 - [x] Keep the scorecard at zero-unclassified while waves land: update
       the TOML rules as symbols retire so the checker stays green.
 - [x] Update user-facing docs/examples in the same PR that retires a
@@ -798,6 +801,59 @@ classified there, in dependency-safe waves.
   type-associated, no function entries) no longer appear as rows while
   `reference.md` lists the types and methods; and the 308 remaining
   `associated-or-method` symbols stay in their own lanes.
+
+### Landed slice (wave/v128-memory, 2026-10-27)
+
+- **Emitter**: added the 0xfd v128 linear-memory lowering. Ten new core
+  operations (`wasm.v128.load8x8.s/u`, `load16x4.s/u`, `load32x2.s/u`,
+  `wasm.v128.load_splat`, `store`, `load_lane`, `store_lane`) join the
+  existing `wasm.v128.load`; the eleven `__wasm_v128_*` intrinsics are bound
+  to them and the new `wasm::call_simd_memory` dispatch emits the 0xfd
+  instruction plus a natural-alignment memarg. The runtime `offset` operand is
+  added to the address (`i32.add`, or `i64.add` under memory64), so the memarg
+  offset is zero. `load_lane` / `store_lane` read the lane as a compile-time
+  immediate; the lane-position predicate now handles the fourth argument.
+- **Migration**: the five experimental `std::wasm` frees move onto the new
+  `V128Memory` `[[types]]` entry (`load`, `store`, `load_splat`, `load_lane`,
+  `store_lane`, plus the six widening loads); their five `[[functions]]`
+  entries and `pub fn` declarations are deleted. `load_splat` is
+  `v128.load8_splat`; the lane functions move one 32-bit lane (`lane` = 0..3).
+  E0100 hints in `resolver::removed_names` name each replacement.
+- **Fixtures**: `stdlib_wasm/v128_memory_surface.ark` (wasm32-gc memory32 P2
+  component) and `_wasm32.ark` (`--target wasm32`, memory32 linear) store and
+  reload vectors at a fixed scratch page, assert lane values, and cover
+  `load_splat`, `load_lane`, `store_lane`, and the widening loads.
+  `diagnostics/removed_wasm_v128_memory_free.ark` + `_wasm32.ark` pin the
+  E0100 hints on both targets.
+- **Scorecard**: 358 -> **353** public symbols; `associated-or-method`
+  288 -> **283**; manifest public entries 324 -> **319**; `pub fn`
+  declarations 389 -> **384**; `must delete` 70, `intrinsic-only` 1, and
+  `prelude_wrapper` 65 unchanged. The `std::wasm v128 memory frees` rule is
+  removed from `docs/data/stdlib-api-eradication.toml`.
+- **Verification (both targets)**: the wasm32-gc memory32 P2 component and
+  the `--target wasm32` memory32 linear core both compile,
+  `wasm-tools validate`, and run to completion with every lane assertion
+  passing. `wasm-tools print` of the GC core shows `v128.load`, `v128.store`,
+  `v128.load8_splat`, the six widening loads, `v128.load32_lane 0..3`, and
+  `v128.store32_lane 0..3` (18 sites, no `unreachable`). A wasm32-gc memory64
+  core compiles to `i64.add` + `v128.load` and validates under `memory64`; the
+  P2 host profile cannot run a memory64 core directly, so that path is
+  validate-only.
+- **Gates**: `verify fixtures` **1897/1897 PASS / 0 FAIL** (1897
+  compile+validate, 110 runtime smoke, 1 `test:` fixture PASS, 2 runtime
+  contracts delegated to native-cpp); `docs check` 6/6; `verify lane` PASS;
+  `check-core-ops`, `check-core-op-compiler-validator`,
+  `check-native-cpp-capabilities`, `check-stdlib-eradication`,
+  `check-compat-orphans`, `check-semantic-debt`, and
+  `check-legacy-dispatch-inventory` clean; ADR-029 fixpoint PASS: s2 == s3 at
+  sha256 `16d2af795aacca9013865653fe9e1d416c9dea496f5a0b9020a480c7a992a404`
+  (pinned base `04d4446b`).
+- **Residuals**: the fixture gate compiles `run:` fixtures as
+  wasm32-gc memory32 P2 components only, so the memory64 `i64.add` path is
+  validate-only; `std::simd` still owns the raw bitwise surface while
+  `V128Memory` owns linear-memory access (ADR-042 D7); the wider lane widths
+  (`load16_lane` / `load64_lane`, `load16_splat` / `load64_splat`) and
+  `v128.load32_zero` / `load64_zero` stay unexposed until a caller needs them.
 
 ## Acceptance
 
