@@ -11,7 +11,7 @@
 | `stable` | 176 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 10 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 45 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 67 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 65 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -55,6 +55,8 @@
 | `Section` | - | no | experimental | Section IDs for the standard Wasm sections. |
 | `Slice` | T | yes | provisional | Read-only contiguous view. |
 | `Stack` | T | no | provisional | Last-in first-out stack restricted to Deque<T> push / pop at the back. |
+| `Stderr` | - | no | experimental | Typed standard-error handle. Implements Write: write(data) emits the byte image unchanged without appending a newline, write_string(text) emits a string's UTF-8 bytes, and flush is synchronous. Byte-faithful replacement for the tagged stderr() / writer_write path (ADR-085 D9). |
+| `Stdout` | - | no | experimental | Typed standard-output handle. Implements Write: write(data) emits the byte image unchanged, write_string(text) emits a string's UTF-8 bytes, and flush is synchronous. Byte-faithful replacement for the tagged stdout() / writer_write path (ADR-085 D9). |
 | `String` | - | yes | stable | UTF-8 string value. |
 | `U16x8` | - | no | experimental | 8 × 16-bit unsigned integer lane associated operations over v128. |
 | `U32x4` | - | no | experimental | 4 × 32-bit unsigned integer lane associated operations over v128. |
@@ -154,6 +156,8 @@
 | `Section` | `type_id`, `import_id`, `function_id`, `table_id`, `memory_id`, `global_id`, `export_id`, `start_id`, `element_id`, `code_id`, `data_id` | - |
 | `Seek` | `seek`, `position` | - |
 | `Stack` | `new`, `with_capacity`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
+| `Stderr` | `new`, `write_string` | `Write` |
+| `Stdout` | `new`, `write_string` | `Write` |
 | `TomlValue` | `parse`, `to_text`, `as_string`, `as_int`, `as_bool`, `as_float`, `as_array`, `as_table`, `get_field`, `table_keys` | - |
 | `U16x8` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `add_sat_u`, `sub_sat_u`, `eq`, `ne`, `lt_u`, `le_u`, `gt_u`, `ge_u`, `min_u`, `max_u`, `shl`, `shr_u` | - |
 | `U32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt_u`, `le_u`, `gt_u`, `ge_u`, `min_u`, `max_u`, `shl`, `shr_u` | - |
@@ -521,8 +525,6 @@ let input = stdio::read_stdin()
 | `stderr` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `stdin` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `stdout` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| ~~`writer_write`~~ ⚠️ Deprecated → `Writer::write` | `(Vec<i32>, Vec<i32>) -> Result<i32, IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated tagged write for stdout() / stderr(); use Writer::write for memory handles. Stays until… |
-| ~~`writer_write_str`~~ ⚠️ Deprecated → `Writer::write_string` | `(Vec<i32>, String) -> Result<i32, IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated tagged string write for stdout() / stderr(); use Writer::write_string for memory handle… |
 
 ## Math
 
@@ -681,7 +683,7 @@ let input = stdio::read_stdin()
 
 ## Deprecated APIs
 
-> ⚠️ **67 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **65 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -750,5 +752,3 @@ let input = stdio::read_stdin()
 | ~~`u64_to_u32`~~ | `u64::to_u32_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | `u8::to_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`unique`~~ | `VecIter::unique` | [migration-guidance.md](migration-guidance.md) |
-| ~~`writer_write`~~ | `Writer::write` | [migration-guidance.md](migration-guidance.md) |
-| ~~`writer_write_str`~~ | `Writer::write_string` | [migration-guidance.md](migration-guidance.md) |

@@ -1,1 +1,0 @@
-stdout() / stderr() have no typed `Write` handle yet; use `w.write(data)` on `Writer` for memory handles (#693)

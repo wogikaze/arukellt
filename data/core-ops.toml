@@ -241,6 +241,10 @@ alias = "__intrinsic_print"
 core_op_id = "runtime.print"
 
 [[legacy_bindings]]
+alias = "__intrinsic_eprint"
+core_op_id = "runtime.eprint"
+
+[[legacy_bindings]]
 alias = "__intrinsic_eprintln"
 core_op_id = "runtime.eprintln"
 
@@ -4813,6 +4817,43 @@ kind = "runtime_call"
 [operations.lowering.runtime]
 kind = "internal"
 symbol = "stdio_eprintln"
+abi_version = "0.1"
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "runtime.eprint"
+visibility = "public"
+classification = { layer = "runtime" }
+binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
+description = "Raw stderr write used by the typed Stderr handle (alias: __intrinsic_eprint)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "runtime_call"
+[operations.lowering.runtime]
+kind = "internal"
+symbol = "stdio_eprint"
 abi_version = "0.1"
 [operations.fallback]
 required = false

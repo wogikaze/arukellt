@@ -7,7 +7,7 @@ use std::text
 use corehir::table_blob
 
 fn core_op_binding_count() -> i32 {
-    646
+    647
 }
 
 fn core_op_binding_pattern_count() -> i32 {
@@ -20,42 +20,42 @@ fn core_op_binding_callee_off_hex_chunk(chunk: i32) -> String {
     if chunk == 2 { return "090300002003000038030000520300006c03000086030000a0030000ba030000d2030000ea030000030400001e0400003a0400004f0400006c04000087040000a2040000b9040000" }
     if chunk == 3 { return "d5040000eb040000030500001905000039050000540500007505000091050000aa050000c4050000dc050000f40500001206000031060000500600006b060000820600009f060000" }
     if chunk == 4 { return "bb060000ce060000ef060000100700002d07000045070000580700006b070000830700009b070000b3070000cd070000e80700000608000019080000330800004d08000062080000" }
-    if chunk == 5 { return "7a0800008c080000a1080000b5080000d0080000e6080000fd080000140900002a090000430900005c090000750900008509000096090000ab090000c0090000d5090000e6090000" }
-    if chunk == 6 { return "f90900000e0a00001f0a00002f0a0000460a0000660a00007e0a00009b0a0000b10a0000c90a0000e20a0000f70a0000110b00002d0b0000480b0000630b00007d0b0000950b0000" }
-    if chunk == 7 { return "a50b0000b50b0000c60b0000d60b0000e50b0000fe0b0000100c00001f0c00002e0c00003d0c00004c0c00005c0c00006c0c00007c0c00008b0c00009f0c0000af0c0000c80c0000" }
-    if chunk == 8 { return "da0c0000eb0c0000fb0c00000d0d00001d0d00002d0d00003e0d00005e0d00007e0d00008e0d00009d0d0000b60d0000c80d0000d70d0000e60d0000f50d0000040e0000140e0000" }
-    if chunk == 9 { return "240e0000340e0000430e0000570e0000670e0000850e00009e0e0000b00e0000c10e0000d10e0000e30e0000f30e0000030f0000190f00002f0f0000440f0000580f0000670f0000" }
-    if chunk == 10 { return "8b0f0000af0f0000cf0f0000ef0f00000e1000002d1000004810000063100000741000008510000096100000a7100000b8100000c9100000da100000eb100000fd1000000f110000" }
-    if chunk == 11 { return "2111000033110000431100005e110000791100008811000098110000b1110000c1110000d3110000e5110000f7110000071200001d12000033120000431200005312000068120000" }
-    if chunk == 12 { return "7c1200008b120000a4120000b5120000c6120000d7120000e8120000f91200000a1300001b1300002c1300003e1300005013000062130000741300008413000093130000a3130000" }
-    if chunk == 13 { return "bc130000cc130000de130000f013000002140000121400002214000032140000471400005b1400006a1400008314000094140000a5140000b6140000c7140000d7140000e6140000" }
-    if chunk == 14 { return "f61400000f1500001f1500003115000043150000551500006515000075150000851500009b150000b1150000c6150000da150000e9150000041600001f1600003016000041160000" }
-    if chunk == 15 { return "5216000063160000741600008516000096160000a7160000b9160000cb160000dd160000ef160000ff1600001a1700003517000044170000541700006d1700007d1700008f170000" }
-    if chunk == 16 { return "a1170000b3170000c3170000d9170000ef170000ff1700000f18000025180000341800004f18000060180000711800008218000093180000a5180000b7180000c7180000d6180000" }
-    if chunk == 17 { return "e6180000ff1800000f19000021190000331900004319000059190000691900007919000088190000a1190000b2190000c3190000d4190000e5190000f7190000091a0000191a0000" }
-    if chunk == 18 { return "281a0000381a0000511a0000611a0000731a0000851a0000951a0000a51a0000b51a0000c41a0000dd1a0000ee1a0000ff1a0000101b0000211b0000311b0000401b0000501b0000" }
-    if chunk == 19 { return "691b0000791b00008b1b00009d1b0000ad1b0000bd1b0000cd1b0000e31b0000f21b00000d1c00001e1c00002f1c0000401c0000511c0000631c0000751c0000851c0000941c0000" }
-    if chunk == 20 { return "a41c0000bd1c0000cd1c0000df1c0000f11c0000011d0000171d0000261d0000381d00004c1d0000611d0000721d0000811d00008f1d00009e1d0000ae1d0000c41d0000da1d0000" }
-    if chunk == 21 { return "f01d0000061e00001b1e0000301e0000451e00005b1e00006c1e0000821e0000851e00008c1e0000921e00009b1e00009f1e0000a51e0000ae1e0000bb1e0000c81e0000d11e0000" }
-    if chunk == 22 { return "df1e0000e61e0000f41e0000f91e0000021f00000b1f0000171f00001c1f0000221f00002a1f0000411f0000571f00006d1f0000831f0000971f0000a61f0000b51f0000be1f0000" }
-    if chunk == 23 { return "c91f0000d71f0000e01f0000ec1f0000f91f000001200000142000001f200000262000003820000040200000462000004a20000054200000612000006c2000007720000081200000" }
-    if chunk == 24 { return "8e2000009e200000ad200000bc200000cb200000d6200000e0200000f220000001210000112100001d2100002b210000382100003b21000048210000502100006421000077210000" }
-    if chunk == 25 { return "812100008921000097210000a1210000aa210000b7210000c1210000ca210000d8210000e2210000ef210000f821000000220000082200000e220000152200001a22000021220000" }
-    if chunk == 26 { return "25220000282200002d22000036220000432200004e22000057220000602200006d2200007622000083220000902200009a2200009d220000a4220000af220000ba220000bd220000" }
-    if chunk == 27 { return "c4220000cc220000d5220000da220000e3220000e6220000ed220000f2220000f92200000723000014230000212300002d230000382300003c230000452300004d23000055230000" }
-    if chunk == 28 { return "5f2300006d230000762300007f2300009b230000ae230000c0230000d2230000e8230000042400001c2400003024000044240000552400006b2400007d2400008f240000a1240000" }
-    if chunk == 29 { return "c2240000d7240000f12400000a2500001d250000362500004d2500005b2500006825000075250000862500009d250000b0250000bf250000ce250000da250000eb250000f8250000" }
-    if chunk == 30 { return "05260000122600002e2600003e2600005326000067260000752600008926000097260000a1260000a7260000ae260000bc260000c7260000d9260000e6260000f2260000fe260000" }
-    if chunk == 31 { return "0b27000017270000242700002f27000032270000372700003f270000472700004f2700005427000058270000632700007f270000a6270000c4270000e1270000fe2700001f280000" }
-    if chunk == 32 { return "462800007228000092280000b7280000db280000f9280000122900002629000035290000412900004f290000602900006a29000078290000852900008e2900009f290000ab290000" }
-    if chunk == 33 { return "b4290000bb290000cf290000da290000e6290000f4290000032a0000142a0000242a0000342a0000442a0000522a0000602a00006a2a0000792a0000842a0000922a0000a12a0000" }
-    if chunk == 34 { return "b02a0000bc2a0000c92a0000d42a0000e52a0000f32a0000052b0000132b0000252b00002f2b00003d2b00004d2b0000552b0000612b00006a2b0000722b00007e2b0000822b0000" }
-    if chunk == 35 { return "8a2b0000942b00009e2b0000a82b0000b12b0000b72b0000c02b0000c72b0000d82b0000ed2b0000022c00000e2c0000152c00001c2c0000242c0000302c0000372c0000" }
+    if chunk == 5 { return "7a0800008c080000a1080000b3080000c7080000e2080000f80800000f090000260900003c090000550900006e0900008709000097090000a8090000bd090000d2090000e7090000" }
+    if chunk == 6 { return "f80900000b0a0000200a0000310a0000410a0000580a0000780a0000900a0000ad0a0000c30a0000db0a0000f40a0000090b0000230b00003f0b00005a0b0000750b00008f0b0000" }
+    if chunk == 7 { return "a70b0000b70b0000c70b0000d80b0000e80b0000f70b0000100c0000220c0000310c0000400c00004f0c00005e0c00006e0c00007e0c00008e0c00009d0c0000b10c0000c10c0000" }
+    if chunk == 8 { return "da0c0000ec0c0000fd0c00000d0d00001f0d00002f0d00003f0d0000500d0000700d0000900d0000a00d0000af0d0000c80d0000da0d0000e90d0000f80d0000070e0000160e0000" }
+    if chunk == 9 { return "260e0000360e0000460e0000550e0000690e0000790e0000970e0000b00e0000c20e0000d30e0000e30e0000f50e0000050f0000150f00002b0f0000410f0000560f00006a0f0000" }
+    if chunk == 10 { return "790f00009d0f0000c10f0000e10f000001100000201000003f1000005a100000751000008610000097100000a8100000b9100000ca100000db100000ec100000fd1000000f110000" }
+    if chunk == 11 { return "21110000331100004511000055110000701100008b1100009a110000aa110000c3110000d3110000e5110000f711000009120000191200002f120000451200005512000065120000" }
+    if chunk == 12 { return "7a1200008e1200009d120000b6120000c7120000d8120000e9120000fa1200000b1300001c1300002d1300003e1300005013000062130000741300008613000096130000a5130000" }
+    if chunk == 13 { return "b5130000ce130000de130000f01300000214000014140000241400003414000044140000591400006d1400007c14000095140000a6140000b7140000c8140000d9140000e9140000" }
+    if chunk == 14 { return "f8140000081500002115000031150000431500005515000067150000771500008715000097150000ad150000c3150000d8150000ec150000fb150000161600003116000042160000" }
+    if chunk == 15 { return "5316000064160000751600008616000097160000a8160000b9160000cb160000dd160000ef16000001170000111700002c1700004717000056170000661700007f1700008f170000" }
+    if chunk == 16 { return "a1170000b3170000c5170000d5170000eb170000011800001118000021180000371800004618000061180000721800008318000094180000a5180000b7180000c9180000d9180000" }
+    if chunk == 17 { return "e8180000f818000011190000211900003319000045190000551900006b1900007b1900008b1900009a190000b3190000c4190000d5190000e6190000f7190000091a00001b1a0000" }
+    if chunk == 18 { return "2b1a00003a1a00004a1a0000631a0000731a0000851a0000971a0000a71a0000b71a0000c71a0000d61a0000ef1a0000001b0000111b0000221b0000331b0000431b0000521b0000" }
+    if chunk == 19 { return "621b00007b1b00008b1b00009d1b0000af1b0000bf1b0000cf1b0000df1b0000f51b0000041c00001f1c0000301c0000411c0000521c0000631c0000751c0000871c0000971c0000" }
+    if chunk == 20 { return "a61c0000b61c0000cf1c0000df1c0000f11c0000031d0000131d0000291d0000381d00004a1d00005e1d0000731d0000841d0000931d0000a11d0000b01d0000c01d0000d61d0000" }
+    if chunk == 21 { return "ec1d0000021e0000181e00002d1e0000421e0000571e00006d1e00007e1e0000941e0000971e00009e1e0000a41e0000ad1e0000b11e0000b71e0000c01e0000cd1e0000da1e0000" }
+    if chunk == 22 { return "e31e0000f11e0000f81e0000061f00000b1f0000141f00001d1f0000291f00002e1f0000341f00003c1f0000531f0000691f00007f1f0000951f0000a91f0000b81f0000c71f0000" }
+    if chunk == 23 { return "d01f0000db1f0000e91f0000f21f0000fe1f00000b200000132000002620000031200000382000004a20000052200000582000005c20000066200000732000007e20000089200000" }
+    if chunk == 24 { return "93200000a0200000b0200000bf200000ce200000dd200000e8200000f22000000421000013210000232100002f2100003d2100004a2100004d2100005a2100006221000076210000" }
+    if chunk == 25 { return "89210000932100009b210000a9210000b3210000bc210000c9210000d3210000dc210000ea210000f4210000012200000a220000122200001a22000020220000272200002c220000" }
+    if chunk == 26 { return "33220000372200003a2200003f22000048220000552200006022000069220000722200007f2200008822000095220000a2220000ac220000af220000b6220000c1220000cc220000" }
+    if chunk == 27 { return "cf220000d6220000de220000e7220000ec220000f5220000f8220000ff220000042300000b2300001923000026230000332300003f2300004a2300004e230000572300005f230000" }
+    if chunk == 28 { return "67230000712300007f2300008823000091230000ad230000c0230000d2230000e4230000fa230000162400002e2400004224000056240000672400007d2400008f240000a1240000" }
+    if chunk == 29 { return "b3240000d4240000e9240000032500001c2500002f250000482500005f2500006d2500007a2500008725000098250000af250000c2250000d1250000e0250000ec250000fd250000" }
+    if chunk == 30 { return "0a260000172600002426000040260000502600006526000079260000872600009b260000a9260000b3260000b9260000c0260000ce260000d9260000eb260000f826000004270000" }
+    if chunk == 31 { return "102700001d2700002927000036270000412700004427000049270000512700005927000061270000662700006a2700007527000091270000b8270000d6270000f327000010280000" }
+    if chunk == 32 { return "312800005828000084280000a4280000c9280000ed2800000b2900002429000038290000472900005329000061290000722900007c2900008a29000097290000a0290000b1290000" }
+    if chunk == 33 { return "bd290000c6290000cd290000e1290000ec290000f8290000062a0000152a0000262a0000362a0000462a0000562a0000642a0000722a00007c2a00008b2a0000962a0000a42a0000" }
+    if chunk == 34 { return "b32a0000c22a0000ce2a0000db2a0000e62a0000f72a0000052b0000172b0000252b0000372b0000412b00004f2b00005f2b0000672b0000732b00007c2b0000842b0000902b0000" }
+    if chunk == 35 { return "942b00009c2b0000a62b0000b02b0000ba2b0000c32b0000c92b0000d22b0000d92b0000ea2b0000ff2b0000142c0000202c0000272c00002e2c0000362c0000422c0000492c0000" }
     return String_new()
 }
 
 fn core_op_binding_callee_off_at(index: i32) -> i32 {
-    if index < 0 || index >= 647 {
+    if index < 0 || index >= 648 {
         return 0
     }
     let chunk = index / 18
@@ -79,75 +79,75 @@ fn core_op_binding_callee_data_chunk(chunk: i32) -> String {
     if chunk == 12 { return "e_vec_get_impl__core_vec_get_unchecked_f64_impl__core_vec_get_unchecked_i64_impl__core_vec_get_unchecked_impl__core_vec_is_empty_impl__core_vec_" }
     if chunk == 13 { return "len_impl__core_vec_pop_impl__core_vec_push_f64_impl__core_vec_push_i32_impl__core_vec_push_i64_impl__core_vec_remove_i32_impl__core_vec_reverse_" }
     if chunk == 14 { return "i32_impl__core_vec_reverse_string_impl__core_vec_set_impl__intrinsic_bool_to_string__intrinsic_char_to_string__intrinsic_clock_now__intrinsic_cl" }
-    if chunk == 15 { return "ock_now_ms__intrinsic_concat__intrinsic_ends_with__intrinsic_eprintln__intrinsic_f32_promote_f64__intrinsic_f32_to_f64__intrinsic_f64_bits_hi__i" }
-    if chunk == 16 { return "ntrinsic_f64_bits_lo__intrinsic_f64_to_f32__intrinsic_f64_to_string__intrinsic_i32_to_string__intrinsic_i64_to_string__intrinsic_join__intrinsic" }
-    if chunk == 17 { return "_panic__intrinsic_parse_f64__intrinsic_parse_i32__intrinsic_parse_i64__intrinsic_print__intrinsic_println__intrinsic_push_char__intrinsic_split_" }
-    if chunk == 18 { return "_intrinsic_sqrt__intrinsic_starts_with__intrinsic_stdin_read_to_string__intrinsic_string_clone__intrinsic_string_from_bytes__intrinsic_string_ne" }
-    if chunk == 19 { return "w__intrinsic_string_slice__runtime_abi_env_get_var__runtime_abi_env_var__runtime_abi_fs_read_file__runtime_abi_fs_write_bytes__runtime_abi_fs_wr" }
-    if chunk == 20 { return "ite_file__runtime_abi_process_abort__runtime_abi_process_exit__runtime_abi_random_i32__simd_f32x4_abs__simd_f32x4_add__simd_f32x4_ceil__simd_f32" }
-    if chunk == 21 { return "x4_div__simd_f32x4_eq__simd_f32x4_extract_lane__simd_f32x4_floor__simd_f32x4_ge__simd_f32x4_gt__simd_f32x4_le__simd_f32x4_lt__simd_f32x4_max__si" }
-    if chunk == 22 { return "md_f32x4_min__simd_f32x4_mul__simd_f32x4_ne__simd_f32x4_nearest__simd_f32x4_neg__simd_f32x4_replace_lane__simd_f32x4_splat__simd_f32x4_sqrt__sim" }
-    if chunk == 23 { return "d_f32x4_sub__simd_f32x4_trunc__simd_f64x2_abs__simd_f64x2_add__simd_f64x2_ceil__simd_f64x2_convert_low_i32x4_s__simd_f64x2_convert_low_i32x4_u__" }
-    if chunk == 24 { return "simd_f64x2_div__simd_f64x2_eq__simd_f64x2_extract_lane__simd_f64x2_floor__simd_f64x2_ge__simd_f64x2_gt__simd_f64x2_le__simd_f64x2_lt__simd_f64x2" }
-    if chunk == 25 { return "_max__simd_f64x2_min__simd_f64x2_mul__simd_f64x2_ne__simd_f64x2_nearest__simd_f64x2_neg__simd_f64x2_promote_low_f32x4__simd_f64x2_replace_lane__" }
-    if chunk == 26 { return "simd_f64x2_splat__simd_f64x2_sqrt__simd_f64x2_sub__simd_f64x2_trunc__simd_i16x8_abs__simd_i16x8_add__simd_i16x8_add_sat_s__simd_i16x8_add_sat_u_" }
-    if chunk == 27 { return "_simd_i16x8_all_true__simd_i16x8_bitmask__simd_i16x8_eq__simd_i16x8_extadd_pairwise_i8x16_s__simd_i16x8_extadd_pairwise_i8x16_u__simd_i16x8_exte" }
-    if chunk == 28 { return "nd_high_i8x16_s__simd_i16x8_extend_high_i8x16_u__simd_i16x8_extend_low_i8x16_s__simd_i16x8_extend_low_i8x16_u__simd_i16x8_extract_lane_s__simd_i" }
-    if chunk == 29 { return "16x8_extract_lane_u__simd_i16x8_ge_s__simd_i16x8_ge_u__simd_i16x8_gt_s__simd_i16x8_gt_u__simd_i16x8_le_s__simd_i16x8_le_u__simd_i16x8_lt_s__simd" }
-    if chunk == 30 { return "_i16x8_lt_u__simd_i16x8_max_s__simd_i16x8_max_u__simd_i16x8_min_s__simd_i16x8_min_u__simd_i16x8_mul__simd_i16x8_narrow_i32x4_s__simd_i16x8_narro" }
-    if chunk == 31 { return "w_i32x4_u__simd_i16x8_ne__simd_i16x8_neg__simd_i16x8_replace_lane__simd_i16x8_shl__simd_i16x8_shr_s__simd_i16x8_shr_u__simd_i16x8_splat__simd_i1" }
-    if chunk == 32 { return "6x8_sub__simd_i16x8_sub_sat_s__simd_i16x8_sub_sat_u__simd_i32x4_abs__simd_i32x4_add__simd_i32x4_all_true__simd_i32x4_bitmask__simd_i32x4_eq__sim" }
-    if chunk == 33 { return "d_i32x4_extract_lane__simd_i32x4_ge_s__simd_i32x4_ge_u__simd_i32x4_gt_s__simd_i32x4_gt_u__simd_i32x4_le_s__simd_i32x4_le_u__simd_i32x4_lt_s__sim" }
-    if chunk == 34 { return "d_i32x4_lt_u__simd_i32x4_max_s__simd_i32x4_max_u__simd_i32x4_min_s__simd_i32x4_min_u__simd_i32x4_mul__simd_i32x4_ne__simd_i32x4_neg__simd_i32x4_" }
-    if chunk == 35 { return "replace_lane__simd_i32x4_shl__simd_i32x4_shr_s__simd_i32x4_shr_u__simd_i32x4_splat__simd_i32x4_sub__simd_i64x2_abs__simd_i64x2_add__simd_i64x2_a" }
-    if chunk == 36 { return "ll_true__simd_i64x2_bitmask__simd_i64x2_eq__simd_i64x2_extract_lane__simd_i64x2_ge_s__simd_i64x2_gt_s__simd_i64x2_le_s__simd_i64x2_lt_s__simd_i6" }
-    if chunk == 37 { return "4x2_mul__simd_i64x2_ne__simd_i64x2_neg__simd_i64x2_replace_lane__simd_i64x2_shl__simd_i64x2_shr_s__simd_i64x2_shr_u__simd_i64x2_splat__simd_i64x" }
-    if chunk == 38 { return "2_sub__simd_i8x16_abs__simd_i8x16_add__simd_i8x16_add_sat_s__simd_i8x16_add_sat_u__simd_i8x16_all_true__simd_i8x16_bitmask__simd_i8x16_eq__simd_" }
-    if chunk == 39 { return "i8x16_extract_lane_s__simd_i8x16_extract_lane_u__simd_i8x16_ge_s__simd_i8x16_ge_u__simd_i8x16_gt_s__simd_i8x16_gt_u__simd_i8x16_le_s__simd_i8x16" }
-    if chunk == 40 { return "_le_u__simd_i8x16_lt_s__simd_i8x16_lt_u__simd_i8x16_max_s__simd_i8x16_max_u__simd_i8x16_min_s__simd_i8x16_min_u__simd_i8x16_mul__simd_i8x16_narr" }
-    if chunk == 41 { return "ow_i16x8_s__simd_i8x16_narrow_i16x8_u__simd_i8x16_ne__simd_i8x16_neg__simd_i8x16_replace_lane__simd_i8x16_shl__simd_i8x16_shr_s__simd_i8x16_shr_" }
-    if chunk == 42 { return "u__simd_i8x16_splat__simd_i8x16_sub__simd_i8x16_sub_sat_s__simd_i8x16_sub_sat_u__simd_u16x8_abs__simd_u16x8_add__simd_u16x8_add_sat_u__simd_u16x" }
-    if chunk == 43 { return "8_eq__simd_u16x8_extract_lane_u__simd_u16x8_ge_u__simd_u16x8_gt_u__simd_u16x8_le_u__simd_u16x8_lt_u__simd_u16x8_max_u__simd_u16x8_min_u__simd_u1" }
-    if chunk == 44 { return "6x8_mul__simd_u16x8_ne__simd_u16x8_neg__simd_u16x8_replace_lane__simd_u16x8_shl__simd_u16x8_shr_u__simd_u16x8_splat__simd_u16x8_sub__simd_u16x8_" }
-    if chunk == 45 { return "sub_sat_u__simd_u32x4_abs__simd_u32x4_add__simd_u32x4_eq__simd_u32x4_extract_lane__simd_u32x4_ge_u__simd_u32x4_gt_u__simd_u32x4_le_u__simd_u32x4" }
-    if chunk == 46 { return "_lt_u__simd_u32x4_max_u__simd_u32x4_min_u__simd_u32x4_mul__simd_u32x4_ne__simd_u32x4_neg__simd_u32x4_replace_lane__simd_u32x4_shl__simd_u32x4_sh" }
-    if chunk == 47 { return "r_u__simd_u32x4_splat__simd_u32x4_sub__simd_u64x2_abs__simd_u64x2_add__simd_u64x2_eq__simd_u64x2_extract_lane__simd_u64x2_ge_u__simd_u64x2_gt_u_" }
-    if chunk == 48 { return "_simd_u64x2_le_u__simd_u64x2_lt_u__simd_u64x2_mul__simd_u64x2_ne__simd_u64x2_neg__simd_u64x2_replace_lane__simd_u64x2_shl__simd_u64x2_shr_u__sim" }
-    if chunk == 49 { return "d_u64x2_splat__simd_u64x2_sub__simd_u8x16_abs__simd_u8x16_add__simd_u8x16_add_sat_u__simd_u8x16_eq__simd_u8x16_extract_lane_u__simd_u8x16_ge_u__" }
-    if chunk == 50 { return "simd_u8x16_gt_u__simd_u8x16_le_u__simd_u8x16_lt_u__simd_u8x16_max_u__simd_u8x16_min_u__simd_u8x16_mul__simd_u8x16_ne__simd_u8x16_neg__simd_u8x16" }
-    if chunk == 51 { return "_replace_lane__simd_u8x16_shl__simd_u8x16_shr_u__simd_u8x16_splat__simd_u8x16_sub__simd_u8x16_sub_sat_u__simd_v128_and__simd_v128_andnot__simd_v" }
-    if chunk == 52 { return "128_any_true__simd_v128_bitselect__simd_v128_const__simd_v128_not__simd_v128_or__simd_v128_xor__wasm_v128_load__wasm_v128_load16x4_s__wasm_v128_" }
-    if chunk == 53 { return "load16x4_u__wasm_v128_load32x2_s__wasm_v128_load32x2_u__wasm_v128_load8x8_s__wasm_v128_load8x8_u__wasm_v128_load_lane__wasm_v128_load_splat__was" }
-    if chunk == 54 { return "m_v128_store__wasm_v128_store_laneabsabs_i32arg_atarg_countargsassertassert_eqassert_eq_i64assert_eq_strassert_nebool_to_stringchar_atchar_to_st" }
-    if chunk == 55 { return "ringclampclamp_i32clock_nowclock_now_mscloneconcatcontainsconvert::bool_to_stringconvert::f64_to_stringconvert::i32_to_stringconvert::i64_to_str" }
-    if chunk == 56 { return "ingcore::range_containscore::range_lencore::range_newends_withenv::arg_atenv::arg_countenv::argsenv::get_varenv::has_flagenv::varenv::var_or_def" }
-    if chunk == 57 { return "aultenv_get_varenv_varenv_var_or_defaulteprintlnexistsexitf32_to_f64f32_to_stringf64_bits_hif64_bits_lof64_to_f32f64_to_stringfmt::format_boolfm" }
-    if chunk == 58 { return "t::format_f64fmt::format_i32fmt::format_i64format_boolfs::existsfs::read_to_stringfs::write_bytesfs::write_stringfs_read_filefs_write_bytesfs_wr" }
-    if chunk == 59 { return "ite_filegcdget_uncheckedhas_flaghost::process::aborthost::process::exiti16_to_i32i32::powi32::to_stringi32_to_i64i32_to_i8i32_to_stringi32_to_u3" }
-    if chunk == 60 { return "2i32_to_u8i64::to_stringi64_to_i32i64_to_stringi8_to_i32index_ofis_emptyis_erris_noneis_okis_somejoinlenlinesmath::absmath::abs_i32math::clampma" }
-    if chunk == 61 { return "th::gcdmath::maxmath::max_i32math::minmath::min_i32math::pow_i32math::sqrtmaxmax_i32memory_copymemory_fillminmin_i32pad_leftpad_rightpanicparse_" }
-    if chunk == 62 { return "f64powpow_i32printprintlnprocess::abortprocess::exitprocess_abortprocess_exitproduct_i32pushpush_charpush_f64push_i64random_i32range_containsran" }
-    if chunk == 63 { return "ge_lenrange_newraw::raw_array_get_uncheckedraw::raw_array_growraw::raw_array_lenraw::raw_array_newraw::raw_array_set_lenraw::raw_array_set_unche" }
-    if chunk == 64 { return "ckedraw::raw_f32_promote_f64raw::raw_f64_bits_hiraw::raw_f64_bits_loraw::raw_f64_sqrtraw::raw_f64_to_stringraw::raw_parse_f64raw::raw_parse_i32r" }
-    if chunk == 65 { return "aw::raw_parse_i64raw::raw_string_byte_at_uncheckedraw::raw_string_cloneraw::raw_string_from_bytesraw::raw_string_len_bytesraw::raw_string_newraw" }
-    if chunk == 66 { return "::raw_string_push_charraw_array_get_uncheckedraw_array_growraw_array_lenraw_array_newraw_array_set_lenraw_array_set_uncheckedraw_f32_promote_f64" }
-    if chunk == 67 { return "raw_f64_bits_hiraw_f64_bits_loraw_f64_sqrtraw_f64_to_stringraw_parse_f64raw_parse_i32raw_parse_i64raw_string_byte_at_uncheckedraw_string_clonera" }
-    if chunk == 68 { return "w_string_from_bytesraw_string_len_bytesraw_string_newraw_string_push_charread_to_stringremove_i32repeatreplacereverse_Stringreverse_i32seq::bina" }
-    if chunk == 69 { return "ry_searchseq::count_eqseq::max_i32seq::min_i32seq::skip_i32seq::sum_i32seq::take_i32seq::uniquesetslicesort_f64sort_i32sort_i64splitsqrtstarts_w" }
-    if chunk == 70 { return "ithstd::collections::string::eqstd::core::raw::raw_array_get_uncheckedstd::core::raw::raw_array_growstd::core::raw::raw_array_lenstd::core::raw:" }
-    if chunk == 71 { return ":raw_array_newstd::core::raw::raw_array_set_lenstd::core::raw::raw_array_set_uncheckedstd::core::raw::raw_string_byte_at_uncheckedstd::core::raw" }
-    if chunk == 72 { return "::raw_string_clonestd::core::raw::raw_string_from_bytesstd::core::raw::raw_string_len_bytesstd::core::raw::raw_string_newstd::text::builder_appe" }
-    if chunk == 73 { return "ndstdin_read_to_stringstdio::eprintlnstdio::printstdio::printlnstdio::read_stdinstring::eqstring::repeatstring::splitstring_eqstring_from_bytess" }
-    if chunk == 74 { return "tring_slicesubstringsum_i32text::builder_appendtext::charstext::concattext::containstext::ends_withtext::format_booltext::format_f64text::format" }
-    if chunk == 75 { return "_i32text::format_i64text::index_oftext::is_emptytext::jointext::len_bytestext::linestext::pad_lefttext::pad_righttext::parse_f64text::repeattext" }
-    if chunk == 76 { return "::replacetext::splittext::starts_withtext::to_lowertext::to_lowercasetext::to_uppertext::to_uppercasetext::trimtext::trim_endtext::trim_startto_" }
-    if chunk == 77 { return "lowerto_lowercaseto_stringto_upperto_uppercasetrimtrim_endtrim_startu16_to_i32u32_to_u64u8_to_i32unwrapunwrap_orvec_getvec_get_uncheckedvec_get_" }
-    if chunk == 78 { return "unchecked_f64vec_get_unchecked_i64vec_is_emptyvec_lenvec_popvec_pushvec_push_i64vec_set" }
+    if chunk == 15 { return "ock_now_ms__intrinsic_concat__intrinsic_ends_with__intrinsic_eprint__intrinsic_eprintln__intrinsic_f32_promote_f64__intrinsic_f32_to_f64__intrin" }
+    if chunk == 16 { return "sic_f64_bits_hi__intrinsic_f64_bits_lo__intrinsic_f64_to_f32__intrinsic_f64_to_string__intrinsic_i32_to_string__intrinsic_i64_to_string__intrins" }
+    if chunk == 17 { return "ic_join__intrinsic_panic__intrinsic_parse_f64__intrinsic_parse_i32__intrinsic_parse_i64__intrinsic_print__intrinsic_println__intrinsic_push_char" }
+    if chunk == 18 { return "__intrinsic_split__intrinsic_sqrt__intrinsic_starts_with__intrinsic_stdin_read_to_string__intrinsic_string_clone__intrinsic_string_from_bytes__i" }
+    if chunk == 19 { return "ntrinsic_string_new__intrinsic_string_slice__runtime_abi_env_get_var__runtime_abi_env_var__runtime_abi_fs_read_file__runtime_abi_fs_write_bytes_" }
+    if chunk == 20 { return "_runtime_abi_fs_write_file__runtime_abi_process_abort__runtime_abi_process_exit__runtime_abi_random_i32__simd_f32x4_abs__simd_f32x4_add__simd_f3" }
+    if chunk == 21 { return "2x4_ceil__simd_f32x4_div__simd_f32x4_eq__simd_f32x4_extract_lane__simd_f32x4_floor__simd_f32x4_ge__simd_f32x4_gt__simd_f32x4_le__simd_f32x4_lt__" }
+    if chunk == 22 { return "simd_f32x4_max__simd_f32x4_min__simd_f32x4_mul__simd_f32x4_ne__simd_f32x4_nearest__simd_f32x4_neg__simd_f32x4_replace_lane__simd_f32x4_splat__si" }
+    if chunk == 23 { return "md_f32x4_sqrt__simd_f32x4_sub__simd_f32x4_trunc__simd_f64x2_abs__simd_f64x2_add__simd_f64x2_ceil__simd_f64x2_convert_low_i32x4_s__simd_f64x2_con" }
+    if chunk == 24 { return "vert_low_i32x4_u__simd_f64x2_div__simd_f64x2_eq__simd_f64x2_extract_lane__simd_f64x2_floor__simd_f64x2_ge__simd_f64x2_gt__simd_f64x2_le__simd_f6" }
+    if chunk == 25 { return "4x2_lt__simd_f64x2_max__simd_f64x2_min__simd_f64x2_mul__simd_f64x2_ne__simd_f64x2_nearest__simd_f64x2_neg__simd_f64x2_promote_low_f32x4__simd_f6" }
+    if chunk == 26 { return "4x2_replace_lane__simd_f64x2_splat__simd_f64x2_sqrt__simd_f64x2_sub__simd_f64x2_trunc__simd_i16x8_abs__simd_i16x8_add__simd_i16x8_add_sat_s__sim" }
+    if chunk == 27 { return "d_i16x8_add_sat_u__simd_i16x8_all_true__simd_i16x8_bitmask__simd_i16x8_eq__simd_i16x8_extadd_pairwise_i8x16_s__simd_i16x8_extadd_pairwise_i8x16_" }
+    if chunk == 28 { return "u__simd_i16x8_extend_high_i8x16_s__simd_i16x8_extend_high_i8x16_u__simd_i16x8_extend_low_i8x16_s__simd_i16x8_extend_low_i8x16_u__simd_i16x8_extr" }
+    if chunk == 29 { return "act_lane_s__simd_i16x8_extract_lane_u__simd_i16x8_ge_s__simd_i16x8_ge_u__simd_i16x8_gt_s__simd_i16x8_gt_u__simd_i16x8_le_s__simd_i16x8_le_u__sim" }
+    if chunk == 30 { return "d_i16x8_lt_s__simd_i16x8_lt_u__simd_i16x8_max_s__simd_i16x8_max_u__simd_i16x8_min_s__simd_i16x8_min_u__simd_i16x8_mul__simd_i16x8_narrow_i32x4_s" }
+    if chunk == 31 { return "__simd_i16x8_narrow_i32x4_u__simd_i16x8_ne__simd_i16x8_neg__simd_i16x8_replace_lane__simd_i16x8_shl__simd_i16x8_shr_s__simd_i16x8_shr_u__simd_i1" }
+    if chunk == 32 { return "6x8_splat__simd_i16x8_sub__simd_i16x8_sub_sat_s__simd_i16x8_sub_sat_u__simd_i32x4_abs__simd_i32x4_add__simd_i32x4_all_true__simd_i32x4_bitmask__" }
+    if chunk == 33 { return "simd_i32x4_eq__simd_i32x4_extract_lane__simd_i32x4_ge_s__simd_i32x4_ge_u__simd_i32x4_gt_s__simd_i32x4_gt_u__simd_i32x4_le_s__simd_i32x4_le_u__si" }
+    if chunk == 34 { return "md_i32x4_lt_s__simd_i32x4_lt_u__simd_i32x4_max_s__simd_i32x4_max_u__simd_i32x4_min_s__simd_i32x4_min_u__simd_i32x4_mul__simd_i32x4_ne__simd_i32x" }
+    if chunk == 35 { return "4_neg__simd_i32x4_replace_lane__simd_i32x4_shl__simd_i32x4_shr_s__simd_i32x4_shr_u__simd_i32x4_splat__simd_i32x4_sub__simd_i64x2_abs__simd_i64x2" }
+    if chunk == 36 { return "_add__simd_i64x2_all_true__simd_i64x2_bitmask__simd_i64x2_eq__simd_i64x2_extract_lane__simd_i64x2_ge_s__simd_i64x2_gt_s__simd_i64x2_le_s__simd_i" }
+    if chunk == 37 { return "64x2_lt_s__simd_i64x2_mul__simd_i64x2_ne__simd_i64x2_neg__simd_i64x2_replace_lane__simd_i64x2_shl__simd_i64x2_shr_s__simd_i64x2_shr_u__simd_i64x" }
+    if chunk == 38 { return "2_splat__simd_i64x2_sub__simd_i8x16_abs__simd_i8x16_add__simd_i8x16_add_sat_s__simd_i8x16_add_sat_u__simd_i8x16_all_true__simd_i8x16_bitmask__si" }
+    if chunk == 39 { return "md_i8x16_eq__simd_i8x16_extract_lane_s__simd_i8x16_extract_lane_u__simd_i8x16_ge_s__simd_i8x16_ge_u__simd_i8x16_gt_s__simd_i8x16_gt_u__simd_i8x1" }
+    if chunk == 40 { return "6_le_s__simd_i8x16_le_u__simd_i8x16_lt_s__simd_i8x16_lt_u__simd_i8x16_max_s__simd_i8x16_max_u__simd_i8x16_min_s__simd_i8x16_min_u__simd_i8x16_mu" }
+    if chunk == 41 { return "l__simd_i8x16_narrow_i16x8_s__simd_i8x16_narrow_i16x8_u__simd_i8x16_ne__simd_i8x16_neg__simd_i8x16_replace_lane__simd_i8x16_shl__simd_i8x16_shr_" }
+    if chunk == 42 { return "s__simd_i8x16_shr_u__simd_i8x16_splat__simd_i8x16_sub__simd_i8x16_sub_sat_s__simd_i8x16_sub_sat_u__simd_u16x8_abs__simd_u16x8_add__simd_u16x8_ad" }
+    if chunk == 43 { return "d_sat_u__simd_u16x8_eq__simd_u16x8_extract_lane_u__simd_u16x8_ge_u__simd_u16x8_gt_u__simd_u16x8_le_u__simd_u16x8_lt_u__simd_u16x8_max_u__simd_u1" }
+    if chunk == 44 { return "6x8_min_u__simd_u16x8_mul__simd_u16x8_ne__simd_u16x8_neg__simd_u16x8_replace_lane__simd_u16x8_shl__simd_u16x8_shr_u__simd_u16x8_splat__simd_u16x" }
+    if chunk == 45 { return "8_sub__simd_u16x8_sub_sat_u__simd_u32x4_abs__simd_u32x4_add__simd_u32x4_eq__simd_u32x4_extract_lane__simd_u32x4_ge_u__simd_u32x4_gt_u__simd_u32x" }
+    if chunk == 46 { return "4_le_u__simd_u32x4_lt_u__simd_u32x4_max_u__simd_u32x4_min_u__simd_u32x4_mul__simd_u32x4_ne__simd_u32x4_neg__simd_u32x4_replace_lane__simd_u32x4_" }
+    if chunk == 47 { return "shl__simd_u32x4_shr_u__simd_u32x4_splat__simd_u32x4_sub__simd_u64x2_abs__simd_u64x2_add__simd_u64x2_eq__simd_u64x2_extract_lane__simd_u64x2_ge_u" }
+    if chunk == 48 { return "__simd_u64x2_gt_u__simd_u64x2_le_u__simd_u64x2_lt_u__simd_u64x2_mul__simd_u64x2_ne__simd_u64x2_neg__simd_u64x2_replace_lane__simd_u64x2_shl__sim" }
+    if chunk == 49 { return "d_u64x2_shr_u__simd_u64x2_splat__simd_u64x2_sub__simd_u8x16_abs__simd_u8x16_add__simd_u8x16_add_sat_u__simd_u8x16_eq__simd_u8x16_extract_lane_u_" }
+    if chunk == 50 { return "_simd_u8x16_ge_u__simd_u8x16_gt_u__simd_u8x16_le_u__simd_u8x16_lt_u__simd_u8x16_max_u__simd_u8x16_min_u__simd_u8x16_mul__simd_u8x16_ne__simd_u8x" }
+    if chunk == 51 { return "16_neg__simd_u8x16_replace_lane__simd_u8x16_shl__simd_u8x16_shr_u__simd_u8x16_splat__simd_u8x16_sub__simd_u8x16_sub_sat_u__simd_v128_and__simd_v" }
+    if chunk == 52 { return "128_andnot__simd_v128_any_true__simd_v128_bitselect__simd_v128_const__simd_v128_not__simd_v128_or__simd_v128_xor__wasm_v128_load__wasm_v128_load" }
+    if chunk == 53 { return "16x4_s__wasm_v128_load16x4_u__wasm_v128_load32x2_s__wasm_v128_load32x2_u__wasm_v128_load8x8_s__wasm_v128_load8x8_u__wasm_v128_load_lane__wasm_v1" }
+    if chunk == 54 { return "28_load_splat__wasm_v128_store__wasm_v128_store_laneabsabs_i32arg_atarg_countargsassertassert_eqassert_eq_i64assert_eq_strassert_nebool_to_strin" }
+    if chunk == 55 { return "gchar_atchar_to_stringclampclamp_i32clock_nowclock_now_mscloneconcatcontainsconvert::bool_to_stringconvert::f64_to_stringconvert::i32_to_stringc" }
+    if chunk == 56 { return "onvert::i64_to_stringcore::range_containscore::range_lencore::range_newends_withenv::arg_atenv::arg_countenv::argsenv::get_varenv::has_flagenv::" }
+    if chunk == 57 { return "varenv::var_or_defaultenv_get_varenv_varenv_var_or_defaulteprintlnexistsexitf32_to_f64f32_to_stringf64_bits_hif64_bits_lof64_to_f32f64_to_string" }
+    if chunk == 58 { return "fmt::format_boolfmt::format_f64fmt::format_i32fmt::format_i64format_boolfs::existsfs::read_to_stringfs::write_bytesfs::write_stringfs_read_filef" }
+    if chunk == 59 { return "s_write_bytesfs_write_filegcdget_uncheckedhas_flaghost::process::aborthost::process::exiti16_to_i32i32::powi32::to_stringi32_to_i64i32_to_i8i32_" }
+    if chunk == 60 { return "to_stringi32_to_u32i32_to_u8i64::to_stringi64_to_i32i64_to_stringi8_to_i32index_ofis_emptyis_erris_noneis_okis_somejoinlenlinesmath::absmath::ab" }
+    if chunk == 61 { return "s_i32math::clampmath::gcdmath::maxmath::max_i32math::minmath::min_i32math::pow_i32math::sqrtmaxmax_i32memory_copymemory_fillminmin_i32pad_leftpa" }
+    if chunk == 62 { return "d_rightpanicparse_f64powpow_i32printprintlnprocess::abortprocess::exitprocess_abortprocess_exitproduct_i32pushpush_charpush_f64push_i64random_i3" }
+    if chunk == 63 { return "2range_containsrange_lenrange_newraw::raw_array_get_uncheckedraw::raw_array_growraw::raw_array_lenraw::raw_array_newraw::raw_array_set_lenraw::r" }
+    if chunk == 64 { return "aw_array_set_uncheckedraw::raw_f32_promote_f64raw::raw_f64_bits_hiraw::raw_f64_bits_loraw::raw_f64_sqrtraw::raw_f64_to_stringraw::raw_parse_f64r" }
+    if chunk == 65 { return "aw::raw_parse_i32raw::raw_parse_i64raw::raw_string_byte_at_uncheckedraw::raw_string_cloneraw::raw_string_from_bytesraw::raw_string_len_bytesraw:" }
+    if chunk == 66 { return ":raw_string_newraw::raw_string_push_charraw_array_get_uncheckedraw_array_growraw_array_lenraw_array_newraw_array_set_lenraw_array_set_uncheckedr" }
+    if chunk == 67 { return "aw_f32_promote_f64raw_f64_bits_hiraw_f64_bits_loraw_f64_sqrtraw_f64_to_stringraw_parse_f64raw_parse_i32raw_parse_i64raw_string_byte_at_unchecked" }
+    if chunk == 68 { return "raw_string_cloneraw_string_from_bytesraw_string_len_bytesraw_string_newraw_string_push_charread_to_stringremove_i32repeatreplacereverse_Stringre" }
+    if chunk == 69 { return "verse_i32seq::binary_searchseq::count_eqseq::max_i32seq::min_i32seq::skip_i32seq::sum_i32seq::take_i32seq::uniquesetslicesort_f64sort_i32sort_i6" }
+    if chunk == 70 { return "4splitsqrtstarts_withstd::collections::string::eqstd::core::raw::raw_array_get_uncheckedstd::core::raw::raw_array_growstd::core::raw::raw_array_" }
+    if chunk == 71 { return "lenstd::core::raw::raw_array_newstd::core::raw::raw_array_set_lenstd::core::raw::raw_array_set_uncheckedstd::core::raw::raw_string_byte_at_unche" }
+    if chunk == 72 { return "ckedstd::core::raw::raw_string_clonestd::core::raw::raw_string_from_bytesstd::core::raw::raw_string_len_bytesstd::core::raw::raw_string_newstd::" }
+    if chunk == 73 { return "text::builder_appendstdin_read_to_stringstdio::eprintlnstdio::printstdio::printlnstdio::read_stdinstring::eqstring::repeatstring::splitstring_eq" }
+    if chunk == 74 { return "string_from_bytesstring_slicesubstringsum_i32text::builder_appendtext::charstext::concattext::containstext::ends_withtext::format_booltext::form" }
+    if chunk == 75 { return "at_f64text::format_i32text::format_i64text::index_oftext::is_emptytext::jointext::len_bytestext::linestext::pad_lefttext::pad_righttext::parse_f" }
+    if chunk == 76 { return "64text::repeattext::replacetext::splittext::starts_withtext::to_lowertext::to_lowercasetext::to_uppertext::to_uppercasetext::trimtext::trim_endt" }
+    if chunk == 77 { return "ext::trim_startto_lowerto_lowercaseto_stringto_upperto_uppercasetrimtrim_endtrim_startu16_to_i32u32_to_u64u8_to_i32unwrapunwrap_orvec_getvec_get" }
+    if chunk == 78 { return "_uncheckedvec_get_unchecked_f64vec_get_unchecked_i64vec_is_emptyvec_lenvec_popvec_pushvec_push_i64vec_set" }
     return String_new()
 }
 
 fn core_op_binding_callee_at(index: i32) -> String {
-    if index < 0 || index >= 646 {
+    if index < 0 || index >= 647 {
         return String_new()
     }
     let start = core_op_binding_callee_off_at(index)
@@ -187,42 +187,42 @@ fn core_op_binding_core_op_id_off_hex_chunk(chunk: i32) -> String {
     if chunk == 2 { return "e8010000f3010000ff01000009020000170200002502000033020000410200004b020000550200006202000071020000810200008f020000a5020000b4020000c1020000cc020000" }
     if chunk == 3 { return "da020000e4020000f0020000ff0200001303000022030000370300004703000054030000620300006e0300007a0300008c0300009f030000b2030000c1030000cc030000dd030000" }
     if chunk == 4 { return "ed030000f4030000090400001e0400002f0400003b0400004204000049040000550400005d040000690400007704000086040000940400009b040000ab040000be040000cf040000" }
-    if chunk == 5 { return "e3040000f0040000000500001005000023050000350500004405000053050000650500007605000084050000930500009e050000a3050000b0050000bd050000ca050000d7050000" }
-    if chunk == 6 { return "e6050000fa05000006060000120600002406000036060000460600005b0600006906000075060000840600008f060000a3060000b6060000ca060000df060000f306000005070000" }
-    if chunk == 7 { return "1307000021070000300700003e0700004b07000062070000720700007f0700008c07000099070000a6070000b4070000c2070000d0070000dd070000ef070000fd07000014080000" }
-    if chunk == 8 { return "240800003308000041080000510800005f0800006d0800007c0800009a080000b8080000c6080000d3080000ea080000fa0800000709000014090000210900002e0900003c090000" }
-    if chunk == 9 { return "4a09000058090000650900007709000085090000a1090000b8090000c8090000d7090000e5090000f5090000030a0000110a0000250a0000390a00004c0a00005e0a00006b0a0000" }
-    if chunk == 10 { return "8d0a0000af0a0000cd0a0000eb0a0000080b0000250b00003e0b0000570b0000660b0000750b0000840b0000930b0000a20b0000b10b0000c00b0000cf0b0000df0b0000ef0b0000" }
-    if chunk == 11 { return "ff0b00000f0c00001d0c0000360c00004f0c00005c0c00006a0c0000810c00008f0c00009f0c0000af0c0000bf0c0000cd0c0000e10c0000f50c0000030d0000110d0000240d0000" }
-    if chunk == 12 { return "360d0000430d00005a0d0000690d0000780d0000870d0000960d0000a50d0000b40d0000c30d0000d20d0000e20d0000f20d0000020e0000120e0000200e00002d0e00003b0e0000" }
-    if chunk == 13 { return "520e0000600e0000700e0000800e0000900e00009e0e0000ac0e0000ba0e0000cd0e0000df0e0000ec0e0000030f0000120f0000210f0000300f00003f0f00004d0f00005a0f0000" }
-    if chunk == 14 { return "680f00007f0f00008d0f00009d0f0000ad0f0000bd0f0000cb0f0000d90f0000e70f0000fb0f00000f1000002210000034100000411000005a100000731000008210000091100000" }
-    if chunk == 15 { return "a0100000af100000be100000cd100000dc100000eb100000fb1000000b1100001b1100002b11000039110000521100006b11000078110000861100009d110000ab110000bb110000" }
-    if chunk == 16 { return "cb110000db110000e9110000fd110000111200001f1200002d120000411200004e12000067120000761200008512000094120000a3120000b3120000c3120000d1120000de120000" }
-    if chunk == 17 { return "ec120000031300001113000021130000311300003f13000053130000611300006f1300007c13000093130000a2130000b1130000c0130000cf130000df130000ef130000fd130000" }
-    if chunk == 18 { return "0a140000181400002f1400003d1400004d1400005d1400006b140000791400008714000094140000ab140000ba140000c9140000d8140000e7140000f51400000215000010150000" }
-    if chunk == 19 { return "2715000035150000451500005515000063150000711500007f15000093150000a0150000b9150000c8150000d7150000e6150000f515000005160000151600002316000030160000" }
-    if chunk == 20 { return "3e1600005516000063160000731600008316000091160000a5160000b2160000c2160000d4160000e7160000f6160000031700000f1700001c1700002a1700003e17000052170000" }
-    if chunk == 21 { return "661700007a1700008d170000a0170000b3170000c7170000d6170000ea170000f2170000fa1700000818000019180000251800003318000044180000591800006e1800007f180000" }
-    if chunk == 22 { return "8f1800009d180000b0180000ba180000c4180000d5180000e9180000f3180000001900000f1900001f1900002e1900003c1900004b1900005e1900006c1900007a1900008a190000" }
-    if chunk == 23 { return "98190000a9190000b5190000c4190000d4190000df190000f5190000041a00000f1a0000251a0000351a0000431a0000571a0000691a00007b1a00008d1a00009f1a0000b11a0000" }
-    if chunk == 24 { return "c01a0000d01a0000df1a0000ed1a0000fc1a00000c1b00001a1b00002e1b0000411b0000551b0000691b00007c1b0000901b0000981b0000a91b0000b91b0000ce1b0000e21b0000" }
-    if chunk == 25 { return "f31b0000ff1b00000d1c00001f1c0000301c00003e1c0000501c0000611c0000701c0000821c0000911c0000a21c0000b11c0000bd1c0000cb1c0000d91c0000e61c0000f31c0000" }
-    if chunk == 26 { return "fe1c0000081d0000141d00001c1d0000241d00002e1d0000361d00003e1d0000461d00004e1d0000561d0000621d00006b1d0000731d00007b1d0000901d0000a51d0000ad1d0000" }
-    if chunk == 27 { return "b51d0000c41d0000d41d0000d91d0000e81d0000f41d0000001e00000d1e00001c1e0000311e0000451e00005a1e00006e1e00007d1e0000851e0000931e00009f1e0000ab1e0000" }
-    if chunk == 28 { return "bd1e0000d01e0000de1e0000ec1e0000031f0000111f00001e1f00002b1f00003c1f0000531f0000661f0000751f0000841f0000901f0000a11f0000ae1f0000bb1f0000c81f0000" }
-    if chunk == 29 { return "e41f0000f41f0000092000001d2000002b2000003f2000005620000064200000712000007e2000008f200000a6200000b9200000c8200000d7200000e3200000f420000001210000" }
-    if chunk == 30 { return "0e2100001b21000037210000472100005c210000702100007e21000092210000a6210000b4210000c1210000cf210000dd210000ec210000fd21000009220000142200001f220000" }
-    if chunk == 31 { return "2b22000036220000422200004c220000532200005f2200006b22000077220000832200008f22000098220000aa220000b8220000cf220000dd220000ea220000f722000008230000" }
-    if chunk == 32 { return "1f2300003b2300004b2300006023000074230000822300008f230000a1230000b1230000be230000cd230000df230000ed230000fa23000006240000142400002a24000036240000" }
-    if chunk == 33 { return "422400004d2400005a24000064240000712400008024000090240000a0240000af240000bd240000cc240000db240000e8240000f3240000012500000d2500002125000036250000" }
-    if chunk == 34 { return "4525000052250000602500006c2500007e25000091250000a4250000b7250000ca250000d5250000e4250000f5250000082600001b260000292600003c2600004f2600005a260000" }
-    if chunk == 35 { return "692600007a2600008b2600009d260000ae260000bc260000cd260000d4260000e5260000fa2600000f2700001b2700002227000029270000312700003d27000044270000" }
+    if chunk == 5 { return "e3040000f0040000000500000e0500001e05000031050000430500005205000061050000730500008405000092050000a1050000ac050000b1050000be050000cb050000d8050000" }
+    if chunk == 6 { return "e5050000f4050000080600001406000020060000320600004406000054060000690600007706000083060000920600009d060000b1060000c4060000d8060000ed06000001070000" }
+    if chunk == 7 { return "13070000210700002f0700003e0700004c0700005907000070070000800700008d0700009a070000a7070000b4070000c2070000d0070000de070000eb070000fd0700000b080000" }
+    if chunk == 8 { return "2208000032080000410800004f0800005f0800006d0800007b0800008a080000a8080000c6080000d4080000e1080000f80800000809000015090000220900002f0900003c090000" }
+    if chunk == 9 { return "4a0900005809000066090000730900008509000093090000af090000c6090000d6090000e5090000f3090000030a0000110a00001f0a0000330a0000470a00005a0a00006c0a0000" }
+    if chunk == 10 { return "790a00009b0a0000bd0a0000db0a0000f90a0000160b0000330b00004c0b0000650b0000740b0000830b0000920b0000a10b0000b00b0000bf0b0000ce0b0000dd0b0000ed0b0000" }
+    if chunk == 11 { return "fd0b00000d0c00001d0c00002b0c0000440c00005d0c00006a0c0000780c00008f0c00009d0c0000ad0c0000bd0c0000cd0c0000db0c0000ef0c0000030d0000110d00001f0d0000" }
+    if chunk == 12 { return "320d0000440d0000510d0000680d0000770d0000860d0000950d0000a40d0000b30d0000c20d0000d10d0000e00d0000f00d0000000e0000100e0000200e00002e0e00003b0e0000" }
+    if chunk == 13 { return "490e0000600e00006e0e00007e0e00008e0e00009e0e0000ac0e0000ba0e0000c80e0000db0e0000ed0e0000fa0e0000110f0000200f00002f0f00003e0f00004d0f00005b0f0000" }
+    if chunk == 14 { return "680f0000760f00008d0f00009b0f0000ab0f0000bb0f0000cb0f0000d90f0000e70f0000f50f0000091000001d10000030100000421000004f100000681000008110000090100000" }
+    if chunk == 15 { return "9f100000ae100000bd100000cc100000db100000ea100000f9100000091100001911000029110000391100004711000060110000791100008611000094110000ab110000b9110000" }
+    if chunk == 16 { return "c9110000d9110000e9110000f71100000b1200001f1200002d1200003b1200004f1200005c120000751200008412000093120000a2120000b1120000c1120000d1120000df120000" }
+    if chunk == 17 { return "ec120000fa120000111300001f1300002f1300003f1300004d130000611300006f1300007d1300008a130000a1130000b0130000bf130000ce130000dd130000ed130000fd130000" }
+    if chunk == 18 { return "0b14000018140000261400003d1400004b1400005b1400006b140000791400008714000095140000a2140000b9140000c8140000d7140000e6140000f51400000315000010150000" }
+    if chunk == 19 { return "1e15000035150000431500005315000063150000711500007f1500008d150000a1150000ae150000c7150000d6150000e5150000f415000003160000131600002316000031160000" }
+    if chunk == 20 { return "3e1600004c160000631600007116000081160000911600009f160000b3160000c0160000d0160000e2160000f516000004170000111700001d1700002a170000381700004c170000" }
+    if chunk == 21 { return "6017000074170000881700009b170000ae170000c1170000d5170000e4170000f817000000180000081800001618000027180000331800004118000052180000671800007c180000" }
+    if chunk == 22 { return "8d1800009d180000ab180000be180000c8180000d2180000e3180000f7180000011900000e1900001d1900002d1900003c1900004a190000591900006c1900007a19000088190000" }
+    if chunk == 23 { return "98190000a6190000b7190000c3190000d2190000e2190000ed190000031a0000121a00001d1a0000331a0000431a0000511a0000651a0000771a0000891a00009b1a0000ad1a0000" }
+    if chunk == 24 { return "bf1a0000ce1a0000de1a0000ed1a0000fb1a00000a1b00001a1b0000281b00003c1b00004f1b0000631b0000771b00008a1b00009e1b0000a61b0000b71b0000c71b0000dc1b0000" }
+    if chunk == 25 { return "f01b0000011c00000d1c00001b1c00002d1c00003e1c00004c1c00005e1c00006f1c00007e1c0000901c00009f1c0000b01c0000bf1c0000cb1c0000d91c0000e71c0000f41c0000" }
+    if chunk == 26 { return "011d00000c1d0000161d0000221d00002a1d0000321d00003c1d0000441d00004c1d0000541d00005c1d0000641d0000701d0000791d0000811d0000891d00009e1d0000b31d0000" }
+    if chunk == 27 { return "bb1d0000c31d0000d21d0000e21d0000e71d0000f61d0000021e00000e1e00001b1e00002a1e00003f1e0000531e0000681e00007c1e00008b1e0000931e0000a11e0000ad1e0000" }
+    if chunk == 28 { return "b91e0000cb1e0000de1e0000ec1e0000fa1e0000111f00001f1f00002c1f0000391f00004a1f0000611f0000741f0000831f0000921f00009e1f0000af1f0000bc1f0000c91f0000" }
+    if chunk == 29 { return "d61f0000f21f000002200000172000002b200000392000004d20000064200000722000007f2000008c2000009d200000b4200000c7200000d6200000e5200000f120000002210000" }
+    if chunk == 30 { return "0f2100001c2100002921000045210000552100006a2100007e2100008c210000a0210000b4210000c2210000cf210000dd210000eb210000fa2100000b2200001722000022220000" }
+    if chunk == 31 { return "2d2200003922000044220000502200005a220000612200006d2200007922000085220000912200009d220000a6220000b8220000c6220000dd220000eb220000f822000005230000" }
+    if chunk == 32 { return "162300002d23000049230000592300006e23000082230000902300009d230000af230000bf230000cc230000db230000ed230000fb23000008240000142400002224000038240000" }
+    if chunk == 33 { return "44240000502400005b24000068240000722400007f2400008e2400009e240000ae240000bd240000cb240000da240000e9240000f6240000012500000f2500001b2500002f250000" }
+    if chunk == 34 { return "4425000053250000602500006e2500007a2500008c2500009f250000b2250000c5250000d8250000e3250000f2250000032600001626000029260000372600004a2600005d260000" }
+    if chunk == 35 { return "68260000772600008826000099260000ab260000bc260000ca260000db260000e2260000f3260000082700001d2700002927000030270000372700003f2700004b27000052270000" }
     return String_new()
 }
 
 fn core_op_binding_core_op_id_off_at(index: i32) -> i32 {
-    if index < 0 || index >= 647 {
+    if index < 0 || index >= 648 {
         return 0
     }
     let chunk = index / 18
@@ -239,73 +239,73 @@ fn core_op_binding_core_op_id_data_chunk(chunk: i32) -> String {
     if chunk == 5 { return ".len_bytesstring.lenstring.linestext.String_newstring.pad_left_fillstring.pad_leftstring.pad_right_fillstring.pad_rightstring.repeatstring.repla" }
     if chunk == 6 { return "cestring.slicestring.splitstring.starts_withstring.to_lowercasestring.to_uppercasestring.trim_endstring.trimstring.trim_startvec.contains_i32vec" }
     if chunk == 7 { return ".getvec.get_unchecked_f64vec.get_unchecked_i64vec.get_uncheckedvec.is_emptyvec.lenvec.popvec.push_f64vec.pushvec.push_i64vec.remove_i32vec.rever" }
-    if chunk == 8 { return "se_i32string.reversevec.settext.format_booltext.char_to_stringruntime.clock_nowruntime.clock_now_msstring.concatstring.ends_withruntime.eprintln" }
-    if chunk == 9 { return "raw.f32_promote_f64runtime.f32_to_f64raw.f64_bits_hiraw.f64_bits_loruntime.f32_to_f64raw.f64_to_stringtext.to_stringtext.format_i64string.joinpa" }
-    if chunk == 10 { return "nicraw.parse_f64raw.parse_i32raw.parse_i64runtime.printruntime.printlnraw.string_push_charstring.splitraw.f64_sqrtstring.starts_withruntime.read" }
-    if chunk == 11 { return "_stdinraw.string_cloneraw.string_from_bytesraw.string_newstring.sliceruntime.get_varruntime.varruntime.fs_read_fileruntime.write_bytesruntime.wr" }
-    if chunk == 12 { return "ite_stringruntime.process.abortruntime.process.exitruntime.random_i32simd.f32x4.abssimd.f32x4.addsimd.f32x4.ceilsimd.f32x4.divsimd.f32x4.eqsimd." }
-    if chunk == 13 { return "f32x4.extract.lanesimd.f32x4.floorsimd.f32x4.gesimd.f32x4.gtsimd.f32x4.lesimd.f32x4.ltsimd.f32x4.maxsimd.f32x4.minsimd.f32x4.mulsimd.f32x4.nesim" }
-    if chunk == 14 { return "d.f32x4.nearestsimd.f32x4.negsimd.f32x4.replace.lanesimd.f32x4.splatsimd.f32x4.sqrtsimd.f32x4.subsimd.f32x4.truncsimd.f64x2.abssimd.f64x2.addsim" }
-    if chunk == 15 { return "d.f64x2.ceilsimd.f64x2.convert.low.i32x4.ssimd.f64x2.convert.low.i32x4.usimd.f64x2.divsimd.f64x2.eqsimd.f64x2.extract.lanesimd.f64x2.floorsimd.f" }
-    if chunk == 16 { return "64x2.gesimd.f64x2.gtsimd.f64x2.lesimd.f64x2.ltsimd.f64x2.maxsimd.f64x2.minsimd.f64x2.mulsimd.f64x2.nesimd.f64x2.nearestsimd.f64x2.negsimd.f64x2." }
-    if chunk == 17 { return "promote.low.f32x4simd.f64x2.replace.lanesimd.f64x2.splatsimd.f64x2.sqrtsimd.f64x2.subsimd.f64x2.truncsimd.i16x8.abssimd.i16x8.addsimd.i16x8.add." }
-    if chunk == 18 { return "sat.ssimd.i16x8.add.sat.usimd.i16x8.all.truesimd.i16x8.bitmasksimd.i16x8.eqsimd.i16x8.extadd.pairwise.i8x16.ssimd.i16x8.extadd.pairwise.i8x16.us" }
-    if chunk == 19 { return "imd.i16x8.extend.high.i8x16.ssimd.i16x8.extend.high.i8x16.usimd.i16x8.extend.low.i8x16.ssimd.i16x8.extend.low.i8x16.usimd.i16x8.extract.lane.ssi" }
-    if chunk == 20 { return "md.i16x8.extract.lane.usimd.i16x8.ge.ssimd.i16x8.ge.usimd.i16x8.gt.ssimd.i16x8.gt.usimd.i16x8.le.ssimd.i16x8.le.usimd.i16x8.lt.ssimd.i16x8.lt.us" }
-    if chunk == 21 { return "imd.i16x8.max.ssimd.i16x8.max.usimd.i16x8.min.ssimd.i16x8.min.usimd.i16x8.mulsimd.i16x8.narrow.i32x4.ssimd.i16x8.narrow.i32x4.usimd.i16x8.nesimd" }
-    if chunk == 22 { return ".i16x8.negsimd.i16x8.replace.lanesimd.i16x8.shlsimd.i16x8.shr.ssimd.i16x8.shr.usimd.i16x8.splatsimd.i16x8.subsimd.i16x8.sub.sat.ssimd.i16x8.sub." }
-    if chunk == 23 { return "sat.usimd.i32x4.abssimd.i32x4.addsimd.i32x4.all.truesimd.i32x4.bitmasksimd.i32x4.eqsimd.i32x4.extract.lanesimd.i32x4.ge.ssimd.i32x4.ge.usimd.i32" }
-    if chunk == 24 { return "x4.gt.ssimd.i32x4.gt.usimd.i32x4.le.ssimd.i32x4.le.usimd.i32x4.lt.ssimd.i32x4.lt.usimd.i32x4.max.ssimd.i32x4.max.usimd.i32x4.min.ssimd.i32x4.min" }
-    if chunk == 25 { return ".usimd.i32x4.mulsimd.i32x4.nesimd.i32x4.negsimd.i32x4.replace.lanesimd.i32x4.shlsimd.i32x4.shr.ssimd.i32x4.shr.usimd.i32x4.splatsimd.i32x4.subsi" }
-    if chunk == 26 { return "md.i64x2.abssimd.i64x2.addsimd.i64x2.all.truesimd.i64x2.bitmasksimd.i64x2.eqsimd.i64x2.extract.lanesimd.i64x2.ge.ssimd.i64x2.gt.ssimd.i64x2.le.s" }
-    if chunk == 27 { return "simd.i64x2.lt.ssimd.i64x2.mulsimd.i64x2.nesimd.i64x2.negsimd.i64x2.replace.lanesimd.i64x2.shlsimd.i64x2.shr.ssimd.i64x2.shr.usimd.i64x2.splatsim" }
-    if chunk == 28 { return "d.i64x2.subsimd.i8x16.abssimd.i8x16.addsimd.i8x16.add.sat.ssimd.i8x16.add.sat.usimd.i8x16.all.truesimd.i8x16.bitmasksimd.i8x16.eqsimd.i8x16.extr" }
-    if chunk == 29 { return "act.lane.ssimd.i8x16.extract.lane.usimd.i8x16.ge.ssimd.i8x16.ge.usimd.i8x16.gt.ssimd.i8x16.gt.usimd.i8x16.le.ssimd.i8x16.le.usimd.i8x16.lt.ssimd" }
-    if chunk == 30 { return ".i8x16.lt.usimd.i8x16.max.ssimd.i8x16.max.usimd.i8x16.min.ssimd.i8x16.min.usimd.i8x16.mulsimd.i8x16.narrow.i16x8.ssimd.i8x16.narrow.i16x8.usimd." }
-    if chunk == 31 { return "i8x16.nesimd.i8x16.negsimd.i8x16.replace.lanesimd.i8x16.shlsimd.i8x16.shr.ssimd.i8x16.shr.usimd.i8x16.splatsimd.i8x16.subsimd.i8x16.sub.sat.ssim" }
-    if chunk == 32 { return "d.i8x16.sub.sat.usimd.i16x8.abssimd.i16x8.addsimd.i16x8.add.sat.usimd.i16x8.eqsimd.i16x8.extract.lane.usimd.i16x8.ge.usimd.i16x8.gt.usimd.i16x8." }
-    if chunk == 33 { return "le.usimd.i16x8.lt.usimd.i16x8.max.usimd.i16x8.min.usimd.i16x8.mulsimd.i16x8.nesimd.i16x8.negsimd.i16x8.replace.lanesimd.i16x8.shlsimd.i16x8.shr." }
-    if chunk == 34 { return "usimd.i16x8.splatsimd.i16x8.subsimd.i16x8.sub.sat.usimd.i32x4.abssimd.i32x4.addsimd.i32x4.eqsimd.i32x4.extract.lanesimd.i32x4.ge.usimd.i32x4.gt." }
-    if chunk == 35 { return "usimd.i32x4.le.usimd.i32x4.lt.usimd.i32x4.max.usimd.i32x4.min.usimd.i32x4.mulsimd.i32x4.nesimd.i32x4.negsimd.i32x4.replace.lanesimd.i32x4.shlsim" }
-    if chunk == 36 { return "d.i32x4.shr.usimd.i32x4.splatsimd.i32x4.subsimd.i64x2.abssimd.i64x2.addsimd.i64x2.eqsimd.i64x2.extract.lanesimd.u64x2.ge.usimd.u64x2.gt.usimd.u6" }
-    if chunk == 37 { return "4x2.le.usimd.u64x2.lt.usimd.i64x2.mulsimd.i64x2.nesimd.i64x2.negsimd.i64x2.replace.lanesimd.i64x2.shlsimd.i64x2.shr.usimd.i64x2.splatsimd.i64x2." }
-    if chunk == 38 { return "subsimd.i8x16.abssimd.i8x16.addsimd.i8x16.add.sat.usimd.i8x16.eqsimd.i8x16.extract.lane.usimd.i8x16.ge.usimd.i8x16.gt.usimd.i8x16.le.usimd.i8x16" }
-    if chunk == 39 { return ".lt.usimd.i8x16.max.usimd.i8x16.min.usimd.i8x16.mulsimd.i8x16.nesimd.i8x16.negsimd.i8x16.replace.lanesimd.i8x16.shlsimd.i8x16.shr.usimd.i8x16.sp" }
-    if chunk == 40 { return "latsimd.i8x16.subsimd.i8x16.sub.sat.usimd.v128.andsimd.v128.andnotsimd.v128.any.truesimd.v128.bitselectsimd.v128.constsimd.v128.notsimd.v128.ors" }
-    if chunk == 41 { return "imd.v128.xorwasm.v128.loadwasm.v128.load16x4.swasm.v128.load16x4.uwasm.v128.load32x2.swasm.v128.load32x2.uwasm.v128.load8x8.swasm.v128.load8x8.u" }
-    if chunk == 42 { return "wasm.v128.load_lanewasm.v128.load_splatwasm.v128.storewasm.v128.store_lanemath.absmath.absruntime.arg_atruntime.arg_countruntime.argsruntime.ass" }
-    if chunk == 43 { return "ertruntime.assert_eqruntime.assert_eq_i64runtime.assert_eq_strruntime.assert_netext.format_boolstring.char_attext.char_to_stringmath.clampmath.c" }
-    if chunk == 44 { return "lampruntime.clock_nowruntime.clock_now_mstext.clonestring.concatstring.containstext.format_booltext.format_f64text.to_stringtext.format_i64core." }
-    if chunk == 45 { return "range_containscore.range_lencore.range_newstring.ends_withruntime.arg_atruntime.arg_countruntime.argsruntime.get_varruntime.has_flagruntime.varr" }
-    if chunk == 46 { return "untime.var_or_defaultruntime.get_varruntime.varruntime.var_or_defaultruntime.eprintlnruntime.existsruntime.process.exitruntime.f32_to_f64text.f3" }
-    if chunk == 47 { return "2_to_stringscalar.f64_bits_hiscalar.f64_bits_loruntime.f32_to_f64text.format_f64text.format_booltext.format_f64text.to_stringtext.format_i64text" }
-    if chunk == 48 { return ".format_boolruntime.existsruntime.fs_read_fileruntime.write_bytesruntime.write_stringruntime.fs_read_fileruntime.write_bytesruntime.write_string" }
-    if chunk == 49 { return "math.gcdvec.get_uncheckedruntime.has_flagruntime.process.abortruntime.process.exitruntime.i8_to_i32math.pow_i32text.to_stringruntime.i32_to_i64r" }
-    if chunk == 50 { return "untime.i32_to_i8text.to_stringruntime.i32_to_u32runtime.i32_to_i8text.format_i64runtime.i64_to_i32text.format_i64runtime.i8_to_i32string.index_o" }
-    if chunk == 51 { return "fvec.is_emptyruntime.is_errruntime.is_errruntime.is_okruntime.is_okstring.joinstring.lenstring.linesmath.absmath.absmath.clampmath.gcdmath.maxma" }
-    if chunk == 52 { return "th.maxmath.minmath.minmath.pow_i32math.sqrtmath.maxmath.maxprimitive.memory_copyprimitive.memory_fillmath.minmath.minstring.pad_leftstring.pad_r" }
-    if chunk == 53 { return "ightpanicparse.parse_f64math.pow_i32math.pow_i32runtime.printruntime.printlnruntime.process.abortruntime.process.exitruntime.process.abortruntim" }
-    if chunk == 54 { return "e.process.exitseq.product_i32vec.pushtext.push_charvec.push_f64vec.push_i64runtime.random_i32core.range_containscore.range_lencore.range_newraw." }
-    if chunk == 55 { return "array_get_uncheckedraw.array_growraw.array_lenraw.array_newraw.array_set_lenraw.array_set_uncheckedraw.f32_promote_f64raw.f64_bits_hiraw.f64_bit" }
-    if chunk == 56 { return "s_loraw.f64_sqrtraw.f64_to_stringraw.parse_f64raw.parse_i32raw.parse_i64raw.string_byte_at_uncheckedraw.string_cloneraw.string_from_bytesraw.str" }
-    if chunk == 57 { return "ing_len_bytesraw.string_newraw.string_push_charraw.array_get_uncheckedraw.array_growraw.array_lenraw.array_newraw.array_set_lenraw.array_set_unc" }
-    if chunk == 58 { return "heckedraw.f32_promote_f64raw.f64_bits_hiraw.f64_bits_loraw.f64_sqrtraw.f64_to_stringraw.parse_f64raw.parse_i32raw.parse_i64raw.string_byte_at_un" }
-    if chunk == 59 { return "checkedraw.string_cloneraw.string_from_bytesraw.string_len_bytesraw.string_newraw.string_push_charruntime.fs_read_filevec.remove_i32string.repea" }
-    if chunk == 60 { return "tstring.replacestring.reversevec.reverse_i32seq.binary_searchseq.count_eqseq.max_i32seq.min_i32seq.skip_i32seq.sum_i32seq.take_i32seq.uniquevec." }
-    if chunk == 61 { return "setstring.sliceseq.sort_f64seq.sort_i32seq.sort_i64string.splitmath.sqrtstring.starts_withtext.string_eqraw.array_get_uncheckedraw.array_growraw" }
-    if chunk == 62 { return ".array_lenraw.array_newraw.array_set_lenraw.array_set_uncheckedraw.string_byte_at_uncheckedraw.string_cloneraw.string_from_bytesraw.string_len_b" }
-    if chunk == 63 { return "ytesraw.string_newstring.concatruntime.read_stdinruntime.eprintlnruntime.printruntime.printlnruntime.read_stdintext.string_eqstring.repeatstring" }
-    if chunk == 64 { return ".splittext.string_eqtext.string_from_bytesstring.slicestring.sliceseq.sum_i32string.concattext.charsstring.concatstring.containsstring.ends_with" }
-    if chunk == 65 { return "text.format_booltext.format_f64text.to_stringtext.format_i64string.index_oftext.is_emptystring.jointext.len_bytesstring.linesstring.pad_left_fil" }
-    if chunk == 66 { return "lstring.pad_right_fillparse.parse_f64string.repeatstring.replacestring.splitstring.starts_withstring.to_lowercasestring.to_lowercasestring.to_up" }
-    if chunk == 67 { return "percasestring.to_uppercasestring.trimstring.trim_endstring.trim_startstring.to_lowercasestring.to_lowercasetext.to_stringstring.to_uppercasestri" }
-    if chunk == 68 { return "ng.to_uppercasestring.trimstring.trim_endstring.trim_startruntime.i8_to_i32runtime.u32_to_u64runtime.i8_to_i32runtime.unwrapruntime.unwrap_orvec" }
-    if chunk == 69 { return ".getvec.get_uncheckedvec.get_unchecked_f64vec.get_unchecked_i64vec.is_emptyvec.lenvec.popvec.pushvec.push_i64vec.set" }
+    if chunk == 8 { return "se_i32string.reversevec.settext.format_booltext.char_to_stringruntime.clock_nowruntime.clock_now_msstring.concatstring.ends_withruntime.eprintru" }
+    if chunk == 9 { return "ntime.eprintlnraw.f32_promote_f64runtime.f32_to_f64raw.f64_bits_hiraw.f64_bits_loruntime.f32_to_f64raw.f64_to_stringtext.to_stringtext.format_i6" }
+    if chunk == 10 { return "4string.joinpanicraw.parse_f64raw.parse_i32raw.parse_i64runtime.printruntime.printlnraw.string_push_charstring.splitraw.f64_sqrtstring.starts_wi" }
+    if chunk == 11 { return "thruntime.read_stdinraw.string_cloneraw.string_from_bytesraw.string_newstring.sliceruntime.get_varruntime.varruntime.fs_read_fileruntime.write_b" }
+    if chunk == 12 { return "ytesruntime.write_stringruntime.process.abortruntime.process.exitruntime.random_i32simd.f32x4.abssimd.f32x4.addsimd.f32x4.ceilsimd.f32x4.divsimd" }
+    if chunk == 13 { return ".f32x4.eqsimd.f32x4.extract.lanesimd.f32x4.floorsimd.f32x4.gesimd.f32x4.gtsimd.f32x4.lesimd.f32x4.ltsimd.f32x4.maxsimd.f32x4.minsimd.f32x4.mulsi" }
+    if chunk == 14 { return "md.f32x4.nesimd.f32x4.nearestsimd.f32x4.negsimd.f32x4.replace.lanesimd.f32x4.splatsimd.f32x4.sqrtsimd.f32x4.subsimd.f32x4.truncsimd.f64x2.abssim" }
+    if chunk == 15 { return "d.f64x2.addsimd.f64x2.ceilsimd.f64x2.convert.low.i32x4.ssimd.f64x2.convert.low.i32x4.usimd.f64x2.divsimd.f64x2.eqsimd.f64x2.extract.lanesimd.f64" }
+    if chunk == 16 { return "x2.floorsimd.f64x2.gesimd.f64x2.gtsimd.f64x2.lesimd.f64x2.ltsimd.f64x2.maxsimd.f64x2.minsimd.f64x2.mulsimd.f64x2.nesimd.f64x2.nearestsimd.f64x2." }
+    if chunk == 17 { return "negsimd.f64x2.promote.low.f32x4simd.f64x2.replace.lanesimd.f64x2.splatsimd.f64x2.sqrtsimd.f64x2.subsimd.f64x2.truncsimd.i16x8.abssimd.i16x8.adds" }
+    if chunk == 18 { return "imd.i16x8.add.sat.ssimd.i16x8.add.sat.usimd.i16x8.all.truesimd.i16x8.bitmasksimd.i16x8.eqsimd.i16x8.extadd.pairwise.i8x16.ssimd.i16x8.extadd.pai" }
+    if chunk == 19 { return "rwise.i8x16.usimd.i16x8.extend.high.i8x16.ssimd.i16x8.extend.high.i8x16.usimd.i16x8.extend.low.i8x16.ssimd.i16x8.extend.low.i8x16.usimd.i16x8.ex" }
+    if chunk == 20 { return "tract.lane.ssimd.i16x8.extract.lane.usimd.i16x8.ge.ssimd.i16x8.ge.usimd.i16x8.gt.ssimd.i16x8.gt.usimd.i16x8.le.ssimd.i16x8.le.usimd.i16x8.lt.ssi" }
+    if chunk == 21 { return "md.i16x8.lt.usimd.i16x8.max.ssimd.i16x8.max.usimd.i16x8.min.ssimd.i16x8.min.usimd.i16x8.mulsimd.i16x8.narrow.i32x4.ssimd.i16x8.narrow.i32x4.usim" }
+    if chunk == 22 { return "d.i16x8.nesimd.i16x8.negsimd.i16x8.replace.lanesimd.i16x8.shlsimd.i16x8.shr.ssimd.i16x8.shr.usimd.i16x8.splatsimd.i16x8.subsimd.i16x8.sub.sat.ss" }
+    if chunk == 23 { return "imd.i16x8.sub.sat.usimd.i32x4.abssimd.i32x4.addsimd.i32x4.all.truesimd.i32x4.bitmasksimd.i32x4.eqsimd.i32x4.extract.lanesimd.i32x4.ge.ssimd.i32x" }
+    if chunk == 24 { return "4.ge.usimd.i32x4.gt.ssimd.i32x4.gt.usimd.i32x4.le.ssimd.i32x4.le.usimd.i32x4.lt.ssimd.i32x4.lt.usimd.i32x4.max.ssimd.i32x4.max.usimd.i32x4.min.s" }
+    if chunk == 25 { return "simd.i32x4.min.usimd.i32x4.mulsimd.i32x4.nesimd.i32x4.negsimd.i32x4.replace.lanesimd.i32x4.shlsimd.i32x4.shr.ssimd.i32x4.shr.usimd.i32x4.splatsi" }
+    if chunk == 26 { return "md.i32x4.subsimd.i64x2.abssimd.i64x2.addsimd.i64x2.all.truesimd.i64x2.bitmasksimd.i64x2.eqsimd.i64x2.extract.lanesimd.i64x2.ge.ssimd.i64x2.gt.ss" }
+    if chunk == 27 { return "imd.i64x2.le.ssimd.i64x2.lt.ssimd.i64x2.mulsimd.i64x2.nesimd.i64x2.negsimd.i64x2.replace.lanesimd.i64x2.shlsimd.i64x2.shr.ssimd.i64x2.shr.usimd." }
+    if chunk == 28 { return "i64x2.splatsimd.i64x2.subsimd.i8x16.abssimd.i8x16.addsimd.i8x16.add.sat.ssimd.i8x16.add.sat.usimd.i8x16.all.truesimd.i8x16.bitmasksimd.i8x16.eqs" }
+    if chunk == 29 { return "imd.i8x16.extract.lane.ssimd.i8x16.extract.lane.usimd.i8x16.ge.ssimd.i8x16.ge.usimd.i8x16.gt.ssimd.i8x16.gt.usimd.i8x16.le.ssimd.i8x16.le.usimd." }
+    if chunk == 30 { return "i8x16.lt.ssimd.i8x16.lt.usimd.i8x16.max.ssimd.i8x16.max.usimd.i8x16.min.ssimd.i8x16.min.usimd.i8x16.mulsimd.i8x16.narrow.i16x8.ssimd.i8x16.narro" }
+    if chunk == 31 { return "w.i16x8.usimd.i8x16.nesimd.i8x16.negsimd.i8x16.replace.lanesimd.i8x16.shlsimd.i8x16.shr.ssimd.i8x16.shr.usimd.i8x16.splatsimd.i8x16.subsimd.i8x1" }
+    if chunk == 32 { return "6.sub.sat.ssimd.i8x16.sub.sat.usimd.i16x8.abssimd.i16x8.addsimd.i16x8.add.sat.usimd.i16x8.eqsimd.i16x8.extract.lane.usimd.i16x8.ge.usimd.i16x8.g" }
+    if chunk == 33 { return "t.usimd.i16x8.le.usimd.i16x8.lt.usimd.i16x8.max.usimd.i16x8.min.usimd.i16x8.mulsimd.i16x8.nesimd.i16x8.negsimd.i16x8.replace.lanesimd.i16x8.shls" }
+    if chunk == 34 { return "imd.i16x8.shr.usimd.i16x8.splatsimd.i16x8.subsimd.i16x8.sub.sat.usimd.i32x4.abssimd.i32x4.addsimd.i32x4.eqsimd.i32x4.extract.lanesimd.i32x4.ge.u" }
+    if chunk == 35 { return "simd.i32x4.gt.usimd.i32x4.le.usimd.i32x4.lt.usimd.i32x4.max.usimd.i32x4.min.usimd.i32x4.mulsimd.i32x4.nesimd.i32x4.negsimd.i32x4.replace.lanesim" }
+    if chunk == 36 { return "d.i32x4.shlsimd.i32x4.shr.usimd.i32x4.splatsimd.i32x4.subsimd.i64x2.abssimd.i64x2.addsimd.i64x2.eqsimd.i64x2.extract.lanesimd.u64x2.ge.usimd.u64" }
+    if chunk == 37 { return "x2.gt.usimd.u64x2.le.usimd.u64x2.lt.usimd.i64x2.mulsimd.i64x2.nesimd.i64x2.negsimd.i64x2.replace.lanesimd.i64x2.shlsimd.i64x2.shr.usimd.i64x2.sp" }
+    if chunk == 38 { return "latsimd.i64x2.subsimd.i8x16.abssimd.i8x16.addsimd.i8x16.add.sat.usimd.i8x16.eqsimd.i8x16.extract.lane.usimd.i8x16.ge.usimd.i8x16.gt.usimd.i8x16." }
+    if chunk == 39 { return "le.usimd.i8x16.lt.usimd.i8x16.max.usimd.i8x16.min.usimd.i8x16.mulsimd.i8x16.nesimd.i8x16.negsimd.i8x16.replace.lanesimd.i8x16.shlsimd.i8x16.shr." }
+    if chunk == 40 { return "usimd.i8x16.splatsimd.i8x16.subsimd.i8x16.sub.sat.usimd.v128.andsimd.v128.andnotsimd.v128.any.truesimd.v128.bitselectsimd.v128.constsimd.v128.no" }
+    if chunk == 41 { return "tsimd.v128.orsimd.v128.xorwasm.v128.loadwasm.v128.load16x4.swasm.v128.load16x4.uwasm.v128.load32x2.swasm.v128.load32x2.uwasm.v128.load8x8.swasm." }
+    if chunk == 42 { return "v128.load8x8.uwasm.v128.load_lanewasm.v128.load_splatwasm.v128.storewasm.v128.store_lanemath.absmath.absruntime.arg_atruntime.arg_countruntime.a" }
+    if chunk == 43 { return "rgsruntime.assertruntime.assert_eqruntime.assert_eq_i64runtime.assert_eq_strruntime.assert_netext.format_boolstring.char_attext.char_to_stringma" }
+    if chunk == 44 { return "th.clampmath.clampruntime.clock_nowruntime.clock_now_mstext.clonestring.concatstring.containstext.format_booltext.format_f64text.to_stringtext.f" }
+    if chunk == 45 { return "ormat_i64core.range_containscore.range_lencore.range_newstring.ends_withruntime.arg_atruntime.arg_countruntime.argsruntime.get_varruntime.has_fl" }
+    if chunk == 46 { return "agruntime.varruntime.var_or_defaultruntime.get_varruntime.varruntime.var_or_defaultruntime.eprintlnruntime.existsruntime.process.exitruntime.f32" }
+    if chunk == 47 { return "_to_f64text.f32_to_stringscalar.f64_bits_hiscalar.f64_bits_loruntime.f32_to_f64text.format_f64text.format_booltext.format_f64text.to_stringtext." }
+    if chunk == 48 { return "format_i64text.format_boolruntime.existsruntime.fs_read_fileruntime.write_bytesruntime.write_stringruntime.fs_read_fileruntime.write_bytesruntim" }
+    if chunk == 49 { return "e.write_stringmath.gcdvec.get_uncheckedruntime.has_flagruntime.process.abortruntime.process.exitruntime.i8_to_i32math.pow_i32text.to_stringrunti" }
+    if chunk == 50 { return "me.i32_to_i64runtime.i32_to_i8text.to_stringruntime.i32_to_u32runtime.i32_to_i8text.format_i64runtime.i64_to_i32text.format_i64runtime.i8_to_i32" }
+    if chunk == 51 { return "string.index_ofvec.is_emptyruntime.is_errruntime.is_errruntime.is_okruntime.is_okstring.joinstring.lenstring.linesmath.absmath.absmath.clampmath" }
+    if chunk == 52 { return ".gcdmath.maxmath.maxmath.minmath.minmath.pow_i32math.sqrtmath.maxmath.maxprimitive.memory_copyprimitive.memory_fillmath.minmath.minstring.pad_le" }
+    if chunk == 53 { return "ftstring.pad_rightpanicparse.parse_f64math.pow_i32math.pow_i32runtime.printruntime.printlnruntime.process.abortruntime.process.exitruntime.proce" }
+    if chunk == 54 { return "ss.abortruntime.process.exitseq.product_i32vec.pushtext.push_charvec.push_f64vec.push_i64runtime.random_i32core.range_containscore.range_lencore" }
+    if chunk == 55 { return ".range_newraw.array_get_uncheckedraw.array_growraw.array_lenraw.array_newraw.array_set_lenraw.array_set_uncheckedraw.f32_promote_f64raw.f64_bits" }
+    if chunk == 56 { return "_hiraw.f64_bits_loraw.f64_sqrtraw.f64_to_stringraw.parse_f64raw.parse_i32raw.parse_i64raw.string_byte_at_uncheckedraw.string_cloneraw.string_fro" }
+    if chunk == 57 { return "m_bytesraw.string_len_bytesraw.string_newraw.string_push_charraw.array_get_uncheckedraw.array_growraw.array_lenraw.array_newraw.array_set_lenraw" }
+    if chunk == 58 { return ".array_set_uncheckedraw.f32_promote_f64raw.f64_bits_hiraw.f64_bits_loraw.f64_sqrtraw.f64_to_stringraw.parse_f64raw.parse_i32raw.parse_i64raw.str" }
+    if chunk == 59 { return "ing_byte_at_uncheckedraw.string_cloneraw.string_from_bytesraw.string_len_bytesraw.string_newraw.string_push_charruntime.fs_read_filevec.remove_i" }
+    if chunk == 60 { return "32string.repeatstring.replacestring.reversevec.reverse_i32seq.binary_searchseq.count_eqseq.max_i32seq.min_i32seq.skip_i32seq.sum_i32seq.take_i32" }
+    if chunk == 61 { return "seq.uniquevec.setstring.sliceseq.sort_f64seq.sort_i32seq.sort_i64string.splitmath.sqrtstring.starts_withtext.string_eqraw.array_get_uncheckedraw" }
+    if chunk == 62 { return ".array_growraw.array_lenraw.array_newraw.array_set_lenraw.array_set_uncheckedraw.string_byte_at_uncheckedraw.string_cloneraw.string_from_bytesra" }
+    if chunk == 63 { return "w.string_len_bytesraw.string_newstring.concatruntime.read_stdinruntime.eprintlnruntime.printruntime.printlnruntime.read_stdintext.string_eqstrin" }
+    if chunk == 64 { return "g.repeatstring.splittext.string_eqtext.string_from_bytesstring.slicestring.sliceseq.sum_i32string.concattext.charsstring.concatstring.containsst" }
+    if chunk == 65 { return "ring.ends_withtext.format_booltext.format_f64text.to_stringtext.format_i64string.index_oftext.is_emptystring.jointext.len_bytesstring.linesstrin" }
+    if chunk == 66 { return "g.pad_left_fillstring.pad_right_fillparse.parse_f64string.repeatstring.replacestring.splitstring.starts_withstring.to_lowercasestring.to_lowerca" }
+    if chunk == 67 { return "sestring.to_uppercasestring.to_uppercasestring.trimstring.trim_endstring.trim_startstring.to_lowercasestring.to_lowercasetext.to_stringstring.to" }
+    if chunk == 68 { return "_uppercasestring.to_uppercasestring.trimstring.trim_endstring.trim_startruntime.i8_to_i32runtime.u32_to_u64runtime.i8_to_i32runtime.unwrapruntim" }
+    if chunk == 69 { return "e.unwrap_orvec.getvec.get_uncheckedvec.get_unchecked_f64vec.get_unchecked_i64vec.is_emptyvec.lenvec.popvec.pushvec.push_i64vec.set" }
     return String_new()
 }
 
 fn core_op_binding_core_op_id_at(index: i32) -> String {
-    if index < 0 || index >= 646 {
+    if index < 0 || index >= 647 {
         return String_new()
     }
     let start = core_op_binding_core_op_id_off_at(index)
@@ -352,120 +352,120 @@ fn core_op_binding_pattern_requires_nonempty_suffix_at(index: i32) -> bool {
 }
 
 fn core_op_binding_bucket_hex_chunk(chunk: i32) -> String {
-    if chunk == 0 { return "ffffffffc3010000fffffffffffffffffffffffffffffffff1000000ffffffff73020000ffffffffffffffffffffffffffffffffffffffff39010000ffffffffffffffffffffffff" }
-    if chunk == 1 { return "ffffffff12020000ffffffffffffffffffffffff47020000ffffffffffffffff41020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 2 { return "250100008b0100003f020000e1010000ffffffffffffffffffffffffffffffffffffffff3e000000ffffffffffffffffdc010000ffffffffffffffff5f000000ffffffffffffffff" }
-    if chunk == 3 { return "ffffffffffffffffffffffff9a000000ffffffff88010000ffffffffe301000015000000ffffffffffffffffffffffff59000000ffffffffffffffffffffffff55000000ffffffff" }
-    if chunk == 4 { return "ffffffff2d000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff96000000ffffffff97000000d701000084010000ffffffffffffffffffffffff" }
-    if chunk == 5 { return "ffffffffffffffffbd000000d1010000be000000bb01000026020000ffffffffffffffff2f020000ffffffffffffffffffffffffffffffffffffffffffffffff92000000ffffffff" }
-    if chunk == 6 { return "d7000000ffffffffffffffffffffffff5b020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff350000003c000000" }
-    if chunk == 7 { return "7a000000d90100005f020000ffffffff1c02000044000000ba010000ffffffffffffffffffffffff14020000ffffffff64020000650100001c01000072010000540000000d020000" }
-    if chunk == 8 { return "6a0200007f000000fc010000ffffffffffffffffffffffffffffffffffffffffffffffffaf000000c2000000f2000000ea010000ffffffffffffffffae000000c10000003e020000" }
-    if chunk == 9 { return "ffffffff0c0100007a0100000b01000079010000b70100001b020000ffffffffffffffffffffffffffffffffffffffffffffffff41000000a2010000ffffffffffffffffffffffff" }
-    if chunk == 10 { return "90000000a9000000ffffffffffffffffffffffff190000008d010000c001000017020000ffffffffffffffffffffffff77010000ffffffffffffffffffffffff7900000069000000" }
-    if chunk == 11 { return "f300000078010000ffffffff5f01000067010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffa801000016010000ffffffffd000000015010000a6010000" }
-    if chunk == 12 { return "ffffffffffffffffffffffffffffffff67000000d600000062020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff45020000ffffffff3702000083020000" }
-    if chunk == 13 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff72000000fffffffffffffffffa00000059010000ffffffffffffffff39020000" }
-    if chunk == 14 { return "ffffffffffffffff00010000270100004f020000ffffffffffffffff5d000000ffffffffffffffffffffffff85020000ffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 15 { return "31020000ffffffff51000000ac01000098010000ffffffffa7010000ffffffffffffffffffffffff22000000ffffffffffffffffffffffffffffffffffffffffffffffff51020000" }
-    if chunk == 16 { return "ffffffffffffffffffffffffffffffffffffffffffffffffc6010000ffffffffffffffffffffffff61020000ffffffffffffffffffffffffffffffffc700000006010000ffffffff" }
-    if chunk == 17 { return "ffffffffffffffffffffffffac000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff58020000ffffffffffffffffffffffffa8000000ffffffffffffffff" }
-    if chunk == 18 { return "ffffffff80010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff6b020000f50000000702000091010000ffffffff11000000ffffffffffffffffffffffff" }
-    if chunk == 19 { return "ffffffffa0010000ffffffff6c00000066010000ffffffff00020000ffffffffa10100002901000030020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 20 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9f010000ffffffffffffffffb7000000ffffffffb800000003020000ffffffffffffffff1b010000" }
-    if chunk == 21 { return "ffffffff82010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9e01000030010000ffffffffffffffff21020000ffffffffffffffff" }
-    if chunk == 22 { return "ffffffff3a010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffa0000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 23 { return "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff301000001020000ffffffff05010000e900000004010000ffffffff42010000" }
-    if chunk == 24 { return "ffffffffffffffffffffffffffffffffc2010000fffffffffffffffffffffffff6010000c6000000490000003f010000b1010000ffffffffffffffffc5000000f801000041010000" }
-    if chunk == 25 { return "04020000ffffffffffffffff2f010000ffffffffffffffff5a000000ce010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 26 { return "ffffffffffffffffb1000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff6c010000fffffffffffffffffffffffffffffffffd010000ffffffff" }
-    if chunk == 27 { return "ffffffffffffffffffffffff67020000ffffffffffffffffffffffffffffffffffffffffd00100007500000069010000ffffffffffffffffffffffffffffffffffffffff99000000" }
-    if chunk == 28 { return "ffffffffffffffff04000000d5010000e90100005b000000e4010000ffffffffffffffffffffffff370100000500000046010000ffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 29 { return "ffffffffffffffffffffffffffffffffffffffffcb000000ffffffffffffffff3a000000f0000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 30 { return "8c000000ffffffff060000004f010000fffffffffffffffff90000003b020000fffffffff7000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffb0000000" }
-    if chunk == 31 { return "56000000d9000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff760200006e00000076000000e7010000ffffffffffffffffffffffffffffffff59020000" }
-    if chunk == 32 { return "ffffffffffffffffffffffff1a000000ffffffffffffffff20020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 33 { return "ffffffffffffffffffffffffffffffffffffffffffffffff610000009401000082020000ffffffffffffffffffffffffffffffffffffffffffffffff60000000ffffffffffffffff" }
-    if chunk == 34 { return "ffffffff9d010000ffffffffffffffff32010000ffffffffffffffff1800000031010000280200004c000000ffffffffffffffffb300000068020000ffffffffffffffffffffffff" }
-    if chunk == 35 { return "ffffffffb4000000660200006e0100009b010000d1000000ffffffffffffffff0f020000ffffffffffffffff09010000ffffffffd201000023010000ffffffff220100000a010000" }
-    if chunk == 36 { return "f1010000ffffffffffffffffffffffffffffffff120000002d0100005e020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 37 { return "ffffffffffffffff86010000ffffffffffffffff560100003e01000076010000ffffffffffffffffca010000ffffffffffffffffffffffffce000000ffffffffffffffff17010000" }
-    if chunk == 38 { return "ffffffffffffffffcf000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0e010000ffffffff0d010000ffffffff" }
-    if chunk == 39 { return "ffffffffef010000ffffffffb0010000ffffffff250000003502000033020000f7010000ffffffff32020000ffffffffffffffffffffffffffffffff85000000b3010000ffffffff" }
-    if chunk == 40 { return "0c020000ffffffffffffffffffffffffffffffffffffffffaa010000ffffffffffffffff0c00000047000000ffffffffffffffff7700000084000000440100001e0000008e000000" }
-    if chunk == 41 { return "4d01000051010000870000000502000016020000ffffffffffffffffffffffff3d000000ffffffffffffffff1b000000ffffffffffffffff58010000ffffffffffffffff86000000" }
-    if chunk == 42 { return "ffffffffffffffffffffffff42020000ffffffffffffffffffffffff550100007a0200005800000034020000ffffffff3d010000ffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 43 { return "14000000ffffffffffffffffffffffffffffffffffffffffa4010000ffffffff990100002a0000005401000023020000ffffffffec010000ffffffffffffffffffffffffffffffff" }
-    if chunk == 44 { return "11020000ffffffffffffffffffffffffffffffff1c000000ffffffffffffffff48020000ffffffffffffffffffffffff6a010000ffffffffffffffffffffffffffffffffb2010000" }
-    if chunk == 45 { return "f501000013000000ffffffffffffffff2700000027020000ffffffffed010000ffffffffffffffff2b020000ffffffffffffffffc70100000e000000ffffffffffffffffffffffff" }
-    if chunk == 46 { return "ffffffffb2000000ffffffffffffffff52010000ffffffffffffffffffffffffffffffffbd010000ffffffffffffffffffffffffffffffffffffffffffffffff8a00000024020000" }
-    if chunk == 47 { return "ffffffffffffffffffffffffffffffffffffffff63020000ffffffffffffffffffffffffed000000bf000000ffffffffffffffffffffffffffffffffffffffffc0000000ffffffff" }
-    if chunk == 48 { return "030000005d0100005b01000060020000b8010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff68010000de010000ffffffffa5010000" }
-    if chunk == 49 { return "ffffffffffffffffffffffff3f000000ffffffffffffffffffffffffffffffff38020000ffffffffffffffffffffffffffffffffffffffffffffffff90010000ffffffffffffffff" }
-    if chunk == 50 { return "ffffffffffffffffffffffffdd010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff5a020000b4010000ffffffffffffffff80020000" }
-    if chunk == 51 { return "2c000000ffffffffffffffffb5000000ffffffffffffffffffffffffffffffffffffffffb6000000bf010000ffffffffffffffffffffffff73000000ffffffffffffffffffffffff" }
-    if chunk == 52 { return "57000000ffffffff6d000000ffffffffffffffff260100004e020000ffffffff21000000ffffffff5c00000021010000ffffffff50000000ffffffffffffffffffffffffffffffff" }
-    if chunk == 53 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff64000000ffffffff50010000ffffffffffffffffffffffff92010000ffffffffffffffff" }
-    if chunk == 54 { return "fffffffffd000000ffffffff31000000ffffffffb9000000ffffffffffffffffffffffffffffffffffffffffba000000d5000000f6000000cf010000ffffffff8800000036010000" }
-    if chunk == 55 { return "ffffffffffffffff62000000ffffffffffffffffffffffffffffffffffffffffffffffff3b0000003c01000033000000c5010000ffffffffffffffffffffffffffffffff6b010000" }
-    if chunk == 56 { return "fffffffff4010000ea0000000701000003010000ffffffffffffffffffffffff82000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 57 { return "ffffffff5c010000ffffffffffffffffffffffff30000000ad00000075020000ffffffff340000005a010000f2010000ffffffffffffffffcc010000ffffffffa9010000ffffffff" }
-    if chunk == 58 { return "ffffffffffffffff54020000ffffffffffffffffffffffff94000000d8000000ffffffffffffffffffffffffffffffffffffffffffffffff43020000ffffffffffffffffffffffff" }
-    if chunk == 59 { return "ffffffffab01000050020000ffffffffffffffffffffffffffffffffffffffffffffffff29020000e7000000520000007b0000004a0100002e000000ffffffffffffffffffffffff" }
-    if chunk == 60 { return "ffffffffffffffff72020000ffffffffffffffff85010000ffffffffffffffffffffffffab000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 61 { return "83000000fffffffffffffffffffffffffffffffffffffffff001000012010000ffffffffffffffffffffffffffffffffffffffff11010000ffffffffffffffffffffffffffffffff" }
-    if chunk == 62 { return "ffffffffffffffff7d010000ffffffffffffffffffffffff69020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7e020000" }
-    if chunk == 63 { return "ffffffffffffffffffffffffeb01000049020000ffffffffffffffffffffffffffffffff24000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 64 { return "17000000ffffffffffffffff2001000064010000ffffffffffffffffffffffffffffffffffffffffffffffff1f00000018020000ee0000001e020000ffffffffffffffffffffffff" }
-    if chunk == 65 { return "01000000ffffffffffffffffffffffffffffffff70000000ffffffffffffffffffffffff730100000f0000004b000000ffffffffffffffffffffffff4a00000033010000da010000" }
-    if chunk == 66 { return "ffffffffbe010000ffffffffffffffff0a000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff46000000eb000000ec000000fb000000" }
-    if chunk == 67 { return "95000000d6010000480000009b00000084020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80000000ffffffffffffffffffffffffffffffff" }
-    if chunk == 68 { return "ffffffffffffffffffffffffffffffffde000000f4000000df0000008701000071020000ffffffffffffffffffffffffffffffff2801000097010000ffffffffffffffffffffffff" }
-    if chunk == 69 { return "ffffffffffffffffffffffffffffffffffffffffffffffff2b000000ffffffffffffffffffffffff1d0200002e020000ffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 70 { return "37000000ffffffffa3000000c901000045010000e501000008020000ffffffffffffffffffffffffcd000000ffffffffca00000052020000ffffffff480100008d000000ffffffff" }
-    if chunk == 71 { return "81010000ffffffffffffffffffffffffffffffffffffffffffffffff7e000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff53010000ffffffffffffffff" }
-    if chunk == 72 { return "ffffffff2d020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff32000000ffffffffffffffffffffffffffffffff1d000000ffffffffffffffffcb010000" }
-    if chunk == 73 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffff570100001a010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f010000a5000000" }
-    if chunk == 74 { return "ffffffffffffffffffffffff38010000ffffffffffffffffffffffffa1000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 75 { return "2f000000ffffffff39000000ffffffffffffffff6b000000ffffffff1f0200001d010000ffffffffffffffffffffffffffffffffdb0100002502000074020000ffffffffffffffff" }
+    if chunk == 0 { return "ffffffffc4010000fffffffffffffffffffffffffffffffff2000000ffffffff74020000ffffffffffffffffffffffffffffffffffffffff3a010000ffffffffffffffffffffffff" }
+    if chunk == 1 { return "ffffffff13020000ffffffffffffffffffffffff48020000ffffffffffffffff42020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 2 { return "260100008c01000040020000e2010000ffffffffffffffffffffffffffffffffffffffff3e000000ffffffffffffffffdd010000ffffffffffffffff60000000ffffffffffffffff" }
+    if chunk == 3 { return "ffffffffffffffffffffffff9b000000ffffffff89010000ffffffffe401000015000000ffffffffffffffffffffffff59000000ffffffffffffffffffffffff55000000ffffffff" }
+    if chunk == 4 { return "ffffffff2d000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff97000000ffffffff98000000d801000085010000ffffffffffffffffffffffff" }
+    if chunk == 5 { return "ffffffffffffffffbe000000d2010000bf000000bc01000027020000ffffffffffffffff30020000ffffffffffffffffffffffffffffffffffffffffffffffff93000000ffffffff" }
+    if chunk == 6 { return "d8000000ffffffffffffffffffffffff5c020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff350000003c000000" }
+    if chunk == 7 { return "7b000000da01000060020000ffffffff1d02000044000000bb010000ffffffffffffffffffffffff15020000ffffffff65020000660100001d01000073010000540000000e020000" }
+    if chunk == 8 { return "6b02000080000000fd010000ffffffffffffffffffffffffffffffffffffffffffffffffb0000000c3000000f3000000eb010000ffffffffffffffffaf000000c20000003f020000" }
+    if chunk == 9 { return "ffffffff0d0100007b0100000c0100007a010000b80100001c020000ffffffffffffffffffffffffffffffffffffffffffffffff41000000a3010000ffffffffffffffffffffffff" }
+    if chunk == 10 { return "91000000aa000000ffffffffffffffffffffffff190000008e010000c101000018020000ffffffffffffffffffffffff78010000ffffffffffffffffffffffff7a0000006a000000" }
+    if chunk == 11 { return "f400000079010000ffffffff6001000068010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffa901000017010000ffffffffd100000016010000a7010000" }
+    if chunk == 12 { return "ffffffffffffffffffffffffffffffff68000000d700000063020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff46020000ffffffff3802000084020000" }
+    if chunk == 13 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff73000000fffffffffffffffffb0000005a010000ffffffffffffffff3a020000" }
+    if chunk == 14 { return "ffffffffffffffff010100002801000050020000ffffffffffffffff5e000000ffffffffffffffffffffffff86020000ffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 15 { return "32020000ffffffff51000000ad01000099010000ffffffffa8010000ffffffffffffffffffffffff22000000ffffffffffffffffffffffffffffffffffffffffffffffff52020000" }
+    if chunk == 16 { return "ffffffffffffffffffffffffffffffffffffffffffffffffc7010000ffffffffffffffffffffffff62020000ffffffffffffffffffffffffffffffffc800000007010000ffffffff" }
+    if chunk == 17 { return "ffffffffffffffffffffffffad000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff59020000ffffffffffffffffffffffffa9000000ffffffffffffffff" }
+    if chunk == 18 { return "ffffffff81010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff6c020000f60000000802000092010000ffffffff11000000ffffffffffffffffffffffff" }
+    if chunk == 19 { return "ffffffffa1010000ffffffff6d00000067010000ffffffff01020000ffffffffa20100002a01000031020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 20 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa0010000ffffffffffffffffb8000000ffffffffb900000004020000ffffffffffffffff1c010000" }
+    if chunk == 21 { return "ffffffff83010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9f01000031010000ffffffffffffffff22020000ffffffffffffffff" }
+    if chunk == 22 { return "ffffffff3b010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffa1000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 23 { return "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff401000002020000ffffffff06010000ea00000005010000ffffffff43010000" }
+    if chunk == 24 { return "ffffffffffffffffffffffffffffffffc3010000fffffffffffffffffffffffff7010000c70000004900000040010000b2010000ffffffffffffffffc6000000f901000042010000" }
+    if chunk == 25 { return "05020000ffffffffffffffff30010000ffffffffffffffff5a000000cf010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 26 { return "ffffffffffffffffb2000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff6d010000fffffffffffffffffffffffffffffffffe010000ffffffff" }
+    if chunk == 27 { return "ffffffffffffffffffffffff68020000ffffffffffffffffffffffffffffffffffffffffd1010000760000006a010000ffffffffffffffffffffffffffffffffffffffff9a000000" }
+    if chunk == 28 { return "ffffffffffffffff04000000d6010000ea0100005b000000e5010000ffffffffffffffffffffffff380100000500000047010000ffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 29 { return "ffffffffffffffffffffffffffffffffffffffffcc000000ffffffffffffffff3a000000f1000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 30 { return "8d000000ffffffff0600000050010000fffffffffffffffffa0000003c020000fffffffff8000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffb1000000" }
+    if chunk == 31 { return "56000000da000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff770200006f00000077000000e8010000ffffffffffffffffffffffffffffffff5a020000" }
+    if chunk == 32 { return "ffffffffffffffffffffffff1a000000ffffffffffffffff21020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 33 { return "ffffffffffffffffffffffffffffffffffffffffffffffff620000009501000083020000ffffffffffffffffffffffffffffffffffffffffffffffff61000000ffffffffffffffff" }
+    if chunk == 34 { return "ffffffff9e010000ffffffffffffffff33010000ffffffffffffffff1800000032010000290200004c000000ffffffffffffffffb400000069020000ffffffffffffffffffffffff" }
+    if chunk == 35 { return "ffffffffb5000000670200006f0100009c010000d2000000ffffffffffffffff10020000ffffffffffffffff0a010000ffffffffd301000024010000ffffffff230100000b010000" }
+    if chunk == 36 { return "f2010000ffffffffffffffffffffffffffffffff120000002e0100005f020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 37 { return "ffffffffffffffff87010000ffffffffffffffff570100003f01000077010000ffffffffffffffffcb010000ffffffffffffffffffffffffcf000000ffffffffffffffff18010000" }
+    if chunk == 38 { return "ffffffffffffffffd0000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0f010000ffffffff0e010000ffffffff" }
+    if chunk == 39 { return "fffffffff0010000ffffffffb1010000ffffffff250000003602000034020000f8010000ffffffff33020000ffffffffffffffffffffffffffffffff86000000b4010000ffffffff" }
+    if chunk == 40 { return "0d020000ffffffffffffffffffffffffffffffffffffffffab010000ffffffffffffffff0c00000047000000ffffffffffffffff7800000085000000450100001e0000008f000000" }
+    if chunk == 41 { return "4e01000052010000880000000602000017020000ffffffffffffffffffffffff3d000000ffffffffffffffff1b000000ffffffffffffffff59010000ffffffffffffffff87000000" }
+    if chunk == 42 { return "ffffffffffffffffffffffff43020000ffffffffffffffffffffffff560100007b0200005800000035020000ffffffff3e010000ffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 43 { return "14000000ffffffffffffffffffffffffffffffffffffffffa5010000ffffffff9a0100002a0000005501000024020000ffffffffed010000ffffffffffffffffffffffffffffffff" }
+    if chunk == 44 { return "12020000ffffffffffffffffffffffffffffffff1c000000ffffffffffffffff49020000ffffffffffffffffffffffff6b010000ffffffffffffffffffffffffffffffffb3010000" }
+    if chunk == 45 { return "f601000013000000ffffffffffffffff2700000028020000ffffffffee010000ffffffffffffffff2c020000ffffffffffffffffc80100000e000000ffffffffffffffffffffffff" }
+    if chunk == 46 { return "ffffffffb3000000ffffffffffffffff53010000ffffffffffffffffffffffffffffffffbe010000ffffffffffffffffffffffffffffffffffffffffffffffff8b00000025020000" }
+    if chunk == 47 { return "ffffffffffffffffffffffffffffffffffffffff64020000ffffffffffffffffffffffffee000000c0000000ffffffffffffffffffffffffffffffffffffffffc1000000ffffffff" }
+    if chunk == 48 { return "030000005e0100005c01000061020000b9010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff69010000df010000ffffffffa6010000" }
+    if chunk == 49 { return "ffffffffffffffffffffffff3f000000ffffffffffffffffffffffffffffffff39020000ffffffffffffffffffffffffffffffffffffffffffffffff91010000ffffffffffffffff" }
+    if chunk == 50 { return "5c000000ffffffffffffffffde010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff5b020000b5010000ffffffffffffffff81020000" }
+    if chunk == 51 { return "2c000000ffffffffffffffffb6000000ffffffffffffffffffffffffffffffffffffffffb7000000c0010000ffffffffffffffffffffffff74000000ffffffffffffffffffffffff" }
+    if chunk == 52 { return "57000000ffffffff6e000000ffffffffffffffff270100004f020000ffffffff21000000ffffffff5d00000022010000ffffffff50000000ffffffffffffffffffffffffffffffff" }
+    if chunk == 53 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff65000000ffffffff51010000ffffffffffffffffffffffff93010000ffffffffffffffff" }
+    if chunk == 54 { return "fffffffffe000000ffffffff31000000ffffffffba000000ffffffffffffffffffffffffffffffffffffffffbb000000d6000000f7000000d0010000ffffffff8900000037010000" }
+    if chunk == 55 { return "ffffffffffffffff63000000ffffffffffffffffffffffffffffffffffffffffffffffff3b0000003d01000033000000c6010000ffffffffffffffffffffffffffffffff6c010000" }
+    if chunk == 56 { return "fffffffff5010000eb0000000801000004010000ffffffffffffffffffffffff83000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 57 { return "ffffffff5d010000ffffffffffffffffffffffff30000000ae00000076020000ffffffff340000005b010000f3010000ffffffffffffffffcd010000ffffffffaa010000ffffffff" }
+    if chunk == 58 { return "ffffffffffffffff55020000ffffffffffffffffffffffff95000000d9000000ffffffffffffffffffffffffffffffffffffffffffffffff44020000ffffffffffffffffffffffff" }
+    if chunk == 59 { return "ffffffffac01000051020000ffffffffffffffffffffffffffffffffffffffffffffffff2a020000e8000000520000007c0000004b0100002e000000ffffffffffffffffffffffff" }
+    if chunk == 60 { return "ffffffffffffffff73020000ffffffffffffffff86010000ffffffffffffffffffffffffac000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 61 { return "84000000fffffffffffffffffffffffffffffffffffffffff101000013010000ffffffffffffffffffffffffffffffffffffffff12010000ffffffffffffffffffffffffffffffff" }
+    if chunk == 62 { return "ffffffffffffffff7e010000ffffffffffffffffffffffff6a020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f020000" }
+    if chunk == 63 { return "ffffffffffffffffffffffffec0100004a020000ffffffffffffffffffffffffffffffff24000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 64 { return "17000000ffffffffffffffff2101000065010000ffffffffffffffffffffffffffffffffffffffffffffffff1f00000019020000ef0000001f020000ffffffffffffffffffffffff" }
+    if chunk == 65 { return "01000000ffffffffffffffffffffffffffffffff71000000ffffffffffffffffffffffff740100000f0000004b000000ffffffffffffffffffffffff4a00000034010000db010000" }
+    if chunk == 66 { return "ffffffffbf010000ffffffffffffffff0a000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff46000000ec000000ed000000fc000000" }
+    if chunk == 67 { return "96000000d7010000480000009c00000085020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff81000000ffffffffffffffffffffffffffffffff" }
+    if chunk == 68 { return "ffffffffffffffffffffffffffffffffdf000000f5000000e00000008801000072020000ffffffffffffffffffffffffffffffff2901000098010000ffffffffffffffffffffffff" }
+    if chunk == 69 { return "ffffffffffffffffffffffffffffffffffffffffffffffff2b000000ffffffffffffffffffffffff1e0200002f020000ffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 70 { return "37000000ffffffffa4000000ca01000046010000e601000009020000ffffffffffffffffffffffffce000000ffffffffcb00000053020000ffffffff490100008e000000ffffffff" }
+    if chunk == 71 { return "82010000ffffffffffffffffffffffffffffffffffffffffffffffff7f000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff54010000ffffffffffffffff" }
+    if chunk == 72 { return "ffffffff2e020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff32000000ffffffffffffffffffffffffffffffff1d000000ffffffffffffffffcc010000" }
+    if chunk == 73 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffff580100001b010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff80010000a6000000" }
+    if chunk == 74 { return "ffffffffffffffffffffffff39010000ffffffffffffffffffffffffa2000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 75 { return "2f000000ffffffff39000000ffffffffffffffff6c000000ffffffff200200001e010000ffffffffffffffffffffffffffffffffdc0100002602000075020000ffffffffffffffff" }
     if chunk == 76 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 77 { return "df01000013020000ffffffffffffffffffffffffffffffffae01000002010000ffffffffffffffff61010000ffffffffffffffffffffffffffffffff6d02000077020000ffffffff" }
-    if chunk == 78 { return "ffffffffffffffffd3010000ffffffffffffffffffffffffffffffff7501000091000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 79 { return "ffffffffffffffffffffffffffffffffffffffff0800000049010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff68000000930000007d02000006020000" }
-    if chunk == 80 { return "ffffffff1a020000ffffffff38000000ffffffffffffffffffffffffffffffffffffffff6a000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff45000000" }
-    if chunk == 81 { return "ffffffff19010000ffffffff18010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff42000000ffffffff" }
-    if chunk == 82 { return "ffffffffffffffffffffffff44020000ffffffffe3000000ffffffffffffffffffffffff4d000000ffffffffe2000000ffffffff4b010000ffffffff130100002900000014010000" }
-    if chunk == 83 { return "2e01000081020000ffffffff8b0000000101000035010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffa200000074010000ffffffffffffffffffffffff" }
-    if chunk == 84 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0000000ffffffffe1000000ffffffffffffffffcd010000ffffffff" }
-    if chunk == 85 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9c000000ffffffff6f020000ffffffff2000000055020000ffffffff" }
-    if chunk == 86 { return "ffffffffc1010000a700000093010000fe010000ffffffffffffffffffffffff9d000000ffffffffffffffffffffffffffffffff7b0200002c020000ffffffffffffffffffffffff" }
-    if chunk == 87 { return "ffffffffffffffff6300000066000000ffffffffffffffff6001000002000000fb010000ffffffffffffffff7c010000ffffffffffffffffffffffff2c0100005e0100007b010000" }
-    if chunk == 88 { return "3a020000ffffffff0f010000fc000000ffffffffffffffff16000000ffffffff10010000e6000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 89 { return "dd000000ffffffffffffffffffffffff34010000ffffffffdc000000ffffffffffffffff7c020000ffffffffffffffffffffffffffffffffe0010000ffffffff40020000ffffffff" }
-    if chunk == 90 { return "ffffffffffffffffffffffff19020000ffffffffffffffff0e020000ffffffffffffffffffffffff7c000000360200003c0200005c020000ffffffffffffffffffffffffffffffff" }
-    if chunk == 91 { return "ffffffffe2010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff53020000ffffffff46020000ffffffffffffffffffffffffffffffff" }
-    if chunk == 92 { return "ffffffff62010000ffffffffffffffff6d010000ffffffff4c020000ffffffffffffffffffffffffffffffff95010000ffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 93 { return "cc000000ffffffffffffffffffffffff83010000090200005d020000d4000000000000009a010000ffffffffffffffffc4010000aa00000015020000ffffffffffffffffffffffff" }
-    if chunk == 94 { return "ffffffff1000000043010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 95 { return "ffffffffffffffffffffffff43000000ffffffffffffffff360000008f00000070020000ffffffffffffffffffffffffffffffffe6010000ffffffff2401000074000000ffffffff" }
-    if chunk == 96 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff70010000ffffffffffffffffffffffffffffffff6f010000ffffffffffffffff08010000" }
-    if chunk == 97 { return "ffffffffffffffff7e010000ffffffff6e020000ffffffffffffffffffffffff9800000028000000ffffffffb6010000ffffffff71010000ffffffffffffffffd2000000ffffffff" }
-    if chunk == 98 { return "d3000000bc0100006c020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff4e010000ffffffffffffffff2a020000" }
-    if chunk == 99 { return "8a01000063010000ffffffffffffffffffffffffffffffffffffffffff010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 100 { return "ffffffffd40100001f0100000b0200007d0000004d020000ffffffffffffffff1e010000710000000d0000000202000022020000ffffffffffffffffffffffff2b010000ffffffff" }
-    if chunk == 101 { return "ffffffffffffffff10020000ffffffffffffffff53000000ffffffffffffffffef00000078000000ffffffffffffffffffffffff9c010000ffffffffffffffff47010000ffffffff" }
-    if chunk == 102 { return "ffffffffffffffff56020000fffffffffffffffffffffffffa010000ffffffffa600000096010000fffffffffffffffffffffffff90100000a020000ffffffffffffffffffffffff" }
-    if chunk == 103 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0b000000ffffffff57020000da000000ff000000ffffffff4a020000ffffffffffffffffdb000000" }
-    if chunk == 104 { return "fe0000004c010000ffffffffbb000000ffffffff09000000bc000000ffffffffffffffff4f0000008c010000e4000000ffffffffe50000006500000065020000ffffffffffffffff" }
-    if chunk == 105 { return "89000000ffffffffffffffffffffffffffffffff3b010000ffffffffffffffffffffffffffffffffffffffff89010000ffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 106 { return "ffffffffffffffffffffffffffffffffffffffffc80000005e000000ffffffffffffffffffffffffaf01000026000000c9000000e8010000fffffffffffffffff8000000ffffffff" }
-    if chunk == 107 { return "ffffffff40010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f020000ffffffffffffffffffffffff" }
-    if chunk == 108 { return "6f000000ffffffffffffffff07000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff4e000000ffffffffffffffffffffffff230000008e0100003d020000" }
-    if chunk == 109 { return "ffffffffad010000d8010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffb9010000ffffffffffffffffffffffffffffffff" }
-    if chunk == 110 { return "ffffffffffffffffffffffffb5010000ffffffffffffffffffffffffc3000000ffffffff9f000000c4000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
-    if chunk == 111 { return "2a010000ffffffffffffffffffffffffffffffffffffffff9e0000008f010000a3010000ffffffffffffffffffffffffffffffffee010000ffffffffffffffffffffffffffffffff" }
-    if chunk == 112 { return "ffffffff4b020000ffffffffffffffff81000000ffffffffffffffffa4000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff79020000ffffffff" }
-    if chunk == 113 { return "ffffffffffffffffc8010000ffffffffffffffff40000000e8000000ffffffff78020000ffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 77 { return "e001000014020000ffffffffffffffffffffffffffffffffaf01000003010000ffffffffffffffff62010000ffffffffffffffffffffffffffffffff6e02000078020000ffffffff" }
+    if chunk == 78 { return "ffffffffffffffffd4010000ffffffffffffffffffffffffffffffff7601000092000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 79 { return "ffffffffffffffffffffffffffffffffffffffff080000004a010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff69000000940000007e02000007020000" }
+    if chunk == 80 { return "ffffffff1b020000ffffffff38000000ffffffffffffffffffffffffffffffffffffffff6b000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff45000000" }
+    if chunk == 81 { return "ffffffff1a010000ffffffff19010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff42000000ffffffff" }
+    if chunk == 82 { return "ffffffffffffffffffffffff45020000ffffffffe4000000ffffffffffffffffffffffff4d000000ffffffffe3000000ffffffff4c010000ffffffff140100002900000015010000" }
+    if chunk == 83 { return "2f01000082020000ffffffff8c0000000201000036010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffa300000075010000ffffffffffffffffffffffff" }
+    if chunk == 84 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe1000000ffffffffe2000000ffffffffffffffffce010000ffffffff" }
+    if chunk == 85 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9d000000ffffffff70020000ffffffff2000000056020000ffffffff" }
+    if chunk == 86 { return "ffffffffc2010000a800000094010000ff010000ffffffffffffffffffffffff9e000000ffffffffffffffffffffffffffffffff7c0200002d020000ffffffffffffffffffffffff" }
+    if chunk == 87 { return "ffffffffffffffff6400000067000000ffffffffffffffff6101000002000000fc010000ffffffffffffffff7d010000ffffffffffffffffffffffff2d0100005f0100007c010000" }
+    if chunk == 88 { return "3b020000ffffffff10010000fd000000ffffffffffffffff16000000ffffffff11010000e7000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 89 { return "de000000ffffffffffffffffffffffff35010000ffffffffdd000000ffffffffffffffff7d020000ffffffffffffffffffffffffffffffffe1010000ffffffff41020000ffffffff" }
+    if chunk == 90 { return "ffffffffffffffffffffffff1a020000ffffffffffffffff0f020000ffffffffffffffffffffffff7d000000370200003d0200005d020000ffffffffffffffffffffffffffffffff" }
+    if chunk == 91 { return "ffffffffe3010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff54020000ffffffff47020000ffffffffffffffffffffffffffffffff" }
+    if chunk == 92 { return "ffffffff63010000ffffffffffffffff6e010000ffffffff4d020000ffffffffffffffffffffffffffffffff96010000ffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 93 { return "cd000000ffffffffffffffffffffffff840100000a0200005e020000d5000000000000009b010000ffffffffffffffffc5010000ab00000016020000ffffffffffffffffffffffff" }
+    if chunk == 94 { return "ffffffff1000000044010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 95 { return "ffffffffffffffffffffffff43000000ffffffffffffffff360000009000000071020000ffffffffffffffffffffffffffffffffe7010000ffffffff2501000075000000ffffffff" }
+    if chunk == 96 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff71010000ffffffffffffffffffffffffffffffff70010000ffffffffffffffff09010000" }
+    if chunk == 97 { return "ffffffffffffffff7f010000ffffffff6f020000ffffffffffffffffffffffff9900000028000000ffffffffb7010000ffffffff72010000ffffffffffffffffd3000000ffffffff" }
+    if chunk == 98 { return "d4000000bd0100006d020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff4f010000ffffffffffffffff2b020000" }
+    if chunk == 99 { return "8b01000064010000ffffffffffffffffffffffffffffffffffffffff00020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 100 { return "ffffffffd5010000200100000c0200007e0000004e020000ffffffffffffffff1f010000720000000d0000000302000023020000ffffffffffffffffffffffff2c010000ffffffff" }
+    if chunk == 101 { return "ffffffffffffffff11020000ffffffffffffffff53000000fffffffffffffffff000000079000000ffffffffffffffffffffffff9d010000ffffffffffffffff48010000ffffffff" }
+    if chunk == 102 { return "ffffffffffffffff57020000fffffffffffffffffffffffffb010000ffffffffa700000097010000fffffffffffffffffffffffffa0100000b020000ffffffffffffffffffffffff" }
+    if chunk == 103 { return "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0b000000ffffffff58020000db00000000010000ffffffff4b020000ffffffffffffffffdc000000" }
+    if chunk == 104 { return "ff0000004d010000ffffffffbc000000ffffffff09000000bd000000ffffffffffffffff4f0000008d010000e5000000ffffffffe60000006600000066020000ffffffffffffffff" }
+    if chunk == 105 { return "8a000000ffffffffffffffffffffffffffffffff3c010000ffffffffffffffffffffffffffffffffffffffff8a010000ffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 106 { return "ffffffffffffffffffffffffffffffffffffffffc90000005f000000ffffffffffffffffffffffffb001000026000000ca000000e9010000fffffffffffffffff9000000ffffffff" }
+    if chunk == 107 { return "ffffffff41010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80020000ffffffffffffffffffffffff" }
+    if chunk == 108 { return "70000000ffffffffffffffff07000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff4e000000ffffffffffffffffffffffff230000008f0100003e020000" }
+    if chunk == 109 { return "ffffffffae010000d9010000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffba010000ffffffffffffffffffffffffffffffff" }
+    if chunk == 110 { return "ffffffffffffffffffffffffb6010000ffffffffffffffffffffffffc4000000ffffffffa0000000c5000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+    if chunk == 111 { return "2b010000ffffffffffffffffffffffffffffffffffffffff9f00000090010000a4010000ffffffffffffffffffffffffffffffffef010000ffffffffffffffffffffffffffffffff" }
+    if chunk == 112 { return "ffffffff4c020000ffffffffffffffff82000000ffffffffffffffffa5000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7a020000ffffffff" }
+    if chunk == 113 { return "ffffffffffffffffc9010000ffffffffffffffff40000000e9000000ffffffff79020000ffffffffffffffffffffffffffffffffffffffff" }
     return String_new()
 }
 

@@ -20,6 +20,7 @@ fn mir_is_printlike_callee(name: String) -> bool {
     eq(clone(name), "eprintln") ||
     eq(clone(name), "__intrinsic_println") ||
     eq(clone(name), "__intrinsic_eprintln") ||
+    eq(clone(name), "__intrinsic_eprint") ||
     eq(clone(name), "__intrinsic_print")
 }
 

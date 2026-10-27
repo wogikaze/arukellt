@@ -39,8 +39,8 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
   removed with E0100 replacement hints. The Phase F completion wave retired the
   fully-replaced wrappers too (`reader_from_bytes`, the seven `buf_*` entry
   points, `writer_new`, `write_all`, `write_string`, `writer_flush`,
-  `writer_to_bytes`). Only `writer_write` / `writer_write_str` remain
-  `deprecated` with W0009 coverage and a recorded deletion condition.
+  `writer_to_bytes`). The tagged `writer_write` / `writer_write_str` pair was
+  deleted once the typed `std::io::Stdout` / `Stderr` Write handles landed (E0100 hints, 2026-10-28).
 - `Reader` / `Writer` are distinct newtypes with private layouts. `BufReader`
   and `BufWriter` are the canonical generic adapters; the legacy `Vec<i32>`
   buffered wrappers are gone and their fixtures exercise the generic adapters
@@ -151,8 +151,8 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
   `BufReader::read_line` dispatch fix (`ebfb2f8be`), the `buf_*` / memory
   `writer_*` fixtures moved to `BufReader` / `BufWriter` / `Reader` / `Writer` /
   `Io` methods and the 13 fully-replaced wrappers were deleted (E0100 hints,
-  migration rows, changelog). `writer_write` / `writer_write_str` stay because
-  the host stdio typed handles do not exist yet. Evidence: 25 migrated
+  migration rows, changelog). The final tagged writer pair was deleted with the
+  typed host stdio handles (2026-10-28, E0100). Evidence: 25 migrated
   `stdlib_io*` / `stdlib_trait` fixtures compile, validate, and run on both
   `wasm32-gc` (memory32/P2) and `wasm32` with identical stdout;
   `verify fixtures` 1837/1837 PASS / 0 FAIL (105 runtime smoke);
@@ -258,26 +258,27 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
   their `.expected` on `wasm32-gc` memory32/P2 and `--target wasm32`. The
   fd-lane `file_*` helpers stay retired in favour of the whole-file `File`
   contract.
-- **Residual: host stdio handles — blocked 2026-10-27.** `stdout()` /
-  `stderr()` are still tagged `Vec<i32>` handles, so `writer_write` /
-  `writer_write_str` stay deprecated. A typed `Stdout` handle now lowers and
-  runs on both targets when the handle struct is non-empty, but a byte-faithful
-  typed `Stderr` handle is blocked: the only stderr intrinsic is
-  `__intrinsic_eprintln`, which appends `\n`; there is no `__intrinsic_eprint`
-  (raw stderr write) and no fd-write escape hatch in std. Landing `Stdout`
-  alone cannot retire the pair because both wrappers route tag `2` to stderr.
-  Deletion condition: a raw stderr write intrinsic lands and typed
-  `Stdout` / `Stderr` handles replace the tagged layout. Evidence: the probe
-  `Stderr::write("err bytes")` emitted `err bytes\n`.
-- **Compiler: empty-struct handle lowering — open (2026-10-27).** The
-  zero-sized handle form `pub struct Stdout {}` produced invalid core Wasm on
-  `wasm32-gc`: `func 26 failed to validate: type mismatch: expected (ref null
-  $type), found (ref null $type) (at offset 0x13cc)`. WAT pinned it to
-  `call $Stdout::new; local.set $_t0` where the caller local was typed as the
-  String array (`type 0`) and `Stdout::new` returned the one-field struct
-  (`type 2`). A non-empty handle struct (`tag: i32`) compiles, validates, and
-  runs, so typed stdio handles need a non-zero field until this residual is
-  fixed. This does not affect `File`, whose layout is non-empty.
+- **Resolved 2026-10-28: host stdio typed handles + raw stderr write.**
+  `std::io` now exposes `Stdout` / `Stderr` as zero-field handles that
+  implement `Write`; `write(Vec<i32>)` emits the byte image unchanged,
+  `write_string(s)` emits UTF-8 bytes, and `flush` is synchronous. The compiler
+  gained the raw `__intrinsic_eprint` core op (`runtime.eprint`, no appended
+  newline) with `wasm32-gc`/P2, `wasm32`/P1, and native runtime paths.
+  `writer_write` / `writer_write_str` were deleted; qualified old calls fail
+  with E0100 hints that name `io::Stdout::new().write(...)` /
+  `io::Stderr::new().write(...)`. Evidence: `stdlib_io_traits/typed_stdout_write`
+  and `typed_stderr_raw` compile, validate, and run on both targets; the
+  stderr golden is `err bytes!`, so an appended newline would fail parity.
+- **Resolved 2026-10-28: zero-field GC struct lowering.** The empty-struct
+  failure was a named-type registration gap, not a `struct.new` instruction
+  bug. `ctx_gc_struct` skipped every struct with `field_count == 0`, so
+  `Stdout` had no named GC type: `Struct::new` fell back to the byte-size
+  shell (`SubF_GS_f0_i32`, type 2), the return ABI used the same shell, while
+  the caller's local had no layout entry and the local-declaration fallback
+  emitted the first GC type (the `i8` array, type 0). The fix registers
+  zero-field user structs like any other, emits the bare `GS` sig as final
+  `SubF_GS`, and parses that sig back to a zero-field struct. The probe
+  `struct EmptyHandle {}` now lowers and validates on `wasm32-gc`.
 
 ## References
 

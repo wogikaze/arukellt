@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: io::writer_write_str; use `io::Stdout::new().write_string(s)` or `io::Stderr::new().write_string(s)` from `use std::io` instead

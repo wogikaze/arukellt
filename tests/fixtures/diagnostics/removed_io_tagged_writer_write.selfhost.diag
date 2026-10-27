@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: io::writer_write; use `io::Stdout::new().write(data)` or `io::Stderr::new().write(data)` from `use std::io` instead

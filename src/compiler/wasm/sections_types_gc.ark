@@ -266,6 +266,12 @@ fn gc_struct_sig_as_final(sig: String) -> String {
     if starts_with(clone(sig), "GS_f") {
         return "SubF_".concat(sig)
     }
+    // A zero-field user struct has the bare `GS` sig. It must still be a
+    // final struct type; the unprefixed form falls through to the function
+    // type branch, which has no body.
+    if eq(clone(sig), String_from("GS")) {
+        return String_from("SubF_GS")
+    }
     sig
 }
 

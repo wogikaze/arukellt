@@ -947,6 +947,14 @@ phase = 4
 implementation = "ark_rt_clock_now_ms"
 
 [[core_ops]]
+id = "runtime.eprint"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "supported"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
 id = "runtime.eprintln"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"

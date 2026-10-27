@@ -1,13 +1,13 @@
-// The tagged stderr handle has no readable image; `writer_to_bytes` is
-// retired, so the empty write count is the remaining observable contract.
-use std::io
+// Typed stderr keeps the empty-write count contract: zero bytes accepted and
+// no newline emitted.
+use std::io::{io_error_message, IoError, Stderr, Write}
 use std::test
 
 fn main() {
-    let w: Vec<i32> = io::stderr()
-    let res: Result<i32, io::IoError> = io::writer_write_str(w, "")
+    let err: Stderr = Stderr::new()
+    let res: Result<i32, IoError> = err.write(Vec::new<i32>())
     match res {
-        Result::Ok(n) => test::assert_eq_i32(n, 0),
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Ok(count) => test::assert_eq_i32(count, 0),
+        Result::Err(e) => panic(io_error_message(e)),
     }
 }

@@ -3,11 +3,8 @@ use std::host::stdio
 use std::io
 
 fn main() {
-    // stdout() is still a tagged Vec<i32> handle, so writing to it stays on the
-    // deprecated writer_write_str until std::host::stdio exposes typed Write
-    // handles (ADR-085 D9).
-    let w: Vec<i32> = io::stdout()
-    let r: Result<i32, io::IoError> = io::writer_write_str(w, "stdout line\n")
+    let out: io::Stdout = io::Stdout::new()
+    let r: Result<i32, io::IoError> = out.write_string("stdout line\n")
     match r {
         Result::Ok(_) => (),
         Result::Err(e) => stdio::println(io::io_error_message(e)),

@@ -21,6 +21,11 @@ fn parse_sub_super_offset(sig: String) -> i32 {
 }
 
 fn parse_sub_struct_sig(sig: String) -> String {
+    // Zero-field user structs emit as `SubF_GS` and carry no `_GS_` field
+    // marker; their body is the bare `GS` (zero fields).
+    if eq(clone(sig), String_from("SubF_GS")) {
+        return String_from("GS")
+    }
     let marker = "_GS_"
     let start = find_type_sig_str(sig, marker)
     if start >= 0 {

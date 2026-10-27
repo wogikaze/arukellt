@@ -2,6 +2,8 @@
 //!
 //! These APIs are explicitly host-bound. They are not part of the pure
 //! standard-library surface and must be imported from `std::host::stdio`.
+//! Byte-faithful typed sinks are `std::io::Stdout` / `std::io::Stderr`; this
+//! module keeps the string-shaped `print` / `println` / `eprintln` helpers.
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). Requires WASI stdout/stderr capability.
 
@@ -24,7 +26,7 @@ pub fn println(s: String) {
     __intrinsic_println(s)
 }
 
-/// Writes a string to stderr.
+/// Writes a string to stderr and appends a newline.
 pub fn eprintln(s: String) {
     __intrinsic_eprintln(s)
 }

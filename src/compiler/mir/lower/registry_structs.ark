@@ -47,10 +47,9 @@ fn mir_register_struct_gc_types(ctx: LowerCtx) {
     let mut li = 0
     while li < layout_count {
         let name = ctx_struct_storage::ctx_struct_layout_name_at(ctx, li)
-        let fc = ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, li)
-        if ctx_gc_struct::gc_struct_needs_named_type(ctx, clone(name), fc) {
-            let _slot = ctx_gc_struct::ctx_ensure_gc_struct_registered(ctx, clone(name))
-        }
+        // Every user struct, including zero-field handles, gets a named GC
+        // type on GC targets (ADR-085 typed stdio handles).
+        let _slot = ctx_gc_struct::ctx_ensure_gc_struct_registered(ctx, clone(name))
         li = li + 1
     }
 }
