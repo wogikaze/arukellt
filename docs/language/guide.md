@@ -273,9 +273,9 @@ Iterate over a `Vec`:
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::host::stdio
-use std::prelude::{values}
+use std::core::iter
 
-for item in values(v) {
+for item in v {
     stdio::println((item).to_string())
 }
 ```
@@ -456,7 +456,7 @@ match parse_positive(String_from("42")) {
 ```ark
 use std::host::stdio
 
-match get(v, 0) {
+match v.get(0) {
     Some(val) => stdio::println((val).to_string()),
     None      => stdio::println(String_from("empty")),
 }
@@ -655,17 +655,14 @@ all other prelude decls require an explicit `use std::prelude::{name}`:
 <!-- fixture: guide/string_ops.ark -->
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::prelude::{eq, slice, to_lower, to_upper, trim}
-use std::text
-
 let s = String_from("hello")
 let t = s.concat(String_from(" world"))
-let upper = to_upper(s)
-let lower = to_lower(s)
-let n = len(s)
-let b = eq(s, String_from("hello"))   // true
-let sub = slice(s, 0, 3)              // "hel"
-let trimmed = trim(String_from("  hi  "))
+let upper = s.to_upper()
+let lower = s.to_lower()
+let n = s.len()
+let b = s.eq(String_from("hello"))   // true
+let sub = s.slice(0, 3)              // "hel"
+let trimmed = String_from("  hi  ").trim()
 ```
 
 String values are valid UTF-8. The byte APIs and Unicode scalar APIs use different
