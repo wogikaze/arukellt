@@ -32,19 +32,45 @@ graph LR
   I928["928 928 — bare `clone` callee resolves to `String::clone`; wasm32-gc emits invalid wasm for `clone(Vec<T>)`"]
   I930["930 930 — reference-parity execution leg cannot package memory64 cores;"]
   I931["931 931 — module-graph compile: sibling files access each other's"]
+  I934["934 934 — typechecker resolves calls through a flat, overload-blind name index"]
+  I938["938 938 — return-type checking compares only the outer tag, not type arguments"]
+  I940["940 940 — backend type identity drops module paths; same-named types in different modules collide"]
+  I941["941 941 — type-name encodings use `_` as a separator; distinct generic instances collide and miscompile"]
+  I942["942 942 — `wasm32` compile reports success for invalid core Wasm"]
+  I943["943 943 — ownership and mutability rules do not hold at function-call boundaries"]
+  I945["945 945 — `impl Copy` is accepted for types with non-`Copy` fields; the "copy" aliases"]
+  I946["946 946 — single-uppercase type names in impl heads are treated as implicit type parameters"]
+  I947["947 947 — `wasm32-gc` print leaks a WASI output-stream handle per call; programs die after 500,000 lines"]
+  I948["948 948 — `wasm32-gc` print bump-allocates linear memory per call and never reclaims it"]
+  I949["949 949 — type-spine plans omit the typechecker → CoreHIR handoff; a core-rewrite checkbox overstates progress"]
+  I950["950 950 — verification never exercises the failure classes found in the P0 audit"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
+  I933["933 933 — typechecker results are discarded before lowering; MIR re-infers types from strings"]
+  I936["936 936 — prelude core functions have placeholder signatures; checker and emitter dispatch them by name"]
+  I937["937 937 — `let` type annotations silently replace a mismatching inferred type"]
+  I944["944 944 — use of a moved binding is not diagnosed when the use is a call argument"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
+  I935["935 935 — arguments of non-generic calls are never checked against parameter types"]
+  I939["939 939 — `TY_UNKNOWN` unifies with every type and may survive checking"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
   I713["713 713 — Stdlib and Arukellt code best-practices doc pack"]
   I680 --> I682
   I697 --> I710
   I851 --> I850
+  I934 --> I933
+  I934 --> I936
+  I934 --> I937
+  I943 --> I944
   I682 --> I683
   I681 --> I711
   I710 --> I711
+  I934 --> I935
+  I936 --> I935
+  I934 --> I939
+  I936 --> I939
   I711 --> I712
   I711 --> I713
   I712 --> I713
@@ -78,10 +104,28 @@ graph LR
 - **928** depends on: none; blocks: none
 - **930** depends on: none; blocks: none
 - **931** depends on: none; blocks: none
+- **934** depends on: none; blocks: 933, 935, 936, 937, 939
+- **938** depends on: none; blocks: none
+- **940** depends on: none; blocks: none
+- **941** depends on: none; blocks: none
+- **942** depends on: none; blocks: none
+- **943** depends on: none; blocks: 944
+- **945** depends on: none; blocks: none
+- **946** depends on: none; blocks: none
+- **947** depends on: none; blocks: none
+- **948** depends on: none; blocks: none
+- **949** depends on: none; blocks: none
+- **950** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **850** depends on: 851; blocks: none
+- **933** depends on: 934; blocks: none
+- **936** depends on: 934; blocks: 935, 939
+- **937** depends on: 934; blocks: none
+- **944** depends on: 943; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **711** depends on: 681, 709, 710; blocks: 712, 713
+- **935** depends on: 934, 936; blocks: none
+- **939** depends on: 934, 936; blocks: none
 - **712** depends on: 709, 711; blocks: 713
 - **713** depends on: 709, 711, 712; blocks: none
