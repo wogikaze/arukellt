@@ -20,6 +20,13 @@ fn infer_wrapper_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum
     }
     if ast_expr_predicates::node_is_if_expr(node) {
         if ast_access::node_child_count(node) >= 2 {
+            // Infer the calls inside the condition before the arms. Control
+            // flow never needed the condition type, but a method call reached
+            // only from a condition (self.buffered() in
+            // BufReader::read_line) never recorded its mono demand edge, so
+            // the emitter bound an unresolved callee and trapped.
+            let cond_node = ast_access::node_child_at(node, 0)
+            infer_condition_call_demand_edges(env, scope, fn_sigs, enum_defs, cond_node)
             let then_node = ast_access::node_child_at(node, 1)
             let then_ty = infer_expr(env, scope, fn_sigs, enum_defs, then_node)
             if ast_access::node_child_count(node) >= 3 {
@@ -44,4 +51,52 @@ fn infer_wrapper_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum
         }
     }
     TypeInfo_simple(commands::TY_UNKNOWN())
+}
+
+// Condition expressions were historically unchecked, so inferring the whole
+// tree would introduce a new type-error surface (operator unification on
+// numeric literals) in already-valid programs. Only call nodes can publish a
+// mono demand edge, so infer those and discard the speculative diagnostics;
+// this keeps the language contract while restoring the missing edges.
+fn infer_condition_call_demand_edges(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
+    if ast_expr_predicates::node_is_call(node) || ast_expr_predicates::node_is_method_call(node) {
+        let saved_error_count = env.error_count
+        let saved_error_len = len(env.errors)
+        let saved_diagnostic_len = len(env.diagnostics)
+        let _call_ty = infer_expr(env, scope, fn_sigs, enum_defs, node)
+        env.error_count = saved_error_count
+        while len(env.errors) > saved_error_len {
+            match env.errors.pop() {
+                Option::Some(_) => {
+                },
+                Option::None => {
+                    break
+                },
+            }
+        }
+        while len(env.diagnostics) > saved_diagnostic_len {
+            match env.diagnostics.pop() {
+                Option::Some(_) => {
+                },
+                Option::None => {
+                    break
+                },
+            }
+        }
+        return
+    }
+    // A call already infers its receiver and arguments, so only non-call
+    // nodes recurse (operators, parens, field accesses, blocks).
+    let child_count = ast_access::node_child_count(node)
+    let mut child_index = 0
+    while child_index < child_count {
+        infer_condition_call_demand_edges(
+            env,
+            scope,
+            fn_sigs,
+            enum_defs,
+            ast_access::node_child_at(node, child_index)
+        )
+        child_index = child_index + 1
+    }
 }

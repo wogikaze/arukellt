@@ -217,11 +217,19 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
   longer warns that `std::io` moved to `std::host::stdio`, and
   `docs/compiler/error-codes.md` uses the `std::time` → `std::host::clock`
   example. `std::io` is the canonical abstraction module.
-- **Residual: generic-adapter dispatch.** Migrating the `buf_*` fixtures to
-  `BufReader` / `BufWriter` still exposes the generic-impl dispatch trap
-  (`BufReader::read_line` lowers to `unreachable` when the mono instance is not
-  instantiated through a preceding `read` call). The retained `buf_*` wrappers
-  stay deprecated until the compiler lane fixes it.
+- **Generic-adapter dispatch — resolved 2026-10-27 (wave/693-residual).**
+  `BufReader::read_line` lowers to `unreachable` when its mono instance is
+  demanded without a preceding `read` call because the method calls in its
+  `if` conditions were never type-inferred, so `self.buffered()` recorded no
+  mono demand edge and the emitter bound `BufReader_Reader::buffered` with no
+  function. Inferring the call nodes inside `if` conditions restores the
+  demand edge; nested `Result` / `Option` payload spellings and
+  `Module::Type` payload extraction are fixed alongside it. A standalone
+  direct `BufReader::read_line` now compiles, validates, and runs on
+  `wasm32-gc` memory32/P2 and `wasm32`.
+  `tests/fixtures/stdlib_io_traits/buf_reader_standalone.ark` covers it. The
+  retained `buf_*` wrappers still stay deprecated through their ADR-014
+  removal window until their fixtures migrate.
 - **Residual: host stdio handles.** `stdout()` / `stderr()` are still tagged
   `Vec<i32>` handles, so the `writer_*` family stays deprecated until
   `std::host::stdio` exposes typed handles with `Write` impls.

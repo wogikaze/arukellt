@@ -7,6 +7,19 @@ use corehir::frontend_ast_identity
 use corehir::frontend_type_kind
 use corehir::param_shape_node
 use corehir::type_ann_node
+// Payload segments nested inside Result<T, E> / Option<T> keep their own
+// local-type encoding. Taking only the annotation head name (Option for
+// Option<String>) makes the match-payload bind open the inner enum and lose
+// the String element, so the payload local is declared as the enum base and
+// consuming it as a String is invalid wasm.
+fn nested_payload_local_type_name(ann: AstNode) -> String {
+    let shaped = type_ann_local_name::type_ann_shape_local_type_name(ann, 0)
+    if len(shaped) > 0 {
+        return shaped
+    }
+    decl_ann_name::decl_ann_name(ann)
+}
+
 fn param_named_local_type_name(ann: AstNode) -> String {
     if decl_ann_name::decl_ann_is_named(ann) {
         let name = decl_ann_name::decl_ann_name(ann)
@@ -107,14 +120,17 @@ fn fn_param_local_type_name(node: AstNode) -> String {
             if decl_ann_name::decl_ann_is_name(elem2, String_from("i32")) {
                 return String_from("Option_i32")
             }
-            return text::concat(String_from("option:"), decl_ann_name::decl_ann_name(elem2))
+            return text::concat(String_from("option:"), nested_payload_local_type_name(elem2))
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("Result")) && decl_ann_children::decl_ann_child_count(ann) >= 3 {
             let ok_ty = decl_ann_children::decl_ann_child_at(ann, 1)
             let err_ty = decl_ann_children::decl_ann_child_at(ann, 2)
             return text::concat(
                 String_from("result:"),
-                text::concat(decl_ann_name::decl_ann_name(ok_ty), text::concat(String_from(":"), decl_ann_name::decl_ann_name(err_ty)))
+                text::concat(
+                    nested_payload_local_type_name(ok_ty),
+                    text::concat(String_from(":"), nested_payload_local_type_name(err_ty))
+                )
             )
         }
         let generic_user_type = generic_user_type_local_name(ann)
@@ -189,14 +205,17 @@ fn method_param_local_type_name(node: AstNode) -> String {
             if decl_ann_name::decl_ann_is_name(elem2, String_from("i32")) {
                 return String_from("Option_i32")
             }
-            return text::concat(String_from("option:"), decl_ann_name::decl_ann_name(elem2))
+            return text::concat(String_from("option:"), nested_payload_local_type_name(elem2))
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("Result")) && decl_ann_children::decl_ann_child_count(ann) >= 3 {
             let ok_ty = decl_ann_children::decl_ann_child_at(ann, 1)
             let err_ty = decl_ann_children::decl_ann_child_at(ann, 2)
             return text::concat(
                 String_from("result:"),
-                text::concat(decl_ann_name::decl_ann_name(ok_ty), text::concat(String_from(":"), decl_ann_name::decl_ann_name(err_ty)))
+                text::concat(
+                    nested_payload_local_type_name(ok_ty),
+                    text::concat(String_from(":"), nested_payload_local_type_name(err_ty))
+                )
             )
         }
         let generic_user_type = generic_user_type_local_name(ann)

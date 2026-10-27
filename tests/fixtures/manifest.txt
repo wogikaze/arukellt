@@ -1169,6 +1169,7 @@ run:stdlib_io_traits/reader_writer_roundtrip.ark
 run:stdlib_io_traits/trait_dispatch.ark
 run:stdlib_io_traits/io_copy_roundtrip.ark
 run:stdlib_io_traits/buf_reader_lines.ark
+run:stdlib_io_traits/buf_reader_standalone.ark
 run:stdlib_io_traits/buf_writer_flush.ark
 run:stdlib_io_traits/file_copy_to_memory.ark
 run:stdlib_io_traits/file_read_eof.ark
@@ -2934,6 +2935,7 @@ t3-run:stdlib_io_traits/reader_writer_roundtrip.ark
 t3-run:stdlib_io_traits/trait_dispatch.ark
 t3-run:stdlib_io_traits/io_copy_roundtrip.ark
 t3-run:stdlib_io_traits/buf_reader_lines.ark
+t3-run:stdlib_io_traits/buf_reader_standalone.ark
 t3-run:stdlib_io_traits/buf_writer_flush.ark
 t3-run:stdlib_io_traits/file_copy_to_memory.ark
 t3-run:stdlib_io_traits/file_read_eof.ark
