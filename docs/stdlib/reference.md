@@ -29,7 +29,7 @@
 | `DequeIterMut` | T | no | provisional | Writable front-to-back cursor over a Deque<T> with set_current. |
 | `F32x4` | - | no | experimental | 4 × 32-bit float lane associated operations over v128. |
 | `F64x2` | - | no | experimental | 2 × 64-bit float lane associated operations over v128. |
-| `File` | - | no | experimental | Read-only whole-file image handle opened by File::open; implements std::io Read and Seek over the loaded byte image. The host surface has no descriptor open/read/write/close yet, so the image is the visibility boundary (ADR-085 D6). |
+| `File` | - | no | experimental | Whole-file image handle: File::open loads a read-only image and File::create starts a write image. Implements std::io Read, Write, and Seek over the image; Write::flush (and close) commit the write image to the path. The host surface has no descriptor open/read/write/close yet, so the image is the visibility boundary (ADR-085 D6). |
 | `FuncType` | - | no | experimental | A Wasm function signature: parameter types followed by result types. Both lists hold ValType constants. |
 | `HandleTableI32` | - | no | experimental | SlotMap-backed Component Model handle table for i32 payloads; new, insert, get, remove, and len are receiver methods. |
 | `HashMap` | K, V | yes | provisional | Hash-based key/value map. |
@@ -110,7 +110,7 @@
 | `DequeIterMut` | `set_current` | `Iterator`, `IntoIterator` |
 | `F32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `div`, `sqrt`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `min`, `max`, `ceil`, `floor`, `trunc`, `nearest`, `abs` | - |
 | `F64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `ceil`, `floor`, `trunc`, `nearest`, `promote_low_f32x4`, `convert_low_i32x4_s`, `convert_low_i32x4_u` | - |
-| `File` | `open`, `close` | `Read`, `Seek` |
+| `File` | `open`, `create`, `close` | `Read`, `Write`, `Seek` |
 | `FromIterator` | `from_iter` | - |
 | `FuncType` | `new`, `param_count`, `result_count`, `get_param`, `get_result` | - |
 | `HandleTableI32` | `new`, `insert`, `get`, `remove`, `len` | - |

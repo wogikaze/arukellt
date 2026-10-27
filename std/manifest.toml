@@ -1604,7 +1604,7 @@ availability = { t1 = true, t3 = true, note = "Honest rejection." }
 name = "std::host::fs"
 stability = "stable"
 family = "host"
-doc = "Host filesystem helpers backed by current WASI filesystem intrinsics. read_to_string, read_bytes, write_string, write_bytes are whole-file I/O. File is a read-only whole-file image handle implementing std::io Read and Seek. is_readable_file/exists are read-probes (NOT path-existence). is_dir is an explicit unsupported stub. fd_* helpers are experimental `wasm32`-only."
+doc = "Host filesystem helpers backed by current WASI filesystem intrinsics. read_to_string, read_bytes, write_string, write_bytes are whole-file I/O. File is a whole-file image handle: File::open reads an image, File::create starts a write image, and flush/close commit it; it implements std::io Read, Write, and Seek. is_readable_file/exists are read-probes (NOT path-existence). is_dir is an explicit unsupported stub. fd_* helpers are experimental `wasm32`-only."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 
 [[functions]]
@@ -1736,9 +1736,9 @@ module = "std::host::fs"
 stability = "experimental"
 prelude = false
 kind = "struct"
-doc = "Read-only whole-file image handle opened by File::open; implements std::io Read and Seek over the loaded byte image. The host surface has no descriptor open/read/write/close yet, so the image is the visibility boundary (ADR-085 D6)."
-methods = ["open", "close"]
-trait_impls = ["Read", "Seek"]
+doc = "Whole-file image handle: File::open loads a read-only image and File::create starts a write image. Implements std::io Read, Write, and Seek over the image; Write::flush (and close) commit the write image to the path. The host surface has no descriptor open/read/write/close yet, so the image is the visibility boundary (ADR-085 D6)."
+methods = ["open", "create", "close"]
+trait_impls = ["Read", "Write", "Seek"]
 
 # === std::host::stdio ===
 
@@ -2758,15 +2758,16 @@ returns = "bool"
 # === std::io ===
 #
 # ADR-085 Phases A-F: target-independent Read / Write / BufRead / Seek traits,
-# SeekFrom, the memory Reader / Writer newtypes, the Io algorithms, and the
-# generic adapters. Only the tagged output write pair stays callable, because
-# stdout() / stderr() are not typed Write handles yet (ADR-085 D9).
+# SeekFrom, the memory Reader / Writer newtypes, the Io algorithms, the generic
+# adapters, and the host File trait impls. Only the tagged output write pair
+# stays callable, because stdout() / stderr() are not typed Write handles yet
+# (ADR-085 D9).
 
 [[modules]]
 name = "std::io"
 stability = "stable"
 family = "core"
-doc = "Target-independent I/O abstraction (ADR-085): public Read / Write / BufRead / Seek traits, SeekFrom, memory Reader / Writer newtypes, the Io generic algorithms, and the generic BufReader<R> / BufWriter<W> adapters. The legacy free functions are retired (E0100) except writer_write / writer_write_str, which stay deprecated until std::host::stdio exposes typed Write handles for stdout() / stderr()."
+doc = "Target-independent I/O abstraction (ADR-085): public Read / Write / BufRead / Seek traits, SeekFrom, memory Reader / Writer newtypes, the Io generic algorithms, and the generic BufReader<R> / BufWriter<W> adapters. The host-backed File under std::host::fs implements Read, Write, and Seek. The legacy free functions are retired (E0100) except writer_write / writer_write_str, which stay deprecated until std::host::stdio exposes typed Write handles for stdout() / stderr()."
 availability = { t1 = true, t3 = true }
 
 [[types]]
@@ -2923,7 +2924,7 @@ stability = "deprecated"
 deprecated_by = "Writer::write"
 deprecated_since = "0.1.0"
 remove_in = "1.0.0"
-doc = "Deprecated tagged write for stdout() / stderr(); use `Writer::write` for memory handles. Stays until std::host::stdio exposes typed Write handles (ADR-085 D9)."
+doc = "Deprecated tagged write for stdout() / stderr(); use `Writer::write` for memory handles. Stays until std::host::stdio exposes byte-faithful typed Write handles: a typed Stderr write needs a raw stderr intrinsic, which does not exist yet (ADR-085 D9)."
 params = ["Vec<i32>", "Vec<i32>"]
 returns = "Result<i32, IoError>"
 
@@ -2935,7 +2936,7 @@ stability = "deprecated"
 deprecated_by = "Writer::write_string"
 deprecated_since = "0.1.0"
 remove_in = "1.0.0"
-doc = "Deprecated tagged string write for stdout() / stderr(); use `Writer::write_string` for memory handles. Stays until std::host::stdio exposes typed Write handles (ADR-085 D9)."
+doc = "Deprecated tagged string write for stdout() / stderr(); use `Writer::write_string` for memory handles. Stays until std::host::stdio exposes byte-faithful typed Write handles: a typed Stderr write needs a raw stderr intrinsic, which does not exist yet (ADR-085 D9)."
 params = ["Vec<i32>", "String"]
 returns = "Result<i32, IoError>"
 

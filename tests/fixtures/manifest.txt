@@ -1211,6 +1211,8 @@ run:stdlib_io_traits/buf_reader_standalone.ark
 run:stdlib_io_traits/buf_writer_flush.ark
 run:stdlib_io_traits/file_copy_to_memory.ark
 run:stdlib_io_traits/file_read_eof.ark
+run:stdlib_io_traits/file_write_roundtrip.ark
+run:stdlib_io_traits/file_write_contract.ark
 run:stdlib_json/json_array_of_objects.ark
 run:stdlib_json/json_as_array.ark
 run:stdlib_json/json_as_bool.ark
@@ -2458,6 +2460,8 @@ t3-compile:stdlib_io/to_string.ark
 t3-compile:stdlib_io/to_string_char_local.ark
 t3-compile:stdlib_io_traits/file_copy_to_memory.ark
 t3-compile:stdlib_io_traits/file_read_eof.ark
+t3-compile:stdlib_io_traits/file_write_roundtrip.ark
+t3-compile:stdlib_io_traits/file_write_contract.ark
 t3-compile:stdlib_map/map_string.ark
 t3-compile:stdlib_math/abs_min_max.ark
 t3-compile:stdlib_math/clamp_i32.ark
@@ -2996,6 +3000,8 @@ t3-run:stdlib_io_traits/buf_reader_standalone.ark
 t3-run:stdlib_io_traits/buf_writer_flush.ark
 t3-run:stdlib_io_traits/file_copy_to_memory.ark
 t3-run:stdlib_io_traits/file_read_eof.ark
+t3-run:stdlib_io_traits/file_write_roundtrip.ark
+t3-run:stdlib_io_traits/file_write_contract.ark
 t3-run:stdlib_json/json_perf_decode.ark
 t3-run:stdlib_json/json_perf_encode.ark
 t3-run:stdlib_map/map_string.ark

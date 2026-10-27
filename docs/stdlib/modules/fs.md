@@ -7,7 +7,7 @@ Source-backed docs for explicit host filesystem operations.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-`std::host::fs` is the primary host filesystem module: whole-file reads, string and byte writes, an `exists` read probe / readable-file check (not path existence), and experimental fd helpers, all backed by the current WASI filesystem intrinsics. `std::fs` is a smaller compact module over the same intrinsics (`read_string` / `write_string` / `exists`) — useful when you want a minimal API, with the understanding that it exposes only a subset of the `std::host::fs` operations. Neither module is a complete filesystem facade (no directory listing, metadata, or streaming I/O in-tree yet). Pure path manipulation lives in `std::path`; for the full host family overview, see [io.md](io.md).
+`std::host::fs` is the primary host filesystem module: whole-file reads, string and byte writes, an `exists` read probe / readable-file check (not path existence), the `File` whole-file image handle (`File::open` + `Read` / `Seek`, `File::create` + `Write` / `flush`), and experimental fd helpers, all backed by the current WASI filesystem intrinsics. `std::fs` is a smaller compact module over the same intrinsics (`read_string` / `write_string` / `exists`) — useful when you want a minimal API, with the understanding that it exposes only a subset of the `std::host::fs` operations. Neither module is a complete filesystem facade (no directory listing, metadata, or streaming I/O in-tree yet). Pure path manipulation lives in `std::path`; for the full host family overview, see [io.md](io.md).
 
 **Recommended API highlights:**
 
@@ -16,6 +16,7 @@ Source-backed docs for explicit host filesystem operations.
 | `read_to_string(path)` / `read_string(path)` | Read a whole file as a UTF-8 string, returning `Result<String, String>`. |
 | `write_string(path, content)` | Write or replace a UTF-8 file. |
 | `write_bytes(path, buf)` | Write a byte array to a file. |
+| `File::open(path)` / `File::create(path)` | Open a read-only image or start a write image implementing `Read` / `Write` / `Seek`; `flush` commits the image. |
 | `exists(path)` | Read probe: `true` when a full read succeeds; not a general path-existence check. |
 
 **Target constraints:** Target/profile availability: mixed — see individual symbols. Host dependency: yes. Explicit runtime permission: `--dir` (or equivalent) for file I/O.
@@ -52,10 +53,10 @@ repository-specific host runtime; use an official WASI filesystem WIT
 import when those capabilities are required.
 
 `File` is a whole-file image handle (ADR-085 D6): `File::open` reads the
-path's bytes once, and `Read` / `Seek` operate on that image. The host
-surface still has no open / read / write / close descriptor API, so the
-image is the visibility boundary. `File::create` and the `Write` side are
-not part of this read-side phase (#693 Phase D).
+path's bytes once, and `File::create` starts an empty write image that
+`Write::flush` (or `close`) commits back to the path. The host surface still
+has no descriptor open / read / write / close API, so the image is the
+visibility boundary: other readers see the old bytes until a flush succeeds.
 
 `write_string` and `write_bytes` are defined in the `write` child module and
 re-exported here. Keeping them out of this file avoids a resolver collision
@@ -66,7 +67,7 @@ be visible through the `std::io` import used by `File`.
 
 | Name | Kind | Methods | Trait impls | Summary |
 |------|------|---------|-------------|---------|
-| `File` | `struct` | `open`, `close` | `Read`, `Seek` | Read-only whole-file handle opened from a path. |
+| `File` | `struct` | `open`, `create`, `close` | `Read`, `Write`, `Seek` | Whole-file image handle opened for reading or writing. |
 
 ### `std::host::fs` — Public API
 

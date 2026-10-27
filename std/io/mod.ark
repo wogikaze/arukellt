@@ -4,9 +4,9 @@
 //! `SeekFrom` origin, the in-memory `Reader` / `Writer` newtypes, the
 //! receiver-less generic algorithms on `Io`, and the generic `BufReader<R>` /
 //! `BufWriter<W>` adapters. `Reader` implements `Read`, `BufRead`, and `Seek`;
-//! `Writer` implements `Write`. `std::host::fs::File` implements `Read` and
-//! `Seek` for the read-side of Phase D; its write side (`File::create` /
-//! `Write` / `flush`) is still open under #693.
+//! `Writer` implements `Write`. `std::host::fs::File` implements `Read`,
+//! `Write`, and `Seek`: `File::open` loads a read-only image, `File::create`
+//! starts a write image, and `flush` / `close` commit that image (ADR-085 D6).
 //!
 //! # Contract notes
 //!
@@ -34,9 +34,11 @@
 //!
 //! - `writer_write` / `writer_write_str` keep the tagged `[fd_tag, ...]`
 //!   layout because `stdout()` / `stderr()` are tagged `Vec<i32>` handles and
-//!   `std::host::stdio` does not expose typed `Write` handles yet. Deletion
-//!   condition: those typed handles land, so a `Write` value can be passed
-//!   where a tagged handle is passed today.
+//!   `std::host::stdio` does not expose byte-faithful typed `Write` handles
+//!   yet. A typed `Stdout` handle lowers, but `Stderr` has only
+//!   `__intrinsic_eprintln`, which appends `\n`; no raw stderr write intrinsic
+//!   exists. Deletion condition: that intrinsic lands and typed
+//!   `Stdout` / `Stderr` values replace the tagged layout.
 //!
 //! Both entries carry `deprecated_by` / `remove_in` and W0009 coverage. The
 //! removed `reader_*` read methods, `copy*`, `new_memory_buffer` / `write_bytes`
@@ -142,7 +144,7 @@ pub trait Read {
 /// | Type     | Status | Notes                                   |
 /// |----------|--------|-----------------------------------------|
 /// | Writer   | impl   | In-memory byte image (`[fd_tag=0, ...]`) |
-/// | File     | open   | Whole-file write side is not implemented yet (#693) |
+/// | File     | impl   | `std::host::fs` whole-file write image; `flush` commits to the path |
 pub trait Write {
     fn write(self: Self, data: Vec<i32>) -> Result<i32, IoError>
     fn flush(self: Self) -> Result<(), IoError>
@@ -817,8 +819,8 @@ pub fn print_bytes(data: Vec<i32>) {
 /// written.
 ///
 /// Deprecated in favour of `Writer::write` for memory handles. This function
-/// stays because `stdout()` / `stderr()` return tagged `Vec<i32>` handles with
-/// no `Write` implementation yet (ADR-085 D9, #693).
+/// stays because `stdout()` / `stderr()` return tagged `Vec<i32>` handles and
+/// no byte-faithful typed `Stderr` handle exists yet (ADR-085 D9, #693).
 ///
 /// - Memory writers buffer the bytes.
 /// - stdout/stderr writers emit synchronously via print intrinsics.
@@ -853,7 +855,8 @@ pub fn writer_write(w: Vec<i32>, data: Vec<i32>) -> Result<i32, IoError> {
 ///
 /// Deprecated in favour of `Writer::write_string` for memory handles. This
 /// function stays because `stdout()` / `stderr()` return tagged `Vec<i32>`
-/// handles with no `Write` implementation yet (ADR-085 D9, #693).
+/// handles and no byte-faithful typed `Stderr` handle exists yet (ADR-085 D9,
+/// #693).
 pub fn writer_write_str(w: Vec<i32>, s: String) -> Result<i32, IoError> {
     let tag: i32 = get_unchecked(w, 0)
     let n: i32 = len(s)

@@ -263,8 +263,12 @@ The two remaining `std::io` rows are the last ADR-085 Phase F compatibility
 residual ([#693](https://github.com/wogikaze/arukellt/issues/693)). They keep
 W0009 coverage because `stdout()` / `stderr()` still return tagged `Vec<i32>`
 handles with no `Write` implementation, so there is no method receiver to
-migrate to; deletion condition: `std::host::stdio` exposes typed `Write`
-handles (ADR-085 D9). Every other legacy `std::io` free function, including
+migrate to. Deletion condition: `std::host::stdio` exposes typed `Write`
+handles (ADR-085 D9). As of 2026-10-27 a typed `Stdout` handle can be built,
+but a byte-faithful `Stderr` handle cannot: the compiler exposes only
+`__intrinsic_eprintln` (which appends `\n`), not a raw stderr write. Retiring
+these two rows requires that raw-write intrinsic; landing `Stdout` alone is not
+enough because `writer_write` / `writer_write_str` also route tag `2`. Every other legacy `std::io` free function, including
 `reader_from_bytes`, the seven `buf_*` entry points, `writer_new`, `write_all`,
 `write_string`, `writer_flush`, and `writer_to_bytes`, was removed with an
 E0100 replacement hint; see
@@ -918,7 +922,7 @@ remains):
 | `io::buffer_position(buf)` | `r.position()` |
 | `io::buffer_len(buf)` | `r.len()` |
 | `io::fill_buffer(buf)` | `r.fill_buf()` |
-| `io::file_from_fd` / `io::file_read` / `io::file_write` | `std::host::fs::File` (read side; the whole-file write side is still open under #693) |
+| `io::file_from_fd` / `io::file_read` / `io::file_write` | `std::host::fs::File` (`File::open` + `Read` / `Seek`; `File::create` + `Write` / `flush`) |
 
 The Phase F completion wave removed the remaining fully-replaced wrappers
 (2026-10-27, [#693](https://github.com/wogikaze/arukellt/issues/693)):
@@ -956,7 +960,14 @@ Behavior differences to account for while migrating:
 - The tagged `stdout()` / `stderr()` handles still have no typed `Write`
   implementation, so `io::writer_write` / `io::writer_write_str` remain the only
   way to write to them; their W0009 hint says so and does not promise a method
-  call that those handles cannot satisfy.
+  call that those handles cannot satisfy. The typed `Stderr` blocker is the
+  missing raw stderr write intrinsic, not the `Write` dispatch itself.
+- `File::create(path)` starts an empty write image. `write` writes at the
+  handle cursor (extending with zero bytes when the cursor is past the end),
+  and `flush` / `close` write the whole image to the path. Other readers keep
+  seeing the old bytes until that flush succeeds. `File::open` rejects
+  `write`, `File::create` rejects `read`, and a read-only `flush` is a no-op.
+  `close` on an untouched `File::create` truncates the file.
 
 **Before:**
 

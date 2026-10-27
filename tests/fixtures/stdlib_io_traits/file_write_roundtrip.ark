@@ -1,0 +1,88 @@
+// ADR-085 Phase D: File::create starts a write image, Write::write advances the
+// image cursor, and flush commits the whole image to the path. The read-back
+// goes through fs::read_bytes and a fresh File::open so both host read paths
+// see the committed bytes.
+use std::host::fs
+use std::host::stdio
+use std::io
+use std::io::{Read, Seek, SeekFrom, Write}
+
+fn print_byte_values(bytes: Vec<i32>) {
+    stdio::println((len(bytes)).to_string())
+    let mut i: i32 = 0
+    while i < len(bytes) {
+        stdio::println((get_unchecked(bytes, i)).to_string())
+        i = i + 1
+    }
+}
+
+fn main() {
+    match fs::File::create(".build/file_write_roundtrip.bin") {
+        Result::Ok(file) => {
+            // Explicit handle type keeps the write calls on the concrete File
+            // impl; a match payload alone stays a type variable (#693).
+            let file: fs::File = file
+            match file.write("hello\nworld".to_utf8_bytes()) {
+                Result::Ok(count) => stdio::println((count).to_string()),
+                Result::Err(err) => stdio::println(io::io_error_message(err)),
+            }
+            match file.seek(SeekFrom::Start(6i64)) {
+                Result::Ok(position) => stdio::println((position).to_string()),
+                Result::Err(err) => stdio::println(io::io_error_message(err)),
+            }
+            match file.write("W".to_utf8_bytes()) {
+                Result::Ok(count) => stdio::println((count).to_string()),
+                Result::Err(err) => stdio::println(io::io_error_message(err)),
+            }
+            match file.flush() {
+                Result::Ok(_) => stdio::println("flushed"),
+                Result::Err(err) => stdio::println(io::io_error_message(err)),
+            }
+            match file.close() {
+                Result::Ok(_) => stdio::println("closed"),
+                Result::Err(err) => stdio::println(io::io_error_message(err)),
+            }
+        },
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    match fs::read_bytes(".build/file_write_roundtrip.bin") {
+        Result::Ok(image) => {
+            let image: Vec<i32> = image
+            print_byte_values(image)
+        },
+        Result::Err(err) => stdio::println(err),
+    }
+
+    match fs::File::open(".build/file_write_roundtrip.bin") {
+        Result::Ok(file) => {
+            let file: fs::File = file
+            match file.read(5) {
+                Result::Ok(bytes) => {
+                    let bytes: Vec<i32> = bytes
+                    print_byte_values(bytes)
+                },
+                Result::Err(err) => stdio::println(io::io_error_message(err)),
+            }
+            match file.read(20) {
+                Result::Ok(bytes) => {
+                    let bytes: Vec<i32> = bytes
+                    print_byte_values(bytes)
+                },
+                Result::Err(err) => stdio::println(io::io_error_message(err)),
+            }
+            match file.read(1) {
+                Result::Ok(bytes) => {
+                    let bytes: Vec<i32> = bytes
+                    print_byte_values(bytes)
+                },
+                Result::Err(err) => stdio::println(io::io_error_message(err)),
+            }
+            match file.position() {
+                Result::Ok(position) => stdio::println((position).to_string()),
+                Result::Err(err) => stdio::println(io::io_error_message(err)),
+            }
+        },
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+}

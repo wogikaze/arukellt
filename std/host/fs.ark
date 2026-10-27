@@ -6,18 +6,24 @@
 //! import when those capabilities are required.
 //!
 //! `File` is a whole-file image handle (ADR-085 D6): `File::open` reads the
-//! path's bytes once, and `Read` / `Seek` operate on that image. The host
-//! surface still has no open / read / write / close descriptor API, so the
-//! image is the visibility boundary. `File::create` and the `Write` side are
-//! not part of this read-side phase (#693 Phase D).
+//! path's bytes once, and `File::create` starts an empty write image that
+//! `Write::flush` (or `close`) commits back to the path. The host surface still
+//! has no descriptor open / read / write / close API, so the image is the
+//! visibility boundary: other readers see the old bytes until a flush succeeds.
 //!
 //! `write_string` and `write_bytes` are defined in the `write` child module and
 //! re-exported here. Keeping them out of this file avoids a resolver collision
 //! between their names and the legacy `std::io` helpers, which would otherwise
 //! be visible through the `std::io` import used by `File`.
-use std::io::{IoError, Read, Reader, Seek, SeekFrom}
+use std::io::{IoError, Read, Reader, Seek, SeekFrom, Write}
+use std::prelude::{clone, i32_to_i64, i64_to_i32}
 use std::text
 pub use std::host::fs::write::{write_bytes, write_string}
+
+const BYTE_MASK: i32 = 255
+// The write cursor is an i32 for the same reason as Reader's cursor; a larger
+// Seek coordinate is rejected instead of silently truncating (ADR-067).
+const MAX_CURSOR_POSITION: i32 = 2147483647
 
 pub fn read_to_string(path: String) -> Result<String, String> {
     __runtime_abi_fs_read_file(path)
@@ -38,33 +44,115 @@ pub fn read_bytes(path: String) -> Result<Vec<i32>, String> {
     }
 }
 
-/// Read-only whole-file handle opened from a path.
+/// Whole-file image handle opened for reading or writing.
 ///
-/// The file image is loaded once by `open`; later host changes to the path are
-/// not observed. Handles are not `Copy`: moving one into an adapter transfers
-/// ownership. `close` marks the handle unusable instead of silently reopening
-/// the image.
+/// `open` loads the path's bytes into `reader`; `create` starts an empty
+/// `image` with its own `cursor`. The representations stay separate because
+/// `Reader` exposes no write path and its cursor belongs to the read image;
+/// a write must splice bytes at an arbitrary cursor in the owned image.
+///
+/// Handles are not `Copy`: moving one into an adapter transfers ownership.
+/// `close` marks the handle unusable instead of silently reopening the image,
+/// and commits the write image first (ADR-085 D6).
 pub struct File {
     reader: Reader,
+    image: Vec<i32>,
+    cursor: i32,
+    path: String,
+    writable: bool,
+    dirty: bool,
     closed: bool,
 }
 
 impl File {
     /// Opens `path` as a read-only byte image.
     fn open(path: String) -> Result<File, IoError> {
-        match read_bytes(path) {
-            Result::Ok(image) => Ok(File { reader: Reader::from_bytes(image), closed: false }),
+        match read_bytes(clone(path)) {
+            Result::Ok(image) => Ok(File {
+                    reader: Reader::from_bytes(image),
+                    image: Vec::new<i32>(),
+                    cursor: 0,
+                    path: path,
+                    writable: false,
+                    dirty: false,
+                    closed: false,
+                }),
             Result::Err(message) => Err(IoError::Other(message)),
         }
     }
 
-    /// Marks the handle closed; later reads and seeks return an error.
+    /// Starts an empty write image for `path`.
+    ///
+    /// The path is not touched until the first successful `flush` (or `close`),
+    /// so a failed write leaves the existing file intact. The handle starts
+    /// dirty so closing an untouched image truncates the file, matching
+    /// `Write::flush` as the commit boundary.
+    fn create(path: String) -> Result<File, IoError> {
+        Ok(File {
+                reader: Reader::new(),
+                image: Vec::new<i32>(),
+                cursor: 0,
+                path: path,
+                writable: true,
+                dirty: true,
+                closed: false,
+            })
+    }
+
+    /// Marks the handle closed; a writer commits its image first.
     fn close(self: File) -> Result<(), IoError> {
         if self.closed {
             return Err(IoError::Other("file: already closed"))
         }
+        match self.commit() {
+            Result::Ok(_) => {
+            },
+            Result::Err(err) => return Err(err),
+        }
         self.closed = true
         Ok(())
+    }
+
+    /// Commits the write image to the path once it has pending changes.
+    ///
+    /// Read handles have no image to commit, so `flush` on `open` is a no-op
+    /// rather than an error; only `write` is rejected for read-only handles.
+    fn commit(self: File) -> Result<(), IoError> {
+        if !self.writable || !self.dirty {
+            return Ok(())
+        }
+        // Call the host intrinsic directly: the bare `write_bytes` name would
+        // resolve to the retired `std::io::write_bytes` still visible through
+        // this module's `std::io` import, which lowers to an `unreachable` stub.
+        match __runtime_abi_fs_write_bytes(clone(self.path), clone(self.image)) {
+            Result::Ok(_) => {
+                self.dirty = false
+                Ok(())
+            },
+            Result::Err(message) => Err(IoError::Other(message)),
+        }
+    }
+
+    /// Writes `data` at the write cursor, extending the image when needed.
+    fn write_at_cursor(self: File, data: Vec<i32>) -> Result<i32, IoError> {
+        let count: i32 = len(data)
+        while len(self.image) < self.cursor {
+            push(self.image, 0)
+        }
+        let mut i: i32 = 0
+        while i < count {
+            let position: i32 = self.cursor + i
+            let byte: i32 = get_unchecked(data, i) & BYTE_MASK
+            if position < len(self.image) {
+                set(self.image, position, byte)
+            } else {
+                push(self.image, byte)
+            }
+            i = i + 1
+        }
+        self.cursor = self.cursor + count
+        self.dirty = true
+        Ok(count)
     }
 }
 
@@ -72,6 +160,9 @@ impl Read for File {
     fn read(self: File, max_bytes: i32) -> Result<Vec<i32>, IoError> {
         if self.closed {
             return Err(IoError::Other("read: file is closed"))
+        }
+        if self.writable {
+            return Err(IoError::Other("read: file is write-only"))
         }
         self.reader.read(max_bytes)
     }
@@ -82,14 +173,51 @@ impl Seek for File {
         if self.closed {
             return Err(IoError::Other("seek: file is closed"))
         }
-        self.reader.seek(from)
+        if !self.writable {
+            return self.reader.seek(from)
+        }
+        let target: i64 = match from {
+            SeekFrom::Start(offset) => offset,
+            SeekFrom::Current(offset) => i32_to_i64(self.cursor) + offset,
+            SeekFrom::End(offset) => i32_to_i64(len(self.image)) + offset,
+        }
+        if target < 0i64 {
+            return Err(IoError::Other("seek: negative position"))
+        }
+        if target > i32_to_i64(MAX_CURSOR_POSITION) {
+            return Err(IoError::Other("seek: position exceeds i32 range"))
+        }
+        self.cursor = i64_to_i32(target)
+        Ok(target)
     }
 
     fn position(self: File) -> Result<i64, IoError> {
         if self.closed {
             return Err(IoError::Other("position: file is closed"))
         }
-        self.reader.position()
+        if !self.writable {
+            return self.reader.position()
+        }
+        Ok(i32_to_i64(self.cursor))
+    }
+}
+
+impl Write for File {
+    fn write(self: File, data: Vec<i32>) -> Result<i32, IoError> {
+        if self.closed {
+            return Err(IoError::Other("write: file is closed"))
+        }
+        if !self.writable {
+            return Err(IoError::Other("write: file is read-only"))
+        }
+        self.write_at_cursor(data)
+    }
+
+    fn flush(self: File) -> Result<(), IoError> {
+        if self.closed {
+            return Err(IoError::Other("flush: file is closed"))
+        }
+        self.commit()
     }
 }
 

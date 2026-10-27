@@ -19,7 +19,7 @@
 | `std::fs` | 8 | 4 | 4 | 0 | 0 | 7/8 (88%) | no |
 | `std::host::clock` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | yes |
 | `std::host::env` | 5 | 5 | 0 | 0 | 0 | 5/5 (100%) | yes |
-| `std::host::fs` | 11 | 1 | 5 | 4 | 1 | 6/10 (60%) | yes |
+| `std::host::fs` | 11 | 1 | 5 | 4 | 1 | 7/10 (70%) | yes |
 | `std::host::process` | 3 | 3 | 0 | 0 | 0 | 3/3 (100%) | yes |
 | `std::host::random` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
 | `std::host::stdio` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
@@ -41,7 +41,7 @@
 | `std::toml` | 2 | 0 | 0 | 2 | 0 | 2/2 (100%) | no |
 | `std::wasm` | 5 | 0 | 0 | 5 | 0 | **0/5 (0%)** | no |
 
-**Total**: 369 APIs, 191 stable, 19 provisional, 91 experimental, 68 deprecated, 285/301 (95%) fixture coverage
+**Total**: 369 APIs, 191 stable, 19 provisional, 91 experimental, 68 deprecated, 286/301 (95%) fixture coverage
 
 ## Legend
 

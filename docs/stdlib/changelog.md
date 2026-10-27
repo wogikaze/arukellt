@@ -16,6 +16,43 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — std::host::fs::File write side (ADR-085 Phase D, #693)
+
+- **Basis**: [ADR-085](../adr/ADR-085-io-trait-unification.md) D6 and D9.
+  `File` is the whole-file image handle: `File::open` loads a read-only image,
+  `File::create` starts a write image, and `Write::flush` / `close` commit the
+  whole image back to the path.
+- **Added (experimental)**: `File::create(path) -> Result<File, IoError>`,
+  `impl Write for std::host::fs::File` (`write` at the handle cursor, extending
+  with zero bytes past the end; `flush` commits), and the `Write` entry in the
+  manifest trait list. `File` now implements `Read`, `Write`, and `Seek`.
+- **Contract**: existing path bytes stay visible to other readers until a
+  successful flush; a failed flush leaves the handle dirty so it can be
+  retried. `File::open` rejects `write`, `File::create` rejects `read`, a
+  read-only `flush` is a no-op, and `close` on an untouched `File::create`
+  truncates the file. Streaming descriptor visibility remains out of scope
+  (ADR-085 D6).
+- **Fixtures**: `stdlib_io_traits/file_write_roundtrip.ark` (create → write →
+  seek → write → flush → close → read back through `read_bytes` and
+  `File::open`) and `stdlib_io_traits/file_write_contract.ark` (pre-flush
+  visibility, `Io::write_all` into a file, read-only/write-only errors, close
+  truncation, zero-filled seek gap, write-after-close).
+- **Not removed**: `writer_write` and `writer_write_str` stay deprecated. A
+  typed `Stdout` handle lowers on both targets, but a byte-faithful typed
+  `Stderr` handle is blocked: the only stderr intrinsic is
+  `__intrinsic_eprintln`, which appends `\n`, and there is no
+  `__intrinsic_eprint` / raw stderr write. Landing `Stdout` alone cannot retire
+  the pair because both wrappers also route tag `2`. The empty-struct handle
+  form `pub struct Stdout {}` additionally hit a core-Wasm validation mismatch
+  (`func 26 failed to validate: type mismatch ... at offset 0x13cc`); a
+  non-empty handle struct compiles and runs.
+- **Evidence**: both new fixtures compile, `wasm-tools validate`, and run to
+  their `.expected` on `wasm32-gc` (memory32 + WASI P2 component) and
+  `--target wasm32` (core + WASI P1), with identical stdout. `File::commit`
+  calls the host write intrinsic directly because the bare `write_bytes` name
+  resolves to the retired `std::io::write_bytes` through the module's
+  `std::io` import (the stub showed `drop; drop; unreachable` in WAT).
+
 ## 2026-10-27 — std::json / std::toml / std::csv associated conversions (#917, ADR-046)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the

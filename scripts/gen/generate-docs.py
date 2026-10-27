@@ -340,7 +340,8 @@ let text = csv::Csv::stringify_row(row)
             "summary": (
                 "`std::host::fs` is the primary host filesystem module: whole-file reads, string "
                 "and byte writes, an `exists` read probe / readable-file check (not path existence), "
-                "and experimental fd helpers, all backed "
+                "the `File` whole-file image handle (`File::open` + `Read` / `Seek`, "
+                "`File::create` + `Write` / `flush`), and experimental fd helpers, all backed "
                 "by the current WASI filesystem intrinsics. `std::fs` is a smaller compact module "
                 "over the same intrinsics (`read_string` / `write_string` / `exists`) — useful when "
                 "you want a minimal API, with the understanding that it exposes only a subset of "
@@ -353,6 +354,7 @@ let text = csv::Csv::stringify_row(row)
                 ("`read_to_string(path)` / `read_string(path)`", "Read a whole file as a UTF-8 string, returning `Result<String, String>`."),
                 ("`write_string(path, content)`", "Write or replace a UTF-8 file."),
                 ("`write_bytes(path, buf)`", "Write a byte array to a file."),
+                ("`File::open(path)` / `File::create(path)`", "Open a read-only image or start a write image implementing `Read` / `Write` / `Seek`; `flush` commits the image."),
                 (
                     "`exists(path)`",
                     "Read probe: `true` when a full read succeeds; not a general path-existence check.",

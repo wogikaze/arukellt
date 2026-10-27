@@ -1,0 +1,23 @@
+seeded
+3
+OLD
+flushed
+new
+write_all ok
+flushed2
+newXYZ
+closed
+write: file is closed
+write: file is read-only
+read-only flush ok
+read: file is write-only
+truncated
+0
+2
+1
+gap flushed
+gap closed
+3
+0
+0
+65

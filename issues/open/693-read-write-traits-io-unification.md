@@ -59,10 +59,12 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
   probes) with experimental `fd_seek` / `fd_tell` / `fd_fdstat_get`.
   `read_bytes` preserves NUL and invalid UTF-8, so it is the byte-oriented
   primitive behind `File::open`.
-- `std::host::fs::File` is the Phase D read side: `File::open` loads a
-  read-only whole-file image, `Read` / `Seek` operate on that image, and
-  `close` rejects later operations. `File::create`, `Write`, and `flush`
-  (the whole-file write side) remain open under this phase.
+- `std::host::fs::File` implements the whole Phase D surface: `File::open`
+  loads a read-only whole-file image, `Read` / `Seek` operate on that image,
+  and `close` rejects later operations. `File::create` starts a write image,
+  `Write::write` writes at the handle cursor, and `Write::flush` / `close`
+  commit the whole image back to the path. Streaming descriptor visibility is
+  still out of scope (ADR-085 D6).
 - `std::io` is the canonical stable abstraction module in
   `std/manifest.toml`; the stale "moved to `std::host::stdio`" lint guidance is
   gone. Host-backed `File` / stdio implementations live under `std::host`.
@@ -125,13 +127,16 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
   legacy `buf_reader_*` / `buf_writer_*` entry points keep their `Vec<i32>`
   layout contracts until Phase E. Field-receiver dispatch is verified on both
   targets.
-- [ ] **Phase D — File**: add the byte-oriented host read primitive and
+- [x] **Phase D — File**: add the byte-oriented host read primitive and
   `std::host::fs::File` (`open` / `create`, `Read` / `Write` / `Seek`,
   `flush` / `close`); add the file-reader -> memory-writer `Io::copy` fixture;
-  record target availability in the manifest. Status: read side landed and
-  runtime-green (`fs::read_bytes`, `File::open`, `Read`, `Seek`, `close`, the
-  file roundtrip / EOF fixtures on `wasm32-gc` memory32+P2 and `wasm32`);
-  `File::create`, `Write`, and `flush` remain open.
+  record target availability in the manifest. Status: both sides landed and
+  runtime-green. Read side: `fs::read_bytes`, `File::open`, `Read`, `Seek`,
+  `close`, the file roundtrip / EOF fixtures. Write side: `File::create`,
+  `Write`, `flush` / `close`, cursor writes with a zero-filled seek gap,
+  pre-flush visibility, read-only / write-only rejections, and close
+  truncation (`tests/fixtures/stdlib_io_traits/file_write_roundtrip.ark`,
+  `file_write_contract.ark`) on `wasm32-gc` memory32+P2 and `wasm32`.
 - [x] **Phase E — compatibility and deprecation**: the retained free functions
   carry `deprecated_by` / `deprecated_since` / `remove_in`, W0009 is live for
   the qualified calls, the stale `std::io`-moved-to-`std::host::stdio`
@@ -163,7 +168,7 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
   signatures and receiver model.
 - [x] Memory `Reader` / `Writer` implement the traits; `Vec<i32>` itself no
   longer implements `Read` or `Write`.
-- [ ] `std::host::fs::File` implements `Read` / `Write` / `Seek` in its
+- [x] `std::host::fs::File` implements `Read` / `Write` / `Seek` in its
   documented whole-file mode.
 - [x] A generic `Io::copy` fixture moves bytes between two different source
   types through the traits (file reader -> memory writer, and memory -> memory).
@@ -243,14 +248,36 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
   (`tests/fixtures/stdlib_io_traits/buf_reader_standalone.ark`). The
   `buf_*` compatibility wrappers and their fixtures were then migrated to the
   generic adapters and deleted (`ebfb2f8be` + the Phase F completion wave).
-- **Residual: host stdio handles.** `stdout()` / `stderr()` are still tagged
-  `Vec<i32>` handles with no `Write` impl, so `writer_write` /
-  `writer_write_str` stay deprecated. Exact blocker: `std::host::stdio` does
-  not expose typed handles, so there is no `Write` receiver for those calls.
-  Deletion condition: typed stdio handles land.
-- **Residual: File write side.** `File::create`, `Write`, and `flush` remain
-  open; the fd-lane `file_*` helpers were retired in favour of the whole-file
-  `File` contract.
+- **Resolved 2026-10-27: File write side.** `File::create`, `impl Write for
+  File` (cursor writes with zero extension), and `Write::flush` / `close`
+  (whole-image commit) are implemented. `File::open` rejects `write`,
+  `File::create` rejects `read`, a read-only `flush` is a no-op, and closing an
+  untouched `File::create` truncates. Fixtures:
+  `tests/fixtures/stdlib_io_traits/file_write_roundtrip.ark` and
+  `file_write_contract.ark`; both compile, `wasm-tools validate`, and run to
+  their `.expected` on `wasm32-gc` memory32/P2 and `--target wasm32`. The
+  fd-lane `file_*` helpers stay retired in favour of the whole-file `File`
+  contract.
+- **Residual: host stdio handles — blocked 2026-10-27.** `stdout()` /
+  `stderr()` are still tagged `Vec<i32>` handles, so `writer_write` /
+  `writer_write_str` stay deprecated. A typed `Stdout` handle now lowers and
+  runs on both targets when the handle struct is non-empty, but a byte-faithful
+  typed `Stderr` handle is blocked: the only stderr intrinsic is
+  `__intrinsic_eprintln`, which appends `\n`; there is no `__intrinsic_eprint`
+  (raw stderr write) and no fd-write escape hatch in std. Landing `Stdout`
+  alone cannot retire the pair because both wrappers route tag `2` to stderr.
+  Deletion condition: a raw stderr write intrinsic lands and typed
+  `Stdout` / `Stderr` handles replace the tagged layout. Evidence: the probe
+  `Stderr::write("err bytes")` emitted `err bytes\n`.
+- **Compiler: empty-struct handle lowering — open (2026-10-27).** The
+  zero-sized handle form `pub struct Stdout {}` produced invalid core Wasm on
+  `wasm32-gc`: `func 26 failed to validate: type mismatch: expected (ref null
+  $type), found (ref null $type) (at offset 0x13cc)`. WAT pinned it to
+  `call $Stdout::new; local.set $_t0` where the caller local was typed as the
+  String array (`type 0`) and `Stdout::new` returned the one-field struct
+  (`type 2`). A non-empty handle struct (`tag: i32`) compiles, validates, and
+  runs, so typed stdio handles need a non-zero field until this residual is
+  fixed. This does not affect `File`, whose layout is non-empty.
 
 ## References
 
