@@ -69,7 +69,7 @@ fn mono_subst_wrapped_param(mut ctx: LowerCtx, p: i32, ty_name: String, mono_suf
         // annotation. Only type-variable elems (vec:T, vec:?t0, ...) are
         // rewritten from the mono suffix — otherwise "__core_*" / accidental
         // "__" names force structref-array Vec layouts (i64<-structref).
-        if !mono_suffix_parse::is_mono_type_var_name(clone(type_var)) {
+        if !mono_param_type_name_needs_subst(ctx, clone(type_var)) {
             return true
         }
         let mut concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
@@ -83,7 +83,7 @@ fn mono_subst_wrapped_param(mut ctx: LowerCtx, p: i32, ty_name: String, mono_suf
     }
     if starts_with(clone(ty_name), String_from("option:")) || starts_with(clone(ty_name), String_from("Option:")) {
         let type_var = substring(clone(ty_name), 7, len(ty_name))
-        if !mono_suffix_parse::is_mono_type_var_name(clone(type_var)) {
+        if !mono_param_type_name_needs_subst(ctx, clone(type_var)) {
             // Concrete payloads still need the canonical option: prefix.
             if starts_with(clone(ty_name), String_from("Option:")) {
                 mono_set_param_gc_type(ctx, p, String_from("option:").concat(type_var))
@@ -98,7 +98,7 @@ fn mono_subst_wrapped_param(mut ctx: LowerCtx, p: i32, ty_name: String, mono_suf
     }
     if starts_with(clone(ty_name), String_from("?Option:")) {
         let type_var = substring(clone(ty_name), 8, len(ty_name))
-        if !mono_suffix_parse::is_mono_type_var_name(clone(type_var)) {
+        if !mono_param_type_name_needs_subst(ctx, clone(type_var)) {
             // Already-concrete "?Option:String" must drop the generic marker
             // so wasm emit does not treat the whole function as unreachable.
             mono_set_param_gc_type(ctx, p, String_from("option:").concat(type_var))
@@ -178,7 +178,7 @@ fn resolve_fnsig_segment(ctx: LowerCtx, seg: String, mono_suffix: String, has_mo
     if len(seg) == 0 {
         return seg
     }
-    if mono_suffix_parse::is_mono_type_var_name(clone(seg)) {
+    if mono_param_type_name_needs_subst(ctx, clone(seg)) {
         let concrete = resolve_concrete_type(ctx, clone(seg), clone(mono_suffix), has_mono_map)
         if len(concrete) > 0 {
             return concrete
@@ -290,7 +290,7 @@ fn mono_subst_hashmap_param(mut ctx: LowerCtx, p: i32, args: String) {
 // string mono map cannot carry fn signatures, so the TypeInfo record is
 // the only source that keeps fn(i32) -> i32 (#691).
 fn mono_hashmap_arg_type_info(ctx: LowerCtx, arg: String) -> TypeInfo {
-    if !mono_suffix_parse::is_mono_type_var_name(clone(arg)) {
+    if !mono_param_type_name_needs_subst(ctx, clone(arg)) {
         return mono_hashmap_concrete_type_info(arg)
     }
     let func = ctx_current_storage::ctx_current_func_value(ctx)
@@ -354,7 +354,7 @@ fn mono_subst_bare_param(mut ctx: LowerCtx, p: i32, ty_name: String, mono_suffix
     let mut type_var = String_new()
     if starts_with(clone(ty_name), String_from("?")) {
         type_var = substring(clone(ty_name), 1, len(ty_name))
-    } else if mono_suffix_parse::is_mono_type_var_name(clone(ty_name)) {
+    } else if mono_param_type_name_needs_subst(ctx, clone(ty_name)) {
         // Method parameters are recorded as the bare spelling "T", while
         // older lowering paths used "?T".  Both spellings denote the same
         // generic parameter and must receive the specialized ABI type.
@@ -397,8 +397,9 @@ fn mono_subst_result_type_args(
 ) {
     let t_var = mono_suffix_parse::extract_first_type_var(clone(rest))
     let e_var = extract_result_err_type_var(clone(rest))
-    let t_needs = mono_suffix_parse::is_mono_type_var_name(clone(t_var))
-    let e_needs = len(e_var) > 0 && mono_suffix_parse::is_mono_type_var_name(clone(e_var))
+    let t_needs = mono_param_type_name_needs_subst(ctx, clone(t_var))
+    let e_needs = len(e_var) > 0 &&
+    mono_param_type_name_needs_subst(ctx, clone(e_var))
     if !t_needs && !e_needs {
         mono_set_param_gc_type(ctx, p, String_from("result:").concat(clone(rest)))
         return
@@ -520,4 +521,15 @@ fn resolve_concrete_type(ctx: LowerCtx, type_var: String, mono_suffix: String, h
         return get_unchecked(type_keys, 0)
     }
     get_unchecked(type_keys, idx)
+}
+
+// A local spelling that names a declared struct or enum is a concrete
+// parameter type, not a type variable, even at one uppercase letter. The
+// shape predicate remains the fallback for unresolved spellings (ADR-089).
+fn mono_param_type_name_needs_subst(ctx: LowerCtx, name: String) -> bool {
+    if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(name)) ||
+    ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(name)) {
+        return false
+    }
+    mono_suffix_parse::is_mono_type_var_name(clone(name))
 }

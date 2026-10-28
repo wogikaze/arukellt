@@ -2,23 +2,44 @@ use std::prelude::{byte_at, clone, starts_with, substring}
 use corehir::decl_ann_name
 use corehir::frontend_ast_identity
 use corehir::frontend_type_kind
+use corehir::param_shape_declared
 use corehir::param_shape_node
 use corehir::value_types
-fn fn_param_value_type(node: AstNode) -> i32 {
+fn fn_param_value_type(
+    node: AstNode,
+    type_params: Vec<String>,
+    nominal_types: CoreHirNominalTypes
+) -> i32 {
     if param_shape_node::param_has_type_ann(node) {
-        return param_ann_value_type(param_shape_node::param_type_ann(node))
+        return param_ann_value_type(
+            param_shape_node::param_type_ann(node),
+            type_params,
+            nominal_types
+        )
     }
     value_types::VT_I32()
 }
 
-fn method_param_value_type(node: AstNode) -> i32 {
+fn method_param_value_type(
+    node: AstNode,
+    type_params: Vec<String>,
+    nominal_types: CoreHirNominalTypes
+) -> i32 {
     if param_shape_node::param_has_type_ann(node) {
-        return param_ann_value_type(param_shape_node::param_type_ann(node))
+        return param_ann_value_type(
+            param_shape_node::param_type_ann(node),
+            type_params,
+            nominal_types
+        )
     }
     value_types::VT_I32()
 }
 
-fn param_ann_value_type(ann: AstNode) -> i32 {
+fn param_ann_value_type(
+    ann: AstNode,
+    type_params: Vec<String>,
+    nominal_types: CoreHirNominalTypes
+) -> i32 {
     if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ann)) {
         return value_types::VT_FUNCREF()
     }
@@ -48,9 +69,17 @@ fn param_ann_value_type(ann: AstNode) -> i32 {
         return value_types::VT_I32()
     }
     // Named/generic user types (Range, VecIter, Option, Vec, ...) are GC refs.
-    // Unsubstituted type parameters (T, U, ...) stay i32 until mono fills them.
+    // Declared type parameters stay i32 until mono fills them (ADR-089:
+    // declaration, not name shape, decides); a declared nominal type is a
+    // concrete GC value even when its name is one uppercase letter.
     if decl_ann_name::decl_ann_is_named(ann) {
         let name = decl_ann_name::decl_ann_name(ann)
+        if param_shape_declared::corehir_declared_type_param_contains(clone(type_params), clone(name)) {
+            return value_types::VT_I32()
+        }
+        if param_shape_declared::corehir_nominal_types_contains(nominal_types, clone(name)) {
+            return value_types::VT_GC_REF()
+        }
         if param_ann_name_is_type_param(clone(name)) {
             return value_types::VT_I32()
         }
@@ -65,6 +94,9 @@ fn param_ann_value_type(ann: AstNode) -> i32 {
     value_types::VT_I32()
 }
 
+// Fallback for a name that neither a declared parameter list nor the
+// declared nominal-type table mentions: keep the historical single-letter
+// convention. A declared struct/enum is handled before this predicate.
 fn param_ann_name_is_type_param(name: String) -> bool {
     if len(name) == 0 {
         return false

@@ -1,5 +1,6 @@
 use std::prelude::{clone}
 use corehir::param
+use corehir::param_shape_declared
 use corehir::param_shape_local
 use corehir::param_shape_node
 use corehir::param_shape_value
@@ -11,20 +12,35 @@ fn param_type_name(node: AstNode) -> String {
     String_new()
 }
 
-fn fn_param_from_node(node: AstNode) -> CoreHirParam {
+fn fn_param_from_node(
+    node: AstNode,
+    type_params: Vec<String>,
+    nominal_types: CoreHirNominalTypes
+) -> CoreHirParam {
     let name = param_shape_node::param_name(clone(node))
     let bindable = param_shape_node::param_is_ident(clone(node))
-    param::CoreHirParam_new(name, param_shape_value::fn_param_value_type(clone(node)), param_type_name(clone(node)), param_shape_local::fn_param_local_type_name(node), bindable, false)
+    param::CoreHirParam_new(
+        name,
+        param_shape_value::fn_param_value_type(clone(node), clone(type_params), nominal_types),
+        param_type_name(clone(node)),
+        param_shape_local::fn_param_local_type_name(node, type_params, nominal_types),
+        bindable,
+        false
+    )
 }
 
-fn method_param_from_node(node: AstNode) -> CoreHirParam {
+fn method_param_from_node(
+    node: AstNode,
+    type_params: Vec<String>,
+    nominal_types: CoreHirNominalTypes
+) -> CoreHirParam {
     let name = param_shape_node::param_name(clone(node))
     let bindable = param_shape_node::param_is_ident(clone(node))
     param::CoreHirParam_new(
         clone(name),
-        param_shape_value::method_param_value_type(clone(node)),
+        param_shape_value::method_param_value_type(clone(node), clone(type_params), nominal_types),
         param_type_name(clone(node)),
-        param_shape_local::method_param_local_type_name(node),
+        param_shape_local::method_param_local_type_name(node, type_params, nominal_types),
         bindable,
         param_shape_node::param_is_self_name(name)
     )

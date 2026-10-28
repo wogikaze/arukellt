@@ -33,8 +33,9 @@ user blanket impl として E0216 で拒否される（#946）。
 
 ## 実装メモ
 
-2026-10-29 の残差解消で、return と tuple の符号化は宣言済み型パラメータと登録済み集約レイアウトを参照する。
-parameter の初期型付けは名前の形によるフォールバックを残すが、宣言済み struct は登録済みレイアウトで解決する。
+2026-10-29 の残差解消で、return・tuple・parameter・mono の符号化は、宣言済み binder、宣言済み struct/enum 名、登録済み集約レイアウトを参照する。
+parameter の初期型付けは宣言済み型パラメータと宣言済み nominal 型を先に区別し、宣言済み enum は `enum:` 綴りを保つ。
+mono の型変数置換と ordinal 収集も、登録済み struct/enum を型変数として扱わない。
 名前の形による型変数判定は、宣言も登録もない綴りに対する最後のフォールバックに限る。
 検証と残差は [#946](../../issues/open/946-single-uppercase-implicit-impl-param.md) と `docs/current-state.md` に記録する。
 

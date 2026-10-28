@@ -13,6 +13,7 @@ use mir::mono
 use mir::function_locals_view
 use mir::local_access
 use mir::lower::ctx_api_module
+use mir::lower::ctx_struct_layout
 use mir::type_contracts
 
 // Convert a TypeInfo to a monomorphization type key string.
@@ -363,6 +364,15 @@ fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
         let mut vi = 0
         while vi < local_var_count {
             let var_name = get_unchecked(local_vars, vi)
+            // A one-uppercase local spelling can name a declared struct or
+            // enum. The layout registries are the declaration evidence; it
+            // must not consume an ordinal slot meant for a type parameter
+            // (ADR-089).
+            if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(var_name)) ||
+            ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(var_name)) {
+                vi = vi + 1
+                continue
+            }
             let mut found = false
             let rcount = len(result)
             let mut k = 0
