@@ -1,14 +1,33 @@
 use std::prelude::{clone, eq}
 use corehir::decl_ann_name
+use corehir::frontend_ast_identity
+use corehir::frontend_fns
+use corehir::frontend_type_kind
 use corehir::return_ann_shape
+use corehir::return_type_name
 use corehir::value_types
 fn return_value_type_tag(node: AstNode) -> i32 {
+    return_value_type_tag_declared(node, frontend_fns::build_fn_type_params(node))
+}
+
+fn return_value_type_tag_for_impl(impl_node: AstNode, method_node: AstNode) -> i32 {
+    return_value_type_tag_declared(
+        method_node,
+        return_type_name::return_declared_type_params(impl_node, method_node)
+    )
+}
+
+fn return_value_type_tag_declared(node: AstNode, type_params: Vec<String>) -> i32 {
     let child_count = return_ann_shape::return_ann_child_count(node)
     if child_count <= 0 {
         return value_types::VT_VOID()
     }
     let ret = return_ann_shape::return_ann_child(node)
     let name = decl_ann_name::decl_ann_name(ret)
+    if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ret)) ||
+    eq(clone(name), "fnref") {
+        return value_types::VT_FUNCREF()
+    }
     if eq(clone(name), "f64") {
         return value_types::VT_F64()
     }
@@ -24,8 +43,26 @@ fn return_value_type_tag(node: AstNode) -> i32 {
     if eq(clone(name), "void") || eq(clone(name), "()") {
         return value_types::VT_VOID()
     }
-    if eq(clone(name), "String") || eq(clone(name), "string") {
+    if eq(clone(name), "String") || eq(clone(name), "string") ||
+    eq(clone(name), "str") {
         return value_types::VT_REF()
+    }
+    if eq(clone(name), "i32") ||
+    eq(clone(name), "u32") ||
+    eq(clone(name), "u8") ||
+    eq(clone(name), "u16") ||
+    eq(clone(name), "i16") ||
+    eq(clone(name), "i8") ||
+    eq(clone(name), "bool") ||
+    eq(clone(name), "char") ||
+    eq(clone(name), "unit") {
+        return value_types::VT_I32()
+    }
+    // A declared type parameter stays a scalar placeholder until mono
+    // substitution; every other named annotation is a nominal GC value
+    // (ADR-089: name length and case do not decide this).
+    if len(name) > 0 && !frontend_fns::fn_type_param_is_declared(clone(type_params), clone(name)) {
+        return value_types::VT_GC_REF()
     }
     value_types::VT_I32()
 }

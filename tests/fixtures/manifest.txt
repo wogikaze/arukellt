@@ -537,6 +537,7 @@ run:functions/closure_basic.ark
 run:functions/closure_capture.ark
 run:functions/early_return.ark
 run:functions/generic_fn.ark
+run:functions/single_uppercase_struct_return.ark
 run:functions/generic_shadow_import_name.ark
 run:functions/higher_order.ark
 run:functions/option_fn_call.ark
@@ -2890,6 +2891,7 @@ t3-run:functions/closure_basic.ark
 t3-run:functions/closure_capture.ark
 t3-run:functions/early_return.ark
 t3-run:functions/generic_fn.ark
+t3-run:functions/single_uppercase_struct_return.ark
 t3-run:functions/higher_order.ark
 t3-run:functions/option_fn_call.ark
 t3-run:functions/option_fn_mut_assign.ark

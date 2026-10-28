@@ -54,7 +54,7 @@ fn emit_tuple_pattern_ident_binds(ctx: LowerCtx, pat: AstNode, tuple_local: i32)
         let elem = ast_node::node_child_at(pat, ei)
         if ast_node::node_kind_is(elem, lower_kinds::NK_PAT_IDENT()) {
             let bind_name = ast_node::node_text(elem)
-            let field_vt = tuple_field_vt_from_struct_name(struct_name, ei)
+            let field_vt = tuple_field_vt_from_struct_name(ctx, struct_name, ei)
             let dest = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(bind_name), field_vt)
             let field_type_name = tuple_field_type_name(struct_name, ei)
             if len(field_type_name) > 0 {
@@ -91,7 +91,7 @@ fn emit_tuple_field_read(ctx: LowerCtx, tuple_local: i32, struct_name: String, e
 fn emit_tuple_element_extract(ctx: LowerCtx, tuple_local: i32, elem_index: i32, elem_count: i32) -> i32 {
     let tuple_type = ctx_api_local_types::ctx_get_local_type(ctx, tuple_local)
     let struct_name = tuple_struct_name_from_type(tuple_type)
-    let field_vt = tuple_field_vt_from_struct_name(clone(struct_name), elem_index)
+    let field_vt = tuple_field_vt_from_struct_name(ctx, clone(struct_name), elem_index)
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, field_vt)
     let field_type_name = tuple_field_type_name(clone(struct_name), elem_index)
     if len(field_type_name) > 0 {
@@ -179,7 +179,7 @@ fn parse_i32_from_string(s: String) -> i32 {
     value
 }
 
-fn tuple_field_vt_from_struct_name(struct_name: String, elem_index: i32) -> i32 {
+fn tuple_field_vt_from_struct_name(ctx: LowerCtx, struct_name: String, elem_index: i32) -> i32 {
     if len(struct_name) == 0 {
         if elem_index > 0 {
             return value_types::VT_GC_REF()
@@ -218,6 +218,12 @@ fn tuple_field_vt_from_struct_name(struct_name: String, elem_index: i32) -> i32 
     starts_with(clone(key), "result:") ||
     starts_with(clone(key), "hashmap:") ||
     starts_with(clone(key), "hashset:") {
+        return value_types::VT_GC_REF()
+    }
+    // A declared aggregate is a GC value even when its name is one uppercase
+    // letter (struct S). Unbound single-letter type parameters keep the
+    // scalar placeholder until mono substitution (ADR-089).
+    if ctx_gc_struct::gc_struct_field_name_is_declared(ctx, clone(key)) {
         return value_types::VT_GC_REF()
     }
     // A non-primitive tuple element is a named GC value even when its layout
