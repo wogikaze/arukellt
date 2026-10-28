@@ -8,10 +8,10 @@ Normative decision: [`../adr/ADR-029-selfhost-native-verification-contract.md`](
 Status summary: [`../state/compiler.md`](../state/compiler.md).  
 Structured SSOT: [`../data/bootstrap-contract.toml`](../data/bootstrap-contract.toml).
 
-The official pinned bootstrap is a `wasm32-gc` / `wasi-p2` component
-(`bootstrap/arukellt-selfhost.wasm`). It emits the stage-2/stage-3 compiler as
-`wasm32` / `wasi-p1` core modules with memory32; the emitted compiler contract
-is unchanged. The previous core pin stays at
+The official pinned bootstrap is a direct `wasm32` / `wasi-p1` core module
+(`bootstrap/arukellt-selfhost.wasm`, memory32). It emits the stage-2/stage-3
+compiler as `wasm32` / `wasi-p1` core modules with memory32; the emitted
+compiler contract is unchanged. The previous core pin stays at
 `bootstrap/arukellt-selfhost-core.wasm` as the trust anchor and as an explicit
 override. User-facing `wasm32-gc` / `wasi-p2` output is still packaged as an
 official WASI component with the checked-in WIT world.
@@ -20,6 +20,22 @@ The core override pin predates generic enum payload lowering used by the
 current `std/prelude.ark`. `selfhost build-compiler` keeps the structural
 `Box` / `Slice` retry for that path. The checked-in prelude, user source
 semantics, and emitted user artifacts are not rewritten.
+
+The pin's builtin host modules only expose the free `std::host::*` functions,
+so the flat overlay ships the namespace sources the compiler itself imports:
+`std/host/fs.ark`, `std/host/clock.ark`, and `std/io/mod.ark`. The checked-in
+`Fs::*`, `Clock::*`, and `toml::TomlText::*` spellings therefore compile to the
+real impls instead of the unresolved-call `drop; unreachable` fallback. The
+overlay no longer rewrites those call spellings or installs
+`bootstrap_toml_*` adapters.
+
+One host namespace remains a pin limitation: `8df2698c…` predates #917's MIR
+env call-result typing, so a reachable `Env::args` (a `Vec<String>` result)
+still produces invalid core Wasm. `_patch_bootstrap_host_env_paths` keeps the
+compiler's `Env::*` calls on the free builtin spelling, and the entry module
+uses the prelude `args` / `exit` / `println` host-intrinsic stubs. Delete both
+when the pin includes the #917 typing; the function docstrings carry the probe
+that must validate the lowering first.
 
 The isolated WIT parser closure in that overlay also normalizes qualified type
 names (`types::WitType`, `ast::WitNode`, and related record types) to the flat
@@ -34,7 +50,7 @@ Agents and humans confuse these two. Use the table:
 
 | Goal | Command | Typical time | Notes |
 |------|---------|--------------|-------|
-| **Refresh the compiler after editing `src/compiler/**`** | `python3 scripts/manager.py selfhost build-compiler` | 20-40 min with the official pin; ~40-60 s with `--fast` | Stage-2 only. **Default for emitter / Memory64 / T3 work.** |
+| **Refresh the compiler after editing `src/compiler/**`** | `python3 scripts/manager.py selfhost build-compiler` | ~25-30 min with the official core pin; ~40-60 s with `--fast` | Stage-2 only. **Default for emitter / Memory64 / T3 work.** |
 | Check ADR-029 fixpoint (`sha256(s2) == sha256(s3)`) | `python3 scripts/manager.py selfhost fixpoint` | seconds if s2/s3 exist | Does not refresh the emitter by itself |
 | Rebuild s2 **and** s3 then compare (gate only) | `python3 scripts/manager.py selfhost fixpoint --build` | stage-3 alone can be **tens of minutes** today on gc+p2 | **Not** for routine iteration. gc-host ≤10s is [#851](../../issues/open/851-selfhost-compiler-core-rewrite.md) / [ADR-053](../adr/ADR-053-selfhost-compiler-core-rewrite.md) |
 
@@ -47,18 +63,21 @@ Copy files with `/bin/cp -f` (never interactive `cp -iv`).
 
 ### Bootstrap pin
 
-`bootstrap/arukellt-selfhost.wasm` is the official gc-host component. It
-reproduces the core pin's `wasm32` / `wasi-p1` s2 byte-for-byte (`e55825fd…`)
-in about 73 seconds (95 seconds end to end):
+`bootstrap/arukellt-selfhost.wasm` is the official direct `wasm32` /
+`wasi-p1` core pin (memory32, 8192 pages; sha256 `8df2698c…`).
+`selfhost build-compiler` compiles the flat overlay through it to the stage-2
+compiler:
 
 ```bash
 python3 scripts/manager.py selfhost build-compiler
 ```
 
-The previous core pin is at `bootstrap/arukellt-selfhost-core.wasm` and can be
-selected with `ARUKELLT_PINNED_WASM=bootstrap/arukellt-selfhost-core.wasm`;
-that path costs 20-40 minutes. The ADR-029 fixpoint is still required before a
-tag. Provenance and removal conditions:
+A full self-build takes ~25-30 minutes because the retired gc host is not a
+faster path. The previous core pin is at
+`bootstrap/arukellt-selfhost-core.wasm` and can be selected with
+`ARUKELLT_PINNED_WASM=bootstrap/arukellt-selfhost-core.wasm`; that path costs
+20-40 minutes. The ADR-029 fixpoint is still required before a tag. Provenance
+and removal conditions:
 [`bootstrap/PROVENANCE.md`](../../bootstrap/PROVENANCE.md).
 
 ### How to iterate without unnecessary rebuilds
