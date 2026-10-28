@@ -488,7 +488,7 @@ pub struct LinkedListIter<T> {
     remaining: i32,
 }
 
-impl Iterator for LinkedListIter<T> {
+impl<T> Iterator for LinkedListIter<T> {
     type Item = T
 
     fn next(self: LinkedListIter<T>) -> Option<T> {
@@ -519,7 +519,7 @@ impl Iterator for LinkedListIter<T> {
     }
 }
 
-impl IntoIterator for LinkedListIter<T> {
+impl<T> IntoIterator for LinkedListIter<T> {
     type Item = T
     type IntoIter = LinkedListIter<T>
 
@@ -541,7 +541,7 @@ pub struct LinkedListIterMut<T> {
     stopped: bool,
 }
 
-impl Iterator for LinkedListIterMut<T> {
+impl<T> Iterator for LinkedListIterMut<T> {
     type Item = T
 
     fn next(self: LinkedListIterMut<T>) -> Option<T> {
@@ -589,7 +589,7 @@ impl<T> LinkedListIterMut<T> {
     }
 }
 
-impl IntoIterator for LinkedListIterMut<T> {
+impl<T> IntoIterator for LinkedListIterMut<T> {
     type Item = T
     type IntoIter = LinkedListIterMut<T>
 
@@ -603,7 +603,7 @@ pub struct LinkedListIntoIter<T> {
     list: LinkedList<T>,
 }
 
-impl Iterator for LinkedListIntoIter<T> {
+impl<T> Iterator for LinkedListIntoIter<T> {
     type Item = T
 
     fn next(self: LinkedListIntoIter<T>) -> Option<T> {
@@ -628,7 +628,7 @@ impl Iterator for LinkedListIntoIter<T> {
     }
 }
 
-impl IntoIterator for LinkedListIntoIter<T> {
+impl<T> IntoIterator for LinkedListIntoIter<T> {
     type Item = T
     type IntoIter = LinkedListIntoIter<T>
 
@@ -637,7 +637,7 @@ impl IntoIterator for LinkedListIntoIter<T> {
     }
 }
 
-impl IntoIterator for LinkedList<T> {
+impl<T> IntoIterator for LinkedList<T> {
     type Item = T
     type IntoIter = LinkedListIntoIter<T>
 

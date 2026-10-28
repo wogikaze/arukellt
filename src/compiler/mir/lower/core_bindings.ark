@@ -88,7 +88,10 @@ fn lower_core_let(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> 
                 ctx_api_local_types::ctx_set_local_type(ctx, val_idx, clone(resolved_type_name))
                 ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
             }
-        } else if len(init_type) > 1 {
+        } else if len(init_type) > 0 {
+            // One-character names are valid nominal types (ADR-089): a
+            // declared `struct S` must keep its type through `let b = a`
+            // instead of becoming an untyped local that cannot dispatch.
             ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)
         }
         core_bindings_type::infer_core_let_local_type_name(ctx, exprs, expr, local_idx, val_idx, clone(resolved_type_name), child_count)

@@ -65,8 +65,9 @@ impl の型パラメータは `impl<T>` の明示 binder によってのみ導�
 （[ADR-089](../adr/ADR-089-language-v2-explicit-impl-type-parameter-binders.md)、
 [spec.md §6.5](spec.md#65-impl-block)）。binder のない impl head で
 単一大文字名を書いても暗黙の型パラメータにはなりません。
-実装状態: binder のない impl head の単一大文字名は、現行実装ではまだ
-暗黙の型パラメータとして扱われます（#946）。
+実装状態: binder のない impl head の単一大文字名は通常の型名として解決され、
+宣言済みの型なら impl 対象になります。宣言のない単一大文字名は暗黙の型
+パラメータにならず、binder 形を示す E0222 で拒否されます（#946）。
 
 ## Option / Result
 

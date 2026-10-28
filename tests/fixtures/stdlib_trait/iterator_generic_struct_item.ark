@@ -11,7 +11,7 @@ struct EnumI<I> {
     index: i32,
 }
 
-impl Iterator for EnumI<I> {
+impl<I> Iterator for EnumI<I> {
     type Item = Pair<i32, I::Item>
     fn next(self: EnumI<I>) -> Option<Pair<i32, I::Item>> {
         let nxt = self.iter.next()
@@ -34,7 +34,7 @@ impl Iterator for EnumI<I> {
     }
 }
 
-impl IntoIterator for EnumI<I> {
+impl<I> IntoIterator for EnumI<I> {
     type Item = Pair<i32, I::Item>
     type IntoIter = EnumI<I>
     fn into_iter(self: EnumI<I>) -> EnumI<I> {

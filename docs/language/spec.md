@@ -1514,9 +1514,10 @@ parameter ([ADR-089](../adr/ADR-089-language-v2-explicit-impl-type-parameter-bin
 Parametric and blanket impls are classified as in
 [ADR-078](../adr/ADR-078-language-v2-parametric-trait-impl.md).
 
-**Current implementation.** A binder-less head still treats single-uppercase
-names as implicit type parameters, which makes `impl Trait for S {}` with a
-`struct S` fail as a blanket impl (E0216). Removal is tracked by
+**Current implementation.** Binder-less heads resolve names as ordinary type
+names. A declared single-uppercase type is therefore a valid impl target, and
+the retired implicit-parameter spelling is rejected with E0222, which shows the
+binder form. Migration status is tracked by
 [#946](../../issues/open/946-single-uppercase-implicit-impl-param.md).
 
 ---

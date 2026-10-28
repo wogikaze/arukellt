@@ -13,7 +13,7 @@ use std::core::iter
 // MIR rewrites each supported specialization to the per-pair implementation
 // functions. The rewrite is required so the shell bodies never recurse at
 // runtime.
-impl HashMap<K, V> {
+impl<K, V> HashMap<K, V> {
     fn new() -> HashMap<K, V> {
         HashMap::new<K, V>()
     }
@@ -49,7 +49,7 @@ impl HashMap<K, V> {
 // implementation) and wraps it in the shared VecIter<K> producer, so both
 // backends share one source-level meaning without a map-specific
 // iterator state type (#691/#860).
-impl IntoIterator for HashMap<K, V> {
+impl<K, V> IntoIterator for HashMap<K, V> {
     type Item = K
     type IntoIter = VecIter<K>
 

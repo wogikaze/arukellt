@@ -225,7 +225,7 @@ impl Vec<i32> {
     }
 }
 
-impl VecIter<T> {
+impl<T> VecIter<T> {
     /// Returns true when no more elements remain.
     fn is_empty(self: VecIter<T>) -> bool {
         self.index >= self.length
@@ -363,7 +363,7 @@ impl VecIter<i32> {
     }
 }
 
-impl Iterator for VecIter<T> {
+impl<T> Iterator for VecIter<T> {
     type Item = T
 
     fn next(self: VecIter<T>) -> Option<T> {
@@ -386,7 +386,7 @@ impl Iterator for VecIter<T> {
 
 }
 
-impl IntoIterator for VecIter<T> {
+impl<T> IntoIterator for VecIter<T> {
     type Item = T
     type IntoIter = VecIter<T>
 
@@ -523,7 +523,7 @@ pub struct MapIter<T, U> {
     f: fn(T) -> U,
 }
 
-impl MapIter<T, U> {
+impl<T, U> MapIter<T, U> {
     /// Lazily limit mapped elements to `n` values.
     fn take(self: MapIter<T, U>, n: i32) -> TakeIter<MapIter<T, U>> {
         TakeIter { iter: self, remaining: n }
@@ -541,7 +541,7 @@ impl MapIter<T, U> {
     }
 }
 
-impl Iterator for MapIter<T, U> {
+impl<T, U> Iterator for MapIter<T, U> {
     type Item = U
 
     fn next(self: MapIter<T, U>) -> Option<U> {
@@ -579,14 +579,14 @@ pub struct MapFilterIter<T, U> {
     filter_f: fn(U) -> bool,
 }
 
-impl MapFilterIter<T, U> {
+impl<T, U> MapFilterIter<T, U> {
     /// Lazily limit the accepted mapped values to `n` elements.
     fn take(self: MapFilterIter<T, U>, n: i32) -> TakeIter<MapFilterIter<T, U>> {
         TakeIter { iter: self, remaining: n }
     }
 }
 
-impl Iterator for MapFilterIter<T, U> {
+impl<T, U> Iterator for MapFilterIter<T, U> {
     type Item = U
 
     fn next(self: MapFilterIter<T, U>) -> Option<U> {
@@ -628,7 +628,7 @@ pub struct FilterIter<T> {
     f: fn(T) -> bool,
 }
 
-impl FilterIter<T> {
+impl<T> FilterIter<T> {
     /// Lazily limit accepted values to `n` elements.
     fn take(self: FilterIter<T>, n: i32) -> TakeIter<FilterIter<T>> {
         TakeIter { iter: self, remaining: n }
@@ -648,7 +648,7 @@ impl FilterIter<T> {
     }
 }
 
-impl Iterator for FilterIter<T> {
+impl<T> Iterator for FilterIter<T> {
     type Item = T
 
     fn next(self: FilterIter<T>) -> Option<T> {
@@ -690,14 +690,14 @@ pub struct FilterMapIter<T, U> {
     map_f: fn(T) -> U,
 }
 
-impl FilterMapIter<T, U> {
+impl<T, U> FilterMapIter<T, U> {
     /// Lazily limit the accepted mapped values to `n` elements.
     fn take(self: FilterMapIter<T, U>, n: i32) -> TakeIter<FilterMapIter<T, U>> {
         TakeIter { iter: self, remaining: n }
     }
 }
 
-impl Iterator for FilterMapIter<T, U> {
+impl<T, U> Iterator for FilterMapIter<T, U> {
     type Item = U
 
     fn next(self: FilterMapIter<T, U>) -> Option<U> {
@@ -734,7 +734,7 @@ pub struct TakeIter<I> {
     remaining: i32,
 }
 
-impl Iterator for TakeIter<I> {
+impl<I> Iterator for TakeIter<I> {
     type Item = I::Item
 
     fn next(self: TakeIter<I>) -> Option<I::Item> {
@@ -784,7 +784,7 @@ pub struct SkipIter<I> {
     to_skip: i32,
 }
 
-impl SkipIter<I> {
+impl<I> SkipIter<I> {
     /// Lazily map the source values after consuming the skip prefix.
     fn map(self: SkipIter<I>, f: fn(I::Item) -> I::Item) -> SkipMapIter<I> {
         SkipMapIter {
@@ -809,7 +809,7 @@ impl SkipIter<I> {
     }
 }
 
-impl Iterator for SkipIter<I> {
+impl<I> Iterator for SkipIter<I> {
     type Item = I::Item
 
     fn next(self: SkipIter<I>) -> Option<I::Item> {
@@ -864,7 +864,7 @@ pub struct SkipFilterIter<I> {
     filter_f: fn(I::Item) -> bool,
 }
 
-impl Iterator for SkipMapIter<I> {
+impl<I> Iterator for SkipMapIter<I> {
     type Item = I::Item
 
     fn next(self: SkipMapIter<I>) -> Option<I::Item> {
@@ -891,7 +891,7 @@ impl Iterator for SkipMapIter<I> {
     }
 }
 
-impl Iterator for SkipFilterIter<I> {
+impl<I> Iterator for SkipFilterIter<I> {
     type Item = I::Item
 
     fn next(self: SkipFilterIter<I>) -> Option<I::Item> {
@@ -956,7 +956,7 @@ pub struct ChainIter<I> {
     on_first: bool,
 }
 
-impl Iterator for ChainIter<I> {
+impl<I> Iterator for ChainIter<I> {
     type Item = I::Item
 
     fn next(self: ChainIter<I>) -> Option<I::Item> {
@@ -1003,7 +1003,7 @@ pub struct EnumerateIter<I> {
     index: i32,
 }
 
-impl Iterator for EnumerateIter<I> {
+impl<I> Iterator for EnumerateIter<I> {
     type Item = Pair<i32, I::Item>
 
     fn next(self: EnumerateIter<I>) -> Option<Pair<i32, I::Item>> {
@@ -1048,7 +1048,7 @@ pub struct ZipIter<A, B> {
     second: B,
 }
 
-impl Iterator for ZipIter<A, B> {
+impl<A, B> Iterator for ZipIter<A, B> {
     type Item = Pair<A::Item, B::Item>
 
     fn next(self: ZipIter<A, B>) -> Option<Pair<A::Item, B::Item>> {
@@ -1103,14 +1103,14 @@ pub struct FlatMapIter<T> {
     f: fn(T) -> Vec<T>,
 }
 
-impl FlatMapIter<T> {
+impl<T> FlatMapIter<T> {
     /// Lazily limit the flattened stream to `n` items.
     fn take(self: FlatMapIter<T>, n: i32) -> TakeIter<FlatMapIter<T>> {
         TakeIter { iter: self, remaining: n }
     }
 }
 
-impl Iterator for FlatMapIter<T> {
+impl<T> Iterator for FlatMapIter<T> {
     type Item = T
 
     fn next(self: FlatMapIter<T>) -> Option<T> {
@@ -1172,7 +1172,7 @@ pub struct PeekIter<T> {
     peeked: Vec<T>,
 }
 
-impl PeekIter<T> {
+impl<T> PeekIter<T> {
     /// Return the next item without consuming it, caching it for `next`.
     /// Repeated `peek` calls return the same cached item until `next`
     /// drains it.
@@ -1194,7 +1194,7 @@ impl PeekIter<T> {
     }
 }
 
-impl Iterator for PeekIter<T> {
+impl<T> Iterator for PeekIter<T> {
     type Item = T
 
     fn next(self: PeekIter<T>) -> Option<T> {
@@ -1243,14 +1243,14 @@ pub struct StepByIter<T> {
     step: i32,
 }
 
-impl StepByIter<T> {
+impl<T> StepByIter<T> {
     /// Lazily limit the stepped stream to `n` items.
     fn take(self: StepByIter<T>, n: i32) -> TakeIter<StepByIter<T>> {
         TakeIter { iter: self, remaining: n }
     }
 }
 
-impl Iterator for StepByIter<T> {
+impl<T> Iterator for StepByIter<T> {
     type Item = T
 
     fn next(self: StepByIter<T>) -> Option<T> {
@@ -1297,14 +1297,14 @@ pub struct ScanIter<T> {
     f: fn(T, T) -> Option<T>,
 }
 
-impl ScanIter<T> {
+impl<T> ScanIter<T> {
     /// Lazily limit the scanned stream to `n` items.
     fn take(self: ScanIter<T>, n: i32) -> TakeIter<ScanIter<T>> {
         TakeIter { iter: self, remaining: n }
     }
 }
 
-impl Iterator for ScanIter<T> {
+impl<T> Iterator for ScanIter<T> {
     type Item = T
 
     fn next(self: ScanIter<T>) -> Option<T> {
@@ -1876,7 +1876,7 @@ impl IteratorCountEq<i32> for RevIter {
 // An iterator is already an iterable source. These identity conversions keep
 // `for` on the same trait boundary as collection sources without allocating or
 // changing the adapter state.
-impl IntoIterator for MapIter<T, U> {
+impl<T, U> IntoIterator for MapIter<T, U> {
     type Item = U
     type IntoIter = MapIter<T, U>
 
@@ -1885,7 +1885,7 @@ impl IntoIterator for MapIter<T, U> {
     }
 }
 
-impl IntoIterator for MapFilterIter<T, U> {
+impl<T, U> IntoIterator for MapFilterIter<T, U> {
     type Item = U
     type IntoIter = MapFilterIter<T, U>
 
@@ -1894,7 +1894,7 @@ impl IntoIterator for MapFilterIter<T, U> {
     }
 }
 
-impl IntoIterator for FilterIter<T> {
+impl<T> IntoIterator for FilterIter<T> {
     type Item = T
     type IntoIter = FilterIter<T>
 
@@ -1903,7 +1903,7 @@ impl IntoIterator for FilterIter<T> {
     }
 }
 
-impl IntoIterator for FilterMapIter<T, U> {
+impl<T, U> IntoIterator for FilterMapIter<T, U> {
     type Item = U
     type IntoIter = FilterMapIter<T, U>
 
@@ -1912,7 +1912,7 @@ impl IntoIterator for FilterMapIter<T, U> {
     }
 }
 
-impl IntoIterator for TakeIter<I> {
+impl<I> IntoIterator for TakeIter<I> {
     type Item = I::Item
     type IntoIter = TakeIter<I>
 
@@ -1921,7 +1921,7 @@ impl IntoIterator for TakeIter<I> {
     }
 }
 
-impl IntoIterator for SkipIter<I> {
+impl<I> IntoIterator for SkipIter<I> {
     type Item = I::Item
     type IntoIter = SkipIter<I>
 
@@ -1930,7 +1930,7 @@ impl IntoIterator for SkipIter<I> {
     }
 }
 
-impl IntoIterator for SkipMapIter<I> {
+impl<I> IntoIterator for SkipMapIter<I> {
     type Item = I::Item
     type IntoIter = SkipMapIter<I>
 
@@ -1939,7 +1939,7 @@ impl IntoIterator for SkipMapIter<I> {
     }
 }
 
-impl IntoIterator for SkipFilterIter<I> {
+impl<I> IntoIterator for SkipFilterIter<I> {
     type Item = I::Item
     type IntoIter = SkipFilterIter<I>
 
@@ -1948,7 +1948,7 @@ impl IntoIterator for SkipFilterIter<I> {
     }
 }
 
-impl IntoIterator for ChainIter<I> {
+impl<I> IntoIterator for ChainIter<I> {
     type Item = I::Item
     type IntoIter = ChainIter<I>
 
@@ -1957,7 +1957,7 @@ impl IntoIterator for ChainIter<I> {
     }
 }
 
-impl IntoIterator for EnumerateIter<I> {
+impl<I> IntoIterator for EnumerateIter<I> {
     type Item = Pair<i32, I::Item>
     type IntoIter = EnumerateIter<I>
 
@@ -1966,7 +1966,7 @@ impl IntoIterator for EnumerateIter<I> {
     }
 }
 
-impl IntoIterator for ZipIter<A, B> {
+impl<A, B> IntoIterator for ZipIter<A, B> {
     type Item = Pair<A::Item, B::Item>
     type IntoIter = ZipIter<A, B>
 

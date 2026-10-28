@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq}
+use std::prelude::{clone, eq}
 use std::text
 use resolver::ast_access
 use parser::kinds
@@ -110,10 +110,6 @@ fn impl_target_type_name(target: AstNode, declared: Vec<String>) -> String {
     target_name
 }
 
-fn impl_type_param_name(name: String) -> bool {
-    len(name) == 1 && byte_at(name, 0) >= 65 && byte_at(name, 0) <= 90
-}
-
 fn is_declared_impl_param(name: String, declared: Vec<String>) -> bool {
     let count = len(declared)
     let mut i = 0
@@ -156,8 +152,7 @@ fn impl_inst_arg_suffix(target: AstNode, declared: Vec<String>) -> String {
 fn impl_inst_arg_key(arg: AstNode, declared: Vec<String>) -> String {
     if ast_access::node_kind_is(arg, kinds::NK_TYPE_NAMED()) {
         let name = ast_access::node_text(arg)
-        if is_declared_impl_param(clone(name), clone(declared)) ||
-        impl_type_param_name(clone(name)) {
+        if is_declared_impl_param(clone(name), declared) {
             return String_new()
         }
         return name

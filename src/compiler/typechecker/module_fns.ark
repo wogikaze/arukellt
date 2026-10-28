@@ -52,7 +52,7 @@ fn collect_impl_method_sigs(fn_sigs: Vec<FnSig>, node: AstNode, env: TypeEnv) {
 }
 
 fn impl_method_sig(env: TypeEnv, impl_decl: AstNode, method_decl: AstNode) -> FnSig {
-    let impl_type_params = impl_generics::type_param_names(impl_decl)
+    let impl_type_params = impl_generics::declared_type_param_names(impl_decl)
     let impl_type_param_bounds = impl_generics::type_param_bounds(impl_decl)
     let bare_sig = if len(impl_type_params) > 0 {
         sigs::fn_sig_from_fn_decl_with_impl_type_params(

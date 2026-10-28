@@ -374,6 +374,8 @@ diag:selfhost/trait_ambiguous_bound.ark
 diag:diagnostics/bounded_impl_bound_missing.ark
 diag:diagnostics/bounded_impl_unconstrained_param.ark
 diag:diagnostics/trait_blanket_impl.ark
+diag:diagnostics/implicit_impl_type_parameter.ark
+diag:diagnostics/implicit_inherent_impl_type_parameter.ark
 diag:diagnostics/trait_default_method_body.ark
 diag:diagnostics/trait_dyn_boundary.ark
 diag:diagnostics/error_supertrait_missing.ark
@@ -2285,6 +2287,7 @@ run:trait/method_chain.ark
 run:trait/operator_overload.ark
 run:trait/trait_impl.ark
 run:trait/trait_core_v2.ark
+run:trait/single_uppercase_impl_target.ark
 run:v0_constraints/no_impl.ark
 run:v0_constraints/no_nested_generics.ark
 run:v128_basic/basic.ark

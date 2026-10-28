@@ -11,7 +11,7 @@ fn wrap_iter<T>(x: T) -> WrapIter<T> {
 }
 
 // ADR-078: a parametric impl covers every instantiation of WrapIter.
-impl Iterator for WrapIter<T> {
+impl<T> Iterator for WrapIter<T> {
     type Item = T
     fn next(self: WrapIter<T>) -> Option<T> {
         if self.done {
@@ -26,7 +26,7 @@ struct Once<T> {
     item: T,
 }
 
-impl IntoIterator for Once<T> {
+impl<T> IntoIterator for Once<T> {
     type Item = T
     type IntoIter = WrapIter<T>
     fn into_iter(self: Once<T>) -> WrapIter<T> {

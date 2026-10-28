@@ -305,7 +305,7 @@ pub struct Reverse<T> {
 }
 
 /// `Ord` impl for `Reverse<T: Ord>` — flips the inner ordering.
-impl Ord for Reverse<T> {
+impl<T> Ord for Reverse<T> {
     fn cmp(self: Reverse<T>, other: Reverse<T>) -> Ordering {
         match self.inner.cmp(other.inner) {
             Ordering::Less => Ordering::Greater,

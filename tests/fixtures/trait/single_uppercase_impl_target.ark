@@ -1,0 +1,23 @@
+// ADR-089: an impl head name resolves as an ordinary type. A single-uppercase
+// struct can therefore be the target of both an inherent impl and a trait
+// impl; the trailing `impl Copy for S` also proves the trait impl registered
+// S itself (the copy permits reusing the first binding).
+use std::host::stdio
+
+struct S {
+    x: i32,
+}
+
+impl S {
+    fn read_x(self: S) -> i32 {
+        self.x
+    }
+}
+
+impl Copy for S {}
+
+fn main() {
+    let first = S { x: 7 }
+    let second = first
+    stdio::println((first.read_x() + second.read_x()).to_string())
+}

@@ -62,7 +62,7 @@ fn ordering_is_equal(ordering: Ordering) -> bool {
     }
 }
 
-impl Vec<T> {
+impl<T> Vec<T> {
     /// Creates a new empty vector.
     fn new() -> Vec<T> {
         RawArray::new<T>(0)
