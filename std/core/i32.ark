@@ -1,0 +1,7 @@
+//! `i32` constants (`std::core::i32`): `i32::MAX` and `i32::MIN`.
+//!
+//! Module-level consts until associated-const syntax exists (issue #969).
+
+pub const MAX: i32 = 2147483647
+
+pub const MIN: i32 = 0 - 2147483647 - 1

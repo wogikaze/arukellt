@@ -926,6 +926,7 @@ run:stdlib_core/cmp_ord_bool.ark
 run:stdlib_core/cmp_ord_char.ark
 run:stdlib_core/cmp_ord_i32.ark
 run:stdlib_core/cmp_ord_string.ark
+run:stdlib_core/const_limits.ark
 run:stdlib_core/convert.ark
 run:stdlib_core/convert_bool_to_string.ark
 run:stdlib_core/convert_f64_to_string.ark
@@ -2081,6 +2082,7 @@ run:stdlib_trait/self_return_clone.ark
 run:stdlib_trait/try_from_narrow.ark
 run:stdlib_trait/try_from_parse.ark
 run:stdlib_trait/try_from_parse_wasm32.ark
+run:stdlib_vec/sort_by_ordering.ark
 run:stdlib_vec/vec_algorithms.ark
 run:stdlib_vec/vec_ext_ordering.ark
 run:stdlib_vec/any_find.ark
@@ -2645,6 +2647,7 @@ t3-compile:stdlib_trait/self_return_add.ark
 t3-compile:stdlib_trait/operator_generic.ark
 t3-compile:stdlib_trait/self_return_clone.ark
 t3-compile:stdlib_trait/clone_unbound_typevar.ark
+t3-compile:stdlib_vec/sort_by_ordering.ark
 t3-compile:stdlib_vec/vec_algorithms.ark
 t3-compile:stdlib_vec/vec_ext_ordering.ark
 t3-compile:stdlib_vec/any_find.ark
@@ -3180,6 +3183,7 @@ t3-run:stdlib_trait/self_return_clone.ark
 t3-run:stdlib_trait/clone_unbound_typevar.ark
 t3-run:stdlib_trait/try_from_narrow.ark
 t3-run:stdlib_trait/try_from_parse.ark
+t3-run:stdlib_vec/sort_by_ordering.ark
 t3-run:stdlib_vec/vec_algorithms.ark
 t3-run:stdlib_vec/vec_ext_ordering.ark
 t3-run:stdlib_vec/any_find.ark

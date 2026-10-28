@@ -1,0 +1,29 @@
+// Vec::sort_by is a stable bottom-up merge sort and takes a comparator that
+// returns Ordering directly (no `Ord::cmp` call is needed).
+use std::collections::vec
+use std::host::stdio
+
+fn descending(a: i32, b: i32) -> Ordering {
+    if a > b {
+        return Ordering::Less
+    }
+    if a < b {
+        return Ordering::Greater
+    }
+    Ordering::Equal
+}
+
+fn main() {
+    let v: Vec<i32> = Vec::new<i32>()
+    v.push(3)
+    v.push(1)
+    v.push(2)
+    v.push(2)
+    v.push(5)
+    v.sort_by(descending)
+    let parts: Vec<String> = Vec::new<String>()
+    for i in 0..v.len() {
+        parts.push(v.get_unchecked(i).to_string())
+    }
+    stdio::println(parts.join(" "))
+}

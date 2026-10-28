@@ -4237,3 +4237,29 @@ returns = "Result<i32, String>"
 doc_category = "host_process"
 doc = "Return a stable Err on WASI 0.2 because the portable process model does not expose a POSIX-style process identifier."
 availability = { t1 = true, t3 = true }
+
+# ── Numeric const modules (std::core::{i32,i64,f64}) ────────────────────────
+# Const declarations are not represented in the manifest schema yet; these
+# modules are registered so the module boundary and availability are visible.
+# Qualified access (`i32::MAX`) is still broken (#970); import names directly.
+
+[[modules]]
+name = "std::core::i32"
+stability = "provisional"
+family = "core"
+doc = "i32 constants: `MAX` and `MIN`."
+availability = { t1 = true, t3 = true }
+
+[[modules]]
+name = "std::core::i64"
+stability = "provisional"
+family = "core"
+doc = "i64 constants: `MAX` and `MIN`."
+availability = { t1 = true, t3 = true }
+
+[[modules]]
+name = "std::core::f64"
+stability = "provisional"
+family = "core"
+doc = "f64 special values: `INF`, `NEG_INF`, and `NAN`."
+availability = { t1 = true, t3 = true }

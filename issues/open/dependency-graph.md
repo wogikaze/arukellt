@@ -62,6 +62,11 @@ graph LR
   I965["965 965 — wasm32-gc: generic `<` on `T: Ord` compiles to invalid Wasm; generic `Vec<T: Ord>` algorithms are blocked"]
   I966["966 966 — Same-named methods across type specializations resolve to one impl: `Vec::contains` traps and `Vec<String>::sort` runs the i32 sort"]
   I967["967 967 — Generic Vec methods on `Vec<String>` and generic `iter()` are missing/broken on wasm32"]
+  I968["968 968 — `Deque<T>` traps on wasm32-gc in real use; `is_empty`/`len` collide with the Vec methods"]
+  I969["969 969 — Rust-style numeric constants (`i32::MAX`, `f64::INFINITY`) and type aliases (`VecDeque<T>`) are not expressible"]
+  I970["970 970 — Module `const` references: qualified paths and multi-const imports emit invalid Wasm"]
+  I971["971 971 — `Vec::sort_by` cannot sort aggregate elements on wasm32-gc, and traps for `String`"]
+  I972["972 972 — `(a..b).rev()` and tuple-of-struct values emit invalid Wasm"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
@@ -150,6 +155,11 @@ graph LR
 - **965** depends on: none; blocks: none
 - **966** depends on: none; blocks: none
 - **967** depends on: none; blocks: none
+- **968** depends on: none; blocks: none
+- **969** depends on: none; blocks: none
+- **970** depends on: none; blocks: none
+- **971** depends on: none; blocks: none
+- **972** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **850** depends on: 851; blocks: none

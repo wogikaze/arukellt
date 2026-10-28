@@ -83,3 +83,22 @@ Actual: `wasm trap: wasm 'unreachable'` inside `sort__sort__i32`.
 - [ ] `cmp` returns `Less`/`Equal`/`Greater` correctly for i32/i64/f64 on both targets.
 - [ ] Fixture: `sort::sort` sorts n=3 and n=40 `Vec<i32>` and `Vec<i64>` on both targets.
 - [ ] Regression fixture covers the `unreachable` trap.
+
+## Update (2026-10-28, later session)
+
+The original repro omitted `use std::core::cmp`. With that import, `1i32.cmp(3i32)`
+works on both targets (prints `less`). Without it, the method resolves to a stub and
+traps with `unreachable`, so the first half of this issue is a name-resolution stub
+problem rather than a broken `Ord` impl.
+
+The free `std::collections::sort::sort` still traps on `Vec<i32>`:
+
+```ark
+use std::collections::sort
+// v = [3, 1, 2]
+sort::sort(v)   // wasm trap: unreachable
+```
+
+So the issue should be rescoped to the free sort path; `Vec::sort_by` with a
+comparator that returns `Ordering` directly works (see the updated implementation and
+`tests/fixtures/stdlib_vec/sort_by_ordering.ark`).

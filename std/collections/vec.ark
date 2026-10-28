@@ -320,21 +320,58 @@ impl<T> Vec<T> {
     /// adapter path.
     fn sort_by(self: Vec<T>, cmp: fn(T, T) -> Ordering) {
         let count: i32 = vec_len(self)
-        let mut index: i32 = 1
-        while index < count {
-            let current = get_unchecked(self, index)
-            let mut slot: i32 = index - 1
-            while slot >= 0 {
-                let previous = get_unchecked(self, slot)
-                let should_shift = ordering_is_greater(cmp(previous, current))
-                if !should_shift {
-                    break
+        if count < 2 {
+            return
+        }
+        // 安定なボトムアップ・マージソート。作業配列は要素のハンドルを複製して
+        // 埋める（drain と同じく、複製したハンドルは GC 管理なので安全）。
+        let scratch: Vec<T> = Vec::with_capacity<T>(count)
+        for _i in 0..count {
+            push(scratch, get_unchecked(self, 0))
+        }
+        let mut width: i32 = 1
+        while width < count {
+            let mut lo: i32 = 0
+            while lo < count {
+                let mut mid: i32 = lo + width
+                if mid > count {
+                    mid = count
                 }
-                vec_set(self, slot + 1, previous)
-                slot = slot - 1
+                let mut hi: i32 = lo + 2 * width
+                if hi > count {
+                    hi = count
+                }
+                let mut i: i32 = lo
+                let mut j: i32 = mid
+                let mut k: i32 = lo
+                while k < hi {
+                    let mut take_left: bool = false
+                    if i < mid {
+                        if j >= hi {
+                            take_left = true
+                        } else {
+                            let left = get_unchecked(self, i)
+                            let right = get_unchecked(self, j)
+                            if !ordering_is_greater(cmp(left, right)) {
+                                take_left = true
+                            }
+                        }
+                    }
+                    if take_left {
+                        vec_set(scratch, k, get_unchecked(self, i))
+                        i = i + 1
+                    } else {
+                        vec_set(scratch, k, get_unchecked(self, j))
+                        j = j + 1
+                    }
+                    k = k + 1
+                }
+                lo = hi
             }
-            vec_set(self, slot + 1, current)
-            index = index + 1
+            for t in 0..count {
+                vec_set(self, t, get_unchecked(scratch, t))
+            }
+            width = width * 2
         }
     }
 

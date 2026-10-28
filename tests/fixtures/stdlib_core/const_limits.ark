@@ -1,0 +1,12 @@
+// Numeric limit and IEEE 754 constants imported unqualified.
+// Qualified paths such as `f64::INF` currently emit invalid Wasm (#970), so
+// this fixture uses the supported `use ...::{NAME}` form.
+use std::core::f64::{INF}
+use std::core::i32::{MAX, MIN}
+use std::host::stdio
+
+fn main() {
+    stdio::println(MAX.to_string())
+    stdio::println(MIN.to_string())
+    stdio::println((INF > 1.0).to_string())
+}

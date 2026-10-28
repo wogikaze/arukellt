@@ -1,0 +1,7 @@
+//! `i64` constants (`std::core::i64`): `i64::MAX` and `i64::MIN`.
+//!
+//! Module-level consts until associated-const syntax exists (issue #969).
+
+pub const MAX: i64 = 9223372036854775807i64
+
+pub const MIN: i64 = 0i64 - 9223372036854775807i64 - 1i64

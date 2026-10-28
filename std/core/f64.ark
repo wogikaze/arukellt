@@ -1,0 +1,11 @@
+//! `f64` constants (`std::core::f64`): `f64::INF`, `f64::NAN`, and bounds.
+//!
+//! These are `const` declarations so they can appear in expressions. They are
+//! module-level consts because the language has no associated-const syntax yet
+//! (see issue #969).
+
+pub const INF: f64 = 1.0 / 0.0
+
+pub const NEG_INF: f64 = (0.0 - 1.0) / 0.0
+
+pub const NAN: f64 = 0.0 / 0.0

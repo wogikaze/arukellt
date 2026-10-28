@@ -72,3 +72,9 @@ elements shows `100 107 114 121 <garbage> ...`.
 - [ ] Repro prints `128` and a full 8-element readback matches on `wasm32`.
 - [ ] Fixture: 200k `Vec<i64>` pushes with reads at indices 0, 4, 12345, n-1.
 - [ ] `wasm32-gc` stays green.
+
+## Additional evidence (2026-10-28, G refactor)
+
+`Vec<i64>::resize` and `Vec<i64>::extend` compile but trap at runtime on `wasm32-gc`
+with `unreachable`, while a `push` loop works. This is the same growth/element-layout
+family; the G solution keeps push loops for that reason.
