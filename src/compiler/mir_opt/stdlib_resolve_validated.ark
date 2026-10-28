@@ -39,7 +39,7 @@ fn stdlib_resolve_fn_validated(m: MirModule, f: MirFunction) -> i32 {
     let block_count = function_block_queries::MirFunction_block_count(f)
     let mut block_index = 0
     while block_index < block_count {
-        let block = function_block_queries::MirFunction_block_at(f, block_index)
+        let mut block = function_block_queries::MirFunction_block_at(f, block_index)
         let before = block_inst_access::MirBlock_instructions(block)
         let resolved = stdlib_inline::stdlib_resolve_normal_call_block(
             m,

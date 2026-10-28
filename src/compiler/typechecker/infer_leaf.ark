@@ -6,7 +6,7 @@ use typechecker::contract_env_record
 use typechecker::contract_type_access
 use typechecker::int_lit_suffix
 use typechecker::scope
-fn infer_leaf_expr(env: TypeEnv, scope: LocalScope, node: AstNode) -> TypeInfo {
+fn infer_leaf_expr(mut env: TypeEnv, scope: LocalScope, node: AstNode) -> TypeInfo {
     if ast_expr_predicates::node_is_int_lit(node) {
         let raw_text = ast_access::node_text(node)
         let raw_len = len(raw_text)

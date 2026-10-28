@@ -25,14 +25,14 @@ fn digit_value(c: i32) -> i32 {
     char_class::digit_value(c)
 }
 
-fn skip_whitespace(lex: Lexer) {
+fn skip_whitespace(mut lex: Lexer) {
     char_skip::skip_whitespace_impl(lex)
 }
 
-fn skip_line_comment(lex: Lexer) {
+fn skip_line_comment(mut lex: Lexer) {
     char_skip::skip_line_comment_impl(lex)
 }
 
-fn skip_block_comment(lex: Lexer) {
+fn skip_block_comment(mut lex: Lexer) {
     char_skip::skip_block_comment_impl(lex)
 }

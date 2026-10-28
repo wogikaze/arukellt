@@ -9,7 +9,7 @@ use diagnostics::record as diag_record
 use lint::checks as lint_checks
 use lint::registry as lint_registry
 fn local_filter_allowed(warnings: Vec<Diagnostic>, allow_codes: Vec<String>) -> Vec<Diagnostic> {
-    let filtered = Vec::new<Diagnostic>()
+    let mut filtered = Vec::new<Diagnostic>()
     let count = len(warnings)
     let mut i = 0
     while i < count {
@@ -29,7 +29,7 @@ fn local_escalate(diag: Diagnostic) -> Diagnostic {
     diag_mod::Diagnostic_new(diag_record::diagnostic_code(diag), diag_mod::SEV_ERROR(), diag_record::diagnostic_span(diag), diag_record::diagnostic_message(diag))
 }
 
-fn local_partition_deny(warnings: Vec<Diagnostic>, deny_codes: Vec<String>, denied: Vec<Diagnostic>, kept: Vec<Diagnostic>) {
+fn local_partition_deny(warnings: Vec<Diagnostic>, deny_codes: Vec<String>, mut denied: Vec<Diagnostic>, mut kept: Vec<Diagnostic>) {
     let count = len(warnings)
     let mut i = 0
     while i < count {
@@ -47,17 +47,17 @@ fn local_partition_deny(warnings: Vec<Diagnostic>, deny_codes: Vec<String>, deni
 // Skip resolve/typecheck so package modules can be linted one file at a time.
 pub fn run_local_lint_stage(source: String, config: DriverConfig, decls: Vec<AstNode>, parse_warnings: Vec<Diagnostic>) -> CompileResult {
     let lint_warnings = lint_checks::run_post_resolve_lint(decls, config_record::config_target(config))
-    let all_warnings = Vec::new<Diagnostic>()
+    let mut all_warnings = Vec::new<Diagnostic>()
     vec_extend::Vec_extend_Diagnostic(all_warnings, parse_warnings)
     vec_extend::Vec_extend_Diagnostic(all_warnings, lint_warnings)
     let allow_codes = config_record::config_lint_allow(config)
     let deny_codes = config_record::config_lint_deny(config)
     let filtered = local_filter_allowed(all_warnings, allow_codes)
-    let denied = Vec::new<Diagnostic>()
-    let kept = Vec::new<Diagnostic>()
+    let mut denied = Vec::new<Diagnostic>()
+    let mut kept = Vec::new<Diagnostic>()
     local_partition_deny(filtered, deny_codes, denied, kept)
     if len(denied) > 0 {
-        let all = Vec::new<Diagnostic>()
+        let mut all = Vec::new<Diagnostic>()
         vec_extend::Vec_extend_Diagnostic(all, denied)
         vec_extend::Vec_extend_Diagnostic(all, kept)
         return errors::type_errors_result(clone(source), config_record::config_source_file(config), len(denied), all, Vec::new<String>())

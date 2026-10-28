@@ -10,7 +10,7 @@ use loader::module_state
 use loader::module_state_errors
 use loader::module_stdlib_decls
 use loader::wit_manifest
-pub fn load_stdlib_module(stdlib_path: String, state: LoadState) {
+pub fn load_stdlib_module(stdlib_path: String, mut state: LoadState) {
     let mod_decls = module_stdlib_decls::load_stdlib_module_decls(stdlib_path, state)
     // Stdlib modules may import sealed raw APIs.
     load_imported_modules_at(mod_decls, ".", ".", state, true)
@@ -31,7 +31,7 @@ fn stdlib_adapter_needs_flat_hashmap(stdlib_path: String) -> bool {
     eq(clone(stdlib_path), "std::collections::hash_str_fn")
 }
 
-pub fn load_imported_modules(decls: Vec<AstNode>, base_dir: String, state: LoadState) {
+pub fn load_imported_modules(decls: Vec<AstNode>, base_dir: String, mut state: LoadState) {
     let root_dir = module_package_root::find_package_root(clone(base_dir))
     // User/package modules cannot import sealed raw APIs.
     load_imported_modules_at(decls, clone(base_dir), root_dir, state, false)
@@ -41,7 +41,7 @@ fn load_imported_modules_at(
     decls: Vec<AstNode>,
     current_dir: String,
     root_dir: String,
-    state: LoadState,
+    mut state: LoadState,
     importer_is_stdlib: bool
 ) {
     let import_paths = module_import_paths::collect_import_paths(decls)
@@ -63,7 +63,7 @@ fn load_import_path(
     use_path: String,
     current_dir: String,
     root_dir: String,
-    state: LoadState,
+    mut state: LoadState,
     importer_is_stdlib: bool
 ) {
     if module_sealed_raw::is_sealed_raw_api_path(clone(use_path)) {
@@ -99,7 +99,7 @@ fn load_local_module_or_parent(
     base_dir: String,
     fallback_dir: String,
     root_dir: String,
-    state: LoadState
+    mut state: LoadState
 ) {
     // Dedup before touching the filesystem: every `use` edge reaches this
     // point, and re-reading an already-loaded module file per edge multiplied
@@ -134,7 +134,7 @@ fn load_local_module_or_parent(
 // dir can still reference a module that lives at the package root, so retry
 // there before reporting a miss. Runs after the sibling candidates so
 // existing resolution order is unchanged.
-fn try_load_at_package_root(module_name: String, tried_dir: String, root_dir: String, state: LoadState) -> bool {
+fn try_load_at_package_root(module_name: String, tried_dir: String, root_dir: String, mut state: LoadState) -> bool {
     if eq(clone(tried_dir), clone(root_dir)) {
         return false
     }
@@ -151,7 +151,7 @@ fn try_load_at_package_root(module_name: String, tried_dir: String, root_dir: St
     true
 }
 
-fn load_single_module(module_name: String, base_dir: String, root_dir: String, state: LoadState) {
+fn load_single_module(module_name: String, base_dir: String, root_dir: String, mut state: LoadState) {
     let loaded = module_local_decls::load_local_module_decls(clone(module_name), clone(base_dir), state)
     let next_dir = module_paths::parent_dir(module_local_decls::DriverLocalModuleDecls_path(loaded))
     // Local package modules are never stdlib importers.

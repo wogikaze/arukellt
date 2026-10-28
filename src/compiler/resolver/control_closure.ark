@@ -3,7 +3,7 @@ use resolver::ast_access
 use resolver::scope_define
 use resolver::kinds
 
-fn resolve_closure(ctx: ResolveCtx, node: AstNode) {
+fn resolve_closure(mut ctx: ResolveCtx, node: AstNode) {
     scope_stack_lifecycle::push_scope(ctx)
     let child_count = ast_access::node_child_count(node)
     let mut i = 0
@@ -15,7 +15,7 @@ fn resolve_closure(ctx: ResolveCtx, node: AstNode) {
         i = i + 1
     }
     if child_count > 0 {
-        let body = ast_access::node_child_at(node, child_count - 1)
+        let mut body = ast_access::node_child_at(node, child_count - 1)
         resolve_node(ctx, body)
     }
     scope_stack_lifecycle::pop_scope(ctx)

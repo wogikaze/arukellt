@@ -6,7 +6,7 @@ use std::test
 fn main() {
     // Capacity 4 makes the 5-byte write cross the flush threshold before the
     // explicit flush; into_inner proves the bytes reached the inner Writer.
-    let bw: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 4)
+    let mut bw: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 4)
     let res: Result<i32, io::IoError> = bw.write_string("hello")
     match res {
         Result::Ok(n) => test::assert_eq_i32(n, 5),

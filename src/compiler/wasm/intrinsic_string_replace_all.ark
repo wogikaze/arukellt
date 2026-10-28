@@ -10,7 +10,7 @@ use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i32
 
 // Handler for: replace, text::replace
-fn emit_replace(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_replace(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         intrinsic_string_replace_all_gc::emit_replace_gc(w, inst, ctx)
         return true

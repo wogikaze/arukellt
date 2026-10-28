@@ -2,7 +2,7 @@ use std::collections::hash
 use std::host::stdio
 use std::prelude::{assert_eq}
 fn main() {
-    let s = hash::hashset_new()
+    let mut s = hash::hashset_new()
     assert(hash::hashset_is_empty(s))
     assert_eq(hash::hashset_len(s), 0)
     assert(hash::hashset_capacity(s) >= 1)
@@ -27,7 +27,7 @@ fn main() {
     assert(hash::hashset_contains(s, 2))
 
     // extend adds elements from another set
-    let other = hash::hashset_new()
+    let mut other = hash::hashset_new()
     assert(hash::hashset_insert(other, 3)) // duplicate of existing
     assert(hash::hashset_insert(other, 4))
     assert(hash::hashset_insert(other, 5))

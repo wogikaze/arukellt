@@ -8,7 +8,7 @@ use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 
 // Handler for: trim_start, text::trim_start
-fn emit_trim_start(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_trim_start(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         intrinsic_string_trim_gc::emit_trim_start_gc(w, inst, ctx)
         return true
@@ -34,7 +34,7 @@ fn emit_trim_start(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 // Handler for: trim_end, text::trim_end
-fn emit_trim_end(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_trim_end(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         intrinsic_string_trim_gc::emit_trim_end_gc(w, inst, ctx)
         return true

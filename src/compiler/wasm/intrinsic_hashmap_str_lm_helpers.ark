@@ -2,14 +2,14 @@ use wasm::ctx_scratch
 use wasm::opcodes
 use wasm::writer_core
 
-fn emit_lm_flat_load_const(w: WasmWriter, s_map: i32, flat_idx: i32) {
+fn emit_lm_flat_load_const(mut w: WasmWriter, s_map: i32, flat_idx: i32) {
     emit_lm_push_data_addr_const(w, s_map, flat_idx)
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
 }
 
-fn emit_lm_flat_store_const(w: WasmWriter, s_map: i32, flat_idx: i32, s_val: i32) {
+fn emit_lm_flat_store_const(mut w: WasmWriter, s_map: i32, flat_idx: i32, s_val: i32) {
     emit_lm_push_data_addr_const(w, s_map, flat_idx)
     writer_core::emit_local_get(w, s_val)
     writer_core::emit_byte(w, opcodes::OP_I32_STORE())
@@ -17,7 +17,7 @@ fn emit_lm_flat_store_const(w: WasmWriter, s_map: i32, flat_idx: i32, s_val: i32
     writer_core::emit_byte(w, 0)
 }
 
-fn emit_lm_push_data_addr_const(w: WasmWriter, s_map: i32, flat_idx: i32) {
+fn emit_lm_push_data_addr_const(mut w: WasmWriter, s_map: i32, flat_idx: i32) {
     writer_core::emit_local_get(w, s_map)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 8)
@@ -33,7 +33,7 @@ fn emit_lm_push_data_addr_const(w: WasmWriter, s_map: i32, flat_idx: i32) {
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
 }
 
-fn emit_lm_slot_get(w: WasmWriter, ctx: SelfEmitCtx, s_map: i32, s_idx: i32, region: i32) {
+fn emit_lm_slot_get(mut w: WasmWriter, ctx: SelfEmitCtx, s_map: i32, s_idx: i32, region: i32) {
     let s_cap = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
     let s_flat = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
     emit_lm_flat_load_const(w, s_map, 0)
@@ -49,7 +49,7 @@ fn emit_lm_slot_get(w: WasmWriter, ctx: SelfEmitCtx, s_map: i32, s_idx: i32, reg
     emit_lm_slot_get_load(w, s_map, s_flat)
 }
 
-fn emit_lm_slot_region_offset(w: WasmWriter, s_cap: i32, region: i32) {
+fn emit_lm_slot_region_offset(mut w: WasmWriter, s_cap: i32, region: i32) {
     if region == 1 {
         writer_core::emit_local_get(w, s_cap)
         writer_core::emit_byte(w, opcodes::OP_I32_ADD())
@@ -61,14 +61,14 @@ fn emit_lm_slot_region_offset(w: WasmWriter, s_cap: i32, region: i32) {
     }
 }
 
-fn emit_lm_slot_get_load(w: WasmWriter, s_map: i32, s_flat: i32) {
+fn emit_lm_slot_get_load(mut w: WasmWriter, s_map: i32, s_flat: i32) {
     emit_lm_push_flat_addr(w, s_map, s_flat)
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
 }
 
-fn emit_lm_push_flat_addr(w: WasmWriter, s_map: i32, s_flat: i32) {
+fn emit_lm_push_flat_addr(mut w: WasmWriter, s_map: i32, s_flat: i32) {
     writer_core::emit_local_get(w, s_map)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 8)
@@ -86,13 +86,13 @@ fn emit_lm_push_flat_addr(w: WasmWriter, s_map: i32, s_flat: i32) {
 // __hm_*_adopt on linear: the flat table is a Vec<i32> object, so moving
 // the backing store between two map handles is a three-word copy of the
 // {len, cap, data} Vec header (#895).
-fn emit_lm_header_adopt(w: WasmWriter, s_dst: i32, s_src: i32) {
+fn emit_lm_header_adopt(mut w: WasmWriter, s_dst: i32, s_src: i32) {
     emit_lm_header_word_copy(w, s_dst, s_src, 0)
     emit_lm_header_word_copy(w, s_dst, s_src, 4)
     emit_lm_header_word_copy(w, s_dst, s_src, 8)
 }
 
-fn emit_lm_header_word_copy(w: WasmWriter, s_dst: i32, s_src: i32, offset: i32) {
+fn emit_lm_header_word_copy(mut w: WasmWriter, s_dst: i32, s_src: i32, offset: i32) {
     writer_core::emit_local_get(w, s_dst)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, offset)
@@ -109,7 +109,7 @@ fn emit_lm_header_word_copy(w: WasmWriter, s_dst: i32, s_src: i32, offset: i32) 
     writer_core::emit_byte(w, 0)
 }
 
-fn emit_lm_slot_set(w: WasmWriter, ctx: SelfEmitCtx, s_map: i32, s_idx: i32, s_val: i32, region: i32) {
+fn emit_lm_slot_set(mut w: WasmWriter, ctx: SelfEmitCtx, s_map: i32, s_idx: i32, s_val: i32, region: i32) {
     let s_cap = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
     let s_flat = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
     emit_lm_flat_load_const(w, s_map, 0)

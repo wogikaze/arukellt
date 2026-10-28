@@ -19,7 +19,7 @@ fn parse_bool_field(body: String, key: String, default_value: bool) -> bool {
     true
 }
 
-pub fn apply_initialize_config(state: LspState, body: String) {
+pub fn apply_initialize_config(mut state: LspState, body: String) {
     let level = json::JsonText::get_str(clone(body), String_from("hoverDetailLevel"))
     if len(level) > 0 {
         state_record::lsp_state_set_hover_detail_level(state, level)

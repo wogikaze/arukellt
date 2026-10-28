@@ -17,12 +17,12 @@ fn ctx_match_result_state_get(ctx: LowerCtx, result: i32) -> i32 {
     ctx_match_result_state_none()
 }
 
-fn ctx_match_result_state_set(ctx: LowerCtx, result: i32, state: i32) {
+fn ctx_match_result_state_set(mut ctx: LowerCtx, result: i32, state: i32) {
     push(ctx.match_result_indices, result)
     push(ctx.match_result_states, state)
 }
 
-fn ctx_match_result_state_reset(ctx: LowerCtx) {
+fn ctx_match_result_state_reset(mut ctx: LowerCtx) {
     ctx.match_result_indices = Vec::new<i32>()
     ctx.match_result_states = Vec::new<i32>()
 }

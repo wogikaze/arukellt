@@ -27,7 +27,7 @@ fn MirModule_string_constant_at(m: MirModule, idx: i32) -> String {
     get_unchecked(m.string_constants, idx)
 }
 
-fn MirModule_push_string_constant(m: MirModule, s: String) {
+fn MirModule_push_string_constant(mut m: MirModule, s: String) {
     assert_string_constant_sane(s)
     push(m.string_data_rel, m.string_data_next + 4)
     m.string_data_next = m.string_data_next + 4 + len(s)
@@ -42,7 +42,7 @@ fn MirModule_string_data_next(m: MirModule) -> i32 {
     m.string_data_next
 }
 
-fn intern_string(m: MirModule, s: String) -> i32 {
+fn intern_string(mut m: MirModule, s: String) -> i32 {
     assert_string_constant_sane(s)
     let count = len(m.string_constants)
     let mut i = 0

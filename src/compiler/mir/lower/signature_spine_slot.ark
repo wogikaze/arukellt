@@ -12,7 +12,7 @@ fn mir_signature_spine_slot_new() -> MirSignatureSpineSlot {
     MirSignatureSpineSlot { type_table: type_table::TypeTable_new(), signature_registry: signature_registry::SignatureRegistry_new(), populated: false }
 }
 
-fn mir_signature_spine_slot_store(slot: MirSignatureSpineSlot, spine: MirSignatureSpine) {
+fn mir_signature_spine_slot_store(mut slot: MirSignatureSpineSlot, spine: MirSignatureSpine) {
     slot.type_table = signature_spine::mir_signature_spine_type_table(spine)
     slot.signature_registry = signature_spine::mir_signature_spine_registry(spine)
     slot.populated = true

@@ -51,7 +51,7 @@ fn impl_self_base_type_name(decl: AstNode) -> String {
 }
 
 fn declared_impl_param_names(decl: AstNode) -> Vec<String> {
-    let names = Vec::new<String>()
+    let mut names = Vec::new<String>()
     let count = ast_access::node_type_ann_count(decl)
     let mut i = 0
     while i < count {

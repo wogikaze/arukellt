@@ -2,7 +2,7 @@ use lexer::tokens
 use parser::core_ast_children
 use parser::core_api_cursor
 
-fn parse_let_initializer(p: Parser, node: AstNode) {
+fn parse_let_initializer(mut p: Parser, mut node: AstNode) {
     if peek_kind(p) == tokens::TK_EQ() {
         p.pos = p.pos + 1
         skip_newlines(p)

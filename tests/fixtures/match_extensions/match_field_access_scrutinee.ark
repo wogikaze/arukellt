@@ -16,7 +16,7 @@ struct KeyStep {
 }
 
 fn step(key: String) -> KeyStep {
-    let v = Vec::new<String>()
+    let mut v = Vec::new<String>()
     push(v, key)
     KeyStep { parts: Result::Ok(v), next: 1 }
 }

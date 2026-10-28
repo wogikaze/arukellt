@@ -81,8 +81,8 @@ fn mir_lower_phase_mir_size(
 
 fn mir_lower_wall_record(
     timing: i32,
-    wall_ms: Vec<i32>,
-    wall_name: Vec<String>,
+    mut wall_ms: Vec<i32>,
+    mut wall_name: Vec<String>,
     t_start: i64,
     name: String
 ) {
@@ -93,7 +93,7 @@ fn mir_lower_wall_record(
     push(wall_name, name)
 }
 
-fn mir_lower_top_walls_note(enabled: i32, wall_ms: Vec<i32>, wall_name: Vec<String>) {
+fn mir_lower_top_walls_note(enabled: i32, mut wall_ms: Vec<i32>, wall_name: Vec<String>) {
     if enabled == 0 {
         return
     }

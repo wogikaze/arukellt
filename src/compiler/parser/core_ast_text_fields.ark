@@ -1,4 +1,4 @@
 use parser::ast_fields_record
 
 fn AstNode_text(node: AstNode) -> String { ast_fields_record::ast_node_text(node) }
-fn AstNode_set_text(node: AstNode, text: String) { ast_fields_record::ast_node_set_text(node, text) }
+fn AstNode_set_text(mut node: AstNode, text: String) { ast_fields_record::ast_node_set_text(node, text) }

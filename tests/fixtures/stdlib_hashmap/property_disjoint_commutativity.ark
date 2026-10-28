@@ -14,14 +14,14 @@ fn assert_probe(m: Vec<i32>, key: i32, expected: i32) {
 
 test "probe_results_are_independent_of_insertion_order" {
     // Map A: ascending insertion order.
-    let a: Vec<i32> = hash::hashmap_new()
+    let mut a: Vec<i32> = hash::hashmap_new()
     hash::hashmap_set(a, 10, 100)
     hash::hashmap_set(a, 20, 200)
     hash::hashmap_set(a, 30, 300)
     hash::hashmap_set(a, 40, 400)
 
     // Map B: descending (reversed) insertion order over the SAME disjoint keys.
-    let b: Vec<i32> = hash::hashmap_new()
+    let mut b: Vec<i32> = hash::hashmap_new()
     hash::hashmap_set(b, 40, 400)
     hash::hashmap_set(b, 30, 300)
     hash::hashmap_set(b, 20, 200)

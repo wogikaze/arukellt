@@ -13,8 +13,8 @@ use parser::stmt
 use parser::token_state
 use parser::types
 
-fn parse_closure_expr(p: Parser, start: Token, is_move: bool) -> AstNode {
-    let node = AstNode_new(kinds::NK_CLOSURE(), tok_span(start))
+fn parse_closure_expr(mut p: Parser, start: Token, is_move: bool) -> AstNode {
+    let mut node = AstNode_new(kinds::NK_CLOSURE(), tok_span(start))
     core_ast_flag_fields::AstNode_set_is_move(node, is_move)
     let mut first = true
     skip_newlines(p)
@@ -26,7 +26,7 @@ fn parse_closure_expr(p: Parser, start: Token, is_move: bool) -> AstNode {
         first = false
         let is_mut = consume_optional_mut(p)
         let param_tok = expect_token(p, tokens::TK_IDENT())
-        let param = AstNode_leaf(kinds::NK_IDENT(), token_state::Token_text(param_tok), tok_span(param_tok))
+        let mut param = AstNode_leaf(kinds::NK_IDENT(), token_state::Token_text(param_tok), tok_span(param_tok))
         core_ast_flag_fields::AstNode_set_is_mut(param, is_mut)
         core_ast_children::AstNode_push_child(node, param)
         skip_newlines(p)
@@ -44,7 +44,7 @@ fn parse_closure_expr(p: Parser, start: Token, is_move: bool) -> AstNode {
         expect_token(p, tokens::TK_ARROW())
         skip_newlines(p)
         let ret = types::parse_type(p)
-        let ret_node = core_ast_factory::AstNode_new(
+        let mut ret_node = core_ast_factory::AstNode_new(
             kinds::NK_TYPE_NAMED(),
             core_ast_span_fields::AstNode_span(ret)
         )

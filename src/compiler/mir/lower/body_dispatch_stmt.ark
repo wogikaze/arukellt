@@ -5,7 +5,7 @@ use mir::inst_misc_control
 use mir::lower::body_control
 use mir::lower::body_stmt
 
-fn lower_statement_like_expr(ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
+fn lower_statement_like_expr(mut ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
     if kind == lower_kinds::NK_LOOP() {
         return body_stmt::lower_stmt(ctx, node)
     }

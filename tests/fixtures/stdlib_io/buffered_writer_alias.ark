@@ -7,8 +7,8 @@ use std::io::{BufWriter, Writer}
 use std::test
 
 fn main() {
-    let bw1: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 32)
-    let bw2: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 32)
+    let mut bw1: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 32)
+    let mut bw2: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 32)
     let r1: Result<i32, io::IoError> = bw1.write_string("x")
     let r2: Result<i32, io::IoError> = bw2.write_string("x")
     match r1 {

@@ -14,7 +14,7 @@ fn Block_new() -> Block {
     Block { succ0: 0 - 1, succ1: 0 - 1, preds: Vec::new<i32>() }
 }
 
-fn add_pred(block: Block, pred_id: i32) {
+fn add_pred(mut block: Block, pred_id: i32) {
     let count = len(block.preds)
     let mut i = 0
     while i < count {
@@ -33,7 +33,7 @@ fn add_pred_edge(blocks: Vec<Block>, pred_id: i32, succ_id: i32) {
     if succ_id >= len(blocks) {
         return
     }
-    let succ = get_unchecked(blocks, succ_id)
+    let mut succ = get_unchecked(blocks, succ_id)
     add_pred(succ, pred_id)
 }
 
@@ -71,7 +71,7 @@ fn format_preds(preds: Vec<i32>) -> String {
 }
 
 fn main() {
-    let blocks = Vec::new<Block>()
+    let mut blocks = Vec::new<Block>()
     push(blocks, Block_new())
     push(blocks, Block_new())
     push(blocks, Block_new())

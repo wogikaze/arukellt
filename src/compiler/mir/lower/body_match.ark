@@ -7,7 +7,7 @@ use mir::lower::body_match_arm_last
 use mir::lower::body_match_arm_nonlast
 use mir::lower::match
 
-fn lower_match_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_match_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     if child_count < 2 {
         return 0 - 1
@@ -40,7 +40,7 @@ fn lower_match_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     match::mir_emit_match_result_get(ctx, result)
 }
 
-fn lower_match_arm(ctx: LowerCtx, arm_node: AstNode, is_last: bool, payload_info: MirMatchPayloadInfo, scrut_idx: i32, result: i32, if_depth: i32) -> i32 {
+fn lower_match_arm(mut ctx: LowerCtx, arm_node: AstNode, is_last: bool, payload_info: MirMatchPayloadInfo, scrut_idx: i32, result: i32, if_depth: i32) -> i32 {
     let arm_child_count = ast_node::node_child_count(arm_node)
     let pat_idx_in_arm = 0
     let body_idx_in_arm = arm_child_count - 1

@@ -2,7 +2,7 @@ use std::prelude::{clone}
 use mir::lower::ctx_variant_storage
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_sig
-fn ctx_register_builtin_variant_tags(ctx: LowerCtx) {
+fn ctx_register_builtin_variant_tags(mut ctx: LowerCtx) {
     ctx_variant_storage::ctx_variant_push_tag(ctx, "Some", 0)
     ctx_variant_storage::ctx_variant_push_tag(ctx, "None", 1)
     ctx_variant_storage::ctx_variant_push_tag(ctx, "Option::Some", 0)
@@ -13,7 +13,7 @@ fn ctx_register_builtin_variant_tags(ctx: LowerCtx) {
     ctx_variant_storage::ctx_variant_push_tag(ctx, "Result::Err", 1)
 }
 
-fn ctx_register_builtin_payload_variants(ctx: LowerCtx) {
+fn ctx_register_builtin_payload_variants(mut ctx: LowerCtx) {
     ctx_variant_storage::ctx_payload_variant_push(ctx, "Some")
     ctx_variant_storage::ctx_payload_variant_push(ctx, "None")
     ctx_variant_storage::ctx_payload_variant_push(ctx, "Ok")
@@ -40,7 +40,7 @@ fn ctx_register_builtin_payload_variants(ctx: LowerCtx) {
     }
 }
 
-fn register_builtin_gc_variant(ctx: LowerCtx, name: String, has_payload: bool, field_sigs: String) {
+fn register_builtin_gc_variant(mut ctx: LowerCtx, name: String, has_payload: bool, field_sigs: String) {
     let slot = len(ctx.gc_enum_variant_names)
     let sig = if has_payload {
         ctx_gc_enum_sig::gc_enum_payload_variant_sig(slot, field_sigs)

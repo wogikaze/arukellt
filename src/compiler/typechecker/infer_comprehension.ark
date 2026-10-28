@@ -5,8 +5,8 @@ use typechecker::contract_type_mutation
 use typechecker::scope
 use typechecker::unify
 
-fn infer_comprehension_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
-    let comp_scope = scope::scope_child(scope)
+fn infer_comprehension_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+    let mut comp_scope = scope::scope_child(scope)
     let mut elem_ty_of_iter = TypeInfo_simple(commands::TY_I32())
     let child_count = ast_access::node_child_count(node)
     if child_count > 1 {

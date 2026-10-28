@@ -21,7 +21,7 @@ fn doc_fn_matches_module_name(e: DocFnEntry, module: String, name: String) -> bo
 }
 
 fn doc_find_by_name(table: DocManifestTable, name: String) -> Vec<i32> {
-    let out = Vec::new<i32>()
+    let mut out = Vec::new<i32>()
     let n = manifest_doc_record::DocManifestTable_function_count(table)
     let mut i = 0
     while i < n {
@@ -35,7 +35,7 @@ fn doc_find_by_name(table: DocManifestTable, name: String) -> Vec<i32> {
 }
 
 fn doc_find_by_module_name(table: DocManifestTable, module: String, name: String) -> Vec<i32> {
-    let out = Vec::new<i32>()
+    let mut out = Vec::new<i32>()
     let n = manifest_doc_record::DocManifestTable_function_count(table)
     let mut i = 0
     while i < n {

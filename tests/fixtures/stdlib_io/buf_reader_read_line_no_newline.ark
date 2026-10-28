@@ -4,11 +4,11 @@ use std::io::{BufReader, Reader}
 use std::test
 
 fn main() {
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     data.push_byte(88)
     data.push_byte(89)
     data.push_byte(90)
-    let br: BufReader<Reader> = BufReader::new<Reader>(Reader::from_bytes(data), 16)
+    let mut br: BufReader<Reader> = BufReader::new<Reader>(Reader::from_bytes(data), 16)
     let res: Result<Option<String>, io::IoError> = br.read_line()
     match res {
         Result::Ok(found) => match found {

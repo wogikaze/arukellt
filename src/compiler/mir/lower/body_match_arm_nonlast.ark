@@ -14,7 +14,7 @@ use mir::lower::body_match_tuple
 use mir::lower::match
 use mir::value_types
 
-fn lower_nonlast_match_arm(ctx: LowerCtx, arm_node: AstNode, arm_child_count: i32, pat: AstNode, body: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, result: i32, if_depth: i32) -> i32 {
+fn lower_nonlast_match_arm(mut ctx: LowerCtx, arm_node: AstNode, arm_child_count: i32, pat: AstNode, body: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, result: i32, if_depth: i32) -> i32 {
     let mut depth = if_depth
     let is_catchall = match::mir_match_is_catchall(ctx, pat)
     let has_guard = match::mir_match_arm_has_guard(arm_child_count)
@@ -32,7 +32,7 @@ fn lower_nonlast_match_arm(ctx: LowerCtx, arm_node: AstNode, arm_child_count: i3
     depth
 }
 
-fn lower_guarded_nonlast_match_arm(ctx: LowerCtx, arm_node: AstNode, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, result: i32, if_depth: i32, is_catchall: bool) -> i32 {
+fn lower_guarded_nonlast_match_arm(mut ctx: LowerCtx, arm_node: AstNode, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, result: i32, if_depth: i32, is_catchall: bool) -> i32 {
     let matched = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_emit(ctx, inst_const_i32::MirInst_const_i32(0, matched))
     ctx_emit(ctx, inst_local_set::MirInst_local_set(matched))
@@ -68,7 +68,7 @@ fn lower_guarded_nonlast_match_arm(ctx: LowerCtx, arm_node: AstNode, pat: AstNod
     if_depth + 1
 }
 
-fn lower_guarded_pattern_condition(ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32) -> i32 {
+fn lower_guarded_pattern_condition(mut ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32) -> i32 {
     if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_TUPLE()) {
         // Tuple arms never engage the payload machinery, so compare_idx is
         // still the scrutinee local itself (#893).
@@ -80,7 +80,7 @@ fn lower_guarded_pattern_condition(ctx: LowerCtx, pat: AstNode, payload_info: Mi
     body_match_compare_single::lower_single_match_compare_condition(ctx, pat, payload_info, scrut_idx)
 }
 
-fn lower_catchall_match_arm_prefix(ctx: LowerCtx, arm_node: AstNode, pat: AstNode, scrut_idx: i32, has_guard: bool, if_depth: i32) -> i32 {
+fn lower_catchall_match_arm_prefix(mut ctx: LowerCtx, arm_node: AstNode, pat: AstNode, scrut_idx: i32, has_guard: bool, if_depth: i32) -> i32 {
     let mut depth = if_depth
     if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_IDENT()) {
         match::mir_emit_match_ident_bind(ctx, pat, scrut_idx)
@@ -94,7 +94,7 @@ fn lower_catchall_match_arm_prefix(ctx: LowerCtx, arm_node: AstNode, pat: AstNod
     depth
 }
 
-fn lower_match_compare_prefix(ctx: LowerCtx, arm_node: AstNode, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, has_guard: bool, if_depth: i32) -> i32 {
+fn lower_match_compare_prefix(mut ctx: LowerCtx, arm_node: AstNode, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, has_guard: bool, if_depth: i32) -> i32 {
     if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_TUPLE()) {
         let cond = body_match_tuple::emit_tuple_arm_condition(ctx, pat, scrut_idx)
         ctx_emit(ctx, inst_local_get::MirInst_local_get(cond))

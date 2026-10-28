@@ -9,7 +9,7 @@ use mir::inst_local_set
 use mir::inst_op
 use mir::value_types
 
-fn lower_short_circuit_binary(ctx: LowerCtx, lhs: AstNode, rhs: AstNode, mir_op: i32) -> i32 {
+fn lower_short_circuit_binary(mut ctx: LowerCtx, lhs: AstNode, rhs: AstNode, mir_op: i32) -> i32 {
     let l_idx = lower_expr(ctx, lhs)
     // Result is bool (same as comparison ops). Without the type name,
     // `.to_string()` rewrites to i32 formatting and prints 1/0 (#807).

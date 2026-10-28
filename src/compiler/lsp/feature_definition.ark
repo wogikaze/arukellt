@@ -34,7 +34,7 @@ fn lookup_short_name(text: String, offset: i32) -> String {
     lookup_name
 }
 
-pub fn handle_definition(state: LspState, body: String) {
+pub fn handle_definition(mut state: LspState, body: String) {
     let req = feature_request::read_text_position_request(state, clone(body))
     if !feature_request::text_position_request_has_text(req) {
         framing::append_framed(state, responses::build_null_response(feature_request::text_position_request_id(req)))

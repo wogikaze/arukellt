@@ -4,7 +4,7 @@ use parser::core_ast_factory
 use parser::core_ast_children
 
 fn fstring_string_lit(text: String, span: Span) -> AstNode {
-    let lit_node = core_ast_factory::AstNode_new(kinds::NK_STRING_LIT(), span)
+    let mut lit_node = core_ast_factory::AstNode_new(kinds::NK_STRING_LIT(), span)
     core_ast_text_fields::AstNode_set_text(lit_node, text)
     lit_node
 }
@@ -13,7 +13,7 @@ fn fstring_to_string_call(expr: AstNode, span: Span) -> AstNode {
     // Receiver syntax keeps Display resolution tied to the embedded value's
     // type. A bare `to_string(expr)` would be captured by a user function or
     // closure with the same name.
-    let ts_node = core_ast_factory::AstNode_new(kinds::NK_METHOD_CALL(), span)
+    let mut ts_node = core_ast_factory::AstNode_new(kinds::NK_METHOD_CALL(), span)
     core_ast_text_fields::AstNode_set_text(ts_node, String_from("to_string"))
     core_ast_children::AstNode_push_child(ts_node, expr)
     ts_node
@@ -25,7 +25,7 @@ fn fstring_to_string_call(expr: AstNode, span: Span) -> AstNode {
 /// the `Debug` method). A method call avoids requiring `fmt` in scope at the
 /// f-string site.
 fn fstring_format_debug_call(expr: AstNode, span: Span) -> AstNode {
-    let fd_node = core_ast_factory::AstNode_new(kinds::NK_METHOD_CALL(), span)
+    let mut fd_node = core_ast_factory::AstNode_new(kinds::NK_METHOD_CALL(), span)
     core_ast_text_fields::AstNode_set_text(fd_node, String_from("fmt_debug"))
     core_ast_children::AstNode_push_child(fd_node, expr)
     fd_node
@@ -34,7 +34,7 @@ fn fstring_format_debug_call(expr: AstNode, span: Span) -> AstNode {
 fn fstring_concat_call(lhs: AstNode, rhs: AstNode, span: Span) -> AstNode {
     // Both operands are String values. Use the canonical String receiver
     // method so a local `concat` binding cannot capture the generated call.
-    let concat_call = core_ast_factory::AstNode_new(kinds::NK_METHOD_CALL(), span)
+    let mut concat_call = core_ast_factory::AstNode_new(kinds::NK_METHOD_CALL(), span)
     core_ast_text_fields::AstNode_set_text(concat_call, String_from("concat"))
     core_ast_children::AstNode_push_child(concat_call, lhs)
     core_ast_children::AstNode_push_child(concat_call, rhs)

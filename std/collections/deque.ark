@@ -59,7 +59,7 @@ fn deque_at<T>(deque: Deque<T>, index: i32) -> T {
     get_unchecked(deque.back_items, index - front_len)
 }
 
-fn deque_replace_at<T>(deque: Deque<T>, index: i32, value: T) -> T {
+fn deque_replace_at<T>(mut deque: Deque<T>, index: i32, value: T) -> T {
     let front_len: i32 = len(deque.front_items)
     if index < front_len {
         let slot: i32 = front_len - 1 - index
@@ -123,19 +123,19 @@ impl<T> Deque<T> {
     }
 
     /// Inserts `value` at the back.
-    fn push_back(self: Deque<T>, value: T) {
+    fn push_back(mut self: Deque<T>, value: T) {
         push(self.back_items, value)
         self.note_growth()
     }
 
     /// Inserts `value` at the front.
-    fn push_front(self: Deque<T>, value: T) {
+    fn push_front(mut self: Deque<T>, value: T) {
         push(self.front_items, value)
         self.note_growth()
     }
 
     /// Removes and returns the back element, or `None` when empty.
-    fn pop_back(self: Deque<T>) -> Option<T> {
+    fn pop_back(mut self: Deque<T>) -> Option<T> {
         if len(self.back_items) == 0 {
             while len(self.front_items) > 0 {
                 match pop(self.front_items) {
@@ -148,7 +148,7 @@ impl<T> Deque<T> {
     }
 
     /// Removes and returns the front element, or `None` when empty.
-    fn pop_front(self: Deque<T>) -> Option<T> {
+    fn pop_front(mut self: Deque<T>) -> Option<T> {
         if len(self.front_items) == 0 {
             while len(self.back_items) > 0 {
                 match pop(self.back_items) {
@@ -193,7 +193,7 @@ impl<T> Deque<T> {
     }
 
     /// Removes all elements while keeping the logical capacity reservation.
-    fn clear(self: Deque<T>) {
+    fn clear(mut self: Deque<T>) {
         pop_all(self.front_items)
         pop_all(self.back_items)
     }
@@ -206,7 +206,7 @@ impl<T> Deque<T> {
     /// Ensures room for at least `len + additional` elements.
     ///
     /// `additional <= 0` is a no-op, matching the documented contract.
-    fn reserve(self: Deque<T>, additional: i32) {
+    fn reserve(mut self: Deque<T>, additional: i32) {
         if additional <= 0 {
             return
         }
@@ -216,14 +216,14 @@ impl<T> Deque<T> {
         }
         let front_cap: i32 = len(self.front_items)
         let back_cap: i32 = needed - front_cap
-        let new_front: Vec<T> = Vec::with_capacity<T>(front_cap)
+        let mut new_front: Vec<T> = Vec::with_capacity<T>(front_cap)
         while len(self.front_items) > 0 {
             match pop(self.front_items) {
                 Option::Some(value) => push(new_front, value),
                 Option::None => { break },
             }
         }
-        let new_back: Vec<T> = Vec::with_capacity<T>(back_cap)
+        let mut new_back: Vec<T> = Vec::with_capacity<T>(back_cap)
         while len(self.back_items) > 0 {
             match pop(self.back_items) {
                 Option::Some(value) => push(new_back, value),
@@ -249,7 +249,7 @@ impl<T> Deque<T> {
     // Capacity is observable state. Pushes only ever raise it, and reserve
     // raises it before rebuilding storage, so capacity() never reports less
     // than len().
-    fn note_growth(self: Deque<T>) {
+    fn note_growth(mut self: Deque<T>) {
         let count: i32 = len(self.front_items) + len(self.back_items)
         if count > self.reserved {
             self.reserved = count
@@ -257,7 +257,7 @@ impl<T> Deque<T> {
     }
 }
 
-fn pop_all<T>(values: Vec<T>) {
+fn pop_all<T>(mut values: Vec<T>) {
     while len(values) > 0 {
         match pop(values) {
             Option::Some(_) => {},
@@ -275,7 +275,7 @@ pub struct DequeIter<T> {
 impl<T> Iterator for DequeIter<T> {
     type Item = T
 
-    fn next(self: DequeIter<T>) -> Option<T> {
+    fn next(mut self: DequeIter<T>) -> Option<T> {
         let count: i32 = len(self.deque.front_items) + len(self.deque.back_items)
         if self.index >= count {
             return Option::None
@@ -285,8 +285,8 @@ impl<T> Iterator for DequeIter<T> {
         Option::Some(value)
     }
 
-    fn collect(self: DequeIter<T>) -> Vec<T> {
-        let out: Vec<T> = Vec::new<T>()
+    fn collect(mut self: DequeIter<T>) -> Vec<T> {
+        let mut out: Vec<T> = Vec::new<T>()
         let count: i32 = len(self.deque.front_items) + len(self.deque.back_items)
         while self.index < count {
             push(out, deque_at(self.deque, self.index))
@@ -295,7 +295,7 @@ impl<T> Iterator for DequeIter<T> {
         out
     }
 
-    fn count(self: DequeIter<T>) -> i32 {
+    fn count(mut self: DequeIter<T>) -> i32 {
         let count: i32 = len(self.deque.front_items) + len(self.deque.back_items)
         let remaining: i32 = count - self.index
         self.index = count
@@ -327,7 +327,7 @@ pub struct DequeIterMut<T> {
 impl<T> Iterator for DequeIterMut<T> {
     type Item = T
 
-    fn next(self: DequeIterMut<T>) -> Option<T> {
+    fn next(mut self: DequeIterMut<T>) -> Option<T> {
         let count: i32 = len(self.deque.front_items) + len(self.deque.back_items)
         if self.index >= count {
             self.stopped = true
@@ -339,8 +339,8 @@ impl<T> Iterator for DequeIterMut<T> {
         Option::Some(value)
     }
 
-    fn collect(self: DequeIterMut<T>) -> Vec<T> {
-        let out: Vec<T> = Vec::new<T>()
+    fn collect(mut self: DequeIterMut<T>) -> Vec<T> {
+        let mut out: Vec<T> = Vec::new<T>()
         let count: i32 = len(self.deque.front_items) + len(self.deque.back_items)
         while self.index < count {
             push(out, deque_at(self.deque, self.index))
@@ -349,7 +349,7 @@ impl<T> Iterator for DequeIterMut<T> {
         out
     }
 
-    fn count(self: DequeIterMut<T>) -> i32 {
+    fn count(mut self: DequeIterMut<T>) -> i32 {
         let count: i32 = len(self.deque.front_items) + len(self.deque.back_items)
         let remaining: i32 = count - self.index
         self.index = count
@@ -359,7 +359,7 @@ impl<T> Iterator for DequeIterMut<T> {
 
 impl<T> DequeIterMut<T> {
     /// Replaces the last element yielded by `next` and returns the old value.
-    fn set_current(self: DequeIterMut<T>, value: T) -> Option<T> {
+    fn set_current(mut self: DequeIterMut<T>, value: T) -> Option<T> {
         if self.stopped || self.current < 0 {
             return Option::None
         }
@@ -384,12 +384,12 @@ pub struct DequeIntoIter<T> {
 impl<T> Iterator for DequeIntoIter<T> {
     type Item = T
 
-    fn next(self: DequeIntoIter<T>) -> Option<T> {
+    fn next(mut self: DequeIntoIter<T>) -> Option<T> {
         self.deque.pop_front()
     }
 
-    fn collect(self: DequeIntoIter<T>) -> Vec<T> {
-        let out: Vec<T> = Vec::new<T>()
+    fn collect(mut self: DequeIntoIter<T>) -> Vec<T> {
+        let mut out: Vec<T> = Vec::new<T>()
         while true {
             match self.deque.pop_front() {
                 Option::Some(value) => push(out, value),
@@ -399,7 +399,7 @@ impl<T> Iterator for DequeIntoIter<T> {
         out
     }
 
-    fn count(self: DequeIntoIter<T>) -> i32 {
+    fn count(mut self: DequeIntoIter<T>) -> i32 {
         let remaining: i32 = len(self.deque.front_items) + len(self.deque.back_items)
         self.deque.clear()
         remaining
@@ -426,7 +426,7 @@ impl<T> IntoIterator for Deque<T> {
 
 impl<T: Clone> Clone for Deque<T> {
     fn clone(self: Deque<T>) -> Deque<T> {
-        let copy: Deque<T> = Deque {
+        let mut copy: Deque<T> = Deque {
             front_items: Vec::with_capacity<T>(self.reserved),
             back_items: Vec::new<T>(),
             reserved: self.reserved
@@ -462,7 +462,7 @@ impl<T: Debug> Debug for Deque<T> {
 // same constructor head. `Vec` is the one producer that feeds every
 // collection kind, so the shared `VecIter<T>` source is the implemented one.
 impl<T> FromIterator<VecIter<T>> for Deque<T> {
-    fn from_iter(it: VecIter<T>) -> Deque<T> {
+    fn from_iter(mut it: VecIter<T>) -> Deque<T> {
         let items: Vec<T> = it.collect()
         let count: i32 = len(items)
         Deque {
@@ -526,12 +526,12 @@ impl<T> Queue<T> {
     }
 
     /// Appends `value` at the back of the queue.
-    fn push(self: Queue<T>, value: T) {
+    fn push(mut self: Queue<T>, value: T) {
         self.deque.push_back(value)
     }
 
     /// Removes and returns the front element, or `None` when empty.
-    fn pop(self: Queue<T>) -> Option<T> {
+    fn pop(mut self: Queue<T>) -> Option<T> {
         self.deque.pop_front()
     }
 
@@ -556,7 +556,7 @@ impl<T> Queue<T> {
     }
 
     /// Removes all elements while keeping the logical capacity reservation.
-    fn clear(self: Queue<T>) {
+    fn clear(mut self: Queue<T>) {
         self.deque.clear()
     }
 
@@ -566,7 +566,7 @@ impl<T> Queue<T> {
     }
 
     /// Ensures room for at least `len + additional` elements.
-    fn reserve(self: Queue<T>, additional: i32) {
+    fn reserve(mut self: Queue<T>, additional: i32) {
         self.deque.reserve(additional)
     }
 
@@ -608,7 +608,7 @@ impl<T: Eq> Eq for Queue<T> {
 }
 
 impl<T> FromIterator<VecIter<T>> for Queue<T> {
-    fn from_iter(it: VecIter<T>) -> Queue<T> {
+    fn from_iter(mut it: VecIter<T>) -> Queue<T> {
         let items: Vec<T> = it.collect()
         let count: i32 = len(items)
         Queue {
@@ -659,12 +659,12 @@ impl<T> Stack<T> {
     }
 
     /// Pushes `value` on top of the stack.
-    fn push(self: Stack<T>, value: T) {
+    fn push(mut self: Stack<T>, value: T) {
         self.deque.push_back(value)
     }
 
     /// Removes and returns the top element, or `None` when empty.
-    fn pop(self: Stack<T>) -> Option<T> {
+    fn pop(mut self: Stack<T>) -> Option<T> {
         self.deque.pop_back()
     }
 
@@ -684,7 +684,7 @@ impl<T> Stack<T> {
     }
 
     /// Removes all elements while keeping the logical capacity reservation.
-    fn clear(self: Stack<T>) {
+    fn clear(mut self: Stack<T>) {
         self.deque.clear()
     }
 
@@ -694,7 +694,7 @@ impl<T> Stack<T> {
     }
 
     /// Ensures room for at least `len + additional` elements.
-    fn reserve(self: Stack<T>, additional: i32) {
+    fn reserve(mut self: Stack<T>, additional: i32) {
         self.deque.reserve(additional)
     }
 
@@ -733,7 +733,7 @@ impl<T: Eq> Eq for Stack<T> {
 }
 
 impl<T> FromIterator<VecIter<T>> for Stack<T> {
-    fn from_iter(it: VecIter<T>) -> Stack<T> {
+    fn from_iter(mut it: VecIter<T>) -> Stack<T> {
         let items: Vec<T> = it.collect()
         let count: i32 = len(items)
         Stack {

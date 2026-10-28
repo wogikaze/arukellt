@@ -33,7 +33,7 @@ fn expand(s: String, ctx: HashMap<String, String>) -> String {
 
 fn main() {
     // Build variable context
-    let ctx: HashMap<String, String> = HashMap::new<String, String>()
+    let mut ctx: HashMap<String, String> = HashMap::new<String, String>()
     let _ = ctx.insert("name", "Benchmark")
     let _ = ctx.insert("greeting", "Hello {name}")
     let _ = ctx.insert("welcome", "{greeting}, welcome to")

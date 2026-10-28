@@ -99,7 +99,7 @@ fn ctx_pcell_vt_sig(payload_vt: i32) -> String {
 // Cell layout name for a payload, registered once so equal payloads share
 // one __cell_N GC type (and one linear slot width). Untyped payloads fall
 // back to a vt-derived field signature.
-fn ctx_pcell_cell_name_for(ctx: LowerCtx, payload_type: String, payload_vt: i32) -> String {
+fn ctx_pcell_cell_name_for(mut ctx: LowerCtx, payload_type: String, payload_vt: i32) -> String {
     let mut key = clone(payload_type)
     if len(key) == 0 {
         key = "vt:".concat(to_string(payload_vt))
@@ -149,7 +149,7 @@ fn ctx_pcell_reg_lookup(ctx: LowerCtx, cell_name: String) -> i32 {
 // registers so the read of src_li keeps its verbatim local meaning (the
 // cell starts from the live value). Returns the payload local, or -1
 // when the name is unbound.
-fn ctx_promote_capture_cell(ctx: LowerCtx, name: String) -> i32 {
+fn ctx_promote_capture_cell(mut ctx: LowerCtx, name: String) -> i32 {
     let src_li = ctx_api_local_alloc::ctx_lookup_local(ctx, clone(name))
     if src_li < 0 {
         return 0 - 1
@@ -214,7 +214,7 @@ fn ctx_pcell_cap_param_name(cap_type: String, cname: String) -> String {
 // accesses deref field 0 of the param's cell. The param name itself stays
 // resolvable so a nested closure can re-pack the same cell ref as its own
 // capture supply (write-through chains share one heap cell).
-fn ctx_pcell_bind_cap_param(ctx: LowerCtx, param_li: i32, cap_type: String, cname: String) {
+fn ctx_pcell_bind_cap_param(mut ctx: LowerCtx, param_li: i32, cap_type: String, cname: String) {
     if !ctx_pcell_cap_type_is_cell(clone(cap_type)) {
         return
     }
@@ -250,7 +250,7 @@ fn ctx_pcell_mat_lookup(ctx: LowerCtx, fn_name: String, value_li: i32) -> i32 {
     0 - 1
 }
 
-fn ctx_pcell_clear_mat_entry(ctx: LowerCtx, fn_name: String, value_li: i32) {
+fn ctx_pcell_clear_mat_entry(mut ctx: LowerCtx, fn_name: String, value_li: i32) {
     let mut i = len(ctx.pcell_mat_fns) - 1
     while i >= 0 {
         if get_unchecked(ctx.pcell_mat_lis, i) == value_li &&
@@ -263,7 +263,7 @@ fn ctx_pcell_clear_mat_entry(ctx: LowerCtx, fn_name: String, value_li: i32) {
 
 // Call-like ops can run the closure that owns a cell, so cached payload
 // temps in the calling frame go stale across them.
-fn ctx_pcell_clear_fn_mats(ctx: LowerCtx, fn_name: String) {
+fn ctx_pcell_clear_fn_mats(mut ctx: LowerCtx, fn_name: String) {
     let mut i = len(ctx.pcell_mat_fns) - 1
     while i >= 0 {
         if eq(get_unchecked(ctx.pcell_mat_fns, i), clone(fn_name)) {
@@ -273,7 +273,7 @@ fn ctx_pcell_clear_fn_mats(ctx: LowerCtx, fn_name: String) {
     }
 }
 
-fn ctx_pcell_fresh_payload_tmp(ctx: LowerCtx, idx: i32) -> i32 {
+fn ctx_pcell_fresh_payload_tmp(mut ctx: LowerCtx, idx: i32) -> i32 {
     let tmp = ctx_api_local_alloc::ctx_fresh_local(ctx, get_unchecked(ctx.pcell_vts, idx))
     let ptype = clone(get_unchecked(ctx.pcell_types, idx))
     if len(ptype) > 0 {
@@ -287,7 +287,7 @@ fn ctx_pcell_fresh_payload_tmp(ctx: LowerCtx, idx: i32) -> i32 {
 // contents" query) must look at a payload-typed local, not the cell ref.
 // The materialization the RETURN rewrite emitted is reused when present;
 // otherwise a fresh payload temp stands in for typing purposes only.
-fn ctx_pcell_value_local(ctx: LowerCtx, res: i32) -> i32 {
+fn ctx_pcell_value_local(mut ctx: LowerCtx, res: i32) -> i32 {
     if res < 0 {
         return res
     }
@@ -306,7 +306,7 @@ fn ctx_pcell_value_local(ctx: LowerCtx, res: i32) -> i32 {
 // Emit field-0 read of the cell into a scratch payload local and record
 // it as the value local's current materialization. Reusing the cached
 // temp keeps a LOCAL_GET then consumer pair at one pushed payload.
-fn ctx_pcell_materialize(ctx: LowerCtx, idx: i32, out: Vec<MirInstDraft>) -> i32 {
+fn ctx_pcell_materialize(mut ctx: LowerCtx, idx: i32, mut out: Vec<MirInstDraft>) -> i32 {
     let value_li = get_unchecked(ctx.pcell_lis, idx)
     let fn_name = ctx_pcell_fn_name(ctx)
     let cached = ctx_pcell_mat_lookup(ctx, clone(fn_name), value_li)
@@ -408,7 +408,7 @@ fn ctx_pcell_fn_has_cells(ctx: LowerCtx, fn_name: String) -> bool {
 // Rewrite LOCAL_SET through the cell place. The stack form stashes the
 // value in a temp first because struct.set wants (ref, value) order; the
 // copy form maps straight onto a named field store.
-fn ctx_pcell_rewrite_local_set(ctx: LowerCtx, fn_name: String, inst: MirInstDraft, out: Vec<MirInstDraft>) -> Vec<MirInstDraft> {
+fn ctx_pcell_rewrite_local_set(mut ctx: LowerCtx, fn_name: String, inst: MirInstDraft, mut out: Vec<MirInstDraft>) -> Vec<MirInstDraft> {
     let dest = inst_draft::MirInstDraft_arg0(inst)
     let src = inst_draft::MirInstDraft_arg1(inst)
     let dcell = ctx_pcell_find(ctx, clone(fn_name), dest)
@@ -445,8 +445,8 @@ fn ctx_pcell_rewrite_local_set(ctx: LowerCtx, fn_name: String, inst: MirInstDraf
 // locals into field-0 access through the cell-ref local. The output insts
 // are emitted verbatim — the cell refs and temps they name are never
 // flagged, so no rewrite re-fires on them.
-fn ctx_pcell_rewrite(ctx: LowerCtx, inst: MirInstDraft) -> Vec<MirInstDraft> {
-    let out = Vec::new<MirInstDraft>()
+fn ctx_pcell_rewrite(mut ctx: LowerCtx, mut inst: MirInstDraft) -> Vec<MirInstDraft> {
+    let mut out = Vec::new<MirInstDraft>()
     if len(ctx.pcell_lis) == 0 {
         push(out, inst)
         return out

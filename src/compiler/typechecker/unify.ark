@@ -3,23 +3,23 @@ use typechecker::unify_core
 use typechecker::unify_env
 use typechecker::unify_resolve
 
-fn fresh_var(env: TypeEnv) -> TypeInfo {
+fn fresh_var(mut env: TypeEnv) -> TypeInfo {
     unify_env::fresh_var(env)
 }
 
-fn type_error(env: TypeEnv, msg: String) {
+fn type_error(mut env: TypeEnv, msg: String) {
     unify_env::type_error(env, msg)
 }
 
-fn type_error_bad_arity(env: TypeEnv, msg: String) {
+fn type_error_bad_arity(mut env: TypeEnv, msg: String) {
     unify_env::type_error_bad_arity(env, msg)
 }
 
-fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
+fn unify(mut env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
     unify_core::unify(env, a, b)
 }
 
-fn bind_var(env: TypeEnv, var_name: String, ty: TypeInfo) {
+fn bind_var(mut env: TypeEnv, var_name: String, ty: TypeInfo) {
     unify_bind::bind_var(env, var_name, ty)
 }
 

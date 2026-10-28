@@ -3,7 +3,7 @@ use std::collections::hash
 use std::test
 
 fn main() {
-    let m = hash::hashmap_with_capacity(4)
+    let mut m = hash::hashmap_with_capacity(4)
     let cap_before = hash::hashmap_capacity(m)
     test::assert_eq_i32(cap_before, 4)
 

@@ -9,7 +9,7 @@ struct Countdown {
 
 impl Iterator for Countdown {
     type Item = i32
-    fn next(self: Countdown) -> Option<i32> {
+    fn next(mut self: Countdown) -> Option<i32> {
         if self.left <= 0 {
             return Option::None
         }
@@ -20,7 +20,7 @@ impl Iterator for Countdown {
 
 fn main() -> i32 {
     let mut manual: Vec<i32> = Vec::new<i32>()
-    let it: Countdown = Countdown { left: 4 }
+    let mut it: Countdown = Countdown { left: 4 }
     while true {
         match it.next() {
             Some(x) => push(manual, x),

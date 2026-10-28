@@ -1,10 +1,10 @@
 use parser::decl_dispatch
 use parser::decl_module
 
-fn parse_decl(p: Parser) -> AstNode {
+fn parse_decl(mut p: Parser) -> AstNode {
     decl_dispatch::parse_decl(p)
 }
 
-fn parse_module(p: Parser) -> Vec<AstNode> {
+fn parse_module(mut p: Parser) -> Vec<AstNode> {
     decl_module::parse_module_impl(p)
 }

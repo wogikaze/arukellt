@@ -2,7 +2,7 @@ use std::core::iter
 use std::test
 
 fn dup(n: i32) -> Vec<i32> {
-    let v: Vec<i32> = Vec::new<i32>()
+    let mut v: Vec<i32> = Vec::new<i32>()
     push(v, n)
     push(v, n * 10)
     v
@@ -13,12 +13,12 @@ fn empty(_n: i32) -> Vec<i32> {
 }
 
 fn main() {
-    let v: Vec<i32> = Vec::new<i32>()
+    let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 1)
     push(v, 2)
     push(v, 3)
 
-    let it = v.iter().flat_map(dup)
+    let mut it = v.iter().flat_map(dup)
     match it.next() {
         Some(x) => test::assert_eq_i32(x, 1),
         None => panic("expected Some"),
@@ -33,16 +33,16 @@ fn main() {
     }
 
     // Empty inner vectors are skipped without ending the stream.
-    let it2 = v.iter().flat_map(empty)
+    let mut it2 = v.iter().flat_map(empty)
     match it2.next() {
         Some(_) => panic("expected None"),
         None => {}
     }
 
-    let ev: Vec<i32> = Vec::new<i32>()
+    let mut ev: Vec<i32> = Vec::new<i32>()
     push(ev, 0)
     push(ev, 2)
-    let it3 = ev.iter().flat_map(dup)
+    let mut it3 = ev.iter().flat_map(dup)
     match it3.next() {
         Some(x) => test::assert_eq_i32(x, 0),
         None => panic("expected Some"),
@@ -65,7 +65,7 @@ fn main() {
     }
 
     // Drained collect preserves expansion order.
-    let w: Vec<i32> = Vec::new<i32>()
+    let mut w: Vec<i32> = Vec::new<i32>()
     push(w, 3)
     let drained = w.iter().flat_map(dup).collect()
     test::assert_eq_i32(len(drained), 2)
@@ -73,7 +73,7 @@ fn main() {
     test::assert_eq_i32(get_unchecked(drained, 1), 30)
 
     // Receiver pipeline composes with take.
-    let z: Vec<i32> = Vec::new<i32>()
+    let mut z: Vec<i32> = Vec::new<i32>()
     push(z, 1)
     push(z, 2)
     let taken = z.iter().flat_map(dup).take(3).collect()

@@ -15,7 +15,7 @@ use typechecker::contract_type_constructors
 use typechecker::kinds
 use typechecker::names
 use typechecker::sigs
-fn register_trait_method_sigs(env: TypeEnv, decls: Vec<AstNode>) {
+fn register_trait_method_sigs(mut env: TypeEnv, decls: Vec<AstNode>) {
     let count = len(decls)
     let mut i = 0
     while i < count {
@@ -31,7 +31,7 @@ fn is_trait_decl(node: AstNode) -> bool {
     ast_access::node_kind_is(node, kinds::NK_TRAIT_DECL())
 }
 
-fn register_trait_methods(env: TypeEnv, trait_node: AstNode) {
+fn register_trait_methods(mut env: TypeEnv, trait_node: AstNode) {
     let trait_name = ast_access::node_text(trait_node)
     let trait_type_params = trait_type_param_names(trait_node)
     let trait_type_param_count = len(trait_type_params)
@@ -60,7 +60,7 @@ fn register_trait_methods(env: TypeEnv, trait_node: AstNode) {
 }
 
 fn trait_type_param_names(trait_node: AstNode) -> Vec<String> {
-    let names = Vec::new<String>()
+    let mut names = Vec::new<String>()
     let count = ast_access::node_type_ann_count(trait_node)
     let mut i = 0
     while i < count {

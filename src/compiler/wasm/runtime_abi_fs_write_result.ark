@@ -13,7 +13,7 @@ use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_layout
 use wasm::writer_gc
-fn emit_fs_write_success_writev_and_close(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_fs_write_success_writev_and_close(mut w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_core::emit_call(w, import_indices::fd_write_import_idx(ctx))
     helpers_core::emit_drop(w)
     helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_FS_FD())
@@ -21,7 +21,7 @@ fn emit_fs_write_success_writev_and_close(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_core::emit_drop(w)
 }
 
-fn emit_fs_write_success_unit_result(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_fs_write_success_unit_result(mut w: WasmWriter, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_fs_write_unit_ok_gc(w, ctx)
         return
@@ -42,7 +42,7 @@ fn emit_fs_write_success_unit_result(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_core::emit_local_get(w, s_res)
 }
 
-fn emit_fs_write_error_message(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_fs_write_error_message(mut w: WasmWriter, ctx: SelfEmitCtx) {
     // On the wasm32 fallback the 20-byte message record comes from the
     // managed allocator; on wasm32-gc the same bytes are staged in the raw
     // scratch heap and copied into a GC String by the result-pair builder.
@@ -83,7 +83,7 @@ fn emit_fs_write_error_message(w: WasmWriter, ctx: SelfEmitCtx) {
     }
 }
 
-fn emit_fs_write_error_result(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_fs_write_error_result(mut w: WasmWriter, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         // tag=1 → Result::Err(String); reuses fs_read GC string+variant emit.
         runtime_abi_fs_read_body::emit_fs_read_result_pair(w, 1, ctx)
@@ -106,7 +106,7 @@ fn emit_fs_write_error_result(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_core::emit_local_get(w, s_res)
 }
 
-fn emit_fs_write_unit_ok_gc(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_fs_write_unit_ok_gc(mut w: WasmWriter, ctx: SelfEmitCtx) {
     let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     let ok_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, "Result::Ok")
     let type_idx = if ok_type >= 0 { ok_type } else { open_type }

@@ -11,7 +11,7 @@ use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i32_convert
 
 // Handler for: reverse_i32
-fn emit_reverse_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_reverse_i32(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return emit_reverse_gc(w, ctx)
     }
@@ -27,7 +27,7 @@ fn emit_reverse_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 // GC target: in-place reverse on the vec's data array (swap lo/hi moving inward).
-fn emit_reverse_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+fn emit_reverse_gc(mut w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
     let s_arr = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
     let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
@@ -43,7 +43,7 @@ fn emit_reverse_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_reverse_gc_setup(w: WasmWriter, s_vec: i32, s_arr: i32, s_len: i32, s_lo: i32, s_hi: i32, vec_type: i32) {
+fn emit_reverse_gc_setup(mut w: WasmWriter, s_vec: i32, s_arr: i32, s_len: i32, s_lo: i32, s_hi: i32, vec_type: i32) {
     // Stack: [vec_ref] — pop vec
     helpers_core::emit_local_set(w, s_vec)
     // arr = vec.data, len = vec.len
@@ -64,7 +64,7 @@ fn emit_reverse_gc_setup(w: WasmWriter, s_vec: i32, s_arr: i32, s_len: i32, s_lo
     helpers_core::emit_local_set(w, s_hi)
 }
 
-fn emit_reverse_gc_swap_loop(w: WasmWriter, s_arr: i32, s_lo: i32, s_hi: i32, s_tmp: i32, arr_type: i32) {
+fn emit_reverse_gc_swap_loop(mut w: WasmWriter, s_arr: i32, s_lo: i32, s_hi: i32, s_tmp: i32, arr_type: i32) {
     // loop: while lo < hi: swap arr[lo], arr[hi]; lo++; hi--
     string_gc_helpers::emit_gc_block_loop(w)
     helpers_core::emit_local_get(w, s_lo)
@@ -104,7 +104,7 @@ fn emit_reverse_gc_swap_loop(w: WasmWriter, s_arr: i32, s_lo: i32, s_hi: i32, s_
     string_gc_helpers::emit_gc_block_loop_end(w)
 }
 
-fn emit_reverse_prepare(w: WasmWriter, vec_local: i32, lo_local: i32, hi_local: i32, data_local: i32) {
+fn emit_reverse_prepare(mut w: WasmWriter, vec_local: i32, lo_local: i32, hi_local: i32, data_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, vec_local)
     writer_core::emit_local_get(w, vec_local)
@@ -131,7 +131,7 @@ fn emit_reverse_prepare(w: WasmWriter, vec_local: i32, lo_local: i32, hi_local: 
     writer_core::emit_leb128_u(w, hi_local)
 }
 
-fn emit_reverse_loop(w: WasmWriter, lo_local: i32, hi_local: i32, data_local: i32, tmp_local: i32) {
+fn emit_reverse_loop(mut w: WasmWriter, lo_local: i32, hi_local: i32, data_local: i32, tmp_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_BLOCK())
     writer_core::emit_byte(w, 64)
     writer_core::emit_byte(w, opcodes::OP_LOOP())
@@ -160,13 +160,13 @@ fn emit_reverse_loop(w: WasmWriter, lo_local: i32, hi_local: i32, data_local: i3
     writer_core::emit_byte(w, 11)
 }
 
-fn emit_reverse_swap(w: WasmWriter, lo_local: i32, hi_local: i32, data_local: i32, tmp_local: i32) {
+fn emit_reverse_swap(mut w: WasmWriter, lo_local: i32, hi_local: i32, data_local: i32, tmp_local: i32) {
     emit_reverse_load_lo(w, lo_local, data_local, tmp_local)
     emit_reverse_store_hi_into_lo(w, lo_local, hi_local, data_local)
     emit_reverse_store_tmp_into_hi(w, hi_local, data_local, tmp_local)
 }
 
-fn emit_reverse_load_lo(w: WasmWriter, lo_local: i32, data_local: i32, tmp_local: i32) {
+fn emit_reverse_load_lo(mut w: WasmWriter, lo_local: i32, data_local: i32, tmp_local: i32) {
     writer_core::emit_local_get(w, data_local)
     writer_core::emit_local_get(w, lo_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
@@ -180,7 +180,7 @@ fn emit_reverse_load_lo(w: WasmWriter, lo_local: i32, data_local: i32, tmp_local
     writer_core::emit_leb128_u(w, tmp_local)
 }
 
-fn emit_reverse_store_hi_into_lo(w: WasmWriter, lo_local: i32, hi_local: i32, data_local: i32) {
+fn emit_reverse_store_hi_into_lo(mut w: WasmWriter, lo_local: i32, hi_local: i32, data_local: i32) {
     writer_core::emit_local_get(w, data_local)
     writer_core::emit_local_get(w, lo_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
@@ -201,7 +201,7 @@ fn emit_reverse_store_hi_into_lo(w: WasmWriter, lo_local: i32, hi_local: i32, da
     writer_core::emit_byte(w, 0)
 }
 
-fn emit_reverse_store_tmp_into_hi(w: WasmWriter, hi_local: i32, data_local: i32, tmp_local: i32) {
+fn emit_reverse_store_tmp_into_hi(mut w: WasmWriter, hi_local: i32, data_local: i32, tmp_local: i32) {
     writer_core::emit_local_get(w, data_local)
     writer_core::emit_local_get(w, hi_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())

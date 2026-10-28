@@ -11,7 +11,7 @@ use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsic_vec_pop_gc
 
 // Handler for: vec_pop
-fn emit_vec_pop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_vec_pop(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return intrinsic_vec_pop_gc::emit_vec_pop_gc(w, inst, ctx)
     }
@@ -37,7 +37,7 @@ fn emit_vec_pop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_vec_pop_some(w: WasmWriter, s_vec_pop: i32, s_newlen: i32, s_optptr: i32, elem_kind: i32) {
+fn emit_vec_pop_some(mut w: WasmWriter, s_vec_pop: i32, s_newlen: i32, s_optptr: i32, elem_kind: i32) {
     emit_vec_pop_decrement_len(w, s_vec_pop, s_newlen)
     if elem_kind != 0 {
         emit_vec_pop_some_wide(w, s_vec_pop, s_newlen, s_optptr, elem_kind)
@@ -50,7 +50,7 @@ fn emit_vec_pop_some(w: WasmWriter, s_vec_pop: i32, s_newlen: i32, s_optptr: i32
 // i64/f64 elements use an 8-byte stride and the 12-byte Option record
 // ({tag:i32, payload:8B}) — the same layout emit_i64_ok_result writes for
 // Result<i64> — so match payload reads stay consistent (#874).
-fn emit_vec_pop_some_wide(w: WasmWriter, s_vec_pop: i32, s_newlen: i32, s_optptr: i32, elem_kind: i32) {
+fn emit_vec_pop_some_wide(mut w: WasmWriter, s_vec_pop: i32, s_newlen: i32, s_optptr: i32, elem_kind: i32) {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 12)
     helpers_core_heap::emit_heap_alloc_from_stack(w)
@@ -96,7 +96,7 @@ fn emit_vec_pop_some_wide(w: WasmWriter, s_vec_pop: i32, s_newlen: i32, s_optptr
     writer_core::emit_local_get(w, s_optptr)
 }
 
-fn emit_vec_pop_decrement_len(w: WasmWriter, s_vec_pop: i32, s_newlen: i32) {
+fn emit_vec_pop_decrement_len(mut w: WasmWriter, s_vec_pop: i32, s_newlen: i32) {
     writer_core::emit_local_get(w, s_vec_pop)
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
@@ -113,7 +113,7 @@ fn emit_vec_pop_decrement_len(w: WasmWriter, s_vec_pop: i32, s_newlen: i32) {
     writer_core::emit_byte(w, 0)
 }
 
-fn emit_vec_pop_load_value(w: WasmWriter, s_vec_pop: i32, s_value: i32) {
+fn emit_vec_pop_load_value(mut w: WasmWriter, s_vec_pop: i32, s_value: i32) {
     writer_core::emit_local_get(w, s_vec_pop)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 8)
@@ -133,7 +133,7 @@ fn emit_vec_pop_load_value(w: WasmWriter, s_vec_pop: i32, s_value: i32) {
     writer_core::emit_leb128_u(w, s_value)
 }
 
-fn emit_vec_pop_some_payload(w: WasmWriter, s_value: i32, s_optptr: i32) {
+fn emit_vec_pop_some_payload(mut w: WasmWriter, s_value: i32, s_optptr: i32) {
     emit_alloc_option_ptr(w, s_optptr)
     writer_core::emit_local_get(w, s_optptr)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
@@ -152,7 +152,7 @@ fn emit_vec_pop_some_payload(w: WasmWriter, s_value: i32, s_optptr: i32) {
     writer_core::emit_local_get(w, s_optptr)
 }
 
-fn emit_vec_pop_none(w: WasmWriter, s_optptr: i32) {
+fn emit_vec_pop_none(mut w: WasmWriter, s_optptr: i32) {
     emit_alloc_option_ptr(w, s_optptr)
     writer_core::emit_local_get(w, s_optptr)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
@@ -163,7 +163,7 @@ fn emit_vec_pop_none(w: WasmWriter, s_optptr: i32) {
     writer_core::emit_local_get(w, s_optptr)
 }
 
-fn emit_alloc_option_ptr(w: WasmWriter, s_optptr: i32) {
+fn emit_alloc_option_ptr(mut w: WasmWriter, s_optptr: i32) {
     // Fallback Option<i32> is a fixed tag plus payload record.
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 8)

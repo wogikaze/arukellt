@@ -55,23 +55,23 @@ fn MirInstDraft_result_type_at(inst: MirInstDraft, index: i32) -> MirValueType {
     get_unchecked(inst.result_types, index)
 }
 
-fn MirInstDraft_with_func_id_raw(inst: MirInstDraft, func_id_raw: i32) -> MirInstDraft {
+fn MirInstDraft_with_func_id_raw(mut inst: MirInstDraft, func_id_raw: i32) -> MirInstDraft {
     inst.func_id_raw = func_id_raw
     inst
 }
 
-fn MirInstDraft_set_result_types(inst: MirInstDraft, result_types: Vec<MirValueType>) {
+fn MirInstDraft_set_result_types(mut inst: MirInstDraft, result_types: Vec<MirValueType>) {
     inst.result_types = result_types
 }
 
-fn MirInstDraft_copy_with_locals(inst: MirInstDraft, dest: i32, arg0: i32, arg1: i32) -> MirInstDraft {
+fn MirInstDraft_copy_with_locals(mut inst: MirInstDraft, dest: i32, arg0: i32, arg1: i32) -> MirInstDraft {
     inst.dest = dest
     inst.arg0 = arg0
     inst.arg1 = arg1
     inst
 }
 
-fn MirInstDraft_with_call_target(inst: MirInstDraft, callee: String, func_id_raw: i32) -> MirInstDraft {
+fn MirInstDraft_with_call_target(mut inst: MirInstDraft, callee: String, func_id_raw: i32) -> MirInstDraft {
     inst.str_val = callee
     inst.func_id_raw = func_id_raw
     inst

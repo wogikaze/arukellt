@@ -10,7 +10,7 @@ fn show(value: Option<i32>) {
 }
 
 fn main() {
-    let list: LinkedList<i32> = LinkedList::new<i32>()
+    let mut list: LinkedList<i32> = LinkedList::new<i32>()
     assert(list.is_empty())
     assert(list.len() == 0)
     show(list.front())
@@ -49,7 +49,7 @@ fn main() {
     list.push_back(9)
     show(list.front())
 
-    let owned: LinkedList<i32> = LinkedList::new<i32>()
+    let mut owned: LinkedList<i32> = LinkedList::new<i32>()
     owned.push_back(4)
     owned.push_back(5)
     let mut total: i32 = 0

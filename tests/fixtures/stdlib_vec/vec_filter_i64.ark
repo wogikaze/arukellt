@@ -12,7 +12,7 @@ fn main() {
     push(v, a)
     push(v, b)
     push(v, c)
-    let result: Vec<i64> = Vec::new<i64>()
+    let mut result: Vec<i64> = Vec::new<i64>()
     let mut filter_index: i32 = 0
     while filter_index < len(v) {
         let filter_value = get_unchecked(v, filter_index)

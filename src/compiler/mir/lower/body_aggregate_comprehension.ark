@@ -4,7 +4,7 @@ use mir::lower::ctx_types
 use mir::inst_structured_control
 use mir::lower::comprehension
 
-fn lower_comprehension_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_comprehension_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let comp_child_count = ast_node::node_child_count(node)
     if comp_child_count >= 2 {
         let elem_expr = ast_node::node_child_at(node, 0)

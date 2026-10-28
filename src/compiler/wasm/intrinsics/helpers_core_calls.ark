@@ -2,12 +2,12 @@ use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_leb
 
-fn emit_call(w: WasmWriter, index: i32) {
+fn emit_call(mut w: WasmWriter, index: i32) {
     writer_core::emit_byte(w, opcodes::OP_CALL())
     writer_leb::emit_leb128_u(w, index)
 }
 
-fn emit_call_drop(w: WasmWriter, index: i32) {
+fn emit_call_drop(mut w: WasmWriter, index: i32) {
     emit_call(w, index)
     writer_core::emit_byte(w, opcodes::OP_DROP())
 }

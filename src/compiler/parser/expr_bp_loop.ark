@@ -7,7 +7,7 @@ use parser::expr_prefix_dispatch
 use parser::pratt
 use parser::state_record
 
-fn parse_expr_bp(p: Parser, min_bp: i32) -> AstNode {
+fn parse_expr_bp(mut p: Parser, min_bp: i32) -> AstNode {
     core_api_cursor::skip_only_newlines(p)
     let mut lhs = expr_prefix_dispatch::parse_prefix(p)
     while true {

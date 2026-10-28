@@ -8,7 +8,7 @@ use wasm::writer_core
 use wasm::writer_sections
 use wasm::writer_string
 
-fn emit_name_custom_section(out: WasmWriter, ctx: SelfEmitCtx, import_count: i32, opt_level: i32, strip_debug: bool) {
+fn emit_name_custom_section(mut out: WasmWriter, ctx: SelfEmitCtx, import_count: i32, opt_level: i32, strip_debug: bool) {
     if strip_debug || opt_level >= 2 {
         return
     }
@@ -16,15 +16,15 @@ fn emit_name_custom_section(out: WasmWriter, ctx: SelfEmitCtx, import_count: i32
     if fn_count <= 0 {
         return
     }
-    let payload = writer_core::WasmWriter_new()
+    let mut payload = writer_core::WasmWriter_new()
     writer_string::emit_string(payload, "name")
     emit_function_name_subsection(payload, ctx, fn_count, import_count)
     emit_local_name_subsection(payload, ctx, fn_count, import_count)
     writer_sections::emit_section(out, opcodes::SEC_CUSTOM(), payload)
 }
 
-fn emit_function_name_subsection(payload: WasmWriter, ctx: SelfEmitCtx, fn_count: i32, import_count: i32) {
-    let fn_payload = writer_core::WasmWriter_new()
+fn emit_function_name_subsection(mut payload: WasmWriter, ctx: SelfEmitCtx, fn_count: i32, import_count: i32) {
+    let mut fn_payload = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(fn_payload, fn_count)
     let mut fi = 0
     while fi < fn_count {
@@ -39,8 +39,8 @@ fn emit_function_name_subsection(payload: WasmWriter, ctx: SelfEmitCtx, fn_count
     writer_core::emit_bytes(payload, writer_core::writer_bytes(fn_payload))
 }
 
-fn emit_local_name_subsection(payload: WasmWriter, ctx: SelfEmitCtx, fn_count: i32, import_count: i32) {
-    let local_payload = writer_core::WasmWriter_new()
+fn emit_local_name_subsection(mut payload: WasmWriter, ctx: SelfEmitCtx, fn_count: i32, import_count: i32) {
+    let mut local_payload = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(local_payload, fn_count)
     let mut fi = 0
     while fi < fn_count {
@@ -57,7 +57,7 @@ fn emit_local_name_subsection(payload: WasmWriter, ctx: SelfEmitCtx, fn_count: i
     writer_core::emit_bytes(payload, writer_core::writer_bytes(local_payload))
 }
 
-fn emit_local_entries(local_payload: WasmWriter, f: MirFunction, param_count: i32, local_count: i32) {
+fn emit_local_entries(mut local_payload: WasmWriter, f: MirFunction, param_count: i32, local_count: i32) {
     let mut pi = 0
     while pi < param_count {
         let loc = function_param_view::MirFunction_param_at(f, pi)

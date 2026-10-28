@@ -4,7 +4,7 @@ use std::test
 
 fn main() {
     let data: Vec<i32> = Vec::new<i32>()
-    let r: io::Reader = io::Reader::from_bytes(data)
+    let mut r: io::Reader = io::Reader::from_bytes(data)
     let res: Result<Vec<i32>, io::IoError> = io::Io::read_to_end(r)
     match res {
         Result::Ok(chunk) => test::assert_eq_i32(chunk.len(), 0),

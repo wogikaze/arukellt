@@ -2,7 +2,7 @@ use lexer::tokens
 use lexer::cursor
 use lexer::punct_compound_peek
 
-fn lex_equal_or_bang_punct(lex: Lexer, start: i32, c: i32) -> Token {
+fn lex_equal_or_bang_punct(mut lex: Lexer, start: i32, c: i32) -> Token {
     if c == 61 {
         if punct_compound_peek::punct_peek(lex) == 61 {
             cursor::advance_by(lex, 1)

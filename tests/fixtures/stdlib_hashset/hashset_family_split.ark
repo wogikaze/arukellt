@@ -5,7 +5,7 @@ use std::collections::hash_set::HashSet
 use std::test
 
 fn main() {
-    let ints: HashSet<i32> = HashSet::new<i32>()
+    let mut ints: HashSet<i32> = HashSet::new<i32>()
     test::assert_true(ints.insert(7))
     let capacity_before: i32 = ints.capacity()
     ints.reserve(16)
@@ -15,7 +15,7 @@ fn main() {
     test::assert_eq_i32(ints.len(), 1)
     test::assert_true(ints.contains(7))
 
-    let words: HashSet<String> = HashSet::new<String>()
+    let mut words: HashSet<String> = HashSet::new<String>()
     test::assert_true(words.insert("red"))
     test::assert_true(words.contains("red"))
     test::assert_false(words.contains("blue"))
@@ -24,9 +24,9 @@ fn main() {
     let snapshot: Vec<String> = words.to_vec()
     test::assert_eq_i32(len(snapshot), 1)
 
-    let more: HashSet<String> = HashSet::new<String>()
+    let mut more: HashSet<String> = HashSet::new<String>()
     test::assert_true(more.insert("blue"))
-    let combined: HashSet<String> = words.union(more)
+    let mut combined: HashSet<String> = words.union(more)
     test::assert_eq_i32(combined.len(), 2)
     test::assert_eq_i32(words.intersection(more).len(), 0)
     test::assert_eq_i32(words.difference(more).len(), 1)

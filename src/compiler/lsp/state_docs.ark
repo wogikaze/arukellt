@@ -30,7 +30,7 @@ fn lsp_doc_index_of(store: LspDocStore, uri: String) -> i32 {
     return 0 - 1
 }
 
-fn lsp_doc_store_set(store: LspDocStore, uri: String, text: String, version: i32) {
+fn lsp_doc_store_set(mut store: LspDocStore, uri: String, text: String, version: i32) {
     let idx = lsp_doc_index_of(store, clone(uri))
     if idx < 0 {
         push(store.docs, LspDoc_new(uri, text, version))

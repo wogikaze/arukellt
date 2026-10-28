@@ -18,7 +18,7 @@ fn instantiate_type(ty: TypeInfo, names: Vec<String>, types: Vec<TypeInfo>) -> T
     if contract_type_access::TypeInfo_type_arg_count(ty) == 0 {
         return ty
     }
-    let inst = contract_type_constructors::TypeInfo_empty_like(ty)
+    let mut inst = contract_type_constructors::TypeInfo_empty_like(ty)
     let arg_count = contract_type_access::TypeInfo_type_arg_count(ty)
     let mut a = 0
     while a < arg_count {

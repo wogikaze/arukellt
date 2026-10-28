@@ -14,7 +14,7 @@ use main::output
 use driver::file
 use diagnostics::mod as diag_mod
 pub fn build_emit_config(opts: CliOptions, emit_mode: String, include_dumps: bool) -> DriverConfig {
-    let config = config_record::DriverConfig_default()
+    let mut config = config_record::DriverConfig_default()
     configure_target_axes(opts, config, clone(emit_mode))
     config_record::config_set_opt_level(config, args_record::cli_opt_level(opts))
     config_record::config_set_emit_mode(config, emit_mode)
@@ -29,6 +29,10 @@ pub fn build_emit_config(opts: CliOptions, emit_mode: String, include_dumps: boo
         config_record::config_set_cache_dir(config, args_record::cli_cache_dir(opts))
     }
     config_record::config_set_strip_debug(config, args_record::cli_strip_debug(opts))
+    config_record::config_set_bootstrap_shared_param_mutation(
+        config,
+        args_record::cli_bootstrap_shared_param_mutation(opts)
+    )
     if include_dumps {
         config_record::config_set_dump_tokens(config, should_dump(opts, "tokens"))
         config_record::config_set_dump_ast(config, should_dump(opts, "ast"))
@@ -41,7 +45,7 @@ pub fn build_emit_config(opts: CliOptions, emit_mode: String, include_dumps: boo
     config
 }
 
-pub fn configure_target_axes(opts: CliOptions, config: DriverConfig, emit_mode: String) {
+pub fn configure_target_axes(opts: CliOptions, mut config: DriverConfig, emit_mode: String) {
     let target = args_record::cli_target(opts)
     config_record::config_set_target(config, clone(target))
     if args_record::cli_has_wasi_version(opts) {
@@ -73,7 +77,7 @@ fn resolve_memory_width(target: String, emit_mode: String, requested: String) ->
 
 pub fn build_command_config(opts: CliOptions) -> DriverConfig {
     let command = args_record::cli_command(opts)
-    let config = build_emit_config(opts, args_record::cli_emit_mode(opts), true)
+    let mut config = build_emit_config(opts, args_record::cli_emit_mode(opts), true)
     config_record::config_set_parse_only(config, command == kinds::CMD_PARSE())
     config_record::config_set_check_only(config, command == kinds::CMD_CHECK() || command == kinds::CMD_LINT())
     config_record::config_set_lint_local_only(config, command == kinds::CMD_LINT() && args_record::cli_lint_local(opts))
@@ -191,7 +195,7 @@ pub fn cmd_compile_single_status(opts: CliOptions) -> i32 {
     if !enforce_capability_denies(opts, clone(input_file)) {
         return 1
     }
-    let config = build_command_config(opts)
+    let mut config = build_command_config(opts)
     let json_mode = args_record::cli_json_output(opts)
     let result = file::compile_file(clone(input_file), config)
     let has_messages = result_record::compile_result_error_message_count(result) > 0 || len(result_record::compile_result_diagnostics(result)) > 0

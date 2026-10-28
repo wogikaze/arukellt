@@ -11,7 +11,7 @@ use mir::lower::body_short_circuit
 use mir::lower::expr_types
 use mir::lower::unary
 
-fn lower_binary_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_binary_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     if child_count < 2 {
         return 0 - 1
@@ -39,11 +39,11 @@ fn lower_binary_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     binary_emit::mir_emit_binary_result(ctx, mir_op, binop_vt, actual_l, actual_r)
 }
 
-fn lower_short_circuit_binary(ctx: LowerCtx, lhs: AstNode, rhs: AstNode, mir_op: i32) -> i32 {
+fn lower_short_circuit_binary(mut ctx: LowerCtx, lhs: AstNode, rhs: AstNode, mir_op: i32) -> i32 {
     body_short_circuit::lower_short_circuit_binary(ctx, lhs, rhs, mir_op)
 }
 
-fn lower_unary_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_unary_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     if child_count >= 1 {
         let operand = ast_node::node_child_at(node, 0)

@@ -9,7 +9,7 @@ pub fn text_for_uri(state: LspState, uri: String) -> String {
     if len(from_store) > 0 {
         return from_store
     }
-    let path = symbol_index_paths::uri_to_file_path(clone(uri))
+    let mut path = symbol_index_paths::uri_to_file_path(clone(uri))
     if len(path) == 0 {
         return String_new()
     }

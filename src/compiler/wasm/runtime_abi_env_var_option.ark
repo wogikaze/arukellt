@@ -8,7 +8,7 @@ use wasm::intrinsics::helpers_numeric_i32
 // scratch slot that holds the managed record base while its fields are
 // stored; one copy of the base stays on the stack as the result value,
 // matching the single-value contract of the previous bump allocation.
-fn emit_env_var_option_none(w: WasmWriter, ptr_local: i32) {
+fn emit_env_var_option_none(mut w: WasmWriter, ptr_local: i32) {
     emit_env_var_option_record(w, ptr_local)
     helpers_core::emit_local_get(w, ptr_local)
     helpers_numeric_i32::emit_i32_const(w, 1)
@@ -20,7 +20,7 @@ fn emit_env_var_option_none(w: WasmWriter, ptr_local: i32) {
     helpers_memory::emit_i32_store_default(w)
 }
 
-fn emit_env_var_option_some(w: WasmWriter, value_str: i32, ptr_local: i32) {
+fn emit_env_var_option_some(mut w: WasmWriter, value_str: i32, ptr_local: i32) {
     emit_env_var_option_record(w, ptr_local)
     helpers_core::emit_local_get(w, ptr_local)
     helpers_numeric_i32::emit_i32_const(w, 0)
@@ -32,7 +32,7 @@ fn emit_env_var_option_some(w: WasmWriter, value_str: i32, ptr_local: i32) {
     helpers_memory::emit_i32_store_default(w)
 }
 
-fn emit_env_var_option_record(w: WasmWriter, ptr_local: i32) {
+fn emit_env_var_option_record(mut w: WasmWriter, ptr_local: i32) {
     helpers_numeric_i32::emit_i32_const(w, 8)
     helpers_core_heap::emit_heap_alloc_from_stack(w)
     helpers_core::emit_local_tee(w, ptr_local)

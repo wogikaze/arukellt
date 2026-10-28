@@ -4,7 +4,7 @@ use mir::function_block_queries
 use mir::types
 
 fn mir_collect_dom_info_for_function(f: MirFunction) -> MirDomInfo {
-    let info = dominance_info::MirDomInfo_new()
+    let mut info = dominance_info::MirDomInfo_new()
     let block_count = function_block_queries::MirFunction_block_count(f)
     let mut i = 0
     while i < block_count {

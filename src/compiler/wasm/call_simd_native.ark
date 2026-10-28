@@ -9,7 +9,7 @@ use wasm::ctx_scratch
 use wasm::opcodes
 use wasm::writer_core
 
-fn try_emit_simd_native(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_simd_native(mut w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     let dest = inst_accessors_operands::MirInst_dest(inst)
     let arg0 = inst_accessors_operands::MirInst_arg0(inst)
     let arg1 = inst_accessors_operands::MirInst_arg1(inst)
@@ -29,7 +29,7 @@ fn try_emit_simd_native(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: Self
 // Operations with no direct Wasm instruction. They stay here instead of the
 // per-family dispatchers because the lowering needs SelfEmitCtx for its
 // scratch locals.
-fn try_emit_simd_native_emulated(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_simd_native_emulated(mut w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_mul() {
         emit_simd_i8x16_mul(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
         return true
@@ -57,7 +57,7 @@ fn try_emit_simd_native_emulated(w: WasmWriter, handler_id: i32, inst: MirInst, 
     false
 }
 
-fn try_emit_simd_native_v128(w: WasmWriter, handler_id: i32, inst: MirInst, dest: i32, arg0: i32, arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_simd_native_v128(mut w: WasmWriter, handler_id: i32, inst: MirInst, dest: i32, arg0: i32, arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_v128_const() {
         emit_native_v128_const(w, inst, dest, next_op, next_arg0, next_arg1, next2_op)
         return true
@@ -95,7 +95,7 @@ fn try_emit_simd_native_v128(w: WasmWriter, handler_id: i32, inst: MirInst, dest
 
 // Emit __simd_v128_const: drop the 16 i32 byte args from the stack, then
 // construct a v128 using i8x16.replace_lane for each byte.
-fn emit_native_v128_const(w: WasmWriter, inst: MirInst, dest: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+fn emit_native_v128_const(mut w: WasmWriter, inst: MirInst, dest: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
     let arg_count = inst_accessors_literals::MirInst_int_val(inst)
     // Drop all staged args from the stack (they were pushed by mir_emit_staged_call_args)
     let mut i = 0
@@ -113,7 +113,7 @@ fn emit_native_v128_const(w: WasmWriter, inst: MirInst, dest: i32, next_op: i32,
     call_simd_emit::emit_store_result(w, inst, next_op, next_arg0, next_arg1, next2_op)
 }
 
-fn try_emit_simd_native_f32x4(w: WasmWriter, handler_id: i32, inst: MirInst, dest: i32, arg0: i32, arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_simd_native_f32x4(mut w: WasmWriter, handler_id: i32, inst: MirInst, dest: i32, arg0: i32, arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_add() {
         call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_F32X4_ADD(), next_op, next_arg0, next_arg1, next2_op)
         return true
@@ -205,7 +205,7 @@ fn try_emit_simd_native_f32x4(w: WasmWriter, handler_id: i32, inst: MirInst, des
     false
 }
 
-fn try_emit_simd_native_f64x2(w: WasmWriter, handler_id: i32, inst: MirInst, dest: i32, arg0: i32, arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_simd_native_f64x2(mut w: WasmWriter, handler_id: i32, inst: MirInst, dest: i32, arg0: i32, arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_add() {
         call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_F64X2_ADD(), next_op, next_arg0, next_arg1, next2_op)
         return true
@@ -309,7 +309,7 @@ fn try_emit_simd_native_f64x2(w: WasmWriter, handler_id: i32, inst: MirInst, des
     false
 }
 
-fn try_emit_simd_native_i32x4(w: WasmWriter, handler_id: i32, inst: MirInst, dest: i32, arg0: i32, arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_simd_native_i32x4(mut w: WasmWriter, handler_id: i32, inst: MirInst, dest: i32, arg0: i32, arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_add() {
         call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I32X4_ADD(), next_op, next_arg0, next_arg1, next2_op)
         return true
@@ -413,7 +413,7 @@ fn try_emit_simd_native_i32x4(w: WasmWriter, handler_id: i32, inst: MirInst, des
     false
 }
 
-fn try_emit_simd_native_i64x2(w: WasmWriter, handler_id: i32, inst: MirInst, dest: i32, arg0: i32, arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_simd_native_i64x2(mut w: WasmWriter, handler_id: i32, inst: MirInst, dest: i32, arg0: i32, arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_add() {
         call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I64X2_ADD(), next_op, next_arg0, next_arg1, next2_op)
         return true
@@ -485,7 +485,7 @@ fn try_emit_simd_native_i64x2(w: WasmWriter, handler_id: i32, inst: MirInst, des
     false
 }
 
-fn try_emit_simd_native_i8x16(w: WasmWriter, handler_id: i32, inst: MirInst, dest: i32, arg0: i32, arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_simd_native_i8x16(mut w: WasmWriter, handler_id: i32, inst: MirInst, dest: i32, arg0: i32, arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_add() {
         call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I8X16_ADD(), next_op, next_arg0, next_arg1, next2_op)
         return true
@@ -613,7 +613,7 @@ fn try_emit_simd_native_i8x16(w: WasmWriter, handler_id: i32, inst: MirInst, des
     false
 }
 
-fn try_emit_simd_native_i16x8(w: WasmWriter, handler_id: i32, inst: MirInst, dest: i32, arg0: i32, arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_simd_native_i16x8(mut w: WasmWriter, handler_id: i32, inst: MirInst, dest: i32, arg0: i32, arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_add() {
         call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_ADD(), next_op, next_arg0, next_arg1, next2_op)
         return true
@@ -769,7 +769,7 @@ fn try_emit_simd_native_i16x8(w: WasmWriter, handler_id: i32, inst: MirInst, des
     false
 }
 
-fn try_emit_simd_native_alltrue_bitmask(w: WasmWriter, handler_id: i32, inst: MirInst, dest: i32, arg0: i32, arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_simd_native_alltrue_bitmask(mut w: WasmWriter, handler_id: i32, inst: MirInst, dest: i32, arg0: i32, arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_all_true() {
         call_simd_emit::emit_simd_reduce_i32(w, inst, opcodes::SIMD_I8X16_ALL_TRUE(), next_op, next_arg0, next_arg1, next2_op)
         return true
@@ -805,7 +805,7 @@ fn try_emit_simd_native_alltrue_bitmask(w: WasmWriter, handler_id: i32, inst: Mi
     false
 }
 
-fn emit_simd_local_set(w: WasmWriter, local: i32) {
+fn emit_simd_local_set(mut w: WasmWriter, local: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, local)
 }
@@ -813,7 +813,7 @@ fn emit_simd_local_set(w: WasmWriter, local: i32) {
 // i8x16.mul has no Wasm instruction. Multiply the low and high 8-bit halves
 // as 16-bit products, mask each to its low byte, then pack with unsigned
 // narrowing (the masked values are already <= 0xff, so saturation is exact).
-fn emit_simd_i8x16_mul(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+fn emit_simd_i8x16_mul(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
     let scratch_a = ctx_scratch::SelfEmitCtx_scratch_v128_local(ctx, 0)
     let scratch_b = ctx_scratch::SelfEmitCtx_scratch_v128_local(ctx, 1)
     // Staged operands are [a b].
@@ -835,7 +835,7 @@ fn emit_simd_i8x16_mul(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: 
     call_simd_emit::emit_store_result(w, inst, next_op, next_arg0, next_arg1, next2_op)
 }
 
-fn emit_simd_i16x8_low_byte_mask(w: WasmWriter) {
+fn emit_simd_i16x8_low_byte_mask(mut w: WasmWriter) {
     call_simd_emit::emit_simd_prefix(w, opcodes::SIMD_V128_CONST())
     let mut lane = 0
     while lane < 8 {
@@ -849,7 +849,7 @@ fn emit_simd_i16x8_low_byte_mask(w: WasmWriter) {
 // Wasm SIMD has no unsigned i64x2 comparison. Flipping each lane's sign bit
 // maps unsigned order onto the signed instruction's order; the caller then
 // emits the matching signed compare.
-fn emit_simd_u64x2_unsigned_operands(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_simd_u64x2_unsigned_operands(mut w: WasmWriter, ctx: SelfEmitCtx) {
     let scratch = ctx_scratch::SelfEmitCtx_scratch_v128_local(ctx, 0)
     // Staged operands are [a b].
     emit_simd_u64x2_sign_mask(w)
@@ -860,7 +860,7 @@ fn emit_simd_u64x2_unsigned_operands(w: WasmWriter, ctx: SelfEmitCtx) {
     writer_core::emit_local_get(w, scratch)
 }
 
-fn emit_simd_u64x2_sign_mask(w: WasmWriter) {
+fn emit_simd_u64x2_sign_mask(mut w: WasmWriter) {
     call_simd_emit::emit_simd_prefix(w, opcodes::SIMD_V128_CONST())
     let mut byte = 0
     while byte < 16 {

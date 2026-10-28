@@ -120,7 +120,7 @@ fn gc_layout_plan_find_struct_type(table: TypeTable, name: String) -> TypeId {
     type_id::TYPE_ID_INVALID()
 }
 
-fn gc_layout_plan_type_id_for_struct_slot(table: TypeTable, name: String) -> TypeId {
+fn gc_layout_plan_type_id_for_struct_slot(mut table: TypeTable, name: String) -> TypeId {
     let found = gc_layout_plan_find_struct_type(table, clone(name))
     if type_id::type_id_is_valid(found) {
         return found
@@ -154,7 +154,7 @@ fn gc_layout_plan_variant_type_kind(name: String) -> i32 {
 // Option/Result/enum, not `Option::Some` / `Color::Red`. Intern each slot as
 // name#sig so i32/i64/ref payloads of the same variant keep distinct TypeIds.
 fn gc_layout_plan_type_id_for_variant_slot(
-    table: TypeTable,
+    mut table: TypeTable,
     name: String,
     sig: String
 ) -> TypeId {
@@ -173,7 +173,7 @@ fn gc_layout_plan_type_id_for_variant_slot(
 // specific slot binding — matching the post-loop sweep order.
 fn mir_gc_layout_bind_struct_slot(module: MirModule, slot: i32) {
     let name = module_gc_struct::MirModule_gc_struct_name_at(module, slot)
-    let table = module_spine::MirModule_type_table(module)
+    let mut table = module_spine::MirModule_type_table(module)
     let tid = gc_layout_plan_type_id_for_struct_slot(table, name)
     if !type_id::type_id_is_valid(tid) {
         stdio::eprintln(
@@ -192,7 +192,7 @@ fn mir_gc_layout_bind_struct_slot(module: MirModule, slot: i32) {
 fn mir_gc_layout_bind_enum_variant_slot(module: MirModule, slot: i32) {
     let name = module_gc_enum::MirModule_gc_enum_variant_name_at(module, slot)
     let sig = module_gc_enum::MirModule_gc_enum_variant_sig_at(module, slot)
-    let table = module_spine::MirModule_type_table(module)
+    let mut table = module_spine::MirModule_type_table(module)
     let tid = gc_layout_plan_type_id_for_variant_slot(table, name, sig)
     if !type_id::type_id_is_valid(tid) {
         stdio::eprintln(

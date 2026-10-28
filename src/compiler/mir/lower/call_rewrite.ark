@@ -33,7 +33,7 @@ fn MirCallRewrite_push_i64_needs_extend(rewrite: MirCallRewrite) -> bool {
     rewrite.push_i64_needs_extend
 }
 
-fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i32, second_arg_idx: i32, stage_call_args: bool, span_start: i32) -> MirCallRewrite {
+fn mir_rewrite_call_target(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i32, second_arg_idx: i32, stage_call_args: bool, span_start: i32) -> MirCallRewrite {
     // A loaded-module body keeps `module::Type::method`; canonicalize to the
     // registered `Type::method` before dest typing and fid attachment so the
     // call targets the impl the signature spine holds.

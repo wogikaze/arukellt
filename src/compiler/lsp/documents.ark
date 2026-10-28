@@ -11,7 +11,7 @@ use lsp::symbol_index
 use lsp::symbol_index_stdlib
 use lsp::symbol_index_update
 use lsp::project_resolve_modules
-pub fn handle_did_open(state: LspState, body: String) {
+pub fn handle_did_open(mut state: LspState, body: String) {
     let uri = json::JsonText::get_str(clone(body), String_from("uri"))
     let text = json::JsonText::get_str(clone(body), String_from("text"))
     let version = json::JsonText::get_int(clone(body), String_from("version"))
@@ -21,7 +21,7 @@ pub fn handle_did_open(state: LspState, body: String) {
     publish_for(state, clone(uri), clone(text))
 }
 
-pub fn handle_did_change(state: LspState, body: String) {
+pub fn handle_did_change(mut state: LspState, body: String) {
     let uri = json::JsonText::get_str(clone(body), String_from("uri"))
     let version = json::JsonText::get_int(clone(body), String_from("version"))
     let cc = json::JsonText::find_key_pos(clone(body), String_from("contentChanges"), 0)
@@ -35,19 +35,19 @@ pub fn handle_did_change(state: LspState, body: String) {
     publish_for(state, clone(uri), clone(text))
 }
 
-pub fn handle_did_close(state: LspState, body: String) {
+pub fn handle_did_close(mut state: LspState, body: String) {
     let uri = json::JsonText::get_str(clone(body), String_from("uri"))
     symbol_index::symbol_index_remove_file(state, clone(uri))
 }
 
-pub fn handle_did_change_watched_files(state: LspState, body: String) {
+pub fn handle_did_change_watched_files(mut state: LspState, body: String) {
     if !lsp_package_definition::watched_files_body_has_ark_toml(clone(body)) {
         return
     }
     init_workspace::rebuild_workspace_package_index_from_manifest_change(state)
 }
 
-pub fn handle_did_save(state: LspState, body: String) {
+pub fn handle_did_save(mut state: LspState, body: String) {
     if !state_record::lsp_state_check_on_save(state) {
         return
     }
@@ -58,7 +58,7 @@ pub fn handle_did_save(state: LspState, body: String) {
     }
 }
 
-fn publish_for(state: LspState, uri: String, text: String) {
+fn publish_for(mut state: LspState, uri: String, text: String) {
     let modules = project_resolve_modules::build_resolve_modules_with_prelude(state, clone(uri))
     let snap = analysis::analyze_with_modules(clone(uri), clone(text), modules)
     framing::append_framed(state, diagnostics::build_publish_diagnostics(clone(uri), clone(text), snap))

@@ -19,7 +19,7 @@ impl HandleTableI32 {
     }
 
     /// Insert `value` and return a stable handle index.
-    fn insert(self: HandleTableI32, value: i32) -> i32 {
+    fn insert(mut self: HandleTableI32, value: i32) -> i32 {
         compiler::slotmap_insert(self.slots, value)
     }
 
@@ -29,7 +29,7 @@ impl HandleTableI32 {
     }
 
     /// Drop a handle and return its value, if still live.
-    fn remove(self: HandleTableI32, handle: i32) -> Option<i32> {
+    fn remove(mut self: HandleTableI32, handle: i32) -> Option<i32> {
         compiler::slotmap_remove(self.slots, handle)
     }
 

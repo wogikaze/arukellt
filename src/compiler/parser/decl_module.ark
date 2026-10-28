@@ -45,7 +45,7 @@ fn is_decl_start(p: Parser) -> bool {
 }
 
 // Synchronise to the next plausible top-level declaration start (#566).
-fn sync_to_decl_start(p: Parser) {
+fn sync_to_decl_start(mut p: Parser) {
     while !core_api_cursor::at_eof(p) {
         if is_decl_start(p) {
             return
@@ -54,7 +54,7 @@ fn sync_to_decl_start(p: Parser) {
     }
 }
 
-fn parse_module_impl(p: Parser) -> Vec<AstNode> {
+fn parse_module_impl(mut p: Parser) -> Vec<AstNode> {
     let mut decls: Vec<AstNode> = Vec::new<AstNode>()
     core_api_cursor::skip_newlines(p)
     while !core_api_cursor::at_eof(p) {

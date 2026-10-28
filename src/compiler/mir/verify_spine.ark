@@ -5,7 +5,7 @@ use mir::lower::mono_instance_table
 use mir::module_spine
 use mir::verify_report
 
-fn verify_spine_mono_inv9(m: MirModule, report: MirVerifyReport, verbose: bool) {
+fn verify_spine_mono_inv9(m: MirModule, mut report: MirVerifyReport, verbose: bool) {
     if !module_spine::MirModule_signature_spine_populated(m) {
         return
     }
@@ -19,7 +19,7 @@ fn verify_spine_mono_inv9(m: MirModule, report: MirVerifyReport, verbose: bool) 
     }
 }
 
-fn verify_one_mono_inv9(registry: SignatureRegistry, mono_table: MonoInstanceTable, index: i32, report: MirVerifyReport, verbose: bool) {
+fn verify_one_mono_inv9(registry: SignatureRegistry, mono_table: MonoInstanceTable, index: i32, mut report: MirVerifyReport, verbose: bool) {
     let entry = mono_instance_table::mono_instance_table_entry_at(mono_table, index)
     let sig_id = mono_instance_table::mono_instance_entry_signature_id(entry)
     if !function_id::function_id_is_valid(sig_id) {

@@ -21,7 +21,7 @@ fn HirModule_new() -> HirModule {
     }
 }
 
-fn HirModule_push_function(module: HirModule, func: HirFunction) {
+fn HirModule_push_function(mut module: HirModule, func: HirFunction) {
     push(module.functions, func)
 }
 
@@ -33,22 +33,22 @@ fn HirModule_function_at(module: HirModule, index: i32) -> HirFunction {
     get_unchecked(module.functions, index)
 }
 
-fn HirModule_push_struct(module: HirModule, defn: HirStructDef) {
+fn HirModule_push_struct(mut module: HirModule, defn: HirStructDef) {
     push(module.structs, defn)
 }
 
-fn HirModule_push_enum(module: HirModule, defn: HirEnumDef) {
+fn HirModule_push_enum(mut module: HirModule, defn: HirEnumDef) {
     push(module.enums, defn)
 }
 
-fn HirModule_push_trait(module: HirModule, decl: HirTraitDecl) {
+fn HirModule_push_trait(mut module: HirModule, decl: HirTraitDecl) {
     push(module.traits, decl)
 }
 
-fn HirModule_push_impl(module: HirModule, block: HirImplBlock) {
+fn HirModule_push_impl(mut module: HirModule, block: HirImplBlock) {
     push(module.impls, block)
 }
 
-fn HirModule_push_import(module: HirModule, import_path: String) {
+fn HirModule_push_import(mut module: HirModule, import_path: String) {
     push(module.imports, import_path)
 }

@@ -9,7 +9,7 @@ fn add2(x: i32) -> i32 { x + 2 }
 
 fn main() {
     // i32 -> i32
-    let m_ii = HashMap::new<i32, i32>()
+    let mut m_ii = HashMap::new<i32, i32>()
     m_ii.insert(1, 10)
     m_ii.insert(2, 20)
     let ii_vals = m_ii.values()
@@ -31,7 +31,7 @@ fn main() {
     stdio::println(acc.to_string())
 
     // String -> i32
-    let m_si = HashMap::new<String, i32>()
+    let mut m_si = HashMap::new<String, i32>()
     m_si.insert("a", 3)
     m_si.insert("bb", 4)
     let si_vals = m_si.values()
@@ -53,7 +53,7 @@ fn main() {
     stdio::println(acc.to_string())
 
     // i32 -> String
-    let m_is = HashMap::new<i32, String>()
+    let mut m_is = HashMap::new<i32, String>()
     m_is.insert(1, "aa")
     m_is.insert(2, "bbb")
     let is_vals = m_is.values()
@@ -75,7 +75,7 @@ fn main() {
     stdio::println(acc.to_string())
 
     // String -> String
-    let m_ss = HashMap::new<String, String>()
+    let mut m_ss = HashMap::new<String, String>()
     m_ss.insert("x", "yy")
     m_ss.insert("ww", "z")
     let ss_vals = m_ss.values()
@@ -97,7 +97,7 @@ fn main() {
     stdio::println(acc.to_string())
 
     // i32 -> fn
-    let m_if = HashMap::new<i32, fn(i32) -> i32>()
+    let mut m_if = HashMap::new<i32, fn(i32) -> i32>()
     m_if.insert(1, add1)
     m_if.insert(2, add2)
     let if_vals = m_if.values()
@@ -120,7 +120,7 @@ fn main() {
     stdio::println(acc.to_string())
 
     // String -> fn
-    let m_sf = HashMap::new<String, fn(i32) -> i32>()
+    let mut m_sf = HashMap::new<String, fn(i32) -> i32>()
     m_sf.insert("a", add1)
     m_sf.insert("bb", add2)
     let sf_vals = m_sf.values()
@@ -144,7 +144,7 @@ fn main() {
 
     // Snapshots are eager: entries()/values() materialize the current
     // pairs, so later inserts do not appear in already returned vecs.
-    let m_snap = HashMap::new<i32, i32>()
+    let mut m_snap = HashMap::new<i32, i32>()
     m_snap.insert(1, 1)
     let snap_vals = m_snap.values()
     let snap_ents = m_snap.entries()

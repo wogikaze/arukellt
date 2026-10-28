@@ -7,9 +7,9 @@ use hir::types_format
 pub fn trait_hir_self_check() -> String {
     let foo_trait = type_contracts::HirType_named(commands::TY_TRAIT(), "Foo")
     let self_ty = type_contracts::HirType_named(commands::TY_STRUCT(), "MyStruct")
-    let type_param = items::HirTypeParam_new("T")
+    let mut type_param = items::HirTypeParam_new("T")
     items::HirTypeParam_push_bound(type_param, items::HirTraitBound_new(foo_trait))
-    let func = items::HirFunction_new(
+    let mut func = items::HirFunction_new(
         "f",
         type_contracts::HirType_simple(commands::TY_UNIT()),
         node_record::HirNode_new(commands::HIR_BLOCK(), type_contracts::HirType_simple(commands::TY_UNIT())),

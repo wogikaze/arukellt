@@ -34,7 +34,7 @@ fn lm_grow_elem_stride(ctx: SelfEmitCtx, inst: MirInst) -> i32 {
     4
 }
 
-fn emit_raw_array_grow(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_raw_array_grow(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_raw_array_grow_gc(w, inst, ctx)
     } else {
@@ -43,7 +43,7 @@ fn emit_raw_array_grow(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     true
 }
 
-fn emit_raw_array_grow_lm(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_raw_array_grow_lm(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let elem_stride = lm_grow_elem_stride(ctx, inst)
     let new_len = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let vec = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
@@ -92,7 +92,7 @@ fn emit_raw_array_grow_lm(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 }
 
 fn emit_raw_array_grow_lm_storage(
-    w: WasmWriter,
+    mut w: WasmWriter,
     vec: i32,
     new_len: i32,
     old_len: i32,
@@ -134,7 +134,7 @@ fn emit_raw_array_grow_lm_storage(
     emit_lm_store_field_from_local(w, vec, 8, new_data)
 }
 
-fn emit_lm_load_field(w: WasmWriter, vec: i32, offset: i32) {
+fn emit_lm_load_field(mut w: WasmWriter, vec: i32, offset: i32) {
     helpers_core::emit_local_get(w, vec)
     if offset > 0 {
         helpers_numeric_i32::emit_i32_const(w, offset)
@@ -145,7 +145,7 @@ fn emit_lm_load_field(w: WasmWriter, vec: i32, offset: i32) {
     writer_core::emit_byte(w, 0)
 }
 
-fn emit_lm_store_field_from_local(w: WasmWriter, vec: i32, offset: i32, value: i32) {
+fn emit_lm_store_field_from_local(mut w: WasmWriter, vec: i32, offset: i32, value: i32) {
     helpers_core::emit_local_get(w, vec)
     if offset > 0 {
         helpers_numeric_i32::emit_i32_const(w, offset)
@@ -157,7 +157,7 @@ fn emit_lm_store_field_from_local(w: WasmWriter, vec: i32, offset: i32, value: i
     writer_core::emit_byte(w, 0)
 }
 
-fn emit_raw_array_grow_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_raw_array_grow_gc(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let new_len = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let old_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let old_cap = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -249,7 +249,7 @@ fn emit_raw_array_grow_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 }
 
 fn emit_raw_array_grow_gc_storage(
-    w: WasmWriter,
+    mut w: WasmWriter,
     vec: i32,
     new_len: i32,
     old_len: i32,
@@ -292,7 +292,7 @@ fn emit_raw_array_grow_gc_storage(
     writer_gc::emit_gc_struct_set(w, vec_type, 0)
 }
 
-fn emit_raw_array_set_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_raw_array_set_len(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_raw_array_set_len_gc(w, inst, ctx)
     } else {
@@ -301,7 +301,7 @@ fn emit_raw_array_set_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> boo
     false
 }
 
-fn emit_raw_array_set_len_lm(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_raw_array_set_len_lm(mut w: WasmWriter, ctx: SelfEmitCtx) {
     let new_len = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let vec = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     helpers_core::emit_local_set(w, new_len)
@@ -309,7 +309,7 @@ fn emit_raw_array_set_len_lm(w: WasmWriter, ctx: SelfEmitCtx) {
     emit_lm_store_field_from_local(w, vec, 0, new_len)
 }
 
-fn emit_raw_array_set_len_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_raw_array_set_len_gc(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let new_len = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
     let callee = inst_accessors_literals::MirInst_str_val(inst)
@@ -322,7 +322,7 @@ fn emit_raw_array_set_len_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_gc::emit_gc_struct_set_i32(w, vec_type, 1)
 }
 
-fn emit_raw_array_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_raw_array_new(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let dest_local = inst_accessors_operands::MirInst_dest(inst)
     let elem = intrinsic_vec_type::local_type_name(ctx, dest_local)
     let heap_bump = if contains(clone(elem), String_from("i64")) ||

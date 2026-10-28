@@ -89,7 +89,7 @@ fn TypeInfo_new(tag: i32, name: String, type_args: Vec<TypeInfo>) -> TypeInfo {
     }
 }
 
-fn TypeInfo_push_type_arg(ty: TypeInfo, arg: TypeInfo) {
+fn TypeInfo_push_type_arg(mut ty: TypeInfo, arg: TypeInfo) {
     push(ty.type_args, arg)
 }
 
@@ -107,6 +107,6 @@ fn MonoInstance_demanded(instance: MonoInstance) -> bool {
     instance.demanded
 }
 
-fn MonoInstance_set_demanded(instance: MonoInstance) {
+fn MonoInstance_set_demanded(mut instance: MonoInstance) {
     instance.demanded = true
 }

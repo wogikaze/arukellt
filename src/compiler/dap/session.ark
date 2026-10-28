@@ -3,7 +3,7 @@ use dap::framing
 use dap::handlers
 use dap::state
 fn run_dap_session(input: String) -> String {
-    let state = state::DapState_new()
+    let mut state = state::DapState_new()
     let n = len(input)
     let mut pos = 0
     while pos < n {

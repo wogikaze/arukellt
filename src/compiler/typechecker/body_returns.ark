@@ -5,7 +5,7 @@ use typechecker::contract_fn_sig
 use typechecker::infer
 use typechecker::returns
 
-fn check_fn_body_return_contract(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, sig: FnSig, body: AstNode) {
+fn check_fn_body_return_contract(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, sig: FnSig, body: AstNode) {
     let body_ty = infer::infer_expr(env, scope, fn_sigs, enum_defs, body)
     returns::check_return_type_compat(env, contract_fn_sig::FnSig_name(sig), contract_fn_sig::FnSig_return_type(sig), body_ty)
     check_return_stmts(env, scope, fn_sigs, enum_defs, sig, body)
@@ -14,14 +14,14 @@ fn check_fn_body_return_contract(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<F
 // A capturing closure in tail position escapes as the function result even
 // though no NK_RETURN node exists, so it needs the same escape check that
 // explicit return statements get (#872).
-fn check_tail_escape(env: TypeEnv, scope: LocalScope, body: AstNode) {
+fn check_tail_escape(mut env: TypeEnv, scope: LocalScope, body: AstNode) {
     if !env.is_ownership_tracking_enabled {
         return
     }
     closure_capture::closure_capture_escape(env, scope, body)
 }
 
-fn check_return_stmts(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, sig: FnSig, body: AstNode) {
+fn check_return_stmts(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, sig: FnSig, body: AstNode) {
     if ast_stmt_predicates::node_is_return(body) {
         if ast_access::node_child_count(body) > 0 {
             let ret_val = ast_access::node_child_at(body, 0)
@@ -40,7 +40,7 @@ fn check_return_stmts(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum
     }
 }
 
-fn check_child_return_stmts(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, sig: FnSig, body: AstNode) {
+fn check_child_return_stmts(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, sig: FnSig, body: AstNode) {
     let count = ast_access::node_child_count(body)
     let mut i = 0
     while i < count {

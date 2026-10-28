@@ -8,14 +8,14 @@ use typechecker::contract_type_constructors
 use typechecker::contract_type_mutation
 use typechecker::closure_capture
 use typechecker::types
-fn infer_closure_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
-    let closure_scope = scope::scope_child(scope)
+fn infer_closure_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+    let mut closure_scope = scope::scope_child(scope)
     let child_count = ast_access::node_child_count(node)
     if child_count == 0 {
         return TypeInfo_simple(commands::TY_FN())
     }
-    let param_types = Vec::new<TypeInfo>()
-    let param_modes = Vec::new<bool>()
+    let mut param_types = Vec::new<TypeInfo>()
+    let mut param_modes = Vec::new<bool>()
     let mut i = 0
     while i + 1 < child_count {
         let param = ast_access::node_child_at(node, i)
@@ -60,7 +60,7 @@ fn infer_closure_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum
     }
     let capture_summary = closure_capture::closure_capture_summary(env, scope, node)
     closure_capture::apply_closure_capture_summary(env, scope, capture_summary)
-    let fn_ty = contract_type_constructors::TypeInfo_simple(commands::TY_FN())
+    let mut fn_ty = contract_type_constructors::TypeInfo_simple(commands::TY_FN())
     let mut param_index = 0
     while param_index < len(param_types) {
         contract_type_mutation::TypeInfo_push_type_arg(

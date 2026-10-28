@@ -14,7 +14,7 @@ fn ident_looks_like_unit_variant(pat: AstNode) -> bool {
     ends_with(clone(pat_name), String_from("::Err"))
 }
 
-fn record_variant_pattern(coverage: MatchCoverage, pat: AstNode) {
+fn record_variant_pattern(mut coverage: MatchCoverage, pat: AstNode) {
     let pat_name = ast_access::node_text(pat)
     if eq(clone(pat_name), String_from("Some")) || ends_with(clone(pat_name), String_from("::Some")) {
         match_coverage_mark_record::match_coverage_mark_option_some(coverage)

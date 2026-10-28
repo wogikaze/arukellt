@@ -2,7 +2,7 @@ use lexer::tokens
 use parser::expr_infix_result
 use parser::expr_suffix
 
-pub fn parse_bp_suffix_step(p: Parser, lhs: AstNode, kind: i32) -> ParserInfixResult {
+pub fn parse_bp_suffix_step(mut p: Parser, lhs: AstNode, kind: i32) -> ParserInfixResult {
     if kind == tokens::TK_DOT() {
         return expr_infix_result::ParserInfixResult_yes(expr_suffix::parse_dot_suffix(p, lhs))
     }

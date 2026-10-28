@@ -12,7 +12,7 @@ fn resolve_type_ann_node_generic(ann: AstNode, type_params: Vec<String>) -> Type
         return resolve_type_fn_node_generic(ann, type_params)
     }
     if ast_type_predicates::node_is_type_generic(ann) {
-        let base_ty = type_names::resolve_type_name(ast_access::node_text(ann))
+        let mut base_ty = type_names::resolve_type_name(ast_access::node_text(ann))
         let child_count = ast_access::node_child_count(ann)
         let mut k = 1
         while k < child_count {
@@ -27,7 +27,7 @@ fn resolve_type_ann_node_generic(ann: AstNode, type_params: Vec<String>) -> Type
 }
 
 fn resolve_type_tuple_node_generic(ann: AstNode, type_params: Vec<String>) -> TypeInfo {
-    let tuple_ty = type_names::type_info_named(commands::TY_TUPLE(), String_new())
+    let mut tuple_ty = type_names::type_info_named(commands::TY_TUPLE(), String_new())
     let child_count = ast_access::node_child_count(ann)
     let mut k = 0
     while k < child_count {
@@ -43,7 +43,7 @@ fn resolve_type_tuple_node_generic(ann: AstNode, type_params: Vec<String>) -> Ty
 // positions resolve through type_params so `fn(T) -> U` keeps its type
 // variables for signature instantiation (#860/#691).
 fn resolve_type_fn_node_generic(ann: AstNode, type_params: Vec<String>) -> TypeInfo {
-    let fn_ty = type_names::type_info_simple(commands::TY_FN())
+    let mut fn_ty = type_names::type_info_simple(commands::TY_FN())
     let child_count = ast_access::node_child_count(ann)
     let mut k = 0
     while k < child_count {

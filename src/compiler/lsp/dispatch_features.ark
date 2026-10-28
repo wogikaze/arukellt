@@ -1,7 +1,7 @@
 use std::prelude::{clone}
 use lsp::dispatch_features_core
 use lsp::dispatch_features_structure
-fn dispatch_features(state: LspState, body: String, method: String) -> bool {
+fn dispatch_features(mut state: LspState, body: String, method: String) -> bool {
     if dispatch_features_structure::dispatch_structure_features(state, clone(body), clone(method)) {
         return true
     }

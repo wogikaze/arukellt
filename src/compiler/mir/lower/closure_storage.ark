@@ -2,7 +2,7 @@ use std::prelude::{clone, to_string}
 use std::text
 use mir::function_identity
 use mir::lower::ctx_current_storage
-fn closure_storage_clear_pending_bind(ctx: LowerCtx) {
+fn closure_storage_clear_pending_bind(mut ctx: LowerCtx) {
     ctx.closure_last_synth = String_new()
     ctx.closure_last_caps = String_new()
     ctx.closure_last_extra = 0
@@ -10,7 +10,7 @@ fn closure_storage_clear_pending_bind(ctx: LowerCtx) {
     ctx.closure_last_env = 0 - 1
 }
 
-fn closure_storage_next_synth_name(ctx: LowerCtx) -> String {
+fn closure_storage_next_synth_name(mut ctx: LowerCtx) -> String {
     let synth = "__closure_".concat(to_string(ctx.closure_counter))
     ctx.closure_counter = ctx.closure_counter + 1
     synth
@@ -20,7 +20,7 @@ fn closure_storage_pending_synth(ctx: LowerCtx) -> String {
     clone(ctx.closure_last_synth)
 }
 
-fn closure_storage_set_pending_bind(ctx: LowerCtx, synth: String, packed: String, extra: i32, env_local: i32) {
+fn closure_storage_set_pending_bind(mut ctx: LowerCtx, synth: String, packed: String, extra: i32, env_local: i32) {
     ctx.closure_last_synth = synth
     ctx.closure_last_caps = packed
     ctx.closure_last_extra = extra
@@ -28,7 +28,7 @@ fn closure_storage_set_pending_bind(ctx: LowerCtx, synth: String, packed: String
     ctx.closure_last_env = env_local
 }
 
-fn closure_storage_set_pending_identity(ctx: LowerCtx) {
+fn closure_storage_set_pending_identity(mut ctx: LowerCtx) {
     ctx.closure_last_synth = String_new()
     ctx.closure_last_caps = String_new()
     ctx.closure_last_extra = 0
@@ -36,7 +36,7 @@ fn closure_storage_set_pending_identity(ctx: LowerCtx) {
     ctx.closure_last_env = 0 - 1
 }
 
-fn closure_storage_push_bind(ctx: LowerCtx, bind_name: String) {
+fn closure_storage_push_bind(mut ctx: LowerCtx, bind_name: String) {
     push(ctx.closure_bind_names, bind_name)
     push(ctx.closure_bind_synth, clone(ctx.closure_last_synth))
     push(ctx.closure_bind_caps, clone(ctx.closure_last_caps))

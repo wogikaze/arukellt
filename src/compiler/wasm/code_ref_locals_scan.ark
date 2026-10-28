@@ -74,7 +74,7 @@ fn return_operand_local(block: MirBlock, ii: i32) -> i32 {
 
 // One pass over the body: 0/1 per local for `local_feeds_return`.
 fn local_feeds_return_flags(f: MirFunction, local_count: i32) -> Vec<i32> {
-    let flags = Vec::new<i32>()
+    let mut flags = Vec::new<i32>()
     let mut li = 0
     while li < local_count {
         push(flags, 0)
@@ -436,9 +436,9 @@ fn local_has_strong_ref_producer(f: MirFunction, local_idx: i32) -> bool {
 fn build_local_producer_flags(
     f: MirFunction,
     local_count: i32,
-    scalar_vts: Vec<i32>,
-    scalar_flags: Vec<i32>,
-    strong_ref_flags: Vec<i32>
+    mut scalar_vts: Vec<i32>,
+    mut scalar_flags: Vec<i32>,
+    mut strong_ref_flags: Vec<i32>
 ) {
     let mut li = 0
     while li < local_count {
@@ -479,7 +479,7 @@ fn build_local_producer_flags(
     propagate_scalar_producer_flags(f, scalar_vts, scalar_flags, 8)
 }
 
-fn seed_scalar_producer_params(f: MirFunction, scalar_vts: Vec<i32>, scalar_flags: Vec<i32>) {
+fn seed_scalar_producer_params(f: MirFunction, mut scalar_vts: Vec<i32>, mut scalar_flags: Vec<i32>) {
     let param_count = function_param_view::MirFunction_param_count(f)
     let mut pi = 0
     while pi < param_count && pi < len(scalar_vts) {
@@ -516,8 +516,8 @@ fn inst_is_strong_ref_producer(op: i32, inst: MirInst) -> bool {
 
 fn propagate_scalar_producer_flags(
     f: MirFunction,
-    scalar_vts: Vec<i32>,
-    scalar_flags: Vec<i32>,
+    mut scalar_vts: Vec<i32>,
+    mut scalar_flags: Vec<i32>,
     max_passes: i32
 ) {
     let mut pass = 0
@@ -736,11 +736,11 @@ fn inst_is_ordering_compare(op: i32) -> bool {
 fn local_body_i64_stack_set_flags(f: MirFunction, local_count: i32) -> Vec<i32> {
     let has_int_const_def = int_const_def_flags(f, local_count)
     let numeric_compare = numeric_compare_use_flags(f, local_count, has_int_const_def)
-    let blocked_by_ref = zero_local_flags(local_count)
-    let has_i64_evidence = zero_local_flags(local_count)
+    let mut blocked_by_ref = zero_local_flags(local_count)
+    let mut has_i64_evidence = zero_local_flags(local_count)
     // `block index + 1` of a block holding a scalar i64 definition of the local;
     // LOCAL_SET only looks for such a source inside its own block.
-    let scalar_def_block_stamp = zero_local_flags(local_count)
+    let mut scalar_def_block_stamp = zero_local_flags(local_count)
     let block_count = len(f.blocks)
     let mut bi = 0
     while bi < block_count {
@@ -799,7 +799,7 @@ fn local_body_i64_stack_set_flags(f: MirFunction, local_count: i32) -> Vec<i32> 
 }
 
 fn zero_local_flags(local_count: i32) -> Vec<i32> {
-    let flags = Vec::new<i32>()
+    let mut flags = Vec::new<i32>()
     let mut i = 0
     while i < local_count {
         push(flags, 0)
@@ -808,7 +808,7 @@ fn zero_local_flags(local_count: i32) -> Vec<i32> {
     flags
 }
 
-fn mark_local_flag(flags: Vec<i32>, local_idx: i32) {
+fn mark_local_flag(mut flags: Vec<i32>, local_idx: i32) {
     if local_idx >= 0 && local_idx < len(flags) {
         set(flags, local_idx, 1)
     }
@@ -824,7 +824,7 @@ fn inst_is_ref_result_call(op: i32, inst: MirInst) -> bool {
     call_vt == value_types::VT_GC_REF() || call_vt == value_types::VT_REF()
 }
 
-fn mark_ref_op_base_locals(inst: MirInst, blocked_by_ref: Vec<i32>, local_count: i32) {
+fn mark_ref_op_base_locals(inst: MirInst, mut blocked_by_ref: Vec<i32>, local_count: i32) {
     let op = inst_accessors_shape::MirInst_op(inst)
     let dest = inst_accessors_operands::MirInst_dest(inst)
     let arg0 = inst_accessors_operands::MirInst_arg0(inst)
@@ -849,7 +849,7 @@ fn mark_ref_op_base_locals(inst: MirInst, blocked_by_ref: Vec<i32>, local_count:
 }
 
 fn int_const_def_flags(f: MirFunction, local_count: i32) -> Vec<i32> {
-    let flags = zero_local_flags(local_count)
+    let mut flags = zero_local_flags(local_count)
     let block_count = len(f.blocks)
     let mut bi = 0
     while bi < block_count {
@@ -872,7 +872,7 @@ fn int_const_def_flags(f: MirFunction, local_count: i32) -> Vec<i32> {
 // A local is a numeric-compare operand when it feeds an ordering compare, or an
 // EQ/NEQ against an int const — string equality also uses those opcodes.
 fn numeric_compare_use_flags(f: MirFunction, local_count: i32, has_int_const_def: Vec<i32>) -> Vec<i32> {
-    let flags = zero_local_flags(local_count)
+    let mut flags = zero_local_flags(local_count)
     let block_count = len(f.blocks)
     let mut bi = 0
     while bi < block_count {
@@ -927,7 +927,7 @@ fn inst_defines_scalar_i64_for_local(inst: MirInst, local_idx: i32) -> bool {
     op == opcodes::MIR_EXTEND_I32_TO_I64() || inst_is_scalar_arith_op(op, inst)
 }
 
-fn stamp_scalar_i64_defs_in_block(block: MirBlock, inst_count: i32, stamp: Vec<i32>, block_stamp: i32) {
+fn stamp_scalar_i64_defs_in_block(block: MirBlock, inst_count: i32, mut stamp: Vec<i32>, block_stamp: i32) {
     let mut ii = 0
     while ii < inst_count {
         let inst = block_inst_access::MirBlock_inst_at(block, ii)

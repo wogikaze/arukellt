@@ -67,7 +67,7 @@ fn emit_slow_fn_note(enabled: i32, idx: i32, f: MirFunction, t_start: i64) -> bo
 // writers (#851 Phase 3), so this is shared by the code-section writer
 // (synthetic bodies) and every per-fn body writer.
 fn code_configure_linear_gc_writer(
-    w: WasmWriter,
+    mut w: WasmWriter,
     fn_count: i32,
     needs_wrapper: i32,
     p2_library_post_count: i32,
@@ -186,7 +186,7 @@ fn code_configure_linear_gc_writer(
 // ascending offset within each body, so reverse applies higher offsets
 // first and earlier splice-induced growth never shifts a site still to
 // be patched.
-fn code_apply_pending_relocs(ctx: SelfEmitCtx, wit_import_count: i32) {
+fn code_apply_pending_relocs(mut ctx: SelfEmitCtx, wit_import_count: i32) {
     let mut i = len(ctx.reloc_func) - 1
     while i >= 0 {
         let fi = get_unchecked(ctx.reloc_func, i)
@@ -271,7 +271,7 @@ fn resolve_ref_func_reloc(ctx: SelfEmitCtx, fn_name: String, wit_import_count: i
 // body order are PRE-PRUNE function indices; prune_old_to_new compacts
 // and remaps them. An empty map means prune never ran — indices are
 // already final and adoption is a straight vec handoff.
-fn emit_ctx_adopt_inloop_artifacts(ctx: SelfEmitCtx, art: MirEmitArtifacts) {
+fn emit_ctx_adopt_inloop_artifacts(mut ctx: SelfEmitCtx, art: MirEmitArtifacts) {
     let map = art.prune_old_to_new
     if len(map) == 0 {
         ctx.body_bytes = art.body_bytes
@@ -288,7 +288,7 @@ fn emit_ctx_adopt_inloop_artifacts(ctx: SelfEmitCtx, art: MirEmitArtifacts) {
         ctx.call_reloc_funcs = art.call_reloc_funcs
         ctx.call_reloc_names = art.call_reloc_names
     } else {
-        let bodies = Vec::new<Vec<i32>>()
+        let mut bodies = Vec::new<Vec<i32>>()
         let mut oi = 0
         while oi < len(map) {
             if get_unchecked(map, oi) >= 0 {
@@ -297,14 +297,14 @@ fn emit_ctx_adopt_inloop_artifacts(ctx: SelfEmitCtx, art: MirEmitArtifacts) {
             oi = oi + 1
         }
         ctx.body_bytes = bodies
-        let rfunc = Vec::new<i32>()
-        let roff = Vec::new<i32>()
-        let rkind = Vec::new<i32>()
-        let ri1 = Vec::new<i32>()
-        let ri2 = Vec::new<i32>()
-        let ri3 = Vec::new<i32>()
-        let rs1 = Vec::new<String>()
-        let rs2 = Vec::new<String>()
+        let mut rfunc = Vec::new<i32>()
+        let mut roff = Vec::new<i32>()
+        let mut rkind = Vec::new<i32>()
+        let mut ri1 = Vec::new<i32>()
+        let mut ri2 = Vec::new<i32>()
+        let mut ri3 = Vec::new<i32>()
+        let mut rs1 = Vec::new<String>()
+        let mut rs2 = Vec::new<String>()
         let mut ri = 0
         while ri < len(art.reloc_func) {
             let mapped = get_unchecked(map, get_unchecked(art.reloc_func, ri))
@@ -328,10 +328,10 @@ fn emit_ctx_adopt_inloop_artifacts(ctx: SelfEmitCtx, art: MirEmitArtifacts) {
         ctx.reloc_ikey3 = ri3
         ctx.reloc_skey = rs1
         ctx.reloc_skey2 = rs2
-        let coffs = Vec::new<i32>()
-        let cfids = Vec::new<i32>()
-        let cfuncs = Vec::new<i32>()
-        let cnames = Vec::new<String>()
+        let mut coffs = Vec::new<i32>()
+        let mut cfids = Vec::new<i32>()
+        let mut cfuncs = Vec::new<i32>()
+        let mut cnames = Vec::new<String>()
         let mut cii = 0
         while cii < len(art.call_reloc_funcs) {
             let mapped = get_unchecked(map, get_unchecked(art.call_reloc_funcs, cii))
@@ -364,8 +364,8 @@ fn emit_ctx_adopt_inloop_artifacts(ctx: SelfEmitCtx, art: MirEmitArtifacts) {
 }
 
 fn emit_code_section(
-    out: WasmWriter,
-    mir: MirModule,
+    mut out: WasmWriter,
+    mut mir: MirModule,
     functions: Vec<MirFunction>,
     fn_count: i32,
     needs_wrapper: i32,
@@ -373,11 +373,11 @@ fn emit_code_section(
     p2_library_post_count: i32,
     p2_library_wrapper_count: i32,
     p2_runtime_function_count: i32,
-    ctx: SelfEmitCtx,
+    mut ctx: SelfEmitCtx,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
     report_timing: i32
 ) {
-    let code_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
+    let mut code_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     let target = ctx_record::SelfEmitCtx_target(ctx)
     let wasi_version = ctx_record::SelfEmitCtx_wasi_version(ctx)
     let linear_gc_runtime_count = function_indices::linear_gc_runtime_function_count(clone(target))
@@ -489,7 +489,7 @@ fn emit_code_section(
         fn_count + needs_wrapper + p2_command_extra + p2_library_post_count + p2_runtime_function_count
         + p2_library_wrapper_count + linear_gc_runtime_count
     )
-    let offsets = Vec::new<i32>()
+    let mut offsets = Vec::new<i32>()
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
     let mut ci = 0
     let mut slow_notes = 0
@@ -503,14 +503,14 @@ fn emit_code_section(
         }
     } else {
         while ci < fn_count {
-            let f = get_unchecked(functions, ci)
+            let mut f = get_unchecked(functions, ci)
             ctx_record::SelfEmitCtx_set_current_func_idx(ctx, ci)
             let t_fn = Clock::monotonic_now()
             // #851 Phase 3: declared bodies emit into a per-fn scratch writer so
             // the resulting byte vec is independently addressable by func_idx —
             // the same shape in-loop emit needs once bodies complete out of
             // code-section order.
-            let body_w = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
+            let mut body_w = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
             code_configure_linear_gc_writer(
                 body_w,
                 fn_count,
@@ -615,7 +615,7 @@ fn emit_code_section(
 }
 
 fn emit_p2_library_wrapper_bodies(
-    code_sec: WasmWriter,
+    mut code_sec: WasmWriter,
     mir: MirModule,
     fn_count: i32,
     needs_wrapper: i32,
@@ -664,7 +664,7 @@ fn emit_p2_library_wrapper_bodies(
     }
 }
 
-fn emit_p2_realloc_body(w: WasmWriter) {
+fn emit_p2_realloc_body(mut w: WasmWriter) {
     // `cabi_realloc` is part of the official standard32 core ABI. It owns a
     // bump-pointer region, grows linear memory on demand, and preserves the
     // requested prefix when the canonical ABI asks for a resize.
@@ -691,7 +691,7 @@ fn emit_p2_realloc_body(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_p2_realloc_align(w: WasmWriter) {
+fn emit_p2_realloc_align(mut w: WasmWriter) {
     if writer_core::writer_memory64(w) {
         emit_p2_realloc_align_memory64(w)
         return
@@ -715,7 +715,7 @@ fn emit_p2_realloc_align(w: WasmWriter) {
     writer_core::emit_leb128_u(w, 4)
 }
 
-fn emit_p2_realloc_align_memory64(w: WasmWriter) {
+fn emit_p2_realloc_align_memory64(mut w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
     writer_core::emit_leb128_u(w, 0)
     writer_core::emit_local_get(w, 2)
@@ -739,7 +739,7 @@ fn emit_p2_realloc_align_memory64(w: WasmWriter) {
     writer_core::emit_leb128_u(w, 4)
 }
 
-fn emit_p2_realloc_end(w: WasmWriter) {
+fn emit_p2_realloc_end(mut w: WasmWriter) {
     if writer_core::writer_memory64(w) {
         writer_core::emit_local_get(w, 4)
         writer_core::emit_local_get(w, 3)
@@ -755,7 +755,7 @@ fn emit_p2_realloc_end(w: WasmWriter) {
     writer_core::emit_leb128_u(w, 5)
 }
 
-fn emit_p2_realloc_memory64_overflow_guard(w: WasmWriter) {
+fn emit_p2_realloc_memory64_overflow_guard(mut w: WasmWriter) {
     // `aligned == 2^32` is already outside the memory32 pointer domain, even
     // when a zero-sized allocation would leave the end at the same boundary.
     writer_core::emit_local_get(w, 4)
@@ -782,7 +782,7 @@ fn emit_p2_realloc_memory64_overflow_guard(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_p2_realloc_copy(w: WasmWriter) {
+fn emit_p2_realloc_copy(mut w: WasmWriter) {
     writer_core::emit_local_get(w, 4)
     if writer_core::writer_memory64(w) {
         writer_core::emit_local_get(w, 0)
@@ -797,18 +797,18 @@ fn emit_p2_realloc_copy(w: WasmWriter) {
     helpers_memory::emit_memory_copy(w)
 }
 
-fn emit_p2_initialize_body(w: WasmWriter) {
+fn emit_p2_initialize_body(mut w: WasmWriter) {
     writer_core::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_sized_code_body_begin(code_sec: WasmWriter) -> i32 {
+fn emit_sized_code_body_begin(mut code_sec: WasmWriter) -> i32 {
     let size_off = writer_core::writer_size(code_sec)
     writer_core::emit_leb128_u_fixed(code_sec, 0)
     size_off
 }
 
-fn emit_sized_code_body_end(code_sec: WasmWriter, size_off: i32) {
+fn emit_sized_code_body_end(mut code_sec: WasmWriter, size_off: i32) {
     let width = writer_core::leb128_u_fixed_width()
     writer_core::patch_leb128_u_fixed(
         code_sec,
@@ -818,7 +818,7 @@ fn emit_sized_code_body_end(code_sec: WasmWriter, size_off: i32) {
 }
 
 fn emit_start_wrapper_body(
-    w: WasmWriter,
+    mut w: WasmWriter,
     main_idx: i32,
     mir: MirModule,
     ctx: SelfEmitCtx,
@@ -846,7 +846,7 @@ fn emit_start_wrapper_body(
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_p2_post_return_body(w: WasmWriter) {
+fn emit_p2_post_return_body(mut w: WasmWriter) {
     // Scalar P2 exports need no allocation cleanup after their result is lifted.
     writer_core::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_END())

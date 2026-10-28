@@ -199,7 +199,7 @@ fn hashmap_str_is_empty(m: HashMap<String, i32>) -> bool {
 /// Bucket order is implementation-defined; callers must not rely on it.
 fn hashmap_str_i32_keys(m: HashMap<String, i32>) -> Vec<String> {
     let cap: i32 = __hm_si_cap(m)
-    let result: Vec<String> = Vec::new<String>()
+    let mut result: Vec<String> = Vec::new<String>()
     let mut i: i32 = 0
     while i < cap {
         if __hm_si_get_flag(m, i) == 1 {
@@ -214,7 +214,7 @@ fn hashmap_str_i32_keys(m: HashMap<String, i32>) -> Vec<String> {
 /// Bucket order is implementation-defined; callers must not rely on it.
 fn hashmap_str_i32_values(m: HashMap<String, i32>) -> Vec<i32> {
     let cap: i32 = __hm_si_cap(m)
-    let result: Vec<i32> = Vec::new<i32>()
+    let mut result: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < cap {
         if __hm_si_get_flag(m, i) == 1 {
@@ -229,7 +229,7 @@ fn hashmap_str_i32_values(m: HashMap<String, i32>) -> Vec<i32> {
 /// Bucket order is implementation-defined; callers must not rely on it.
 fn hashmap_str_i32_entries(m: HashMap<String, i32>) -> Vec<(String, i32)> {
     let cap: i32 = __hm_si_cap(m)
-    let result: Vec<(String, i32)> = Vec::new<(String, i32)>()
+    let mut result: Vec<(String, i32)> = Vec::new<(String, i32)>()
     let mut i: i32 = 0
     while i < cap {
         if __hm_si_get_flag(m, i) == 1 {
@@ -414,7 +414,7 @@ fn hashmap_i32_str_is_empty(m: HashMap<i32, String>) -> bool {
 /// Bucket order is implementation-defined; callers must not rely on it.
 fn hashmap_i32_str_keys(m: HashMap<i32, String>) -> Vec<i32> {
     let cap: i32 = __hm_is_cap(m)
-    let result: Vec<i32> = Vec::new<i32>()
+    let mut result: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < cap {
         if __hm_is_get_flag(m, i) == 1 {
@@ -429,7 +429,7 @@ fn hashmap_i32_str_keys(m: HashMap<i32, String>) -> Vec<i32> {
 /// Bucket order is implementation-defined; callers must not rely on it.
 fn hashmap_i32_str_values(m: HashMap<i32, String>) -> Vec<String> {
     let cap: i32 = __hm_is_cap(m)
-    let result: Vec<String> = Vec::new<String>()
+    let mut result: Vec<String> = Vec::new<String>()
     let mut i: i32 = 0
     while i < cap {
         if __hm_is_get_flag(m, i) == 1 {
@@ -444,7 +444,7 @@ fn hashmap_i32_str_values(m: HashMap<i32, String>) -> Vec<String> {
 /// Bucket order is implementation-defined; callers must not rely on it.
 fn hashmap_i32_str_entries(m: HashMap<i32, String>) -> Vec<(i32, String)> {
     let cap: i32 = __hm_is_cap(m)
-    let result: Vec<(i32, String)> = Vec::new<(i32, String)>()
+    let mut result: Vec<(i32, String)> = Vec::new<(i32, String)>()
     let mut i: i32 = 0
     while i < cap {
         if __hm_is_get_flag(m, i) == 1 {
@@ -629,7 +629,7 @@ fn hashmap_str_str_is_empty(m: HashMap<String, String>) -> bool {
 /// Bucket order is implementation-defined; callers must not rely on it.
 fn hashmap_str_str_keys(m: HashMap<String, String>) -> Vec<String> {
     let cap: i32 = __hm_ss_cap(m)
-    let result: Vec<String> = Vec::new<String>()
+    let mut result: Vec<String> = Vec::new<String>()
     let mut i: i32 = 0
     while i < cap {
         if __hm_ss_get_flag(m, i) == 1 {
@@ -644,7 +644,7 @@ fn hashmap_str_str_keys(m: HashMap<String, String>) -> Vec<String> {
 /// Bucket order is implementation-defined; callers must not rely on it.
 fn hashmap_str_str_values(m: HashMap<String, String>) -> Vec<String> {
     let cap: i32 = __hm_ss_cap(m)
-    let result: Vec<String> = Vec::new<String>()
+    let mut result: Vec<String> = Vec::new<String>()
     let mut i: i32 = 0
     while i < cap {
         if __hm_ss_get_flag(m, i) == 1 {
@@ -659,7 +659,7 @@ fn hashmap_str_str_values(m: HashMap<String, String>) -> Vec<String> {
 /// Bucket order is implementation-defined; callers must not rely on it.
 fn hashmap_str_str_entries(m: HashMap<String, String>) -> Vec<(String, String)> {
     let cap: i32 = __hm_ss_cap(m)
-    let result: Vec<(String, String)> = Vec::new<(String, String)>()
+    let mut result: Vec<(String, String)> = Vec::new<(String, String)>()
     let mut i: i32 = 0
     while i < cap {
         if __hm_ss_get_flag(m, i) == 1 {
@@ -683,7 +683,7 @@ fn vec_string_index_of(items: Vec<String>, value: String) -> i32 {
     -1
 }
 
-fn vec_string_remove_at(items: Vec<String>, index: i32) {
+fn vec_string_remove_at(mut items: Vec<String>, index: i32) {
     let n: i32 = len(items)
     let mut i: i32 = index
     while i < n - 1 {
@@ -697,7 +697,7 @@ pub fn hashset_str_new() -> Vec<String> {
     Vec::new<String>()
 }
 
-pub fn hashset_str_insert(s: Vec<String>, value: String) -> bool {
+pub fn hashset_str_insert(mut s: Vec<String>, value: String) -> bool {
     if vec_string_index_of(s, clone(value)) >= 0 {
         false
     } else {
@@ -710,7 +710,7 @@ pub fn hashset_str_contains(s: Vec<String>, value: String) -> bool {
     vec_string_index_of(s, value) >= 0
 }
 
-pub fn hashset_str_remove(s: Vec<String>, value: String) -> bool {
+pub fn hashset_str_remove(mut s: Vec<String>, value: String) -> bool {
     let idx: i32 = vec_string_index_of(s, value)
     if idx < 0 {
         false
@@ -733,7 +733,7 @@ pub fn hashset_str_is_empty(s: Vec<String>) -> bool {
 /// cannot observe later set mutation through the returned Vec. The order is
 /// the store's insertion order, not a hash bucket layout.
 fn hashset_str_to_vec(s: Vec<String>) -> Vec<String> {
-    let result: Vec<String> = Vec::new<String>()
+    let mut result: Vec<String> = Vec::new<String>()
     let mut i: i32 = 0
     while i < len(s) {
         push(result, clone(get_unchecked(s, i)))
@@ -751,7 +751,7 @@ fn hashset_str_to_vec(s: Vec<String>) -> Vec<String> {
 // bucket layout, so there is no capacity to report or reserve.
 
 fn hashset_str_union(a: Vec<String>, b: Vec<String>) -> Vec<String> {
-    let result: Vec<String> = hashset_str_new()
+    let mut result: Vec<String> = hashset_str_new()
     let mut i: i32 = 0
     while i < len(a) {
         let _ = hashset_str_insert(result, clone(get_unchecked(a, i)))
@@ -766,7 +766,7 @@ fn hashset_str_union(a: Vec<String>, b: Vec<String>) -> Vec<String> {
 }
 
 fn hashset_str_intersection(a: Vec<String>, b: Vec<String>) -> Vec<String> {
-    let result: Vec<String> = hashset_str_new()
+    let mut result: Vec<String> = hashset_str_new()
     let mut i: i32 = 0
     while i < len(a) {
         let value: String = get_unchecked(a, i)
@@ -779,7 +779,7 @@ fn hashset_str_intersection(a: Vec<String>, b: Vec<String>) -> Vec<String> {
 }
 
 fn hashset_str_difference(a: Vec<String>, b: Vec<String>) -> Vec<String> {
-    let result: Vec<String> = hashset_str_new()
+    let mut result: Vec<String> = hashset_str_new()
     let mut i: i32 = 0
     while i < len(a) {
         let value: String = get_unchecked(a, i)
@@ -791,13 +791,13 @@ fn hashset_str_difference(a: Vec<String>, b: Vec<String>) -> Vec<String> {
     result
 }
 
-fn hashset_str_clear(s: Vec<String>) {
+fn hashset_str_clear(mut s: Vec<String>) {
     while len(s) > 0 {
         let _ = pop(s)
     }
 }
 
-fn hashset_str_extend(s: Vec<String>, other: Vec<String>) {
+fn hashset_str_extend(mut s: Vec<String>, other: Vec<String>) {
     // Insert from a snapshot: growing the destination while iterating the
     // source would not terminate for `s.extend(s)`.
     let incoming: Vec<String> = hashset_str_to_vec(other)

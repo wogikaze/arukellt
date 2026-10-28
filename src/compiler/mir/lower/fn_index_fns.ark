@@ -4,9 +4,9 @@ use mir::lower::fn_index_source
 use mir::lower::stdlib_body_defer
 use mir::mono
 fn mir_index_top_level_fn(
-    fn_names: Vec<String>,
-    fn_return_vts: Vec<i32>,
-    fn_return_type_names: Vec<String>,
+    mut fn_names: Vec<String>,
+    mut fn_return_vts: Vec<i32>,
+    mut fn_return_type_names: Vec<String>,
     decl_index: i32,
     decl_name: String,
     fn_index: i32,

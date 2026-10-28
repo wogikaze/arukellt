@@ -22,7 +22,7 @@ use typechecker::param_mode
 use typechecker::scope
 use typechecker::sigs
 use typechecker::unify
-fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let child_count = ast_access::node_child_count(node)
     if child_count < 1 {
         return TypeInfo_simple(commands::TY_UNKNOWN())
@@ -184,8 +184,8 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
 // probe both families with the mangled source type; only the matching one
 // exists.
 fn hashset_from_iter_candidate(
-    env: TypeEnv,
-    scope: LocalScope,
+    mut env: TypeEnv,
+    mut scope: LocalScope,
     fn_sigs: Vec<FnSig>,
     enum_defs: Vec<EnumInfo>,
     node: AstNode,
@@ -219,8 +219,8 @@ fn hashset_from_iter_candidate(
 }
 
 fn infer_concrete_call_expr(
-    env: TypeEnv,
-    scope: LocalScope,
+    mut env: TypeEnv,
+    mut scope: LocalScope,
     fn_sigs: Vec<FnSig>,
     enum_defs: Vec<EnumInfo>,
     node: AstNode,
@@ -267,8 +267,8 @@ fn infer_concrete_call_expr(
 // prelude operations keep the unchecked path above because their declared
 // signatures are placeholders (#936).
 fn infer_prelude_concrete_call_args(
-    env: TypeEnv,
-    scope: LocalScope,
+    mut env: TypeEnv,
+    mut scope: LocalScope,
     fn_sigs: Vec<FnSig>,
     enum_defs: Vec<EnumInfo>,
     node: AstNode,

@@ -18,11 +18,11 @@ use corehir::type_info_to_mir_value
 use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
 fn propagate_from_producer_inst(
     cache: CalleePropCache,
-    f: MirFunction,
+    mut f: MirFunction,
     inst: MirInst,
     op: i32,
     dest: i32,
-    table: TypeTable
+    mut table: TypeTable
 ) -> bool {
     if dest < 0 || dest >= function_locals_view::MirFunction_local_count(f) {
         return false
@@ -122,7 +122,7 @@ fn propagate_call_variant_slot(
     callee: String,
     dst_variant_slot: i32,
     dst_type_name: String,
-    new_loc: MirLocal
+    mut new_loc: MirLocal
 ) -> bool {
     if dst_variant_slot >= 0 {
         return false

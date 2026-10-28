@@ -9,7 +9,7 @@ use mir::inst_local_get
 // a real i32 on the stack and a bare i64.extend is required for validation
 // (#923); under memory64 the same instruction normalizes the stack-i64
 // representation.
-fn mir_emit_staged_call_args(ctx: LowerCtx, staged_arg_locals: Vec<i32>, widen_i64_args: Vec<i32>) {
+fn mir_emit_staged_call_args(mut ctx: LowerCtx, staged_arg_locals: Vec<i32>, widen_i64_args: Vec<i32>) {
     let mut sai = 0
     let sac = len(staged_arg_locals)
     while sai < sac {

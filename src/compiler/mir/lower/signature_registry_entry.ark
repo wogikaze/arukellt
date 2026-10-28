@@ -22,8 +22,8 @@ use mir::lower_kinds
 use mir::value_types
 use corehir::type_contracts
 fn sig_reg_register_fn(
-    table: TypeTable,
-    registry: SignatureRegistry,
+    mut table: TypeTable,
+    mut registry: SignatureRegistry,
     source: MirLowerFnIndexSource,
     sig_source: CoreHirMirSignatureSource,
     fn_info_index: i32,
@@ -36,7 +36,7 @@ fn sig_reg_register_fn(
     // CoreHir params/VT only — TypedFn.TypeInfo values are unsafe across the
     // duplicate TypeInfo/TypedFn structs in the flat selfhost overlay.
     let params = sig_reg_params_from_fn_info(sig_source, fn_info_index, table)
-    let returns = Vec::new<MirValueType>()
+    let mut returns = Vec::new<MirValueType>()
     push(
         returns,
         type_info_to_mir_value::vt_to_mir_value(
@@ -70,9 +70,9 @@ fn sig_reg_register_fn(
 // instance's substituted params/return and mono link. Leaving the declared
 // vec:T here makes call-result locals declare the wrong GC struct type.
 fn sig_reg_register_fn_leaf_instance(
-    table: TypeTable,
-    registry: SignatureRegistry,
-    mono_table: MonoInstanceTable,
+    mut table: TypeTable,
+    mut registry: SignatureRegistry,
+    mut mono_table: MonoInstanceTable,
     source: MirLowerFnIndexSource,
     sig_source: CoreHirMirSignatureSource,
     fn_info_index: i32,
@@ -89,7 +89,7 @@ fn sig_reg_register_fn_leaf_instance(
         clone(inst_mangled),
         clone(mono_instances)
     )
-    let returns = Vec::new<MirValueType>()
+    let mut returns = Vec::new<MirValueType>()
     let mut return_vt = fn_index_source::mir_fn_index_source_typed_return_vt(source, typed_index)
     let mut return_type_name = fn_index_source::mir_fn_index_source_typed_return_type_name(source, typed_index)
     let generic_return_ty = fn_index_source::mir_fn_index_source_typed_return_type(source, typed_index)
@@ -132,9 +132,9 @@ fn sig_reg_register_fn_leaf_instance(
 }
 
 fn sig_reg_register_method(
-    table: TypeTable,
-    registry: SignatureRegistry,
-    mono_table: MonoInstanceTable,
+    mut table: TypeTable,
+    mut registry: SignatureRegistry,
+    mut mono_table: MonoInstanceTable,
     source: MirLowerFnIndexSource,
     sig_source: CoreHirMirSignatureSource,
     method_info_index: i32,
@@ -143,7 +143,7 @@ fn sig_reg_register_method(
 ) {
     let mono_instances = fn_index_source::mir_fn_index_source_mono_instances(source)
     let params = sig_reg_params_from_method_info(sig_source, method_info_index, table, clone(mangled), mono_instances)
-    let returns = Vec::new<MirValueType>()
+    let mut returns = Vec::new<MirValueType>()
     let mrvt_name = fn_index_source::mir_fn_index_source_method_return_type_name_at(source, method_info_index, "")
     let mut return_vt = fn_index_source::mir_fn_index_source_method_return_vt_at(source, method_info_index, 1)
     let mut return_type_name = clone(mrvt_name)
@@ -190,18 +190,18 @@ fn sig_reg_register_method(
     signature_registry::signature_registry_register(registry, entry, mangled)
 }
 
-fn sig_reg_params_from_fn_info(sig_source: CoreHirMirSignatureSource, fn_info_index: i32, table: TypeTable) -> Vec<MirValueType> {
+fn sig_reg_params_from_fn_info(sig_source: CoreHirMirSignatureSource, fn_info_index: i32, mut table: TypeTable) -> Vec<MirValueType> {
     sig_reg_params_from_fn_info_mono(sig_source, fn_info_index, table, String_new(), Vec::new<MonoInstance>())
 }
 
 fn sig_reg_params_from_fn_info_mono(
     sig_source: CoreHirMirSignatureSource,
     fn_info_index: i32,
-    table: TypeTable,
+    mut table: TypeTable,
     mangled: String,
     mono_instances: Vec<MonoInstance>
 ) -> Vec<MirValueType> {
-    let result = Vec::new<MirValueType>()
+    let mut result = Vec::new<MirValueType>()
     if fn_info_index < 0 {
         return result
     }
@@ -363,11 +363,11 @@ fn sig_reg_params_from_fn_info_mono(
     fn sig_reg_params_from_method_info(
         sig_source: CoreHirMirSignatureSource,
         method_info_index: i32,
-        table: TypeTable,
+        mut table: TypeTable,
         mangled: String,
         mono_instances: Vec<MonoInstance>
     ) -> Vec<MirValueType> {
-        let result = Vec::new<MirValueType>()
+        let mut result = Vec::new<MirValueType>()
         if method_info_index < 0 {
             return result
         }
@@ -417,7 +417,7 @@ fn sig_reg_params_from_fn_info_mono(
         type_contracts::TypeInfo_tag(val_ty) == lower_kinds::TY_TYPE_VAR() {
             return type_name
         }
-        let map_ty = type_contracts::TypeInfo_simple(lower_kinds::TY_HASHMAP())
+        let mut map_ty = type_contracts::TypeInfo_simple(lower_kinds::TY_HASHMAP())
         type_contracts::TypeInfo_push_type_arg(map_ty, key_ty)
         type_contracts::TypeInfo_push_type_arg(map_ty, val_ty)
         let alias = return_typeinfo_names::mir_hashmap_return_type_name_from_type_info(map_ty)

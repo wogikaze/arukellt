@@ -2,7 +2,7 @@ use std::collections::bimap
 use std::test
 
 fn main() {
-    let bm = bimap::bimap_i32_i32_new()
+    let mut bm = bimap::bimap_i32_i32_new()
     test::assert_true(bimap::bimap_i32_i32_is_empty(bm))
     test::assert_eq_i32(bimap::bimap_i32_i32_len(bm), 0)
 

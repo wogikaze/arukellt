@@ -6,7 +6,7 @@ use lsp::symbol_index_paths
 use lsp::symbol_index_project
 use lsp::symbol_index_record
 use lsp::symbol_index_update
-fn index_import_neighbors(state: LspState, file_path: String, project_root: String) {
+fn index_import_neighbors(mut state: LspState, file_path: String, project_root: String) {
     let read_result = Fs::read_to_string(clone(file_path))
     match read_result {
         Result::Ok(text) => {
@@ -36,7 +36,7 @@ fn index_import_neighbors(state: LspState, file_path: String, project_root: Stri
     }
 }
 
-pub fn symbol_index_update_open_file_with_imports(state: LspState, uri: String, text: String, project_root: String) {
+pub fn symbol_index_update_open_file_with_imports(mut state: LspState, uri: String, text: String, project_root: String) {
     symbol_index_update::symbol_index_update_uri(state, clone(uri), clone(text))
     let file_path = symbol_index_paths::uri_to_file_path(clone(uri))
     if len(file_path) > 0 {

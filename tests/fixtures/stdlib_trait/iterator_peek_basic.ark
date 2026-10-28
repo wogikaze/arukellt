@@ -2,12 +2,12 @@ use std::core::iter
 use std::test
 
 fn main() {
-    let v: Vec<i32> = Vec::new<i32>()
+    let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 1)
     push(v, 2)
     push(v, 3)
 
-    let it = v.iter().peekable()
+    let mut it = v.iter().peekable()
 
     // Repeated peeks return the same cached item without consuming it.
     match it.peek() {
@@ -48,7 +48,7 @@ fn main() {
     }
 
     // Drained collect preserves order over a fresh peekable.
-    let w: Vec<i32> = Vec::new<i32>()
+    let mut w: Vec<i32> = Vec::new<i32>()
     push(w, 7)
     push(w, 8)
     let drained = w.iter().peekable().collect()

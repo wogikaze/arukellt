@@ -13,7 +13,7 @@ fn wrap_iter<T>(x: T) -> WrapIter<T> {
 // ADR-078: a parametric impl covers every instantiation of WrapIter.
 impl<T> Iterator for WrapIter<T> {
     type Item = T
-    fn next(self: WrapIter<T>) -> Option<T> {
+    fn next(mut self: WrapIter<T>) -> Option<T> {
         if self.done {
             return Option::None
         }
@@ -35,7 +35,7 @@ impl<T> IntoIterator for Once<T> {
 }
 
 fn main() -> i32 {
-    let it: WrapIter<i32> = wrap_iter(7)
+    let mut it: WrapIter<i32> = wrap_iter(7)
     let first = it.next()
     match first {
         Option::Some(x) => stdio::println((x).to_string())

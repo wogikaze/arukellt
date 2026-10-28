@@ -71,7 +71,7 @@ fn is_test_decl_start(p: Parser) -> bool {
 }
 
 // Parse a `test` declaration. Dispatches to the mod or unit form.
-pub fn parse_test_decl(p: Parser) -> AstNode {
+pub fn parse_test_decl(mut p: Parser) -> AstNode {
     // consume the contextual `test` keyword (TK_IDENT)
     let t = core_api_expect::expect_token(p, tokens::TK_IDENT())
     let span = core_api_expect::tok_span(t)
@@ -83,11 +83,11 @@ pub fn parse_test_decl(p: Parser) -> AstNode {
 }
 
 // Parse `test mod "name" { test "..." {} ; ... }`.
-fn parse_test_mod(p: Parser, span: Span) -> AstNode {
+fn parse_test_mod(mut p: Parser, span: Span) -> AstNode {
     core_api_expect::expect_token(p, tokens::TK_IDENT()) // consume `mod`
     core_api_cursor::skip_newlines(p)
     let name_tok = core_api_expect::expect_token(p, tokens::TK_STRING())
-    let node = core_ast_factory::AstNode_new(kinds::NK_TEST_MOD(), span)
+    let mut node = core_ast_factory::AstNode_new(kinds::NK_TEST_MOD(), span)
     core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(name_tok))
     core_ast_span_fields::AstNode_set_name_span(node, core_api_expect::tok_span(name_tok))
     core_api_cursor::skip_newlines(p)
@@ -113,7 +113,7 @@ fn parse_test_mod(p: Parser, span: Span) -> AstNode {
 }
 
 // Parse a unit test decl (form 1 or 2) without re-consuming the leading `test`.
-fn parse_test_unit_decl(p: Parser) -> AstNode {
+fn parse_test_unit_decl(mut p: Parser) -> AstNode {
     let t = core_api_expect::expect_token(p, tokens::TK_IDENT())
     let span = core_api_expect::tok_span(t)
     parse_test_unit(p, span)
@@ -121,13 +121,13 @@ fn parse_test_unit_decl(p: Parser) -> AstNode {
 
 // Parse `test "name" { ... }` or `test <fn> "name" { ... }`.
 // `test` keyword already consumed; `span` is its span.
-fn parse_test_unit(p: Parser, span: Span) -> AstNode {
+fn parse_test_unit(mut p: Parser, span: Span) -> AstNode {
     let mut has_target = false
     if core_api_cursor::peek_kind(p) == tokens::TK_IDENT() {
         // function-bound form: test <fn> "name" { ... }
         has_target = true
     }
-    let node = core_ast_factory::AstNode_new(kinds::NK_TEST_DECL(), span)
+    let mut node = core_ast_factory::AstNode_new(kinds::NK_TEST_DECL(), span)
     if has_target {
         let target_tok = core_api_expect::expect_token(p, tokens::TK_IDENT())
         let target_node = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), token_state::Token_text(target_tok), core_api_expect::tok_span(target_tok))

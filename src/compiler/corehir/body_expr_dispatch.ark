@@ -4,7 +4,7 @@ use corehir::body_dispatch_call
 use corehir::body_dispatch_control
 use corehir::body_dispatch_ops
 
-fn corehir_dispatch_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+fn corehir_dispatch_expr(mut table: CoreHirBodyTable, node: AstNode) -> i32 {
     let ops_result = body_dispatch_ops::corehir_dispatch_ops_expr(table, node)
     if ops_result >= 0 {
         return ops_result

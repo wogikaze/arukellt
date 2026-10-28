@@ -2,11 +2,11 @@ use std::collections::hash
 use std::test
 
 test "keys_values_and_removal_update_size" {
-    let m: Vec<i32> = hash::hashmap_with_capacity(4)
+    let mut m: Vec<i32> = hash::hashmap_with_capacity(4)
     hash::hashmap_set(m, 10, 100)
     hash::hashmap_set(m, 20, 200)
     test::assert_eq_i32(hash::hashmap_size(m), 2)
-    let empty: Vec<i32> = hash::hashmap_new()
+    let mut empty: Vec<i32> = hash::hashmap_new()
     test::assert_true(hash::hashmap_is_empty(empty))
     hash::hashmap_set(empty, 5, 50)
     match hash::hashmap_get_option(empty, 5) {
@@ -18,7 +18,7 @@ test "keys_values_and_removal_update_size" {
         None => {
         },
     }
-    let m2: Vec<i32> = hash::hashmap_new()
+    let mut m2: Vec<i32> = hash::hashmap_new()
     hash::hashmap_set(m2, 1, 10)
     hash::hashmap_set(m2, 2, 20)
     hash::hashmap_set(m2, 3, 30)

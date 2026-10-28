@@ -17,7 +17,7 @@ use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i32
 use mir::inst_accessors_literals
 
-fn emit_vec_pop_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_vec_pop_gc(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_newlen = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_opt = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
@@ -67,7 +67,7 @@ fn emit_vec_pop_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 // Element-kind dispatch mirrors vec_get so pop covers fnref / struct / String /
 // i64 / f64 payloads identically on the GC backend (#874).
 fn emit_vec_pop_some_branch(
-    w: WasmWriter,
+    mut w: WasmWriter,
     ctx: SelfEmitCtx,
     vec_local: i32,
     vec_type: i32,
@@ -146,7 +146,7 @@ fn emit_vec_pop_some_branch(
     intrinsic_vec_access::emit_vec_get_gc_some_scalar(w, ctx, s_opt, s_newlen, "_f1_i32", enum_type)
 }
 
-fn emit_gc_pop_none(w: WasmWriter, s_optptr: i32, enum_type: i32, ctx: SelfEmitCtx) {
+fn emit_gc_pop_none(mut w: WasmWriter, s_optptr: i32, enum_type: i32, ctx: SelfEmitCtx) {
     // Allocate Option::None. struct.new_default leaves tag=0, which match
     // treats as Some — store tag=1 explicitly (same as vec_get_gc_none, #832).
     let none_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, String_from("Option::None"))

@@ -16,7 +16,7 @@ use mir::lower::ctx_struct_mono
 use mir::lower::struct_lit
 use mir::lower::value_variants
 use mir::value_types
-fn lower_core_let(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+fn lower_core_let(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
     let binding_name = core_expr_shape_accessors::mir_core_expr_text(expr)
     let type_name = core_expr_shape_accessors::mir_core_expr_type_name(expr)

@@ -18,7 +18,7 @@ fn construct_cases() {
 }
 
 fn arithmetic_cases() {
-    let a = U32x4::splat(3)
+    let mut a = U32x4::splat(3)
     let b = U32x4::replace_lane(a, 2, 5)
     test::assert_eq_i32(lane(U32x4::add(a, b), 2), 8)
     test::assert_eq_i32(lane(U32x4::sub(b, a), 2), 2)

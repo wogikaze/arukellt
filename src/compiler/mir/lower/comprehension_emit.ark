@@ -19,17 +19,17 @@ use mir::inst_structured_control
 use mir::value_types
 use mir::lower::comprehension_emit_increment
 use mir::lower::comprehension_state
-fn mir_emit_comprehension_push_prefix(ctx: LowerCtx, state: ComprehensionState) {
+fn mir_emit_comprehension_push_prefix(mut ctx: LowerCtx, state: ComprehensionState) {
     ctx_emit(ctx, inst_local_get::MirInst_local_get(comprehension_state::comprehension_state_result_local(state)))
 }
 
-fn mir_emit_comprehension_push_call(ctx: LowerCtx) {
+fn mir_emit_comprehension_push_call(mut ctx: LowerCtx) {
     // The result builder is compiler-owned. Keep the receiver type in the
     // generated callee so a source-level `push` binding cannot capture it.
     ctx_emit(ctx, inst_call::MirInst_call("Vec::push", 2, 0 - 1))
 }
 
-fn mir_set_comprehension_result_type(ctx: LowerCtx, state: ComprehensionState, elem_idx: i32) {
+fn mir_set_comprehension_result_type(mut ctx: LowerCtx, state: ComprehensionState, elem_idx: i32) {
     let result_local = comprehension_state::comprehension_state_result_local(state)
     // A comprehension grows a Vec header through `push`; it is not the raw
     // backing array produced by an array literal. Keep the two representations
@@ -51,7 +51,7 @@ fn rewrite_comprehension_constructor(ctx: LowerCtx, result_local: i32, elem_type
         let inst_count = block_inst_access::MirBlock_inst_count(block)
         let mut ii = inst_count - 1
         while ii >= 0 {
-            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            let mut inst = block_inst_access::MirBlock_inst_at(block, ii)
             if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() &&
             inst_accessors_operands::MirInst_dest(inst) == result_local {
                 let callee = inst_accessors_literals::MirInst_str_val(inst)
@@ -93,7 +93,7 @@ fn comprehension_element_type_name(ctx: LowerCtx, elem_idx: i32) -> String {
     "i32"
 }
 
-fn mir_emit_comprehension_increment_and_end(ctx: LowerCtx, state: ComprehensionState) {
+fn mir_emit_comprehension_increment_and_end(mut ctx: LowerCtx, state: ComprehensionState) {
     comprehension_increment::mir_emit_comprehension_increment(ctx, state)
     ctx_emit(ctx, inst_structured_control::MirInst_end())
     ctx_api_nesting::ctx_pop_nesting(ctx)
@@ -103,7 +103,7 @@ fn mir_emit_comprehension_increment_and_end(ctx: LowerCtx, state: ComprehensionS
     ctx_api_loop_state::ctx_set_loop_continue_depth(ctx, comprehension_state::comprehension_state_prev_continue(state))
 }
 
-fn mir_emit_comprehension_result(ctx: LowerCtx, state: ComprehensionState) -> i32 {
+fn mir_emit_comprehension_result(mut ctx: LowerCtx, state: ComprehensionState) -> i32 {
     let result_local = comprehension_state::comprehension_state_result_local(state)
     ctx_emit(ctx, inst_local_get::MirInst_local_get_to(result_local, result_local))
     result_local

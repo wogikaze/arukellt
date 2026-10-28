@@ -2,7 +2,7 @@ use std::host::stdio
 use std::prelude::{to_string}
 use std::text
 use mir::module_strings
-fn mir_dump_dominance_fixture_print_string_interns(m: MirModule) {
+fn mir_dump_dominance_fixture_print_string_interns(mut m: MirModule) {
     let s0 = module_strings::intern_string(m, "hello")
     let s1 = module_strings::intern_string(m, "world")
     let s2 = module_strings::intern_string(m, "hello")

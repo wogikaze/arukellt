@@ -312,7 +312,7 @@ fn __core_string_eq_impl(a: String, b: String) -> bool {
     true
 }
 
-fn __core_string_push_range(bytes: Vec<i32>, s: String, start: i32, end: i32) {
+fn __core_string_push_range(mut bytes: Vec<i32>, s: String, start: i32, end: i32) {
     let mut index = start
     while index < end {
         // Concrete i32 push CoreOp body (generic Vec<T> push is unreachable on LM).
@@ -321,7 +321,7 @@ fn __core_string_push_range(bytes: Vec<i32>, s: String, start: i32, end: i32) {
     }
 }
 
-fn __core_string_push_byte(bytes: Vec<i32>, byte: i32) {
+fn __core_string_push_byte(mut bytes: Vec<i32>, byte: i32) {
     push(bytes, byte)
 }
 
@@ -330,7 +330,7 @@ fn __core_string_slice_impl(s: String, start: i32, end: i32) -> String {
     if start < 0 || end < start || end > string_len {
         return RawString::new()
     }
-    let bytes = RawArray::new<i32>(end - start)
+    let mut bytes = RawArray::new<i32>(end - start)
     __core_string_push_range(bytes, s, start, end)
     RawString::from_bytes(bytes)
 }
@@ -338,7 +338,7 @@ fn __core_string_slice_impl(s: String, start: i32, end: i32) -> String {
 fn __core_string_concat_impl(a: String, b: String) -> String {
     let a_len = RawString::len_bytes(a)
     let b_len = RawString::len_bytes(b)
-    let bytes = RawArray::new<i32>(a_len + b_len)
+    let mut bytes = RawArray::new<i32>(a_len + b_len)
     __core_string_push_range(bytes, a, 0, a_len)
     __core_string_push_range(bytes, b, 0, b_len)
     RawString::from_bytes(bytes)
@@ -346,7 +346,7 @@ fn __core_string_concat_impl(a: String, b: String) -> String {
 
 fn __core_string_ascii_case_impl(s: String, to_lowercase: bool) -> String {
     let string_len = RawString::len_bytes(s)
-    let bytes = RawArray::new<i32>(string_len)
+    let mut bytes = RawArray::new<i32>(string_len)
     let mut index = 0
     while index < string_len {
         let mut byte = RawString::byte_at_unchecked(s, index)
@@ -414,7 +414,7 @@ fn __core_string_repeat_impl(s: String, count: i32) -> String {
         return RawString::new()
     }
     let string_len = RawString::len_bytes(s)
-    let bytes = RawArray::new<i32>(string_len * count)
+    let mut bytes = RawArray::new<i32>(string_len * count)
     let mut repetition = 0
     while repetition < count {
         __core_string_push_range(bytes, s, 0, string_len)
@@ -458,7 +458,7 @@ fn __core_string_replace_impl(s: String, from: String, replacement: String) -> S
         return __core_string_slice_impl(s, 0, string_len)
     }
     let replacement_len = RawString::len_bytes(replacement)
-    let bytes = RawArray::new<i32>(string_len)
+    let mut bytes = RawArray::new<i32>(string_len)
     let mut index = 0
     while index < string_len {
         if index + pattern_len <= string_len && __core_string_region_matches(s, from, index) {
@@ -476,7 +476,7 @@ fn __core_string_push_part(parts: Vec<String>, part: String) {
     // Avoid generic push shell: use the free CoreOp aliases, not the sealed
     // raw namespace wrappers.
     let n: i32 = raw_array_len(parts)
-    let grown: Vec<String> = raw_array_grow(parts, n + 1)
+    let mut grown: Vec<String> = raw_array_grow(parts, n + 1)
     raw_array_set_unchecked(grown, n, part)
 }
 
@@ -674,7 +674,7 @@ pub fn byte_at(s: String, index: i32) -> i32 {
     __core_string_char_at_impl(s, index)
 }
 
-pub fn push_char(s: String, c: char) {
+pub fn push_char(mut s: String, c: char) {
     __intrinsic_push_char(s, c)
 }
 
@@ -687,7 +687,7 @@ impl String {
 
     /// Decodes `bytes` as UTF-8, replacing each invalid sequence with U+FFFD.
     fn from_utf8_lossy(bytes: Vec<i32>) -> String {
-        let result = Vec::new<i32>()
+        let mut result = Vec::new<i32>()
         let byte_len = len(bytes)
         let mut index = 0
         while index < byte_len {
@@ -711,7 +711,7 @@ impl String {
 
     /// Decodes `bytes` as UTF-8 and returns `None` when the input is invalid.
     fn try_from_utf8(bytes: Vec<i32>) -> Option<String> {
-        let result = Vec::new<i32>()
+        let mut result = Vec::new<i32>()
         let byte_len = len(bytes)
         let mut index = 0
         while index < byte_len {
@@ -849,7 +849,7 @@ impl String {
 
     /// Returns the canonical UTF-8 bytes of the string.
     fn to_utf8_bytes(self: String) -> Vec<i32> {
-        let result = Vec::new<i32>()
+        let mut result = Vec::new<i32>()
         let byte_len = __core_string_len_bytes_impl(self)
         let mut index = 0
         while index < byte_len {

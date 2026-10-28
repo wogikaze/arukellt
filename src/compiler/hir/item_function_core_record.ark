@@ -20,7 +20,7 @@ fn hir_function_name(func: HirFunction) -> String {
     clone(func.name)
 }
 
-fn hir_function_push_param(func: HirFunction, param: HirParam) {
+fn hir_function_push_param(mut func: HirFunction, param: HirParam) {
     push(func.params, param)
 }
 
@@ -32,7 +32,7 @@ fn hir_function_param_at(func: HirFunction, index: i32) -> HirParam {
     get_unchecked(func.params, index)
 }
 
-fn hir_function_push_type_param(func: HirFunction, type_param: HirTypeParam) {
+fn hir_function_push_type_param(mut func: HirFunction, type_param: HirTypeParam) {
     push(func.type_params, type_param)
 }
 

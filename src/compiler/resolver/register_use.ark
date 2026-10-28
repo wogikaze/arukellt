@@ -8,7 +8,7 @@ use resolver::paths
 use resolver::ctx_record
 use resolver::modules
 use resolver::expr_path
-fn register_use_decl(ctx: ResolveCtx, d: AstNode) {
+fn register_use_decl(mut ctx: ResolveCtx, d: AstNode) {
     let use_path = ast_access::node_text(d)
     let existing_use = scope_lookup::lookup(ctx, clone(use_path))
     if existing_use < 0 {
@@ -19,7 +19,7 @@ fn register_use_decl(ctx: ResolveCtx, d: AstNode) {
     register_use_decl_func_alias(ctx, d)
 }
 
-fn register_use_decl_func_alias(ctx: ResolveCtx, d: AstNode) {
+fn register_use_decl_func_alias(mut ctx: ResolveCtx, d: AstNode) {
     let use_path = ast_access::node_text(d)
     if ast_access::node_child_count(d) == 0 {
         return
@@ -28,7 +28,7 @@ fn register_use_decl_func_alias(ctx: ResolveCtx, d: AstNode) {
     register_use_func_alias(ctx, clone(use_path), clone(child_short))
 }
 
-fn register_use_module_alias(ctx: ResolveCtx, d: AstNode) {
+fn register_use_module_alias(mut ctx: ResolveCtx, d: AstNode) {
     let full_path = ast_access::node_text(d)
     let default_name = paths::use_module_short_name(clone(full_path))
     let short_name = if ast_access::node_type_ann_count(d) > 0 {
@@ -63,7 +63,7 @@ fn register_use_module_alias(ctx: ResolveCtx, d: AstNode) {
 // program, so canonicalizing without that check would turn a bare module
 // name (`io`) into an unresolvable full path (`std::io`). Names that already
 // exist as types/functions and builtin type names keep their existing paths.
-fn register_type_use_alias(ctx: ResolveCtx, full_path: String, short_name: String, existing_kind: i32) {
+fn register_type_use_alias(mut ctx: ResolveCtx, full_path: String, short_name: String, existing_kind: i32) {
     if existing_kind >= 0 && existing_kind != commands::SYM_MODULE() {
         return
     }
@@ -89,7 +89,7 @@ fn register_type_use_alias(ctx: ResolveCtx, full_path: String, short_name: Strin
     ctx_record::resolve_ctx_add_use_alias(ctx, clone(short_name), target)
 }
 
-fn register_local_import_decl(ctx: ResolveCtx, d: AstNode) {
+fn register_local_import_decl(mut ctx: ResolveCtx, d: AstNode) {
     let path = ast_access::node_text(d)
     let default_name = paths::use_module_short_name(clone(path))
     let alias = if ast_access::node_type_ann_count(d) > 0 {
@@ -106,7 +106,7 @@ fn register_local_import_decl(ctx: ResolveCtx, d: AstNode) {
     }
 }
 
-fn register_use_children(ctx: ResolveCtx, d: AstNode) {
+fn register_use_children(mut ctx: ResolveCtx, d: AstNode) {
     let num_children = ast_access::node_child_count(d)
     let mut ci = 0
     while ci < num_children {
@@ -134,7 +134,7 @@ fn register_use_children(ctx: ResolveCtx, d: AstNode) {
     }
 }
 
-fn register_use_func_alias(ctx: ResolveCtx, child_path: String, child_short: String) {
+fn register_use_func_alias(mut ctx: ResolveCtx, child_path: String, child_short: String) {
     // A destructure child that names a loaded module ("use std::text::{string}")
     // is already bound as SYM_MODULE; adding "string" -> "text::string" would
     // canonicalize "string::split" into the unresolvable "text::string::split".

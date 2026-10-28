@@ -2,7 +2,7 @@ use typechecker::kinds
 use typechecker::ast_access
 use typechecker::closure_capture
 
-fn infer_block_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+fn infer_block_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let count = ast_access::node_child_count(node)
     let mut i = 0
     while i < count {

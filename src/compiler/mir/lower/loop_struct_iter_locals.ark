@@ -6,14 +6,14 @@ use mir::lower::ctx_types
 use mir::lower::loop_conditions
 use mir::lower::loop_vec
 use mir::value_types
-fn mir_struct_iterator_iter_ptr(ctx: LowerCtx, struct_type: String) -> i32 {
+fn mir_struct_iterator_iter_ptr(mut ctx: LowerCtx, struct_type: String) -> i32 {
     let iter_ptr = ctx_fresh_local(ctx, value_types::VT_I32())
     loop_conditions::mir_save_stack_to_local(ctx, iter_ptr)
     ctx_set_local_type(ctx, iter_ptr, struct_type)
     iter_ptr
 }
 
-fn mir_struct_iterator_iter_var(ctx: LowerCtx, iter_name: String, next_callee: String) -> i32 {
+fn mir_struct_iterator_iter_var(mut ctx: LowerCtx, iter_name: String, next_callee: String) -> i32 {
     let payload_type = mir_struct_iterator_payload_type(ctx, next_callee)
     let mut payload_vt = value_types::VT_I32()
     if len(payload_type) > 0 {
@@ -42,6 +42,6 @@ fn mir_struct_iterator_payload_type(ctx: LowerCtx, next_callee: String) -> Strin
     ""
 }
 
-fn mir_struct_iterator_temp_i32(ctx: LowerCtx) -> i32 {
+fn mir_struct_iterator_temp_i32(mut ctx: LowerCtx) -> i32 {
     ctx_fresh_local(ctx, value_types::VT_I32())
 }

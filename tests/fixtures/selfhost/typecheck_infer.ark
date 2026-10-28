@@ -12,7 +12,7 @@ fn mul(x: i32, y: i32) -> i32 {
 }
 
 fn main() {
-    let x = 1 + 2
+    let mut x = 1 + 2
     stdio::println(to_string(x))
     let y = 10 - 3 * 2
     stdio::println(to_string(y))

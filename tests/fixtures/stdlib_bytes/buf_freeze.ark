@@ -2,7 +2,7 @@ use std::bytes
 use std::test
 
 fn main() {
-    let buf: Vec<i32> = Vec::new<i32>()
+    let mut buf: Vec<i32> = Vec::new<i32>()
     buf.push_byte(10)
     buf.push_byte(20)
     let frozen: Vec<i32> = buf.freeze()

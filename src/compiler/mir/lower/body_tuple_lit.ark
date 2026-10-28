@@ -7,7 +7,7 @@ use mir::inst_local_set
 use mir::lower::aggregate
 use mir::value_types
 
-fn lower_tuple_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_tuple_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     let mut field_locals = Vec::new<i32>()
     let mut field_vts = Vec::new<i32>()

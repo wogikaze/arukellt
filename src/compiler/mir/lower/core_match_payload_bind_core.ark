@@ -24,7 +24,7 @@ use mir::inst_local_get
 use mir::inst_local_set
 use mir::value_types
 fn core_emit_payload_variant_binds(
-    ctx: LowerCtx,
+    mut ctx: LowerCtx,
     exprs: Vec<CoreHirExpr>,
     pat: CoreHirExpr,
     scrut_idx: i32,
@@ -134,7 +134,7 @@ fn core_emit_payload_variant_binds(
 // sub-pattern. Mirrors the named-bind setup so the temp carries the same
 // vt and type spelling a bound payload local would (#902).
 fn core_subpat_load_field(
-    ctx: LowerCtx,
+    mut ctx: LowerCtx,
     variant_name: String,
     scrut_idx: i32,
     field_idx: i32,
@@ -199,7 +199,7 @@ fn core_subpat_load_field(
 
 // Bind every binding sub-pattern under a composite payload child whose
 // value already sits in val_idx (#902).
-fn core_emit_subpat_binds(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, val_idx: i32) {
+fn core_emit_subpat_binds(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, val_idx: i32) {
     if core_expr_shape_patterns::mir_core_expr_is_pat_ident(pat) {
         let name = core_expr_shape_accessors::mir_core_expr_text(pat)
         if eq(clone(name), "_") {
@@ -297,7 +297,7 @@ fn core_payload_elem_type_from_scrut(scrut_type: String, is_some_or_ok: bool) ->
     String_new()
 }
 
-fn core_infer_payload_set_type(ctx: LowerCtx, elem_ty: String) -> String {
+fn core_infer_payload_set_type(mut ctx: LowerCtx, elem_ty: String) -> String {
     // For non-scalar, non-String types (e.g. AppError),
     // prefix with "enum:" so the emitter's ref local type
     // inference maps it to the enum open type.
@@ -352,7 +352,7 @@ fn core_infer_payload_set_type(ctx: LowerCtx, elem_ty: String) -> String {
 
 // Infer the concrete payload type for the first bind of Some/Ok/Err patterns
 // from the scrutinee's type name, then fix up the local's type and vt.
-fn core_infer_payload_bind_type(ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, scrut_idx: i32) {
+fn core_infer_payload_bind_type(mut ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, scrut_idx: i32) {
     let is_some_or_ok = core_match_payload_bind_types::core_match_variant_is_some_or_ok(clone(variant_name))
     let is_err = core_match_payload_bind_types::core_match_variant_is_err(clone(variant_name))
     if !is_some_or_ok && !is_err {

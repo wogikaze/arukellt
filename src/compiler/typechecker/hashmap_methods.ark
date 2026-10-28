@@ -8,7 +8,7 @@ use typechecker::hashmap_api
 use typechecker::mono
 use typechecker::types
 use typechecker::unify
-fn infer_hashmap_constructor_call(env: TypeEnv, node: AstNode, callee: AstNode) -> TypeInfo {
+fn infer_hashmap_constructor_call(mut env: TypeEnv, node: AstNode, callee: AstNode) -> TypeInfo {
     if !eq(ast_access::node_text(callee), String_from("HashMap::new")) {
         return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
     }
@@ -18,7 +18,7 @@ fn infer_hashmap_constructor_call(env: TypeEnv, node: AstNode, callee: AstNode) 
     }
     let key_ty = types::resolve_type_ann_node(ast_access::node_child_at(callee, 1))
     let value_ty = types::resolve_type_ann_node(ast_access::node_child_at(callee, 2))
-    let resolved_types = Vec::new<TypeInfo>()
+    let mut resolved_types = Vec::new<TypeInfo>()
     push(resolved_types, key_ty)
     push(resolved_types, value_ty)
     let result_ty = hashmap_type(key_ty, value_ty)
@@ -36,8 +36,8 @@ fn infer_hashmap_constructor_call(env: TypeEnv, node: AstNode, callee: AstNode) 
 }
 
 fn infer_builtin_hashmap_method(
-    env: TypeEnv,
-    scope: LocalScope,
+    mut env: TypeEnv,
+    mut scope: LocalScope,
     fn_sigs: Vec<FnSig>,
     enum_defs: Vec<EnumInfo>,
     node: AstNode,
@@ -67,7 +67,7 @@ fn infer_builtin_hashmap_method(
     if !hashmap_api::validate_hashmap_method(env, String_from("HashMap::").concat(method_name), recv_ty) {
         return hashmap_method_return_type(clone(method_name), key_ty, value_ty)
     }
-    let resolved_types = Vec::new<TypeInfo>()
+    let mut resolved_types = Vec::new<TypeInfo>()
     push(resolved_types, key_ty)
     push(resolved_types, value_ty)
     let mono_name = String_from("HashMap::").concat(method_name)
@@ -103,8 +103,8 @@ fn hashmap_method_has_arity(method_name: String, explicit_args: i32) -> bool {
 }
 
 fn unify_hashmap_method_arg(
-    env: TypeEnv,
-    scope: LocalScope,
+    mut env: TypeEnv,
+    mut scope: LocalScope,
     fn_sigs: Vec<FnSig>,
     enum_defs: Vec<EnumInfo>,
     node: AstNode,
@@ -145,7 +145,7 @@ fn hashmap_method_return_type(method_name: String, key_ty: TypeInfo, value_ty: T
     if eq(clone(method_name), String_from("is_empty")) {
         return contract_type_constructors::TypeInfo_simple(commands::TY_BOOL())
     }
-    let option = contract_type_constructors::TypeInfo_simple(commands::TY_OPTION())
+    let mut option = contract_type_constructors::TypeInfo_simple(commands::TY_OPTION())
     contract_type_mutation::TypeInfo_push_type_arg(option, value_ty)
     option
 }

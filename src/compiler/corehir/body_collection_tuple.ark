@@ -3,8 +3,8 @@ use corehir::expr_builder_collections
 use corehir::expr_predicates
 use corehir::expr_node_access
 
-fn corehir_build_tuple_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
-    let children = Vec::new<i32>()
+fn corehir_build_tuple_expr(mut table: CoreHirBodyTable, node: AstNode) -> i32 {
+    let mut children = Vec::new<i32>()
     let child_count = expr_node_access::expr_child_count(node)
     let mut i = 0
     let mut unsupported = false

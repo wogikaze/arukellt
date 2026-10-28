@@ -3,7 +3,7 @@ use std::host::stdio
 use std::io
 
 fn main() {
-    let w: io::Writer = io::Writer::new()
+    let mut w: io::Writer = io::Writer::new()
     let r1: Result<i32, io::IoError> = w.write_string("hello")
     match r1 {
         Result::Ok(n) => stdio::println((n).to_string()),

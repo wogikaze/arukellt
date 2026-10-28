@@ -16,7 +16,7 @@ use mir::lower::body_closure_return
 use mir::lower::closure_return_type
 use mir::lower_kinds
 use mir::value_types
-fn mir_emit_closure_fn(ctx: LowerCtx, synth: String, clos: AstNode, caps: Vec<String>, rebind_flags: Vec<i32>) -> MirFunction {
+fn mir_emit_closure_fn(mut ctx: LowerCtx, synth: String, clos: AstNode, caps: Vec<String>, rebind_flags: Vec<i32>) -> MirFunction {
     let saved_frame = ctx_api_local_frame::LowerCtxLocalFrame_capture(ctx)
     let cap_vts = body_closure_capture::mir_closure_capture_vts(ctx, caps)
     let cap_types = body_closure_capture::mir_closure_capture_types(ctx, caps)
@@ -34,15 +34,15 @@ fn mir_emit_closure_fn(ctx: LowerCtx, synth: String, clos: AstNode, caps: Vec<St
     out_fn
 }
 
-fn lower_closure_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_closure_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     if is_identity_closure(node) {
         // One monomorphic funcref cannot represent `|x| x` at both scalar and
         // GC-reference call sites. Keep this pure identity closure in the
         // registry and inline each call at its concrete argument type.
         return closure_registry::closure_register_identity(ctx)
     }
-    let caps = Vec::new<String>()
-    let direct_caps = Vec::new<String>()
+    let mut caps = Vec::new<String>()
+    let mut direct_caps = Vec::new<String>()
     let cap_child_count = ast_node::node_child_count(node)
     if cap_child_count > 0 {
         let cap_body = ast_node::node_child_at(node, cap_child_count - 1)
@@ -57,7 +57,7 @@ fn lower_closure_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     // env packs the cell ref and the closure may escape with write-through
     // semantics intact (#891). Env-cell/write-back flags keep only the
     // captures that could not be promoted.
-    let eff_rebinds = Vec::new<i32>()
+    let mut eff_rebinds = Vec::new<i32>()
     let mut pi = 0
     while pi < len(caps) {
         let mut eff = get_unchecked(rebind_flags, pi)
@@ -76,7 +76,7 @@ fn lower_closure_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     let supply_caps = body_closure_capture::mir_closure_snapshot_copy_captures(ctx, caps, clone(synth))
     let packed = closure_capture_args::closure_pack_caps(supply_caps)
     let extra = len(caps)
-    let mf = mir_emit_closure_fn(ctx, synth, node, caps, eff_rebinds)
+    let mut mf = mir_emit_closure_fn(ctx, synth, node, caps, eff_rebinds)
     closure_registry::closure_register_synth_fn(ctx, mf, packed, extra, closure_cells::ctx_has_env_cell(eff_rebinds), caps, eff_rebinds, is_move)
 }
 

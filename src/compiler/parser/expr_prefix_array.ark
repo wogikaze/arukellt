@@ -7,7 +7,7 @@ use parser::expr_prefix_array_comprehension
 use parser::expr_prefix_array_repeat
 use parser::expr_prefix_array_tail
 
-pub fn parse_array_prefix(p: Parser, t: Token) -> AstNode {
+pub fn parse_array_prefix(mut p: Parser, t: Token) -> AstNode {
     p.pos = p.pos + 1
     if core_api_cursor::at(p, tokens::TK_RBRACKET()) {
         let node = core_ast_factory::AstNode_new(kinds::NK_ARRAY_LIT(), core_api_expect::tok_span(t))

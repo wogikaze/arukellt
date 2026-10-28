@@ -5,7 +5,7 @@ use mir::lower::core_expr_shape_aggregate
 use mir::lower::core_expr_shape_ops
 use mir::lower::core_struct_lit
 
-fn lower_core_aggregate_expr(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+fn lower_core_aggregate_expr(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_ops::mir_core_expr_is_assign(expr) {
         return core_assign::lower_core_assign(ctx, exprs, expr)
     }

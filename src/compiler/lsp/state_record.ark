@@ -50,7 +50,7 @@ fn lsp_state_symbol_stdlib_symbols(state: LspState) -> Vec<symbol_index_record::
     state.symbol_stdlib_symbols
 }
 
-fn lsp_state_set_symbol_stdlib_symbols(state: LspState, symbols: Vec<symbol_index_record::StdlibIndexedSymbol>) {
+fn lsp_state_set_symbol_stdlib_symbols(mut state: LspState, symbols: Vec<symbol_index_record::StdlibIndexedSymbol>) {
     state.symbol_stdlib_symbols = symbols
 }
 
@@ -62,7 +62,7 @@ fn lsp_state_project_root(state: LspState) -> String {
     clone(state.project_root)
 }
 
-fn lsp_state_set_project_root(state: LspState, root: String) {
+fn lsp_state_set_project_root(mut state: LspState, root: String) {
     state.project_root = root
 }
 
@@ -74,7 +74,7 @@ fn lsp_state_workspace_root_at(state: LspState, index: i32) -> String {
     clone(get_unchecked(state.workspace_roots, index))
 }
 
-fn lsp_state_set_workspace_roots(state: LspState, roots: Vec<String>) {
+fn lsp_state_set_workspace_roots(mut state: LspState, roots: Vec<String>) {
     state.workspace_roots = roots
 }
 
@@ -82,7 +82,7 @@ fn lsp_state_hover_detail_level(state: LspState) -> String {
     clone(state.hover_detail_level)
 }
 
-fn lsp_state_set_hover_detail_level(state: LspState, level: String) {
+fn lsp_state_set_hover_detail_level(mut state: LspState, level: String) {
     state.hover_detail_level = level
 }
 
@@ -90,7 +90,7 @@ fn lsp_state_enable_code_lens(state: LspState) -> bool {
     state.enable_code_lens
 }
 
-fn lsp_state_set_enable_code_lens(state: LspState, enabled: bool) {
+fn lsp_state_set_enable_code_lens(mut state: LspState, enabled: bool) {
     state.enable_code_lens = enabled
 }
 
@@ -98,7 +98,7 @@ fn lsp_state_diagnostics_errors_only(state: LspState) -> bool {
     state.diagnostics_errors_only
 }
 
-fn lsp_state_set_diagnostics_errors_only(state: LspState, errors_only: bool) {
+fn lsp_state_set_diagnostics_errors_only(mut state: LspState, errors_only: bool) {
     state.diagnostics_errors_only = errors_only
 }
 
@@ -106,19 +106,19 @@ fn lsp_state_check_on_save(state: LspState) -> bool {
     state.check_on_save
 }
 
-fn lsp_state_set_check_on_save(state: LspState, enabled: bool) {
+fn lsp_state_set_check_on_save(mut state: LspState, enabled: bool) {
     state.check_on_save = enabled
 }
 
-fn lsp_state_mark_initialized(state: LspState) {
+fn lsp_state_mark_initialized(mut state: LspState) {
     state.initialized = true
 }
 
-fn lsp_state_mark_shutdown(state: LspState) {
+fn lsp_state_mark_shutdown(mut state: LspState) {
     state.shutdown = true
 }
 
-fn lsp_state_mark_exited(state: LspState) {
+fn lsp_state_mark_exited(mut state: LspState) {
     state.exited = true
 }
 
@@ -126,7 +126,7 @@ fn lsp_state_has_exited(state: LspState) -> bool {
     state.exited
 }
 
-fn lsp_state_append_output(state: LspState, chunk: String) {
+fn lsp_state_append_output(mut state: LspState, chunk: String) {
     state.output = clone(state.output).concat(chunk)
 }
 

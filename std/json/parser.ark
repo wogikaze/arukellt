@@ -266,7 +266,7 @@ impl JsonValue {
         if !self.is_array() {
             return None
         }
-        let array_items = Vec::new<JsonValue>()
+        let mut array_items = Vec::new<JsonValue>()
         let mut index = 0
         let mut finished = false
         while !finished {
@@ -666,7 +666,7 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
         return JsonParseStep::err(JsonParseError::InvalidLiteral(String_from("false")), pos)
     }
     if c == 34 {
-        let parsed = json::JsonText::parse_string_at(s, pos)
+        let mut parsed = json::JsonText::parse_string_at(s, pos)
         if !parsed.is_ok() {
             return JsonParseStep::err(JsonParseError::InvalidLiteral(String_from("string")), pos)
         }
@@ -676,7 +676,7 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
         )
     }
     if c == 91 {
-        let arr = Vec::new<JsonValue>()
+        let mut arr = Vec::new<JsonValue>()
         let mut i = json::JsonText::skip_ws(s, pos + 1)
         let mut has_value = false
         let mut expect_value = true
@@ -710,7 +710,7 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
         return JsonParseStep::err(JsonParseError::UnexpectedCharacter(c), pos)
     }
     if c == 123 {
-        let fields = Vec::new<JsonField>()
+        let mut fields = Vec::new<JsonField>()
         let mut i = json::JsonText::skip_ws(s, pos + 1)
         let mut has_field = false
         let mut expect_field = true
@@ -735,7 +735,7 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
             if byte_at(s, i) != 34 {
                 return JsonParseStep::err(JsonParseError::UnexpectedCharacter(byte_at(s, i)), i)
             }
-            let parsed_key = json::JsonText::parse_string_at(s, i)
+            let mut parsed_key = json::JsonText::parse_string_at(s, i)
             if !parsed_key.is_ok() {
                 return JsonParseStep::err(JsonParseError::InvalidLiteral(String_from("string")), i)
             }

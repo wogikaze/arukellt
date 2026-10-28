@@ -9,7 +9,7 @@ fn triple(x: i32) -> i32 {
 }
 
 fn main() {
-    let v: Vec<fn(i32) -> i32> = Vec::new<fn(i32) -> i32>()
+    let mut v: Vec<fn(i32) -> i32> = Vec::new<fn(i32) -> i32>()
     v.push(double)
     v.push(triple)
     stdio::println(v.len().to_string())

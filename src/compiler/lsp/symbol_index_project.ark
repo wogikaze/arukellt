@@ -23,7 +23,7 @@ fn pending_contains(pending: Vec<String>, path: String) -> bool {
     false
 }
 
-fn pending_push_unique(pending: Vec<String>, path: String) -> Vec<String> {
+fn pending_push_unique(mut pending: Vec<String>, path: String) -> Vec<String> {
     if len(path) == 0 || pending_contains(pending, clone(path)) {
         return pending
     }
@@ -68,7 +68,7 @@ fn dependency_module_file(project_root: String, import_name: String) -> String {
                 return String_new()
             }
             let dep_root = symbol_index_paths::resolve_relative_path(clone(project_root), dep_rel)
-            let dep_manifest = symbol_index_paths::join_path(clone(dep_root), String_from("ark.toml"))
+            let mut dep_manifest = symbol_index_paths::join_path(clone(dep_root), String_from("ark.toml"))
             let dep_read = Fs::read_to_string(dep_manifest)
             match dep_read {
                 Result::Ok(dep_content) => {
@@ -100,7 +100,7 @@ fn dependency_module_file(project_root: String, import_name: String) -> String {
 }
 
 pub fn collect_import_file_paths(decls: Vec<AstNode>, base_dir: String, root_dir: String, project_root: String) -> Vec<String> {
-    let out = Vec::new<String>()
+    let mut out = Vec::new<String>()
     let paths = module_import_paths::collect_import_paths(decls)
     let n = len(paths)
     let mut i = 0
@@ -147,7 +147,7 @@ fn project_entry_path(project_root: String) -> String {
     }
 }
 
-fn index_file_at_path(state: LspState, file_path: String) {
+fn index_file_at_path(mut state: LspState, file_path: String) {
     let uri = symbol_index_paths::file_path_to_uri(clone(file_path))
     let indexed_uris = state_record::lsp_state_symbol_indexed_uris(state)
     if symbol_index_record::symbol_index_is_indexed(indexed_uris, clone(uri)) {
@@ -162,8 +162,8 @@ fn index_file_at_path(state: LspState, file_path: String) {
     }
 }
 
-fn index_import_graph_from(state: LspState, start_path: String, project_root: String) {
-    let pending = pending_push_unique(Vec::new<String>(), clone(start_path))
+fn index_import_graph_from(mut state: LspState, start_path: String, project_root: String) {
+    let mut pending = pending_push_unique(Vec::new<String>(), clone(start_path))
     let root_dir = module_package_root::find_package_root(clone(project_root))
     let mut pos = 0
     while pos < len(pending) {
@@ -188,7 +188,7 @@ fn index_import_graph_from(state: LspState, start_path: String, project_root: St
     }
 }
 
-pub fn symbol_index_load_project(state: LspState, project_root: String) {
+pub fn symbol_index_load_project(mut state: LspState, project_root: String) {
     if len(project_root) == 0 {
         return
     }

@@ -14,7 +14,7 @@
 // --- Deque (ring buffer) ---
 pub fn deque_new() -> Vec<i32> {
     let cap: i32 = 16
-    let d: Vec<i32> = Vec::new<i32>()
+    let mut d: Vec<i32> = Vec::new<i32>()
     push(d, 0)
     push(d, 0)
     push(d, 0)
@@ -27,7 +27,7 @@ pub fn deque_new() -> Vec<i32> {
     d
 }
 
-pub fn deque_push_back(d: Vec<i32>, val: i32) {
+pub fn deque_push_back(mut d: Vec<i32>, val: i32) {
     let tail: i32 = get_unchecked(d, 1)
     let count: i32 = get_unchecked(d, 2)
     let cap: i32 = get_unchecked(d, 3)
@@ -36,7 +36,7 @@ pub fn deque_push_back(d: Vec<i32>, val: i32) {
     set(d, 2, count + 1)
 }
 
-pub fn deque_push_front(d: Vec<i32>, val: i32) {
+pub fn deque_push_front(mut d: Vec<i32>, val: i32) {
     let head: i32 = get_unchecked(d, 0)
     let count: i32 = get_unchecked(d, 2)
     let cap: i32 = get_unchecked(d, 3)
@@ -46,7 +46,7 @@ pub fn deque_push_front(d: Vec<i32>, val: i32) {
     set(d, 2, count + 1)
 }
 
-pub fn deque_pop_front(d: Vec<i32>) -> i32 {
+pub fn deque_pop_front(mut d: Vec<i32>) -> i32 {
     let head: i32 = get_unchecked(d, 0)
     let cap: i32 = get_unchecked(d, 3)
     let val: i32 = get_unchecked(d, 4 + head)
@@ -56,7 +56,7 @@ pub fn deque_pop_front(d: Vec<i32>) -> i32 {
     val
 }
 
-pub fn deque_pop_back(d: Vec<i32>) -> i32 {
+pub fn deque_pop_back(mut d: Vec<i32>) -> i32 {
     let tail: i32 = get_unchecked(d, 1)
     let cap: i32 = get_unchecked(d, 3)
     let new_tail: i32 = (tail - 1 + cap) % cap
@@ -77,12 +77,12 @@ pub fn deque_is_empty(d: Vec<i32>) -> bool {
 
 // --- PriorityQueue (min-heap) ---
 pub fn pq_new() -> Vec<i32> {
-    let pq: Vec<i32> = Vec::new<i32>()
+    let mut pq: Vec<i32> = Vec::new<i32>()
     push(pq, 0)
     pq
 }
 
-pub fn pq_push(pq: Vec<i32>, val: i32) {
+pub fn pq_push(mut pq: Vec<i32>, val: i32) {
     let count: i32 = get_unchecked(pq, 0)
     push(pq, val)
     set(pq, 0, count + 1)
@@ -103,7 +103,7 @@ pub fn pq_push(pq: Vec<i32>, val: i32) {
     }
 }
 
-pub fn pq_pop(pq: Vec<i32>) -> i32 {
+pub fn pq_pop(mut pq: Vec<i32>) -> i32 {
     let count: i32 = get_unchecked(pq, 0)
     let result: i32 = get_unchecked(pq, 1)
     let last: i32 = get_unchecked(pq, count)
@@ -150,7 +150,7 @@ pub fn pq_is_empty(pq: Vec<i32>) -> bool {
     get_unchecked(pq, 0) == 0
 }
 
-pub fn pq_clear(pq: Vec<i32>) {
+pub fn pq_clear(mut pq: Vec<i32>) {
     set(pq, 0, 0)
 }
 
@@ -172,7 +172,7 @@ pub fn deque_back(d: Vec<i32>) -> i32 {
 }
 
 /// Reset the deque to empty (preserves capacity).
-pub fn deque_clear(d: Vec<i32>) {
+pub fn deque_clear(mut d: Vec<i32>) {
     set(d, 0, 0)
     set(d, 1, 0)
     set(d, 2, 0)
@@ -183,7 +183,7 @@ pub fn deque_to_vec(d: Vec<i32>) -> Vec<i32> {
     let head: i32 = get_unchecked(d, 0)
     let count: i32 = get_unchecked(d, 2)
     let cap: i32 = get_unchecked(d, 3)
-    let result: Vec<i32> = Vec::new<i32>()
+    let mut result: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < count {
         let idx: i32 = (head + i) % cap
@@ -202,12 +202,12 @@ test mod "deque" {
         assert(deque_len(d) == 0)
     }
     test "push_pop" {
-        let d = deque_new()
+        let mut d = deque_new()
         deque_push_back(d, 42)
         assert(deque_pop_front(d) == 42)
     }
     test "push_front" {
-        let d = deque_new()
+        let mut d = deque_new()
         deque_push_front(d, 9)
         assert(deque_front(d) == 9)
     }
@@ -215,7 +215,7 @@ test mod "deque" {
 
 test mod "deque_order" {
     test "fifo_back_in_front_out" {
-        let d = deque_new()
+        let mut d = deque_new()
         deque_push_back(d, 1)
         deque_push_back(d, 2)
         deque_push_back(d, 3)
@@ -223,7 +223,7 @@ test mod "deque_order" {
         assert(deque_pop_front(d) == 2)
     }
     test "mixed_ends_front_first" {
-        let d = deque_new()
+        let mut d = deque_new()
         deque_push_back(d, 2)
         deque_push_front(d, 1)
         deque_push_back(d, 3)
@@ -231,7 +231,7 @@ test mod "deque_order" {
         assert(deque_back(d) == 3)
     }
     test "lifo_pop_back" {
-        let d = deque_new()
+        let mut d = deque_new()
         deque_push_back(d, 1)
         deque_push_back(d, 2)
         deque_push_back(d, 3)
@@ -240,7 +240,7 @@ test mod "deque_order" {
         assert(deque_pop_back(d) == 1)
     }
     test "len_tracks_pushes" {
-        let d = deque_new()
+        let mut d = deque_new()
         deque_push_back(d, 1)
         deque_push_back(d, 2)
         assert(deque_len(d) == 2)
@@ -248,13 +248,13 @@ test mod "deque_order" {
         assert(deque_len(d) == 1)
     }
     test "is_empty_after_drain" {
-        let d = deque_new()
+        let mut d = deque_new()
         deque_push_back(d, 1)
         deque_pop_front(d)
         assert(deque_is_empty(d))
     }
     test "clear_resets" {
-        let d = deque_new()
+        let mut d = deque_new()
         deque_push_back(d, 1)
         deque_push_back(d, 2)
         deque_clear(d)
@@ -262,7 +262,7 @@ test mod "deque_order" {
         assert(deque_is_empty(d))
     }
     test "to_vec_front_to_back" {
-        let d = deque_new()
+        let mut d = deque_new()
         deque_push_back(d, 10)
         deque_push_back(d, 20)
         deque_push_back(d, 30)
@@ -272,7 +272,7 @@ test mod "deque_order" {
         assert(v.get_unchecked(2) == 30)
     }
     test "wrap_around_beyond_initial_cap" {
-        let d = deque_new()
+        let mut d = deque_new()
         let mut i = 0
         while i < 20 {
             deque_push_back(d, i)
@@ -290,14 +290,14 @@ test mod "priority_queue" {
         assert(pq_len(q) == 0)
     }
     test "pop_returns_min" {
-        let q = pq_new()
+        let mut q = pq_new()
         pq_push(q, 5)
         pq_push(q, 1)
         pq_push(q, 3)
         assert(pq_pop(q) == 1)
     }
     test "pop_ascending_order" {
-        let q = pq_new()
+        let mut q = pq_new()
         pq_push(q, 4)
         pq_push(q, 1)
         pq_push(q, 3)
@@ -308,14 +308,14 @@ test mod "priority_queue" {
         assert(pq_pop(q) == 4)
     }
     test "peek_shows_min_without_pop" {
-        let q = pq_new()
+        let mut q = pq_new()
         pq_push(q, 7)
         pq_push(q, 2)
         assert(pq_peek(q) == 2)
         assert(pq_len(q) == 2)
     }
     test "duplicates_pop_in_count" {
-        let q = pq_new()
+        let mut q = pq_new()
         pq_push(q, 1)
         pq_push(q, 1)
         pq_push(q, 1)
@@ -324,13 +324,13 @@ test mod "priority_queue" {
         assert(pq_len(q) == 2)
     }
     test "clear_resets_heap" {
-        let q = pq_new()
+        let mut q = pq_new()
         pq_push(q, 9)
         pq_clear(q)
         assert(pq_is_empty(q))
     }
     test "interleaved_push_pop" {
-        let q = pq_new()
+        let mut q = pq_new()
         pq_push(q, 8)
         pq_push(q, 1)
         assert(pq_pop(q) == 1)

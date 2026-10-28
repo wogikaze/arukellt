@@ -20,7 +20,7 @@ use mir::opcodes
 fn native_c_heap_enum_type_flags(mir_module: MirModule) -> Vec<i32> {
     let table = module_spine::MirModule_type_table(mir_module)
     let type_count = type_table::TypeTable_entry_count(table)
-    let flags = Vec::new<i32>()
+    let mut flags = Vec::new<i32>()
     let mut type_index = 0
     while type_index < type_count {
         push(flags, 0)
@@ -28,9 +28,9 @@ fn native_c_heap_enum_type_flags(mir_module: MirModule) -> Vec<i32> {
     }
 
     // Product structs constructed via STRUCT_NEW with a bare layout name.
-    let product_struct_names = Vec::new<String>()
+    let mut product_struct_names = Vec::new<String>()
     // Payload enum basenames from `Enum::Variant` layout names on struct ops.
-    let payload_enum_names = Vec::new<String>()
+    let mut payload_enum_names = Vec::new<String>()
 
     let function_count = module_functions::MirModule_function_count(mir_module)
     let mut function_index = 0
@@ -148,7 +148,7 @@ fn native_c_type_name_is_unit_tag_enum(name: String) -> bool {
 }
 
 fn native_c_collect_payload_enum_from_local(
-    payload_enum_names: Vec<String>,
+    mut payload_enum_names: Vec<String>,
     table: TypeTable,
     function: MirFunction,
     local_id: i32
@@ -188,7 +188,7 @@ fn native_c_collect_payload_enum_from_local(
     )
 }
 
-fn native_c_push_unique_string(values: Vec<String>, value: String) {
+fn native_c_push_unique_string(mut values: Vec<String>, value: String) {
     if len(value) == 0 {
         return
     }

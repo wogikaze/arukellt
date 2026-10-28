@@ -26,8 +26,8 @@ fn build_checked_program_bundle(
     module_stdlib_flags: Vec<bool>,
     main_decls: Vec<AstNode>
 ) -> FrontendBundle {
-    let module_names = Vec::new<String>()
-    let module_decl_counts = Vec::new<i32>()
+    let mut module_names = Vec::new<String>()
+    let mut module_decl_counts = Vec::new<i32>()
     let module_count = len(modules)
     let mut mi = 0
     while mi < module_count {

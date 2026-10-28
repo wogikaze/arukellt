@@ -9,7 +9,7 @@ use corehir::type_info_to_type_id
 use corehir::type_table
 use corehir::value_types
 use corehir::hashmap_type_name
-fn type_info_to_mir_value(table: TypeTable, ty: TypeInfo) -> MirValueType {
+fn type_info_to_mir_value(mut table: TypeTable, ty: TypeInfo) -> MirValueType {
     let type_id = type_info_to_type_id::type_info_to_type_id(table, ty)
     let tag = type_contracts::TypeInfo_tag(ty)
     mir_value_type::MirValueType_new(type_id, type_info_repr_approx(tag), type_info_nullability_approx(tag))
@@ -32,7 +32,7 @@ fn type_info_nullability_approx(tag: i32) -> i32 {
     kinds::NULLABILITY_NOT_REF()
 }
 
-fn vt_to_mir_value(table: TypeTable, val_type: i32, type_name: String) -> MirValueType {
+fn vt_to_mir_value(mut table: TypeTable, val_type: i32, type_name: String) -> MirValueType {
     if len(type_name) > 0 {
         return mir_value_type_from_type_name(table, clone(type_name), val_type)
     }
@@ -52,7 +52,7 @@ fn vt_tag_from_mir_vt(vt: i32) -> i32 {
     1
 }
 
-fn mir_value_type_from_type_name(table: TypeTable, type_name: String, val_type: i32) -> MirValueType {
+fn mir_value_type_from_type_name(mut table: TypeTable, type_name: String, val_type: i32) -> MirValueType {
     if eq(clone(type_name), String_from("fn")) ||
     starts_with(clone(type_name), String_from("fnref")) ||
     starts_with(clone(type_name), String_from("fnsig:")) ||
@@ -134,8 +134,8 @@ fn type_name_is_scalar_primitive(type_name: String) -> bool {
     false
 }
 
-fn mir_value_type_vec_single(table: TypeTable, ty: TypeInfo) -> Vec<MirValueType> {
-    let result = Vec::new<MirValueType>()
+fn mir_value_type_vec_single(mut table: TypeTable, ty: TypeInfo) -> Vec<MirValueType> {
+    let mut result = Vec::new<MirValueType>()
     push(result, type_info_to_mir_value(table, ty))
     result
 }

@@ -3,7 +3,7 @@ use std::io::{BufWriter, Writer}
 use std::test
 
 fn main() {
-    let bw: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 64)
+    let mut bw: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 64)
     let res: Result<(), io::IoError> = bw.flush()
     match res {
         Result::Ok(_) => (),

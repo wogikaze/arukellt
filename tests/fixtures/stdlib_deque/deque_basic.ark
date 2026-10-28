@@ -10,7 +10,7 @@ fn show(value: Option<i32>) {
 }
 
 fn main() {
-    let deque: Deque<i32> = Deque::new<i32>()
+    let mut deque: Deque<i32> = Deque::new<i32>()
     assert(deque.is_empty())
     assert(deque.len() == 0)
     assert(deque.capacity() == 0)
@@ -29,7 +29,7 @@ fn main() {
     show(deque.pop_front())
     show(deque.pop_back())
 
-    let reserved: Deque<i32> = Deque::with_capacity<i32>(8)
+    let mut reserved: Deque<i32> = Deque::with_capacity<i32>(8)
     assert(reserved.capacity() == 8)
     reserved.reserve(4)
     assert(reserved.capacity() == 8)

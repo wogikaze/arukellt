@@ -3,7 +3,7 @@ use std::host::process
 use std::host::stdio
 use std::prelude::{clone}
 fn main() {
-    let path = String_from("native_cpp_public_fs_roundtrip.txt")
+    let mut path = String_from("native_cpp_public_fs_roundtrip.txt")
     match Fs::write_string(clone(path), String_from("fs-ok")) {
         Result::Ok(_) => {
         },

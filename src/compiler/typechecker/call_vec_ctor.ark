@@ -15,7 +15,7 @@ fn is_vec_associated_ctor_name(name: String) -> bool {
     eq(clone(name), String_from("Vec::with_capacity"))
 }
 
-fn infer_vec_ctor_turbofish_call(env: TypeEnv, node: AstNode, callee: AstNode) -> TypeInfo {
+fn infer_vec_ctor_turbofish_call(mut env: TypeEnv, node: AstNode, callee: AstNode) -> TypeInfo {
     if !ast_expr_predicates::node_is_path(callee) {
         return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
     }
@@ -36,7 +36,7 @@ fn infer_vec_ctor_turbofish_call(env: TypeEnv, node: AstNode, callee: AstNode) -
         contract_type_mutation::TypeInfo_push_type_arg(vec_ty, elem_ty)
         return vec_ty
     }
-    let resolved = Vec::new<TypeInfo>()
+    let mut resolved = Vec::new<TypeInfo>()
     push(resolved, elem_ty)
     let fn_name = ast_access::node_text(callee)
     let mangled = mono::record_mono_instance(env, clone(fn_name), resolved)

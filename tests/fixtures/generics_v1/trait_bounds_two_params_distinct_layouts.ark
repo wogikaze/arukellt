@@ -39,7 +39,7 @@ fn combine<R: Left, W: Right>(t: R, u: W) -> i32 {
 }
 
 fn main() {
-    let a = Alpha { v: 10 }
+    let mut a = Alpha { v: 10 }
     let b = Beta { v: 20, w: 5 }
     stdio::println((combine(a, b)).to_string())
 }

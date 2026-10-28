@@ -10,7 +10,7 @@ fn LegacyCompileOptions_new(output_path: String, has_output: bool, config: Drive
     LegacyCompileOptions { output_path: output_path, has_output: has_output, config: config }
 }
 
-fn parse_legacy_compile_options(args: Vec<String>, argc: i32, start: i32, config: DriverConfig) -> LegacyCompileOptions {
+fn parse_legacy_compile_options(args: Vec<String>, argc: i32, start: i32, mut config: DriverConfig) -> LegacyCompileOptions {
     let mut output_path = ""
     let mut has_output = false
     let mut i = start

@@ -2,7 +2,7 @@ fn ctx_current_func_value(ctx: LowerCtx) -> MirFunction {
     ctx.func
 }
 
-fn ctx_set_current_func_value(ctx: LowerCtx, func: MirFunction) {
+fn ctx_set_current_func_value(mut ctx: LowerCtx, func: MirFunction) {
     ctx.func = func
 }
 
@@ -10,7 +10,7 @@ fn ctx_current_block_value(ctx: LowerCtx) -> i32 {
     ctx.cur_block
 }
 
-fn ctx_set_current_block_value(ctx: LowerCtx, block_idx: i32) {
+fn ctx_set_current_block_value(mut ctx: LowerCtx, block_idx: i32) {
     ctx.cur_block = block_idx
 }
 

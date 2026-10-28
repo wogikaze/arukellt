@@ -1,6 +1,6 @@
 use mir::module_record
 
-fn MirModule_set_gc_layout_plan(m: MirModule, plan: MirGcLayoutPlan) {
+fn MirModule_set_gc_layout_plan(mut m: MirModule, plan: MirGcLayoutPlan) {
     m.gc_layout_plan = plan
 }
 

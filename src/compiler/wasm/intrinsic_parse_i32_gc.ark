@@ -14,7 +14,7 @@ use wasm::intrinsics::helpers_numeric_i32_convert
 // GC parse_i32: scan the String (array i8) and build Result<i32, String>.
 // Must not return Option::None — tag 0 looks like Ok and traps on payload cast (#807).
 use std::prelude::{byte_at}
-fn emit_parse_i32_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_parse_i32_gc(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let _inst = inst
     let s_str = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let s_result = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
@@ -78,7 +78,7 @@ fn emit_parse_i32_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 fn emit_parse_i32_gc_digit_loop(
-    w: WasmWriter,
+    mut w: WasmWriter,
     ctx: SelfEmitCtx,
     s_str: i32,
     s_i: i32,
@@ -156,7 +156,7 @@ fn emit_parse_i32_gc_digit_loop(
     helpers_control::emit_end(w)
 }
 
-fn emit_parse_i32_gc_ok(w: WasmWriter, ctx: SelfEmitCtx, s_acc: i32, s_result: i32, open_type: i32) {
+fn emit_parse_i32_gc_ok(mut w: WasmWriter, ctx: SelfEmitCtx, s_acc: i32, s_result: i32, open_type: i32) {
     let ok_type = result_helpers::find_result_variant_type_by_suffix(
         ctx,
         String_from("Result::Ok"),
@@ -172,7 +172,7 @@ fn emit_parse_i32_gc_ok(w: WasmWriter, ctx: SelfEmitCtx, s_acc: i32, s_result: i
     helpers_core::emit_local_set(w, s_result)
 }
 
-fn emit_parse_i32_gc_err(w: WasmWriter, ctx: SelfEmitCtx, _s_str: i32, s_result: i32, open_type: i32) {
+fn emit_parse_i32_gc_err(mut w: WasmWriter, ctx: SelfEmitCtx, _s_str: i32, s_result: i32, open_type: i32) {
     // Prefer String-payload Err with the canonical message (not the input).
     let err_type = result_helpers::find_result_string_variant_type(ctx, String_from("Result::Err"))
     if err_type >= 0 {
@@ -191,7 +191,7 @@ fn emit_parse_i32_gc_err(w: WasmWriter, ctx: SelfEmitCtx, _s_str: i32, s_result:
     helpers_core::emit_local_set(w, s_result)
 }
 
-fn emit_parse_i32_gc_invalid_integer_string(w: WasmWriter, ctx: SelfEmitCtx, s_err: i32) {
+fn emit_parse_i32_gc_invalid_integer_string(mut w: WasmWriter, ctx: SelfEmitCtx, s_err: i32) {
     let msg = "parse error: invalid integer"
     let msg_len = len(msg)
     let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)

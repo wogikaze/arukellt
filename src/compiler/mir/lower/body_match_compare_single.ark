@@ -12,7 +12,7 @@ use mir::lower::match_arms
 use mir::lower::match_subpat
 use mir::value_types
 
-fn lower_single_match_compare_prefix(ctx: LowerCtx, arm_node: AstNode, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, has_guard: bool, if_depth: i32) -> i32 {
+fn lower_single_match_compare_prefix(mut ctx: LowerCtx, arm_node: AstNode, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, has_guard: bool, if_depth: i32) -> i32 {
     let mut depth = if_depth
     let cmp_dest = lower_single_match_compare_condition(ctx, pat, payload_info, scrut_idx)
     // The guarded flag form materializes its result in a local rather than
@@ -35,7 +35,7 @@ fn lower_single_match_compare_prefix(ctx: LowerCtx, arm_node: AstNode, pat: AstN
     depth
 }
 
-fn lower_single_match_compare_condition(ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32) -> i32 {
+fn lower_single_match_compare_condition(mut ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32) -> i32 {
     let compare_idx = match::mir_match_payload_compare_idx(payload_info)
     // A variant pattern with literal/composite payload children must
     // compare the sub-patterns, not only the tag: emit the guarded flag

@@ -4,7 +4,7 @@
 // Variant constructors (Some, None, Ok, Err) remain as builtins since
 // they are enum variant constructors, not regular functions.
 
-fn push_core_string_tail_builtin_symbol_names(names: Vec<String>) {
+fn push_core_string_tail_builtin_symbol_names(mut names: Vec<String>) {
     push(names, "Some")
     push(names, "None")
     push(names, "Ok")

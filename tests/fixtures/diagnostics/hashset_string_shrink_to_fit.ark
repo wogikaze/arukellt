@@ -3,7 +3,7 @@
 use std::collections::hash_set::HashSet
 
 fn main() {
-    let s: HashSet<String> = HashSet::new<String>()
+    let mut s: HashSet<String> = HashSet::new<String>()
     let _ = s.insert("red")
     s.shrink_to_fit()
 }

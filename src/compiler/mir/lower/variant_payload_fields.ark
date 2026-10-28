@@ -6,7 +6,7 @@ use mir::inst_struct_set
 use mir::inst_local_get
 use mir::inst_convert
 use mir::value_types
-fn emit_variant_payload_fields(ctx: LowerCtx, dest: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, variant_name: String) {
+fn emit_variant_payload_fields(mut ctx: LowerCtx, dest: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, variant_name: String) {
     let total_bytes = ctx_struct_layout::ctx_struct_byte_size(ctx, clone(variant_name))
     let mut byte_off = 4
     let mut pi = 0

@@ -81,11 +81,11 @@ fn mir_method_mono_type_key(ctx: LowerCtx, first_method_arg_idx: i32) -> String 
     method_resolve::mir_method_mono_type_key(ctx, first_method_arg_idx)
 }
 
-fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_arg_idx: i32, span_start: i32) -> String {
+fn mir_resolve_method_callee(mut ctx: LowerCtx, callee_name: String, first_method_arg_idx: i32, span_start: i32) -> String {
     method_resolve::mir_resolve_method_callee(ctx, callee_name, first_method_arg_idx, span_start)
 }
 
-fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, first_arg_idx: i32, value_arg_idx: i32) -> i32 {
+fn mir_emit_method_call(mut ctx: LowerCtx, mut callee_name: String, arg_count: i32, first_arg_idx: i32, value_arg_idx: i32) -> i32 {
     method_emit::mir_emit_method_call(ctx, callee_name, arg_count, first_arg_idx, value_arg_idx)
 }
 

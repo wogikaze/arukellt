@@ -22,7 +22,7 @@ use wasm::intrinsics::helpers_numeric_i32_convert
 // wraps SCRATCH_PF_RESULT as Result::Ok(_f1_f64) or Result::Err(String).
 
 use std::prelude::{byte_at}
-fn emit_parse_f64_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_parse_f64_gc(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_str = runtime_abi_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
     let s_len_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     helpers_core::emit_local_get(w, s_str)
@@ -32,7 +32,7 @@ fn emit_parse_f64_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     true
 }
 
-fn emit_parse_f64_gc_init_state(w: WasmWriter, s_str: i32, s_len_local: i32) {
+fn emit_parse_f64_gc_init_state(mut w: WasmWriter, s_str: i32, s_len_local: i32) {
     // Same layout as LM emit_parse_f64_source: data ptr on stack, length at ptr-4.
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, s_str)
@@ -47,7 +47,7 @@ fn emit_parse_f64_gc_init_state(w: WasmWriter, s_str: i32, s_len_local: i32) {
     emit_parse_f64_gc_prefix_validation(w, s_str, s_len_local)
 }
 
-fn emit_parse_f64_gc_zero_result(w: WasmWriter) {
+fn emit_parse_f64_gc_zero_result(mut w: WasmWriter) {
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_PF_RESULT())
     writer_core::emit_byte(w, opcodes::OP_F64_CONST())
     writer_numbers::emit_f64(w, 0.0)
@@ -56,7 +56,7 @@ fn emit_parse_f64_gc_zero_result(w: WasmWriter) {
     writer_core::emit_byte(w, 0)
 }
 
-fn emit_parse_f64_gc_zero_flags(w: WasmWriter) {
+fn emit_parse_f64_gc_zero_flags(mut w: WasmWriter) {
     emit_parse_f64_gc_store_i32_flag(w, constants::SCRATCH_P_I(), 0)
     emit_parse_f64_gc_store_i32_flag(w, constants::SCRATCH_P_NEG(), 0)
     emit_parse_f64_gc_store_i32_flag(w, constants::SCRATCH_P_ERR(), 0)
@@ -64,7 +64,7 @@ fn emit_parse_f64_gc_zero_flags(w: WasmWriter) {
     emit_parse_f64_gc_store_i32_flag(w, constants::SCRATCH_PF_DECCOUNT(), 0)
 }
 
-fn emit_parse_f64_gc_store_i32_flag(w: WasmWriter, addr: i32, value: i32) {
+fn emit_parse_f64_gc_store_i32_flag(mut w: WasmWriter, addr: i32, value: i32) {
     helpers_io_layout::emit_scratch_addr(w, addr)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, value)
@@ -73,7 +73,7 @@ fn emit_parse_f64_gc_store_i32_flag(w: WasmWriter, addr: i32, value: i32) {
     writer_core::emit_byte(w, 0)
 }
 
-fn emit_parse_f64_gc_prefix_validation(w: WasmWriter, s_str: i32, s_len_local: i32) {
+fn emit_parse_f64_gc_prefix_validation(mut w: WasmWriter, s_str: i32, s_len_local: i32) {
     writer_core::emit_local_get(w, s_len_local)
     helpers_numeric_i32::emit_i32_eqz(w)
     writer_core::emit_byte(w, opcodes::OP_IF())
@@ -104,7 +104,7 @@ fn emit_parse_f64_gc_prefix_validation(w: WasmWriter, s_str: i32, s_len_local: i
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_parse_f64_finalize_gc(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_parse_f64_finalize_gc(mut w: WasmWriter, ctx: SelfEmitCtx) {
     let s_result = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
     let s_gc = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_P_ERR())
@@ -121,7 +121,7 @@ fn emit_parse_f64_finalize_gc(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_core::emit_local_get(w, s_result)
 }
 
-fn emit_parse_f64_gc_ok(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_parse_f64_gc_ok(mut w: WasmWriter, ctx: SelfEmitCtx) {
     let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     let ok_name = String_from("Result::Ok")
     let ok_suffix = String_from("_f1_f64")
@@ -137,7 +137,7 @@ fn emit_parse_f64_gc_ok(w: WasmWriter, ctx: SelfEmitCtx) {
     writer_gc::emit_gc_ref_cast(w, open_type)
 }
 
-fn emit_parse_f64_gc_err(w: WasmWriter, ctx: SelfEmitCtx, s_gc: i32) {
+fn emit_parse_f64_gc_err(mut w: WasmWriter, ctx: SelfEmitCtx, s_gc: i32) {
     // Prefer String-payload Err (_f1_ref0) and keep its public diagnostic
     // consistent with the linear parser.
     let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)

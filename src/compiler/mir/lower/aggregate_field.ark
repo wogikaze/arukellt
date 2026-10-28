@@ -90,7 +90,7 @@ fn mir_field_access_dest_vt(ctx: LowerCtx, base_type: String, field_name: String
     dest_vt
 }
 
-fn mir_emit_field_access(ctx: LowerCtx, field_name: String, base_idx: i32) -> i32 {
+fn mir_emit_field_access(mut ctx: LowerCtx, field_name: String, base_idx: i32) -> i32 {
     // Locals typed Pair<String> (or ?Pair:T inside a mono body) resolve to
     // the derived monomorphized layout, not the unsubstituted declaration.
     let raw_type = ctx_struct_mono::ctx_derive_generic_struct_type_name(

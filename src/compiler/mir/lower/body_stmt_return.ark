@@ -7,7 +7,7 @@ use mir::lower::ctx_fn_index
 use mir::lower::value_variants
 use mir::lower_kinds
 use mir::value_types
-fn lower_return_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_return_stmt(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     if child_count >= 1 {
         let expr = ast_node::node_child_at(node, 0)

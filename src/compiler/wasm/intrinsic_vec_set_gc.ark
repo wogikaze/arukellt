@@ -16,7 +16,7 @@ use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::inst_accessors_literals
 use wasm::ctx_record
 use wasm::sections_types_gc
-fn emit_vec_set_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: bool) -> bool {
+fn emit_vec_set_gc(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: bool) -> bool {
     // GC Vec set
     //
     // Stack: [vec_ref, idx, value]  (value on top)

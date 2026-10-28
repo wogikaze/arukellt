@@ -14,8 +14,8 @@ use mir::module_functions
 use mir::ssa
 fn run_phi_elimination_smoke() {
     let fx = dump_smoke_simple_phi_fixture::mir_dump_simple_phi_fixture_new("phi_elim_sample", true)
-    let m = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_module(fx)
-    let f = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_function(fx)
+    let mut m = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_module(fx)
+    let mut f = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_function(fx)
     let cond = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_cond(fx)
     let then_val = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_then_val(fx)
     let else_val = dump_smoke_simple_phi_fixture::MirDumpSimplePhiFixture_else_val(fx)

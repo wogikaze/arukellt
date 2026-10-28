@@ -9,7 +9,7 @@ use typechecker::names
 use typechecker::param_mode
 use typechecker::scope
 use typechecker::unify
-fn infer_local_function_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, fn_ty: TypeInfo) -> TypeInfo {
+fn infer_local_function_call(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, fn_ty: TypeInfo) -> TypeInfo {
     let type_arg_count = contract_type_access::TypeInfo_type_arg_count(fn_ty)
     if type_arg_count < 1 {
         return TypeInfo_simple(commands::TY_UNKNOWN())
@@ -38,7 +38,7 @@ fn infer_local_function_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig
     unify::resolve_type(env, return_ty)
 }
 
-fn infer_unknown_ident_call(env: TypeEnv, scope: LocalScope, callee: AstNode) -> TypeInfo {
+fn infer_unknown_ident_call(mut env: TypeEnv, scope: LocalScope, callee: AstNode) -> TypeInfo {
     let callee_name = ast_access::node_text(callee)
     let builtin_ret = builtins::builtin_call_return_type(clone(callee_name))
     if contract_type_access::TypeInfo_tag(builtin_ret) != commands::TY_UNKNOWN() {

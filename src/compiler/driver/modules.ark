@@ -1,6 +1,6 @@
 use loader::mod
 
-pub fn load_source(path: String) -> Result<String, String> {
+pub fn load_source(mut path: String) -> Result<String, String> {
     mod::load_source(path)
 }
 
@@ -12,14 +12,14 @@ pub fn LoadState_new() -> LoadState {
     mod::LoadState_new()
 }
 
-pub fn load_stdlib_module(stdlib_path: String, state: LoadState) {
+pub fn load_stdlib_module(stdlib_path: String, mut state: LoadState) {
     mod::load_stdlib_module(stdlib_path, state)
 }
 
-pub fn load_imported_modules(decls: Vec<AstNode>, base_dir: String, state: LoadState) {
+pub fn load_imported_modules(decls: Vec<AstNode>, base_dir: String, mut state: LoadState) {
     mod::load_imported_modules(decls, base_dir, state)
 }
 
-pub fn release_module_asts(state: LoadState) {
+pub fn release_module_asts(mut state: LoadState) {
     mod::release_module_asts(state)
 }

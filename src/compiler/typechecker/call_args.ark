@@ -1,6 +1,6 @@
 use typechecker::ast_access
 
-fn infer_call_args(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, start: i32, count: i32) {
+fn infer_call_args(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, start: i32, count: i32) {
     let mut a = 0
     while a < count {
         let arg_node = ast_access::node_child_at(node, start + a)

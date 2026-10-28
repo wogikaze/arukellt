@@ -10,7 +10,7 @@ use mir::lower::core_match_payload
 use mir::lower::core_match_result
 use mir::value_types
 
-fn lower_core_match(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+fn lower_core_match(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
     if child_count < 2 {
         return 0 - 1
@@ -49,7 +49,7 @@ fn lower_core_match(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -
 }
 
 fn lower_core_match_arm(
-    ctx: LowerCtx,
+    mut ctx: LowerCtx,
     exprs: Vec<CoreHirExpr>,
     arm_node: CoreHirExpr,
     pat: CoreHirExpr,

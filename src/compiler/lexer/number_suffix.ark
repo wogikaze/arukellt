@@ -29,7 +29,7 @@ fn suffix_end_ok(lex: Lexer, end: i32) -> bool {
     !char_class::is_alnum(cn) && cn != 95
 }
 
-fn try_eat_type_suffix(lex: Lexer) -> i32 {
+fn try_eat_type_suffix(mut lex: Lexer) -> i32 {
     if lex.pos + 3 <= lex.src_len {
         let c0 = byte_at(lex.src, lex.pos)
         let c1 = byte_at(lex.src, lex.pos + 1)

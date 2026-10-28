@@ -5,7 +5,7 @@ use parser::expr_prefix_struct_fields
 use parser::expr_prefix_struct_probe
 use parser::token_state
 
-pub fn parse_ident_or_struct_lit(p: Parser, t: Token) -> AstNode {
+pub fn parse_ident_or_struct_lit(mut p: Parser, t: Token) -> AstNode {
     p.pos = p.pos + 1
     if expr_prefix_struct_probe::next_prefix_is_struct_lit(p) {
         return expr_prefix_struct_fields::parse_struct_lit_fields(p, t)

@@ -3,7 +3,7 @@
 // std/collections/hash_map.ark. The user-visible spelling is now
 // `HashMap::new<K, V>()` plus receiver methods, so only the non-public
 // __hm_* storage bridge remains here.
-fn push_hash_builtin_symbol_names(names: Vec<String>) {
+fn push_hash_builtin_symbol_names(mut names: Vec<String>) {
     push(names, "__hm_si_new")
     push(names, "__hm_si_new_with_cap")
     push(names, "__hm_si_adopt")

@@ -3,7 +3,7 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
 use mir::inst_structured_control
 
-fn core_emit_match_end_nested_ifs(ctx: LowerCtx, if_depth: i32) {
+fn core_emit_match_end_nested_ifs(mut ctx: LowerCtx, if_depth: i32) {
     let mut depth = if_depth
     while depth > 0 {
         ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_end())
@@ -12,17 +12,17 @@ fn core_emit_match_end_nested_ifs(ctx: LowerCtx, if_depth: i32) {
     }
 }
 
-fn core_emit_match_guard_begin(ctx: LowerCtx) {
+fn core_emit_match_guard_begin(mut ctx: LowerCtx) {
     ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_if())
     ctx_api_nesting::ctx_push_nesting(ctx)
 }
 
-fn core_emit_match_guard_end(ctx: LowerCtx) {
+fn core_emit_match_guard_end(mut ctx: LowerCtx) {
     ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_end())
     ctx_api_nesting::ctx_pop_nesting(ctx)
 }
 
-fn core_emit_if_begin(ctx: LowerCtx) {
+fn core_emit_if_begin(mut ctx: LowerCtx) {
     ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_if())
     ctx_api_nesting::ctx_push_nesting(ctx)
 }

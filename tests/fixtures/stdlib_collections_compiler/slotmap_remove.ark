@@ -2,7 +2,7 @@ use std::collections::compiler
 use std::host::stdio
 
 fn main() {
-    let m = compiler::slotmap_new()
+    let mut m = compiler::slotmap_new()
     let k0 = compiler::slotmap_insert(m, 10)
     let k1 = compiler::slotmap_insert(m, 20)
     let k2 = compiler::slotmap_insert(m, 30)

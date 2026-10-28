@@ -39,7 +39,7 @@ fn generics_index(impl_node: AstNode) -> i32 {
 }
 
 fn declared_type_param_names(impl_node: AstNode) -> Vec<String> {
-    let names = Vec::new<String>()
+    let mut names = Vec::new<String>()
     let index = generics_index(impl_node)
     if index < 0 {
         return names
@@ -62,7 +62,7 @@ fn declared_type_param_names(impl_node: AstNode) -> Vec<String> {
 fn undefined_head_type_names(impl_node: AstNode, known_type_names: Vec<String>) -> Vec<String> {
     let declared = declared_type_param_names(impl_node)
     let heads = head_count(impl_node)
-    let names = Vec::new<String>()
+    let mut names = Vec::new<String>()
     if heads >= 1 {
         collect_undefined_head_type_names(
             ast_access::node_type_ann_at(impl_node, heads - 1),
@@ -88,7 +88,7 @@ fn collect_undefined_trait_arg_type_names(
     head: AstNode,
     known: Vec<String>,
     declared: Vec<String>,
-    names: Vec<String>
+    mut names: Vec<String>
 ) {
     let count = ast_access::node_child_count(head)
     let mut i = 1
@@ -107,7 +107,7 @@ fn collect_undefined_head_type_names(
     node: AstNode,
     known: Vec<String>,
     declared: Vec<String>,
-    names: Vec<String>
+    mut names: Vec<String>
 ) {
     let name = ast_access::node_text(node)
     if ast_access::node_kind_is(node, kinds::NK_TYPE_NAMED()) &&
@@ -141,7 +141,7 @@ fn is_single_uppercase_name(name: String) -> bool {
 // One entry per declared parameter, even without a bound, so the caller can
 // align the entries with the signature's ordered type parameters.
 fn type_param_bounds(impl_node: AstNode) -> Vec<TypeParamBounds> {
-    let bounds = Vec::new<TypeParamBounds>()
+    let mut bounds = Vec::new<TypeParamBounds>()
     let index = generics_index(impl_node)
     if index < 0 {
         return bounds
@@ -152,7 +152,7 @@ fn type_param_bounds(impl_node: AstNode) -> Vec<TypeParamBounds> {
     let mut i = 0
     while i < count {
         let param = ast_access::node_child_at(binder, i)
-        let info = contract_type_param_bounds::TypeParamBounds_new(
+        let mut info = contract_type_param_bounds::TypeParamBounds_new(
             ast_access::node_text(param)
         )
         let bound_count = ast_access::node_type_ann_count(param)

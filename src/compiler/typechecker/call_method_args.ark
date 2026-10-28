@@ -2,7 +2,7 @@ use typechecker::ast_access
 use typechecker::contract_fn_sig
 use typechecker::unify
 
-fn constrain_method_args(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig, recv_ty: TypeInfo, explicit_args: i32) {
+fn constrain_method_args(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig, recv_ty: TypeInfo, explicit_args: i32) {
     let p0 = contract_fn_sig::FnSig_param_at(sig, 0)
     unify::unify(env, p0, recv_ty)
     let mut a = 0

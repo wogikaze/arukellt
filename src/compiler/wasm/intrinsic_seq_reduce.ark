@@ -9,14 +9,14 @@ use wasm::string_gc_helpers
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i32
 
-fn emit_sum_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_sum_i32(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return emit_seq_i32_reduce_gc(w, ctx, 0, opcodes::OP_I32_ADD())
     }
     emit_seq_i32_reduce(w, ctx, 0, opcodes::OP_I32_ADD())
 }
 
-fn emit_product_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_product_i32(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return emit_seq_i32_reduce_gc(w, ctx, 1, opcodes::OP_I32_MUL())
     }
@@ -24,7 +24,7 @@ fn emit_product_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 // GC target: scan vec data array, accumulate sum or product.
-fn emit_seq_i32_reduce_gc(w: WasmWriter, ctx: SelfEmitCtx, initial_value: i32, combine_opcode: i32) -> bool {
+fn emit_seq_i32_reduce_gc(mut w: WasmWriter, ctx: SelfEmitCtx, initial_value: i32, combine_opcode: i32) -> bool {
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
     let s_arr = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
     let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
@@ -84,7 +84,7 @@ fn emit_seq_i32_reduce_gc(w: WasmWriter, ctx: SelfEmitCtx, initial_value: i32, c
 
 // The caller picks the raw i32 opcode; under Memory64 the widened i64 lanes
 // need the matching i64 lowering from the numeric helpers.
-fn emit_seq_i32_combine_gc(w: WasmWriter, combine_opcode: i32) {
+fn emit_seq_i32_combine_gc(mut w: WasmWriter, combine_opcode: i32) {
     if combine_opcode == opcodes::OP_I32_MUL() {
         helpers_numeric_i32::emit_i32_mul(w)
         return
@@ -92,7 +92,7 @@ fn emit_seq_i32_combine_gc(w: WasmWriter, combine_opcode: i32) {
     helpers_numeric_i32::emit_i32_add(w)
 }
 
-fn emit_seq_i32_reduce(w: WasmWriter, ctx: SelfEmitCtx, initial_value: i32, combine_opcode: i32) -> bool {
+fn emit_seq_i32_reduce(mut w: WasmWriter, ctx: SelfEmitCtx, initial_value: i32, combine_opcode: i32) -> bool {
     let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -105,13 +105,13 @@ fn emit_seq_i32_reduce(w: WasmWriter, ctx: SelfEmitCtx, initial_value: i32, comb
     return true
 }
 
-fn emit_seq_i32_reduce_init(w: WasmWriter, s_seq: i32, s_index: i32, s_acc: i32, s_data: i32, s_len: i32, initial_value: i32) {
+fn emit_seq_i32_reduce_init(mut w: WasmWriter, s_seq: i32, s_index: i32, s_acc: i32, s_data: i32, s_len: i32, initial_value: i32) {
     emit_seq_i32_reduce_init_acc(w, s_seq, s_acc, initial_value)
     emit_seq_i32_reduce_init_source(w, s_seq, s_data, s_len)
     emit_seq_i32_reduce_init_index(w, s_index)
 }
 
-fn emit_seq_i32_reduce_init_acc(w: WasmWriter, s_seq: i32, s_acc: i32, initial_value: i32) {
+fn emit_seq_i32_reduce_init_acc(mut w: WasmWriter, s_seq: i32, s_acc: i32, initial_value: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, s_seq)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
@@ -120,7 +120,7 @@ fn emit_seq_i32_reduce_init_acc(w: WasmWriter, s_seq: i32, s_acc: i32, initial_v
     writer_core::emit_leb128_u(w, s_acc)
 }
 
-fn emit_seq_i32_reduce_init_source(w: WasmWriter, s_seq: i32, s_data: i32, s_len: i32) {
+fn emit_seq_i32_reduce_init_source(mut w: WasmWriter, s_seq: i32, s_data: i32, s_len: i32) {
     writer_core::emit_local_get(w, s_seq)
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
@@ -135,14 +135,14 @@ fn emit_seq_i32_reduce_init_source(w: WasmWriter, s_seq: i32, s_data: i32, s_len
     writer_core::emit_leb128_u(w, s_data)
 }
 
-fn emit_seq_i32_reduce_init_index(w: WasmWriter, s_index: i32) {
+fn emit_seq_i32_reduce_init_index(mut w: WasmWriter, s_index: i32) {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, s_index)
 }
 
-fn emit_seq_i32_reduce_loop(w: WasmWriter, s_index: i32, s_acc: i32, s_data: i32, s_len: i32, combine_opcode: i32) {
+fn emit_seq_i32_reduce_loop(mut w: WasmWriter, s_index: i32, s_acc: i32, s_data: i32, s_len: i32, combine_opcode: i32) {
     writer_core::emit_byte(w, opcodes::OP_BLOCK())
     writer_core::emit_byte(w, 64)
     writer_core::emit_byte(w, opcodes::OP_LOOP())
@@ -161,7 +161,7 @@ fn emit_seq_i32_reduce_loop(w: WasmWriter, s_index: i32, s_acc: i32, s_data: i32
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_seq_i32_reduce_accumulate(w: WasmWriter, s_index: i32, s_acc: i32, s_data: i32, combine_opcode: i32) {
+fn emit_seq_i32_reduce_accumulate(mut w: WasmWriter, s_index: i32, s_acc: i32, s_data: i32, combine_opcode: i32) {
     writer_core::emit_local_get(w, s_acc)
     writer_core::emit_local_get(w, s_data)
     writer_core::emit_local_get(w, s_index)
@@ -177,7 +177,7 @@ fn emit_seq_i32_reduce_accumulate(w: WasmWriter, s_index: i32, s_acc: i32, s_dat
     writer_core::emit_leb128_u(w, s_acc)
 }
 
-fn emit_seq_i32_reduce_advance_index(w: WasmWriter, s_index: i32) {
+fn emit_seq_i32_reduce_advance_index(mut w: WasmWriter, s_index: i32) {
     writer_core::emit_local_get(w, s_index)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 1)

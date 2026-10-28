@@ -5,7 +5,7 @@ use wasm::local_opcodes
 use wasm::writer_core
 use mir::opcodes
 
-fn try_emit_local_set_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_arg1: i32, next_op: i32, next_arg1: i32) -> bool {
+fn try_emit_local_set_inst(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_arg1: i32, next_op: i32, next_arg1: i32) -> bool {
     if inst_accessors_shape::MirInst_op(inst) != opcodes::MIR_LOCAL_SET() {
         return false
     }
@@ -16,7 +16,7 @@ fn try_emit_local_set_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_
     true
 }
 
-fn try_emit_local_set_peephole(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_arg1: i32, next_op: i32, next_arg1: i32) -> bool {
+fn try_emit_local_set_peephole(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_arg1: i32, next_op: i32, next_arg1: i32) -> bool {
     // Stack-valued LOCAL_SET after GC/struct field store: the set consumed
     // the receiver, so reload it before the enum-open cast (#726 hashmap Option).
     if inst_accessors_operands::MirInst_arg1(inst) < 0 {

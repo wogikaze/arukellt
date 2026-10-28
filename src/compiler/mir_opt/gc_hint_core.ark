@@ -243,7 +243,7 @@ fn gc_hint_should_annotate(insts: Vec<MirInstDraft>, idx: i32, end: i32) -> bool
 fn gc_hint_annotate_loop(insts: Vec<MirInstDraft>, region: LoopRegion) -> GcHintAnnotateResult {
     let start = loop_regions::LoopRegion_loop_start(region)
     let end = loop_regions::LoopRegion_loop_end(region)
-    let out = Vec::new<MirInstDraft>()
+    let mut out = Vec::new<MirInstDraft>()
     let mut annotated = 0
     let mut i = 0
     while i < len(insts) {
@@ -272,14 +272,14 @@ fn gc_hint_optimize_block_insts(insts: Vec<MirInstDraft>) -> GcHintAnnotateResul
     GcHintAnnotateResult_new(current, total)
 }
 
-fn gc_hint_optimize_function(f: MirFunction) -> OptimizationSummary {
+fn gc_hint_optimize_function(mut f: MirFunction) -> OptimizationSummary {
     let block_count = function_block_queries::MirFunction_block_count(f)
-    let updated_blocks = Vec::new<MirBlock>()
+    let mut updated_blocks = Vec::new<MirBlock>()
     let mut total = 0
     let mut translation_validation_failures = 0
     let mut bi = 0
     while bi < block_count {
-        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let mut block = function_block_queries::MirFunction_block_at(f, bi)
         let insts = block_inst_access::MirBlock_export_drafts(block)
         let result = gc_hint_optimize_block_insts(insts)
         if gc_hint_translation_valid(insts, result.instructions) {

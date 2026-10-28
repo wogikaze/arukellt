@@ -8,7 +8,7 @@ use mir::lower::control
 use mir::lower::value_variants
 use mir::value_types
 
-fn lower_core_break(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+fn lower_core_break(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if ctx_api_loop_query::ctx_loop_break_available(ctx) {
         if core_expr_shape_accessors::mir_core_expr_child_count(expr) > 0 && ctx_api_loop_query::ctx_loop_break_value_available(ctx) {
             let break_val = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
@@ -19,12 +19,12 @@ fn lower_core_break(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -
     0 - 1
 }
 
-fn lower_core_continue(ctx: LowerCtx) -> i32 {
+fn lower_core_continue(mut ctx: LowerCtx) -> i32 {
     control::mir_emit_loop_continue(ctx)
     0 - 1
 }
 
-fn lower_core_return(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+fn lower_core_return(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) >= 1 {
         let ret_index = core_expr_shape_accessors::mir_core_expr_child(expr, 0)
         let ret_expr = get_unchecked(exprs, ret_index)

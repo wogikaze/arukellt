@@ -7,10 +7,10 @@ use parser::kinds
 use parser::token_state
 use parser::types
 
-fn parse_type_param(p: Parser) -> AstNode {
+fn parse_type_param(mut p: Parser) -> AstNode {
     core_api_cursor::skip_newlines(p)
     let gp = core_api_expect::expect_token(p, tokens::TK_IDENT())
-    let param = core_ast_factory::AstNode_leaf(kinds::NK_TYPE_NAMED(), token_state::Token_text(gp), core_api_expect::tok_span(gp))
+    let mut param = core_ast_factory::AstNode_leaf(kinds::NK_TYPE_NAMED(), token_state::Token_text(gp), core_api_expect::tok_span(gp))
     core_api_cursor::skip_newlines(p)
     if core_api_cursor::peek_kind(p) == tokens::TK_COLON() {
         p.pos = p.pos + 1
@@ -29,8 +29,8 @@ fn parse_type_param(p: Parser) -> AstNode {
     param
 }
 
-fn parse_generic_params(p: Parser) -> Vec<AstNode> {
-    let params = Vec::new<AstNode>()
+fn parse_generic_params(mut p: Parser) -> Vec<AstNode> {
+    let mut params = Vec::new<AstNode>()
     if core_api_cursor::peek_kind(p) != tokens::TK_LT() {
         return params
     }
@@ -49,7 +49,7 @@ fn parse_generic_params(p: Parser) -> Vec<AstNode> {
     params
 }
 
-fn parse_generic_params_into_node(p: Parser, node: AstNode) {
+fn parse_generic_params_into_node(mut p: Parser, mut node: AstNode) {
     let params = parse_generic_params(p)
     let count = len(params)
     let mut i = 0

@@ -7,44 +7,44 @@ use wasm::opcodes
 use wasm::writer_core
 use wasm::intrinsics::helpers_numeric_i32_convert
 
-fn emit_br(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_br(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_BR())
     writer_core::emit_leb128_u(w, inst_accessors_literals::MirInst_int_val(inst))
 }
 
-fn emit_br_if(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_br_if(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     helpers_numeric_i32_convert::emit_narrow_branch_condition(w)
     writer_core::emit_byte(w, opcodes::OP_BR_IF())
     writer_core::emit_leb128_u(w, inst_accessors_literals::MirInst_int_val(inst))
 }
 
-fn emit_block(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_block(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_BLOCK())
     writer_core::emit_byte(w, 64)
 }
 
-fn emit_loop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_loop(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_LOOP())
     writer_core::emit_byte(w, 64)
 }
 
-fn emit_if(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_if(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     helpers_numeric_i32_convert::emit_narrow_branch_condition(w)
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
 }
 
-fn emit_else(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_else(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_ELSE())
 }
 
-fn emit_end(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_end(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
 use wasm::ctx_gc_type
 
-fn emit_br_on_cast(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_br_on_cast(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let type_slot = inst_accessors_operands::MirInst_arg0(inst)
     let to_type_idx = ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, type_slot)
     let from_type_idx = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
@@ -56,7 +56,7 @@ fn emit_br_on_cast(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_leb128_s(w, to_type_idx)
 }
 
-fn emit_br_on_cast_fail(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_br_on_cast_fail(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let type_slot = inst_accessors_operands::MirInst_arg0(inst)
     let to_type_idx = ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, type_slot)
     let from_type_idx = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)

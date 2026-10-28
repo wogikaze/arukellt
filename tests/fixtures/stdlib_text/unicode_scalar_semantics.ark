@@ -42,7 +42,7 @@ fn main() {
         Option::None => {},
     }
 
-    let valid_bytes = Vec::new<i32>()
+    let mut valid_bytes = Vec::new<i32>()
     push(valid_bytes, 195)
     push(valid_bytes, 169)
     match String::try_from_utf8(valid_bytes) {
@@ -50,11 +50,11 @@ fn main() {
         Option::None => assert(false),
     }
 
-    let invalid_bytes = Vec::new<i32>()
+    let mut invalid_bytes = Vec::new<i32>()
     push(invalid_bytes, 65)
     push(invalid_bytes, 195)
     push(invalid_bytes, 40)
-    let lossy_input = Vec::new<i32>()
+    let mut lossy_input = Vec::new<i32>()
     push(lossy_input, 65)
     push(lossy_input, 195)
     push(lossy_input, 40)

@@ -8,9 +8,9 @@ use mir::mono_names
 use mir::type_contracts
 use mir::typeinfo_shape
 fn mir_index_mono_variants(
-    fn_names: Vec<String>,
-    fn_return_vts: Vec<i32>,
-    fn_return_type_names: Vec<String>,
+    mut fn_names: Vec<String>,
+    mut fn_return_vts: Vec<i32>,
+    mut fn_return_type_names: Vec<String>,
     midx: MonoIndex,
     base_name: String,
     return_vt: i32,
@@ -22,9 +22,9 @@ fn mir_index_mono_variants(
 }
 
 fn mir_index_method_mono_variants(
-    fn_names: Vec<String>,
-    fn_return_vts: Vec<i32>,
-    fn_return_type_names: Vec<String>,
+    mut fn_names: Vec<String>,
+    mut fn_return_vts: Vec<i32>,
+    mut fn_return_type_names: Vec<String>,
     midx: MonoIndex,
     base_name: String,
     return_vt: i32,
@@ -36,9 +36,9 @@ fn mir_index_method_mono_variants(
 }
 
 fn mir_index_mono_variants_with_method_fallback(
-    fn_names: Vec<String>,
-    fn_return_vts: Vec<i32>,
-    fn_return_type_names: Vec<String>,
+    mut fn_names: Vec<String>,
+    mut fn_return_vts: Vec<i32>,
+    mut fn_return_type_names: Vec<String>,
     midx: MonoIndex,
     base_name: String,
     return_vt: i32,
@@ -105,7 +105,7 @@ fn mono_instantiate_return_type(ty: TypeInfo, inst: MonoInstance) -> TypeInfo {
     if arg_count <= 0 {
         return ty
     }
-    let result = type_contracts::TypeInfo_new(tag, type_contracts::TypeInfo_name(ty), Vec::new<TypeInfo>())
+    let mut result = type_contracts::TypeInfo_new(tag, type_contracts::TypeInfo_name(ty), Vec::new<TypeInfo>())
     let mut ai = 0
     while ai < arg_count {
         let arg = type_contracts::TypeInfo_type_arg_at(ty, ai)

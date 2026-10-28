@@ -39,7 +39,7 @@ fn is_else_block_with_sole_if(else_node: AstNode) -> bool {
     node_is_if_expr(inner)
 }
 
-fn collect_nested_else_if(node: AstNode, starts: Vec<i32>, ends: Vec<i32>) {
+fn collect_nested_else_if(node: AstNode, mut starts: Vec<i32>, mut ends: Vec<i32>) {
     if node_is_if_expr(node) {
         if ast_access::node_child_count(node) >= 3 {
             let else_node = ast_access::node_child_at(node, 2)
@@ -58,9 +58,9 @@ fn collect_nested_else_if(node: AstNode, starts: Vec<i32>, ends: Vec<i32>) {
 }
 
 pub fn check_prefer_else_if(decls: Vec<AstNode>) -> Vec<Diagnostic> {
-    let warnings = Vec::new<Diagnostic>()
-    let starts = Vec::new<i32>()
-    let ends = Vec::new<i32>()
+    let mut warnings = Vec::new<Diagnostic>()
+    let mut starts = Vec::new<i32>()
+    let mut ends = Vec::new<i32>()
     let dn = len(decls)
     let mut di = 0
     while di < dn {

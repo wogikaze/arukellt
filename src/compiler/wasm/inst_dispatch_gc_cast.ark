@@ -8,7 +8,7 @@ use wasm::linear_root_lowering
 use wasm::writer_core
 use wasm::writer_gc
 
-fn try_emit_gc_cast_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn try_emit_gc_cast_inst(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let op = inst_accessors_shape::MirInst_op(inst)
     if op == opcodes::MIR_REF_TEST() {
         if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {

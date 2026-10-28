@@ -15,7 +15,7 @@ use mir::lower::entry_view
 use mir::lower::ctx_struct_layout
 use mir::lower::trace
 fn mir_emit_top_level_fn_body(
-    ctx: LowerCtx,
+    mut ctx: LowerCtx,
     body_input: MirLowerEntryBodyInput,
     rt_tag: i32,
     rt_type_name: String,

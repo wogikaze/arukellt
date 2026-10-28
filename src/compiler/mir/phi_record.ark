@@ -20,7 +20,7 @@ fn MirPhi_new(dest: i32, val_type: i32) -> MirPhi {
     MirPhi { op: opcodes::MIR_PHI(), dest: dest, val_type: val_type, args: Vec::new<MirPhiArg>() }
 }
 
-fn mir_phi_add_arg(phi: MirPhi, pred_block: i32, local: i32) {
+fn mir_phi_add_arg(mut phi: MirPhi, pred_block: i32, local: i32) {
     push(phi.args, MirPhiArg_new(pred_block, local))
 }
 
@@ -32,7 +32,7 @@ fn mir_phi_dest(phi: MirPhi) -> i32 {
     phi.dest
 }
 
-fn mir_phi_set_dest(phi: MirPhi, dest: i32) {
+fn mir_phi_set_dest(mut phi: MirPhi, dest: i32) {
     phi.dest = dest
 }
 
@@ -60,6 +60,6 @@ fn mir_phi_arg_local(arg: MirPhiArg) -> i32 {
     arg.local
 }
 
-fn mir_phi_arg_set_local(arg: MirPhiArg, local: i32) {
+fn mir_phi_arg_set_local(mut arg: MirPhiArg, local: i32) {
     arg.local = local
 }

@@ -8,9 +8,9 @@ use parser::core_api_expect
 use parser::kinds
 use parser::types
 
-fn parse_fn_type(p: Parser, t: Token) -> AstNode {
+fn parse_fn_type(mut p: Parser, t: Token) -> AstNode {
     p.pos = p.pos + 1
-    let fn_node = core_ast_factory::AstNode_new(kinds::NK_TYPE_FN(), core_api_expect::tok_span(t))
+    let mut fn_node = core_ast_factory::AstNode_new(kinds::NK_TYPE_FN(), core_api_expect::tok_span(t))
     // Keep a non-empty text so Option<fn(...)> shaping yields option:fnref (#831).
     core_ast_text_fields::AstNode_set_text(fn_node, "fnref")
     core_api_expect::expect_token(p, tokens::TK_LPAREN())

@@ -14,7 +14,7 @@ use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::emit_target
 use wasm::ctx_record
 
-fn emit_has_flag(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_has_flag(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_flag = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_flen = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_argc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -39,7 +39,7 @@ fn emit_has_flag(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_has_flag_setup(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_has_flag_setup(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let s_flag = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_flen = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_argc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -94,7 +94,7 @@ fn emit_has_flag_setup(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 }
 
 fn emit_has_flag_loop_body_p2(
-    w: WasmWriter,
+    mut w: WasmWriter,
     s_flag: i32,
     s_flen: i32,
     s_argc: i32,
@@ -172,7 +172,7 @@ fn emit_has_flag_loop_body_p2(
     helpers_control::emit_br(w, 0)
 }
 
-fn emit_has_flag_alloc_argv(w: WasmWriter, s_argc: i32, s_argv: i32, s_argv_buf: i32, s_bufsize: i32) {
+fn emit_has_flag_alloc_argv(mut w: WasmWriter, s_argc: i32, s_argv: i32, s_argv_buf: i32, s_bufsize: i32) {
     helpers_core::emit_local_get(w, s_argc)
     helpers_numeric_i32::emit_i32_const(w, 4)
     helpers_numeric_i32::emit_i32_mul(w)
@@ -190,7 +190,7 @@ fn emit_has_flag_alloc_argv(w: WasmWriter, s_argc: i32, s_argv: i32, s_argv_buf:
     helpers_core::emit_local_set(w, s_argv_buf)
 }
 
-fn emit_has_flag_loop_body(w: WasmWriter, s_flag: i32, s_flen: i32, s_argc: i32, s_i: i32, s_argv: i32, s_cstr: i32, s_clen: i32, s_j: i32, s_found: i32) {
+fn emit_has_flag_loop_body(mut w: WasmWriter, s_flag: i32, s_flen: i32, s_argc: i32, s_i: i32, s_argv: i32, s_cstr: i32, s_clen: i32, s_j: i32, s_found: i32) {
     helpers_core::emit_local_get(w, s_i)
     helpers_core::emit_local_get(w, s_argc)
     helpers_numeric_i32::emit_i32_ge_s(w)
@@ -214,7 +214,7 @@ fn emit_has_flag_loop_body(w: WasmWriter, s_flag: i32, s_flen: i32, s_argc: i32,
     helpers_control::emit_br(w, 0)
 }
 
-fn emit_has_flag_strlen(w: WasmWriter, s_cstr: i32, s_clen: i32) {
+fn emit_has_flag_strlen(mut w: WasmWriter, s_cstr: i32, s_clen: i32) {
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_clen)
     helpers_control::emit_block_loop_header(w)
@@ -233,7 +233,7 @@ fn emit_has_flag_strlen(w: WasmWriter, s_cstr: i32, s_clen: i32) {
     helpers_control::emit_block_loop_footer(w)
 }
 
-fn emit_has_flag_compare(w: WasmWriter, s_flag: i32, s_flen: i32, s_cstr: i32, s_clen: i32, s_j: i32, s_found: i32) {
+fn emit_has_flag_compare(mut w: WasmWriter, s_flag: i32, s_flen: i32, s_cstr: i32, s_clen: i32, s_j: i32, s_found: i32) {
     helpers_control::emit_void_block(w)
     helpers_core::emit_local_get(w, s_clen)
     helpers_core::emit_local_get(w, s_flen)
@@ -252,7 +252,7 @@ fn emit_has_flag_compare(w: WasmWriter, s_flag: i32, s_flen: i32, s_cstr: i32, s
     helpers_control::emit_end(w)
 }
 
-fn emit_has_flag_byte_loop(w: WasmWriter, s_flag: i32, s_flen: i32, s_cstr: i32, s_j: i32) {
+fn emit_has_flag_byte_loop(mut w: WasmWriter, s_flag: i32, s_flen: i32, s_cstr: i32, s_j: i32) {
     helpers_control::emit_block_loop_header(w)
     helpers_core::emit_local_get(w, s_j)
     helpers_core::emit_local_get(w, s_flen)

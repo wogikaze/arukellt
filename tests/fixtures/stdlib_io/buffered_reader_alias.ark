@@ -7,15 +7,15 @@ use std::io::{BufReader, Reader}
 use std::test
 
 fn line_data() -> Vec<i32> {
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     data.push_byte(65)
     data.push_byte(10)
     data
 }
 
 fn main() {
-    let br1: BufReader<Reader> = BufReader::new<Reader>(Reader::from_bytes(line_data()), 64)
-    let br2: BufReader<Reader> = BufReader::new<Reader>(Reader::from_bytes(line_data()), 1)
+    let mut br1: BufReader<Reader> = BufReader::new<Reader>(Reader::from_bytes(line_data()), 64)
+    let mut br2: BufReader<Reader> = BufReader::new<Reader>(Reader::from_bytes(line_data()), 1)
     let l1: Result<Option<String>, io::IoError> = br1.read_line()
     let l2: Result<Option<String>, io::IoError> = br2.read_line()
     match l1 {

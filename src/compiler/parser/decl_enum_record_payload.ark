@@ -8,7 +8,7 @@ use parser::core_api_expect
 use parser::token_state
 use parser::types
 
-fn parse_enum_record_payload(p: Parser, variant: AstNode) {
+fn parse_enum_record_payload(mut p: Parser, mut variant: AstNode) {
     p.pos = p.pos + 1
     core_api_cursor::skip_newlines(p)
     while !core_api_cursor::at(p, tokens::TK_RBRACE()) && !core_api_cursor::at_eof(p) {
@@ -27,11 +27,11 @@ fn parse_enum_record_payload(p: Parser, variant: AstNode) {
     core_api_expect::expect_token(p, tokens::TK_RBRACE())
 }
 
-fn parse_enum_record_field(p: Parser) -> AstNode {
+fn parse_enum_record_field(mut p: Parser) -> AstNode {
     let fname = core_api_expect::expect_token(p, tokens::TK_IDENT())
     core_api_expect::expect_token(p, tokens::TK_COLON())
     let fty = types::parse_type(p)
-    let field = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), token_state::Token_text(fname), core_api_expect::tok_span(fname))
+    let mut field = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), token_state::Token_text(fname), core_api_expect::tok_span(fname))
     core_ast_type_ann::AstNode_push_type_ann(field, fty)
     field
 }

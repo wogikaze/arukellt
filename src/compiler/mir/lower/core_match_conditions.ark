@@ -11,7 +11,7 @@ use mir::lower::core_match_subpat
 use mir::lower::match_arms
 use mir::value_types
 
-fn core_emit_or_pattern_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, compare_idx: i32, scrut_idx: i32) {
+fn core_emit_or_pattern_condition(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, compare_idx: i32, scrut_idx: i32) {
     let alt_count = core_expr_shape_accessors::mir_core_expr_child_count(pat)
     let mut or_oi = 0
     let mut or_prev_cmp = 0 - 1
@@ -45,7 +45,7 @@ fn core_emit_or_pattern_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: C
     }
 }
 
-fn core_emit_value_pattern_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, compare_idx: i32, scrut_idx: i32) {
+fn core_emit_value_pattern_condition(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, compare_idx: i32, scrut_idx: i32) {
     // A variant pattern with literal/composite payload children must
     // compare the sub-patterns, not only the tag: emit the guarded flag
     // form whose payload loads sit inside the tag-true branch (#902).

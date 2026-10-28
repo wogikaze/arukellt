@@ -4,7 +4,7 @@ use wasm::opcodes
 use wasm::writer_core
 use wasm::intrinsics::helpers_numeric_i32_convert
 
-fn emit_and(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_and(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_I64() {
         writer_core::emit_byte(w, opcodes::OP_I64_AND())
     } else {
@@ -14,7 +14,7 @@ fn emit_and(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     }
 }
 
-fn emit_or(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_or(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_I64() {
         writer_core::emit_byte(w, opcodes::OP_I64_OR())
     } else {
@@ -24,7 +24,7 @@ fn emit_or(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     }
 }
 
-fn emit_bit_and(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_bit_and(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_I64() {
         writer_core::emit_byte(w, opcodes::OP_I64_AND())
     } else {
@@ -34,7 +34,7 @@ fn emit_bit_and(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     }
 }
 
-fn emit_bit_or(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_bit_or(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_I64() {
         writer_core::emit_byte(w, opcodes::OP_I64_OR())
     } else {
@@ -44,7 +44,7 @@ fn emit_bit_or(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     }
 }
 
-fn emit_bit_xor(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_bit_xor(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_I64() {
         writer_core::emit_byte(w, opcodes::OP_I64_XOR())
     } else {
@@ -54,7 +54,7 @@ fn emit_bit_xor(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     }
 }
 
-fn emit_shl(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_shl(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_I64() {
         writer_core::emit_byte(w, opcodes::OP_I64_SHL())
     } else {
@@ -64,7 +64,7 @@ fn emit_shl(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     }
 }
 
-fn emit_shr(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_shr(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_I64() {
         writer_core::emit_byte(w, opcodes::OP_I64_SHR_S())
     } else {

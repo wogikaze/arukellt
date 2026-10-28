@@ -7,28 +7,28 @@ use mir::inst_return
 use mir::inst_branch
 use mir::inst_local_set
 
-fn mir_emit_return_value(ctx: LowerCtx, val_idx: i32) {
+fn mir_emit_return_value(mut ctx: LowerCtx, val_idx: i32) {
     param_sig_infer::mir_stamp_param_from_return_type(ctx, val_idx)
     ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_value(val_idx))
 }
 
-fn mir_emit_return_void(ctx: LowerCtx) {
+fn mir_emit_return_void(mut ctx: LowerCtx) {
     ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_void())
 }
 
-fn mir_emit_loop_break(ctx: LowerCtx) {
+fn mir_emit_loop_break(mut ctx: LowerCtx) {
     if ctx_api_loop_query::ctx_loop_break_available(ctx) {
         ctx_api_emit::ctx_emit(ctx, inst_branch::MirInst_br(ctx_api_loop_query::ctx_loop_break_branch_depth(ctx)))
     }
 }
 
-fn mir_emit_loop_continue(ctx: LowerCtx) {
+fn mir_emit_loop_continue(mut ctx: LowerCtx) {
     if ctx_api_loop_query::ctx_loop_continue_available(ctx) {
         ctx_api_emit::ctx_emit(ctx, inst_branch::MirInst_br(ctx_api_loop_query::ctx_loop_continue_branch_depth(ctx)))
     }
 }
 
-fn mir_store_break_value(ctx: LowerCtx, value_idx: i32) {
+fn mir_store_break_value(mut ctx: LowerCtx, value_idx: i32) {
     if ctx_api_loop_query::ctx_loop_break_value_available(ctx) {
         ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(ctx_api_loop_state::ctx_loop_break_local(ctx)))
     }

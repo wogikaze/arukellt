@@ -7,9 +7,9 @@ m = len(items)
 
 fn main() {
     let empty: Vec<i32> = Vec::new<i32>()
-    let single: Vec<i32> = Vec::new<i32>()
+    let mut single: Vec<i32> = Vec::new<i32>()
     push(single, 42)
-    let many: Vec<i32> = Vec::new<i32>()
+    let mut many: Vec<i32> = Vec::new<i32>()
     push(many, 1)
     push(many, 2)
     push(many, 3)

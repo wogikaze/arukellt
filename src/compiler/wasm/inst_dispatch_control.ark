@@ -2,7 +2,7 @@ use mir::inst_accessors_shape
 use mir::opcodes
 use wasm::inst_control
 
-fn try_emit_control_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn try_emit_control_inst(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_BR() {
         inst_control::emit_br(w, inst, ctx)
         return true

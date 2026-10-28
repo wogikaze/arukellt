@@ -5,6 +5,15 @@ fn session_typecheck_decls(decls: Vec<AstNode>, resolve_ctx: ResolveCtx, wit_pat
     entry::typecheck_module(decls, resolve_ctx, wit_paths)
 }
 
+fn session_typecheck_decls_with_options(
+    decls: Vec<AstNode>,
+    resolve_ctx: ResolveCtx,
+    wit_paths: Vec<String>,
+    allow_shared_param_mutation: bool
+) -> TypeCheckResult {
+    entry::typecheck_module_with_options(decls, resolve_ctx, wit_paths, allow_shared_param_mutation)
+}
+
 fn session_empty_typecheck_result() -> TypeCheckResult {
     contract_result_state::TypeCheckResult_new()
 }

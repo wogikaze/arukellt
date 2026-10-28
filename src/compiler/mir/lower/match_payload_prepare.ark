@@ -52,7 +52,7 @@ fn mir_match_payload_info_compare_idx(info: MirMatchPayloadInfo) -> i32 {
     info.compare_idx
 }
 
-fn mir_prepare_match_payload(ctx: LowerCtx, node: AstNode, child_count: i32, scrut_idx: i32) -> MirMatchPayloadInfo {
+fn mir_prepare_match_payload(mut ctx: LowerCtx, node: AstNode, child_count: i32, scrut_idx: i32) -> MirMatchPayloadInfo {
     let is_payload_match = mir_match_has_payload_pattern(node, child_count)
     let has_variant_arm = mir_match_has_variant_pattern(node, child_count)
     mir_fix_unresolved_scrutinee_type(ctx, node, child_count, scrut_idx, has_variant_arm)
@@ -207,7 +207,7 @@ fn mir_pat_is_record_variant(ctx: LowerCtx, pat: AstNode) -> bool {
     ctx_api_variants::ctx_is_payload_variant(ctx, ast_node::node_text(pat))
 }
 
-fn mir_emit_payload_tag_local(ctx: LowerCtx, scrut_idx: i32) -> i32 {
+fn mir_emit_payload_tag_local(mut ctx: LowerCtx, scrut_idx: i32) -> i32 {
     let tag_local = ctx_fresh_local(ctx, value_types::VT_I32())
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
         ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(tag_local, scrut_idx, 0 - 1, 0, value_types::VT_I32()))
@@ -224,7 +224,7 @@ fn mir_emit_payload_tag_local(ctx: LowerCtx, scrut_idx: i32) -> i32 {
 // literal patterns a String ref, and ident.field guards a struct ref.
 // Stamp that type back into the signature/local records so the emitted
 // func type agrees with the body (#894).
-fn mir_fix_unresolved_scrutinee_type(ctx: LowerCtx, node: AstNode, child_count: i32, scrut_idx: i32, has_variant_arm: bool) {
+fn mir_fix_unresolved_scrutinee_type(mut ctx: LowerCtx, node: AstNode, child_count: i32, scrut_idx: i32, has_variant_arm: bool) {
     if scrut_idx < 0 {
         return
     }
@@ -376,7 +376,7 @@ fn mir_variant_owner_is_option(variant_name: String) -> bool {
 // Canonical scrutinee type when an arm binds the scrutinee and returns the
 // binding unchanged. Only ref-typed returns are interesting: a scalar
 // return keeps the default i64 signature, which is already valid.
-fn mir_match_bind_return_scrutinee_type(ctx: LowerCtx, node: AstNode, child_count: i32) -> String {
+fn mir_match_bind_return_scrutinee_type(mut ctx: LowerCtx, node: AstNode, child_count: i32) -> String {
     let f = ctx_current_storage::ctx_current_func_value(ctx)
     let rt = function_return_view::MirFunction_return_type(f)
     if rt != value_types::VT_GC_REF() && rt != value_types::VT_REF() {

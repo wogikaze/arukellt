@@ -5,7 +5,7 @@ use typechecker::unify
 
 fn constrain_turbofish_type_arg(
     callee: AstNode,
-    infer_env: TypeEnv,
+    mut infer_env: TypeEnv,
     var_types: Vec<TypeInfo>,
     index: i32
 ) {
@@ -19,7 +19,7 @@ fn constrain_turbofish_type_arg(
 //   children[0] = lhs segment, children[1..] = explicit type args (#845).
 fn constrain_turbofish_type_args(
     callee: AstNode,
-    infer_env: TypeEnv,
+    mut infer_env: TypeEnv,
     var_types: Vec<TypeInfo>
 ) {
     if !ast_expr_predicates::node_is_path(callee) {

@@ -8,7 +8,7 @@ use mir::lower::ctx_corehir_probe
 use mir::lower::entry_fallback_body
 use mir::lower::legacy_body
 use corehir::mod as corehir_mod
-fn mir_emit_impl_methods(ctx: LowerCtx, body_source: MirLowerEntryBodySource, impl_decl_index: i32, struct_name: String, midx: MonoIndex, emit_keep: NameIndex, prune_enabled: bool) -> i32 {
+fn mir_emit_impl_methods(mut ctx: LowerCtx, mut body_source: MirLowerEntryBodySource, impl_decl_index: i32, struct_name: String, midx: MonoIndex, emit_keep: NameIndex, prune_enabled: bool) -> i32 {
     let entry_view = entry_body_source::mir_entry_body_source_view(body_source)
     let method_count = entry_view_method::mir_entry_method_count_for_impl(entry_view, impl_decl_index)
     let mut mi = 0

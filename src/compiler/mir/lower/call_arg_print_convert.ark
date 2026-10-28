@@ -11,7 +11,7 @@ use mir::inst_local_get
 use mir::inst_local_set
 use mir::lower::ctx_gc_enum
 use mir::value_types
-fn mir_convert_print_arg_to_string(ctx: LowerCtx, arg: AstNode, arg_idx: i32) -> i32 {
+fn mir_convert_print_arg_to_string(mut ctx: LowerCtx, arg: AstNode, arg_idx: i32) -> i32 {
     let wrap_lt = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
     let mut wrap_callee = "to_string"
     if eq(clone(wrap_lt), "char") || ast_node::node_kind_is(arg, lower_kinds::NK_CHAR_LIT()) {

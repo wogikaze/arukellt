@@ -12,7 +12,7 @@ fn key_self(x: String) -> String {
 }
 
 fn main() {
-    let s: Vec<String> = Vec::new<String>()
+    let mut s: Vec<String> = Vec::new<String>()
     push(s, String_from("alpha"))
     push(s, String_from("beta"))
     push(s, String_from("gamma"))

@@ -29,7 +29,7 @@ fn simple_type(tag: i32) -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(tag)
 }
 
-fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+fn infer_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let child_count = ast_access::node_child_count(node)
     if child_count < 1 {
         return simple_type(commands::TY_UNKNOWN())
@@ -212,7 +212,7 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
 // / `hashset_shrink_to_fit`) over the linear Vec<String> store, which has no
 // bucket layout (#917).
 fn reject_hashset_method_outside_family(
-    env: TypeEnv,
+    mut env: TypeEnv,
     fn_sigs: Vec<FnSig>,
     recv_type_name: String,
     method_name: String
@@ -275,8 +275,8 @@ fn hashset_method_unavailable_message(method_name: String, family: String) -> St
 // and reject a non-numeric iterator before MIR can lower an unresolved method
 // to a runtime trap.
 fn infer_concrete_numeric_consumer_call(
-    env: TypeEnv,
-    scope: LocalScope,
+    mut env: TypeEnv,
+    mut scope: LocalScope,
     fn_sigs: Vec<FnSig>,
     enum_defs: Vec<EnumInfo>,
     node: AstNode,
@@ -321,7 +321,7 @@ fn numeric_consumer_trait_name(method_name: String) -> String {
 }
 
 fn numeric_consumer_bound(method_name: String) -> TypeInfo {
-    let bound = type_names::resolve_type_name(
+    let mut bound = type_names::resolve_type_name(
         numeric_consumer_trait_name(clone(method_name))
     )
     contract_type_mutation::TypeInfo_push_type_arg(
@@ -335,7 +335,7 @@ fn numeric_consumer_bound(method_name: String) -> TypeInfo {
     bound
 }
 
-fn receiver_has_iterator_contract(env: TypeEnv, recv_ty: TypeInfo) -> bool {
+fn receiver_has_iterator_contract(mut env: TypeEnv, recv_ty: TypeInfo) -> bool {
     let tag = contract_type_access::TypeInfo_tag(recv_ty)
     if tag == commands::TY_TYPE_VAR() {
         return trait_bounds::env_type_var_has_trait_bound(
@@ -352,14 +352,14 @@ fn receiver_has_iterator_contract(env: TypeEnv, recv_ty: TypeInfo) -> bool {
 }
 
 fn string_vec_type() -> TypeInfo {
-    let type_args = Vec::new<TypeInfo>()
+    let mut type_args = Vec::new<TypeInfo>()
     push(type_args, simple_type(commands::TY_STRING()))
     contract_types_record::TypeInfo_new(commands::TY_VEC(), String_from("Vec"), type_args)
 }
 
 fn infer_builtin_vec_method(
-    env: TypeEnv,
-    scope: LocalScope,
+    mut env: TypeEnv,
+    mut scope: LocalScope,
     fn_sigs: Vec<FnSig>,
     enum_defs: Vec<EnumInfo>,
     node: AstNode,
@@ -430,7 +430,7 @@ fn is_vec_method_with_arity(method_name: String, explicit_args: i32) -> bool {
     false
 }
 
-fn infer_resolved_method_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig, recv_ty: TypeInfo, child_count: i32) -> TypeInfo {
+fn infer_resolved_method_call(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig, recv_ty: TypeInfo, child_count: i32) -> TypeInfo {
     let explicit_args = child_count - 1
     let param_count = contract_fn_sig::FnSig_param_count(sig)
     if param_count < 1 {
@@ -629,7 +629,7 @@ fn inst_arg_key(ty: TypeInfo) -> String {
     String_new()
 }
 
-fn try_resolve_trait_method_from_bounds(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, method_name: String) -> TraitMethodEntry {
+fn try_resolve_trait_method_from_bounds(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, method_name: String) -> TraitMethodEntry {
     let recv_node = ast_access::node_child_at(node, 0)
     let recv_ty = infer_expr(env, scope, fn_sigs, enum_defs, recv_node)
     // Only attempt trait resolution when the receiver is a type variable.
@@ -676,7 +676,7 @@ fn try_resolve_trait_method_from_bounds(env: TypeEnv, scope: LocalScope, fn_sigs
     trait_method_registry::lookup_trait_method(env, String_new(), String_new())
 }
 
-fn infer_trait_method_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, entry: TraitMethodEntry) -> TypeInfo {
+fn infer_trait_method_call(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, entry: TraitMethodEntry) -> TypeInfo {
     let sig = contract_trait_method_record::trait_method_entry_sig(entry)
     let child_count = ast_access::node_child_count(node)
     let explicit_args = child_count - 1

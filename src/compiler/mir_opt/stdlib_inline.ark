@@ -32,8 +32,8 @@ fn stdlib_inline_find_function(m: MirModule, name: String) -> i32 {
     0 - 1
 }
 
-fn stdlib_inline_rewrite_block(m: MirModule, caller: MirFunction, block: MirBlock) -> i32 {
-    let output = Vec::new<MirInstDraft>()
+fn stdlib_inline_rewrite_block(m: MirModule, mut caller: MirFunction, mut block: MirBlock) -> i32 {
+    let mut output = Vec::new<MirInstDraft>()
     let count = block_inst_access::MirBlock_inst_count(block)
     let mut inlined = 0
     let mut index = 0
@@ -77,7 +77,7 @@ fn stdlib_inline_module(m: MirModule) -> i32 {
     let mut total = 0
     let mut function_index = 0
     while function_index < function_count {
-        let caller = module_functions::MirModule_function_at(m, function_index)
+        let mut caller = module_functions::MirModule_function_at(m, function_index)
         total = total + stdlib_inline_fn(m, caller)
         function_index = function_index + 1
     }
@@ -86,7 +86,7 @@ fn stdlib_inline_module(m: MirModule) -> i32 {
 
 // Per-fn entry for the fused in-loop emit drain (#851 Phase 3): identical
 // block loop to stdlib_inline_module, applied to one caller.
-fn stdlib_inline_fn(m: MirModule, caller: MirFunction) -> i32 {
+fn stdlib_inline_fn(m: MirModule, mut caller: MirFunction) -> i32 {
     let mut total = 0
     let block_count = function_block_queries::MirFunction_block_count(caller)
     let mut block_index = 0
@@ -194,8 +194,8 @@ fn stdlib_specialize_vec_fallback(
     fallback
 }
 
-fn stdlib_resolve_normal_call_block(m: MirModule, f: MirFunction, block: MirBlock) -> i32 {
-    let output = Vec::new<MirInstDraft>()
+fn stdlib_resolve_normal_call_block(m: MirModule, f: MirFunction, mut block: MirBlock) -> i32 {
+    let mut output = Vec::new<MirInstDraft>()
     let registry = module_spine::MirModule_signature_registry(m)
     let count = block_inst_access::MirBlock_inst_count(block)
     let mut resolved = 0
@@ -219,7 +219,7 @@ fn stdlib_resolve_normal_call_block(m: MirModule, f: MirFunction, block: MirBloc
                 if fallback_raw >= 0 {
                     // Do not shadow mut resolved (i32 count) with MirInst — shared
                     // wasm locals then mix i64 and ref under Memory64 (#730).
-                    let resolved_inst = inst_draft::MirInstDraft_with_call_target(
+                    let mut resolved_inst = inst_draft::MirInstDraft_with_call_target(
                         block_inst_access::MirBlock_export_draft(block, index),
                         specialized,
                         fallback_raw

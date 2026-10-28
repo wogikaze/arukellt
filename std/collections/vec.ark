@@ -74,12 +74,12 @@ impl<T> Vec<T> {
     }
 
     /// Appends `x` to the end of the vector.
-    fn push(self, x: T) {
+    fn push(mut self, x: T) {
         push(self, x)
     }
 
     /// Removes and returns the last element, or None when empty.
-    fn pop(self) -> Option<T> {
+    fn pop(mut self) -> Option<T> {
         vec_pop(self)
     }
 
@@ -89,7 +89,7 @@ impl<T> Vec<T> {
     }
 
     /// Sets the element at `idx` to `val`.
-    fn set(self, idx: i32, val: T) {
+    fn set(mut self, idx: i32, val: T) {
         vec_set(self, idx, val)
     }
 
@@ -114,14 +114,14 @@ impl<T> Vec<T> {
     /// element references yet. A non-positive width returns an empty result
     /// instead of trapping.
     fn windows(self: Vec<T>, width: i32) -> Vec<Vec<T>> {
-        let windows: Vec<Vec<T>> = Vec::new<Vec<T>>()
+        let mut windows: Vec<Vec<T>> = Vec::new<Vec<T>>()
         let count: i32 = vec_len(self)
         if width <= 0 {
             return windows
         }
         let mut start: i32 = 0
         while start + width <= count {
-            let window: Vec<T> = Vec::with_capacity<T>(width)
+            let mut window: Vec<T> = Vec::with_capacity<T>(width)
             let mut offset: i32 = 0
             while offset < width {
                 push(window, get_unchecked(self, start + offset))
@@ -138,7 +138,7 @@ impl<T> Vec<T> {
     /// The final chunk keeps the shorter tail. A non-positive width returns an
     /// empty result instead of trapping.
     fn chunks(self: Vec<T>, width: i32) -> Vec<Vec<T>> {
-        let chunks: Vec<Vec<T>> = Vec::new<Vec<T>>()
+        let mut chunks: Vec<Vec<T>> = Vec::new<Vec<T>>()
         let count: i32 = vec_len(self)
         if width <= 0 {
             return chunks
@@ -149,7 +149,7 @@ impl<T> Vec<T> {
             if stop > count {
                 stop = count
             }
-            let chunk: Vec<T> = Vec::with_capacity<T>(stop - start)
+            let mut chunk: Vec<T> = Vec::with_capacity<T>(stop - start)
             let mut index: i32 = start
             while index < stop {
                 push(chunk, get_unchecked(self, index))
@@ -166,14 +166,14 @@ impl<T> Vec<T> {
     ///
     /// A non-positive width returns an empty result instead of trapping.
     fn chunks_exact(self: Vec<T>, width: i32) -> Vec<Vec<T>> {
-        let chunks: Vec<Vec<T>> = Vec::new<Vec<T>>()
+        let mut chunks: Vec<Vec<T>> = Vec::new<Vec<T>>()
         let count: i32 = vec_len(self)
         if width <= 0 {
             return chunks
         }
         let mut start: i32 = 0
         while start + width <= count {
-            let chunk: Vec<T> = Vec::with_capacity<T>(width)
+            let mut chunk: Vec<T> = Vec::with_capacity<T>(width)
             let mut index: i32 = start
             while index < start + width {
                 push(chunk, get_unchecked(self, index))
@@ -189,7 +189,7 @@ impl<T> Vec<T> {
     ///
     /// The filter is applied in place; removed elements are dropped as the
     /// logical length shrinks, and the capacity is retained.
-    fn retain(self: Vec<T>, keep: fn(T) -> bool) {
+    fn retain(mut self: Vec<T>, keep: fn(T) -> bool) {
         let count: i32 = vec_len(self)
         let mut read: i32 = 0
         let mut write: i32 = 0
@@ -215,7 +215,7 @@ impl<T> Vec<T> {
     /// Shortens the vector to at most `new_len` elements.
     ///
     /// A negative length is treated as zero. Capacity is retained.
-    fn truncate(self: Vec<T>, new_len: i32) {
+    fn truncate(mut self: Vec<T>, new_len: i32) {
         let target: i32 = if new_len < 0 { 0 } else { new_len }
         while vec_len(self) > target {
             match vec_pop(self) {
@@ -227,7 +227,7 @@ impl<T> Vec<T> {
 
     /// Moves every element of `other` to the end of this vector and empties
     /// `other`, matching `Vec::append` ownership transfer.
-    fn append(self: Vec<T>, other: Vec<T>) {
+    fn append(mut self: Vec<T>, other: Vec<T>) {
         let count: i32 = vec_len(other)
         let mut i: i32 = 0
         while i < count {
@@ -255,7 +255,7 @@ impl<T> Vec<T> {
         if to < from {
             to = from
         }
-        let removed: Vec<T> = Vec::with_capacity<T>(to - from)
+        let mut removed: Vec<T> = Vec::with_capacity<T>(to - from)
         let mut i: i32 = from
         while i < to {
             push(removed, get_unchecked(self, i))
@@ -283,7 +283,7 @@ impl<T> Vec<T> {
     ///
     /// Bounds follow `drain`. The appended replacement is rotated into place,
     /// so the returned value is the pre-replacement range content.
-    fn splice(self: Vec<T>, start: i32, end: i32, replacement: Vec<T>) -> Vec<T> {
+    fn splice(mut self: Vec<T>, start: i32, end: i32, replacement: Vec<T>) -> Vec<T> {
         let count: i32 = vec_len(self)
         let from: i32 = if start < 0 { 0 } else if start > count { count } else { start }
         let mut to: i32 = if end < 0 { 0 } else if end > count { count } else { end }
@@ -325,7 +325,7 @@ impl<T> Vec<T> {
         }
         // 安定なボトムアップ・マージソート。作業配列は要素のハンドルを複製して
         // 埋める（drain と同じく、複製したハンドルは GC 管理なので安全）。
-        let scratch: Vec<T> = Vec::with_capacity<T>(count)
+        let mut scratch: Vec<T> = Vec::with_capacity<T>(count)
         for _i in 0..count {
             push(scratch, get_unchecked(self, 0))
         }
@@ -504,7 +504,7 @@ impl<T> Vec<T> {
     /// Growth copies the element handle into each new slot (the current value
     /// model treats clone as identity for immutable / copy-on-write values).
     /// A negative length is treated as zero.
-    fn resize(self: Vec<T>, new_len: i32, value: T) {
+    fn resize(mut self: Vec<T>, new_len: i32, value: T) {
         let target: i32 = if new_len < 0 { 0 } else { new_len }
         let old_len: i32 = vec_len(self)
         if target <= old_len {
@@ -519,7 +519,7 @@ impl<T> Vec<T> {
 
     /// Appends every element of `other` to this vector, leaving `other`
     /// unchanged. Element handles are copied; no `Clone` dispatch is required.
-    fn extend(self: Vec<T>, other: Vec<T>) {
+    fn extend(mut self: Vec<T>, other: Vec<T>) {
         let count: i32 = vec_len(other)
         let mut index: i32 = 0
         while index < count {
@@ -533,7 +533,7 @@ impl<T> Vec<T> {
     /// The pop loop mirrors `truncate(0)` instead of calling it: a generic
     /// impl method calling a sibling generic method currently lowers the
     /// callee to an unreachable stub in the GC emitter (#917).
-    fn clear(self: Vec<T>) {
+    fn clear(mut self: Vec<T>) {
         while vec_len(self) > 0 {
             match vec_pop(self) {
                 Option::Some(_) => {},
@@ -562,7 +562,7 @@ impl<T> Vec<T> {
     }
 
     /// Swaps the elements at `i` and `j`.
-    fn swap(self: Vec<T>, i: i32, j: i32) {
+    fn swap(mut self: Vec<T>, i: i32, j: i32) {
         if i == j {
             return
         }
@@ -573,7 +573,7 @@ impl<T> Vec<T> {
     }
 
     /// Reverses the element order in place.
-    fn reverse(self: Vec<T>) {
+    fn reverse(mut self: Vec<T>) {
         let count: i32 = self.len()
         let mut i: i32 = 0
         let mut j: i32 = count - 1
@@ -590,7 +590,7 @@ impl<T> Vec<T> {
     /// Inserts `val` at `idx`, shifting the tail right.
     ///
     /// An index past the end appends. A negative index inserts at the front.
-    fn insert(self: Vec<T>, idx: i32, val: T) {
+    fn insert(mut self: Vec<T>, idx: i32, val: T) {
         let count: i32 = self.len()
         let mut target: i32 = idx
         if target < 0 {
@@ -610,7 +610,7 @@ impl<T> Vec<T> {
     }
 
     /// Removes and returns the element at `idx`, shifting the tail left.
-    fn remove(self: Vec<T>, idx: i32) -> T {
+    fn remove(mut self: Vec<T>, idx: i32) -> T {
         let count: i32 = self.len()
         let value = self.get_unchecked(idx)
         let mut k: i32 = idx
@@ -629,7 +629,7 @@ impl<T> Vec<T> {
 
     /// Removes and returns the element at `idx` by moving the last element into
     /// its place. O(1), but changes the order of the remaining elements.
-    fn swap_remove(self: Vec<T>, idx: i32) -> T {
+    fn swap_remove(mut self: Vec<T>, idx: i32) -> T {
         let count: i32 = self.len()
         let value = self.get_unchecked(idx)
         if idx != count - 1 {
@@ -659,7 +659,7 @@ impl<T> Vec<T> {
 
 impl Vec<i32> {
     /// Sorts i32 elements in ascending order (stable insertion sort).
-    fn sort(self: Vec<i32>) {
+    fn sort(mut self: Vec<i32>) {
         let count: i32 = self.len()
         let mut i: i32 = 1
         while i < count {
@@ -681,7 +681,7 @@ impl Vec<i32> {
     }
 
     /// Removes consecutive equal elements.
-    fn dedup(self: Vec<i32>) {
+    fn dedup(mut self: Vec<i32>) {
         let count: i32 = self.len()
         let mut write: i32 = 0
         let mut read: i32 = 0

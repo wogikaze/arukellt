@@ -3,7 +3,7 @@ use std::bytes::Bytes
 use std::test
 
 fn main() {
-    let b: Vec<i32> = Vec::new<i32>()
+    let mut b: Vec<i32> = Vec::new<i32>()
     b.push_byte(0)
     b.push_byte(255)
     b.push_byte(127)

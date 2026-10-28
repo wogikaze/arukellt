@@ -7,7 +7,7 @@ use std::prelude::{clone, eq}
 use typechecker::contract_type_access
 use typechecker::kinds
 use typechecker::mono
-fn record_vec_core_fallback_mono(env: TypeEnv, fallback_symbol: String, recv_ty: TypeInfo) {
+fn record_vec_core_fallback_mono(mut env: TypeEnv, fallback_symbol: String, recv_ty: TypeInfo) {
     if contract_type_access::TypeInfo_tag(recv_ty) != commands::TY_VEC() {
         return
     }
@@ -21,12 +21,12 @@ fn record_vec_core_fallback_mono(env: TypeEnv, fallback_symbol: String, recv_ty:
     if contract_type_access::TypeInfo_tag(elem) == commands::TY_TYPE_VAR() {
         return
     }
-    let resolved = Vec::new<TypeInfo>()
+    let mut resolved = Vec::new<TypeInfo>()
     push(resolved, elem)
     let _mangled = mono::record_mono_instance(env, fallback_symbol, resolved)
 }
 
-fn record_vec_core_mono_for_callee(env: TypeEnv, callee_name: String, recv_ty: TypeInfo) {
+fn record_vec_core_mono_for_callee(mut env: TypeEnv, callee_name: String, recv_ty: TypeInfo) {
     if eq(clone(callee_name), String_from("len")) ||
     eq(clone(callee_name), String_from("vec_len")) {
         record_vec_core_fallback_mono(env, String_from("__core_vec_len_impl"), recv_ty)

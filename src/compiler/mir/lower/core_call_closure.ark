@@ -11,7 +11,7 @@ use mir::inst_call
 use mir::inst_local_get
 use mir::lower::core_expr_shape_accessors
 use mir::value_types
-fn lower_core_closure_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+fn lower_core_closure_call(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
     let clo_ix = closure_registry::ctx_closure_lookup(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
     if clo_ix < 0 {

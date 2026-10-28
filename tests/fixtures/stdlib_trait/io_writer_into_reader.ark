@@ -6,16 +6,16 @@ use std::host::stdio
 use std::io
 
 fn main() {
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     push(data, 88)
     push(data, 89)
     push(data, 90)
-    let writer: io::Writer = io::Writer::new()
+    let mut writer: io::Writer = io::Writer::new()
     match writer.write(data) {
         Result::Ok(n) => assert(n == 3),
         Result::Err(_e) => assert(false),
     }
-    let reader: io::Reader = writer.into_reader()
+    let mut reader: io::Reader = writer.into_reader()
     assert(reader.len() == 3)
     match reader.position() {
         Result::Ok(pos) => assert(pos == 0i64),

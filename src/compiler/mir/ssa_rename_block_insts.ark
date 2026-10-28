@@ -7,11 +7,11 @@ use mir::local_access
 use mir::ssa_rename_inst
 use mir::ssa_state_types
 
-fn rename_block_insts(f: MirFunction, state: ssa_state_types::MirSsaRenameState, block: MirBlock) {
+fn rename_block_insts(mut f: MirFunction, mut state: ssa_state_types::MirSsaRenameState, block: MirBlock) {
     let ic = block_inst_access::MirBlock_inst_count(block)
     let mut ii = 0
     while ii < ic {
-        let inst = block_inst_access::MirBlock_inst_at(block, ii)
+        let mut inst = block_inst_access::MirBlock_inst_at(block, ii)
         ssa_rename_inst::mir_ssa_rewrite_inst_uses(inst, state)
         if ssa_rename_inst::mir_is_pure_ssa_def(inst) {
             let original_dest = inst_accessors_operands::MirInst_dest(inst)

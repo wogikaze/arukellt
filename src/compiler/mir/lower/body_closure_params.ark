@@ -9,7 +9,7 @@ use mir::lower_kinds
 use mir::lower::ctx_types
 use mir::local_factory
 use mir::value_types
-fn mir_emit_closure_params(ctx: LowerCtx, clos: AstNode, child_count: i32) {
+fn mir_emit_closure_params(mut ctx: LowerCtx, clos: AstNode, child_count: i32) {
     let mut pi = 0
     while pi + 1 < child_count {
         let p = ast_node::node_child_at(clos, pi)

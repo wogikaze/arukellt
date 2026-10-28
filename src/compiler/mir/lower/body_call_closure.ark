@@ -12,7 +12,7 @@ use mir::lower::ctx_types
 use mir::inst_call
 use mir::inst_local_get
 use mir::value_types
-fn try_lower_closure_call(ctx: LowerCtx, node: AstNode, callee: AstNode, child_count: i32) -> i32 {
+fn try_lower_closure_call(mut ctx: LowerCtx, node: AstNode, callee: AstNode, child_count: i32) -> i32 {
     if !ast_node::node_kind_is(callee, lower_kinds::NK_IDENT()) {
         return 0 - 1
     }

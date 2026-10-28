@@ -72,7 +72,7 @@ fn mir_variant_pat_has_checked_children(ctx: LowerCtx, pat: AstNode) -> bool {
 // result is always safe to fold unconditionally. val_idx must already be
 // in a context where reading it is valid (top-level scrutinee or inside
 // a parent tag-true branch).
-fn mir_emit_subpat_cond(ctx: LowerCtx, pat: AstNode, val_idx: i32) -> i32 {
+fn mir_emit_subpat_cond(mut ctx: LowerCtx, pat: AstNode, val_idx: i32) -> i32 {
     if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_LITERAL()) {
         if match_arms::mir_pat_is_string_literal(pat) {
             let cmp = match_arms::mir_emit_string_pattern_compare(ctx, val_idx, pat)
@@ -129,7 +129,7 @@ fn mir_emit_subpat_cond(ctx: LowerCtx, pat: AstNode, val_idx: i32) -> i32 {
 // conjunction of checked-child conditions }. Emits the guarded flag and
 // returns its local; the operand stack is neutral on return, so callers
 // push the flag when they need it as a condition value.
-fn mir_emit_variant_subpat_flag_tagged(ctx: LowerCtx, pat: AstNode, val_idx: i32, known_tag_idx: i32) -> i32 {
+fn mir_emit_variant_subpat_flag_tagged(mut ctx: LowerCtx, pat: AstNode, val_idx: i32, known_tag_idx: i32) -> i32 {
     let variant_name = ast_node::node_text(pat)
     let flag = ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_emit(ctx, inst_const_i32::MirInst_const_i32(0, flag))
@@ -202,7 +202,7 @@ fn mir_emit_variant_subpat_flag_tagged(ctx: LowerCtx, pat: AstNode, val_idx: i32
 // Tuple sub-pattern: extract each checked element and AND-fold the pushed
 // element conditions. Tuple destructuring needs no tag guard, so element
 // reads are unconditional once the enclosing variant payload is loaded.
-fn mir_emit_tuple_subpat_cond(ctx: LowerCtx, pat: AstNode, val_idx: i32) -> i32 {
+fn mir_emit_tuple_subpat_cond(mut ctx: LowerCtx, pat: AstNode, val_idx: i32) -> i32 {
     let count = ast_node::node_child_count(pat)
     let mut cond_count = 0
     let mut acc = 0 - 1
@@ -231,7 +231,7 @@ fn mir_emit_tuple_subpat_cond(ctx: LowerCtx, pat: AstNode, val_idx: i32) -> i32 
     acc
 }
 
-fn mir_emit_tag_compare_cond(ctx: LowerCtx, val_idx: i32, tag: i32) -> i32 {
+fn mir_emit_tag_compare_cond(mut ctx: LowerCtx, val_idx: i32, tag: i32) -> i32 {
     let tag_idx = match_payload_prepare::mir_emit_payload_tag_local(ctx, val_idx)
     ctx_emit(ctx, inst_local_get::MirInst_local_get(tag_idx))
     let tag_const = ctx_fresh_local(ctx, value_types::VT_I32())
@@ -241,7 +241,7 @@ fn mir_emit_tag_compare_cond(ctx: LowerCtx, val_idx: i32, tag: i32) -> i32 {
     cmp_dest
 }
 
-fn mir_const_true_cond(ctx: LowerCtx) -> i32 {
+fn mir_const_true_cond(mut ctx: LowerCtx) -> i32 {
     let one = ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_emit(ctx, inst_const_i32::MirInst_const_i32(1, one))
     one

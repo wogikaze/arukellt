@@ -5,23 +5,23 @@ use mir::lower::body_aggregate_place
 use mir::lower::body_struct_lit
 use mir::lower::body_tuple_lit
 
-fn lower_assign_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_assign_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     body_aggregate_place::lower_assign_expr(ctx, node)
 }
 
-fn lower_struct_lit_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_struct_lit_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     body_struct_lit::lower_struct_lit_expr(ctx, node)
 }
 
-fn lower_tuple_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_tuple_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     body_tuple_lit::lower_tuple_expr(ctx, node)
 }
 
-fn lower_field_access_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_field_access_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     body_aggregate_place::lower_field_access_expr(ctx, node)
 }
 
-fn lower_array_lit_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_array_lit_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     let dest = aggregate::mir_emit_array_new(ctx, child_count)
     let mut e = 0
@@ -37,7 +37,7 @@ fn lower_array_lit_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     aggregate::mir_emit_local_get_ref(ctx, dest)
 }
 
-fn lower_array_repeat_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_array_repeat_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let val_node = ast_node::node_child_at(node, 0)
     let count_node = ast_node::node_child_at(node, 1)
     let count = ast_node::node_int_val(count_node)
@@ -53,10 +53,10 @@ fn lower_array_repeat_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     aggregate::mir_emit_local_get_ref(ctx, dest)
 }
 
-fn lower_index_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_index_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     body_aggregate_place::lower_index_expr(ctx, node)
 }
 
-fn lower_comprehension_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_comprehension_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     body_aggregate_comprehension::lower_comprehension_expr(ctx, node)
 }

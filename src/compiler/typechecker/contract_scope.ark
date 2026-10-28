@@ -26,6 +26,10 @@ struct VarBinding {
     // The bound value is a closure whose env holds borrow captures (#872);
     // such bindings cannot flow to escape positions (E0213).
     has_borrow_captures: bool,
+    // A parameter or receiver declared without `mut` (ADR-088 §2). The
+    // binding is immutable, but the reason is the call boundary rather than a
+    // local `let`, so the assignment diagnostic can name the missing `mut`.
+    is_shared_param: bool,
 }
 
 struct LocalScope {
@@ -53,6 +57,7 @@ fn VarBinding_new_with_flags(name: String, ty: TypeInfo, is_mutable: bool, is_co
         has_mutable_borrow: false,
         has_captures: false,
         has_borrow_captures: false,
+        is_shared_param: false,
     }
 }
 
@@ -73,6 +78,7 @@ fn VarBinding_new_scheme_with_flags(name: String, scheme: TypeScheme, is_mutable
         has_mutable_borrow: false,
         has_captures: false,
         has_borrow_captures: false,
+        is_shared_param: false,
     }
 }
 
@@ -96,6 +102,14 @@ fn VarBinding_is_mutable(binding: VarBinding) -> bool {
     binding.is_mutable
 }
 
+fn VarBinding_is_shared_param(binding: VarBinding) -> bool {
+    binding.is_shared_param
+}
+
+fn VarBinding_set_is_shared_param(mut binding: VarBinding, is_shared_param: bool) {
+    binding.is_shared_param = is_shared_param
+}
+
 fn VarBinding_is_copy(binding: VarBinding) -> bool {
     binding.is_copy
 }
@@ -112,15 +126,15 @@ fn VarBinding_has_mutable_borrow(binding: VarBinding) -> bool {
     binding.has_mutable_borrow
 }
 
-fn VarBinding_set_moved(binding: VarBinding, is_moved: bool) {
+fn VarBinding_set_moved(mut binding: VarBinding, is_moved: bool) {
     binding.is_moved = is_moved
 }
 
-fn VarBinding_set_shared_borrow(binding: VarBinding, has_borrow: bool) {
+fn VarBinding_set_shared_borrow(mut binding: VarBinding, has_borrow: bool) {
     binding.has_shared_borrow = has_borrow
 }
 
-fn VarBinding_set_mutable_borrow(binding: VarBinding, has_borrow: bool) {
+fn VarBinding_set_mutable_borrow(mut binding: VarBinding, has_borrow: bool) {
     binding.has_mutable_borrow = has_borrow
 }
 
@@ -131,7 +145,7 @@ fn VarBinding_has_captures(binding: VarBinding) -> bool {
     binding.has_captures
 }
 
-fn VarBinding_set_has_captures(binding: VarBinding, has_caps: bool) {
+fn VarBinding_set_has_captures(mut binding: VarBinding, has_caps: bool) {
     binding.has_captures = has_caps
 }
 
@@ -139,7 +153,7 @@ fn VarBinding_has_borrow_captures(binding: VarBinding) -> bool {
     binding.has_borrow_captures
 }
 
-fn VarBinding_set_has_borrow_captures(binding: VarBinding, has_borrow_caps: bool) {
+fn VarBinding_set_has_borrow_captures(mut binding: VarBinding, has_borrow_caps: bool) {
     binding.has_borrow_captures = has_borrow_caps
 }
 
@@ -151,6 +165,6 @@ fn LocalScope_binding_at(scope: LocalScope, index: i32) -> VarBinding {
     get_unchecked(scope.bindings, index)
 }
 
-fn LocalScope_push_binding(scope: LocalScope, binding: VarBinding) {
+fn LocalScope_push_binding(mut scope: LocalScope, binding: VarBinding) {
     push(scope.bindings, binding)
 }

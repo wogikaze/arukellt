@@ -3,16 +3,16 @@ use compiler::session_parse
 use lsp::state_record
 use lsp::symbol_index_extract
 use lsp::symbol_index_record
-pub fn symbol_index_clear_project(state: LspState) {
+pub fn symbol_index_clear_project(mut state: LspState) {
     state.symbol_symbols = Vec::new<IndexedSymbol>()
     state.symbol_indexed_uris = Vec::new<String>()
 }
 
-pub fn symbol_index_remove_uri(state: LspState, uri: String) {
+pub fn symbol_index_remove_uri(mut state: LspState, uri: String) {
     // Pass get_unchecked results straight into typed callees (no `let sym = …`).
     // Intermediate IndexedSymbol locals were poisoned to String on wasm32-gc and
     // failed validate after structref array.get (#730).
-    let kept = Vec::new<IndexedSymbol>()
+    let mut kept = Vec::new<IndexedSymbol>()
     let symbols = state_record::lsp_state_symbol_symbols(state)
     let n = len(symbols)
     let mut i = 0
@@ -28,7 +28,7 @@ pub fn symbol_index_remove_uri(state: LspState, uri: String) {
     if uri_idx >= 0 {
         // Rebuild without `clone(vec)` into a mut local: that dest was poisoned
         // to String on wasm32-gc and failed validate (#730).
-        let rebuilt = Vec::new<String>()
+        let mut rebuilt = Vec::new<String>()
         let un = len(indexed_uris)
         let mut j = 0
         while j < un {
@@ -41,11 +41,11 @@ pub fn symbol_index_remove_uri(state: LspState, uri: String) {
     }
 }
 
-pub fn symbol_index_update_uri(state: LspState, uri: String, text: String) {
+pub fn symbol_index_update_uri(mut state: LspState, uri: String, text: String) {
     symbol_index_remove_uri(state, clone(uri))
     let decls = session_parse::session_parse_decls(clone(text))
     let extracted = symbol_index_extract::extract_symbols_from_decls(clone(uri), decls)
-    let symbols = state_record::lsp_state_symbol_symbols(state)
+    let mut symbols = state_record::lsp_state_symbol_symbols(state)
     let en = len(extracted)
     let mut ei = 0
     while ei < en {

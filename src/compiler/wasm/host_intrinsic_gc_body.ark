@@ -18,7 +18,7 @@ use wasm::runtime_abi_env_var
 use wasm::runtime_abi_env_var_gc
 use wasm::runtime_abi_stdio_read_gc
 use wasm::intrinsics::helpers_core
-fn try_emit_host_intrinsic_gc_adapter_body(w: WasmWriter, f: MirFunction, ctx: SelfEmitCtx) -> bool {
+fn try_emit_host_intrinsic_gc_adapter_body(mut w: WasmWriter, f: MirFunction, ctx: SelfEmitCtx) -> bool {
     let name = function_identity::MirFunction_name(f)
     if !host_intrinsic_stub_names::host_intrinsic_stub_is_known(clone(name)) {
         return false
@@ -32,7 +32,7 @@ fn try_emit_host_intrinsic_gc_adapter_body(w: WasmWriter, f: MirFunction, ctx: S
     false
 }
 
-fn try_emit_env_stdio_gc_adapter_body(w: WasmWriter, name: String, ctx: SelfEmitCtx) -> bool {
+fn try_emit_env_stdio_gc_adapter_body(mut w: WasmWriter, name: String, ctx: SelfEmitCtx) -> bool {
     if eq(clone(name), String_from("args")) {
         return runtime_abi_env_args_gc::emit_env_args_gc(w, ctx)
     }

@@ -9,7 +9,7 @@ use mir::lower::core_binary_overload
 use mir::lower::core_binary_short_circuit
 use mir::lower::core_expr_shape_accessors
 
-fn lower_core_binary(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+fn lower_core_binary(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) < 2 {
         return 0 - 1
     }

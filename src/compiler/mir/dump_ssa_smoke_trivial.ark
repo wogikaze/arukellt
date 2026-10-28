@@ -8,8 +8,8 @@ use mir::ssa
 
 fn run_ssa_trivial_block_rename_smoke() {
     let fx = dump_smoke_trivial_fixture::mir_dump_trivial_fixture_new("ssa_trivial_block_sample")
-    let m = dump_smoke_trivial_fixture::MirDumpTrivialFixture_module(fx)
-    let f = dump_smoke_trivial_fixture::MirDumpTrivialFixture_function(fx)
+    let mut m = dump_smoke_trivial_fixture::MirDumpTrivialFixture_module(fx)
+    let mut f = dump_smoke_trivial_fixture::MirDumpTrivialFixture_function(fx)
     let p = dump_smoke_trivial_fixture::MirDumpTrivialFixture_param_p(fx)
     let t = dump_smoke_trivial_fixture::MirDumpTrivialFixture_local_t(fx)
     dominance::mir_compute_dominance_for_function(f)

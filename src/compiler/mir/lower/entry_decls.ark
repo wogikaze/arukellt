@@ -10,9 +10,9 @@ use mir::lower::entry_timing
 use mir::lower::entry_view_fn
 use mir::lower::fn_index
 fn mir_emit_view_decls(
-    ctx: LowerCtx,
+    mut ctx: LowerCtx,
     view: CoreHirMirView,
-    body_source: MirLowerEntryBodySource,
+    mut body_source: MirLowerEntryBodySource,
     fn_index_info: MirLowerFnIndex,
     midx: MonoIndex,
     mir_tr: i32,

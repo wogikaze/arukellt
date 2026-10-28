@@ -75,7 +75,7 @@ impl Either {
     // ── transforms ──────────────────────────────────────────────────────────
 
     /// Swap `Left` and `Right`.
-    fn swap(self: Either) -> Either {
+    fn swap(mut self: Either) -> Either {
         match self {
             Either::Left(v) => Either::Right(v),
             Either::Right(v) => Either::Left(v),

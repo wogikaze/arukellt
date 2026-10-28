@@ -19,7 +19,7 @@ use mir::spine_lookup
 use mir::typed_mir_compat
 use mir::types
 use mir::value_types
-fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
+fn mir_bind_fn_param(mut ctx: LowerCtx, param: CoreHirParam) {
     if !param::param_is_bindable(param) {
         return
     }
@@ -97,7 +97,7 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
     let func = ctx_current_storage::ctx_current_func_value(ctx)
     let func_name = function_identity::MirFunction_name(func)
     let m = ctx_current_storage::ctx_current_module_value(ctx)
-    let table = module_spine::MirModule_type_table(m)
+    let mut table = module_spine::MirModule_type_table(m)
     let preserved_type_name = clone(mir_type_name)
     let mut param_mvt = spine_lookup::function_param_mvt(m, func_name, param_local)
     // A source annotation is the authoritative identity for a concrete
@@ -193,8 +193,8 @@ fn mir_param_type_is_option_container(type_name: String) -> bool {
     starts_with(clone(type_name), String_from("Option<"))
 }
 
-fn mir_param_resolve_no_local_type(ctx: LowerCtx, p_type_name: String) -> Vec<String> {
-    let result = Vec::new<String>()
+fn mir_param_resolve_no_local_type(mut ctx: LowerCtx, p_type_name: String) -> Vec<String> {
+    let mut result = Vec::new<String>()
     let tuple_type = aggregate_tuple::tuple_type_name_from_param_alias(ctx, clone(p_type_name))
     if len(tuple_type) > 0 {
         push(result, clone(tuple_type))

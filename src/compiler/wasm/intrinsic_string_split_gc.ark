@@ -13,7 +13,7 @@ use wasm::intrinsic_string_split_gc_fill
 // GC target: split src string by separator into Vec<String>.
 // Two-pass: (1) count segments, (2) allocate exact-size vec and fill.
 // For empty separator (seplen == 0), splits into individual characters.
-fn emit_split_chars_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+fn emit_split_chars_gc(mut w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     let s_src = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let s_arr = ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
@@ -61,7 +61,7 @@ fn emit_split_chars_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     true
 }
 
-fn emit_split_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+fn emit_split_gc(mut w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     let s_src = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let s_sep = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
     let s_arr = ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
@@ -93,7 +93,7 @@ fn emit_split_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
 }
 
 // Stack setup: pop sep/src, compute lengths, init pos/start/count.
-fn emit_split_gc_stack_setup(w: WasmWriter, s_src: i32, s_sep: i32, s_slen: i32, s_seplen: i32, s_pos: i32, s_start: i32, s_count: i32) {
+fn emit_split_gc_stack_setup(mut w: WasmWriter, s_src: i32, s_sep: i32, s_slen: i32, s_seplen: i32, s_pos: i32, s_start: i32, s_count: i32) {
     helpers_core::emit_local_set(w, s_sep)
     helpers_core::emit_local_set(w, s_src)
     helpers_core::emit_local_get(w, s_src)
@@ -112,7 +112,7 @@ fn emit_split_gc_stack_setup(w: WasmWriter, s_src: i32, s_sep: i32, s_slen: i32,
 
 // Pass 1: count segments. Dispatches to count-by-scan or count-by-chars.
 fn emit_split_gc_count_pass(
-    w: WasmWriter,
+    mut w: WasmWriter,
     s_src: i32,
     s_sep: i32,
     s_slen: i32,
@@ -137,7 +137,7 @@ fn emit_split_gc_count_pass(
 }
 
 // Count scalar boundaries for an empty separator.
-fn emit_split_gc_count_chars(w: WasmWriter, s_src: i32, s_slen: i32, s_count: i32, s_k: i32, s_width: i32, s_byte: i32, string_type: i32) {
+fn emit_split_gc_count_chars(mut w: WasmWriter, s_src: i32, s_slen: i32, s_count: i32, s_k: i32, s_width: i32, s_byte: i32, string_type: i32) {
     string_gc_helpers::emit_gc_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_count)
     string_gc_helpers::emit_gc_i32_const(w, 0)
@@ -171,7 +171,7 @@ fn emit_split_gc_count_chars(w: WasmWriter, s_src: i32, s_slen: i32, s_count: i3
     string_gc_helpers::emit_gc_end(w)
 }
 
-fn emit_split_gc_scalar_width(w: WasmWriter, s_byte: i32, s_pos: i32, s_slen: i32, s_width: i32) {
+fn emit_split_gc_scalar_width(mut w: WasmWriter, s_byte: i32, s_pos: i32, s_slen: i32, s_width: i32) {
     helpers_core::emit_local_get(w, s_byte)
     string_gc_helpers::emit_gc_i32_const(w, 128)
     helpers_numeric_i32::emit_i32_lt_s(w)
@@ -210,7 +210,7 @@ fn emit_split_gc_scalar_width(w: WasmWriter, s_byte: i32, s_pos: i32, s_slen: i3
 }
 
 // Allocate vec data array of count elements and create vec struct.
-fn emit_split_gc_alloc_vec(w: WasmWriter, s_count: i32, s_arr: i32, s_vec: i32, vec_type: i32, arr_type: i32) {
+fn emit_split_gc_alloc_vec(mut w: WasmWriter, s_count: i32, s_arr: i32, s_vec: i32, vec_type: i32, arr_type: i32) {
     helpers_core::emit_local_get(w, s_count)
     string_gc_helpers::emit_gc_array_new(w, arr_type)
     helpers_core::emit_local_set(w, s_arr)
@@ -225,7 +225,7 @@ fn emit_split_gc_alloc_vec(w: WasmWriter, s_count: i32, s_arr: i32, s_vec: i32, 
 
 // Pass 2: fill segments. Dispatches to fill-by-scan or fill-by-chars.
 fn emit_split_gc_fill_pass(
-    w: WasmWriter,
+    mut w: WasmWriter,
     s_src: i32,
     s_sep: i32,
     s_slen: i32,
@@ -260,7 +260,7 @@ fn emit_split_gc_fill_pass(
 }
 
 // Finalize: set vec.len = segidx, push result vec.
-fn emit_split_gc_finalize(w: WasmWriter, s_vec: i32, s_segidx: i32, vec_type: i32) {
+fn emit_split_gc_finalize(mut w: WasmWriter, s_vec: i32, s_segidx: i32, vec_type: i32) {
     helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     helpers_core::emit_local_get(w, s_segidx)

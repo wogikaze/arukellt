@@ -2,7 +2,7 @@ use lexer::string_escape
 use lexer::string_plain
 use lexer::string_scan
 
-fn lex_string(lex: Lexer) -> Token {
+fn lex_string(mut lex: Lexer) -> Token {
     let start = lex.pos
     lex.pos = lex.pos + 1
     let content_start = lex.pos

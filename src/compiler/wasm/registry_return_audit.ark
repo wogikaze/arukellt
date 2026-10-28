@@ -4,7 +4,7 @@ use wasm::ctx_record
 use wasm::registry_return_guard
 use wasm::registry_return_resolve
 use mir::value_types
-fn registry_audit_observe_call(ctx: SelfEmitCtx, inst: MirInst, callee: String, fn_legacy_vt: i32) {
+fn registry_audit_observe_call(mut ctx: SelfEmitCtx, inst: MirInst, callee: String, fn_legacy_vt: i32) {
     if !registry_return_guard::registry_guard_is_registry_call(ctx, inst) {
         return
     }
@@ -22,7 +22,7 @@ fn registry_audit_observe_call(ctx: SelfEmitCtx, inst: MirInst, callee: String, 
     registry_audit_log_mismatch(ctx, callee, fn_legacy_vt, reg_vt)
 }
 
-fn registry_audit_log_mismatch(ctx: SelfEmitCtx, callee: String, old_vt: i32, new_vt: i32) {
+fn registry_audit_log_mismatch(mut ctx: SelfEmitCtx, callee: String, old_vt: i32, new_vt: i32) {
     if ctx_record::SelfEmitCtx_registry_audit_mismatch_budget(ctx) <= 0 {
         return
     }

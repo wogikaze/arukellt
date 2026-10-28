@@ -31,7 +31,7 @@ fn resolve_impl_signature(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnSig
         self_node,
         impl_generics::declared_type_param_names(impl_node)
     )
-    let params = Vec::new<TypeInfo>()
+    let mut params = Vec::new<TypeInfo>()
     let param_count = contract_fn_sig::FnSig_param_count(sig)
     let mut i = 0
     while i < param_count {
@@ -72,7 +72,7 @@ fn resolve_impl_self_return(impl_node: AstNode, sig: FnSig) -> FnSig {
         impl_generics::declared_type_param_names(impl_node)
     )
     let return_type = resolve_self_type(self_ty, contract_fn_sig::FnSig_return_type(sig))
-    let params = Vec::new<TypeInfo>()
+    let mut params = Vec::new<TypeInfo>()
     let param_count = contract_fn_sig::FnSig_param_count(sig)
     let mut i = 0
     while i < param_count {
@@ -96,7 +96,7 @@ fn resolve_self_type(self_ty: TypeInfo, ty: TypeInfo) -> TypeInfo {
     if arg_count == 0 {
         return ty
     }
-    let resolved = contract_type_constructors::TypeInfo_empty_like(ty)
+    let mut resolved = contract_type_constructors::TypeInfo_empty_like(ty)
     let mut i = 0
     while i < arg_count {
         contract_type_mutation::TypeInfo_push_type_arg(
@@ -126,7 +126,7 @@ fn resolve_trait_method_signature(
     let sig = contract_trait_method_record::trait_method_entry_sig(entry)
     let trait_name = contract_trait_method_record::trait_method_entry_trait_name(entry)
     let trait_param_count = trait_method_record::trait_method_entry_trait_type_param_count(entry)
-    let params = Vec::new<TypeInfo>()
+    let mut params = Vec::new<TypeInfo>()
     let param_count = contract_fn_sig::FnSig_param_count(sig)
     let mut i = 0
     while i < param_count {
@@ -183,7 +183,7 @@ fn resolve_trait_method_type(
         let prefix = String_from("Self::")
         if clone(name).starts_with(clone(prefix)) {
             let assoc_name = substring(name, len(prefix), len(name))
-            let resolved = lookup_associated_type(
+            let mut resolved = lookup_associated_type(
                 env,
                 clone(trait_name),
                 receiver,
@@ -199,7 +199,7 @@ fn resolve_trait_method_type(
     if arg_count == 0 {
         return ty
     }
-    let resolved = contract_type_constructors::TypeInfo_empty_like(ty)
+    let mut resolved = contract_type_constructors::TypeInfo_empty_like(ty)
     let mut i = 0
     while i < arg_count {
         contract_type_mutation::TypeInfo_push_type_arg(
@@ -251,7 +251,7 @@ fn resolve_projection(
         let prefix = String_from("Self::")
         if clone(name).starts_with(clone(prefix)) {
             let assoc_name = substring(name, len(prefix), len(name))
-            let resolved = lookup_associated_type(env, clone(trait_name), receiver, assoc_name)
+            let mut resolved = lookup_associated_type(env, clone(trait_name), receiver, assoc_name)
             if contract_type_access::TypeInfo_tag(resolved) != commands::TY_UNKNOWN() {
                 return resolved
             }
@@ -262,7 +262,7 @@ fn resolve_projection(
     if arg_count == 0 {
         return ty
     }
-    let resolved = contract_type_constructors::TypeInfo_empty_like(ty)
+    let mut resolved = contract_type_constructors::TypeInfo_empty_like(ty)
     let mut i = 0
     while i < arg_count {
         contract_type_mutation::TypeInfo_push_type_arg(
@@ -316,7 +316,7 @@ fn resolve_generic_call_type(
                     infer_env,
                     get_unchecked(var_types, var_index)
                 )
-                let resolved = resolve_bound_projection(
+                let mut resolved = resolve_bound_projection(
                     env,
                     sig,
                     clone(type_param),
@@ -340,7 +340,7 @@ fn resolve_generic_call_type(
     if arg_count == 0 {
         return ty
     }
-    let resolved = contract_type_constructors::TypeInfo_empty_like(ty)
+    let mut resolved = contract_type_constructors::TypeInfo_empty_like(ty)
     let mut i = 0
     while i < arg_count {
         contract_type_mutation::TypeInfo_push_type_arg(
@@ -460,8 +460,8 @@ fn lookup_associated_type(
                 clone(pattern)
             )
             if type_contains_var(clone(impl_self)) {
-                let var_names = Vec::new<String>()
-                let var_types = Vec::new<TypeInfo>()
+                let mut var_names = Vec::new<String>()
+                let mut var_types = Vec::new<TypeInfo>()
                 if match_pattern_collect_vars(impl_self, receiver, var_names, var_types) {
                     // The declared value can itself be a projection
                     // (type Item = I::Item). instantiate_type only
@@ -525,7 +525,7 @@ fn normalize_projection_ty(
     if arg_count == 0 {
         return ty
     }
-    let result = contract_type_constructors::TypeInfo_empty_like(ty)
+    let mut result = contract_type_constructors::TypeInfo_empty_like(ty)
     let mut i = 0
     while i < arg_count {
         contract_type_mutation::TypeInfo_push_type_arg(
@@ -588,7 +588,7 @@ fn projection_owner_ty(
         if lt > 0 {
             let ctor = substring(clone(owner_name), 0, lt)
             let inner = substring(clone(owner_name), lt + 1, n - 1)
-            let args = Vec::new<TypeInfo>()
+            let mut args = Vec::new<TypeInfo>()
             let mut seg_start = 0
             let mut depth = 0
             let m = len(inner)
@@ -668,8 +668,8 @@ fn lookup_assoc_for_ctor(env: TypeEnv, receiver: TypeInfo, assoc_name: String) -
                 contract_associated_type::trait_associated_type_info_trait_name(entry),
                 clone(entry_self)
             )
-            let bound_names = Vec::new<String>()
-            let bound_types = Vec::new<TypeInfo>()
+            let mut bound_names = Vec::new<String>()
+            let mut bound_types = Vec::new<TypeInfo>()
             if match_pattern_collect_vars(
                 clone(impl_self),
                 clone(receiver),
@@ -736,8 +736,8 @@ fn type_contains_var(ty: TypeInfo) -> bool {
 fn match_pattern_collect_vars(
     pattern: TypeInfo,
     actual: TypeInfo,
-    names: Vec<String>,
-    types: Vec<TypeInfo>
+    mut names: Vec<String>,
+    mut types: Vec<TypeInfo>
 ) -> bool {
     if contract_type_access::TypeInfo_tag(pattern) == commands::TY_TYPE_VAR() {
         let var_name = contract_type_access::TypeInfo_name(pattern)

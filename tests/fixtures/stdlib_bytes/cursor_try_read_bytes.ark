@@ -17,12 +17,12 @@ fn assert_none_vec(v: Option<Vec<i32>>) {
 }
 
 fn main() {
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     data.push_byte( 7)
     data.push_byte( 8)
     data.push_byte( 9)
     data.push_byte( 10)
-    let c: Vec<i32> = data.byte_cursor()
+    let mut c: Vec<i32> = data.byte_cursor()
     assert_some_len(c.try_read_bytes( 2), 2)
     assert_none_vec(c.try_read_bytes( 5))
 }

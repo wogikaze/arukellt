@@ -19,7 +19,7 @@ fn mir_scrutinee_is_fn_param(ctx: LowerCtx, local_idx: i32) -> bool {
     local_idx >= 0 && local_idx < function_param_view::MirFunction_param_count(f)
 }
 
-fn mir_stamp_scrutinee_type(ctx: LowerCtx, local_idx: i32, type_name: String) {
+fn mir_stamp_scrutinee_type(mut ctx: LowerCtx, local_idx: i32, type_name: String) {
     if mir_scrutinee_is_fn_param(ctx, local_idx) {
         ctx_locals_fn::ctx_set_func_param_type(ctx, local_idx, value_types::VT_GC_REF(), clone(type_name))
     }
@@ -31,7 +31,7 @@ fn mir_stamp_scrutinee_type(ctx: LowerCtx, local_idx: i32, type_name: String) {
     ctx_api_local_types::ctx_set_local_vt(ctx, local_idx, value_types::VT_GC_REF())
 }
 
-fn mir_stamp_param_from_return_type(ctx: LowerCtx, val_idx: i32) {
+fn mir_stamp_param_from_return_type(mut ctx: LowerCtx, val_idx: i32) {
     if !ctx_gc_enum::ctx_is_gc_target(ctx) {
         return
     }

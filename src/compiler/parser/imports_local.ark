@@ -8,9 +8,9 @@ use parser::imports_alias
 use parser::kinds
 use parser::token_state
 
-fn parse_local_import(p: Parser, import_span: Span) -> AstNode {
+fn parse_local_import(mut p: Parser, import_span: Span) -> AstNode {
     let path_tok = core_api_expect::expect_token(p, tokens::TK_IDENT())
-    let node = core_ast_factory::AstNode_new(kinds::NK_IMPORT(), import_span)
+    let mut node = core_ast_factory::AstNode_new(kinds::NK_IMPORT(), import_span)
     core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(path_tok))
     core_ast_literal_fields::AstNode_set_int_val(node, kinds::IMPORT_KIND_LOCAL())
     imports_alias::parse_use_alias(p, node)

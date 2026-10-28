@@ -7,13 +7,13 @@ use wasm::intrinsics::helpers_numeric_i32
 use wasm::opcodes
 use wasm::writer_core
 
-fn emit_env_var_clear_result(w: WasmWriter) {
+fn emit_env_var_clear_result(mut w: WasmWriter) {
     helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_P_RES())
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_memory::emit_i32_store_default(w)
 }
 
-fn emit_env_var_store_result(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_env_var_store_result(mut w: WasmWriter, ctx: SelfEmitCtx) {
     let saved = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
     helpers_core::emit_local_set(w, saved)
     helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_P_RES())
@@ -21,7 +21,7 @@ fn emit_env_var_store_result(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_memory::emit_i32_store_default(w)
 }
 
-fn emit_env_var_load_or_none(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_env_var_load_or_none(mut w: WasmWriter, ctx: SelfEmitCtx) {
     let none_ptr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
     runtime_abi_env_var_option::emit_env_var_option_none(
         w,

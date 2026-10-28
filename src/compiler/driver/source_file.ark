@@ -1,5 +1,5 @@
 use std::host::fs::Fs
 
-fn load_source_file(path: String) -> Result<String, String> {
+fn load_source_file(mut path: String) -> Result<String, String> {
     Fs::read_to_string(path)
 }

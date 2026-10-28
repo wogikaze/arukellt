@@ -1,7 +1,7 @@
 use mir::lower::core_expr_shape_accessors
 use mir::lower::if_ops
 
-fn lower_core_if(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+fn lower_core_if(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
     if child_count < 2 {
         return 0 - 1

@@ -28,7 +28,7 @@ fn parse_decimal_as_i64_emitter(text: String) -> i64 {
     result
 }
 
-fn emit_f64(w: writer_core::WasmWriter, val: f64) {
+fn emit_f64(mut w: writer_core::WasmWriter, val: f64) {
     let lo: i32 = f64_bits_lo(val)
     let hi: i32 = f64_bits_hi(val)
     writer_core::emit_u32_le(w, lo)

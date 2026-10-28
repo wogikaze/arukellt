@@ -5,7 +5,7 @@ fn double(n: i32) -> i32 {
 }
 
 fn main() {
-    let m = HashMap::new<String, fn(i32) -> i32>()
+    let mut m = HashMap::new<String, fn(i32) -> i32>()
     let _ = m.insert("x", double)
     match m.get("x") {
         Some(f) => stdio::println((f(5)).to_string()),

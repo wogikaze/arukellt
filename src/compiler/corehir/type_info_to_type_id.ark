@@ -3,7 +3,7 @@ use corehir::type_info_kind
 use corehir::kinds
 use corehir::type_table
 
-fn type_info_to_type_id(table: TypeTable, ty: TypeInfo) -> TypeId {
+fn type_info_to_type_id(mut table: TypeTable, ty: TypeInfo) -> TypeId {
     // Intern from tag only. The flat selfhost overlay currently duplicates
     // TypeInfo/TypedFn (corehir + typechecker); TypedFn-sourced values can
     // carry invalid String/Vec handles. Walking .name / .type_args then traps

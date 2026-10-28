@@ -11,7 +11,7 @@ fn sum_vec(v: Vec<i32>) -> i32 {
 }
 
 fn main() {
-    let xs: Vec<i32> = Vec::new<i32>()
+    let mut xs: Vec<i32> = Vec::new<i32>()
     push(xs, 1)
     push(xs, 2)
     push(xs, 3)

@@ -6,7 +6,7 @@ use std::bytes::Bytes
 use std::test
 
 fn main() {
-    let b: Vec<i32> = Vec::new<i32>()
+    let mut b: Vec<i32> = Vec::new<i32>()
     b.push_byte(300)
     test::assert_eq_i32(b.len(), 1)
     test::assert_eq_i32(b.get_unchecked(0), 44)
@@ -26,20 +26,20 @@ fn main() {
     let leb: Vec<i32> = Bytes::from_leb128_u32(624485)
     test::assert_eq_i32(leb.byte_cursor().read_leb128_u32(), 624485)
 
-    let cursor: Vec<i32> = "abcd".to_utf8_bytes().byte_cursor()
+    let mut cursor: Vec<i32> = "abcd".to_utf8_bytes().byte_cursor()
     test::assert_eq_i32(cursor.read_u8(), 97)
     test::assert_eq_i32(cursor.read_u16_le(), 25442)
     test::assert_eq_i32(cursor.cursor_remaining(), 1)
     let chunk: Vec<i32> = "abcd".to_utf8_bytes().byte_cursor().read_bytes(2)
     test::assert_eq_i32(chunk.len(), 2)
 
-    let empty: Vec<i32> = Vec::new<i32>().byte_cursor()
+    let mut empty: Vec<i32> = Vec::new<i32>().byte_cursor()
     test::assert_eq_i32(match empty.try_read_u8() {
             Option::Some(v) => v,
             Option::None => 0 - 1,
         }, 0 - 1)
 
-    let buf: Vec<i32> = Vec::new<i32>()
+    let mut buf: Vec<i32> = Vec::new<i32>()
     buf.push_u16_le(258)
     buf.push_u32_le(1)
     buf.extend_bytes(a)

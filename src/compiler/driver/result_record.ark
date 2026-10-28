@@ -23,19 +23,19 @@ fn CompileResult_err(phase: i32, msg: String) -> CompileResult {
     CompileResult_new(false, phase, 1, msgs, Vec::new<Diagnostic>(), Vec::new<i32>())
 }
 
-fn compile_result_set_output_bytes(result: CompileResult, output_bytes: Vec<i32>) {
+fn compile_result_set_output_bytes(mut result: CompileResult, output_bytes: Vec<i32>) {
     result.output_bytes = output_bytes
 }
 
-fn compile_result_set_error_count(result: CompileResult, error_count: i32) {
+fn compile_result_set_error_count(mut result: CompileResult, error_count: i32) {
     result.error_count = error_count
 }
 
-fn compile_result_push_error_message(result: CompileResult, message: String) {
+fn compile_result_push_error_message(mut result: CompileResult, message: String) {
     push(result.error_messages, message)
 }
 
-fn compile_result_push_diagnostic(result: CompileResult, diagnostic: Diagnostic) {
+fn compile_result_push_diagnostic(mut result: CompileResult, diagnostic: Diagnostic) {
     push(result.diagnostics, diagnostic)
 }
 

@@ -1,18 +1,18 @@
 use std::prelude::{byte_at}
 use lexer::char_class
-fn skip_whitespace_impl(lex: Lexer) {
+fn skip_whitespace_impl(mut lex: Lexer) {
     while lex.pos < lex.src_len && char_class::is_whitespace_not_newline(byte_at(lex.src, lex.pos)) {
         lex.pos = lex.pos + 1
     }
 }
 
-fn skip_line_comment_impl(lex: Lexer) {
+fn skip_line_comment_impl(mut lex: Lexer) {
     while lex.pos < lex.src_len && byte_at(lex.src, lex.pos) != 10 {
         lex.pos = lex.pos + 1
     }
 }
 
-fn skip_block_comment_impl(lex: Lexer) {
+fn skip_block_comment_impl(mut lex: Lexer) {
     lex.pos = lex.pos + 2
     let mut depth = 1
     while lex.pos < lex.src_len - 1 && depth > 0 {

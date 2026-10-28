@@ -9,12 +9,12 @@ use typechecker::contract_type_access
 use typechecker::names
 use typechecker::type_names
 use typechecker::unify
-fn type_satisfies_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> bool {
+fn type_satisfies_trait_bound(mut env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> bool {
     type_satisfies_trait_bound_at_depth(env, ty, bound, 0)
 }
 
 fn type_satisfies_trait_bound_at_depth(
-    env: TypeEnv,
+    mut env: TypeEnv,
     ty: TypeInfo,
     bound: TypeInfo,
     depth: i32
@@ -114,7 +114,7 @@ fn trait_info_for_name(env: TypeEnv, trait_name: String) -> TraitInfo {
 }
 
 fn matching_trait_impl_count(
-    env: TypeEnv,
+    mut env: TypeEnv,
     resolved_ty: TypeInfo,
     bound: TypeInfo,
     depth: i32
@@ -133,7 +133,7 @@ fn matching_trait_impl_count(
 }
 
 fn trait_impl_matches(
-    env: TypeEnv,
+    mut env: TypeEnv,
     impl_info: TraitImplInfo,
     resolved_ty: TypeInfo,
     bound: TypeInfo
@@ -142,7 +142,7 @@ fn trait_impl_matches(
 }
 
 fn trait_impl_matches_at_depth(
-    env: TypeEnv,
+    mut env: TypeEnv,
     impl_info: TraitImplInfo,
     resolved_ty: TypeInfo,
     bound: TypeInfo,
@@ -172,7 +172,7 @@ fn trait_impl_matches_at_depth(
 // variables still defer (they may be constrained by the enclosing function
 // or by monomorphisation), preserving the existing demand-edge behaviour.
 fn impl_bounds_satisfied(
-    env: TypeEnv,
+    mut env: TypeEnv,
     impl_info: TraitImplInfo,
     self_pattern: TypeInfo,
     resolved_ty: TypeInfo,
@@ -323,7 +323,7 @@ fn is_builtin_trait_impl(ty: TypeInfo, bound: TypeInfo) -> bool {
     tag == commands::TY_BOOL()
 }
 
-fn enforce_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) {
+fn enforce_trait_bound(mut env: TypeEnv, ty: TypeInfo, bound: TypeInfo) {
     if type_satisfies_trait_bound(env, ty, bound) {
         return
     }
@@ -332,7 +332,7 @@ fn enforce_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) {
     unify::type_error(env, "trait bound not satisfied: ".concat(ty_name.concat(" does not implement ".concat(bound_name))))
 }
 
-fn enforce_fn_sig_bounds(env: TypeEnv, infer_env: TypeEnv, sig: FnSig, var_types: Vec<TypeInfo>) {
+fn enforce_fn_sig_bounds(mut env: TypeEnv, infer_env: TypeEnv, sig: FnSig, var_types: Vec<TypeInfo>) {
     let tp_count = contract_fn_sig::FnSig_type_param_bound_count(sig)
     let mut i = 0
     while i < tp_count {

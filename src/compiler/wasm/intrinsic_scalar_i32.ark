@@ -5,7 +5,7 @@ use wasm::intrinsics::helpers_numeric_i32
 
 // The if result carries the i32 scalar: i32 on memory32, widened i64 on
 // Memory64 where all i32 source values live in i64 lanes.
-fn emit_scalar_i32_result_blocktype(w: WasmWriter) {
+fn emit_scalar_i32_result_blocktype(mut w: WasmWriter) {
     if writer_core::writer_memory64(w) {
         writer_core::emit_byte(w, 126)
         return
@@ -13,7 +13,7 @@ fn emit_scalar_i32_result_blocktype(w: WasmWriter) {
     writer_core::emit_byte(w, 127)
 }
 
-fn emit_abs(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_abs(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
     writer_core::emit_leb128_u(w, s0)
@@ -30,7 +30,7 @@ fn emit_abs(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_min(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_min(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -46,7 +46,7 @@ fn emit_min(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_max(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_max(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -62,7 +62,7 @@ fn emit_max(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_clamp(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_clamp(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)

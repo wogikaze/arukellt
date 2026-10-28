@@ -27,7 +27,7 @@ fn apply_op_values(op: RpnOp, a: i32, b: i32) -> i32 {
     match op { RpnOp::Invalid => 0, RpnOp::Add => a + b, RpnOp::Sub => a - b, RpnOp::Mul => a * b }
 }
 
-fn apply_op(stack: Vec<i32>, op: RpnOp) -> Vec<i32> {
+fn apply_op(mut stack: Vec<i32>, op: RpnOp) -> Vec<i32> {
     if len(stack) < 2 { print_error(String_from("stack underflow")); stack }
     else {
         let b: i32 = get_unchecked(stack, len(stack) - 1)
@@ -39,7 +39,7 @@ fn apply_op(stack: Vec<i32>, op: RpnOp) -> Vec<i32> {
     }
 }
 
-fn process_token(stack: Vec<i32>, tok: String) -> Vec<i32> {
+fn process_token(mut stack: Vec<i32>, tok: String) -> Vec<i32> {
     match operator_from_token(tok) {
         RpnOp::Invalid => match parse_i32(tok) {
             Result::Ok(val) => { push(stack, val); stack }

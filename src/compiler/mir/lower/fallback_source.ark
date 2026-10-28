@@ -34,7 +34,7 @@ fn mir_fallback_source_release_fn_body(source: MirLowerFallbackSource, decl_inde
     if decl_index < 0 || decl_index >= len(source.decls) {
         return
     }
-    let decl = get_unchecked(source.decls, decl_index)
+    let mut decl = get_unchecked(source.decls, decl_index)
     legacy_decl::mir_legacy_decl_release_body(decl, body_idx)
 }
 

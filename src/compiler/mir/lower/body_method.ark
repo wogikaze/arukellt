@@ -4,7 +4,7 @@ use mir::lower::method
 use mir::inst_local_get
 use mir::lower_kinds
 
-fn lower_method_call_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_method_call_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     if child_count >= 1 {
         let receiver = ast_node::node_child_at(node, 0)
@@ -43,7 +43,7 @@ fn lower_method_call_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             last_method_arg_idx = method_arg_idx
             a = a + 1
         }
-        let resolved_callee = method::mir_resolve_method_callee(
+        let mut resolved_callee = method::mir_resolve_method_callee(
             ctx,
             callee_name,
             first_method_arg_idx,

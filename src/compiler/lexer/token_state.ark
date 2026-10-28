@@ -37,6 +37,6 @@ fn Token_float_val(tok: Token) -> f64 {
     token_record::token_float_val(tok)
 }
 
-fn Token_set_int(tok: Token, value: i32) {
+fn Token_set_int(mut tok: Token, value: i32) {
     token_record::token_set_int(tok, value)
 }

@@ -11,7 +11,7 @@ fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
     emit_target::is_gc_target(clone(ctx.lower_target))
 }
 
-fn ctx_register_gc_enum_variant(ctx: LowerCtx, variant_name: String, sig: String) -> i32 {
+fn ctx_register_gc_enum_variant(mut ctx: LowerCtx, variant_name: String, sig: String) -> i32 {
     let canon = ctx_gc_enum_normalize_variant_name(clone(variant_name))
     let count = len(ctx.gc_enum_variant_sigs)
     let mut i = 0
@@ -42,7 +42,7 @@ fn ctx_register_gc_enum_variant(ctx: LowerCtx, variant_name: String, sig: String
         // final at registration (no placeholder pass like gc structs), and
         // ensuring here keeps canon order identical to the late_gc_order
         // sweep ctx_gc_canon_ensure_late performs.
-        let m = ctx.module
+        let mut m = ctx.module
         let slot = len(ctx.gc_enum_variant_names) - 1
         module_gc_enum::MirModule_push_gc_enum_variant(
             m,
@@ -183,7 +183,7 @@ fn ctx_gc_enum_variant_slot(ctx: LowerCtx, variant_name: String) -> i32 {
     0 - 1
 }
 
-fn ctx_gc_enum_variant_slot_for_payload(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>) -> i32 {
+fn ctx_gc_enum_variant_slot_for_payload(mut ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>) -> i32 {
     let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
     let field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(ctx, payload_vts)
     let want_sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(0, field_sigs)
@@ -210,12 +210,12 @@ fn ctx_gc_enum_variant_count(ctx: LowerCtx) -> i32 {
     len(ctx.gc_enum_variant_names)
 }
 
-fn ctx_flush_gc_enum_variants(ctx: LowerCtx) {
+fn ctx_flush_gc_enum_variants(mut ctx: LowerCtx) {
     ctx_flush_gc_enum_variants_from(ctx, 0)
 }
 
-fn ctx_flush_gc_enum_variants_from(ctx: LowerCtx, start: i32) {
-    let m = ctx.module
+fn ctx_flush_gc_enum_variants_from(mut ctx: LowerCtx, start: i32) {
+    let mut m = ctx.module
     let count = len(ctx.gc_enum_variant_names)
     let mut i = if start < 0 { 0 } else { start }
     // Post-seal entries are materialized at registration; resume after them.

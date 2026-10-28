@@ -21,7 +21,7 @@ use corehir::mod as corehir_mod
 // from 2312B to 2341B. A full Option/Result/Vec walk (tick 165) added
 // unused payloads and broke s2=s3. Only tuples plus ref14/ref25 Ok/Some.
 use std::prelude::{clone, eq, starts_with}
-fn mir_register_view_late_gc_types(ctx: LowerCtx, view: CoreHirMirView) {
+fn mir_register_view_late_gc_types(mut ctx: LowerCtx, view: CoreHirMirView) {
     if !ctx_gc_struct::ctx_is_gc_target(ctx) {
         return
     }
@@ -35,7 +35,7 @@ fn mir_register_view_late_gc_types(ctx: LowerCtx, view: CoreHirMirView) {
     register_body_only_known_tuples(ctx)
 }
 
-fn register_body_tuple_gc_types(ctx: LowerCtx, view: CoreHirMirView) {
+fn register_body_tuple_gc_types(mut ctx: LowerCtx, view: CoreHirMirView) {
     let body = corehir_mod::view_body_source(view)
     let exprs = mir_body_source::mir_body_source_exprs(body)
     let expr_count = len(exprs)
@@ -49,12 +49,12 @@ fn register_body_tuple_gc_types(ctx: LowerCtx, view: CoreHirMirView) {
     }
 }
 
-fn register_one_body_tuple(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) {
+fn register_one_body_tuple(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) {
     let child_count = expr_access_children::expr_child_count(expr)
     if child_count <= 0 {
         return
     }
-    let field_vts = Vec::new<i32>()
+    let mut field_vts = Vec::new<i32>()
     let mut ci = 0
     while ci < child_count {
         let child_idx = expr_access_children::expr_child(expr, ci)
@@ -67,7 +67,7 @@ fn register_one_body_tuple(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
     aggregate_tuple::ctx_register_tuple_gc_struct_from_field_vts(ctx, field_vts)
 }
 
-fn register_body_only_known_tuples(ctx: LowerCtx) {
+fn register_body_only_known_tuples(mut ctx: LowerCtx) {
     let count = len(ctx.gc_struct_names)
     let mut i = 0
     let mut has_tuple = false
@@ -86,7 +86,7 @@ fn register_body_only_known_tuples(ctx: LowerCtx) {
     aggregate_tuple::ctx_register_tuple_gc_struct_from_keys(ctx, "String,i32")
 }
 
-fn register_typed_fn_late_gc_types(ctx: LowerCtx, ts: CoreHirMirTypeSource) {
+fn register_typed_fn_late_gc_types(mut ctx: LowerCtx, ts: CoreHirMirTypeSource) {
     let fn_count = type_source::mir_type_source_typed_fn_count(ts)
     let mut fi = 0
     while fi < fn_count {
@@ -102,7 +102,7 @@ fn register_typed_fn_late_gc_types(ctx: LowerCtx, ts: CoreHirMirTypeSource) {
     }
 }
 
-fn register_mono_late_gc_types(ctx: LowerCtx, ts: CoreHirMirTypeSource) {
+fn register_mono_late_gc_types(mut ctx: LowerCtx, ts: CoreHirMirTypeSource) {
     let instances = type_source::mir_type_source_mono_instances(ts)
     let mono_count = len(instances)
     let mut mi = 0
@@ -119,7 +119,7 @@ fn register_mono_late_gc_types(ctx: LowerCtx, ts: CoreHirMirTypeSource) {
     }
 }
 
-fn register_mono_fn_late_gc_types(ctx: LowerCtx, ts: CoreHirMirTypeSource, inst: MonoInstance) {
+fn register_mono_fn_late_gc_types(mut ctx: LowerCtx, ts: CoreHirMirTypeSource, inst: MonoInstance) {
     let typed_index = typed_fn_index_for_name(ts, type_contracts::MonoInstance_fn_name(inst))
     if typed_index < 0 {
         return
@@ -158,7 +158,7 @@ fn typed_fn_index_for_name(ts: CoreHirMirTypeSource, fn_name: String) -> i32 {
     0 - 1
 }
 
-fn register_type_info_late_gc(ctx: LowerCtx, ty: TypeInfo, depth: i32) {
+fn register_type_info_late_gc(mut ctx: LowerCtx, ty: TypeInfo, depth: i32) {
     if depth > 6 {
         return
     }
@@ -186,7 +186,7 @@ fn register_type_info_late_gc(ctx: LowerCtx, ty: TypeInfo, depth: i32) {
     }
 }
 
-fn register_open_or_vec_payload(ctx: LowerCtx, ty: TypeInfo, variant_name: String) {
+fn register_open_or_vec_payload(mut ctx: LowerCtx, ty: TypeInfo, variant_name: String) {
     if typeinfo_shape::mir_type_info_type_arg_count(ty) <= 0 {
         return
     }
@@ -202,7 +202,7 @@ fn register_open_or_vec_payload(ctx: LowerCtx, ty: TypeInfo, variant_name: Strin
     if !eq(clone(field_sig), "_f1_ref14") && !eq(clone(field_sig), "_f1_ref25") {
         return
     }
-    let payload_vts = Vec::new<i32>()
+    let mut payload_vts = Vec::new<i32>()
     push(payload_vts, value_types::VT_GC_REF())
     let _slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(
         ctx,

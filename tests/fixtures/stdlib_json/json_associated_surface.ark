@@ -36,13 +36,13 @@ fn main() {
     let raw = json::JsonValue::raw("12345")
     test::assert_eq_string(raw.to_text(), "12345")
 
-    let items = Vec::new<json::JsonValue>()
+    let mut items = Vec::new<json::JsonValue>()
     push(items, json::JsonValue::int(1))
     push(items, json::JsonValue::string("two"))
     let arr = json::JsonValue::array(items)
     test::assert_eq_string(arr.to_text(), "[1,\"two\"]")
 
-    let fields = Vec::new<json::JsonField>()
+    let mut fields = Vec::new<json::JsonField>()
     push(fields, json::JsonField::new("a", json::JsonValue::int(1)))
     push(fields, json::JsonField::new("b", json::JsonValue::string("x")))
     let obj = json::JsonValue::object(fields)

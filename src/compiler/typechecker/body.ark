@@ -12,7 +12,7 @@ use typechecker::scope
 use typechecker::sigs
 use typechecker::trait_registry
 
-fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, fn_node: AstNode) {
+fn check_fn_body(mut env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, fn_node: AstNode) {
     // Imported modules may contain the same short function name as the
     // prelude (for example `std::simd::i32x4::abs`). The flat signature index
     // is for call lookup, but a declaration must always be checked against
@@ -25,12 +25,12 @@ fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, fn
     check_fn_body_with_sig(env, fn_sigs, enum_defs, fn_node, sig)
 }
 
-fn check_fn_body_with_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, fn_node: AstNode, sig: FnSig) {
+fn check_fn_body_with_sig(mut env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, fn_node: AstNode, sig: FnSig) {
     trait_registry::reject_dyn_in_sig(env, sig)
     env.current_fn_return_type = contract_fn_sig::FnSig_return_type(sig)
     env.current_fn_name = contract_fn_sig::FnSig_name(sig)
-    let scope = scope::LocalScope_new()
-    body_params::bind_fn_params_from_sig(scope, fn_node, sig)
+    let mut scope = scope::LocalScope_new()
+    body_params::bind_fn_params_from_sig(env, scope, fn_node, sig)
     body_params::set_fn_type_params_from_sig(env, sig)
     let child_count = ast_access::node_child_count(fn_node)
     if child_count > 0 {
@@ -54,7 +54,7 @@ fn check_fn_body_with_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<Enum
 // Typecheck a `test` declaration body (ADR-041). Test bodies are checked in
 // the module environment with a fresh empty local scope. No params, no
 // return contract. Test mod recurses into child test decls.
-fn check_test_body(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
+fn check_test_body(mut env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
     if ast_access::node_kind_is(node, kinds::NK_TEST_MOD()) {
         let cc = ast_access::node_child_count(node)
         let mut i = 0
@@ -66,7 +66,7 @@ fn check_test_body(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, 
     }
     // NK_TEST_DECL
     env.current_fn_return_type = TypeInfo_simple(commands::TY_UNKNOWN())
-    let scope = scope::LocalScope_new()
+    let mut scope = scope::LocalScope_new()
     let cc = ast_access::node_child_count(node)
     if cc > 0 {
         let body = ast_access::node_child_at(node, cc - 1)

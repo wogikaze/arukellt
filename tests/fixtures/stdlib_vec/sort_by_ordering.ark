@@ -14,14 +14,14 @@ fn descending(a: i32, b: i32) -> Ordering {
 }
 
 fn main() {
-    let v: Vec<i32> = Vec::new<i32>()
+    let mut v: Vec<i32> = Vec::new<i32>()
     v.push(3)
     v.push(1)
     v.push(2)
     v.push(2)
     v.push(5)
     v.sort_by(descending)
-    let parts: Vec<String> = Vec::new<String>()
+    let mut parts: Vec<String> = Vec::new<String>()
     for i in 0..v.len() {
         parts.push(v.get_unchecked(i).to_string())
     }

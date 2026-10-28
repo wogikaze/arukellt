@@ -5,7 +5,7 @@ use corehir::frontend_stmt_kind
 use corehir::frontend_ast_type_ann
 
 fn scan_typed_locals(decls: Vec<AstNode>) -> Vec<CoreHirTypedLocal> {
-    let locals = Vec::new<CoreHirTypedLocal>()
+    let mut locals = Vec::new<CoreHirTypedLocal>()
     let decl_count = len(decls)
     let mut di = 0
     while di < decl_count {
@@ -24,7 +24,7 @@ fn default_type_info() -> TypeInfo {
     }
 }
 
-fn scan_locals_in_node(node: AstNode, locals: Vec<CoreHirTypedLocal>) {
+fn scan_locals_in_node(node: AstNode, mut locals: Vec<CoreHirTypedLocal>) {
     let kind = frontend_ast_identity::corehir_node_kind(node)
     if frontend_stmt_kind::corehir_kind_is_stmt_let(kind) {
         let name = frontend_ast_identity::corehir_node_text(node)

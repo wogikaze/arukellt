@@ -1,7 +1,7 @@
 use std::test
 
 fn main() {
-    let m = HashMap::new<String, i32>()
+    let mut m = HashMap::new<String, i32>()
     let _ = m.insert("a", 1)
     let _ = m.insert("b", 2)
     let _ = m.insert("a", 11)

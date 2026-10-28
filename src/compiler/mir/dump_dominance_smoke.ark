@@ -8,7 +8,7 @@ use mir::dump_smoke_dominance_fixture
 
 fn run_dominance_smoke() {
     let fx = dump_smoke_dominance_fixture::mir_dump_dominance_fixture_new()
-    let m = dump_smoke_dominance_fixture::MirDumpDominanceFixture_module(fx)
+    let mut m = dump_smoke_dominance_fixture::MirDumpDominanceFixture_module(fx)
     let f = dump_smoke_dominance_fixture::MirDumpDominanceFixture_function(fx)
     let entry = dump_smoke_dominance_fixture::MirDumpDominanceFixture_entry(fx)
     let then_bb = dump_smoke_dominance_fixture::MirDumpDominanceFixture_then_bb(fx)

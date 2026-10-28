@@ -2,8 +2,8 @@ use std::io
 use std::test
 
 fn main() {
-    let w: io::Writer = io::Writer::new()
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut w: io::Writer = io::Writer::new()
+    let mut data: Vec<i32> = Vec::new<i32>()
     push(data, 65)
     push(data, 66)
     push(data, 67)

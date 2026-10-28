@@ -13,7 +13,7 @@ use typechecker::contract_enum_info
 use typechecker::ast_pattern_predicates
 use typechecker::stmt_let
 use typechecker::ownership_types
-fn infer_match_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+fn infer_match_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let child_count = ast_access::node_child_count(node)
     let arm_count = child_count - 1
     if arm_count < 1 {
@@ -22,7 +22,7 @@ fn infer_match_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_d
     let scrutinee_node = ast_access::node_child_at(node, 0)
     let scrutinee_ty = infer_expr(env, scope, fn_sigs, enum_defs, scrutinee_node)
     let mut result_ty = TypeInfo_simple(commands::TY_UNKNOWN())
-    let coverage = match_coverage_record::MatchCoverage_new()
+    let mut coverage = match_coverage_record::MatchCoverage_new()
     let mut idx = 0
     while idx < arm_count {
         let arm = ast_access::node_child_at(node, idx + 1)
@@ -34,7 +34,7 @@ fn infer_match_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_d
         let pat = ast_access::node_child_at(arm, 0)
         match_coverage_collect::record_match_pattern(coverage, pat, arm_child_count > 2)
         let body = ast_access::node_child_at(arm, arm_child_count - 1)
-        let arm_scope = scope::scope_child(scope)
+        let mut arm_scope = scope::scope_child(scope)
         bind_match_pattern(env, arm_scope, enum_defs, scrutinee_ty, pat)
         let arm_ty = infer_expr(env, arm_scope, fn_sigs, enum_defs, body)
         // An arm may move or capture an outer binding; without folding the
@@ -58,7 +58,7 @@ fn infer_match_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_d
     result_ty
 }
 
-fn bind_match_pattern(env: TypeEnv, scope: LocalScope, enum_defs: Vec<EnumInfo>, scrutinee_ty: TypeInfo, pat: AstNode) {
+fn bind_match_pattern(mut env: TypeEnv, mut scope: LocalScope, enum_defs: Vec<EnumInfo>, scrutinee_ty: TypeInfo, pat: AstNode) {
     if ast_access::node_kind_is(pat, kinds::NK_PAT_IDENT()) {
         let name = ast_access::node_text(pat)
         if !eq(clone(name), "_") {
@@ -87,7 +87,7 @@ fn bind_match_pattern(env: TypeEnv, scope: LocalScope, enum_defs: Vec<EnumInfo>,
 // the resolver already allocates the symbol, so it compiled and silently
 // read 0. Reject binding and nested-composite alternatives here so the
 // surface is a diagnostic instead of a wrong value (#901).
-fn check_or_alternative_bindings(env: TypeEnv, pat: AstNode) {
+fn check_or_alternative_bindings(mut env: TypeEnv, pat: AstNode) {
     let alt_count = ast_access::node_child_count(pat)
     let mut i = 0
     while i < alt_count {
@@ -111,7 +111,7 @@ fn check_or_alternative_bindings(env: TypeEnv, pat: AstNode) {
     }
 }
 
-fn check_or_variant_alt_children(env: TypeEnv, alt: AstNode) {
+fn check_or_variant_alt_children(mut env: TypeEnv, alt: AstNode) {
     let child_count = ast_access::node_child_count(alt)
     let mut i = 0
     while i < child_count {
@@ -140,7 +140,7 @@ fn check_or_variant_alt_children(env: TypeEnv, alt: AstNode) {
 // Nested composite children recurse so Some(Some(v)) and Some((k, _)) bind
 // their inner idents; literal children are match conditions, not bindings,
 // and struct children are rejected rather than silently ignored (#902).
-fn bind_variant_payload_idents(env: TypeEnv, scope: LocalScope, enum_defs: Vec<EnumInfo>, scrutinee_ty: TypeInfo, pat: AstNode) {
+fn bind_variant_payload_idents(mut env: TypeEnv, mut scope: LocalScope, enum_defs: Vec<EnumInfo>, scrutinee_ty: TypeInfo, pat: AstNode) {
     let variant_name = ast_access::node_text(pat)
     let enum_info = match_enum_info(enum_defs, scrutinee_ty)
     let variant_index = contract_enum_info::EnumInfo_variant_index(enum_info, clone(variant_name))
@@ -159,7 +159,7 @@ fn bind_variant_payload_idents(env: TypeEnv, scope: LocalScope, enum_defs: Vec<E
 // they name a variant of the payload enum (a tag condition, not a name);
 // tuple and nested variant children destructure recursively; or and
 // struct children cannot introduce bindings (#902).
-fn bind_payload_subpat_idents(env: TypeEnv, scope: LocalScope, enum_defs: Vec<EnumInfo>, payload_ty: TypeInfo, pat: AstNode) {
+fn bind_payload_subpat_idents(mut env: TypeEnv, mut scope: LocalScope, enum_defs: Vec<EnumInfo>, payload_ty: TypeInfo, pat: AstNode) {
     if ast_access::node_kind_is(pat, kinds::NK_PAT_IDENT()) {
         let name = ast_access::node_text(pat)
         if eq(clone(name), "_") {
@@ -203,7 +203,7 @@ fn bind_payload_subpat_idents(env: TypeEnv, scope: LocalScope, enum_defs: Vec<En
 // bind the element type, variant elements bind payload idents, and nested
 // tuple/struct shapes the lowerer cannot emit are rejected here so they
 // surface as a diagnostic instead of invalid Wasm (#893).
-fn bind_tuple_arm_pattern(env: TypeEnv, scope: LocalScope, enum_defs: Vec<EnumInfo>, scrutinee_ty: TypeInfo, pat: AstNode) {
+fn bind_tuple_arm_pattern(mut env: TypeEnv, mut scope: LocalScope, enum_defs: Vec<EnumInfo>, scrutinee_ty: TypeInfo, pat: AstNode) {
     let elem_count = ast_access::node_child_count(pat)
     let mut i = 0
     while i < elem_count {
@@ -235,7 +235,7 @@ fn bind_tuple_arm_pattern(env: TypeEnv, scope: LocalScope, enum_defs: Vec<EnumIn
     }
 }
 
-fn check_tuple_elem_variant_binds(env: TypeEnv, scope: LocalScope, enum_defs: Vec<EnumInfo>, elem_ty: TypeInfo, sub: AstNode) {
+fn check_tuple_elem_variant_binds(mut env: TypeEnv, mut scope: LocalScope, enum_defs: Vec<EnumInfo>, elem_ty: TypeInfo, sub: AstNode) {
     let bind_count = ast_access::node_child_count(sub)
     let mut i = 0
     while i < bind_count {
@@ -251,7 +251,7 @@ fn check_tuple_elem_variant_binds(env: TypeEnv, scope: LocalScope, enum_defs: Ve
     bind_variant_payload_idents(env, scope, enum_defs, elem_ty, sub)
 }
 
-fn check_tuple_elem_or_alts(env: TypeEnv, sub: AstNode) {
+fn check_tuple_elem_or_alts(mut env: TypeEnv, sub: AstNode) {
     let alt_count = ast_access::node_child_count(sub)
     let mut has_literal_alt = false
     let mut has_variant_alt = false

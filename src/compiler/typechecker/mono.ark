@@ -6,7 +6,7 @@ fn mono_type_key(ty: TypeInfo) -> String {
     mono_key::mono_type_key(ty)
 }
 
-fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) -> String {
+fn record_mono_instance(mut env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) -> String {
     mono_instances::record_mono_instance(env, fn_name, resolved_types)
 }
 
@@ -14,7 +14,7 @@ fn record_mono_return_type(env: TypeEnv, mangled_name: String, return_type: Type
     mono_instances::record_mono_return_type(env, mangled_name, return_type)
 }
 
-fn record_mono_call_site(env: TypeEnv, span_start: i32, fn_name: String, mangled_name: String) {
+fn record_mono_call_site(mut env: TypeEnv, span_start: i32, fn_name: String, mangled_name: String) {
     mono_sites::record_mono_call_site(env, span_start, fn_name, mangled_name)
 }
 

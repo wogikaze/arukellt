@@ -42,7 +42,7 @@ struct WriteReport {
 }
 
 fn sample_data() -> Vec<i32> {
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     push(data, 97)
     push(data, 98)
     push(data, 10)
@@ -51,7 +51,7 @@ fn sample_data() -> Vec<i32> {
     data
 }
 
-fn read_report<T: io::Read>(source: T) -> Result<ReadReport, io::IoError> {
+fn read_report<T: io::Read>(mut source: T) -> Result<ReadReport, io::IoError> {
     let first: Vec<i32> = match source.read(2) {
         Result::Ok(chunk) => chunk,
         Result::Err(err) => return Err(err),
@@ -75,7 +75,7 @@ fn read_report<T: io::Read>(source: T) -> Result<ReadReport, io::IoError> {
         })
 }
 
-fn bufread_report<T: io::BufRead>(source: T) -> Result<BufReadReport, io::IoError> {
+fn bufread_report<T: io::BufRead>(mut source: T) -> Result<BufReadReport, io::IoError> {
     let pending: Vec<i32> = match source.fill_buf() {
         Result::Ok(chunk) => chunk,
         Result::Err(err) => return Err(err),
@@ -116,7 +116,7 @@ fn bufread_report<T: io::BufRead>(source: T) -> Result<BufReadReport, io::IoErro
         })
 }
 
-fn line_report<T: io::BufRead>(source: T) -> Result<LineReport, io::IoError> {
+fn line_report<T: io::BufRead>(mut source: T) -> Result<LineReport, io::IoError> {
     let first: bool = match source.read_line() {
         Result::Ok(found) => match found {
             Option::Some(_) => true,
@@ -137,7 +137,7 @@ fn line_report<T: io::BufRead>(source: T) -> Result<LineReport, io::IoError> {
         })
 }
 
-fn seek_report<T: io::Seek>(source: T) -> Result<SeekReport, io::IoError> {
+fn seek_report<T: io::Seek>(mut source: T) -> Result<SeekReport, io::IoError> {
     let initial: i64 = match source.position() {
         Result::Ok(pos) => pos,
         Result::Err(err) => return Err(err),
@@ -177,7 +177,7 @@ fn seek_report<T: io::Seek>(source: T) -> Result<SeekReport, io::IoError> {
         })
 }
 
-fn write_report<T: io::Write>(sink: T, data: Vec<i32>) -> Result<WriteReport, io::IoError> {
+fn write_report<T: io::Write>(mut sink: T, data: Vec<i32>) -> Result<WriteReport, io::IoError> {
     let written: i32 = match sink.write(data) {
         Result::Ok(count) => count,
         Result::Err(err) => return Err(err),
@@ -221,7 +221,7 @@ fn main() {
         Result::Err(err) => stdio::println(io::io_error_message(err)),
     }
 
-    let newline: Vec<i32> = Vec::new<i32>()
+    let mut newline: Vec<i32> = Vec::new<i32>()
     push(newline, 10)
     match line_report(io::Reader::from_bytes(newline)) {
         Result::Ok(report) => {

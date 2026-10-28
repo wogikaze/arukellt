@@ -117,7 +117,7 @@ fn path_stem(p: String) -> String {
 /// normalize("/foo//bar")         -> "/foo/bar"
 fn path_normalize(p: String) -> String {
     let parts: Vec<String> = __intrinsic_split(p, "/")
-    let out: Vec<String> = Vec::new<String>()
+    let mut out: Vec<String> = Vec::new<String>()
     let n = len(parts)
     let mut i = 0
     while i < n {
@@ -150,7 +150,7 @@ fn path_normalize(p: String) -> String {
 /// components("")               -> []
 fn path_components(p: String) -> Vec<String> {
     let raw: Vec<String> = __intrinsic_split(p, "/")
-    let out: Vec<String> = Vec::new<String>()
+    let mut out: Vec<String> = Vec::new<String>()
     let n = len(raw)
     let mut i = 0
     while i < n {

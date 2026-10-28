@@ -32,7 +32,7 @@ fn ExportSectionPlan_main_idx(plan: ExportSectionPlan) -> i32 {
 }
 
 fn emit_export_section(
-    out: WasmWriter,
+    mut out: WasmWriter,
     mir: MirModule,
     fn_count: i32,
     needs_wrapper: i32,
@@ -40,7 +40,7 @@ fn emit_export_section(
     wasi_version: String,
     wit_import_count: i32
 ) {
-    let export_sec = writer_core::WasmWriter_new()
+    let mut export_sec = writer_core::WasmWriter_new()
     let plan = build_export_section_plan(mir, fn_count, clone(wasi_version))
     let export_count = ExportSectionPlan_export_count(plan)
     let main_idx = ExportSectionPlan_main_idx(plan)
@@ -89,7 +89,7 @@ fn ExportNameCounts_new(expected: i32) -> ExportNameCounts {
     while capacity < required {
         capacity = capacity * 2
     }
-    let buckets = Vec::new<i32>()
+    let mut buckets = Vec::new<i32>()
     let mut i = 0
     while i < capacity {
         push(buckets, 0)
@@ -102,7 +102,7 @@ fn ExportNameCounts_new(expected: i32) -> ExportNameCounts {
     }
 }
 
-fn export_name_seen_bump(counts: ExportNameCounts, name: String) -> i32 {
+fn export_name_seen_bump(mut counts: ExportNameCounts, name: String) -> i32 {
     let capacity = len(counts.buckets)
     if capacity <= 0 {
         return 0
@@ -191,7 +191,7 @@ fn build_export_section_plan(mir: MirModule, fn_count: i32, wasi_version: String
 }
 
 fn emit_p2_runtime_export_entries(
-    export_sec: WasmWriter,
+    mut export_sec: WasmWriter,
     fn_count: i32,
     needs_wrapper: i32,
     p2_library_post_count: i32,
@@ -220,7 +220,7 @@ fn emit_p2_runtime_export_entries(
     writer_core::emit_leb128_u(export_sec, realloc_idx + 1)
 }
 
-fn emit_memory_export_entry(export_sec: WasmWriter, wasi_version: String) {
+fn emit_memory_export_entry(mut export_sec: WasmWriter, wasi_version: String) {
     let name = if emit_target::is_p2_wasi(clone(wasi_version)) { "cm32p2_memory" } else { "memory" }
     writer_string::emit_string(export_sec, name)
     writer_core::emit_byte(export_sec, 2)
@@ -228,7 +228,7 @@ fn emit_memory_export_entry(export_sec: WasmWriter, wasi_version: String) {
 }
 
 fn emit_start_export_entry(
-    export_sec: WasmWriter,
+    mut export_sec: WasmWriter,
     main_idx: i32,
     fn_count: i32,
     needs_wrapper: i32,
@@ -260,7 +260,7 @@ fn emit_start_export_entry(
 }
 
 fn emit_function_export_entries(
-    export_sec: WasmWriter,
+    mut export_sec: WasmWriter,
     mir: MirModule,
     fn_count: i32,
     needs_wrapper: i32,
@@ -270,7 +270,7 @@ fn emit_function_export_entries(
     p2_library_post_count: i32
 ) {
     let functions = module_functions::MirModule_functions(mir)
-    let seen_short_names = ExportNameCounts_new(fn_count)
+    let mut seen_short_names = ExportNameCounts_new(fn_count)
     let mut library_ordinal = 0
     let mut library_wrapper_ordinal = 0
     let mut exi = 0
@@ -331,7 +331,7 @@ fn emit_function_export_entries(
 }
 
 fn emit_p2_library_function_exports(
-    export_sec: WasmWriter,
+    mut export_sec: WasmWriter,
     export_name: String,
     function_idx: i32,
     fn_count: i32,

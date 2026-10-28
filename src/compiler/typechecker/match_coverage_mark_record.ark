@@ -1,37 +1,37 @@
 use typechecker::match_coverage_record
 
-fn match_coverage_mark_wildcard(coverage: MatchCoverage) {
+fn match_coverage_mark_wildcard(mut coverage: MatchCoverage) {
     coverage.has_wildcard = true
 }
 
-fn match_coverage_mark_irrefutable(coverage: MatchCoverage) {
+fn match_coverage_mark_irrefutable(mut coverage: MatchCoverage) {
     coverage.has_irrefutable = true
 }
 
-fn match_coverage_mark_bool_true(coverage: MatchCoverage) {
+fn match_coverage_mark_bool_true(mut coverage: MatchCoverage) {
     coverage.has_bool_true = true
 }
 
-fn match_coverage_mark_bool_false(coverage: MatchCoverage) {
+fn match_coverage_mark_bool_false(mut coverage: MatchCoverage) {
     coverage.has_bool_false = true
 }
 
-fn match_coverage_mark_option_some(coverage: MatchCoverage) {
+fn match_coverage_mark_option_some(mut coverage: MatchCoverage) {
     coverage.has_option_some = true
 }
 
-fn match_coverage_mark_option_none(coverage: MatchCoverage) {
+fn match_coverage_mark_option_none(mut coverage: MatchCoverage) {
     coverage.has_option_none = true
 }
 
-fn match_coverage_mark_result_ok(coverage: MatchCoverage) {
+fn match_coverage_mark_result_ok(mut coverage: MatchCoverage) {
     coverage.has_result_ok = true
 }
 
-fn match_coverage_mark_result_err(coverage: MatchCoverage) {
+fn match_coverage_mark_result_err(mut coverage: MatchCoverage) {
     coverage.has_result_err = true
 }
 
-fn match_coverage_push_variant(coverage: MatchCoverage, variant: String) {
+fn match_coverage_push_variant(mut coverage: MatchCoverage, variant: String) {
     push(coverage.covered_variants, variant)
 }

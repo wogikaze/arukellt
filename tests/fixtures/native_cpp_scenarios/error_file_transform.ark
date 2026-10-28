@@ -12,7 +12,7 @@ fn transform_line(line: String) -> Result<String, String> {
 }
 
 fn main() {
-    let path = String_from("native_cpp_scenario_transform.txt")
+    let mut path = String_from("native_cpp_scenario_transform.txt")
     match Fs::write_string(clone(path), String_from("payload")) {
         Result::Ok(_) => {
         },

@@ -8,7 +8,7 @@ use wasm::opcodes
 use wasm::writer_core
 use wasm::intrinsics::helpers_numeric_i32_convert
 
-fn emit_add(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_add(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let val_type = inst_accessors_shape::MirInst_val_type(inst)
     if val_type == value_types::VT_F64() {
         writer_core::emit_byte(w, opcodes::OP_F64_ADD())
@@ -37,7 +37,7 @@ fn emit_add(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     }
 }
 
-fn emit_sub(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_sub(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let val_type = inst_accessors_shape::MirInst_val_type(inst)
     if val_type == value_types::VT_F64() {
         writer_core::emit_byte(w, opcodes::OP_F64_SUB())
@@ -56,7 +56,7 @@ fn emit_sub(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     }
 }
 
-fn emit_mul(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_mul(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let val_type = inst_accessors_shape::MirInst_val_type(inst)
     if val_type == value_types::VT_F64() {
         writer_core::emit_byte(w, opcodes::OP_F64_MUL())
@@ -75,7 +75,7 @@ fn emit_mul(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     }
 }
 
-fn emit_div(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_div(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let val_type = inst_accessors_shape::MirInst_val_type(inst)
     if val_type == value_types::VT_F64() {
         writer_core::emit_byte(w, opcodes::OP_F64_DIV())
@@ -94,7 +94,7 @@ fn emit_div(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     }
 }
 
-fn emit_mod(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_mod(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let val_type = inst_accessors_shape::MirInst_val_type(inst)
     if val_type == value_types::VT_F64() {
         // WebAssembly has no f64.rem; compute a - b * trunc(a / b).

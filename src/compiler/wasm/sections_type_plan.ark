@@ -43,20 +43,20 @@ fn FuncTypeRefs_new() -> FuncTypeRefs {
     }
 }
 
-fn FuncTypeRefs_begin_entry(table: FuncTypeRefs) {
+fn FuncTypeRefs_begin_entry(mut table: FuncTypeRefs) {
     push(table.param_starts, len(table.param_refs))
     push(table.result_refs, 0 - 1)
 }
 
-fn FuncTypeRefs_push_param(table: FuncTypeRefs, ref_type_idx: i32) {
+fn FuncTypeRefs_push_param(mut table: FuncTypeRefs, ref_type_idx: i32) {
     push(table.param_refs, ref_type_idx)
 }
 
-fn FuncTypeRefs_set_result(table: FuncTypeRefs, ref_type_idx: i32) {
+fn FuncTypeRefs_set_result(mut table: FuncTypeRefs, ref_type_idx: i32) {
     set(table.result_refs, len(table.result_refs) - 1, ref_type_idx)
 }
 
-fn FuncTypeRefs_finish(table: FuncTypeRefs) {
+fn FuncTypeRefs_finish(mut table: FuncTypeRefs) {
     push(table.param_starts, len(table.param_refs))
 }
 
@@ -126,7 +126,7 @@ fn TypeSectionPlan_fn_type_refs(plan: TypeSectionPlan) -> FuncTypeRefs {
     plan.fn_type_refs
 }
 
-fn TypeSectionPlan_set_fn_type_refs(plan: TypeSectionPlan, table: FuncTypeRefs) {
+fn TypeSectionPlan_set_fn_type_refs(mut plan: TypeSectionPlan, table: FuncTypeRefs) {
     plan.fn_type_refs = table
 }
 
@@ -282,7 +282,7 @@ fn build_p2_library_wrapper_type_map(
     p2_library_post_count: i32,
     p2_library_wrapper_count: i32
 ) -> Vec<i32> {
-    let wrapper_map = Vec::new<i32>()
+    let mut wrapper_map = Vec::new<i32>()
     if !p2_enabled {
         return wrapper_map
     }
@@ -307,7 +307,7 @@ fn build_p2_library_post_type_map(
     p2_enabled: bool,
     p2_library_post_count: i32
 ) -> Vec<i32> {
-    let post_map = Vec::new<i32>()
+    let mut post_map = Vec::new<i32>()
     if !p2_enabled {
         return post_map
     }

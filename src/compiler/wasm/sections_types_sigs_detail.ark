@@ -333,7 +333,7 @@ fn p2_enum_has_variants(type_name: String, mir: MirModule) -> bool {
     false
 }
 
-fn p2_merge_enum_payload(payload: Vec<String>, field: String) {
+fn p2_merge_enum_payload(mut payload: Vec<String>, field: String) {
     if len(payload) == 0 {
         push(payload, clone(field))
         return
@@ -352,7 +352,7 @@ fn p2_merge_enum_payload(payload: Vec<String>, field: String) {
 fn p2_enum_payload_sigs(type_name: String, mir: MirModule) -> Vec<String> {
     let names = module_gc_enum::MirModule_gc_enum_variant_names(mir)
     let sigs = module_gc_enum::MirModule_gc_enum_variant_sigs(mir)
-    let payload = Vec::new<String>()
+    let mut payload = Vec::new<String>()
     let mut i = 0
     while i < len(names) {
         if i < len(sigs) && p2_enum_variant_matches(clone(type_name), get_unchecked(names, i)) {

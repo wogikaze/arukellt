@@ -11,7 +11,7 @@ use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i32_convert
 
 // Handler for: remove_i32
-fn emit_remove_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_remove_i32(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return emit_remove_gc(w, ctx)
     }
@@ -31,7 +31,7 @@ fn emit_remove_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 // GC target: shift elements down from idx to len-1, then decrement len.
-fn emit_remove_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+fn emit_remove_gc(mut w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
     let s_arr = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
@@ -45,7 +45,7 @@ fn emit_remove_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_remove_gc_setup(w: WasmWriter, s_idx: i32, s_vec: i32, s_arr: i32, s_len: i32, s_i: i32, vec_type: i32) {
+fn emit_remove_gc_setup(mut w: WasmWriter, s_idx: i32, s_vec: i32, s_arr: i32, s_len: i32, s_i: i32, vec_type: i32) {
     // Stack: [vec_ref, idx] — pop idx, then vec
     helpers_core::emit_local_set(w, s_idx)
     helpers_core::emit_local_set(w, s_vec)
@@ -63,7 +63,7 @@ fn emit_remove_gc_setup(w: WasmWriter, s_idx: i32, s_vec: i32, s_arr: i32, s_len
     helpers_core::emit_local_set(w, s_i)
 }
 
-fn emit_remove_gc_shift_loop(w: WasmWriter, s_arr: i32, s_len: i32, s_i: i32, arr_type: i32) {
+fn emit_remove_gc_shift_loop(mut w: WasmWriter, s_arr: i32, s_len: i32, s_i: i32, arr_type: i32) {
     // loop: while i < len-1: arr[i] = arr[i+1]; i++
     string_gc_helpers::emit_gc_block_loop(w)
     helpers_core::emit_local_get(w, s_i)
@@ -91,7 +91,7 @@ fn emit_remove_gc_shift_loop(w: WasmWriter, s_arr: i32, s_len: i32, s_i: i32, ar
     string_gc_helpers::emit_gc_block_loop_end(w)
 }
 
-fn emit_remove_gc_finish(w: WasmWriter, s_vec: i32, s_len: i32, vec_type: i32) {
+fn emit_remove_gc_finish(mut w: WasmWriter, s_vec: i32, s_len: i32, vec_type: i32) {
     // vec.len = len - 1
     helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
@@ -103,7 +103,7 @@ fn emit_remove_gc_finish(w: WasmWriter, s_vec: i32, s_len: i32, vec_type: i32) {
     helpers_core::emit_local_get(w, s_vec)
 }
 
-fn emit_remove_setup(w: WasmWriter, s_rm_idx: i32, s_rm_vec: i32, s_rm_data: i32, s_rm_len: i32, s_rm_i: i32) {
+fn emit_remove_setup(mut w: WasmWriter, s_rm_idx: i32, s_rm_vec: i32, s_rm_data: i32, s_rm_len: i32, s_rm_i: i32) {
     writer_core::emit_local_get(w, s_rm_vec)
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
@@ -124,7 +124,7 @@ fn emit_remove_setup(w: WasmWriter, s_rm_idx: i32, s_rm_vec: i32, s_rm_data: i32
     writer_core::emit_leb128_u(w, s_rm_i)
 }
 
-fn emit_remove_shift_loop(w: WasmWriter, s_rm_data: i32, s_rm_len: i32, s_rm_i: i32) {
+fn emit_remove_shift_loop(mut w: WasmWriter, s_rm_data: i32, s_rm_len: i32, s_rm_i: i32) {
     writer_core::emit_byte(w, opcodes::OP_BLOCK())
     writer_core::emit_byte(w, 64)
     writer_core::emit_byte(w, opcodes::OP_LOOP())
@@ -150,7 +150,7 @@ fn emit_remove_shift_loop(w: WasmWriter, s_rm_data: i32, s_rm_len: i32, s_rm_i: 
     writer_core::emit_byte(w, 11)
 }
 
-fn emit_remove_shift_one(w: WasmWriter, s_rm_data: i32, s_rm_i: i32) {
+fn emit_remove_shift_one(mut w: WasmWriter, s_rm_data: i32, s_rm_i: i32) {
     writer_core::emit_local_get(w, s_rm_data)
     writer_core::emit_local_get(w, s_rm_i)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
@@ -174,7 +174,7 @@ fn emit_remove_shift_one(w: WasmWriter, s_rm_data: i32, s_rm_i: i32) {
     writer_core::emit_byte(w, 0)
 }
 
-fn emit_remove_finish(w: WasmWriter, s_rm_vec: i32, s_rm_len: i32) {
+fn emit_remove_finish(mut w: WasmWriter, s_rm_vec: i32, s_rm_len: i32) {
     writer_core::emit_local_get(w, s_rm_vec)
     writer_core::emit_local_get(w, s_rm_len)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())

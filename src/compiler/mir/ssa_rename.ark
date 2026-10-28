@@ -1,15 +1,15 @@
 use mir::ssa_rename_block
 use mir::ssa_rename_entry
 
-fn mir_ssa_rename_block(f: MirFunction, state: ssa_state_types::MirSsaRenameState, block_id: i32) {
+fn mir_ssa_rename_block(mut f: MirFunction, mut state: ssa_state_types::MirSsaRenameState, block_id: i32) {
     ssa_rename_block::mir_ssa_rename_block(f, state, block_id)
 }
 
-fn mir_ssa_rename_blocks(f: MirFunction, state: ssa_state_types::MirSsaRenameState) {
+fn mir_ssa_rename_blocks(mut f: MirFunction, mut state: ssa_state_types::MirSsaRenameState) {
     ssa_rename_block::mir_ssa_rename_blocks(f, state)
 }
 
-fn mir_ssa_rename_function(f: MirFunction) {
+fn mir_ssa_rename_function(mut f: MirFunction) {
     ssa_rename_entry::mir_ssa_rename_function(f)
 }
 

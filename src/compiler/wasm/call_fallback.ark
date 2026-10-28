@@ -5,10 +5,10 @@ use wasm::call_fallback_resolved
 use wasm::call_fallback_intrinsics
 use mir::inst_accessors_literals
 fn emit_fallback_call(
-    w: WasmWriter,
+    mut w: WasmWriter,
     callee: String,
     inst: MirInst,
-    ctx: SelfEmitCtx,
+    mut ctx: SelfEmitCtx,
     prev_op: i32,
     prev_arg0: i32,
     prev_arg1: i32,
@@ -64,7 +64,7 @@ fn emit_fallback_call(
     emit_unresolved_fallback_call(w, inst)
 }
 
-fn emit_unresolved_fallback_call(w: WasmWriter, inst: MirInst) {
+fn emit_unresolved_fallback_call(mut w: WasmWriter, inst: MirInst) {
     let arg_count = inst_accessors_literals::MirInst_int_val(inst)
     let mut drop_i = 0
     while drop_i < arg_count {

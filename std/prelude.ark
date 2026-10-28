@@ -270,7 +270,7 @@ pub fn panic(s: String) {
 // ADR-087 Wave 2. `filter_i32` is the one still-public provisional entry.
 // =============================================================================
 // Core-op fallback for seq.sort_i32 (public wrapper deleted in ADR-087 Wave 2).
-fn __core_seq_sort_i32_impl(v: Vec<i32>) {
+fn __core_seq_sort_i32_impl(mut v: Vec<i32>) {
     let mut index = 1
     while index < len(v) {
         let value = get_unchecked(v, index)
@@ -298,12 +298,12 @@ pub fn join(v: Vec<String>, sep: String) -> String {
     panic(String_new()); return String_new()
 }
 
-pub fn push_char(s: String, c: char) {
+pub fn push_char(mut s: String, c: char) {
     __core_push_char_impl(s, c)
 }
 
 // Core-op fallback for seq.sort_i64 (public wrapper deleted in ADR-087 Wave 2).
-fn __core_seq_sort_i64_impl(v: Vec<i64>) {
+fn __core_seq_sort_i64_impl(mut v: Vec<i64>) {
     let mut index = 1
     while index < len(v) {
         let value = get_unchecked(v, index)
@@ -317,7 +317,7 @@ fn __core_seq_sort_i64_impl(v: Vec<i64>) {
     }
 }
 // Core-op fallback for seq.sort_f64 (public wrapper deleted in ADR-087 Wave 2).
-fn __core_seq_sort_f64_impl(v: Vec<f64>) {
+fn __core_seq_sort_f64_impl(mut v: Vec<f64>) {
     let mut index = 1
     while index < len(v) {
         let value = get_unchecked(v, index)
@@ -391,7 +391,7 @@ fn __core_vec_get_unchecked_impl<T>(values: Vec<T>, index: i32) -> T {
     raw_array_get_unchecked(values, index)
 }
 
-fn __core_vec_set_impl<T>(values: Vec<T>, index: i32, value: T) {
+fn __core_vec_set_impl<T>(mut values: Vec<T>, index: i32, value: T) {
     raw_array_set_unchecked(values, index, value)
 }
 
@@ -407,19 +407,19 @@ fn __core_vec_get_unchecked_f64_impl(values: Vec<f64>, index: i32) -> f64 {
 // i32/i64/f64 bodies and rewrite String/stdlib sites to sealed grow+set (#822).
 fn __core_vec_push_i32_impl(values: Vec<i32>, value: i32) {
     let n: i32 = raw_array_len(values)
-    let grown: Vec<i32> = raw_array_grow(values, n + 1)
+    let mut grown: Vec<i32> = raw_array_grow(values, n + 1)
     raw_array_set_unchecked(grown, n, value)
 }
 
 fn __core_vec_push_i64_impl(values: Vec<i64>, value: i64) {
     let n: i32 = raw_array_len(values)
-    let grown: Vec<i64> = raw_array_grow(values, n + 1)
+    let mut grown: Vec<i64> = raw_array_grow(values, n + 1)
     raw_array_set_unchecked(grown, n, value)
 }
 
 fn __core_vec_push_f64_impl(values: Vec<f64>, value: f64) {
     let n: i32 = raw_array_len(values)
-    let grown: Vec<f64> = raw_array_grow(values, n + 1)
+    let mut grown: Vec<f64> = raw_array_grow(values, n + 1)
     raw_array_set_unchecked(grown, n, value)
 }
 
@@ -462,7 +462,7 @@ fn __core_vec_contains_i32_impl(v: Vec<i32>, x: i32) -> bool {
     }
     false
 }
-fn __core_vec_reverse_i32_impl(v: Vec<i32>) {
+fn __core_vec_reverse_i32_impl(mut v: Vec<i32>) {
     let n: i32 = raw_array_len(v)
     let mut lo: i32 = 0
     let mut hi: i32 = n - 1
@@ -474,7 +474,7 @@ fn __core_vec_reverse_i32_impl(v: Vec<i32>) {
         hi = hi - 1
     }
 }
-fn __core_vec_reverse_string_impl(v: Vec<String>) {
+fn __core_vec_reverse_string_impl(mut v: Vec<String>) {
     let n: i32 = len(v)
     let mut lo: i32 = 0
     let mut hi: i32 = n - 1
@@ -486,7 +486,7 @@ fn __core_vec_reverse_string_impl(v: Vec<String>) {
         hi = hi - 1
     }
 }
-fn __core_vec_remove_i32_impl(v: Vec<i32>, index: i32) {
+fn __core_vec_remove_i32_impl(mut v: Vec<i32>, index: i32) {
     let n: i32 = raw_array_len(v)
     let mut i: i32 = index
     while i < n - 1 {
@@ -531,7 +531,7 @@ pub fn len(s: String) -> i32 {
     panic(String_new()); return 0
 }
 
-pub fn push(v: Vec<i32>, val: i32) {
+pub fn push(mut v: Vec<i32>, val: i32) {
     panic(String_new())
 }
 
@@ -543,12 +543,12 @@ pub fn get_unchecked<T>(v: Vec<T>, idx: i32) -> T {
     return v[idx]
 }
 
-pub fn pop(v: Vec<i32>) -> Option<i32> {
+pub fn pop(mut v: Vec<i32>) -> Option<i32> {
     // Rewrite to vec_pop intrinsic (prelude panic stub had no emitter) (#807).
     vec_pop(v)
 }
 
-pub fn set<T>(v: Vec<T>, idx: i32, val: T) {
+pub fn set<T>(mut v: Vec<T>, idx: i32, val: T) {
     panic(String_new())
 }
 

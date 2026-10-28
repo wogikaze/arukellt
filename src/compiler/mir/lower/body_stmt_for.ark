@@ -17,7 +17,7 @@ use mir::lower_kinds
 use mir::value_types
 use mir::inst_call
 use mir::inst_local_get
-fn lower_for_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_for_stmt(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     if child_count >= 2 {
         let range = ast_node::node_child_at(node, 0)
@@ -42,7 +42,7 @@ fn mir_for_range_is_values_call(range: AstNode, range_child_count: i32) -> bool 
     eq(ast_node::node_text(range_callee), "values")
 }
 
-fn lower_struct_iterator_for_stmt(ctx: LowerCtx, node: AstNode, range: AstNode, body: AstNode) {
+fn lower_struct_iterator_for_stmt(mut ctx: LowerCtx, node: AstNode, range: AstNode, body: AstNode) {
     let source_idx = lower_expr(ctx, range)
     if source_idx < 0 {
         return
@@ -101,7 +101,7 @@ fn lower_struct_iterator_for_stmt(ctx: LowerCtx, node: AstNode, range: AstNode, 
 }
 
 fn lower_into_iterator_for_stmt(
-    ctx: LowerCtx,
+    mut ctx: LowerCtx,
     node: AstNode,
     range: AstNode,
     body: AstNode,
@@ -133,7 +133,7 @@ fn lower_into_iterator_for_stmt(
     }
 }
 
-fn lower_i32_range_for_stmt(ctx: LowerCtx, node: AstNode, range: AstNode, body: AstNode) {
+fn lower_i32_range_for_stmt(mut ctx: LowerCtx, node: AstNode, range: AstNode, body: AstNode) {
     let start_node = ast_node::node_child_at(range, 0)
     let end_node = ast_node::node_child_at(range, 1)
     let start_idx = lower_expr(ctx, start_node)
@@ -152,13 +152,13 @@ fn lower_i32_range_for_stmt(ctx: LowerCtx, node: AstNode, range: AstNode, body: 
     loop_scope::mir_end_loop_scope(ctx, loop_scope)
 }
 
-fn lower_values_for_stmt(ctx: LowerCtx, node: AstNode, range: AstNode, body: AstNode) {
+fn lower_values_for_stmt(mut ctx: LowerCtx, node: AstNode, range: AstNode, body: AstNode) {
     let vec_arg = ast_node::node_child_at(range, 1)
     let vec_idx = lower_expr(ctx, vec_arg)
     lower_vec_for_stmt(ctx, node, body, vec_idx)
 }
 
-fn lower_vec_for_stmt(ctx: LowerCtx, node: AstNode, body: AstNode, vec_idx: i32) {
+fn lower_vec_for_stmt(mut ctx: LowerCtx, node: AstNode, body: AstNode, vec_idx: i32) {
     let vec_type = ctx_get_local_type(ctx, vec_idx)
     let vec_vt = ctx_local_vt(ctx, vec_idx)
     let vec_local = ctx_fresh_local(ctx, vec_vt)

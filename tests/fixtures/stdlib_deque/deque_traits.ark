@@ -5,7 +5,7 @@ use std::core::convert
 use std::host::stdio
 
 fn main() {
-    let letters: Deque<String> = Deque::new<String>()
+    let mut letters: Deque<String> = Deque::new<String>()
     letters.push_back("beta")
     letters.push_front("alpha")
     let copy: Deque<String> = letters.clone()
@@ -19,7 +19,7 @@ fn main() {
     stdio::println(empty.fmt_debug())
     assert(empty.is_empty())
 
-    let reserved: Deque<i32> = Deque::with_capacity<i32>(5)
+    let mut reserved: Deque<i32> = Deque::with_capacity<i32>(5)
     reserved.push_back(1)
     let clone_with_capacity: Deque<i32> = reserved.clone()
     stdio::println((clone_with_capacity.capacity()).to_string())

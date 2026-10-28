@@ -28,7 +28,7 @@ use wasm::intrinsic_vec_new_layout
 use wasm::intrinsic_memory
 use wasm::runtime_abi_env_args
 fn try_emit_clone_intrinsic(
-    w: WasmWriter,
+    mut w: WasmWriter,
     callee: String,
     inst: MirInst,
     ctx: SelfEmitCtx,
@@ -46,10 +46,10 @@ fn try_emit_clone_intrinsic(
 }
 
 fn try_emit_name_intrinsic_fallback(
-    w: WasmWriter,
+    mut w: WasmWriter,
     callee: String,
     inst: MirInst,
-    ctx: SelfEmitCtx,
+    mut ctx: SelfEmitCtx,
     next_op: i32,
     next_arg0: i32,
     next_arg1: i32,
@@ -545,7 +545,7 @@ fn is_vec_len_handler(handler_id: i32) -> bool {
 }
 
 fn finish_intrinsic_fallback(
-    w: WasmWriter,
+    mut w: WasmWriter,
     inst: MirInst,
     next_op: i32,
     next_arg0: i32,

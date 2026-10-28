@@ -9,12 +9,12 @@ use mir::inst_draft
 use mir::opcodes
 use mir::lower::ctx_current_storage
 use mir::module_spine
-fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, inst: MirInstDraft, symbol: String) -> MirInstDraft {
+fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, mut inst: MirInstDraft, symbol: String) -> MirInstDraft {
     let m = ctx_current_storage::ctx_current_module_value(ctx)
     if !module_spine::MirModule_signature_spine_populated(m) {
         return inst
     }
-    let registry = module_spine::MirModule_signature_registry(m)
+    let mut registry = module_spine::MirModule_signature_registry(m)
     let mut canonical_symbol = clone(symbol)
     let mut fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(symbol))
     // Loaded-module bodies keep `module::Type::method` because the resolver
@@ -82,7 +82,7 @@ fn is_seq_extremum_alias(symbol: String) -> bool {
     eq(clone(symbol), String_from("seq::max_i32"))
 }
 
-fn mir_inst_attach_func_id_if_call(ctx: LowerCtx, inst: MirInstDraft) -> MirInstDraft {
+fn mir_inst_attach_func_id_if_call(ctx: LowerCtx, mut inst: MirInstDraft) -> MirInstDraft {
     let op = inst_draft::MirInstDraft_op(inst)
     if op != opcodes::MIR_CALL() && op != opcodes::MIR_REF_FUNC() {
         return inst

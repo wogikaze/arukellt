@@ -31,6 +31,6 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
 
 // ── Compile File ─────────────────────────────────────────────────────────────
 /// Reads and compiles a file, reporting read failures through `CompileResult`.
-pub fn compile_file(path: String, config: DriverConfig) -> CompileResult {
+pub fn compile_file(path: String, mut config: DriverConfig) -> CompileResult {
     file::compile_file(path, config)
 }

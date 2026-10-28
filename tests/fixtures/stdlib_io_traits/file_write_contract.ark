@@ -30,7 +30,7 @@ fn main() {
     }
     match fs::File::create(".build/file_write_contract.bin") {
         Result::Ok(file) => {
-            let file: fs::File = file
+            let mut file: fs::File = file
             match file.write("new".to_utf8_bytes()) {
                 Result::Ok(count) => stdio::println((count).to_string()),
                 Result::Err(err) => stdio::println(io::io_error_message(err)),
@@ -74,7 +74,7 @@ fn main() {
 
     match fs::File::open(".build/file_write_contract.bin") {
         Result::Ok(file) => {
-            let file: fs::File = file
+            let mut file: fs::File = file
             match file.write("x".to_utf8_bytes()) {
                 Result::Ok(_) => stdio::println("read-only write unexpectedly ok"),
                 Result::Err(err) => stdio::println(io::io_error_message(err)),
@@ -89,7 +89,7 @@ fn main() {
 
     match fs::File::create(".build/file_write_contract.bin") {
         Result::Ok(file) => {
-            let file: fs::File = file
+            let mut file: fs::File = file
             match file.read(1) {
                 Result::Ok(_) => stdio::println("write-only read unexpectedly ok"),
                 Result::Err(err) => stdio::println(io::io_error_message(err)),
@@ -105,7 +105,7 @@ fn main() {
 
     match fs::File::create(".build/file_write_gap.bin") {
         Result::Ok(file) => {
-            let file: fs::File = file
+            let mut file: fs::File = file
             match file.seek(SeekFrom::Start(2i64)) {
                 Result::Ok(position) => stdio::println((position).to_string()),
                 Result::Err(err) => stdio::println(io::io_error_message(err)),

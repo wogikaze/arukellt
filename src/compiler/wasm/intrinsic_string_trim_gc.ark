@@ -9,7 +9,7 @@ use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i32
 
 // GC-target trim_start: string is (ref null array_i8), result is new GC array.
-fn emit_trim_start_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_trim_start_gc(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let g0 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -45,7 +45,7 @@ fn emit_trim_start_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 }
 
 // GC-target trim_end: string is (ref null array_i8), result is new GC array.
-fn emit_trim_end_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_trim_end_gc(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let g0 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -81,7 +81,7 @@ fn emit_trim_end_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_trim_gc_copy_result(w, g0, s_start, s3, s_result, string_type)
 }
 
-fn emit_trim_start_gc_scan(w: WasmWriter, g0: i32, s_len: i32, s_pos: i32, s_ch: i32, string_type: i32) {
+fn emit_trim_start_gc_scan(mut w: WasmWriter, g0: i32, s_len: i32, s_pos: i32, s_ch: i32, string_type: i32) {
     helpers_control::emit_block_loop_header(w)
     helpers_core::emit_local_get(w, s_pos)
     helpers_core::emit_local_get(w, s_len)
@@ -103,7 +103,7 @@ fn emit_trim_start_gc_scan(w: WasmWriter, g0: i32, s_len: i32, s_pos: i32, s_ch:
     helpers_control::emit_end(w)
 }
 
-fn emit_trim_end_gc_scan(w: WasmWriter, g0: i32, s_len: i32, s_ch: i32, string_type: i32) {
+fn emit_trim_end_gc_scan(mut w: WasmWriter, g0: i32, s_len: i32, s_ch: i32, string_type: i32) {
     helpers_control::emit_block_loop_header(w)
     helpers_core::emit_local_get(w, s_len)
     helpers_numeric_i32::emit_i32_const(w, 0)
@@ -128,7 +128,7 @@ fn emit_trim_end_gc_scan(w: WasmWriter, g0: i32, s_len: i32, s_ch: i32, string_t
 }
 
 // GC-target copy: allocate new array and copy bytes from source.
-fn emit_trim_gc_copy_result(w: WasmWriter, g_src: i32, start_local: i32, len_local: i32, result_local: i32, string_type: i32) {
+fn emit_trim_gc_copy_result(mut w: WasmWriter, g_src: i32, start_local: i32, len_local: i32, result_local: i32, string_type: i32) {
     // Allocate new array of size len
     helpers_core::emit_local_get(w, len_local)
     string_gc_helpers::emit_gc_array_new(w, string_type)
@@ -149,7 +149,7 @@ fn emit_trim_gc_copy_result(w: WasmWriter, g_src: i32, start_local: i32, len_loc
     helpers_core::emit_local_get(w, result_local)
 }
 
-fn emit_ascii_whitespace_check(w: WasmWriter, s_ch: i32) {
+fn emit_ascii_whitespace_check(mut w: WasmWriter, s_ch: i32) {
     helpers_core::emit_local_get(w, s_ch)
     helpers_numeric_i32::emit_i32_const(w, 32)
     helpers_numeric_i32::emit_i32_eq(w)

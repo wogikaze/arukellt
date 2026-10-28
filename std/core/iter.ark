@@ -96,8 +96,8 @@ pub trait FromIterator<T> {
 
 // Keep collection traversal in one generic implementation so every adapter
 // uses the same associated-item result type.
-fn collect_iterator<T: Iterator>(it: T) -> Vec<T::Item> {
-    let result: Vec<T::Item> = Vec::new<T::Item>()
+fn collect_iterator<T: Iterator>(mut it: T) -> Vec<T::Item> {
+    let mut result: Vec<T::Item> = Vec::new<T::Item>()
     while true {
         match it.next() {
             Some(v) => push(result, v),
@@ -107,7 +107,7 @@ fn collect_iterator<T: Iterator>(it: T) -> Vec<T::Item> {
     result
 }
 
-fn count_iterator<T: Iterator>(it: T) -> i32 {
+fn count_iterator<T: Iterator>(mut it: T) -> i32 {
     let mut count: i32 = 0
     while true {
         match it.next() {
@@ -118,7 +118,7 @@ fn count_iterator<T: Iterator>(it: T) -> i32 {
     count
 }
 
-fn sum_iterator_i32<T: Iterator>(it: T) -> i32 {
+fn sum_iterator_i32<T: Iterator>(mut it: T) -> i32 {
     let mut total: i32 = 0
     while true {
         match it.next() {
@@ -129,7 +129,7 @@ fn sum_iterator_i32<T: Iterator>(it: T) -> i32 {
     total
 }
 
-fn fold_iterator_i32<T: Iterator>(it: T, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+fn fold_iterator_i32<T: Iterator>(mut it: T, init: i32, f: fn(i32, i32) -> i32) -> i32 {
     let mut total: i32 = init
     while true {
         match it.next() {
@@ -140,7 +140,7 @@ fn fold_iterator_i32<T: Iterator>(it: T, init: i32, f: fn(i32, i32) -> i32) -> i
     total
 }
 
-fn contains_iterator_i32<T: Iterator>(it: T, target: i32) -> bool {
+fn contains_iterator_i32<T: Iterator>(mut it: T, target: i32) -> bool {
     let mut found: bool = false
     while true {
         match it.next() {
@@ -156,7 +156,7 @@ fn contains_iterator_i32<T: Iterator>(it: T, target: i32) -> bool {
     found
 }
 
-fn count_eq_iterator_i32<T: Iterator>(it: T, target: i32) -> i32 {
+fn count_eq_iterator_i32<T: Iterator>(mut it: T, target: i32) -> i32 {
     let mut hits: i32 = 0
     while true {
         match it.next() {
@@ -171,7 +171,7 @@ fn count_eq_iterator_i32<T: Iterator>(it: T, target: i32) -> i32 {
     hits
 }
 
-fn any_iterator_i32<T: Iterator>(it: T, f: fn(i32) -> bool) -> bool {
+fn any_iterator_i32<T: Iterator>(mut it: T, f: fn(i32) -> bool) -> bool {
     let mut found: bool = false
     while true {
         match it.next() {
@@ -187,7 +187,7 @@ fn any_iterator_i32<T: Iterator>(it: T, f: fn(i32) -> bool) -> bool {
     found
 }
 
-fn all_iterator_i32<T: Iterator>(it: T, f: fn(i32) -> bool) -> bool {
+fn all_iterator_i32<T: Iterator>(mut it: T, f: fn(i32) -> bool) -> bool {
     let mut all: bool = true
     while true {
         match it.next() {
@@ -366,7 +366,7 @@ impl VecIter<i32> {
 impl<T> Iterator for VecIter<T> {
     type Item = T
 
-    fn next(self: VecIter<T>) -> Option<T> {
+    fn next(mut self: VecIter<T>) -> Option<T> {
         if self.index < self.length {
             let val: T = get_unchecked(self.vec, self.index)
             self.index = self.index + 1
@@ -376,11 +376,11 @@ impl<T> Iterator for VecIter<T> {
         }
     }
 
-    fn collect(self: VecIter<T>) -> Vec<T> {
+    fn collect(mut self: VecIter<T>) -> Vec<T> {
         collect_iterator(self)
     }
 
-    fn count(self: VecIter<T>) -> i32 {
+    fn count(mut self: VecIter<T>) -> i32 {
         count_iterator(self)
     }
 
@@ -438,7 +438,7 @@ pub struct RangeIter {
 impl Iterator for RangeIter {
     type Item = i32
 
-    fn next(self: RangeIter) -> Option<i32> {
+    fn next(mut self: RangeIter) -> Option<i32> {
         if self.current < self.end {
             let val: i32 = self.current
             self.current = self.current + 1
@@ -448,11 +448,11 @@ impl Iterator for RangeIter {
         }
     }
 
-    fn collect(self: RangeIter) -> Vec<i32> {
+    fn collect(mut self: RangeIter) -> Vec<i32> {
         collect_iterator(self)
     }
 
-    fn count(self: RangeIter) -> i32 {
+    fn count(mut self: RangeIter) -> i32 {
         count_iterator(self)
     }
 
@@ -480,7 +480,7 @@ pub struct RangeInclusiveIter {
 impl Iterator for RangeInclusiveIter {
     type Item = i32
 
-    fn next(self: RangeInclusiveIter) -> Option<i32> {
+    fn next(mut self: RangeInclusiveIter) -> Option<i32> {
         if self.current <= self.end {
             let value: i32 = self.current
             self.current = self.current + 1
@@ -490,11 +490,11 @@ impl Iterator for RangeInclusiveIter {
         }
     }
 
-    fn collect(self: RangeInclusiveIter) -> Vec<i32> {
+    fn collect(mut self: RangeInclusiveIter) -> Vec<i32> {
         collect_iterator(self)
     }
 
-    fn count(self: RangeInclusiveIter) -> i32 {
+    fn count(mut self: RangeInclusiveIter) -> i32 {
         count_iterator(self)
     }
 
@@ -544,7 +544,7 @@ impl<T, U> MapIter<T, U> {
 impl<T, U> Iterator for MapIter<T, U> {
     type Item = U
 
-    fn next(self: MapIter<T, U>) -> Option<U> {
+    fn next(mut self: MapIter<T, U>) -> Option<U> {
         if self.index < self.length {
             let raw: T = get_unchecked(self.vec, self.index)
             self.index = self.index + 1
@@ -554,11 +554,11 @@ impl<T, U> Iterator for MapIter<T, U> {
         }
     }
 
-    fn collect(self: MapIter<T, U>) -> Vec<U> {
+    fn collect(mut self: MapIter<T, U>) -> Vec<U> {
         collect_iterator(self)
     }
 
-    fn count(self: MapIter<T, U>) -> i32 {
+    fn count(mut self: MapIter<T, U>) -> i32 {
         count_iterator(self)
     }
 
@@ -589,7 +589,7 @@ impl<T, U> MapFilterIter<T, U> {
 impl<T, U> Iterator for MapFilterIter<T, U> {
     type Item = U
 
-    fn next(self: MapFilterIter<T, U>) -> Option<U> {
+    fn next(mut self: MapFilterIter<T, U>) -> Option<U> {
         while self.index < self.length {
             let raw: T = get_unchecked(self.vec, self.index)
             self.index = self.index + 1
@@ -604,11 +604,11 @@ impl<T, U> Iterator for MapFilterIter<T, U> {
         None
     }
 
-    fn collect(self: MapFilterIter<T, U>) -> Vec<U> {
+    fn collect(mut self: MapFilterIter<T, U>) -> Vec<U> {
         collect_iterator(self)
     }
 
-    fn count(self: MapFilterIter<T, U>) -> i32 {
+    fn count(mut self: MapFilterIter<T, U>) -> i32 {
         count_iterator(self)
     }
 
@@ -651,7 +651,7 @@ impl<T> FilterIter<T> {
 impl<T> Iterator for FilterIter<T> {
     type Item = T
 
-    fn next(self: FilterIter<T>) -> Option<T> {
+    fn next(mut self: FilterIter<T>) -> Option<T> {
         while self.index < self.length {
             let val: T = get_unchecked(self.vec, self.index)
             self.index = self.index + 1
@@ -665,11 +665,11 @@ impl<T> Iterator for FilterIter<T> {
         None
     }
 
-    fn collect(self: FilterIter<T>) -> Vec<T> {
+    fn collect(mut self: FilterIter<T>) -> Vec<T> {
         collect_iterator(self)
     }
 
-    fn count(self: FilterIter<T>) -> i32 {
+    fn count(mut self: FilterIter<T>) -> i32 {
         count_iterator(self)
     }
 
@@ -700,7 +700,7 @@ impl<T, U> FilterMapIter<T, U> {
 impl<T, U> Iterator for FilterMapIter<T, U> {
     type Item = U
 
-    fn next(self: FilterMapIter<T, U>) -> Option<U> {
+    fn next(mut self: FilterMapIter<T, U>) -> Option<U> {
         while self.index < self.length {
             let val: T = get_unchecked(self.vec, self.index)
             self.index = self.index + 1
@@ -712,11 +712,11 @@ impl<T, U> Iterator for FilterMapIter<T, U> {
         None
     }
 
-    fn collect(self: FilterMapIter<T, U>) -> Vec<U> {
+    fn collect(mut self: FilterMapIter<T, U>) -> Vec<U> {
         collect_iterator(self)
     }
 
-    fn count(self: FilterMapIter<T, U>) -> i32 {
+    fn count(mut self: FilterMapIter<T, U>) -> i32 {
         count_iterator(self)
     }
 
@@ -737,7 +737,7 @@ pub struct TakeIter<I> {
 impl<I> Iterator for TakeIter<I> {
     type Item = I::Item
 
-    fn next(self: TakeIter<I>) -> Option<I::Item> {
+    fn next(mut self: TakeIter<I>) -> Option<I::Item> {
         if self.remaining <= 0 {
             return None
         }
@@ -751,8 +751,8 @@ impl<I> Iterator for TakeIter<I> {
         }
     }
 
-    fn collect(self: TakeIter<I>) -> Vec<I::Item> {
-        let out: Vec<I::Item> = Vec::new<I::Item>()
+    fn collect(mut self: TakeIter<I>) -> Vec<I::Item> {
+        let mut out: Vec<I::Item> = Vec::new<I::Item>()
         while true {
             match self.next() {
                 Some(value) => push(out, value),
@@ -812,7 +812,7 @@ impl<I> SkipIter<I> {
 impl<I> Iterator for SkipIter<I> {
     type Item = I::Item
 
-    fn next(self: SkipIter<I>) -> Option<I::Item> {
+    fn next(mut self: SkipIter<I>) -> Option<I::Item> {
         while self.to_skip > 0 {
             let nxt = self.iter.next()
             match nxt {
@@ -823,8 +823,8 @@ impl<I> Iterator for SkipIter<I> {
         self.iter.next()
     }
 
-    fn collect(self: SkipIter<I>) -> Vec<I::Item> {
-        let out: Vec<I::Item> = Vec::new<I::Item>()
+    fn collect(mut self: SkipIter<I>) -> Vec<I::Item> {
+        let mut out: Vec<I::Item> = Vec::new<I::Item>()
         while true {
             match self.next() {
                 Some(value) => push(out, value),
@@ -867,7 +867,7 @@ pub struct SkipFilterIter<I> {
 impl<I> Iterator for SkipMapIter<I> {
     type Item = I::Item
 
-    fn next(self: SkipMapIter<I>) -> Option<I::Item> {
+    fn next(mut self: SkipMapIter<I>) -> Option<I::Item> {
         while self.to_skip > 0 {
             let nxt = self.iter.next()
             match nxt {
@@ -882,11 +882,11 @@ impl<I> Iterator for SkipMapIter<I> {
         }
     }
 
-    fn collect(self: SkipMapIter<I>) -> Vec<I::Item> {
+    fn collect(mut self: SkipMapIter<I>) -> Vec<I::Item> {
         collect_iterator(self)
     }
 
-    fn count(self: SkipMapIter<I>) -> i32 {
+    fn count(mut self: SkipMapIter<I>) -> i32 {
         count_iterator(self)
     }
 }
@@ -894,7 +894,7 @@ impl<I> Iterator for SkipMapIter<I> {
 impl<I> Iterator for SkipFilterIter<I> {
     type Item = I::Item
 
-    fn next(self: SkipFilterIter<I>) -> Option<I::Item> {
+    fn next(mut self: SkipFilterIter<I>) -> Option<I::Item> {
         while self.to_skip > 0 {
             let nxt = self.iter.next()
             match nxt {
@@ -922,11 +922,11 @@ impl<I> Iterator for SkipFilterIter<I> {
         out
     }
 
-    fn collect(self: SkipFilterIter<I>) -> Vec<I::Item> {
+    fn collect(mut self: SkipFilterIter<I>) -> Vec<I::Item> {
         collect_iterator(self)
     }
 
-    fn count(self: SkipFilterIter<I>) -> i32 {
+    fn count(mut self: SkipFilterIter<I>) -> i32 {
         count_iterator(self)
     }
 }
@@ -959,7 +959,7 @@ pub struct ChainIter<I> {
 impl<I> Iterator for ChainIter<I> {
     type Item = I::Item
 
-    fn next(self: ChainIter<I>) -> Option<I::Item> {
+    fn next(mut self: ChainIter<I>) -> Option<I::Item> {
         if !self.on_first {
             return self.second.next()
         }
@@ -973,7 +973,7 @@ impl<I> Iterator for ChainIter<I> {
     }
 
     fn collect(self: ChainIter<I>) -> Vec<I::Item> {
-        let out: Vec<I::Item> = Vec::new<I::Item>()
+        let mut out: Vec<I::Item> = Vec::new<I::Item>()
         for item in self {
             push(out, item)
         }
@@ -1006,7 +1006,7 @@ pub struct EnumerateIter<I> {
 impl<I> Iterator for EnumerateIter<I> {
     type Item = Pair<i32, I::Item>
 
-    fn next(self: EnumerateIter<I>) -> Option<Pair<i32, I::Item>> {
+    fn next(mut self: EnumerateIter<I>) -> Option<Pair<i32, I::Item>> {
         let nxt = self.iter.next()
         match nxt {
             Some(v) => {
@@ -1019,7 +1019,7 @@ impl<I> Iterator for EnumerateIter<I> {
     }
 
     fn collect(self: EnumerateIter<I>) -> Vec<Pair<i32, I::Item>> {
-        let out: Vec<Pair<i32, I::Item>> = Vec::new<Pair<i32, I::Item>>()
+        let mut out: Vec<Pair<i32, I::Item>> = Vec::new<Pair<i32, I::Item>>()
         for item in self {
             push(out, item)
         }
@@ -1051,7 +1051,7 @@ pub struct ZipIter<A, B> {
 impl<A, B> Iterator for ZipIter<A, B> {
     type Item = Pair<A::Item, B::Item>
 
-    fn next(self: ZipIter<A, B>) -> Option<Pair<A::Item, B::Item>> {
+    fn next(mut self: ZipIter<A, B>) -> Option<Pair<A::Item, B::Item>> {
         let av = self.first.next()
         match av {
             Some(a) => {
@@ -1066,7 +1066,7 @@ impl<A, B> Iterator for ZipIter<A, B> {
     }
 
     fn collect(self: ZipIter<A, B>) -> Vec<Pair<A::Item, B::Item>> {
-        let out: Vec<Pair<A::Item, B::Item>> = Vec::new<Pair<A::Item, B::Item>>()
+        let mut out: Vec<Pair<A::Item, B::Item>> = Vec::new<Pair<A::Item, B::Item>>()
         for item in self {
             push(out, item)
         }
@@ -1113,7 +1113,7 @@ impl<T> FlatMapIter<T> {
 impl<T> Iterator for FlatMapIter<T> {
     type Item = T
 
-    fn next(self: FlatMapIter<T>) -> Option<T> {
+    fn next(mut self: FlatMapIter<T>) -> Option<T> {
         let mut out: Option<T> = None
         let mut done: bool = false
         while !done {
@@ -1137,7 +1137,7 @@ impl<T> Iterator for FlatMapIter<T> {
     }
 
     fn collect(self: FlatMapIter<T>) -> Vec<T> {
-        let out: Vec<T> = Vec::new<T>()
+        let mut out: Vec<T> = Vec::new<T>()
         for item in self {
             push(out, item)
         }
@@ -1176,7 +1176,7 @@ impl<T> PeekIter<T> {
     /// Return the next item without consuming it, caching it for `next`.
     /// Repeated `peek` calls return the same cached item until `next`
     /// drains it.
-    fn peek(self: PeekIter<T>) -> Option<T> {
+    fn peek(mut self: PeekIter<T>) -> Option<T> {
         if len(self.peeked) == 0 && self.index < self.length {
             push(self.peeked, get_unchecked(self.vec, self.index))
             self.index = self.index + 1
@@ -1197,7 +1197,7 @@ impl<T> PeekIter<T> {
 impl<T> Iterator for PeekIter<T> {
     type Item = T
 
-    fn next(self: PeekIter<T>) -> Option<T> {
+    fn next(mut self: PeekIter<T>) -> Option<T> {
         if len(self.peeked) > 0 {
             let v: T = get_unchecked(self.peeked, 0)
             self.peeked = Vec::new<T>()
@@ -1212,7 +1212,7 @@ impl<T> Iterator for PeekIter<T> {
     }
 
     fn collect(self: PeekIter<T>) -> Vec<T> {
-        let out: Vec<T> = Vec::new<T>()
+        let mut out: Vec<T> = Vec::new<T>()
         for item in self {
             push(out, item)
         }
@@ -1253,7 +1253,7 @@ impl<T> StepByIter<T> {
 impl<T> Iterator for StepByIter<T> {
     type Item = T
 
-    fn next(self: StepByIter<T>) -> Option<T> {
+    fn next(mut self: StepByIter<T>) -> Option<T> {
         if self.index < self.length {
             let v: T = get_unchecked(self.vec, self.index)
             self.index = self.index + self.step
@@ -1264,7 +1264,7 @@ impl<T> Iterator for StepByIter<T> {
     }
 
     fn collect(self: StepByIter<T>) -> Vec<T> {
-        let out: Vec<T> = Vec::new<T>()
+        let mut out: Vec<T> = Vec::new<T>()
         for item in self {
             push(out, item)
         }
@@ -1307,7 +1307,7 @@ impl<T> ScanIter<T> {
 impl<T> Iterator for ScanIter<T> {
     type Item = T
 
-    fn next(self: ScanIter<T>) -> Option<T> {
+    fn next(mut self: ScanIter<T>) -> Option<T> {
         let mut out: Option<T> = None
         if self.index < self.length {
             let item: T = get_unchecked(self.vec, self.index)
@@ -1327,7 +1327,7 @@ impl<T> Iterator for ScanIter<T> {
     }
 
     fn collect(self: ScanIter<T>) -> Vec<T> {
-        let out: Vec<T> = Vec::new<T>()
+        let mut out: Vec<T> = Vec::new<T>()
         for item in self {
             push(out, item)
         }
@@ -1375,7 +1375,7 @@ fn unique_seen_contains(seen: Vec<i32>, value: i32) -> bool {
 impl Iterator for UniqueIter {
     type Item = i32
 
-    fn next(self: UniqueIter) -> Option<i32> {
+    fn next(mut self: UniqueIter) -> Option<i32> {
         while self.index < self.length {
             let val: i32 = get_unchecked(self.vec, self.index)
             self.index = self.index + 1
@@ -1387,11 +1387,11 @@ impl Iterator for UniqueIter {
         None
     }
 
-    fn collect(self: UniqueIter) -> Vec<i32> {
+    fn collect(mut self: UniqueIter) -> Vec<i32> {
         collect_iterator(self)
     }
 
-    fn count(self: UniqueIter) -> i32 {
+    fn count(mut self: UniqueIter) -> i32 {
         count_iterator(self)
     }
 
@@ -1413,7 +1413,7 @@ pub struct RevIter {
 impl Iterator for RevIter {
     type Item = i32
 
-    fn next(self: RevIter) -> Option<i32> {
+    fn next(mut self: RevIter) -> Option<i32> {
         if self.length > self.index {
             self.length = self.length - 1
             Some(get_unchecked(self.vec, self.length))
@@ -1422,11 +1422,11 @@ impl Iterator for RevIter {
         }
     }
 
-    fn collect(self: RevIter) -> Vec<i32> {
+    fn collect(mut self: RevIter) -> Vec<i32> {
         collect_iterator(self)
     }
 
-    fn count(self: RevIter) -> i32 {
+    fn count(mut self: RevIter) -> i32 {
         count_iterator(self)
     }
 
@@ -1440,109 +1440,109 @@ impl Iterator for RevIter {
 // non-numeric item type must not acquire an invented sum or fold meaning just
 // to satisfy the producer protocol.
 impl IteratorSum<i32, i32> for VecIter<i32> {
-    fn sum(self: VecIter<i32>) -> i32 {
+    fn sum(mut self: VecIter<i32>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
 impl IteratorFold<i32, i32> for VecIter<i32> {
-    fn fold(self: VecIter<i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    fn fold(mut self: VecIter<i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
 impl IteratorSum<i32, i32> for RangeIter {
-    fn sum(self: RangeIter) -> i32 {
+    fn sum(mut self: RangeIter) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
 impl IteratorFold<i32, i32> for RangeIter {
-    fn fold(self: RangeIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    fn fold(mut self: RangeIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
 impl IteratorSum<i32, i32> for RangeInclusiveIter {
-    fn sum(self: RangeInclusiveIter) -> i32 {
+    fn sum(mut self: RangeInclusiveIter) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
 impl IteratorFold<i32, i32> for RangeInclusiveIter {
-    fn fold(self: RangeInclusiveIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    fn fold(mut self: RangeInclusiveIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
 impl IteratorSum<i32, i32> for MapIter<i32, i32> {
-    fn sum(self: MapIter<i32, i32>) -> i32 {
+    fn sum(mut self: MapIter<i32, i32>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
 impl IteratorFold<i32, i32> for MapIter<i32, i32> {
-    fn fold(self: MapIter<i32, i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    fn fold(mut self: MapIter<i32, i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
 impl IteratorSum<i32, i32> for TakeIter<MapIter<i32, i32>> {
-    fn sum(self: TakeIter<MapIter<i32, i32>>) -> i32 {
+    fn sum(mut self: TakeIter<MapIter<i32, i32>>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
 impl IteratorFold<i32, i32> for TakeIter<MapIter<i32, i32>> {
-    fn fold(self: TakeIter<MapIter<i32, i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    fn fold(mut self: TakeIter<MapIter<i32, i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
 impl IteratorSum<i32, i32> for MapFilterIter<i32, i32> {
-    fn sum(self: MapFilterIter<i32, i32>) -> i32 {
+    fn sum(mut self: MapFilterIter<i32, i32>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
 impl IteratorFold<i32, i32> for MapFilterIter<i32, i32> {
-    fn fold(self: MapFilterIter<i32, i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    fn fold(mut self: MapFilterIter<i32, i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
 impl IteratorSum<i32, i32> for TakeIter<MapFilterIter<i32, i32>> {
-    fn sum(self: TakeIter<MapFilterIter<i32, i32>>) -> i32 {
+    fn sum(mut self: TakeIter<MapFilterIter<i32, i32>>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
 impl IteratorFold<i32, i32> for TakeIter<MapFilterIter<i32, i32>> {
-    fn fold(self: TakeIter<MapFilterIter<i32, i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    fn fold(mut self: TakeIter<MapFilterIter<i32, i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
 impl IteratorSum<i32, i32> for FilterIter<i32> {
-    fn sum(self: FilterIter<i32>) -> i32 {
+    fn sum(mut self: FilterIter<i32>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
 impl IteratorFold<i32, i32> for FilterIter<i32> {
-    fn fold(self: FilterIter<i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    fn fold(mut self: FilterIter<i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
 impl IteratorSum<i32, i32> for TakeIter<FilterIter<i32>> {
-    fn sum(self: TakeIter<FilterIter<i32>>) -> i32 {
+    fn sum(mut self: TakeIter<FilterIter<i32>>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
 impl IteratorFold<i32, i32> for TakeIter<FilterIter<i32>> {
-    fn fold(self: TakeIter<FilterIter<i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    fn fold(mut self: TakeIter<FilterIter<i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
@@ -1551,97 +1551,97 @@ impl IteratorFold<i32, i32> for TakeIter<FilterIter<i32>> {
 // claim numeric aggregation for non-numeric sources such as
 // TakeIter<VecIter<String>>, which ADR-076 reserves to i32 lanes.
 impl IteratorSum<i32, i32> for TakeIter<VecIter<i32>> {
-    fn sum(self: TakeIter<VecIter<i32>>) -> i32 {
+    fn sum(mut self: TakeIter<VecIter<i32>>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
 impl IteratorFold<i32, i32> for TakeIter<VecIter<i32>> {
-    fn fold(self: TakeIter<VecIter<i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    fn fold(mut self: TakeIter<VecIter<i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
 impl IteratorSum<i32, i32> for SkipIter<VecIter<i32>> {
-    fn sum(self: SkipIter<VecIter<i32>>) -> i32 {
+    fn sum(mut self: SkipIter<VecIter<i32>>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
 impl IteratorFold<i32, i32> for SkipIter<VecIter<i32>> {
-    fn fold(self: SkipIter<VecIter<i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    fn fold(mut self: SkipIter<VecIter<i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
 impl IteratorSum<i32, i32> for TakeIter<SkipIter<VecIter<i32>>> {
-    fn sum(self: TakeIter<SkipIter<VecIter<i32>>>) -> i32 {
+    fn sum(mut self: TakeIter<SkipIter<VecIter<i32>>>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
 impl IteratorFold<i32, i32> for TakeIter<SkipIter<VecIter<i32>>> {
-    fn fold(self: TakeIter<SkipIter<VecIter<i32>>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    fn fold(mut self: TakeIter<SkipIter<VecIter<i32>>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
 impl IteratorSum<i32, i32> for SkipMapIter<VecIter<i32>> {
-    fn sum(self: SkipMapIter<VecIter<i32>>) -> i32 {
+    fn sum(mut self: SkipMapIter<VecIter<i32>>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
 impl IteratorFold<i32, i32> for SkipMapIter<VecIter<i32>> {
-    fn fold(self: SkipMapIter<VecIter<i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    fn fold(mut self: SkipMapIter<VecIter<i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
 impl IteratorSum<i32, i32> for SkipFilterIter<VecIter<i32>> {
-    fn sum(self: SkipFilterIter<VecIter<i32>>) -> i32 {
+    fn sum(mut self: SkipFilterIter<VecIter<i32>>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
 impl IteratorFold<i32, i32> for SkipFilterIter<VecIter<i32>> {
-    fn fold(self: SkipFilterIter<VecIter<i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    fn fold(mut self: SkipFilterIter<VecIter<i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
 impl IteratorSum<i32, i32> for ChainIter<VecIter<i32>> {
-    fn sum(self: ChainIter<VecIter<i32>>) -> i32 {
+    fn sum(mut self: ChainIter<VecIter<i32>>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
 impl IteratorFold<i32, i32> for ChainIter<VecIter<i32>> {
-    fn fold(self: ChainIter<VecIter<i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    fn fold(mut self: ChainIter<VecIter<i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
 impl IteratorSum<i32, i32> for UniqueIter {
-    fn sum(self: UniqueIter) -> i32 {
+    fn sum(mut self: UniqueIter) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
 impl IteratorFold<i32, i32> for UniqueIter {
-    fn fold(self: UniqueIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    fn fold(mut self: UniqueIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
 impl IteratorSum<i32, i32> for RevIter {
-    fn sum(self: RevIter) -> i32 {
+    fn sum(mut self: RevIter) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
 impl IteratorFold<i32, i32> for RevIter {
-    fn fold(self: RevIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    fn fold(mut self: RevIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
@@ -1653,7 +1653,7 @@ impl IteratorFold<i32, i32> for RevIter {
 // Like the numeric consumers, equality over items is a capability of the
 // concrete item type rather than part of the producer contract.
 impl IteratorContains<i32> for VecIter<i32> {
-    fn contains(self: VecIter<i32>, target: i32) -> bool {
+    fn contains(mut self: VecIter<i32>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
@@ -1672,199 +1672,199 @@ impl IteratorContains<String> for VecIter<String> {
 }
 
 impl IteratorCountEq<i32> for VecIter<i32> {
-    fn count_eq(self: VecIter<i32>, target: i32) -> i32 {
+    fn count_eq(mut self: VecIter<i32>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
 impl IteratorContains<i32> for RangeIter {
-    fn contains(self: RangeIter, target: i32) -> bool {
+    fn contains(mut self: RangeIter, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
 impl IteratorCountEq<i32> for RangeIter {
-    fn count_eq(self: RangeIter, target: i32) -> i32 {
+    fn count_eq(mut self: RangeIter, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
 impl IteratorContains<i32> for RangeInclusiveIter {
-    fn contains(self: RangeInclusiveIter, target: i32) -> bool {
+    fn contains(mut self: RangeInclusiveIter, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
 impl IteratorCountEq<i32> for RangeInclusiveIter {
-    fn count_eq(self: RangeInclusiveIter, target: i32) -> i32 {
+    fn count_eq(mut self: RangeInclusiveIter, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
 impl IteratorContains<i32> for MapIter<i32, i32> {
-    fn contains(self: MapIter<i32, i32>, target: i32) -> bool {
+    fn contains(mut self: MapIter<i32, i32>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
 impl IteratorCountEq<i32> for MapIter<i32, i32> {
-    fn count_eq(self: MapIter<i32, i32>, target: i32) -> i32 {
+    fn count_eq(mut self: MapIter<i32, i32>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
 impl IteratorContains<i32> for TakeIter<MapIter<i32, i32>> {
-    fn contains(self: TakeIter<MapIter<i32, i32>>, target: i32) -> bool {
+    fn contains(mut self: TakeIter<MapIter<i32, i32>>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
 impl IteratorCountEq<i32> for TakeIter<MapIter<i32, i32>> {
-    fn count_eq(self: TakeIter<MapIter<i32, i32>>, target: i32) -> i32 {
+    fn count_eq(mut self: TakeIter<MapIter<i32, i32>>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
 impl IteratorContains<i32> for MapFilterIter<i32, i32> {
-    fn contains(self: MapFilterIter<i32, i32>, target: i32) -> bool {
+    fn contains(mut self: MapFilterIter<i32, i32>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
 impl IteratorCountEq<i32> for MapFilterIter<i32, i32> {
-    fn count_eq(self: MapFilterIter<i32, i32>, target: i32) -> i32 {
+    fn count_eq(mut self: MapFilterIter<i32, i32>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
 impl IteratorContains<i32> for TakeIter<MapFilterIter<i32, i32>> {
-    fn contains(self: TakeIter<MapFilterIter<i32, i32>>, target: i32) -> bool {
+    fn contains(mut self: TakeIter<MapFilterIter<i32, i32>>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
 impl IteratorCountEq<i32> for TakeIter<MapFilterIter<i32, i32>> {
-    fn count_eq(self: TakeIter<MapFilterIter<i32, i32>>, target: i32) -> i32 {
+    fn count_eq(mut self: TakeIter<MapFilterIter<i32, i32>>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
 impl IteratorContains<i32> for FilterIter<i32> {
-    fn contains(self: FilterIter<i32>, target: i32) -> bool {
+    fn contains(mut self: FilterIter<i32>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
 impl IteratorCountEq<i32> for FilterIter<i32> {
-    fn count_eq(self: FilterIter<i32>, target: i32) -> i32 {
+    fn count_eq(mut self: FilterIter<i32>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
 impl IteratorContains<i32> for TakeIter<FilterIter<i32>> {
-    fn contains(self: TakeIter<FilterIter<i32>>, target: i32) -> bool {
+    fn contains(mut self: TakeIter<FilterIter<i32>>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
 impl IteratorCountEq<i32> for TakeIter<FilterIter<i32>> {
-    fn count_eq(self: TakeIter<FilterIter<i32>>, target: i32) -> i32 {
+    fn count_eq(mut self: TakeIter<FilterIter<i32>>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
 impl IteratorContains<i32> for TakeIter<VecIter<i32>> {
-    fn contains(self: TakeIter<VecIter<i32>>, target: i32) -> bool {
+    fn contains(mut self: TakeIter<VecIter<i32>>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
 impl IteratorCountEq<i32> for TakeIter<VecIter<i32>> {
-    fn count_eq(self: TakeIter<VecIter<i32>>, target: i32) -> i32 {
+    fn count_eq(mut self: TakeIter<VecIter<i32>>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
 impl IteratorContains<i32> for SkipIter<VecIter<i32>> {
-    fn contains(self: SkipIter<VecIter<i32>>, target: i32) -> bool {
+    fn contains(mut self: SkipIter<VecIter<i32>>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
 impl IteratorCountEq<i32> for SkipIter<VecIter<i32>> {
-    fn count_eq(self: SkipIter<VecIter<i32>>, target: i32) -> i32 {
+    fn count_eq(mut self: SkipIter<VecIter<i32>>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
 impl IteratorContains<i32> for TakeIter<SkipIter<VecIter<i32>>> {
-    fn contains(self: TakeIter<SkipIter<VecIter<i32>>>, target: i32) -> bool {
+    fn contains(mut self: TakeIter<SkipIter<VecIter<i32>>>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
 impl IteratorCountEq<i32> for TakeIter<SkipIter<VecIter<i32>>> {
-    fn count_eq(self: TakeIter<SkipIter<VecIter<i32>>>, target: i32) -> i32 {
+    fn count_eq(mut self: TakeIter<SkipIter<VecIter<i32>>>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
 impl IteratorContains<i32> for SkipMapIter<VecIter<i32>> {
-    fn contains(self: SkipMapIter<VecIter<i32>>, target: i32) -> bool {
+    fn contains(mut self: SkipMapIter<VecIter<i32>>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
 impl IteratorCountEq<i32> for SkipMapIter<VecIter<i32>> {
-    fn count_eq(self: SkipMapIter<VecIter<i32>>, target: i32) -> i32 {
+    fn count_eq(mut self: SkipMapIter<VecIter<i32>>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
 impl IteratorContains<i32> for SkipFilterIter<VecIter<i32>> {
-    fn contains(self: SkipFilterIter<VecIter<i32>>, target: i32) -> bool {
+    fn contains(mut self: SkipFilterIter<VecIter<i32>>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
 impl IteratorCountEq<i32> for SkipFilterIter<VecIter<i32>> {
-    fn count_eq(self: SkipFilterIter<VecIter<i32>>, target: i32) -> i32 {
+    fn count_eq(mut self: SkipFilterIter<VecIter<i32>>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
 impl IteratorContains<i32> for ChainIter<VecIter<i32>> {
-    fn contains(self: ChainIter<VecIter<i32>>, target: i32) -> bool {
+    fn contains(mut self: ChainIter<VecIter<i32>>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
 impl IteratorCountEq<i32> for ChainIter<VecIter<i32>> {
-    fn count_eq(self: ChainIter<VecIter<i32>>, target: i32) -> i32 {
+    fn count_eq(mut self: ChainIter<VecIter<i32>>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
 impl IteratorContains<i32> for UniqueIter {
-    fn contains(self: UniqueIter, target: i32) -> bool {
+    fn contains(mut self: UniqueIter, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
 impl IteratorCountEq<i32> for UniqueIter {
-    fn count_eq(self: UniqueIter, target: i32) -> i32 {
+    fn count_eq(mut self: UniqueIter, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
 impl IteratorContains<i32> for RevIter {
-    fn contains(self: RevIter, target: i32) -> bool {
+    fn contains(mut self: RevIter, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
 impl IteratorCountEq<i32> for RevIter {
-    fn count_eq(self: RevIter, target: i32) -> i32 {
+    fn count_eq(mut self: RevIter, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
@@ -1999,126 +1999,126 @@ impl IntoIterator for RevIter {
 
 /// `FromIterator<i32>` impl for `Vec<i32>` — drains a `VecIter<i32>`.
 impl FromIterator<VecIter<i32>> for Vec<i32> {
-    fn from_iter(it: VecIter<i32>) -> Vec<i32> {
+    fn from_iter(mut it: VecIter<i32>) -> Vec<i32> {
         it.collect()
     }
 }
 
 /// `FromIterator<i32>` impl for `Vec<i32>` — drains a half-open range.
 impl FromIterator<RangeIter> for Vec<i32> {
-    fn from_iter(it: RangeIter) -> Vec<i32> {
+    fn from_iter(mut it: RangeIter) -> Vec<i32> {
         it.collect()
     }
 }
 
 /// `FromIterator<i32>` impl for `Vec<i32>` — drains a closed range.
 impl FromIterator<RangeInclusiveIter> for Vec<i32> {
-    fn from_iter(it: RangeInclusiveIter) -> Vec<i32> {
+    fn from_iter(mut it: RangeInclusiveIter) -> Vec<i32> {
         it.collect()
     }
 }
 
 /// `FromIterator<SkipMapIter>` impl for `Vec<i32>` — maps after skip.
 impl FromIterator<SkipMapIter<VecIter<i32>>> for Vec<i32> {
-    fn from_iter(it: SkipMapIter<VecIter<i32>>) -> Vec<i32> {
+    fn from_iter(mut it: SkipMapIter<VecIter<i32>>) -> Vec<i32> {
         it.collect()
     }
 }
 
 /// `FromIterator<SkipFilterIter>` impl for `Vec<i32>` — filters after skip.
 impl FromIterator<SkipFilterIter<VecIter<i32>>> for Vec<i32> {
-    fn from_iter(it: SkipFilterIter<VecIter<i32>>) -> Vec<i32> {
+    fn from_iter(mut it: SkipFilterIter<VecIter<i32>>) -> Vec<i32> {
         it.collect()
     }
 }
 
 /// `FromIterator<VecIter<String>>` impl for `Vec<String>` — preserves each item.
 impl FromIterator<VecIter<String>> for Vec<String> {
-    fn from_iter(it: VecIter<String>) -> Vec<String> {
+    fn from_iter(mut it: VecIter<String>) -> Vec<String> {
         it.collect()
     }
 }
 
 /// `FromIterator<MapIter<String, String>>` impl for `Vec<String>` — preserves mapped items.
 impl FromIterator<MapIter<String, String>> for Vec<String> {
-    fn from_iter(it: MapIter<String, String>) -> Vec<String> {
+    fn from_iter(mut it: MapIter<String, String>) -> Vec<String> {
         it.collect()
     }
 }
 
 /// `FromIterator<FilterIter<String>>` impl for `Vec<String>` — preserves accepted items.
 impl FromIterator<FilterIter<String>> for Vec<String> {
-    fn from_iter(it: FilterIter<String>) -> Vec<String> {
+    fn from_iter(mut it: FilterIter<String>) -> Vec<String> {
         it.collect()
     }
 }
 
 /// `FromIterator<TakeIter<MapIter<String, String>>>` impl for `Vec<String>` — keeps the bound.
 impl FromIterator<TakeIter<MapIter<String, String>>> for Vec<String> {
-    fn from_iter(it: TakeIter<MapIter<String, String>>) -> Vec<String> {
+    fn from_iter(mut it: TakeIter<MapIter<String, String>>) -> Vec<String> {
         it.collect()
     }
 }
 
 /// `FromIterator<TakeIter<FilterIter<String>>>` impl for `Vec<String>` — keeps accepted items.
 impl FromIterator<TakeIter<FilterIter<String>>> for Vec<String> {
-    fn from_iter(it: TakeIter<FilterIter<String>>) -> Vec<String> {
+    fn from_iter(mut it: TakeIter<FilterIter<String>>) -> Vec<String> {
         it.collect()
     }
 }
 
 /// `FromIterator<MapFilterIter<String, String>>` impl for `Vec<String>` — preserves filtered mapped items.
 impl FromIterator<MapFilterIter<String, String>> for Vec<String> {
-    fn from_iter(it: MapFilterIter<String, String>) -> Vec<String> {
+    fn from_iter(mut it: MapFilterIter<String, String>) -> Vec<String> {
         it.collect()
     }
 }
 
 /// `FromIterator<FilterMapIter<String, String>>` impl for `Vec<String>` — maps accepted items.
 impl FromIterator<FilterMapIter<String, String>> for Vec<String> {
-    fn from_iter(it: FilterMapIter<String, String>) -> Vec<String> {
+    fn from_iter(mut it: FilterMapIter<String, String>) -> Vec<String> {
         it.collect()
     }
 }
 
 /// `FromIterator<TakeIter<MapFilterIter<String, String>>>` impl for `Vec<String>` — bounds accepted mapped items.
 impl FromIterator<TakeIter<MapFilterIter<String, String>>> for Vec<String> {
-    fn from_iter(it: TakeIter<MapFilterIter<String, String>>) -> Vec<String> {
+    fn from_iter(mut it: TakeIter<MapFilterIter<String, String>>) -> Vec<String> {
         it.collect()
     }
 }
 
 /// `FromIterator<TakeIter<FilterMapIter<String, String>>>` impl for `Vec<String>` — bounds mapped accepted items.
 impl FromIterator<TakeIter<FilterMapIter<String, String>>> for Vec<String> {
-    fn from_iter(it: TakeIter<FilterMapIter<String, String>>) -> Vec<String> {
+    fn from_iter(mut it: TakeIter<FilterMapIter<String, String>>) -> Vec<String> {
         it.collect()
     }
 }
 
 /// `FromIterator<SkipMapIter<VecIter<String>>>` impl for `Vec<String>` — maps after skip.
 impl FromIterator<SkipMapIter<VecIter<String>>> for Vec<String> {
-    fn from_iter(it: SkipMapIter<VecIter<String>>) -> Vec<String> {
+    fn from_iter(mut it: SkipMapIter<VecIter<String>>) -> Vec<String> {
         it.collect()
     }
 }
 
 /// `FromIterator<SkipFilterIter<VecIter<String>>>` impl for `Vec<String>` — filters after skip.
 impl FromIterator<SkipFilterIter<VecIter<String>>> for Vec<String> {
-    fn from_iter(it: SkipFilterIter<VecIter<String>>) -> Vec<String> {
+    fn from_iter(mut it: SkipFilterIter<VecIter<String>>) -> Vec<String> {
         it.collect()
     }
 }
 
 /// `FromIterator<UniqueIter>` impl for `Vec<i32>` — drains first occurrences.
 impl FromIterator<UniqueIter> for Vec<i32> {
-    fn from_iter(it: UniqueIter) -> Vec<i32> {
+    fn from_iter(mut it: UniqueIter) -> Vec<i32> {
         it.collect()
     }
 }
 
 /// `FromIterator<RevIter>` impl for `Vec<i32>` — drains in reverse order.
 impl FromIterator<RevIter> for Vec<i32> {
-    fn from_iter(it: RevIter) -> Vec<i32> {
+    fn from_iter(mut it: RevIter) -> Vec<i32> {
         it.collect()
     }
 }

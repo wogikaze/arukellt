@@ -2,7 +2,7 @@ use std::host::stdio
 use std::text
 use std::prelude::{ends_with, starts_with}
 fn main() {
-    let s = "hello world"
+    let mut s = "hello world"
     stdio::println((s.contains("world")).to_string())
     stdio::println((s.contains("xyz")).to_string())
     stdio::println((s.contains("")).to_string())

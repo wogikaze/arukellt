@@ -6,12 +6,12 @@ use mir::reachability_index
 use mir::reachability_legacy
 use mir::module_functions
 use mir::types
-fn mir_prune_unreachable_with_roots(m: MirModule, extra_roots: Vec<String>) -> i32 {
+fn mir_prune_unreachable_with_roots(mut m: MirModule, extra_roots: Vec<String>) -> i32 {
     mir_prune_unreachable_with_roots_for_target(m, extra_roots, String_new())
 }
 
 fn mir_prune_unreachable_with_roots_for_target(
-    m: MirModule,
+    mut m: MirModule,
     extra_roots: Vec<String>,
     target: String
 ) -> i32 {
@@ -26,7 +26,7 @@ fn mir_prune_unreachable_with_roots_for_target(
 }
 
 fn mir_prune_unreachable_with_roots_for_target_and_edges(
-    m: MirModule,
+    mut m: MirModule,
     extra_roots: Vec<String>,
     target: String,
     edges: Vec<i32>,
@@ -65,7 +65,7 @@ fn mir_reachability_marks_for_target_and_edges(
     edge_names: Vec<String>
 ) -> Vec<i32> {
     let fn_count = module_functions::MirModule_function_count(m)
-    let reachable = Vec::new<i32>()
+    let mut reachable = Vec::new<i32>()
     if fn_count == 0 {
         return reachable
     }
@@ -76,7 +76,7 @@ fn mir_reachability_marks_for_target_and_edges(
         push(reachable, 0)
         i = i + 1
     }
-    let queue = Vec::new<i32>()
+    let mut queue = Vec::new<i32>()
     let root_count = reachability_roots::mir_mark_roots(index, functions, reachable, queue, extra_roots)
     if root_count == 0 {
         let mut ri = 0

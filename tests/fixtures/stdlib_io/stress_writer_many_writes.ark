@@ -3,7 +3,7 @@ use std::io
 use std::test
 
 fn main() {
-    let w: io::Writer = io::Writer::new()
+    let mut w: io::Writer = io::Writer::new()
     let mut i: i32 = 0
     while i < 50 {
         let _: Result<i32, io::IoError> = w.write_string("ab")

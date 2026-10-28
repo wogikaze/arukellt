@@ -9,7 +9,7 @@ use mir::inst_op
 use mir::opcodes
 use mir::value_types
 
-fn emit_comprehension_loop_break_check(ctx: LowerCtx, comp_idx_local: i32, comp_end_local: i32) {
+fn emit_comprehension_loop_break_check(mut ctx: LowerCtx, comp_idx_local: i32, comp_end_local: i32) {
     ctx_emit(ctx, inst_local_get::MirInst_local_get(comp_idx_local))
     ctx_emit(ctx, inst_local_get::MirInst_local_get(comp_end_local))
     let comp_cmp_dest = ctx_fresh_local(ctx, value_types::VT_I32())
@@ -17,7 +17,7 @@ fn emit_comprehension_loop_break_check(ctx: LowerCtx, comp_idx_local: i32, comp_
     ctx_emit(ctx, inst_branch::MirInst_br_if(1))
 }
 
-fn emit_comprehension_load_iter(ctx: LowerCtx, comp_vec_local: i32, comp_idx_local: i32, comp_iter_var: i32) {
+fn emit_comprehension_load_iter(mut ctx: LowerCtx, comp_vec_local: i32, comp_idx_local: i32, comp_iter_var: i32) {
     ctx_emit(ctx, inst_local_get::MirInst_local_get(comp_vec_local))
     ctx_emit(ctx, inst_local_get::MirInst_local_get(comp_idx_local))
     ctx_emit(ctx, inst_call::MirInst_call("vec_get_unchecked", 2, comp_iter_var))

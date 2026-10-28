@@ -10,8 +10,8 @@ use mir::value_types
 
 fn run_phi_insertion_nested_join_smoke() {
     let fx = dump_smoke_nested_phi_fixture::mir_dump_nested_phi_fixture_new("phi_insert_nested_join_sample")
-    let m = dump_smoke_nested_phi_fixture::MirDumpNestedPhiFixture_module(fx)
-    let f = dump_smoke_nested_phi_fixture::MirDumpNestedPhiFixture_function(fx)
+    let mut m = dump_smoke_nested_phi_fixture::MirDumpNestedPhiFixture_module(fx)
+    let mut f = dump_smoke_nested_phi_fixture::MirDumpNestedPhiFixture_function(fx)
     let inner_then_val = dump_smoke_nested_phi_fixture::MirDumpNestedPhiFixture_inner_then_val(fx)
     let inner_else_val = dump_smoke_nested_phi_fixture::MirDumpNestedPhiFixture_inner_else_val(fx)
     let inner_join_val = dump_smoke_nested_phi_fixture::MirDumpNestedPhiFixture_inner_join_val(fx)

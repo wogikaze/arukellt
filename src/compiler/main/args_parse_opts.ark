@@ -2,7 +2,7 @@ use std::prelude::{clone, eq}
 use main::args_record
 use main::args_record_opt
 use main::commands
-pub fn parse_target_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+pub fn parse_target_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
         args_record::cli_set_target(opts, clone(get_unchecked(argv, next)))
@@ -10,7 +10,7 @@ pub fn parse_target_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i3
     next
 }
 
-pub fn parse_memory_width_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+pub fn parse_memory_width_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next >= argc {
         args_record::cli_set_error(opts, String_from("--memory-width requires auto, memory32, or memory64"))
@@ -27,7 +27,7 @@ pub fn parse_memory_width_option(argv: Vec<String>, argc: i32, opts: CliOptions,
     next
 }
 
-pub fn parse_wasi_version_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+pub fn parse_wasi_version_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
         let input = clone(get_unchecked(argv, next))
@@ -52,7 +52,7 @@ pub fn parse_wasi_version_option(argv: Vec<String>, argc: i32, opts: CliOptions,
     next
 }
 
-pub fn parse_emit_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+pub fn parse_emit_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
         args_record::cli_set_emit_mode(opts, clone(get_unchecked(argv, next)))
@@ -60,7 +60,7 @@ pub fn parse_emit_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32)
     next
 }
 
-pub fn parse_dump_phases_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+pub fn parse_dump_phases_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
         args_record::cli_set_dump_phases(opts, clone(get_unchecked(argv, next)))
@@ -68,7 +68,7 @@ pub fn parse_dump_phases_option(argv: Vec<String>, argc: i32, opts: CliOptions, 
     next
 }
 
-pub fn parse_opt_level_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+pub fn parse_opt_level_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
         let val = get_unchecked(argv, next)
@@ -77,7 +77,7 @@ pub fn parse_opt_level_option(argv: Vec<String>, argc: i32, opts: CliOptions, i:
     next
 }
 
-pub fn parse_wit_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+pub fn parse_wit_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
         args_record::cli_add_wit_path(opts, clone(get_unchecked(argv, next)))
@@ -87,7 +87,7 @@ pub fn parse_wit_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) 
     next
 }
 
-pub fn parse_output_option(argv: Vec<String>, argc: i32, opts: CliOptions, arg: String, i: i32) -> i32 {
+pub fn parse_output_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, arg: String, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
         let out_arg = clone(get_unchecked(argv, next))
@@ -100,7 +100,7 @@ pub fn parse_output_option(argv: Vec<String>, argc: i32, opts: CliOptions, arg: 
     next
 }
 
-pub fn parse_template_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+pub fn parse_template_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
         args_record::cli_set_init_template(opts, clone(get_unchecked(argv, next)))

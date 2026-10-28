@@ -55,7 +55,7 @@ fn MonoInstance_demanded(instance: MonoInstance) -> bool {
     instance.demanded
 }
 
-fn MonoInstance_set_demanded(instance: MonoInstance) {
+fn MonoInstance_set_demanded(mut instance: MonoInstance) {
     instance.demanded = true
 }
 
@@ -79,7 +79,7 @@ fn MonoInstance_return_type(instance: MonoInstance) -> TypeInfo {
     instance.return_type
 }
 
-fn MonoInstance_set_return_type(instance: MonoInstance, return_type: TypeInfo) {
+fn MonoInstance_set_return_type(mut instance: MonoInstance, return_type: TypeInfo) {
     instance.return_type = return_type
 }
 

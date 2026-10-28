@@ -15,14 +15,14 @@ pub fn is_closure_prefix(kind: i32) -> bool {
     kind == tokens::TK_PIPEPIPE() || kind == tokens::TK_PIPE()
 }
 
-pub fn parse_closure_prefix(p: Parser, t: Token) -> AstNode {
+pub fn parse_closure_prefix(mut p: Parser, t: Token) -> AstNode {
     parse_closure_prefix_with_mode(p, t, false)
 }
 
-pub fn parse_move_closure_prefix(p: Parser, move_token: Token) -> AstNode {
+pub fn parse_move_closure_prefix(mut p: Parser, move_token: Token) -> AstNode {
     p.pos = p.pos + 1
     let pipe = core_api_cursor::cur(p)
-    let node = parse_closure_prefix_with_mode(p, pipe, true)
+    let mut node = parse_closure_prefix_with_mode(p, pipe, true)
     core_ast_span_fields::AstNode_set_span(
         node,
         core_ast_span::Span_new(
@@ -33,10 +33,10 @@ pub fn parse_move_closure_prefix(p: Parser, move_token: Token) -> AstNode {
     node
 }
 
-fn parse_closure_prefix_with_mode(p: Parser, t: Token, is_move: bool) -> AstNode {
+fn parse_closure_prefix_with_mode(mut p: Parser, t: Token, is_move: bool) -> AstNode {
     if token_state::Token_kind(t) == tokens::TK_PIPEPIPE() {
         p.pos = p.pos + 1
-        let node = core_ast_factory::AstNode_new(kinds::NK_CLOSURE(), core_api_expect::tok_span(t))
+        let mut node = core_ast_factory::AstNode_new(kinds::NK_CLOSURE(), core_api_expect::tok_span(t))
         core_ast_flag_fields::AstNode_set_is_move(node, is_move)
         core_api_cursor::skip_newlines(p)
         let body = stmt::parse_expr_or_block(p)

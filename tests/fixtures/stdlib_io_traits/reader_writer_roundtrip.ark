@@ -18,7 +18,7 @@ struct ReadReport {
 }
 
 fn payload() -> Vec<i32> {
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     push(data, 104)
     push(data, 101)
     push(data, 108)
@@ -27,7 +27,7 @@ fn payload() -> Vec<i32> {
     data
 }
 
-fn write_once<T: io::Write>(sink: T, data: Vec<i32>) -> Result<i32, io::IoError> {
+fn write_once<T: io::Write>(mut sink: T, data: Vec<i32>) -> Result<i32, io::IoError> {
     sink.write(data)
 }
 
@@ -37,7 +37,7 @@ struct Handoff<T> {
     flush_ok: bool,
 }
 
-fn write_and_flush<T: io::Write>(sink: T, data: Vec<i32>) -> Handoff<T> {
+fn write_and_flush<T: io::Write>(mut sink: T, data: Vec<i32>) -> Handoff<T> {
     let written: i32 = match sink.write(data) {
         Result::Ok(count) => count,
         Result::Err(_) => 0,
@@ -54,7 +54,7 @@ fn write_and_flush<T: io::Write>(sink: T, data: Vec<i32>) -> Handoff<T> {
     result
 }
 
-fn read_report<T: io::Read>(source: T) -> Result<ReadReport, io::IoError> {
+fn read_report<T: io::Read>(mut source: T) -> Result<ReadReport, io::IoError> {
     let first: Vec<i32> = match source.read(2) {
         Result::Ok(chunk) => chunk,
         Result::Err(err) => return Err(err),
@@ -81,14 +81,14 @@ fn read_report<T: io::Read>(source: T) -> Result<ReadReport, io::IoError> {
 }
 
 fn main() {
-    let count_writer: Writer = Writer::new()
+    let mut count_writer: Writer = Writer::new()
     let count: Result<i32, io::IoError> = write_once(count_writer, payload())
     match count {
         Result::Ok(written) => stdio::println((written).to_string()),
         Result::Err(err) => stdio::println(io::io_error_message(err)),
     }
 
-    let bytes_writer: Writer = Writer::new()
+    let mut bytes_writer: Writer = Writer::new()
     let bytes_handoff: Handoff<io::Writer> = write_and_flush(bytes_writer, payload())
     if !bytes_handoff.flush_ok {
         stdio::println("flush failed")
@@ -98,12 +98,12 @@ fn main() {
     stdio::println((get_unchecked(bytes, 0)).to_string())
     stdio::println((get_unchecked(bytes, 4)).to_string())
 
-    let roundtrip_writer: Writer = Writer::new()
+    let mut roundtrip_writer: Writer = Writer::new()
     let roundtrip_handoff: Handoff<io::Writer> = write_and_flush(roundtrip_writer, payload())
     if !roundtrip_handoff.flush_ok {
         stdio::println("flush failed")
     }
-    let reader: Reader = roundtrip_handoff.sink.into_reader()
+    let mut reader: Reader = roundtrip_handoff.sink.into_reader()
     stdio::println((reader.len()).to_string())
     stdio::println((reader.is_eof()).to_string())
     match read_report(reader) {
@@ -124,7 +124,7 @@ fn main() {
     stdio::println(len(image).to_string())
     stdio::println((get_unchecked(image, 2)).to_string())
 
-    let empty: Reader = Reader::new()
+    let mut empty: Reader = Reader::new()
     stdio::println((empty.len()).to_string())
     stdio::println((empty.is_eof()).to_string())
     match read_report(empty) {

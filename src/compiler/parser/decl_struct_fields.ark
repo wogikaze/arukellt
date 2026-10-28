@@ -4,7 +4,7 @@ use parser::core_api_cursor
 use parser::core_api_expect
 use parser::decl_struct_field
 
-fn parse_struct_fields(p: Parser, node: AstNode) {
+fn parse_struct_fields(mut p: Parser, mut node: AstNode) {
     let mut first = true
     while !core_api_cursor::at(p, tokens::TK_RBRACE()) && !core_api_cursor::at_eof(p) {
         core_api_cursor::skip_newlines(p)

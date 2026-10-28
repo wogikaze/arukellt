@@ -10,7 +10,7 @@ fn mir_enum_has_payload(decl: CoreHirLayoutDecl) -> bool {
     layout_decl_payload::layout_decl_has_payload(decl)
 }
 
-fn mir_register_payload_variant_layout(ctx: LowerCtx, full_name: String, variant: CoreHirLayoutVariant) {
+fn mir_register_payload_variant_layout(mut ctx: LowerCtx, full_name: String, variant: CoreHirLayoutVariant) {
     ctx_api_variants::ctx_register_payload_variant(ctx, clone(full_name))
     let payload_count = layout_variant::layout_variant_payload_type_count(variant)
     ctx_struct_storage::ctx_struct_push_layout(ctx, clone(full_name), payload_count + 1)

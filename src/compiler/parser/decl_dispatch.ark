@@ -11,7 +11,7 @@ use parser::imports
 use parser::stmt
 use parser::core_api_expect
 
-fn parse_decl(p: Parser) -> AstNode {
+fn parse_decl(mut p: Parser) -> AstNode {
     // Contextual `test` keyword: must be checked before pub/async prefix since
     // test declarations are never pub/async. See ADR-041.
     if decl_test::is_test_decl_start(p) {
@@ -26,11 +26,11 @@ fn parse_decl(p: Parser) -> AstNode {
     match k2 {
         10 => {
             if fn_lookahead::peek_is_fn_clause(p) {
-                let d = decl_multiclause::parse_multiclause_fn_decl(p, is_pub, is_async)
+                let mut d = decl_multiclause::parse_multiclause_fn_decl(p, is_pub, is_async)
                 core_ast_flag_fields::AstNode_set_is_component_export(d, is_component_export)
                 return d
             }
-            let d = decl_fns::parse_fn_decl(p)
+            let mut d = decl_fns::parse_fn_decl(p)
             core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
             core_ast_flag_fields::AstNode_set_is_async(d, is_async)
             core_ast_flag_fields::AstNode_set_is_component_export(d, is_component_export)
@@ -38,43 +38,43 @@ fn parse_decl(p: Parser) -> AstNode {
         },
         11 => {
             reject_component_export_modifier(p, is_component_export)
-            let d = decl_types::parse_struct_decl(p)
+            let mut d = decl_types::parse_struct_decl(p)
             core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
             d
         },
         32 => {
             reject_component_export_modifier(p, is_component_export)
-            let d = decl_types::parse_resource_decl(p)
+            let mut d = decl_types::parse_resource_decl(p)
             core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
             d
         },
         12 => {
             reject_component_export_modifier(p, is_component_export)
-            let d = decl_types::parse_enum_decl(p)
+            let mut d = decl_types::parse_enum_decl(p)
             core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
             d
         },
         28 => {
             reject_component_export_modifier(p, is_component_export)
-            let d = decl_fns::parse_trait_decl(p)
+            let mut d = decl_fns::parse_trait_decl(p)
             core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
             d
         },
         29 => {
             reject_component_export_modifier(p, is_component_export)
-            let d = decl_fns::parse_impl_decl(p)
+            let mut d = decl_fns::parse_impl_decl(p)
             core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
             d
         },
         30 => {
             reject_component_export_modifier(p, is_component_export)
-            let d = imports::parse_use_decl(p)
+            let mut d = imports::parse_use_decl(p)
             core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
             d
         },
         35 => {
             reject_component_export_modifier(p, is_component_export)
-            let d = decl_const::parse_const_decl(p)
+            let mut d = decl_const::parse_const_decl(p)
             core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
             d
         },
@@ -89,7 +89,7 @@ fn parse_decl(p: Parser) -> AstNode {
     }
 }
 
-fn reject_component_export_modifier(p: Parser, is_component_export: bool) {
+fn reject_component_export_modifier(mut p: Parser, is_component_export: bool) {
     if is_component_export {
         core_api_expect::error(p, "`export` modifier requires a function declaration")
     }

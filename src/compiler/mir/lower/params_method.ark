@@ -20,7 +20,7 @@ use mir::spine_lookup
 use mir::typed_mir_compat
 use mir::types
 use mir::value_types
-fn mir_bind_method_param(ctx: LowerCtx, struct_name: String, param: CoreHirParam) {
+fn mir_bind_method_param(mut ctx: LowerCtx, struct_name: String, param: CoreHirParam) {
     if !param::param_is_bindable(param) {
         return
     }
@@ -109,7 +109,7 @@ fn mir_bind_method_param(ctx: LowerCtx, struct_name: String, param: CoreHirParam
     mir_apply_param_mvt_override(ctx, param_local)
 }
 
-fn mir_bind_method_self_param(ctx: LowerCtx, struct_name: String, param: CoreHirParam) {
+fn mir_bind_method_self_param(mut ctx: LowerCtx, struct_name: String, param: CoreHirParam) {
     // Determine the correct value type for `self` based on the actual type
     // annotation, not just assuming it is always a GC heap reference.
     // For builtin scalar types (i32, i64, f64, f32, bool, char) self is a
@@ -201,11 +201,11 @@ fn mir_bind_method_self_param(ctx: LowerCtx, struct_name: String, param: CoreHir
 // Result/HashMap) for this parameter, overwrite the legacy type_name/val_type
 // and function-sig type_name with the canonical alias so the emitter uses the
 // right GC ref type. Non-container types are left to the existing string path.
-fn mir_apply_param_mvt_override(ctx: LowerCtx, param_local: i32) {
+fn mir_apply_param_mvt_override(mut ctx: LowerCtx, param_local: i32) {
     let func = ctx_current_storage::ctx_current_func_value(ctx)
     let func_name = function_identity::MirFunction_name(func)
     let m = ctx_current_storage::ctx_current_module_value(ctx)
-    let table = module_spine::MirModule_type_table(m)
+    let mut table = module_spine::MirModule_type_table(m)
     let mut param_mvt = spine_lookup::function_param_mvt(m, func_name, param_local)
     let current_type = ctx_api_local_types::ctx_get_local_type(ctx, param_local)
     if mir_method_param_type_name_is_concrete(clone(current_type)) {

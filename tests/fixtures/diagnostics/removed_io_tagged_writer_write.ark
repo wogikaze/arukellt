@@ -2,7 +2,7 @@ use std::io
 
 fn main() {
     let out: Vec<i32> = io::stdout()
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     push(data, 65)
     let _: Result<i32, io::IoError> = io::writer_write(out, data)
 }

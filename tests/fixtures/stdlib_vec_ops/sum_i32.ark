@@ -2,7 +2,7 @@ use std::host::stdio
 use std::core::iter
 
 fn main() {
-    let v: Vec<i32> = Vec::new<i32>()
+    let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 1)
     push(v, 2)
     push(v, 3)
@@ -11,7 +11,7 @@ fn main() {
     stdio::println((v.iter().sum()).to_string())
     let empty: Vec<i32> = Vec::new<i32>()
     stdio::println((empty.iter().sum()).to_string())
-    let single: Vec<i32> = Vec::new<i32>()
+    let mut single: Vec<i32> = Vec::new<i32>()
     push(single, 42)
     stdio::println((single.iter().sum()).to_string())
 }

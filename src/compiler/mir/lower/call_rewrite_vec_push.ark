@@ -21,7 +21,7 @@ fn mir_vec_push_rewrite_push_i64_needs_extend(rewrite: MirVecPushRewrite) -> boo
     rewrite.push_i64_needs_extend
 }
 
-fn mir_rewrite_vec_push(ctx: LowerCtx, callee_name: String, first_arg_idx: i32, second_arg_idx: i32, stage_call_args: bool) -> MirVecPushRewrite {
+fn mir_rewrite_vec_push(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i32, second_arg_idx: i32, stage_call_args: bool) -> MirVecPushRewrite {
     let mut rewritten = callee_name
     let mut push_i64_needs_extend = false
     if first_arg_idx >= 0 {

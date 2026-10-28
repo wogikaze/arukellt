@@ -31,7 +31,7 @@ pub fn source_span_end(span: SourceSpan) -> i32 {
 }
 
 pub fn lookup_stdlib_source_span(uri: String, name: String) -> SourceSpan {
-    let path = symbol_index_paths::uri_to_file_path(clone(uri))
+    let mut path = symbol_index_paths::uri_to_file_path(clone(uri))
     if len(path) == 0 {
         return SourceSpan_none()
     }

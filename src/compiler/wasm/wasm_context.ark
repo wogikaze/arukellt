@@ -23,43 +23,43 @@ fn emit_wasm_context_new(
     )
 }
 
-fn emit_wasm_context_set_gc_type_base(ctx: SelfEmitCtx, gc_type_base: i32) {
+fn emit_wasm_context_set_gc_type_base(mut ctx: SelfEmitCtx, gc_type_base: i32) {
     ctx_record::SelfEmitCtx_set_gc_type_base(ctx, gc_type_base)
 }
 
-fn emit_wasm_context_set_gc_enum_variant_base(ctx: SelfEmitCtx, gc_enum_variant_base: i32) {
+fn emit_wasm_context_set_gc_enum_variant_base(mut ctx: SelfEmitCtx, gc_enum_variant_base: i32) {
     ctx_record::SelfEmitCtx_set_gc_enum_variant_base(ctx, gc_enum_variant_base)
 }
 
-fn emit_wasm_context_set_gc_enum_variant_names(ctx: SelfEmitCtx, gc_enum_variant_names: Vec<String>) {
+fn emit_wasm_context_set_gc_enum_variant_names(mut ctx: SelfEmitCtx, gc_enum_variant_names: Vec<String>) {
     ctx_record::SelfEmitCtx_set_gc_enum_variant_names(ctx, gc_enum_variant_names)
 }
 
-fn emit_wasm_context_set_gc_enum_variant_sigs(ctx: SelfEmitCtx, gc_enum_variant_sigs: Vec<String>) {
+fn emit_wasm_context_set_gc_enum_variant_sigs(mut ctx: SelfEmitCtx, gc_enum_variant_sigs: Vec<String>) {
     ctx_record::SelfEmitCtx_set_gc_enum_variant_sigs(ctx, gc_enum_variant_sigs)
 }
 
-fn emit_wasm_context_set_gc_struct_base(ctx: SelfEmitCtx, gc_struct_base: i32) {
+fn emit_wasm_context_set_gc_struct_base(mut ctx: SelfEmitCtx, gc_struct_base: i32) {
     ctx_record::SelfEmitCtx_set_gc_struct_base(ctx, gc_struct_base)
 }
 
-fn emit_wasm_context_set_gc_struct_names(ctx: SelfEmitCtx, gc_struct_names: Vec<String>) {
+fn emit_wasm_context_set_gc_struct_names(mut ctx: SelfEmitCtx, gc_struct_names: Vec<String>) {
     ctx_record::SelfEmitCtx_set_gc_struct_names(ctx, gc_struct_names)
 }
 
-fn emit_wasm_context_set_gc_struct_sigs(ctx: SelfEmitCtx, gc_struct_sigs: Vec<String>) {
+fn emit_wasm_context_set_gc_struct_sigs(mut ctx: SelfEmitCtx, gc_struct_sigs: Vec<String>) {
     ctx_record::SelfEmitCtx_set_gc_struct_sigs(ctx, gc_struct_sigs)
 }
 
-fn emit_wasm_context_finalize_gc_indexes(ctx: SelfEmitCtx) {
+fn emit_wasm_context_finalize_gc_indexes(mut ctx: SelfEmitCtx) {
     ctx_record::SelfEmitCtx_finalize_gc_derived_indexes(ctx)
 }
 
-fn emit_wasm_context_set_pair_call_sigs(ctx: SelfEmitCtx, sigs: Vec<String>) {
+fn emit_wasm_context_set_pair_call_sigs(mut ctx: SelfEmitCtx, sigs: Vec<String>) {
     ctx_record::SelfEmitCtx_set_pair_call_sigs(ctx, sigs)
 }
 
-fn emit_wasm_context_set_signature_spine(ctx: SelfEmitCtx, registry: SignatureRegistry, table: TypeTable, mono_table: MonoInstanceTable, spine_populated: bool) {
+fn emit_wasm_context_set_signature_spine(mut ctx: SelfEmitCtx, registry: SignatureRegistry, table: TypeTable, mono_table: MonoInstanceTable, spine_populated: bool) {
     ctx_record::SelfEmitCtx_set_signature_registry(ctx, registry)
     ctx_record::SelfEmitCtx_set_type_table(ctx, table)
     ctx_record::SelfEmitCtx_set_mono_instance_table(ctx, mono_table)
@@ -72,6 +72,6 @@ fn emit_wasm_context_set_signature_spine(ctx: SelfEmitCtx, registry: SignatureRe
     ctx.fid_chains_live = false
 }
 
-fn emit_wasm_context_set_gc_layout_table(ctx: SelfEmitCtx, gc_layout_table: GcLayoutTable) {
+fn emit_wasm_context_set_gc_layout_table(mut ctx: SelfEmitCtx, gc_layout_table: GcLayoutTable) {
     ctx_record::SelfEmitCtx_set_gc_layout_table(ctx, gc_layout_table)
 }

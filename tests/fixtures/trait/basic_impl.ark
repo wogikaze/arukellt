@@ -16,7 +16,7 @@ impl Point {
 }
 
 fn main() {
-    let p = Point { x: 3, y: 4 }
+    let mut p = Point { x: 3, y: 4 }
     let q = Point { x: 10, y: 20 }
     stdio::println(p.sum())
     let r = p.add(q)

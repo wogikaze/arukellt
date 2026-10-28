@@ -15,7 +15,7 @@ use mir::lower::loop_vec
 use mir::lower::method_resolve
 use mir::inst_call
 use mir::inst_local_get
-fn lower_core_for_iter(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+fn lower_core_for_iter(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) < 2 {
         return 0 - 1
     }
@@ -79,7 +79,7 @@ fn lower_core_for_iter(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr
 }
 
 fn lower_core_into_iterator_for(
-    ctx: LowerCtx,
+    mut ctx: LowerCtx,
     exprs: Vec<CoreHirExpr>,
     expr: CoreHirExpr,
     source_idx: i32,

@@ -13,7 +13,7 @@ fn ast_node_text(node: AstNode) -> String {
     ast_fields_record::ast_node_text(node)
 }
 
-fn ast_node_set_text(node: AstNode, text: String) {
+fn ast_node_set_text(mut node: AstNode, text: String) {
     ast_fields_record::ast_node_set_text(node, text)
 }
 
@@ -33,7 +33,7 @@ fn ast_node_is_async(node: AstNode) -> bool {
     ast_fields_record::ast_node_is_async(node)
 }
 
-fn ast_node_set_is_async(node: AstNode, is_async: bool) {
+fn ast_node_set_is_async(mut node: AstNode, is_async: bool) {
     ast_fields_record::ast_node_set_is_async(node, is_async)
 }
 
@@ -41,7 +41,7 @@ fn ast_node_is_move(node: AstNode) -> bool {
     ast_fields_record::ast_node_is_move(node)
 }
 
-fn ast_node_set_is_move(node: AstNode, is_move: bool) {
+fn ast_node_set_is_move(mut node: AstNode, is_move: bool) {
     ast_fields_record::ast_node_set_is_move(node, is_move)
 }
 
@@ -65,7 +65,7 @@ fn ast_node_has_name_span(node: AstNode) -> bool {
     ast_fields_record::ast_node_has_name_span(node)
 }
 
-fn ast_node_set_name_span(node: AstNode, span: Span) {
+fn ast_node_set_name_span(mut node: AstNode, span: Span) {
     ast_fields_record::ast_node_set_name_span(node, span)
 }
 

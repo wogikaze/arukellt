@@ -8,7 +8,7 @@ use std::collections::hash
 use std::test
 
 test "insert_then_remove_restores_empty_map" {
-    let m: Vec<i32> = hash::hashmap_new()
+    let mut m: Vec<i32> = hash::hashmap_new()
 
     // Insert N = 16 disjoint keys with value = key * 10.
     for i in 1..17 {

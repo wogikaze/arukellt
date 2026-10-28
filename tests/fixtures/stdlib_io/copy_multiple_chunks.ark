@@ -6,14 +6,14 @@ fn main() {
     // 300 bytes span more than one COPY_CHUNK_BYTES (256) read, so the copy
     // loop must continue past the first chunk instead of reporting a partial
     // transfer as success.
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < 300 {
         data.push_byte(i % 251)
         i = i + 1
     }
-    let src: io::Reader = io::Reader::from_bytes(data)
-    let dst: io::Writer = io::Writer::new()
+    let mut src: io::Reader = io::Reader::from_bytes(data)
+    let mut dst: io::Writer = io::Writer::new()
     let res: Result<i64, io::IoError> = io::Io::copy(src, dst)
     match res {
         Result::Ok(n) => test::assert_eq_i64(n, 300),

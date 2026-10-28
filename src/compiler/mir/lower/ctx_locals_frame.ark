@@ -33,7 +33,7 @@ fn LowerCtxLocalFrame_capture(ctx: LowerCtx) -> LowerCtxLocalFrame {
     }
 }
 
-fn ctx_restore_local_frame(ctx: LowerCtx, frame: LowerCtxLocalFrame) {
+fn ctx_restore_local_frame(mut ctx: LowerCtx, frame: LowerCtxLocalFrame) {
     ctx_call_edges::ctx_edge_restore_parent(ctx)
     ctx_current_storage::ctx_set_current_func_value(ctx, frame.func)
     ctx_current_storage::ctx_set_current_block_value(ctx, frame.cur_block)
@@ -44,7 +44,7 @@ fn ctx_restore_local_frame(ctx: LowerCtx, frame: LowerCtxLocalFrame) {
     ctx.hashset_locals = frame.hashset_locals
 }
 
-fn ctx_begin_function_frame(ctx: LowerCtx, func: MirFunction) -> i32 {
+fn ctx_begin_function_frame(mut ctx: LowerCtx, func: MirFunction) -> i32 {
     ctx_call_edges::ctx_edge_begin_function(ctx)
     ctx_current_storage::ctx_set_current_func_value(ctx, func)
     ctx_local_index_storage::ctx_local_index_reset_for_function(ctx)
@@ -60,6 +60,6 @@ fn ctx_current_function(ctx: LowerCtx) -> MirFunction {
     ctx_current_storage::ctx_current_func_value(ctx)
 }
 
-fn ctx_set_current_function(ctx: LowerCtx, func: MirFunction) {
+fn ctx_set_current_function(mut ctx: LowerCtx, func: MirFunction) {
     ctx_current_storage::ctx_set_current_func_value(ctx, func)
 }

@@ -2,7 +2,7 @@ use corehir::body_collections
 use corehir::body_struct_lit
 use corehir::expr_node_predicates
 
-fn corehir_dispatch_aggregate_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+fn corehir_dispatch_aggregate_expr(mut table: CoreHirBodyTable, node: AstNode) -> i32 {
     if expr_node_predicates::expr_is_array_lit(node) {
         return body_collections::corehir_build_array_lit_expr(table, node)
     }

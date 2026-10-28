@@ -9,7 +9,7 @@ fn expect_some(v: Option<i32>, expected: i32) {
 }
 
 fn main() {
-    let m = hash::hashmap_with_capacity(2)
+    let mut m = hash::hashmap_with_capacity(2)
     assert(hash::hashmap_capacity(m) >= 2)
 
     // reserve grows capacity to satisfy the load-factor invariant.
@@ -39,7 +39,7 @@ fn main() {
     expect_some(hash::hashmap_get_option(m, 7), 70)
 
     // extend copies entries from another map, overwriting existing keys.
-    let other = hash::hashmap_new()
+    let mut other = hash::hashmap_new()
     let _ = hash::hashmap_set(other, 0, 999)
     let _ = hash::hashmap_set(other, 100, 1000)
     hash::hashmap_extend(m, other)

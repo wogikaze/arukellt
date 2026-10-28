@@ -3,10 +3,10 @@ use std::io
 use std::test
 
 fn main() {
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     data.push_byte(100)
     data.push_byte(200)
-    let r: io::Reader = io::Reader::from_bytes(data)
+    let mut r: io::Reader = io::Reader::from_bytes(data)
     let res: Result<Vec<i32>, io::IoError> = r.read(0)
     match res {
         Result::Ok(chunk) => test::assert_eq_i32(chunk.len(), 0),

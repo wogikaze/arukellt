@@ -1,5 +1,5 @@
 use wasm::inst_store
 
-fn emit_result_if_needed(w: WasmWriter, inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+fn emit_result_if_needed(mut w: WasmWriter, inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }

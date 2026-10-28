@@ -58,7 +58,7 @@ fn lex_diag_code_message(code: i32) -> String {
     "lexical error"
 }
 
-fn session_record_lex_diagnostics(snap: AnalysisSnapshot, text: String, lex_result: LexResult) {
+fn session_record_lex_diagnostics(mut snap: AnalysisSnapshot, text: String, lex_result: LexResult) {
     let lex_legacy_count = session_lex_query::session_lex_diagnostic_count(lex_result)
     let mut li = 0
     while li < lex_legacy_count {
@@ -81,7 +81,7 @@ fn session_record_lex_diagnostics(snap: AnalysisSnapshot, text: String, lex_resu
     }
 }
 
-fn session_record_parse_diagnostics(snap: AnalysisSnapshot, parse_result: ParseResult) {
+fn session_record_parse_diagnostics(mut snap: AnalysisSnapshot, parse_result: ParseResult) {
     let parse_err_count = session_parse_tokens::session_parse_error_count(parse_result)
     let mut pi = 0
     while pi < parse_err_count {
@@ -99,7 +99,7 @@ fn session_record_parse_diagnostics(snap: AnalysisSnapshot, parse_result: ParseR
     }
 }
 
-fn session_record_parse_warnings(snap: AnalysisSnapshot, parse_result: ParseResult) {
+fn session_record_parse_warnings(mut snap: AnalysisSnapshot, parse_result: ParseResult) {
     let warnings = program::ParseResult_warnings(parse_result)
     let warning_count = len(warnings)
     let mut wi = 0
@@ -122,7 +122,7 @@ fn session_record_parse_warnings(snap: AnalysisSnapshot, parse_result: ParseResu
     }
 }
 
-fn session_record_resolve_diagnostics(snap: AnalysisSnapshot, resolve_ctx: ResolveCtx) {
+fn session_record_resolve_diagnostics(mut snap: AnalysisSnapshot, resolve_ctx: ResolveCtx) {
     let res_err_count = session_resolve_query::session_resolve_error_count(resolve_ctx)
     let mut ri = 0
     while ri < res_err_count {
@@ -132,7 +132,7 @@ fn session_record_resolve_diagnostics(snap: AnalysisSnapshot, resolve_ctx: Resol
     }
 }
 
-fn session_record_typecheck_diagnostics(snap: AnalysisSnapshot, check_result: TypeCheckResult, first_error: i32) {
+fn session_record_typecheck_diagnostics(mut snap: AnalysisSnapshot, check_result: TypeCheckResult, first_error: i32) {
     let tc_err_total = session_typecheck_query::session_typecheck_error_count(check_result)
     let mut ti = first_error
     while ti < tc_err_total {
@@ -144,7 +144,7 @@ fn session_record_typecheck_diagnostics(snap: AnalysisSnapshot, check_result: Ty
 
 // Record lint warnings (W0006 unused import, W0009 deprecated API, etc.) as
 // analysis diagnostics so the LSP can publish them via textDocument/publishDiagnostics.
-fn session_record_lint_diagnostics(snap: AnalysisSnapshot, decls: Vec<AstNode>, check_result: TypeCheckResult) {
+fn session_record_lint_diagnostics(mut snap: AnalysisSnapshot, decls: Vec<AstNode>, check_result: TypeCheckResult) {
     // Post-resolve lint checks (W0006, W0009, W0002, W0003, W0005, W0008)
     let lint_warns = lint_checks::run_post_resolve_lint(decls, "wasm32")
     let lw_count = len(lint_warns)
@@ -182,7 +182,7 @@ fn run_session_analyze(uri: String, text: String) -> AnalysisSnapshot {
 }
 
 pub fn run_session_analyze_with_modules(uri: String, text: String, modules: Vec<ModuleDecls>) -> AnalysisSnapshot {
-    let snap = snapshot_state_record::AnalysisSnapshot_new(uri)
+    let mut snap = snapshot_state_record::AnalysisSnapshot_new(uri)
     let lex_result = session_lex_query::session_lex(clone(text))
     session_record_lex_diagnostics(snap, text, lex_result)
     let parse_result = session_parse_tokens::session_parse_tokens(session_lex_query::session_lex_tokens(lex_result))

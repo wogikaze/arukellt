@@ -136,7 +136,7 @@ fn resolve_array_type_from_constructor(ctx: SelfEmitCtx, dest_local: i32) -> i32
                     )
                 }
                 if is_raw_array_new_call_name(clone(callee)) {
-                    let fn_ret = raw_ctor_fn_return_vec_type_name(ctx)
+                    let mut fn_ret = raw_ctor_fn_return_vec_type_name(ctx)
                     if len(fn_ret) > 0 {
                         return resolve_array_type_from_type_name(ctx, fn_ret)
                     }
@@ -222,7 +222,7 @@ fn last_index_of_double_underscore(s: String) -> i32 {
     0 - 1
 }
 
-fn resolve_array_type_from_type_name(ctx: SelfEmitCtx, tname: String) -> i32 {
+fn resolve_array_type_from_type_name(ctx: SelfEmitCtx, mut tname: String) -> i32 {
     let local_name = clone(tname)
     let mut tname = sections_types_gc_phase7::gc_normalize_vec_type_name(tname)
     if starts_with(clone(local_name), String_from("array:")) {

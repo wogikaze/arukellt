@@ -1,6 +1,6 @@
 use typechecker::contract_env_record
 
-fn reset_infer_env(env: TypeEnv) {
+fn reset_infer_env(mut env: TypeEnv) {
     env.vars = Vec::new<TypeVar>()
     env.errors = Vec::new<String>()
     env.error_count = 0

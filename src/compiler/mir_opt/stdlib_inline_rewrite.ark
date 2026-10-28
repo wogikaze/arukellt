@@ -25,7 +25,7 @@ fn stdlib_inline_find_single_arg_local(block: MirBlock, call_index: i32) -> i32 
 }
 
 fn stdlib_inline_call_arg_locals(block: MirBlock, call_index: i32, call: MirInst) -> Vec<i32> {
-    let args = Vec::new<i32>()
+    let mut args = Vec::new<i32>()
     let count = inst_accessors_literals::MirInst_int_val(call)
     if count == 1 {
         push(args, stdlib_inline_find_single_arg_local(block, call_index))
@@ -48,12 +48,12 @@ fn stdlib_inline_call_arg_locals(block: MirBlock, call_index: i32, call: MirInst
 }
 
 fn stdlib_inline_append_call(
-    caller: MirFunction,
+    mut caller: MirFunction,
     caller_block: MirBlock,
     call_index: i32,
     call: MirInst,
     callee: MirFunction,
-    output: Vec<MirInstDraft>
+    mut output: Vec<MirInstDraft>
 ) -> bool {
     let args = stdlib_inline_call_arg_locals(caller_block, call_index, call)
     let param_count = function_param_view::MirFunction_param_count(callee)
@@ -85,7 +85,7 @@ fn stdlib_inline_append_call(
     let mut instruction_index = 0
     while instruction_index < instruction_count - 1 {
         let source = block_inst_access::MirBlock_inst_at(body, instruction_index)
-        let source_draft = block_inst_access::MirBlock_export_draft(body, instruction_index)
+        let mut source_draft = block_inst_access::MirBlock_export_draft(body, instruction_index)
         push(
             output,
             inst_draft::MirInstDraft_copy_with_locals(

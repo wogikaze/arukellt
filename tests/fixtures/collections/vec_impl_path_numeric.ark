@@ -7,7 +7,7 @@ use std::host::stdio
 use std::collections::vec
 
 fn main() {
-    let vi = Vec::new<i64>()
+    let mut vi = Vec::new<i64>()
     vi.push(42_i64)
     vi.push(7_i64)
     stdio::println(vi.len().to_string())
@@ -25,7 +25,7 @@ fn main() {
     }
     stdio::println(vi.len().to_string())
 
-    let vf = Vec::new<f64>()
+    let mut vf = Vec::new<f64>()
     vf.push(1.5)
     vf.push(2.25)
     stdio::println(vf.len().to_string())
@@ -34,7 +34,7 @@ fn main() {
         Option::None => stdio::println("none"),
     }
 
-    let vc = Vec::with_capacity<i64>(0)
+    let mut vc = Vec::with_capacity<i64>(0)
     vc.push(9_i64)
     match vc.get(0) {
         Option::Some(x) => stdio::println(x.to_string()),

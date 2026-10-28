@@ -1,7 +1,7 @@
 use resolver::control
 use resolver::ast_control_predicates
 
-fn resolve_control_node(ctx: ResolveCtx, node: AstNode) -> bool {
+fn resolve_control_node(mut ctx: ResolveCtx, node: AstNode) -> bool {
     if ast_control_predicates::node_is_block(node) {
         control::resolve_block(ctx, node)
         return true

@@ -16,14 +16,14 @@ pub fn is_wit_package_id(name: String) -> bool {
 pub fn merge_wit_paths_for_source(source_file: String, cli_paths: Vec<String>) -> Vec<String> {
     let base_dir = module_paths::parent_dir(clone(source_file))
     let package_root = module_package_root::find_package_root(clone(base_dir))
-    let merged = collect_wit_paths_from_manifest(clone(package_root))
+    let mut merged = collect_wit_paths_from_manifest(clone(package_root))
     for i in 0..len(cli_paths) {
         wit_push_unique(merged, get_unchecked(cli_paths, i))
     }
     merged
 }
 
-fn wit_push_unique(paths: Vec<String>, path: String) {
+fn wit_push_unique(mut paths: Vec<String>, path: String) {
     if len(path) == 0 {
         return
     }
@@ -36,7 +36,7 @@ fn wit_push_unique(paths: Vec<String>, path: String) {
 }
 
 fn collect_wit_paths_from_manifest(package_root: String) -> Vec<String> {
-    let paths = Vec::new<String>()
+    let mut paths = Vec::new<String>()
     let content = registry_config::read_package_manifest(clone(package_root))
     if len(content) == 0 {
         return paths
@@ -62,7 +62,7 @@ fn collect_wit_paths_from_manifest(package_root: String) -> Vec<String> {
 
 // Side-effecting collector: no bool result. A discarded i32 return was left on
 // the wasm stack under the caller's loop increment (KEEP_CLOCK validate fail).
-fn wit_collect_line_dependency(paths: Vec<String>, package_root: String, line: String) {
+fn wit_collect_line_dependency(mut paths: Vec<String>, package_root: String, line: String) {
     let eq_pos = index_of(clone(line), String_from("="))
     if eq_pos < 0 {
         return

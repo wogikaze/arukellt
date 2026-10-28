@@ -2,8 +2,8 @@ use std::io
 use std::test
 
 fn main() {
-    let src: io::Reader = io::Reader::new()
-    let dst: io::Writer = io::Writer::new()
+    let mut src: io::Reader = io::Reader::new()
+    let mut dst: io::Writer = io::Writer::new()
     match io::Io::copy(src, dst) {
         Result::Ok(copied) => test::assert_eq_i64(copied, 0),
         Result::Err(e) => panic(io::io_error_message(e)),

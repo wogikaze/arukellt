@@ -33,7 +33,7 @@ pub fn DriverLocalModuleDecls_pushed_stack(loaded: DriverLocalModuleDecls) -> bo
     loaded.pushed_stack
 }
 
-pub fn load_local_module_decls(module_name: String, base_dir: String, state: LoadState) -> DriverLocalModuleDecls {
+pub fn load_local_module_decls(module_name: String, base_dir: String, mut state: LoadState) -> DriverLocalModuleDecls {
     let skip = should_skip_local_module_read(clone(module_name), clone(base_dir), state)
     if skip {
         return DriverLocalModuleDecls_new(Vec::new<AstNode>(), String_new(), false)
@@ -51,7 +51,7 @@ pub fn load_local_module_decls(module_name: String, base_dir: String, state: Loa
     }
 }
 
-fn try_load_registry_module(module_name: String, base_dir: String, state: LoadState) -> DriverLocalModuleDecls {
+fn try_load_registry_module(module_name: String, base_dir: String, mut state: LoadState) -> DriverLocalModuleDecls {
     let package_root = module_package_root::find_package_root(clone(base_dir))
     if !registry_config::is_registry_dependency(clone(package_root), clone(module_name)) {
         module_state_errors::LoadState_push_error(state, "failed to load module `".concat(clone(module_name).concat("`")))
@@ -70,7 +70,7 @@ fn try_load_registry_module(module_name: String, base_dir: String, state: LoadSt
     }
 }
 
-pub fn should_skip_local_module_read(module_name: String, base_dir: String, state: LoadState) -> bool {
+pub fn should_skip_local_module_read(module_name: String, base_dir: String, mut state: LoadState) -> bool {
     let stem = module_paths::module_path_to_file_stem(clone(module_name))
     let primary_path = module_paths::module_stem_to_file_path(clone(base_dir), clone(stem))
     if local_candidate_loaded_or_loading(clone(module_name), clone(primary_path), state) {
@@ -80,7 +80,7 @@ pub fn should_skip_local_module_read(module_name: String, base_dir: String, stat
     local_candidate_loaded_or_loading(module_name, mod_path, state)
 }
 
-fn local_candidate_loaded_or_loading(module_name: String, path: String, state: LoadState) -> bool {
+fn local_candidate_loaded_or_loading(module_name: String, path: String, mut state: LoadState) -> bool {
     if module_state_loading::LoadState_has_loaded(state, clone(path)) {
         return true
     }
@@ -91,7 +91,7 @@ fn local_candidate_loaded_or_loading(module_name: String, path: String, state: L
     false
 }
 
-fn register_local_module_source(module_name: String, canonical_path: String, source: String, state: LoadState) -> DriverLocalModuleDecls {
+fn register_local_module_source(module_name: String, canonical_path: String, source: String, mut state: LoadState) -> DriverLocalModuleDecls {
     if module_state_loading::LoadState_has_loaded(state, clone(canonical_path)) {
         return DriverLocalModuleDecls_new(Vec::new<AstNode>(), String_new(), false)
     }

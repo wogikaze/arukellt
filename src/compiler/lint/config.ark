@@ -56,7 +56,7 @@ pub fn load_lint_config(project_dir: String) -> LintConfig {
 }
 
 // Merge config allow/deny lists into the CLI-provided vectors.
-pub fn merge_lint_config(cli_allow: Vec<String>, cli_deny: Vec<String>, config: LintConfig) {
+pub fn merge_lint_config(mut cli_allow: Vec<String>, mut cli_deny: Vec<String>, config: LintConfig) {
     let config_allow = lint_config_allow(config)
     vec_extend::Vec_extend_String(cli_allow, config_allow)
     let config_deny = lint_config_deny(config)

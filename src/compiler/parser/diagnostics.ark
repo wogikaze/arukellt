@@ -37,20 +37,20 @@ fn parser_expected_code(expected: i32) -> String {
     return codes::DIAG_PARSE_UNEXPECTED()
 }
 
-fn parser_push_expected_token_error(p: Parser, expected: i32, actual: i32, tok: Token) {
+fn parser_push_expected_token_error(mut p: Parser, expected: i32, actual: i32, tok: Token) {
     let expected_name = parser_token_kind_name(expected)
     let message = "expected `".concat(expected_name.concat("`"))
     let diag = record::Diagnostic_new_parse(parser_expected_code(expected), message, token_state::Token_start(tok), token_state::Token_end(tok))
     push(p.errors, diag)
 }
 
-fn parser_push_unexpected_error(p: Parser, msg: String) {
+fn parser_push_unexpected_error(mut p: Parser, msg: String) {
     let t = cursor::cur(p)
     let diag = record::Diagnostic_new_parse(codes::DIAG_PARSE_UNEXPECTED(), msg, token_state::Token_start(t), token_state::Token_end(t))
     push(p.errors, diag)
 }
 
-fn parser_push_deprecated_import_warning(p: Parser, tok: Token) {
+fn parser_push_deprecated_import_warning(mut p: Parser, tok: Token) {
     let span = record::DiagnosticSpan_from_raw(token_state::Token_start(tok), token_state::Token_end(tok))
     let diag = diag_mod::Diagnostic_new(
         codes::DIAG_WARN_DEPRECATED_IMPORT(),

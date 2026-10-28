@@ -9,10 +9,10 @@ use parser::kinds
 use parser::type_params
 use parser::types
 
-fn parse_impl_header(p: Parser) -> AstNode {
+fn parse_impl_header(mut p: Parser) -> AstNode {
     let t = core_api_expect::expect_token(p, tokens::TK_IMPL())
     let impl_span = core_api_expect::tok_span(t)
-    let node = core_ast_factory::AstNode_new(kinds::NK_IMPL_DECL(), impl_span)
+    let mut node = core_ast_factory::AstNode_new(kinds::NK_IMPL_DECL(), impl_span)
     core_api_cursor::skip_newlines(p)
     let generics = type_params::parse_generic_params(p)
     core_api_cursor::skip_newlines(p)
@@ -35,11 +35,11 @@ fn parse_impl_header(p: Parser) -> AstNode {
 // The binder is appended after the trait/self heads rather than parsed in
 // place: resolver, CoreHIR, and typechecker all read the heads from type-ann
 // indices 0 and 1, and the binder must not shift those established slots.
-fn push_impl_generics(node: AstNode, generics: Vec<AstNode>, span: Span) {
+fn push_impl_generics(mut node: AstNode, generics: Vec<AstNode>, span: Span) {
     if len(generics) == 0 {
         return
     }
-    let binder = core_ast_factory::AstNode_new(kinds::NK_IMPL_GENERICS(), span)
+    let mut binder = core_ast_factory::AstNode_new(kinds::NK_IMPL_GENERICS(), span)
     let count = len(generics)
     let mut i = 0
     while i < count {

@@ -22,7 +22,7 @@ fn mir_legacy_decl_method_at(decl: MirLowerLegacyDecl, method_index: i32) -> Mir
     mir_legacy_decl_from_node(decl_entry_shape::decl_entry_impl_method_at(decl.node, method_index))
 }
 
-fn mir_legacy_decl_release_body(decl: MirLowerLegacyDecl, body_idx: i32) {
+fn mir_legacy_decl_release_body(mut decl: MirLowerLegacyDecl, body_idx: i32) {
     frontend_ast_node::corehir_node_release_child(decl.node, body_idx)
 }
 

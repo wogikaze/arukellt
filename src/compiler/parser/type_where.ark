@@ -1,7 +1,7 @@
 use lexer::tokens
 use parser::core_api_cursor
 
-fn parse_optional_where_clause_stub(p: Parser) {
+fn parse_optional_where_clause_stub(mut p: Parser) {
     core_api_cursor::skip_newlines(p)
     if core_api_cursor::peek_kind(p) != tokens::TK_WHERE() {
         return

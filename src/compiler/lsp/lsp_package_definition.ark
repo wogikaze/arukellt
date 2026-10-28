@@ -13,7 +13,7 @@ fn roots_contains(roots: Vec<String>, path: String) -> bool {
     false
 }
 
-fn roots_push_unique(roots: Vec<String>, path: String) -> Vec<String> {
+fn roots_push_unique(mut roots: Vec<String>, path: String) -> Vec<String> {
     if len(path) == 0 || roots_contains(roots, clone(path)) {
         return roots
     }
@@ -56,7 +56,7 @@ fn workspace_folder_uris_from_initialize(body: String) -> Vec<String> {
         return Vec::new<String>()
     }
     let section = substring(tail, arr_start, arr_end)
-    let out = Vec::new<String>()
+    let mut out = Vec::new<String>()
     let mut scan = 0
     let section_len = len(section)
     while scan < section_len {

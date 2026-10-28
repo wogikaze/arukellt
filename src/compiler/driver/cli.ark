@@ -44,7 +44,7 @@ fn main() {
         stdio::eprintln("unknown subcommand: ".concat(clone(subcommand)))
         process::exit(1)
     }
-    let config = config_record::DriverConfig_default()
+    let mut config = config_record::DriverConfig_default()
     let parsed = cli_args::parse_legacy_compile_args(args, argc, arg_start, config)
     if !cli_args::legacy_compile_args_has_output(parsed) {
         stdio::eprintln("error: missing -o <output> flag")

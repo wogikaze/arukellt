@@ -9,14 +9,14 @@ use std::prelude::push_char
 use std::test
 
 fn main() {
-    let values: Vec<i32> = Vec::with_capacity<i32>(2)
+    let mut values: Vec<i32> = Vec::with_capacity<i32>(2)
     values.push(11)
     test::assert_eq_i32(values.len(), 1)
     test::assert_eq_i32(values.get_unchecked(0), 11)
     values.set(0, 17)
     test::assert_eq_i32(values.get_unchecked(0), 17)
 
-    let text = String_new()
+    let mut text = String_new()
     push_char(text, 79)
     push_char(text, 75)
     test::assert_eq_i32(text.len_bytes(), 2)

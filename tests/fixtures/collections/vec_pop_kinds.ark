@@ -10,7 +10,7 @@ struct Pair {
 }
 
 fn main() {
-    let vi: Vec<i32> = Vec::new<i32>()
+    let mut vi: Vec<i32> = Vec::new<i32>()
     vi.push(41)
     match vi.pop() {
         Option::Some(x) => stdio::println(x.to_string()),
@@ -20,31 +20,31 @@ fn main() {
         Option::Some(x) => stdio::println(x.to_string()),
         Option::None => stdio::println("none"),
     }
-    let vl: Vec<i64> = Vec::new<i64>()
+    let mut vl: Vec<i64> = Vec::new<i64>()
     vl.push(42_i64)
     match vl.pop() {
         Option::Some(x) => stdio::println(x.to_string()),
         Option::None => stdio::println("none"),
     }
-    let vf: Vec<f64> = Vec::new<f64>()
+    let mut vf: Vec<f64> = Vec::new<f64>()
     vf.push(2.5)
     match vf.pop() {
         Option::Some(x) => stdio::println(x.to_string()),
         Option::None => stdio::println("none"),
     }
-    let vs: Vec<String> = Vec::new<String>()
+    let mut vs: Vec<String> = Vec::new<String>()
     vs.push("hello")
     match vs.pop() {
         Option::Some(s) => stdio::println(s),
         Option::None => stdio::println("none"),
     }
-    let vfn: Vec<fn(i32) -> i32> = Vec::new<fn(i32) -> i32>()
+    let mut vfn: Vec<fn(i32) -> i32> = Vec::new<fn(i32) -> i32>()
     vfn.push(double)
     match vfn.pop() {
         Option::Some(f) => stdio::println((f(6)).to_string()),
         Option::None => stdio::println("none"),
     }
-    let vr: Vec<Pair> = Vec::new<Pair>()
+    let mut vr: Vec<Pair> = Vec::new<Pair>()
     vr.push(Pair { a: 3, b: 4 })
     match vr.pop() {
         Option::Some(p) => stdio::println((p.a + p.b).to_string()),

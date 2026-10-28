@@ -22,7 +22,7 @@ use mir::inst_accessors_operands
 use mir::inst_accessors_literals
 use wasm::intrinsic_vec_type
 
-fn emit_vec_new_layout(w: WasmWriter, heap_bump: i32, _result_back_delta: i32, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_vec_new_layout(mut w: WasmWriter, heap_bump: i32, _result_back_delta: i32, inst: MirInst, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_vec_new_layout_gc(w, inst, ctx)
     } else {
@@ -30,7 +30,7 @@ fn emit_vec_new_layout(w: WasmWriter, heap_bump: i32, _result_back_delta: i32, i
     }
 }
 
-fn emit_vec_new_layout_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_vec_new_layout_gc(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let dest_local = inst_accessors_operands::MirInst_dest(inst)
     let vec_type = intrinsic_vec_type::resolve_vec_type_for_new_dest(ctx, dest_local)
     let array_type = intrinsic_vec_type::resolve_array_type_for_new_dest(ctx, dest_local)
@@ -92,7 +92,7 @@ fn ctx_has_vec_string_local(ctx: SelfEmitCtx) -> bool {
     ctx_gc_type_locals::ctx_has_vec_string_local(ctx)
 }
 
-fn emit_vec_new_layout_lm(w: WasmWriter, heap_bump: i32, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_vec_new_layout_lm(mut w: WasmWriter, heap_bump: i32, inst: MirInst, ctx: SelfEmitCtx) {
     // Constructors with a capacity argument pass that value on the stack.
     // The linear-memory path currently reserves a fixed default-capacity buffer
     // (heap_bump bytes) and consumes the argument only to keep the stack clean.
@@ -118,7 +118,7 @@ fn emit_vec_new_layout_lm(w: WasmWriter, heap_bump: i32, inst: MirInst, ctx: Sel
     helpers_core::emit_local_get(w, result)
 }
 
-fn emit_vec_new_store_i32(w: WasmWriter, base_local: i32, offset: i32, value: i32) {
+fn emit_vec_new_store_i32(mut w: WasmWriter, base_local: i32, offset: i32, value: i32) {
     helpers_core::emit_local_get(w, base_local)
     if offset != 0 {
         helpers_numeric_i32::emit_i32_const(w, offset)
@@ -128,7 +128,7 @@ fn emit_vec_new_store_i32(w: WasmWriter, base_local: i32, offset: i32, value: i3
     helpers_memory::emit_i32_store(w, 0)
 }
 
-fn emit_vec_new_store_data_pointer(w: WasmWriter, base_local: i32) {
+fn emit_vec_new_store_data_pointer(mut w: WasmWriter, base_local: i32) {
     helpers_core::emit_local_get(w, base_local)
     helpers_numeric_i32::emit_i32_const(w, 8)
     helpers_numeric_i32::emit_i32_add(w)

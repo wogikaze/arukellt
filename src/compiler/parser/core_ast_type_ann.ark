@@ -1,6 +1,6 @@
 use parser::ast_node_record
 
-fn AstNode_push_type_ann(node: AstNode, ann: AstNode) {
+fn AstNode_push_type_ann(mut node: AstNode, ann: AstNode) {
     push(node.type_ann, ann)
 }
 

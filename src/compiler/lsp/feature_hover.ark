@@ -48,7 +48,7 @@ fn lookup_short_name(text: String, offset: i32) -> String {
     lookup_name
 }
 
-pub fn handle_hover(state: LspState, body: String) {
+pub fn handle_hover(mut state: LspState, body: String) {
     let minimal = lsp_config::hover_detail_minimal(state)
     let sym = feature_symbol::resolve_symbol_request(state, clone(body))
     if feature_symbol::symbol_request_found(sym) {

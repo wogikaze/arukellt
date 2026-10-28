@@ -43,10 +43,14 @@ struct TypeEnv {
     current_fn_bounds: Vec<TypeParamBounds>,
     current_fn_return_type: TypeInfo,
     is_ownership_tracking_enabled: bool,
+    // Bootstrap self-compile only. The pin predates #951 and the flat overlay
+    // strips `mut` modes, so the self-compile pass treats every parameter as a
+    // mutable borrow. User compilations always keep the strict ADR-088 rule.
+    allow_shared_param_mutation: bool,
 }
 
 fn TypeEnv_new() -> TypeEnv {
-    let var_id_box = Vec::new<i32>()
+    let mut var_id_box = Vec::new<i32>()
     push(var_id_box, 0)
     TypeEnv {
         vars: Vec::new<TypeVar>(),
@@ -74,18 +78,19 @@ fn TypeEnv_new() -> TypeEnv {
         current_fn_type_params: Vec::new<String>(),
         current_fn_bounds: Vec::new<TypeParamBounds>(),
         current_fn_return_type: TypeInfo_new(commands::TY_UNKNOWN(), String_new(), Vec::new<TypeInfo>()),
-        is_ownership_tracking_enabled: true
+        is_ownership_tracking_enabled: true,
+        allow_shared_param_mutation: false
     }
 }
 
-fn type_env_track_binding(env: TypeEnv, name: String, span_start: i32, span_end: i32) {
+fn type_env_track_binding(mut env: TypeEnv, name: String, span_start: i32, span_end: i32) {
     push(env.tracked_binding_names, name)
     push(env.tracked_binding_spans_start, span_start)
     push(env.tracked_binding_spans_end, span_end)
     push(env.tracked_binding_used, 0)
 }
 
-fn type_env_mark_binding_used(env: TypeEnv, name: String) {
+fn type_env_mark_binding_used(mut env: TypeEnv, name: String) {
     let count = len(env.tracked_binding_names)
     let mut i = 0
     while i < count {
@@ -97,7 +102,7 @@ fn type_env_mark_binding_used(env: TypeEnv, name: String) {
     }
 }
 
-fn type_env_release_tracked_bindings(env: TypeEnv) {
+fn type_env_release_tracked_bindings(mut env: TypeEnv) {
     env.tracked_binding_names = Vec::new<String>()
     env.tracked_binding_spans_start = Vec::new<i32>()
     env.tracked_binding_spans_end = Vec::new<i32>()
@@ -108,7 +113,7 @@ fn type_env_release_tracked_bindings(env: TypeEnv) {
 // shape is indistinguishable from a real `fn() -> T`. The declared type is
 // kept on a side table so expression inference can type a bare const ident
 // as its value type instead of a function signature.
-fn type_env_register_const(env: TypeEnv, name: String, const_type: TypeInfo) {
+fn type_env_register_const(mut env: TypeEnv, name: String, const_type: TypeInfo) {
     push(env.const_names, name)
     push(env.const_types, const_type)
 }
@@ -137,7 +142,7 @@ fn type_env_is_const_name(env: TypeEnv, name: String) -> bool {
     false
 }
 
-fn type_env_finalize_unused_bindings(env: TypeEnv) {
+fn type_env_finalize_unused_bindings(mut env: TypeEnv) {
     let count = len(env.tracked_binding_names)
     let mut i = 0
     while i < count {

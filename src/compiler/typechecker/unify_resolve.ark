@@ -44,7 +44,7 @@ fn resolve_type_deep_depth(env: TypeEnv, ty: TypeInfo, depth: i32) -> TypeInfo {
     if arg_count == 0 {
         return head
     }
-    let res = contract_type_constructors::TypeInfo_empty_like(head)
+    let mut res = contract_type_constructors::TypeInfo_empty_like(head)
     let mut i = 0
     while i < arg_count {
         let arg = contract_type_access::TypeInfo_type_arg_at(head, i)

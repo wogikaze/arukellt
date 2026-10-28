@@ -7,7 +7,7 @@ use mir::lower::body_control
 use mir::lower::body_match
 use mir::lower::body_method
 
-fn lower_non_statement_expr(ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
+fn lower_non_statement_expr(mut ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
     let ops_result = lower_ops_expr(ctx, node, kind)
     if ops_result >= 0 {
         return ops_result
@@ -27,7 +27,7 @@ fn lower_non_statement_expr(ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
     0 - 2
 }
 
-fn lower_ops_expr(ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
+fn lower_ops_expr(mut ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
     if kind == lower_kinds::NK_BINARY() {
         return body_binary::lower_binary_expr(ctx, node)
     }
@@ -37,7 +37,7 @@ fn lower_ops_expr(ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
     0 - 2
 }
 
-fn lower_call_like_expr(ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
+fn lower_call_like_expr(mut ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
     if kind == lower_kinds::NK_CALL() {
         return body_call::lower_call_expr(ctx, node)
     }
@@ -47,7 +47,7 @@ fn lower_call_like_expr(ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
     0 - 2
 }
 
-fn lower_control_expr(ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
+fn lower_control_expr(mut ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
     if kind == lower_kinds::NK_IF_EXPR() {
         return body_control::lower_if_expr(ctx, node)
     }
@@ -66,7 +66,7 @@ fn lower_control_expr(ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
     0 - 2
 }
 
-fn lower_aggregate_expr(ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
+fn lower_aggregate_expr(mut ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
     if kind == lower_kinds::NK_ASSIGN() {
         return body_aggregate::lower_assign_expr(ctx, node)
     }

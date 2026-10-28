@@ -4,18 +4,18 @@ use mir::function_local_mutation
 use mir::function_locals_view
 use mir::local_access
 use mir::local_factory
-fn stdlib_inline_build_local_map(caller: MirFunction, callee: MirFunction) -> Vec<i32> {
-    let local_map = Vec::new<i32>()
+fn stdlib_inline_build_local_map(mut caller: MirFunction, callee: MirFunction) -> Vec<i32> {
+    let mut local_map = Vec::new<i32>()
     let count = function_locals_view::MirFunction_local_count(callee)
     let mut index = 0
     while index < count {
-        let source = function_locals_view::MirFunction_local_at(callee, index)
+        let mut source = function_locals_view::MirFunction_local_at(callee, index)
         let mapped = function_local_alloc::alloc_local(
             caller,
             "_inl_".concat(local_access::MirLocal_name(source)),
             local_access::MirLocal_val_type(source)
         )
-        let copied = local_factory::MirLocal_copy_with_ssa(
+        let mut copied = local_factory::MirLocal_copy_with_ssa(
             source,
             "_inl_".concat(local_access::MirLocal_ssa_name(source)),
             local_access::MirLocal_ssa_version(source)

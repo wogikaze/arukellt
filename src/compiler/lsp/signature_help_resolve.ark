@@ -30,7 +30,7 @@ pub fn resolved_signature_params(sig: ResolvedSignature) -> Vec<String> {
 }
 
 fn split_param_list(inner: String) -> Vec<String> {
-    let out = Vec::new<String>()
+    let mut out = Vec::new<String>()
     if len(inner) == 0 {
         return out
     }

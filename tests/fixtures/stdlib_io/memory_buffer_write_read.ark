@@ -3,10 +3,10 @@ use std::io
 use std::test
 
 fn main() {
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     data.push_byte(65)
     data.push_byte(66)
-    let w: io::Writer = io::Writer::new()
+    let mut w: io::Writer = io::Writer::new()
     let n: Result<i32, io::IoError> = w.write(data)
     match n {
         Result::Ok(count) => test::assert_eq_i32(count, 2),
@@ -14,7 +14,7 @@ fn main() {
     }
     let image: Vec<i32> = w.into_bytes()
     test::assert_eq_i32(image.len(), 2)
-    let r: io::Reader = io::Reader::from_bytes(image)
+    let mut r: io::Reader = io::Reader::from_bytes(image)
     test::assert_eq_i32(r.len(), 2)
     match r.position() {
         Result::Ok(pos) => test::assert_eq_i64(pos, 0),

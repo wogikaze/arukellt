@@ -2,7 +2,7 @@ use lexer::tokens
 use parser::core_api_cursor
 use parser::token_state
 
-fn peek_is_fn_clause(p: Parser) -> bool {
+fn peek_is_fn_clause(mut p: Parser) -> bool {
     let saved = p.pos
     let mut is_clause = false
     core_api_cursor::skip_only_newlines(p)
@@ -39,7 +39,7 @@ fn peek_is_fn_clause(p: Parser) -> bool {
     is_clause
 }
 
-fn typed_param_clause_has_guard(p: Parser) -> bool {
+fn typed_param_clause_has_guard(mut p: Parser) -> bool {
     let mut depth = 1
     while depth > 0 && !core_api_cursor::at_eof(p) {
         let kind = core_api_cursor::peek_kind(p)
@@ -65,7 +65,7 @@ fn typed_param_clause_has_guard(p: Parser) -> bool {
     false
 }
 
-fn skip_generic_params_for_clause_lookahead(p: Parser) {
+fn skip_generic_params_for_clause_lookahead(mut p: Parser) {
     if core_api_cursor::peek_kind(p) != tokens::TK_LT() {
         return
     }

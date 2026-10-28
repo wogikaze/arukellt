@@ -13,7 +13,7 @@ use mir::lower::match_arms
 use mir::lower::match_subpat
 use mir::value_types
 
-fn lower_or_match_compare_prefix(ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, if_depth: i32) -> i32 {
+fn lower_or_match_compare_prefix(mut ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, if_depth: i32) -> i32 {
     let compare_idx = match::mir_match_payload_compare_idx(payload_info)
     emit_or_compare_fold(ctx, pat, compare_idx, scrut_idx)
     ctx_emit(ctx, inst_structured_control::MirInst_if())
@@ -25,7 +25,7 @@ fn lower_or_match_compare_prefix(ctx: LowerCtx, pat: AstNode, payload_info: MirM
 // (guarded or-arms and last or-arms). Mirrors
 // lower_single_match_compare_condition: emit the per-alternative compares,
 // OR-fold them, and store into a fresh local (#898).
-fn lower_or_match_compare_condition(ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32) -> i32 {
+fn lower_or_match_compare_condition(mut ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32) -> i32 {
     let compare_idx = match::mir_match_payload_compare_idx(payload_info)
     emit_or_compare_fold(ctx, pat, compare_idx, scrut_idx)
     let cond = ctx_fresh_local(ctx, value_types::VT_I32())
@@ -36,7 +36,7 @@ fn lower_or_match_compare_condition(ctx: LowerCtx, pat: AstNode, payload_info: M
 // Emit compare/eq per or-alternative and OR-fold them, leaving the folded
 // i32 on the operand stack. The compare itself is shared with the
 // condition/prefix forms so arm shapes cannot drift (#898).
-fn emit_or_compare_fold(ctx: LowerCtx, pat: AstNode, compare_idx: i32, scrut_idx: i32) {
+fn emit_or_compare_fold(mut ctx: LowerCtx, pat: AstNode, compare_idx: i32, scrut_idx: i32) {
     let alt_count = ast_node::node_child_count(pat)
     let mut or_oi = 0
     let mut or_prev_cmp = 0 - 1

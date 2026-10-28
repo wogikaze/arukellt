@@ -2,7 +2,7 @@ use std::collections::compiler
 use std::host::stdio
 
 fn main() {
-    let i: Vec<String> = compiler::interner_new()
+    let mut i: Vec<String> = compiler::interner_new()
     let s0: i32 = compiler::interner_intern(i, "hello")
     let s1: i32 = compiler::interner_intern(i, "world")
     let s2: i32 = compiler::interner_intern(i, "hello")

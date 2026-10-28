@@ -37,7 +37,7 @@ fn compose_wit_normalize_sig(sig: String) -> String {
 }
 
 fn compose_wit_scan_entries(text: String, keyword: String) -> Vec<ComposeWitFuncSig> {
-    let funcs = Vec::new<ComposeWitFuncSig>()
+    let mut funcs = Vec::new<ComposeWitFuncSig>()
     let key_len = len(keyword)
     let mut pos = 0
     while pos < len(text) {

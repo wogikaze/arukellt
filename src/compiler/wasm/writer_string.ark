@@ -1,6 +1,6 @@
 use std::prelude::{byte_at}
 use wasm::writer_core
-fn emit_string(w: writer_core::WasmWriter, s: String) {
+fn emit_string(mut w: writer_core::WasmWriter, s: String) {
     let slen = len(s)
     writer_core::emit_leb128_u(w, slen)
     let mut i = 0

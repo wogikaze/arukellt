@@ -7,7 +7,7 @@ use std::collections::hash
 use std::test
 
 // Inline ascending insertion sort on a `Vec<i32>`.
-fn sort_asc(v: Vec<i32>) {
+fn sort_asc(mut v: Vec<i32>) {
     let n: i32 = len(v)
     for i in 1..n {
         let key: i32 = get_unchecked(v, i)
@@ -31,7 +31,7 @@ fn sort_asc(v: Vec<i32>) {
 }
 
 fn assert_snapshot(m: Vec<i32>) {
-    let keys: Vec<i32> = hash::hashmap_keys(m)
+    let mut keys: Vec<i32> = hash::hashmap_keys(m)
     sort_asc(keys)
     let n: i32 = len(keys)
     test::assert_eq_i32(n, 5)
@@ -53,7 +53,7 @@ fn assert_snapshot(m: Vec<i32>) {
 
 test "sorted_snapshot_is_independent_of_insertion_order" {
     // Build X in one order.
-    let x: Vec<i32> = hash::hashmap_new()
+    let mut x: Vec<i32> = hash::hashmap_new()
     hash::hashmap_set(x, 7, 70)
     hash::hashmap_set(x, 3, 30)
     hash::hashmap_set(x, 11, 110)
@@ -61,7 +61,7 @@ test "sorted_snapshot_is_independent_of_insertion_order" {
     hash::hashmap_set(x, 1, 10)
 
     // Build Y with the SAME logical entries in a DIFFERENT insertion order.
-    let y: Vec<i32> = hash::hashmap_new()
+    let mut y: Vec<i32> = hash::hashmap_new()
     hash::hashmap_set(y, 1, 10)
     hash::hashmap_set(y, 11, 110)
     hash::hashmap_set(y, 3, 30)

@@ -1,7 +1,7 @@
 use lexer::number_decimal
 use lexer::number_prefixed
 
-fn lex_number(lex: Lexer) -> Token {
+fn lex_number(mut lex: Lexer) -> Token {
     let start = lex.pos
     if number_prefixed::is_prefixed_number_start(lex) {
         return number_prefixed::lex_prefixed_number(lex, start)

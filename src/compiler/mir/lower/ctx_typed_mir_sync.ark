@@ -10,7 +10,7 @@ use mir::function_local_mutation
 use mir::spine_lookup
 use mir::typed_mir_compat
 use mir::value_types
-fn ctx_sync_local_value_type(ctx: LowerCtx, local_idx: i32) {
+fn ctx_sync_local_value_type(mut ctx: LowerCtx, local_idx: i32) {
     let m = ctx_current_storage::ctx_current_module_value(ctx)
     let func = ctx_current_storage::ctx_current_func_value(ctx)
     if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(func) {
@@ -21,19 +21,19 @@ fn ctx_sync_local_value_type(ctx: LowerCtx, local_idx: i32) {
     let tn = local_access::MirLocal_type_name(loc)
     let mvt = spine_lookup::legacy_vt_to_mvt(m, vt, clone(tn))
     let mut f = func
-    let new_loc = local_mutation::MirLocal_copy_with_value_type(loc, mvt)
+    let mut new_loc = local_mutation::MirLocal_copy_with_value_type(loc, mvt)
     function_local_mutation::MirFunction_set_local(f, local_idx, new_loc)
     ctx_current_storage::ctx_set_current_func_value(ctx, f)
 }
 
-fn ctx_set_local_mvt(ctx: LowerCtx, local_idx: i32, value_type: MirValueType) {
+fn ctx_set_local_mvt(mut ctx: LowerCtx, local_idx: i32, value_type: MirValueType) {
     let func = ctx_current_storage::ctx_current_func_value(ctx)
     if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(func) {
         return
     }
     let loc = function_locals_view::MirFunction_local_at(func, local_idx)
     let mut f = func
-    let new_loc = local_mutation::MirLocal_copy_with_value_type(loc, value_type)
+    let mut new_loc = local_mutation::MirLocal_copy_with_value_type(loc, value_type)
     function_local_mutation::MirFunction_set_local(f, local_idx, new_loc)
     ctx_current_storage::ctx_set_current_func_value(ctx, f)
 }
@@ -58,7 +58,7 @@ fn ctx_inst_has_typed_result(inst: MirInstDraft) -> bool {
     type_id::type_id_is_valid(mir_value_type::mir_value_type_type_id(first))
 }
 
-fn ctx_enrich_inst_result_types(ctx: LowerCtx, inst: MirInstDraft) -> MirInstDraft {
+fn ctx_enrich_inst_result_types(ctx: LowerCtx, mut inst: MirInstDraft) -> MirInstDraft {
     let m = ctx_current_storage::ctx_current_module_value(ctx)
     if !spine_lookup::spine_populated(m) {
         return inst

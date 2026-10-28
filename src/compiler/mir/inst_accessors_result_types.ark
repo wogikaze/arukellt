@@ -12,6 +12,6 @@ fn MirInst_result_type_at(inst: MirInst, index: i32) -> MirValueType {
     inst_record::mir_inst_result_type_at(inst, index)
 }
 
-fn MirInst_set_result_types(inst: MirInst, result_types: Vec<MirValueType>) {
+fn MirInst_set_result_types(mut inst: MirInst, result_types: Vec<MirValueType>) {
     inst_record::mir_inst_set_result_types(inst, result_types)
 }

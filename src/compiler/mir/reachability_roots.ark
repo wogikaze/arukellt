@@ -5,8 +5,8 @@ use mir::types
 fn mir_mark_roots(
     index: MirReachabilityIndex,
     functions: Vec<MirFunction>,
-    reachable: Vec<i32>,
-    queue: Vec<i32>,
+    mut reachable: Vec<i32>,
+    mut queue: Vec<i32>,
     extra_roots: Vec<String>
 ) -> i32 {
     let mut root_count = 0

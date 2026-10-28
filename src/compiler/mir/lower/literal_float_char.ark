@@ -7,14 +7,14 @@ use mir::lower::ctx_types
 use mir::inst_const_i32
 use mir::inst_const_f64
 use mir::value_types
-fn lower_char_literal(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_char_literal(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(ast_node::node_int_val(node), dest))
     ctx_api_local_types::ctx_set_local_type(ctx, dest, "char")
     dest
 }
 
-fn lower_float_literal(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_float_literal(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let raw_text = ast_node::node_text(node)
     let raw_len = len(raw_text)
     if mir_float_literal_has_f32_suffix(raw_text, raw_len) {

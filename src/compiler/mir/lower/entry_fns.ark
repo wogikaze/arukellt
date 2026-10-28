@@ -9,8 +9,8 @@ use mir::lower::legacy_body
 use mir::lower::stdlib_body_defer
 use corehir::mod as corehir_mod
 fn mir_emit_top_level_fn_decl(
-    ctx: LowerCtx,
-    body_source: MirLowerEntryBodySource,
+    mut ctx: LowerCtx,
+    mut body_source: MirLowerEntryBodySource,
     decl_index: i32,
     decl_name: String,
     fn_idx: i32,

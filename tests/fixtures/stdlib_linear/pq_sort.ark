@@ -2,7 +2,7 @@ use std::collections::linear
 use std::host::stdio
 
 fn main() {
-    let pq: Vec<i32> = linear::pq_new()
+    let mut pq: Vec<i32> = linear::pq_new()
 
     // Push in arbitrary order
     linear::pq_push(pq, 50)

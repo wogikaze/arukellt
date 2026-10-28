@@ -41,6 +41,6 @@ fn MirLocal_variant_slot(local: MirLocal) -> i32 {
     local_record::mir_local_variant_slot(local)
 }
 
-fn MirLocal_set_variant_slot(local: MirLocal, variant_slot: i32) {
+fn MirLocal_set_variant_slot(mut local: MirLocal, variant_slot: i32) {
     local_record::mir_local_set_variant_slot(local, variant_slot)
 }

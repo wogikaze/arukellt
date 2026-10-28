@@ -8,7 +8,7 @@ use resolver::ast_access
 use resolver::kinds
 use resolver::scope_stack_lifecycle
 
-fn resolve_test(ctx: ResolveCtx, node: AstNode) {
+fn resolve_test(mut ctx: ResolveCtx, node: AstNode) {
     if ast_access::node_kind_is(node, kinds::NK_TEST_MOD()) {
         resolve_test_mod(ctx, node)
         return
@@ -17,13 +17,13 @@ fn resolve_test(ctx: ResolveCtx, node: AstNode) {
     scope_stack_lifecycle::push_scope(ctx)
     let cc = ast_access::node_child_count(node)
     if cc > 0 {
-        let body = ast_access::node_child_at(node, cc - 1)
+        let mut body = ast_access::node_child_at(node, cc - 1)
         resolve_node(ctx, body)
     }
     scope_stack_lifecycle::pop_scope(ctx)
 }
 
-fn resolve_test_mod(ctx: ResolveCtx, node: AstNode) {
+fn resolve_test_mod(mut ctx: ResolveCtx, node: AstNode) {
     let cc = ast_access::node_child_count(node)
     let mut i = 0
     while i < cc {

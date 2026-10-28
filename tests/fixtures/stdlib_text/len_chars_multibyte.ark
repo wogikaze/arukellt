@@ -3,7 +3,7 @@ use std::text
 
 fn main() {
     // Construct a 2-byte UTF-8 sequence (é = 0xC3 0xA9) from byte array
-    let bytes = Vec::new<i32>()
+    let mut bytes = Vec::new<i32>()
     push(bytes, 195)
     push(bytes, 169)
     let s = String::from_utf8_lossy(bytes)
@@ -11,7 +11,7 @@ fn main() {
     test::assert_eq_i32(s.len_chars(), 1)
 
     // Construct a 3-byte UTF-8 sequence (中 = U+4E2D = 0xE4 0xB8 0xAD)
-    let bytes2 = Vec::new<i32>()
+    let mut bytes2 = Vec::new<i32>()
     push(bytes2, 228)
     push(bytes2, 184)
     push(bytes2, 173)

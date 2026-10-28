@@ -25,7 +25,7 @@ fn hir_type_param_name(param: HirTypeParam) -> String {
     clone(param.name)
 }
 
-fn hir_type_param_push_bound(param: HirTypeParam, bound: HirTraitBound) {
+fn hir_type_param_push_bound(mut param: HirTypeParam, bound: HirTraitBound) {
     push(param.bounds, bound)
 }
 

@@ -16,7 +16,7 @@ fn expect_none(v: Option<i32>) {
 }
 
 fn main() {
-    let m = hash::hashmap_new()
+    let mut m = hash::hashmap_new()
     let _ = hash::hashmap_set(m, 1, 10)
     let _ = hash::hashmap_set(m, 2, 20)
     let _ = hash::hashmap_set(m, 3, 30)

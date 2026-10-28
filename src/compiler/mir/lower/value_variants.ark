@@ -11,7 +11,7 @@ use mir::lower::core_names
 use mir::lower::ctx_types
 use mir::value_types
 use mir::lower::variants
-fn lower_atomic_path_variant(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_atomic_path_variant(mut ctx: LowerCtx, node: AstNode) -> i32 {
     if ast_node::node_kind_is(node, lower_kinds::NK_PATH()) {
         let raw_name = ast_node::node_text(node)
         let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
@@ -34,7 +34,7 @@ fn lower_atomic_path_variant(ctx: LowerCtx, node: AstNode) -> i32 {
     0 - 2
 }
 
-fn lower_atomic_function(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_atomic_function(mut ctx: LowerCtx, node: AstNode) -> i32 {
     if !ast_node::node_kind_is(node, lower_kinds::NK_IDENT()) {
         return 0 - 2
     }
@@ -48,7 +48,7 @@ fn lower_atomic_function(ctx: LowerCtx, node: AstNode) -> i32 {
     lower_function_value(ctx, fn_name)
 }
 
-fn lower_function_value(ctx: LowerCtx, fn_name: String) -> i32 {
+fn lower_function_value(mut ctx: LowerCtx, fn_name: String) -> i32 {
     let type_name = core_names::mir_fnref_type_name_for_function(ctx, clone(fn_name))
     let tramp = closure_env::closure_ensure_fn_thunk(ctx, clone(fn_name))
     let pair = closure_env::closure_emit_pair(ctx, 0 - 1, clone(tramp))
@@ -56,7 +56,7 @@ fn lower_function_value(ctx: LowerCtx, fn_name: String) -> i32 {
     pair
 }
 
-fn lower_atomic_ident_variant(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_atomic_ident_variant(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let raw_name = ast_node::node_text(node)
     let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
     let variant_name = if len(canon) > 0 {

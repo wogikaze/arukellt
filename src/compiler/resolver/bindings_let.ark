@@ -3,7 +3,7 @@ use resolver::bindings_pattern
 use resolver::scope_define
 use resolver::ast_access
 use resolver::kinds
-fn resolve_let(ctx: ResolveCtx, node: AstNode) {
+fn resolve_let(mut ctx: ResolveCtx, node: AstNode) {
     let binding_name = ast_access::node_text(node)
     let is_tuple_destructure = eq(clone(binding_name), "__tuple_destructure")
     let child_count = ast_access::node_child_count(node)
@@ -11,7 +11,7 @@ fn resolve_let(ctx: ResolveCtx, node: AstNode) {
         if child_count > 0 {
             let pat = ast_access::node_child_at(node, 0)
             if child_count > 1 {
-                let init = ast_access::node_child_at(node, 1)
+                let mut init = ast_access::node_child_at(node, 1)
                 resolve_node(ctx, init)
             }
             bindings_pattern::collect_pattern_bindings(ctx, pat)
@@ -19,7 +19,7 @@ fn resolve_let(ctx: ResolveCtx, node: AstNode) {
         return
     }
     if child_count > 0 {
-        let init = ast_access::node_child_at(node, 0)
+        let mut init = ast_access::node_child_at(node, 0)
         resolve_node(ctx, init)
     }
     if !eq(clone(binding_name), "_") {

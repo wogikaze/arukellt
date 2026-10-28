@@ -350,7 +350,7 @@ fn mir_rewrite_hashset_call(ctx: LowerCtx, callee_name: String, receiver_idx: i3
 
 // Result side of the marker: a constructor or set-returning operation marks
 // its destination so a later `s.len()` is not read as a Vec method.
-fn mark_hashset_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
+fn mark_hashset_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32) {
     if dest < 0 {
         return
     }

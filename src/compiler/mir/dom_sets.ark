@@ -3,7 +3,7 @@ use mir::dom_set_intersect
 use mir::dom_set_mutate
 use mir::dom_set_query
 
-fn mir_push_unique_i32(ids: Vec<i32>, block_id: i32) {
+fn mir_push_unique_i32(mut ids: Vec<i32>, block_id: i32) {
     dom_set_mutate::mir_push_unique_i32(ids, block_id)
 }
 

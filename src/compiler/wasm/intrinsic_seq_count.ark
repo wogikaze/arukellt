@@ -11,7 +11,7 @@ use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i32
 
 // Handler for: seq::count_eq
-fn emit_seq_count_eq(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_seq_count_eq(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return emit_seq_count_eq_gc(w, ctx)
     }
@@ -28,7 +28,7 @@ fn emit_seq_count_eq(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 // GC target: count matches in the Vec's live data array.
-fn emit_seq_count_eq_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+fn emit_seq_count_eq_gc(mut w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     let s_target = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
     let s_arr = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
@@ -81,7 +81,7 @@ fn emit_seq_count_eq_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_seq_count_init(w: WasmWriter, target_local: i32, seq_local: i32, count_local: i32, data_local: i32, len_local: i32, index_local: i32) {
+fn emit_seq_count_init(mut w: WasmWriter, target_local: i32, seq_local: i32, count_local: i32, data_local: i32, len_local: i32, index_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, target_local)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -108,7 +108,7 @@ fn emit_seq_count_init(w: WasmWriter, target_local: i32, seq_local: i32, count_l
     writer_core::emit_leb128_u(w, index_local)
 }
 
-fn emit_seq_count_loop(w: WasmWriter, target_local: i32, count_local: i32, data_local: i32, len_local: i32, index_local: i32) {
+fn emit_seq_count_loop(mut w: WasmWriter, target_local: i32, count_local: i32, data_local: i32, len_local: i32, index_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_BLOCK())
     writer_core::emit_byte(w, 64)
     writer_core::emit_byte(w, opcodes::OP_LOOP())
@@ -126,7 +126,7 @@ fn emit_seq_count_loop(w: WasmWriter, target_local: i32, count_local: i32, data_
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_seq_count_match_current(w: WasmWriter, target_local: i32, count_local: i32, data_local: i32, index_local: i32) {
+fn emit_seq_count_match_current(mut w: WasmWriter, target_local: i32, count_local: i32, data_local: i32, index_local: i32) {
     writer_core::emit_local_get(w, data_local)
     writer_core::emit_local_get(w, index_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
@@ -149,7 +149,7 @@ fn emit_seq_count_match_current(w: WasmWriter, target_local: i32, count_local: i
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_seq_count_advance_index(w: WasmWriter, index_local: i32) {
+fn emit_seq_count_advance_index(mut w: WasmWriter, index_local: i32) {
     writer_core::emit_local_get(w, index_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 1)

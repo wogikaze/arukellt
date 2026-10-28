@@ -150,7 +150,7 @@ pub fn upper_bound<T: Ord>(v: Vec<T>, target: T) -> i32 {
 ///
 /// Uses an insertion sort — O(n²) worst case but stable and allocation-free.
 /// The input `Vec<T>` is mutated in place and also returned for convenience.
-pub fn sort_by<T: Ord>(v: Vec<T>) -> Vec<T> {
+pub fn sort_by<T: Ord>(mut v: Vec<T>) -> Vec<T> {
     let n: i32 = len(v)
     let mut i: i32 = 1
     while i < n {

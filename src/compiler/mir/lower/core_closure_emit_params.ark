@@ -7,7 +7,7 @@ use mir::local_factory
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
 use mir::value_types
-fn core_emit_closure_params(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, clos: CoreHirExpr) {
+fn core_emit_closure_params(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, clos: CoreHirExpr) {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(clos)
     let mut pi = 0
     while pi + 1 < child_count {

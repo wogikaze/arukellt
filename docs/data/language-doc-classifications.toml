@@ -188,7 +188,7 @@ stability = "stable"
 [[features]]
 id = "3.5.1"
 name = "Argument Passing and Parameter Modes"
-stability = "unimplemented"
+stability = "provisional"
 
 [[features]]
 id = "3.6"

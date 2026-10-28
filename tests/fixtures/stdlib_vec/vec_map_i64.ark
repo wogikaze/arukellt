@@ -10,7 +10,7 @@ fn main() {
     let b: i64 = 20i64
     push(v, a)
     push(v, b)
-    let result: Vec<i64> = Vec::new<i64>()
+    let mut result: Vec<i64> = Vec::new<i64>()
     let mut map_index: i32 = 0
     while map_index < len(v) {
         push(result, double(get_unchecked(v, map_index)))

@@ -6,7 +6,7 @@ fn double(n: i32) -> i32 {
 
 fn main() {
     // HashMap::get for the fn family uses mut Option<fn> assign (#835).
-    let m = HashMap::new<i32, fn(i32) -> i32>()
+    let mut m = HashMap::new<i32, fn(i32) -> i32>()
     let _ = m.insert(1, double)
     match m.get(1) {
         Some(f) => stdio::println((f(5)).to_string()),

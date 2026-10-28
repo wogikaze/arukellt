@@ -3,14 +3,14 @@ use parser::expr_infix_binary
 use parser::expr_infix_range
 use parser::expr_infix_result
 
-fn parse_assignment_infix(p: Parser, lhs: AstNode, min_bp: i32) -> ParserInfixResult {
+fn parse_assignment_infix(mut p: Parser, lhs: AstNode, min_bp: i32) -> ParserInfixResult {
     expr_infix_assignment::parse_assignment_infix(p, lhs, min_bp)
 }
 
-fn parse_range_infix(p: Parser, lhs: AstNode, min_bp: i32) -> ParserInfixResult {
+fn parse_range_infix(mut p: Parser, lhs: AstNode, min_bp: i32) -> ParserInfixResult {
     expr_infix_range::parse_range_infix(p, lhs, min_bp)
 }
 
-fn parse_binary_infix(p: Parser, lhs: AstNode, k: i32, min_bp: i32) -> ParserInfixResult {
+fn parse_binary_infix(mut p: Parser, lhs: AstNode, k: i32, min_bp: i32) -> ParserInfixResult {
     expr_infix_binary::parse_binary_infix(p, lhs, k, min_bp)
 }

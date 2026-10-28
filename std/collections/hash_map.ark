@@ -18,7 +18,7 @@ impl<K, V> HashMap<K, V> {
         HashMap::new<K, V>()
     }
 
-    fn insert(self, key: K, value: V) -> Option<V> {
+    fn insert(mut self, key: K, value: V) -> Option<V> {
         self.insert(key, value)
     }
 
@@ -30,7 +30,7 @@ impl<K, V> HashMap<K, V> {
         self.contains_key(key)
     }
 
-    fn remove(self, key: K) -> Option<V> {
+    fn remove(mut self, key: K) -> Option<V> {
         self.remove(key)
     }
 

@@ -18,7 +18,7 @@ use mir::inst_accessors_shape
 use mir::inst_record
 use wasm::inst_dispatch
 
-fn emit_function_instructions(body: WasmWriter, f: MirFunction, ctx: SelfEmitCtx, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
+fn emit_function_instructions(mut body: WasmWriter, f: MirFunction, mut ctx: SelfEmitCtx, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
     let block_count = function_block_queries::MirFunction_block_count(f)
     let mut bi = 0
     while bi < block_count {
@@ -42,7 +42,7 @@ fn emit_function_instructions(body: WasmWriter, f: MirFunction, ctx: SelfEmitCtx
             }
         }
         let mut ii = 0
-        let inst = inst_record::MirInst_ref(block, 0)
+        let mut inst = inst_record::MirInst_ref(block, 0)
         while ii < inst_count {
             inst_record::mir_inst_set_index(inst, ii)
             let mut next_op = 0 - 1
@@ -106,9 +106,9 @@ fn emit_function_instructions(body: WasmWriter, f: MirFunction, ctx: SelfEmitCtx
 }
 
 fn emit_function_body(
-    w: WasmWriter,
+    mut w: WasmWriter,
     f: MirFunction,
-    ctx: SelfEmitCtx,
+    mut ctx: SelfEmitCtx,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>
 ) {
     let local_count = function_locals_view::MirFunction_local_count(f)
@@ -153,14 +153,14 @@ fn emit_function_body(
     emit_body_gc_local_cache_end(ctx)
 }
 
-fn emit_body_gc_local_cache_begin(ctx: SelfEmitCtx, f: MirFunction) {
+fn emit_body_gc_local_cache_begin(mut ctx: SelfEmitCtx, f: MirFunction) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) &&
     function_locals_view::MirFunction_local_count(f) > 0 {
         code_ref_locals_fn_cache::begin_function_local_gc_cache(ctx, f)
     }
 }
 
-fn emit_body_gc_local_cache_end(ctx: SelfEmitCtx) {
+fn emit_body_gc_local_cache_end(mut ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         code_ref_locals_fn_cache::end_function_local_gc_cache(ctx)
     }

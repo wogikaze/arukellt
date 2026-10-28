@@ -1,4 +1,4 @@
 use parser::ast_fields_record
 
 fn AstNode_op(node: AstNode) -> i32 { ast_fields_record::ast_node_op(node) }
-fn AstNode_set_op(node: AstNode, op: i32) { ast_fields_record::ast_node_set_op(node, op) }
+fn AstNode_set_op(mut node: AstNode, op: i32) { ast_fields_record::ast_node_set_op(node, op) }

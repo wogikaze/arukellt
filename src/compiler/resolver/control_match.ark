@@ -2,10 +2,10 @@ use resolver::scope_stack_lifecycle
 use resolver::ast_access
 use resolver::bindings
 
-fn resolve_match(ctx: ResolveCtx, node: AstNode) {
+fn resolve_match(mut ctx: ResolveCtx, node: AstNode) {
     let child_count = ast_access::node_child_count(node)
     if child_count > 0 {
-        let scrutinee = ast_access::node_child_at(node, 0)
+        let mut scrutinee = ast_access::node_child_at(node, 0)
         resolve_node(ctx, scrutinee)
     }
     let mut arm_idx = 1
@@ -18,7 +18,7 @@ fn resolve_match(ctx: ResolveCtx, node: AstNode) {
             bindings::collect_pattern_bindings(ctx, pat)
         }
         if arm_child_count > 1 {
-            let body = ast_access::node_child_at(arm, 1)
+            let mut body = ast_access::node_child_at(arm, 1)
             resolve_node(ctx, body)
         }
         scope_stack_lifecycle::pop_scope(ctx)

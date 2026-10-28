@@ -2,19 +2,19 @@ use std::io
 use std::test
 
 fn main() {
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     push(data, 72)
     push(data, 101)
     push(data, 108)
     push(data, 108)
     push(data, 111)
-    let w: io::Writer = io::Writer::new()
+    let mut w: io::Writer = io::Writer::new()
     match w.write(data) {
         Result::Ok(written) => test::assert_eq_i32(written, 5),
         Result::Err(e) => panic(io::io_error_message(e)),
     }
 
-    let r: io::Reader = w.into_reader()
+    let mut r: io::Reader = w.into_reader()
     match r.read(5) {
         Result::Ok(read) => {
             test::assert_eq_i32(len(read), 5)

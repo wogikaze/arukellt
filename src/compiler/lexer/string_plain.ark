@@ -1,6 +1,6 @@
 use std::prelude::{substring}
 use lexer::tokens
-fn lex_plain_string(lex: Lexer, start: i32, content_start: i32) -> Token {
+fn lex_plain_string(mut lex: Lexer, start: i32, content_start: i32) -> Token {
     while lex.pos < lex.src_len {
         let c = peek(lex)
         if c == 34 {

@@ -12,7 +12,7 @@ use mir::inst_local_get
 use mir::inst_local_set
 use mir::inst_struct_get
 use mir::value_types
-fn lower_tuple_destructure_let(ctx: LowerCtx, node: AstNode) {
+fn lower_tuple_destructure_let(mut ctx: LowerCtx, node: AstNode) {
     let child_count = ast_node::node_child_count(node)
     if child_count < 2 {
         return
@@ -44,7 +44,7 @@ fn lower_tuple_destructure_let(ctx: LowerCtx, node: AstNode) {
 
 // Bind each PAT_IDENT child of a tuple pattern to the matching field of
 // tuple_local. Shared by let-destructure and Some((a, b)) payload binds.
-fn emit_tuple_pattern_ident_binds(ctx: LowerCtx, pat: AstNode, tuple_local: i32) {
+fn emit_tuple_pattern_ident_binds(mut ctx: LowerCtx, pat: AstNode, tuple_local: i32) {
     let elem_count = ast_node::node_child_count(pat)
     let total_bytes = elem_count * 4
     let tuple_type = ctx_api_local_types::ctx_get_local_type(ctx, tuple_local)
@@ -74,7 +74,7 @@ fn emit_tuple_pattern_ident_binds(ctx: LowerCtx, pat: AstNode, tuple_local: i32)
 // explicit local.set that consumes the staged value. Store policy may leave
 // STRUCT_GET on the stack when the next op is a local load (the next field
 // base), so the trailing LOCAL_SET keeps the operand stack clean (#807).
-fn emit_tuple_field_read(ctx: LowerCtx, tuple_local: i32, struct_name: String, elem_index: i32, total_bytes: i32, field_vt: i32, dest: i32) {
+fn emit_tuple_field_read(mut ctx: LowerCtx, tuple_local: i32, struct_name: String, elem_index: i32, total_bytes: i32, field_vt: i32, dest: i32) {
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(tuple_local))
     if len(struct_name) > 0 {
         ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(tuple_local, struct_name, elem_index * 4, elem_index, total_bytes, field_vt, dest))
@@ -88,7 +88,7 @@ fn emit_tuple_field_read(ctx: LowerCtx, tuple_local: i32, struct_name: String, e
 // Extract one tuple element into a fresh local with the field's value type
 // and type name. Match-arm lowering reads elements this way so compares and
 // binds work on a plain local instead of repeating field accesses (#893).
-fn emit_tuple_element_extract(ctx: LowerCtx, tuple_local: i32, elem_index: i32, elem_count: i32) -> i32 {
+fn emit_tuple_element_extract(mut ctx: LowerCtx, tuple_local: i32, elem_index: i32, elem_count: i32) -> i32 {
     let tuple_type = ctx_api_local_types::ctx_get_local_type(ctx, tuple_local)
     let struct_name = tuple_struct_name_from_type(tuple_type)
     let field_vt = tuple_field_vt_from_struct_name(ctx, clone(struct_name), elem_index)

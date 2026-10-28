@@ -5,7 +5,7 @@ use parser::core_ast_children
 use parser::core_api_cursor
 use parser::kinds
 
-pub fn parse_stmt(p: Parser) -> AstNode {
+pub fn parse_stmt(mut p: Parser) -> AstNode {
     skip_newlines(p)
     let k = peek_kind(p)
     if k == tokens::TK_LET() {
@@ -30,7 +30,7 @@ pub fn parse_stmt(p: Parser) -> AstNode {
         return parse_for(p)
     }
     let expr = parse_expr(p)
-    let node = AstNode_new(kinds::NK_EXPR_STMT(), core_ast_span_fields::AstNode_span(expr))
+    let mut node = AstNode_new(kinds::NK_EXPR_STMT(), core_ast_span_fields::AstNode_span(expr))
     core_ast_children::AstNode_push_child(node, expr)
     node
 }

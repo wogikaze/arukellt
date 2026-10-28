@@ -12,7 +12,7 @@ use corehir::signature_registry
 use corehir::type_table
 use corehir::core_op_binding
 use mir::lower::signature_registry_host
-fn sig_reg_register_builtin_intrinsics(table: TypeTable, registry: SignatureRegistry) -> i32 {
+fn sig_reg_register_builtin_intrinsics(mut table: TypeTable, mut registry: SignatureRegistry) -> i32 {
     let mut added = 0
     added = added + sig_reg_register_builtin_named(
         table,
@@ -27,8 +27,8 @@ fn sig_reg_register_builtin_intrinsics(table: TypeTable, registry: SignatureRegi
 }
 
 fn sig_reg_register_builtin_named(
-    table: TypeTable,
-    registry: SignatureRegistry,
+    mut table: TypeTable,
+    mut registry: SignatureRegistry,
     names: Vec<String>,
     ret: MirValueType
 ) -> i32 {
@@ -46,12 +46,12 @@ fn sig_reg_register_builtin_named(
 }
 
 fn sig_reg_register_builtin_entry(
-    table: TypeTable,
-    registry: SignatureRegistry,
+    mut table: TypeTable,
+    mut registry: SignatureRegistry,
     name: String,
     ret: MirValueType
 ) {
-    let returns = Vec::new<MirValueType>()
+    let mut returns = Vec::new<MirValueType>()
     push(returns, ret)
     let params = Vec::new<MirValueType>()
     let receiver = mir_value_type::MirValueType_new(
@@ -75,27 +75,27 @@ fn sig_reg_register_builtin_entry(
     signature_registry::signature_registry_register(registry, entry, name)
 }
 
-fn sig_reg_mvt_string(table: TypeTable) -> MirValueType {
+fn sig_reg_mvt_string(mut table: TypeTable) -> MirValueType {
     let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRING(), "String", Vec::new<TypeId>())
     mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
 }
 
-fn sig_reg_mvt_vec(table: TypeTable, type_name: String) -> MirValueType {
+fn sig_reg_mvt_vec(mut table: TypeTable, type_name: String) -> MirValueType {
     let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_VEC(), type_name, Vec::new<TypeId>())
     mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
 }
 
-fn sig_reg_mvt_hashmap(table: TypeTable, type_name: String) -> MirValueType {
+fn sig_reg_mvt_hashmap(mut table: TypeTable, type_name: String) -> MirValueType {
     let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_HASHMAP(), type_name, Vec::new<TypeId>())
     mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
 }
 
-fn sig_reg_mvt_option(table: TypeTable, type_name: String) -> MirValueType {
+fn sig_reg_mvt_option(mut table: TypeTable, type_name: String) -> MirValueType {
     let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_OPTION(), type_name, Vec::new<TypeId>())
     mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
 }
 
-fn sig_reg_register_hashmap_news(table: TypeTable, registry: SignatureRegistry) -> i32 {
+fn sig_reg_register_hashmap_news(mut table: TypeTable, mut registry: SignatureRegistry) -> i32 {
     let mut added = 0
     added = added + sig_reg_register_builtin_named(
         table,
@@ -130,7 +130,7 @@ fn sig_reg_register_hashmap_news(table: TypeTable, registry: SignatureRegistry) 
     added
 }
 
-fn sig_reg_register_vec_ops(table: TypeTable, registry: SignatureRegistry) -> i32 {
+fn sig_reg_register_vec_ops(mut table: TypeTable, mut registry: SignatureRegistry) -> i32 {
     let mut added = 0
     let vec_i32 = sig_reg_mvt_vec(table, "vec:i32")
     let vec_string = sig_reg_mvt_vec(table, "vec:String")
@@ -165,7 +165,7 @@ fn sig_reg_register_vec_ops(table: TypeTable, registry: SignatureRegistry) -> i3
     added
 }
 
-fn sig_reg_register_option_returns(table: TypeTable, registry: SignatureRegistry) -> i32 {
+fn sig_reg_register_option_returns(mut table: TypeTable, mut registry: SignatureRegistry) -> i32 {
     let opt = sig_reg_mvt_option(table, "Option<i32>")
     sig_reg_register_builtin_named(
         table,
@@ -176,13 +176,13 @@ fn sig_reg_register_option_returns(table: TypeTable, registry: SignatureRegistry
 }
 
 fn sig_reg_names1(a: String) -> Vec<String> {
-    let names = Vec::new<String>()
+    let mut names = Vec::new<String>()
     push(names, a)
     names
 }
 
 fn sig_reg_names3(a: String, b: String, c: String) -> Vec<String> {
-    let names = Vec::new<String>()
+    let mut names = Vec::new<String>()
     push(names, a)
     push(names, b)
     push(names, c)
@@ -190,7 +190,7 @@ fn sig_reg_names3(a: String, b: String, c: String) -> Vec<String> {
 }
 
 fn sig_reg_names4(a: String, b: String, c: String, d: String) -> Vec<String> {
-    let names = Vec::new<String>()
+    let mut names = Vec::new<String>()
     push(names, a)
     push(names, b)
     push(names, c)
@@ -239,7 +239,7 @@ fn sig_reg_hm_ss_names() -> Vec<String> {
 }
 
 fn sig_reg_option_return_names() -> Vec<String> {
-    let names = Vec::new<String>()
+    let mut names = Vec::new<String>()
     push(names, "vec_pop")
     push(names, "vec_get")
     push(names, "find_i32")
@@ -254,7 +254,7 @@ fn sig_reg_option_return_names() -> Vec<String> {
 // from the Mir name index. Broader string methods still resolve via
 // lookup_intrinsic_return_type_name → type_name → layout at emit time.
 fn sig_reg_builtin_string_return_names() -> Vec<String> {
-    let names = Vec::new<String>()
+    let mut names = Vec::new<String>()
     push(names, "String_new")
     push(names, "String_from")
     push(names, "__intrinsic_String_new")

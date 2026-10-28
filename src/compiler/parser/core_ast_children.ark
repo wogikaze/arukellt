@@ -1,6 +1,6 @@
 use parser::ast_node_record
 
-fn AstNode_push_child(node: AstNode, child: AstNode) {
+fn AstNode_push_child(mut node: AstNode, child: AstNode) {
     push(node.children, child)
 }
 
@@ -16,6 +16,6 @@ fn AstNode_children(node: AstNode) -> Vec<AstNode> {
     node.children
 }
 
-fn AstNode_set_children(node: AstNode, children: Vec<AstNode>) {
+fn AstNode_set_children(mut node: AstNode, children: Vec<AstNode>) {
     node.children = children
 }

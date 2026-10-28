@@ -10,7 +10,7 @@ use mir::inst_op
 use mir::lower::literal_int_suffix
 use mir::value_types
 use mir::opcodes as mir_opcodes
-fn lower_int_literal(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_int_literal(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let raw_text = ast_node::node_text(node)
     if mir_int_literal_needs_i64(node) {
         let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I64())
@@ -22,14 +22,14 @@ fn lower_int_literal(ctx: LowerCtx, node: AstNode) -> i32 {
     dest
 }
 
-fn lower_int_literal_forced_i64(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_int_literal_forced_i64(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let raw_text = ast_node::node_text(node)
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I64())
     ctx_api_emit::ctx_emit(ctx, inst_const_i64::MirInst_const_i64_text(raw_text, dest))
     dest
 }
 
-fn lower_unary_neg_forced_i64(ctx: LowerCtx, operand_node: AstNode) -> i32 {
+fn lower_unary_neg_forced_i64(mut ctx: LowerCtx, operand_node: AstNode) -> i32 {
     let operand_idx = lower_int_literal_forced_i64(ctx, operand_node)
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I64())
     ctx_api_emit::ctx_emit(ctx, inst_op::MirInst_unary(mir_opcodes::MIR_NEG(), dest, operand_idx, value_types::VT_I64()))

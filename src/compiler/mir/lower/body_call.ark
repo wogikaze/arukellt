@@ -7,7 +7,7 @@ use mir::lower::body_call_hof
 use mir::lower::body_call_variant
 use mir::lower::body_call_wit
 
-fn lower_call_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_call_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     if child_count < 1 {
         return 0 - 1

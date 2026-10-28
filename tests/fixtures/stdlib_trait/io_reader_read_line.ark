@@ -3,13 +3,13 @@ use std::test
 
 fn main() {
     // "AB\nCD" - read_line returns "AB" and consumes the newline
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     push(data, 65)
     push(data, 66)
     push(data, 10)
     push(data, 67)
     push(data, 68)
-    let reader: io::Reader = io::Reader::from_bytes(data)
+    let mut reader: io::Reader = io::Reader::from_bytes(data)
 
     match reader.read_line() {
         Result::Ok(found) => match found {

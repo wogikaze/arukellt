@@ -21,8 +21,8 @@ use typechecker::unify
 use std::prelude::{clone, eq}
 use std::text
 fn check_for_source(
-    env: TypeEnv,
-    scope: LocalScope,
+    mut env: TypeEnv,
+    mut scope: LocalScope,
     fn_sigs: Vec<FnSig>,
     enum_defs: Vec<EnumInfo>,
     node: AstNode
@@ -70,7 +70,7 @@ fn check_for_source(
 // resolver to find the emitted symbol. Concrete impls register plain
 // Owner::method symbols and need no recording.
 fn record_for_desugar_mono(
-    env: TypeEnv,
+    mut env: TypeEnv,
     fn_sigs: Vec<FnSig>,
     node: AstNode,
     source_ty: TypeInfo,
@@ -107,7 +107,7 @@ fn record_for_desugar_mono(
 
 // The single parametric impl allowed by ADR-078 for (trait, constructor
 // head), or an empty info when the matching impl is concrete.
-fn find_var_carrying_impl(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> TraitImplInfo {
+fn find_var_carrying_impl(mut env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> TraitImplInfo {
     let count = len(env.trait_impls)
     let mut i = 0
     while i < count {
@@ -132,7 +132,7 @@ fn find_var_carrying_impl(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> TraitI
 // one desugared for-method call. Returns the instantiated return type so
 // the into_iter step can feed the iterator type into next resolution.
 fn record_for_method_mono(
-    env: TypeEnv,
+    mut env: TypeEnv,
     fn_sigs: Vec<FnSig>,
     span: i32,
     impl_info: TraitImplInfo,
@@ -154,8 +154,8 @@ fn record_for_method_mono(
     if !contract_fn_sig::FnSig_has_name(sig) {
         return unknown
     }
-    let var_names = Vec::new<String>()
-    let var_types = Vec::new<TypeInfo>()
+    let mut var_names = Vec::new<String>()
+    let mut var_types = Vec::new<TypeInfo>()
     if !associated_types::match_pattern_collect_vars(
         contract_trait_impl::TraitImplInfo_self_ty(impl_info),
         owner_ty,
@@ -165,8 +165,8 @@ fn record_for_method_mono(
         return unknown
     }
     let param_count = contract_fn_sig::FnSig_type_param_count(sig)
-    let param_names = Vec::new<String>()
-    let resolved = Vec::new<TypeInfo>()
+    let mut param_names = Vec::new<String>()
+    let mut resolved = Vec::new<TypeInfo>()
     let mut i = 0
     while i < param_count {
         let param_name = contract_fn_sig::FnSig_type_param_at(sig, i)
@@ -237,7 +237,7 @@ fn for_desugar_builtin_owner_name(ty: TypeInfo) -> String {
 
 // A generic `for` source must declare the conversion or iterator protocol
 // in its bounds; an unbounded type parameter has no iteration contract.
-fn check_generic_for_source(env: TypeEnv, source_ty: TypeInfo) {
+fn check_generic_for_source(mut env: TypeEnv, source_ty: TypeInfo) {
     let var_name = contract_type_access::TypeInfo_name(source_ty)
     if trait_bounds::env_type_var_has_trait_bound(env, clone(var_name), String_from("IntoIterator")) {
         record_generic_for_desugar_sites(env, source_ty, true)
@@ -263,7 +263,7 @@ fn check_generic_for_source(env: TypeEnv, source_ty: TypeInfo) {
 // next calls into invalid wasm (#916). The next receiver is the
 // `T::IntoIter` projection; Iterator-bound sources are already iterators
 // and only need next.
-fn record_generic_for_desugar_sites(env: TypeEnv, source_ty: TypeInfo, via_into_iterator: bool) {
+fn record_generic_for_desugar_sites(mut env: TypeEnv, source_ty: TypeInfo, via_into_iterator: bool) {
     if via_into_iterator {
         mono_instances::record_var_method_site(env, String_from("into_iter"), clone(source_ty))
         let var_name = contract_type_access::TypeInfo_name(source_ty)

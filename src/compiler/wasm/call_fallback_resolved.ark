@@ -25,10 +25,10 @@ use wasm::inst_locals
 use wasm::call_indirect
 use wasm::ctx_fn_type_refs
 fn try_emit_resolved_fallback_call(
-    w: WasmWriter,
+    mut w: WasmWriter,
     callee: String,
     inst: MirInst,
-    ctx: SelfEmitCtx,
+    mut ctx: SelfEmitCtx,
     prev_op: i32,
     prev_arg0: i32,
     prev_arg1: i32,

@@ -5,7 +5,7 @@ use mir::lower::ctx_gc_enum
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_layout
-fn emit_payload_field_bind_gc_resolve_type(ctx: LowerCtx, variant_name: String, field_idx: i32, bind_local: i32) -> String {
+fn emit_payload_field_bind_gc_resolve_type(mut ctx: LowerCtx, variant_name: String, field_idx: i32, bind_local: i32) -> String {
     let mut bind_type_name = ctx_get_local_type(ctx, bind_local)
     // A bind declared as `T` inside a monomorphized body must use the
     // concrete argument so variant-layout matching compares real payload

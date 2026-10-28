@@ -15,7 +15,7 @@ use wasm::constants
 use wasm::opcodes
 use wasm::writer_core
 use wasm::sections_type_plan
-fn emit_struct_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
+fn emit_struct_type_entry(mut type_sec: WasmWriter, sig: String, gc_type_base: i32) {
     writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_STRUCT())
     let field_sigs = struct_field_sigs(sig)
     writer_core::emit_leb128_u(type_sec, len(field_sigs))
@@ -24,7 +24,7 @@ fn emit_struct_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) 
     }
 }
 
-fn emit_struct_field_type(type_sec: WasmWriter, ft: String, gc_type_base: i32) {
+fn emit_struct_field_type(mut type_sec: WasmWriter, ft: String, gc_type_base: i32) {
     if starts_with(clone(ft), "gcsref") {
         // gcsref<slot> is handled by the caller (sections_types_emit)
         // which has access to gc_struct_type_map.  Fall through to ref handling.
@@ -62,13 +62,13 @@ fn parse_type_sig_int(s: String) -> i32 {
     val
 }
 
-fn emit_array_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32, gc_struct_type_map: Vec<i32>) {
+fn emit_array_type_entry(mut type_sec: WasmWriter, sig: String, gc_type_base: i32, gc_struct_type_map: Vec<i32>) {
     writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_ARRAY())
     emit_array_elem_type(type_sec, array_elem_type(sig), gc_type_base, gc_struct_type_map)
     writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
 }
 
-fn emit_array_elem_type(type_sec: WasmWriter, elem_type: String, gc_type_base: i32, gc_struct_type_map: Vec<i32>) {
+fn emit_array_elem_type(mut type_sec: WasmWriter, elem_type: String, gc_type_base: i32, gc_struct_type_map: Vec<i32>) {
     if eq(clone(elem_type), "structref") {
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
         writer_core::emit_byte(type_sec, constants::WASM_STRUCTREF())
@@ -135,7 +135,7 @@ fn find_type_sig_char(s: String, c: i32) -> i32 {
     0 - 1
 }
 
-fn append_gc_type_sigs(type_sigs: Vec<String>) {
+fn append_gc_type_sigs(mut type_sigs: Vec<String>) {
     push(type_sigs, "A_i8")
     push(type_sigs, "A_i32")
     push(type_sigs, "SubF_GS_f0_i32")
@@ -293,7 +293,7 @@ fn gc_module_emit_slots(mir: MirModule) -> Vec<i32> {
     if sealed_enums < 0 || sealed_enums > enum_total {
         sealed_enums = enum_total
     }
-    let emit_slots = Vec::new<i32>()
+    let mut emit_slots = Vec::new<i32>()
     let mut i = 0
     while i < sealed_structs {
         push(emit_slots, i * 2)
@@ -353,7 +353,7 @@ fn gc_module_emit_slots(mir: MirModule) -> Vec<i32> {
     emit_slots
 }
 
-fn append_module_gc_type_sigs(type_sigs: Vec<String>, mir: MirModule) {
+fn append_module_gc_type_sigs(mut type_sigs: Vec<String>, mir: MirModule) {
     let emit_slots = gc_module_emit_slots(mir)
     let mut i = 0
     while i < len(emit_slots) {

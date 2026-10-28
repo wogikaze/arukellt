@@ -2,7 +2,7 @@ use wasm::ctx_record
 
 // Hint entries are stored flat as (func_idx, code_section_offset) pairs so
 // the custom section can map each hint back to the function body position.
-fn SelfEmitCtx_push_gc_hint_offset(ctx: SelfEmitCtx, func_idx: i32, offset: i32) {
+fn SelfEmitCtx_push_gc_hint_offset(mut ctx: SelfEmitCtx, func_idx: i32, offset: i32) {
     push(ctx.gc_hint_offsets, func_idx)
     push(ctx.gc_hint_offsets, offset)
 }

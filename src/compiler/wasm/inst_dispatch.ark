@@ -19,9 +19,9 @@ use wasm::inst_dispatch_gc_cast
 use wasm::inst_dispatch_struct
 use wasm::inst_future
 fn emit_mir_inst_ctx(
-    w: WasmWriter,
+    mut w: WasmWriter,
     inst: MirInst,
-    ctx: SelfEmitCtx,
+    mut ctx: SelfEmitCtx,
     prev_op: i32,
     prev_arg0: i32,
     prev_arg1: i32,
@@ -65,9 +65,9 @@ fn emit_mir_inst_ctx(
 }
 
 fn try_emit_call_inst(
-    w: WasmWriter,
+    mut w: WasmWriter,
     inst: MirInst,
-    ctx: SelfEmitCtx,
+    mut ctx: SelfEmitCtx,
     prev_op: i32,
     prev_arg0: i32,
     prev_arg1: i32,

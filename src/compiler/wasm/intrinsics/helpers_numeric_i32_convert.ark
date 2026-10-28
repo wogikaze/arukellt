@@ -2,8 +2,8 @@ use wasm::opcodes
 use wasm::writer_core
 use mir::value_types
 
-fn emit_i32_wrap_i64(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64()) }
-fn emit_i32_trunc_f64_s(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_TRUNC_F64_S()) }
+fn emit_i32_wrap_i64(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64()) }
+fn emit_i32_trunc_f64_s(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_TRUNC_F64_S()) }
 
 // True when a GC struct i32 field should widen/narrow under Memory64.
 // VT_VOID is a MIR placeholder: trust the local's concrete VT / ref-ness.
@@ -49,20 +49,20 @@ fn is_memory64_i32_field_scalar(val_type: i32, local_vt: i32, local_is_ref: bool
 }
 
 // Memory64 scalar widen: GC/packed i32 results become i64 locals/params.
-fn emit_widen_i32_result(w: WasmWriter) {
+fn emit_widen_i32_result(mut w: WasmWriter) {
     if writer_core::writer_memory64(w) {
         writer_core::emit_byte(w, opcodes::OP_I64_EXTEND_I32_U())
     }
 }
 
 // Memory64 scalar widen: GC ops still consume true i32 sizes/indices/fields.
-fn emit_narrow_i64_operand(w: WasmWriter) {
+fn emit_narrow_i64_operand(mut w: WasmWriter) {
     if writer_core::writer_memory64(w) {
         writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64())
     }
 }
 
-fn emit_i32_or_widened_op(w: WasmWriter, i32_op: i32, i64_op: i32) {
+fn emit_i32_or_widened_op(mut w: WasmWriter, i32_op: i32, i64_op: i32) {
     if writer_core::writer_memory64(w) {
         writer_core::emit_byte(w, i64_op)
         return
@@ -72,11 +72,11 @@ fn emit_i32_or_widened_op(w: WasmWriter, i32_op: i32, i64_op: i32) {
 
 // Wasm compares always push i32 (0/1). Under Memory64 scalar widen the
 // result must become i64 before local.set / later narrow-for-branch.
-fn emit_widen_compare_result(w: WasmWriter) {
+fn emit_widen_compare_result(mut w: WasmWriter) {
     emit_widen_i32_result(w)
 }
 
 // br_if / if consume i32; Memory64 bool/i32 locals are stored as i64.
-fn emit_narrow_branch_condition(w: WasmWriter) {
+fn emit_narrow_branch_condition(mut w: WasmWriter) {
     emit_narrow_i64_operand(w)
 }

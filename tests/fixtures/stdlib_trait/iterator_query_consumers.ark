@@ -34,7 +34,7 @@ fn sum_via_iter<T: Iterator>(it: T) -> i32 {
 }
 
 fn main() {
-    let v: Vec<i32> = Vec::new<i32>()
+    let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 3)
     push(v, 1)
     push(v, 4)
@@ -103,7 +103,7 @@ fn main() {
     // Aggregation and search delegate to the generic Ord algorithms.
     test::assert_eq_i32(seq::min_i32(v), 1)
     test::assert_eq_i32(seq::max_i32(v), 5)
-    let sorted: Vec<i32> = Vec::new<i32>()
+    let mut sorted: Vec<i32> = Vec::new<i32>()
     push(sorted, 1)
     push(sorted, 1)
     push(sorted, 3)

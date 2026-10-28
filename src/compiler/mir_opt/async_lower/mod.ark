@@ -9,9 +9,9 @@ use mir::opcodes
 use mir::value_types
 use mir_opt::async_lower::translation_validation
 
-fn async_lower_optimize_module(m: MirModule) -> MirModule {
+fn async_lower_optimize_module(mut m: MirModule) -> MirModule {
     let fn_count = module_functions::MirModule_function_count(m)
-    let updated = Vec::new<MirFunction>()
+    let mut updated = Vec::new<MirFunction>()
     let mut fi = 0
     while fi < fn_count {
         let f = module_functions::MirModule_function_at(m, fi)
@@ -56,9 +56,9 @@ fn lower_async_ops(f: MirFunction) -> MirFunction {
     let block_count = function_block_queries::MirFunction_block_count(f)
     let mut bi = 0
     while bi < block_count {
-        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let mut block = function_block_queries::MirFunction_block_at(f, bi)
         let before = block_inst_access::MirBlock_export_drafts(block)
-        let filtered = Vec::new<MirInstDraft>()
+        let mut filtered = Vec::new<MirInstDraft>()
         let mut ii = 0
         while ii < len(before) {
             let inst = get_unchecked(before, ii)

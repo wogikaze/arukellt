@@ -2,7 +2,7 @@ use std::io
 use std::test
 
 fn main() {
-    let r: io::Reader = io::Reader::new()
+    let mut r: io::Reader = io::Reader::new()
     match r.fill_buf() {
         Result::Ok(filled) => test::assert_eq_i32(len(filled), 0),
         Result::Err(e) => panic(io::io_error_message(e)),

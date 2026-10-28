@@ -2,7 +2,7 @@ use std::prelude::{byte_at, clone, contains, ends_with, eq, starts_with, substri
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::value_types
-fn set_stdlib_result_type(ctx: LowerCtx, dest: i32, type_name: String) {
+fn set_stdlib_result_type(mut ctx: LowerCtx, dest: i32, type_name: String) {
     ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name)
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
@@ -11,7 +11,7 @@ fn set_stdlib_result_type(ctx: LowerCtx, dest: i32, type_name: String) {
     }
 }
 
-fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) -> bool {
+fn mark_known_stdlib_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32) -> bool {
     let cn = mir_strip_module_prefix(clone(callee_name))
     if eq(clone(cn), "cmp") || ends_with(clone(cn), String_from("::cmp")) || starts_with(clone(cn), String_from("cmp__")) || contains(clone(cn), String_from("::cmp__")) {
         set_stdlib_result_type(ctx, dest, String_from("enum:Ordering"))
@@ -122,7 +122,7 @@ fn is_host_fs_write_string_callee(callee_name: String) -> bool {
     ends_with(clone(callee_name), String_from("Fs::write_string"))
 }
 
-fn mark_toml_result_vec_call_type(ctx: LowerCtx, callee_name: String, dest: i32) -> bool {
+fn mark_toml_result_vec_call_type(mut ctx: LowerCtx, callee_name: String, dest: i32) -> bool {
     let cn = mir_strip_module_prefix(clone(callee_name))
     if eq(clone(cn), "toml_navigate_table_count") || eq(clone(cn), "toml_navigate_table") || eq(clone(cn), "toml_append_array_table") {
         set_stdlib_result_type(ctx, dest, String_from("result:vec:TomlField:String"))

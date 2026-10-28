@@ -3,7 +3,7 @@ use std::prelude::{clone}
 use lsp::completion
 use lsp::feature_request
 use lsp::framing
-pub fn handle_completion(state: LspState, body: String) {
+pub fn handle_completion(mut state: LspState, body: String) {
     let id = json::JsonText::get_int(clone(body), String_from("id"))
     let req = feature_request::read_text_position_request(state, clone(body))
     if !feature_request::text_position_request_has_text(req) {

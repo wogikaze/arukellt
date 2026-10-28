@@ -9,11 +9,11 @@ fn join_state(state: String, x: String) -> Option<String> {
 }
 
 fn main() {
-    let v: Vec<String> = Vec::new<String>()
+    let mut v: Vec<String> = Vec::new<String>()
     push(v, String_from("a"))
     push(v, String_from("b"))
     push(v, String_from("cc"))
-    let sc = v.iter().scan(String_from(""), join_state)
+    let mut sc = v.iter().scan(String_from(""), join_state)
     match sc.next() {
         Some(x) => stdio::println(x),
         None => stdio::println("none1"),

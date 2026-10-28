@@ -12,7 +12,7 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     pipeline_backend::compile_source(source, config)
 }
 
-pub fn compile_file(path: String, config: DriverConfig) -> CompileResult {
+pub fn compile_file(path: String, mut config: DriverConfig) -> CompileResult {
     file::compile_file(path, config)
 }
 

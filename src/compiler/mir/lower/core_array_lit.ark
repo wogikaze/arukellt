@@ -1,7 +1,7 @@
 use mir::lower::aggregate
 use mir::lower::core_expr_shape_accessors
 
-fn lower_core_array_lit(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+fn lower_core_array_lit(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
     let dest = aggregate::mir_emit_array_new(ctx, child_count)
     let mut i = 0
@@ -16,7 +16,7 @@ fn lower_core_array_lit(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExp
     aggregate::mir_emit_local_get_ref(ctx, dest)
 }
 
-fn lower_core_array_repeat(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+fn lower_core_array_repeat(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let val_child = core_expr_shape_accessors::mir_core_expr_child(expr, 0)
     let count_child = core_expr_shape_accessors::mir_core_expr_child(expr, 1)
     let count_expr = get_unchecked(exprs, count_child)

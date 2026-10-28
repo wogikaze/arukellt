@@ -6,13 +6,13 @@ use mir::block_record
 use mir::inst_draft
 use mir::types
 
-fn mir_block_clear_insts(block: MirBlock) {
+fn mir_block_clear_insts(mut block: MirBlock) {
     // Keep column capacity. Vec::new here is a new bump and cannot move ru_maxrss.
     // raw_array_set_len dispatch is incomplete; pop of GC struct vecs makes s2 invalid.
     block.inst_count = 0
 }
 
-fn mir_block_store_str(block: MirBlock, idx: i32, text: String, reuse: bool) {
+fn mir_block_store_str(mut block: MirBlock, idx: i32, text: String, reuse: bool) {
     if len(text) == 0 {
         if reuse {
             set(block.str_ids, idx, 0 - 1)
@@ -37,7 +37,7 @@ fn mir_block_store_str(block: MirBlock, idx: i32, text: String, reuse: bool) {
     push(block.str_pool, text)
 }
 
-fn mir_block_store_result_types(block: MirBlock, reuse: bool, result_types: Vec<MirValueType>) {
+fn mir_block_store_result_types(mut block: MirBlock, reuse: bool, result_types: Vec<MirValueType>) {
     if len(result_types) == 0 {
         if reuse {
             set(block.type_ids, block.inst_count, 0 - 1)
@@ -65,7 +65,7 @@ fn mir_block_store_result_types(block: MirBlock, reuse: bool, result_types: Vec<
     push(block.type_nulls, nulls)
 }
 
-fn mir_block_append_draft(block: MirBlock, inst: MirInstDraft) {
+fn mir_block_append_draft(mut block: MirBlock, inst: MirInstDraft) {
     let idx = block.inst_count
     let reuse = idx < len(block.ops)
     let op = inst_draft::MirInstDraft_op(inst)
@@ -101,11 +101,11 @@ fn mir_block_append_draft(block: MirBlock, inst: MirInstDraft) {
     block.inst_count = idx + 1
 }
 
-fn MirBlock_push_inst(block: MirBlock, inst: MirInstDraft) {
+fn MirBlock_push_inst(mut block: MirBlock, inst: MirInstDraft) {
     mir_block_append_draft(block, inst)
 }
 
-fn MirBlock_set_instructions(block: MirBlock, instructions: Vec<MirInstDraft>) {
+fn MirBlock_set_instructions(mut block: MirBlock, instructions: Vec<MirInstDraft>) {
     mir_block_clear_insts(block)
     let n = len(instructions)
     let mut i = 0
@@ -115,12 +115,12 @@ fn MirBlock_set_instructions(block: MirBlock, instructions: Vec<MirInstDraft>) {
     }
 }
 
-fn MirBlock_set_from_refs(block: MirBlock, refs: Vec<MirInst>) {
+fn MirBlock_set_from_refs(mut block: MirBlock, refs: Vec<MirInst>) {
     MirBlock_set_instructions(block, block_inst_access::MirBlock_drafts_from_refs(refs))
 }
 
 fn MirInst_bind_draft(inst: MirInstDraft) -> MirInst {
-    let block = block_factory::MirBlock_new(0)
+    let mut block = block_factory::MirBlock_new(0)
     MirBlock_push_inst(block, inst)
     block_inst_access::MirBlock_inst_at(block, 0)
 }

@@ -12,7 +12,7 @@ use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::inst_accessors_literals
 
-fn emit_push_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push_i64: bool) -> bool {
+fn emit_push_i64(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push_i64: bool) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return emit_push_numeric_gc(w, inst, ctx, is_void_push_i64, true)
     }
@@ -35,7 +35,7 @@ fn emit_push_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push_i6
     true
 }
 
-fn emit_push_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_push_f64(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return emit_push_numeric_gc(w, inst, ctx, true, false)
     }
@@ -57,7 +57,7 @@ fn emit_push_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // GC target: push i64/f64 value onto Vec<i64>/Vec<f64>.
 // Stack: [vec_ref, value] (value on top)
-fn emit_push_numeric_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void: bool, is_i64: bool) -> bool {
+fn emit_push_numeric_gc(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void: bool, is_i64: bool) -> bool {
     let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_cap = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
@@ -105,7 +105,7 @@ fn emit_push_numeric_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void:
 }
 
 // Store the value at arr[len] and bump the vec length field.
-fn emit_push_numeric_gc_store(w: WasmWriter, s_vec: i32, s_len: i32, s_val: i32, arr_tmp: i32, vec_type: i32, array_type: i32) {
+fn emit_push_numeric_gc_store(mut w: WasmWriter, s_vec: i32, s_len: i32, s_val: i32, arr_tmp: i32, vec_type: i32, array_type: i32) {
     // array.set arr[len] = value (len is widened under memory64; narrow index)
     helpers_core::emit_local_get(w, arr_tmp)
     helpers_core::emit_local_get(w, s_len)
@@ -138,7 +138,7 @@ fn push_numeric_array_scratch(ctx: SelfEmitCtx, slot: i32, is_i64: bool) -> i32 
 }
 
 // Grow branch: save old array, create a doubled array, copy, update field 0.
-fn emit_push_numeric_gc_grow(w: WasmWriter, s_vec: i32, s_len: i32, s_cap: i32, arr_tmp: i32, arr_old: i32, vec_type: i32, array_type: i32) {
+fn emit_push_numeric_gc_grow(mut w: WasmWriter, s_vec: i32, s_len: i32, s_cap: i32, arr_tmp: i32, arr_old: i32, vec_type: i32, array_type: i32) {
     helpers_core::emit_local_get(w, arr_tmp)
     helpers_core::emit_local_set(w, arr_old)
     // cap*2, but empty (cap=0) must grow to at least 1 — the impl-path
@@ -173,7 +173,7 @@ fn emit_push_numeric_gc_grow(w: WasmWriter, s_vec: i32, s_len: i32, s_cap: i32, 
     writer_gc::emit_gc_struct_set(w, vec_type, 0)
 }
 
-fn emit_vec_get_unchecked_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_vec_get_unchecked_i64(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return emit_vec_get_unchecked_numeric_gc(w, inst, ctx, true)
     }
@@ -187,7 +187,7 @@ fn emit_vec_get_unchecked_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) ->
     return true
 }
 
-fn emit_vec_get_unchecked_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_vec_get_unchecked_f64(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return emit_vec_get_unchecked_numeric_gc(w, inst, ctx, false)
     }
@@ -204,7 +204,7 @@ fn emit_vec_get_unchecked_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) ->
 // GC target: get i64/f64 element from Vec<i64>/Vec<f64>.
 // Stack: [vec_ref, idx] (idx on top)
 // After: [value]
-fn emit_vec_get_unchecked_numeric_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_i64: bool) -> bool {
+fn emit_vec_get_unchecked_numeric_gc(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_i64: bool) -> bool {
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let callee = inst_accessors_literals::MirInst_str_val(inst)
     let array_type = intrinsic_vec_type::resolve_array_type_for_call(ctx, callee, inst)
@@ -227,14 +227,14 @@ fn emit_vec_get_unchecked_numeric_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmit
     return true
 }
 
-fn emit_vec_numeric_access_setup(w: WasmWriter, idx_local: i32, vec_local: i32) {
+fn emit_vec_numeric_access_setup(mut w: WasmWriter, idx_local: i32, vec_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, idx_local)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, vec_local)
 }
 
-fn emit_vec_numeric_access_addr8(w: WasmWriter, vec_local: i32, idx_local: i32) {
+fn emit_vec_numeric_access_addr8(mut w: WasmWriter, vec_local: i32, idx_local: i32) {
     writer_core::emit_local_get(w, vec_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 8)

@@ -27,7 +27,7 @@ fn mir_is_funcref_local(ctx: LowerCtx, local_idx: i32) -> bool {
     starts_with(clone(type_name), String_from("fn("))
 }
 
-fn mark_indirect_callback_result_type(ctx: LowerCtx, callee_type_name: String, dest: i32) {
+fn mark_indirect_callback_result_type(mut ctx: LowerCtx, callee_type_name: String, dest: i32) {
     if dest < 0 {
         return
     }
@@ -56,7 +56,7 @@ fn mark_indirect_callback_result_type(ctx: LowerCtx, callee_type_name: String, d
 // Type the call_ref destination from the return segment of a
 // `fnsig:<param>;<return>` callee. Scalars keep their value type; named
 // and container returns are reference types on both backends.
-fn mark_fnsig_callback_result_type(ctx: LowerCtx, callee_type_name: String, dest: i32) {
+fn mark_fnsig_callback_result_type(mut ctx: LowerCtx, callee_type_name: String, dest: i32) {
     let rest = substring(clone(callee_type_name), 6, len(callee_type_name))
     let sep = index_of(clone(rest), String_from(";"))
     if sep < 0 {
@@ -98,13 +98,13 @@ fn mark_fnsig_callback_result_type(ctx: LowerCtx, callee_type_name: String, dest
     ctx_api_local_types::ctx_set_local_vt(ctx, dest, ref_vt)
 }
 
-fn mir_lower_indirect_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32, callee_local: i32) -> i32 {
+fn mir_lower_indirect_call(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32, callee_local: i32) -> i32 {
     let arg_count = child_count - 1
     let callee_type_name = ctx_api_local_types::ctx_get_local_type(ctx, callee_local)
     // Pair ABI (#872): env is pushed before the user args so the stack is
     // (env, args..., fnptr) when the call consumes it.
     closure_env::closure_emit_pair_env_arg(ctx, callee_local)
-    let arg_lis = Vec::new<i32>()
+    let mut arg_lis = Vec::new<i32>()
     let mut a = 1
     while a < child_count {
         let arg_li = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
@@ -140,11 +140,11 @@ fn mir_lower_indirect_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
 }
 
 // AST-level funcref call lowering (Class A/B → call_ref).
-fn mir_lower_ast_indirect_call(ctx: LowerCtx, node: AstNode, child_count: i32, callee_local: i32) -> i32 {
+fn mir_lower_ast_indirect_call(mut ctx: LowerCtx, node: AstNode, child_count: i32, callee_local: i32) -> i32 {
     let arg_count = child_count - 1
     let callee_type_name = ctx_api_local_types::ctx_get_local_type(ctx, callee_local)
     closure_env::closure_emit_pair_env_arg(ctx, callee_local)
-    let arg_lis = Vec::new<i32>()
+    let mut arg_lis = Vec::new<i32>()
     let mut a = 1
     while a < child_count {
         let arg = ast_node::node_child_at(node, a)

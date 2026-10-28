@@ -8,7 +8,7 @@ use main::kinds
 use main::script
 use main::targets
 
-pub fn dispatch_aux_command(opts: CliOptions, command: i32) -> bool {
+pub fn dispatch_aux_command(mut opts: CliOptions, command: i32) -> bool {
     if command == kinds::CMD_TARGETS() {
         targets::cmd_targets()
         return true

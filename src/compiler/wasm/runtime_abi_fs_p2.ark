@@ -15,7 +15,7 @@ use wasm::intrinsics::helpers_numeric_i64_const
 // descriptor handle in the first scratch local on success.  P2 resource
 // handles must stay in Wasm locals; storing one in linear memory turns it into
 // an invalid handle when the canonical component adapter receives it back.
-fn emit_p2_open_status(w: WasmWriter, ctx: SelfEmitCtx, open_flags: i32, descriptor_flags: i32) {
+fn emit_p2_open_status(mut w: WasmWriter, ctx: SelfEmitCtx, open_flags: i32, descriptor_flags: i32) {
     let fd_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let result_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
     helpers_core::emit_heap_get(w)
@@ -71,7 +71,7 @@ fn emit_p2_open_status(w: WasmWriter, ctx: SelfEmitCtx, open_flags: i32, descrip
 fn emit_p2_close(_w: WasmWriter, _ctx: SelfEmitCtx) {
 }
 
-fn emit_p2_write_status(w: WasmWriter, ctx: SelfEmitCtx, data_ptr_local: i32, data_len_local: i32) {
+fn emit_p2_write_status(mut w: WasmWriter, ctx: SelfEmitCtx, data_ptr_local: i32, data_len_local: i32) {
     let fd_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let result_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
     helpers_io_layout::emit_wasi_i32_from_local(w, fd_local)

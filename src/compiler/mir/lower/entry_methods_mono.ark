@@ -10,7 +10,7 @@ use mir::type_contracts
 use mir::value_types
 use mir::mono
 fn mir_emit_method_mono_bodies(
-    ctx: LowerCtx,
+    mut ctx: LowerCtx,
     body_input: MirLowerEntryBodyInput,
     struct_name: String,
     mangled: String,

@@ -8,23 +8,23 @@ use std::io
 use std::io::{BufReader, Reader}
 use std::text
 
-fn read_some<T: io::Read>(source: T, max_bytes: i32) -> Result<Vec<i32>, io::IoError> {
+fn read_some<T: io::Read>(mut source: T, max_bytes: i32) -> Result<Vec<i32>, io::IoError> {
     source.read(max_bytes)
 }
 
-fn read_line_of<T: io::BufRead>(source: T) -> Result<Option<String>, io::IoError> {
+fn read_line_of<T: io::BufRead>(mut source: T) -> Result<Option<String>, io::IoError> {
     source.read_line()
 }
 
-fn fill_of<T: io::BufRead>(source: T) -> Result<Vec<i32>, io::IoError> {
+fn fill_of<T: io::BufRead>(mut source: T) -> Result<Vec<i32>, io::IoError> {
     source.fill_buf()
 }
 
-fn consume_of<T: io::BufRead>(source: T, amount: i32) -> Result<(), io::IoError> {
+fn consume_of<T: io::BufRead>(mut source: T, amount: i32) -> Result<(), io::IoError> {
     source.consume(amount)
 }
 
-fn seek_of<T: io::Seek>(source: T, from: io::SeekFrom) -> Result<i64, io::IoError> {
+fn seek_of<T: io::Seek>(mut source: T, from: io::SeekFrom) -> Result<i64, io::IoError> {
     source.seek(from)
 }
 
@@ -33,7 +33,7 @@ fn position_of<T: io::Seek>(source: T) -> Result<i64, io::IoError> {
 }
 
 fn main() {
-    let lines: BufReader<Reader> = BufReader::new<Reader>(
+    let mut lines: BufReader<Reader> = BufReader::new<Reader>(
         Reader::from_bytes("alpha\nbeta\n\ngamma".to_utf8_bytes()),
         3
     )
@@ -49,7 +49,7 @@ fn main() {
         line_index = line_index + 1
     }
 
-    let buffered: BufReader<Reader> = BufReader::new<Reader>(
+    let mut buffered: BufReader<Reader> = BufReader::new<Reader>(
         Reader::from_bytes("abcdef".to_utf8_bytes()),
         4
     )
@@ -78,7 +78,7 @@ fn main() {
         Result::Err(err) => stdio::println(io::io_error_message(err)),
     }
 
-    let seekable: BufReader<Reader> = BufReader::new<Reader>(
+    let mut seekable: BufReader<Reader> = BufReader::new<Reader>(
         Reader::from_bytes("abcdef".to_utf8_bytes()),
         4
     )
@@ -132,7 +132,7 @@ fn main() {
         Result::Err(err) => stdio::println(io::io_error_message(err)),
     }
 
-    let tiny: BufReader<Reader> = BufReader::new<Reader>(
+    let mut tiny: BufReader<Reader> = BufReader::new<Reader>(
         Reader::from_bytes("AB".to_utf8_bytes()),
         0
     )
@@ -144,7 +144,7 @@ fn main() {
         Result::Err(err) => stdio::println(io::io_error_message(err)),
     }
 
-    let unterminated: BufReader<Reader> = BufReader::new<Reader>(
+    let mut unterminated: BufReader<Reader> = BufReader::new<Reader>(
         Reader::from_bytes("hello".to_utf8_bytes()),
         2
     )

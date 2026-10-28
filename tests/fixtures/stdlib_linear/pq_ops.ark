@@ -2,7 +2,7 @@ use std::collections::linear
 use std::host::stdio
 
 fn main() {
-    let pq: Vec<i32> = linear::pq_new()
+    let mut pq: Vec<i32> = linear::pq_new()
     linear::pq_clear(pq)
     stdio::println((linear::pq_is_empty(pq)).to_string())
     linear::pq_push(pq, 50)

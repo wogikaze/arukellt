@@ -13,7 +13,7 @@ fn main() {
     test::assert_eq_string(rejoined, s)
 
     // Replace in long string
-    let replaced = s.replace("abc", "XYZ")
+    let mut replaced = s.replace("abc", "XYZ")
     test::assert_eq_i32(replaced.len_bytes(), 1000)
     test::assert_false(replaced.contains("abc"))
     test::assert_true(replaced.contains("XYZ"))

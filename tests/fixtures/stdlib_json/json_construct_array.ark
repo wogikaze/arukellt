@@ -2,7 +2,7 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    let items = Vec::new<json::JsonValue>()
+    let mut items = Vec::new<json::JsonValue>()
     push(items, json::JsonValue::int(1))
     push(items, json::JsonValue::int(2))
     push(items, json::JsonValue::int(3))

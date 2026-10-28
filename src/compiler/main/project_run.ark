@@ -13,7 +13,7 @@ use main::output
 use parser::ast
 use parser::kinds as parser_kinds
 fn build_run_driver_config(opts: CliOptions) -> DriverConfig {
-    let config = config_record::DriverConfig_default()
+    let mut config = config_record::DriverConfig_default()
     compile_core::configure_target_axes(opts, config, "wasm")
     config_record::config_set_opt_level(config, args_record::cli_opt_level(opts))
     config_record::config_set_emit_mode(config, "wasm")
@@ -66,7 +66,7 @@ fn write_run_output(input_file: String, out_path: String, bytes: Vec<i32>) {
 
 pub fn cmd_run(opts: CliOptions) {
     let input_file = args_record::cli_input_file(opts)
-    let config = build_run_driver_config(opts)
+    let mut config = build_run_driver_config(opts)
     let result = file::compile_file(clone(input_file), config)
     if !result_record::compile_result_success(result) {
         exit_run_compile_error(clone(input_file), result)
@@ -77,7 +77,7 @@ pub fn cmd_run(opts: CliOptions) {
 }
 
 fn build_test_driver_config(opts: CliOptions) -> DriverConfig {
-    let config = config_record::DriverConfig_default()
+    let mut config = config_record::DriverConfig_default()
     compile_core::configure_target_axes(opts, config, args_record::cli_emit_mode(opts))
     config_record::config_set_opt_level(config, args_record::cli_opt_level(opts))
     config_record::config_set_emit_mode(config, args_record::cli_emit_mode(opts))
@@ -87,7 +87,7 @@ fn build_test_driver_config(opts: CliOptions) -> DriverConfig {
     // type-checking. The wrapper executes the emitted module; a trap
     // is a failing test (fail-fast runner).
     config_record::config_set_test_mode(config, true)
-    let allows = args_record::cli_lint_allow(opts)
+    let mut allows = args_record::cli_lint_allow(opts)
     push(allows, "W0003")
     push(allows, "W0005")
     push(allows, "W0006")
@@ -129,7 +129,7 @@ pub fn cmd_test(opts: CliOptions) {
     let input_file = args_record::cli_input_file(opts)
     print_test_start(clone(input_file))
     let test_count = discover_and_print_tests(clone(input_file))
-    let config = build_test_driver_config(opts)
+    let mut config = build_test_driver_config(opts)
     let result = file::compile_file(clone(input_file), config)
     if !result_record::compile_result_success(result) {
         print_test_fail(input_file, result)

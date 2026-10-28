@@ -12,7 +12,7 @@ fn ctx_variant_tag_at(ctx: LowerCtx, index: i32) -> i32 {
     get_unchecked(ctx.variant_tags, index)
 }
 
-fn ctx_variant_push_tag(ctx: LowerCtx, name: String, tag: i32) {
+fn ctx_variant_push_tag(mut ctx: LowerCtx, name: String, tag: i32) {
     let index = len(ctx.variant_names)
     name_index::name_index_insert_first(ctx.variant_name_first, clone(name), index)
     let key = variant_enum_variant_key(clone(name))
@@ -73,6 +73,6 @@ fn ctx_payload_variant_name_at(ctx: LowerCtx, index: i32) -> String {
     clone(get_unchecked(ctx.payload_variants, index))
 }
 
-fn ctx_payload_variant_push(ctx: LowerCtx, name: String) {
+fn ctx_payload_variant_push(mut ctx: LowerCtx, name: String) {
     push(ctx.payload_variants, name)
 }

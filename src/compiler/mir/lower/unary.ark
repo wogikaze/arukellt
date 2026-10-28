@@ -12,7 +12,7 @@ use mir::lower::ctx_fn_exists
 use mir::lower::ctx_types
 use mir::lower_kinds
 use mir::inst_op
-fn lower_unary_from_operand(ctx: LowerCtx, op: i32, operand_idx: i32) -> i32 {
+fn lower_unary_from_operand(mut ctx: LowerCtx, op: i32, operand_idx: i32) -> i32 {
     let ov_type = ctx_mono_type_params::ctx_resolve_mono_type_name(
         ctx,
         ctx_get_local_type(ctx, operand_idx)

@@ -12,7 +12,7 @@ fn hir_node_text(node: HirNode) -> String {
     clone(node.text)
 }
 
-fn hir_node_set_text(node: HirNode, text: String) {
+fn hir_node_set_text(mut node: HirNode, text: String) {
     node.text = text
 }
 
@@ -24,7 +24,7 @@ fn hir_node_int_val(node: HirNode) -> i32 {
     node.int_val
 }
 
-fn hir_node_set_int_val(node: HirNode, value: i32) {
+fn hir_node_set_int_val(mut node: HirNode, value: i32) {
     node.int_val = value
 }
 
@@ -32,7 +32,7 @@ fn hir_node_float_val(node: HirNode) -> f64 {
     node.float_val
 }
 
-fn hir_node_set_float_val(node: HirNode, value: f64) {
+fn hir_node_set_float_val(mut node: HirNode, value: f64) {
     node.float_val = value
 }
 
@@ -40,6 +40,6 @@ fn hir_node_op(node: HirNode) -> i32 {
     node.op
 }
 
-fn hir_node_set_op(node: HirNode, op: i32) {
+fn hir_node_set_op(mut node: HirNode, op: i32) {
     node.op = op
 }

@@ -5,7 +5,7 @@ use corehir::body_for
 use corehir::body_loops
 use corehir::stmt_node
 
-fn corehir_dispatch_stmt(table: CoreHirBodyTable, node: AstNode) -> i32 {
+fn corehir_dispatch_stmt(mut table: CoreHirBodyTable, node: AstNode) -> i32 {
     if stmt_node::stmt_is_while(node) {
         return body_loops::corehir_build_while_expr(table, node)
     }

@@ -7,7 +7,7 @@ use typechecker::traits
 // declarations are collected before impl registration so a single-uppercase
 // declared type is not mistaken for the removed implicit-parameter spelling.
 fn collect_declared_type_names(decls: Vec<AstNode>) -> Vec<String> {
-    let names = Vec::new<String>()
+    let mut names = Vec::new<String>()
     let decl_count = len(decls)
     let mut i = 0
     while i < decl_count {
@@ -21,7 +21,7 @@ fn collect_declared_type_names(decls: Vec<AstNode>) -> Vec<String> {
     names
 }
 
-fn register_trait_impl_decls(env: TypeEnv, decls: Vec<AstNode>) {
+fn register_trait_impl_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
     trait_registry::register_trait_decls(env, decls)
     let known_type_names = collect_declared_type_names(decls)
     let decl_count = len(decls)

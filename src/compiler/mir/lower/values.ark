@@ -13,7 +13,7 @@ use mir::lower::value_literals
 use mir::lower::value_patterns
 use mir::lower::value_variants
 use mir::value_types
-fn lower_atomic_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_atomic_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let literal = value_literals::lower_atomic_literal(ctx, node)
     if literal != 0 - 2 {
         return literal
@@ -37,7 +37,7 @@ fn lower_atomic_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     0 - 2
 }
 
-fn lower_atomic_string(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_atomic_string(mut ctx: LowerCtx, node: AstNode) -> i32 {
     if ast_node::node_kind_is(node, lower_kinds::NK_STRING_LIT()) {
         let str_idx = ctx_api_module::ctx_intern_string(ctx, ast_node::node_text(node))
         let str_vt = if ctx_gc_enum::ctx_is_gc_target(ctx) { value_types::VT_GC_REF() } else { value_types::VT_REF() }
@@ -49,7 +49,7 @@ fn lower_atomic_string(ctx: LowerCtx, node: AstNode) -> i32 {
     0 - 2
 }
 
-fn lower_atomic_ident(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_atomic_ident(mut ctx: LowerCtx, node: AstNode) -> i32 {
     if ast_node::node_kind_is(node, lower_kinds::NK_IDENT()) {
         let idx = ctx_lookup_local(ctx, ast_node::node_text(node))
         if idx >= 0 {
@@ -69,7 +69,7 @@ fn lower_atomic_ident(ctx: LowerCtx, node: AstNode) -> i32 {
     0 - 2
 }
 
-fn lower_atomic_const(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_atomic_const(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let name = ast_node::node_text(node)
     if !ctx_fn_index::ctx_is_const_name(ctx, clone(name)) {
         return 0 - 2

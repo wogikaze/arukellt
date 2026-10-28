@@ -25,7 +25,7 @@ fn same(value: String) -> String {
 
 fn main() {
     // i32 -> String
-    let v: Vec<i32> = Vec::new<i32>()
+    let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 7)
     push(v, 42)
     let strings = v.iter().map(itos).collect()
@@ -34,7 +34,7 @@ fn main() {
     test::assert_eq_string(get_unchecked(strings, 1), "n42")
 
     // String -> i32
-    let w: Vec<String> = Vec::new<String>()
+    let mut w: Vec<String> = Vec::new<String>()
     push(w, String_from("ab"))
     push(w, String_from("cdef"))
     let lengths = w.iter().map(slen).collect()

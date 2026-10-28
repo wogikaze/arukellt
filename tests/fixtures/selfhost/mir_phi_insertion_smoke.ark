@@ -25,7 +25,7 @@ fn Phi_new(ssa_name: String, dest_version: i32, val_type: i32) -> Phi {
     Phi { ssa_name: ssa_name, dest_version: dest_version, val_type: val_type, args: Vec::new<PhiArg>() }
 }
 
-fn phi_add_arg(phi: Phi, pred_block: i32, version: i32) {
+fn phi_add_arg(mut phi: Phi, pred_block: i32, version: i32) {
     push(phi.args, PhiArg { pred_block: pred_block, version: version })
 }
 
@@ -61,7 +61,7 @@ fn try_insert_simple_join_phi(join_block: Block, pred0: Block, pred1: Block, ssa
         stdio::eprintln(String_from("pred1 frontier missing join"))
         process::exit(1)
     }
-    let phi = Phi_new(ssa_name, 3, dest_vt)
+    let mut phi = Phi_new(ssa_name, 3, dest_vt)
     phi_add_arg(phi, pred0.id, 1)
     phi_add_arg(phi, pred1.id, 2)
     phi
@@ -85,9 +85,9 @@ fn format_phi(phi: Phi) -> String {
 }
 
 fn main() {
-    let then_block = Block { id: 1, preds: Vec::new<i32>(), dom_frontier: Vec::new<i32>(), last_value: 1 }
-    let else_block = Block { id: 2, preds: Vec::new<i32>(), dom_frontier: Vec::new<i32>(), last_value: 2 }
-    let join_block = Block { id: 3, preds: Vec::new<i32>(), dom_frontier: Vec::new<i32>(), last_value: 0 - 1 }
+    let mut then_block = Block { id: 1, preds: Vec::new<i32>(), dom_frontier: Vec::new<i32>(), last_value: 1 }
+    let mut else_block = Block { id: 2, preds: Vec::new<i32>(), dom_frontier: Vec::new<i32>(), last_value: 2 }
+    let mut join_block = Block { id: 3, preds: Vec::new<i32>(), dom_frontier: Vec::new<i32>(), last_value: 0 - 1 }
     push(join_block.preds, then_block.id)
     push(join_block.preds, else_block.id)
     push(then_block.dom_frontier, join_block.id)

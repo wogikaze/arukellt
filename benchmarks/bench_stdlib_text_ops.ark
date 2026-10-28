@@ -19,7 +19,7 @@ fn main() {
         checksum = checksum + rejoined.len_bytes()
 
         // Replace
-        let replaced = rejoined.replace("Arukellt", "STDLIB")
+        let mut replaced = rejoined.replace("Arukellt", "STDLIB")
         checksum = checksum + replaced.len_bytes()
 
         // Case conversion

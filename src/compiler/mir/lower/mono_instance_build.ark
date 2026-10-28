@@ -8,8 +8,8 @@ use mir::lower::mono_suffix_parse
 use mir::mono_names
 use mir::type_contracts
 fn mono_instance_table_register_from_instances(
-    table: MonoInstanceTable,
-    type_table: TypeTable,
+    mut table: MonoInstanceTable,
+    mut type_table: TypeTable,
     mono_instances: Vec<MonoInstance>,
     mangled: String,
     param_types: Vec<MirValueType>,
@@ -19,8 +19,8 @@ fn mono_instance_table_register_from_instances(
     if type_contracts::MonoInstance_type_arg_count(inst) <= 0 {
         return 0 - 1
     }
-    let subst_names = Vec::new<String>()
-    let subst_ids = Vec::new<TypeId>()
+    let mut subst_names = Vec::new<String>()
+    let mut subst_ids = Vec::new<TypeId>()
     // Prefer mangled mono keys over MonoInstance TypeInfo args — those can
     // carry invalid handles across the flat-overlay TypeInfo duplicate.
     let suffix = mono_suffix_parse::extract_mono_suffix(clone(mangled))

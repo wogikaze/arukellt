@@ -5,7 +5,7 @@ use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 
-fn emit_fs_write_bytes_buffer(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_fs_write_bytes_buffer(mut w: WasmWriter, ctx: SelfEmitCtx) {
     let s_bvec = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_path3 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_bdata = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -34,7 +34,7 @@ fn emit_fs_write_bytes_buffer(w: WasmWriter, ctx: SelfEmitCtx) {
     emit_fs_write_bytes_copy_loop(w, s_bbuf, s_bdata, s_bcount, s_bi)
 }
 
-fn emit_fs_write_bytes_copy_loop(w: WasmWriter, s_bbuf: i32, s_bdata: i32, s_bcount: i32, s_bi: i32) {
+fn emit_fs_write_bytes_copy_loop(mut w: WasmWriter, s_bbuf: i32, s_bdata: i32, s_bcount: i32, s_bi: i32) {
     helpers_control::emit_block_loop_header(w)
     helpers_core::emit_local_get(w, s_bi)
     helpers_core::emit_local_get(w, s_bcount)

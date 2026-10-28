@@ -18,7 +18,7 @@ use mir::inst_struct_set
 use mir::inst_gc_struct
 use mir::lower::variant_payload_fields
 use mir::value_types
-fn lower_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, total_bytes: i32, variant_name: String) -> i32 {
+fn lower_payload_variant_from_locals(mut ctx: LowerCtx, tag: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, total_bytes: i32, variant_name: String) -> i32 {
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
         return lower_gc_payload_variant_from_locals(ctx, tag, payload_locals, payload_vts, clone(variant_name))
     }
@@ -30,14 +30,14 @@ fn lower_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals: Ve
     dest
 }
 
-fn set_linear_enum_type(ctx: LowerCtx, dest: i32, variant_name: String) {
+fn set_linear_enum_type(mut ctx: LowerCtx, dest: i32, variant_name: String) {
     let enum_name = ctx_gc_enum::ctx_gc_enum_type_name_from_variant(variant_name)
     if len(enum_name) > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, "enum:".concat(enum_name))
     }
 }
 
-fn lower_gc_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, variant_name: String) -> i32 {
+fn lower_gc_payload_variant_from_locals(mut ctx: LowerCtx, tag: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, variant_name: String) -> i32 {
     let type_slot = if len(payload_vts) > 0 {
         let first_local = get_unchecked(payload_locals, 0)
         let payload_type_name = ctx_mono_type_params::ctx_resolve_mono_type_name(
@@ -307,7 +307,7 @@ fn gc_payload_type_name_needs_typed_variant(type_name: String) -> bool {
     false
 }
 
-fn gc_payload_promote_vt(ctx: LowerCtx, local_idx: i32, vt: i32, type_name: String) -> i32 {
+fn gc_payload_promote_vt(mut ctx: LowerCtx, local_idx: i32, vt: i32, type_name: String) -> i32 {
     if gc_payload_type_name_needs_typed_variant(clone(type_name)) || gc_payload_is_string_type_name(clone(type_name)) {
         // Payload locals must not keep a stray enclosing-variant slot;
         // otherwise emit casts String → Ok/String-variant before struct.set.
@@ -323,7 +323,7 @@ fn gc_payload_promote_vt(ctx: LowerCtx, local_idx: i32, vt: i32, type_name: Stri
 }
 
 fn gc_payload_vts_with_first(payload_vts: Vec<i32>, first_vt: i32) -> Vec<i32> {
-    let result = Vec::new<i32>()
+    let mut result = Vec::new<i32>()
     push(result, first_vt)
     let mut i = 1
     while i < len(payload_vts) {
@@ -333,7 +333,7 @@ fn gc_payload_vts_with_first(payload_vts: Vec<i32>, first_vt: i32) -> Vec<i32> {
     result
 }
 
-fn emit_variant_tag_field(ctx: LowerCtx, dest: i32, tag: i32, type_slot: i32) {
+fn emit_variant_tag_field(mut ctx: LowerCtx, dest: i32, tag: i32, type_slot: i32) {
     let tag_tmp = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_tmp))
     if type_slot >= 0 {
@@ -343,7 +343,7 @@ fn emit_variant_tag_field(ctx: LowerCtx, dest: i32, tag: i32, type_slot: i32) {
     }
 }
 
-fn emit_gc_variant_payload_fields(ctx: LowerCtx, dest: i32, type_slot: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, variant_name: String) {
+fn emit_gc_variant_payload_fields(mut ctx: LowerCtx, dest: i32, type_slot: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, variant_name: String) {
     let layout_name = ctx_struct_field_type::ctx_resolve_variant_layout_name(ctx, clone(variant_name))
     let mut fi = 0
     let child_count = len(payload_locals)

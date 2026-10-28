@@ -13,7 +13,7 @@ fn fetch_generic<T>(v: Vec<T>, i: i32) -> Option<T> {
 }
 
 fn main() {
-    let v: Vec<fn(i32) -> i32> = Vec::new()
+    let mut v: Vec<fn(i32) -> i32> = Vec::new()
     push(v, double)
     match fetch(v, 0) {
         Option::Some(f) => stdio::println((f(5)).to_string()),
@@ -23,7 +23,7 @@ fn main() {
         Option::Some(f) => stdio::println((f(6)).to_string()),
         Option::None => stdio::println("none"),
     }
-    let w = Vec::new<fn(i32) -> i32>()
+    let mut w = Vec::new<fn(i32) -> i32>()
     push(w, double)
     let g = get_unchecked(w, 0)
     stdio::println((g(7)).to_string())

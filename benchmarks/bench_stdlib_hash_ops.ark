@@ -7,7 +7,7 @@
 use std::host::stdio
 use std::text
 fn main() {
-    let m = HashMap::new<String, i32>()
+    let mut m = HashMap::new<String, i32>()
     let mut checksum: i32 = 0
     let mut i: i32 = 0
 

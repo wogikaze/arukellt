@@ -217,7 +217,7 @@ fn gc_layout_plan_fixed_offset_for_entry(table: TypeTable, entry: TypeEntry) -> 
     0 - 1
 }
 
-fn gc_layout_plan_bind_fixed_entries(plan: MirGcLayoutPlan, table: TypeTable) {
+fn gc_layout_plan_bind_fixed_entries(mut plan: MirGcLayoutPlan, table: TypeTable) {
     let count = type_table::TypeTable_entry_count(table)
     let mut index = 0
     while index < count {
@@ -257,11 +257,11 @@ fn gc_layout_plan_bind_enum_variant_slots(
     }
 }
 
-fn mir_module_build_gc_layout_plan(module: MirModule, target: String) {
+fn mir_module_build_gc_layout_plan(mut module: MirModule, target: String) {
     // #851 Phase 3: bind into the module-held plan. Registrations already
     // bound their slots incrementally; these sweeps are idempotent
     // overwrites that also cover modules built outside the lowering ctx.
-    let plan = module_gc_layout_plan::MirModule_gc_layout_plan(module)
+    let mut plan = module_gc_layout_plan::MirModule_gc_layout_plan(module)
     if emit_target::is_gc_target(target) {
         let table = module_spine::MirModule_type_table(module)
         gc_layout_plan_bind_fixed_entries(plan, table)

@@ -4,7 +4,7 @@ use std::host::stdio
 use std::io
 
 fn main() {
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     push(data, 72)   // 'H'
     push(data, 101)  // 'e'
     push(data, 108)  // 'l'
@@ -16,8 +16,8 @@ fn main() {
     push(data, 114)  // 'r'
     push(data, 108)  // 'l'
     push(data, 100)  // 'd'
-    let src: io::Reader = io::Reader::from_bytes(data)
-    let dst: io::Writer = io::Writer::new()
+    let mut src: io::Reader = io::Reader::from_bytes(data)
+    let mut dst: io::Writer = io::Writer::new()
     match io::Io::copy(src, dst) {
         Result::Ok(copied) => assert(copied == 11i64),
         Result::Err(_e) => assert(false),

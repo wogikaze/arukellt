@@ -7,7 +7,7 @@ use mir::lower::body_stmt_return
 use mir::lower::body_stmt_while
 
 // Lower a statement node. Returns local index if it produces a value.
-fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_stmt(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let kind = ast_node::node_kind(node)
     if kind == lower_kinds::NK_LET() {
         return body_stmt_let::lower_let_stmt(ctx, node)
@@ -36,7 +36,7 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
     lower_expr(ctx, node)
 }
 
-fn lower_expr_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_expr_stmt(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     if child_count >= 1 {
         let expr = ast_node::node_child_at(node, 0)

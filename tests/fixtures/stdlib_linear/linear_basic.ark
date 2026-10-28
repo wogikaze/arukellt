@@ -2,7 +2,7 @@ use std::collections::linear
 use std::host::stdio
 
 fn main() {
-    let d: Vec<i32> = linear::deque_new()
+    let mut d: Vec<i32> = linear::deque_new()
     linear::deque_push_back(d, 10)
     linear::deque_push_back(d, 20)
     linear::deque_push_front(d, 5)
@@ -12,7 +12,7 @@ fn main() {
     let b: i32 = linear::deque_pop_back(d)
     stdio::println((b).to_string())
     stdio::println((linear::deque_len(d)).to_string())
-    let pq: Vec<i32> = linear::pq_new()
+    let mut pq: Vec<i32> = linear::pq_new()
     linear::pq_push(pq, 30)
     linear::pq_push(pq, 10)
     linear::pq_push(pq, 20)

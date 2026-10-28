@@ -11,7 +11,7 @@ use mir::lower::call_type_vec
 use mir::lower::call_types
 use mir::inst_call
 use mir::value_types
-fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, first_arg_idx: i32, value_arg_idx: i32) -> i32 {
+fn mir_emit_method_call(mut ctx: LowerCtx, mut callee_name: String, arg_count: i32, first_arg_idx: i32, value_arg_idx: i32) -> i32 {
     let bare_method = mir_method_bare_name(clone(callee_name))
     if eq(clone(bare_method), "to_string") {
         let string_rewrite = call_rewrite_string::mir_rewrite_to_string(ctx, "to_string", first_arg_idx)

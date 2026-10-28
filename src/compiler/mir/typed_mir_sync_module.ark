@@ -12,11 +12,11 @@ use mir::local_access
 use mir::local_mutation
 use mir::module_functions
 use mir::module_spine
-fn mir_module_sync_all_value_types(m: MirModule) {
+fn mir_module_sync_all_value_types(mut m: MirModule) {
     if !module_spine::MirModule_signature_spine_populated(m) {
         return
     }
-    let table = module_spine::MirModule_type_table(m)
+    let mut table = module_spine::MirModule_type_table(m)
     let count = module_functions::MirModule_function_count(m)
     let mut fi = 0
     while fi < count {
@@ -26,7 +26,7 @@ fn mir_module_sync_all_value_types(m: MirModule) {
     }
 }
 
-fn mir_function_sync_all_value_types(f: MirFunction, table: TypeTable) -> MirFunction {
+fn mir_function_sync_all_value_types(mut f: MirFunction, mut table: TypeTable) -> MirFunction {
     let pc = function_param_view::MirFunction_param_count(f)
     let mut pi = 0
     while pi < pc {
@@ -83,13 +83,13 @@ fn mir_canonicalize_string_mvt(
     )
 }
 
-fn mir_local_sync_value_type(loc: MirLocal, table: TypeTable) -> MirLocal {
+fn mir_local_sync_value_type(loc: MirLocal, mut table: TypeTable) -> MirLocal {
     let vt = local_access::MirLocal_val_type(loc)
     let tn = local_access::MirLocal_type_name(loc)
     let lookup_name = mir_sync_type_name_alias(clone(tn))
     let inferred = type_info_to_mir_value::vt_to_mir_value(table, vt, lookup_name)
     let mvt = mir_canonicalize_string_mvt(loc, table, inferred)
-    let synced = local_mutation::MirLocal_copy_with_value_type(loc, mvt)
+    let mut synced = local_mutation::MirLocal_copy_with_value_type(loc, mvt)
     if type_id::type_id_is_valid(mir_value_type::mir_value_type_type_id(mvt)) {
         local_mutation::MirLocal_set_val_type_only(synced, legacy_vt_compat::legacy_vt_from_mir_value_type(table, mvt))
     }
@@ -113,11 +113,11 @@ fn mir_existing_value_type_is_canonical(
 
 // Preserve an already-typed value_type when it is concrete (no open type
 // variables) and agrees with the canonical nominal identity implied by name.
-fn mir_local_sync_value_type_preserving(loc: MirLocal, table: TypeTable) -> MirLocal {
+fn mir_local_sync_value_type_preserving(loc: MirLocal, mut table: TypeTable) -> MirLocal {
     let existing = local_access::MirLocal_value_type(loc)
     if type_info_to_mir_value::mvt_is_concrete(table, existing) &&
     mir_existing_value_type_is_canonical(loc, table, existing) {
-        let synced = local_mutation::MirLocal_copy_with_value_type(loc, existing)
+        let mut synced = local_mutation::MirLocal_copy_with_value_type(loc, existing)
         local_mutation::MirLocal_set_val_type_only(synced, legacy_vt_compat::legacy_vt_from_mir_value_type(table, existing))
         return synced
     }
@@ -126,7 +126,7 @@ fn mir_local_sync_value_type_preserving(loc: MirLocal, table: TypeTable) -> MirL
 
 // Propagate writes type_name via mvt_from_legacy_vt (no TypeTable). Re-sync
 // immediately so callers can drop the full-module second sync pass (#823).
-fn mir_local_with_type_name_synced(loc: MirLocal, type_name: String, table: TypeTable) -> MirLocal {
+fn mir_local_with_type_name_synced(mut loc: MirLocal, type_name: String, mut table: TypeTable) -> MirLocal {
     let named = local_mutation::MirLocal_copy_with_type_name(loc, type_name)
     mir_local_sync_value_type(named, table)
 }
@@ -137,7 +137,7 @@ fn mir_local_with_value_type_synced(
     table: TypeTable
 ) -> MirLocal {
     let canonical = mir_canonicalize_string_mvt(loc, table, value_type)
-    let synced = local_mutation::MirLocal_copy_with_value_type(loc, canonical)
+    let mut synced = local_mutation::MirLocal_copy_with_value_type(loc, canonical)
     local_mutation::MirLocal_set_val_type_only(
         synced,
         legacy_vt_compat::legacy_vt_from_mir_value_type(table, canonical)
@@ -145,13 +145,13 @@ fn mir_local_with_value_type_synced(
     synced
 }
 
-fn mir_function_set_param_at(f: MirFunction, idx: i32, local: MirLocal) -> MirFunction {
+fn mir_function_set_param_at(mut f: MirFunction, idx: i32, local: MirLocal) -> MirFunction {
     // In-place: per-element Vec rebuild is Θ(L²) across a full sync (#823).
     set(f.params, idx, local)
     f
 }
 
-fn mir_function_set_local_at(f: MirFunction, idx: i32, local: MirLocal) -> MirFunction {
+fn mir_function_set_local_at(mut f: MirFunction, idx: i32, local: MirLocal) -> MirFunction {
     set(f.locals, idx, local)
     f
 }

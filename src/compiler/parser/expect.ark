@@ -5,7 +5,7 @@ use parser::cursor
 use parser::state_record
 use parser::token_state
 
-fn consume_closing_gt(p: Parser) {
+fn consume_closing_gt(mut p: Parser) {
     cursor::skip_newlines(p)
     let t = cursor::cur(p)
     if token_state::Token_kind(t) == tokens::TK_GT() {
@@ -23,7 +23,7 @@ fn consume_closing_gt(p: Parser) {
 // A parameter or receiver mode is written as a `mut` prefix (ADR-088).
 // Declarations consume it before the name so the keyword never reaches
 // expression, pattern, or type parsing.
-fn consume_optional_mut(p: Parser) -> bool {
+fn consume_optional_mut(mut p: Parser) -> bool {
     cursor::skip_newlines(p)
     if cursor::peek_kind(p) != tokens::TK_MUT() {
         return false
@@ -33,7 +33,7 @@ fn consume_optional_mut(p: Parser) -> bool {
     true
 }
 
-fn expect_token(p: Parser, kind: i32) -> Token {
+fn expect_token(mut p: Parser, kind: i32) -> Token {
     cursor::skip_newlines(p)
     let t = cursor::cur(p)
     let actual = token_state::Token_kind(t)
@@ -54,6 +54,6 @@ fn tok_span(t: Token) -> Span {
     ast_span_record::Span_new(token_state::Token_start(t), token_state::Token_end(t))
 }
 
-fn error(p: Parser, msg: String) {
+fn error(mut p: Parser, msg: String) {
     diagnostics::parser_push_unexpected_error(p, msg)
 }

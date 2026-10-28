@@ -14,7 +14,7 @@ fn core_match_arm_has_guard(arm: CoreHirExpr) -> bool {
 }
 
 fn lower_core_match_last_arm(
-    ctx: LowerCtx,
+    mut ctx: LowerCtx,
     exprs: Vec<CoreHirExpr>,
     arm_node: CoreHirExpr,
     pat: CoreHirExpr,

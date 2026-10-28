@@ -1,6 +1,6 @@
 use wasm::opcodes
 use wasm::writer_core
 
-fn emit_local_get(w: WasmWriter, local: i32) {
+fn emit_local_get(mut w: WasmWriter, local: i32) {
     writer_core::emit_local_get(w, local)
 }

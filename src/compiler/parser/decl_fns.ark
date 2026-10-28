@@ -13,8 +13,8 @@ use parser::kinds
 use parser::stmt
 use parser::token_state
 use parser::types
-fn parse_fn_decl(p: Parser) -> AstNode {
-    let node = fn_sig::parse_fn_decl_header(p)
+fn parse_fn_decl(mut p: Parser) -> AstNode {
+    let mut node = fn_sig::parse_fn_decl_header(p)
     if core_api_cursor::peek_kind(p) == tokens::TK_EQ() {
         p.pos = p.pos + 1
         core_api_cursor::skip_newlines(p)
@@ -30,19 +30,19 @@ fn parse_fn_decl(p: Parser) -> AstNode {
     node
 }
 
-fn parse_trait_decl(p: Parser) -> AstNode {
-    let node = decl_headers::parse_trait_header(p)
+fn parse_trait_decl(mut p: Parser) -> AstNode {
+    let mut node = decl_headers::parse_trait_header(p)
     parse_fn_members_until_rbrace(p, node)
     node
 }
 
-fn parse_impl_decl(p: Parser) -> AstNode {
-    let node = decl_headers::parse_impl_header(p)
+fn parse_impl_decl(mut p: Parser) -> AstNode {
+    let mut node = decl_headers::parse_impl_header(p)
     parse_fn_members_until_rbrace(p, node)
     node
 }
 
-fn parse_fn_members_until_rbrace(p: Parser, node: AstNode) {
+fn parse_fn_members_until_rbrace(mut p: Parser, mut node: AstNode) {
     core_api_cursor::skip_newlines(p)
     while !core_api_cursor::at(p, tokens::TK_RBRACE()) && !core_api_cursor::at_eof(p) {
         core_api_cursor::skip_newlines(p)
@@ -69,10 +69,10 @@ fn is_associated_type_start(p: Parser) -> bool {
     eq(core_api_cursor::peek_text(p), "type")
 }
 
-fn parse_associated_type_member(p: Parser, node: AstNode) {
+fn parse_associated_type_member(mut p: Parser, mut node: AstNode) {
     let keyword = core_api_expect::expect_token(p, tokens::TK_IDENT())
     let name = core_api_expect::expect_token(p, tokens::TK_IDENT())
-    let assoc = core_ast_factory::AstNode_new(
+    let mut assoc = core_ast_factory::AstNode_new(
         kinds::NK_ASSOC_TYPE(),
         core_api_expect::tok_span(keyword)
     )

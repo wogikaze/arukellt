@@ -2,7 +2,7 @@ use std::collections::ordered
 use std::host::stdio
 
 fn main() {
-    let s: Vec<i32> = ordered::index_set_new()
+    let mut s: Vec<i32> = ordered::index_set_new()
     stdio::println((ordered::index_set_insert(s, 30)).to_string())
     stdio::println((ordered::index_set_insert(s, 10)).to_string())
     stdio::println((ordered::index_set_insert(s, 20)).to_string())

@@ -34,7 +34,7 @@ fn gc_variant_field_is_i32(ctx: SelfEmitCtx, type_slot: i32, field_idx: i32) -> 
     eq(get_unchecked(fields, field_idx), "i32")
 }
 
-fn emit_gc_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_gc_struct_new(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let dest = inst_accessors_shape::MirInst_dest(inst)
     let type_slot = inst_accessors_operands::MirInst_arg0(inst)
     let gc_type_idx = ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, type_slot)
@@ -43,7 +43,7 @@ fn emit_gc_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_leb128_u(w, dest)
 }
 
-fn emit_gc_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_gc_struct_get(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let dest = inst_accessors_shape::MirInst_dest(inst)
     let type_slot = inst_accessors_operands::MirInst_arg0(inst)
     let base_local = inst_accessors_operands::MirInst_arg1(inst)
@@ -69,7 +69,7 @@ fn emit_gc_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_leb128_u(w, dest)
 }
 
-fn emit_gc_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_gc_struct_set(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let type_slot = inst_accessors_operands::MirInst_arg0(inst)
     let base_local = inst_accessors_operands::MirInst_arg1(inst)
     let value_local = inst_accessors_shape::MirInst_dest(inst)

@@ -5,7 +5,7 @@ use std::test
 use std::prelude::i32_to_i64
 
 fn main() {
-    let b: Vec<i32> = Vec::new<i32>()
+    let mut b: Vec<i32> = Vec::new<i32>()
     b.push_byte(300)
     test::assert_eq_i32(b.len(), 1)
     test::assert_eq_i32(b.get_unchecked(0), 44)
@@ -44,7 +44,7 @@ fn main() {
     test::assert_eq_i32(u32be.to_u32_be(), 70000)
 
     let leb: Vec<i32> = Bytes::from_leb128_u32(624485)
-    let lc: Vec<i32> = leb.byte_cursor()
+    let mut lc: Vec<i32> = leb.byte_cursor()
     test::assert_eq_i32(lc.read_leb128_u32(), 624485)
     test::assert_eq_i32(lc.cursor_pos(), 3)
     test::assert_eq_i32(lc.cursor_remaining(), 0)
@@ -53,17 +53,17 @@ fn main() {
     let big: Vec<i32> = Bytes::from_leb128_u64(i32_to_i64(300))
     test::assert_eq_i64(big.byte_cursor().read_leb128_u64(), i32_to_i64(300))
 
-    let cursor: Vec<i32> = "abcdefgh".to_utf8_bytes().byte_cursor()
+    let mut cursor: Vec<i32> = "abcdefgh".to_utf8_bytes().byte_cursor()
     test::assert_eq_i32(cursor.read_u8(), 97)
     test::assert_eq_i32(cursor.read_u16_le(), 25442)
     test::assert_eq_i32(cursor.read_u32_be(), 1684366951)
     test::assert_eq_i32(cursor.read_u32_le(), 0 - 1)
 
-    let bytes16: Vec<i32> = Bytes::from_u16_le(258).byte_cursor()
+    let mut bytes16: Vec<i32> = Bytes::from_u16_le(258).byte_cursor()
     test::assert_eq_i32(bytes16.read_u16_le(), 258)
-    let bytes32: Vec<i32> = Bytes::from_u32_le(70000).byte_cursor()
+    let mut bytes32: Vec<i32> = Bytes::from_u32_le(70000).byte_cursor()
     test::assert_eq_i32(bytes32.read_u32_le(), 70000)
-    let bytes64: Vec<i32> = Vec::new<i32>()
+    let mut bytes64: Vec<i32> = Vec::new<i32>()
     push(bytes64, 1)
     push(bytes64, 0)
     push(bytes64, 0)
@@ -74,25 +74,25 @@ fn main() {
     push(bytes64, 0)
     test::assert_eq_i64(bytes64.byte_cursor().read_u64_le(), i32_to_i64(1))
 
-    let chunked: Vec<i32> = "abcd".to_utf8_bytes().byte_cursor()
+    let mut chunked: Vec<i32> = "abcd".to_utf8_bytes().byte_cursor()
     let chunk: Vec<i32> = chunked.read_bytes(2)
     test::assert_eq_i32(chunk.len(), 2)
     test::assert_eq_i32(chunked.cursor_remaining(), 2)
 
-    let empty: Vec<i32> = Vec::new<i32>().byte_cursor()
+    let mut empty: Vec<i32> = Vec::new<i32>().byte_cursor()
     test::assert_eq_i32(match empty.try_read_u8() {
             Option::Some(v) => v,
             Option::None => 0 - 1,
         }, 0 - 1)
     test::assert_eq_i32(empty.cursor_remaining(), 0)
 
-    let one: Vec<i32> = "a".to_utf8_bytes().byte_cursor()
+    let mut one: Vec<i32> = "a".to_utf8_bytes().byte_cursor()
     test::assert_eq_i32(match one.try_read_u16_le() {
             Option::Some(v) => v,
             Option::None => 0 - 1,
         }, 0 - 1)
 
-    let short: Vec<i32> = "ab".to_utf8_bytes().byte_cursor()
+    let mut short: Vec<i32> = "ab".to_utf8_bytes().byte_cursor()
     test::assert_eq_i32(match short.try_read_u32_le() {
             Option::Some(v) => v,
             Option::None => 0 - 1,
@@ -106,7 +106,7 @@ fn main() {
             Option::None => 0 - 1,
         }, 0 - 1)
 
-    let buf: Vec<i32> = Vec::new<i32>()
+    let mut buf: Vec<i32> = Vec::new<i32>()
     buf.push_u16_le(258)
     buf.push_u32_le(1)
     buf.push_u64_le(i32_to_i64(1))

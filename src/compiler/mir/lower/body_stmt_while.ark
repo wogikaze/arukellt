@@ -2,7 +2,7 @@ use mir::lower::ast_node
 use mir::lower::loop_scope
 use mir::lower::loop_conditions
 
-fn lower_while_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_while_stmt(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     if child_count >= 2 {
         let loop_scope = loop_scope::mir_begin_loop_scope(ctx)
@@ -17,7 +17,7 @@ fn lower_while_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
     0 - 1
 }
 
-fn lower_loop_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_loop_stmt(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     if child_count >= 1 {
         let loop_scope = loop_scope::mir_begin_value_loop_scope(ctx)

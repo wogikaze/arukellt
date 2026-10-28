@@ -27,7 +27,7 @@ fn mir_edge_intern_bias() -> i32 {
     1000000
 }
 
-fn mir_edge_ensure_i32_len(values: Vec<i32>, min_len: i32, fill: i32) {
+fn mir_edge_ensure_i32_len(mut values: Vec<i32>, min_len: i32, fill: i32) {
     while len(values) < min_len {
         push(values, fill)
     }
@@ -35,8 +35,8 @@ fn mir_edge_ensure_i32_len(values: Vec<i32>, min_len: i32, fill: i32) {
 
 // Packed table: [fn_count, recorded[fn_count], offset[fn_count+1], callees...]
 fn mir_build_recorded_edge_lists(edges: Vec<i32>, fn_count: i32) -> Vec<i32> {
-    let recorded = Vec::new<i32>()
-    let counts = Vec::new<i32>()
+    let mut recorded = Vec::new<i32>()
+    let mut counts = Vec::new<i32>()
     let mut fi = 0
     while fi < fn_count {
         push(recorded, 0)
@@ -45,7 +45,7 @@ fn mir_build_recorded_edge_lists(edges: Vec<i32>, fn_count: i32) -> Vec<i32> {
     }
     let n = len(edges)
     let header = mir_edge_header_len()
-    let packed = Vec::new<i32>()
+    let mut packed = Vec::new<i32>()
     push(packed, fn_count)
     if n <= header || fn_count <= 0 {
         fi = 0
@@ -60,7 +60,7 @@ fn mir_build_recorded_edge_lists(edges: Vec<i32>, fn_count: i32) -> Vec<i32> {
         }
         return packed
     }
-    let frame_to_mir = Vec::new<i32>()
+    let mut frame_to_mir = Vec::new<i32>()
     let mark = mir_edge_map_mark()
     let mut i = header
     while i < n {
@@ -118,7 +118,7 @@ fn mir_build_recorded_edge_lists(edges: Vec<i32>, fn_count: i32) -> Vec<i32> {
         fi = fi + 1
     }
     push(packed, running)
-    let cursor = Vec::new<i32>()
+    let mut cursor = Vec::new<i32>()
     fi = 0
     while fi < fn_count {
         push(cursor, get_unchecked(packed, 1 + fn_count + fi))
@@ -156,8 +156,8 @@ fn mir_enqueue_call_edges(
     m: MirModule,
     index: MirReachabilityIndex,
     functions: Vec<MirFunction>,
-    reachable: Vec<i32>,
-    queue: Vec<i32>,
+    mut reachable: Vec<i32>,
+    mut queue: Vec<i32>,
     f: MirFunction,
     target: String,
     packed: Vec<i32>,
@@ -187,8 +187,8 @@ fn mir_enqueue_recorded_payload(
     m: MirModule,
     index: MirReachabilityIndex,
     functions: Vec<MirFunction>,
-    reachable: Vec<i32>,
-    queue: Vec<i32>,
+    mut reachable: Vec<i32>,
+    mut queue: Vec<i32>,
     payload: i32,
     target: String,
     fn_names: Vec<String>,
@@ -231,8 +231,8 @@ fn mir_enqueue_recorded_callees(
     m: MirModule,
     index: MirReachabilityIndex,
     functions: Vec<MirFunction>,
-    reachable: Vec<i32>,
-    queue: Vec<i32>,
+    mut reachable: Vec<i32>,
+    mut queue: Vec<i32>,
     target: String,
     packed: Vec<i32>,
     fi: i32,
@@ -263,8 +263,8 @@ fn mir_enqueue_call_edges_from_insts(
     m: MirModule,
     index: MirReachabilityIndex,
     functions: Vec<MirFunction>,
-    reachable: Vec<i32>,
-    queue: Vec<i32>,
+    mut reachable: Vec<i32>,
+    mut queue: Vec<i32>,
     f: MirFunction,
     target: String
 ) {
@@ -299,8 +299,8 @@ fn mir_enqueue_inst_callee(
     m: MirModule,
     index: MirReachabilityIndex,
     functions: Vec<MirFunction>,
-    reachable: Vec<i32>,
-    queue: Vec<i32>,
+    mut reachable: Vec<i32>,
+    mut queue: Vec<i32>,
     inst: MirInst,
     target: String
 ) {
@@ -329,8 +329,8 @@ fn mir_enqueue_symbol(
     m: MirModule,
     index: MirReachabilityIndex,
     functions: Vec<MirFunction>,
-    reachable: Vec<i32>,
-    queue: Vec<i32>,
+    mut reachable: Vec<i32>,
+    mut queue: Vec<i32>,
     symbol: String,
     target: String
 ) {

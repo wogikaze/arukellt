@@ -7,7 +7,7 @@ use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 
-fn emit_i64_digit_loop(w: WasmWriter, s_val64: i32, s_wpos64: i32) {
+fn emit_i64_digit_loop(mut w: WasmWriter, s_val64: i32, s_wpos64: i32) {
     helpers_control::emit_block_loop_header(w)
     helpers_core::emit_local_get(w, s_val64)
     helpers_numeric_i64_compare::emit_i64_eqz(w)

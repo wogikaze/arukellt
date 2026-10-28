@@ -9,11 +9,11 @@ fn RefIndex_new() -> RefIndex {
     RefIndex { decl_sites: Vec::new<DeclSite>(), use_sites: Vec::new<UseSite>() }
 }
 
-fn ref_index_push_decl(index: RefIndex, decl_index: i32, start: i32, end: i32, name: String) {
+fn ref_index_push_decl(mut index: RefIndex, decl_index: i32, start: i32, end: i32, name: String) {
     push(index.decl_sites, ref_record::DeclSite_new(decl_index, start, end, name))
 }
 
-fn ref_index_push_use(index: RefIndex, decl_index: i32, start: i32, end: i32) {
+fn ref_index_push_use(mut index: RefIndex, decl_index: i32, start: i32, end: i32) {
     if decl_index < 0 {
         return
     }

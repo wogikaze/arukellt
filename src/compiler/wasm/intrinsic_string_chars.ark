@@ -12,7 +12,7 @@ use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 
 // Handler for: text::chars
-fn emit_text_chars(w: WasmWriter, _inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_text_chars(mut w: WasmWriter, _inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return intrinsic_string_chars_gc::emit_text_chars_gc(w, ctx)
     }
@@ -51,7 +51,7 @@ fn emit_text_chars(w: WasmWriter, _inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_chars_count(w: WasmWriter, src_local: i32, slen_local: i32, count_local: i32, pos_local: i32, width_local: i32, byte_local: i32) {
+fn emit_chars_count(mut w: WasmWriter, src_local: i32, slen_local: i32, count_local: i32, pos_local: i32, width_local: i32, byte_local: i32) {
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_core::emit_local_set(w, count_local)
     helpers_numeric_i32::emit_i32_const(w, 0)
@@ -84,7 +84,7 @@ fn emit_chars_count(w: WasmWriter, src_local: i32, slen_local: i32, count_local:
     helpers_control::emit_end(w)
 }
 
-fn emit_chars_alloc_vec(w: WasmWriter, count_local: i32, vec_local: i32) {
+fn emit_chars_alloc_vec(mut w: WasmWriter, count_local: i32, vec_local: i32) {
     helpers_core::emit_local_get(w, count_local)
     helpers_numeric_i32::emit_i32_const(w, 4)
     helpers_numeric_i32::emit_i32_mul(w)
@@ -111,7 +111,7 @@ fn emit_chars_alloc_vec(w: WasmWriter, count_local: i32, vec_local: i32) {
 }
 
 fn emit_chars_fill(
-    w: WasmWriter,
+    mut w: WasmWriter,
     src_local: i32,
     slen_local: i32,
     vec_local: i32,
@@ -160,7 +160,7 @@ fn emit_chars_fill(
     helpers_control::emit_end(w)
 }
 
-fn emit_chars_load_byte(w: WasmWriter, src_local: i32, pos_local: i32, byte_local: i32) {
+fn emit_chars_load_byte(mut w: WasmWriter, src_local: i32, pos_local: i32, byte_local: i32) {
     helpers_core::emit_local_get(w, src_local)
     helpers_core::emit_local_get(w, pos_local)
     helpers_numeric_i32::emit_i32_add(w)
@@ -168,7 +168,7 @@ fn emit_chars_load_byte(w: WasmWriter, src_local: i32, pos_local: i32, byte_loca
     helpers_core::emit_local_set(w, byte_local)
 }
 
-fn emit_chars_scalar_width(w: WasmWriter, byte_local: i32, pos_local: i32, slen_local: i32, width_local: i32) {
+fn emit_chars_scalar_width(mut w: WasmWriter, byte_local: i32, pos_local: i32, slen_local: i32, width_local: i32) {
     helpers_core::emit_local_get(w, byte_local)
     helpers_numeric_i32::emit_i32_const(w, 128)
     helpers_numeric_i32::emit_i32_lt_s(w)
@@ -206,7 +206,7 @@ fn emit_chars_scalar_width(w: WasmWriter, byte_local: i32, pos_local: i32, slen_
     helpers_control::emit_end(w)
 }
 
-fn emit_chars_alloc_string(w: WasmWriter, width_local: i32, base_local: i32, data_local: i32) {
+fn emit_chars_alloc_string(mut w: WasmWriter, width_local: i32, base_local: i32, data_local: i32) {
     helpers_core::emit_local_get(w, width_local)
     helpers_numeric_i32::emit_i32_const(w, 4)
     helpers_numeric_i32::emit_i32_add(w)
@@ -221,7 +221,7 @@ fn emit_chars_alloc_string(w: WasmWriter, width_local: i32, base_local: i32, dat
     helpers_core::emit_local_set(w, data_local)
 }
 
-fn emit_chars_copy_scalar(w: WasmWriter, src_local: i32, pos_local: i32, data_local: i32, width_local: i32, copy_local: i32) {
+fn emit_chars_copy_scalar(mut w: WasmWriter, src_local: i32, pos_local: i32, data_local: i32, width_local: i32, copy_local: i32) {
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_core::emit_local_set(w, copy_local)
     helpers_control::emit_block_loop_header(w)
@@ -248,7 +248,7 @@ fn emit_chars_copy_scalar(w: WasmWriter, src_local: i32, pos_local: i32, data_lo
     helpers_control::emit_end(w)
 }
 
-fn emit_chars_store_element(w: WasmWriter, vec_local: i32, index_local: i32, data_local: i32) {
+fn emit_chars_store_element(mut w: WasmWriter, vec_local: i32, index_local: i32, data_local: i32) {
     helpers_core::emit_local_get(w, vec_local)
     helpers_numeric_i32::emit_i32_const(w, 8)
     helpers_numeric_i32::emit_i32_add(w)

@@ -14,14 +14,14 @@ use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::ctx_fn_type_refs
 use mir::opcodes as mir_opcodes
 
-fn emit_return(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_return(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_return_with_prev(w, inst, ctx, 0 - 1, 0 - 1)
 }
 
 // When the previous MIR op already left the return local on the stack
 // (identity local_get_to), do not push it again — that caused
 // "values remaining on stack after return" / double local.get (#726 Vec::read).
-fn emit_return_with_prev(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32) {
+fn emit_return_with_prev(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32) {
     // Leave after any value already on the stack: the frame cursor is pushed
     // above it, consumed by the runtime call, and the return value remains.
     linear_root_lowering::emit_frame_leave(w, ctx)
@@ -41,11 +41,11 @@ fn emit_return_with_prev(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op
     writer_core::emit_byte(w, opcodes::OP_RETURN())
 }
 
-fn emit_return_stack_gc_cast_if_needed(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_return_stack_gc_cast_if_needed(mut w: WasmWriter, ctx: SelfEmitCtx) {
     emit_declared_gc_return_cast(w, ctx)
 }
 
-fn emit_declared_gc_return_cast(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_declared_gc_return_cast(mut w: WasmWriter, ctx: SelfEmitCtx) {
     if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return
     }
@@ -66,19 +66,19 @@ fn emit_declared_gc_return_cast(w: WasmWriter, ctx: SelfEmitCtx) {
     writer_gc::emit_gc_ref_cast(w, ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
 }
 
-fn emit_drop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_drop(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_DROP())
 }
 
-fn emit_nop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_nop(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_NOP())
 }
 
-fn emit_unreachable(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_unreachable(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_UNREACHABLE())
 }
 
-fn emit_extend_i32_to_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_extend_i32_to_i64(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     // Under Memory64 the source "i32" is already an i64 on the wasm stack.
     // Convert it to a true i64 by wrapping to i32 then sign-extending.
     if writer_core::writer_memory64(w) {
@@ -87,14 +87,14 @@ fn emit_extend_i32_to_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_I64_EXTEND_I32_S())
 }
 
-fn emit_wrap_i64_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_wrap_i64_to_i32(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     // Truncate to i32 bits. Under Memory64 the MIR i32 result is still stored
     // as a wasm i64 local, so widen immediately after wrap.
     writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64())
     helpers_numeric_i32_convert::emit_widen_i32_result(w)
 }
 
-fn emit_eqz(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_eqz(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if writer_core::writer_memory64(w) {
         writer_core::emit_byte(w, opcodes::OP_I64_EQZ())
         helpers_numeric_i32_convert::emit_widen_compare_result(w)
@@ -103,11 +103,11 @@ fn emit_eqz(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
 }
 
-fn emit_eqz_dup(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_eqz_dup(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_eqz(w, inst, ctx)
 }
 
-fn emit_neg(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_neg(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let vt = inst_accessors_shape::MirInst_val_type(inst)
     if vt == value_types::VT_F64() {
         writer_core::emit_byte(w, opcodes::OP_F64_NEG())

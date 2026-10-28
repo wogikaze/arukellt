@@ -12,9 +12,9 @@ use parser::stmt_let_init
 use parser::stmt_let_type
 use parser::token_state
 
-pub fn parse_let(p: Parser) -> AstNode {
+pub fn parse_let(mut p: Parser) -> AstNode {
     let t = core_api_expect::expect_token(p, tokens::TK_LET())
-    let node = core_ast_factory::AstNode_new(kinds::NK_LET(), core_api_expect::tok_span(t))
+    let mut node = core_ast_factory::AstNode_new(kinds::NK_LET(), core_api_expect::tok_span(t))
     core_api_cursor::skip_newlines(p)
     if core_api_cursor::peek_kind(p) == tokens::TK_MUT() {
         p.pos = p.pos + 1

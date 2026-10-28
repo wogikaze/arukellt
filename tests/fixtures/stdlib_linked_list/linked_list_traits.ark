@@ -6,10 +6,10 @@ use std::core::convert
 use std::host::stdio
 
 fn main() {
-    let letters: LinkedList<String> = LinkedList::new<String>()
+    let mut letters: LinkedList<String> = LinkedList::new<String>()
     letters.push_back("beta")
     letters.push_front("alpha")
-    let copy: LinkedList<String> = letters.clone()
+    let mut copy: LinkedList<String> = letters.clone()
     letters.push_back("gamma")
     assert(copy.len() == 2)
     assert(letters.len() == 3)

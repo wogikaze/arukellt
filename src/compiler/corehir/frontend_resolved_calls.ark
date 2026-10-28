@@ -5,7 +5,7 @@ use corehir::frontend_expr_kind
 use corehir::frontend_ast_span
 
 fn scan_resolved_calls(decls: Vec<AstNode>) -> Vec<CoreHirResolvedCall> {
-    let calls = Vec::new<CoreHirResolvedCall>()
+    let mut calls = Vec::new<CoreHirResolvedCall>()
     let decl_count = len(decls)
     let mut di = 0
     while di < decl_count {
@@ -15,7 +15,7 @@ fn scan_resolved_calls(decls: Vec<AstNode>) -> Vec<CoreHirResolvedCall> {
     calls
 }
 
-fn scan_calls_in_node(node: AstNode, calls: Vec<CoreHirResolvedCall>) {
+fn scan_calls_in_node(node: AstNode, mut calls: Vec<CoreHirResolvedCall>) {
     let kind = frontend_ast_identity::corehir_node_kind(node)
     if frontend_expr_kind::corehir_kind_is_expr_call(kind) {
         push(calls, raw_dto::CoreHirResolvedCall_new(frontend_ast_identity::corehir_node_text(node), false, frontend_ast_span::corehir_node_span_start(node)))

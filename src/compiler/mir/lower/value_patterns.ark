@@ -7,7 +7,7 @@ use mir::lower::ctx_types
 use mir::inst_const_i32
 use mir::value_types
 
-fn lower_atomic_pattern(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_atomic_pattern(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let kind = ast_node::node_kind(node)
     if kind == lower_kinds::NK_PAT_WILDCARD() {
         return 0 - 1

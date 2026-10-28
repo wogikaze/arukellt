@@ -3,7 +3,7 @@ use std::test
 
 fn main() {
     let a: Vec<i32> = Vec::new<i32>()
-    let b: Vec<i32> = Vec::new<i32>()
+    let mut b: Vec<i32> = Vec::new<i32>()
     push(b, 10)
     push(b, 20)
 

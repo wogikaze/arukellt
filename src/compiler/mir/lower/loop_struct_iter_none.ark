@@ -11,7 +11,7 @@ use mir::inst_op
 use mir::lower::loop_conditions
 use mir::value_types
 
-fn mir_emit_struct_iterator_none_break(ctx: LowerCtx, opt_local: i32, tag_local: i32, none_tag: i32, cmp_dest: i32) {
+fn mir_emit_struct_iterator_none_break(mut ctx: LowerCtx, opt_local: i32, tag_local: i32, none_tag: i32, cmp_dest: i32) {
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
         // The tag is field 0 of the common enum-open type. A concrete variant
         // cast is invalid here because Some and None are sibling subtypes.

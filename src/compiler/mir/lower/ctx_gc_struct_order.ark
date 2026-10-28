@@ -6,7 +6,7 @@ use mir::lower::ctx_types
 
 use std::prelude::{byte_at, clone, eq, substring}
 use std::text
-fn ctx_reorder_gc_structs_deps_first(ctx: LowerCtx) {
+fn ctx_reorder_gc_structs_deps_first(mut ctx: LowerCtx) {
     let count = len(ctx.gc_struct_names)
     if count <= 1 {
         return

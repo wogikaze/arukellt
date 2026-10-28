@@ -4,6 +4,6 @@
 
 use wasm::intrinsic_string_split_gc
 
-fn emit_text_chars_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+fn emit_text_chars_gc(mut w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     intrinsic_string_split_gc::emit_split_chars_gc(w, ctx)
 }

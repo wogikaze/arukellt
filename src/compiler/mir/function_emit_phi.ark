@@ -3,6 +3,6 @@ use mir::function_block_queries
 use mir::types
 
 fn emit_phi(f: MirFunction, block_id: i32, phi: MirPhi) {
-    let block = function_block_queries::MirFunction_block_at(f, block_id)
+    let mut block = function_block_queries::MirFunction_block_at(f, block_id)
     block_phi_mutation::MirBlock_push_phi(block, phi)
 }

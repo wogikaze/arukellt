@@ -1,10 +1,10 @@
 use mir::phi_record
 use mir::types
 
-fn MirPhi_set_dest(phi: MirPhi, dest: i32) {
+fn MirPhi_set_dest(mut phi: MirPhi, dest: i32) {
     phi_record::mir_phi_set_dest(phi, dest)
 }
 
-fn MirPhiArg_set_local(arg: MirPhiArg, local: i32) {
+fn MirPhiArg_set_local(mut arg: MirPhiArg, local: i32) {
     phi_record::mir_phi_arg_set_local(arg, local)
 }

@@ -6,34 +6,34 @@ use lsp::feature_references
 use lsp::feature_type_definition
 use lsp::feature_workspace_symbol
 
-pub fn handle_hover(state: LspState, body: String) {
+pub fn handle_hover(mut state: LspState, body: String) {
     feature_hover::handle_hover(state, body)
 }
 
-pub fn handle_definition(state: LspState, body: String) {
+pub fn handle_definition(mut state: LspState, body: String) {
     feature_definition::handle_definition(state, body)
 }
 
-pub fn handle_completion(state: LspState, body: String) {
+pub fn handle_completion(mut state: LspState, body: String) {
     feature_completion::handle_completion(state, body)
 }
 
-pub fn handle_workspace_symbol(state: LspState, body: String) {
+pub fn handle_workspace_symbol(mut state: LspState, body: String) {
     feature_workspace_symbol::handle_workspace_symbol(state, body)
 }
 
-pub fn handle_references(state: LspState, body: String) {
+pub fn handle_references(mut state: LspState, body: String) {
     feature_references::handle_references(state, body)
 }
 
-pub fn handle_document_highlight(state: LspState, body: String) {
+pub fn handle_document_highlight(mut state: LspState, body: String) {
     feature_references::handle_document_highlight(state, body)
 }
 
-pub fn handle_type_definition(state: LspState, body: String) {
+pub fn handle_type_definition(mut state: LspState, body: String) {
     feature_type_definition::handle_type_definition(state, body)
 }
 
-pub fn handle_code_lens(state: LspState, body: String) {
+pub fn handle_code_lens(mut state: LspState, body: String) {
     feature_code_lens::handle_code_lens(state, body)
 }

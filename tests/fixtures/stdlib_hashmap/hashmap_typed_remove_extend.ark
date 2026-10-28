@@ -18,7 +18,7 @@ fn expect_none_i32(v: Option<i32>) {
 
 fn main() {
     // Typed HashMap<i32,i32> method surface.
-    let m = HashMap::new<i32, i32>()
+    let mut m = HashMap::new<i32, i32>()
     let _ = m.insert(1, 10)
     let _ = m.insert(2, 20)
     assert_eq(m.len(), 2)
@@ -32,7 +32,7 @@ fn main() {
     assert(!m.is_empty())
 
     // Typed HashSet<i32> capacity/clear/extend methods.
-    let s: HashSet<i32> = HashSet::new<i32>()
+    let mut s: HashSet<i32> = HashSet::new<i32>()
     assert(s.is_empty())
     assert(s.insert(1))
     assert(s.insert(2))
@@ -44,7 +44,7 @@ fn main() {
     assert(s.capacity() > cap_before)
     assert_eq(s.len(), 3)
 
-    let other: HashSet<i32> = HashSet::new<i32>()
+    let mut other: HashSet<i32> = HashSet::new<i32>()
     assert(other.insert(4))
     assert(other.insert(5))
     s.extend(other)

@@ -3,7 +3,7 @@ use std::collections::deque::Deque
 use std::host::stdio
 
 fn main() {
-    let deque: Deque<i32> = Deque::new<i32>()
+    let mut deque: Deque<i32> = Deque::new<i32>()
     deque.push_back(10)
     deque.push_back(20)
     deque.push_front(5)

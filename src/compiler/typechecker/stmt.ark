@@ -4,7 +4,7 @@ use typechecker::stmt_expr
 use typechecker::stmt_let
 use typechecker::stmt_for
 
-fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
+fn check_stmt(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
     if ast_stmt_predicates::node_is_let(node) {
         stmt_let::check_let_stmt(env, scope, fn_sigs, enum_defs, node)
         return
@@ -41,7 +41,7 @@ fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
     infer_expr(env, scope, fn_sigs, enum_defs, node)
 }
 
-fn check_child_statements(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
+fn check_child_statements(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
     let count = ast_access::node_child_count(node)
     let mut i = 0
     while i < count {

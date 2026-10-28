@@ -3,7 +3,7 @@ use mir::lower::ctx_types
 use mir::inst_return
 use mir::lower::core_expr_shape_accessors
 
-fn core_emit_closure_return(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, clos: CoreHirExpr) -> i32 {
+fn core_emit_closure_return(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, clos: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(clos)
     let res = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(clos, child_count - 1))
     if res >= 0 {

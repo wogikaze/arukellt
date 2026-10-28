@@ -4,8 +4,8 @@ use mir::types
 fn mir_enqueue_reachable_name(
     index: MirReachabilityIndex,
     functions: Vec<MirFunction>,
-    reachable: Vec<i32>,
-    queue: Vec<i32>,
+    mut reachable: Vec<i32>,
+    mut queue: Vec<i32>,
     name: String
 ) -> bool {
     reachability_index::mir_reachability_enqueue_by_name(index, functions, reachable, queue, name)
@@ -13,8 +13,8 @@ fn mir_enqueue_reachable_name(
 
 fn mir_enqueue_reachable_name_exact(
     index: MirReachabilityIndex,
-    reachable: Vec<i32>,
-    queue: Vec<i32>,
+    mut reachable: Vec<i32>,
+    mut queue: Vec<i32>,
     name: String
 ) -> bool {
     reachability_index::mir_reachability_enqueue_by_name_exact(index, reachable, queue, name)
