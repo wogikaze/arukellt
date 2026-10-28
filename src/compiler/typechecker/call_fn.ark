@@ -238,23 +238,26 @@ fn infer_concrete_call_expr(
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, arg_count)
         return TypeInfo_simple(commands::TY_UNKNOWN())
     }
-    if builtins::is_scalar_conversion_builtin(clone(fname)) {
-        infer_scalar_conversion_call_args(env, scope, fn_sigs, enum_defs, node, sig, arg_count)
+    if builtins::is_concrete_prelude_builtin(clone(fname)) {
+        infer_prelude_concrete_call_args(env, scope, fn_sigs, enum_defs, node, sig, arg_count)
         return contract_fn_sig::FnSig_return_type(sig)
     }
-    // Infer argument expressions for side effects / nested diagnostics, but do not
-    // unify against FnSig params yet: flat name lookup is not overload-aware and
-    // would false-fail stdlib bodies that share short names.
+    // Remaining concrete calls keep the unchecked path: the flat name index is
+    // not overload-aware, and their declared signatures are placeholders or
+    // overloads (`len`, `push`, `to_string`, `eq`, `assert_eq_i64`, ...).
+    // Checking them against the first flat signature would false-fail valid
+    // calls (#936).
     call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, arg_count)
     contract_fn_sig::FnSig_return_type(sig)
 }
 
-// Scalar conversion wrappers are lowered by name from their prelude
-// signatures, so checking only the arity lets a wrong argument reach the
-// emitter: `i32_to_i64(<i64>)` used to truncate silently or emit invalid
-// Wasm. Polymorphic prelude operations keep the unchecked path above because
-// their declared signatures are placeholders (#936).
-fn infer_scalar_conversion_call_args(
+// Concrete prelude frees lower by name from their prelude signatures, so
+// checking only the arity lets a wrong argument reach the emitter:
+// `i32_to_i64(<i64>)` used to truncate silently, and `f64_bits_lo(<String>)`
+// emitted invalid Wasm caught only by the W0004 self-check. Polymorphic
+// prelude operations keep the unchecked path above because their declared
+// signatures are placeholders (#936).
+fn infer_prelude_concrete_call_args(
     env: TypeEnv,
     scope: LocalScope,
     fn_sigs: Vec<FnSig>,
@@ -270,7 +273,7 @@ fn infer_scalar_conversion_call_args(
         let arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
         let param_ty = unify::resolve_type(env, contract_fn_sig::FnSig_param_at(sig, i))
         let resolved_arg_ty = unify::resolve_type(env, arg_ty)
-        if has_scalar_conversion_arg_conflict(param_ty, resolved_arg_ty) {
+        if has_concrete_arg_conflict(param_ty, resolved_arg_ty) {
             let mut message = String_from("type mismatch in call to `")
             message = message.concat(clone(callee_name))
             message = message.concat(String_from("`: argument "))
@@ -290,7 +293,7 @@ fn infer_scalar_conversion_call_args(
 // Unknown and type-variable arguments are left to `unify` so a generic caller
 // can still bind the parameter; only two concrete, different tags are a
 // definite mismatch.
-fn has_scalar_conversion_arg_conflict(param_ty: TypeInfo, arg_ty: TypeInfo) -> bool {
+fn has_concrete_arg_conflict(param_ty: TypeInfo, arg_ty: TypeInfo) -> bool {
     let param_tag = contract_type_access::TypeInfo_tag(param_ty)
     let arg_tag = contract_type_access::TypeInfo_tag(arg_ty)
     if param_tag == commands::TY_UNKNOWN() || param_tag == commands::TY_TYPE_VAR() {
