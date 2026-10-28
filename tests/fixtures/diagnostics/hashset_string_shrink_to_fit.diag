@@ -1,0 +1,1 @@
+error[E0200|typecheck]: method `shrink_to_fit` is not available on `HashSet<String>`; it is defined only for `HashSet<i32>`

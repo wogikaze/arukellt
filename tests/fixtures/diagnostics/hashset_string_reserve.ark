@@ -1,0 +1,9 @@
+// `reserve` sizes the i32 bucket table; the String store cannot honour it,
+// so the call must not reach the i32 helper (#917).
+use std::collections::hash_set::HashSet
+
+fn main() {
+    let s: HashSet<String> = HashSet::new<String>()
+    let _ = s.insert("red")
+    s.reserve(16)
+}

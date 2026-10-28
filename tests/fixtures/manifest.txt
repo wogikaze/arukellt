@@ -384,6 +384,10 @@ diag:diagnostics/trait_wrong_arity.ark
 diag:selfhost/trait_unresolved_var_bound.ark
 diag:diagnostics/hashmap_entries_unsupported_pair.ark
 diag:diagnostics/hashmap_unsupported_pair.ark
+diag:diagnostics/hashset_string_capacity.ark
+diag:diagnostics/hashset_string_capacity_wasm32.ark
+diag:diagnostics/hashset_string_reserve.ark
+diag:diagnostics/hashset_string_shrink_to_fit.ark
 diag:diagnostics/iterator_methods_no_import.ark
 diag:selfhost/typecheck_match_nonexhaustive.ark
 diag:selfhost/typescheme_deny_no_generalize.ark
@@ -1073,6 +1077,8 @@ run:stdlib_hashset/hashset_from_iter.ark
 run:stdlib_hashset/hashset_from_iter_wasm32.ark
 run:stdlib_hashset/hashset_string_agg.ark
 run:stdlib_hashset/hashset_string_agg_wasm32.ark
+run:stdlib_hashset/hashset_family_split.ark
+run:stdlib_hashset/hashset_family_split_wasm32.ark
 run:stdlib_hashmap/hashset_basic.ark
 run:stdlib_hashmap/hashset_capacity_extend.ark
 run:stdlib_hashmap/hashset_clear.ark

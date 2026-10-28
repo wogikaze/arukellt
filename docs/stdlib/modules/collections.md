@@ -276,7 +276,9 @@ The aggregate operations (`to_vec`, `union`, `intersection`, `difference`,
 / `difference` / `clear` / `extend` over the `Vec<String>` store.
 `capacity` / `reserve` / `shrink_to_fit` stay `i32`-only: the String store
 is a linear `Vec<String>` with no bucket layout, so it has no capacity to
-report or reserve. Both element families implement
+report or reserve. Method lookup is family-aware and rejects those calls
+on `HashSet<String>` with `E0200` instead of resolving the i32 impl. Both
+element families implement
 `FromIterator<VecIter<T>>`, `IntoIterator`, `Clone`, `Eq`, and `Debug`.
 
 The `hashset_i32_*` / `hashset_str_*` compatibility adapters were retired in

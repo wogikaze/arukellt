@@ -1,0 +1,10 @@
+// HashSet<String> has no bucket layout, so `capacity` must be rejected at
+// the family boundary instead of resolving to the HashSet<i32> store (#917).
+use std::collections::hash_set::HashSet
+use std::test
+
+fn main() {
+    let s: HashSet<String> = HashSet::new<String>()
+    let _ = s.insert("red")
+    test::assert_true(s.capacity() >= 1)
+}
