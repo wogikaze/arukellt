@@ -25,5 +25,6 @@
 | [selfhost-compile-latency-root-cause.md](selfhost-compile-latency-root-cause.md) | Selfhost compile latency — root cause (2026-07-17, revised 2026-07-20) | Archive | decl_emit が total の 35% かつ第 2 位の 1.5 倍を満たさず（L5: 11.1%; #829 after: 17.9%）。 receipt: receipts/824-early-body-decl-emit-defer-receipt.json |
 | [selfhost-phase-arena-ownership.md](selfhost-phase-arena-ownership.md) | Selfhost phase arena ownership (compiler bump) | Archive | この文書は セルフホストコンパイラの bump / phase arena だけを扱う。 |
 | [target-runtime-verification.md](target-runtime-verification.md) | ターゲットランタイム検証 — 実装・動作確認レポート | Archive | ADR-007 が定義する 3 ターゲット（wasm32 / wasm32-gc / native）のうち、 外部ツールチェイン依存がある以下 5 経路について、実装状況と実際の動作を確認する。 |
+| [verify-quick-baseline-2026-10-29.md](verify-quick-baseline-2026-10-29.md) | verify quick / lane baseline — 2026-10-29 | Archive | 対象: wave/verify-quick、base 3c2d00cef（merge 917 ADR-088 callee-side param modes）。 |
 | [verify-quick-latency.md](verify-quick-latency.md) | verify quick latency — wall-time breakdown (2026-07-21) | Archive | 計測環境: WSL2 worktree wave/gate-speedup @ 92e11273 |
 | [wasm-gc-post-mvp.md](wasm-gc-post-mvp.md) | WasmGC Post-MVP 拡張機能 — 設計調査 | Archive | 本ファイルは Wasm GC Post-MVP 提案の調査記録である。言語仕様の前提にはしない。 採択済みの方針は ADR-043 を参照する。 |

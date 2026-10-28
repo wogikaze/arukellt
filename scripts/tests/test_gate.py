@@ -37,6 +37,15 @@ from selfhost.fixture_parity import (  # noqa: E402
 ROOT = _REPO_ROOT
 
 
+def _manifest_loader(run_fixtures):
+    """Stub ``_load_manifest_fixtures`` with run: entries and an empty test: list."""
+
+    def load(_root, kind):
+        return (run_fixtures if kind == "run" else [], "")
+
+    return load
+
+
 class TestGateDryRun(unittest.TestCase):
     def test_gate_local_dry_run(self):
         rc, out = run_local(ROOT, dry_run=True)
@@ -169,7 +178,7 @@ class TestFixtureGateMigration(unittest.TestCase):
                  ), patch.object(
                      selfhost_checks,
                      "_load_manifest_fixtures",
-                     return_value=(fixtures, ""),
+                     side_effect=_manifest_loader(fixtures),
                  ):
                 rc, output = run_fixture_parity(root, dry_run=False)
 
@@ -350,7 +359,7 @@ class TestFixtureGateMigration(unittest.TestCase):
                  patch.object(selfhost_checks, "_ensure_current_selfhost", return_value=(root / "s2.wasm", "")), \
                  patch.object(selfhost_checks, "_ensure_aot_cwasm", side_effect=lambda path: path), \
                  patch.object(selfhost_checks, "_with_runtime_lock", side_effect=lambda fn, root: fn()), \
-                 patch.object(selfhost_checks, "_load_manifest_fixtures", return_value=(["sample/ok.ark"], "")), \
+                 patch.object(selfhost_checks, "_load_manifest_fixtures", side_effect=_manifest_loader(["sample/ok.ark"])), \
                  patch("selfhost.fixture_parity._select_smoke_fixtures", return_value=set()), \
                  patch("selfhost.fixture_parity._compile_current_fixture", side_effect=compile_fixture), \
                  patch("selfhost.fixture_parity._validate_wasm", return_value=(0, "")):

@@ -459,6 +459,35 @@ class TestCompilerRefactorGates(unittest.TestCase):
             self.assertEqual(violations, [("src/compiler/mir_type_ops_unary.ark", 2)])
 
 
+class TestFixtureDiskPaths(unittest.TestCase):
+    def test_nested_package_modules_are_not_entry_fixtures(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            package = root / "modules" / "sample"
+            package.mkdir(parents=True)
+            (package / "ark.toml").write_text(
+                '[package]\nname = "sample"\n\n[registry]\nurl = "file://./mock_reg"\n',
+                encoding="utf-8",
+            )
+            for rel in (
+                "main.ark",
+                "helper.ark",
+                "sub/user.ark",
+                "sub/helper.ark",
+                "mock_reg/dep.ark",
+            ):
+                path = package / rel
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("fn main() {}\n", encoding="utf-8")
+
+            paths = manager.disk_fixture_paths(root)
+
+            self.assertEqual(
+                paths,
+                ["modules/sample/main.ark", "modules/sample/mock_reg/dep.ark"],
+            )
+
+
 class TestEnvBehavior(unittest.TestCase):
     def test_env_arukellt_bin_honored(self):
         """ARUKELLT_BIN=/nonexistent with --dry-run must still exit 0."""

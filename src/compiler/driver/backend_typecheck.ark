@@ -89,7 +89,7 @@ fn merge_warnings(mut into: Vec<Diagnostic>, from: Vec<Diagnostic>) {
     vec_extend::Vec_extend_Diagnostic(into, from)
 }
 
-fn backend_typecheck(source: String, config: DriverConfig, all_decls: Vec<AstNode>, resolve_ctx: ResolveCtx, parse_warnings: Vec<Diagnostic>) -> DriverTypecheckResult {
+fn backend_typecheck(source: String, config: DriverConfig, all_decls: Vec<AstNode>, lint_decls: Vec<AstNode>, resolve_ctx: ResolveCtx, parse_warnings: Vec<Diagnostic>) -> DriverTypecheckResult {
     let check_result = session_typecheck_query::session_typecheck_decls_with_options(
         all_decls,
         resolve_ctx,
@@ -116,7 +116,9 @@ fn backend_typecheck(source: String, config: DriverConfig, all_decls: Vec<AstNod
         // Collect typecheck warnings (W0007 unused binding, W0001 shared-mut-alias, etc.)
         let warnings = session_typecheck_query::session_typecheck_warnings(check_result)
         // Run post-resolution lint checks (W0006 unused import, W0009 deprecated API, etc.)
-        let lint_warnings = lint_checks::run_post_resolve_lint(all_decls, config_record::config_target(config))
+        // Lint is a per-source-file pass: module declarations loaded for
+        // resolution must not surface as warnings attributed to the entry file.
+        let lint_warnings = lint_checks::run_post_resolve_lint(lint_decls, config_record::config_target(config))
         // Filter by --allow; escalate --deny to errors
         let allow_codes = config_record::config_lint_allow(config)
         let deny_codes = config_record::config_lint_deny(config)

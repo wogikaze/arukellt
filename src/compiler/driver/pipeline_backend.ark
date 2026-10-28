@@ -61,6 +61,7 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
         clone(source),
         config,
         all_decls,
+        clone(decls),
         backend_resolve::resolve_result_ctx(resolved),
         parse_warnings
     )
