@@ -24,8 +24,10 @@ fn parse_closure_expr(p: Parser, start: Token, is_move: bool) -> AstNode {
             skip_newlines(p)
         }
         first = false
+        let is_mut = consume_optional_mut(p)
         let param_tok = expect_token(p, tokens::TK_IDENT())
         let param = AstNode_leaf(kinds::NK_IDENT(), token_state::Token_text(param_tok), tok_span(param_tok))
+        core_ast_flag_fields::AstNode_set_is_mut(param, is_mut)
         core_ast_children::AstNode_push_child(node, param)
         skip_newlines(p)
         if at(p, tokens::TK_COLON()) {

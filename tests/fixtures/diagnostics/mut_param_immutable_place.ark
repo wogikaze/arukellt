@@ -1,0 +1,14 @@
+// ADR-088 §4: a `mut` parameter needs a mutable place at the call site.
+
+struct Point {
+    x: i32,
+}
+
+fn bump(mut p: Point) {
+    p.x = p.x + 1
+}
+
+fn main() {
+    let p = Point { x: 1 }
+    bump(p)
+}

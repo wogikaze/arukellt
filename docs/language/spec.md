@@ -609,10 +609,15 @@ bump(a)               // error: `a` is an immutable binding
   assignable where the same position is `mut`; the reverse is rejected.
   Closure parameters use the same form (`|mut v| …`).
 
-**Current implementation.** The compiler does not parse `mut` parameters yet,
-accepts mutation through any parameter or receiver, and does not report E0212
-for every use of a moved binding as an argument. Tracked by
-[#951](../../issues/open/951-mut-parameter-mode-and-call-borrow-checks.md) and
+**Current implementation.** The compiler parses `mut` parameters, `mut self`,
+and `|mut v|`. A call must pass a mutable place for a non-`Copy` `mut`
+parameter (E0223), and one call must not pass overlapping places to a `mut`
+parameter and another parameter (E0224). Assignment through a shared parameter
+or a shared `self` is still accepted, the mode is not yet part of function
+types (`fn(mut T)`), and a borrowed `Box<T>` escape is not rejected. Those
+rules wait for the std/selfhost migration tracked by
+[#951](../../issues/open/951-mut-parameter-mode-and-call-borrow-checks.md); the
+missing E0212 for some moved arguments is tracked by
 [#944](../../issues/open/944-move-after-use-not-diagnosed.md); see
 [../current-state.md](../current-state.md).
 
@@ -1320,7 +1325,8 @@ pub export fn public_component_name(param: i32) -> i32 {
   `[pub] [async] export fn`.
 - Return type defaults to `()` if omitted.
 - A parameter may be declared `mut name: T` to receive a mutable borrow
-  (§3.5.1, ADR-088; not yet parsed by the current compiler).
+  (§3.5.1, ADR-088; parsed, and the call-site mutable-place rule is enforced;
+  the shared-parameter restriction on the callee is not implemented yet).
 
 #### 6.1.1 Multi-Clause Function Definitions <!-- stability: provisional -->
 
@@ -2167,7 +2173,8 @@ type_params = "<" type_param ("," type_param)* ">" ;
 type_param  = IDENT (":" IDENT ("+" IDENT)*)? ;
 param_list  = param ("," param)* ","? ;
 param       = "mut"? IDENT ":" type_expr ;
-              (* "mut": mutable borrow, ADR-088 §3.5.1; not yet parsed *)
+              (* "mut": mutable borrow, ADR-088 §3.5.1; call-site rule enforced,
+                 shared-parameter body rule still pending *)
 field_list  = field ("," field)* ","? ;
 field       = IDENT ":" type_expr ;
 variant_list= variant ("," variant)* ","? ;
@@ -2237,7 +2244,7 @@ struct_fields = (IDENT ":" expr) ("," IDENT ":" expr)*
 match_arm   = pattern ("if" expr)? "=>" expr ","? ;
 closure_params = closure_param ("," closure_param)* ;
 closure_param  = "mut"? IDENT (":" type_expr)? ;
-                 (* "mut": ADR-088 §3.5.1; not yet parsed *)
+                 (* "mut": ADR-088 §3.5.1; parsed, `mut` binding is mutable *)
 
 pattern     = "_"
             | IDENT

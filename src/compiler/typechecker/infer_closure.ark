@@ -1,6 +1,7 @@
 use std::prelude::{eq}
 use typechecker::kinds
 use typechecker::ast_access
+use typechecker::ownership_types
 use typechecker::scope
 use typechecker::unify
 use typechecker::contract_type_constructors
@@ -23,7 +24,13 @@ fn infer_closure_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum
             unify::fresh_var(env)
         }
         push(param_types, param_ty)
-        scope::scope_define(closure_scope, ast_access::node_text(param), param_ty)
+        scope::scope_define_with_flags(
+            closure_scope,
+            ast_access::node_text(param),
+            param_ty,
+            ast_access::node_is_mut(param),
+            ownership_types::type_is_builtin_copy(param_ty)
+        )
         i = i + 1
     }
     let body = ast_access::node_child_at(node, child_count - 1)

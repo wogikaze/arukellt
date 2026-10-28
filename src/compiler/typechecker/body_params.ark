@@ -10,6 +10,12 @@ fn bind_fn_params_from_sig(scope: LocalScope, fn_node: AstNode, sig: FnSig) {
     while param_index < child_count - 1 && param_index < param_count {
         let param = ast_access::node_child_at(fn_node, param_index)
         let param_ty = contract_fn_sig::FnSig_param_at(sig, param_index)
+        // Both shared and `mut` parameters are bound mutable today. Rejecting
+        // assignment through a shared parameter first requires every existing
+        // shared parameter that mutates its fields to migrate to `mut` in
+        // `std/` and `src/compiler/` (ADR-088 §2, #951). The mode is already
+        // recorded in FnSig for the call-site rule; binding by mode is the
+        // remaining callee-side switch.
         scope::scope_define_with_flags(
             scope,
             ast_access::node_text(param),

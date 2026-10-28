@@ -17,6 +17,7 @@ use typechecker::contract_types_record
 use typechecker::hashmap_methods
 use typechecker::mono_instances
 use typechecker::names
+use typechecker::param_mode
 use typechecker::sigs
 use typechecker::trait_bounds
 use typechecker::trait_method_registry
@@ -438,6 +439,10 @@ fn infer_resolved_method_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSi
     if explicit_args + 1 != param_count {
         return simple_type(commands::TY_UNKNOWN())
     }
+    // Child 0 is the receiver, so the signature parameter index and the child
+    // index line up without an offset; a `mut self` method therefore checks
+    // the receiver and the same-root rule covers receiver/argument overlap.
+    param_mode::check_call_parameter_modes(env, scope, sig, node, 0, recv_ty)
     if contract_fn_sig::FnSig_type_param_count(sig) == 0 {
         call_method_args::constrain_method_args(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, explicit_args)
         return contract_fn_sig::FnSig_return_type(sig)

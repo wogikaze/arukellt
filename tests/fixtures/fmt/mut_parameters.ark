@@ -1,0 +1,23 @@
+use std::host::stdio
+
+struct Counter {
+    n: i32,
+}
+
+impl Counter {
+    fn bump(mut self) {
+        self.n = self.n + 1
+    }
+}
+
+fn add(mut p: Counter, amount: i32) {
+    p.n = p.n + amount
+}
+
+fn main() {
+    let mut counter = Counter { n: 1 }
+    counter.bump()
+    add(counter, 2)
+    let bump = |mut v: i32| v + 1
+    stdio::println(bump(counter.n).to_string())
+}
