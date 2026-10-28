@@ -3,7 +3,7 @@
 // Unified namespace for type conversions (wraps existing intrinsics).
 
 use std::text
-use std::prelude::{f32_to_f64, f64_bits_hi, f64_bits_lo, f64_to_f32, i32_to_i16, i32_to_i8, i32_to_u16, i32_to_u32, i32_to_u8, i16_to_i32, u16_to_i32, u32_to_u64, u64_to_u32, u8_to_i32}
+use std::prelude::{f32_to_f64, f64_bits_hi, f64_bits_lo, f64_to_f32, i32_to_i16, i32_to_i8, i32_to_u16, i32_to_u32, i32_to_u8, i8_to_i32, i16_to_i32, u16_to_i32, u32_to_u64, u64_to_u32, u8_to_i32}
 /// Trait for types that can be converted to a human-readable string
 /// representation.
 ///
@@ -686,10 +686,13 @@ impl u8 {
     }
 }
 
-// `i8 -> i32` has no receiver method yet: the free wrapper works at call
-// sites, but the same sign-extension intrinsic called from a std method body
-// currently traps under wasm32-gc. `i8_to_i32` stays stable until the emitter
-// handles the method frame (Wave-2 blocker, #917).
+/// Inherent methods on `i8`.
+impl i8 {
+    /// Sign-extends the low 8 bits to `i32`.
+    fn to_i32(self: i8) -> i32 {
+        i8_to_i32(self)
+    }
+}
 
 /// Inherent methods on `u16`.
 impl u16 {

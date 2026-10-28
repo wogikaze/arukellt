@@ -123,8 +123,10 @@ is the ADR-014 addendum that defines the exception:
 
 Under the exception `remove_in` is an **upper bound**. Early removals must
 cite the exception explicitly in the migration guide. The first ADR-087 wave
-(2026-10-26) converted 60 `stable` entries to `deprecated` (one deferral: `i8_to_i32`) with W0009 coverage
+(2026-10-26) converted 60 `stable` entries to `deprecated` with W0009 coverage
 and retired 3 stale non-callable entries; their physical deletion is Wave 2.
+The one deferral, `i8_to_i32`, was deprecated on 2026-10-28 after `i8::to_i32`
+landed.
 The `std::seq` qualified-call W0009 coverage for the 13 deprecated helpers
 remains in place, and the 31 converted seq/combinator entries now emit W0009
 for their bare names.

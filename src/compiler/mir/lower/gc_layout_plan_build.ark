@@ -24,8 +24,9 @@ fn gc_layout_plan_name_is_fn(name: String) -> bool {
 fn gc_layout_plan_name_is_i32(name: String) -> bool {
     eq(clone(name), "i32") || eq(clone(name), "I32") ||
     eq(clone(name), "bool") || eq(clone(name), "char") ||
-    eq(clone(name), "u8") || eq(clone(name), "u16") ||
-    eq(clone(name), "u32") || eq(clone(name), "i16")
+    eq(clone(name), "u8") || eq(clone(name), "i8") ||
+    eq(clone(name), "u16") || eq(clone(name), "u32") ||
+    eq(clone(name), "i16")
 }
 
 fn gc_layout_plan_vec_offset_from_elem(table: TypeTable, elem_id: TypeId) -> i32 {

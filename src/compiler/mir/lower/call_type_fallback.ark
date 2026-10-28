@@ -109,6 +109,7 @@ fn mark_call_result_from_return_type_name(ctx: LowerCtx, dest: i32, type_name: S
     eq(clone(cleaned), "f32") ||
     eq(clone(cleaned), "f64") ||
     eq(clone(cleaned), "u8") ||
+    eq(clone(cleaned), "i8") ||
     eq(clone(cleaned), "u16") ||
     eq(clone(cleaned), "u32") ||
     eq(clone(cleaned), "u64") ||

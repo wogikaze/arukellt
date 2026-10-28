@@ -182,6 +182,7 @@ fn is_builtin_type_name(type_name: String) -> bool {
     eq(clone(type_name), "f32") ||
     eq(clone(type_name), "f64") ||
     eq(clone(type_name), "u8") ||
+    eq(clone(type_name), "i8") ||
     eq(clone(type_name), "u16") ||
     eq(clone(type_name), "u32") ||
     eq(clone(type_name), "u64") ||

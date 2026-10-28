@@ -412,7 +412,10 @@ intrinsic = "__intrinsic_i8_to_i32"
 params = ["i8"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i8::to_i32"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "scalar_conversion"
 
 [[functions]]

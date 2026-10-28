@@ -43,10 +43,13 @@ pub fn deprecated_call_message(name: String) -> String {
 // ADR-087. Their bare names warn here while they remain resolvable; physical
 // deletion is Wave 2. `clear`, `map_option_String_String`, and
 // `map_result_i32_i32` were stale non-callable entries and were retired
-// directly; `i8_to_i32` is a deferral and stays stable.
+// directly. `i8_to_i32` joined the numeric set once `i8::to_i32` landed.
 fn deprecated_numeric_call_message(name: String) -> String {
     if eq(clone(name), "u8_to_i32") {
         return "use `(x).to_i32()` on the `u8` value instead"
+    }
+    if eq(clone(name), "i8_to_i32") {
+        return "use `(x).to_i32()` on the `i8` value instead"
     }
     if eq(clone(name), "u16_to_i32") {
         return "use `(x).to_i32()` on the `u16` value instead"
@@ -280,6 +283,7 @@ test mod "deprecated" {
     }
     test "numeric_frees_warn_w0009" {
         assert(len(deprecated_call_message("u8_to_i32")) > 0)
+        assert(len(deprecated_call_message("i8_to_i32")) > 0)
         assert(len(deprecated_call_message("u16_to_i32")) > 0)
         assert(len(deprecated_call_message("i16_to_i32")) > 0)
         assert(len(deprecated_call_message("i32_to_u8")) > 0)

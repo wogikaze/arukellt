@@ -140,7 +140,7 @@ module_less = true
 prefix = ["u8_to_i32", "u16_to_i32", "i8_to_i32", "i16_to_i32", "i32_to_u8", "i32_to_u16", "i32_to_i8", "i32_to_i16", "u32_to_u64", "u64_to_u32", "i32_to_i64", "i64_to_i32", "f32_to_f64", "f64_to_f32", "i32_to_u32", "f64_bits_lo", "f64_bits_hi"]
 class = "must delete"
 owner = "917"
-replacement = "canonical scalar conversion methods (ADR-067): u8/u16/i16::to_i32 (`i8_to_i32` deferred: its method frame still traps under wasm32-gc), u32::to_u64, u64::to_u32_wrapping, i32::to_u8_wrapping/to_u16_wrapping/to_i8_wrapping/to_i16_wrapping/to_u32_bits, i32::into, i64::to_i32_checked, f32::to_f64, f64::to_f32, f64::to_bits_lo/to_bits_hi"
+replacement = "canonical scalar conversion methods (ADR-067): u8/i8/u16/i16::to_i32, u32::to_u64, u64::to_u32_wrapping, i32::to_u8_wrapping/to_u16_wrapping/to_i8_wrapping/to_i16_wrapping/to_u32_bits, i32::into, i64::to_i32_checked, f32::to_f64, f64::to_f32, f64::to_bits_lo/to_bits_hi"
 
 # The 20 monomorphic HashMap_* builtins (new/insert/get/contains_key/len for
 # the four i32/String pairs) were retired by #917 on 2026-10-27. They were the

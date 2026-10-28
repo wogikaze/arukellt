@@ -69,6 +69,7 @@ fn mir_print_arg_needs_string_conversion(ctx: LowerCtx, arg: AstNode, arg_idx: i
 fn mir_print_arg_local_type_needs_string_conversion(lt: String) -> bool {
     eq(clone(lt), "char") ||
     eq(clone(lt), "u8") ||
+    eq(clone(lt), "i8") ||
     eq(clone(lt), "u16") ||
     eq(clone(lt), "u32") ||
     eq(clone(lt), "u64") ||

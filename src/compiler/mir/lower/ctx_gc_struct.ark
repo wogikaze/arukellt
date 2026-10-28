@@ -243,7 +243,10 @@ fn gc_struct_scalar_field_suffix(type_name: String) -> String {
     if eq(clone(type_name), "i32") || eq(clone(type_name), "I32") {
         return String_from("_i32")
     }
-    if eq(clone(type_name), "char") || eq(clone(type_name), "u8") || eq(clone(type_name), "u16") || eq(clone(type_name), "u32") || eq(clone(type_name), "u64") || eq(clone(type_name), "i16") {
+    if eq(clone(type_name), "char") || eq(clone(type_name), "u8") ||
+    eq(clone(type_name), "i8") || eq(clone(type_name), "u16") ||
+    eq(clone(type_name), "u32") || eq(clone(type_name), "u64") ||
+    eq(clone(type_name), "i16") {
         return String_from("_i32")
     }
     // Struct-field funcrefs use nullable `(ref $sig)` (emit_struct_field_type).

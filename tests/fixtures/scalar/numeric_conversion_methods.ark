@@ -2,11 +2,11 @@
 // (#917 / ADR-087). Every call below uses the canonical ADR-067 method form.
 // Results are stored before comparison: chained conversion calls / method
 // results used directly in a condition currently hit a GC MIR temp gap.
-// i8_to_i32 is still stable (no receiver method; the method frame traps under
-// wasm32-gc). i32::to_u16_wrapping, i32::to_i16_wrapping, and
-// u64::to_u32_wrapping are not exercised here: their intrinsic bodies are still
-// deferred compiler stubs, so they trap exactly like the deprecated free
-// wrappers (Wave-2 blocker).
+// Narrow-integer receivers are explicitly annotated: an unannotated narrow
+// literal binding carries no local type name yet. i32::to_u16_wrapping,
+// i32::to_i16_wrapping, and u64::to_u32_wrapping are not exercised here: their
+// intrinsic bodies are still deferred compiler stubs, so they trap exactly
+// like the deprecated free wrappers (Wave-2 blocker).
 use std::core::convert
 use std::host::process
 
@@ -24,6 +24,22 @@ fn main() {
         process::exit(1)
     }
     if d_i32 != -2 {
+        process::exit(1)
+    }
+
+    let d8: i8 = -5i8
+    let d8_min: i8 = -128i8
+    let d8_max: i8 = 127i8
+    let d8_i32 = (d8).to_i32()
+    let d8_min_i32 = (d8_min).to_i32()
+    let d8_max_i32 = (d8_max).to_i32()
+    if d8_i32 != -5 {
+        process::exit(1)
+    }
+    if d8_min_i32 != -128 {
+        process::exit(1)
+    }
+    if d8_max_i32 != 127 {
         process::exit(1)
     }
 

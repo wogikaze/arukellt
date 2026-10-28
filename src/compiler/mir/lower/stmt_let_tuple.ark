@@ -201,8 +201,9 @@ fn tuple_field_vt_from_struct_name(struct_name: String, elem_index: i32) -> i32 
     }
     if eq(clone(key), "i32") || eq(clone(key), "I32") ||
     eq(clone(key), "bool") || eq(clone(key), "char") ||
-    eq(clone(key), "u8") || eq(clone(key), "u16") ||
-    eq(clone(key), "u32") || eq(clone(key), "i16") ||
+    eq(clone(key), "u8") || eq(clone(key), "i8") ||
+    eq(clone(key), "u16") || eq(clone(key), "u32") ||
+    eq(clone(key), "i16") ||
     eq(clone(key), "unit") || eq(clone(key), "()") {
         return value_types::VT_I32()
     }

@@ -16,6 +16,41 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-28 — `i8::to_i32` and the annotated-i8 MIR typing fix (#917, ADR-046, ADR-067, ADR-087)
+
+- **Basis**: [ADR-067](../adr/ADR-067-language-v2-numeric-conversion.md)
+  canonical scalar conversion methods and
+  [ADR-046](../adr/ADR-046-free-function-eradication.md) free-function
+  eradication. `i8_to_i32` was the one numeric deferral from the ADR-087
+  stable-64 wave.
+- **Compiler fix**: `corehir/type_ann_local_name.ark` now keeps `i8` in the
+  annotated-let scalar type-name set. Without it, `let x: i8 = -5` produced a
+  receiver local with no type name; MIR method resolution fell back to the
+  bare `to_i32` callee, and the unresolved call emitted `drop; unreachable`
+  even though `impl i8` existed. The same scalar-name classification now
+  recognizes `i8` for struct fields, `Vec<i8>` elements, call-result typing,
+  and print arguments; i8 enum and tuple payload bindings still have
+  independent typing gaps.
+- **Memory64**: `wasm/intrinsic_cast.ark` sign-extends `i8`/`i16` results with
+  `i64.extend8_s` / `i64.extend16_s` when the scalar width is Memory64; the
+  i32-only op left an i32 on an i64 result slot.
+- **Surface**: `std/core/convert.ark` adds
+  `impl i8 { fn to_i32(self: i8) -> i32 }`. `i8_to_i32` moves to
+  `deprecated` (`deprecated_by = "i8::to_i32"`) with W0009 coverage, so all
+  17 numeric conversions now have their canonical method.
+- **Fixtures**: `scalar/numeric_conversion_methods.ark` covers `-5i8`,
+  `-128i8`, and `127i8` receivers. The run fixture executes on the wasm32-gc
+  component path and the wasm32 linear path via
+  `check-cross-backend-parity.py`; a standalone `--target wasm32-gc`
+  Memory64 core compile also validates.
+- **Residual**: `i32::to_u16_wrapping`, `i32::to_i16_wrapping`, and
+  `u64::to_u32_wrapping` still trap. Their intrinsic handlers are unbound
+  prelude shims in `mir/lower/stdlib_body_defer.ark`, a separate Wave-2
+  blocker. Unannotated narrow literal bindings (`let x = 5i8`) still carry no
+  local type name; that affects `u8`/`i16` as well and is unchanged. An i8
+  enum or tuple payload binding still hits a scalar/ref signature mismatch,
+  which is separate from the annotated-let receiver path fixed here.
+
 ## 2026-10-28 — env frees retired behind `Env` and the MIR env call-result fix (#917, ADR-046, ADR-087)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2. The

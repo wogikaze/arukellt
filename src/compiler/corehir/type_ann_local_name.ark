@@ -123,6 +123,7 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
     }
     if eq(clone(ann_name), "char") ||
     eq(clone(ann_name), "u8") ||
+    eq(clone(ann_name), "i8") ||
     eq(clone(ann_name), "u16") ||
     eq(clone(ann_name), "u32") ||
     eq(clone(ann_name), "u64") ||

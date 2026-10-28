@@ -8,10 +8,10 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 166 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 165 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 10 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 45 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 64 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 65 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -550,7 +550,7 @@ let input = stdio::read_stdin()
 | ~~`i32_to_u16`~~ ⚠️ Deprecated → `i32::to_u16_wrapping` | `(i32) -> u16` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u16` | - |
 | ~~`i32_to_u8`~~ ⚠️ Deprecated → `i32::to_u8_wrapping` | `(i32) -> u8` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u8` | - |
 | ~~`i64_to_i32`~~ ⚠️ Deprecated → `i64::to_i32_checked` | `(i64) -> i32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i64_to_i32` | - |
-| `i8_to_i32` | `(i8) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i8_to_i32` | - |
+| ~~`i8_to_i32`~~ ⚠️ Deprecated → `i8::to_i32` | `(i8) -> i32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i8_to_i32` | - |
 | ~~`u16_to_i32`~~ ⚠️ Deprecated → `u16::to_i32` | `(u16) -> i32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_u16_to_i32` | - |
 | ~~`u32_to_u64`~~ ⚠️ Deprecated → `u32::to_u64` | `(u32) -> u64` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_u32_to_u64` | - |
 | ~~`u64_to_u32`~~ ⚠️ Deprecated → `u64::to_u32_wrapping` | `(u64) -> u32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_u64_to_u32` | - |
@@ -658,7 +658,7 @@ let input = stdio::read_stdin()
 
 ## Deprecated APIs
 
-> ⚠️ **64 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **65 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -696,6 +696,7 @@ let input = stdio::read_stdin()
 | ~~`i32_to_u32`~~ | `i32::to_u32_bits` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_u8`~~ | `i32::to_u8_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i64_to_i32`~~ | `i64::to_i32_checked` | [migration-guidance.md](migration-guidance.md) |
+| ~~`i8_to_i32`~~ | `i8::to_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`len`~~ | `Vec::len` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_back`~~ | `LinkedList::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_clear`~~ | `LinkedList::clear` | [migration-guidance.md](migration-guidance.md) |

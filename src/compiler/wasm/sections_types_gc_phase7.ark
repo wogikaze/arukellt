@@ -51,6 +51,7 @@ fn gc_vec_elem_name_is_struct_ref(elem: String) -> bool {
     eq(clone(elem), "bool") ||
     eq(clone(elem), "char") ||
     eq(clone(elem), "u8") ||
+    eq(clone(elem), "i8") ||
     eq(clone(elem), "u16") ||
     eq(clone(elem), "u32") ||
     eq(clone(elem), "u64") ||

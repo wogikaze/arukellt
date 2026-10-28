@@ -83,8 +83,9 @@ fn typed_payload_type_name_is_scalar(type_name: String) -> bool {
         return true
     }
     if eq(clone(type_name), "char") || eq(clone(type_name), "u8") ||
-    eq(clone(type_name), "u16") || eq(clone(type_name), "u32") ||
-    eq(clone(type_name), "u64") || eq(clone(type_name), "i16") {
+    eq(clone(type_name), "i8") || eq(clone(type_name), "u16") ||
+    eq(clone(type_name), "u32") || eq(clone(type_name), "u64") ||
+    eq(clone(type_name), "i16") {
         return true
     }
     false
@@ -208,7 +209,10 @@ fn gc_enum_field_sig_for_type_ctx_slot(struct_slot: i32, type_name: String) -> S
     if eq(clone(type_name), "i32") || eq(clone(type_name), "I32") {
         return "_f1_i32"
     }
-    if eq(clone(type_name), "char") || eq(clone(type_name), "u8") || eq(clone(type_name), "u16") || eq(clone(type_name), "u32") || eq(clone(type_name), "u64") || eq(clone(type_name), "i16") {
+    if eq(clone(type_name), "char") || eq(clone(type_name), "u8") ||
+    eq(clone(type_name), "i8") || eq(clone(type_name), "u16") ||
+    eq(clone(type_name), "u32") || eq(clone(type_name), "u64") ||
+    eq(clone(type_name), "i16") {
         return "_f1_i32"
     }
     // Vec types: pick the concrete GC vec slot (String→ref19, i32→ref10).

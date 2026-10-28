@@ -396,8 +396,9 @@ fn tuple_gc_field_sig_for_key(ctx: LowerCtx, key: String, field_idx: i32) -> Str
     }
     if eq(clone(key), "i32") || eq(clone(key), "I32") ||
     eq(clone(key), "bool") || eq(clone(key), "char") ||
-    eq(clone(key), "u8") || eq(clone(key), "u16") ||
-    eq(clone(key), "u32") || eq(clone(key), "i16") ||
+    eq(clone(key), "u8") || eq(clone(key), "i8") ||
+    eq(clone(key), "u16") || eq(clone(key), "u32") ||
+    eq(clone(key), "i16") ||
     eq(clone(key), "unit") || eq(clone(key), "()") {
         return prefix.concat("_i32")
     }
@@ -472,9 +473,9 @@ fn tuple_gc_vec_field_ref_suffix(type_name: String) -> String {
     }
     if eq(clone(elem), "i32") || eq(clone(elem), "I32") ||
     eq(clone(elem), "bool") || eq(clone(elem), "char") ||
-    eq(clone(elem), "u8") || eq(clone(elem), "u16") ||
-    eq(clone(elem), "u32") || eq(clone(elem), "u64") ||
-    eq(clone(elem), "i16") {
+    eq(clone(elem), "u8") || eq(clone(elem), "i8") ||
+    eq(clone(elem), "u16") || eq(clone(elem), "u32") ||
+    eq(clone(elem), "u64") || eq(clone(elem), "i16") {
         return "_ref10"
     }
     "_ref25"

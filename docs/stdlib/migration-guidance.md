@@ -52,7 +52,9 @@ and the [changelog](changelog.md).
 The [#917](https://github.com/wogikaze/arukellt/issues/917) wave converted the
 `stable` `must delete` families listed by [ADR-087](../adr/ADR-087-0x-deprecation-exception.md)
 to `stability = "deprecated"` with `deprecated_by`, `deprecated_since = "0.1.0"`,
-and `remove_in = "1.0.0"` (60 entries; `i8_to_i32` is an individual deferral). The bare names emit **W0009** while they remain
+and `remove_in = "1.0.0"` (60 entries). The one deferral, `i8_to_i32`, was
+converted on 2026-10-28 after `i8::to_i32` landed, so the numeric family is now
+17 deprecated entries. The bare names emit **W0009** while they remain
 resolvable; the gated prelude names also need an explicit
 `use std::prelude::{name}` before the warning can fire. `remove_in` is an upper
 bound under ADR-087, not the earliest removal. Wave 2 (2026-10-27) deleted the
@@ -87,13 +89,13 @@ E0100 hints retained). Those removals were made under ADR-014 D4 / the 0.x
 exception before ADR-087; their migration rows remain in
 [`wasm.md`](modules/wasm.md) and the prelude documentation.
 
-### Numeric conversions (16 deprecated + 1 deferral)
+### Numeric conversions (17 deprecated)
 
 | Deprecated API | Replacement |
 |----------------|-------------|
 | `u8_to_i32(x)` | `(x).to_i32()` |
 | `u16_to_i32(x)` | `(x).to_i32()` |
-| `i8_to_i32(x)` | **deferred**: no receiver method yet (the `i8` method frame traps under wasm32-gc); the free remains stable |
+| `i8_to_i32(x)` | `(x).to_i32()` |
 | `i16_to_i32(x)` | `(x).to_i32()` |
 | `i32_to_u8(x)` | `(x).to_u8_wrapping()` |
 | `i32_to_u16(x)` | `(x).to_u16_wrapping()` (method and free currently share the deferred-body trap) |

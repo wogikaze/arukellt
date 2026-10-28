@@ -115,6 +115,7 @@ fn type_name_is_scalar_primitive(type_name: String) -> bool {
     if eq(clone(type_name), String_from("bool")) ||
     eq(clone(type_name), String_from("char")) ||
     eq(clone(type_name), String_from("u8")) ||
+    eq(clone(type_name), String_from("i8")) ||
     eq(clone(type_name), String_from("u16")) ||
     eq(clone(type_name), String_from("u32")) ||
     eq(clone(type_name), String_from("u64")) ||

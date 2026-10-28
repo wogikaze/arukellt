@@ -39,7 +39,7 @@ fn emit_i8_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, callee: String
         return true
     }
     if ends_with(clone(callee), "i16_to_i32") {
-        helpers_numeric_sign_extend::emit_i32_extend16_s(w)
+        helpers_numeric_sign_extend::emit_i16_to_i32_sign_extend(w)
         return true
     }
     if ends_with(clone(callee), "u8_to_i32") {
@@ -49,11 +49,11 @@ fn emit_i8_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, callee: String
         return true
     }
     if ends_with(clone(callee), "i8_to_i32") {
-        helpers_numeric_sign_extend::emit_i32_extend8_s(w)
+        helpers_numeric_sign_extend::emit_i8_to_i32_sign_extend(w)
         return true
     }
     // Unknown alias sharing the runtime.i8_to_i32 handler: keep prior signed i8.
-    helpers_numeric_sign_extend::emit_i32_extend8_s(w)
+    helpers_numeric_sign_extend::emit_i8_to_i32_sign_extend(w)
     return true
 }
 

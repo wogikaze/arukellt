@@ -68,7 +68,8 @@ fn mark_fnsig_callback_result_type(ctx: LowerCtx, callee_type_name: String, dest
     }
     if eq(clone(ret_seg), String_from("i32")) || eq(clone(ret_seg), String_from("bool")) ||
     eq(clone(ret_seg), String_from("char")) || eq(clone(ret_seg), String_from("u8")) ||
-    eq(clone(ret_seg), String_from("u16")) || eq(clone(ret_seg), String_from("u32")) {
+    eq(clone(ret_seg), String_from("i8")) || eq(clone(ret_seg), String_from("u16")) ||
+    eq(clone(ret_seg), String_from("u32")) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, ret_seg)
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
         return

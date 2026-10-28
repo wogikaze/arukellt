@@ -20,3 +20,22 @@ fn emit_i64_extend16_s(w: WasmWriter) {
 fn emit_i64_extend32_s(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_I64_EXTEND32_S())
 }
+
+// Narrow-to-i32 results live in i64 local slots under Memory64, so the
+// sign extension has to run at the target width. Extending the i32 op
+// directly would leave an i32 on an i64 operand stack.
+fn emit_i8_to_i32_sign_extend(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        emit_i64_extend8_s(w)
+        return
+    }
+    emit_i32_extend8_s(w)
+}
+
+fn emit_i16_to_i32_sign_extend(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        emit_i64_extend16_s(w)
+        return
+    }
+    emit_i32_extend16_s(w)
+}

@@ -5,8 +5,8 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 221
-- **Historical/deprecated names:** 64
+- **Canonical names:** 220
+- **Historical/deprecated names:** 65
 - **Total entries:** 285
 
 Related:
@@ -143,7 +143,6 @@ Current public API names, sorted alphabetically.
 | `hashset_str_remove` | `std::collections::hash` | `stable` | Collections |
 | `hashset_to_vec` | `std::collections::hash` | `stable` | Collections |
 | `hashset_union` | `std::collections::hash` | `stable` | Collections |
-| `i8_to_i32` | `prelude` | `stable` | Scalar Conversion |
 | `id` | `std::host::process` | `stable` | Host Process |
 | `ifft` | `std::signal` | `stable` | Signal |
 | `index_map_get` | `std::collections::ordered` | `experimental` | Collections |
@@ -285,6 +284,7 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`i32_to_u32`~~ | `i32::to_u32_bits` | Convert | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_u8`~~ | `i32::to_u8_wrapping` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`i64_to_i32`~~ | `i64::to_i32_checked` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
+| ~~`i8_to_i32`~~ | `i8::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`len`~~ | `Vec::len` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_back`~~ | `LinkedList::back` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_clear`~~ | `LinkedList::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -480,7 +480,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`i32_to_u32`~~ | ⚠️ deprecated | `prelude` | → `i32::to_u32_bits` · [migration guide](migration-guidance.md) |
 | ~~`i32_to_u8`~~ | ⚠️ deprecated | `prelude` | → `i32::to_u8_wrapping` · [migration guide](migration-guidance.md) |
 | ~~`i64_to_i32`~~ | ⚠️ deprecated | `prelude` | → `i64::to_i32_checked` · [migration guide](migration-guidance.md) |
-| `i8_to_i32` | ✅ `stable` | `prelude` | Scalar Conversion |
+| ~~`i8_to_i32`~~ | ⚠️ deprecated | `prelude` | → `i8::to_i32` · [migration guide](migration-guidance.md) |
 | `id` | ✅ `stable` | `std::host::process` | Host Process |
 | `ifft` | ✅ `stable` | `std::signal` | Signal |
 | `index_map_get` | ✅ `experimental` | `std::collections::ordered` | Collections |
