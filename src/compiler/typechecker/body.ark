@@ -36,7 +36,7 @@ fn check_fn_body_with_sig(mut env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<
     if child_count > 0 {
         let body = ast_access::node_child_at(fn_node, child_count - 1)
         infer::check_stmt(env, scope, fn_sigs, enum_defs, body)
-        body_returns::check_tail_escape(env, scope, body)
+        body_returns::check_tail_escape(env, scope, fn_sigs, body)
         proof_contracts::check_proof_contracts(env, fn_sigs, enum_defs, fn_node, sig)
         contract_env_record::type_env_finalize_unused_bindings(env)
         let return_tag = contract_type_access::TypeInfo_tag(contract_fn_sig::FnSig_return_type(sig))

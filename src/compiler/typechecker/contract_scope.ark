@@ -30,6 +30,10 @@ struct VarBinding {
     // binding is immutable, but the reason is the call boundary rather than a
     // local `let`, so the assignment diagnostic can name the missing `mut`.
     is_shared_param: bool,
+    // The binding is a parameter or receiver of either mode. ADR-088 §6
+    // restricts borrowed `Box<T>` escapes, so the checker must distinguish a
+    // borrowed parameter from a local `let` of the same type.
+    is_param: bool,
 }
 
 struct LocalScope {
@@ -58,6 +62,7 @@ fn VarBinding_new_with_flags(name: String, ty: TypeInfo, is_mutable: bool, is_co
         has_captures: false,
         has_borrow_captures: false,
         is_shared_param: false,
+        is_param: false,
     }
 }
 
@@ -79,6 +84,7 @@ fn VarBinding_new_scheme_with_flags(name: String, scheme: TypeScheme, is_mutable
         has_captures: false,
         has_borrow_captures: false,
         is_shared_param: false,
+        is_param: false,
     }
 }
 
@@ -108,6 +114,14 @@ fn VarBinding_is_shared_param(binding: VarBinding) -> bool {
 
 fn VarBinding_set_is_shared_param(mut binding: VarBinding, is_shared_param: bool) {
     binding.is_shared_param = is_shared_param
+}
+
+fn VarBinding_is_param(binding: VarBinding) -> bool {
+    binding.is_param
+}
+
+fn VarBinding_set_is_param(mut binding: VarBinding, is_param: bool) {
+    binding.is_param = is_param
 }
 
 fn VarBinding_is_copy(binding: VarBinding) -> bool {

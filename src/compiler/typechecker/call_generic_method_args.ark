@@ -1,7 +1,8 @@
 use typechecker::ast_access
 use typechecker::ast_expr_predicates
 use typechecker::associated_types
-use typechecker::call_generic_fn_args
+use typechecker::param_mode
+use typechecker::sigs
 use typechecker::contract_type_access
 use typechecker::contract_fn_sig
 use typechecker::instantiate
@@ -34,8 +35,8 @@ fn constrain_generic_method_args(
         // bind their own item type variables — the same recovery the
         // generic free-function path applies (#887 / #860).
         if contract_type_access::TypeInfo_tag(arg_ty) == commands::TY_UNKNOWN() &&
-        ast_expr_predicates::node_is_ident(arg_node) {
-            let fn_ty = call_generic_fn_args::fn_value_type_from_sig(env, fn_sigs, ast_access::node_text(arg_node))
+        (ast_expr_predicates::node_is_ident(arg_node) || ast_expr_predicates::node_is_path(arg_node)) {
+            let fn_ty = sigs::fn_value_type_from_sig(env, fn_sigs, ast_access::node_text(arg_node))
             if contract_type_access::TypeInfo_tag(fn_ty) == commands::TY_FN() {
                 arg_ty = fn_ty
             }
@@ -43,6 +44,15 @@ fn constrain_generic_method_args(
         let pty = contract_fn_sig::FnSig_param_at(sig, a + 1)
         let inst_pt = instantiate::instantiate_type(pty, var_names, var_types)
         let projected_pt = associated_types::resolve_generic_call_type(env, infer_env, sig, var_names, var_types, inst_pt)
+        param_mode::check_fn_type_value(
+            env,
+            scope,
+            fn_sigs,
+            arg_node,
+            projected_pt,
+            arg_ty,
+            String_from("a function with a `mut` parameter cannot be passed where a shared function type is expected")
+        )
         unify::unify(infer_env, projected_pt, arg_ty)
         a = a + 1
     }

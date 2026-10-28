@@ -18,6 +18,7 @@ use typechecker::enum_expr
 use typechecker::contract_fn_sig
 use typechecker::contract_type_access
 use typechecker::names
+use typechecker::ownership
 use typechecker::param_mode
 use typechecker::scope
 use typechecker::sigs
@@ -46,6 +47,19 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
     }
     let enum_variant_ty = enum_expr::infer_enum_variant_call(enum_defs, callee)
     if contract_type_access::TypeInfo_tag(enum_variant_ty) != commands::TY_UNKNOWN() {
+        // Constructing an enum stores every payload value, so a borrowed
+        // `Box<T>` parameter cannot appear here (ADR-088 §6).
+        if env.is_ownership_tracking_enabled {
+            let mut store_arg = 1
+            while store_arg < child_count {
+                ownership::check_borrowed_box_escape(
+                    env,
+                    scope,
+                    ast_access::node_child_at(node, store_arg)
+                )
+                store_arg = store_arg + 1
+            }
+        }
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, child_count - 1)
         return enum_variant_ty
     }
@@ -255,9 +269,36 @@ fn infer_concrete_call_expr(
     // not overload-aware, and their declared signatures are placeholders or
     // overloads (`len`, `push`, `to_string`, `eq`, `assert_eq_i64`, ...).
     // Checking them against the first flat signature would false-fail valid
-    // calls (#936).
-    call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, arg_count)
+    // calls (#936). The argument inference still checks the function-type
+    // mode direction (ADR-088 §7), which does not depend on unification.
+    infer_concrete_call_args_with_fn_modes(env, scope, fn_sigs, enum_defs, node, sig, arg_count)
     contract_fn_sig::FnSig_return_type(sig)
+}
+
+fn infer_concrete_call_args_with_fn_modes(
+    mut env: TypeEnv,
+    mut scope: LocalScope,
+    fn_sigs: Vec<FnSig>,
+    enum_defs: Vec<EnumInfo>,
+    node: AstNode,
+    sig: FnSig,
+    arg_count: i32
+) {
+    let mut a = 0
+    while a < arg_count {
+        let arg_node = ast_access::node_child_at(node, a + 1)
+        let arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
+        param_mode::check_fn_type_value(
+            env,
+            scope,
+            fn_sigs,
+            arg_node,
+            contract_fn_sig::FnSig_param_at(sig, a),
+            arg_ty,
+            String_from("a function with a `mut` parameter cannot be passed where a shared function type is expected")
+        )
+        a = a + 1
+    }
 }
 
 // Concrete prelude frees lower by name from their prelude signatures, so

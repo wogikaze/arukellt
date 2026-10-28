@@ -1,0 +1,18 @@
+// ADR-088 §7: an explicit `return` checks the same function-type direction
+// as the annotated `let` binding.
+struct Point {
+    x: i32,
+}
+
+fn bump(mut p: Point) -> i32 {
+    p.x = p.x + 1
+    p.x
+}
+
+fn pick() -> fn(Point) -> i32 {
+    return bump
+}
+
+fn main() {
+    let _f = pick()
+}

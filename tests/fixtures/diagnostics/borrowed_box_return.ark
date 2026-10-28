@@ -1,0 +1,12 @@
+use std::prelude::Box_new
+
+// ADR-088 §6: returning a borrowed `Box<T>` parameter would transfer the
+// caller's unique owner out of the call scope.
+fn take(mut b: Box<i32>) -> Box<i32> {
+    return b
+}
+
+fn main() {
+    let mut boxed = Box_new(1)
+    let _stolen = take(boxed)
+}

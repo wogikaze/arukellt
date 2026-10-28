@@ -622,10 +622,11 @@ immutable, so assigning through it is E0226; a `mut` parameter or `mut self`
 is mutable in the body. The mode is part of the `TY_FN` type, so a call
 through a function value enforces the same rules, a shared-parameter function
 value is assignable to a `mut` position, and the reverse is rejected with
-E0225 at annotated `let` bindings. A borrowed `Box<T>` escape is not rejected,
-the reverse function-mode direction is not applied at function-argument and
-return positions, and the missing E0212 for some moved arguments is tracked by
-[#944](../../issues/open/944-move-after-use-not-diagnosed.md); see
+E0225 at annotated `let` bindings, function arguments, and return positions;
+a module-qualified function path (`prelude::push`) is recovered for the same
+check. A borrowed `Box<T>` parameter cannot be returned, stored in an
+aggregate, or `unbox`ed (E0227). The missing E0212 for some moved arguments is
+tracked by [#944](../../issues/open/944-move-after-use-not-diagnosed.md); see
 [../current-state.md](../current-state.md).
 
 ### 3.6 Method Call

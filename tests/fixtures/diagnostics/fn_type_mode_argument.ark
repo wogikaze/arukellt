@@ -1,0 +1,18 @@
+// ADR-088 §7: passing a `mut`-parameter function where the parameter type is
+// shared would let the callee pass an immutable place to a mutating function.
+struct Point {
+    x: i32,
+}
+
+fn bump(mut p: Point) -> i32 {
+    p.x = p.x + 1
+    p.x
+}
+
+fn take(f: fn(Point) -> i32) -> i32 {
+    f(Point { x: 0 })
+}
+
+fn main() {
+    take(bump)
+}

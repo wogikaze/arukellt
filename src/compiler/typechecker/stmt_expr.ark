@@ -2,6 +2,7 @@ use typechecker::ast_access
 use typechecker::kinds
 use typechecker::ownership
 use typechecker::closure_capture
+use typechecker::param_mode
 
 fn check_expr_stmt(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
     if ast_access::node_child_count(node) > 0 {
@@ -16,15 +17,38 @@ fn check_expr_stmt(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
             // backend needs to supply captures at call sites (#872).
             closure_capture::closure_capture_escape(env, scope, ast_access::node_child_at(child, 1))
         }
+        // `unbox(b)`, `Box_new(b)`, and an aggregate literal statement are
+        // stores/escapes even though they are not `let` initializers.
+        if env.is_ownership_tracking_enabled && is_borrowed_box_store_position(child) {
+            ownership::check_borrowed_box_escape(env, scope, child)
+        }
     }
+}
+
+fn is_borrowed_box_store_position(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_CALL()) ||
+    ast_access::node_kind_is(node, kinds::NK_ASSIGN()) ||
+    ast_access::node_kind_is(node, kinds::NK_TUPLE()) ||
+    ast_access::node_kind_is(node, kinds::NK_ARRAY_LIT()) ||
+    ast_access::node_kind_is(node, kinds::NK_STRUCT_LIT())
 }
 
 fn check_return_stmt(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
     if ast_access::node_child_count(node) > 0 {
         let child = ast_access::node_child_at(node, 0)
-        let _inferred_ty = infer_expr(env, scope, fn_sigs, enum_defs, child)
+        let inferred_ty = infer_expr(env, scope, fn_sigs, enum_defs, child)
         if env.is_ownership_tracking_enabled {
             closure_capture::closure_capture_escape(env, scope, child)
+            ownership::check_borrowed_box_escape(env, scope, child)
+            param_mode::check_fn_type_value(
+                env,
+                scope,
+                fn_sigs,
+                child,
+                env.current_fn_return_type,
+                inferred_ty,
+                String_from("a function with a `mut` parameter cannot be returned as a shared function type")
+            )
         }
     }
 }

@@ -702,9 +702,10 @@ because a read-only function is safe behind a mutable borrow. The reverse is
 rejected: assigning a `mut`-parameter function to a shared function type would
 let a caller pass an immutable place to a function that mutates it.
 
-The mode direction is checked at annotated `let` bindings. Calls through a
-`fn(mut T) -> U` value still require a mutable place (E0223) and obey the
-same-root rule (E0224).
+The mode direction is checked at annotated `let` bindings, function-argument
+positions, and return positions, including a module-qualified function path
+such as `prelude::push`. Calls through a `fn(mut T) -> U` value still require
+a mutable place (E0223) and obey the same-root rule (E0224).
 
 <!-- skip-doc-check kind="invalid-example" reason="E0225 rejects assigning a mut-parameter function to a shared function type" -->
 ```arukellt
@@ -751,6 +752,36 @@ fn bump(p: Point) {
 fn main() {
     let mut p = Point { x: 1 }
     bump(p)
+}
+```
+
+---
+### E0227 — borrowed `Box<T>` parameter escapes the call
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | typecheck |
+| **Message** | borrowed Box parameter cannot escape |
+
+A borrowed parameter may escape as a shared reference (ADR-088 §6), but
+`Box<T>` is a unique owner (ADR-060 §2), so sharing cannot represent it. A
+`Box<T>` parameter cannot be returned, stored in an aggregate (including an
+enum constructor), or passed to `unbox`; any of these would move the caller's
+unique owner out of the call scope. To transfer ownership, the caller passes
+an owned temporary value instead of a borrowed binding.
+
+<!-- skip-doc-check kind="invalid-example" reason="E0227 rejects returning a borrowed Box parameter" -->
+```arukellt
+use std::prelude::Box_new
+
+fn steal(mut b: Box<i32>) -> Box<i32> {
+    return b
+}
+
+fn main() {
+    let mut boxed = Box_new(1)
+    let _stolen = steal(boxed)
 }
 ```
 

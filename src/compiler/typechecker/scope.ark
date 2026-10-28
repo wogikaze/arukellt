@@ -34,6 +34,7 @@ fn scope_child(parent: LocalScope) -> LocalScope {
             contract_scope::VarBinding_set_has_captures(copied, contract_scope::VarBinding_has_captures(binding))
             contract_scope::VarBinding_set_has_borrow_captures(copied, contract_scope::VarBinding_has_borrow_captures(binding))
             contract_scope::VarBinding_set_is_shared_param(copied, contract_scope::VarBinding_is_shared_param(binding))
+            contract_scope::VarBinding_set_is_param(copied, contract_scope::VarBinding_is_param(binding))
             contract_scope::LocalScope_push_binding(child, copied)
         } else {
             let mut copied = contract_scope::VarBinding_new_with_flags(
@@ -48,6 +49,7 @@ fn scope_child(parent: LocalScope) -> LocalScope {
             contract_scope::VarBinding_set_has_captures(copied, contract_scope::VarBinding_has_captures(binding))
             contract_scope::VarBinding_set_has_borrow_captures(copied, contract_scope::VarBinding_has_borrow_captures(binding))
             contract_scope::VarBinding_set_is_shared_param(copied, contract_scope::VarBinding_is_shared_param(binding))
+            contract_scope::VarBinding_set_is_param(copied, contract_scope::VarBinding_is_param(binding))
             contract_scope::LocalScope_push_binding(child, copied)
         }
         i = i + 1
@@ -108,6 +110,7 @@ fn scope_define_with_flags(mut scope: LocalScope, name: String, ty: TypeInfo, is
 fn scope_define_param(mut scope: LocalScope, name: String, ty: TypeInfo, is_mutable: bool, is_copy: bool) {
     let mut binding = contract_scope::VarBinding_new_with_flags(name, ty, is_mutable, is_copy)
     contract_scope::VarBinding_set_is_shared_param(binding, !is_mutable)
+    contract_scope::VarBinding_set_is_param(binding, true)
     contract_scope::LocalScope_push_binding(scope, binding)
 }
 
@@ -156,6 +159,22 @@ fn scope_binding_is_shared_param(scope: LocalScope, name: String) -> bool {
         return false
     }
     contract_scope::VarBinding_is_shared_param(contract_scope::LocalScope_binding_at(scope, index))
+}
+
+fn scope_binding_is_param(scope: LocalScope, name: String) -> bool {
+    let index = scope_binding_index(scope, name)
+    if index < 0 {
+        return false
+    }
+    contract_scope::VarBinding_is_param(contract_scope::LocalScope_binding_at(scope, index))
+}
+
+fn scope_binding_type(scope: LocalScope, name: String) -> TypeInfo {
+    let index = scope_binding_index(scope, name)
+    if index < 0 {
+        return unknown_type()
+    }
+    contract_scope::VarBinding_type(contract_scope::LocalScope_binding_at(scope, index))
 }
 
 fn scope_binding_is_copy(scope: LocalScope, name: String) -> bool {

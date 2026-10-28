@@ -1,6 +1,8 @@
 use typechecker::kinds
 use typechecker::ast_access
 use typechecker::closure_capture
+use typechecker::ownership
+use typechecker::param_mode
 
 fn infer_block_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let count = ast_access::node_child_count(node)
@@ -9,12 +11,24 @@ fn infer_block_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>
         let child = ast_access::node_child_at(node, i)
         if i == count - 1 {
             // A trailing return never reaches check_return_stmt, so its
-            // closure-capture escape check would be skipped inside if/match
-            // branches. Run it here without changing the inferred type (#872).
+            // closure-capture, Box-escape, and function-mode checks would be
+            // skipped inside if/match branches. Run them here without
+            // changing the inferred type (#872, ADR-088 §6/§7).
             if ast_access::node_kind_is(child, kinds::NK_RETURN()) &&
             ast_access::node_child_count(child) > 0 &&
             env.is_ownership_tracking_enabled {
-                closure_capture::closure_capture_escape(env, scope, ast_access::node_child_at(child, 0))
+                let return_value = ast_access::node_child_at(child, 0)
+                closure_capture::closure_capture_escape(env, scope, return_value)
+                ownership::check_borrowed_box_escape(env, scope, return_value)
+                param_mode::check_fn_type_value(
+                    env,
+                    scope,
+                    fn_sigs,
+                    return_value,
+                    env.current_fn_return_type,
+                    TypeInfo_simple(commands::TY_UNKNOWN()),
+                    String_from("a function with a `mut` parameter cannot be returned as a shared function type")
+                )
             }
             return infer_expr(env, scope, fn_sigs, enum_defs, child)
         }

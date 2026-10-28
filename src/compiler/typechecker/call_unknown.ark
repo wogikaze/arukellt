@@ -31,6 +31,15 @@ fn infer_local_function_call(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: V
         let arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
         let param_ty = contract_type_access::TypeInfo_type_arg_at(fn_ty, i)
         let resolved_param_ty = unify::resolve_type(env, param_ty)
+        param_mode::check_fn_type_value(
+            env,
+            scope,
+            fn_sigs,
+            arg_node,
+            resolved_param_ty,
+            arg_ty,
+            String_from("a function with a `mut` parameter cannot be passed where a shared function type is expected")
+        )
         unify::unify(env, resolved_param_ty, arg_ty)
         i = i + 1
     }

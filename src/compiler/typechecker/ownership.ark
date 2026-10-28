@@ -5,7 +5,10 @@ use typechecker::ast_access
 use typechecker::scope
 use typechecker::ownership_types
 use typechecker::ast_expr_predicates
+use typechecker::contract_type_access
 use typechecker::contract_type_constructors
+use typechecker::names
+use typechecker::unify
 use parser::ast
 use diagnostics::codes
 use diagnostics::mod as diag_mod
@@ -142,6 +145,15 @@ fn consume_identifier(mut env: TypeEnv, mut scope: LocalScope, node: AstNode) {
     if scope::scope_binding_is_copy(scope, clone(name)) {
         return
     }
+    // ADR-088 §6: a `Box<T>` parameter is a call-scoped borrow of a unique
+    // owner. Unlike other non-Copy parameters it cannot escape by sharing, so
+    // any move out of the parameter would steal the caller's value. Report
+    // the move here; the store/return walker covers positions that never call
+    // consume_identifier.
+    if borrowed_box_param(env, scope, clone(name)) {
+        report_borrowed_box_escape(env, node, borrowed_box_escape_message(name))
+        return
+    }
     if !scope::scope_binding_is_function(scope, clone(name)) &&
     (scope::scope_binding_has_shared_borrow(scope, clone(name)) ||
         scope::scope_binding_has_mutable_borrow(scope, clone(name))) {
@@ -163,6 +175,162 @@ fn consume_identifier(mut env: TypeEnv, mut scope: LocalScope, node: AstNode) {
         return
     }
     scope::scope_mark_moved(scope, name, true)
+}
+
+fn borrowed_box_param(env: TypeEnv, scope: LocalScope, name: String) -> bool {
+    if !scope::scope_binding_is_param(scope, clone(name)) {
+        return false
+    }
+    type_is_borrowed_box(env, scope::scope_binding_type(scope, name))
+}
+
+// The prelude `Box<T>` is a generic enum. A user non-generic `struct Box`
+// shadows only the bare name, so requiring a type argument distinguishes the
+// unique-owner type from the shadowing struct.
+fn type_is_borrowed_box(env: TypeEnv, ty: TypeInfo) -> bool {
+    let resolved = unify::resolve_type(env, ty)
+    let tag = contract_type_access::TypeInfo_tag(resolved)
+    if tag != commands::TY_STRUCT() && tag != commands::TY_ENUM() {
+        return false
+    }
+    if !eq(contract_type_access::TypeInfo_name(resolved), String_from("Box")) {
+        return false
+    }
+    contract_type_access::TypeInfo_type_arg_count(resolved) >= 1
+}
+
+// The expression-statement pass and the tail pass both visit a block's last
+// expression, so the same node can reach the walker twice. Suppress the
+// second report for the same span while still allowing two distinct uses.
+fn report_borrowed_box_escape(mut env: TypeEnv, node: AstNode, message: String) {
+    let code = codes::DIAG_TYPE_BORROWED_BOX_ESCAPE()
+    let start = ast_access::node_span_start(node)
+    let end = ast_access::node_span_end(node)
+    let mut i = 0
+    while i < len(env.diagnostics) {
+        let diag = get_unchecked(env.diagnostics, i)
+        if eq(diag_record::diagnostic_code(diag), clone(code)) &&
+        diag_record::diagnostic_start(diag) == start &&
+        diag_record::diagnostic_end(diag) == end {
+            return
+        }
+        i = i + 1
+    }
+    report_ownership_error(env, code, node, message)
+}
+
+fn borrowed_box_escape_message(name: String) -> String {
+    "borrowed `Box<T>` parameter `".concat(
+        name.concat("` cannot be returned, stored, or unboxed")
+    )
+}
+
+// Walk the value-producing shapes of an expression and reject a borrowed
+// `Box<T>` parameter in an escape position (ADR-088 §6). `if` and `match`
+// contribute only their branch values: the condition and the match scrutinee
+// are reads, not escapes.
+fn check_borrowed_box_escape(mut env: TypeEnv, scope: LocalScope, node: AstNode) {
+    if ast_expr_predicates::node_is_ident(node) {
+        let name = ast_access::node_text(node)
+        if borrowed_box_param(env, scope, clone(name)) {
+            report_borrowed_box_escape(env, node, borrowed_box_escape_message(name))
+        }
+        return
+    }
+    let kind = ast_access::node_kind(node)
+    if kind == kinds::NK_EXPR_STMT() {
+        check_borrowed_box_escape_child(env, scope, node, 0)
+        return
+    }
+    if kind == kinds::NK_BLOCK() {
+        let count = ast_access::node_child_count(node)
+        check_borrowed_box_escape_child(env, scope, node, count - 1)
+        return
+    }
+    if kind == kinds::NK_IF_EXPR() {
+        let count = ast_access::node_child_count(node)
+        let mut i = 1
+        while i < count {
+            check_borrowed_box_escape(env, scope, ast_access::node_child_at(node, i))
+            i = i + 1
+        }
+        return
+    }
+    if kind == kinds::NK_MATCH_EXPR() {
+        check_borrowed_box_escape_match_arms(env, scope, node)
+        return
+    }
+    if kind == kinds::NK_TUPLE() || kind == kinds::NK_ARRAY_LIT() {
+        let count = ast_access::node_child_count(node)
+        let mut i = 0
+        while i < count {
+            check_borrowed_box_escape(env, scope, ast_access::node_child_at(node, i))
+            i = i + 1
+        }
+        return
+    }
+    if kind == kinds::NK_ARRAY_REPEAT() {
+        check_borrowed_box_escape_child(env, scope, node, 0)
+        return
+    }
+    if kind == kinds::NK_STRUCT_LIT() {
+        check_borrowed_box_escape_struct_fields(env, scope, node)
+        return
+    }
+    if kind == kinds::NK_ASSIGN() {
+        check_borrowed_box_escape_child(env, scope, node, 1)
+        return
+    }
+    if kind == kinds::NK_CALL() {
+        check_borrowed_box_escape_call_args(env, scope, node)
+        return
+    }
+}
+
+fn check_borrowed_box_escape_child(mut env: TypeEnv, scope: LocalScope, node: AstNode, index: i32) {
+    if index < 0 || index >= ast_access::node_child_count(node) {
+        return
+    }
+    check_borrowed_box_escape(env, scope, ast_access::node_child_at(node, index))
+}
+
+fn check_borrowed_box_escape_match_arms(mut env: TypeEnv, scope: LocalScope, node: AstNode) {
+    let count = ast_access::node_child_count(node)
+    let mut i = 1
+    while i < count {
+        let arm = ast_access::node_child_at(node, i)
+        check_borrowed_box_escape_child(env, scope, arm, ast_access::node_child_count(arm) - 1)
+        i = i + 1
+    }
+}
+
+fn check_borrowed_box_escape_struct_fields(mut env: TypeEnv, scope: LocalScope, node: AstNode) {
+    let count = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < count {
+        let field = ast_access::node_child_at(node, i)
+        check_borrowed_box_escape_child(env, scope, field, 0)
+        i = i + 1
+    }
+}
+
+// `unbox` moves its argument and `Box_new` stores it in a fresh Box; both are
+// escape sinks for a borrowed `Box<T>` regardless of the surrounding context.
+fn check_borrowed_box_escape_call_args(mut env: TypeEnv, scope: LocalScope, node: AstNode) {
+    if ast_access::node_child_count(node) < 2 {
+        return
+    }
+    let callee_name = ast_access::node_text(ast_access::node_child_at(node, 0))
+    let leaf = names::unqualified_type_name(callee_name)
+    if !eq(clone(leaf), String_from("unbox")) && !eq(clone(leaf), String_from("Box_new")) {
+        return
+    }
+    let count = ast_access::node_child_count(node)
+    let mut i = 1
+    while i < count {
+        check_borrowed_box_escape(env, scope, ast_access::node_child_at(node, i))
+        i = i + 1
+    }
 }
 
 // E0212 is also the v2 alias->move/borrow migration diagnostic (#878):

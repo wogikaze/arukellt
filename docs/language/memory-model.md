@@ -88,12 +88,14 @@ fill(xs)               // error: xs は不変 binding
 共有 `self` を不変 binding として扱い、そこからの代入を E0226 で拒否する。
 mode は `TY_FN` 型に含まれ、関数値経由の呼び出しにも同じ規則が適用される。
 共有仮引数の関数値を `mut` 位置へ代入できる一方、逆方向は注釈付き `let`
-binding で E0225 として拒否する。`std/`、`src/compiler/`、fixture は
-`mut` 仮引数と `let mut` place へ移行済みである。
-一方、関数引数・return 位置での逆方向検査、借用した `Box<T>` の escape 拒否は
-未実装である。規則の詳細は [spec.md §3.5.1](spec.md#351-argument-passing-and-parameter-modes)、
-実装は [#951](../../issues/open/951-mut-parameter-mode-and-call-borrow-checks.md) と
-[#944](../../issues/open/944-move-after-use-not-diagnosed.md) で追跡する。
+binding、関数引数、return 位置で E0225 として拒否する。module 修飾された
+関数 path も同じ検査の対象である。借用した `Box<T>` 仮引数の返却・集約値への
+格納・`unbox` は E0227 として拒否する。`std/`、`src/compiler/`、fixture は
+`mut` 仮引数と `let mut` place へ移行済みである。移動済み binding を実引数に
+渡す E0212 の一部は [#944](../../issues/open/944-move-after-use-not-diagnosed.md)
+で追跡する。規則の詳細は
+[spec.md §3.5.1](spec.md#351-argument-passing-and-parameter-modes)、実装は
+[#951](../../issues/open/951-mut-parameter-mode-and-call-borrow-checks.md) で追跡する。
 
 ## String / Vec（現行実装メモ）
 

@@ -1,0 +1,16 @@
+use std::prelude::Box_new
+
+struct Holder {
+    inner: Box<i32>,
+}
+
+// ADR-088 §6: an aggregate constructor stores its payload, so a borrowed
+// `Box<T>` parameter cannot be placed in it.
+fn stash(mut b: Box<i32>) -> Holder {
+    Holder { inner: b }
+}
+
+fn main() {
+    let mut boxed = Box_new(2)
+    let _stored = stash(boxed)
+}
