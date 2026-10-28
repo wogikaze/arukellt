@@ -1,0 +1,5 @@
+use std::prelude::{f64_bits_lo}
+
+fn main() {
+    let _bits = f64_bits_lo("x")
+}

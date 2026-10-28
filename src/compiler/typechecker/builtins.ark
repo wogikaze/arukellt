@@ -34,6 +34,89 @@ fn is_scalar_conversion_builtin(name: String) -> bool {
     eq(clone(name), "f32_to_f64") || eq(clone(name), "f64_to_f32")
 }
 
+// Concrete prelude frees whose declared parameter types are the whole call
+// contract. The emitter lowers them by name (intrinsic aliases / CoreOp
+// fallbacks), so checking only arity lets a wrong argument reach the backend
+// and produce invalid Wasm. Polymorphic placeholders (`len`, `push`,
+// `to_string`, `get`, `unwrap*`, `is_*`, ...) and generic helpers stay off this
+// table because their flat signatures are not the call contract (#936).
+//
+// Excluded on purpose:
+// - `eq`: bare `eq(...)` is overloaded across the `Eq` impls (char/i32/i64/
+//   bool/f64) while the flat index only holds the String shim.
+// - `assert_eq_i64`: the emitter widens i32 arguments at its i64 parameters,
+//   and existing fixtures compare `len(...)` results and unsuffixed literals
+//   through it.
+// - `char_to_string` / `push_char`: `char` is represented as i32 at the
+//   emitter boundary and existing stdlib code passes i32 codepoints
+//   (`char_to_string(48 + n)`, `push_char(text, 65)`).
+fn is_concrete_prelude_builtin(name: String) -> bool {
+    if is_scalar_conversion_builtin(clone(name)) {
+        return true
+    }
+    if is_text_prelude_builtin(clone(name)) {
+        return true
+    }
+    if is_scalar_prelude_builtin(clone(name)) {
+        return true
+    }
+    if is_math_prelude_builtin(clone(name)) {
+        return true
+    }
+    is_runtime_prelude_builtin(clone(name))
+}
+
+fn is_text_prelude_builtin(name: String) -> bool {
+    if eq(clone(name), "String_from") || eq(clone(name), "to_lower") ||
+    eq(clone(name), "to_upper") || eq(clone(name), "slice") {
+        return true
+    }
+    if eq(clone(name), "trim") || eq(clone(name), "substring") ||
+    eq(clone(name), "replace") || eq(clone(name), "split") {
+        return true
+    }
+    if eq(clone(name), "join") || eq(clone(name), "contains") ||
+    eq(clone(name), "starts_with") || eq(clone(name), "ends_with") {
+        return true
+    }
+    if eq(clone(name), "index_of") || eq(clone(name), "repeat") ||
+    eq(clone(name), "to_uppercase") || eq(clone(name), "to_lowercase") {
+        return true
+    }
+    if eq(clone(name), "lines") || eq(clone(name), "byte_len") ||
+    eq(clone(name), "byte_at") || eq(clone(name), "trim_start") {
+        return true
+    }
+    eq(clone(name), "trim_end") || eq(clone(name), "pad_left") ||
+    eq(clone(name), "pad_right") || eq(clone(name), "format_i32")
+}
+
+fn is_scalar_prelude_builtin(name: String) -> bool {
+    if eq(clone(name), "parse_i32") || eq(clone(name), "parse_i64") ||
+    eq(clone(name), "parse_f64") || eq(clone(name), "sqrt") {
+        return true
+    }
+    eq(clone(name), "f64_bits_lo") || eq(clone(name), "f64_bits_hi") ||
+    eq(clone(name), "format_bool") || eq(clone(name), "f32_to_string")
+}
+
+fn is_math_prelude_builtin(name: String) -> bool {
+    if eq(clone(name), "abs") || eq(clone(name), "min") ||
+    eq(clone(name), "max") {
+        return true
+    }
+    eq(clone(name), "clamp_i32") || eq(clone(name), "gcd")
+}
+
+fn is_runtime_prelude_builtin(name: String) -> bool {
+    if eq(clone(name), "panic") || eq(clone(name), "assert") ||
+    eq(clone(name), "assert_eq") {
+        return true
+    }
+    eq(clone(name), "assert_ne") || eq(clone(name), "assert_eq_str") ||
+    eq(clone(name), "exit")
+}
+
 fn builtin_call_return_type(name: String) -> TypeInfo {
     if eq(clone(name), "String_from") ||
     eq(clone(name), "i32_to_string") ||
