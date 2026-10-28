@@ -1,0 +1,16 @@
+// ADR-088 §3: a `mut self` method needs a mutable receiver place.
+
+struct Counter {
+    n: i32,
+}
+
+impl Counter {
+    fn bump(mut self) {
+        self.n = self.n + 1
+    }
+}
+
+fn main() {
+    let counter = Counter { n: 1 }
+    counter.bump()
+}

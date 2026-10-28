@@ -626,6 +626,68 @@ impl Iterator for Wrap<T> {
 ```
 
 ---
+### E0223 — `mut` parameter requires a mutable place
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | typecheck |
+| **Message** | mut parameter requires a mutable place |
+
+A `mut` parameter is a mutable borrow (ADR-088 §2/§4). Its argument must be a
+`let mut` binding, a `mut` parameter or `mut self` of the enclosing function, a
+field or element place rooted at one of these, or a temporary value. An
+immutable binding, a shared place, or an immutable receiver for a
+`mut self` method is rejected. `Copy` arguments are passed by value and are
+exempt because a `mut` parameter only rebinds the callee's copy.
+
+<!-- skip-doc-check kind="invalid-example" reason="E0223 rejects an immutable binding passed to a mut parameter" -->
+```arukellt
+struct Point {
+    x: i32,
+}
+
+fn bump(mut p: Point) {
+    p.x = p.x + 1
+}
+
+fn main() {
+    let p = Point { x: 1 }
+    bump(p)
+}
+```
+
+---
+### E0224 — overlapping places passed to one call
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | typecheck |
+| **Message** | same place passed to a mut parameter and another parameter |
+
+One call must not pass the same place to a `mut` parameter and to another
+parameter (ADR-088 §5). The check is syntactic on the root name and field path;
+it does not perform alias analysis. Element paths collapse to `[]`, so
+`v[0]` and `v[1]` are treated as overlapping.
+
+<!-- skip-doc-check kind="invalid-example" reason="E0224 rejects passing one place to a mut parameter and another parameter" -->
+```arukellt
+struct Point {
+    x: i32,
+}
+
+fn move_between(mut target: Point, source: Point) {
+    target.x = source.x
+}
+
+fn main() {
+    let mut p = Point { x: 1 }
+    move_between(p, p)
+}
+```
+
+---
 
 ## v0 Version Constraints & Target Errors — `E03xx`
 
@@ -1072,6 +1134,8 @@ one, please file a bug report.
 | E0219 | error | typecheck | invalid associated item |
 | E0221 | error | typecheck | trait method body is not supported |
 | E0222 | error | typecheck | undefined impl head type parameter |
+| E0223 | error | typecheck | mut parameter requires a mutable place |
+| E0224 | error | typecheck | same place passed to a mut parameter and another parameter |
 | E0300 | error | typecheck | traits are not available in v0 |
 | E0301 | error | typecheck | method call syntax is not available in v0 |
 | E0302 | error | typecheck | nested generics are not allowed in v0 |

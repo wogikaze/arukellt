@@ -36,6 +36,7 @@ fn fn_sig_from_fn_decl_with_params(
     let ann_count = ast_access::node_type_ann_count(node)
     let mut j = 0
     let param_types = Vec::new<TypeInfo>()
+    let param_modes = Vec::new<bool>()
     let child_count = ast_access::node_child_count(node)
     // The last child is the body only for fns that actually have one:
     // `= expr` bodies set the int_val marker and block bodies are
@@ -61,6 +62,7 @@ fn fn_sig_from_fn_decl_with_params(
                 pty = types::resolve_type_ann_node_generic(type_node, type_params)
             }
             push(param_types, pty)
+            push(param_modes, ast_access::node_is_mut(param))
             p = p + 1
         }
     }
@@ -76,7 +78,14 @@ fn fn_sig_from_fn_decl_with_params(
         }
         j = j + 1
     }
-    contract_fn_sig::FnSig_new(ast_access::node_text(node), param_types, return_type, type_params, type_param_bounds)
+    contract_fn_sig::FnSig_new_with_param_modes(
+        ast_access::node_text(node),
+        param_types,
+        param_modes,
+        return_type,
+        type_params,
+        type_param_bounds
+    )
 }
 
 fn fn_sig_from_const_decl(node: AstNode) -> FnSig {

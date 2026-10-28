@@ -1,0 +1,183 @@
+use std::prelude::{clone, eq, starts_with}
+use typechecker::ast_access
+use typechecker::ast_expr_predicates
+use typechecker::contract_fn_sig
+use typechecker::contract_type_access
+use typechecker::kinds
+use typechecker::ownership
+use typechecker::ownership_types
+use typechecker::scope
+use diagnostics::codes
+
+// Call-site half of ADR-088: a `mut` parameter is a mutable borrow, so the
+// argument must be a mutable place and no second argument may name an
+// overlapping place. The callee-side rules (shared parameters cannot be
+// assigned, mutable places inside the body) still need the std/selfhost
+// migration tracked by #951; this check only fires for the explicit `mut`
+// spelling, which no pre-migration declaration uses.
+fn check_call_parameter_modes(
+    env: TypeEnv,
+    scope: LocalScope,
+    sig: FnSig,
+    node: AstNode,
+    first_arg: i32,
+    receiver_ty: TypeInfo
+) {
+    if !env.is_ownership_tracking_enabled {
+        return
+    }
+    let param_count = contract_fn_sig::FnSig_param_count(sig)
+    let child_count = ast_access::node_child_count(node)
+    if param_count < 1 || first_arg < 0 || child_count < first_arg + param_count {
+        return
+    }
+    let mut index = 0
+    while index < param_count {
+        let arg_node = ast_access::node_child_at(node, first_arg + index)
+        if param_requires_mutable_place(env, sig, index, first_arg, receiver_ty) &&
+        !arg_is_mutable_place(scope, arg_node) {
+            ownership::report_ownership_error(
+                env,
+                codes::DIAG_TYPE_MUT_PARAM_PLACE(),
+                arg_node,
+                mutable_place_message(index, first_arg)
+            )
+        }
+        index = index + 1
+    }
+    check_overlapping_places(env, scope, sig, node, first_arg, param_count, receiver_ty)
+}
+
+// Copy parameters are passed by value, so `mut p: i32` only rebinds a local
+// copy (ADR-088 §2) and needs no mutable place. Type variables and unknown
+// types may resolve to Copy at the instantiation site, so only a known
+// non-Copy parameter enforces the rule.
+//
+// A method signature can keep `self` as TY_UNKNOWN when the impl head is not
+// generic (the callee binds the receiver type only for generic heads), so the
+// receiver position uses the inferred receiver type when it is known.
+fn param_requires_mutable_place(env: TypeEnv, sig: FnSig, index: i32, first_arg: i32, receiver_ty: TypeInfo) -> bool {
+    if !contract_fn_sig::FnSig_param_is_mut(sig, index) {
+        return false
+    }
+    let mut param_ty = contract_fn_sig::FnSig_param_at(sig, index)
+    if index == 0 && first_arg == 0 &&
+    contract_type_access::TypeInfo_tag(receiver_ty) != commands::TY_UNKNOWN() {
+        param_ty = receiver_ty
+    }
+    let tag = contract_type_access::TypeInfo_tag(param_ty)
+    if tag == commands::TY_UNKNOWN() || tag == commands::TY_TYPE_VAR() {
+        return false
+    }
+    !ownership_types::type_is_copy(env, param_ty)
+}
+
+fn mutable_place_message(param_index: i32, first_arg: i32) -> String {
+    if param_index == 0 && first_arg == 0 {
+        return "cannot call a `mut self` method on an immutable place"
+    }
+    "cannot pass an immutable place to a `mut` parameter"
+}
+
+fn arg_is_mutable_place(scope: LocalScope, node: AstNode) -> bool {
+    if ast_expr_predicates::node_is_ident(node) {
+        let name = ast_access::node_text(node)
+        if scope::scope_binding_index(scope, clone(name)) < 0 {
+            return true
+        }
+        return scope::scope_binding_is_mutable(scope, name)
+    }
+    let kind = ast_access::node_kind(node)
+    if kind == kinds::NK_FIELD_ACCESS() || kind == kinds::NK_INDEX() {
+        if ast_access::node_child_count(node) < 1 {
+            return true
+        }
+        return arg_is_mutable_place(scope, ast_access::node_child_at(node, 0))
+    }
+    true
+}
+
+// The conflict rule is syntactic: compare the root name and the field path.
+// Index paths collapse to `[]` because the checker does not evaluate index
+// expressions, so `v[0]` and `v[1]` conservatively overlap.
+fn check_overlapping_places(
+    env: TypeEnv,
+    scope: LocalScope,
+    sig: FnSig,
+    node: AstNode,
+    first_arg: i32,
+    param_count: i32,
+    receiver_ty: TypeInfo
+) {
+    let mut left = 0
+    while left < param_count {
+        let mut right = left + 1
+        while right < param_count {
+            if param_requires_mutable_place(env, sig, left, first_arg, receiver_ty) ||
+            param_requires_mutable_place(env, sig, right, first_arg, receiver_ty) {
+                let left_key = place_key(
+                    scope,
+                    ast_access::node_child_at(node, first_arg + left)
+                )
+                let right_key = place_key(
+                    scope,
+                    ast_access::node_child_at(node, first_arg + right)
+                )
+                if place_keys_overlap(clone(left_key), clone(right_key)) {
+                    ownership::report_ownership_error(
+                        env,
+                        codes::DIAG_TYPE_SAME_PLACE_BORROW(),
+                        ast_access::node_child_at(node, first_arg + right),
+                        "the same place `".concat(
+                            left_key.concat("` is passed to a `mut` parameter and another parameter in one call")
+                        )
+                    )
+                }
+            }
+            right = right + 1
+        }
+        left = left + 1
+    }
+}
+
+fn place_key(scope: LocalScope, node: AstNode) -> String {
+    if ast_expr_predicates::node_is_ident(node) {
+        let name = ast_access::node_text(node)
+        if scope::scope_binding_index(scope, clone(name)) < 0 {
+            return String_new()
+        }
+        return name
+    }
+    let kind = ast_access::node_kind(node)
+    if kind == kinds::NK_FIELD_ACCESS() {
+        return place_child_key(scope, node).concat(".".concat(ast_access::node_text(node)))
+    }
+    if kind == kinds::NK_INDEX() {
+        return place_child_key(scope, node).concat("[]")
+    }
+    String_new()
+}
+
+fn place_child_key(scope: LocalScope, node: AstNode) -> String {
+    if ast_access::node_child_count(node) < 1 {
+        return String_new()
+    }
+    place_key(scope, ast_access::node_child_at(node, 0))
+}
+
+fn place_keys_overlap(left: String, right: String) -> bool {
+    if len(left) == 0 || len(right) == 0 {
+        return false
+    }
+    if eq(clone(left), clone(right)) {
+        return true
+    }
+    let left_dot = clone(left).concat(".")
+    let left_bracket = clone(left).concat("[")
+    let right_dot = clone(right).concat(".")
+    let right_bracket = clone(right).concat("[")
+    return starts_with(clone(left), right_dot) ||
+    starts_with(clone(left), right_bracket) ||
+    starts_with(clone(right), left_dot) ||
+    starts_with(clone(right), left_bracket)
+}

@@ -3,6 +3,7 @@ use lexer::tokens
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
+use parser::core_ast_flag_fields
 use parser::core_ast_type_ann
 use parser::core_api_cursor
 use parser::core_api_expect
@@ -17,9 +18,11 @@ fn parse_regular_fn_params(p: Parser, node: AstNode) {
         }
         first = false
         core_api_cursor::skip_newlines(p)
+        let is_mut = core_api_expect::consume_optional_mut(p)
         let pname = core_api_expect::expect_token(p, tokens::TK_IDENT())
         let pname_text = token_state::Token_text(pname)
         let param = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), clone(pname_text), core_api_expect::tok_span(pname))
+        core_ast_flag_fields::AstNode_set_is_mut(param, is_mut)
         if eq(clone(pname_text), "self") && core_api_cursor::peek_kind(p) != tokens::TK_COLON() {
             core_ast_children::AstNode_push_child(node, param)
         } else {

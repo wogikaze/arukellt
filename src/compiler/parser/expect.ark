@@ -20,6 +20,19 @@ fn consume_closing_gt(p: Parser) {
     diagnostics::parser_push_unexpected_error(p, "expected >")
 }
 
+// A parameter or receiver mode is written as a `mut` prefix (ADR-088).
+// Declarations consume it before the name so the keyword never reaches
+// expression, pattern, or type parsing.
+fn consume_optional_mut(p: Parser) -> bool {
+    cursor::skip_newlines(p)
+    if cursor::peek_kind(p) != tokens::TK_MUT() {
+        return false
+    }
+    state_record::parser_advance(p)
+    cursor::skip_newlines(p)
+    true
+}
+
 fn expect_token(p: Parser, kind: i32) -> Token {
     cursor::skip_newlines(p)
     let t = cursor::cur(p)

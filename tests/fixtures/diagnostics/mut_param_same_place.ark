@@ -1,0 +1,15 @@
+// ADR-088 §5: one call must not pass the same place to a `mut` parameter
+// and to another parameter.
+
+struct Point {
+    x: i32,
+}
+
+fn move_between(mut target: Point, source: Point) {
+    target.x = source.x
+}
+
+fn main() {
+    let mut p = Point { x: 1 }
+    move_between(p, p)
+}

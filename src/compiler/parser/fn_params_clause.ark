@@ -2,6 +2,7 @@ use parser::ast_kind_fields
 use lexer::tokens
 use parser::kinds
 use parser::core_ast_children
+use parser::core_ast_flag_fields
 use parser::core_ast_type_ann
 use parser::core_api_cursor
 use parser::core_api_expect
@@ -17,10 +18,12 @@ fn parse_clause_fn_params(p: Parser, node: AstNode) {
         }
         first = false
         core_api_cursor::skip_newlines(p)
+        let is_mut = core_api_expect::consume_optional_mut(p)
         let pat = patterns::parse_pattern(p)
         if ast_kind_fields::AstNode_kind(pat) == kinds::NK_PAT_IDENT() {
             ast_kind_fields::AstNode_set_kind(pat, kinds::NK_IDENT())
         }
+        core_ast_flag_fields::AstNode_set_is_mut(pat, is_mut)
         if core_api_cursor::peek_kind(p) == tokens::TK_COLON() {
             p.pos = p.pos + 1
             core_api_cursor::skip_newlines(p)

@@ -43,6 +43,8 @@ fn DIAG_TYPE_TRAIT_ARITY() -> String { String_from("E0218") }
 fn DIAG_TYPE_ASSOCIATED_ITEM() -> String { String_from("E0219") }
 fn DIAG_TYPE_TRAIT_DEFAULT_METHOD() -> String { String_from("E0221") }
 fn DIAG_TYPE_IMPL_PARAM() -> String { String_from("E0222") }
+fn DIAG_TYPE_MUT_PARAM_PLACE() -> String { String_from("E0223") }
+fn DIAG_TYPE_SAME_PLACE_BORROW() -> String { String_from("E0224") }
 
 fn DIAG_TARGET_UNKNOWN() -> String { String_from("E0300") }
 fn DIAG_TARGET_UNIMPLEMENTED() -> String { String_from("E0301") }
@@ -71,6 +73,8 @@ test mod "codes" {
     test "parse_unexpected" { assert(DIAG_PARSE_UNEXPECTED() == "E0001") }
     test "resolve_unknown_name" { assert(DIAG_RESOLVE_UNKNOWN_NAME() == "E0100") }
     test "type_mismatch" { assert(DIAG_TYPE_MISMATCH() == "E0200") }
+    test "mut_param_place" { assert(DIAG_TYPE_MUT_PARAM_PLACE() == "E0223") }
+    test "same_place_borrow" { assert(DIAG_TYPE_SAME_PLACE_BORROW() == "E0224") }
     test "emit_failed" { assert(DIAG_EMIT_FAILED() == "E0500") }
     test "warn_shared_mut_alias" { assert(DIAG_WARN_SHARED_MUT_ALIAS() == "W0001") }
     test "warn_prefer_else_if" { assert(DIAG_WARN_PREFER_ELSE_IF() == "W0011") }

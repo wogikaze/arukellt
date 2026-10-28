@@ -8,6 +8,7 @@ use typechecker::contract_env_record
 use typechecker::contract_type_access
 use typechecker::contract_type_mutation
 use typechecker::instantiate
+use typechecker::param_mode
 use typechecker::sigs
 use typechecker::type_names
 use typechecker::unify
@@ -35,6 +36,14 @@ fn constrain_generic_fn_args(
             )
         )
     }
+    param_mode::check_call_parameter_modes(
+        env,
+        scope,
+        sig,
+        node,
+        1,
+        type_names::type_info_simple(commands::TY_UNKNOWN())
+    )
     let mut a = 0
     while a < arg_count && a < param_count {
         let arg_node = ast_access::node_child_at(node, a + 1)
