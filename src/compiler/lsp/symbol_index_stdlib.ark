@@ -114,8 +114,7 @@ fn parse_manifest_symbols(content: String) -> Vec<symbol_index_record::StdlibInd
 }
 
 fn manifest_load_path() -> String {
-    // ARUKELLT_MANIFEST env override disabled on wasm32-gc until env::var
-    // Option/Result locals validate.
+    // The ARUKELLT_MANIFEST env override is disabled.
     String_from("std/manifest.toml")
 }
 

@@ -97,6 +97,10 @@ fn removed_name_specific_hint(name: String) -> String {
     if eq(clone(name), "read_to_string") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::read_stdin()`" }
     if eq(clone(name), "exists") { return "removed prelude binding; import `use std::host::fs::Fs` and call `Fs::is_readable_file(...)`" }
     if eq(clone(name), "get_var") { return "removed module function; import `use std::host::env::Env` and call `Env::var(name)`" }
+    if eq(clone(name), "var_or_default") { return "removed module function; import `use std::host::env::Env` and call `Env::var_or_default(name, default)`" }
+    if eq(clone(name), "arg_at") { return "removed module function; import `use std::host::env::Env` and call `Env::arg_at(index)`" }
+    if eq(clone(name), "arg_count") { return "removed module function; import `use std::host::env::Env` and call `Env::arg_count()`" }
+    if eq(clone(name), "has_flag") { return "removed module function; import `use std::host::env::Env` and call `Env::has_flag(flag)`" }
     if eq(clone(name), "sort_i32") || eq(clone(name), "sort_i64") || eq(clone(name), "sort_f64") || eq(clone(name), "sort_String") {
         return "removed free function; use `v.sort_by(cmp)` via `use std::collections::vec`"
     }
@@ -230,12 +234,27 @@ fn removed_host_clock_member_hint(name: String) -> String {
     String_new()
 }
 
-// `std::env::get_var` and its duplicate `std::host::env` alias were deleted in
-// the ADR-087 Wave 2 change. `Env::var` is the canonical replacement; the
-// other env frees stay callable until their own wave.
+// The `std::env` module path and the `std::host::env` free functions were
+// deleted in the ADR-087 Wave 2 env wave (2026-10-28). `Env` is the only env
+// surface; each retired member names its method replacement (#917).
 fn removed_host_env_member_hint(name: String) -> String {
-    if eq(clone(name), "get_var") {
+    if eq(clone(name), "get_var") || eq(clone(name), "var") {
         return String_from("use `Env::var(name)` from `use std::host::env::Env` instead")
+    }
+    if eq(clone(name), "args") {
+        return String_from("use `Env::args()` from `use std::host::env::Env` instead")
+    }
+    if eq(clone(name), "arg_count") {
+        return String_from("use `Env::arg_count()` from `use std::host::env::Env` instead")
+    }
+    if eq(clone(name), "arg_at") {
+        return String_from("use `Env::arg_at(index)` from `use std::host::env::Env` instead")
+    }
+    if eq(clone(name), "var_or_default") {
+        return String_from("use `Env::var_or_default(name, default)` from `use std::host::env::Env` instead")
+    }
+    if eq(clone(name), "has_flag") {
+        return String_from("use `Env::has_flag(flag)` from `use std::host::env::Env` instead")
     }
     String_new()
 }

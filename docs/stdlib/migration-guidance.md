@@ -1660,30 +1660,42 @@ old call fails with **E0100** (`undefined module member: env::get_var`).
 | `std::env::get_var(name)` | `Env::var(name)` from `use std::host::env::Env` |
 | `std::host::env::get_var(name)` | `Env::var(name)` from `use std::host::env::Env` |
 
-The `Env` namespace is `provisional`. `Env::var`, `Env::arg_count`,
-`Env::arg_at`, and `Env::var_or_default` compile, validate, and run on both
-`wasm32-gc` and `--target wasm32`; the `stdlib_host/env_namespace_surface*`
-fixture pair pins them. The `std::env`/`std::host::env` free functions other
-than `get_var` are unchanged by this wave.
+The `Env` namespace is `provisional`. `Env::args`, `Env::var`,
+`Env::arg_count`, `Env::arg_at`, `Env::var_or_default`, and `Env::has_flag`
+compile, validate, and run on both `wasm32-gc` (P2 component) and
+`--target wasm32` (linear); the `stdlib_host/env_args_surface*` and
+`stdlib_host/env_namespace_surface*` fixture pairs pin them.
 
-### Related residual: `Env::args` and the env intrinsic frame
+### Removed in Wave 2: `std::host::env` and `std::env` free functions (11)
 
-`Env::args` stays blocked on `wasm32-gc`. A direct `__intrinsic_args` call
-inside a namespace method leaves the MIR call result as a scalar i64, so the
-enclosing method frame declares an i64 result while the env emitter pushes a
-`Vec<String>` reference. `wasm-tools validate` rejects the module with
-`type mismatch: expected i64, found (ref null $type)` at the method's
-`local.set` of the intrinsic result. The module-level `args` free function
-remains the working argument-vector spelling.
+The remaining env free functions and the legacy `std::env` module path were
+deleted on 2026-10-28. `std::host::env` is now the `Env` namespace only, and
+`std::env` no longer resolves as a module. Qualified old calls fail with
+**E0100**. The auto-imported prelude `args()` binding is a separate prelude
+entry and is unchanged by this wave.
 
-`Env::var` / `Env::arg_at` use an explicit `Option<String>` binding to pin the
-GC layout of the direct intrinsic call; the same unannotated frame problem
-applies without it. The compiler fix belongs in the MIR call-result typing that
-already types the `Fs::read_to_string` intrinsics (an env entry mapping
-`__intrinsic_args` to `vec:String` and `__runtime_abi_env_var` /
-`__intrinsic_arg_at` to `Option_String`), followed by removing the binding. The
-committed pin cannot compile that change without a pin refresh (ADR-029), so
-`Env::args` is reported as a residual rather than shipped non-executable.
+| Old API | Replacement |
+|---------|-------------|
+| `env::args()` / `std::env::args()` | `Env::args()` |
+| `env::var(name)` / `std::env::var(name)` | `Env::var(name)` |
+| `env::arg_count()` / `std::env::arg_count()` | `Env::arg_count()` |
+| `env::arg_at(index)` / `std::env::arg_at(index)` | `Env::arg_at(index)` |
+| `env::var_or_default(name, default)` / `std::env::var_or_default(...)` | `Env::var_or_default(name, default)` |
+| `env::has_flag(flag)` | `Env::has_flag(flag)` |
+
+Import `use std::host::env::Env` to reach them. `Env::arg_at` indexes the
+vector built by `Env::args`, so it returns real arguments on both targets (the
+direct `__intrinsic_arg_at` lowering still returns `None` on `wasm32-gc`).
+
+### MIR call-result typing for the env intrinsics
+
+The blocker recorded in the previous wave was fixed in the MIR call-result
+typing (`src/compiler/mir/lower/call_type_fallback_stdlib.ark`):
+`__intrinsic_args` types its destination as `vec:String` and
+`__runtime_abi_env_var` / `__intrinsic_arg_at` as `Option_String`, the same
+treatment the fs file intrinsics already had. The temporary `Option<String>`
+bindings in `Env::var` / `Env::arg_at` are gone, and `Env::args` is a plain
+`__intrinsic_args()` call that validates on both targets.
 
 ## Planned Deprecations
 

@@ -677,37 +677,33 @@ fn main() {
 
 ### コマンドライン引数
 
-> 📎 Fixture: [`tests/fixtures/stdlib_env/env_basic.ark`](../../tests/fixtures/stdlib_env/env_basic.ark)
+> 📎 Fixture: [`tests/fixtures/stdlib_host/env_args_surface.ark`](../../tests/fixtures/stdlib_host/env_args_surface.ark)
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::env
+use std::host::env::Env
 use std::host::stdio
 fn main() {
-    let a = env::args()
-    stdio::println(len(a).to_string())
-    stdio::println(env::arg_count().to_string())
+    let values = Env::args()
+    stdio::println((len(values)).to_string())
+    stdio::println((Env::arg_count()).to_string())
 }
 ```
 
 ### 環境変数の取得
 
-> 📎 Fixture: [`tests/fixtures/stdlib_env/env_var_lookup.ark`](../../tests/fixtures/stdlib_env/env_var_lookup.ark)
+> 📎 Fixture: [`tests/fixtures/stdlib_host/env_args_surface.ark`](../../tests/fixtures/stdlib_host/env_args_surface.ark)
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::env
+use std::host::env::Env
 use std::host::stdio
 fn main() {
-    let v = env::var("PATH")
-    match v {
-        Some(s) => stdio::println("found PATH"),
-        None => stdio::println("PATH not found"),
-    }
-    let w = env::var("ARUKELLT_NONEXISTENT_XYZ")
-    match w {
-        Some(s) => stdio::println("unexpected"),
-        None => stdio::println("none as expected"),
+    let values = Env::args()
+    stdio::println((len(values)).to_string())
+    match Env::var("HOME") {
+        Option::Some(value) => stdio::println(value),
+        Option::None => stdio::println("HOME not set"),
     }
 }
 ```

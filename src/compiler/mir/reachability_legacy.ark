@@ -16,9 +16,7 @@ use wasm::hash_aliases
 
 use std::prelude::{clone, eq}
 fn mir_reachability_legacy_enabled() -> bool {
-    // wasm32-gc: match on env::var(Option) currently mis-types the Option
-    // local as String and fails module validate. Legacy walk stays off until
-    // that ABI is fixed; enable via source edit for A/B, not env.
+    // Legacy walk stays off: enable via source edit for A/B, not env.
     false
 }
 

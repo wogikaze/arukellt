@@ -1,5 +1,5 @@
 // GC target: build Vec<String> from the canonical WASI P2 `list<string>`.
-// Skips argv[0] so the result matches env::arg_count / linear-memory args().
+// Skips argv[0] so the result matches Env::arg_count / linear-memory args().
 
 use wasm::constants
 use wasm::ctx_gc_type

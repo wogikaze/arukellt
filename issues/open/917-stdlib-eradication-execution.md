@@ -1162,92 +1162,59 @@ classified there, in dependency-safe waves.
   `arg_count`, `arg_at`, `var`, `var_or_default`, `has_flag`) remain for their
   own wave, and `std::env` stays a deprecated module path.
 
-### Landed slice (wave/hashset-str-agg, 2026-10-28)
 
-- **`HashSet<String>` set algebra**: `union`, `intersection`, `difference`,
-  `clear`, and `extend` are now on `impl HashSet<String>` over the
-  `Vec<String>` store. The algebra returns a fresh set and leaves both
-  operands intact; `extend` inserts from a `to_vec` snapshot, so
-  `s.extend(s)` terminates instead of growing the loop bound.
-- **Probe on the pinned base (before the fix)**: `a.union(b)` on
-  `wasm32-gc` compiled but failed Wasm validation —
-  `func 47 failed to validate: type mismatch: expected (ref null $type),
-  found i64 (at offset 0x2d24)`; on `--target wasm32` it compiled and trapped
-  (`unreachable` in `main`) at runtime. `clear`, `extend`, and the
-  `capacity` / `reserve` / `shrink_to_fit` group also trapped. So the String
-  family was broken on both targets, not merely unsupported on GC.
-- **Lowering**: five private helpers in `std::collections::hash_string`
-  (`hashset_str_union` / `hashset_str_intersection` /
-  `hashset_str_difference` / `hashset_str_clear` / `hashset_str_extend`) are
-  the MIR targets, reached as `hash_string::hashset_str_*`. They are `fn`,
-  not `pub fn`, so no public free function is added (ADR-046) and the
-  scorecard denominator does not move. `hashset_str_method_target` maps the
-  five methods; `hashset_returning_family` and `is_hash_vec_string_result`
-  keep an aggregate result local on `vec:String` (so a chained `.len()` /
-  `.contains()` / nested aggregate stays on the set);
-  `gc_return_type_sig_override` adds `HashSet_String::union` /
-  `::intersection` / `::difference` to the `vec<string>` return refs; and
-  `gc_typed_hash_container_param_sig` restates the second `Vec<String>`
-  operand, which the `hashset_str_` prefix does not cover (it only fixes
-  param 0).
-- **Fixtures**: `stdlib_hashset/hashset_string_agg.ark` (gc, component) and
-  `hashset_string_agg_wasm32.ark` (+ `.flags`, linear) cover the three
-  algebra methods, empty operands, an empty difference, result chaining,
-  `Clone` / `Eq` on an aggregate result, `clear`, `extend`, and self-`extend`;
-  registry 3380 -> **3382**. `wasm-tools validate` passes on both artifacts
-  and both runs exit 0 with no assertion trap.
-- **Fixtures/counts**: `verify fixtures` **1908/1908 PASS / 0 FAIL** (1908
-  compile+validate, 110 runtime smoke, 2 runtime-unsupported, 1 `test:`
-  fixture PASS).
-- **Scorecard**: unchanged — 296 manifest functions, 25 unregistered
-  declarations, public surface 320, `must delete` 66, `associated-or-method`
-  254, `intrinsic-only` 1. No manifest `[[functions]]` entry and no top-level
-  `pub fn` was added; generated `eradication.md` is byte-identical.
-- **Not a removal wave**: the `hash_set::hashset_str_*` adapters were already
-  retired on 2026-10-27 with E0100 hints, so no adapter was deleted here. The
-  hint text already names `s.union(t)` / `s.intersection(t)` /
-  `s.difference(t)` as replacements, so no hint or `check-compat-orphans`
-  change was needed.
-- **Verification**: both targets compile, `wasm-tools validate`, and run;
-  `verify lane` PASS (fmt 7 files, lint 7 files, touched-code quality ratchet
-  3 files vs HEAD); `docs regenerate` + `docs check` **6/6**;
-  `check-stdlib-eradication`, `check-compat-orphans`, `check-comment-policy`,
-  `check-ark-code-quality`, and `check-semantic-debt` are clean;
-  `selfhost build-compiler` produced s2 sha256
-  `52021f969562d74edfeb8a479c2a7d47853ea2475da5f4b6494076dae6f74f28` in
-  1568.0 s from the pinned base sha256
-  `8df2698c8401693879ca4f9ced289ed2c285d95eb526cf70fda02dd5876259ee`.
-  ADR-029 fixpoint PASS: sha256(arukellt-s2.wasm) ==
-  sha256(arukellt-s3.wasm) =
-  `52021f969562d74edfeb8a479c2a7d47853ea2475da5f4b6494076dae6f74f28`
-  against the same pinned base.
-- **Pre-existing, not from this wave**: `scripts/check/check-ark-lint-smoke.py`
-  fails with `FAIL: clean fixture unexpectedly emitted W0011` on
-  `docs/examples/hello.ark`. It reproduces byte-for-byte with the pinned
-  bootstrap (`ARUKELLT_SELFHOST_WASM=bootstrap/arukellt-selfhost.wasm`), so it
-  is a base/compiler-independent lint-attribution condition, not a regression
-  from this slice; `verify lane` (the lane gate) is green.
-- **Lowering-blocked, reported without a fake**: `HashSet<String>::capacity`
-  / `reserve` / `shrink_to_fit` are **not landed**. The String store is a
-  linear `Vec<String>` with no bucket array or load factor, so there is no
-  capacity to report and nothing to reserve; an `i32`-shaped implementation
-  would be a fake. The method table deliberately returns no target for them
-  (asserted in `hashset_rewrite`). They do not fail cleanly today, though:
-  the family-less impl lookup still resolves a `HashSet<String>` call to the
-  `impl HashSet<i32>` method, and a `--target wasm32 --emit wat` probe of
-  `s.capacity()` / `s.reserve(16)` / `s.shrink_to_fit()` on a String set
-  exports and calls `hashset_capacity` / `hashset_reserve` /
-  `hashset_shrink_to_fit`, i.e. hash-table semantics over a linear string
-  store. Making that a hard diagnostic needs a family-aware method lookup
-  and is its own #917 slice; the migration guide says not to rely on those
-  three on a String set in the meantime.
-- **Residual (pre-existing duplicate store)**: the `hashset_str_*` store
-  functions exist twice with identical bodies —
-  `std/collections/hash.ark:576-617` and
-  `std/collections/hash_string.ark:696-729` — both registered under
-  `std::collections::hash`. Deduplicating them means moving the bare
-  `hashset_str_insert` / `_contains` / `_remove` / `_len` / `_is_empty`
-  rewrite targets to `hash_string::` spellings and deleting the `hash.ark`
-  copies; that touches the GC prefix rules and is left as its own slice.
+### Landed slice (wave/env-args, 2026-10-28)
 
-
+- **MIR fix (the blocker from `wave/env-getvar`)**: the env intrinsic call
+  results now carry the same explicit typing as the fs file intrinsics in
+  `mir/lower/call_type_fallback_stdlib.ark`: `__intrinsic_args` ->
+  `vec:String`, `__runtime_abi_env_var` / `__intrinsic_arg_at` ->
+  `Option_String`. `mir/lower/call_type_vec.ark` also marks an `Env::args`
+  call site as `vec:String` because a namespace method has no registered
+  free-call spine entry. The `local.set` of the Vec ref no longer targets an
+  i64 local; `wasm-tools validate
+  --features gc,function-references,memory64` accepts the generated core
+  module on `wasm32-gc` and `--target wasm32`.
+- **Surface**: `std::host::env::Env` (`provisional`) is the only env surface:
+  `Env::args`, `Env::var`, `Env::arg_count`, `Env::arg_at`,
+  `Env::var_or_default`, and `Env::has_flag`. The temporary `Option<String>`
+  bindings are removed. `Env::arg_at` indexes `Env::args`, preserving
+  argument lookup on `wasm32-gc` where the direct `__intrinsic_arg_at`
+  lowering is still a constant `None`.
+- **Removed (11 declarations, 10 manifest entries)**: the
+  `std::host::env::{args, var, arg_count, arg_at, has_flag}` entries plus the
+  unregistered `var_or_default`, and the legacy `std::env` module
+  (`args` / `arg_count` / `arg_at` / `var` / `var_or_default`). Qualified old
+  calls fail with **E0100** from
+  `resolver::removed_names::removed_host_env_member_hint`; the bare-name hints
+  cover the retired members. `std::env` no longer resolves, so its W0002 entry
+  is removed from `lint::deprecated_table`.
+- **Bootstrap overlay debt (ADR-029)**: the committed pin cannot lower
+  `Env::args`, so `_patch_bootstrap_host_env_paths` rewrites the in-tree
+  compiler's `Env::args` / `Env::arg_count` calls to the free builtin spelling
+  for stage-2, and `_patch_bootstrap_main_host_to_prelude` accepts the
+  `Env::args()` main form. Delete both when the pin is refreshed.
+- **Fixtures**: new dual-target `stdlib_host/env_args_surface*` (compile,
+  validate, run) covers `args` / `var` / `arg_count` / `has_flag`; the four
+  `stdlib_env/*` free-function fixtures and their `t3-*` entries are retired;
+  the remaining `stdlib_host`, `stdlib_cli`, `host`, `wasi_p2_native`,
+  `native_cpp_*`, and `lsp_perf` call sites use `Env::`.
+- **Scorecard**: scope 320 -> **310** (`pub fn` declarations 348 -> **337**,
+  manifest public entries 295 -> **285**), `associated-or-method` 254 ->
+  **244**, `must delete` 66, `prelude_wrapper` 65, monomorphic helpers 50, and
+  unregistered declarations 25; fixture registry 3379 -> **3375**.
+- **Verification**: both targets compile, validate, and run the new fixture
+  with the same golden; the `wasm32-gc` core validates with
+  `wasm-tools validate --features gc,function-references,memory64` and the
+  `--target wasm32` core with plain `wasm-tools validate`. A P2 component with
+  one real argument reports `arg_count=1` / `has_flag=true` /
+  `arg_at(0)`=the argument; `gate-668-p2-args-env` PASS. `verify fixtures`
+  **1904/1904 PASS**, 0 FAIL (109 runtime smoke, 2 runtime-unsupported, 1
+  `test:` fixture PASS); `docs check` 6/6; `verify lane` PASS; eradication /
+  compat-orphans / comment-policy / code-quality / semantic-debt /
+  legacy-dispatch-inventory / docs-consistency / docs-freshness /
+  deprecated-docs clean; ADR-029 fixpoint PASS at
+  `aa39ccd602d9b98cd87ec72ee7344ac1cbd9c2d69527ac125508651ebc2e2e45`
+  (pinned base `8df2698c…`), `build-compiler` 1657.7 s. The two
+  `diagnostics/removed_env_get_var*` E0100 goldens still match byte-for-byte,
+  and the new bare/qualified hints were exercised with `arukellt check`.

@@ -22,9 +22,8 @@ use collections::name_index
 // ([probeA] for AstNode, [probeK] for CoreHIR forest) against the
 // recorded inst stream ([probeR]) to measure whether a pre-lower edge
 // table can replace lower-time edge recording for reachability and
-// per-fn pipelining. Gated on a source-level force switch because
-// env::var is unavailable on wasm32-gc; flip, rebuild, measure, flip
-// back before commit.
+// per-fn pipelining. Gated on a source-level force switch because the env
+// override is disabled; flip, rebuild, measure, flip back before commit.
 fn mir_probe_edges_enabled() -> i32 {
     // Set to 1 in source to dump [probeA]/[probeK]/[probeR] edges on stderr.
     // Must stay 0 in committed code so --time measurement runs keep clean stderr.

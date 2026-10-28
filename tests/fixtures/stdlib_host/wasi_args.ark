@@ -1,11 +1,11 @@
 // Fixture: wasi_args.ark
-// Verifies that args_sizes_get / args_get are available via std::host::env
-// and that arg_count returns a non-negative value.
-use std::host::env
+// Verifies that the argument intrinsics are available via std::host::env::Env
+// and that Env::arg_count returns a non-negative value.
+use std::host::env::Env
 use std::host::stdio
 
 fn main() {
-    let count = env::arg_count()
+    let count = Env::arg_count()
     assert(count >= 0)
     stdio::println("wasi_args ok")
 }

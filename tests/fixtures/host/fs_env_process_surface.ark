@@ -1,4 +1,4 @@
-use std::host::env
+use std::host::env::Env
 use std::host::fs::Fs
 use std::host::process
 use std::prelude::{trim}
@@ -12,7 +12,7 @@ fn main() {
             }
         },
     }
-    match env::var("PATH") {
+    match Env::var("PATH") {
         Option::None => {
         },
         Option::Some(_) => {

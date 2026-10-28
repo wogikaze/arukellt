@@ -337,6 +337,37 @@ def _patch_bootstrap_host_fs_paths(workspace_root: Path) -> None:
             path.write_text(patched, encoding="utf-8")
 
 
+def _patch_bootstrap_host_env_paths(workspace_root: Path) -> None:
+    """Route the bootstrap compiler's ``Env::*`` calls through the free builtins.
+
+    The committed pin resolves the ``std::host::env`` free functions as
+    builtins, predates loading the namespace source into the flat overlay, and
+    has no MIR call-result typing for the env intrinsics. A direct ``Env::args``
+    in a compiler module therefore lowers to an invalid i64/ref frame. The
+    overlay rewrites the call spelling back to the free names (and the import
+    to the module) while the checked-in ``src/compiler`` source keeps the
+    ``Env`` namespace. Delete this patch when the pin is refreshed (ADR-029).
+    """
+    compiler_root = workspace_root / "src" / "compiler"
+    members = ("args", "arg_count")
+    for path in compiler_root.rglob("*.ark"):
+        # Hint strings in these files spell `Env::` and must not be rewritten
+        # to the free builtin spelling; they are not call sites. `native_c`
+        # only names the method inside the `fn main()` diagnostic string.
+        if (
+            "removed_names" in path.name
+            or "deprecated_table" in path.name
+            or "native_c" in path.name
+        ):
+            continue
+        source = path.read_text(encoding="utf-8")
+        patched = source.replace("use std::host::env::Env\n", "use std::host::env\n")
+        for member in members:
+            patched = patched.replace(f"Env::{member}(", f"env::{member}(")
+        if patched != source:
+            path.write_text(patched, encoding="utf-8")
+
+
 def _patch_bootstrap_host_clock_paths(workspace_root: Path) -> None:
     """Route the bootstrap compiler's ``Clock::*`` calls through the free builtins.
 
@@ -4658,6 +4689,7 @@ def _prepare_flattened_selfhost_source_locked(
     _patch_bootstrap_wit_type_paths(overlay_root)
     _patch_bootstrap_manifest_scanner_paths(overlay_root)
     _patch_bootstrap_host_fs_paths(overlay_root)
+    _patch_bootstrap_host_env_paths(overlay_root)
     _patch_bootstrap_host_clock_paths(overlay_root)
     _assert_bootstrap_overlay_clock_reads_stubbed(overlay_root)
     error_src = root / "std" / "core" / "error.ark"
@@ -4696,6 +4728,14 @@ def _patch_bootstrap_main_host_to_prelude(compiler_out: Path) -> None:
     )
     text = _sub_optional(
         text,
+        r"^use std::host::env::Env\n",
+        "",
+        "drop use std::host::env::Env from overlay main",
+        flags=re.MULTILINE,
+        count=1,
+    )
+    text = _sub_optional(
+        text,
         r"^use std::host::process\n",
         "",
         "drop use std::host::process from overlay main",
@@ -4711,6 +4751,7 @@ def _patch_bootstrap_main_host_to_prelude(compiler_out: Path) -> None:
         count=1,
     )
     text = _replace_optional(text, "env::args()", "args()", "main env::args -> args")
+    text = _replace_optional(text, "Env::args()", "args()", "main Env::args -> prelude args")
     text = _replace_optional(text, "process::exit(", "exit(", "main process::exit -> exit")
     text = _replace_optional(
         text, "stdio::eprintln(", "println(", "main stdio::eprintln -> println"

@@ -1,0 +1,20 @@
+// Env argument/environment surface on --target wasm32 (linear) (#917).
+//
+// Same contract as the wasm32-gc fixture: Env::args, Env::var,
+// Env::arg_count, and Env::has_flag with an empty argument vector and an
+// unset probe environment variable.
+use std::host::env::Env
+use std::host::stdio
+
+fn main() {
+    let values = Env::args()
+    stdio::println((len(values)).to_string())
+    stdio::println((Env::arg_count()).to_string())
+    match Env::var("ARUKELLT_ENV_ARGS_PROBE_917") {
+        Option::Some(value) => stdio::println(value),
+        Option::None => stdio::println("env-var-unset"),
+    }
+    assert(Env::var_or_default("ARUKELLT_ENV_ARGS_PROBE_917", "fallback") == "fallback")
+    assert(!Env::has_flag("--arukellt-probe-flag"))
+    stdio::println("env-args-surface-ok")
+}

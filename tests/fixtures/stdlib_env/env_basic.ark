@@ -1,8 +1,0 @@
-use std::host::env
-use std::host::stdio
-
-fn main() {
-    let a = env::args()
-    stdio::println((len(a)).to_string())
-    stdio::println((env::arg_count()).to_string())
-}

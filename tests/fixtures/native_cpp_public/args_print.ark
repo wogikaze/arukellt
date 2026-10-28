@@ -1,9 +1,9 @@
 use std::host::stdio
-use std::host::env
+use std::host::env::Env
 use std::prelude::{to_string, values}
 use std::text
 fn main() {
-    let values = env::args()
+    let values = Env::args()
     let n = len(values)
     stdio::println(String_from("count=").concat(to_string(n)))
     let mut i = 0

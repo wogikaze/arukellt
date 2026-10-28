@@ -9,8 +9,8 @@ use main::manifest_doc_parse
 use main::manifest_doc_record
 use main::manifest_doc_render
 fn doc_load_manifest() -> DocManifestTable {
-    // ARUKELLT_MANIFEST env override disabled on wasm32-gc until Option/Result
-    // locals from env::var validate; default manifest path only.
+    // The ARUKELLT_MANIFEST env override is disabled; the default manifest
+    // path is the only source.
     let path = "std/manifest.toml"
     let read_result = Fs::read_to_string(clone(path))
     match read_result {

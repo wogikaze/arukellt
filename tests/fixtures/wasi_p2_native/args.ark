@@ -1,8 +1,8 @@
 use std::host::stdio
-use std::host::env
+use std::host::env::Env
 use std::prelude::{values}
 fn main() {
-    let values = env::args()
+    let values = Env::args()
     let mut i = 0
     while i < len(values) {
         stdio::println(get_unchecked(values, i))
