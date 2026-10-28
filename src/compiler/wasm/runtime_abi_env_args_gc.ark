@@ -8,6 +8,7 @@ use wasm::ctx_scratch
 use wasm::emit_target
 use wasm::host_intrinsic_adapter
 use wasm::import_indices
+use wasm::intrinsic_vec_access_gc
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io_layout
@@ -85,6 +86,155 @@ fn emit_env_args_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     true
+}
+
+// GC target: return the user argument at `index` as Option<String>.
+// `get-arguments` keeps argv[0], while the Ark surface counts user arguments
+// from 0, so index N reads element N+1 and the bound is argc - 1.
+fn emit_env_arg_at_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+    let s_argc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    let s_idx = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_argv = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_argv_buf = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let s_bufsize = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    let s_ptr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
+    let s_k = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 7)
+    let s_str = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    let s_opt = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    let some_type = intrinsic_vec_access_gc::find_option_some_variant_type(ctx, "_f1_ref0", open_type)
+
+    helpers_core::emit_local_set(w, s_idx)
+    emit_env_args_gc_fetch(w, ctx, s_argc, s_argv, s_argv_buf, s_bufsize)
+    emit_env_arg_at_gc_none(w, ctx, s_opt)
+    emit_env_arg_at_gc_some(
+        w,
+        ctx,
+        s_idx,
+        s_argc,
+        s_argv,
+        s_ptr,
+        s_len,
+        s_k,
+        s_str,
+        s_opt,
+        string_type,
+        some_type
+    )
+    helpers_core::emit_local_get(w, s_opt)
+    writer_gc::emit_gc_ref_cast(w, open_type)
+    true
+}
+
+fn emit_env_arg_at_gc_none(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32) {
+    let mut none_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, "Option::None")
+    if none_type < 0 {
+        none_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    }
+    writer_gc::emit_gc_struct_new_default(w, none_type)
+    helpers_core::emit_local_set(w, s_opt)
+    helpers_core::emit_local_get(w, s_opt)
+    writer_gc::emit_gc_ref_cast(w, none_type)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    writer_gc::emit_gc_struct_set_i32(w, none_type, 0)
+}
+
+fn emit_env_arg_at_gc_some(
+    w: WasmWriter,
+    ctx: SelfEmitCtx,
+    s_idx: i32,
+    s_argc: i32,
+    s_argv: i32,
+    s_ptr: i32,
+    s_len: i32,
+    s_k: i32,
+    s_str: i32,
+    s_opt: i32,
+    string_type: i32,
+    some_type: i32
+) {
+    helpers_control::emit_void_block(w)
+    helpers_core::emit_local_get(w, s_idx)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_i32_lt_s(w)
+    helpers_control::emit_br_if(w, 0)
+    helpers_core::emit_local_get(w, s_idx)
+    helpers_core::emit_local_get(w, s_argc)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_sub(w)
+    helpers_numeric_i32::emit_i32_ge_s(w)
+    helpers_control::emit_br_if(w, 0)
+    helpers_core::emit_local_get(w, s_idx)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_idx)
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        emit_env_arg_at_gc_load_p2(w, s_argv, s_idx, s_ptr, s_len)
+    } else {
+        emit_env_arg_at_gc_load_p1(w, s_argv, s_idx, s_ptr, s_len)
+    }
+    emit_env_arg_at_gc_build(w, s_ptr, s_len, s_k, s_str, s_opt, string_type, some_type)
+    helpers_control::emit_end(w)
+}
+
+fn emit_env_arg_at_gc_load_p2(w: WasmWriter, s_argv: i32, s_idx: i32, s_ptr: i32, s_len: i32) {
+    // Each canonical list element is a four-byte pointer plus a four-byte
+    // length; `local.tee` keeps the element address for the length load.
+    helpers_core::emit_local_get(w, s_argv)
+    helpers_core::emit_local_get(w, s_idx)
+    helpers_numeric_i32::emit_i32_const(w, 8)
+    helpers_numeric_i32::emit_i32_mul(w)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_tee(w, s_ptr)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, s_ptr)
+    helpers_core::emit_local_get(w, s_argv)
+    helpers_core::emit_local_get(w, s_idx)
+    helpers_numeric_i32::emit_i32_const(w, 8)
+    helpers_numeric_i32::emit_i32_mul(w)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, s_len)
+}
+
+fn emit_env_arg_at_gc_load_p1(w: WasmWriter, s_argv: i32, s_idx: i32, s_ptr: i32, s_len: i32) {
+    // Preview 1 argv is an i32 pointer table into NUL-terminated strings.
+    helpers_core::emit_local_get(w, s_argv)
+    helpers_core::emit_local_get(w, s_idx)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_mul(w)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, s_ptr)
+    emit_env_args_gc_cstr_len(w, s_ptr, s_len)
+}
+
+fn emit_env_arg_at_gc_build(
+    w: WasmWriter,
+    s_ptr: i32,
+    s_len: i32,
+    s_k: i32,
+    s_str: i32,
+    s_opt: i32,
+    string_type: i32,
+    some_type: i32
+) {
+    helpers_core::emit_local_get(w, s_len)
+    string_gc_helpers::emit_gc_array_new(w, string_type)
+    helpers_core::emit_local_set(w, s_str)
+    emit_env_args_gc_copy_bytes(w, s_ptr, s_len, s_str, s_k, string_type)
+    // Option::Some's discriminant is a true i32 field; under Memory64 the
+    // i32 helper emits i64.const, which struct.new rejects as a field value.
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 0)
+    helpers_core::emit_local_get(w, s_str)
+    writer_gc::emit_gc_ref_as_non_null(w)
+    writer_gc::emit_gc_struct_new(w, some_type)
+    helpers_core::emit_local_set(w, s_opt)
 }
 
 fn emit_env_args_gc_fetch(

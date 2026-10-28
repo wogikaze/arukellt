@@ -86,6 +86,7 @@ fn push_intrinsic_numeric_math(names: Vec<String>) {
 }
 
 fn push_intrinsic_io_env_process(names: Vec<String>) {
+    push(names, String_from("__intrinsic_arg_at"))
     push(names, String_from("__intrinsic_arg_count"))
     push(names, String_from("__intrinsic_args"))
     push(names, String_from("__intrinsic_clock_now"))

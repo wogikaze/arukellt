@@ -33,6 +33,11 @@ FIXTURE_EXPECT = {
     "hello.ark": {"stdout": "hello p2", "exit": 0},
     "eprintln_stderr.ark": {"stderr": "hello stderr", "exit": 0},
     "args.ark": {"stdout": "alpha\nbeta\n", "exit": 0, "args": ["alpha", "beta"]},
+    "arg_at.ark": {
+        "stdout": (FIXTURE_DIR / "arg_at.expected").read_text(encoding="utf-8").strip(),
+        "exit": 0,
+        "args": ["alpha", "beta"],
+    },
     "env_var.ark": {
         "stdout": "env-ok\n",
         "exit": 0,

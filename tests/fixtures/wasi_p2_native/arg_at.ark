@@ -1,0 +1,28 @@
+// Argument lookup through the direct env intrinsics on both targets.
+//
+// The component and linear gates run this fixture with the guest arguments
+// "alpha" and "beta": wasm32-gc indexes the canonical P2 `get-arguments`
+// list, wasm32 indexes the Preview 1 argv table. Both must print the same
+// arg_at.expected stdout (argv[0] is the program name on either path).
+use std::host::env::Env
+use std::host::stdio
+
+fn main() {
+    stdio::println("arg_count=".concat((Env::arg_count()).to_string()))
+    match Env::arg_at(0) {
+        Option::Some(text) => stdio::println("arg0=".concat(text)),
+        Option::None => stdio::println("arg0=none"),
+    }
+    match Env::arg_at(1) {
+        Option::Some(text) => stdio::println("arg1=".concat(text)),
+        Option::None => stdio::println("arg1=none"),
+    }
+    match Env::arg_at(2) {
+        Option::Some(text) => stdio::println("arg2=".concat(text)),
+        Option::None => stdio::println("arg2=none"),
+    }
+    match Env::arg_at(-1) {
+        Option::Some(text) => stdio::println("arg_neg=".concat(text)),
+        Option::None => stdio::println("arg_neg=none"),
+    }
+}
