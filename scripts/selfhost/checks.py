@@ -417,8 +417,15 @@ WASMTIME_SELFHOST_WASM_FLAGS = [
 # Keep AOT artifacts compatible with the default runtime collector.  Without
 # this, a host-level Wasmtime config can produce deferred-RC cwasm files that
 # the normal copying-collector run path cannot load.
-WASMTIME_SELFHOST_AOT_FLAGS = ["-C", "collector=copying"]
-WASMTIME_SELFHOST_AOT_CACHE_TAG = "collector=copying"
+WASMTIME_SELFHOST_AOT_COLLECTOR = "copying"
+WASMTIME_SELFHOST_AOT_FLAGS = ["-C", f"collector={WASMTIME_SELFHOST_AOT_COLLECTOR}"]
+# A .cwasm is a function of exactly three inputs: the wasm bytes, the Wasmtime
+# binary that compiled it, and the AOT codegen flags.  The cache key covers all
+# three so a rebuilt compiler can never reuse the previous image.  Schema
+# version is first so a future key change invalidates old sidecars.  The bash
+# wrapper mirrors this string in scripts/run/arukellt-selfhost.sh; both writers
+# share one "<cwasm>.tag" file.
+AOT_CACHE_KEY_VERSION = "aot-cache-v2"
 # The compiler itself needs more linear memory while it parses the canonical
 # WIT AST on top of the normal selfhost working set.  This is applied only to
 # the generated selfhost compiler artifact; the Ark emitter's user-module
@@ -678,6 +685,11 @@ MONOLITHIC_OVERLAY_EXTRA_FILES = ()
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 def _find_wasmtime() -> str | None:
+    # The wrapper honours ARUKELLT_WASMTIME_BIN; resolve it the same way so both
+    # writers agree on the AOT cache key's Wasmtime identity.
+    override = os.environ.get("ARUKELLT_WASMTIME_BIN", "").strip()
+    if override:
+        return shutil.which(override) or override
     return shutil.which("wasmtime")
 
 
@@ -949,43 +961,96 @@ def _fixpoint_cache_try_write(
     _fixpoint_cache_write(root, entry)
 
 
+def _file_identity(path: Path) -> str:
+    """Return ``<size>-<seconds>.<nanoseconds>`` for ``path``.
+
+    Nanoseconds matter: a rebuild can land in the same second as the previous
+    artifact, and a second-granularity identity would then match a different
+    wasm.  The bash wrapper formats this identically via ``stat -c '%s %.9Y'``.
+    """
+    info = path.stat()
+    seconds, nanos = divmod(info.st_mtime_ns, 1_000_000_000)
+    return f"{info.st_size}-{seconds}.{nanos:09d}"
+
+
+def _aot_cache_key(wasm_path: Path, wasmtime: str | None) -> str:
+    """Return the key that an AOT image must have been built under.
+
+    ``wasmtime compile`` output depends only on these inputs, so the key is
+    reused while they are unchanged; any wasm rewrite (rebuild) or Wasmtime
+    upgrade changes it and forces a fresh compile.
+    """
+    wasmtime_id = "unknown"
+    if wasmtime:
+        try:
+            wasmtime_id = _file_identity(Path(wasmtime))
+        except OSError:
+            pass
+    return (
+        f"{AOT_CACHE_KEY_VERSION}"
+        f";collector={WASMTIME_SELFHOST_AOT_COLLECTOR}"
+        f";wt={wasmtime_id}"
+        f";wasm={_file_identity(wasm_path)}"
+    )
+
+
+def _read_aot_tag(tag: Path) -> str:
+    try:
+        return tag.read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
+
+
 def _ensure_aot_cwasm(wasm_path: Path) -> Path:
     """Return a precompiled .cwasm for ``wasm_path``, creating it if needed.
 
     AOT compilation via ``wasmtime compile`` takes ~0.6s but saves ~5s of JIT
-    on each subsequent run.  The .cwasm is cached next to the .wasm and
-    invalidated by mtime.
+    on each subsequent run.  The image is cached next to the .wasm and reused
+    only while its ``.tag`` sidecar matches the current ``_aot_cache_key``.
     """
     # Keep collector-specific artifacts separate. Another Wasmtime invocation
-    # can overwrite the generic .cwasm while leaving its flags sidecar stale.
+    # can overwrite the generic .cwasm while leaving its sidecar stale.
     cwasm = wasm_path.with_suffix(".collector-copying.cwasm")
-    cache_tag = cwasm.with_suffix(cwasm.suffix + ".flags")
-    if cwasm.is_file() and cwasm.stat().st_mtime >= wasm_path.stat().st_mtime:
-        try:
-            tag = cache_tag.read_text(encoding="utf-8").strip()
-            # The bash wrapper appends ";wt=<wasmtime identity>" so a wasmtime
-            # upgrade invalidates the artifact. Accept both spellings.
-            if tag == WASMTIME_SELFHOST_AOT_CACHE_TAG or tag.startswith(
-                WASMTIME_SELFHOST_AOT_CACHE_TAG + ";"
-            ):
-                return cwasm
-        except OSError:
-            pass
+    tag = cwasm.with_suffix(cwasm.suffix + ".tag")
     wasmtime = _find_wasmtime()
     if not wasmtime:
         return wasm_path
-    r = subprocess.run(
-        [wasmtime, "compile", *WASMTIME_SELFHOST_WASM_FLAGS,
-         *WASMTIME_SELFHOST_AOT_FLAGS,
-         "-o", str(cwasm), str(wasm_path)],
-        capture_output=True, text=True,
-    )
-    if r.returncode != 0 or not cwasm.is_file():
-        return wasm_path
     try:
-        cache_tag.write_text(WASMTIME_SELFHOST_AOT_CACHE_TAG, encoding="utf-8")
+        expected = _aot_cache_key(wasm_path, wasmtime)
     except OSError:
-        pass
+        return wasm_path
+    if cwasm.is_file() and _read_aot_tag(tag) == expected:
+        return cwasm
+    try:
+        cwasm.parent.mkdir(parents=True, exist_ok=True)
+        lock = open(cwasm.with_suffix(cwasm.suffix + ".lock"), "a+", encoding="utf-8")
+    except OSError:
+        return wasm_path
+    with lock:
+        fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+        if cwasm.is_file() and _read_aot_tag(tag) == expected:
+            return cwasm
+        # Stage the compile so a concurrent reader never loads a partial image.
+        staged = cwasm.with_name(f"{cwasm.name}.tmp.{os.getpid()}")
+        r = subprocess.run(
+            [wasmtime, "compile", *WASMTIME_SELFHOST_WASM_FLAGS,
+             *WASMTIME_SELFHOST_AOT_FLAGS,
+             "-o", str(staged), str(wasm_path)],
+            capture_output=True, text=True,
+        )
+        if r.returncode != 0 or not staged.is_file():
+            try:
+                staged.unlink()
+            except OSError:
+                pass
+            return wasm_path
+        os.replace(staged, cwasm)
+        # The tag is written last: a crash between the two leaves the old key
+        # in place, which only costs one extra compile on the next run.
+        try:
+            tag.write_text(expected, encoding="utf-8")
+        except OSError:
+            pass
     return cwasm
 
 

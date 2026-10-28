@@ -24,6 +24,9 @@ tests/component-interop/**/jco-out/
 # wasm build/test artifacts
 *.wasm
 *.cwasm
+# AOT cache sidecars written next to a compiler wasm (see docs/compiler/bootstrap.md)
+*.cwasm.tag
+*.cwasm.lock
 *.cwasm.flags
 # Playground static assets (built in CI for Pages; run `npm run build:app` locally)
 docs/playground/dist/

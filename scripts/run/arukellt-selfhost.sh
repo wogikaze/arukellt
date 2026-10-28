@@ -307,34 +307,56 @@ detect_abi_kind() {
   esac
 }
 
+# ── AOT image cache ─────────────────────────────────────────────────────────
+# A .cwasm is a pure function of the wasm bytes, the Wasmtime binary that
+# compiled it, and the AOT codegen flags.  The cache key therefore records all
+# three:
+#
+#   aot-cache-v2;collector=copying;wt=<identity>;wasm=<identity>
+#
+# where an identity is "<size>-<seconds>.<nanoseconds>" (nanoseconds so two
+# rebuilds inside one second still differ).  Keying on Wasmtime alone let a
+# rebuilt compiler silently reuse the previous AOT image.
+#
+# scripts/selfhost/checks.py (_aot_cache_key) mirrors this string byte for
+# byte: the wrapper and the Python gates share the same "<cwasm>.tag" sidecar,
+# so a mismatch between the two implementations would either thrash the cache
+# or reintroduce the stale-image bug.  Change both together.
+AOT_CACHE_KEY_VERSION="aot-cache-v2"
+AOT_COLLECTOR="copying"
+
+aot_file_identity() {
+  local path="$1" stat_line
+  # %.9Y (sub-second mtime) needs a GNU stat with fractional support.  If the
+  # fallback is taken this implementation stops matching checks.py, which only
+  # disables cache hits (each side recompiles); it never reuses an image.
+  stat_line="$(stat -Lc '%s %.9Y' "$path" 2>/dev/null)" \
+    || stat_line="$(stat -Lc '%s %Y' "$path" 2>/dev/null)" \
+    || return 1
+  [[ -n "$stat_line" ]] || return 1
+  printf '%s' "${stat_line// /-}"
+}
+
 aot_cwasm_path() {
-  local artifact="$1"
-  local base fingerprint
-  case "$artifact" in
-    "$REPO_ROOT"/.build/*)
-      # Share the artifact with scripts/selfhost/checks.py (_ensure_aot_cwasm).
-      printf '%s.collector-copying.cwasm' "${artifact%.wasm}"
-      ;;
-    *)
-      base="$(basename "$artifact")"
-      fingerprint="$(stat -c '%s-%Y' "$artifact" 2>/dev/null || printf 'unknown')"
-      printf '%s/.build/selfhost/aot/%s.%s.cwasm' "$REPO_ROOT" "$base" "$fingerprint"
-      ;;
-  esac
+  # Next to the wasm, matching checks.py. For .build artifacts this is the same
+  # path the Python gates use, so both writers share one image and one tag.
+  printf '%s.collector-copying.cwasm' "${1%.wasm}"
 }
 
 aot_cache_tag() {
-  local wasmtime_path
+  local artifact="$1" wasmtime_path wasmtime_id wasm_id
   wasmtime_path="$(command -v "$WASMTIME_BIN" 2>/dev/null || printf '%s' "$WASMTIME_BIN")"
-  printf 'collector=copying;wt=%s' \
-    "$(stat -Lc '%s-%Y' "$wasmtime_path" 2>/dev/null || printf 'unknown')"
+  wasmtime_id="$(aot_file_identity "$wasmtime_path" 2>/dev/null || printf 'unknown')"
+  wasm_id="$(aot_file_identity "$artifact")" || return 1
+  printf '%s;collector=%s;wt=%s;wasm=%s' \
+    "$AOT_CACHE_KEY_VERSION" "$AOT_COLLECTOR" "$wasmtime_id" "$wasm_id"
 }
 
 cached_cwasm_tag_matches() {
   local tag="$1" expected="$2" actual
   [[ -f "$tag" ]] || return 1
   actual="$(cat "$tag" 2>/dev/null)" || return 1
-  [[ "$actual" == "$expected" || "$actual" == "${expected%%;*}" ]]
+  [[ "$actual" == "$expected" ]]
 }
 
 ensure_aot_cwasm() {
@@ -342,7 +364,10 @@ ensure_aot_cwasm() {
   local cwasm tag expected lock
   cwasm="$(aot_cwasm_path "$artifact")"
   tag="$cwasm.tag"
-  expected="$(aot_cache_tag)"
+  # Without a computable identity, run the JIT image instead of guessing.
+  if ! expected="$(aot_cache_tag "$artifact")"; then
+    return 1
+  fi
   if cached_cwasm_tag_matches "$tag" "$expected"; then
     printf '%s\n' "$cwasm"
     return 0
@@ -356,7 +381,7 @@ ensure_aot_cwasm() {
     if cached_cwasm_tag_matches "$tag" "$expected"; then
       exit 0
     fi
-    if ! "$WASMTIME_BIN" compile "${WASMTIME_SELFHOST_FLAGS[@]}" -C collector=copying \
+    if ! "$WASMTIME_BIN" compile "${WASMTIME_SELFHOST_FLAGS[@]}" -C collector="$AOT_COLLECTOR" \
       -o "${cwasm}.tmp.$$" "$artifact" >/dev/null 2>&1; then
       rm -f "${cwasm}.tmp.$$"
       exit 1

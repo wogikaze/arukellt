@@ -208,7 +208,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m compileall -q scripts
-          python3 -m unittest scripts.tests.test_gate
+          python3 -m unittest scripts.tests.test_gate scripts.tests.test_aot_cache
 
   selfhost:
     name: "Selfhost gates"

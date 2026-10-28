@@ -127,6 +127,43 @@ profile. A command component is packaged from standard P2 core imports with
 the official `wasm-tools component embed` / `component new` commands; no
 adapter or bridge is permitted.
 
+### AOT image cache
+
+`wasmtime run` JIT-compiles the compiler on every invocation (~5 s), so the
+wrapper and the Python gates keep a precompiled image next to the compiler
+wasm:
+
+| Path | Role |
+|------|------|
+| `<compiler>.collector-copying.cwasm` | image produced by `wasmtime compile -C collector=copying` |
+| `<compiler>.collector-copying.cwasm.tag` | the cache key the image was built under (one line) |
+| `<compiler>.collector-copying.cwasm.lock` | `flock` target that serializes compiles |
+
+The key is:
+
+```
+aot-cache-v2;collector=copying;wt=<wasmtime identity>;wasm=<wasm identity>
+```
+
+An identity is `<size>-<seconds>.<nanoseconds>` from `stat`. Those are the only
+inputs that change the image: the wasm bytes, the Wasmtime binary (honouring
+`ARUKELLT_WASMTIME_BIN`), and the collector flags. A rebuild rewrites the
+wasm's size and/or nanosecond mtime, so the next invocation recompiles the
+image; an untouched compiler keeps hitting the cache. Do not narrow the key
+back to the Wasmtime identity alone (or to cwasm-mtime ordering): that is what
+silently ran the previous compiler after a rebuild.
+
+`scripts/run/arukellt-selfhost.sh` (`aot_cache_tag`) and
+`scripts/selfhost/checks.py` (`_aot_cache_key`) must emit the identical string
+because they share the one `.tag` file. Regression tests:
+`python3 -m unittest scripts.tests.test_aot_cache`.
+
+Invalidation is just deleting the sidecars:
+
+```bash
+rm -f .build/selfhost/arukellt-s2-runtime.collector-copying.cwasm*
+```
+
 ## Trust model
 
 | Stage | Artifact / check | Command |
