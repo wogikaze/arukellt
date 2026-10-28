@@ -279,10 +279,13 @@ fn gc_payload_is_scalar_type_name(type_name: String) -> bool {
     eq(clone(type_name), "I32") ||
     eq(clone(type_name), "i64") ||
     eq(clone(type_name), "I64") ||
+    eq(clone(type_name), "u64") ||
+    eq(clone(type_name), "U64") ||
     eq(clone(type_name), "f64") ||
     eq(clone(type_name), "F64") ||
     eq(clone(type_name), "bool") ||
-    eq(clone(type_name), "Bool")
+    eq(clone(type_name), "Bool") ||
+    match_payload_field_type::mir_narrow_int_type_name(clone(type_name))
 }
 
 fn gc_payload_type_name_needs_typed_variant(type_name: String) -> bool {

@@ -208,6 +208,17 @@ fn type_ann_tuple_local_name(node: AstNode) -> String {
     name
 }
 
+// Narrow integer annotations share the i32 ABI slot. Tuple layout keys use
+// that ABI name so annotation-built and value-type-built tuples resolve to
+// the same nominal GC struct type instead of two identical-layout twins.
+fn type_ann_narrow_int_name(name: String) -> bool {
+    eq(clone(name), "i8") ||
+    eq(clone(name), "u8") ||
+    eq(clone(name), "i16") ||
+    eq(clone(name), "u16") ||
+    eq(clone(name), "u32")
+}
+
 fn type_ann_tuple_field_key_name(field: AstNode) -> String {
     if type_ann_is_tuple(field) {
         return type_ann_tuple_local_name(field)
@@ -215,6 +226,9 @@ fn type_ann_tuple_field_key_name(field: AstNode) -> String {
     let key = fn_sig_segment_name(field)
     if eq(clone(key), String_from("string")) || eq(clone(key), String_from("str")) {
         return String_from("String")
+    }
+    if type_ann_narrow_int_name(clone(key)) {
+        return String_from("i32")
     }
     key
 }

@@ -511,6 +511,7 @@ run:diagnostics/trait_def.ark
 run:display_trait/display_struct.ark
 run:enums/enum_struct_variant.ark
 run:enums/exhaustive_match.ark
+run:enums/i8_payload.ark
 run:enums/match_payload_enum_unit_arm.ark
 run:enums/nested_enum.ark
 run:enums/option_none.ark
@@ -2304,6 +2305,7 @@ run:variables/char_lit.ark
 run:variables/f64_lit.ark
 run:variables/i32_lit.ark
 run:variables/i64_lit.ark
+run:variables/i8_tuple_destructure.ark
 run:variables/mut_var.ark
 run:ownership/copy_and_mutability.ark
 run:ownership/adt_probe.ark
@@ -2354,6 +2356,7 @@ t3-compile:stdlib_trait/error_trait.ark
 t3-compile:display_trait/display_struct.ark
 t3-compile:enums/enum_struct_variant.ark
 t3-compile:enums/exhaustive_match.ark
+t3-compile:enums/i8_payload.ark
 t3-compile:enums/match_payload_enum_unit_arm.ark
 t3-compile:enums/nested_enum.ark
 t3-compile:enums/option_none.ark
@@ -2835,6 +2838,7 @@ t3-compile:variables/char_lit.ark
 t3-compile:variables/f64_lit.ark
 t3-compile:variables/i32_lit.ark
 t3-compile:variables/i64_lit.ark
+t3-compile:variables/i8_tuple_destructure.ark
 t3-compile:variables/mut_var.ark
 t3-compile:variables/string_lit.ark
 t3-compile:variables/tuple.ark
@@ -2864,6 +2868,7 @@ t3-run:stdlib_trait/error_trait.ark
 t3-run:display_trait/display_struct.ark
 t3-run:enums/enum_struct_variant.ark
 t3-run:enums/exhaustive_match.ark
+t3-run:enums/i8_payload.ark
 t3-run:enums/match_payload_enum_unit_arm.ark
 t3-run:enums/nested_enum.ark
 t3-run:enums/option_none.ark
@@ -3362,6 +3367,7 @@ t3-run:variables/char_lit.ark
 t3-run:variables/f64_lit.ark
 t3-run:variables/i32_lit.ark
 t3-run:variables/i64_lit.ark
+t3-run:variables/i8_tuple_destructure.ark
 t3-run:variables/mut_var.ark
 t3-run:variables/string_lit.ark
 t3-run:variables/tuple.ark

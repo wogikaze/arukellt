@@ -8,6 +8,7 @@ use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_mono
+use mir::lower::match_payload_field_type
 use mir::value_types
 fn core_match_variant_is_err(variant_name: String) -> bool {
     eq(clone(variant_name), "Err") || eq(clone(variant_name), "Result::Err")
@@ -205,11 +206,35 @@ fn core_payload_scalar_type_name(type_name: String) -> bool {
     if eq(clone(type_name), "char") {
         return true
     }
+    if match_payload_field_type::mir_narrow_int_type_name(clone(type_name)) {
+        return true
+    }
     // Result<(), E> Ok payload is i32 0 (#726 toml_insert_key).
     if eq(clone(type_name), "unit") || eq(clone(type_name), "()") || eq(clone(type_name), "void") {
         return true
     }
     false
+}
+
+// Narrow integer payload binds keep the declared spelling instead of the
+// collapsed i32 ABI slot. Option/Result binds recover it from the scrutinee;
+// user enum variants only carry the declared field type.
+fn set_narrow_int_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32) {
+    if bind_vt != value_types::VT_I32() {
+        return
+    }
+    if len(ctx_api_local_types::ctx_get_local_type(ctx, bind_local)) > 0 {
+        return
+    }
+    let field_type = ctx_mono_type_params::ctx_resolve_mono_type_name(
+        ctx,
+        ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+    )
+    if !match_payload_field_type::mir_narrow_int_type_name(clone(field_type)) {
+        return
+    }
+    ctx_api_local_types::ctx_set_local_type(ctx, bind_local, field_type)
+    ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I32())
 }
 
 fn normalize_payload_elem_type_name(elem_ty: String) -> String {

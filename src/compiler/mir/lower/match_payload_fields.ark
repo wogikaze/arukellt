@@ -96,6 +96,7 @@ fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, s
         }
         match_payload_bind_types::set_gc_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, bind_vt, bi, clone(hint_for_field))
         match_payload_bind_types::set_i32_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, bind_vt, bi, scrut_ok_is_i32)
+        match_payload_bind_types::set_narrow_int_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, bind_vt, bi)
         // Infer concrete payload type from scrutinee type for Option/Result.
         if bi == 0 {
             mir_infer_payload_bind_type(ctx, clone(variant_name), bind_local, bind_vt, scrut_idx)

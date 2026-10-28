@@ -1,0 +1,35 @@
+// Tuple layout keys canonicalize narrow integer elements to the i32 ABI
+// slot, so parameters, returns, and literal-built tuples name the same GC
+// struct and destructuring reads each field with its real value type.
+use std::host::stdio
+
+fn make() -> (i8, i32) {
+    (-5i8, 7)
+}
+
+fn take(t: (i8, i32)) {
+    let (a, b) = t
+    stdio::println(a)
+    stdio::println(b)
+}
+
+fn main() {
+    let (a, b) = make()
+    stdio::println(a)
+    stdio::println(b)
+    // Match on a tuple-valued local (call-result tuple scrutinees trap for
+    // every element type, so they stay out of this payload fixture).
+    let tm = make()
+    match tm {
+        (x, y) => stdio::println(x),
+    }
+    take((9i8, 10))
+    let annotated: i8 = -3i8
+    let t: (i8, i32) = (annotated, 4)
+    let (c, d) = t
+    stdio::println(c)
+    stdio::println(d)
+    match (annotated, 5) {
+        (x, y) => stdio::println(x),
+    }
+}

@@ -105,6 +105,7 @@ fn core_emit_payload_variant_binds(
                 ctx_api_local_types::ctx_set_local_type(ctx, bind_local, "i32")
             }
         }
+        core_match_payload_bind_types::set_narrow_int_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, bind_vt, bi)
         if bind_vt == value_types::VT_GC_REF() && scrut_ok_is_ref && bi == 0 {
             if core_match_payload_bind_types::core_match_variant_is_some_or_ok(clone(variant_name)) {
                 if len(ctx_api_local_types::ctx_get_local_type(ctx, bind_local)) == 0 {
