@@ -1688,9 +1688,10 @@ prelude entry outside the v2 auto-imported stable set, so it requires
 | `env::var_or_default(name, default)` / `std::env::var_or_default(...)` | `Env::var_or_default(name, default)` |
 | `env::has_flag(flag)` | `Env::has_flag(flag)` |
 
-Import `use std::host::env::Env` to reach them. `Env::arg_at` indexes the
-vector built by `Env::args`, so it returns real arguments on both targets (the
-direct `__intrinsic_arg_at` lowering still returns `None` on `wasm32-gc`).
+Import `use std::host::env::Env` to reach them. `Env::arg_at` calls the
+`__intrinsic_arg_at` intrinsic directly: the `wasm32-gc` P2 path indexes the
+canonical `get-arguments` list and the linear path indexes the Preview 1 argv
+table, so both targets return the argument at `index`.
 
 ### MIR call-result typing for the env intrinsics
 

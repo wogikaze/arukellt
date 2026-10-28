@@ -16,6 +16,55 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-28 — `__intrinsic_arg_at` indexes real argv on wasm32-gc (#807, ADR-046)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) retired
+  the `std::host::env` free functions behind `Env`; the `wave/env-args` slice
+  recorded a residual — `Env::arg_at` indexed the `Env::args` vector because
+  the direct `__intrinsic_arg_at` lowering was believed to be a constant
+  `None` on `wasm32-gc`.
+- **Root cause**: the direct intrinsic had two gaps.
+  `__intrinsic_arg_at` was never registered in
+  `resolver/builtins_intrinsics.ark`, so a direct call failed with **E0100**
+  before reaching the emitter, and the `wasm32-gc` branch in
+  `wasm/runtime_abi_env_args.ark` was the stopgap `emit_env_arg_at_gc_none`,
+  which dropped the index operand and returned the `Option::None` variant.
+  The `wasm32` linear emitter (`wasm/runtime_abi_env_arg_at_body.ark`) was
+  already complete.
+- **Emitter**: `wasm/runtime_abi_env_args_gc.ark` adds
+  `emit_env_arg_at_gc`. It fetches the canonical argv
+  (`wasi:cli/environment@0.2` `get-arguments` on wasi-p2,
+  `args_sizes_get` / `args_get` on Preview 1), bounds-checks
+  `0 <= index < argc - 1`, reads element `index + 1` because argv[0] holds
+  the program name, copies the `(ptr, len)` payload into a GC string, and
+  stores `Option::Some(string)` with discriminant 0; out-of-range and
+  negative indices keep the existing `Option::None` variant (discriminant 1).
+  The index is consumed from the MIR call operands, like the linear emitter.
+- **Surface**: `__intrinsic_arg_at` is registered as a private intrinsic
+  (ADR-044 / ADR-046 exception) and `Env::arg_at` calls it directly;
+  `Env::args` and the other `Env` methods are unchanged. The host intrinsic
+  GC adapter body for `arg_at` reuses the same emitter, so the deferred stub
+  path also returns real arguments.
+- **Fixtures**: `tests/fixtures/wasi_p2_native/arg_at.ark` (+ `.expected`,
+  `.flags`) prints `arg_count`, two real arguments, an out-of-range index,
+  and a negative index. `gate-668-p2-native-polish` runs the wasm32-gc P2
+  component, and `gate-668-p2-args-env` runs the same source as a P2
+  component and as a `wasm32` Preview 1 core with the same `alpha beta`
+  argv, requiring the shared golden.
+- **Verification**: `arg_at.expected` stdout on both targets
+  (`arg_count=2`, `arg0=alpha`, `arg1=beta`, `arg2=none`, `arg_neg=none`);
+  `gate-668-p2-args-env` PASS; `gate-668-p2-native-polish` PASS;
+  `verify fixtures` **1913/1913 PASS**, 0 FAIL (110 runtime smoke, 2
+  runtime-unsupported, 1 `test:` fixture PASS); `docs check` 6/6;
+  `verify lane` PASS; `selfhost build-compiler` 2169.6 s; ADR-029 fixpoint
+  PASS at s2 == s3 sha256
+  `1aa4077a29a8f224315b3778aa01b3685cffee23d723e34b4caa82617683aa7e`
+  (pinned base `8df2698c…`; s3 build 32m16s).
+- **Residual**: each `Env::arg_at` call re-fetches the argument list through
+  the canonical ABI, the same lifetime behavior as `Env::args`; caching the
+  argv vector remains follow-up work. The `std::cli` free functions still
+  index `Env::args`.
+
 ## 2026-10-28 — wrapping numeric conversion CoreOps bind the i32→u16/i16 and u64→u32 shims (#917, ADR-042, ADR-046, ADR-067, ADR-087)
 
 - **Basis**: [ADR-042](../adr/ADR-042-intrinsic-layer-separation.md) CoreOp
