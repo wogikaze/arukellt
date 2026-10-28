@@ -7,3 +7,7 @@ fn TypeInfo_set_name(ty: TypeInfo, name: String) {
 fn TypeInfo_push_type_arg(ty: TypeInfo, arg: TypeInfo) {
     contract_types_record::type_info_push_type_arg(ty, arg)
 }
+
+fn TypeInfo_push_param_mode(ty: TypeInfo, is_mut: bool) {
+    contract_types_record::type_info_push_param_mode(ty, is_mut)
+}

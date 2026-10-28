@@ -1,0 +1,17 @@
+// ADR-088 §7: a function that mutates its parameter cannot be assigned to a
+// shared function type, because the caller could pass an immutable place.
+
+struct Point {
+    x: i32,
+}
+
+fn bump(mut p: Point) -> i32 {
+    p.x = p.x + 1
+    p.x
+}
+
+fn main() {
+    let read: fn(Point) -> i32 = bump
+    let mut point = Point { x: 1 }
+    read(point)
+}

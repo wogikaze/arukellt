@@ -1,0 +1,1 @@
+error[E0224|typecheck]: the same place `point` is passed to a `mut` parameter and another parameter in one call

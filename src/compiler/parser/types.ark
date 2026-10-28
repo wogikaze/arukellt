@@ -1,6 +1,7 @@
 use std::text
 use std::prelude::{clone, eq, to_string}
 use parser::core_ast_children
+use parser::core_ast_flag_fields
 use parser::core_ast_factory
 use parser::core_ast_text_fields
 use parser::core_ast_type_ann
@@ -130,7 +131,7 @@ fn parse_fn_type(p: Parser, t: Token) -> AstNode {
         }
         first = false
         core_api_cursor::skip_newlines(p)
-        let arg = parse_type(p)
+        let arg = parse_fn_type_param(p)
         core_ast_children::AstNode_push_child(fn_node, arg)
     }
     type_token_expect::expect_rparen(p)
@@ -140,4 +141,16 @@ fn parse_fn_type(p: Parser, t: Token) -> AstNode {
         core_ast_type_ann::AstNode_push_type_ann(fn_node, ret)
     }
     fn_node
+}
+
+// A function-type parameter may be a mutable borrow: `fn(mut T) -> U`
+// (ADR-088 §7). The mode is recorded on the parameter type node and read by
+// the typechecker when it builds the TY_FN type.
+fn parse_fn_type_param(p: Parser) -> AstNode {
+    let is_mut = core_api_expect::consume_optional_mut(p)
+    let param = parse_type(p)
+    if is_mut {
+        core_ast_flag_fields::AstNode_set_is_mut(param, true)
+    }
+    param
 }

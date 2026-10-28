@@ -1,0 +1,17 @@
+// ADR-088 §5/§7: the same-root conflict rule also applies when the call goes
+// through a `fn(mut T, T)` value.
+
+struct Point {
+    x: i32,
+}
+
+fn combine(mut target: Point, source: Point) -> i32 {
+    target.x = source.x
+    target.x
+}
+
+fn main() {
+    let combine_fn: fn(mut Point, Point) -> i32 = combine
+    let mut point = Point { x: 1 }
+    combine_fn(point, point)
+}

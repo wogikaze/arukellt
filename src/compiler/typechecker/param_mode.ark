@@ -31,21 +31,56 @@ fn check_call_parameter_modes(
     if param_count < 1 || first_arg < 0 || child_count < first_arg + param_count {
         return
     }
+    let requires_mutable = Vec::new<bool>()
     let mut index = 0
     while index < param_count {
-        let arg_node = ast_access::node_child_at(node, first_arg + index)
-        if param_requires_mutable_place(env, sig, index, first_arg, receiver_ty) &&
-        !arg_is_mutable_place(scope, arg_node) {
-            ownership::report_ownership_error(
-                env,
-                codes::DIAG_TYPE_MUT_PARAM_PLACE(),
-                arg_node,
-                mutable_place_message(index, first_arg)
-            )
-        }
+        push(
+            requires_mutable,
+            param_requires_mutable_place(env, sig, index, first_arg, receiver_ty)
+        )
         index = index + 1
     }
-    check_overlapping_places(env, scope, sig, node, first_arg, param_count, receiver_ty)
+    check_mutable_parameter_places(env, scope, node, first_arg, requires_mutable)
+}
+
+// Calls through a function value carry the modes in the TY_FN type (ADR-088
+// §7): the type args are the parameter types followed by the return type, and
+// `param_modes` aligns with the parameters. A shared function value is still
+// called with the declared `mut` contract, so the call site must provide a
+// mutable place.
+fn check_fn_value_parameter_modes(env: TypeEnv, scope: LocalScope, fn_ty: TypeInfo, node: AstNode, first_arg: i32) {
+    if !env.is_ownership_tracking_enabled {
+        return
+    }
+    let type_arg_count = contract_type_access::TypeInfo_type_arg_count(fn_ty)
+    if type_arg_count < 1 || first_arg < 0 {
+        return
+    }
+    let param_count = type_arg_count - 1
+    let child_count = ast_access::node_child_count(node)
+    if param_count < 1 || child_count < first_arg + param_count {
+        return
+    }
+    let requires_mutable = Vec::new<bool>()
+    let mut index = 0
+    while index < param_count {
+        push(
+            requires_mutable,
+            fn_value_param_requires_mutable_place(env, fn_ty, index)
+        )
+        index = index + 1
+    }
+    check_mutable_parameter_places(env, scope, node, first_arg, requires_mutable)
+}
+
+fn fn_value_param_requires_mutable_place(env: TypeEnv, fn_ty: TypeInfo, index: i32) -> bool {
+    if !contract_type_access::TypeInfo_param_is_mut(fn_ty, index) {
+        return false
+    }
+    type_requires_mutable_place(
+        env,
+        contract_type_access::TypeInfo_type_arg_at(fn_ty, index)
+    )
 }
 
 // Copy parameters are passed by value, so `mut p: i32` only rebinds a local
@@ -65,11 +100,41 @@ fn param_requires_mutable_place(env: TypeEnv, sig: FnSig, index: i32, first_arg:
     contract_type_access::TypeInfo_tag(receiver_ty) != commands::TY_UNKNOWN() {
         param_ty = receiver_ty
     }
+    type_requires_mutable_place(env, param_ty)
+}
+
+fn type_requires_mutable_place(env: TypeEnv, param_ty: TypeInfo) -> bool {
     let tag = contract_type_access::TypeInfo_tag(param_ty)
     if tag == commands::TY_UNKNOWN() || tag == commands::TY_TYPE_VAR() {
         return false
     }
     !ownership_types::type_is_copy(env, param_ty)
+}
+
+fn check_mutable_parameter_places(
+    env: TypeEnv,
+    scope: LocalScope,
+    node: AstNode,
+    first_arg: i32,
+    requires_mutable: Vec<bool>
+) {
+    let param_count = len(requires_mutable)
+    let mut index = 0
+    while index < param_count {
+        if get_unchecked(requires_mutable, index) {
+            let arg_node = ast_access::node_child_at(node, first_arg + index)
+            if !arg_is_mutable_place(scope, arg_node) {
+                ownership::report_ownership_error(
+                    env,
+                    codes::DIAG_TYPE_MUT_PARAM_PLACE(),
+                    arg_node,
+                    mutable_place_message(index, first_arg)
+                )
+            }
+        }
+        index = index + 1
+    }
+    check_overlapping_places(env, scope, node, first_arg, requires_mutable)
 }
 
 fn mutable_place_message(param_index: i32, first_arg: i32) -> String {
@@ -97,24 +162,57 @@ fn arg_is_mutable_place(scope: LocalScope, node: AstNode) -> bool {
     true
 }
 
+// ADR-088 §7: a function value whose parameter is shared is assignable where
+// the same position is `mut` (a read-only function is safe behind a mutable
+// borrow), but the reverse would let an immutable place reach a function that
+// mutates it. Modes are not part of unification, so the direction is checked
+// explicitly at annotation boundaries.
+fn check_fn_type_assignment(env: TypeEnv, node: AstNode, expected: TypeInfo, actual: TypeInfo) {
+    if !env.is_ownership_tracking_enabled {
+        return
+    }
+    if contract_type_access::TypeInfo_tag(expected) != commands::TY_FN() ||
+    contract_type_access::TypeInfo_tag(actual) != commands::TY_FN() {
+        return
+    }
+    let expected_count = contract_type_access::TypeInfo_type_arg_count(expected)
+    let actual_count = contract_type_access::TypeInfo_type_arg_count(actual)
+    if expected_count != actual_count || expected_count < 1 {
+        return
+    }
+    let param_count = expected_count - 1
+    let mut index = 0
+    while index < param_count {
+        if contract_type_access::TypeInfo_param_is_mut(actual, index) &&
+        !contract_type_access::TypeInfo_param_is_mut(expected, index) {
+            ownership::report_ownership_error(
+                env,
+                codes::DIAG_TYPE_FN_MODE_ASSIGN(),
+                node,
+                "a function with a `mut` parameter cannot be assigned to a shared function type"
+            )
+            return
+        }
+        index = index + 1
+    }
+}
+
 // The conflict rule is syntactic: compare the root name and the field path.
 // Index paths collapse to `[]` because the checker does not evaluate index
 // expressions, so `v[0]` and `v[1]` conservatively overlap.
 fn check_overlapping_places(
     env: TypeEnv,
     scope: LocalScope,
-    sig: FnSig,
     node: AstNode,
     first_arg: i32,
-    param_count: i32,
-    receiver_ty: TypeInfo
+    requires_mutable: Vec<bool>
 ) {
+    let param_count = len(requires_mutable)
     let mut left = 0
     while left < param_count {
         let mut right = left + 1
         while right < param_count {
-            if param_requires_mutable_place(env, sig, left, first_arg, receiver_ty) ||
-            param_requires_mutable_place(env, sig, right, first_arg, receiver_ty) {
+            if get_unchecked(requires_mutable, left) || get_unchecked(requires_mutable, right) {
                 let left_key = place_key(
                     scope,
                     ast_access::node_child_at(node, first_arg + left)

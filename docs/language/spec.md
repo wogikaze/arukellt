@@ -247,7 +247,7 @@ with U+FFFD. These rules are shared by wasm32-gc and wasm32.
 | `Result<T, E>` | `Ok(T) \| Err(E)` | Owned tagged ADT; structurally `Copy` when `T: Copy` and `E: Copy` |
 | `HashMap<K, V>` | Statically monomorphized generic hash map | Reference type |
 | `Box<T>` | Heap-allocated wrapper | Non-`Copy` unique owner of `T` |
-| Function | `fn(T1, T2) -> R` | First-class function type |
+| Function | `fn(T1, T2) -> R` | First-class function type; a parameter may be declared `mut` |
 
 ### 2.3 Special Types
 
@@ -283,8 +283,10 @@ the call and the caller's binding stays usable. Mutation across a call requires
 a `mut` parameter and a mutable place at the call site; a value that a callee
 stores or returns is shared, not copied
 ([ADR-088](../adr/ADR-088-language-v2-call-boundary-borrow-and-mut-parameters.md)).
-The call-boundary rules are specified in §3.5.1 and are not yet enforced by the
-current compiler.
+The call-boundary rules are specified in §3.5.1 and are partially enforced by
+the current compiler: the call-site rules and function-type modes are checked,
+while the callee-side shared-parameter rule still needs the std/selfhost
+migration tracked by [#951](../../issues/open/951-mut-parameter-mode-and-call-borrow-checks.md).
 
 ### 2.5 Type Inference
 
@@ -610,14 +612,18 @@ bump(a)               // error: `a` is an immutable binding
   Closure parameters use the same form (`|mut v| …`).
 
 **Current implementation.** The compiler parses `mut` parameters, `mut self`,
-and `|mut v|`. A call must pass a mutable place for a non-`Copy` `mut`
-parameter (E0223), and one call must not pass overlapping places to a `mut`
-parameter and another parameter (E0224). Assignment through a shared parameter
-or a shared `self` is still accepted, the mode is not yet part of function
-types (`fn(mut T)`), and a borrowed `Box<T>` escape is not rejected. Those
-rules wait for the std/selfhost migration tracked by
+`|mut v|`, and `mut` positions in function types (`fn(mut T) -> U`). A call
+must pass a mutable place for a non-`Copy` `mut` parameter (E0223), and one
+call must not pass overlapping places to a `mut` parameter and another
+parameter (E0224). The mode is part of the `TY_FN` type, so a call through a
+function value enforces the same rules, a shared-parameter function value is
+assignable to a `mut` position, and the reverse is rejected with E0225 at
+annotated `let` bindings. Assignment through a shared parameter or a shared
+`self` is still accepted, and a borrowed `Box<T>` escape is not rejected.
+Those rules wait for the std/selfhost migration tracked by
 [#951](../../issues/open/951-mut-parameter-mode-and-call-borrow-checks.md); the
-missing E0212 for some moved arguments is tracked by
+reverse-direction check is not yet applied at function-argument and return
+positions, and the missing E0212 for some moved arguments is tracked by
 [#944](../../issues/open/944-move-after-use-not-diagnosed.md); see
 [../current-state.md](../current-state.md).
 

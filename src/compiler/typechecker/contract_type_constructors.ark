@@ -1,5 +1,6 @@
 use typechecker::contract_type_access
 use typechecker::contract_types_record
+use typechecker::contract_type_mutation
 
 fn TypeInfo_simple(tag: i32) -> TypeInfo {
     contract_types_record::TypeInfo_new(tag, String_new(), Vec::new<TypeInfo>())
@@ -9,6 +10,23 @@ fn TypeInfo_named(tag: i32, name: String) -> TypeInfo {
     contract_types_record::TypeInfo_new(tag, name, Vec::new<TypeInfo>())
 }
 
+// Rebuild a type with a fresh type-argument list. Function parameter modes
+// live outside `type_args`, so carry them over; instantiation and deep
+// resolution otherwise lose the `fn(mut T)` signature when they copy a TY_FN.
 fn TypeInfo_empty_like(ty: TypeInfo) -> TypeInfo {
-    contract_types_record::TypeInfo_new(contract_type_access::TypeInfo_tag(ty), contract_type_access::TypeInfo_name(ty), Vec::new<TypeInfo>())
+    let rebuilt = contract_types_record::TypeInfo_new(
+        contract_type_access::TypeInfo_tag(ty),
+        contract_type_access::TypeInfo_name(ty),
+        Vec::new<TypeInfo>()
+    )
+    let mode_count = contract_type_access::TypeInfo_param_mode_count(ty)
+    let mut index = 0
+    while index < mode_count {
+        contract_type_mutation::TypeInfo_push_param_mode(
+            rebuilt,
+            contract_type_access::TypeInfo_param_is_mut(ty, index)
+        )
+        index = index + 1
+    }
+    rebuilt
 }

@@ -143,20 +143,29 @@ parameter and another parameter (E0224); the check compares the syntactic root
 and field path and treats every element path as `[]`. A `mut` closure
 parameter is bound mutable, so assigning it inside the closure body is valid.
 
-This is a partial slice: assigning through a shared parameter or shared `self`
-is still accepted, the mode is not yet represented in function types
-(`fn(mut T)` assignability), and a borrowed `Box<T>` escape is not rejected.
-Those three rules require migrating `std/` and `src/compiler/` call sites to
-`mut` parameters and `let mut` places; until then, new call-site diagnostics
-only fire for the explicit `mut` spelling. ADR-014's warning window was not
-run because no pre-existing declaration uses the new spelling, so the new
+The parameter mode is also part of a function type: `fn(mut T) -> U` is
+parsed and stored in `TY_FN`, calls through a function value enforce E0223 and
+E0224, and a shared-parameter function value is assignable to a `mut` position
+while the reverse is rejected with E0225 at annotated `let` bindings. The
+reverse-direction check is not yet applied at function-argument and return
+positions.
+
+This remains a partial slice: assigning through a shared parameter or shared
+`self` is still accepted, and a borrowed `Box<T>` escape is not rejected.
+Those two rules require migrating `std/` and `src/compiler/` call sites to
+`mut` parameters and `let mut` places; until then, call-site diagnostics only
+fire for the explicit `mut` spelling. ADR-014's warning window was not run
+because no pre-existing declaration uses the new spelling, so the new
 diagnostics are errors (same posture as #946).
 
-Verification: the positive fixture `mut_params/mut_param_places.ark` runs on
-both `wasm32-gc` and `wasm32`; the diagnostic fixtures
-`diagnostics/mut_param_immutable_place.ark`,
-`diagnostics/mut_self_immutable_receiver.ark`, and
-`diagnostics/mut_param_same_place.ark` assert E0223/E0224.
+Verification: the positive fixtures `mut_params/mut_param_places.ark` and
+`mut_params/fn_type_modes.ark` run on both `wasm32-gc` and `wasm32`; the
+diagnostic fixtures `diagnostics/mut_param_immutable_place.ark`,
+`diagnostics/mut_self_immutable_receiver.ark`,
+`diagnostics/mut_param_same_place.ark`,
+`diagnostics/fn_type_mode_downgrade.ark`,
+`diagnostics/fn_value_mut_param_immutable_place.ark`, and
+`diagnostics/fn_value_mut_param_same_place.ark` assert E0223/E0224/E0225.
 
 ### Language v2 conversion and error boundary (#857 / ADR-063)
 
@@ -298,9 +307,9 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 - Observed quick gate: `python3 scripts/manager.py verify quick` — 151/151 checks pass.
 - Coverage: not exhaustive runtime or pinned/reference parity; not a release-readiness receipt. Historical failures are not individually resolved by this observation.
 - Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 3400 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1812 registry entries (not proof they fail)
-- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 3390 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, target capability, ADT fallback runtime, hygienic desugaring, iterator capability diagnostics, linear GC entry-collection, linear GC HashMap-survival, HashMap for-in iteration, generic for-source diagnostic, parametric trait impl, generic struct field-method, generic inherent struct-literal, enum struct-payload field-access, generic struct-item iterator, nested generic iterator adapter, desugared-iteration equivalence, generic struct Vec-field, generic fn-field iterator, item-generic iterator adapter migration, generic Ord seq-algorithm, unbound-typevar clone, HashMap keys/fn-valued-map iteration, closure capture-escape diagnostic, closure copy-capture snapshot, generic inferred struct-literal, generic fn-field Option-step, struct fn-field call, zero-param fn-valued HashMap call, struct option vec fn fields, generic scan iterator, flat-map adapter, peek adapter, and step+scan iterator, and String-lane generic scan iterator, and borrow-rebind write-through, and Option-tuple-payload, and method-level-generics iterator map type-change plus unresolved method type-parameter diagnostic, and zero-param fn-value ref-return, and payload-enum unit-variant match arm, and cyclic graph walk, and spec-example normative-doc, and migration-diagnostic, and match-exhaustiveness, and or-pattern variant-alternative, and nested-closure capture-through, and variant-payload sub-pattern plus variant-payload struct-subpattern diagnostic, and untyped-option-scrutinee fixtures were added, and the untyped-None-scrutinee-bind compile-error fixture was added, plus the prelude-enum name-shadow run fixture and the generic struct-enum shadow diagnostic fixture, and the nested-closure mark-propagation diagnostics and shadow-scope guard fixtures, plus the hashmap-unsupported-pair diagnostic reclassification from t3-compile to diag and the duplicate numeric-implicit-promotion t3-compile removal, and the two-bound distinct-layout GC fixture and the prelude concrete/conversion argument-type diagnostic fixtures were added, so the current registry remainder is 1802, after the stdlib_deque run/t3 fixtures, the typed stdio handle fixtures, and the empty-struct lowering fixture, and the ADR-088 mut-parameter fixtures were added. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
+- Fixture registry: 3405 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1817 registry entries (not proof they fail)
+- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 3405 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, target capability, ADT fallback runtime, hygienic desugaring, iterator capability diagnostics, linear GC entry-collection, linear GC HashMap-survival, HashMap for-in iteration, generic for-source diagnostic, parametric trait impl, generic struct field-method, generic inherent struct-literal, enum struct-payload field-access, generic struct-item iterator, nested generic iterator adapter, desugared-iteration equivalence, generic struct Vec-field, generic fn-field iterator, item-generic iterator adapter migration, generic Ord seq-algorithm, unbound-typevar clone, HashMap keys/fn-valued-map iteration, closure capture-escape diagnostic, closure copy-capture snapshot, generic inferred struct-literal, generic fn-field Option-step, struct fn-field call, zero-param fn-valued HashMap call, struct option vec fn fields, generic scan iterator, flat-map adapter, peek adapter, and step+scan iterator, and String-lane generic scan iterator, and borrow-rebind write-through, and Option-tuple-payload, and method-level-generics iterator map type-change plus unresolved method type-parameter diagnostic, and zero-param fn-value ref-return, and payload-enum unit-variant match arm, and cyclic graph walk, and spec-example normative-doc, and migration-diagnostic, and match-exhaustiveness, and or-pattern variant-alternative, and nested-closure capture-through, and variant-payload sub-pattern plus variant-payload struct-subpattern diagnostic, and untyped-option-scrutinee fixtures were added, and the untyped-None-scrutinee-bind compile-error fixture was added, plus the prelude-enum name-shadow run fixture and the generic struct-enum shadow diagnostic fixture, and the nested-closure mark-propagation diagnostics and shadow-scope guard fixtures, plus the hashmap-unsupported-pair diagnostic reclassification from t3-compile to diag and the duplicate numeric-implicit-promotion t3-compile removal, and the two-bound distinct-layout GC fixture and the prelude concrete/conversion argument-type diagnostic fixtures were added, so the current registry remainder is 1817, after the stdlib_deque run/t3 fixtures, the typed stdio handle fixtures, and the empty-struct lowering fixture, the ADR-088 mut-parameter fixtures, and the ADR-088 function-type fixtures were added. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
 - Wasm validation is a hard error (W0004)
 - Historical verification: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
 

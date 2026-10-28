@@ -1,0 +1,41 @@
+use std::host::stdio
+
+// ADR-088 §7: the parameter mode is part of the function type. A shared
+// function value can be used where a `mut` parameter is expected, but calls
+// through the annotated type still require a mutable place.
+
+struct Point {
+    x: i32,
+}
+
+fn read(p: Point) -> i32 {
+    p.x
+}
+
+fn bump(mut p: Point) -> i32 {
+    p.x = p.x + 1
+    p.x
+}
+
+fn apply(f: fn(mut Point) -> i32, mut p: Point) -> i32 {
+    f(p)
+}
+
+fn main() {
+    let read_fn: fn(mut Point) -> i32 = read
+    let mut point = Point { x: 1 }
+    stdio::println(read_fn(point).to_string())
+    stdio::println(point.x.to_string())
+
+    let increment: fn(mut i32) -> i32 = |mut value: i32| {
+        value = value + 1
+        value
+    }
+    let mut number = 5
+    stdio::println(increment(number).to_string())
+    stdio::println(number.to_string())
+
+    let bump_fn: fn(mut Point) -> i32 = bump
+    stdio::println(apply(bump_fn, point).to_string())
+    stdio::println(point.x.to_string())
+}

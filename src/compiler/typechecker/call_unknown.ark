@@ -6,6 +6,7 @@ use typechecker::builtins
 use typechecker::call_args
 use typechecker::contract_type_access
 use typechecker::names
+use typechecker::param_mode
 use typechecker::scope
 use typechecker::unify
 fn infer_local_function_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, fn_ty: TypeInfo) -> TypeInfo {
@@ -23,6 +24,7 @@ fn infer_local_function_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, actual_arg_count)
         return TypeInfo_simple(commands::TY_UNKNOWN())
     }
+    param_mode::check_fn_value_parameter_modes(env, scope, fn_ty, node, 1)
     let mut i = 0
     while i < actual_arg_count {
         let arg_node = ast_access::node_child_at(node, i + 1)
