@@ -92,6 +92,7 @@ fn push_intrinsic_io_env_process(names: Vec<String>) {
     push(names, String_from("__intrinsic_clock_now_ms"))
     push(names, String_from("__runtime_abi_env_get_var"))
     push(names, String_from("__runtime_abi_env_var"))
+    push(names, String_from("__intrinsic_eprint"))
     push(names, String_from("__intrinsic_eprintln"))
     push(names, String_from("__intrinsic_fd_fdstat_get"))
     push(names, String_from("__intrinsic_fd_seek"))

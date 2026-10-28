@@ -386,6 +386,8 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(name), "write_string") { return "use `w.write_string(s)` on `Writer` instead" }
     if eq(clone(name), "writer_flush") { return "use `w.flush()` on `Writer` instead" }
     if eq(clone(name), "writer_to_bytes") { return "use `w.into_bytes()` on `Writer` instead" }
+    if eq(clone(name), "writer_write") { return "use `io::Stdout::new().write(data)` or `io::Stderr::new().write(data)` from `use std::io` instead" }
+    if eq(clone(name), "writer_write_str") { return "use `io::Stdout::new().write_string(s)` or `io::Stderr::new().write_string(s)` from `use std::io` instead" }
     String_new()
 }
 
@@ -1175,9 +1177,9 @@ test mod "removed_names" {
         assert(len(removed_module_member_hint(String_from("io"), String_from("writer_flush"))) > 0)
         assert(len(removed_module_member_hint(String_from("io"), String_from("writer_to_bytes"))) > 0)
     }
-    test "live io tagged writers have no removal hint" {
-        assert(len(removed_module_member_hint(String_from("io"), String_from("writer_write"))) == 0)
-        assert(len(removed_module_member_hint(String_from("io"), String_from("writer_write_str"))) == 0)
+    test "retired io tagged writers have removal hints" {
+        assert(len(removed_module_member_hint(String_from("io"), String_from("writer_write"))) > 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("writer_write_str"))) > 0)
     }
     test "other modules do not get io hints" {
         assert(len(removed_module_member_hint(String_from("fs"), String_from("reader_read"))) == 0)

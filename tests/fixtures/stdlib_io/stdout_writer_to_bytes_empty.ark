@@ -1,13 +1,13 @@
-// The tagged stdout handle has no readable image; `writer_to_bytes` is
-// retired, so the empty write count is the remaining observable contract.
-use std::io
+// Typed stdout keeps the empty-write count contract: zero bytes accepted and
+// nothing emitted.
+use std::io::{io_error_message, IoError, Stdout, Write}
 use std::test
 
 fn main() {
-    let w: Vec<i32> = io::stdout()
-    let res: Result<i32, io::IoError> = io::writer_write_str(w, "")
+    let out: Stdout = Stdout::new()
+    let res: Result<i32, IoError> = out.write(Vec::new<i32>())
     match res {
-        Result::Ok(n) => test::assert_eq_i32(n, 0),
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Ok(count) => test::assert_eq_i32(count, 0),
+        Result::Err(e) => panic(io_error_message(e)),
     }
 }

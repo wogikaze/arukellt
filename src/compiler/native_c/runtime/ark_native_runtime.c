@@ -2574,6 +2574,11 @@ ark_unit ark_rt_println(ark_string *text) {
     return 0;
 }
 
+ark_unit ark_rt_eprint(ark_string *text) {
+    ark_write_stream(stderr, text);
+    return 0;
+}
+
 ark_unit ark_rt_eprintln(ark_string *text) {
     ark_write_stream(stderr, text);
     fputc('\n', stderr);

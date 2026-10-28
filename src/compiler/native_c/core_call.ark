@@ -301,6 +301,7 @@ fn native_c_core_expected_argument_count(handler: i32) -> i32 {
     if handler == core_op_registry_generated::core_op_handler_raw_string_clone() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_raw_string_from_bytes() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_raw_string_len_bytes() { return 1 }
+    if handler == core_op_registry_generated::core_op_handler_runtime_eprint() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_runtime_eprintln() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_runtime_fs_read_file() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_runtime_f32_to_f64() { return 1 }
@@ -546,6 +547,11 @@ fn native_c_emit_core_call(
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_args() {
         return native_c_core_call_expression("(ark_object_header *)ark_rt_args()")
+    }
+    if handler == core_op_registry_generated::core_op_handler_runtime_eprint() {
+        return native_c_core_call_expression(
+            "ark_rt_eprint(".concat(native_c_core_ref_arg(arguments, 0, "ark_string").concat(")"))
+        )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_eprintln() {
         return native_c_core_call_expression(

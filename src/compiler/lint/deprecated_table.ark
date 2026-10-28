@@ -158,32 +158,11 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
     if len(msg3) > 0 {
         return msg3
     }
-    let msg4 = deprecated_seq_qualified_message(path)
-    if len(msg4) > 0 {
-        return msg4
-    }
-    let msg5 = deprecated_io_qualified_message(path)
+    let msg5 = deprecated_seq_qualified_message(path)
     if len(msg5) > 0 {
         return msg5
     }
     return deprecated_hash_qualified_message(path)
-}
-
-// ── Deprecated std::io tagged output writers (ADR-085 Phase F) ────────
-//
-// The Vec-layout reader / buffered / memory-writer wrappers were retired in
-// Phase F (E0100 in resolver::removed_names). Only the tagged output pair
-// survives, because stdout() / stderr() are still tagged Vec<i32> handles;
-// their W0009 hint names the blocker instead of promising a method call that
-// those handles cannot satisfy.
-fn deprecated_io_qualified_message(path: String) -> String {
-    if eq(clone(path), "io::writer_write") {
-        return "stdout() / stderr() have no typed `Write` handle yet; use `w.write(data)` on `Writer` for memory handles (#693)"
-    }
-    if eq(clone(path), "io::writer_write_str") {
-        return "stdout() / stderr() have no typed `Write` handle yet; use `w.write_string(s)` on `Writer` for memory handles (#693)"
-    }
-    String_new()
 }
 
 fn deprecated_cmp_qualified_message(path: String) -> String {
@@ -335,9 +314,11 @@ test mod "deprecated" {
         assert(len(deprecated_call_message("assert_eq_i64")) > 0)
         assert(len(deprecated_call_message("assert_eq_str")) > 0)
     }
-    test "io_tagged_writers_warn_w0009" {
-        assert(len(deprecated_qualified_call_message("io::writer_write")) > 0)
-        assert(len(deprecated_qualified_call_message("io::writer_write_str")) > 0)
+    test "retired_io_tagged_writers_have_no_w0009_entry" {
+        // The tagged writer pair was deleted with E0100 hints once the typed
+        // Stdout / Stderr handles landed; resolver::removed_names owns them.
+        assert(len(deprecated_qualified_call_message("io::writer_write")) == 0)
+        assert(len(deprecated_qualified_call_message("io::writer_write_str")) == 0)
     }
     test "removed_host_fs_frees_have_no_w0009_entry" {
         // The five stable host fs wrappers were deleted in the ADR-087 Wave 2

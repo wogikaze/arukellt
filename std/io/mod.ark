@@ -7,6 +7,8 @@
 //! `Writer` implements `Write`. `std::host::fs::File` implements `Read`,
 //! `Write`, and `Seek`: `File::open` loads a read-only image, `File::create`
 //! starts a write image, and `flush` / `close` commit that image (ADR-085 D6).
+//! The host-backed `Stdout` / `Stderr` typed handles also implement `Write`
+//! and are the byte-faithful standard-stream sinks.
 //!
 //! # Contract notes
 //!
@@ -28,30 +30,24 @@
 //! # Compatibility surface
 //!
 //! ADR-085 Phase E/F moved the canonical surface to the traits and deleted the
-//! legacy free functions that the newtypes and `Io` fully replace. Only the
-//! tagged output write path stays callable, and it is deprecated under the
-//! ADR-014 window:
-//!
-//! - `writer_write` / `writer_write_str` keep the tagged `[fd_tag, ...]`
-//!   layout because `stdout()` / `stderr()` are tagged `Vec<i32>` handles and
-//!   `std::host::stdio` does not expose byte-faithful typed `Write` handles
-//!   yet. A typed `Stdout` handle lowers, but `Stderr` has only
-//!   `__intrinsic_eprintln`, which appends `\n`; no raw stderr write intrinsic
-//!   exists. Deletion condition: that intrinsic lands and typed
-//!   `Stdout` / `Stderr` values replace the tagged layout.
-//!
-//! Both entries carry `deprecated_by` / `remove_in` and W0009 coverage. The
-//! removed `reader_*` read methods, `copy*`, `new_memory_buffer` / `write_bytes`
-//! / `read_bytes` / `seek_to` / `buffer_position` / `buffer_len` /
+//! legacy free functions that the newtypes and `Io` fully replace. The
+//! `reader_*` read methods, `copy*`, `new_memory_buffer` / `write_bytes` /
+//! `read_bytes` / `seek_to` / `buffer_position` / `buffer_len` /
 //! `fill_buffer`, the `reader_from_bytes` / `buf_*` / `writer_new` /
 //! `write_all` / `write_string` / `writer_flush` / `writer_to_bytes` wrappers,
-//! and the experimental `file_*` fd lane surface as E0100 with a replacement
-//! hint from `resolver::removed_names`.
+//! the tagged `writer_write` / `writer_write_str` pair, and the experimental
+//! `file_*` fd lane surface as E0100 with a replacement hint from
+//! `resolver::removed_names`.
+//!
+//! Output sinks are the typed `Stdout` / `Stderr` handles, which implement
+//! `Write` byte-faithfully. The tagged `writer_write` / `writer_write_str`
+//! pair is retired with E0100 hints.
 //!
 //! `stdin` / `stdout` / `stderr` / `read_stdin_line` / `print_bytes` remain
-//! host-backed compatibility functions; their trait handles belong to the
-//! `std::host` stdio work. WASI stdin reading is unavailable, so `stdin()` is
-//! empty and `read_stdin_line()` returns `Ok("")`.
+//! host-backed compatibility functions. The tagged `stdout()` / `stderr()`
+//! vectors have no byte-faithful writer of their own; use the typed
+//! `Stdout` / `Stderr` handles. WASI stdin reading is unavailable, so
+//! `stdin()` is empty and `read_stdin_line()` returns `Ok("")`.
 
 // ─── Error type ───────────────────────────────────────────────────────────────
 use std::prelude::{byte_at, i32_to_i64, i64_to_i32}
@@ -348,6 +344,75 @@ impl Write for Writer {
     }
 
     fn flush(self: Writer) -> Result<(), IoError> {
+        Ok(())
+    }
+}
+
+// ─── Typed stdio handles (ADR-085 D9) ────────────────────────────────────────
+/// Typed standard-output handle.
+///
+/// `write(Vec<i32>)` emits the byte image unchanged and returns its exact
+/// length; `write_string(text)` emits UTF-8 bytes. Writes reach the host
+/// synchronously, so `flush` is a no-op. This is the byte-faithful replacement
+/// for the tagged `stdout()` compatibility vector.
+pub struct Stdout {}
+
+impl Stdout {
+    /// Creates a standard-output handle.
+    fn new() -> Stdout {
+        Stdout {}
+    }
+
+    /// Writes `text` as UTF-8 bytes and returns the byte count.
+    fn write_string(self: Stdout, text: String) -> Result<i32, IoError> {
+        let count: i32 = len(text)
+        __intrinsic_print(text)
+        Ok(count)
+    }
+}
+
+impl Write for Stdout {
+    fn write(self: Stdout, data: Vec<i32>) -> Result<i32, IoError> {
+        let count: i32 = len(data)
+        __intrinsic_print(__intrinsic_string_from_bytes(data))
+        Ok(count)
+    }
+
+    fn flush(self: Stdout) -> Result<(), IoError> {
+        Ok(())
+    }
+}
+
+/// Typed standard-error handle.
+///
+/// `write(Vec<i32>)` emits the byte image unchanged and never appends a
+/// newline; `write_string(text)` emits UTF-8 bytes. Writes reach the host
+/// synchronously, so `flush` is a no-op. This is the byte-faithful replacement
+/// for the tagged `stderr()` compatibility vector.
+pub struct Stderr {}
+
+impl Stderr {
+    /// Creates a standard-error handle.
+    fn new() -> Stderr {
+        Stderr {}
+    }
+
+    /// Writes `text` as UTF-8 bytes and returns the byte count.
+    fn write_string(self: Stderr, text: String) -> Result<i32, IoError> {
+        let count: i32 = len(text)
+        __intrinsic_eprint(text)
+        Ok(count)
+    }
+}
+
+impl Write for Stderr {
+    fn write(self: Stderr, data: Vec<i32>) -> Result<i32, IoError> {
+        let count: i32 = len(data)
+        __intrinsic_eprint(__intrinsic_string_from_bytes(data))
+        Ok(count)
+    }
+
+    fn flush(self: Stderr) -> Result<(), IoError> {
         Ok(())
     }
 }
@@ -775,14 +840,21 @@ pub fn stdin() -> Vec<i32> {
     r
 }
 
-/// Returns a Writer that emits to stdout.
+/// Returns the tagged stdout compatibility handle.
+///
+/// The vector carries the tag only; it has no byte-faithful write path of its
+/// own. Use `Stdout::new()` when the bytes must reach the host unchanged.
 pub fn stdout() -> Vec<i32> {
     let w: Vec<i32> = Vec::new<i32>()
     push(w, 1)
     w
 }
 
-/// Returns a Writer that emits to stderr.
+/// Returns the tagged stderr compatibility handle.
+///
+/// The vector carries the tag only; it has no byte-faithful write path of its
+/// own. Use `Stderr::new()` when the bytes must reach the host unchanged and
+/// without an appended newline.
 pub fn stderr() -> Vec<i32> {
     let w: Vec<i32> = Vec::new<i32>()
     push(w, 2)
@@ -807,73 +879,4 @@ pub fn print_bytes(data: Vec<i32>) {
         i = i + 1
     }
     __intrinsic_print(s)
-}
-
-// ─── Tagged output writers (host stdio compatibility) ───────────────────────
-//
-// ADR-085 D9 keeps this pair callable while `stdout()` / `stderr()` are tagged
-// `Vec<i32>` handles. Deletion condition: `std::host::stdio` exposes typed
-// `Write` handles, so the tagged layout no longer has to carry output sinks.
-
-/// Writes `data` bytes to a tagged Writer handle. Returns the number of bytes
-/// written.
-///
-/// Deprecated in favour of `Writer::write` for memory handles. This function
-/// stays because `stdout()` / `stderr()` return tagged `Vec<i32>` handles and
-/// no byte-faithful typed `Stderr` handle exists yet (ADR-085 D9, #693).
-///
-/// - Memory writers buffer the bytes.
-/// - stdout/stderr writers emit synchronously via print intrinsics.
-pub fn writer_write(w: Vec<i32>, data: Vec<i32>) -> Result<i32, IoError> {
-    let tag: i32 = get_unchecked(w, 0)
-    let n: i32 = len(data)
-    if tag == 0 {
-        let mut i: i32 = 0
-        while i < n {
-            push(w, get_unchecked(data, i) & 255)
-            i = i + 1
-        }
-        Ok(n)
-    } else {
-        let mut s: String = ""
-        let mut i: i32 = 0
-        while i < n {
-            s = __intrinsic_concat(s, char_to_string(get_unchecked(data, i) & 255))
-            i = i + 1
-        }
-        if tag == 1 {
-            __intrinsic_print(s)
-        } else {
-            __intrinsic_eprintln(s)
-        }
-        Ok(n)
-    }
-}
-
-/// Writes a string to a tagged Writer handle. Returns the number of bytes
-/// written.
-///
-/// Deprecated in favour of `Writer::write_string` for memory handles. This
-/// function stays because `stdout()` / `stderr()` return tagged `Vec<i32>`
-/// handles and no byte-faithful typed `Stderr` handle exists yet (ADR-085 D9,
-/// #693).
-pub fn writer_write_str(w: Vec<i32>, s: String) -> Result<i32, IoError> {
-    let tag: i32 = get_unchecked(w, 0)
-    let n: i32 = len(s)
-    if tag == 0 {
-        let mut i: i32 = 0
-        while i < n {
-            push(w, byte_at(s, i) & 255)
-            i = i + 1
-        }
-        Ok(n)
-    } else {
-        if tag == 1 {
-            __intrinsic_print(s)
-            Ok(n)
-        } else {
-            __intrinsic_eprintln(s)
-            Ok(n)
-        }
-    }
 }

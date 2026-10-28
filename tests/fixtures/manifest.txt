@@ -265,7 +265,8 @@ diag:diagnostics/removed_env_get_var.ark
 diag:diagnostics/removed_env_get_var_wasm32.ark
 diag:diagnostics/deprecated_seq_monomorphic.ark
 diag:diagnostics/deprecated_seq_monomorphic_wasm32.ark
-diag:diagnostics/deprecated_io_free_function.ark
+diag:diagnostics/removed_io_tagged_writer_write.ark
+diag:diagnostics/removed_io_tagged_writer_write_str.ark
 diag:diagnostics/removed_io_free_function.ark
 diag:diagnostics/removed_simd_free.ark
 diag:diagnostics/removed_simd_free_wasm32.ark
@@ -1248,6 +1249,8 @@ run:stdlib_io_rw/stdout_write.ark
 run:stdlib_io_rw/writer_basic.ark
 run:stdlib_io_traits/reader_writer_roundtrip.ark
 run:stdlib_io_traits/trait_dispatch.ark
+run:stdlib_io_traits/typed_stdout_write.ark
+run:stdlib_io_traits/typed_stderr_raw.ark
 run:stdlib_io_traits/io_copy_roundtrip.ark
 run:stdlib_io_traits/buf_reader_lines.ark
 run:stdlib_io_traits/buf_reader_standalone.ark
@@ -2230,6 +2233,7 @@ run:struct_mutation/field_assign.ark
 run:structs/basic_struct.ark
 run:structs/chained_field_assign.ark
 run:structs/constructor_fn.ark
+run:structs/empty_struct_handle.ark
 run:structs/field_access.ark
 run:structs/nested_struct.ark
 run:structs/nested_struct_init_call.ark
@@ -2507,6 +2511,8 @@ t3-compile:stdlib_io_traits/file_copy_to_memory.ark
 t3-compile:stdlib_io_traits/file_read_eof.ark
 t3-compile:stdlib_io_traits/file_write_roundtrip.ark
 t3-compile:stdlib_io_traits/file_write_contract.ark
+t3-compile:stdlib_io_traits/typed_stdout_write.ark
+t3-compile:stdlib_io_traits/typed_stderr_raw.ark
 t3-compile:stdlib_map/map_string.ark
 t3-compile:stdlib_math/abs_min_max.ark
 t3-compile:stdlib_math/clamp_i32.ark
@@ -2773,6 +2779,7 @@ t3-compile:simd_conformance/i8x16_lane_ops.ark
 t3-compile:struct_mutation/field_assign.ark
 t3-compile:structs/basic_struct.ark
 t3-compile:structs/constructor_fn.ark
+t3-compile:structs/empty_struct_handle.ark
 t3-compile:structs/field_access.ark
 t3-compile:structs/nested_struct.ark
 t3-compile:structs/struct_clone.ark
@@ -3047,6 +3054,8 @@ t3-run:stdlib_io_traits/file_copy_to_memory.ark
 t3-run:stdlib_io_traits/file_read_eof.ark
 t3-run:stdlib_io_traits/file_write_roundtrip.ark
 t3-run:stdlib_io_traits/file_write_contract.ark
+t3-run:stdlib_io_traits/typed_stdout_write.ark
+t3-run:stdlib_io_traits/typed_stderr_raw.ark
 t3-run:stdlib_json/json_perf_decode.ark
 t3-run:stdlib_json/json_perf_encode.ark
 t3-run:stdlib_map/map_string.ark
@@ -3300,6 +3309,7 @@ t3-run:string_interp/fstring_hygiene.ark
 t3-run:struct_mutation/field_assign.ark
 t3-run:structs/basic_struct.ark
 t3-run:structs/constructor_fn.ark
+t3-run:structs/empty_struct_handle.ark
 t3-run:structs/field_access.ark
 t3-run:structs/nested_struct.ark
 t3-run:structs/rmw_noop.ark

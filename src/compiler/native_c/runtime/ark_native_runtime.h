@@ -206,6 +206,7 @@ ark_string *ark_rt_read_stdin(void);
 ark_object_header *ark_rt_fs_read_file(ark_string *path);
 ark_unit ark_rt_print(ark_string *text);
 ark_unit ark_rt_println(ark_string *text);
+ark_unit ark_rt_eprint(ark_string *text);
 ark_unit ark_rt_eprintln(ark_string *text);
 ark_object_header *ark_rt_write_bytes(ark_string *path, ark_vec *bytes);
 ark_object_header *ark_rt_write_string(ark_string *path, ark_string *text);

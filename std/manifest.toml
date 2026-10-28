@@ -2558,15 +2558,14 @@ returns = "bool"
 #
 # ADR-085 Phases A-F: target-independent Read / Write / BufRead / Seek traits,
 # SeekFrom, the memory Reader / Writer newtypes, the Io algorithms, the generic
-# adapters, and the host File trait impls. Only the tagged output write pair
-# stays callable, because stdout() / stderr() are not typed Write handles yet
-# (ADR-085 D9).
+# adapters, the host File trait impls, and the typed Stdout / Stderr output
+# handles. The tagged writer_write / writer_write_str pair is retired (E0100).
 
 [[modules]]
 name = "std::io"
 stability = "stable"
 family = "core"
-doc = "Target-independent I/O abstraction (ADR-085): public Read / Write / BufRead / Seek traits, SeekFrom, memory Reader / Writer newtypes, the Io generic algorithms, and the generic BufReader<R> / BufWriter<W> adapters. The host-backed File under std::host::fs implements Read, Write, and Seek. The legacy free functions are retired (E0100) except writer_write / writer_write_str, which stay deprecated until std::host::stdio exposes typed Write handles for stdout() / stderr()."
+doc = "Target-independent I/O abstraction (ADR-085): public Read / Write / BufRead / Seek traits, SeekFrom, memory Reader / Writer newtypes, the Io generic algorithms, and the generic BufReader<R> / BufWriter<W> adapters. The host-backed File under std::host::fs implements Read, Write, and Seek, and the typed Stdout / Stderr handles implement Write byte-faithfully. The legacy free functions are retired (E0100)."
 availability = { t1 = true, t3 = true }
 
 [[types]]
@@ -2645,6 +2644,26 @@ methods = ["new", "into_bytes", "into_reader", "write_string"]
 trait_impls = ["Write"]
 
 [[types]]
+name = "Stdout"
+module = "std::io"
+stability = "experimental"
+prelude = false
+kind = "struct"
+doc = "Typed standard-output handle. Implements Write: write(data) emits the byte image unchanged, write_string(text) emits a string's UTF-8 bytes, and flush is synchronous. Byte-faithful replacement for the tagged stdout() / writer_write path (ADR-085 D9)."
+methods = ["new", "write_string"]
+trait_impls = ["Write"]
+
+[[types]]
+name = "Stderr"
+module = "std::io"
+stability = "experimental"
+prelude = false
+kind = "struct"
+doc = "Typed standard-error handle. Implements Write: write(data) emits the byte image unchanged without appending a newline, write_string(text) emits a string's UTF-8 bytes, and flush is synchronous. Byte-faithful replacement for the tagged stderr() / writer_write path (ADR-085 D9)."
+methods = ["new", "write_string"]
+trait_impls = ["Write"]
+
+[[types]]
 name = "Io"
 module = "std::io"
 stability = "experimental"
@@ -2714,30 +2733,6 @@ doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "()"
-
-[[functions]]
-name = "writer_write"
-module = "std::io"
-doc_category = "io"
-stability = "deprecated"
-deprecated_by = "Writer::write"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc = "Deprecated tagged write for stdout() / stderr(); use `Writer::write` for memory handles. Stays until std::host::stdio exposes byte-faithful typed Write handles: a typed Stderr write needs a raw stderr intrinsic, which does not exist yet (ADR-085 D9)."
-params = ["Vec<i32>", "Vec<i32>"]
-returns = "Result<i32, IoError>"
-
-[[functions]]
-name = "writer_write_str"
-module = "std::io"
-doc_category = "io"
-stability = "deprecated"
-deprecated_by = "Writer::write_string"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc = "Deprecated tagged string write for stdout() / stderr(); use `Writer::write_string` for memory handles. Stays until std::host::stdio exposes byte-faithful typed Write handles: a typed Stderr write needs a raw stderr intrinsic, which does not exist yet (ADR-085 D9)."
-params = ["Vec<i32>", "String"]
-returns = "Result<i32, IoError>"
 
 [[modules]]
 name = "std::collections::deque"

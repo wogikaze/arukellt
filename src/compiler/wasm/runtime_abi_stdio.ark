@@ -53,6 +53,27 @@ fn emit_print_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
     }
 }
 
+// Raw stderr write: identical to print except for the stream. Used by the
+// byte-faithful typed `Stderr` handle, so it must not append a newline.
+fn emit_eprint(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        runtime_abi_stdio_gc::emit_gc_eprint(w, inst, ctx, prev_op)
+    } else {
+        emit_eprint_t1(w, inst, ctx, prev_op)
+    }
+    return false
+}
+
+fn emit_eprint_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
+    let string_local = resolve_stdio_string_local(w, inst, prev_op)
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        helpers_io_p2::emit_p2_write_string_local(w, string_local, constants::P2_IMPORT_GET_STDERR())
+    } else {
+        helpers_io::emit_iov_from_string_local(w, string_local)
+        helpers_io::emit_fd_write_call(w, 2)
+    }
+}
+
 fn emit_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         runtime_abi_stdio_gc::emit_gc_eprintln(w, inst, ctx, prev_op)

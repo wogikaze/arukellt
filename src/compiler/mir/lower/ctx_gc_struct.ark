@@ -171,10 +171,10 @@ fn ctx_ensure_gc_struct_registered(ctx: LowerCtx, struct_name: String) -> i32 {
     if contains(clone(struct_name), String_from("::")) {
         return 0 - 1
     }
+    // Zero-field handles take this path too: a zero-sized struct still needs
+    // its own named type so signatures and local declarations use
+    // `(ref null $Handle)` instead of the legacy byte-size struct shell.
     let field_count = ctx_struct_size::ctx_struct_layout_field_count(ctx, clone(struct_name))
-    if field_count <= 0 || !gc_struct_needs_named_type(ctx, clone(struct_name), field_count) {
-        return 0 - 1
-    }
     // Placeholder slot breaks cycles (A→B→A) while nested fields resolve.
     ctx_gc_struct_push_pending(ctx, clone(struct_name))
     let sig = gc_struct_build_sig(ctx, clone(struct_name), field_count)
@@ -564,16 +564,6 @@ fn gc_struct_has_ref_field(ctx: LowerCtx, struct_name: String, field_count: i32)
             return true
         }
         fi = fi + 1
-    }
-    false
-}
-
-fn gc_struct_needs_named_type(ctx: LowerCtx, struct_name: String, field_count: i32) -> bool {
-    // On GC targets, every user struct needs a named type so params/returns
-    // and field access use (ref null $struct) instead of the legacy i32-handle
-    // ABI. All-i32 structs previously skipped this and broke range_iter etc.
-    if field_count > 0 {
-        return true
     }
     false
 }

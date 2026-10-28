@@ -168,14 +168,6 @@ owner = "710"
 replacement = "LinkedList<T> methods (new/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear/iter); ADR-086 §8"
 
 [[rules]]
-label = "deprecated std::io compat frees"
-module = "std::io"
-deprecated = true
-class = "must delete"
-owner = "693"
-replacement = "Reader::from_bytes, Writer methods, Io algorithms, and the generic BufReader / BufWriter adapters. The remaining writer_write / writer_write_str wrappers stay through the #693 window only because stdout() / stderr() are tagged Vec<i32> handles. A typed Stdout Write handle now lowers on both targets, but a byte-faithful Stderr handle is blocked: the only stderr intrinsic is __intrinsic_eprintln, which appends a newline, so Write::write cannot preserve the byte contract. They are deleted when a raw stderr write intrinsic lands and typed Stdout / Stderr handles replace the tagged layout."
-
-[[rules]]
 label = "deprecated std::seq helpers"
 module = "std::seq"
 deprecated = true
@@ -225,7 +217,7 @@ label = "std::io and host stdio frees"
 module = ["std::io", "std::host::stdio"]
 class = "associated-or-method"
 owner = "693"
-replacement = "Read / Write / BufRead / Seek trait methods and a host stdio namespace for stdin / stdout / stderr / print_bytes. Stdout can be a typed Write handle today; Stderr remains blocked on a raw stderr write intrinsic (only __intrinsic_eprintln exists, which appends a newline). The remaining free functions are the host-backed compatibility surface, not the target API (#693)."
+replacement = "Read / Write / BufRead / Seek trait methods and the typed std::io Stdout / Stderr Write handles. writer_write / writer_write_str were deleted with E0100 hints pointing at io::Stdout::new().write(...) / io::Stderr::new().write(...); the remaining free functions are the host-backed compatibility surface (stdin / stdout / stderr / read_stdin_line / print_bytes / print / println / eprintln), not the target API (#693)."
 
 [[rules]]
 label = "std::test assert frees"

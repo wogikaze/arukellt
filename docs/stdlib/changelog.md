@@ -16,52 +16,57 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
-## 2026-10-28 — `std::env::get_var` retirement and `Env` namespace (#917, ADR-046, ADR-087)
+## 2026-10-28 — Typed stdio handles + raw stderr write (#693, ADR-085 D9)
 
-- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the
-  [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) 0.x deprecation window.
-  `std::env::get_var` was the last `deprecated module frees` entry; its
-  `deprecated_by` replacement (`var`) was already stable, and the
-  `std::host::env::Env` associated surface lands in this wave. The manifest
-  entry and both source declarations are deleted.
-- **Surface**: `std::host::env::Env` is registered as `provisional` with
-  `Env::var`, `Env::arg_count`, `Env::arg_at`, and `Env::var_or_default`; the
-  impl keeps the `__runtime_abi_env_var` / `__intrinsic_arg_at` /
-  `__intrinsic_arg_count` calls private. `Env::var` / `Env::arg_at` bind the
-  intrinsic result to `Option<String>` because the MIR direct-call temp is
-  otherwise scalar on wasm32-gc.
-- **Removed (2 declarations, 1 manifest entry)**: `std::env::get_var` and the
-  duplicate `std::host::env::get_var`. Qualified old calls fail with **E0100**;
-  `resolver::removed_names::removed_host_env_member_hint` covers the `env`,
-  `host::env`, `std::env`, and `std::host::env` spellings and names
-  `Env::var`. The bare-name hint now names `Env::var` too.
-- **Fixtures**: dual-target `stdlib_host/env_namespace_surface*` compile,
-  validate, and run; `diagnostics/removed_env_get_var*` are the E0100 goldens
-  on `wasm32-gc` and `--target wasm32`.
-- **Scorecard**: eradication scope 323 -> **322**; `pub fn` declarations
-  352 -> **350**; manifest public entries 298 -> **297**; `must delete`
-  69 -> **68**; `deprecated` entries 67 -> **66**; `associated-or-method`
-  stays 254, `prelude_wrapper` stays 65, the monomorphic-helper count stays
-  51, and unregistered declarations stay 25. The `deprecated module frees`
-  rule is removed from `docs/data/stdlib-api-eradication.toml` (no live
-  match). The fixture registry grows 3365 -> **3369**.
-- **Verification**: `verify fixtures` **1903/1903 PASS**, 0 FAIL
-  (1903 compile+validate, 110 runtime smoke, 2 runtime-unsupported, 1 `test:`
-  fixture PASS); the two new run fixtures compile, validate, and execute on
-  `wasm32-gc` (P2 component) and `--target wasm32` (linear); `selfhost
-  diag-parity` PASS including the two E0100 goldens; `docs check` 6/6;
-  `verify lane` PASS; `check-stdlib-eradication`, `check-compat-orphans`,
-  `check-comment-policy`, `check-ark-code-quality`, `check-semantic-debt`, and
-  `check-legacy-dispatch-inventory` clean. `selfhost build-compiler` produced
-  the current s2 in 1625.0 s.
-- **Residual**: `Env::args` stays blocked on wasm32-gc. A direct
-  `__intrinsic_args` call inside a namespace method leaves the MIR call result
-  as a scalar i64 while the env emitter pushes a `Vec<String>` reference, so
-  `wasm-tools validate` reports `type mismatch: expected i64, found
-  (ref null $type)` at the method frame. The module-level `args` free function
-  remains the working argument-vector spelling. `Env::var` / `Env::arg_at`
-  keep the typed `Option<String>` binding until the MIR call-result typing
-  covers the env intrinsics.
+- **Basis**: [ADR-085](../adr/ADR-085-io-trait-unification.md) D9 kept the
+  tagged `writer_write` / `writer_write_str` pair callable only until
+  `std::host::stdio` exposed byte-faithful typed `Write` handles. The compiler
+  also lacked a raw stderr write: `__intrinsic_eprintln` always appends `\n`.
+- **Added**: `std::io::Stdout` and `Stderr` (`experimental` zero-field
+  handles) implement `Write`. `write(Vec<i32>)` emits the
+  byte image unchanged and returns its exact length, `write_string(text)`
+  emits UTF-8 bytes, and `flush` is synchronous. `Stderr::write` never appends
+  a newline. Constructors are `Stdout::new()` / `Stderr::new()`.
+- **Compiler**: `__intrinsic_eprint` is registered as the `runtime.eprint`
+  CoreOp (`stdio_eprint`) and lowers to a raw stderr write on `wasm32-gc`/P2,
+  `wasm32`/P1, and the native C runtime. It does not append a newline.
+- **Compiler: zero-field GC structs**: the `struct.new`-adjacent failure was a
+  named-type registration gap. `ctx_gc_struct` skipped `field_count == 0`, so a
+  zero-sized handle lowered as the legacy byte-size struct shell
+  (`SubF_GS_f0_i32`, type 2) while the caller's local had no layout entry and
+  fell back to the first GC type (the `i8` array, type 0). Zero-field user
+  structs now register like any other struct, the bare `GS` sig becomes final
+  `SubF_GS`, and that sig parses back to a zero-field struct.
+- **Removed (2)**: `std::io::writer_write` and `writer_write_str` (manifest
+  entries and `std/io/mod.ark` declarations). Qualified old calls fail
+  resolution with **E0100** hints that name
+  `Stdout::new().write(...)` / `Stderr::new().write(...)`; the W0009 rows and
+  the `deprecated_io_free_function` golden were retired with them.
+- **Fixtures**: `stdlib_io_traits/typed_stdout_write` (byte image, string,
+  empty write counts) and `stdlib_io_traits/typed_stderr_raw` (two stderr
+  fragments plus counts; an appended newline would break the golden) compile,
+  validate, and run on `wasm32-gc` memory32/P2 and `wasm32`/P1. The core
+  lowering regression is `structs/empty_struct_handle` (construction, return,
+  by-value parameter, and inherent method on a zero-field struct).
+- **Scorecard**: eradication scope 323 -> **321** (`pub fn` declarations
+  352 -> 350, manifest public entries 298 -> 296); `must delete` 69 -> **67**;
+  monomorphic helpers 51 -> **50**; deprecated manifest functions 67 -> **65**.
+  The fixture registry moves 3365 -> **3375** (nine run/t3 entries plus the
+  two E0100 goldens replacing one W0009 golden).
+- **Verification**: `verify fixtures` **1904/1904 PASS**, 0 FAIL (110 runtime
+  smoke, 2 runtime-unsupported, 1 `test:` fixture PASS);
+  `check-t3-wasm-validate` 585/585 PASS; `selfhost diag-parity` PASS;
+  `docs check` 6/6; `verify lane` PASS; ADR-029 fixpoint reached
+  (`sha256(arukellt-s2.wasm) == sha256(arukellt-s3.wasm)` =
+  `84c5b987ce8b6b6cd0b88534e3e2d614fa327a8af1a6d93f7ab86da0c6b2e49d`).
+  The new fixtures also compile and run on `--target wasm32`/P1 with the same
+  goldens, and the P2 harness packages and runs them on `wasm32-gc`.
+- **Residual (separate)**: `compile --emit component` still emits
+  `record Name {}` for a *user-defined* zero-field struct, which the
+  Component Model WIT parser rejects. The pinned compiler reproduces the same
+  WIT, so this predates the lowering fix; core lowering and the official P2
+  harness packaging are unaffected, and std-declared handles are not emitted
+  as user WIT records.
 
 ## 2026-10-28 — ADR-087 Wave 2: stable host fs / clock frees (#917, ADR-046, ADR-087)
 

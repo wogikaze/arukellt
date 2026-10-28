@@ -254,22 +254,18 @@ The following public entries currently carry `deprecated_by` in
 | `std::collections::linked_list::linked_list_is_empty` | `l.is_empty()` |
 | `std::collections::linked_list::linked_list_clear` | `l.clear()` |
 | `std::collections::linked_list::linked_list_to_vec` | `l.iter().collect()` |
-| `std::io::writer_write` | `w.write(data)` on a memory `Writer`; no replacement for the tagged `stdout()` / `stderr()` handles yet |
-| `std::io::writer_write_str` | `w.write_string(s)` on a memory `Writer`; no replacement for the tagged `stdout()` / `stderr()` handles yet |
+| `std::io::writer_write` | `Stdout::new().write(data)` / `Stderr::new().write(data)` from `use std::io`; memory sinks keep `w.write(data)` on `Writer` |
+| `std::io::writer_write_str` | `Stdout::new().write_string(s)` / `Stderr::new().write_string(s)` from `use std::io`; memory sinks keep `w.write_string(s)` on `Writer` |
 
-The two remaining `std::io` rows are the last ADR-085 Phase F compatibility
-residual ([#693](https://github.com/wogikaze/arukellt/issues/693)). They keep
-W0009 coverage because `stdout()` / `stderr()` still return tagged `Vec<i32>`
-handles with no `Write` implementation, so there is no method receiver to
-migrate to. Deletion condition: `std::host::stdio` exposes typed `Write`
-handles (ADR-085 D9). As of 2026-10-27 a typed `Stdout` handle can be built,
-but a byte-faithful `Stderr` handle cannot: the compiler exposes only
-`__intrinsic_eprintln` (which appends `\n`), not a raw stderr write. Retiring
-these two rows requires that raw-write intrinsic; landing `Stdout` alone is not
-enough because `writer_write` / `writer_write_str` also route tag `2`. Every other legacy `std::io` free function, including
-`reader_from_bytes`, the seven `buf_*` entry points, `writer_new`, `write_all`,
-`write_string`, `writer_flush`, and `writer_to_bytes`, was removed with an
-E0100 replacement hint; see
+The two `std::io` rows are deleted: `std::io` now exposes the typed `Stdout` /
+`Stderr` handles that implement `Write`, and the compiler has a raw stderr
+write intrinsic that never appends a newline. A qualified old
+call fails resolution with an **E0100** hint that names the typed-handle
+replacement ([#693](https://github.com/wogikaze/arukellt/issues/693)). Every
+other legacy `std::io` free function, including `reader_from_bytes`, the seven
+`buf_*` entry points, `writer_new`, `write_all`, `write_string`,
+`writer_flush`, and `writer_to_bytes`, was likewise removed with an E0100
+replacement hint; see
 [std::io trait migration](#stdio-trait-migration-adr-085-phase-ef-2026-10-27).
 
 The deprecated `std::seq` rows remain callable compatibility entries that
@@ -1017,11 +1013,12 @@ Behavior differences to account for while migrating:
 - `BufReader` reads ahead into its own buffer; `Read::read` on the adapter
   returns buffered bytes before touching the inner handle, so seek the inner
   handle only through `BufReader::seek`.
-- The tagged `stdout()` / `stderr()` handles still have no typed `Write`
-  implementation, so `io::writer_write` / `io::writer_write_str` remain the only
-  way to write to them; their W0009 hint says so and does not promise a method
-  call that those handles cannot satisfy. The typed `Stderr` blocker is the
-  missing raw stderr write intrinsic, not the `Write` dispatch itself.
+- `Stdout::new()` / `Stderr::new()` are byte-faithful `Write` sinks:
+  `write(Vec<i32>)` emits the byte image unchanged and returns its exact
+  length, `write_string(s)` emits UTF-8 bytes, and `flush` is synchronous. In
+  particular `Stderr::write` never appends a newline. The tagged
+  `stdout()` / `stderr()` vectors remain only as `std::io` compatibility
+  values with no write path of their own.
 - `File::create(path)` starts an empty write image. `write` writes at the
   handle cursor (extending with zero bytes when the cursor is past the end),
   and `flush` / `close` write the whole image to the path. Other readers keep
@@ -1051,10 +1048,28 @@ w.write(chunk)?
 let pos = w.into_reader().seek(SeekFrom::Start(0))?
 ```
 
+**Tagged output writers before / after:**
+
+<!-- skip-doc-check reason="migration shape example; not fixture-backed" owner="#693" kind="non-runnable" expires="2026-12-31" -->
+```ark
+// before
+let w: Vec<i32> = io::stdout()
+io::writer_write_str(w, "text")?
+
+// after
+let out: io::Stdout = io::Stdout::new()
+out.write_string("text")?
+```
+
 Evidence for the wave:
 
-- `tests/fixtures/diagnostics/deprecated_io_free_function.ark` (W0009 live for
-  the retained compatibility family).
+- `tests/fixtures/diagnostics/removed_io_tagged_writer_write.ark` and
+  `tests/fixtures/diagnostics/removed_io_tagged_writer_write_str.ark` (E0100
+  replacement hints for the deleted tagged writers).
+- `tests/fixtures/stdlib_io_traits/typed_stdout_write.ark` and
+  `tests/fixtures/stdlib_io_traits/typed_stderr_raw.ark` exercise the byte
+  contract on both `wasm32-gc` and `wasm32`; the stderr fixture fails if the
+  raw write appends a newline.
 - `tests/fixtures/diagnostics/removed_io_free_function.ark` (E0100 replacement
   hint for a removed member).
 - `tests/fixtures/diagnostics/removed_io_compat_free_function.ark` (E0100 hint

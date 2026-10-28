@@ -147,6 +147,11 @@ fn try_emit_stdio_call(
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_eprint(){
+        let _result_on_stack = runtime_abi_stdio::emit_eprint(w, inst, ctx, prev_op)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_eprintln(){
         let _result_on_stack = runtime_abi_stdio::emit_eprintln(w, inst, ctx, prev_op)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
