@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq, index_of, starts_with, substring}
+use std::prelude::{byte_at, clone, eq, get_unchecked, index_of, push, starts_with, substring}
 use std::text
 use corehir::decl_ann_children
 use corehir::decl_impl_target
@@ -12,10 +12,18 @@ use corehir::frontend_ast_identity
 use corehir::frontend_type_kind
 use corehir::return_ann_shape
 fn return_index_type_name(node: AstNode) -> String {
-    return_index_type_name_with_result_payload(node, true)
+    return_index_type_name_with_result_payload(
+        node,
+        true,
+        frontend_fns::build_fn_type_params(node)
+    )
 }
 
-fn return_index_type_name_with_result_payload(node: AstNode, encode_result: bool) -> String {
+fn return_index_type_name_with_result_payload(
+    node: AstNode,
+    encode_result: bool,
+    type_params: Vec<String>
+) -> String {
     let child_count = return_ann_shape::return_ann_child_count(node)
     if child_count <= 0 {
         return ""
@@ -133,10 +141,26 @@ fn return_index_type_name_with_result_payload(node: AstNode, encode_result: bool
     eq(clone(name), "fnref") {
         return "fnref"
     }
-    if len(name) > 1 {
+    // Declared type parameters are the function's only variables (ADR-089).
+    // Any other name is a nominal type, including a one-uppercase struct.
+    if len(name) > 0 && !frontend_fns::fn_type_param_is_declared(clone(type_params), clone(name)) {
         return name
     }
     ""
+}
+
+// Type parameters visible to an impl method: the impl binder first, then
+// the method's own binder in declaration order.
+pub fn return_declared_type_params(impl_node: AstNode, method_node: AstNode) -> Vec<String> {
+    let names = decl_impl_target::declared_impl_param_names(impl_node)
+    let method_names = frontend_fns::build_fn_type_params(method_node)
+    let count = len(method_names)
+    let mut i = 0
+    while i < count {
+        push(names, get_unchecked(method_names, i))
+        i = i + 1
+    }
+    names
 }
 
 // An impl method return annotation can spell the receiver as `Self`. MIR
@@ -149,7 +173,8 @@ fn return_index_type_name_with_result_payload(node: AstNode, encode_result: bool
 fn return_index_type_name_for_impl(impl_node: AstNode, method_node: AstNode) -> String {
     let type_name = return_index_type_name_with_result_payload(
         method_node,
-        impl_can_encode_result_payload(impl_node, method_node)
+        impl_can_encode_result_payload(impl_node, method_node),
+        return_declared_type_params(impl_node, method_node)
     )
     if len(type_name) == 0 {
         return type_name

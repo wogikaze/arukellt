@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-10-27
-Updated: 2026-10-28
+Updated: 2026-10-29
 ID: 946
 Track: typecheck
 Depends on: none
@@ -109,15 +109,76 @@ through a migration warning before it becomes an error (ADR-014).
 - `check` on both E0222 fixtures emits the binder hint on the impl head
   (`undefined type `T`…` / `undefined type `Q`…`).
 
+### Residual removal (2026-10-29)
+
+The return and tuple encoding paths no longer decide type-variable status
+from a one-character name; the parameter path and its evidence are recorded
+below:
+
+- `corehir/frontend_fns.ark` adds `fn_type_param_is_declared`, which compares
+  a spelling against the function's declared type parameters.
+- `corehir/return_type_name.ark` and `corehir/return_type_value.ark` consult
+  the declared binder names. A single-uppercase name that is not declared is
+  a concrete type, so an impl method returning `struct S` keeps `S` as its
+  return name and GC reference value type.
+- `corehir/param_shape_*.ark` was not changed. A binder-based reclassification
+  of the initial parameter type changed the `enums/i8_payload.ark` signature
+  for `print_value(e: E)` from the enum-open `(ref null 14)` to `structref`
+  and failed wasm validation. The existing parameter path already resolves a
+  declared `struct S` parameter through the registered layout, and the new
+  fixture covers free-function and method parameters. The shape test in
+  `param_shape_value::param_ann_name_is_type_param` and the local-type-name
+  selection in `param_shape_local` therefore remain residuals.
+- `mir/lower/fn_index_method_return_type.ark` treats every non-`?` method
+  return name as concrete. A declared type parameter is already spelled empty
+  by `return_index_type_name`, so a remaining name is a nominal type.
+- `wasm/sections_types_gc_plan.ark` resolves a legacy generic struct name
+  against the registered GC struct table before falling back to `structref`.
+- `mir/lower/aggregate_tuple.ark` and `mir/lower/stmt_let_tuple.ark` use the
+  declared aggregate registry: a declared `S` tuple element gets the named
+  `gcsref` field layout, and its destructured local keeps the GC reference
+  value type instead of an i32 placeholder.
+
+Fixture: `functions/single_uppercase_struct_return.ark` (run + t3-run,
+expected `70`) returns `S` from a free function and an impl method, passes it
+through free-function and method parameters, and destructures `(S, i32)`.
+
+Verification (2026-10-29):
+
+- `python3 scripts/manager.py selfhost build-compiler`: PASS, elapsed
+  1835.3s, final s2 sha256
+  `1e10f559f16ae15e99bf3300657668c103ecd486ce703d6f4e669173235ebe7e`
+  (pinned base `8df2698c8401693879ca4f9ced289ed2c285d95eb526cf70fda02dd5876259ee`).
+- `python3 scripts/manager.py verify fixtures`: PASS=1882 FAIL=0
+  COMPILE_VALIDATE=1882 EXECUTED=109 RUNTIME_UNSUPPORTED=2;
+  test: PASS=36 FAIL=0.
+- `python3 scripts/manager.py verify lane`: PASS (`quality changed`, lint
+  checked=10 failed=0). The advisory touched-code report lists
+  `return_type.ark thin_wrappers 4 > 3` because the new impl-return tag
+  wrapper mirrors the existing fn-return wrapper; the global ratchet passes.
+- `python3 scripts/manager.py docs check`: 6/6 PASS.
+- `python3 scripts/manager.py selfhost fixpoint`: PASS, sha256(s2) ==
+  sha256(s3) = `1e10f559f16ae15e99bf3300657668c103ecd486ce703d6f4e669173235ebe7e`.
+- Both-target runtime evidence for
+  `functions/single_uppercase_struct_return.ark`: `wasm32-gc` component prints
+  `70`; `wasm32` linear core prints `70`.
+- The first build of this lane classified enum parameters through the binder
+  and failed `enums/i8_payload.ark` (`print_value(e: E)` signature changed
+  from `(ref null 14)` to `structref`). After reverting that parameter-path
+  experiment, the rebuilt s2 passes `verify fixtures` with 1882/0.
+
 ### Residuals
 
 - E0222 covers only the removed single-uppercase spelling in impl heads.
   General unresolved type names in signatures and bodies remain #939.
-- The one-character shape heuristic remains in the return-type and
-  type-variable encoding paths (`corehir/return_type_name.ark`,
-  `mir/lower/mono_suffix_parse.ark`, `corehir/param_shape_*.ark`,
-  `mir/lower/stmt_let_tuple.ark`). Returning a single-uppercase struct from a
-  function can still miscompile; plain functions already had this defect, and
-  impl methods become reachable after this change. Follow-up is required
-  before claiming full single-uppercase nominal-type support.
+- `corehir/param_shape_value.ark` and `corehir/param_shape_local.ark` still
+  use the one-character shape for the initial parameter value type and local
+  type name. Declared struct parameters resolve through the registered layout
+  afterward; the shape test remains in the frontend representation.
+- `mir/lower/mono_suffix_parse.ark::is_mono_type_var_name` still encodes the
+  historical shape fallback (single uppercase, `?T`, or `t0`/`T0`). The
+  return/tuple paths above pre-empt it with declared parameters or registered
+  layouts, but a mono-suffix lookup with no declaration context can still
+  treat an unregistered name as a type variable. Mono returns of a declared
+  one-character struct from a generic impl have not been exercised.
 - The ADR-014 migration-warning window was not run; E0222 is an error.

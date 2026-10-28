@@ -228,6 +228,11 @@ Fixtures: `mut_params/fn_type_modes.ark` (run, expected `1/1/6/5/2/2`),
 - `python3 scripts/manager.py selfhost diag-parity`: PASS.
 - `python3 scripts/manager.py verify lane`: PASS (`quality changed`;
   lint checked=16 failed=0).
+- 2026-10-29 cross-lane receipt: the ADR-089 residual lane rebuilt s2 on top
+  of this work (sha256
+  `1e10f559f16ae15e99bf3300657668c103ecd486ce703d6f4e669173235ebe7e`) and
+  `verify fixtures` stayed green (PASS=1882 FAIL=0); no #951 behavior
+  changed. See #946.
 - `python3 scripts/manager.py docs check`: 6/6 PASS.
 - `python3 scripts/manager.py selfhost fmt-parity`: PASS=5 FAIL=3. The three
   failures (`fmt/delimiters_in_strings.ark`, `fmt/imports_interleaved.ark`,

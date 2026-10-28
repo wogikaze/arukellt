@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{clone, eq, starts_with, substring}
 use std::text
 use corehir::decl_node_identity
 use corehir::decl_children
@@ -64,6 +64,25 @@ pub fn build_fn_type_params(decl: AstNode) -> Vec<String> {
         i = i + 1
     }
     names
+}
+
+// Whether `name` is one of the declaration's type parameters. A `?T`
+// spelling is a type-variable marker, so compare its bare name. Declared
+// single-uppercase nominal types are not parameters (ADR-089).
+pub fn fn_type_param_is_declared(type_params: Vec<String>, name: String) -> bool {
+    let mut bare = clone(name)
+    if starts_with(clone(bare), "?") {
+        bare = substring(bare, 1, len(bare))
+    }
+    let count = len(type_params)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(type_params, i), clone(bare)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
 
 fn module_qualified_fn_name(modules: Vec<CoreHirModuleInfo>, decl_index: i32, fn_name: String) -> String {

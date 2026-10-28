@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq, starts_with, substring}
 use mir::lower::mono_suffix_parse
 use mir::lower_kinds
 use mir::type_contracts
@@ -46,7 +46,11 @@ fn method_return_type_info_from_name(type_name: String) -> TypeInfo {
     if starts_with(clone(type_name), "vec:") {
         return type_contracts::TypeInfo_new(lower_kinds::TY_VEC(), clone(type_name), Vec::new<TypeInfo>())
     }
-    if mono_suffix_parse::is_mono_type_var_name(clone(type_name)) {
+    // Only a `?` marker is a type variable here. A method's declared type
+    // parameters are spelled empty by return_index_type_name, so any
+    // remaining name is a concrete nominal type, including a one-character
+    // struct (ADR-089).
+    if starts_with(clone(type_name), "?") {
         return type_contracts::TypeInfo_new(lower_kinds::TY_TYPE_VAR(), clone(type_name), Vec::new<TypeInfo>())
     }
     type_contracts::TypeInfo_new(lower_kinds::TY_STRUCT(), clone(type_name), Vec::new<TypeInfo>())
@@ -58,8 +62,10 @@ fn method_concrete_return_from_mono_fn_name(fn_name: String, generic_return_name
     let mut var_name = clone(generic_return_name)
     if len(var_name) == 0 {
         var_name = "T"
-    }
-    if !mono_suffix_parse::is_mono_type_var_name(clone(var_name)) {
+    } else if starts_with(clone(var_name), "?") {
+        var_name = substring(var_name, 1, len(var_name))
+    } else {
+        // A concrete return name is not substituted from the mono suffix.
         return String_new()
     }
     let suffix = mono_suffix_parse::extract_mono_suffix(clone(fn_name))

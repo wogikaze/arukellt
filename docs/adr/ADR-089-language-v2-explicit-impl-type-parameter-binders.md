@@ -31,6 +31,13 @@ user blanket impl として E0216 で拒否される（#946）。
 - 暗黙の形で書かれた既存の parametric impl は binder 付きの形へ移行する必要がある。移行の進捗は #946 と current-state に置く。
 - ADR-078 の parametric / blanket の分類は、binder で導入した型パラメータに対して従来どおり適用する。
 
+## 実装メモ
+
+2026-10-29 の残差解消で、return と tuple の符号化は宣言済み型パラメータと登録済み集約レイアウトを参照する。
+parameter の初期型付けは名前の形によるフォールバックを残すが、宣言済み struct は登録済みレイアウトで解決する。
+名前の形による型変数判定は、宣言も登録もない綴りに対する最後のフォールバックに限る。
+検証と残差は [#946](../../issues/open/946-single-uppercase-implicit-impl-param.md) と `docs/current-state.md` に記録する。
+
 ## 却下した代替案
 
 - **宣言済みの型への解決を優先し、解決できない大文字 1 文字だけを暗黙の型パラメータにする。**

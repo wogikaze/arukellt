@@ -437,6 +437,17 @@ fn tuple_gc_field_sig_for_key(ctx: LowerCtx, key: String, field_idx: i32) -> Str
     if len(key) == 1 {
         let ch = byte_at(key, 0)
         if ch >= 65 && ch <= 90 {
+            // A declared single-letter aggregate is a ref field. Use the
+            // named struct slot so the stored value keeps its concrete type;
+            // enums stay on the open base. Only an unbound type parameter
+            // keeps the scalar placeholder.
+            if ctx_gc_struct::gc_struct_field_name_is_declared(ctx, clone(key)) {
+                let slot = ctx_gc_struct::ctx_ensure_gc_struct_registered(ctx, clone(key))
+                if slot >= 0 {
+                    return prefix.concat(String_from("_gcsref").concat((slot).to_string()))
+                }
+                return prefix.concat("_ref14")
+            }
             return prefix.concat("_i32")
         }
     }

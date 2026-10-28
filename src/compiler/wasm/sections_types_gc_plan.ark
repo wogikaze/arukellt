@@ -41,7 +41,8 @@ fn typed_mvt_sig(mir: MirModule, mvt: MirValueType, target: String) -> String {
     if kind == kinds::TYPE_KIND_OPTION() || kind == kinds::TYPE_KIND_RESULT() || kind == kinds::TYPE_KIND_ENUM() {
         return sections_types_gc::gc_enum_open_type_sig()
     }
-    if kind == kinds::TYPE_KIND_STRUCT() && is_legacy_generic_struct_name(type_table::type_entry_name(entry)) {
+    if kind == kinds::TYPE_KIND_STRUCT() &&
+    is_legacy_generic_struct_name(mir, type_table::type_entry_name(entry)) {
         return "structref"
     }
     let alias = type_info_to_mir_value::mvt_gc_layout_alias(table, mvt)
@@ -51,7 +52,13 @@ fn typed_mvt_sig(mir: MirModule, mvt: MirValueType, target: String) -> String {
     String_new()
 }
 
-fn is_legacy_generic_struct_name(name: String) -> bool {
+// A registered GC struct is a declared nominal type, even when its name is
+// one uppercase letter. Only unresolved legacy generic spellings fall back
+// to the shared open structref base.
+fn is_legacy_generic_struct_name(mir: MirModule, name: String) -> bool {
+    if module_gc_struct::MirModule_gc_struct_slot(mir, clone(name)) >= 0 {
+        return false
+    }
     if len(name) == 1 {
         let first = byte_at(name, 0)
         return first >= 65 && first <= 90
