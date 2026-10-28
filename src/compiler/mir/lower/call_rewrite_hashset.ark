@@ -310,10 +310,16 @@ fn mir_rewrite_hashset_call(ctx: LowerCtx, callee_name: String, receiver_idx: i3
         family = ctx_api_local_types::ctx_hashset_local_family(ctx, receiver_idx)
     }
     if len(clone(family)) > 0 {
-        let target = hashset_method_target_for_family(clone(family), hashset_method_name_from_source(clone(callee_name)))
-        if len(target) > 0 {
-            return target
-        }
+        // A marked receiver fixes the family for its whole method surface.
+        // Do not continue into the spelling-derived table below: mono lookup
+        // can rewrite a String-set call to `HashSet__reserve__i32`, whose i32
+        // bucket target would then run over the linear Vec<String> store. An
+        // empty result leaves the call unresolved instead of crossing
+        // families (#917).
+        return hashset_method_target_for_family(
+            clone(family),
+            hashset_method_name_from_source(clone(callee_name))
+        )
     }
     let by_method = mir_rewrite_hashset_method(clone(callee_name))
     if len(by_method) > 0 {

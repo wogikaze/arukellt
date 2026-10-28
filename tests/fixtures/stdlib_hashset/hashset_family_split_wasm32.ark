@@ -1,0 +1,39 @@
+// The HashSet method surface follows the receiver's element family: the
+// bucket-capacity operations stay on HashSet<i32>, while HashSet<String>
+// answers the membership/algebra surface over its Vec<String> store (#917).
+use std::collections::hash_set::HashSet
+use std::test
+
+fn main() {
+    let ints: HashSet<i32> = HashSet::new<i32>()
+    test::assert_true(ints.insert(7))
+    let capacity_before: i32 = ints.capacity()
+    ints.reserve(16)
+    test::assert_true(ints.capacity() >= capacity_before)
+    test::assert_eq_i32(ints.len(), 1)
+    ints.shrink_to_fit()
+    test::assert_eq_i32(ints.len(), 1)
+    test::assert_true(ints.contains(7))
+
+    let words: HashSet<String> = HashSet::new<String>()
+    test::assert_true(words.insert("red"))
+    test::assert_true(words.contains("red"))
+    test::assert_false(words.contains("blue"))
+    test::assert_eq_i32(words.len(), 1)
+    test::assert_false(words.is_empty())
+    let snapshot: Vec<String> = words.to_vec()
+    test::assert_eq_i32(len(snapshot), 1)
+
+    let more: HashSet<String> = HashSet::new<String>()
+    test::assert_true(more.insert("blue"))
+    let combined: HashSet<String> = words.union(more)
+    test::assert_eq_i32(combined.len(), 2)
+    test::assert_eq_i32(words.intersection(more).len(), 0)
+    test::assert_eq_i32(words.difference(more).len(), 1)
+    test::assert_false(words.remove("blue"))
+
+    let copy: HashSet<String> = combined.clone()
+    test::assert_true(copy.eq(combined))
+    combined.clear()
+    test::assert_true(combined.is_empty())
+}

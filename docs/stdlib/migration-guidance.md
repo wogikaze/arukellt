@@ -1859,11 +1859,12 @@ and `extend` over the same `Vec<String>` store. The algebra returns a new set
 and leaves both operands intact, and `extend` inserts from a snapshot, so
 `s.extend(s)` terminates. `capacity` / `reserve` / `shrink_to_fit` remain
 `i32`-only: the String store is a linear `Vec<String>` with no bucket layout,
-so it has no capacity to report or reserve. They are not lowered for
-`HashSet<String>` and a call on a String set must not be relied on (#917
-residual): the family-less impl lookup still resolves them to the i32 store
-helpers. There is no `hash_set::` replacement gap here — those adapters were
-retired with the rest.
+so it has no capacity to report or reserve. Method lookup is family-aware, so
+a call on a `HashSet<String>` is rejected at typecheck with `E0200`
+(``method `capacity` is not available on `HashSet<String>`; it is defined only
+for `HashSet<i32>```) instead of resolving to the i32 store helper and
+trapping at runtime. There is no `hash_set::` replacement gap here — those
+adapters were retired with the rest.
 
 **Before:**
 

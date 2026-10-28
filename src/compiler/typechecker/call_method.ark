@@ -107,6 +107,9 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
                 return infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, shell_sig, recv_ty, child_count)
             }
         }
+        if reject_hashset_method_outside_family(env, fn_sigs, clone(recv_type_name), clone(method_name)) {
+            return simple_type(commands::TY_UNKNOWN())
+        }
     }
     let builtin_vec_return = infer_builtin_vec_method(
         env,
@@ -198,6 +201,72 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
         }
     }
     infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, child_count)
+}
+
+// `impl HashSet<i32>` and `impl HashSet<String>` are separate method surfaces
+// over different stores. The mangled owner already carries the receiver's
+// family (`HashSet_String`), so a name that exists only under the other family
+// must stop here instead of continuing into bare-name and Vec lookups. Those
+// lookups lower the i32 bucket helpers (`hashset_capacity` / `hashset_reserve`
+// / `hashset_shrink_to_fit`) over the linear Vec<String> store, which has no
+// bucket layout (#917).
+fn reject_hashset_method_outside_family(
+    env: TypeEnv,
+    fn_sigs: Vec<FnSig>,
+    recv_type_name: String,
+    method_name: String
+) -> bool {
+    let family = hashset_family_from_owner(clone(recv_type_name))
+    if len(clone(family)) == 0 {
+        return false
+    }
+    let mut other_family = String_from("i32")
+    if eq(clone(family), String_from("i32")) {
+        other_family = String_from("String")
+    }
+    let other_method = String_from("HashSet_").concat(
+        clone(other_family).concat(String_from("::").concat(clone(method_name)))
+    )
+    if !contract_fn_sig::FnSig_has_name(sigs::lookup_fn_sig(env, fn_sigs, other_method)) {
+        return false
+    }
+    let message = hashset_method_unavailable_message(clone(method_name), clone(family))
+    // Speculative inference can visit the same method node more than once;
+    // report the family rejection once per environment.
+    let mut index = 0
+    while index < len(env.errors) {
+        if eq(clone(get_unchecked(env.errors, index)), clone(message)) {
+            return true
+        }
+        index = index + 1
+    }
+    unify::type_error(env, message)
+    true
+}
+
+// Element family carried by the impl owner spelling used for method mangling.
+// Any other owner (including a HashSet<T> with a still-open type argument)
+// returns "" so the call keeps the deferred/generic resolution path.
+fn hashset_family_from_owner(owner_name: String) -> String {
+    if eq(clone(owner_name), String_from("HashSet_i32")) {
+        return String_from("i32")
+    }
+    if eq(clone(owner_name), String_from("HashSet_String")) {
+        return String_from("String")
+    }
+    String_new()
+}
+
+fn hashset_method_unavailable_message(method_name: String, family: String) -> String {
+    let other_family = if eq(clone(family), String_from("String")) {
+        String_from("i32")
+    } else {
+        String_from("String")
+    }
+    let head = String_from("method `").concat(clone(method_name))
+    let available = String_from("` is not available on `HashSet<").concat(clone(family))
+    let defined = String_from(">`; it is defined only for `HashSet<").concat(clone(other_family))
+    head.concat(available.concat(defined.concat(String_from(">`"))))
 }
 
 // Numeric iterator consumers are trait methods rather than inherent methods.
