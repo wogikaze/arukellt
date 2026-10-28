@@ -7,6 +7,7 @@ use typechecker::kinds
 use typechecker::ownership
 use typechecker::ownership_types
 use typechecker::scope
+use typechecker::sigs
 use diagnostics::codes
 
 // Call-site half of ADR-088: a `mut` parameter is a mutable borrow, so the
@@ -166,8 +167,9 @@ fn arg_is_mutable_place(scope: LocalScope, node: AstNode) -> bool {
 // the same position is `mut` (a read-only function is safe behind a mutable
 // borrow), but the reverse would let an immutable place reach a function that
 // mutates it. Modes are not part of unification, so the direction is checked
-// explicitly at annotation boundaries.
-fn check_fn_type_assignment(mut env: TypeEnv, node: AstNode, expected: TypeInfo, actual: TypeInfo) {
+// explicitly at every annotation boundary: `let`, function arguments, and
+// return positions.
+fn check_fn_type_assignment(mut env: TypeEnv, node: AstNode, expected: TypeInfo, actual: TypeInfo, message: String) {
     if !env.is_ownership_tracking_enabled {
         return
     }
@@ -189,12 +191,186 @@ fn check_fn_type_assignment(mut env: TypeEnv, node: AstNode, expected: TypeInfo,
                 env,
                 codes::DIAG_TYPE_FN_MODE_ASSIGN(),
                 node,
-                "a function with a `mut` parameter cannot be assigned to a shared function type"
+                clone(message)
             )
             return
         }
         index = index + 1
     }
+}
+
+// `actual` is the type already inferred for `node`. A bare function name
+// infers TY_UNKNOWN because top-level functions are not scope bindings, so
+// the fallback recovers its declared TY_FN, including module-qualified paths
+// and impl spellings.
+fn check_fn_type_value(
+    mut env: TypeEnv,
+    scope: LocalScope,
+    fn_sigs: Vec<FnSig>,
+    node: AstNode,
+    expected: TypeInfo,
+    actual: TypeInfo,
+    message: String
+) {
+    if contract_type_access::TypeInfo_tag(expected) != commands::TY_FN() {
+        return
+    }
+    let kind = ast_access::node_kind(node)
+    if kind == kinds::NK_BLOCK() || kind == kinds::NK_EXPR_STMT() {
+        let count = ast_access::node_child_count(node)
+        if count > 0 {
+            check_fn_type_value(
+                env,
+                scope,
+                fn_sigs,
+                ast_access::node_child_at(node, count - 1),
+                expected,
+                actual,
+                clone(message)
+            )
+        }
+        return
+    }
+    if kind == kinds::NK_IF_EXPR() {
+        check_fn_type_value_children(env, scope, fn_sigs, node, 1, expected, actual, message)
+        return
+    }
+    if kind == kinds::NK_MATCH_EXPR() {
+        check_fn_type_value_match_arms(env, scope, fn_sigs, node, expected, actual, message)
+        return
+    }
+    if kind == kinds::NK_CLOSURE() &&
+    contract_type_access::TypeInfo_tag(actual) != commands::TY_FN() {
+        // A closure tail has no inferred type in the syntax-only tail pass;
+        // its parsed parameter modes still carry the direction.
+        check_closure_param_modes(env, node, expected, message)
+        return
+    }
+    let mut actual_ty = actual
+    if contract_type_access::TypeInfo_tag(actual_ty) != commands::TY_FN() {
+        actual_ty = fn_value_expr_type(env, scope, fn_sigs, node)
+    }
+    if contract_type_access::TypeInfo_tag(actual_ty) != commands::TY_FN() {
+        return
+    }
+    check_fn_type_assignment(env, node, expected, actual_ty, message)
+}
+
+fn check_fn_type_value_children(
+    mut env: TypeEnv,
+    scope: LocalScope,
+    fn_sigs: Vec<FnSig>,
+    node: AstNode,
+    first: i32,
+    expected: TypeInfo,
+    actual: TypeInfo,
+    message: String
+) {
+    let count = ast_access::node_child_count(node)
+    let mut i = first
+    while i < count {
+        check_fn_type_value(
+            env,
+            scope,
+            fn_sigs,
+            ast_access::node_child_at(node, i),
+            expected,
+            actual,
+            clone(message)
+        )
+        i = i + 1
+    }
+}
+
+fn check_fn_type_value_match_arms(
+    mut env: TypeEnv,
+    scope: LocalScope,
+    fn_sigs: Vec<FnSig>,
+    node: AstNode,
+    expected: TypeInfo,
+    actual: TypeInfo,
+    message: String
+) {
+    let count = ast_access::node_child_count(node)
+    let mut i = 1
+    while i < count {
+        let arm = ast_access::node_child_at(node, i)
+        let body_index = ast_access::node_child_count(arm) - 1
+        if body_index >= 0 {
+            check_fn_type_value(
+                env,
+                scope,
+                fn_sigs,
+                ast_access::node_child_at(arm, body_index),
+                expected,
+                actual,
+                clone(message)
+            )
+        }
+        i = i + 1
+    }
+}
+
+fn check_closure_param_modes(mut env: TypeEnv, node: AstNode, expected: TypeInfo, message: String) {
+    if !env.is_ownership_tracking_enabled {
+        return
+    }
+    let child_count = ast_access::node_child_count(node)
+    let param_count = child_count - 1
+    if param_count < 1 ||
+    contract_type_access::TypeInfo_type_arg_count(expected) != param_count + 1 {
+        return
+    }
+    let mut i = 0
+    while i < param_count {
+        let param = ast_access::node_child_at(node, i)
+        if ast_access::node_is_mut(param) &&
+        !contract_type_access::TypeInfo_param_is_mut(expected, i) {
+            ownership::report_ownership_error(
+                env,
+                codes::DIAG_TYPE_FN_MODE_ASSIGN(),
+                node,
+                clone(message)
+            )
+            return
+        }
+        i = i + 1
+    }
+}
+
+fn fn_value_expr_type(mut env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNode) -> TypeInfo {
+    if ast_expr_predicates::node_is_ident(node) {
+        let name = ast_access::node_text(node)
+        if scope::scope_binding_index(scope, clone(name)) >= 0 {
+            return scope::scope_lookup_instantiated(env, scope, name)
+        }
+        return sigs::fn_value_type_from_sig(env, fn_sigs, name)
+    }
+    if ast_expr_predicates::node_is_path(node) {
+        return sigs::fn_value_type_from_sig(env, fn_sigs, ast_access::node_text(node))
+    }
+    TypeInfo_simple(commands::TY_UNKNOWN())
+}
+
+// A tail expression is the function result even without a `return` node.
+// Only syntax is available here (re-inferring would replay ownership
+// diagnostics), so named functions and `if`/`match` branches are recovered
+// from their declarations; closure tails are covered by the explicit-return
+// path, which has the inferred type.
+fn check_return_tail_fn_modes(mut env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, body: AstNode) {
+    let expected = env.current_fn_return_type
+    if contract_type_access::TypeInfo_tag(expected) != commands::TY_FN() {
+        return
+    }
+    check_fn_type_value(
+        env,
+        scope,
+        fn_sigs,
+        body,
+        expected,
+        TypeInfo_simple(commands::TY_UNKNOWN()),
+        String_from("a function with a `mut` parameter cannot be returned as a shared function type")
+    )
 }
 
 // The conflict rule is syntactic: compare the root name and the field path.

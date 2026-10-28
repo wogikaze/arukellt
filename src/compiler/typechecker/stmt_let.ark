@@ -11,7 +11,7 @@ use typechecker::unify
 use typechecker::ownership
 use typechecker::ownership_types
 use typechecker::closure_capture
-use typechecker::call_generic_fn_args
+use typechecker::sigs
 use typechecker::param_mode
 use diagnostics::mod as diag_mod
 use diagnostics::record as diag_record
@@ -27,14 +27,14 @@ fn fn_type_of_initializer(env: TypeEnv, fn_sigs: Vec<FnSig>, bind_ty: TypeInfo, 
         return bind_ty
     }
     let init = ast_access::node_child_at(node, 0)
-    if !ast_expr_predicates::node_is_ident(init) {
+    if !ast_expr_predicates::node_is_ident(init) && !ast_expr_predicates::node_is_path(init) {
         return bind_ty
     }
     let name = ast_access::node_text(init)
     if contract_env_record::type_env_is_const_name(env, clone(name)) {
         return bind_ty
     }
-    call_generic_fn_args::fn_value_type_from_sig(env, fn_sigs, name)
+    sigs::fn_value_type_from_sig(env, fn_sigs, name)
 }
 
 fn check_let_stmt(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
@@ -70,7 +70,8 @@ fn check_let_stmt(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, 
                 env,
                 ann,
                 ann_ty,
-                fn_type_of_initializer(env, fn_sigs, bind_ty, node)
+                fn_type_of_initializer(env, fn_sigs, bind_ty, node),
+                "a function with a `mut` parameter cannot be assigned to a shared function type"
             )
         }
         // Comprehension element types are inferred from the source

@@ -1,0 +1,24 @@
+use std::host::stdio
+
+// ADR-088 §6: a borrowed non-`Box` parameter may escape by sharing. `share`
+// returns its parameter as a shared reference, so the caller's binding and the
+// returned value are the same object; a mutation through the alias is visible
+// through the original binding on both targets.
+struct Point {
+    x: i32,
+}
+
+fn share(p: Point) -> Point {
+    p
+}
+
+fn bump(mut p: Point) {
+    p.x = p.x + 1
+}
+
+fn main() {
+    let mut p = Point { x: 1 }
+    let mut alias = share(p)
+    bump(alias)
+    stdio::println(p.x.to_string())
+}

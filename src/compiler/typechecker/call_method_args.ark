@@ -1,5 +1,6 @@
 use typechecker::ast_access
 use typechecker::contract_fn_sig
+use typechecker::param_mode
 use typechecker::unify
 
 fn constrain_method_args(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig, recv_ty: TypeInfo, explicit_args: i32) {
@@ -10,6 +11,15 @@ fn constrain_method_args(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<F
         let arg_node = ast_access::node_child_at(node, a + 1)
         let arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
         let pty = contract_fn_sig::FnSig_param_at(sig, a + 1)
+        param_mode::check_fn_type_value(
+            env,
+            scope,
+            fn_sigs,
+            arg_node,
+            pty,
+            arg_ty,
+            String_from("a function with a `mut` parameter cannot be passed where a shared function type is expected")
+        )
         unify::unify(env, pty, arg_ty)
         a = a + 1
     }

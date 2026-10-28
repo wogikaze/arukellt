@@ -1,3 +1,11 @@
+use std::prelude::{byte_at, clone, eq}
+use corehir::callee_spelling
+use resolver::expr_path
+use resolver::paths
+use typechecker::contract_fn_sig
+use typechecker::contract_type_constructors
+use typechecker::contract_type_mutation
+use typechecker::names
 use typechecker::sig_bounds
 use typechecker::sig_decl
 use typechecker::sig_lookup
@@ -39,4 +47,63 @@ fn collect_type_param_bounds(type_ann: Vec<AstNode>) -> Vec<TypeParamBounds> {
 
 fn collect_type_param_names(bound_infos: Vec<TypeParamBounds>) -> Vec<String> {
     sig_bounds::collect_type_param_names(bound_infos)
+}
+
+// A value expression can name a top-level function through its module path
+// (`prelude::push`) or through the canonical impl spelling (`Point::bump`).
+// The flat signature index registers the bare name and the module/owner
+// qualified spelling, so try the canonical variants before the bare leaf.
+// Type-owned heads (`Vec::new`) are excluded from the leaf fallback so an
+// unrelated bare `new` cannot supply a function type.
+fn resolve_fn_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> FnSig {
+    let mut sig = lookup_fn_sig(env, fn_sigs, clone(name))
+    if contract_fn_sig::FnSig_has_name(sig) {
+        return sig
+    }
+    let variants = callee_spelling::callee_spelling_variants(clone(name))
+    let mut i = 0
+    while i < len(variants) {
+        let variant_sig = lookup_fn_sig(env, fn_sigs, clone(get_unchecked(variants, i)))
+        if contract_fn_sig::FnSig_has_name(variant_sig) {
+            return variant_sig
+        }
+        i = i + 1
+    }
+    let leaf = names::unqualified_type_name(clone(name))
+    if !eq(clone(leaf), clone(name)) && !is_type_owned_name(clone(name)) {
+        let leaf_sig = lookup_fn_sig(env, fn_sigs, leaf)
+        if contract_fn_sig::FnSig_has_name(leaf_sig) {
+            return leaf_sig
+        }
+    }
+    sig
+}
+
+fn is_type_owned_name(name: String) -> bool {
+    let owner = paths::path_module_part(clone(name))
+    if len(owner) == 0 {
+        return false
+    }
+    let first = byte_at(owner, 0)
+    first == 63 || (first >= 65 && first <= 90)
+}
+
+// Build the TY_FN value type for a named function: parameter types followed
+// by the return type, with the parameter modes aligned to the parameter
+// prefix (ADR-088 §7).
+fn fn_value_type_from_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> TypeInfo {
+    let sig = resolve_fn_sig(env, fn_sigs, name)
+    if !contract_fn_sig::FnSig_has_name(sig) {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    let mut fn_ty = contract_type_constructors::TypeInfo_simple(commands::TY_FN())
+    let param_count = contract_fn_sig::FnSig_param_count(sig)
+    let mut i = 0
+    while i < param_count {
+        contract_type_mutation::TypeInfo_push_type_arg(fn_ty, contract_fn_sig::FnSig_param_at(sig, i))
+        contract_type_mutation::TypeInfo_push_param_mode(fn_ty, contract_fn_sig::FnSig_param_is_mut(sig, i))
+        i = i + 1
+    }
+    contract_type_mutation::TypeInfo_push_type_arg(fn_ty, contract_fn_sig::FnSig_return_type(sig))
+    fn_ty
 }

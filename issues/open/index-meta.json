@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-28T11:43:14Z",
+  "generated_at": "2026-10-28T22:11:36Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -657,8 +657,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 3
+        "checked": 2,
+        "unchecked": 1
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -708,8 +708,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 2,
-        "unchecked": 4
+        "checked": 6,
+        "unchecked": 0
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -793,8 +793,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 2
+        "checked": 1,
+        "unchecked": 1
       },
       "orchestration": {
         "class": "implementation-ready",

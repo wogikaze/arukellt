@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-10-27
-Updated: 2026-10-28
+Updated: 2026-10-29
 ID: 951
 Track: typecheck
 Depends on: none
@@ -66,31 +66,38 @@ targets printing `3` / `2`).
       `tests/fixtures/mut_params/mut_param_places.ark` covers a `mut`
       parameter, a `mut self` method, a field place, and `|mut v|`; it runs
       on `wasm32-gc` and `wasm32` with matching output.
-- [ ] Negative fixtures:
+- [x] Negative fixtures:
       - [x] immutable binding to a `mut` parameter
             (`diagnostics/mut_param_immutable_place.ark`, E0223)
       - [x] `mut self` method on an immutable receiver
             (`diagnostics/mut_self_immutable_receiver.ark`, E0223)
       - [x] same root place passed twice with one `mut`
             (`diagnostics/mut_param_same_place.ark`, E0224)
-      - [ ] borrowed `Box<T>` returned (not implemented)
+      - [x] borrowed `Box<T>` returned, stored, and `unbox`ed
+            (`diagnostics/borrowed_box_return.ark`,
+            `diagnostics/borrowed_box_store.ark`,
+            `diagnostics/borrowed_box_unbox.ark`, E0227)
       - [x] `fn(T)` vs `fn(mut T)` assignment direction
             (`diagnostics/fn_type_mode_downgrade.ark`, E0225). The direction
-            is checked at annotated `let` bindings; function-argument and
-            return positions are not yet checked. Calls through a
+            is checked at annotated `let` bindings, function-argument
+            positions (`fn_type_mode_argument.ark`), return positions
+            (`fn_type_mode_return_stmt.ark`, `fn_type_mode_return_tail.ark`),
+            and module-qualified function paths
+            (`fn_type_mode_qualified_path.ark`). Calls through a
             `fn(mut T)` value are covered by
             `diagnostics/fn_value_mut_param_immutable_place.ark` (E0223) and
             `diagnostics/fn_value_mut_param_same_place.ark` (E0224).
-- [ ] Escape by sharing is covered by a run fixture whose observable output
+- [x] Escape by sharing is covered by a run fixture whose observable output
       matches on both targets (ADR-088 §6).
-      Not added; sharing itself is unchanged, so the fixture would pass
-      without exercising a new rule.
+      `ownership/shared_escape_aliases.ark` returns a borrowed `Point` and
+      mutates it through the returned alias; both targets print `2`.
 - [x] After migration the diagnostics are errors; `python3 scripts/manager.py
       verify fixtures` and `python3 scripts/manager.py selfhost fixpoint`
       stay green.
       The callee-side rule is an error by default. The final gates report
-      fixtures PASS=1882 FAIL=0 (`test:` 36/36) and fixpoint
-      `sha256(s2) == sha256(s3) = 7510f982…`; see the 2026-10-29 receipt.
+      fixtures PASS=1886 FAIL=0 (`test:` 36/36) and fixpoint
+      `sha256(s2) == sha256(s3) = 0c2e96b4…`; see the 2026-10-29 §6/§7
+      verification receipt below.
 - [x] Language docs and current-state are synced (`$docs-sync`) for the
       implemented slice; the remaining scope is recorded below and in
       `docs/current-state.md`.
@@ -183,6 +190,9 @@ Fixtures: `mut_params/fn_type_modes.ark` (run, expected `1/1/6/5/2/2`),
   `fmt/imports_interleaved.ark`, `fmt/imports_unsorted.ark`) reproduce with
   the pinned bootstrap compiler, so they predate this slice;
   `fmt/fn_type_mut.ark` passes.
+- `python3 scripts/manager.py selfhost diag-parity`: PASS (current s2
+  against every committed `diag:` golden, including the seven new E0225/E0227
+  fixtures).
 - `python3 scripts/manager.py verify lane`: PASS (`quality changed`;
   lint checked=17 failed=0). The touched-code thin-wrapper advisory lists
   the three contract accessor files; the global ratchet is unchanged.
@@ -282,6 +292,9 @@ registration.
   1882 compile+validate, 109 runtime executed, 2 native-cpp contracts
   delegated; `test:` PASS=36 FAIL=0.
 - `python3 scripts/manager.py selfhost diag-parity`: PASS.
+- `python3 scripts/manager.py selfhost diag-parity`: PASS (current s2
+  against every committed `diag:` golden, including the seven new E0225/E0227
+  fixtures).
 - `python3 scripts/manager.py verify lane`: PASS (`quality changed`;
   lint checked=1801 failed=0; lint ratchet checked=1801 failed=0). The
   touched-code advisory reports eight `lines_ge_200` signatures that the
@@ -294,6 +307,86 @@ registration.
 - The #943 `alias.ark` repro now reports E0226 for `bump` and E0223 for
   `push` in `add`.
 
+## Implementation (2026-10-29, §6 Box escape and §7 positions)
+
+Fourth vertical slice: closes the ADR-088 §6 borrowed-`Box<T>` rule and the
+remaining §7 direction positions.
+
+- Box escape (E0227). A parameter is now marked in `LocalScope`
+  (`VarBinding_is_param`, preserved by `scope_child`); a `Box<T>`-typed
+  parameter cannot be moved. `ownership::consume_identifier` reports a move
+  of the borrowed Box, which covers `let` initializers, tuple/array/struct
+  literals, and the `Box_new` / `unbox` argument boundaries. Positions that
+  never call `consume_identifier` are covered by
+  `ownership::check_borrowed_box_escape`: return statements, tail
+  expressions, assignment right-hand sides, struct/tuple/array stores,
+  `Box_new` / `unbox` calls, and source-enum constructor payloads. `if` and `match`
+  contribute only their branch values, so a match scrutinee stays a read.
+  Reports are de-duplicated by span because the expression-statement and tail
+  passes can visit the same node. A trailing `return` inside a nested block
+  is checked in `infer_block_expr`, which previously only handled closure
+  captures there. A local read (`match b { Box::Owned(v) => v }`) and
+  passing the value to another shared parameter stay legal.
+- Function-type positions (E0225). `param_mode::check_fn_type_value` applies
+  the shared→`mut` / `mut`→shared direction at generic and concrete free
+  calls, generic and concrete method arguments, calls through function
+  values, explicit `return`, and tail expressions. `sigs::resolve_fn_sig`
+  recovers the declared `TY_FN` of a bare name, a module-qualified path
+  (`prelude::push`), or an impl spelling through
+  `callee_spelling::callee_spelling_variants`; a type-owned head
+  (`Vec::new`) is excluded from the bare-leaf fallback.
+  `sigs::fn_value_type_from_sig` is the single recovery point and is also
+  used by the annotated-`let` check, which now accepts a path initializer.
+  A closure tail has no inferred type in the syntax-only tail pass, so its
+  parsed parameter modes are compared directly.
+- Fixtures: `mut_params/fn_type_mode_positions.ark` (run, `4/4`),
+  `ownership/borrowed_box_local_use.ark` (run, `41/41`),
+  `ownership/shared_escape_aliases.ark` (run, `2`, the §6 sharing escape),
+  and the E0227
+  diagnostics `diagnostics/borrowed_box_return.ark`,
+  `diagnostics/borrowed_box_store.ark`,
+  `diagnostics/borrowed_box_unbox.ark`, plus the E0225 diagnostics
+  `diagnostics/fn_type_mode_argument.ark`,
+  `diagnostics/fn_type_mode_return_stmt.ark`,
+  `diagnostics/fn_type_mode_return_tail.ark`, and
+  `diagnostics/fn_type_mode_qualified_path.ark`.
+- Docs: `docs/language/spec.md` §3.5.1, `docs/language/memory-model.md`,
+  `docs/current-state.md`, and `docs/compiler/error-codes.md` (E0227 added,
+  E0225 scope widened).
+- Scope note: E0212 for a moved binding used as a call argument (#944) is
+  ADR-088 §1, not the §6/§2 items closed here; it remains tracked by
+  [#944](../../issues/open/944-move-after-use-not-diagnosed.md).
+
+### Verification (2026-10-29, §6 Box escape and §7 positions)
+
+- `python3 scripts/manager.py selfhost fixpoint --build --no-cache`: PASS —
+  stage 2 from the pinned bootstrap, stage 3 from s2, and
+  `sha256(s2) == sha256(s3)` =
+  `0c2e96b45159f10b095c26afd0999c412f9d0d8f44fab7210ade29bd52684dbf`
+  (pinned base
+  `8df2698c8401693879ca4f9ced289ed2c285d95eb526cf70fda02dd5876259ee`).
+- `python3 scripts/manager.py verify fixtures`: PASS — PASS=1886 FAIL=0,
+  1886 compile+validate, 109 runtime smoke, 36/36 `test:`; 2 native-cpp
+  runtime contracts delegated.
+- `python3 scripts/manager.py selfhost diag-parity`: PASS (current s2
+  against every committed `diag:` golden, including the seven new E0225/E0227
+  fixtures).
+- `python3 scripts/manager.py verify lane`: PASS (`quality changed`;
+  lint checked=19 failed=0). Touched-code advisory:
+  `call_generic_fn_args.ark single_function_files 1 > 0` after the fn-value
+  recovery moved to `sigs.ark`; the global `single_function_files` count is
+  467 against the 470 baseline. The separate global
+  `check-ark-code-quality.py` `lines_ge_200` ratchet is already 10 > 2 at the
+  base commit (eight `mut`-prefix signatures in files this slice did not
+  touch), so this slice does not introduce it.
+- `python3 scripts/manager.py docs check`: 6/6 PASS.
+- Manual both-target runs with the built s2:
+  `ownership/borrowed_box_local_use.ark` prints `41/41`,
+  `ownership/shared_escape_aliases.ark` prints `2`, and
+  `mut_params/fn_type_mode_positions.ark` prints `4/4` on both `wasm32-gc`
+  and `wasm32`. The seven diagnostic fixtures emit E0225/E0227 under
+  `check` with the built s2.
+
 ## Remaining scope
 
 1. Callee-side rule (ADR-088 §2/§3): landed in the 2026-10-29 slice.
@@ -303,12 +396,27 @@ registration.
    `--bootstrap-allow-shared-param-mutation` option because the pin and the
    flat overlay predate the mode parser; user code and fixtures are strict.
 2. Function-type mode (ADR-088 §7): implemented for parsing, `TY_FN`
-   modes, calls through function values, and shared→`mut` assignment at
-   annotated `let` bindings. Remaining: the reverse-direction check is not
-   applied when a function value is passed as an argument or returned, and
-   qualified/path function names are not recovered for the `let` check.
-3. Borrowed `Box<T>` escape (ADR-088 §6): returning, storing, or `unbox`ing a
-   borrowed `Box<T>` parameter is still accepted.
+   modes, calls through function values, shared→`mut` assignment at
+   annotated `let` bindings, and the reverse-direction check at
+   function-argument and return positions, including module-qualified paths
+   and impl spellings. A closure returned as a tail expression without an
+   inferred type is checked from its parsed parameter modes; a closure passed
+   as an argument or returned with an explicit `return` uses the inferred
+   `TY_FN`.
+3. Borrowed `Box<T>` escape (ADR-088 §6): landed. A borrowed `Box<T>`
+   parameter cannot be moved, returned, stored in an aggregate, or
+   `unbox`ed (E0227). The rule is restricted to `Box<T>`; other non-`Copy`
+   parameters still escape by sharing. Two residual gaps:
+   - A concrete (non-generic) `Box<i32>` parameter still hits a pre-existing
+     match-binding type mismatch in the checker; the positive fixture uses
+     the generic shape that mirrors `unbox`.
+   - A source enum constructor (`Box::Owned(b)`) is checked, but the builtin
+     `Option`/`Result` constructors (`Option::Some(b)`, `Ok(b)`) are not
+     enum defs, so a borrowed Box stored through them is still accepted.
+   - The value-shape walker follows aggregates and control flow, but not a
+     `Box_new`/`unbox` call nested inside a larger expression such as
+     `return unbox(b) + 1`. Direct call positions and `let` initializers are
+     covered.
 4. stdlib surface (ADR-088 §8): `push`/`set`/`pop`/`insert`/`clear` and the
    collection setters now declare `mut` parameters/receivers. No
    name-based exemption is used.
@@ -323,6 +431,9 @@ registration.
 - `python3 scripts/manager.py verify fixtures`: PASS=1909 FAIL=0,
   110 runtime smoke fixtures (the new `mut_params/` domain is one of them).
 - `python3 scripts/manager.py selfhost diag-parity`: PASS.
+- `python3 scripts/manager.py selfhost diag-parity`: PASS (current s2
+  against every committed `diag:` golden, including the seven new E0225/E0227
+  fixtures).
 - `python3 scripts/manager.py verify lane`: PASS (`quality changed`;
   lint checked=16 failed=0).
 - 2026-10-29 cross-lane receipt: the ADR-089 residual lane rebuilt s2 on top

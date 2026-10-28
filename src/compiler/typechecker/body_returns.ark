@@ -3,6 +3,8 @@ use typechecker::ast_access
 use typechecker::closure_capture
 use typechecker::contract_fn_sig
 use typechecker::infer
+use typechecker::ownership
+use typechecker::param_mode
 use typechecker::returns
 
 fn check_fn_body_return_contract(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, sig: FnSig, body: AstNode) {
@@ -13,12 +15,15 @@ fn check_fn_body_return_contract(mut env: TypeEnv, mut scope: LocalScope, fn_sig
 
 // A capturing closure in tail position escapes as the function result even
 // though no NK_RETURN node exists, so it needs the same escape check that
-// explicit return statements get (#872).
-fn check_tail_escape(mut env: TypeEnv, scope: LocalScope, body: AstNode) {
+// explicit return statements get (#872). The tail is also a return position
+// for ADR-088 §6/§7.
+fn check_tail_escape(mut env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, body: AstNode) {
     if !env.is_ownership_tracking_enabled {
         return
     }
     closure_capture::closure_capture_escape(env, scope, body)
+    ownership::check_borrowed_box_escape(env, scope, body)
+    param_mode::check_return_tail_fn_modes(env, scope, fn_sigs, body)
 }
 
 fn check_return_stmts(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, sig: FnSig, body: AstNode) {
