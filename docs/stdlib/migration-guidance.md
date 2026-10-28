@@ -945,12 +945,14 @@ E0100 goldens are `diagnostics/removed_bytes_free*.ark`.
   on wasm32-gc and fails validation for a `Vec<String>` local (pre-existing,
   independent of the associated-call fix). Join with an explicit loop or use
   `len` / `get_unchecked` in the meantime.
-- **Bootstrap adapter**: the committed pin predates the non-main
-  associated-call fix, so the generated flat overlay routes the compiler's
-  own TOML manifest scans through free `bootstrap_toml_*` shims
-  (`scripts/selfhost/checks.py::_patch_bootstrap_manifest_scanner_paths`).
-  The checked-in `std` / `src/compiler` source keeps the associated surface;
-  delete the adapter when the pin is refreshed.
+- **Bootstrap adapter**: the checked-in associated surface is now the
+  bootstrap input. The flat overlay ships `std/toml.ark`, `std/host/fs.ark`,
+  `std/host/clock.ark`, and `std/io/mod.ark`, so `toml::TomlText::*`,
+  `Fs::*`, and `Clock::*` resolve directly and the old free-name adapters are
+  gone. The only remaining `scripts/selfhost/checks.py` rewrite is for
+  `Env::*`: the pin predates the #917 MIR env call-result typing, so a
+  reachable `Env::args` would lower to invalid core Wasm. That adapter is
+  removed when the pin includes the #917 typing.
 
 ## std::io trait migration (ADR-085 Phase E/F, 2026-10-27)
 

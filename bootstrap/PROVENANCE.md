@@ -26,9 +26,12 @@ Why the change: the 2026-10-26 gc-host component pin predates the non-main
 associated/namespace call lowering used by the current compiler source. The
 generated overlay routed the compiler's `TomlText::*` and `Fs::*` calls through
 free shims so the old pin could compile it. The current stage-2 resolves those
-spellings when the overlay ships their namespace sources (`std/host/fs.ark`,
-`std/io/mod.ark`), so the pin was refreshed to the current stage-2 and the two
-adapter patches were deleted.
+spellings when the overlay ships their namespace sources, so the pin was
+refreshed to the current stage-2 and the two adapter patches were deleted. The
+overlay now ships `std/host/fs.ark`, `std/host/clock.ark`, and
+`std/io/mod.ark`. Only the `Env::*` rewrite remains: this pin predates #917's
+MIR env call-result typing, so a reachable `Env::args` still lowers to invalid
+core Wasm (`expected i64, found (ref null $type)`).
 
 The gc-host component pin is retired from the official slot: the current
 compiler does **not** emit a valid `wasm32-gc` self-build (the gc self-compile

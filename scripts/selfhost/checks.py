@@ -240,113 +240,28 @@ def _rewrite_bootstrap_wit_type_paths_text(text: str) -> str:
     return re.sub(rf"\b(?:ast|types|world)::({names})\b", r"\1", text)
 
 
-def _patch_bootstrap_manifest_scanner_paths(workspace_root: Path) -> None:
-    """Route the bootstrap compiler's TOML manifest scans through free shims.
-
-    The committed pin predates the non-main associated-call fix, so a
-    ``toml::TomlText::*`` call inside a compiler module compiles to the
-    unresolved-call fallback and traps in ``collect_wit_paths_from_manifest``
-    during every compile that sees an ``ark.toml``. The overlay keeps the
-    checked-in ``TomlText`` namespace for user code and adds free adapters only
-    to the generated compiler copy. Delete this patch when the pin is
-    refreshed (ADR-029).
-    """
-    toml_path = workspace_root / "std" / "toml.ark"
-    if not toml_path.is_file():
-        return
-    text = toml_path.read_text(encoding="utf-8")
-    if "bootstrap_toml_find_section" not in text:
-        text += """
-// Bootstrap adapter (see scripts/selfhost/checks.py). The pinned bootstrap
-// cannot lower non-main `TomlText::*` calls; the generated compiler uses
-// these free entry points until the pin is refreshed.
-pub fn bootstrap_toml_find_section(content: String, section: String) -> String {
-    toml_text_find_section(content, section)
-}
-
-pub fn bootstrap_toml_find_value(content: String, key: String) -> String {
-    toml_text_find_value(content, key)
-}
-
-pub fn bootstrap_toml_find_raw_value(content: String, key: String) -> String {
-    toml_text_find_raw_value(content, key)
-}
-
-pub fn bootstrap_toml_parse_string_array(raw: String) -> Vec<String> {
-    toml_text_parse_string_array(raw)
-}
-
-pub fn bootstrap_toml_parse_line(line: String) -> String {
-    toml_text_parse_line(line)
-}
-"""
-        toml_path.write_text(text, encoding="utf-8")
-
-    replacements = (
-        ("toml::TomlText::find_section(", "toml::bootstrap_toml_find_section("),
-        ("toml::TomlText::find_value(", "toml::bootstrap_toml_find_value("),
-        ("toml::TomlText::find_raw_value(", "toml::bootstrap_toml_find_raw_value("),
-        ("toml::TomlText::parse_string_array(", "toml::bootstrap_toml_parse_string_array("),
-        ("toml::TomlText::parse_line(", "toml::bootstrap_toml_parse_line("),
-    )
-    compiler_root = workspace_root / "src" / "compiler"
-    for path in compiler_root.rglob("*.ark"):
-        # The flattened resolver file is resolver_removed_names.ark; keep its
-        # E0100 hint strings on the checked-in associated spelling.
-        if "removed_names" in path.name:
-            continue
-        source = path.read_text(encoding="utf-8")
-        patched = source
-        for old, new in replacements:
-            patched = patched.replace(old, new)
-        if patched != source:
-            path.write_text(patched, encoding="utf-8")
-
-
-def _patch_bootstrap_host_fs_paths(workspace_root: Path) -> None:
-    """Route the bootstrap compiler's ``Fs::*`` calls through the free builtins.
-
-    The committed pin resolves the ``std::host::fs`` free functions as builtins
-    and predates loading the namespace source into the flat overlay. A direct
-    ``Fs::read_to_string`` in a compiler module therefore falls back to the
-    unresolved-call ``drop; unreachable`` sequence. The overlay rewrites the
-    call spelling back to the free names (and the import to the module) while
-    the checked-in ``src/compiler`` source keeps the ``Fs`` namespace. Delete
-    this patch when the pin is refreshed (ADR-029).
-    """
-    compiler_root = workspace_root / "src" / "compiler"
-    members = (
-        "read_to_string",
-        "read_bytes",
-        "write_string",
-        "write_bytes",
-        "is_readable_file",
-        "is_file",
-        "is_dir",
-    )
-    for path in compiler_root.rglob("*.ark"):
-        # Hint strings in these files spell `Fs::` and must not be rewritten
-        # to the free builtin spelling; they are not call sites.
-        if "removed_names" in path.name or "deprecated_table" in path.name:
-            continue
-        source = path.read_text(encoding="utf-8")
-        patched = source.replace("use std::host::fs::Fs\n", "use std::host::fs\n")
-        for member in members:
-            patched = patched.replace(f"Fs::{member}(", f"fs::{member}(")
-        if patched != source:
-            path.write_text(patched, encoding="utf-8")
-
-
 def _patch_bootstrap_host_env_paths(workspace_root: Path) -> None:
     """Route the bootstrap compiler's ``Env::*`` calls through the free builtins.
 
-    The committed pin resolves the ``std::host::env`` free functions as
-    builtins, predates loading the namespace source into the flat overlay, and
-    has no MIR call-result typing for the env intrinsics. A direct ``Env::args``
-    in a compiler module therefore lowers to an invalid i64/ref frame. The
-    overlay rewrites the call spelling back to the free names (and the import
-    to the module) while the checked-in ``src/compiler`` source keeps the
-    ``Env`` namespace. Delete this patch when the pin is refreshed (ADR-029).
+    The pin (``8df2698c…``) was compiled from source that predates #917's MIR
+    env call-result typing: its ``mir/lower/call_type_fallback_stdlib.ark`` and
+    ``call_type_vec.ark`` do not type ``__intrinsic_args`` / ``Env::args`` as
+    ``vec:String``. A reachable ``Env::args`` therefore stores the Vec ref in
+    an i64 temp, and the generated compiler fails ``wasm-tools validate`` with
+    ``expected i64, found (ref null $type)``. Rewriting to the free builtin
+    spelling (and the module import) keeps the checked-in ``Env`` namespace for
+    user code and stage-3.
+
+    The current entry module goes through the prelude ``args`` stub (see
+    ``_patch_bootstrap_main_host_to_prelude``) and the duplicate legacy
+    ``driver/cli.ark`` entry is stripped by overlay dedupe, so this patch
+    currently normalizes imports only. Keep it as the guard for any reachable
+    ``Env::*`` call added to the compiler.
+
+    Delete condition: a pin built from source that includes #917's env
+    call-result typing. Verify with a probe that ``Env::args`` lowers to
+    ``call $Env::args`` (not the unresolved fallback) and validates before
+    removing this patch.
     """
     compiler_root = workspace_root / "src" / "compiler"
     members = ("args", "arg_count")
@@ -368,53 +283,6 @@ def _patch_bootstrap_host_env_paths(workspace_root: Path) -> None:
             path.write_text(patched, encoding="utf-8")
 
 
-def _patch_bootstrap_host_clock_paths(workspace_root: Path) -> None:
-    """Route the bootstrap compiler's ``Clock::*`` calls through the free builtins.
-
-    The committed pin resolves ``std::host::clock`` free functions as builtins
-    and predates loading the namespace source into the flat overlay. A direct
-    ``Clock::monotonic_now`` in a compiler module falls back to the
-    unresolved-call ``drop; unreachable`` sequence. The overlay rewrites the
-    call spelling back to the free names (and the import to the module) while
-    the checked-in ``src/compiler`` source keeps the ``Clock`` namespace.
-    Delete this patch when the pin is refreshed (ADR-029).
-
-    Driver timing calls must also reproduce the existing stub/keep-clock
-    rewrite: ``_patch_bootstrap_driver_timing`` only sees the free spelling,
-    so a namespace call rewritten afterwards would bypass the stub and leave
-    an i64 clock result in the i32 overlay timing slots.
-    """
-    compiler_root = workspace_root / "src" / "compiler"
-    keep_clock = os.environ.get("ARUKELLT_OVERLAY_KEEP_CLOCK") == "1"
-    members = ("monotonic_now", "now_ms")
-    for path in compiler_root.rglob("*.ark"):
-        # Hint strings in these files spell `Clock::` and must not be
-        # rewritten to the free builtin spelling; they are not call sites.
-        if "removed_names" in path.name or "deprecated_table" in path.name:
-            continue
-        source = path.read_text(encoding="utf-8")
-        patched = source.replace("use std::host::clock::Clock\n", "use std::host::clock\n")
-        rel = path.relative_to(compiler_root).as_posix()
-        # Overlay files are flattened (driver/pipeline_backend.ark ->
-        # driver_pipeline_backend.ark), so match the flat names here.
-        if rel == "mir_lower_entry_timing.ark":
-            clock_value = (
-                "clock::monotonic_now()" if keep_clock else "i32_to_i64(0)"
-            )
-            patched = patched.replace("Clock::monotonic_now()", clock_value)
-        elif rel.startswith("driver_"):
-            clock_value = (
-                "i64_to_i32(clock::monotonic_now() / 1000000i64)"
-                if keep_clock
-                else "0"
-            )
-            patched = patched.replace("Clock::monotonic_now()", clock_value)
-        for member in members:
-            patched = patched.replace(f"Clock::{member}(", f"clock::{member}(")
-        if patched != source:
-            path.write_text(patched, encoding="utf-8")
-
-
 def _assert_bootstrap_overlay_clock_reads_stubbed(workspace_root: Path) -> None:
     """Reject an overlay that leaves a host clock read in an i32 timing slot.
 
@@ -423,14 +291,16 @@ def _assert_bootstrap_overlay_clock_reads_stubbed(workspace_root: Path) -> None:
     the stub keeps its i64 result, so the widening becomes
     ``i32_to_i64(<i64>)`` and the generated compiler is invalid core Wasm
     (``type mismatch: expected i32, found i64``) after a 25+ minute build.
+    ``std/host/clock.ark`` ships in the overlay, so the checked-in ``Clock::*``
+    spelling is valid source; only an unstubbed read in a driver timing file is
+    an error here.
 
-    Also rejects any remaining ``Clock::*`` namespace spelling: the overlay
-    does not ship ``std/host/clock.ark``, so the namespace call lowers to the
-    unresolved-call ``drop; unreachable`` fallback.
-
-    Keep this check adjacent to the patches it guards: an overlay/pin merge
-    that drops one of them must fail here, not inside ``wasm-tools validate``.
+    The wasm32-gc overlay keeps native i64 timestamps (the driver timing patch
+    is skipped there), so the check applies only to the default wasm32 target.
     """
+    emit_target = os.environ.get("ARUKELLT_OVERLAY_EMIT_TARGET", BOOTSTRAP_EMIT_TARGET)
+    if _emit_target_is_wasm32_gc(emit_target):
+        return
     compiler_root = workspace_root / "src" / "compiler"
     if not compiler_root.is_dir():
         return
@@ -439,21 +309,15 @@ def _assert_bootstrap_overlay_clock_reads_stubbed(workspace_root: Path) -> None:
         # Hint tables spell `Clock::` inside diagnostic strings; not call sites.
         if "removed_names" in path.name or "deprecated_table" in path.name:
             continue
-        text = path.read_text(encoding="utf-8")
-        for spelling in ("Clock::monotonic_now(", "Clock::now_ms("):
-            if spelling in text:
-                offenders.append(
-                    f"{path.relative_to(workspace_root)}: {spelling} "
-                    "(overlay does not ship std/host/clock.ark)"
-                )
         if not path.name.startswith("driver_"):
             continue
+        text = path.read_text(encoding="utf-8")
         # keep_clock mode wraps the read as i64_to_i32(... / 1000000i64); that
         # form yields the i32 the timing slots expect.
-        if re.search(r"(?<!i64_to_i32\()clock::monotonic_now\(", text):
+        if re.search(r"(?<!i64_to_i32\()(?:Clock|clock)::monotonic_now\(", text):
             offenders.append(
                 f"{path.relative_to(workspace_root)}: unstubbed "
-                "clock::monotonic_now() in an i32 driver timing slot"
+                "monotonic_now() in an i32 driver timing slot"
             )
     if offenders:
         raise BootstrapOverlayError(
@@ -574,6 +438,9 @@ BOOTSTRAP_STD_SOURCE_FILES = (
     "std/wit/types.ark",
     "std/wit/world.ark",
     "std/wit/scan.ark",
+    "std/host/fs.ark",
+    "std/host/clock.ark",
+    "std/io/mod.ark",
     "std/core/error.ark",
 )
 CLI_VERSION_GOLDEN_REL = "tests/snapshots/selfhost/cli-version.txt"
@@ -970,7 +837,7 @@ def _selfhost_source_fingerprint(root: Path) -> str:
 
     The closure is ``src/compiler/**/*.ark`` plus the bootstrap std files, not
     every ``std/**/*.ark`` file, so a collections-only edit does not force a
-    20-40 minute rebuild.
+    25-30 minute rebuild.
     """
     h = hashlib.sha256()
     h.update(f"v{FIXPOINT_CACHE_VERSION}\n".encode())
@@ -2074,10 +1941,10 @@ def _driver_timing_groups(*, keep_clock: bool) -> frozenset[str]:
 
 
 # Host clock reads accept both the pre-#917 module spelling and the canonical
-# ``Clock`` namespace spelling. The overlay stubs driver timing during seeding,
-# before ``_patch_bootstrap_host_clock_paths`` normalizes the namespace
-# spelling, so a single-spelling match silently leaves an i64 clock read in an
-# i32 timing slot (#917, bootstrap i32/i64 lowering mismatch).
+# ``Clock`` namespace spelling. The overlay stubs driver timing while seeding
+# from the checked-in source, so both spellings must be recognized; a
+# single-spelling match silently leaves an i64 clock read in an i32 timing slot
+# (#917, bootstrap i32/i64 lowering mismatch).
 CLOCK_READ_SPELLINGS = ("clock::monotonic_now()", "Clock::monotonic_now()")
 
 
@@ -4686,11 +4553,29 @@ def _prepare_flattened_selfhost_source_locked(
                 f"bootstrap overlay missing canonical WIT source: std/wit/{name}"
             )
         shutil.copyfile(source_path, wit_dst / name)
+    # Ship the checked-in host namespace sources the compiler itself imports.
+    # The pin resolves the free ``std::host::*`` functions as builtins, but the
+    # checked-in compiler calls ``Fs::*`` / ``Clock::*``; shipping the namespace
+    # source makes those spellings compile to the real impls instead of the
+    # unresolved-call fallback. ``std/host/fs.ark`` imports ``std::io``, so its
+    # module source ships as well.
+    host_sources = (
+        ("std/host/fs.ark", "host/fs.ark"),
+        ("std/host/clock.ark", "host/clock.ark"),
+        ("std/io/mod.ark", "io/mod.ark"),
+    )
+    for source_rel, overlay_rel in host_sources:
+        source_path = root / source_rel
+        if not source_path.is_file():
+            raise BootstrapOverlayError(
+                "bootstrap overlay missing canonical host namespace source: "
+                + source_rel
+            )
+        dest_path = std_dst / overlay_rel
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source_path, dest_path)
     _patch_bootstrap_wit_type_paths(overlay_root)
-    _patch_bootstrap_manifest_scanner_paths(overlay_root)
-    _patch_bootstrap_host_fs_paths(overlay_root)
     _patch_bootstrap_host_env_paths(overlay_root)
-    _patch_bootstrap_host_clock_paths(overlay_root)
     _assert_bootstrap_overlay_clock_reads_stubbed(overlay_root)
     error_src = root / "std" / "core" / "error.ark"
     if not error_src.is_file():
@@ -4710,9 +4595,18 @@ def _prepare_flattened_selfhost_source_locked(
 def _patch_bootstrap_main_host_to_prelude(compiler_out: Path) -> None:
     """Rewrite main.ark host calls to prelude free functions.
 
-    Flat overlay + pinned bootstrap mis-resolves ``env::args`` (and related
-    host paths) as private when prelude also exports ``args`` / ``exit`` /
-    ``println``.  Use the prelude shims so stage-2 can compile.
+    The flat overlay does not ship ``std/host/stdio.ark`` or
+    ``std/host/process.ark``, so a direct entry-module ``stdio::eprintln`` /
+    ``process::exit`` fails resolution (compiler modules only survive that
+    because non-entry resolve failures are not reported). The pin also cannot
+    lower ``Env::args`` (see ``_patch_bootstrap_host_env_paths``). The entry
+    module therefore calls the prelude host-intrinsic stubs ``args`` / ``exit``
+    / ``println`` and imports them explicitly.
+
+    Delete condition: a pin/overlay pair that resolves the checked-in
+    ``Env::args()`` / ``stdio::eprintln`` / ``process::exit`` entry module and
+    validates the generated compiler. Until then this keeps ``main`` on the
+    known host-intrinsic stubs instead of the unresolved-call fallback.
     """
     main_path = compiler_out / "main.ark"
     if not main_path.is_file():
