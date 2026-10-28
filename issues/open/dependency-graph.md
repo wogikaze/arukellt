@@ -46,6 +46,22 @@ graph LR
   I949["949 949 — type-spine plans omit the typechecker → CoreHIR handoff; a core-rewrite checkbox overstates progress"]
   I950["950 950 — verification never exercises the failure classes found in the P0 audit"]
   I951["951 951 — implement ADR-088: `mut` parameter mode, mutable-place and same-place conflict checks"]
+  I952["952 952 — glob import (`use path::*`) is not supported, so the v2 explicit prelude policy requires long name lists"]
+  I953["953 953 — `Ord::cmp` traps at runtime on both targets; `std::collections::sort::sort` is unusable"]
+  I954["954 954 — wasm32: referencing a top-level `i64` const produces invalid Wasm"]
+  I955["955 955 — wasm32: two live `Vec<i64>` corrupt the managed heap (out-of-bounds trap)"]
+  I956["956 956 — wasm32-gc: `print`/`println` reject strings over 4096 bytes (`Buffer too large for blocking-write-and-flush`)"]
+  I957["957 957 — `std::host::stdio::read_stdin` body/docs say 'returns empty', but runtime reads stdin"]
+  I958["958 958 — `--emit wat` silently writes a 0-byte file with the pinned bootstrap"]
+  I959["959 959 — `std/prelude.ark` header still says 'auto-imported into every module', contradicting the ADR-072 v2 policy"]
+  I960["960 960 — `String::split` is broken on both targets: runtime OOB on wasm32, invalid Wasm on wasm32-gc"]
+  I961["961 961 — Competitive-programming input ergonomics: no `split_whitespace`, no unwrap for `Result<i32, String>`, and stdin is documented as unavailable"]
+  I962["962 962 — wasm32: a single growing `Vec<i64>` loses elements past index 4"]
+  I963["963 963 — `i64.to_string()` is not usable (method dispatch picks the i32 impl)"]
+  I964["964 964 — `let x: i64 = 0` binds x as i32 (annotation ignored for unsuffixed numeric literals)"]
+  I965["965 965 — wasm32-gc: generic `<` on `T: Ord` compiles to invalid Wasm; generic `Vec<T: Ord>` algorithms are blocked"]
+  I966["966 966 — Same-named methods across type specializations resolve to one impl: `Vec::contains` traps and `Vec<String>::sort` runs the i32 sort"]
+  I967["967 967 — Generic Vec methods on `Vec<String>` and generic `iter()` are missing/broken on wasm32"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
@@ -118,6 +134,22 @@ graph LR
 - **949** depends on: none; blocks: none
 - **950** depends on: none; blocks: none
 - **951** depends on: none; blocks: none
+- **952** depends on: none; blocks: none
+- **953** depends on: none; blocks: none
+- **954** depends on: none; blocks: none
+- **955** depends on: none; blocks: none
+- **956** depends on: none; blocks: none
+- **957** depends on: none; blocks: none
+- **958** depends on: none; blocks: none
+- **959** depends on: none; blocks: none
+- **960** depends on: none; blocks: none
+- **961** depends on: none; blocks: none
+- **962** depends on: none; blocks: none
+- **963** depends on: none; blocks: none
+- **964** depends on: none; blocks: none
+- **965** depends on: none; blocks: none
+- **966** depends on: none; blocks: none
+- **967** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **850** depends on: 851; blocks: none

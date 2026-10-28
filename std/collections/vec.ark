@@ -18,7 +18,7 @@ use std::core
 use std::core::cmp
 use std::core::iter
 use std::core::raw::RawArray
-use std::prelude::Slice
+use std::prelude::{Slice, byte_at}
 
 /// Creates a new empty `Vec<i32>`.
 pub fn new_i32() -> Vec<i32> {
@@ -508,5 +508,198 @@ impl Vec<T> {
     /// Returns a bounded view over `start..end` without copying the elements.
     fn as_slice(self: Vec<T>, start: i32, end: i32) -> Slice<T> {
         Slice::View(self, start, end)
+    }
+
+    /// Returns the first element, or `None` when empty.
+    fn first(self: Vec<T>) -> Option<T> {
+        self.get(0)
+    }
+
+    /// Returns the last element, or `None` when empty.
+    fn last(self: Vec<T>) -> Option<T> {
+        let count: i32 = self.len()
+        if count == 0 {
+            return Option::None
+        }
+        self.get(count - 1)
+    }
+
+    /// Swaps the elements at `i` and `j`.
+    fn swap(self: Vec<T>, i: i32, j: i32) {
+        if i == j {
+            return
+        }
+        let a = self.get_unchecked(i)
+        let b = self.get_unchecked(j)
+        self.set(i, b)
+        self.set(j, a)
+    }
+
+    /// Reverses the element order in place.
+    fn reverse(self: Vec<T>) {
+        let count: i32 = self.len()
+        let mut i: i32 = 0
+        let mut j: i32 = count - 1
+        while i < j {
+            let a = self.get_unchecked(i)
+            let b = self.get_unchecked(j)
+            self.set(i, b)
+            self.set(j, a)
+            i = i + 1
+            j = j - 1
+        }
+    }
+
+    /// Inserts `val` at `idx`, shifting the tail right.
+    ///
+    /// An index past the end appends. A negative index inserts at the front.
+    fn insert(self: Vec<T>, idx: i32, val: T) {
+        let count: i32 = self.len()
+        let mut target: i32 = idx
+        if target < 0 {
+            target = 0
+        }
+        if target >= count {
+            self.push(val)
+            return
+        }
+        self.push(val)
+        let mut k: i32 = count
+        while k > target {
+            self.set(k, self.get_unchecked(k - 1))
+            k = k - 1
+        }
+        self.set(target, val)
+    }
+
+    /// Removes and returns the element at `idx`, shifting the tail left.
+    fn remove(self: Vec<T>, idx: i32) -> T {
+        let count: i32 = self.len()
+        let value = self.get_unchecked(idx)
+        let mut k: i32 = idx
+        while k + 1 < count {
+            self.set(k, self.get_unchecked(k + 1))
+            k = k + 1
+        }
+        while self.len() > count - 1 {
+            match self.pop() {
+                Option::Some(_) => {},
+                Option::None => { break },
+            }
+        }
+        value
+    }
+
+    /// Removes and returns the element at `idx` by moving the last element into
+    /// its place. O(1), but changes the order of the remaining elements.
+    fn swap_remove(self: Vec<T>, idx: i32) -> T {
+        let count: i32 = self.len()
+        let value = self.get_unchecked(idx)
+        if idx != count - 1 {
+            self.set(idx, self.get_unchecked(count - 1))
+        }
+        while self.len() > count - 1 {
+            match self.pop() {
+                Option::Some(_) => {},
+                Option::None => { break },
+            }
+        }
+        value
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Specialized ordering / search surface for the common contest element types.
+//
+// Generic `T: Ord` methods are the intended surface, but on wasm32-gc a generic
+// `<` lowers to invalid Wasm (issue #965). Until that is fixed the comparison
+// methods are specialized for i32 and String. Calling module-level `vec_*`
+// helpers from a specialized impl body lowers to an unreachable stub, so bodies
+// use the builtin sibling methods (`self.len()` / `self.get_unchecked()` /
+// `self.set()`), which lower to intrinsics. String ordering uses a local byte
+// loop because `Ord::cmp` and `==` on String currently trap (#953/#966).
+// ---------------------------------------------------------------------------
+
+impl Vec<i32> {
+    /// Sorts i32 elements in ascending order (stable insertion sort).
+    fn sort(self: Vec<i32>) {
+        let count: i32 = self.len()
+        let mut i: i32 = 1
+        while i < count {
+            let current = self.get_unchecked(i)
+            let mut j: i32 = i - 1
+            let mut shifting: bool = true
+            while shifting && j >= 0 {
+                let previous = self.get_unchecked(j)
+                if current < previous {
+                    self.set(j + 1, previous)
+                    j = j - 1
+                } else {
+                    shifting = false
+                }
+            }
+            self.set(j + 1, current)
+            i = i + 1
+        }
+    }
+
+    /// Removes consecutive equal elements.
+    fn dedup(self: Vec<i32>) {
+        let count: i32 = self.len()
+        let mut write: i32 = 0
+        let mut read: i32 = 0
+        while read < count {
+            let current = self.get_unchecked(read)
+            let mut keep: bool = write == 0
+            if !keep {
+                let previous = self.get_unchecked(write - 1)
+                if current != previous {
+                    keep = true
+                }
+            }
+            if keep {
+                if write != read {
+                    self.set(write, current)
+                }
+                write = write + 1
+            }
+            read = read + 1
+        }
+        while self.len() > write {
+            match self.pop() {
+                Option::Some(_) => {},
+                Option::None => { break },
+            }
+        }
+    }
+
+    /// Returns the first index whose element is >= `target` in a sorted vector.
+    fn lower_bound(self: Vec<i32>, target: i32) -> i32 {
+        let mut lo: i32 = 0
+        let mut hi: i32 = self.len()
+        while lo < hi {
+            let mid: i32 = lo + (hi - lo) / 2
+            if self.get_unchecked(mid) < target {
+                lo = mid + 1
+            } else {
+                hi = mid
+            }
+        }
+        lo
+    }
+
+    /// Returns the first index whose element is > `target` in a sorted vector.
+    fn upper_bound(self: Vec<i32>, target: i32) -> i32 {
+        let mut lo: i32 = 0
+        let mut hi: i32 = self.len()
+        while lo < hi {
+            let mid: i32 = lo + (hi - lo) / 2
+            if target < self.get_unchecked(mid) {
+                hi = mid
+            } else {
+                lo = mid + 1
+            }
+        }
+        lo
     }
 }

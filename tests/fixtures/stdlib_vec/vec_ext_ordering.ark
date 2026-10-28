@@ -1,0 +1,41 @@
+// Vec<i32> extended surface: sort, dedup, lower_bound/upper_bound, insert,
+// remove, swap_remove, swap, reverse, first and last (ADR-046 method form).
+use std::collections::vec
+use std::host::stdio
+
+fn show(values: Vec<i32>) {
+    let parts: Vec<String> = Vec::new<String>()
+    let mut i: i32 = 0
+    while i < values.len() {
+        parts.push(values.get_unchecked(i).to_string())
+        i = i + 1
+    }
+    stdio::println(parts.join(" "))
+}
+
+fn main() {
+    let v: Vec<i32> = Vec::new<i32>()
+    v.push(5)
+    v.push(3)
+    v.push(1)
+    v.push(3)
+    v.push(2)
+    v.sort()
+    show(v)
+    v.dedup()
+    show(v)
+    stdio::println(v.lower_bound(3).to_string())
+    stdio::println(v.upper_bound(3).to_string())
+    v.insert(0, 9)
+    show(v)
+    stdio::println(v.remove(0).to_string())
+    show(v)
+    v.reverse()
+    show(v)
+    v.swap(0, 1)
+    show(v)
+    stdio::println(v.first().unwrap().to_string())
+    stdio::println(v.last().unwrap().to_string())
+    stdio::println(v.swap_remove(0).to_string())
+    show(v)
+}

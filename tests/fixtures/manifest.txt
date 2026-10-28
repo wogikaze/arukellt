@@ -2080,6 +2080,7 @@ run:stdlib_trait/try_from_narrow.ark
 run:stdlib_trait/try_from_parse.ark
 run:stdlib_trait/try_from_parse_wasm32.ark
 run:stdlib_vec/vec_algorithms.ark
+run:stdlib_vec/vec_ext_ordering.ark
 run:stdlib_vec/any_find.ark
 run:stdlib_vec/vec_any_all_match.ark
 run:stdlib_vec/vec_any_first_element.ark
@@ -2642,6 +2643,7 @@ t3-compile:stdlib_trait/operator_generic.ark
 t3-compile:stdlib_trait/self_return_clone.ark
 t3-compile:stdlib_trait/clone_unbound_typevar.ark
 t3-compile:stdlib_vec/vec_algorithms.ark
+t3-compile:stdlib_vec/vec_ext_ordering.ark
 t3-compile:stdlib_vec/any_find.ark
 t3-compile:stdlib_vec/vec_any_all_match.ark
 t3-compile:stdlib_vec/vec_any_first_element.ark
@@ -3176,6 +3178,7 @@ t3-run:stdlib_trait/clone_unbound_typevar.ark
 t3-run:stdlib_trait/try_from_narrow.ark
 t3-run:stdlib_trait/try_from_parse.ark
 t3-run:stdlib_vec/vec_algorithms.ark
+t3-run:stdlib_vec/vec_ext_ordering.ark
 t3-run:stdlib_vec/any_find.ark
 t3-run:stdlib_vec/vec_any_all_match.ark
 t3-run:stdlib_vec/vec_any_first_element.ark

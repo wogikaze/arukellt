@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-27T03:52:22Z",
+  "generated_at": "2026-10-28T05:11:49Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -154,8 +154,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 14,
-        "unchecked": 3
+        "checked": 16,
+        "unchecked": 1
       },
       "orchestration": {
         "class": "blocked-by-upstream",
@@ -591,8 +591,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 3
+        "checked": 3,
+        "unchecked": 0
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -746,6 +746,278 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 6
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "952",
+      "path": "952-glob-import-support.md",
+      "title": "952 — glob import (`use path::*`) is not supported, so the v2 explicit prelude policy requires long name lists",
+      "track": "parser",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "953",
+      "path": "953-ord-cmp-traps.md",
+      "title": "953 — `Ord::cmp` traps at runtime on both targets; `std::collections::sort::sort` is unusable",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "954",
+      "path": "954-wasm32-i64-const-invalid-wasm.md",
+      "title": "954 — wasm32: referencing a top-level `i64` const produces invalid Wasm",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "955",
+      "path": "955-wasm32-two-vec-i64-heap-corruption.md",
+      "title": "955 — wasm32: two live `Vec<i64>` corrupt the managed heap (out-of-bounds trap)",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "956",
+      "path": "956-gc-println-4096-byte-limit.md",
+      "title": "956 — wasm32-gc: `print`/`println` reject strings over 4096 bytes (`Buffer too large for blocking-write-and-flush`)",
+      "track": "wasi",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "957",
+      "path": "957-read-stdin-stub-contract-mismatch.md",
+      "title": "957 — `std::host::stdio::read_stdin` body/docs say 'returns empty', but runtime reads stdin",
+      "track": "stdlib-api",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "958",
+      "path": "958-emit-wat-silent-empty-with-pinned-bootstrap.md",
+      "title": "958 — `--emit wat` silently writes a 0-byte file with the pinned bootstrap",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "959",
+      "path": "959-prelude-header-stale.md",
+      "title": "959 — `std/prelude.ark` header still says 'auto-imported into every module', contradicting the ADR-072 v2 policy",
+      "track": "docs-audit",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "960",
+      "path": "960-string-split-broken.md",
+      "title": "960 — `String::split` is broken on both targets: runtime OOB on wasm32, invalid Wasm on wasm32-gc",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "961",
+      "path": "961-input-ergonomics-split-whitespace-reader.md",
+      "title": "961 — Competitive-programming input ergonomics: no `split_whitespace`, no unwrap for `Result<i32, String>`, and stdin is documented as unavailable",
+      "track": "stdlib-api",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "962",
+      "path": "962-wasm32-vec-i64-growth-corruption.md",
+      "title": "962 — wasm32: a single growing `Vec<i64>` loses elements past index 4",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "963",
+      "path": "963-i64-to-string-method-unusable.md",
+      "title": "963 — `i64.to_string()` is not usable (method dispatch picks the i32 impl)",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "964",
+      "path": "964-let-i64-annotation-ignored-unsuffixed-literal.md",
+      "title": "964 — `let x: i64 = 0` binds x as i32 (annotation ignored for unsuffixed numeric literals)",
+      "track": "typecheck",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "965",
+      "path": "965-wasm32gc-generic-ord-operator-invalid-wasm.md",
+      "title": "965 — wasm32-gc: generic `<` on `T: Ord` compiles to invalid Wasm; generic `Vec<T: Ord>` algorithms are blocked",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "966",
+      "path": "966-method-dispatch-same-name-specializations.md",
+      "title": "966 — Same-named methods across type specializations resolve to one impl: `Vec::contains` traps and `Vec<String>::sort` runs the i32 sort",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "967",
+      "path": "967-generic-collection-methods-string-linear-gaps.md",
+      "title": "967 — Generic Vec methods on `Vec<String>` and generic `iter()` are missing/broken on wasm32",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
       },
       "orchestration": {
         "class": "implementation-ready",
