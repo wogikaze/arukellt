@@ -45,6 +45,21 @@ fn try_emit_host_int_narrow_convert_call(w: WasmWriter, handler_id: i32, inst: M
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_i32_to_u16(){
+        let _result_on_stack = intrinsic_cast::emit_i32_to_u16(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_i32_to_i16(){
+        let _result_on_stack = intrinsic_cast::emit_i32_to_i16(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_u64_to_u32(){
+        let _result_on_stack = intrinsic_cast::emit_u64_to_u32(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
     false
 }
 

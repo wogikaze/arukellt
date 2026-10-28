@@ -98,11 +98,11 @@ exception before ADR-087; their migration rows remain in
 | `i8_to_i32(x)` | `(x).to_i32()` |
 | `i16_to_i32(x)` | `(x).to_i32()` |
 | `i32_to_u8(x)` | `(x).to_u8_wrapping()` |
-| `i32_to_u16(x)` | `(x).to_u16_wrapping()` (method and free currently share the deferred-body trap) |
+| `i32_to_u16(x)` | `(x).to_u16_wrapping()` |
 | `i32_to_i8(x)` | `(x).to_i8_wrapping()` |
-| `i32_to_i16(x)` | `(x).to_i16_wrapping()` (method and free currently share the deferred-body trap) |
+| `i32_to_i16(x)` | `(x).to_i16_wrapping()` |
 | `u32_to_u64(x)` | `(x).to_u64()` |
-| `u64_to_u32(x)` | `(x).to_u32_wrapping()` (method and free currently share the deferred-body trap) |
+| `u64_to_u32(x)` | `(x).to_u32_wrapping()` |
 | `i32_to_i64(x)` | `(x).into()` |
 | `i64_to_i32(x)` | `(x).to_i32_checked()` / `to_i32_wrapping()` / `to_i32_saturating()` |
 | `f32_to_f64(x)` | `(x).to_f64()` |

@@ -362,8 +362,11 @@ fn native_c_core_expected_argument_count(handler: i32) -> i32 {
     if handler == core_op_registry_generated::core_op_handler_runtime_assert_ne() { return 2 }
     if handler == core_op_registry_generated::core_op_handler_runtime_i8_to_i32() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_runtime_i32_to_i8() { return 1 }
+    if handler == core_op_registry_generated::core_op_handler_runtime_i32_to_u16() { return 1 }
+    if handler == core_op_registry_generated::core_op_handler_runtime_i32_to_i16() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_runtime_i32_to_u32() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_runtime_u32_to_u64() { return 1 }
+    if handler == core_op_registry_generated::core_op_handler_runtime_u64_to_u32() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_seq_sum_i32() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_seq_product_i32() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_vec_reverse_i32() { return 1 }
@@ -579,6 +582,15 @@ fn native_c_emit_core_call(
         return native_c_core_call_expression("(int64_t)(int32_t)".concat(native_c_core_arg(arguments, 0)))
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_i64_to_i32() {
+        return native_c_core_call_expression("(int32_t)(uint32_t)(uint64_t)".concat(native_c_core_arg(arguments, 0)))
+    }
+    if handler == core_op_registry_generated::core_op_handler_runtime_i32_to_u16() {
+        return native_c_core_call_expression("(int32_t)(uint16_t)".concat(native_c_core_arg(arguments, 0)))
+    }
+    if handler == core_op_registry_generated::core_op_handler_runtime_i32_to_i16() {
+        return native_c_core_call_expression("(int32_t)(int16_t)(uint16_t)".concat(native_c_core_arg(arguments, 0)))
+    }
+    if handler == core_op_registry_generated::core_op_handler_runtime_u64_to_u32() {
         return native_c_core_call_expression("(int32_t)(uint32_t)(uint64_t)".concat(native_c_core_arg(arguments, 0)))
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_print() {
