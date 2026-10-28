@@ -313,24 +313,11 @@ fn p2_enum_type_name(type_name: String) -> String {
 }
 
 fn p2_enum_variant_matches(enum_name: String, variant_name: String) -> bool {
-    let enum_name = p2_enum_type_name(clone(enum_name))
-    starts_with(clone(variant_name), clone(enum_name).concat(String_from("::"))) ||
-    contains(
-        clone(variant_name),
-        String_from("::").concat(clone(enum_name).concat(String_from("::")))
-    )
+    module_gc_enum::MirModule_gc_enum_variant_matches(clone(enum_name), variant_name)
 }
 
 fn p2_enum_has_variants(type_name: String, mir: MirModule) -> bool {
-    let names = module_gc_enum::MirModule_gc_enum_variant_names(mir)
-    let mut i = 0
-    while i < len(names) {
-        if p2_enum_variant_matches(clone(type_name), get_unchecked(names, i)) {
-            return true
-        }
-        i = i + 1
-    }
-    false
+    module_gc_enum::MirModule_gc_enum_base_has_variants(mir, type_name)
 }
 
 fn p2_merge_enum_payload(mut payload: Vec<String>, field: String) {

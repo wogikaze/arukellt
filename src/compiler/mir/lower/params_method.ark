@@ -35,39 +35,48 @@ fn mir_bind_method_param(mut ctx: LowerCtx, struct_name: String, param: CoreHirP
     let mut mir_type_name = clone(p_type_name)
     let mut sig_type_name = clone(p_type_name)
     if len(local_type_name) > 0 {
-        // Concrete instantiation spellings (GenTakeIter<VecIter>) derive the
-        // substituted layout so the registered-struct check sees the real GC
-        // layout instead of the unsubstituted declaration.
-        let derived_local = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, clone(local_type_name))
-        mir_type_name = clone(derived_local)
-        sig_type_name = clone(derived_local)
-        if starts_with(clone(local_type_name), "vec:") ||
-        starts_with(clone(local_type_name), "hashmap:") ||
-        starts_with(clone(local_type_name), "Option_") ||
-        starts_with(clone(local_type_name), "option:") ||
-        starts_with(clone(local_type_name), "result:") ||
-        starts_with(clone(local_type_name), "Result_") {
+        // The frontend spells a declared enum parameter as enum:<name> so
+        // the enum kind survives call and local typing (ADR-089). It is not
+        // a struct layout and must keep its canonical spelling.
+        if starts_with(clone(local_type_name), "enum:") {
             pvt = value_types::VT_GC_REF()
-        } else if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(derived_local)) {
-            // Struct context wins when a user struct shadows an enum name:
-            // a bare Box param is the user struct, while enum decls stay
-            // reachable through enum:/variant-qualified spellings.
-            pvt = value_types::VT_GC_REF()
-            sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(derived_local))
-        } else if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(derived_local)) {
-            pvt = value_types::VT_GC_REF()
-            mir_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(derived_local))
-            sig_type_name = clone(mir_type_name)
-        } else if !params_fn::mir_param_type_is_fnref(clone(local_type_name)) {
-            // fnref-family names (fnref/fnref2/fnsig:/fn() keep the
-            // callback ABI: the ':' inside fnsig: is a signature
-            // separator, not a module qualifier (#860).
-            let bare = mir_method_strip_module_prefix(clone(local_type_name))
-            let named = mir_method_resolve_named_user_type(clone(bare))
-            if len(named) > 0 {
+            mir_type_name = clone(local_type_name)
+            sig_type_name = clone(local_type_name)
+        } else {
+            // Concrete instantiation spellings (GenTakeIter<VecIter>) derive
+            // the substituted layout so the registered-struct check sees the
+            // real GC layout instead of the unsubstituted declaration.
+            let derived_local = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, clone(local_type_name))
+            mir_type_name = clone(derived_local)
+            sig_type_name = clone(derived_local)
+            if starts_with(clone(local_type_name), "vec:") ||
+            starts_with(clone(local_type_name), "hashmap:") ||
+            starts_with(clone(local_type_name), "Option_") ||
+            starts_with(clone(local_type_name), "option:") ||
+            starts_with(clone(local_type_name), "result:") ||
+            starts_with(clone(local_type_name), "Result_") {
                 pvt = value_types::VT_GC_REF()
-                mir_type_name = clone(named)
-                sig_type_name = clone(named)
+            } else if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(derived_local)) {
+                // Struct context wins when a user struct shadows an enum name:
+                // a bare Box param is the user struct, while enum decls stay
+                // reachable through enum:/variant-qualified spellings.
+                pvt = value_types::VT_GC_REF()
+                sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(derived_local))
+            } else if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(derived_local)) {
+                pvt = value_types::VT_GC_REF()
+                mir_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(derived_local))
+                sig_type_name = clone(mir_type_name)
+            } else if !params_fn::mir_param_type_is_fnref(clone(local_type_name)) {
+                // fnref-family names (fnref/fnref2/fnsig:/fn() keep the
+                // callback ABI: the ':' inside fnsig: is a signature
+                // separator, not a module qualifier (#860).
+                let bare = mir_method_strip_module_prefix(clone(local_type_name))
+                let named = mir_method_resolve_named_user_type(clone(bare))
+                if len(named) > 0 {
+                    pvt = value_types::VT_GC_REF()
+                    mir_type_name = clone(named)
+                    sig_type_name = clone(named)
+                }
             }
         }
     } else {

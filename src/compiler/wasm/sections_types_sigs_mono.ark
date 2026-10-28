@@ -2,6 +2,7 @@
 use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
 use std::text
 use mir::lower::mono_suffix_parse
+use mir::module_gc_enum
 use mir::module_gc_struct
 use wasm::emit_target
 use wasm::sections_types_gc
@@ -194,7 +195,8 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
         if starts_with(clone(var_probe), "?") {
             var_probe = substring(var_probe, 1, len(var_probe))
         }
-        let is_var_return = mono_suffix_parse::is_mono_type_var_name(clone(var_probe))
+        let is_var_return = !mono_return_name_is_declared_nominal(mir, clone(var_probe)) &&
+        mono_suffix_parse::is_mono_type_var_name(clone(var_probe))
         if !is_var_return && !mono_declared_return_is_receiver(clone(return_type_name), clone(receiver)) {
             return String_new()
         }
@@ -217,6 +219,17 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
         return "gcsref".concat((slot).to_string())
     }
     String_new()
+}
+
+// A declared nominal type named by the return position is concrete even
+// when its name is one uppercase letter; only unresolved names keep the
+// type-variable fallback (ADR-089). Registered struct and enum tables are
+// the declaration evidence available at signature-emit time.
+fn mono_return_name_is_declared_nominal(mir: MirModule, name: String) -> bool {
+    if module_gc_struct::MirModule_gc_struct_slot(mir, clone(name)) >= 0 {
+        return true
+    }
+    module_gc_enum::MirModule_gc_enum_base_has_variants(mir, name)
 }
 
 // True when the declared return type name is just the receiver type — the

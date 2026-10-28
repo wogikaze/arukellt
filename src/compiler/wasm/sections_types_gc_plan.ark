@@ -4,6 +4,7 @@ use corehir::mir_value_type
 use corehir::type_id
 use corehir::type_info_to_mir_value
 use corehir::type_table
+use mir::module_gc_enum
 use mir::module_gc_struct
 use mir::module_spine
 use mir::spine_lookup
@@ -39,6 +40,12 @@ fn typed_mvt_sig(mir: MirModule, mvt: MirValueType, target: String) -> String {
         return sections_types_gc::gc_string_type_sig()
     }
     if kind == kinds::TYPE_KIND_OPTION() || kind == kinds::TYPE_KIND_RESULT() || kind == kinds::TYPE_KIND_ENUM() {
+        return sections_types_gc::gc_enum_open_type_sig()
+    }
+    // A registered enum base is a declared nominal type even at one
+    // uppercase letter; the open enum type holds the variant reference.
+    if kind == kinds::TYPE_KIND_STRUCT() &&
+    module_gc_enum::MirModule_gc_enum_base_has_variants(mir, type_table::type_entry_name(entry)) {
         return sections_types_gc::gc_enum_open_type_sig()
     }
     if kind == kinds::TYPE_KIND_STRUCT() &&

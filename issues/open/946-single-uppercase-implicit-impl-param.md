@@ -167,18 +167,70 @@ Verification (2026-10-29):
   from `(ref null 14)` to `structref`). After reverting that parameter-path
   experiment, the rebuilt s2 passes `verify fixtures` with 1882/0.
 
+### Parameter and mono residual removal (2026-10-29)
+
+Declaration evidence now decides the parameter/local encoding before the
+one-character shape fallback:
+
+- `corehir/param_shape_declared.ark` builds the declared struct/enum name
+  table for the compilation unit and owns the declared-binder comparison.
+- `corehir/param_shape_value.ark` and `corehir/param_shape_local.ark` accept
+  the function/impl-method binder list and the declared nominal table. A
+  declared type parameter is a placeholder; a declared nominal type stays
+  concrete at one character. Declared enums keep the canonical `enum:<name>`
+  local spelling, so an enum parameter keeps the open-enum type through mono
+  substitution (the regression the previous binder retry hit).
+- `mir/lower/params_method.ark` preserves that `enum:` spelling instead of
+  resolving it as a named struct.
+- `mir/lower/mono_param_subst.ark` and
+  `mir/lower/ctx_mono_type_params.ark` skip type-variable substitution and
+  ordinal collection for names registered as structs/enums.
+- `wasm/sections_types_sigs_mono.ark` treats a registered struct/enum return
+  name as concrete instead of consuming the mono suffix key.
+- `wasm/sections_types_gc_plan.ark` resolves a registered enum base to the
+  open-enum signature before the legacy `structref` fallback.
+
+Fixtures (run + t3-run): `functions/single_uppercase_enum_return.ark`
+(expected `7`), `enums/single_uppercase_generic_impl_param.ark` (expected
+`6`), and `generics_v1/generic_impl_single_uppercase_struct.ark` (expected
+`43`). Baseline failures before the change: the enum-return free function
+registered a `structref` result while the call site used the open-enum local
+(`func ... expected (ref null $type), found structref`), and the generic
+struct method emitted its `S` parameter as `i32`/`i64` instead of the struct
+reference (`expected (ref null $type), found i64`).
+
+Verification (2026-10-29):
+
+- `python3 scripts/manager.py selfhost build-compiler`: PASS, elapsed
+  2046.4s, s2 sha256
+  `1a170eee2669235974179b7e106b0e9ac9881b606e9d51cf85a11aa2e2fe6445`.
+- `python3 scripts/manager.py verify fixtures`: PASS=1886 FAIL=0
+  COMPILE_VALIDATE=1886 EXECUTED=109 RUNTIME_UNSUPPORTED=2;
+  test: PASS=36 FAIL=0.
+- `python3 scripts/manager.py verify lane`: PASS; lint checked=17 failed=0.
+  The advisory touched-code report lists `frontend_fns.ark thin_wrappers
+  1 > 0 (HEAD)` for the declared-parameter comparison facade; the global
+  ratchet passes.
+- `python3 scripts/manager.py docs check`: 6/6 PASS.
+- `python3 scripts/manager.py selfhost fixpoint`: PASS, sha256(s2) ==
+  sha256(s3) =
+  `1a170eee2669235974179b7e106b0e9ac9881b606e9d51cf85a11aa2e2fe6445`
+  (pinned base `8df2698c8401693879ca4f9ced289ed2c285d95eb526cf70fda02dd5876259ee`).
+- Both-target runtime evidence: the `wasm32-gc` component and the `wasm32`
+  linear core print `7`, `6`, and `43` for the three fixtures.
+
 ### Residuals
 
 - E0222 covers only the removed single-uppercase spelling in impl heads.
   General unresolved type names in signatures and bodies remain #939.
-- `corehir/param_shape_value.ark` and `corehir/param_shape_local.ark` still
-  use the one-character shape for the initial parameter value type and local
-  type name. Declared struct parameters resolve through the registered layout
-  afterward; the shape test remains in the frontend representation.
-- `mir/lower/mono_suffix_parse.ark::is_mono_type_var_name` still encodes the
-  historical shape fallback (single uppercase, `?T`, or `t0`/`T0`). The
-  return/tuple paths above pre-empt it with declared parameters or registered
-  layouts, but a mono-suffix lookup with no declaration context can still
-  treat an unregistered name as a type variable. Mono returns of a declared
-  one-character struct from a generic impl have not been exercised.
+- `corehir/param_shape_*.ark` and the mono substitution/collection paths now
+  consult declared binders, declared nominal names, and registered layouts
+  before the shape test. `mir/lower/mono_suffix_parse.ark::is_mono_type_var_name`
+  keeps the single-uppercase/ordinal shape test only as the last fallback for
+  a spelling with no declaration or registered layout.
+- A generic method whose declared return is its own type parameter
+  (`fn pass<U>(value: U) -> U`) is still not specialized when `U` is a user
+  struct: both `S` and `Point` fail W0004 (`expected anyref, found i64`).
+  This is a generic return-substitution gap, not a one-character shape case,
+  and is not fixed here.
 - The ADR-014 migration-warning window was not run; E0222 is an error.

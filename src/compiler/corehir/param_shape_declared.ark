@@ -1,0 +1,65 @@
+use std::prelude::{clone, eq, starts_with, substring}
+use std::text
+use corehir::decl_node
+use corehir::decl_node_identity
+
+// Declared nominal type names, split by kind, for frontend classification
+// that runs before the typechecker's declaration registries exist. A
+// single-uppercase name is a nominal type when the unit declares one
+// (ADR-089); name shape is only the fallback for undeclared spellings.
+struct CoreHirNominalTypes {
+    structs: Vec<String>,
+    enums: Vec<String>,
+}
+
+fn corehir_nominal_types_from_decls(decls: Vec<AstNode>) -> CoreHirNominalTypes {
+    let mut structs = Vec::new<String>()
+    let mut enums = Vec::new<String>()
+    let decl_count = len(decls)
+    let mut i = 0
+    while i < decl_count {
+        let decl = get_unchecked(decls, i)
+        if decl_node::decl_is_struct(decl) || decl_node::decl_is_resource(decl) {
+            push(structs, decl_node_identity::decl_name(decl))
+        } else if decl_node::decl_is_enum(decl) {
+            push(enums, decl_node_identity::decl_name(decl))
+        }
+        i = i + 1
+    }
+    CoreHirNominalTypes { structs: structs, enums: enums }
+}
+
+fn corehir_nominal_types_has_struct(types: CoreHirNominalTypes, name: String) -> bool {
+    corehir_nominal_type_list_contains(types.structs, name)
+}
+
+fn corehir_nominal_types_has_enum(types: CoreHirNominalTypes, name: String) -> bool {
+    corehir_nominal_type_list_contains(types.enums, name)
+}
+
+fn corehir_nominal_types_contains(types: CoreHirNominalTypes, name: String) -> bool {
+    corehir_nominal_types_has_struct(types, clone(name)) ||
+    corehir_nominal_types_has_enum(types, name)
+}
+
+fn corehir_nominal_type_list_contains(names: Vec<String>, name: String) -> bool {
+    let count = len(names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(names, i), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+// A `?T` spelling is the explicit type-variable marker, so compare its bare
+// name. Declared single-uppercase nominal types are not parameters (ADR-089).
+fn corehir_declared_type_param_contains(type_params: Vec<String>, name: String) -> bool {
+    let mut bare = clone(name)
+    if starts_with(clone(bare), "?") {
+        bare = substring(bare, 1, len(bare))
+    }
+    corehir_nominal_type_list_contains(type_params, bare)
+}

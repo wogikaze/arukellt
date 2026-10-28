@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::decl_node_identity
 use corehir::decl_children
@@ -8,6 +8,7 @@ use corehir::fn_info
 use corehir::frontend_ast_node
 use corehir::frontend_kind_map
 use corehir::param_shape
+use corehir::param_shape_declared
 use corehir::raw_dto
 fn find_entry_main_decl_index(decls: Vec<AstNode>) -> i32 {
     // `arukellt test` desugars test decls into `__test_<n>` fns plus a
@@ -35,11 +36,23 @@ fn find_named_fn_decl_index(decls: Vec<AstNode>, name: String) -> i32 {
     entry_main_decl_index
 }
 
-fn build_fn_params(decl: AstNode, param_count: i32) -> Vec<CoreHirParam> {
+fn build_fn_params(
+    decl: AstNode,
+    param_count: i32,
+    type_params: Vec<String>,
+    nominal_types: CoreHirNominalTypes
+) -> Vec<CoreHirParam> {
     let mut params = Vec::new<CoreHirParam>()
     let mut i = 0
     while i < param_count {
-        push(params, param_shape::fn_param_from_node(decl_children::decl_child_at(decl, i)))
+        push(
+            params,
+            param_shape::fn_param_from_node(
+                decl_children::decl_child_at(decl, i),
+                clone(type_params),
+                nominal_types
+            )
+        )
         i = i + 1
     }
     params
@@ -70,19 +83,7 @@ pub fn build_fn_type_params(decl: AstNode) -> Vec<String> {
 // spelling is a type-variable marker, so compare its bare name. Declared
 // single-uppercase nominal types are not parameters (ADR-089).
 pub fn fn_type_param_is_declared(type_params: Vec<String>, name: String) -> bool {
-    let mut bare = clone(name)
-    if starts_with(clone(bare), "?") {
-        bare = substring(bare, 1, len(bare))
-    }
-    let count = len(type_params)
-    let mut i = 0
-    while i < count {
-        if eq(get_unchecked(type_params, i), clone(bare)) {
-            return true
-        }
-        i = i + 1
-    }
-    false
+    param_shape_declared::corehir_declared_type_param_contains(type_params, name)
 }
 
 fn module_qualified_fn_name(modules: Vec<CoreHirModuleInfo>, decl_index: i32, fn_name: String) -> String {
@@ -122,7 +123,11 @@ fn module_fn_is_stdlib(modules: Vec<CoreHirModuleInfo>, decl_index: i32) -> bool
     false
 }
 
-fn build_fn_infos(decls: Vec<AstNode>, modules: Vec<CoreHirModuleInfo>) -> Vec<CoreHirFnInfo> {
+fn build_fn_infos(
+    decls: Vec<AstNode>,
+    modules: Vec<CoreHirModuleInfo>,
+    nominal_types: CoreHirNominalTypes
+) -> Vec<CoreHirFnInfo> {
     let mut infos = Vec::new<CoreHirFnInfo>()
     let entry_main_decl_index = find_entry_main_decl_index(decls)
     let decl_count = len(decls)
@@ -133,8 +138,8 @@ fn build_fn_infos(decls: Vec<AstNode>, modules: Vec<CoreHirModuleInfo>) -> Vec<C
         if decl_node::decl_is_fn(decl) {
             let body_index = decl_children::decl_body_index(decl)
             let param_count = decl_children::decl_param_count(decl)
-            let params = build_fn_params(decl, param_count)
             let type_params = build_fn_type_params(decl)
+            let params = build_fn_params(decl, param_count, clone(type_params), nominal_types)
             let fn_name = decl_node_identity::decl_name(decl)
             let info = fn_info::CoreHirFnInfo_new(
                 i,

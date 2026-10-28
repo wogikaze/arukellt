@@ -529,6 +529,7 @@ run:enums/option_tuple_payload.ark
 run:enums/prelude_enum_name_shadow.ark
 run:enums/result_err.ark
 run:enums/result_ok.ark
+run:enums/single_uppercase_generic_impl_param.ark
 run:enums/tuple_variant.ark
 run:enums/unit_variant.ark
 run:examples/rpn_repl.ark
@@ -544,6 +545,7 @@ run:functions/closure_basic.ark
 run:functions/closure_capture.ark
 run:functions/early_return.ark
 run:functions/generic_fn.ark
+run:functions/single_uppercase_enum_return.ark
 run:functions/single_uppercase_struct_return.ark
 run:functions/generic_shadow_import_name.ark
 run:functions/higher_order.ark
@@ -594,6 +596,7 @@ run:generics_v1/bounded_clone_impl.ark
 run:generics_v1/generic_inherent_struct_lit.ark
 run:generics_v1/generic_inferred_struct_lit.ark
 run:generics_v1/generic_inst_trait_impl.ark
+run:generics_v1/generic_impl_single_uppercase_struct.ark
 run:generics_v1/generic_struct_field_method.ark
 run:generics_v1/generic_method_call.ark
 run:generics_v1/generic_multi_param.ark
@@ -2887,6 +2890,7 @@ t3-run:enums/option_tuple_payload.ark
 t3-run:enums/prelude_enum_name_shadow.ark
 t3-run:enums/result_err.ark
 t3-run:enums/result_ok.ark
+t3-run:enums/single_uppercase_generic_impl_param.ark
 t3-run:enums/tuple_variant.ark
 t3-run:enums/unit_variant.ark
 t3-run:for_loops/for_continue.ark
@@ -2898,6 +2902,7 @@ t3-run:functions/closure_basic.ark
 t3-run:functions/closure_capture.ark
 t3-run:functions/early_return.ark
 t3-run:functions/generic_fn.ark
+t3-run:functions/single_uppercase_enum_return.ark
 t3-run:functions/single_uppercase_struct_return.ark
 t3-run:functions/higher_order.ark
 t3-run:functions/option_fn_call.ark
@@ -2943,6 +2948,7 @@ t3-run:generics/vec_generic.ark
 t3-run:generics_v1/bounded_clone_impl.ark
 t3-run:generics_v1/generic_inherent_struct_lit.ark
 t3-run:generics_v1/generic_inferred_struct_lit.ark
+t3-run:generics_v1/generic_impl_single_uppercase_struct.ark
 t3-run:generics_v1/generic_method_call.ark
 t3-run:generics_v1/generic_multi_param.ark
 t3-run:generics_v1/generic_three_param.ark

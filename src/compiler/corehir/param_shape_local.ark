@@ -5,6 +5,7 @@ use corehir::type_ann_local_name
 use corehir::decl_ann_name
 use corehir::frontend_ast_identity
 use corehir::frontend_type_kind
+use corehir::param_shape_declared
 use corehir::param_shape_node
 use corehir::type_ann_node
 // Payload segments nested inside Result<T, E> / Option<T> keep their own
@@ -20,9 +21,28 @@ fn nested_payload_local_type_name(ann: AstNode) -> String {
     decl_ann_name::decl_ann_name(ann)
 }
 
-fn param_named_local_type_name(ann: AstNode) -> String {
+// Initial local-type spelling for a named annotation. A declared type
+// parameter is a placeholder (empty spelling, filled by mono); a declared
+// nominal type keeps its name even when that name is one uppercase letter,
+// and a declared enum keeps the canonical enum: prefix so later signature
+// and local-type resolution agree (ADR-089). The single-letter fallback
+// below only covers names with no declaration context yet.
+fn param_named_local_type_name(
+    ann: AstNode,
+    type_params: Vec<String>,
+    nominal_types: CoreHirNominalTypes
+) -> String {
     if decl_ann_name::decl_ann_is_named(ann) {
         let name = decl_ann_name::decl_ann_name(ann)
+        if param_shape_declared::corehir_declared_type_param_contains(clone(type_params), clone(name)) {
+            return String_new()
+        }
+        if param_shape_declared::corehir_nominal_types_has_enum(nominal_types, clone(name)) {
+            return String_from("enum:").concat(name)
+        }
+        if param_shape_declared::corehir_nominal_types_has_struct(nominal_types, clone(name)) {
+            return name
+        }
         if !eq(clone(name), "i32") &&
         !eq(clone(name), "f64") &&
         !eq(clone(name), "i64") &&
@@ -57,7 +77,11 @@ fn vec_ann_local_type_name(ann: AstNode) -> String {
     String_from("vec:").concat(decl_ann_name::decl_ann_name(elem))
 }
 
-fn fn_param_local_type_name(node: AstNode) -> String {
+fn fn_param_local_type_name(
+    node: AstNode,
+    type_params: Vec<String>,
+    nominal_types: CoreHirNominalTypes
+) -> String {
     if !param_shape_node::param_has_type_ann(node) {
         return String_new()
     }
@@ -127,17 +151,25 @@ fn fn_param_local_type_name(node: AstNode) -> String {
             let err_ty = decl_ann_children::decl_ann_child_at(ann, 2)
             return String_from("result:").concat(nested_payload_local_type_name(ok_ty).concat(String_from(":").concat(nested_payload_local_type_name(err_ty))))
         }
-        let generic_user_type = generic_user_type_local_name(ann)
+        let generic_user_type = generic_user_type_local_name(
+            ann,
+            type_params,
+            nominal_types
+        )
         if len(generic_user_type) > 0 {
             return generic_user_type
         }
     } else {
-        return param_named_local_type_name(ann)
+        return param_named_local_type_name(ann, type_params, nominal_types)
     }
     String_new()
 }
 
-fn method_param_local_type_name(node: AstNode) -> String {
+fn method_param_local_type_name(
+    node: AstNode,
+    type_params: Vec<String>,
+    nominal_types: CoreHirNominalTypes
+) -> String {
     if !param_shape_node::param_has_type_ann(node) {
         return String_new()
     }
@@ -206,12 +238,16 @@ fn method_param_local_type_name(node: AstNode) -> String {
             let err_ty = decl_ann_children::decl_ann_child_at(ann, 2)
             return String_from("result:").concat(nested_payload_local_type_name(ok_ty).concat(String_from(":").concat(nested_payload_local_type_name(err_ty))))
         }
-        let generic_user_type = generic_user_type_local_name(ann)
+        let generic_user_type = generic_user_type_local_name(
+            ann,
+            type_params,
+            nominal_types
+        )
         if len(generic_user_type) > 0 {
             return generic_user_type
         }
     } else {
-        return param_named_local_type_name(ann)
+        return param_named_local_type_name(ann, type_params, nominal_types)
     }
     String_new()
 }
@@ -219,7 +255,11 @@ fn method_param_local_type_name(node: AstNode) -> String {
 // Built-in containers have dedicated compact aliases above. Preserve the
 // type arguments for a user-defined generic type so MIR monomorphization can
 // resolve payload fields such as `Box<T>::Owned(T)`.
-fn generic_user_type_local_name(ann: AstNode) -> String {
+fn generic_user_type_local_name(
+    ann: AstNode,
+    type_params: Vec<String>,
+    nominal_types: CoreHirNominalTypes
+) -> String {
     let name = decl_ann_name::decl_ann_name(ann)
     let arg_count = decl_ann_children::decl_ann_child_count(ann)
     if len(name) == 0 || arg_count < 2 {
@@ -229,7 +269,11 @@ fn generic_user_type_local_name(ann: AstNode) -> String {
     let mut i = 1
     while i < arg_count {
         let arg_name = decl_ann_name::decl_ann_name(decl_ann_children::decl_ann_child_at(ann, i))
-        if is_generic_type_param_name(clone(arg_name)) {
+        if is_generic_type_param_name(
+            clone(arg_name),
+            clone(type_params),
+            nominal_types
+        ) {
             has_type_var = true
         }
         i = i + 1
@@ -250,7 +294,17 @@ fn generic_user_type_local_name(ann: AstNode) -> String {
     marker
 }
 
-fn is_generic_type_param_name(name: String) -> bool {
+fn is_generic_type_param_name(
+    name: String,
+    type_params: Vec<String>,
+    nominal_types: CoreHirNominalTypes
+) -> bool {
+    if param_shape_declared::corehir_declared_type_param_contains(clone(type_params), clone(name)) {
+        return true
+    }
+    if param_shape_declared::corehir_nominal_types_contains(nominal_types, clone(name)) {
+        return false
+    }
     if len(name) != 1 {
         return false
     }
