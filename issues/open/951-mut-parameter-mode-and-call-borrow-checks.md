@@ -73,7 +73,13 @@ targets printing `3` / `2`).
       - [x] same root place passed twice with one `mut`
             (`diagnostics/mut_param_same_place.ark`, E0224)
       - [ ] borrowed `Box<T>` returned (not implemented)
-      - [ ] `fn(T)` vs `fn(mut T)` assignment direction (not implemented)
+      - [x] `fn(T)` vs `fn(mut T)` assignment direction
+            (`diagnostics/fn_type_mode_downgrade.ark`, E0225). The direction
+            is checked at annotated `let` bindings; function-argument and
+            return positions are not yet checked. Calls through a
+            `fn(mut T)` value are covered by
+            `diagnostics/fn_value_mut_param_immutable_place.ark` (E0223) and
+            `diagnostics/fn_value_mut_param_same_place.ark` (E0224).
 - [ ] Escape by sharing is covered by a run fixture whose observable output
       matches on both targets (ADR-088 §6).
       Not added; sharing itself is unchanged, so the fixture would pass
@@ -90,8 +96,8 @@ targets printing `3` / `2`).
 ## Implementation (2026-10-28)
 
 Partial vertical slice: syntax plus the call-site half of ADR-088. The
-callee-side rule and the function-type rule are not enabled because they
-require the std/selfhost migration.
+callee-side rule is not enabled because it requires the std/selfhost
+migration; the function-type half landed in the second slice below.
 
 - Parser / AST: `mut` before a regular function parameter, a clause
   parameter, `self` (`mut self`), and a closure parameter (`|mut v|`). The
@@ -121,6 +127,75 @@ require the std/selfhost migration.
   `diagnostics/mut_param_same_place.ark` (E0224), and
   `fmt/mut_parameters.ark` (formatter idempotence).
 
+## Implementation (2026-10-28, function-type modes)
+
+Second vertical slice: the parameter mode is now part of a function type,
+covering the self-contained half of ADR-088 §7. This slice adds no `mut`
+spelling to `std/` or `src/compiler/`, so it does not need the callee-side
+migration.
+
+- Parser / AST: `fn(mut T) -> U` is parsed by
+  `parser::types::parse_fn_type_param`, which consumes the optional `mut` and
+  records it on the parameter type node (`is_mut`). The tuple-form function
+  type `(T) -> U` keeps its existing syntax; only the `fn(...)` form accepts
+  `mut`.
+- `TypeInfo` (`corehir::type_contracts` and the typechecker mirror used by the
+  flat selfhost overlay) gains `param_modes: Vec<bool>`, aligned with the
+  parameter prefix of `type_args`; an empty vector is the shared default.
+  `TypeInfo_empty_like` preserves the modes when instantiation or deep
+  resolution rebuilds a TY_FN.
+- `TY_FN` construction fills the modes from explicit annotations
+  (`type_ann`, `type_generic`), closure parameters (`infer_closure`), and
+  named function values (`call_generic_fn_args::fn_value_type_from_sig`).
+- Calls through a function value (`call_unknown::infer_local_function_call`)
+  run the same E0223/E0224 checks as direct calls, using the modes stored in
+  the type.
+- Assignment direction at annotated `let` bindings: a shared-parameter
+  function value is assignable to a `mut` position, and the reverse is E0225
+  (`DIAG_TYPE_FN_MODE_ASSIGN`) in `param_mode::check_fn_type_assignment`.
+  `stmt_let` recovers a bare top-level function's TY_FN from its `FnSig` so
+  `let f: fn(Point) -> i32 = bump` can be checked.
+- Docs/error catalogue: E0225 is declared in
+  `src/compiler/diagnostics/codes.ark` and documented in
+  `docs/compiler/error-codes.md`; `docs/current-state.md`,
+  `docs/language/spec.md` §3.5.1, and `docs/language/memory-model.md` record
+  the implemented slice and its residual.
+
+Fixtures: `mut_params/fn_type_modes.ark` (run, expected `1/1/6/5/2/2`),
+`diagnostics/fn_type_mode_downgrade.ark` (E0225),
+`diagnostics/fn_value_mut_param_immutable_place.ark` (E0223),
+`diagnostics/fn_value_mut_param_same_place.ark` (E0224), and
+`fmt/fn_type_mut.ark` (formatter idempotence).
+
+### Verification (2026-10-28, function-type modes)
+
+- `python3 scripts/manager.py selfhost build-compiler`: PASS, elapsed
+  1918.4s, s2 sha256
+  `b9117f65b0b22e47fd419b816927f55e1c0d139049263bc812364b1e58e42bf0`.
+- `python3 scripts/manager.py verify fixtures`: PASS — PASS=1914 FAIL=0,
+  1914 compile+validate, 110 runtime smoke, 2 native-cpp runtime contracts
+  delegated.
+- `python3 scripts/manager.py selfhost diag-parity`: PASS.
+- `python3 scripts/manager.py selfhost fmt-parity`: PASS=6 FAIL=3. The
+  three failures (`fmt/delimiters_in_strings.ark`,
+  `fmt/imports_interleaved.ark`, `fmt/imports_unsorted.ark`) reproduce with
+  the pinned bootstrap compiler, so they predate this slice;
+  `fmt/fn_type_mut.ark` passes.
+- `python3 scripts/manager.py verify lane`: PASS (`quality changed`;
+  lint checked=17 failed=0). The touched-code thin-wrapper advisory lists
+  the three contract accessor files; the global ratchet is unchanged.
+- `python3 scripts/manager.py docs check`: 6/6 PASS.
+- Manual both-target run of `mut_params/fn_type_modes.ark`: the wasm32-gc
+  component and the wasm32 core module both print `1/1/6/5/2/2`, matching
+  `.expected`.
+- Current s2 emits the committed `.diag` lines for the three new diagnostic
+  fixtures (E0223/E0224/E0225).
+- `python3 scripts/manager.py selfhost fixpoint`: PASS — stage 3 was
+  rebuilt from s2 and `sha256(s2) == sha256(s3)` =
+  `b9117f65b0b22e47fd419b816927f55e1c0d139049263bc812364b1e58e42bf0`
+  (pinned base sha256
+  `8df2698c8401693879ca4f9ced289ed2c285d95eb526cf70fda02dd5876259ee`).
+
 ## Remaining scope
 
 1. Callee-side rule (ADR-088 §2/§3): `body_params` still binds every
@@ -131,8 +206,11 @@ require the std/selfhost migration.
    and `src/compiler/` mutating parameters to `mut` and their call sites to
    `let mut`; `fn bump(p: Point) { p.x = ... }` and the #943 `alias.ark`
    repro therefore still compile (verified: prints `3`/`2`).
-2. Function-type mode (ADR-088 §7): `TypeInfo`'s `TY_FN` carries no mode.
-   `fn(mut T)` is not parsed, and shared→`mut` assignability is not checked.
+2. Function-type mode (ADR-088 §7): implemented for parsing, `TY_FN`
+   modes, calls through function values, and shared→`mut` assignment at
+   annotated `let` bindings. Remaining: the reverse-direction check is not
+   applied when a function value is passed as an argument or returned, and
+   qualified/path function names are not recovered for the `let` check.
 3. Borrowed `Box<T>` escape (ADR-088 §6): returning, storing, or `unbox`ing a
    borrowed `Box<T>` parameter is still accepted.
 4. stdlib surface (ADR-088 §8): `push`/`set`/`pop`/`insert`/`clear` are not

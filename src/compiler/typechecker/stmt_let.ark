@@ -11,8 +11,32 @@ use typechecker::unify
 use typechecker::ownership
 use typechecker::ownership_types
 use typechecker::closure_capture
+use typechecker::call_generic_fn_args
+use typechecker::param_mode
 use diagnostics::mod as diag_mod
 use diagnostics::record as diag_record
+// A bare top-level function name infers TY_UNKNOWN (it is not a scope
+// binding), so `let f: fn(mut T) -> U = f_name` has no function type to
+// compare against the annotation. Recover it from the signature index; const
+// declarations share the nullary fn-sig shape but are values, not functions.
+fn fn_type_of_initializer(env: TypeEnv, fn_sigs: Vec<FnSig>, bind_ty: TypeInfo, node: AstNode) -> TypeInfo {
+    if contract_type_access::TypeInfo_tag(bind_ty) == commands::TY_FN() {
+        return bind_ty
+    }
+    if ast_access::node_child_count(node) < 1 {
+        return bind_ty
+    }
+    let init = ast_access::node_child_at(node, 0)
+    if !ast_expr_predicates::node_is_ident(init) {
+        return bind_ty
+    }
+    let name = ast_access::node_text(init)
+    if contract_env_record::type_env_is_const_name(env, clone(name)) {
+        return bind_ty
+    }
+    call_generic_fn_args::fn_value_type_from_sig(env, fn_sigs, name)
+}
+
 fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
     let bind_name = ast_access::node_text(node)
     if eq(clone(bind_name), "__tuple_destructure") {
@@ -41,6 +65,14 @@ fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_def
         // type variable, not a nominal struct named "I". The var form is
         // what mono template spellings ("Inner::next__?I") key on.
         let ann_ty = types::resolve_type_ann_node_generic(ann, env.current_fn_type_params)
+        if env.is_ownership_tracking_enabled {
+            param_mode::check_fn_type_assignment(
+                env,
+                ann,
+                ann_ty,
+                fn_type_of_initializer(env, fn_sigs, bind_ty, node)
+            )
+        }
         // Comprehension element types are inferred from the source
         // iterator's item, which is reliable enough to stand against
         // the annotation: `let ys: Vec<String> = [x * 2 for x in xs]`

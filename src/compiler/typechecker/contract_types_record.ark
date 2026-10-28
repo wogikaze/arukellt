@@ -3,10 +3,18 @@ struct TypeInfo {
     tag: i32,
     name: String,
     type_args: Vec<TypeInfo>,
+    // TY_FN parameter modes; see corehir::type_contracts::TypeInfo. The flat
+    // selfhost overlay carries both definitions, so the field order matches.
+    param_modes: Vec<bool>,
 }
 
 fn TypeInfo_new(tag: i32, name: String, type_args: Vec<TypeInfo>) -> TypeInfo {
-    TypeInfo { tag: tag, name: name, type_args: type_args }
+    TypeInfo {
+        tag: tag,
+        name: name,
+        type_args: type_args,
+        param_modes: Vec::new<bool>()
+    }
 }
 
 fn type_info_tag(ty: TypeInfo) -> i32 {
@@ -31,4 +39,19 @@ fn type_info_type_arg_at(ty: TypeInfo, index: i32) -> TypeInfo {
 
 fn type_info_push_type_arg(ty: TypeInfo, arg: TypeInfo) {
     push(ty.type_args, arg)
+}
+
+fn type_info_param_mode_count(ty: TypeInfo) -> i32 {
+    len(ty.param_modes)
+}
+
+fn type_info_param_is_mut(ty: TypeInfo, index: i32) -> bool {
+    if index < 0 || index >= len(ty.param_modes) {
+        return false
+    }
+    get_unchecked(ty.param_modes, index)
+}
+
+fn type_info_push_param_mode(ty: TypeInfo, is_mut: bool) {
+    push(ty.param_modes, is_mut)
 }

@@ -88,6 +88,7 @@ fn fn_value_type_from_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> Ty
     let mut i = 0
     while i < pc {
         contract_type_mutation::TypeInfo_push_type_arg(fn_ty, contract_fn_sig::FnSig_param_at(sig, i))
+        contract_type_mutation::TypeInfo_push_param_mode(fn_ty, contract_fn_sig::FnSig_param_is_mut(sig, i))
         i = i + 1
     }
     contract_type_mutation::TypeInfo_push_type_arg(fn_ty, contract_fn_sig::FnSig_return_type(sig))

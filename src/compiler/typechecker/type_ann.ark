@@ -47,6 +47,7 @@ fn resolve_type_fn_node(ann: AstNode) -> TypeInfo {
     while k < child_count {
         let param = ast_access::node_child_at(ann, k)
         contract_type_mutation::TypeInfo_push_type_arg(fn_ty, resolve_type_ann_node(param))
+        contract_type_mutation::TypeInfo_push_param_mode(fn_ty, ast_access::node_is_mut(param))
         k = k + 1
     }
     if ast_access::node_type_ann_count(ann) > 0 {

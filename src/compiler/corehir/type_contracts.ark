@@ -24,6 +24,11 @@ struct TypeInfo {
     tag: i32,
     name: String,
     type_args: Vec<TypeInfo>,
+    // Function types (`TY_FN`) only: one entry per parameter, aligned with
+    // `type_args` (whose last entry is the return type). Empty means every
+    // parameter is the default shared mode, so types built by builtins and
+    // older construction sites keep their historical contract.
+    param_modes: Vec<bool>,
 }
 
 fn TypeInfo_tag(ty: TypeInfo) -> i32 {
@@ -67,11 +72,21 @@ fn MonoInstance_return_type(instance: MonoInstance) -> TypeInfo {
 }
 
 fn TypeInfo_simple(tag: i32) -> TypeInfo {
-    TypeInfo { tag: tag, name: String_new(), type_args: Vec::new<TypeInfo>() }
+    TypeInfo {
+        tag: tag,
+        name: String_new(),
+        type_args: Vec::new<TypeInfo>(),
+        param_modes: Vec::new<bool>()
+    }
 }
 
 fn TypeInfo_new(tag: i32, name: String, type_args: Vec<TypeInfo>) -> TypeInfo {
-    TypeInfo { tag: tag, name: name, type_args: type_args }
+    TypeInfo {
+        tag: tag,
+        name: name,
+        type_args: type_args,
+        param_modes: Vec::new<bool>()
+    }
 }
 
 fn TypeInfo_push_type_arg(ty: TypeInfo, arg: TypeInfo) {

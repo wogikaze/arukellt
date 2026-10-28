@@ -1,0 +1,16 @@
+// ADR-088 §4/§7: calling through a `fn(mut T)` value requires a mutable
+// place, exactly like calling the declaration directly.
+
+struct Point {
+    x: i32,
+}
+
+fn read(p: Point) -> i32 {
+    p.x
+}
+
+fn main() {
+    let read_fn: fn(mut Point) -> i32 = read
+    let point = Point { x: 1 }
+    read_fn(point)
+}

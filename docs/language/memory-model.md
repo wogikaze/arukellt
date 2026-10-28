@@ -81,11 +81,14 @@ fill(xs)               // error: xs は不変 binding
   別名から `mut` 経路で書き換えた結果は元の binding からも見える。この観測結果は全 target で同一である。
 - `Box<T>` は一意所有のため共有 escape の対象外で、借用した `Box<T>` 仮引数は返却・保存・`unbox` できない。
 
-**実装状態**: コンパイラは `mut` 仮引数、`mut self`、`|mut v|` を解析し、
-`mut` 仮引数へ渡す実引数が可変 place であることを呼び出し境界で検査する（E0223）。
-同じ呼び出しで同一根の place を `mut` 仮引数と他の仮引数へ渡すことは E0224 とする。
-一方、共有仮引数・共有 `self` からの代入拒否、関数型への mode 反映（`fn(T)` と
-`fn(mut T)` の代入方向）、借用した `Box<T>` の escape 拒否は未実装である。
+**実装状態**: コンパイラは `mut` 仮引数、`mut self`、`|mut v|`、関数型の
+`mut` 位置（`fn(mut T) -> U`）を解析し、`mut` 仮引数へ渡す実引数が可変 place で
+あることを呼び出し境界で検査する（E0223）。同じ呼び出しで同一根の place を
+`mut` 仮引数と他の仮引数へ渡すことは E0224 とする。mode は `TY_FN` 型に含まれ、
+関数値経由の呼び出しにも同じ規則が適用される。共有仮引数の関数値を `mut` 位置へ
+代入できる一方、逆方向は注釈付き `let` binding で E0225 として拒否する。
+一方、共有仮引数・共有 `self` からの代入拒否、関数引数・return 位置での
+逆方向検査、借用した `Box<T>` の escape 拒否は未実装である。
 これらは `std/` とセルフホスト本体の `mut` 移行（ADR-014 の警告期間）と同時に有効化する。
 規則の詳細は [spec.md §3.5.1](spec.md#351-argument-passing-and-parameter-modes)、実装は
 [#951](../../issues/open/951-mut-parameter-mode-and-call-borrow-checks.md) と

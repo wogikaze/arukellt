@@ -688,6 +688,41 @@ fn main() {
 ```
 
 ---
+### E0225 — function parameter mode mismatch
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | typecheck |
+| **Message** | function parameter mode mismatch |
+
+The parameter mode is part of a function type (ADR-088 §7). A function value
+whose parameter is shared is assignable where the same position is `mut`,
+because a read-only function is safe behind a mutable borrow. The reverse is
+rejected: assigning a `mut`-parameter function to a shared function type would
+let a caller pass an immutable place to a function that mutates it.
+
+The mode direction is checked at annotated `let` bindings. Calls through a
+`fn(mut T) -> U` value still require a mutable place (E0223) and obey the
+same-root rule (E0224).
+
+<!-- skip-doc-check kind="invalid-example" reason="E0225 rejects assigning a mut-parameter function to a shared function type" -->
+```arukellt
+struct Point {
+    x: i32,
+}
+
+fn bump(mut p: Point) -> i32 {
+    p.x = p.x + 1
+    p.x
+}
+
+fn main() {
+    let read: fn(Point) -> i32 = bump
+}
+```
+
+---
 
 ## v0 Version Constraints & Target Errors — `E03xx`
 
@@ -1136,6 +1171,7 @@ one, please file a bug report.
 | E0222 | error | typecheck | undefined impl head type parameter |
 | E0223 | error | typecheck | mut parameter requires a mutable place |
 | E0224 | error | typecheck | same place passed to a mut parameter and another parameter |
+| E0225 | error | typecheck | function parameter mode mismatch |
 | E0300 | error | typecheck | traits are not available in v0 |
 | E0301 | error | typecheck | method call syntax is not available in v0 |
 | E0302 | error | typecheck | nested generics are not allowed in v0 |

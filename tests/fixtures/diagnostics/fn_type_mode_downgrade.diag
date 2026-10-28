@@ -1,0 +1,1 @@
+error[E0225|typecheck]: a function with a `mut` parameter cannot be assigned to a shared function type

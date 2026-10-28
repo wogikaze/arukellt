@@ -15,6 +15,7 @@ fn infer_closure_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum
         return TypeInfo_simple(commands::TY_FN())
     }
     let param_types = Vec::new<TypeInfo>()
+    let param_modes = Vec::new<bool>()
     let mut i = 0
     while i + 1 < child_count {
         let param = ast_access::node_child_at(node, i)
@@ -24,6 +25,7 @@ fn infer_closure_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum
             unify::fresh_var(env)
         }
         push(param_types, param_ty)
+        push(param_modes, ast_access::node_is_mut(param))
         scope::scope_define_with_flags(
             closure_scope,
             ast_access::node_text(param),
@@ -64,6 +66,10 @@ fn infer_closure_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum
         contract_type_mutation::TypeInfo_push_type_arg(
             fn_ty,
             unify::resolve_type_deep(env, get_unchecked(param_types, param_index))
+        )
+        contract_type_mutation::TypeInfo_push_param_mode(
+            fn_ty,
+            get_unchecked(param_modes, param_index)
         )
         param_index = param_index + 1
     }

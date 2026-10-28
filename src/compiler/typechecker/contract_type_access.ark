@@ -19,3 +19,11 @@ fn TypeInfo_type_arg_count(ty: TypeInfo) -> i32 {
 fn TypeInfo_type_arg_at(ty: TypeInfo, index: i32) -> TypeInfo {
     contract_types_record::type_info_type_arg_at(ty, index)
 }
+
+fn TypeInfo_param_mode_count(ty: TypeInfo) -> i32 {
+    contract_types_record::type_info_param_mode_count(ty)
+}
+
+fn TypeInfo_param_is_mut(ty: TypeInfo, index: i32) -> bool {
+    contract_types_record::type_info_param_is_mut(ty, index)
+}
