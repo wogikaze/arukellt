@@ -157,6 +157,19 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
     if eq(clone(callee_name), "env::args") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:String"))
     }
+    // `Env::args` has no registered free-call spine entry to copy the Vec
+    // layout from; without this the call site keeps a scalar dest and stores
+    // the returned Vec ref into an i64 local (#917).
+    if eq(clone(callee_name), String_from("Env::args")) ||
+    eq(clone(callee_name), String_from("Env__args")) ||
+    ends_with(clone(callee_name), String_from("::Env::args")) {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:String"))
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+        } else {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
+        }
+    }
     // Sealed raw ctor with no MIR annotation defaults to i32-element vec.
     // Empty type_name left VT_I32 and broke format_i32 digit buffers (#845).
     if is_raw_array_new_callee(clone(callee_name)) {

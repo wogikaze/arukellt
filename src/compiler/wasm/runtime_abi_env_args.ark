@@ -62,7 +62,7 @@ fn emit_env_has_flag(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 fn emit_env_arg_at(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         // Full argv indexing is not wired for GC yet; return None so
-        // `match env::arg_at(i) { None => … }` works (#807 cli_basic).
+        // `match Env::arg_at(i) { None => … }` works (#807 cli_basic).
         return emit_env_arg_at_gc_none(w, ctx)
     }
     runtime_abi_env_arg_at_body::emit_arg_at(w, ctx)

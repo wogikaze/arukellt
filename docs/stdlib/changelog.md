@@ -16,6 +16,82 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-28 — env frees retired behind `Env` and the MIR env call-result fix (#917, ADR-046, ADR-087)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2. The
+  preceding env slices retired `std::env::get_var` and shipped the `Env`
+  namespace (`Env::var` / `Env::arg_count` / `Env::arg_at` /
+  `Env::var_or_default`), but left the free functions and `std::env` callable
+  because a direct `__intrinsic_args` call inside a namespace method lowered
+  its MIR result as a scalar. This wave fixes that lowering and retires the
+  free surface.
+- **Compiler fix**: `mir/lower/call_type_fallback_stdlib.ark` now types the env
+  intrinsic call results like the fs file intrinsics: `__intrinsic_args` ->
+  `vec:String`, `__runtime_abi_env_var` / `__intrinsic_arg_at` ->
+  `Option_String`. `mir/lower/call_type_vec.ark` also marks an `Env::args`
+  call site as `vec:String`, because a namespace method has no registered
+  free-call spine entry to copy the layout from. The method frame no longer
+  stores a Vec reference into an i64 local, and
+  `wasm-tools validate --features gc,function-references,memory64` accepts the
+  module on both targets.
+- **Surface**: `std::host::env::Env` (`provisional`) now exposes
+  `Env::args`, `Env::var`, `Env::arg_count`, `Env::arg_at`,
+  `Env::var_or_default`, and `Env::has_flag`. The temporary `Option<String>`
+  bindings in `Env::var` / `Env::arg_at` are gone. `Env::arg_at` indexes the
+  vector from `Env::args`, so it returns real arguments on `wasm32-gc` (the
+  direct `__intrinsic_arg_at` lowering still returns `None` there).
+- **Removed (11 declarations, 10 manifest entries)**: the
+  `std::host::env::{args, var, arg_count, arg_at, has_flag}` manifest entries
+  plus the unregistered `var_or_default` declaration, and the whole legacy
+  `std::env` module (`args`, `arg_count`, `arg_at`, `var`, `var_or_default`).
+  `std::env` no longer resolves as a module path, so its W0002 entry is removed
+  from `lint::deprecated_table`. Qualified old calls fail with **E0100**;
+  `resolver::removed_names::removed_host_env_member_hint` names the matching
+  `Env` method for the `env`, `host::env`, `std::env`, and `std::host::env`
+  spellings, and the bare-name hints cover the retired members (the prelude
+  `args()` binding is a separate entry and stays).
+- **Bootstrap overlay**: the committed pin cannot lower `Env::args` (it has no
+  env call-result typing and does not ship the namespace source), so
+  `scripts/selfhost/checks.py::_patch_bootstrap_host_env_paths` rewrites the
+  in-tree compiler's `Env::args` / `Env::arg_count` calls to the free builtin
+  spelling, and `_patch_bootstrap_main_host_to_prelude` accepts the
+  `Env::args()` main form. Checked-in source keeps the namespace; delete the
+  patched spelling when the pin is refreshed (ADR-029).
+- **Fixtures**: new dual-target `stdlib_host/env_args_surface*`
+  (`wasm32-gc`/P2 component and `--target wasm32`) covers `Env::args`,
+  `Env::var`, `Env::arg_count`, and `Env::has_flag`. The four free-function
+  `stdlib_env/*` fixtures and their `t3-*` entries were retired with the
+  surface; the call sites in `stdlib_host`, `stdlib_cli`, `host`,
+  `wasi_p2_native`, `native_cpp_*`, and `lsp_perf` moved to `Env::`, and the
+  cookbook/recipe manifest point at the new fixture.
+- **Scorecard**: eradication scope 320 -> **310** (`pub fn` declarations
+  348 -> **337**, manifest public entries 295 -> **285**); the `host/core
+  namespace frees` family drops 254 -> **244**; `must delete` stays 66,
+  `prelude_wrapper` stays 65, monomorphic helpers stay 50, and unregistered
+  declarations stay 25. The fixture registry moves 3379 -> **3375** (four
+  `run` and three `t3-*` entries removed, two `run` entries added).
+- **Verification**: both targets compile, validate, and run
+  `stdlib_host/env_args_surface*` with the same golden (`0`, `0`,
+  `env-var-unset`, `env-args-surface-ok`); `wasm-tools validate --features
+  gc,function-references,memory64` accepts the `wasm32-gc` core and plain
+  `wasm-tools validate` accepts the `--target wasm32` core. A P2 component
+  probe with a real argument reports `arg_count=1`, `has_flag=true`, and
+  `arg_at(0)` = the argument; `gate-668-p2-args-env` PASS (CLI args and
+  `--env` values through `Env`). `verify fixtures` **1904/1904 PASS**, 0 FAIL
+  (109 runtime smoke, 2 runtime-unsupported, 1 `test:` fixture PASS);
+  `docs check` 6/6; `verify lane` PASS; `check-stdlib-eradication` (286
+  manifest functions, 25 unregistered), `check-compat-orphans`,
+  `check-comment-policy`, `check-ark-code-quality`, `check-semantic-debt`,
+  `check-legacy-dispatch-inventory`, `check-docs-consistency`,
+  `check-docs-freshness`, and `check-deprecated-api-in-docs --strict` clean.
+  ADR-029 fixpoint PASS: s2 == s3 at sha256
+  `aa39ccd602d9b98cd87ec72ee7344ac1cbd9c2d69527ac125508651ebc2e2e45`
+  (pinned base `8df2698c…`); `build-compiler` produced the s2 in 1657.7 s.
+- **Residual**: the overlay rewrite stays pin-refresh debt (ADR-029). The
+  direct `__intrinsic_arg_at` lowering still returns `None` on `wasm32-gc`, so
+  `Env::arg_at` indexes the `Env::args` vector. `std::cli` free functions and
+  the prelude `args()` binding are outside this wave.
+
 ## 2026-10-28 — Typed stdio handles + raw stderr write (#693, ADR-085 D9)
 
 - **Basis**: [ADR-085](../adr/ADR-085-io-trait-unification.md) D9 kept the

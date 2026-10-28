@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 231
+- **Canonical names:** 221
 - **Historical/deprecated names:** 64
-- **Total entries:** 295
+- **Total entries:** 285
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -29,15 +29,9 @@ Current public API names, sorted alphabetically.
 | `arena_get` | `std::collections::compiler` | `experimental` | Collections |
 | `arena_len` | `std::collections::compiler` | `experimental` | Collections |
 | `arena_new` | `std::collections::compiler` | `experimental` | Collections |
-| `arg_at` | `std::host::env` | `stable` | Host Env |
-| `arg_at` | `std::env` | `stable` | Env |
 | `arg_at` | `std::cli` | `stable` | Cli |
-| `arg_count` | `std::host::env` | `stable` | Host Env |
-| `arg_count` | `std::env` | `stable` | Env |
 | `arg_count` | `std::cli` | `stable` | Cli |
 | `args` | `prelude` | `stable` | Host Env |
-| `args` | `std::host::env` | `stable` | Host Env |
-| `args` | `std::env` | `stable` | Env |
 | `assert` | `prelude` | `stable` | Assert |
 | `assert_contains` | `std::test` | `stable` | Test |
 | `assert_eq_bool` | `std::test` | `stable` | Test |
@@ -106,7 +100,6 @@ Current public API names, sorted alphabetically.
 | `format_bool` | `prelude` | `stable` | String |
 | `format_i32` | `prelude` | `stable` | String |
 | `gcd` | `prelude` | `stable` | Math |
-| `has_flag` | `std::host::env` | `stable` | Host Env |
 | `has_flag` | `std::cli` | `stable` | Cli |
 | `hashmap_capacity` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_clear` | `std::collections::hash` | `stable` | Collections |
@@ -248,9 +241,6 @@ Current public API names, sorted alphabetically.
 | `unwrap_or` | `prelude` | `stable` | Option Result |
 | `upper_bound` | `std::seq` | `provisional` | Seq |
 | `values` | `prelude` | `stable` | Collections |
-| `var` | `std::host::env` | `stable` | Host Env |
-| `var` | `std::env` | `stable` | Env |
-| `var_or_default` | `std::env` | `stable` | Env |
 | `zeros` | `std::signal` | `stable` | Signal |
 
 ---
@@ -342,15 +332,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `arena_get` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `arena_len` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `arena_new` | ✅ `experimental` | `std::collections::compiler` | Collections |
-| `arg_at` | ✅ `stable` | `std::host::env` | Host Env |
-| `arg_at` | ✅ `stable` | `std::env` | Env |
 | `arg_at` | ✅ `stable` | `std::cli` | Cli |
-| `arg_count` | ✅ `stable` | `std::host::env` | Host Env |
-| `arg_count` | ✅ `stable` | `std::env` | Env |
 | `arg_count` | ✅ `stable` | `std::cli` | Cli |
 | `args` | ✅ `stable` | `prelude` | Host Env |
-| `args` | ✅ `stable` | `std::host::env` | Host Env |
-| `args` | ✅ `stable` | `std::env` | Env |
 | ~~`as_slice`~~ | ⚠️ deprecated | `prelude` | → `Vec::as_slice` · [migration guide](migration-guidance.md) |
 | `assert` | ✅ `stable` | `prelude` | Assert |
 | `assert_contains` | ✅ `stable` | `std::test` | Test |
@@ -445,7 +429,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `gcd` | ✅ `stable` | `prelude` | Math |
 | ~~`get`~~ | ⚠️ deprecated | `prelude` | → `Vec::get` · [migration guide](migration-guidance.md) |
 | ~~`get_unchecked`~~ | ⚠️ deprecated | `prelude` | → `Vec::get_unchecked` · [migration guide](migration-guidance.md) |
-| `has_flag` | ✅ `stable` | `std::host::env` | Host Env |
 | `has_flag` | ✅ `stable` | `std::cli` | Cli |
 | `hashmap_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_clear` | ✅ `stable` | `std::collections::hash` | Collections |
@@ -625,7 +608,4 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `unwrap_or` | ✅ `stable` | `prelude` | Option Result |
 | `upper_bound` | ✅ `provisional` | `std::seq` | Seq |
 | `values` | ✅ `stable` | `prelude` | Collections |
-| `var` | ✅ `stable` | `std::host::env` | Host Env |
-| `var` | ✅ `stable` | `std::env` | Env |
-| `var_or_default` | ✅ `stable` | `std::env` | Env |
 | `zeros` | ✅ `stable` | `std::signal` | Signal |

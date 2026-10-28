@@ -2,7 +2,7 @@
 // Command surface for the self-hosted compiler.
 // Supports: parse, compile, check subcommands.
 // Exit code: 0 = success, 1 = failure.
-use std::host::env
+use std::host::env::Env
 use std::host::process
 use std::host::stdio
 use std::text
@@ -11,7 +11,7 @@ use main::args_parse
 use main::dispatch
 use main::usage
 fn main() {
-    let argv = env::args()
+    let argv = Env::args()
     let opts = args_parse::parse_args(argv)
     if args_record::cli_show_help(opts) {
         usage::print_usage()

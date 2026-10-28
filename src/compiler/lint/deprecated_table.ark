@@ -13,9 +13,8 @@ pub fn deprecated_use_message(path: String) -> String {
     if eq(clone(path), "std::fs") {
         return "module `std::fs` has moved to `std::host::fs`"
     }
-    if eq(clone(path), "std::env") {
-        return "module `std::env` has moved to `std::host::env`"
-    }
+    // `std::env` is retired, not deprecated: the module path no longer
+    // resolves, so a W0002 here would be a dead warning (#917).
     if eq(clone(path), "std::process") {
         return "module `std::process` has moved to `std::host::process`"
     }

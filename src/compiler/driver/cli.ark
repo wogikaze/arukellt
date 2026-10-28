@@ -1,4 +1,4 @@
-use std::host::env
+use std::host::env::Env
 use std::host::fs::Fs
 use std::host::process
 use std::host::stdio
@@ -32,8 +32,8 @@ fn write_legacy_compile_result(output_path: String, result: CompileResult) {
 }
 
 fn main() {
-    let args = env::args()
-    let argc = env::arg_count()
+    let args = Env::args()
+    let argc = Env::arg_count()
     let arg_start = cli_args::legacy_arg_start(args, argc)
     if !cli_args::has_min_compile_args(argc, arg_start) {
         stdio::eprintln("usage: arukellt compile <input> --target <target> -o <output>")

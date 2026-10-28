@@ -1,7 +1,7 @@
 // Env namespace on --target wasm32 (linear) (ADR-046, #917).
 //
-// `Env::var` / `Env::arg_at` use an explicit Option<String> binding inside the
-// std impl; the binding pins the GC layout of the direct intrinsic call.
+// `Env::var` and `Env::arg_at` lower the direct host intrinsics; the MIR
+// call-result typing marks their Option<String> result on both targets.
 use std::host::env::Env
 use std::host::stdio
 

@@ -290,7 +290,7 @@ id = "io-env-args"
 section = "I/O — Environment / Process"
 title = "コマンドライン引数"
 fixtures = [
-    "tests/fixtures/stdlib_env/env_basic.ark",
+    "tests/fixtures/stdlib_host/env_args_surface.ark",
 ]
 
 [[recipes]]
@@ -298,7 +298,7 @@ id = "io-env-var"
 section = "I/O — Environment / Process"
 title = "環境変数の取得"
 fixtures = [
-    "tests/fixtures/stdlib_env/env_var_lookup.ark",
+    "tests/fixtures/stdlib_host/env_args_surface.ark",
 ]
 
 [[recipes]]

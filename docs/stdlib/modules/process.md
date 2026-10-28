@@ -19,7 +19,7 @@ This page covers two closely related host modules: `std::host::process` for proc
 | `var(name)` | Look up an environment variable by name, returning `Option<String>`. |
 | `has_flag(flag)` | Check whether a flag is present in the argument vector. |
 
-**Target constraints:** Target/profile availability: mixed — see individual symbols. Host dependency: yes. Explicit runtime permission: none beyond providing the documented host profile.
+**Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: yes. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 
@@ -75,65 +75,22 @@ Return a stable Err on WASI 0.2 because the portable process model does not expo
 ## Module `std::host::env`
 
 - Source: [`../../../std/host/env.ark`](../../../std/host/env.ark)
-- Manifest-backed functions: 5
-- Stability: stable 5
+- Manifest-backed functions: 0
+- Stability: n/a
 
-> ⚠️ **Availability:** mixed — see individual symbols · ✅ **Status:** implemented
+> 🎯 **Availability:** `wasm32` and `wasm32-gc` · ✅ **Status:** implemented
 
 Host environment helpers.
 
-Arguments and environment lookups use the direct WASI intrinsics.
-
-`Env` is the namespace for the host environment reads (ADR-046):
-`Env::var`, `Env::arg_count`, `Env::arg_at`, and `Env::var_or_default`.
-`Env::args` stays blocked on wasm32-gc because a direct `__intrinsic_args`
-call inside a namespace method leaves the MIR result scalar and emits an
-invalid i64/ref frame (#917); the module-level `args` free function remains
-the argument-vector spelling until that lowering is fixed.
+Arguments and environment lookups go through the `Env` namespace
+(ADR-046): `Env::args`, `Env::var`, `Env::arg_count`, `Env::arg_at`,
+`Env::var_or_default`, and `Env::has_flag`. No user-reachable free
+function remains in this module.
 
 ### `std::host::env` — Public Types
 
 | Name | Kind | Methods | Trait impls | Summary |
 |------|------|---------|-------------|---------|
-| `Env` | `struct` | `var`, `arg_count`, `arg_at`, `var_or_default` | - | Namespace for the host environment reads. |
+| `Env` | `struct` | `args`, `var`, `arg_count`, `arg_at`, `var_or_default`, `has_flag` | - | Namespace for the host environment reads. |
 
-### `std::host::env` — Public API
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `args` | `() -> Vec<String>` | `stable` | ✅ functional | - |
-| `arg_count` | `() -> i32` | `stable` | ✅ functional | - |
-| `arg_at` | `(i32) -> Option<String>` | `stable` | ✅ functional | - |
-| `var` | `(String) -> Option<String>` | `stable` | ✅ functional | - |
-| `has_flag` | `(String) -> bool` | `stable` | ✅ functional | - |
-
-#### `std::host::env::args`
-
-Return user-supplied command-line arguments, excluding argv[0]. Index 0 is the first user argument.
-
-#### `std::host::env::arg_count`
-
-Return the number of user-supplied command-line arguments, excluding argv[0].
-
-#### `std::host::env::arg_at`
-
-Return the command-line argument at the given zero-based index, or None if out of bounds.
-
-#### `std::host::env::var`
-
-Look up an environment variable by name. Returns None if the variable is not set.
-
-**Availability:** ⚠️ Not available on `wasm32` — Environment variable access requires WASI Preview 2 component model.
-
-**Errors:** Returns None (not Err) when the variable is absent; no panic is raised.
-
-_Example — Read the HOME environment variable:_
-
-```ark
-let home = env::var("HOME")
-match home { Some(p) => println(p), None => println("not set") }
-```
-
-#### `std::host::env::has_flag`
-
-Return true if the given flag (e.g. "--verbose") was passed as a command-line argument.
+_No manifest-backed functions in this module._

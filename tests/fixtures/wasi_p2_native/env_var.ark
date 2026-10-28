@@ -1,8 +1,8 @@
 use std::host::stdio
-use std::host::env
+use std::host::env::Env
 
 fn main() {
-    match env::var("ARUKELLT_P2_ENV_PROOF") {
+    match Env::var("ARUKELLT_P2_ENV_PROOF") {
         Option::Some(value) => {
             stdio::println(value)
         }

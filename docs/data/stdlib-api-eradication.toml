@@ -259,7 +259,7 @@ label = "host/core namespace frees"
 module_pfx = ["std::host", "std::fs", "std::env", "std::process", "std::random", "std::time", "std::signal", "std::cli", "std::core", "std::path"]
 class = "associated-or-method"
 owner = "917"
-replacement = "Fs / Env / Process / Clock / Random / Cli / Path / Signal associated functions and methods; the std::host::fs and legacy std::fs path frees are `Fs::read_to_string` / `read_bytes` / `write_string` / `write_bytes` / `is_readable_file` / `is_file` / `is_dir` / `read_dir` / `metadata` from `use std::host::fs::Fs`; the std::core range/order/error/hash frees retired behind `Range::new` / `r.contains(value)` / `r.len()` / `RangeInclusive::new` / `r.contains(value)` / `a.cmp(b)` / `e.message()` / `h1.combine_hash(h2)`; the sealed raw bridges are `RawArray` / `RawString` / `RawFloat` associated functions (stdlib-only)"
+replacement = "Fs / Env / Process / Clock / Random / Cli / Path / Signal associated functions and methods; the std::host::env frees are `Env::args` / `Env::var` / `Env::arg_count` / `Env::arg_at` / `Env::var_or_default` / `Env::has_flag` from `use std::host::env::Env`; the std::host::fs and legacy std::fs path frees are `Fs::read_to_string` / `read_bytes` / `write_string` / `write_bytes` / `is_readable_file` / `is_file` / `is_dir` / `read_dir` / `metadata` from `use std::host::fs::Fs`; the std::core range/order/error/hash frees retired behind `Range::new` / `r.contains(value)` / `r.len()` / `RangeInclusive::new` / `r.contains(value)` / `a.cmp(b)` / `e.message()` / `h1.combine_hash(h2)`; the sealed raw bridges are `RawArray` / `RawString` / `RawFloat` associated functions (stdlib-only)"
 # Retired by #917 (2026-10-26) core-helper wave — unregistered declarations,
 # so no manifest deprecation window was involved:
 #   std::core::either (12 counted)   -> Either enum constructors + methods
@@ -290,9 +290,13 @@ replacement = "Fs / Env / Process / Clock / Random / Cli / Path / Signal associa
 #   (wasm32-only; no wasm32-gc parity fixture).
 # Deleted by the 2026-10-28 env wave: std::env::get_var (the last
 #   `deprecated module frees` entry) and the duplicate std::host::env::get_var;
-#   the replacement is `Env::var` from `use std::host::env::Env`. `Env::args`
-#   stays free because the intrinsic result still mislowers inside a namespace
-#   method on wasm32-gc (#917).
+#   the replacement is `Env::var` from `use std::host::env::Env`.
+# Retired by the second 2026-10-28 env wave (#917): the remaining
+#   std::host::env free functions (args / var / arg_count / arg_at / has_flag,
+#   plus the unregistered var_or_default) and the legacy std::env module path
+#   (args / arg_count / arg_at / var / var_or_default). The surface is the
+#   `Env` namespace only; qualified old calls fail with E0100 hints from
+#   resolver::removed_names, and the module no longer needs a W0002 entry.
 # The other families (cli, process, signal, random) are untouched.
 
 # -- Catch-all for unregistered std declarations --

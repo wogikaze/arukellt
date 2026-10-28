@@ -101,9 +101,10 @@ def main() -> int:
         (
             "std/host/env.ark",
             (
-                "pub fn args(",
-                "pub fn arg_count(",
-                "pub fn var(",
+                "pub struct Env",
+                "fn args() -> Vec<String>",
+                "fn var(name: String) -> Option<String>",
+                "fn arg_count() -> i32",
                 "__intrinsic_args",
                 "__runtime_abi_env_var",
             ),

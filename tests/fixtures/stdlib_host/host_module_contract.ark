@@ -1,10 +1,10 @@
 // Fixture: host_module_contract.ark
 // Verifies the std::host module contracts:
 //   - clock: monotonic_now and now_ms return non-negative values
-//   - env: args and var are available
+//   - env: args and var are available through Env
 //   - process: exit/abort are callable (no direct test of side effects)
 use std::host::clock::Clock
-use std::host::env
+use std::host::env::Env
 use std::host::stdio
 use std::text
 fn main() {
@@ -25,12 +25,12 @@ fn main() {
     }
 
     // ── Host env contract ──
-    let ac = env::arg_count()
+    let ac = Env::arg_count()
     assert(ac >= 0)
     stdio::println("env:args:".concat((ac).to_string()))
 
     // var may return None on targets without environ support
-    match env::var("PATH") {
+    match Env::var("PATH") {
         Option::Some(_) => stdio::println("env:path-set"),
         None => stdio::println("env:path-unset"),
     }

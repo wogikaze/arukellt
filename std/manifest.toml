@@ -1389,62 +1389,9 @@ availability = { t1 = true, t3 = true }
 intrinsic = "__runtime_abi_process_abort"
 
 # === std::host::env ===
-
-[[functions]]
-name = "args"
-module = "std::host::env"
-stability = "stable"
-params = []
-returns = "Vec<String>"
-intrinsic = "__intrinsic_args"
-doc_category = "host_env"
-doc = "Return user-supplied command-line arguments, excluding argv[0]. Index 0 is the first user argument."
-availability = { t1 = true, t3 = true }
-
-[[functions]]
-name = "var"
-module = "std::host::env"
-stability = "stable"
-params = ["String"]
-returns = "Option<String>"
-doc_category = "host_env"
-intrinsic = "__runtime_abi_env_var"
-doc = "Look up an environment variable by name. Returns None if the variable is not set."
-errors = "Returns None (not Err) when the variable is absent; no panic is raised."
-availability = { t1 = false, t3 = true, note = "Environment variable access requires WASI Preview 2 component model." }
-examples = [{code = "let home = env::var(\"HOME\")\nmatch home { Some(p) => println(p), None => println(\"not set\") }", description = "Read the HOME environment variable"}]
-
-[[functions]]
-name = "arg_count"
-module = "std::host::env"
-stability = "stable"
-params = []
-returns = "i32"
-intrinsic = "__intrinsic_arg_count"
-doc_category = "host_env"
-doc = "Return the number of user-supplied command-line arguments, excluding argv[0]."
-availability = { t1 = true, t3 = true }
-
-[[functions]]
-name = "arg_at"
-module = "std::host::env"
-stability = "stable"
-params = ["i32"]
-returns = "Option<String>"
-intrinsic = "__intrinsic_arg_at"
-doc_category = "host_env"
-doc = "Return the command-line argument at the given zero-based index, or None if out of bounds."
-availability = { t1 = true, t3 = true }
-
-[[functions]]
-name = "has_flag"
-module = "std::host::env"
-stability = "stable"
-params = ["String"]
-returns = "bool"
-doc_category = "host_env"
-doc = "Return true if the given flag (e.g. \"--verbose\") was passed as a command-line argument."
-availability = { t1 = true, t3 = true }
+# The env free functions were retired in the 2026-10-28 env wave (#917). The
+# surface is the `Env` namespace only; qualified old calls fail with E0100
+# hints from resolver::removed_names.
 
 [[types]]
 name = "Env"
@@ -1452,8 +1399,8 @@ module = "std::host::env"
 stability = "provisional"
 prelude = false
 kind = "struct"
-doc = "Namespace for the host environment reads: Env::var, Env::arg_count, Env::arg_at, and Env::var_or_default. Env::args stays blocked on wasm32-gc until the intrinsic result lowers inside a namespace method (#917); the module-level args free function remains for the argument vector."
-methods = ["var", "arg_count", "arg_at", "var_or_default"]
+doc = "Namespace for the host environment reads: Env::args, Env::var, Env::arg_count, Env::arg_at, Env::var_or_default, and Env::has_flag."
+methods = ["args", "var", "arg_count", "arg_at", "var_or_default", "has_flag"]
 
 # === std::path ===
 
@@ -3219,51 +3166,9 @@ returns = "()"
 doc = "Terminate the process immediately (exit code 134, SIGABRT convention)."
 
 # ── std::env ─────────────────────────────────────────────────────────────────
-
-[[functions]]
-name = "args"
-module = "std::env"
-doc_category = "env"
-stability = "stable"
-params = []
-returns = "Vec<String>"
-doc = "Return the process argument vector (excluding argv[0])."
-
-[[functions]]
-name = "arg_count"
-module = "std::env"
-doc_category = "env"
-stability = "stable"
-params = []
-returns = "i32"
-doc = "Return the number of process arguments (excluding argv[0])."
-
-[[functions]]
-name = "arg_at"
-module = "std::env"
-doc_category = "env"
-stability = "stable"
-params = ["i32"]
-returns = "Option<String>"
-doc = "Return the argument at the given index, or None when out of range."
-
-[[functions]]
-name = "var"
-module = "std::env"
-doc_category = "env"
-stability = "stable"
-params = ["String"]
-returns = "Option<String>"
-doc = "Look up an environment variable by name."
-
-[[functions]]
-name = "var_or_default"
-module = "std::env"
-doc_category = "env"
-stability = "stable"
-params = ["String", "String"]
-returns = "String"
-doc = "Return the environment variable value, or the default when absent."
+# The legacy `std::env` module path was retired in the 2026-10-28 env wave
+# (#917). `std::host::env::Env` is the only env surface; a qualified old call
+# fails with an E0100 hint from resolver::removed_names.
 
 # ── std::cli ─────────────────────────────────────────────────────────────────
 

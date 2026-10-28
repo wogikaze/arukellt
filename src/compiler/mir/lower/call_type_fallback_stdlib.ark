@@ -59,6 +59,23 @@ fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) 
         set_stdlib_result_type(ctx, dest, String_from("result:unit:String"))
         return true
     }
+    // Host env intrinsics return managed refs. A namespace method has no
+    // registered free-call spine entry, so the call result needs the same
+    // explicit typing the fs file intrinsics get above; without it the MIR
+    // temp stays scalar and the emitter stores a Vec/Option ref into an i64
+    // local (invalid core Wasm on wasm32-gc) (#917).
+    if eq(clone(cn), "__intrinsic_args") || ends_with(clone(callee_name), String_from("::__intrinsic_args")) {
+        set_stdlib_result_type(ctx, dest, String_from("vec:String"))
+        return true
+    }
+    if eq(clone(cn), "__runtime_abi_env_var") || ends_with(clone(callee_name), String_from("::__runtime_abi_env_var")) {
+        set_stdlib_result_type(ctx, dest, String_from("Option_String"))
+        return true
+    }
+    if eq(clone(cn), "__intrinsic_arg_at") || ends_with(clone(callee_name), String_from("::__intrinsic_arg_at")) {
+        set_stdlib_result_type(ctx, dest, String_from("Option_String"))
+        return true
+    }
     if is_parse_callee(clone(callee_name), String_from("parse_i32")) {
         set_stdlib_result_type(ctx, dest, String_from("result:i32:String"))
         return true

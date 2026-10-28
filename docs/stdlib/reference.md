@@ -8,7 +8,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 176 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 166 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 10 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 45 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 64 | Superseded — see migration guidance. |
@@ -28,7 +28,7 @@
 | `DequeIntoIter` | T | no | provisional | Owning front-to-back cursor over a Deque<T>. |
 | `DequeIter` | T | no | provisional | Read-only front-to-back cursor over a Deque<T>. |
 | `DequeIterMut` | T | no | provisional | Writable front-to-back cursor over a Deque<T> with set_current. |
-| `Env` | - | no | provisional | Namespace for the host environment reads: Env::var, Env::arg_count, Env::arg_at, and Env::var_or_default. Env::args stays blocked on wasm32-gc until the intrinsic result lowers inside a namespace method (#917); the module-level args free function remains for the argument vector. |
+| `Env` | - | no | provisional | Namespace for the host environment reads: Env::args, Env::var, Env::arg_count, Env::arg_at, Env::var_or_default, and Env::has_flag. |
 | `F32x4` | - | no | experimental | 4 × 32-bit float lane associated operations over v128. |
 | `F64x2` | - | no | experimental | 2 × 64-bit float lane associated operations over v128. |
 | `File` | - | no | experimental | Whole-file image handle: File::open loads a read-only image and File::create starts a write image. Implements std::io Read, Write, and Seek over the image; Write::flush (and close) commit the write image to the path. The host surface has no descriptor open/read/write/close yet, so the image is the visibility boundary (ADR-085 D6). |
@@ -121,7 +121,7 @@
 | `DequeIntoIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIterMut` | `set_current` | `Iterator`, `IntoIterator` |
-| `Env` | `var`, `arg_count`, `arg_at`, `var_or_default` | - |
+| `Env` | `args`, `var`, `arg_count`, `arg_at`, `var_or_default`, `has_flag` | - |
 | `Error` | `message` | - |
 | `F32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `div`, `sqrt`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `min`, `max`, `ceil`, `floor`, `trunc`, `nearest`, `abs`, `neg` | - |
 | `F64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `ceil`, `floor`, `trunc`, `nearest`, `promote_low_f32x4`, `convert_low_i32x4_s`, `convert_low_i32x4_u`, `add`, `sub`, `mul`, `div`, `neg`, `sqrt`, `min`, `max` | - |
@@ -405,37 +405,11 @@ Expected output: `42`
 | `f32_to_string` | `(f32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_f32_to_string` | - |
 | ~~`i32_to_u32`~~ ⚠️ Deprecated → `i32::to_u32_bits` | `(i32) -> u32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u32` | - |
 
-## Env
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `arg_at` | `(i32) -> Option<String>` | `std::env` | `stable` | `functional` | `builtin` | no | - | Return the argument at the given index, or None when out of range. |
-| `arg_count` | `() -> i32` | `std::env` | `stable` | `functional` | `builtin` | no | - | Return the number of process arguments (excluding argv[0]). |
-| `args` | `() -> Vec<String>` | `std::env` | `stable` | `functional` | `builtin` | no | - | Return the process argument vector (excluding argv[0]). |
-| `var` | `(String) -> Option<String>` | `std::env` | `stable` | `functional` | `builtin` | no | - | Look up an environment variable by name. |
-| `var_or_default` | `(String, String) -> String` | `std::env` | `stable` | `functional` | `builtin` | no | - | Return the environment variable value, or the default when absent. |
-
 ## Host Env
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `arg_at` | `(i32) -> Option<String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_arg_at` | Return the command-line argument at the given zero-based index, or None if out of bounds. |
-| `arg_count` | `() -> i32` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_arg_count` | Return the number of user-supplied command-line arguments, excluding argv[0]. |
 | `args` | `() -> Vec<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_args` | - |
-| `args` | `() -> Vec<String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_args` | Return user-supplied command-line arguments, excluding argv[0]. Index 0 is the first user argument. |
-| `has_flag` | `(String) -> bool` | `std::host::env` | `stable` | `functional` | `builtin` | no | - | Return true if the given flag (e.g. "--verbose") was passed as a command-line argument. |
-| `var` | `(String) -> Option<String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__runtime_abi_env_var` | Look up an environment variable by name. Returns None if the variable is not set. |
-
-### `var` — `std::host::env`
-
-**Errors:** Returns None (not Err) when the variable is absent; no panic is raised.
-
-_Example — Read the HOME environment variable:_
-
-```ark
-let home = env::var("HOME")
-match home { Some(p) => println(p), None => println("not set") }
-```
 
 ## Host Fs
 

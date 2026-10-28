@@ -349,7 +349,7 @@ pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
             if signature_entry::signature_entry_param_count(signature) != 0 {
                 return NativeCEmitResult_err(
                     String_from(
-                        "target `native-cpp` requires `fn main()` with no parameters; program arguments are read via `args()` / `env::args()`"
+                        "target `native-cpp` requires `fn main()` with no parameters; program arguments are read via `Env::args()`"
                     )
                 )
             }

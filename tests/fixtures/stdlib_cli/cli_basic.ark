@@ -1,10 +1,10 @@
-use std::host::env
+use std::host::env::Env
 use std::host::stdio
 
 fn main() {
-    stdio::println((env::arg_count()).to_string())
-    stdio::println((env::has_flag("--verbose")).to_string())
-    match env::arg_at(0) {
+    stdio::println((Env::arg_count()).to_string())
+    stdio::println((Env::has_flag("--verbose")).to_string())
+    match Env::arg_at(0) {
         Option::Some(s) => stdio::println(s),
         None => stdio::println("no arg"),
     }

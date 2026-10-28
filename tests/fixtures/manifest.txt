@@ -1016,10 +1016,6 @@ run:stdlib_core/raw_consumer_surface_wasm32.ark
 run:stdlib_csv/csv_basic.ark
 run:stdlib_csv/csv_parse_doc.ark
 run:stdlib_csv/csv_parse_row.ark
-run:stdlib_env/env_basic.ark
-run:stdlib_env/env_var_default.ark
-run:stdlib_env/env_var_lookup.ark
-run:stdlib_env/env_var_or_default.ark
 run:stdlib_filter/filter_string.ark
 run:stdlib_fs/exists_probe_contract.ark
 run:stdlib_fs/fs_namespace_surface.ark
@@ -1139,6 +1135,8 @@ run:stdlib_host/clock_namespace_surface.ark
 run:stdlib_host/clock_namespace_surface_wasm32.ark
 run:stdlib_host/env_namespace_surface.ark
 run:stdlib_host/env_namespace_surface_wasm32.ark
+run:stdlib_host/env_args_surface.ark
+run:stdlib_host/env_args_surface_wasm32.ark
 run:stdlib_host/wasi_fs.ark
 run:stdlib_host/wasi_process.ark
 run:stdlib_host/wasi_random.ark
@@ -2990,9 +2988,6 @@ t3-run:sealed_raw/raw_storage_differential.ark
 t3-run:spec_examples/clause_guards.ark
 t3-run:spec_examples/multi_clause_functions.ark
 t3-run:stdlib_csv/csv_perf.ark
-t3-run:stdlib_env/env_var_lookup.ark
-t3-compile:stdlib_env/env_var_or_default.ark
-t3-run:stdlib_env/env_var_or_default.ark
 t3-run:stdlib_filter/filter_string.ark
 t3-run:stdlib_fs/host_capability_contract.ark
 t3-run:stdlib_deque/deque_basic.ark
