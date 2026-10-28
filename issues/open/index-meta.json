@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-28T07:36:55Z",
+  "generated_at": "2026-10-28T07:46:20Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -776,7 +776,9 @@
       "track": "compiler",
       "status": "open",
       "depends_on": [],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "975"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 3
@@ -1110,6 +1112,57 @@
       }
     },
     {
+      "id": "973",
+      "path": "973-gc-stdin-large-input-corruption-claim.md",
+      "title": "973 — `wasm32-gc` stdin above ~250 bytes is reported corrupt; reproduce it or retire the workaround",
+      "track": "wasi",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "verification-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "974",
+      "path": "974-hashmap-iteration-traps.md",
+      "title": "974 — `HashMap` runtime traps: `for k in map` with `String` keys traps, and unsupported pairs fail typechecking",
+      "track": "stdlib-api",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "976",
+      "path": "976-push-local-receiver-restriction.md",
+      "title": "976 — Collection mutators (`push`) are reported to resolve only on local-rooted receivers",
+      "track": "language-design",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
       "id": "682",
       "path": "682-component-wit-product-claim-audit.md",
       "title": "682 — Component / WIT product-claim verification audit",
@@ -1233,6 +1286,25 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#934"
+      }
+    },
+    {
+      "id": "975",
+      "path": "975-sort-i64-invalid-wasm-claim.md",
+      "title": "975 — `std::collections::sort::sort` on `Vec<i64>`: ABC481 reported invalid Wasm on `wasm32`; current build traps instead",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [
+        "953"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "verification-ready",
+        "upstream_notes": "none"
       }
     },
     {

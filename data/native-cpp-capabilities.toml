@@ -1003,6 +1003,14 @@ phase = 4
 implementation = "native_runtime"
 
 [[core_ops]]
+id = "runtime.i32_to_i16"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "supported"
+phase = 1
+implementation = "c_emitter"
+
+[[core_ops]]
 id = "runtime.i32_to_i64"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
@@ -1012,6 +1020,14 @@ implementation = "c_emitter"
 
 [[core_ops]]
 id = "runtime.i32_to_i8"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "supported"
+phase = 1
+implementation = "c_emitter"
+
+[[core_ops]]
+id = "runtime.i32_to_u16"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
 status = "supported"
@@ -1107,6 +1123,14 @@ implementation = "native_runtime"
 
 [[core_ops]]
 id = "runtime.u32_to_u64"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "supported"
+phase = 1
+implementation = "c_emitter"
+
+[[core_ops]]
+id = "runtime.u64_to_u32"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
 status = "supported"

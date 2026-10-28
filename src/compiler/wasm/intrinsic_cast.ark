@@ -27,6 +27,14 @@ fn emit_i64_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
+// Handler for: u64_to_u32
+fn emit_u64_to_u32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    // Low 32 bits, zero-extended when the MIR result slot is i64 (Memory64).
+    helpers_numeric_i32::emit_i32_wrap_i64(w)
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
+    return true
+}
+
 // Handler for: i8_to_i32, u8_to_i32, i16_to_i32, u16_to_i32
 // (also `__intrinsic_*` and bare names — match by suffix).
 fn emit_i8_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, callee: String) -> bool {
@@ -61,6 +69,19 @@ fn emit_i8_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, callee: String
 fn emit_i32_to_u8(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_numeric_i32::emit_i32_const(w, 255)
     helpers_numeric_i32::emit_i32_and(w)
+    return true
+}
+
+// Handler for: i32_to_u16
+fn emit_i32_to_u16(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    helpers_numeric_i32::emit_i32_const(w, 65535)
+    helpers_numeric_i32::emit_i32_and(w)
+    return true
+}
+
+// Handler for: i32_to_i16
+fn emit_i32_to_i16(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    helpers_numeric_sign_extend::emit_i16_to_i32_sign_extend(w)
     return true
 }
 

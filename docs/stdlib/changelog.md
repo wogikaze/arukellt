@@ -16,6 +16,45 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-28 — wrapping numeric conversion CoreOps bind the i32→u16/i16 and u64→u32 shims (#917, ADR-042, ADR-046, ADR-067, ADR-087)
+
+- **Basis**: [ADR-042](../adr/ADR-042-intrinsic-layer-separation.md) CoreOp
+  dispatch, [ADR-067](../adr/ADR-067-language-v2-numeric-conversion.md)
+  canonical scalar conversion methods, and
+  [ADR-046](../adr/ADR-046-free-function-eradication.md) free-function
+  eradication. This closes the three numeric residuals recorded by the
+  preceding `i8::to_i32` entry.
+- **Root cause**: the prelude wrappers `i32_to_u16`, `i32_to_i16`, and
+  `u64_to_u32` were listed as unbound intrinsic shims in
+  `mir/lower/stdlib_body_defer.ark`. Their call sites were deferred from body
+  lowering, but no `data/core-ops.toml` operation, binding alias, or emitter
+  handler existed for them, so Wasm emission fell through to the unresolved
+  fallback. WAT for `i32::to_u16_wrapping` was
+  `local.get $self; drop; unreachable; local.get $_t1; return`; the free call
+  sites and the wasm32 linear target showed the same `drop; unreachable`.
+- **CoreOps**: `data/core-ops.toml` registers `runtime.i32_to_u16`
+  (`i32.and 0xFFFF`), `runtime.i32_to_i16` (`i32/i64.extend16_s` by Memory64),
+  and `runtime.u64_to_u32` (`i32.wrap_i64`, zero-extended when the MIR i32
+  result slot is i64 under Memory64), each with a `legacy_bindings` alias for
+  the prelude name. Handlers live in `wasm/intrinsic_cast.ark` behind
+  `wasm/call_runtime_convert.ark`; the intrinsic-name fallback also resolves
+  the three handlers. `native_c/core_call.ark` and
+  `data/native-cpp-capabilities.toml` mark them supported so the native-c
+  scaffold does not regress.
+- **Surface**: the `impl i32 { to_u16_wrapping / to_i16_wrapping }` and
+  `impl u64 { to_u32_wrapping }` methods already existed from the stable-64
+  wave; they now execute instead of trapping. The free wrappers remain
+  `deprecated` with W0009 coverage and now lower through the same CoreOps.
+- **Fixtures**: `scalar/numeric_conversion_methods.ark` now covers `300`,
+  `-1`, and `40000` i32 receivers plus `2^32` and `2^32 + 5` u64 receivers
+  through both the methods and the deprecated frees. The fixture gate
+  compiles and validates it on wasm32-gc; `check-cross-backend-parity.py`
+  executes it on the wasm32-gc component path and the wasm32 linear path, and
+  a standalone `--target wasm32-gc` Memory64 core compile validates.
+- **Residual**: none for these three conversions. Unannotated narrow literal
+  bindings (`let x = 5i8`) still carry no local type name, and i8 enum/tuple
+  payload bindings still have independent typing gaps; those are unchanged.
+
 ## 2026-10-28 — `i8::to_i32` and the annotated-i8 MIR typing fix (#917, ADR-046, ADR-067, ADR-087)
 
 - **Basis**: [ADR-067](../adr/ADR-067-language-v2-numeric-conversion.md)

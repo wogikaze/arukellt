@@ -1713,6 +1713,10 @@ alias = "i16_to_i32"
 core_op_id = "runtime.i8_to_i32"
 
 [[legacy_bindings]]
+alias = "i32_to_i16"
+core_op_id = "runtime.i32_to_i16"
+
+[[legacy_bindings]]
 alias = "i32_to_i64"
 core_op_id = "runtime.i32_to_i64"
 
@@ -1723,6 +1727,10 @@ core_op_id = "runtime.i32_to_i8"
 [[legacy_bindings]]
 alias = "i32_to_string"
 core_op_id = "text.to_string"
+
+[[legacy_bindings]]
+alias = "i32_to_u16"
+core_op_id = "runtime.i32_to_u16"
 
 [[legacy_bindings]]
 alias = "i32_to_u32"
@@ -2261,6 +2269,10 @@ core_op_id = "runtime.i8_to_i32"
 [[legacy_bindings]]
 alias = "u32_to_u64"
 core_op_id = "runtime.u32_to_u64"
+
+[[legacy_bindings]]
+alias = "u64_to_u32"
+core_op_id = "runtime.u64_to_u32"
 
 [[legacy_bindings]]
 alias = "u8_to_i32"
@@ -5044,6 +5056,43 @@ abi_version = "0.1"
 required = false
 
 [[operations]]
+id = "runtime.i32_to_i16"
+visibility = "public"
+classification = { layer = "runtime" }
+binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
+description = "Truncate i32 to 16 bits and sign-extend (wrapping i16 conversion)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i16" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "wrap"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "runtime_call"
+[operations.lowering.runtime]
+kind = "internal"
+symbol = "i32_to_i16"
+abi_version = "0.1"
+[operations.fallback]
+required = false
+
+[[operations]]
 id = "runtime.i32_to_i64"
 visibility = "public"
 classification = { layer = "runtime" }
@@ -5113,6 +5162,43 @@ kind = "runtime_call"
 [operations.lowering.runtime]
 kind = "internal"
 symbol = "i32_to_u8"
+abi_version = "0.1"
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "runtime.i32_to_u16"
+visibility = "public"
+classification = { layer = "runtime" }
+binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
+description = "Truncate i32 to 16 bits and zero-extend (wrapping u16 conversion)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "u16" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "wrap"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "runtime_call"
+[operations.lowering.runtime]
+kind = "internal"
+symbol = "i32_to_u16"
 abi_version = "0.1"
 [operations.fallback]
 required = false
@@ -5557,6 +5643,43 @@ kind = "runtime_call"
 [operations.lowering.runtime]
 kind = "internal"
 symbol = "u32_to_u64"
+abi_version = "0.1"
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "runtime.u64_to_u32"
+visibility = "public"
+classification = { layer = "runtime" }
+binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
+description = "Truncate u64 to the low 32 bits (wrapping u32 conversion)"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "u64" } }]
+outputs = [{ type = { kind = "primitive", name = "u32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "wrap"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "runtime_call"
+[operations.lowering.runtime]
+kind = "internal"
+symbol = "u64_to_u32"
 abi_version = "0.1"
 [operations.fallback]
 required = false

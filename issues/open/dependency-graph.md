@@ -67,12 +67,16 @@ graph LR
   I970["970 970 — Module `const` references: qualified paths and multi-const imports emit invalid Wasm"]
   I971["971 971 — `Vec::sort_by` cannot sort aggregate elements on wasm32-gc, and traps for `String`"]
   I972["972 972 — `(a..b).rev()` and tuple-of-struct values emit invalid Wasm"]
+  I973["973 973 — `wasm32-gc` stdin above ~250 bytes is reported corrupt; reproduce it or retire the workaround"]
+  I974["974 974 — `HashMap` runtime traps: `for k in map` with `String` keys traps, and unsupported pairs fail typechecking"]
+  I976["976 976 — Collection mutators (`push`) are reported to resolve only on local-rooted receivers"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
   I933["933 933 — typechecker results are discarded before lowering; MIR re-infers types from strings"]
   I936["936 936 — prelude core functions have placeholder signatures; checker and emitter dispatch them by name"]
   I937["937 937 — `let` type annotations silently replace a mismatching inferred type"]
+  I975["975 975 — `std::collections::sort::sort` on `Vec<i64>`: ABC481 reported invalid Wasm on `wasm32`; current build traps instead"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
   I935["935 935 — arguments of non-generic calls are never checked against parameter types"]
@@ -85,6 +89,7 @@ graph LR
   I934 --> I933
   I934 --> I936
   I934 --> I937
+  I953 --> I975
   I682 --> I683
   I681 --> I711
   I710 --> I711
@@ -140,7 +145,7 @@ graph LR
 - **950** depends on: none; blocks: none
 - **951** depends on: none; blocks: none
 - **952** depends on: none; blocks: none
-- **953** depends on: none; blocks: none
+- **953** depends on: none; blocks: 975
 - **954** depends on: none; blocks: none
 - **955** depends on: none; blocks: none
 - **956** depends on: none; blocks: none
@@ -160,12 +165,16 @@ graph LR
 - **970** depends on: none; blocks: none
 - **971** depends on: none; blocks: none
 - **972** depends on: none; blocks: none
+- **973** depends on: none; blocks: none
+- **974** depends on: none; blocks: none
+- **976** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **850** depends on: 851; blocks: none
 - **933** depends on: 934; blocks: none
 - **936** depends on: 934; blocks: 935, 939
 - **937** depends on: 934; blocks: none
+- **975** depends on: 953; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **711** depends on: 681, 709, 710; blocks: 712, 713
 - **935** depends on: 934, 936; blocks: none
