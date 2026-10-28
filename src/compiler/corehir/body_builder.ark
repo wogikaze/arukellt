@@ -19,17 +19,17 @@ fn CoreHirBodyBuilder_new() -> CoreHirBodyTable {
     }
 }
 
-fn corehir_body_builder_push_expr(builder: CoreHirBodyTable, expr: CoreHirExpr) -> i32 {
+fn corehir_body_builder_push_expr(mut builder: CoreHirBodyTable, expr: CoreHirExpr) -> i32 {
     let index = len(builder.exprs)
     push(builder.exprs, expr)
     index
 }
 
-fn corehir_body_builder_push_fn_body_root(builder: CoreHirBodyTable, root: i32) {
+fn corehir_body_builder_push_fn_body_root(mut builder: CoreHirBodyTable, root: i32) {
     push(builder.fn_body_roots, root)
 }
 
-fn corehir_body_builder_push_method_body_root(builder: CoreHirBodyTable, root: i32) {
+fn corehir_body_builder_push_method_body_root(mut builder: CoreHirBodyTable, root: i32) {
     push(builder.method_body_roots, root)
 }
 
@@ -38,7 +38,7 @@ fn corehir_body_builder_begin_fn_contracts(builder: CoreHirBodyTable) -> i32 {
 }
 
 fn corehir_body_builder_push_fn_contract(
-    builder: CoreHirBodyTable,
+    mut builder: CoreHirBodyTable,
     root: i32,
     kind: String,
     result_name: String
@@ -48,7 +48,7 @@ fn corehir_body_builder_push_fn_contract(
     push(builder.contract_result_names, result_name)
 }
 
-fn corehir_body_builder_end_fn_contracts(builder: CoreHirBodyTable, start: i32) {
+fn corehir_body_builder_end_fn_contracts(mut builder: CoreHirBodyTable, start: i32) {
     push(builder.fn_contract_starts, start)
     push(builder.fn_contract_counts, len(builder.contract_roots) - start)
 }

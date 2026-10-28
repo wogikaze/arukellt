@@ -49,7 +49,7 @@ impl<T> HashSet<T> {
 
 impl HashSet<i32> {
     /// Inserts `value` and returns true when it was not already present.
-    fn insert(self: HashSet<i32>, value: i32) -> bool {
+    fn insert(mut self: HashSet<i32>, value: i32) -> bool {
         self.insert(value)
     }
 
@@ -59,7 +59,7 @@ impl HashSet<i32> {
     }
 
     /// Removes `value` and returns true when it was present.
-    fn remove(self: HashSet<i32>, value: i32) -> bool {
+    fn remove(mut self: HashSet<i32>, value: i32) -> bool {
         self.remove(value)
     }
 
@@ -99,7 +99,7 @@ impl HashSet<i32> {
     }
 
     /// Ensures room for at least `additional` more elements.
-    fn reserve(self: HashSet<i32>, additional: i32) {
+    fn reserve(mut self: HashSet<i32>, additional: i32) {
         self.reserve(additional)
     }
 
@@ -109,19 +109,19 @@ impl HashSet<i32> {
     }
 
     /// Removes all elements, setting the size to zero.
-    fn clear(self: HashSet<i32>) {
+    fn clear(mut self: HashSet<i32>) {
         self.clear()
     }
 
     /// Inserts every element of `other` that is not already present.
-    fn extend(self: HashSet<i32>, other: HashSet<i32>) {
+    fn extend(mut self: HashSet<i32>, other: HashSet<i32>) {
         self.extend(other)
     }
 }
 
 impl HashSet<String> {
     /// Inserts `value` and returns true when it was not already present.
-    fn insert(self: HashSet<String>, value: String) -> bool {
+    fn insert(mut self: HashSet<String>, value: String) -> bool {
         self.insert(value)
     }
 
@@ -131,7 +131,7 @@ impl HashSet<String> {
     }
 
     /// Removes `value` and returns true when it was present.
-    fn remove(self: HashSet<String>, value: String) -> bool {
+    fn remove(mut self: HashSet<String>, value: String) -> bool {
         self.remove(value)
     }
 
@@ -166,12 +166,12 @@ impl HashSet<String> {
     }
 
     /// Removes all elements, setting the size to zero.
-    fn clear(self: HashSet<String>) {
+    fn clear(mut self: HashSet<String>) {
         self.clear()
     }
 
     /// Inserts every element of `other` that is not already present.
-    fn extend(self: HashSet<String>, other: HashSet<String>) {
+    fn extend(mut self: HashSet<String>, other: HashSet<String>) {
         self.extend(other)
     }
 }
@@ -194,7 +194,7 @@ impl IntoIterator for HashSet<i32> {
 impl Clone for HashSet<i32> {
     fn clone(self: HashSet<i32>) -> HashSet<i32> {
         let values: Vec<i32> = self.to_vec()
-        let result: HashSet<i32> = HashSet::new<i32>()
+        let mut result: HashSet<i32> = HashSet::new<i32>()
         let mut index: i32 = 0
         while index < len(values) {
             let _ = result.insert(get_unchecked(values, index))
@@ -247,8 +247,8 @@ impl Debug for HashSet<i32> {
 // specialized when the call sits in a concrete loaded-module body, leaving an
 // unreachable stub at runtime (#917).
 impl FromIterator<VecIter<i32>> for HashSet<i32> {
-    fn from_iter(it: VecIter<i32>) -> HashSet<i32> {
-        let result: HashSet<i32> = HashSet::new<i32>()
+    fn from_iter(mut it: VecIter<i32>) -> HashSet<i32> {
+        let mut result: HashSet<i32> = HashSet::new<i32>()
         while true {
             match it.next() {
                 Option::Some(value) => { let _ = result.insert(value) },
@@ -260,8 +260,8 @@ impl FromIterator<VecIter<i32>> for HashSet<i32> {
 }
 
 impl FromIterator<VecIter<String>> for HashSet<String> {
-    fn from_iter(it: VecIter<String>) -> HashSet<String> {
-        let result: HashSet<String> = HashSet::new<String>()
+    fn from_iter(mut it: VecIter<String>) -> HashSet<String> {
+        let mut result: HashSet<String> = HashSet::new<String>()
         while true {
             match it.next() {
                 Option::Some(value) => { let _ = result.insert(value) },
@@ -285,7 +285,7 @@ impl IntoIterator for HashSet<String> {
 impl Clone for HashSet<String> {
     fn clone(self: HashSet<String>) -> HashSet<String> {
         let values: Vec<String> = self.to_vec()
-        let result: HashSet<String> = HashSet::new<String>()
+        let mut result: HashSet<String> = HashSet::new<String>()
         let mut index: i32 = 0
         while index < len(values) {
             let _ = result.insert(get_unchecked(values, index))
@@ -337,39 +337,39 @@ test mod "hashset" {
         assert(s.len() == 0)
     }
     test "insert_returns_true_first_time" {
-        let s: HashSet<i32> = HashSet::new<i32>()
+        let mut s: HashSet<i32> = HashSet::new<i32>()
         assert(s.insert(7))
         assert(s.len() == 1)
     }
     test "insert_duplicate_returns_false" {
-        let s: HashSet<i32> = HashSet::new<i32>()
+        let mut s: HashSet<i32> = HashSet::new<i32>()
         let _ = s.insert(7)
         assert(s.insert(7) == false)
         assert(s.len() == 1)
     }
     test "contains_after_insert" {
-        let s: HashSet<i32> = HashSet::new<i32>()
+        let mut s: HashSet<i32> = HashSet::new<i32>()
         let _ = s.insert(42)
         assert(s.contains(42))
         assert(s.contains(43) == false)
     }
     test "remove_existing" {
-        let s: HashSet<i32> = HashSet::new<i32>()
+        let mut s: HashSet<i32> = HashSet::new<i32>()
         let _ = s.insert(5)
         assert(s.remove(5))
         assert(s.contains(5) == false)
         assert(s.len() == 0)
     }
     test "remove_missing_returns_false" {
-        let s: HashSet<i32> = HashSet::new<i32>()
+        let mut s: HashSet<i32> = HashSet::new<i32>()
         let _ = s.insert(5)
         assert(s.remove(6) == false)
     }
     test "union_combines" {
-        let a: HashSet<i32> = HashSet::new<i32>()
+        let mut a: HashSet<i32> = HashSet::new<i32>()
         let _ = a.insert(1)
         let _ = a.insert(2)
-        let b: HashSet<i32> = HashSet::new<i32>()
+        let mut b: HashSet<i32> = HashSet::new<i32>()
         let _ = b.insert(2)
         let _ = b.insert(3)
         let u: HashSet<i32> = a.union(b)
@@ -378,10 +378,10 @@ test mod "hashset" {
         assert(u.contains(3))
     }
     test "intersection_common_only" {
-        let a: HashSet<i32> = HashSet::new<i32>()
+        let mut a: HashSet<i32> = HashSet::new<i32>()
         let _ = a.insert(1)
         let _ = a.insert(2)
-        let b: HashSet<i32> = HashSet::new<i32>()
+        let mut b: HashSet<i32> = HashSet::new<i32>()
         let _ = b.insert(2)
         let _ = b.insert(3)
         let i: HashSet<i32> = a.intersection(b)
@@ -389,33 +389,33 @@ test mod "hashset" {
         assert(i.contains(2))
     }
     test "difference_excludes_b" {
-        let a: HashSet<i32> = HashSet::new<i32>()
+        let mut a: HashSet<i32> = HashSet::new<i32>()
         let _ = a.insert(1)
         let _ = a.insert(2)
-        let b: HashSet<i32> = HashSet::new<i32>()
+        let mut b: HashSet<i32> = HashSet::new<i32>()
         let _ = b.insert(2)
         let d: HashSet<i32> = a.difference(b)
         assert(d.len() == 1)
         assert(d.contains(1))
     }
     test "clear_resets" {
-        let s: HashSet<i32> = HashSet::new<i32>()
+        let mut s: HashSet<i32> = HashSet::new<i32>()
         let _ = s.insert(1)
         let _ = s.insert(2)
         s.clear()
         assert(s.is_empty())
     }
     test "extend_merges" {
-        let s: HashSet<i32> = HashSet::new<i32>()
+        let mut s: HashSet<i32> = HashSet::new<i32>()
         let _ = s.insert(1)
-        let other: HashSet<i32> = HashSet::new<i32>()
+        let mut other: HashSet<i32> = HashSet::new<i32>()
         let _ = other.insert(2)
         let _ = other.insert(3)
         s.extend(other)
         assert(s.len() == 3)
     }
     test "many_insert_no_dup_growth" {
-        let s: HashSet<i32> = HashSet::new<i32>()
+        let mut s: HashSet<i32> = HashSet::new<i32>()
         let mut i = 0
         while i < 40 {
             let _ = s.insert(i)
@@ -427,7 +427,7 @@ test mod "hashset" {
         assert(s.contains(39))
     }
     test "string_membership" {
-        let s: HashSet<String> = HashSet::new<String>()
+        let mut s: HashSet<String> = HashSet::new<String>()
         assert(s.insert("red"))
         assert(s.insert("green"))
         assert(s.contains("red"))
@@ -436,7 +436,7 @@ test mod "hashset" {
         assert(s.contains("green"))
     }
     test "from_iter_dedups_i32" {
-        let values: Vec<i32> = Vec::new<i32>()
+        let mut values: Vec<i32> = Vec::new<i32>()
         push(values, 4)
         push(values, 5)
         push(values, 4)
@@ -446,7 +446,7 @@ test mod "hashset" {
         assert(s.contains(5))
     }
     test "string_traits" {
-        let s: HashSet<String> = HashSet::new<String>()
+        let mut s: HashSet<String> = HashSet::new<String>()
         assert(s.insert("red"))
         assert(s.insert("blue"))
         assert(s.insert("red"))

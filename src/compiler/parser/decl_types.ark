@@ -2,14 +2,14 @@ use parser::decl_enum
 use parser::decl_resource
 use parser::decl_struct
 
-fn parse_struct_decl(p: Parser) -> AstNode {
+fn parse_struct_decl(mut p: Parser) -> AstNode {
     decl_struct::parse_struct_decl(p)
 }
 
-fn parse_resource_decl(p: Parser) -> AstNode {
+fn parse_resource_decl(mut p: Parser) -> AstNode {
     decl_resource::parse_resource_decl(p)
 }
 
-fn parse_enum_decl(p: Parser) -> AstNode {
+fn parse_enum_decl(mut p: Parser) -> AstNode {
     decl_enum::parse_enum_decl(p)
 }

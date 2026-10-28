@@ -96,7 +96,7 @@ pub fn is_namespace_member_callee(
 }
 
 fn callee_spelling_variants(name: String) -> Vec<String> {
-    let variants = Vec::new<String>()
+    let mut variants = Vec::new<String>()
     if callee_spelling_segment_count(clone(name)) < 3 {
         return variants
     }

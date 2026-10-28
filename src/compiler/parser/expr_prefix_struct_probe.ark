@@ -2,7 +2,7 @@ use lexer::tokens
 use parser::core_api_cursor
 use parser::token_state
 
-pub fn next_prefix_is_struct_lit(p: Parser) -> bool {
+pub fn next_prefix_is_struct_lit(mut p: Parser) -> bool {
     if core_api_cursor::peek_kind(p) != tokens::TK_LBRACE() {
         return false
     }

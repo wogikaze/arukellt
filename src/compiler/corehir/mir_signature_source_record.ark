@@ -25,7 +25,7 @@ fn fn_info_decl_slots(fn_infos: Vec<CoreHirFnInfo>) -> Vec<i32> {
         }
         i = i + 1
     }
-    let slots = Vec::new<i32>()
+    let mut slots = Vec::new<i32>()
     let mut s = 0
     while s <= max_decl {
         push(slots, 0)

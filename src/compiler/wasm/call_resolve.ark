@@ -228,7 +228,7 @@ fn mir_resolve_self_delegate_collision(
 
 fn call_resolve_remap_colliding_short_names(
     functions: Vec<MirFunction>,
-    function_name_index: NameIndex,
+    mut function_name_index: NameIndex,
     function_name_counts: NameIndex
 ) {
     let count = len(functions)

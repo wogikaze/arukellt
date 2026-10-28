@@ -239,7 +239,7 @@ fn native_c_collect_funcref_typedefs(mir_module: MirModule) -> String {
     let registry = module_spine::MirModule_signature_registry(mir_module)
     let heap_enum_flags = enum_abi::native_c_heap_enum_type_flags(mir_module)
     let function_count = module_functions::MirModule_function_count(mir_module)
-    let emitted_names = Vec::new<String>()
+    let mut emitted_names = Vec::new<String>()
     let mut out = String_new()
     let mut function_index = 0
     while function_index < function_count {

@@ -6,7 +6,7 @@ fn mir_dump_dominance_fixture_new() -> MirDumpDominanceFixture {
     dump_smoke_dominance_fixture_build::mir_dump_dominance_fixture_new()
 }
 
-fn mir_dump_dominance_fixture_print_string_interns(m: MirModule) {
+fn mir_dump_dominance_fixture_print_string_interns(mut m: MirModule) {
     dump_smoke_dominance_string_interns::mir_dump_dominance_fixture_print_string_interns(m)
 }
 

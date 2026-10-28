@@ -15,7 +15,7 @@ fn LoadState_modules(state: LoadState) -> Vec<ModuleDecls> {
 // public record and the typechecker resolves both by bare name, so widening
 // this struct corrupts the shared layout. Stdlib provenance rides in the
 // parallel LoadState.module_stdlib_flags vec instead.
-fn LoadState_add_module(state: LoadState, name: String, decls: Vec<AstNode>, is_stdlib: bool) {
+fn LoadState_add_module(mut state: LoadState, name: String, decls: Vec<AstNode>, is_stdlib: bool) {
     push(state.modules, ModuleDecls_new(name, decls))
     push(state.module_stdlib_flags, is_stdlib)
 }
@@ -37,7 +37,7 @@ fn ModuleDecls_decl_at(module: ModuleDecls, index: i32) -> AstNode {
     get_unchecked(module.decls, index)
 }
 
-fn LoadState_release_module_asts(state: LoadState) {
+fn LoadState_release_module_asts(mut state: LoadState) {
     let module_count = len(state.modules)
     let mut mi = 0
     while mi < module_count {

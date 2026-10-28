@@ -17,11 +17,11 @@ pub fn is_keyword_path_prefix(p: Parser, kind: i32) -> bool {
     && core_api_cursor::peek_kind_at_index(p, next_index) == tokens::TK_COLONCOLON()
 }
 
-pub fn parse_keyword_path_prefix(p: Parser, t: Token) -> AstNode {
+pub fn parse_keyword_path_prefix(mut p: Parser, t: Token) -> AstNode {
     expr_prefix::parse_ident_or_struct_lit(p, t)
 }
 
-pub fn parse_atom_prefix(p: Parser, t: Token) -> AstNode {
+pub fn parse_atom_prefix(mut p: Parser, t: Token) -> AstNode {
     let kind = token_state::Token_kind(t)
     if kind == tokens::TK_IDENT() {
         return expr_prefix::parse_ident_or_struct_lit(p, t)

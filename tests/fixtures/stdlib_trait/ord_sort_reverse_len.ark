@@ -5,7 +5,7 @@ use std::seq
 use std::test
 
 fn main() {
-    let r: Vec<cmp::Reverse<i32>> = Vec::new<cmp::Reverse<i32>>()
+    let mut r: Vec<cmp::Reverse<i32>> = Vec::new<cmp::Reverse<i32>>()
     r.push(cmp::Reverse { inner: 1 })
     r.push(cmp::Reverse { inner: 3 })
     r.push(cmp::Reverse { inner: 2 })

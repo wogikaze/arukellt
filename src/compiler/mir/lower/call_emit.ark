@@ -43,13 +43,13 @@ fn mir_is_simd_lane_immediate_callee(callee_name: String) -> bool {
 }
 
 fn mir_emit_direct_call(
-    ctx: LowerCtx,
+    mut ctx: LowerCtx,
     callee_text: String,
     arg_count: i32,
     first_arg_idx: i32,
     second_arg_idx: i32,
     staged_arg_locals: Vec<i32>,
-    arg_widen_i64: Vec<i32>,
+    mut arg_widen_i64: Vec<i32>,
     stage_call_args: bool,
     span_start: i32,
     lane_immediate: i32,

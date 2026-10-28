@@ -6,7 +6,7 @@ use loader::module_paths
 use loader::module_state
 use loader::module_state_modules
 
-pub fn load_source(path: String) -> Result<String, String> {
+pub fn load_source(mut path: String) -> Result<String, String> {
     Fs::read_to_string(path)
 }
 
@@ -18,15 +18,15 @@ pub fn LoadState_new() -> LoadState {
     module_state::LoadState_new()
 }
 
-pub fn load_stdlib_module(stdlib_path: String, state: LoadState) {
+pub fn load_stdlib_module(stdlib_path: String, mut state: LoadState) {
     module_graph::load_stdlib_module(stdlib_path, state)
 }
 
-pub fn load_imported_modules(decls: Vec<AstNode>, base_dir: String, state: LoadState) {
+pub fn load_imported_modules(decls: Vec<AstNode>, base_dir: String, mut state: LoadState) {
     module_graph::load_imported_modules(decls, base_dir, state)
 }
 
-pub fn release_module_asts(state: LoadState) {
+pub fn release_module_asts(mut state: LoadState) {
     module_state_modules::LoadState_release_module_asts(state)
 }
 

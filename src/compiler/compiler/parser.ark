@@ -29,6 +29,6 @@ pub fn ParseResult_errors(result: ParseResult) -> Vec<Diagnostic> {
 }
 
 // ── Top-level Module ─────────────────────────────────────────────────────────
-pub fn parse_module(p: Parser) -> Vec<AstNode> {
+pub fn parse_module(mut p: Parser) -> Vec<AstNode> {
     mod::parse_module(p)
 }

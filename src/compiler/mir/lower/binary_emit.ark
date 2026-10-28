@@ -13,7 +13,7 @@ use mir::inst_local_get
 use mir::inst_op
 use mir::opcodes
 use mir::value_types
-fn mir_emit_overloaded_binary_call(ctx: LowerCtx, callee: String) -> i32 {
+fn mir_emit_overloaded_binary_call(mut ctx: LowerCtx, callee: String) -> i32 {
     let ret_vt = ctx_fn_return_vt(ctx, clone(callee))
     let dest_vt = binary_type_select::mir_call_return_dest_vt(ret_vt)
     let dest = ctx_fresh_local(ctx, dest_vt)
@@ -26,7 +26,7 @@ fn mir_emit_overloaded_binary_call(ctx: LowerCtx, callee: String) -> i32 {
     dest
 }
 
-fn mir_emit_overloaded_operator(ctx: LowerCtx, callee: String, mir_op: i32) -> i32 {
+fn mir_emit_overloaded_operator(mut ctx: LowerCtx, callee: String, mir_op: i32) -> i32 {
     let result = mir_emit_overloaded_binary_call(ctx, clone(callee))
     if mir_op == opcodes::MIR_NEQ() {
         return mir_emit_boolean_inverse(ctx, result)
@@ -40,7 +40,7 @@ fn mir_emit_overloaded_operator(ctx: LowerCtx, callee: String, mir_op: i32) -> i
     result
 }
 
-fn mir_emit_boolean_inverse(ctx: LowerCtx, source: i32) -> i32 {
+fn mir_emit_boolean_inverse(mut ctx: LowerCtx, source: i32) -> i32 {
     let dest = ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_set_local_type(ctx, dest, "bool")
     ctx_emit(ctx, inst_local_get::MirInst_local_get(source))
@@ -48,7 +48,7 @@ fn mir_emit_boolean_inverse(ctx: LowerCtx, source: i32) -> i32 {
     dest
 }
 
-fn mir_emit_order_projection(ctx: LowerCtx, source: i32, mir_op: i32) -> i32 {
+fn mir_emit_order_projection(mut ctx: LowerCtx, source: i32, mir_op: i32) -> i32 {
     let method = mir_order_projection_method(mir_op)
     if len(method) == 0 {
         return source
@@ -65,7 +65,7 @@ fn mir_order_projection_method(mir_op: i32) -> String {
     String_new()
 }
 
-fn mir_emit_overloaded_unary_call(ctx: LowerCtx, callee: String) -> i32 {
+fn mir_emit_overloaded_unary_call(mut ctx: LowerCtx, callee: String) -> i32 {
     let ret_vt = ctx_fn_return_vt(ctx, clone(callee))
     let dest_vt = binary_type_select::mir_call_return_dest_vt(ret_vt)
     let dest = ctx_fresh_local(ctx, dest_vt)
@@ -78,7 +78,7 @@ fn mir_emit_overloaded_unary_call(ctx: LowerCtx, callee: String) -> i32 {
     dest
 }
 
-fn mir_emit_binary_result(ctx: LowerCtx, mir_op: i32, binop_vt: i32, actual_l: i32, actual_r: i32) -> i32 {
+fn mir_emit_binary_result(mut ctx: LowerCtx, mir_op: i32, binop_vt: i32, actual_l: i32, actual_r: i32) -> i32 {
     let is_cmp = mir_is_comparison_op(mir_op)
     let mut dest_vt = binop_vt
     if is_cmp {

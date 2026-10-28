@@ -1,5 +1,5 @@
 use mir::lower::ctx_locals_alloc
 
-fn ctx_alloc_local(ctx: LowerCtx, name: String, vt: i32) -> i32 { ctx_locals_alloc::ctx_alloc_local(ctx, name, vt) }
+fn ctx_alloc_local(mut ctx: LowerCtx, name: String, vt: i32) -> i32 { ctx_locals_alloc::ctx_alloc_local(ctx, name, vt) }
 fn ctx_lookup_local(ctx: LowerCtx, name: String) -> i32 { ctx_locals_alloc::ctx_lookup_local(ctx, name) }
-fn ctx_fresh_local(ctx: LowerCtx, vt: i32) -> i32 { ctx_locals_alloc::ctx_fresh_local(ctx, vt) }
+fn ctx_fresh_local(mut ctx: LowerCtx, vt: i32) -> i32 { ctx_locals_alloc::ctx_fresh_local(ctx, vt) }

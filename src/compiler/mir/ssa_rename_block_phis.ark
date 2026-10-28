@@ -7,17 +7,17 @@ use mir::phi_access
 use mir::phi_mutation
 use mir::ssa_state_types
 
-fn rename_block_phis(f: MirFunction, state: ssa_state_types::MirSsaRenameState, block: MirBlock) {
+fn rename_block_phis(mut f: MirFunction, mut state: ssa_state_types::MirSsaRenameState, block: MirBlock) {
     let pc = block_phi_access::MirBlock_phi_count(block)
     let mut pi = 0
     while pi < pc {
-        let phi = block_phi_access::MirBlock_phi_at(block, pi)
+        let mut phi = block_phi_access::MirBlock_phi_at(block, pi)
         let original_dest = phi_access::MirPhi_dest(phi)
         if original_dest >= 0 && original_dest < ssa_state_types::MirSsaRenameState_original_local_count(state) {
             let ac = phi_access::MirPhi_arg_count(phi)
             let mut ai = 0
             while ai < ac {
-                let a = phi_access::MirPhi_arg_at(phi, ai)
+                let mut a = phi_access::MirPhi_arg_at(phi, ai)
                 phi_mutation::MirPhiArg_set_local(a, ssa_state_slots::mir_ssa_pred_value_for(state, phi_access::MirPhiArg_pred_block(a), phi_access::MirPhiArg_local(a)))
                 ai = ai + 1
             }

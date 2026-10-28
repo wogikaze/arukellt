@@ -14,7 +14,7 @@ use wasm::writer_gc
 use wasm::ctx_gc_type
 use wasm::ctx_record
 use wasm::emit_target
-fn emit_gc_vec_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_gc_vec_len(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let callee = inst_accessors_literals::MirInst_str_val(inst)
     let source = intrinsic_vec_type::find_call_source_local(ctx, clone(callee), inst)
     if intrinsic_vec_type::local_is_raw_array(ctx, source) {
@@ -29,7 +29,7 @@ fn emit_gc_vec_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_linear_vec_len(w: WasmWriter) -> bool {
+fn emit_linear_vec_len(mut w: WasmWriter) -> bool {
     // Linear-memory Vec: i32.load at offset 0 (len field)
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
@@ -38,7 +38,7 @@ fn emit_linear_vec_len(w: WasmWriter) -> bool {
 }
 
 // Handler for: vec_len
-fn emit_vec_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_vec_len(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return emit_gc_vec_len(w, inst, ctx)
     }

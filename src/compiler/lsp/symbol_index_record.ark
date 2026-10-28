@@ -98,11 +98,11 @@ fn StdlibIndexedSymbol_new(name: String, kind: i32, detail: String, module_path:
     StdlibIndexedSymbol { name: name, kind: kind, detail: detail, module_path: module_path, source_uri: source_uri, decl_start: decl_start, decl_end: decl_end, doc: doc }
 }
 
-fn symbol_index_push_symbol(symbols: Vec<IndexedSymbol>, sym: IndexedSymbol) {
+fn symbol_index_push_symbol(mut symbols: Vec<IndexedSymbol>, sym: IndexedSymbol) {
     push(symbols, sym)
 }
 
-fn symbol_index_mark_indexed(indexed_uris: Vec<String>, uri: String) {
+fn symbol_index_mark_indexed(mut indexed_uris: Vec<String>, uri: String) {
     if symbol_index_uri_index(indexed_uris, clone(uri)) < 0 {
         push(indexed_uris, uri)
     }

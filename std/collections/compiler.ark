@@ -14,12 +14,12 @@
 // ArenaId = i32 index (monotonically increasing).
 use std::prelude::{eq}
 pub fn arena_new() -> Vec<i32> {
-    let a: Vec<i32> = Vec::new<i32>()
+    let mut a: Vec<i32> = Vec::new<i32>()
     push(a, 0)
     a
 }
 
-pub fn arena_alloc(a: Vec<i32>, val: i32) -> i32 {
+pub fn arena_alloc(mut a: Vec<i32>, val: i32) -> i32 {
     let idx: i32 = get_unchecked(a, 0)
     push(a, val)
     set(a, 0, idx + 1)
@@ -41,13 +41,13 @@ pub fn arena_len(a: Vec<i32>) -> i32 {
 // SlotKey = i32 (the slot index, stable across removes).
 // alive_N = 1 if slot N is active, 0 if removed.
 pub fn slotmap_new() -> Vec<i32> {
-    let m: Vec<i32> = Vec::new<i32>()
+    let mut m: Vec<i32> = Vec::new<i32>()
     push(m, 0)
     push(m, 0)
     m
 }
 
-pub fn slotmap_insert(m: Vec<i32>, value: i32) -> i32 {
+pub fn slotmap_insert(mut m: Vec<i32>, value: i32) -> i32 {
     let key: i32 = get_unchecked(m, 1)
     push(m, value)
     push(m, 1)
@@ -69,7 +69,7 @@ pub fn slotmap_get(m: Vec<i32>, key: i32) -> Option<i32> {
     Some(get_unchecked(m, 2 + key * 2))
 }
 
-pub fn slotmap_remove(m: Vec<i32>, key: i32) -> Option<i32> {
+pub fn slotmap_remove(mut m: Vec<i32>, key: i32) -> Option<i32> {
     let max_key: i32 = get_unchecked(m, 1)
     if key < 0 || key >= max_key {
         return None
@@ -106,7 +106,7 @@ pub fn interner_new() -> Vec<String> {
     Vec::new<String>()
 }
 
-pub fn interner_intern(i: Vec<String>, value: String) -> i32 {
+pub fn interner_intern(mut i: Vec<String>, value: String) -> i32 {
     let n: i32 = len(i)
     let mut idx: i32 = 0
     while idx < n {
@@ -133,18 +133,18 @@ pub fn interner_len(i: Vec<String>) -> i32 {
 
 test mod "arena" {
     test "alloc_returns_sequential_ids" {
-        let a = arena_new()
+        let mut a = arena_new()
         assert(arena_alloc(a, 100) == 0)
         assert(arena_alloc(a, 200) == 1)
         assert(arena_alloc(a, 300) == 2)
     }
     test "get_reads_stored_value" {
-        let a = arena_new()
+        let mut a = arena_new()
         let idx = arena_alloc(a, 77)
         assert(arena_get(a, idx) == 77)
     }
     test "len_tracks_allocs" {
-        let a = arena_new()
+        let mut a = arena_new()
         arena_alloc(a, 1)
         arena_alloc(a, 2)
         assert(arena_len(a) == 2)
@@ -153,7 +153,7 @@ test mod "arena" {
 
 test mod "slotmap" {
     test "insert_returns_key" {
-        let m = slotmap_new()
+        let mut m = slotmap_new()
         let k = slotmap_insert(m, 42)
         let r = match slotmap_get(m, k) {
             Option::Some(v) => v,
@@ -170,7 +170,7 @@ test mod "slotmap" {
         assert(r == 2)
     }
     test "remove_drops_entry" {
-        let m = slotmap_new()
+        let mut m = slotmap_new()
         let k = slotmap_insert(m, 5)
         let removed = match slotmap_remove(m, k) {
             Option::Some(v) => v,
@@ -180,14 +180,14 @@ test mod "slotmap" {
         assert(slotmap_contains(m, k) == false)
     }
     test "contains_and_len" {
-        let m = slotmap_new()
+        let mut m = slotmap_new()
         let k1 = slotmap_insert(m, 1)
         slotmap_insert(m, 2)
         assert(slotmap_contains(m, k1))
         assert(slotmap_len(m) == 2)
     }
     test "keys_stable_across_remove" {
-        let m = slotmap_new()
+        let mut m = slotmap_new()
         let k1 = slotmap_insert(m, 10)
         let k2 = slotmap_insert(m, 20)
         slotmap_remove(m, k1)
@@ -201,21 +201,21 @@ test mod "slotmap" {
 
 test mod "interner" {
     test "intern_dedup_same_string" {
-        let i = interner_new()
+        let mut i = interner_new()
         let a = interner_intern(i, "sym")
         let b = interner_intern(i, "sym")
         assert(a == b)
         assert(interner_len(i) == 1)
     }
     test "intern_distinct_strings" {
-        let i = interner_new()
+        let mut i = interner_new()
         let a = interner_intern(i, "x")
         let b = interner_intern(i, "y")
         assert(a != b)
         assert(interner_len(i) == 2)
     }
     test "lookup_roundtrip" {
-        let i = interner_new()
+        let mut i = interner_new()
         let sym = interner_intern(i, "name")
         let r = match interner_lookup(i, sym) {
             Option::Some(s) => s,
@@ -224,7 +224,7 @@ test mod "interner" {
         assert(r == "name")
     }
     test "lookup_out_of_range_is_none" {
-        let i = interner_new()
+        let mut i = interner_new()
         interner_intern(i, "a")
         let r = match interner_lookup(i, 99) {
             Option::Some(s) => 1,

@@ -2,7 +2,7 @@ use std::collections::compiler
 use std::host::stdio
 
 fn main() {
-    let m: Vec<i32> = compiler::slotmap_new()
+    let mut m: Vec<i32> = compiler::slotmap_new()
     stdio::println((compiler::slotmap_len(m)).to_string())
     let k0: i32 = compiler::slotmap_insert(m, 42)
     let k1: i32 = compiler::slotmap_insert(m, 99)

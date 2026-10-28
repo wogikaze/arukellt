@@ -39,12 +39,12 @@ use corehir::mod as corehir_mod
 // mir_lower.ark as an identity no-op; modular lowering never MIR-dedupes here.
 // Export-only dedupe (wasm/sections_exports.ark) handles overlay name collisions.
 
-fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>, prune_enabled: bool) -> MirModule {
+fn lower_entry_input_to_mir(mut input: MirLowerEntryInput, export_roots: Vec<String>, prune_enabled: bool) -> MirModule {
     let timing = entry_timing::mir_lower_phase_timing_enabled(input.report_phase_timing)
     let t_enter = entry_timing::mir_lower_phase_now()
     let view = entry_input::mir_entry_input_view(input)
-    let body_source = entry_input::mir_entry_input_body_source(input)
-    let m = module_factory::MirModule_new()
+    let mut body_source = entry_input::mir_entry_input_body_source(input)
+    let mut m = module_factory::MirModule_new()
     // #851 Phase 3: enable emit artifacts up front so per-push recording
     // (pair CALL_REF tuples now; body bytes once emit moves in-loop)
     // captures every pushed function — the drain only reads them.
@@ -118,8 +118,8 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     let mut disc_i = 0
     // Append into the module vecs (not replace): signatures registered
     // during ctx prep (e.g. WIT bindings) may already have pushed entries.
-    let disc_names = module_functions::MirModule_discovery_fn_names(m)
-    let disc_ret_names = module_functions::MirModule_discovery_fn_ret_names(m)
+    let mut disc_names = module_functions::MirModule_discovery_fn_names(m)
+    let mut disc_ret_names = module_functions::MirModule_discovery_fn_ret_names(m)
     while disc_i < disc_count {
         push(disc_names, ctx_fn_index::ctx_fn_index_name_at(ctx, disc_i))
         push(
@@ -192,7 +192,7 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     entry_timing::mir_lower_phase_note(timing, "body_emit", t_after_ctx, t_after_decl)
     entry_timing::mir_lower_phase_note(timing, "decl_emit", t_enter, t_after_decl)
 
-    let module = ctx_api_module::ctx_current_module(ctx)
+    let mut module = ctx_api_module::ctx_current_module(ctx)
     let fns_before = module_functions::MirModule_function_count(module) + skipped_bodies
     if ctx_corehir_probe::mir_probe_edges_enabled() != 0 {
         ctx_corehir_probe::mir_probe_dump_recorded_edges(

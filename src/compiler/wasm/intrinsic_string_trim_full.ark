@@ -8,7 +8,7 @@ use wasm::intrinsic_string_trim_full_gc
 use wasm::intrinsic_string_trim_full_helpers
 
 // Handler for: trim, text::trim
-fn emit_trim(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_trim(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         intrinsic_string_trim_full_gc::emit_trim_gc(w, inst, ctx)
         return true

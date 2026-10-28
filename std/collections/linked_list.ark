@@ -65,15 +65,15 @@ fn slot_value(buf: Vec<i32>, node: i32) -> i32 {
     get_unchecked(buf, HEADER_LEN + node * NODE_FIELDS + VALUE_OFFSET)
 }
 
-fn set_slot_prev(buf: Vec<i32>, node: i32, val: i32) {
+fn set_slot_prev(mut buf: Vec<i32>, node: i32, val: i32) {
     set(buf, HEADER_LEN + node * NODE_FIELDS + PREV_OFFSET, val)
 }
 
-fn set_slot_next(buf: Vec<i32>, node: i32, val: i32) {
+fn set_slot_next(mut buf: Vec<i32>, node: i32, val: i32) {
     set(buf, HEADER_LEN + node * NODE_FIELDS + NEXT_OFFSET, val)
 }
 
-fn set_slot_value(buf: Vec<i32>, node: i32, val: i32) {
+fn set_slot_value(mut buf: Vec<i32>, node: i32, val: i32) {
     set(buf, HEADER_LEN + node * NODE_FIELDS + VALUE_OFFSET, val)
 }
 
@@ -97,33 +97,33 @@ fn header_capacity(buf: Vec<i32>) -> i32 {
     get_unchecked(buf, 4)
 }
 
-fn set_header(buf: Vec<i32>, slot: i32, val: i32) {
+fn set_header(mut buf: Vec<i32>, slot: i32, val: i32) {
     set(buf, slot, val)
 }
 
-fn set_header_head(buf: Vec<i32>, val: i32) {
+fn set_header_head(mut buf: Vec<i32>, val: i32) {
     set(buf, 0, val)
 }
 
-fn set_header_tail(buf: Vec<i32>, val: i32) {
+fn set_header_tail(mut buf: Vec<i32>, val: i32) {
     set(buf, 1, val)
 }
 
-fn set_header_free(buf: Vec<i32>, val: i32) {
+fn set_header_free(mut buf: Vec<i32>, val: i32) {
     set(buf, 2, val)
 }
 
-fn set_header_count(buf: Vec<i32>, val: i32) {
+fn set_header_count(mut buf: Vec<i32>, val: i32) {
     set(buf, 3, val)
 }
 
-fn set_header_capacity(buf: Vec<i32>, val: i32) {
+fn set_header_capacity(mut buf: Vec<i32>, val: i32) {
     set(buf, 4, val)
 }
 
 // ── node allocation ─────────────────────────────────────────────────────────
 
-fn alloc_node(buf: Vec<i32>) -> i32 {
+fn alloc_node(mut buf: Vec<i32>) -> i32 {
     let free_head = header_free(buf)
     if free_head != NIL {
         let next_free = slot_next(buf, free_head)
@@ -141,7 +141,7 @@ fn alloc_node(buf: Vec<i32>) -> i32 {
     return cap
 }
 
-fn free_node(buf: Vec<i32>, node: i32) {
+fn free_node(mut buf: Vec<i32>, node: i32) {
     set_slot_prev(buf, node, NIL)
     set_slot_next(buf, node, header_free(buf))
     set_header_free(buf, node)
@@ -151,7 +151,7 @@ fn free_node(buf: Vec<i32>, node: i32) {
 
 /// Create a new empty legacy i32 list over a `Vec<i32>` node pool.
 pub fn linked_list_new() -> Vec<i32> {
-    let buf = Vec::new<i32>()
+    let mut buf = Vec::new<i32>()
     push(buf, NIL)  // head
     push(buf, NIL)  // tail
     push(buf, NIL)  // free_head
@@ -161,7 +161,7 @@ pub fn linked_list_new() -> Vec<i32> {
 }
 
 /// Push a value to the front of the legacy i32 list. O(1).
-pub fn linked_list_push_front(buf: Vec<i32>, value: i32) {
+pub fn linked_list_push_front(mut buf: Vec<i32>, value: i32) {
     let node = alloc_node(buf)
     set_slot_value(buf, node, value)
     let old_head = header_head(buf)
@@ -176,7 +176,7 @@ pub fn linked_list_push_front(buf: Vec<i32>, value: i32) {
 }
 
 /// Push a value to the back of the legacy i32 list. O(1).
-pub fn linked_list_push_back(buf: Vec<i32>, value: i32) {
+pub fn linked_list_push_back(mut buf: Vec<i32>, value: i32) {
     let node = alloc_node(buf)
     set_slot_value(buf, node, value)
     let old_tail = header_tail(buf)
@@ -191,7 +191,7 @@ pub fn linked_list_push_back(buf: Vec<i32>, value: i32) {
 }
 
 /// Pop and return the front value of the legacy i32 list, or `fallback` if empty. O(1).
-pub fn linked_list_pop_front(buf: Vec<i32>, fallback: i32) -> i32 {
+pub fn linked_list_pop_front(mut buf: Vec<i32>, fallback: i32) -> i32 {
     let head = header_head(buf)
     if head == NIL {
         return fallback
@@ -210,7 +210,7 @@ pub fn linked_list_pop_front(buf: Vec<i32>, fallback: i32) -> i32 {
 }
 
 /// Pop and return the back value of the legacy i32 list, or `fallback` if empty. O(1).
-pub fn linked_list_pop_back(buf: Vec<i32>, fallback: i32) -> i32 {
+pub fn linked_list_pop_back(mut buf: Vec<i32>, fallback: i32) -> i32 {
     let tail = header_tail(buf)
     if tail == NIL {
         return fallback
@@ -257,7 +257,7 @@ pub fn linked_list_is_empty(buf: Vec<i32>) -> bool {
 }
 
 /// Remove all elements from the legacy i32 list. O(1) (resets headers).
-pub fn linked_list_clear(buf: Vec<i32>) {
+pub fn linked_list_clear(mut buf: Vec<i32>) {
     set_header_head(buf, NIL)
     set_header_tail(buf, NIL)
     set_header_free(buf, NIL)
@@ -267,7 +267,7 @@ pub fn linked_list_clear(buf: Vec<i32>) {
 
 /// Copy the legacy i32 list into a `Vec<i32>` in front-to-back order. O(n).
 pub fn linked_list_to_vec(buf: Vec<i32>) -> Vec<i32> {
-    let result = Vec::new<i32>()
+    let mut result = Vec::new<i32>()
     let mut node = header_head(buf)
     while node != NIL {
         push(result, slot_value(buf, node))
@@ -312,7 +312,7 @@ impl<T> LinkedList<T> {
     }
 
     /// Inserts `value` at the front. O(1).
-    fn push_front(self: LinkedList<T>, value: T) {
+    fn push_front(mut self: LinkedList<T>, value: T) {
         let node: i32 = self.allocate_node(value)
         let old_head: i32 = self.head
         set(self.next_links, node, old_head)
@@ -326,7 +326,7 @@ impl<T> LinkedList<T> {
     }
 
     /// Inserts `value` at the back. O(1).
-    fn push_back(self: LinkedList<T>, value: T) {
+    fn push_back(mut self: LinkedList<T>, value: T) {
         let node: i32 = self.allocate_node(value)
         let old_tail: i32 = self.tail
         set(self.prev_links, node, old_tail)
@@ -340,7 +340,7 @@ impl<T> LinkedList<T> {
     }
 
     /// Removes and returns the front element, or `None` when empty.
-    fn pop_front(self: LinkedList<T>) -> Option<T> {
+    fn pop_front(mut self: LinkedList<T>) -> Option<T> {
         if self.head == NIL {
             return Option::None
         }
@@ -359,7 +359,7 @@ impl<T> LinkedList<T> {
     }
 
     /// Removes and returns the back element, or `None` when empty.
-    fn pop_back(self: LinkedList<T>) -> Option<T> {
+    fn pop_back(mut self: LinkedList<T>) -> Option<T> {
         if self.tail == NIL {
             return Option::None
         }
@@ -406,7 +406,7 @@ impl<T> LinkedList<T> {
     /// Removes all elements and drops every retained node value.
     ///
     /// The node pool capacity is kept for reuse.
-    fn clear(self: LinkedList<T>) {
+    fn clear(mut self: LinkedList<T>) {
         self.head = NIL
         self.tail = NIL
         self.free_head = NIL
@@ -443,7 +443,7 @@ impl<T> LinkedList<T> {
     // into an old `Vec<T>` slot. Generic `set` / raw array writes on `Vec<T>`
     // do not lower when T is a reference type on wasm32-gc, and the i32-index
     // write below is safe for every T.
-    fn allocate_node(self: LinkedList<T>, value: T) -> i32 {
+    fn allocate_node(mut self: LinkedList<T>, value: T) -> i32 {
         let value_index: i32 = len(self.values)
         push(self.values, value)
         if self.free_head != NIL {
@@ -461,7 +461,7 @@ impl<T> LinkedList<T> {
         node
     }
 
-    fn recycle_node(self: LinkedList<T>, node: i32) {
+    fn recycle_node(mut self: LinkedList<T>, node: i32) {
         set(self.prev_links, node, NIL)
         set(self.next_links, node, self.free_head)
         self.free_head = node
@@ -472,7 +472,7 @@ fn linked_list_value_at<T>(list: LinkedList<T>, node: i32) -> T {
     get_unchecked(list.values, get_unchecked(list.node_values, node))
 }
 
-fn drop_values<T>(values: Vec<T>) {
+fn drop_values<T>(mut values: Vec<T>) {
     while len(values) > 0 {
         match pop(values) {
             Option::Some(_) => {},
@@ -491,7 +491,7 @@ pub struct LinkedListIter<T> {
 impl<T> Iterator for LinkedListIter<T> {
     type Item = T
 
-    fn next(self: LinkedListIter<T>) -> Option<T> {
+    fn next(mut self: LinkedListIter<T>) -> Option<T> {
         if self.remaining <= 0 {
             return Option::None
         }
@@ -501,8 +501,8 @@ impl<T> Iterator for LinkedListIter<T> {
         Option::Some(value)
     }
 
-    fn collect(self: LinkedListIter<T>) -> Vec<T> {
-        let out: Vec<T> = Vec::new<T>()
+    fn collect(mut self: LinkedListIter<T>) -> Vec<T> {
+        let mut out: Vec<T> = Vec::new<T>()
         while self.remaining > 0 {
             push(out, linked_list_value_at(self.list, self.node))
             self.node = get_unchecked(self.list.next_links, self.node)
@@ -511,7 +511,7 @@ impl<T> Iterator for LinkedListIter<T> {
         out
     }
 
-    fn count(self: LinkedListIter<T>) -> i32 {
+    fn count(mut self: LinkedListIter<T>) -> i32 {
         let remaining: i32 = self.remaining
         self.remaining = 0
         self.node = NIL
@@ -544,7 +544,7 @@ pub struct LinkedListIterMut<T> {
 impl<T> Iterator for LinkedListIterMut<T> {
     type Item = T
 
-    fn next(self: LinkedListIterMut<T>) -> Option<T> {
+    fn next(mut self: LinkedListIterMut<T>) -> Option<T> {
         if self.remaining <= 0 {
             self.stopped = true
             return Option::None
@@ -556,8 +556,8 @@ impl<T> Iterator for LinkedListIterMut<T> {
         Option::Some(value)
     }
 
-    fn collect(self: LinkedListIterMut<T>) -> Vec<T> {
-        let out: Vec<T> = Vec::new<T>()
+    fn collect(mut self: LinkedListIterMut<T>) -> Vec<T> {
+        let mut out: Vec<T> = Vec::new<T>()
         while self.remaining > 0 {
             push(out, linked_list_value_at(self.list, self.node))
             self.node = get_unchecked(self.list.next_links, self.node)
@@ -566,7 +566,7 @@ impl<T> Iterator for LinkedListIterMut<T> {
         out
     }
 
-    fn count(self: LinkedListIterMut<T>) -> i32 {
+    fn count(mut self: LinkedListIterMut<T>) -> i32 {
         let remaining: i32 = self.remaining
         self.remaining = 0
         self.node = NIL
@@ -576,7 +576,7 @@ impl<T> Iterator for LinkedListIterMut<T> {
 
 impl<T> LinkedListIterMut<T> {
     /// Replaces the last element yielded by `next` and returns the old value.
-    fn set_current(self: LinkedListIterMut<T>, value: T) -> Option<T> {
+    fn set_current(mut self: LinkedListIterMut<T>, value: T) -> Option<T> {
         if self.stopped || self.current < 0 {
             return Option::None
         }
@@ -606,12 +606,12 @@ pub struct LinkedListIntoIter<T> {
 impl<T> Iterator for LinkedListIntoIter<T> {
     type Item = T
 
-    fn next(self: LinkedListIntoIter<T>) -> Option<T> {
+    fn next(mut self: LinkedListIntoIter<T>) -> Option<T> {
         self.list.pop_front()
     }
 
-    fn collect(self: LinkedListIntoIter<T>) -> Vec<T> {
-        let out: Vec<T> = Vec::new<T>()
+    fn collect(mut self: LinkedListIntoIter<T>) -> Vec<T> {
+        let mut out: Vec<T> = Vec::new<T>()
         while self.list.length > 0 {
             match self.list.pop_front() {
                 Option::Some(value) => push(out, value),
@@ -621,7 +621,7 @@ impl<T> Iterator for LinkedListIntoIter<T> {
         out
     }
 
-    fn count(self: LinkedListIntoIter<T>) -> i32 {
+    fn count(mut self: LinkedListIntoIter<T>) -> i32 {
         let remaining: i32 = self.list.length
         self.list.clear()
         remaining
@@ -650,7 +650,7 @@ impl<T: Clone> Clone for LinkedList<T> {
     fn clone(self: LinkedList<T>) -> LinkedList<T> {
         // `LinkedList::new<T>()` from generic impl code emits the
         // unmonomorphized constructor, so build the empty pool directly.
-        let copy: LinkedList<T> = LinkedList {
+        let mut copy: LinkedList<T> = LinkedList {
             values: Vec::new<T>(),
             node_values: Vec::new<i32>(),
             prev_links: Vec::new<i32>(),
@@ -708,12 +708,12 @@ impl<T: Debug> Debug for LinkedList<T> {
 // sources (`LinkedListIter<T>` / `LinkedListIntoIter<T>`). `VecIter<T>` is the
 // uniform cross-collection source, so it is the implemented one.
 impl<T> FromIterator<VecIter<T>> for LinkedList<T> {
-    fn from_iter(it: VecIter<T>) -> LinkedList<T> {
+    fn from_iter(mut it: VecIter<T>) -> LinkedList<T> {
         let values: Vec<T> = it.collect()
         let count: i32 = len(values)
-        let node_values: Vec<i32> = Vec::new<i32>()
-        let prev_links: Vec<i32> = Vec::new<i32>()
-        let next_links: Vec<i32> = Vec::new<i32>()
+        let mut node_values: Vec<i32> = Vec::new<i32>()
+        let mut prev_links: Vec<i32> = Vec::new<i32>()
+        let mut next_links: Vec<i32> = Vec::new<i32>()
         // The value log is already in traversal order, so node `i` owns value
         // `i` and the links are simply the adjacent indices. Building the pool
         // from indices keeps this path free of element movement.
@@ -763,35 +763,35 @@ test mod "linked_list" {
         assert(linked_list_len(l) == 0)
     }
     test "push_front_order" {
-        let l = linked_list_new()
+        let mut l = linked_list_new()
         linked_list_push_front(l, 1)
         linked_list_push_front(l, 2)
         assert(linked_list_front(l, 0 - 1) == 2)
         assert(linked_list_back(l, 0 - 1) == 1)
     }
     test "push_back_order" {
-        let l = linked_list_new()
+        let mut l = linked_list_new()
         linked_list_push_back(l, 1)
         linked_list_push_back(l, 2)
         assert(linked_list_front(l, 0 - 1) == 1)
         assert(linked_list_back(l, 0 - 1) == 2)
     }
     test "pop_front_fifo" {
-        let l = linked_list_new()
+        let mut l = linked_list_new()
         linked_list_push_back(l, 10)
         linked_list_push_back(l, 20)
         assert(linked_list_pop_front(l, 0 - 1) == 10)
         assert(linked_list_pop_front(l, 0 - 1) == 20)
     }
     test "pop_back_lifo" {
-        let l = linked_list_new()
+        let mut l = linked_list_new()
         linked_list_push_back(l, 10)
         linked_list_push_back(l, 20)
         assert(linked_list_pop_back(l, 0 - 1) == 20)
         assert(linked_list_pop_back(l, 0 - 1) == 10)
     }
     test "pop_empty_returns_fallback" {
-        let l = linked_list_new()
+        let mut l = linked_list_new()
         assert(linked_list_pop_front(l, 77) == 77)
         assert(linked_list_pop_back(l, 88) == 88)
     }
@@ -801,14 +801,14 @@ test mod "linked_list" {
         assert(linked_list_back(l, 66) == 66)
     }
     test "len_after_pops" {
-        let l = linked_list_new()
+        let mut l = linked_list_new()
         linked_list_push_back(l, 1)
         linked_list_push_back(l, 2)
         linked_list_pop_front(l, 0 - 1)
         assert(linked_list_len(l) == 1)
     }
     test "clear_resets" {
-        let l = linked_list_new()
+        let mut l = linked_list_new()
         linked_list_push_back(l, 1)
         linked_list_push_back(l, 2)
         linked_list_clear(l)
@@ -816,7 +816,7 @@ test mod "linked_list" {
         assert(linked_list_len(l) == 0)
     }
     test "to_vec_front_to_back" {
-        let l = linked_list_new()
+        let mut l = linked_list_new()
         linked_list_push_back(l, 3)
         linked_list_push_back(l, 4)
         linked_list_push_front(l, 2)
@@ -827,7 +827,7 @@ test mod "linked_list" {
         assert(v.get_unchecked(2) == 4)
     }
     test "push_after_drain_reuses" {
-        let l = linked_list_new()
+        let mut l = linked_list_new()
         linked_list_push_back(l, 1)
         linked_list_pop_front(l, 0 - 1)
         linked_list_push_back(l, 9)
@@ -835,7 +835,7 @@ test mod "linked_list" {
         assert(linked_list_front(l, 0 - 1) == 9)
     }
     test "single_element_both_ends" {
-        let l = linked_list_new()
+        let mut l = linked_list_new()
         linked_list_push_back(l, 5)
         assert(linked_list_front(l, 0 - 1) == 5)
         assert(linked_list_back(l, 0 - 1) == 5)

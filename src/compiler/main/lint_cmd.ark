@@ -5,14 +5,14 @@ use main::args_record
 use main::compile_core
 use lint::config as lint_config
 
-pub fn cmd_lint(opts: CliOptions) {
+pub fn cmd_lint(mut opts: CliOptions) {
     if args_record::cli_lint_list(opts) {
         stdio::println(registry::format_lint_rule_list())
         return
     }
     let config = lint_config::load_lint_config(".")
-    let cli_allow = args_record::cli_lint_allow(opts)
-    let cli_deny = args_record::cli_lint_deny(opts)
+    let mut cli_allow = args_record::cli_lint_allow(opts)
+    let mut cli_deny = args_record::cli_lint_deny(opts)
     lint_config::merge_lint_config(cli_allow, cli_deny, config)
     args_record::cli_set_lint_allow(opts, cli_allow)
     args_record::cli_set_lint_deny(opts, cli_deny)

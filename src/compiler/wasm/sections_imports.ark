@@ -9,14 +9,14 @@ use wasm::emit_target
 use wasm::sections_wit_imports
 use mir::module_wit_imports
 fn emit_import_section(
-    out: WasmWriter,
+    mut out: WasmWriter,
     host_type_map: Vec<i32>,
     target: String,
     wasi_version: String,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
     wit_type_map: Vec<i32>
 ) {
-    let import_sec = writer_core::WasmWriter_new()
+    let mut import_sec = writer_core::WasmWriter_new()
     let wit_count = module_wit_imports::wit_import_count(bindings)
     writer_core::emit_leb128_u(import_sec, emit_target::total_import_count(clone(target), clone(wasi_version), wit_count))
     if emit_target::is_p2_wasi(clone(wasi_version)) {
@@ -34,7 +34,7 @@ fn wasi_snapshot_module_name() -> String {
     String_from("wasi_snapshot_preview1")
 }
 
-fn emit_wasi_component_stub_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>) {
+fn emit_wasi_component_stub_import_entries(mut import_sec: WasmWriter, host_type_map: Vec<i32>) {
     let wasi_module = wasi_snapshot_module_name()
     emit_host_func_import(import_sec, clone(wasi_module), String_from("fd_write"), get_unchecked(host_type_map, 0))
     emit_host_func_import(import_sec, clone(wasi_module), String_from("args_sizes_get"), get_unchecked(host_type_map, 1))
@@ -48,7 +48,7 @@ fn emit_wasi_component_stub_import_entries(import_sec: WasmWriter, host_type_map
 }
 
 fn emit_wasi_import_entries(
-    import_sec: WasmWriter,
+    mut import_sec: WasmWriter,
     host_type_map: Vec<i32>
 ) {
     let wasi_module = wasi_snapshot_module_name()
@@ -73,7 +73,7 @@ fn p2_module_name(interface_name: String) -> String {
     "cm32p2|wasi:".concat(interface_name.concat("@0.2"))
 }
 
-fn emit_p2_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>) {
+fn emit_p2_import_entries(mut import_sec: WasmWriter, host_type_map: Vec<i32>) {
     // Standard component-model core names are the official lowering contract.
     emit_host_func_import(
         import_sec,
@@ -108,7 +108,7 @@ fn emit_p2_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>) {
     emit_host_func_import(import_sec, p2_module_name("filesystem/preopens"), String_from("get-directories"), get_unchecked(host_type_map, 4))
 }
 
-fn emit_host_func_import(import_sec: WasmWriter, host_module: String, import_name: String, type_idx: i32) {
+fn emit_host_func_import(mut import_sec: WasmWriter, host_module: String, import_name: String, type_idx: i32) {
     writer_string::emit_string(import_sec, host_module)
     writer_string::emit_string(import_sec, import_name)
     writer_core::emit_byte(import_sec, 0)

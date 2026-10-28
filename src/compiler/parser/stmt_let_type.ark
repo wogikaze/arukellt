@@ -3,7 +3,7 @@ use parser::core_ast_type_ann
 use parser::core_api_cursor
 use parser::types
 
-pub fn parse_let_type_ann(p: Parser, node: AstNode) {
+pub fn parse_let_type_ann(mut p: Parser, mut node: AstNode) {
     if core_api_cursor::peek_kind(p) == tokens::TK_COLON() {
         p.pos = p.pos + 1
         core_api_cursor::skip_newlines(p)

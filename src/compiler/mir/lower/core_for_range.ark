@@ -5,7 +5,7 @@ use mir::lower::ctx_types
 use mir::lower::core_expr_shape_accessors
 use mir::value_types
 
-fn lower_core_for_range(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+fn lower_core_for_range(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) < 3 {
         return 0 - 1
     }

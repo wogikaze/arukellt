@@ -1,4 +1,4 @@
 use parser::ast_fields_record
 
 fn AstNode_int_val(node: AstNode) -> i32 { ast_fields_record::ast_node_int_val(node) }
-fn AstNode_set_int_val(node: AstNode, value: i32) { ast_fields_record::ast_node_set_int_val(node, value) }
+fn AstNode_set_int_val(mut node: AstNode, value: i32) { ast_fields_record::ast_node_set_int_val(node, value) }

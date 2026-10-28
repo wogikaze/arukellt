@@ -19,9 +19,9 @@ fn core_op_dispatch_use_registry() -> bool {
 }
 
 fn try_emit_call_via_core_op_registry(
-    w: WasmWriter,
+    mut w: WasmWriter,
     inst: MirInst,
-    ctx: SelfEmitCtx,
+    mut ctx: SelfEmitCtx,
     prev_op: i32,
     prev_arg0: i32,
     prev_arg1: i32,

@@ -147,7 +147,7 @@ fn mir_rewrite_raw_array_namespace(callee_name: String) -> String {
     callee_name
 }
 
-fn mir_rewrite_vec_call(ctx: LowerCtx, callee_name: String, first_arg_idx: i32, second_arg_idx: i32, stage_call_args: bool) -> MirVecCallRewrite {
+fn mir_rewrite_vec_call(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i32, second_arg_idx: i32, stage_call_args: bool) -> MirVecCallRewrite {
     let mut rewritten = mir_rewrite_raw_array_namespace(
         normalize_vec_constructor_callee(callee_name)
     )
@@ -205,7 +205,7 @@ fn is_vec_get_callee(name: String) -> bool {
     contains(name, String_from("::get__"))
 }
 
-fn mir_rewrite_vec_is_empty_to_local(ctx: LowerCtx, first_arg_idx: i32) -> i32 {
+fn mir_rewrite_vec_is_empty_to_local(mut ctx: LowerCtx, first_arg_idx: i32) -> i32 {
     if first_arg_idx < 0 {
         return 0 - 1
     }

@@ -7,7 +7,7 @@ use wasm::emit_target
 use wasm::intrinsic_vec_empty_gc
 
 // Handler for: is_empty
-fn emit_is_empty(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_is_empty(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return intrinsic_vec_empty_gc::emit_is_empty_gc(w, inst, ctx)
     }

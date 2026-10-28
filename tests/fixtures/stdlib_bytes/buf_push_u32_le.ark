@@ -2,7 +2,7 @@ use std::bytes
 use std::test
 
 fn main() {
-    let buf: Vec<i32> = Vec::new<i32>()
+    let mut buf: Vec<i32> = Vec::new<i32>()
     buf.push_u32_le(305419896)
     test::assert_eq_i32(buf.len(), 4)
     test::assert_eq_i32(buf.get_unchecked(0), 120)

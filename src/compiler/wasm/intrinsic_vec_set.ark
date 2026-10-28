@@ -60,7 +60,7 @@ fn lm_vec_store_align(elem_kind: i32) -> i32 {
 }
 
 // Handler for: vec_set / raw.array_set_unchecked
-fn emit_vec_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: bool) -> bool {
+fn emit_vec_set(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: bool) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return intrinsic_vec_set_gc::emit_vec_set_gc(w, inst, ctx, is_void_set)
     }

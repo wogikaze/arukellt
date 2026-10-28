@@ -37,7 +37,7 @@ fn fn_type_of_initializer(env: TypeEnv, fn_sigs: Vec<FnSig>, bind_ty: TypeInfo, 
     call_generic_fn_args::fn_value_type_from_sig(env, fn_sigs, name)
 }
 
-fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
+fn check_let_stmt(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
     let bind_name = ast_access::node_text(node)
     if eq(clone(bind_name), "__tuple_destructure") {
         check_tuple_destructure_let(env, scope, fn_sigs, enum_defs, node)
@@ -147,7 +147,7 @@ fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_def
     }
 }
 
-fn check_tuple_destructure_let(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
+fn check_tuple_destructure_let(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
     if ast_access::node_child_count(node) < 2 {
         return
     }
@@ -162,7 +162,7 @@ fn check_tuple_destructure_let(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnS
     bind_tuple_pat_identifiers(env, scope, pat, bind_ty)
 }
 
-fn bind_tuple_pat_identifiers(env: TypeEnv, scope: LocalScope, pat: AstNode, tuple_ty: TypeInfo) {
+fn bind_tuple_pat_identifiers(env: TypeEnv, mut scope: LocalScope, pat: AstNode, tuple_ty: TypeInfo) {
     if ast_access::node_child_count(pat) == 0 {
         return
     }
@@ -199,7 +199,7 @@ fn tuple_element_type_at(tuple_ty: TypeInfo, index: i32) -> TypeInfo {
 }
 
 // W0001: detect `let alias = v` where `v` is `mut` and the type is a reference type.
-fn check_shared_mut_alias(env: TypeEnv, scope: LocalScope, let_node: AstNode, init: AstNode, bind_ty: TypeInfo) {
+fn check_shared_mut_alias(mut env: TypeEnv, scope: LocalScope, let_node: AstNode, init: AstNode, bind_ty: TypeInfo) {
     if ast_access::node_is_mut(let_node) {
         return
     }

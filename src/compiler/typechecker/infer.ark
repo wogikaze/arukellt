@@ -5,7 +5,7 @@ use typechecker::infer_leaf
 use typechecker::infer_wrappers
 use typechecker::stmt
 
-fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+fn infer_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let leaf_ty = infer_leaf::infer_leaf_expr(env, scope, node)
     if contract_type_access::TypeInfo_tag(leaf_ty) != commands::TY_UNKNOWN() {
         return leaf_ty
@@ -17,6 +17,6 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
     infer_compound::infer_compound_expr(env, scope, fn_sigs, enum_defs, node)
 }
 
-fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
+fn check_stmt(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
     stmt::check_stmt(env, scope, fn_sigs, enum_defs, node)
 }

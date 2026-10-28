@@ -16,7 +16,7 @@ struct MirReachabilityIndex {
 
 fn mir_reachability_index_bind_fid(
     m: MirModule,
-    fid_to_mir: Vec<i32>,
+    mut fid_to_mir: Vec<i32>,
     fname: String,
     fi: i32,
     ordinal: i32,
@@ -53,7 +53,7 @@ fn mir_reachability_index_bind_fid(
     set(fid_to_mir, raw, fi)
 }
 
-fn mir_reachability_index_bind_name(name_to_mir: NameIndex, fname: String, fi: i32) {
+fn mir_reachability_index_bind_name(mut name_to_mir: NameIndex, fname: String, fi: i32) {
     name_index::name_index_insert_first(name_to_mir, clone(fname), fi)
     let short = resolver::use_module_short_name(clone(fname))
     if !eq(clone(short), clone(fname)) {
@@ -63,18 +63,18 @@ fn mir_reachability_index_bind_name(name_to_mir: NameIndex, fname: String, fi: i
 
 fn mir_reachability_index_build(m: MirModule, functions: Vec<MirFunction>) -> MirReachabilityIndex {
     let fn_count = len(functions)
-    let name_to_mir = name_index::NameIndex_new(fn_count + fn_count)
-    let fid_to_mir = Vec::new<i32>()
+    let mut name_to_mir = name_index::NameIndex_new(fn_count + fn_count)
+    let mut fid_to_mir = Vec::new<i32>()
     let mut registry_count = 0
     // Name -> ordered chain of non-signature-only registry slots, plus
     // per-name ordinal counters: the old helpers re-scanned functions
     // [0..fi) and the whole registry per fn, which made the build
     // O(fns x registry) (#851). Chains preserve registry order via a
     // head+tail pair so the ordinal-th entry matches the old scan.
-    let fid_chain_head = name_index::NameIndex_new(0)
-    let fid_chain_tail = name_index::NameIndex_new(0)
-    let fid_chain_next = Vec::new<i32>()
-    let ordinal_counts = name_index::NameIndex_new(0)
+    let mut fid_chain_head = name_index::NameIndex_new(0)
+    let mut fid_chain_tail = name_index::NameIndex_new(0)
+    let mut fid_chain_next = Vec::new<i32>()
+    let mut ordinal_counts = name_index::NameIndex_new(0)
     if module_spine::MirModule_signature_spine_populated(m) {
         let registry = module_spine::MirModule_signature_registry(m)
         registry_count = signature_registry::signature_registry_entry_count(registry)
@@ -132,7 +132,7 @@ fn mir_reachability_lookup_by_func_id(index: MirReachabilityIndex, func_id_raw: 
     get_unchecked(index.fid_to_mir, func_id_raw)
 }
 
-fn mir_reachability_try_enqueue(reachable: Vec<i32>, queue: Vec<i32>, mir_index: i32) -> bool {
+fn mir_reachability_try_enqueue(mut reachable: Vec<i32>, mut queue: Vec<i32>, mir_index: i32) -> bool {
     if mir_index < 0 || mir_index >= len(reachable) {
         return false
     }
@@ -146,8 +146,8 @@ fn mir_reachability_try_enqueue(reachable: Vec<i32>, queue: Vec<i32>, mir_index:
 
 fn mir_reachability_enqueue_by_func_id(
     index: MirReachabilityIndex,
-    reachable: Vec<i32>,
-    queue: Vec<i32>,
+    mut reachable: Vec<i32>,
+    mut queue: Vec<i32>,
     func_id_raw: i32
 ) -> bool {
     let mir_index = mir_reachability_lookup_by_func_id(index, func_id_raw)
@@ -156,8 +156,8 @@ fn mir_reachability_enqueue_by_func_id(
 
 fn mir_reachability_enqueue_by_name_exact(
     index: MirReachabilityIndex,
-    reachable: Vec<i32>,
-    queue: Vec<i32>,
+    mut reachable: Vec<i32>,
+    mut queue: Vec<i32>,
     name: String
 ) -> bool {
     let exact = name_index::name_index_get(index.name_to_mir, name)
@@ -171,8 +171,8 @@ fn mir_reachability_enqueue_by_name_exact(
 fn mir_reachability_enqueue_by_name(
     index: MirReachabilityIndex,
     functions: Vec<MirFunction>,
-    reachable: Vec<i32>,
-    queue: Vec<i32>,
+    mut reachable: Vec<i32>,
+    mut queue: Vec<i32>,
     name: String
 ) -> bool {
     let exact = name_index::name_index_get(index.name_to_mir, clone(name))

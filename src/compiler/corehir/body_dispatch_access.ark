@@ -1,7 +1,7 @@
 use corehir::body_access
 use corehir::expr_node_predicates
 
-fn corehir_dispatch_access_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+fn corehir_dispatch_access_expr(mut table: CoreHirBodyTable, node: AstNode) -> i32 {
     if expr_node_predicates::expr_is_field_access(node) {
         return body_access::corehir_build_field_access_expr(table, node)
     }

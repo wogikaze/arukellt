@@ -13,7 +13,7 @@ fn type_env_mono_instance_at(env: TypeEnv, index: i32) -> MonoInstance {
     get_unchecked(env.mono_instances, index)
 }
 
-fn type_env_push_mono_instance(env: TypeEnv, instance: MonoInstance) {
+fn type_env_push_mono_instance(mut env: TypeEnv, instance: MonoInstance) {
     push(env.mono_instances, instance)
 }
 
@@ -25,6 +25,6 @@ fn type_env_mono_call_site_at(env: TypeEnv, index: i32) -> MonoCallSite {
     get_unchecked(env.mono_call_sites, index)
 }
 
-fn type_env_push_mono_call_site(env: TypeEnv, site: MonoCallSite) {
+fn type_env_push_mono_call_site(mut env: TypeEnv, site: MonoCallSite) {
     push(env.mono_call_sites, site)
 }

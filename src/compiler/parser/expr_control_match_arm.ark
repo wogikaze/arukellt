@@ -8,11 +8,11 @@ use parser::core_api_expect
 use parser::patterns
 use parser::stmt
 
-fn parse_match_arm(p: Parser) -> AstNode {
+fn parse_match_arm(mut p: Parser) -> AstNode {
     let pat = patterns::parse_pattern(p)
     skip_newlines(p)
     let final_pat = parse_match_arm_or_pattern(p, pat)
-    let arm = AstNode_new(kinds::NK_MATCH_ARM(), core_ast_span_fields::AstNode_span(final_pat))
+    let mut arm = AstNode_new(kinds::NK_MATCH_ARM(), core_ast_span_fields::AstNode_span(final_pat))
     core_ast_children::AstNode_push_child(arm, final_pat)
     parse_match_arm_guard(p, arm)
     expect_token(p, tokens::TK_FATARROW())
@@ -22,11 +22,11 @@ fn parse_match_arm(p: Parser) -> AstNode {
     arm
 }
 
-fn parse_match_arm_or_pattern(p: Parser, pat: AstNode) -> AstNode {
+fn parse_match_arm_or_pattern(mut p: Parser, pat: AstNode) -> AstNode {
     if peek_kind(p) != tokens::TK_PIPE() {
         return pat
     }
-    let or_node = AstNode_new(kinds::NK_PAT_OR(), core_ast_span_fields::AstNode_span(pat))
+    let mut or_node = AstNode_new(kinds::NK_PAT_OR(), core_ast_span_fields::AstNode_span(pat))
     core_ast_children::AstNode_push_child(or_node, pat)
     while peek_kind(p) == tokens::TK_PIPE() {
         p.pos = p.pos + 1
@@ -38,7 +38,7 @@ fn parse_match_arm_or_pattern(p: Parser, pat: AstNode) -> AstNode {
     or_node
 }
 
-fn parse_match_arm_guard(p: Parser, arm: AstNode) {
+fn parse_match_arm_guard(mut p: Parser, mut arm: AstNode) {
     if peek_kind(p) == tokens::TK_IF() {
         p.pos = p.pos + 1
         skip_newlines(p)

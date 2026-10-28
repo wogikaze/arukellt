@@ -24,7 +24,7 @@ fn HirFunction_name(func: HirFunction) -> String {
     item_function_core_record::hir_function_name(func)
 }
 
-fn HirFunction_push_param(func: HirFunction, param: HirParam) {
+fn HirFunction_push_param(mut func: HirFunction, param: HirParam) {
     item_function_core_record::hir_function_push_param(func, param)
 }
 
@@ -36,7 +36,7 @@ fn HirFunction_param_at(func: HirFunction, index: i32) -> HirParam {
     item_function_core_record::hir_function_param_at(func, index)
 }
 
-fn HirFunction_push_type_param(func: HirFunction, type_param: HirTypeParam) {
+fn HirFunction_push_type_param(mut func: HirFunction, type_param: HirTypeParam) {
     item_function_core_record::hir_function_push_type_param(func, type_param)
 }
 

@@ -9,7 +9,7 @@ use typechecker::unify
 // coverage (guarded arms, refutable payload patterns) do not count, so
 // any path where no arm can match is rejected at typecheck instead of
 // diverging between backends at runtime.
-fn check_match_exhaustive(env: TypeEnv, resolved_scrutinee: TypeInfo, enum_defs: Vec<EnumInfo>, coverage: MatchCoverage) {
+fn check_match_exhaustive(mut env: TypeEnv, resolved_scrutinee: TypeInfo, enum_defs: Vec<EnumInfo>, coverage: MatchCoverage) {
     if match_coverage_read_record::MatchCoverage_has_wildcard(coverage) ||
     match_coverage_read_record::MatchCoverage_has_irrefutable(coverage) {
         return

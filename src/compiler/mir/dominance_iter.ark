@@ -12,7 +12,7 @@ fn mir_iterate_dominance_sets(f: MirFunction, block_count: i32) {
         changed = false
         let mut b = 1
         while b < block_count {
-            let block = function_block_queries::MirFunction_block_at(f, b)
+            let mut block = function_block_queries::MirFunction_block_at(f, b)
             let new_set = mir_compute_block_dom_set(f, block)
             if !dom_sets::mir_same_block_id_set(block_dominance_access::MirBlock_dom_set(block), new_set) {
                 block_dominance_mutation::MirBlock_set_dom_set(block, new_set)

@@ -33,7 +33,7 @@ fn mir_for_into_iterator_owner(source_type: String) -> String {
     method_resolve::mir_inst_owner_name(normalized)
 }
 
-fn mir_for_into_iterator_type(ctx: LowerCtx, span_start: i32, source_type: String) -> String {
+fn mir_for_into_iterator_type(mut ctx: LowerCtx, span_start: i32, source_type: String) -> String {
     let callee = mir_for_into_iterator_callee(ctx, span_start, source_type)
     if len(callee) == 0 {
         return String_from("")
@@ -46,7 +46,7 @@ fn mir_for_into_iterator_type(ctx: LowerCtx, span_start: i32, source_type: Strin
 // parametric impls (`impl IntoIterator for Ctor<T>`) live under the bare
 // constructor owner (`Ctor::into_iter`). The instantiated owner wins when
 // both exist because it is the more specific impl.
-fn mir_for_into_iterator_callee(ctx: LowerCtx, span_start: i32, source_type: String) -> String {
+fn mir_for_into_iterator_callee(mut ctx: LowerCtx, span_start: i32, source_type: String) -> String {
     let owner = mir_for_into_iterator_owner(clone(source_type))
     if len(owner) > 0 {
         let resolved = mir_for_desugar_callee(
@@ -67,7 +67,7 @@ fn mir_for_into_iterator_callee(ctx: LowerCtx, span_start: i32, source_type: Str
 
 // Resolve the `next` callee for a `for` iterator with the same
 // instantiation-then-bare-owner order as `into_iter`.
-fn mir_for_next_callee(ctx: LowerCtx, span_start: i32, iterator_type: String) -> String {
+fn mir_for_next_callee(mut ctx: LowerCtx, span_start: i32, iterator_type: String) -> String {
     let inst_next = method_resolve::mir_inst_owner_name(clone(iterator_type)).concat("::next")
     let resolved = mir_for_desugar_callee(ctx, span_start, clone(inst_next))
     if len(resolved) > 0 {
@@ -85,7 +85,7 @@ fn mir_for_next_callee(ctx: LowerCtx, span_start: i32, iterator_type: String) ->
 // exist as mangled mono variants found through the per-site span rewrite
 // recorded by the typechecker or, as a fallback, the first registered
 // name rewrite for the declared callee.
-fn mir_for_desugar_callee(ctx: LowerCtx, span_start: i32, declared: String) -> String {
+fn mir_for_desugar_callee(mut ctx: LowerCtx, span_start: i32, declared: String) -> String {
     let span_target = ctx_fn_mono::ctx_mono_lookup_call(ctx, span_start, clone(declared))
     if len(span_target) > 0 {
         return span_target

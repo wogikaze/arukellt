@@ -9,7 +9,7 @@ use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsic_string_join_gc
 
 // Handler for: join, text::join
-fn emit_join(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_join(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return intrinsic_string_join_gc::emit_join_gc(w, ctx)
     }
@@ -33,7 +33,7 @@ fn emit_join(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_join_setup(w: WasmWriter, s_sep: i32, s_jvec: i32, s_jlen: i32, s_jdata: i32, s_ji: i32, s_jbase: i32, s_jdst: i32, s_sep_len: i32) {
+fn emit_join_setup(mut w: WasmWriter, s_sep: i32, s_jvec: i32, s_jlen: i32, s_jdata: i32, s_ji: i32, s_jbase: i32, s_jdst: i32, s_sep_len: i32) {
     helpers_core::emit_local_get(w, s_jvec)
     helpers_memory::emit_i32_load_default(w)
     helpers_core::emit_local_set(w, s_jlen)
@@ -54,7 +54,7 @@ fn emit_join_setup(w: WasmWriter, s_sep: i32, s_jvec: i32, s_jlen: i32, s_jdata:
 // Count the complete output before writing. The linear heap must be advanced
 // before the first header or payload store so a boundary allocation grows
 // memory before any write can reach the old memory end.
-fn emit_join_count_loop(w: WasmWriter, s_jlen: i32, s_jdata: i32, s_ji: i32, s_jdst: i32, s_sep_len: i32, s_str_p: i32, s_str_l: i32) {
+fn emit_join_count_loop(mut w: WasmWriter, s_jlen: i32, s_jdata: i32, s_ji: i32, s_jdst: i32, s_sep_len: i32, s_str_p: i32, s_str_l: i32) {
     helpers_control::emit_block_loop_header(w)
     helpers_core::emit_local_get(w, s_ji)
     helpers_core::emit_local_get(w, s_jlen)
@@ -75,7 +75,7 @@ fn emit_join_count_loop(w: WasmWriter, s_jlen: i32, s_jdata: i32, s_ji: i32, s_j
     helpers_control::emit_end(w)
 }
 
-fn emit_joined_string_length(w: WasmWriter, s_jdata: i32, s_ji: i32, s_str_p: i32, s_str_l: i32) {
+fn emit_joined_string_length(mut w: WasmWriter, s_jdata: i32, s_ji: i32, s_str_p: i32, s_str_l: i32) {
     helpers_core::emit_local_get(w, s_jdata)
     helpers_core::emit_local_get(w, s_ji)
     helpers_numeric_i32::emit_i32_const(w, 4)
@@ -88,7 +88,7 @@ fn emit_joined_string_length(w: WasmWriter, s_jdata: i32, s_ji: i32, s_str_p: i3
     helpers_core::emit_local_set(w, s_str_l)
 }
 
-fn emit_join_count_separator(w: WasmWriter, s_ji: i32, s_jdst: i32, s_sep_len: i32) {
+fn emit_join_count_separator(mut w: WasmWriter, s_ji: i32, s_jdst: i32, s_sep_len: i32) {
     helpers_core::emit_local_get(w, s_ji)
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_numeric_i32::emit_i32_gt_s(w)
@@ -100,7 +100,7 @@ fn emit_join_count_separator(w: WasmWriter, s_ji: i32, s_jdst: i32, s_sep_len: i
     helpers_control::emit_end(w)
 }
 
-fn emit_join_alloc(w: WasmWriter, s_jbase: i32, s_jdst: i32, s_ji: i32) {
+fn emit_join_alloc(mut w: WasmWriter, s_jbase: i32, s_jdst: i32, s_ji: i32) {
     helpers_core::emit_local_get(w, s_jdst)
     helpers_numeric_i32::emit_i32_const(w, 4)
     helpers_numeric_i32::emit_i32_add(w)
@@ -114,7 +114,7 @@ fn emit_join_alloc(w: WasmWriter, s_jbase: i32, s_jdst: i32, s_ji: i32) {
     helpers_core::emit_local_set(w, s_ji)
 }
 
-fn emit_join_loop(w: WasmWriter, s_sep: i32, s_jlen: i32, s_jdata: i32, s_ji: i32, s_jdst: i32, s_sep_len: i32, s_str_p: i32, s_str_l: i32) {
+fn emit_join_loop(mut w: WasmWriter, s_sep: i32, s_jlen: i32, s_jdata: i32, s_ji: i32, s_jdst: i32, s_sep_len: i32, s_str_p: i32, s_str_l: i32) {
     helpers_control::emit_block_loop_header(w)
     helpers_core::emit_local_get(w, s_ji)
     helpers_core::emit_local_get(w, s_jlen)
@@ -131,7 +131,7 @@ fn emit_join_loop(w: WasmWriter, s_sep: i32, s_jlen: i32, s_jdata: i32, s_ji: i3
     helpers_control::emit_end(w)
 }
 
-fn emit_separator_if_needed(w: WasmWriter, s_sep: i32, s_ji: i32, s_jdst: i32, s_sep_len: i32) {
+fn emit_separator_if_needed(mut w: WasmWriter, s_sep: i32, s_ji: i32, s_jdst: i32, s_sep_len: i32) {
     helpers_core::emit_local_get(w, s_ji)
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_numeric_i32::emit_i32_gt_s(w)
@@ -147,7 +147,7 @@ fn emit_separator_if_needed(w: WasmWriter, s_sep: i32, s_ji: i32, s_jdst: i32, s
     helpers_control::emit_end(w)
 }
 
-fn emit_joined_string_copy(w: WasmWriter, s_jdata: i32, s_ji: i32, s_jdst: i32, s_str_p: i32, s_str_l: i32) {
+fn emit_joined_string_copy(mut w: WasmWriter, s_jdata: i32, s_ji: i32, s_jdst: i32, s_str_p: i32, s_str_l: i32) {
     helpers_core::emit_local_get(w, s_jdata)
     helpers_core::emit_local_get(w, s_ji)
     helpers_numeric_i32::emit_i32_const(w, 4)
@@ -168,7 +168,7 @@ fn emit_joined_string_copy(w: WasmWriter, s_jdata: i32, s_ji: i32, s_jdst: i32, 
     helpers_core::emit_local_set(w, s_jdst)
 }
 
-fn emit_join_finish(w: WasmWriter, s_jbase: i32, s_jdst: i32) {
+fn emit_join_finish(mut w: WasmWriter, s_jbase: i32, s_jdst: i32) {
     helpers_core::emit_local_get(w, s_jbase)
     helpers_core::emit_local_get(w, s_jdst)
     helpers_core::emit_local_get(w, s_jbase)

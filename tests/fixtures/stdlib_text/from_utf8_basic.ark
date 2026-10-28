@@ -3,7 +3,7 @@ use std::text
 
 fn main() {
     // Basic ASCII bytes to string
-    let bytes = Vec::new<i32>()
+    let mut bytes = Vec::new<i32>()
     push(bytes, 72)
     push(bytes, 105)
     let s = String::from_utf8_lossy(bytes)
@@ -11,7 +11,7 @@ fn main() {
     test::assert_eq_i32(len(s), 2)
 
     // Single byte
-    let bytes2 = Vec::new<i32>()
+    let mut bytes2 = Vec::new<i32>()
     push(bytes2, 65)
     let s2 = String::from_utf8_lossy(bytes2)
     test::assert_eq_string(s2, "A")

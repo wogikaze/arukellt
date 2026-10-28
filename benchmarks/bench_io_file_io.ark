@@ -10,7 +10,7 @@ fn line_for(i: i32) -> String {
 }
 
 fn main() {
-    let path = "arukellt_bench_io_file_io.txt"
+    let mut path = "arukellt_bench_io_file_io.txt"
     let mut data = String_new()
     let mut i: i32 = 0
     while i < 200 {

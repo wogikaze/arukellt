@@ -8,13 +8,13 @@ use wasm::sections_types_sig_parse
 use wasm::sections_types_sigs_detail
 use wasm::writer_core
 fn emit_canon_type_entries(
-    type_sec: WasmWriter,
+    mut type_sec: WasmWriter,
     canon_types: Vec<String>,
     gc_type_base: i32,
     gc_struct_type_map: Vec<i32>,
     memory64: bool
 ) -> FuncTypeRefs {
-    let type_refs = sections_type_plan::FuncTypeRefs_new()
+    let mut type_refs = sections_type_plan::FuncTypeRefs_new()
     for cti2 in 0..len(canon_types) {
         let csig = get_unchecked(canon_types, cti2)
         sections_type_plan::FuncTypeRefs_begin_entry(type_refs)
@@ -68,7 +68,7 @@ fn emit_canon_type_entries(
 }
 
 fn record_func_type_refs(
-    type_refs: FuncTypeRefs,
+    mut type_refs: FuncTypeRefs,
     param_segments: Vec<String>,
     result_seg: String,
     gc_type_base: i32,
@@ -94,7 +94,7 @@ fn record_func_type_refs(
 }
 
 fn emit_open_sub_type_entry(
-    type_sec: WasmWriter,
+    mut type_sec: WasmWriter,
     sig: String,
     gc_type_base: i32,
     gc_struct_type_map: Vec<i32>,
@@ -107,7 +107,7 @@ fn emit_open_sub_type_entry(
 }
 
 fn emit_sub_type_entry(
-    type_sec: WasmWriter,
+    mut type_sec: WasmWriter,
     sig: String,
     gc_type_base: i32,
     is_final: i32,
@@ -131,7 +131,7 @@ fn emit_sub_type_entry(
 }
 
 fn emit_struct_type_entry(
-    type_sec: WasmWriter,
+    mut type_sec: WasmWriter,
     sig: String,
     gc_type_base: i32,
     gc_struct_type_map: Vec<i32>,
@@ -147,7 +147,7 @@ fn emit_struct_type_entry(
 }
 
 fn emit_struct_field_type(
-    type_sec: WasmWriter,
+    mut type_sec: WasmWriter,
     ft: String,
     gc_type_base: i32,
     gc_struct_type_map: Vec<i32>,
@@ -239,7 +239,7 @@ fn struct_field_sigs(sig: String) -> Vec<String> {
 }
 
 fn emit_type_param_entries(
-    type_sec: WasmWriter,
+    mut type_sec: WasmWriter,
     param_segments: Vec<String>,
     gc_type_base: i32,
     gc_struct_type_map: Vec<i32>,
@@ -257,7 +257,7 @@ fn emit_type_param_entries(
 }
 
 fn emit_type_result_entry(
-    type_sec: WasmWriter,
+    mut type_sec: WasmWriter,
     result_seg: String,
     gc_type_base: i32,
     gc_struct_type_map: Vec<i32>,
@@ -336,7 +336,7 @@ fn find_binary_callback_type_idx_memory64(canon_types: Vec<String>) -> i32 {
 }
 
 fn emit_sig_val_type(
-    type_sec: WasmWriter,
+    mut type_sec: WasmWriter,
     sig: String,
     gc_type_base: i32,
     gc_struct_type_map: Vec<i32>,

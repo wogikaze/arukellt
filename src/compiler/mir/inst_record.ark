@@ -22,7 +22,7 @@ fn mir_inst_index(inst: MirInst) -> i32 {
 // The emitter reuses one handle while walking a block. The handle points at
 // the block's column storage, so changing only its index does not copy or
 // mutate the MIR instruction columns.
-fn mir_inst_set_index(inst: MirInst, index: i32) {
+fn mir_inst_set_index(mut inst: MirInst, index: i32) {
     inst.index = index
 }
 
@@ -43,7 +43,7 @@ fn mir_inst_result_types(inst: MirInst) -> Vec<MirValueType> {
     if !mir_inst_has_packed_result(inst) {
         return Vec::new<MirValueType>()
     }
-    let result = Vec::new<MirValueType>()
+    let mut result = Vec::new<MirValueType>()
     push(
         result,
         mir_value_type::MirValueType_new(
@@ -80,7 +80,7 @@ fn mir_inst_result_type_at(inst: MirInst, _index: i32) -> MirValueType {
     )
 }
 
-fn mir_inst_set_result_types(inst: MirInst, result_types: Vec<MirValueType>) {
+fn mir_inst_set_result_types(mut inst: MirInst, result_types: Vec<MirValueType>) {
     if len(result_types) == 0 {
         set(inst.home.type_ids, inst.index, 0 - 1)
         set(inst.home.type_reprs, inst.index, 0)
@@ -132,15 +132,15 @@ fn mir_inst_str_val(inst: MirInst) -> String {
     get_unchecked(inst.home.str_pool, str_id)
 }
 
-fn mir_inst_set_arg0(inst: MirInst, arg0: i32) {
+fn mir_inst_set_arg0(mut inst: MirInst, arg0: i32) {
     set(inst.home.arg0s, inst.index, arg0)
 }
 
-fn mir_inst_set_arg1(inst: MirInst, arg1: i32) {
+fn mir_inst_set_arg1(mut inst: MirInst, arg1: i32) {
     set(inst.home.arg1s, inst.index, arg1)
 }
 
-fn mir_inst_set_dest(inst: MirInst, dest: i32) {
+fn mir_inst_set_dest(mut inst: MirInst, dest: i32) {
     set(inst.home.dests, inst.index, dest)
 }
 
@@ -148,12 +148,12 @@ fn mir_inst_func_id_raw(inst: MirInst) -> i32 {
     get_unchecked(inst.home.func_ids, inst.index)
 }
 
-fn mir_inst_with_func_id_raw(inst: MirInst, func_id_raw: i32) -> MirInst {
+fn mir_inst_with_func_id_raw(mut inst: MirInst, func_id_raw: i32) -> MirInst {
     set(inst.home.func_ids, inst.index, func_id_raw)
     inst
 }
 
-fn mir_inst_with_call_target(inst: MirInst, callee: String, func_id_raw: i32) -> MirInst {
+fn mir_inst_with_call_target(mut inst: MirInst, callee: String, func_id_raw: i32) -> MirInst {
     let pool_index = len(inst.home.str_pool)
     push(inst.home.str_pool, callee)
     set(inst.home.str_ids, inst.index, pool_index)
@@ -161,7 +161,7 @@ fn mir_inst_with_call_target(inst: MirInst, callee: String, func_id_raw: i32) ->
     inst
 }
 
-fn mir_inst_copy_with_locals(inst: MirInst, dest: i32, arg0: i32, arg1: i32) -> MirInst {
+fn mir_inst_copy_with_locals(mut inst: MirInst, dest: i32, arg0: i32, arg1: i32) -> MirInst {
     set(inst.home.dests, inst.index, dest)
     set(inst.home.arg0s, inst.index, arg0)
     set(inst.home.arg1s, inst.index, arg1)

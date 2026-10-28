@@ -8,7 +8,7 @@ use mir::lower::core_for
 use mir::lower::core_loops
 use mir::lower::core_match
 
-fn lower_core_control_expr(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+fn lower_core_control_expr(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if expr_predicates::expr_kind_is(expr, commands::COREHIR_EXPR_BLOCK()) {
         return core_control::lower_core_block(ctx, exprs, expr)
     }

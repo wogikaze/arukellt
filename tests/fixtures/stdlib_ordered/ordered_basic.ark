@@ -2,7 +2,7 @@ use std::collections::ordered
 use std::host::stdio
 
 fn main() {
-    let m: Vec<i32> = ordered::sorted_map_new()
+    let mut m: Vec<i32> = ordered::sorted_map_new()
     ordered::sorted_map_insert(m, 30, 300)
     ordered::sorted_map_insert(m, 10, 100)
     ordered::sorted_map_insert(m, 20, 200)
@@ -12,7 +12,7 @@ fn main() {
     stdio::println((ordered::sorted_map_get(m, 30)).to_string())
     stdio::println((ordered::sorted_map_contains(m, 20)).to_string())
     stdio::println((ordered::sorted_map_contains(m, 99)).to_string())
-    let bs: Vec<i32> = ordered::bitset_new()
+    let mut bs: Vec<i32> = ordered::bitset_new()
     ordered::bitset_mark(bs, 5)
     ordered::bitset_mark(bs, 42)
     stdio::println((ordered::bitset_test(bs, 5)).to_string())

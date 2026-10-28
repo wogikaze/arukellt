@@ -41,7 +41,7 @@ fn issue652_parser_malformed_self_check() -> String {
 fn main() {
     let src = "fn main() { 42 }"
     let tokens = scan::tokenize(src)
-    let p = core_api_token::Parser_new(tokens)
+    let mut p = core_api_token::Parser_new(tokens)
     let decls = decl::parse_module(p)
     let n = len(decls)
     stdio::println("Parsed ".concat(to_string(n).concat(" declaration(s)")))

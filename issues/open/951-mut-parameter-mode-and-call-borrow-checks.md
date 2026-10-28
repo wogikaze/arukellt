@@ -55,11 +55,12 @@ targets printing `3` / `2`).
 
 ## Acceptance
 
-- [ ] `alias.ark` (#943) is a compile-error fixture on `wasm32` and
+- [x] `alias.ark` (#943) is a compile-error fixture on `wasm32` and
       `wasm32-gc`: assignment through the shared parameter of `bump` and
       `push` on the shared parameter of `add` are diagnosed.
-      Blocked on the callee-side rule: shared parameters are still bound
-      mutable, so the alias program still compiles (see Remaining scope).
+      Covered by `diagnostics/shared_param_body_mutation.ark` (E0226) and
+      `diagnostics/shared_param_push.ark` (E0223); the combined repro emits
+      both codes.
 - [x] A positive run fixture: `fn bump(mut p: Point)` with `let mut p`
       prints the mutated value identically on both targets.
       `tests/fixtures/mut_params/mut_param_places.ark` covers a `mut`
@@ -84,11 +85,12 @@ targets printing `3` / `2`).
       matches on both targets (ADR-088 §6).
       Not added; sharing itself is unchanged, so the fixture would pass
       without exercising a new rule.
-- [ ] After migration the diagnostics are errors; `python3 scripts/manager.py
+- [x] After migration the diagnostics are errors; `python3 scripts/manager.py
       verify fixtures` and `python3 scripts/manager.py selfhost fixpoint`
       stay green.
-      The new diagnostics are already errors, but the migration that makes
-      them cover shared parameters has not run.
+      The callee-side rule is an error by default. The final gates report
+      fixtures PASS=1882 FAIL=0 (`test:` 36/36) and fixpoint
+      `sha256(s2) == sha256(s3) = 7510f982…`; see the 2026-10-29 receipt.
 - [x] Language docs and current-state are synced (`$docs-sync`) for the
       implemented slice; the remaining scope is recorded below and in
       `docs/current-state.md`.
@@ -196,16 +198,110 @@ Fixtures: `mut_params/fn_type_modes.ark` (run, expected `1/1/6/5/2/2`),
   (pinned base sha256
   `8df2698c8401693879ca4f9ced289ed2c285d95eb526cf70fda02dd5876259ee`).
 
+## Implementation (2026-10-29, callee-side rule)
+
+Third vertical slice: the callee side of ADR-088 §2/§3. A shared parameter
+and a shared `self` are now immutable in the body; only `mut p` / `mut self`
+may be assigned. The stdlib, the selfhost compiler, the fixture corpus,
+examples, and docs samples are migrated to declare `mut` on every parameter or
+receiver that mutates through it, so the rule is enabled as an error rather
+than a warning.
+
+- `body_params` binds each parameter by `FnSig_param_is_mut` (the mode the
+  first slice already recorded), and the scope records whether an immutable
+  binding is a shared parameter/receiver so the diagnostic can name the fix.
+- E0226: assigning through a shared parameter or shared `self` (including its
+  field and element places) is an error. A mutating call such as `push(p, x)`
+  or a `mut self` method on a shared parameter is still reported as E0223 at
+  the call site. `mut p = …` rebinds only the callee's name and is allowed.
+- Migration: 1,817 `.ark` files changed plus four new fixtures, with 4,352
+  changed parameter-declaration lines and 2,345 new `let mut` binding lines
+  (including test bodies). The analyzer seeds direct parameter assignment and
+  the mutating stdlib operations (`push`, `set`, `pop`, `insert`, `clear`,
+  `remove`, `append`, `extend`, and the collection setters), then propagates
+  through calls and method receivers to a fixpoint. Calls nested in argument
+  expressions (`i32_to_i64(self.read_u8())`) and receivers reached through a
+  struct field are followed too; those two passes found the remaining
+  `std/bytes`, `std/io`, `std/toml`, and iterator-adapter cases.
+  `std/`, `src/compiler/`, `tests/fixtures/`, `benchmarks/`, `examples/`,
+  the runnable `docs/examples/`, and `extensions/` are covered. The
+  uncompilable v0 `docs/sample/parser.ark` (pre-existing type errors) is left
+  unchanged. The diagnostic fixtures that
+  intentionally pass an immutable place (`mut_param_immutable_place`,
+  `mut_self_immutable_receiver`, and the new E0226 fixtures) are excluded from
+  the mechanical rewrite. `std/toml/parser.ark` needed one local alias
+  (`let mut array = arr`) where a match binding was pushed through a `mut`
+  parameter.
+- One same-root call site was real: `HashSet::extend` is now `mut self`, so
+  the String self-extend fixture goes through `grown.clone()` instead
+  (ADR-088 §5). `MirModule_reindex_body_store` takes a `let mut` snapshot
+  before passing the module and its function vector.
+
+### Bootstrap compatibility
+
+The official pin (`8df2698c…`) predates the #951 parser and rejects `mut`
+parameter declarations, while the committed compiler source now uses them.
+`_strip_bootstrap_param_modes` removes the mode token from the flat overlay
+copies used by the pin; the checked-in source keeps the modes. Fixpoint stage 3
+reuses the same stripped overlay, so it passes the internal
+`--bootstrap-allow-shared-param-mutation` option to restore the pre-#951
+permissive body binding for that self-compile only. User programs, fixtures,
+and the analysis pipeline keep the strict rule. Both shims have deletion
+conditions in `docs/compiler/bootstrap.md` (a pin and overlay that ship the
+real modes).
+
+Fixtures: `mut_params/shared_and_mut_bodies.ark` (run, expected `3/3/7`),
+`diagnostics/shared_param_body_mutation.ark` (E0226),
+`diagnostics/shared_self_body_mutation.ark` (E0226), and
+`diagnostics/shared_param_push.ark` (E0223, the `push` half of the #943
+repro). The `bump` half of the repro is covered by
+`shared_param_body_mutation.ark`; together they are the required compile-error
+registration.
+
+### Verification (2026-10-29, callee-side rule)
+
+- `python3 scripts/manager.py selfhost build-compiler`: PASS, elapsed
+  2135.1s (first build, intermediate), s2 sha256
+  `6cefc823e5ce5f9e25080c5abe0465d9bec8b50c1374394fbe4fedf6cc053dbd`.
+- `python3 scripts/manager.py selfhost build-compiler` after the compiler
+  flag: PASS, elapsed 1911.2s, s2 sha256
+  `b5eead77ab4591d13e559e8e09e5762fdc87b40c8a70370e2c97b4d03036bf18`.
+  A later fixture-gate rebuild after a late `std/host/fs.ark` annotation
+  reproduced the same sha256. After the final nested-call/toml pass,
+  `build-compiler` was run once more: PASS, elapsed 1922.6s, s2 sha256
+  `7510f9820156fabc301aa966e7c9adde5d88eed8c03448b141422cc0a996a97d`.
+- `python3 scripts/manager.py selfhost fixpoint`: PASS —
+  `sha256(s2) == sha256(s3)` =
+  `7510f9820156fabc301aa966e7c9adde5d88eed8c03448b141422cc0a996a97d`
+  (pinned base `8df2698c8401693879ca4f9ced289ed2c285d95eb526cf70fda02dd5876259ee`).
+  The first fixpoint attempt compared the intermediate s2
+  (`b5eead77…`) with an s3 built from the final source (`7510f982…`) and
+  correctly reported not reached; rebuilding s2 from the final source
+  resolved it.
+- `python3 scripts/manager.py verify fixtures`: PASS — PASS=1882 FAIL=0,
+  1882 compile+validate, 109 runtime executed, 2 native-cpp contracts
+  delegated; `test:` PASS=36 FAIL=0.
+- `python3 scripts/manager.py selfhost diag-parity`: PASS.
+- `python3 scripts/manager.py verify lane`: PASS (`quality changed`;
+  lint checked=1801 failed=0; lint ratchet checked=1801 failed=0). The
+  touched-code advisory reports eight `lines_ge_200` signatures that the
+  `mut ` prefix pushed just over 200 characters; the global ratchet is
+  unchanged. Those signatures are left unsplit rather than reformatted after
+  the final build.
+- `python3 scripts/manager.py docs check`: 6/6 PASS.
+- Manual both-target run of `mut_params/shared_and_mut_bodies.ark`:
+  `3/3/7` on `wasm32-gc` and `wasm32`.
+- The #943 `alias.ark` repro now reports E0226 for `bump` and E0223 for
+  `push` in `add`.
+
 ## Remaining scope
 
-1. Callee-side rule (ADR-088 §2/§3): `body_params` still binds every
-   parameter mutable, so assigning through a shared parameter or shared
-   `self` is accepted. Because the same binding state backs the call-site
-   check, a shared parameter or shared `self` is also accepted where a
-   mutable place is required. Enabling the rule requires migrating `std/`
-   and `src/compiler/` mutating parameters to `mut` and their call sites to
-   `let mut`; `fn bump(p: Point) { p.x = ... }` and the #943 `alias.ark`
-   repro therefore still compile (verified: prints `3`/`2`).
+1. Callee-side rule (ADR-088 §2/§3): landed in the 2026-10-29 slice.
+   `body_params` binds by `FnSig_param_is_mut`, E0226 rejects assignment
+   through a shared parameter or shared `self`, and the corpus is migrated.
+   The self-compile stage uses the bootstrap `mut`-mode strip and the internal
+   `--bootstrap-allow-shared-param-mutation` option because the pin and the
+   flat overlay predate the mode parser; user code and fixtures are strict.
 2. Function-type mode (ADR-088 §7): implemented for parsing, `TY_FN`
    modes, calls through function values, and shared→`mut` assignment at
    annotated `let` bindings. Remaining: the reverse-direction check is not
@@ -213,8 +309,9 @@ Fixtures: `mut_params/fn_type_modes.ark` (run, expected `1/1/6/5/2/2`),
    qualified/path function names are not recovered for the `let` check.
 3. Borrowed `Box<T>` escape (ADR-088 §6): returning, storing, or `unbox`ing a
    borrowed `Box<T>` parameter is still accepted.
-4. stdlib surface (ADR-088 §8): `push`/`set`/`pop`/`insert`/`clear` are not
-   declared with `mut` receivers yet.
+4. stdlib surface (ADR-088 §8): `push`/`set`/`pop`/`insert`/`clear` and the
+   collection setters now declare `mut` parameters/receivers. No
+   name-based exemption is used.
 5. Same-root checking is syntactic and collapses element paths to `[]`; this
    is the ADR's no-alias-analysis choice, not a temporary limitation.
 

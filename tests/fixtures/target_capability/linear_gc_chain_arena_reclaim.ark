@@ -10,7 +10,7 @@ use std::test
 fn main() {
     let mut i = 0
     while i < 6000000 {
-        let v = Vec::new<i32>()
+        let mut v = Vec::new<i32>()
         push(v, i)
         i = i + 1
     }

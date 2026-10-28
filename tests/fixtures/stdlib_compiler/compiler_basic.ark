@@ -2,7 +2,7 @@ use std::collections::compiler
 use std::host::stdio
 
 fn main() {
-    let a: Vec<i32> = compiler::arena_new()
+    let mut a: Vec<i32> = compiler::arena_new()
     let idx0: i32 = compiler::arena_alloc(a, 42)
     let idx1: i32 = compiler::arena_alloc(a, 99)
     stdio::println((compiler::arena_len(a)).to_string())

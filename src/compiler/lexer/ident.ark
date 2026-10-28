@@ -2,7 +2,7 @@ use std::prelude::{clone, eq, substring}
 use lexer::tokens
 use lexer::char_class
 use lexer::keywords
-fn lex_ident(lex: Lexer) -> Token {
+fn lex_ident(mut lex: Lexer) -> Token {
     let start = lex.pos
     while lex.pos < lex.src_len && char_class::is_alnum(peek(lex)) {
         lex.pos = lex.pos + 1
@@ -21,7 +21,7 @@ fn lex_ident(lex: Lexer) -> Token {
     }
 }
 
-fn lex_fstring(lex: Lexer, start: i32) -> Token {
+fn lex_fstring(mut lex: Lexer, start: i32) -> Token {
     lex.pos = lex.pos + 1
     let content_start = lex.pos
     let mut depth = 0

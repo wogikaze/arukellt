@@ -53,8 +53,8 @@ fn string_literal_cache_global(ctx: SelfEmitCtx, strings: EmitStringTablePlan) -
 }
 
 fn emit_wasm_module_sections(
-    out: WasmWriter,
-    mir: MirModule,
+    mut out: WasmWriter,
+    mut mir: MirModule,
     target: String,
     wasi_version: String,
     opt_level: i32,
@@ -79,7 +79,7 @@ fn emit_wasm_module_sections(
     }
     let strings = strings::prepare_string_table(mir)
     t_phase = emit_section_note(report_timing, "strings", t_phase)
-    let gc_layout = gc_layout_table::GcLayoutTable_new()
+    let mut gc_layout = gc_layout_table::GcLayoutTable_new()
     let needs_wrapper = if emit_target::is_p2_wasi(clone(wasi_version)) {
         if main_idx >= 0 { 1 } else { 0 }
     } else {

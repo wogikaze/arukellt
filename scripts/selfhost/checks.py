@@ -387,6 +387,10 @@ BOOTSTRAP_WASM_REL = ".build/selfhost/arukellt-pinned-bootstrap.wasm"
 S2_RUNTIME_WASM_REL = ".build/selfhost/arukellt-s2-runtime.wasm"
 CLOCK_S2_WASM_REL = ".build/selfhost/arukellt-s2-clock.wasm"
 SELFHOST_SOURCE_REL = "src/compiler/main.ark"
+# The pin predates #951 and the flat overlay strips `mut` parameter modes, so
+# the self-compile stage must run with the pre-ADR-088 permissive body binding.
+# User compilations keep the strict rule; see docs/compiler/bootstrap.md.
+BOOTSTRAP_SHARED_PARAM_FLAG = "--bootstrap-allow-shared-param-mutation"
 BOOTSTRAP_WORKSPACE_REL = ".build/selfhost/bootstrap-workspace"
 WASI_P2_WIT_REL = Path("scripts/selfhost/wit/deps/wasi-cli-0.2.0/wit")
 # Memory64 GC full-compiler compiles (stage-2/3 fixpoint) regularly exceed
@@ -4586,6 +4590,7 @@ def _prepare_flattened_selfhost_source_locked(
     core_dst = overlay_root / "std" / "core"
     core_dst.mkdir(exist_ok=True)
     shutil.copyfile(error_src, core_dst / "error.ark")
+    _strip_bootstrap_param_modes(overlay_root)
     _FLAT_OVERLAY_CACHE = (source_mtime, overlay_root)
     # Write disk cache so subsequent processes can skip overlay regeneration.
     _flat_overlay_disk_cache_write(root, source_hash, str(overlay_root))
@@ -4673,6 +4678,134 @@ def _patch_bootstrap_main_host_to_prelude(compiler_out: Path) -> None:
     main_path.write_text(text, encoding="utf-8")
 
 
+def _strip_bootstrap_param_modes(overlay_root: Path) -> None:
+    """Strip ADR-088 parameter modes from the flat bootstrap overlay.
+
+    The official pin (``8df2698c…``, source at ``be7f6d3d9``) predates the
+    #951 parser, so it rejects ``mut p`` / ``mut self`` / ``|mut v|`` /
+    ``fn(mut T)`` even though the checked-in source now uses them. The pin
+    only has to parse the compiler enough to build s2: its typechecker binds
+    every parameter mutable and never enforces the callee-side rule, so
+    removing the mode token from the overlay copies leaves the same parameter
+    list and body. s2, which includes the #951 parser and rule, compiles the
+    real checked-in source for fixtures; the self-compile stage reuses the
+    stripped overlay with ``BOOTSTRAP_SHARED_PARAM_FLAG``.
+
+    Delete condition: a pin built from source that includes the #951
+    parameter-mode parser. Probe with ``fn bump(mut p: Point)`` and remove the
+    patch when the pin accepts it.
+    """
+    for path in sorted(overlay_root.rglob("*.ark")):
+        text = path.read_text(encoding="utf-8")
+        stripped = _strip_param_mode_tokens(text)
+        if stripped != text:
+            path.write_text(stripped, encoding="utf-8")
+
+
+def _strip_param_mode_tokens(text: str) -> str:
+    """Remove parameter-position ``mut`` tokens, preserving strings/comments."""
+    masked = _mask_ark_strings_and_comments(text)
+    mutable = list(text)
+    spans: list[tuple[int, int]] = []
+    for match in re.finditer(r"\bfn\b", masked):
+        after = match.end()
+        while after < len(masked) and masked[after].isspace():
+            after += 1
+        if after < len(masked) and (masked[after].isalpha() or masked[after] == "_"):
+            while after < len(masked) and (masked[after].isalnum() or masked[after] == "_"):
+                after += 1
+            while after < len(masked) and masked[after].isspace():
+                after += 1
+            if after < len(masked) and masked[after] == "<":
+                depth = 0
+                while after < len(masked):
+                    if masked[after] == "<":
+                        depth += 1
+                    elif masked[after] == ">":
+                        depth -= 1
+                        if depth == 0:
+                            after += 1
+                            break
+                    after += 1
+                while after < len(masked) and masked[after].isspace():
+                    after += 1
+        if after >= len(masked) or masked[after] != "(":
+            continue
+        close = _matching_ark_paren(masked, after)
+        if close >= 0:
+            spans.append((after + 1, close))
+    # Closure parameter lists keep the same mode spelling (`|mut v|`). The
+    # closing pipe is required; a bare `|` is a bitwise-or operator.
+    for match in re.finditer(r"\|([^|\n]*)\|", masked):
+        group = match.group(1)
+        if re.search(r"\bmut\b", group):
+            spans.append((match.start(1), match.end(1)))
+    for start, end in spans:
+        for token in re.finditer(r"\bmut\b", masked[start:end]):
+            for index in range(start + token.start(), start + token.end()):
+                mutable[index] = " "
+    return "".join(mutable)
+
+
+def _matching_ark_paren(masked: str, open_index: int) -> int:
+    depth = 0
+    for index in range(open_index, len(masked)):
+        char = masked[index]
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+            if depth == 0:
+                return index
+    return -1
+
+
+def _mask_ark_strings_and_comments(text: str) -> str:
+    """Return ``text`` with string/comment bodies blanked, keeping offsets."""
+    out = list(text)
+    index = 0
+    length = len(text)
+    while index < length:
+        char = text[index]
+        if char == "/" and index + 1 < length and text[index + 1] == "/":
+            while index < length and text[index] != "\n":
+                out[index] = " "
+                index += 1
+            continue
+        if char == "/" and index + 1 < length and text[index + 1] == "*":
+            while index < length and not (
+                text[index] == "*" and index + 1 < length and text[index + 1] == "/"
+            ):
+                if text[index] != "\n":
+                    out[index] = " "
+                index += 1
+            for offset in (index, index + 1):
+                if offset < length:
+                    out[offset] = " "
+            index += 2
+            continue
+        if char == '"':
+            out[index] = " "
+            index += 1
+            while index < length:
+                if text[index] == "\\":
+                    out[index] = " "
+                    if index + 1 < length and text[index + 1] != "\n":
+                        out[index + 1] = " "
+                    index += 2
+                    continue
+                if text[index] == '"':
+                    out[index] = " "
+                    index += 1
+                    break
+                if text[index] != "\n":
+                    out[index] = " "
+                index += 1
+            continue
+        index += 1
+    return "".join(out)
+
+
 def _prepare_bootstrap_workspace(root: Path) -> Path:
     """Return an isolated workspace whose ``src/compiler`` shadows the live tree."""
     # Flat overlay is already isolated; skip copytree (WSL races on ~1.5k files).
@@ -4696,6 +4829,7 @@ def _compute_compiler_fingerprint(
     compiler_wasm: Path,
     root: Path,
     workspace_root: Path | None = None,
+    extra_key: str = "",
 ) -> str | None:
     """Compute the program fingerprint for s3 cache key.
 
@@ -4705,7 +4839,8 @@ def _compute_compiler_fingerprint(
     """
     fp = _selfhost_source_fingerprint(root)
     compiler_hash = _sha256(compiler_wasm)
-    return f"{compiler_hash[:16]}_{SELFHOST_TARGET}_{fp[:24]}"
+    key_hash = hashlib.sha256(extra_key.encode()).hexdigest()[:8] if extra_key else "default"
+    return f"{compiler_hash[:16]}_{SELFHOST_TARGET}_{fp[:24]}_{key_hash}"
 
 
 def _s3_cache_dir(root: Path) -> Path:
@@ -4721,6 +4856,7 @@ def _try_s3_cache(
     out_rel: str,
     root: Path,
     workspace_root: Path | None = None,
+    extra_key: str = "",
 ) -> bool:
     """Try to use a cached s3.wasm for the current source fingerprint.
 
@@ -4751,6 +4887,7 @@ def _store_s3_cache(
     out_rel: str,
     root: Path,
     workspace_root: Path | None = None,
+    extra_key: str = "",
 ) -> None:
     """Store the compiled s3.wasm in the cache, keyed by compiler hash + fingerprint.
 
@@ -4790,9 +4927,10 @@ def _wasm_compile_selfhost_source(
     emit_target = target if target is not None else SELFHOST_TARGET
     emit_wasi = wasi_version if wasi_version is not None else SELFHOST_WASI_VERSION
     workspace = _prepare_bootstrap_workspace(root)
+    extra_key = " ".join(extra_args or [])
 
     if use_s3_cache:
-        if _try_s3_cache(wasmtime, compiler_wasm, out_rel, root, workspace):
+        if _try_s3_cache(wasmtime, compiler_wasm, out_rel, root, workspace, extra_key):
             return subprocess.CompletedProcess(
                 [], returncode=0, stdout="", stderr="s3 cache hit",
             )
@@ -4821,7 +4959,7 @@ def _wasm_compile_selfhost_source(
 
     result = _do_compile()
     if use_s3_cache and result.returncode == 0:
-        _store_s3_cache(compiler_wasm, out_rel, root, workspace)
+        _store_s3_cache(compiler_wasm, out_rel, root, workspace, extra_key)
     return result
 
 
@@ -5230,6 +5368,7 @@ def _run_fixpoint_locked(
                     use_s3_cache=True,
                     target=BOOTSTRAP_EMIT_TARGET,
                     wasi_version=BOOTSTRAP_EMIT_WASI_VERSION,
+                    extra_args=[BOOTSTRAP_SHARED_PARAM_FLAG],
                 )
         except BootstrapOverlayError as e:
             emit(f"{RED}✗ bootstrap overlay patch failed during stage 3:{NC}")

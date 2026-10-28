@@ -1,7 +1,7 @@
 use mir::lower::core_literals
 use mir::lower::core_names
 
-fn lower_core_atomic(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
+fn lower_core_atomic(mut ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
     let name_value = core_names::lower_core_name_value(ctx, expr)
     if name_value != 0 - 2 {
         return name_value

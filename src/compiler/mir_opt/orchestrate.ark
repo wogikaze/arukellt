@@ -17,7 +17,7 @@ use mir_opt::licm
 use mir_opt::loop_unroll
 use mir_opt::stdlib_resolve_validated
 use mir_opt::target_gate
-fn mir_opt_optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModule {
+fn mir_opt_optimize_module(mut m: MirModule, opt_level: i32, target: String) -> MirModule {
     // #851 Phase 3: with fused in-loop emit the per-fn passes already ran in
     // the lowering drain and the emitted bytes are stored on the module's
     // artifacts — re-running opt here would mutate MIR after its emit.
@@ -34,10 +34,10 @@ fn mir_opt_optimize_module(m: MirModule, opt_level: i32, target: String) -> MirM
     }
     let t3 = target_gate::mir_opt_is_t3_target(clone(target))
     let fn_count = module_functions::MirModule_function_count(m)
-    let updated = Vec::new<MirFunction>()
+    let mut updated = Vec::new<MirFunction>()
     let mut fi = 0
     while fi < fn_count {
-        let f = module_functions::MirModule_function_at(m, fi)
+        let mut f = module_functions::MirModule_function_at(m, fi)
         if !t3 {
             loop_unroll::run_loop_unroll(f)
             licm::run_licm(f)
@@ -54,7 +54,7 @@ fn mir_opt_optimize_module(m: MirModule, opt_level: i32, target: String) -> MirM
 // same pass order as mir_opt_optimize_module (async lower -> validated
 // stdlib resolve -> O2 loop/gc passes) applied to one function. All passes
 // are function-local, so composing them per-fn is equivalent.
-fn mir_opt_optimize_fn(m: MirModule, f: MirFunction, opt_level: i32, target: String) -> MirFunction {
+fn mir_opt_optimize_fn(m: MirModule, mut f: MirFunction, opt_level: i32, target: String) -> MirFunction {
     let f = async_lower::async_lower_fn(f)
     stdlib_resolve_validated::stdlib_resolve_fn_validated(m, f)
     if opt_level >= 2 {

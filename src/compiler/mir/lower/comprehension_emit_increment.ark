@@ -10,7 +10,7 @@ use mir::inst_op
 use mir::lower::comprehension_state
 use mir::value_types
 
-fn mir_emit_comprehension_increment(ctx: LowerCtx, state: ComprehensionState) {
+fn mir_emit_comprehension_increment(mut ctx: LowerCtx, state: ComprehensionState) {
     let idx_local = comprehension_state::comprehension_state_idx_local(state)
     ctx_emit(ctx, inst_local_get::MirInst_local_get(idx_local))
     let comp_one_dest = ctx_fresh_local(ctx, value_types::VT_I32())

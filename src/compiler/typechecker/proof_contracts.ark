@@ -11,7 +11,7 @@ use typechecker::name_display
 use typechecker::scope
 use typechecker::unify
 fn proof_contract_nodes(node: AstNode) -> Vec<AstNode> {
-    let contracts = Vec::new<AstNode>()
+    let mut contracts = Vec::new<AstNode>()
     let count = ast_access::node_type_ann_count(node)
     let mut i = 0
     while i < count {
@@ -24,9 +24,9 @@ fn proof_contract_nodes(node: AstNode) -> Vec<AstNode> {
     contracts
 }
 
-fn proof_contract_scope(node: AstNode, sig: FnSig) -> LocalScope {
-    let contract_scope = scope::LocalScope_new()
-    body_params::bind_fn_params_from_sig(contract_scope, node, sig)
+fn proof_contract_scope(env: TypeEnv, node: AstNode, sig: FnSig) -> LocalScope {
+    let mut contract_scope = scope::LocalScope_new()
+    body_params::bind_fn_params_from_sig(env, contract_scope, node, sig)
     contract_scope
 }
 
@@ -46,7 +46,7 @@ fn proof_expression_uses_result(node: AstNode) -> bool {
 }
 
 fn proof_expression_identifiers_are_bound(
-    env: TypeEnv,
+    mut env: TypeEnv,
     contract_scope: LocalScope,
     node: AstNode
 ) -> bool {
@@ -74,7 +74,7 @@ fn proof_expression_identifiers_are_bound(
 }
 
 fn check_proof_contracts(
-    env: TypeEnv,
+    mut env: TypeEnv,
     fn_sigs: Vec<FnSig>,
     enum_defs: Vec<EnumInfo>,
     node: AstNode,
@@ -89,7 +89,7 @@ fn check_proof_contracts(
     while i < count {
         let contract = get_unchecked(contracts, i)
         let kind_name = ast_access::node_text(contract)
-        let contract_scope = proof_contract_scope(node, sig)
+        let mut contract_scope = proof_contract_scope(env, node, sig)
         if eq(clone(kind_name), "ensures") {
             scope::scope_define(
                 contract_scope,

@@ -5,8 +5,8 @@ use parser::core_ast_children
 use parser::core_api_cursor
 use parser::core_api_expect
 
-pub fn parse_array_lit_tail(p: Parser, t: Token, first_elem: AstNode) -> AstNode {
-    let node = core_ast_factory::AstNode_new(kinds::NK_ARRAY_LIT(), core_api_expect::tok_span(t))
+pub fn parse_array_lit_tail(mut p: Parser, t: Token, first_elem: AstNode) -> AstNode {
+    let mut node = core_ast_factory::AstNode_new(kinds::NK_ARRAY_LIT(), core_api_expect::tok_span(t))
     core_ast_children::AstNode_push_child(node, first_elem)
     while core_api_cursor::peek_kind(p) == tokens::TK_COMMA() {
         p.pos = p.pos + 1

@@ -8,7 +8,7 @@ use parser::core_api_cursor
 use parser::core_api_expect
 use parser::kinds
 use parser::token_state
-fn parse_use_group(p: Parser, node: AstNode, path: String) {
+fn parse_use_group(mut p: Parser, mut node: AstNode, path: String) {
     p.pos = p.pos + 1
     core_api_cursor::skip_newlines(p)
     let first_item = core_api_expect::expect_token(p, tokens::TK_IDENT())
@@ -22,7 +22,7 @@ fn parse_use_group(p: Parser, node: AstNode, path: String) {
         }
         let extra_item = core_api_expect::expect_token(p, tokens::TK_IDENT())
         let child_path = clone(path).concat("::".concat(token_state::Token_text(extra_item)))
-        let child_node = core_ast_factory::AstNode_new(kinds::NK_USE(), core_api_expect::tok_span(extra_item))
+        let mut child_node = core_ast_factory::AstNode_new(kinds::NK_USE(), core_api_expect::tok_span(extra_item))
         core_ast_text_fields::AstNode_set_text(child_node, child_path)
         core_ast_children::AstNode_push_child(node, child_node)
         core_api_cursor::skip_newlines(p)

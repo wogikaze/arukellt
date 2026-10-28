@@ -10,7 +10,7 @@ use wasm::intrinsic_string_chars
 use wasm::intrinsic_string_split_gc
 
 // Handler for: split, text::split, string::split
-fn emit_split(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_split(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return intrinsic_string_split_gc::emit_split_gc(w, ctx)
     }
@@ -46,7 +46,7 @@ fn emit_split(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_split_setup(w: WasmWriter, s_sp_src: i32, s_sp_sep: i32, s_sp_slen: i32, s_sp_seplen: i32, s_sp_vec: i32, s_sp_pos: i32, s_sp_start: i32) {
+fn emit_split_setup(mut w: WasmWriter, s_sp_src: i32, s_sp_sep: i32, s_sp_slen: i32, s_sp_seplen: i32, s_sp_vec: i32, s_sp_pos: i32, s_sp_start: i32) {
     helpers_core::emit_local_get(w, s_sp_src)
     helpers_memory::emit_string_len_from_stack(w)
     helpers_core::emit_local_set(w, s_sp_slen)
@@ -77,7 +77,7 @@ fn emit_split_setup(w: WasmWriter, s_sp_src: i32, s_sp_sep: i32, s_sp_slen: i32,
     helpers_core::emit_local_set(w, s_sp_start)
 }
 
-fn emit_split_scan_loop(w: WasmWriter, s_sp_src: i32, s_sp_sep: i32, s_sp_slen: i32, s_sp_seplen: i32, s_sp_pos: i32, s_sp_start: i32, s_sp_vec: i32, s_sp_match: i32, s_sp_j: i32, s_sp_sub: i32) {
+fn emit_split_scan_loop(mut w: WasmWriter, s_sp_src: i32, s_sp_sep: i32, s_sp_slen: i32, s_sp_seplen: i32, s_sp_pos: i32, s_sp_start: i32, s_sp_vec: i32, s_sp_match: i32, s_sp_j: i32, s_sp_sub: i32) {
     helpers_control::emit_block_loop_header(w)
     helpers_core::emit_local_get(w, s_sp_pos)
     helpers_core::emit_local_get(w, s_sp_slen)
@@ -111,7 +111,7 @@ fn emit_split_scan_loop(w: WasmWriter, s_sp_src: i32, s_sp_sep: i32, s_sp_slen: 
     helpers_control::emit_end(w)
 }
 
-fn emit_split_match_separator_loop(w: WasmWriter, s_sp_src: i32, s_sp_sep: i32, s_sp_pos: i32, s_sp_seplen: i32, s_sp_match: i32, s_sp_j: i32) {
+fn emit_split_match_separator_loop(mut w: WasmWriter, s_sp_src: i32, s_sp_sep: i32, s_sp_pos: i32, s_sp_seplen: i32, s_sp_match: i32, s_sp_j: i32) {
     helpers_control::emit_block_loop_header(w)
     helpers_core::emit_local_get(w, s_sp_j)
     helpers_core::emit_local_get(w, s_sp_seplen)
@@ -142,7 +142,7 @@ fn emit_split_match_separator_loop(w: WasmWriter, s_sp_src: i32, s_sp_sep: i32, 
     helpers_control::emit_end(w)
 }
 
-fn emit_split_push_segment(w: WasmWriter, vec_local: i32, sub_local: i32, src_local: i32, start_local: i32, end_local: i32) {
+fn emit_split_push_segment(mut w: WasmWriter, vec_local: i32, sub_local: i32, src_local: i32, start_local: i32, end_local: i32) {
     helpers_core::emit_local_get(w, end_local)
     helpers_core::emit_local_get(w, start_local)
     helpers_numeric_i32::emit_i32_sub(w)

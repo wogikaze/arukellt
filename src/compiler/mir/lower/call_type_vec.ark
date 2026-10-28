@@ -64,7 +64,7 @@ fn receiver_vec_type_from_mvt(ctx: LowerCtx, first_arg_idx: i32) -> String {
     type_info_to_mir_value::mvt_to_type_name(table, mvt)
 }
 
-fn mark_seq_sort_by_result_type(ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) -> bool {
+fn mark_seq_sort_by_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) -> bool {
     if !is_seq_sort_by_identity_callee(clone(callee_name)) {
         return false
     }
@@ -80,7 +80,7 @@ fn mark_seq_sort_by_result_type(ctx: LowerCtx, callee_name: String, dest: i32, f
     true
 }
 
-fn set_seq_sort_by_result(ctx: LowerCtx, dest: i32, type_name: String, first_arg_idx: i32) {
+fn set_seq_sort_by_result(mut ctx: LowerCtx, dest: i32, type_name: String, first_arg_idx: i32) {
     ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name)
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
@@ -95,7 +95,7 @@ fn set_seq_sort_by_result(ctx: LowerCtx, dest: i32, type_name: String, first_arg
     }
 }
 
-fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
+fn mark_vec_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
     let mut effective = clone(callee_name)
     if call_rewrite_vec::is_vec_push_callee(clone(callee_name)) {
         mark_vec_push_result_type(ctx, dest, first_arg_idx)
@@ -235,7 +235,7 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
     }
 }
 
-fn mark_vec_push_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
+fn mark_vec_push_result_type(mut ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
     if dest < 0 || first_arg_idx < 0 {
         return
     }
@@ -339,7 +339,7 @@ fn strip_module_prefix_elem_name(elem_ty: String) -> String {
     elem_ty
 }
 
-fn mark_vec_get_unchecked_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
+fn mark_vec_get_unchecked_result_type(mut ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
     if first_arg_idx >= 0 {
         let vec_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
         if starts_with(clone(vec_type), "vec:") || starts_with(clone(vec_type), "array:") {
@@ -373,7 +373,7 @@ fn mark_vec_get_unchecked_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i
     }
 }
 
-fn mark_vec_option_elem_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
+fn mark_vec_option_elem_result_type(mut ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
     if first_arg_idx >= 0 {
         let vec_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
         if starts_with(clone(vec_type), "vec:") || starts_with(clone(vec_type), "array:") {
@@ -391,11 +391,11 @@ fn mark_vec_option_elem_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i32
     }
 }
 
-fn ensure_option_some_for_vec_elem(ctx: LowerCtx, elem_ty: String) {
+fn ensure_option_some_for_vec_elem(mut ctx: LowerCtx, elem_ty: String) {
     if !ctx_gc_enum::ctx_is_gc_target(ctx) {
         return
     }
-    let payload_vts = Vec::new<i32>()
+    let mut payload_vts = Vec::new<i32>()
     if eq(clone(elem_ty), String_from("i64")) || eq(clone(elem_ty), String_from("I64")) {
         payload_vts.push(value_types::VT_I64())
         let _slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Option::Some"), payload_vts, clone(elem_ty))
@@ -420,7 +420,7 @@ fn ensure_option_some_for_vec_elem(ctx: LowerCtx, elem_ty: String) {
 // is a reference type (String, string, or any non-scalar type).
 // This prevents the emitter from declaring the local as i32 and then
 // storing a GC reference value into it, which produces invalid wasm.
-fn set_ref_vt_for_elem_type(ctx: LowerCtx, dest: i32, elem_ty: String) {
+fn set_ref_vt_for_elem_type(mut ctx: LowerCtx, dest: i32, elem_ty: String) {
     if eq(clone(elem_ty), String_from("fnref")) ||
     eq(clone(elem_ty), String_from("fn")) ||
     starts_with(clone(elem_ty), String_from("fn(")) {

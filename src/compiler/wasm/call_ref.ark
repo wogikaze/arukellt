@@ -11,7 +11,7 @@ use wasm::inst_store
 use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_gc
-fn emit_call_ref_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+fn emit_call_ref_inst(mut w: WasmWriter, inst: MirInst, mut ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
     // Linear-memory Wasm keeps the ADR-033 table ABI. Typed call_ref is the
     // GC primary path; lowering it back to call_indirect here preserves the
     // same callback semantics without requiring reference-types features.

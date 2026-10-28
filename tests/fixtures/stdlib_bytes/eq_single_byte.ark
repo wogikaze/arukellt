@@ -2,11 +2,11 @@ use std::bytes
 use std::test
 
 fn main() {
-    let a: Vec<i32> = Vec::new<i32>()
+    let mut a: Vec<i32> = Vec::new<i32>()
     a.push_byte(42)
-    let b: Vec<i32> = Vec::new<i32>()
+    let mut b: Vec<i32> = Vec::new<i32>()
     b.push_byte(42)
-    let c: Vec<i32> = Vec::new<i32>()
+    let mut c: Vec<i32> = Vec::new<i32>()
     c.push_byte(43)
     test::assert_true(a.equals_bytes(b))
     test::assert_false(a.equals_bytes(c))

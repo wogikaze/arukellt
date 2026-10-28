@@ -25,7 +25,7 @@ fn type_info_name(ty: TypeInfo) -> String {
     clone(ty.name)
 }
 
-fn type_info_set_name(ty: TypeInfo, name: String) {
+fn type_info_set_name(mut ty: TypeInfo, name: String) {
     ty.name = name
 }
 
@@ -37,7 +37,7 @@ fn type_info_type_arg_at(ty: TypeInfo, index: i32) -> TypeInfo {
     get_unchecked(ty.type_args, index)
 }
 
-fn type_info_push_type_arg(ty: TypeInfo, arg: TypeInfo) {
+fn type_info_push_type_arg(mut ty: TypeInfo, arg: TypeInfo) {
     push(ty.type_args, arg)
 }
 
@@ -52,6 +52,6 @@ fn type_info_param_is_mut(ty: TypeInfo, index: i32) -> bool {
     get_unchecked(ty.param_modes, index)
 }
 
-fn type_info_push_param_mode(ty: TypeInfo, is_mut: bool) {
+fn type_info_push_param_mode(mut ty: TypeInfo, is_mut: bool) {
     push(ty.param_modes, is_mut)
 }

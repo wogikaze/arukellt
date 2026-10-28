@@ -20,7 +20,7 @@ use mir::value_types
 // bound to the declared parameters. Non-generic names pass through.
 use std::prelude::{args, byte_at, clone, contains, ends_with, eq, index_of, starts_with, substring}
 use std::text
-fn mir_struct_lit_instance_name(ctx: LowerCtx, base_name: String, field_names: Vec<String>, val_idxs: Vec<i32>, base_idx: i32) -> String {
+fn mir_struct_lit_instance_name(mut ctx: LowerCtx, base_name: String, field_names: Vec<String>, val_idxs: Vec<i32>, base_idx: i32) -> String {
     let canon = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, clone(base_name))
     if len(ctx_struct_mono::generic_inst_base_name(clone(canon))) > 0 {
         let _ok = ctx_struct_mono::ctx_derive_generic_struct_layout(ctx, clone(canon))
@@ -59,8 +59,8 @@ fn mir_struct_lit_instance_name(ctx: LowerCtx, base_name: String, field_names: V
     if len(params) == 0 {
         return canon
     }
-    let args = Vec::new<String>()
-    let bound = Vec::new<bool>()
+    let mut args = Vec::new<String>()
+    let mut bound = Vec::new<bool>()
     let mut pi = 0
     while pi < len(params) {
         push(args, String_new())
@@ -226,7 +226,7 @@ fn struct_lit_canonical_type_spelling(name: String) -> String {
 // fnsig: param/return separator: fnsig:T;U must align segment-wise with
 // fnsig:String;i32 so both type variables bind (#860).
 fn struct_lit_split_colon_top(name: String) -> Vec<String> {
-    let result = Vec::new<String>()
+    let mut result = Vec::new<String>()
     let n = len(name)
     let mut depth = 0
     let mut seg_start = 0
@@ -269,7 +269,7 @@ fn struct_lit_fnref_value_spelling(f: String, v: String, params: Vec<String>) ->
     if !starts_with(clone(f), String_from("fnsig:")) {
         return v
     }
-    let family = Vec::new<String>()
+    let mut family = Vec::new<String>()
     if eq(clone(v), String_from("fnref")) {
         push(family, String_from("i32"))
         push(family, String_from("i32"))
@@ -310,7 +310,7 @@ fn struct_lit_fnref_value_spelling(f: String, v: String, params: Vec<String>) ->
 // false when a parameter position lacks a concrete counterpart or the
 // shapes cannot align — the caller then keeps the unsubstituted base
 // layout instead of guessing an instantiation.
-fn struct_lit_unify_segments(ft: String, vt: String, params: Vec<String>, args: Vec<String>, bound: Vec<bool>) -> bool {
+fn struct_lit_unify_segments(ft: String, vt: String, params: Vec<String>, mut args: Vec<String>, mut bound: Vec<bool>) -> bool {
     let direct = struct_lit_param_index(params, clone(ft))
     if direct >= 0 {
         if len(vt) == 0 ||
@@ -387,7 +387,7 @@ fn struct_lit_unify_segments(ft: String, vt: String, params: Vec<String>, args: 
 }
 
 fn struct_lit_split_params(joined: String) -> Vec<String> {
-    let params = Vec::new<String>()
+    let mut params = Vec::new<String>()
     let n = len(joined)
     let mut seg_start = 0
     let mut i = 0
@@ -470,7 +470,7 @@ fn struct_lit_decl_is_fn_value(type_name: String) -> bool {
     starts_with(clone(type_name), String_from("fn("))
 }
 
-fn mir_emit_struct_new(ctx: LowerCtx, struct_name: String) -> i32 {
+fn mir_emit_struct_new(mut ctx: LowerCtx, struct_name: String) -> i32 {
     let canon = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, struct_name)
     let dest = ctx_fresh_local(ctx, value_types::VT_GC_REF())
     ctx_emit(ctx, inst_struct_new::MirInst_struct_new_named(dest, clone(canon), ctx_struct_byte_size(ctx, clone(canon))))
@@ -486,12 +486,12 @@ fn mir_struct_field_type_is_fn(type_name: String) -> bool {
     starts_with(clone(type_name), String_from("fn("))
 }
 
-fn mir_copy_struct_base_fields(ctx: LowerCtx, struct_name: String, dest: i32, base_idx: i32) {
+fn mir_copy_struct_base_fields(mut ctx: LowerCtx, struct_name: String, dest: i32, base_idx: i32) {
     let canon = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, struct_name)
     struct_lit_copy::mir_copy_struct_base_fields(ctx, canon, dest, base_idx)
 }
 
-fn mir_emit_struct_field_set(ctx: LowerCtx, struct_name: String, dest: i32, field_name: String, val_idx: i32) {
+fn mir_emit_struct_field_set(mut ctx: LowerCtx, struct_name: String, dest: i32, field_name: String, val_idx: i32) {
     let canon = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, struct_name)
     let fi_idx = ctx_field_index(ctx, clone(canon), clone(field_name))
     let mut field_vt = value_types::VT_VOID()

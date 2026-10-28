@@ -4,7 +4,7 @@ use typechecker::kinds
 use typechecker::contract_type_access
 use typechecker::names
 use typechecker::unify
-fn check_return_type_compat(env: TypeEnv, fn_name: String, ret_type: TypeInfo, val_ty: TypeInfo) {
+fn check_return_type_compat(mut env: TypeEnv, fn_name: String, ret_type: TypeInfo, val_ty: TypeInfo) {
     let resolved_ret = unify::resolve_type(env, ret_type)
     let resolved_val = unify::resolve_type(env, val_ty)
     let ret_tag = contract_type_access::TypeInfo_tag(resolved_ret)

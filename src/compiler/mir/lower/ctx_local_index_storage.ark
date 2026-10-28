@@ -1,5 +1,5 @@
 use std::prelude::{byte_at, clone}
-fn ctx_local_index_push(ctx: LowerCtx, name: String, index: i32) {
+fn ctx_local_index_push(mut ctx: LowerCtx, name: String, index: i32) {
     push(ctx.local_names, clone(name))
     push(ctx.local_indices, index)
     ctx_local_hash_set(ctx, name, index)
@@ -25,19 +25,19 @@ fn ctx_local_index_values(ctx: LowerCtx) -> Vec<i32> {
     ctx.local_indices
 }
 
-fn ctx_local_index_reset_for_function(ctx: LowerCtx) {
+fn ctx_local_index_reset_for_function(mut ctx: LowerCtx) {
     ctx.local_names = Vec::new<String>()
     ctx.local_indices = Vec::new<i32>()
     ctx_local_hash_clear(ctx)
 }
 
-fn ctx_local_index_restore(ctx: LowerCtx, local_names: Vec<String>, local_indices: Vec<i32>) {
+fn ctx_local_index_restore(mut ctx: LowerCtx, local_names: Vec<String>, local_indices: Vec<i32>) {
     ctx.local_names = local_names
     ctx.local_indices = local_indices
     ctx_local_hash_rebuild(ctx)
 }
 
-fn ctx_local_hash_clear(ctx: LowerCtx) {
+fn ctx_local_hash_clear(mut ctx: LowerCtx) {
     let capacity = len(ctx.local_name_buckets)
     if capacity <= 0 {
         ctx.local_name_buckets = ctx_local_hash_fresh_buckets(32)
@@ -50,7 +50,7 @@ fn ctx_local_hash_clear(ctx: LowerCtx) {
     }
 }
 
-fn ctx_local_hash_rebuild(ctx: LowerCtx) {
+fn ctx_local_hash_rebuild(mut ctx: LowerCtx) {
     let count = len(ctx.local_names)
     let mut capacity = 32
     let required = count * 2
@@ -61,7 +61,7 @@ fn ctx_local_hash_rebuild(ctx: LowerCtx) {
     ctx_local_hash_reinsert_all(ctx)
 }
 
-fn ctx_local_hash_set(ctx: LowerCtx, name: String, _value: i32) {
+fn ctx_local_hash_set(mut ctx: LowerCtx, name: String, _value: i32) {
     let mut slot = ctx_local_hash_probe_slot(ctx, clone(name))
     if slot < 0 {
         ctx_local_hash_grow(ctx)
@@ -75,7 +75,7 @@ fn ctx_local_hash_set(ctx: LowerCtx, name: String, _value: i32) {
     set(ctx.local_name_buckets, slot, len(ctx.local_names))
 }
 
-fn ctx_local_hash_grow(ctx: LowerCtx) {
+fn ctx_local_hash_grow(mut ctx: LowerCtx) {
     let capacity = len(ctx.local_name_buckets)
     let mut next = 64
     if capacity > 0 {
@@ -85,7 +85,7 @@ fn ctx_local_hash_grow(ctx: LowerCtx) {
     ctx_local_hash_reinsert_all(ctx)
 }
 
-fn ctx_local_hash_reinsert_all(ctx: LowerCtx) {
+fn ctx_local_hash_reinsert_all(mut ctx: LowerCtx) {
     let count = len(ctx.local_names)
     let mut i = 0
     while i < count {
@@ -98,7 +98,7 @@ fn ctx_local_hash_reinsert_all(ctx: LowerCtx) {
 }
 
 fn ctx_local_hash_fresh_buckets(capacity: i32) -> Vec<i32> {
-    let buckets = Vec::new<i32>()
+    let mut buckets = Vec::new<i32>()
     let mut i = 0
     while i < capacity {
         push(buckets, 0)

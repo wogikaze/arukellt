@@ -60,7 +60,7 @@ fn impl_self_local_type_name(decl: AstNode) -> String {
 }
 
 fn declared_impl_param_names(decl: AstNode) -> Vec<String> {
-    let names = Vec::new<String>()
+    let mut names = Vec::new<String>()
     let count = decl_ann_member::decl_ann_count(decl)
     let mut i = 0
     while i < count {

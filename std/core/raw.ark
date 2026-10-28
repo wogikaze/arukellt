@@ -24,7 +24,7 @@ fn raw_array_get_unchecked<T>(values: Vec<T>, index: i32) -> T {
     get_unchecked(values, index)
 }
 
-fn raw_array_set_unchecked<T>(values: Vec<T>, index: i32, value: T) {
+fn raw_array_set_unchecked<T>(mut values: Vec<T>, index: i32, value: T) {
     set(values, index, value)
 }
 
@@ -59,7 +59,7 @@ fn raw_string_clone(text: String) -> String {
     __intrinsic_string_clone(text)
 }
 
-fn raw_string_push_char(text: String, value: char) {
+fn raw_string_push_char(mut text: String, value: char) {
     __intrinsic_push_char(text, value)
 }
 
@@ -120,7 +120,7 @@ impl RawArray {
     }
 
     /// Writes `value` at `index` without bounds checking.
-    fn set_unchecked<T>(values: Vec<T>, index: i32, value: T) {
+    fn set_unchecked<T>(mut values: Vec<T>, index: i32, value: T) {
         raw_array_set_unchecked(values, index, value)
     }
 
@@ -128,14 +128,14 @@ impl RawArray {
     ///
     /// Newly exposed slots are uninitialized until written through
     /// `set_unchecked`.
-    fn grow<T>(values: Vec<T>, new_len: i32) -> Vec<T> {
+    fn grow<T>(mut values: Vec<T>, new_len: i32) -> Vec<T> {
         raw_array_grow(values, new_len)
     }
 
     /// Sets the logical length without changing capacity.
     ///
     /// Caller must ensure `new_len <= capacity`. Lowered by `raw.array_set_len`.
-    fn set_len<T>(values: Vec<T>, new_len: i32) {
+    fn set_len<T>(mut values: Vec<T>, new_len: i32) {
         raw_array_set_len(values, new_len)
     }
 }
@@ -170,7 +170,7 @@ impl RawString {
     }
 
     /// Appends one byte to sealed string storage in place.
-    fn push_char(text: String, value: char) {
+    fn push_char(mut text: String, value: char) {
         raw_string_push_char(text, value)
     }
 
@@ -222,12 +222,12 @@ impl RawFloat {
 
 test mod "raw_storage" {
     test "array_primitives" {
-        let values: Vec<i32> = RawArray::new<i32>(2)
+        let mut values: Vec<i32> = RawArray::new<i32>(2)
         push(values, 11)
         assert(RawArray::len(values) == 1)
         assert(RawArray::get_unchecked(values, 0) == 11)
         RawArray::set_unchecked(values, 0, 17)
-        let grown: Vec<i32> = RawArray::grow(values, 8)
+        let mut grown: Vec<i32> = RawArray::grow(values, 8)
         assert(RawArray::len(grown) == 8)
         assert(RawArray::get_unchecked(grown, 0) == 17)
         RawArray::set_unchecked(grown, 7, 23)
@@ -235,7 +235,7 @@ test mod "raw_storage" {
     }
 
     test "string_primitives" {
-        let bytes: Vec<i32> = RawArray::new<i32>(2)
+        let mut bytes: Vec<i32> = RawArray::new<i32>(2)
         push(bytes, 79)
         push(bytes, 75)
         let text = RawString::from_bytes(bytes)

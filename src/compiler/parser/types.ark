@@ -12,7 +12,7 @@ use parser::token_state
 use parser::type_token_expect
 use parser::type_token_predicates
 use lexer::tokens
-fn parse_type(p: Parser) -> AstNode {
+fn parse_type(mut p: Parser) -> AstNode {
     core_api_cursor::skip_newlines(p)
     let t = core_api_cursor::cur(p)
     let kind = token_state::Token_kind(t)
@@ -39,11 +39,11 @@ fn parse_type(p: Parser) -> AstNode {
 // `dyn` is contextual in type position.  Keeping the marker in the named
 // type text lets the typechecker reject it at the semantic boundary without
 // making `dyn` unavailable as an ordinary identifier in expression position.
-fn parse_dyn_type(p: Parser, dyn_token: Token) -> AstNode {
+fn parse_dyn_type(mut p: Parser, dyn_token: Token) -> AstNode {
     p.pos = p.pos + 1
     core_api_cursor::skip_newlines(p)
     let trait_ty = parse_type(p)
-    let node = core_ast_factory::AstNode_new(
+    let mut node = core_ast_factory::AstNode_new(
         kinds::NK_TYPE_NAMED(),
         core_api_expect::tok_span(dyn_token)
     )
@@ -54,7 +54,7 @@ fn parse_dyn_type(p: Parser, dyn_token: Token) -> AstNode {
     node
 }
 
-fn parse_named_type(p: Parser, t: Token) -> AstNode {
+fn parse_named_type(mut p: Parser, t: Token) -> AstNode {
     p.pos = p.pos + 1
     let mut type_name = token_state::Token_text(t)
     while type_token_predicates::is_path_sep(core_api_cursor::peek_kind(p)) {
@@ -65,9 +65,9 @@ fn parse_named_type(p: Parser, t: Token) -> AstNode {
     core_ast_factory::AstNode_leaf(kinds::NK_TYPE_NAMED(), clone(type_name), core_api_expect::tok_span(t))
 }
 
-fn parse_generic_type_args(p: Parser, t: Token, base: AstNode) -> AstNode {
+fn parse_generic_type_args(mut p: Parser, t: Token, base: AstNode) -> AstNode {
     p.pos = p.pos + 1
-    let node = core_ast_factory::AstNode_new(kinds::NK_TYPE_GENERIC(), core_api_expect::tok_span(t))
+    let mut node = core_ast_factory::AstNode_new(kinds::NK_TYPE_GENERIC(), core_api_expect::tok_span(t))
     // Preserve the complete path (`module::Type`) on the generic node. Type
     // resolution reads the base name from this field, so keeping only the
     // first token would turn `iter::IteratorSum<i32, i32>` into `iter`.
@@ -87,9 +87,9 @@ fn parse_generic_type_args(p: Parser, t: Token, base: AstNode) -> AstNode {
     node
 }
 
-fn parse_tuple_or_fn_type(p: Parser, t: Token) -> AstNode {
+fn parse_tuple_or_fn_type(mut p: Parser, t: Token) -> AstNode {
     p.pos = p.pos + 1
-    let node = core_ast_factory::AstNode_new(kinds::NK_TYPE_TUPLE(), core_api_expect::tok_span(t))
+    let mut node = core_ast_factory::AstNode_new(kinds::NK_TYPE_TUPLE(), core_api_expect::tok_span(t))
     let mut first = true
     while !type_token_predicates::is_tuple_end(core_api_cursor::peek_kind(p)) && !core_api_cursor::at_eof(p) {
         if !first {
@@ -107,9 +107,9 @@ fn parse_tuple_or_fn_type(p: Parser, t: Token) -> AstNode {
     node
 }
 
-fn parse_tuple_fn_return_type(p: Parser, t: Token, node: AstNode) -> AstNode {
+fn parse_tuple_fn_return_type(mut p: Parser, t: Token, node: AstNode) -> AstNode {
     p.pos = p.pos + 1
-    let fn_type = core_ast_factory::AstNode_new(kinds::NK_TYPE_FN(), core_api_expect::tok_span(t))
+    let mut fn_type = core_ast_factory::AstNode_new(kinds::NK_TYPE_FN(), core_api_expect::tok_span(t))
     // Stable surface name so Option<fn(...)> / type_ann paths keep "fnref"
     // instead of an empty TypeFn text (#831).
     core_ast_text_fields::AstNode_set_text(fn_type, "fnref")
@@ -119,9 +119,9 @@ fn parse_tuple_fn_return_type(p: Parser, t: Token, node: AstNode) -> AstNode {
     fn_type
 }
 
-fn parse_fn_type(p: Parser, t: Token) -> AstNode {
+fn parse_fn_type(mut p: Parser, t: Token) -> AstNode {
     p.pos = p.pos + 1
-    let fn_node = core_ast_factory::AstNode_new(kinds::NK_TYPE_FN(), core_api_expect::tok_span(t))
+    let mut fn_node = core_ast_factory::AstNode_new(kinds::NK_TYPE_FN(), core_api_expect::tok_span(t))
     core_ast_text_fields::AstNode_set_text(fn_node, "fnref")
     type_token_expect::expect_lparen(p)
     let mut first = true
@@ -146,9 +146,9 @@ fn parse_fn_type(p: Parser, t: Token) -> AstNode {
 // A function-type parameter may be a mutable borrow: `fn(mut T) -> U`
 // (ADR-088 §7). The mode is recorded on the parameter type node and read by
 // the typechecker when it builds the TY_FN type.
-fn parse_fn_type_param(p: Parser) -> AstNode {
+fn parse_fn_type_param(mut p: Parser) -> AstNode {
     let is_mut = core_api_expect::consume_optional_mut(p)
-    let param = parse_type(p)
+    let mut param = parse_type(p)
     if is_mut {
         core_ast_flag_fields::AstNode_set_is_mut(param, true)
     }

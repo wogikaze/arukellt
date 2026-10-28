@@ -10,7 +10,7 @@ use parser::core_ast_type_ann
 use parser::expr
 use parser::kinds
 use parser::token_state
-fn parse_proof_contract_block(p: Parser, node: AstNode) -> bool {
+fn parse_proof_contract_block(mut p: Parser, mut node: AstNode) -> bool {
     core_api_cursor::skip_newlines(p)
     if !core_api_cursor::at(p, tokens::TK_PROOF()) {
         return true
@@ -35,7 +35,7 @@ fn parse_proof_contract_block(p: Parser, node: AstNode) -> bool {
         core_api_expect::expect_token(p, tokens::TK_COLON())
         core_api_cursor::skip_newlines(p)
         let expression = expr::parse_expr(p)
-        let contract = core_ast_factory::AstNode_new(
+        let mut contract = core_ast_factory::AstNode_new(
             kinds::NK_PROOF_CONTRACT(),
             core_api_expect::tok_span(kind_token)
         )

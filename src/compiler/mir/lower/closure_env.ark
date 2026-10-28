@@ -96,7 +96,7 @@ fn closure_env_ref_vt(ctx: LowerCtx) -> i32 {
 }
 
 fn closure_split_packed(packed: String) -> Vec<String> {
-    let out = Vec::new<String>()
+    let mut out = Vec::new<String>()
     let mut start = 0
     let mut i = 0
     let L = len(packed)
@@ -121,7 +121,7 @@ fn closure_split_packed(packed: String) -> Vec<String> {
 // Register __env_<synth> on GC targets. Field sigs reuse the ordinary
 // struct-field mapping so capture types land on the same GC layouts as
 // declared struct fields (fn captures become __fnpair refs).
-fn closure_register_env_type(ctx: LowerCtx, env_name: String, cap_types: Vec<String>) {
+fn closure_register_env_type(mut ctx: LowerCtx, env_name: String, cap_types: Vec<String>) {
     if !ctx.is_gc_target || len(cap_types) == 0 {
         return
     }
@@ -140,7 +140,7 @@ fn closure_register_env_type(ctx: LowerCtx, env_name: String, cap_types: Vec<Str
 // Allocate the env record at the closure literal position and store each
 // supply capture into its field. Returns -1 for zero captures: the pair
 // env slot then stays null and the trampoline never reads it.
-fn closure_emit_env_alloc(ctx: LowerCtx, env_name: String, cap_names: Vec<String>, cap_vts: Vec<i32>) -> i32 {
+fn closure_emit_env_alloc(mut ctx: LowerCtx, env_name: String, cap_names: Vec<String>, cap_vts: Vec<i32>) -> i32 {
     let cap_n = len(cap_names)
     if cap_n == 0 {
         return 0 - 1
@@ -180,7 +180,7 @@ fn closure_emit_env_alloc(ctx: LowerCtx, env_name: String, cap_names: Vec<String
 
 // Build the {fnptr, env} pair value. env_local < 0 leaves the env field
 // null (zero-capture closures and named-function thunks).
-fn closure_emit_pair(ctx: LowerCtx, env_local: i32, tramp_name: String) -> i32 {
+fn closure_emit_pair(mut ctx: LowerCtx, env_local: i32, tramp_name: String) -> i32 {
     ctx_gc_struct::ctx_ensure_fnpair_struct(ctx)
     let pair = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_FUNCREF())
     ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new_named(
@@ -216,7 +216,7 @@ fn closure_emit_pair(ctx: LowerCtx, env_local: i32, tramp_name: String) -> i32 {
 
 // Push the pair's env field, then (after args) its fnptr field, for an
 // indirect call. Mirrors what the trampoline expects: env is param 0.
-fn closure_emit_pair_env_arg(ctx: LowerCtx, pair_local: i32) {
+fn closure_emit_pair_env_arg(mut ctx: LowerCtx, pair_local: i32) {
     // local.get adjacency: emit_struct_get skips its own base push only
     // when the previous inst is a LOCAL_GET, so push the pair explicitly.
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(pair_local, pair_local))
@@ -231,7 +231,7 @@ fn closure_emit_pair_env_arg(ctx: LowerCtx, pair_local: i32) {
         ))
 }
 
-fn closure_emit_pair_fnptr(ctx: LowerCtx, pair_local: i32) {
+fn closure_emit_pair_fnptr(mut ctx: LowerCtx, pair_local: i32) {
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(pair_local, pair_local))
     ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(
             pair_local,
@@ -246,7 +246,7 @@ fn closure_emit_pair_fnptr(ctx: LowerCtx, pair_local: i32) {
 
 // Frame boilerplate shared by the env trampoline and the named-fn thunk:
 // open a fresh function frame with the uniform (env, params...) shape.
-fn closure_trampoline_frame_begin(ctx: LowerCtx, tramp_name: String) -> LowerCtxLocalFrame {
+fn closure_trampoline_frame_begin(mut ctx: LowerCtx, tramp_name: String) -> LowerCtxLocalFrame {
     let saved = ctx_api_local_frame::LowerCtxLocalFrame_capture(ctx)
     let _entry = ctx_api_local_frame::ctx_begin_function_frame(
         ctx,
@@ -259,8 +259,8 @@ fn closure_trampoline_frame_begin(ctx: LowerCtx, tramp_name: String) -> LowerCtx
     saved
 }
 
-fn closure_trampoline_frame_finish(ctx: LowerCtx, saved: LowerCtxLocalFrame, tramp_name: String, ret_vt: i32, ret_name: String) {
-    let f = ctx_api_local_frame::ctx_current_function(ctx)
+fn closure_trampoline_frame_finish(mut ctx: LowerCtx, saved: LowerCtxLocalFrame, tramp_name: String, ret_vt: i32, ret_name: String) {
+    let mut f = ctx_api_local_frame::ctx_current_function(ctx)
     function_return_mutation::MirFunction_set_return_type(f, ret_vt)
     if len(ret_name) > 0 {
         function_return_mutation::MirFunction_set_return_type_name(f, clone(ret_name))
@@ -277,8 +277,8 @@ fn closure_trampoline_frame_finish(ctx: LowerCtx, saved: LowerCtxLocalFrame, tra
 
 // Copy the user-visible params of mf (indices 0..count-1) into the
 // current trampoline frame and return their local indices for arg push.
-fn closure_trampoline_push_params(ctx: LowerCtx, mf: MirFunction, count: i32) -> Vec<i32> {
-    let param_lis = Vec::new<i32>()
+fn closure_trampoline_push_params(mut ctx: LowerCtx, mf: MirFunction, count: i32) -> Vec<i32> {
+    let mut param_lis = Vec::new<i32>()
     let mut i = 0
     while i < count {
         let p = function_param_view::MirFunction_param_at(mf, i)
@@ -296,7 +296,7 @@ fn closure_trampoline_push_params(ctx: LowerCtx, mf: MirFunction, count: i32) ->
     param_lis
 }
 
-fn closure_trampoline_return_call(ctx: LowerCtx, callee: String, arg_count: i32, ret_vt: i32, ret_name: String) {
+fn closure_trampoline_return_call(mut ctx: LowerCtx, callee: String, arg_count: i32, ret_vt: i32, ret_name: String) {
     if ret_vt == value_types::VT_VOID() {
         ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(callee, arg_count, 0 - 1))
         ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_void())
@@ -315,7 +315,7 @@ fn closure_trampoline_return_call(ctx: LowerCtx, callee: String, arg_count: i32,
 // (closure_params..., captures...). When the closure owns env cells the
 // synth also takes __env as a trailing argument so its body can read
 // and flush the mutable capture slots (#874).
-fn closure_synth_env_trampoline(ctx: LowerCtx, synth: String, mf: MirFunction, env_name: String, cap_vts: Vec<i32>, closure_param_count: i32, has_env_cell: i32) -> String {
+fn closure_synth_env_trampoline(mut ctx: LowerCtx, synth: String, mf: MirFunction, env_name: String, cap_vts: Vec<i32>, closure_param_count: i32, has_env_cell: i32) -> String {
     let tramp = closure_tramp_name(synth)
     let saved = closure_trampoline_frame_begin(ctx, clone(tramp))
     let param_lis = closure_trampoline_push_params(ctx, mf, closure_param_count)
@@ -359,7 +359,7 @@ fn closure_synth_env_trampoline(ctx: LowerCtx, synth: String, mf: MirFunction, e
 
 // __fnthunk_<name>: (env, params...) -> ret, env ignored. Lets a named
 // function coerce to the same pair ABI as closure literals.
-fn closure_synth_fn_thunk(ctx: LowerCtx, fn_name: String, target: MirFunction) -> String {
+fn closure_synth_fn_thunk(mut ctx: LowerCtx, fn_name: String, target: MirFunction) -> String {
     let thunk = closure_thunk_name(fn_name)
     let saved = closure_trampoline_frame_begin(ctx, clone(thunk))
     let param_count = function_param_view::MirFunction_param_count(target)
@@ -392,7 +392,7 @@ fn closure_find_module_function(ctx: LowerCtx, fn_name: String) -> i32 {
 }
 
 // Dedupe wrapper: one __fnthunk_<name> per named function per module.
-fn closure_ensure_fn_thunk(ctx: LowerCtx, fn_name: String) -> String {
+fn closure_ensure_fn_thunk(mut ctx: LowerCtx, fn_name: String) -> String {
     let thunk = closure_thunk_name(fn_name)
     let mut i = 0
     while i < len(ctx.closure_thunk_names) {
@@ -427,7 +427,7 @@ fn closure_ensure_fn_thunk(ctx: LowerCtx, fn_name: String) -> String {
 // before their MirFunction body was pushed (forward references). Runs
 // after all decl bodies are pushed but before reachability pruning so
 // each shim's own edge frame still lands in the recorded-edge stream.
-fn closure_flush_pending_fn_thunks(ctx: LowerCtx) {
+fn closure_flush_pending_fn_thunks(mut ctx: LowerCtx) {
     let mut i = 0
     while i < len(ctx.pending_fn_thunks) {
         let fn_name = clone(get_unchecked(ctx.pending_fn_thunks, i))

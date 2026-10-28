@@ -1,23 +1,23 @@
 use std::core::iter
 use std::test
 
-fn first<T: iter::Iterator>(iterator: T) -> Option<T::Item> {
+fn first<T: iter::Iterator>(mut iterator: T) -> Option<T::Item> {
     iterator.next()
 }
 
-fn collect_values<T: iter::Iterator>(iterator: T) -> Vec<T::Item> {
+fn collect_values<T: iter::Iterator>(mut iterator: T) -> Vec<T::Item> {
     iterator.collect()
 }
 
-fn count_values<T: iter::Iterator>(iterator: T) -> i32 {
+fn count_values<T: iter::Iterator>(mut iterator: T) -> i32 {
     iterator.count()
 }
 
-fn sum_values<T: iter::Iterator + iter::IteratorSum<i32, i32>>(iterator: T) -> i32 {
+fn sum_values<T: iter::Iterator + iter::IteratorSum<i32, i32>>(mut iterator: T) -> i32 {
     iterator.sum()
 }
 
-fn fold_values<T: iter::Iterator + iter::IteratorFold<i32, i32>>(iterator: T, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+fn fold_values<T: iter::Iterator + iter::IteratorFold<i32, i32>>(mut iterator: T, init: i32, f: fn(i32, i32) -> i32) -> i32 {
     iterator.fold(init, f)
 }
 
@@ -26,21 +26,21 @@ fn add_i32(a: i32, b: i32) -> i32 {
 }
 
 fn main() {
-    let v: Vec<i32> = Vec::new<i32>()
+    let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 100)
     push(v, 200)
 
-    let first_it = v.iter()
+    let mut first_it = v.iter()
     match first(first_it) {
         Some(x) => test::assert_eq_i32(x, 100),
         None => panic("expected Some(100)"),
     }
-    let it = v.iter()
+    let mut it = v.iter()
     match it.next() {
         Some(x) => test::assert_eq_i32(x, 100),
         None => panic("expected Some(100)"),
     }
-    let it2 = v.iter()
+    let mut it2 = v.iter()
     match it2.next() {
         Some(x) => test::assert_eq_i32(x, 100),
         None => panic("expected Some(100)"),
@@ -54,21 +54,21 @@ fn main() {
         None => {}
     }
 
-    let collected_source: Vec<i32> = Vec::new<i32>()
+    let mut collected_source: Vec<i32> = Vec::new<i32>()
     push(collected_source, 300)
     push(collected_source, 400)
     let collected = Vec::from_iter(collected_source.iter())
     test::assert_eq_i32(len(collected), 2)
     test::assert_eq_i32(get_unchecked(collected, 1), 400)
 
-    let canonical_source: Vec<i32> = Vec::new<i32>()
+    let mut canonical_source: Vec<i32> = Vec::new<i32>()
     push(canonical_source, 600)
     push(canonical_source, 700)
     let canonical = collect_values(canonical_source.iter())
     test::assert_eq_i32(len(canonical), 2)
     test::assert_eq_i32(get_unchecked(canonical, 1), 700)
 
-    let count_source: Vec<i32> = Vec::new<i32>()
+    let mut count_source: Vec<i32> = Vec::new<i32>()
     push(count_source, 8)
     push(count_source, 9)
     push(count_source, 10)
@@ -76,22 +76,22 @@ fn main() {
     test::assert_eq_i32(sum_values(count_source.iter()), 27)
     test::assert_eq_i32(fold_values(count_source.iter(), 1, add_i32), 28)
 
-    let direct_sum_source: Vec<i32> = Vec::new<i32>()
+    let mut direct_sum_source: Vec<i32> = Vec::new<i32>()
     push(direct_sum_source, 4)
     push(direct_sum_source, 7)
     test::assert_eq_i32(direct_sum_source.iter().sum(), 11)
 
-    let into_source: Vec<i32> = Vec::new<i32>()
+    let mut into_source: Vec<i32> = Vec::new<i32>()
     push(into_source, 500)
-    let into_iter = into_source.iter().into_iter()
+    let mut into_iter = into_source.iter().into_iter()
     match into_iter.next() {
         Some(x) => test::assert_eq_i32(x, 500),
         None => panic("expected Some(500)"),
     }
 
-    let vector_into_source: Vec<i32> = Vec::new<i32>()
+    let mut vector_into_source: Vec<i32> = Vec::new<i32>()
     push(vector_into_source, 800)
-    let vector_into_iter = vector_into_source.into_iter()
+    let mut vector_into_iter = vector_into_source.into_iter()
     match vector_into_iter.next() {
         Some(x) => test::assert_eq_i32(x, 800),
         None => panic("expected Some(800)"),

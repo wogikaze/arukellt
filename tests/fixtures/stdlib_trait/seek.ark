@@ -7,13 +7,13 @@ use std::io
 use std::io::SeekFrom
 
 fn main() {
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     push(data, 65)  // 'A'
     push(data, 66)  // 'B'
     push(data, 67)  // 'C'
     push(data, 68)  // 'D'
     push(data, 69)  // 'E'
-    let r: io::Reader = io::Reader::from_bytes(data)
+    let mut r: io::Reader = io::Reader::from_bytes(data)
     assert(r.len() == 5)
 
     match r.seek(SeekFrom::Start(2i64)) {

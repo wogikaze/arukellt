@@ -3,10 +3,10 @@ use wasm::call_runtime_convert
 use wasm::call_runtime_io
 use wasm::call_runtime_time
 fn try_emit_host_call(
-    w: WasmWriter,
+    mut w: WasmWriter,
     handler_id: i32,
     inst: MirInst,
-    ctx: SelfEmitCtx,
+    mut ctx: SelfEmitCtx,
     prev_op: i32,
     prev_arg0: i32,
     prev_arg1: i32,

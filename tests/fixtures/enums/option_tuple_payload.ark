@@ -27,9 +27,9 @@ fn main() {
     }
 
     // Single-entry map: HashMap bucket order cannot affect the golden.
-    let m = HashMap::new<String, i32>()
+    let mut m = HashMap::new<String, i32>()
     m.insert("k", 17)
-    let es = m.entries()
+    let mut es = m.entries()
     match es.get(0) {
         Some((k, v)) => stdio::println(k.concat(v.to_string())),
         None => stdio::println("none"),

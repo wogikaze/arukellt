@@ -9,7 +9,7 @@ use mir::lower::hof_loop
 use mir::lower::hof_loop_steps
 use mir::lower::hof_results
 fn mir_lower_hof_i32(
-    ctx: LowerCtx,
+    mut ctx: LowerCtx,
     hof_callee_text: String,
     hof32_fn_name: String,
     hof32_vec_local: i32,
@@ -50,17 +50,17 @@ fn mir_lower_hof_i32(
     emit_i32_hof_result(ctx, hof32_acc_local, hof32_result_local, is_fold_i32_i32)
 }
 
-fn emit_i32_hof_result(ctx: LowerCtx, hof32_acc_local: i32, hof32_result_local: i32, is_fold_i32_i32: bool) -> i32 {
+fn emit_i32_hof_result(mut ctx: LowerCtx, hof32_acc_local: i32, hof32_result_local: i32, is_fold_i32_i32: bool) -> i32 {
     hof_results::emit_hof_result_select(ctx, hof32_acc_local, hof32_result_local, is_fold_i32_i32)
 }
 
-fn emit_i32_fold_acc_init(ctx: LowerCtx, hof32_acc_local: i32, is_fold_i32_i32: bool) {
+fn emit_i32_fold_acc_init(mut ctx: LowerCtx, hof32_acc_local: i32, is_fold_i32_i32: bool) {
     if is_fold_i32_i32 {
         ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(hof32_acc_local))
     }
 }
 
-fn emit_i32_result_vec(ctx: LowerCtx, hof_callee_text: String, is_fold_i32_i32: bool) -> i32 {
+fn emit_i32_result_vec(mut ctx: LowerCtx, hof_callee_text: String, is_fold_i32_i32: bool) -> i32 {
     let hof32_result_local = hof_results::hof_result_local(ctx)
     if !is_fold_i32_i32 {
         hof_results::emit_hof_result_vec_init(ctx, hof32_result_local, "Vec::new__i32", "vec:i32")

@@ -1,13 +1,13 @@
 use typechecker::contract_types_record
 
-fn TypeInfo_set_name(ty: TypeInfo, name: String) {
+fn TypeInfo_set_name(mut ty: TypeInfo, name: String) {
     contract_types_record::type_info_set_name(ty, name)
 }
 
-fn TypeInfo_push_type_arg(ty: TypeInfo, arg: TypeInfo) {
+fn TypeInfo_push_type_arg(mut ty: TypeInfo, arg: TypeInfo) {
     contract_types_record::type_info_push_type_arg(ty, arg)
 }
 
-fn TypeInfo_push_param_mode(ty: TypeInfo, is_mut: bool) {
+fn TypeInfo_push_param_mode(mut ty: TypeInfo, is_mut: bool) {
     contract_types_record::type_info_push_param_mode(ty, is_mut)
 }

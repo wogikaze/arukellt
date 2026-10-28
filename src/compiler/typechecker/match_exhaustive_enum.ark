@@ -4,7 +4,7 @@ use typechecker::contract_enum_info
 use typechecker::contract_type_access
 use typechecker::match_exhaustive_covered
 use typechecker::unify
-fn check_enum_match_exhaustive(env: TypeEnv, resolved_scrutinee: TypeInfo, enum_defs: Vec<EnumInfo>, coverage: MatchCoverage) {
+fn check_enum_match_exhaustive(mut env: TypeEnv, resolved_scrutinee: TypeInfo, enum_defs: Vec<EnumInfo>, coverage: MatchCoverage) {
     let enum_name = contract_type_access::TypeInfo_name(resolved_scrutinee)
     let mut found_enum = false
     let mut enum_idx = 0
@@ -50,7 +50,7 @@ fn enum_name_matches(resolved_name: String, declared_name: String) -> bool {
     ends_with(declared_name, "::".concat(resolved_name))
 }
 
-fn check_enum_variants_covered(env: TypeEnv, enum_name: String, edef: EnumInfo, coverage: MatchCoverage) {
+fn check_enum_variants_covered(mut env: TypeEnv, enum_name: String, edef: EnumInfo, coverage: MatchCoverage) {
     let variant_count = contract_enum_info::EnumInfo_variant_count(edef)
     let mut v = 0
     while v < variant_count {

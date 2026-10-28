@@ -2,7 +2,7 @@ use std::host::stdio
 use std::prelude::{to_string}
 use std::text
 fn main() {
-    let m = HashMap::new<String, i32>()
+    let mut m = HashMap::new<String, i32>()
     let _ = m.insert("the", 1)
     let _ = m.insert("cat", 1)
     let _ = m.insert("sat", 1)

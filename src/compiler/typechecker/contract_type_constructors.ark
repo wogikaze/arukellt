@@ -14,7 +14,7 @@ fn TypeInfo_named(tag: i32, name: String) -> TypeInfo {
 // live outside `type_args`, so carry them over; instantiation and deep
 // resolution otherwise lose the `fn(mut T)` signature when they copy a TY_FN.
 fn TypeInfo_empty_like(ty: TypeInfo) -> TypeInfo {
-    let rebuilt = contract_types_record::TypeInfo_new(
+    let mut rebuilt = contract_types_record::TypeInfo_new(
         contract_type_access::TypeInfo_tag(ty),
         contract_type_access::TypeInfo_name(ty),
         Vec::new<TypeInfo>()

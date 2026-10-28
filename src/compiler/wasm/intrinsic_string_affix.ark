@@ -8,7 +8,7 @@ use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 
 // Handler for: starts_with, text::starts_with
-fn emit_starts_with(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_starts_with(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         intrinsic_string_affix_gc::emit_starts_with_gc(w, inst, ctx)
     } else {
@@ -26,7 +26,7 @@ fn emit_starts_with(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 // Handler for: ends_with, text::ends_with
-fn emit_ends_with(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_ends_with(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         intrinsic_string_affix_gc::emit_ends_with_gc(w, inst, ctx)
     } else {
@@ -43,15 +43,15 @@ fn emit_ends_with(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_starts_with_init(w: WasmWriter, s0: i32, s1: i32, s2: i32, s3: i32, s4: i32, s5: i32) {
+fn emit_starts_with_init(mut w: WasmWriter, s0: i32, s1: i32, s2: i32, s3: i32, s4: i32, s5: i32) {
     emit_affix_lengths_and_default(w, s0, s1, s2, s3, s4, s5)
 }
 
-fn emit_ends_with_init(w: WasmWriter, s0: i32, s1: i32, s2: i32, s3: i32, s4: i32, s5: i32) {
+fn emit_ends_with_init(mut w: WasmWriter, s0: i32, s1: i32, s2: i32, s3: i32, s4: i32, s5: i32) {
     emit_affix_lengths_and_default(w, s0, s1, s2, s3, s4, s5)
 }
 
-fn emit_affix_lengths_and_default(w: WasmWriter, s0: i32, s1: i32, s2: i32, s3: i32, s4: i32, s5: i32) {
+fn emit_affix_lengths_and_default(mut w: WasmWriter, s0: i32, s1: i32, s2: i32, s3: i32, s4: i32, s5: i32) {
     helpers_core::emit_local_set(w, s1)
     helpers_core::emit_local_set(w, s0)
     helpers_core::emit_local_get(w, s0)
@@ -73,7 +73,7 @@ fn emit_affix_lengths_and_default(w: WasmWriter, s0: i32, s1: i32, s2: i32, s3: 
     helpers_core::emit_local_set(w, s4)
 }
 
-fn emit_starts_with_loop(w: WasmWriter, s0: i32, s1: i32, s3: i32, s4: i32, s5: i32) {
+fn emit_starts_with_loop(mut w: WasmWriter, s0: i32, s1: i32, s3: i32, s4: i32, s5: i32) {
     helpers_control::emit_block_loop_header(w)
     helpers_core::emit_local_get(w, s4)
     helpers_core::emit_local_get(w, s3)
@@ -101,7 +101,7 @@ fn emit_starts_with_loop(w: WasmWriter, s0: i32, s1: i32, s3: i32, s4: i32, s5: 
     emit_affix_loop_end(w)
 }
 
-fn emit_ends_with_loop(w: WasmWriter, s0: i32, s1: i32, s2: i32, s3: i32, s4: i32, s5: i32) {
+fn emit_ends_with_loop(mut w: WasmWriter, s0: i32, s1: i32, s2: i32, s3: i32, s4: i32, s5: i32) {
     helpers_control::emit_block_loop_header(w)
     helpers_core::emit_local_get(w, s4)
     helpers_core::emit_local_get(w, s3)
@@ -133,7 +133,7 @@ fn emit_ends_with_loop(w: WasmWriter, s0: i32, s1: i32, s2: i32, s3: i32, s4: i3
     emit_affix_loop_end(w)
 }
 
-fn emit_affix_loop_end(w: WasmWriter) {
+fn emit_affix_loop_end(mut w: WasmWriter) {
     helpers_control::emit_end(w)
     helpers_control::emit_end(w)
     helpers_control::emit_end(w)

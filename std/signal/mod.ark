@@ -106,7 +106,7 @@ fn ilog2_pow2(n: i32) -> i32 {
 
 pub fn clone_f64(src: Vec<f64>) -> Vec<f64> {
     let n = len(src)
-    let out = Vec::with_capacity<f64>(n)
+    let mut out = Vec::with_capacity<f64>(n)
     let mut i = 0
     while i < n {
         push(out, get_unchecked(src, i))
@@ -116,7 +116,7 @@ pub fn clone_f64(src: Vec<f64>) -> Vec<f64> {
 }
 
 pub fn zeros(n: i32) -> Vec<f64> {
-    let out = Vec::with_capacity<f64>(n)
+    let mut out = Vec::with_capacity<f64>(n)
     let mut i = 0
     while i < n {
         push(out, 0.0)
@@ -125,7 +125,7 @@ pub fn zeros(n: i32) -> Vec<f64> {
     out
 }
 
-fn write_back_f64(dst: Vec<f64>, src: Vec<f64>) {
+fn write_back_f64(mut dst: Vec<f64>, src: Vec<f64>) {
     require_same_length(dst, src)
     let n = len(dst)
     let mut i = 0
@@ -138,7 +138,7 @@ fn write_back_f64(dst: Vec<f64>, src: Vec<f64>) {
 fn reorder_bit_reversed(src: Vec<f64>) -> Vec<f64> {
     let n = len(src)
     let bits = ilog2_pow2(n)
-    let out = Vec::with_capacity<f64>(n)
+    let mut out = Vec::with_capacity<f64>(n)
     let mut i = 0
     while i < n {
         push(out, 0.0)
@@ -157,8 +157,8 @@ fn fft_core(real_in: Vec<f64>, imag_in: Vec<f64>, inverse: bool) -> (Vec<f64>, V
     require_same_length(real_in, imag_in)
     let n = len(real_in)
     require_power_of_two(n)
-    let real = reorder_bit_reversed(real_in)
-    let imag = reorder_bit_reversed(imag_in)
+    let mut real = reorder_bit_reversed(real_in)
+    let mut imag = reorder_bit_reversed(imag_in)
     let mut size = 2
     while size <= n {
         let half = size / 2
@@ -206,13 +206,13 @@ fn fft_core(real_in: Vec<f64>, imag_in: Vec<f64>, inverse: bool) -> (Vec<f64>, V
     out
 }
 
-pub fn fft(real: Vec<f64>, imag: Vec<f64>) {
+pub fn fft(mut real: Vec<f64>, mut imag: Vec<f64>) {
     let (out_real, out_imag) = fft_core(real, imag, false)
     write_back_f64(real, out_real)
     write_back_f64(imag, out_imag)
 }
 
-pub fn ifft(real: Vec<f64>, imag: Vec<f64>) {
+pub fn ifft(mut real: Vec<f64>, mut imag: Vec<f64>) {
     let (out_real, out_imag) = fft_core(real, imag, true)
     write_back_f64(real, out_real)
     write_back_f64(imag, out_imag)
@@ -221,7 +221,7 @@ pub fn ifft(real: Vec<f64>, imag: Vec<f64>) {
 pub fn magnitude(real: Vec<f64>, imag: Vec<f64>) -> Vec<f64> {
     require_same_length(real, imag)
     let n = len(real)
-    let out = Vec::with_capacity<f64>(n)
+    let mut out = Vec::with_capacity<f64>(n)
     let mut i = 0
     while i < n {
         let r = get_unchecked(real, i)

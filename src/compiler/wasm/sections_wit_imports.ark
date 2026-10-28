@@ -7,7 +7,7 @@ use wasm::emit_target
 use wasm::writer_core
 use wasm::writer_string
 fn emit_wit_import_entries(
-    import_sec: WasmWriter,
+    mut import_sec: WasmWriter,
     bindings: Vec<wit_import_bind::WitImportBinding>,
     wit_type_map: Vec<i32>,
     wasi_version: String

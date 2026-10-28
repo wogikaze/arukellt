@@ -10,7 +10,7 @@ use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_mono
 use mir::lower::match_payload_field_type
 use mir::value_types
-fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32, payload_type_name: String) {
+fn set_gc_payload_bind_type_if_needed(mut ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32, payload_type_name: String) {
     if bind_vt != value_types::VT_GC_REF() {
         return
     }
@@ -101,7 +101,7 @@ fn normalize_payload_vec_type_name(field_type: String) -> String {
     String_new()
 }
 
-fn set_i32_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32, scrut_ok_is_i32: bool) {
+fn set_i32_payload_bind_type_if_needed(mut ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32, scrut_ok_is_i32: bool) {
     if bind_vt == value_types::VT_I32() && scrut_ok_is_i32 && field_idx == 0 {
         if match_payload_field_type::mir_match_variant_is_some_or_ok(clone(variant_name)) {
             ctx_set_local_type(ctx, bind_local, "i32")
@@ -113,7 +113,7 @@ fn set_i32_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind
 // Narrow integer payload binds keep the declared spelling instead of the
 // collapsed i32 ABI slot. Option/Result binds recover it from the scrutinee;
 // user enum variants only carry the declared field type.
-fn set_narrow_int_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32) {
+fn set_narrow_int_payload_bind_type_if_needed(mut ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32) {
     if bind_vt != value_types::VT_I32() {
         return
     }

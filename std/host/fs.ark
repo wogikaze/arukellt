@@ -162,7 +162,7 @@ impl File {
     }
 
     /// Marks the handle closed; a writer commits its image first.
-    fn close(self: File) -> Result<(), IoError> {
+    fn close(mut self: File) -> Result<(), IoError> {
         if self.closed {
             return Err(IoError::Other("file: already closed"))
         }
@@ -179,7 +179,7 @@ impl File {
     ///
     /// Read handles have no image to commit, so `flush` on `open` is a no-op
     /// rather than an error; only `write` is rejected for read-only handles.
-    fn commit(self: File) -> Result<(), IoError> {
+    fn commit(mut self: File) -> Result<(), IoError> {
         if !self.writable || !self.dirty {
             return Ok(())
         }
@@ -193,7 +193,7 @@ impl File {
     }
 
     /// Writes `data` at the write cursor, extending the image when needed.
-    fn write_at_cursor(self: File, data: Vec<i32>) -> Result<i32, IoError> {
+    fn write_at_cursor(mut self: File, data: Vec<i32>) -> Result<i32, IoError> {
         let count: i32 = len(data)
         while len(self.image) < self.cursor {
             push(self.image, 0)
@@ -216,7 +216,7 @@ impl File {
 }
 
 impl Read for File {
-    fn read(self: File, max_bytes: i32) -> Result<Vec<i32>, IoError> {
+    fn read(mut self: File, max_bytes: i32) -> Result<Vec<i32>, IoError> {
         if self.closed {
             return Err(IoError::Other("read: file is closed"))
         }
@@ -228,7 +228,7 @@ impl Read for File {
 }
 
 impl Seek for File {
-    fn seek(self: File, from: SeekFrom) -> Result<i64, IoError> {
+    fn seek(mut self: File, from: SeekFrom) -> Result<i64, IoError> {
         if self.closed {
             return Err(IoError::Other("seek: file is closed"))
         }
@@ -262,7 +262,7 @@ impl Seek for File {
 }
 
 impl Write for File {
-    fn write(self: File, data: Vec<i32>) -> Result<i32, IoError> {
+    fn write(mut self: File, data: Vec<i32>) -> Result<i32, IoError> {
         if self.closed {
             return Err(IoError::Other("write: file is closed"))
         }
@@ -272,7 +272,7 @@ impl Write for File {
         self.write_at_cursor(data)
     }
 
-    fn flush(self: File) -> Result<(), IoError> {
+    fn flush(mut self: File) -> Result<(), IoError> {
         if self.closed {
             return Err(IoError::Other("flush: file is closed"))
         }

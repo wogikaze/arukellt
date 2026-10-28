@@ -5,19 +5,19 @@ use mir::post_pass_type_propagate
 use mir::source_location_record
 use mir::type_contracts
 use mir::typed_mir_sync_module
-fn ctx_push_module_function(ctx: LowerCtx, func: MirFunction) { ctx_module::ctx_push_module_function(ctx, func) }
-fn ctx_push_current_function(ctx: LowerCtx) { ctx_module::ctx_push_current_function(ctx) }
+fn ctx_push_module_function(mut ctx: LowerCtx, mut func: MirFunction) { ctx_module::ctx_push_module_function(ctx, func) }
+fn ctx_push_current_function(mut ctx: LowerCtx) { ctx_module::ctx_push_current_function(ctx) }
 fn ctx_intern_string(ctx: LowerCtx, s: String) -> i32 { ctx_module::ctx_intern_string(ctx, s) }
 fn ctx_prune_unreachable(ctx: LowerCtx) -> i32 { ctx_module::ctx_prune_unreachable(ctx) }
 fn ctx_current_module(ctx: LowerCtx) -> MirModule { ctx_module::ctx_current_module(ctx) }
 fn ctx_sync_typed_value_types(ctx: LowerCtx) {
-    let m = ctx_module::ctx_current_module(ctx)
+    let mut m = ctx_module::ctx_current_module(ctx)
     typed_mir_sync_module::mir_module_sync_all_value_types(m)
     // Propagate applies TypeTable re-sync on each type_name write (#823), so a
     // second full-module sync is not required.
     post_pass_type_propagate::mir_module_propagate_local_types(m)
 }
-fn ctx_set_mono_instances(ctx: LowerCtx, instances: Vec<MonoInstance>) {
+fn ctx_set_mono_instances(mut ctx: LowerCtx, instances: Vec<MonoInstance>) {
     ctx.mono_instances = instances
     let count = len(instances)
     let mut capacity = 16
@@ -25,7 +25,7 @@ fn ctx_set_mono_instances(ctx: LowerCtx, instances: Vec<MonoInstance>) {
     while capacity < required {
         capacity = capacity * 2
     }
-    let buckets = Vec::new<i32>()
+    let mut buckets = Vec::new<i32>()
     let mut bi = 0
     while bi < capacity {
         push(buckets, 0)
@@ -46,7 +46,7 @@ fn ctx_set_mono_instances(ctx: LowerCtx, instances: Vec<MonoInstance>) {
     }
 }
 
-fn ctx_mono_inst_insert_first(ctx: LowerCtx, name: String, value: i32) {
+fn ctx_mono_inst_insert_first(mut ctx: LowerCtx, name: String, value: i32) {
     let slot = ctx_mono_inst_probe_slot(ctx, clone(name))
     if slot < 0 {
         return

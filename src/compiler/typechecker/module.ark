@@ -6,16 +6,16 @@ use typechecker::module_structs
 use typechecker::module_traits
 use typechecker::trait_method_registry
 
-fn register_trait_impl_decls(env: TypeEnv, decls: Vec<AstNode>) {
+fn register_trait_impl_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
     module_traits::register_trait_impl_decls(env, decls)
     trait_method_registry::register_trait_method_sigs(env, decls)
 }
 
-fn register_struct_decls(env: TypeEnv, decls: Vec<AstNode>) {
+fn register_struct_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
     module_structs::register_struct_decls(env, decls)
 }
 
-fn collect_fn_sigs(decls: Vec<AstNode>, env: TypeEnv) -> Vec<FnSig> {
+fn collect_fn_sigs(decls: Vec<AstNode>, mut env: TypeEnv) -> Vec<FnSig> {
     module_fns::collect_fn_sigs(decls, env)
 }
 
@@ -23,10 +23,10 @@ fn collect_enum_defs(decls: Vec<AstNode>) -> Vec<EnumInfo> {
     module_enums::collect_enum_defs(decls)
 }
 
-fn append_typed_fn(result: TypeCheckResult, node: AstNode) {
+fn append_typed_fn(mut result: TypeCheckResult, node: AstNode) {
     module_results::append_typed_fn(result, node)
 }
 
-fn append_env_errors(result: TypeCheckResult, env: TypeEnv) {
+fn append_env_errors(mut result: TypeCheckResult, env: TypeEnv) {
     module_errors::append_env_errors(result, env)
 }

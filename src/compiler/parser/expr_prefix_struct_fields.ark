@@ -8,9 +8,9 @@ use parser::expr_prefix_struct_base
 use parser::expr_prefix_struct_named
 use parser::token_state
 
-pub fn parse_struct_lit_fields(p: Parser, t: Token) -> AstNode {
+pub fn parse_struct_lit_fields(mut p: Parser, t: Token) -> AstNode {
     p.pos = p.pos + 1
-    let node = core_ast_factory::AstNode_new(kinds::NK_STRUCT_LIT(), core_api_expect::tok_span(t))
+    let mut node = core_ast_factory::AstNode_new(kinds::NK_STRUCT_LIT(), core_api_expect::tok_span(t))
     core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(t))
     let mut first = true
     while !core_api_cursor::at(p, tokens::TK_RBRACE()) && !core_api_cursor::at_eof(p) {

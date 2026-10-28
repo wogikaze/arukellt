@@ -59,31 +59,31 @@ fn ComponentTupleScan_single_export(scan: ComponentTupleScan) -> bool {
     scan.export_count == 1
 }
 
-fn ComponentTupleScan_increment_export_count(scan: ComponentTupleScan) {
+fn ComponentTupleScan_increment_export_count(mut scan: ComponentTupleScan) {
     scan.export_count = scan.export_count + 1
 }
 
-fn ComponentTupleReturnScan_set_has_i32_i32_to_tuple_i32_i32(scan: ComponentTupleReturnScan, value: bool) {
+fn ComponentTupleReturnScan_set_has_i32_i32_to_tuple_i32_i32(mut scan: ComponentTupleReturnScan, value: bool) {
     scan.has_i32_i32_to_tuple_i32_i32 = value
 }
 
-fn ComponentTupleReturnScan_set_has_i64_i64_to_tuple_i64_i64(scan: ComponentTupleReturnScan, value: bool) {
+fn ComponentTupleReturnScan_set_has_i64_i64_to_tuple_i64_i64(mut scan: ComponentTupleReturnScan, value: bool) {
     scan.has_i64_i64_to_tuple_i64_i64 = value
 }
 
-fn ComponentTupleReturnScan_set_has_tuple_i32_i32_to_tuple_i32_i32(scan: ComponentTupleReturnScan, value: bool) {
+fn ComponentTupleReturnScan_set_has_tuple_i32_i32_to_tuple_i32_i32(mut scan: ComponentTupleReturnScan, value: bool) {
     scan.has_tuple_i32_i32_to_tuple_i32_i32 = value
 }
 
-fn ComponentTupleParamScan_set_has_tuple_i32_i32_to_i32(scan: ComponentTupleParamScan, value: bool) {
+fn ComponentTupleParamScan_set_has_tuple_i32_i32_to_i32(mut scan: ComponentTupleParamScan, value: bool) {
     scan.has_tuple_i32_i32_to_i32 = value
 }
 
-fn ComponentTupleParamScan_set_has_tuple_i32_bool_to_i32(scan: ComponentTupleParamScan, value: bool) {
+fn ComponentTupleParamScan_set_has_tuple_i32_bool_to_i32(mut scan: ComponentTupleParamScan, value: bool) {
     scan.has_tuple_i32_bool_to_i32 = value
 }
 
-fn ComponentTupleParamScan_set_has_tuple_bool_bool_to_i32(scan: ComponentTupleParamScan, value: bool) {
+fn ComponentTupleParamScan_set_has_tuple_bool_bool_to_i32(mut scan: ComponentTupleParamScan, value: bool) {
     scan.has_tuple_bool_bool_to_i32 = value
 }
 
@@ -136,8 +136,8 @@ fn ComponentTupleScan_allows_tuple_bool_bool_to_i32(scan: ComponentTupleScan) ->
 }
 
 fn component_tuple_scan_apply_fn(d: AstNode, scan: ComponentTupleScan) -> ComponentTupleScan {
-    let return_scan = ComponentTupleScan_return(scan)
-    let param_scan = ComponentTupleScan_param(scan)
+    let mut return_scan = ComponentTupleScan_return(scan)
+    let mut param_scan = ComponentTupleScan_param(scan)
     let f = contract_helpers::component_func_from_decl(d)
     if contract_tuple_functions::component_fn_is_i32_i32_to_tuple_i32_i32(f) {
         ComponentTupleReturnScan_set_has_i32_i32_to_tuple_i32_i32(return_scan, true)
@@ -161,7 +161,7 @@ fn component_tuple_scan_apply_fn(d: AstNode, scan: ComponentTupleScan) -> Compon
 }
 
 fn component_tuple_scan(decls: Vec<AstNode>) -> ComponentTupleScan {
-    let scan = ComponentTupleScan_empty()
+    let mut scan = ComponentTupleScan_empty()
     for i in 0..len(decls) {
         let d = get_unchecked(decls, i)
         if contract_helpers::is_export_func_decl(d) {

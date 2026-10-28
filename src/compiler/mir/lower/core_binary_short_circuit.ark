@@ -10,7 +10,7 @@ use mir::inst_op
 use mir::lower::core_expr_shape_accessors
 use mir::value_types
 
-fn lower_core_short_circuit_binary(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, mir_op: i32) -> i32 {
+fn lower_core_short_circuit_binary(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, mir_op: i32) -> i32 {
     let lhs_index = core_expr_shape_accessors::mir_core_expr_child(expr, 0)
     let rhs_index = core_expr_shape_accessors::mir_core_expr_child(expr, 1)
     let l_idx = lower_core_expr(ctx, exprs, lhs_index)

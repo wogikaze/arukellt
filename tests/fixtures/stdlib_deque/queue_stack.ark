@@ -11,7 +11,7 @@ fn show(value: Option<i32>) {
 }
 
 fn main() {
-    let queue: Queue<i32> = Queue::with_capacity<i32>(4)
+    let mut queue: Queue<i32> = Queue::with_capacity<i32>(4)
     assert(queue.is_empty())
     assert(queue.capacity() == 4)
     queue.push(1)
@@ -32,7 +32,7 @@ fn main() {
     assert(queue.capacity() == 4)
     stdio::println((queue.capacity()).to_string())
 
-    let copied: Queue<i32> = Queue::new<i32>()
+    let mut copied: Queue<i32> = Queue::new<i32>()
     copied.push(7)
     let queue_clone: Queue<i32> = copied.clone()
     copied.push(8)
@@ -45,7 +45,7 @@ fn main() {
     }
     stdio::println((total).to_string())
 
-    let stack: Stack<i32> = Stack::new<i32>()
+    let mut stack: Stack<i32> = Stack::new<i32>()
     assert(stack.is_empty())
     stack.push(10)
     stack.push(20)
@@ -63,7 +63,7 @@ fn main() {
     stack.clear()
     assert(stack.is_empty())
 
-    let stack_copy: Stack<i32> = Stack::new<i32>()
+    let mut stack_copy: Stack<i32> = Stack::new<i32>()
     stack_copy.push(1)
     stack_copy.push(2)
     let stack_clone: Stack<i32> = stack_copy.clone()
@@ -71,7 +71,7 @@ fn main() {
     stdio::println(stack_copy.fmt_debug())
     stdio::println(stack_clone.fmt_debug())
 
-    let text_queue: Queue<String> = Queue::new<String>()
+    let mut text_queue: Queue<String> = Queue::new<String>()
     text_queue.push("a")
     text_queue.push("b")
     stdio::println(text_queue.fmt_debug())
@@ -81,7 +81,7 @@ fn main() {
     assert(text_copy.len() == 2)
     stdio::println(text_copy.fmt_debug())
 
-    let text_stack: Stack<String> = Stack::new<String>()
+    let mut text_stack: Stack<String> = Stack::new<String>()
     text_stack.push("x")
     text_stack.push("y")
     stdio::println(text_stack.fmt_debug())

@@ -4,13 +4,13 @@ use mir::function_locals_record
 use mir::function_param_view
 use mir::local_mutation
 use mir::types_function
-fn MirFunction_push_param(f: MirFunction, local: MirLocal) {
+fn MirFunction_push_param(mut f: MirFunction, mut local: MirLocal) {
     push(f.params, function_locals_record::mir_function_attach_local(f, local))
 }
 
-fn MirFunction_set_param_type(f: MirFunction, idx: i32, vt: i32, type_name: String) {
+fn MirFunction_set_param_type(mut f: MirFunction, idx: i32, vt: i32, type_name: String) {
     let p = function_param_view::MirFunction_param_at(f, idx)
-    let p2 = local_mutation::MirLocal_copy_with_val_type(p, vt)
+    let mut p2 = local_mutation::MirLocal_copy_with_val_type(p, vt)
     let p3 = local_mutation::MirLocal_copy_with_type_name(p2, clone(type_name))
     set(f.params, idx, p3)
 }

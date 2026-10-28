@@ -6,7 +6,7 @@ use parser::core_api_cursor
 use parser::core_api_expect
 use parser::token_state
 
-fn parse_use_alias(p: Parser, node: AstNode) {
+fn parse_use_alias(mut p: Parser, mut node: AstNode) {
     if core_api_cursor::peek_kind(p) == tokens::TK_AS() {
         p.pos = p.pos + 1
         core_api_cursor::skip_newlines(p)

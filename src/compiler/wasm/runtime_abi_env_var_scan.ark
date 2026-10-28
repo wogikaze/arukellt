@@ -7,7 +7,7 @@ use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 
-fn emit_env_var_scan_entries(w: WasmWriter, ctx: SelfEmitCtx, name_ptr: i32, name_len: i32) {
+fn emit_env_var_scan_entries(mut w: WasmWriter, ctx: SelfEmitCtx, name_ptr: i32, name_len: i32) {
     let env_count = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let ptrs_base = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let loop_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
@@ -23,7 +23,7 @@ fn emit_env_var_scan_entries(w: WasmWriter, ctx: SelfEmitCtx, name_ptr: i32, nam
     helpers_control::emit_block_loop_footer(w)
 }
 
-fn emit_env_var_try_entry(w: WasmWriter, ctx: SelfEmitCtx, name_ptr: i32, name_len: i32, ptrs_base: i32, loop_i: i32) {
+fn emit_env_var_try_entry(mut w: WasmWriter, ctx: SelfEmitCtx, name_ptr: i32, name_len: i32, ptrs_base: i32, loop_i: i32) {
     let entry_ptr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
     helpers_core::emit_local_get(w, ptrs_base)
     helpers_core::emit_local_get(w, loop_i)
@@ -35,7 +35,7 @@ fn emit_env_var_try_entry(w: WasmWriter, ctx: SelfEmitCtx, name_ptr: i32, name_l
     emit_env_var_entry_match(w, ctx, name_ptr, name_len, entry_ptr, loop_i)
 }
 
-fn emit_env_var_entry_match(w: WasmWriter, ctx: SelfEmitCtx, name_ptr: i32, name_len: i32, entry_ptr: i32, loop_i: i32) {
+fn emit_env_var_entry_match(mut w: WasmWriter, ctx: SelfEmitCtx, name_ptr: i32, name_len: i32, entry_ptr: i32, loop_i: i32) {
     let cmp_j = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 8)
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_core::emit_local_set(w, cmp_j)
@@ -68,7 +68,7 @@ fn emit_env_var_entry_match(w: WasmWriter, ctx: SelfEmitCtx, name_ptr: i32, name
     helpers_control::emit_end(w)
 }
 
-fn emit_env_var_compare_byte(w: WasmWriter, name_ptr: i32, entry_ptr: i32, cmp_j: i32) {
+fn emit_env_var_compare_byte(mut w: WasmWriter, name_ptr: i32, entry_ptr: i32, cmp_j: i32) {
     helpers_core::emit_local_get(w, entry_ptr)
     helpers_core::emit_local_get(w, cmp_j)
     helpers_numeric_i32::emit_i32_add(w)
@@ -85,7 +85,7 @@ fn emit_env_var_compare_byte(w: WasmWriter, name_ptr: i32, entry_ptr: i32, cmp_j
     helpers_core::emit_local_set(w, cmp_j)
 }
 
-fn emit_env_var_build_some(w: WasmWriter, ctx: SelfEmitCtx, entry_ptr: i32, name_len: i32) {
+fn emit_env_var_build_some(mut w: WasmWriter, ctx: SelfEmitCtx, entry_ptr: i32, name_len: i32) {
     let value_start = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 9)
     helpers_core::emit_local_get(w, entry_ptr)
     helpers_core::emit_local_get(w, name_len)
@@ -105,7 +105,7 @@ fn emit_env_var_build_some(w: WasmWriter, ctx: SelfEmitCtx, entry_ptr: i32, name
     runtime_abi_env_var_result::emit_env_var_store_result(w, ctx)
 }
 
-fn emit_env_var_advance_loop(w: WasmWriter, loop_i: i32) {
+fn emit_env_var_advance_loop(mut w: WasmWriter, loop_i: i32) {
     helpers_core::emit_local_get(w, loop_i)
     helpers_numeric_i32::emit_i32_const(w, 1)
     helpers_numeric_i32::emit_i32_add(w)

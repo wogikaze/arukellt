@@ -9,7 +9,7 @@ use lexer::punct
 use lexer::string
 use lexer::token_state
 
-fn next_token(lex: Lexer) -> Token {
+fn next_token(mut lex: Lexer) -> Token {
     char_skip::skip_whitespace_impl(lex)
     if lex.pos >= lex.src_len {
         return token_state::Token_new(tokens::TK_EOF(), "", lex.pos, lex.pos)

@@ -8,6 +8,6 @@ fn hir_node_child_at(node: HirNode, index: i32) -> HirNode {
     get_unchecked(node.children, index)
 }
 
-fn hir_node_push_child(node: HirNode, child: HirNode) {
+fn hir_node_push_child(mut node: HirNode, child: HirNode) {
     push(node.children, child)
 }

@@ -142,9 +142,9 @@ fn native_c_register_function_id_from_mir(
     function: MirFunction
 ) -> FunctionId {
     let name = function_identity::MirFunction_name(function)
-    let table = module_spine::MirModule_type_table(mir_module)
-    let registry = module_spine::MirModule_signature_registry(mir_module)
-    let params = Vec_new_MirValueType()
+    let mut table = module_spine::MirModule_type_table(mir_module)
+    let mut registry = module_spine::MirModule_signature_registry(mir_module)
+    let mut params = Vec_new_MirValueType()
     let mut param_index = 0
     let parameter_count = function_param_view::MirFunction_param_count(function)
     while param_index < parameter_count {
@@ -155,7 +155,7 @@ fn native_c_register_function_id_from_mir(
         )
         param_index = param_index + 1
     }
-    let returns = Vec_new_MirValueType()
+    let mut returns = Vec_new_MirValueType()
     let return_vt = function_return_view::MirFunction_return_type(function)
     if return_vt != value_types::VT_VOID() && return_vt != 0 {
         push(
@@ -279,7 +279,7 @@ fn native_c_runtime_prelude() -> String {
     )
 }
 
-fn native_c_append_bytes(output: Vec<i32>, fragment: String) {
+fn native_c_append_bytes(mut output: Vec<i32>, fragment: String) {
     let length = len(fragment)
     let mut index = 0
     while index < length {
@@ -289,7 +289,7 @@ fn native_c_append_bytes(output: Vec<i32>, fragment: String) {
 }
 
 /// Lowers the supported native-cpp MIR subset directly to portable C99.
-pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
+pub fn emit_native_c_module(mut mir_module: MirModule) -> NativeCEmitResult {
     if !module_spine::MirModule_signature_spine_populated(mir_module) {
         return NativeCEmitResult_err(
             String_from("compiler ICE: native-cpp requires a populated SignatureRegistry")
@@ -302,11 +302,11 @@ pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
     let function_count_for_registry = module_functions::MirModule_function_count(mir_module)
     let mut registry_index = 0
     while registry_index < function_count_for_registry {
-        let function = module_functions::MirModule_function_at(mir_module, registry_index)
+        let mut function = module_functions::MirModule_function_at(mir_module, registry_index)
         let _resolved = native_c_resolve_function_id(mir_module, function, registry_index)
         registry_index = registry_index + 1
     }
-    let source_bytes = Vec::new<i32>()
+    let mut source_bytes = Vec::new<i32>()
     native_c_append_bytes(source_bytes, native_c_runtime_prelude())
     let funcref_typedefs = hof_call::native_c_collect_funcref_typedefs(mir_module)
     if len(funcref_typedefs) > 0 {
@@ -316,7 +316,7 @@ pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
     let function_count = module_functions::MirModule_function_count(mir_module)
     let mut function_index = 0
     while function_index < function_count {
-        let function = module_functions::MirModule_function_at(mir_module, function_index)
+        let mut function = module_functions::MirModule_function_at(mir_module, function_index)
         let declaration = native_c_function_declaration(mir_module, function, function_index, true)
         if !native_c_emit_result_success(declaration) { return declaration }
         native_c_append_bytes(
@@ -330,7 +330,7 @@ pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
     let mut main_count = 0
     function_index = 0
     while function_index < function_count {
-        let function = module_functions::MirModule_function_at(mir_module, function_index)
+        let mut function = module_functions::MirModule_function_at(mir_module, function_index)
         let emitted = native_c_emit_function(mir_module, function, function_index)
         if !native_c_emit_result_success(emitted) { return emitted }
         native_c_append_bytes(source_bytes, native_c_emit_result_source(emitted))

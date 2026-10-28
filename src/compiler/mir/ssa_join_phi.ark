@@ -47,7 +47,7 @@ fn mir_try_insert_simple_join_phi(f: MirFunction, join_block_id: i32, dest_local
         return false
     }
     ssa_assign::mir_assign_simple_join_phi_ssa(f, dest_local, pred0_local, pred1_local)
-    let phi = phi_factory::MirPhi_new(dest_local, dest_vt)
+    let mut phi = phi_factory::MirPhi_new(dest_local, dest_vt)
     phi_factory::mir_phi_add_arg(phi, pred0_id, pred0_local)
     phi_factory::mir_phi_add_arg(phi, pred1_id, pred1_local)
     function_phi::emit_phi(f, join_block_id, phi)

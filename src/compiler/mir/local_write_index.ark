@@ -25,14 +25,14 @@ fn LocalWriteIndex_empty() -> LocalWriteIndex {
 }
 
 fn LocalWriteIndex_build(f: MirFunction, local_count: i32) -> LocalWriteIndex {
-    let counts = Vec::new<i32>()
+    let mut counts = Vec::new<i32>()
     let mut ci = 0
     while ci < local_count {
         push(counts, 0)
         ci = ci + 1
     }
     write_index_count_writes(f, counts, local_count)
-    let offsets = Vec::new<i32>()
+    let mut offsets = Vec::new<i32>()
     let mut running = 0
     let mut oi = 0
     while oi < local_count {
@@ -41,13 +41,13 @@ fn LocalWriteIndex_build(f: MirFunction, local_count: i32) -> LocalWriteIndex {
         oi = oi + 1
     }
     push(offsets, running)
-    let entries = Vec::new<i32>()
+    let mut entries = Vec::new<i32>()
     let mut ei = 0
     while ei < running * 2 {
         push(entries, 0)
         ei = ei + 1
     }
-    let cursors = Vec::new<i32>()
+    let mut cursors = Vec::new<i32>()
     let mut ki = 0
     while ki < local_count {
         push(cursors, get_unchecked(offsets, ki))
@@ -86,7 +86,7 @@ fn local_write_index_inst_at(index: LocalWriteIndex, write: i32) -> i32 {
     get_unchecked(index.entries, write * 2 + 1)
 }
 
-fn write_index_count_writes(f: MirFunction, counts: Vec<i32>, local_count: i32) {
+fn write_index_count_writes(f: MirFunction, mut counts: Vec<i32>, local_count: i32) {
     let block_count = function_block_queries::MirFunction_block_count(f)
     let mut bi = 0
     while bi < block_count {
@@ -111,7 +111,7 @@ fn write_index_count_writes(f: MirFunction, counts: Vec<i32>, local_count: i32) 
     }
 }
 
-fn write_index_fill_entries(f: MirFunction, entries: Vec<i32>, cursors: Vec<i32>, local_count: i32) {
+fn write_index_fill_entries(f: MirFunction, mut entries: Vec<i32>, mut cursors: Vec<i32>, local_count: i32) {
     let block_count = function_block_queries::MirFunction_block_count(f)
     let mut bi = 0
     while bi < block_count {
@@ -166,7 +166,7 @@ fn write_index_should_record_local_set(
     true
 }
 
-fn write_index_append_site(entries: Vec<i32>, cursors: Vec<i32>, local_idx: i32, bi: i32, ii: i32) {
+fn write_index_append_site(mut entries: Vec<i32>, mut cursors: Vec<i32>, local_idx: i32, bi: i32, ii: i32) {
     let slot = get_unchecked(cursors, local_idx)
     let base = slot * 2
     set(entries, base, bi)

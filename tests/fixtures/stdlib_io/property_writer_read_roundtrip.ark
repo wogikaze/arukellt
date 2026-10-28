@@ -3,12 +3,12 @@ use std::io
 use std::test
 
 fn main() {
-    let w: io::Writer = io::Writer::new()
+    let mut w: io::Writer = io::Writer::new()
     match w.write_string("roundtrip") {
         Result::Ok(n) => test::assert_eq_i32(n, 9),
         Result::Err(e) => panic(io::io_error_message(e)),
     }
-    let r: io::Reader = w.into_reader()
+    let mut r: io::Reader = w.into_reader()
     let res: Result<Vec<i32>, io::IoError> = io::Io::read_to_end(r)
     match res {
         Result::Ok(chunk) => test::assert_eq_string(String::from_utf8_lossy(chunk), "roundtrip"),

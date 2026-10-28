@@ -3,7 +3,7 @@ use mir::lower::core_expr_shape_patterns
 use mir::lower::core_match_payload_bind_core
 use mir::lower::core_match_payload_info
 
-fn core_prepare_match_payload(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, scrut_idx: i32) -> CoreMatchPayloadInfo {
+fn core_prepare_match_payload(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, scrut_idx: i32) -> CoreMatchPayloadInfo {
     core_match_payload_info::core_prepare_match_payload(ctx, exprs, expr, scrut_idx)
 }
 
@@ -11,7 +11,7 @@ fn core_match_payload_compare_idx(info: CoreMatchPayloadInfo) -> i32 {
     core_match_payload_info::core_match_payload_info_compare_idx(info)
 }
 
-fn core_emit_payload_variant_binds_if_needed(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, info: CoreMatchPayloadInfo, pat: CoreHirExpr, scrut_idx: i32) {
+fn core_emit_payload_variant_binds_if_needed(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, info: CoreMatchPayloadInfo, pat: CoreHirExpr, scrut_idx: i32) {
     if core_match_payload_info::core_match_payload_info_is_payload_match(info) &&
     core_expr_shape_patterns::mir_core_expr_is_pat_variant(pat) &&
     core_expr_shape_accessors::mir_core_expr_child_count(pat) > 0 {

@@ -4,7 +4,7 @@ use std::collections::hash_set::HashSet
 use std::test
 
 fn main() {
-    let s: HashSet<String> = HashSet::new<String>()
+    let mut s: HashSet<String> = HashSet::new<String>()
     let _ = s.insert("red")
     test::assert_true(s.capacity() >= 1)
 }

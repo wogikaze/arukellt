@@ -9,11 +9,11 @@ use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io
 use wasm::intrinsics::helpers_io_p2
 
-fn emit_read_stdin_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_read_stdin_to_string(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     runtime_abi_stdio_read::emit_read_stdin_to_string(w, inst, ctx)
 }
 
-fn emit_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, next_op: i32, prev_op: i32) -> bool {
+fn emit_println(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, next_op: i32, prev_op: i32) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         runtime_abi_stdio_gc::emit_gc_println(w, inst, ctx, drop_stray_text_ref, next_op, prev_op)
     } else {
@@ -22,7 +22,7 @@ fn emit_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_
     return false
 }
 
-fn emit_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> bool {
+fn emit_print(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         runtime_abi_stdio_gc::emit_gc_print(w, inst, ctx, prev_op)
     } else {
@@ -31,7 +31,7 @@ fn emit_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> b
     return false
 }
 
-fn emit_println_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
+fn emit_println_t1(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
     let string_local = resolve_stdio_string_local(w, inst, prev_op)
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         helpers_io_p2::emit_p2_write_string_local(w, string_local, constants::P2_IMPORT_GET_STDOUT())
@@ -43,7 +43,7 @@ fn emit_println_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32)
     }
 }
 
-fn emit_print_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
+fn emit_print_t1(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
     let string_local = resolve_stdio_string_local(w, inst, prev_op)
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         helpers_io_p2::emit_p2_write_string_local(w, string_local, constants::P2_IMPORT_GET_STDOUT())
@@ -55,7 +55,7 @@ fn emit_print_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
 
 // Raw stderr write: identical to print except for the stream. Used by the
 // byte-faithful typed `Stderr` handle, so it must not append a newline.
-fn emit_eprint(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> bool {
+fn emit_eprint(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         runtime_abi_stdio_gc::emit_gc_eprint(w, inst, ctx, prev_op)
     } else {
@@ -64,7 +64,7 @@ fn emit_eprint(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> 
     return false
 }
 
-fn emit_eprint_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
+fn emit_eprint_t1(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
     let string_local = resolve_stdio_string_local(w, inst, prev_op)
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         helpers_io_p2::emit_p2_write_string_local(w, string_local, constants::P2_IMPORT_GET_STDERR())
@@ -74,7 +74,7 @@ fn emit_eprint_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) 
     }
 }
 
-fn emit_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> bool {
+fn emit_eprintln(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         runtime_abi_stdio_gc::emit_gc_eprintln(w, inst, ctx, prev_op)
     } else {
@@ -83,7 +83,7 @@ fn emit_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -
     return false
 }
 
-fn emit_eprintln_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
+fn emit_eprintln_t1(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
     let string_local = resolve_stdio_string_local(w, inst, prev_op)
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         helpers_io_p2::emit_p2_write_string_local(w, string_local, constants::P2_IMPORT_GET_STDERR())
@@ -102,7 +102,7 @@ fn emit_eprintln_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32
 // remains on the stack while iov reloads from arg0. Capture it into arg0/dest
 // or the if-block in dump_wasm eprintln fails validate (stack leftover).
 // Do not treat CALL the same way: concat force-SETs, so the stack is already empty.
-fn resolve_stdio_string_local(w: WasmWriter, inst: MirInst, prev_op: i32) -> i32 {
+fn resolve_stdio_string_local(mut w: WasmWriter, inst: MirInst, prev_op: i32) -> i32 {
     let dest = inst_accessors_operands::MirInst_dest(inst)
     let arg0 = inst_accessors_operands::MirInst_arg0(inst)
     if dest >= 0 {

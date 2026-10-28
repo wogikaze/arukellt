@@ -14,21 +14,21 @@ use wasm::ctx_record
 // infer_ref_local_gc_type once per local, each rescanning the whole body.
 
 use std::prelude::{clone, eq}
-fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
+fn begin_function_local_gc_cache(mut ctx: SelfEmitCtx, f: MirFunction) {
     let local_count = function_locals_view::MirFunction_local_count(f)
-    let infer = Vec::new<i32>()
-    let struct_new = Vec::new<i32>()
-    let has_ref = Vec::new<i32>()
-    let scalar_vts = Vec::new<i32>()
-    let scalar_flags = Vec::new<i32>()
-    let strong_ref_flags = Vec::new<i32>()
-    let vec_constructor_flags = Vec::new<i32>()
-    let direct_storage = Vec::new<i32>()
-    let copied_storage = Vec::new<i32>()
-    let def_block = Vec::new<i32>()
-    let def_inst = Vec::new<i32>()
-    let struct_new_size_names = Vec::new<String>()
-    let struct_new_sizes = Vec::new<i32>()
+    let mut infer = Vec::new<i32>()
+    let mut struct_new = Vec::new<i32>()
+    let mut has_ref = Vec::new<i32>()
+    let mut scalar_vts = Vec::new<i32>()
+    let mut scalar_flags = Vec::new<i32>()
+    let mut strong_ref_flags = Vec::new<i32>()
+    let mut vec_constructor_flags = Vec::new<i32>()
+    let mut direct_storage = Vec::new<i32>()
+    let mut copied_storage = Vec::new<i32>()
+    let mut def_block = Vec::new<i32>()
+    let mut def_inst = Vec::new<i32>()
+    let mut struct_new_size_names = Vec::new<String>()
+    let mut struct_new_sizes = Vec::new<i32>()
     let mut i = 0
     while i < local_count {
         // Private encoding: -2 = not yet inferred (see cached_infer_*).
@@ -115,7 +115,7 @@ fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
 
 // Keeps the first size seen per name so lookups match the body-order scan
 // they replace.
-fn record_struct_new_size(names: Vec<String>, sizes: Vec<i32>, struct_name: String, byte_size: i32) {
+fn record_struct_new_size(mut names: Vec<String>, mut sizes: Vec<i32>, struct_name: String, byte_size: i32) {
     if struct_new_size_index(names, clone(struct_name)) >= 0 {
         return
     }
@@ -146,7 +146,7 @@ fn cached_struct_new_byte_size(ctx: SelfEmitCtx, struct_name: String) -> i32 {
     get_unchecked(ctx_record::SelfEmitCtx_struct_new_sizes(ctx), idx)
 }
 
-fn seed_has_ref_from_params(f: MirFunction, has_ref: Vec<i32>) {
+fn seed_has_ref_from_params(f: MirFunction, mut has_ref: Vec<i32>) {
     let param_count = function_param_view::MirFunction_param_count(f)
     let mut pi = 0
     while pi < param_count {
@@ -159,8 +159,8 @@ fn seed_has_ref_from_params(f: MirFunction, has_ref: Vec<i32>) {
 }
 
 fn record_local_def_site(
-    def_block: Vec<i32>,
-    def_inst: Vec<i32>,
+    mut def_block: Vec<i32>,
+    mut def_inst: Vec<i32>,
     local_count: i32,
     local_idx: i32,
     block_idx: i32,
@@ -180,7 +180,7 @@ fn record_local_def_site(
     set(def_inst, local_idx, inst_idx)
 }
 
-fn propagate_has_ref_assignments(f: MirFunction, has_ref: Vec<i32>, max_passes: i32) {
+fn propagate_has_ref_assignments(f: MirFunction, mut has_ref: Vec<i32>, max_passes: i32) {
     let mut pass = 0
     while pass < max_passes {
         let mut changed = 0
@@ -206,7 +206,7 @@ fn propagate_has_ref_assignments(f: MirFunction, has_ref: Vec<i32>, max_passes: 
     }
 }
 
-fn local_inst_marks_ref(f: MirFunction, inst: MirInst, has_ref: Vec<i32>) -> bool {
+fn local_inst_marks_ref(f: MirFunction, inst: MirInst, mut has_ref: Vec<i32>) -> bool {
     let op = inst_accessors_shape::MirInst_op(inst)
     let dest = inst_accessors_operands::MirInst_dest(inst)
     let arg0 = inst_accessors_operands::MirInst_arg0(inst)
@@ -261,7 +261,7 @@ fn function_local_write_index(f: MirFunction, ctx: SelfEmitCtx) -> LocalWriteInd
     local_write_index::LocalWriteIndex_build(f, function_locals_view::MirFunction_local_count(f))
 }
 
-fn end_function_local_gc_cache(ctx: SelfEmitCtx) {
+fn end_function_local_gc_cache(mut ctx: SelfEmitCtx) {
     ctx_record::SelfEmitCtx_set_local_gc_infer_cache(ctx, Vec::new<i32>())
     ctx_record::SelfEmitCtx_set_local_struct_new_cache(ctx, Vec::new<i32>())
     ctx_record::SelfEmitCtx_set_local_has_ref_cache(ctx, Vec::new<i32>())
@@ -314,7 +314,7 @@ fn cached_direct_producer_storage(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
 }
 
 fn set_cached_direct_producer_storage(ctx: SelfEmitCtx, local_idx: i32, value: Option<i32>) {
-    let cache = ctx_record::SelfEmitCtx_local_direct_producer_storage_cache(ctx)
+    let mut cache = ctx_record::SelfEmitCtx_local_direct_producer_storage_cache(ctx)
     if local_idx < 0 || local_idx >= len(cache) {
         return
     }
@@ -336,7 +336,7 @@ fn cached_copied_storage(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
 }
 
 fn set_cached_copied_storage(ctx: SelfEmitCtx, local_idx: i32, value: Option<i32>) {
-    let cache = ctx_record::SelfEmitCtx_local_copied_storage_cache(ctx)
+    let mut cache = ctx_record::SelfEmitCtx_local_copied_storage_cache(ctx)
     if local_idx < 0 || local_idx >= len(cache) {
         return
     }
@@ -378,7 +378,7 @@ fn cached_infer_as_option(ctx: SelfEmitCtx, local_idx: i32) -> Option<i32> {
 }
 
 fn cached_infer_set(ctx: SelfEmitCtx, local_idx: i32, value: Option<i32>) {
-    let cache = ctx_record::SelfEmitCtx_local_gc_infer_cache(ctx)
+    let mut cache = ctx_record::SelfEmitCtx_local_gc_infer_cache(ctx)
     if local_idx < 0 || local_idx >= len(cache) {
         return
     }

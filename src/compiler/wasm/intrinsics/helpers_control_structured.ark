@@ -2,16 +2,16 @@ use wasm::opcodes
 use wasm::constants
 use wasm::writer_core
 
-fn emit_if(w: WasmWriter) {
+fn emit_if(mut w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_IF())
 }
 
-fn emit_if_i32(w: WasmWriter) {
+fn emit_if_i32(mut w: WasmWriter) {
     emit_if(w)
     writer_core::emit_byte(w, constants::WASM_I32())
 }
 
-fn emit_if_widened_i32(w: WasmWriter) {
+fn emit_if_widened_i32(mut w: WasmWriter) {
     emit_if(w)
     if writer_core::writer_memory64(w) {
         writer_core::emit_byte(w, constants::WASM_I64())
@@ -20,20 +20,20 @@ fn emit_if_widened_i32(w: WasmWriter) {
     writer_core::emit_byte(w, constants::WASM_I32())
 }
 
-fn emit_if_empty(w: WasmWriter) {
+fn emit_if_empty(mut w: WasmWriter) {
     emit_if(w)
     writer_core::emit_byte(w, 64)
 }
 
-fn emit_else(w: WasmWriter) {
+fn emit_else(mut w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_ELSE())
 }
 
-fn emit_end(w: WasmWriter) {
+fn emit_end(mut w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_block_i32(w: WasmWriter) {
+fn emit_block_i32(mut w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_BLOCK())
     writer_core::emit_byte(w, constants::WASM_I32())
 }

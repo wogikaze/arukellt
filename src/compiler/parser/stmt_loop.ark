@@ -7,9 +7,9 @@ use parser::core_api_expect
 use parser::kinds
 use parser::token_state
 
-pub fn parse_while(p: Parser) -> AstNode {
+pub fn parse_while(mut p: Parser) -> AstNode {
     let t = expect_token(p, tokens::TK_WHILE())
-    let node = AstNode_new(kinds::NK_WHILE(), tok_span(t))
+    let mut node = AstNode_new(kinds::NK_WHILE(), tok_span(t))
     skip_newlines(p)
     let cond = parse_expr(p)
     core_ast_children::AstNode_push_child(node, cond)
@@ -19,18 +19,18 @@ pub fn parse_while(p: Parser) -> AstNode {
     node
 }
 
-pub fn parse_loop(p: Parser) -> AstNode {
+pub fn parse_loop(mut p: Parser) -> AstNode {
     let t = expect_token(p, tokens::TK_LOOP())
-    let node = AstNode_new(kinds::NK_LOOP(), tok_span(t))
+    let mut node = AstNode_new(kinds::NK_LOOP(), tok_span(t))
     skip_newlines(p)
     let body = parse_block(p)
     core_ast_children::AstNode_push_child(node, body)
     node
 }
 
-pub fn parse_for(p: Parser) -> AstNode {
+pub fn parse_for(mut p: Parser) -> AstNode {
     let t = expect_token(p, tokens::TK_FOR())
-    let node = AstNode_new(kinds::NK_FOR(), tok_span(t))
+    let mut node = AstNode_new(kinds::NK_FOR(), tok_span(t))
     skip_newlines(p)
     let binding = expect_token(p, tokens::TK_IDENT())
     core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(binding))

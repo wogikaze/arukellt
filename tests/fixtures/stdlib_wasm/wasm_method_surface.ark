@@ -80,10 +80,10 @@ fn opcode_cases() {
 }
 
 fn functype_cases() {
-    let params: Vec<i32> = Vec::new<i32>()
+    let mut params: Vec<i32> = Vec::new<i32>()
     params.push(wasm::ValType::i32())
     params.push(wasm::ValType::i64())
-    let results: Vec<i32> = Vec::new<i32>()
+    let mut results: Vec<i32> = Vec::new<i32>()
     results.push(wasm::ValType::f64())
     let ft: wasm::FuncType = wasm::FuncType::new(params, results)
     test::assert_eq_i32(ft.param_count(), 2)
@@ -105,13 +105,13 @@ fn limits_cases() {
 }
 
 fn builder_cases() {
-    let m: wasm::WasmModuleBuilder = wasm::WasmModuleBuilder::new()
+    let mut m: wasm::WasmModuleBuilder = wasm::WasmModuleBuilder::new()
     test::assert_eq_i32(m.type_count(), 0)
     test::assert_eq_i32(m.func_count(), 0)
     test::assert_eq_i32(m.mem_count(), 0)
     test::assert_eq_i32(m.export_count(), 0)
     let params: Vec<i32> = Vec::new<i32>()
-    let results: Vec<i32> = Vec::new<i32>()
+    let mut results: Vec<i32> = Vec::new<i32>()
     results.push(wasm::ValType::i32())
     let ft: wasm::FuncType = wasm::FuncType::new(params, results)
     test::assert_eq_i32(m.add_type(ft), 0)

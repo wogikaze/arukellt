@@ -27,13 +27,13 @@ fn peek_at(lex: Lexer, offset: i32) -> i32 {
     }
 }
 
-fn advance(lex: Lexer) -> i32 {
+fn advance(mut lex: Lexer) -> i32 {
     let c = byte_at(lex.src, lex.pos)
     lex.pos = lex.pos + 1
     c
 }
 
-fn advance_by(lex: Lexer, count: i32) {
+fn advance_by(mut lex: Lexer, count: i32) {
     lex.pos = lex.pos + count
 }
 

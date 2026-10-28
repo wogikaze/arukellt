@@ -80,11 +80,11 @@ struct Out {
     lines: Vec<String>,
 }
 
-fn put(o: Out, depth: i32, text: String) {
+fn put(mut o: Out, depth: i32, text: String) {
     push(o.lines, indent_of(depth).concat(text))
 }
 
-fn put_gap(o: Out, depth: i32, message: String) {
+fn put_gap(mut o: Out, depth: i32, message: String) {
     put(o, depth, ";; GAP: ".concat(message))
 }
 
@@ -132,7 +132,7 @@ struct Rd {
     p: i32,
 }
 
-fn read_byte(r: Rd) -> i32 {
+fn read_byte(mut r: Rd) -> i32 {
     if r.p >= r.n {
         return 0
     }
@@ -148,14 +148,14 @@ fn peek_byte(r: Rd) -> i32 {
     return get_unchecked(r.b, r.p)
 }
 
-fn skip_bytes(r: Rd, count: i32) {
+fn skip_bytes(mut r: Rd, count: i32) {
     r.p = r.p + count
     if r.p > r.n {
         r.p = r.n
     }
 }
 
-fn read_u32(r: Rd) -> i32 {
+fn read_u32(mut r: Rd) -> i32 {
     let mut result: i32 = 0
     let mut shift: i32 = 0
     let mut i: i32 = 0
@@ -171,7 +171,7 @@ fn read_u32(r: Rd) -> i32 {
     return result
 }
 
-fn read_u64(r: Rd) -> i64 {
+fn read_u64(mut r: Rd) -> i64 {
     let mut result: i64 = 0i64
     let mut shift: i64 = 0i64
     let mut i: i32 = 0
@@ -187,7 +187,7 @@ fn read_u64(r: Rd) -> i64 {
     return result
 }
 
-fn read_s32(r: Rd) -> i32 {
+fn read_s32(mut r: Rd) -> i32 {
     let mut result: i32 = 0
     let mut shift: i32 = 0
     let mut last: i32 = 0
@@ -207,7 +207,7 @@ fn read_s32(r: Rd) -> i32 {
     return result
 }
 
-fn read_s64(r: Rd) -> i64 {
+fn read_s64(mut r: Rd) -> i64 {
     let mut result: i64 = 0i64
     let mut shift: i64 = 0i64
     let mut last: i32 = 0
@@ -227,7 +227,7 @@ fn read_s64(r: Rd) -> i64 {
     return result
 }
 
-fn read_u32_le(r: Rd) -> i32 {
+fn read_u32_le(mut r: Rd) -> i32 {
     let b0: i32 = read_byte(r)
     let b1: i32 = read_byte(r)
     let b2: i32 = read_byte(r)
@@ -235,7 +235,7 @@ fn read_u32_le(r: Rd) -> i32 {
     return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)
 }
 
-fn read_u64_le(r: Rd) -> i64 {
+fn read_u64_le(mut r: Rd) -> i64 {
     let b0: i32 = read_byte(r)
     let b1: i32 = read_byte(r)
     let b2: i32 = read_byte(r)
@@ -270,8 +270,8 @@ fn escape_byte(b: i32) -> String {
     return String_from("\\").concat(hex_byte(b))
 }
 
-fn quoted_bytes(r: Rd, count: i32) -> String {
-    let parts: Vec<String> = Vec::new<String>()
+fn quoted_bytes(mut r: Rd, count: i32) -> String {
+    let mut parts: Vec<String> = Vec::new<String>()
     let mut i: i32 = 0
     while i < count && r.p < r.n {
         push(parts, escape_byte(read_byte(r)))
@@ -280,7 +280,7 @@ fn quoted_bytes(r: Rd, count: i32) -> String {
     return "\"".concat(join(parts, String_from("")).concat("\""))
 }
 
-fn read_name(r: Rd) -> String {
+fn read_name(mut r: Rd) -> String {
     let n: i32 = read_u32(r)
     return quoted_bytes(r, n)
 }
@@ -357,13 +357,13 @@ fn u64_hex(v: i64) -> String {
     if v == 0i64 {
         return String_from("0")
     }
-    let digits: Vec<String> = Vec::new<String>()
+    let mut digits: Vec<String> = Vec::new<String>()
     let mut x: i64 = v
     while x > 0i64 {
         push(digits, hex_digit(i64_to_i32(x & 15i64)))
         x = x >> 4i64
     }
-    let reversed: Vec<String> = Vec::new<String>()
+    let mut reversed: Vec<String> = Vec::new<String>()
     let mut i: i32 = len(digits) - 1
     while i >= 0 {
         push(reversed, get_unchecked(digits, i))
@@ -373,7 +373,7 @@ fn u64_hex(v: i64) -> String {
 }
 
 fn u64_hex_pad(v: i64, digits: i32) -> String {
-    let out: Vec<String> = Vec::new<String>()
+    let mut out: Vec<String> = Vec::new<String>()
     let mut i: i32 = digits - 1
     while i >= 0 {
         push(out, hex_digit(i64_to_i32((v >> i32_to_i64(i * 4)) & 15i64)))
@@ -483,7 +483,7 @@ fn abstract_heap_name(h: i32) -> String {
     return String_from("")
 }
 
-fn read_heaptype_text(r: Rd) -> String {
+fn read_heaptype_text(mut r: Rd) -> String {
     let h: i32 = read_s32(r)
     if h >= 0 {
         return to_string(h)
@@ -495,7 +495,7 @@ fn read_heaptype_text(r: Rd) -> String {
     return name
 }
 
-fn read_valtype_text(r: Rd) -> String {
+fn read_valtype_text(mut r: Rd) -> String {
     let b: i32 = read_byte(r)
     if b == DISASM_VT_I32 {
         return "i32"
@@ -521,7 +521,7 @@ fn read_valtype_text(r: Rd) -> String {
     return shorthand_ref_name(b)
 }
 
-fn read_storagetype_text(r: Rd) -> String {
+fn read_storagetype_text(mut r: Rd) -> String {
     let b: i32 = peek_byte(r)
     if b == DISASM_VT_I8 {
         skip_bytes(r, 1)
@@ -534,7 +534,7 @@ fn read_storagetype_text(r: Rd) -> String {
     return read_valtype_text(r)
 }
 
-fn read_fieldtype_text(r: Rd) -> String {
+fn read_fieldtype_text(mut r: Rd) -> String {
     let t: String = read_storagetype_text(r)
     let mutability: i32 = read_byte(r)
     if mutability != 0 {
@@ -543,7 +543,7 @@ fn read_fieldtype_text(r: Rd) -> String {
     return t
 }
 
-fn read_limits_text(r: Rd) -> String {
+fn read_limits_text(mut r: Rd) -> String {
     let flags: i32 = read_byte(r)
     let has_max: bool = (flags & 1) != 0
     let is_shared: bool = (flags & 2) != 0
@@ -574,7 +574,7 @@ fn read_limits_text(r: Rd) -> String {
     return s
 }
 
-fn read_globaltype_text(r: Rd) -> String {
+fn read_globaltype_text(mut r: Rd) -> String {
     let t: String = read_valtype_text(r)
     let mutability: i32 = read_byte(r)
     if mutability != 0 {
@@ -583,7 +583,7 @@ fn read_globaltype_text(r: Rd) -> String {
     return t
 }
 
-fn read_param_result_lists(r: Rd, prefix: String) -> String {
+fn read_param_result_lists(mut r: Rd, prefix: String) -> String {
     let mut s: String = prefix
     let np: i32 = read_u32(r)
     if np > 0 {
@@ -608,7 +608,7 @@ fn read_param_result_lists(r: Rd, prefix: String) -> String {
     return s
 }
 
-fn comptype_text(r: Rd) -> String {
+fn comptype_text(mut r: Rd) -> String {
     let b: i32 = read_byte(r)
     if b == DISASM_COMP_FUNC {
         return read_param_result_lists(r, String_from("(func")).concat(")")
@@ -629,7 +629,7 @@ fn comptype_text(r: Rd) -> String {
     return "(func)"
 }
 
-fn subtype_text(r: Rd) -> String {
+fn subtype_text(mut r: Rd) -> String {
     let b: i32 = peek_byte(r)
     if b != DISASM_SUB && b != DISASM_SUB_FINAL {
         return comptype_text(r)
@@ -648,7 +648,7 @@ fn subtype_text(r: Rd) -> String {
     return s.concat(comptype_text(r)).concat(")")
 }
 
-fn emit_type_section(r: Rd, o: Out) {
+fn emit_type_section(mut r: Rd, mut o: Out) {
     let count: i32 = read_u32(r)
     let mut index: i32 = 0
     let mut i: i32 = 0
@@ -672,7 +672,7 @@ fn emit_type_section(r: Rd, o: Out) {
     }
 }
 
-fn type_entry_text(r: Rd, index: i32) -> String {
+fn type_entry_text(mut r: Rd, index: i32) -> String {
     return "(type (;".concat(to_string(index)).concat(";) ").concat(subtype_text(r)).concat(")")
 }
 
@@ -680,8 +680,8 @@ fn type_entry_text(r: Rd, index: i32) -> String {
 // 初期化式（global / elem / data の offset など）
 // ---------------------------------------------------------------------------
 
-fn const_expr_parts(r: Rd) -> Vec<String> {
-    let parts: Vec<String> = Vec::new<String>()
+fn const_expr_parts(mut r: Rd) -> Vec<String> {
+    let mut parts: Vec<String> = Vec::new<String>()
     let mut done: bool = false
     while !done && r.p < r.n {
         if peek_byte(r) == 0x0b {
@@ -700,7 +700,7 @@ fn const_expr_parts(r: Rd) -> Vec<String> {
 }
 
 // 単一命令なら `(i32.const 0)`、複数なら平坦な並びで返す。
-fn const_expr_text(r: Rd) -> String {
+fn const_expr_text(mut r: Rd) -> String {
     let parts: Vec<String> = const_expr_parts(r)
     if len(parts) == 0 {
         return "(i32.const 0)"
@@ -804,7 +804,7 @@ fn memory_instr_name(op: i32) -> String {
     return String_from("")
 }
 
-fn memarg_text(r: Rd, op: i32, name: String) -> String {
+fn memarg_text(mut r: Rd, op: i32, name: String) -> String {
     let raw_align: i32 = read_u32(r)
     let mut memidx: i32 = 0
     let mut align_exp: i32 = raw_align
@@ -1300,7 +1300,7 @@ fn gc_noimm_name(sub: i32) -> String {
     return String_from("")
 }
 
-fn blocktype_text(r: Rd) -> String {
+fn blocktype_text(mut r: Rd) -> String {
     let b: i32 = peek_byte(r)
     if b == DISASM_BT_EMPTY {
         skip_bytes(r, 1)
@@ -1316,7 +1316,7 @@ fn blocktype_text(r: Rd) -> String {
     return " (type ".concat(text_u32(index)).concat(")")
 }
 
-fn br_table_text(r: Rd) -> String {
+fn br_table_text(mut r: Rd) -> String {
     let count: i32 = read_u32(r)
     let mut s: String = String_from("br_table")
     let mut i: i32 = 0
@@ -1328,7 +1328,7 @@ fn br_table_text(r: Rd) -> String {
     return s
 }
 
-fn select_text(r: Rd) -> String {
+fn select_text(mut r: Rd) -> String {
     let n: i32 = read_u32(r)
     if n == 0 {
         return "select"
@@ -1349,7 +1349,7 @@ fn reftype_of(heaptype: String, nullable: bool) -> String {
     return "(ref ".concat(heaptype).concat(")")
 }
 
-fn gc_instr_text(r: Rd) -> String {
+fn gc_instr_text(mut r: Rd) -> String {
     let sub: i32 = read_u32(r)
     if sub == 0 {
         return "struct.new ".concat(text_u32(read_u32(r)))
@@ -1443,7 +1443,7 @@ fn gc_instr_text(r: Rd) -> String {
     return String_from("")
 }
 
-fn br_on_cast_text(r: Rd, name: String) -> String {
+fn br_on_cast_text(mut r: Rd, name: String) -> String {
     let flags: i32 = read_byte(r)
     let label: String = text_u32(read_u32(r))
     let ht1: String = read_heaptype_text(r)
@@ -1453,7 +1453,7 @@ fn br_on_cast_text(r: Rd, name: String) -> String {
     return name.concat(" ").concat(label).concat(" ").concat(rt1).concat(" ").concat(rt2)
 }
 
-fn misc_instr_text(r: Rd) -> String {
+fn misc_instr_text(mut r: Rd) -> String {
     let sub: i32 = read_u32(r)
     let simple: String = misc_noimm_name(sub)
     if simple != "" {
@@ -1509,7 +1509,7 @@ fn misc_instr_text(r: Rd) -> String {
     return String_from("")
 }
 
-fn call_indirect_text(r: Rd, name: String) -> String {
+fn call_indirect_text(mut r: Rd, name: String) -> String {
     let typeidx: String = text_u32(read_u32(r))
     let tableidx: i32 = read_u32(r)
     if tableidx == 0 {
@@ -1518,7 +1518,7 @@ fn call_indirect_text(r: Rd, name: String) -> String {
     return name.concat(" ").concat(text_u32(tableidx)).concat(" (type ").concat(typeidx).concat(")")
 }
 
-fn instr_text(r: Rd) -> String {
+fn instr_text(mut r: Rd) -> String {
     let start: i32 = r.p
     let op: i32 = read_byte(r)
     // 制御（即値あり）
@@ -1686,7 +1686,7 @@ fn u32_at(b: Vec<i32>, start: i32) -> i32 {
     return result
 }
 
-fn emit_body(r: Rd, o: Out, body_end: i32) {
+fn emit_body(mut r: Rd, mut o: Out, body_end: i32) {
     let mut depth: i32 = 2
     let mut done: bool = false
     while !done && r.p < body_end && r.p < r.n {
@@ -1738,7 +1738,7 @@ fn emit_body(r: Rd, o: Out, body_end: i32) {
 // セクション
 // ---------------------------------------------------------------------------
 
-fn import_desc_text(r: Rd, kind: i32) -> String {
+fn import_desc_text(mut r: Rd, kind: i32) -> String {
     if kind == 0 {
         return "(func (type ".concat(text_u32(read_u32(r))).concat("))")
     }
@@ -1755,7 +1755,7 @@ fn import_desc_text(r: Rd, kind: i32) -> String {
     return "(func)"
 }
 
-fn emit_import_section(r: Rd, o: Out) {
+fn emit_import_section(mut r: Rd, mut o: Out) {
     let count: i32 = read_u32(r)
     let mut i: i32 = 0
     while i < count && r.p < r.n {
@@ -1768,9 +1768,9 @@ fn emit_import_section(r: Rd, o: Out) {
     }
 }
 
-fn read_function_section(r: Rd) -> Vec<i32> {
+fn read_function_section(mut r: Rd) -> Vec<i32> {
     let count: i32 = read_u32(r)
-    let types: Vec<i32> = Vec::new<i32>()
+    let mut types: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < count && r.p < r.n {
         push(types, read_u32(r))
@@ -1779,7 +1779,7 @@ fn read_function_section(r: Rd) -> Vec<i32> {
     return types
 }
 
-fn emit_table_section(r: Rd, o: Out) {
+fn emit_table_section(mut r: Rd, mut o: Out) {
     let count: i32 = read_u32(r)
     let mut i: i32 = 0
     while i < count && r.p < r.n {
@@ -1800,7 +1800,7 @@ fn emit_table_section(r: Rd, o: Out) {
     }
 }
 
-fn emit_memory_section(r: Rd, o: Out) {
+fn emit_memory_section(mut r: Rd, mut o: Out) {
     let count: i32 = read_u32(r)
     let mut i: i32 = 0
     while i < count && r.p < r.n {
@@ -1809,7 +1809,7 @@ fn emit_memory_section(r: Rd, o: Out) {
     }
 }
 
-fn emit_global_section(r: Rd, o: Out) {
+fn emit_global_section(mut r: Rd, mut o: Out) {
     let count: i32 = read_u32(r)
     let mut i: i32 = 0
     while i < count && r.p < r.n {
@@ -1839,7 +1839,7 @@ fn export_kind_name(kind: i32) -> String {
     return "func"
 }
 
-fn emit_export_section(r: Rd, o: Out) {
+fn emit_export_section(mut r: Rd, mut o: Out) {
     let count: i32 = read_u32(r)
     let mut i: i32 = 0
     while i < count && r.p < r.n {
@@ -1853,11 +1853,11 @@ fn emit_export_section(r: Rd, o: Out) {
     }
 }
 
-fn emit_start_section(r: Rd, o: Out) {
+fn emit_start_section(mut r: Rd, mut o: Out) {
     put(o, 1, "(start ".concat(text_u32(read_u32(r))).concat(")"))
 }
 
-fn func_index_list(r: Rd, count: i32) -> String {
+fn func_index_list(mut r: Rd, count: i32) -> String {
     let mut s: String = String_from("")
     let mut i: i32 = 0
     while i < count && r.p < r.n {
@@ -1867,7 +1867,7 @@ fn func_index_list(r: Rd, count: i32) -> String {
     return s
 }
 
-fn expr_list(r: Rd, count: i32) -> String {
+fn expr_list(mut r: Rd, count: i32) -> String {
     let mut s: String = String_from("")
     let mut i: i32 = 0
     while i < count && r.p < r.n {
@@ -1877,7 +1877,7 @@ fn expr_list(r: Rd, count: i32) -> String {
     return s
 }
 
-fn emit_elem_section(r: Rd, o: Out) {
+fn emit_elem_section(mut r: Rd, mut o: Out) {
     let count: i32 = read_u32(r)
     let mut i: i32 = 0
     while i < count && r.p < r.n {
@@ -1887,7 +1887,7 @@ fn emit_elem_section(r: Rd, o: Out) {
     }
 }
 
-fn elem_text(r: Rd, flags: i32) -> String {
+fn elem_text(mut r: Rd, flags: i32) -> String {
     if flags == 0 {
         let off: String = const_expr_text(r)
         let n: i32 = read_u32(r)
@@ -1934,12 +1934,12 @@ fn elem_text(r: Rd, flags: i32) -> String {
     return "(elem declare ".concat(rt).concat(expr_list(r, n)).concat(")")
 }
 
-fn data_string(r: Rd) -> String {
+fn data_string(mut r: Rd) -> String {
     let n: i32 = read_u32(r)
     return quoted_bytes(r, n)
 }
 
-fn emit_data_section(r: Rd, o: Out) {
+fn emit_data_section(mut r: Rd, mut o: Out) {
     let count: i32 = read_u32(r)
     let mut i: i32 = 0
     while i < count && r.p < r.n {
@@ -1960,7 +1960,7 @@ fn emit_data_section(r: Rd, o: Out) {
     }
 }
 
-fn emit_code_section(r: Rd, o: Out, func_types: Vec<i32>) {
+fn emit_code_section(mut r: Rd, mut o: Out, func_types: Vec<i32>) {
     let count: i32 = read_u32(r)
     let mut i: i32 = 0
     while i < count && r.p < r.n {
@@ -1984,12 +1984,12 @@ fn emit_code_section(r: Rd, o: Out, func_types: Vec<i32>) {
     }
 }
 
-fn locals_text(r: Rd) -> String {
+fn locals_text(mut r: Rd) -> String {
     let groups: i32 = read_u32(r)
     if groups == 0 {
         return String_from("")
     }
-    let parts: Vec<String> = Vec::new<String>()
+    let mut parts: Vec<String> = Vec::new<String>()
     let mut i: i32 = 0
     while i < groups && r.p < r.n {
         let count: i32 = read_u32(r)
@@ -2075,14 +2075,14 @@ fn section_name(id: i32) -> String {
 /// Unsupported opcodes/sections are rendered as `;; GAP:` comments so a
 /// partial disassembly never masquerades as valid WAT.
 pub fn wasm_to_wat(bytes: Vec<i32>) -> String {
-    let o: Out = Out { lines: Vec::new<String>() }
+    let mut o: Out = Out { lines: Vec::new<String>() }
     let n: i32 = len(bytes)
     if !header_is_valid(bytes, n) {
         put(o, 0, ";; GAP: not a wasm core module (bad magic or version)")
         put(o, 0, "(module)")
         return join(o.lines, String_from("\n")).concat("\n")
     }
-    let r: Rd = Rd { b: bytes, n: n, p: 8 }
+    let mut r: Rd = Rd { b: bytes, n: n, p: 8 }
     let mut func_types: Vec<i32> = Vec::new<i32>()
     put(o, 0, "(module")
     while r.p < r.n {

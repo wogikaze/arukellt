@@ -17,7 +17,7 @@ fn mir_try_insert_simple_join_phi(f: MirFunction, join_block_id: i32, dest_local
     ssa_phi::mir_try_insert_simple_join_phi(f, join_block_id, dest_local)
 }
 
-fn mir_ssa_rename_function(f: MirFunction) {
+fn mir_ssa_rename_function(mut f: MirFunction) {
     ssa_rename::mir_ssa_rename_function(f)
 }
 

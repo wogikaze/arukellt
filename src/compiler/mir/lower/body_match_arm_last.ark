@@ -10,7 +10,7 @@ use mir::lower::body_match_compare_single
 use mir::lower::body_match_tuple
 use mir::lower::match
 
-fn lower_last_match_arm(ctx: LowerCtx, arm_node: AstNode, arm_child_count: i32, pat: AstNode, body: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, result: i32, if_depth: i32) -> i32 {
+fn lower_last_match_arm(mut ctx: LowerCtx, arm_node: AstNode, arm_child_count: i32, pat: AstNode, body: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, result: i32, if_depth: i32) -> i32 {
     let mut depth = if_depth
     let is_catchall = match::mir_match_is_catchall(ctx, pat)
     let is_struct_pattern = ast_node::node_kind_is(pat, lower_kinds::NK_PAT_STRUCT())
@@ -52,7 +52,7 @@ fn lower_last_match_arm(ctx: LowerCtx, arm_node: AstNode, arm_child_count: i32, 
     depth
 }
 
-fn lower_last_pattern_condition(ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32) -> i32 {
+fn lower_last_pattern_condition(mut ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32) -> i32 {
     if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_TUPLE()) {
         // Tuple arms never engage the payload machinery, so compare_idx is
         // still the scrutinee local itself (#893).

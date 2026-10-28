@@ -44,7 +44,7 @@ fn issue652_assert_wit_import(node: AstNode, package_id: String, alias: String) 
 
 fn issue652_parser_self_check() -> String {
     let src = "import \"test:host/math\" as host\nimport \"wasi:cli/stdin\"\nimport math\n"
-    let p = issue652_parse_source(src)
+    let mut p = issue652_parse_source(src)
     let decls = decl::parse_module(p)
     if state_record::parser_error_count(p) != 0 {
         return "issue652 parser fail: unexpected parse errors"
@@ -72,7 +72,7 @@ fn issue652_parser_self_check() -> String {
 
 fn issue652_parser_malformed_self_check() -> String {
     let src = "import \"not-a-wit-id\"\n"
-    let p = issue652_parse_source(src)
+    let mut p = issue652_parse_source(src)
     let _ = decl::parse_module(p)
     if state_record::parser_error_count(p) == 0 {
         return "issue652 parser fail: expected malformed WIT import diagnostic"

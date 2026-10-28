@@ -17,15 +17,15 @@ fn at_eof(p: Parser) -> bool {
     cursor_read::at_eof(p)
 }
 
-fn bump(p: Parser) -> Token {
+fn bump(mut p: Parser) -> Token {
     cursor_advance::bump(p)
 }
 
-fn skip_newlines(p: Parser) {
+fn skip_newlines(mut p: Parser) {
     cursor_advance::skip_newlines(p)
 }
 
-fn skip_only_newlines(p: Parser) {
+fn skip_only_newlines(mut p: Parser) {
     cursor_advance::skip_only_newlines(p)
 }
 

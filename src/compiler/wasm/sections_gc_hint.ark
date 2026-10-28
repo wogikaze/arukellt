@@ -13,11 +13,11 @@ use wasm::writer_string
 // The sig strings reuse the type-section layout encoding (sections_types_gc).
 // Emitted on every wasm32-gc module so consumers can resolve GC layouts even
 // when no MIR gc_hint annotation was produced.
-fn emit_gc_hint_custom_section(out: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_gc_hint_custom_section(mut out: WasmWriter, ctx: SelfEmitCtx) {
     if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return
     }
-    let payload = writer_core::WasmWriter_new()
+    let mut payload = writer_core::WasmWriter_new()
     writer_string::emit_string(payload, "metadata.code.gc_hint")
     writer_core::emit_leb128_u(payload, 1)
     emit_gc_layout_table(payload, ctx_record::SelfEmitCtx_gc_struct_names(ctx), ctx_record::SelfEmitCtx_gc_struct_sigs(ctx))
@@ -26,7 +26,7 @@ fn emit_gc_hint_custom_section(out: WasmWriter, ctx: SelfEmitCtx) {
     writer_sections::emit_section(out, opcodes::SEC_CUSTOM(), payload)
 }
 
-fn emit_gc_layout_table(payload: WasmWriter, names: Vec<String>, sigs: Vec<String>) {
+fn emit_gc_layout_table(mut payload: WasmWriter, names: Vec<String>, sigs: Vec<String>) {
     let count = len(names)
     writer_core::emit_leb128_u(payload, count)
     let mut i = 0
@@ -38,7 +38,7 @@ fn emit_gc_layout_table(payload: WasmWriter, names: Vec<String>, sigs: Vec<Strin
     }
 }
 
-fn emit_gc_hint_entries(payload: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_gc_hint_entries(mut payload: WasmWriter, ctx: SelfEmitCtx) {
     let count = ctx_gc_hint::SelfEmitCtx_gc_hint_count(ctx)
     writer_core::emit_leb128_u(payload, count)
     let offsets = ctx_gc_hint::SelfEmitCtx_gc_hint_offsets(ctx)

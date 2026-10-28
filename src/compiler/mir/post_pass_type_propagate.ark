@@ -36,20 +36,20 @@ use corehir::type_info_to_mir_value
 // the whole MirModule (and each callee body) on every fixpoint iteration.
 
 use std::prelude::{clone, eq, starts_with}
-fn mir_module_propagate_local_types(m: MirModule) {
+fn mir_module_propagate_local_types(mut m: MirModule) {
     mir_module_propagate_local_types_report(m, 0)
 }
 
-fn mir_module_propagate_local_types_report(m: MirModule, _report: i32) {
+fn mir_module_propagate_local_types_report(mut m: MirModule, _report: i32) {
     if !module_spine::MirModule_signature_spine_populated(m) {
         return
     }
-    let table = module_spine::MirModule_type_table(m)
+    let mut table = module_spine::MirModule_type_table(m)
     let cache = post_pass_callee_cache::callee_prop_cache_build(m)
     let count = module_functions::MirModule_function_count(m)
     let mut fi = 0
     while fi < count {
-        let f = module_functions::MirModule_function_at(m, fi)
+        let mut f = module_functions::MirModule_function_at(m, fi)
         mir_function_propagate_local_types(cache, f, table)
         module_functions::MirModule_set_function_at(m, fi, f)
         fi = fi + 1
@@ -59,8 +59,8 @@ fn mir_module_propagate_local_types_report(m: MirModule, _report: i32) {
 // Returns fixpoint iteration count. Mutates `f` in place.
 fn mir_function_propagate_local_types(
     cache: CalleePropCache,
-    f: MirFunction,
-    table: TypeTable
+    mut f: MirFunction,
+    mut table: TypeTable
 ) -> i32 {
     let local_count = function_locals_view::MirFunction_local_count(f)
     let mut changed = true
@@ -94,11 +94,11 @@ fn mir_function_propagate_local_types(
 
 fn scan_block_for_propagation(
     cache: CalleePropCache,
-    f: MirFunction,
+    mut f: MirFunction,
     block: MirBlock,
     inst_count: i32,
     local_count: i32,
-    table: TypeTable,
+    mut table: TypeTable,
     changed: bool
 ) -> bool {
     let mut result = changed
@@ -142,7 +142,7 @@ fn scan_block_for_propagation(
 
 // Propagate variant_slot and type_name from source local to dest local.
 // Only fills in missing fields — does not overwrite existing values.
-fn propagate_from_local(f: MirFunction, dest: i32, source: i32, table: TypeTable) -> bool {
+fn propagate_from_local(mut f: MirFunction, dest: i32, source: i32, mut table: TypeTable) -> bool {
     if source < 0 || source >= function_locals_view::MirFunction_local_count(f) {
         return false
     }
@@ -254,12 +254,12 @@ fn mir_value_types_equal(a: MirValueType, b: MirValueType) -> bool {
 // For stack-based LOCAL_SET, find the producer and propagate its type.
 fn propagate_from_stack_producer(
     cache: CalleePropCache,
-    f: MirFunction,
+    mut f: MirFunction,
     block: MirBlock,
     inst_count: i32,
     set_ii: i32,
     dest: i32,
-    table: TypeTable
+    mut table: TypeTable
 ) -> bool {
     let src_ii = post_pass_stack_scan::find_stack_producer(block, inst_count, set_ii)
     if src_ii < 0 {

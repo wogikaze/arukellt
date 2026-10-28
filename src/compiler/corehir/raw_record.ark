@@ -50,6 +50,6 @@ fn raw_program_resolved_calls(program: CoreHirRawProgram) -> Vec<CoreHirResolved
 fn raw_program_typed_locals(program: CoreHirRawProgram) -> Vec<CoreHirTypedLocal> { program.typed_locals }
 fn raw_program_export_surface(program: CoreHirRawProgram) -> CoreHirExportSurface { program.export_surface }
 
-fn corehir_raw_program_release_body_table(program: CoreHirRawProgram) {
+fn corehir_raw_program_release_body_table(mut program: CoreHirRawProgram) {
     body_table::corehir_body_table_release(program.body_table)
 }

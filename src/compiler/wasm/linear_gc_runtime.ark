@@ -10,7 +10,7 @@ use wasm::writer_core
 
 // exit_index is the WASI proc_exit/P2-exit import used to report genuine
 // arena exhaustion as an identifiable exit status instead of a bare trap.
-fn emit_runtime_body(w: WasmWriter, ordinal: i32, runtime_base: i32, exit_index: i32) {
+fn emit_runtime_body(mut w: WasmWriter, ordinal: i32, runtime_base: i32, exit_index: i32) {
     if ordinal == constants::LINEAR_GC_ROOT_FRAME_ENTER() {
         emit_linear_gc_runtime_root_frame_enter_body(w)
         return
@@ -58,7 +58,7 @@ fn emit_runtime_body(w: WasmWriter, ordinal: i32, runtime_base: i32, exit_index:
     emit_end(w)
 }
 
-fn emit_linear_gc_runtime_root_frame_enter_body(w: WasmWriter) {
+fn emit_linear_gc_runtime_root_frame_enter_body(mut w: WasmWriter) {
     emit_local_decls(w, 0)
     emit_global_get(w, constants::GLOBAL_LINEAR_GC_ROOT_CURSOR())
     emit_end(w)
@@ -66,13 +66,13 @@ fn emit_linear_gc_runtime_root_frame_enter_body(w: WasmWriter) {
 
 // Terminates the instance with a documented OOM status. proc_exit never
 // returns; the trailing unreachable keeps the block well-typed regardless.
-fn emit_linear_gc_oom(w: WasmWriter, exit_index: i32, code: i32) {
+fn emit_linear_gc_oom(mut w: WasmWriter, exit_index: i32, code: i32) {
     emit_i32_const(w, code)
     emit_call(w, exit_index)
     emit_unreachable(w)
 }
 
-fn emit_linear_gc_runtime_root_push_body(w: WasmWriter, exit_index: i32) {
+fn emit_linear_gc_runtime_root_push_body(mut w: WasmWriter, exit_index: i32) {
     emit_local_decls(w, 1)
     emit_global_get(w, constants::GLOBAL_LINEAR_GC_ROOT_CURSOR())
     emit_i32_const(w, constants::LINEAR_GC_ROOT_SLOT_BYTES())
@@ -95,7 +95,7 @@ fn emit_linear_gc_runtime_root_push_body(w: WasmWriter, exit_index: i32) {
     emit_end(w)
 }
 
-fn emit_linear_gc_runtime_root_update_body(w: WasmWriter) {
+fn emit_linear_gc_runtime_root_update_body(mut w: WasmWriter) {
     emit_local_decls(w, 0)
     emit_local_get(w, 0)
     emit_local_get(w, 1)
@@ -103,7 +103,7 @@ fn emit_linear_gc_runtime_root_update_body(w: WasmWriter) {
     emit_end(w)
 }
 
-fn emit_linear_gc_runtime_root_frame_leave_body(w: WasmWriter) {
+fn emit_linear_gc_runtime_root_frame_leave_body(mut w: WasmWriter) {
     emit_local_decls(w, 0)
     emit_local_get(w, 0)
     emit_global_set(w, constants::GLOBAL_LINEAR_GC_ROOT_CURSOR())
@@ -115,7 +115,7 @@ fn emit_linear_gc_runtime_root_frame_leave_body(w: WasmWriter) {
 // (a bounded leak), which keeps the metadata cursor from growing on every
 // commit. Only an empty free list bumps the cursor, and only a truly
 // exhausted arena reaches the OOM exit.
-fn emit_linear_gc_runtime_commit_top_body(w: WasmWriter, exit_index: i32, collect_index: i32) {
+fn emit_linear_gc_runtime_commit_top_body(mut w: WasmWriter, exit_index: i32, collect_index: i32) {
     emit_local_decls(w, 6)
     // The commit edge mirrors the whole fn-entry safepoint gate: intrinsic
     // inline allocations inside a single activation emit no fn-entry
@@ -344,7 +344,7 @@ fn emit_linear_gc_runtime_commit_top_body(w: WasmWriter, exit_index: i32, collec
 // record's lo, and marking on the hi edge would retain a dead
 // predecessor every time a head pointer is scanned — on bump-adjacent
 // heaps that phantom retention dominates the live set.
-fn emit_linear_gc_runtime_mark_candidate_body(w: WasmWriter) {
+fn emit_linear_gc_runtime_mark_candidate_body(mut w: WasmWriter) {
     emit_local_decls(w, 4)
     // local1 = page index, local2 = chain node, local3 = record,
     // local4 = found-boundary flag
@@ -496,7 +496,7 @@ fn emit_linear_gc_runtime_mark_candidate_body(w: WasmWriter) {
 // Pushes the record in local3 onto the grey worklist. Caller guarantees the
 // mark field is still 0; the stored value is next_grey+1 so 0 stays
 // reserved for unmarked.
-fn emit_linear_gc_grey_push(w: WasmWriter) {
+fn emit_linear_gc_grey_push(mut w: WasmWriter) {
     emit_local_get(w, 3)
     emit_i32_const(w, 12)
     emit_i32_add(w)
@@ -516,7 +516,7 @@ fn emit_linear_gc_grey_push(w: WasmWriter) {
 // bounds the arena to live + per-cycle churn instead of total commits.
 // Runs inside collect before marking needs the chains; locals are the
 // shared collect decls (0-4 free at this point).
-fn emit_linear_gc_rebuild_chains(w: WasmWriter, exit_index: i32) {
+fn emit_linear_gc_rebuild_chains(mut w: WasmWriter, exit_index: i32) {
     // local0 = cursor (table clear pass, then record walk),
     // local1 = page, local2 = last_page, local3 = chain node, local4 = slot.
     emit_global_get(w, constants::GLOBAL_LINEAR_GC_PAGE_TABLE_BASE())
@@ -629,7 +629,7 @@ fn emit_linear_gc_rebuild_chains(w: WasmWriter, exit_index: i32) {
     emit_global_set(w, constants::GLOBAL_LINEAR_GC_CHAIN_COLLECT_MARK())
 }
 
-fn emit_linear_gc_runtime_collect_body(w: WasmWriter, exit_index: i32, mark_index: i32) {
+fn emit_linear_gc_runtime_collect_body(mut w: WasmWriter, exit_index: i32, mark_index: i32) {
     emit_local_decls(w, 10)
     emit_i32_const(w, 0)
     emit_global_set(w, constants::GLOBAL_LINEAR_GC_ALLOC_WATERMARK())
@@ -648,7 +648,7 @@ fn emit_linear_gc_runtime_collect_body(w: WasmWriter, exit_index: i32, mark_inde
     emit_end(w)
 }
 
-fn emit_linear_gc_clear_marks(w: WasmWriter) {
+fn emit_linear_gc_clear_marks(mut w: WasmWriter) {
     emit_global_get(w, constants::GLOBAL_LINEAR_GC_ALLOC_HEAD())
     emit_local_set(w, 0)
     emit_void_block(w)
@@ -669,7 +669,7 @@ fn emit_linear_gc_clear_marks(w: WasmWriter) {
     emit_end(w)
 }
 
-fn emit_linear_gc_mark_roots(w: WasmWriter, mark_index: i32) {
+fn emit_linear_gc_mark_roots(mut w: WasmWriter, mark_index: i32) {
     emit_global_get(w, constants::GLOBAL_LINEAR_GC_ROOT_CURSOR())
     emit_local_set(w, 1)
     emit_void_block(w)
@@ -695,7 +695,7 @@ fn emit_linear_gc_mark_roots(w: WasmWriter, mark_index: i32) {
 // popped and scanned exactly once, so a collection costs O(marked words)
 // instead of re-scanning every marked record until a fixpoint.
 // local0 = popped record, local3 = next grey link, local4/5 = [lo,hi) cursor.
-fn emit_linear_gc_mark_transitive(w: WasmWriter, mark_index: i32) {
+fn emit_linear_gc_mark_transitive(mut w: WasmWriter, mark_index: i32) {
     emit_void_block(w)
     emit_void_loop(w)
     emit_global_get(w, constants::GLOBAL_LINEAR_GC_GREY_HEAD())
@@ -749,7 +749,7 @@ fn emit_linear_gc_mark_transitive(w: WasmWriter, mark_index: i32) {
     emit_end(w)
 }
 
-fn emit_linear_gc_sweep(w: WasmWriter) {
+fn emit_linear_gc_sweep(mut w: WasmWriter) {
     emit_global_get(w, constants::GLOBAL_LINEAR_GC_ALLOC_HEAD())
     emit_local_set(w, 0)
     emit_i32_const(w, 0)
@@ -820,7 +820,7 @@ fn emit_linear_gc_sweep(w: WasmWriter) {
 }
 
 // Push the node in local0 onto the given class bucket's free list.
-fn emit_linear_gc_free_push(w: WasmWriter, head_global: i32) {
+fn emit_linear_gc_free_push(mut w: WasmWriter, head_global: i32) {
     emit_local_get(w, 0)
     emit_global_get(w, head_global)
     emit_i32_store(w, 0)
@@ -835,7 +835,7 @@ fn emit_linear_gc_free_push(w: WasmWriter, head_global: i32) {
 // strand the tail outside every record, permanently leaking it (#922).
 // Locals follow the alloc body's decls: 1 = size, 2 = cur, 3 = prev,
 // 4 = lo, 5 = hi, 6 = next, 7 = scanned.
-fn emit_linear_gc_try_free_bucket(w: WasmWriter, head_global: i32) {
+fn emit_linear_gc_try_free_bucket(mut w: WasmWriter, head_global: i32) {
     emit_global_get(w, head_global)
     emit_local_set(w, 2)
     emit_i32_const(w, 0)
@@ -909,7 +909,7 @@ fn emit_linear_gc_try_free_bucket(w: WasmWriter, head_global: i32) {
 // Pop a larger class bucket's head as a guaranteed fit: every span the
 // bucket holds exceeds the request's class limit, so no fit check or walk
 // is needed. Falls through silently when the bucket is empty.
-fn emit_linear_gc_pop_free_bucket(w: WasmWriter, head_global: i32) {
+fn emit_linear_gc_pop_free_bucket(mut w: WasmWriter, head_global: i32) {
     emit_global_get(w, head_global)
     emit_local_set(w, 2)
     emit_local_get(w, 2)
@@ -935,7 +935,7 @@ fn emit_linear_gc_pop_free_bucket(w: WasmWriter, head_global: i32) {
     emit_end(w)
 }
 
-fn emit_linear_gc_runtime_alloc_body(w: WasmWriter, commit_index: i32) {
+fn emit_linear_gc_runtime_alloc_body(mut w: WasmWriter, commit_index: i32) {
     emit_local_decls(w, 7)
     emit_local_get(w, 0)
     emit_i32_const(w, 3)
@@ -994,7 +994,7 @@ fn emit_linear_gc_runtime_alloc_body(w: WasmWriter, commit_index: i32) {
     emit_end(w)
 }
 
-fn emit_linear_gc_ensure_memory(w: WasmWriter, end_local: i32) {
+fn emit_linear_gc_ensure_memory(mut w: WasmWriter, end_local: i32) {
     emit_local_get(w, end_local)
     emit_memory_size_bytes(w)
     emit_i32_gt_u(w)
@@ -1011,19 +1011,19 @@ fn emit_linear_gc_ensure_memory(w: WasmWriter, end_local: i32) {
     emit_end(w)
 }
 
-fn emit_memory_size_bytes(w: WasmWriter) {
+fn emit_memory_size_bytes(mut w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_MEMORY_SIZE())
     writer_core::emit_leb128_u(w, 0)
     emit_i32_const(w, 65536)
     emit_i32_mul(w)
 }
 
-fn emit_memory_grow(w: WasmWriter) {
+fn emit_memory_grow(mut w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_MEMORY_GROW())
     writer_core::emit_leb128_u(w, 0)
 }
 
-fn emit_local_decls(w: WasmWriter, count: i32) {
+fn emit_local_decls(mut w: WasmWriter, count: i32) {
     if count == 0 {
         writer_core::emit_leb128_u(w, 0)
         return
@@ -1033,86 +1033,86 @@ fn emit_local_decls(w: WasmWriter, count: i32) {
     writer_core::emit_byte(w, constants::WASM_I32())
 }
 
-fn emit_i32_const(w: WasmWriter, value: i32) {
+fn emit_i32_const(mut w: WasmWriter, value: i32) {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, value)
 }
 
-fn emit_local_get(w: WasmWriter, index: i32) {
+fn emit_local_get(mut w: WasmWriter, index: i32) {
     writer_core::emit_local_get(w, index)
 }
 
-fn emit_local_set(w: WasmWriter, index: i32) {
+fn emit_local_set(mut w: WasmWriter, index: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, index)
 }
 
-fn emit_global_get(w: WasmWriter, index: i32) {
+fn emit_global_get(mut w: WasmWriter, index: i32) {
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
     writer_core::emit_leb128_u(w, index)
 }
 
-fn emit_global_set(w: WasmWriter, index: i32) {
+fn emit_global_set(mut w: WasmWriter, index: i32) {
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
     writer_core::emit_leb128_u(w, index)
 }
 
-fn emit_i32_load(w: WasmWriter, offset: i32) {
+fn emit_i32_load(mut w: WasmWriter, offset: i32) {
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
     writer_core::emit_leb128_u(w, offset)
 }
 
-fn emit_i32_store(w: WasmWriter, offset: i32) {
+fn emit_i32_store(mut w: WasmWriter, offset: i32) {
     writer_core::emit_byte(w, opcodes::OP_I32_STORE())
     writer_core::emit_byte(w, 2)
     writer_core::emit_leb128_u(w, offset)
 }
 
-fn emit_i32_add(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_ADD()) }
-fn emit_i32_sub(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_SUB()) }
-fn emit_i32_mul(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_MUL()) }
-fn emit_i32_and(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_AND()) }
-fn emit_i32_eqz(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_EQZ()) }
-fn emit_i32_eq(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_EQ()) }
-fn emit_i32_le_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_LE_U()) }
-fn emit_i32_lt_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_LT_U()) }
-fn emit_i32_ge_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_GE_U()) }
-fn emit_i32_gt_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_GT_U()) }
-fn emit_i32_shr_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_SHR_U()) }
-fn emit_i32_shl(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_SHL()) }
+fn emit_i32_add(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_ADD()) }
+fn emit_i32_sub(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_SUB()) }
+fn emit_i32_mul(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_MUL()) }
+fn emit_i32_and(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_AND()) }
+fn emit_i32_eqz(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_EQZ()) }
+fn emit_i32_eq(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_EQ()) }
+fn emit_i32_le_u(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_LE_U()) }
+fn emit_i32_lt_u(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_LT_U()) }
+fn emit_i32_ge_u(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_GE_U()) }
+fn emit_i32_gt_u(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_GT_U()) }
+fn emit_i32_shr_u(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_SHR_U()) }
+fn emit_i32_shl(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_SHL()) }
 
-fn emit_call(w: WasmWriter, index: i32) {
+fn emit_call(mut w: WasmWriter, index: i32) {
     writer_core::emit_byte(w, opcodes::OP_CALL())
     writer_core::emit_leb128_u(w, index)
 }
 
-fn emit_drop(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_DROP()) }
-fn emit_unreachable(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_UNREACHABLE()) }
-fn emit_return(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_RETURN()) }
+fn emit_drop(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_DROP()) }
+fn emit_unreachable(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_UNREACHABLE()) }
+fn emit_return(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_RETURN()) }
 
-fn emit_void_block(w: WasmWriter) {
+fn emit_void_block(mut w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_BLOCK())
     writer_core::emit_byte(w, 64)
 }
 
-fn emit_void_loop(w: WasmWriter) {
+fn emit_void_loop(mut w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_LOOP())
     writer_core::emit_byte(w, 64)
 }
 
-fn emit_if_empty(w: WasmWriter) {
+fn emit_if_empty(mut w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
 }
 
-fn emit_else(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_ELSE()) }
-fn emit_end(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_END()) }
-fn emit_br(w: WasmWriter, depth: i32) {
+fn emit_else(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_ELSE()) }
+fn emit_end(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_END()) }
+fn emit_br(mut w: WasmWriter, depth: i32) {
     writer_core::emit_byte(w, opcodes::OP_BR())
     writer_core::emit_leb128_u(w, depth)
 }
-fn emit_br_if(w: WasmWriter, depth: i32) {
+fn emit_br_if(mut w: WasmWriter, depth: i32) {
     writer_core::emit_byte(w, opcodes::OP_BR_IF())
     writer_core::emit_leb128_u(w, depth)
 }

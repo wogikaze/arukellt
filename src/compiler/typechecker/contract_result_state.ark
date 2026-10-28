@@ -22,28 +22,28 @@ fn TypeCheckResult_new() -> TypeCheckResult {
     }
 }
 
-fn typecheck_result_set_errors(result: TypeCheckResult, errors: Vec<String>) {
+fn typecheck_result_set_errors(mut result: TypeCheckResult, errors: Vec<String>) {
     result.errors = errors
 }
 
-fn typecheck_result_push_error(result: TypeCheckResult, error: String) {
+fn typecheck_result_push_error(mut result: TypeCheckResult, error: String) {
     push(result.errors, error)
     result.error_count = result.error_count + 1
 }
 
-fn typecheck_result_push_diagnostic(result: TypeCheckResult, diagnostic: Diagnostic) {
+fn typecheck_result_push_diagnostic(mut result: TypeCheckResult, diagnostic: Diagnostic) {
     push(result.diagnostics, diagnostic)
 }
 
-fn typecheck_result_push_warning(result: TypeCheckResult, warning: Diagnostic) {
+fn typecheck_result_push_warning(mut result: TypeCheckResult, warning: Diagnostic) {
     push(result.warnings, warning)
 }
 
-fn typecheck_result_set_mono_instances(result: TypeCheckResult, instances: Vec<MonoInstance>) {
+fn typecheck_result_set_mono_instances(mut result: TypeCheckResult, instances: Vec<MonoInstance>) {
     result.mono_instances = instances
 }
 
-fn typecheck_result_push_typed_fn(result: TypeCheckResult, name: String, param_types: Vec<TypeInfo>, return_type: TypeInfo) {
+fn typecheck_result_push_typed_fn(mut result: TypeCheckResult, name: String, param_types: Vec<TypeInfo>, return_type: TypeInfo) {
     push(result.typed_fns, contract_typed_fn::TypedFn_new(name, param_types, return_type))
 }
 

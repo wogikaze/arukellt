@@ -13,8 +13,8 @@ fn tccr_collect_reachable(
 ) -> Vec<i32> {
     let table = raw_bodies::program_body_table(program)
     let exprs = body_table::corehir_body_table_exprs(table)
-    let reachable = Vec::new<i32>()
-    let stack = Vec::new<i32>()
+    let mut reachable = Vec::new<i32>()
+    let mut stack = Vec::new<i32>()
     push(stack, root)
 
     let contract_count = body_table::corehir_body_table_fn_contract_count(table, function_index)

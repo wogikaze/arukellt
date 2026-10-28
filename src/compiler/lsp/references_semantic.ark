@@ -10,7 +10,7 @@ use lsp::state_record
 use lsp::symbol_index_lookup
 use lsp::symbol_index_paths
 fn read_uri_text(uri: String) -> String {
-    let path = symbol_index_paths::uri_to_file_path(uri)
+    let mut path = symbol_index_paths::uri_to_file_path(uri)
     if len(path) == 0 {
         return String_new()
     }

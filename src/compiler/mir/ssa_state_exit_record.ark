@@ -20,11 +20,11 @@ fn mir_ssa_state_pred_value_for(state: MirSsaRenameState, pred_block: i32, local
     local_id
 }
 
-fn mir_ssa_state_load_block_entry(state: MirSsaRenameState, block_id: i32) {
+fn mir_ssa_state_load_block_entry(mut state: MirSsaRenameState, block_id: i32) {
     if block_id < 0 {
         return
     }
-    let next_current = Vec::new<i32>()
+    let mut next_current = Vec::new<i32>()
     let mut i = 0
     while i < state.original_local_count {
         let idx = mir_ssa_state_exit_index(state, block_id, i)
@@ -38,7 +38,7 @@ fn mir_ssa_state_load_block_entry(state: MirSsaRenameState, block_id: i32) {
     state.current = next_current
 }
 
-fn mir_ssa_state_record_block_exit(state: MirSsaRenameState, block_id: i32) {
+fn mir_ssa_state_record_block_exit(mut state: MirSsaRenameState, block_id: i32) {
     let mut i = 0
     while i < state.original_local_count {
         let idx = mir_ssa_state_exit_index(state, block_id, i)

@@ -2,7 +2,7 @@ use std::component::Component
 use std::host::stdio
 use std::core::error
 fn main() {
-    let scratch = Component::scratch_new()
+    let mut scratch = Component::scratch_new()
     match Component::lower_string(scratch, String_from("hi")) {
         Result::Ok(slice) => {
             stdio::println((slice.ptr).to_string())

@@ -3,11 +3,11 @@ use std::collections::hash
 use std::test
 
 fn main() {
-    let a = hash::hashset_new()
+    let mut a = hash::hashset_new()
     hash::hashset_insert(a, 1)
     hash::hashset_insert(a, 2)
 
-    let b = hash::hashset_new()
+    let mut b = hash::hashset_new()
     hash::hashset_insert(b, 2)
     hash::hashset_insert(b, 3)
     hash::hashset_insert(b, 4)

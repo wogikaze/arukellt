@@ -14,7 +14,7 @@ use mir::lower::entry_params
 use mir::lower::ctx_struct_layout
 use mir::source_location_record
 fn mir_emit_method_body(
-    ctx: LowerCtx,
+    mut ctx: LowerCtx,
     body_input: MirLowerEntryBodyInput,
     struct_name: String,
     mangled: String,

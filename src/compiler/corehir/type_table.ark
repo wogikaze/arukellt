@@ -101,7 +101,7 @@ fn type_table_find_existing(table: TypeTable, kind: i32, name: String, type_para
     TYPE_ID_INVALID()
 }
 
-fn TypeTable_intern(table: TypeTable, kind: i32, name: String, type_param_ids: Vec<TypeId>) -> TypeId {
+fn TypeTable_intern(mut table: TypeTable, kind: i32, name: String, type_param_ids: Vec<TypeId>) -> TypeId {
     let existing = type_table_find_existing(table, kind, clone(name), type_param_ids)
     if type_id_is_valid(existing) {
         return existing

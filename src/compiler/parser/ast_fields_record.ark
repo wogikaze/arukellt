@@ -5,7 +5,7 @@ fn ast_node_kind(node: AstNode) -> i32 {
     node.kind
 }
 
-fn ast_node_set_kind(node: AstNode, kind: i32) {
+fn ast_node_set_kind(mut node: AstNode, kind: i32) {
     node.kind = kind
 }
 
@@ -13,7 +13,7 @@ fn ast_node_text(node: AstNode) -> String {
     clone(node.text)
 }
 
-fn ast_node_set_text(node: AstNode, text: String) {
+fn ast_node_set_text(mut node: AstNode, text: String) {
     node.text = text
 }
 
@@ -21,7 +21,7 @@ fn ast_node_is_pub(node: AstNode) -> bool {
     node.is_pub
 }
 
-fn ast_node_set_is_pub(node: AstNode, is_pub: bool) {
+fn ast_node_set_is_pub(mut node: AstNode, is_pub: bool) {
     node.is_pub = is_pub
 }
 
@@ -29,11 +29,11 @@ fn ast_node_is_component_export(node: AstNode) -> bool {
     node.is_component_export
 }
 
-fn ast_node_set_is_component_export(node: AstNode, is_component_export: bool) {
+fn ast_node_set_is_component_export(mut node: AstNode, is_component_export: bool) {
     node.is_component_export = is_component_export
 }
 
-fn ast_node_set_is_mut(node: AstNode, is_mut: bool) {
+fn ast_node_set_is_mut(mut node: AstNode, is_mut: bool) {
     node.is_mut = is_mut
 }
 
@@ -45,7 +45,7 @@ fn ast_node_is_async(node: AstNode) -> bool {
     node.is_async
 }
 
-fn ast_node_set_is_async(node: AstNode, is_async: bool) {
+fn ast_node_set_is_async(mut node: AstNode, is_async: bool) {
     node.is_async = is_async
 }
 
@@ -53,7 +53,7 @@ fn ast_node_is_move(node: AstNode) -> bool {
     node.is_move
 }
 
-fn ast_node_set_is_move(node: AstNode, is_move: bool) {
+fn ast_node_set_is_move(mut node: AstNode, is_move: bool) {
     node.is_move = is_move
 }
 
@@ -65,7 +65,7 @@ fn ast_node_span_start(node: AstNode) -> i32 {
     ast_span_record::span_start(node.span)
 }
 
-fn ast_node_set_span(node: AstNode, span: Span) {
+fn ast_node_set_span(mut node: AstNode, span: Span) {
     node.span = span
 }
 
@@ -73,7 +73,7 @@ fn ast_node_name_span(node: AstNode) -> Span {
     node.name_span
 }
 
-fn ast_node_set_name_span(node: AstNode, span: Span) {
+fn ast_node_set_name_span(mut node: AstNode, span: Span) {
     node.name_span = span
 }
 
@@ -97,7 +97,7 @@ fn ast_node_op(node: AstNode) -> i32 {
     node.op
 }
 
-fn ast_node_set_op(node: AstNode, op: i32) {
+fn ast_node_set_op(mut node: AstNode, op: i32) {
     node.op = op
 }
 
@@ -105,7 +105,7 @@ fn ast_node_int_val(node: AstNode) -> i32 {
     node.int_val
 }
 
-fn ast_node_set_int_val(node: AstNode, value: i32) {
+fn ast_node_set_int_val(mut node: AstNode, value: i32) {
     node.int_val = value
 }
 

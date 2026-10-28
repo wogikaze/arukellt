@@ -2,8 +2,8 @@ use std::component::Component
 use std::host::stdio
 use std::core::error
 fn main() {
-    let scratch = Component::scratch_new()
-    let vals = Vec::new<i32>()
+    let mut scratch = Component::scratch_new()
+    let mut vals = Vec::new<i32>()
     push(vals, 1)
     push(vals, 2)
     push(vals, 3)

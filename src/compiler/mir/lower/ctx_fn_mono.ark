@@ -10,7 +10,7 @@ use mir::module_functions
 use collections::name_index
 use mir::mono_names
 fn ctx_replace_fn_index(
-    ctx: LowerCtx,
+    mut ctx: LowerCtx,
     fn_names: Vec<String>,
     fn_return_vts: Vec<i32>,
     fn_return_type_names: Vec<String>,
@@ -28,22 +28,22 @@ fn ctx_replace_fn_index(
     )
 }
 
-fn ctx_register_fn_signature(ctx: LowerCtx, name: String, return_vt: i32, return_type_name: String) {
+fn ctx_register_fn_signature(mut ctx: LowerCtx, name: String, return_vt: i32, return_type_name: String) {
     ctx_fn_index::ctx_fn_index_push(ctx, clone(name), return_vt, clone(return_type_name))
     // Keep the discovery return catalog parallel (#851 Phase 3): names
     // registered after ctx_prep (synth fns, late signatures) are reachable
     // by per-fn callee lookups before their bodies exist.
     let m = ctx_current_storage::ctx_current_module_value(ctx)
-    let names = module_functions::MirModule_discovery_fn_names(m)
+    let mut names = module_functions::MirModule_discovery_fn_names(m)
     push(names, clone(name))
-    let ret_names = module_functions::MirModule_discovery_fn_ret_names(m)
+    let mut ret_names = module_functions::MirModule_discovery_fn_ret_names(m)
     push(ret_names, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(return_type_name)))
     // The seeded cache index is not rebuilt on growth; register the new
     // name so tier-2 lookups find it too.
     name_index::name_index_insert_first(ctx.prop_cache.disc_names, clone(name), len(names) - 1)
 }
 
-fn ctx_mono_lookup_call(ctx: LowerCtx, span_start: i32, source: String) -> String {
+fn ctx_mono_lookup_call(mut ctx: LowerCtx, span_start: i32, source: String) -> String {
     let mut first_match = 0 - 1
     let mut cursor = ctx_mono_rewrites::ctx_mono_span_hash_head(ctx, span_start)
     while cursor > 0 {
@@ -143,7 +143,7 @@ fn ctx_mono_replace_var_token(target: String, token: String, replacement: String
     out
 }
 
-fn ctx_register_mono_span_rewrite(ctx: LowerCtx, span_start: i32, source: String, target: String) {
+fn ctx_register_mono_span_rewrite(mut ctx: LowerCtx, span_start: i32, source: String, target: String) {
     // Associated Vec::new__T / with_capacity__T lower via wasm name fallback
     // (no MIR body). Still register the span rewrite so call sites get the
     // mangled callee for mark_vec / layout (#845).
@@ -251,7 +251,7 @@ fn mono_owner_inst_base(owner: String) -> String {
     owner
 }
 
-fn ctx_register_mono_name_rewrite(ctx: LowerCtx, source: String, target: String) {
+fn ctx_register_mono_name_rewrite(mut ctx: LowerCtx, source: String, target: String) {
     // Template instantiations (?Var args) are not callable
     // specializations; they exist so span rewrites can pin the template
     // spelling for per-enclosing-instance concretization.
@@ -270,7 +270,7 @@ fn ctx_mono_source_rewrite_count(ctx: LowerCtx) -> i32 {
 
 // Candidates are exactly the rewrites sharing the bare source: an exact
 // source match implies a bare match, so the chain loses nothing.
-fn ctx_resolve_unused_mono_by_name(ctx: LowerCtx, source: String) -> String {
+fn ctx_resolve_unused_mono_by_name(mut ctx: LowerCtx, source: String) -> String {
     // A callee that exists as a real function (concrete impl method such as
     // Vec::into_iter) must not be stolen by a pooled specialization of a
     // different owner's same-named method (Take::into_iter__VecIter).

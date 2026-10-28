@@ -4,10 +4,10 @@ use std::io::SeekFrom
 use std::test
 
 fn main() {
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     data.push_byte(1)
     data.push_byte(2)
-    let r: io::Reader = io::Reader::from_bytes(data)
+    let mut r: io::Reader = io::Reader::from_bytes(data)
     // Seek rejects negative positions but allows passing the end; the legacy
     // clamp belonged to the removed `seek_to` wrapper (ADR-085 D9).
     match r.seek(SeekFrom::Start(100i64)) {

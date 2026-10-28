@@ -39,11 +39,11 @@ fn ComponentCollectionOptionScan_single_export(scan: ComponentCollectionOptionSc
     scan.export_count == 1
 }
 
-fn ComponentCollectionOptionScan_increment_export_count(scan: ComponentCollectionOptionScan) {
+fn ComponentCollectionOptionScan_increment_export_count(mut scan: ComponentCollectionOptionScan) {
     scan.export_count = scan.export_count + 1
 }
 
-fn component_collection_option_scan_apply_fn(d: AstNode, scan: ComponentCollectionOptionScan) -> ComponentCollectionOptionScan {
+fn component_collection_option_scan_apply_fn(d: AstNode, mut scan: ComponentCollectionOptionScan) -> ComponentCollectionOptionScan {
     let f = contract_helpers::component_func_from_decl(d)
     if contract_collection_fn::component_fn_is_i32_to_option_i32(f) {
         scan.has_i32_to_option_i32 = true
@@ -91,7 +91,7 @@ fn ComponentCollectionOptionScan_allows_option_i32_to_option_i32(scan: Component
 }
 
 fn component_collection_option_scan(decls: Vec<AstNode>) -> ComponentCollectionOptionScan {
-    let scan = ComponentCollectionOptionScan_empty()
+    let mut scan = ComponentCollectionOptionScan_empty()
     for i in 0..len(decls) {
         let d = get_unchecked(decls, i)
         if contract_helpers::is_export_func_decl(d) {

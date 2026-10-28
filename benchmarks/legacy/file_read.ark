@@ -6,7 +6,7 @@ use std::host::stdio
 use std::prelude::{clone}
 use std::text
 fn main() {
-    let path = "arukellt_bench_file_read.txt"
+    let mut path = "arukellt_bench_file_read.txt"
     let payload = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\n"
     let mut data = String_from("")
     let mut i: i32 = 0

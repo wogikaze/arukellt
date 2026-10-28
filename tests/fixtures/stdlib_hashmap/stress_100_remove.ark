@@ -3,7 +3,7 @@ use std::collections::hash
 use std::test
 
 fn main() {
-    let m = hash::hashmap_new()
+    let mut m = hash::hashmap_new()
     let mut i = 0
     while i < 100 {
         hash::hashmap_set(m, i, i)

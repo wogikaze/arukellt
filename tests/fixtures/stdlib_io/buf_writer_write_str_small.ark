@@ -4,7 +4,7 @@ use std::io::{BufWriter, Writer}
 use std::test
 
 fn main() {
-    let bw: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 100)
+    let mut bw: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 100)
     let res: Result<i32, io::IoError> = bw.write_string("short")
     match res {
         Result::Ok(n) => test::assert_eq_i32(n, 5),

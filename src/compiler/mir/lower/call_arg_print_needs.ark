@@ -10,7 +10,7 @@ fn mir_print_arg_is_string_type(lt: String) -> bool {
     eq(clone(lt), "String") || eq(clone(lt), "str") || eq(clone(lt), "string")
 }
 
-fn mir_print_arg_needs_string_conversion(ctx: LowerCtx, arg: AstNode, arg_idx: i32) -> bool {
+fn mir_print_arg_needs_string_conversion(mut ctx: LowerCtx, arg: AstNode, arg_idx: i32) -> bool {
     // The lowered argument local is the value that will actually be printed, so
     // its type decides before any callee-name lookup. The lowerer's function
     // index is keyed by bare name and keeps the first writer: once the loader
@@ -80,7 +80,7 @@ fn mir_print_arg_local_type_needs_string_conversion(lt: String) -> bool {
     eq(clone(lt), "f64")
 }
 
-fn mir_print_call_result_needs_string_conversion(ctx: LowerCtx, arg: AstNode, arg_idx: i32) -> bool {
+fn mir_print_call_result_needs_string_conversion(mut ctx: LowerCtx, arg: AstNode, arg_idx: i32) -> bool {
     let call_callee = ast_node::node_child_at(arg, 0)
     let cn = ast_node::node_text(call_callee)
     if eq(clone(cn), "contains_i32") ||

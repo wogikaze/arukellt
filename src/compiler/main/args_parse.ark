@@ -10,7 +10,7 @@ use main::commands
 use main::kinds
 use main::target_contract_generated
 fn parse_args(argv: Vec<String>) -> CliOptions {
-    let opts = args_record::CliOptions_default()
+    let mut opts = args_record::CliOptions_default()
     let argc = len(argv)
     if argc <= 1 {
         args_record::cli_set_show_help(opts, true)
@@ -31,7 +31,7 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
     opts
 }
 
-fn canonicalize_target_input(opts: CliOptions) {
+fn canonicalize_target_input(mut opts: CliOptions) {
     let input = args_record::cli_target(opts)
     let policy = target_contract_generated::target_alias_policy(clone(input))
     if eq(clone(policy), "error") {
@@ -55,7 +55,7 @@ fn canonicalize_target_input(opts: CliOptions) {
     }
 }
 
-fn validate_target_configuration(opts: CliOptions) {
+fn validate_target_configuration(mut opts: CliOptions) {
     if args_record::cli_has_error(opts) {
         return
     }
@@ -103,7 +103,7 @@ fn validate_target_configuration(opts: CliOptions) {
     }
 }
 
-fn parse_initial_command(argv: Vec<String>, opts: CliOptions) {
+fn parse_initial_command(argv: Vec<String>, mut opts: CliOptions) {
     let cmd_str = get_unchecked(argv, 1)
     let cmd_is_check = arg_is_check_command(clone(cmd_str))
     let cmd_is_compile = arg_is_compile_command(clone(cmd_str))
@@ -169,7 +169,7 @@ fn arg_is_help(arg: String) -> bool {
     len(clone(arg)) == 2 && byte_at(clone(arg), 0) == 45 && byte_at(clone(arg), 1) == 104
 }
 
-fn parse_component_subcommand(argv: Vec<String>, argc: i32, opts: CliOptions) {
+fn parse_component_subcommand(argv: Vec<String>, argc: i32, mut opts: CliOptions) {
     if args_record::cli_command(opts) != kinds::CMD_COMPONENT() {
         return
     }
@@ -197,7 +197,7 @@ fn component_option_start(argv: Vec<String>, argc: i32, opts: CliOptions) -> i32
     2
 }
 
-fn parse_compose_args(argv: Vec<String>, argc: i32, opts: CliOptions) {
+fn parse_compose_args(argv: Vec<String>, argc: i32, mut opts: CliOptions) {
     let mut i = 2
     while i < argc {
         let arg = get_unchecked(argv, i)
@@ -246,7 +246,7 @@ fn arg_is_version(arg: String) -> bool {
     len(clone(arg)) == 2 && byte_at(clone(arg), 0) == 45 && byte_at(clone(arg), 1) == 86
 }
 
-fn parse_option_args(argv: Vec<String>, argc: i32, opts: CliOptions, start_index: i32) {
+fn parse_option_args(argv: Vec<String>, argc: i32, mut opts: CliOptions, start_index: i32) {
     let mut i = start_index
     while i < argc {
         let arg = get_unchecked(argv, i)
@@ -322,7 +322,7 @@ fn parse_option_args(argv: Vec<String>, argc: i32, opts: CliOptions, start_index
     }
 }
 
-fn parse_world_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+fn parse_world_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
         args_record::cli_set_world(opts, clone(get_unchecked(argv, next)))
@@ -332,7 +332,7 @@ fn parse_world_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) ->
     next
 }
 
-fn parse_input_or_error(opts: CliOptions, arg: String) {
+fn parse_input_or_error(mut opts: CliOptions, arg: String) {
     let command = args_record::cli_command(opts)
     if command == kinds::CMD_FMT() {
         args_record::cli_add_fmt_input(opts, arg)

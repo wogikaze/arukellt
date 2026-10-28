@@ -15,8 +15,8 @@ use mir::module_canon
 struct TypeCanonPlan { canon_types: Vec<String>, type_map: Vec<i32> }
 
 fn emit_type_section(
-    out: WasmWriter,
-    mir: MirModule,
+    mut out: WasmWriter,
+    mut mir: MirModule,
     functions: Vec<MirFunction>,
     fn_count: i32,
     needs_wrapper: i32,
@@ -110,13 +110,13 @@ fn emit_type_section(
         gc_enum_variant_base = get_unchecked(gc_enum_variant_type_map, 0)
     }
     // Pair-call signatures occupy the last pair_sig_count type_map slots.
-    let pair_call_type_map = Vec::new<i32>()
+    let mut pair_call_type_map = Vec::new<i32>()
     let mut pci = len(type_map) - pair_sig_count
     while pci < len(type_map) {
         push(pair_call_type_map, get_unchecked(type_map, pci))
         pci = pci + 1
     }
-    let plan = sections_type_plan::build_type_section_plan(
+    let mut plan = sections_type_plan::build_type_section_plan(
         type_map,
         num_host_types,
         wit_import_count,
@@ -137,7 +137,7 @@ fn emit_type_section(
         pair_sigs,
         pair_call_type_map
     )
-    let type_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
+    let mut type_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     writer_core::emit_leb128_u(type_sec, len(canon_types))
     let fn_type_refs =
     sections_types_emit::emit_canon_type_entries(type_sec, canon_types, gc_type_base, gc_struct_type_map, memory64)
@@ -158,7 +158,7 @@ fn build_linear_gc_type_map(
     p2_enabled: bool,
     linear_gc_enabled: bool
 ) -> Vec<i32> {
-    let linear_map = Vec::new<i32>()
+    let mut linear_map = Vec::new<i32>()
     if !linear_gc_enabled {
         return linear_map
     }
@@ -202,7 +202,7 @@ fn build_type_sigs(
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
     pair_sigs: Vec<String>
 ) -> Vec<String> {
-    let type_sigs = Vec::new<String>()
+    let mut type_sigs = Vec::new<String>()
     sections_types_sigs::append_wasi_type_sigs(type_sigs, clone(wasi_version))
     sections_types_sigs::append_wit_type_sigs(type_sigs, bindings)
     if emit_target::is_gc_target(clone(target)) {
@@ -261,7 +261,7 @@ fn build_type_sigs(
 // resulting canon_types/type_map are identical to a fresh local index —
 // the difference is that registrations outside this path may also append,
 // keeping every canon index stable for earlier body emit.
-fn canonicalize_type_sigs(mir: MirModule, type_sigs: Vec<String>) -> TypeCanonPlan {
+fn canonicalize_type_sigs(mut mir: MirModule, type_sigs: Vec<String>) -> TypeCanonPlan {
     let mut type_map = Vec::new<i32>()
     let ts_count = len(type_sigs)
     let mut tsi = 0

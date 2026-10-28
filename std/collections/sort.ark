@@ -12,7 +12,7 @@
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 
-fn swap_elem<T>(v: Vec<T>, i: i32, j: i32) {
+fn swap_elem<T>(mut v: Vec<T>, i: i32, j: i32) {
     let tmp = get_unchecked(v, i)
     set(v, i, get_unchecked(v, j))
     set(v, j, tmp)
@@ -39,7 +39,7 @@ fn is_less_eq<T: Ord>(a: T, b: T) -> bool {
 /// Sort `Vec<T: Ord>` in ascending order. In-place, O(n log n) average.
 /// Uses quicksort with median-of-three pivot and insertion sort for small
 /// partitions.
-pub fn sort<T: Ord>(v: Vec<T>) {
+pub fn sort<T: Ord>(mut v: Vec<T>) {
     let n = len(v)
     if n < 2 {
         return
@@ -49,11 +49,11 @@ pub fn sort<T: Ord>(v: Vec<T>) {
 
 /// Unstable sort of `Vec<T: Ord>` in ascending order.
 /// Same algorithm as `sort` — provided for API compatibility with Rust.
-pub fn sort_unstable<T: Ord>(v: Vec<T>) {
+pub fn sort_unstable<T: Ord>(mut v: Vec<T>) {
     sort(v)
 }
 
-fn quicksort<T: Ord>(v: Vec<T>, lo: i32, hi: i32) {
+fn quicksort<T: Ord>(mut v: Vec<T>, lo: i32, hi: i32) {
     if lo >= hi {
         return
     }
@@ -66,7 +66,7 @@ fn quicksort<T: Ord>(v: Vec<T>, lo: i32, hi: i32) {
     quicksort(v, pivot + 1, hi)
 }
 
-fn partition_quicksort<T: Ord>(v: Vec<T>, lo: i32, hi: i32) -> i32 {
+fn partition_quicksort<T: Ord>(mut v: Vec<T>, lo: i32, hi: i32) -> i32 {
     // Median-of-three pivot selection
     let mid = lo + (hi - lo) / 2
     if is_less(get_unchecked(v, mid), get_unchecked(v, lo)) {
@@ -95,7 +95,7 @@ fn partition_quicksort<T: Ord>(v: Vec<T>, lo: i32, hi: i32) -> i32 {
     i
 }
 
-fn insertion_sort_range<T: Ord>(v: Vec<T>, lo: i32, hi: i32) {
+fn insertion_sort_range<T: Ord>(mut v: Vec<T>, lo: i32, hi: i32) {
     let mut i = lo + 1
     while i <= hi {
         let key_val = get_unchecked(v, i)
@@ -129,7 +129,7 @@ pub fn is_sorted<T: Ord>(v: Vec<T>) -> bool {
 /// Rearranges elements so that the element at index `k` is the k-th smallest
 /// (0-indexed). All elements before index k are <= it, all after are >= it.
 /// Uses the quickselect algorithm (average O(n)).
-pub fn select_nth<T: Ord>(v: Vec<T>, k: i32) {
+pub fn select_nth<T: Ord>(mut v: Vec<T>, k: i32) {
     let n = len(v)
     if k < 0 || k >= n {
         return
@@ -137,7 +137,7 @@ pub fn select_nth<T: Ord>(v: Vec<T>, k: i32) {
     quickselect(v, 0, n - 1, k)
 }
 
-fn quickselect<T: Ord>(v: Vec<T>, lo: i32, hi: i32, k: i32) {
+fn quickselect<T: Ord>(mut v: Vec<T>, lo: i32, hi: i32, k: i32) {
     if lo >= hi {
         return
     }

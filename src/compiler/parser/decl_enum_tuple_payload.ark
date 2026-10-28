@@ -4,7 +4,7 @@ use parser::core_api_cursor
 use parser::core_api_expect
 use parser::types
 
-fn parse_enum_tuple_payload(p: Parser, variant: AstNode) {
+fn parse_enum_tuple_payload(mut p: Parser, mut variant: AstNode) {
     p.pos = p.pos + 1
     let mut first = true
     while !core_api_cursor::at(p, tokens::TK_RPAREN()) && !core_api_cursor::at_eof(p) {

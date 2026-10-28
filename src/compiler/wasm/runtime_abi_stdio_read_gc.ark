@@ -13,7 +13,7 @@ use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i64_const
 
-fn emit_gc_wasi_read_stdin_to_string(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_gc_wasi_read_stdin_to_string(mut w: WasmWriter, ctx: SelfEmitCtx) {
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         emit_gc_p2_read_stdin_to_string(w, ctx)
         return
@@ -42,7 +42,7 @@ fn emit_gc_wasi_read_stdin_to_string(w: WasmWriter, ctx: SelfEmitCtx) {
     emit_gc_array_from_stdin_buffer(w, ctx)
 }
 
-fn emit_gc_p2_read_stdin_to_string(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_gc_p2_read_stdin_to_string(mut w: WasmWriter, ctx: SelfEmitCtx) {
     let s_src = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     runtime_abi_stdio_read_buffer::emit_begin_stdin_string_buffer(w)
     helpers_control::emit_block_loop_header(w)
@@ -73,7 +73,7 @@ fn emit_gc_p2_read_stdin_to_string(w: WasmWriter, ctx: SelfEmitCtx) {
     emit_gc_array_from_stdin_buffer(w, ctx)
 }
 
-fn emit_gc_array_from_stdin_buffer(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_gc_array_from_stdin_buffer(mut w: WasmWriter, ctx: SelfEmitCtx) {
     let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
     let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_ptr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)

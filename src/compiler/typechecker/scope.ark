@@ -16,13 +16,13 @@ fn LocalScope_new() -> LocalScope {
 }
 
 fn scope_child(parent: LocalScope) -> LocalScope {
-    let child = LocalScope_new()
+    let mut child = LocalScope_new()
     let count = contract_scope::LocalScope_binding_count(parent)
     let mut i = 0
     while i < count {
         let binding = contract_scope::LocalScope_binding_at(parent, i)
         if contract_scope::VarBinding_is_generalized(binding) {
-            let copied = contract_scope::VarBinding_new_scheme_with_flags(
+            let mut copied = contract_scope::VarBinding_new_scheme_with_flags(
                 contract_scope::VarBinding_name(binding),
                 contract_scope::VarBinding_scheme(binding),
                 contract_scope::VarBinding_is_mutable(binding),
@@ -33,9 +33,10 @@ fn scope_child(parent: LocalScope) -> LocalScope {
             contract_scope::VarBinding_set_mutable_borrow(copied, contract_scope::VarBinding_has_mutable_borrow(binding))
             contract_scope::VarBinding_set_has_captures(copied, contract_scope::VarBinding_has_captures(binding))
             contract_scope::VarBinding_set_has_borrow_captures(copied, contract_scope::VarBinding_has_borrow_captures(binding))
+            contract_scope::VarBinding_set_is_shared_param(copied, contract_scope::VarBinding_is_shared_param(binding))
             contract_scope::LocalScope_push_binding(child, copied)
         } else {
-            let copied = contract_scope::VarBinding_new_with_flags(
+            let mut copied = contract_scope::VarBinding_new_with_flags(
                 contract_scope::VarBinding_name(binding),
                 contract_scope::VarBinding_type(binding),
                 contract_scope::VarBinding_is_mutable(binding),
@@ -46,6 +47,7 @@ fn scope_child(parent: LocalScope) -> LocalScope {
             contract_scope::VarBinding_set_mutable_borrow(copied, contract_scope::VarBinding_has_mutable_borrow(binding))
             contract_scope::VarBinding_set_has_captures(copied, contract_scope::VarBinding_has_captures(binding))
             contract_scope::VarBinding_set_has_borrow_captures(copied, contract_scope::VarBinding_has_borrow_captures(binding))
+            contract_scope::VarBinding_set_is_shared_param(copied, contract_scope::VarBinding_is_shared_param(binding))
             contract_scope::LocalScope_push_binding(child, copied)
         }
         i = i + 1
@@ -63,11 +65,11 @@ fn scope_child(parent: LocalScope) -> LocalScope {
 // binding. The merge is set-only: a nested body must not resurrect state
 // the parent already recorded (a rebind un-moving a binding applies at
 // call time, not at the literal position where marks are taken).
-fn scope_merge_child_marks(parent: LocalScope, child: LocalScope) {
+fn scope_merge_child_marks(mut parent: LocalScope, child: LocalScope) {
     let count = contract_scope::LocalScope_binding_count(parent)
     let mut i = 0
     while i < count {
-        let parent_binding = contract_scope::LocalScope_binding_at(parent, i)
+        let mut parent_binding = contract_scope::LocalScope_binding_at(parent, i)
         let child_binding = contract_scope::LocalScope_binding_at(child, i)
         if contract_scope::VarBinding_is_moved(child_binding) {
             contract_scope::VarBinding_set_moved(parent_binding, true)
@@ -89,18 +91,27 @@ fn scope_merge_child_marks(parent: LocalScope, child: LocalScope) {
     }
 }
 
-fn scope_define(scope: LocalScope, name: String, ty: TypeInfo) {
+fn scope_define(mut scope: LocalScope, name: String, ty: TypeInfo) {
     scope_define_with_flags(scope, name, ty, false, ownership_types::type_is_builtin_copy(ty))
 }
 
-fn scope_define_with_flags(scope: LocalScope, name: String, ty: TypeInfo, is_mutable: bool, is_copy: bool) {
+fn scope_define_with_flags(mut scope: LocalScope, name: String, ty: TypeInfo, is_mutable: bool, is_copy: bool) {
     contract_scope::LocalScope_push_binding(
         scope,
         contract_scope::VarBinding_new_with_flags(name, ty, is_mutable, is_copy)
     )
 }
 
-fn scope_define_scheme(scope: LocalScope, name: String, scheme: TypeScheme) {
+// Parameters and receivers are immutable when shared (ADR-088 §2), so the
+// assignment check can distinguish "missing `mut` on the call boundary" from
+// an ordinary immutable `let`.
+fn scope_define_param(mut scope: LocalScope, name: String, ty: TypeInfo, is_mutable: bool, is_copy: bool) {
+    let mut binding = contract_scope::VarBinding_new_with_flags(name, ty, is_mutable, is_copy)
+    contract_scope::VarBinding_set_is_shared_param(binding, !is_mutable)
+    contract_scope::LocalScope_push_binding(scope, binding)
+}
+
+fn scope_define_scheme(mut scope: LocalScope, name: String, scheme: TypeScheme) {
     scope_define_scheme_with_flags(
         scope,
         name,
@@ -110,7 +121,7 @@ fn scope_define_scheme(scope: LocalScope, name: String, scheme: TypeScheme) {
     )
 }
 
-fn scope_define_scheme_with_flags(scope: LocalScope, name: String, scheme: TypeScheme, is_mutable: bool, is_copy: bool) {
+fn scope_define_scheme_with_flags(mut scope: LocalScope, name: String, scheme: TypeScheme, is_mutable: bool, is_copy: bool) {
     contract_scope::LocalScope_push_binding(
         scope,
         contract_scope::VarBinding_new_scheme_with_flags(name, scheme, is_mutable, is_copy)
@@ -137,6 +148,14 @@ fn scope_binding_is_mutable(scope: LocalScope, name: String) -> bool {
         return false
     }
     contract_scope::VarBinding_is_mutable(contract_scope::LocalScope_binding_at(scope, index))
+}
+
+fn scope_binding_is_shared_param(scope: LocalScope, name: String) -> bool {
+    let index = scope_binding_index(scope, name)
+    if index < 0 {
+        return false
+    }
+    contract_scope::VarBinding_is_shared_param(contract_scope::LocalScope_binding_at(scope, index))
 }
 
 fn scope_binding_is_copy(scope: LocalScope, name: String) -> bool {
@@ -196,12 +215,12 @@ fn scope_binding_has_captures(scope: LocalScope, name: String) -> bool {
     contract_scope::VarBinding_has_captures(contract_scope::LocalScope_binding_at(scope, index))
 }
 
-fn scope_mark_has_captures(scope: LocalScope, name: String, has_caps: bool) {
+fn scope_mark_has_captures(mut scope: LocalScope, name: String, has_caps: bool) {
     let index = scope_binding_index(scope, name)
     if index < 0 {
         return
     }
-    let binding = contract_scope::LocalScope_binding_at(scope, index)
+    let mut binding = contract_scope::LocalScope_binding_at(scope, index)
     contract_scope::VarBinding_set_has_captures(binding, has_caps)
     set(scope.bindings, index, binding)
 }
@@ -214,42 +233,42 @@ fn scope_binding_has_borrow_captures(scope: LocalScope, name: String) -> bool {
     contract_scope::VarBinding_has_borrow_captures(contract_scope::LocalScope_binding_at(scope, index))
 }
 
-fn scope_mark_has_borrow_captures(scope: LocalScope, name: String, has_borrow_caps: bool) {
+fn scope_mark_has_borrow_captures(mut scope: LocalScope, name: String, has_borrow_caps: bool) {
     let index = scope_binding_index(scope, name)
     if index < 0 {
         return
     }
-    let binding = contract_scope::LocalScope_binding_at(scope, index)
+    let mut binding = contract_scope::LocalScope_binding_at(scope, index)
     contract_scope::VarBinding_set_has_borrow_captures(binding, has_borrow_caps)
     set(scope.bindings, index, binding)
 }
 
-fn scope_mark_moved(scope: LocalScope, name: String, is_moved: bool) {
+fn scope_mark_moved(mut scope: LocalScope, name: String, is_moved: bool) {
     let index = scope_binding_index(scope, name)
     if index < 0 {
         return
     }
-    let binding = contract_scope::LocalScope_binding_at(scope, index)
+    let mut binding = contract_scope::LocalScope_binding_at(scope, index)
     contract_scope::VarBinding_set_moved(binding, is_moved)
     set(scope.bindings, index, binding)
 }
 
-fn scope_mark_shared_borrow(scope: LocalScope, name: String, has_borrow: bool) {
+fn scope_mark_shared_borrow(mut scope: LocalScope, name: String, has_borrow: bool) {
     let index = scope_binding_index(scope, name)
     if index < 0 {
         return
     }
-    let binding = contract_scope::LocalScope_binding_at(scope, index)
+    let mut binding = contract_scope::LocalScope_binding_at(scope, index)
     contract_scope::VarBinding_set_shared_borrow(binding, has_borrow)
     set(scope.bindings, index, binding)
 }
 
-fn scope_mark_mutable_borrow(scope: LocalScope, name: String, has_borrow: bool) {
+fn scope_mark_mutable_borrow(mut scope: LocalScope, name: String, has_borrow: bool) {
     let index = scope_binding_index(scope, name)
     if index < 0 {
         return
     }
-    let binding = contract_scope::LocalScope_binding_at(scope, index)
+    let mut binding = contract_scope::LocalScope_binding_at(scope, index)
     contract_scope::VarBinding_set_mutable_borrow(binding, has_borrow)
     set(scope.bindings, index, binding)
 }
@@ -268,7 +287,7 @@ fn scope_lookup(scope: LocalScope, name: String) -> TypeInfo {
     found
 }
 
-fn scope_lookup_instantiated(env: TypeEnv, scope: LocalScope, name: String) -> TypeInfo {
+fn scope_lookup_instantiated(mut env: TypeEnv, scope: LocalScope, name: String) -> TypeInfo {
     let count = contract_scope::LocalScope_binding_count(scope)
     let mut found = unknown_type()
     let mut i = 0
@@ -286,12 +305,12 @@ fn scope_lookup_instantiated(env: TypeEnv, scope: LocalScope, name: String) -> T
     found
 }
 
-fn instantiate_scheme(env: TypeEnv, scheme: TypeScheme) -> TypeInfo {
+fn instantiate_scheme(mut env: TypeEnv, scheme: TypeScheme) -> TypeInfo {
     let var_count = len(scheme.vars)
     if var_count == 0 {
         return scheme.body
     }
-    let var_types = Vec::new<TypeInfo>()
+    let mut var_types = Vec::new<TypeInfo>()
     let mut i = 0
     while i < var_count {
         push(var_types, unify::fresh_var(env))
@@ -312,7 +331,7 @@ fn type_name_is_present(names: Vec<String>, name: String) -> bool {
 }
 
 fn collect_free_type_var_names(env: TypeEnv, ty: TypeInfo) -> Vec<String> {
-    let names = Vec::new<String>()
+    let mut names = Vec::new<String>()
     let resolved = unify::resolve_type(env, ty)
     if contract_type_access::TypeInfo_tag(resolved) == commands::TY_TYPE_VAR() {
         let name = contract_type_access::TypeInfo_name(resolved)
@@ -342,7 +361,7 @@ fn collect_free_type_var_names(env: TypeEnv, ty: TypeInfo) -> Vec<String> {
 }
 
 fn scope_free_type_var_names(env: TypeEnv, scope: LocalScope) -> Vec<String> {
-    let names = Vec::new<String>()
+    let mut names = Vec::new<String>()
     let binding_count = contract_scope::LocalScope_binding_count(scope)
     let mut i = 0
     while i < binding_count {
@@ -382,7 +401,7 @@ fn scope_free_type_var_names(env: TypeEnv, scope: LocalScope) -> Vec<String> {
 fn generalize(env: TypeEnv, scope: LocalScope, ty: TypeInfo) -> TypeScheme {
     let candidates = collect_free_type_var_names(env, ty)
     let environment_names = scope_free_type_var_names(env, scope)
-    let vars = Vec::new<String>()
+    let mut vars = Vec::new<String>()
     let mut i = 0
     while i < len(candidates) {
         let name = get_unchecked(candidates, i)

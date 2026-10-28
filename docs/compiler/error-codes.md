@@ -723,6 +723,38 @@ fn main() {
 ```
 
 ---
+### E0226 — assignment through a shared parameter or receiver
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | typecheck |
+| **Message** | shared parameter is not mutable |
+
+A shared parameter or receiver is a call-scoped borrow (ADR-088 §2/§3). The
+callee may read it and pass it to another shared parameter, but it must not
+assign to a place rooted at it, including the parameter itself. Declare the
+parameter `mut p` or the receiver `mut self` to mutate; callers must then
+supply a mutable place (E0223). A mutating call such as `push(p, x)` through a
+shared parameter is reported at the call site as E0223.
+
+<!-- skip-doc-check kind="invalid-example" reason="E0226 rejects assignment through a shared parameter" -->
+```arukellt
+struct Point {
+    x: i32,
+}
+
+fn bump(p: Point) {
+    p.x = p.x + 1
+}
+
+fn main() {
+    let mut p = Point { x: 1 }
+    bump(p)
+}
+```
+
+---
 
 ## v0 Version Constraints & Target Errors — `E03xx`
 
@@ -1172,6 +1204,7 @@ one, please file a bug report.
 | E0223 | error | typecheck | mut parameter requires a mutable place |
 | E0224 | error | typecheck | same place passed to a mut parameter and another parameter |
 | E0225 | error | typecheck | function parameter mode mismatch |
+| E0226 | error | typecheck | shared parameter is not mutable |
 | E0300 | error | typecheck | traits are not available in v0 |
 | E0301 | error | typecheck | method call syntax is not available in v0 |
 | E0302 | error | typecheck | nested generics are not allowed in v0 |

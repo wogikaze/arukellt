@@ -7,7 +7,7 @@ use mir::module_record
 // distinct registrations that share a signature text (e.g. two enum
 // payload variants with identical field layouts) share one canon type,
 // preserving nominal equality for ref.cast/ref.test.
-fn MirModule_canon_ensure(m: MirModule, sig: String) -> i32 {
+fn MirModule_canon_ensure(mut m: MirModule, sig: String) -> i32 {
     let found = name_index::name_index_get(m.canon_index, clone(sig))
     if found >= 0 {
         return found
@@ -37,6 +37,6 @@ fn MirModule_gc_canon_prefix_done(m: MirModule) -> bool {
     m.gc_canon_prefix_done
 }
 
-fn MirModule_set_gc_canon_prefix_done(m: MirModule, done: bool) {
+fn MirModule_set_gc_canon_prefix_done(mut m: MirModule, done: bool) {
     m.gc_canon_prefix_done = done
 }

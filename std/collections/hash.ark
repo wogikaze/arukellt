@@ -43,7 +43,7 @@ use std::core::hash
 use std::prelude::{clone, eq}
 pub fn hashmap_new() -> Vec<i32> {
     let cap: i32 = 16
-    let m: Vec<i32> = Vec::new<i32>()
+    let mut m: Vec<i32> = Vec::new<i32>()
     push(m, cap)
     push(m, 0)
     let mut i: i32 = 0
@@ -118,14 +118,14 @@ pub fn hashmap_contains(m: Vec<i32>, key: i32) -> bool {
     found
 }
 
-fn hashmap_ensure_storage_len(m: Vec<i32>, cap: i32) {
+fn hashmap_ensure_storage_len(mut m: Vec<i32>, cap: i32) {
     let need: i32 = hashmap_required_vec_len(cap)
     while len(m) < need {
         push(m, 0)
     }
 }
 
-fn hashmap_set_no_resize(m: Vec<i32>, key: i32, value: i32) -> bool {
+fn hashmap_set_no_resize(mut m: Vec<i32>, key: i32, value: i32) -> bool {
     let cap: i32 = get_unchecked(m, 0)
     let mut done: bool = false
     let idx: i32 = hashmap_slot_for_key(m, key)
@@ -154,7 +154,7 @@ fn hashmap_min_capacity_for_entries(entries: i32) -> i32 {
     cap
 }
 
-fn hashmap_rehash_to_capacity(m: Vec<i32>, new_cap: i32) {
+fn hashmap_rehash_to_capacity(mut m: Vec<i32>, new_cap: i32) {
     let old_keys: Vec<i32> = hashmap_keys(m)
     let old_values: Vec<i32> = hashmap_values(m)
     let cap: i32 = hashmap_min_capacity_for_entries(len(old_keys))
@@ -183,7 +183,7 @@ fn hashmap_rehash_to_capacity(m: Vec<i32>, new_cap: i32) {
     }
 }
 
-fn hashmap_ensure_insert_capacity(m: Vec<i32>, key: i32) {
+fn hashmap_ensure_insert_capacity(mut m: Vec<i32>, key: i32) {
     if !hashmap_contains(m, key) {
         let cap: i32 = get_unchecked(m, 0)
         let needed: i32 = get_unchecked(m, 1) + 1
@@ -195,14 +195,14 @@ fn hashmap_ensure_insert_capacity(m: Vec<i32>, key: i32) {
 
 /// Insert or update a key. Returns true when the value was stored.
 /// The backing store grows before the load factor exceeds 0.75.
-pub fn hashmap_set(m: Vec<i32>, key: i32, value: i32) -> bool {
+pub fn hashmap_set(mut m: Vec<i32>, key: i32, value: i32) -> bool {
     hashmap_ensure_insert_capacity(m, key)
     hashmap_set_no_resize(m, key, value)
 }
 
 /// Insert or update a key and return the previous value, matching Rust's
 /// `HashMap::insert` contract for the monomorphic i32->i32 fallback.
-pub fn hashmap_insert(m: Vec<i32>, key: i32, value: i32) -> Option<i32> {
+pub fn hashmap_insert(mut m: Vec<i32>, key: i32, value: i32) -> Option<i32> {
     let old: Option<i32> = hashmap_get_option(m, key)
     let _stored: bool = hashmap_set(m, key, value)
     old
@@ -225,7 +225,7 @@ pub fn hashmap_with_capacity(cap: i32) -> Vec<i32> {
     if actual_cap < 1 {
         actual_cap = 1
     }
-    let m: Vec<i32> = Vec::new<i32>()
+    let mut m: Vec<i32> = Vec::new<i32>()
     push(m, actual_cap)
     push(m, 0)
     let mut i: i32 = 0
@@ -238,7 +238,7 @@ pub fn hashmap_with_capacity(cap: i32) -> Vec<i32> {
 
 /// Ensure the map can hold at least `additional` more inserted keys without
 /// exceeding the load-factor threshold.
-pub fn hashmap_reserve(m: Vec<i32>, additional: i32) {
+pub fn hashmap_reserve(mut m: Vec<i32>, additional: i32) {
     if additional > 0 {
         let needed_entries: i32 = hashmap_size(m) + additional
         let needed_cap: i32 = hashmap_min_capacity_for_entries(needed_entries)
@@ -250,14 +250,14 @@ pub fn hashmap_reserve(m: Vec<i32>, additional: i32) {
 
 /// Fallible reserve facade. The current Vec-backed implementation has no
 /// recoverable allocation error channel, so this returns true after reserving.
-pub fn hashmap_try_reserve(m: Vec<i32>, additional: i32) -> bool {
+pub fn hashmap_try_reserve(mut m: Vec<i32>, additional: i32) -> bool {
     hashmap_reserve(m, additional)
     true
 }
 
 /// Shrink buckets to the minimum capacity that preserves the load-factor
 /// invariant for the current number of entries.
-pub fn hashmap_shrink_to_fit(m: Vec<i32>) {
+pub fn hashmap_shrink_to_fit(mut m: Vec<i32>) {
     hashmap_rehash_to_capacity(m, hashmap_min_capacity_for_entries(hashmap_size(m)))
 }
 
@@ -281,7 +281,7 @@ pub fn hashmap_is_empty(m: Vec<i32>) -> bool {
 }
 
 /// Remove all entries from the map, resetting size to 0.
-pub fn hashmap_clear(m: Vec<i32>) {
+pub fn hashmap_clear(mut m: Vec<i32>) {
     let cap: i32 = get_unchecked(m, 0)
     set(m, 1, 0)
     let mut i: i32 = 0
@@ -294,7 +294,7 @@ pub fn hashmap_clear(m: Vec<i32>) {
 /// Return a Vec<i32> of all keys currently in the map.
 pub fn hashmap_keys(m: Vec<i32>) -> Vec<i32> {
     let cap: i32 = get_unchecked(m, 0)
-    let result: Vec<i32> = Vec::new<i32>()
+    let mut result: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < cap {
         let flag: i32 = get_unchecked(m, hashmap_flag_index(cap, i))
@@ -309,7 +309,7 @@ pub fn hashmap_keys(m: Vec<i32>) -> Vec<i32> {
 /// Return a Vec<i32> of all values currently in the map.
 pub fn hashmap_values(m: Vec<i32>) -> Vec<i32> {
     let cap: i32 = get_unchecked(m, 0)
-    let result: Vec<i32> = Vec::new<i32>()
+    let mut result: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < cap {
         let flag: i32 = get_unchecked(m, hashmap_flag_index(cap, i))
@@ -325,7 +325,7 @@ pub fn hashmap_values(m: Vec<i32>) -> Vec<i32> {
 /// [key0, value0, key1, value1, ...].
 pub fn hashmap_entries(m: Vec<i32>) -> Vec<i32> {
     let cap: i32 = get_unchecked(m, 0)
-    let result: Vec<i32> = Vec::new<i32>()
+    let mut result: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < cap {
         let flag: i32 = get_unchecked(m, hashmap_flag_index(cap, i))
@@ -346,7 +346,7 @@ pub fn hashmap_entries(m: Vec<i32>) -> Vec<i32> {
 /// collapse the two into a self-calling stub (#888).
 pub fn hashmap_entry_pairs(m: Vec<i32>) -> Vec<(i32, i32)> {
     let cap: i32 = get_unchecked(m, 0)
-    let result: Vec<(i32, i32)> = Vec::new<(i32, i32)>()
+    let mut result: Vec<(i32, i32)> = Vec::new<(i32, i32)>()
     let mut i: i32 = 0
     while i < cap {
         let flag: i32 = get_unchecked(m, hashmap_flag_index(cap, i))
@@ -362,7 +362,7 @@ pub fn hashmap_entry_pairs(m: Vec<i32>) -> Vec<(i32, i32)> {
 }
 
 /// Return all entries as flat key/value pairs and clear the map.
-pub fn hashmap_drain(m: Vec<i32>) -> Vec<i32> {
+pub fn hashmap_drain(mut m: Vec<i32>) -> Vec<i32> {
     let result: Vec<i32> = hashmap_entries(m)
     hashmap_clear(m)
     result
@@ -371,7 +371,7 @@ pub fn hashmap_drain(m: Vec<i32>) -> Vec<i32> {
 /// Remove a key from the map and return its previous value, or None if absent.
 /// Removal is implemented by collecting all live entries, clearing the map,
 /// and re-inserting everything except the removed key (O(n) but correct).
-pub fn hashmap_remove(m: Vec<i32>, key: i32) -> Option<i32> {
+pub fn hashmap_remove(mut m: Vec<i32>, key: i32) -> Option<i32> {
     if !hashmap_contains(m, key) {
         None
     } else {
@@ -394,8 +394,8 @@ pub fn hashmap_remove(m: Vec<i32>, key: i32) -> Option<i32> {
 }
 
 /// Remove a key and return a flat [key, value] pair, or an empty Vec if absent.
-pub fn hashmap_remove_entry(m: Vec<i32>, key: i32) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
+pub fn hashmap_remove_entry(mut m: Vec<i32>, key: i32) -> Vec<i32> {
+    let mut result: Vec<i32> = Vec::new<i32>()
     match hashmap_remove(m, key) {
         Option::Some(v) => {
             push(result, key)
@@ -409,7 +409,7 @@ pub fn hashmap_remove_entry(m: Vec<i32>, key: i32) -> Vec<i32> {
 /// Extend a map with all key/value pairs from another map (`other`).
 /// Mirrors Rust's `HashMap::extend` for the raw i32->i32 surface.  Existing
 /// keys in `m` are overwritten by the corresponding entry in `other`.
-pub fn hashmap_extend(m: Vec<i32>, other: Vec<i32>) {
+pub fn hashmap_extend(mut m: Vec<i32>, other: Vec<i32>) {
     let entries: Vec<i32> = hashmap_entries(other)
     let n: i32 = len(entries)
     let mut i: i32 = 0
@@ -427,7 +427,7 @@ pub fn hashset_new() -> Vec<i32> {
 
 /// Insert a value into the set. Returns true if the value was newly added,
 /// false if it was already present.
-pub fn hashset_insert(s: Vec<i32>, value: i32) -> bool {
+pub fn hashset_insert(mut s: Vec<i32>, value: i32) -> bool {
     if hashmap_contains(s, value) {
         false
     } else {
@@ -441,7 +441,7 @@ pub fn hashset_contains(s: Vec<i32>, value: i32) -> bool {
 }
 
 /// Remove a value from the set. Returns true if the value was present, false otherwise.
-pub fn hashset_remove(s: Vec<i32>, value: i32) -> bool {
+pub fn hashset_remove(mut s: Vec<i32>, value: i32) -> bool {
     if hashmap_contains(s, value) {
         let _ = hashmap_remove(s, value)
         true
@@ -467,7 +467,7 @@ pub fn hashset_to_vec(s: Vec<i32>) -> Vec<i32> {
 
 /// Return the union of two sets (all elements present in a or b).
 pub fn hashset_union(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
-    let result: Vec<i32> = hashset_new()
+    let mut result: Vec<i32> = hashset_new()
     let ak: Vec<i32> = hashmap_keys(a)
     let na: i32 = len(ak)
     let mut i: i32 = 0
@@ -487,7 +487,7 @@ pub fn hashset_union(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
 
 /// Return the intersection of two sets (elements present in both a and b).
 pub fn hashset_intersection(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
-    let result: Vec<i32> = hashset_new()
+    let mut result: Vec<i32> = hashset_new()
     let ak: Vec<i32> = hashmap_keys(a)
     let n: i32 = len(ak)
     let mut i: i32 = 0
@@ -503,7 +503,7 @@ pub fn hashset_intersection(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
 
 /// Return the difference a - b (elements in a that are not in b).
 pub fn hashset_difference(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
-    let result: Vec<i32> = hashset_new()
+    let mut result: Vec<i32> = hashset_new()
     let ak: Vec<i32> = hashmap_keys(a)
     let n: i32 = len(ak)
     let mut i: i32 = 0
@@ -524,23 +524,23 @@ pub fn hashset_capacity(s: Vec<i32>) -> i32 {
 
 /// Ensure the set can hold at least `additional` more elements without
 /// exceeding the load-factor threshold.
-pub fn hashset_reserve(s: Vec<i32>, additional: i32) {
+pub fn hashset_reserve(mut s: Vec<i32>, additional: i32) {
     hashmap_reserve(s, additional)
 }
 
 /// Shrink the set to the minimum capacity preserving the load-factor invariant.
-pub fn hashset_shrink_to_fit(s: Vec<i32>) {
+pub fn hashset_shrink_to_fit(mut s: Vec<i32>) {
     hashmap_shrink_to_fit(s)
 }
 
 /// Remove all elements from the set, resetting size to 0.
-pub fn hashset_clear(s: Vec<i32>) {
+pub fn hashset_clear(mut s: Vec<i32>) {
     hashmap_clear(s)
 }
 
 /// Extend a set with all elements from another set (`other`).
 /// Mirrors Rust's `HashSet::extend`.
-pub fn hashset_extend(s: Vec<i32>, other: Vec<i32>) {
+pub fn hashset_extend(mut s: Vec<i32>, other: Vec<i32>) {
     let keys: Vec<i32> = hashmap_keys(other)
     let n: i32 = len(keys)
     let mut i: i32 = 0
@@ -563,7 +563,7 @@ fn hash_vec_string_index_of(items: Vec<String>, value: String) -> i32 {
     -1
 }
 
-fn hash_vec_string_remove_at(items: Vec<String>, index: i32) {
+fn hash_vec_string_remove_at(mut items: Vec<String>, index: i32) {
     let n: i32 = len(items)
     let mut i: i32 = index
     while i < n - 1 {
@@ -577,7 +577,7 @@ pub fn hashset_str_new() -> Vec<String> {
     Vec::new<String>()
 }
 
-pub fn hashset_str_insert(s: Vec<String>, value: String) -> bool {
+pub fn hashset_str_insert(mut s: Vec<String>, value: String) -> bool {
     if hash_vec_string_index_of(s, clone(value)) >= 0 {
         false
     } else {
@@ -590,7 +590,7 @@ pub fn hashset_str_contains(s: Vec<String>, value: String) -> bool {
     hash_vec_string_index_of(s, value) >= 0
 }
 
-pub fn hashset_str_remove(s: Vec<String>, value: String) -> bool {
+pub fn hashset_str_remove(mut s: Vec<String>, value: String) -> bool {
     let idx: i32 = hash_vec_string_index_of(s, value)
     if idx < 0 {
         false
@@ -610,12 +610,12 @@ pub fn hashset_str_is_empty(s: Vec<String>) -> bool {
 test mod "hashmap" {
     test "new_empty" { assert(hashmap_is_empty(hashmap_new())) }
     test "insert_get" {
-        let m = hashmap_new()
+        let mut m = hashmap_new()
         hashmap_set(m, 1, 42)
         assert(hashmap_get(m, 1) == 42)
     }
     test "size" {
-        let m = hashmap_new()
+        let mut m = hashmap_new()
         hashmap_set(m, 2, 3)
         assert(hashmap_size(m) == 1)
     }

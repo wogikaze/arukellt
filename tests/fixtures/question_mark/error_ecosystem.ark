@@ -44,7 +44,7 @@ fn parse_count(text: String) -> Result<i32, String> {
 }
 
 fn read_exact(data: Vec<i32>) -> Result<Vec<i32>, IoError> {
-    let reader: io::Reader = io::Reader::from_bytes(data)
+    let mut reader: io::Reader = io::Reader::from_bytes(data)
     io::Io::read_exact(reader, 1)
 }
 
@@ -67,7 +67,7 @@ fn propagate_typed_io_failure() -> Result<i32, AppError> {
 }
 
 fn main() {
-    let input: Vec<i32> = Vec::new<i32>()
+    let mut input: Vec<i32> = Vec::new<i32>()
     push(input, 1)
     match read_and_parse(input, String_from("1")) {
         Ok(value) => assert(value == 2),
@@ -80,7 +80,7 @@ fn main() {
         Err(_) => assert(true),
     }
 
-    let invalid_input: Vec<i32> = Vec::new<i32>()
+    let mut invalid_input: Vec<i32> = Vec::new<i32>()
     push(invalid_input, 1)
     match read_and_parse(invalid_input, String_from("bad")) {
         Ok(_) => assert(false),

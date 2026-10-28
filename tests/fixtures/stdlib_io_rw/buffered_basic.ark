@@ -4,7 +4,7 @@ use std::io
 use std::io::{BufReader, BufWriter, Reader, Writer}
 
 fn main() {
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     data.push_byte(76)
     data.push_byte(105)
     data.push_byte(110)
@@ -22,7 +22,7 @@ fn main() {
     data.push_byte(110)
     data.push_byte(101)
     data.push_byte(51)
-    let br: BufReader<Reader> = BufReader::new<Reader>(Reader::from_bytes(data), 64)
+    let mut br: BufReader<Reader> = BufReader::new<Reader>(Reader::from_bytes(data), 64)
     let l1: Result<Option<String>, io::IoError> = br.read_line()
     match l1 {
         Result::Ok(found) => match found {
@@ -50,7 +50,7 @@ fn main() {
     // The tagged stdout handle cannot be a generic Write sink yet, so the
     // adapter writes into a memory Writer and the fixture prints the flushed
     // image itself. Output stays identical to the legacy tagged path.
-    let bw: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 8)
+    let mut bw: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 8)
     let _: Result<i32, io::IoError> = bw.write_string("buffered")
     let _: Result<(), io::IoError> = bw.flush()
     match bw.into_inner() {

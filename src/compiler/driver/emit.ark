@@ -16,7 +16,7 @@ use driver::checked_program
 use driver::debug
 use resolver::wit_import_bind
 fn emit_output(
-    mir_module: MirModule,
+    mut mir_module: MirModule,
     program: CheckedProgram,
     config: DriverConfig,
     t0: i64,
@@ -67,7 +67,7 @@ fn emit_output(
 }
 
 fn emit_component_output(
-    mir_module: MirModule,
+    mut mir_module: MirModule,
     program: CheckedProgram,
     config: DriverConfig,
     t0: i64,
@@ -160,7 +160,7 @@ fn emit_timing_if_enabled(
 }
 
 fn emit_native_output(
-    mir_module: MirModule,
+    mut mir_module: MirModule,
     config: DriverConfig,
     t0: i64,
     t_lex: i64,
@@ -193,7 +193,7 @@ fn emit_native_output(
     result
 }
 
-fn build_wasm_bytes(mir_module: MirModule, program: CheckedProgram, config: DriverConfig) -> Vec<i32> {
+fn build_wasm_bytes(mut mir_module: MirModule, program: CheckedProgram, config: DriverConfig) -> Vec<i32> {
     let bindings = wit_import_bind::wit_collect_bindings(
         config_record::config_wit_paths(config),
         checked_program::checked_program_wit_decls(program)
@@ -213,7 +213,7 @@ fn build_wasm_bytes(mir_module: MirModule, program: CheckedProgram, config: Driv
 }
 
 fn emit_wasm_output(
-    mir_module: MirModule,
+    mut mir_module: MirModule,
     program: CheckedProgram,
     config: DriverConfig,
     t0: i64,
@@ -236,7 +236,7 @@ fn emit_wasm_output(
 }
 
 fn emit_wat_output(
-    mir_module: MirModule,
+    mut mir_module: MirModule,
     program: CheckedProgram,
     config: DriverConfig,
     t0: i64,

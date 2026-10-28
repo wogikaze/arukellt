@@ -19,7 +19,7 @@ use diagnostics::mod as diag_mod
 // Register declarations before impls so arity and associated-item checks use
 // the same local trait registry as obligation solving.
 use std::prelude::{args, clone, eq, to_string}
-fn register_trait_decls(env: TypeEnv, decls: Vec<AstNode>) {
+fn register_trait_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
     let count = len(decls)
     let mut i = 0
     while i < count {
@@ -31,14 +31,14 @@ fn register_trait_decls(env: TypeEnv, decls: Vec<AstNode>) {
     }
 }
 
-fn register_trait_decl(env: TypeEnv, node: AstNode) {
+fn register_trait_decl(mut env: TypeEnv, node: AstNode) {
     reject_trait_default_methods(env, node)
     let trait_name = ast_access::node_text(node)
     if trait_info_index(env, clone(trait_name)) >= 0 {
         return
     }
     let param_count = count_trait_type_params(node)
-    let info = contract_trait_info::TraitInfo_new(clone(trait_name), param_count)
+    let mut info = contract_trait_info::TraitInfo_new(clone(trait_name), param_count)
     let ann_count = ast_access::node_type_ann_count(node)
     let mut i = 0
     while i < ann_count {
@@ -63,7 +63,7 @@ fn register_trait_decl(env: TypeEnv, node: AstNode) {
 // a body, but no impl instance is lowered for it; accepting it would resolve
 // calls to the drop+unreachable fallback. Rejecting the body here makes this
 // diagnostic the explicit blocker for adopting default methods later.
-fn reject_trait_default_methods(env: TypeEnv, trait_node: AstNode) {
+fn reject_trait_default_methods(mut env: TypeEnv, trait_node: AstNode) {
     let trait_name = ast_access::node_text(trait_node)
     let child_count = ast_access::node_child_count(trait_node)
     let mut i = 0
@@ -96,7 +96,7 @@ fn count_trait_type_params(node: AstNode) -> i32 {
     total
 }
 
-fn register_trait_impl(env: TypeEnv, trait_name: String, self_ty: TypeInfo) {
+fn register_trait_impl(mut env: TypeEnv, trait_name: String, self_ty: TypeInfo) {
     register_trait_impl_entry(
         env,
         trait_name,
@@ -108,7 +108,7 @@ fn register_trait_impl(env: TypeEnv, trait_name: String, self_ty: TypeInfo) {
 }
 
 fn register_trait_impl_entry(
-    env: TypeEnv,
+    mut env: TypeEnv,
     trait_name: String,
     trait_args: Vec<TypeInfo>,
     self_ty: TypeInfo,
@@ -175,7 +175,7 @@ fn register_trait_impl_entry(
     )
 }
 
-fn maybe_register_impl_decl(env: TypeEnv, node: AstNode, known_type_names: Vec<String>) {
+fn maybe_register_impl_decl(mut env: TypeEnv, node: AstNode, known_type_names: Vec<String>) {
     if !ast_decl_predicates::node_is_impl_decl(node) {
         return
     }
@@ -241,7 +241,7 @@ fn maybe_register_impl_decl(env: TypeEnv, node: AstNode, known_type_names: Vec<S
 // registering a bogus concrete impl. The single-uppercase check only selects
 // the removed migration spelling — name shape never promotes a type to a
 // parameter.
-fn report_undefined_impl_head_types(env: TypeEnv, node: AstNode, known_type_names: Vec<String>) -> bool {
+fn report_undefined_impl_head_types(mut env: TypeEnv, node: AstNode, known_type_names: Vec<String>) -> bool {
     let undefined = impl_generics::undefined_head_type_names(node, known_type_names)
     let count = len(undefined)
     if count == 0 {
@@ -263,7 +263,7 @@ fn report_undefined_impl_head_types(env: TypeEnv, node: AstNode, known_type_name
     true
 }
 
-fn report_trait_error_at(env: TypeEnv, code: String, node: AstNode, message: String) {
+fn report_trait_error_at(mut env: TypeEnv, code: String, node: AstNode, message: String) {
     env.error_count = env.error_count + 1
     push(env.errors, clone(message))
     let span = record::DiagnosticSpan_from_raw(
@@ -278,7 +278,7 @@ fn report_trait_error_at(env: TypeEnv, code: String, node: AstNode, message: Str
 // could only be instantiated by guessing from trait arguments or method
 // bodies, which leaves the obligation unconstrained. Only binder-declared
 // parameters participate (ADR-089).
-fn validate_impl_param_constraints(env: TypeEnv, node: AstNode, self_ty: TypeInfo) -> bool {
+fn validate_impl_param_constraints(mut env: TypeEnv, node: AstNode, self_ty: TypeInfo) -> bool {
     let declared = impl_generics::declared_type_param_names(node)
     let mut i = 0
     while i < len(declared) {
@@ -315,7 +315,7 @@ fn type_contains_named_var(ty: TypeInfo, name: String) -> bool {
     false
 }
 
-fn validate_trait_supertraits(env: TypeEnv) {
+fn validate_trait_supertraits(mut env: TypeEnv) {
     let impl_count = len(env.trait_impls)
     let mut i = 0
     while i < impl_count {
@@ -359,7 +359,7 @@ fn is_compiler_owned_blanket(trait_name: String, self_ty: TypeInfo) -> bool {
 }
 
 fn register_impl_associated_types(
-    env: TypeEnv,
+    mut env: TypeEnv,
     trait_name: String,
     self_ty: TypeInfo,
     type_params: Vec<String>,
@@ -419,7 +419,7 @@ fn register_impl_associated_types(
 }
 
 fn require_associated_type_definitions(
-    env: TypeEnv,
+    mut env: TypeEnv,
     trait_name: String,
     self_ty: TypeInfo,
     trait_info: TraitInfo
@@ -481,7 +481,7 @@ fn trait_has_associated_type(info: TraitInfo, name: String) -> bool {
     false
 }
 
-fn validate_trait_arity(env: TypeEnv, trait_name: String, actual: i32) -> bool {
+fn validate_trait_arity(mut env: TypeEnv, trait_name: String, actual: i32) -> bool {
     let info = trait_info_at(env, clone(trait_name))
     let expected = contract_trait_info::trait_info_type_param_count(info)
     if expected < 0 || expected == actual {
@@ -531,7 +531,7 @@ fn string_vec_contains(names: Vec<String>, name: String) -> bool {
 }
 
 fn type_args(ty: TypeInfo) -> Vec<TypeInfo> {
-    let args = Vec::new<TypeInfo>()
+    let mut args = Vec::new<TypeInfo>()
     let count = contract_type_access::TypeInfo_type_arg_count(ty)
     let mut i = 0
     while i < count {
@@ -579,9 +579,9 @@ fn is_legal_parametric_impl(trait_ref: TypeInfo, self_ty: TypeInfo) -> bool {
     if contract_type_access::TypeInfo_tag(self_ty) == commands::TY_TYPE_VAR() {
         return false
     }
-    let self_vars = Vec::new<String>()
+    let mut self_vars = Vec::new<String>()
     collect_type_var_names(self_ty, self_vars)
-    let trait_vars = Vec::new<String>()
+    let mut trait_vars = Vec::new<String>()
     collect_type_var_names(trait_ref, trait_vars)
     let count = len(trait_vars)
     let mut i = 0
@@ -594,7 +594,7 @@ fn is_legal_parametric_impl(trait_ref: TypeInfo, self_ty: TypeInfo) -> bool {
     true
 }
 
-fn collect_type_var_names(ty: TypeInfo, out: Vec<String>) {
+fn collect_type_var_names(ty: TypeInfo, mut out: Vec<String>) {
     if contract_type_access::TypeInfo_tag(ty) == commands::TY_TYPE_VAR() {
         let name = contract_type_access::TypeInfo_name(ty)
         if !string_vec_contains(out, clone(name)) {
@@ -651,7 +651,7 @@ fn trait_type_tags_match(a_tag: i32, b_tag: i32) -> bool {
     false
 }
 
-fn report_trait_error(env: TypeEnv, code: String, message: String) {
+fn report_trait_error(mut env: TypeEnv, code: String, message: String) {
     env.error_count = env.error_count + 1
     push(env.errors, clone(message))
     let span = record::DiagnosticSpan_from_raw(0, 0)
@@ -659,7 +659,7 @@ fn report_trait_error(env: TypeEnv, code: String, message: String) {
     push(env.diagnostics, diag)
 }
 
-fn reject_dyn_in_sig(env: TypeEnv, sig: FnSig) {
+fn reject_dyn_in_sig(mut env: TypeEnv, sig: FnSig) {
     let param_count = contract_fn_sig::FnSig_param_count(sig)
     let mut i = 0
     while i < param_count {
@@ -669,7 +669,7 @@ fn reject_dyn_in_sig(env: TypeEnv, sig: FnSig) {
     reject_dyn_in_type(env, contract_fn_sig::FnSig_return_type(sig))
 }
 
-fn reject_dyn_in_type(env: TypeEnv, ty: TypeInfo) {
+fn reject_dyn_in_type(mut env: TypeEnv, ty: TypeInfo) {
     if contract_type_access::TypeInfo_tag(ty) == commands::TY_STRUCT() &&
     contract_type_access::TypeInfo_name(ty).starts_with("dyn ") {
         report_trait_error(

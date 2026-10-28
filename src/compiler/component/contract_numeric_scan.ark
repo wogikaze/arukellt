@@ -62,27 +62,27 @@ fn ComponentNumericScan_all_f32_scalar(scan: ComponentNumericScan) -> bool {
     scan.all_f32_scalar
 }
 
-fn ComponentNumericScan_increment_export_count(scan: ComponentNumericScan) {
+fn ComponentNumericScan_increment_export_count(mut scan: ComponentNumericScan) {
     scan.export_count = scan.export_count + 1
 }
 
-fn ComponentNumericScan_set_has_f32_unary(scan: ComponentNumericScan, value: bool) {
+fn ComponentNumericScan_set_has_f32_unary(mut scan: ComponentNumericScan, value: bool) {
     scan.has_f32_unary = value
 }
 
-fn ComponentNumericScan_set_has_f32_binary(scan: ComponentNumericScan, value: bool) {
+fn ComponentNumericScan_set_has_f32_binary(mut scan: ComponentNumericScan, value: bool) {
     scan.has_f32_binary = value
 }
 
-fn ComponentNumericScan_set_has_f32_to_i32(scan: ComponentNumericScan, value: bool) {
+fn ComponentNumericScan_set_has_f32_to_i32(mut scan: ComponentNumericScan, value: bool) {
     scan.has_f32_to_i32 = value
 }
 
-fn ComponentNumericScan_set_has_i32_to_f32(scan: ComponentNumericScan, value: bool) {
+fn ComponentNumericScan_set_has_i32_to_f32(mut scan: ComponentNumericScan, value: bool) {
     scan.has_i32_to_f32 = value
 }
 
-fn ComponentNumericScan_set_all_f32_scalar(scan: ComponentNumericScan, value: bool) {
+fn ComponentNumericScan_set_all_f32_scalar(mut scan: ComponentNumericScan, value: bool) {
     scan.all_f32_scalar = value
 }
 
@@ -115,7 +115,7 @@ fn component_fn_is_i32_to_f32(f: ComponentExportFunc) -> bool {
     eq(contract_helpers::component_export_return_type_name(f), "f32")
 }
 
-fn component_numeric_scan_apply_fn(d: AstNode, scan: ComponentNumericScan) -> ComponentNumericScan {
+fn component_numeric_scan_apply_fn(d: AstNode, mut scan: ComponentNumericScan) -> ComponentNumericScan {
     let f = contract_helpers::component_func_from_decl(d)
     if component_fn_is_f32_unary(f) {
         ComponentNumericScan_set_has_f32_unary(scan, true)
@@ -155,7 +155,7 @@ fn ComponentNumericScan_allows_f32_general_multi(scan: ComponentNumericScan) -> 
     ComponentNumericScan_has_f32_general_multi(scan)
 }
 
-fn component_numeric_scan_finalize(scan: ComponentNumericScan) -> ComponentNumericScan {
+fn component_numeric_scan_finalize(mut scan: ComponentNumericScan) -> ComponentNumericScan {
     if scan.export_count >= 2 && ComponentNumericScan_all_f32_scalar(scan) {
         scan.has_f32_general_multi = true
     }
@@ -163,7 +163,7 @@ fn component_numeric_scan_finalize(scan: ComponentNumericScan) -> ComponentNumer
 }
 
 fn component_numeric_scan(decls: Vec<AstNode>) -> ComponentNumericScan {
-    let scan = ComponentNumericScan_empty()
+    let mut scan = ComponentNumericScan_empty()
     for i in 0..len(decls) {
         let d = get_unchecked(decls, i)
         if contract_helpers::is_export_func_decl(d) {

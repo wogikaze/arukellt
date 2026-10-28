@@ -20,8 +20,8 @@ use mir::typed_mir_sync_module
 use mir::lower::emit_spec
 use mir_opt::optimize_fn
 
-fn ctx_push_module_function(ctx: LowerCtx, func: MirFunction) {
-    let m = ctx_current_storage::ctx_current_module_value(ctx)
+fn ctx_push_module_function(mut ctx: LowerCtx, mut func: MirFunction) {
+    let mut m = ctx_current_storage::ctx_current_module_value(ctx)
     let ret_slot = function_return_view::mir_function_return_variant_slot(func)
     module_functions::MirModule_push_function(m, func)
     let mir_index = module_functions::MirModule_function_count(m) - 1
@@ -41,9 +41,9 @@ fn ctx_push_module_function(ctx: LowerCtx, func: MirFunction) {
     ctx_run_per_fn_post_pass(ctx, m, func, mir_index)
 }
 
-fn ctx_push_current_function(ctx: LowerCtx) {
-    let m = ctx_current_storage::ctx_current_module_value(ctx)
-    let func = ctx_current_storage::ctx_current_func_value(ctx)
+fn ctx_push_current_function(mut ctx: LowerCtx) {
+    let mut m = ctx_current_storage::ctx_current_module_value(ctx)
+    let mut func = ctx_current_storage::ctx_current_func_value(ctx)
     let ret_slot = function_return_view::mir_function_return_variant_slot(func)
     module_functions::MirModule_push_function(m, func)
     let mir_index = module_functions::MirModule_function_count(m) - 1
@@ -64,9 +64,9 @@ fn ctx_push_current_function(ctx: LowerCtx) {
 // propagate -> sync) so the post-loop module passes converge immediately
 // for this function. The cache is appended before the pass so recursive
 // self-calls resolve their own return name.
-fn ctx_run_per_fn_post_pass(ctx: LowerCtx, m: MirModule, func: MirFunction, mir_index: i32) {
+fn ctx_run_per_fn_post_pass(mut ctx: LowerCtx, mut m: MirModule, mut func: MirFunction, mir_index: i32) {
     if module_spine::MirModule_signature_spine_populated(m) {
-        let table = module_spine::MirModule_type_table(m)
+        let mut table = module_spine::MirModule_type_table(m)
         func = typed_mir_sync_module::mir_function_sync_all_value_types(func, table)
         let _iters = post_pass_type_propagate::mir_function_propagate_local_types(
             ctx.prop_cache,

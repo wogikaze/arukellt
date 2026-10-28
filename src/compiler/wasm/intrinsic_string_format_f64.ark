@@ -18,7 +18,7 @@ use wasm::emit_target
 // digits from the right.  k may be 0 so integer-valued f64 render as `5`
 // (fixtures / stdlib_string construct_from_f64 expect no trailing `.0`).
 use std::prelude::{clone}
-fn emit_f64_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_f64_to_string(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_wpos = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_neg = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_k = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -50,7 +50,7 @@ fn emit_f64_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     }
     return true
 }
-fn emit_f64_prepare_value(w: WasmWriter, s_neg: i32, f_val: i32) {
+fn emit_f64_prepare_value(mut w: WasmWriter, s_neg: i32, f_val: i32) {
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_neg)
     helpers_core::emit_local_get(w, f_val)
@@ -67,7 +67,7 @@ fn emit_f64_prepare_value(w: WasmWriter, s_neg: i32, f_val: i32) {
 // Find the smallest k in [0, 17] such that round(f_val * 10^k) / 10^k == f_val.
 // Leaves s_k = k and f_scale = 10^k.  f_work is used as a scratch candidate.
 // k=0 (scale=1) covers integer-valued floats ("0", "100") without a fraction.
-fn emit_f64_find_shortest_k(w: WasmWriter, s_k: i32, f_val: i32, f_scale: i32, f_work: i32) {
+fn emit_f64_find_shortest_k(mut w: WasmWriter, s_k: i32, f_val: i32, f_scale: i32, f_work: i32) {
     // 1.0 — IEEE754 hi word 0x3FF00000
     helpers_numeric_f64::emit_f64_const_words(w, 0, 1072693248)
     helpers_core::emit_local_set(w, f_scale)
@@ -106,7 +106,7 @@ fn emit_f64_find_shortest_k(w: WasmWriter, s_k: i32, f_val: i32, f_scale: i32, f
     helpers_control::emit_end(w)
 }
 // f_work = round(f_val * f_scale)  (integer-valued f64, the scaled mantissa).
-fn emit_f64_compute_scaled(w: WasmWriter, f_val: i32, f_scale: i32, f_work: i32) {
+fn emit_f64_compute_scaled(mut w: WasmWriter, f_val: i32, f_scale: i32, f_work: i32) {
     helpers_core::emit_local_get(w, f_val)
     helpers_core::emit_local_get(w, f_scale)
     helpers_numeric_f64::emit_f64_mul(w)
@@ -117,7 +117,7 @@ fn emit_f64_compute_scaled(w: WasmWriter, f_val: i32, f_scale: i32, f_work: i32)
 // first, into memory at digit_buf.  s_di receives the digit count.  f_temp
 // (passed as f_scale's slot, no longer needed after scaling) holds the next
 // quotient.  s_j holds the current digit value transiently.
-fn emit_f64_extract_digits(w: WasmWriter, f_work: i32, f_temp: i32, s_di: i32, s_j: i32, digit_buf: i32) {
+fn emit_f64_extract_digits(mut w: WasmWriter, f_work: i32, f_temp: i32, s_di: i32, s_j: i32, digit_buf: i32) {
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_di)
     // if f_work == 0.0: emit a single '0' digit and return.

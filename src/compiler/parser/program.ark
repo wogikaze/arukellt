@@ -15,7 +15,7 @@ fn ParseResult_new(decls: Vec<AstNode>, errors: Vec<Diagnostic>, warnings: Vec<D
 }
 
 fn parse_program_impl(tokens: Vec<Token>) -> ParseResult {
-    let p = core_api_token::Parser_new(tokens)
+    let mut p = core_api_token::Parser_new(tokens)
     let decls = decl::parse_module(p)
     ParseResult_new(decls, state_record::parser_errors(p), state_record::parser_warnings(p))
 }

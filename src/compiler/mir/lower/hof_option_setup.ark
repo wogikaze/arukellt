@@ -11,18 +11,18 @@ use mir::inst_op
 use mir::inst_gc_struct
 use mir::value_types
 
-fn emit_map_option_setup(ctx: LowerCtx, mopt_opt_local: i32, mopt_tag_local: i32, mopt_new_local: i32) {
+fn emit_map_option_setup(mut ctx: LowerCtx, mopt_opt_local: i32, mopt_tag_local: i32, mopt_new_local: i32) {
     emit_map_option_bind_input(ctx, mopt_opt_local)
     emit_map_option_extract_tag(ctx, mopt_opt_local, mopt_tag_local)
     emit_map_option_alloc_result(ctx, mopt_new_local)
     emit_map_option_open_some_branch(ctx, mopt_tag_local)
 }
 
-fn emit_map_option_bind_input(ctx: LowerCtx, mopt_opt_local: i32) {
+fn emit_map_option_bind_input(mut ctx: LowerCtx, mopt_opt_local: i32) {
     ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(mopt_opt_local))
 }
 
-fn emit_map_option_extract_tag(ctx: LowerCtx, mopt_opt_local: i32, mopt_tag_local: i32) {
+fn emit_map_option_extract_tag(mut ctx: LowerCtx, mopt_opt_local: i32, mopt_tag_local: i32) {
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
         ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(mopt_tag_local, mopt_opt_local, 0 - 1, 0, value_types::VT_I32()))
         return
@@ -32,7 +32,7 @@ fn emit_map_option_extract_tag(ctx: LowerCtx, mopt_opt_local: i32, mopt_tag_loca
     ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(mopt_tag_local))
 }
 
-fn emit_map_option_alloc_result(ctx: LowerCtx, mopt_new_local: i32) {
+fn emit_map_option_alloc_result(mut ctx: LowerCtx, mopt_new_local: i32) {
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
         // On GC target, the result is allocated inside each branch
         // (Some variant in the some branch, None variant in the none branch).
@@ -41,7 +41,7 @@ fn emit_map_option_alloc_result(ctx: LowerCtx, mopt_new_local: i32) {
     ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new(mopt_new_local, 8))
 }
 
-fn emit_map_option_open_some_branch(ctx: LowerCtx, mopt_tag_local: i32) {
+fn emit_map_option_open_some_branch(mut ctx: LowerCtx, mopt_tag_local: i32) {
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(mopt_tag_local))
     ctx_api_emit::ctx_emit(ctx, inst_op::MirInst_unary(opcodes::MIR_NOT(), mopt_tag_local, mopt_tag_local, value_types::VT_I32()))
     ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_if())

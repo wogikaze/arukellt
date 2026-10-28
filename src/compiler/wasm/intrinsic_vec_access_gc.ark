@@ -190,7 +190,7 @@ fn lookup_struct_byte_size_in_func(f: MirFunction, struct_name: String) -> i32 {
     0
 }
 
-fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool {
+fn emit_get_unchecked_gc(mut w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool {
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let callee = inst_accessors_literals::MirInst_str_val(inst)
     let array_type = intrinsic_vec_type::resolve_array_type_for_call(ctx, callee, inst)

@@ -2,7 +2,7 @@ use std::prelude::{clone, eq}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::value_types
-fn mark_hash_type_ref(ctx: LowerCtx, dest: i32, type_name: String) {
+fn mark_hash_type_ref(mut ctx: LowerCtx, dest: i32, type_name: String) {
     ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name)
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
@@ -409,7 +409,7 @@ fn is_hash_bool_query(callee_name: String) -> bool {
     callee_eq(callee_name, "hashmap_str_str_contains")
 }
 
-fn mark_hash_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
+fn mark_hash_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32) {
     if is_hashmap_si32_new(clone(callee_name)) {
         mark_hash_type_ref(ctx, dest, "hashmap:si32")
     }
@@ -467,7 +467,7 @@ fn mark_hash_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     mark_hash_query_result_type(ctx, callee_name, dest)
 }
 
-fn mark_hash_query_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
+fn mark_hash_query_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32) {
     if is_option_i32_hash_query(clone(callee_name)) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, "Option_i32")
         if ctx_gc_enum::ctx_is_gc_target(ctx) {

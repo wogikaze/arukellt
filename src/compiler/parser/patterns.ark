@@ -9,7 +9,7 @@ use parser::pattern_literals
 use parser::kinds
 use parser::token_state
 
-fn parse_pattern(p: Parser) -> AstNode {
+fn parse_pattern(mut p: Parser) -> AstNode {
     skip_newlines(p)
     let t = cur(p)
     let kind = token_state::Token_kind(t)
@@ -29,9 +29,9 @@ fn parse_pattern(p: Parser) -> AstNode {
     AstNode_leaf(kinds::NK_PAT_WILDCARD(), "_", tok_span(t))
 }
 
-fn parse_tuple_pattern(p: Parser, t: Token) -> AstNode {
+fn parse_tuple_pattern(mut p: Parser, t: Token) -> AstNode {
     p.pos = p.pos + 1
-    let node = AstNode_new(kinds::NK_PAT_TUPLE(), tok_span(t))
+    let mut node = AstNode_new(kinds::NK_PAT_TUPLE(), tok_span(t))
     let mut first = true
     while !core_api_cursor::at(p, tokens::TK_RPAREN()) && !core_api_cursor::at_eof(p) {
         if !first {
@@ -51,11 +51,11 @@ fn parse_tuple_pattern(p: Parser, t: Token) -> AstNode {
 
 // Wrap a pattern in NK_PAT_OR when pipe alternatives follow, mirroring the
 // arm-head or-pattern builder in expr_control_match_arm.
-fn parse_or_pattern_alts(p: Parser, first: AstNode) -> AstNode {
+fn parse_or_pattern_alts(mut p: Parser, first: AstNode) -> AstNode {
     if peek_kind(p) != tokens::TK_PIPE() {
         return first
     }
-    let or_node = AstNode_new(kinds::NK_PAT_OR(), core_ast_span_fields::AstNode_span(first))
+    let mut or_node = AstNode_new(kinds::NK_PAT_OR(), core_ast_span_fields::AstNode_span(first))
     core_ast_children::AstNode_push_child(or_node, first)
     while peek_kind(p) == tokens::TK_PIPE() {
         p.pos = p.pos + 1

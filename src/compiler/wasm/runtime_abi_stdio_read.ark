@@ -13,7 +13,7 @@ use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i64_const
 
-fn emit_read_stdin_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_read_stdin_to_string(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         runtime_abi_stdio_read_gc::emit_gc_wasi_read_stdin_to_string(w, ctx)
     } else {
@@ -22,7 +22,7 @@ fn emit_read_stdin_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> 
     return true
 }
 
-fn emit_finish_stdin_string_buffer(w: WasmWriter) {
+fn emit_finish_stdin_string_buffer(mut w: WasmWriter) {
     // The P2 stream reports EOF as a closed result. Finalize from the heap
     // cursor so both closed and successful reads record the real byte length.
     helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_BUFSTART())
@@ -48,7 +48,7 @@ fn emit_finish_stdin_string_buffer(w: WasmWriter) {
     helpers_memory::emit_i32_load_default(w)
 }
 
-fn emit_wasi_read_stdin_string(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_wasi_read_stdin_string(mut w: WasmWriter, ctx: SelfEmitCtx) {
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         emit_p2_read_stdin_string(w, ctx)
         return
@@ -79,7 +79,7 @@ fn emit_wasi_read_stdin_string(w: WasmWriter, ctx: SelfEmitCtx) {
     emit_finish_stdin_string_buffer(w)
 }
 
-fn emit_p2_read_stdin_string(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_p2_read_stdin_string(mut w: WasmWriter, ctx: SelfEmitCtx) {
     let s_src = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     runtime_abi_stdio_read_buffer::emit_begin_stdin_string_buffer(w)
     helpers_control::emit_block_loop_header(w)

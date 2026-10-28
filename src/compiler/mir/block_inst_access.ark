@@ -60,7 +60,7 @@ fn mir_block_export_packed_result(block: MirBlock, idx: i32) -> Vec<MirValueType
     if !type_id::type_id_is_valid(type_id::TypeId_new(stored)) {
         return Vec::new<MirValueType>()
     }
-    let result = Vec::new<MirValueType>()
+    let mut result = Vec::new<MirValueType>()
     push(
         result,
         mir_value_type::MirValueType_new(
@@ -86,13 +86,13 @@ fn mir_block_export_draft_body(block: MirBlock, idx: i32, text: String) -> MirIn
 }
 
 fn MirBlock_export_draft(block: MirBlock, idx: i32) -> MirInstDraft {
-    let draft = mir_block_export_draft_body(block, idx, MirBlock_inst_str_val(block, idx))
+    let mut draft = mir_block_export_draft_body(block, idx, MirBlock_inst_str_val(block, idx))
     inst_draft::MirInstDraft_set_result_types(draft, mir_block_export_packed_result(block, idx))
     inst_draft::MirInstDraft_with_func_id_raw(draft, MirBlock_inst_func_id(block, idx))
 }
 
 fn MirBlock_export_drafts(block: MirBlock) -> Vec<MirInstDraft> {
-    let out = Vec::new<MirInstDraft>()
+    let mut out = Vec::new<MirInstDraft>()
     let n = MirBlock_inst_count(block)
     let mut i = 0
     while i < n {
@@ -103,7 +103,7 @@ fn MirBlock_export_drafts(block: MirBlock) -> Vec<MirInstDraft> {
 }
 
 fn MirBlock_instructions(block: MirBlock) -> Vec<MirInst> {
-    let out = Vec::new<MirInst>()
+    let mut out = Vec::new<MirInst>()
     let n = MirBlock_inst_count(block)
     let mut i = 0
     while i < n {
@@ -118,7 +118,7 @@ fn MirInst_as_draft(inst: MirInst) -> MirInstDraft {
 }
 
 fn MirBlock_drafts_from_refs(refs: Vec<MirInst>) -> Vec<MirInstDraft> {
-    let out = Vec::new<MirInstDraft>()
+    let mut out = Vec::new<MirInstDraft>()
     let n = len(refs)
     let mut i = 0
     while i < n {

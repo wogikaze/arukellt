@@ -9,13 +9,13 @@ use mir::lower::ctx_current_storage
 use mir::lower::ctx_gc_enum
 use mir::local_mutation
 use mir::value_types
-fn ctx_push_func_param(ctx: LowerCtx, ml: MirLocal) {
+fn ctx_push_func_param(mut ctx: LowerCtx, mut ml: MirLocal) {
     let mut f = ctx_current_storage::ctx_current_func_value(ctx)
     function_param_mutation::MirFunction_push_param(f, ml)
     ctx_current_storage::ctx_set_current_func_value(ctx, f)
 }
 
-fn ctx_set_func_param_type(ctx: LowerCtx, param_ordinal: i32, pvt: i32, type_name: String) {
+fn ctx_set_func_param_type(mut ctx: LowerCtx, param_ordinal: i32, pvt: i32, type_name: String) {
     let mut f = ctx_current_storage::ctx_current_func_value(ctx)
     if param_ordinal >= 0 && param_ordinal < function_param_view::MirFunction_param_count(f) {
         function_param_mutation::MirFunction_set_param_type(f, param_ordinal, pvt, type_name)
@@ -25,8 +25,8 @@ fn ctx_set_func_param_type(ctx: LowerCtx, param_ordinal: i32, pvt: i32, type_nam
         // record, so a later enum/container promotion must update both.
         if param_ordinal < function_locals_view::MirFunction_local_count(f) {
             let local = function_locals_view::MirFunction_local_at(f, param_ordinal)
-            let typed = local_mutation::MirLocal_copy_with_val_type(local, pvt)
-            let updated = local_mutation::MirLocal_copy_with_type_name(typed, clone(type_name))
+            let mut typed = local_mutation::MirLocal_copy_with_val_type(local, pvt)
+            let mut updated = local_mutation::MirLocal_copy_with_type_name(typed, clone(type_name))
             function_local_mutation::MirFunction_set_local(f, param_ordinal, updated)
         }
         ctx_current_storage::ctx_set_current_func_value(ctx, f)
@@ -39,7 +39,7 @@ fn ctx_set_func_param_type(ctx: LowerCtx, param_ordinal: i32, pvt: i32, type_nam
 // takes the concrete alias so signature-driven readers see the layout type.
 // Mono substitution rewrites both sides consistently once the map exists
 // (#691).
-fn ctx_set_func_param_sig_type(ctx: LowerCtx, param_ordinal: i32, pvt: i32, type_name: String) {
+fn ctx_set_func_param_sig_type(mut ctx: LowerCtx, param_ordinal: i32, pvt: i32, type_name: String) {
     let mut f = ctx_current_storage::ctx_current_func_value(ctx)
     if param_ordinal >= 0 && param_ordinal < function_param_view::MirFunction_param_count(f) {
         function_param_mutation::MirFunction_set_param_type(f, param_ordinal, pvt, type_name)
@@ -47,7 +47,7 @@ fn ctx_set_func_param_sig_type(ctx: LowerCtx, param_ordinal: i32, pvt: i32, type
     }
 }
 
-fn ctx_set_current_return_type(ctx: LowerCtx, vt: i32) {
+fn ctx_set_current_return_type(mut ctx: LowerCtx, vt: i32) {
     let mut f = ctx_current_storage::ctx_current_func_value(ctx)
     let mut target_vt = vt
     if target_vt == value_types::VT_REF() && ctx_gc_enum::ctx_is_gc_target(ctx) {
@@ -57,7 +57,7 @@ fn ctx_set_current_return_type(ctx: LowerCtx, vt: i32) {
     ctx_current_storage::ctx_set_current_func_value(ctx, f)
 }
 
-fn ctx_set_current_return_type_name(ctx: LowerCtx, type_name: String) {
+fn ctx_set_current_return_type_name(mut ctx: LowerCtx, type_name: String) {
     let mut f = ctx_current_storage::ctx_current_func_value(ctx)
     function_return_mutation::MirFunction_set_return_type_name(f, type_name)
     ctx_current_storage::ctx_set_current_func_value(ctx, f)
@@ -101,7 +101,7 @@ fn return_vt_for_rt_tag(rt_tag: i32) -> i32 {
     }
 }
 
-fn ctx_apply_fn_return_type_for_rt_tag(ctx: LowerCtx, rt_tag: i32) {
+fn ctx_apply_fn_return_type_for_rt_tag(mut ctx: LowerCtx, rt_tag: i32) {
     let vt = return_vt_for_rt_tag(rt_tag)
     if vt >= 0 {
         ctx_set_current_return_type(ctx, vt)

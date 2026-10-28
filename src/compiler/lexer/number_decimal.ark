@@ -3,7 +3,7 @@ use lexer::number_decimal_finish
 use lexer::number_decimal_int
 use lexer::number_suffix
 
-fn lex_decimal_number(lex: Lexer, start: i32) -> Token {
+fn lex_decimal_number(mut lex: Lexer, start: i32) -> Token {
     let val = number_decimal_int::scan_decimal_integer(lex)
     let mut is_float = number_decimal_float::scan_decimal_float_parts(lex)
     let suffix_len = number_suffix::try_eat_type_suffix(lex)

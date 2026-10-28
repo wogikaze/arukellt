@@ -103,7 +103,7 @@ fn native_c_is_clear_emit_safepoint_op(op: i32) -> bool {
 }
 
 fn native_c_bitset_new(width: i32) -> Vec<i32> {
-    let bits = Vec::new<i32>()
+    let mut bits = Vec::new<i32>()
     let mut index = 0
     while index < width {
         push(bits, 0)
@@ -112,7 +112,7 @@ fn native_c_bitset_new(width: i32) -> Vec<i32> {
     bits
 }
 
-fn native_c_bitset_clear(bits: Vec<i32>) {
+fn native_c_bitset_clear(mut bits: Vec<i32>) {
     let mut index = 0
     while index < len(bits) {
         set(bits, index, 0)
@@ -120,7 +120,7 @@ fn native_c_bitset_clear(bits: Vec<i32>) {
     }
 }
 
-fn native_c_bitset_set_ref(bits: Vec<i32>, local: i32, reference_locals: Vec<i32>) {
+fn native_c_bitset_set_ref(mut bits: Vec<i32>, local: i32, reference_locals: Vec<i32>) {
     if local < 0 || local >= len(bits) { return }
     if local >= len(reference_locals) { return }
     if get_unchecked(reference_locals, local) == 0 { return }
@@ -128,7 +128,7 @@ fn native_c_bitset_set_ref(bits: Vec<i32>, local: i32, reference_locals: Vec<i32
 }
 
 fn native_c_effects_push(
-    effects: NativeCInstructionEffects,
+    mut effects: NativeCInstructionEffects,
     block_id: i32,
     reachable: bool,
     is_safepoint: bool,
@@ -225,8 +225,8 @@ fn native_c_plan_root_clears_from_effects(
 
     // Locals used inside LOOP…END are treated as loop-carried / loop-live and
     // are never cleared (sound under ADR-024 missing backedges).
-    let used_in_loop = native_c_bitset_new(local_count)
-    let control_stack = Vec::new<i32>()
+    let mut used_in_loop = native_c_bitset_new(local_count)
+    let mut control_stack = Vec::new<i32>()
     let mut scan = 0
     while scan < instruction_total {
         let op = get_unchecked(effects.opcodes, scan)
@@ -259,7 +259,7 @@ fn native_c_plan_root_clears_from_effects(
         scan = scan + 1
     }
 
-    let last_use = Vec::new<i32>()
+    let mut last_use = Vec::new<i32>()
     local_index = 0
     while local_index < local_count {
         push(last_use, 0 - 1)

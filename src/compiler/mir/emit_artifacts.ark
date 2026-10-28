@@ -108,7 +108,7 @@ fn MirEmitArtifacts_disabled() -> MirEmitArtifacts {
     }
 }
 
-fn MirEmitArtifacts_enable(artifacts: MirEmitArtifacts) {
+fn MirEmitArtifacts_enable(mut artifacts: MirEmitArtifacts) {
     artifacts.enabled = true
 }
 

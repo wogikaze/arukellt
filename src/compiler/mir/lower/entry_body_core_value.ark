@@ -6,7 +6,7 @@ use mir::lower::value_variants
 use corehir::expr_predicates
 use corehir::kinds
 
-fn mir_lower_entry_body_core_value(ctx: LowerCtx, body: MirLowerEntryCoreBody) -> i32 {
+fn mir_lower_entry_body_core_value(mut ctx: LowerCtx, body: MirLowerEntryCoreBody) -> i32 {
     if !entry_core_body::mir_entry_core_body_is_supported(body) {
         return 0 - 2
     }

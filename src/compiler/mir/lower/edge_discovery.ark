@@ -115,10 +115,10 @@ fn edge_type_memo_find(memo: EdgeTypeMemo, span_start: i32, span_end: i32, name:
 // from zero. The runtime collector fires on cumulative allocation, so
 // this directly lowers the walk's watermark cost.
 fn edge_walk_state_clear(
-    env_names: Vec<String>,
-    env_types: Vec<String>,
-    segment: Vec<String>,
-    memo: EdgeTypeMemo
+    mut env_names: Vec<String>,
+    mut env_types: Vec<String>,
+    mut segment: Vec<String>,
+    mut memo: EdgeTypeMemo
 ) {
     while len(env_names) > 0 {
         pop(env_names)
@@ -143,17 +143,17 @@ fn edge_walk_state_clear(
     }
 }
 
-fn edge_index_add(index: NameIndex, keys: Vec<String>, lists: Vec<Vec<String>>, key: String, val: String) {
+fn edge_index_add(mut index: NameIndex, mut keys: Vec<String>, mut lists: Vec<Vec<String>>, key: String, val: String) {
     let ki = name_index::name_index_get(index, clone(key))
     if ki < 0 {
         push(keys, clone(key))
-        let list = Vec::new<String>()
+        let mut list = Vec::new<String>()
         push(list, val)
         push(lists, list)
         name_index::name_index_set(index, key, len(keys) - 1)
         return
     }
-    let list = get_unchecked(lists, ki)
+    let mut list = get_unchecked(lists, ki)
     push(list, val)
 }
 
@@ -203,7 +203,7 @@ fn edge_last_double_underscore(name: String) -> i32 {
     last
 }
 
-fn edge_bare_candidates_of(name: String, out: Vec<String>) {
+fn edge_bare_candidates_of(name: String, mut out: Vec<String>) {
     if contains(clone(name), "::") {
         push(out, edge_after_last(clone(name), 58, 58))
     } else {
@@ -245,12 +245,12 @@ fn edge_mono_base_key(name: String) -> String {
     owner.concat("::".concat(rest))
 }
 
-fn edge_index_builtins(ctx: LowerCtx, table: AstEdgeTable) {
+fn edge_index_builtins(ctx: LowerCtx, mut table: AstEdgeTable) {
     let count = ctx_fn_index::ctx_fn_index_count(ctx)
     let mut i = 0
     while i < count {
         let name = ctx_fn_index::ctx_fn_index_name_at(ctx, i)
-        let bares = Vec::new<String>()
+        let mut bares = Vec::new<String>()
         edge_bare_candidates_of(clone(name), bares)
         let mut bi = 0
         while bi < len(bares) {
@@ -277,7 +277,7 @@ fn edge_emit_names_for_fn_decl(
     typed_index: i32,
     midx: MonoIndex
 ) -> Vec<String> {
-    let names = Vec::new<String>()
+    let mut names = Vec::new<String>()
     let mut is_generic = false
     if fn_info_index >= 0 {
         is_generic = entry_fns_mono::mir_entry_decl_is_generic(entry_view, typed_index)
@@ -316,7 +316,7 @@ fn edge_emit_names_for_fn_decl(
 // entry_methods_mono::mir_emit_method_mono_bodies: the mangled name plus
 // every mono instance recorded under it.
 fn edge_emit_names_for_method(mangled: String, midx: MonoIndex) -> Vec<String> {
-    let names = Vec::new<String>()
+    let mut names = Vec::new<String>()
     let inst_count = mono::mono_index_count(midx, clone(mangled))
     if inst_count <= 0 {
         push(names, mangled)
@@ -345,7 +345,7 @@ fn edge_mono_sources_match(candidate: String, requested: String) -> bool {
 // hashmap_str_i32_set are valid resolutions for source insert — and it
 // collects all same-source targets instead of consuming the first unused
 // one (emit-time cursor semantics are an emit concern, not an edge one).
-fn edge_mono_span_targets(ctx: LowerCtx, span_start: i32, raw: String, out: Vec<String>) {
+fn edge_mono_span_targets(ctx: LowerCtx, span_start: i32, raw: String, mut out: Vec<String>) {
     let mut cursor = ctx_mono_rewrites::ctx_mono_span_hash_head(ctx, span_start)
     while cursor > 0 {
         let i = cursor - 1
@@ -365,12 +365,12 @@ fn edge_mono_span_targets(ctx: LowerCtx, span_start: i32, raw: String, out: Vec<
     }
 }
 
-fn edge_add_callee_candidates(ctx: LowerCtx, out: Vec<String>, raw: String, span_start: i32) {
+fn edge_add_callee_candidates(ctx: LowerCtx, mut out: Vec<String>, raw: String, span_start: i32) {
     if len(raw) == 0 {
         return
     }
     if ctx_mono_rewrites::ctx_mono_span_hash_head(ctx, span_start) > 0 {
-        let precise = Vec::new<String>()
+        let mut precise = Vec::new<String>()
         edge_mono_span_targets(ctx, span_start, clone(raw), precise)
         if len(precise) > 0 {
             // The typechecker already resolved this site: keep the
@@ -419,7 +419,7 @@ fn edge_env_get(names: Vec<String>, types: Vec<String>, name: String) -> String 
     String_new()
 }
 
-fn edge_env_set(names: Vec<String>, types: Vec<String>, name: String, ty: String) {
+fn edge_env_set(mut names: Vec<String>, mut types: Vec<String>, name: String, ty: String) {
     let mut i = 0
     while i < len(names) {
         if eq(clone(get_unchecked(names, i)), clone(name)) {
@@ -530,7 +530,7 @@ fn edge_ctor_spelling(callee: AstNode) -> String {
 //   vec:/struct:/generic receivers -> Vec::m / Struct::m / Inst::m
 // Every pushed name resolves later through edge_resolve_candidate, so
 // dead spellings cost nothing while a hit keeps the adapter body alive.
-fn edge_push_typed_method_candidates(out: Vec<String>, recv_ty: String, method: String) {
+fn edge_push_typed_method_candidates(mut out: Vec<String>, recv_ty: String, method: String) {
     if len(recv_ty) == 0 || len(method) == 0 {
         return
     }
@@ -583,11 +583,11 @@ fn edge_push_typed_method_candidates(out: Vec<String>, recv_ty: String, method: 
 // parametric impl instance -> pooled name rewrite). Returns the
 // emit-level callee name or "" when nothing resolves — the caller then
 // keeps the bare candidate path.
-fn edge_desugar_resolved(ctx: LowerCtx, span_start: i32, declared: String) -> String {
+fn edge_desugar_resolved(mut ctx: LowerCtx, span_start: i32, declared: String) -> String {
     for_iter_resolve::mir_for_desugar_callee(ctx, span_start, declared)
 }
 
-fn edge_push_resolved_once(out: Vec<String>, resolved: String) {
+fn edge_push_resolved_once(mut out: Vec<String>, resolved: String) {
     if len(resolved) == 0 {
         return
     }
@@ -604,11 +604,11 @@ fn edge_push_resolved_once(out: Vec<String>, resolved: String) {
 // directly. Resolved names dedupe; an empty result means the caller
 // must keep the bare candidate fallback.
 fn edge_resolve_method_site(
-    ctx: LowerCtx,
+    mut ctx: LowerCtx,
     span_start: i32,
     recv_ty: String,
     method: String,
-    out: Vec<String>
+    mut out: Vec<String>
 ) {
     if len(recv_ty) == 0 || len(method) == 0 {
         return
@@ -639,7 +639,7 @@ fn edge_resolve_method_site(
             edge_push_resolved_once(out, edge_desugar_resolved(ctx, span_start, declared))
         }
     }
-    let owners = Vec::new<String>()
+    let mut owners = Vec::new<String>()
     let inst_owner = method_resolve::mir_inst_owner_name(clone(owner_ty))
     if len(inst_owner) > 0 {
         push(owners, clone(inst_owner))
@@ -678,11 +678,11 @@ fn edge_resolve_method_site(
 // resolves through bare_index (wrong-type entries over-keep, never
 // under-keep).
 fn edge_infer_expr_type(
-    ctx: LowerCtx,
+    mut ctx: LowerCtx,
     node: AstNode,
     env_names: Vec<String>,
     env_types: Vec<String>,
-    memo: EdgeTypeMemo
+    mut memo: EdgeTypeMemo
 ) -> String {
     let kind = frontend_ast_identity::corehir_node_kind(node)
     if frontend_expr_kind::corehir_kind_is_expr_ident(kind) {
@@ -741,11 +741,11 @@ fn edge_infer_expr_type(
 }
 
 fn edge_infer_method_type(
-    ctx: LowerCtx,
+    mut ctx: LowerCtx,
     node: AstNode,
     env_names: Vec<String>,
     env_types: Vec<String>,
-    memo: EdgeTypeMemo
+    mut memo: EdgeTypeMemo
 ) -> String {
     let recv_ty = edge_infer_expr_type(
         ctx,
@@ -760,7 +760,7 @@ fn edge_infer_method_type(
         // Iterator__map__VecIter-style instance names) still name a
         // return type — the raw typed candidates only spell owner
         // names that may not exist in fn_index.
-        let resolved = Vec::new<String>()
+        let mut resolved = Vec::new<String>()
         edge_resolve_method_site(
             ctx,
             frontend_ast_span::corehir_node_span_start(node),
@@ -776,7 +776,7 @@ fn edge_infer_method_type(
             }
             ri = ri + 1
         }
-        let cands = Vec::new<String>()
+        let mut cands = Vec::new<String>()
         edge_push_typed_method_candidates(
             cands,
             clone(recv_ty),
@@ -800,8 +800,8 @@ fn edge_seed_params(
     entry_view: MirLowerEntryView,
     info_index: i32,
     is_method: bool,
-    env_names: Vec<String>,
-    env_types: Vec<String>
+    mut env_names: Vec<String>,
+    mut env_types: Vec<String>
 ) {
     if info_index < 0 {
         return
@@ -839,7 +839,7 @@ fn edge_seed_params(
 // them the impl is dropped and the call site stubs to unreachable,
 // which surfaced as question_mark validation failures and
 // iterator/operator runtime traps (2026-10-12).
-fn edge_push_binary_op_candidates(ctx: LowerCtx, out: Vec<String>, op: i32, span_start: i32) {
+fn edge_push_binary_op_candidates(ctx: LowerCtx, mut out: Vec<String>, op: i32, span_start: i32) {
     if op == lower_kinds::OP_ADD() { edge_add_callee_candidates(ctx, out, "add", span_start) }
     if op == lower_kinds::OP_SUB() { edge_add_callee_candidates(ctx, out, "sub", span_start) }
     if op == lower_kinds::OP_MUL() { edge_add_callee_candidates(ctx, out, "mul", span_start) }
@@ -860,7 +860,7 @@ fn edge_push_binary_op_candidates(ctx: LowerCtx, out: Vec<String>, op: i32, span
     if op == lower_kinds::OP_SHR() { edge_add_callee_candidates(ctx, out, "shr", span_start) }
 }
 
-fn edge_push_unary_op_candidates(ctx: LowerCtx, out: Vec<String>, op: i32, span_start: i32) {
+fn edge_push_unary_op_candidates(ctx: LowerCtx, mut out: Vec<String>, op: i32, span_start: i32) {
     if op == lower_kinds::UOP_NEG() { edge_add_callee_candidates(ctx, out, "neg", span_start) }
     if op == lower_kinds::UOP_NOT() { edge_add_callee_candidates(ctx, out, "not", span_start) }
     if op == lower_kinds::UOP_BITNOT() { edge_add_callee_candidates(ctx, out, "bitnot", span_start) }
@@ -890,7 +890,7 @@ fn edge_resolve_mono_type_key(type_var: String, mono_suffix: String) -> String {
 
 // Comma-separated top-level segments of a generic argument list (angle
 // brackets nest, so Vec<HashMap<K, V>, T> splits into two args).
-fn edge_split_angle_args(inner: String, out: Vec<String>) {
+fn edge_split_angle_args(inner: String, mut out: Vec<String>) {
     let mut depth = 0
     let mut seg_start = 0
     let n = len(inner)
@@ -926,7 +926,7 @@ fn edge_subst_angle_args(ty: String, keys: Vec<String>) -> String {
     }
     let head = substring(clone(ty), 0, lt)
     let inner = substring(clone(ty), lt + 1, len(ty) - 1)
-    let args = Vec::new<String>()
+    let mut args = Vec::new<String>()
     edge_split_angle_args(inner, args)
     if len(args) == 0 {
         return ty
@@ -1046,7 +1046,7 @@ fn edge_subst_param_type(ty: String, emit_name: String) -> String {
 // instance's concrete receiver (sum_into_for__VecIter -> VecIter) and
 // the for/method desugars resolve precisely instead of falling back to
 // the whole bare_index family.
-fn edge_env_substitute(env_types: Vec<String>, emit_name: String) {
+fn edge_env_substitute(mut env_types: Vec<String>, emit_name: String) {
     if edge_first_double_underscore(clone(emit_name)) < 0 {
         return
     }
@@ -1085,7 +1085,7 @@ fn edge_precise_mark(name: String) -> String {
 // sources emit Owner::next on the source type directly. Returns the
 // number of precise candidates pushed; zero means the caller keeps the
 // bare iter/into_iter/next fallback.
-fn edge_push_for_desugars(ctx: LowerCtx, out: Vec<String>, span_start: i32, src_ty: String) -> i32 {
+fn edge_push_for_desugars(mut ctx: LowerCtx, mut out: Vec<String>, span_start: i32, src_ty: String) -> i32 {
     let mut work = clone(src_ty)
     if starts_with(clone(work), String_from("?")) {
         work = substring(work, 1, len(work))
@@ -1129,12 +1129,12 @@ fn edge_push_for_desugars(ctx: LowerCtx, out: Vec<String>, span_start: i32, src_
 // local types so method calls record receiver-typed adapter/impl
 // candidates alongside the bare spelling. Everything else just recurses.
 fn edge_collect_calls(
-    ctx: LowerCtx,
+    mut ctx: LowerCtx,
     node: AstNode,
-    out: Vec<String>,
-    env_names: Vec<String>,
-    env_types: Vec<String>,
-    memo: EdgeTypeMemo
+    mut out: Vec<String>,
+    mut env_names: Vec<String>,
+    mut env_types: Vec<String>,
+    mut memo: EdgeTypeMemo
 ) {
     let kind = frontend_ast_identity::corehir_node_kind(node)
     let child_count = frontend_ast_children::corehir_node_child_count(node)
@@ -1183,7 +1183,7 @@ fn edge_collect_calls(
         // candidate (mirrors edge_add_callee_candidates' hit path).
         let mut site_resolved = false
         if ctx_mono_rewrites::ctx_mono_span_hash_head(ctx, call_span) > 0 {
-            let precise = Vec::new<String>()
+            let mut precise = Vec::new<String>()
             edge_mono_span_targets(ctx, call_span, clone(method_text), precise)
             if len(precise) > 0 {
                 site_resolved = true
@@ -1205,7 +1205,7 @@ fn edge_collect_calls(
                     memo
                 )
             }
-            let resolved = Vec::new<String>()
+            let mut resolved = Vec::new<String>()
             if len(recv_ty) > 0 {
                 edge_resolve_method_site(ctx, call_span, clone(recv_ty), clone(method_text), resolved)
             }
@@ -1380,14 +1380,14 @@ fn edge_collect_calls(
     }
 }
 
-fn edge_push_caller_segment(table: AstEdgeTable, caller_names: Vec<String>, segment: Vec<String>) {
+fn edge_push_caller_segment(mut table: AstEdgeTable, caller_names: Vec<String>, segment: Vec<String>) {
     let mut i = 0
     while i < len(caller_names) {
         let caller = get_unchecked(caller_names, i)
         let pos = len(table.callers)
         let list_idx = name_index::name_index_get(table.caller_index, clone(caller))
         if list_idx < 0 {
-            let list = Vec::new<i32>()
+            let mut list = Vec::new<i32>()
             push(list, pos)
             name_index::name_index_set(table.caller_index, clone(caller), len(table.caller_lists))
             push(table.caller_lists, list)
@@ -1405,8 +1405,8 @@ fn edge_push_caller_segment(table: AstEdgeTable, caller_names: Vec<String>, segm
     }
 }
 
-fn mir_ast_edge_table_build(ctx: LowerCtx, body_source: MirLowerEntryBodySource, view: CoreHirMirView, midx: MonoIndex) -> AstEdgeTable {
-    let table = AstEdgeTable {
+fn mir_ast_edge_table_build(mut ctx: LowerCtx, mut body_source: MirLowerEntryBodySource, view: CoreHirMirView, midx: MonoIndex) -> AstEdgeTable {
+    let mut table = AstEdgeTable {
         callers: Vec::new<String>(),
         caller_index: name_index::NameIndex_new(64),
         caller_lists: Vec::new<Vec<i32>>(),
@@ -1429,10 +1429,10 @@ fn mir_ast_edge_table_build(ctx: LowerCtx, body_source: MirLowerEntryBodySource,
     // past the linear runtime's 64MiB collection watermark on
     // iterator-heavy fixtures (2026-10-13 iterator_query_consumers
     // stall).
-    let env_names = Vec::new<String>()
-    let env_types = Vec::new<String>()
-    let segment = Vec::new<String>()
-    let memo = EdgeTypeMemo {
+    let mut env_names = Vec::new<String>()
+    let mut env_types = Vec::new<String>()
+    let mut segment = Vec::new<String>()
+    let mut memo = EdgeTypeMemo {
         starts: Vec::new<i32>(),
         ends: Vec::new<i32>(),
         names: Vec::new<String>(),
@@ -1515,7 +1515,7 @@ fn mir_ast_edge_table_build(ctx: LowerCtx, body_source: MirLowerEntryBodySource,
 // HashMap::values but drops the rewritten target (for example
 // hashmap_values) and the emitted call traps (2026-10-13
 // hashmap_entries_values regression).
-fn edge_rewrite_targets(name: String, out: Vec<String>) {
+fn edge_rewrite_targets(name: String, mut out: Vec<String>) {
     let alias = hash_aliases::hashmap_builtin_alias(clone(name))
     if !eq(clone(alias), clone(name)) {
         push(out, alias)
@@ -1577,13 +1577,13 @@ fn edge_rewrite_targets(name: String, out: Vec<String>) {
 // alias) and adds the bare/base expansions a raw AST name cannot spell.
 // Every pushed name is also expanded through the emit-time name rewrites
 // so adapter/intrinsic bodies stay reachable.
-fn edge_resolve_push(ctx: LowerCtx, table: AstEdgeTable, name: String, seen: NameIndex, out: Vec<String>) {
+fn edge_resolve_push(ctx: LowerCtx, table: AstEdgeTable, name: String, mut seen: NameIndex, mut out: Vec<String>) {
     if name_index::name_index_get(seen, clone(name)) >= 0 {
         return
     }
     name_index::name_index_insert_first(seen, clone(name), 1)
     push(out, clone(name))
-    let rewrites = Vec::new<String>()
+    let mut rewrites = Vec::new<String>()
     edge_rewrite_targets(clone(name), rewrites)
     let mut i = 0
     while i < len(rewrites) {
@@ -1592,7 +1592,7 @@ fn edge_resolve_push(ctx: LowerCtx, table: AstEdgeTable, name: String, seen: Nam
     }
 }
 
-fn edge_resolve_spelling(ctx: LowerCtx, table: AstEdgeTable, spelling: String, seen: NameIndex, out: Vec<String>) {
+fn edge_resolve_spelling(ctx: LowerCtx, table: AstEdgeTable, spelling: String, mut seen: NameIndex, mut out: Vec<String>) {
     if len(spelling) == 0 {
         return
     }
@@ -1637,7 +1637,7 @@ fn edge_resolve_spelling(ctx: LowerCtx, table: AstEdgeTable, spelling: String, s
     // rewrites: an adapter name like HashMap_String_i32_insert may not be
     // a registered fn, but its rewritten target (hashmap_str_set) is.
     name_index::name_index_insert_first(seen, clone(spelling), 1)
-    let rewrites = Vec::new<String>()
+    let mut rewrites = Vec::new<String>()
     edge_rewrite_targets(clone(spelling), rewrites)
     let mut ri = 0
     while ri < len(rewrites) {
@@ -1646,7 +1646,7 @@ fn edge_resolve_spelling(ctx: LowerCtx, table: AstEdgeTable, spelling: String, s
     }
 }
 
-fn edge_resolve_candidate(ctx: LowerCtx, table: AstEdgeTable, cand: String, seen: NameIndex, out: Vec<String>) {
+fn edge_resolve_candidate(ctx: LowerCtx, table: AstEdgeTable, cand: String, mut seen: NameIndex, mut out: Vec<String>) {
     if len(cand) == 0 {
         return
     }
@@ -1679,7 +1679,7 @@ fn edge_resolve_candidate(ctx: LowerCtx, table: AstEdgeTable, cand: String, seen
 // alias hit, and rewrite expansion only — no bare_index/base_index
 // family lookup. A miss contributes nothing; the collect side already
 // fell back to bare candidates when its resolver found no target.
-fn edge_resolve_precise(ctx: LowerCtx, table: AstEdgeTable, name: String, seen: NameIndex, out: Vec<String>) {
+fn edge_resolve_precise(ctx: LowerCtx, table: AstEdgeTable, name: String, mut seen: NameIndex, mut out: Vec<String>) {
     if len(name) == 0 {
         return
     }
@@ -1703,7 +1703,7 @@ fn edge_resolve_precise(ctx: LowerCtx, table: AstEdgeTable, name: String, seen: 
         return
     }
     name_index::name_index_insert_first(seen, clone(name), 1)
-    let rewrites = Vec::new<String>()
+    let mut rewrites = Vec::new<String>()
     edge_rewrite_targets(clone(name), rewrites)
     let mut ri = 0
     while ri < len(rewrites) {
@@ -1759,8 +1759,8 @@ fn mir_ast_edge_table_empty() -> AstEdgeTable {
 // Resolve all of caller's candidates to deduped emit/fn_index names
 // (emit names reachable from this caller in one hop).
 fn mir_ast_edge_table_resolve_caller_names(ctx: LowerCtx, table: AstEdgeTable, caller_idx: i32) -> Vec<String> {
-    let seen = name_index::NameIndex_new(64)
-    let out = Vec::new<String>()
+    let mut seen = name_index::NameIndex_new(64)
+    let mut out = Vec::new<String>()
     let start = get_unchecked(table.offs, caller_idx)
     let end = get_unchecked(table.offs, caller_idx + 1)
     let mut i = start
@@ -1773,7 +1773,7 @@ fn mir_ast_edge_table_resolve_caller_names(ctx: LowerCtx, table: AstEdgeTable, c
 
 // Resolve all of caller's candidates into marked names (emit names
 // reachable from this caller in one hop).
-fn mir_ast_edge_table_resolve_caller(ctx: LowerCtx, table: AstEdgeTable, caller_idx: i32, marked: NameIndex) {
+fn mir_ast_edge_table_resolve_caller(ctx: LowerCtx, table: AstEdgeTable, caller_idx: i32, mut marked: NameIndex) {
     let names = mir_ast_edge_table_resolve_caller_names(ctx, table, caller_idx)
     let mut i = 0
     while i < len(names) {
@@ -1787,8 +1787,8 @@ fn mir_ast_edge_table_resolve_caller(ctx: LowerCtx, table: AstEdgeTable, caller_
 // traversing resolved caller candidates. Names with no caller entry
 // (imports, core-ops, synth frames) are dead ends, not misses.
 fn mir_ast_edge_reachable_names(ctx: LowerCtx, table: AstEdgeTable, export_roots: Vec<String>) -> NameIndex {
-    let keep = name_index::NameIndex_new(len(table.callers) + 16)
-    let queue = Vec::new<String>()
+    let mut keep = name_index::NameIndex_new(len(table.callers) + 16)
+    let mut queue = Vec::new<String>()
     push(queue, String_from("main"))
     push(queue, String_from("_start"))
     push(queue, String_from("__test_main"))

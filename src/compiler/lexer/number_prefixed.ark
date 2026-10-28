@@ -15,7 +15,7 @@ fn is_prefixed_number_start(lex: Lexer) -> bool {
     c1 == 98 || c1 == 66
 }
 
-fn lex_prefixed_number(lex: Lexer, start: i32) -> Token {
+fn lex_prefixed_number(mut lex: Lexer, start: i32) -> Token {
     let c1 = peek_at(lex, 1)
     if c1 == 120 || c1 == 88 {
         return number_hex::lex_hex_number(lex, start)

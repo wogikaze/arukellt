@@ -40,7 +40,7 @@ fn is_module_style_qualified_path(path: String) -> bool {
     true
 }
 
-fn collect_paths(node: AstNode, paths: Vec<String>, starts: Vec<i32>, ends: Vec<i32>) {
+fn collect_paths(node: AstNode, mut paths: Vec<String>, mut starts: Vec<i32>, mut ends: Vec<i32>) {
     if ast_expr_predicates::node_is_path(node) {
         let path = ast_access::node_text(node)
         if is_module_style_qualified_path(clone(path)) {
@@ -83,10 +83,10 @@ fn count_same_path(paths: Vec<String>, path: String) -> i32 {
 }
 
 pub fn check_prefer_use_import(decls: Vec<AstNode>) -> Vec<Diagnostic> {
-    let warnings = Vec::new<Diagnostic>()
-    let paths = Vec::new<String>()
-    let starts = Vec::new<i32>()
-    let ends = Vec::new<i32>()
+    let mut warnings = Vec::new<Diagnostic>()
+    let mut paths = Vec::new<String>()
+    let mut starts = Vec::new<i32>()
+    let mut ends = Vec::new<i32>()
     let dn = len(decls)
     let mut di = 0
     while di < dn {

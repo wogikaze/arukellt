@@ -8,7 +8,7 @@ use mir::types
 fn mir_compute_immediate_dominators(f: MirFunction, block_count: i32) {
     let mut i = 0
     while i < block_count {
-        let block = function_block_queries::MirFunction_block_at(f, i)
+        let mut block = function_block_queries::MirFunction_block_at(f, i)
         block_dominance_mutation::MirBlock_reset_idom(block)
         if i != 0 {
             block_dominance_mutation::MirBlock_set_idom(block, mir_find_immediate_dominator(f, block))

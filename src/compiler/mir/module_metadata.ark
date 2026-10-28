@@ -4,6 +4,6 @@ fn MirModule_mono_pruned_count(m: MirModule) -> i32 {
     m.mono_pruned_count
 }
 
-fn MirModule_set_mono_pruned_count(m: MirModule, count: i32) {
+fn MirModule_set_mono_pruned_count(mut m: MirModule, count: i32) {
     m.mono_pruned_count = count
 }

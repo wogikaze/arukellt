@@ -58,7 +58,7 @@ fn core_variant_pat_has_checked_children(ctx: LowerCtx, exprs: Vec<CoreHirExpr>,
     false
 }
 
-fn core_emit_subpat_cond(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, val_idx: i32) -> i32 {
+fn core_emit_subpat_cond(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, val_idx: i32) -> i32 {
     if core_expr_shape_patterns::mir_core_expr_is_pat_literal(pat) {
         if core_match_patterns::mir_core_pat_is_string_literal(pat) {
             let cmp = match_arms::mir_emit_string_pattern_compare_text(
@@ -115,7 +115,7 @@ fn core_emit_subpat_cond(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExp
     core_const_true_cond(ctx)
 }
 
-fn core_emit_variant_subpat_flag_tagged(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, val_idx: i32, known_tag_idx: i32) -> i32 {
+fn core_emit_variant_subpat_flag_tagged(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, val_idx: i32, known_tag_idx: i32) -> i32 {
     let variant_name = core_expr_shape_accessors::mir_core_expr_text(pat)
     let flag = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(0, flag))
@@ -182,7 +182,7 @@ fn core_emit_variant_subpat_flag_tagged(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, 
     flag
 }
 
-fn core_emit_tuple_subpat_cond(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, val_idx: i32) -> i32 {
+fn core_emit_tuple_subpat_cond(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, val_idx: i32) -> i32 {
     let count = core_expr_shape_accessors::mir_core_expr_child_count(pat)
     let mut cond_count = 0
     let mut acc = 0 - 1
@@ -211,7 +211,7 @@ fn core_emit_tuple_subpat_cond(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: Core
     acc
 }
 
-fn core_emit_tag_compare_cond(ctx: LowerCtx, val_idx: i32, tag: i32) -> i32 {
+fn core_emit_tag_compare_cond(mut ctx: LowerCtx, val_idx: i32, tag: i32) -> i32 {
     let tag_idx = core_match_payload_info::core_emit_payload_tag_local(ctx, val_idx)
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(tag_idx))
     let tag_const = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
@@ -221,7 +221,7 @@ fn core_emit_tag_compare_cond(ctx: LowerCtx, val_idx: i32, tag: i32) -> i32 {
     cmp_dest
 }
 
-fn core_const_true_cond(ctx: LowerCtx) -> i32 {
+fn core_const_true_cond(mut ctx: LowerCtx) -> i32 {
     let one = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(1, one))
     one

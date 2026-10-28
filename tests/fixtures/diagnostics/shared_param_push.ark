@@ -1,0 +1,11 @@
+// ADR-088 §2/§4: `push` is a mutating stdlib operation with a `mut` first
+// parameter, so a shared parameter is not a valid mutable place.
+
+fn add(v: Vec<i32>) {
+    push(v, 1)
+}
+
+fn main() {
+    let mut v = Vec::new<i32>()
+    add(v)
+}

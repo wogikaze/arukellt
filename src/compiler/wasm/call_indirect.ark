@@ -181,7 +181,7 @@ fn call_ref_pair_key_type_idx(ctx: SelfEmitCtx, hint: String) -> i32 {
     0 - 1
 }
 
-fn emit_call_indirect_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+fn emit_call_indirect_inst(mut w: WasmWriter, inst: MirInst, mut ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
     let arg_count = inst_accessors_literals::MirInst_int_val(inst)
     let dest_vt = inst_accessors_shape::MirInst_val_type(inst)
     let first_arg_vt = parse_first_arg_vt_hint(inst_accessors_literals::MirInst_str_val(inst))

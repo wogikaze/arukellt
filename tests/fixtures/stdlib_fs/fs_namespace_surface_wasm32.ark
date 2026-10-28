@@ -15,7 +15,7 @@ fn main() {
         Result::Err(_) => test::assert_true(false),
     }
 
-    let bytes: Vec<i32> = Vec::new<i32>()
+    let mut bytes: Vec<i32> = Vec::new<i32>()
     push(bytes, 110)
     push(bytes, 115)
     let write_bytes: Result<(), String> = Fs::write_bytes(String_from("fs_namespace_surface_wasm32.out.bin"), bytes)

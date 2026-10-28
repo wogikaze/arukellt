@@ -9,7 +9,7 @@ fn ascending(a: i32, b: i32) -> Ordering {
 }
 
 fn main() {
-    let values: Vec<i32> = Vec::new<i32>()
+    let mut values: Vec<i32> = Vec::new<i32>()
     values.push(10)
     values.push(20)
     values.push(30)

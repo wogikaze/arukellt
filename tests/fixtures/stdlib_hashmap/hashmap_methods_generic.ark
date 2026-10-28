@@ -26,7 +26,7 @@ fn require_false(condition: bool) {
 }
 
 fn main() {
-    let numbers = HashMap::new<i32, i32>()
+    let mut numbers = HashMap::new<i32, i32>()
     let first = numbers.insert(1, 10)
     let second = numbers.insert(1, 20)
     require_i32(expect_i32(first), -1)
@@ -38,7 +38,7 @@ fn main() {
     require_i32(expect_i32(numbers.remove(1)), 20)
     require_true(numbers.is_empty())
 
-    let words = HashMap::new<String, i32>()
+    let mut words = HashMap::new<String, i32>()
     let _ = words.insert("answer", 42)
     require_i32(expect_i32(words.get("answer")), 42)
     require_false(words.contains_key("missing"))

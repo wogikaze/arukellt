@@ -5,7 +5,7 @@ use typechecker::unify
 use typechecker::unify_env
 use typechecker::contract_type_access
 
-fn infer_binary_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+fn infer_binary_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     if ast_access::node_child_count(node) >= 2 {
         let lhs_node = ast_access::node_child_at(node, 0)
         let rhs_node = ast_access::node_child_at(node, 1)

@@ -18,7 +18,7 @@ use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::inst_accessors_literals
 use mir::opcodes as mir_opcodes
-fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bool, next_op: i32) -> bool {
+fn emit_push_gc(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bool, next_op: i32) -> bool {
     let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_cap = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
@@ -194,7 +194,7 @@ fn push_gc_array_scratch(
     i32_fallback
 }
 
-fn emit_gc_push_setup(w: WasmWriter, s_val: i32, s_vec: i32, vec_type: i32, arr_tmp: i32) {
+fn emit_gc_push_setup(mut w: WasmWriter, s_val: i32, s_vec: i32, vec_type: i32, arr_tmp: i32) {
     helpers_core::emit_local_set(w, s_val)
     helpers_core::emit_local_set(w, s_vec)
     helpers_core::emit_local_get(w, s_vec)
@@ -204,7 +204,7 @@ fn emit_gc_push_setup(w: WasmWriter, s_val: i32, s_vec: i32, vec_type: i32, arr_
 }
 
 fn emit_gc_push_store_finish(
-    w: WasmWriter,
+    mut w: WasmWriter,
     ctx: SelfEmitCtx,
     arr_tmp: i32,
     s_len: i32,
@@ -255,7 +255,7 @@ fn emit_gc_push_store_finish(
     writer_core::emit_byte(w, opcodes::OP_DROP())
 }
 
-fn emit_gc_growth_check(w: WasmWriter, arr_tmp: i32, arr_old: i32, s_len: i32, s_cap: i32, i32_array_type: i32, vec_type: i32, vec_local: i32) {
+fn emit_gc_growth_check(mut w: WasmWriter, arr_tmp: i32, arr_old: i32, s_len: i32, s_cap: i32, i32_array_type: i32, vec_type: i32, vec_local: i32) {
     helpers_core::emit_local_get(w, arr_tmp)
     writer_gc::emit_gc_array_len(w)
     helpers_core::emit_local_set(w, s_cap)

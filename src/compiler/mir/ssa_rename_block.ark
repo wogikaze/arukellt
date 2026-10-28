@@ -6,7 +6,7 @@ use mir::ssa_rename_block_insts
 use mir::ssa_rename_block_phis
 use mir::ssa_state_types
 
-fn mir_ssa_rename_block(f: MirFunction, state: ssa_state_types::MirSsaRenameState, block_id: i32) {
+fn mir_ssa_rename_block(mut f: MirFunction, mut state: ssa_state_types::MirSsaRenameState, block_id: i32) {
     if block_id < 0 || block_id >= function_block_queries::MirFunction_block_count(f) {
         return
     }
@@ -20,7 +20,7 @@ fn mir_ssa_rename_block(f: MirFunction, state: ssa_state_types::MirSsaRenameStat
     ssa_state_slots::mir_ssa_record_block_exit(state, block_identity::MirBlock_id(block))
 }
 
-fn mir_ssa_rename_blocks(f: MirFunction, state: ssa_state_types::MirSsaRenameState) {
+fn mir_ssa_rename_blocks(mut f: MirFunction, mut state: ssa_state_types::MirSsaRenameState) {
     let bc = function_block_queries::MirFunction_block_count(f)
     let mut bi = 0
     while bi < bc {

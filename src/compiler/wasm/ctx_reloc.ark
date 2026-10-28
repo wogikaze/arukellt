@@ -67,7 +67,7 @@ fn reloc_kind_is_sleb(kind: i32) -> bool {
 }
 
 fn SelfEmitCtx_push_reloc(
-    ctx: SelfEmitCtx,
+    mut ctx: SelfEmitCtx,
     body_off: i32,
     kind: i32,
     ikey: i32,
@@ -91,8 +91,8 @@ fn SelfEmitCtx_push_reloc(
 // resolved value. Mirrors emit_i32_const's memory64 opcode dispatch so the
 // non-operand bytes match the direct path exactly.
 fn SelfEmitCtx_emit_i32_const_reloc(
-    w: WasmWriter,
-    ctx: SelfEmitCtx,
+    mut w: WasmWriter,
+    mut ctx: SelfEmitCtx,
     kind: i32,
     ikey: i32,
     skey: String
@@ -110,8 +110,8 @@ fn SelfEmitCtx_emit_i32_const_reloc(
 // iov/scratch pointer fields): always OP_I32_CONST like
 // helpers_io_const::emit_i32_const, never the widened i64 form.
 fn SelfEmitCtx_emit_i32_const_true_reloc(
-    w: WasmWriter,
-    ctx: SelfEmitCtx,
+    mut w: WasmWriter,
+    mut ctx: SelfEmitCtx,
     kind: i32,
     ikey: i32,
     skey: String
@@ -124,8 +124,8 @@ fn SelfEmitCtx_emit_i32_const_true_reloc(
 // ULEB operand variant (call_indirect type index): record the operand
 // position, write a 1-byte uleb(0) placeholder.
 fn SelfEmitCtx_emit_leb_u_reloc(
-    w: WasmWriter,
-    ctx: SelfEmitCtx,
+    mut w: WasmWriter,
+    mut ctx: SelfEmitCtx,
     kind: i32,
     ikey: i32,
     ikey2: i32,
@@ -140,8 +140,8 @@ fn SelfEmitCtx_emit_leb_u_reloc(
 // SLEB operand variant (GC heap-type operands like ref.cast): record the
 // operand position, write a 1-byte sleb(0) placeholder.
 fn SelfEmitCtx_emit_leb_s_reloc(
-    w: WasmWriter,
-    ctx: SelfEmitCtx,
+    mut w: WasmWriter,
+    mut ctx: SelfEmitCtx,
     kind: i32,
     ikey: i32,
     ikey2: i32,
@@ -154,13 +154,13 @@ fn SelfEmitCtx_emit_leb_s_reloc(
 }
 
 fn reloc_splice_i32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
-    let out_v = Vec::new<i32>()
+    let mut out_v = Vec::new<i32>()
     let mut i = 0
     while i < off {
         push(out_v, get_unchecked(body, i))
         i = i + 1
     }
-    let sw = writer_core::WasmWriter_new()
+    let mut sw = writer_core::WasmWriter_new()
     writer_leb::emit_leb128_s(sw, value)
     let enc = writer_core::writer_bytes(sw)
     let mut j = 0
@@ -180,13 +180,13 @@ fn reloc_splice_i32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
 
 // ULEB variant: same 1-byte placeholder skip, minimal u-leb encoding.
 fn reloc_splice_u32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
-    let out_v = Vec::new<i32>()
+    let mut out_v = Vec::new<i32>()
     let mut i = 0
     while i < off {
         push(out_v, get_unchecked(body, i))
         i = i + 1
     }
-    let sw = writer_core::WasmWriter_new()
+    let mut sw = writer_core::WasmWriter_new()
     writer_leb::emit_leb128_u(sw, value)
     let enc = writer_core::writer_bytes(sw)
     let mut j = 0
@@ -206,7 +206,7 @@ fn reloc_splice_u32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
 // 5-byte uleb slot at emit (emit_leb128_u_fixed), so apply patches in
 // place. No byte is inserted or removed, so surrounding reloc offsets
 // stay valid regardless of patch order.
-fn reloc_patch_leb_u_fixed(body: Vec<i32>, off: i32, v: i32) {
+fn reloc_patch_leb_u_fixed(mut body: Vec<i32>, off: i32, v: i32) {
     let mut val = v
     if val < 0 {
         val = 0

@@ -121,7 +121,7 @@ fn scratch_group_count(ctx: SelfEmitCtx) -> i32 {
     count
 }
 
-fn emit_scratch_local_decls(body: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_scratch_local_decls(mut body: WasmWriter, ctx: SelfEmitCtx) {
     emit_i32_scratch_local_decls(body, scratch_i32_local_count())
     emit_f64_scratch_local_decls(body, scratch_f64_local_count())
     emit_f32_scratch_local_decls(body, scratch_f32_local_count())
@@ -149,14 +149,14 @@ fn emit_scratch_local_decls(body: WasmWriter, ctx: SelfEmitCtx) {
     }
 }
 
-fn emit_linear_root_frame_local_decls(body: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_linear_root_frame_local_decls(mut body: WasmWriter, ctx: SelfEmitCtx) {
     if scratch_linear_root_frame_local_count(ctx) > 0 {
         writer_core::emit_leb128_u(body, 1)
         writer_core::emit_byte(body, constants::WASM_I32())
     }
 }
 
-fn emit_fnref_scratch_local_decls(body: WasmWriter, count: i32, ctx: SelfEmitCtx) {
+fn emit_fnref_scratch_local_decls(mut body: WasmWriter, count: i32, ctx: SelfEmitCtx) {
     // Pair ABI (#872): fn-valued temps are nullable __fnpair refs. The pair
     // record is a fixed GC type (gc_fnpair_offset), so it is always in scope.
     let type_idx = ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_fnpair_offset()
@@ -170,7 +170,7 @@ fn emit_fnref_scratch_local_decls(body: WasmWriter, count: i32, ctx: SelfEmitCtx
     }
 }
 
-fn emit_i32_scratch_local_decls(body: WasmWriter, count: i32) {
+fn emit_i32_scratch_local_decls(mut body: WasmWriter, count: i32) {
     if count > 0 {
         writer_core::emit_leb128_u(body, count)
         if writer_core::writer_memory64(body) {
@@ -181,28 +181,28 @@ fn emit_i32_scratch_local_decls(body: WasmWriter, count: i32) {
     }
 }
 
-fn emit_f64_scratch_local_decls(body: WasmWriter, count: i32) {
+fn emit_f64_scratch_local_decls(mut body: WasmWriter, count: i32) {
     if count > 0 {
         writer_core::emit_leb128_u(body, count)
         writer_core::emit_byte(body, constants::WASM_F64())
     }
 }
 
-fn emit_f32_scratch_local_decls(body: WasmWriter, count: i32) {
+fn emit_f32_scratch_local_decls(mut body: WasmWriter, count: i32) {
     if count > 0 {
         writer_core::emit_leb128_u(body, count)
         writer_core::emit_byte(body, constants::WASM_F32())
     }
 }
 
-fn emit_i64_scratch_local_decls(body: WasmWriter, count: i32) {
+fn emit_i64_scratch_local_decls(mut body: WasmWriter, count: i32) {
     if count > 0 {
         writer_core::emit_leb128_u(body, count)
         writer_core::emit_byte(body, constants::WASM_I64())
     }
 }
 
-fn emit_v128_scratch_local_decls(body: WasmWriter, count: i32) {
+fn emit_v128_scratch_local_decls(mut body: WasmWriter, count: i32) {
     if count > 0 {
         writer_core::emit_leb128_u(body, count)
         writer_core::emit_byte(body, constants::WASM_V128())
@@ -211,7 +211,7 @@ fn emit_v128_scratch_local_decls(body: WasmWriter, count: i32) {
 
 // The shared GC vec scratch local is declared as structref so it can hold a
 // vec of any element type; consumers must ref.cast before struct access.
-fn emit_structref_scratch_local_decls(body: WasmWriter, count: i32) {
+fn emit_structref_scratch_local_decls(mut body: WasmWriter, count: i32) {
     let mut i = 0
     while i < count {
         writer_core::emit_leb128_u(body, 1)
@@ -220,7 +220,7 @@ fn emit_structref_scratch_local_decls(body: WasmWriter, count: i32) {
     }
 }
 
-fn emit_gc_scratch_local_decls(body: WasmWriter, count: i32, gc_type_base: i32) {
+fn emit_gc_scratch_local_decls(mut body: WasmWriter, count: i32, gc_type_base: i32) {
     let mut i = 0
     while i < count {
         writer_core::emit_leb128_u(body, 1)

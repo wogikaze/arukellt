@@ -156,8 +156,8 @@ fn SelfEmitCtx_new(
 ) -> SelfEmitCtx {
     let fn_count = len(functions)
     let mut name_lengths = Vec::new<i32>()
-    let function_name_index = name_index::NameIndex_new(fn_count)
-    let function_name_counts = name_index::NameIndex_new(fn_count)
+    let mut function_name_index = name_index::NameIndex_new(fn_count)
+    let mut function_name_counts = name_index::NameIndex_new(fn_count)
     let mut fi = 0
     while fi < fn_count {
         let fname = function_identity::MirFunction_name(get_unchecked(functions, fi))
@@ -269,7 +269,7 @@ fn SelfEmitCtx_new(
 // fid->mir chains when bound incrementally). Idempotent and incremental:
 // identical result to the constructor's one-shot build when the module is
 // complete, and correct for a still-growing functions vec.
-fn SelfEmitCtx_fn_index_drain(ctx: SelfEmitCtx) {
+fn SelfEmitCtx_fn_index_drain(mut ctx: SelfEmitCtx) {
     let functions = ctx.functions
     let n = len(functions)
     let fid_live = ctx.fid_chains_live
@@ -310,7 +310,7 @@ fn SelfEmitCtx_local_gc_infer_cache(ctx: SelfEmitCtx) -> Vec<i32> {
     ctx.local_gc_infer_cache
 }
 
-fn SelfEmitCtx_set_local_gc_infer_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+fn SelfEmitCtx_set_local_gc_infer_cache(mut ctx: SelfEmitCtx, cache: Vec<i32>) {
     ctx.local_gc_infer_cache = cache
 }
 
@@ -318,7 +318,7 @@ fn SelfEmitCtx_local_struct_new_cache(ctx: SelfEmitCtx) -> Vec<i32> {
     ctx.local_struct_new_cache
 }
 
-fn SelfEmitCtx_set_local_struct_new_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+fn SelfEmitCtx_set_local_struct_new_cache(mut ctx: SelfEmitCtx, cache: Vec<i32>) {
     ctx.local_struct_new_cache = cache
 }
 
@@ -326,7 +326,7 @@ fn SelfEmitCtx_local_has_ref_cache(ctx: SelfEmitCtx) -> Vec<i32> {
     ctx.local_has_ref_cache
 }
 
-fn SelfEmitCtx_set_local_has_ref_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+fn SelfEmitCtx_set_local_has_ref_cache(mut ctx: SelfEmitCtx, cache: Vec<i32>) {
     ctx.local_has_ref_cache = cache
 }
 
@@ -334,7 +334,7 @@ fn SelfEmitCtx_local_def_block_cache(ctx: SelfEmitCtx) -> Vec<i32> {
     ctx.local_def_block_cache
 }
 
-fn SelfEmitCtx_set_local_def_block_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+fn SelfEmitCtx_set_local_def_block_cache(mut ctx: SelfEmitCtx, cache: Vec<i32>) {
     ctx.local_def_block_cache = cache
 }
 
@@ -342,7 +342,7 @@ fn SelfEmitCtx_local_def_inst_cache(ctx: SelfEmitCtx) -> Vec<i32> {
     ctx.local_def_inst_cache
 }
 
-fn SelfEmitCtx_set_local_def_inst_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+fn SelfEmitCtx_set_local_def_inst_cache(mut ctx: SelfEmitCtx, cache: Vec<i32>) {
     ctx.local_def_inst_cache = cache
 }
 
@@ -350,7 +350,7 @@ fn SelfEmitCtx_local_i64_stack_set_cache(ctx: SelfEmitCtx) -> Vec<i32> {
     ctx.local_i64_stack_set_cache
 }
 
-fn SelfEmitCtx_set_local_i64_stack_set_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+fn SelfEmitCtx_set_local_i64_stack_set_cache(mut ctx: SelfEmitCtx, cache: Vec<i32>) {
     ctx.local_i64_stack_set_cache = cache
 }
 
@@ -366,12 +366,12 @@ fn SelfEmitCtx_struct_new_sizes(ctx: SelfEmitCtx) -> Vec<i32> {
     ctx.struct_new_sizes
 }
 
-fn SelfEmitCtx_set_struct_new_size_table(ctx: SelfEmitCtx, names: Vec<String>, sizes: Vec<i32>) {
+fn SelfEmitCtx_set_struct_new_size_table(mut ctx: SelfEmitCtx, names: Vec<String>, sizes: Vec<i32>) {
     ctx.struct_new_size_names = names
     ctx.struct_new_sizes = sizes
 }
 
-fn SelfEmitCtx_set_local_feeds_return_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+fn SelfEmitCtx_set_local_feeds_return_cache(mut ctx: SelfEmitCtx, cache: Vec<i32>) {
     ctx.local_feeds_return_cache = cache
 }
 
@@ -379,7 +379,7 @@ fn SelfEmitCtx_local_scalar_producer_vt_cache(ctx: SelfEmitCtx) -> Vec<i32> {
     ctx.local_scalar_producer_vt_cache
 }
 
-fn SelfEmitCtx_set_local_scalar_producer_vt_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+fn SelfEmitCtx_set_local_scalar_producer_vt_cache(mut ctx: SelfEmitCtx, cache: Vec<i32>) {
     ctx.local_scalar_producer_vt_cache = cache
 }
 
@@ -387,7 +387,7 @@ fn SelfEmitCtx_local_has_scalar_producer_cache(ctx: SelfEmitCtx) -> Vec<i32> {
     ctx.local_has_scalar_producer_cache
 }
 
-fn SelfEmitCtx_set_local_has_scalar_producer_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+fn SelfEmitCtx_set_local_has_scalar_producer_cache(mut ctx: SelfEmitCtx, cache: Vec<i32>) {
     ctx.local_has_scalar_producer_cache = cache
 }
 
@@ -395,7 +395,7 @@ fn SelfEmitCtx_local_strong_ref_producer_cache(ctx: SelfEmitCtx) -> Vec<i32> {
     ctx.local_strong_ref_producer_cache
 }
 
-fn SelfEmitCtx_set_local_strong_ref_producer_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+fn SelfEmitCtx_set_local_strong_ref_producer_cache(mut ctx: SelfEmitCtx, cache: Vec<i32>) {
     ctx.local_strong_ref_producer_cache = cache
 }
 
@@ -403,7 +403,7 @@ fn SelfEmitCtx_local_vec_constructor_cache(ctx: SelfEmitCtx) -> Vec<i32> {
     ctx.local_vec_constructor_cache
 }
 
-fn SelfEmitCtx_set_local_vec_constructor_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+fn SelfEmitCtx_set_local_vec_constructor_cache(mut ctx: SelfEmitCtx, cache: Vec<i32>) {
     ctx.local_vec_constructor_cache = cache
 }
 
@@ -411,7 +411,7 @@ fn SelfEmitCtx_local_direct_producer_storage_cache(ctx: SelfEmitCtx) -> Vec<i32>
     ctx.local_direct_producer_storage_cache
 }
 
-fn SelfEmitCtx_set_local_direct_producer_storage_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+fn SelfEmitCtx_set_local_direct_producer_storage_cache(mut ctx: SelfEmitCtx, cache: Vec<i32>) {
     ctx.local_direct_producer_storage_cache = cache
 }
 
@@ -419,7 +419,7 @@ fn SelfEmitCtx_local_copied_storage_cache(ctx: SelfEmitCtx) -> Vec<i32> {
     ctx.local_copied_storage_cache
 }
 
-fn SelfEmitCtx_set_local_copied_storage_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+fn SelfEmitCtx_set_local_copied_storage_cache(mut ctx: SelfEmitCtx, cache: Vec<i32>) {
     ctx.local_copied_storage_cache = cache
 }
 
@@ -427,7 +427,7 @@ fn SelfEmitCtx_local_write_index(ctx: SelfEmitCtx) -> LocalWriteIndex {
     ctx.local_write_index
 }
 
-fn SelfEmitCtx_set_local_write_index(ctx: SelfEmitCtx, index: LocalWriteIndex) {
+fn SelfEmitCtx_set_local_write_index(mut ctx: SelfEmitCtx, index: LocalWriteIndex) {
     ctx.local_write_index = index
 }
 
@@ -447,7 +447,7 @@ fn SelfEmitCtx_code_section_offsets(ctx: SelfEmitCtx) -> Vec<i32> {
     ctx.code_section_offsets
 }
 
-fn SelfEmitCtx_set_code_section_offsets(ctx: SelfEmitCtx, offsets: Vec<i32>) {
+fn SelfEmitCtx_set_code_section_offsets(mut ctx: SelfEmitCtx, offsets: Vec<i32>) {
     ctx.code_section_offsets = offsets
 }
 
@@ -479,7 +479,7 @@ fn SelfEmitCtx_gc_type_base(ctx: SelfEmitCtx) -> i32 {
     ctx.gc_type_base
 }
 
-fn SelfEmitCtx_set_gc_type_base(ctx: SelfEmitCtx, gc_type_base: i32) {
+fn SelfEmitCtx_set_gc_type_base(mut ctx: SelfEmitCtx, gc_type_base: i32) {
     ctx.gc_type_base = gc_type_base
 }
 
@@ -487,7 +487,7 @@ fn SelfEmitCtx_gc_enum_variant_base(ctx: SelfEmitCtx) -> i32 {
     ctx.gc_enum_variant_base
 }
 
-fn SelfEmitCtx_set_gc_enum_variant_base(ctx: SelfEmitCtx, gc_enum_variant_base: i32) {
+fn SelfEmitCtx_set_gc_enum_variant_base(mut ctx: SelfEmitCtx, gc_enum_variant_base: i32) {
     ctx.gc_enum_variant_base = gc_enum_variant_base
 }
 
@@ -495,7 +495,7 @@ fn SelfEmitCtx_gc_enum_variant_type_flags(ctx: SelfEmitCtx) -> Vec<i32> {
     ctx.gc_enum_variant_type_flags
 }
 
-fn SelfEmitCtx_rebuild_gc_enum_variant_type_flags(ctx: SelfEmitCtx) {
+fn SelfEmitCtx_rebuild_gc_enum_variant_type_flags(mut ctx: SelfEmitCtx) {
     let map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     let mut max_type_idx = 0 - 1
     let mut i = 0
@@ -506,7 +506,7 @@ fn SelfEmitCtx_rebuild_gc_enum_variant_type_flags(ctx: SelfEmitCtx) {
         }
         i = i + 1
     }
-    let flags = Vec::new<i32>()
+    let mut flags = Vec::new<i32>()
     let mut fi = 0
     while fi <= max_type_idx {
         push(flags, 0)
@@ -527,7 +527,7 @@ fn SelfEmitCtx_gc_enum_variant_names(ctx: SelfEmitCtx) -> Vec<String> {
     ctx.gc_enum_variant_names
 }
 
-fn SelfEmitCtx_set_gc_enum_variant_names(ctx: SelfEmitCtx, gc_enum_variant_names: Vec<String>) {
+fn SelfEmitCtx_set_gc_enum_variant_names(mut ctx: SelfEmitCtx, gc_enum_variant_names: Vec<String>) {
     ctx.gc_enum_variant_names = gc_enum_variant_names
 }
 
@@ -535,11 +535,11 @@ fn SelfEmitCtx_gc_enum_variant_name_index(ctx: SelfEmitCtx) -> NameIndex {
     ctx.gc_enum_variant_name_index
 }
 
-fn SelfEmitCtx_rebuild_gc_enum_variant_name_index(ctx: SelfEmitCtx) {
+fn SelfEmitCtx_rebuild_gc_enum_variant_name_index(mut ctx: SelfEmitCtx) {
     let names = ctx.gc_enum_variant_names
     let map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     let count = len(names)
-    let index = name_index::NameIndex_new(count)
+    let mut index = name_index::NameIndex_new(count)
     let mut i = 0
     while i < count {
         let type_idx = if i < len(map) {
@@ -559,7 +559,7 @@ fn SelfEmitCtx_gc_enum_variant_sigs(ctx: SelfEmitCtx) -> Vec<String> {
     ctx.gc_enum_variant_sigs
 }
 
-fn SelfEmitCtx_set_gc_enum_variant_sigs(ctx: SelfEmitCtx, gc_enum_variant_sigs: Vec<String>) {
+fn SelfEmitCtx_set_gc_enum_variant_sigs(mut ctx: SelfEmitCtx, gc_enum_variant_sigs: Vec<String>) {
     ctx.gc_enum_variant_sigs = gc_enum_variant_sigs
 }
 
@@ -567,7 +567,7 @@ fn SelfEmitCtx_gc_struct_base(ctx: SelfEmitCtx) -> i32 {
     ctx.gc_struct_base
 }
 
-fn SelfEmitCtx_set_gc_struct_base(ctx: SelfEmitCtx, gc_struct_base: i32) {
+fn SelfEmitCtx_set_gc_struct_base(mut ctx: SelfEmitCtx, gc_struct_base: i32) {
     ctx.gc_struct_base = gc_struct_base
 }
 
@@ -575,7 +575,7 @@ fn SelfEmitCtx_gc_struct_names(ctx: SelfEmitCtx) -> Vec<String> {
     ctx.gc_struct_names
 }
 
-fn SelfEmitCtx_set_gc_struct_names(ctx: SelfEmitCtx, gc_struct_names: Vec<String>) {
+fn SelfEmitCtx_set_gc_struct_names(mut ctx: SelfEmitCtx, gc_struct_names: Vec<String>) {
     ctx.gc_struct_names = gc_struct_names
 }
 
@@ -616,12 +616,12 @@ fn SelfEmitCtx_gc_struct_index_by_module_stripped_name(ctx: SelfEmitCtx, strippe
     name_index::name_index_get(ctx.gc_struct_module_stripped_index, stripped)
 }
 
-fn SelfEmitCtx_rebuild_gc_struct_name_index(ctx: SelfEmitCtx) {
+fn SelfEmitCtx_rebuild_gc_struct_name_index(mut ctx: SelfEmitCtx) {
     let names = ctx.gc_struct_names
     let map = module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
     let count = len(names)
-    let index = name_index::NameIndex_new(count)
-    let stripped_index = name_index::NameIndex_new(count)
+    let mut index = name_index::NameIndex_new(count)
+    let mut stripped_index = name_index::NameIndex_new(count)
     let mut i = 0
     while i < count {
         name_index::name_index_insert_first(
@@ -651,7 +651,7 @@ fn SelfEmitCtx_rebuild_gc_struct_name_index(ctx: SelfEmitCtx) {
 // Derived emit indexes are built once after names/sigs are set. The canon
 // maps live on the module, so this explicit finalize is the single build
 // point (setters no longer carry order-dependent rebuild side-effects).
-fn SelfEmitCtx_finalize_gc_derived_indexes(ctx: SelfEmitCtx) {
+fn SelfEmitCtx_finalize_gc_derived_indexes(mut ctx: SelfEmitCtx) {
     // Rebuild only when the module canon state actually advanced (#851):
     // this runs inside emit_inloop_prepare once per pushed function, and
     // each rebuild allocates fresh NameIndexes plus per-name strings.
@@ -669,11 +669,11 @@ fn SelfEmitCtx_gc_struct_sigs(ctx: SelfEmitCtx) -> Vec<String> {
     ctx.gc_struct_sigs
 }
 
-fn SelfEmitCtx_set_gc_struct_sigs(ctx: SelfEmitCtx, gc_struct_sigs: Vec<String>) {
+fn SelfEmitCtx_set_gc_struct_sigs(mut ctx: SelfEmitCtx, gc_struct_sigs: Vec<String>) {
     ctx.gc_struct_sigs = gc_struct_sigs
 }
 
-fn SelfEmitCtx_set_current_func_idx(ctx: SelfEmitCtx, current_func_idx: i32) {
+fn SelfEmitCtx_set_current_func_idx(mut ctx: SelfEmitCtx, current_func_idx: i32) {
     ctx.current_func_idx = current_func_idx
 }
 
@@ -685,7 +685,7 @@ fn SelfEmitCtx_pair_call_sigs(ctx: SelfEmitCtx) -> Vec<String> {
     ctx.pair_call_sigs
 }
 
-fn SelfEmitCtx_set_pair_call_sigs(ctx: SelfEmitCtx, sigs: Vec<String>) {
+fn SelfEmitCtx_set_pair_call_sigs(mut ctx: SelfEmitCtx, sigs: Vec<String>) {
     ctx.pair_call_sigs = sigs
 }
 
@@ -693,7 +693,7 @@ fn SelfEmitCtx_signature_registry(ctx: SelfEmitCtx) -> SignatureRegistry {
     ctx.signature_registry
 }
 
-fn SelfEmitCtx_set_signature_registry(ctx: SelfEmitCtx, signature_registry: SignatureRegistry) {
+fn SelfEmitCtx_set_signature_registry(mut ctx: SelfEmitCtx, signature_registry: SignatureRegistry) {
     ctx.signature_registry = signature_registry
 }
 
@@ -701,7 +701,7 @@ fn SelfEmitCtx_type_table(ctx: SelfEmitCtx) -> TypeTable {
     ctx.type_table
 }
 
-fn SelfEmitCtx_set_type_table(ctx: SelfEmitCtx, type_table: TypeTable) {
+fn SelfEmitCtx_set_type_table(mut ctx: SelfEmitCtx, type_table: TypeTable) {
     ctx.type_table = type_table
 }
 
@@ -709,7 +709,7 @@ fn SelfEmitCtx_mono_instance_table(ctx: SelfEmitCtx) -> MonoInstanceTable {
     ctx.mono_instance_table
 }
 
-fn SelfEmitCtx_set_mono_instance_table(ctx: SelfEmitCtx, mono_instance_table: MonoInstanceTable) {
+fn SelfEmitCtx_set_mono_instance_table(mut ctx: SelfEmitCtx, mono_instance_table: MonoInstanceTable) {
     ctx.mono_instance_table = mono_instance_table
 }
 
@@ -717,7 +717,7 @@ fn SelfEmitCtx_spine_populated(ctx: SelfEmitCtx) -> bool {
     ctx.spine_populated
 }
 
-fn SelfEmitCtx_set_spine_populated(ctx: SelfEmitCtx, spine_populated: bool) {
+fn SelfEmitCtx_set_spine_populated(mut ctx: SelfEmitCtx, spine_populated: bool) {
     ctx.spine_populated = spine_populated
 }
 
@@ -737,19 +737,19 @@ fn SelfEmitCtx_registry_audit_mismatch_budget(ctx: SelfEmitCtx) -> i32 {
     ctx.registry_audit_mismatch_budget
 }
 
-fn SelfEmitCtx_registry_audit_inc_candidates(ctx: SelfEmitCtx) {
+fn SelfEmitCtx_registry_audit_inc_candidates(mut ctx: SelfEmitCtx) {
     ctx.registry_audit_candidates = ctx.registry_audit_candidates + 1
 }
 
-fn SelfEmitCtx_registry_audit_inc_matched(ctx: SelfEmitCtx) {
+fn SelfEmitCtx_registry_audit_inc_matched(mut ctx: SelfEmitCtx) {
     ctx.registry_audit_matched = ctx.registry_audit_matched + 1
 }
 
-fn SelfEmitCtx_registry_audit_inc_mismatched(ctx: SelfEmitCtx) {
+fn SelfEmitCtx_registry_audit_inc_mismatched(mut ctx: SelfEmitCtx) {
     ctx.registry_audit_mismatched = ctx.registry_audit_mismatched + 1
 }
 
-fn SelfEmitCtx_registry_audit_dec_mismatch_budget(ctx: SelfEmitCtx) {
+fn SelfEmitCtx_registry_audit_dec_mismatch_budget(mut ctx: SelfEmitCtx) {
     ctx.registry_audit_mismatch_budget = ctx.registry_audit_mismatch_budget - 1
 }
 
@@ -773,23 +773,23 @@ fn SelfEmitCtx_core_op_shadow_mismatch_budget(ctx: SelfEmitCtx) -> i32 {
     ctx.core_op_shadow_mismatch_budget
 }
 
-fn SelfEmitCtx_core_op_shadow_inc_candidates(ctx: SelfEmitCtx) {
+fn SelfEmitCtx_core_op_shadow_inc_candidates(mut ctx: SelfEmitCtx) {
     ctx.core_op_shadow_candidates = ctx.core_op_shadow_candidates + 1
 }
 
-fn SelfEmitCtx_core_op_shadow_inc_matched(ctx: SelfEmitCtx) {
+fn SelfEmitCtx_core_op_shadow_inc_matched(mut ctx: SelfEmitCtx) {
     ctx.core_op_shadow_matched = ctx.core_op_shadow_matched + 1
 }
 
-fn SelfEmitCtx_core_op_shadow_inc_mismatched(ctx: SelfEmitCtx) {
+fn SelfEmitCtx_core_op_shadow_inc_mismatched(mut ctx: SelfEmitCtx) {
     ctx.core_op_shadow_mismatched = ctx.core_op_shadow_mismatched + 1
 }
 
-fn SelfEmitCtx_core_op_shadow_inc_unresolved(ctx: SelfEmitCtx) {
+fn SelfEmitCtx_core_op_shadow_inc_unresolved(mut ctx: SelfEmitCtx) {
     ctx.core_op_shadow_unresolved = ctx.core_op_shadow_unresolved + 1
 }
 
-fn SelfEmitCtx_core_op_shadow_dec_mismatch_budget(ctx: SelfEmitCtx) {
+fn SelfEmitCtx_core_op_shadow_dec_mismatch_budget(mut ctx: SelfEmitCtx) {
     ctx.core_op_shadow_mismatch_budget = ctx.core_op_shadow_mismatch_budget - 1
 }
 
@@ -797,7 +797,7 @@ fn SelfEmitCtx_gc_layout_table(ctx: SelfEmitCtx) -> GcLayoutTable {
     ctx.gc_layout_table
 }
 
-fn SelfEmitCtx_set_gc_layout_table(ctx: SelfEmitCtx, gc_layout_table: GcLayoutTable) {
+fn SelfEmitCtx_set_gc_layout_table(mut ctx: SelfEmitCtx, gc_layout_table: GcLayoutTable) {
     ctx.gc_layout_table = gc_layout_table
 }
 
@@ -805,7 +805,7 @@ fn SelfEmitCtx_fid_to_mir(ctx: SelfEmitCtx) -> Vec<i32> {
     ctx.fid_to_mir
 }
 
-fn SelfEmitCtx_set_fid_to_mir(ctx: SelfEmitCtx, fid_to_mir: Vec<i32>) {
+fn SelfEmitCtx_set_fid_to_mir(mut ctx: SelfEmitCtx, fid_to_mir: Vec<i32>) {
     ctx.fid_to_mir = fid_to_mir
 }
 
@@ -816,7 +816,7 @@ fn SelfEmitCtx_mir_index_for_func_id(ctx: SelfEmitCtx, func_id_raw: i32) -> i32 
     get_unchecked(ctx.fid_to_mir, func_id_raw)
 }
 
-fn SelfEmitCtx_note_emit_census(ctx: SelfEmitCtx, rung: i32) {
+fn SelfEmitCtx_note_emit_census(mut ctx: SelfEmitCtx, rung: i32) {
     while len(ctx.emit_census_rungs) <= rung {
         push(ctx.emit_census_rungs, 0)
     }

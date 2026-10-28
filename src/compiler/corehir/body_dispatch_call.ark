@@ -1,7 +1,7 @@
 use corehir::body_call
 use corehir::expr_node_predicates
 
-fn corehir_dispatch_call_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+fn corehir_dispatch_call_expr(mut table: CoreHirBodyTable, node: AstNode) -> i32 {
     if expr_node_predicates::expr_is_call(node) {
         return body_call::corehir_build_call_expr(table, node)
     }

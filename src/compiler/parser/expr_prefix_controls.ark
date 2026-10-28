@@ -17,7 +17,7 @@ pub fn is_control_prefix(kind: i32) -> bool {
     || kind == tokens::TK_CONTINUE()
 }
 
-pub fn parse_control_prefix(p: Parser) -> AstNode {
+pub fn parse_control_prefix(mut p: Parser) -> AstNode {
     let t = core_api_cursor::cur(p)
     let kind = token_state::Token_kind(t)
     if kind == tokens::TK_IF() {

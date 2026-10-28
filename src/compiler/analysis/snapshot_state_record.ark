@@ -13,7 +13,7 @@ fn AnalysisSnapshot_new(uri: String) -> AnalysisSnapshot {
     AnalysisSnapshot { uri: uri, decl_count: 0, symbol_count: 0, typed_fn_count: 0, diagnostic_count: 0, diagnostics: Vec::new<AnalysisDiagnostic>() }
 }
 
-fn snapshot_push(snap: AnalysisSnapshot, diag: AnalysisDiagnostic) {
+fn snapshot_push(mut snap: AnalysisSnapshot, diag: AnalysisDiagnostic) {
     push(snap.diagnostics, diag)
     snap.diagnostic_count = snap.diagnostic_count + 1
 }
@@ -22,7 +22,7 @@ fn snapshot_uri(snap: AnalysisSnapshot) -> String {
     clone(snap.uri)
 }
 
-fn snapshot_set_decl_count(snap: AnalysisSnapshot, count: i32) {
+fn snapshot_set_decl_count(mut snap: AnalysisSnapshot, count: i32) {
     snap.decl_count = count
 }
 
@@ -30,7 +30,7 @@ fn snapshot_decl_count(snap: AnalysisSnapshot) -> i32 {
     snap.decl_count
 }
 
-fn snapshot_set_symbol_count(snap: AnalysisSnapshot, count: i32) {
+fn snapshot_set_symbol_count(mut snap: AnalysisSnapshot, count: i32) {
     snap.symbol_count = count
 }
 
@@ -38,7 +38,7 @@ fn snapshot_symbol_count(snap: AnalysisSnapshot) -> i32 {
     snap.symbol_count
 }
 
-fn snapshot_set_typed_fn_count(snap: AnalysisSnapshot, count: i32) {
+fn snapshot_set_typed_fn_count(mut snap: AnalysisSnapshot, count: i32) {
     snap.typed_fn_count = count
 }
 

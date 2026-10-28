@@ -13,7 +13,7 @@ fn apply0(f: fn() -> i32) -> i32 {
 }
 
 fn main() {
-    let m = HashMap::new<i32, fn(i32) -> i32>()
+    let mut m = HashMap::new<i32, fn(i32) -> i32>()
     let _ = m.insert(1, answer)
     match m.get(1) {
         Some(f) => stdio::println((f()).to_string()),

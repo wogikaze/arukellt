@@ -1,6 +1,6 @@
 use lexer::char_skip
 
-fn skip_comment_if_present(lex: Lexer, c: i32) -> bool {
+fn skip_comment_if_present(mut lex: Lexer, c: i32) -> bool {
     if c == 47 && lex.pos + 1 < lex.src_len {
         let c2 = peek_at(lex, 1)
         if c2 == 47 {

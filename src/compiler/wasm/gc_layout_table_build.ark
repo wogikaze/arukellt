@@ -43,7 +43,7 @@ fn gc_layout_plan_struct_type_index(binding: MirGcLayoutBinding, type_idx: i32) 
 }
 
 fn populate_gc_layout_table_for_emit(
-    table: GcLayoutTable,
+    mut table: GcLayoutTable,
     mir: MirModule,
     gc_type_base: i32,
     gc_enum_variant_type_map: Vec<i32>,
@@ -59,7 +59,7 @@ fn populate_gc_layout_table_for_emit(
 // slot is not final yet stays pending instead of ICEing. final_pass=true
 // restores the legacy all-or-ICE semantics (post-lower emit path).
 fn gc_layout_table_drain_plan(
-    table: GcLayoutTable,
+    mut table: GcLayoutTable,
     mir: MirModule,
     gc_type_base: i32,
     gc_enum_variant_type_map: Vec<i32>,
@@ -89,7 +89,7 @@ fn gc_layout_table_drain_plan(
     gc_type_base != table.drain_base_seen ||
     len(table.plan_pending) != table.drain_pending_seen
     if len(table.plan_pending) > 0 && (final_pass || state_changed) {
-        let still_pending = Vec::new<i32>()
+        let mut still_pending = Vec::new<i32>()
         let pending_count = len(table.plan_pending)
         let mut p = 0
         while p < pending_count {

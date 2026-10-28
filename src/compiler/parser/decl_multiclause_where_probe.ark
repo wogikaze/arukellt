@@ -1,7 +1,7 @@
 use lexer::tokens
 use parser::core_api_cursor
 
-fn next_token_starts_where_binding(p: Parser) -> bool {
+fn next_token_starts_where_binding(mut p: Parser) -> bool {
     if core_api_cursor::peek_kind(p) != tokens::TK_IDENT() {
         return false
     }

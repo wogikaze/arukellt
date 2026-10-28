@@ -1,7 +1,7 @@
 use std::test
 
 test "string_keys_map_to_overwritten_string_values" {
-    let m = HashMap::new<String, String>()
+    let mut m = HashMap::new<String, String>()
     let _ = m.insert("greeting", "hello")
     let _ = m.insert("farewell", "goodbye")
     let _ = m.insert("color", "red")

@@ -2,7 +2,7 @@
 use std::test
 
 fn main() {
-    let m = HashMap::new<String, i32>()
+    let mut m = HashMap::new<String, i32>()
     let _ = m.insert("apple", 100)
     let _ = m.insert("banana", 200)
 

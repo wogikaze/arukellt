@@ -5,14 +5,14 @@ use mir::local_factory
 use mir::ssa_phi
 use mir::ssa_state_slots
 use mir::ssa_state_types
-fn mir_ssa_append_value_slot(f: MirFunction, original_local: i32, ssa_name: String, ssa_version: i32) -> i32 {
-    let source = function_locals_view::MirFunction_local_at(f, original_local)
+fn mir_ssa_append_value_slot(mut f: MirFunction, original_local: i32, ssa_name: String, ssa_version: i32) -> i32 {
+    let mut source = function_locals_view::MirFunction_local_at(f, original_local)
     let idx = function_locals_view::MirFunction_local_count(f)
     function_local_mutation::MirFunction_push_local(f, local_factory::MirLocal_copy_with_ssa(source, ssa_name, ssa_version))
     idx
 }
 
-fn mir_ssa_define_value(f: MirFunction, state: ssa_state_types::MirSsaRenameState, original_local: i32, ssa_name: String) -> i32 {
+fn mir_ssa_define_value(mut f: MirFunction, mut state: ssa_state_types::MirSsaRenameState, original_local: i32, ssa_name: String) -> i32 {
     if original_local < 0 || original_local >= ssa_state_types::MirSsaRenameState_original_local_count(state) {
         return original_local
     }

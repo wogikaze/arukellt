@@ -26,7 +26,7 @@ fn mir_struct_iterator_loop_prev_continue(scope: MirStructIteratorLoop) -> i32 {
     scope.prev_continue
 }
 
-fn mir_begin_struct_iterator_loop(ctx: LowerCtx, iter_name: String, struct_type: String, next_callee: String) -> MirStructIteratorLoop {
+fn mir_begin_struct_iterator_loop(mut ctx: LowerCtx, iter_name: String, struct_type: String, next_callee: String) -> MirStructIteratorLoop {
     let iter_ptr = loop_struct_iter_locals::mir_struct_iterator_iter_ptr(ctx, struct_type)
     let iter_var = loop_struct_iter_locals::mir_struct_iterator_iter_var(ctx, iter_name, next_callee)
     let opt_local = loop_struct_iter_locals::mir_struct_iterator_temp_i32(ctx)
@@ -46,7 +46,7 @@ fn mir_begin_struct_iterator_loop(ctx: LowerCtx, iter_name: String, struct_type:
     scope
 }
 
-fn mir_end_struct_iterator_loop(ctx: LowerCtx, scope: MirStructIteratorLoop) {
+fn mir_end_struct_iterator_loop(mut ctx: LowerCtx, scope: MirStructIteratorLoop) {
     loop_scope::mir_emit_loop_back(ctx)
     ctx_emit(ctx, inst_structured_control::MirInst_end())
     ctx_api_nesting::ctx_pop_nesting(ctx)

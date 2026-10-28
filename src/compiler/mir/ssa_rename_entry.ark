@@ -5,10 +5,10 @@ use mir::module_functions
 use mir::ssa_rename_block
 use mir::ssa_rename_init
 
-fn mir_ssa_rename_function(f: MirFunction) {
+fn mir_ssa_rename_function(mut f: MirFunction) {
     let original_local_count = function_locals_view::MirFunction_local_count(f)
     ssa_rename_init::mir_ssa_reset_local_slots(f)
-    let state = ssa_state_factory::MirSsaRenameState_new(original_local_count, function_block_queries::MirFunction_block_count(f))
+    let mut state = ssa_state_factory::MirSsaRenameState_new(original_local_count, function_block_queries::MirFunction_block_count(f))
     ssa_rename_init::mir_ssa_tag_function_params(f, state)
     ssa_rename_block::mir_ssa_rename_blocks(f, state)
 }

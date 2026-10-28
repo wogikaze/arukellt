@@ -1,7 +1,7 @@
 use wasm::opcodes
 
 fn emit_seq_unique_loop(
-    w: WasmWriter,
+    mut w: WasmWriter,
     outer_index_local: i32,
     src_len_local: i32,
     src_data_local: i32,
@@ -35,7 +35,7 @@ fn emit_seq_unique_loop(
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_seq_unique_scan_existing(w: WasmWriter, cur_value_local: i32, inner_index_local: i32, result_len_local: i32, result_data_local: i32, found_local: i32) {
+fn emit_seq_unique_scan_existing(mut w: WasmWriter, cur_value_local: i32, inner_index_local: i32, result_len_local: i32, result_data_local: i32, found_local: i32) {
     emit_seq_unique_scan_init(w, inner_index_local, found_local)
     writer_core::emit_byte(w, opcodes::OP_BLOCK())
     writer_core::emit_byte(w, 64)
@@ -59,7 +59,7 @@ fn emit_seq_unique_scan_existing(w: WasmWriter, cur_value_local: i32, inner_inde
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_seq_unique_scan_init(w: WasmWriter, inner_index_local: i32, found_local: i32) {
+fn emit_seq_unique_scan_init(mut w: WasmWriter, inner_index_local: i32, found_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -70,7 +70,7 @@ fn emit_seq_unique_scan_init(w: WasmWriter, inner_index_local: i32, found_local:
     writer_core::emit_leb128_u(w, inner_index_local)
 }
 
-fn emit_seq_unique_scan_match(w: WasmWriter, cur_value_local: i32, inner_index_local: i32, result_data_local: i32, found_local: i32) {
+fn emit_seq_unique_scan_match(mut w: WasmWriter, cur_value_local: i32, inner_index_local: i32, result_data_local: i32, found_local: i32) {
     writer_core::emit_local_get(w, result_data_local)
     writer_core::emit_local_get(w, inner_index_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
@@ -93,7 +93,7 @@ fn emit_seq_unique_scan_match(w: WasmWriter, cur_value_local: i32, inner_index_l
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_seq_unique_load_current(w: WasmWriter, outer_index_local: i32, src_data_local: i32, cur_value_local: i32) {
+fn emit_seq_unique_load_current(mut w: WasmWriter, outer_index_local: i32, src_data_local: i32, cur_value_local: i32) {
     writer_core::emit_local_get(w, src_data_local)
     writer_core::emit_local_get(w, outer_index_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
@@ -107,7 +107,7 @@ fn emit_seq_unique_load_current(w: WasmWriter, outer_index_local: i32, src_data_
     writer_core::emit_leb128_u(w, cur_value_local)
 }
 
-fn emit_seq_unique_append_if_missing(w: WasmWriter, cur_value_local: i32, result_len_local: i32, result_data_local: i32, found_local: i32) {
+fn emit_seq_unique_append_if_missing(mut w: WasmWriter, cur_value_local: i32, result_len_local: i32, result_data_local: i32, found_local: i32) {
     writer_core::emit_local_get(w, found_local)
     writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
     writer_core::emit_byte(w, opcodes::OP_IF())

@@ -8,7 +8,7 @@ use mir::lower::legacy_body
 use mir::lower::value_variants
 use mir::lower_kinds
 use mir::value_types
-fn mir_lower_legacy_body_value(ctx: LowerCtx, body: MirLowerLegacyBody) -> i32 {
+fn mir_lower_legacy_body_value(mut ctx: LowerCtx, body: MirLowerLegacyBody) -> i32 {
     let node = legacy_body::mir_legacy_body_node(body)
     if mir_legacy_tail_is_fn_value(ctx, node) {
         return value_variants::lower_function_value(ctx, ast_node::node_text(node))

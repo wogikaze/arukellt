@@ -136,7 +136,7 @@ pub fn probe_string_lines() -> bool {
 }
 
 pub fn probe_string_storage_ops() -> bool {
-    let bytes = Vec::new<i32>()
+    let mut bytes = Vec::new<i32>()
     push(bytes, 79)
     push(bytes, 75)
     let text = __intrinsic_string_from_bytes(bytes)
@@ -200,7 +200,7 @@ pub fn probe_vec_string_mutation() -> bool {
 }
 
 pub fn probe_seq_read_ops() -> bool {
-    let values = Vec::new<i32>()
+    let mut values = Vec::new<i32>()
     push(values, 2)
     push(values, 3)
     push(values, 3)
@@ -209,7 +209,7 @@ pub fn probe_seq_read_ops() -> bool {
 }
 
 pub fn probe_seq_allocation_ops() -> bool {
-    let values = Vec::new<i32>()
+    let mut values = Vec::new<i32>()
     push(values, 2)
     push(values, 3)
     push(values, 3)
@@ -280,7 +280,7 @@ pub fn probe_f32_to_string_ops() -> bool {
 }
 
 pub fn probe_push_char_ops() -> bool {
-    let text = String_new()
+    let mut text = String_new()
     push_char(text, 'A')
     text.len() == 1 && text.char_at(0) == 65
 }
@@ -314,7 +314,7 @@ pub fn probe_sort_f64_ops() -> bool {
 }
 
 pub fn probe_remove_i32_ops() -> bool {
-    let values = Vec::new<i32>()
+    let mut values = Vec::new<i32>()
     push(values, 1)
     push(values, 2)
     push(values, 3)
@@ -323,7 +323,7 @@ pub fn probe_remove_i32_ops() -> bool {
 }
 
 pub fn probe_vec_generic_mutation_ops() -> bool {
-    let values = Vec::new<i32>()
+    let mut values = Vec::new<i32>()
     push(values, 4)
     push(values, 5)
     set(values, 0, 9)
@@ -350,7 +350,7 @@ pub fn probe_vec_typed_push_get_ops() -> bool {
 }
 
 pub fn probe_vec_push_pop_get_ops() -> bool {
-    let values = Vec::new<i32>()
+    let mut values = Vec::new<i32>()
     push(values, 1)
     push(values, 2)
     push(values, 3)
@@ -370,9 +370,9 @@ pub fn probe_vec_push_pop_get_ops() -> bool {
 }
 
 pub fn probe_vec_new_capacity_ops() -> bool {
-    let a = Vec::new<i32>()
-    let b = Vec::with_capacity<i32>(4)
-    let c = Vec::new<i64>()
+    let mut a = Vec::new<i32>()
+    let mut b = Vec::with_capacity<i32>(4)
+    let mut c = Vec::new<i64>()
     push(a, 10)
     push(b, 20)
     push(c, 30_i64)

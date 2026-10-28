@@ -14,7 +14,7 @@ fn churn(slots: i32) -> i32 {
 }
 
 fn main() {
-    let m = HashMap::new<String, String>()
+    let mut m = HashMap::new<String, String>()
     let _ = m.insert("gree".concat("ting"), "hel".concat("lo"))
     let _ = m.insert("farewell", "goodbye")
     let _ = m.insert("color", "red")

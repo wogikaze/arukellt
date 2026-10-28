@@ -5,7 +5,7 @@ use wasm::intrinsics::helpers_io_memory
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 
-fn emit_parse_f64_scan_loop(w: WasmWriter, s_str: i32, s_len_local: i32) {
+fn emit_parse_f64_scan_loop(mut w: WasmWriter, s_str: i32, s_len_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_BLOCK())
     writer_core::emit_byte(w, 64)
     writer_core::emit_byte(w, opcodes::OP_LOOP())
@@ -36,7 +36,7 @@ fn emit_parse_f64_scan_loop(w: WasmWriter, s_str: i32, s_len_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_parse_f64_dot_step(w: WasmWriter) {
+fn emit_parse_f64_dot_step(mut w: WasmWriter) {
     helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_P_BYTE())
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 46)
@@ -74,14 +74,14 @@ fn emit_parse_f64_dot_step(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_parse_f64_digit_step(w: WasmWriter) {
+fn emit_parse_f64_digit_step(mut w: WasmWriter) {
     emit_parse_f64_digit_validate(w)
     emit_parse_f64_digit_accumulate(w)
     emit_parse_f64_digit_decimal_count(w)
     emit_parse_f64_digit_advance(w)
 }
 
-fn emit_parse_f64_digit_validate(w: WasmWriter) {
+fn emit_parse_f64_digit_validate(mut w: WasmWriter) {
     helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_P_BYTE())
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 48)
@@ -104,7 +104,7 @@ fn emit_parse_f64_digit_validate(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_parse_f64_digit_accumulate(w: WasmWriter) {
+fn emit_parse_f64_digit_accumulate(mut w: WasmWriter) {
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_PF_RESULT())
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_PF_RESULT())
     writer_core::emit_byte(w, opcodes::OP_F64_LOAD())
@@ -124,7 +124,7 @@ fn emit_parse_f64_digit_accumulate(w: WasmWriter) {
     writer_core::emit_byte(w, 0)
 }
 
-fn emit_parse_f64_digit_decimal_count(w: WasmWriter) {
+fn emit_parse_f64_digit_decimal_count(mut w: WasmWriter) {
     helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_PF_SAWDOT())
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
@@ -139,7 +139,7 @@ fn emit_parse_f64_digit_decimal_count(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_parse_f64_digit_advance(w: WasmWriter) {
+fn emit_parse_f64_digit_advance(mut w: WasmWriter) {
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_P_I())
     helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_P_I())
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())

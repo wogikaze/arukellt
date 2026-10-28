@@ -14,7 +14,7 @@ use mir::inst_local_set
 use mir::lower::struct_lit
 use mir::lower::value_variants
 use mir::value_types
-fn lower_struct_lit_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_struct_lit_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     let raw_name = ast_node::node_text(node)
     let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
@@ -28,8 +28,8 @@ fn lower_struct_lit_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     // instantiation (Pair<String>) before struct.new picks a GC type.
     let mut base_idx = 0 - 1
     let mut has_base = false
-    let field_names = Vec::new<String>()
-    let field_vals = Vec::new<i32>()
+    let mut field_names = Vec::new<String>()
+    let mut field_vals = Vec::new<i32>()
     // When this literal's type is already known (`Queue<String>`), a field
     // declared as `Deque<T>` must instantiate as `Deque<String>` before the
     // nested literal is lowered. Otherwise the nested literal falls back to

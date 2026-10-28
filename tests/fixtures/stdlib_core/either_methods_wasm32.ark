@@ -7,7 +7,7 @@ fn double(x: i32) -> i32 { x * 2 }
 
 fn main() {
     let left = Either::Left(7)
-    let right = Either::Right(9)
+    let mut right = Either::Right(9)
 
     test::assert_true(left.is_left())
     test::assert_true(right.is_right())

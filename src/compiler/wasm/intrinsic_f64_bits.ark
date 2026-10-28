@@ -6,7 +6,7 @@ use wasm::intrinsics::helpers_numeric_i32
 use wasm::opcodes
 use wasm::writer_core
 
-fn emit_f64_bits_lo(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_f64_bits_lo(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let f_tmp = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
     helpers_core::emit_local_set(w, f_tmp)
     // Scratch address must widen under Memory64 (f64.store address operand).
@@ -21,7 +21,7 @@ fn emit_f64_bits_lo(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_f64_bits_hi(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_f64_bits_hi(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let f_tmp2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
     helpers_core::emit_local_set(w, f_tmp2)
     helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_I32BUF())

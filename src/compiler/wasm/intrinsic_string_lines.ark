@@ -12,7 +12,7 @@ use wasm::intrinsics::helpers_numeric_i32_convert
 // exact delimiter splitting implementation so empty lines and trailing lines
 // retain the same behavior as String::split.
 use std::prelude::{byte_at, clone}
-fn emit_lines(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_lines(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return false
     }
@@ -24,7 +24,7 @@ fn emit_lines(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     true
 }
 
-fn emit_static_string(w: WasmWriter, ctx: SelfEmitCtx, value: String) {
+fn emit_static_string(mut w: WasmWriter, ctx: SelfEmitCtx, value: String) {
     let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
     let local = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let length = len(clone(value))

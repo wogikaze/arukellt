@@ -35,7 +35,7 @@ use typechecker::types
 // Only genuinely polymorphic-recursive programs (no finite demanded
 // set) still need fuel to cut off.
 
-fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) -> String {
+fn record_mono_instance(mut env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) -> String {
     let mut mangled = clone(fn_name)
     let count = len(resolved_types)
     let mut i = 0
@@ -48,7 +48,7 @@ fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeI
     let mi_count = contract_env_mono_record::type_env_mono_instance_count(env)
     let mut j = 0
     while j < mi_count {
-        let mi = contract_env_mono_record::type_env_mono_instance_at(env, j)
+        let mut mi = contract_env_mono_record::type_env_mono_instance_at(env, j)
         if eq(contract_mono::MonoInstance_mangled_name(mi), clone(mangled)) {
             if !contract_mono::MonoInstance_demanded(mi) {
                 // An instance minted without demand (module merge or a
@@ -61,7 +61,7 @@ fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeI
         }
         j = j + 1
     }
-    let inst = contract_mono::MonoInstance_new(clone(fn_name), clone(mangled), clone(resolved_types))
+    let mut inst = contract_mono::MonoInstance_new(clone(fn_name), clone(mangled), clone(resolved_types))
     contract_mono::MonoInstance_set_demanded(inst)
     contract_env_mono_record::type_env_push_mono_instance(env, inst)
     rebind_enclosing_template_sites(env, fn_name, resolved_types)
@@ -75,7 +75,7 @@ fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeI
 // function's concrete instantiation later supplies the arguments that
 // re-bind the site into a callable instance; without it the call site
 // can only bind the trapping template body.
-fn record_template_site_if_generic(env: TypeEnv, fn_name: String, mangled_name: String, resolved_types: Vec<TypeInfo>) {
+fn record_template_site_if_generic(mut env: TypeEnv, fn_name: String, mangled_name: String, resolved_types: Vec<TypeInfo>) {
     if len(env.current_fn_name) == 0 {
         return
     }
@@ -120,7 +120,7 @@ fn record_template_site_if_generic(env: TypeEnv, fn_name: String, mangled_name: 
 // the enclosing function is instantiated,
 // rebind_enclosing_template_sites binds the receiver and resolves the
 // site through the impl table to `Receiver::method`.
-fn record_var_method_site(env: TypeEnv, method_name: String, recv_ty: TypeInfo) {
+fn record_var_method_site(mut env: TypeEnv, method_name: String, recv_ty: TypeInfo) {
     if len(env.current_fn_name) == 0 {
         return
     }
@@ -140,7 +140,7 @@ fn record_var_method_site(env: TypeEnv, method_name: String, recv_ty: TypeInfo) 
         }
         s = s + 1
     }
-    let site_args = Vec::new<TypeInfo>()
+    let mut site_args = Vec::new<TypeInfo>()
     push(site_args, clone(recv_ty))
     push(env.mono_template_sites, MonoTemplateSite {
             fn_name: method_name,
@@ -247,7 +247,7 @@ fn enclosing_matches_instantiation(site_name: String, fn_name: String) -> bool {
 // concrete instantiation supplies its arguments. `Outer::next`+[VecIter]
 // turns the `Inner::next`+[?I] site into `Inner::next`+[VecIter], which
 // MIR lowering can then emit and span-rewrite call sites can resolve.
-fn rebind_enclosing_template_sites(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) {
+fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) {
     if len(resolved_types) == 0 {
         return
     }
@@ -267,7 +267,7 @@ fn rebind_enclosing_template_sites(env: TypeEnv, fn_name: String, resolved_types
             let site_vars = clone(site.enclosing_vars)
             if len(site_vars) == arg_count {
                 let site_args = clone(site.type_args)
-                let bound_args = Vec::new<TypeInfo>()
+                let mut bound_args = Vec::new<TypeInfo>()
                 let mut b = 0
                 while b < len(site_args) {
                     push(
@@ -378,7 +378,7 @@ fn record_mono_return_type(env: TypeEnv, mangled_name: String, return_type: Type
     let count = contract_env_mono_record::type_env_mono_instance_count(env)
     let mut i = 0
     while i < count {
-        let instance = contract_env_mono_record::type_env_mono_instance_at(env, i)
+        let mut instance = contract_env_mono_record::type_env_mono_instance_at(env, i)
         if eq(
             contract_mono::MonoInstance_mangled_name(instance),
             clone(mangled_name)
@@ -399,7 +399,7 @@ fn record_mono_return_type(env: TypeEnv, mangled_name: String, return_type: Type
 // propagation used to, keeping MIR scrutinee payloads typed. A method
 // whose own type parameters outnumber the trait's cannot be resolved
 // from the receiver alone; its call sites record directly instead.
-fn mint_trait_method_instance(env: TypeEnv, entry: TraitMethodEntry, method_name: String, receiver: TypeInfo) -> String {
+fn mint_trait_method_instance(mut env: TypeEnv, entry: TraitMethodEntry, method_name: String, receiver: TypeInfo) -> String {
     if associated_types::type_contains_var(clone(receiver)) {
         return String_new()
     }
@@ -422,8 +422,8 @@ fn mint_trait_method_instance(env: TypeEnv, entry: TraitMethodEntry, method_name
             contract_type_access::TypeInfo_name(self_ty),
             contract_type_access::TypeInfo_name(clone(receiver))
         ) {
-            let var_names = Vec::new<String>()
-            let var_types = Vec::new<TypeInfo>()
+            let mut var_names = Vec::new<String>()
+            let mut var_types = Vec::new<TypeInfo>()
             if !associated_types::match_pattern_collect_vars(
                 self_ty,
                 clone(receiver),
@@ -492,7 +492,7 @@ fn mint_trait_method_instance(env: TypeEnv, entry: TraitMethodEntry, method_name
 // `Receiver::method` through the same path trait-qualified sites use.
 // Inherent-impl methods are not in the impl table; those calls were
 // unresolvable at check time as well, so an empty result is correct.
-fn resolve_var_method_site(env: TypeEnv, method_name: String, receiver: TypeInfo) -> String {
+fn resolve_var_method_site(mut env: TypeEnv, method_name: String, receiver: TypeInfo) -> String {
     let owner_name = names::unqualified_type_name(
         contract_type_access::TypeInfo_name(clone(receiver))
     )
@@ -534,7 +534,7 @@ fn propagated_trait_bound(
     if arg_count == 0 {
         return base
     }
-    let concrete_args = Vec::new<TypeInfo>()
+    let mut concrete_args = Vec::new<TypeInfo>()
     let mut i = 0
     while i < arg_count {
         push(

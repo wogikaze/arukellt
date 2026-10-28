@@ -1,7 +1,7 @@
 use std::core::iter
 use std::test
 
-fn first<T: iter::Iterator>(iterator: T) -> Option<T::Item> {
+fn first<T: iter::Iterator>(mut iterator: T) -> Option<T::Item> {
     iterator.next()
 }
 
@@ -9,66 +9,66 @@ fn first_from_source<T: iter::IntoIterator>(source: T) -> Option<T::Item> {
     source.into_iter().next()
 }
 
-fn collect_values<T: iter::Iterator>(iterator: T) -> Vec<T::Item> {
+fn collect_values<T: iter::Iterator>(mut iterator: T) -> Vec<T::Item> {
     iterator.collect()
 }
 
-fn count_values<T: iter::Iterator>(iterator: T) -> i32 {
+fn count_values<T: iter::Iterator>(mut iterator: T) -> i32 {
     iterator.count()
 }
 
 fn main() {
-    let source: Vec<String> = Vec::new<String>()
+    let mut source: Vec<String> = Vec::new<String>()
     push(source, String_from("alpha"))
-    let iterator = source.into_iter()
+    let mut iterator = source.into_iter()
     match iterator.next() {
         Some(value) => test::assert_eq_string(value, "alpha"),
         None => panic("expected first string"),
     }
 
-    let generic_source: Vec<String> = Vec::new<String>()
+    let mut generic_source: Vec<String> = Vec::new<String>()
     push(generic_source, String_from("beta"))
     match first(generic_source.into_iter()) {
         Some(value) => test::assert_eq_string(value, "beta"),
         None => panic("expected generic first string"),
     }
 
-    let converted_source: Vec<String> = Vec::new<String>()
+    let mut converted_source: Vec<String> = Vec::new<String>()
     push(converted_source, String_from("theta"))
     match first_from_source(converted_source) {
         Some(value) => test::assert_eq_string(value, "theta"),
         None => panic("expected converted first string"),
     }
 
-    let collect_source: Vec<String> = Vec::new<String>()
+    let mut collect_source: Vec<String> = Vec::new<String>()
     push(collect_source, String_from("gamma"))
     let collected = collect_values(collect_source.into_iter())
     test::assert_eq_i32(len(collected), 1)
     test::assert_eq_string(get_unchecked(collected, 0), "gamma")
 
-    let count_source: Vec<String> = Vec::new<String>()
+    let mut count_source: Vec<String> = Vec::new<String>()
     push(count_source, String_from("delta"))
     push(count_source, String_from("epsilon"))
     test::assert_eq_i32(count_values(count_source.into_iter()), 2)
 
-    let from_source: Vec<String> = Vec::new<String>()
+    let mut from_source: Vec<String> = Vec::new<String>()
     push(from_source, String_from("zeta"))
     let rebuilt: Vec<String> = Vec::from_iter(from_source.into_iter())
     test::assert_eq_string(get_unchecked(rebuilt, 0), "zeta")
 
-    let method_source: Vec<String> = Vec::new<String>()
+    let mut method_source: Vec<String> = Vec::new<String>()
     push(method_source, String_from("eta"))
     let method_collected = method_source.iter().collect()
     test::assert_eq_string(get_unchecked(method_collected, 0), "eta")
 
-    let take_source: Vec<String> = Vec::new<String>()
+    let mut take_source: Vec<String> = Vec::new<String>()
     push(take_source, String_from("kappa"))
     push(take_source, String_from("lambda"))
     let take_collected = take_source.iter().take(1).collect()
     test::assert_eq_i32(len(take_collected), 1)
     test::assert_eq_string(get_unchecked(take_collected, 0), "kappa")
 
-    let skip_take_source: Vec<String> = Vec::new<String>()
+    let mut skip_take_source: Vec<String> = Vec::new<String>()
     push(skip_take_source, String_from("mu"))
     push(skip_take_source, String_from("nu"))
     push(skip_take_source, String_from("xi"))
@@ -76,7 +76,7 @@ fn main() {
     test::assert_eq_i32(len(skip_take_collected), 1)
     test::assert_eq_string(get_unchecked(skip_take_collected, 0), "nu")
 
-    let for_source: Vec<String> = Vec::new<String>()
+    let mut for_source: Vec<String> = Vec::new<String>()
     push(for_source, String_from("iota"))
     let mut seen = 0
     for value in for_source {

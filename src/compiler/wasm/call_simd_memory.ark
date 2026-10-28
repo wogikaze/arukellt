@@ -12,7 +12,7 @@ use wasm::opcodes
 use wasm::writer_core
 
 fn try_emit_simd_native_memory(
-    w: WasmWriter,
+    mut w: WasmWriter,
     handler_id: i32,
     inst: MirInst,
     ctx: SelfEmitCtx,
@@ -99,7 +99,7 @@ fn try_emit_simd_native_memory(
 // the value staged, so report "not handled" and let the unresolved call
 // fallback drop the operands and trap instead of emitting an invalid immediate.
 fn emit_v128_load_lane(
-    w: WasmWriter,
+    mut w: WasmWriter,
     inst: MirInst,
     ctx: SelfEmitCtx,
     sub_opcode: i32,
@@ -122,7 +122,7 @@ fn emit_v128_load_lane(
 }
 
 fn emit_v128_store_lane(
-    w: WasmWriter,
+    mut w: WasmWriter,
     inst: MirInst,
     ctx: SelfEmitCtx,
     sub_opcode: i32,
@@ -141,7 +141,7 @@ fn emit_v128_store_lane(
 
 // Load: [address, offset] -> [effective address].
 fn emit_v128_load(
-    w: WasmWriter,
+    mut w: WasmWriter,
     inst: MirInst,
     sub_opcode: i32,
     align: i32,
@@ -157,7 +157,7 @@ fn emit_v128_load(
 }
 
 // Store: [address, offset, value] -> [effective address, value].
-fn emit_v128_store(w: WasmWriter, ctx: SelfEmitCtx, sub_opcode: i32, align: i32) {
+fn emit_v128_store(mut w: WasmWriter, ctx: SelfEmitCtx, sub_opcode: i32, align: i32) {
     emit_v128_vector_above_address(w, ctx)
     call_simd_emit::emit_simd_prefix(w, sub_opcode)
     emit_v128_memarg(w, align)
@@ -166,7 +166,7 @@ fn emit_v128_store(w: WasmWriter, ctx: SelfEmitCtx, sub_opcode: i32, align: i32)
 // Lane load/store share the operand shape of a store: the vector sits on top
 // of the two address operands, so park it in a scratch slot and put it back
 // above the effective address.
-fn emit_v128_vector_above_address(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_v128_vector_above_address(mut w: WasmWriter, ctx: SelfEmitCtx) {
     let scratch = ctx_scratch::SelfEmitCtx_scratch_v128_local(ctx, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, scratch)
@@ -174,11 +174,11 @@ fn emit_v128_vector_above_address(w: WasmWriter, ctx: SelfEmitCtx) {
     writer_core::emit_local_get(w, scratch)
 }
 
-fn emit_v128_effective_address(w: WasmWriter) {
+fn emit_v128_effective_address(mut w: WasmWriter) {
     helpers_numeric_i32::emit_i32_or_widened_op(w, opcodes::OP_I32_ADD(), opcodes::OP_I64_ADD())
 }
 
-fn emit_v128_memarg(w: WasmWriter, align: i32) {
+fn emit_v128_memarg(mut w: WasmWriter, align: i32) {
     writer_core::emit_byte(w, align)
     writer_core::emit_leb128_u(w, 0)
 }

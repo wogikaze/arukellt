@@ -5,7 +5,7 @@ use resolver::scope_define
 use resolver::kinds
 use resolver::walk
 
-fn resolve_impl(ctx: ResolveCtx, node: AstNode) {
+fn resolve_impl(mut ctx: ResolveCtx, node: AstNode) {
     let mcount = ast_access::node_child_count(node)
     let mut mi = 0
     while mi < mcount {
@@ -21,7 +21,7 @@ fn resolve_impl(ctx: ResolveCtx, node: AstNode) {
             pi = pi + 1
         }
         if m_child_count > 0 {
-            let m_body = ast_access::node_child_at(method, m_child_count - 1)
+            let mut m_body = ast_access::node_child_at(method, m_child_count - 1)
             walk::resolve_node(ctx, m_body)
         }
         scope_stack_lifecycle::pop_scope(ctx)

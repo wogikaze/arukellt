@@ -6,7 +6,7 @@ fn first_from_source<T: iter::IntoIterator>(source: T) -> Option<T::Item> {
     source.into_iter().next()
 }
 
-fn fold_values<T: iter::Iterator + iter::IteratorFold<i32, i32>>(iterator: T, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+fn fold_values<T: iter::Iterator + iter::IteratorFold<i32, i32>>(mut iterator: T, init: i32, f: fn(i32, i32) -> i32) -> i32 {
     iterator.fold(init, f)
 }
 
@@ -31,7 +31,7 @@ fn main() {
     test::assert_eq_i32(get_unchecked(collected, 4), 4)
 
     let source = Range::new(2, 5)
-    let iterator = source.into_iter()
+    let mut iterator = source.into_iter()
     match iterator.next() {
         Some(value) => test::assert_eq_i32(value, 2),
         None => panic("expected first range item"),
@@ -44,7 +44,7 @@ fn main() {
     }
 
     let inclusive_source = RangeInclusive::new(3, 5)
-    let inclusive_iterator = inclusive_source.into_iter()
+    let mut inclusive_iterator = inclusive_source.into_iter()
     match inclusive_iterator.next() {
         Some(value) => test::assert_eq_i32(value, 3),
         None => panic("expected inclusive range item"),

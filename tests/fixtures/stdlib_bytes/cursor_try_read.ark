@@ -3,9 +3,9 @@ use std::host::stdio
 
 fn main() {
     // try_read_u8: success
-    let data1: Vec<i32> = Vec::new<i32>()
+    let mut data1: Vec<i32> = Vec::new<i32>()
     data1.push_byte( 42)
-    let c1: Vec<i32> = data1.byte_cursor()
+    let mut c1: Vec<i32> = data1.byte_cursor()
     let r1: Option<i32> = c1.try_read_u8()
     match r1 {
         Option::Some(v) => stdio::println((v).to_string()),
@@ -18,10 +18,10 @@ fn main() {
         None => stdio::println("none"),
     }
     // try_read_u16_le: [10, 0] -> Some(10)
-    let data2: Vec<i32> = Vec::new<i32>()
+    let mut data2: Vec<i32> = Vec::new<i32>()
     data2.push_byte( 10)
     data2.push_byte( 0)
-    let c2: Vec<i32> = data2.byte_cursor()
+    let mut c2: Vec<i32> = data2.byte_cursor()
     let r3: Option<i32> = c2.try_read_u16_le()
     match r3 {
         Option::Some(v) => stdio::println((v).to_string()),
@@ -34,36 +34,36 @@ fn main() {
         None => stdio::println("none"),
     }
     // try_read_u32_le: [4,3,2,1] -> Some(16909060)
-    let data3: Vec<i32> = Vec::new<i32>()
+    let mut data3: Vec<i32> = Vec::new<i32>()
     data3.push_byte( 4)
     data3.push_byte( 3)
     data3.push_byte( 2)
     data3.push_byte( 1)
-    let c3: Vec<i32> = data3.byte_cursor()
+    let mut c3: Vec<i32> = data3.byte_cursor()
     let r5: Option<i32> = c3.try_read_u32_le()
     match r5 {
         Option::Some(v) => stdio::println((v).to_string()),
         None => stdio::println("none"),
     }
     // try_read_u32_be: [1,2,3,4] -> Some(16909060)
-    let data4: Vec<i32> = Vec::new<i32>()
+    let mut data4: Vec<i32> = Vec::new<i32>()
     data4.push_byte( 1)
     data4.push_byte( 2)
     data4.push_byte( 3)
     data4.push_byte( 4)
-    let c4: Vec<i32> = data4.byte_cursor()
+    let mut c4: Vec<i32> = data4.byte_cursor()
     let r6: Option<i32> = c4.try_read_u32_be()
     match r6 {
         Option::Some(v) => stdio::println((v).to_string()),
         None => stdio::println("none"),
     }
     // try_read_bytes: success - read 2 bytes from 4-byte cursor
-    let data7: Vec<i32> = Vec::new<i32>()
+    let mut data7: Vec<i32> = Vec::new<i32>()
     data7.push_byte( 7)
     data7.push_byte( 8)
     data7.push_byte( 9)
     data7.push_byte( 10)
-    let c7: Vec<i32> = data7.byte_cursor()
+    let mut c7: Vec<i32> = data7.byte_cursor()
     let r9: Option<Vec<i32>> = c7.try_read_bytes( 2)
     match r9 {
         Option::Some(chunk) => stdio::println((chunk.len()).to_string()),

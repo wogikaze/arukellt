@@ -7,7 +7,7 @@ use parser::imports_local
 use parser::imports_wit
 use parser::kinds
 
-fn parse_import_decl(p: Parser) -> AstNode {
+fn parse_import_decl(mut p: Parser) -> AstNode {
     let t = core_api_expect::expect_token(p, tokens::TK_IMPORT())
     let span = core_api_expect::tok_span(t)
     core_api_cursor::skip_newlines(p)

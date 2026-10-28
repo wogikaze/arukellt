@@ -38,19 +38,19 @@ fn ComponentRecordVariantScan_export_count_is(scan: ComponentRecordVariantScan, 
     scan.export_count == expected
 }
 
-fn ComponentRecordVariantScan_set_has_shape(scan: ComponentRecordVariantScan, value: bool) {
+fn ComponentRecordVariantScan_set_has_shape(mut scan: ComponentRecordVariantScan, value: bool) {
     scan.has_shape = value
 }
 
-fn ComponentRecordVariantScan_set_has_shape_to_f64(scan: ComponentRecordVariantScan, value: bool) {
+fn ComponentRecordVariantScan_set_has_shape_to_f64(mut scan: ComponentRecordVariantScan, value: bool) {
     scan.has_shape_to_f64 = value
 }
 
-fn ComponentRecordVariantScan_set_has_shape_to_shape(scan: ComponentRecordVariantScan, value: bool) {
+fn ComponentRecordVariantScan_set_has_shape_to_shape(mut scan: ComponentRecordVariantScan, value: bool) {
     scan.has_shape_to_shape = value
 }
 
-fn ComponentRecordVariantScan_increment_export_count(scan: ComponentRecordVariantScan) {
+fn ComponentRecordVariantScan_increment_export_count(mut scan: ComponentRecordVariantScan) {
     scan.export_count = scan.export_count + 1
 }
 
@@ -63,7 +63,7 @@ fn ComponentRecordVariantScan_allows_roundtrip(scan: ComponentRecordVariantScan)
 }
 
 fn component_record_variant_scan(decls: Vec<AstNode>) -> ComponentRecordVariantScan {
-    let scan = ComponentRecordVariantScan_empty()
+    let mut scan = ComponentRecordVariantScan_empty()
     for i in 0..len(decls) {
         let d = get_unchecked(decls, i)
         if contract_record_decl::component_decl_is_shape_variant(d) {

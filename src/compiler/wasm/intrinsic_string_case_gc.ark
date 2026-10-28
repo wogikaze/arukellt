@@ -11,7 +11,7 @@ use wasm::intrinsics::helpers_numeric_i32_convert
 
 // GC-target case conversion: strings are (ref null array_i8) refs.
 use std::prelude::{to_upper}
-fn emit_case_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, range_start: i32, range_end: i32, to_upper: bool) {
+fn emit_case_gc(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, range_start: i32, range_end: i32, to_upper: bool) {
     let g0 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let g1 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
     let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
@@ -71,7 +71,7 @@ fn emit_case_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, range_start: i32
     helpers_core::emit_local_get(w, g1)
 }
 
-fn emit_ascii_case_convert_if_needed(w: WasmWriter, s_ch: i32, range_start: i32, range_end: i32, to_upper: bool) {
+fn emit_ascii_case_convert_if_needed(mut w: WasmWriter, s_ch: i32, range_start: i32, range_end: i32, to_upper: bool) {
     helpers_core::emit_local_get(w, s_ch)
     helpers_numeric_i32::emit_i32_const(w, range_start)
     helpers_numeric_i32::emit_i32_ge_s(w)

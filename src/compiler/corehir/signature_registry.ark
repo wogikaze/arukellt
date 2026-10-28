@@ -27,7 +27,7 @@ fn signature_registry_entry_count(registry: SignatureRegistry) -> i32 {
     len(registry.entries)
 }
 
-fn signature_registry_register(registry: SignatureRegistry, entry: SignatureEntry, mangled_name: String) -> FunctionId {
+fn signature_registry_register(mut registry: SignatureRegistry, entry: SignatureEntry, mangled_name: String) -> FunctionId {
     name_index::name_index_insert_first(registry.mangled_to_id, clone(mangled_name), registry.next_id)
     push(registry.entries, entry)
     push(registry.id_to_mangled, mangled_name)
@@ -42,7 +42,7 @@ fn signature_registry_register(registry: SignatureRegistry, entry: SignatureEntr
 // a MirFunction. Same-name fid chains must skip them or an emitted user fn
 // that shares the bare name (strings::repeat vs stdlib repeat, #920) binds
 // the deferred decl's FunctionId and its own fid stays unmapped.
-fn signature_registry_mark_signature_only(registry: SignatureRegistry, index: i32) {
+fn signature_registry_mark_signature_only(mut registry: SignatureRegistry, index: i32) {
     if index >= 0 && index < len(registry.signature_only) {
         set(registry.signature_only, index, true)
     }
@@ -59,8 +59,8 @@ fn signature_registry_entry_at(registry: SignatureRegistry, index: i32) -> Signa
     get_unchecked(registry.entries, index)
 }
 
-fn signature_registry_set_core_op_id_at(registry: SignatureRegistry, index: i32, core_op_id: CoreOpId) {
-    let entry = get_unchecked(registry.entries, index)
+fn signature_registry_set_core_op_id_at(mut registry: SignatureRegistry, index: i32, core_op_id: CoreOpId) {
+    let mut entry = get_unchecked(registry.entries, index)
     signature_entry::signature_entry_set_core_op_id(entry, core_op_id)
     set(registry.entries, index, entry)
 }
@@ -82,7 +82,7 @@ fn signature_registry_lookup_by_mangled(registry: SignatureRegistry, mangled: St
 // bare declaration `f` must share the same FunctionId.  Registering a second
 // entry would break the FunctionId-to-body mapping and can turn a qualified
 // forwarding call into recursion.
-fn signature_registry_register_alias(registry: SignatureRegistry, alias: String, target: FunctionId) {
+fn signature_registry_register_alias(mut registry: SignatureRegistry, alias: String, target: FunctionId) {
     let raw = FunctionId_raw(target)
     if raw < 0 || raw >= len(registry.entries) {
         return
@@ -95,7 +95,7 @@ fn signature_registry_register_alias(registry: SignatureRegistry, alias: String,
 }
 
 fn signature_registry_register_core_op_alias(
-    registry: SignatureRegistry,
+    mut registry: SignatureRegistry,
     alias: String,
     coid: CoreOpId
 ) -> FunctionId {

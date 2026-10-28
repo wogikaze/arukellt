@@ -85,7 +85,7 @@ fn is_option_or_result_type_name(type_name: String) -> bool {
     starts_with(clone(type_name), "option:")
 }
 
-fn mark_call_result_from_return_type_name(ctx: LowerCtx, dest: i32, type_name: String) {
+fn mark_call_result_from_return_type_name(mut ctx: LowerCtx, dest: i32, type_name: String) {
     let cleaned = strip_embedded_module_path_prefixes(type_name)
     if len(cleaned) == 0 {
         return
@@ -182,7 +182,7 @@ fn mark_call_result_from_return_type_name(ctx: LowerCtx, dest: i32, type_name: S
     }
 }
 
-fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
+fn mark_fallback_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32) {
     // Hard overrides must win over premature enum:open (#726 toml Result<Vec>).
     if call_type_fallback_stdlib::mark_toml_result_vec_call_type(ctx, clone(callee_name), dest) {
         set_vt_for_resolved_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
@@ -234,7 +234,7 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
     apply_mono_return_mvt_to_dest(ctx, clone(callee_name), dest)
 }
 
-fn apply_mono_return_mvt_to_dest(ctx: LowerCtx, callee_name: String, dest: i32) {
+fn apply_mono_return_mvt_to_dest(mut ctx: LowerCtx, callee_name: String, dest: i32) {
     let mvt = mono_return_vt::mono_return_mvt(ctx, callee_name)
     if typed_mir_compat::mvt_is_invalid(mvt) {
         return
@@ -246,7 +246,7 @@ fn apply_mono_return_mvt_to_dest(ctx: LowerCtx, callee_name: String, dest: i32) 
     ctx_api_local_types::ctx_set_local_mvt(ctx, dest, mvt)
 }
 
-fn set_vt_for_resolved_type_name(ctx: LowerCtx, dest: i32, type_name: String) {
+fn set_vt_for_resolved_type_name(mut ctx: LowerCtx, dest: i32, type_name: String) {
     if len(type_name) == 0 {
         return
     }
@@ -279,7 +279,7 @@ fn set_vt_for_resolved_type_name(ctx: LowerCtx, dest: i32, type_name: String) {
     set_ref_vt_for_type_name(ctx, dest, type_name)
 }
 
-fn mark_struct_constructor_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
+fn mark_struct_constructor_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32) {
     let cn_stripped = call_type_fallback_stdlib::mir_strip_module_prefix(clone(callee_name))
     let cn_len = len(cn_stripped)
     if cn_len > 4 {
@@ -316,7 +316,7 @@ fn mark_struct_constructor_result_type(ctx: LowerCtx, callee_name: String, dest:
 // is a reference type (String, struct, enum, vec, hashmap, option).
 // This prevents the emitter from declaring the local as i32 and then
 // storing a GC reference value into it, which produces invalid wasm.
-fn set_ref_vt_for_type_name(ctx: LowerCtx, dest: i32, type_name: String) {
+fn set_ref_vt_for_type_name(mut ctx: LowerCtx, dest: i32, type_name: String) {
     if len(type_name) == 0 {
         return
     }
@@ -332,7 +332,7 @@ fn set_ref_vt_for_type_name(ctx: LowerCtx, dest: i32, type_name: String) {
 
 // Promote an Option/Result/enum container local to VT_GC_REF before
 // MIR_GC_STRUCT_GET uses it as a base. Empty type_name forces VT_GC_REF.
-fn mir_promote_gc_enum_container_vt(ctx: LowerCtx, local_idx: i32) {
+fn mir_promote_gc_enum_container_vt(mut ctx: LowerCtx, local_idx: i32) {
     if !ctx_gc_enum::ctx_is_gc_target(ctx) {
         return
     }

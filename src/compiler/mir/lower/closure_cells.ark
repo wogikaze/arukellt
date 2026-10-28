@@ -23,7 +23,7 @@ use mir::opcodes
 // name never matches the parent's cells.
 
 use std::prelude::{clone, eq}
-fn ctx_register_env_cell(ctx: LowerCtx, fn_name: String, local_idx: i32, env_local: i32, env_name: String, offset: i32, field_idx: i32, total: i32, vt: i32) {
+fn ctx_register_env_cell(mut ctx: LowerCtx, fn_name: String, local_idx: i32, env_local: i32, env_name: String, offset: i32, field_idx: i32, total: i32, vt: i32) {
     push(ctx.cell_fn_names, fn_name)
     push(ctx.cell_local_indices, local_idx)
     push(ctx.cell_env_locals, env_local)
@@ -38,7 +38,7 @@ fn ctx_register_env_cell(ctx: LowerCtx, fn_name: String, local_idx: i32, env_loc
 // only for MIR_RETURN inside a function that owns cells; the empty vec for
 // every other inst keeps the ctx_emit hot path to a single opcode compare.
 fn ctx_env_cell_flush(ctx: LowerCtx, inst: MirInstDraft) -> Vec<MirInstDraft> {
-    let out = Vec::new<MirInstDraft>()
+    let mut out = Vec::new<MirInstDraft>()
     if inst_draft::MirInstDraft_op(inst) != opcodes::MIR_RETURN() {
         return out
     }
@@ -71,7 +71,7 @@ fn ctx_env_cell_flush(ctx: LowerCtx, inst: MirInstDraft) -> Vec<MirInstDraft> {
 // rebound so the caller can keep the plain
 // (closure_params..., captures...) signature. Shared by the AST and
 // CoreHIR capture-binding paths.
-fn ctx_bind_closure_env_cells(ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<i32>, rebind_flags: Vec<i32>, env_name: String) -> i32 {
+fn ctx_bind_closure_env_cells(mut ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<i32>, rebind_flags: Vec<i32>, env_name: String) -> i32 {
     let cap_n = len(caps)
     let mut has_cell = 0
     let mut i = 0
@@ -150,7 +150,7 @@ fn ctx_has_env_cell(rebind_flags: Vec<i32>) -> i32 {
 // (borrow captures cannot escape, E0213), so every reachable call site is
 // a direct name(...) call in the same frame; the write-back runs there
 // once per rebind capture.
-fn ctx_register_env_writeback(ctx: LowerCtx, synth: String, src_li: i32, env_local: i32, env_name: String, offset: i32, field_idx: i32, total: i32, vt: i32) {
+fn ctx_register_env_writeback(mut ctx: LowerCtx, synth: String, src_li: i32, env_local: i32, env_name: String, offset: i32, field_idx: i32, total: i32, vt: i32) {
     push(ctx.wb_synths, synth)
     push(ctx.wb_src_lis, src_li)
     push(ctx.wb_env_lis, env_local)
@@ -165,7 +165,7 @@ fn ctx_register_env_writeback(ctx: LowerCtx, synth: String, src_li: i32, env_loc
 // `synth`. Called right after the direct `call $synth` so the mut-borrowed
 // source local observes the cell's flushed value (ADR-061 section 1: a
 // rebind capture mutates the source's place).
-fn ctx_emit_closure_writeback(ctx: LowerCtx, synth: String) {
+fn ctx_emit_closure_writeback(mut ctx: LowerCtx, synth: String) {
     if len(ctx.wb_synths) == 0 {
         return
     }

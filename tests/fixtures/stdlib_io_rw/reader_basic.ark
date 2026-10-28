@@ -3,7 +3,7 @@ use std::host::stdio
 use std::io
 
 fn main() {
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     data.push_byte(72)
     data.push_byte(101)
     data.push_byte(108)
@@ -15,7 +15,7 @@ fn main() {
     data.push_byte(114)
     data.push_byte(108)
     data.push_byte(100)
-    let r: io::Reader = io::Reader::from_bytes(data)
+    let mut r: io::Reader = io::Reader::from_bytes(data)
     stdio::println((r.is_eof()).to_string())
     let res: Result<Vec<i32>, io::IoError> = r.read(5)
     match res {

@@ -28,11 +28,11 @@ fn ComponentRecordPointScan_export_count_is(scan: ComponentRecordPointScan, expe
     scan.export_count == expected
 }
 
-fn ComponentRecordPointScan_increment_export_count(scan: ComponentRecordPointScan) {
+fn ComponentRecordPointScan_increment_export_count(mut scan: ComponentRecordPointScan) {
     scan.export_count = scan.export_count + 1
 }
 
-fn component_record_point_scan_apply_export(scan: ComponentRecordPointScan, d: AstNode) {
+fn component_record_point_scan_apply_export(mut scan: ComponentRecordPointScan, d: AstNode) {
     ComponentRecordPointScan_increment_export_count(scan)
     let f = contract_helpers::component_func_from_decl(d)
     if contract_record_fn::component_fn_is_point_to_i32(f) {
@@ -46,7 +46,7 @@ fn component_record_point_scan_apply_export(scan: ComponentRecordPointScan, d: A
     }
 }
 
-fn component_record_point_scan_apply_decl(scan: ComponentRecordPointScan, d: AstNode) {
+fn component_record_point_scan_apply_decl(mut scan: ComponentRecordPointScan, d: AstNode) {
     if contract_record_decl::component_decl_is_point_shape(d) {
         scan.has_point_shape = true
     }
@@ -72,7 +72,7 @@ fn ComponentRecordPointScan_allows_add(scan: ComponentRecordPointScan) -> bool {
 }
 
 fn component_record_point_scan(decls: Vec<AstNode>) -> ComponentRecordPointScan {
-    let scan = ComponentRecordPointScan_empty()
+    let mut scan = ComponentRecordPointScan_empty()
     for i in 0..len(decls) {
         let d = get_unchecked(decls, i)
         component_record_point_scan_apply_decl(scan, d)

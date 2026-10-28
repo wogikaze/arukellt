@@ -7,7 +7,7 @@ use mir::inst_local_set
 use mir::opcodes
 use mir::value_types
 
-fn core_record_match_terminating_arm(ctx: LowerCtx, result: i32) {
+fn core_record_match_terminating_arm(mut ctx: LowerCtx, result: i32) {
     let current_state = ctx_match_result_state::ctx_match_result_state_get(ctx, result)
     if current_state == ctx_match_result_state::ctx_match_result_state_none() {
         ctx_match_result_state::ctx_match_result_state_set(
@@ -26,7 +26,7 @@ fn core_record_match_terminating_arm(ctx: LowerCtx, result: i32) {
     }
 }
 
-fn core_record_match_nonterminating_arm(ctx: LowerCtx, result: i32) {
+fn core_record_match_nonterminating_arm(mut ctx: LowerCtx, result: i32) {
     let current_state = ctx_match_result_state::ctx_match_result_state_get(ctx, result)
     if current_state == ctx_match_result_state::ctx_match_result_state_none() ||
     current_state == ctx_match_result_state::ctx_match_result_state_all_terminating() {
@@ -38,7 +38,7 @@ fn core_record_match_nonterminating_arm(ctx: LowerCtx, result: i32) {
     }
 }
 
-fn core_store_match_arm_result(ctx: LowerCtx, result: i32, arm_result: i32) {
+fn core_store_match_arm_result(mut ctx: LowerCtx, result: i32, arm_result: i32) {
     if arm_result < 0 {
         if ctx_api_emit::ctx_current_block_ends_with_control_return(ctx) {
             core_record_match_terminating_arm(ctx, result)
@@ -64,7 +64,7 @@ fn core_store_match_arm_result(ctx: LowerCtx, result: i32, arm_result: i32) {
     ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(result, arm_result))
 }
 
-fn core_emit_match_result_get(ctx: LowerCtx, result: i32) -> i32 {
+fn core_emit_match_result_get(mut ctx: LowerCtx, result: i32) -> i32 {
     let state = ctx_match_result_state::ctx_match_result_state_get(ctx, result)
     if state == ctx_match_result_state::ctx_match_result_state_all_terminating() {
         ctx_api_emit::ctx_emit(ctx, inst_factory::MirInst_new(opcodes::MIR_UNREACHABLE()))

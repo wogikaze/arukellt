@@ -7,14 +7,14 @@ use wasm::intrinsics::helpers_numeric_i32_arith
 use wasm::intrinsics::helpers_numeric_i32_compare
 use wasm::intrinsics::helpers_numeric_i32_const
 
-fn emit_heap_get(w: WasmWriter) {
+fn emit_heap_get(mut w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
     writer_leb::emit_leb128_u(w, 0)
 }
 
 // Reads global 0 (already updated) and grows memory when the heap pointer
 // passed the current memory size. Stack-neutral: safe right after global.set.
-fn emit_heap_ensure_grown(w: WasmWriter) {
+fn emit_heap_ensure_grown(mut w: WasmWriter) {
     if writer_core::writer_memory64(w) {
         emit_heap_ensure_grown_i64(w)
         return
@@ -34,7 +34,7 @@ fn emit_heap_ensure_grown(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_heap_ensure_grown_i64(w: WasmWriter) {
+fn emit_heap_ensure_grown_i64(mut w: WasmWriter) {
     emit_heap_get(w)
     writer_core::emit_byte(w, opcodes::OP_MEMORY_SIZE())
     writer_leb::emit_leb128_u(w, 0)
@@ -48,7 +48,7 @@ fn emit_heap_ensure_grown_i64(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_heap_grow_pages(w: WasmWriter) {
+fn emit_heap_grow_pages(mut w: WasmWriter) {
     emit_heap_get(w)
     writer_core::emit_byte(w, opcodes::OP_MEMORY_SIZE())
     writer_leb::emit_leb128_u(w, 0)
@@ -69,7 +69,7 @@ fn emit_heap_grow_pages(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_DROP())
 }
 
-fn emit_heap_grow_pages_i64(w: WasmWriter) {
+fn emit_heap_grow_pages_i64(mut w: WasmWriter) {
     emit_heap_get(w)
     writer_core::emit_byte(w, opcodes::OP_MEMORY_SIZE())
     writer_leb::emit_leb128_u(w, 0)
@@ -88,7 +88,7 @@ fn emit_heap_grow_pages_i64(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_DROP())
 }
 
-fn emit_heap_set(w: WasmWriter) {
+fn emit_heap_set(mut w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
     writer_leb::emit_leb128_u(w, 0)
     emit_heap_ensure_grown(w)
@@ -108,7 +108,7 @@ fn emit_heap_set(w: WasmWriter) {
 // each host-written chunk this way and fire one emit_heap_set once the
 // final size is known, so the assembled value lands in a single managed
 // record instead of one record per chunk.
-fn emit_heap_advance_uncommitted(w: WasmWriter) {
+fn emit_heap_advance_uncommitted(mut w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
     writer_leb::emit_leb128_u(w, 0)
     emit_heap_ensure_grown(w)
@@ -117,7 +117,7 @@ fn emit_heap_advance_uncommitted(w: WasmWriter) {
 // Consume a linear allocation size from the stack and leave its stable payload
 // pointer there. The runtime function exists only on the wasm32 fallback; all
 // callers are target-gated before reaching this helper.
-fn emit_heap_alloc_from_stack(w: WasmWriter) {
+fn emit_heap_alloc_from_stack(mut w: WasmWriter) {
     let alloc_idx = writer_core::writer_linear_gc_alloc_function_index(w)
     if alloc_idx < 0 {
         return
@@ -127,7 +127,7 @@ fn emit_heap_alloc_from_stack(w: WasmWriter) {
 }
 
 // Pre-grow linear memory when heap_top + headroom would exceed current size.
-fn emit_heap_pre_grow_headroom(w: WasmWriter, headroom: i32) {
+fn emit_heap_pre_grow_headroom(mut w: WasmWriter, headroom: i32) {
     if writer_core::writer_memory64(w) {
         emit_heap_pre_grow_headroom_i64(w, headroom)
         return
@@ -159,7 +159,7 @@ fn emit_heap_pre_grow_headroom(w: WasmWriter, headroom: i32) {
     helpers_control_structured::emit_end(w)
 }
 
-fn emit_heap_pre_grow_headroom_i64(w: WasmWriter, headroom: i32) {
+fn emit_heap_pre_grow_headroom_i64(mut w: WasmWriter, headroom: i32) {
     emit_heap_get(w)
     writer_core::emit_byte(w, opcodes::OP_I64_CONST())
     writer_leb::emit_leb128_s(w, headroom)

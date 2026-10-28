@@ -9,7 +9,7 @@ use mir::lower::ctx_types
 use mir::mono
 use mir::value_types
 use wasm::sections_types_gc_phase7
-fn mir_resolve_mono_call_target(ctx: LowerCtx, rewritten: String, first_arg_idx: i32, span_start: i32) -> String {
+fn mir_resolve_mono_call_target(mut ctx: LowerCtx, rewritten: String, first_arg_idx: i32, span_start: i32) -> String {
     let mut resolved = concretize_var_owner_call_target(ctx, clone(rewritten))
     let mut mono_resolved_by_type = false
     if first_arg_idx >= 0 {

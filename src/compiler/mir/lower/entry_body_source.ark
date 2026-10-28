@@ -42,7 +42,7 @@ fn mir_entry_body_source_view(source: MirLowerEntryBodySource) -> MirLowerEntryV
     source.entry_view
 }
 
-fn mir_entry_body_source_fn_input(source: MirLowerEntryBodySource, decl_index: i32, fn_info_index: i32, body_idx: i32) -> MirLowerEntryBodyInput {
+fn mir_entry_body_source_fn_input(mut source: MirLowerEntryBodySource, decl_index: i32, fn_info_index: i32, body_idx: i32) -> MirLowerEntryBodyInput {
     let entry_view = mir_entry_body_source_view(source)
     let core_body = if source.lazy_body {
         mir_entry_body_source_lazy_fn_core(source, decl_index, body_idx)
@@ -55,7 +55,7 @@ fn mir_entry_body_source_fn_input(source: MirLowerEntryBodySource, decl_index: i
     entry_body_input::mir_entry_body_input_new(fallback, fallback_has_body, core_body)
 }
 
-fn mir_entry_body_source_method_input(source: MirLowerEntryBodySource, impl_decl_index: i32, method_index: i32, method_info_index: i32, body_idx: i32) -> MirLowerEntryBodyInput {
+fn mir_entry_body_source_method_input(mut source: MirLowerEntryBodySource, impl_decl_index: i32, method_index: i32, method_info_index: i32, body_idx: i32) -> MirLowerEntryBodyInput {
     let entry_view = mir_entry_body_source_view(source)
     let core_body = if source.lazy_body {
         mir_entry_body_source_lazy_method_core(source, impl_decl_index, method_index, body_idx)
@@ -82,7 +82,7 @@ fn mir_entry_body_source_release_method(source: MirLowerEntryBodySource, impl_de
 }
 
 fn mir_entry_body_source_lazy_fn_core(
-    source: MirLowerEntryBodySource,
+    mut source: MirLowerEntryBodySource,
     decl_index: i32,
     body_idx: i32
 ) -> MirLowerEntryCoreBody {
@@ -91,7 +91,7 @@ fn mir_entry_body_source_lazy_fn_core(
 }
 
 fn mir_entry_body_source_lazy_method_core(
-    source: MirLowerEntryBodySource,
+    mut source: MirLowerEntryBodySource,
     impl_decl_index: i32,
     method_index: i32,
     body_idx: i32
@@ -101,7 +101,7 @@ fn mir_entry_body_source_lazy_method_core(
 }
 
 fn mir_entry_body_source_core_from_node(
-    entry_source: MirLowerEntryBodySource,
+    mut entry_source: MirLowerEntryBodySource,
     node: AstNode
 ) -> MirLowerEntryCoreBody {
     let root = mir_body_source::mir_body_source_build_ast_body_into(entry_source.lazy_table, node)

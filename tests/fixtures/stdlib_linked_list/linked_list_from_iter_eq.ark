@@ -10,12 +10,12 @@ fn show(value: Option<i32>) {
 }
 
 fn main() {
-    let source: Vec<i32> = Vec::new<i32>()
+    let mut source: Vec<i32> = Vec::new<i32>()
     push(source, 1)
     push(source, 2)
     push(source, 3)
 
-    let list: LinkedList<i32> = LinkedList::from_iter(source.iter())
+    let mut list: LinkedList<i32> = LinkedList::from_iter(source.iter())
     assert(list.len() == 3)
     stdio::println(list.fmt_debug())
     show(list.front())
@@ -23,7 +23,7 @@ fn main() {
 
     // Same logical order through push_front: node indices differ, iteration
     // order does not.
-    let mirrored: LinkedList<i32> = LinkedList::new<i32>()
+    let mut mirrored: LinkedList<i32> = LinkedList::new<i32>()
     mirrored.push_front(3)
     mirrored.push_front(2)
     mirrored.push_front(1)
@@ -31,7 +31,7 @@ fn main() {
     assert(mirrored.eq(list))
     stdio::println(String_from("mirrored equal"))
 
-    let different: LinkedList<i32> = LinkedList::new<i32>()
+    let mut different: LinkedList<i32> = LinkedList::new<i32>()
     different.push_back(1)
     different.push_back(2)
     assert(!list.eq(different))
@@ -43,7 +43,7 @@ fn main() {
     assert(empty.eq(LinkedList::new<i32>()))
     stdio::println(empty.fmt_debug())
 
-    let words: Vec<String> = Vec::new<String>()
+    let mut words: Vec<String> = Vec::new<String>()
     push(words, "alpha")
     push(words, "beta")
     let letters: LinkedList<String> = LinkedList::from_iter(words.iter())

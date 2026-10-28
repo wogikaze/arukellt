@@ -7,7 +7,7 @@ use typechecker::match_coverage_variant
 
 // Guarded arms never contribute to coverage: the guard may fail at
 // runtime, so the arm cannot prove exhaustiveness (ADR-082).
-fn record_match_pattern(coverage: MatchCoverage, pat: AstNode, guarded: bool) {
+fn record_match_pattern(mut coverage: MatchCoverage, pat: AstNode, guarded: bool) {
     if guarded {
         return
     }

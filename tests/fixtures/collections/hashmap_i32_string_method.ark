@@ -1,7 +1,7 @@
 use std::host::stdio
 
 fn main() {
-    let m = HashMap::new<i32, String>()
+    let mut m = HashMap::new<i32, String>()
     let _ = m.insert(1, "hi")
     match m.get(1) {
         Some(s) => stdio::println(s),

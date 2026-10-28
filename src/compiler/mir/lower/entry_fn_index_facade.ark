@@ -1,7 +1,7 @@
 use mir::lower::fn_index
 use mir::lower::fn_index_view
 
-fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex, m: MirModule) -> MirLowerFnIndex {
+fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex, mut m: MirModule) -> MirLowerFnIndex {
     fn_index_view::mir_build_fn_index_from_view(view, midx, m)
 }
 

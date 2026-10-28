@@ -16,7 +16,7 @@ fn expect_none(v: Option<i32>) {
 }
 
 fn main() {
-    let m = hash::hashmap_new()
+    let mut m = hash::hashmap_new()
     assert(hash::hashmap_is_empty(m))
     assert_eq(hash::hashmap_size(m), 0)
 

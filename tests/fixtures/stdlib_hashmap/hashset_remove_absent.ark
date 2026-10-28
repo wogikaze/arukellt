@@ -3,7 +3,7 @@ use std::collections::hash
 use std::test
 
 fn main() {
-    let s = hash::hashset_new()
+    let mut s = hash::hashset_new()
     hash::hashset_insert(s, 1)
 
     test::assert_false(hash::hashset_remove(s, 999))
@@ -11,6 +11,6 @@ fn main() {
     test::assert_true(hash::hashset_contains(s, 1))
 
     // Remove from empty set
-    let s2 = hash::hashset_new()
+    let mut s2 = hash::hashset_new()
     test::assert_false(hash::hashset_remove(s2, 1))
 }

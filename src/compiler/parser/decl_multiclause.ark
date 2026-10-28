@@ -7,7 +7,7 @@ use parser::decl_multiclause_where
 use parser::fn_clause
 use parser::fn_lookahead
 use parser::multiclause
-fn parse_multiclause_fn_decl(p: Parser, is_pub: bool, is_async: bool) -> AstNode {
+fn parse_multiclause_fn_decl(mut p: Parser, is_pub: bool, is_async: bool) -> AstNode {
     let first_clause = decl_multiclause_clause::parse_fn_clause(p)
     let param_count = fn_clause::clause_param_count(first_clause)
     let mut clauses = Vec::new<AstNode>()

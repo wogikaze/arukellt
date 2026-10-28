@@ -18,9 +18,9 @@ fn wit_seen_name(items: Vec<String>, name: String) -> bool {
     false
 }
 
-fn register_wit_imports(ctx: ResolveCtx, wit_paths: Vec<String>, decls: Vec<AstNode>) {
-    let seen_aliases = Vec::new<String>()
-    let seen_packages = Vec::new<String>()
+fn register_wit_imports(mut ctx: ResolveCtx, wit_paths: Vec<String>, decls: Vec<AstNode>) {
+    let mut seen_aliases = Vec::new<String>()
+    let mut seen_packages = Vec::new<String>()
     let count = len(decls)
     let mut i = 0
     while i < count {
@@ -55,11 +55,11 @@ fn wit_import_alias(decl: AstNode) -> String {
     ast_access::node_text(ast_access::node_type_ann_at(decl, 0))
 }
 
-fn register_wit_module_alias(ctx: ResolveCtx, alias: String) {
+fn register_wit_module_alias(mut ctx: ResolveCtx, alias: String) {
     wit_register::wit_ensure_module_alias(ctx, clone(alias))
 }
 
-fn register_one_wit_import(ctx: ResolveCtx, wit_paths: Vec<String>, package_id: String, alias: String, span_start: i32, span_end: i32) {
+fn register_one_wit_import(mut ctx: ResolveCtx, wit_paths: Vec<String>, package_id: String, alias: String, span_start: i32, span_end: i32) {
     if len(alias) == 0 {
         return
     }
@@ -91,23 +91,23 @@ fn register_one_wit_import(ctx: ResolveCtx, wit_paths: Vec<String>, package_id: 
     }
 }
 
-fn register_wit_host_math(ctx: ResolveCtx, alias: String) {
+fn register_wit_host_math(mut ctx: ResolveCtx, alias: String) {
     register_wit_module_alias(ctx, clone(alias))
     register_exports::register_module_export(ctx, clone(alias), "add", commands::SYM_FN(), true)
 }
 
-fn register_wit_doc_parse(ctx: ResolveCtx, alias: String) {
+fn register_wit_doc_parse(mut ctx: ResolveCtx, alias: String) {
     register_wit_module_alias(ctx, clone(alias))
     register_exports::register_module_export(ctx, clone(alias), "parse_markdown", commands::SYM_FN(), true)
     register_exports::register_module_export(ctx, clone(alias), "Document", commands::SYM_STRUCT(), true)
 }
 
-fn register_wit_host_flags(ctx: ResolveCtx, alias: String) {
+fn register_wit_host_flags(mut ctx: ResolveCtx, alias: String) {
     register_wit_module_alias(ctx, clone(alias))
     register_exports::register_module_export(ctx, clone(alias), "set_perms", commands::SYM_FN(), true)
 }
 
-fn register_wit_host_resource_handles(ctx: ResolveCtx, alias: String) {
+fn register_wit_host_resource_handles(mut ctx: ResolveCtx, alias: String) {
     register_wit_module_alias(ctx, clone(alias))
     register_exports::register_module_export(ctx, clone(alias), "take", commands::SYM_FN(), true)
     register_exports::register_module_export(ctx, clone(alias), "peek", commands::SYM_FN(), true)

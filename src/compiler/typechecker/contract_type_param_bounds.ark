@@ -13,7 +13,7 @@ fn TypeParamBounds_name(info: TypeParamBounds) -> String {
     clone(info.name)
 }
 
-fn TypeParamBounds_push_bound(info: TypeParamBounds, bound: TypeInfo) {
+fn TypeParamBounds_push_bound(mut info: TypeParamBounds, bound: TypeInfo) {
     push(info.bounds, bound)
 }
 

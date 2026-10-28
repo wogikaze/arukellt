@@ -6,11 +6,11 @@ use std::host::stdio
 use std::io
 
 fn main() {
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     push(data, 65)  // 'A'
     push(data, 66)  // 'B'
     push(data, 67)  // 'C'
-    let r: io::Reader = io::Reader::from_bytes(data)
+    let mut r: io::Reader = io::Reader::from_bytes(data)
 
     match r.fill_buf() {
         Result::Ok(filled) => {

@@ -78,7 +78,7 @@ fn lexer_char_codepoint(src: String, pos: i32, width: i32) -> i32 {
     (third - 128) * 64 + fourth - 128
 }
 
-fn lex_char_literal(lex: Lexer) -> Token {
+fn lex_char_literal(mut lex: Lexer) -> Token {
     let char_start = lex.pos
     lex.pos = lex.pos + 1
     if lex.pos < lex.src_len && byte_at(lex.src, lex.pos) == 92 {

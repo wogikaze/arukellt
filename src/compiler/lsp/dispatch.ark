@@ -4,7 +4,7 @@ use lsp::dispatch_documents
 use lsp::dispatch_features
 use lsp::dispatch_lifecycle
 use lsp::state_record
-pub fn handle_message(state: LspState, body: String) {
+pub fn handle_message(mut state: LspState, body: String) {
     let method = json::JsonText::get_str(clone(body), String_from("method"))
     if len(method) == 0 {
         return

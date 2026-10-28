@@ -2,7 +2,7 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    let fields = Vec::new<json::JsonField>()
+    let mut fields = Vec::new<json::JsonField>()
     push(fields, json::JsonField::new("name", json::JsonValue::string("alice")))
     push(fields, json::JsonField::new("age", json::JsonValue::int(30)))
     let s = json::JsonValue::object(fields).to_text()

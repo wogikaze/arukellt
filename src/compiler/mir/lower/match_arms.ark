@@ -30,7 +30,7 @@ fn mir_match_arm_has_guard(arm_child_count: i32) -> bool {
     arm_child_count == 3
 }
 
-fn mir_emit_match_end_nested_ifs(ctx: LowerCtx, if_depth: i32) {
+fn mir_emit_match_end_nested_ifs(mut ctx: LowerCtx, if_depth: i32) {
     let mut depth = if_depth
     while depth > 0 {
         ctx_emit(ctx, inst_structured_control::MirInst_end())
@@ -39,12 +39,12 @@ fn mir_emit_match_end_nested_ifs(ctx: LowerCtx, if_depth: i32) {
     }
 }
 
-fn mir_emit_match_guard_begin(ctx: LowerCtx) {
+fn mir_emit_match_guard_begin(mut ctx: LowerCtx) {
     ctx_emit(ctx, inst_structured_control::MirInst_if())
     ctx_api_nesting::ctx_push_nesting(ctx)
 }
 
-fn mir_emit_match_guard_end(ctx: LowerCtx) {
+fn mir_emit_match_guard_end(mut ctx: LowerCtx) {
     ctx_emit(ctx, inst_structured_control::MirInst_end())
     ctx_api_nesting::ctx_pop_nesting(ctx)
 }
@@ -57,11 +57,11 @@ fn mir_pat_is_string_literal(pat: AstNode) -> bool {
 // A string literal pattern compares by content, not by pointer or tag. The
 // eq intrinsic is backend-agnostic: on wasm32-gc it loops over GC array
 // bytes, on linear wasm32 over the encoded string in memory (#894).
-fn mir_emit_string_pattern_compare(ctx: LowerCtx, compare_idx: i32, pat: AstNode) -> i32 {
+fn mir_emit_string_pattern_compare(mut ctx: LowerCtx, compare_idx: i32, pat: AstNode) -> i32 {
     mir_emit_string_pattern_compare_text(ctx, compare_idx, ast_node::node_text(pat))
 }
 
-fn mir_emit_string_pattern_compare_text(ctx: LowerCtx, compare_idx: i32, pat_text: String) -> i32 {
+fn mir_emit_string_pattern_compare_text(mut ctx: LowerCtx, compare_idx: i32, pat_text: String) -> i32 {
     ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
     let str_idx = ctx_api_module::ctx_intern_string(ctx, clone(pat_text))
     let str_vt = if ctx_gc_enum::ctx_is_gc_target(ctx) { value_types::VT_GC_REF() } else { value_types::VT_REF() }

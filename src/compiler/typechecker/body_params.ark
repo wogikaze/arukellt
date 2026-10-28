@@ -3,39 +3,37 @@ use typechecker::contract_fn_sig
 use typechecker::scope
 use typechecker::ownership_types
 
-fn bind_fn_params_from_sig(scope: LocalScope, fn_node: AstNode, sig: FnSig) {
+fn bind_fn_params_from_sig(env: TypeEnv, mut scope: LocalScope, fn_node: AstNode, sig: FnSig) {
     let child_count = ast_access::node_child_count(fn_node)
     let param_count = contract_fn_sig::FnSig_param_count(sig)
     let mut param_index = 0
     while param_index < child_count - 1 && param_index < param_count {
         let param = ast_access::node_child_at(fn_node, param_index)
         let param_ty = contract_fn_sig::FnSig_param_at(sig, param_index)
-        // Both shared and `mut` parameters are bound mutable today. Rejecting
-        // assignment through a shared parameter first requires every existing
-        // shared parameter that mutates its fields to migrate to `mut` in
-        // `std/` and `src/compiler/` (ADR-088 §2, #951). The mode is already
-        // recorded in FnSig for the call-site rule; binding by mode is the
-        // remaining callee-side switch.
-        scope::scope_define_with_flags(
+        // A shared parameter or receiver is a call-scoped borrow and is
+        // immutable in the body; only `mut p` / `mut self` may be assigned
+        // (ADR-088 §2/§3). Copy parameters follow the same mode so `mut p`
+        // still allows local reassignment of the callee's copy.
+        scope::scope_define_param(
             scope,
             ast_access::node_text(param),
             param_ty,
-            true,
+            contract_fn_sig::FnSig_param_is_mut(sig, param_index) || env.allow_shared_param_mutation,
             ownership_types::type_is_builtin_copy(param_ty)
         )
         param_index = param_index + 1
     }
 }
 
-fn set_fn_type_params_from_sig(env: TypeEnv, sig: FnSig) {
-    let type_params = Vec::new<String>()
+fn set_fn_type_params_from_sig(mut env: TypeEnv, sig: FnSig) {
+    let mut type_params = Vec::new<String>()
     let type_param_count = contract_fn_sig::FnSig_type_param_count(sig)
     let mut type_param_index = 0
     while type_param_index < type_param_count {
         push(type_params, contract_fn_sig::FnSig_type_param_at(sig, type_param_index))
         type_param_index = type_param_index + 1
     }
-    let bounds = Vec::new<TypeParamBounds>()
+    let mut bounds = Vec::new<TypeParamBounds>()
     let bound_count = contract_fn_sig::FnSig_type_param_bound_count(sig)
     let mut bound_index = 0
     while bound_index < bound_count {

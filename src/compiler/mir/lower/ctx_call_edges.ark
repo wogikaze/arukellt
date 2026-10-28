@@ -44,7 +44,7 @@ fn ctx_edge_overflow_names(ctx: LowerCtx) -> Vec<String> {
     ctx.edge_names
 }
 
-fn ctx_edge_ensure_header(ctx: LowerCtx) {
+fn ctx_edge_ensure_header(mut ctx: LowerCtx) {
     if len(ctx.fn_indices) > 0 {
         return
     }
@@ -58,7 +58,7 @@ fn ctx_edge_ensure_header(ctx: LowerCtx) {
     }
 }
 
-fn ctx_edge_begin_function(ctx: LowerCtx) {
+fn ctx_edge_begin_function(mut ctx: LowerCtx) {
     ctx_edge_ensure_header(ctx)
     let depth = get_unchecked(ctx.fn_indices, 0)
     if depth >= 0 && depth < ctx_edge_stack_slots() {
@@ -70,7 +70,7 @@ fn ctx_edge_begin_function(ctx: LowerCtx) {
     ctx.gc_type_base = next_id
 }
 
-fn ctx_edge_restore_parent(ctx: LowerCtx) {
+fn ctx_edge_restore_parent(mut ctx: LowerCtx) {
     if len(ctx.fn_indices) < ctx_edge_header_len() {
         return
     }
@@ -84,7 +84,7 @@ fn ctx_edge_restore_parent(ctx: LowerCtx) {
     }
 }
 
-fn ctx_edge_pop_frame(ctx: LowerCtx) {
+fn ctx_edge_pop_frame(mut ctx: LowerCtx) {
     let depth = get_unchecked(ctx.fn_indices, 0)
     if depth > 0 {
         ctx.gc_type_base = get_unchecked(ctx.fn_indices, 1 + depth)
@@ -92,7 +92,7 @@ fn ctx_edge_pop_frame(ctx: LowerCtx) {
     }
 }
 
-fn ctx_edge_finish_current_map(ctx: LowerCtx, mir_index: i32) {
+fn ctx_edge_finish_current_map(mut ctx: LowerCtx, mir_index: i32) {
     ctx_edge_ensure_header(ctx)
     push(ctx.fn_indices, ctx_edge_map_mark())
     push(ctx.fn_indices, ctx.gc_type_base)
@@ -100,7 +100,7 @@ fn ctx_edge_finish_current_map(ctx: LowerCtx, mir_index: i32) {
     ctx_edge_pop_frame(ctx)
 }
 
-fn ctx_edge_complete_pending_map(ctx: LowerCtx, mir_index: i32) {
+fn ctx_edge_complete_pending_map(mut ctx: LowerCtx, mir_index: i32) {
     push(ctx.fn_indices, mir_index)
 }
 
@@ -112,13 +112,13 @@ fn ctx_edge_pending_map_open(ctx: LowerCtx) -> bool {
     get_unchecked(ctx.fn_indices, n - 2) == ctx_edge_map_mark()
 }
 
-fn ctx_edge_record_callee(ctx: LowerCtx, payload: i32) {
+fn ctx_edge_record_callee(mut ctx: LowerCtx, payload: i32) {
     ctx_edge_ensure_header(ctx)
     push(ctx.fn_indices, ctx.gc_type_base)
     push(ctx.fn_indices, payload)
 }
 
-fn ctx_edge_record_name(ctx: LowerCtx, name: String) {
+fn ctx_edge_record_name(mut ctx: LowerCtx, name: String) {
     if len(name) == 0 {
         return
     }
@@ -144,7 +144,7 @@ fn ctx_edge_record_name(ctx: LowerCtx, name: String) {
     ctx_edge_record_callee(ctx, ctx_edge_name_tag(overflow + ctx_edge_intern_bias()))
 }
 
-fn ctx_edge_record_inst(ctx: LowerCtx, inst: MirInstDraft) {
+fn ctx_edge_record_inst(mut ctx: LowerCtx, inst: MirInstDraft) {
     let op = inst_draft::MirInstDraft_op(inst)
     if op != opcodes::MIR_CALL() && op != opcodes::MIR_REF_FUNC() {
         return

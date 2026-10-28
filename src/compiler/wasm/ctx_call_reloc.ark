@@ -7,7 +7,7 @@ use wasm::function_indices
 use wasm::inst_ctx
 use wasm::writer_core
 
-fn SelfEmitCtx_push_call_reloc(ctx: SelfEmitCtx, off: i32, fid_raw: i32) {
+fn SelfEmitCtx_push_call_reloc(mut ctx: SelfEmitCtx, off: i32, fid_raw: i32) {
     push(ctx.call_reloc_offs, off)
     push(ctx.call_reloc_fids, fid_raw)
     push(ctx.call_reloc_funcs, ctx_record::SelfEmitCtx_current_func_idx(ctx))
@@ -19,7 +19,7 @@ fn SelfEmitCtx_push_call_reloc(ctx: SelfEmitCtx, off: i32, fid_raw: i32) {
 // so the target name defers into the reloc stream and resolves at apply
 // time on the post-prune index — identical result to the legacy immediate
 // patch.
-fn SelfEmitCtx_push_call_reloc_name(ctx: SelfEmitCtx, off: i32, name: String) {
+fn SelfEmitCtx_push_call_reloc_name(mut ctx: SelfEmitCtx, off: i32, name: String) {
     push(ctx.call_reloc_offs, off)
     push(ctx.call_reloc_fids, 0 - 1)
     push(ctx.call_reloc_funcs, ctx_record::SelfEmitCtx_current_func_idx(ctx))
@@ -27,7 +27,7 @@ fn SelfEmitCtx_push_call_reloc_name(ctx: SelfEmitCtx, off: i32, name: String) {
 }
 
 fn SelfEmitCtx_apply_call_relocs(
-    ctx: SelfEmitCtx,
+    mut ctx: SelfEmitCtx,
     wit_import_count: i32
 ) {
     let n = len(ctx.call_reloc_offs)
@@ -47,7 +47,7 @@ fn SelfEmitCtx_apply_call_relocs(
         }
         let fn_idx = inst_ctx::resolve_fn_index_for_call(ctx, name, fid_raw)
         if fn_idx >= 0 {
-            let body = get_unchecked(ctx.body_bytes, func_idx)
+            let mut body = get_unchecked(ctx.body_bytes, func_idx)
             ctx_reloc::reloc_patch_leb_u_fixed(
                 body,
                 off,

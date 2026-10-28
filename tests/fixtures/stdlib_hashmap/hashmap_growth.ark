@@ -5,7 +5,7 @@ use std::host::stdio
 // HashMap backing tables start at capacity 16 and must keep every entry
 // once inserts exceed that capacity (#895).
 fn main() {
-    let m = HashMap::new<String, i32>()
+    let mut m = HashMap::new<String, i32>()
     let mut i: i32 = 0
     while i < 100 {
         let _prev = m.insert("key_".concat((i).to_string()), i * 7)
@@ -39,7 +39,7 @@ fn main() {
     test::assert_eq_i32(m.len(), 71)
 
     // The remaining intrinsic families grow through the same Ark path.
-    let mi = HashMap::new<i32, String>()
+    let mut mi = HashMap::new<i32, String>()
     i = 0
     while i < 60 {
         let _previ = mi.insert(i, "v".concat((i).to_string()))
@@ -51,7 +51,7 @@ fn main() {
         None => panic("missing grown i32->String entry"),
     }
 
-    let ms = HashMap::new<String, String>()
+    let mut ms = HashMap::new<String, String>()
     i = 0
     while i < 60 {
         let _prevs = ms.insert("s_".concat((i).to_string()), "w_".concat((i).to_string()))

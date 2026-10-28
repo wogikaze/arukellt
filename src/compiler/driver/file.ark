@@ -6,8 +6,8 @@ use driver::config_record
 use driver::pipeline_backend
 use driver::result_record
 use driver::source_file
-fn compile_file(path: String, config: DriverConfig) -> CompileResult {
-    let cloned_path = clone(path)
+fn compile_file(path: String, mut config: DriverConfig) -> CompileResult {
+    let mut cloned_path = clone(path)
     let merged_wit_paths = wit_manifest::merge_wit_paths_for_source(clone(cloned_path), config_record::config_wit_paths(config))
     config_record::config_set_wit_paths(config, merged_wit_paths)
     config_record::config_set_source_dir(config, module_paths::parent_dir(clone(cloned_path)))

@@ -9,7 +9,7 @@
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 pub fn sorted_map_new() -> Vec<i32> {
-    let m: Vec<i32> = Vec::new<i32>()
+    let mut m: Vec<i32> = Vec::new<i32>()
     push(m, 0)
     m
 }
@@ -60,7 +60,7 @@ pub fn sorted_map_contains(m: Vec<i32>, key: i32) -> bool {
     }
 }
 
-pub fn sorted_map_insert(m: Vec<i32>, key: i32, value: i32) {
+pub fn sorted_map_insert(mut m: Vec<i32>, key: i32, value: i32) {
     let count: i32 = get_unchecked(m, 0)
     let idx: i32 = sorted_map_find_idx(m, key)
     if idx < count {
@@ -92,7 +92,7 @@ pub fn btree_new() -> Vec<i32> {
     sorted_map_new()
 }
 
-pub fn btree_insert(m: Vec<i32>, key: i32, value: i32) {
+pub fn btree_insert(mut m: Vec<i32>, key: i32, value: i32) {
     sorted_map_insert(m, key, value)
 }
 
@@ -100,7 +100,7 @@ pub fn btree_get(m: Vec<i32>, key: i32) -> i32 {
     sorted_map_get(m, key)
 }
 
-pub fn btree_remove(m: Vec<i32>, key: i32) {
+pub fn btree_remove(mut m: Vec<i32>, key: i32) {
     let count: i32 = get_unchecked(m, 0)
     let idx: i32 = sorted_map_find_idx(m, key)
     if idx < count {
@@ -129,7 +129,7 @@ pub fn btree_len(m: Vec<i32>) -> i32 {
 
 pub fn btree_keys(m: Vec<i32>) -> Vec<i32> {
     let count: i32 = get_unchecked(m, 0)
-    let keys: Vec<i32> = Vec::new<i32>()
+    let mut keys: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < count {
         push(keys, get_unchecked(m, 1 + i * 2))
@@ -140,7 +140,7 @@ pub fn btree_keys(m: Vec<i32>) -> Vec<i32> {
 
 pub fn btree_range(m: Vec<i32>, start: i32, end: i32) -> Vec<i32> {
     let count: i32 = get_unchecked(m, 0)
-    let result: Vec<i32> = Vec::new<i32>()
+    let mut result: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < count {
         let k: i32 = get_unchecked(m, 1 + i * 2)
@@ -156,7 +156,7 @@ pub fn btree_range(m: Vec<i32>, start: i32, end: i32) -> Vec<i32> {
 
 // --- BTreeSet API (sorted unique values, i32) ---
 pub fn btree_set_new() -> Vec<i32> {
-    let s: Vec<i32> = Vec::new<i32>()
+    let mut s: Vec<i32> = Vec::new<i32>()
     push(s, 0)
     s
 }
@@ -177,7 +177,7 @@ pub fn btree_set_find_idx(s: Vec<i32>, value: i32) -> i32 {
     lo
 }
 
-pub fn btree_set_insert(s: Vec<i32>, value: i32) -> bool {
+pub fn btree_set_insert(mut s: Vec<i32>, value: i32) -> bool {
     let count: i32 = get_unchecked(s, 0)
     let idx: i32 = btree_set_find_idx(s, value)
     if idx < count {
@@ -219,12 +219,12 @@ pub fn btree_set_len(s: Vec<i32>) -> i32 {
 // --- IndexMap API (insertion-order map, i32 key, i32 value) ---
 // Layout: [count, k0, v0, k1, v1, ...]
 pub fn index_map_new() -> Vec<i32> {
-    let m: Vec<i32> = Vec::new<i32>()
+    let mut m: Vec<i32> = Vec::new<i32>()
     push(m, 0)
     m
 }
 
-pub fn index_map_insert(m: Vec<i32>, key: i32, value: i32) {
+pub fn index_map_insert(mut m: Vec<i32>, key: i32, value: i32) {
     let count: i32 = get_unchecked(m, 0)
     let mut i: i32 = 0
     let mut found: bool = false
@@ -267,7 +267,7 @@ pub fn index_map_len(m: Vec<i32>) -> i32 {
 
 pub fn index_map_keys(m: Vec<i32>) -> Vec<i32> {
     let count: i32 = get_unchecked(m, 0)
-    let keys: Vec<i32> = Vec::new<i32>()
+    let mut keys: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < count {
         push(keys, get_unchecked(m, 1 + i * 2))
@@ -279,7 +279,7 @@ pub fn index_map_keys(m: Vec<i32>) -> Vec<i32> {
 // --- IndexSet API (insertion-order unique values, i32) ---
 // Layout: [count, v0, v1, ...]
 pub fn index_set_new() -> Vec<i32> {
-    let s: Vec<i32> = Vec::new<i32>()
+    let mut s: Vec<i32> = Vec::new<i32>()
     push(s, 0)
     s
 }
@@ -300,7 +300,7 @@ pub fn index_set_contains(s: Vec<i32>, value: i32) -> bool {
     found
 }
 
-pub fn index_set_insert(s: Vec<i32>, value: i32) -> bool {
+pub fn index_set_insert(mut s: Vec<i32>, value: i32) -> bool {
     let already: bool = index_set_contains(s, value)
     if already == false {
         let count: i32 = get_unchecked(s, 0)
@@ -318,7 +318,7 @@ pub fn index_set_len(s: Vec<i32>) -> i32 {
 
 // --- BitSet ---
 pub fn bitset_new() -> Vec<i32> {
-    let bs: Vec<i32> = Vec::new<i32>()
+    let mut bs: Vec<i32> = Vec::new<i32>()
     push(bs, 256)
     let mut i: i32 = 0
     while i < 8 {
@@ -328,7 +328,7 @@ pub fn bitset_new() -> Vec<i32> {
     bs
 }
 
-pub fn bitset_mark(bs: Vec<i32>, bit: i32) {
+pub fn bitset_mark(mut bs: Vec<i32>, bit: i32) {
     let word: i32 = bit / 32
     let offset: i32 = bit % 32
     let old: i32 = get_unchecked(bs, 1 + word)
@@ -337,7 +337,7 @@ pub fn bitset_mark(bs: Vec<i32>, bit: i32) {
     set(bs, 1 + word, newval)
 }
 
-pub fn bitset_unmark(bs: Vec<i32>, bit: i32) {
+pub fn bitset_unmark(mut bs: Vec<i32>, bit: i32) {
     let word: i32 = bit / 32
     let offset: i32 = bit % 32
     let old: i32 = get_unchecked(bs, 1 + word)
@@ -357,16 +357,16 @@ pub fn bitset_test(bs: Vec<i32>, bit: i32) -> bool {
 }
 
 // New API-compatible aliases and extended BitSet operations
-pub fn bitset_set(bs: Vec<i32>, bit: i32) {
+pub fn bitset_set(mut bs: Vec<i32>, bit: i32) {
     bitset_mark(bs, bit)
 }
 
-pub fn bitset_clear(bs: Vec<i32>, bit: i32) {
+pub fn bitset_clear(mut bs: Vec<i32>, bit: i32) {
     bitset_unmark(bs, bit)
 }
 
 pub fn bitset_with_capacity(cap: i32) -> Vec<i32> {
-    let bs: Vec<i32> = Vec::new<i32>()
+    let mut bs: Vec<i32> = Vec::new<i32>()
     push(bs, cap)
     let words: i32 = (cap + 31) / 32
     let mut i: i32 = 0
@@ -400,7 +400,7 @@ pub fn bitset_union(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
     if cap_b > cap_a {
         cap = cap_b
     }
-    let result: Vec<i32> = bitset_with_capacity(cap)
+    let mut result: Vec<i32> = bitset_with_capacity(cap)
     let words_a: i32 = (cap_a + 31) / 32
     let words_b: i32 = (cap_b + 31) / 32
     let words: i32 = (cap + 31) / 32
@@ -427,7 +427,7 @@ pub fn bitset_intersection(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
     if cap_b < cap_a {
         cap = cap_b
     }
-    let result: Vec<i32> = bitset_with_capacity(cap)
+    let mut result: Vec<i32> = bitset_with_capacity(cap)
     let words: i32 = (cap + 31) / 32
     let mut i: i32 = 0
     while i < words {
@@ -445,38 +445,38 @@ pub fn bitset_intersection(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
 
 test mod "ordered_map" {
     test "sorted_map_insert_get" {
-        let m = sorted_map_new()
+        let mut m = sorted_map_new()
         sorted_map_insert(m, 3, 30)
         sorted_map_insert(m, 1, 10)
         assert(sorted_map_get(m, 3) == 30)
         assert(sorted_map_get(m, 1) == 10)
     }
     test "sorted_map_missing_returns_zero" {
-        let m = sorted_map_new()
+        let mut m = sorted_map_new()
         sorted_map_insert(m, 1, 10)
         assert(sorted_map_get(m, 99) == 0)
     }
     test "sorted_map_contains" {
-        let m = sorted_map_new()
+        let mut m = sorted_map_new()
         sorted_map_insert(m, 5, 50)
         assert(sorted_map_contains(m, 5))
         assert(sorted_map_contains(m, 6) == false)
     }
     test "sorted_map_len" {
-        let m = sorted_map_new()
+        let mut m = sorted_map_new()
         sorted_map_insert(m, 1, 10)
         sorted_map_insert(m, 2, 20)
         assert(sorted_map_len(m) == 2)
     }
     test "sorted_map_overwrites_existing_key" {
-        let m = sorted_map_new()
+        let mut m = sorted_map_new()
         sorted_map_insert(m, 1, 10)
         sorted_map_insert(m, 1, 99)
         assert(sorted_map_get(m, 1) == 99)
         assert(sorted_map_len(m) == 1)
     }
     test "find_idx_locates_insertion_point" {
-        let m = sorted_map_new()
+        let mut m = sorted_map_new()
         sorted_map_insert(m, 10, 1)
         sorted_map_insert(m, 20, 2)
         sorted_map_insert(m, 30, 3)
@@ -485,13 +485,13 @@ test mod "ordered_map" {
         assert(sorted_map_find_idx(m, 40) == 3)
     }
     test "btree_insert_get" {
-        let m = btree_new()
+        let mut m = btree_new()
         btree_insert(m, 7, 70)
         assert(btree_get(m, 7) == 70)
         assert(btree_contains_key(m, 7))
     }
     test "btree_remove" {
-        let m = btree_new()
+        let mut m = btree_new()
         btree_insert(m, 1, 10)
         btree_insert(m, 2, 20)
         btree_remove(m, 1)
@@ -499,7 +499,7 @@ test mod "ordered_map" {
         assert(btree_len(m) == 1)
     }
     test "btree_keys_sorted" {
-        let m = btree_new()
+        let mut m = btree_new()
         btree_insert(m, 30, 3)
         btree_insert(m, 10, 1)
         btree_insert(m, 20, 2)
@@ -509,7 +509,7 @@ test mod "ordered_map" {
         assert(ks.get_unchecked(2) == 30)
     }
     test "btree_range_exclusive_end" {
-        let m = btree_new()
+        let mut m = btree_new()
         btree_insert(m, 10, 1)
         btree_insert(m, 20, 2)
         btree_insert(m, 30, 3)
@@ -519,25 +519,25 @@ test mod "ordered_map" {
         assert(r.get_unchecked(1) == 20)
     }
     test "btree_set_insert_dedup" {
-        let s = btree_set_new()
+        let mut s = btree_set_new()
         assert(btree_set_insert(s, 5))
         assert(btree_set_insert(s, 5) == false)
         assert(btree_set_len(s) == 1)
     }
     test "btree_set_contains" {
-        let s = btree_set_new()
+        let mut s = btree_set_new()
         btree_set_insert(s, 8)
         assert(btree_set_contains(s, 8))
         assert(btree_set_contains(s, 9) == false)
     }
     test "index_map_insert_get" {
-        let m = index_map_new()
+        let mut m = index_map_new()
         index_map_insert(m, 2, 200)
         assert(index_map_get(m, 2) == 200)
         assert(index_map_len(m) == 1)
     }
     test "index_map_keys_preserves_insertion" {
-        let m = index_map_new()
+        let mut m = index_map_new()
         index_map_insert(m, 9, 90)
         index_map_insert(m, 1, 10)
         let ks = index_map_keys(m)
@@ -545,7 +545,7 @@ test mod "ordered_map" {
         assert(ks.get_unchecked(0) == 9)
     }
     test "index_set_dedup" {
-        let s = index_set_new()
+        let mut s = index_set_new()
         assert(index_set_insert(s, 4))
         assert(index_set_insert(s, 4) == false)
         assert(index_set_len(s) == 1)
@@ -560,19 +560,19 @@ test mod "bitset" {
         assert(bitset_test(bs, 0) == false)
     }
     test "mark_and_test" {
-        let bs = bitset_new()
+        let mut bs = bitset_new()
         bitset_mark(bs, 3)
         assert(bitset_test(bs, 3))
         assert(bitset_test(bs, 4) == false)
     }
     test "unmark_clears" {
-        let bs = bitset_new()
+        let mut bs = bitset_new()
         bitset_mark(bs, 3)
         bitset_unmark(bs, 3)
         assert(bitset_test(bs, 3) == false)
     }
     test "crosses_word_boundary" {
-        let bs = bitset_new()
+        let mut bs = bitset_new()
         bitset_mark(bs, 31)
         bitset_mark(bs, 32)
         bitset_mark(bs, 33)
@@ -580,15 +580,15 @@ test mod "bitset" {
         assert(bitset_count(bs) == 3)
     }
     test "count_tracks_marks" {
-        let bs = bitset_new()
+        let mut bs = bitset_new()
         bitset_mark(bs, 0)
         bitset_mark(bs, 100)
         assert(bitset_count(bs) == 2)
     }
     test "union_combines_bits" {
-        let a = bitset_new()
+        let mut a = bitset_new()
         bitset_mark(a, 1)
-        let b = bitset_new()
+        let mut b = bitset_new()
         bitset_mark(b, 2)
         let u = bitset_union(a, b)
         assert(bitset_test(u, 1))
@@ -596,10 +596,10 @@ test mod "bitset" {
         assert(bitset_count(u) == 2)
     }
     test "intersection_common_bits" {
-        let a = bitset_new()
+        let mut a = bitset_new()
         bitset_mark(a, 1)
         bitset_mark(a, 2)
-        let b = bitset_new()
+        let mut b = bitset_new()
         bitset_mark(b, 2)
         bitset_mark(b, 3)
         let i = bitset_intersection(a, b)

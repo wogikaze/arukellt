@@ -4,7 +4,7 @@ use std::test
 
 test "generic_key_value_collections_expose_expected_operations" {
     // --- HashMap<String, i32> via the method surface ---
-    let m = HashMap::new<String, i32>()
+    let mut m = HashMap::new<String, i32>()
     let _ = m.insert("alpha", 1)
     let _ = m.insert("beta", 2)
     let _ = m.insert("alpha", 10)
@@ -22,7 +22,7 @@ test "generic_key_value_collections_expose_expected_operations" {
     test::assert_false(m.contains_key("unknown"))
 
     // --- HashMap<i32, String> via the method surface ---
-    let m2 = HashMap::new<i32, String>()
+    let mut m2 = HashMap::new<i32, String>()
     let _ = m2.insert(1, "one")
     let _ = m2.insert(2, "two")
     let _ = m2.insert(1, "ONE")
@@ -33,7 +33,7 @@ test "generic_key_value_collections_expose_expected_operations" {
     }
 
     // --- HashMap<String, String> via the method surface ---
-    let m3 = HashMap::new<String, String>()
+    let mut m3 = HashMap::new<String, String>()
     let _ = m3.insert("greeting", "hello")
     let _ = m3.insert("farewell", "goodbye")
     test::assert_eq_i32(m3.len(), 2)
@@ -44,7 +44,7 @@ test "generic_key_value_collections_expose_expected_operations" {
     test::assert_true(m3.contains_key("farewell"))
 
     // --- HashSet<String> method surface ---
-    let s: HashSet<String> = HashSet::new<String>()
+    let mut s: HashSet<String> = HashSet::new<String>()
     test::assert_true(s.insert("red"))
     test::assert_true(s.insert("green"))
     test::assert_false(s.insert("red"))
@@ -55,11 +55,11 @@ test "generic_key_value_collections_expose_expected_operations" {
     test::assert_eq_i32(s.len(), 1)
 
     // --- HashSet<i32> operations via direct hash module ---
-    let s2 = hash::hashset_new()
+    let mut s2 = hash::hashset_new()
     let _ = hash::hashset_insert(s2, 10)
     let _ = hash::hashset_insert(s2, 20)
     let _ = hash::hashset_insert(s2, 30)
-    let s3 = hash::hashset_new()
+    let mut s3 = hash::hashset_new()
     let _ = hash::hashset_insert(s3, 20)
     let _ = hash::hashset_insert(s3, 30)
     let _ = hash::hashset_insert(s3, 40)

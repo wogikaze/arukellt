@@ -9,7 +9,7 @@ use parser::core_api_cursor
 use parser::core_api_expect
 use parser::token_state
 use parser::types
-fn parse_regular_fn_params(p: Parser, node: AstNode) {
+fn parse_regular_fn_params(mut p: Parser, mut node: AstNode) {
     core_api_expect::expect_token(p, tokens::TK_LPAREN())
     let mut first = true
     while !core_api_cursor::at(p, tokens::TK_RPAREN()) && !core_api_cursor::at_eof(p) {
@@ -21,7 +21,7 @@ fn parse_regular_fn_params(p: Parser, node: AstNode) {
         let is_mut = core_api_expect::consume_optional_mut(p)
         let pname = core_api_expect::expect_token(p, tokens::TK_IDENT())
         let pname_text = token_state::Token_text(pname)
-        let param = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), clone(pname_text), core_api_expect::tok_span(pname))
+        let mut param = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), clone(pname_text), core_api_expect::tok_span(pname))
         core_ast_flag_fields::AstNode_set_is_mut(param, is_mut)
         if eq(clone(pname_text), "self") && core_api_cursor::peek_kind(p) != tokens::TK_COLON() {
             core_ast_children::AstNode_push_child(node, param)

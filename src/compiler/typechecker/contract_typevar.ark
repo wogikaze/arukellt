@@ -22,6 +22,6 @@ fn TypeVar_bound(tv: TypeVar) -> TypeInfo {
     contract_typevar_record::type_var_bound(tv)
 }
 
-fn TypeVar_bind(tv: TypeVar, ty: TypeInfo) {
+fn TypeVar_bind(mut tv: TypeVar, ty: TypeInfo) {
     contract_typevar_record::type_var_bind(tv, ty)
 }

@@ -48,7 +48,7 @@ fn TypeInfo_new(tag: i32, name: String, type_args: Vec<TypeInfo>) -> TypeInfo {
     type_contracts::TypeInfo_new(tag, name, type_args)
 }
 
-fn TypeInfo_push_type_arg(ty: TypeInfo, arg: TypeInfo) {
+fn TypeInfo_push_type_arg(mut ty: TypeInfo, arg: TypeInfo) {
     type_contracts::TypeInfo_push_type_arg(ty, arg)
 }
 

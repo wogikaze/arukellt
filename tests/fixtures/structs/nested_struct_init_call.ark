@@ -19,7 +19,7 @@ fn make_inner(n: String) -> Inner {
 }
 
 fn main() {
-    let o = Outer { inner: make_inner(String_from("test")), label: String_from("outer") }
+    let mut o = Outer { inner: make_inner(String_from("test")), label: String_from("outer") }
     stdio::println(o.inner.name)
     stdio::println(o.label)
     stdio::println((o.inner.count).to_string())

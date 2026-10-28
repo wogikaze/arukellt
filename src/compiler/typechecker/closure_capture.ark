@@ -50,7 +50,7 @@ fn CaptureEscape_none() -> CaptureEscape {
 }
 
 fn closure_capture_summary(env: TypeEnv, scope: LocalScope, closure: AstNode) -> ClosureCaptureSummary {
-    let summary = ClosureCaptureSummary_new()
+    let mut summary = ClosureCaptureSummary_new()
     let child_count = ast_access::node_child_count(closure)
     if child_count == 0 {
         return summary
@@ -61,7 +61,7 @@ fn closure_capture_summary(env: TypeEnv, scope: LocalScope, closure: AstNode) ->
 }
 
 fn closure_escape_summary(env: TypeEnv, scope: LocalScope, closure: AstNode) -> ClosureCaptureSummary {
-    let summary = ClosureCaptureSummary_new_with_copy()
+    let mut summary = ClosureCaptureSummary_new_with_copy()
     let child_count = ast_access::node_child_count(closure)
     if child_count == 0 {
         return summary
@@ -71,7 +71,7 @@ fn closure_escape_summary(env: TypeEnv, scope: LocalScope, closure: AstNode) -> 
     summary
 }
 
-fn scan_capture_expr(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode, summary: ClosureCaptureSummary) {
+fn scan_capture_expr(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode, mut summary: ClosureCaptureSummary) {
     if ast_access::node_kind_is(node, kinds::NK_CLOSURE()) {
         return
     }
@@ -112,7 +112,7 @@ fn scan_capture_expr(env: TypeEnv, scope: LocalScope, closure: AstNode, node: As
     }
 }
 
-fn scan_capture_target(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode, summary: ClosureCaptureSummary, is_rebind: bool) {
+fn scan_capture_target(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode, mut summary: ClosureCaptureSummary, is_rebind: bool) {
     if ast_access::node_kind_is(node, kinds::NK_IDENT()) {
         add_capture(env, scope, closure, node, true, is_rebind, summary)
         return
@@ -129,7 +129,7 @@ fn is_mutating_method(name: String) -> bool {
     eq(clone(name), "remove") || eq(clone(name), "clear")
 }
 
-fn add_capture(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode, is_mutable_use: bool, is_rebind: bool, summary: ClosureCaptureSummary) {
+fn add_capture(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode, is_mutable_use: bool, is_rebind: bool, mut summary: ClosureCaptureSummary) {
     let name = ast_access::node_text(node)
     if closure_name_is_local(closure, clone(name)) {
         return
@@ -248,7 +248,7 @@ fn closure_body_declares_name(node: AstNode, name: String) -> bool {
     false
 }
 
-fn apply_closure_capture_summary(env: TypeEnv, scope: LocalScope, summary: ClosureCaptureSummary) {
+fn apply_closure_capture_summary(mut env: TypeEnv, mut scope: LocalScope, summary: ClosureCaptureSummary) {
     if !env.is_ownership_tracking_enabled {
         return
     }
@@ -266,7 +266,7 @@ fn apply_closure_capture_summary(env: TypeEnv, scope: LocalScope, summary: Closu
     }
 }
 
-fn apply_move_capture(env: TypeEnv, scope: LocalScope, name: String, node: AstNode) {
+fn apply_move_capture(mut env: TypeEnv, mut scope: LocalScope, name: String, node: AstNode) {
     if scope::scope_binding_has_shared_borrow(scope, clone(name)) ||
     scope::scope_binding_has_mutable_borrow(scope, clone(name)) {
         report_capture_conflict(env, node, name, "cannot move a value while it is borrowed")
@@ -275,7 +275,7 @@ fn apply_move_capture(env: TypeEnv, scope: LocalScope, name: String, node: AstNo
     ownership::consume_expr(env, scope, node)
 }
 
-fn apply_borrow_capture(env: TypeEnv, scope: LocalScope, name: String, node: AstNode, is_mutable: bool) {
+fn apply_borrow_capture(mut env: TypeEnv, mut scope: LocalScope, name: String, node: AstNode, is_mutable: bool) {
     if scope::scope_binding_is_moved(scope, clone(name)) {
         ownership::consume_expr(env, scope, node)
         return
@@ -435,7 +435,7 @@ fn value_has_borrow_captures(env: TypeEnv, scope: LocalScope, node: AstNode) -> 
     false
 }
 
-fn closure_capture_escape(env: TypeEnv, scope: LocalScope, node: AstNode) {
+fn closure_capture_escape(mut env: TypeEnv, scope: LocalScope, node: AstNode) {
     let witness = capture_escape_witness(env, scope, node)
     if witness.mode == 0 {
         return
@@ -540,7 +540,7 @@ fn summary_escape_witness(summary: ClosureCaptureSummary) -> CaptureEscape {
     CaptureEscape_none()
 }
 
-fn report_capture_conflict(env: TypeEnv, node: AstNode, name: String, reason: String) {
+fn report_capture_conflict(mut env: TypeEnv, node: AstNode, name: String, reason: String) {
     let span = diag_record::DiagnosticSpan_from_raw(
         ast_access::node_span_start(node),
         ast_access::node_span_end(node)

@@ -35,8 +35,8 @@ fn fn_sig_from_fn_decl_with_params(
 ) -> FnSig {
     let ann_count = ast_access::node_type_ann_count(node)
     let mut j = 0
-    let param_types = Vec::new<TypeInfo>()
-    let param_modes = Vec::new<bool>()
+    let mut param_types = Vec::new<TypeInfo>()
+    let mut param_modes = Vec::new<bool>()
     let child_count = ast_access::node_child_count(node)
     // The last child is the body only for fns that actually have one:
     // `= expr` bodies set the int_val marker and block bodies are
@@ -137,7 +137,7 @@ fn merge_type_param_bounds(
     impl_bounds: Vec<TypeParamBounds>,
     method_bounds: Vec<TypeParamBounds>
 ) -> Vec<TypeParamBounds> {
-    let merged = Vec::new<TypeParamBounds>()
+    let mut merged = Vec::new<TypeParamBounds>()
     let impl_count = len(impl_bounds)
     let mut i = 0
     while i < impl_count {
@@ -173,7 +173,7 @@ fn string_vec_contains(names: Vec<String>, name: String) -> bool {
 
 // Merge impl-level type params with method-level type params, avoiding duplicates.
 fn merge_type_params(impl_params: Vec<String>, method_params: Vec<String>) -> Vec<String> {
-    let merged = Vec::new<String>()
+    let mut merged = Vec::new<String>()
     vec_extend::Vec_extend_String_clone(merged, impl_params)
     let impl_count = len(impl_params)
     let method_count = len(method_params)

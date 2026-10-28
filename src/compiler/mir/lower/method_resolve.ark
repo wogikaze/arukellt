@@ -457,7 +457,7 @@ fn mir_method_mono_type_key(ctx: LowerCtx, first_method_arg_idx: i32) -> String 
     method_mono_type_key
 }
 
-fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_arg_idx: i32, span_start: i32) -> String {
+fn mir_resolve_method_callee(mut ctx: LowerCtx, callee_name: String, first_method_arg_idx: i32, span_start: i32) -> String {
     // Prefer CoreOp rewrite names for Vec mutating/access methods. Generic
     // `impl Vec<T> { push/... }` shells must not win mono as
     // `__core_vec_push_i32_impl` before element-type rewrite (#845).
@@ -658,7 +658,7 @@ fn mir_mono_arg_segments_eq(recv_args: String, inst_args: String) -> bool {
 }
 
 fn mir_mono_arg_segments(args: String) -> Vec<String> {
-    let segs = Vec::new<String>()
+    let mut segs = Vec::new<String>()
     let mut seg_start = 0
     let n = len(args)
     let mut i = 0

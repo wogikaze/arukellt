@@ -123,7 +123,7 @@ fn core_payload_i32_name_needs_type(variant_name: String) -> bool {
     core_match_variant_is_some_or_ok(variant_name)
 }
 
-fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32) {
+fn set_gc_payload_bind_type_if_needed(mut ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32) {
     if bind_vt != value_types::VT_GC_REF() {
         return
     }
@@ -219,7 +219,7 @@ fn core_payload_scalar_type_name(type_name: String) -> bool {
 // Narrow integer payload binds keep the declared spelling instead of the
 // collapsed i32 ABI slot. Option/Result binds recover it from the scrutinee;
 // user enum variants only carry the declared field type.
-fn set_narrow_int_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32) {
+fn set_narrow_int_payload_bind_type_if_needed(mut ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32) {
     if bind_vt != value_types::VT_I32() {
         return
     }

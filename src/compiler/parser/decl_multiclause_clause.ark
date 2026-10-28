@@ -5,8 +5,8 @@ use parser::expr
 use parser::expr_bp_loop
 use parser::fn_sig
 
-fn parse_fn_clause(p: Parser) -> AstNode {
-    let node = fn_sig::parse_fn_clause_header(p)
+fn parse_fn_clause(mut p: Parser) -> AstNode {
+    let mut node = fn_sig::parse_fn_clause_header(p)
     if core_api_cursor::peek_kind(p) == tokens::TK_PIPE() {
         p.pos = p.pos + 1
         core_api_cursor::skip_only_newlines(p)

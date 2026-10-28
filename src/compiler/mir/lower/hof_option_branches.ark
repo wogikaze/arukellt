@@ -12,13 +12,13 @@ use mir::inst_struct_set
 use mir::inst_structured_control
 use mir::inst_gc_struct
 use mir::value_types
-fn emit_map_option_some_i32(ctx: LowerCtx, mopt_fn_name: String, mopt_opt_local: i32, mopt_new_local: i32) {
+fn emit_map_option_some_i32(mut ctx: LowerCtx, mopt_fn_name: String, mopt_opt_local: i32, mopt_new_local: i32) {
     let mopt_payload_local = emit_map_option_payload_i32(ctx, mopt_opt_local)
     let mopt_result_local = emit_map_option_callback_i32(ctx, mopt_fn_name, mopt_payload_local)
     emit_map_option_some_result_i32(ctx, mopt_new_local, mopt_result_local)
 }
 
-fn emit_map_option_payload_i32(ctx: LowerCtx, mopt_opt_local: i32) -> i32 {
+fn emit_map_option_payload_i32(mut ctx: LowerCtx, mopt_opt_local: i32) -> i32 {
     let mopt_payload_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
         let some_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, "Some")
@@ -31,7 +31,7 @@ fn emit_map_option_payload_i32(ctx: LowerCtx, mopt_opt_local: i32) -> i32 {
     mopt_payload_local
 }
 
-fn emit_map_option_callback_i32(ctx: LowerCtx, mopt_fn_name: String, mopt_payload_local: i32) -> i32 {
+fn emit_map_option_callback_i32(mut ctx: LowerCtx, mopt_fn_name: String, mopt_payload_local: i32) -> i32 {
     let mopt_result_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(mopt_payload_local))
     ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(clone(mopt_fn_name), 1, mopt_result_local))
@@ -39,7 +39,7 @@ fn emit_map_option_callback_i32(ctx: LowerCtx, mopt_fn_name: String, mopt_payloa
     mopt_result_local
 }
 
-fn emit_map_option_some_result_i32(ctx: LowerCtx, mopt_new_local: i32, mopt_result_local: i32) {
+fn emit_map_option_some_result_i32(mut ctx: LowerCtx, mopt_new_local: i32, mopt_result_local: i32) {
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
         let some_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, "Some")
         ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_new(mopt_new_local, some_slot))
@@ -57,7 +57,7 @@ fn emit_map_option_some_result_i32(ctx: LowerCtx, mopt_new_local: i32, mopt_resu
     ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set(mopt_new_local, mopt_result_local, 4, value_types::VT_VOID()))
 }
 
-fn emit_map_option_none_i32(ctx: LowerCtx, mopt_new_local: i32) {
+fn emit_map_option_none_i32(mut ctx: LowerCtx, mopt_new_local: i32) {
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
         let none_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, "None")
         ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_new(mopt_new_local, none_slot))
@@ -71,10 +71,10 @@ fn emit_map_option_none_i32(ctx: LowerCtx, mopt_new_local: i32) {
     ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set(mopt_new_local, mopt_tag_one, 0, value_types::VT_VOID()))
 }
 
-fn emit_map_option_end(ctx: LowerCtx) {
+fn emit_map_option_end(mut ctx: LowerCtx) {
     ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_end())
 }
 
-fn emit_map_option_result(ctx: LowerCtx, mopt_new_local: i32) {
+fn emit_map_option_result(mut ctx: LowerCtx, mopt_new_local: i32) {
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(mopt_new_local))
 }

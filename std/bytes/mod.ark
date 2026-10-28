@@ -38,7 +38,7 @@ pub struct Bytes {}
 impl Bytes {
     /// Copies `xs` into a new byte buffer, masking each element to 8 bits.
     fn from_array(xs: Vec<i32>) -> Vec<i32> {
-        let result: Vec<i32> = Vec::new<i32>()
+        let mut result: Vec<i32> = Vec::new<i32>()
         let n = len(xs)
         let mut i = 0
         while i < n {
@@ -50,7 +50,7 @@ impl Bytes {
 
     /// Decodes a hex string. Invalid pairs are skipped, matching `hex_decode`.
     fn from_hex(s: String) -> Vec<i32> {
-        let result: Vec<i32> = Vec::new<i32>()
+        let mut result: Vec<i32> = Vec::new<i32>()
         let n: i32 = len(s)
         let mut i: i32 = 0
         while i + 1 < n {
@@ -70,7 +70,7 @@ impl Bytes {
 
     /// Decodes a base64 string. Invalid quartets are skipped.
     fn from_base64(s: String) -> Vec<i32> {
-        let result: Vec<i32> = Vec::new<i32>()
+        let mut result: Vec<i32> = Vec::new<i32>()
         let n = len(s)
         let mut i = 0
         while i + 3 < n {
@@ -96,7 +96,7 @@ impl Bytes {
 
     /// Encodes the low 16 bits of `x` as two little-endian bytes.
     fn from_u16_le(x: i32) -> Vec<i32> {
-        let result: Vec<i32> = Vec::new<i32>()
+        let mut result: Vec<i32> = Vec::new<i32>()
         push(result, x & 255)
         push(result, x >> 8 & 255)
         result
@@ -104,7 +104,7 @@ impl Bytes {
 
     /// Encodes `x` as four little-endian bytes.
     fn from_u32_le(x: i32) -> Vec<i32> {
-        let result: Vec<i32> = Vec::new<i32>()
+        let mut result: Vec<i32> = Vec::new<i32>()
         push(result, x & 255)
         push(result, x >> 8 & 255)
         push(result, x >> 16 & 255)
@@ -114,7 +114,7 @@ impl Bytes {
 
     /// Encodes `x` as four big-endian bytes.
     fn from_u32_be(x: i32) -> Vec<i32> {
-        let result: Vec<i32> = Vec::new<i32>()
+        let mut result: Vec<i32> = Vec::new<i32>()
         push(result, x >> 24 & 255)
         push(result, x >> 16 & 255)
         push(result, x >> 8 & 255)
@@ -124,7 +124,7 @@ impl Bytes {
 
     /// Encodes an unsigned LEB128 u32 value.
     fn from_leb128_u32(x: i32) -> Vec<i32> {
-        let result: Vec<i32> = Vec::new<i32>()
+        let mut result: Vec<i32> = Vec::new<i32>()
         let mut val: i32 = x
         let mut done: bool = false
         while done == false {
@@ -142,7 +142,7 @@ impl Bytes {
 
     /// Encodes a signed LEB128 i32 value.
     fn from_leb128_i32(x: i32) -> Vec<i32> {
-        let result: Vec<i32> = Vec::new<i32>()
+        let mut result: Vec<i32> = Vec::new<i32>()
         let mut val: i32 = x
         let mut done: bool = false
         while done == false {
@@ -177,7 +177,7 @@ impl Bytes {
 
     /// Encodes an unsigned LEB128 u64 value (represented as i64).
     fn from_leb128_u64(x: i64) -> Vec<i32> {
-        let result: Vec<i32> = Vec::new<i32>()
+        let mut result: Vec<i32> = Vec::new<i32>()
         let mut val: i64 = x
         let mut done: bool = false
         while done == false {
@@ -201,7 +201,7 @@ impl Bytes {
 /// spelling and return `Option` instead of the legacy `-1` sentinel.
 impl Vec<i32> {
     /// Appends one byte, masking the value to 0-255.
-    fn push_byte(self: Vec<i32>, byte: i32) {
+    fn push_byte(mut self: Vec<i32>, byte: i32) {
         push(self, byte & 255)
     }
 
@@ -224,7 +224,7 @@ impl Vec<i32> {
 
     /// Returns a new buffer containing `self` followed by `other`.
     fn concat_bytes(self: Vec<i32>, other: Vec<i32>) -> Vec<i32> {
-        let result: Vec<i32> = Vec::new<i32>()
+        let mut result: Vec<i32> = Vec::new<i32>()
         let an = len(self)
         let bn = len(other)
         let mut i = 0
@@ -242,7 +242,7 @@ impl Vec<i32> {
 
     /// Extracts `[start, end)` as a new buffer.
     fn slice_bytes(self: Vec<i32>, start: i32, end: i32) -> Vec<i32> {
-        let result: Vec<i32> = Vec::new<i32>()
+        let mut result: Vec<i32> = Vec::new<i32>()
         let mut i = start
         while i < end {
             push(result, get_unchecked(self, i))
@@ -331,13 +331,13 @@ impl Vec<i32> {
     }
 
     /// Appends the low 16 bits of `x` as little-endian bytes.
-    fn push_u16_le(self: Vec<i32>, x: i32) {
+    fn push_u16_le(mut self: Vec<i32>, x: i32) {
         push(self, x & 255)
         push(self, x >> 8 & 255)
     }
 
     /// Appends `x` as four little-endian bytes.
-    fn push_u32_le(self: Vec<i32>, x: i32) {
+    fn push_u32_le(mut self: Vec<i32>, x: i32) {
         push(self, x & 255)
         push(self, x >> 8 & 255)
         push(self, x >> 16 & 255)
@@ -345,7 +345,7 @@ impl Vec<i32> {
     }
 
     /// Appends `x` as eight little-endian bytes.
-    fn push_u64_le(self: Vec<i32>, x: i64) {
+    fn push_u64_le(mut self: Vec<i32>, x: i64) {
         let mask: i64 = i32_to_i64(255)
         push(self, i64_to_i32(x & mask))
         push(self, i64_to_i32(x >> i32_to_i64(8) & mask))
@@ -358,7 +358,7 @@ impl Vec<i32> {
     }
 
     /// Appends every byte of `other`.
-    fn extend_bytes(self: Vec<i32>, other: Vec<i32>) {
+    fn extend_bytes(mut self: Vec<i32>, other: Vec<i32>) {
         let n = len(other)
         let mut i = 0
         while i < n {
@@ -375,7 +375,7 @@ impl Vec<i32> {
 
     /// Wraps `self` as a cursor (`c[0] = 0`, then the data bytes).
     fn byte_cursor(self: Vec<i32>) -> Vec<i32> {
-        let c: Vec<i32> = Vec::new<i32>()
+        let mut c: Vec<i32> = Vec::new<i32>()
         push(c, 0)
         let n = len(self)
         let mut i = 0
@@ -397,7 +397,7 @@ impl Vec<i32> {
     }
 
     /// Reads one byte and advances the cursor; returns -1 at EOF.
-    fn read_u8(self: Vec<i32>) -> i32 {
+    fn read_u8(mut self: Vec<i32>) -> i32 {
         let pos = get_unchecked(self, 0)
         if self.cursor_remaining() < 1 {
             0 - 1
@@ -409,7 +409,7 @@ impl Vec<i32> {
     }
 
     /// Reads two little-endian bytes; returns -1 when fewer than 2 remain.
-    fn read_u16_le(self: Vec<i32>) -> i32 {
+    fn read_u16_le(mut self: Vec<i32>) -> i32 {
         if self.cursor_remaining() < 2 {
             0 - 1
         } else {
@@ -420,7 +420,7 @@ impl Vec<i32> {
     }
 
     /// Reads four little-endian bytes; returns -1 when fewer than 4 remain.
-    fn read_u32_le(self: Vec<i32>) -> i32 {
+    fn read_u32_le(mut self: Vec<i32>) -> i32 {
         if self.cursor_remaining() < 4 {
             0 - 1
         } else {
@@ -433,7 +433,7 @@ impl Vec<i32> {
     }
 
     /// Reads eight little-endian bytes as i64; returns -1 at EOF.
-    fn read_u64_le(self: Vec<i32>) -> i64 {
+    fn read_u64_le(mut self: Vec<i32>) -> i64 {
         if self.cursor_remaining() < 8 {
             i32_to_i64(0) - i32_to_i64(1)
         } else {
@@ -457,7 +457,7 @@ impl Vec<i32> {
     }
 
     /// Reads four big-endian bytes; returns -1 when fewer than 4 remain.
-    fn read_u32_be(self: Vec<i32>) -> i32 {
+    fn read_u32_be(mut self: Vec<i32>) -> i32 {
         if self.cursor_remaining() < 4 {
             0 - 1
         } else {
@@ -470,8 +470,8 @@ impl Vec<i32> {
     }
 
     /// Reads `n` bytes into a new buffer; returns an empty buffer at EOF.
-    fn read_bytes(self: Vec<i32>, n: i32) -> Vec<i32> {
-        let result: Vec<i32> = Vec::new<i32>()
+    fn read_bytes(mut self: Vec<i32>, n: i32) -> Vec<i32> {
+        let mut result: Vec<i32> = Vec::new<i32>()
         if self.cursor_remaining() < n {
             result
         } else {
@@ -485,7 +485,7 @@ impl Vec<i32> {
     }
 
     /// Reads one byte as `Option`; `None` at EOF.
-    fn try_read_u8(self: Vec<i32>) -> Option<i32> {
+    fn try_read_u8(mut self: Vec<i32>) -> Option<i32> {
         if self.cursor_remaining() < 1 {
             None
         } else {
@@ -497,7 +497,7 @@ impl Vec<i32> {
     }
 
     /// Reads two little-endian bytes as `Option`; `None` when short.
-    fn try_read_u16_le(self: Vec<i32>) -> Option<i32> {
+    fn try_read_u16_le(mut self: Vec<i32>) -> Option<i32> {
         if self.cursor_remaining() < 2 {
             None
         } else {
@@ -508,7 +508,7 @@ impl Vec<i32> {
     }
 
     /// Reads four little-endian bytes as `Option`; `None` when short.
-    fn try_read_u32_le(self: Vec<i32>) -> Option<i32> {
+    fn try_read_u32_le(mut self: Vec<i32>) -> Option<i32> {
         if self.cursor_remaining() < 4 {
             None
         } else {
@@ -521,7 +521,7 @@ impl Vec<i32> {
     }
 
     /// Reads four big-endian bytes as `Option`; `None` when short.
-    fn try_read_u32_be(self: Vec<i32>) -> Option<i32> {
+    fn try_read_u32_be(mut self: Vec<i32>) -> Option<i32> {
         if self.cursor_remaining() < 4 {
             None
         } else {
@@ -534,11 +534,11 @@ impl Vec<i32> {
     }
 
     /// Reads `n` bytes as `Option`; `None` when short.
-    fn try_read_bytes(self: Vec<i32>, n: i32) -> Option<Vec<i32>> {
+    fn try_read_bytes(mut self: Vec<i32>, n: i32) -> Option<Vec<i32>> {
         if self.cursor_remaining() < n {
             None
         } else {
-            let result: Vec<i32> = Vec::new<i32>()
+            let mut result: Vec<i32> = Vec::new<i32>()
             let mut i = 0
             while i < n {
                 push(result, self.read_u8())
@@ -549,7 +549,7 @@ impl Vec<i32> {
     }
 
     /// Decodes an unsigned LEB128 u32 from the cursor.
-    fn read_leb128_u32(self: Vec<i32>) -> i32 {
+    fn read_leb128_u32(mut self: Vec<i32>) -> i32 {
         let mut result = 0
         let mut shift = 0
         let mut done = false
@@ -572,7 +572,7 @@ impl Vec<i32> {
     }
 
     /// Decodes a signed LEB128 i32 from the cursor.
-    fn read_leb128_i32(self: Vec<i32>) -> i32 {
+    fn read_leb128_i32(mut self: Vec<i32>) -> i32 {
         let mut result = 0
         let mut shift = 0
         let mut last_byte = 0
@@ -602,7 +602,7 @@ impl Vec<i32> {
     }
 
     /// Decodes an unsigned LEB128 u64 from the cursor as i64.
-    fn read_leb128_u64(self: Vec<i32>) -> i64 {
+    fn read_leb128_u64(mut self: Vec<i32>) -> i64 {
         let mut result: i64 = i32_to_i64(0)
         let mut shift: i64 = i32_to_i64(0)
         let mut done: bool = false
@@ -1028,7 +1028,7 @@ test mod "bytes" {
         assert(b.len() == 2)
     }
     test "push" {
-        let b: Vec<i32> = Vec::new<i32>()
+        let mut b: Vec<i32> = Vec::new<i32>()
         b.push_byte(255)
         assert(b.len() == 1)
     }
@@ -1093,7 +1093,7 @@ test mod "bytes_ops" {
         assert(d.get_unchecked(1) == 173)
     }
     test "from_array_masks" {
-        let xs: Vec<i32> = Vec::new<i32>()
+        let mut xs: Vec<i32> = Vec::new<i32>()
         push(xs, 0)
         push(xs, 257)
         let b: Vec<i32> = Bytes::from_array(xs)
@@ -1144,46 +1144,46 @@ test mod "bytes_endian" {
     }
     test "leb128_u32_decode_roundtrip" {
         let e: Vec<i32> = Bytes::from_leb128_u32(624485)
-        let c: Vec<i32> = e.byte_cursor()
+        let mut c: Vec<i32> = e.byte_cursor()
         assert(c.read_leb128_u32() == 624485)
     }
     test "leb128_i32_decode_negative" {
         let e: Vec<i32> = Bytes::from_leb128_i32(0 - 64)
-        let c: Vec<i32> = e.byte_cursor()
+        let mut c: Vec<i32> = e.byte_cursor()
         assert(c.read_leb128_i32() == 0 - 64)
     }
     test "leb128_u64_roundtrip" {
         let e: Vec<i32> = Bytes::from_leb128_u64(i32_to_i64(300))
-        let c: Vec<i32> = e.byte_cursor()
+        let mut c: Vec<i32> = e.byte_cursor()
         assert(c.read_leb128_u64() == i32_to_i64(300))
     }
 }
 
 test mod "bytes_buf_cursor" {
     test "buf_push_u8" {
-        let b: Vec<i32> = Vec::new<i32>()
+        let mut b: Vec<i32> = Vec::new<i32>()
         b.push_byte(65)
         assert(b.len() == 1)
     }
     test "buf_push_u16_le_two_bytes" {
-        let b: Vec<i32> = Vec::new<i32>()
+        let mut b: Vec<i32> = Vec::new<i32>()
         b.push_u16_le(258)
         assert(b.len() == 2)
         assert(b.get_unchecked(0) == 2)
         assert(b.get_unchecked(1) == 1)
     }
     test "buf_push_u32_le_four_bytes" {
-        let b: Vec<i32> = Vec::new<i32>()
+        let mut b: Vec<i32> = Vec::new<i32>()
         b.push_u32_le(1)
         assert(b.len() == 4)
     }
     test "buf_push_u64_le_eight_bytes" {
-        let b: Vec<i32> = Vec::new<i32>()
+        let mut b: Vec<i32> = Vec::new<i32>()
         b.push_u64_le(i32_to_i64(1))
         assert(b.len() == 8)
     }
     test "buf_extend_appends" {
-        let b: Vec<i32> = Vec::new<i32>()
+        let mut b: Vec<i32> = Vec::new<i32>()
         b.push_byte(1)
         b.extend_bytes("xy".to_utf8_bytes())
         assert(b.len() == 3)
@@ -1194,21 +1194,21 @@ test mod "bytes_buf_cursor" {
         assert(frozen.equals_bytes(b))
     }
     test "cursor_read_u8_advances" {
-        let c: Vec<i32> = "ab".to_utf8_bytes().byte_cursor()
+        let mut c: Vec<i32> = "ab".to_utf8_bytes().byte_cursor()
         assert(c.read_u8() == 97)
         assert(c.cursor_pos() == 1)
         assert(c.cursor_remaining() == 1)
     }
     test "cursor_read_u16_le" {
-        let c: Vec<i32> = Bytes::from_u16_le(258).byte_cursor()
+        let mut c: Vec<i32> = Bytes::from_u16_le(258).byte_cursor()
         assert(c.read_u16_le() == 258)
     }
     test "cursor_read_u32_le" {
-        let c: Vec<i32> = Bytes::from_u32_le(70000).byte_cursor()
+        let mut c: Vec<i32> = Bytes::from_u32_le(70000).byte_cursor()
         assert(c.read_u32_le() == 70000)
     }
     test "cursor_try_read_u8_empty_is_none" {
-        let c: Vec<i32> = Vec::new<i32>().byte_cursor()
+        let mut c: Vec<i32> = Vec::new<i32>().byte_cursor()
         let r = match c.try_read_u8() {
             Option::Some(v) => 1,
             Option::None => 2,
@@ -1216,7 +1216,7 @@ test mod "bytes_buf_cursor" {
         assert(r == 2)
     }
     test "cursor_read_bytes_takes_n" {
-        let c: Vec<i32> = "abcd".to_utf8_bytes().byte_cursor()
+        let mut c: Vec<i32> = "abcd".to_utf8_bytes().byte_cursor()
         let r: Vec<i32> = c.read_bytes(2)
         assert(r.len() == 2)
         assert(c.cursor_remaining() == 2)

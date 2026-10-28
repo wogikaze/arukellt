@@ -13,7 +13,7 @@ fn mir_float_box_value(cell: MirFloatBox) -> f64 {
     cell.value
 }
 
-fn mir_float_box_set_value(cell: MirFloatBox, value: f64) {
+fn mir_float_box_set_value(mut cell: MirFloatBox, value: f64) {
     cell.value = value
 }
 

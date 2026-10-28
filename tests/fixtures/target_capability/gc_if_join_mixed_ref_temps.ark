@@ -7,7 +7,7 @@ use std::test
 // decl must be their common `(ref null any)`; keeping the first branch's type
 // made the other branch's LOCAL_SET fail wasm32-gc validation.
 
-fn push_in_branch(vv: Vec<Vec<i32>>, v: Vec<i32>, c: i32) -> i32 {
+fn push_in_branch(mut vv: Vec<Vec<i32>>, mut v: Vec<i32>, c: i32) -> i32 {
     if c > 0 {
         push(vv, v)
     } else {

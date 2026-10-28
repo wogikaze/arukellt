@@ -12,7 +12,7 @@ use main::compile_core
 use main::output
 use main::project_run
 fn build_project_driver_config(opts: CliOptions) -> DriverConfig {
-    let config = config_record::DriverConfig_default()
+    let mut config = config_record::DriverConfig_default()
     compile_core::configure_target_axes(opts, config, args_record::cli_emit_mode(opts))
     config_record::config_set_opt_level(config, args_record::cli_opt_level(opts))
     config_record::config_set_emit_mode(config, args_record::cli_emit_mode(opts))
@@ -97,7 +97,7 @@ pub fn cmd_build(opts: CliOptions) {
                 return
             }
             print_build_start(info, manifest_path, entry)
-            let config = build_project_driver_config(opts)
+            let mut config = build_project_driver_config(opts)
             let result = file::compile_file(clone(entry), config)
             if result_record::compile_result_success(result) {
                 let out_path = build_output_path(opts, info)

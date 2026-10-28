@@ -1,38 +1,38 @@
 use wasm::opcodes
 use wasm::writer_core
 
-fn emit_f64_const_words(w: WasmWriter, lo: i32, hi: i32) {
+fn emit_f64_const_words(mut w: WasmWriter, lo: i32, hi: i32) {
     writer_core::emit_byte(w, opcodes::OP_F64_CONST())
     writer_core::emit_u32_le(w, lo)
     writer_core::emit_u32_le(w, hi)
 }
 
-fn emit_f64_lt(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_LT()) }
-fn emit_f64_gt(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_GT()) }
-fn emit_f64_le(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_LE()) }
-fn emit_f64_ge(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_GE()) }
-fn emit_f64_eq(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_EQ()) }
-fn emit_f64_neg(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_NEG()) }
-fn emit_f64_abs(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_ABS()) }
-fn emit_f64_trunc(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_TRUNC()) }
-fn emit_f64_nearest(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_NEAREST()) }
-fn emit_f64_add(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_ADD()) }
-fn emit_f64_sub(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_SUB()) }
-fn emit_f64_mul(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_MUL()) }
-fn emit_f64_div(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_DIV()) }
-fn emit_f64_convert_i32_s(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_CONVERT_I32_S()) }
+fn emit_f64_lt(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_LT()) }
+fn emit_f64_gt(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_GT()) }
+fn emit_f64_le(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_LE()) }
+fn emit_f64_ge(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_GE()) }
+fn emit_f64_eq(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_EQ()) }
+fn emit_f64_neg(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_NEG()) }
+fn emit_f64_abs(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_ABS()) }
+fn emit_f64_trunc(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_TRUNC()) }
+fn emit_f64_nearest(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_NEAREST()) }
+fn emit_f64_add(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_ADD()) }
+fn emit_f64_sub(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_SUB()) }
+fn emit_f64_mul(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_MUL()) }
+fn emit_f64_div(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_DIV()) }
+fn emit_f64_convert_i32_s(mut w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_CONVERT_I32_S()) }
 
-fn emit_f64_to_f32_bridge(w: WasmWriter) {
+fn emit_f64_to_f32_bridge(mut w: WasmWriter) {
     // Real f32 on the operand stack (component / GC f32 locals). Do not bitcast
     // through i32 — that breaks `local.set` of f32 results (#810).
     writer_core::emit_byte(w, opcodes::OP_F32_DEMOTE_F64())
 }
 
-fn emit_f32_to_f64_bridge(w: WasmWriter) {
+fn emit_f32_to_f64_bridge(mut w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_F64_PROMOTE_F32())
 }
 
 /// Typed `f32` → `f64` (Wasm `f64.promote_f32`).
-fn emit_f32_promote_f64(w: WasmWriter) {
+fn emit_f32_promote_f64(mut w: WasmWriter) {
     writer_core::emit_byte(w, 0xbb)
 }

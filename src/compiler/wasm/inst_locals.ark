@@ -16,11 +16,11 @@ use wasm::code_ref_locals_block_scan
 use mir::value_types
 use wasm::linear_root_lowering
 
-fn emit_local_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_local_get(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_local_get(w, inst_accessors_operands::MirInst_arg0(inst))
 }
 
-fn emit_local_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_local_set(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst_accessors_operands::MirInst_arg1(inst) >= 0 {
         writer_core::emit_local_get(w, inst_accessors_operands::MirInst_arg1(inst))
     }
@@ -31,7 +31,7 @@ fn emit_local_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     linear_root_lowering::emit_update_after_local_set(w, dest)
 }
 
-fn emit_gc_ref_cast_to_dest(w: WasmWriter, ctx: SelfEmitCtx, dest: i32) {
+fn emit_gc_ref_cast_to_dest(mut w: WasmWriter, ctx: SelfEmitCtx, dest: i32) {
     if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return
     }
@@ -73,6 +73,6 @@ fn emit_gc_ref_cast_to_dest(w: WasmWriter, ctx: SelfEmitCtx, dest: i32) {
     }
 }
 
-fn emit_gc_ref_cast_to_local(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_gc_ref_cast_to_local(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_gc_ref_cast_to_dest(w, ctx, inst_accessors_operands::MirInst_arg0(inst))
 }

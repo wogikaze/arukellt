@@ -1,7 +1,7 @@
 use wasm::wasm
 
 pub fn emit_wasm(
-    mir: MirModule,
+    mut mir: MirModule,
     target: String,
     wasi_version: String,
     memory_width: String,

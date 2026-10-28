@@ -9,7 +9,7 @@ use typechecker::unify
 // unsupported pair is rejected before it can create a mono instance.
 use std::prelude::{byte_at, clone, eq, starts_with}
 use std::text
-fn validate_hashmap_constructor(env: TypeEnv, fn_name: String, type_args: Vec<TypeInfo>) -> bool {
+fn validate_hashmap_constructor(mut env: TypeEnv, fn_name: String, type_args: Vec<TypeInfo>) -> bool {
     if !is_hashmap_api_name(clone(fn_name)) {
         return true
     }
@@ -21,7 +21,7 @@ fn validate_hashmap_constructor(env: TypeEnv, fn_name: String, type_args: Vec<Ty
     validate_hashmap_pair(env, key_ty, value_ty)
 }
 
-fn validate_hashmap_method(env: TypeEnv, fn_name: String, receiver_ty: TypeInfo) -> bool {
+fn validate_hashmap_method(mut env: TypeEnv, fn_name: String, receiver_ty: TypeInfo) -> bool {
     if !is_hashmap_api_name(clone(fn_name)) {
         return true
     }
@@ -40,7 +40,7 @@ fn is_hashmap_api_name(fn_name: String) -> bool {
     starts_with(clone(fn_name), String_from("HashMap::"))
 }
 
-fn validate_hashmap_pair(env: TypeEnv, key_ty: TypeInfo, value_ty: TypeInfo) -> bool {
+fn validate_hashmap_pair(mut env: TypeEnv, key_ty: TypeInfo, value_ty: TypeInfo) -> bool {
     if is_deferred_hashmap_type(key_ty) || is_deferred_hashmap_type(value_ty) {
         return true
     }

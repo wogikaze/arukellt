@@ -4,15 +4,15 @@ use mir::lower::body_if
 use mir::lower::control
 use mir::lower::try
 
-fn lower_if_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_if_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     body_if::lower_if_expr(ctx, node)
 }
 
-fn lower_block_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_block_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     body_block::lower_block_expr(ctx, node)
 }
 
-fn lower_try_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_try_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     if child_count >= 1 {
         let inner = ast_node::node_child_at(node, 0)
@@ -22,7 +22,7 @@ fn lower_try_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     0 - 1
 }
 
-fn lower_return_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_return_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     if child_count >= 1 {
         let expr = ast_node::node_child_at(node, 0)
@@ -34,12 +34,12 @@ fn lower_return_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     0 - 1
 }
 
-fn lower_break_expr(ctx: LowerCtx) -> i32 {
+fn lower_break_expr(mut ctx: LowerCtx) -> i32 {
     control::mir_emit_loop_break(ctx)
     0 - 1
 }
 
-fn lower_continue_expr(ctx: LowerCtx) -> i32 {
+fn lower_continue_expr(mut ctx: LowerCtx) -> i32 {
     control::mir_emit_loop_continue(ctx)
     0 - 1
 }

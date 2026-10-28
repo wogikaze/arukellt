@@ -10,7 +10,7 @@ use wasm::call_simd_scalar_cmp
 use wasm::call_simd_scalar_ops
 use wasm::opcodes
 
-fn try_emit_simd_scalar(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_simd_scalar(mut w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     let dest = inst_accessors_operands::MirInst_dest(inst)
     let arg0 = inst_accessors_operands::MirInst_arg0(inst)
     let arg1 = inst_accessors_operands::MirInst_arg1(inst)
@@ -28,7 +28,7 @@ fn try_emit_simd_scalar(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: Self
     false
 }
 
-fn try_emit_simd_scalar_splat_zero(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+fn try_emit_simd_scalar_splat_zero(mut w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_splat() {
         call_simd_scalar_ops::emit_scalar_splat_f32(w, arg0, dest)
         return true
@@ -60,7 +60,7 @@ fn try_emit_simd_scalar_splat_zero(w: WasmWriter, handler_id: i32, dest: i32, ar
     false
 }
 
-fn try_emit_simd_scalar_extract(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+fn try_emit_simd_scalar_extract(mut w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_extract_lane() {
         call_simd_scalar_ops::emit_scalar_extract_f32(w, arg0, arg1, dest)
         return true
@@ -96,7 +96,7 @@ fn try_emit_simd_scalar_extract(w: WasmWriter, handler_id: i32, dest: i32, arg0:
     false
 }
 
-fn try_emit_simd_scalar_replace(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+fn try_emit_simd_scalar_replace(mut w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_replace_lane() {
         call_simd_scalar_ops::emit_scalar_replace_f32(w, arg0, arg1, dest)
         return true
@@ -124,7 +124,7 @@ fn try_emit_simd_scalar_replace(w: WasmWriter, handler_id: i32, dest: i32, arg0:
     false
 }
 
-fn try_emit_simd_scalar_binary(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+fn try_emit_simd_scalar_binary(mut w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_add() {
         call_simd_scalar_ops::emit_scalar_f32x4_binary(w, arg0, arg1, dest, opcodes::OP_F32_ADD())
         return true
@@ -220,7 +220,7 @@ fn try_emit_simd_scalar_binary(w: WasmWriter, handler_id: i32, dest: i32, arg0: 
     false
 }
 
-fn try_emit_simd_scalar_unary(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+fn try_emit_simd_scalar_unary(mut w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_neg() {
         call_simd_scalar_ops::emit_scalar_f32x4_unary(w, arg0, dest, opcodes::OP_F32_NEG())
         return true
@@ -240,7 +240,7 @@ fn try_emit_simd_scalar_unary(w: WasmWriter, handler_id: i32, dest: i32, arg0: i
     false
 }
 
-fn try_emit_simd_scalar_comparison(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+fn try_emit_simd_scalar_comparison(mut w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_eq() {
         call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_EQ())
         return true
@@ -380,7 +380,7 @@ fn try_emit_simd_scalar_comparison(w: WasmWriter, handler_id: i32, dest: i32, ar
     false
 }
 
-fn try_emit_simd_scalar_minmax(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+fn try_emit_simd_scalar_minmax(mut w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_min_s() {
         call_simd_scalar_cmp::emit_scalar_i32x4_minmax(w, arg0, arg1, dest, opcodes::OP_I32_LT_S())
         return true
@@ -436,7 +436,7 @@ fn try_emit_simd_scalar_minmax(w: WasmWriter, handler_id: i32, dest: i32, arg0: 
     false
 }
 
-fn try_emit_simd_scalar_rounding(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+fn try_emit_simd_scalar_rounding(mut w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_ceil() {
         call_simd_scalar_ops::emit_scalar_f32x4_unary(w, arg0, dest, opcodes::OP_F32_CEIL())
         return true
@@ -472,7 +472,7 @@ fn try_emit_simd_scalar_rounding(w: WasmWriter, handler_id: i32, dest: i32, arg0
     false
 }
 
-fn try_emit_simd_scalar_shift(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+fn try_emit_simd_scalar_shift(mut w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_shl() {
         call_simd_scalar_cmp::emit_scalar_i32x4_shift(w, arg0, arg1, dest, opcodes::OP_I32_SHL())
         return true
@@ -524,7 +524,7 @@ fn try_emit_simd_scalar_shift(w: WasmWriter, handler_id: i32, dest: i32, arg0: i
     false
 }
 
-fn try_emit_simd_scalar_alltrue_bitmask(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+fn try_emit_simd_scalar_alltrue_bitmask(mut w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_v128_any_true() {
         call_simd_scalar_ops::emit_scalar_any_true(w, arg0, dest)
         return true
@@ -564,7 +564,7 @@ fn try_emit_simd_scalar_alltrue_bitmask(w: WasmWriter, handler_id: i32, dest: i3
     false
 }
 
-fn try_emit_simd_scalar_saturating(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+fn try_emit_simd_scalar_saturating(mut w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_add_sat_s() {
         call_simd_scalar_cmp::emit_scalar_i32x4_add_sat(w, arg0, arg1, dest)
         return true

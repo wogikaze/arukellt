@@ -92,6 +92,6 @@ fn signature_entry_core_op_id(entry: SignatureEntry) -> CoreOpId {
     entry.core_op_id
 }
 
-fn signature_entry_set_core_op_id(entry: SignatureEntry, core_op_id: CoreOpId) {
+fn signature_entry_set_core_op_id(mut entry: SignatureEntry, core_op_id: CoreOpId) {
     entry.core_op_id = core_op_id
 }

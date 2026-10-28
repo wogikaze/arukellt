@@ -9,6 +9,6 @@ fn MirPhi_new(dest: i32, val_type: i32) -> MirPhi {
     phi_record::MirPhi_new(dest, val_type)
 }
 
-fn mir_phi_add_arg(phi: MirPhi, pred_block: i32, local: i32) {
+fn mir_phi_add_arg(mut phi: MirPhi, pred_block: i32, local: i32) {
     phi_record::mir_phi_add_arg(phi, pred_block, local)
 }

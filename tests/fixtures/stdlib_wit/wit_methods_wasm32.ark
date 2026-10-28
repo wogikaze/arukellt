@@ -7,13 +7,13 @@ use std::wit::types
 use std::wit::world
 
 fn main() {
-    let math = world::Interface::new(String_from("math"))
-    let params = Vec::new<WitParam>()
+    let mut math = world::Interface::new(String_from("math"))
+    let mut params = Vec::new<WitParam>()
     push(params, types::WitParam::new(String_from("a"), types::WitType::U32))
     let add = world::WitFunc::new(String_from("add"), params, Some(types::WitType::U32))
     math.add_func(add)
 
-    let w = world::World::new(String_from("demo"))
+    let mut w = world::World::new(String_from("demo"))
     w.add_import(math)
     w.add_export(world::Interface::new(String_from("api")))
     stdio::println(w.name())

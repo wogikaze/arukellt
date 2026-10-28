@@ -25,7 +25,7 @@ fn fstring_collect_segments(content: String, span: Span) -> Vec<AstNode> {
     nodes
 }
 
-fn fstring_push_expr_segment(nodes: Vec<AstNode>, content: String, span: Span, open_idx: i32) -> i32 {
+fn fstring_push_expr_segment(mut nodes: Vec<AstNode>, content: String, span: Span, open_idx: i32) -> i32 {
     let clen = len(content)
     let expr_start = open_idx + 1
     let mut depth = 1
@@ -66,7 +66,7 @@ fn fstring_push_expr_segment(nodes: Vec<AstNode>, content: String, span: Span, o
     let end_of_expr = if colon_idx >= 1 { colon_idx } else { close_idx }
     let expr_text = substring(content, expr_start, end_of_expr)
     let toks = scan::tokenize(clone(expr_text))
-    let sub_p = Parser_new(toks)
+    let mut sub_p = Parser_new(toks)
     let expr = parse_expr(sub_p)
     if colon_idx >= 1 {
         let spec_text = substring(content, colon_idx + 1, close_idx)

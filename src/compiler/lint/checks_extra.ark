@@ -11,7 +11,7 @@ use resolver::ast_expr_predicates
 use resolver::paths
 use diagnostics::mod as diag_mod
 pub fn check_deprecated_api(decls: Vec<AstNode>) -> Vec<Diagnostic> {
-    let warnings = Vec::new<Diagnostic>()
+    let mut warnings = Vec::new<Diagnostic>()
     let count = len(decls)
     let mut i = 0
     while i < count {
@@ -21,7 +21,7 @@ pub fn check_deprecated_api(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     warnings
 }
 
-fn check_deprecated_api_in_node(node: AstNode, warnings: Vec<Diagnostic>) {
+fn check_deprecated_api_in_node(node: AstNode, mut warnings: Vec<Diagnostic>) {
     if ast_decl_predicates::node_is_use(node) {
         let path = ast_access::node_text(node)
         let dep_msg = deprecated_table::deprecated_use_message(clone(path))
@@ -59,10 +59,10 @@ fn check_deprecated_api_in_node(node: AstNode, warnings: Vec<Diagnostic>) {
 }
 
 pub fn check_unused_symbols(decls: Vec<AstNode>) -> Vec<Diagnostic> {
-    let warnings = Vec::new<Diagnostic>()
-    let fn_names = Vec::new<String>()
-    let fn_spans_start = Vec::new<i32>()
-    let fn_spans_end = Vec::new<i32>()
+    let mut warnings = Vec::new<Diagnostic>()
+    let mut fn_names = Vec::new<String>()
+    let mut fn_spans_start = Vec::new<i32>()
+    let mut fn_spans_end = Vec::new<i32>()
     let count = len(decls)
     let mut i = 0
     while i < count {
@@ -77,7 +77,7 @@ pub fn check_unused_symbols(decls: Vec<AstNode>) -> Vec<Diagnostic> {
         }
         i = i + 1
     }
-    let referenced = Vec::new<String>()
+    let mut referenced = Vec::new<String>()
     let dcount = len(decls)
     let mut di = 0
     while di < dcount {
@@ -99,7 +99,7 @@ pub fn check_unused_symbols(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     warnings
 }
 
-fn collect_referenced_idents(node: AstNode, referenced: Vec<String>) {
+fn collect_referenced_idents(node: AstNode, mut referenced: Vec<String>) {
     if ast_expr_predicates::node_is_ident(node) {
         push(referenced, ast_access::node_text(node))
         return
@@ -125,7 +125,7 @@ fn collect_referenced_idents(node: AstNode, referenced: Vec<String>) {
 // when building for the canonical component target. Private helpers are not
 // migration candidates and therefore do not need this warning.
 pub fn check_capability_stubs(decls: Vec<AstNode>, target: String) -> Vec<Diagnostic> {
-    let warnings = Vec::new<Diagnostic>()
+    let mut warnings = Vec::new<Diagnostic>()
     // Only relevant for component targets
     if !is_component_target(target) {
         return warnings

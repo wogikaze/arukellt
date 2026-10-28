@@ -12,9 +12,9 @@ use parser::type_params
 use parser::type_where
 use parser::types
 
-fn parse_trait_header(p: Parser) -> AstNode {
+fn parse_trait_header(mut p: Parser) -> AstNode {
     let t = core_api_expect::expect_token(p, tokens::TK_TRAIT())
-    let node = core_ast_factory::AstNode_new(kinds::NK_TRAIT_DECL(), core_api_expect::tok_span(t))
+    let mut node = core_ast_factory::AstNode_new(kinds::NK_TRAIT_DECL(), core_api_expect::tok_span(t))
     let name = core_api_expect::expect_token(p, tokens::TK_IDENT())
     core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(name))
     core_ast_span_fields::AstNode_set_name_span(node, core_api_expect::tok_span(name))
@@ -27,7 +27,7 @@ fn parse_trait_header(p: Parser) -> AstNode {
     node
 }
 
-fn parse_trait_supertraits(p: Parser, node: AstNode) {
+fn parse_trait_supertraits(mut p: Parser, mut node: AstNode) {
     if core_api_cursor::peek_kind(p) != tokens::TK_COLON() {
         return
     }
@@ -35,7 +35,7 @@ fn parse_trait_supertraits(p: Parser, node: AstNode) {
     while true {
         core_api_cursor::skip_newlines(p)
         let supertrait = types::parse_type(p)
-        let marker = core_ast_factory::AstNode_new(
+        let mut marker = core_ast_factory::AstNode_new(
             kinds::NK_TRAIT_SUPER(),
             core_ast_span_fields::AstNode_span(supertrait)
         )

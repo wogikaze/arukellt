@@ -6,7 +6,7 @@ use mir::lower::registry_enums
 use mir::lower::registry_structs
 use mir::lower::registry_view_late
 
-fn mir_register_view_layouts(ctx: LowerCtx, view: CoreHirMirView) {
+fn mir_register_view_layouts(mut ctx: LowerCtx, view: CoreHirMirView) {
     ctx_api_variants::ctx_register_builtin_variants(ctx)
     let source = mod::view_layout_source(view)
     let decl_count = layout_source::mir_layout_source_count(source)

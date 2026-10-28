@@ -16,10 +16,10 @@ fn assert_emittable_string_len(slen: i32) {
     }
 }
 
-fn emit_data_section(out: WasmWriter, strings: Vec<String>) {
+fn emit_data_section(mut out: WasmWriter, strings: Vec<String>) {
     let final_str_count = len(strings)
     if final_str_count > 0 {
-        let data_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
+        let mut data_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
         writer_core::emit_leb128_u(data_sec, 1)
         emit_active_data_offset_expr(data_sec)
         let total_data = total_string_data_size(strings)
@@ -29,7 +29,7 @@ fn emit_data_section(out: WasmWriter, strings: Vec<String>) {
     }
 }
 
-fn emit_active_data_offset_expr(data_sec: WasmWriter) {
+fn emit_active_data_offset_expr(mut data_sec: WasmWriter) {
     writer_core::emit_byte(data_sec, 0)
     if writer_core::writer_memory64(data_sec) {
         writer_core::emit_byte(data_sec, opcodes::OP_I64_CONST())
@@ -50,7 +50,7 @@ fn total_string_data_size(strings: Vec<String>) -> i32 {
     total_data
 }
 
-fn emit_string_data_payload(data_sec: WasmWriter, strings: Vec<String>) {
+fn emit_string_data_payload(mut data_sec: WasmWriter, strings: Vec<String>) {
     for ds2 in 0..len(strings) {
         let s = get_unchecked(strings, ds2)
         let slen = len(s)

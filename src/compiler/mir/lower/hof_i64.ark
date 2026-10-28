@@ -9,7 +9,7 @@ use mir::lower::hof_loop
 use mir::lower::hof_loop_steps
 use mir::lower::hof_results
 
-fn mir_lower_hof_i64(ctx: LowerCtx, hof_fn_name: String, hof_vec_local: i32, hof_init_idx: i32, is_map_i64_i64: bool, is_filter_i64: bool, is_fold_i64_i64: bool) -> i32 {
+fn mir_lower_hof_i64(mut ctx: LowerCtx, hof_fn_name: String, hof_vec_local: i32, hof_init_idx: i32, is_map_i64_i64: bool, is_filter_i64: bool, is_fold_i64_i64: bool) -> i32 {
     let hof_acc_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I64())
     emit_i64_fold_acc_init(ctx, hof_init_idx, hof_acc_local, is_fold_i64_i64)
     let hof_n_local = hof_loop::emit_hof_len_local(ctx, hof_vec_local)
@@ -32,11 +32,11 @@ fn mir_lower_hof_i64(ctx: LowerCtx, hof_fn_name: String, hof_vec_local: i32, hof
     emit_i64_hof_result(ctx, hof_acc_local, hof_result_local, is_fold_i64_i64)
 }
 
-fn emit_i64_hof_result(ctx: LowerCtx, hof_acc_local: i32, hof_result_local: i32, is_fold_i64_i64: bool) -> i32 {
+fn emit_i64_hof_result(mut ctx: LowerCtx, hof_acc_local: i32, hof_result_local: i32, is_fold_i64_i64: bool) -> i32 {
     hof_results::emit_hof_result_select(ctx, hof_acc_local, hof_result_local, is_fold_i64_i64)
 }
 
-fn emit_i64_fold_acc_init(ctx: LowerCtx, hof_init_idx: i32, hof_acc_local: i32, is_fold_i64_i64: bool) {
+fn emit_i64_fold_acc_init(mut ctx: LowerCtx, hof_init_idx: i32, hof_acc_local: i32, is_fold_i64_i64: bool) {
     if is_fold_i64_i64 {
         if ctx_api_local_types::ctx_local_vt(ctx, hof_init_idx) == value_types::VT_I32() {
             ctx_api_emit::ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64(hof_acc_local, hof_init_idx))
@@ -45,7 +45,7 @@ fn emit_i64_fold_acc_init(ctx: LowerCtx, hof_init_idx: i32, hof_acc_local: i32, 
     }
 }
 
-fn emit_i64_result_vec(ctx: LowerCtx, is_fold_i64_i64: bool) -> i32 {
+fn emit_i64_result_vec(mut ctx: LowerCtx, is_fold_i64_i64: bool) -> i32 {
     let hof_result_local = hof_results::hof_result_local(ctx)
     if !is_fold_i64_i64 {
         hof_results::emit_hof_result_vec_init(ctx, hof_result_local, "Vec::new__i64", "vec:i64")

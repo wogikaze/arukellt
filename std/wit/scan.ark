@@ -81,7 +81,7 @@ impl WitText {
     /// Split `inner` on top-level commas (tracking `<`/`>` nesting) into a
     /// `Vec<String>` of trimmed items.
     fn split_csv_items(inner: String) -> Vec<String> {
-        let items = Vec::new<String>()
+        let mut items = Vec::new<String>()
         let n = len(inner)
         let mut start = 0
         let mut depth = 0

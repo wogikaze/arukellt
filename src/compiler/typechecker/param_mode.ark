@@ -16,7 +16,7 @@ use diagnostics::codes
 // migration tracked by #951; this check only fires for the explicit `mut`
 // spelling, which no pre-migration declaration uses.
 fn check_call_parameter_modes(
-    env: TypeEnv,
+    mut env: TypeEnv,
     scope: LocalScope,
     sig: FnSig,
     node: AstNode,
@@ -31,7 +31,7 @@ fn check_call_parameter_modes(
     if param_count < 1 || first_arg < 0 || child_count < first_arg + param_count {
         return
     }
-    let requires_mutable = Vec::new<bool>()
+    let mut requires_mutable = Vec::new<bool>()
     let mut index = 0
     while index < param_count {
         push(
@@ -48,7 +48,7 @@ fn check_call_parameter_modes(
 // `param_modes` aligns with the parameters. A shared function value is still
 // called with the declared `mut` contract, so the call site must provide a
 // mutable place.
-fn check_fn_value_parameter_modes(env: TypeEnv, scope: LocalScope, fn_ty: TypeInfo, node: AstNode, first_arg: i32) {
+fn check_fn_value_parameter_modes(mut env: TypeEnv, scope: LocalScope, fn_ty: TypeInfo, node: AstNode, first_arg: i32) {
     if !env.is_ownership_tracking_enabled {
         return
     }
@@ -61,7 +61,7 @@ fn check_fn_value_parameter_modes(env: TypeEnv, scope: LocalScope, fn_ty: TypeIn
     if param_count < 1 || child_count < first_arg + param_count {
         return
     }
-    let requires_mutable = Vec::new<bool>()
+    let mut requires_mutable = Vec::new<bool>()
     let mut index = 0
     while index < param_count {
         push(
@@ -112,7 +112,7 @@ fn type_requires_mutable_place(env: TypeEnv, param_ty: TypeInfo) -> bool {
 }
 
 fn check_mutable_parameter_places(
-    env: TypeEnv,
+    mut env: TypeEnv,
     scope: LocalScope,
     node: AstNode,
     first_arg: i32,
@@ -167,7 +167,7 @@ fn arg_is_mutable_place(scope: LocalScope, node: AstNode) -> bool {
 // borrow), but the reverse would let an immutable place reach a function that
 // mutates it. Modes are not part of unification, so the direction is checked
 // explicitly at annotation boundaries.
-fn check_fn_type_assignment(env: TypeEnv, node: AstNode, expected: TypeInfo, actual: TypeInfo) {
+fn check_fn_type_assignment(mut env: TypeEnv, node: AstNode, expected: TypeInfo, actual: TypeInfo) {
     if !env.is_ownership_tracking_enabled {
         return
     }
@@ -201,7 +201,7 @@ fn check_fn_type_assignment(env: TypeEnv, node: AstNode, expected: TypeInfo, act
 // Index paths collapse to `[]` because the checker does not evaluate index
 // expressions, so `v[0]` and `v[1]` conservatively overlap.
 fn check_overlapping_places(
-    env: TypeEnv,
+    mut env: TypeEnv,
     scope: LocalScope,
     node: AstNode,
     first_arg: i32,

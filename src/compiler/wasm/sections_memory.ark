@@ -4,8 +4,8 @@ use wasm::constants
 use wasm::writer_core
 use wasm::writer_sections
 use wasm::emit_target
-fn emit_memory_section(out: WasmWriter, target: String, data_offset: i32) {
-    let mem_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
+fn emit_memory_section(mut out: WasmWriter, target: String, data_offset: i32) {
+    let mut mem_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     if emit_target::is_gc_target(clone(target)) {
         // Keep the memory32 reservation within the bootstrap RSS contract;
         // the selfhost heap grows from this initial size when needed.
@@ -32,8 +32,8 @@ fn emit_memory_section(out: WasmWriter, target: String, data_offset: i32) {
 // `literal_cache` describes the GC string-literal cache global
 // (`constants::GLOBAL_GC_STRING_LITERAL_CACHE`); linear targets pass
 // `gc_string_literal_cache_none()` and emit only the heap pointer.
-fn emit_global_section(out: WasmWriter, data_offset: i32, literal_cache: GcStringLiteralCacheGlobal, target: String) {
-    let global_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
+fn emit_global_section(mut out: WasmWriter, data_offset: i32, literal_cache: GcStringLiteralCacheGlobal, target: String) {
+    let mut global_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     let linear_gc = emit_target::is_linear_memory_target(clone(target))
     let cache_count = if literal_cache.array_type_idx >= 0 { 1 } else { 0 }
     let linear_gc_count = if linear_gc { 15 } else { 0 }
@@ -71,7 +71,7 @@ fn gc_string_literal_cache(array_type_idx: i32, slot_count: i32) -> GcStringLite
 
 // (global (mut (ref null $string_array)) (array.new_default $string_array (i32.const N)))
 // `array.new_default` is a GC constant expression, so no start code is needed.
-fn emit_string_literal_cache_global_entry(global_sec: WasmWriter, literal_cache: GcStringLiteralCacheGlobal) {
+fn emit_string_literal_cache_global_entry(mut global_sec: WasmWriter, literal_cache: GcStringLiteralCacheGlobal) {
     writer_core::emit_byte(global_sec, constants::WASM_REF_NULL())
     writer_core::emit_leb128_s(global_sec, literal_cache.array_type_idx)
     writer_core::emit_byte(global_sec, constants::WASM_MUTABLE())
@@ -83,7 +83,7 @@ fn emit_string_literal_cache_global_entry(global_sec: WasmWriter, literal_cache:
     writer_core::emit_byte(global_sec, opcodes::OP_END())
 }
 
-fn emit_heap_global_entry(global_sec: WasmWriter, heap_start: i32, memory64: bool) {
+fn emit_heap_global_entry(mut global_sec: WasmWriter, heap_start: i32, memory64: bool) {
     if memory64 {
         writer_core::emit_byte(global_sec, constants::WASM_I64())
         writer_core::emit_byte(global_sec, 1)
@@ -99,7 +99,7 @@ fn emit_heap_global_entry(global_sec: WasmWriter, heap_start: i32, memory64: boo
     writer_core::emit_byte(global_sec, opcodes::OP_END())
 }
 
-fn emit_linear_gc_global_entries(global_sec: WasmWriter, heap_start: i32) {
+fn emit_linear_gc_global_entries(mut global_sec: WasmWriter, heap_start: i32) {
     emit_linear_gc_i32_global(global_sec, 0)
     emit_linear_gc_i32_global(global_sec, 0)
     emit_linear_gc_i32_global(global_sec, heap_start)
@@ -129,7 +129,7 @@ fn emit_linear_gc_global_entries(global_sec: WasmWriter, heap_start: i32) {
     emit_linear_gc_i32_global(global_sec, 0)
 }
 
-fn emit_linear_gc_i32_global(global_sec: WasmWriter, initial_value: i32) {
+fn emit_linear_gc_i32_global(mut global_sec: WasmWriter, initial_value: i32) {
     writer_core::emit_byte(global_sec, constants::WASM_I32())
     writer_core::emit_byte(global_sec, 1)
     writer_core::emit_byte(global_sec, opcodes::OP_I32_CONST())
@@ -146,7 +146,7 @@ fn heap_start_from_data_offset(data_offset: i32, linear_gc: bool) -> i32 {
 }
 
 // Memory limits: flag 0x00 = i32 min only; 0x04 = memory64 min only (ADR-007).
-fn emit_memory_entry(mem_sec: WasmWriter, initial_pages: i32, memory64: bool) {
+fn emit_memory_entry(mut mem_sec: WasmWriter, initial_pages: i32, memory64: bool) {
     writer_core::emit_leb128_u(mem_sec, 1)
     if memory64 {
         writer_core::emit_byte(mem_sec, 4)

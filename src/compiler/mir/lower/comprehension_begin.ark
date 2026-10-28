@@ -11,7 +11,7 @@ use mir::lower::comprehension_begin_flow
 use mir::lower::comprehension_state
 use mir::value_types
 use mir::lower::comprehension_locals
-fn mir_begin_comprehension(ctx: LowerCtx, var_name: String, comp_vec_idx: i32) -> ComprehensionState {
+fn mir_begin_comprehension(mut ctx: LowerCtx, var_name: String, comp_vec_idx: i32) -> ComprehensionState {
     let comp_vec_local = comprehension_locals::emit_comprehension_source_vec_local(ctx)
     let comp_elem_type_name = mir_comprehension_elem_type(ctx, comp_vec_idx)
     let comp_vec_type_str = "vec:".concat(clone(comp_elem_type_name))

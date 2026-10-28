@@ -2,7 +2,7 @@ use std::collections::ordered
 use std::host::stdio
 
 fn main() {
-    let m: Vec<i32> = ordered::index_map_new()
+    let mut m: Vec<i32> = ordered::index_map_new()
     ordered::index_map_insert(m, 30, 300)
     ordered::index_map_insert(m, 10, 100)
     ordered::index_map_insert(m, 20, 200)

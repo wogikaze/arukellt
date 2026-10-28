@@ -31,7 +31,7 @@ fn ctx_intern_gc_struct_type(ctx: LowerCtx, struct_name: String) {
     )
 }
 
-fn ctx_register_gc_struct(ctx: LowerCtx, struct_name: String, sig: String) {
+fn ctx_register_gc_struct(mut ctx: LowerCtx, struct_name: String, sig: String) {
     // Dedupe by name, not by sig. Distinct structs can share a field layout
     // (Range and RangeIter are both two i32 fields) but each still needs a
     // named GC slot so params/returns resolve via gcsref rather than i32.
@@ -57,7 +57,7 @@ fn ctx_register_gc_struct(ctx: LowerCtx, struct_name: String, sig: String) {
 // Post-seal registrations append to the module's late_gc_order so the
 // type section can emit them in registration order behind the sealed
 // types (#851 Phase 3). Packed as slot*2 (kind 0 = struct).
-fn ctx_gc_note_late_struct(ctx: LowerCtx, slot: i32) {
+fn ctx_gc_note_late_struct(mut ctx: LowerCtx, slot: i32) {
     if ctx.gc_seal_done {
         module_gc_order::MirModule_push_late_gc_order(ctx.module, slot * 2)
     }
@@ -66,7 +66,7 @@ fn ctx_gc_note_late_struct(ctx: LowerCtx, slot: i32) {
 // The shared fn-pair record {fnptr, env} (#872). Registered lazily so
 // modules without fn values keep their existing type section; fn-typed
 // fields resolve to gcsref<slot> of this record on GC targets.
-fn ctx_ensure_fnpair_struct(ctx: LowerCtx) -> i32 {
+fn ctx_ensure_fnpair_struct(mut ctx: LowerCtx) -> i32 {
     if !ctx.is_gc_target {
         return 0 - 1
     }
@@ -78,7 +78,7 @@ fn ctx_ensure_fnpair_struct(ctx: LowerCtx) -> i32 {
     ctx_gc_struct_slot(ctx, "__fnpair")
 }
 
-fn ctx_set_gc_struct_sig(ctx: LowerCtx, struct_name: String, sig: String) {
+fn ctx_set_gc_struct_sig(mut ctx: LowerCtx, struct_name: String, sig: String) {
     let count = len(ctx.gc_struct_names)
     let mut i = 0
     while i < count {
@@ -113,7 +113,7 @@ fn ctx_set_gc_struct_sig(ctx: LowerCtx, struct_name: String, sig: String) {
 // rewrites once nested fields resolve. Post-seal the entry stays
 // unmaterialized — and blocks the drain — until the real sig lands, so a
 // nested ensure that finalizes first cannot jump the canon order.
-fn ctx_gc_struct_push_pending(ctx: LowerCtx, struct_name: String) {
+fn ctx_gc_struct_push_pending(mut ctx: LowerCtx, struct_name: String) {
     push(ctx.gc_struct_names, clone(struct_name))
     push(ctx.gc_struct_sigs, "GS")
     push(ctx.gc_struct_sig_pending, true)
@@ -126,8 +126,8 @@ fn ctx_gc_struct_push_pending(ctx: LowerCtx, struct_name: String) {
 // push so body emit can read them immediately. Stops at the first pending
 // (placeholder) slot — later slots wait so canon order stays registration
 // order, matching the late_gc_order/ctx_gc_canon_ensure_late sequence.
-fn ctx_gc_struct_materialize_ready(ctx: LowerCtx) {
-    let m = ctx.module
+fn ctx_gc_struct_materialize_ready(mut ctx: LowerCtx) {
+    let mut m = ctx.module
     let count = len(ctx.gc_struct_names)
     let mut slot = module_gc_struct::MirModule_gc_struct_sig_count(m)
     while slot < count {
@@ -150,7 +150,7 @@ fn ctx_gc_struct_materialize_ready(ctx: LowerCtx) {
 // Ensure a nested struct field has a named GC slot before the parent sig is
 // sealed. Decl order can register AstNode before Span; without this the field
 // falls through to _ref14 (enum open) and struct.get fails validation.
-fn ctx_ensure_gc_struct_registered(ctx: LowerCtx, struct_name: String) -> i32 {
+fn ctx_ensure_gc_struct_registered(mut ctx: LowerCtx, struct_name: String) -> i32 {
     let existing = ctx_gc_struct_slot(ctx, clone(struct_name))
     if existing >= 0 {
         return existing
@@ -196,12 +196,12 @@ fn ctx_gc_struct_count(ctx: LowerCtx) -> i32 {
     len(ctx.gc_struct_names)
 }
 
-fn ctx_flush_gc_structs(ctx: LowerCtx) {
+fn ctx_flush_gc_structs(mut ctx: LowerCtx) {
     ctx_flush_gc_structs_from(ctx, 0)
 }
 
-fn ctx_flush_gc_structs_from(ctx: LowerCtx, start: i32) {
-    let m = ctx.module
+fn ctx_flush_gc_structs_from(mut ctx: LowerCtx, start: i32) {
+    let mut m = ctx.module
     let count = len(ctx.gc_struct_names)
     let mut i = if start < 0 { 0 } else { start }
     // Post-seal entries may already be materialized on the module (slot
@@ -290,7 +290,7 @@ fn gc_struct_vec_elem_spelling(type_name: String) -> String {
     String_new()
 }
 
-fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32) -> String {
+fn gc_struct_field_sig_for_type(mut ctx: LowerCtx, type_name: String, field_idx: i32) -> String {
     let prefix = String_from("_f").concat((field_idx).to_string())
     // Empty field types are discriminant/_tag slots on enum layouts — i32, not
     // the unknown→ref14 fallback (which produced GS_f0_ref14 enum boxes).
@@ -360,7 +360,7 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
 // suffix path so vec:/option:/struct names land on the same GC offsets as
 // non-callback fields. Only unary callbacks resolve today; anything else
 // falls back to the legacy `fnref` slot.
-fn gc_struct_fnsig_suffix(ctx: LowerCtx, type_name: String) -> String {
+fn gc_struct_fnsig_suffix(mut ctx: LowerCtx, type_name: String) -> String {
     let rest = substring(clone(type_name), 6, len(type_name))
     let sep = index_of(clone(rest), String_from(";"))
     if sep < 0 {
@@ -382,7 +382,7 @@ fn gc_struct_fnsig_suffix(ctx: LowerCtx, type_name: String) -> String {
 // Map one fnsig segment to its func-sig token by routing it through the
 // ordinary field-suffix machinery and converting the ref-offset dialect
 // (refN) to the func-sig dialect (gcrefN).
-fn gc_struct_fnsig_segment_token(ctx: LowerCtx, seg: String) -> String {
+fn gc_struct_fnsig_segment_token(mut ctx: LowerCtx, seg: String) -> String {
     if len(seg) == 0 || starts_with(clone(seg), String_from("fnsig:")) {
         return String_new()
     }
@@ -571,7 +571,7 @@ fn gc_struct_has_ref_field(ctx: LowerCtx, struct_name: String, field_count: i32)
     false
 }
 
-fn gc_struct_build_sig(ctx: LowerCtx, struct_name: String, field_count: i32) -> String {
+fn gc_struct_build_sig(mut ctx: LowerCtx, struct_name: String, field_count: i32) -> String {
     let mut sig = String_from("GS")
     let mut fi = 0
     while fi < field_count {

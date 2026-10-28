@@ -37,17 +37,17 @@ fn render_manifest_signature(name: String, params: String, returns: String) -> S
     sig
 }
 
-fn push_function_symbol(out: Vec<symbol_index_record::StdlibIndexedSymbol>, name: String, module_path: String, detail: String, doc: String) {
+fn push_function_symbol(mut out: Vec<symbol_index_record::StdlibIndexedSymbol>, name: String, module_path: String, detail: String, doc: String) {
     let nm = clone(name)
     push(out, symbol_index_record::StdlibIndexedSymbol_new(name, kinds::LSP_SYMBOL_FUNCTION(), detail, module_path, stdlib_module_to_source_uri(clone(module_path)), 0, len(nm), doc))
 }
 
-fn push_type_symbol(out: Vec<symbol_index_record::StdlibIndexedSymbol>, name: String) {
+fn push_type_symbol(mut out: Vec<symbol_index_record::StdlibIndexedSymbol>, name: String) {
     let detail = String_from("type ").concat(clone(name))
     push(out, symbol_index_record::StdlibIndexedSymbol_new(name, kinds::LSP_SYMBOL_STRUCT(), detail, String_new(), String_new(), 0, len(detail), String_new()))
 }
 
-fn flush_function_symbol(out: Vec<symbol_index_record::StdlibIndexedSymbol>, state: ManifestParseState) {
+fn flush_function_symbol(mut out: Vec<symbol_index_record::StdlibIndexedSymbol>, state: ManifestParseState) {
     if len(state.name) > 0 && len(state.module) > 0 {
         let detail = render_manifest_signature(clone(state.name), clone(state.params), clone(state.returns))
         push_function_symbol(out, state.name, state.module, detail, state.doc)
@@ -86,7 +86,7 @@ pub fn trim_brackets(raw: String) -> String {
     s
 }
 
-fn apply_manifest_fields(state: ManifestParseState, line: String) -> ManifestParseState {
+fn apply_manifest_fields(mut state: ManifestParseState, line: String) -> ManifestParseState {
     let key_doc = toml::TomlText::find_value(clone(line), String_from("doc"))
     if len(key_doc) > 0 {
         state.doc = key_doc
@@ -118,7 +118,7 @@ fn manifest_load_path() -> String {
     String_from("std/manifest.toml")
 }
 
-pub fn symbol_index_load_stdlib(state: LspState) {
+pub fn symbol_index_load_stdlib(mut state: LspState) {
     let read_result = Fs::read_to_string(manifest_load_path())
     match read_result {
         Result::Ok(content) => {

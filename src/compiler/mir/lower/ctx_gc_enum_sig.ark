@@ -5,7 +5,7 @@ use mir::lower::ctx_gc_struct
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
 use mir::value_types
-fn gc_enum_field_sig_for_vt(ctx: LowerCtx, vt: i32) -> String {
+fn gc_enum_field_sig_for_vt(mut ctx: LowerCtx, vt: i32) -> String {
     if vt == value_types::VT_F64() {
         return "_f1_f64"
     }
@@ -26,7 +26,7 @@ fn gc_enum_field_sig_for_vt(ctx: LowerCtx, vt: i32) -> String {
     "_f1_i32"
 }
 
-fn ctx_gc_enum_payload_field_sigs_from_vts(ctx: LowerCtx, payload_vts: Vec<i32>) -> String {
+fn ctx_gc_enum_payload_field_sigs_from_vts(mut ctx: LowerCtx, payload_vts: Vec<i32>) -> String {
     let mut sig = String_new()
     for i in 0..len(payload_vts) {
         sig = sig.concat(gc_enum_field_sig_for_vt(ctx, get_unchecked(payload_vts, i)))
@@ -34,7 +34,7 @@ fn ctx_gc_enum_payload_field_sigs_from_vts(ctx: LowerCtx, payload_vts: Vec<i32>)
     sig
 }
 
-fn ctx_gc_enum_payload_field_sigs_typed(ctx: LowerCtx, payload_vts: Vec<i32>, type_name: String) -> String {
+fn ctx_gc_enum_payload_field_sigs_typed(mut ctx: LowerCtx, payload_vts: Vec<i32>, type_name: String) -> String {
     let mut sig = String_new()
     for i in 0..len(payload_vts) {
         let vt = get_unchecked(payload_vts, i)
@@ -166,7 +166,7 @@ fn gc_enum_field_sig_for_type(type_name: String) -> String {
 // ref14 even when the enum name is also registered as a gc_struct layout
 // (GS_f0_ref14 box). Preferring that gcsref makes struct.get yield the box
 // while match arms expect open-enum (#808 nested_enum / from_auto_convert).
-fn gc_enum_field_sig_for_type_ctx(ctx: LowerCtx, type_name: String) -> String {
+fn gc_enum_field_sig_for_type_ctx(mut ctx: LowerCtx, type_name: String) -> String {
     let bare = clone(type_name)
     let mut lookup = clone(bare)
     if starts_with(clone(bare), "enum:") {
@@ -252,7 +252,7 @@ fn gc_enum_field_sig_for_type_ctx_slot(struct_slot: i32, type_name: String) -> S
     "_f1_ref14"
 }
 
-fn gc_enum_build_payload_field_sigs(ctx: LowerCtx, variant_name: String) -> String {
+fn gc_enum_build_payload_field_sigs(mut ctx: LowerCtx, variant_name: String) -> String {
     let mut sig = String_new()
     let layout_name = ctx_struct_field_type::ctx_resolve_variant_layout_name(ctx, clone(variant_name))
     let layout_count = len(ctx.struct_names)

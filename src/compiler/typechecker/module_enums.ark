@@ -4,7 +4,7 @@ use typechecker::contract_enum_info
 use typechecker::types
 
 fn collect_enum_defs(decls: Vec<AstNode>) -> Vec<EnumInfo> {
-    let enum_defs = Vec::new<EnumInfo>()
+    let mut enum_defs = Vec::new<EnumInfo>()
     let decl_count = len(decls)
     let mut i = 0
     while i < decl_count {
@@ -18,10 +18,10 @@ fn collect_enum_defs(decls: Vec<AstNode>) -> Vec<EnumInfo> {
 }
 
 fn collect_enum_def(node: AstNode) -> EnumInfo {
-    let variant_names = Vec::new<String>()
-    let payload_types = Vec::new<TypeInfo>()
-    let payload_starts = Vec::new<i32>()
-    let payload_counts = Vec::new<i32>()
+    let mut variant_names = Vec::new<String>()
+    let mut payload_types = Vec::new<TypeInfo>()
+    let mut payload_starts = Vec::new<i32>()
+    let mut payload_counts = Vec::new<i32>()
     let type_params = enum_type_param_names(node)
     let vc = ast_access::node_child_count(node)
     let mut vi = 0
@@ -72,7 +72,7 @@ fn collect_enum_def(node: AstNode) -> EnumInfo {
 }
 
 fn enum_type_param_names(node: AstNode) -> Vec<String> {
-    let names = Vec::new<String>()
+    let mut names = Vec::new<String>()
     let count = ast_access::node_type_ann_count(node)
     let mut i = 0
     while i < count {

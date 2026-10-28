@@ -25,6 +25,6 @@ pub fn ParseResult_errors(result: ParseResult) -> Vec<Diagnostic> {
     program::ParseResult_errors(result)
 }
 
-pub fn parse_module(p: Parser) -> Vec<AstNode> {
+pub fn parse_module(mut p: Parser) -> Vec<AstNode> {
     decl::parse_module(p)
 }

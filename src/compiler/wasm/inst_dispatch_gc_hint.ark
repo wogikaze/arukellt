@@ -5,7 +5,7 @@ use wasm::ctx_gc_hint
 use wasm::ctx_record
 use wasm::writer_core
 
-fn try_emit_gc_hint_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn try_emit_gc_hint_inst(w: WasmWriter, inst: MirInst, mut ctx: SelfEmitCtx) -> bool {
     let op = inst_accessors_shape::MirInst_op(inst)
     if op != inst_gc_hint::mir_gc_hint_opcode() {
         return false

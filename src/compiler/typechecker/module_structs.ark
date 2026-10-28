@@ -22,7 +22,7 @@ use diagnostics::mod as diag_mod
 // field types.
 use std::prelude::{args, clone, eq, index_of}
 use std::text
-fn register_struct_decls(env: TypeEnv, decls: Vec<AstNode>) {
+fn register_struct_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
     let count = len(decls)
     let mut i = 0
     while i < count {
@@ -47,7 +47,7 @@ fn register_struct_decls(env: TypeEnv, decls: Vec<AstNode>) {
 // 'Box<args>' / '?Box:T' / 'Box::Owned' still name 'enum Box' (#905). A
 // generic struct, or a collision with a non-generic enum, leaves one side
 // unreachable and emits invalid core Wasm, so the decl is rejected here.
-fn report_struct_enum_shadow_conflict(env: TypeEnv, decls: Vec<AstNode>, node: AstNode, struct_name: String, struct_params: Vec<String>) {
+fn report_struct_enum_shadow_conflict(mut env: TypeEnv, decls: Vec<AstNode>, node: AstNode, struct_name: String, struct_params: Vec<String>) {
     let decl_count = len(decls)
     let mut j = 0
     while j < decl_count {
@@ -84,8 +84,8 @@ fn report_struct_enum_shadow_conflict(env: TypeEnv, decls: Vec<AstNode>, node: A
 
 fn collect_struct_def(node: AstNode) -> StructInfo {
     let type_params = module_enums::enum_type_param_names(node)
-    let field_names = Vec::new<String>()
-    let field_types = Vec::new<TypeInfo>()
+    let mut field_names = Vec::new<String>()
+    let mut field_types = Vec::new<TypeInfo>()
     let field_count = ast_access::node_child_count(node)
     let mut i = 0
     while i < field_count {
@@ -140,7 +140,7 @@ fn struct_field_type(env: TypeEnv, recv_ty: TypeInfo, field_name: String) -> Typ
 }
 
 fn recv_type_args(recv_ty: TypeInfo) -> Vec<TypeInfo> {
-    let args = Vec::new<TypeInfo>()
+    let mut args = Vec::new<TypeInfo>()
     let arg_count = contract_type_access::TypeInfo_type_arg_count(recv_ty)
     let mut i = 0
     while i < arg_count {
@@ -157,7 +157,7 @@ fn recv_type_args(recv_ty: TypeInfo) -> Vec<TypeInfo> {
 // field value against the declared generic field type. Any parameter left
 // unbound (or bound to UNKNOWN) keeps the bare name so partial literals
 // keep their previous shape.
-fn infer_generic_literal_args(env: TypeEnv, aggregate_ty: TypeInfo, node: AstNode, val_tys: Vec<TypeInfo>) -> TypeInfo {
+fn infer_generic_literal_args(env: TypeEnv, mut aggregate_ty: TypeInfo, node: AstNode, val_tys: Vec<TypeInfo>) -> TypeInfo {
     if contract_type_access::TypeInfo_tag(aggregate_ty) != commands::TY_STRUCT() {
         return aggregate_ty
     }
@@ -182,8 +182,8 @@ fn infer_generic_literal_args(env: TypeEnv, aggregate_ty: TypeInfo, node: AstNod
         if len(type_params) == 0 {
             return aggregate_ty
         }
-        let infer_env = infer_env_scope::borrow_generic_infer_env(env)
-        let var_types = Vec::new<TypeInfo>()
+        let mut infer_env = infer_env_scope::borrow_generic_infer_env(env)
+        let mut var_types = Vec::new<TypeInfo>()
         let mut pi = 0
         while pi < len(type_params) {
             push(var_types, unify::fresh_var(infer_env))

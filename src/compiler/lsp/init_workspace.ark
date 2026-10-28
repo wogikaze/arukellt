@@ -7,7 +7,7 @@ use lsp::symbol_index_project
 use lsp::symbol_index_stdlib
 use lsp::symbol_index_update
 fn collect_path_dependency_rel_paths(content: String) -> Vec<String> {
-    let out = Vec::new<String>()
+    let mut out = Vec::new<String>()
     let needle = "path = \""
     let content_len = len(content)
     let needle_len = len(needle)
@@ -31,7 +31,7 @@ fn collect_path_dependency_rel_paths(content: String) -> Vec<String> {
 }
 
 fn tail_strings(items: Vec<String>) -> Vec<String> {
-    let out = Vec::new<String>()
+    let mut out = Vec::new<String>()
     let n = len(items)
     let mut i = 1
     while i < n {
@@ -53,7 +53,7 @@ fn roots_contains(roots: Vec<String>, path: String) -> bool {
     false
 }
 
-fn roots_push_unique(roots: Vec<String>, path: String) -> Vec<String> {
+fn roots_push_unique(mut roots: Vec<String>, path: String) -> Vec<String> {
     if len(path) == 0 || roots_contains(roots, clone(path)) {
         return roots
     }
@@ -118,7 +118,7 @@ fn discover_workspace_package_roots(workspace_roots: Vec<String>) -> Vec<String>
 }
 
 fn build_workspace_seeds(state: LspState) -> Vec<String> {
-    let out = Vec::new<String>()
+    let mut out = Vec::new<String>()
     let n = state_record::lsp_state_workspace_roots_len(state)
     let mut i = 0
     while i < n {
@@ -135,7 +135,7 @@ fn build_workspace_seeds(state: LspState) -> Vec<String> {
     out
 }
 
-pub fn rebuild_workspace_package_index(state: LspState) {
+pub fn rebuild_workspace_package_index(mut state: LspState) {
     symbol_index_stdlib::symbol_index_load_stdlib(state)
     let package_roots = discover_workspace_package_roots(build_workspace_seeds(state))
     let n = len(package_roots)
@@ -146,7 +146,7 @@ pub fn rebuild_workspace_package_index(state: LspState) {
     }
 }
 
-pub fn initialize_workspace_index(state: LspState, body: String) {
+pub fn initialize_workspace_index(mut state: LspState, body: String) {
     let workspace_roots = lsp_package_definition::workspace_roots_from_initialize(clone(body))
     let primary = if len(workspace_roots) > 0 {
         get_unchecked(workspace_roots, 0)
@@ -158,7 +158,7 @@ pub fn initialize_workspace_index(state: LspState, body: String) {
     rebuild_workspace_package_index(state)
 }
 
-pub fn rebuild_workspace_package_index_from_manifest_change(state: LspState) {
+pub fn rebuild_workspace_package_index_from_manifest_change(mut state: LspState) {
     symbol_index_update::symbol_index_clear_project(state)
     rebuild_workspace_package_index(state)
 }

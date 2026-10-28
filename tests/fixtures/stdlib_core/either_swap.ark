@@ -2,12 +2,12 @@ use std::core::either::{Either}
 use std::test
 
 fn main() {
-    let l = Either::Left(42)
+    let mut l = Either::Left(42)
     let swapped = l.swap()
     test::assert_true(swapped.is_right())
     test::assert_eq_i32(swapped.from_right(-1), 42)
 
-    let r = Either::Right(99)
+    let mut r = Either::Right(99)
     let swapped2 = r.swap()
     test::assert_true(swapped2.is_left())
     test::assert_eq_i32(swapped2.from_left(-1), 99)

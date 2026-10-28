@@ -13,16 +13,16 @@ use typechecker::sigs
 use typechecker::type_names
 use typechecker::unify
 fn constrain_generic_fn_args(
-    env: TypeEnv,
-    scope: LocalScope,
+    mut env: TypeEnv,
+    mut scope: LocalScope,
     fn_sigs: Vec<FnSig>,
     enum_defs: Vec<EnumInfo>,
     node: AstNode,
     sig: FnSig,
-    infer_env: TypeEnv,
+    mut infer_env: TypeEnv,
     var_names: Vec<String>,
     var_types: Vec<TypeInfo>,
-    arg_types: Vec<TypeInfo>
+    mut arg_types: Vec<TypeInfo>
 ) {
     let arg_count = ast_access::node_child_count(node) - 1
     let param_count = contract_fn_sig::FnSig_param_count(sig)
@@ -83,7 +83,7 @@ fn fn_value_type_from_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> Ty
     if !contract_fn_sig::FnSig_has_name(sig) {
         return type_names::type_info_simple(commands::TY_UNKNOWN())
     }
-    let fn_ty = type_names::type_info_simple(commands::TY_FN())
+    let mut fn_ty = type_names::type_info_simple(commands::TY_FN())
     let pc = contract_fn_sig::FnSig_param_count(sig)
     let mut i = 0
     while i < pc {

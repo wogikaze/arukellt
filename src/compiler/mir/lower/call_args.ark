@@ -24,15 +24,15 @@ fn mir_is_printlike_callee(name: String) -> bool {
     eq(clone(name), "__intrinsic_print")
 }
 
-fn mir_print_arg_needs_string_conversion(ctx: LowerCtx, arg: AstNode, arg_idx: i32) -> bool {
+fn mir_print_arg_needs_string_conversion(mut ctx: LowerCtx, arg: AstNode, arg_idx: i32) -> bool {
     call_arg_print_needs::mir_print_arg_needs_string_conversion(ctx, arg, arg_idx)
 }
 
-fn mir_convert_print_arg_to_string(ctx: LowerCtx, arg: AstNode, arg_idx: i32) -> i32 {
+fn mir_convert_print_arg_to_string(mut ctx: LowerCtx, arg: AstNode, arg_idx: i32) -> i32 {
     call_arg_print_convert::mir_convert_print_arg_to_string(ctx, arg, arg_idx)
 }
 
-fn mir_stage_call_arg(ctx: LowerCtx, staged_arg_locals: Vec<i32>, arg_idx: i32) -> i32 {
+fn mir_stage_call_arg(mut ctx: LowerCtx, mut staged_arg_locals: Vec<i32>, arg_idx: i32) -> i32 {
     let staged_vt = mir_stage_call_arg_vt(ctx, arg_idx)
     let staged_local = ctx_api_local_alloc::ctx_fresh_local(ctx, staged_vt)
     let staged_type = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)

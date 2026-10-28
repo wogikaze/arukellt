@@ -22,7 +22,7 @@ fn session_validate(sess: CompileSession) -> String {
 }
 
 fn session_lower_mir(
-    sess: CompileSession,
+    mut sess: CompileSession,
     all_decls: Vec<AstNode>,
     export_roots: Vec<String>,
     wit_paths: Vec<String>,
@@ -35,7 +35,7 @@ fn session_lower_mir(
 }
 
 fn session_lower_mir_component(
-    sess: CompileSession,
+    mut sess: CompileSession,
     all_decls: Vec<AstNode>,
     export_roots: Vec<String>,
     wit_paths: Vec<String>,

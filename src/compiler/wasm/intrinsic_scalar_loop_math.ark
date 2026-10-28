@@ -2,7 +2,7 @@ use wasm::opcodes
 use wasm::ctx_scratch
 use wasm::intrinsics::helpers_numeric_i32
 
-fn emit_pow_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_pow_i32(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_base = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_exp = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_result = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -39,7 +39,7 @@ fn emit_pow_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_gcd(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_gcd(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_a = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_b = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_t = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)

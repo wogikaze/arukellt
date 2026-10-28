@@ -8,7 +8,7 @@ use mir::lower::closure_pcells
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
 use mir::value_types
-fn mir_set_closure_return_from_local(ctx: LowerCtx, f: MirFunction, res_idx: i32) {
+fn mir_set_closure_return_from_local(mut ctx: LowerCtx, mut f: MirFunction, res_idx: i32) {
     if res_idx < 0 {
         function_return_mutation::MirFunction_set_return_type(f, value_types::VT_VOID())
         return

@@ -7,13 +7,13 @@ use mir::lower::ctx_types
 use mir::inst_array
 use mir::inst_local_get
 use mir::value_types
-fn mir_emit_array_new(ctx: LowerCtx, child_count: i32) -> i32 {
+fn mir_emit_array_new(mut ctx: LowerCtx, child_count: i32) -> i32 {
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_GC_REF())
     ctx_api_emit::ctx_emit(ctx, inst_array::MirInst_array_new(dest, child_count))
     dest
 }
 
-fn mir_emit_array_set(ctx: LowerCtx, dest: i32, val_idx: i32, elem_index: i32) {
+fn mir_emit_array_set(mut ctx: LowerCtx, dest: i32, val_idx: i32, elem_index: i32) {
     ctx_api_emit::ctx_emit(ctx, inst_array::MirInst_array_set(dest, val_idx, elem_index))
 }
 
@@ -21,7 +21,7 @@ fn mir_emit_array_set(ctx: LowerCtx, dest: i32, val_idx: i32, elem_index: i32) {
 // the first value before the emitter chooses its GC array layout. Keep raw
 // arrays distinct from Vec headers: both carry an element name, but only Vec
 // values have the header struct around the backing array.
-fn mir_set_array_type_from_value(ctx: LowerCtx, dest: i32, val_idx: i32) {
+fn mir_set_array_type_from_value(mut ctx: LowerCtx, dest: i32, val_idx: i32) {
     let elem_type = mir_array_element_type_from_value(ctx, val_idx)
     if len(elem_type) == 0 {
         return
@@ -105,12 +105,12 @@ fn mir_array_element_vt(element_type: String) -> i32 {
     value_types::VT_GC_REF()
 }
 
-fn mir_emit_local_get_ref(ctx: LowerCtx, local_idx: i32) -> i32 {
+fn mir_emit_local_get_ref(mut ctx: LowerCtx, local_idx: i32) -> i32 {
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(local_idx, local_idx))
     local_idx
 }
 
-fn mir_emit_array_index(ctx: LowerCtx, base_idx: i32, index_idx: i32) -> i32 {
+fn mir_emit_array_index(mut ctx: LowerCtx, base_idx: i32, index_idx: i32) -> i32 {
     let base_type = ctx_api_local_types::ctx_get_local_type(ctx, base_idx)
     let mut dest_type = mir_array_element_type_from_container(clone(base_type))
     if len(dest_type) == 0 {

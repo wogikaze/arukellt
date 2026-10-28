@@ -4,7 +4,7 @@ use corehir::body_control
 use corehir::body_match
 use corehir::expr_node_predicates
 
-fn corehir_dispatch_control_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+fn corehir_dispatch_control_expr(mut table: CoreHirBodyTable, node: AstNode) -> i32 {
     if expr_node_predicates::expr_is_if(node) {
         return body_control::corehir_build_if_expr(table, node)
     }

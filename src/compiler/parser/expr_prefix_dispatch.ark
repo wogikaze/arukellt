@@ -13,7 +13,7 @@ use parser::expr_prefix_unary
 use parser::pratt
 use parser::state_record
 use parser::token_state
-pub fn parse_prefix(p: Parser) -> AstNode {
+pub fn parse_prefix(mut p: Parser) -> AstNode {
     core_api_cursor::skip_newlines(p)
     let t: Token = core_api_cursor::cur(p)
     let kind = token_state::Token_kind(t)

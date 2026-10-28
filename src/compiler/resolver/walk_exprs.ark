@@ -4,14 +4,14 @@ use resolver::ast_access
 use resolver::control_closure
 use resolver::kinds
 
-fn resolve_expr_node(ctx: ResolveCtx, node: AstNode) -> bool {
+fn resolve_expr_node(mut ctx: ResolveCtx, mut node: AstNode) -> bool {
     if ast_expr_predicates::node_is_ident(node) {
         exprs::resolve_ident(ctx, node)
         return true
     }
     if ast_expr_predicates::node_is_field_access(node) {
         if ast_access::node_child_count(node) > 0 {
-            let receiver = ast_access::node_child_at(node, 0)
+            let mut receiver = ast_access::node_child_at(node, 0)
             resolve_node(ctx, receiver)
         }
         return true

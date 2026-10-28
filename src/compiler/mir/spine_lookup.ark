@@ -185,7 +185,7 @@ fn call_return_mvts_from_fid(m: MirModule, op: i32, fid_raw: i32) -> Vec<MirValu
 
 fn copy_return_types_from_mono(entry: MonoInstanceEntry) -> Vec<MirValueType> {
     let count = mono_instance_table::mono_instance_entry_return_count(entry)
-    let result = Vec::new<MirValueType>()
+    let mut result = Vec::new<MirValueType>()
     let mut i = 0
     while i < count {
         push(result, typed_mir_compat::mvt_copy(mono_instance_table::mono_instance_entry_return_at(entry, i)))
@@ -196,7 +196,7 @@ fn copy_return_types_from_mono(entry: MonoInstanceEntry) -> Vec<MirValueType> {
 
 fn copy_return_types_from_entry(entry: SignatureEntry) -> Vec<MirValueType> {
     let count = signature_entry::signature_entry_return_count(entry)
-    let result = Vec::new<MirValueType>()
+    let mut result = Vec::new<MirValueType>()
     let mut i = 0
     while i < count {
         push(result, typed_mir_compat::mvt_copy(signature_entry::signature_entry_return_at(entry, i)))

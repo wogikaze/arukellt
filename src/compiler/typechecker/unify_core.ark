@@ -6,7 +6,7 @@ use typechecker::names
 use typechecker::unify_bind
 use typechecker::unify_env
 use typechecker::unify_resolve
-fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
+fn unify(mut env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
     let a_tag = contract_type_access::TypeInfo_tag(a)
     let b_tag = contract_type_access::TypeInfo_tag(b)
     if a_tag == commands::TY_UNKNOWN() {

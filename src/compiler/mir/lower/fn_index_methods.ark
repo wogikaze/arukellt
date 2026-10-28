@@ -6,9 +6,9 @@ use mir::mono
 use mir::type_contracts
 use mir::value_types
 fn mir_index_impl_methods(
-    fn_names: Vec<String>,
-    fn_return_vts: Vec<i32>,
-    fn_return_type_names: Vec<String>,
+    mut fn_names: Vec<String>,
+    mut fn_return_vts: Vec<i32>,
+    mut fn_return_type_names: Vec<String>,
     impl_decl_index: i32,
     struct_name: String,
     fn_index: i32,

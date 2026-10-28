@@ -9,7 +9,7 @@ use mir::lower::core_closure_emit_params
 use mir::lower::core_closure_emit_return
 use mir::lower::closure_return_type
 use mir::source_location_record
-fn core_emit_closure_fn(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, synth: String, clos: CoreHirExpr, caps: Vec<String>, rebind_flags: Vec<i32>) -> MirFunction {
+fn core_emit_closure_fn(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, synth: String, clos: CoreHirExpr, caps: Vec<String>, rebind_flags: Vec<i32>) -> MirFunction {
     let saved_frame = ctx_api_local_frame::LowerCtxLocalFrame_capture(ctx)
     let cap_vts = core_closure_emit_capture::core_closure_capture_vts(ctx, caps)
     let cap_types = core_closure_emit_capture::core_closure_capture_types(ctx, caps)

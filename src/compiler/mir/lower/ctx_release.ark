@@ -5,7 +5,7 @@ use collections::name_index
 // LowerCtx is only needed while bodies are being lowered and call edges are
 // recorded. The module owns the completed MIR and copied registry data before
 // this point, so clear the lowering-only registries before later passes.
-fn ctx_release_lowering_scratch(ctx: LowerCtx) {
+fn ctx_release_lowering_scratch(mut ctx: LowerCtx) {
     ctx.func = function_factory::MirFunction_new(
         String_new(),
         source_location_record::SourceLocation_unmapped()

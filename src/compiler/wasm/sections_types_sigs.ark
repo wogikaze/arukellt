@@ -12,7 +12,7 @@ use wasm::emit_target
 use wasm::sections_types_sigs_detail
 use wasm::sections_exports
 use mir::opcodes as mir_opcodes
-fn append_wit_type_sigs(type_sigs: Vec<String>, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
+fn append_wit_type_sigs(mut type_sigs: Vec<String>, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
     let mut i = 0
     while i < module_wit_imports::wit_import_count(bindings) {
         push(type_sigs, module_wit_imports::wit_import_type_sig(bindings, i))
@@ -20,7 +20,7 @@ fn append_wit_type_sigs(type_sigs: Vec<String>, bindings: Vec<resolver::wit_impo
     }
 }
 
-fn append_wasi_type_sigs(type_sigs: Vec<String>, wasi_version: String) {
+fn append_wasi_type_sigs(mut type_sigs: Vec<String>, wasi_version: String) {
     push(type_sigs, "i32_i32_i32_i32_1i32")
     push(type_sigs, "i32_i32_1i32")
     push(type_sigs, "i32_i32_i32_i32_i32_i64_i64_i32_i32_1i32")
@@ -48,7 +48,7 @@ fn append_wasi_type_sigs(type_sigs: Vec<String>, wasi_version: String) {
     push(type_sigs, "i64_i64_1i64")
 }
 
-fn append_t2_type_sigs(type_sigs: Vec<String>) {
+fn append_t2_type_sigs(mut type_sigs: Vec<String>) {
     push(type_sigs, "i32_i32_0")
     push(type_sigs, "0")
     push(type_sigs, "i32_i32_1i32")
@@ -58,7 +58,7 @@ fn gc_typed_callback_type_sig_count() -> i32 {
     3
 }
 
-fn append_gc_typed_callback_type_sigs(type_sigs: Vec<String>) {
+fn append_gc_typed_callback_type_sigs(mut type_sigs: Vec<String>) {
     // These signatures are placed after the fixed GC layouts and before user
     // functions. Struct fields may refer to them, while the type-section
     // planner still treats the complete range as pre-function types.
@@ -68,7 +68,7 @@ fn append_gc_typed_callback_type_sigs(type_sigs: Vec<String>) {
 }
 
 fn append_function_type_sigs(
-    type_sigs: Vec<String>,
+    mut type_sigs: Vec<String>,
     functions: Vec<MirFunction>,
     fn_count: i32,
     target: String,
@@ -100,7 +100,7 @@ fn collect_pair_call_type_sigs(
     memory64: bool,
     gc_struct_names: Vec<String>
 ) -> Vec<String> {
-    let sigs = Vec::new<String>()
+    let mut sigs = Vec::new<String>()
     if !emit_target::is_gc_target(clone(target)) {
         return sigs
     }
@@ -170,7 +170,7 @@ fn pair_call_sigs_for_emit(
     )
 }
 
-fn append_wrapper_type_sig(type_sigs: Vec<String>, needs_wrapper: i32, wasi_version: String) {
+fn append_wrapper_type_sig(mut type_sigs: Vec<String>, needs_wrapper: i32, wasi_version: String) {
     if needs_wrapper == 1 {
         if emit_target::is_p2_wasi(clone(wasi_version)) {
             push(type_sigs, "1i32")
@@ -183,7 +183,7 @@ fn append_wrapper_type_sig(type_sigs: Vec<String>, needs_wrapper: i32, wasi_vers
 }
 
 fn append_p2_library_post_type_sigs(
-    type_sigs: Vec<String>,
+    mut type_sigs: Vec<String>,
     functions: Vec<MirFunction>,
     fn_count: i32,
     target: String,
@@ -212,7 +212,7 @@ fn append_p2_library_post_type_sigs(
 }
 
 fn append_p2_library_wrapper_type_sigs(
-    type_sigs: Vec<String>,
+    mut type_sigs: Vec<String>,
     functions: Vec<MirFunction>,
     fn_count: i32,
     target: String,
@@ -235,7 +235,7 @@ fn append_p2_library_wrapper_type_sigs(
     }
 }
 
-fn append_p2_runtime_type_sigs(type_sigs: Vec<String>, wasi_version: String) {
+fn append_p2_runtime_type_sigs(mut type_sigs: Vec<String>, wasi_version: String) {
     if !emit_target::is_p2_wasi(clone(wasi_version)) {
         return
     }
@@ -246,7 +246,7 @@ fn append_p2_runtime_type_sigs(type_sigs: Vec<String>, wasi_version: String) {
     push(type_sigs, "0")
 }
 
-fn append_linear_gc_type_sigs(type_sigs: Vec<String>, target: String) {
+fn append_linear_gc_type_sigs(mut type_sigs: Vec<String>, target: String) {
     if !emit_target::is_linear_memory_target(clone(target)) {
         return
     }

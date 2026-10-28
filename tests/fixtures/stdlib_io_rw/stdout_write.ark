@@ -3,13 +3,13 @@ use std::host::stdio
 use std::io
 
 fn main() {
-    let out: io::Stdout = io::Stdout::new()
+    let mut out: io::Stdout = io::Stdout::new()
     let r: Result<i32, io::IoError> = out.write_string("stdout line\n")
     match r {
         Result::Ok(_) => (),
         Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
-    let w2: io::Writer = io::Writer::new()
+    let mut w2: io::Writer = io::Writer::new()
     let r2: Result<i32, io::IoError> = w2.write_string("buffered")
     match r2 {
         Result::Ok(_) => stdio::println("write ok"),

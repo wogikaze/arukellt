@@ -30,7 +30,7 @@ fn licm_hoist_region(insts: Vec<MirInst>, region: LoopRegion) -> LicmBlockResult
     let start = loop_regions::LoopRegion_loop_start(region)
     let end = loop_regions::LoopRegion_loop_end(region)
     let modified = licm_predicates::licm_collect_loop_modified(insts, start, end)
-    let hoist_marks = Vec::new<i32>()
+    let mut hoist_marks = Vec::new<i32>()
     let mut hoist_count = 0
     let mut i = start + 1
     while i < end {
@@ -46,7 +46,7 @@ fn licm_hoist_region(insts: Vec<MirInst>, region: LoopRegion) -> LicmBlockResult
     if hoist_count == 0 {
         return LicmBlockResult_new(insts, 0, 0)
     }
-    let out = Vec::new<MirInst>()
+    let mut out = Vec::new<MirInst>()
     i = 0
     while i < start {
         push(out, get_unchecked(insts, i))
@@ -90,14 +90,14 @@ fn licm_optimize_block_insts(insts: Vec<MirInst>) -> LicmBlockResult {
     LicmBlockResult_new(current, total, validation_failures)
 }
 
-fn licm_optimize_function(f: MirFunction) -> OptimizationSummary {
+fn licm_optimize_function(mut f: MirFunction) -> OptimizationSummary {
     let block_count = function_block_queries::MirFunction_block_count(f)
-    let updated_blocks = Vec::new<MirBlock>()
+    let mut updated_blocks = Vec::new<MirBlock>()
     let mut total_hoisted = 0
     let mut validation_failures = 0
     let mut bi = 0
     while bi < block_count {
-        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let mut block = function_block_queries::MirFunction_block_at(f, bi)
         let insts = block_inst_access::MirBlock_instructions(block)
         let result = licm_optimize_block_insts(insts)
         block_inst_mutation::MirBlock_set_from_refs(block, result.instructions)

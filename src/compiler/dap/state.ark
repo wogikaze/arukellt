@@ -5,23 +5,23 @@ fn DapState_new() -> DapState {
     state_record::DapState_new()
 }
 
-fn dap_append(state: DapState, body: String) {
+fn dap_append(mut state: DapState, body: String) {
     state_record::dap_state_append_output(state, framing::dap_frame(body))
 }
 
-fn dap_next_seq(state: DapState) -> i32 {
+fn dap_next_seq(mut state: DapState) -> i32 {
     state_record::dap_state_take_next_seq(state)
 }
 
-fn dap_mark_initialized(state: DapState) {
+fn dap_mark_initialized(mut state: DapState) {
     state_record::dap_state_mark_initialized(state)
 }
 
-fn dap_mark_launched(state: DapState) {
+fn dap_mark_launched(mut state: DapState) {
     state_record::dap_state_mark_launched(state)
 }
 
-fn dap_mark_disconnected(state: DapState) {
+fn dap_mark_disconnected(mut state: DapState) {
     state_record::dap_state_mark_disconnected(state)
 }
 

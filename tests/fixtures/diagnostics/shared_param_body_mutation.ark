@@ -1,0 +1,15 @@
+// ADR-088 §2: a shared parameter is a call-scoped borrow; the callee may read
+// it but not assign through it.
+
+struct Point {
+    x: i32,
+}
+
+fn bump(p: Point) {
+    p.x = p.x + 1
+}
+
+fn main() {
+    let mut p = Point { x: 1 }
+    bump(p)
+}

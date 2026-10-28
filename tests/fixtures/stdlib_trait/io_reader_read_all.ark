@@ -2,12 +2,12 @@ use std::io
 use std::test
 
 fn main() {
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     push(data, 1)
     push(data, 2)
     push(data, 3)
     push(data, 4)
-    let reader: io::Reader = io::Reader::from_bytes(data)
+    let mut reader: io::Reader = io::Reader::from_bytes(data)
 
     match io::Io::read_to_end(reader) {
         Result::Ok(bytes) => {

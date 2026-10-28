@@ -47,47 +47,47 @@ fn mir_verify_report_total(report: MirVerifyReport) -> i32 {
     report.w001 + report.w002 + report.w003 + report.w004 + report.w005 + report.w006 + report.w007 + report.w008 + report.w009 + report.w010
 }
 
-fn mir_verify_report_add_w001(report: MirVerifyReport) {
+fn mir_verify_report_add_w001(mut report: MirVerifyReport) {
     report.w001 = report.w001 + 1
 }
 
-fn mir_verify_report_add_w002(report: MirVerifyReport) {
+fn mir_verify_report_add_w002(mut report: MirVerifyReport) {
     report.w002 = report.w002 + 1
 }
 
-fn mir_verify_report_add_w003(report: MirVerifyReport) {
+fn mir_verify_report_add_w003(mut report: MirVerifyReport) {
     report.w003 = report.w003 + 1
 }
 
-fn mir_verify_report_add_w004(report: MirVerifyReport) {
+fn mir_verify_report_add_w004(mut report: MirVerifyReport) {
     report.w004 = report.w004 + 1
 }
 
-fn mir_verify_report_add_w005(report: MirVerifyReport) {
+fn mir_verify_report_add_w005(mut report: MirVerifyReport) {
     report.w005 = report.w005 + 1
 }
 
-fn mir_verify_report_add_w006(report: MirVerifyReport) {
+fn mir_verify_report_add_w006(mut report: MirVerifyReport) {
     report.w006 = report.w006 + 1
 }
 
-fn mir_verify_report_add_w007(report: MirVerifyReport) {
+fn mir_verify_report_add_w007(mut report: MirVerifyReport) {
     report.w007 = report.w007 + 1
 }
 
-fn mir_verify_report_add_w008(report: MirVerifyReport) {
+fn mir_verify_report_add_w008(mut report: MirVerifyReport) {
     report.w008 = report.w008 + 1
 }
 
-fn mir_verify_report_add_w009(report: MirVerifyReport) {
+fn mir_verify_report_add_w009(mut report: MirVerifyReport) {
     report.w009 = report.w009 + 1
 }
 
-fn mir_verify_report_add_w010(report: MirVerifyReport) {
+fn mir_verify_report_add_w010(mut report: MirVerifyReport) {
     report.w010 = report.w010 + 1
 }
 
-fn mir_verify_report_push_detail(report: MirVerifyReport, message: String) {
+fn mir_verify_report_push_detail(mut report: MirVerifyReport, message: String) {
     if len(report.detail_messages) < 32 {
         push(report.detail_messages, message)
     }

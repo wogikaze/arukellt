@@ -4,6 +4,6 @@ use mir::inst_draft
 use mir::types
 
 fn emit_inst(f: MirFunction, block_id: i32, inst: MirInstDraft) {
-    let block = function_block_queries::MirFunction_block_at(f, block_id)
+    let mut block = function_block_queries::MirFunction_block_at(f, block_id)
     block_inst_mutation::MirBlock_push_inst(block, inst)
 }

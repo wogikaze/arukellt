@@ -3,8 +3,8 @@
 use std::host::stdio
 
 fn main() {
-    let m = HashMap::new<i32, Vec<i32>>()
-    let v: Vec<i32> = Vec::new<i32>()
+    let mut m = HashMap::new<i32, Vec<i32>>()
+    let mut v: Vec<i32> = Vec::new<i32>()
     v.push(7)
     m.insert(1, v)
     let es = m.entries()

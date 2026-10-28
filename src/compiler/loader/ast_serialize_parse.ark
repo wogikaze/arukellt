@@ -128,7 +128,7 @@ pub fn deserialize_ast_nodes(data: String) -> Result<Vec<AstNode>, String> {
     if fnv1a_range(data, payload_start, data_len) != crc {
         return Result::Err(String_from("astc: checksum mismatch"))
     }
-    let nodes: Vec<AstNode> = Vec::new<AstNode>()
+    let mut nodes: Vec<AstNode> = Vec::new<AstNode>()
     let mut i = 0
     let mut cur = payload_start
     while i < count {
@@ -206,7 +206,7 @@ fn deserialize_node(data: String, pos: i32, limit: i32) -> (AstNode, i32) {
 }
 
 fn deserialize_seq(data: String, pos: i32, count: i32, limit: i32) -> (Vec<AstNode>, i32) {
-    let items: Vec<AstNode> = Vec::new<AstNode>()
+    let mut items: Vec<AstNode> = Vec::new<AstNode>()
     let mut i = 0
     let mut cur = pos
     while i < count {

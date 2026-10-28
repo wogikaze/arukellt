@@ -1,33 +1,33 @@
 use collections::vec_extend
 
-pub fn Vec_extend_i32(dst: Vec<i32>, src: Vec<i32>) {
+pub fn Vec_extend_i32(mut dst: Vec<i32>, src: Vec<i32>) {
     vec_extend::Vec_extend_i32(dst, src)
 }
 
-pub fn Vec_extend_String(dst: Vec<String>, src: Vec<String>) {
+pub fn Vec_extend_String(mut dst: Vec<String>, src: Vec<String>) {
     vec_extend::Vec_extend_String(dst, src)
 }
 
-pub fn Vec_extend_String_clone(dst: Vec<String>, src: Vec<String>) {
+pub fn Vec_extend_String_clone(mut dst: Vec<String>, src: Vec<String>) {
     vec_extend::Vec_extend_String_clone(dst, src)
 }
 
-pub fn Vec_extend_Diagnostic(dst: Vec<Diagnostic>, src: Vec<Diagnostic>) {
+pub fn Vec_extend_Diagnostic(mut dst: Vec<Diagnostic>, src: Vec<Diagnostic>) {
     vec_extend::Vec_extend_Diagnostic(dst, src)
 }
 
-pub fn Vec_extend_MirInst(dst: Vec<MirInst>, src: Vec<MirInst>) {
+pub fn Vec_extend_MirInst(mut dst: Vec<MirInst>, src: Vec<MirInst>) {
     vec_extend::Vec_extend_MirInst(dst, src)
 }
 
-pub fn Vec_extend_FnSig(dst: Vec<FnSig>, src: Vec<FnSig>) {
+pub fn Vec_extend_FnSig(mut dst: Vec<FnSig>, src: Vec<FnSig>) {
     vec_extend::Vec_extend_FnSig(dst, src)
 }
 
-pub fn Vec_extend_EnumInfo(dst: Vec<EnumInfo>, src: Vec<EnumInfo>) {
+pub fn Vec_extend_EnumInfo(mut dst: Vec<EnumInfo>, src: Vec<EnumInfo>) {
     vec_extend::Vec_extend_EnumInfo(dst, src)
 }
 
-pub fn Vec_extend_AstNode(dst: Vec<AstNode>, src: Vec<AstNode>) {
+pub fn Vec_extend_AstNode(mut dst: Vec<AstNode>, src: Vec<AstNode>) {
     vec_extend::Vec_extend_AstNode(dst, src)
 }

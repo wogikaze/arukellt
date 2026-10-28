@@ -26,9 +26,9 @@ fn LoopRegion_depth(r: LoopRegion) -> i32 {
 }
 
 fn mir_opt_collect_loop_regions(insts: Vec<MirInst>) -> Vec<LoopRegion> {
-    let regions = Vec::new<LoopRegion>()
-    let stack = Vec::new<i32>()
-    let depths = Vec::new<i32>()
+    let mut regions = Vec::new<LoopRegion>()
+    let mut stack = Vec::new<i32>()
+    let mut depths = Vec::new<i32>()
     let count = len(insts)
     let mut i = 0
     while i < count {
@@ -52,9 +52,9 @@ fn mir_opt_collect_loop_regions(insts: Vec<MirInst>) -> Vec<LoopRegion> {
 }
 
 fn mir_opt_collect_loop_regions_draft(insts: Vec<MirInstDraft>) -> Vec<LoopRegion> {
-    let regions = Vec::new<LoopRegion>()
-    let stack = Vec::new<i32>()
-    let depths = Vec::new<i32>()
+    let mut regions = Vec::new<LoopRegion>()
+    let mut stack = Vec::new<i32>()
+    let mut depths = Vec::new<i32>()
     let count = len(insts)
     let mut i = 0
     while i < count {
@@ -84,7 +84,7 @@ fn mir_opt_pick_innermost(regions: Vec<LoopRegion>) -> Vec<LoopRegion> {
             max_depth = d
         }
     }
-    let out = Vec::new<LoopRegion>()
+    let mut out = Vec::new<LoopRegion>()
     for ri in 0..len(regions) {
         let r = get_unchecked(regions, ri)
         if LoopRegion_depth(r) == max_depth {
@@ -95,7 +95,7 @@ fn mir_opt_pick_innermost(regions: Vec<LoopRegion>) -> Vec<LoopRegion> {
 }
 
 fn mir_opt_regions_by_depth_desc(regions: Vec<LoopRegion>) -> Vec<LoopRegion> {
-    let out = Vec::new<LoopRegion>()
+    let mut out = Vec::new<LoopRegion>()
     let mut max_depth = 0
     for ri in 0..len(regions) {
         let d = LoopRegion_depth(get_unchecked(regions, ri))

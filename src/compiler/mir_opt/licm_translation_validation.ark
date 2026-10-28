@@ -30,7 +30,7 @@ fn licm_translation_valid(before: Vec<MirInst>, after: Vec<MirInst>, region: Loo
         return false
     }
     let modified = licm_predicates::licm_collect_loop_modified(before, start, end)
-    let selected = Vec::new<i32>()
+    let mut selected = Vec::new<i32>()
     let mut search_from = start + 1
     let mut hi = 0
     while hi < claimed_hoisted {

@@ -52,7 +52,7 @@ fn resolve_result_load_state(result: DriverResolveResult) -> LoadState {
 // The resolver context is only needed to type-check the current module. Keep
 // the load state for diagnostics and module metadata, but drop the resolver's
 // scope graph before lowering so GC does not retain the frontend graph.
-fn resolve_result_release_ctx(result: DriverResolveResult) {
+fn resolve_result_release_ctx(mut result: DriverResolveResult) {
     result.resolve_ctx = session_resolve_query::session_empty_resolve_ctx()
 }
 

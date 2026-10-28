@@ -2,7 +2,7 @@ use std::collections::ordered
 use std::host::stdio
 
 fn main() {
-    let m: Vec<i32> = ordered::btree_new()
+    let mut m: Vec<i32> = ordered::btree_new()
     ordered::btree_insert(m, 30, 300)
     ordered::btree_insert(m, 10, 100)
     ordered::btree_insert(m, 50, 500)

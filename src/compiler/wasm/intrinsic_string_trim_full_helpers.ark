@@ -7,7 +7,7 @@ use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsic_string_trim_full_gc
 
-fn emit_trim_left_bound(w: WasmWriter, str_local: i32, len_local: i32, start_local: i32, char_local: i32) {
+fn emit_trim_left_bound(mut w: WasmWriter, str_local: i32, len_local: i32, start_local: i32, char_local: i32) {
     helpers_control::emit_block_loop_header(w)
     helpers_core::emit_local_get(w, start_local)
     helpers_core::emit_local_get(w, len_local)
@@ -30,7 +30,7 @@ fn emit_trim_left_bound(w: WasmWriter, str_local: i32, len_local: i32, start_loc
     helpers_control::emit_end(w)
 }
 
-fn emit_trim_right_bound(w: WasmWriter, str_local: i32, start_local: i32, end_local: i32, char_local: i32) {
+fn emit_trim_right_bound(mut w: WasmWriter, str_local: i32, start_local: i32, end_local: i32, char_local: i32) {
     helpers_control::emit_block_loop_header(w)
     helpers_core::emit_local_get(w, end_local)
     helpers_core::emit_local_get(w, start_local)
@@ -55,7 +55,7 @@ fn emit_trim_right_bound(w: WasmWriter, str_local: i32, start_local: i32, end_lo
     helpers_control::emit_end(w)
 }
 
-fn emit_trim_result(w: WasmWriter, str_local: i32, start_local: i32, end_local: i32, len_local: i32, result_local: i32) {
+fn emit_trim_result(mut w: WasmWriter, str_local: i32, start_local: i32, end_local: i32, len_local: i32, result_local: i32) {
     helpers_core::emit_local_get(w, end_local)
     helpers_core::emit_local_get(w, start_local)
     helpers_numeric_i32::emit_i32_sub(w)

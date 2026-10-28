@@ -3,7 +3,7 @@ use std::collections::hash
 use std::test
 
 fn main() {
-    let s = hash::hashset_new()
+    let mut s = hash::hashset_new()
     hash::hashset_insert(s, 10)
     hash::hashset_insert(s, 20)
 

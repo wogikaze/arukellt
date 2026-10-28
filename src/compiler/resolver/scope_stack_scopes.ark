@@ -21,7 +21,7 @@ fn Scope_symbol_at(scope: Scope, index: i32) -> Symbol {
     scope_record::scope_symbol_at(scope, index)
 }
 
-fn Scope_push_symbol(scope: Scope, sym: Symbol) {
+fn Scope_push_symbol(mut scope: Scope, sym: Symbol) {
     scope_record::scope_push_symbol(scope, sym)
 }
 
@@ -29,6 +29,6 @@ fn ResolveCtx_current_depth(ctx: ResolveCtx) -> i32 {
     ctx_record::resolve_ctx_current_depth(ctx)
 }
 
-fn ResolveCtx_take_next_decl_index(ctx: ResolveCtx) -> i32 {
+fn ResolveCtx_take_next_decl_index(mut ctx: ResolveCtx) -> i32 {
     ctx_record::resolve_ctx_take_next_decl_index(ctx)
 }

@@ -2,7 +2,7 @@ use std::text
 use std::prelude::{substring}
 use lexer::tokens
 use lexer::string_escape_chars
-fn lex_escaped_string(lex: Lexer, start: i32) -> Token {
+fn lex_escaped_string(mut lex: Lexer, start: i32) -> Token {
     let mut result = String_new()
     let mut span_start = lex.pos
     while lex.pos < lex.src_len {

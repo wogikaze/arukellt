@@ -7,7 +7,7 @@ use mir::module_record
 // [sealed structs][sealed enums][late order] so every type sits before
 // its referencers — a forward type index is invalid outside a rec group.
 
-fn MirModule_set_sealed_gc_counts(m: MirModule, struct_count: i32, enum_count: i32) {
+fn MirModule_set_sealed_gc_counts(mut m: MirModule, struct_count: i32, enum_count: i32) {
     m.sealed_gc_struct_count = struct_count
     m.sealed_gc_enum_count = enum_count
 }
@@ -24,6 +24,6 @@ fn MirModule_late_gc_order(m: MirModule) -> Vec<i32> {
     m.late_gc_order
 }
 
-fn MirModule_push_late_gc_order(m: MirModule, packed_slot_kind: i32) {
+fn MirModule_push_late_gc_order(mut m: MirModule, packed_slot_kind: i32) {
     push(m.late_gc_order, packed_slot_kind)
 }

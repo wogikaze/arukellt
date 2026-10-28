@@ -28,7 +28,7 @@ use mir::value_types
 // element so the arm if consumes a single i32 (#893).
 // Returns a local holding the folded result so guarded and unguarded arm
 // shapes share one emission form.
-fn core_emit_tuple_arm_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, scrut_idx: i32) -> i32 {
+fn core_emit_tuple_arm_condition(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, scrut_idx: i32) -> i32 {
     let elem_count = core_expr_shape_accessors::mir_core_expr_child_count(pat)
     let mut has_cmp = false
     let mut ei = 0
@@ -56,7 +56,7 @@ fn core_emit_tuple_arm_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: Co
 
 // Emit ident and variant payload binds for a matched tuple arm. Call after
 // the arm if opens so guards and bodies resolve the bound names (#893).
-fn core_emit_tuple_arm_binds(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, scrut_idx: i32) {
+fn core_emit_tuple_arm_binds(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, scrut_idx: i32) {
     let elem_count = core_expr_shape_accessors::mir_core_expr_child_count(pat)
     let mut ei = 0
     while ei < elem_count {
@@ -74,7 +74,7 @@ fn core_emit_tuple_arm_binds(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHi
     }
 }
 
-fn core_emit_tuple_elem_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, sub: CoreHirExpr, scrut_idx: i32, elem_index: i32, elem_count: i32) -> bool {
+fn core_emit_tuple_elem_condition(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, sub: CoreHirExpr, scrut_idx: i32, elem_index: i32, elem_count: i32) -> bool {
     if core_expr_shape_patterns::mir_core_expr_is_pat_wildcard(sub) {
         return false
     }
@@ -117,7 +117,7 @@ fn core_emit_tuple_elem_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, sub: C
 // the top-level payload probe makes; wasm32-gc values are always refs.
 // Elements with literal/composite payload children emit the guarded flag
 // form so payload reads stay inside the tag-true branch (#902).
-fn core_emit_tuple_elem_variant_compare(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, sub: CoreHirExpr, scrut_idx: i32, elem_index: i32, elem_count: i32) -> bool {
+fn core_emit_tuple_elem_variant_compare(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, sub: CoreHirExpr, scrut_idx: i32, elem_index: i32, elem_count: i32) -> bool {
     let vname = core_expr_shape_accessors::mir_core_expr_text(sub)
     let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(vname))
     if tag < 0 {
@@ -145,7 +145,7 @@ fn core_emit_tuple_elem_variant_compare(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, 
 // Or-pattern element: all-literal alternatives compare the element value,
 // all-variant alternatives compare its tag. Mixed or nested alternatives
 // are rejected by the typechecker; the trap keeps stray pipelines safe.
-fn core_emit_tuple_elem_or_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, sub: CoreHirExpr, scrut_idx: i32, elem_index: i32, elem_count: i32) -> bool {
+fn core_emit_tuple_elem_or_condition(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, sub: CoreHirExpr, scrut_idx: i32, elem_index: i32, elem_count: i32) -> bool {
     let alt_count = core_expr_shape_accessors::mir_core_expr_child_count(sub)
     let mut has_variant_alt = false
     let mut has_literal_alt = false
@@ -201,7 +201,7 @@ fn core_tuple_or_alt_is_record_variant(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, s
 
 // Ident bind for one tuple element: extract the field and copy it into the
 // named local, mirroring core_emit_match_ident_bind's type propagation.
-fn core_emit_tuple_elem_ident_bind(ctx: LowerCtx, name: String, scrut_idx: i32, elem_index: i32, elem_count: i32) {
+fn core_emit_tuple_elem_ident_bind(mut ctx: LowerCtx, name: String, scrut_idx: i32, elem_index: i32, elem_count: i32) {
     let elem_local = stmt_let_tuple::emit_tuple_element_extract(ctx, scrut_idx, elem_index, elem_count)
     let bind_vt = ctx_api_local_types::ctx_local_vt(ctx, elem_local)
     let bind_local = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(name), bind_vt)
@@ -216,7 +216,7 @@ fn core_emit_tuple_elem_ident_bind(ctx: LowerCtx, name: String, scrut_idx: i32, 
 // Variant payload binds for one tuple element. The element local carries
 // the tuple field's type name so Option/Result payload inference sees the
 // same scrutinee spelling a top-level arm would (#893).
-fn core_emit_tuple_elem_variant_binds(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, sub: CoreHirExpr, scrut_idx: i32, elem_index: i32, elem_count: i32) {
+fn core_emit_tuple_elem_variant_binds(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, sub: CoreHirExpr, scrut_idx: i32, elem_index: i32, elem_count: i32) {
     if core_expr_shape_accessors::mir_core_expr_child_count(sub) == 0 {
         return
     }

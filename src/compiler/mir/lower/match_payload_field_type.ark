@@ -261,6 +261,6 @@ fn mir_report_weak_payload_scrutinee(ctx: LowerCtx, variant_name: String, payloa
             String_from("` in body `").concat(function_identity::MirFunction_name(cur_fn).concat(String_from("` — annotate the scrutinee with a concrete type (e.g. `let x: Option<i32> = ...`)")))
         )
     )
-    let m = ctx_api_module::ctx_current_module(ctx)
+    let mut m = ctx_api_module::ctx_current_module(ctx)
     module_functions::MirModule_record_diagnostic(m, message)
 }

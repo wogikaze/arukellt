@@ -11,7 +11,7 @@ use parser::state_record
 fn issue504_parser_self_check() -> String {
     let src = "impl Foo for MyStruct { fn value(x: MyStruct) -> i32 { 0 } } fn f<T: Foo>(x: T) { }"
     let tokens = scan::tokenize(src)
-    let p = core_api_token::Parser_new(tokens)
+    let mut p = core_api_token::Parser_new(tokens)
     let decls = decl::parse_module(p)
     let error_count = state_record::parser_error_count(p)
     if error_count != 0 {

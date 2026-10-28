@@ -3447,6 +3447,10 @@ run:stdlib_random/rng_methods_wasm32.ark
 # ADR-088 / #951 — mut parameter modes and call-site mutable places.
 run:mut_params/mut_param_places.ark
 run:mut_params/fn_type_modes.ark
+run:mut_params/shared_and_mut_bodies.ark
+diag:diagnostics/shared_param_body_mutation.ark
+diag:diagnostics/shared_self_body_mutation.ark
+diag:diagnostics/shared_param_push.ark
 diag:diagnostics/mut_param_immutable_place.ark
 diag:diagnostics/mut_self_immutable_receiver.ark
 diag:diagnostics/mut_param_same_place.ark

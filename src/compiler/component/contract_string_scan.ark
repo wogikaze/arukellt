@@ -109,55 +109,55 @@ fn ComponentStringScan_has_string_to_f32(scan: ComponentStringScan) -> bool {
     scan.has_string_to_f32
 }
 
-fn ComponentStringScan_increment_export_count(scan: ComponentStringScan) {
+fn ComponentStringScan_increment_export_count(mut scan: ComponentStringScan) {
     scan.export_count = scan.export_count + 1
 }
 
-fn ComponentStringScan_set_has_string_unary(scan: ComponentStringScan, value: bool) {
+fn ComponentStringScan_set_has_string_unary(mut scan: ComponentStringScan, value: bool) {
     scan.has_string_unary = value
 }
 
-fn ComponentStringScan_set_all_string_unary(scan: ComponentStringScan, value: bool) {
+fn ComponentStringScan_set_all_string_unary(mut scan: ComponentStringScan, value: bool) {
     scan.all_string_unary = value
 }
 
-fn ComponentStringScan_set_has_i32_to_string(scan: ComponentStringScan, value: bool) {
+fn ComponentStringScan_set_has_i32_to_string(mut scan: ComponentStringScan, value: bool) {
     scan.has_i32_to_string = value
 }
 
-fn ComponentStringScan_set_has_string_to_i32(scan: ComponentStringScan, value: bool) {
+fn ComponentStringScan_set_has_string_to_i32(mut scan: ComponentStringScan, value: bool) {
     scan.has_string_to_i32 = value
 }
 
-fn ComponentStringScan_set_has_string_to_narrow_i32(scan: ComponentStringScan, value: bool) {
+fn ComponentStringScan_set_has_string_to_narrow_i32(mut scan: ComponentStringScan, value: bool) {
     scan.has_string_to_narrow_i32 = value
 }
 
-fn ComponentStringScan_set_has_string_to_bool(scan: ComponentStringScan, value: bool) {
+fn ComponentStringScan_set_has_string_to_bool(mut scan: ComponentStringScan, value: bool) {
     scan.has_string_to_bool = value
 }
 
-fn ComponentStringScan_set_has_string_to_char(scan: ComponentStringScan, value: bool) {
+fn ComponentStringScan_set_has_string_to_char(mut scan: ComponentStringScan, value: bool) {
     scan.has_string_to_char = value
 }
 
-fn ComponentStringScan_set_has_string_to_f64(scan: ComponentStringScan, value: bool) {
+fn ComponentStringScan_set_has_string_to_f64(mut scan: ComponentStringScan, value: bool) {
     scan.has_string_to_f64 = value
 }
 
-fn ComponentStringScan_set_has_string_to_i64(scan: ComponentStringScan, value: bool) {
+fn ComponentStringScan_set_has_string_to_i64(mut scan: ComponentStringScan, value: bool) {
     scan.has_string_to_i64 = value
 }
 
-fn ComponentStringScan_set_has_string_to_u64(scan: ComponentStringScan, value: bool) {
+fn ComponentStringScan_set_has_string_to_u64(mut scan: ComponentStringScan, value: bool) {
     scan.has_string_to_u64 = value
 }
 
-fn ComponentStringScan_set_has_string_to_f32(scan: ComponentStringScan, value: bool) {
+fn ComponentStringScan_set_has_string_to_f32(mut scan: ComponentStringScan, value: bool) {
     scan.has_string_to_f32 = value
 }
 
-fn component_string_scan_apply_basic(scan: ComponentStringScan, d: AstNode) {
+fn component_string_scan_apply_basic(mut scan: ComponentStringScan, d: AstNode) {
     let f = contract_helpers::component_func_from_decl(d)
     if contract_string_fn::component_fn_is_string_unary(f) {
         ComponentStringScan_set_has_string_unary(scan, true)
@@ -179,7 +179,7 @@ fn component_string_scan_apply_basic(scan: ComponentStringScan, d: AstNode) {
     }
 }
 
-fn component_string_scan_apply_numeric(scan: ComponentStringScan, d: AstNode) {
+fn component_string_scan_apply_numeric(mut scan: ComponentStringScan, d: AstNode) {
     let f = contract_helpers::component_func_from_decl(d)
     if contract_string_fn::component_fn_is_string_to_f64(f) {
         ComponentStringScan_set_has_string_to_f64(scan, true)
@@ -195,7 +195,7 @@ fn component_string_scan_apply_numeric(scan: ComponentStringScan, d: AstNode) {
     }
 }
 
-fn component_string_scan_apply_export(scan: ComponentStringScan, d: AstNode) {
+fn component_string_scan_apply_export(mut scan: ComponentStringScan, d: AstNode) {
     ComponentStringScan_increment_export_count(scan)
     component_string_scan_apply_basic(scan, d)
     component_string_scan_apply_numeric(scan, d)
@@ -205,7 +205,7 @@ fn component_string_scan_apply_export(scan: ComponentStringScan, d: AstNode) {
     }
 }
 
-fn component_string_scan_finalize(scan: ComponentStringScan) -> ComponentStringScan {
+fn component_string_scan_finalize(mut scan: ComponentStringScan) -> ComponentStringScan {
     if scan.export_count >= 2 && ComponentStringScan_all_string_unary(scan) {
         scan.has_string_general_multi = true
     }
@@ -213,7 +213,7 @@ fn component_string_scan_finalize(scan: ComponentStringScan) -> ComponentStringS
 }
 
 fn component_string_scan(decls: Vec<AstNode>) -> ComponentStringScan {
-    let scan = ComponentStringScan_empty()
+    let mut scan = ComponentStringScan_empty()
     for i in 0..len(decls) {
         let d = get_unchecked(decls, i)
         if contract_helpers::is_export_func_decl(d) {

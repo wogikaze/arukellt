@@ -10,7 +10,7 @@ fn main() {
         sum = sum + i
     }
     stdio::println((sum).to_string())
-    let v: Vec<i32> = Vec::new<i32>()
+    let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 1)
     push(v, 2)
     push(v, 3)

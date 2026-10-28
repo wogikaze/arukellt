@@ -1,7 +1,7 @@
 use lexer::tokens
 use parser::core_ast_children
 
-fn parse_call_args(p: Parser, node: AstNode) {
+fn parse_call_args(mut p: Parser, mut node: AstNode) {
     let mut first = true
     while !at(p, tokens::TK_RPAREN()) && !at_eof(p) {
         if !first {

@@ -63,7 +63,7 @@ fn unary_operator_symbol(op: i32) -> String {
     String_from("operator")
 }
 
-fn enforce_binary_operator(env: TypeEnv, lhs_ty: TypeInfo, op: i32) {
+fn enforce_binary_operator(mut env: TypeEnv, lhs_ty: TypeInfo, op: i32) {
     let trait_name = binary_trait_name(op)
     if len(trait_name) == 0 {
         return
@@ -72,7 +72,7 @@ fn enforce_binary_operator(env: TypeEnv, lhs_ty: TypeInfo, op: i32) {
     enforce_operator_trait(env, lhs_ty, trait_name, symbol)
 }
 
-fn enforce_unary_operator(env: TypeEnv, operand_ty: TypeInfo, op: i32) {
+fn enforce_unary_operator(mut env: TypeEnv, operand_ty: TypeInfo, op: i32) {
     let trait_name = unary_trait_name(op)
     if len(trait_name) == 0 {
         return
@@ -80,7 +80,7 @@ fn enforce_unary_operator(env: TypeEnv, operand_ty: TypeInfo, op: i32) {
     enforce_operator_trait(env, operand_ty, trait_name, unary_operator_symbol(op))
 }
 
-fn enforce_index_operator(env: TypeEnv, base_ty: TypeInfo) {
+fn enforce_index_operator(mut env: TypeEnv, base_ty: TypeInfo) {
     let tag = contract_type_access::TypeInfo_tag(base_ty)
     if tag != commands::TY_STRUCT() && tag != commands::TY_ENUM() {
         return
@@ -89,7 +89,7 @@ fn enforce_index_operator(env: TypeEnv, base_ty: TypeInfo) {
 }
 
 fn enforce_operator_trait(
-    env: TypeEnv,
+    mut env: TypeEnv,
     operand_ty: TypeInfo,
     trait_name: String,
     symbol: String
@@ -176,7 +176,7 @@ fn is_builtin_operator_type(ty: TypeInfo, trait_name: String) -> bool {
 }
 
 fn report_missing_operator_bound(
-    env: TypeEnv,
+    mut env: TypeEnv,
     symbol: String,
     trait_name: String,
     operand_ty: TypeInfo
@@ -187,7 +187,7 @@ fn report_missing_operator_bound(
 }
 
 fn report_missing_operator_impl(
-    env: TypeEnv,
+    mut env: TypeEnv,
     symbol: String,
     trait_name: String,
     type_name: String

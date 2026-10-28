@@ -21,13 +21,13 @@ struct Adapter<T> {
 }
 
 impl<T> Read for Adapter<T> {
-    fn read(self: Adapter<T>, n: i32) -> i32 {
+    fn read(mut self: Adapter<T>, n: i32) -> i32 {
         self.inner.read(n) + 100
     }
 }
 
 fn main() {
-    let a = Adapter { inner: Counter { base: 10 } }
+    let mut a = Adapter { inner: Counter { base: 10 } }
     stdio::println((a.read(3)).to_string())
     stdio::println((a.read(7)).to_string())
 }

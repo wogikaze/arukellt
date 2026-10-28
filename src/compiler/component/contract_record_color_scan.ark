@@ -38,19 +38,19 @@ fn ComponentRecordColorScan_export_count_is(scan: ComponentRecordColorScan, expe
     scan.export_count == expected
 }
 
-fn ComponentRecordColorScan_set_has_color_shape(scan: ComponentRecordColorScan, value: bool) {
+fn ComponentRecordColorScan_set_has_color_shape(mut scan: ComponentRecordColorScan, value: bool) {
     scan.has_color_shape = value
 }
 
-fn ComponentRecordColorScan_set_has_next(scan: ComponentRecordColorScan, value: bool) {
+fn ComponentRecordColorScan_set_has_next(mut scan: ComponentRecordColorScan, value: bool) {
     scan.has_next = value
 }
 
-fn ComponentRecordColorScan_set_has_value(scan: ComponentRecordColorScan, value: bool) {
+fn ComponentRecordColorScan_set_has_value(mut scan: ComponentRecordColorScan, value: bool) {
     scan.has_value = value
 }
 
-fn ComponentRecordColorScan_increment_export_count(scan: ComponentRecordColorScan) {
+fn ComponentRecordColorScan_increment_export_count(mut scan: ComponentRecordColorScan) {
     scan.export_count = scan.export_count + 1
 }
 
@@ -66,7 +66,7 @@ fn ComponentRecordColorScan_allows_roundtrip(scan: ComponentRecordColorScan) -> 
     ComponentRecordColorScan_has_color_shape(scan) && ComponentRecordColorScan_has_next(scan) && ComponentRecordColorScan_export_count_is(scan, 1)
 }
 
-fn component_record_color_scan_apply_decl(scan: ComponentRecordColorScan, d: AstNode) {
+fn component_record_color_scan_apply_decl(mut scan: ComponentRecordColorScan, d: AstNode) {
     if contract_record_decl::component_decl_is_color_shape(d) {
         ComponentRecordColorScan_set_has_color_shape(scan, true)
     }
@@ -75,7 +75,7 @@ fn component_record_color_scan_apply_decl(scan: ComponentRecordColorScan, d: Ast
     }
 }
 
-fn component_record_color_scan_apply_export(scan: ComponentRecordColorScan, d: AstNode) {
+fn component_record_color_scan_apply_export(mut scan: ComponentRecordColorScan, d: AstNode) {
     ComponentRecordColorScan_increment_export_count(scan)
     let f = contract_helpers::component_func_from_decl(d)
     if contract_record_fn::component_fn_is_color_to_color(f) {
@@ -87,7 +87,7 @@ fn component_record_color_scan_apply_export(scan: ComponentRecordColorScan, d: A
 }
 
 fn component_record_color_scan(decls: Vec<AstNode>) -> ComponentRecordColorScan {
-    let scan = ComponentRecordColorScan_empty()
+    let mut scan = ComponentRecordColorScan_empty()
     for i in 0..len(decls) {
         let d = get_unchecked(decls, i)
         component_record_color_scan_apply_decl(scan, d)

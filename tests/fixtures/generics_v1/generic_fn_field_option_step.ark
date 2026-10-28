@@ -11,7 +11,7 @@ struct AccBox<T> {
 }
 
 impl<T> AccBox<T> {
-    fn step(self: AccBox<T>, x: T) -> Option<T> {
+    fn step(mut self: AccBox<T>, x: T) -> Option<T> {
         let mut out: Option<T> = None
         let stepped: Option<T> = (self.f)(self.state, x)
         match stepped {
@@ -30,7 +30,7 @@ fn sum2(a: i32, b: i32) -> Option<i32> {
 }
 
 fn main() {
-    let acc = AccBox { state: 10, f: sum2 }
+    let mut acc = AccBox { state: 10, f: sum2 }
     match acc.step(5) {
         Some(v) => stdio::println(v.to_string()),
         None => stdio::println("none"),

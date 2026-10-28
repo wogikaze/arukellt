@@ -20,7 +20,7 @@ fn mir_reachability_legacy_enabled() -> bool {
     false
 }
 
-fn mir_legacy_mark_reachable_name(functions: Vec<MirFunction>, reachable: Vec<i32>, name: String) -> bool {
+fn mir_legacy_mark_reachable_name(functions: Vec<MirFunction>, mut reachable: Vec<i32>, name: String) -> bool {
     let count = len(functions)
     let mut i = 0
     while i < count {
@@ -53,7 +53,7 @@ fn mir_legacy_mark_reachable_name(functions: Vec<MirFunction>, reachable: Vec<i3
     changed
 }
 
-fn mir_legacy_mark_roots(functions: Vec<MirFunction>, reachable: Vec<i32>, extra_roots: Vec<String>) -> i32 {
+fn mir_legacy_mark_roots(functions: Vec<MirFunction>, mut reachable: Vec<i32>, extra_roots: Vec<String>) -> i32 {
     let mut root_count = 0
     if mir_legacy_mark_reachable_name(functions, reachable, "main") {
         root_count = root_count + 1
@@ -78,7 +78,7 @@ fn mir_legacy_mark_roots(functions: Vec<MirFunction>, reachable: Vec<i32>, extra
 fn mir_legacy_mark_function_call_targets(
     m: MirModule,
     functions: Vec<MirFunction>,
-    reachable: Vec<i32>,
+    mut reachable: Vec<i32>,
     f: MirFunction
 ) -> bool {
     let mut changed = false
@@ -122,7 +122,7 @@ fn mir_legacy_mark_function_call_targets(
     changed
 }
 
-fn mir_legacy_mark_reachable_calls(m: MirModule, functions: Vec<MirFunction>, reachable: Vec<i32>) -> bool {
+fn mir_legacy_mark_reachable_calls(m: MirModule, functions: Vec<MirFunction>, mut reachable: Vec<i32>) -> bool {
     let fn_count = len(functions)
     let mut changed = false
     let mut fi = 0
@@ -138,13 +138,13 @@ fn mir_legacy_mark_reachable_calls(m: MirModule, functions: Vec<MirFunction>, re
     changed
 }
 
-fn mir_prune_unreachable_legacy_fixpoint(m: MirModule, extra_roots: Vec<String>) -> i32 {
+fn mir_prune_unreachable_legacy_fixpoint(mut m: MirModule, extra_roots: Vec<String>) -> i32 {
     let fn_count = module_functions::MirModule_function_count(m)
     if fn_count == 0 {
         return 0
     }
     let functions = module_functions::MirModule_functions(m)
-    let reachable = Vec::new<i32>()
+    let mut reachable = Vec::new<i32>()
     let mut i = 0
     while i < fn_count {
         push(reachable, 0)

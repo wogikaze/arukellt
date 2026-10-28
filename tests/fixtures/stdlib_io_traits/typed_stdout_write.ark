@@ -6,7 +6,7 @@ use std::io::{Stdout, Write}
 
 fn main() {
     let out: Stdout = Stdout::new()
-    let bytes: Vec<i32> = Vec::new<i32>()
+    let mut bytes: Vec<i32> = Vec::new<i32>()
     push(bytes, 65)
     push(bytes, 10)
     push(bytes, 66)

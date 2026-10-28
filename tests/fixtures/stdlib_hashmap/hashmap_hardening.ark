@@ -2,7 +2,7 @@ use std::collections::hash
 use std::test
 
 test "zero_values_are_retained_and_queried" {
-    let m: Vec<i32> = hash::hashmap_with_capacity(2)
+    let mut m: Vec<i32> = hash::hashmap_with_capacity(2)
     test::assert_true(hash::hashmap_set(m, 1, 0))
     test::assert_true(hash::hashmap_set(m, 3, 30))
 

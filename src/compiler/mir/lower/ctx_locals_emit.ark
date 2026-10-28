@@ -12,7 +12,7 @@ use mir::lower::call_func_id
 use mir::module_block_pool
 use mir::opcodes
 
-fn ctx_emit(ctx: LowerCtx, inst: MirInstDraft) {
+fn ctx_emit(mut ctx: LowerCtx, mut inst: MirInstDraft) {
     // Env-cell flush: in a closure that owns rebind cells, every return
     // first writes each cell local back to its __env field so mutations
     // persist across indirect calls (#874).
@@ -34,8 +34,8 @@ fn ctx_emit(ctx: LowerCtx, inst: MirInstDraft) {
     }
 }
 
-fn ctx_emit_verbatim(ctx: LowerCtx, inst: MirInstDraft) {
-    let identified = call_func_id::mir_inst_attach_func_id_if_call(ctx, inst)
+fn ctx_emit_verbatim(mut ctx: LowerCtx, mut inst: MirInstDraft) {
+    let mut identified = call_func_id::mir_inst_attach_func_id_if_call(ctx, inst)
     let enriched = ctx_typed_mir_sync::ctx_enrich_inst_result_types(ctx, identified)
     ctx_call_edges::ctx_edge_record_inst(ctx, enriched)
     let mut f = ctx_current_storage::ctx_current_func_value(ctx)
@@ -74,7 +74,7 @@ fn ctx_current_block_last_inst_dest(ctx: LowerCtx) -> i32 {
     block_inst_access::MirBlock_inst_dest(block, count - 1)
 }
 
-fn ctx_alloc_block(ctx: LowerCtx) -> i32 {
+fn ctx_alloc_block(mut ctx: LowerCtx) -> i32 {
     let mut f = ctx_current_storage::ctx_current_func_value(ctx)
     let idx = function_block_mutation::MirFunction_next_block(f)
     function_block_mutation::MirFunction_increment_next_block(f)
@@ -86,7 +86,7 @@ fn ctx_alloc_block(ctx: LowerCtx) -> i32 {
     idx
 }
 
-fn ctx_enter_new_block(ctx: LowerCtx) -> i32 {
+fn ctx_enter_new_block(mut ctx: LowerCtx) -> i32 {
     let idx = ctx_alloc_block(ctx)
     ctx_current_storage::ctx_set_current_block_value(ctx, idx)
     idx

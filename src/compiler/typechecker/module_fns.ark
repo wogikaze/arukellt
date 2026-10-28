@@ -10,8 +10,8 @@ use typechecker::kinds
 use typechecker::sigs
 use typechecker::types
 use corehir::decl_impl_target
-fn collect_fn_sigs(decls: Vec<AstNode>, env: TypeEnv) -> Vec<FnSig> {
-    let fn_sigs = Vec::new<FnSig>()
+fn collect_fn_sigs(decls: Vec<AstNode>, mut env: TypeEnv) -> Vec<FnSig> {
+    let mut fn_sigs = Vec::new<FnSig>()
     let decl_count = len(decls)
     let mut i = 0
     while i < decl_count {
@@ -39,7 +39,7 @@ fn collect_fn_sigs(decls: Vec<AstNode>, env: TypeEnv) -> Vec<FnSig> {
     fn_sigs
 }
 
-fn collect_impl_method_sigs(fn_sigs: Vec<FnSig>, node: AstNode, env: TypeEnv) {
+fn collect_impl_method_sigs(mut fn_sigs: Vec<FnSig>, node: AstNode, env: TypeEnv) {
     let impl_child_count = ast_access::node_child_count(node)
     let mut ic = 0
     while ic < impl_child_count {
@@ -109,7 +109,7 @@ fn impl_self_param_sig(impl_decl: AstNode, method_decl: AstNode, sig: FnSig, imp
     if contract_type_access::TypeInfo_tag(self_ty) == commands::TY_UNKNOWN() {
         return sig
     }
-    let params = Vec::new<TypeInfo>()
+    let mut params = Vec::new<TypeInfo>()
     push(params, self_ty)
     let mut i = 1
     while i < contract_fn_sig::FnSig_param_count(sig) {

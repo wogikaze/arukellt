@@ -26,7 +26,7 @@ fn MirPhi_new(dest: i32, val_type: i32) -> MirPhi {
     MirPhi { op: MIR_PHI(), dest: dest, val_type: val_type, args: Vec::new<MirPhiArg>() }
 }
 
-fn mir_phi_add_arg(phi: MirPhi, pred_block: i32, local: i32) {
+fn mir_phi_add_arg(mut phi: MirPhi, pred_block: i32, local: i32) {
     push(phi.args, MirPhiArg { pred_block: pred_block, local: local })
 }
 
@@ -66,7 +66,7 @@ fn ensure(ok: bool, msg: String) {
 }
 
 fn run_phi_representation_smoke() {
-    let phi = MirPhi_new(3, VT_I32())
+    let mut phi = MirPhi_new(3, VT_I32())
     mir_phi_add_arg(phi, 1, 1)
     mir_phi_add_arg(phi, 2, 2)
     ensure(phi.op == MIR_PHI(), String_from("expected MIR_PHI tag"))

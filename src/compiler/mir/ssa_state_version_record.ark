@@ -1,7 +1,7 @@
 use mir::ssa_state_record
 use mir::ssa_state_vec
 
-fn mir_ssa_state_set_version(state: MirSsaRenameState, local_id: i32, version: i32) {
+fn mir_ssa_state_set_version(mut state: MirSsaRenameState, local_id: i32, version: i32) {
     if local_id < 0 || local_id >= state.original_local_count {
         return
     }

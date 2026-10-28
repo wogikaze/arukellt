@@ -24,7 +24,7 @@ fn hir_trait_name(decl: HirTraitDecl) -> String {
     clone(decl.name)
 }
 
-fn hir_trait_push_method(decl: HirTraitDecl, method: HirFunction) {
+fn hir_trait_push_method(mut decl: HirTraitDecl, method: HirFunction) {
     push(decl.methods, method)
 }
 
@@ -48,7 +48,7 @@ fn hir_impl_block_self_type(block: HirImplBlock) -> HirType {
     block.self_ty
 }
 
-fn hir_impl_block_push_method(block: HirImplBlock, method: HirFunction) {
+fn hir_impl_block_push_method(mut block: HirImplBlock, method: HirFunction) {
     push(block.methods, method)
 }
 

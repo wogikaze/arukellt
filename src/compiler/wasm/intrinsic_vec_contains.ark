@@ -13,7 +13,7 @@ use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i32
 
 // Handler for: contains_i32, seq::seq_contains
-fn emit_contains_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_contains_i32(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return emit_contains_i32_gc(w, ctx)
     }
@@ -34,7 +34,7 @@ fn emit_contains_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 // GC target: scan vec data array, push i32 1 if needle found, else 0.
-fn emit_contains_i32_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+fn emit_contains_i32_gc(mut w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     let s_needle = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
     let s_arr = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
@@ -49,7 +49,7 @@ fn emit_contains_i32_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_contains_i32_gc_setup(w: WasmWriter, s_needle: i32, s_vec: i32, s_arr: i32, s_len: i32, s_found: i32, s_i: i32, vec_type: i32) {
+fn emit_contains_i32_gc_setup(mut w: WasmWriter, s_needle: i32, s_vec: i32, s_arr: i32, s_len: i32, s_found: i32, s_i: i32, vec_type: i32) {
     // Stack: [vec_ref, needle] — pop needle, then vec
     helpers_core::emit_local_set(w, s_needle)
     helpers_core::emit_local_set(w, s_vec)
@@ -70,7 +70,7 @@ fn emit_contains_i32_gc_setup(w: WasmWriter, s_needle: i32, s_vec: i32, s_arr: i
     helpers_core::emit_local_set(w, s_i)
 }
 
-fn emit_contains_i32_gc_loop(w: WasmWriter, s_arr: i32, s_i: i32, s_len: i32, s_needle: i32, s_found: i32, arr_type: i32) {
+fn emit_contains_i32_gc_loop(mut w: WasmWriter, s_arr: i32, s_i: i32, s_len: i32, s_needle: i32, s_found: i32, arr_type: i32) {
     // loop: while i < len
     string_gc_helpers::emit_gc_block_loop(w)
     helpers_core::emit_local_get(w, s_i)
@@ -97,7 +97,7 @@ fn emit_contains_i32_gc_loop(w: WasmWriter, s_arr: i32, s_i: i32, s_len: i32, s_
     string_gc_helpers::emit_gc_block_loop_end(w)
 }
 
-fn emit_contains_i32_setup(w: WasmWriter, s_vec_ci: i32, s_ci_i: i32, s_ci_len: i32, s_ci_data: i32, s_ci_found: i32) {
+fn emit_contains_i32_setup(mut w: WasmWriter, s_vec_ci: i32, s_ci_i: i32, s_ci_len: i32, s_ci_data: i32, s_ci_found: i32) {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -123,7 +123,7 @@ fn emit_contains_i32_setup(w: WasmWriter, s_vec_ci: i32, s_ci_i: i32, s_ci_len: 
     writer_core::emit_leb128_u(w, s_ci_i)
 }
 
-fn emit_contains_i32_loop(w: WasmWriter, s_needle: i32, s_ci_i: i32, s_ci_len: i32, s_ci_data: i32, s_ci_found: i32) {
+fn emit_contains_i32_loop(mut w: WasmWriter, s_needle: i32, s_ci_i: i32, s_ci_len: i32, s_ci_data: i32, s_ci_found: i32) {
     emit_contains_i32_loop_header(w)
     emit_contains_i32_loop_bounds(w, s_ci_i, s_ci_len)
     emit_contains_i32_loop_match(w, s_needle, s_ci_i, s_ci_data, s_ci_found)
@@ -132,14 +132,14 @@ fn emit_contains_i32_loop(w: WasmWriter, s_needle: i32, s_ci_i: i32, s_ci_len: i
     writer_core::emit_byte(w, 11)
 }
 
-fn emit_contains_i32_loop_header(w: WasmWriter) {
+fn emit_contains_i32_loop_header(mut w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_BLOCK())
     writer_core::emit_byte(w, 64)
     writer_core::emit_byte(w, opcodes::OP_LOOP())
     writer_core::emit_byte(w, 64)
 }
 
-fn emit_contains_i32_loop_bounds(w: WasmWriter, s_ci_i: i32, s_ci_len: i32) {
+fn emit_contains_i32_loop_bounds(mut w: WasmWriter, s_ci_i: i32, s_ci_len: i32) {
     writer_core::emit_local_get(w, s_ci_i)
     writer_core::emit_local_get(w, s_ci_len)
     writer_core::emit_byte(w, opcodes::OP_I32_GE_S())
@@ -147,7 +147,7 @@ fn emit_contains_i32_loop_bounds(w: WasmWriter, s_ci_i: i32, s_ci_len: i32) {
     writer_core::emit_leb128_u(w, 1)
 }
 
-fn emit_contains_i32_loop_match(w: WasmWriter, s_needle: i32, s_ci_i: i32, s_ci_data: i32, s_ci_found: i32) {
+fn emit_contains_i32_loop_match(mut w: WasmWriter, s_needle: i32, s_ci_i: i32, s_ci_data: i32, s_ci_found: i32) {
     writer_core::emit_local_get(w, s_ci_data)
     writer_core::emit_local_get(w, s_ci_i)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
@@ -170,7 +170,7 @@ fn emit_contains_i32_loop_match(w: WasmWriter, s_needle: i32, s_ci_i: i32, s_ci_
     writer_core::emit_byte(w, 11)
 }
 
-fn emit_contains_i32_loop_advance(w: WasmWriter, s_ci_i: i32) {
+fn emit_contains_i32_loop_advance(mut w: WasmWriter, s_ci_i: i32) {
     writer_core::emit_local_get(w, s_ci_i)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 1)

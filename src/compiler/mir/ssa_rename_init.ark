@@ -10,13 +10,13 @@ fn mir_ssa_reset_local_slots(f: MirFunction) {
     let lc = function_locals_view::MirFunction_local_count(f)
     let mut i = 0
     while i < lc {
-        let loc = function_locals_view::MirFunction_local_at(f, i)
+        let mut loc = function_locals_view::MirFunction_local_at(f, i)
         local_mutation::MirLocal_set_ssa(loc, local_access::MirLocal_name(loc), 0 - 1)
         i = i + 1
     }
 }
 
-fn mir_ssa_tag_function_params(f: MirFunction, state: ssa_state_types::MirSsaRenameState) {
+fn mir_ssa_tag_function_params(f: MirFunction, mut state: ssa_state_types::MirSsaRenameState) {
     let pc = function_param_view::MirFunction_param_count(f)
     let mut pi = 0
     while pi < pc {

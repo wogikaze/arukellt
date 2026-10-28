@@ -11,7 +11,7 @@ fn HirFunction_new(name: String, return_type: HirType, body: HirNode, is_pub: bo
     item_functions::HirFunction_new(name, return_type, body, is_pub)
 }
 
-fn HirFunction_push_type_param(func: HirFunction, type_param: HirTypeParam) {
+fn HirFunction_push_type_param(mut func: HirFunction, type_param: HirTypeParam) {
     item_functions::HirFunction_push_type_param(func, type_param)
 }
 
@@ -35,7 +35,7 @@ fn HirTypeParam_name(param: HirTypeParam) -> String {
     item_type_param_record::hir_type_param_name(param)
 }
 
-fn HirTypeParam_push_bound(param: HirTypeParam, bound: HirTraitBound) {
+fn HirTypeParam_push_bound(mut param: HirTypeParam, bound: HirTraitBound) {
     item_type_param_record::hir_type_param_push_bound(param, bound)
 }
 

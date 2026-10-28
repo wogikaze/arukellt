@@ -18,7 +18,7 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_type_id(ctx: SelfEmitCtx, tid: TypeId) -> i
     if !type_id::type_id_is_valid(tid) {
         return 0 - 1
     }
-    let layout = ctx_record::SelfEmitCtx_gc_layout_table(ctx)
+    let mut layout = ctx_record::SelfEmitCtx_gc_layout_table(ctx)
     let entry = gc_layout_table::gc_layout_table_entry_by_type_id(layout, tid)
     if !gc_layout_table::gc_layout_id_is_valid(entry.id) {
         return 0 - 1

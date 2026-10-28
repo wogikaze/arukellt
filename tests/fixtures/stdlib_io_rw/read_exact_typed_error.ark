@@ -4,10 +4,10 @@ use std::io
 use std::text
 
 fn main() {
-    let data: Vec<i32> = Vec::new<i32>()
+    let mut data: Vec<i32> = Vec::new<i32>()
     data.push_byte(72)
     data.push_byte(105)
-    let r: io::Reader = io::Reader::from_bytes(data)
+    let mut r: io::Reader = io::Reader::from_bytes(data)
     // Try to read_exact 5 bytes from a 2-byte reader -> IoError::UnexpectedEof
     match io::Io::read_exact(r, 5) {
         Result::Ok(_) => stdio::println("unexpected-ok"),

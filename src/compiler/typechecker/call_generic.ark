@@ -2,7 +2,7 @@ use typechecker::call_generic_common
 use typechecker::call_generic_fn
 use typechecker::call_generic_method
 
-fn append_generic_type_vars(infer_env: TypeEnv, sig: FnSig, var_names: Vec<String>, var_types: Vec<TypeInfo>) {
+fn append_generic_type_vars(mut infer_env: TypeEnv, sig: FnSig, mut var_names: Vec<String>, mut var_types: Vec<TypeInfo>) {
     call_generic_common::append_generic_type_vars(infer_env, sig, var_names, var_types)
 }
 
@@ -10,10 +10,10 @@ fn resolve_type_args(infer_env: TypeEnv, var_types: Vec<TypeInfo>) -> Vec<TypeIn
     call_generic_common::resolve_type_args(infer_env, var_types)
 }
 
-fn infer_generic_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig, fn_name: String) -> TypeInfo {
+fn infer_generic_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig, fn_name: String) -> TypeInfo {
     call_generic_fn::infer_generic_call_expr(env, scope, fn_sigs, enum_defs, node, sig, fn_name)
 }
 
-fn infer_generic_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig, recv_ty: TypeInfo, explicit_args: i32) -> TypeInfo {
+fn infer_generic_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig, recv_ty: TypeInfo, explicit_args: i32) -> TypeInfo {
     call_generic_method::infer_generic_method_call_expr(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, explicit_args)
 }

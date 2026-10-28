@@ -1,7 +1,7 @@
 use typechecker::call_generic_resolve
 use typechecker::call_generic_vars
 
-fn append_generic_type_vars(infer_env: TypeEnv, sig: FnSig, var_names: Vec<String>, var_types: Vec<TypeInfo>) {
+fn append_generic_type_vars(mut infer_env: TypeEnv, sig: FnSig, mut var_names: Vec<String>, mut var_types: Vec<TypeInfo>) {
     call_generic_vars::append_generic_type_vars(infer_env, sig, var_names, var_types)
 }
 

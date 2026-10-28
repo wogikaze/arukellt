@@ -13,7 +13,7 @@ use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i32_convert
 
-fn emit_seq_unique(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_seq_unique(mut w: WasmWriter, inst: MirInst, mut ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return emit_seq_unique_gc(w, inst, ctx)
     }
@@ -35,7 +35,7 @@ fn emit_seq_unique(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 // GC target: preserve first occurrence order while scanning Vec<i32>.
-fn emit_seq_unique_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_seq_unique_gc(mut w: WasmWriter, inst: MirInst, mut ctx: SelfEmitCtx) -> bool {
     let s_src = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
     let s_src_arr = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
     let s_result_arr = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 1)
@@ -137,7 +137,7 @@ fn emit_seq_unique_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_seq_unique_init(w: WasmWriter, src_local: i32, vec_local: i32, outer_index_local: i32, src_len_local: i32, src_data_local: i32, result_len_local: i32, result_data_local: i32) {
+fn emit_seq_unique_init(mut w: WasmWriter, src_local: i32, vec_local: i32, outer_index_local: i32, src_len_local: i32, src_data_local: i32, result_len_local: i32, result_data_local: i32) {
     emit_seq_unique_init_source(w, src_local, src_len_local, src_data_local)
     emit_seq_unique_init_alloc(w, vec_local, src_len_local, result_data_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
@@ -150,7 +150,7 @@ fn emit_seq_unique_init(w: WasmWriter, src_local: i32, vec_local: i32, outer_ind
     writer_core::emit_leb128_u(w, outer_index_local)
 }
 
-fn emit_seq_unique_init_source(w: WasmWriter, src_local: i32, src_len_local: i32, src_data_local: i32) {
+fn emit_seq_unique_init_source(mut w: WasmWriter, src_local: i32, src_len_local: i32, src_data_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, src_local)
     writer_core::emit_local_get(w, src_local)
@@ -167,12 +167,12 @@ fn emit_seq_unique_init_source(w: WasmWriter, src_local: i32, src_len_local: i32
     writer_core::emit_leb128_u(w, src_data_local)
 }
 
-fn emit_seq_unique_init_alloc(w: WasmWriter, vec_local: i32, src_len_local: i32, result_data_local: i32) {
+fn emit_seq_unique_init_alloc(mut w: WasmWriter, vec_local: i32, src_len_local: i32, result_data_local: i32) {
     emit_seq_unique_init_alloc_header(w, vec_local, src_len_local)
     emit_seq_unique_init_alloc_data(w, vec_local, src_len_local, result_data_local)
 }
 
-fn emit_seq_unique_init_alloc_header(w: WasmWriter, vec_local: i32, src_len_local: i32) {
+fn emit_seq_unique_init_alloc_header(mut w: WasmWriter, vec_local: i32, src_len_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 12)
     helpers_core_heap::emit_heap_alloc_from_stack(w)
@@ -194,7 +194,7 @@ fn emit_seq_unique_init_alloc_header(w: WasmWriter, vec_local: i32, src_len_loca
     writer_core::emit_byte(w, 0)
 }
 
-fn emit_seq_unique_init_alloc_data(w: WasmWriter, vec_local: i32, src_len_local: i32, result_data_local: i32) {
+fn emit_seq_unique_init_alloc_data(mut w: WasmWriter, vec_local: i32, src_len_local: i32, result_data_local: i32) {
     writer_core::emit_local_get(w, src_len_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 4)
@@ -212,7 +212,7 @@ fn emit_seq_unique_init_alloc_data(w: WasmWriter, vec_local: i32, src_len_local:
     writer_core::emit_byte(w, 0)
 }
 
-fn emit_seq_unique_finalize(w: WasmWriter, vec_local: i32, result_len_local: i32) {
+fn emit_seq_unique_finalize(mut w: WasmWriter, vec_local: i32, result_len_local: i32) {
     writer_core::emit_local_get(w, vec_local)
     writer_core::emit_local_get(w, result_len_local)
     writer_core::emit_byte(w, opcodes::OP_I32_STORE())

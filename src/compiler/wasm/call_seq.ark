@@ -4,7 +4,7 @@ use wasm::intrinsic_seq
 use wasm::intrinsic_seq_unique
 use wasm::intrinsic_sort
 
-fn try_emit_seq_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_seq_call(mut w: WasmWriter, handler_id: i32, inst: MirInst, mut ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if try_emit_sort_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
@@ -17,7 +17,7 @@ fn try_emit_seq_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmi
     false
 }
 
-fn try_emit_seq_collection_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_seq_collection_call(mut w: WasmWriter, handler_id: i32, inst: MirInst, mut ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if try_emit_seq_unique_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
@@ -27,7 +27,7 @@ fn try_emit_seq_collection_call(w: WasmWriter, handler_id: i32, inst: MirInst, c
     false
 }
 
-fn try_emit_seq_unique_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_seq_unique_call(mut w: WasmWriter, handler_id: i32, inst: MirInst, mut ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_seq_unique(){
         let _result_on_stack = intrinsic_seq_unique::emit_seq_unique(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
@@ -36,7 +36,7 @@ fn try_emit_seq_unique_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: 
     false
 }
 
-fn try_emit_seq_window_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_seq_window_call(mut w: WasmWriter, handler_id: i32, inst: MirInst, mut ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_seq_take_i32(){
         let _result_on_stack = intrinsic_seq_slice::emit_seq_take_i32(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
@@ -50,7 +50,7 @@ fn try_emit_seq_window_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: 
     false
 }
 
-fn try_emit_seq_reduce_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_seq_reduce_call(mut w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if try_emit_seq_aggregate_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
@@ -60,7 +60,7 @@ fn try_emit_seq_reduce_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: 
     false
 }
 
-fn try_emit_seq_aggregate_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_seq_aggregate_call(mut w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_seq_sum_i32(){
         let _result_on_stack = intrinsic_seq::emit_sum_i32(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
@@ -84,7 +84,7 @@ fn try_emit_seq_aggregate_call(w: WasmWriter, handler_id: i32, inst: MirInst, ct
     false
 }
 
-fn try_emit_seq_search_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_seq_search_call(mut w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_seq_count_eq(){
         let _result_on_stack = intrinsic_seq::emit_seq_count_eq(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
@@ -98,7 +98,7 @@ fn try_emit_seq_search_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: 
     false
 }
 
-fn try_emit_sort_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_sort_call(mut w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_seq_sort_i32(){
         let _result_on_stack = intrinsic_sort::emit_sort_i32(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)

@@ -49,6 +49,6 @@ fn mir_adjust_let_vt_from_init(ctx: LowerCtx, vt: i32, node: AstNode, pre_val_id
     vt
 }
 
-fn mir_finish_let_stmt(ctx: LowerCtx, node: AstNode, vt: i32, pre_val_idx: i32, pre_init_kind: i32) {
+fn mir_finish_let_stmt(mut ctx: LowerCtx, node: AstNode, vt: i32, pre_val_idx: i32, pre_init_kind: i32) {
     stmt_let_finish::mir_finish_let_stmt(ctx, node, vt, pre_val_idx, pre_init_kind)
 }

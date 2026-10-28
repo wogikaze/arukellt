@@ -7,7 +7,7 @@ use mir::opcodes
 use mir::phi_record
 use mir::types
 
-fn mir_block_reset_for_reuse(block: MirBlock, id: i32) {
+fn mir_block_reset_for_reuse(mut block: MirBlock, id: i32) {
     block.id = id
     block_inst_mutation::mir_block_clear_insts(block)
     block.terminator = opcodes::MIR_RETURN()
@@ -19,18 +19,18 @@ fn mir_block_reset_for_reuse(block: MirBlock, id: i32) {
     block.phis = Vec::new<MirPhi>()
 }
 
-fn mir_module_take_block(m: MirModule, id: i32) -> MirBlock {
+fn mir_module_take_block(mut m: MirModule, id: i32) -> MirBlock {
     if m.block_pool_used <= 0 {
         return block_factory::MirBlock_new(id)
     }
     let idx = m.block_pool_used - 1
     m.block_pool_used = idx
-    let block = get_unchecked(m.block_pool, idx)
+    let mut block = get_unchecked(m.block_pool, idx)
     mir_block_reset_for_reuse(block, id)
     block
 }
 
-fn mir_module_give_block(m: MirModule, block: MirBlock) {
+fn mir_module_give_block(mut m: MirModule, mut block: MirBlock) {
     block_inst_mutation::mir_block_clear_insts(block)
     if m.block_pool_used < len(m.block_pool) {
         set(m.block_pool, m.block_pool_used, block)
@@ -41,7 +41,7 @@ fn mir_module_give_block(m: MirModule, block: MirBlock) {
     m.block_pool_used = m.block_pool_used + 1
 }
 
-fn mir_function_detach_blocks(f: MirFunction, m: MirModule) {
+fn mir_function_detach_blocks(mut f: MirFunction, mut m: MirModule) {
     let n = len(f.blocks)
     let mut i = 0
     while i < n {

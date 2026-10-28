@@ -96,7 +96,7 @@ fn mir_gc_layout_plan_find_type(plan: MirGcLayoutPlan, type_id_value: TypeId) ->
 // Producer-side binding. More-specific struct/enum slot bindings replace a
 // previously recorded fixed open/container binding for the same semantic TypeId.
 fn mir_gc_layout_plan_bind(
-    plan: MirGcLayoutPlan,
+    mut plan: MirGcLayoutPlan,
     type_id_value: TypeId,
     source_kind: i32,
     source_value: i32

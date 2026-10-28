@@ -6,6 +6,6 @@ fn frame(body: String) -> String {
     header.concat(body)
 }
 
-fn append_framed(state: LspState, body: String) {
+fn append_framed(mut state: LspState, body: String) {
     state_record::lsp_state_append_output(state, frame(body))
 }

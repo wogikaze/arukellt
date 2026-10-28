@@ -14,7 +14,7 @@ use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
 use mir::local_factory
 use mir::value_types
-fn mir_closure_lookup_capture_type(ctx: LowerCtx, cli: i32) -> String {
+fn mir_closure_lookup_capture_type(mut ctx: LowerCtx, cli: i32) -> String {
     let mut cap_type = String_new()
     if cli < 0 {
         return cap_type
@@ -37,9 +37,9 @@ fn mir_closure_lookup_capture_type(ctx: LowerCtx, cli: i32) -> String {
     cap_type
 }
 
-fn mir_closure_capture_vts(ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
+fn mir_closure_capture_vts(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
     let cap_n = len(caps)
-    let cap_vts = Vec::new<i32>()
+    let mut cap_vts = Vec::new<i32>()
     let mut cvi = 0
     while cvi < cap_n {
         let cname = clone(get_unchecked(caps, cvi))
@@ -72,9 +72,9 @@ fn mir_closure_capture_vts(ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
     cap_vts
 }
 
-fn mir_closure_capture_types(ctx: LowerCtx, caps: Vec<String>) -> Vec<String> {
+fn mir_closure_capture_types(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<String> {
     let cap_n = len(caps)
-    let cap_types = Vec::new<String>()
+    let mut cap_types = Vec::new<String>()
     let mut cvi = 0
     while cvi < cap_n {
         let cname = clone(get_unchecked(caps, cvi))
@@ -93,7 +93,7 @@ fn mir_closure_capture_types(ctx: LowerCtx, caps: Vec<String>) -> Vec<String> {
     cap_types
 }
 
-fn mir_emit_closure_captures(ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<i32>, cap_types: Vec<String>, rebind_flags: Vec<i32>, env_name: String) {
+fn mir_emit_closure_captures(mut ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<i32>, cap_types: Vec<String>, rebind_flags: Vec<i32>, env_name: String) {
     let cap_n = len(caps)
     let mut ci = 0
     while ci < cap_n {
@@ -136,8 +136,8 @@ fn mir_closure_vt_is_snapshot_copy(vt: i32) -> bool {
 // and the packed supply names point at the snapshots. Non-Copy captures keep
 // the source-local name: borrow captures read the live local (they cannot
 // escape, E0213) and move captures read a slot whose source is already dead.
-fn mir_closure_snapshot_copy_captures(ctx: LowerCtx, caps: Vec<String>, scope: String) -> Vec<String> {
-    let out = Vec::new<String>()
+fn mir_closure_snapshot_copy_captures(mut ctx: LowerCtx, caps: Vec<String>, scope: String) -> Vec<String> {
+    let mut out = Vec::new<String>()
     let cap_n = len(caps)
     let mut ci = 0
     while ci < cap_n {

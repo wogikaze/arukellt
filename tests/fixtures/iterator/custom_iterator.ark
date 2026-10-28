@@ -6,7 +6,7 @@ struct Counter {
 }
 
 impl Counter {
-    fn next(self: Counter) -> Option<i32> {
+    fn next(mut self: Counter) -> Option<i32> {
         if self.current < self.max {
             let val = self.current
             self.current = self.current + 1

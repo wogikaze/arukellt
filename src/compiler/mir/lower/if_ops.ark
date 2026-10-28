@@ -7,14 +7,14 @@ use mir::lower::ctx_types
 use mir::inst_structured_control
 use mir::inst_local_set
 use mir::value_types
-fn mir_begin_if_expr(ctx: LowerCtx) -> i32 {
+fn mir_begin_if_expr(mut ctx: LowerCtx) -> i32 {
     let result = ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_emit(ctx, inst_structured_control::MirInst_if())
     ctx_api_nesting::ctx_push_nesting(ctx)
     result
 }
 
-fn mir_store_if_branch_result(ctx: LowerCtx, result: i32, branch_result: i32) {
+fn mir_store_if_branch_result(mut ctx: LowerCtx, result: i32, branch_result: i32) {
     if branch_result < 0 {
         return
     }
@@ -48,11 +48,11 @@ fn mir_store_if_branch_result(ctx: LowerCtx, result: i32, branch_result: i32) {
     ctx_emit(ctx, inst_local_set::MirInst_local_set_from(result, branch_result))
 }
 
-fn mir_emit_if_else(ctx: LowerCtx) {
+fn mir_emit_if_else(mut ctx: LowerCtx) {
     ctx_emit(ctx, inst_structured_control::MirInst_else())
 }
 
-fn mir_end_if_expr(ctx: LowerCtx, result: i32, then_result: i32, else_result: i32) -> i32 {
+fn mir_end_if_expr(mut ctx: LowerCtx, result: i32, then_result: i32, else_result: i32) -> i32 {
     ctx_emit(ctx, inst_structured_control::MirInst_end())
     ctx_api_nesting::ctx_pop_nesting(ctx)
     // Branch results are already stored into `result` via local_set.

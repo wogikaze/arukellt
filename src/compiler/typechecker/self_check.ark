@@ -10,7 +10,7 @@ use typechecker::entry
 fn main() {
     let src = "fn main() { let x: i32 = 1 }"
     let tokens = scan::tokenize(src)
-    let p = core_api_token::Parser_new(tokens)
+    let mut p = core_api_token::Parser_new(tokens)
     let decls = decl::parse_module(p)
     if len(p.errors) != 0 {
         stdio::println("TypeChecker parse errors: ".concat(to_string(len(p.errors))))

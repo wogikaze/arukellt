@@ -11,7 +11,7 @@ use mir::lower::ctx_types
 use mir::lower::core_call_arg_names
 use mir::lower::gc_layout_plan_build
 use mir::value_types
-fn mir_mark_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
+fn mir_mark_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
     call_rewrite_hashset::mark_hashset_result_type(ctx, clone(callee_name), dest)
     // seq::sort_by<T>(v: Vec<T>) -> Vec<T> is the identity on its receiver.
     // Copy the receiver's typed-MIR Vec type before the generic fallback can
@@ -43,7 +43,7 @@ fn is_clone_result_callee(callee_name: String) -> bool {
     ends_with(clone(callee_name), "string_clone")
 }
 
-fn mark_clone_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) -> bool {
+fn mark_clone_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) -> bool {
     if dest < 0 || first_arg_idx < 0 || !is_clone_result_callee(clone(callee_name)) {
         return false
     }
@@ -81,7 +81,7 @@ fn mark_clone_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, fi
     true
 }
 
-fn mark_string_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
+fn mark_string_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32) {
     if mir_callee_returns_string(clone(callee_name)) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, "string")
         if ctx_gc_enum::ctx_is_gc_target(ctx) {

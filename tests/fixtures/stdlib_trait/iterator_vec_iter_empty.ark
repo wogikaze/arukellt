@@ -3,7 +3,7 @@ use std::test
 
 fn main() {
     let v: Vec<i32> = Vec::new<i32>()
-    let it = v.iter()
+    let mut it = v.iter()
     match it.next() {
         Some(_) => panic("expected None on empty iterator"),
         None => {}

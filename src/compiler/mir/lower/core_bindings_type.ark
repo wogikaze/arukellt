@@ -22,7 +22,7 @@ fn infer_core_let_call_result_type_name(ctx: LowerCtx, callee: String) -> String
     ""
 }
 
-fn infer_core_let_local_type_name(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, local_idx: i32, val_idx: i32, type_name: String, child_count: i32) {
+fn infer_core_let_local_type_name(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, local_idx: i32, val_idx: i32, type_name: String, child_count: i32) {
     if len(type_name) > 0 || len(ctx_api_local_types::ctx_get_local_type(ctx, local_idx)) > 0 || child_count < 1 {
         return
     }

@@ -91,7 +91,7 @@ fn SelfEmitCtx_result_ref_type(ctx: SelfEmitCtx, type_idx: i32) -> i32 {
 // prefix region and the sealed prefix flush runs before any body emit,
 // so first_gc_type_index is already final at push time.
 fn SelfEmitCtx_fn_sig_param_ref_types(ctx: SelfEmitCtx, f: MirFunction) -> Vec<i32> {
-    let out = Vec::new<i32>()
+    let mut out = Vec::new<i32>()
     let sig = sections_types_sigs_detail::build_function_type_sig(
         f,
         ctx_record::SelfEmitCtx_target(ctx),

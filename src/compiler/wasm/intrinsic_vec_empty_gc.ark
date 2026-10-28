@@ -16,7 +16,7 @@ use mir::function_block_queries
 use mir::function_locals_view
 use mir::local_access
 use mir::opcodes as mir_opcodes
-fn emit_is_empty_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_is_empty_gc(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     // Stack: [vec_ref or string_ref]
     // After: widened bool (i64 under Memory64, i32 otherwise)
     // String is a GC array — use array.len instead of struct.get.

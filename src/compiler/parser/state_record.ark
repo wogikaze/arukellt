@@ -36,7 +36,7 @@ fn parser_token_at(p: Parser, idx: i32) -> Token {
     get_unchecked(p.tokens, idx)
 }
 
-fn parser_advance(p: Parser) {
+fn parser_advance(mut p: Parser) {
     p.pos = p.pos + 1
 }
 
@@ -44,11 +44,11 @@ fn parser_position(p: Parser) -> i32 {
     p.pos
 }
 
-fn parser_set_position(p: Parser, pos: i32) {
+fn parser_set_position(mut p: Parser, pos: i32) {
     p.pos = pos
 }
 
-fn parser_set_current_token(p: Parser, tok: Token) {
+fn parser_set_current_token(mut p: Parser, tok: Token) {
     set(p.tokens, p.pos, tok)
 }
 

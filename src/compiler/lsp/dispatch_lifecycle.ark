@@ -5,7 +5,7 @@ use lsp::init_workspace
 use lsp::lsp_config
 use lsp::responses
 use lsp::state_record
-fn dispatch_lifecycle(state: LspState, body: String, method: String) -> bool {
+fn dispatch_lifecycle(mut state: LspState, body: String, method: String) -> bool {
     if eq(clone(method), "initialize") {
         let id = json::JsonText::get_int(clone(body), String_from("id"))
         state_record::lsp_state_mark_initialized(state)

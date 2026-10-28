@@ -16,7 +16,7 @@ fn hm_default_table_capacity() -> i32 {
     16
 }
 
-fn emit_hm_call_flat_runtime(w: WasmWriter, ctx: SelfEmitCtx, fn_name: String, wit_import_count: i32) {
+fn emit_hm_call_flat_runtime(mut w: WasmWriter, ctx: SelfEmitCtx, fn_name: String, wit_import_count: i32) {
     let fn_idx = inst_ctx::resolve_fn_index(ctx, fn_name)
     writer_core::emit_byte(w, opcodes::OP_CALL())
     writer_core::emit_leb128_u(
@@ -30,7 +30,7 @@ fn emit_hm_call_flat_runtime(w: WasmWriter, ctx: SelfEmitCtx, fn_name: String, w
     )
 }
 
-fn emit_hm_si_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
+fn emit_hm_si_new(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_hm_si_new_gc(w, ctx, 0 - 1)
     } else {
@@ -41,7 +41,7 @@ fn emit_hm_si_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
 
 // __hm_*_new_with_cap(cap): the caller's capacity replaces the baked-in
 // default so Ark-side growth can allocate a larger donor table (#895).
-fn emit_hm_si_new_with_cap(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
+fn emit_hm_si_new_with_cap(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let s_cap = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -54,7 +54,7 @@ fn emit_hm_si_new_with_cap(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
 
-fn emit_hm_si_new_gc(w: WasmWriter, ctx: SelfEmitCtx, cap_local: i32) {
+fn emit_hm_si_new_gc(mut w: WasmWriter, ctx: SelfEmitCtx, cap_local: i32) {
     let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx)
     let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
     let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
@@ -65,14 +65,14 @@ fn emit_hm_si_new_gc(w: WasmWriter, ctx: SelfEmitCtx, cap_local: i32) {
     emit_hm_struct_new_gc(w, ctx, hm_type, string_ref_array_type, i32_array_type, i32_array_type, s_keys, s_vals, s_flags, cap_local)
 }
 
-fn emit_hm_struct_new_gc(w: WasmWriter, ctx: SelfEmitCtx, hm_type: i32, keys_array_type: i32, vals_array_type: i32, flags_array_type: i32, s_keys: i32, s_vals: i32, s_flags: i32, cap_local: i32) {
+fn emit_hm_struct_new_gc(mut w: WasmWriter, ctx: SelfEmitCtx, hm_type: i32, keys_array_type: i32, vals_array_type: i32, flags_array_type: i32, s_keys: i32, s_vals: i32, s_flags: i32, cap_local: i32) {
     emit_hm_struct_new_gc_array(w, keys_array_type, s_keys, cap_local)
     emit_hm_struct_new_gc_array(w, vals_array_type, s_vals, cap_local)
     emit_hm_struct_new_gc_array(w, flags_array_type, s_flags, cap_local)
     emit_hm_struct_new_gc_final(w, hm_type, keys_array_type, vals_array_type, flags_array_type, s_keys, s_vals, s_flags, cap_local)
 }
 
-fn emit_hm_struct_new_gc_array(w: WasmWriter, array_type: i32, s_local: i32, cap_local: i32) {
+fn emit_hm_struct_new_gc_array(mut w: WasmWriter, array_type: i32, s_local: i32, cap_local: i32) {
     if cap_local >= 0 {
         writer_core::emit_local_get(w, cap_local)
         writer_gc::emit_gc_array_new_from_widened(w, array_type)
@@ -86,7 +86,7 @@ fn emit_hm_struct_new_gc_array(w: WasmWriter, array_type: i32, s_local: i32, cap
     writer_core::emit_leb128_u(w, s_local)
 }
 
-fn emit_hm_struct_new_gc_final(w: WasmWriter, hm_type: i32, keys_array_type: i32, vals_array_type: i32, flags_array_type: i32, s_keys: i32, s_vals: i32, s_flags: i32, cap_local: i32) {
+fn emit_hm_struct_new_gc_final(mut w: WasmWriter, hm_type: i32, keys_array_type: i32, vals_array_type: i32, flags_array_type: i32, s_keys: i32, s_vals: i32, s_flags: i32, cap_local: i32) {
     if cap_local >= 0 {
         writer_core::emit_local_get(w, cap_local)
         helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
@@ -105,7 +105,7 @@ fn emit_hm_struct_new_gc_final(w: WasmWriter, hm_type: i32, keys_array_type: i32
     writer_gc::emit_gc_struct_new(w, hm_type)
 }
 
-fn emit_hm_is_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
+fn emit_hm_is_new(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_hm_is_new_gc(w, ctx, 0 - 1)
     } else {
@@ -114,7 +114,7 @@ fn emit_hm_is_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
 
-fn emit_hm_is_new_with_cap(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
+fn emit_hm_is_new_with_cap(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let s_cap = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -126,7 +126,7 @@ fn emit_hm_is_new_with_cap(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
 
-fn emit_hm_is_new_gc(w: WasmWriter, ctx: SelfEmitCtx, cap_local: i32) {
+fn emit_hm_is_new_gc(mut w: WasmWriter, ctx: SelfEmitCtx, cap_local: i32) {
     let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx)
     let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
     let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
@@ -137,7 +137,7 @@ fn emit_hm_is_new_gc(w: WasmWriter, ctx: SelfEmitCtx, cap_local: i32) {
     emit_hm_struct_new_gc(w, ctx, hm_type, i32_array_type, string_ref_array_type, i32_array_type, s_keys, s_vals, s_flags, cap_local)
 }
 
-fn emit_hm_if_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
+fn emit_hm_if_new(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_hm_if_new_gc(w, ctx, 0 - 1)
     } else {
@@ -149,7 +149,7 @@ fn emit_hm_if_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
 
-fn emit_hm_if_new_with_cap(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
+fn emit_hm_if_new_with_cap(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let s_cap = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -161,7 +161,7 @@ fn emit_hm_if_new_with_cap(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
 
-fn emit_hm_if_new_gc(w: WasmWriter, ctx: SelfEmitCtx, cap_local: i32) {
+fn emit_hm_if_new_gc(mut w: WasmWriter, ctx: SelfEmitCtx, cap_local: i32) {
     let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_i32_fn_type(ctx)
     let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
     let fnref_array_type = ctx_gc_type_vec_ref::SelfEmitCtx_fnref_array_type(ctx)
@@ -172,7 +172,7 @@ fn emit_hm_if_new_gc(w: WasmWriter, ctx: SelfEmitCtx, cap_local: i32) {
     emit_hm_struct_new_gc(w, ctx, hm_type, i32_array_type, fnref_array_type, i32_array_type, s_keys, s_vals, s_flags, cap_local)
 }
 
-fn emit_hm_sf_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
+fn emit_hm_sf_new(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_hm_sf_new_gc(w, ctx, 0 - 1)
     } else {
@@ -182,7 +182,7 @@ fn emit_hm_sf_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
 
-fn emit_hm_sf_new_with_cap(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
+fn emit_hm_sf_new_with_cap(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let s_cap = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -194,7 +194,7 @@ fn emit_hm_sf_new_with_cap(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
 
-fn emit_hm_sf_new_gc(w: WasmWriter, ctx: SelfEmitCtx, cap_local: i32) {
+fn emit_hm_sf_new_gc(mut w: WasmWriter, ctx: SelfEmitCtx, cap_local: i32) {
     let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_str_fn_type(ctx)
     let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
     let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
@@ -206,7 +206,7 @@ fn emit_hm_sf_new_gc(w: WasmWriter, ctx: SelfEmitCtx, cap_local: i32) {
     emit_hm_struct_new_gc(w, ctx, hm_type, string_ref_array_type, fnref_array_type, i32_array_type, s_keys, s_vals, s_flags, cap_local)
 }
 
-fn emit_hm_ss_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
+fn emit_hm_ss_new(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_hm_ss_new_gc(w, ctx, 0 - 1)
     } else {
@@ -215,7 +215,7 @@ fn emit_hm_ss_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
 
-fn emit_hm_ss_new_with_cap(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
+fn emit_hm_ss_new_with_cap(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let s_cap = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -227,7 +227,7 @@ fn emit_hm_ss_new_with_cap(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
 
-fn emit_hm_ss_new_gc(w: WasmWriter, ctx: SelfEmitCtx, cap_local: i32) {
+fn emit_hm_ss_new_gc(mut w: WasmWriter, ctx: SelfEmitCtx, cap_local: i32) {
     let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx)
     let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
     let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
@@ -244,7 +244,7 @@ fn emit_hm_ss_new_gc(w: WasmWriter, ctx: SelfEmitCtx, cap_local: i32) {
 // the same arrays and must not be used afterwards — the grow helper drops
 // it immediately. GC copies the five struct fields; linear copies the
 // three-word Vec header {len, cap, data}.
-fn emit_hm_adopt(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, hm_type: i32) {
+fn emit_hm_adopt(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, hm_type: i32) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let s_src = ctx_scratch::SelfEmitCtx_scratch_gc_struct_ref_val_local(ctx, 0)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -265,7 +265,7 @@ fn emit_hm_adopt(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, n
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, false)
 }
 
-fn emit_hm_adopt_fields_gc(w: WasmWriter, hm_type: i32, s_dst: i32, s_src: i32) {
+fn emit_hm_adopt_fields_gc(mut w: WasmWriter, hm_type: i32, s_dst: i32, s_src: i32) {
     emit_hm_adopt_field_gc(w, hm_type, s_dst, s_src, 0, true)
     emit_hm_adopt_field_gc(w, hm_type, s_dst, s_src, 1, true)
     emit_hm_adopt_field_gc(w, hm_type, s_dst, s_src, 2, false)
@@ -273,7 +273,7 @@ fn emit_hm_adopt_fields_gc(w: WasmWriter, hm_type: i32, s_dst: i32, s_src: i32) 
     emit_hm_adopt_field_gc(w, hm_type, s_dst, s_src, 4, false)
 }
 
-fn emit_hm_adopt_field_gc(w: WasmWriter, hm_type: i32, s_dst: i32, s_src: i32, field_idx: i32, is_i32_field: bool) {
+fn emit_hm_adopt_field_gc(mut w: WasmWriter, hm_type: i32, s_dst: i32, s_src: i32, field_idx: i32, is_i32_field: bool) {
     writer_core::emit_local_get(w, s_dst)
     writer_gc::emit_gc_ref_cast(w, hm_type)
     writer_core::emit_local_get(w, s_src)

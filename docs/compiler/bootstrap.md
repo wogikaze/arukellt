@@ -37,6 +37,24 @@ uses the prelude `args` / `exit` / `println` host-intrinsic stubs. Delete both
 when the pin includes the #917 typing; the function docstrings carry the probe
 that must validate the lowering first.
 
+The same pin predates the #951 parameter-mode parser, so it rejects `mut p`,
+`mut self`, `|mut v|`, and `fn(mut T)`. `_strip_bootstrap_param_modes` removes
+the mode token from the overlay copies only; the checked-in source keeps the
+real modes, and s2 compiles the real tree for fixtures with the strict
+callee-side rule. The pin's typechecker binds every parameter mutable and never
+enforced the callee-side rule, so the stripped overlay is equivalent for the
+stage-2 build.
+
+Fixpoint stage 3 reuses the same stripped overlay, so it cannot see the
+declared modes. It therefore passes
+`--bootstrap-allow-shared-param-mutation`, an internal self-compile option that
+restores the pre-#951 permissive body binding for that compilation only. User
+programs, fixtures, and the analysis pipeline never pass it and keep the
+strict rule. Delete both the overlay strip and the option when the pin and the
+flat overlay can ship the real parameter modes; probe with
+`fn bump(mut p: Point)` and a shared-parameter assignment before removing
+them.
+
 The isolated WIT parser closure in that overlay also normalizes qualified type
 names (`types::WitType`, `ast::WitNode`, and related record types) to the flat
 overlay namespace. Function calls remain qualified, and the checked-in `std/`

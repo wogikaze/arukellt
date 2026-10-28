@@ -6,7 +6,7 @@ use mir::lower::hof_results
 use mir::value_types
 use mir::inst_local_set
 
-fn mir_lower_hof_f64(ctx: LowerCtx, hof_f64_fn_name: String, hof_f64_vec_local: i32, hof_f64_init_idx: i32, is_map_f64_f64: bool, is_filter_f64: bool, is_fold_f64_f64: bool) -> i32 {
+fn mir_lower_hof_f64(mut ctx: LowerCtx, hof_f64_fn_name: String, hof_f64_vec_local: i32, hof_f64_init_idx: i32, is_map_f64_f64: bool, is_filter_f64: bool, is_fold_f64_f64: bool) -> i32 {
     let hof_f64_acc_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_F64())
     emit_f64_fold_acc_init(ctx, hof_f64_init_idx, hof_f64_acc_local, is_fold_f64_f64)
     let hof_f64_n_local = hof_loop::emit_hof_len_local(ctx, hof_f64_vec_local)
@@ -29,17 +29,17 @@ fn mir_lower_hof_f64(ctx: LowerCtx, hof_f64_fn_name: String, hof_f64_vec_local: 
     emit_f64_hof_result(ctx, hof_f64_acc_local, hof_f64_result_local, is_fold_f64_f64)
 }
 
-fn emit_f64_hof_result(ctx: LowerCtx, hof_f64_acc_local: i32, hof_f64_result_local: i32, is_fold_f64_f64: bool) -> i32 {
+fn emit_f64_hof_result(mut ctx: LowerCtx, hof_f64_acc_local: i32, hof_f64_result_local: i32, is_fold_f64_f64: bool) -> i32 {
     hof_results::emit_hof_result_select(ctx, hof_f64_acc_local, hof_f64_result_local, is_fold_f64_f64)
 }
 
-fn emit_f64_fold_acc_init(ctx: LowerCtx, hof_f64_init_idx: i32, hof_f64_acc_local: i32, is_fold_f64_f64: bool) {
+fn emit_f64_fold_acc_init(mut ctx: LowerCtx, hof_f64_init_idx: i32, hof_f64_acc_local: i32, is_fold_f64_f64: bool) {
     if is_fold_f64_f64 {
         ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(hof_f64_acc_local, hof_f64_init_idx))
     }
 }
 
-fn emit_f64_result_vec(ctx: LowerCtx, is_fold_f64_f64: bool) -> i32 {
+fn emit_f64_result_vec(mut ctx: LowerCtx, is_fold_f64_f64: bool) -> i32 {
     let hof_f64_result_local = hof_results::hof_result_local(ctx)
     if !is_fold_f64_f64 {
         hof_results::emit_hof_result_vec_init(ctx, hof_f64_result_local, "Vec::new__f64", "vec:f64")

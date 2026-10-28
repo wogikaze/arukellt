@@ -22,7 +22,7 @@ fn type_var_bound(tv: TypeVar) -> TypeInfo {
     tv.bound
 }
 
-fn type_var_bind(tv: TypeVar, ty: TypeInfo) {
+fn type_var_bind(mut tv: TypeVar, ty: TypeInfo) {
     tv.bound = ty
     tv.is_bound = true
 }

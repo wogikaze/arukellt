@@ -14,14 +14,14 @@ use parser::state_record
 use parser::token_state
 use parser::type_token_predicates
 use parser::types
-pub fn parse_path_suffix(p: Parser, lhs: AstNode) -> AstNode {
+pub fn parse_path_suffix(mut p: Parser, lhs: AstNode) -> AstNode {
     p.pos = p.pos + 1
     let seg = expect_token(p, tokens::TK_IDENT())
-    let node = AstNode_new(kinds::NK_PATH(), core_ast_span_fields::AstNode_span(lhs))
+    let mut node = AstNode_new(kinds::NK_PATH(), core_ast_span_fields::AstNode_span(lhs))
     core_ast_text_fields::AstNode_set_text(node, core_ast_text_fields::AstNode_text(lhs).concat("::".concat(token_state::Token_text(seg))))
     core_ast_children::AstNode_push_child(node, lhs)
     if expr_prefix_struct_probe::next_prefix_is_struct_lit(p) {
-        let lit = expr_prefix_struct_fields::parse_struct_lit_fields(p, seg)
+        let mut lit = expr_prefix_struct_fields::parse_struct_lit_fields(p, seg)
         core_ast_text_fields::AstNode_set_text(lit, core_ast_text_fields::AstNode_text(node))
         return lit
     }
@@ -68,8 +68,8 @@ pub fn parse_path_suffix(p: Parser, lhs: AstNode) -> AstNode {
 
 // Parse turbofish type arguments: < already consumed, parse type, type, ... >
 // Returns a Vec of type AST nodes, or empty Vec if > not found (backtrack needed).
-fn parse_turbofish_type_args(p: Parser) -> Vec<AstNode> {
-    let args = Vec::new<AstNode>()
+fn parse_turbofish_type_args(mut p: Parser) -> Vec<AstNode> {
+    let mut args = Vec::new<AstNode>()
     let mut first = true
     while true {
         core_api_cursor::skip_newlines(p)

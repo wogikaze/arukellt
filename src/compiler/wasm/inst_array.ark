@@ -18,7 +18,7 @@ use wasm::linear_root_lowering
 use wasm::intrinsics::helpers_core_heap
 use mir::function_locals_view
 use mir::local_access
-fn emit_array_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_array_new(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let gc_type_idx = intrinsic_vec_type::resolve_array_type_for_new_dest(
             ctx,
@@ -40,7 +40,7 @@ fn emit_array_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     }
 }
 
-fn emit_array_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_array_get(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     // Expects [base, index] already on the stack (LOCAL_GET self-skip + CONST
     // skip). Do not reload from arg locals — that doubles a skipped base (#807).
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
@@ -95,7 +95,7 @@ fn array_base_is_vec_v128(inst: MirInst, ctx: SelfEmitCtx) -> bool {
     false
 }
 
-fn emit_array_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_array_set(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let gc_type_idx = intrinsic_vec_type::resolve_array_type_for_local(
             ctx,

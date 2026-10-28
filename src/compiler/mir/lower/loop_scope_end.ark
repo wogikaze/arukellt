@@ -7,7 +7,7 @@ use mir::inst_structured_control
 use mir::inst_local_get
 use mir::lower::loop_scope_types
 
-fn mir_emit_loop_back(ctx: LowerCtx) {
+fn mir_emit_loop_back(mut ctx: LowerCtx) {
     ctx_emit(ctx, inst_branch::MirInst_br(0))
 }
 
@@ -16,7 +16,7 @@ fn mir_emit_loop_back(ctx: LowerCtx) {
 // forever. Wrapping the body in this block retargets continue at the
 // block end, which falls through to the increment. Returns the saved
 // continue depth for mir_end_for_body_continue_block.
-fn mir_begin_for_body_continue_block(ctx: LowerCtx) -> i32 {
+fn mir_begin_for_body_continue_block(mut ctx: LowerCtx) -> i32 {
     ctx_emit(ctx, inst_structured_control::MirInst_block())
     ctx_api_nesting::ctx_push_nesting(ctx)
     let saved_continue = ctx_api_loop_state::ctx_loop_continue_depth(ctx)
@@ -24,13 +24,13 @@ fn mir_begin_for_body_continue_block(ctx: LowerCtx) -> i32 {
     saved_continue
 }
 
-fn mir_end_for_body_continue_block(ctx: LowerCtx, saved_continue: i32) {
+fn mir_end_for_body_continue_block(mut ctx: LowerCtx, saved_continue: i32) {
     ctx_emit(ctx, inst_structured_control::MirInst_end())
     ctx_api_nesting::ctx_pop_nesting(ctx)
     ctx_api_loop_state::ctx_set_loop_continue_depth(ctx, saved_continue)
 }
 
-fn mir_end_loop_scope(ctx: LowerCtx, scope: MirLoopScope) {
+fn mir_end_loop_scope(mut ctx: LowerCtx, scope: MirLoopScope) {
     ctx_emit(ctx, inst_structured_control::MirInst_end())
     ctx_api_nesting::ctx_pop_nesting(ctx)
     ctx_emit(ctx, inst_structured_control::MirInst_end())
@@ -39,7 +39,7 @@ fn mir_end_loop_scope(ctx: LowerCtx, scope: MirLoopScope) {
     ctx_api_loop_state::ctx_set_loop_continue_depth(ctx, loop_scope_types::mir_loop_scope_prev_continue(scope))
 }
 
-fn mir_end_value_loop_scope(ctx: LowerCtx, scope: MirLoopScope) -> i32 {
+fn mir_end_value_loop_scope(mut ctx: LowerCtx, scope: MirLoopScope) -> i32 {
     mir_end_loop_scope(ctx, scope)
     let break_result = loop_scope_types::mir_loop_scope_break_result(scope)
     ctx_api_loop_state::ctx_set_loop_break_local(ctx, loop_scope_types::mir_loop_scope_prev_break_local(scope))

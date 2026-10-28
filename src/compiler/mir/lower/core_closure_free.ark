@@ -22,7 +22,7 @@ fn core_closure_is_param_name(exprs: Vec<CoreHirExpr>, clos: CoreHirExpr, name: 
     false
 }
 
-fn core_closure_collect_free(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, clos: CoreHirExpr, acc: Vec<String>) {
+fn core_closure_collect_free(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, clos: CoreHirExpr, mut acc: Vec<String>) {
     if core_expr_shape_calls::mir_core_expr_is_closure(expr) {
         // A nested closure reaches through this frame: the names it
         // frees must ride this closure's env, or the inner capture
@@ -58,7 +58,7 @@ fn core_closure_collect_free(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreH
 }
 
 fn core_closure_collect_caps(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, clos: CoreHirExpr) -> Vec<String> {
-    let caps = Vec::new<String>()
+    let mut caps = Vec::new<String>()
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(clos)
     if child_count > 0 {
         let cap_body = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(clos, child_count - 1))
@@ -71,7 +71,7 @@ fn core_closure_collect_caps(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, clos: CoreH
 // plain name assignment. Mirrors closure_free::closure_collect_rebind_flags
 // for the CoreHIR path (#874).
 fn core_closure_collect_rebind_flags(exprs: Vec<CoreHirExpr>, clos: CoreHirExpr, caps: Vec<String>) -> Vec<i32> {
-    let flags = Vec::new<i32>()
+    let mut flags = Vec::new<i32>()
     let mut i = 0
     while i < len(caps) {
         push(flags, 0)
@@ -86,7 +86,7 @@ fn core_closure_collect_rebind_flags(exprs: Vec<CoreHirExpr>, clos: CoreHirExpr,
     flags
 }
 
-fn core_closure_mark_rebind(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, caps: Vec<String>, flags: Vec<i32>, shadowed: Vec<String>) {
+fn core_closure_mark_rebind(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, caps: Vec<String>, mut flags: Vec<i32>, shadowed: Vec<String>) {
     if core_expr_shape_calls::mir_core_expr_is_closure(expr) {
         // A nested rebind of a name this frame captures still borrows
         // this frame's slot: the flag must ride up, or the env packs a
@@ -136,7 +136,7 @@ fn core_closure_mark_rebind(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, caps: Ve
 // A fresh shadowed set for a nested closure's body keeps the params it
 // adds from leaking into sibling subtrees.
 fn core_closure_extend_shadowed(exprs: Vec<CoreHirExpr>, clos: CoreHirExpr, shadowed: Vec<String>, child_count: i32) -> Vec<String> {
-    let inner = Vec::new<String>()
+    let mut inner = Vec::new<String>()
     let mut i = 0
     while i < len(shadowed) {
         push(inner, clone(get_unchecked(shadowed, i)))

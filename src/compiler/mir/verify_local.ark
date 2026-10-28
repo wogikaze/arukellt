@@ -18,7 +18,7 @@ use mir::opcodes
 fn verify_locals_in_function(
     f: MirFunction,
     plan: MirGcLayoutPlan,
-    report: MirVerifyReport,
+    mut report: MirVerifyReport,
     verbose: bool,
     fn_name: String
 ) {
@@ -45,7 +45,7 @@ fn verify_locals_in_function(
 fn verify_local_gc_layout_binding(
     plan: MirGcLayoutPlan,
     local: MirLocal,
-    report: MirVerifyReport,
+    mut report: MirVerifyReport,
     verbose: bool,
     fn_name: String
 ) {
@@ -76,7 +76,7 @@ fn verify_local_gc_layout_binding(
 fn verify_local_instruction_operands(
     f: MirFunction,
     local_count: i32,
-    report: MirVerifyReport,
+    mut report: MirVerifyReport,
     verbose: bool,
     fn_name: String
 ) {
@@ -107,7 +107,7 @@ fn verify_local_instruction_operands(
     }
 }
 
-fn verify_one_local(local: MirLocal, report: MirVerifyReport, verbose: bool, fn_name: String, kind: String) {
+fn verify_one_local(local: MirLocal, mut report: MirVerifyReport, verbose: bool, fn_name: String, kind: String) {
     let vt = local_access::MirLocal_val_type(local)
     let tn = local_access::MirLocal_type_name(local)
     if vt == value_types::VT_VOID() && len(tn) == 0 {
@@ -182,7 +182,7 @@ fn verify_local_gc_name_i32_mismatch(vt: i32, type_name: String, local: MirLocal
     false
 }
 
-fn verify_function_return(f: MirFunction, report: MirVerifyReport, verbose: bool) {
+fn verify_function_return(f: MirFunction, mut report: MirVerifyReport, verbose: bool) {
     let rt = function_return_view::MirFunction_return_type(f)
     let rtn = function_return_view::MirFunction_return_type_name(f)
     if rt == value_types::VT_VOID() && len(rtn) > 0 {

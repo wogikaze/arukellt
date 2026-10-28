@@ -9,7 +9,7 @@ use wasm::intrinsic_parse_result
 use wasm::intrinsic_parse_i64_gc
 
 // Handler for: parse_i64
-fn emit_parse_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_parse_i64(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return intrinsic_parse_i64_gc::emit_parse_i64_gc(w, inst, ctx)
     }
@@ -60,14 +60,14 @@ fn emit_parse_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // Handler for: sum_i32, seq::sum_i32
 
-fn emit_parse_i64_digit_loop(w: WasmWriter) {
+fn emit_parse_i64_digit_loop(mut w: WasmWriter) {
     intrinsic_parse_digit_loop_common::emit_parse_digit_loop_header(w)
     intrinsic_parse_digit_loop_common::emit_parse_digit_load_and_validate(w)
     emit_parse_i64_digit_accumulate(w)
     intrinsic_parse_digit_loop_common::emit_parse_digit_advance_and_continue(w)
 }
 
-fn emit_parse_i64_digit_accumulate(w: WasmWriter) {
+fn emit_parse_i64_digit_accumulate(mut w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, constants::SCRATCH_PF_RESULT())
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())

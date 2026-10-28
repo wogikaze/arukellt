@@ -10,7 +10,7 @@ use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsic_vec_push_gc
 
 // Handler for: vec_push, push
-fn emit_push(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bool, next_op: i32) -> bool {
+fn emit_push(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bool, next_op: i32) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return intrinsic_vec_push_gc::emit_push_gc(w, inst, ctx, is_void_push, next_op)
     }
@@ -31,7 +31,7 @@ fn emit_push(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bool,
     return !is_void_push
 }
 
-fn emit_vec_push_grow_if_full(w: WasmWriter, vec_local: i32, data_local: i32, cap_local: i32, newdata_local: i32, elem_size: i32) {
+fn emit_vec_push_grow_if_full(mut w: WasmWriter, vec_local: i32, data_local: i32, cap_local: i32, newdata_local: i32, elem_size: i32) {
     emit_vec_push_growth_if_full(w, vec_local, cap_local)
     emit_vec_push_growth_alloc(w, cap_local, newdata_local, elem_size)
     emit_vec_push_growth_copy_existing(w, vec_local, data_local, newdata_local, elem_size)
@@ -39,7 +39,7 @@ fn emit_vec_push_grow_if_full(w: WasmWriter, vec_local: i32, data_local: i32, ca
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_vec_push_growth_if_full(w: WasmWriter, vec_local: i32, cap_local: i32) {
+fn emit_vec_push_growth_if_full(mut w: WasmWriter, vec_local: i32, cap_local: i32) {
     writer_core::emit_local_get(w, vec_local)
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
@@ -58,7 +58,7 @@ fn emit_vec_push_growth_if_full(w: WasmWriter, vec_local: i32, cap_local: i32) {
     writer_core::emit_byte(w, 64)
 }
 
-fn emit_vec_push_growth_alloc(w: WasmWriter, cap_local: i32, newdata_local: i32, elem_size: i32) {
+fn emit_vec_push_growth_alloc(mut w: WasmWriter, cap_local: i32, newdata_local: i32, elem_size: i32) {
     writer_core::emit_local_get(w, cap_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 2)
@@ -71,7 +71,7 @@ fn emit_vec_push_growth_alloc(w: WasmWriter, cap_local: i32, newdata_local: i32,
     writer_core::emit_leb128_u(w, newdata_local)
 }
 
-fn emit_vec_push_growth_copy_existing(w: WasmWriter, vec_local: i32, data_local: i32, newdata_local: i32, elem_size: i32) {
+fn emit_vec_push_growth_copy_existing(mut w: WasmWriter, vec_local: i32, data_local: i32, newdata_local: i32, elem_size: i32) {
     writer_core::emit_local_get(w, vec_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 8)
@@ -96,7 +96,7 @@ fn emit_vec_push_growth_copy_existing(w: WasmWriter, vec_local: i32, data_local:
     writer_core::emit_byte(w, 0)
 }
 
-fn emit_vec_push_growth_update_header(w: WasmWriter, vec_local: i32, cap_local: i32, newdata_local: i32) {
+fn emit_vec_push_growth_update_header(mut w: WasmWriter, vec_local: i32, cap_local: i32, newdata_local: i32) {
     writer_core::emit_local_get(w, vec_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 8)
@@ -118,7 +118,7 @@ fn emit_vec_push_growth_update_header(w: WasmWriter, vec_local: i32, cap_local: 
     writer_core::emit_byte(w, 0)
 }
 
-fn emit_vec_push_store_i32(w: WasmWriter, vec_local: i32, value_local: i32) {
+fn emit_vec_push_store_i32(mut w: WasmWriter, vec_local: i32, value_local: i32) {
     writer_core::emit_local_get(w, vec_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 8)
@@ -141,15 +141,15 @@ fn emit_vec_push_store_i32(w: WasmWriter, vec_local: i32, value_local: i32) {
     emit_vec_push_increment_len_and_leave_vec(w, vec_local)
 }
 
-fn emit_vec_push_store_i64(w: WasmWriter, vec_local: i32, value_local: i32) {
+fn emit_vec_push_store_i64(mut w: WasmWriter, vec_local: i32, value_local: i32) {
     emit_vec_push_store_wide(w, vec_local, value_local, opcodes::OP_I64_STORE())
 }
 
-fn emit_vec_push_store_f64(w: WasmWriter, vec_local: i32, value_local: i32) {
+fn emit_vec_push_store_f64(mut w: WasmWriter, vec_local: i32, value_local: i32) {
     emit_vec_push_store_wide(w, vec_local, value_local, opcodes::OP_F64_STORE())
 }
 
-fn emit_vec_push_store_wide(w: WasmWriter, vec_local: i32, value_local: i32, store_opcode: i32) {
+fn emit_vec_push_store_wide(mut w: WasmWriter, vec_local: i32, value_local: i32, store_opcode: i32) {
     writer_core::emit_local_get(w, vec_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 8)
@@ -172,7 +172,7 @@ fn emit_vec_push_store_wide(w: WasmWriter, vec_local: i32, value_local: i32, sto
     emit_vec_push_increment_len_and_leave_vec(w, vec_local)
 }
 
-fn emit_vec_push_increment_len_and_leave_vec(w: WasmWriter, vec_local: i32) {
+fn emit_vec_push_increment_len_and_leave_vec(mut w: WasmWriter, vec_local: i32) {
     writer_core::emit_local_get(w, vec_local)
     writer_core::emit_local_get(w, vec_local)
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())

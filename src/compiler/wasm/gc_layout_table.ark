@@ -174,7 +174,7 @@ fn gc_layout_table_entry_index_by_key(table: GcLayoutTable, key: GcLayoutKey) ->
     gc_layout_table_no_entry()
 }
 
-fn gc_layout_table_link_entry(table: GcLayoutTable, key: GcLayoutKey, entry_index: i32) {
+fn gc_layout_table_link_entry(mut table: GcLayoutTable, key: GcLayoutKey, entry_index: i32) {
     let raw = type_id::TypeId_raw(key.type_id)
     if raw < 0 {
         push(table.next_same_type_id, gc_layout_table_no_entry())
@@ -187,7 +187,7 @@ fn gc_layout_table_link_entry(table: GcLayoutTable, key: GcLayoutKey, entry_inde
     set(table.head_by_type_id, raw, entry_index)
 }
 
-fn gc_layout_table_observe_typed_lookup(table: GcLayoutTable) {
+fn gc_layout_table_observe_typed_lookup(mut table: GcLayoutTable) {
     table.typed_lookup_count = table.typed_lookup_count + 1
 }
 
@@ -200,7 +200,7 @@ fn gc_layout_table_conflict_count(table: GcLayoutTable) -> i32 {
 }
 
 fn gc_layout_table_register_key(
-    table: GcLayoutTable,
+    mut table: GcLayoutTable,
     key: GcLayoutKey,
     wasm_ref_type: WasmRefType,
     struct_type_idx: i32

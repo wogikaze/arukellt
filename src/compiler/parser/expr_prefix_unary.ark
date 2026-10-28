@@ -6,10 +6,10 @@ use parser::core_api_expect
 use parser::pratt
 use parser::token_state
 
-pub fn parse_unary_prefix(p: Parser, t: Token, ubp: i32) -> AstNode {
+pub fn parse_unary_prefix(mut p: Parser, t: Token, ubp: i32) -> AstNode {
     p.pos = p.pos + 1
     let operand = parse_expr_bp(p, ubp)
-    let node = core_ast_factory::AstNode_new(kinds::NK_UNARY(), core_api_expect::tok_span(t))
+    let mut node = core_ast_factory::AstNode_new(kinds::NK_UNARY(), core_api_expect::tok_span(t))
     core_ast_op_fields::AstNode_set_op(node, pratt::token_to_unop(token_state::Token_kind(t)))
     core_ast_children::AstNode_push_child(node, operand)
     node

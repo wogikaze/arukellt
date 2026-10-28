@@ -4,7 +4,7 @@ use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_sig
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
-fn ctx_ensure_gc_enum_payload_variant(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>) -> i32 {
+fn ctx_ensure_gc_enum_payload_variant(mut ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>) -> i32 {
     let payload_found = ctx_gc_enum::ctx_gc_enum_variant_slot_for_payload(ctx, clone(variant_name), payload_vts)
     if payload_found >= 0 {
         return payload_found
@@ -31,7 +31,7 @@ fn ctx_ensure_gc_enum_payload_variant(ctx: LowerCtx, variant_name: String, paylo
     ctx_gc_enum::ctx_register_gc_enum_variant(ctx, clone(normalized), sig)
 }
 
-fn ctx_ensure_gc_enum_payload_variant_typed(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>, type_name: String) -> i32 {
+fn ctx_ensure_gc_enum_payload_variant_typed(mut ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>, type_name: String) -> i32 {
     let layout_field_sigs = gc_enum_build_payload_field_sigs_for_type(ctx, clone(variant_name), clone(type_name))
     let field_sigs = gc_enum_payload_typed_resolve_field_sigs(ctx, clone(variant_name), payload_vts, clone(type_name), clone(layout_field_sigs))
     let normalized = ctx_gc_enum::ctx_gc_enum_normalize_variant_name(clone(variant_name))
@@ -44,7 +44,7 @@ fn ctx_ensure_gc_enum_payload_variant_typed(ctx: LowerCtx, variant_name: String,
     ctx_gc_enum::ctx_register_gc_enum_variant(ctx, clone(normalized), sig)
 }
 
-fn gc_enum_payload_typed_resolve_field_sigs(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>, type_name: String, layout_field_sigs: String) -> String {
+fn gc_enum_payload_typed_resolve_field_sigs(mut ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>, type_name: String, layout_field_sigs: String) -> String {
     let mut field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_typed(ctx, payload_vts, clone(type_name))
     let normalized = ctx_gc_enum::ctx_gc_enum_normalize_variant_name(clone(variant_name))
     let is_vec_container = ctx_gc_enum::gc_enum_variant_is_vec_container(clone(normalized))
@@ -158,11 +158,11 @@ fn gc_enum_payload_typed_find_slot(ctx: LowerCtx, variant_name: String, normaliz
     0 - 1
 }
 
-fn gc_enum_build_payload_field_sigs(ctx: LowerCtx, variant_name: String) -> String {
+fn gc_enum_build_payload_field_sigs(mut ctx: LowerCtx, variant_name: String) -> String {
     gc_enum_build_payload_field_sigs_for_type(ctx, variant_name, String_new())
 }
 
-fn gc_enum_build_payload_field_sigs_for_type(ctx: LowerCtx, variant_name: String, type_name: String) -> String {
+fn gc_enum_build_payload_field_sigs_for_type(mut ctx: LowerCtx, variant_name: String, type_name: String) -> String {
     let mut sig = String_new()
     let layout_name = ctx_struct_field_type::ctx_resolve_variant_layout_name(ctx, clone(variant_name))
     let layout_count = len(ctx.struct_names)

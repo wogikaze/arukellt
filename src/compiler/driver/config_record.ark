@@ -28,6 +28,8 @@ struct DriverConfig {
     lint_local_only: bool,
     cache_dir: String,
     strip_debug: bool,
+    // Self-compile bootstrap escape hatch; not a user-facing language mode.
+    bootstrap_shared_param_mutation: bool,
 }
 
 fn DriverConfig_default() -> DriverConfig {
@@ -59,6 +61,7 @@ fn DriverConfig_default() -> DriverConfig {
         lint_local_only: false,
         cache_dir: "",
         strip_debug: false,
+        bootstrap_shared_param_mutation: false,
     }
 }
 
@@ -83,38 +86,42 @@ fn config_check_only(config: DriverConfig) -> bool { config.check_only }
 fn config_test_mode(config: DriverConfig) -> bool { config.test_mode }
 fn config_source_dir(config: DriverConfig) -> String { clone(config.source_dir) }
 fn config_source_file(config: DriverConfig) -> String { clone(config.source_file) }
-fn config_set_wasi_version(config: DriverConfig, wasi_version: String) { config.wasi_version = wasi_version }
-fn config_set_wasi_version_explicit(config: DriverConfig, wasi_version_explicit: bool) {
+fn config_set_wasi_version(mut config: DriverConfig, wasi_version: String) { config.wasi_version = wasi_version }
+fn config_set_wasi_version_explicit(mut config: DriverConfig, wasi_version_explicit: bool) {
     config.wasi_version_explicit = wasi_version_explicit
 }
-fn config_set_memory_width(config: DriverConfig, memory_width: String) { config.memory_width = memory_width }
-fn config_set_target(config: DriverConfig, target: String) { config.target = target }
-fn config_set_opt_level(config: DriverConfig, opt_level: i32) { config.opt_level = opt_level }
-fn config_set_emit_mode(config: DriverConfig, emit_mode: String) { config.emit_mode = emit_mode }
-fn config_set_wit_paths(config: DriverConfig, wit_paths: Vec<String>) { config.wit_paths = wit_paths }
-fn config_set_dump_tokens(config: DriverConfig, dump_tokens: bool) { config.dump_tokens = dump_tokens }
-fn config_set_dump_ast(config: DriverConfig, dump_ast: bool) { config.dump_ast = dump_ast }
-fn config_set_dump_hir(config: DriverConfig, dump_hir: bool) { config.dump_hir = dump_hir }
-fn config_set_dump_verified_core(config: DriverConfig, dump_verified_core: bool) { config.dump_verified_core = dump_verified_core }
-fn config_set_dump_mir(config: DriverConfig, dump_mir: bool) { config.dump_mir = dump_mir }
-fn config_set_dump_backend_plan(config: DriverConfig, dump_backend_plan: bool) { config.dump_backend_plan = dump_backend_plan }
-fn config_set_dump_wit_bindings(config: DriverConfig, dump_wit_bindings: bool) { config.dump_wit_bindings = dump_wit_bindings }
-fn config_set_dump_wasm(config: DriverConfig, dump_wasm: bool) { config.dump_wasm = dump_wasm }
-fn config_set_show_timing(config: DriverConfig, show_timing: bool) { config.show_timing = show_timing }
-fn config_set_parse_only(config: DriverConfig, parse_only: bool) { config.parse_only = parse_only }
-fn config_set_check_only(config: DriverConfig, check_only: bool) { config.check_only = check_only }
-fn config_set_test_mode(config: DriverConfig, test_mode: bool) { config.test_mode = test_mode }
-fn config_set_source_dir(config: DriverConfig, source_dir: String) { config.source_dir = source_dir }
-fn config_set_source_file(config: DriverConfig, source_file: String) { config.source_file = source_file }
+fn config_set_memory_width(mut config: DriverConfig, memory_width: String) { config.memory_width = memory_width }
+fn config_set_target(mut config: DriverConfig, target: String) { config.target = target }
+fn config_set_opt_level(mut config: DriverConfig, opt_level: i32) { config.opt_level = opt_level }
+fn config_set_emit_mode(mut config: DriverConfig, emit_mode: String) { config.emit_mode = emit_mode }
+fn config_set_wit_paths(mut config: DriverConfig, wit_paths: Vec<String>) { config.wit_paths = wit_paths }
+fn config_set_dump_tokens(mut config: DriverConfig, dump_tokens: bool) { config.dump_tokens = dump_tokens }
+fn config_set_dump_ast(mut config: DriverConfig, dump_ast: bool) { config.dump_ast = dump_ast }
+fn config_set_dump_hir(mut config: DriverConfig, dump_hir: bool) { config.dump_hir = dump_hir }
+fn config_set_dump_verified_core(mut config: DriverConfig, dump_verified_core: bool) { config.dump_verified_core = dump_verified_core }
+fn config_set_dump_mir(mut config: DriverConfig, dump_mir: bool) { config.dump_mir = dump_mir }
+fn config_set_dump_backend_plan(mut config: DriverConfig, dump_backend_plan: bool) { config.dump_backend_plan = dump_backend_plan }
+fn config_set_dump_wit_bindings(mut config: DriverConfig, dump_wit_bindings: bool) { config.dump_wit_bindings = dump_wit_bindings }
+fn config_set_dump_wasm(mut config: DriverConfig, dump_wasm: bool) { config.dump_wasm = dump_wasm }
+fn config_set_show_timing(mut config: DriverConfig, show_timing: bool) { config.show_timing = show_timing }
+fn config_set_parse_only(mut config: DriverConfig, parse_only: bool) { config.parse_only = parse_only }
+fn config_set_check_only(mut config: DriverConfig, check_only: bool) { config.check_only = check_only }
+fn config_set_test_mode(mut config: DriverConfig, test_mode: bool) { config.test_mode = test_mode }
+fn config_set_source_dir(mut config: DriverConfig, source_dir: String) { config.source_dir = source_dir }
+fn config_set_source_file(mut config: DriverConfig, source_file: String) { config.source_file = source_file }
 fn config_world(config: DriverConfig) -> String { clone(config.world) }
-fn config_set_world(config: DriverConfig, world: String) { config.world = world }
+fn config_set_world(mut config: DriverConfig, world: String) { config.world = world }
 fn config_lint_allow(config: DriverConfig) -> Vec<String> { config.lint_allow }
 fn config_lint_deny(config: DriverConfig) -> Vec<String> { config.lint_deny }
-fn config_set_lint_allow(config: DriverConfig, lint_allow: Vec<String>) { config.lint_allow = lint_allow }
-fn config_set_lint_deny(config: DriverConfig, lint_deny: Vec<String>) { config.lint_deny = lint_deny }
+fn config_set_lint_allow(mut config: DriverConfig, lint_allow: Vec<String>) { config.lint_allow = lint_allow }
+fn config_set_lint_deny(mut config: DriverConfig, lint_deny: Vec<String>) { config.lint_deny = lint_deny }
 fn config_lint_local_only(config: DriverConfig) -> bool { config.lint_local_only }
-fn config_set_lint_local_only(config: DriverConfig, lint_local_only: bool) { config.lint_local_only = lint_local_only }
+fn config_set_lint_local_only(mut config: DriverConfig, lint_local_only: bool) { config.lint_local_only = lint_local_only }
 fn config_cache_dir(config: DriverConfig) -> String { clone(config.cache_dir) }
-fn config_set_cache_dir(config: DriverConfig, cache_dir: String) { config.cache_dir = cache_dir }
+fn config_set_cache_dir(mut config: DriverConfig, cache_dir: String) { config.cache_dir = cache_dir }
 fn config_strip_debug(config: DriverConfig) -> bool { config.strip_debug }
-fn config_set_strip_debug(config: DriverConfig, strip_debug: bool) { config.strip_debug = strip_debug }
+fn config_bootstrap_shared_param_mutation(config: DriverConfig) -> bool { config.bootstrap_shared_param_mutation }
+fn config_set_bootstrap_shared_param_mutation(mut config: DriverConfig, enabled: bool) {
+    config.bootstrap_shared_param_mutation = enabled
+}
+fn config_set_strip_debug(mut config: DriverConfig, strip_debug: bool) { config.strip_debug = strip_debug }

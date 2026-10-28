@@ -3,19 +3,19 @@ use std::collections::hash_set::HashSet
 use std::test
 
 test "hashset_namespace_and_method_facades_agree" {
-    let direct = hash::hashset_str_new()
+    let mut direct = hash::hashset_str_new()
     test::assert_true(hash::hashset_str_insert(direct, "red"))
     test::assert_false(hash::hashset_str_insert(direct, "red"))
     test::assert_eq_i32(hash::hashset_str_len(direct), 1)
     test::assert_true(hash::hashset_str_contains(direct, "red"))
 
-    let compat: HashSet<String> = HashSet::new<String>()
+    let mut compat: HashSet<String> = HashSet::new<String>()
     test::assert_true(compat.insert("green"))
     test::assert_true(compat.remove("green"))
     test::assert_eq_i32(compat.len(), 0)
     test::assert_false(compat.contains("green"))
 
-    let second: HashSet<String> = HashSet::new<String>()
+    let mut second: HashSet<String> = HashSet::new<String>()
     test::assert_true(second.insert("blue"))
     test::assert_false(second.remove("missing"))
     test::assert_eq_i32(second.len(), 1)

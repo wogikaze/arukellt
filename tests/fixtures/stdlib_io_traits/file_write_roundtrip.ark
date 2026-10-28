@@ -22,7 +22,7 @@ fn main() {
         Result::Ok(file) => {
             // Explicit handle type keeps the write calls on the concrete File
             // impl; a match payload alone stays a type variable (#693).
-            let file: fs::File = file
+            let mut file: fs::File = file
             match file.write("hello\nworld".to_utf8_bytes()) {
                 Result::Ok(count) => stdio::println((count).to_string()),
                 Result::Err(err) => stdio::println(io::io_error_message(err)),
@@ -57,7 +57,7 @@ fn main() {
 
     match fs::File::open(".build/file_write_roundtrip.bin") {
         Result::Ok(file) => {
-            let file: fs::File = file
+            let mut file: fs::File = file
             match file.read(5) {
                 Result::Ok(bytes) => {
                     let bytes: Vec<i32> = bytes

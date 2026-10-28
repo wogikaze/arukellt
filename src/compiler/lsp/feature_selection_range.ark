@@ -8,7 +8,7 @@ use lsp::responses
 use lsp::state_record
 use lsp::state_docs
 use lsp::source_text
-pub fn handle_selection_range(state: LspState, body: String) {
+pub fn handle_selection_range(mut state: LspState, body: String) {
     let req_id = json::JsonText::get_int(clone(body), String_from("id"))
     let uri = json::JsonText::get_str(clone(body), String_from("uri"))
     let mut text = state_docs::lsp_doc_store_lookup_text(state_record::lsp_state_doc_store(state), clone(uri))

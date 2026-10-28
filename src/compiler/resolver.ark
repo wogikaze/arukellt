@@ -19,7 +19,7 @@ pub fn use_module_short_name(path: String) -> String {
 //   is_pub = true  → accessible cross-module (pub fn/struct/enum)
 //   is_pub = false → private; resolver will emit a visibility error on access
 /// Registers one imported symbol and preserves its visibility for later access checks.
-pub fn register_module_export(ctx: ResolveCtx, module_name: String, symbol_name: String, kind: i32, is_pub: bool) {
+pub fn register_module_export(mut ctx: ResolveCtx, module_name: String, symbol_name: String, kind: i32, is_pub: bool) {
     mod::register_module_export(ctx, module_name, symbol_name, kind, is_pub)
 }
 

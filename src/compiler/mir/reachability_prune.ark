@@ -3,21 +3,21 @@ use mir::module_emit_artifacts
 use mir::module_metadata
 use mir::types
 
-fn mir_prune_unmarked_functions(m: MirModule, reachable: Vec<i32>) -> i32 {
+fn mir_prune_unmarked_functions(mut m: MirModule, reachable: Vec<i32>) -> i32 {
     let fn_count = module_functions::MirModule_function_count(m)
-    let kept = Vec::new<MirFunction>()
+    let mut kept = Vec::new<MirFunction>()
     // 'return_variant_slots' stays parallel to 'functions' across the prune;
     // a mismatched length means the module was built without recording, so
     // the list resets to unrecorded instead of going stale.
     let slots = module_functions::MirModule_return_variant_slots(m)
     let keep_slots = len(slots) == fn_count
-    let kept_slots = Vec::new<i32>()
+    let mut kept_slots = Vec::new<i32>()
     let mut pruned = 0
     let mut i = 0
     // #851 Phase 3: the fused in-loop emit indexes body bytes and relocs by
     // the pre-prune func_idx; the emit phase compacts/remaps them through
     // this old->new map (identity when nothing was pruned).
-    let old_to_new = Vec::new<i32>()
+    let mut old_to_new = Vec::new<i32>()
     while i < fn_count {
         let f = module_functions::MirModule_function_at(m, i)
         if get_unchecked(reachable, i) != 0 {

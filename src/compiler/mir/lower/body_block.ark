@@ -1,7 +1,7 @@
 use mir::lower::ast_node
 use mir::lower::ctx_types
 
-fn lower_block_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_block_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     let mut last_result = 0 - 1
     let mut s = 0

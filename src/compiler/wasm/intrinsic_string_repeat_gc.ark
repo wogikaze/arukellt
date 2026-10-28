@@ -9,7 +9,7 @@ use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i32_convert
 
 // GC-target repeat: string is (ref null array_i8), result is new GC array.
-fn emit_repeat_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_repeat_gc(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let g0 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -52,7 +52,7 @@ fn emit_repeat_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     helpers_core::emit_local_get(w, g_result)
 }
 
-fn emit_repeat_gc_copy_loop(w: WasmWriter, g0: i32, s1: i32, s2: i32, s4: i32, s5: i32, s6: i32, string_type: i32) {
+fn emit_repeat_gc_copy_loop(mut w: WasmWriter, g0: i32, s1: i32, s2: i32, s4: i32, s5: i32, s6: i32, string_type: i32) {
     string_gc_helpers::emit_gc_block_loop(w)
     helpers_core::emit_local_get(w, s5)
     helpers_core::emit_local_get(w, s1)

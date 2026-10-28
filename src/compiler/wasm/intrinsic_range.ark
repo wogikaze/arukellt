@@ -11,7 +11,7 @@ use wasm::intrinsics::helpers_numeric_i32_compare
 use wasm::intrinsics::helpers_numeric_i32_const
 use wasm::intrinsics::helpers_numeric_i32_convert
 
-fn emit_range_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_range_new(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_range_new_gc(w, ctx)
         return true
@@ -45,7 +45,7 @@ fn emit_range_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_range_new_gc(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_range_new_gc(mut w: WasmWriter, ctx: SelfEmitCtx) {
     let s_start = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_end = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let range_type = range_gc_type(ctx)
@@ -60,7 +60,7 @@ fn emit_range_new_gc(w: WasmWriter, ctx: SelfEmitCtx) {
     writer_gc::emit_gc_struct_new(w, range_type)
 }
 
-fn emit_range_contains(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_range_contains(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_range_contains_gc(w, ctx)
         return true
@@ -90,7 +90,7 @@ fn emit_range_contains(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_range_contains_gc(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_range_contains_gc(mut w: WasmWriter, ctx: SelfEmitCtx) {
     let s_range = ctx_scratch::SelfEmitCtx_scratch_gc_struct_ref_val_local(ctx, 0)
     let s_val = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let range_type = range_gc_type(ctx)
@@ -112,7 +112,7 @@ fn emit_range_contains_gc(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_numeric_i32_convert::emit_widen_compare_result(w)
 }
 
-fn emit_range_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_range_len(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_range_len_gc(w, ctx)
         return true
@@ -144,7 +144,7 @@ fn emit_range_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_range_len_gc(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_range_len_gc(mut w: WasmWriter, ctx: SelfEmitCtx) {
     let s_range = ctx_scratch::SelfEmitCtx_scratch_gc_struct_ref_val_local(ctx, 0)
     let s_diff = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let range_type = range_gc_type(ctx)

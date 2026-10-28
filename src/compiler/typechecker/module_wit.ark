@@ -14,7 +14,7 @@ use component::wit_parse_text
 use resolver::wit_register
 use resolver::wit_surface
 fn collect_wit_fn_sigs(wit_paths: Vec<String>, decls: Vec<AstNode>) -> Vec<FnSig> {
-    let sigs = Vec::new<FnSig>()
+    let mut sigs = Vec::new<FnSig>()
     let count = len(decls)
     let mut i = 0
     while i < count {
@@ -28,7 +28,7 @@ fn collect_wit_fn_sigs(wit_paths: Vec<String>, decls: Vec<AstNode>) -> Vec<FnSig
 }
 
 fn collect_wit_enum_defs(wit_paths: Vec<String>, decls: Vec<AstNode>) -> Vec<EnumInfo> {
-    let enum_defs = Vec::new<EnumInfo>()
+    let mut enum_defs = Vec::new<EnumInfo>()
     let count = len(decls)
     let mut i = 0
     while i < count {
@@ -46,7 +46,7 @@ fn wit_import_alias(decl: AstNode) -> String {
     ast_access::node_text(ast_access::node_type_ann_at(decl, 0))
 }
 
-fn wit_push_fn_sigs_for_import(sigs: Vec<FnSig>, wit_paths: Vec<String>, package_id: String, alias: String) {
+fn wit_push_fn_sigs_for_import(mut sigs: Vec<FnSig>, wit_paths: Vec<String>, package_id: String, alias: String) {
     if len(alias) == 0 { return }
     let doc = wit_register::wit_doc_from_import(wit_paths, clone(package_id))
     if wit_register::wit_doc_has_surface(doc) {
@@ -63,7 +63,7 @@ fn wit_push_fn_sigs_for_import(sigs: Vec<FnSig>, wit_paths: Vec<String>, package
     }
 }
 
-fn wit_push_enum_defs_for_import(enum_defs: Vec<EnumInfo>, wit_paths: Vec<String>, package_id: String, alias: String) {
+fn wit_push_enum_defs_for_import(mut enum_defs: Vec<EnumInfo>, wit_paths: Vec<String>, package_id: String, alias: String) {
     if len(alias) == 0 { return }
     let doc = wit_register::wit_doc_from_import(wit_paths, clone(package_id))
     if !wit_register::wit_doc_has_surface(doc) { return }
@@ -73,7 +73,7 @@ fn wit_push_enum_defs_for_import(enum_defs: Vec<EnumInfo>, wit_paths: Vec<String
     }
 }
 
-fn wit_push_fn_sigs_for_doc(sigs: Vec<FnSig>, alias: String, doc: component::wit_parse_text::WitParsedInterface) {
+fn wit_push_fn_sigs_for_doc(mut sigs: Vec<FnSig>, alias: String, doc: component::wit_parse_text::WitParsedInterface) {
     let funcs = wit_parse_text::WitParsedInterface_funcs(doc)
     for fi in 0..len(funcs) {
         push(sigs, wit_fn_sig_from_parsed(clone(alias), doc, get_unchecked(funcs, fi)))
@@ -81,7 +81,7 @@ fn wit_push_fn_sigs_for_doc(sigs: Vec<FnSig>, alias: String, doc: component::wit
 }
 
 fn wit_binding_generic_args(name: String) -> Vec<String> {
-    let args = Vec::new<String>()
+    let mut args = Vec::new<String>()
     let open = index_of(name, "<")
     if open < 0 { return args }
     let mut close = len(name) - 1
@@ -112,7 +112,7 @@ fn wit_binding_type_info(name: String) -> TypeInfo {
     let open = index_of(name, "<")
     if open > 0 {
         let base = substring(name, 0, open)
-        let ty = if eq(clone(base), "Tuple") {
+        let mut ty = if eq(clone(base), "Tuple") {
             contract_type_constructors::TypeInfo_named(commands::TY_TUPLE(), String_new())
         } else {
             type_names::resolve_type_name(base)
@@ -128,7 +128,7 @@ fn wit_binding_type_info(name: String) -> TypeInfo {
 
 fn wit_fn_sig_from_parsed(alias: String, doc: component::wit_parse_text::WitParsedInterface, func: component::wit_parse_text::WitParsedFunc) -> FnSig {
     let qualified = clone(alias).concat("::".concat(clone(func.ark_name)))
-    let params = Vec::new<TypeInfo>()
+    let mut params = Vec::new<TypeInfo>()
     let param_types = wit_surface::wit_func_param_ark_types(func, clone(alias), doc)
     for pi in 0..len(param_types) {
         push(params, wit_binding_type_info(get_unchecked(param_types, pi)))
@@ -145,24 +145,24 @@ fn wit_enum_info_from_parsed(alias: String, en: component::wit_parse_text::WitPa
 
 fn wit_fn_sig_flags_param(alias: String, func_name: String) -> FnSig {
     let qualified = clone(alias).concat("::".concat(clone(func_name)))
-    let params = Vec::new<TypeInfo>()
+    let mut params = Vec::new<TypeInfo>()
     push(params, contract_type_constructors::TypeInfo_simple(commands::TY_I32()))
     contract_fn_sig::FnSig_new(qualified, params, contract_type_constructors::TypeInfo_simple(commands::TY_UNIT()), Vec::new<String>(), Vec::new<TypeParamBounds>())
 }
 
 fn wit_fn_sig_i32_param(alias: String, func_name: String) -> FnSig {
     let qualified = clone(alias).concat("::".concat(clone(func_name)))
-    let params = Vec::new<TypeInfo>()
+    let mut params = Vec::new<TypeInfo>()
     push(params, contract_type_constructors::TypeInfo_simple(commands::TY_I32()))
     contract_fn_sig::FnSig_new(qualified, params, contract_type_constructors::TypeInfo_simple(commands::TY_UNIT()), Vec::new<String>(), Vec::new<TypeParamBounds>())
 }
 
-fn merge_fn_sigs(base: Vec<FnSig>, wit: Vec<FnSig>) -> Vec<FnSig> {
+fn merge_fn_sigs(mut base: Vec<FnSig>, wit: Vec<FnSig>) -> Vec<FnSig> {
     vec_extend::Vec_extend_FnSig(base, wit)
     base
 }
 
-fn merge_enum_defs(base: Vec<EnumInfo>, wit: Vec<EnumInfo>) -> Vec<EnumInfo> {
+fn merge_enum_defs(mut base: Vec<EnumInfo>, wit: Vec<EnumInfo>) -> Vec<EnumInfo> {
     vec_extend::Vec_extend_EnumInfo(base, wit)
     base
 }

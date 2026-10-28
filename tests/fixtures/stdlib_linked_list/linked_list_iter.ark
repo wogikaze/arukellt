@@ -12,7 +12,7 @@ fn show(value: Option<i32>) {
 }
 
 fn main() {
-    let list: LinkedList<i32> = LinkedList::new<i32>()
+    let mut list: LinkedList<i32> = LinkedList::new<i32>()
     list.push_back(10)
     list.push_back(20)
     list.push_front(5)

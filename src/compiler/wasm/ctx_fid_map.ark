@@ -10,9 +10,9 @@ use collections::name_index
 use std::prelude::{clone}
 fn ctx_fid_map_build_registry_chains(
     registry: SignatureRegistry,
-    registry_heads: NameIndex,
-    registry_tails: NameIndex,
-    registry_next: Vec<i32>
+    mut registry_heads: NameIndex,
+    mut registry_tails: NameIndex,
+    mut registry_next: Vec<i32>
 ) {
     let registry_count = signature_registry::signature_registry_entry_count(registry)
     let mut raw = 0
@@ -37,18 +37,18 @@ fn ctx_fid_map_build_registry_chains(
     }
 }
 
-fn SelfEmitCtx_build_fid_to_mir(ctx: SelfEmitCtx) {
+fn SelfEmitCtx_build_fid_to_mir(mut ctx: SelfEmitCtx) {
     let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
     let registry_count = signature_registry::signature_registry_entry_count(registry)
-    let fid_to_mir = Vec::new<i32>()
+    let mut fid_to_mir = Vec::new<i32>()
     let mut si = 0
     while si < registry_count {
         push(fid_to_mir, 0 - 1)
         si = si + 1
     }
-    let registry_heads = name_index::NameIndex_new(registry_count)
-    let registry_tails = name_index::NameIndex_new(registry_count)
-    let registry_next = Vec::new<i32>()
+    let mut registry_heads = name_index::NameIndex_new(registry_count)
+    let mut registry_tails = name_index::NameIndex_new(registry_count)
+    let mut registry_next = Vec::new<i32>()
     ctx_fid_map_build_registry_chains(registry, registry_heads, registry_tails, registry_next)
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
     let fn_count = len(functions)
@@ -77,7 +77,7 @@ fn SelfEmitCtx_build_fid_to_mir(ctx: SelfEmitCtx) {
 // every MIR body maps exactly one registry entry in declaration order —
 // the batch build's result, produced incrementally.
 fn SelfEmitCtx_bind_spine_incremental(
-    ctx: SelfEmitCtx,
+    mut ctx: SelfEmitCtx,
     registry: SignatureRegistry,
     table: TypeTable,
     mono: MonoInstanceTable
@@ -87,15 +87,15 @@ fn SelfEmitCtx_bind_spine_incremental(
     ctx_record::SelfEmitCtx_set_mono_instance_table(ctx, mono)
     ctx_record::SelfEmitCtx_set_spine_populated(ctx, true)
     let registry_count = signature_registry::signature_registry_entry_count(registry)
-    let fid_to_mir = Vec::new<i32>()
+    let mut fid_to_mir = Vec::new<i32>()
     let mut si = 0
     while si < registry_count {
         push(fid_to_mir, 0 - 1)
         si = si + 1
     }
-    let registry_heads = name_index::NameIndex_new(registry_count)
-    let registry_tails = name_index::NameIndex_new(registry_count)
-    let registry_next = Vec::new<i32>()
+    let mut registry_heads = name_index::NameIndex_new(registry_count)
+    let mut registry_tails = name_index::NameIndex_new(registry_count)
+    let mut registry_next = Vec::new<i32>()
     ctx_fid_map_build_registry_chains(
         registry, registry_heads, registry_tails, registry_next)
     ctx_record::SelfEmitCtx_set_fid_to_mir(ctx, fid_to_mir)

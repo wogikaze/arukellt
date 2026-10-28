@@ -2,7 +2,7 @@ use std::io
 use std::test
 
 fn main() {
-    let w: io::Writer = io::Writer::new()
+    let mut w: io::Writer = io::Writer::new()
     let res: Result<i32, io::IoError> = w.write_string("hello")
     match res {
         Result::Ok(n) => test::assert_eq_i32(n, 5),

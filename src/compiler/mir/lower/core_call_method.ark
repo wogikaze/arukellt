@@ -6,7 +6,7 @@ use mir::lower::core_expr_shape_ops
 use mir::inst_local_get
 use mir::lower::method
 
-fn lower_core_method_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+fn lower_core_method_call(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
     if child_count < 1 {
         return 0 - 1
@@ -24,7 +24,7 @@ fn lower_core_method_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirE
     let method_arg_indices = lower_core_method_arg_indices(ctx, exprs, expr, child_count)
     let first_method_arg_idx = method_arg_indices.get_unchecked(0)
     let value_method_arg_idx = method_arg_indices.get_unchecked(1)
-    let resolved_callee = method::mir_resolve_method_callee(
+    let mut resolved_callee = method::mir_resolve_method_callee(
         ctx,
         callee_name,
         first_method_arg_idx,
@@ -36,7 +36,7 @@ fn lower_core_method_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirE
 // Returns [first argument, trailing value argument] locals (-1 when absent).
 // The vec push rewrite needs the trailing value to widen an i32 literal for
 // Vec<i64> receivers (#917), mirroring the direct-call path.
-fn lower_core_method_arg_indices(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32) -> Vec<i32> {
+fn lower_core_method_arg_indices(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32) -> Vec<i32> {
     let mut a = 1
     let mut first_method_arg_idx = 0 - 1
     let mut last_method_arg_idx = 0 - 1
@@ -67,7 +67,7 @@ fn lower_core_method_arg_indices(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: C
         last_method_arg_idx = method_arg_idx
         a = a + 1
     }
-    let indices = Vec::new<i32>()
+    let mut indices = Vec::new<i32>()
     indices.push(first_method_arg_idx)
     indices.push(last_method_arg_idx)
     indices

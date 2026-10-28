@@ -6,7 +6,7 @@ use mir::opcodes
 use mir::value_types
 use mir::ssa_state_types
 
-fn mir_ssa_rewrite_inst_uses(inst: MirInst, state: ssa_state_types::MirSsaRenameState) {
+fn mir_ssa_rewrite_inst_uses(mut inst: MirInst, state: ssa_state_types::MirSsaRenameState) {
     let arg0 = inst_accessors_operands::MirInst_arg0(inst)
     if arg0 >= 0 {
         inst_accessors_mutation::MirInst_set_arg0(inst, ssa_state_slots::mir_ssa_current_for(state, arg0))

@@ -25,7 +25,7 @@ pub struct CanonicalSlice {
 
 pub struct Component {}
 
-fn scratch_bump(scratch: Vec<i32>, nbytes: i32) -> Result<i32, error::Error> {
+fn scratch_bump(mut scratch: Vec<i32>, nbytes: i32) -> Result<i32, error::Error> {
     let base = get_unchecked(scratch, 0)
     let next = base + nbytes
     if nbytes < 0 || next > CANONICAL_SCRATCH_BASE + CANONICAL_SCRATCH_LIMIT {
@@ -35,7 +35,7 @@ fn scratch_bump(scratch: Vec<i32>, nbytes: i32) -> Result<i32, error::Error> {
     Ok(base)
 }
 
-fn scratch_write_byte(scratch: Vec<i32>, offset: i32, b: i32) {
+fn scratch_write_byte(mut scratch: Vec<i32>, offset: i32, b: i32) {
     let idx = offset - CANONICAL_SCRATCH_BASE + 1
     while len(scratch) <= idx {
         push(scratch, 0)
@@ -64,13 +64,13 @@ impl Component {
 
     /// Create the scratch vector with the canonical ABI base offset.
     fn scratch_new() -> Vec<i32> {
-        let s = Vec::new<i32>()
+        let mut s = Vec::new<i32>()
         push(s, CANONICAL_SCRATCH_BASE)
         s
     }
 
     /// Lower `s` into scratch storage and return its pointer/length slice.
-    fn lower_string(scratch: Vec<i32>, s: String) -> Result<CanonicalSlice, error::Error> {
+    fn lower_string(mut scratch: Vec<i32>, s: String) -> Result<CanonicalSlice, error::Error> {
         set(scratch, 0, CANONICAL_SCRATCH_BASE)
         let n = len(s)
         let ptr = scratch_bump(scratch, n)
@@ -111,7 +111,7 @@ impl Component {
     }
 
     /// Lower an i32 list into scratch storage and return its pointer/count slice.
-    fn lower_list_i32(scratch: Vec<i32>, items: Vec<i32>) -> Result<CanonicalSlice, error::Error> {
+    fn lower_list_i32(mut scratch: Vec<i32>, items: Vec<i32>) -> Result<CanonicalSlice, error::Error> {
         set(scratch, 0, CANONICAL_SCRATCH_BASE)
         let count = len(items)
         let bytes = count * 4
@@ -147,7 +147,7 @@ impl Component {
         if count * 4 > CANONICAL_SCRATCH_LIMIT {
             return Err(error::Error::ComponentError(String_from("MemoryOverflow")))
         }
-        let out = Vec::new<i32>()
+        let mut out = Vec::new<i32>()
         let mut i = 0
         while i < count {
             push(out, scratch_read_byte(scratch, ptr + i * 4))

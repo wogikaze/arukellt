@@ -3,7 +3,7 @@ use mir::lower::body_dispatch_expr
 use mir::lower::body_dispatch_stmt
 use mir::lower::values
 
-fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let kind = ast_node::node_kind(node)
     let atomic = values::lower_atomic_expr(ctx, node)
     if atomic != 0 - 2 {

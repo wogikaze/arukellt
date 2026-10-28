@@ -21,7 +21,7 @@ use diagnostics::mod as diag_mod
 use std::prelude::{clone, eq, starts_with}
 use std::text
 fn collect_use_decls(decls: Vec<AstNode>) -> Vec<UseDeclInfo> {
-    let uses = Vec::new<UseDeclInfo>()
+    let mut uses = Vec::new<UseDeclInfo>()
     let count = len(decls)
     let mut i = 0
     while i < count {
@@ -32,7 +32,7 @@ fn collect_use_decls(decls: Vec<AstNode>) -> Vec<UseDeclInfo> {
     uses
 }
 
-fn collect_use_decls_in_node(node: AstNode, uses: Vec<UseDeclInfo>) {
+fn collect_use_decls_in_node(node: AstNode, mut uses: Vec<UseDeclInfo>) {
     if ast_decl_predicates::node_is_use(node) {
         let path = ast_access::node_text(node)
         let short = paths::use_module_short_name(clone(path))
@@ -66,7 +66,7 @@ fn collect_use_decls_in_node(node: AstNode, uses: Vec<UseDeclInfo>) {
     }
 }
 
-fn collect_referenced_modules(decls: Vec<AstNode>, referenced: Vec<String>) {
+fn collect_referenced_modules(decls: Vec<AstNode>, mut referenced: Vec<String>) {
     let count = len(decls)
     let mut i = 0
     while i < count {
@@ -75,7 +75,7 @@ fn collect_referenced_modules(decls: Vec<AstNode>, referenced: Vec<String>) {
     }
 }
 
-fn collect_referenced_modules_in_node(node: AstNode, referenced: Vec<String>) {
+fn collect_referenced_modules_in_node(node: AstNode, mut referenced: Vec<String>) {
     if ast_expr_predicates::node_is_path(node) {
         let path = ast_access::node_text(node)
         let mod_part = paths::path_module_part(clone(path))
@@ -105,9 +105,9 @@ fn name_in_vec(name: String, vec: Vec<String>) -> bool {
 }
 
 pub fn check_unused_imports(decls: Vec<AstNode>) -> Vec<Diagnostic> {
-    let warnings = Vec::new<Diagnostic>()
+    let mut warnings = Vec::new<Diagnostic>()
     let uses = collect_use_decls(decls)
-    let referenced = Vec::new<String>()
+    let mut referenced = Vec::new<String>()
     collect_referenced_modules(decls, referenced)
     let use_count = len(uses)
     let mut i = 0
@@ -132,7 +132,7 @@ pub fn check_unused_imports(decls: Vec<AstNode>) -> Vec<Diagnostic> {
 // ── Combined lint pass ─────────────────────────────────────────────────
 
 pub fn run_post_resolve_lint(decls: Vec<AstNode>, target: String) -> Vec<Diagnostic> {
-    let warnings = Vec::new<Diagnostic>()
+    let mut warnings = Vec::new<Diagnostic>()
     let unused_import_warns = check_unused_imports(decls)
     vec_extend::Vec_extend_Diagnostic(warnings, unused_import_warns)
     let prefer_use_warns = prefer_use_import::check_prefer_use_import(decls)

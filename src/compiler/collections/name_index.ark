@@ -17,7 +17,7 @@ fn name_index_capacity(expected_entries: i32) -> i32 {
 
 pub fn NameIndex_new(expected_entries: i32) -> NameIndex {
     let capacity = name_index_capacity(expected_entries)
-    let buckets = Vec::new<i32>()
+    let mut buckets = Vec::new<i32>()
     let keys = Vec::new<String>()
     let values = Vec::new<i32>()
     let mut i = 0
@@ -109,12 +109,12 @@ pub fn name_index_get(index: NameIndex, name: String) -> i32 {
 // Keep the load factor under 1/2 so probe chains stay short and inserts never
 // fail on a full table. Keys are unique, so re-probing each one lands on an
 // empty slot of the doubled bucket array.
-fn name_index_grow_if_needed(index: NameIndex) {
+fn name_index_grow_if_needed(mut index: NameIndex) {
     if (len(index.keys) + 1) * 2 < index.capacity {
         return
     }
     let capacity = if index.capacity == 0 { 16 } else { index.capacity * 2 }
-    let buckets = Vec::new<i32>()
+    let mut buckets = Vec::new<i32>()
     let mut i = 0
     while i < capacity {
         push(buckets, 0)
@@ -131,13 +131,13 @@ fn name_index_grow_if_needed(index: NameIndex) {
     }
 }
 
-fn name_index_push_entry(index: NameIndex, slot: i32, name: String, value: i32) {
+fn name_index_push_entry(mut index: NameIndex, slot: i32, name: String, value: i32) {
     push(index.keys, name)
     push(index.values, value)
     set(index.buckets, slot, len(index.keys))
 }
 
-pub fn name_index_insert_first(index: NameIndex, name: String, value: i32) {
+pub fn name_index_insert_first(mut index: NameIndex, name: String, value: i32) {
     name_index_grow_if_needed(index)
     let slot = name_index_find_slot(index, clone(name))
     if slot < 0 || get_unchecked(index.buckets, slot) != 0 {
@@ -146,7 +146,7 @@ pub fn name_index_insert_first(index: NameIndex, name: String, value: i32) {
     name_index_push_entry(index, slot, name, value)
 }
 
-pub fn name_index_set(index: NameIndex, name: String, value: i32) {
+pub fn name_index_set(mut index: NameIndex, name: String, value: i32) {
     name_index_grow_if_needed(index)
     let slot = name_index_find_slot(index, clone(name))
     if slot < 0 {
@@ -160,7 +160,7 @@ pub fn name_index_set(index: NameIndex, name: String, value: i32) {
     set(index.values, bucket - 1, value)
 }
 
-pub fn name_index_increment(index: NameIndex, name: String) {
+pub fn name_index_increment(mut index: NameIndex, name: String) {
     name_index_grow_if_needed(index)
     let slot = name_index_find_slot(index, clone(name))
     if slot < 0 {

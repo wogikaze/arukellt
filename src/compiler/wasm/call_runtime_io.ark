@@ -5,7 +5,7 @@ use wasm::runtime_abi_fs
 use wasm::runtime_abi_process
 use wasm::runtime_abi_stdio
 
-fn try_emit_env_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_env_call(mut w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if try_emit_env_var_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
@@ -15,7 +15,7 @@ fn try_emit_env_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmi
     false
 }
 
-fn try_emit_env_arg_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_env_arg_call(mut w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_arg_count(){
         let _result_on_stack = runtime_abi_env_args::emit_env_arg_count(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
@@ -39,7 +39,7 @@ fn try_emit_env_arg_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: Sel
     false
 }
 
-fn try_emit_env_var_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_env_var_call(mut w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_var(){
         let _result_on_stack = runtime_abi_env_args::emit_env_var(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
@@ -58,7 +58,7 @@ fn try_emit_env_var_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: Sel
     false
 }
 
-fn try_emit_fs_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_fs_call(mut w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if try_emit_fs_query_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
@@ -71,7 +71,7 @@ fn try_emit_fs_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmit
     false
 }
 
-fn try_emit_fs_query_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_fs_query_call(mut w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_exists(){
         let _result_on_stack = runtime_abi_fs::emit_fs_exists(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
@@ -80,7 +80,7 @@ fn try_emit_fs_query_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: Se
     false
 }
 
-fn try_emit_fs_read_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_fs_read_call(mut w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_fs_read_file(){
         let _result_on_stack = runtime_abi_fs::emit_fs_read_to_string(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
@@ -89,7 +89,7 @@ fn try_emit_fs_read_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: Sel
     false
 }
 
-fn try_emit_fs_write_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_fs_write_call(mut w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_write_string(){
         let _result_on_stack = runtime_abi_fs::emit_fs_write_string(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
@@ -103,7 +103,7 @@ fn try_emit_fs_write_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: Se
     false
 }
 
-fn try_emit_process_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_process_call(mut w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_process_exit(){
         let _result_on_stack = runtime_abi_process::emit_process_exit(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
@@ -118,7 +118,7 @@ fn try_emit_process_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: Sel
 }
 
 fn try_emit_stdio_call(
-    w: WasmWriter,
+    mut w: WasmWriter,
     handler_id: i32,
     inst: MirInst,
     ctx: SelfEmitCtx,

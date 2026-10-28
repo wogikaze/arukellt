@@ -2,7 +2,7 @@ use std::collections::linear
 use std::host::stdio
 
 fn main() {
-    let d: Vec<i32> = linear::deque_new()
+    let mut d: Vec<i32> = linear::deque_new()
 
     // Phase 1: shift head and tail to mid-buffer
     linear::deque_push_back(d, 1)

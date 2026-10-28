@@ -6,7 +6,7 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
 use mir::inst_const_i32
 use mir::value_types
-fn lower_bool_literal(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_bool_literal(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_api_local_types::ctx_set_local_type(ctx, dest, "bool")
     let mut bval = 0
@@ -17,7 +17,7 @@ fn lower_bool_literal(ctx: LowerCtx, node: AstNode) -> i32 {
     dest
 }
 
-fn lower_pattern_literal(ctx: LowerCtx, node: AstNode) -> i32 {
+fn lower_pattern_literal(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     let mut pval = ast_node::node_int_val(node)
     if eq(ast_node::node_text(node), "true") {

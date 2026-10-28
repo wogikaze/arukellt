@@ -50,12 +50,12 @@ fn WasmWriter_with_memory64(memory64: bool) -> WasmWriter {
 // Install the declared ref types of the function body about to be written.
 // Pass an empty vector once the body is finished so later bodies written
 // without a declaration pass cannot see stale types.
-fn writer_begin_function_locals(w: WasmWriter, local_ref_types: Vec<i32>) {
+fn writer_begin_function_locals(mut w: WasmWriter, local_ref_types: Vec<i32>) {
     w.local_ref_types = local_ref_types
     w.ref_top_end = 0 - 1
 }
 
-fn writer_note_ref_top(w: WasmWriter, type_idx: i32) {
+fn writer_note_ref_top(mut w: WasmWriter, type_idx: i32) {
     w.ref_top_type = type_idx
     w.ref_top_end = if type_idx >= 0 { len(w.bytes) } else { 0 - 1 }
 }
@@ -66,7 +66,7 @@ fn writer_ref_top_is(w: WasmWriter, type_idx: i32) -> bool {
     type_idx >= 0 && w.ref_top_end == len(w.bytes) && w.ref_top_type == type_idx
 }
 
-fn emit_local_get(w: WasmWriter, local_idx: i32) {
+fn emit_local_get(mut w: WasmWriter, local_idx: i32) {
     emit_byte(w, opcodes::OP_LOCAL_GET())
     emit_leb128_u(w, local_idx)
     let type_idx = if local_idx >= 0 && local_idx < len(w.local_ref_types) {
@@ -107,7 +107,7 @@ fn writer_linear_gc_commit_function_index(w: WasmWriter) -> i32 {
     w.linear_gc_commit_function_index
 }
 
-fn writer_set_linear_gc_commit_function_index(w: WasmWriter, index: i32) {
+fn writer_set_linear_gc_commit_function_index(mut w: WasmWriter, index: i32) {
     w.linear_gc_commit_function_index = index
 }
 
@@ -115,7 +115,7 @@ fn writer_linear_gc_alloc_function_index(w: WasmWriter) -> i32 {
     w.linear_gc_alloc_function_index
 }
 
-fn writer_set_linear_gc_alloc_function_index(w: WasmWriter, index: i32) {
+fn writer_set_linear_gc_alloc_function_index(mut w: WasmWriter, index: i32) {
     w.linear_gc_alloc_function_index = index
 }
 
@@ -123,7 +123,7 @@ fn writer_linear_gc_root_frame_enter_function_index(w: WasmWriter) -> i32 {
     w.linear_gc_root_frame_enter_function_index
 }
 
-fn writer_set_linear_gc_root_frame_enter_function_index(w: WasmWriter, index: i32) {
+fn writer_set_linear_gc_root_frame_enter_function_index(mut w: WasmWriter, index: i32) {
     w.linear_gc_root_frame_enter_function_index = index
 }
 
@@ -131,7 +131,7 @@ fn writer_linear_gc_root_push_function_index(w: WasmWriter) -> i32 {
     w.linear_gc_root_push_function_index
 }
 
-fn writer_set_linear_gc_root_push_function_index(w: WasmWriter, index: i32) {
+fn writer_set_linear_gc_root_push_function_index(mut w: WasmWriter, index: i32) {
     w.linear_gc_root_push_function_index = index
 }
 
@@ -139,7 +139,7 @@ fn writer_linear_gc_root_update_function_index(w: WasmWriter) -> i32 {
     w.linear_gc_root_update_function_index
 }
 
-fn writer_set_linear_gc_root_update_function_index(w: WasmWriter, index: i32) {
+fn writer_set_linear_gc_root_update_function_index(mut w: WasmWriter, index: i32) {
     w.linear_gc_root_update_function_index = index
 }
 
@@ -147,7 +147,7 @@ fn writer_linear_gc_root_frame_leave_function_index(w: WasmWriter) -> i32 {
     w.linear_gc_root_frame_leave_function_index
 }
 
-fn writer_set_linear_gc_root_frame_leave_function_index(w: WasmWriter, index: i32) {
+fn writer_set_linear_gc_root_frame_leave_function_index(mut w: WasmWriter, index: i32) {
     w.linear_gc_root_frame_leave_function_index = index
 }
 
@@ -155,7 +155,7 @@ fn writer_linear_gc_collect_function_index(w: WasmWriter) -> i32 {
     w.linear_gc_collect_function_index
 }
 
-fn writer_set_linear_gc_collect_function_index(w: WasmWriter, index: i32) {
+fn writer_set_linear_gc_collect_function_index(mut w: WasmWriter, index: i32) {
     w.linear_gc_collect_function_index = index
 }
 
@@ -166,7 +166,7 @@ fn writer_linear_root_frame_local(w: WasmWriter) -> i32 {
     w.linear_root_frame_local
 }
 
-fn writer_set_linear_root_frame_local(w: WasmWriter, local_idx: i32) {
+fn writer_set_linear_root_frame_local(mut w: WasmWriter, local_idx: i32) {
     w.linear_root_frame_local = local_idx
 }
 
@@ -177,26 +177,26 @@ fn writer_linear_root_slot_offset(w: WasmWriter, local_idx: i32) -> i32 {
     get_unchecked(w.linear_root_slot_offsets, local_idx)
 }
 
-fn writer_set_linear_root_slot_offsets(w: WasmWriter, offsets: Vec<i32>) {
+fn writer_set_linear_root_slot_offsets(mut w: WasmWriter, offsets: Vec<i32>) {
     w.linear_root_slot_offsets = offsets
 }
 
-fn writer_set_memory64(w: WasmWriter, memory64: bool) {
+fn writer_set_memory64(mut w: WasmWriter, memory64: bool) {
     w.memory64 = memory64
 }
 
-pub fn emit_byte(w: WasmWriter, b: i32) {
+pub fn emit_byte(mut w: WasmWriter, b: i32) {
     push(w.bytes, b % 256)
 }
 
-fn emit_u32_le(w: WasmWriter, v: i32) {
+fn emit_u32_le(mut w: WasmWriter, v: i32) {
     emit_byte(w, v % 256)
     emit_byte(w, v / 256 % 256)
     emit_byte(w, v / 65536 % 256)
     emit_byte(w, v / 16777216 % 256)
 }
 
-fn emit_bytes(w: WasmWriter, src: Vec<i32>) {
+fn emit_bytes(mut w: WasmWriter, src: Vec<i32>) {
     let count = len(src)
     let mut i = 0
     while i < count {
@@ -214,7 +214,7 @@ fn writer_bytes(w: WasmWriter) -> Vec<i32> {
     w.bytes
 }
 
-fn writer_set_byte_at(w: WasmWriter, idx: i32, b: i32) {
+fn writer_set_byte_at(mut w: WasmWriter, idx: i32, b: i32) {
     if idx < 0 || idx >= len(w.bytes) {
         return
     }
@@ -225,7 +225,7 @@ fn leb128_u_fixed_width() -> i32 {
     5
 }
 
-fn emit_leb128_u_fixed(w: WasmWriter, v: i32) {
+fn emit_leb128_u_fixed(mut w: WasmWriter, v: i32) {
     let width = leb128_u_fixed_width()
     let mut val = v
     if val < 0 {
@@ -243,7 +243,7 @@ fn emit_leb128_u_fixed(w: WasmWriter, v: i32) {
     }
 }
 
-fn patch_leb128_u_fixed(w: WasmWriter, start: i32, v: i32) {
+fn patch_leb128_u_fixed(mut w: WasmWriter, start: i32, v: i32) {
     let width = leb128_u_fixed_width()
     let mut val = v
     if val < 0 {
@@ -262,7 +262,7 @@ fn patch_leb128_u_fixed(w: WasmWriter, start: i32, v: i32) {
 }
 
 // ---- LEB128 helpers (merged from writer_leb) ----
-fn emit_leb128_u(w: WasmWriter, v: i32) {
+fn emit_leb128_u(mut w: WasmWriter, v: i32) {
     let mut val = v
     if val < 0 {
         val = 0
@@ -281,7 +281,7 @@ fn emit_leb128_u(w: WasmWriter, v: i32) {
     }
 }
 
-fn emit_leb128_s(w: WasmWriter, v: i32) {
+fn emit_leb128_s(mut w: WasmWriter, v: i32) {
     let mut val = v
     let mut more = true
     while more {
@@ -303,7 +303,7 @@ fn emit_leb128_s(w: WasmWriter, v: i32) {
     }
 }
 
-fn emit_leb128_s_i64(w: WasmWriter, v: i64) {
+fn emit_leb128_s_i64(mut w: WasmWriter, v: i64) {
     let mut val = v
     let mut more = true
     while more {

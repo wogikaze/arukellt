@@ -7,7 +7,7 @@ struct CoreHirMirBodySource {
     method_body_roots: Vec<i32>,
 }
 
-fn mir_body_source_from_table(table: CoreHirBodyTable) -> CoreHirMirBodySource {
+fn mir_body_source_from_table(mut table: CoreHirBodyTable) -> CoreHirMirBodySource {
     // Transfer the validated body forest without cloning every text/type_name.
     // The table's body storage is empty after this call; the MIR source is its
     // sole downstream owner.
@@ -20,12 +20,12 @@ fn mir_body_source_from_table(table: CoreHirBodyTable) -> CoreHirMirBodySource {
     source
 }
 
-fn mir_body_source_build_ast_body_into(table: CoreHirBodyTable, node: AstNode) -> i32 {
+fn mir_body_source_build_ast_body_into(mut table: CoreHirBodyTable, node: AstNode) -> i32 {
     body_table::corehir_body_table_reset_body(table)
     body::corehir_build_expr(table, node)
 }
 
-fn mir_body_source_release(source: CoreHirMirBodySource) {
+fn mir_body_source_release(mut source: CoreHirMirBodySource) {
     source.exprs = Vec::new<CoreHirExpr>()
     source.fn_body_roots = Vec::new<i32>()
     source.method_body_roots = Vec::new<i32>()

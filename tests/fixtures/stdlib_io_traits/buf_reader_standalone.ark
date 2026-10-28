@@ -18,7 +18,7 @@ fn show(value: Result<Option<String>, io::IoError>) {
 }
 
 fn main() {
-    let br: BufReader<Reader> = BufReader::new<Reader>(
+    let mut br: BufReader<Reader> = BufReader::new<Reader>(
         Reader::from_bytes("A\nB".to_utf8_bytes()),
         3
     )

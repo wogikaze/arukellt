@@ -14,7 +14,7 @@ use wasm::intrinsics::helpers_io
 use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_layout
 
-fn emit_fs_exists(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_fs_exists(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         if !emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
             let s_drop = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
@@ -45,11 +45,11 @@ fn emit_fs_exists(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_fs_exists_setup(w: WasmWriter, path_local: i32) {
+fn emit_fs_exists_setup(mut w: WasmWriter, path_local: i32) {
     helpers_core::emit_local_set(w, path_local)
 }
 
-fn emit_fs_exists_open_call(w: WasmWriter, path_local: i32, ctx: SelfEmitCtx) {
+fn emit_fs_exists_open_call(mut w: WasmWriter, path_local: i32, ctx: SelfEmitCtx) {
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         helpers_io::emit_store_string_local_to_scratch(w, path_local, constants::SCRATCH_FS_PATHPTR(), constants::SCRATCH_FS_PATHLEN())
         runtime_abi_fs_p2::emit_p2_open_status(w, ctx, 0, constants::P2_DESCRIPTOR_FLAG_READ())
@@ -68,7 +68,7 @@ fn emit_fs_exists_open_call(w: WasmWriter, path_local: i32, ctx: SelfEmitCtx) {
     helpers_numeric_i32::emit_widen_i32_result(w)
 }
 
-fn emit_fs_exists_path_len(w: WasmWriter, path_local: i32) {
+fn emit_fs_exists_path_len(mut w: WasmWriter, path_local: i32) {
     helpers_core::emit_local_get(w, path_local)
     helpers_numeric_i32::emit_i32_const(w, 4)
     helpers_numeric_i32::emit_i32_sub(w)
@@ -76,7 +76,7 @@ fn emit_fs_exists_path_len(w: WasmWriter, path_local: i32) {
     helpers_numeric_i32::emit_narrow_i64_operand(w)
 }
 
-fn emit_fs_exists_result(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_fs_exists_result(mut w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_numeric_i32::emit_i32_eq(w)
     helpers_control::emit_if_i32(w)
@@ -87,7 +87,7 @@ fn emit_fs_exists_result(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_control::emit_end(w)
 }
 
-fn emit_fs_exists_close_fd(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_fs_exists_close_fd(mut w: WasmWriter, ctx: SelfEmitCtx) {
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         runtime_abi_fs_p2::emit_p2_close(w, ctx)
         return

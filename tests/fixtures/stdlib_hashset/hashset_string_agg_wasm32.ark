@@ -3,10 +3,10 @@ use std::collections::hash_set::HashSet
 use std::test
 
 fn main() {
-    let a: HashSet<String> = HashSet::new<String>()
+    let mut a: HashSet<String> = HashSet::new<String>()
     let _ = a.insert("red")
     let _ = a.insert("blue")
-    let b: HashSet<String> = HashSet::new<String>()
+    let mut b: HashSet<String> = HashSet::new<String>()
     let _ = b.insert("blue")
     let _ = b.insert("green")
 
@@ -46,14 +46,15 @@ fn main() {
     test::assert_true(copy.eq(combined))
 
     // clear and extend over the String store.
-    let grown: HashSet<String> = HashSet::new<String>()
+    let mut grown: HashSet<String> = HashSet::new<String>()
     let _ = grown.insert("cyan")
     grown.extend(a)
     test::assert_eq_i32(grown.len(), 3)
     test::assert_true(grown.contains("cyan"))
     test::assert_true(grown.contains("red"))
-    // Self-extend must terminate: the helper iterates a snapshot.
-    grown.extend(grown)
+    // Self-extend goes through a clone: ADR-088 §5 rejects passing the same
+    // place to a `mut self` receiver and another parameter.
+    grown.extend(grown.clone())
     test::assert_eq_i32(grown.len(), 3)
     grown.clear()
     test::assert_eq_i32(grown.len(), 0)

@@ -17,8 +17,8 @@ use parser::core_ast_text_fields
 use parser::kinds
 
 pub fn desugar_test_decls(decls: Vec<AstNode>) -> Vec<AstNode> {
-    let out = Vec::new<AstNode>()
-    let names = Vec::new<String>()
+    let mut out = Vec::new<AstNode>()
+    let mut names = Vec::new<String>()
     let decl_count = len(decls)
     let mut i = 0
     while i < decl_count {
@@ -39,7 +39,7 @@ pub fn desugar_test_decls(decls: Vec<AstNode>) -> Vec<AstNode> {
     out
 }
 
-fn desugar_test_node(node: AstNode, out: Vec<AstNode>, names: Vec<String>, prefix: String) {
+fn desugar_test_node(node: AstNode, mut out: Vec<AstNode>, mut names: Vec<String>, prefix: String) {
     let kind = ast::ast_node_kind(node)
     if kind == kinds::NK_TEST_MOD() {
         let mod_name = ast::ast_node_text(node)
@@ -73,7 +73,7 @@ fn test_display_name(prefix: String, name: String) -> String {
 // is dropped (the body resolves the target fn by name like any caller).
 fn synthesize_test_fn(test_node: AstNode, index: i32) -> AstNode {
     let span = core_ast_span_fields::AstNode_span(test_node)
-    let node = core_ast_factory::AstNode_new(kinds::NK_FN_DECL(), span)
+    let mut node = core_ast_factory::AstNode_new(kinds::NK_FN_DECL(), span)
     core_ast_text_fields::AstNode_set_text(node, "__test_".concat(to_string(index)))
     core_ast_span_fields::AstNode_set_name_span(node, span)
     let child_count = ast::ast_node_child_count(test_node)

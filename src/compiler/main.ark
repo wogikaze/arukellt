@@ -12,7 +12,7 @@ use main::dispatch
 use main::usage
 fn main() {
     let argv = Env::args()
-    let opts = args_parse::parse_args(argv)
+    let mut opts = args_parse::parse_args(argv)
     if args_record::cli_show_help(opts) {
         usage::print_usage()
         return

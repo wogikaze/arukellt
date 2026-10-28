@@ -8,7 +8,7 @@ use wasm::string_gc_helpers
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i32
 
-fn emit_seq_extremum_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, choose_max: bool) -> bool {
+fn emit_seq_extremum_i32(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, choose_max: bool) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return emit_seq_extremum_i32_gc(w, ctx, choose_max)
     }
@@ -25,7 +25,7 @@ fn emit_seq_extremum_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, choose_
 }
 
 // GC target: choose the minimum or maximum from the Vec's live prefix.
-fn emit_seq_extremum_i32_gc(w: WasmWriter, ctx: SelfEmitCtx, choose_max: bool) -> bool {
+fn emit_seq_extremum_i32_gc(mut w: WasmWriter, ctx: SelfEmitCtx, choose_max: bool) -> bool {
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
     let s_arr = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
     let s_best = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
@@ -81,12 +81,12 @@ fn emit_seq_extremum_i32_gc(w: WasmWriter, ctx: SelfEmitCtx, choose_max: bool) -
     return true
 }
 
-fn emit_seq_extremum_setup(w: WasmWriter, s0: i32, s1: i32, s2: i32, s3: i32, s4: i32) {
+fn emit_seq_extremum_setup(mut w: WasmWriter, s0: i32, s1: i32, s2: i32, s3: i32, s4: i32) {
     emit_seq_extremum_setup_source(w, s0, s2, s3)
     emit_seq_extremum_setup_initial(w, s1, s2, s4)
 }
 
-fn emit_seq_extremum_setup_source(w: WasmWriter, seq_local: i32, data_local: i32, len_local: i32) {
+fn emit_seq_extremum_setup_source(mut w: WasmWriter, seq_local: i32, data_local: i32, len_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, seq_local)
     writer_core::emit_local_get(w, seq_local)
@@ -103,7 +103,7 @@ fn emit_seq_extremum_setup_source(w: WasmWriter, seq_local: i32, data_local: i32
     writer_core::emit_leb128_u(w, data_local)
 }
 
-fn emit_seq_extremum_setup_initial(w: WasmWriter, best_local: i32, data_local: i32, index_local: i32) {
+fn emit_seq_extremum_setup_initial(mut w: WasmWriter, best_local: i32, data_local: i32, index_local: i32) {
     writer_core::emit_local_get(w, data_local)
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
@@ -116,7 +116,7 @@ fn emit_seq_extremum_setup_initial(w: WasmWriter, best_local: i32, data_local: i
     writer_core::emit_leb128_u(w, index_local)
 }
 
-fn emit_seq_extremum_loop(w: WasmWriter, s1: i32, s2: i32, s3: i32, s4: i32, s5: i32, choose_max: bool) {
+fn emit_seq_extremum_loop(mut w: WasmWriter, s1: i32, s2: i32, s3: i32, s4: i32, s5: i32, choose_max: bool) {
     writer_core::emit_byte(w, opcodes::OP_BLOCK())
     writer_core::emit_byte(w, 64)
     writer_core::emit_byte(w, opcodes::OP_LOOP())
@@ -139,7 +139,7 @@ fn emit_seq_extremum_loop(w: WasmWriter, s1: i32, s2: i32, s3: i32, s4: i32, s5:
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
-fn emit_seq_extremum_candidate(w: WasmWriter, best_local: i32, data_local: i32, index_local: i32, candidate_local: i32, choose_max: bool) {
+fn emit_seq_extremum_candidate(mut w: WasmWriter, best_local: i32, data_local: i32, index_local: i32, candidate_local: i32, choose_max: bool) {
     writer_core::emit_local_get(w, data_local)
     writer_core::emit_local_get(w, index_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())

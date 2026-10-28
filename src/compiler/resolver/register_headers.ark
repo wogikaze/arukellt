@@ -6,7 +6,7 @@ use resolver::ast_decl_predicates
 use resolver::ast_access
 use resolver::register_use
 use corehir::decl_impl_target
-fn register_decl_headers(ctx: ResolveCtx, decls: Vec<AstNode>) {
+fn register_decl_headers(mut ctx: ResolveCtx, decls: Vec<AstNode>) {
     let count = len(decls)
     let mut i = 0
     while i < count {
@@ -43,7 +43,7 @@ fn register_decl_headers(ctx: ResolveCtx, decls: Vec<AstNode>) {
     }
 }
 
-fn register_non_type_decl_header(ctx: ResolveCtx, d: AstNode) {
+fn register_non_type_decl_header(mut ctx: ResolveCtx, d: AstNode) {
     if ast_decl_predicates::node_is_impl_decl(d) {
         register_impl_method_headers(ctx, d)
     } else if ast_decl_predicates::node_is_use(d) {
@@ -53,7 +53,7 @@ fn register_non_type_decl_header(ctx: ResolveCtx, d: AstNode) {
     }
 }
 
-fn register_impl_method_headers(ctx: ResolveCtx, d: AstNode) {
+fn register_impl_method_headers(mut ctx: ResolveCtx, d: AstNode) {
     let struct_name = impl_target::impl_self_type_name(d)
     let base_name = impl_target::impl_self_base_type_name(d)
     let trait_name = ast_access::node_text(d)

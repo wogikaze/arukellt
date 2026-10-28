@@ -8,7 +8,7 @@ use wasm::constants
 use wasm::opcodes
 use wasm::writer_core
 
-fn emit_wall_datetime_to_ms(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_wall_datetime_to_ms(mut w: WasmWriter, ctx: SelfEmitCtx) {
     // `wall-clock.now` returns datetime through the canonical result pointer:
     // seconds at offset 0 and nanoseconds at offset 8.
     // Load addresses follow the module memory index type (i64 under Memory64);
@@ -35,13 +35,13 @@ fn emit_wall_datetime_to_ms(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_numeric_i64_arith::emit_i64_add(w)
 }
 
-fn emit_i64_load_default(w: WasmWriter) {
+fn emit_i64_load_default(mut w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_I64_LOAD())
     writer_core::emit_byte(w, 3)
     writer_core::emit_leb128_u(w, 0)
 }
 
-fn emit_i64_const(w: WasmWriter, value: i64) {
+fn emit_i64_const(mut w: WasmWriter, value: i64) {
     writer_core::emit_byte(w, opcodes::OP_I64_CONST())
     writer_core::emit_leb128_s_i64(w, value)
 }

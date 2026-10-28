@@ -11,7 +11,7 @@ use main::dispatch_aux
 use main::project_build
 use main::project_run
 
-pub fn dispatch(opts: CliOptions) {
+pub fn dispatch(mut opts: CliOptions) {
     let command = args_record::cli_command(opts)
     if !dispatch_preflight(opts, command) {
         return
@@ -51,7 +51,7 @@ fn dispatch_command_allows_missing_input(opts: CliOptions, command: i32) -> bool
     command == kinds::CMD_DAP()
 }
 
-fn dispatch_route(opts: CliOptions, command: i32) {
+fn dispatch_route(mut opts: CliOptions, command: i32) {
     if dispatch_aux::dispatch_aux_command(opts, command) {
         return
     }

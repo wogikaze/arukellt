@@ -15,7 +15,7 @@ fn verify_mir_warn_only(m: MirModule) -> MirVerifyReport {
 }
 
 fn verify_mir_warn_only_verbose(m: MirModule, verbose: bool) -> MirVerifyReport {
-    let report = verify_report::MirVerifyReport_new()
+    let mut report = verify_report::MirVerifyReport_new()
     // W010 reads the lowering-produced layout plan; the emit-time GcLayoutTable
     // is built from this plan, so a missing binding here is a missing binding
     // when the local is declared.

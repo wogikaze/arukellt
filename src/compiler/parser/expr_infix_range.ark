@@ -5,11 +5,11 @@ use parser::core_ast_children
 use parser::expr_infix_result
 use parser::pratt
 
-fn parse_range_infix(p: Parser, lhs: AstNode, min_bp: i32) -> ParserInfixResult {
+fn parse_range_infix(mut p: Parser, lhs: AstNode, min_bp: i32) -> ParserInfixResult {
     if pratt::should_parse_range(min_bp) {
         p.pos = p.pos + 1
         let rhs = parse_expr_bp(p, 2)
-        let node = AstNode_new(kinds::NK_RANGE(), core_ast_span_fields::AstNode_span(lhs))
+        let mut node = AstNode_new(kinds::NK_RANGE(), core_ast_span_fields::AstNode_span(lhs))
         core_ast_children::AstNode_push_child(node, lhs)
         core_ast_children::AstNode_push_child(node, rhs)
         return expr_infix_result::ParserInfixResult_yes(node)

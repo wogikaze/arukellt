@@ -6,11 +6,11 @@ fn concat_str(a: String, b: String) -> Option<String> {
 }
 
 fn main() {
-    let v: Vec<String> = Vec::new<String>()
+    let mut v: Vec<String> = Vec::new<String>()
     push(v, String_from("a"))
     push(v, String_from("b"))
     let it = v.iter()
-    let scanned = it.scan(String_from(""), concat_str)
+    let mut scanned = it.scan(String_from(""), concat_str)
     let out = scanned.collect()
     test::assert_eq_i32(len(out), 2)
     test::assert_eq_string(get_unchecked(out, 0), "a")

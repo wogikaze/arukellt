@@ -1,6 +1,6 @@
 use std::prelude::{i64_to_i32}
 use wasm::writer_core
-fn emit_leb128_u(w: writer_core::WasmWriter, v: i32) {
+fn emit_leb128_u(mut w: writer_core::WasmWriter, v: i32) {
     let mut val = v
     if val < 0 {
         val = 0
@@ -19,7 +19,7 @@ fn emit_leb128_u(w: writer_core::WasmWriter, v: i32) {
     }
 }
 
-fn emit_leb128_s(w: writer_core::WasmWriter, v: i32) {
+fn emit_leb128_s(mut w: writer_core::WasmWriter, v: i32) {
     let mut val = v
     let mut more = true
     while more {
@@ -41,7 +41,7 @@ fn emit_leb128_s(w: writer_core::WasmWriter, v: i32) {
     }
 }
 
-fn emit_leb128_s_i64(w: writer_core::WasmWriter, v: i64) {
+fn emit_leb128_s_i64(mut w: writer_core::WasmWriter, v: i64) {
     let mut val = v
     let mut more = true
     while more {

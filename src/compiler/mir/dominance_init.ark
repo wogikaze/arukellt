@@ -8,7 +8,7 @@ fn mir_initialize_dominance_sets(f: MirFunction, block_count: i32) {
     let all_block_ids = dom_sets::mir_collect_all_block_ids(f)
     let mut i = 0
     while i < block_count {
-        let block = function_block_queries::MirFunction_block_at(f, i)
+        let mut block = function_block_queries::MirFunction_block_at(f, i)
         block_dominance_mutation::MirBlock_reset_idom(block)
         block_dominance_mutation::MirBlock_reset_dom_frontier(block)
         if i == 0 {

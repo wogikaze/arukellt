@@ -46,7 +46,7 @@ fn DocParseModState_new() -> DocParseModState {
     DocParseModState { name: String_new(), stability: String_new(), target: String_new(), doc: String_new() }
 }
 
-fn doc_parse_availability_line(line: String, state: DocParseFnState) -> DocParseFnState {
+fn doc_parse_availability_line(line: String, mut state: DocParseFnState) -> DocParseFnState {
     if contains(clone(line), String_from("t1 = false")) {
         state.avail_t1 = 0
     }
@@ -60,7 +60,7 @@ fn doc_parse_availability_line(line: String, state: DocParseFnState) -> DocParse
     state
 }
 
-fn doc_apply_fn_fields(state: DocParseFnState, line: String) -> DocParseFnState {
+fn doc_apply_fn_fields(mut state: DocParseFnState, line: String) -> DocParseFnState {
     let key_doc = toml::TomlText::find_value(clone(line), String_from("doc"))
     if len(key_doc) > 0 { state.doc = key_doc }
     let key_err = toml::TomlText::find_value(clone(line), String_from("errors"))
@@ -91,7 +91,7 @@ fn doc_apply_fn_fields(state: DocParseFnState, line: String) -> DocParseFnState 
     state
 }
 
-fn doc_flush_fn(out: Vec<manifest_doc_record::DocFnEntry>, state: DocParseFnState) {
+fn doc_flush_fn(mut out: Vec<manifest_doc_record::DocFnEntry>, state: DocParseFnState) {
     if len(state.name) == 0 || len(state.module) == 0 {
         return
     }
@@ -116,7 +116,7 @@ fn doc_flush_fn(out: Vec<manifest_doc_record::DocFnEntry>, state: DocParseFnStat
     )
 }
 
-fn doc_apply_mod_fields(state: DocParseModState, line: String) -> DocParseModState {
+fn doc_apply_mod_fields(mut state: DocParseModState, line: String) -> DocParseModState {
     let key_doc = toml::TomlText::find_value(clone(line), String_from("doc"))
     if len(key_doc) > 0 { state.doc = key_doc }
     let key_stab = toml::TomlText::find_value(clone(line), String_from("stability"))
@@ -130,7 +130,7 @@ fn doc_apply_mod_fields(state: DocParseModState, line: String) -> DocParseModSta
     state
 }
 
-fn doc_flush_mod(out: Vec<manifest_doc_record::DocModuleEntry>, state: DocParseModState) {
+fn doc_flush_mod(mut out: Vec<manifest_doc_record::DocModuleEntry>, state: DocParseModState) {
     if len(state.name) == 0 {
         return
     }
@@ -138,8 +138,8 @@ fn doc_flush_mod(out: Vec<manifest_doc_record::DocModuleEntry>, state: DocParseM
 }
 
 pub fn doc_parse_manifest(content: String) -> DocManifestTable {
-    let fns = Vec::new<DocFnEntry>()
-    let mods = Vec::new<DocModuleEntry>()
+    let mut fns = Vec::new<DocFnEntry>()
+    let mut mods = Vec::new<DocModuleEntry>()
     let mut fn_state = DocParseFnState_new()
     let mut mod_state = DocParseModState_new()
     let mut section = 0

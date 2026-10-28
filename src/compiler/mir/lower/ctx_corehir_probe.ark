@@ -38,11 +38,11 @@ fn mir_probe_skip_enabled() -> i32 {
 }
 
 fn mir_probe_corehir_call_names(exprs: Vec<CoreHirExpr>, root: i32) -> Vec<String> {
-    let names = Vec::new<String>()
+    let mut names = Vec::new<String>()
     if root < 0 || root >= len(exprs) {
         return names
     }
-    let queue = Vec::new<i32>()
+    let mut queue = Vec::new<i32>()
     push(queue, root)
     let mut qi = 0
     while qi < len(queue) {
@@ -79,7 +79,7 @@ fn mir_probe_dump_body_calls(caller: String, exprs: Vec<CoreHirExpr>, root: i32)
 // (MirLowerEntryFallbackBody wraps AstNode). Reuses the resolved-call
 // scanner so call detection matches the frontend exactly.
 fn mir_probe_dump_ast_calls(caller: String, node: AstNode) {
-    let names = Vec::new<String>()
+    let mut names = Vec::new<String>()
     mir_probe_ast_call_names(node, names)
     let mut i = 0
     while i < len(names) {
@@ -92,7 +92,7 @@ fn mir_probe_dump_ast_calls(caller: String, node: AstNode) {
 // rule as body_call_direct::corehir_direct_call_callee_name). Method calls
 // keep their raw method name tagged 'm:' since mono resolution needs the
 // receiver type, which the AST walk does not reproduce.
-fn mir_probe_ast_call_names(node: AstNode, names: Vec<String>) {
+fn mir_probe_ast_call_names(node: AstNode, mut names: Vec<String>) {
     let kind = frontend_ast_identity::corehir_node_kind(node)
     if frontend_expr_kind::corehir_kind_is_expr_call(kind) &&
     frontend_ast_children::corehir_node_child_count(node) > 0 {
@@ -118,7 +118,7 @@ fn mir_probe_dump_recorded_edges(m: MirModule, edges: Vec<i32>, fn_names: Vec<St
     let mark = 0 - 8
     let bias = 1000000
     let n = len(edges)
-    let frame_to_mir = Vec::new<i32>()
+    let mut frame_to_mir = Vec::new<i32>()
     let mut i = header
     while i < n {
         if get_unchecked(edges, i) == mark && i + 2 < n {
@@ -182,9 +182,9 @@ fn mir_probe_dump_recorded_edges(m: MirModule, edges: Vec<i32>, fn_names: Vec<St
 // name. [probeT] mismatch lines show name, mir value, fn_index value;
 // [probeT-miss] entries have no MIR fn at all (never emitted / pruned),
 // [probeT-extra] MIR fns missing from fn_index (synth/closure names).
-fn mir_probe_dump_return_table_diff(ctx: LowerCtx, module: MirModule) {
+fn mir_probe_dump_return_table_diff(mut ctx: LowerCtx, module: MirModule) {
     let fn_count = module_functions::MirModule_function_count(module)
-    let mir_by_name = name_index::NameIndex_new(fn_count)
+    let mut mir_by_name = name_index::NameIndex_new(fn_count)
     let mut mi = 0
     while mi < fn_count {
         let f = module_functions::MirModule_function_at(module, mi)
@@ -241,7 +241,7 @@ fn mir_probe_dump_ast_edge_coverage(
     let mark = 0 - 8
     let bias = 1000000
     let n = len(edges)
-    let frame_to_mir = Vec::new<i32>()
+    let mut frame_to_mir = Vec::new<i32>()
     let mut i = header
     while i < n {
         if get_unchecked(edges, i) == mark && i + 2 < n {
@@ -371,8 +371,8 @@ fn mir_probe_dump_ast_edge_coverage(
 // short form) to keep [probeE-ureach] measuring real gaps only.
 fn mir_probe_ast_enqueue_by_name(
     functions: Vec<MirFunction>,
-    ast_reach: Vec<i32>,
-    ast_queue: Vec<i32>,
+    mut ast_reach: Vec<i32>,
+    mut ast_queue: Vec<i32>,
     name: String
 ) {
     let want = resolver::use_module_short_name(clone(name))
@@ -411,13 +411,13 @@ fn mir_probe_dump_ast_reach_diff(
     }
     let functions = module_functions::MirModule_functions(m)
     let index = reachability_index::mir_reachability_index_build(m, functions)
-    let rec_reach = Vec::new<i32>()
+    let mut rec_reach = Vec::new<i32>()
     let mut zi = 0
     while zi < fn_count {
         push(rec_reach, 0)
         zi = zi + 1
     }
-    let rec_queue = Vec::new<i32>()
+    let mut rec_queue = Vec::new<i32>()
     let root_count = reachability_roots::mir_mark_roots(index, functions, rec_reach, rec_queue, clone(export_roots))
     if root_count <= 0 {
         stdio::eprintln("[probeE-reach] no roots; diff skipped")
@@ -442,13 +442,13 @@ fn mir_probe_dump_ast_reach_diff(
             edge_names
         )
     }
-    let ast_reach = Vec::new<i32>()
+    let mut ast_reach = Vec::new<i32>()
     zi = 0
     while zi < fn_count {
         push(ast_reach, 0)
         zi = zi + 1
     }
-    let ast_queue = Vec::new<i32>()
+    let mut ast_queue = Vec::new<i32>()
     reachability_roots::mir_mark_roots(index, functions, ast_reach, ast_queue, export_roots)
     let mut nocall = 0
     let mut printed = 0

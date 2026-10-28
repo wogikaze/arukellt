@@ -3,7 +3,7 @@ use typechecker::contract_type_access
 use typechecker::match_coverage_read_record
 use typechecker::unify
 
-fn check_builtin_match_exhaustive(env: TypeEnv, resolved_scrutinee: TypeInfo, coverage: MatchCoverage) {
+fn check_builtin_match_exhaustive(mut env: TypeEnv, resolved_scrutinee: TypeInfo, coverage: MatchCoverage) {
     let scrutinee_tag = contract_type_access::TypeInfo_tag(resolved_scrutinee)
     if scrutinee_tag == commands::TY_BOOL() {
         if !match_coverage_read_record::MatchCoverage_has_bool_true(coverage) || !match_coverage_read_record::MatchCoverage_has_bool_false(coverage) {

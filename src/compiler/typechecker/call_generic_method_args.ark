@@ -8,15 +8,15 @@ use typechecker::instantiate
 use typechecker::unify
 
 fn constrain_generic_method_args(
-    env: TypeEnv,
-    scope: LocalScope,
+    mut env: TypeEnv,
+    mut scope: LocalScope,
     fn_sigs: Vec<FnSig>,
     enum_defs: Vec<EnumInfo>,
     node: AstNode,
     sig: FnSig,
     recv_ty: TypeInfo,
     explicit_args: i32,
-    infer_env: TypeEnv,
+    mut infer_env: TypeEnv,
     var_names: Vec<String>,
     var_types: Vec<TypeInfo>
 ) -> TypeInfo {

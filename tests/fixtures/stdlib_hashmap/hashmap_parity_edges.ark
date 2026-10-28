@@ -18,7 +18,7 @@ fn assert_none(v: Option<i32>) {
 }
 
 test "zero_and_boundary_values_round_trip" {
-    let m: Vec<i32> = hash::hashmap_with_capacity(2)
+    let mut m: Vec<i32> = hash::hashmap_with_capacity(2)
     test::assert_true(hash::hashmap_set(m, 1, 0))
     test::assert_true(hash::hashmap_set(m, 3, 30))
     assert_some(hash::hashmap_get_option(m, 1), 0)
@@ -45,7 +45,7 @@ test "zero_and_boundary_values_round_trip" {
     test::assert_eq_i32(len(drained), 2)
     test::assert_true(hash::hashmap_is_empty(m))
 
-    let s: HashSet<String> = HashSet::new<String>()
+    let mut s: HashSet<String> = HashSet::new<String>()
     test::assert_true(s.insert("alpha"))
     test::assert_false(s.insert("alpha"))
     test::assert_true(s.contains("alpha"))

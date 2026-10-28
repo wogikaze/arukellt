@@ -4,7 +4,7 @@ use mir::lower::mono_instance_table
 use mir::lower::signature_spine
 use mir::module_record
 
-fn MirModule_set_signature_spine(m: MirModule, spine: MirSignatureSpine) {
+fn MirModule_set_signature_spine(mut m: MirModule, spine: MirSignatureSpine) {
     m.type_table = signature_spine::mir_signature_spine_type_table(spine)
     m.signature_registry = signature_spine::mir_signature_spine_registry(spine)
     m.mono_instance_table = signature_spine::mir_signature_spine_mono_table(spine)

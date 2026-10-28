@@ -8,7 +8,7 @@ use corehir::layout_decl_fields
 use corehir::layout_decl_name
 use corehir::layout_decl_type_params
 use corehir::layout_field
-fn mir_register_struct_layout(ctx: LowerCtx, decl: CoreHirLayoutDecl) {
+fn mir_register_struct_layout(mut ctx: LowerCtx, decl: CoreHirLayoutDecl) {
     let fc = layout_decl_fields::layout_decl_field_count(decl)
     let name = layout_decl_name::layout_decl_name(decl)
     ctx_struct_storage::ctx_struct_push_layout(ctx, clone(name), fc)
@@ -39,7 +39,7 @@ fn mir_register_struct_layout(ctx: LowerCtx, decl: CoreHirLayoutDecl) {
 
 // Second pass after every struct layout is pushed so nested fields (AstNode.span
 // → Span) resolve to gcsref even when the parent decl appears first.
-fn mir_register_struct_gc_types(ctx: LowerCtx) {
+fn mir_register_struct_gc_types(mut ctx: LowerCtx) {
     if !ctx_gc_struct::ctx_is_gc_target(ctx) {
         return
     }

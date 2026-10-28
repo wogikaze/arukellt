@@ -60,7 +60,7 @@ fn generic_inst_base_name(name: String) -> String {
 
 // "Pair<String,vec:i32>" -> ["String", "vec:i32"] split at top-level commas.
 fn generic_inst_args(name: String) -> Vec<String> {
-    let result = Vec::new<String>()
+    let mut result = Vec::new<String>()
     let n = len(name)
     if n < 3 || byte_at(clone(name), n - 1) != 62 {
         return result
@@ -160,7 +160,7 @@ fn ctx_substitute_generic_field_type(ft: String, params: Vec<String>, args: Vec<
 // Derive and register the layout for inst_name (Pair<String>) from the
 // generic base declaration. Idempotent; returns false when inst_name is
 // not a fully concrete instantiation of a registered generic struct.
-fn ctx_derive_generic_struct_layout(ctx: LowerCtx, inst_name: String) -> bool {
+fn ctx_derive_generic_struct_layout(mut ctx: LowerCtx, inst_name: String) -> bool {
     if ctx_struct_storage::ctx_struct_layout_first_index(ctx, clone(inst_name)) >= 0 {
         // A layout registered by a non-derive path can lack its GC struct;
         // keep the derive contract "layout + GC struct exist" on GC targets.
@@ -178,7 +178,7 @@ fn ctx_derive_generic_struct_layout(ctx: LowerCtx, inst_name: String) -> bool {
         return false
     }
     let args = generic_inst_args(clone(inst_name))
-    let params = Vec::new<String>()
+    let mut params = Vec::new<String>()
     // Split the comma-joined declared parameter list.
     let mut seg_start = 0
     let pn = len(joined)
@@ -238,7 +238,7 @@ fn ctx_derive_generic_struct_layout(ctx: LowerCtx, inst_name: String) -> bool {
 // Normalize a local/annotation type name to the monomorphized layout name
 // and derive its layout when possible. Handles ?Wrapper:T mono-body
 // spellings and Name<args> instantiations; other names pass through.
-fn ctx_derive_generic_struct_type_name(ctx: LowerCtx, type_name: String) -> String {
+fn ctx_derive_generic_struct_type_name(mut ctx: LowerCtx, type_name: String) -> String {
     if len(type_name) == 0 {
         return type_name
     }

@@ -11,7 +11,7 @@ use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i32_convert
 
 // Handler for: text::is_empty
-fn emit_text_is_empty(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_text_is_empty(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let s0 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
         helpers_core::emit_local_set(w, s0)
@@ -31,7 +31,7 @@ fn emit_text_is_empty(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 // Handler for: text::len_bytes
-fn emit_text_len_bytes(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_text_len_bytes(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let s0 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
         helpers_core::emit_local_set(w, s0)
@@ -47,7 +47,7 @@ fn emit_text_len_bytes(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 // Handler for: char_at
-fn emit_char_at(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_char_at(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_ca_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     helpers_core::emit_local_set(w, s_ca_i)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {

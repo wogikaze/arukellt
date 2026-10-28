@@ -20,7 +20,7 @@ use wasm::string_gc_helpers
 use wasm::writer_core
 use wasm::writer_gc
 
-fn emit_env_args_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+fn emit_env_args_gc(mut w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     let s_argc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_user = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_argv = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -91,7 +91,7 @@ fn emit_env_args_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
 // GC target: return the user argument at `index` as Option<String>.
 // `get-arguments` keeps argv[0], while the Ark surface counts user arguments
 // from 0, so index N reads element N+1 and the bound is argc - 1.
-fn emit_env_arg_at_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+fn emit_env_arg_at_gc(mut w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     let s_argc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_argv = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -128,7 +128,7 @@ fn emit_env_arg_at_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     true
 }
 
-fn emit_env_arg_at_gc_none(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32) {
+fn emit_env_arg_at_gc_none(mut w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32) {
     let mut none_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, "Option::None")
     if none_type < 0 {
         none_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
@@ -142,7 +142,7 @@ fn emit_env_arg_at_gc_none(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32) {
 }
 
 fn emit_env_arg_at_gc_some(
-    w: WasmWriter,
+    mut w: WasmWriter,
     ctx: SelfEmitCtx,
     s_idx: i32,
     s_argc: i32,
@@ -179,7 +179,7 @@ fn emit_env_arg_at_gc_some(
     helpers_control::emit_end(w)
 }
 
-fn emit_env_arg_at_gc_load_p2(w: WasmWriter, s_argv: i32, s_idx: i32, s_ptr: i32, s_len: i32) {
+fn emit_env_arg_at_gc_load_p2(mut w: WasmWriter, s_argv: i32, s_idx: i32, s_ptr: i32, s_len: i32) {
     // Each canonical list element is a four-byte pointer plus a four-byte
     // length; `local.tee` keeps the element address for the length load.
     helpers_core::emit_local_get(w, s_argv)
@@ -201,7 +201,7 @@ fn emit_env_arg_at_gc_load_p2(w: WasmWriter, s_argv: i32, s_idx: i32, s_ptr: i32
     helpers_core::emit_local_set(w, s_len)
 }
 
-fn emit_env_arg_at_gc_load_p1(w: WasmWriter, s_argv: i32, s_idx: i32, s_ptr: i32, s_len: i32) {
+fn emit_env_arg_at_gc_load_p1(mut w: WasmWriter, s_argv: i32, s_idx: i32, s_ptr: i32, s_len: i32) {
     // Preview 1 argv is an i32 pointer table into NUL-terminated strings.
     helpers_core::emit_local_get(w, s_argv)
     helpers_core::emit_local_get(w, s_idx)
@@ -214,7 +214,7 @@ fn emit_env_arg_at_gc_load_p1(w: WasmWriter, s_argv: i32, s_idx: i32, s_ptr: i32
 }
 
 fn emit_env_arg_at_gc_build(
-    w: WasmWriter,
+    mut w: WasmWriter,
     s_ptr: i32,
     s_len: i32,
     s_k: i32,
@@ -238,7 +238,7 @@ fn emit_env_arg_at_gc_build(
 }
 
 fn emit_env_args_gc_fetch(
-    w: WasmWriter,
+    mut w: WasmWriter,
     ctx: SelfEmitCtx,
     s_argc: i32,
     s_argv: i32,
@@ -282,7 +282,7 @@ fn emit_env_args_gc_fetch(
     helpers_core::emit_drop(w)
 }
 
-fn emit_env_args_gc_fetch_p2(w: WasmWriter, ctx: SelfEmitCtx, s_argc: i32, s_argv: i32) {
+fn emit_env_args_gc_fetch_p2(mut w: WasmWriter, ctx: SelfEmitCtx, s_argc: i32, s_argv: i32) {
     // `get-arguments` returns a canonical list through the result pointer:
     // pointer at +0 and element count at +4. Each element is a `(ptr, len)`
     // pair, so no NUL-terminated compatibility buffer is needed.
@@ -297,7 +297,7 @@ fn emit_env_args_gc_fetch_p2(w: WasmWriter, ctx: SelfEmitCtx, s_argc: i32, s_arg
 }
 
 fn emit_env_args_gc_store_one_p2(
-    w: WasmWriter,
+    mut w: WasmWriter,
     s_argv: i32,
     s_li: i32,
     s_cstr: i32,
@@ -349,7 +349,7 @@ fn emit_env_args_gc_store_one_p2(
 }
 
 fn emit_env_args_gc_store_one(
-    w: WasmWriter,
+    mut w: WasmWriter,
     s_argv: i32,
     s_li: i32,
     s_cstr: i32,
@@ -389,7 +389,7 @@ fn emit_env_args_gc_store_one(
     emit_env_args_gc_copy_bytes(w, s_cstr, s_slen, s_str, s_k, string_type)
 }
 
-fn emit_env_args_gc_cstr_len(w: WasmWriter, s_cstr: i32, s_slen: i32) {
+fn emit_env_args_gc_cstr_len(mut w: WasmWriter, s_cstr: i32, s_slen: i32) {
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_slen)
     helpers_control::emit_block_loop_header(w)
@@ -407,7 +407,7 @@ fn emit_env_args_gc_cstr_len(w: WasmWriter, s_cstr: i32, s_slen: i32) {
     helpers_control::emit_block_loop_footer(w)
 }
 
-fn emit_env_args_gc_copy_bytes(w: WasmWriter, s_cstr: i32, s_slen: i32, s_str: i32, s_k: i32, string_type: i32) {
+fn emit_env_args_gc_copy_bytes(mut w: WasmWriter, s_cstr: i32, s_slen: i32, s_str: i32, s_k: i32, string_type: i32) {
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_k)
     helpers_control::emit_block_loop_header(w)

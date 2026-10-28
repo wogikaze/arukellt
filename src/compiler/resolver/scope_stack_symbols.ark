@@ -20,15 +20,15 @@ fn Symbol_is_pub(sym: Symbol) -> bool {
     symbol_record::symbol_is_pub(sym)
 }
 
-fn Symbol_set_kind(sym: Symbol, kind: i32) {
+fn Symbol_set_kind(mut sym: Symbol, kind: i32) {
     symbol_record::symbol_set_kind(sym, kind)
 }
 
-fn Symbol_set_decl_index(sym: Symbol, decl_index: i32) {
+fn Symbol_set_decl_index(mut sym: Symbol, decl_index: i32) {
     symbol_record::symbol_set_decl_index(sym, decl_index)
 }
 
-fn Symbol_set_is_pub(sym: Symbol, is_pub: bool) {
+fn Symbol_set_is_pub(mut sym: Symbol, is_pub: bool) {
     symbol_record::symbol_set_is_pub(sym, is_pub)
 }
 

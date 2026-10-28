@@ -3,7 +3,7 @@ use resolver::ast_access
 use resolver::walk_control
 use resolver::walk_exprs
 
-fn resolve_node(ctx: ResolveCtx, node: AstNode) {
+fn resolve_node(mut ctx: ResolveCtx, mut node: AstNode) {
     if walk_exprs::resolve_expr_node(ctx, node) {
         return
     }
@@ -16,11 +16,11 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
     resolve_children(ctx, node)
 }
 
-fn resolve_children(ctx: ResolveCtx, node: AstNode) {
+fn resolve_children(mut ctx: ResolveCtx, node: AstNode) {
     let child_count = ast_access::node_child_count(node)
     let mut i = 0
     while i < child_count {
-        let child = ast_access::node_child_at(node, i)
+        let mut child = ast_access::node_child_at(node, i)
         resolve_node(ctx, child)
         i = i + 1
     }

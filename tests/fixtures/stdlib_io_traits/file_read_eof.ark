@@ -8,7 +8,7 @@ use std::host::stdio
 use std::io
 use std::io::{Read, Seek, SeekFrom}
 
-fn print_read<T: io::Read>(source: T, max_bytes: i32) {
+fn print_read<T: io::Read>(mut source: T, max_bytes: i32) {
     match source.read(max_bytes) {
         Result::Ok(bytes) => {
             stdio::println((len(bytes)).to_string())
@@ -29,7 +29,7 @@ fn print_position<T: io::Seek>(source: T) {
     }
 }
 
-fn print_seek<T: io::Seek>(source: T, from: SeekFrom) {
+fn print_seek<T: io::Seek>(mut source: T, from: SeekFrom) {
     match source.seek(from) {
         Result::Ok(position) => stdio::println((position).to_string()),
         Result::Err(err) => stdio::println(io::io_error_message(err)),
@@ -63,7 +63,7 @@ fn main() {
             // Explicit handle type keeps the generic print helpers on a
             // concrete mono instance; the match payload itself only carries a
             // type variable (#693 Phase D generic dispatch).
-            let file: fs::File = file
+            let mut file: fs::File = file
             print_read(file, 3)
             print_read(file, 3)
             print_read(file, 3)

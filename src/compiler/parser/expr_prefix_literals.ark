@@ -17,16 +17,16 @@ fn is_literal_prefix(kind: i32) -> bool {
     || kind == tokens::TK_CHAR()
 }
 
-fn parse_literal_prefix(p: Parser, t: Token) -> AstNode {
+fn parse_literal_prefix(mut p: Parser, t: Token) -> AstNode {
     p.pos = p.pos + 1
     let kind = token_state::Token_kind(t)
     if kind == tokens::TK_INT() {
-        let node = core_ast_literal_factory::make_int_lit(token_state::Token_int_val(t), core_api_expect::tok_span(t))
+        let mut node = core_ast_literal_factory::make_int_lit(token_state::Token_int_val(t), core_api_expect::tok_span(t))
         core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(t))
         return node
     }
     if kind == tokens::TK_FLOAT() {
-        let node = core_ast_literal_factory::make_float_lit(token_state::Token_float_val(t), core_api_expect::tok_span(t))
+        let mut node = core_ast_literal_factory::make_float_lit(token_state::Token_float_val(t), core_api_expect::tok_span(t))
         // Preserve lexeme (including f32/f64 suffix) for typecheck + MIR lowering.
         core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(t))
         return node
@@ -40,7 +40,7 @@ fn parse_literal_prefix(p: Parser, t: Token) -> AstNode {
     if kind == tokens::TK_BOOL() {
         return core_ast_factory::AstNode_leaf(kinds::NK_BOOL_LIT(), token_state::Token_text(t), core_api_expect::tok_span(t))
     }
-    let char_node = core_ast_factory::AstNode_new(kinds::NK_CHAR_LIT(), core_api_expect::tok_span(t))
+    let mut char_node = core_ast_factory::AstNode_new(kinds::NK_CHAR_LIT(), core_api_expect::tok_span(t))
     core_ast_literal_fields::AstNode_set_int_val(char_node, token_state::Token_int_val(t))
     char_node
 }

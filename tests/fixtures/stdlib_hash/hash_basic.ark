@@ -2,7 +2,7 @@ use std::collections::hash
 use std::host::stdio
 
 fn main() {
-    let m: Vec<i32> = hash::hashmap_new()
+    let mut m: Vec<i32> = hash::hashmap_new()
     hash::hashmap_set(m, 42, 100)
     hash::hashmap_set(m, 7, 200)
     stdio::println((hash::hashmap_size(m)).to_string())

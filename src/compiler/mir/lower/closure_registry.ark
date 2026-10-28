@@ -18,15 +18,15 @@ use mir::function_param_view
 use mir::function_identity
 use mir::lower::closure_storage
 use mir::value_types
-fn closure_clear_pending_bind(ctx: LowerCtx) {
+fn closure_clear_pending_bind(mut ctx: LowerCtx) {
     closure_storage::closure_storage_clear_pending_bind(ctx)
 }
 
-fn closure_next_synth_name(ctx: LowerCtx) -> String {
+fn closure_next_synth_name(mut ctx: LowerCtx) -> String {
     closure_storage::closure_storage_next_synth_name(ctx)
 }
 
-fn closure_flush_pending_bind(ctx: LowerCtx, bind_name: String) {
+fn closure_flush_pending_bind(mut ctx: LowerCtx, bind_name: String) {
     if len(closure_storage::closure_storage_pending_synth(ctx)) == 0 && !ctx.closure_last_identity {
         return
     }
@@ -34,7 +34,7 @@ fn closure_flush_pending_bind(ctx: LowerCtx, bind_name: String) {
     closure_clear_pending_bind(ctx)
 }
 
-fn closure_register_synth_fn(ctx: LowerCtx, mf: MirFunction, packed: String, extra: i32, has_env_cell: i32, wb_caps: Vec<String>, wb_rebinds: Vec<i32>, wb_is_move: i32) -> i32 {
+fn closure_register_synth_fn(mut ctx: LowerCtx, mut mf: MirFunction, packed: String, extra: i32, has_env_cell: i32, wb_caps: Vec<String>, wb_rebinds: Vec<i32>, wb_is_move: i32) -> i32 {
     ctx_api_module::ctx_push_module_function(ctx, mf)
     ctx_fn_mono::ctx_register_fn_signature(ctx, function_identity::MirFunction_name(mf), function_return_view::MirFunction_return_type(mf), "")
     // Managed env pair ABI (#872): the fn value is a {fnptr, env} record.
@@ -44,8 +44,8 @@ fn closure_register_synth_fn(ctx: LowerCtx, mf: MirFunction, packed: String, ext
     let synth = function_identity::MirFunction_name(mf)
     let type_name = closure_funcref_type_name(mf, extra + has_env_cell)
     let cap_names = closure_env::closure_split_packed(packed)
-    let cap_vts = Vec::new<i32>()
-    let cap_types = Vec::new<String>()
+    let mut cap_vts = Vec::new<i32>()
+    let mut cap_types = Vec::new<String>()
     let mut ci = 0
     while ci < len(cap_names) {
         let li = ctx_api_local_alloc::ctx_lookup_local(ctx, clone(get_unchecked(cap_names, ci)))
@@ -113,7 +113,7 @@ fn closure_register_synth_fn(ctx: LowerCtx, mf: MirFunction, packed: String, ext
     pair
 }
 
-fn closure_register_identity(ctx: LowerCtx) -> i32 {
+fn closure_register_identity(mut ctx: LowerCtx) -> i32 {
     closure_storage::closure_storage_set_pending_identity(ctx)
     0 - 1
 }

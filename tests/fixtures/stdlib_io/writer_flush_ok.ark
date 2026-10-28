@@ -2,7 +2,7 @@ use std::io
 use std::test
 
 fn main() {
-    let w: io::Writer = io::Writer::new()
+    let mut w: io::Writer = io::Writer::new()
     let res: Result<(), io::IoError> = w.flush()
     match res {
         Result::Ok(_) => (),

@@ -20,7 +20,7 @@ fn MirModule_gc_enum_variant_sigs(m: MirModule) -> Vec<String> {
     m.gc_enum_variant_sigs
 }
 
-fn MirModule_push_gc_enum_variant(m: MirModule, name: String, sig: String) {
+fn MirModule_push_gc_enum_variant(mut m: MirModule, name: String, sig: String) {
     push(m.gc_enum_variant_names, name)
     push(m.gc_enum_variant_sigs, sig)
     push(m.gc_enum_variant_canon_idx, 0 - 1)
@@ -36,7 +36,7 @@ fn MirModule_gc_enum_variant_canon_idx_at(m: MirModule, slot: i32) -> i32 {
     get_unchecked(m.gc_enum_variant_canon_idx, slot)
 }
 
-fn MirModule_set_gc_enum_variant_canon_idx(m: MirModule, slot: i32, canon_idx: i32) {
+fn MirModule_set_gc_enum_variant_canon_idx(mut m: MirModule, slot: i32, canon_idx: i32) {
     if slot < 0 || slot >= len(m.gc_enum_variant_canon_idx) {
         return
     }

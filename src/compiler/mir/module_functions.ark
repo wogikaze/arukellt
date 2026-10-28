@@ -18,17 +18,17 @@ fn MirModule_function_at(m: MirModule, idx: i32) -> MirFunction {
     get_unchecked(m.functions, idx)
 }
 
-fn MirModule_set_functions(m: MirModule, functions: Vec<MirFunction>) {
+fn MirModule_set_functions(mut m: MirModule, functions: Vec<MirFunction>) {
     m.functions = functions
 }
 
-fn MirModule_set_function_at(m: MirModule, idx: i32, f: MirFunction) {
+fn MirModule_set_function_at(mut m: MirModule, idx: i32, f: MirFunction) {
     // In-place slot update: rebuilding the whole functions Vec per call is
     // Θ(F) alloc+copy and compounds under bump allocation (#823 / #730).
     set(m.functions, idx, f)
 }
 
-fn MirModule_set_export_names(m: MirModule, names: Vec<String>) {
+fn MirModule_set_export_names(mut m: MirModule, names: Vec<String>) {
     m.export_names = names
     m.export_surface_set = true
 }
@@ -47,7 +47,7 @@ fn MirModule_has_export_name(m: MirModule, name: String) -> bool {
     false
 }
 
-fn MirModule_push_function(m: MirModule, f: MirFunction) {
+fn MirModule_push_function(mut m: MirModule, f: MirFunction) {
     push(m.functions, f)
     // Keep 'return_variant_slots' parallel: 'unrecorded' marks functions
     // pushed outside the ctx lower path (smoke fixtures, ad-hoc modules)
@@ -68,7 +68,7 @@ fn MirModule_return_variant_slot_at(m: MirModule, idx: i32) -> i32 {
     get_unchecked(m.return_variant_slots, idx)
 }
 
-fn MirModule_set_return_variant_slot_at(m: MirModule, idx: i32, slot: i32) {
+fn MirModule_set_return_variant_slot_at(mut m: MirModule, idx: i32, slot: i32) {
     if idx < 0 || idx >= len(m.return_variant_slots) {
         return
     }
@@ -79,7 +79,7 @@ fn MirModule_return_variant_slots(m: MirModule) -> Vec<i32> {
     m.return_variant_slots
 }
 
-fn MirModule_set_return_variant_slots(m: MirModule, slots: Vec<i32>) {
+fn MirModule_set_return_variant_slots(mut m: MirModule, slots: Vec<i32>) {
     m.return_variant_slots = slots
 }
 
@@ -97,7 +97,7 @@ fn MirModule_discovery_fn_ret_names(m: MirModule) -> Vec<String> {
 // compile diagnostic rather than invalid core Wasm (#906).
 // Identical messages are deduplicated because the same weak scrutinee
 // can be visited by several lowering paths in one module.
-fn MirModule_record_diagnostic(m: MirModule, message: String) {
+fn MirModule_record_diagnostic(mut m: MirModule, message: String) {
     let mut i = 0
     while i < len(m.diagnostics) {
         if eq(get_unchecked(m.diagnostics, i), clone(message)) {
@@ -111,7 +111,7 @@ fn MirModule_record_diagnostic(m: MirModule, message: String) {
 // Takes the recorded diagnostics out of the module, leaving an empty
 // list. Returning the Vec keeps callers on std sequence ops instead of
 // one accessor per query.
-fn MirModule_drain_diagnostics(m: MirModule) -> Vec<String> {
+fn MirModule_drain_diagnostics(mut m: MirModule) -> Vec<String> {
     let out = clone(m.diagnostics)
     m.diagnostics = Vec::new<String>()
     out

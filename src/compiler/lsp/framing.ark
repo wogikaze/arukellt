@@ -7,7 +7,7 @@ fn frame(body: String) -> String {
     framing_output::frame(body)
 }
 
-pub fn append_framed(state: LspState, body: String) {
+pub fn append_framed(mut state: LspState, body: String) {
     framing_output::append_framed(state, body)
 }
 

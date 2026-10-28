@@ -22,9 +22,9 @@ use mir::mono
 use corehir::function_id
 use corehir::type_contracts
 fn mir_build_signature_spine_from_view(view: CoreHirMirView, midx: MonoIndex, expected_fn_names: Vec<String>) -> MirSignatureSpine {
-    let table = type_table::TypeTable_new()
-    let registry = signature_registry::SignatureRegistry_new()
-    let mono_table = mono_instance_table::MonoInstanceTable_new()
+    let mut table = type_table::TypeTable_new()
+    let mut registry = signature_registry::SignatureRegistry_new()
+    let mut mono_table = mono_instance_table::MonoInstanceTable_new()
     let decl_source = decl_source::mir_decl_source_from_view(view)
     let decl_count = decl_source::mir_decl_source_count(decl_source)
     let source = fn_index_source::mir_fn_index_source_from_view(view)
@@ -50,7 +50,7 @@ fn mir_build_signature_spine_from_view(view: CoreHirMirView, midx: MonoIndex, ex
     signature_spine::MirSignatureSpine_new(table, registry, mono_table)
 }
 
-fn signature_registry_apply_core_op_bindings(registry: SignatureRegistry) {
+fn signature_registry_apply_core_op_bindings(mut registry: SignatureRegistry) {
     let count = signature_registry::signature_registry_entry_count(registry)
     let mut i = 0
     while i < count {
@@ -81,9 +81,9 @@ fn sig_reg_log_count_match(expected_fn_names: Vec<String>, registry: SignatureRe
 }
 
 fn sig_reg_index_top_level_fn(
-    table: TypeTable,
-    registry: SignatureRegistry,
-    mono_table: MonoInstanceTable,
+    mut table: TypeTable,
+    mut registry: SignatureRegistry,
+    mut mono_table: MonoInstanceTable,
     source: MirLowerFnIndexSource,
     sig_source: CoreHirMirSignatureSource,
     midx: MonoIndex,
@@ -246,9 +246,9 @@ fn sig_reg_fn_is_signature_only(
 }
 
 fn sig_reg_index_impl_methods(
-    table: TypeTable,
-    registry: SignatureRegistry,
-    mono_table: MonoInstanceTable,
+    mut table: TypeTable,
+    mut registry: SignatureRegistry,
+    mut mono_table: MonoInstanceTable,
     source: MirLowerFnIndexSource,
     sig_source: CoreHirMirSignatureSource,
     midx: MonoIndex,

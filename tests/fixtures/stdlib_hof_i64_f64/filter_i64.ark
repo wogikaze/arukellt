@@ -10,7 +10,7 @@ fn main() {
     push(v, 10i64)
     push(v, -3i64)
     push(v, 20i64)
-    let pos: Vec<i64> = Vec::new<i64>()
+    let mut pos: Vec<i64> = Vec::new<i64>()
     let mut filter_index: i32 = 0
     while filter_index < len(v) {
         let filter_value = get_unchecked(v, filter_index)

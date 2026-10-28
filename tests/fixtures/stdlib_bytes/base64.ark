@@ -3,7 +3,7 @@ use std::bytes::Bytes
 use std::host::stdio
 use std::prelude::{eq}
 fn main() {
-    let b: Vec<i32> = Vec::new<i32>()
+    let mut b: Vec<i32> = Vec::new<i32>()
     b.push_byte(77)
     b.push_byte(97)
     b.push_byte(110)
@@ -12,11 +12,11 @@ fn main() {
     let dec: Vec<i32> = Bytes::from_base64(enc)
     stdio::println((dec.len()).to_string())
     stdio::println((b.equals_bytes(dec)).to_string())
-    let one: Vec<i32> = Vec::new<i32>()
+    let mut one: Vec<i32> = Vec::new<i32>()
     one.push_byte(77)
     let enc1: String = one.to_base64()
     stdio::println(enc1)
-    let two: Vec<i32> = Vec::new<i32>()
+    let mut two: Vec<i32> = Vec::new<i32>()
     two.push_byte(77)
     two.push_byte(97)
     let enc2: String = two.to_base64()

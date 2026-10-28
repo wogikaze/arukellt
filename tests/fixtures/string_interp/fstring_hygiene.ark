@@ -29,14 +29,14 @@ fn main() {
     test::assert_eq_string(interpolated, explicit_core)
     test::assert_eq_string(f"{1:?}", "1")
 
-    let loop_source: Vec<String> = Vec::new<String>()
+    let mut loop_source: Vec<String> = Vec::new<String>()
     loop_source.push("iteration")
     for item in loop_source {
         stdio::println(item)
     }
 
     let push = |target: i32, _value: i32| -> i32 { target }
-    let comprehension_source: Vec<i32> = Vec::new<i32>()
+    let mut comprehension_source: Vec<i32> = Vec::new<i32>()
     comprehension_source.push(7)
     comprehension_source.push(8)
     let projected = [item for item in comprehension_source]

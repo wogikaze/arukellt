@@ -48,7 +48,7 @@ fn compile_source(source: String, config: DriverConfig) -> CompileResult {
 }
 
 fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64, parse_warnings: Vec<Diagnostic>) -> CompileResult {
-    let resolved = backend_resolve::backend_resolve(source, config, decls)
+    let mut resolved = backend_resolve::backend_resolve(source, config, decls)
     if backend_resolve::resolve_result_should_return(resolved) {
         return backend_resolve::resolve_result_result(resolved)
     }
@@ -57,7 +57,7 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
         return result_record::CompileResult_ok(phases::PHASE_RESOLVE())
     }
     let all_decls = module_decls::combine_loaded_and_main_decls(backend_resolve::resolve_result_loaded_modules(resolved), decls)
-    let checked = backend_typecheck::backend_typecheck(
+    let mut checked = backend_typecheck::backend_typecheck(
         clone(source),
         config,
         all_decls,
@@ -100,9 +100,9 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     }
     mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
     let t_typecheck = backend_typecheck::typecheck_result_t_typecheck(checked)
-    let mir_lowered = lower::lower_checked_program(program, config, clone(source))
+    let mut mir_lowered = lower::lower_checked_program(program, config, clone(source))
     let t_lower = Clock::monotonic_now()
-    let mir_module = mir_opt::optimize_module(mir_lowered, config_record::config_opt_level(config), config_record::config_target(config))
+    let mut mir_module = mir_opt::optimize_module(mir_lowered, config_record::config_opt_level(config), config_record::config_target(config))
     let t_mir_opt = Clock::monotonic_now()
     // Lower-phase diagnostics: emit-side code paths that could not pick a
     // sound lowering (e.g. an Option/Result payload bind on a scrutinee

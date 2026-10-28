@@ -17,12 +17,12 @@ use mir::local_access
 use mir::opcodes
 use mir::value_types
 use wasm::writer_core
-fn emit_gc_enum_open_local(body: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_gc_enum_open_local(mut body: WasmWriter, ctx: SelfEmitCtx) {
     writer_core::emit_byte(body, constants::WASM_REF_NULL())
     writer_core::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
 }
 // Enum/option/result/return-temp open-enum local typing.
-fn emit_gc_local_enum_like(body: WasmWriter, f: MirFunction, local_idx: i32, type_name: String, variant_slot: i32, ctx: SelfEmitCtx) -> bool {
+fn emit_gc_local_enum_like(mut body: WasmWriter, f: MirFunction, local_idx: i32, type_name: String, variant_slot: i32, ctx: SelfEmitCtx) -> bool {
     if code_ref_locals_scan::local_feeds_return(f, local_idx, ctx) && code_ref_locals::mir_function_returns_enum_open(f) {
         emit_gc_enum_open_local(body, ctx)
         return true
@@ -136,7 +136,7 @@ fn local_has_container_type_name(type_name: String) -> bool {
     false
 }
 // GC-target local val type for hashmap/string/inferred types.
-fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
+fn emit_gc_local_named_type(mut body: WasmWriter, type_name: String, vt: i32, f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
     if starts_with(clone(type_name), "hashmap:") {
         if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx) {
             // Local is reused for i32 — skip ref type, try inference fallback.
@@ -173,7 +173,7 @@ fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: Mir
     emit_gc_local_struct_type(body, type_name, vt, f, local_idx, ctx)
 }
 // GC-target local val type for struct:/raw struct names, with inference fallback.
-fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
+fn emit_gc_local_struct_type(mut body: WasmWriter, type_name: String, vt: i32, f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
     if eq(clone(type_name), "HashMap") ||
     eq(clone(type_name), "HashSet") ||
     starts_with(clone(type_name), "struct:HashMap:") ||
@@ -295,7 +295,7 @@ fn extract_struct_byte_size(type_name: String) -> i32 {
     byte_size
 }
 // Spine-only local GC type (#843). Body-scan infer removed.
-fn emit_gc_local_inferred_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32, ctx: SelfEmitCtx) -> bool {
+fn emit_gc_local_inferred_type(mut body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32, ctx: SelfEmitCtx) -> bool {
     // A stale GC spine entry must not turn a scalar temporary into a ref local.
     // This is common for a direct f64 constant such as `signal::pi`: the MIR
     // producer is scalar even though an earlier type pass left a reference

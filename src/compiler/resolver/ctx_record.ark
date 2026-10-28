@@ -37,7 +37,7 @@ fn ResolveCtx_new_empty() -> ResolveCtx {
 // The typechecker needs each imported module's decl region to give function
 // signatures module-qualified index keys (mod::f). resolve_program stores
 // the same module list it registers so later phases can recover it.
-fn resolve_ctx_set_modules(ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
+fn resolve_ctx_set_modules(mut ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
     ctx.modules = modules
 }
 
@@ -57,7 +57,7 @@ fn resolve_ctx_scope_at(ctx: ResolveCtx, index: i32) -> Scope {
     get_unchecked(ctx.scopes, index)
 }
 
-fn resolve_ctx_push_scope_value(ctx: ResolveCtx, scope: Scope) {
+fn resolve_ctx_push_scope_value(mut ctx: ResolveCtx, scope: Scope) {
     push(ctx.scopes, scope)
 }
 
@@ -65,7 +65,7 @@ fn resolve_ctx_current_depth(ctx: ResolveCtx) -> i32 {
     ctx.current_depth
 }
 
-fn resolve_ctx_take_next_decl_index(ctx: ResolveCtx) -> i32 {
+fn resolve_ctx_take_next_decl_index(mut ctx: ResolveCtx) -> i32 {
     let idx = ctx.next_decl_index
     ctx.next_decl_index = ctx.next_decl_index + 1
     idx
@@ -75,7 +75,7 @@ fn resolve_ctx_target(ctx: ResolveCtx) -> String {
     clone(ctx.target)
 }
 
-fn resolve_ctx_set_target(ctx: ResolveCtx, target: String) {
+fn resolve_ctx_set_target(mut ctx: ResolveCtx, target: String) {
     ctx.target = target
 }
 
@@ -83,24 +83,24 @@ fn resolve_ctx_has_target_and_host_profile(ctx: ResolveCtx, target: String, host
     eq(clone(ctx.target), target) && eq(clone(ctx.host_profile), host_profile)
 }
 
-fn resolve_ctx_set_host_profile(ctx: ResolveCtx, host_profile: String) {
+fn resolve_ctx_set_host_profile(mut ctx: ResolveCtx, host_profile: String) {
     ctx.host_profile = host_profile
 }
 
-fn resolve_ctx_push_depth(ctx: ResolveCtx) {
+fn resolve_ctx_push_depth(mut ctx: ResolveCtx) {
     ctx.current_depth = ctx.current_depth + 1
 }
 
-fn resolve_ctx_pop_depth(ctx: ResolveCtx) {
+fn resolve_ctx_pop_depth(mut ctx: ResolveCtx) {
     ctx.current_depth = ctx.current_depth - 1
 }
 
-fn resolve_ctx_push_error(ctx: ResolveCtx, msg: String) {
+fn resolve_ctx_push_error(mut ctx: ResolveCtx, msg: String) {
     ctx.error_count = ctx.error_count + 1
     push(ctx.errors, msg)
 }
 
-fn resolve_ctx_push_diagnostic(ctx: ResolveCtx, diag: Diagnostic) {
+fn resolve_ctx_push_diagnostic(mut ctx: ResolveCtx, diag: Diagnostic) {
     push(ctx.diagnostics, diag)
 }
 
@@ -124,7 +124,7 @@ fn resolve_ctx_error_at(ctx: ResolveCtx, index: i32) -> String {
     clone(get_unchecked(ctx.errors, index))
 }
 
-fn resolve_ctx_add_use_alias(ctx: ResolveCtx, short_name: String, target: String) {
+fn resolve_ctx_add_use_alias(mut ctx: ResolveCtx, short_name: String, target: String) {
     let count = len(ctx.use_alias_shorts)
     let mut i = 0
     while i < count {
