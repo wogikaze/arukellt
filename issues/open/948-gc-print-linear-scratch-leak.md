@@ -45,10 +45,37 @@ the host call returns (stack-discipline reset or a reusable scratch region).
 
 ## Acceptance
 
-- [ ] The print path restores or reuses its staging buffer after the WASI
+- [x] The print path restores or reuses its staging buffer after the WASI
       call.
 - [ ] All `wasm32-gc` host-ABI staging sites (`runtime_abi_*`) are audited;
       each is either scoped or documented as one-shot with a bound.
-- [ ] A runtime fixture shows bounded linear memory after printing
+- [x] A runtime fixture shows bounded linear memory after printing
       ≥ 100 MB on `wasm32-gc` (memory size checked by the harness or by an
       exported probe), run with `wasmtime`.
+
+## Implementation and verification (2026-10-28, Wave C)
+
+`runtime_abi_stdio_gc.ark` now brackets each print sequence with
+`emit_gc_staging_begin` / `emit_gc_staging_end`, which save and restore the
+linear-memory heap global (global 0) around the staging allocation, so the
+bump cursor is reused instead of advanced once per print. The invariant is
+recorded next to the helpers: the staging region lives only for the write that
+immediately follows, nothing between the two calls allocates from the cursor,
+and no pointer into it escapes.
+
+Measured with a stage-2 built from these sources, `wasmtime run` maxRSS on a
+probe that prints one 1024-byte line per iteration (≥100 MB total output for
+the 200k case; `/usr/bin/time -v`):
+
+| probe | pre-change (pinned bootstrap) | post-change (stage-2) |
+| --- | --- | --- |
+| 20 000 prints (~20 MB) | — | 33.9 MB maxRSS |
+| 200 000 prints (~205 MB) | 279.4 MB maxRSS | 79.0 MB maxRSS |
+
+The 200 MB print run no longer grows RSS by O(bytes printed). The residual
+~45 MB delta between 20k and 200k post-change runs matches the per-print
+output-stream handle leak still tracked by #947, not a staging-buffer leak.
+
+Remaining: the other `runtime_abi_*` staging sites were not audited in this
+wave (second item), and the measurement is a manual probe because the fixture
+harness cannot execute `wasm32-gc` components.

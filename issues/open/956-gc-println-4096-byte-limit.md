@@ -65,5 +65,32 @@ loop over the stream or the API contract should state the limit. Related stream 
 
 ## Acceptance
 
-- [ ] `println` of a 1 MB string on `wasm32-gc` succeeds (looped write) or fails with a documented, actionable diagnostic.
+- [x] `println` of a 1 MB string on `wasm32-gc` succeeds (looped write) or fails with a documented, actionable diagnostic.
 - [ ] Fixture covers >4096-byte stdout on `wasm32-gc`.
+
+## Implementation and verification (2026-10-28, Wave C)
+
+`helpers_io_p2.ark` gained `emit_p2_write_string_chunked`: it reads the payload
+length from the staging buffer prefix and loops `blocking-write-and-flush` in
+`constants::P2_BWAF_MAX_CHUNK()` (4096) byte steps, leaving
+`emit_p2_write_string_local` as the single-call path for short static buffers
+(newline, panic/assert text). All four gc print entry points
+(`print`/`println`/`eprint`/`eprintln` in `runtime_abi_stdio_gc.ark`) now call the
+chunked emitter. Source: `helpers_io_p2.ark`, `runtime_abi_stdio_gc.ark`,
+`constants.ark`.
+
+Verified with a stage-2 built from these sources
+(`ARUKELLT_BUILD_DIR=wt/gc-wasi/build`, s2 produced 21:09):
+
+- `println(repeat("x", 5001))` on `wasm32-gc` component → exit 0, full 5001 bytes
+  plus newline, then `done` (previously trapped with
+  `Buffer too large for blocking-write-and-flush`).
+- `println(repeat("y", 1048576))` (1 MB) → exit 0, 1 048 581 bytes of stdout.
+- `wasm32` linear target, same 5001-byte program → exit 0, 5006 bytes (no
+  regression).
+
+Remaining: the fixture harness does not execute `wasm32-gc` components (`run:`
+fixtures run on the `wasm32` linear target; `test:` via `arukellt test` also
+executes `wasm32`), so the ">4096-byte stdout on `wasm32-gc`" item needs either a
+component-exec fixture kind or a documented manual probe. The manual probe above
+is the current evidence.
