@@ -11,6 +11,7 @@ use mir::inst_struct_set
 use mir::inst_local_get
 use mir::value_types
 use mir::lower::ctx_api_local_types
+use mir::lower::match_payload_field_type
 fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: Vec<i32>, total_bytes: i32) -> i32 {
     let child_count = len(field_locals)
     // Empty tuple `()` is the unit value. Represent it as i32 0 so
@@ -102,6 +103,12 @@ fn tuple_key_from_local_type(type_name: String, field_vt: i32) -> String {
     // the same tuple:* name (#888).
     if eq(clone(type_name), "string") || eq(clone(type_name), "str") {
         return "String"
+    }
+    // Narrow integers occupy the i32 ABI slot; using their source spelling
+    // here would register a second identical-layout tuple type and break
+    // calls/returns that name the tuple through their annotation.
+    if match_payload_field_type::mir_narrow_int_type_name(clone(type_name)) {
+        return "i32"
     }
     if ctx_gc_struct::gc_struct_field_type_is_fn_value(clone(type_name)) {
         return "fnref"

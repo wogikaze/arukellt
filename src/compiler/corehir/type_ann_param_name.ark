@@ -56,7 +56,19 @@ fn type_ann_shape_param_type_name(ty: AstNode) -> String {
     if type_ann_node::type_ann_is_tuple(ty) && type_ann_node::type_ann_child_count(ty) == 2 {
         let a = type_ann_node::type_ann_child_at(ty, 0)
         let b = type_ann_node::type_ann_child_at(ty, 1)
-        return String_from("Tuple:").concat(type_ann_node::type_ann_name(a).concat(String_from(":").concat(type_ann_node::type_ann_name(b))))
+        let a_name = type_ann_node::type_ann_name(a)
+        let b_name = type_ann_node::type_ann_name(b)
+        let a_key = if type_ann_node::type_ann_narrow_int_name(clone(a_name)) {
+            String_from("i32")
+        } else {
+            a_name
+        }
+        let b_key = if type_ann_node::type_ann_narrow_int_name(clone(b_name)) {
+            String_from("i32")
+        } else {
+            b_name
+        }
+        return String_from("Tuple:").concat(a_key.concat(String_from(":").concat(b_key)))
     }
     type_ann_node::type_ann_name(ty)
 }

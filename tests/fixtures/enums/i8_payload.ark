@@ -1,0 +1,25 @@
+// i8 enum payloads keep the narrow scalar through construction and match
+// binds: the i32 ABI slot must sign-extend -5/-128 on print instead of
+// reading the payload as a GC reference.
+use std::host::stdio
+
+enum E {
+    Value(i8),
+    Empty,
+}
+
+fn print_value(e: E) {
+    match e {
+        E::Value(x) => stdio::println(x),
+        E::Empty => stdio::println("empty"),
+    }
+}
+
+fn main() {
+    print_value(E::Value(-5i8))
+    print_value(E::Value(127i8))
+    print_value(E::Value(-128i8))
+    let annotated: i8 = -7i8
+    print_value(E::Value(annotated))
+    print_value(E::Empty)
+}
