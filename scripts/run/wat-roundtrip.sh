@@ -185,13 +185,15 @@ while IFS=: read -r kind fixture_path || [ -n "$kind" ]; do
 done < "$MANIFEST"
 
 # ── compiler-side WAT emission (--emit wat) ─────────────────────────────────
-# The pinned bootstrap stubs --emit wat to an empty string, so an empty output is
-# treated as SKIP (the check activates once the pin is refreshed). A non-empty
-# output must parse and validate.
+# The launcher rejects a 0-byte WAT as an error (#958). A compiler artifact
+# without the WAT disassembler therefore fails with an explicit "cannot emit
+# WAT" diagnostic, which is a tooling limitation and a SKIP here; any other
+# failure is a real one. A successful emission must parse and validate.
 
 WAT_EMIT_PASS=0
 WAT_EMIT_FAIL=0
 WAT_EMIT_SKIP=0
+WAT_EMIT_UNAVAILABLE=0
 
 for fixture in tests/fixtures/quickstart/hello.ark tests/fixtures/guide/fn_add.ark; do
     if [ ! -f "$fixture" ]; then
@@ -200,13 +202,22 @@ for fixture in tests/fixtures/quickstart/hello.ark tests/fixtures/guide/fn_add.a
     label="$(echo "$fixture" | tr '/' '_')"
     direct_wat="$WORK_DIR/${label}.direct.wat"
     direct_wasm="$WORK_DIR/${label}.direct.wasm"
-    if ! "$ARUKELLT" compile --target wasm32 --emit wat "$fixture" -o "$direct_wat" 2>/dev/null; then
+    emit_err="$WORK_DIR/${label}.emit.err"
+    if ! "$ARUKELLT" compile --target wasm32 --emit wat "$fixture" -o "$direct_wat" 2>"$emit_err"; then
+        if grep -qF 'cannot emit WAT' "$emit_err" 2>/dev/null; then
+            WAT_EMIT_UNAVAILABLE=1
+            WAT_EMIT_SKIP=$((WAT_EMIT_SKIP + 1))
+            break
+        fi
         WAT_EMIT_FAIL=$((WAT_EMIT_FAIL + 1))
         ERRORS="${ERRORS}\n  FAIL: $fixture (--emit wat failed)"
         continue
     fi
     if [ ! -s "$direct_wat" ]; then
-        WAT_EMIT_SKIP=$((WAT_EMIT_SKIP + 1))
+        # The launcher turns a 0-byte emission into an error; empty success here
+        # means the call bypassed it (e.g. ARUKELLT_BIN points at a raw compiler).
+        WAT_EMIT_FAIL=$((WAT_EMIT_FAIL + 1))
+        ERRORS="${ERRORS}\n  FAIL: $fixture (--emit wat wrote an empty file)"
         continue
     fi
     if ! do_wat2wasm "$direct_wat" "$direct_wasm" 2>/dev/null; then
@@ -221,6 +232,11 @@ for fixture in tests/fixtures/quickstart/hello.ark tests/fixtures/guide/fn_add.a
     fi
     WAT_EMIT_PASS=$((WAT_EMIT_PASS + 1))
 done
+
+if [ "$WAT_EMIT_UNAVAILABLE" -eq 1 ]; then
+    echo -e "${YELLOW}SKIP: --emit wat is unavailable in the selected compiler artifact${NC}" >&2
+    echo "  Rebuild stage-2 or set ARUKELLT_SELFHOST_WASM to a fresh s2 to enable this check." >&2
+fi
 
 # ── summary ──────────────────────────────────────────────────────────────────
 

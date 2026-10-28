@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-10-27
-Updated: 2026-10-27
+Updated: 2026-10-28
 ID: 942
 Track: compiler
 Depends on: none
@@ -63,4 +63,33 @@ artifact left as if it were valid.
 - Verified: `compile` of the #940 repro exits 1 with W0004 and leaves no file;
   `compile`/`run` of a valid program and `--target wasm32-gc` core compile
   still succeed; `check-cli-guarantees.py all` passes; `verify lane` passes.
+
+## Re-verification — 2026-10-28 (close evidence)
+
+Acceptance items were re-checked on this checkout (default pinned artifact,
+`PATH` with wasmtime 46.0.1):
+
+- `python3 scripts/check/check-cli-guarantees.py compile-validates-output` →
+  exit 0 (rejects the #940 same-name-type repro with W0004, no success line,
+  no artifact left; the valid program compiles and validates). The check is
+  wired into `check-cli-guarantees.py all` (`scripts/manager.py` quick pass).
+- Manual `compile --target wasm32` of `.build/cli-guarantees/samename/main.ark`
+  → exit 1, `error — W0004 generated Wasm failed validation`, no `-o` file.
+- Manual `compile --target wasm32-gc` of the same repro → exit 1, W0004
+  (`type mismatch: expected anyref, found f64`), no artifact.
+- Manual `run --target wasm32` of the same repro → exit 1, W0004 (no
+  `compilation succeeded` reported as success, nothing executed).
+- Valid program (`compile --target wasm32` and `--target wasm32-gc`) → exit 0,
+  artifacts pass `wasm-tools validate`.
+- `docs/current-state.md`: "Wasm validation is a hard error (W0004)" and the
+  generated diagnostics table (`W0004`, error, `backend-validate`,
+  implemented, emitted) are true for both Wasm targets; `native-cpp` /
+  `native-llvm` are scaffolds that do not emit Wasm, so W0004 does not apply
+  there. `docs/compiler/diagnostics.md` states "Any W0004 failure stops the
+  build" and has no current warning-only caveat (warning-only appears only
+  under the old-document cautions).
+
+The #940 repro is still invalid (the guarantee check exercises the rejection
+branch), so #940 stays open; this issue's contract (reject + no artifact + no
+success message) is satisfied. Close candidate.
 

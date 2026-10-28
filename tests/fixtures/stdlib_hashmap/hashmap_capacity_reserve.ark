@@ -8,7 +8,7 @@ fn assert_get(m: Vec<i32>, key: i32, expected: i32) {
     }
 }
 
-fn main() {
+test "reserve_grows_capacity_and_preserves_entries" {
     let m = hash::hashmap_with_capacity(1)
     test::assert_eq_i32(hash::hashmap_capacity(m), 1)
     hash::hashmap_reserve(m, 3)

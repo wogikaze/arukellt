@@ -1,4 +1,4 @@
-//! Host standard I/O helpers backed by the current print intrinsics.
+//! Host standard I/O helpers backed by the current print and stdin intrinsics.
 //!
 //! These APIs are explicitly host-bound. They are not part of the pure
 //! standard-library surface and must be imported from `std::host::stdio`.
@@ -7,13 +7,16 @@
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). Requires WASI stdout/stderr capability.
 
-/// Reads all available bytes from stdin into a string.
+/// Reads stdin until EOF and returns the bytes read as a `String`.
 ///
-/// Returns empty until the GC WASI stdin path validates and returns stable
-/// bytes (#807 read_stdin_empty / rpn_repl). Matches `std::io::stdin()` empty
-/// Reader contract in the current runtime.
+/// Returns an empty string when stdin is already at EOF.
 pub fn read_stdin() -> String {
-    ""
+    // Call sites of `stdio::read_stdin` are lowered to the runtime.read_stdin
+    // CoreOp (see corehir/core_op_binding_generated.ark), so an emitted program
+    // does not call this definition. The intrinsic body keeps the declaration
+    // describing the real stdin contract for a path that resolves it
+    // directly, instead of leaving a placeholder that silently returns "".
+    __intrinsic_stdin_read_to_string()
 }
 
 /// Writes a string to stdout without appending a newline.

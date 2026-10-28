@@ -102,3 +102,22 @@ sort::sort(v)   // wasm trap: unreachable
 So the issue should be rescoped to the free sort path; `Vec::sort_by` with a
 comparator that returns `Ordering` directly works (see the updated implementation and
 `tests/fixtures/stdlib_vec/sort_by_ordering.ark`).
+
+## Evidence folded from #975 (2026-10-28, `Vec<i64>` free sort)
+
+#975 recorded "`std::collections::sort::sort` emits invalid Wasm for `Vec<i64>`".
+On this checkout the failure is the same runtime trap as above, not a validation
+failure, so #975 is closed as a duplicate and its evidence lives here:
+
+- `wasm32`: `sort::sort(v)` with `v: Vec<i64>` compiles to a module that passes
+  `wasm-tools validate`, then exits 134. Backtrace:
+  `is_less__i64` → `insertion_sort_range__i64` → `quicksort__i64` →
+  `sort__sort__i64` → `main`, with `unreachable` as the trap cause.
+- `wasm32-gc`: the same program packs into a component and traps inside
+  `is_less__i64` as well.
+- The same behaviour reproduces with the older `.build/selfhost/arukellt-s2-runtime.wasm`
+  artifact as with the pinned bootstrap, so it is not a stale-pin artifact.
+
+The remaining work is therefore the one this issue already owns: make the
+generic `is_less` / `cmp` call resolve to the concrete `Ord` impl inside the
+monomorphized sort (no `unreachable` stub), on both targets.

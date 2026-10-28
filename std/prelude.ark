@@ -1,27 +1,38 @@
 // =============================================================================
-// Arukellt Standard Prelude — auto-imported into every Arukellt module
+// Arukellt Standard Prelude
 // =============================================================================
+//
+// v2 policy (ADR-072): the resolver auto-imports only the tiny stable set
+// recorded in std/manifest.toml [prelude_policy]. This file declares both that
+// stable set and legacy prelude entries; the legacy entries are still compiled
+// but are NOT auto-imported. A bare call to one fails with E0100 plus a
+// `resolver::removed_names` migration hint, and the name resolves only through
+// `use std::prelude::{name}` or its canonical replacement module. The resolver
+// keeps the stable-name list in src/compiler/resolver/prelude_stable.ark, which
+// scripts/check/check-compat-orphans.py holds in sync with the manifest.
 //
 // Compilation: RFC-005 / #816 restores prelude decls to the backend combine
 // path. CoreOp-bound symbols and intrinsic shims defer MIR body lowering until
 // #821/#822 (see mir/lower/stdlib_body_defer.ark). Pure Ark helpers such as
 // `assert` are lowered now.
 //
-// ## Tiny Prelude (canonical v3+ surface — ≤ 15 symbols)
-//
-// The intended minimal prelude for Arukellt programs going forward:
+// ## Tiny Prelude (the v2 stable set — the only auto-imported declarations)
 //
 //   Types / compiler builtins (handled by ark-typecheck, not listed here):
-//     Option, Result, String, Bytes, Vec
+//     Option, Result, String, Vec
 //     Some, None, Ok, Err
+//     (true / false are lexical literals, not prelude values)
 //
-//   Functions provided by THIS file (the canonical tiny set):
+//   Functions provided by THIS file:
 //     panic, assert
 //     String_from, String_new
 //     char_to_string  (essential conversion)
 //     plus len, push, pop, get, set, get_unchecked (compiler intrinsics)
 //
-// ## Legacy / Compat Section
+// ## Legacy / explicit-import section
+//
+// Declarations outside the tiny set (Box, Slice, …) are callable only with an
+// explicit `use std::prelude::{name}`.
 //
 // The stable monomorphic seq/combinator frees (`map_i32_i32`, `sort_i32`, …)
 // were deleted in the ADR-087 Wave 2 (#703 / #917). Bare calls now fail with

@@ -40,7 +40,7 @@ These fields are mandatory regardless of role:
 | `kind` | string | See [Valid Kind Values](#valid-kind-values). Required for prelude/host entries. |
 | `module` | string | Fully-qualified module name (`std::core`, `std::host::fs`, …). Required for module entries. |
 | `intrinsic` | string | Backing `__intrinsic_*` name. Expected when `kind` is `prelude_wrapper` or `intrinsic_wrapper`. |
-| `prelude` | bool | `true` if auto-imported without an explicit `import`. |
+| `prelude` | bool | `true` if the symbol belongs to the prelude surface. Auto-import applies only to the `[prelude_policy]` stable set; other prelude entries need `use std::prelude::{name}`. |
 | `target` | list of strings | **Legacy single axis.** Prefer `targets` + `host_profiles` + `requires` + `[implementation]` below. When present alone, means language targets (canonical ids: `wasm32`, `wasm32-gc`). Not a target triple. Required for `host_stub` until the multi-axis fields are mandatory. |
 | `targets` | list of strings | Language targets (`wasm32`, `wasm32-gc`, …). Preferred over singular `target`. |
 | `host_profiles` | list of strings | Host profiles (`wasi-p1`, `wasi-p2`, …). Orthogonal to language target (ADR-007). |
@@ -164,7 +164,7 @@ covers builtin scalar entries (`u8`, `i16`, …) that are not declared with
 | `methods` | list of strings | Public inherent method and associated-function names. |
 | `trait_impls` | list of strings | Public trait names implemented for the type. |
 | `module` | string | Defining module for non-prelude entries. |
-| `prelude` | bool | `true` for auto-imported types. |
+| `prelude` | bool | `true` for prelude types; auto-import applies only to the `[prelude_policy]` stable set. |
 | `stability` | string | Lifecycle label when the type has one. |
 | `type_id` | string | Reference into `data/core-ops.toml` `[[types]]`. |
 

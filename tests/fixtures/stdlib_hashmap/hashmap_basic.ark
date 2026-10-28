@@ -1,6 +1,6 @@
 use std::test
 
-fn main() {
+test "insert_get_len_and_missing_key_contracts" {
     let m = HashMap::new<i32, i32>()
     let _ = m.insert(1, 100)
     let _ = m.insert(2, 200)

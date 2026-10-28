@@ -1,6 +1,6 @@
 use std::test
 
-fn main() {
+test "integer_keys_overwrite_and_lookup_string_values" {
     let m = HashMap::new<i32, String>()
     let _ = m.insert(1, "one")
     let _ = m.insert(2, "two")

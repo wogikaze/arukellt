@@ -1,7 +1,7 @@
 use std::collections::hash
 use std::test
 
-fn main() {
+test "direct_hashmap_api_tracks_size" {
     let m = hash::hashmap_new()
     hash::hashmap_set(m, 1, 42)
     let s: i32 = hash::hashmap_size(m)

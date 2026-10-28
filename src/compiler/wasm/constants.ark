@@ -173,6 +173,9 @@ fn P2_IMPORT_MONOTONIC_NOW() -> i32 { 12 }
 fn P2_IMPORT_WALL_NOW() -> i32 { 13 }
 fn P2_IMPORT_RANDOM_U64() -> i32 { 14 }
 fn P2_IMPORT_GET_DIRECTORIES() -> i32 { 15 }
+// wasi:io/streams@0.2 blocking-write-and-flush rejects buffers larger than
+// 4096 bytes, so user-length writes are emitted as chunks no larger than this.
+fn P2_BWAF_MAX_CHUNK() -> i32 { 4096 }
 fn P2_PATH_FLAGS_NONE() -> i32 { 0 }
 fn P2_OPEN_FLAG_CREATE() -> i32 { 1 }
 fn P2_OPEN_FLAG_TRUNCATE() -> i32 { 8 }

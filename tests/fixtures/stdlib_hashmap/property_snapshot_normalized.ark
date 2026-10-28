@@ -51,7 +51,7 @@ fn assert_snapshot(m: Vec<i32>) {
     }
 }
 
-fn main() {
+test "sorted_snapshot_is_independent_of_insertion_order" {
     // Build X in one order.
     let x: Vec<i32> = hash::hashmap_new()
     hash::hashmap_set(x, 7, 70)

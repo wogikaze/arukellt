@@ -1124,6 +1124,11 @@ Phase-3 実測（2026-10-19 第2弾 host 分解 + defer 国勢調査 — receipt
 gate: **lower + 全 dataflow + reachability ≤ 3s、whole-module instruction scan = 0**。
 全体 15–20 秒を狙う。
 
+前提: post-pass が推測する型の「正解」を typechecker が持ち、node-keyed TypeId と
+解決済み FunctionId として CoreHIR へ渡していること（#933 / #934、
+[type-spine 計画](typed-mir-signature-registry.md) の Phase 2.5）。この handoff が
+無い間は、下の post-pass を消すと別の名前推測が増えるだけになる。
+
 - [ ] typed-by-construction。lower で決まる TypeId はそこで確定
 - [ ] LocalId 更新 → `users(LocalId)` worklist だけ再評価
 - [ ] enum / open variant は型 lattice の join。String 名推測をやめる

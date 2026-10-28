@@ -1,20 +1,96 @@
 use wasm::constants
 use wasm::ctx_record
 use wasm::ctx_reloc
+use wasm::ctx_scratch
+use wasm::intrinsics::helpers_control
+use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io_calls
 use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_io_memory
+use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_numeric_i32
 use wasm::writer_core
 use wasm::opcodes
 
 // Guest-native P2 print: get-stdout/get-stderr → blocking-write-and-flush.
 // Canon-lowered bwaf is (handle, ptr, len, ret) with void result (#668).
+//
+// Single-call variant. Only safe for buffers known to stay at or below
+// constants::P2_BWAF_MAX_CHUNK(): the newline, the short static panic/assert
+// messages, and the linear P2 path whose callers carry no SelfEmitCtx. Paths
+// that print a user-length string must use emit_p2_write_string_chunked.
 fn emit_p2_write_string_local(w: WasmWriter, string_local: i32, get_stream_import_idx: i32) {
     helpers_io_calls::emit_call(w, get_stream_import_idx)
     helpers_io_layout::emit_wasi_ptr_from_heap_local(w, string_local)
     writer_core::emit_local_get(w, string_local)
     helpers_io_layout::emit_string_len_from_stack(w)
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_I32BUF())
+    helpers_io_calls::emit_call(w, constants::P2_IMPORT_BWAF())
+}
+
+// Scratch i32 slots for one print sequence. Slots 0-2 hold the GC string copy
+// state, 3-5 cursor the chunk loop, and 6 keeps the heap top from before the
+// staging allocation so the caller can restore it once the write returned.
+fn P2_CHUNK_PTR_SLOT() -> i32 { 3 }
+fn P2_CHUNK_REMAINING_SLOT() -> i32 { 4 }
+fn P2_CHUNK_SIZE_SLOT() -> i32 { 5 }
+fn P2_STAGING_SAVED_HEAP_SLOT() -> i32 { 6 }
+
+// Split a runtime-length string into blocking-write-and-flush calls of at most
+// constants::P2_BWAF_MAX_CHUNK() bytes. WASI rejects larger buffers, and a user
+// string length is not known at emit time.
+fn emit_p2_write_string_chunked(
+    w: WasmWriter,
+    ctx: SelfEmitCtx,
+    string_local: i32,
+    get_stream_import_idx: i32
+) {
+    let s_ptr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, P2_CHUNK_PTR_SLOT())
+    let s_remaining = ctx_scratch::SelfEmitCtx_scratch_local(ctx, P2_CHUNK_REMAINING_SLOT())
+    let s_chunk = ctx_scratch::SelfEmitCtx_scratch_local(ctx, P2_CHUNK_SIZE_SLOT())
+    // The payload length is the i32 word in front of the payload pointer.
+    helpers_memory::emit_load_string_len_to_local(w, string_local, s_remaining)
+    helpers_core::emit_local_get(w, string_local)
+    helpers_core::emit_local_set(w, s_ptr)
+    helpers_control::emit_block_loop_header(w)
+    helpers_core::emit_local_get(w, s_remaining)
+    helpers_numeric_i32::emit_i32_eqz(w)
+    helpers_control::emit_br_if(w, 1)
+    emit_p2_chunk_size(w, s_remaining, s_chunk)
+    emit_p2_write_chunk(w, s_ptr, s_chunk, get_stream_import_idx)
+    helpers_core::emit_local_get(w, s_ptr)
+    helpers_core::emit_local_get(w, s_chunk)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_ptr)
+    helpers_core::emit_local_get(w, s_remaining)
+    helpers_core::emit_local_get(w, s_chunk)
+    helpers_numeric_i32::emit_i32_sub(w)
+    helpers_core::emit_local_set(w, s_remaining)
+    helpers_control::emit_br(w, 0)
+    helpers_control::emit_block_loop_footer(w)
+}
+
+// The final chunk carries whatever is left below the cap.
+fn emit_p2_chunk_size(w: WasmWriter, s_remaining: i32, s_chunk: i32) {
+    helpers_numeric_i32::emit_i32_const(w, constants::P2_BWAF_MAX_CHUNK())
+    helpers_core::emit_local_set(w, s_chunk)
+    helpers_core::emit_local_get(w, s_remaining)
+    helpers_numeric_i32::emit_i32_const(w, constants::P2_BWAF_MAX_CHUNK())
+    helpers_numeric_i32::emit_i32_lt_s(w)
+    helpers_control::emit_if_empty(w)
+    helpers_core::emit_local_get(w, s_remaining)
+    helpers_core::emit_local_set(w, s_chunk)
+    helpers_control::emit_end(w)
+}
+
+// One bwaf call with a true i32 ptr/len, as the official lowering requires.
+// The owned output-stream handle from get-stdout is not dropped yet; doing so
+// needs a resource-drop import that the host import table does not have.
+fn emit_p2_write_chunk(w: WasmWriter, s_ptr: i32, s_chunk: i32, get_stream_import_idx: i32) {
+    helpers_io_calls::emit_call(w, get_stream_import_idx)
+    helpers_io_layout::emit_wasi_i32_from_local(w, s_ptr)
+    helpers_io_layout::emit_wasi_i32_from_local(w, s_chunk)
     helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_I32BUF())
     helpers_io_calls::emit_call(w, constants::P2_IMPORT_BWAF())
 }

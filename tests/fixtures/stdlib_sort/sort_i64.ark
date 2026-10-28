@@ -1,7 +1,7 @@
 use std::seq
 use std::test
 
-fn main() {
+test "sorts_i64_values_ascending" {
     let mut v: Vec<i64> = Vec::new<i64>()
     let a: i64 = 30i64
     let b: i64 = 10i64

@@ -77,10 +77,18 @@ use the qualified form.
 
 ## Prelude interaction
 
-The prelude (`std/prelude.ark`) is always auto-imported. When an imported
-module defines a symbol that conflicts with a prelude symbol, the first
-definition wins and the duplicate is silently skipped. Use qualified
-calls to disambiguate.
+Only the v2 stable set of `std/prelude.ark` is auto-imported: the types
+`Option`, `Result`, `String`, `Vec`, their constructors, and `panic`, `assert`,
+`String_from`, `String_new`, `char_to_string` plus the intrinsic compatibility
+group (`len`, `push`, `pop`, `get`, `set`, `get_unchecked`)
+([ADR-072](../adr/ADR-072-language-v2-prelude-and-keyword-policy.md),
+`std/manifest.toml [prelude_policy]`, [prelude.md](prelude.md)). Every other
+prelude declaration resolves only through an explicit
+`use std::prelude::{name}`; a bare call fails with E0100 and a migration hint.
+
+When an imported module defines a symbol that conflicts with an auto-imported
+prelude symbol, the first definition wins and the duplicate is silently
+skipped. Use qualified calls to disambiguate.
 
 ## Error diagnostics
 
@@ -91,7 +99,7 @@ calls to disambiguate.
 
 ```
 std/
-├── prelude.ark          # auto-imported
+├── prelude.ark          # v2 stable set auto-imported; other decls need `use`
 ├── core/
 │   └── mod.ark          # use std::core
 ├── text/

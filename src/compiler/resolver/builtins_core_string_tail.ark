@@ -1,4 +1,6 @@
-// String functions are now auto-imported from std/prelude.ark.
+// String functions are no longer registered here: they are declared in
+// std/prelude.ark and need an explicit `use std::prelude::{name}` (only the v2
+// stable set is auto-imported, ADR-072).
 // Variant constructors (Some, None, Ok, Err) remain as builtins since
 // they are enum variant constructors, not regular functions.
 

@@ -1,6 +1,6 @@
 use std::test
 
-fn main() {
+test "string_keys_map_to_overwritten_string_values" {
     let m = HashMap::new<String, String>()
     let _ = m.insert("greeting", "hello")
     let _ = m.insert("farewell", "goodbye")

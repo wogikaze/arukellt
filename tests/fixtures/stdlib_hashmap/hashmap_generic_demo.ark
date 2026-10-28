@@ -2,7 +2,7 @@ use std::collections::hash
 use std::collections::hash_set::HashSet
 use std::test
 
-fn main() {
+test "generic_key_value_collections_expose_expected_operations" {
     // --- HashMap<String, i32> via the method surface ---
     let m = HashMap::new<String, i32>()
     let _ = m.insert("alpha", 1)

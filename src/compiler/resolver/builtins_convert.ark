@@ -1,6 +1,8 @@
-// All conversion functions are now auto-imported from std/prelude.ark
-// or registered in builtins_intrinsics.ark.
-// Only __intrinsic_stdin_read_to_string remains (no prelude wrapper yet).
+// Conversion functions are no longer registered here: they are declared in
+// std/prelude.ark or registered in builtins_intrinsics.ark, and need an explicit
+// `use` (only the v2 stable set is auto-imported, ADR-072).
+// Only __intrinsic_stdin_read_to_string remains; its public wrapper is
+// std::host::stdio::read_stdin.
 
 fn push_convert_builtin_symbol_names(names: Vec<String>) {
     push(names, "__intrinsic_stdin_read_to_string")

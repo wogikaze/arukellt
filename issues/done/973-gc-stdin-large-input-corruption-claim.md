@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-10-28
 Updated: 2026-10-28
 ID: 973
@@ -67,3 +67,55 @@ reproduction rather than a fix.
   `read_stdin` body/doc disagreement; #947/#948 cover gc print handle/scratch leaks.
 - Repro artifacts from the port live in `tmp/issues/probe_stdin.ark`,
   `tmp/issues/probe_stdin2.ark`, `tmp/issues/long412.txt` (gitignored).
+
+## Update (2026-10-28, Wave A) — not reproduced; retire as a pre-pin-refresh artifact
+
+Minimal probe `wt/probe_stdin_len.ark` (gitignored scratch): calls
+`stdio::read_stdin()`, then prints `len`, `first`, index 250, index 300, and the
+last byte. Each index is guarded so short input cannot itself trap. Input is
+`ABCDEFG` repeated with no trailing newline.
+
+Compiler: default `bootstrap/arukellt-selfhost.wasm` =
+`8df2698c8401693879ca4f9ced289ed2c285d95eb526cf70fda02dd5876259ee` (the
+2026-10-28 05:51 pin named in this issue). Expected byte values for the
+pattern: index 250 → `F` (70), index 300 → `G` (71), index 3999 → `C` (67).
+
+| bytes | target | len | first | b250 | b300 | last |
+|-------|--------|-----|-------|------|------|------|
+| 300 | `wasm32` | 300 | 65 | 70 | out-of-range | 70 |
+| 300 | `wasm32-gc` component | 300 | 65 | 70 | out-of-range | 70 |
+| 420 | `wasm32` | 420 | 65 | 70 | 71 | 71 |
+| 420 | `wasm32-gc` component | 420 | 65 | 70 | 71 | 71 |
+| 1000 | `wasm32` | 1000 | 65 | 70 | 71 | 70 |
+| 1000 | `wasm32-gc` component | 1000 | 65 | 70 | 71 | 70 |
+| 4000 | `wasm32` | 4000 | 65 | 70 | 71 | 67 |
+| 4000 | `wasm32-gc` component | 4000 | 65 | 70 | 71 | 67 |
+
+Repeated with `.build/selfhost/arukellt-s2-runtime.wasm` (post-pin compiler):
+1000 B on `wasm32-gc` → `len=1000 first=65 b250=70 b300=71 last=70`, identical.
+
+No mid-stream or tail corruption on either target, on either compiler.
+Conclusion: the recorded "> ~250 bytes gc stdin is broken" observation is a
+pre-pin-refresh artifact (recorded before the `8df2698c` refresh). The claim and
+the argv-file fallback guidance should be retired.
+
+Notes for the Lead:
+
+- The harness cannot feed stdin bytes to fixtures: `fixture_parity.py` runs with
+  `stdin=subprocess.DEVNULL` and there is no per-fixture stdin sidecar. The
+  >250 B proof therefore stays a manual probe. The EOF side of the contract is
+  already pinned by the existing `run:` fixture
+  `tests/fixtures/stdlib_io/read_stdin_empty.ark`, so no new fixture is added
+  (a duplicate `tests/fixtures/stdin/…` fixture was written and then removed).
+- No repository doc still carries the 250-byte claim (checked `docs/`). The
+  remaining occurrence is the external ABC481 port README / REPORT under
+  gitignored `tmp/`, which this repo does not track.
+- `std/host/stdio.ark` docs are updated in #957.
+
+## Resolution (2026-10-28)
+
+Close as a retired claim: the >250-byte gc stdin corruption does not reproduce on
+either the pinned or the stage-2 compiler, no tracked document asserts it, and the
+`read_stdin` docs now state the real EOF contract (#957). The acceptance items that
+ask for a `run:` fixture proving >250 bytes are not achievable with the current
+harness (no stdin sidecar); the manual probe above is the evidence.

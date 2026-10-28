@@ -1,7 +1,7 @@
 use std::collections::hash
 use std::test
 
-fn main() {
+test "string_set_insert_contains_and_remove" {
     let s = hash::hashset_str_new()
     test::assert_true(hash::hashset_str_insert(s, "apple"))
     test::assert_true(hash::hashset_str_insert(s, "banana"))

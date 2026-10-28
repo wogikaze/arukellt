@@ -1,5 +1,7 @@
-// All collection functions are now auto-imported from std/prelude.ark.
-// This file is intentionally empty — no builtins remain in this category.
+// Collection functions are no longer registered here: the remaining ones are
+// declared in std/prelude.ark and need an explicit `use std::prelude::{name}`
+// (only the v2 stable set is auto-imported, ADR-072); the legacy seq/combinator
+// frees were deleted (#703 / #917). This file is intentionally empty.
 
 fn push_core_collection_builtin_symbol_names(names: Vec<String>) {
 }

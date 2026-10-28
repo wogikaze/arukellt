@@ -46,7 +46,7 @@ fn shift_cases() {
     test::assert_eq_i32(lane(U8x16::shr_u(U8x16::splat(8), 3), 0), 1)
 }
 
-fn main() {
+test "u8x16_lanes_support_arithmetic_comparison_and_shift" {
     construct_cases()
     arithmetic_cases()
     comparison_cases()

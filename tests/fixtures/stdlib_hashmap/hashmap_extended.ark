@@ -1,7 +1,7 @@
 use std::collections::hash
 use std::test
 
-fn main() {
+test "keys_values_and_removal_update_size" {
     let m: Vec<i32> = hash::hashmap_with_capacity(4)
     hash::hashmap_set(m, 10, 100)
     hash::hashmap_set(m, 20, 200)

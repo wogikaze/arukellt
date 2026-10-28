@@ -2,7 +2,7 @@ use std::collections::hash
 use std::collections::hash_set::HashSet
 use std::test
 
-fn main() {
+test "hashset_namespace_and_method_facades_agree" {
     let direct = hash::hashset_str_new()
     test::assert_true(hash::hashset_str_insert(direct, "red"))
     test::assert_false(hash::hashset_str_insert(direct, "red"))

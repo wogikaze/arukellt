@@ -489,6 +489,27 @@ emit_all_requested() {
   return 1
 }
 
+wat_emit_requested() {
+  local i=1
+  local arg next
+  while [[ $i -le $# ]]; do
+    arg="${!i}"
+    if [[ "$arg" == "--emit=wat" ]]; then
+      return 0
+    fi
+    if [[ "$arg" == "--emit" ]]; then
+      next=$((i + 1))
+      if [[ $next -le $# && "${!next}" == "wat" ]]; then
+        return 0
+      fi
+      i=$((i + 2))
+      continue
+    fi
+    i=$((i + 1))
+  done
+  return 1
+}
+
 component_output_path_from_args() {
   P2_COMPONENT_OUTPUT=""
   P2_COMPONENT_OUTPUT_EXPLICIT=0
@@ -982,6 +1003,55 @@ compile_core_with_validation() {
   return 0
 }
 
+# `--emit wat` is only real when the selected compiler artifact contains the
+# Wasm-to-WAT disassembler. The pinned bootstrap predates it and writes an empty
+# file while reporting success (#958), so a 0-byte result has to become a hard
+# error and must not be left behind as if it were a build artifact.
+compile_wat_output() {
+  core_output_path_from_args "$@"
+  wat_emit_work_dir="$(mktemp -d)"
+  trap 'rm -rf "$wat_emit_work_dir"' EXIT
+  local rc
+  set +e
+  run_compiler "$wasm" "$@" >"$wat_emit_work_dir/stdout" 2>"$wat_emit_work_dir/stderr"
+  rc=$?
+  set -e
+  if [[ "$rc" -ne 0 ]]; then
+    cat "$wat_emit_work_dir/stdout"
+    cat "$wat_emit_work_dir/stderr" >&2
+    return "$rc"
+  fi
+  local emitted_nothing=0
+  if [[ -n "$CORE_OUTPUT" ]]; then
+    if [[ ! -s "$CORE_OUTPUT" ]]; then
+      emitted_nothing=1
+      rm -f "$CORE_OUTPUT"
+    fi
+  elif grep -qE '^ok: 0 bytes' "$wat_emit_work_dir/stdout"; then
+    emitted_nothing=1
+  fi
+  if [[ "$emitted_nothing" -eq 0 ]]; then
+    cat "$wat_emit_work_dir/stdout"
+    cat "$wat_emit_work_dir/stderr" >&2
+    return 0
+  fi
+  # The compiler prints its success lines before the output is checked; drop
+  # them so an empty WAT never reads as a successful build.
+  grep -v -e '^compilation succeeded' -e '^wrote .* bytes to ' -e '^ok: 0 bytes' \
+    "$wat_emit_work_dir/stdout" >&2 || true
+  grep -v -e '^compilation succeeded' -e '^wrote .* bytes to ' -e '^ok: 0 bytes' \
+    "$wat_emit_work_dir/stderr" >&2 || true
+  echo "arukellt-selfhost: error — --emit wat produced 0 bytes: the selected compiler artifact cannot emit WAT" >&2
+  echo "  artifact: $wasm" >&2
+  if [[ -n "$CORE_OUTPUT" ]]; then
+    echo "  removed empty artifact: $CORE_OUTPUT" >&2
+  fi
+  echo "  Rebuild stage-2, or point ARUKELLT_SELFHOST_WASM at a fresh one, e.g." >&2
+  echo "    ARUKELLT_SELFHOST_WASM=$REPO_ROOT/.build/selfhost/arukellt-s2-runtime.wasm \\" >&2
+  echo "      scripts/run/arukellt-selfhost.sh compile --emit wat <input>.ark -o <output>.wat" >&2
+  return 1
+}
+
 if ! select_selfhost_artifact; then
   exit 1
 fi
@@ -1007,6 +1077,10 @@ fi
 # Core-module compile/build lands here; component and `--emit all` outputs are
 # packaged above, so this path only has to validate a plain core artifact.
 if [[ "${1:-}" == "compile" || "${1:-}" == "build" ]]; then
+  if wat_emit_requested "$@"; then
+    compile_wat_output "$@"
+    exit $?
+  fi
   compile_core_with_validation "$@"
   exit $?
 fi

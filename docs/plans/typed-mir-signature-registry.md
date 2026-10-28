@@ -17,6 +17,8 @@ Phase 1: TypeTable + SignatureRegistry 骨格 + HostIntrinsicSpec 型定義
   ↓
 Phase 2: MonoInstanceTable（subst マップ保存）
   ↓
+Phase 2.5: typechecker → CoreHIR handoff（node-keyed TypeId / 解決済み FunctionId、#933 / #934）
+  ↓
 Phase 3: Typed MIR（MirInst/MirLocal に MirValueType 追加）
   ↓
 Phase 4: GcLayoutTable（MirValueType → WasmValueType lowering）
@@ -50,6 +52,22 @@ subst を保存し、Phase 3 で Typed MIR がそれを参照する。
 - `src/compiler/mir/lower/mono_instance_table.ark` — MonoInstanceTable, MonoInstanceEntry, MonoInstanceId
 - `src/compiler/mir/lower/mono_param_subst.ark` — モノモーフ化時に subst マップを保存
 - `src/compiler/mir/lower/fn_index_mono.ark` — MonoInstanceTable に登録
+
+## Phase 2.5: typechecker → CoreHIR handoff
+
+Phase 3 以降が lowering の自己申告型を消せるのは、typechecker が「どの式・
+どの local がどの型か」と「どの呼び出しがどの関数か」を lowering より前に
+確定して CoreHIR へ渡す場合だけである。この step が無いまま Phase 3–5 を
+進めると、emitter 側の名前推測を別の名前推測へ置き換えるだけになる。
+
+- `src/compiler/corehir/type_spine_export.ark`（新設）— expression node key →
+  TypeId、local key → TypeId、呼び出し node key → FunctionId（mono instance
+  込み）の対応を CoreHIR に格納する
+- `src/compiler/typechecker/*` — 推論結果をこの表へ書き出す。`TY_UNKNOWN` が
+  残った node は「未確定」として明示し、lowering の推測材料にはしない（#939）
+- `src/compiler/mir/lower/*` — 自己推論より handoff 表を第一の情報源にする。
+  表に無い node は MIR verifier の警告として報告する
+- owner: #933（checker results を lowering へ渡す）/ #934（呼び出し解決の同一性）
 
 ## Phase 3: Typed MIR
 

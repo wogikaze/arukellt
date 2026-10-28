@@ -37,7 +37,7 @@ severity = "warning"
 gate = "local"
 autofix = false
 rationale = "Default lint warnings print and exit 0 unless denied"
-exception_policy = "Exact-hash canonical parser exceptions are tracked by issue 791; lint suppression requires rule id, reason, owner, issue, expiry"
+exception_policy = "Lint suppression requires rule id, reason, owner, issue, and expiry. The exact-hash canonical parser exception baseline was retired with #791; do not reintroduce it"
 owner = "compiler"
 adr = "ADR-047"
 

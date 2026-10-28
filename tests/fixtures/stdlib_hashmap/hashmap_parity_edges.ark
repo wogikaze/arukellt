@@ -17,7 +17,7 @@ fn assert_none(v: Option<i32>) {
     }
 }
 
-fn main() {
+test "zero_and_boundary_values_round_trip" {
     let m: Vec<i32> = hash::hashmap_with_capacity(2)
     test::assert_true(hash::hashmap_set(m, 1, 0))
     test::assert_true(hash::hashmap_set(m, 3, 30))

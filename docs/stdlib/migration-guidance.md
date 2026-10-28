@@ -1675,8 +1675,9 @@ compile, validate, and run on both `wasm32-gc` (P2 component) and
 The remaining env free functions and the legacy `std::env` module path were
 deleted on 2026-10-28. `std::host::env` is now the `Env` namespace only, and
 `std::env` no longer resolves as a module. Qualified old calls fail with
-**E0100**. The auto-imported prelude `args()` binding is a separate prelude
-entry and is unchanged by this wave.
+**E0100**. The `args()` prelude binding (`std::prelude::args`) is a separate
+prelude entry outside the v2 auto-imported stable set, so it requires
+`use std::prelude::args`; it is unchanged by this wave.
 
 | Old API | Replacement |
 |---------|-------------|

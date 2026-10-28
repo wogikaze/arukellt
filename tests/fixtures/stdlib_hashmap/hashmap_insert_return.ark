@@ -16,7 +16,7 @@ fn assert_some(v: Option<i32>, expected: i32) {
     }
 }
 
-fn main() {
+test "insert_returns_previous_value_when_present" {
     let raw = hash::hashmap_new()
     assert_none(hash::hashmap_insert(raw, 7, 70))
     assert_some(hash::hashmap_insert(raw, 7, 700), 70)

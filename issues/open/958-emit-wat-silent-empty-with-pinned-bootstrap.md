@@ -62,3 +62,36 @@ $ wc -c .build/x.wat      # non-zero, wasm-tools parse + validate OK
 
 - [ ] Default `--emit wat` either produces valid WAT or fails with an explicit diagnostic.
 - [ ] `wat_roundtrip` (or `verify wat`) covers the compiler-side `--emit wat` path once the pin refreshes.
+
+## Progress — 2026-10-28 (explicit diagnostic implemented)
+
+`scripts/run/arukellt-selfhost.sh` now routes `compile`/`build` with
+`--emit wat` (both `--emit wat` and `--emit=wat`) through `compile_wat_output`.
+When the selected artifact exits 0 but produces no WAT bytes, the launcher
+suppresses the compiler's success lines, deletes the empty artifact, prints a
+diagnostic that the artifact cannot emit WAT (with the
+`ARUKELLT_SELFHOST_WASM` rebuild hint) and exits 1.
+
+Reproduced and re-verified on this checkout (default pinned artifact, wasmtime
+46.0.1):
+
+| command | before | after |
+|---|---|---|
+| default (pinned) `compile --emit wat -o x.wat` | exit 0, `wrote 0 bytes`, 0-byte `x.wat` left | exit 1, diagnostic, `x.wat` removed |
+| default (pinned), no `-o` | exit 0, stdout `ok: 0 bytes` | exit 1, diagnostic |
+| `ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2-runtime.wasm` | 21785 bytes | 21785 bytes, `wasm-tools parse` + `validate` OK |
+| plain `compile --target wasm32` (no `--emit wat`) | ok | ok (2747 bytes) |
+| `run --target wasm32 tests/fixtures/hello/hello.ark` | ok | ok (`Hello, world!`) |
+
+`scripts/run/wat-roundtrip.sh` no longer treats an empty `--emit wat` file as
+SKIP. It follows the launcher: the `cannot emit WAT` diagnostic counts as one
+SKIP (with an explicit note), any other emit failure counts as FAIL, and an
+empty artifact produced despite a zero exit is a FAIL. Verified with test
+doubles: pinned artifact → emit `SKIP=1`, exit 0; fresh s2 → emit `PASS=2`,
+exit 0; injected generic emit failure → emit `FAIL=2`, exit 1.
+
+Still open: the default pinned `bootstrap/arukellt-selfhost.wasm` remains
+stub-era, so the default path now fails loudly instead of silently. Acceptance
+item 1 is satisfied by the diagnostic; item 2 is covered once the pin refresh
+lands (the roundtrip check already validates non-empty output and passes with
+`ARUKELLT_SELFHOST_WASM` pointing at a fresh s2).

@@ -55,7 +55,7 @@ intrinsic_compatibility_functions = [
 ]
 
 # ─────────────────────────────────────────────
-# Prelude types (auto-imported)
+# Prelude types (stable set auto-imported; other entries explicit-import only)
 # ─────────────────────────────────────────────
 
 [[types]]
@@ -141,7 +141,7 @@ generic_params = ["K", "V"]
 type_id = "hashmap"
 
 # ─────────────────────────────────────────────
-# Prelude values (auto-imported)
+# Prelude values (stable set auto-imported; other entries explicit-import only)
 # ─────────────────────────────────────────────
 
 [[values]]

@@ -23,7 +23,6 @@ graph LR
   I729["729 729 — Intrinsic layer separation (unblocked epic)"]
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I801["801 GC 完了までのプラン"]
-  I814["814 814 — Formatter/parser exceptions (23 files)"]
   I818["818 818 — CoreOpRegistry production scaffold exit"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
   I917["917 917 — Free-function eradication execution (must-delete / associated-or-method waves)"]
@@ -36,7 +35,6 @@ graph LR
   I938["938 938 — return-type checking compares only the outer tag, not type arguments"]
   I940["940 940 — backend type identity drops module paths; same-named types in different modules collide"]
   I941["941 941 — type-name encodings use `_` as a separator; distinct generic instances collide and miscompile"]
-  I942["942 942 — `wasm32` compile reports success for invalid core Wasm"]
   I943["943 943 — ownership and mutability rules do not hold at function-call boundaries"]
   I944["944 944 — use of a moved binding is not diagnosed when the use is a call argument"]
   I945["945 945 — `impl Copy` is accepted for types with non-`Copy` fields; the "copy" aliases"]
@@ -67,7 +65,6 @@ graph LR
   I970["970 970 — Module `const` references: qualified paths and multi-const imports emit invalid Wasm"]
   I971["971 971 — `Vec::sort_by` cannot sort aggregate elements on wasm32-gc, and traps for `String`"]
   I972["972 972 — `(a..b).rev()` and tuple-of-struct values emit invalid Wasm"]
-  I973["973 973 — `wasm32-gc` stdin above ~250 bytes is reported corrupt; reproduce it or retire the workaround"]
   I974["974 974 — `HashMap` runtime traps: `for k in map` with `String` keys traps, and unsupported pairs fail typechecking"]
   I976["976 976 — Collection mutators (`push`) are reported to resolve only on local-rooted receivers"]
   I682["682 682 — Component / WIT product-claim verification audit"]
@@ -76,7 +73,6 @@ graph LR
   I933["933 933 — typechecker results are discarded before lowering; MIR re-infers types from strings"]
   I936["936 936 — prelude core functions have placeholder signatures; checker and emitter dispatch them by name"]
   I937["937 937 — `let` type annotations silently replace a mismatching inferred type"]
-  I975["975 975 — `std::collections::sort::sort` on `Vec<i64>`: ABC481 reported invalid Wasm on `wasm32`; current build traps instead"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
   I935["935 935 — arguments of non-generic calls are never checked against parameter types"]
@@ -89,7 +85,6 @@ graph LR
   I934 --> I933
   I934 --> I936
   I934 --> I937
-  I953 --> I975
   I682 --> I683
   I681 --> I711
   I710 --> I711
@@ -121,7 +116,6 @@ graph LR
 - **729** depends on: 843; blocks: none
 - **799** depends on: 715, 796, 797; blocks: none
 - **801** depends on: 686; blocks: none
-- **814** depends on: 791; blocks: none
 - **818** depends on: 798, 816, 817, 819, 820, 821, 822; blocks: none
 - **851** depends on: 827; blocks: 850
 - **917** depends on: 709; blocks: none
@@ -134,7 +128,6 @@ graph LR
 - **938** depends on: none; blocks: none
 - **940** depends on: none; blocks: none
 - **941** depends on: none; blocks: none
-- **942** depends on: none; blocks: none
 - **943** depends on: none; blocks: none
 - **944** depends on: none; blocks: none
 - **945** depends on: none; blocks: none
@@ -145,7 +138,7 @@ graph LR
 - **950** depends on: none; blocks: none
 - **951** depends on: none; blocks: none
 - **952** depends on: none; blocks: none
-- **953** depends on: none; blocks: 975
+- **953** depends on: none; blocks: none
 - **954** depends on: none; blocks: none
 - **955** depends on: none; blocks: none
 - **956** depends on: none; blocks: none
@@ -165,7 +158,6 @@ graph LR
 - **970** depends on: none; blocks: none
 - **971** depends on: none; blocks: none
 - **972** depends on: none; blocks: none
-- **973** depends on: none; blocks: none
 - **974** depends on: none; blocks: none
 - **976** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
@@ -174,7 +166,6 @@ graph LR
 - **933** depends on: 934; blocks: none
 - **936** depends on: 934; blocks: 935, 939
 - **937** depends on: 934; blocks: none
-- **975** depends on: 953; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **711** depends on: 681, 709, 710; blocks: 712, 713
 - **935** depends on: 934, 936; blocks: none

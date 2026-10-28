@@ -1,7 +1,7 @@
 use std::collections::hash
 use std::test
 
-fn main() {
+test "insert_remove_and_membership_transitions" {
     let s: Vec<i32> = hash::hashset_new()
     test::assert_true(hash::hashset_is_empty(s))
     test::assert_true(hash::hashset_insert(s, 1))

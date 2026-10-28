@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-28T06:23:59Z",
+  "generated_at": "2026-10-28T11:43:14Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -336,25 +336,6 @@
       }
     },
     {
-      "id": "814",
-      "path": "814-formatter-parser-exceptions.md",
-      "title": "814 — Formatter/parser exceptions (23 files)",
-      "track": "code-quality",
-      "status": "open",
-      "depends_on": [
-        "791"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "818",
       "path": "818-core-op-production-scaffold-exit.md",
       "title": "818 — CoreOpRegistry production scaffold exit",
@@ -576,23 +557,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 3
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "none"
-      }
-    },
-    {
-      "id": "942",
-      "path": "942-wasm32-output-not-validated.md",
-      "title": "942 — `wasm32` compile reports success for invalid core Wasm",
-      "track": "compiler",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 3,
-        "unchecked": 0
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -1021,6 +985,125 @@
       },
       "orchestration": {
         "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "968",
+      "path": "968-deque-gc-trap-and-method-name-collisions.md",
+      "title": "968 — `Deque<T>` traps on wasm32-gc in real use; `is_empty`/`len` collide with the Vec methods",
+      "track": "stdlib-api",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "969",
+      "path": "969-numeric-constant-and-type-alias-ergonomics.md",
+      "title": "969 — Rust-style numeric constants (`i32::MAX`, `f64::INFINITY`) and type aliases (`VecDeque<T>`) are not expressible",
+      "track": "language-design",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "970",
+      "path": "970-module-const-qualified-paths-invalid-wasm.md",
+      "title": "970 — Module `const` references: qualified paths and multi-const imports emit invalid Wasm",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "971",
+      "path": "971-sort-by-aggregate-elements.md",
+      "title": "971 — `Vec::sort_by` cannot sort aggregate elements on wasm32-gc, and traps for `String`",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "972",
+      "path": "972-range-rev-and-struct-tuple-invalid-wasm.md",
+      "title": "972 — `(a..b).rev()` and tuple-of-struct values emit invalid Wasm",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "974",
+      "path": "974-hashmap-iteration-traps.md",
+      "title": "974 — `HashMap` runtime traps: `for k in map` with `String` keys traps, and unsupported pairs fail typechecking",
+      "track": "stdlib-api",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "976",
+      "path": "976-push-local-receiver-restriction.md",
+      "title": "976 — Collection mutators (`push`) are reported to resolve only on local-rooted receivers",
+      "track": "language-design",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "design-ready",
         "upstream_notes": "none"
       }
     },

@@ -5,12 +5,12 @@
 
 ## Principle
 
-Every stdlib function has exactly one **canonical access path**. During the
-v2 migration, the manifest also distinguishes the stable Prelude policy from
-the broader legacy auto-import set:
+Every stdlib function has exactly one **canonical access path**. The manifest
+distinguishes the v2 stable Prelude policy from legacy `prelude = true`
+entries:
 
 - **Stable Prelude functions**: Listed by `[prelude_policy]` in `std/manifest.toml`; their canonical source form is the bare name.
-- **Legacy Prelude functions** (`prelude = true` outside that policy): Currently available without import for compatibility. Their migration is tracked by #878 and does not expand the v2 stable promise.
+- **Legacy Prelude functions** (`prelude = true` outside that policy): No longer auto-imported since #878 landed; callers need `use std::prelude::{name}`. They do not expand the v2 stable promise.
 - **Module functions**: Require `use std::xxx` import. Canonical path is `std::xxx::name`.
 
 There are **no dual-exposed functions** — no function has both `prelude = true` and a `module` field in the manifest. `true` and `false` are lexical literals and are intentionally absent from the values table.
@@ -18,7 +18,11 @@ There are **no dual-exposed functions** — no function has both `prelude = true
 ## Prelude Categories
 
 Prelude functions are grouped by `doc_category` for documentation purposes only.
-These categories do **not** correspond to importable modules. The counts are illustrative; `std/manifest.toml` is the source of truth:
+These categories do **not** correspond to importable modules. The counts are illustrative; `std/manifest.toml` is the source of truth.
+
+"Importable?" below asks whether the name has a canonical `std::xxx` module
+page. "No — prelude only" means there is no separate module path, not that the
+name cannot be reached through `use std::prelude::{name}`.
 
 | doc_category | Count | Examples | Importable? |
 |---|---|---|---|
@@ -73,7 +77,7 @@ The resolver resolves names in this order:
 1. Local scope (let bindings, function parameters)
 2. Module-level definitions (fn, struct, enum in current file)
 3. Imported names (`use` declarations)
-4. Prelude names (auto-imported)
+4. Prelude names in the v2 stable set (auto-imported); other prelude names resolve only through an explicit `use std::prelude::{name}`
 
 When a name exists in both an import and the prelude, the explicit import takes precedence.
 

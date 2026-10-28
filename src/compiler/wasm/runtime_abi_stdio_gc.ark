@@ -22,21 +22,52 @@ fn emit_gc_heap_set(w: WasmWriter) {
 }
 
 fn emit_gc_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, next_op: i32, prev_op: i32) {
+    emit_gc_staging_begin(w, ctx)
     let buf_local = emit_gc_string_to_heap_with_prev(w, inst, ctx, prev_op)
-    helpers_io_p2::emit_p2_write_string_local(w, buf_local, constants::P2_IMPORT_GET_STDOUT())
+    helpers_io_p2::emit_p2_write_string_chunked(w, ctx, buf_local, constants::P2_IMPORT_GET_STDOUT())
     helpers_io_p2::emit_p2_write_newline(w, constants::P2_IMPORT_GET_STDOUT())
+    emit_gc_staging_end(w, ctx)
 }
 
 fn emit_gc_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
+    emit_gc_staging_begin(w, ctx)
     let buf_local = emit_gc_string_to_heap_with_prev(w, inst, ctx, prev_op)
-    helpers_io_p2::emit_p2_write_string_local(w, buf_local, constants::P2_IMPORT_GET_STDOUT())
+    helpers_io_p2::emit_p2_write_string_chunked(w, ctx, buf_local, constants::P2_IMPORT_GET_STDOUT())
+    emit_gc_staging_end(w, ctx)
 }
 
 fn emit_gc_eprint(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
+    emit_gc_staging_begin(w, ctx)
     let buf_local = emit_gc_string_to_heap_with_prev(w, inst, ctx, prev_op)
-    helpers_io_p2::emit_p2_write_string_local(w, buf_local, constants::P2_IMPORT_GET_STDERR())
+    helpers_io_p2::emit_p2_write_string_chunked(w, ctx, buf_local, constants::P2_IMPORT_GET_STDERR())
+    emit_gc_staging_end(w, ctx)
 }
 
+// The staging buffer is bump-allocated from global 0, the same cursor
+// cabi_realloc owns, instead of reserving it permanently. Its lifetime is only
+// the write that immediately follows, so the cursor is restored afterwards:
+// nothing between these two calls allocates from the cursor, and no pointer
+// into the staging region escapes past the write.
+fn emit_gc_staging_begin(w: WasmWriter, ctx: SelfEmitCtx) {
+    emit_gc_heap_get(w)
+    helpers_core::emit_local_set(
+        w,
+        ctx_scratch::SelfEmitCtx_scratch_local(ctx, helpers_io_p2::P2_STAGING_SAVED_HEAP_SLOT())
+    )
+}
+
+fn emit_gc_staging_end(w: WasmWriter, ctx: SelfEmitCtx) {
+    helpers_core::emit_local_get(
+        w,
+        ctx_scratch::SelfEmitCtx_scratch_local(ctx, helpers_io_p2::P2_STAGING_SAVED_HEAP_SLOT())
+    )
+    emit_gc_heap_set(w)
+}
+
+// Reserve the staging region at the heap top. The advance is temporary: the
+// print sequences bracket it with emit_gc_staging_begin/end, so repeated
+// prints reuse the same region instead of walking the cursor to the end of
+// linear memory.
 fn emit_gc_alloc_heap_buf(w: WasmWriter, s_buf: i32, s_len: i32) {
     emit_gc_heap_get(w)
     helpers_core::emit_local_set(w, s_buf)
@@ -152,8 +183,10 @@ fn emit_gc_string_to_heap_from_local(w: WasmWriter, string_local: i32, ctx: Self
 }
 
 fn emit_gc_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
+    emit_gc_staging_begin(w, ctx)
     let buf_local = emit_gc_string_to_heap_with_prev(w, inst, ctx, prev_op)
     let stderr_idx = constants::P2_IMPORT_GET_STDERR()
-    helpers_io_p2::emit_p2_write_string_local(w, buf_local, stderr_idx)
+    helpers_io_p2::emit_p2_write_string_chunked(w, ctx, buf_local, stderr_idx)
     helpers_io_p2::emit_p2_write_newline(w, stderr_idx)
+    emit_gc_staging_end(w, ctx)
 }

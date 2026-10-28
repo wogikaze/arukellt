@@ -21,7 +21,7 @@ fn f64_cases() {
     test::assert_eq_f64(F64x2::extract_lane(F64x2::max(F64x2::splat(2.0f64), F64x2::splat(5.0f64)), 0), 5.0)
 }
 
-fn main() {
+test "float_lane_operations_return_expected_lanes" {
     f32_cases()
     f64_cases()
 }

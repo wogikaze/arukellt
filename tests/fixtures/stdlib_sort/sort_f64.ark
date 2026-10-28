@@ -1,6 +1,6 @@
 use std::test
 
-fn main() {
+test "sorts_f64_values_ascending" {
     let mut v: Vec<f64> = Vec::new<f64>()
     let a: f64 = 3.5
     let b: f64 = 1.2

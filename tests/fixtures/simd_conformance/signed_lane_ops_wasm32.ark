@@ -63,7 +63,7 @@ fn i64_cases() {
     test::assert_eq_i64(I64x2::extract_lane(I64x2::shr_u(I64x2::splat(8), 3), 0), 1)
 }
 
-fn main() {
+test "signed_lane_operations_return_expected_lanes" {
     i8_cases()
     i16_cases()
     i32_cases()

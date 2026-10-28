@@ -1,5 +1,6 @@
-// All prelude functions are now auto-imported from std/prelude.ark.
-// This file is intentionally empty — no builtins remain in this category.
+// Prelude functions are no longer registered here: they are declared in
+// std/prelude.ark and need an explicit `use std::prelude::{name}` (only the v2
+// stable set is auto-imported, ADR-072). This file is intentionally empty.
 
 fn push_core_prelude_builtin_symbol_names(names: Vec<String>) {
 }
