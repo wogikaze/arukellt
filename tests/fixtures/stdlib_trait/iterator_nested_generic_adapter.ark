@@ -5,7 +5,7 @@ struct Inner<I> {
     iter: I,
 }
 
-impl Iterator for Inner<I> {
+impl<I> Iterator for Inner<I> {
     type Item = I::Item
     fn next(self: Inner<I>) -> Option<I::Item> {
         self.iter.next()
@@ -17,7 +17,7 @@ struct Forward<I> {
     inner: Inner<I>,
 }
 
-impl Iterator for Forward<I> {
+impl<I> Iterator for Forward<I> {
     type Item = I::Item
     fn next(self: Forward<I>) -> Option<I::Item> {
         self.inner.next()
@@ -30,7 +30,7 @@ struct Local<I> {
     iter: I,
 }
 
-impl Iterator for Local<I> {
+impl<I> Iterator for Local<I> {
     type Item = I::Item
     fn next(self: Local<I>) -> Option<I::Item> {
         let inner: Inner<I> = Inner { iter: self.iter }

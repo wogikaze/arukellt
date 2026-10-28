@@ -194,7 +194,7 @@ match value {
 このブランチでは次も入っています。
 
 - `trait`
-- `impl`（型パラメータは `impl<T>` の明示 binder でのみ導入。ADR-089。現行実装は未対応、#946）
+- `impl`（型パラメータは `impl<T>` の明示 binder でのみ導入。ADR-089）
 - メソッド呼び出し
 - 演算子オーバーロード
 - match guard / or-pattern / struct pattern

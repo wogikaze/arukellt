@@ -13,8 +13,8 @@ fn enforce_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) {
     trait_bounds::enforce_trait_bound(env, ty, bound)
 }
 
-fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
-    trait_registry::maybe_register_impl_decl(env, node)
+fn maybe_register_impl_decl(env: TypeEnv, node: AstNode, known_type_names: Vec<String>) {
+    trait_registry::maybe_register_impl_decl(env, node, known_type_names)
 }
 
 fn enforce_fn_sig_bounds(env: TypeEnv, infer_env: TypeEnv, sig: FnSig, var_types: Vec<TypeInfo>) {

@@ -20,7 +20,7 @@ struct Adapter<T> {
     inner: T,
 }
 
-impl Read for Adapter<T> {
+impl<T> Read for Adapter<T> {
     fn read(self: Adapter<T>, n: i32) -> i32 {
         self.inner.read(n) + 100
     }

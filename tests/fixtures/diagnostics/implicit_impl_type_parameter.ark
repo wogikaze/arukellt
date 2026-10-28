@@ -1,0 +1,14 @@
+// ADR-089: impl type parameters are introduced only by the `impl<...>`
+// binder. `T` in this head is an undefined type, not an implicit parameter.
+
+struct Wrap<T> {
+    item: T,
+}
+
+impl Iterator for Wrap<T> {
+    fn next(self: Wrap<T>) -> Option<T> {
+        Option::Some(self.item)
+    }
+}
+
+fn main() {}

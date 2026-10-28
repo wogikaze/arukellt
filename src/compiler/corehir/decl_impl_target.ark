@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::decl_ann_member
 use corehir::decl_ann_children
@@ -121,10 +121,6 @@ fn impl_target_type_name(target: AstNode, declared: Vec<String>) -> String {
     target_name
 }
 
-fn impl_type_param_name(name: String) -> bool {
-    len(name) == 1 && byte_at(name, 0) >= 65 && byte_at(name, 0) <= 90
-}
-
 fn is_declared_impl_param(name: String, declared: Vec<String>) -> bool {
     let count = len(declared)
     let mut i = 0
@@ -167,8 +163,7 @@ fn impl_inst_arg_suffix(target: AstNode, declared: Vec<String>) -> String {
 fn impl_inst_arg_key(arg: AstNode, declared: Vec<String>) -> String {
     if type_ann_node::type_ann_is_named(arg) {
         let name = type_ann_node::type_ann_name(arg)
-        if is_declared_impl_param(clone(name), clone(declared)) ||
-        impl_type_param_name(clone(name)) {
+        if is_declared_impl_param(clone(name), declared) {
             return String_new()
         }
         return name

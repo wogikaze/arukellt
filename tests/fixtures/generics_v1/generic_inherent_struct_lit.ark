@@ -17,13 +17,13 @@ struct SkipMap<I> {
     map_f: fn(i32) -> i32,
 }
 
-impl Skip<I> {
+impl<I> Skip<I> {
     fn map(self: Skip<I>, f: fn(i32) -> i32) -> SkipMap<I> {
         SkipMap { iter: self.iter, to_skip: self.to_skip, map_f: f }
     }
 }
 
-impl Iterator for Skip<I> {
+impl<I> Iterator for Skip<I> {
     type Item = I::Item
     fn next(self: Skip<I>) -> Option<I::Item> {
         while self.to_skip > 0 {
@@ -55,7 +55,7 @@ impl Iterator for SkipMap<VecIter<i32>> {
     }
 }
 
-impl IntoIterator for Skip<I> {
+impl<I> IntoIterator for Skip<I> {
     type Item = I::Item
     type IntoIter = Skip<I>
     fn into_iter(self: Skip<I>) -> Skip<I> {

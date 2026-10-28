@@ -1,0 +1,10 @@
+// ADR-089: the binder rule covers inherent impls too. `Q` is not a declared
+// type and must not become an implicit type parameter.
+
+impl Q {
+    fn value(self: Q) -> i32 {
+        0
+    }
+}
+
+fn main() {}

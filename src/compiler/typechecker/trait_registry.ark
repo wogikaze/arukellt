@@ -175,8 +175,11 @@ fn register_trait_impl_entry(
     )
 }
 
-fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
+fn maybe_register_impl_decl(env: TypeEnv, node: AstNode, known_type_names: Vec<String>) {
     if !ast_decl_predicates::node_is_impl_decl(node) {
+        return
+    }
+    if report_undefined_impl_head_types(env, node, known_type_names) {
         return
     }
     if impl_generics::head_count(node) != 2 {
@@ -184,7 +187,7 @@ fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
     }
     let trait_node = ast_access::node_type_ann_at(node, 0)
     let self_node = ast_access::node_type_ann_at(node, 1)
-    let type_params = impl_generics::type_param_names(node)
+    let type_params = impl_generics::declared_type_param_names(node)
     let type_param_bounds = impl_generics::type_param_bounds(node)
     let trait_ref = types::resolve_type_ann_node_generic(trait_node, clone(type_params))
     let self_ty = types::resolve_type_ann_node_generic(self_node, clone(type_params))
@@ -232,11 +235,49 @@ fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
     }
 }
 
+// ADR-089: a binder-less head no longer gains parameters from its spelling.
+// Names that used to be implicit parameters resolve as ordinary type names;
+// when such a name is undeclared, report the binder form instead of
+// registering a bogus concrete impl. The single-uppercase check only selects
+// the removed migration spelling — name shape never promotes a type to a
+// parameter.
+fn report_undefined_impl_head_types(env: TypeEnv, node: AstNode, known_type_names: Vec<String>) -> bool {
+    let undefined = impl_generics::undefined_head_type_names(node, known_type_names)
+    let count = len(undefined)
+    if count == 0 {
+        return false
+    }
+    let mut i = 0
+    while i < count {
+        let name = get_unchecked(undefined, i)
+        let message = String_from("undefined type `").concat(
+            clone(name).concat(
+                String_from("` in impl head: add an explicit impl type parameter binder such as `impl<").concat(
+                    clone(name).concat(String_from(">`"))
+                )
+            )
+        )
+        report_trait_error_at(env, codes::DIAG_TYPE_IMPL_PARAM(), node, message)
+        i = i + 1
+    }
+    true
+}
+
+fn report_trait_error_at(env: TypeEnv, code: String, node: AstNode, message: String) {
+    env.error_count = env.error_count + 1
+    push(env.errors, clone(message))
+    let span = record::DiagnosticSpan_from_raw(
+        ast_access::node_span_start(node),
+        ast_access::node_span_end(node)
+    )
+    let diag = diag_mod::Diagnostic_new(code, diag_mod::SEV_ERROR(), span, message)
+    push(env.diagnostics, diag)
+}
+
 // ADR-078 §2 rejects an impl parameter that never reaches the self type: it
 // could only be instantiated by guessing from trait arguments or method
-// bodies, which leaves the obligation unconstrained. An implicit (unbounded)
-// parametric impl has no declared binder, so this check does not narrow the
-// existing inferred-parameter convention.
+// bodies, which leaves the obligation unconstrained. Only binder-declared
+// parameters participate (ADR-089).
 fn validate_impl_param_constraints(env: TypeEnv, node: AstNode, self_ty: TypeInfo) -> bool {
     let declared = impl_generics::declared_type_param_names(node)
     let mut i = 0

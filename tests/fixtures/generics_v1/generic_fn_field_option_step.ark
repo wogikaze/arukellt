@@ -10,7 +10,7 @@ struct AccBox<T> {
     f: fn(T, T) -> Option<T>,
 }
 
-impl AccBox<T> {
+impl<T> AccBox<T> {
     fn step(self: AccBox<T>, x: T) -> Option<T> {
         let mut out: Option<T> = None
         let stepped: Option<T> = (self.f)(self.state, x)

@@ -29,7 +29,7 @@ fn resolve_impl_signature(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnSig
     // argument no MonoInstance can substitute.
     let self_ty = types::resolve_type_ann_node_generic(
         self_node,
-        impl_generics::type_param_names(impl_node)
+        impl_generics::declared_type_param_names(impl_node)
     )
     let params = Vec::new<TypeInfo>()
     let param_count = contract_fn_sig::FnSig_param_count(sig)
@@ -69,7 +69,7 @@ fn resolve_impl_self_return(impl_node: AstNode, sig: FnSig) -> FnSig {
     }
     let self_ty = types::resolve_type_ann_node_generic(
         ast_access::node_type_ann_at(impl_node, heads - 1),
-        impl_generics::type_param_names(impl_node)
+        impl_generics::declared_type_param_names(impl_node)
     )
     let return_type = resolve_self_type(self_ty, contract_fn_sig::FnSig_return_type(sig))
     let params = Vec::new<TypeInfo>()

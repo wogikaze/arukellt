@@ -607,7 +607,7 @@ pub fn slice_get<T>(view: Slice<T>, index: i32) -> T {
 
 // Receiver methods for the slice view. The free helpers above remain the
 // deprecated compatibility spelling until the slice family is retired.
-impl Slice<T> {
+impl<T> Slice<T> {
     /// Returns the number of elements covered by this view.
     fn len(self: Slice<T>) -> i32 {
         match self {

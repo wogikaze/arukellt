@@ -1,5 +1,5 @@
 trait Marker<T> {}
 
-impl Marker<T> for T {}
+impl<T> Marker<T> for T {}
 
 fn main() {}

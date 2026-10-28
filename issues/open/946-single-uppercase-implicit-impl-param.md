@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-10-27
-Updated: 2026-10-27
+Updated: 2026-10-28
 ID: 946
 Track: typecheck
 Depends on: none
@@ -54,9 +54,70 @@ through a migration warning before it becomes an error (ADR-014).
 - [ ] Binder-less impl heads with implicit parameters produce a migration
       warning that shows the binder form; the warning becomes an error after
       the migration (ADR-014).
-- [ ] stdlib / selfhost impl heads that rely on the implicit form are
+      Implementation note (2026-10-28): the final hard-error state landed as
+      E0222. The ADR-014 warning window was not run as a separate release
+      because the in-tree corpus was migrated atomically; this item stays open
+      until that window is run or explicitly waived.
+- [x] stdlib / selfhost impl heads that rely on the implicit form are
       migrated to binders (`impl … for Ctor<T>` and inherent `impl Ctor<T>`
       under `std/` and `src/compiler/`).
-- [ ] `impl Trait for S {}` with `struct S` resolves to the struct (fixture).
-- [ ] Existing parametric-impl fixtures stay green or are migrated to the
-      binder form.
+- [x] `impl Trait for S {}` with `struct S` resolves to the struct (fixture:
+      `tests/fixtures/trait/single_uppercase_impl_target.ark`).
+- [x] Existing parametric-impl fixtures stay green or are migrated to the
+      binder form (80 heads under `std/` and `tests/fixtures/`).
+
+## Implementation (2026-10-28)
+
+- `src/compiler/typechecker/impl_generics.ark`: `declared_type_param_names`
+  is the only impl parameter source; the implicit single-uppercase collector
+  is removed. `undefined_head_type_names` finds head names that neither the
+  binder nor a declaration in the compilation unit introduces.
+- `src/compiler/typechecker/trait_registry.ark` and `module_traits.ark`:
+  report E0222 with the binder form for trait and inherent impls. The trait
+  head's base name resolves as a trait; only its type arguments are scanned.
+- `src/compiler/resolver/impl_target.ark` and
+  `src/compiler/corehir/decl_impl_target.ark`: impl owner keys treat only
+  binder-declared names as parameters, so a concrete single-uppercase type
+  argument receives its own instantiation key.
+- `src/compiler/mir/lower/core_bindings.ark` and
+  `core_bindings_let_store.ark`: `let b = a` keeps a one-character nominal
+  storage type instead of dropping it as a shape-based type variable.
+- Migrated 80 binderless parametric impl heads under `std/` (59) and
+  `tests/fixtures/` (21). `src/compiler/` had no implicit heads.
+- Fixtures: `trait/single_uppercase_impl_target.ark` (run),
+  `diagnostics/implicit_impl_type_parameter.ark` (E0222, trait impl), and
+  `diagnostics/implicit_inherent_impl_type_parameter.ark` (E0222, inherent
+  impl).
+
+### Verification (2026-10-28)
+
+- `python3 scripts/manager.py selfhost build-compiler`: PASS
+  (s2 sha256 `5181fb159131bd22db8b0446e301b2f839c5277135be526300d7bf9fbc7c4402`).
+- `python3 scripts/manager.py verify fixtures`: PASS=1907 FAIL=0
+  COMPILE_VALIDATE=1907 EXECUTED=109 RUNTIME_UNSUPPORTED=2; test: PASS=1
+  FAIL=0.
+- `python3 scripts/manager.py selfhost diag-parity`: PASS (all 162 `diag:`
+  fixtures, including the two new E0222 goldens).
+- `python3 scripts/manager.py verify lane`: PASS (`quality changed`, lint
+  ratchet, touched-code quality ratchet).
+- `python3 scripts/manager.py docs check`: 6/6 PASS.
+- `python3 scripts/manager.py selfhost fixpoint`: PASS, sha256(s2) ==
+  sha256(s3) = `5181fb159131bd22db8b0446e301b2f839c5277135be526300d7bf9fbc7c4402`
+  (pinned base `8df2698c8401693879ca4f9ced289ed2c285d95eb526cf70fda02dd5876259ee`).
+- Both-target runtime evidence for `trait/single_uppercase_impl_target.ark`:
+  `wasm32-gc` component prints `14`; `wasm32` linear core prints `14`.
+- `check` on both E0222 fixtures emits the binder hint on the impl head
+  (`undefined type `T`…` / `undefined type `Q`…`).
+
+### Residuals
+
+- E0222 covers only the removed single-uppercase spelling in impl heads.
+  General unresolved type names in signatures and bodies remain #939.
+- The one-character shape heuristic remains in the return-type and
+  type-variable encoding paths (`corehir/return_type_name.ark`,
+  `mir/lower/mono_suffix_parse.ark`, `corehir/param_shape_*.ark`,
+  `mir/lower/stmt_let_tuple.ark`). Returning a single-uppercase struct from a
+  function can still miscompile; plain functions already had this defect, and
+  impl methods become reachable after this change. Follow-up is required
+  before claiming full single-uppercase nominal-type support.
+- The ADR-014 migration-warning window was not run; E0222 is an error.

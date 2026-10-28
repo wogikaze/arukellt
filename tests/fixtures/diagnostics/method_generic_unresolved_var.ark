@@ -5,7 +5,7 @@ struct Box2<T> {
     item: T,
 }
 
-impl Box2<T> {
+impl<T> Box2<T> {
     fn pick<U>(self: Box2<T>, d: i32) -> U {
         // U appears only in the return type, so a call on a concrete
         // receiver cannot infer it. The recursive body keeps the

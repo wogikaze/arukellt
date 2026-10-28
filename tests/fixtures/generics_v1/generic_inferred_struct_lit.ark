@@ -10,7 +10,7 @@ struct ScanBox<T> {
     state: T,
 }
 
-impl ScanBox<T> {
+impl<T> ScanBox<T> {
     fn get(self: ScanBox<T>) -> T {
         self.state
     }
@@ -25,7 +25,7 @@ struct Pair<A, B> {
     second: B,
 }
 
-impl Pair<A, B> {
+impl<A, B> Pair<A, B> {
     fn get_second(self: Pair<A, B>) -> B {
         self.second
     }

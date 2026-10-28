@@ -272,7 +272,7 @@ pub struct DequeIter<T> {
     index: i32,
 }
 
-impl Iterator for DequeIter<T> {
+impl<T> Iterator for DequeIter<T> {
     type Item = T
 
     fn next(self: DequeIter<T>) -> Option<T> {
@@ -303,7 +303,7 @@ impl Iterator for DequeIter<T> {
     }
 }
 
-impl IntoIterator for DequeIter<T> {
+impl<T> IntoIterator for DequeIter<T> {
     type Item = T
     type IntoIter = DequeIter<T>
 
@@ -324,7 +324,7 @@ pub struct DequeIterMut<T> {
     stopped: bool,
 }
 
-impl Iterator for DequeIterMut<T> {
+impl<T> Iterator for DequeIterMut<T> {
     type Item = T
 
     fn next(self: DequeIterMut<T>) -> Option<T> {
@@ -367,7 +367,7 @@ impl<T> DequeIterMut<T> {
     }
 }
 
-impl IntoIterator for DequeIterMut<T> {
+impl<T> IntoIterator for DequeIterMut<T> {
     type Item = T
     type IntoIter = DequeIterMut<T>
 
@@ -381,7 +381,7 @@ pub struct DequeIntoIter<T> {
     deque: Deque<T>,
 }
 
-impl Iterator for DequeIntoIter<T> {
+impl<T> Iterator for DequeIntoIter<T> {
     type Item = T
 
     fn next(self: DequeIntoIter<T>) -> Option<T> {
@@ -406,7 +406,7 @@ impl Iterator for DequeIntoIter<T> {
     }
 }
 
-impl IntoIterator for DequeIntoIter<T> {
+impl<T> IntoIterator for DequeIntoIter<T> {
     type Item = T
     type IntoIter = DequeIntoIter<T>
 
@@ -415,7 +415,7 @@ impl IntoIterator for DequeIntoIter<T> {
     }
 }
 
-impl IntoIterator for Deque<T> {
+impl<T> IntoIterator for Deque<T> {
     type Item = T
     type IntoIter = DequeIntoIter<T>
 
@@ -576,7 +576,7 @@ impl<T> Queue<T> {
     }
 }
 
-impl IntoIterator for Queue<T> {
+impl<T> IntoIterator for Queue<T> {
     type Item = T
     type IntoIter = DequeIntoIter<T>
 
@@ -704,7 +704,7 @@ impl<T> Stack<T> {
     }
 }
 
-impl IntoIterator for Stack<T> {
+impl<T> IntoIterator for Stack<T> {
     type Item = T
     type IntoIter = DequeIntoIter<T>
 

@@ -9,7 +9,7 @@ struct Take<I> {
     remaining: i32,
 }
 
-impl Iterator for Take<I> {
+impl<I> Iterator for Take<I> {
     type Item = I::Item
     fn next(self: Take<I>) -> Option<I::Item> {
         if self.remaining <= 0 {
@@ -26,7 +26,7 @@ impl Iterator for Take<I> {
     }
 }
 
-impl IntoIterator for Take<I> {
+impl<I> IntoIterator for Take<I> {
     type Item = I::Item
     type IntoIter = Take<I>
     fn into_iter(self: Take<I>) -> Take<I> {

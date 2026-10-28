@@ -598,6 +598,34 @@ trait Answer {
 ```
 
 ---
+### E0222 — undefined impl head type parameter
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | typecheck |
+| **Message** | undefined type in impl head |
+
+Impl type parameters are introduced only by the `impl<…>` binder
+(ADR-089). A binder-less head no longer promotes single-uppercase names to
+implicit parameters, so such a name resolves as an ordinary type name. When
+it is not declared in the compilation unit, the diagnostic points at the impl
+and shows the binder form such as `impl<T>`.
+
+<!-- skip-doc-check kind="invalid-example" reason="E0222 rejects the retired implicit-parameter spelling" -->
+```arukellt
+struct Wrap<T> {
+    item: T,
+}
+
+impl Iterator for Wrap<T> {
+    fn next(self: Wrap<T>) -> Option<T> {
+        Option::Some(self.item)
+    }
+}
+```
+
+---
 
 ## v0 Version Constraints & Target Errors — `E03xx`
 
@@ -1043,6 +1071,7 @@ one, please file a bug report.
 | E0218 | error | typecheck | trait arity mismatch |
 | E0219 | error | typecheck | invalid associated item |
 | E0221 | error | typecheck | trait method body is not supported |
+| E0222 | error | typecheck | undefined impl head type parameter |
 | E0300 | error | typecheck | traits are not available in v0 |
 | E0301 | error | typecheck | method call syntax is not available in v0 |
 | E0302 | error | typecheck | nested generics are not allowed in v0 |
