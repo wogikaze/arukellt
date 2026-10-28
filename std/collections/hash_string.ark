@@ -741,3 +741,69 @@ fn hashset_str_to_vec(s: Vec<String>) -> Vec<String> {
     }
     result
 }
+
+// ─── HashSet<String> aggregate operations ──────────────────────────────────
+// The set-algebra helpers build a fresh store from both operands; neither
+// operand is mutated, so elements enter the result through `clone`. They are
+// private MIR lowering targets for the `impl HashSet<String>` methods, not
+// public free functions (ADR-046). `capacity` / `reserve` / `shrink_to_fit`
+// have no counterpart here: the String store is a linear `Vec<String>` with no
+// bucket layout, so there is no capacity to report or reserve.
+
+fn hashset_str_union(a: Vec<String>, b: Vec<String>) -> Vec<String> {
+    let result: Vec<String> = hashset_str_new()
+    let mut i: i32 = 0
+    while i < len(a) {
+        let _ = hashset_str_insert(result, clone(get_unchecked(a, i)))
+        i = i + 1
+    }
+    let mut j: i32 = 0
+    while j < len(b) {
+        let _ = hashset_str_insert(result, clone(get_unchecked(b, j)))
+        j = j + 1
+    }
+    result
+}
+
+fn hashset_str_intersection(a: Vec<String>, b: Vec<String>) -> Vec<String> {
+    let result: Vec<String> = hashset_str_new()
+    let mut i: i32 = 0
+    while i < len(a) {
+        let value: String = get_unchecked(a, i)
+        if hashset_str_contains(b, clone(value)) {
+            let _ = hashset_str_insert(result, value)
+        }
+        i = i + 1
+    }
+    result
+}
+
+fn hashset_str_difference(a: Vec<String>, b: Vec<String>) -> Vec<String> {
+    let result: Vec<String> = hashset_str_new()
+    let mut i: i32 = 0
+    while i < len(a) {
+        let value: String = get_unchecked(a, i)
+        if !hashset_str_contains(b, clone(value)) {
+            let _ = hashset_str_insert(result, value)
+        }
+        i = i + 1
+    }
+    result
+}
+
+fn hashset_str_clear(s: Vec<String>) {
+    while len(s) > 0 {
+        let _ = pop(s)
+    }
+}
+
+fn hashset_str_extend(s: Vec<String>, other: Vec<String>) {
+    // Insert from a snapshot: growing the destination while iterating the
+    // source would not terminate for `s.extend(s)`.
+    let incoming: Vec<String> = hashset_str_to_vec(other)
+    let mut i: i32 = 0
+    while i < len(incoming) {
+        let _ = hashset_str_insert(s, get_unchecked(incoming, i))
+        i = i + 1
+    }
+}

@@ -1836,8 +1836,18 @@ element type. `HashSet<i32>::from_iter` and `HashSet<i32>::clone` remain
 invalid source syntax; write `HashSet::from_iter` / `HashSet::new<i32>()` and
 let the method resolver pick the store. Iteration snapshots through `to_vec`
 for both families, so `for value in set` yields the set members, not the flat
-bucket layout. `HashSet<String>` aggregate set algebra (`union` /
-`intersection` / `difference`) remains i32 only.
+bucket layout.
+
+`HashSet<String>` also covers `union`, `intersection`, `difference`, `clear`,
+and `extend` over the same `Vec<String>` store. The algebra returns a new set
+and leaves both operands intact, and `extend` inserts from a snapshot, so
+`s.extend(s)` terminates. `capacity` / `reserve` / `shrink_to_fit` remain
+`i32`-only: the String store is a linear `Vec<String>` with no bucket layout,
+so it has no capacity to report or reserve. They are not lowered for
+`HashSet<String>` and a call on a String set must not be relied on (#917
+residual): the family-less impl lookup still resolves them to the i32 store
+helpers. There is no `hash_set::` replacement gap here — those adapters were
+retired with the rest.
 
 **Before:**
 

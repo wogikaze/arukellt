@@ -1070,6 +1070,8 @@ run:stdlib_hashset/hashset_methods.ark
 run:stdlib_hashset/hashset_methods_wasm32.ark
 run:stdlib_hashset/hashset_from_iter.ark
 run:stdlib_hashset/hashset_from_iter_wasm32.ark
+run:stdlib_hashset/hashset_string_agg.ark
+run:stdlib_hashset/hashset_string_agg_wasm32.ark
 run:stdlib_hashmap/hashset_basic.ark
 run:stdlib_hashmap/hashset_capacity_extend.ark
 run:stdlib_hashmap/hashset_clear.ark

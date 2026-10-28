@@ -271,10 +271,13 @@ the store functions, so the shell bodies never recurse at runtime.
 
 The aggregate operations (`to_vec`, `union`, `intersection`, `difference`,
 `capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend`) are available on
-`HashSet<i32>`. `HashSet<String>` exposes the membership surface and the
-`to_vec` snapshot that backs its trait impls. Both element families
-implement `FromIterator<VecIter<T>>`, `IntoIterator`, `Clone`, `Eq`, and
-`Debug`.
+`HashSet<i32>`. `HashSet<String>` exposes the membership surface, the
+`to_vec` snapshot that backs its trait impls, and `union` / `intersection`
+/ `difference` / `clear` / `extend` over the `Vec<String>` store.
+`capacity` / `reserve` / `shrink_to_fit` stay `i32`-only: the String store
+is a linear `Vec<String>` with no bucket layout, so it has no capacity to
+report or reserve. Both element families implement
+`FromIterator<VecIter<T>>`, `IntoIterator`, `Clone`, `Eq`, and `Debug`.
 
 The `hashset_i32_*` / `hashset_str_*` compatibility adapters were retired in
 #917; this module's only public symbols are `HashSet` and its methods.

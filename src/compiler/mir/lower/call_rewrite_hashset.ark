@@ -190,6 +190,24 @@ fn hashset_str_method_target(method: String) -> String {
     if eq(clone(method), String_from("to_vec")) {
         return String_from("hash_string::hashset_str_to_vec")
     }
+    // The aggregate helpers are private to hash_string, so the target has to
+    // carry the module prefix; the membership names stay bare because they are
+    // the registered store functions.
+    if eq(clone(method), String_from("union")) {
+        return String_from("hash_string::hashset_str_union")
+    }
+    if eq(clone(method), String_from("intersection")) {
+        return String_from("hash_string::hashset_str_intersection")
+    }
+    if eq(clone(method), String_from("difference")) {
+        return String_from("hash_string::hashset_str_difference")
+    }
+    if eq(clone(method), String_from("clear")) {
+        return String_from("hash_string::hashset_str_clear")
+    }
+    if eq(clone(method), String_from("extend")) {
+        return String_from("hash_string::hashset_str_extend")
+    }
     if eq(clone(method), String_from("insert")) {
         return String_from("hashset_str_insert")
     }
@@ -250,7 +268,10 @@ fn hashset_returning_family(callee_name: String) -> String {
         return String_from("i32")
     }
     if eq(clone(callee_name), String_from("HashSet_String::clone")) ||
-    starts_with(clone(callee_name), String_from("HashSet_String::from_iter__")) {
+    starts_with(clone(callee_name), String_from("HashSet_String::from_iter__")) ||
+    eq(clone(callee_name), String_from("hash_string::hashset_str_union")) ||
+    eq(clone(callee_name), String_from("hash_string::hashset_str_intersection")) ||
+    eq(clone(callee_name), String_from("hash_string::hashset_str_difference")) {
         return String_from("String")
     }
     String_new()
@@ -382,7 +403,15 @@ test mod "hashset_rewrite" {
     test "family_targets" {
         assert(hashset_method_target_for_family("i32", "clear") == "hashset_clear")
         assert(hashset_method_target_for_family("String", "len") == "hashset_str_len")
-        assert(len(hashset_method_target_for_family("String", "union")) == 0)
+        assert(hashset_method_target_for_family("String", "union") == "hash_string::hashset_str_union")
+        assert(hashset_method_target_for_family("String", "intersection") == "hash_string::hashset_str_intersection")
+        assert(hashset_method_target_for_family("String", "difference") == "hash_string::hashset_str_difference")
+        assert(hashset_method_target_for_family("String", "clear") == "hash_string::hashset_str_clear")
+        assert(hashset_method_target_for_family("String", "extend") == "hash_string::hashset_str_extend")
+        // The String store has no bucket capacity to report or reserve.
+        assert(len(hashset_method_target_for_family("String", "capacity")) == 0)
+        assert(len(hashset_method_target_for_family("String", "reserve")) == 0)
+        assert(len(hashset_method_target_for_family("String", "shrink_to_fit")) == 0)
     }
     test "into_iter_targets" {
         assert(hashset_into_iter_target("i32") == "HashSet_i32::into_iter")
@@ -394,6 +423,10 @@ test mod "hashset_rewrite" {
         assert(is_hashset_returning_target("HashSet_i32::from_iter__VecIter_i32"))
         assert(is_hashset_returning_target("HashSet_String::from_iter__VecIter_String"))
         assert(hashset_returning_family("HashSet_String::from_iter__VecIter_String") == "String")
+        assert(is_hashset_returning_target("hash_string::hashset_str_union"))
+        assert(hashset_returning_family("hash_string::hashset_str_difference") == "String")
+        assert(is_hashset_returning_target("hash_string::hashset_str_clear") == false)
+        assert(is_hashset_returning_target("hash_string::hashset_str_extend") == false)
         assert(is_hashset_returning_target("hashset_to_vec") == false)
         assert(is_hashset_returning_target("hashset_insert") == false)
     }

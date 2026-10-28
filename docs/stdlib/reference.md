@@ -36,7 +36,7 @@
 | `FuncType` | - | no | experimental | A Wasm function signature: parameter types followed by result types. Both lists hold ValType constants. |
 | `HandleTableI32` | - | no | experimental | SlotMap-backed Component Model handle table for i32 payloads; new, insert, get, remove, and len are receiver methods. |
 | `HashMap` | K, V | yes | provisional | Hash-based key/value map. |
-| `HashSet` | T | no | provisional | Set of unique i32 / String values; the i32 surface covers membership and aggregates, and the String surface covers membership plus the to_vec snapshot used by its trait impls. Both families implement FromIterator<VecIter<T>>. |
+| `HashSet` | T | no | provisional | Set of unique i32 / String values; the i32 surface covers membership and the bucket-level aggregates, and the String surface covers membership, the to_vec snapshot used by its trait impls, and union / intersection / difference / clear / extend over its linear store. capacity / reserve / shrink_to_fit are i32-only. Both families implement FromIterator<VecIter<T>>. |
 | `I16x8` | - | no | experimental | 8 × 16-bit signed integer lane associated operations over v128. |
 | `I32x4` | - | no | experimental | 4 × 32-bit signed integer lane associated operations over v128. |
 | `I64x2` | - | no | experimental | 2 × 64-bit signed integer lane associated operations over v128. |

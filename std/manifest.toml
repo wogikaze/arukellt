@@ -2024,13 +2024,13 @@ returns = "bool"
 name = "std::collections::hash_set"
 stability = "provisional"
 family = "collections"
-doc = "Concrete `HashSet<i32>` / `HashSet<String>` type surface (ADR-086); the i32 membership and aggregate methods lower to the flat hash store, and the String methods lower to the `Vec<String>` facade. Both families implement `FromIterator<VecIter<T>>`."
+doc = "Concrete `HashSet<i32>` / `HashSet<String>` type surface (ADR-086); the i32 membership and aggregate methods lower to the flat hash store, and the String membership, set-algebra, `clear`, and `extend` methods lower to the `Vec<String>` facade. Both families implement `FromIterator<VecIter<T>>`."
 availability = { t1 = true, t3 = true }
 
 [[types]]
 name = "HashSet"
 kind = "struct"
-doc = "Set of unique `i32` / `String` values; the i32 surface covers membership and aggregates, and the String surface covers membership plus the `to_vec` snapshot used by its trait impls. Both families implement `FromIterator<VecIter<T>>`."
+doc = "Set of unique `i32` / `String` values; the i32 surface covers membership and the bucket-level aggregates, and the String surface covers membership, the `to_vec` snapshot used by its trait impls, and `union` / `intersection` / `difference` / `clear` / `extend` over its linear store. `capacity` / `reserve` / `shrink_to_fit` are `i32`-only. Both families implement `FromIterator<VecIter<T>>`."
 module = "std::collections::hash_set"
 stability = "provisional"
 generic_params = ["T"]

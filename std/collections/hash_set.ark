@@ -7,10 +7,13 @@
 //!
 //! The aggregate operations (`to_vec`, `union`, `intersection`, `difference`,
 //! `capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend`) are available on
-//! `HashSet<i32>`. `HashSet<String>` exposes the membership surface and the
-//! `to_vec` snapshot that backs its trait impls. Both element families
-//! implement `FromIterator<VecIter<T>>`, `IntoIterator`, `Clone`, `Eq`, and
-//! `Debug`.
+//! `HashSet<i32>`. `HashSet<String>` exposes the membership surface, the
+//! `to_vec` snapshot that backs its trait impls, and `union` / `intersection`
+//! / `difference` / `clear` / `extend` over the `Vec<String>` store.
+//! `capacity` / `reserve` / `shrink_to_fit` stay `i32`-only: the String store
+//! is a linear `Vec<String>` with no bucket layout, so it has no capacity to
+//! report or reserve. Both element families implement
+//! `FromIterator<VecIter<T>>`, `IntoIterator`, `Clone`, `Eq`, and `Debug`.
 //!
 //! The `hashset_i32_*` / `hashset_str_*` compatibility adapters were retired in
 //! #917; this module's only public symbols are `HashSet` and its methods.
@@ -143,6 +146,31 @@ impl HashSet<String> {
     /// Returns all elements as a `Vec<String>` snapshot in insertion order.
     fn to_vec(self: HashSet<String>) -> Vec<String> {
         self.to_vec()
+    }
+
+    /// Returns a new set with the elements present in either set.
+    fn union(self: HashSet<String>, other: HashSet<String>) -> HashSet<String> {
+        self.union(other)
+    }
+
+    /// Returns a new set with the elements present in both sets.
+    fn intersection(self: HashSet<String>, other: HashSet<String>) -> HashSet<String> {
+        self.intersection(other)
+    }
+
+    /// Returns a new set with the elements present in `self` but not `other`.
+    fn difference(self: HashSet<String>, other: HashSet<String>) -> HashSet<String> {
+        self.difference(other)
+    }
+
+    /// Removes all elements, setting the size to zero.
+    fn clear(self: HashSet<String>) {
+        self.clear()
+    }
+
+    /// Inserts every element of `other` that is not already present.
+    fn extend(self: HashSet<String>, other: HashSet<String>) {
+        self.extend(other)
     }
 }
 

@@ -11,6 +11,17 @@ fn gc_param_is_scalar_type_name(type_name: String) -> bool {
     eq(clone(type_name), "u32")
 }
 
+// The String set-algebra helpers take a second Vec<String> operand. Their
+// "hashset_str_" prefix only restates param 0, so the second operand would
+// otherwise fall through to the scalar signature. `insert` / `remove` take a
+// String second param and must not match.
+fn gc_is_hashset_str_pair_store(fn_name: String) -> bool {
+    ends_with(clone(fn_name), String_from("hashset_str_union")) ||
+    ends_with(clone(fn_name), String_from("hashset_str_intersection")) ||
+    ends_with(clone(fn_name), String_from("hashset_str_difference")) ||
+    ends_with(clone(fn_name), String_from("hashset_str_extend"))
+}
+
 // Typed HashMap<i32,i32> / HashSet<i32> wrappers pass container refs in params 0/1.
 fn gc_typed_hash_container_param_sig(fn_name: String, param_idx: i32, type_name: String) -> String {
     if param_idx < 0 || param_idx > 1 {
@@ -18,6 +29,9 @@ fn gc_typed_hash_container_param_sig(fn_name: String, param_idx: i32, type_name:
     }
     if gc_param_is_scalar_type_name(clone(type_name)) {
         return String_new()
+    }
+    if gc_is_hashset_str_pair_store(clone(fn_name)) {
+        return sections_types_gc::gc_vec_string_type_sig()
     }
     if contains(clone(fn_name), "hashset_i32_") ||
     contains(clone(fn_name), "hashmap_i32_i32_") ||
@@ -157,6 +171,9 @@ fn gc_return_type_sig_override(fn_name: String, type_name: String, target: Strin
         return sections_types_gc::gc_vec_type_sig()
     }
     if eq(clone(fn_name), "HashSet_String::clone") ||
+    eq(clone(fn_name), "HashSet_String::union") ||
+    eq(clone(fn_name), "HashSet_String::intersection") ||
+    eq(clone(fn_name), "HashSet_String::difference") ||
     starts_with(clone(fn_name), "HashSet_String::from_iter__") {
         return sections_types_gc::gc_vec_string_type_sig()
     }

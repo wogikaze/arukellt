@@ -16,6 +16,28 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-28 — HashSet<String> aggregate set algebra (#917, ADR-086)
+
+- **Added**: `HashSet<String>::union`, `intersection`, `difference`, `clear`,
+  and `extend` over the `Vec<String>` store. The set-algebra methods return a
+  fresh set and leave both operands intact; `extend` inserts from a snapshot,
+  so `s.extend(s)` terminates.
+- **Not added**: `capacity` / `reserve` / `shrink_to_fit` stay `i32`-only. The
+  String store is a linear `Vec<String>` with no bucket layout, so there is no
+  capacity to report or reserve; an `i32`-shaped value there would be a fake.
+- **Compiler**: the five helpers are private MIR lowering targets in
+  `std::collections::hash_string` (`hash_string::hashset_str_union` / …), so
+  no public free function is added (ADR-046) and the eradication scorecard is
+  unchanged. The HashSet method table, the call-result type table, and the GC
+  signature overrides route both `Vec<String>` operands and the result.
+- **Not a removal**: the `hash_set::hashset_str_*` adapters were already
+  retired on 2026-10-27 with E0100 hints; this wave widens the method
+  replacement those hints point at.
+- **Fixtures**: `stdlib_hashset/hashset_string_agg.ark` +
+  `hashset_string_agg_wasm32.ark` cover the algebra, empty and self operands,
+  result chaining, `Clone` / `Eq` on an aggregate result, and `clear` /
+  `extend` on `wasm32-gc` and `--target wasm32`.
+
 ## 2026-10-28 — Typed stdio handles + raw stderr write (#693, ADR-085 D9)
 
 - **Basis**: [ADR-085](../adr/ADR-085-io-trait-unification.md) D9 kept the

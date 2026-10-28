@@ -218,6 +218,17 @@ fn is_hash_vec_string_result(callee_name: String) -> bool {
     if callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_keys") {
         return true
     }
+    // HashSet<String> set algebra returns a fresh Vec<String> store. The
+    // helpers are private to hash_string, so only the prefixed spelling exists.
+    if callee_eq(clone(callee_name), "hash_string::hashset_str_union") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "hash_string::hashset_str_intersection") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "hash_string::hashset_str_difference") {
+        return true
+    }
     false
 }
 
