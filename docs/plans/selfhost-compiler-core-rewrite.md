@@ -98,6 +98,24 @@ revert した（`fca9acf34`、receipts `851-gc-struct-index-{base,opt}-20261029.
 diffuse な `eq` 呼び出しは個別 index では動かず、Phase 3/4 の構造変更が
 必要という判断。
 
+### 命令数 A/B と layout index（2026-10-29）
+
+wall はホスト負荷で ±25% 変動する（同一 host/source で quiet 31.8 s 〜
+混雑時 39.9 s）ため、AOT cwasm + `perf stat -e instructions:u` を A/B 指標に
+した（同一条件 2 run の差 <0.01%、負荷 20–50 でも安定）。
+`ctx_struct_layout_struct_index` を registry 全走査から incrementally 維持する
+NameIndex に変えた版は **262.23 → 257.15 G instructions（−1.9%）**、生成 wasm は
+バイト一致、gc host の自己再生成も byte 一致。10% wall ルールには届かないが、
+O(N) scan の除去として同日の #944/#917 batch に同梱され履歴に残った
+（`a7292c683` 系）。
+落とし穴: field_count==1 の layout を field push 完了前に index へ入れると、
+gc host が誤コンパイルされて自己コンパイルが spurious E0212 を出す。
+分類は「fc != 1 は push 時、fc == 1 は field push 完了時」に固定する。
+
+merge 後の HEAD（`a7292c683`、#944/#917 取り込み済み）で build-compiler
+warm **55.6 s** / user 45.9 s（負荷 ~20、overlay 再生成込み）、fixpoint PASS
+（s2 == s3 == `e6fbb279…`）。quiet 時の 28.2 s は #944 前 source での値。
+
 ## 現行床（2026-09-01）
 
 | 条件 | wall | RSS |

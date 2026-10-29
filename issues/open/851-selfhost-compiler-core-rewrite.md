@@ -184,3 +184,19 @@ gc overlay gate（ADR-053）は quiet 30.25 s で、10 s には Phase 3/4 の
 （wall 30.62 vs 32.09 s、guest 27.53 vs 28.23 s）で有意差なしだったため
 revert 済み（`fca9acf34`）。receipts:
 `851-gc-struct-index-{base,opt}-20261029.json`。
+
+### 2026-10-29 更新（命令数 A/B と layout index）
+
+wall の負荷依存を避けるため、AOT cwasm + `perf stat -e instructions:u` を
+A/B 指標に固定した（同一条件 2 run の差 <0.01%、負荷 20–50 でも安定）。
+`ctx_struct_layout_struct_index` を全走査から incremental NameIndex に変えた版は
+**262.23 → 257.15 G instructions（−1.9%）**、生成 wasm バイト一致、
+gc host 自己再生成も byte 一致。同日の #944/#917 batch に同梱されて
+履歴に残った（`a7292c683` 系）。
+
+注意: fc==1 の layout を field push 完了前に index へ入れると gc host が
+誤コンパイルされ、自己コンパイルが spurious E0212 を出す。分類は
+「fc != 1 は push 時、fc == 1 は field push 完了時」。
+
+merge 後 HEAD（`a7292c683`）実測: build-compiler warm 55.6 s / user 45.9 s
+（負荷 ~20）、fixpoint PASS（s2 == s3 == `e6fbb279…`）。
