@@ -99,6 +99,18 @@ See [`current-state.md`](current-state.md) for `compile`, `run`, `check`, `build
 `fmt`, `test`, `lint`, `targets`, `analyze`, `init`, `script`, `lsp`, and
 `debug-adapter`.
 
+## Migration windows
+
+ADR-014 keeps a new language restriction accepted with a warning before it
+becomes an error. `--strict` closes the migration windows that are open during
+0.x. It currently turns the ADR-089 implicit impl type-parameter warning
+(W0222) into the hard E0222 error; without it, a binder-less impl head keeps
+compiling with W0222 and the binder hint. `--deny W0222` escalates only that
+warning. See
+[`compiler/error-codes.md`](compiler/error-codes.md#w0222-implicit-impl-type-parameter)
+and
+[ADR-089](adr/ADR-089-language-v2-explicit-impl-type-parameter-binders.md).
+
 
 ## Host capability defaults
 

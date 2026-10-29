@@ -1,1 +1,1 @@
-error[E0222|typecheck]: undefined type `T` in impl head: add an explicit impl type parameter binder
+warning[W0222|typecheck]: implicit impl type parameter `T` is accepted in the ADR-014 migration window; add an explicit impl type parameter binder

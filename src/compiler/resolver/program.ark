@@ -3,6 +3,8 @@ use resolver::bindings
 use resolver::ast_decl_predicates
 use resolver::context
 use resolver::ctx_record
+use resolver::impl_target
+use resolver::modules
 use resolver::program_impl
 use resolver::register
 use resolver::register_wit
@@ -15,8 +17,33 @@ fn resolve_program_for_target(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wi
     resolve_program_for_target_and_host(decls, modules, wit_paths, target, host_profile)
 }
 
+// The window inference is shared with the typechecker and CoreHIR, so the
+// resolver must know every nominal name declared by the entry module or an
+// imported module before it registers any impl owner key.
+fn collect_program_declared_type_names(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Vec<String> {
+    let mut names = impl_target::collect_declared_type_names(decls)
+    let module_count = len(modules)
+    let mut mi = 0
+    while mi < module_count {
+        let module = get_unchecked(modules, mi)
+        let decl_count = modules::module_decl_count(module)
+        let mut di = 0
+        while di < decl_count {
+            impl_target::push_declared_type_name(
+                names,
+                modules::module_decl_at(module, di)
+            )
+            di = di + 1
+        }
+        mi = mi + 1
+    }
+    names
+}
+
 fn resolve_program_for_target_and_host(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wit_paths: Vec<String>, target: String, host_profile: String) -> ResolveCtx {
     let mut ctx = context::ResolveCtx_new_for_target_and_host(target, host_profile)
+    let known_type_names = collect_program_declared_type_names(decls, modules)
+    ctx_record::resolve_ctx_set_declared_type_names(ctx, known_type_names)
     ctx_record::resolve_ctx_set_modules(ctx, modules)
     register::register_imported_modules(ctx, modules)
     register_wit::register_wit_imports(ctx, wit_paths, decls)

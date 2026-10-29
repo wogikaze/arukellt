@@ -109,3 +109,13 @@ phase = "lint-post-resolve"
 summary = "component lowering note"
 maturity = "declared"
 emitted = false
+
+[[diagnostics]]
+code = "W0222"
+severity = "warning"
+phase = "typecheck"
+summary = "implicit impl type parameter accepted in the ADR-089 migration window; add an explicit binder"
+maturity = "implemented"
+emitted = true
+fixture = "tests/fixtures/diagnostics/implicit_impl_type_parameter.ark"
+adr = "ADR-089"

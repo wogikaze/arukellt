@@ -149,10 +149,15 @@ fn return_index_type_name_with_result_payload(
     ""
 }
 
-// Type parameters visible to an impl method: the impl binder first, then
-// the method's own binder in declaration order.
-fn return_declared_type_params(impl_node: AstNode, method_node: AstNode) -> Vec<String> {
-    let names = decl_impl_target::declared_impl_param_names(impl_node)
+// Type parameters visible to an impl method: the effective impl parameters
+// (binder plus the ADR-014 window inference) first, then the method's own
+// binder in declaration order.
+fn return_declared_type_params(
+    impl_node: AstNode,
+    method_node: AstNode,
+    known_type_names: Vec<String>
+) -> Vec<String> {
+    let names = decl_impl_target::effective_impl_param_names(impl_node, known_type_names)
     let method_names = frontend_fns::build_fn_type_params(method_node)
     let count = len(method_names)
     let mut i = 0
@@ -170,16 +175,20 @@ fn return_declared_type_params(impl_node: AstNode, method_node: AstNode) -> Vec<
 // concrete target. Substitute the impl head's instantiated local name
 // (`G<T>`, not the bare owner `G`) here; the typechecker performs the same
 // binding in associated_types::resolve_impl_self_return.
-fn return_index_type_name_for_impl(impl_node: AstNode, method_node: AstNode) -> String {
+fn return_index_type_name_for_impl(
+    impl_node: AstNode,
+    method_node: AstNode,
+    known_type_names: Vec<String>
+) -> String {
     let type_name = return_index_type_name_with_result_payload(
         method_node,
-        impl_can_encode_result_payload(impl_node, method_node),
-        return_declared_type_params(impl_node, method_node)
+        impl_can_encode_result_payload(impl_node, method_node, clone(known_type_names)),
+        return_declared_type_params(impl_node, method_node, clone(known_type_names))
     )
     if len(type_name) == 0 {
         return type_name
     }
-    let self_name = decl_impl_target::impl_self_local_type_name(impl_node)
+    let self_name = decl_impl_target::impl_self_local_type_name(impl_node, known_type_names)
     if len(self_name) == 0 {
         return type_name
     }
@@ -189,7 +198,7 @@ fn return_index_type_name_for_impl(impl_node: AstNode, method_node: AstNode) -> 
     // (and every call destination typed from it) a struct ref instead of the
     // store alias that the method body actually returns (#917).
     if clone(replaced).starts_with("HashSet") {
-        let owner_name = decl_impl_target::impl_self_type_name(impl_node)
+        let owner_name = decl_impl_target::impl_self_type_name(impl_node, known_type_names)
         if eq(clone(owner_name), "HashSet_String") {
             return String_from("vec:String")
         }
@@ -205,11 +214,15 @@ fn return_index_type_name_for_impl(impl_node: AstNode, method_node: AstNode) -> 
 // bare spelling because the trait declaration owns the dispatch ABI, and
 // generic methods keep it because mono instances resolve their return name
 // separately (#693 Phase D).
-fn impl_can_encode_result_payload(impl_node: AstNode, method_node: AstNode) -> bool {
+fn impl_can_encode_result_payload(
+    impl_node: AstNode,
+    method_node: AstNode,
+    known_type_names: Vec<String>
+) -> bool {
     if decl_impl_target::impl_semantic_trait_id(impl_node) != semantic_trait_id::SEMANTIC_TRAIT_ID_NONE() {
         return false
     }
-    if len(decl_impl_target::declared_impl_param_names(impl_node)) > 0 {
+    if len(decl_impl_target::effective_impl_param_names(impl_node, known_type_names)) > 0 {
         return false
     }
     len(frontend_fns::build_fn_type_params(method_node)) == 0

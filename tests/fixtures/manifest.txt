@@ -422,6 +422,7 @@ diag:diagnostics/bounded_impl_unconstrained_param.ark
 diag:diagnostics/trait_blanket_impl.ark
 diag:diagnostics/implicit_impl_type_parameter.ark
 diag:diagnostics/implicit_inherent_impl_type_parameter.ark
+diag:diagnostics/implicit_inherent_impl_type_parameter_strict.ark
 diag:diagnostics/trait_default_method_body.ark
 diag:diagnostics/trait_dyn_boundary.ark
 diag:diagnostics/error_supertrait_missing.ark
@@ -646,6 +647,7 @@ run:generics_v1/generic_struct.ark
 run:generics_v1/generic_struct_impl.ark
 run:generics_v1/generic_struct_vec_field.ark
 run:generics_v1/generic_fn_field_option_step.ark
+run:generics_v1/implicit_binder_window.ark
 run:generics_v1/mir_specialization.ark
 run:generics_v1/nested_generic_call.ark
 run:generics_v1/nested_generics.ark
@@ -3017,6 +3019,7 @@ t3-run:generics_v1/generic_struct.ark
 t3-run:generics_v1/generic_struct_impl.ark
 t3-run:generics_v1/generic_struct_vec_field.ark
 t3-run:generics_v1/generic_fn_field_option_step.ark
+t3-run:generics_v1/implicit_binder_window.ark
 t3-run:generics_v1/mir_specialization.ark
 t3-run:generics_v1/nested_generic_call.ark
 t3-run:generics_v1/nested_generics.ark
@@ -3589,3 +3592,5 @@ diag:diagnostics/removed_prelude_try_from.ark
 diag:diagnostics/removed_prelude_try_from_wasm32.ark
 diag:diagnostics/removed_prelude_push_char.ark
 diag:diagnostics/removed_prelude_push_char_wasm32.ark
+diag:diagnostics/removed_prelude_text_free.ark
+diag:diagnostics/removed_prelude_text_free_wasm32.ark

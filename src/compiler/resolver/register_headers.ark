@@ -1,4 +1,5 @@
 use std::prelude::{clone, eq}
+use resolver::ctx_record
 use resolver::impl_target
 use resolver::scope_define
 use resolver::scope_lookup
@@ -54,7 +55,8 @@ fn register_non_type_decl_header(mut ctx: ResolveCtx, d: AstNode) {
 }
 
 fn register_impl_method_headers(mut ctx: ResolveCtx, d: AstNode) {
-    let struct_name = impl_target::impl_self_type_name(d)
+    let known_type_names = ctx_record::resolve_ctx_declared_type_names(ctx)
+    let struct_name = impl_target::impl_self_type_name(d, clone(known_type_names))
     let base_name = impl_target::impl_self_base_type_name(d)
     let trait_name = ast_access::node_text(d)
     let has_trait = impl_target::impl_head_count(d) >= 2
@@ -70,7 +72,11 @@ fn register_impl_method_headers(mut ctx: ResolveCtx, d: AstNode) {
     while mi < mcount {
         let method = ast_access::node_child_at(d, mi)
         let method_name = ast_access::node_text(method)
-        let mangled = decl_impl_target::impl_method_mangled_name(d, clone(method_name))
+        let mangled = decl_impl_target::impl_method_mangled_name(
+            d,
+            clone(method_name),
+            clone(known_type_names)
+        )
         let existing_mangled = scope_lookup::lookup(ctx, clone(mangled))
         if existing_mangled < 0 || !has_trait {
             scope_define::define_with_vis(ctx, mangled, commands::SYM_FN(), true)

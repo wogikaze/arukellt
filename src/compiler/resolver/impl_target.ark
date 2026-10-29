@@ -1,6 +1,8 @@
 use std::prelude::{clone, eq}
 use std::text
+use corehir::decl_impl_target
 use resolver::ast_access
+use resolver::ast_decl_predicates
 use parser::kinds
 
 // Return the concrete type that owns methods in an impl block.
@@ -21,7 +23,7 @@ fn impl_head_count(decl: AstNode) -> i32 {
     0
 }
 
-fn impl_self_type_name(decl: AstNode) -> String {
+fn impl_self_type_name(decl: AstNode, known_type_names: Vec<String>) -> String {
     let heads = impl_head_count(decl)
     let target = if heads >= 2 {
         ast_access::node_type_ann_at(decl, 1)
@@ -30,7 +32,32 @@ fn impl_self_type_name(decl: AstNode) -> String {
     } else {
         return ast_access::node_text(decl)
     }
-    impl_target_type_name(target, declared_impl_param_names(decl))
+    impl_target_type_name(
+        target,
+        decl_impl_target::effective_impl_param_names(decl, known_type_names)
+    )
+}
+
+// The resolver's owner keys must use the same declared-type set as the
+// typechecker and CoreHIR: a single-uppercase name declared as a nominal type
+// is concrete, and only an undeclared one is an ADR-014 window parameter.
+fn push_declared_type_name(mut names: Vec<String>, node: AstNode) {
+    if ast_decl_predicates::node_is_struct_decl(node) ||
+    ast_decl_predicates::node_is_enum_decl(node) ||
+    ast_decl_predicates::node_is_resource_decl(node) {
+        push(names, ast_access::node_text(node))
+    }
+}
+
+fn collect_declared_type_names(decls: Vec<AstNode>) -> Vec<String> {
+    let mut names = Vec::new<String>()
+    let decl_count = len(decls)
+    let mut i = 0
+    while i < decl_count {
+        push_declared_type_name(names, get_unchecked(decls, i))
+        i = i + 1
+    }
+    names
 }
 
 // Source-level owner shared by every concrete instantiation of a generic
@@ -48,28 +75,6 @@ fn impl_self_base_type_name(decl: AstNode) -> String {
         return ast_access::node_text(ast_access::node_type_ann_at(decl, 0))
     }
     ast_access::node_text(decl)
-}
-
-fn declared_impl_param_names(decl: AstNode) -> Vec<String> {
-    let mut names = Vec::new<String>()
-    let count = ast_access::node_type_ann_count(decl)
-    let mut i = 0
-    while i < count {
-        let ann = ast_access::node_type_ann_at(decl, i)
-        if ast_access::node_kind_is(ann, kinds::NK_IMPL_GENERICS()) {
-            let param_count = ast_access::node_child_count(ann)
-            let mut j = 0
-            while j < param_count {
-                push(
-                    names,
-                    ast_access::node_text(ast_access::node_child_at(ann, j))
-                )
-                j = j + 1
-            }
-        }
-        i = i + 1
-    }
-    names
 }
 
 fn impl_target_type_name(target: AstNode, declared: Vec<String>) -> String {

@@ -1,5 +1,6 @@
 use std::text
 use std::prelude::{clone, eq}
+use corehir::decl_impl_target
 use typechecker::ast_access
 use typechecker::contract_associated_type
 use typechecker::contract_fn_sig
@@ -30,7 +31,10 @@ fn resolve_impl_signature(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnSig
     // argument no MonoInstance can substitute.
     let self_ty = types::resolve_type_ann_node_generic(
         self_node,
-        impl_generics::declared_type_param_names(impl_node)
+        decl_impl_target::effective_impl_param_names(
+            impl_node,
+            clone(env.declared_type_names)
+        )
     )
     let mut params = Vec::new<TypeInfo>()
     let param_count = contract_fn_sig::FnSig_param_count(sig)
@@ -63,14 +67,17 @@ fn resolve_impl_signature(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnSig
 // resolves Self here, generic or not: the impl head's own type parameters
 // are kept as type variables so a later MonoInstance can substitute them
 // instead of a bare `Self` that no call can ever bind.
-fn resolve_impl_self_return(impl_node: AstNode, sig: FnSig) -> FnSig {
+fn resolve_impl_self_return(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnSig {
     let heads = impl_generics::head_count(impl_node)
     if heads < 1 {
         return sig
     }
     let self_ty = types::resolve_type_ann_node_generic(
         ast_access::node_type_ann_at(impl_node, heads - 1),
-        impl_generics::declared_type_param_names(impl_node)
+        decl_impl_target::effective_impl_param_names(
+            impl_node,
+            clone(env.declared_type_names)
+        )
     )
     let return_type = resolve_self_type(self_ty, contract_fn_sig::FnSig_return_type(sig))
     let mut params = Vec::new<TypeInfo>()

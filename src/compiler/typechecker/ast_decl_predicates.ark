@@ -41,6 +41,10 @@ fn node_is_enum_decl(node: AstNode) -> bool {
     ast_access::node_kind_is(node, kinds::NK_ENUM_DECL())
 }
 
+fn node_is_resource_decl(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_RESOURCE_DECL())
+}
+
 fn node_is_import(node: AstNode) -> bool {
     ast_access::node_kind_is(node, kinds::NK_IMPORT())
 }

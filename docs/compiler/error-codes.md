@@ -639,12 +639,18 @@ trait Answer {
 | **Message** | undefined type in impl head |
 
 Impl type parameters are introduced only by the `impl<…>` binder
-(ADR-089). A binder-less head no longer promotes single-uppercase names to
+(ADR-089). A binder-less head does not promote single-uppercase names to
 implicit parameters, so such a name resolves as an ordinary type name. When
 it is not declared in the compilation unit, the diagnostic points at the impl
 and shows the binder form such as `impl<T>`.
 
-<!-- skip-doc-check kind="invalid-example" reason="E0222 rejects the retired implicit-parameter spelling" -->
+During the ADR-014 migration window (0.x), a binder-less head of this shape is
+accepted with **W0222** instead of E0222. E0222 is the error after the window
+closes (`--strict`, and the 1.0.0 default). A head that already has an
+`impl<…>` binder does not get the window: an undeclared name outside the
+binder is E0222 immediately.
+
+<!-- skip-doc-check kind="invalid-example" reason="E0222 rejects the retired implicit-parameter spelling under --strict" -->
 ```arukellt
 struct Wrap<T> {
     item: T,
@@ -1221,6 +1227,38 @@ chain with `else if`.
 
 ---
 
+### W0222 — implicit impl type parameter in the ADR-089 migration window
+
+<a id="w0222-implicit-impl-type-parameter"></a>
+
+| | |
+|---|---|
+| **Severity** | warning |
+| **Phase** | typecheck |
+| **Maturity** | implemented; emitted |
+| **Message** | implicit impl type parameter accepted in the ADR-089 migration window; add an explicit impl type parameter binder |
+
+ADR-089 requires impl type parameters to be introduced by an explicit
+`impl<T, U: Bound>` binder. During the ADR-014 migration window (0.x), a
+binder-less head that uses the retired single-uppercase spelling still infers
+those names as parameters, so existing source keeps compiling. Each inferred
+name reports W0222 and shows the binder form to adopt.
+
+A declared nominal type with a single-uppercase name is never inferred, so
+`impl Copy for S {}` for a declared `struct S` keeps its ADR-089 meaning even
+while the window is open. A head that already has an `impl<…>` binder is not
+covered by the window; an undeclared name outside the binder reports E0222.
+
+Evidence fixtures: `tests/fixtures/diagnostics/implicit_impl_type_parameter.ark`,
+`tests/fixtures/diagnostics/implicit_inherent_impl_type_parameter.ark`, and the
+run fixture `tests/fixtures/generics_v1/implicit_binder_window.ark`.
+
+**Close the window**: pass `--strict` to report E0222 instead, or migrate the
+head to the binder form. `--deny W0222` also escalates the warning to an
+error. The window closes by default at 1.0.0.
+
+---
+
 ## Internal Compiler Errors — `ICE-*`
 
 These are not language errors but signals of compiler bugs. If you encounter
@@ -1300,6 +1338,7 @@ one, please file a bug report.
 | W0011 | warning | lint-post-resolve | prefer else-if over nested else { if } |
 | W0101 | warning | parse | deprecated import syntax; use `use` |
 | W0102 | warning | lint-post-resolve | component lowering note (declared; not emitted) |
+| W0222 | warning | typecheck | implicit impl type parameter accepted in the ADR-089 migration window; add an explicit binder |
 <!-- END GENERATED:WARNING_CODE_CATALOGUE -->
 
 ---

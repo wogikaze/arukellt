@@ -36,12 +36,13 @@ fn build_method_infos(
     nominal_types: CoreHirNominalTypes
 ) -> Vec<CoreHirMethodInfo> {
     let mut infos = Vec::new<CoreHirMethodInfo>()
+    let known_type_names = param_shape_declared::corehir_nominal_type_names(nominal_types)
     let decl_count = len(decls)
     let mut i = 0
     while i < decl_count {
         let decl = get_unchecked(decls, i)
         if decl_node::decl_is_impl(decl) {
-            let owner_name = decl_impl_target::impl_self_type_name(decl)
+            let owner_name = decl_impl_target::impl_self_type_name(decl, clone(known_type_names))
             let trait_id = decl_impl_target::impl_semantic_trait_id(decl)
             let method_count = decl_member_collections::decl_method_count(decl)
             let mut mi = 0
@@ -49,7 +50,11 @@ fn build_method_infos(
                 let method = decl_member_collections::decl_method_at(decl, mi)
                 let body_index = decl_member_collections::method_body_index(method)
                 let param_count = decl_member_collections::method_param_count(method)
-                let type_params = return_type_name::return_declared_type_params(decl, method)
+                let type_params = return_type_name::return_declared_type_params(
+                    decl,
+                    method,
+                    clone(known_type_names)
+                )
                 let type_param_count = len(type_params)
                 let params = build_method_params(
                     decl,
@@ -59,9 +64,21 @@ fn build_method_infos(
                     nominal_types
                 )
                 let method_name = decl_node_identity::method_name(method)
-                let mangled = decl_impl_target::impl_method_mangled_name(decl, clone(method_name))
-                let return_vt = return_type::return_value_type_tag_for_impl(decl, method)
-                let return_type_name = return_type::return_index_type_name_for_impl(decl, method)
+                let mangled = decl_impl_target::impl_method_mangled_name(
+                    decl,
+                    clone(method_name),
+                    clone(known_type_names)
+                )
+                let return_vt = return_type::return_value_type_tag_for_impl(
+                    decl,
+                    method,
+                    clone(known_type_names)
+                )
+                let return_type_name = return_type::return_index_type_name_for_impl(
+                    decl,
+                    method,
+                    clone(known_type_names)
+                )
                 push(
                     infos,
                     method_info::CoreHirMethodInfo_new(

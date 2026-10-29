@@ -9,9 +9,16 @@ fn session_typecheck_decls_with_options(
     decls: Vec<AstNode>,
     resolve_ctx: ResolveCtx,
     wit_paths: Vec<String>,
-    allow_shared_param_mutation: bool
+    allow_shared_param_mutation: bool,
+    strict_impl_binders: bool
 ) -> TypeCheckResult {
-    entry::typecheck_module_with_options(decls, resolve_ctx, wit_paths, allow_shared_param_mutation)
+    entry::typecheck_module_with_options(
+        decls,
+        resolve_ctx,
+        wit_paths,
+        allow_shared_param_mutation,
+        strict_impl_binders
+    )
 }
 
 fn session_empty_typecheck_result() -> TypeCheckResult {

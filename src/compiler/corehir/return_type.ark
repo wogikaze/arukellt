@@ -5,14 +5,22 @@ fn return_value_type_tag(node: AstNode) -> i32 {
     return_type_value::return_value_type_tag(node)
 }
 
-fn return_value_type_tag_for_impl(impl_node: AstNode, method_node: AstNode) -> i32 {
-    return_type_value::return_value_type_tag_for_impl(impl_node, method_node)
+fn return_value_type_tag_for_impl(
+    impl_node: AstNode,
+    method_node: AstNode,
+    known_type_names: Vec<String>
+) -> i32 {
+    return_type_value::return_value_type_tag_for_impl(impl_node, method_node, known_type_names)
 }
 
 fn return_index_type_name(node: AstNode) -> String {
     return_type_name::return_index_type_name(node)
 }
 
-fn return_index_type_name_for_impl(impl_node: AstNode, method_node: AstNode) -> String {
-    return_type_name::return_index_type_name_for_impl(impl_node, method_node)
+fn return_index_type_name_for_impl(
+    impl_node: AstNode,
+    method_node: AstNode,
+    known_type_names: Vec<String>
+) -> String {
+    return_type_name::return_index_type_name_for_impl(impl_node, method_node, known_type_names)
 }

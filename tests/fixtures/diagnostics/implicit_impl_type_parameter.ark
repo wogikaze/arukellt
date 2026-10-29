@@ -1,5 +1,6 @@
-// ADR-089: impl type parameters are introduced only by the `impl<...>`
-// binder. `T` in this head is an undefined type, not an implicit parameter.
+// ADR-089: the binder is the migration target, but ADR-014 keeps the retired
+// binder-less spelling compiling during the 0.x window. `T` is still inferred
+// as an impl type parameter here, with W0222 and the binder hint.
 
 struct Wrap<T> {
     item: T,

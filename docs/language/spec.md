@@ -1541,9 +1541,11 @@ Parametric and blanket impls are classified as in
 [ADR-078](../adr/ADR-078-language-v2-parametric-trait-impl.md).
 
 **Current implementation.** Binder-less heads resolve names as ordinary type
-names. A declared single-uppercase type is therefore a valid impl target, and
-the retired implicit-parameter spelling is rejected with E0222, which shows the
-binder form. Migration status is tracked by
+names. A declared single-uppercase type is therefore a valid impl target. For
+0.x, the ADR-014 migration window still infers an undeclared single-uppercase
+head name as an impl type parameter and reports W0222 with the binder form.
+`--strict` closes the window and reports E0222, and 1.0.0 will make E0222 the
+default. Migration status is tracked by
 [#946](../../issues/open/946-single-uppercase-implicit-impl-param.md).
 
 ---
