@@ -136,6 +136,24 @@ source がずれることがある。fixpoint は source 変更後に s2/s3 を�
 （負荷 ~4）、fixpoint PASS（s2 == s3 == `152f13d9…`）、stdlib_json /
 generics_v1 parity PASS。
 
+### stub module に当たった失敗（2026-10-29）
+
+`ctx_find_leaf_mono_instance_index` の O(M) scan を O(1) index にしたが、
+bootstrap overlay は `_patch_bootstrap_stub_static_dispatch` が
+`mir_lower_ctx_mono_type_params.ark` を **丸ごと stub 文字列に置換**するため、
+変更は自己ホスト compiler に一切入らなかった（overlay を grep して判明、
+命令数も baseline と完全一致）。revert 済み（`18e1d56a3`）。
+
+教訓: bootstrap overlay で効かせたい変更は、まず overlay 生成結果を grep して
+「その関数が実際に overlay に居るか」を確認する。stub 化モジュール
+（`ctx_mono_type_params` など）の最適化は checks.py の stub テンプレートを
+直す必要があり、bootstrap 専用の回避策なので手を出さない。
+
+最新 pin `62aecf93…` と HEAD `55675414f`(+revert) の再検証:
+build-compiler warm **59.8 s** / user 52.8 s（負荷 ~10、overlay 再生成込み。
+quiet 比較ではない）、fixpoint PASS（s2 == s3 == `be07c165…`）、
+stdlib_json / generics_v1 parity PASS。
+
 ## 現行床（2026-09-01）
 
 | 条件 | wall | RSS |

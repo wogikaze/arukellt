@@ -218,3 +218,18 @@ s2 == s3 == `152f13d9…` で PASS）。fixpoint は source 変更後に同一 s
 
 HEAD `ba4811c9b` の実測: build-compiler warm **31.5 s** / user 30.4 s（負荷 ~4）、
 stdlib_json / generics_v1 parity PASS。
+
+### 2026-10-29 更新（stub module に当たった失敗）
+
+`ctx_find_leaf_mono_instance_index` の O(M) scan を O(1) leaf index にしたが、
+bootstrap overlay は `_patch_bootstrap_stub_static_dispatch` が
+`mir_lower_ctx_mono_type_params.ark` を丸ごと stub 文字列に置換するため、
+変更は自己ホスト compiler に入らず、命令数も baseline と一致した。
+revert 済み（`18e1d56a3`）。
+
+教訓: overlay で効かせたい変更は、まず生成された overlay を grep して
+当該関数が存在するか確認する（stub 化モジュールは無効）。
+
+最新 pin `62aecf93…` / HEAD `55675414f`(+revert) の再検証:
+build-compiler warm 59.8 s / user 52.8 s（負荷 ~10、overlay 再生成込み）、
+fixpoint PASS（s2 == s3 == `be07c165…`）、stdlib_json / generics_v1 parity PASS。
