@@ -48,11 +48,19 @@ fn is_retired_hashmap_module(module: String) -> bool {
     eq(clone(module), "hash_fn") || eq(clone(module), "hash_str_fn")
 }
 
-fn hashset_method_replacement_hint() -> String {
-    String_from("removed HashSet adapter; use `HashSet::new<i32>()` / `HashSet::new<String>()` plus receiver methods ").concat(
+fn hashset_method_surface_text() -> String {
+    String_from("`HashSet::new<i32>()` / `HashSet::new<String>()` plus receiver methods ").concat(
         String_from("(`s.insert(v)`, `s.contains(v)`, `s.remove(v)`, `s.len()`, `s.is_empty()`, `s.to_vec()`, ")
     ).concat(String_from("`s.union(t)`, `s.intersection(t)`, `s.difference(t)`, `s.capacity()`, `s.reserve(n)`, ")
         .concat(String_from("`s.shrink_to_fit()`, `s.clear()`, `s.extend(t)`)")))
+}
+
+fn hashset_method_replacement_hint() -> String {
+    String_from("removed HashSet adapter; use ").concat(hashset_method_surface_text())
+}
+
+fn hashset_free_replacement_hint() -> String {
+    String_from("use ").concat(hashset_method_surface_text())
 }
 
 fn is_retired_hashset_adapter_name(name: String) -> bool {
@@ -60,6 +68,21 @@ fn is_retired_hashset_adapter_name(name: String) -> bool {
         return true
     }
     starts_with(clone(name), "hashset_str_")
+}
+
+// The 21 flat-store frees were retired from the public manifest but remain as
+// non-public MIR lowering targets, so a qualified call resolves to a symbol and
+// fails visibility rather than lookup. Only the retired names get a removal
+// hint; other private helpers in the same modules stay privacy errors.
+fn is_retired_hashset_free_name(name: String) -> bool {
+    starts_with(clone(name), "hashset_")
+}
+
+fn is_retired_hashset_free_module(module: String) -> bool {
+    if eq(clone(module), "hash") || eq(clone(module), "collections::hash") {
+        return true
+    }
+    eq(clone(module), "std::collections::hash")
 }
 
 fn removed_name_specific_hint(name: String) -> String {
@@ -95,6 +118,9 @@ fn removed_name_specific_hint(name: String) -> String {
     }
     if is_retired_hashset_adapter_name(clone(name)) {
         return hashset_method_replacement_hint()
+    }
+    if is_retired_hashset_free_name(clone(name)) {
+        return hashset_free_replacement_hint()
     }
     if eq(clone(name), "concat") { return "removed prelude wrapper; call `text::concat(a, b)` via `use std::text`, or `a.text::concat(b)`" }
     if eq(clone(name), "clear") { return "removed free function; use the Vec method `v.clear()`" }
@@ -481,6 +507,19 @@ fn removed_ordered_member_hint(name: String) -> String {
     String_new()
 }
 
+// Retired HashSet frees remain declared as non-public MIR lowering targets, so
+// a qualified call reaches the visibility check. Match only the retired names
+// here so unrelated private helpers keep the plain privacy error.
+fn removed_private_member_hint(module: String, name: String) -> String {
+    if is_retired_hashset_free_module(clone(module)) && starts_with(clone(name), "hashset_") {
+        return hashset_free_replacement_hint()
+    }
+    if eq(clone(module), "hash_string") && starts_with(clone(name), "hashset_") {
+        return hashset_free_replacement_hint()
+    }
+    String_new()
+}
+
 fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "fs") || eq(clone(module), "host::fs") || eq(clone(module), "std::fs") || eq(clone(module), "std::host::fs") {
         return removed_host_fs_member_hint(name)
@@ -502,6 +541,9 @@ fn removed_module_member_hint(module: String, name: String) -> String {
     }
     if eq(clone(module), "env") || eq(clone(module), "host::env") || eq(clone(module), "std::env") || eq(clone(module), "std::host::env") {
         return removed_host_env_member_hint(name)
+    }
+    if is_retired_hashset_free_module(clone(module)) && starts_with(clone(name), "hashset_") {
+        return hashset_free_replacement_hint()
     }
     if is_retired_hashmap_module(clone(module)) {
         return hashmap_method_replacement_hint()
@@ -1556,6 +1598,24 @@ test mod "removed_names" {
         assert(len(removed_module_member_hint(String_from("hash_set"), String_from("hashset_str_insert"))) > 0)
         assert(len(removed_name_hint(String_from("hashset_i32_to_vec"))) > 0)
         assert(len(removed_name_hint(String_from("hashset_str_remove"))) > 0)
+    }
+    test "retired hash store frees keep method hints" {
+        assert(len(removed_module_member_hint(String_from("hash"), String_from("hashset_new"))) > 0)
+        assert(len(removed_module_member_hint(String_from("collections::hash"), String_from("hashset_insert"))) > 0)
+        assert(len(removed_module_member_hint(String_from("std::collections::hash"), String_from("hashset_capacity"))) > 0)
+        assert(len(removed_module_member_hint(String_from("hash"), String_from("hashset_str_insert"))) > 0)
+        assert(len(removed_name_hint(String_from("hashset_extend"))) > 0)
+        assert(len(removed_name_hint(String_from("hashset_str_new"))) > 0)
+        // The live HashMap flat-store frees stay public and keep no hint.
+        assert(len(removed_module_member_hint(String_from("hash"), String_from("hashmap_capacity"))) == 0)
+        assert(len(removed_name_hint(String_from("hashmap_get"))) == 0)
+        // Retired declarations stay private MIR lowering targets, so the
+        // visibility path must classify only them.
+        assert(len(removed_private_member_hint(String_from("hash"), String_from("hashset_insert"))) > 0)
+        assert(len(removed_private_member_hint(String_from("std::collections::hash"), String_from("hashset_new"))) > 0)
+        assert(len(removed_private_member_hint(String_from("hash_string"), String_from("hashset_str_insert"))) > 0)
+        assert(len(removed_private_member_hint(String_from("hash"), String_from("hashmap_capacity"))) == 0)
+        assert(len(removed_private_member_hint(String_from("hash_string"), String_from("hm_si_grow"))) == 0)
     }
     test "removed simd lane frees have associated-function hints" {
         assert(len(removed_module_member_hint(String_from("f32x4"), String_from("splat"))) > 0)
