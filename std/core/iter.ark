@@ -218,9 +218,14 @@ pub struct VecIter<T> {
     length: i32,
 }
 
-/// Return the canonical lazy iterator for a `Vec<i32>`.
-impl Vec<i32> {
-    fn iter(self: Vec<i32>) -> VecIter<i32> {
+/// Return the canonical lazy iterator for a `Vec<T>`.
+///
+/// One generic impl covers every element type. Per-instantiation inherent
+/// impls for `Vec` all register the bare `Vec::iter` owner, so an
+/// `impl Vec<i64>` beside `impl Vec<i32>` would be shadowed rather than
+/// selected; the element type must stay a parameter here.
+impl<T> Vec<T> {
+    fn iter(self: Vec<T>) -> VecIter<T> {
         VecIter { vec: self, index: 0, length: len(self) }
     }
 }
