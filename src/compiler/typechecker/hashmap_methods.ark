@@ -143,9 +143,17 @@ fn hashmap_report_unavailable(
         )
     )
     let head = kind.concat(String_from(" `").concat(method_name.concat(String_from("` is not available on `"))))
+    let capacity_group = String_from("(`with_capacity`, `capacity`, `reserve`, `try_reserve`, ").concat(
+        String_from("`shrink_to_fit`, `clear`, `drain`, `remove_entry`, `extend`)")
+    )
+    let available_methods = String_from("`len`, `is_empty`, `insert`, `get`, `contains_key`, ").concat(
+        String_from("`remove`, `keys`, `values`, and `entries`")
+    )
     let message = head.concat(
         pair.concat(
-            String_from("`; the capacity/bulk surface is implemented only for `HashMap<i32, i32>`")
+            String_from("`; the capacity/bulk group ").concat(capacity_group).concat(
+                String_from(" is implemented only for the flat `HashMap<i32, i32>` store; ")
+            ).concat(String_from("this pair supports ").concat(available_methods).concat(String_from(".")))
         )
     )
     // Speculative inference can visit the same call node more than once;

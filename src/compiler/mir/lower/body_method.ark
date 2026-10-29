@@ -1,6 +1,9 @@
 use mir::lower::ast_node
 use mir::lower::assign
+use mir::lower::binary_cast
 use mir::lower::body_aggregate_assign_field
+use mir::lower::call_arg_i64
+use mir::lower::call_rewrite_hashmap
 use mir::lower::ctx_api_emit
 use mir::lower::method
 use mir::inst_local_get
@@ -18,6 +21,15 @@ fn lower_method_call_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
             ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(receiver_idx))
         }
         let callee_name = method::mir_initial_method_callee(ctx, ast_node::node_text(node), receiver_idx)
+        // The flat-store rewrite is name-based, so the call target is known
+        // before the arguments lower. Apply the same i64->i32 narrowing
+        // allowlist as the direct-call path: memory32 needs the wrap, while
+        // memory64 keeps the wide local for its i64 parameters (#917).
+        let narrow_callee = call_rewrite_hashmap::mir_rewrite_hashmap_method(
+            ctx,
+            clone(callee_name),
+            receiver_idx
+        )
         let mut a = 1
         let mut first_method_arg_idx = 0 - 1
         let mut last_method_arg_idx = 0 - 1
@@ -25,7 +37,11 @@ fn lower_method_call_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
             let arg = ast_node::node_child_at(node, a)
             let arg_is_composed = ast_node::node_kind_is(arg, lower_kinds::NK_METHOD_CALL()) ||
             ast_node::node_kind_is(arg, lower_kinds::NK_CALL())
-            let method_arg_idx = lower_expr(ctx, arg)
+            let mut method_arg_idx = lower_expr(ctx, arg)
+            if method_arg_idx >= 0 && len(clone(narrow_callee)) > 0 &&
+            call_arg_i64::mir_should_wrap_i64_arg_to_i32(ctx, clone(narrow_callee), a) {
+                method_arg_idx = binary_cast::mir_wrap_i64_to_i32_if_needed(ctx, method_arg_idx)
+            }
             let arg_is_scalar_const = method::mir_method_arg_needs_repush_before_field_access(ctx, method_arg_idx)
             if (arg_is_composed && method_arg_idx >= 0) ||
             method::mir_method_arg_leaves_no_stack(ctx, method_arg_idx) {

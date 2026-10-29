@@ -1467,7 +1467,8 @@ classified there, in dependency-safe waves.
   A bare `2147483648` literal in a method argument still infers i64 and fails
   memory32 component validation (the pre-existing i64-arg allowlist only
   covers the rewritten direct-call names), so the boundary fixtures use
-  `(0 - 2147483647) - 1`. Borrowed `entry` / `iter` / `retain` and
+  `(0 - 2147483647) - 1`. (Fixed by the `wave/hashmap-remain` slice below,
+  2026-10-30.) Borrowed `entry` / `iter` / `retain` and
   `FromIterator` parity remain deferred with the collection iterator design.
 
 ### Landed slice (wave/associated-next, 2026-10-29)
@@ -1663,3 +1664,52 @@ classified there, in dependency-safe waves.
   remains at 3 rows until a wasm32-gc fd parity fixture exists. The four
   namespace types are `provisional`, matching the existing `Env` / `Clock` /
   `Fs` replacement surfaces.
+
+### Landed slice (wave/hashmap-remain, 2026-10-30)
+
+- **Wide literal method arguments**: `2147483648` is lexed as an i32 value
+  (the i32::MIN bit pattern), but MIR lowering keeps wide decimal literals as
+  i64 temps so `0 - lit` can extend the left operand. The method-argument path
+  never applied the direct-call i64->i32 narrowing allowlist, so
+  `m.insert(2147483648, v)` / `m.insert(0 - 2147483648, v)` emitted an i64
+  operand into the memory32 flat-store call and failed component validation.
+  `body_method` / `core_call_method` now resolve the flat-store target before
+  lowering arguments and apply `mir_should_wrap_i64_arg_to_i32` per argument;
+  memory64 keeps the wide local for its i64 parameters. `hashmap_remove` /
+  `hashmap_reserve` / `hashmap_try_reserve` were added to the allowlist so
+  wide-literal keys and counts are covered too.
+- **E0200 boundary (kept)**: a generic `HashMap<K, V>` capacity surface was
+  evaluated and deferred. The non-flat stores (`hash_string` / `hash_fn` /
+  `hash_str_fn`) keep compiler-managed bucket arrays behind `__hm_*`
+  intrinsics; exposing `drain` / `remove_entry` / `extend` there needs
+  per-pair typed-pair lowering before one shared contract can exist. The 21
+  retired frees were i32-keyed and i32-valued, so no capability was lost. The
+  E0200 text now names the rejected call, the pair, the full gated group, and
+  the methods the pair does support; the reason is recorded in
+  `std/collections/hash_map.ark`, `collections-hashmap-rust-diff.md`, and the
+  migration guide.
+- **Fixtures**: `stdlib_hashmap/insert_max_int` and `insert_negative_keys`
+  use the wide literal form again; `insert_wide_literal_arg` covers a bare
+  `2147483648` key, `get`, `contains_key`, `remove`, `reserve`, and
+  `try_reserve`. Added dual-target
+  `diagnostics/hashmap_string_with_capacity*` (E0200) and updated the
+  `hashmap_string_capacity*` goldens. `removed_hashmap_adapter*` goldens were
+  not changed; their longer hint text matches on both targets. Registry
+  3556 -> **3559**.
+- **Verification**: `verify fixtures` **1923/1923** compile+validate PASS
+  (111 runtime smoke, 38/38 `test:` PASS, 2 runtime-unsupported, 0 FAIL). The
+  three changed / new run fixtures compile, validate, and execute on both
+  wasm32-gc component (memory32) and `--target wasm32`. diag parity
+  **260/260** PASS. `verify lane` PASS. `docs check` 6/6. ADR-029 fixpoint
+  PASS: s2 == s3 sha256
+  `d5bddc8811b482e3dbc0474f111cbabb385b33f3e1281fd61488ba8a10adeead` (pinned
+  base `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`).
+  `selfhost build-compiler` ran three times: 101.3 s on the cold overlay,
+  34.4 s after formatting, and 66.3 s after the reserve/try_reserve allowlist
+  broadening.
+- **Residuals**: the generic capacity surface remains deferred. The
+  `removed_hashmap_adapter*` hint is still pair-generic (it names the
+  `HashMap<i32, i32>` constructor even when the removed adapter was
+  String-keyed); making it pair-aware is a separate E0100 slice. Borrowed
+  `entry` / `iter` / `retain` and `FromIterator` parity remain deferred with
+  the collection iterator design.

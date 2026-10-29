@@ -9,9 +9,9 @@ use wasm::hash_aliases
 
 // True when callee param at param_idx (0-based) is i64 per signature spine.
 // Used to force bare int literals to CONST_I64 / extend i32 locals before call.
-use std::prelude::{eq}
+use std::prelude::{clone, eq}
 fn mir_callee_param_is_i64(ctx: LowerCtx, callee_name: String, param_idx: i32) -> bool {
-    let decided = mir_callee_param_i64_decision(ctx, callee_name.clone(), param_idx)
+    let decided = mir_callee_param_i64_decision(ctx, clone(callee_name), param_idx)
     // 1 = i64, 0 = not i64, -1 = spine miss
     decided == 1
 }
@@ -21,14 +21,14 @@ fn mir_should_force_int_lit_i64(ctx: LowerCtx, callee_name: String, param_idx: i
     // callee name, but its sole argument is always the i32 capacity.  The
     // suffix must not make the generic fallback heuristic treat that argument
     // as i64 (for example `Vec__with_capacity__i64(8)`).
-    if param_idx == 0 && mir_is_vec_with_capacity_callee(callee_name.clone()) {
+    if param_idx == 0 && mir_is_vec_with_capacity_callee(clone(callee_name)) {
         return false
     }
     // Conversion intrinsics that take i32 must keep CONST_I32 args.
-    if callee_name.clone().contains(String_from("i32_to_i64")) || callee_name.clone().contains(String_from("u32_to_u64")) {
+    if clone(callee_name).contains(String_from("i32_to_i64")) || clone(callee_name).contains(String_from("u32_to_u64")) {
         return false
     }
-    let decided = mir_callee_param_i64_decision(ctx, callee_name.clone(), param_idx)
+    let decided = mir_callee_param_i64_decision(ctx, clone(callee_name), param_idx)
     if decided == 1 {
         return true
     }
@@ -42,15 +42,15 @@ fn mir_should_force_int_lit_i64(ctx: LowerCtx, callee_name: String, param_idx: i
 }
 
 fn mir_is_vec_with_capacity_callee(callee_name: String) -> bool {
-    if eq(callee_name.clone(), String_from("Vec::with_capacity")) ||
-    eq(callee_name.clone(), String_from("Vec__with_capacity")) {
+    if eq(clone(callee_name), String_from("Vec::with_capacity")) ||
+    eq(clone(callee_name), String_from("Vec__with_capacity")) {
         return true
     }
-    if callee_name.clone().starts_with(String_from("Vec::with_capacity__")) ||
-    callee_name.clone().starts_with(String_from("Vec__with_capacity__")) {
+    if clone(callee_name).starts_with(String_from("Vec::with_capacity__")) ||
+    clone(callee_name).starts_with(String_from("Vec__with_capacity__")) {
         return true
     }
-    if callee_name.clone().starts_with(String_from("Vec_with_capacity_")) {
+    if clone(callee_name).starts_with(String_from("Vec_with_capacity_")) {
         return true
     }
     false
@@ -59,24 +59,27 @@ fn mir_is_vec_with_capacity_callee(callee_name: String) -> bool {
 // True when an i64 temp must truncate for a known i32 scalar param.
 // Do not wrap for generic format_debug / to_string (spine may say i32) (#807).
 fn mir_should_wrap_i64_arg_to_i32(ctx: LowerCtx, callee_name: String, param_idx: i32) -> bool {
-    if mir_callee_param_i64_decision(ctx, callee_name.clone(), param_idx) != 0 {
+    if mir_callee_param_i64_decision(ctx, clone(callee_name), param_idx) != 0 {
         return false
     }
     mir_callee_name_accepts_i32_narrow_from_i64(callee_name)
 }
 
 fn mir_callee_name_accepts_i32_narrow_from_i64(callee_name: String) -> bool {
-    if callee_name.clone().contains(String_from("format_i32")) {
+    if clone(callee_name).contains(String_from("format_i32")) {
         return true
     }
-    if callee_name.clone().contains(String_from("hashmap_set")) ||
-    callee_name.clone().contains(String_from("hashmap_insert")) ||
-    callee_name.clone().contains(String_from("hashmap_get")) ||
-    callee_name.clone().contains(String_from("hashmap_contains")) {
+    if clone(callee_name).contains(String_from("hashmap_set")) ||
+    clone(callee_name).contains(String_from("hashmap_insert")) ||
+    clone(callee_name).contains(String_from("hashmap_get")) ||
+    clone(callee_name).contains(String_from("hashmap_contains")) ||
+    clone(callee_name).contains(String_from("hashmap_remove")) ||
+    clone(callee_name).contains(String_from("hashmap_reserve")) ||
+    clone(callee_name).contains(String_from("hashmap_try_reserve")) {
         return true
     }
-    if eq(callee_name.clone(), String_from("assert_eq_i32")) ||
-    callee_name.clone().ends_with(String_from("::assert_eq_i32")) {
+    if eq(clone(callee_name), String_from("assert_eq_i32")) ||
+    clone(callee_name).ends_with(String_from("::assert_eq_i32")) {
         return true
     }
     false
@@ -93,10 +96,10 @@ fn mir_callee_param_mvt(ctx: LowerCtx, callee_name: String, param_idx: i32) -> M
     if !module_spine::MirModule_signature_spine_populated(m) {
         return typed_mir_compat::mvt_invalid()
     }
-    let mut param_mvt = spine_lookup::function_param_mvt(m, callee_name.clone(), param_idx)
+    let mut param_mvt = spine_lookup::function_param_mvt(m, clone(callee_name), param_idx)
     if typed_mir_compat::mvt_is_invalid(param_mvt) {
-        let short = mir_callee_short_name(callee_name.clone())
-        if !eq(short.clone(), callee_name.clone()) {
+        let short = mir_callee_short_name(clone(callee_name))
+        if !eq(clone(short), clone(callee_name)) {
             param_mvt = spine_lookup::function_param_mvt(m, short, param_idx)
         }
     }
@@ -105,12 +108,12 @@ fn mir_callee_param_mvt(ctx: LowerCtx, callee_name: String, param_idx: i32) -> M
         // function at emit time, so the spine only knows the rewritten
         // signature. Resolve the same alias here or bare fn args lose their
         // fn-typed parameter slot and lower to 0-param calls (#874).
-        let alias = hash_aliases::hashmap_builtin_alias(callee_name.clone())
-        if !eq(alias.clone(), callee_name.clone()) {
+        let alias = hash_aliases::hashmap_builtin_alias(clone(callee_name))
+        if !eq(clone(alias), clone(callee_name)) {
             param_mvt = spine_lookup::function_param_mvt(m, alias, param_idx)
             if typed_mir_compat::mvt_is_invalid(param_mvt) {
-                let alias_short = mir_callee_short_name(alias.clone())
-                if !eq(alias_short.clone(), alias.clone()) {
+                let alias_short = mir_callee_short_name(clone(alias))
+                if !eq(clone(alias_short), clone(alias)) {
                     param_mvt = spine_lookup::function_param_mvt(m, alias_short, param_idx)
                 }
             }
@@ -121,7 +124,7 @@ fn mir_callee_param_mvt(ctx: LowerCtx, callee_name: String, param_idx: i32) -> M
 
 // 1 = i64, 0 = known non-i64, -1 = spine unavailable / lookup miss.
 fn mir_callee_param_i64_decision(ctx: LowerCtx, callee_name: String, param_idx: i32) -> i32 {
-    let param_mvt = mir_callee_param_mvt(ctx, callee_name.clone(), param_idx)
+    let param_mvt = mir_callee_param_mvt(ctx, clone(callee_name), param_idx)
     if typed_mir_compat::mvt_is_invalid(param_mvt) {
         return 0 - 1
     }
@@ -137,7 +140,7 @@ fn mir_callee_param_i64_decision(ctx: LowerCtx, callee_name: String, param_idx: 
 // Bare function-name args must then lower to fn pairs rather than 0-param
 // calls (#883).
 fn mir_callee_param_is_funcref(ctx: LowerCtx, callee_name: String, param_idx: i32) -> bool {
-    let param_mvt = mir_callee_param_mvt(ctx, callee_name.clone(), param_idx)
+    let param_mvt = mir_callee_param_mvt(ctx, clone(callee_name), param_idx)
     if typed_mir_compat::mvt_is_invalid(param_mvt) {
         return false
     }
@@ -147,34 +150,34 @@ fn mir_callee_param_is_funcref(ctx: LowerCtx, callee_name: String, param_idx: i3
 }
 
 fn mir_callee_name_suggests_i64_args(callee_name: String) -> bool {
-    if callee_name.clone().contains(String_from("i32_to_i64")) || callee_name.clone().contains(String_from("u32_to_u64")) {
+    if clone(callee_name).contains(String_from("i32_to_i64")) || clone(callee_name).contains(String_from("u32_to_u64")) {
         return false
     }
     // SIMD intrinsics carry their operand types in the call site: the i64x2
     // lane name does not make the i32 shift amount an i64. Stretching it
     // leaves an i64 operand for i64x2.shl on memory32 (#917).
-    if callee_name.clone().starts_with(String_from("__simd_")) {
+    if clone(callee_name).starts_with(String_from("__simd_")) {
         return false
     }
     // Element-type suffixes (*_i64) do not mean the trailing arg is i64.
     // vec_get_unchecked_i64 keeps an i32 index; extending it breaks validate (#807).
-    if callee_name.clone().contains(String_from("get_unchecked")) {
+    if clone(callee_name).contains(String_from("get_unchecked")) {
         return false
     }
-    if callee_name.clone().contains(String_from("i64")) {
+    if clone(callee_name).contains(String_from("i64")) {
         return true
     }
-    if eq(callee_name.clone(), String_from("seek")) {
+    if eq(clone(callee_name), String_from("seek")) {
         return true
     }
-    callee_name.clone().ends_with(String_from("::seek"))
+    clone(callee_name).ends_with(String_from("::seek"))
 }
 
 fn mir_callee_short_name(callee_name: String) -> String {
     let mut i = len(callee_name) - 1
     while i >= 0 {
         if callee_name.byte_at(i) == 58 {
-            return callee_name.clone().slice(i + 1, len(callee_name))
+            return clone(callee_name).slice(i + 1, len(callee_name))
         }
         i = i - 1
     }

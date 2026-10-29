@@ -116,3 +116,4 @@ tmp/
 # Native-cpp recovery worktree locals
 .recovery-snapshot/
 .build-native-recovery/
+google-chrome-stable_current_amd64.deb

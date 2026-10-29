@@ -16,53 +16,36 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
-## 2026-10-30 — free `clone` の退役 (#917, wave/poly-clone)
+## 2026-10-30 — HashMap の容量境界と wide literal 引数の残件 (#917, wave/hashmap-remain)
 
-- **Basis**: [ADR-091](../adr/ADR-091-prelude-free-function-exception.md) §4 が
-  保留した `clone` を、同じ 0.x 例外（E0100 + receiver hint）で退役した。
-  §3 の prelude free 例外は 4 件から 3 件へ減る。
-- **Root cause**: `.clone()` の bare fallback が `(String) -> String` の free 宣言を
-  拾い、非 String receiver が E0200 になっていた。generic shim を置いても
-  `vec:String` receiver は共有 callee cache で `String::clone` に解決され、
-  Vec struct を String ref 引数へ渡して `type mismatch: expected (ref null
-  $type), found (ref null $type)` の invalid core Wasm になった。
-- **Mechanism**: `std/prelude.ark` に private な generic identity shim
-  `fn clone<T>(value: T) -> T` と、`impl<T> Vec<T> { fn clone(self) -> Vec<T> }`
-  （shallow。header を共有し element storage は deep copy しない）を置いた。
-  `clone` を module graph に常時存在させることで、compiler 自身の `.clone()` が
-  pin と stage-2/3 で同じ lowering になる。typechecker / MIR のロジックは
-  変えていない（committed pin が polymorphic method 解決を持たないため）。
-- **Retired**: prelude の `pub fn clone` と `std::collections::string` の
-  `pub fn clone` を削除した。後者は retired CoreOp 経由で `wasm unreachable` に
-  落ちていた。bare call と `use std::prelude::{clone}` は E0100 になる。
-- **Replacement**: `s.clone()` / `v.clone()` / `x.clone()`（receiver method）。
-  Vec は shallow、`Clone` impl を持たない struct / enum / Option は identity。
-- **Compiler migration**: compiler / std / fixture の 762 ファイル、13,984 call
-  site を receiver method へ移し、748 件の selective import から `clone` を
-  外した。生成元 (`generate-docs.py` / `generate-core-ops-registry.py` /
-  `generate-core-op-bindings.py` / `ark_fnv_index.py`) も `.clone()` を emit する
-  よう更新し、`target_contract_generated.ark` を再生成した。
-- **Diagnostics**: `resolver::removed_names` に clone の hint を追加し、
-  `diagnostics/removed_prelude_free_clone` / `removed_prelude_import_clone` の
-  E0100 golden を追加した。`check-compat-orphans.py` の hint 抽出を
-  `eq(x.clone(), ...)` 形式へ対応させた。
-- **Scorecard**: eradication scope 87 → **86**; `pub fn` declarations 89 →
-  **87**; manifest public entries 86 → **85**; `prelude_wrapper` entries 28 →
-  **27**; `prelude frees (default)` 8 → **7**; `associated-or-method` 21 → **20**;
-  `must delete` 66、unregistered 1、intrinsic-only 1 は不変。
-- **Deferred (3)**: `eq`（bootstrap overlay に `impl Eq for String` がなく、
-  free `eq` を消すと String `==` が `i32.eq` へ落ちて invalid core Wasm になる）、
-  `Box_new` / `unbox`（generic enum payload の associated/method lowering と
-  ownership checker の名前 boundary が未解決）、`to_string`（`String` の
-  `Display` impl が `std::core::convert` に依存）。
-- **Residual**: `Vec<T>::clone` は shallow で、`T: Clone` を要求する deep impl は
-  pin refresh 後に置き換える。private な `fn clone<T>` shim は、pin が
-  bare-name signature なしで `.clone()` を解決できるようになった時点で削除する。
-- **Evidence**: `verify fixtures` **1921/1921** compile+validate PASS（110 runtime
-  smoke、38/38 `test:` PASS、2 runtime-unsupported、0 FAIL）、`verify lane` PASS、
-  `docs check` 6/6、ADR-029 fixpoint PASS（s2 == s3 at sha256
-  `107c7c4d4bb7a072021c4277e20b0a1181f08603a863bbe384994de2a71b407e`、pinned base
-  `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`）。
+- **E0200 boundary**: 容量・一括操作 group は引き続き flat `HashMap<i32, i32>`
+  store 専用。String / fn pair では `with_capacity` を含む 9 名を型検査で拒否する。
+  診断は呼び出された method、受信 pair、group 全名、その pair で利用できる
+  `len` / `is_empty` / `insert` / `get` / `contains_key` / `remove` / `keys` /
+  `values` / `entries` を列挙する。汎用 `HashMap<K, V>` の容量 surface は、
+  non-flat store の compiler-managed bucket に対する per-pair の `drain` /
+  `remove_entry` / `extend` lowering が必要なため先送りし、理由を module docs と
+  `collections-hashmap-rust-diff.md` / migration guide に記録した。退役した 21
+  free は i32 専用だったため capability の欠落はない。
+- **Literal lowering**: method 引数の i64 temp を、direct call と同じ i64→i32
+  narrowing allowlist で i32 parameter に合わせるようにした。memory32 component
+  でも `m.insert(2147483648, v)` / `0 - 2147483648` が検証を通る。
+  `hashmap_remove` / `hashmap_reserve` / `hashmap_try_reserve` も allowlist に
+  加えた。memory64 の i64 parameter は従来どおり wide local を保つ。
+- **Fixtures**: `stdlib_hashmap/insert_max_int` / `insert_negative_keys` を wide
+  literal 表記へ戻し、`insert_wide_literal_arg`（key / get / contains_key /
+  remove / reserve / try_reserve）を追加。E0200 の
+  `hashmap_string_with_capacity*` を両 target で追加し、
+  `hashmap_string_capacity*` の golden を新診断文へ更新した。
+  `removed_hashmap_adapter*` は golden 変更なしで両 target の diag parity を確認。
+  registry 3556 -> **3559**。
+- **Evidence**: `verify fixtures` **1923/1923** compile+validate PASS（111
+  runtime smoke、38/38 `test:` PASS、2 runtime-unsupported、0 FAIL）。変更した
+  run fixture 3 件は wasm32-gc component と `--target wasm32` の両方で
+  compile+validate+実行 PASS。diag parity **260/260** PASS。`verify lane` PASS。
+  `docs check` 6/6。ADR-029 fixpoint PASS: s2 == s3 sha256
+  `d5bddc8811b482e3dbc0474f111cbabb385b33f3e1281fd61488ba8a10adeead`
+  （pinned base `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`）。
 
 ## 2026-10-29 — text free 10 件のうち 8 件を退役 (#917, wave/prelude-text2)
 

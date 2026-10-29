@@ -61,6 +61,13 @@ details, so a call on those pairs is rejected at typecheck with `E0200`
 instead of running the i32 helpers over the wrong layout. This is the same
 boundary that already applies to `HashSet<String>` capacity methods.
 
+A generic `HashMap<K, V>` capacity surface is deferred rather than
+unimplemented plumbing: the non-flat stores use compiler-managed bucket
+arrays, and exposing `drain` / `remove_entry` / `extend` on them needs
+per-pair typed-pair lowering before one contract can cover every pair. No
+capability was lost in the free-function retirement: the 21 retired
+`hashmap_*` frees were i32-keyed and i32-valued.
+
 ## Replacement And Lookup
 
 The compatibility direction is Rust-like `Option<V>` where the current type

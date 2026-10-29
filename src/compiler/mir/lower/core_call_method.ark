@@ -1,3 +1,6 @@
+use mir::lower::binary_cast
+use mir::lower::call_arg_i64
+use mir::lower::call_rewrite_hashmap
 use mir::lower::ctx_api_emit
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_aggregate
@@ -21,7 +24,14 @@ fn lower_core_method_call(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Core
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(receiver_idx))
     }
     let callee_name = method::mir_initial_method_callee(ctx, core_expr_shape_accessors::mir_core_expr_text(expr), receiver_idx)
-    let method_arg_indices = lower_core_method_arg_indices(ctx, exprs, expr, child_count)
+    // See body_method: resolve the flat-store target before lowering the
+    // arguments so the i64->i32 narrowing allowlist can apply to each one.
+    let narrow_callee = call_rewrite_hashmap::mir_rewrite_hashmap_method(
+        ctx,
+        clone(callee_name),
+        receiver_idx
+    )
+    let method_arg_indices = lower_core_method_arg_indices(ctx, exprs, expr, child_count, narrow_callee)
     let first_method_arg_idx = method_arg_indices.get_unchecked(0)
     let value_method_arg_idx = method_arg_indices.get_unchecked(1)
     let mut resolved_callee = method::mir_resolve_method_callee(
@@ -36,7 +46,13 @@ fn lower_core_method_call(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Core
 // Returns [first argument, trailing value argument] locals (-1 when absent).
 // The vec push rewrite needs the trailing value to widen an i32 literal for
 // Vec<i64> receivers (#917), mirroring the direct-call path.
-fn lower_core_method_arg_indices(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32) -> Vec<i32> {
+fn lower_core_method_arg_indices(
+    mut ctx: LowerCtx,
+    exprs: Vec<CoreHirExpr>,
+    expr: CoreHirExpr,
+    child_count: i32,
+    narrow_callee: String
+) -> Vec<i32> {
     let mut a = 1
     let mut first_method_arg_idx = 0 - 1
     let mut last_method_arg_idx = 0 - 1
@@ -45,7 +61,11 @@ fn lower_core_method_arg_indices(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, exp
         let method_arg_expr = exprs.get_unchecked(method_arg_expr_index)
         let arg_is_composed = core_expr_shape_calls::mir_core_expr_is_method_call(method_arg_expr) ||
         core_expr_shape_calls::mir_core_expr_is_call(method_arg_expr)
-        let method_arg_idx = lower_core_expr(ctx, exprs, method_arg_expr_index)
+        let mut method_arg_idx = lower_core_expr(ctx, exprs, method_arg_expr_index)
+        if method_arg_idx >= 0 && len(clone(narrow_callee)) > 0 &&
+        call_arg_i64::mir_should_wrap_i64_arg_to_i32(ctx, clone(narrow_callee), a) {
+            method_arg_idx = binary_cast::mir_wrap_i64_to_i32_if_needed(ctx, method_arg_idx)
+        }
         let arg_is_scalar_const = method::mir_method_arg_needs_repush_before_field_access(ctx, method_arg_idx)
         if (arg_is_composed && method_arg_idx >= 0) ||
         method::mir_method_arg_leaves_no_stack(ctx, method_arg_idx) {

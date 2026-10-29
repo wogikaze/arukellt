@@ -435,6 +435,8 @@ diag:diagnostics/hashset_string_capacity.ark
 diag:diagnostics/hashset_string_capacity_wasm32.ark
 diag:diagnostics/hashmap_string_capacity.ark
 diag:diagnostics/hashmap_string_capacity_wasm32.ark
+diag:diagnostics/hashmap_string_with_capacity.ark
+diag:diagnostics/hashmap_string_with_capacity_wasm32.ark
 diag:diagnostics/hashset_string_reserve.ark
 diag:diagnostics/hashset_string_shrink_to_fit.ark
 diag:diagnostics/iterator_methods_no_import.ark
@@ -1168,6 +1170,7 @@ run:stdlib_hashmap/insert_overwrite.ark
 run:stdlib_hashmap/insert_returns_none.ark
 run:stdlib_hashmap/insert_returns_old.ark
 run:stdlib_hashmap/insert_single.ark
+run:stdlib_hashmap/insert_wide_literal_arg.ark
 run:stdlib_hashmap/insert_zero_key.ark
 run:stdlib_hashmap/insert_zero_value.ark
 run:stdlib_hashmap/keys_empty.ark
