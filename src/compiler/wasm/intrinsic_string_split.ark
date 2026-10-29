@@ -77,7 +77,19 @@ fn emit_split_setup(mut w: WasmWriter, s_sp_src: i32, s_sp_sep: i32, s_sp_slen: 
     helpers_core::emit_local_set(w, s_sp_start)
 }
 
-fn emit_split_scan_loop(mut w: WasmWriter, s_sp_src: i32, s_sp_sep: i32, s_sp_slen: i32, s_sp_seplen: i32, s_sp_pos: i32, s_sp_start: i32, s_sp_vec: i32, s_sp_match: i32, s_sp_j: i32, s_sp_sub: i32) {
+fn emit_split_scan_loop(
+    mut w: WasmWriter,
+    s_sp_src: i32,
+    s_sp_sep: i32,
+    s_sp_slen: i32,
+    s_sp_seplen: i32,
+    s_sp_pos: i32,
+    s_sp_start: i32,
+    s_sp_vec: i32,
+    s_sp_match: i32,
+    s_sp_j: i32,
+    s_sp_sub: i32
+) {
     helpers_control::emit_block_loop_header(w)
     helpers_core::emit_local_get(w, s_sp_pos)
     helpers_core::emit_local_get(w, s_sp_slen)
