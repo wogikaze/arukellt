@@ -1,6 +1,5 @@
 use std::host::stdio
 use std::text
-use std::prelude::{slice}
 fn main() {
     let ascii = "hello"
     stdio::println((len(ascii)).to_string())
@@ -8,13 +7,13 @@ fn main() {
     stdio::println((len(" ")).to_string())
     stdio::println((len("\n")).to_string())
     stdio::println((len("\t")).to_string())
-    let world = slice(ascii, 0, 3)
+    let world = ascii.slice(0, 3)
     stdio::println(world)
-    let mid = slice(ascii, 1, 4)
+    let mid = ascii.slice(1, 4)
     stdio::println(mid)
-    let full = slice(ascii, 0, 5)
+    let full = ascii.slice(0, 5)
     stdio::println(full)
-    let empty = slice(ascii, 2, 2)
+    let empty = ascii.slice(2, 2)
     stdio::println((len(empty)).to_string())
     stdio::println(("abc".len_bytes()).to_string())
     stdio::println(("".is_empty()).to_string())

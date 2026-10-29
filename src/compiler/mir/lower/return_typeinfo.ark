@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use std::text
 use mir::typeinfo_shape
 use mir::lower::return_typeinfo_names
@@ -186,7 +186,7 @@ fn mir_fn_return_type_name_from_type_info(ty: TypeInfo) -> String {
 fn mir_return_type_name_is_fnref(type_name: String) -> bool {
     eq(clone(type_name), "fnref") ||
     eq(clone(type_name), "fn") ||
-    starts_with(clone(type_name), "fn(")
+    clone(type_name).starts_with("fn(")
 }
 
 // Build a return type name for enum types.  For Result, include type

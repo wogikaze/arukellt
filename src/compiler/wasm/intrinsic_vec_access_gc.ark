@@ -26,15 +26,15 @@ use mir::opcodes as mir_opcodes
 // Checks gc_struct_names first, then falls back to byte_size-based lookup.
 // Container element names (vec:String, Vec, ...) resolve via fixed GC slots
 // so structref-array gets cast before calls (#726 csv_perf).
-use std::prelude::{byte_at, clone, contains, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 fn resolve_concrete_struct_type(ctx: SelfEmitCtx, struct_name: String) -> i32 {
-    if starts_with(clone(struct_name), "enum:") {
+    if clone(struct_name).starts_with("enum:") {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     }
     // Accept "struct:Name:byte_size" / module::Name / bare Name.
     let mut bare = strip_module_prefix_type_name(clone(struct_name))
-    if starts_with(clone(bare), "struct:") {
+    if clone(bare).starts_with("struct:") {
         bare = parse_struct_name_from_encoding(clone(bare))
     }
     if len(bare) == 0 {
@@ -58,7 +58,7 @@ fn resolve_concrete_struct_type(ctx: SelfEmitCtx, struct_name: String) -> i32 {
     let prefix = clone(bare).concat("::")
     while ei < ev_count {
         let nm = clone(get_unchecked(ev_names, ei))
-        if starts_with(clone(nm), clone(prefix)) {
+        if clone(nm).starts_with(clone(prefix)) {
             return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
         }
         ei = ei + 1
@@ -77,8 +77,8 @@ fn strip_module_prefix_type_name(type_name: String) -> String {
     let n = len(type_name)
     let mut i = n - 2
     while i >= 0 {
-        if byte_at(type_name, i) == 58 && byte_at(type_name, i + 1) == 58 {
-            return substring(type_name, i + 2, n)
+        if type_name.byte_at(i) == 58 && type_name.byte_at(i + 1) == 58 {
+            return type_name.slice(i + 2, n)
         }
         i = i - 1
     }
@@ -92,7 +92,7 @@ fn parse_struct_name_from_encoding(type_name: String) -> String {
     let mut last_colon = 0 - 1
     let mut i = 0
     while i < n {
-        if byte_at(type_name, i) == 58 {
+        if type_name.byte_at(i) == 58 {
             if first_colon < 0 {
                 first_colon = i
             }
@@ -103,7 +103,7 @@ fn parse_struct_name_from_encoding(type_name: String) -> String {
     if first_colon < 0 || last_colon < 0 || first_colon == last_colon {
         return String_new()
     }
-    substring(type_name, first_colon + 1, last_colon)
+    type_name.slice(first_colon + 1, last_colon)
 }
 
 // Scan function instructions for MIR_STRUCT_NEW with matching struct name.
@@ -275,8 +275,8 @@ fn resolve_get_unchecked_elem_from_next_call(ctx: SelfEmitCtx, inst: MirInst) ->
                                     if resolved >= 0 &&
                                     resolved != ctx_gc_type::SelfEmitCtx_string_type(ctx) &&
                                     resolved != ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) &&
-                                    !starts_with(clone(pname), "vec:") &&
-                                    !starts_with(clone(pname), "Vec") {
+                                    !clone(pname).starts_with("vec:") &&
+                                    !clone(pname).starts_with("Vec") {
                                         return resolved
                                     }
                                 }
@@ -384,7 +384,7 @@ fn resolve_get_unchecked_elem_from_field_use(ctx: SelfEmitCtx, dest: i32) -> i32
 }
 
 fn is_get_unchecked_callee_name(name: String) -> bool {
-    contains(clone(name), "get_unchecked")
+    clone(name).contains("get_unchecked")
 }
 
 // Local declarations are emitted before body instructions, so a get_unchecked
@@ -554,8 +554,8 @@ fn find_gcsref_suffix_for_struct(ctx: SelfEmitCtx, struct_name: String) -> Strin
 }
 
 fn elem_name_looks_like_enum(ctx: SelfEmitCtx, struct_name: String) -> bool {
-    let bare = if starts_with(clone(struct_name), "enum:") {
-        substring(clone(struct_name), 5, len(struct_name))
+    let bare = if clone(struct_name).starts_with("enum:") {
+        clone(struct_name).slice(5, len(struct_name))
     } else {
         clone(struct_name)
     }
@@ -565,7 +565,7 @@ fn elem_name_looks_like_enum(ctx: SelfEmitCtx, struct_name: String) -> bool {
     let prefix = clone(bare).concat("::")
     while ei < ev_count {
         let nm = clone(get_unchecked(ev_names, ei))
-        if starts_with(clone(nm), clone(prefix)) {
+        if clone(nm).starts_with(clone(prefix)) {
             return true
         }
         ei = ei + 1
@@ -589,7 +589,7 @@ fn find_option_some_variant_type(ctx: SelfEmitCtx, field_suffix: String, enum_ty
             if i < len(type_map) {
                 let variant_type = get_unchecked(type_map, i)
                 if variant_type != open_type {
-                    if i < len(sigs) && ends_with(clone(get_unchecked(sigs, i)), clone(field_suffix)) {
+                    if i < len(sigs) && clone(get_unchecked(sigs, i)).ends_with(clone(field_suffix)) {
                         return variant_type
                     }
                     if fallback < 0 {

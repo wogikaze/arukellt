@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use mir::function_locals_view
 use mir::function_return_mutation
 use mir::local_access
@@ -33,13 +33,13 @@ fn mir_set_closure_return_from_local(mut ctx: LowerCtx, mut f: MirFunction, res_
             ret_type = "String"
         }
     }
-    if starts_with(clone(ret_type), "struct:") ||
+    if clone(ret_type).starts_with("struct:") ||
     eq(clone(ret_type), "String") ||
     eq(clone(ret_type), "string") ||
-    starts_with(clone(ret_type), "enum:") ||
-    starts_with(clone(ret_type), "vec:") ||
-    starts_with(clone(ret_type), "Option_") ||
-    starts_with(clone(ret_type), "Result_") {
+    clone(ret_type).starts_with("enum:") ||
+    clone(ret_type).starts_with("vec:") ||
+    clone(ret_type).starts_with("Option_") ||
+    clone(ret_type).starts_with("Result_") {
         ret_vt = value_types::VT_GC_REF()
     }
     function_return_mutation::MirFunction_set_return_type(f, ret_vt)

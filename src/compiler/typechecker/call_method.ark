@@ -1,4 +1,4 @@
-use std::prelude::{clone, contains, eq}
+use std::prelude::{clone, eq}
 use std::text
 use typechecker::kinds
 use typechecker::ast_access
@@ -738,7 +738,7 @@ fn infer_trait_method_call(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
 
 fn is_iterator_api_method(method_name: String) -> bool {
     let names = String_from("|iter|into_iter|collect|count|map|filter|take|skip|flat_map|peekable|step_by|scan|chain|enumerate|zip|rev|unique|any|all|sum|fold|contains|count_eq|find|")
-    contains(names, text::concat("|", text::concat(method_name, String_from("|"))))
+    names.contains(text::concat("|", text::concat(method_name, String_from("|"))))
 }
 
 fn receiver_exposes_iterator_api(recv_ty: TypeInfo) -> bool {
@@ -748,7 +748,7 @@ fn receiver_exposes_iterator_api(recv_ty: TypeInfo) -> bool {
     }
     let name = contract_type_access::TypeInfo_name(recv_ty)
     let n = len(name)
-    if n >= 4 && contains(name, String_from("Iter")) {
+    if n >= 4 && name.contains(String_from("Iter")) {
         return true
     }
     eq(clone(name), String_from("Range")) || eq(clone(name), String_from("RangeInclusive"))

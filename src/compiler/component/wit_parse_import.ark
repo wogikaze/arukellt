@@ -2,7 +2,7 @@
 
 use std::host::fs::Fs
 use std::wit::ast
-use std::prelude::{byte_at, clone, eq, substring}
+use std::prelude::{clone, eq}
 use compiler::wit_identity
 use component::wit_names_import
 use component::wit_parse_text
@@ -17,16 +17,16 @@ fn wit_import_serialized_records(text: String) -> Vec<String> {
     let mut i = 0
     let n = len(text)
     while i < n {
-        if byte_at(text, i) == 59 {
+        if text.byte_at(i) == 59 {
             if i > start {
-                push(records, substring(text, start, i))
+                push(records, text.slice(start, i))
             }
             start = i + 1
         }
         i = i + 1
     }
     if start < n {
-        push(records, substring(text, start, n))
+        push(records, text.slice(start, n))
     }
     records
 }
@@ -37,13 +37,13 @@ fn wit_import_serialized_fields(record: String) -> Vec<String> {
     let mut i = 0
     let n = len(record)
     while i < n {
-        if byte_at(record, i) == 124 {
-            push(fields, substring(record, start, i))
+        if record.byte_at(i) == 124 {
+            push(fields, record.slice(start, i))
             start = i + 1
         }
         i = i + 1
     }
-    push(fields, substring(record, start, n))
+    push(fields, record.slice(start, n))
     fields
 }
 
@@ -56,13 +56,13 @@ fn wit_import_serialized_list(text: String) -> Vec<String> {
     let mut i = 0
     let n = len(text)
     while i < n {
-        if byte_at(text, i) == 126 {
-            push(values, substring(text, start, i))
+        if text.byte_at(i) == 126 {
+            push(values, text.slice(start, i))
             start = i + 1
         }
         i = i + 1
     }
-    push(values, substring(text, start, n))
+    push(values, text.slice(start, n))
     values
 }
 

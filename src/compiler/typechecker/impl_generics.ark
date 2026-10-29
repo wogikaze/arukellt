@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq}
+use std::prelude::{clone, eq}
 use typechecker::ast_access
 use typechecker::contract_type_param_bounds
 use typechecker::kinds
@@ -134,7 +134,7 @@ fn is_single_uppercase_name(name: String) -> bool {
     if len(name) != 1 {
         return false
     }
-    let ch = byte_at(name, 0)
+    let ch = name.byte_at(0)
     ch >= 65 && ch <= 90
 }
 

@@ -1,12 +1,11 @@
 use std::host::stdio
 use std::json
-use std::prelude::{to_string}
 use std::text
 fn main() {
     match json::JsonValue::parse(String_from("{\"port\":8080,\"name\":\"svc\"}")) {
         Result::Ok(root) => match root.get_field(String_from("port")) {
             Option::Some(port_v) => match port_v.as_i32() {
-                Option::Some(port) => stdio::println(String_from("json.port=").concat(to_string(port))),
+                Option::Some(port) => stdio::println(String_from("json.port=").concat(port.to_string())),
                 None => stdio::println(String_from("json.port=missing")),
             },
             None => stdio::println(String_from("json.port=missing")),

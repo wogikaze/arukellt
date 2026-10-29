@@ -1,19 +1,19 @@
 // WIT -> Arukellt binding source renderer (#672).
 
 use std::text
-use std::prelude::{byte_at, clone, contains, eq, index_of, starts_with, substring}
+use std::prelude::{clone, eq}
 use component
 use component::wit_names_import
 use component::wit_parse_text
 use component::wit_parse_text_scan
 
 fn wit_binding_generic_inner(t: String) -> String {
-    let open = index_of(t, "<")
+    let open = t.index_of("<")
     if open < 0 { return String_new() }
     let mut close = len(t) - 1
-    while close > open && byte_at(t, close) != 62 { close = close - 1 }
+    while close > open && t.byte_at(close) != 62 { close = close - 1 }
     if close <= open { return String_new() }
-    wit_parse_text_scan::wit_trim_txt(substring(t, open + 1, close))
+    wit_parse_text_scan::wit_trim_txt(t.slice(open + 1, close))
 }
 
 fn wit_binding_type(wit_type: String) -> String {
@@ -25,19 +25,19 @@ fn wit_binding_type(wit_type: String) -> String {
     if eq(clone(t), "bool") { return "bool" }
     if eq(clone(t), "char") { return "char" }
     if eq(clone(t), "string") { return "String" }
-    if starts_with(clone(t), "list<") {
+    if clone(t).starts_with("list<") {
         return "Vec<".concat(wit_binding_type(wit_binding_generic_inner(t)).concat(">"))
     }
-    if starts_with(clone(t), "option<") {
+    if clone(t).starts_with("option<") {
         return "Option<".concat(wit_binding_type(wit_binding_generic_inner(t)).concat(">"))
     }
-    if starts_with(clone(t), "result<") {
+    if clone(t).starts_with("result<") {
         let args = wit_parse_text_scan::wit_split_csv_items_txt(wit_binding_generic_inner(t))
         let ok = if len(args) > 0 { wit_binding_type(get_unchecked(args, 0)) } else { "()" }
         let err = if len(args) > 1 { wit_binding_type(get_unchecked(args, 1)) } else { "()" }
         return "Result<".concat(ok.concat(", ".concat(err.concat(">"))))
     }
-    if starts_with(clone(t), "tuple<") {
+    if clone(t).starts_with("tuple<") {
         let args = wit_parse_text_scan::wit_split_csv_items_txt(wit_binding_generic_inner(t))
         let mut out = "("
         for i in 0..len(args) {
@@ -58,7 +58,7 @@ fn wit_binding_validation_error(doc: wit_parse_text::WitParsedInterface) -> Stri
             if eq(wit_parse_text_scan::wit_trim_txt(clone(field_type)), clone(record.wit_name)) {
                 return "E0402 recursive WIT record binding: ".concat(clone(record.wit_name))
             }
-            if contains(clone(field_type), "own<") || contains(clone(field_type), "borrow<") {
+            if clone(field_type).contains("own<") || clone(field_type).contains("borrow<") {
                 return "E0402 resource handle field is not a value binding: ".concat(clone(record.wit_name))
             }
         }

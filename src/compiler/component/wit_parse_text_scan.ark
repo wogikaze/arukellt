@@ -3,12 +3,12 @@
 // full compiler compile, which left String wrappers as drop+unreachable
 // (`expected ref, found i32` at wit_trim_txt).
 
-use std::prelude::{byte_at, clone, index_of, substring}
+use std::prelude::{clone}
 fn wit_find_char_from(s: String, ch: i32, from: i32) -> i32 {
     let n = len(s)
     let mut i = from
     while i < n {
-        if byte_at(s, i) == ch {
+        if s.byte_at(i) == ch {
             return i
         }
         i = i + 1
@@ -20,7 +20,7 @@ fn wit_trim_txt(s: String) -> String {
     let n = len(s)
     let mut start = 0
     while start < n {
-        let ch = byte_at(s, start)
+        let ch = s.byte_at(start)
         if ch != 32 && ch != 9 && ch != 13 && ch != 10 {
             break
         }
@@ -28,13 +28,13 @@ fn wit_trim_txt(s: String) -> String {
     }
     let mut end = n
     while end > start {
-        let ch = byte_at(s, end - 1)
+        let ch = s.byte_at(end - 1)
         if ch != 32 && ch != 9 && ch != 13 && ch != 10 {
             break
         }
         end = end - 1
     }
-    substring(s, start, end)
+    s.slice(start, end)
 }
 
 fn wit_strip_version_txt(pkg: String) -> String {
@@ -42,11 +42,11 @@ fn wit_strip_version_txt(pkg: String) -> String {
     if at < 0 {
         return clone(pkg)
     }
-    substring(pkg, 0, at)
+    pkg.slice(0, at)
 }
 
 fn wit_extract_package_version(text: String) -> String {
-    let mark = index_of(text, "package ")
+    let mark = text.index_of("package ")
     if mark < 0 {
         return String_new()
     }
@@ -54,12 +54,12 @@ fn wit_extract_package_version(text: String) -> String {
     if semi < 0 {
         return String_new()
     }
-    let package = wit_trim_txt(substring(text, mark + 8, semi))
+    let package = wit_trim_txt(text.slice(mark + 8, semi))
     let at = wit_find_char_from(package, 64, 0)
     if at < 0 {
         return String_new()
     }
-    let version = substring(package, at + 1, len(package))
+    let version = package.slice(at + 1, len(package))
     version
 }
 
@@ -72,7 +72,7 @@ fn wit_component_version_txt(version: String) -> String {
     if patch_end < 0 {
         return version
     }
-    substring(version, 0, patch_end)
+    version.slice(0, patch_end)
 }
 
 fn wit_before_colon_txt(s: String) -> String {
@@ -80,7 +80,7 @@ fn wit_before_colon_txt(s: String) -> String {
     if colon < 0 {
         return wit_trim_txt(s)
     }
-    wit_trim_txt(substring(s, 0, colon))
+    wit_trim_txt(s.slice(0, colon))
 }
 
 fn wit_split_param_txt(param: String) -> String {
@@ -88,7 +88,7 @@ fn wit_split_param_txt(param: String) -> String {
     if colon < 0 {
         return wit_trim_txt(param)
     }
-    wit_trim_txt(substring(param, colon + 1, len(param)))
+    wit_trim_txt(param.slice(colon + 1, len(param)))
 }
 
 fn wit_split_csv_items_txt(inner: String) -> Vec<String> {
@@ -98,7 +98,7 @@ fn wit_split_csv_items_txt(inner: String) -> Vec<String> {
     let mut depth = 0
     let mut i = 0
     while i < n {
-        let ch = byte_at(inner, i)
+        let ch = inner.byte_at(i)
         if ch == 60 {
             depth = depth + 1
         }
@@ -106,19 +106,19 @@ fn wit_split_csv_items_txt(inner: String) -> Vec<String> {
             depth = depth - 1
         }
         if ch == 44 && depth == 0 {
-            push(items, wit_trim_txt(substring(inner, start, i)))
+            push(items, wit_trim_txt(inner.slice(start, i)))
             start = i + 1
         }
         i = i + 1
     }
     if start < n {
-        push(items, wit_trim_txt(substring(inner, start, n)))
+        push(items, wit_trim_txt(inner.slice(start, n)))
     }
     items
 }
 
 fn wit_extract_package(text: String) -> String {
-    let mark = index_of(text, "package ")
+    let mark = text.index_of("package ")
     if mark < 0 {
         return String_new()
     }
@@ -126,11 +126,11 @@ fn wit_extract_package(text: String) -> String {
     if semi < 0 {
         return String_new()
     }
-    wit_strip_version_txt(wit_trim_txt(substring(text, mark + 8, semi)))
+    wit_strip_version_txt(wit_trim_txt(text.slice(mark + 8, semi)))
 }
 
 fn wit_extract_interface_name(text: String) -> String {
-    let mark = index_of(text, "interface ")
+    let mark = text.index_of("interface ")
     if mark < 0 {
         return String_new()
     }
@@ -138,11 +138,11 @@ fn wit_extract_interface_name(text: String) -> String {
     if brace < 0 {
         return String_new()
     }
-    wit_trim_txt(substring(text, mark + 10, brace))
+    wit_trim_txt(text.slice(mark + 10, brace))
 }
 
 fn wit_extract_interface_body(text: String) -> String {
-    let mark = index_of(text, "interface ")
+    let mark = text.index_of("interface ")
     if mark < 0 {
         return String_new()
     }
@@ -154,14 +154,14 @@ fn wit_extract_interface_body(text: String) -> String {
     let mut i = open
     let n = len(text)
     while i < n {
-        let ch = byte_at(text, i)
+        let ch = text.byte_at(i)
         if ch == 123 {
             depth = depth + 1
         }
         if ch == 125 {
             depth = depth - 1
             if depth == 0 {
-                return substring(text, open + 1, i)
+                return text.slice(open + 1, i)
             }
         }
         i = i + 1
@@ -172,7 +172,7 @@ fn wit_extract_interface_body(text: String) -> String {
 fn wit_line_start_txt(text: String, pos: i32) -> i32 {
     let mut i = pos
     while i > 0 {
-        if byte_at(text, i - 1) == 10 {
+        if text.byte_at(i - 1) == 10 {
             return i
         }
         i = i - 1
@@ -184,7 +184,7 @@ fn wit_line_end_txt(text: String, pos: i32) -> i32 {
     let n = len(text)
     let mut i = pos
     while i < n {
-        if byte_at(text, i) == 10 {
+        if text.byte_at(i) == 10 {
             return i
         }
         i = i + 1

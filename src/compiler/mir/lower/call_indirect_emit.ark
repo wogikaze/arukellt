@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, index_of, starts_with, substring}
+use std::prelude::{clone, eq}
 use mir::inst_call_ref
 use mir::inst_local_get
 use mir::lower::ast_node
@@ -22,10 +22,10 @@ fn mir_is_funcref_local(ctx: LowerCtx, local_idx: i32) -> bool {
     // fnref2 = binary fold callbacks; must take call_ref, not direct CALL (#807).
     eq(clone(type_name), String_from("fnref")) ||
     eq(clone(type_name), String_from("fnref2")) ||
-    starts_with(clone(type_name), String_from("fnref")) ||
-    starts_with(clone(type_name), String_from("fnsig:")) ||
+    clone(type_name).starts_with(String_from("fnref")) ||
+    clone(type_name).starts_with(String_from("fnsig:")) ||
     eq(clone(type_name), String_from("fn")) ||
-    starts_with(clone(type_name), String_from("fn("))
+    clone(type_name).starts_with(String_from("fn("))
 }
 
 fn mark_indirect_callback_result_type(mut ctx: LowerCtx, callee_type_name: String, dest: i32) {
@@ -49,7 +49,7 @@ fn mark_indirect_callback_result_type(mut ctx: LowerCtx, callee_type_name: Strin
     // `fnsig:<param>;<return>` carries the concrete callback signature, so
     // the call result can be typed from the return segment instead of
     // collapsing to i32 (#860/#691).
-    if starts_with(clone(callee_type_name), String_from("fnsig:")) {
+    if clone(callee_type_name).starts_with(String_from("fnsig:")) {
         mark_fnsig_callback_result_type(ctx, clone(callee_type_name), dest)
     }
 }
@@ -58,12 +58,12 @@ fn mark_indirect_callback_result_type(mut ctx: LowerCtx, callee_type_name: Strin
 // `fnsig:<param>;<return>` callee. Scalars keep their value type; named
 // and container returns are reference types on both backends.
 fn mark_fnsig_callback_result_type(mut ctx: LowerCtx, callee_type_name: String, dest: i32) {
-    let rest = substring(clone(callee_type_name), 6, len(callee_type_name))
-    let sep = index_of(clone(rest), String_from(";"))
+    let rest = clone(callee_type_name).slice(6, len(callee_type_name))
+    let sep = clone(rest).index_of(String_from(";"))
     if sep < 0 {
         return
     }
-    let ret_seg = substring(clone(rest), sep + 1, len(rest))
+    let ret_seg = clone(rest).slice(sep + 1, len(rest))
     if len(ret_seg) == 0 {
         return
     }

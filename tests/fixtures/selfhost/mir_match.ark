@@ -2,7 +2,6 @@
 // Exercises: integer literal arms, wildcard pattern, match as expression,
 //            nested if/else chain lowering for multiple arms.
 use std::host::stdio
-use std::prelude::{to_string}
 fn grade(score: i32) -> i32 {
     match score {
         90 => 4,
@@ -22,20 +21,20 @@ fn classify(n: i32) -> i32 {
 }
 
 fn main() {
-    stdio::println(to_string(grade(90)))
-    stdio::println(to_string(grade(80)))
-    stdio::println(to_string(grade(70)))
-    stdio::println(to_string(grade(55)))
+    stdio::println(grade(90).to_string())
+    stdio::println(grade(80).to_string())
+    stdio::println(grade(70).to_string())
+    stdio::println(grade(55).to_string())
     let x = 2
     let result = match x {
         1 => 100,
         2 => 200,
         _ => 0,
     }
-    stdio::println(to_string(result))
-    stdio::println(to_string(classify(0)))
-    stdio::println(to_string(classify(1)))
-    stdio::println(to_string(classify(7)))
+    stdio::println(result.to_string())
+    stdio::println(classify(0).to_string())
+    stdio::println(classify(1).to_string())
+    stdio::println(classify(7).to_string())
 }
 // Literal match arms — each branch
 // Match as expression assigned to a variable

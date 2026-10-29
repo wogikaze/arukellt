@@ -11,7 +11,7 @@
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 use std::text
-use std::prelude::{byte_at, eq, slice}
+use std::prelude::{eq}
 
 /// Joins two path segments with a single `/` separator.
 fn path_join(base: String, child: String) -> String {
@@ -22,7 +22,7 @@ fn path_join(base: String, child: String) -> String {
             "".concat(base)
         } else {
             let base_len = len(base)
-            let last_char = slice(base, base_len - 1, base_len)
+            let last_char = base.slice(base_len - 1, base_len)
             if eq(last_char, "/") {
                 base.concat(child)
             } else {
@@ -38,7 +38,7 @@ fn path_file_name(p: String) -> String {
     if idx < 0 {
         "".concat(p)
     } else {
-        slice(p, idx + 1, len(p))
+        p.slice(idx + 1, len(p))
     }
 }
 
@@ -49,7 +49,7 @@ fn path_extension(p: String) -> String {
     if idx <= 0 {
         ""
     } else {
-        slice(name, idx + 1, len(name))
+        name.slice(idx + 1, len(name))
     }
 }
 
@@ -58,7 +58,7 @@ fn path_with_extension(p: String, ext: String) -> String {
     let dot_idx = last_index_of(p, ".")
     let slash_idx = last_index_of(p, "/")
     if dot_idx > slash_idx {
-        let base = slice(p, 0, dot_idx)
+        let base = p.slice(0, dot_idx)
         if ext.is_empty() {
             base
         } else {
@@ -78,7 +78,7 @@ fn path_is_absolute(p: String) -> bool {
     if p.is_empty() {
         false
     } else {
-        eq(slice(p, 0, 1), "/")
+        eq(p.slice(0, 1), "/")
     }
 }
 
@@ -88,7 +88,7 @@ fn path_parent(p: String) -> String {
     if idx <= 0 {
         ""
     } else {
-        slice(p, 0, idx)
+        p.slice(0, idx)
     }
 }
 
@@ -105,7 +105,7 @@ fn path_stem(p: String) -> String {
     if dot_idx <= 0 {
         name
     } else {
-        slice(name, 0, dot_idx)
+        name.slice(0, dot_idx)
     }
 }
 
@@ -238,16 +238,16 @@ fn last_index_of(s: String, needle: String) -> i32 {
         if nlen == 0 {
             n
         } else {
-            let nc = byte_at(needle, 0)
+            let nc = needle.byte_at(0)
             let mut result = 0 - 1
             let mut i = n - 1
             while i >= 0 {
-                if byte_at(s, i) == nc {
+                if s.byte_at(i) == nc {
                     if nlen == 1 {
                         result = i
                         i = 0 - 1
                     } else {
-                        let sub = slice(s, i, i + nlen)
+                        let sub = s.slice(i, i + nlen)
                         if eq(sub, needle) {
                             result = i
                             i = 0 - 1

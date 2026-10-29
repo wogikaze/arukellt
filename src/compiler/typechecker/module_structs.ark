@@ -19,7 +19,7 @@ use diagnostics::mod as diag_mod
 // expressions can recover a concrete field type. MIR owns the layout copy;
 // this table only needs names, declaration type parameters, and annotated
 // field types.
-use std::prelude::{clone, eq, index_of}
+use std::prelude::{clone, eq}
 use std::text
 
 fn register_struct_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
@@ -166,7 +166,7 @@ fn infer_generic_literal_args(env: TypeEnv, mut aggregate_ty: TypeInfo, node: As
     }
     let lit_name = contract_type_access::TypeInfo_name(aggregate_ty)
     // An explicit `Name<args>` spelling is authoritative; skip inference.
-    if index_of(clone(lit_name), "<") >= 0 {
+    if clone(lit_name).index_of("<") >= 0 {
         return aggregate_ty
     }
     let base_name = names::unqualified_type_name(clone(lit_name))

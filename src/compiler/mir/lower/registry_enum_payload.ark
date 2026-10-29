@@ -1,4 +1,4 @@
-use std::prelude::{clone, to_string}
+use std::prelude::{clone}
 use std::text
 use mir::lower::ctx_struct_storage
 use mir::lower::ctx_struct_layout
@@ -21,7 +21,7 @@ fn mir_register_payload_variant_layout(mut ctx: LowerCtx, full_name: String, var
         let effective_name = if len(field_name) > 0 {
             field_name
         } else {
-            "_".concat(to_string(pfi))
+            "_".concat(pfi.to_string())
         }
         // Normalize Vec</Result</Option< so GC enum sigs and match binds
         // see vec:/result:/option: prefixes (#726 toml Table / json Result).

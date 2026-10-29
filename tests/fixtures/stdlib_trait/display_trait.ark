@@ -14,7 +14,7 @@ struct Point {
 
 impl Display for Point {
     fn to_string(self: Point) -> String {
-        ("(".concat(to_string(self.x))).concat(", ").concat(to_string(self.y)).concat(")")
+        ("(".concat(self.x.to_string())).concat(", ").concat(self.y.to_string()).concat(")")
     }
 }
 
@@ -27,9 +27,9 @@ fn main() {
     let p = Point { x: 3, y: 4 }
 
     // Direct trait method call
-    stdio::println(to_string(p))
+    stdio::println(p.to_string())
 
     // Generic function with Display bound
     let p2 = show(p)
-    stdio::println(to_string(p2))
+    stdio::println(p2.to_string())
 }

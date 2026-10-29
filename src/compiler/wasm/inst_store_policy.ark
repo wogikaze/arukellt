@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use mir::inst_accessors_shape
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
@@ -276,8 +276,8 @@ fn is_vec_push_call(inst: MirInst) -> bool {
     eq(clone(callee), String_from("vec_push")) ||
     eq(clone(callee), String_from("push_i64")) ||
     eq(clone(callee), String_from("push_f64")) ||
-    starts_with(clone(callee), String_from("__core_vec_push_")) ||
-    starts_with(clone(callee), String_from("push__"))
+    clone(callee).starts_with(String_from("__core_vec_push_")) ||
+    clone(callee).starts_with(String_from("push__"))
 }
 
 fn next_loads_base_from_local(next_op: i32, next_arg0: i32) -> bool {

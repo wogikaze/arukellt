@@ -8,7 +8,7 @@
 // The expected stdout is the canonical JSON shape committed to
 // `.expected` and is the contract migrated phases will emit.
 use std::host::stdio
-use std::prelude::{byte_at, clone, substring}
+use std::prelude::{clone}
 use std::text
 fn SEV_ERROR() -> i32 {
     1
@@ -74,7 +74,7 @@ fn diag_json_escape(s: String) -> String {
     let mut out = String_new()
     let mut i = 0
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if c == 34 {
             out = out.concat(String_from("\\\""))
         } else {
@@ -94,7 +94,7 @@ fn diag_json_escape(s: String) -> String {
                                 out = out.concat(String_from("\\u00"))
                                 out = out.concat(diag_hex_byte(c))
                             } else {
-                                out = out.concat(substring(clone(s), i, i + 1))
+                                out = out.concat(clone(s).slice(i, i + 1))
                             }
                         }
                     }

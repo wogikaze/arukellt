@@ -1,5 +1,5 @@
 use std::host::clock::Clock
-use std::prelude::{clone, to_string}
+use std::prelude::{clone}
 use std::text
 use compiler::phases
 use driver::result_record
@@ -54,7 +54,7 @@ fn run_lex_parse(source: String, config: DriverConfig, t0: i64) -> DriverFronten
         // Canonical i64 zeros. Stub overlay (fields→i32) narrows `0i64`→`0`
         // in scripts/selfhost/checks.py so bootstrap still type-checks.
         return frontend_stop(
-            result_record::CompileResult_err(phases::PHASE_LEX(), to_string(lex_errors).concat(" lexer error(s)")),
+            result_record::CompileResult_err(phases::PHASE_LEX(), lex_errors.to_string().concat(" lexer error(s)")),
             t0,
             0i64,
             0i64,

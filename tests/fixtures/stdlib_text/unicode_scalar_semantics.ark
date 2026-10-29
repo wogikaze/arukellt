@@ -1,13 +1,12 @@
 use std::test::Test
 use std::text
-use std::prelude::{byte_at}
 
 fn main() {
     let source = "Aé😀é"
     Test::assert_eq_i32(source.len_bytes(), 10)
     Test::assert_eq_i32(source.len_chars(), 5)
-    Test::assert_eq_i32(byte_at(source, 1), 195)
-    Test::assert_eq_i32(byte_at(source, 2), 169)
+    Test::assert_eq_i32(source.byte_at(1), 195)
+    Test::assert_eq_i32(source.byte_at(2), 169)
 
     match source.codepoint_at(0) {
         Option::Some(value) => Test::assert_eq_string(char_to_string(value), "A"),

@@ -2,12 +2,11 @@ use std::host::stdio
 
 // Regression: CONST_STRING before void eprintln must not leave a pointer on
 // the wasm32 stack at end of if (dump_wasm / emit_wasm_output validate fail).
-use std::prelude::{to_string}
 use std::text
 fn maybe_dump(flag: bool, n: i32) {
     if flag {
         stdio::eprintln(String_from("=== WASM ==="))
-        stdio::eprintln(String_from("output size: ").concat(to_string(n).concat(String_from(" bytes"))))
+        stdio::eprintln(String_from("output size: ").concat(n.to_string().concat(String_from(" bytes"))))
     }
 }
 

@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, contains, eq, index_of, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use mir::lower::ctx_fn_exists
 use mir::lower::ctx_fn_index
@@ -78,7 +78,7 @@ fn ctx_mono_lookup_call(mut ctx: LowerCtx, span_start: i32, source: String) -> S
 // and receiver-derived fallbacks resolve it instead of pinning a
 // callee that can only trap.
 fn ctx_mono_concretize_span_target(ctx: LowerCtx, target: String) -> String {
-    if !contains(clone(target), String_from("?")) {
+    if !clone(target).contains(String_from("?")) {
         return target
     }
     let resolved = ctx_mono_substitute_span_vars(ctx, clone(target))
@@ -105,7 +105,7 @@ fn ctx_mono_substitute_span_vars(ctx: LowerCtx, target: String) -> String {
         )
         i = i + 1
     }
-    if contains(clone(out), String_from("?")) {
+    if clone(out).contains(String_from("?")) {
         return String_new()
     }
     out
@@ -124,11 +124,11 @@ fn ctx_mono_replace_var_token(target: String, token: String, replacement: String
     let mut i = 0
     while i < n {
         let mut matched = false
-        if i + tlen <= n && eq(substring(clone(target), i, i + tlen), clone(token)) {
+        if i + tlen <= n && eq(clone(target).slice(i, i + tlen), clone(token)) {
             let tail = i + tlen
             if tail >= n {
                 matched = true
-            } else if tail + 1 < n && byte_at(clone(target), tail) == 95 && byte_at(clone(target), tail + 1) == 95 {
+            } else if tail + 1 < n && clone(target).byte_at(tail) == 95 && clone(target).byte_at(tail + 1) == 95 {
                 matched = true
             }
         }
@@ -136,7 +136,7 @@ fn ctx_mono_replace_var_token(target: String, token: String, replacement: String
             out = out.concat(clone(replacement))
             i = i + tlen
         } else {
-            out = out.concat(substring(clone(target), i, i + 1))
+            out = out.concat(clone(target).slice(i, i + 1))
             i = i + 1
         }
     }
@@ -152,7 +152,7 @@ fn ctx_register_mono_span_rewrite(mut ctx: LowerCtx, span_start: i32, source: St
     // them through the enclosing instance's type-variable bindings at lookup
     // time. Dropping them here sends generic-impl sibling calls to the bare
     // template name, which is pruned and emits unreachable (#874).
-    let accept = contains(clone(target), String_from("?")) ||
+    let accept = clone(target).contains(String_from("?")) ||
     ctx_fn_exists::ctx_has_fn_name(ctx, clone(target)) ||
     is_vec_ctor_mono_target(clone(target))
     if !accept {
@@ -162,10 +162,10 @@ fn ctx_register_mono_span_rewrite(mut ctx: LowerCtx, span_start: i32, source: St
 }
 
 fn is_vec_ctor_mono_target(target: String) -> bool {
-    starts_with(clone(target), String_from("Vec::new__")) ||
-    starts_with(clone(target), String_from("Vec__new__")) ||
-    starts_with(clone(target), String_from("Vec::with_capacity__")) ||
-    starts_with(clone(target), String_from("Vec__with_capacity__"))
+    clone(target).starts_with(String_from("Vec::new__")) ||
+    clone(target).starts_with(String_from("Vec__new__")) ||
+    clone(target).starts_with(String_from("Vec::with_capacity__")) ||
+    clone(target).starts_with(String_from("Vec__with_capacity__"))
 }
 
 fn mono_sources_match(candidate: String, requested: String) -> bool {
@@ -178,7 +178,7 @@ fn mono_sources_match(candidate: String, requested: String) -> bool {
 fn mono_target_matches_source(target: String, source: String) -> bool {
     let bare_source = ctx_mono_rewrites::mono_bare_source(source)
     let prefix = clone(bare_source).concat("__")
-    if starts_with(clone(target), clone(prefix)) {
+    if clone(target).starts_with(clone(prefix)) {
         // The owner guard exists for Type::method sources (Vec::into_iter
         // must not steal a free into_iter__X target). Module-qualified free
         // functions (seq::min_by_key) record their specialization under the
@@ -188,13 +188,13 @@ fn mono_target_matches_source(target: String, source: String) -> bool {
         !mono_source_owner_matches(clone(source), String_new()) {
             return false
         }
-        let rest = substring(target, len(prefix), len(target))
+        let rest = target.slice(len(prefix), len(target))
         // Reject opaque numeric stubs like eq__1; accept type keys
         // such as eq__Person / pair_first__i32__String.
         if len(rest) == 0 {
             return false
         }
-        let first = byte_at(rest, 0)
+        let first = rest.byte_at(0)
         if first >= 48 && first <= 57 {
             return false
         }
@@ -205,11 +205,11 @@ fn mono_target_matches_source(target: String, source: String) -> bool {
     // __method__ infix; a per-instantiation source owner (Take_VecIter)
     // relaxes to its constructor base (Take).
     let infix = String_from("__").concat(clone(bare_source).concat(String_from("__")))
-    let pos = index_of(clone(target), clone(infix))
+    let pos = clone(target).index_of(clone(infix))
     if pos < 0 {
         return false
     }
-    mono_source_owner_matches(clone(source), substring(clone(target), 0, pos))
+    mono_source_owner_matches(clone(source), clone(target).slice(0, pos))
 }
 
 // A lowercase owner segment before the module separator is a module path
@@ -217,20 +217,20 @@ fn mono_target_matches_source(target: String, source: String) -> bool {
 // carry no owner segment, so module-qualified sources would otherwise
 // always fail the owner check.
 fn mono_source_has_module_owner(source: String) -> bool {
-    let sep = index_of(clone(source), String_from("::"))
+    let sep = clone(source).index_of(String_from("::"))
     if sep <= 0 {
         return false
     }
-    let first = byte_at(clone(source), 0)
+    let first = clone(source).byte_at(0)
     first >= 97 && first <= 122
 }
 
 fn mono_source_owner_matches(source: String, target_owner: String) -> bool {
-    let sep = index_of(clone(source), String_from("::"))
+    let sep = clone(source).index_of(String_from("::"))
     if sep < 0 {
         return true
     }
-    let source_owner = substring(clone(source), 0, sep)
+    let source_owner = clone(source).slice(0, sep)
     if eq(clone(source_owner), clone(target_owner)) {
         return true
     }
@@ -243,8 +243,8 @@ fn mono_owner_inst_base(owner: String) -> String {
     let n = len(owner)
     let mut i = 0
     while i < n {
-        if byte_at(clone(owner), i) == 95 {
-            return substring(owner, 0, i)
+        if clone(owner).byte_at(i) == 95 {
+            return owner.slice(0, i)
         }
         i = i + 1
     }
@@ -255,7 +255,7 @@ fn ctx_register_mono_name_rewrite(mut ctx: LowerCtx, source: String, target: Str
     // Template instantiations (?Var args) are not callable
     // specializations; they exist so span rewrites can pin the template
     // spelling for per-enclosing-instance concretization.
-    if contains(clone(target), String_from("?")) {
+    if clone(target).contains(String_from("?")) {
         return
     }
     if !ctx_fn_exists::ctx_has_fn_name(ctx, clone(target)) && !is_vec_ctor_mono_target(clone(target)) {

@@ -3,7 +3,7 @@
 use std::host::stdio
 use std::wit::ast
 use std::wit::types
-use std::prelude::{contains, eq}
+use std::prelude::{eq}
 fn main() {
     // Parse a simple world declaration
     let src = String_from("world hello { }")
@@ -99,8 +99,8 @@ fn main() {
     // crosses the std::wit/compiler boundary.
     let src_meta = String_from("package test:host@0.1.0; interface math { add: func(a: s32, b: s32) -> s32; }")
     let metadata = ast::WitNode::import_metadata(src_meta)
-    assert(contains(metadata, "header|test:host|0.1.0|math"))
-    assert(contains(metadata, "func|add|s32~s32|s32"))
+    assert(metadata.contains("header|test:host|0.1.0|math"))
+    assert(metadata.contains("func|add|s32~s32|s32"))
 
     stdio::println(String_from("OK"))
 }

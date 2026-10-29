@@ -1,6 +1,6 @@
 // Extracted from sections_types_sigs.ark
 
-use std::prelude::{byte_at, clone, contains, eq, index_of, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use mir::function_param_view
 use mir::function_return_view
@@ -22,7 +22,7 @@ fn is_hash_container_type_name(type_name: String) -> bool {
     if eq(clone(type_name), String_from("?HashMap")) || eq(clone(type_name), String_from("?HashSet")) || eq(clone(type_name), String_from("?Vec")) {
         return true
     }
-    if starts_with(clone(type_name), String_from("struct:HashMap:")) || starts_with(clone(type_name), String_from("struct:HashSet:")) {
+    if clone(type_name).starts_with(String_from("struct:HashMap:")) || clone(type_name).starts_with(String_from("struct:HashSet:")) {
         return true
     }
     false
@@ -33,15 +33,15 @@ fn funcref_type_name_is_binary_i32(type_name: String) -> bool {
     if eq(clone(type_name), String_from("fnref2")) {
         return true
     }
-    if !starts_with(clone(type_name), String_from("fn(")) {
+    if !clone(type_name).starts_with(String_from("fn(")) {
         return false
     }
-    let close = index_of(clone(type_name), String_from(")"))
+    let close = clone(type_name).index_of(String_from(")"))
     if close <= 0 {
         return false
     }
-    let params = substring(clone(type_name), 3, close)
-    contains(params, String_from(","))
+    let params = clone(type_name).slice(3, close)
+    params.contains(String_from(","))
 }
 
 fn funcref_type_name_is_typed_string_callback(type_name: String) -> bool {
@@ -96,14 +96,14 @@ fn funcref_return_sig_for_target(target: String, memory64: bool) -> String {
 // when a segment cannot be represented so callers can fall back to the
 // legacy fnref slot (#860).
 fn fnsig_param_sig_from_mir(type_name: String, target: String, mir: MirModule) -> String {
-    let rest = substring(clone(type_name), 6, len(type_name))
-    let sep = index_of(clone(rest), String_from(";"))
+    let rest = clone(type_name).slice(6, len(type_name))
+    let sep = clone(rest).index_of(String_from(";"))
     if sep < 0 {
         return String_new()
     }
-    let param_seg = substring(clone(rest), 0, sep)
-    let ret_seg = substring(clone(rest), sep + 1, len(rest))
-    if contains(clone(ret_seg), String_from(";")) {
+    let param_seg = clone(rest).slice(0, sep)
+    let ret_seg = clone(rest).slice(sep + 1, len(rest))
+    if clone(ret_seg).contains(String_from(";")) {
         return String_new()
     }
     let param_tok = fnsig_segment_sig_for_mir(param_seg, clone(target), mir)
@@ -120,7 +120,7 @@ fn fnsig_param_sig_from_mir(type_name: String, target: String, mir: MirModule) -
 // vec/map offsets, Option/Result/enum land on the open-enum box, and
 // registered user structs become gcsref<slot>.
 fn fnsig_segment_sig_for_mir(seg: String, target: String, mir: MirModule) -> String {
-    if len(seg) == 0 || starts_with(clone(seg), String_from("fnsig:")) {
+    if len(seg) == 0 || clone(seg).starts_with(String_from("fnsig:")) {
         return String_new()
     }
     if eq(clone(seg), String_from("i32")) || eq(clone(seg), String_from("I32")) ||
@@ -143,7 +143,7 @@ fn fnsig_segment_sig_for_mir(seg: String, target: String, mir: MirModule) -> Str
     if eq(clone(seg), String_from("v128")) || eq(clone(seg), String_from("V128")) {
         return String_from("v128")
     }
-    if eq(clone(seg), String_from("fnref")) || starts_with(clone(seg), String_from("fnref")) {
+    if eq(clone(seg), String_from("fnref")) || clone(seg).starts_with(String_from("fnref")) {
         return String_from("fnref")
     }
     if eq(clone(seg), String_from("String")) || eq(clone(seg), String_from("string")) {
@@ -153,11 +153,11 @@ fn fnsig_segment_sig_for_mir(seg: String, target: String, mir: MirModule) -> Str
     if len(coll) > 0 {
         return coll
     }
-    if starts_with(clone(seg), String_from("option:")) ||
-    starts_with(clone(seg), String_from("result:")) ||
-    starts_with(clone(seg), String_from("enum:")) ||
-    starts_with(clone(seg), String_from("Option")) ||
-    starts_with(clone(seg), String_from("Result")) {
+    if clone(seg).starts_with(String_from("option:")) ||
+    clone(seg).starts_with(String_from("result:")) ||
+    clone(seg).starts_with(String_from("enum:")) ||
+    clone(seg).starts_with(String_from("Option")) ||
+    clone(seg).starts_with(String_from("Result")) {
         return sections_types_gc::gc_enum_open_type_sig()
     }
     let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(seg))
@@ -196,78 +196,78 @@ fn p2_is_supported_scalar_type(value_type: i32) -> bool {
 }
 
 fn p2_return_type_is_compound(type_name: String) -> bool {
-    starts_with(clone(type_name), String_from("tuple:")) ||
-    starts_with(clone(type_name), String_from("struct:")) ||
-    starts_with(clone(type_name), String_from("vec:")) ||
-    starts_with(clone(type_name), String_from("hashmap:")) ||
-    starts_with(clone(type_name), String_from("HashMap")) ||
-    starts_with(clone(type_name), String_from("HashSet")) ||
-    starts_with(clone(type_name), String_from("Option")) ||
-    starts_with(clone(type_name), String_from("option:")) ||
-    starts_with(clone(type_name), String_from("Result")) ||
-    starts_with(clone(type_name), String_from("result:")) ||
-    starts_with(clone(type_name), String_from("enum:")) ||
-    contains(clone(type_name), String_from(","))
+    clone(type_name).starts_with(String_from("tuple:")) ||
+    clone(type_name).starts_with(String_from("struct:")) ||
+    clone(type_name).starts_with(String_from("vec:")) ||
+    clone(type_name).starts_with(String_from("hashmap:")) ||
+    clone(type_name).starts_with(String_from("HashMap")) ||
+    clone(type_name).starts_with(String_from("HashSet")) ||
+    clone(type_name).starts_with(String_from("Option")) ||
+    clone(type_name).starts_with(String_from("option:")) ||
+    clone(type_name).starts_with(String_from("Result")) ||
+    clone(type_name).starts_with(String_from("result:")) ||
+    clone(type_name).starts_with(String_from("enum:")) ||
+    clone(type_name).contains(String_from(","))
 }
 
 fn p2_is_option_type_name(type_name: String) -> bool {
     eq(clone(type_name), String_from("Option")) ||
-    starts_with(clone(type_name), String_from("Option:")) ||
-    starts_with(clone(type_name), String_from("Option_")) ||
-    starts_with(clone(type_name), String_from("Option<")) ||
-    starts_with(clone(type_name), String_from("option:")) ||
-    starts_with(clone(type_name), String_from("option<"))
+    clone(type_name).starts_with(String_from("Option:")) ||
+    clone(type_name).starts_with(String_from("Option_")) ||
+    clone(type_name).starts_with(String_from("Option<")) ||
+    clone(type_name).starts_with(String_from("option:")) ||
+    clone(type_name).starts_with(String_from("option<"))
 }
 
 fn p2_is_result_type_name(type_name: String) -> bool {
     eq(clone(type_name), String_from("Result")) ||
-    starts_with(clone(type_name), String_from("Result:")) ||
-    starts_with(clone(type_name), String_from("Result_")) ||
-    starts_with(clone(type_name), String_from("Result<")) ||
-    starts_with(clone(type_name), String_from("result:")) ||
-    starts_with(clone(type_name), String_from("result<"))
+    clone(type_name).starts_with(String_from("Result:")) ||
+    clone(type_name).starts_with(String_from("Result_")) ||
+    clone(type_name).starts_with(String_from("Result<")) ||
+    clone(type_name).starts_with(String_from("result:")) ||
+    clone(type_name).starts_with(String_from("result<"))
 }
 
 fn p2_is_list_type_name(type_name: String) -> bool {
     eq(clone(type_name), String_from("Vec")) ||
-    starts_with(clone(type_name), String_from("Vec:")) ||
-    starts_with(clone(type_name), String_from("Vec_")) ||
-    starts_with(clone(type_name), String_from("Vec<")) ||
-    starts_with(clone(type_name), String_from("vec:")) ||
-    starts_with(clone(type_name), String_from("vec<"))
+    clone(type_name).starts_with(String_from("Vec:")) ||
+    clone(type_name).starts_with(String_from("Vec_")) ||
+    clone(type_name).starts_with(String_from("Vec<")) ||
+    clone(type_name).starts_with(String_from("vec:")) ||
+    clone(type_name).starts_with(String_from("vec<"))
 }
 
 fn p2_is_tuple_type_name(type_name: String) -> bool {
-    starts_with(clone(type_name), String_from("Tuple:")) ||
-    starts_with(clone(type_name), String_from("Tuple_")) ||
-    starts_with(clone(type_name), String_from("Tuple<")) ||
-    starts_with(clone(type_name), String_from("tuple:")) ||
-    starts_with(clone(type_name), String_from("tuple<"))
+    clone(type_name).starts_with(String_from("Tuple:")) ||
+    clone(type_name).starts_with(String_from("Tuple_")) ||
+    clone(type_name).starts_with(String_from("Tuple<")) ||
+    clone(type_name).starts_with(String_from("tuple:")) ||
+    clone(type_name).starts_with(String_from("tuple<"))
 }
 
 fn p2_type_argument(type_name: String, index: i32) -> String {
     let mut body = clone(type_name)
-    let angle = index_of(clone(body), String_from("<"))
-    let underscore_form = angle < 0 && index_of(clone(body), String_from(":")) < 0 &&
-    (starts_with(clone(body), String_from("Option_")) ||
-        starts_with(clone(body), String_from("Result_")) ||
-        starts_with(clone(body), String_from("Vec_")) ||
-        starts_with(clone(body), String_from("Tuple_")))
+    let angle = clone(body).index_of(String_from("<"))
+    let underscore_form = angle < 0 && clone(body).index_of(String_from(":")) < 0 &&
+    (clone(body).starts_with(String_from("Option_")) ||
+        clone(body).starts_with(String_from("Result_")) ||
+        clone(body).starts_with(String_from("Vec_")) ||
+        clone(body).starts_with(String_from("Tuple_")))
     if angle >= 0 {
-        let rest = substring(clone(body), angle + 1, len(body))
-        let close = index_of(clone(rest), String_from(">"))
+        let rest = clone(body).slice(angle + 1, len(body))
+        let close = clone(rest).index_of(String_from(">"))
         if close >= 0 {
-            body = substring(rest, 0, close)
+            body = rest.slice(0, close)
         }
     } else {
-        let colon = index_of(clone(body), String_from(":"))
+        let colon = clone(body).index_of(String_from(":"))
         if colon < 0 {
-            let underscore = index_of(clone(body), String_from("_"))
+            let underscore = clone(body).index_of(String_from("_"))
             if underscore >= 0 && (p2_is_option_type_name(clone(type_name)) ||
                 p2_is_result_type_name(clone(type_name)) ||
                 p2_is_list_type_name(clone(type_name)) ||
                 p2_is_tuple_type_name(clone(type_name))) {
-                body = substring(body, underscore + 1, len(body))
+                body = body.slice(underscore + 1, len(body))
             } else {
                 if p2_is_option_type_name(clone(type_name)) && index == 0 {
                     return String_from("i32")
@@ -278,7 +278,7 @@ fn p2_type_argument(type_name: String, index: i32) -> String {
                 return String_new()
             }
         } else {
-            body = substring(body, colon + 1, len(body))
+            body = body.slice(colon + 1, len(body))
         }
     }
     let mut current = 0
@@ -287,7 +287,7 @@ fn p2_type_argument(type_name: String, index: i32) -> String {
     let mut depth = 0
     while i <= len(body) {
         let at_end = i == len(body)
-        let c = if at_end { 44 } else { byte_at(clone(body), i) }
+        let c = if at_end { 44 } else { clone(body).byte_at(i) }
         if c == 60 {
             depth = depth + 1
         } else if c == 62 {
@@ -295,7 +295,7 @@ fn p2_type_argument(type_name: String, index: i32) -> String {
         }
         if ((c == 44 || c == 58 || (underscore_form && c == 95)) && depth == 0) || at_end {
             if current == index {
-                return substring(clone(body), start, i)
+                return clone(body).slice(start, i)
             }
             current = current + 1
             start = i + 1
@@ -306,8 +306,8 @@ fn p2_type_argument(type_name: String, index: i32) -> String {
 }
 
 fn p2_enum_type_name(type_name: String) -> String {
-    if starts_with(clone(type_name), String_from("enum:")) {
-        return substring(type_name, 5, len(type_name))
+    if clone(type_name).starts_with(String_from("enum:")) {
+        return type_name.slice(5, len(type_name))
     }
     type_name
 }
@@ -357,18 +357,18 @@ fn p2_enum_payload_sigs(type_name: String, mir: MirModule) -> Vec<String> {
 }
 
 fn p2_struct_name_from_type(type_name: String) -> String {
-    if starts_with(clone(type_name), String_from("struct:")) {
-        let first = index_of(clone(type_name), String_from(":"))
+    if clone(type_name).starts_with(String_from("struct:")) {
+        let first: i32 = clone(type_name).index_of(String_from(":"))
         let mut last = first
         let mut i = first + 1
         while i < len(type_name) {
-            if byte_at(clone(type_name), i) == 58 {
+            if clone(type_name).byte_at(i) == 58 {
                 last = i
             }
             i = i + 1
         }
         if first >= 0 && last > first {
-            return substring(type_name, first + 1, last)
+            return type_name.slice(first + 1, last)
         }
     }
     type_name
@@ -381,7 +381,7 @@ fn p2_struct_field_sigs(type_name: String, mir: MirModule) -> Vec<String> {
         let mut last = 0 - 1
         let mut i = len(name) - 1
         while i >= 0 {
-            if byte_at(clone(name), i) == 58 {
+            if clone(name).byte_at(i) == 58 {
                 last = i
                 i = 0 - 1
             }
@@ -390,7 +390,7 @@ fn p2_struct_field_sigs(type_name: String, mir: MirModule) -> Vec<String> {
         if last >= 0 {
             slot = module_gc_struct::MirModule_gc_struct_slot(
                 mir,
-                substring(clone(name), last + 1, len(name))
+                clone(name).slice(last + 1, len(name))
             )
         }
     }
@@ -555,7 +555,7 @@ fn p2_canonical_param_type_sig(param: MirLocal, mir: MirModule) -> String {
             i = i + 1
         }
         if len(sig) > 0 {
-            return substring(sig, 0, len(sig) - 1)
+            return sig.slice(0, len(sig) - 1)
         }
     }
     let fields = p2_struct_field_sigs(clone(type_name), mir)
@@ -566,7 +566,7 @@ fn p2_canonical_param_type_sig(param: MirLocal, mir: MirModule) -> String {
             sig = clone(sig).concat(p2_field_canonical_sig(get_unchecked(fields, i)).concat("_"))
             i = i + 1
         }
-        return substring(sig, 0, len(sig) - 1)
+        return sig.slice(0, len(sig) - 1)
     }
     let payload = p2_enum_payload_sigs(clone(type_name), mir)
     if len(payload) > 0 {
@@ -837,16 +837,16 @@ fn p2_post_type_sig_for_function(f: MirFunction, function_sig: String) -> String
     let mut result_start = 0
     let mut i = 0
     while i < len(function_sig) {
-        if byte_at(function_sig, i) == 95 {
+        if function_sig.byte_at(i) == 95 {
             result_start = i + 1
         }
         i = i + 1
     }
-    let result_sig = substring(function_sig, result_start, len(function_sig))
+    let result_sig = function_sig.slice(result_start, len(function_sig))
     if eq(clone(result_sig), "0") {
         return "0"
     }
-    substring(clone(result_sig), 1, len(result_sig)).concat("_0")
+    clone(result_sig).slice(1, len(result_sig)).concat("_0")
 }
 
 fn build_return_type_sig(
@@ -921,18 +921,18 @@ fn build_param_type_sig_named(
     // (#872): one shared __fnpair struct type covers every callback
     // signature, replacing the per-signature funcref slots. The legacy
     // paths below remain as fallbacks when no pair record exists.
-    if starts_with(clone(p_type_name), String_from("fnsig:")) ||
+    if clone(p_type_name).starts_with(String_from("fnsig:")) ||
     eq(clone(p_type_name), String_from("fnref")) ||
-    starts_with(clone(p_type_name), String_from("fnref")) ||
+    clone(p_type_name).starts_with(String_from("fnref")) ||
     p_val_type == value_types::VT_FUNCREF() ||
-    starts_with(clone(p_type_name), String_from("fn(")) {
+    clone(p_type_name).starts_with(String_from("fn(")) {
         if emit_target::is_gc_target(clone(target)) {
             let pair_slot = module_gc_struct::MirModule_gc_struct_slot(mir, "__fnpair")
             if pair_slot >= 0 {
                 return String_from("gcsref").concat((pair_slot).to_string())
             }
         }
-        if starts_with(clone(p_type_name), String_from("fnsig:")) {
+        if clone(p_type_name).starts_with(String_from("fnsig:")) {
             if !emit_target::is_gc_target(clone(target)) {
                 return String_from("i32")
             }
@@ -955,7 +955,7 @@ fn build_param_type_sig_named(
     // Nested Vec mono params (vec:Vec_i32, vec:vec:i32): MIR type_name selects
     // the structref-array vec layout. Typed spine often still has the flat
     // Vec<i32> alias, which makes count__Vec_i32_ take the wrong param (#808).
-    if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("vec:")) {
+    if emit_target::is_gc_target(clone(target)) && clone(p_type_name).starts_with(String_from("vec:")) {
         let nested_coll = sections_types_gc_plan::collection_type_sig(mir, clone(p_type_name), clone(target))
         if eq(clone(nested_coll), sections_types_gc_phase7::gc_vec_struct_ref_type_sig()) {
             return nested_coll
@@ -970,7 +970,7 @@ fn build_param_type_sig_named(
     if len(typed_sig) > 0 {
         return typed_sig
     }
-    if starts_with(clone(p_type_name), String_from("enum:")) && emit_target::is_gc_target(clone(target)) {
+    if clone(p_type_name).starts_with(String_from("enum:")) && emit_target::is_gc_target(clone(target)) {
         return sections_types_gc::gc_enum_open_type_sig()
     }
     // Check vec:/hashmap: before the override: the __String override would
@@ -987,21 +987,21 @@ fn build_param_type_sig_named(
         return gc_param_sig
     }
     if emit_target::is_gc_target(clone(target)) &&
-    (starts_with(clone(p_type_name), String_from("Option_")) ||
-        starts_with(clone(p_type_name), String_from("option:")) ||
-        starts_with(clone(p_type_name), String_from("Option:")) ||
-        starts_with(clone(p_type_name), String_from("Option<"))) {
+    (clone(p_type_name).starts_with(String_from("Option_")) ||
+        clone(p_type_name).starts_with(String_from("option:")) ||
+        clone(p_type_name).starts_with(String_from("Option:")) ||
+        clone(p_type_name).starts_with(String_from("Option<"))) {
         return sections_types_gc::gc_enum_open_type_sig()
     }
     if emit_target::is_gc_target(clone(target)) &&
-    (starts_with(clone(p_type_name), String_from("Result_")) ||
-        starts_with(clone(p_type_name), String_from("result:")) ||
-        starts_with(clone(p_type_name), String_from("Result:")) ||
-        starts_with(clone(p_type_name), String_from("Result<")) ||
+    (clone(p_type_name).starts_with(String_from("Result_")) ||
+        clone(p_type_name).starts_with(String_from("result:")) ||
+        clone(p_type_name).starts_with(String_from("Result:")) ||
+        clone(p_type_name).starts_with(String_from("Result<")) ||
         eq(clone(p_type_name), String_from("Result"))) {
         return sections_types_gc::gc_enum_open_type_sig()
     }
-    if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("struct:")) {
+    if emit_target::is_gc_target(clone(target)) && clone(p_type_name).starts_with(String_from("struct:")) {
         return gc_struct_return_sig_from_name(clone(p_type_name), mir)
     }
     // Check if the param type name is a registered gc_struct (raw name without "struct:" prefix).
@@ -1048,13 +1048,13 @@ fn build_generic_type_var_sig(
     }
     // Composite generic type with type variable (e.g. "?Option:T") — emit
     // as enum open type ref on GC targets.
-    if starts_with(clone(type_name), String_from("?Option:")) || starts_with(clone(type_name), String_from("?Result:")) {
+    if clone(type_name).starts_with(String_from("?Option:")) || clone(type_name).starts_with(String_from("?Result:")) {
         return sections_types_gc::gc_enum_open_type_sig()
     }
     // Generic type variable (e.g. "?T") — emit as anyref on GC targets.
     // For specialized mono functions (name contains "__"), try to extract
     // the concrete type from the function name suffix.
-    if starts_with(clone(type_name), String_from("?")) {
+    if clone(type_name).starts_with(String_from("?")) {
         let mono_type = sections_types_sigs_mono::resolve_mono_param_type_from_fn_name(clone(fn_name), clone(type_name), pi)
         if len(mono_type) > 0 {
             return widen_i32_sig_for_memory64(
@@ -1123,10 +1123,10 @@ fn build_return_type_value_sig_named(
 ) -> String {
     // fn returns carry the same {fnptr, env} pair as params (#872).
     if eq(clone(return_type_name), String_from("fnref")) ||
-    starts_with(clone(return_type_name), String_from("fnref")) ||
-    starts_with(clone(return_type_name), String_from("fnsig:")) ||
+    clone(return_type_name).starts_with(String_from("fnref")) ||
+    clone(return_type_name).starts_with(String_from("fnsig:")) ||
     eq(clone(return_type_name), String_from("fn")) ||
-    starts_with(clone(return_type_name), String_from("fn(")) ||
+    clone(return_type_name).starts_with(String_from("fn(")) ||
     return_type == value_types::VT_FUNCREF() {
         if emit_target::is_gc_target(clone(target)) {
             let pair_slot = module_gc_struct::MirModule_gc_struct_slot(mir, "__fnpair")
@@ -1188,7 +1188,7 @@ fn build_return_type_value_sig_named(
     if len(gc_ret_sig) > 0 {
         return gc_ret_sig
     }
-    if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("struct:")) {
+    if emit_target::is_gc_target(clone(target)) && clone(return_type_name).starts_with(String_from("struct:")) {
         return gc_struct_return_sig_from_name(clone(return_type_name), mir)
     }
     let registered = gc_struct_sig_from_return_type_name(clone(return_type_name), mir)
@@ -1231,7 +1231,7 @@ fn build_return_type_value_sig_named(
 // concrete-struct preference must not unwrap option:Pair<i32,i32> to the
 // payload struct slot — the variant value cannot fit in it (#860).
 fn return_type_name_is_enum_family(type_name: String) -> bool {
-    if starts_with(clone(type_name), String_from("enum:")) {
+    if clone(type_name).starts_with(String_from("enum:")) {
         return true
     }
     if p2_is_option_type_name(clone(type_name)) {
@@ -1248,11 +1248,11 @@ fn p2_return_type_name_is_enum_instance(type_name: String, mir: MirModule) -> bo
     let n = len(type_name)
     let mut i = 0
     while i < n {
-        if byte_at(type_name, i) == 60 {
+        if type_name.byte_at(i) == 60 {
             if i == 0 {
                 return false
             }
-            return p2_enum_has_variants(substring(type_name, 0, i), mir)
+            return p2_enum_has_variants(type_name.slice(0, i), mir)
         }
         i = i + 1
     }
@@ -1261,8 +1261,8 @@ fn p2_return_type_name_is_enum_instance(type_name: String, mir: MirModule) -> bo
 
 fn gc_struct_sig_is_enum_open_box(sig_or_gcsref: String, mir: MirModule) -> bool {
     let mut sig = clone(sig_or_gcsref)
-    if starts_with(clone(sig), String_from("gcsref")) {
-        let slot_str = substring(clone(sig), 6, len(sig))
+    if clone(sig).starts_with(String_from("gcsref")) {
+        let slot_str = clone(sig).slice(6, len(sig))
         let slot = sections_types_gc::parse_type_sig_int(slot_str)
         if slot < 0 || slot >= module_gc_struct::MirModule_gc_struct_sig_count(mir) {
             return false
@@ -1278,9 +1278,9 @@ fn gc_struct_sig_from_return_type_name(return_type_name: String, mir: MirModule)
     if len(return_type_name) == 0 {
         return String_new()
     }
-    if starts_with(clone(return_type_name), String_from("struct:")) {
+    if clone(return_type_name).starts_with(String_from("struct:")) {
         let from_struct = gc_struct_return_sig_from_name(clone(return_type_name), mir)
-        if starts_with(clone(from_struct), String_from("gcsref")) {
+        if clone(from_struct).starts_with(String_from("gcsref")) {
             if gc_struct_sig_is_enum_open_box(clone(from_struct), mir) {
                 return String_new()
             }
@@ -1300,14 +1300,14 @@ fn gc_struct_sig_from_return_type_name(return_type_name: String, mir: MirModule)
     let mut colon_pos = 0 - 1
     let mut ci = name_len - 1
     while ci >= 0 {
-        if byte_at(return_type_name, ci) == 58 {
+        if return_type_name.byte_at(ci) == 58 {
             colon_pos = ci
             ci = 0 - 1
         }
         ci = ci - 1
     }
     if colon_pos >= 0 {
-        let bare = substring(return_type_name, colon_pos + 1, name_len)
+        let bare = return_type_name.slice(colon_pos + 1, name_len)
         let bare_slot = module_gc_struct::MirModule_gc_struct_slot(mir, bare)
         if bare_slot >= 0 {
             let gcsref = String_from("gcsref").concat((bare_slot).to_string())
@@ -1328,7 +1328,7 @@ fn gc_struct_return_sig_from_name(type_name: String, mir: MirModule) -> String {
     let n = len(type_name)
     let mut i = 0
     while i < n {
-        if byte_at(type_name, i) == ':' {
+        if type_name.byte_at(i) == ':' {
             if first_colon < 0 {
                 first_colon = i
             }
@@ -1340,7 +1340,7 @@ fn gc_struct_return_sig_from_name(type_name: String, mir: MirModule) -> String {
         return sections_types_gc::gc_struct_type_sig_from_byte_size(4)
     }
     // Extract struct name between first and last colon.
-    let struct_name = substring(type_name, first_colon + 1, last_colon)
+    let struct_name = type_name.slice(first_colon + 1, last_colon)
     // Look up in MIR module's gc_struct list.
     let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(struct_name))
     if slot >= 0 {
@@ -1351,7 +1351,7 @@ fn gc_struct_return_sig_from_name(type_name: String, mir: MirModule) -> String {
     let mut byte_size = 0
     let mut j = last_colon + 1
     while j < n {
-        let d = byte_at(type_name, j)
+        let d = type_name.byte_at(j)
         if d >= 48 && d <= 57 {
             byte_size = byte_size * 10 + (d - 48)
         } else {

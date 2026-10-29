@@ -1,15 +1,15 @@
-use std::prelude::{byte_at, clone, ends_with, index_of, starts_with, substring}
+use std::prelude::{clone}
 use std::text
 pub fn file_path_to_uri(path: String) -> String {
-    if starts_with(clone(path), "file://") {
+    if clone(path).starts_with("file://") {
         return path
     }
     "file://".concat(path)
 }
 
 pub fn uri_to_file_path(uri: String) -> String {
-    if starts_with(clone(uri), "file://") {
-        return substring(uri, 7, len(uri))
+    if clone(uri).starts_with("file://") {
+        return uri.slice(7, len(uri))
     }
     uri
 }
@@ -23,57 +23,57 @@ pub fn root_uri_from_initialize(body: String) -> String {
 }
 
 fn extract_workspace_folder_uri(body: String) -> String {
-    let pos = index_of(clone(body), "workspaceFolders")
+    let pos = clone(body).index_of("workspaceFolders")
     if pos < 0 {
         return String_new()
     }
-    let uri_pos = index_of(substring(body, pos, len(body)), "\"uri\"")
+    let uri_pos = body.slice(pos, len(body)).index_of("\"uri\"")
     if uri_pos < 0 {
         return String_new()
     }
-    extract_json_string_field(substring(body, pos + uri_pos, len(body)), "uri")
+    extract_json_string_field(body.slice(pos + uri_pos, len(body)), "uri")
 }
 
 pub fn extract_json_string_field(body: String, key: String) -> String {
     let key_pat = "\"".concat(clone(key)).concat("\"")
-    let pos = index_of(clone(body), key_pat)
+    let pos = clone(body).index_of(key_pat)
     if pos < 0 {
         return String_new()
     }
-    let tail = substring(body, pos, len(body))
-    let colon = index_of(clone(tail), ":")
+    let tail = body.slice(pos, len(body))
+    let colon = clone(tail).index_of(":")
     if colon < 0 {
         return String_new()
     }
-    let after = substring(tail, colon + 1, len(tail))
+    let after = tail.slice(colon + 1, len(tail))
     let after_len = len(after)
     let mut p = 0
     while p < after_len {
-        let c = byte_at(after, p)
+        let c = after.byte_at(p)
         if c != 32 && c != 9 && c != 10 && c != 13 {
             break
         }
         p = p + 1
     }
-    if p < after_len && byte_at(after, p) == 110 && starts_with(substring(after, p, after_len), "null") {
+    if p < after_len && after.byte_at(p) == 110 && after.slice(p, after_len).starts_with("null") {
         return String_new()
     }
-    if p >= after_len || byte_at(after, p) != 34 {
+    if p >= after_len || after.byte_at(p) != 34 {
         return String_new()
     }
-    let rest = substring(after, p + 1, after_len)
-    let q2 = index_of(clone(rest), "\"")
+    let rest = after.slice(p + 1, after_len)
+    let q2 = clone(rest).index_of("\"")
     if q2 < 0 {
         return String_new()
     }
-    substring(rest, 0, q2)
+    rest.slice(0, q2)
 }
 
 pub fn join_path(base: String, rel: String) -> String {
     if len(base) == 0 {
         return rel
     }
-    if ends_with(clone(base), "/") {
+    if clone(base).ends_with("/") {
         return base.concat(rel)
     }
     base.concat("/").concat(rel)
@@ -83,26 +83,26 @@ pub fn resolve_relative_path(base: String, rel: String) -> String {
     if len(rel) == 0 {
         return clone(base)
     }
-    if starts_with(clone(rel), "../") {
+    if clone(rel).starts_with("../") {
         let parent = loader::module_paths::parent_dir(clone(base))
-        return resolve_relative_path(parent, substring(rel, 3, len(rel)))
+        return resolve_relative_path(parent, rel.slice(3, len(rel)))
     }
-    if starts_with(clone(rel), "./") {
-        return resolve_relative_path(clone(base), substring(rel, 2, len(rel)))
+    if clone(rel).starts_with("./") {
+        return resolve_relative_path(clone(base), rel.slice(2, len(rel)))
     }
     join_path(clone(base), rel)
 }
 
 pub fn find_dependency_path(content: String, dep_name: String) -> String {
     let needle = clone(dep_name).concat(" = { path = \"")
-    let pos = index_of(clone(content), needle)
+    let pos = clone(content).index_of(needle)
     if pos < 0 {
         return String_new()
     }
-    let tail = substring(content, pos + len(needle), len(content))
-    let end = index_of(clone(tail), "\"")
+    let tail = content.slice(pos + len(needle), len(content))
+    let end = clone(tail).index_of("\"")
     if end < 0 {
         return String_new()
     }
-    substring(tail, 0, end)
+    tail.slice(0, end)
 }

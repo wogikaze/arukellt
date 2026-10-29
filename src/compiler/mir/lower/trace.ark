@@ -9,7 +9,6 @@ use mir::lower::ctx_types
 
 // When MIR_LOWER_TRACE=1 in the environment, lower_to_mir prints five integers per phase:
 // phase, len(params), len(locals), len(blocks), return_type tag.
-use std::prelude::{to_string}
 fn MIR_LOWER_TRACE() -> i32 {
     // Env override is disabled; use MIR_LOWER_TRACE_FORCE for source-level
     // enable.
@@ -25,15 +24,15 @@ fn mir_lower_trace_line(on: i32, phase: i32, np: i32, nl: i32, nb: i32, rt: i32)
     if on == 0 {
         return
     }
-    let mut s = to_string(phase)
+    let mut s = phase.to_string()
     s = s.concat(" ")
-    s = s.concat(to_string(np))
+    s = s.concat(np.to_string())
     s = s.concat(" ")
-    s = s.concat(to_string(nl))
+    s = s.concat(nl.to_string())
     s = s.concat(" ")
-    s = s.concat(to_string(nb))
+    s = s.concat(nb.to_string())
     s = s.concat(" ")
-    s = s.concat(to_string(rt))
+    s = s.concat(rt.to_string())
     stdio::eprintln(s)
 }
 

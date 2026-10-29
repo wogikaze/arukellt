@@ -3,7 +3,7 @@
 //                              (field (mut i32)))
 //   push: read data+len → growth check → array.set → struct.set 1
 
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use wasm::opcodes
 use wasm::ctx_scratch
 use wasm::ctx_record
@@ -154,7 +154,7 @@ fn push_gc_primitive_vec_elem(elem: String) -> bool {
     eq(clone(elem), "char") ||
     eq(clone(elem), "fnref") ||
     eq(clone(elem), "fn") ||
-    starts_with(clone(elem), "fn(")
+    clone(elem).starts_with("fn(")
 }
 
 // Array scratch locals must match the vec's element array type.

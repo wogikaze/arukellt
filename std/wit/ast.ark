@@ -10,7 +10,7 @@
 
 use std::wit::types
 use std::wit::types::{WitType}
-use std::prelude::{byte_at, clone, eq, index_of, slice, substring}
+use std::prelude::{clone, eq}
 use std::text
 
 // ─── AST node type ───────────────────────────────────────────────
@@ -603,20 +603,20 @@ impl WitNode {
 }
 
 fn wit_import_package_name(package: String) -> String {
-    let at = index_of(clone(package), "@")
+    let at = clone(package).index_of("@")
     if at < 0 {
         package
     } else {
-        substring(package, 0, at)
+        package.slice(0, at)
     }
 }
 
 fn wit_import_package_version(package: String) -> String {
-    let at = index_of(clone(package), "@")
+    let at = clone(package).index_of("@")
     if at < 0 {
         String_new()
     } else {
-        substring(package, at + 1, len(package))
+        package.slice(at + 1, len(package))
     }
 }
 
@@ -780,7 +780,7 @@ fn p_skip_ws(s: String, pos: i32) -> i32 {
     let n = len(s)
     let mut i = pos
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if c == 32 || c == 9 || c == 10 || c == 13 {
             i = i + 1
         } else {
@@ -795,22 +795,22 @@ fn p_skip_ws_comments(s: String, pos: i32) -> i32 {
     let n = len(s)
     let mut i = pos
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if c == 32 || c == 9 || c == 10 || c == 13 {
             i = i + 1
         } else {
-            if c == 47 && i + 1 < n && byte_at(s, i + 1) == 47 {
+            if c == 47 && i + 1 < n && s.byte_at(i + 1) == 47 {
                 // line comment
                 i = i + 2
-                while i < n && byte_at(s, i) != 10 {
+                while i < n && s.byte_at(i) != 10 {
                     i = i + 1
                 }
             } else {
-                if c == 47 && i + 1 < n && byte_at(s, i + 1) == 42 {
+                if c == 47 && i + 1 < n && s.byte_at(i + 1) == 42 {
                     // block comment
                     i = i + 2
                     while i + 1 < n {
-                        if byte_at(s, i) == 42 && byte_at(s, i + 1) == 47 {
+                        if s.byte_at(i) == 42 && s.byte_at(i + 1) == 47 {
                             i = i + 2
                             break
                         }
@@ -832,13 +832,13 @@ fn p_word(s: String, pos: i32) -> (String, i32) {
     let start = pos
     let mut i = pos
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if c == 32 || c == 9 || c == 10 || c == 13 || c == 58 || c == 40 || c == 41 || c == 44 || c == 59 || c == 123 || c == 125 || c == 60 || c == 62 || c == 61 || c == 36 || c == 64 {
             break
         }
         i = i + 1
     }
-    let word = slice(s, start, i)
+    let word = s.slice(start, i)
     return (word, i)
 }
 
@@ -849,13 +849,13 @@ fn p_path(s: String, pos: i32) -> (String, i32) {
     let start = pos
     let mut i = pos
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if c == 32 || c == 9 || c == 10 || c == 13 || c == 40 || c == 41 || c == 44 || c == 59 || c == 123 || c == 125 || c == 60 || c == 62 || c == 61 || c == 36 {
             break
         }
         i = i + 1
     }
-    let path = slice(s, start, i)
+    let path = s.slice(start, i)
     return (path, i)
 }
 
@@ -863,13 +863,13 @@ fn p_path(s: String, pos: i32) -> (String, i32) {
 /// Returns the index of the closing `}`, or -1 if not found.
 fn p_find_matching_brace(s: String, pos: i32) -> i32 {
     let n = len(s)
-    if pos >= n || byte_at(s, pos) != 123 {
+    if pos >= n || s.byte_at(pos) != 123 {
         return 0 - 1
     }
     let mut depth = 0
     let mut i = pos
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if c == 123 {
             depth = depth + 1
         }
@@ -939,10 +939,10 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
     i = p1
     if eq(word, "list") {
         i = p_skip_ws_comments(s, i)
-        if i < n && byte_at(s, i) == 60 {
+        if i < n && s.byte_at(i) == 60 {
             let (inner, p2) = p_type(s, i + 1)
             i = p_skip_ws_comments(s, p2)
-            if i < n && byte_at(s, i) == 62 {
+            if i < n && s.byte_at(i) == 62 {
                 i = i + 1
             }
             return (WitType::list(inner), i)
@@ -951,10 +951,10 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
     }
     if eq(word, "option") {
         i = p_skip_ws_comments(s, i)
-        if i < n && byte_at(s, i) == 60 {
+        if i < n && s.byte_at(i) == 60 {
             let (inner, p3) = p_type(s, i + 1)
             i = p_skip_ws_comments(s, p3)
-            if i < n && byte_at(s, i) == 62 {
+            if i < n && s.byte_at(i) == 62 {
                 i = i + 1
             }
             return (WitType::option(inner), i)
@@ -963,32 +963,32 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
     }
     if eq(word, "tuple") {
         i = p_skip_ws_comments(s, i)
-        if i >= n || byte_at(s, i) != 60 {
+        if i >= n || s.byte_at(i) != 60 {
             return (types::WitType::Tuple(Vec::new<WitType>()), i)
         }
         let mut items = Vec::new<WitType>()
         i = p_skip_ws_comments(s, i + 1)
-        while i < n && byte_at(s, i) != 62 {
+        while i < n && s.byte_at(i) != 62 {
             let (item, p6) = p_type(s, i)
             push(items, item)
             i = p_skip_ws_comments(s, p6)
-            if i < n && byte_at(s, i) == 44 {
+            if i < n && s.byte_at(i) == 44 {
                 i = p_skip_ws_comments(s, i + 1)
             } else {
                 break
             }
         }
-        if i < n && byte_at(s, i) == 62 {
+        if i < n && s.byte_at(i) == 62 {
             i = i + 1
         }
         return (types::WitType::Tuple(items), i)
     }
     if eq(word, "own") {
         i = p_skip_ws_comments(s, i)
-        if i < n && byte_at(s, i) == 60 {
+        if i < n && s.byte_at(i) == 60 {
             let (inner, p4) = p_type(s, i + 1)
             i = p_skip_ws_comments(s, p4)
-            if i < n && byte_at(s, i) == 62 {
+            if i < n && s.byte_at(i) == 62 {
                 i = i + 1
             }
             return (types::WitType::Resource(String::concat("own<", String::concat(inner.wit_text(), ">"))), i)
@@ -997,10 +997,10 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
     }
     if eq(word, "borrow") {
         i = p_skip_ws_comments(s, i)
-        if i < n && byte_at(s, i) == 60 {
+        if i < n && s.byte_at(i) == 60 {
             let (inner, p5) = p_type(s, i + 1)
             i = p_skip_ws_comments(s, p5)
-            if i < n && byte_at(s, i) == 62 {
+            if i < n && s.byte_at(i) == 62 {
                 i = i + 1
             }
             return (types::WitType::Resource(String::concat("borrow<", String::concat(inner.wit_text(), ">"))), i)
@@ -1010,25 +1010,25 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
     if eq(word, "result") || eq(word, "future") || eq(word, "stream") {
         let constructor = clone(word)
         i = p_skip_ws_comments(s, i)
-        if i >= n || byte_at(s, i) != 60 {
+        if i >= n || s.byte_at(i) != 60 {
             return (types::WitType::Resource(constructor), i)
         }
         let (first, p7) = p_type(s, i + 1)
         i = p_skip_ws_comments(s, p7)
         let mut rendered = String::concat(constructor, "<")
         rendered = String::concat(rendered, first.wit_text())
-        if i < n && byte_at(s, i) == 44 {
+        if i < n && s.byte_at(i) == 44 {
             let (second, p8) = p_type(s, i + 1)
             rendered = String::concat(rendered, String::concat(", ", second.wit_text()))
             i = p_skip_ws_comments(s, p8)
         }
-        if i < n && byte_at(s, i) == 62 {
+        if i < n && s.byte_at(i) == 62 {
             i = i + 1
         }
         return (types::WitType::Resource(String::concat(rendered, ">")), i)
     }
     // Preserve package-qualified type references for the resolver.
-    if i < n && byte_at(s, i) == 58 {
+    if i < n && s.byte_at(i) == 58 {
         let (suffix, p9) = p_path(s, i)
         return (types::WitType::Resource(String::concat(word, suffix)), p9)
     }
@@ -1043,19 +1043,19 @@ fn p_params(s: String, pos: i32) -> (Vec<types::WitParam>, i32) {
     let n = len(s)
     while i < n {
         i = p_skip_ws_comments(s, i)
-        if i < n && byte_at(s, i) == 41 {
+        if i < n && s.byte_at(i) == 41 {
             return (params, i + 1)
         }
         let (pname, p1) = p_word(s, i)
         i = p_skip_ws_comments(s, p1)
-        if i >= n || byte_at(s, i) != 58 {
+        if i >= n || s.byte_at(i) != 58 {
             return (params, i)
         }
         i = p_skip_ws_comments(s, i + 1)
         let (ty, p2) = p_type(s, i)
         push(params, WitParam::new(pname, ty))
         i = p_skip_ws_comments(s, p2)
-        if i < n && byte_at(s, i) == 44 {
+        if i < n && s.byte_at(i) == 44 {
             i = i + 1
         }
     }
@@ -1066,22 +1066,22 @@ fn p_params(s: String, pos: i32) -> (Vec<types::WitParam>, i32) {
 fn p_func(s: String, pos: i32) -> (WitNode, i32) {
     let (fname, p1) = p_word(s, pos)
     let mut i = p_skip_ws_comments(s, p1)
-    if i < len(s) && byte_at(s, i) == 58 {
+    if i < len(s) && s.byte_at(i) == 58 {
         i = p_skip_ws_comments(s, i + 1)
         let (kw, p2) = p_word(s, i)
         if eq(kw, "func") {
             i = p_skip_ws_comments(s, p2)
-            if i < len(s) && byte_at(s, i) == 40 {
+            if i < len(s) && s.byte_at(i) == 40 {
                 let (params, p3) = p_params(s, i + 1)
                 i = p_skip_ws_comments(s, p3)
                 let mut result = Option::None
-                if i + 1 < len(s) && byte_at(s, i) == 45 && byte_at(s, i + 1) == 62 {
+                if i + 1 < len(s) && s.byte_at(i) == 45 && s.byte_at(i + 1) == 62 {
                     i = p_skip_ws_comments(s, i + 2)
                     let (ty, p4) = p_type(s, i)
                     result = Option::Some(ty)
                     i = p4
                 }
-                if i < len(s) && byte_at(s, i) == 59 {
+                if i < len(s) && s.byte_at(i) == 59 {
                     i = i + 1
                 }
                 return (WitNode::Func(fname, params, result), i)
@@ -1099,19 +1099,19 @@ fn p_record_fields(s: String, pos: i32) -> (Vec<types::WitField>, i32) {
     let n = len(s)
     while i < n {
         i = p_skip_ws_comments(s, i)
-        if i < n && byte_at(s, i) == 125 {
+        if i < n && s.byte_at(i) == 125 {
             return (fields, i + 1)
         }
         let (fname, p1) = p_word(s, i)
         i = p_skip_ws_comments(s, p1)
-        if i >= n || byte_at(s, i) != 58 {
+        if i >= n || s.byte_at(i) != 58 {
             return (fields, i)
         }
         i = p_skip_ws_comments(s, i + 1)
         let (ty, p2) = p_type(s, i)
         push(fields, types::WitField { name: fname, ty: ty })
         i = p_skip_ws_comments(s, p2)
-        if i < n && byte_at(s, i) == 44 {
+        if i < n && s.byte_at(i) == 44 {
             i = i + 1
         }
     }
@@ -1125,7 +1125,7 @@ fn p_enum_variants(s: String, pos: i32) -> (Vec<String>, i32) {
     let n = len(s)
     while i < n {
         i = p_skip_ws_comments(s, i)
-        if i < n && byte_at(s, i) == 125 {
+        if i < n && s.byte_at(i) == 125 {
             return (variants, i + 1)
         }
         let (vname, p1) = p_word(s, i)
@@ -1133,7 +1133,7 @@ fn p_enum_variants(s: String, pos: i32) -> (Vec<String>, i32) {
             push(variants, vname)
         }
         i = p_skip_ws_comments(s, p1)
-        if i < n && byte_at(s, i) == 44 {
+        if i < n && s.byte_at(i) == 44 {
             i = i + 1
         }
     }
@@ -1148,23 +1148,23 @@ fn p_variant_cases(s: String, pos: i32) -> (Vec<types::WitVariantCase>, i32) {
     let n = len(s)
     while i < n {
         i = p_skip_ws_comments(s, i)
-        if i < n && byte_at(s, i) == 125 {
+        if i < n && s.byte_at(i) == 125 {
             return (cases, i + 1)
         }
         let (cname, p1) = p_word(s, i)
         i = p_skip_ws_comments(s, p1)
         let mut payload = Option::None
-        if i < n && byte_at(s, i) == 40 {
+        if i < n && s.byte_at(i) == 40 {
             let (ty, p2) = p_type(s, i + 1)
             payload = Option::Some(ty)
             i = p_skip_ws_comments(s, p2)
-            if i < n && byte_at(s, i) == 41 {
+            if i < n && s.byte_at(i) == 41 {
                 i = i + 1
             }
         }
         push(cases, types::WitVariantCase { name: cname, ty: payload })
         i = p_skip_ws_comments(s, i)
-        if i < n && byte_at(s, i) == 44 {
+        if i < n && s.byte_at(i) == 44 {
             i = i + 1
         }
     }
@@ -1179,7 +1179,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
     if i >= n {
         return (WitNode::Error(String_from("unexpected end of input")), i)
     }
-    if byte_at(s, i) == 125 {
+    if s.byte_at(i) == 125 {
         return (WitNode::Error(String_from("}")), i)
     }
     let (kw, p1) = p_word(s, i)
@@ -1189,18 +1189,18 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         // Check if next is a path (followed by `:` and then a keyword like `interface` or `func`)
         let (path, p2) = p_path(s, i)
         i = p_skip_ws_comments(s, p2)
-        if i < n && byte_at(s, i) == 58 {
+        if i < n && s.byte_at(i) == 58 {
             // `import path: interface { ... }` or `import path: func(...);`
             i = p_skip_ws_comments(s, i + 1)
             let (kind_word, p3) = p_word(s, i)
             if eq(kind_word, "interface") {
                 i = p_skip_ws_comments(s, p3)
-                if i < n && byte_at(s, i) == 123 {
+                if i < n && s.byte_at(i) == 123 {
                     let close = p_find_matching_brace(s, i)
                     if close < 0 {
                         return (WitNode::Error(String_from("unterminated interface")), i)
                     }
-                    let body = substring(s, i + 1, close)
+                    let body = s.slice(i + 1, close)
                     let (items, _) = p_body(body, 0)
                     if eq(kw, "import") {
                         return (WitNode::Import(path, String_from("interface")), close + 1)
@@ -1215,17 +1215,17 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
                 if eq(kind_word, "func") {
                     // `import path: func(...);`
                     i = p_skip_ws_comments(s, p3)
-                    if i < n && byte_at(s, i) == 40 {
+                    if i < n && s.byte_at(i) == 40 {
                         let (params, p4) = p_params(s, i + 1)
                         i = p_skip_ws_comments(s, p4)
                         let mut result = Option::None
-                        if i + 1 < n && byte_at(s, i) == 45 && byte_at(s, i + 1) == 62 {
+                        if i + 1 < n && s.byte_at(i) == 45 && s.byte_at(i + 1) == 62 {
                             i = p_skip_ws_comments(s, i + 2)
                             let (ty, p5) = p_type(s, i)
                             result = Option::Some(ty)
                             i = p5
                         }
-                        if i < n && byte_at(s, i) == 59 {
+                        if i < n && s.byte_at(i) == 59 {
                             i = i + 1
                         }
                         let func_node = WitNode::Func(path, params, result)
@@ -1241,7 +1241,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         }
         // Bare `import path;` or `export path;`
         i = p_skip_ws_comments(s, p2)
-        if i < n && byte_at(s, i) == 59 {
+        if i < n && s.byte_at(i) == 59 {
             i = i + 1
         }
         if eq(kw, "import") {
@@ -1263,7 +1263,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
             alias = aname
             i = p4
         }
-        if i < n && byte_at(s, i) == 59 {
+        if i < n && s.byte_at(i) == 59 {
             i = i + 1
         }
         return (WitNode::Use(path, alias), i)
@@ -1273,11 +1273,11 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         let (tname, p2) = p_word(s, i)
         i = p_skip_ws_comments(s, p2)
         // Expect `=`
-        if i < n && byte_at(s, i) == 61 {
+        if i < n && s.byte_at(i) == 61 {
             i = p_skip_ws_comments(s, i + 1)
             let (ty, p3) = p_type(s, i)
             i = p3
-            if i < n && byte_at(s, i) == 59 {
+            if i < n && s.byte_at(i) == 59 {
                 i = i + 1
             }
             return (WitNode::TypeAlias(tname, ty), i)
@@ -1288,10 +1288,10 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         i = p_skip_ws_comments(s, p1)
         let (rname, p2) = p_word(s, i)
         i = p_skip_ws_comments(s, p2)
-        if i < n && byte_at(s, i) == 123 {
+        if i < n && s.byte_at(i) == 123 {
             let (fields, p3) = p_record_fields(s, i + 1)
             i = p3
-            if i < n && byte_at(s, i) == 59 {
+            if i < n && s.byte_at(i) == 59 {
                 i = i + 1
             }
             return (WitNode::Record(rname, fields), i)
@@ -1302,10 +1302,10 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         i = p_skip_ws_comments(s, p1)
         let (ename, p2) = p_word(s, i)
         i = p_skip_ws_comments(s, p2)
-        if i < n && byte_at(s, i) == 123 {
+        if i < n && s.byte_at(i) == 123 {
             let (variants, p3) = p_enum_variants(s, i + 1)
             i = p3
-            if i < n && byte_at(s, i) == 59 {
+            if i < n && s.byte_at(i) == 59 {
                 i = i + 1
             }
             return (WitNode::Enum(ename, variants), i)
@@ -1316,10 +1316,10 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         i = p_skip_ws_comments(s, p1)
         let (fname, p2) = p_word(s, i)
         i = p_skip_ws_comments(s, p2)
-        if i < n && byte_at(s, i) == 123 {
+        if i < n && s.byte_at(i) == 123 {
             let (members, p3) = p_enum_variants(s, i + 1)
             i = p3
-            if i < n && byte_at(s, i) == 59 {
+            if i < n && s.byte_at(i) == 59 {
                 i = i + 1
             }
             return (WitNode::Flags(fname, members), i)
@@ -1330,10 +1330,10 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         i = p_skip_ws_comments(s, p1)
         let (vname, p2) = p_word(s, i)
         i = p_skip_ws_comments(s, p2)
-        if i < n && byte_at(s, i) == 123 {
+        if i < n && s.byte_at(i) == 123 {
             let (cases, p3) = p_variant_cases(s, i + 1)
             i = p3
-            if i < n && byte_at(s, i) == 59 {
+            if i < n && s.byte_at(i) == 59 {
                 i = i + 1
             }
             return (WitNode::Variant(vname, cases), i)
@@ -1344,16 +1344,16 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         i = p_skip_ws_comments(s, p1)
         let (rname, p2) = p_word(s, i)
         i = p_skip_ws_comments(s, p2)
-        if i < n && byte_at(s, i) == 123 {
+        if i < n && s.byte_at(i) == 123 {
             let (fields, p3) = p_record_fields(s, i + 1)
             i = p3
-            if i < n && byte_at(s, i) == 59 {
+            if i < n && s.byte_at(i) == 59 {
                 i = i + 1
             }
             return (WitNode::Resource(rname, fields), i)
         }
         // resource without body: `resource handle;`
-        if i < n && byte_at(s, i) == 59 {
+        if i < n && s.byte_at(i) == 59 {
             i = i + 1
             let empty_fields: Vec<WitField> = Vec::new<WitField>()
             return (WitNode::Resource(rname, empty_fields), i)
@@ -1365,12 +1365,12 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         i = p_skip_ws_comments(s, p1)
         let (iname, p2) = p_word(s, i)
         i = p_skip_ws_comments(s, p2)
-        if i < n && byte_at(s, i) == 123 {
+        if i < n && s.byte_at(i) == 123 {
             let close = p_find_matching_brace(s, i)
             if close < 0 {
                 return (WitNode::Error(String_from("unterminated interface")), i)
             }
-            let body = substring(s, i + 1, close)
+            let body = s.slice(i + 1, close)
             let (items, _) = p_body(body, 0)
             return (WitNode::Interface(iname, items), close + 1)
         }
@@ -1395,7 +1395,7 @@ fn p_body(s: String, pos: i32) -> (Vec<WitNode>, i32) {
     let n = len(s)
     while i < n {
         i = p_skip_ws_comments(s, i)
-        if i >= n || byte_at(s, i) == 125 {
+        if i >= n || s.byte_at(i) == 125 {
             return (items, i)
         }
         let (node, p1) = p_decl(s, i)
@@ -1425,14 +1425,14 @@ fn p_world(s: String, pos: i32) -> (WitNode, i32) {
     i = p_skip_ws_comments(s, p1)
     let (wname, p2) = p_word(s, i)
     i = p_skip_ws_comments(s, p2)
-    if i >= len(s) || byte_at(s, i) != 123 {
+    if i >= len(s) || s.byte_at(i) != 123 {
         return (WitNode::Error(String_from("expected { after world name")), i)
     }
     let close = p_find_matching_brace(s, i)
     if close < 0 {
         return (WitNode::Error(String_from("unterminated world")), i)
     }
-    let body = substring(s, i + 1, close)
+    let body = s.slice(i + 1, close)
     let (items, _) = p_body(body, 0)
     let node = WitNode::World(wname, items)
     return (node, close + 1)
@@ -1448,14 +1448,14 @@ fn p_interface(s: String, pos: i32) -> (WitNode, i32) {
     i = p_skip_ws_comments(s, p1)
     let (iname, p2) = p_word(s, i)
     i = p_skip_ws_comments(s, p2)
-    if i >= len(s) || byte_at(s, i) != 123 {
+    if i >= len(s) || s.byte_at(i) != 123 {
         return (WitNode::Error(String_from("expected { after interface name")), i)
     }
     let close = p_find_matching_brace(s, i)
     if close < 0 {
         return (WitNode::Error(String_from("unterminated interface")), i)
     }
-    let body = substring(s, i + 1, close)
+    let body = s.slice(i + 1, close)
     let (items, _) = p_body(body, 0)
     let node = WitNode::Interface(iname, items)
     return (node, close + 1)
@@ -1471,7 +1471,7 @@ fn p_package_decl(s: String, pos: i32) -> (String, i32) {
     i = p_skip_ws_comments(s, p1)
     let (path, p2) = p_path(s, i)
     i = p_skip_ws_comments(s, p2)
-    if i < len(s) && byte_at(s, i) == 59 {
+    if i < len(s) && s.byte_at(i) == 59 {
         i = i + 1
     }
     return (path, i)

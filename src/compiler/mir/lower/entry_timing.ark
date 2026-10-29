@@ -1,6 +1,6 @@
 use std::host::clock::Clock
 use std::host::stdio
-use std::prelude::{clone, get_unchecked, i64_to_i32, len, push, set, to_string}
+use std::prelude::{clone, get_unchecked, i64_to_i32, len, push, set}
 use std::text
 fn mir_lower_phase_timing_enabled(report_flag: i32) -> i32 {
     // Env override is disabled; --time / report_flag remains the supported
@@ -30,7 +30,7 @@ fn mir_lower_phase_note(enabled: i32, label: String, t_start: i64, t_end: i64) {
     }
     let ms = mir_lower_phase_ms(t_start, t_end)
     stdio::eprintln(
-        "[arukellt] lower.".concat(clone(label).concat(": ".concat(to_string(ms).concat("ms"))))
+        "[arukellt] lower.".concat(clone(label).concat(": ".concat(ms.to_string().concat("ms"))))
     )
 }
 
@@ -39,7 +39,7 @@ fn mir_lower_gc_late_note(enabled: i32, late_structs: i32, late_enums: i32) {
         return
     }
     stdio::eprintln(
-        "[arukellt] lower.gc_late: structs=".concat(to_string(late_structs).concat(" enums=".concat(to_string(late_enums))))
+        "[arukellt] lower.gc_late: structs=".concat(late_structs.to_string().concat(" enums=".concat(late_enums.to_string())))
     )
 }
 
@@ -48,7 +48,7 @@ fn mir_lower_prefilter_note(enabled: i32, keep: i32, skip: i32) {
         return
     }
     stdio::eprintln(
-        "[arukellt] lower.prefilter: would_keep=".concat(to_string(keep).concat(" would_skip=".concat(to_string(skip))))
+        "[arukellt] lower.prefilter: would_keep=".concat(keep.to_string().concat(" would_skip=".concat(skip.to_string())))
     )
 }
 
@@ -57,7 +57,7 @@ fn mir_lower_phase_fns(enabled: i32, before: i32, after: i32) {
         return
     }
     stdio::eprintln(
-        "[arukellt] lower.reachability_fns: before=".concat(to_string(before).concat(" after=".concat(to_string(after))))
+        "[arukellt] lower.reachability_fns: before=".concat(before.to_string().concat(" after=".concat(after.to_string())))
     )
 }
 
@@ -72,10 +72,10 @@ fn mir_lower_phase_mir_size(
         return
     }
     stdio::eprintln(
-        "[arukellt] lower.reachability_blocks: before=".concat(to_string(blocks_before).concat(" after=".concat(to_string(blocks_after))))
+        "[arukellt] lower.reachability_blocks: before=".concat(blocks_before.to_string().concat(" after=".concat(blocks_after.to_string())))
     )
     stdio::eprintln(
-        "[arukellt] lower.reachability_insts: before=".concat(to_string(insts_before).concat(" after=".concat(to_string(insts_after))))
+        "[arukellt] lower.reachability_insts: before=".concat(insts_before.to_string().concat(" after=".concat(insts_after.to_string())))
     )
 }
 
@@ -120,7 +120,7 @@ fn mir_lower_top_walls_note(enabled: i32, mut wall_ms: Vec<i32>, wall_name: Vec<
         }
         set(wall_ms, best, -1)
         stdio::eprintln(
-            "[arukellt] lower.fn_wall ".concat(to_string(rank).concat(" ".concat(clone(get_unchecked(wall_name, best)).concat(" ".concat(to_string(best_ms).concat("ms"))))))
+            "[arukellt] lower.fn_wall ".concat(rank.to_string().concat(" ".concat(clone(get_unchecked(wall_name, best)).concat(" ".concat(best_ms.to_string().concat("ms"))))))
         )
         rank = rank + 1
     }

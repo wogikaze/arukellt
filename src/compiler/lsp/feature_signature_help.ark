@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, contains, substring}
+use std::prelude::{clone}
 use lsp::feature_request
 use lsp::framing
 use lsp::qualified_name
@@ -28,11 +28,11 @@ pub fn handle_signature_help(mut state: LspState, body: String) {
         return
     }
     let mut short_name = clone(callee)
-    if contains(clone(callee), "::") {
+    if clone(callee).contains("::") {
         let mut last_colon = 0
         let mut pos = len(callee) - 1
         while pos >= 0 {
-            if byte_at(callee, pos) == 58 && pos > 0 && byte_at(callee, pos - 1) == 58 {
+            if callee.byte_at(pos) == 58 && pos > 0 && callee.byte_at(pos - 1) == 58 {
                 last_colon = pos + 1
                 pos = 0 - 1
             } else {
@@ -40,7 +40,7 @@ pub fn handle_signature_help(mut state: LspState, body: String) {
             }
         }
         if last_colon > 0 && last_colon < len(callee) {
-            short_name = substring(callee, last_colon, len(callee))
+            short_name = callee.slice(last_colon, len(callee))
         }
     }
     let sig = signature_help_resolve::resolve_signature_for_name(state, short_name)

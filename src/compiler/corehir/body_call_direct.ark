@@ -1,4 +1,4 @@
-use std::prelude::{clone, contains, eq}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::expr_factory
 use corehir::expr_builder_calls
@@ -79,7 +79,7 @@ fn corehir_direct_call_callee_name(callee: AstNode) -> String {
         return callee_name
     }
     let element_name = type_ann_node::type_ann_name(element_type)
-    if len(element_name) == 0 || contains(clone(element_name), "::") {
+    if len(element_name) == 0 || clone(element_name).contains("::") {
         return callee_name
     }
     let constructor = if eq(clone(callee_name), "Vec::new") {
@@ -100,7 +100,7 @@ fn corehir_hashmap_constructor_name(callee: AstNode, ctor_name: String) -> Strin
     let key_name = corehir_hashmap_ctor_type_arg_name(key_node)
     let value_name = corehir_hashmap_ctor_type_arg_name(value_node)
     if len(key_name) == 0 || len(value_name) == 0 ||
-    contains(clone(key_name), "::") || contains(clone(value_name), "::") {
+    clone(key_name).contains("::") || clone(value_name).contains("::") {
         return source_name
     }
     let pair = String_from("__").concat(key_name.concat(String_from("__").concat(value_name)))

@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::decl_node
 use corehir::decl_node_identity
@@ -58,8 +58,8 @@ fn corehir_nominal_type_list_contains(names: Vec<String>, name: String) -> bool 
 // name. Declared single-uppercase nominal types are not parameters (ADR-089).
 fn corehir_declared_type_param_contains(type_params: Vec<String>, name: String) -> bool {
     let mut bare = clone(name)
-    if starts_with(clone(bare), "?") {
-        bare = substring(bare, 1, len(bare))
+    if clone(bare).starts_with("?") {
+        bare = bare.slice(1, len(bare))
     }
     corehir_nominal_type_list_contains(type_params, bare)
 }

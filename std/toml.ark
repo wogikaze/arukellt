@@ -7,7 +7,7 @@
 //! `std::toml`) to avoid the bootstrap compiler stubbing the entire module; the
 //! document entry points are `TomlValue::parse` and `v.to_text()`.
 
-use std::prelude::{byte_at, clone, eq, slice, substring}
+use std::prelude::{clone, eq}
 use std::text
 /// Filter a single TOML source line: returns the line unchanged for key=value
 /// lines and returns `""` for comments and blank lines.
@@ -16,7 +16,7 @@ fn toml_text_parse_line(line: String) -> String {
     if n == 0 {
         ""
     } else {
-        let first: String = slice(line, 0, 1)
+        let first: String = line.slice(0, 1)
         if eq(first, "#") {
             ""
         } else {
@@ -34,27 +34,27 @@ fn toml_text_find_section(content: String, section: String) -> String {
     let content_len = len(content)
     let mut i = 0
     while i < content_len {
-        if i == 0 || byte_at(content, i - 1) == 10 {
+        if i == 0 || content.byte_at(i - 1) == 10 {
             let j_max = content_len - i
             let match_len = if header_len < j_max { header_len } else { j_max }
             let mut j = 0
-            while j < match_len && byte_at(content, i + j) == byte_at(section_header, j) {
+            while j < match_len && content.byte_at(i + j) == section_header.byte_at(j) {
                 j = j + 1
             }
-            if j == header_len && (i + j >= content_len || byte_at(content, i + j) == 10) {
+            if j == header_len && (i + j >= content_len || content.byte_at(i + j) == 10) {
                 let section_start = i + j
                 if section_start >= content_len {
                     return String_new()
                 }
-                let body_start = if byte_at(content, section_start) == 10 { section_start + 1 } else { section_start }
+                let body_start = if content.byte_at(section_start) == 10 { section_start + 1 } else { section_start }
                 let mut k = body_start
                 while k < content_len {
-                    if byte_at(content, k) == 10 && k + 1 < content_len && byte_at(content, k + 1) == 91 {
-                        return substring(content, body_start, k)
+                    if content.byte_at(k) == 10 && k + 1 < content_len && content.byte_at(k + 1) == 91 {
+                        return content.slice(body_start, k)
                     }
                     k = k + 1
                 }
-                return substring(content, body_start, content_len)
+                return content.slice(body_start, content_len)
             }
         }
         i = i + 1
@@ -72,22 +72,22 @@ fn toml_text_find_value(content: String, key: String) -> String {
     let mut line_start = 0
     let mut i = 0
     while i < content_len {
-        if byte_at(content, i) == 10 || i == content_len - 1 {
-            let line_end = if byte_at(content, i) == 10 { i } else { i + 1 }
-            let line = substring(content, line_start, line_end)
+        if content.byte_at(i) == 10 || i == content_len - 1 {
+            let line_end = if content.byte_at(i) == 10 { i } else { i + 1 }
+            let line = content.slice(line_start, line_end)
             let line_len = len(line)
             if line_len > key_len + 3 {
-                if eq(substring(line, 0, key_len), clone(key)) {
+                if eq(line.slice(0, key_len), clone(key)) {
                     let mut j = key_len
-                    while j < line_len && byte_at(line, j) == 32 { j = j + 1 }
-                    if j < line_len && byte_at(line, j) == 61 {
+                    while j < line_len && line.byte_at(j) == 32 { j = j + 1 }
+                    if j < line_len && line.byte_at(j) == 61 {
                         j = j + 1
-                        while j < line_len && byte_at(line, j) == 32 { j = j + 1 }
-                        if j < line_len && byte_at(line, j) == 34 {
+                        while j < line_len && line.byte_at(j) == 32 { j = j + 1 }
+                        if j < line_len && line.byte_at(j) == 34 {
                             let val_start = j + 1
                             let mut k = val_start
-                            while k < line_len && byte_at(line, k) != 34 { k = k + 1 }
-                            return substring(line, val_start, k)
+                            while k < line_len && line.byte_at(k) != 34 { k = k + 1 }
+                            return line.slice(val_start, k)
                         }
                     }
                 }
@@ -108,18 +108,18 @@ fn toml_text_find_raw_value(content: String, key: String) -> String {
     let mut line_start = 0
     let mut i = 0
     while i < content_len {
-        if byte_at(content, i) == 10 || i == content_len - 1 {
-            let line_end = if byte_at(content, i) == 10 { i } else { i + 1 }
-            let line = substring(content, line_start, line_end)
+        if content.byte_at(i) == 10 || i == content_len - 1 {
+            let line_end = if content.byte_at(i) == 10 { i } else { i + 1 }
+            let line = content.slice(line_start, line_end)
             let line_len = len(line)
             if line_len > key_len + 3 {
-                if eq(substring(line, 0, key_len), clone(key)) {
+                if eq(line.slice(0, key_len), clone(key)) {
                     let mut j = key_len
-                    while j < line_len && byte_at(line, j) == 32 { j = j + 1 }
-                    if j < line_len && byte_at(line, j) == 61 {
+                    while j < line_len && line.byte_at(j) == 32 { j = j + 1 }
+                    if j < line_len && line.byte_at(j) == 61 {
                         j = j + 1
-                        while j < line_len && byte_at(line, j) == 32 { j = j + 1 }
-                        return substring(line, j, line_len)
+                        while j < line_len && line.byte_at(j) == 32 { j = j + 1 }
+                        return line.slice(j, line_len)
                     }
                 }
             }
@@ -138,24 +138,24 @@ fn toml_text_parse_string_array(raw: String) -> Vec<String> {
         return result
     }
     let mut i = 0
-    while i < raw_len && byte_at(raw, i) == 32 { i = i + 1 }
-    if i >= raw_len || byte_at(raw, i) != 91 {
+    while i < raw_len && raw.byte_at(i) == 32 { i = i + 1 }
+    if i >= raw_len || raw.byte_at(i) != 91 {
         return result
     }
     i = i + 1
     while i < raw_len {
-        while i < raw_len && (byte_at(raw, i) == 32 || byte_at(raw, i) == 44) { i = i + 1 }
-        if i >= raw_len || byte_at(raw, i) == 93 {
+        while i < raw_len && (raw.byte_at(i) == 32 || raw.byte_at(i) == 44) { i = i + 1 }
+        if i >= raw_len || raw.byte_at(i) == 93 {
             return result
         }
-        if byte_at(raw, i) != 34 {
+        if raw.byte_at(i) != 34 {
             i = i + 1
             continue
         }
         i = i + 1
         let start = i
-        while i < raw_len && byte_at(raw, i) != 34 { i = i + 1 }
-        push(result, substring(raw, start, i))
+        while i < raw_len && raw.byte_at(i) != 34 { i = i + 1 }
+        push(result, raw.slice(start, i))
         if i < raw_len { i = i + 1 }
     }
     result

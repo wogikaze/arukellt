@@ -1,5 +1,5 @@
 // Wasm emitter context data record.
-use std::prelude::{byte_at, clone, eq, substring}
+use std::prelude::{clone, eq}
 use corehir::signature_registry
 use mir::local_write_index
 use corehir::type_table
@@ -587,9 +587,9 @@ fn SelfEmitCtx_bare_suffix(name: String) -> String {
     let n = len(name)
     let mut i = n - 1
     while i >= 0 {
-        if byte_at(name, i) == 58 {
+        if name.byte_at(i) == 58 {
             if i + 1 < n {
-                return substring(name, i + 1, n)
+                return name.slice(i + 1, n)
             }
             return String_new()
         }
@@ -603,8 +603,8 @@ fn SelfEmitCtx_module_stripped_name(name: String) -> String {
     let name_len = len(name)
     let mut index = name_len - 2
     while index >= 0 {
-        if byte_at(name, index) == 58 && byte_at(name, index + 1) == 58 {
-            return substring(name, index + 2, name_len)
+        if name.byte_at(index) == 58 && name.byte_at(index + 1) == 58 {
+            return name.slice(index + 2, name_len)
         }
         index = index - 1
     }

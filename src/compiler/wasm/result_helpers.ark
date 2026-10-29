@@ -2,7 +2,7 @@ use wasm::ctx_gc_type
 use wasm::ctx_record
 
 // Prefer `_f1_ref0` (String payload) over name-only first match (`_f1_i32`).
-use std::prelude::{clone, ends_with, eq}
+use std::prelude::{clone, eq}
 fn find_result_string_variant_type(ctx: SelfEmitCtx, variant_name: String) -> i32 {
     let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
@@ -16,7 +16,7 @@ fn find_result_string_variant_type(ctx: SelfEmitCtx, variant_name: String) -> i3
             if i < len(type_map) {
                 let variant_type = get_unchecked(type_map, i)
                 if variant_type != open_type {
-                    if i < len(sigs) && ends_with(clone(get_unchecked(sigs, i)), "_f1_ref0") {
+                    if i < len(sigs) && clone(get_unchecked(sigs, i)).ends_with("_f1_ref0") {
                         return variant_type
                     }
                     if fallback < 0 {
@@ -46,7 +46,7 @@ fn find_result_variant_type_by_suffix(ctx: SelfEmitCtx, variant_name: String, su
             if i < len(type_map) {
                 let variant_type = get_unchecked(type_map, i)
                 if variant_type != open_type {
-                    if i < len(sigs) && ends_with(clone(get_unchecked(sigs, i)), clone(suffix)) {
+                    if i < len(sigs) && clone(get_unchecked(sigs, i)).ends_with(clone(suffix)) {
                         return variant_type
                     }
                     if fallback < 0 {

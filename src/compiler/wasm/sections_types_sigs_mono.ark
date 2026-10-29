@@ -1,5 +1,5 @@
 // Mono type signature helpers.
-use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use mir::lower::mono_suffix_parse
 use mir::module_gc_enum
@@ -13,7 +13,7 @@ fn extract_mono_suffix(fn_name: String) -> String {
     let mut sep_positions = Vec::new<i32>()
     let mut i = 0
     while i < name_len - 1 {
-        if byte_at(fn_name, i) == 95 && byte_at(fn_name, i + 1) == 95 {
+        if fn_name.byte_at(i) == 95 && fn_name.byte_at(i + 1) == 95 {
             push(sep_positions, i)
         }
         i = i + 1
@@ -29,7 +29,7 @@ fn extract_mono_suffix(fn_name: String) -> String {
     let mut si = 0
     while si < sep_count {
         let sep_pos = get_unchecked(sep_positions, si)
-        let suffix = substring(fn_name, sep_pos + 2, name_len)
+        let suffix = fn_name.slice(sep_pos + 2, name_len)
         let type_keys = split_by_double_underscore(suffix)
         let key_count = len(type_keys)
         if key_count > 0 && all_valid_type_keys(type_keys, key_count) {
@@ -69,7 +69,7 @@ fn is_valid_type_key(key: String) -> bool {
     }
     // User-defined type names start with uppercase letter (A-Z = 65-90)
     if len(key) > 0 {
-        let first = byte_at(key, 0)
+        let first = key.byte_at(0)
         if first >= 65 && first <= 90 {
             return true
         }
@@ -140,8 +140,8 @@ fn split_by_double_underscore(s: String) -> Vec<String> {
     let mut start = 0
     let mut i = 0
     while i < slen - 1 {
-        if byte_at(s, i) == 95 && byte_at(s, i + 1) == 95 {
-            push(result, substring(s, start, i))
+        if s.byte_at(i) == 95 && s.byte_at(i + 1) == 95 {
+            push(result, s.slice(start, i))
             start = i + 2
             i = i + 2
         } else {
@@ -149,7 +149,7 @@ fn split_by_double_underscore(s: String) -> Vec<String> {
         }
     }
     if start <= slen {
-        push(result, substring(s, start, slen))
+        push(result, s.slice(start, slen))
     }
     result
 }
@@ -165,10 +165,10 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
     let suffix_with_sep = "__".concat(clone(full_suffix))
     let fn_len = len(fn_name)
     let suffix_sep_len = len(suffix_with_sep)
-    if fn_len <= suffix_sep_len || !ends_with(clone(fn_name), clone(suffix_with_sep)) {
+    if fn_len <= suffix_sep_len || !clone(fn_name).ends_with(clone(suffix_with_sep)) {
         return String_new()
     }
-    let base = substring(fn_name, 0, fn_len - suffix_sep_len)
+    let base = fn_name.slice(0, fn_len - suffix_sep_len)
     let base_parts = split_by_double_underscore(clone(base))
     // Require Type__method base shape; plain mono functions like id__i32 must not match.
     if len(base_parts) < 2 {
@@ -181,7 +181,7 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
     if len(receiver) == 0 {
         return String_new()
     }
-    if !starts_with(clone(fn_name), clone(receiver).concat("__")) {
+    if !clone(fn_name).starts_with(clone(receiver).concat("__")) {
         return String_new()
     }
     // The suffix keys bind the method's type arguments; they double as the
@@ -192,8 +192,8 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
     // resolve through the normal return-type paths below.
     if len(return_type_name) > 0 {
         let mut var_probe = clone(return_type_name)
-        if starts_with(clone(var_probe), "?") {
-            var_probe = substring(var_probe, 1, len(var_probe))
+        if clone(var_probe).starts_with("?") {
+            var_probe = var_probe.slice(1, len(var_probe))
         }
         let is_var_return = !mono_return_name_is_declared_nominal(mir, clone(var_probe)) &&
         mono_suffix_parse::is_mono_type_var_name(clone(var_probe))
@@ -241,13 +241,13 @@ fn mono_declared_return_is_receiver(return_type_name: String, receiver: String) 
     }
     let mut bare = clone(return_type_name)
     let n = len(bare)
-    if starts_with(clone(bare), "struct:") {
+    if clone(bare).starts_with("struct:") {
         // struct:Name:size — keep the middle segment.
         let mut first_colon = 0 - 1
         let mut last_colon = 0 - 1
         let mut i = 0
         while i < n {
-            if byte_at(bare, i) == 58 {
+            if bare.byte_at(i) == 58 {
                 if first_colon < 0 {
                     first_colon = i
                 }
@@ -256,7 +256,7 @@ fn mono_declared_return_is_receiver(return_type_name: String, receiver: String) 
             i = i + 1
         }
         if first_colon >= 0 && last_colon > first_colon {
-            bare = substring(bare, first_colon + 1, last_colon)
+            bare = bare.slice(first_colon + 1, last_colon)
         }
     } else {
         // Strip enum:/option:/... prefixes and module qualifiers: keep the
@@ -264,13 +264,13 @@ fn mono_declared_return_is_receiver(return_type_name: String, receiver: String) 
         let mut last_colon = 0 - 1
         let mut i = 0
         while i < n {
-            if byte_at(bare, i) == 58 {
+            if bare.byte_at(i) == 58 {
                 last_colon = i
             }
             i = i + 1
         }
         if last_colon >= 0 {
-            bare = substring(bare, last_colon + 1, n)
+            bare = bare.slice(last_colon + 1, n)
         }
     }
     eq(bare, receiver)

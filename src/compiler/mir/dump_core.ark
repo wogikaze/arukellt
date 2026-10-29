@@ -11,16 +11,15 @@ use mir::types
 use mir::ssa_rename_entry
 
 // ── MIR Dump ─────────────────────────────────────────────────────────────────
-use std::prelude::{to_string}
 use std::text
 fn dump_mir(m: MirModule) {
     dominance::mir_compute_dominance(m)
     ssa_rename_entry::mir_ssa_rename_module(m)
     let fn_count = module_functions::MirModule_function_count(m)
-    stdio::eprintln("MIR module: ".concat(to_string(fn_count).concat(" function(s)")))
+    stdio::eprintln("MIR module: ".concat(fn_count.to_string().concat(" function(s)")))
     let pruned_count = module_metadata::MirModule_mono_pruned_count(m)
     if pruned_count > 0 {
-        stdio::eprintln("MIR mono pruned: ".concat(to_string(pruned_count).concat(" function(s)")))
+        stdio::eprintln("MIR mono pruned: ".concat(pruned_count.to_string().concat(" function(s)")))
     }
     let mut i = 0
     while i < fn_count {
@@ -28,13 +27,13 @@ fn dump_mir(m: MirModule) {
         let block_count = function_block_queries::MirFunction_block_count(f)
         let local_count = function_locals_view::MirFunction_local_count(f)
         stdio::eprintln(
-            "  fn ".concat(function_identity::MirFunction_name(f).concat(" (".concat(to_string(local_count).concat(" locals, ".concat(to_string(block_count).concat(" blocks)"))))))
+            "  fn ".concat(function_identity::MirFunction_name(f).concat(" (".concat(local_count.to_string().concat(" locals, ".concat(block_count.to_string().concat(" blocks)"))))))
         )
         dump_core_blocks::dump_mir_function_blocks(f)
         i = i + 1
     }
     let str_count = module_strings::MirModule_string_constant_count(m)
     if str_count > 0 {
-        stdio::eprintln("  strings: ".concat(to_string(str_count)))
+        stdio::eprintln("  strings: ".concat(str_count.to_string()))
     }
 }

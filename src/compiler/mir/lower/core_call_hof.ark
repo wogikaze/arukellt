@@ -1,4 +1,4 @@
-use std::prelude::{clone, starts_with}
+use std::prelude::{clone}
 use mir::lower_kinds
 use mir::lower::hof_call_plan
 use mir::lower::hof_call_classify
@@ -26,7 +26,7 @@ fn lower_core_hof_call(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
     // map_String_String is classified under the i32 HOF plan, but the source
     // vec may be vec:String).
     let existing_vec_type = ctx_api_local_types::ctx_get_local_type(ctx, hof_vec_local)
-    if !starts_with(clone(existing_vec_type), "vec:") {
+    if !clone(existing_vec_type).starts_with("vec:") {
         ctx_api_local_types::ctx_set_local_type(ctx, hof_vec_local, hof_call_plan::mir_hof_call_plan_vec_type_name(hof_plan))
     }
     let mut hof_init_idx = 0 - 1

@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, contains, ends_with, eq, index_of, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use collections::name_index
 use wasm::hash_aliases
@@ -165,7 +165,7 @@ fn edge_after_last(name: String, b0: i32, b1: i32) -> String {
     let mut last = 0 - 1
     let mut i = 0
     while i + 1 < n {
-        if byte_at(name, i) == b0 && byte_at(name, i + 1) == b1 {
+        if name.byte_at(i) == b0 && name.byte_at(i + 1) == b1 {
             last = i
             i = i + 1
         }
@@ -174,14 +174,14 @@ fn edge_after_last(name: String, b0: i32, b1: i32) -> String {
     if last < 0 {
         return name
     }
-    substring(name, last + 2, n)
+    name.slice(last + 2, n)
 }
 
 fn edge_first_double_underscore(name: String) -> i32 {
     let n = len(name)
     let mut i = 0
     while i + 1 < n {
-        if byte_at(name, i) == 95 && byte_at(name, i + 1) == 95 {
+        if name.byte_at(i) == 95 && name.byte_at(i + 1) == 95 {
             return i
         }
         i = i + 1
@@ -194,7 +194,7 @@ fn edge_last_double_underscore(name: String) -> i32 {
     let mut last = 0 - 1
     let mut i = 0
     while i + 1 < n {
-        if byte_at(name, i) == 95 && byte_at(name, i + 1) == 95 {
+        if name.byte_at(i) == 95 && name.byte_at(i + 1) == 95 {
             last = i
             i = i + 1
         }
@@ -204,22 +204,22 @@ fn edge_last_double_underscore(name: String) -> i32 {
 }
 
 fn edge_bare_candidates_of(name: String, mut out: Vec<String>) {
-    if contains(clone(name), "::") {
+    if clone(name).contains("::") {
         push(out, edge_after_last(clone(name), 58, 58))
     } else {
         push(out, clone(name))
     }
     let first = edge_first_double_underscore(clone(name))
     if first >= 0 {
-        let head = substring(clone(name), 0, first)
-        let rest = substring(clone(name), first + 2, len(clone(name)))
+        let head = clone(name).slice(0, first)
+        let rest = clone(name).slice(first + 2, len(clone(name)))
         let second = edge_first_double_underscore(clone(rest))
         if second >= 0 {
-            push(out, substring(clone(rest), 0, second))
+            push(out, clone(rest).slice(0, second))
         } else {
             push(out, clone(rest))
         }
-        if contains(clone(head), "::") {
+        if clone(head).contains("::") {
             push(out, edge_after_last(head, 58, 58))
         } else {
             push(out, head)
@@ -235,13 +235,13 @@ fn edge_mono_base_key(name: String) -> String {
     if last <= 0 {
         return String_new()
     }
-    let base = substring(clone(name), 0, last)
+    let base = clone(name).slice(0, last)
     let first = edge_first_double_underscore(clone(base))
     if first < 0 {
         return base
     }
-    let owner = substring(clone(base), 0, first)
-    let rest = substring(base, first + 2, len(clone(base)))
+    let owner = clone(base).slice(0, first)
+    let rest = base.slice(first + 2, len(clone(base)))
     owner.concat("::".concat(rest))
 }
 
@@ -440,7 +440,7 @@ fn edge_fn_index_return_type(ctx: LowerCtx, name: String) -> String {
     if ni >= 0 {
         return ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, ni)
     }
-    if contains(clone(name), String_from("::")) {
+    if clone(name).contains(String_from("::")) {
         let short = edge_after_last(name, 58, 58)
         let si = ctx_fn_index::ctx_fn_index_find(ctx, clone(short))
         if si >= 0 {
@@ -538,7 +538,7 @@ fn edge_push_typed_method_candidates(mut out: Vec<String>, recv_ty: String, meth
     // HashMap<i32, i32> spellings normalize to the per-instantiation
     // owner form the impl-registration side uses.
     let mut owner_ty = clone(recv_ty)
-    if contains(clone(recv_ty), String_from("<")) {
+    if clone(recv_ty).contains(String_from("<")) {
         owner_ty = method_resolve::mir_inst_owner_name(clone(recv_ty))
     }
     let family = call_rewrite_hashmap::hashmap_family_for_type(clone(owner_ty))
@@ -615,10 +615,10 @@ fn edge_resolve_method_site(
         return
     }
     let mut owner_ty = clone(recv_ty)
-    if starts_with(clone(owner_ty), String_from("?")) {
-        owner_ty = substring(owner_ty, 1, len(owner_ty))
+    if clone(owner_ty).starts_with(String_from("?")) {
+        owner_ty = owner_ty.slice(1, len(owner_ty))
     }
-    if contains(clone(owner_ty), String_from("<")) {
+    if clone(owner_ty).contains(String_from("<")) {
         owner_ty = method_resolve::mir_inst_owner_name(clone(owner_ty))
     }
     // HashMap pair receivers lower to a per-pair implementation body
@@ -887,7 +887,7 @@ fn edge_push_unary_op_candidates(ctx: LowerCtx, mut out: Vec<String>, op: i32, s
 // one key substitutes every variable, multi-key names map T/K/A->0,
 // E/B->1, ... through mono_type_var_to_index.
 fn edge_resolve_mono_type_key(type_var: String, mono_suffix: String) -> String {
-    if starts_with(clone(mono_suffix), String_from("Vec")) {
+    if clone(mono_suffix).starts_with(String_from("Vec")) {
         return mono_suffix
     }
     let keys = mono_suffix_parse::split_mono_suffix(clone(mono_suffix))
@@ -914,7 +914,7 @@ fn edge_split_angle_args(inner: String, mut out: Vec<String>) {
     let mut i = 0
     while i <= n {
         let at_end = i == n
-        let ch = if at_end { 44 } else { byte_at(clone(inner), i) }
+        let ch = if at_end { 44 } else { clone(inner).byte_at(i) }
         if ch == 60 {
             depth = depth + 1
         }
@@ -922,7 +922,7 @@ fn edge_split_angle_args(inner: String, mut out: Vec<String>) {
             depth = depth - 1
         }
         if (ch == 44 && depth == 0) || at_end {
-            push(out, substring(clone(inner), seg_start, i))
+            push(out, clone(inner).slice(seg_start, i))
             seg_start = i + 1
         }
         i = i + 1
@@ -937,12 +937,12 @@ fn edge_split_angle_args(inner: String, mut out: Vec<String>) {
 // variable segment simply miss fn_index and over-keep through the bare
 // fallback.
 fn edge_subst_angle_args(ty: String, keys: Vec<String>) -> String {
-    let lt = index_of(clone(ty), String_from("<"))
-    if lt <= 0 || byte_at(clone(ty), len(ty) - 1) != 62 {
+    let lt = clone(ty).index_of(String_from("<"))
+    if lt <= 0 || clone(ty).byte_at(len(ty) - 1) != 62 {
         return ty
     }
-    let head = substring(clone(ty), 0, lt)
-    let inner = substring(clone(ty), lt + 1, len(ty) - 1)
+    let head = clone(ty).slice(0, lt)
+    let inner = clone(ty).slice(lt + 1, len(ty) - 1)
     let mut args = Vec::new<String>()
     edge_split_angle_args(inner, args)
     if len(args) == 0 {
@@ -986,11 +986,11 @@ fn edge_subst_param_type(ty: String, emit_name: String) -> String {
         return ty
     }
     let mut work = clone(ty)
-    if starts_with(clone(work), String_from("?")) {
-        work = substring(work, 1, len(work))
+    if clone(work).starts_with(String_from("?")) {
+        work = work.slice(1, len(work))
     }
-    if starts_with(clone(work), String_from("vec:")) {
-        let elem = substring(clone(work), 4, len(work))
+    if clone(work).starts_with(String_from("vec:")) {
+        let elem = clone(work).slice(4, len(work))
         if !mono_suffix_parse::is_mono_type_var_name(clone(elem)) {
             return ty
         }
@@ -1000,8 +1000,8 @@ fn edge_subst_param_type(ty: String, emit_name: String) -> String {
         }
         return String_from("vec:").concat(concrete)
     }
-    if starts_with(clone(work), String_from("option:")) {
-        let elem = substring(clone(work), 7, len(work))
+    if clone(work).starts_with(String_from("option:")) {
+        let elem = clone(work).slice(7, len(work))
         if !mono_suffix_parse::is_mono_type_var_name(clone(elem)) {
             return ty
         }
@@ -1011,14 +1011,14 @@ fn edge_subst_param_type(ty: String, emit_name: String) -> String {
         }
         return String_from("option:").concat(concrete)
     }
-    if starts_with(clone(work), String_from("hashmap:")) {
+    if clone(work).starts_with(String_from("hashmap:")) {
         // Unresolved hashmap:K:V spellings alias the pair positionally
         // (declaration order), the same rule
         // sig_reg_mono_hashmap_param_alias applies through MonoInstance
         // args. Rebuild the HashMap_k_v spelling owner lookup accepts
         // (mir_hashmap_impl_owner_name / hashmap_family_for_type).
-        let args = substring(clone(work), 8, len(work))
-        let colon = index_of(clone(args), String_from(":"))
+        let args = clone(work).slice(8, len(work))
+        let colon = clone(args).index_of(String_from(":"))
         if colon < 0 {
             return ty
         }
@@ -1026,8 +1026,8 @@ fn edge_subst_param_type(ty: String, emit_name: String) -> String {
         if len(keys) < 2 {
             return ty
         }
-        let key_seg = substring(clone(args), 0, colon)
-        let val_seg = substring(clone(args), colon + 1, len(args))
+        let key_seg = clone(args).slice(0, colon)
+        let val_seg = clone(args).slice(colon + 1, len(args))
         let mut key_out = clone(key_seg)
         let mut val_out = clone(val_seg)
         if mono_suffix_parse::is_mono_type_var_name(clone(key_seg)) {
@@ -1041,7 +1041,7 @@ fn edge_subst_param_type(ty: String, emit_name: String) -> String {
         }
         return String_from("HashMap_").concat(clone(key_out).concat(String_from("_").concat(val_out)))
     }
-    if contains(clone(work), String_from("<")) {
+    if clone(work).contains(String_from("<")) {
         let keys = mono_suffix_parse::split_mono_suffix(clone(suffix))
         let substituted = edge_subst_angle_args(clone(work), keys)
         if !eq(clone(substituted), clone(work)) {
@@ -1104,8 +1104,8 @@ fn edge_precise_mark(name: String) -> String {
 // bare iter/into_iter/next fallback.
 fn edge_push_for_desugars(mut ctx: LowerCtx, mut out: Vec<String>, span_start: i32, src_ty: String) -> i32 {
     let mut work = clone(src_ty)
-    if starts_with(clone(work), String_from("?")) {
-        work = substring(work, 1, len(work))
+    if clone(work).starts_with(String_from("?")) {
+        work = work.slice(1, len(work))
     }
     if len(work) == 0 {
         return 0
@@ -1673,8 +1673,8 @@ fn edge_resolve_candidate(ctx: LowerCtx, table: AstEdgeTable, cand: String, mut 
     // suffix through bare_index would re-fan-out to every same-named
     // method family and recreate the ~10x keep explosion they exist to
     // avoid (2026-10-13 iterator_query_consumers compile stall).
-    if byte_at(clone(cand), 0) == 35 {
-        edge_resolve_precise(ctx, table, substring(cand, 1, len(cand)), seen, out)
+    if clone(cand).byte_at(0) == 35 {
+        edge_resolve_precise(ctx, table, cand.slice(1, len(cand)), seen, out)
         return
     }
     edge_resolve_spelling(ctx, table, clone(cand), seen, out)
@@ -1687,7 +1687,7 @@ fn edge_resolve_candidate(ctx: LowerCtx, table: AstEdgeTable, cand: String, mut 
         edge_resolve_spelling(ctx, table, clone(get_unchecked(variants, vi)), seen, out)
         vi = vi + 1
     }
-    if contains(clone(cand), String_from("::")) {
+    if clone(cand).contains(String_from("::")) {
         edge_resolve_spelling(ctx, table, edge_after_last(cand, 58, 58), seen, out)
     }
 }

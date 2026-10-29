@@ -1,20 +1,20 @@
 use std::text
 use std::json
-use std::prelude::{clone, to_string}
+use std::prelude::{clone}
 use lsp::positions
 fn build_hover_response(id: i32, markdown: String, start: LspPosition, end: LspPosition) -> String {
     let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body = body.concat(to_string(id))
+    body = body.concat(id.to_string())
     body = body.concat(String_from(",\"result\":{\"contents\":{\"kind\":\"markdown\",\"value\":"))
     body = body.concat(json::JsonText::quote(markdown))
     body = body.concat(String_from("},\"range\":{\"start\":{\"line\":"))
-    body = body.concat(to_string(positions::lsp_position_line(start)))
+    body = body.concat(positions::lsp_position_line(start).to_string())
     body = body.concat(String_from(",\"character\":"))
-    body = body.concat(to_string(positions::lsp_position_character(start)))
+    body = body.concat(positions::lsp_position_character(start).to_string())
     body = body.concat(String_from("},\"end\":{\"line\":"))
-    body = body.concat(to_string(positions::lsp_position_line(end)))
+    body = body.concat(positions::lsp_position_line(end).to_string())
     body = body.concat(String_from(",\"character\":"))
-    body = body.concat(to_string(positions::lsp_position_character(end)))
+    body = body.concat(positions::lsp_position_character(end).to_string())
     body = body.concat(String_from("}}}}"))
     body
 }
@@ -25,30 +25,30 @@ pub fn location_json(uri: String, text: String, start: i32, end: i32) -> String 
     let mut out = String_from("{\"uri\":")
     out = out.concat(json::JsonText::quote(uri))
     out = out.concat(String_from(",\"range\":{\"start\":{\"line\":"))
-    out = out.concat(to_string(positions::lsp_position_line(start_pos)))
+    out = out.concat(positions::lsp_position_line(start_pos).to_string())
     out = out.concat(String_from(",\"character\":"))
-    out = out.concat(to_string(positions::lsp_position_character(start_pos)))
+    out = out.concat(positions::lsp_position_character(start_pos).to_string())
     out = out.concat(String_from("},\"end\":{\"line\":"))
-    out = out.concat(to_string(positions::lsp_position_line(end_pos)))
+    out = out.concat(positions::lsp_position_line(end_pos).to_string())
     out = out.concat(String_from(",\"character\":"))
-    out = out.concat(to_string(positions::lsp_position_character(end_pos)))
+    out = out.concat(positions::lsp_position_character(end_pos).to_string())
     out = out.concat(String_from("}}}"))
     out
 }
 
 fn build_definition_response(id: i32, uri: String, start: LspPosition, end: LspPosition) -> String {
     let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body = body.concat(to_string(id))
+    body = body.concat(id.to_string())
     body = body.concat(String_from(",\"result\":{\"uri\":"))
     body = body.concat(json::JsonText::quote(uri))
     body = body.concat(String_from(",\"range\":{\"start\":{\"line\":"))
-    body = body.concat(to_string(positions::lsp_position_line(start)))
+    body = body.concat(positions::lsp_position_line(start).to_string())
     body = body.concat(String_from(",\"character\":"))
-    body = body.concat(to_string(positions::lsp_position_character(start)))
+    body = body.concat(positions::lsp_position_character(start).to_string())
     body = body.concat(String_from("},\"end\":{\"line\":"))
-    body = body.concat(to_string(positions::lsp_position_line(end)))
+    body = body.concat(positions::lsp_position_line(end).to_string())
     body = body.concat(String_from(",\"character\":"))
-    body = body.concat(to_string(positions::lsp_position_character(end)))
+    body = body.concat(positions::lsp_position_character(end).to_string())
     body = body.concat(String_from("}}}}"))
     body
 }

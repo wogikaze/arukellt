@@ -1,4 +1,3 @@
-use std::prelude::{byte_at}
 use lexer::tokens
 use lexer::char_escape
 use lexer::char_token
@@ -7,7 +6,7 @@ fn lexer_char_continuation(byte: i32) -> bool {
 }
 
 fn lexer_char_width(src: String, pos: i32, end: i32) -> i32 {
-    let first = byte_at(src, pos)
+    let first = src.byte_at(pos)
     if first <= 127 {
         return 1
     }
@@ -15,7 +14,7 @@ fn lexer_char_width(src: String, pos: i32, end: i32) -> i32 {
         if pos + 1 >= end {
             return 0
         }
-        if lexer_char_continuation(byte_at(src, pos + 1)) {
+        if lexer_char_continuation(src.byte_at(pos + 1)) {
             return 2
         }
         return 0
@@ -24,8 +23,8 @@ fn lexer_char_width(src: String, pos: i32, end: i32) -> i32 {
         if pos + 2 >= end {
             return 0
         }
-        let second = byte_at(src, pos + 1)
-        let third = byte_at(src, pos + 2)
+        let second = src.byte_at(pos + 1)
+        let third = src.byte_at(pos + 2)
         if !lexer_char_continuation(second) || !lexer_char_continuation(third) {
             return 0
         }
@@ -41,9 +40,9 @@ fn lexer_char_width(src: String, pos: i32, end: i32) -> i32 {
         if pos + 3 >= end {
             return 0
         }
-        let second = byte_at(src, pos + 1)
-        let third = byte_at(src, pos + 2)
-        let fourth = byte_at(src, pos + 3)
+        let second = src.byte_at(pos + 1)
+        let third = src.byte_at(pos + 2)
+        let fourth = src.byte_at(pos + 3)
         if !lexer_char_continuation(second) ||
         !lexer_char_continuation(third) ||
         !lexer_char_continuation(fourth) {
@@ -61,19 +60,19 @@ fn lexer_char_width(src: String, pos: i32, end: i32) -> i32 {
 }
 
 fn lexer_char_codepoint(src: String, pos: i32, width: i32) -> i32 {
-    let first = byte_at(src, pos)
+    let first = src.byte_at(pos)
     if width == 1 {
         return first
     }
-    let second = byte_at(src, pos + 1)
+    let second = src.byte_at(pos + 1)
     if width == 2 {
         return (first - 192) * 64 + second - 128
     }
-    let third = byte_at(src, pos + 2)
+    let third = src.byte_at(pos + 2)
     if width == 3 {
         return (first - 224) * 4096 + (second - 128) * 64 + third - 128
     }
-    let fourth = byte_at(src, pos + 3)
+    let fourth = src.byte_at(pos + 3)
     return (first - 240) * 262144 + (second - 128) * 4096 +
     (third - 128) * 64 + fourth - 128
 }
@@ -81,13 +80,13 @@ fn lexer_char_codepoint(src: String, pos: i32, width: i32) -> i32 {
 fn lex_char_literal(mut lex: Lexer) -> Token {
     let char_start = lex.pos
     lex.pos = lex.pos + 1
-    if lex.pos < lex.src_len && byte_at(lex.src, lex.pos) == 92 {
+    if lex.pos < lex.src_len && lex.src.byte_at(lex.pos) == 92 {
         lex.pos = lex.pos + 1
         if lex.pos < lex.src_len {
-            let esc = byte_at(lex.src, lex.pos)
+            let esc = lex.src.byte_at(lex.pos)
             lex.pos = lex.pos + 1
             let cv = char_escape::escaped_char_value(esc)
-            if lex.pos < lex.src_len && byte_at(lex.src, lex.pos) == 39 {
+            if lex.pos < lex.src_len && lex.src.byte_at(lex.pos) == 39 {
                 lex.pos = lex.pos + 1
                 return char_token::Token_char_value(lex, char_start, cv)
             }
@@ -99,7 +98,7 @@ fn lex_char_literal(mut lex: Lexer) -> Token {
         if width > 0 {
             let cv = lexer_char_codepoint(lex.src, lex.pos, width)
             lex.pos = lex.pos + width
-            if lex.pos < lex.src_len && byte_at(lex.src, lex.pos) == 39 {
+            if lex.pos < lex.src_len && lex.src.byte_at(lex.pos) == 39 {
                 lex.pos = lex.pos + 1
                 return char_token::Token_char_value(lex, char_start, cv)
             }

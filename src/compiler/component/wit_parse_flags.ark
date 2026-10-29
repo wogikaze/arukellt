@@ -1,12 +1,11 @@
 // WIT flags type parsing helpers (#651).
 
 use std::text
-use std::prelude::{byte_at, index_of, starts_with, substring}
 fn wit_trim_ws(text: String) -> String {
     let n = len(text)
     let mut start = 0
     while start < n {
-        let ch = byte_at(text, start)
+        let ch = text.byte_at(start)
         if ch != 32 && ch != 9 && ch != 10 && ch != 13 {
             break
         }
@@ -14,33 +13,33 @@ fn wit_trim_ws(text: String) -> String {
     }
     let mut end = n
     while end > start {
-        let ch = byte_at(text, end - 1)
+        let ch = text.byte_at(end - 1)
         if ch != 32 && ch != 9 && ch != 10 && ch != 13 {
             break
         }
         end = end - 1
     }
-    substring(text, start, end)
+    text.slice(start, end)
 }
 
 fn wit_is_flags_type(text: String) -> bool {
-    starts_with(wit_trim_ws(text), "flags")
+    wit_trim_ws(text).starts_with("flags")
 }
 
 fn wit_flags_member_names(text: String) -> Vec<String> {
     let mut names = Vec::new<String>()
-    let open = index_of(text, "{")
-    let close = index_of(text, "}")
+    let open = text.index_of("{")
+    let close = text.index_of("}")
     if open < 0 || close <= open {
         return names
     }
-    let body = wit_trim_ws(substring(text, open + 1, close))
+    let body = wit_trim_ws(text.slice(open + 1, close))
     if len(body) == 0 {
         return names
     }
     let mut part = String_new()
     for i in 0..len(body) {
-        let ch = byte_at(body, i)
+        let ch = body.byte_at(i)
         if ch == 44 {
             let trimmed = wit_trim_ws(part)
             if len(trimmed) > 0 {
@@ -48,7 +47,7 @@ fn wit_flags_member_names(text: String) -> Vec<String> {
             }
             part = String_new()
         } else {
-            part = part.concat(substring(body, i, i + 1))
+            part = part.concat(body.slice(i, i + 1))
         }
     }
     let trimmed = wit_trim_ws(part)

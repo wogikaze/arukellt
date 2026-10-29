@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq, substring, to_string}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::body_table
 use corehir::expr_raw
@@ -11,7 +11,7 @@ fn vc_string_has_question(s: String) -> bool {
     let n = len(s)
     let mut i = 0
     while i < n {
-        if byte_at(s, i) == 63 { return true }
+        if s.byte_at(i) == 63 { return true }
         i = i + 1
     }
     false
@@ -176,7 +176,7 @@ fn vc_json_escape(s: String) -> String {
     let mut out = ""
     let mut i = 0
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if c == 34 {
             out = out.concat("\\\"")
         } else if c == 92 {
@@ -188,7 +188,7 @@ fn vc_json_escape(s: String) -> String {
         } else if c == 9 {
             out = out.concat("\\t")
         } else {
-            out = out.concat(substring(clone(s), i, i + 1))
+            out = out.concat(clone(s).slice(i, i + 1))
         }
         i = i + 1
     }
@@ -202,15 +202,15 @@ fn vc_quote(s: String) -> String {
 fn vc_render_type(type_id: i32, pointer_width: i32) -> String {
     let name = vc_type_name_for_id(type_id)
     let value_type = vc_value_type_for_id(type_id)
-    let mut out = "{\"id\":".concat(to_string(type_id))
+    let mut out = "{\"id\":".concat(type_id.to_string())
     out = out.concat(",\"kind\":".concat(vc_quote(vc_type_kind(value_type, clone(name)))))
     out = out.concat(",\"name\":".concat(vc_quote(name)))
     out = out.concat(",\"value_type\":".concat(vc_quote(vc_value_type_name(value_type))))
     out = out.concat(",\"representation\":{\"kind\":".concat(vc_quote(vc_representation_kind(value_type))))
     out = out.concat(",\"wasm\":".concat(vc_wasm_json(value_type)))
     out = out.concat(",\"nullable\":".concat(vc_bool_json(vc_nullable(value_type))))
-    out = out.concat(",\"size_bytes\":".concat(to_string(vc_size_bytes(value_type, pointer_width))))
-    out = out.concat(",\"align_bytes\":".concat(to_string(vc_align_bytes(value_type, pointer_width)).concat("}}")))
+    out = out.concat(",\"size_bytes\":".concat(vc_size_bytes(value_type, pointer_width).to_string()))
+    out = out.concat(",\"align_bytes\":".concat(vc_align_bytes(value_type, pointer_width).to_string().concat("}}")))
     out
 }
 
@@ -310,19 +310,19 @@ fn vc_render_expression(program: CoreHirRawProgram, expr_id: i32) -> String {
     let text = vc_expression_text(kind, expr_raw::corehir_expr_text(expr), int_value)
 
     let mut out = "{\"id\":"
-    out = out.concat(to_string(expr_id))
+    out = out.concat(expr_id.to_string())
     out = out.concat(",\"kind\":")
     out = out.concat(vc_quote(vc_expr_kind_name(kind)))
     out = out.concat(",\"kind_id\":")
-    out = out.concat(to_string(kind))
+    out = out.concat(kind.to_string())
     out = out.concat(",\"type_id\":")
-    out = out.concat(to_string(type_id))
+    out = out.concat(type_id.to_string())
     out = out.concat(",\"value_type\":")
     out = out.concat(vc_quote(vc_value_type_name(value_type)))
     out = out.concat(",\"text\":")
     out = out.concat(vc_quote(text))
     out = out.concat(",\"int_value\":")
-    out = out.concat(to_string(int_value))
+    out = out.concat(int_value.to_string())
 
     let mut float_json = "0.0"
     if kind == 7 {
@@ -334,7 +334,7 @@ fn vc_render_expression(program: CoreHirRawProgram, expr_id: i32) -> String {
     let span_start = expr_raw::corehir_expr_span_start(expr)
     let normalized_span_start = if span_start < 0 { 0 } else { span_start }
     out = out.concat(",\"span_start\":")
-    out = out.concat(to_string(normalized_span_start))
+    out = out.concat(normalized_span_start.to_string())
     out = out.concat(",\"children\":[")
     let child_count = expr_raw::corehir_expr_child_count(expr)
     let mut child_index = 0
@@ -342,7 +342,7 @@ fn vc_render_expression(program: CoreHirRawProgram, expr_id: i32) -> String {
         if child_index > 0 {
             out = out.concat(",")
         }
-        out = out.concat(to_string(expr_raw::corehir_expr_child(expr, child_index)))
+        out = out.concat(expr_raw::corehir_expr_child(expr, child_index).to_string())
         child_index = child_index + 1
     }
     out = out.concat("]}")
@@ -350,7 +350,7 @@ fn vc_render_expression(program: CoreHirRawProgram, expr_id: i32) -> String {
 }
 
 fn vc_render_abi_item(type_id: i32, value_type: i32) -> String {
-    let mut out = "{\"type_id\":".concat(to_string(type_id))
+    let mut out = "{\"type_id\":".concat(type_id.to_string())
     out = out.concat(",\"passing\":".concat(vc_quote(vc_passing(value_type))))
     out = out.concat(",\"wasm\":".concat(vc_wasm_json(value_type).concat("}")))
     out

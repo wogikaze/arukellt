@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::prelude::{filter_i32, to_string}
+use std::prelude::{filter_i32}
 use std::core::iter
 fn double(x: i32) -> i32 {
     x * 2
@@ -20,7 +20,7 @@ fn main() {
     let mut i = 0
     let n = len(filtered)
     while i < n {
-        stdio::println(to_string(get_unchecked(filtered, i)))
+        stdio::println(get_unchecked(filtered, i).to_string())
         i = i + 1
     }
 }

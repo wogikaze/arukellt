@@ -1,7 +1,7 @@
 use std::text
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{byte_at, clone, contains, ends_with, eq, index_of, starts_with, substring}
+use std::prelude::{clone, eq}
 use corehir::kinds
 use corehir::type_id
 use corehir::type_table
@@ -168,7 +168,7 @@ fn ctx_ensure_gc_struct_registered(mut ctx: LowerCtx, struct_name: String) -> i3
     if ctx_struct_storage::ctx_struct_layout_struct_index(ctx, clone(struct_name)) < 0 {
         return 0 - 1
     }
-    if contains(clone(struct_name), String_from("::")) {
+    if clone(struct_name).contains(String_from("::")) {
         return 0 - 1
     }
     // Zero-field handles take this path too: a zero-sized struct still needs
@@ -257,7 +257,7 @@ fn gc_struct_scalar_field_suffix(type_name: String) -> String {
     if eq(clone(type_name), String_from("fnrefsb")) {
         return String_from("_fnrefsb")
     }
-    if eq(clone(type_name), "fnref") || eq(clone(type_name), "fnref2") || eq(clone(type_name), "fn") || starts_with(clone(type_name), String_from("fn(")) {
+    if eq(clone(type_name), "fnref") || eq(clone(type_name), "fnref2") || eq(clone(type_name), "fn") || clone(type_name).starts_with(String_from("fn(")) {
         return String_from("_fnref")
     }
     // Unsubstituted type parameters (T, U, ?T) stay i32 until mono fills them.
@@ -281,11 +281,11 @@ fn gc_struct_field_name_is_declared(ctx: LowerCtx, type_name: String) -> bool {
 // element segment (hashmap:, Vec_, and nested spellings stay with the
 // suffix fn, which maps them before the type-param check).
 fn gc_struct_vec_elem_spelling(type_name: String) -> String {
-    if starts_with(clone(type_name), String_from("vec:")) {
-        return substring(clone(type_name), 4, len(type_name))
+    if clone(type_name).starts_with(String_from("vec:")) {
+        return clone(type_name).slice(4, len(type_name))
     }
-    if starts_with(clone(type_name), String_from("Vec<")) && ends_with(clone(type_name), String_from(">")) {
-        return substring(clone(type_name), 4, len(type_name) - 1)
+    if clone(type_name).starts_with(String_from("Vec<")) && clone(type_name).ends_with(String_from(">")) {
+        return clone(type_name).slice(4, len(type_name) - 1)
     }
     String_new()
 }
@@ -322,7 +322,7 @@ fn gc_struct_field_sig_for_type(mut ctx: LowerCtx, type_name: String, field_idx:
     // option:SkipIter<VecIter<String>>::Item) resolve through the owner's
     // Iterator::next signature before the enum/container fallthroughs
     // (#860/#691).
-    if contains(clone(type_name), String_from("::")) {
+    if clone(type_name).contains(String_from("::")) {
         let resolved = ctx_mono_type_params::ctx_resolve_field_type_projections(ctx, clone(type_name))
         if !eq(clone(resolved), clone(type_name)) {
             return gc_struct_field_sig_for_type(ctx, resolved, field_idx)
@@ -361,14 +361,14 @@ fn gc_struct_field_sig_for_type(mut ctx: LowerCtx, type_name: String, field_idx:
 // non-callback fields. Only unary callbacks resolve today; anything else
 // falls back to the legacy `fnref` slot.
 fn gc_struct_fnsig_suffix(mut ctx: LowerCtx, type_name: String) -> String {
-    let rest = substring(clone(type_name), 6, len(type_name))
-    let sep = index_of(clone(rest), String_from(";"))
+    let rest = clone(type_name).slice(6, len(type_name))
+    let sep = clone(rest).index_of(String_from(";"))
     if sep < 0 {
         return String_from("_fnref")
     }
-    let param_seg = substring(clone(rest), 0, sep)
-    let ret_seg = substring(clone(rest), sep + 1, len(rest))
-    if contains(clone(ret_seg), String_from(";")) {
+    let param_seg = clone(rest).slice(0, sep)
+    let ret_seg = clone(rest).slice(sep + 1, len(rest))
+    if clone(ret_seg).contains(String_from(";")) {
         return String_from("_fnref")
     }
     let param_tok = gc_struct_fnsig_segment_token(ctx, param_seg)
@@ -383,18 +383,18 @@ fn gc_struct_fnsig_suffix(mut ctx: LowerCtx, type_name: String) -> String {
 // ordinary field-suffix machinery and converting the ref-offset dialect
 // (refN) to the func-sig dialect (gcrefN).
 fn gc_struct_fnsig_segment_token(mut ctx: LowerCtx, seg: String) -> String {
-    if len(seg) == 0 || starts_with(clone(seg), String_from("fnsig:")) {
+    if len(seg) == 0 || clone(seg).starts_with(String_from("fnsig:")) {
         return String_new()
     }
     let suffixed = gc_struct_field_sig_for_type(ctx, clone(seg), 0)
     if len(suffixed) <= 4 {
         return String_new()
     }
-    let suffix = substring(clone(suffixed), 4, len(suffixed))
-    if starts_with(clone(suffix), String_from("gcsref")) {
+    let suffix = clone(suffixed).slice(4, len(suffixed))
+    if clone(suffix).starts_with(String_from("gcsref")) {
         return suffix
     }
-    if starts_with(clone(suffix), String_from("ref")) {
+    if clone(suffix).starts_with(String_from("ref")) {
         return String_from("gc").concat(suffix)
     }
     suffix
@@ -403,10 +403,10 @@ fn gc_struct_field_type_is_container(type_name: String) -> bool {
     if eq(clone(type_name), String_from("Vec")) || eq(clone(type_name), String_from("HashMap")) || eq(clone(type_name), String_from("HashSet")) {
         return true
     }
-    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("hashset:")) {
+    if clone(type_name).starts_with(String_from("vec:")) || clone(type_name).starts_with(String_from("hashmap:")) || clone(type_name).starts_with(String_from("hashset:")) {
         return true
     }
-    if starts_with(clone(type_name), String_from("Vec<")) || starts_with(clone(type_name), String_from("HashMap<")) || starts_with(clone(type_name), String_from("HashSet<")) {
+    if clone(type_name).starts_with(String_from("Vec<")) || clone(type_name).starts_with(String_from("HashMap<")) || clone(type_name).starts_with(String_from("HashSet<")) {
         return true
     }
     false
@@ -423,9 +423,9 @@ fn gc_struct_field_type_is_fn_value(type_name: String) -> bool {
     eq(clone(type_name), String_from("fn")) {
         return true
     }
-    starts_with(clone(type_name), String_from("fnref")) ||
-    starts_with(clone(type_name), String_from("fnsig:")) ||
-    starts_with(clone(type_name), String_from("fn("))
+    clone(type_name).starts_with(String_from("fnref")) ||
+    clone(type_name).starts_with(String_from("fnsig:")) ||
+    clone(type_name).starts_with(String_from("fn("))
 }
 // Map container type names to the fixed GC type-section offsets used by
 // sections_types_gc (vec i32=10, vec string≈15/string-array vec, etc.).
@@ -451,42 +451,42 @@ fn gc_struct_container_ref_suffix(type_name: String) -> String {
     // Vec<fn> / fnpair array header (gcref28). Must win over structref (#832/#872).
     if eq(clone(type_name), String_from("vec:fnref")) ||
     eq(clone(type_name), String_from("vec:fn")) ||
-    starts_with(clone(type_name), String_from("vec:fn(")) {
+    clone(type_name).starts_with(String_from("vec:fn(")) {
         return String_from("_ref28")
     }
     // Vec<Option/Result/enum> open-enum array header (gcref30).
-    if starts_with(clone(type_name), String_from("vec:Option_")) ||
-    starts_with(clone(type_name), String_from("vec:Result_")) ||
-    starts_with(clone(type_name), String_from("vec:option:")) ||
-    starts_with(clone(type_name), String_from("vec:result:")) ||
-    starts_with(clone(type_name), String_from("vec:enum:")) {
+    if clone(type_name).starts_with(String_from("vec:Option_")) ||
+    clone(type_name).starts_with(String_from("vec:Result_")) ||
+    clone(type_name).starts_with(String_from("vec:option:")) ||
+    clone(type_name).starts_with(String_from("vec:result:")) ||
+    clone(type_name).starts_with(String_from("vec:enum:")) {
         return String_from("_ref30")
     }
-    if starts_with(clone(type_name), String_from("hashmap:i32fn")) {
+    if clone(type_name).starts_with(String_from("hashmap:i32fn")) {
         return String_from("_ref31")
     }
-    if starts_with(clone(type_name), String_from("hashmap:strfn")) {
+    if clone(type_name).starts_with(String_from("hashmap:strfn")) {
         return String_from("_ref32")
     }
-    if starts_with(clone(type_name), String_from("hashmap:i32str")) {
+    if clone(type_name).starts_with(String_from("hashmap:i32str")) {
         return String_from("_ref17")
     }
-    if starts_with(clone(type_name), String_from("hashmap:strstr")) {
+    if clone(type_name).starts_with(String_from("hashmap:strstr")) {
         return String_from("_ref18")
     }
-    if starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("HashMap")) {
+    if clone(type_name).starts_with(String_from("hashmap:")) || clone(type_name).starts_with(String_from("HashMap")) {
         return String_from("_ref16")
     }
-    if starts_with(clone(type_name), String_from("hashset:")) || starts_with(clone(type_name), String_from("HashSet")) {
+    if clone(type_name).starts_with(String_from("hashset:")) || clone(type_name).starts_with(String_from("HashSet")) {
         return String_from("_ref16")
     }
     // Nested / struct-element Vec → structref-array vec (gcref25).
-    if eq(clone(type_name), String_from("vec:Vec_String")) || starts_with(clone(type_name), String_from("vec:Vec")) || starts_with(clone(type_name), String_from("vec:vec:")) {
+    if eq(clone(type_name), String_from("vec:Vec_String")) || clone(type_name).starts_with(String_from("vec:Vec")) || clone(type_name).starts_with(String_from("vec:vec:")) {
         return String_from("_ref25")
     }
     // Angle-bracket Vec<T> for non-scalar T (TomlField, TomlValue, …) (#726).
-    if starts_with(clone(type_name), String_from("Vec<")) && ends_with(clone(type_name), String_from(">")) {
-        let elem = substring(clone(type_name), 4, len(type_name) - 1)
+    if clone(type_name).starts_with(String_from("Vec<")) && clone(type_name).ends_with(String_from(">")) {
+        let elem = clone(type_name).slice(4, len(type_name) - 1)
         if eq(clone(elem), String_from("String")) || eq(clone(elem), String_from("string")) {
             return String_from("_ref19")
         }
@@ -501,14 +501,14 @@ fn gc_struct_container_ref_suffix(type_name: String) -> String {
         }
         if eq(clone(elem), String_from("fnref")) ||
         eq(clone(elem), String_from("fn")) ||
-        starts_with(clone(elem), String_from("fn(")) {
+        clone(elem).starts_with(String_from("fn(")) {
             return String_from("_ref28")
         }
-        if starts_with(clone(elem), String_from("Option")) ||
-        starts_with(clone(elem), String_from("Result")) ||
-        starts_with(clone(elem), String_from("option:")) ||
-        starts_with(clone(elem), String_from("result:")) ||
-        starts_with(clone(elem), String_from("enum:")) {
+        if clone(elem).starts_with(String_from("Option")) ||
+        clone(elem).starts_with(String_from("Result")) ||
+        clone(elem).starts_with(String_from("option:")) ||
+        clone(elem).starts_with(String_from("result:")) ||
+        clone(elem).starts_with(String_from("enum:")) {
             return String_from("_ref30")
         }
         // Unsubstituted type params keep the dead-shell i32-vec layout;
@@ -518,18 +518,18 @@ fn gc_struct_container_ref_suffix(type_name: String) -> String {
         }
         return String_from("_ref25")
     }
-    if starts_with(clone(type_name), String_from("vec:")) {
-        let elem = substring(clone(type_name), 4, len(type_name))
+    if clone(type_name).starts_with(String_from("vec:")) {
+        let elem = clone(type_name).slice(4, len(type_name))
         if eq(clone(elem), String_from("fnref")) ||
         eq(clone(elem), String_from("fn")) ||
-        starts_with(clone(elem), String_from("fn(")) {
+        clone(elem).starts_with(String_from("fn(")) {
             return String_from("_ref28")
         }
-        if starts_with(clone(elem), String_from("Option")) ||
-        starts_with(clone(elem), String_from("Result")) ||
-        starts_with(clone(elem), String_from("option:")) ||
-        starts_with(clone(elem), String_from("result:")) ||
-        starts_with(clone(elem), String_from("enum:")) {
+        if clone(elem).starts_with(String_from("Option")) ||
+        clone(elem).starts_with(String_from("Result")) ||
+        clone(elem).starts_with(String_from("option:")) ||
+        clone(elem).starts_with(String_from("result:")) ||
+        clone(elem).starts_with(String_from("enum:")) {
             return String_from("_ref30")
         }
         if sections_types_gc_phase7::gc_vec_elem_name_is_type_param(clone(elem)) {
@@ -548,12 +548,12 @@ fn gc_struct_field_type_is_type_param(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if starts_with(clone(type_name), String_from("?")) {
-        return gc_struct_field_type_is_type_param(substring(type_name, 1, len(type_name)))
+    if clone(type_name).starts_with(String_from("?")) {
+        return gc_struct_field_type_is_type_param(type_name.slice(1, len(type_name)))
     }
     // Single uppercase letter (T, U, V, ...) — unsubstituted generic field.
     if len(type_name) == 1 {
-        let ch = byte_at(type_name, 0)
+        let ch = type_name.byte_at(0)
         if ch >= 65 && ch <= 90 {
             return true
         }

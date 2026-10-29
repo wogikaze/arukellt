@@ -12,7 +12,6 @@
 
 use std::collections::compiler
 use std::core::error
-use std::prelude::{byte_at}
 use std::text
 const CANONICAL_SCRATCH_BASE: i32 = 256
 const CANONICAL_SCRATCH_LIMIT: i32 = 65280
@@ -78,7 +77,7 @@ impl Component {
             Result::Ok(start) => {
                 let mut i = 0
                 while i < n {
-                    scratch_write_byte(scratch, start + i, byte_at(s, i))
+                    scratch_write_byte(scratch, start + i, s.byte_at(i))
                     i = i + 1
                 }
                 Ok(CanonicalSlice { ptr: start, len: n })

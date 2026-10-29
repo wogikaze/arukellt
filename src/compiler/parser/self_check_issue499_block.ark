@@ -1,4 +1,4 @@
-use std::prelude::{eq, to_string}
+use std::prelude::{eq}
 use std::text
 use parser::ast_kind_fields
 use parser::core_ast_text_fields
@@ -12,10 +12,10 @@ fn issue499_parser_block_body_lexer_integration_self_check() -> String {
     let decls = self_check_issue499_parse::issue499_parse_decls(parse)
     let error_count = self_check_issue499_parse::issue499_parse_error_count(parse)
     if error_count != 0 {
-        return "issue499 block body fail: parse errors=".concat(to_string(error_count))
+        return "issue499 block body fail: parse errors=".concat(error_count.to_string())
     }
     if len(decls) != 1 {
-        return "issue499 block body fail: decl count=".concat(to_string(len(decls)))
+        return "issue499 block body fail: decl count=".concat(len(decls).to_string())
     }
     let fn_decl = get_unchecked(decls, 0)
     if ast_kind_fields::AstNode_kind(fn_decl) != kinds::NK_FN_DECL() {

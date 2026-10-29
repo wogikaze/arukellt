@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::mir_value_type
 use corehir::kinds
@@ -54,9 +54,9 @@ fn vt_tag_from_mir_vt(vt: i32) -> i32 {
 
 fn mir_value_type_from_type_name(mut table: TypeTable, type_name: String, val_type: i32) -> MirValueType {
     if eq(clone(type_name), String_from("fn")) ||
-    starts_with(clone(type_name), String_from("fnref")) ||
-    starts_with(clone(type_name), String_from("fnsig:")) ||
-    starts_with(clone(type_name), String_from("fn(")) {
+    clone(type_name).starts_with(String_from("fnref")) ||
+    clone(type_name).starts_with(String_from("fnsig:")) ||
+    clone(type_name).starts_with(String_from("fn(")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), clone(type_name), Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NULLABLE())
     }
@@ -64,31 +64,31 @@ fn mir_value_type_from_type_name(mut table: TypeTable, type_name: String, val_ty
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRING(), String_from("String"), Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_LINEAR_PTR(), kinds::NULLABILITY_NULLABLE())
     }
-    if starts_with(clone(type_name), String_from("struct:")) {
+    if clone(type_name).starts_with(String_from("struct:")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRUCT(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
-    if starts_with(clone(type_name), String_from("enum:")) {
+    if clone(type_name).starts_with(String_from("enum:")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_ENUM(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
-    if starts_with(clone(type_name), String_from("vec:")) {
+    if clone(type_name).starts_with(String_from("vec:")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_VEC(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
-    if starts_with(clone(type_name), String_from("hashmap:")) {
+    if clone(type_name).starts_with(String_from("hashmap:")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_HASHMAP(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
-    if starts_with(clone(type_name), String_from("hashset:")) {
+    if clone(type_name).starts_with(String_from("hashset:")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_HASHSET(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
-    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) {
+    if clone(type_name).starts_with(String_from("option:")) || clone(type_name).starts_with(String_from("Option_")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_OPTION(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
-    if starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result_")) {
+    if clone(type_name).starts_with(String_from("result:")) || clone(type_name).starts_with(String_from("Result_")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
@@ -128,7 +128,7 @@ fn type_name_is_scalar_primitive(type_name: String) -> bool {
     // Function refs stay scalar/i32 (or funcref) — not GC structs.
     if eq(clone(type_name), String_from("fnref")) ||
     eq(clone(type_name), String_from("fn")) ||
-    starts_with(clone(type_name), String_from("fnsig:")) {
+    clone(type_name).starts_with(String_from("fnsig:")) {
         return true
     }
     false
@@ -187,16 +187,16 @@ fn concrete_type_outranks_mvt_alias(local_type: String, alias: String) -> bool {
     if !mvt_gc_layout_alias_is_bare_container(clone(alias)) {
         return false
     }
-    starts_with(clone(local_type), String_from("option:")) ||
-    starts_with(clone(local_type), String_from("Option_")) ||
-    starts_with(clone(local_type), String_from("Option:")) ||
-    starts_with(clone(local_type), String_from("result:")) ||
-    starts_with(clone(local_type), String_from("Result_")) ||
-    starts_with(clone(local_type), String_from("Result:")) ||
-    starts_with(clone(local_type), String_from("vec:")) ||
-    starts_with(clone(local_type), String_from("hashmap:")) ||
+    clone(local_type).starts_with(String_from("option:")) ||
+    clone(local_type).starts_with(String_from("Option_")) ||
+    clone(local_type).starts_with(String_from("Option:")) ||
+    clone(local_type).starts_with(String_from("result:")) ||
+    clone(local_type).starts_with(String_from("Result_")) ||
+    clone(local_type).starts_with(String_from("Result:")) ||
+    clone(local_type).starts_with(String_from("vec:")) ||
+    clone(local_type).starts_with(String_from("hashmap:")) ||
     eq(clone(local_type), String_from("fnref")) ||
-    starts_with(clone(local_type), String_from("fnsig:"))
+    clone(local_type).starts_with(String_from("fnsig:"))
 }
 
 // Convert a concrete MirValueType back to the GC-layout alias string used by
@@ -292,7 +292,7 @@ fn string_contains_char(s: String, c: i32) -> bool {
     let n = len(s)
     let mut i = 0
     while i < n {
-        if byte_at(s, i) == c {
+        if s.byte_at(i) == c {
             return true
         }
         i = i + 1

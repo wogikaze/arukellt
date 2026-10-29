@@ -6,7 +6,7 @@ use corehir::param
 // CoreOp / legacy lowering for now. Their Ark bodies become live fallbacks in
 // #821/#822 after the #820 inliner exists. Pure Ark helpers (e.g. contains_i32)
 // are not listed here and are lowered normally.
-use std::prelude::{clone, ends_with, eq, starts_with}
+use std::prelude::{clone, eq}
 fn mir_should_defer_stdlib_body(decl_name: String) -> bool {
     let coid = core_op_binding::core_op_binding_lookup_for_callee(clone(decl_name))
     if core_op_id::core_op_id_is_some(coid) {
@@ -26,13 +26,13 @@ fn mir_should_defer_stdlib_body_for_qualified(decl_name: String, qualified_name:
 // Their Ark bodies now delegate to std::core::iter, so the legacy HOF shim must
 // not discard those bodies before canonical iterator lowering can run.
 fn mir_is_seq_iterator_compatibility_entry(qualified_name: String) -> bool {
-    if ends_with(clone(qualified_name), String_from("seq::map_i32_i32")) {
+    if clone(qualified_name).ends_with(String_from("seq::map_i32_i32")) {
         return true
     }
-    if ends_with(clone(qualified_name), String_from("seq::filter_i32")) {
+    if clone(qualified_name).ends_with(String_from("seq::filter_i32")) {
         return true
     }
-    ends_with(clone(qualified_name), String_from("seq::fold_i32_i32"))
+    clone(qualified_name).ends_with(String_from("seq::fold_i32_i32"))
 }
 
 /// Like `mir_should_defer_stdlib_body`, but discriminates overloaded names
@@ -58,8 +58,8 @@ fn mir_is_vec_join_overload(decl_name: String, param0: CoreHirParam) -> bool {
     }
     let p0 = param::param_type_name(param0)
     eq(clone(p0), String_from("Vec")) ||
-    starts_with(clone(p0), String_from("Vec<")) ||
-    starts_with(clone(p0), String_from("vec"))
+    clone(p0).starts_with(String_from("Vec<")) ||
+    clone(p0).starts_with(String_from("vec"))
 }
 
 fn mir_is_unbound_prelude_intrinsic_shim(decl_name: String) -> bool {

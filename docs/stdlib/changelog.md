@@ -16,6 +16,45 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-29 — text free 10 件のうち 8 件を退役 (#917, wave/prelude-text2)
+
+- **Basis**: [ADR-091](../adr/ADR-091-prelude-free-function-exception.md) §4 が
+  保留した text 10 件のうち、receiver method の戻り型と lowering が bootstrap pin で
+  安定した 8 件を、同じ 0.x 例外（E0100 + method hint）で退役した。ADR-091 に
+  追記した。
+- **Retired (8)**: `byte_at` / `slice` / `substring` / `to_string` /
+  `starts_with` / `ends_with` / `contains` / `index_of` の manifest entry と
+  `std/prelude.ark` 宣言を削除した。`std::collections::string` に残っていた
+  同名の module-scoped `pub fn`（`slice` / `starts_with` / `ends_with` /
+  `contains` / `index_of` / `byte_at`）も削除し、二重の free 綴りを残さない。
+- **Replacement**: `s.byte_at(i)`、`s.slice(start, end)`（`substring` も同じ
+  `string.slice` CoreOp）、`x.to_string()`、`s.starts_with(prefix)` /
+  `s.ends_with(suffix)` / `s.contains(sub)` / `s.index_of(sub)`。
+- **Compiler migration**: compiler / std / fixture の 541 ファイル、
+  byte_at 1,025・substring 901・starts_with 1,598・to_string 513・
+  ends_with 269・contains 231・index_of 123・slice 76 の call site を
+  receiver method へ移した。bootstrap overlay は `std::collections::string` を
+  ship しないため、`.index_of(...)` の戻り値が Copy と推論されるよう
+  `p2_struct_name_from_type` に `let first: i32` の注釈を置いた。
+- **Diagnostics**: `resolver::removed_names` に 8 件の hint を追加し、
+  `diagnostics/removed_prelude_text_free*` の E0100 golden を追加した。
+- **Scorecard**: eradication scope 95 → **87**; manifest public entries
+  94 → **86**; `pub fn` declarations 103 → **89**; `prelude_wrapper` entries
+  35 → **28**; `prelude frees (default)` 16 → **8**; `associated-or-method`
+  29 → **21**; `must delete` 66、unregistered 1、intrinsic-only 1 は不変。
+- **Deferred (4)**: `clone`（typechecker の polymorphic copy 経路で、
+  `Clone` impl を持たない Vec / struct / enum の唯一の clone）、`eq`
+  （bootstrap overlay に `impl Eq for String` がなく、free `eq` を消すと
+  String `==` が `i32.eq` へ落ちて invalid core Wasm になる）、
+  `Box_new` / `unbox`（generic enum payload の associated/method lowering と
+  ownership checker の名前 boundary が未解決）。3 family は §4 の
+  `associated-or-method` に残す。
+- **Evidence**: `verify fixtures` **1918/1918** compile+validate PASS（110 runtime
+  smoke、38/38 `test:` PASS、2 runtime-unsupported、0 FAIL）、`verify lane` PASS、
+  `docs check` 6/6、ADR-029 fixpoint PASS（s2 == s3 at sha256
+  `4c2caf00ac0ad9a0f79cd4ff5a921b01d07248c41fd983d6dafaf750ae457f05`、pinned base
+  `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`）。
+
 ## 2026-10-29 — prelude 保留 23 件のうち 11 件を退役 (#917, wave/prelude-text)
 
 - **Basis**: [ADR-091](../adr/ADR-091-prelude-free-function-exception.md) §4 が

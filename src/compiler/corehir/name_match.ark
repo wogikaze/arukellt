@@ -6,7 +6,7 @@
 //! overlay profile, so the matchers below compare byte regions in place. They
 //! take shared `String` parameters and never call `clone`, `concat`, or
 //! `substring`.
-use std::prelude::{byte_at, len}
+use std::prelude::{len}
 
 /// Return true when `count` bytes of `a` at `a_start` equal `b` at `b_start`.
 pub fn name_region_equal(a: String, a_start: i32, b: String, b_start: i32, count: i32) -> bool {
@@ -18,7 +18,7 @@ pub fn name_region_equal(a: String, a_start: i32, b: String, b_start: i32, count
     }
     let mut i = 0
     while i < count {
-        if byte_at(a, a_start + i) != byte_at(b, b_start + i) {
+        if a.byte_at(a_start + i) != b.byte_at(b_start + i) {
             return false
         }
         i = i + 1
@@ -49,8 +49,8 @@ pub fn name_equals_pair(
         return false
     }
     name_region_equal(name, 0, first, 0, first_len) &&
-    byte_at(name, first_len) == sep0 &&
-    byte_at(name, first_len + 1) == sep1 &&
+    name.byte_at(first_len) == sep0 &&
+    name.byte_at(first_len + 1) == sep1 &&
     name_region_equal(name, first_len + 2, second, 0, second_len)
 }
 
@@ -62,8 +62,8 @@ pub fn name_ends_with_qualified(name: String, suffix: String) -> bool {
         return false
     }
     let start = name_len - suffix_len
-    byte_at(name, start - 2) == 58 &&
-    byte_at(name, start - 1) == 58 &&
+    name.byte_at(start - 2) == 58 &&
+    name.byte_at(start - 1) == 58 &&
     name_region_equal(name, start, suffix, 0, suffix_len)
 }
 
@@ -83,11 +83,11 @@ pub fn name_ends_with_qualified_pair(
         return false
     }
     let start = name_len - suffix_len
-    byte_at(name, start) == 58 &&
-    byte_at(name, start + 1) == 58 &&
+    name.byte_at(start) == 58 &&
+    name.byte_at(start + 1) == 58 &&
     name_region_equal(name, start + 2, first, 0, first_len) &&
-    byte_at(name, start + 2 + first_len) == sep0 &&
-    byte_at(name, start + 3 + first_len) == sep1 &&
+    name.byte_at(start + 2 + first_len) == sep0 &&
+    name.byte_at(start + 3 + first_len) == sep1 &&
     name_region_equal(name, start + 4 + first_len, second, 0, second_len)
 }
 

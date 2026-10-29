@@ -1,6 +1,5 @@
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{to_string}
 use std::text
 fn MIR_PHI() -> i32 {
     73
@@ -39,7 +38,7 @@ fn mir_value_type_name(vt: i32) -> String {
 
 fn mir_format_phi(phi: MirPhi) -> String {
     let mut out = String_from("phi %")
-    out = out.concat(to_string(phi.dest))
+    out = out.concat(phi.dest.to_string())
     out = out.concat(String_from(" = ["))
     let arg_count = len(phi.args)
     let mut i = 0
@@ -49,9 +48,9 @@ fn mir_format_phi(phi: MirPhi) -> String {
             out = out.concat(String_from(", "))
         }
         out = out.concat(String_from("bb"))
-        out = out.concat(to_string(arg.pred_block))
+        out = out.concat(arg.pred_block.to_string())
         out = out.concat(String_from(" -> %"))
-        out = out.concat(to_string(arg.local))
+        out = out.concat(arg.local.to_string())
         i = i + 1
     }
     out = out.concat(String_from("] : "))

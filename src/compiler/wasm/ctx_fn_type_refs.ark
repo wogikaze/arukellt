@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use mir::module_canon
 use mir::module_gc_struct
 use mir::types
@@ -18,22 +18,22 @@ use wasm::sections_types_sigs_detail
 // Mirror of the kind dispatch in emit_canon_type_entries: only sigs that
 // fall through to the functype branch carry FuncTypeRefs entries.
 fn canon_sig_is_fn_type(sig: String) -> bool {
-    if starts_with(clone(sig), String_from("SubF")) {
+    if clone(sig).starts_with(String_from("SubF")) {
         return false
     }
-    if starts_with(clone(sig), String_from("Sub0_")) {
+    if clone(sig).starts_with(String_from("Sub0_")) {
         return false
     }
-    if starts_with(clone(sig), String_from("Sub")) {
+    if clone(sig).starts_with(String_from("Sub")) {
         return false
     }
-    if starts_with(clone(sig), String_from("GS_f")) {
+    if clone(sig).starts_with(String_from("GS_f")) {
         return false
     }
     if eq(clone(sig), String_from("A_fnref")) {
         return false
     }
-    byte_at(sig, 0) != 65
+    sig.byte_at(0) != 65
 }
 
 // FuncTypeRefs_param_ref_type equivalent.
@@ -75,7 +75,7 @@ fn SelfEmitCtx_result_ref_type(ctx: SelfEmitCtx, type_idx: i32) -> i32 {
         return 0 - 1
     }
     sections_types_emit::sig_ref_null_type_index(
-        substring(result_seg, 1, len(result_seg)),
+        result_seg.slice(1, len(result_seg)),
         ctx_record::SelfEmitCtx_gc_type_base(ctx),
         module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
     )
@@ -132,7 +132,7 @@ fn SelfEmitCtx_fn_sig_result_ref_type(ctx: SelfEmitCtx, f: MirFunction) -> i32 {
         return 0 - 1
     }
     sections_types_emit::sig_ref_null_type_index(
-        substring(result_seg, 1, len(result_seg)),
+        result_seg.slice(1, len(result_seg)),
         sections_types::first_gc_type_index(
             module_canon::MirModule_canon_sigs(ctx.mir)
         ),

@@ -1,6 +1,5 @@
 use std::json
 use std::test::Test
-use std::prelude::{byte_at}
 use std::text
 fn main() {
     // U+00E9 LATIN SMALL LETTER E WITH ACUTE
@@ -8,8 +7,8 @@ fn main() {
         Result::Ok(v) => match v.as_string() {
             Option::Some(s) => {
                 Test::assert_eq_i32(len(s), 2)
-                Test::assert_eq_i32(byte_at(s, 0), 195)
-                Test::assert_eq_i32(byte_at(s, 1), 169)
+                Test::assert_eq_i32(s.byte_at(0), 195)
+                Test::assert_eq_i32(s.byte_at(1), 169)
             },
             None => Std::panic("expected string"),
         },

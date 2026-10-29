@@ -13,7 +13,6 @@ use wasm::intrinsics::helpers_numeric_i32_convert
 
 // GC parse_i32: scan the String (array i8) and build Result<i32, String>.
 // Must not return Option::None — tag 0 looks like Ok and traps on payload cast (#807).
-use std::prelude::{byte_at}
 fn emit_parse_i32_gc(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let _inst = inst
     let s_str = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
@@ -203,7 +202,7 @@ fn emit_parse_i32_gc_invalid_integer_string(mut w: WasmWriter, ctx: SelfEmitCtx,
         helpers_core::emit_local_get(w, s_err)
         helpers_numeric_i32::emit_i32_const(w, ei)
         helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
-        helpers_numeric_i32::emit_i32_const(w, byte_at(msg, ei))
+        helpers_numeric_i32::emit_i32_const(w, msg.byte_at(ei))
         writer_gc::emit_gc_array_set_i32(w, string_type)
         ei = ei + 1
     }

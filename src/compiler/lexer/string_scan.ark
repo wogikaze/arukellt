@@ -1,8 +1,7 @@
-use std::prelude::{byte_at}
 fn string_literal_has_escape(lex: Lexer) -> bool {
     let mut scan = lex.pos
     while scan < lex.src_len {
-        let sc = byte_at(lex.src, scan)
+        let sc = lex.src.byte_at(scan)
         if sc == 34 || sc == 10 {
             break
         }

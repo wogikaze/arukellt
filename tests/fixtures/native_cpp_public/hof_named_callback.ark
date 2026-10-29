@@ -1,5 +1,4 @@
 use std::host::stdio
-use std::prelude::{to_string}
 use std::text
 fn add_one(x: i32) -> i32 {
     x + 1
@@ -11,5 +10,5 @@ fn apply(f: fn(i32) -> i32, x: i32) -> i32 {
 
 fn main() {
     let result = apply(add_one, 41)
-    stdio::println(String_from("result=").concat(to_string(result)))
+    stdio::println(String_from("result=").concat(result.to_string()))
 }

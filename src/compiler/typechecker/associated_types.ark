@@ -1,5 +1,5 @@
 use std::text
-use std::prelude::{byte_at, clone, eq, index_of, substring}
+use std::prelude::{clone, eq}
 use typechecker::ast_access
 use typechecker::contract_associated_type
 use typechecker::contract_fn_sig
@@ -183,7 +183,7 @@ fn resolve_trait_method_type(
         let name = contract_type_access::TypeInfo_name(ty)
         let prefix = String_from("Self::")
         if clone(name).starts_with(clone(prefix)) {
-            let assoc_name = substring(name, len(prefix), len(name))
+            let assoc_name = name.slice(len(prefix), len(name))
             let mut resolved = lookup_associated_type(
                 env,
                 clone(trait_name),
@@ -251,7 +251,7 @@ fn resolve_projection(
         let name = contract_type_access::TypeInfo_name(ty)
         let prefix = String_from("Self::")
         if clone(name).starts_with(clone(prefix)) {
-            let assoc_name = substring(name, len(prefix), len(name))
+            let assoc_name = name.slice(len(prefix), len(name))
             let mut resolved = lookup_associated_type(env, clone(trait_name), receiver, assoc_name)
             if contract_type_access::TypeInfo_tag(resolved) != commands::TY_UNKNOWN() {
                 return resolved
@@ -307,10 +307,10 @@ fn resolve_generic_call_type(
 ) -> TypeInfo {
     if contract_type_access::TypeInfo_tag(ty) == commands::TY_STRUCT() {
         let name = contract_type_access::TypeInfo_name(ty)
-        let separator = index_of(clone(name), "::")
+        let separator = clone(name).index_of("::")
         if separator > 0 {
-            let type_param = substring(clone(name), 0, separator)
-            let assoc_name = substring(clone(name), separator + 2, len(name))
+            let type_param = clone(name).slice(0, separator)
+            let assoc_name = clone(name).slice(separator + 2, len(name))
             let var_index = generic_type_var_index(var_names, clone(type_param))
             if var_index >= 0 && var_index < len(var_types) {
                 let receiver = unify::resolve_type_deep(
@@ -506,8 +506,8 @@ fn normalize_projection_ty(
         let name = contract_type_access::TypeInfo_name(ty)
         let sep = projection_sep_index(clone(name))
         if sep >= 0 {
-            let owner_name = substring(clone(name), 0, sep)
-            let assoc_name = substring(clone(name), sep + 2, len(name))
+            let owner_name = clone(name).slice(0, sep)
+            let assoc_name = clone(name).slice(sep + 2, len(name))
             let receiver = projection_owner_ty(
                 env,
                 clone(var_names),
@@ -547,7 +547,7 @@ fn normalize_projection_ty(
 fn projection_sep_index(name: String) -> i32 {
     let mut i = len(name) - 2
     while i >= 0 {
-        if byte_at(clone(name), i) == 58 && byte_at(clone(name), i + 1) == 58 {
+        if clone(name).byte_at(i) == 58 && clone(name).byte_at(i + 1) == 58 {
             return i
         }
         i = i - 1
@@ -576,19 +576,19 @@ fn projection_owner_ty(
         b = b + 1
     }
     let n = len(owner_name)
-    if n > 2 && byte_at(clone(owner_name), n - 1) == 62 {
+    if n > 2 && clone(owner_name).byte_at(n - 1) == 62 {
         let mut lt = 0 - 1
         let mut i = 0
         while i < n {
-            if byte_at(clone(owner_name), i) == 60 {
+            if clone(owner_name).byte_at(i) == 60 {
                 lt = i
                 i = n
             }
             i = i + 1
         }
         if lt > 0 {
-            let ctor = substring(clone(owner_name), 0, lt)
-            let inner = substring(clone(owner_name), lt + 1, n - 1)
+            let ctor = clone(owner_name).slice(0, lt)
+            let inner = clone(owner_name).slice(lt + 1, n - 1)
             let mut args = Vec::new<TypeInfo>()
             let mut seg_start = 0
             let mut depth = 0
@@ -596,7 +596,7 @@ fn projection_owner_ty(
             let mut j = 0
             while j <= m {
                 let at_end = j == m
-                let ch = if at_end { 44 } else { byte_at(clone(inner), j) }
+                let ch = if at_end { 44 } else { clone(inner).byte_at(j) }
                 if ch == 60 {
                     depth = depth + 1
                 }
@@ -610,7 +610,7 @@ fn projection_owner_ty(
                             env,
                             clone(var_names),
                             clone(var_types),
-                            trim_type_ws(substring(clone(inner), seg_start, j))
+                            trim_type_ws(clone(inner).slice(seg_start, j))
                         )
                     )
                     seg_start = j + 1
@@ -626,8 +626,8 @@ fn projection_owner_ty(
 // Type-variable spellings differ between signature params (?I) and
 // projection names (I::Item). Compare on the bare identifier.
 fn projection_bare_name(name: String) -> String {
-    if len(name) > 0 && byte_at(clone(name), 0) == 63 {
-        return substring(name, 1, len(name))
+    if len(name) > 0 && clone(name).byte_at(0) == 63 {
+        return name.slice(1, len(name))
     }
     name
 }
@@ -635,13 +635,13 @@ fn projection_bare_name(name: String) -> String {
 fn trim_type_ws(seg: String) -> String {
     let mut start = 0
     let mut end = len(seg)
-    while start < end && byte_at(clone(seg), start) == 32 {
+    while start < end && clone(seg).byte_at(start) == 32 {
         start = start + 1
     }
-    while end > start && byte_at(clone(seg), end - 1) == 32 {
+    while end > start && clone(seg).byte_at(end - 1) == 32 {
         end = end - 1
     }
-    substring(seg, start, end)
+    seg.slice(start, end)
 }
 
 // lookup_associated_type without a trait qualifier: the projection name

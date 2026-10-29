@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
@@ -234,7 +234,7 @@ fn emit_tuple_elem_ident_bind(mut ctx: LowerCtx, name: String, scrut_idx: i32, e
     let elem_type = ctx_api_local_types::ctx_get_local_type(ctx, elem_local)
     if len(elem_type) > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, bind_local, clone(elem_type))
-        if starts_with(clone(elem_type), "enum:") {
+        if clone(elem_type).starts_with("enum:") {
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         }
     }

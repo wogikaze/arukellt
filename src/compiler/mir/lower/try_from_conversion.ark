@@ -28,7 +28,7 @@ use mir::function_return_view
 // ADR-039 D2 / RFC-004 §6: language-syntax desugaring resolves by canonical
 // SemanticTraitId::From on SignatureEntry (import-independent). The callee
 // mangled name is the lookup result, not a string invented at the use site.
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 fn try_resolve_from_conversion(ctx: LowerCtx, inner_idx: i32) -> String {
     let inner_type_name = ctx_api_local_types::ctx_get_local_type(ctx, inner_idx)
     let fn_return_type_name = function_return_view::MirFunction_return_type_name(ctx_current_storage::ctx_current_func_value(ctx))
@@ -110,7 +110,7 @@ fn try_identity_result_needs_rebuild(source_result_type: String, target_result_t
 }
 
 fn try_is_result_type(type_name: String) -> bool {
-    starts_with(clone(type_name), "Result_") || starts_with(clone(type_name), "result:")
+    clone(type_name).starts_with("Result_") || clone(type_name).starts_with("result:")
 }
 
 fn try_emit_err_identity_result_gc(mut ctx: LowerCtx, res_ptr: i32, inner_idx: i32) {

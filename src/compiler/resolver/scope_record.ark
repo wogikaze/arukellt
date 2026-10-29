@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone}
+use std::prelude::{clone}
 use resolver::symbol_record
 struct Scope {
     symbols: Vec<Symbol>,
@@ -104,7 +104,7 @@ fn scope_hash_probe_slot(scope: Scope, name: String) -> i32 {
     let name_len = len(name)
     let mut hi = 0
     while hi < name_len {
-        hash = hash * fnv_prime ^ byte_at(name, hi)
+        hash = hash * fnv_prime ^ name.byte_at(hi)
         if hash < 0 {
             hash = 0 - hash
         }
@@ -125,7 +125,7 @@ fn scope_hash_probe_slot(scope: Scope, name: String) -> i32 {
         if same {
             let mut i = 0
             while i < name_len {
-                if byte_at(key, i) != byte_at(name, i) {
+                if key.byte_at(i) != name.byte_at(i) {
                     same = false
                     i = name_len
                 } else {

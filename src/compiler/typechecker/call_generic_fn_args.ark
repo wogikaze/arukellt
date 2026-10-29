@@ -1,4 +1,4 @@
-use std::prelude::{clone, to_string}
+use std::prelude::{clone}
 use std::text
 use typechecker::ast_access
 use typechecker::ast_expr_predicates
@@ -31,7 +31,7 @@ fn constrain_generic_fn_args(
         unify::type_error_bad_arity(
             env,
             String_from("wrong number of arguments for `").concat(
-                clone(fname).concat(String_from("`: expected ").concat(to_string(param_count).concat(String_from(", found ").concat(to_string(arg_count)))))
+                clone(fname).concat(String_from("`: expected ").concat(param_count.to_string().concat(String_from(", found ").concat(arg_count.to_string()))))
             )
         )
     }

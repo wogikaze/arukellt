@@ -1,6 +1,6 @@
 use std::text
 use std::json
-use std::prelude::{clone, to_string}
+use std::prelude::{clone}
 use analysis
 use analysis::diagnostic_record
 use lsp::diag_position
@@ -27,20 +27,20 @@ fn build_diagnostic_object(text: String, diag: AnalysisDiagnostic) -> String {
     let s = diag_position::offset_to_diag_position(clone(text), diagnostic_record::analysis_diagnostic_start(diag))
     let e = diag_position::offset_to_diag_position(clone(text), diagnostic_record::analysis_diagnostic_end(diag))
     let mut out = String_from("{\"range\":{\"start\":{\"line\":")
-    out = out.concat(to_string(diag_position::lsp_diag_position_line(s)))
+    out = out.concat(diag_position::lsp_diag_position_line(s).to_string())
     out = out.concat(String_from(",\"character\":"))
-    out = out.concat(to_string(diag_position::lsp_diag_position_character(s)))
+    out = out.concat(diag_position::lsp_diag_position_character(s).to_string())
     out = out.concat(String_from("},\"end\":{\"line\":"))
-    out = out.concat(to_string(diag_position::lsp_diag_position_line(e)))
+    out = out.concat(diag_position::lsp_diag_position_line(e).to_string())
     out = out.concat(String_from(",\"character\":"))
-    out = out.concat(to_string(diag_position::lsp_diag_position_character(e)))
+    out = out.concat(diag_position::lsp_diag_position_character(e).to_string())
     out = out.concat(String_from("}},\"severity\":"))
     let sev = if diagnostic_record::analysis_diagnostic_phase(diag) == analysis::PHASE_LINT() {
         2
     } else {
         1
     }
-    out = out.concat(to_string(sev))
+    out = out.concat(sev.to_string())
     out = out.concat(String_from(",\"source\":\"arukellt\",\"code\":"))
     out = out.concat(json::JsonText::quote(phase_code(diagnostic_record::analysis_diagnostic_phase(diag))))
     out = out.concat(String_from(",\"message\":"))

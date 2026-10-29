@@ -1,4 +1,4 @@
-use std::prelude::{clone, contains, eq}
+use std::prelude::{clone, eq}
 use corehir::mir_type_source
 use mir::lower::aggregate_tuple
 use mir::lower::ctx_mono_index
@@ -70,7 +70,7 @@ fn mir_emit_top_level_fn_mono_bodies(
                 mono_emit_i = mono_emit_i + 1
                 continue
             }
-            if contains(clone(mangled), String_from("?")) {
+            if clone(mangled).contains(String_from("?")) {
                 // Unsubstituted template instances are registration-only;
                 // no call site can ever name a ?-mangled body.
                 mono_emit_i = mono_emit_i + 1

@@ -1,18 +1,18 @@
-use std::prelude::{byte_at, clone, index_of, substring}
+use std::prelude::{clone}
 fn path_module_part(path: String) -> String {
-    let pos = index_of(clone(path), "::")
+    let pos = clone(path).index_of("::")
     if pos < 0 {
         return clone(path)
     }
-    substring(path, 0, pos)
+    path.slice(0, pos)
 }
 
 fn path_symbol_part(path: String) -> String {
-    let pos = index_of(clone(path), "::")
+    let pos = clone(path).index_of("::")
     if pos < 0 {
         return String_new()
     }
-    substring(path, pos + 2, len(path))
+    path.slice(pos + 2, len(path))
 }
 
 fn use_module_short_name(path: String) -> String {
@@ -20,7 +20,7 @@ fn use_module_short_name(path: String) -> String {
     let mut last_sep = 0 - 1
     let mut i = n - 2
     while i >= 0 {
-        if byte_at(path, i) == 58 && byte_at(path, i + 1) == 58 {
+        if path.byte_at(i) == 58 && path.byte_at(i + 1) == 58 {
             last_sep = i
             break
         }
@@ -29,7 +29,7 @@ fn use_module_short_name(path: String) -> String {
     if last_sep < 0 {
         clone(path)
     } else {
-        substring(path, last_sep + 2, n)
+        path.slice(last_sep + 2, n)
     }
 }
 
@@ -38,7 +38,7 @@ fn use_module_parent_path(path: String) -> String {
     let mut last_sep = 0 - 1
     let mut i = n - 2
     while i >= 0 {
-        if byte_at(path, i) == 58 && byte_at(path, i + 1) == 58 {
+        if path.byte_at(i) == 58 && path.byte_at(i + 1) == 58 {
             last_sep = i
             break
         }
@@ -47,5 +47,5 @@ fn use_module_parent_path(path: String) -> String {
     if last_sep < 0 {
         return String_new()
     }
-    substring(path, 0, last_sep)
+    path.slice(0, last_sep)
 }

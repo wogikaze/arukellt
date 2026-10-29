@@ -11,7 +11,7 @@
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
-use std::prelude::{byte_at, f64_bits_hi, f64_bits_lo}
+use std::prelude::{f64_bits_hi, f64_bits_lo}
 /// Trait for types that can be hashed to an `i32` hash value.
 ///
 /// The hash value must be non-negative and deterministic: the same value must
@@ -75,7 +75,7 @@ impl Hash for String {
         let n = len(self)
         let mut i = 0
         while i < n {
-            let ch = byte_at(self, i)
+            let ch = self.byte_at(i)
             h = h * 16777619 ^ ch
             if h < 0 {
                 h = 0 - h

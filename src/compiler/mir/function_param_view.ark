@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, starts_with, substring}
+use std::prelude::{clone}
 use mir::function_core_record
 use mir::local_record
 use mir::types_function
@@ -25,7 +25,7 @@ fn MirFunction_has_unsubstituted_generic_param(f: MirFunction) -> bool {
     let mut j = 0
     while j < pc {
         let tn = MirFunction_param_type_name(f, j)
-        if starts_with(clone(tn), "?") && !mir_type_name_is_concrete_option_result_wrapper(tn) {
+        if clone(tn).starts_with("?") && !mir_type_name_is_concrete_option_result_wrapper(tn) {
             return true
         }
         j = j + 1
@@ -34,19 +34,19 @@ fn MirFunction_has_unsubstituted_generic_param(f: MirFunction) -> bool {
 }
 
 fn mir_type_name_is_concrete_option_result_wrapper(type_name: String) -> bool {
-    if starts_with(clone(type_name), "?Option:") {
-        let inner = substring(type_name, 8, len(type_name))
+    if clone(type_name).starts_with("?Option:") {
+        let inner = type_name.slice(8, len(type_name))
         return len(inner) > 0 && !mir_type_name_is_generic_type_var(inner)
     }
-    if starts_with(clone(type_name), "?Result:") {
-        let inner = substring(type_name, 8, len(type_name))
+    if clone(type_name).starts_with("?Result:") {
+        let inner = type_name.slice(8, len(type_name))
         if len(inner) == 0 {
             return false
         }
         let mut i = 0
         while i < len(inner) {
-            if byte_at(inner, i) == 58 {
-                return !mir_type_name_is_generic_type_var(substring(inner, 0, i))
+            if inner.byte_at(i) == 58 {
+                return !mir_type_name_is_generic_type_var(inner.slice(0, i))
             }
             i = i + 1
         }
@@ -59,19 +59,19 @@ fn mir_type_name_is_generic_type_var(name: String) -> bool {
     if len(name) == 0 {
         return false
     }
-    if starts_with(clone(name), "?") {
-        return mir_type_name_is_generic_type_var(substring(name, 1, len(name)))
+    if clone(name).starts_with("?") {
+        return mir_type_name_is_generic_type_var(name.slice(1, len(name)))
     }
     if len(name) == 1 {
-        let c = byte_at(name, 0)
+        let c = name.byte_at(0)
         return c >= 65 && c <= 90
     }
-    let c0 = byte_at(name, 0)
+    let c0 = name.byte_at(0)
     if c0 == 116 || c0 == 84 {
         let mut i = 1
         let mut all_digit = i < len(name)
         while i < len(name) {
-            let c = byte_at(name, i)
+            let c = name.byte_at(i)
             if c < 48 || c > 57 {
                 all_digit = false
             }

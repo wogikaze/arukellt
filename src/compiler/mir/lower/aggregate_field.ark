@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use mir::lower::ctx_struct_lookup
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_mono
@@ -22,9 +22,9 @@ fn mir_field_access_dest_vt(ctx: LowerCtx, base_type: String, field_name: String
         // fn fields are typed funcrefs so `(self.f)(x)` can call_ref (#807).
         if eq(clone(ft_vt), "fnref") ||
         eq(clone(ft_vt), "fn") ||
-        starts_with(clone(ft_vt), String_from("fnref")) ||
-        starts_with(clone(ft_vt), String_from("fnsig:")) ||
-        starts_with(clone(ft_vt), String_from("fn(")) {
+        clone(ft_vt).starts_with(String_from("fnref")) ||
+        clone(ft_vt).starts_with(String_from("fnsig:")) ||
+        clone(ft_vt).starts_with(String_from("fn(")) {
             dest_vt = value_types::VT_FUNCREF()
         }
     }

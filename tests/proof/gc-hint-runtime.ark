@@ -1,4 +1,3 @@
-use std::prelude::{to_string}
 use std::host::stdio
 struct Box {
     value: i32,
@@ -12,5 +11,5 @@ fn main() {
         total = total + item.value
         i = i + 1
     }
-    stdio::println(to_string(total))
+    stdio::println(total.to_string())
 }

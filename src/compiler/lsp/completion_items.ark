@@ -1,13 +1,13 @@
 use std::text
 use std::json
-use std::prelude::{clone, to_string}
+use std::prelude::{clone}
 use lsp::import_graph
 use lsp::positions
 pub fn completion_item(label: String, kind: i32, detail: String) -> String {
     let mut out = String_from("{\"label\":")
     out = out.concat(json::JsonText::quote(label))
     out = out.concat(String_from(",\"kind\":"))
-    out = out.concat(to_string(kind))
+    out = out.concat(kind.to_string())
     out = out.concat(String_from(",\"detail\":"))
     out = out.concat(json::JsonText::quote(detail))
     out = out.concat(String_from("}"))
@@ -23,17 +23,17 @@ pub fn completion_item_json(label: String, kind: i32, detail: String, text: Stri
     let mut out = String_from("{\"label\":")
     out = out.concat(json::JsonText::quote(label))
     out = out.concat(String_from(",\"kind\":"))
-    out = out.concat(to_string(kind))
+    out = out.concat(kind.to_string())
     out = out.concat(String_from(",\"detail\":"))
     out = out.concat(json::JsonText::quote(detail))
     out = out.concat(String_from(",\"additionalTextEdits\":[{\"range\":{\"start\":{\"line\":"))
-    out = out.concat(to_string(positions::lsp_position_line(pos)))
+    out = out.concat(positions::lsp_position_line(pos).to_string())
     out = out.concat(String_from(",\"character\":"))
-    out = out.concat(to_string(positions::lsp_position_character(pos)))
+    out = out.concat(positions::lsp_position_character(pos).to_string())
     out = out.concat(String_from("},\"end\":{\"line\":"))
-    out = out.concat(to_string(positions::lsp_position_line(pos)))
+    out = out.concat(positions::lsp_position_line(pos).to_string())
     out = out.concat(String_from(",\"character\":"))
-    out = out.concat(to_string(positions::lsp_position_character(pos)))
+    out = out.concat(positions::lsp_position_character(pos).to_string())
     out = out.concat(String_from("}},\"newText\":"))
     out = out.concat(json::JsonText::quote(import_graph::build_use_statement(import_path)))
     out = out.concat(String_from("}]}"))

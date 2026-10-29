@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, starts_with, substring}
+use std::prelude::{clone}
 use corehir::decl_ann_name
 use corehir::frontend_ast_identity
 use corehir::frontend_type_kind
@@ -101,11 +101,11 @@ fn param_ann_name_is_type_param(name: String) -> bool {
     if len(name) == 0 {
         return false
     }
-    if starts_with(clone(name), "?") {
-        return param_ann_name_is_type_param(substring(name, 1, len(name)))
+    if clone(name).starts_with("?") {
+        return param_ann_name_is_type_param(name.slice(1, len(name)))
     }
     if len(name) == 1 {
-        let ch = byte_at(name, 0)
+        let ch = name.byte_at(0)
         if ch >= 65 && ch <= 90 {
             return true
         }

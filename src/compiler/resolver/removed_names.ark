@@ -5,7 +5,7 @@
 // undefined-name error. Keep aligned with std/manifest.toml
 // deprecations and docs/stdlib/migration-guidance.md;
 // scripts/check/check-compat-orphans.py verifies both directions.
-use std::prelude::{clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 
 fn removed_name_hint(name: String) -> String {
@@ -75,10 +75,10 @@ fn hashmap_free_replacement_hint() -> String {
 }
 
 fn is_retired_hashset_adapter_name(name: String) -> bool {
-    if starts_with(clone(name), "hashset_i32_") {
+    if clone(name).starts_with("hashset_i32_") {
         return true
     }
-    starts_with(clone(name), "hashset_str_")
+    clone(name).starts_with("hashset_str_")
 }
 
 fn removed_name_specific_hint(name: String) -> String {
@@ -140,7 +140,7 @@ fn removed_name_specific_hint(name: String) -> String {
     }
     if eq(clone(name), "map_option_String_String") { return "removed free function; use `o.map(f)` via `use std::core::container`" }
     if eq(clone(name), "map_result_i32_i32") { return "removed free function; use `r.map(f)` via `use std::core::container`" }
-    if eq(clone(name), "char_at") { return "removed prelude wrapper; use `byte_at(s, i)` via `use std::prelude::{byte_at}`" }
+    if eq(clone(name), "char_at") { return "removed prelude wrapper; use `s.byte_at(i)` on `String` instead" }
     if eq(clone(name), "println") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::println(...)`" }
     if eq(clone(name), "print") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::print(...)`" }
     if eq(clone(name), "eprintln") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::eprintln(...)`" }
@@ -657,16 +657,16 @@ fn is_retired_hash_free_module(module: String) -> bool {
 // lowering target. Report the removal with its replacement instead of the
 // generic privacy error, matching the E0100 hint for a deleted declaration.
 fn removed_private_member_hint(module: String, name: String) -> String {
-    if is_retired_hash_free_module(clone(module)) && starts_with(clone(name), "hashset_") {
+    if is_retired_hash_free_module(clone(module)) && clone(name).starts_with("hashset_") {
         return hashset_free_replacement_hint()
     }
-    if eq(clone(module), "hash_string") && starts_with(clone(name), "hashset_") {
+    if eq(clone(module), "hash_string") && clone(name).starts_with("hashset_") {
         return hashset_free_replacement_hint()
     }
-    if is_retired_hash_free_module(clone(module)) && starts_with(clone(name), "hashmap_") {
+    if is_retired_hash_free_module(clone(module)) && clone(name).starts_with("hashmap_") {
         return hashmap_free_replacement_hint()
     }
-    if is_retired_hashmap_module(clone(module)) && starts_with(clone(name), "hashmap_") {
+    if is_retired_hashmap_module(clone(module)) && clone(name).starts_with("hashmap_") {
         return hashmap_method_replacement_hint()
     }
     String_new()
@@ -1135,10 +1135,10 @@ fn removed_toml_member_hint(name: String) -> String {
 // CSV row/document helpers moved onto the `Csv` namespace. The leaf name is
 // the same, so one prefix rule covers the whole family.
 fn removed_csv_member_hint(name: String) -> String {
-    if !starts_with(clone(name), String_from("csv_")) {
+    if !clone(name).starts_with(String_from("csv_")) {
         return String_new()
     }
-    let leaf = substring(clone(name), 4, len(name))
+    let leaf = clone(name).slice(4, len(name))
     "use `csv::Csv::".concat(
         clone(leaf)
     ).concat("(...)` via `use std::csv` instead")
@@ -1438,6 +1438,14 @@ fn removed_prelude_free_hint(name: String) -> String {
     if eq(clone(name), "is_ok") { return String_from("use `r.is_ok()` on `Result<i32, i32>` instead") }
     if eq(clone(name), "is_err") { return String_from("use `r.is_err()` on `Result<i32, i32>` instead") }
     if eq(clone(name), "f32_to_string") { return String_from("use `x.to_string()` on the `f32` value instead") }
+    if eq(clone(name), "byte_at") { return String_from("use `s.byte_at(i)` on `String` instead") }
+    if eq(clone(name), "slice") { return String_from("use `s.slice(start, end)` on `String` instead") }
+    if eq(clone(name), "substring") { return String_from("use `s.slice(start, end)` on `String` instead") }
+    if eq(clone(name), "to_string") { return String_from("use `x.to_string()` on the value instead") }
+    if eq(clone(name), "starts_with") { return String_from("use `s.starts_with(prefix)` on `String` instead") }
+    if eq(clone(name), "ends_with") { return String_from("use `s.ends_with(suffix)` on `String` instead") }
+    if eq(clone(name), "contains") { return String_from("use `s.contains(sub)` on `String` instead") }
+    if eq(clone(name), "index_of") { return String_from("use `s.index_of(sub)` on `String` instead") }
     String_new()
 }
 
@@ -1451,10 +1459,7 @@ fn is_gated_prelude_name(name: String) -> bool {
     if eq(clone(name), "as_slice") || eq(clone(name), "assert_eq") || eq(clone(name), "assert_eq_i64") {
         return true
     }
-    if eq(clone(name), "assert_eq_str") || eq(clone(name), "assert_ne") || eq(clone(name), "byte_at") {
-        return true
-    }
-    if eq(clone(name), "clone") || eq(clone(name), "contains") || eq(clone(name), "ends_with") {
+    if eq(clone(name), "assert_eq_str") || eq(clone(name), "assert_ne") || eq(clone(name), "clone") {
         return true
     }
     if eq(clone(name), "eq") {
@@ -1475,13 +1480,7 @@ fn is_gated_prelude_name(name: String) -> bool {
     if eq(clone(name), "i32_to_u8") || eq(clone(name), "i64_to_i32") || eq(clone(name), "i8_to_i32") {
         return true
     }
-    if eq(clone(name), "slice_get") || eq(clone(name), "slice_len") || eq(clone(name), "starts_with") {
-        return true
-    }
-    if eq(clone(name), "slice") || eq(clone(name), "index_of") {
-        return true
-    }
-    if eq(clone(name), "substring") || eq(clone(name), "to_string") || eq(clone(name), "u16_to_i32") {
+    if eq(clone(name), "slice_get") || eq(clone(name), "slice_len") || eq(clone(name), "u16_to_i32") {
         return true
     }
     if eq(clone(name), "u32_to_u64") || eq(clone(name), "u64_to_u32") || eq(clone(name), "u8_to_i32") {
@@ -1746,6 +1745,16 @@ test mod "removed_names" {
         assert(len(removed_name_hint("clone")) > 0)
         assert(len(removed_name_hint("substring")) > 0)
         assert(len(removed_name_hint("push_char")) > 0)
+    }
+    test "retired text prelude frees have method hints" {
+        assert(len(removed_name_hint("byte_at")) > 0)
+        assert(len(removed_name_hint("slice")) > 0)
+        assert(len(removed_name_hint("substring")) > 0)
+        assert(len(removed_name_hint("to_string")) > 0)
+        assert(len(removed_name_hint("starts_with")) > 0)
+        assert(len(removed_name_hint("ends_with")) > 0)
+        assert(len(removed_name_hint("contains")) > 0)
+        assert(len(removed_name_hint("index_of")) > 0)
     }
     test "retired prelude frees have receiver hints" {
         assert(len(removed_name_hint("abs")) > 0)

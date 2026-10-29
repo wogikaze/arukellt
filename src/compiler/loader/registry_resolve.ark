@@ -1,5 +1,5 @@
 use std::host::fs::Fs
-use std::prelude::{clone, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use loader::registry_config
 fn registry_error_unreachable(url: String, reason: String) -> String {
@@ -11,23 +11,23 @@ fn registry_error_not_found(package_name: String) -> String {
 }
 
 fn starts_with_http(url: String) -> bool {
-    starts_with(clone(url), "http://") || starts_with(clone(url), "https://")
+    clone(url).starts_with("http://") || clone(url).starts_with("https://")
 }
 
 fn starts_with_file(url: String) -> bool {
-    starts_with(clone(url), "file://")
+    clone(url).starts_with("file://")
 }
 
 fn file_registry_root(package_root: String, registry_url: String) -> String {
     if eq(clone(registry_url), "file://.") {
         return clone(package_root)
     }
-    if starts_with(clone(registry_url), "file://./") {
-        let rel = substring(registry_url, 7, len(registry_url))
+    if clone(registry_url).starts_with("file://./") {
+        let rel = registry_url.slice(7, len(registry_url))
         return clone(package_root).concat("/".concat(rel))
     }
-    if starts_with(clone(registry_url), "file://") {
-        return substring(registry_url, 7, len(registry_url))
+    if clone(registry_url).starts_with("file://") {
+        return registry_url.slice(7, len(registry_url))
     }
     clone(package_root)
 }
@@ -55,7 +55,7 @@ fn read_local_registry_source(registry_root: String, package_name: String) -> Re
 }
 
 fn http_registry_fetch_url(registry_url: String, package_name: String) -> String {
-    if ends_with(clone(registry_url), "/") {
+    if clone(registry_url).ends_with("/") {
         return clone(registry_url).concat(clone(package_name).concat(".ark"))
     }
     clone(registry_url).concat("/".concat(clone(package_name).concat(".ark")))

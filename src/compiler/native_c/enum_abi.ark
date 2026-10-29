@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use corehir::kinds
 use corehir::mir_value_type
 use corehir::type_id
@@ -122,11 +122,11 @@ fn native_c_type_name_is_open_payload_enum(name: String) -> bool {
     eq(clone(name), String_from("Either")) {
         return true
     }
-    if starts_with(clone(name), String_from("option:")) ||
-    starts_with(clone(name), String_from("Option_")) ||
-    starts_with(clone(name), String_from("result:")) ||
-    starts_with(clone(name), String_from("Result_")) ||
-    starts_with(clone(name), String_from("either:")) {
+    if clone(name).starts_with(String_from("option:")) ||
+    clone(name).starts_with(String_from("Option_")) ||
+    clone(name).starts_with(String_from("result:")) ||
+    clone(name).starts_with(String_from("Result_")) ||
+    clone(name).starts_with(String_from("either:")) {
         return true
     }
     false
@@ -158,7 +158,7 @@ fn native_c_collect_payload_enum_from_local(
     }
     let local = function_locals_view::MirFunction_local_at(function, local_id)
     let type_name = local_record::mir_local_type_name(local)
-    if starts_with(clone(type_name), String_from("enum:")) ||
+    if clone(type_name).starts_with(String_from("enum:")) ||
     native_c_type_name_has_variant_path(clone(type_name)) ||
     native_c_type_name_is_open_payload_enum(clone(type_name)) {
         native_c_push_unique_string(
@@ -214,7 +214,7 @@ fn native_c_type_name_has_variant_path(name: String) -> bool {
     let length = len(name)
     let mut index = 0
     while index + 1 < length {
-        if byte_at(name, index) == 58 && byte_at(name, index + 1) == 58 {
+        if name.byte_at(index) == 58 && name.byte_at(index + 1) == 58 {
             return true
         }
         index = index + 1
@@ -224,14 +224,14 @@ fn native_c_type_name_has_variant_path(name: String) -> bool {
 
 fn native_c_type_name_enum_basename(name: String) -> String {
     let mut base = name
-    if starts_with(clone(base), String_from("enum:")) {
-        base = substring(base, 5, len(base))
+    if clone(base).starts_with(String_from("enum:")) {
+        base = base.slice(5, len(base))
     }
     let length = len(base)
     let mut index = 0
     while index + 1 < length {
-        if byte_at(base, index) == 58 && byte_at(base, index + 1) == 58 {
-            return substring(base, 0, index)
+        if base.byte_at(index) == 58 && base.byte_at(index + 1) == 58 {
+            return base.slice(0, index)
         }
         index = index + 1
     }

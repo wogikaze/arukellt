@@ -1,4 +1,4 @@
-use std::prelude::{eq, to_string}
+use std::prelude::{eq}
 use std::text
 use parser::ast_kind_fields
 use parser::core_ast_text_fields
@@ -12,38 +12,38 @@ fn issue499_parser_lexer_integration_self_check() -> String {
     let decls = self_check_issue499_parse::issue499_parse_decls(parse)
     let error_count = self_check_issue499_parse::issue499_parse_error_count(parse)
     if error_count != 0 {
-        return "issue499 lexer integration fail: parse errors=".concat(to_string(error_count))
+        return "issue499 lexer integration fail: parse errors=".concat(error_count.to_string())
     }
     if len(decls) != 1 {
-        return "issue499 lexer integration fail: decl count=".concat(to_string(len(decls)))
+        return "issue499 lexer integration fail: decl count=".concat(len(decls).to_string())
     }
     let fn_decl = get_unchecked(decls, 0)
     if ast_kind_fields::AstNode_kind(fn_decl) != kinds::NK_FN_DECL() {
         return "issue499 lexer integration fail: expected fn decl"
     }
     if core_ast_children::AstNode_child_count(fn_decl) != 1 {
-        return "issue499 lexer integration fail: fn child count=".concat(to_string(core_ast_children::AstNode_child_count(fn_decl)))
+        return "issue499 lexer integration fail: fn child count=".concat(core_ast_children::AstNode_child_count(fn_decl).to_string())
     }
     let body = core_ast_children::AstNode_child_at(fn_decl, 0)
     if ast_kind_fields::AstNode_kind(body) != kinds::NK_BLOCK() {
         return "issue499 lexer integration fail: expected block body"
     }
     if core_ast_children::AstNode_child_count(body) != 1 {
-        return "issue499 lexer integration fail: stmt count=".concat(to_string(core_ast_children::AstNode_child_count(body)))
+        return "issue499 lexer integration fail: stmt count=".concat(core_ast_children::AstNode_child_count(body).to_string())
     }
     let let_stmt = core_ast_children::AstNode_child_at(body, 0)
     if ast_kind_fields::AstNode_kind(let_stmt) != kinds::NK_LET() {
         return "issue499 lexer integration fail: expected let stmt"
     }
     if core_ast_children::AstNode_child_count(let_stmt) != 1 {
-        return "issue499 lexer integration fail: let child count=".concat(to_string(core_ast_children::AstNode_child_count(let_stmt)))
+        return "issue499 lexer integration fail: let child count=".concat(core_ast_children::AstNode_child_count(let_stmt).to_string())
     }
     let closure = core_ast_children::AstNode_child_at(let_stmt, 0)
     if ast_kind_fields::AstNode_kind(closure) != kinds::NK_CLOSURE() {
         return "issue499 lexer integration fail: expected closure expr"
     }
     if core_ast_children::AstNode_child_count(closure) != 3 {
-        return "issue499 lexer integration fail: closure child count=".concat(to_string(core_ast_children::AstNode_child_count(closure)))
+        return "issue499 lexer integration fail: closure child count=".concat(core_ast_children::AstNode_child_count(closure).to_string())
     }
     let param0 = core_ast_children::AstNode_child_at(closure, 0)
     let param1 = core_ast_children::AstNode_child_at(closure, 1)

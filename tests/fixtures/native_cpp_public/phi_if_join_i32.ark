@@ -1,5 +1,4 @@
 use std::host::stdio
-use std::prelude::{to_string}
 use std::text
 fn main() {
     let flag = 1
@@ -8,5 +7,5 @@ fn main() {
     } else {
         20
     }
-    stdio::println(String_from("value=").concat(to_string(value)))
+    stdio::println(String_from("value=").concat(value.to_string()))
 }

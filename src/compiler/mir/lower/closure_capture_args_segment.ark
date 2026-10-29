@@ -1,4 +1,4 @@
-use std::prelude::{clone, substring}
+use std::prelude::{clone}
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
@@ -7,7 +7,7 @@ fn emit_capture_arg_segment(mut ctx: LowerCtx, packed: String, start: i32, end: 
     if end <= start {
         return
     }
-    let name = substring(packed, start, end)
+    let name = packed.slice(start, end)
     if len(name) == 0 {
         return
     }

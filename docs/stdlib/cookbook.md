@@ -364,12 +364,12 @@ fn main() {
 ```ark
 use std::host::stdio
 fn main() {
-    stdio::println(to_string(42))                     // 42
-    stdio::println(to_string(9001_i64))               // 9001
-    stdio::println(to_string(3.5))                    // 3.5
-    stdio::println(to_string(true))                   // true
-    stdio::println(to_string('Z'))                    // Z
-    stdio::println(to_string(String_from("text")))    // text
+    stdio::println(42.to_string())                    // 42
+    stdio::println(9001i64.to_string())               // 9001
+    stdio::println(3.5.to_string())                   // 3.5
+    stdio::println(true.to_string())                  // true
+    stdio::println(('Z').to_string())                 // Z
+    stdio::println(String_from("plain text").to_string()) // plain text
 }
 ```
 

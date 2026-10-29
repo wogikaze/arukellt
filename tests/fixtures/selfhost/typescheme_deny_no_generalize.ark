@@ -2,7 +2,6 @@
 // A block expression initializer prevents generalization. The binding
 // has a concrete type annotation, so mismatched use produces a type error.
 use std::host::stdio
-use std::prelude::{to_string}
 fn main() {
     // Block expression is NOT a syntactic value -> x is NOT generalized
     let x: i32 = {
@@ -11,9 +10,9 @@ fn main() {
     }
     // x has concrete type i32
     // Using x with bool in an operation should produce type mismatch
-    stdio::println(to_string(x))
+    stdio::println(x.to_string())
     let z = x + true
-    stdio::println(to_string(z))
+    stdio::println(z.to_string())
 }
 // x is bound via block (non-syntactic-value) -> NOT generalized -> type is i32
 // x + true -> unify(i32, bool) -> type mismatch: i32 vs bool

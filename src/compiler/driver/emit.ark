@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::host::clock::Clock
-use std::prelude::{clone, eq, to_string}
+use std::prelude::{clone, eq}
 use std::text
 use compiler::phases
 use driver::config_record
@@ -93,7 +93,7 @@ fn emit_component_output(
         report_timing
     )
     if config_record::config_dump_wasm(config) {
-        stdio::eprintln(String_from("core wasm size: ").concat(to_string(len(core_wasm)).concat(String_from(" bytes"))))
+        stdio::eprintln(String_from("core wasm size: ").concat(len(core_wasm).to_string().concat(String_from(" bytes"))))
     }
     let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
     // Component packaging is owned by the official wasm-tools pipeline in the

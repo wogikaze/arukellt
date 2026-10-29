@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_types
@@ -39,8 +39,8 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     // resolve it to a concrete type via the monomorphization type
     // parameter mapping. This enables `x.method()` inside generic
     // functions `<T: Trait>` to resolve to `ConcreteType::method`.
-    if len(struct_name) > 0 && starts_with(clone(struct_name), "?") {
-        let bare_name = substring(clone(struct_name), 1, len(struct_name))
+    if len(struct_name) > 0 && clone(struct_name).starts_with("?") {
+        let bare_name = clone(struct_name).slice(1, len(struct_name))
         let resolved = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, bare_name)
         if len(resolved) > 0 {
             struct_name = resolved
@@ -50,7 +50,7 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     // Vec locals carry type "vec:i32" / "vec:String" etc.; the String
     // conversion has its own impl owner because GC references are distinct.
     // String locals carry type "string"; normalize to "String".
-    if starts_with(clone(struct_name), "vec:") {
+    if clone(struct_name).starts_with("vec:") {
         if method_resolve::mir_is_vec_string_iteration_method(clone(method_name)) &&
         method_resolve::mir_is_vec_string_type(clone(struct_name)) {
             struct_name = "Vec_String"
@@ -58,7 +58,7 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
             struct_name = "Vec"
         }
     }
-    if starts_with(clone(struct_name), "hashmap:") {
+    if clone(struct_name).starts_with("hashmap:") {
         struct_name = "HashMap"
     }
     if eq(clone(struct_name), "string") {
@@ -70,8 +70,8 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     // two when the concrete method exists so a receiver call on a call result
     // (`pop(v).unwrap()`) resolves instead of lowering to the unresolved-call
     // trap stub. Falling through keeps generic `impl<T> Option<T>` methods.
-    if starts_with(clone(struct_name), "option:") {
-        let some_type = substring(clone(struct_name), 7, len(struct_name))
+    if clone(struct_name).starts_with("option:") {
+        let some_type = clone(struct_name).slice(7, len(struct_name))
         let concrete_method = String_from("Option_").concat(
             some_type.concat(String_from("::").concat(clone(method_name)))
         )

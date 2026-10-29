@@ -18,7 +18,7 @@ use diagnostics::mod as diag_mod
 
 // ── W0006: unused import ──────────────────────────────────────────────
 
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use std::text
 fn collect_use_decls(decls: Vec<AstNode>) -> Vec<UseDeclInfo> {
     let mut uses = Vec::new<UseDeclInfo>()
@@ -114,7 +114,7 @@ pub fn check_unused_imports(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     while i < use_count {
         let info = get_unchecked(uses, i)
         let short_name = use_decl_info_short_name(info)
-        if starts_with(clone(short_name), "_") {
+        if clone(short_name).starts_with("_") {
             i = i + 1
             continue
         }

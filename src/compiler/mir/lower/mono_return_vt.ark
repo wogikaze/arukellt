@@ -5,7 +5,7 @@
 // Call-time mangled-name reverse lookup is forbidden (#843); spine /
 // MonoInstanceTable is the source of truth.
 
-use std::prelude::{byte_at, clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use mir::lower::mono_return_vt_table
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_fn_return_type
@@ -83,8 +83,8 @@ fn short_name_after_last_double_colon(name: String) -> String {
     let name_len = len(name)
     let mut index = name_len - 2
     while index >= 0 {
-        if byte_at(name, index) == 58 && byte_at(name, index + 1) == 58 {
-            return substring(name, index + 2, name_len)
+        if name.byte_at(index) == 58 && name.byte_at(index + 1) == 58 {
+            return name.slice(index + 2, name_len)
         }
         index = index - 1
     }
@@ -108,7 +108,7 @@ fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> 
     }
     if len(fallback_name) > 0 &&
     !mono_suffix_parse::is_mono_type_var_name(clone(fallback_name)) &&
-    !starts_with(clone(fallback_name), "?") &&
+    !clone(fallback_name).starts_with("?") &&
     !is_container_mono_return_type_name(clone(fallback_name)) {
         return fallback_name
     }
@@ -133,13 +133,13 @@ fn mono_return_type_name_from_registry(ctx: LowerCtx, name: String) -> String {
 }
 
 fn is_container_mono_return_type_name(type_name: String) -> bool {
-    starts_with(clone(type_name), "vec:") ||
-    starts_with(clone(type_name), "option:") ||
-    starts_with(clone(type_name), "Option") ||
-    starts_with(clone(type_name), "result:") ||
-    starts_with(clone(type_name), "Result") ||
-    starts_with(clone(type_name), "hashmap:") ||
-    starts_with(clone(type_name), "HashMap")
+    clone(type_name).starts_with("vec:") ||
+    clone(type_name).starts_with("option:") ||
+    clone(type_name).starts_with("Option") ||
+    clone(type_name).starts_with("result:") ||
+    clone(type_name).starts_with("Result") ||
+    clone(type_name).starts_with("hashmap:") ||
+    clone(type_name).starts_with("HashMap")
 }
 
 fn mono_resolve_return_type_name(ctx: LowerCtx, name: String) -> String {
@@ -151,19 +151,19 @@ fn is_concrete_mono_return_type_name(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if starts_with(clone(type_name), "?") {
+    if clone(type_name).starts_with("?") {
         return false
     }
-    if starts_with(clone(type_name), "struct:") {
+    if clone(type_name).starts_with("struct:") {
         return true
     }
-    if starts_with(clone(type_name), "vec:") {
+    if clone(type_name).starts_with("vec:") {
         return !type_name_has_type_var_suffix(clone(type_name))
     }
-    if starts_with(clone(type_name), "option:") {
+    if clone(type_name).starts_with("option:") {
         return !type_name_has_type_var_suffix(clone(type_name))
     }
-    if starts_with(clone(type_name), "hashmap:") {
+    if clone(type_name).starts_with("hashmap:") {
         return true
     }
     if eq(clone(type_name), "i32") ||
@@ -178,7 +178,7 @@ fn is_concrete_mono_return_type_name(type_name: String) -> bool {
     }
     // Bare user struct names from MonoInstance TypeTable entries (Point).
     if !mono_suffix_parse::is_mono_type_var_name(clone(type_name)) {
-        let first = byte_at(type_name, 0)
+        let first = type_name.byte_at(0)
         if first >= 65 && first <= 90 {
             return true
         }
@@ -191,7 +191,7 @@ fn type_name_has_type_var_suffix(type_name: String) -> bool {
     if n == 0 {
         return false
     }
-    let last = byte_at(type_name, n - 1)
+    let last = type_name.byte_at(n - 1)
     if last >= 65 && last <= 90 {
         return true
     }

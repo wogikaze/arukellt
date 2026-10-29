@@ -1,7 +1,7 @@
-use std::prelude::{byte_at, clone, eq}
+use std::prelude::{clone, eq}
 use lexer::error_codes
 fn classify_lex_error_text(text: String) -> i32 {
-    let first = if len(text) > 0 { byte_at(text, 0) } else { 0 }
+    let first = if len(text) > 0 { text.byte_at(0) } else { 0 }
     if len(text) == 1 && first != 0 {
         return error_codes::LEX_E_UNKNOWN_CHAR()
     }

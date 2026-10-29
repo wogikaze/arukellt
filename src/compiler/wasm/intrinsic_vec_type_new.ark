@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, contains, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::callee_spelling
 use mir::inst_accessors_operands
@@ -150,19 +150,19 @@ fn resolve_array_type_from_constructor(ctx: SelfEmitCtx, dest_local: i32) -> i32
 }
 
 fn constructor_element_name(callee: String) -> String {
-    if starts_with(clone(callee), String_from("Vec_new_")) {
-        return substring(callee, 8, len(callee))
+    if clone(callee).starts_with(String_from("Vec_new_")) {
+        return callee.slice(8, len(callee))
     }
-    if starts_with(clone(callee), String_from("Vec_with_capacity_")) {
-        return substring(callee, 18, len(callee))
+    if clone(callee).starts_with(String_from("Vec_with_capacity_")) {
+        return callee.slice(18, len(callee))
     }
-    if starts_with(clone(callee), String_from("Vec::new__")) ||
-    starts_with(clone(callee), String_from("Vec__new__")) ||
-    starts_with(clone(callee), String_from("Vec::with_capacity__")) ||
-    starts_with(clone(callee), String_from("Vec__with_capacity__")) {
+    if clone(callee).starts_with(String_from("Vec::new__")) ||
+    clone(callee).starts_with(String_from("Vec__new__")) ||
+    clone(callee).starts_with(String_from("Vec::with_capacity__")) ||
+    clone(callee).starts_with(String_from("Vec__with_capacity__")) {
         let separator = last_index_of_double_underscore(clone(callee))
         if separator >= 0 {
-            return substring(callee, separator + 2, len(callee))
+            return callee.slice(separator + 2, len(callee))
         }
     }
     String_new()
@@ -182,9 +182,9 @@ fn vec_new_type_name_is_unresolved(tname: String) -> bool {
     if eq(clone(tname), String_from("vec:i32")) {
         return true
     }
-    if starts_with(clone(tname), String_from("vec:")) {
+    if clone(tname).starts_with(String_from("vec:")) {
         return sections_types_gc_phase7::gc_vec_elem_name_is_type_param(
-            substring(tname, 4, len(tname))
+            tname.slice(4, len(tname))
         )
     }
     false
@@ -205,7 +205,7 @@ fn raw_ctor_fn_return_vec_type_name(ctx: SelfEmitCtx) -> String {
     let tname = sections_types_gc_phase7::gc_normalize_vec_type_name(
         function_return_view::MirFunction_return_type_name(f)
     )
-    if starts_with(clone(tname), String_from("vec:")) {
+    if clone(tname).starts_with(String_from("vec:")) {
         return tname
     }
     String_new()
@@ -214,7 +214,7 @@ fn raw_ctor_fn_return_vec_type_name(ctx: SelfEmitCtx) -> String {
 fn last_index_of_double_underscore(s: String) -> i32 {
     let mut i = len(s) - 2
     while i >= 0 {
-        if byte_at(s, i) == 95 && byte_at(s, i + 1) == 95 {
+        if s.byte_at(i) == 95 && s.byte_at(i + 1) == 95 {
             return i
         }
         i = i - 1
@@ -225,8 +225,8 @@ fn last_index_of_double_underscore(s: String) -> i32 {
 fn resolve_array_type_from_type_name(ctx: SelfEmitCtx, mut tname: String) -> i32 {
     let local_name = clone(tname)
     let mut tname = sections_types_gc_phase7::gc_normalize_vec_type_name(tname)
-    if starts_with(clone(local_name), String_from("array:")) {
-        tname = String_from("vec:").concat(substring(local_name, 6, len(local_name)))
+    if clone(local_name).starts_with(String_from("array:")) {
+        tname = String_from("vec:").concat(local_name.slice(6, len(local_name)))
     }
     if eq(clone(tname), "vec:String") {
         return ctx_gc_type::SelfEmitCtx_string_array_type(ctx)
@@ -243,8 +243,8 @@ fn resolve_array_type_from_type_name(ctx: SelfEmitCtx, mut tname: String) -> i32
     if eq(clone(tname), "vec:fnref") || eq(clone(tname), "vec:fn") {
         return ctx_gc_type_vec_ref::SelfEmitCtx_fnref_array_type(ctx)
     }
-    if starts_with(clone(tname), "vec:") {
-        let elem = substring(clone(tname), 4, len(tname))
+    if clone(tname).starts_with("vec:") {
+        let elem = clone(tname).slice(4, len(tname))
         if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(clone(elem)) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_fnref_array_type(ctx)
         }
@@ -253,7 +253,7 @@ fn resolve_array_type_from_type_name(ctx: SelfEmitCtx, mut tname: String) -> i32
         }
         if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) ||
         eq(clone(elem), "Vec") ||
-        starts_with(clone(elem), "vec:") ||
+        clone(elem).starts_with("vec:") ||
         ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, clone(elem)) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_struct_ref_array_type(ctx)
         }
@@ -287,8 +287,8 @@ fn resolve_vec_type_from_type_name(ctx: SelfEmitCtx, tname: String) -> i32 {
     if eq(clone(tname), "vec:fnref") || eq(clone(tname), "vec:fn") {
         return ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx)
     }
-    if starts_with(clone(tname), "vec:") {
-        let elem = substring(clone(tname), 4, len(tname))
+    if clone(tname).starts_with("vec:") {
+        let elem = clone(tname).slice(4, len(tname))
         if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(clone(elem)) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx)
         }
@@ -297,7 +297,7 @@ fn resolve_vec_type_from_type_name(ctx: SelfEmitCtx, tname: String) -> i32 {
         }
         if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) ||
         eq(clone(elem), "Vec") ||
-        starts_with(clone(elem), "vec:") ||
+        clone(elem).starts_with("vec:") ||
         ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, clone(elem)) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
         }
@@ -397,14 +397,14 @@ fn resolve_element_type_name_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> 
 }
 
 fn vec_element_name_from_type_name(type_name: String) -> String {
-    if starts_with(clone(type_name), String_from("array:")) {
+    if clone(type_name).starts_with(String_from("array:")) {
         return sections_types_gc_phase7::gc_normalize_vec_element_name(
-            substring(clone(type_name), 6, len(type_name))
+            clone(type_name).slice(6, len(type_name))
         )
     }
     let normalized = sections_types_gc_phase7::gc_normalize_vec_type_name(type_name)
-    if starts_with(clone(normalized), String_from("vec:")) {
-        return substring(clone(normalized), 4, len(normalized))
+    if clone(normalized).starts_with(String_from("vec:")) {
+        return clone(normalized).slice(4, len(normalized))
     }
     String_new()
 }
@@ -418,13 +418,13 @@ fn vec_element_name_is_unresolved(elem: String) -> bool {
     if eq(clone(elem), String_from("i32")) {
         return true
     }
-    if starts_with(clone(elem), String_from("?")) {
+    if clone(elem).starts_with(String_from("?")) {
         return true
     }
-    if contains(clone(elem), String_from("<")) {
+    if clone(elem).contains(String_from("<")) {
         return true
     }
-    if contains(clone(elem), String_from("::")) {
+    if clone(elem).contains(String_from("::")) {
         return true
     }
     sections_types_gc_phase7::gc_vec_elem_name_is_type_param(elem)

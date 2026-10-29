@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, contains, eq, index_of, starts_with, substring, String_from}
+use std::prelude::{clone, eq, String_from}
 use std::text
 use mir::lower::call_type_vec
 use mir::lower::ctx_fn_mono
@@ -50,7 +50,7 @@ fn mir_resolve_mono_call_target(mut ctx: LowerCtx, rewritten: String, first_arg_
         // that have already been mono-safe'd (contain "__" but no "::").
         // Names with "::" (e.g. "Picker::echo") still need span-based and
         // name-based mono lookup for generic method calls.
-        if !contains(clone(resolved), "__") || contains(clone(resolved), "::") {
+        if !clone(resolved).contains("__") || clone(resolved).contains("::") {
             let mono_target = ctx_fn_mono::ctx_mono_lookup_call(ctx, span_start, clone(resolved))
             if len(mono_target) > 0 {
                 resolved = mono_target
@@ -79,20 +79,20 @@ fn mir_resolve_mono_call_target(mut ctx: LowerCtx, rewritten: String, first_arg_
 // name an emitted function, keep the symbolic spelling for the
 // existing fallback chain.
 fn concretize_var_owner_call_target(ctx: LowerCtx, resolved: String) -> String {
-    let sep = index_of(clone(resolved), String_from("::"))
+    let sep = clone(resolved).index_of(String_from("::"))
     if sep <= 0 {
         return resolved
     }
-    let first = byte_at(clone(resolved), 0)
+    let first = clone(resolved).byte_at(0)
     if first != 63 && (first < 65 || first > 90) {
         return resolved
     }
-    let owner = substring(clone(resolved), 0, sep)
+    let owner = clone(resolved).slice(0, sep)
     let concrete = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, clone(owner))
     if len(concrete) == 0 {
         return resolved
     }
-    let candidate = clone(concrete).concat(substring(clone(resolved), sep, len(resolved)))
+    let candidate = clone(concrete).concat(clone(resolved).slice(sep, len(resolved)))
     if ctx_fn_exists::ctx_has_fn_name(ctx, clone(candidate)) {
         return candidate
     }
@@ -109,7 +109,7 @@ fn concretize_vec_ctor_projection(ctx: LowerCtx, resolved: String) -> String {
     if elem_start < 0 {
         return resolved
     }
-    let mut elem = substring(clone(resolved), elem_start, len(resolved))
+    let mut elem = clone(resolved).slice(elem_start, len(resolved))
     elem = sections_types_gc_phase7::gc_normalize_vec_element_name(elem)
     elem = call_type_vec::decode_mono_vec_element_projection(elem)
     // A bare type-variable element (`Vec::with_capacity<T>` inside a generic
@@ -121,7 +121,7 @@ fn concretize_vec_ctor_projection(ctx: LowerCtx, resolved: String) -> String {
         let concrete = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, clone(elem))
         if len(concrete) > 0 && !eq(clone(concrete), clone(elem)) {
             return mono::mono_safe_name(
-                substring(clone(resolved), 0, elem_start).concat(concrete)
+                clone(resolved).slice(0, elem_start).concat(concrete)
             )
         }
         return resolved
@@ -129,7 +129,7 @@ fn concretize_vec_ctor_projection(ctx: LowerCtx, resolved: String) -> String {
     // Only projection-shaped elements (`Owner::Assoc`) are rewritten; a
     // concrete element like `Item` must not resolve through a stored
     // `I::Item` segment match.
-    if !contains(clone(elem), String_from("::")) {
+    if !clone(elem).contains(String_from("::")) {
         return resolved
     }
     let concrete = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, clone(elem))
@@ -137,15 +137,15 @@ fn concretize_vec_ctor_projection(ctx: LowerCtx, resolved: String) -> String {
         return resolved
     }
     mono::mono_safe_name(
-        substring(clone(resolved), 0, elem_start).concat(concrete)
+        clone(resolved).slice(0, elem_start).concat(concrete)
     )
 }
 
 fn mono_vec_element_candidate(callee: String, mono_arg_type: String) -> String {
-    if !starts_with(clone(mono_arg_type), "vec:") {
+    if !clone(mono_arg_type).starts_with("vec:") {
         return String_new()
     }
-    let element_type = substring(mono_arg_type, 4, len(mono_arg_type))
+    let element_type = mono_arg_type.slice(4, len(mono_arg_type))
     if len(element_type) == 0 {
         return String_new()
     }
@@ -158,8 +158,8 @@ fn mir_strip_callee_module_prefix(name: String) -> String {
     let n = len(name)
     let mut i = n - 1
     while i >= 0 {
-        if byte_at(name, i) == 58 {
-            return substring(name, i + 1, n)
+        if name.byte_at(i) == 58 {
+            return name.slice(i + 1, n)
         }
         i = i - 1
     }
@@ -220,30 +220,30 @@ fn mir_try_resolve_mono_by_type_key(
 fn normalize_mono_type_key(mono_arg_type: String) -> String {
     let mut mono_type_key = clone(mono_arg_type)
     // Nested containers: vec:vec:i32 → Vec<i32> (same as call_mono_by_type).
-    if starts_with(clone(mono_arg_type), "vec:") {
-        mono_type_key = call_mono_nested_vec_type_key(substring(mono_arg_type, 4, len(mono_arg_type)))
+    if clone(mono_arg_type).starts_with("vec:") {
+        mono_type_key = call_mono_nested_vec_type_key(mono_arg_type.slice(4, len(mono_arg_type)))
     }
     // struct:Person:8 → Person so eq resolves to Person::eq (#808 eq_trait_*).
-    if starts_with(clone(mono_type_key), "struct:") {
-        let rest = substring(clone(mono_type_key), 7, len(mono_type_key))
+    if clone(mono_type_key).starts_with("struct:") {
+        let rest = clone(mono_type_key).slice(7, len(mono_type_key))
         let rest_len = len(rest)
         let mut cut = rest_len
         let mut i = 0
         while i < rest_len {
-            if byte_at(rest, i) == 58 {
+            if rest.byte_at(i) == 58 {
                 cut = i
                 i = rest_len
             } else {
                 i = i + 1
             }
         }
-        mono_type_key = substring(rest, 0, cut)
+        mono_type_key = rest.slice(0, cut)
     }
-    if starts_with(clone(mono_type_key), "Option:") {
-        mono_type_key = substring(clone(mono_type_key), 7, len(mono_type_key))
+    if clone(mono_type_key).starts_with("Option:") {
+        mono_type_key = clone(mono_type_key).slice(7, len(mono_type_key))
     }
-    if starts_with(clone(mono_type_key), "enum:") {
-        mono_type_key = substring(clone(mono_type_key), 5, len(mono_type_key))
+    if clone(mono_type_key).starts_with("enum:") {
+        mono_type_key = clone(mono_type_key).slice(5, len(mono_type_key))
     }
     mono_type_key
 }
@@ -251,15 +251,15 @@ fn normalize_mono_type_key(mono_arg_type: String) -> String {
 fn resolve_format_debug_mono_target(ctx: LowerCtx, resolved: String, first_arg_idx: i32) -> String {
     // format_debug / fmt::format_debug__?t0 → concrete T::fmt_debug
     let bare = mir_strip_callee_module_prefix(clone(resolved))
-    if starts_with(clone(bare), "format_debug") && first_arg_idx >= 0 {
+    if clone(bare).starts_with("format_debug") && first_arg_idx >= 0 {
         let mut key = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-        if starts_with(clone(key), "option:") || starts_with(clone(key), "Option_") {
-            key = substring(clone(key), 7, len(key))
+        if clone(key).starts_with("option:") || clone(key).starts_with("Option_") {
+            key = clone(key).slice(7, len(key))
         }
         if eq(clone(key), "string") {
             key = "String"
         }
-        if len(key) == 0 || starts_with(clone(key), "?") || eq(clone(key), "enum:open") {
+        if len(key) == 0 || clone(key).starts_with("?") || eq(clone(key), "enum:open") {
             let vt = ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx)
             if vt == value_types::VT_I32() {
                 key = "i32"
@@ -273,7 +273,7 @@ fn resolve_format_debug_mono_target(ctx: LowerCtx, resolved: String, first_arg_i
                 }
             }
         }
-        if len(key) > 0 && !starts_with(clone(key), "?") && !eq(clone(key), "enum:open") {
+        if len(key) > 0 && !clone(key).starts_with("?") && !eq(clone(key), "enum:open") {
             let trait_method = clone(key).concat("::fmt_debug")
             if ctx_fn_exists::ctx_has_fn_name(ctx, clone(trait_method)) {
                 return trait_method
@@ -284,8 +284,8 @@ fn resolve_format_debug_mono_target(ctx: LowerCtx, resolved: String, first_arg_i
 }
 
 fn call_mono_nested_vec_type_key(type_name: String) -> String {
-    if starts_with(clone(type_name), "vec:") {
-        let inner = call_mono_nested_vec_type_key(substring(clone(type_name), 4, len(type_name)))
+    if clone(type_name).starts_with("vec:") {
+        let inner = call_mono_nested_vec_type_key(clone(type_name).slice(4, len(type_name)))
         return "Vec<".concat(inner.concat(">"))
     }
     // Bare "Vec" from Vec<Vec<...>> annotations that lost the inner key.

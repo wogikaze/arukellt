@@ -1,5 +1,5 @@
 use std::text
-use std::prelude::{byte_at, clone, index_of, starts_with, substring}
+use std::prelude::{clone}
 use fmt::import_block
 use fmt::parse_gate
 use resolver
@@ -21,7 +21,7 @@ fn prune_import_sort_group(path: String, has_alias: bool) -> i32 {
     if has_alias {
         return 2
     }
-    if starts_with(clone(path), "std::") {
+    if clone(path).starts_with("std::") {
         return 0
     }
     1
@@ -30,7 +30,7 @@ fn prune_import_sort_group(path: String, has_alias: bool) -> i32 {
 fn prune_import_line_end(text: String, line_start: i32) -> i32 {
     let n = len(text)
     let mut i = line_start
-    while i < n && byte_at(text, i) != 10 {
+    while i < n && text.byte_at(i) != 10 {
         i = i + 1
     }
     if i < n {
@@ -40,11 +40,11 @@ fn prune_import_line_end(text: String, line_start: i32) -> i32 {
 }
 
 fn path_symbol_part(path: String) -> String {
-    let pos = index_of(clone(path), "::")
+    let pos = clone(path).index_of("::")
     if pos < 0 {
         return String_new()
     }
-    substring(path, pos + 2, len(path))
+    path.slice(pos + 2, len(path))
 }
 
 fn is_ident_char(ch: i32) -> bool {
@@ -62,9 +62,9 @@ fn contains_ident_usage(body: String, name: String) -> bool {
     let n = len(body)
     let mut i = 0
     while i <= n - name_len {
-        if substring(clone(body), i, i + name_len) == name {
-            let before_ok = i == 0 || !is_ident_char(byte_at(body, i - 1))
-            let after_ok = i + name_len >= n || !is_ident_char(byte_at(body, i + name_len))
+        if clone(body).slice(i, i + name_len) == name {
+            let before_ok = i == 0 || !is_ident_char(body.byte_at(i - 1))
+            let after_ok = i + name_len >= n || !is_ident_char(body.byte_at(i + name_len))
             if before_ok && after_ok {
                 return true
             }
@@ -81,7 +81,7 @@ fn import_is_used(path: String, body: String) -> bool {
     }
     let short = resolver::use_module_short_name(clone(path))
     let needle = clone(short).concat("::")
-    if index_of(clone(body), needle) >= 0 {
+    if clone(body).index_of(needle) >= 0 {
         return true
     }
     contains_ident_usage(clone(body), short)
@@ -98,7 +98,7 @@ fn collect_prune_import_entries(text: String, decls: Vec<AstNode>) -> Vec<PruneI
             let has_alias = ast_access::node_type_ann_count(d) > 0
             let line_start = ast_access::node_span_start(d)
             let mut line_begin = line_start
-            while line_begin > 0 && byte_at(text, line_begin - 1) != 10 {
+            while line_begin > 0 && text.byte_at(line_begin - 1) != 10 {
                 line_begin = line_begin - 1
             }
             let line_end = prune_import_line_end(clone(text), line_begin)
@@ -124,7 +124,7 @@ fn body_after_imports(text: String, entries: Vec<PruneImportEntry>) -> String {
         }
         i = i + 1
     }
-    substring(text, last_end, len(text))
+    text.slice(last_end, len(text))
 }
 
 fn pruned_import_text(text: String, entries: Vec<PruneImportEntry>) -> String {
@@ -137,7 +137,7 @@ fn pruned_import_text(text: String, entries: Vec<PruneImportEntry>) -> String {
         while i < en {
             let entry = get_unchecked(entries, i)
             if entry.sort_group == group && import_is_used(clone(entry.path), clone(body)) {
-                let line = substring(clone(text), entry.line_start, entry.line_end)
+                let line = clone(text).slice(entry.line_start, entry.line_end)
                 out = out.concat(line)
             }
             i = i + 1
@@ -168,7 +168,7 @@ fn import_block_bounds(entries: Vec<PruneImportEntry>) -> ImportBlockSpan {
 fn apply_pruned_imports(text: String, entries: Vec<PruneImportEntry>) -> String {
     let block = import_block_bounds(entries)
     let pruned = pruned_import_text(clone(text), entries)
-    substring(clone(text), 0, import_block::ImportBlockSpan_start(block)).concat(pruned).concat(substring(text, import_block::ImportBlockSpan_end(block), len(text)))
+    clone(text).slice(0, import_block::ImportBlockSpan_start(block)).concat(pruned).concat(text.slice(import_block::ImportBlockSpan_end(block), len(text)))
 }
 
 fn pruned_import_block(input: String) -> Option<String> {

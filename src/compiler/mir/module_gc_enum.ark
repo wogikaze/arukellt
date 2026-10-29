@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::name_match
 use mir::module_record
@@ -76,11 +76,11 @@ fn MirModule_gc_enum_variant_slot(m: MirModule, name: String) -> i32 {
 // strings; the allocations were a top GC-churn source in the overlay profile.
 fn MirModule_gc_enum_name_has_enum_prefix(enum_name: String) -> bool {
     len(enum_name) >= 5 &&
-    byte_at(enum_name, 0) == 101 &&
-    byte_at(enum_name, 1) == 110 &&
-    byte_at(enum_name, 2) == 117 &&
-    byte_at(enum_name, 3) == 109 &&
-    byte_at(enum_name, 4) == 58
+    enum_name.byte_at(0) == 101 &&
+    enum_name.byte_at(1) == 110 &&
+    enum_name.byte_at(2) == 117 &&
+    enum_name.byte_at(3) == 109 &&
+    enum_name.byte_at(4) == 58
 }
 
 fn MirModule_gc_enum_variant_matches(enum_name: String, variant_name: String) -> bool {
@@ -92,18 +92,18 @@ fn MirModule_gc_enum_variant_matches(enum_name: String, variant_name: String) ->
     let variant_len = len(variant_name)
     if variant_len >= base_len + 2 &&
     name_match::name_region_equal(variant_name, 0, enum_name, base_start, base_len) &&
-    byte_at(variant_name, base_len) == 58 &&
-    byte_at(variant_name, base_len + 1) == 58 {
+    variant_name.byte_at(base_len) == 58 &&
+    variant_name.byte_at(base_len + 1) == 58 {
         return true
     }
     let pattern_len = 2 + base_len + 2
     let mut i = 0
     while i + pattern_len <= variant_len {
-        if byte_at(variant_name, i) == 58 &&
-        byte_at(variant_name, i + 1) == 58 &&
+        if variant_name.byte_at(i) == 58 &&
+        variant_name.byte_at(i + 1) == 58 &&
         name_match::name_region_equal(variant_name, i + 2, enum_name, base_start, base_len) &&
-        byte_at(variant_name, i + 2 + base_len) == 58 &&
-        byte_at(variant_name, i + 3 + base_len) == 58 {
+        variant_name.byte_at(i + 2 + base_len) == 58 &&
+        variant_name.byte_at(i + 3 + base_len) == 58 {
             return true
         }
         i = i + 1

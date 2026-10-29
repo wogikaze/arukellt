@@ -1,5 +1,5 @@
 use std::host::fs::Fs
-use std::prelude::{clone, ends_with, eq, index_of, substring}
+use std::prelude::{clone, eq}
 use std::text
 use component::wit_parse_flags
 struct ComposeWitFuncSig {
@@ -25,8 +25,8 @@ fn ComposeWitWorld_empty() -> ComposeWitWorld {
 }
 
 fn compose_wit_sidecar_for_wasm(wasm_path: String) -> String {
-    if ends_with(clone(wasm_path), ".wasm") {
-        let base = substring(wasm_path, 0, len(wasm_path) - 5)
+    if clone(wasm_path).ends_with(".wasm") {
+        let base = wasm_path.slice(0, len(wasm_path) - 5)
         return base.concat(".wit")
     }
     wasm_path.concat(".wit")
@@ -41,34 +41,34 @@ fn compose_wit_scan_entries(text: String, keyword: String) -> Vec<ComposeWitFunc
     let key_len = len(keyword)
     let mut pos = 0
     while pos < len(text) {
-        let tail = substring(text, pos, len(text))
-        let rel = index_of(tail, keyword)
+        let tail = text.slice(pos, len(text))
+        let rel = tail.index_of(keyword)
         if rel < 0 {
             break
         }
         let entry_start = pos + rel + key_len
-        let name_tail = substring(text, entry_start, len(text))
-        let colon_rel = index_of(name_tail, ":")
+        let name_tail = text.slice(entry_start, len(text))
+        let colon_rel = name_tail.index_of(":")
         if colon_rel < 0 {
             break
         }
         let name_end = entry_start + colon_rel
-        let name = compose_wit_normalize_sig(substring(text, entry_start, name_end))
+        let name = compose_wit_normalize_sig(text.slice(entry_start, name_end))
         let after_colon = name_end + 1
-        let rest = substring(text, after_colon, len(text))
-        let func_rel = index_of(rest, "func")
+        let rest = text.slice(after_colon, len(text))
+        let func_rel = rest.index_of("func")
         if func_rel < 0 {
             pos = entry_start + 1
             continue
         }
         let sig_start = after_colon + func_rel
-        let sig_tail = substring(text, sig_start, len(text))
-        let semi_rel = index_of(sig_tail, ";")
+        let sig_tail = text.slice(sig_start, len(text))
+        let semi_rel = sig_tail.index_of(";")
         if semi_rel < 0 {
             break
         }
         let sig_end = sig_start + semi_rel
-        let signature = compose_wit_normalize_sig(substring(text, sig_start, sig_end))
+        let signature = compose_wit_normalize_sig(text.slice(sig_start, sig_end))
         push(funcs, ComposeWitFuncSig_new(name, signature))
         pos = sig_end + 1
     }

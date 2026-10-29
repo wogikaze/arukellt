@@ -1,4 +1,3 @@
-use std::prelude::{to_string}
 use std::host::stdio
 
 fn id(x: i32) -> i32 {
@@ -10,7 +9,7 @@ fn main() {
     // if/match/block expressions deliver their result via a result local,
     // not the operand stack. In unstaged call-arg position the argument must
     // be re-read from that local or the call underflows (#921).
-    let s = to_string(if b { 1 } else { 0 })
+    let s = (if b { 1 } else { 0 }).to_string()
     stdio::println(s)
     let r = id(if b { 2 } else { 3 })
     stdio::println(r.to_string())

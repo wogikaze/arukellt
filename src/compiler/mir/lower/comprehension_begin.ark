@@ -1,4 +1,4 @@
-use std::prelude::{clone, starts_with, substring}
+use std::prelude::{clone}
 use std::text
 use mir::lower::ctx_api_nesting
 use mir::lower::ctx_api_loop_state
@@ -36,8 +36,8 @@ fn mir_begin_comprehension(mut ctx: LowerCtx, var_name: String, comp_vec_idx: i3
 
 fn mir_comprehension_elem_type(ctx: LowerCtx, comp_vec_idx: i32) -> String {
     let comp_vec_type = ctx_get_local_type(ctx, comp_vec_idx)
-    if starts_with(clone(comp_vec_type), "vec:") {
-        return substring(comp_vec_type, 4, len(comp_vec_type))
+    if clone(comp_vec_type).starts_with("vec:") {
+        return comp_vec_type.slice(4, len(comp_vec_type))
     }
     "i32"
 }

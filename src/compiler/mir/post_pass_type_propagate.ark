@@ -35,7 +35,7 @@ use corehir::type_info_to_mir_value
 // #829: CalleePropCache makes per-CALL callee lookup O(1) instead of scanning
 // the whole MirModule (and each callee body) on every fixpoint iteration.
 
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 fn mir_module_propagate_local_types(mut m: MirModule) {
     mir_module_propagate_local_types_report(m, 0)
 }
@@ -168,7 +168,7 @@ fn propagate_from_local(mut f: MirFunction, dest: i32, source: i32, mut table: T
     // `new_loc` is a rewritten copy of `dst_loc`; the original is still read
     // below, so the copy must not move it.
     let mut new_loc = clone(dst_loc)
-    let destination_is_temporary = starts_with(local_access::MirLocal_name(dst_loc), "_t")
+    let destination_is_temporary = local_access::MirLocal_name(dst_loc).starts_with("_t")
     // String/vec/hashmap payload locals must not inherit enum variant slots;
     // that makes emit cast field values to the enclosing Ok/Some/String variant.
     let dst_is_payload_container = post_pass_enum_normalize::is_ref_container_type_name(clone(dst_type_name)) ||

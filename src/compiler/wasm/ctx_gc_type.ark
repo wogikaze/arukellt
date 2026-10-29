@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use collections::name_index
 use wasm::ctx_record
 use wasm::ctx_gc_type_locals
@@ -117,8 +117,8 @@ fn SelfEmitCtx_vec_type_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     if eq(clone(tname), String_from("vec:fnref")) || eq(clone(tname), String_from("vec:fn")) {
         return ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx)
     }
-    if starts_with(clone(tname), String_from("vec:")) {
-        let elem = substring(clone(tname), 4, len(tname))
+    if clone(tname).starts_with(String_from("vec:")) {
+        let elem = clone(tname).slice(4, len(tname))
         if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(clone(elem)) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx)
         }
@@ -127,7 +127,7 @@ fn SelfEmitCtx_vec_type_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
         }
         if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) ||
         eq(clone(elem), String_from("Vec")) ||
-        starts_with(clone(elem), String_from("vec:")) ||
+        clone(elem).starts_with(String_from("vec:")) ||
         ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, clone(elem)) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
         }

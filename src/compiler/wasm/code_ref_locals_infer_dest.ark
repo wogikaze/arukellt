@@ -1,7 +1,7 @@
 // GC ref producer inference.
 // Contract: infer_* returns Option<i32> — Some(idx) = Wasm GC type, None = unknown.
 // See docs/research/infer-local-gc-type-option.md.
-use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use corehir::callee_spelling
 use mir::inst_record
 use mir::inst_accessors_operands
@@ -65,9 +65,9 @@ fn is_get_unchecked_callee_name(name: String) -> bool {
     ) {
         return true
     }
-    starts_with(clone(name), "get_unchecked__") ||
-    starts_with(clone(name), "vec_get_unchecked__") ||
-    starts_with(clone(name), "__intrinsic_get_unchecked__")
+    clone(name).starts_with("get_unchecked__") ||
+    clone(name).starts_with("vec_get_unchecked__") ||
+    clone(name).starts_with("__intrinsic_get_unchecked__")
 }
 
 fn raw_array_new_call_callee(name: String) -> bool {
@@ -102,11 +102,11 @@ fn is_vec_push_call_callee(name: String) -> bool {
     eq(clone(name), String_from("Vec::push")) {
         return true
     }
-    starts_with(clone(name), String_from("push__")) ||
-    starts_with(clone(name), String_from("vec_push__")) ||
-    starts_with(clone(name), String_from("Vec::push__")) ||
-    starts_with(clone(name), String_from("__core_vec_push_")) ||
-    starts_with(clone(name), String_from("__intrinsic_push"))
+    clone(name).starts_with(String_from("push__")) ||
+    clone(name).starts_with(String_from("vec_push__")) ||
+    clone(name).starts_with(String_from("Vec::push__")) ||
+    clone(name).starts_with(String_from("__core_vec_push_")) ||
+    clone(name).starts_with(String_from("__intrinsic_push"))
 }
 
 fn is_scalar_get_unchecked_result(type_name: String, vt: i32) -> bool {
@@ -124,25 +124,25 @@ fn is_scalar_get_unchecked_result(type_name: String, vt: i32) -> bool {
 }
 
 fn is_container_return_type_name(ret_name: String) -> bool {
-    starts_with(clone(ret_name), "vec:") ||
-    starts_with(clone(ret_name), "option:") ||
-    starts_with(clone(ret_name), "Option_") ||
-    starts_with(clone(ret_name), "Option:") ||
-    starts_with(clone(ret_name), "Option<") ||
-    starts_with(clone(ret_name), "result:") ||
-    starts_with(clone(ret_name), "Result_") ||
-    starts_with(clone(ret_name), "Result:") ||
-    starts_with(clone(ret_name), "Result<") ||
-    starts_with(clone(ret_name), "hashmap:") ||
-    starts_with(clone(ret_name), "hashset:")
+    clone(ret_name).starts_with("vec:") ||
+    clone(ret_name).starts_with("option:") ||
+    clone(ret_name).starts_with("Option_") ||
+    clone(ret_name).starts_with("Option:") ||
+    clone(ret_name).starts_with("Option<") ||
+    clone(ret_name).starts_with("result:") ||
+    clone(ret_name).starts_with("Result_") ||
+    clone(ret_name).starts_with("Result:") ||
+    clone(ret_name).starts_with("Result<") ||
+    clone(ret_name).starts_with("hashmap:") ||
+    clone(ret_name).starts_with("hashset:")
 }
 
 fn strip_module_prefix_type_name(type_name: String) -> String {
     let n = len(type_name)
     let mut i = n - 2
     while i >= 0 {
-        if byte_at(type_name, i) == 58 && byte_at(type_name, i + 1) == 58 {
-            return substring(type_name, i + 2, n)
+        if type_name.byte_at(i) == 58 && type_name.byte_at(i + 1) == 58 {
+            return type_name.slice(i + 2, n)
         }
         i = i - 1
     }
@@ -174,10 +174,10 @@ fn infer_get_unchecked_elem_from_vec_arg(f: MirFunction, inst: MirInst, ctx: Sel
     }
     let vec_tn = local_access::MirLocal_type_name(function_locals_view::MirFunction_local_at(f, vec_local))
     let mut elem = String_new()
-    if starts_with(clone(vec_tn), "vec:") {
-        elem = substring(clone(vec_tn), 4, len(vec_tn))
-    } else if starts_with(clone(vec_tn), "Vec_") {
-        elem = substring(clone(vec_tn), 4, len(vec_tn))
+    if clone(vec_tn).starts_with("vec:") {
+        elem = clone(vec_tn).slice(4, len(vec_tn))
+    } else if clone(vec_tn).starts_with("Vec_") {
+        elem = clone(vec_tn).slice(4, len(vec_tn))
     } else {
         return Option::None
     }
@@ -188,7 +188,7 @@ fn infer_get_unchecked_elem_from_vec_arg(f: MirFunction, inst: MirInst, ctx: Sel
     // Nested vec elements (vec:vec:i32 receiver → vec:i32 elem): the element
     // is itself a Vec, so map it to that vec family's GC struct layout rather
     // than falling through to the String/name guesses (#922 Vec<Vec<i32>>).
-    if starts_with(clone(elem), "vec:") || starts_with(clone(elem), "Vec") {
+    if clone(elem).starts_with("vec:") || clone(elem).starts_with("Vec") {
         let nested_vec = intrinsic_vec_type::resolve_container_elem_gc_type(ctx, clone(elem))
         if nested_vec >= 0 {
             return Option::Some(nested_vec)
@@ -385,8 +385,8 @@ fn infer_get_unchecked_elem_from_next_call(f: MirFunction, inst: MirInst, ctx: S
                                     let pc = function_param_view::MirFunction_param_count(called)
                                     if pc > 0 {
                                         let pname = function_param_view::MirFunction_param_type_name(called, pc - 1)
-                                        if !starts_with(clone(pname), "vec:") &&
-                                        !starts_with(clone(pname), "Vec") {
+                                        if !clone(pname).starts_with("vec:") &&
+                                        !clone(pname).starts_with("Vec") {
                                             let named = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(pname))
                                             match named {
                                                 Option::Some(named_v) => {
@@ -533,8 +533,8 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
             let fields = sections_types_gc::wasm_sections_types_gc__struct_field_sigs(get_unchecked(sigs, type_slot))
             if field_idx >= 0 && field_idx < len(fields) {
                 let field_sig = get_unchecked(fields, field_idx)
-                if starts_with(clone(field_sig), "ref") {
-                    let offset_str = substring(clone(field_sig), 3, len(field_sig))
+                if clone(field_sig).starts_with("ref") {
+                    let offset_str = clone(field_sig).slice(3, len(field_sig))
                     let offset = sections_types_gc::parse_type_sig_int(offset_str)
                     return Option::Some(ctx_record::SelfEmitCtx_gc_type_base(ctx) + offset)
                 }
@@ -556,11 +556,11 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
         }
         let base_loc = function_locals_view::MirFunction_local_at(f, base)
         let base_tn = local_access::MirLocal_type_name(base_loc)
-        if starts_with(clone(base_tn), "Result") ||
-        starts_with(clone(base_tn), "result:") ||
-        starts_with(clone(base_tn), "Option") ||
-        starts_with(clone(base_tn), "option:") ||
-        starts_with(clone(base_tn), "enum:") {
+        if clone(base_tn).starts_with("Result") ||
+        clone(base_tn).starts_with("result:") ||
+        clone(base_tn).starts_with("Option") ||
+        clone(base_tn).starts_with("option:") ||
+        clone(base_tn).starts_with("enum:") {
             return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
         }
         // A named user struct may have a GC type index that also appears in
@@ -585,7 +585,7 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
             let raw_ret = sections_types_gc_phase7::gc_normalize_vec_type_name(
                 function_return_view::MirFunction_return_type_name(f)
             )
-            if starts_with(clone(raw_ret), String_from("vec:")) {
+            if clone(raw_ret).starts_with(String_from("vec:")) {
                 let from_raw_ret = code_ref_locals_infer_callee::resolve_gc_type_from_return_type_name(ctx, raw_ret)
                 match from_raw_ret {
                     Option::Some(_raw_t) => {

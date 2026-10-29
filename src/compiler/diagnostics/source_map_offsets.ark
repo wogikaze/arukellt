@@ -1,12 +1,12 @@
 use std::text
-use std::prelude::{byte_at, clone, to_string}
+use std::prelude::{clone}
 use diagnostics::record
 pub fn offset_to_line(source: String, offset: i32) -> i32 {
     let n = len(source)
     let mut line: i32 = 1
     let mut i: i32 = 0
     while i < offset && i < n {
-        let c = byte_at(source, i)
+        let c = source.byte_at(i)
         if c == 10 {
             line = line + 1
         }
@@ -20,7 +20,7 @@ pub fn offset_to_column(source: String, offset: i32) -> i32 {
     let mut col: i32 = 1
     let mut i: i32 = 0
     while i < offset && i < n {
-        let c = byte_at(source, i)
+        let c = source.byte_at(i)
         if c == 10 {
             col = 1
         } else {
@@ -44,7 +44,7 @@ pub fn zero_based_position_to_offset(source: String, line: i32, column: i32) -> 
     let mut p = 0
     let mut cur_line = 0
     while cur_line < line && p < n {
-        let c = byte_at(source, p)
+        let c = source.byte_at(p)
         p = p + 1
         if c == 10 {
             cur_line = cur_line + 1
@@ -52,7 +52,7 @@ pub fn zero_based_position_to_offset(source: String, line: i32, column: i32) -> 
     }
     let mut col = 0
     while col < column && p < n {
-        let c = byte_at(source, p)
+        let c = source.byte_at(p)
         if c == 10 {
             return p
         }
@@ -69,8 +69,8 @@ fn span_from_offsets(source: String, file: String, start: i32, end: i32) -> Diag
 fn location_text(source: String, file: String, offset: i32) -> String {
     let mut out = file
     out = out.concat(":")
-    out = out.concat(to_string(offset_to_line(clone(source), offset)))
+    out = out.concat(offset_to_line(clone(source), offset).to_string())
     out = out.concat(":")
-    out = out.concat(to_string(offset_to_column(source, offset)))
+    out = out.concat(offset_to_column(source, offset).to_string())
     out
 }

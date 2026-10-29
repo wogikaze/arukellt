@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
@@ -35,9 +35,9 @@ fn mir_array_element_type_from_value(ctx: LowerCtx, val_idx: i32) -> String {
     if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
         return "String"
     }
-    if starts_with(clone(type_name), "vec:") ||
-    starts_with(clone(type_name), "Vec_") ||
-    starts_with(clone(type_name), "Vec<") {
+    if clone(type_name).starts_with("vec:") ||
+    clone(type_name).starts_with("Vec_") ||
+    clone(type_name).starts_with("Vec<") {
         return clone(type_name)
     }
     if eq(clone(type_name), "i32") || eq(clone(type_name), "I32") ||
@@ -53,7 +53,7 @@ fn mir_array_element_type_from_value(ctx: LowerCtx, val_idx: i32) -> String {
     if eq(clone(type_name), "v128") || eq(clone(type_name), "V128") {
         return "v128"
     }
-    if eq(clone(type_name), "fnref") || starts_with(clone(type_name), "fnref") || eq(clone(type_name), "fn") || starts_with(clone(type_name), "fn(") {
+    if eq(clone(type_name), "fnref") || clone(type_name).starts_with("fnref") || eq(clone(type_name), "fn") || clone(type_name).starts_with("fn(") {
         return "fnref"
     }
     let value_type = ctx_api_local_types::ctx_local_vt(ctx, val_idx)
@@ -76,11 +76,11 @@ fn mir_array_element_type_from_value(ctx: LowerCtx, val_idx: i32) -> String {
 }
 
 fn mir_array_element_type_from_container(container_type: String) -> String {
-    if starts_with(clone(container_type), "vec:") {
-        return substring(container_type, 4, len(container_type))
+    if clone(container_type).starts_with("vec:") {
+        return container_type.slice(4, len(container_type))
     }
-    if starts_with(clone(container_type), "array:") {
-        return substring(container_type, 6, len(container_type))
+    if clone(container_type).starts_with("array:") {
+        return container_type.slice(6, len(container_type))
     }
     String_new()
 }
@@ -95,7 +95,7 @@ fn mir_array_element_vt(element_type: String) -> i32 {
     if eq(clone(element_type), "v128") || eq(clone(element_type), "V128") {
         return value_types::VT_V128()
     }
-    if eq(clone(element_type), "fnref") || starts_with(clone(element_type), "fnref") || eq(clone(element_type), "fn") || starts_with(clone(element_type), "fn(") {
+    if eq(clone(element_type), "fnref") || clone(element_type).starts_with("fnref") || eq(clone(element_type), "fn") || clone(element_type).starts_with("fn(") {
         return value_types::VT_FUNCREF()
     }
     if eq(clone(element_type), "i32") || eq(clone(element_type), "I32") ||

@@ -15,7 +15,7 @@ use corehir::type_info_to_mir_value
 
 // Set type_name / variant_slot on dest based on the producer instruction type.
 // For CALL, looks up the callee's return metadata from the module cache.
-use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 fn propagate_from_producer_inst(
     cache: CalleePropCache,
     mut f: MirFunction,
@@ -68,9 +68,9 @@ fn propagate_from_producer_inst(
         let skip_ret_sync =
         (is_get_unchecked_callee(clone(callee)) && len(dst_type_name) > 0) ||
         (is_vec_constructor_callee(clone(callee)) &&
-            starts_with(clone(dst_type_name), "vec:"))
+            clone(dst_type_name).starts_with("vec:"))
         if is_vec_constructor_callee(clone(callee)) &&
-        starts_with(clone(dst_type_name), "vec:") {
+        clone(dst_type_name).starts_with("vec:") {
             new_loc = typed_mir_sync_module::mir_local_with_type_name_synced(
                 new_loc,
                 clone(dst_type_name),
@@ -147,11 +147,11 @@ fn is_generic_clone_intrinsic(name: String) -> bool {
     eq(clone(name), "__core_string_clone_impl") ||
     eq(clone(name), "raw_string_clone") ||
     eq(clone(name), "RawString__clone") ||
-    starts_with(clone(name), "RawString__clone__") ||
-    ends_with(clone(name), "::clone") ||
-    ends_with(clone(name), "__clone") ||
-    ends_with(clone(name), "::raw_string_clone") ||
-    ends_with(clone(name), "string_clone")
+    clone(name).starts_with("RawString__clone__") ||
+    clone(name).ends_with("::clone") ||
+    clone(name).ends_with("__clone") ||
+    clone(name).ends_with("::raw_string_clone") ||
+    clone(name).ends_with("string_clone")
 }
 
 fn is_get_unchecked_callee(name: String) -> bool {
@@ -166,10 +166,10 @@ fn is_get_unchecked_callee(name: String) -> bool {
     ) {
         return true
     }
-    starts_with(clone(name), "get_unchecked__") ||
-    starts_with(clone(name), "vec_get_unchecked__") ||
-    starts_with(clone(name), "__intrinsic_get_unchecked__") ||
-    starts_with(clone(name), "raw_array_get_unchecked__")
+    clone(name).starts_with("get_unchecked__") ||
+    clone(name).starts_with("vec_get_unchecked__") ||
+    clone(name).starts_with("__intrinsic_get_unchecked__") ||
+    clone(name).starts_with("raw_array_get_unchecked__")
 }
 
 fn is_vec_constructor_callee(name: String) -> bool {
@@ -177,10 +177,10 @@ fn is_vec_constructor_callee(name: String) -> bool {
     eq(clone(name), "Vec__new") ||
     eq(clone(name), "Vec::with_capacity") ||
     eq(clone(name), "Vec__with_capacity") ||
-    starts_with(clone(name), "Vec::new__") ||
-    starts_with(clone(name), "Vec__new__") ||
-    starts_with(clone(name), "Vec::with_capacity__") ||
-    starts_with(clone(name), "Vec__with_capacity__")
+    clone(name).starts_with("Vec::new__") ||
+    clone(name).starts_with("Vec__new__") ||
+    clone(name).starts_with("Vec::with_capacity__") ||
+    clone(name).starts_with("Vec__with_capacity__")
 }
 
 fn type_name_of_call_arg(f: MirFunction, inst: MirInst) -> String {
@@ -247,16 +247,16 @@ fn is_vec_string_returning_intrinsic(name: String) -> bool {
     || eq(clone(name), "lines") {
         return true
     }
-    if ends_with(clone(name), "::split") || ends_with(clone(name), "::chars") || ends_with(clone(name), "::lines") {
+    if clone(name).ends_with("::split") || clone(name).ends_with("::chars") || clone(name).ends_with("::lines") {
         return true
     }
-    if starts_with(clone(name), "split__") || starts_with(clone(name), "chars__") {
+    if clone(name).starts_with("split__") || clone(name).starts_with("chars__") {
         return true
     }
-    if eq(clone(name), "filter_String") || eq(clone(name), "__intrinsic_filter_String") || starts_with(clone(name), "filter_String__") {
+    if eq(clone(name), "filter_String") || eq(clone(name), "__intrinsic_filter_String") || clone(name).starts_with("filter_String__") {
         return true
     }
-    if eq(clone(name), "map_String_String") || eq(clone(name), "__intrinsic_map_String_String") || starts_with(clone(name), "map_String_String__") {
+    if eq(clone(name), "map_String_String") || eq(clone(name), "__intrinsic_map_String_String") || clone(name).starts_with("map_String_String__") {
         return true
     }
     if eq(clone(name), "std::vec::Vec<String>::new") {
@@ -298,10 +298,10 @@ fn is_to_string_name(name: String) -> bool {
     || eq(clone(name), "i64_to_string") {
         return true
     }
-    if starts_with(clone(name), "__intrinsic_") && ends_with(clone(name), "_to_string") {
+    if clone(name).starts_with("__intrinsic_") && clone(name).ends_with("_to_string") {
         return true
     }
-    if ends_with(clone(name), "::to_string") || ends_with(clone(name), "::to_string__1") {
+    if clone(name).ends_with("::to_string") || clone(name).ends_with("::to_string__1") {
         return true
     }
     false
@@ -339,7 +339,7 @@ fn is_common_string_method(name: String) -> bool {
 }
 
 fn is_text_free_function_returning_string(name: String) -> bool {
-    if starts_with(clone(name), "text::") || starts_with(clone(name), "string::") {
+    if clone(name).starts_with("text::") || clone(name).starts_with("string::") {
         let base = strip_module_prefix(name)
         if is_common_string_method(base) {
             return true
@@ -349,18 +349,18 @@ fn is_text_free_function_returning_string(name: String) -> bool {
 }
 
 fn is_string_type_method(name: String) -> bool {
-    if starts_with(clone(name), "String::") {
+    if clone(name).starts_with("String::") {
         let n = len(name)
         let prefix_len = len("String::")
-        let base = substring(name, prefix_len, n)
+        let base = name.slice(prefix_len, n)
         if is_common_string_method(base) || is_string_new_like(base) || is_string_from_like(base) || is_to_string_name(base) {
             return true
         }
     }
-    if starts_with(clone(name), "std::text::String::") {
+    if clone(name).starts_with("std::text::String::") {
         let n = len(name)
         let prefix_len = len("std::text::String::")
-        let base = substring(name, prefix_len, n)
+        let base = name.slice(prefix_len, n)
         if is_common_string_method(base) || is_string_new_like(base) || is_string_from_like(base) || is_to_string_name(base) {
             return true
         }
@@ -373,7 +373,7 @@ fn strip_module_prefix(name: String) -> String {
     let mut last = 0 - 1
     let mut i = 0
     while i + 1 < n {
-        if byte_at(name, i) == 58 && byte_at(name, i + 1) == 58 {
+        if name.byte_at(i) == 58 && name.byte_at(i + 1) == 58 {
             let next = i + 2
             if next < n {
                 last = next
@@ -382,16 +382,16 @@ fn strip_module_prefix(name: String) -> String {
         i = i + 1
     }
     if last >= 0 {
-        return substring(name, last, n)
+        return name.slice(last, n)
     }
     name
 }
 
 fn is_core_string_impl_returning_string(name: String) -> bool {
-    if !starts_with(clone(name), "__core_string_") {
+    if !clone(name).starts_with("__core_string_") {
         return false
     }
-    if !ends_with(clone(name), "_impl") {
+    if !clone(name).ends_with("_impl") {
         return false
     }
     let n = len(name)
@@ -401,7 +401,7 @@ fn is_core_string_impl_returning_string(name: String) -> bool {
     if middle_len <= 0 {
         return false
     }
-    let middle = substring(name, prefix_len, n - suffix_len)
+    let middle = name.slice(prefix_len, n - suffix_len)
     if eq(clone(middle), "concat")
     || eq(clone(middle), "clone")
     || eq(clone(middle), "from_bytes")
@@ -497,8 +497,8 @@ fn intrinsic_strip_mono_suffix(name: String) -> String {
     let name_len = len(name)
     let mut i = 0
     while i < name_len - 1 {
-        if byte_at(name, i) == 95 && byte_at(name, i + 1) == 95 {
-            return substring(name, 0, i)
+        if name.byte_at(i) == 95 && name.byte_at(i + 1) == 95 {
+            return name.slice(0, i)
         }
         i = i + 1
     }

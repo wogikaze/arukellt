@@ -4,7 +4,6 @@ use std::host::stdio
 // get_unchecked resolves (local ann Option_Vec previously left bare Vec →
 // drop/unreachable). Use get_unchecked because free get returns Option<T>.
 
-use std::prelude::{to_string}
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 1)
@@ -14,5 +13,5 @@ fn main() {
         Some(xs) => get_unchecked(xs, 0) + get_unchecked(xs, 1),
         None => 0,
     }
-    stdio::println(to_string(sum))
+    stdio::println(sum.to_string())
 }

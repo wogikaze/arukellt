@@ -1,16 +1,16 @@
-use std::prelude::{byte_at, i32_to_i64}
+use std::prelude::{i32_to_i64}
 fn parse_decimal_as_i64(text: String) -> i64 {
     let n = len(text)
     let mut result: i64 = 0i64
     let mut i = 0
     let mut neg = false
-    if i < n && byte_at(text, i) == 45 {
+    if i < n && text.byte_at(i) == 45 {
         neg = true
         i = i + 1
     }
     let mut stop = false
     while i < n && !stop {
-        let d = byte_at(text, i)
+        let d = text.byte_at(i)
         if d >= 48 && d <= 57 {
             result = result * 10i64 + i32_to_i64(d - 48)
         } else {

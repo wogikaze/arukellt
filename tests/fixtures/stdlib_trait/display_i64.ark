@@ -1,10 +1,9 @@
 use std::core::convert
 use std::test::Test
-use std::prelude::{to_string}
 fn main() {
     let big: i64 = 1000000000000i64
-    Test::assert_eq_string(to_string(big), (big).to_string())
+    Test::assert_eq_string(big.to_string(), (big).to_string())
 
     let neg: i64 = -42i64
-    Test::assert_eq_string(to_string(neg), "-42")
+    Test::assert_eq_string(neg.to_string(), "-42")
 }

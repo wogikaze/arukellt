@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq, get_unchecked, index_of, push, starts_with, substring}
+use std::prelude::{clone, eq, get_unchecked, push}
 use std::text
 use corehir::decl_ann_children
 use corehir::decl_impl_target
@@ -188,7 +188,7 @@ fn return_index_type_name_for_impl(impl_node: AstNode, method_node: AstNode) -> 
     // store. Emitting the nominal spelling here would make the MIR signature
     // (and every call destination typed from it) a struct ref instead of the
     // store alias that the method body actually returns (#917).
-    if starts_with(clone(replaced), "HashSet") {
+    if clone(replaced).starts_with("HashSet") {
         let owner_name = decl_impl_target::impl_self_type_name(impl_node)
         if eq(clone(owner_name), "HashSet_String") {
             return String_from("vec:String")
@@ -219,17 +219,17 @@ fn replace_self_in_type_name(type_name: String, self_name: String) -> String {
     let mut out = String_new()
     let mut rest = type_name
     while len(rest) > 0 {
-        let pos = index_of(clone(rest), String_from("Self"))
+        let pos = clone(rest).index_of(String_from("Self"))
         if pos < 0 {
             out = out.concat(rest)
             rest = String_new()
         } else if is_self_type_token(rest, pos) {
-            out = out.concat(substring(rest, 0, pos))
+            out = out.concat(rest.slice(0, pos))
             out = out.concat(clone(self_name))
-            rest = substring(rest, pos + 4, len(rest))
+            rest = rest.slice(pos + 4, len(rest))
         } else {
-            out = out.concat(substring(rest, 0, pos + 1))
-            rest = substring(rest, pos + 1, len(rest))
+            out = out.concat(rest.slice(0, pos + 1))
+            rest = rest.slice(pos + 1, len(rest))
         }
     }
     out
@@ -238,11 +238,11 @@ fn replace_self_in_type_name(type_name: String, self_name: String) -> String {
 // Type-name encodings separate components with `:`, `_`, `<` and `,`; only
 // an alphanumeric neighbour means the text is part of a longer identifier.
 fn is_self_type_token(type_name: String, pos: i32) -> bool {
-    if pos > 0 && is_type_name_ident_byte(byte_at(type_name, pos - 1)) {
+    if pos > 0 && is_type_name_ident_byte(type_name.byte_at(pos - 1)) {
         return false
     }
     let after = pos + 4
-    if after < len(type_name) && is_type_name_ident_byte(byte_at(type_name, after)) {
+    if after < len(type_name) && is_type_name_ident_byte(type_name.byte_at(after)) {
         return false
     }
     true

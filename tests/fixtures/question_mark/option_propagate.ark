@@ -5,12 +5,11 @@ use std::host::stdio
 //   match expr { Some(v) => v, None => return None }
 // with no From conversion.
 
-use std::prelude::{byte_at}
 fn first_digit(s: String) -> Option<i32> {
     if len(s) == 0 {
         return None
     }
-    let ch = byte_at(s, 0)
+    let ch = s.byte_at(0)
     if ch >= 48 && ch <= 57 {
         Some(ch - 48)
     } else {

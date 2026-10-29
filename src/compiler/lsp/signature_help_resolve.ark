@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq, index_of, substring}
+use std::prelude::{clone, eq}
 use lsp::state_record
 use lsp::symbol_index_lookup
 use lsp::symbol_index_record
@@ -39,7 +39,7 @@ fn split_param_list(inner: String) -> Vec<String> {
     let mut depth = 0
     let mut i = 0
     while i < n {
-        let ch = byte_at(inner, i)
+        let ch = inner.byte_at(i)
         if ch == 60 {
             depth = depth + 1
         } else {
@@ -49,27 +49,27 @@ fn split_param_list(inner: String) -> Vec<String> {
                 }
             } else {
                 if ch == 44 && depth == 0 {
-                    push(out, substring(inner, start, i))
+                    push(out, inner.slice(start, i))
                     start = i + 1
                 }
             }
         }
         i = i + 1
     }
-    push(out, substring(inner, start, n))
+    push(out, inner.slice(start, n))
     out
 }
 
 fn params_from_detail(detail: String) -> Vec<String> {
-    let open = index_of(clone(detail), "(")
+    let open = clone(detail).index_of("(")
     if open < 0 {
         return Vec::new<String>()
     }
-    let close = index_of(substring(detail, open + 1, len(detail)), ")")
+    let close = detail.slice(open + 1, len(detail)).index_of(")")
     if close < 0 {
         return Vec::new<String>()
     }
-    split_param_list(substring(detail, open + 1, open + 1 + close))
+    split_param_list(detail.slice(open + 1, open + 1 + close))
 }
 
 fn resolve_from_index_def(def: symbol_index_lookup::IndexDefinition) -> ResolvedSignature {

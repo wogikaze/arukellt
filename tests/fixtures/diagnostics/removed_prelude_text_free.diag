@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined name: slice; use `s.slice(start, end)` on `String` instead

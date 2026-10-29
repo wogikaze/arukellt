@@ -9,7 +9,7 @@ use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::intrinsics::helpers_numeric_i64_convert
 
 // Handler for: i32_to_i64
-use std::prelude::{clone, ends_with, eq}
+use std::prelude::{clone, eq}
 fn emit_i32_to_i64(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     // Under Memory64 the source i32 is already i64 on the wasm stack.
     if writer_core::writer_memory64(w) {
@@ -40,23 +40,23 @@ fn emit_u64_to_u32(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 fn emit_i8_to_i32(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, callee: String) -> bool {
     let _inst = inst
     let _ctx = ctx
-    if ends_with(clone(callee), "u16_to_i32") {
+    if clone(callee).ends_with("u16_to_i32") {
         // Zero-extend low 16 bits.
         helpers_numeric_i32::emit_i32_const(w, 65535)
         helpers_numeric_i32::emit_i32_and(w)
         return true
     }
-    if ends_with(clone(callee), "i16_to_i32") {
+    if clone(callee).ends_with("i16_to_i32") {
         helpers_numeric_sign_extend::emit_i16_to_i32_sign_extend(w)
         return true
     }
-    if ends_with(clone(callee), "u8_to_i32") {
+    if clone(callee).ends_with("u8_to_i32") {
         // Zero-extend low 8 bits (255u8 must stay 255, not -1).
         helpers_numeric_i32::emit_i32_const(w, 255)
         helpers_numeric_i32::emit_i32_and(w)
         return true
     }
-    if ends_with(clone(callee), "i8_to_i32") {
+    if clone(callee).ends_with("i8_to_i32") {
         helpers_numeric_sign_extend::emit_i8_to_i32_sign_extend(w)
         return true
     }

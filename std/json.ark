@@ -9,7 +9,6 @@
 //! `std/json/parser.ark` (re-exported as `std::json`); the document entry point
 //! is `JsonValue::parse`.
 
-use std::prelude::{byte_at, index_of, slice, substring}
 use std::text
 /// Result of a streaming string parse.
 pub struct JsonStrResult {
@@ -69,7 +68,7 @@ fn json_text_skip_ws(s: String, pos: i32) -> i32 {
     let n = len(s)
     let mut i = pos
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if c == 32 || c == 9 || c == 10 || c == 13 {
             i = i + 1
         } else {
@@ -90,7 +89,7 @@ fn json_text_escape(s: String) -> String {
     let mut out = ""
     let mut i = 0
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if c == 34 {
             out = out.concat("\\\"")
         } else {
@@ -116,7 +115,7 @@ fn json_text_escape(s: String) -> String {
                                         out = out.concat("\\u00")
                                         out = out.concat(json_text_hex_byte(c))
                                     } else {
-                                        out = out.concat(slice(s, i, i + 1))
+                                        out = out.concat(s.slice(i, i + 1))
                                     }
                                 }
                             }
@@ -235,14 +234,14 @@ fn json_text_parse_int_at(s: String, pos: i32) -> i32 {
         return 0
     }
     let mut neg = false
-    if byte_at(s, p) == 45 {
+    if s.byte_at(p) == 45 {
         neg = true
         p = p + 1
     }
     let mut v = 0
     let mut any = false
     while p < n {
-        let c = byte_at(s, p)
+        let c = s.byte_at(p)
         if c < 48 || c > 57 {
             break
         }
@@ -263,14 +262,14 @@ fn json_text_parse_int_at(s: String, pos: i32) -> i32 {
 /// Extract the `Content-Length` value from an LSP/DAP header block.
 /// Returns -1 if the header is absent, otherwise the parsed length.
 fn json_text_content_length(header_block: String) -> i32 {
-    let cl_idx = index_of(header_block, "Content-Length:")
+    let cl_idx = header_block.index_of("Content-Length:")
     if cl_idx < 0 {
         return 0 - 1
     }
     let block_len = len(header_block)
     let mut q = cl_idx + 15
     while q < block_len {
-        let c = byte_at(header_block, q)
+        let c = header_block.byte_at(q)
         if c != 32 && c != 9 {
             break
         }
@@ -278,7 +277,7 @@ fn json_text_content_length(header_block: String) -> i32 {
     }
     let mut clen = 0
     while q < block_len {
-        let c = byte_at(header_block, q)
+        let c = header_block.byte_at(q)
         if c < 48 || c > 57 {
             break
         }
@@ -299,8 +298,8 @@ fn json_text_find_key_pos(json: String, key: String, from: i32) -> i32 {
     if from >= n {
         return 0 - 1
     }
-    let tail = substring(json, from, n)
-    let rel = index_of(tail, needle)
+    let tail = json.slice(from, n)
+    let rel = tail.index_of(needle)
     if rel < 0 {
         return 0 - 1
     }
@@ -340,12 +339,12 @@ fn json_read_hex4(s: String, pos: i32) -> i32 {
     }
     let mut i = 0
     while i < 4 {
-        if !json_is_hex_digit(byte_at(s, pos + i)) {
+        if !json_is_hex_digit(s.byte_at(pos + i)) {
             return 0 - 1
         }
         i = i + 1
     }
-    json_text_hex_value(byte_at(s, pos)) * 4096 + json_text_hex_value(byte_at(s, pos + 1)) * 256 + json_text_hex_value(byte_at(s, pos + 2)) * 16 + json_text_hex_value(byte_at(s, pos + 3))
+    json_text_hex_value(s.byte_at(pos)) * 4096 + json_text_hex_value(s.byte_at(pos + 1)) * 256 + json_text_hex_value(s.byte_at(pos + 2)) * 16 + json_text_hex_value(s.byte_at(pos + 3))
 }
 
 /// Encode a Unicode code point as UTF-8 bytes in a `String`.
@@ -364,7 +363,7 @@ fn json_text_decode_unicode_at(s: String, pos: i32) -> JsonEscapeResult {
     if cv >= 55296 && cv <= 56319 {
         let after = pos + 5
         let n = len(s)
-        if after + 5 < n && byte_at(s, after) == 92 && byte_at(s, after + 1) == 117 {
+        if after + 5 < n && s.byte_at(after) == 92 && s.byte_at(after + 1) == 117 {
             let low = json_read_hex4(s, after + 2)
             if low >= 56320 && low <= 57343 {
                 let cp = 65536 + (cv - 55296) * 1024 + (low - 56320)
@@ -391,7 +390,7 @@ fn json_text_decode_unicode_ascii(s: String, pos: i32) -> String {
 /// `pos` points at the character immediately after the backslash.
 /// Unknown escapes set `ok` to false (RFC 8259 §7).
 fn json_text_decode_escape_at(s: String, pos: i32) -> JsonEscapeResult {
-    let esc = byte_at(s, pos)
+    let esc = s.byte_at(pos)
     if esc == 34 {
         return json_escape_result_new("\"", 1, true)
     }
@@ -461,23 +460,23 @@ fn json_str_result_next_impl(result: JsonStrResult) -> i32 {
 /// including `\uXXXX` surrogate pairs; unknown escapes fail the parse.
 fn json_text_parse_string_at(s: String, pos: i32) -> JsonStrResult {
     let n = len(s)
-    if pos >= n || byte_at(s, pos) != 34 {
+    if pos >= n || s.byte_at(pos) != 34 {
         return json_str_result_new("", pos, false)
     }
     let mut p = pos + 1
     let mut out = ""
     let mut span_start = p
     while p < n {
-        let c = byte_at(s, p)
+        let c = s.byte_at(p)
         if c == 34 {
             if span_start < p {
-                out = out.concat(substring(s, span_start, p))
+                out = out.concat(s.slice(span_start, p))
             }
             return json_str_result_new(out, p + 1, true)
         }
         if c == 92 {
             if span_start < p {
-                out = out.concat(substring(s, span_start, p))
+                out = out.concat(s.slice(span_start, p))
             }
             p = p + 1
             if p >= n {
@@ -518,7 +517,7 @@ fn json_text_get_str_after(json: String, key: String, from: i32) -> String {
     }
     let q = json_text_skip_ws(json, p)
     let n = len(json)
-    if q >= n || byte_at(json, q) != 58 {
+    if q >= n || json.byte_at(q) != 58 {
         return ""
     }
     let r = json_text_skip_ws(json, q + 1)
@@ -539,7 +538,7 @@ fn json_text_get_int(json: String, key: String) -> i32 {
     }
     let q = json_text_skip_ws(json, p)
     let n = len(json)
-    if q >= n || byte_at(json, q) != 58 {
+    if q >= n || json.byte_at(q) != 58 {
         return 0
     }
     json_text_parse_int_at(json, q + 1)

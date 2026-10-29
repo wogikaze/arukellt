@@ -1,4 +1,3 @@
-use std::prelude::{to_string}
 use std::text
 use typechecker::kinds
 use diagnostics::codes
@@ -14,7 +13,7 @@ fn fresh_var(mut env: TypeEnv) -> TypeInfo {
     let tv = contract_typevar::TypeVar_new(id, contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN()))
     contract_env_vars_record::type_env_push_var(env, tv)
     let mut t = contract_type_constructors::TypeInfo_simple(commands::TY_TYPE_VAR())
-    contract_type_mutation::TypeInfo_set_name(t, "t".concat(to_string(id)))
+    contract_type_mutation::TypeInfo_set_name(t, "t".concat(id.to_string()))
     t
 }
 

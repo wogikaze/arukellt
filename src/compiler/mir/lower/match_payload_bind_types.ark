@@ -1,5 +1,5 @@
 // MIR match payload bind types.
-use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
@@ -84,18 +84,18 @@ fn set_gc_payload_bind_type_if_needed(mut ctx: LowerCtx, variant_name: String, b
 }
 
 fn normalize_payload_vec_type_name(field_type: String) -> String {
-    if starts_with(clone(field_type), "vec:") {
+    if clone(field_type).starts_with("vec:") {
         return field_type
     }
     if eq(clone(field_type), "Vec") {
         return "vec:i32"
     }
-    if starts_with(clone(field_type), "Vec<") && ends_with(clone(field_type), ">") {
-        let inner = substring(clone(field_type), 4, len(field_type) - 1)
+    if clone(field_type).starts_with("Vec<") && clone(field_type).ends_with(">") {
+        let inner = clone(field_type).slice(4, len(field_type) - 1)
         return "vec:".concat(inner)
     }
-    if starts_with(clone(field_type), "Vec_") {
-        let inner = substring(clone(field_type), 4, len(field_type))
+    if clone(field_type).starts_with("Vec_") {
+        let inner = clone(field_type).slice(4, len(field_type))
         return "vec:".concat(inner)
     }
     String_new()
@@ -135,12 +135,12 @@ fn normalize_payload_elem_type_name(elem_ty: String) -> String {
     if eq(clone(elem_ty), "Vec") {
         return "vec:i32"
     }
-    if starts_with(clone(elem_ty), "Vec<") && ends_with(clone(elem_ty), ">") {
-        let inner = substring(clone(elem_ty), 4, len(elem_ty) - 1)
+    if clone(elem_ty).starts_with("Vec<") && clone(elem_ty).ends_with(">") {
+        let inner = clone(elem_ty).slice(4, len(elem_ty) - 1)
         return "vec:".concat(inner)
     }
-    if starts_with(clone(elem_ty), "Vec_") {
-        return "vec:".concat(substring(clone(elem_ty), 4, len(elem_ty)))
+    if clone(elem_ty).starts_with("Vec_") {
+        return "vec:".concat(clone(elem_ty).slice(4, len(elem_ty)))
     }
     elem_ty
 }
@@ -156,7 +156,7 @@ fn payload_bind_needs_variant_slot(type_name: String, variant_name: String) -> b
     // enum-open. The container's payload type_slot is Outer::Wrap, not
     // Inner — applying it types the bind as the wrong concrete variant
     // (#726 nested_enum).
-    if starts_with(clone(type_name), "enum:") {
+    if clone(type_name).starts_with("enum:") {
         return false
     }
     false
@@ -164,25 +164,25 @@ fn payload_bind_needs_variant_slot(type_name: String, variant_name: String) -> b
 
 fn extract_first_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
-    let rest = substring(scrut_type, prefix_len, len(scrut_type))
+    let rest = scrut_type.slice(prefix_len, len(scrut_type))
     // Split Ok/Err on the LAST encoding separator so nested vec:T /
     // Vec_T / option:T stay intact (#726 toml Result<Vec<T>, E>).
     // result:vec:T:E → last ':'; Result_vec:T_E / Result_Vec_T_E → last '_'.
-    let sep_char = if starts_with(clone(scrut_type), "result:") { 58 } else { 95 }
+    let sep_char = if clone(scrut_type).starts_with("result:") { 58 } else { 95 }
     let last = find_last_sep_char(clone(rest), sep_char)
     if last > 0 {
-        return normalize_payload_elem_type_name(substring(rest, 0, last))
+        return normalize_payload_elem_type_name(rest.slice(0, last))
     }
     normalize_payload_elem_type_name(rest)
 }
 
 fn extract_second_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
-    let rest = substring(scrut_type, prefix_len, len(scrut_type))
-    let sep_char = if starts_with(clone(scrut_type), "result:") { 58 } else { 95 }
+    let rest = scrut_type.slice(prefix_len, len(scrut_type))
+    let sep_char = if clone(scrut_type).starts_with("result:") { 58 } else { 95 }
     let last = find_last_sep_char(clone(rest), sep_char)
     if last >= 0 && last + 1 < len(rest) {
-        return substring(rest, last + 1, len(rest))
+        return rest.slice(last + 1, len(rest))
     }
     String_new()
 }
@@ -191,13 +191,13 @@ fn find_last_sep_char(s: String, sep_char: i32) -> i32 {
     let n = len(s)
     let mut i = n - 1
     while i >= 0 {
-        if byte_at(clone(s), i) == sep_char {
+        if clone(s).byte_at(i) == sep_char {
             // `Module::Type` payloads carry a ':' inside the module path.
             // Splitting there turns `result:Option_String:io::IoError` into
             // the payload hint "Option_String:io:" and opens the inner enum.
-            if sep_char == 58 && i > 0 && byte_at(clone(s), i - 1) == 58 {
+            if sep_char == 58 && i > 0 && clone(s).byte_at(i - 1) == 58 {
                 i = i - 2
-            } else if sep_char == 58 && i + 1 < n && byte_at(clone(s), i + 1) == 58 {
+            } else if sep_char == 58 && i + 1 < n && clone(s).byte_at(i + 1) == 58 {
                 i = i - 2
             } else {
                 return i
@@ -217,25 +217,25 @@ fn payload_type_name_is_gc_ref(ctx: LowerCtx, bind_local: i32) -> bool {
     if eq(clone(type_name), "string") || eq(clone(type_name), "String") {
         return true
     }
-    if starts_with(clone(type_name), "vec:") ||
-    starts_with(clone(type_name), "Vec<") ||
-    starts_with(clone(type_name), "Vec_") ||
+    if clone(type_name).starts_with("vec:") ||
+    clone(type_name).starts_with("Vec<") ||
+    clone(type_name).starts_with("Vec_") ||
     eq(clone(type_name), "Vec") {
         return true
     }
-    if starts_with(clone(type_name), "hashmap:") {
+    if clone(type_name).starts_with("hashmap:") {
         return true
     }
-    if starts_with(clone(type_name), "option:") || starts_with(clone(type_name), "Option_") {
+    if clone(type_name).starts_with("option:") || clone(type_name).starts_with("Option_") {
         return true
     }
-    if starts_with(clone(type_name), "Result_") || starts_with(clone(type_name), "result:") {
+    if clone(type_name).starts_with("Result_") || clone(type_name).starts_with("result:") {
         return true
     }
-    if starts_with(clone(type_name), "enum:") {
+    if clone(type_name).starts_with("enum:") {
         return true
     }
-    if starts_with(clone(type_name), "struct:") {
+    if clone(type_name).starts_with("struct:") {
         return true
     }
     false

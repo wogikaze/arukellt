@@ -9,7 +9,7 @@ use wasm::hash_aliases
 
 // True when callee param at param_idx (0-based) is i64 per signature spine.
 // Used to force bare int literals to CONST_I64 / extend i32 locals before call.
-use std::prelude::{byte_at, clone, contains, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 fn mir_callee_param_is_i64(ctx: LowerCtx, callee_name: String, param_idx: i32) -> bool {
     let decided = mir_callee_param_i64_decision(ctx, clone(callee_name), param_idx)
     // 1 = i64, 0 = not i64, -1 = spine miss
@@ -25,7 +25,7 @@ fn mir_should_force_int_lit_i64(ctx: LowerCtx, callee_name: String, param_idx: i
         return false
     }
     // Conversion intrinsics that take i32 must keep CONST_I32 args.
-    if contains(clone(callee_name), String_from("i32_to_i64")) || contains(clone(callee_name), String_from("u32_to_u64")) {
+    if clone(callee_name).contains(String_from("i32_to_i64")) || clone(callee_name).contains(String_from("u32_to_u64")) {
         return false
     }
     let decided = mir_callee_param_i64_decision(ctx, clone(callee_name), param_idx)
@@ -46,11 +46,11 @@ fn mir_is_vec_with_capacity_callee(callee_name: String) -> bool {
     eq(clone(callee_name), String_from("Vec__with_capacity")) {
         return true
     }
-    if starts_with(clone(callee_name), String_from("Vec::with_capacity__")) ||
-    starts_with(clone(callee_name), String_from("Vec__with_capacity__")) {
+    if clone(callee_name).starts_with(String_from("Vec::with_capacity__")) ||
+    clone(callee_name).starts_with(String_from("Vec__with_capacity__")) {
         return true
     }
-    if starts_with(clone(callee_name), String_from("Vec_with_capacity_")) {
+    if clone(callee_name).starts_with(String_from("Vec_with_capacity_")) {
         return true
     }
     false
@@ -66,17 +66,17 @@ fn mir_should_wrap_i64_arg_to_i32(ctx: LowerCtx, callee_name: String, param_idx:
 }
 
 fn mir_callee_name_accepts_i32_narrow_from_i64(callee_name: String) -> bool {
-    if contains(clone(callee_name), String_from("format_i32")) {
+    if clone(callee_name).contains(String_from("format_i32")) {
         return true
     }
-    if contains(clone(callee_name), String_from("hashmap_set")) ||
-    contains(clone(callee_name), String_from("hashmap_insert")) ||
-    contains(clone(callee_name), String_from("hashmap_get")) ||
-    contains(clone(callee_name), String_from("hashmap_contains")) {
+    if clone(callee_name).contains(String_from("hashmap_set")) ||
+    clone(callee_name).contains(String_from("hashmap_insert")) ||
+    clone(callee_name).contains(String_from("hashmap_get")) ||
+    clone(callee_name).contains(String_from("hashmap_contains")) {
         return true
     }
     if eq(clone(callee_name), String_from("assert_eq_i32")) ||
-    ends_with(clone(callee_name), String_from("::assert_eq_i32")) {
+    clone(callee_name).ends_with(String_from("::assert_eq_i32")) {
         return true
     }
     false
@@ -147,34 +147,34 @@ fn mir_callee_param_is_funcref(ctx: LowerCtx, callee_name: String, param_idx: i3
 }
 
 fn mir_callee_name_suggests_i64_args(callee_name: String) -> bool {
-    if contains(clone(callee_name), String_from("i32_to_i64")) || contains(clone(callee_name), String_from("u32_to_u64")) {
+    if clone(callee_name).contains(String_from("i32_to_i64")) || clone(callee_name).contains(String_from("u32_to_u64")) {
         return false
     }
     // SIMD intrinsics carry their operand types in the call site: the i64x2
     // lane name does not make the i32 shift amount an i64. Stretching it
     // leaves an i64 operand for i64x2.shl on memory32 (#917).
-    if starts_with(clone(callee_name), String_from("__simd_")) {
+    if clone(callee_name).starts_with(String_from("__simd_")) {
         return false
     }
     // Element-type suffixes (*_i64) do not mean the trailing arg is i64.
     // vec_get_unchecked_i64 keeps an i32 index; extending it breaks validate (#807).
-    if contains(clone(callee_name), String_from("get_unchecked")) {
+    if clone(callee_name).contains(String_from("get_unchecked")) {
         return false
     }
-    if contains(clone(callee_name), String_from("i64")) {
+    if clone(callee_name).contains(String_from("i64")) {
         return true
     }
     if eq(clone(callee_name), String_from("seek")) {
         return true
     }
-    ends_with(clone(callee_name), String_from("::seek"))
+    clone(callee_name).ends_with(String_from("::seek"))
 }
 
 fn mir_callee_short_name(callee_name: String) -> String {
     let mut i = len(callee_name) - 1
     while i >= 0 {
-        if byte_at(callee_name, i) == 58 {
-            return substring(clone(callee_name), i + 1, len(callee_name))
+        if callee_name.byte_at(i) == 58 {
+            return clone(callee_name).slice(i + 1, len(callee_name))
         }
         i = i - 1
     }

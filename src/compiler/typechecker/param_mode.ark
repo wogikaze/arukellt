@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use typechecker::ast_access
 use typechecker::ast_expr_predicates
 use typechecker::contract_fn_sig
@@ -451,8 +451,8 @@ fn place_keys_overlap(left: String, right: String) -> bool {
     let left_bracket = clone(left).concat("[")
     let right_dot = clone(right).concat(".")
     let right_bracket = clone(right).concat("[")
-    return starts_with(clone(left), right_dot) ||
-    starts_with(clone(left), right_bracket) ||
-    starts_with(clone(right), left_dot) ||
-    starts_with(clone(right), left_bracket)
+    return clone(left).starts_with(right_dot) ||
+    clone(left).starts_with(right_bracket) ||
+    clone(right).starts_with(left_dot) ||
+    clone(right).starts_with(left_bracket)
 }

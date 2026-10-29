@@ -1,5 +1,5 @@
 use std::text
-use std::prelude::{byte_at, clone, eq, index_of, substring}
+use std::prelude::{clone, eq}
 use collections::name_index
 use typechecker::associated_types
 use typechecker::contract_fn_sig
@@ -164,7 +164,7 @@ fn is_var_projection_receiver(env: TypeEnv, recv_ty: TypeInfo) -> bool {
     if sep <= 0 {
         return false
     }
-    let owner = substring(clone(name), 0, sep)
+    let owner = clone(name).slice(0, sep)
     let count = len(env.current_fn_type_params)
     let mut i = 0
     while i < count {
@@ -185,7 +185,7 @@ fn erase_impl_owner_args(name: String) -> String {
     let mut lt = 0 - 1
     let mut i = 0
     while i < n {
-        if byte_at(name, i) == 60 {
+        if name.byte_at(i) == 60 {
             lt = i
             i = n
         }
@@ -198,10 +198,10 @@ fn erase_impl_owner_args(name: String) -> String {
     let mut gt = 0 - 1
     i = lt
     while i < n {
-        if byte_at(name, i) == 60 {
+        if name.byte_at(i) == 60 {
             depth = depth + 1
         }
-        if byte_at(name, i) == 62 {
+        if name.byte_at(i) == 62 {
             depth = depth - 1
             if depth == 0 {
                 gt = i
@@ -213,7 +213,7 @@ fn erase_impl_owner_args(name: String) -> String {
     if gt < 0 {
         return name
     }
-    substring(name, 0, lt).concat(substring(name, gt + 1, n))
+    name.slice(0, lt).concat(name.slice(gt + 1, n))
 }
 
 // `enclosing_fn` stores FnSig_name of the body being checked: bare decl
@@ -235,7 +235,7 @@ fn enclosing_matches_instantiation(site_name: String, fn_name: String) -> bool {
     if eq(clone(site_erased), clone(fn_erased)) {
         return true
     }
-    if index_of(clone(site_name), String_from("::")) < 0 {
+    if clone(site_name).index_of(String_from("::")) < 0 {
         if eq(names::unqualified_type_name(clone(fn_erased)), clone(site_name)) {
             return true
         }
@@ -305,8 +305,8 @@ fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_t
                     if sep >= 0 && len(bound_args) > 0 {
                         let trait_entry = trait_method_registry::lookup_trait_method(
                             env,
-                            substring(clone(site.fn_name), 0, sep),
-                            substring(clone(site.fn_name), sep + 2, len(site.fn_name))
+                            clone(site.fn_name).slice(0, sep),
+                            clone(site.fn_name).slice(sep + 2, len(site.fn_name))
                         )
                         if contract_fn_sig::FnSig_has_name(
                             contract_trait_method_record::trait_method_entry_sig(trait_entry)
@@ -316,7 +316,7 @@ fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_t
                             _rebound = mint_trait_method_instance(
                                 env,
                                 trait_entry,
-                                substring(clone(site.fn_name), sep + 2, len(site.fn_name)),
+                                clone(site.fn_name).slice(sep + 2, len(site.fn_name)),
                                 get_unchecked(bound_args, 0)
                             )
                             resolved_via_trait = true

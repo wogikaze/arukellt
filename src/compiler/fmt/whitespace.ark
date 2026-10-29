@@ -1,11 +1,11 @@
 use std::text
-use std::prelude::{byte_at, clone, substring}
+use std::prelude::{clone}
 
 fn fmt_normalize_line(line: String) -> String {
     let n = len(clone(line))
     let mut end = n
     while end > 0 {
-        let c = byte_at(clone(line), end - 1)
+        let c = clone(line).byte_at(end - 1)
         if c != 32 && c != 9 {
             break
         }
@@ -14,11 +14,11 @@ fn fmt_normalize_line(line: String) -> String {
     let mut result = String_new()
     let mut pos = 0
     while pos < end {
-        let c = byte_at(clone(line), pos)
+        let c = clone(line).byte_at(pos)
         if c == 9 {
             result = result.concat("    ")
         } else {
-            result = result.concat(substring(clone(line), pos, pos + 1))
+            result = result.concat(clone(line).slice(pos, pos + 1))
         }
         pos = pos + 1
     }
@@ -72,12 +72,12 @@ fn fmt_split_lines(input: String) -> Vec<String> {
     let mut start = 0
     let mut i = 0
     while i < n {
-        if byte_at(clone(input), i) == 10 {
-            push(lines, substring(clone(input), start, i))
+        if clone(input).byte_at(i) == 10 {
+            push(lines, clone(input).slice(start, i))
             start = i + 1
         }
         i = i + 1
     }
-    push(lines, substring(clone(input), start, n))
+    push(lines, clone(input).slice(start, n))
     lines
 }

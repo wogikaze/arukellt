@@ -1,7 +1,7 @@
 // WIT type mapping — WIT surface types to Arukellt type names (#653, #664, #671, #672).
 
 use std::text
-use std::prelude::{byte_at, clone, eq, index_of, starts_with, substring}
+use std::prelude::{clone, eq}
 use component::wit_names_import
 use component::wit_parse_flags
 use component::wit_parse_text
@@ -9,7 +9,7 @@ use component::wit_parse_text
 fn wit_primitive_to_ark(wit_type: String) -> String {
     let t = wit_trim_type(wit_type)
     if wit_parse_flags::wit_is_flags_type(clone(t)) { return "i32" }
-    if starts_with(clone(t), "future<") || starts_with(clone(t), "stream<") { return "i32" }
+    if clone(t).starts_with("future<") || clone(t).starts_with("stream<") { return "i32" }
     if eq(clone(t), "s32") || eq(clone(t), "u32") { return "i32" }
     if eq(clone(t), "s64") || eq(clone(t), "u64") { return "i64" }
     if eq(clone(t), "f32") { return "f32" }
@@ -26,17 +26,17 @@ fn wit_trim_type(t: String) -> String {
     let n = len(t)
     let mut start = 0
     while start < n {
-        let ch = byte_at(t, start)
+        let ch = t.byte_at(start)
         if ch != 32 && ch != 9 && ch != 10 && ch != 13 { break }
         start = start + 1
     }
     let mut end = n
     while end > start {
-        let ch = byte_at(t, end - 1)
+        let ch = t.byte_at(end - 1)
         if ch != 32 && ch != 9 && ch != 10 && ch != 13 { break }
         end = end - 1
     }
-    substring(t, start, end)
+    t.slice(start, end)
 }
 
 fn wit_record_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
@@ -101,26 +101,26 @@ fn wit_variant_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String>
 
 fn wit_generic_args(t: String) -> Vec<String> {
     let mut args = Vec::new<String>()
-    let open = index_of(t, "<")
+    let open = t.index_of("<")
     if open < 0 { return args }
     let mut close = len(t) - 1
-    while close > open && byte_at(t, close) != 62 { close = close - 1 }
+    while close > open && t.byte_at(close) != 62 { close = close - 1 }
     if close <= open { return args }
-    let inner = substring(t, open + 1, close)
+    let inner = t.slice(open + 1, close)
     let mut start = 0
     let mut depth = 0
     let mut i = 0
     while i < len(inner) {
-        let ch = byte_at(inner, i)
+        let ch = inner.byte_at(i)
         if ch == 60 { depth = depth + 1 }
         if ch == 62 { depth = depth - 1 }
         if ch == 44 && depth == 0 {
-            push(args, wit_trim_type(substring(inner, start, i)))
+            push(args, wit_trim_type(inner.slice(start, i)))
             start = i + 1
         }
         i = i + 1
     }
-    if start < len(inner) { push(args, wit_trim_type(substring(inner, start, len(inner)))) }
+    if start < len(inner) { push(args, wit_trim_type(inner.slice(start, len(inner)))) }
     args
 }
 
@@ -142,12 +142,12 @@ fn wit_type_to_ark(wit_type: String, alias: String, doc: wit_parse_text::WitPars
     let variant_ark = wit_variant_ark_names(doc)
     let t = wit_trim_type(wit_type)
     if len(t) == 0 { return "()" }
-    if starts_with(clone(t), "list<") { return wit_render_ark_generic("Vec", wit_generic_args(t), alias, doc) }
-    if starts_with(clone(t), "option<") { return wit_render_ark_generic("Option", wit_generic_args(t), alias, doc) }
-    if starts_with(clone(t), "result<") { return wit_render_ark_generic("Result", wit_generic_args(t), alias, doc) }
-    if starts_with(clone(t), "tuple<") { return wit_render_ark_generic("Tuple", wit_generic_args(t), alias, doc) }
-    if starts_with(clone(t), "future<") { return wit_render_ark_generic("Future", wit_generic_args(t), alias, doc) }
-    if starts_with(clone(t), "stream<") { return wit_render_ark_generic("Stream", wit_generic_args(t), alias, doc) }
+    if clone(t).starts_with("list<") { return wit_render_ark_generic("Vec", wit_generic_args(t), alias, doc) }
+    if clone(t).starts_with("option<") { return wit_render_ark_generic("Option", wit_generic_args(t), alias, doc) }
+    if clone(t).starts_with("result<") { return wit_render_ark_generic("Result", wit_generic_args(t), alias, doc) }
+    if clone(t).starts_with("tuple<") { return wit_render_ark_generic("Tuple", wit_generic_args(t), alias, doc) }
+    if clone(t).starts_with("future<") { return wit_render_ark_generic("Future", wit_generic_args(t), alias, doc) }
+    if clone(t).starts_with("stream<") { return wit_render_ark_generic("Stream", wit_generic_args(t), alias, doc) }
     let rec_idx = wit_record_index(rec_wit, clone(t))
     if rec_idx >= 0 { return clone(alias).concat("::".concat(clone(get_unchecked(rec_ark, rec_idx)))) }
     let enum_idx = wit_enum_index(enum_wit, clone(t))
@@ -178,12 +178,12 @@ fn wit_enum_index(names: Vec<String>, wit_name: String) -> i32 {
 }
 
 fn wit_type_is_composite(t: String) -> bool {
-    starts_with(clone(t), "list<") ||
-    starts_with(clone(t), "option<") ||
-    starts_with(clone(t), "result<") ||
-    starts_with(clone(t), "tuple<") ||
-    starts_with(clone(t), "future<") ||
-    starts_with(clone(t), "stream<")
+    clone(t).starts_with("list<") ||
+    clone(t).starts_with("option<") ||
+    clone(t).starts_with("result<") ||
+    clone(t).starts_with("tuple<") ||
+    clone(t).starts_with("future<") ||
+    clone(t).starts_with("stream<")
 }
 
 fn wit_type_to_valtype(wit_type: String, doc: wit_parse_text::WitParsedInterface) -> String {

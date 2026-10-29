@@ -1,4 +1,4 @@
-use std::prelude::{clone, starts_with}
+use std::prelude::{clone}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
@@ -33,8 +33,8 @@ fn lower_core_let_store_value(mut ctx: LowerCtx, local_idx: i32, mut val_idx: i3
     if len(init_type) > 0 && len(type_name) == 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)
     }
-    if starts_with(clone(type_name), "vec:") {
-        if starts_with(clone(init_type), "vec:") || len(init_type) == 0 {
+    if clone(type_name).starts_with("vec:") {
+        if clone(init_type).starts_with("vec:") || len(init_type) == 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, val_idx, clone(type_name))
         }
     }

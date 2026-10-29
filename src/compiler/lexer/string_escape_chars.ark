@@ -1,4 +1,3 @@
-use std::prelude::{substring}
 fn escaped_string_fragment(lex: Lexer, esc: i32) -> String {
     if esc == 110 {
         return "\n"
@@ -15,5 +14,5 @@ fn escaped_string_fragment(lex: Lexer, esc: i32) -> String {
     if esc == 34 {
         return "\""
     }
-    substring(lex.src, lex.pos - 1, lex.pos)
+    lex.src.slice(lex.pos - 1, lex.pos)
 }

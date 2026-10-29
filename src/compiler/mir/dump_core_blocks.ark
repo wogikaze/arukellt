@@ -1,6 +1,5 @@
 use std::host::stdio
 use std::text
-use std::prelude::{to_string}
 use mir::block_dominance_access
 use mir::block_inst_access
 use mir::block_phi_access
@@ -23,11 +22,11 @@ fn dump_mir_function_blocks(f: MirFunction) {
         let block = function_block_queries::MirFunction_block_at(f, b)
         let phi_count = block_phi_access::MirBlock_phi_count(block)
         let inst_count = block_inst_access::MirBlock_inst_count(block)
-        let mut block_msg = "    bb".concat(to_string(b))
+        let mut block_msg = "    bb".concat(b.to_string())
         block_msg = block_msg.concat(": phis=")
-        block_msg = block_msg.concat(to_string(phi_count))
+        block_msg = block_msg.concat(phi_count.to_string())
         block_msg = block_msg.concat(" instructions=")
-        block_msg = block_msg.concat(to_string(inst_count))
+        block_msg = block_msg.concat(inst_count.to_string())
         block_msg = block_msg.concat(" succs=")
         block_msg = block_msg.concat(dump_format_edges::mir_format_edges(block_successor_access::MirBlock_succ0(block), block_successor_access::MirBlock_succ1(block)))
         block_msg = block_msg.concat(" preds=")
@@ -53,7 +52,7 @@ fn dump_mir_function_blocks(f: MirFunction) {
                 line = line.concat(" callee=")
                 line = line.concat(inst_accessors_literals::MirInst_str_val(inst))
                 line = line.concat(" fid=")
-                line = line.concat(to_string(inst_record::mir_inst_func_id_raw(inst)))
+                line = line.concat(inst_record::mir_inst_func_id_raw(inst).to_string())
             }
             stdio::eprintln(line)
             j = j + 1

@@ -1,6 +1,5 @@
 use std::host::stdio
 use std::text
-use std::prelude::{to_string}
 use parser::ast_kind_fields
 use parser::core_ast_text_fields
 use parser::core_ast_literal_fields
@@ -27,7 +26,7 @@ fn print_ast(node: AstNode, depth: i32) {
         line = line.concat("(".concat(node_text.concat(")")))
     }
     if node_kind == kinds::NK_INT_LIT() {
-        line = line.concat("(".concat(to_string(core_ast_literal_fields::AstNode_int_val(node)).concat(")")))
+        line = line.concat("(".concat(core_ast_literal_fields::AstNode_int_val(node).to_string().concat(")")))
     }
     stdio::println(line)
     let mut i = 0

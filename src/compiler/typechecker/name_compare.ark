@@ -1,4 +1,4 @@
-use std::prelude::{clone, ends_with, eq, index_of}
+use std::prelude::{clone, eq}
 use std::text
 use typechecker::contract_type_access
 fn same_named_type(a: TypeInfo, b: TypeInfo) -> bool {
@@ -31,17 +31,17 @@ fn same_type_name(left: String, right: String) -> bool {
     if eq(clone(left), clone(right)) {
         return true
     }
-    if index_of(left, "::") < 0 && ends_with(clone(right), "::".concat(clone(left))) {
+    if left.index_of("::") < 0 && clone(right).ends_with("::".concat(clone(left))) {
         return true
     }
-    if index_of(right, "::") < 0 && ends_with(clone(left), "::".concat(clone(right))) {
+    if right.index_of("::") < 0 && clone(left).ends_with("::".concat(clone(right))) {
         return true
     }
     // Imported module aliases can leave both names qualified: `iter::VecIter`
     // versus the canonical `std::core::iter::VecIter`. Treat a complete path
     // suffix as the same nominal name until module identity is structural.
-    if ends_with(clone(left), "::".concat(clone(right))) {
+    if clone(left).ends_with("::".concat(clone(right))) {
         return true
     }
-    ends_with(clone(right), "::".concat(clone(left)))
+    clone(right).ends_with("::".concat(clone(left)))
 }

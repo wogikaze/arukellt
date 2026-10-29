@@ -6,7 +6,7 @@
 //   SubF{N}_S_...   - final subtype of type at index {N} with struct body S_...
 //   SubF_GS_f...    - final struct with no supertype (user-defined structs)
 
-use std::prelude::{byte_at, clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use mir::module_gc_enum
 use mir::module_gc_order
@@ -25,10 +25,10 @@ fn emit_struct_type_entry(mut type_sec: WasmWriter, sig: String, gc_type_base: i
 }
 
 fn emit_struct_field_type(mut type_sec: WasmWriter, ft: String, gc_type_base: i32) {
-    if starts_with(clone(ft), "gcsref") {
+    if clone(ft).starts_with("gcsref") {
         // gcsref<slot> is handled by the caller (sections_types_emit)
         // which has access to gc_struct_type_map.  Fall through to ref handling.
-        let _slot = parse_type_sig_int(substring(ft, 6, len(ft)))
+        let _slot = parse_type_sig_int(ft.slice(6, len(ft)))
         // Without gc_struct_type_map, we cannot resolve the slot.
         // Use ref14 as fallback (should not happen in practice).
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
@@ -36,8 +36,8 @@ fn emit_struct_field_type(mut type_sec: WasmWriter, ft: String, gc_type_base: i3
         writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
         return
     }
-    if starts_with(clone(ft), "ref") {
-        let offset_str = substring(ft, 3, len(ft))
+    if clone(ft).starts_with("ref") {
+        let offset_str = ft.slice(3, len(ft))
         let offset = parse_type_sig_int(offset_str)
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(type_sec, gc_type_base + offset)
@@ -53,7 +53,7 @@ fn parse_type_sig_int(s: String) -> i32 {
     let mut val = 0
     let mut i = 0
     while i < n {
-        let c = byte_at(clone(s), i)
+        let c = clone(s).byte_at(i)
         if c >= 48 && c <= 57 {
             val = val * 10 + (c - 48)
         }
@@ -74,8 +74,8 @@ fn emit_array_elem_type(mut type_sec: WasmWriter, elem_type: String, gc_type_bas
         writer_core::emit_byte(type_sec, constants::WASM_STRUCTREF())
         return
     }
-    if starts_with(clone(elem_type), "gcsref") {
-        let slot = parse_type_sig_int(substring(elem_type, 6, len(elem_type)))
+    if clone(elem_type).starts_with("gcsref") {
+        let slot = parse_type_sig_int(elem_type.slice(6, len(elem_type)))
         if slot < len(gc_struct_type_map) {
             let type_idx = get_unchecked(gc_struct_type_map, slot)
             writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
@@ -83,8 +83,8 @@ fn emit_array_elem_type(mut type_sec: WasmWriter, elem_type: String, gc_type_bas
             return
         }
     }
-    if starts_with(clone(elem_type), "ref") {
-        let offset_str = substring(elem_type, 3, len(elem_type))
+    if clone(elem_type).starts_with("ref") {
+        let offset_str = elem_type.slice(3, len(elem_type))
         let offset = parse_type_sig_int(offset_str)
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(type_sec, gc_type_base + offset)
@@ -98,18 +98,18 @@ fn struct_field_sigs(sig: String) -> Vec<String> {
     let sig_len = len(sig)
     let mut si = 0
     while si < sig_len {
-        if byte_at(clone(sig), si) == 95 && si + 1 < sig_len && byte_at(clone(sig), si + 1) == 102 {
+        if clone(sig).byte_at(si) == 95 && si + 1 < sig_len && clone(sig).byte_at(si + 1) == 102 {
             let mut pi = si + 2
-            while pi < sig_len && byte_at(clone(sig), pi) != 95 {
+            while pi < sig_len && clone(sig).byte_at(pi) != 95 {
                 pi = pi + 1
             }
             if pi < sig_len {
                 let type_start = pi + 1
                 let mut type_end = type_start
-                while type_end < sig_len && byte_at(clone(sig), type_end) != 95 {
+                while type_end < sig_len && clone(sig).byte_at(type_end) != 95 {
                     type_end = type_end + 1
                 }
-                push(fields, substring(clone(sig), type_start, type_end))
+                push(fields, clone(sig).slice(type_start, type_end))
                 si = type_end
             } else {
                 si = si + 2
@@ -122,14 +122,14 @@ fn struct_field_sigs(sig: String) -> Vec<String> {
 }
 
 fn array_elem_type(sig: String) -> String {
-    substring(sig, 2, len(sig))
+    sig.slice(2, len(sig))
 }
 
 fn find_type_sig_char(s: String, c: i32) -> i32 {
     let n = len(s)
     let mut i = 0
     while i < n {
-        if byte_at(clone(s), i) == c { return i }
+        if clone(s).byte_at(i) == c { return i }
         i = i + 1
     }
     0 - 1
@@ -263,7 +263,7 @@ fn gc_hashmap_str_fn_type_sig() -> String {
 }
 
 fn gc_struct_sig_as_final(sig: String) -> String {
-    if starts_with(clone(sig), "GS_f") {
+    if clone(sig).starts_with("GS_f") {
         return "SubF_".concat(sig)
     }
     // A zero-field user struct has the bare `GS` sig. It must still be a

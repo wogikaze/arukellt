@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::prelude::{byte_at, clone, eq}
+use std::prelude::{clone, eq}
 use std::text
 use main::args_parse_flags
 use main::args_parse_opts
@@ -140,33 +140,33 @@ fn arg_is_check_command(arg: String) -> bool {
     if len(clone(arg)) != 5 {
         return false
     }
-    byte_at(clone(arg), 0) == 99 && byte_at(clone(arg), 1) == 104 && byte_at(clone(arg), 2) == 101 && byte_at(clone(arg), 3) == 99 && byte_at(clone(arg), 4) == 107
+    clone(arg).byte_at(0) == 99 && clone(arg).byte_at(1) == 104 && clone(arg).byte_at(2) == 101 && clone(arg).byte_at(3) == 99 && clone(arg).byte_at(4) == 107
 }
 
 fn arg_is_compile_command(arg: String) -> bool {
     if len(clone(arg)) != 7 {
         return false
     }
-    byte_at(clone(arg), 0) == 99 &&
-    byte_at(clone(arg), 1) == 111 &&
-    byte_at(clone(arg), 2) == 109 &&
-    byte_at(clone(arg), 3) == 112 &&
-    byte_at(clone(arg), 4) == 105 &&
-    byte_at(clone(arg), 5) == 108 &&
-    byte_at(clone(arg), 6) == 101
+    clone(arg).byte_at(0) == 99 &&
+    clone(arg).byte_at(1) == 111 &&
+    clone(arg).byte_at(2) == 109 &&
+    clone(arg).byte_at(3) == 112 &&
+    clone(arg).byte_at(4) == 105 &&
+    clone(arg).byte_at(5) == 108 &&
+    clone(arg).byte_at(6) == 101
 }
 
 fn arg_is_help(arg: String) -> bool {
     if len(clone(arg)) == 6 &&
-    byte_at(clone(arg), 0) == 45 &&
-    byte_at(clone(arg), 1) == 45 &&
-    byte_at(clone(arg), 2) == 104 &&
-    byte_at(clone(arg), 3) == 101 &&
-    byte_at(clone(arg), 4) == 108 &&
-    byte_at(clone(arg), 5) == 112 {
+    clone(arg).byte_at(0) == 45 &&
+    clone(arg).byte_at(1) == 45 &&
+    clone(arg).byte_at(2) == 104 &&
+    clone(arg).byte_at(3) == 101 &&
+    clone(arg).byte_at(4) == 108 &&
+    clone(arg).byte_at(5) == 112 {
         return true
     }
-    len(clone(arg)) == 2 && byte_at(clone(arg), 0) == 45 && byte_at(clone(arg), 1) == 104
+    len(clone(arg)) == 2 && clone(arg).byte_at(0) == 45 && clone(arg).byte_at(1) == 104
 }
 
 fn parse_component_subcommand(argv: Vec<String>, argc: i32, mut opts: CliOptions) {
@@ -232,18 +232,18 @@ fn parse_compose_args(argv: Vec<String>, argc: i32, mut opts: CliOptions) {
 
 fn arg_is_version(arg: String) -> bool {
     if len(clone(arg)) == 9 &&
-    byte_at(clone(arg), 0) == 45 &&
-    byte_at(clone(arg), 1) == 45 &&
-    byte_at(clone(arg), 2) == 118 &&
-    byte_at(clone(arg), 3) == 101 &&
-    byte_at(clone(arg), 4) == 114 &&
-    byte_at(clone(arg), 5) == 115 &&
-    byte_at(clone(arg), 6) == 105 &&
-    byte_at(clone(arg), 7) == 111 &&
-    byte_at(clone(arg), 8) == 110 {
+    clone(arg).byte_at(0) == 45 &&
+    clone(arg).byte_at(1) == 45 &&
+    clone(arg).byte_at(2) == 118 &&
+    clone(arg).byte_at(3) == 101 &&
+    clone(arg).byte_at(4) == 114 &&
+    clone(arg).byte_at(5) == 115 &&
+    clone(arg).byte_at(6) == 105 &&
+    clone(arg).byte_at(7) == 111 &&
+    clone(arg).byte_at(8) == 110 {
         return true
     }
-    len(clone(arg)) == 2 && byte_at(clone(arg), 0) == 45 && byte_at(clone(arg), 1) == 86
+    len(clone(arg)) == 2 && clone(arg).byte_at(0) == 45 && clone(arg).byte_at(1) == 86
 }
 
 fn parse_option_args(argv: Vec<String>, argc: i32, mut opts: CliOptions, start_index: i32) {

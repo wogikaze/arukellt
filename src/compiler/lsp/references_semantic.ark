@@ -1,6 +1,6 @@
 use std::host::fs::Fs
 use std::text
-use std::prelude::{clone, to_string}
+use std::prelude::{clone}
 use analysis::symbol_references
 use analysis::symbols
 use lsp::feature_request
@@ -35,7 +35,7 @@ fn append_location(items: String, uri: String, text: String, start: i32, end: i3
 
 fn build_reference_response(id: i32, items: String) -> String {
     let mut body = "{\"jsonrpc\":\"2.0\",\"id\":"
-    body = body.concat(to_string(id))
+    body = body.concat(id.to_string())
     body = body.concat(",\"result\":[")
     body = body.concat(items)
     body = body.concat("]}")
@@ -44,7 +44,7 @@ fn build_reference_response(id: i32, items: String) -> String {
 
 fn build_highlight_response(id: i32, items: String) -> String {
     let mut body = "{\"jsonrpc\":\"2.0\",\"id\":"
-    body = body.concat(to_string(id))
+    body = body.concat(id.to_string())
     body = body.concat(",\"result\":[")
     body = body.concat(items)
     body = body.concat("]}")
@@ -55,13 +55,13 @@ fn append_highlight(items: String, text: String, start: i32, end: i32) -> String
     let start_pos = positions::offset_to_position(clone(text), start)
     let end_pos = positions::offset_to_position(text, end)
     let mut item = "{\"range\":{\"start\":{\"line\":"
-    item = item.concat(to_string(positions::lsp_position_line(start_pos)))
+    item = item.concat(positions::lsp_position_line(start_pos).to_string())
     item = item.concat(",\"character\":")
-    item = item.concat(to_string(positions::lsp_position_character(start_pos)))
+    item = item.concat(positions::lsp_position_character(start_pos).to_string())
     item = item.concat("},\"end\":{\"line\":")
-    item = item.concat(to_string(positions::lsp_position_line(end_pos)))
+    item = item.concat(positions::lsp_position_line(end_pos).to_string())
     item = item.concat(",\"character\":")
-    item = item.concat(to_string(positions::lsp_position_character(end_pos)))
+    item = item.concat(positions::lsp_position_character(end_pos).to_string())
     item = item.concat("}},\"kind\":1}")
     if len(items) == 0 {
         return item

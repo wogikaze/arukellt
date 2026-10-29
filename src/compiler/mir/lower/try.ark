@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
@@ -98,15 +98,15 @@ fn try_ok_payload_vt(ok_type_name: String) -> i32 {
     if eq(clone(ok_type_name), "i64") || eq(clone(ok_type_name), "I64") {
         return value_types::VT_I64()
     }
-    if starts_with(clone(ok_type_name), "vec:") ||
-    starts_with(clone(ok_type_name), "Vec_") ||
-    starts_with(clone(ok_type_name), "hashmap:") ||
-    starts_with(clone(ok_type_name), "HashMap_") ||
-    starts_with(clone(ok_type_name), "Option_") ||
-    starts_with(clone(ok_type_name), "option:") ||
-    starts_with(clone(ok_type_name), "Result_") ||
-    starts_with(clone(ok_type_name), "result:") ||
-    starts_with(clone(ok_type_name), "enum:") {
+    if clone(ok_type_name).starts_with("vec:") ||
+    clone(ok_type_name).starts_with("Vec_") ||
+    clone(ok_type_name).starts_with("hashmap:") ||
+    clone(ok_type_name).starts_with("HashMap_") ||
+    clone(ok_type_name).starts_with("Option_") ||
+    clone(ok_type_name).starts_with("option:") ||
+    clone(ok_type_name).starts_with("Result_") ||
+    clone(ok_type_name).starts_with("result:") ||
+    clone(ok_type_name).starts_with("enum:") {
         return value_types::VT_GC_REF()
     }
     value_types::VT_I32()
@@ -116,17 +116,17 @@ fn try_ok_payload_vt(ok_type_name: String) -> i32 {
 // For "Result_i32_String" → "i32", "Result_String_String" → "String",
 // "Option_Token" → "Token", etc.
 fn try_extract_ok_payload_type(scrut_type: String) -> String {
-    if starts_with(clone(scrut_type), "Result_") {
+    if clone(scrut_type).starts_with("Result_") {
         return try_extract_first_result_type_param(scrut_type)
     }
-    if starts_with(clone(scrut_type), "result:") {
+    if clone(scrut_type).starts_with("result:") {
         return try_extract_first_result_type_param(scrut_type)
     }
-    if starts_with(clone(scrut_type), "Option_") {
-        return substring(scrut_type, 7, len(scrut_type))
+    if clone(scrut_type).starts_with("Option_") {
+        return scrut_type.slice(7, len(scrut_type))
     }
-    if starts_with(clone(scrut_type), "option:") {
-        return substring(scrut_type, 7, len(scrut_type))
+    if clone(scrut_type).starts_with("option:") {
+        return scrut_type.slice(7, len(scrut_type))
     }
     String_new()
 }
@@ -135,12 +135,12 @@ fn try_extract_ok_payload_type(scrut_type: String) -> String {
 // "Result_i32_String" or "result:i32:String".
 fn try_extract_first_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
-    let rest = substring(scrut_type, prefix_len, len(scrut_type))
+    let rest = scrut_type.slice(prefix_len, len(scrut_type))
     let mut sep = 0 - 1
     let mut i = 0
     let rlen = len(rest)
     while i < rlen {
-        let ch = byte_at(rest, i)
+        let ch = rest.byte_at(i)
         if ch == 95 || ch == 58 {
             sep = i
             i = rlen
@@ -150,7 +150,7 @@ fn try_extract_first_result_type_param(scrut_type: String) -> String {
     if sep < 0 {
         return rest
     }
-    substring(rest, 0, sep)
+    rest.slice(0, sep)
 }
 
 // Extract the Err payload type name from a Result type string.
@@ -158,7 +158,7 @@ fn try_extract_first_result_type_param(scrut_type: String) -> String {
 // "result:i32:AppError" → "AppError", etc.
 // Returns empty string for non-Result types.
 fn try_extract_err_payload_type(scrut_type: String) -> String {
-    if starts_with(clone(scrut_type), "Result_") || starts_with(clone(scrut_type), "result:") {
+    if clone(scrut_type).starts_with("Result_") || clone(scrut_type).starts_with("result:") {
         return try_extract_second_result_type_param(scrut_type)
     }
     String_new()
@@ -168,12 +168,12 @@ fn try_extract_err_payload_type(scrut_type: String) -> String {
 // "Result_i32_AppError" or "result:i32:AppError".
 fn try_extract_second_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
-    let rest = substring(scrut_type, prefix_len, len(scrut_type))
+    let rest = scrut_type.slice(prefix_len, len(scrut_type))
     let mut sep = 0 - 1
     let mut i = 0
     let rlen = len(rest)
     while i < rlen {
-        let ch = byte_at(rest, i)
+        let ch = rest.byte_at(i)
         if ch == 95 || ch == 58 {
             sep = i
             i = rlen
@@ -183,5 +183,5 @@ fn try_extract_second_result_type_param(scrut_type: String) -> String {
     if sep < 0 {
         return String_new()
     }
-    substring(rest, sep + 1, len(rest))
+    rest.slice(sep + 1, len(rest))
 }

@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, ends_with, eq, substring}
+use std::prelude::{clone, eq}
 use std::text
 use typechecker::ast_access
 use typechecker::ast_expr_predicates
@@ -62,7 +62,7 @@ fn enum_name_from_variant_path(path: String) -> String {
     let mut prev_sep = 0 - 1
     let mut i = 0
     while i + 1 < n {
-        if byte_at(path, i) == 58 && byte_at(path, i + 1) == 58 {
+        if path.byte_at(i) == 58 && path.byte_at(i + 1) == 58 {
             prev_sep = last_sep
             last_sep = i
             i = i + 2
@@ -74,9 +74,9 @@ fn enum_name_from_variant_path(path: String) -> String {
         return String_new()
     }
     if prev_sep < 0 {
-        return substring(path, 0, last_sep)
+        return path.slice(0, last_sep)
     }
-    substring(path, prev_sep + 2, last_sep)
+    path.slice(prev_sep + 2, last_sep)
 }
 
 fn enum_type_name_from_variant_path(path: String) -> String {
@@ -84,7 +84,7 @@ fn enum_type_name_from_variant_path(path: String) -> String {
     let mut last_sep = 0 - 1
     let mut i = 0
     while i + 1 < n {
-        if byte_at(path, i) == 58 && byte_at(path, i + 1) == 58 {
+        if path.byte_at(i) == 58 && path.byte_at(i + 1) == 58 {
             last_sep = i
             i = i + 2
             continue
@@ -94,14 +94,14 @@ fn enum_type_name_from_variant_path(path: String) -> String {
     if last_sep < 0 {
         return String_new()
     }
-    substring(path, 0, last_sep)
+    path.slice(0, last_sep)
 }
 
 fn enum_names_match(declared_name: String, enum_name: String) -> bool {
     if eq(clone(declared_name), clone(enum_name)) {
         return true
     }
-    ends_with(clone(declared_name), "::".concat(clone(enum_name)))
+    clone(declared_name).ends_with("::".concat(clone(enum_name)))
 }
 
 fn unknown_type() -> TypeInfo {

@@ -1,9 +1,9 @@
-use std::prelude::{clone, starts_with}
+use std::prelude::{clone}
 use lsp::positions
 use lsp::source_text
 use lsp::symbol_index_lookup
 fn is_stdlib_uri(uri: String) -> bool {
-    starts_with(clone(uri), "file://std/")
+    clone(uri).starts_with("file://std/")
 }
 
 pub fn lookup_stdlib_definition(state: LspState, short_name: String) -> bool {

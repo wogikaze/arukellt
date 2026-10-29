@@ -1,11 +1,10 @@
 use std::host::stdio
-use std::prelude::{to_string}
 use std::text
 fn format_ssa_slot(name: String, ver: i32) -> String {
     let mut out = String_from("%")
     out = out.concat(name)
     out = out.concat(String_from("."))
-    out.concat(to_string(ver))
+    out.concat(ver.to_string())
 }
 
 fn main() {

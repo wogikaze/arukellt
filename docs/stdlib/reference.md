@@ -8,7 +8,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 25 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 17 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 1 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 3 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 65 | Superseded — see migration guidance. |
@@ -300,7 +300,6 @@ push(v, 2)
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `char_to_string` | `(char) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_char_to_string` | Encode a Unicode scalar as canonical UTF-8. |
-| `to_string` | `(any) -> String` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 
 ## Convert
 
@@ -420,15 +419,8 @@ let input = stdio::read_stdin()
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `String_from` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_from` | - |
 | `String_new` | `() -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_new` | - |
-| `byte_at` | `(String, i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_byte_at` | - |
 | `clone` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_clone` | - |
-| `contains` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_contains` | - |
-| `ends_with` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_ends_with` | - |
 | `eq` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_eq` | - |
-| `index_of` | `(String, String) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_index_of` | - |
-| `slice` | `(String, i32, i32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_slice` | - |
-| `starts_with` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_starts_with` | - |
-| `substring` | `(String, i32, i32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_substring` | - |
 
 ## Deprecated APIs
 

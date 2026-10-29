@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use mir::lower::closure_registry
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
@@ -84,7 +84,7 @@ fn lower_core_let(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr)
         // initializer temp so Vec_new emission uses the structref-vec layout.
         let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
         if len(resolved_type_name) > 0 {
-            if starts_with(clone(resolved_type_name), "vec:") || starts_with(clone(resolved_type_name), "hashmap:") {
+            if clone(resolved_type_name).starts_with("vec:") || clone(resolved_type_name).starts_with("hashmap:") {
                 ctx_api_local_types::ctx_set_local_type(ctx, val_idx, clone(resolved_type_name))
                 ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
             }

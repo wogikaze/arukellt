@@ -1,6 +1,6 @@
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{byte_at, clone, contains, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::kinds
 use corehir::type_id
@@ -17,8 +17,8 @@ use wasm::emit_target
 fn gc_layout_plan_name_is_fn(name: String) -> bool {
     eq(clone(name), "fn") ||
     eq(clone(name), "fnref") ||
-    starts_with(clone(name), "fnsig:") ||
-    starts_with(name, "fn(")
+    clone(name).starts_with("fnsig:") ||
+    name.starts_with("fn(")
 }
 
 fn gc_layout_plan_name_is_i32(name: String) -> bool {
@@ -58,11 +58,11 @@ fn gc_layout_plan_vec_offset_from_elem(table: TypeTable, elem_id: TypeId) -> i32
 // The element name of a vec: / Vec< / Vec_ spelling, empty when the
 // container has no single element segment.
 fn gc_layout_plan_vec_elem_name(name: String) -> String {
-    if starts_with(clone(name), String_from("vec:")) {
-        return substring(clone(name), 4, len(name))
+    if clone(name).starts_with(String_from("vec:")) {
+        return clone(name).slice(4, len(name))
     }
-    if starts_with(clone(name), String_from("Vec<")) && ends_with(clone(name), String_from(">")) {
-        return substring(clone(name), 4, len(name) - 1)
+    if clone(name).starts_with(String_from("Vec<")) && clone(name).ends_with(String_from(">")) {
+        return clone(name).slice(4, len(name) - 1)
     }
     String_new()
 }
@@ -85,7 +85,7 @@ fn gc_layout_plan_elem_is_declared_aggregate(table: TypeTable, elem: String) -> 
             if eq(clone(en), clone(elem)) {
                 return true
             }
-            if starts_with(clone(en), String_from("struct:")) &&
+            if clone(en).starts_with(String_from("struct:")) &&
             eq(ctx_struct_layout::strip_struct_type_prefix(en), clone(elem)) {
                 return true
             }
@@ -96,40 +96,40 @@ fn gc_layout_plan_elem_is_declared_aggregate(table: TypeTable, elem: String) -> 
 }
 
 fn gc_layout_plan_vec_offset_from_name(table: TypeTable, name: String) -> i32 {
-    if starts_with(clone(name), "vec:String") ||
-    starts_with(clone(name), "vec:string") ||
-    starts_with(clone(name), "Vec<String>") ||
-    starts_with(clone(name), "Vec<string>") {
+    if clone(name).starts_with("vec:String") ||
+    clone(name).starts_with("vec:string") ||
+    clone(name).starts_with("Vec<String>") ||
+    clone(name).starts_with("Vec<string>") {
         return 19
     }
-    if starts_with(clone(name), "vec:v128") || starts_with(clone(name), "vec:V128") {
+    if clone(name).starts_with("vec:v128") || clone(name).starts_with("vec:V128") {
         return 21
     }
-    if starts_with(clone(name), "vec:i64") || starts_with(clone(name), "vec:I64") {
+    if clone(name).starts_with("vec:i64") || clone(name).starts_with("vec:I64") {
         return 22
     }
-    if starts_with(clone(name), "vec:f64") || starts_with(clone(name), "vec:F64") {
+    if clone(name).starts_with("vec:f64") || clone(name).starts_with("vec:F64") {
         return 23
     }
-    if starts_with(clone(name), "vec:fn") || starts_with(clone(name), "Vec<fn") {
+    if clone(name).starts_with("vec:fn") || clone(name).starts_with("Vec<fn") {
         return 28
     }
-    if starts_with(clone(name), "vec:Option") ||
-    starts_with(clone(name), "vec:Result") ||
-    starts_with(clone(name), "vec:option:") ||
-    starts_with(clone(name), "vec:result:") ||
-    starts_with(clone(name), "vec:enum:") ||
-    starts_with(clone(name), "Vec<Option") ||
-    starts_with(clone(name), "Vec<Result") {
+    if clone(name).starts_with("vec:Option") ||
+    clone(name).starts_with("vec:Result") ||
+    clone(name).starts_with("vec:option:") ||
+    clone(name).starts_with("vec:result:") ||
+    clone(name).starts_with("vec:enum:") ||
+    clone(name).starts_with("Vec<Option") ||
+    clone(name).starts_with("Vec<Result") {
         return 30
     }
-    if starts_with(clone(name), "vec:Vec") ||
-    starts_with(clone(name), "vec:vec:") {
+    if clone(name).starts_with("vec:Vec") ||
+    clone(name).starts_with("vec:vec:") {
         return 25
     }
-    if starts_with(clone(name), "Vec<") &&
-    !(contains(clone(name), "i32") || contains(clone(name), "I32") ||
-        contains(clone(name), "bool") || contains(clone(name), "char")) {
+    if clone(name).starts_with("Vec<") &&
+    !(clone(name).contains("i32") || clone(name).contains("I32") ||
+        clone(name).contains("bool") || clone(name).contains("char")) {
         return 25
     }
     if gc_layout_plan_elem_is_declared_aggregate(
@@ -170,13 +170,13 @@ fn gc_layout_plan_hashmap_offset_from_types(
 }
 
 fn gc_layout_plan_hashmap_offset_from_name(name: String) -> i32 {
-    if starts_with(clone(name), "hashmap:i32fn") { return 31 }
-    if starts_with(clone(name), "hashmap:strfn") { return 32 }
-    if starts_with(clone(name), "hashmap:i32str") ||
-    starts_with(clone(name), "hashmap:i32:String") { return 17 }
-    if starts_with(clone(name), "hashmap:strstr") ||
-    starts_with(clone(name), "hashmap:String:String") { return 18 }
-    if starts_with(clone(name), "hashmap:i32i32") { return 10 }
+    if clone(name).starts_with("hashmap:i32fn") { return 31 }
+    if clone(name).starts_with("hashmap:strfn") { return 32 }
+    if clone(name).starts_with("hashmap:i32str") ||
+    clone(name).starts_with("hashmap:i32:String") { return 17 }
+    if clone(name).starts_with("hashmap:strstr") ||
+    clone(name).starts_with("hashmap:String:String") { return 18 }
+    if clone(name).starts_with("hashmap:i32i32") { return 10 }
     16
 }
 

@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, i32_to_i64}
+use std::prelude::{i32_to_i64}
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
@@ -44,8 +44,8 @@ fn mir_int_literal_needs_i64(node: AstNode) -> bool {
     // array.get_u traps on OOB for one-digit literals (#834 self-compile).
     let mut is_hex_or_bin = false
     if raw_len >= 2 {
-        let c0 = byte_at(raw_text, 0)
-        let c1 = byte_at(raw_text, 1)
+        let c0 = raw_text.byte_at(0)
+        let c1 = raw_text.byte_at(1)
         is_hex_or_bin = c0 == 48 && (c1 == 120 || c1 == 88 || c1 == 98 || c1 == 66)
     }
     let has_small_suffix = literal_int_suffix::mir_int_literal_has_small_suffix(raw_text, raw_len)

@@ -7,7 +7,7 @@ use typechecker::unify
 // are statically specialized. Keep that representation boundary explicit: a
 // type variable is deferred to the enclosing generic body, while a concrete
 // unsupported pair is rejected before it can create a mono instance.
-use std::prelude::{byte_at, clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use std::text
 fn validate_hashmap_constructor(mut env: TypeEnv, fn_name: String, type_args: Vec<TypeInfo>) -> bool {
     if !is_hashmap_api_name(clone(fn_name)) {
@@ -37,7 +37,7 @@ fn validate_hashmap_method(mut env: TypeEnv, fn_name: String, receiver_ty: TypeI
 }
 
 fn is_hashmap_api_name(fn_name: String) -> bool {
-    starts_with(clone(fn_name), String_from("HashMap::"))
+    clone(fn_name).starts_with(String_from("HashMap::"))
 }
 
 fn validate_hashmap_pair(mut env: TypeEnv, key_ty: TypeInfo, value_ty: TypeInfo) -> bool {
@@ -62,7 +62,7 @@ fn is_deferred_hashmap_type(ty: TypeInfo) -> bool {
         return true
     }
     let name = contract_type_access::TypeInfo_name(ty)
-    len(name) == 1 && byte_at(name, 0) >= 65 && byte_at(name, 0) <= 90
+    len(name) == 1 && name.byte_at(0) >= 65 && name.byte_at(0) <= 90
 }
 
 fn is_supported_hashmap_key(ty: TypeInfo) -> bool {
@@ -78,7 +78,7 @@ fn is_supported_hashmap_value(ty: TypeInfo) -> bool {
     let name = contract_type_access::TypeInfo_name(ty)
     eq(clone(name), String_from("fnref")) ||
     eq(clone(name), String_from("fn")) ||
-    starts_with(clone(name), String_from("fn("))
+    clone(name).starts_with(String_from("fn("))
 }
 
 fn hashmap_type_name(ty: TypeInfo) -> String {

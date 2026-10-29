@@ -1,6 +1,6 @@
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{clone, to_string}
+use std::prelude::{clone}
 use std::text
 struct PhiArg {
     pred_block: i32,
@@ -45,7 +45,7 @@ fn format_ssa_value(ssa_name: String, version: i32) -> String {
     let mut out = String_from("%")
     out = out.concat(ssa_name)
     out = out.concat(String_from("."))
-    out.concat(to_string(version))
+    out.concat(version.to_string())
 }
 
 fn try_insert_simple_join_phi(join_block: Block, pred0: Block, pred1: Block, ssa_name: String, dest_vt: i32) -> Phi {
@@ -73,11 +73,11 @@ fn format_phi(phi: Phi) -> String {
     let mut out = String_from("phi ")
     out = out.concat(format_ssa_value(clone(phi.ssa_name), phi.dest_version))
     out = out.concat(String_from(" = [bb"))
-    out = out.concat(to_string(arg0.pred_block))
+    out = out.concat(arg0.pred_block.to_string())
     out = out.concat(String_from(" -> "))
     out = out.concat(format_ssa_value(clone(phi.ssa_name), arg0.version))
     out = out.concat(String_from(", bb"))
-    out = out.concat(to_string(arg1.pred_block))
+    out = out.concat(arg1.pred_block.to_string())
     out = out.concat(String_from(" -> "))
     out = out.concat(format_ssa_value(clone(phi.ssa_name), arg1.version))
     out = out.concat(String_from("] : i32"))

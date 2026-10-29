@@ -1,10 +1,9 @@
 use std::text
-use std::prelude::{to_string}
 fn dap_init_resp(seq: i32, request_seq: i32) -> String {
     let mut body = "{\"seq\":"
-    body = body.concat(to_string(seq))
+    body = body.concat(seq.to_string())
     body = body.concat(",\"type\":\"response\",\"request_seq\":")
-    body = body.concat(to_string(request_seq))
+    body = body.concat(request_seq.to_string())
     body = body.concat(",\"success\":true,\"command\":\"initialize\"")
     body = body.concat(",\"body\":{\"supportsConfigurationDoneRequest\":true}}")
     body
@@ -12,25 +11,25 @@ fn dap_init_resp(seq: i32, request_seq: i32) -> String {
 
 fn dap_launch_resp(seq: i32, request_seq: i32) -> String {
     let mut body = "{\"seq\":"
-    body = body.concat(to_string(seq))
+    body = body.concat(seq.to_string())
     body = body.concat(",\"type\":\"response\",\"request_seq\":")
-    body = body.concat(to_string(request_seq))
+    body = body.concat(request_seq.to_string())
     body = body.concat(",\"success\":true,\"command\":\"launch\",\"body\":{}}")
     body
 }
 
 fn dap_disconnect_resp(seq: i32, request_seq: i32) -> String {
     let mut body = "{\"seq\":"
-    body = body.concat(to_string(seq))
+    body = body.concat(seq.to_string())
     body = body.concat(",\"type\":\"response\",\"request_seq\":")
-    body = body.concat(to_string(request_seq))
+    body = body.concat(request_seq.to_string())
     body = body.concat(",\"success\":true,\"command\":\"disconnect\",\"body\":{}}")
     body
 }
 
 fn dap_init_evt(seq: i32) -> String {
     let mut body = "{\"seq\":"
-    body = body.concat(to_string(seq))
+    body = body.concat(seq.to_string())
     body = body.concat(",\"type\":\"event\",\"event\":\"initialized\"}")
     body
 }

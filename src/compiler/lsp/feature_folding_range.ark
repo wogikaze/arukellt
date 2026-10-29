@@ -1,6 +1,6 @@
 use std::text
 use std::json
-use std::prelude::{byte_at, clone, to_string}
+use std::prelude::{clone}
 use lsp::feature_request
 use lsp::framing
 use lsp::responses
@@ -11,7 +11,7 @@ fn line_has_open_brace(text: String, line: i32) -> bool {
     let mut i = 0
     let mut cur = 0
     while i < len(text) {
-        if byte_at(text, i) == 10 {
+        if text.byte_at(i) == 10 {
             if cur == line {
                 return false
             }
@@ -19,7 +19,7 @@ fn line_has_open_brace(text: String, line: i32) -> bool {
             i = i + 1
             continue
         }
-        if cur == line && byte_at(text, i) == 123 {
+        if cur == line && text.byte_at(i) == 123 {
             return true
         }
         i = i + 1
@@ -32,7 +32,7 @@ fn find_brace_end_line(text: String, start_line: i32) -> i32 {
     let mut i = 0
     let mut cur = 0
     while i < len(text) {
-        let ch = byte_at(text, i)
+        let ch = text.byte_at(i)
         if ch == 10 {
             if cur > start_line && depth <= 0 {
                 return cur - 1
@@ -61,9 +61,9 @@ fn append_folding_entry(out: String, start_line: i32, end_line: i32) -> String {
         body = body.concat(String_from(","))
     }
     body = body.concat(String_from("{\"startLine\":"))
-    body = body.concat(to_string(start_line))
+    body = body.concat(start_line.to_string())
     body = body.concat(String_from(",\"endLine\":"))
-    body = body.concat(to_string(end_line))
+    body = body.concat(end_line.to_string())
     body = body.concat(String_from(",\"kind\":\"region\"}"))
     body
 }
@@ -90,7 +90,7 @@ pub fn handle_folding_range(mut state: LspState, body: String) {
     }
     items = items.concat(String_from("]"))
     let mut out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    out = out.concat(to_string(id))
+    out = out.concat(id.to_string())
     out = out.concat(String_from(",\"result\":"))
     out = out.concat(items)
     out = out.concat(String_from("}"))

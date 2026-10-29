@@ -1,11 +1,11 @@
-use std::prelude::{byte_at, clone, eq, substring}
+use std::prelude::{clone, eq}
 use std::text
 pub fn is_stdlib_path(path: String) -> bool {
     let n = len(path)
     if n < 5 {
         return false
     }
-    eq(substring(path, 0, 5), "std::")
+    eq(path.slice(0, 5), "std::")
 }
 
 pub fn stdlib_path_to_file(path: String) -> String {
@@ -14,20 +14,20 @@ pub fn stdlib_path_to_file(path: String) -> String {
     let mut i = 0
     let mut seg_start = 0
     while i < n {
-        if byte_at(path, i) == 58 && i + 1 < n && byte_at(path, i + 1) == 58 {
-            result = clone(result).concat(substring(clone(path), seg_start, i).concat("/"))
+        if path.byte_at(i) == 58 && i + 1 < n && path.byte_at(i + 1) == 58 {
+            result = clone(result).concat(clone(path).slice(seg_start, i).concat("/"))
             i = i + 2
             seg_start = i
         } else {
             i = i + 1
         }
     }
-    clone(result).concat(substring(clone(path), seg_start, n).concat(".ark"))
+    clone(result).concat(clone(path).slice(seg_start, n).concat(".ark"))
 }
 
 pub fn stdlib_mod_fallback_path(primary: String) -> String {
     let n = len(primary)
-    substring(clone(primary), 0, n - 4).concat("/mod.ark")
+    clone(primary).slice(0, n - 4).concat("/mod.ark")
 }
 test mod "stdlib_path" {
     test "is_std" { assert(is_stdlib_path("std::core")) }

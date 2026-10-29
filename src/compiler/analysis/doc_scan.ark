@@ -1,9 +1,9 @@
-use std::prelude::{byte_at, clone, substring}
+use std::prelude::{clone}
 use std::text
 fn line_start(text: String, offset: i32) -> i32 {
     let mut pos = offset
     while pos > 0 {
-        if byte_at(text, pos - 1) == 10 {
+        if text.byte_at(pos - 1) == 10 {
             return pos
         }
         pos = pos - 1
@@ -13,20 +13,20 @@ fn line_start(text: String, offset: i32) -> i32 {
 
 fn trim_line_prefix(line: String) -> String {
     let mut start = 0
-    while start < len(line) && byte_at(line, start) == 32 {
+    while start < len(line) && line.byte_at(start) == 32 {
         start = start + 1
     }
     if start >= len(line) {
         return String_new()
     }
-    substring(line, start, len(line))
+    line.slice(start, len(line))
 }
 
 fn is_doc_line(line: String) -> bool {
     if len(line) < 3 {
         return false
     }
-    byte_at(line, 0) == 47 && byte_at(line, 1) == 47 && byte_at(line, 2) == 47
+    line.byte_at(0) == 47 && line.byte_at(1) == 47 && line.byte_at(2) == 47
 }
 
 fn doc_text_from_line(line: String) -> String {
@@ -34,10 +34,10 @@ fn doc_text_from_line(line: String) -> String {
         return String_new()
     }
     let mut start = 3
-    if len(line) > 4 && byte_at(line, 3) == 32 {
+    if len(line) > 4 && line.byte_at(3) == 32 {
         start = 4
     }
-    substring(line, start, len(line))
+    line.slice(start, len(line))
 }
 
 fn doc_scan_above_offset(text: String, decl_start: i32) -> String {
@@ -50,7 +50,7 @@ fn doc_scan_above_offset(text: String, decl_start: i32) -> String {
     while pos >= 0 {
         let line_end = if pos == line_begin { decl_start } else { pos + 1 }
         let line_begin_cur = line_start(clone(text), pos)
-        let line = substring(text, line_begin_cur, line_end)
+        let line = text.slice(line_begin_cur, line_end)
         let trimmed = trim_line_prefix(line)
         if len(trimmed) == 0 {
             if len(docs) > 0 { break }

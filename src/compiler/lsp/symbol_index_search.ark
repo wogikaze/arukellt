@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, contains, eq}
+use std::prelude::{clone, eq}
 use std::text
 use lsp::state_record
 use lsp::symbol_index_record
@@ -14,7 +14,7 @@ fn ascii_lower_str(s: String) -> String {
     let mut out = String_new()
     let mut i = 0
     while i < n {
-        out = out.concat(char_to_string(ascii_lower_char(byte_at(s, i))))
+        out = out.concat(char_to_string(ascii_lower_char(s.byte_at(i))))
         i = i + 1
     }
     out
@@ -24,7 +24,7 @@ fn name_matches_query(name: String, query: String) -> bool {
     if len(query) == 0 {
         return true
     }
-    contains(ascii_lower_str(clone(name)), ascii_lower_str(clone(query)))
+    ascii_lower_str(clone(name)).contains(ascii_lower_str(clone(query)))
 }
 
 fn result_key(uri: String, name: String) -> String {

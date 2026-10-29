@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_offset
@@ -50,24 +50,24 @@ fn ctx_is_registered_struct_type(ctx: LowerCtx, struct_name: String) -> bool {
 // for generic-enum spellings, "" otherwise.
 fn ctx_generic_enum_type_name(ctx: LowerCtx, type_name: String) -> String {
     let mut base = String_new()
-    if starts_with(clone(type_name), String_from("?")) {
-        let stripped = substring(clone(type_name), 1, len(type_name))
+    if clone(type_name).starts_with(String_from("?")) {
+        let stripped = clone(type_name).slice(1, len(type_name))
         let sn = len(stripped)
         let mut i = 0
         while i < sn {
-            if byte_at(clone(stripped), i) == 58 {
-                base = substring(clone(stripped), 0, i)
+            if clone(stripped).byte_at(i) == 58 {
+                base = clone(stripped).slice(0, i)
                 i = sn
             }
             i = i + 1
         }
     } else {
         let n = len(type_name)
-        if n > 2 && byte_at(clone(type_name), n - 1) == 62 {
+        if n > 2 && clone(type_name).byte_at(n - 1) == 62 {
             let mut i = 0
             while i < n {
-                if byte_at(clone(type_name), i) == 60 {
-                    base = substring(clone(type_name), 0, i)
+                if clone(type_name).byte_at(i) == 60 {
+                    base = clone(type_name).slice(0, i)
                     i = n
                 }
                 i = i + 1
@@ -96,13 +96,13 @@ fn ctx_maybe_enum_return_type_name(mut ctx: LowerCtx, type_name: String) -> Stri
     if len(type_name) == 0 {
         return type_name
     }
-    if starts_with(clone(type_name), String_from("fnref")) {
+    if clone(type_name).starts_with(String_from("fnref")) {
         return type_name
     }
-    if starts_with(clone(type_name), String_from("fnsig:")) {
+    if clone(type_name).starts_with(String_from("fnsig:")) {
         return type_name
     }
-    if starts_with(clone(type_name), "enum:") {
+    if clone(type_name).starts_with("enum:") {
         return type_name
     }
     // Built-in scalar and String names can also be enum-variant basenames
@@ -119,13 +119,13 @@ fn ctx_maybe_enum_return_type_name(mut ctx: LowerCtx, type_name: String) -> Stri
     if !eq(clone(normalized), clone(type_name)) {
         return ctx_maybe_enum_return_type_name(ctx, normalized)
     }
-    if starts_with(clone(type_name), "vec:") ||
-    starts_with(clone(type_name), "hashmap:") ||
-    starts_with(clone(type_name), "hashset:") ||
-    starts_with(clone(type_name), "option:") ||
-    starts_with(clone(type_name), "Option_") ||
-    starts_with(clone(type_name), "result:") ||
-    starts_with(clone(type_name), "Result_") {
+    if clone(type_name).starts_with("vec:") ||
+    clone(type_name).starts_with("hashmap:") ||
+    clone(type_name).starts_with("hashset:") ||
+    clone(type_name).starts_with("option:") ||
+    clone(type_name).starts_with("Option_") ||
+    clone(type_name).starts_with("result:") ||
+    clone(type_name).starts_with("Result_") {
         return type_name
     }
     let resolved_layout = ctx_resolve_struct_layout_name(ctx, clone(type_name))
@@ -134,10 +134,10 @@ fn ctx_maybe_enum_return_type_name(mut ctx: LowerCtx, type_name: String) -> Stri
     }
     // Normalize angle-bracket forms so GC locals / match payload see
     // the same prefixes as Result_ / option: / vec: (#726 json/toml).
-    if starts_with(clone(type_name), "vec:") {
+    if clone(type_name).starts_with("vec:") {
         return type_name
     }
-    if starts_with(clone(type_name), "hashmap:") {
+    if clone(type_name).starts_with("hashmap:") {
         return type_name
     }
     if eq(clone(type_name), "HashMap") {
@@ -149,13 +149,13 @@ fn ctx_maybe_enum_return_type_name(mut ctx: LowerCtx, type_name: String) -> Stri
     if eq(clone(type_name), "Vec") {
         return type_name
     }
-    if starts_with(clone(type_name), "struct:") {
+    if clone(type_name).starts_with("struct:") {
         return type_name
     }
-    if starts_with(clone(type_name), "option:") || starts_with(clone(type_name), "Option_") {
+    if clone(type_name).starts_with("option:") || clone(type_name).starts_with("Option_") {
         return type_name
     }
-    if starts_with(clone(type_name), "Result_") || starts_with(clone(type_name), "result:") {
+    if clone(type_name).starts_with("Result_") || clone(type_name).starts_with("result:") {
         return type_name
     }
     if ctx_is_registered_struct_type(ctx, clone(type_name)) {
@@ -192,29 +192,29 @@ fn is_builtin_type_name(type_name: String) -> bool {
     eq(clone(type_name), "v128") ||
     eq(clone(type_name), "fn") ||
     eq(clone(type_name), "fnref") ||
-    starts_with(clone(type_name), String_from("fnref")) ||
-    starts_with(clone(type_name), String_from("fnsig:"))
+    clone(type_name).starts_with(String_from("fnref")) ||
+    clone(type_name).starts_with(String_from("fnsig:"))
 }
 
 fn ctx_normalize_generic_type_name(type_name: String) -> String {
-    if starts_with(clone(type_name), "Vec<") && ends_with(clone(type_name), ">") {
-        let inner = substring(clone(type_name), 4, len(type_name) - 1)
+    if clone(type_name).starts_with("Vec<") && clone(type_name).ends_with(">") {
+        let inner = clone(type_name).slice(4, len(type_name) - 1)
         return "vec:".concat(inner)
     }
-    if starts_with(clone(type_name), "Option<") && ends_with(clone(type_name), ">") {
-        let inner = substring(clone(type_name), 7, len(type_name) - 1)
+    if clone(type_name).starts_with("Option<") && clone(type_name).ends_with(">") {
+        let inner = clone(type_name).slice(7, len(type_name) - 1)
         return "option:".concat(inner)
     }
-    if starts_with(clone(type_name), "Result<") && ends_with(clone(type_name), ">") {
-        let inner = substring(clone(type_name), 7, len(type_name) - 1)
+    if clone(type_name).starts_with("Result<") && clone(type_name).ends_with(">") {
+        let inner = clone(type_name).slice(7, len(type_name) - 1)
         let sep = find_top_level_comma(clone(inner))
         if sep >= 0 {
-            let ok_ty = substring(clone(inner), 0, sep)
-            let err_ty = substring(clone(inner), sep + 1, len(inner))
+            let ok_ty = clone(inner).slice(0, sep)
+            let err_ty = clone(inner).slice(sep + 1, len(inner))
             // Trim a single leading space after the comma if present.
             let mut err = err_ty
-            if len(err) > 0 && byte_at(err, 0) == 32 {
-                err = substring(err, 1, len(err))
+            if len(err) > 0 && err.byte_at(0) == 32 {
+                err = err.slice(1, len(err))
             }
             // Normalize Ok/Err sides so Result<Vec<T>, String> becomes
             // result:vec:T:String (#726 toml navigate Result match).
@@ -232,7 +232,7 @@ fn find_top_level_comma(s: String) -> i32 {
     let mut depth = 0
     let mut i = 0
     while i < n {
-        let ch = byte_at(s, i)
+        let ch = s.byte_at(i)
         if ch == 60 {
             depth = depth + 1
         } else if ch == 62 {
@@ -247,13 +247,13 @@ fn find_top_level_comma(s: String) -> i32 {
 
 fn ctx_struct_semantic_type_name(type_name: String) -> String {
     let mut s = clone(type_name)
-    if starts_with(clone(s), "struct:") {
-        s = substring(s, 7, len(s))
+    if clone(s).starts_with("struct:") {
+        s = s.slice(7, len(s))
         let n = len(s)
         let mut last_colon = 0 - 1
         let mut i = 0
         while i < n {
-            if byte_at(s, i) == 58 {
+            if s.byte_at(i) == 58 {
                 last_colon = i
             }
             i = i + 1
@@ -262,14 +262,14 @@ fn ctx_struct_semantic_type_name(type_name: String) -> String {
             let mut all_digit = true
             let mut j = last_colon + 1
             while j < n {
-                let ch = byte_at(s, j)
+                let ch = s.byte_at(j)
                 if ch < 48 || ch > 57 {
                     all_digit = false
                 }
                 j = j + 1
             }
             if all_digit {
-                s = substring(s, 0, last_colon)
+                s = s.slice(0, last_colon)
             }
         }
     }
@@ -281,8 +281,8 @@ fn ctx_struct_basename(type_name: String) -> String {
     let n = len(s)
     let mut i = n - 2
     while i >= 0 {
-        if byte_at(s, i) == 58 && byte_at(s, i + 1) == 58 {
-            return substring(s, i + 2, n)
+        if s.byte_at(i) == 58 && s.byte_at(i + 1) == 58 {
+            return s.slice(i + 2, n)
         }
         i = i - 1
     }
@@ -378,7 +378,7 @@ fn ctx_is_registered_enum_type(ctx: LowerCtx, enum_name: String) -> bool {
 // Passes through non-"struct:" type names unchanged. Shared by aggregate
 // lowering, closure packing, and GC layout planning.
 fn strip_struct_type_prefix(type_name: String) -> String {
-    if !starts_with(clone(type_name), "struct:") {
+    if !clone(type_name).starts_with("struct:") {
         return type_name
     }
     let n = len(type_name)
@@ -386,7 +386,7 @@ fn strip_struct_type_prefix(type_name: String) -> String {
     let mut last_colon = 0 - 1
     let mut i = 0
     while i < n {
-        if byte_at(type_name, i) == ':' {
+        if type_name.byte_at(i) == ':' {
             if first_colon < 0 {
                 first_colon = i
             }
@@ -397,5 +397,5 @@ fn strip_struct_type_prefix(type_name: String) -> String {
     if first_colon < 0 || last_colon < 0 || first_colon == last_colon {
         return type_name
     }
-    substring(type_name, first_colon + 1, last_colon)
+    type_name.slice(first_colon + 1, last_colon)
 }

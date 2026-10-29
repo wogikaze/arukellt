@@ -1,4 +1,4 @@
-use std::prelude::{clone, contains, eq}
+use std::prelude::{clone, eq}
 use std::text
 use mir::inst_local_get
 use mir::inst_convert
@@ -164,7 +164,7 @@ fn lower_direct_call_expr(mut ctx: LowerCtx, node: AstNode, callee: AstNode, chi
             return callee_name
         }
         let element_name = ast_node::node_text(element_type)
-        if len(element_name) == 0 || contains(clone(element_name), "::") {
+        if len(element_name) == 0 || clone(element_name).contains("::") {
             return callee_name
         }
         let constructor = if eq(clone(callee_name), "Vec::new") {
@@ -185,7 +185,7 @@ fn lower_direct_call_expr(mut ctx: LowerCtx, node: AstNode, callee: AstNode, chi
         let key_name = mir_hashmap_ctor_type_arg_name(key_node)
         let value_name = mir_hashmap_ctor_type_arg_name(value_node)
         if len(key_name) == 0 || len(value_name) == 0 ||
-        contains(clone(key_name), "::") || contains(clone(value_name), "::") {
+        clone(key_name).contains("::") || clone(value_name).contains("::") {
             return source_name
         }
         let pair = String_from("__").concat(key_name.concat(String_from("__").concat(value_name)))

@@ -4,7 +4,7 @@
 //   get_unchecked: local.set idx → struct.get vec_type 0 (data) → local.get idx → array.get A_i32
 //   vec_get: bounds check + struct.get + array.get
 
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use wasm::opcodes
 use wasm::ctx_scratch
 use wasm::ctx_record
@@ -227,7 +227,7 @@ fn emit_vec_get_gc_some_ref(mut w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, is_
                     let open_ty = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
                     if elem_gc_type >= 0 && elem_gc_type == open_ty {
                         some_suffix = "_f1_ref14"
-                    } else if starts_with(clone(elem_name), "enum:") {
+                    } else if clone(elem_name).starts_with("enum:") {
                         some_suffix = "_f1_ref14"
                     } else if intrinsic_vec_access_gc::elem_name_looks_like_enum(ctx, clone(elem_name)) {
                         some_suffix = "_f1_ref14"

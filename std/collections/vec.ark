@@ -18,7 +18,7 @@ use std::core
 use std::core::cmp
 use std::core::iter
 use std::core::raw::RawArray
-use std::prelude::{Slice, byte_at}
+use std::prelude::{Slice}
 
 // ---------------------------------------------------------------------------
 // Inherent impl block for Vec<T> — method syntax (approach (a) for #700).

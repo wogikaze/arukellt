@@ -1,7 +1,6 @@
 use std::test::Test
-use std::prelude::{contains}
 fn main() {
     let s = String_from("hello")
-    Test::assert_false(contains(s, String_from("xyz")))
-    Test::assert_false(contains(s, String_from("hello!")))
+    Test::assert_false(s.contains(String_from("xyz")))
+    Test::assert_false(s.contains(String_from("hello!")))
 }

@@ -50,7 +50,7 @@
 //! `stdin()` is empty and `read_stdin_line()` returns `Ok("")`.
 
 // ─── Error type ───────────────────────────────────────────────────────────────
-use std::prelude::{byte_at, i32_to_i64, i64_to_i32}
+use std::prelude::{i32_to_i64, i64_to_i32}
 use std::text
 
 const NEWLINE_BYTE: i32 = 10

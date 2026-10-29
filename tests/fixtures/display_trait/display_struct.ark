@@ -11,13 +11,13 @@ trait Display {
 
 impl Display for Point {
     fn to_string(self: Point) -> String {
-        ("(".concat(to_string(self.x))).concat(", ").concat(to_string(self.y)).concat(")")
+        ("(".concat(self.x.to_string())).concat(", ").concat(self.y.to_string()).concat(")")
     }
 }
 
 fn main() {
     let p = Point { x: 3, y: 4 }
-    stdio::println(to_string(p))
-    let msg = "Point is ".concat(to_string(p))
+    stdio::println(p.to_string())
+    let msg = "Point is ".concat(p.to_string())
     stdio::println(msg)
 }

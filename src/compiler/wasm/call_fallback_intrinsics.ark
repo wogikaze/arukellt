@@ -1,7 +1,7 @@
 // Intrinsic fallback for a Call-kind core_op whose implementation symbol was
 // removed by DCE. Resolve the spelling to a CoreOp handler before emitting.
 
-use std::prelude::{clone, contains, ends_with, starts_with}
+use std::prelude::{clone}
 use corehir::core_op_binding
 use corehir::core_op_id
 use corehir::core_op_registry_generated
@@ -256,7 +256,7 @@ fn try_emit_name_intrinsic_fallback(
 
 fn resolve_intrinsic_fallback_handler_id(callee: String) -> i32 {
     // Generated handler accessors are metadata, not callable intrinsics.
-    if contains(clone(callee), String_from("core_op_handler_")) {
+    if clone(callee).contains(String_from("core_op_handler_")) {
         return 0 - 1
     }
     let coid = core_op_binding::core_op_binding_lookup_for_callee(clone(callee))
@@ -270,212 +270,212 @@ fn resolve_pattern_fallback_handler_id(callee: String) -> i32 {
     if is_vec_new_pattern(clone(callee)) {
         return fallback_vec_new_handler_id()
     }
-    if starts_with(clone(callee), String_from("__intrinsic_string_eq")) ||
-    ends_with(clone(callee), String_from("String::eq")) ||
-    ends_with(clone(callee), String_from("string_eq")) {
+    if clone(callee).starts_with(String_from("__intrinsic_string_eq")) ||
+    clone(callee).ends_with(String_from("String::eq")) ||
+    clone(callee).ends_with(String_from("string_eq")) {
         return core_op_registry_generated::core_op_handler_text_string_eq()
     }
-    if starts_with(clone(callee), String_from("format_i32")) ||
-    starts_with(clone(callee), String_from("i32::to_string__")) ||
-    ends_with(clone(callee), String_from("::i32_to_string")) ||
-    ends_with(clone(callee), String_from("i32_to_string")) {
+    if clone(callee).starts_with(String_from("format_i32")) ||
+    clone(callee).starts_with(String_from("i32::to_string__")) ||
+    clone(callee).ends_with(String_from("::i32_to_string")) ||
+    clone(callee).ends_with(String_from("i32_to_string")) {
         return core_op_registry_generated::core_op_handler_text_to_string()
     }
-    if starts_with(clone(callee), String_from("format_f64")) ||
-    starts_with(clone(callee), String_from("f64::to_string")) ||
-    ends_with(clone(callee), String_from("::f64_to_string")) {
+    if clone(callee).starts_with(String_from("format_f64")) ||
+    clone(callee).starts_with(String_from("f64::to_string")) ||
+    clone(callee).ends_with(String_from("::f64_to_string")) {
         return core_op_registry_generated::core_op_handler_text_format_f64()
     }
-    if starts_with(clone(callee), String_from("__intrinsic_f32_to_string")) ||
-    starts_with(clone(callee), String_from("f32::to_string")) ||
-    ends_with(clone(callee), String_from("::f32_to_string")) {
+    if clone(callee).starts_with(String_from("__intrinsic_f32_to_string")) ||
+    clone(callee).starts_with(String_from("f32::to_string")) ||
+    clone(callee).ends_with(String_from("::f32_to_string")) {
         return core_op_registry_generated::core_op_handler_text_f32_to_string()
     }
-    if starts_with(clone(callee), String_from("bool::to_string")) ||
-    ends_with(clone(callee), String_from("::bool_to_string")) {
+    if clone(callee).starts_with(String_from("bool::to_string")) ||
+    clone(callee).ends_with(String_from("::bool_to_string")) {
         return core_op_registry_generated::core_op_handler_text_format_bool()
     }
-    if starts_with(clone(callee), String_from("char::to_string")) ||
-    ends_with(clone(callee), String_from("::char_to_string")) {
+    if clone(callee).starts_with(String_from("char::to_string")) ||
+    clone(callee).ends_with(String_from("::char_to_string")) {
         return core_op_registry_generated::core_op_handler_text_char_to_string()
     }
-    if starts_with(clone(callee), String_from("String_new")) {
+    if clone(callee).starts_with(String_from("String_new")) {
         return core_op_registry_generated::core_op_handler_text_String_new()
     }
-    if starts_with(clone(callee), String_from("__intrinsic_i32_to_i64")) ||
-    ends_with(clone(callee), String_from("i32_to_i64")) {
+    if clone(callee).starts_with(String_from("__intrinsic_i32_to_i64")) ||
+    clone(callee).ends_with(String_from("i32_to_i64")) {
         return core_op_registry_generated::core_op_handler_runtime_i32_to_i64()
     }
-    if starts_with(clone(callee), String_from("__intrinsic_i64_to_i32")) ||
-    ends_with(clone(callee), String_from("i64_to_i32")) {
+    if clone(callee).starts_with(String_from("__intrinsic_i64_to_i32")) ||
+    clone(callee).ends_with(String_from("i64_to_i32")) {
         return core_op_registry_generated::core_op_handler_runtime_i64_to_i32()
     }
-    if starts_with(clone(callee), String_from("__intrinsic_i32_to_u16")) ||
-    ends_with(clone(callee), String_from("i32_to_u16")) {
+    if clone(callee).starts_with(String_from("__intrinsic_i32_to_u16")) ||
+    clone(callee).ends_with(String_from("i32_to_u16")) {
         return core_op_registry_generated::core_op_handler_runtime_i32_to_u16()
     }
-    if starts_with(clone(callee), String_from("__intrinsic_i32_to_i16")) ||
-    ends_with(clone(callee), String_from("i32_to_i16")) {
+    if clone(callee).starts_with(String_from("__intrinsic_i32_to_i16")) ||
+    clone(callee).ends_with(String_from("i32_to_i16")) {
         return core_op_registry_generated::core_op_handler_runtime_i32_to_i16()
     }
-    if starts_with(clone(callee), String_from("__intrinsic_u64_to_u32")) ||
-    ends_with(clone(callee), String_from("u64_to_u32")) {
+    if clone(callee).starts_with(String_from("__intrinsic_u64_to_u32")) ||
+    clone(callee).ends_with(String_from("u64_to_u32")) {
         return core_op_registry_generated::core_op_handler_runtime_u64_to_u32()
     }
-    if ends_with(clone(callee), String_from("assert_eq_i64")) {
+    if clone(callee).ends_with(String_from("assert_eq_i64")) {
         return core_op_registry_generated::core_op_handler_runtime_assert_eq_i64()
     }
-    if ends_with(clone(callee), String_from("assert_eq_str")) {
+    if clone(callee).ends_with(String_from("assert_eq_str")) {
         return core_op_registry_generated::core_op_handler_runtime_assert_eq_str()
     }
-    if ends_with(clone(callee), String_from("assert_eq_i32")) ||
-    ends_with(clone(callee), String_from("assert_eq")) {
+    if clone(callee).ends_with(String_from("assert_eq_i32")) ||
+    clone(callee).ends_with(String_from("assert_eq")) {
         return core_op_registry_generated::core_op_handler_runtime_assert_eq()
     }
-    if ends_with(clone(callee), String_from("assert_ne")) {
+    if clone(callee).ends_with(String_from("assert_ne")) {
         return core_op_registry_generated::core_op_handler_runtime_assert_ne()
     }
-    if starts_with(clone(callee), String_from("len_bytes")) ||
-    ends_with(clone(callee), String_from("::len_bytes")) ||
-    ends_with(clone(callee), String_from("__len_bytes")) {
+    if clone(callee).starts_with(String_from("len_bytes")) ||
+    clone(callee).ends_with(String_from("::len_bytes")) ||
+    clone(callee).ends_with(String_from("__len_bytes")) {
         return core_op_registry_generated::core_op_handler_text_len_bytes()
     }
-    if starts_with(clone(callee), String_from("byte_len")) ||
-    ends_with(clone(callee), String_from("::byte_len")) {
+    if clone(callee).starts_with(String_from("byte_len")) ||
+    clone(callee).ends_with(String_from("::byte_len")) {
         return core_op_registry_generated::core_op_handler_string_len()
     }
-    if starts_with(clone(callee), String_from("__intrinsic_len")) ||
-    ends_with(clone(callee), String_from("::len")) ||
-    ends_with(clone(callee), String_from("__len")) {
+    if clone(callee).starts_with(String_from("__intrinsic_len")) ||
+    clone(callee).ends_with(String_from("::len")) ||
+    clone(callee).ends_with(String_from("__len")) {
         return core_op_registry_generated::core_op_handler_string_len()
     }
-    if starts_with(clone(callee), String_from("byte_at")) ||
-    starts_with(clone(callee), String_from("__intrinsic_byte_at")) ||
-    ends_with(clone(callee), String_from("::byte_at")) {
+    if clone(callee).starts_with(String_from("byte_at")) ||
+    clone(callee).starts_with(String_from("__intrinsic_byte_at")) ||
+    clone(callee).ends_with(String_from("::byte_at")) {
         return core_op_registry_generated::core_op_handler_raw_string_byte_at_unchecked()
     }
-    if starts_with(clone(callee), String_from("__intrinsic_concat")) ||
-    ends_with(clone(callee), String_from("::concat")) {
+    if clone(callee).starts_with(String_from("__intrinsic_concat")) ||
+    clone(callee).ends_with(String_from("::concat")) {
         return core_op_registry_generated::core_op_handler_string_concat()
     }
-    if ends_with(clone(callee), String_from("::string_from_bytes")) ||
-    ends_with(clone(callee), String_from("::raw_string_from_bytes")) {
+    if clone(callee).ends_with(String_from("::string_from_bytes")) ||
+    clone(callee).ends_with(String_from("::raw_string_from_bytes")) {
         return core_op_registry_generated::core_op_handler_raw_string_from_bytes()
     }
-    if starts_with(clone(callee), String_from("format_i64")) ||
-    ends_with(clone(callee), String_from("::format_i64")) ||
-    ends_with(clone(callee), String_from("::i64_to_string")) {
+    if clone(callee).starts_with(String_from("format_i64")) ||
+    clone(callee).ends_with(String_from("::format_i64")) ||
+    clone(callee).ends_with(String_from("::i64_to_string")) {
         return core_op_registry_generated::core_op_handler_text_format_i64()
     }
-    if ends_with(clone(callee), String_from("::split")) {
+    if clone(callee).ends_with(String_from("::split")) {
         return core_op_registry_generated::core_op_handler_string_split()
     }
     // path::join is a filesystem operation, not String.join.
-    if ends_with(clone(callee), String_from("path::join")) {
+    if clone(callee).ends_with(String_from("path::join")) {
         return 0 - 1
     }
-    if ends_with(clone(callee), String_from("::join")) {
+    if clone(callee).ends_with(String_from("::join")) {
         return core_op_registry_generated::core_op_handler_string_join()
     }
-    if starts_with(clone(callee), String_from("pop")) ||
-    ends_with(clone(callee), String_from("::pop")) ||
-    ends_with(clone(callee), String_from("::vec_pop")) {
+    if clone(callee).starts_with(String_from("pop")) ||
+    clone(callee).ends_with(String_from("::pop")) ||
+    clone(callee).ends_with(String_from("::vec_pop")) {
         return core_op_registry_generated::core_op_handler_vec_pop()
     }
-    if starts_with(clone(callee), String_from("vec_push_i64")) ||
-    ends_with(clone(callee), String_from("::push_i64")) {
+    if clone(callee).starts_with(String_from("vec_push_i64")) ||
+    clone(callee).ends_with(String_from("::push_i64")) {
         return core_op_registry_generated::core_op_handler_vec_push_i64()
     }
-    if starts_with(clone(callee), String_from("vec_push_f64")) ||
-    ends_with(clone(callee), String_from("::push_f64")) {
+    if clone(callee).starts_with(String_from("vec_push_f64")) ||
+    clone(callee).ends_with(String_from("::push_f64")) {
         return core_op_registry_generated::core_op_handler_vec_push_f64()
     }
-    if starts_with(clone(callee), String_from("Vec::push")) ||
-    starts_with(clone(callee), String_from("Vec__push")) ||
-    starts_with(clone(callee), String_from("push__")) ||
-    starts_with(clone(callee), String_from("__core_vec_push_")) ||
-    ends_with(clone(callee), String_from("::push")) {
+    if clone(callee).starts_with(String_from("Vec::push")) ||
+    clone(callee).starts_with(String_from("Vec__push")) ||
+    clone(callee).starts_with(String_from("push__")) ||
+    clone(callee).starts_with(String_from("__core_vec_push_")) ||
+    clone(callee).ends_with(String_from("::push")) {
         return core_op_registry_generated::core_op_handler_vec_push()
     }
-    if ends_with(clone(callee), String_from("get_unchecked_i64")) {
+    if clone(callee).ends_with(String_from("get_unchecked_i64")) {
         return core_op_registry_generated::core_op_handler_vec_get_unchecked_i64()
     }
-    if ends_with(clone(callee), String_from("get_unchecked_f64")) {
+    if clone(callee).ends_with(String_from("get_unchecked_f64")) {
         return core_op_registry_generated::core_op_handler_vec_get_unchecked_f64()
     }
-    if starts_with(clone(callee), String_from("get_unchecked__")) ||
-    ends_with(clone(callee), String_from("::get_unchecked")) {
+    if clone(callee).starts_with(String_from("get_unchecked__")) ||
+    clone(callee).ends_with(String_from("::get_unchecked")) {
         return core_op_registry_generated::core_op_handler_vec_get_unchecked()
     }
-    if contains(clone(callee), String_from("get_var")) {
+    if clone(callee).contains(String_from("get_var")) {
         return 0 - 1
     }
-    if starts_with(clone(callee), String_from("__intrinsic_get")) ||
-    starts_with(clone(callee), String_from("get__")) ||
-    (len(callee) == 3 && starts_with(clone(callee), String_from("get"))) ||
-    ends_with(clone(callee), String_from("::get")) {
+    if clone(callee).starts_with(String_from("__intrinsic_get")) ||
+    clone(callee).starts_with(String_from("get__")) ||
+    (len(callee) == 3 && clone(callee).starts_with(String_from("get"))) ||
+    clone(callee).ends_with(String_from("::get")) {
         return core_op_registry_generated::core_op_handler_vec_get()
     }
-    if starts_with(clone(callee), String_from("Vec::set")) ||
-    starts_with(clone(callee), String_from("Vec__set")) ||
-    starts_with(clone(callee), String_from("set__")) {
+    if clone(callee).starts_with(String_from("Vec::set")) ||
+    clone(callee).starts_with(String_from("Vec__set")) ||
+    clone(callee).starts_with(String_from("set__")) {
         return core_op_registry_generated::core_op_handler_vec_set()
     }
-    if starts_with(clone(callee), String_from("Vec::len")) ||
-    starts_with(clone(callee), String_from("Vec__len")) {
+    if clone(callee).starts_with(String_from("Vec::len")) ||
+    clone(callee).starts_with(String_from("Vec__len")) {
         return core_op_registry_generated::core_op_handler_vec_len()
     }
-    if ends_with(clone(callee), String_from("::contains")) {
+    if clone(callee).ends_with(String_from("::contains")) {
         return core_op_registry_generated::core_op_handler_string_contains()
     }
-    if ends_with(clone(callee), String_from("::starts_with")) {
+    if clone(callee).ends_with(String_from("::starts_with")) {
         return core_op_registry_generated::core_op_handler_string_starts_with()
     }
-    if ends_with(clone(callee), String_from("::ends_with")) {
+    if clone(callee).ends_with(String_from("::ends_with")) {
         return core_op_registry_generated::core_op_handler_string_ends_with()
     }
-    if starts_with(clone(callee), String_from("monotonic_now")) ||
-    ends_with(clone(callee), String_from("::monotonic_now")) ||
-    ends_with(clone(callee), String_from("::clock_now")) {
+    if clone(callee).starts_with(String_from("monotonic_now")) ||
+    clone(callee).ends_with(String_from("::monotonic_now")) ||
+    clone(callee).ends_with(String_from("::clock_now")) {
         return core_op_registry_generated::core_op_handler_runtime_clock_now()
     }
-    if starts_with(clone(callee), String_from("now_ms")) ||
-    ends_with(clone(callee), String_from("::now_ms")) ||
-    ends_with(clone(callee), String_from("::clock_now_ms")) {
+    if clone(callee).starts_with(String_from("now_ms")) ||
+    clone(callee).ends_with(String_from("::now_ms")) ||
+    clone(callee).ends_with(String_from("::clock_now_ms")) {
         return core_op_registry_generated::core_op_handler_runtime_clock_now_ms()
     }
-    if starts_with(clone(callee), String_from("__intrinsic_random_i32")) ||
-    ends_with(clone(callee), String_from("::random_i32")) {
+    if clone(callee).starts_with(String_from("__intrinsic_random_i32")) ||
+    clone(callee).ends_with(String_from("::random_i32")) {
         return core_op_registry_generated::core_op_handler_runtime_random_i32()
     }
-    if starts_with(clone(callee), String_from("memory_fill")) ||
-    starts_with(clone(callee), String_from("__intrinsic_memory_fill")) ||
-    ends_with(clone(callee), String_from("::memory_fill")) {
+    if clone(callee).starts_with(String_from("memory_fill")) ||
+    clone(callee).starts_with(String_from("__intrinsic_memory_fill")) ||
+    clone(callee).ends_with(String_from("::memory_fill")) {
         return core_op_registry_generated::core_op_handler_primitive_memory_fill()
     }
-    if starts_with(clone(callee), String_from("memory_copy")) ||
-    starts_with(clone(callee), String_from("__intrinsic_memory_copy")) ||
-    ends_with(clone(callee), String_from("::memory_copy")) {
+    if clone(callee).starts_with(String_from("memory_copy")) ||
+    clone(callee).starts_with(String_from("__intrinsic_memory_copy")) ||
+    clone(callee).ends_with(String_from("::memory_copy")) {
         return core_op_registry_generated::core_op_handler_primitive_memory_copy()
     }
-    if starts_with(clone(callee), String_from("arg_count")) ||
-    starts_with(clone(callee), String_from("__intrinsic_arg_count")) ||
-    ends_with(clone(callee), String_from("::arg_count")) {
+    if clone(callee).starts_with(String_from("arg_count")) ||
+    clone(callee).starts_with(String_from("__intrinsic_arg_count")) ||
+    clone(callee).ends_with(String_from("::arg_count")) {
         return core_op_registry_generated::core_op_handler_runtime_arg_count()
     }
-    if starts_with(clone(callee), String_from("args")) ||
-    starts_with(clone(callee), String_from("__intrinsic_args")) ||
-    ends_with(clone(callee), String_from("::args")) {
+    if clone(callee).starts_with(String_from("args")) ||
+    clone(callee).starts_with(String_from("__intrinsic_args")) ||
+    clone(callee).ends_with(String_from("::args")) {
         return core_op_registry_generated::core_op_handler_runtime_args()
     }
-    if starts_with(clone(callee), String_from("has_flag")) ||
-    starts_with(clone(callee), String_from("__intrinsic_has_flag")) ||
-    ends_with(clone(callee), String_from("::has_flag")) {
+    if clone(callee).starts_with(String_from("has_flag")) ||
+    clone(callee).starts_with(String_from("__intrinsic_has_flag")) ||
+    clone(callee).ends_with(String_from("::has_flag")) {
         return core_op_registry_generated::core_op_handler_runtime_has_flag()
     }
-    if starts_with(clone(callee), String_from("arg_at")) ||
-    starts_with(clone(callee), String_from("__intrinsic_arg_at")) ||
-    ends_with(clone(callee), String_from("::arg_at")) {
+    if clone(callee).starts_with(String_from("arg_at")) ||
+    clone(callee).starts_with(String_from("__intrinsic_arg_at")) ||
+    clone(callee).ends_with(String_from("::arg_at")) {
         return core_op_registry_generated::core_op_handler_runtime_arg_at()
     }
     0 - 1
@@ -486,15 +486,15 @@ fn fallback_vec_new_handler_id() -> i32 {
 }
 
 fn is_vec_new_pattern(callee: String) -> bool {
-    starts_with(clone(callee), String_from("Vec_new")) ||
-    starts_with(clone(callee), String_from("Vec::new")) ||
-    starts_with(clone(callee), String_from("Vec__new")) ||
-    starts_with(clone(callee), String_from("Vec_with_capacity")) ||
-    starts_with(clone(callee), String_from("Vec::with_capacity")) ||
-    starts_with(clone(callee), String_from("Vec__with_capacity")) ||
-    starts_with(clone(callee), String_from("__intrinsic_Vec_new_")) ||
-    contains(clone(callee), String_from("::Vec_new_")) ||
-    ends_with(clone(callee), String_from("Vec_new_fallback"))
+    clone(callee).starts_with(String_from("Vec_new")) ||
+    clone(callee).starts_with(String_from("Vec::new")) ||
+    clone(callee).starts_with(String_from("Vec__new")) ||
+    clone(callee).starts_with(String_from("Vec_with_capacity")) ||
+    clone(callee).starts_with(String_from("Vec::with_capacity")) ||
+    clone(callee).starts_with(String_from("Vec__with_capacity")) ||
+    clone(callee).starts_with(String_from("__intrinsic_Vec_new_")) ||
+    clone(callee).contains(String_from("::Vec_new_")) ||
+    clone(callee).ends_with(String_from("Vec_new_fallback"))
 }
 
 fn is_clone_handler(handler_id: i32) -> bool {

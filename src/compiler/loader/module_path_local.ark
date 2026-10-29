@@ -1,11 +1,11 @@
-use std::prelude::{byte_at, clone, eq, substring}
+use std::prelude::{clone, eq}
 use std::text
 pub fn path_parent_dir(path: String) -> String {
     let n = len(path)
     let mut last_slash = 0 - 1
     let mut i = n - 1
     while i >= 0 {
-        if eq(substring(path, i, i + 1), "/") {
+        if eq(path.slice(i, i + 1), "/") {
             last_slash = i
             i = 0 - 1
         } else {
@@ -18,7 +18,7 @@ pub fn path_parent_dir(path: String) -> String {
         if last_slash == 0 {
             "/"
         } else {
-            substring(path, 0, last_slash)
+            path.slice(0, last_slash)
         }
     }
 }
@@ -29,15 +29,15 @@ pub fn module_path_to_file_stem(path: String) -> String {
     let mut i = 0
     let mut seg_start = 0
     while i < n {
-        if byte_at(path, i) == 58 && i + 1 < n && byte_at(path, i + 1) == 58 {
-            result = clone(result).concat(substring(clone(path), seg_start, i).concat("/"))
+        if path.byte_at(i) == 58 && i + 1 < n && path.byte_at(i + 1) == 58 {
+            result = clone(result).concat(clone(path).slice(seg_start, i).concat("/"))
             i = i + 2
             seg_start = i
         } else {
             i = i + 1
         }
     }
-    clone(result).concat(substring(clone(path), seg_start, n))
+    clone(result).concat(clone(path).slice(seg_start, n))
 }
 
 pub fn module_stem_to_mod_path(base_dir: String, stem: String) -> String {

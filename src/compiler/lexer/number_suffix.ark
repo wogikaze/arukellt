@@ -1,4 +1,3 @@
-use std::prelude::{byte_at}
 use lexer::char_class
 
 // Integer type suffixes: i8/u8 (2 chars), i16/i32/i64/u16/u32/u64 (3 chars).
@@ -25,15 +24,15 @@ fn suffix_end_ok(lex: Lexer, end: i32) -> bool {
     if end >= lex.src_len {
         return true
     }
-    let cn = byte_at(lex.src, end)
+    let cn = lex.src.byte_at(end)
     !char_class::is_alnum(cn) && cn != 95
 }
 
 fn try_eat_type_suffix(mut lex: Lexer) -> i32 {
     if lex.pos + 3 <= lex.src_len {
-        let c0 = byte_at(lex.src, lex.pos)
-        let c1 = byte_at(lex.src, lex.pos + 1)
-        let c2 = byte_at(lex.src, lex.pos + 2)
+        let c0 = lex.src.byte_at(lex.pos)
+        let c1 = lex.src.byte_at(lex.pos + 1)
+        let c2 = lex.src.byte_at(lex.pos + 2)
         if (is_int_suffix_3(c0, c1, c2) || is_float_suffix_3(c0, c1, c2)) &&
         suffix_end_ok(lex, lex.pos + 3) {
             lex.pos = lex.pos + 3
@@ -41,8 +40,8 @@ fn try_eat_type_suffix(mut lex: Lexer) -> i32 {
         }
     }
     if lex.pos + 2 <= lex.src_len {
-        let c0 = byte_at(lex.src, lex.pos)
-        let c1 = byte_at(lex.src, lex.pos + 1)
+        let c0 = lex.src.byte_at(lex.pos)
+        let c1 = lex.src.byte_at(lex.pos + 1)
         if is_int_suffix_2(c0, c1) && suffix_end_ok(lex, lex.pos + 2) {
             lex.pos = lex.pos + 2
             return 2

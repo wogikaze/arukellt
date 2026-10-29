@@ -1,4 +1,3 @@
-use std::prelude::{to_string}
 use std::text
 use mir::inst_accessors_shape
 use mir::inst_accessors_operands
@@ -25,21 +24,21 @@ fn mir_op_to_wat(inst: MirInst) -> String {
     if len(aggregate_op) > 0 {
         return aggregate_op
     }
-    ";; unknown op ".concat(to_string(inst_accessors_shape::MirInst_op(inst)))
+    ";; unknown op ".concat(inst_accessors_shape::MirInst_op(inst).to_string())
 }
 
 fn mir_value_op_to_wat(inst: MirInst) -> String {
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CONST_I32() {
-        return "i32.const ".concat(to_string(inst_accessors_literals::MirInst_int_val(inst)))
+        return "i32.const ".concat(inst_accessors_literals::MirInst_int_val(inst).to_string())
     }
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CONST_I64() {
-        return "i64.const ".concat(to_string(inst_accessors_literals::MirInst_int_val(inst)))
+        return "i64.const ".concat(inst_accessors_literals::MirInst_int_val(inst).to_string())
     }
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_GET() {
-        return "local.get ".concat(to_string(inst_accessors_operands::MirInst_arg0(inst)))
+        return "local.get ".concat(inst_accessors_operands::MirInst_arg0(inst).to_string())
     }
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_SET() {
-        return "local.set ".concat(to_string(inst_accessors_operands::MirInst_dest(inst)))
+        return "local.set ".concat(inst_accessors_operands::MirInst_dest(inst).to_string())
     }
     ""
 }
@@ -95,7 +94,7 @@ fn mir_arith_op_to_wat(inst: MirInst) -> String {
 
 fn mir_call_op_to_wat(inst: MirInst) -> String {
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() {
-        return "call ".concat(to_string(inst_accessors_operands::MirInst_arg0(inst)))
+        return "call ".concat(inst_accessors_operands::MirInst_arg0(inst).to_string())
     }
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_RETURN() {
         return "return"
@@ -105,10 +104,10 @@ fn mir_call_op_to_wat(inst: MirInst) -> String {
 
 fn mir_control_op_to_wat(inst: MirInst) -> String {
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_BR() {
-        return "br ".concat(to_string(inst_accessors_literals::MirInst_int_val(inst)))
+        return "br ".concat(inst_accessors_literals::MirInst_int_val(inst).to_string())
     }
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_BR_IF() {
-        return "br_if ".concat(to_string(inst_accessors_literals::MirInst_int_val(inst)))
+        return "br_if ".concat(inst_accessors_literals::MirInst_int_val(inst).to_string())
     }
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_BLOCK() {
         return "block"

@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, contains, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::function_id
 use corehir::kinds
@@ -309,7 +309,7 @@ fn native_c_append(mut state: NativeCFunctionEmitState, source: String) {
     let length = len(source)
     let mut index = 0
     while index < length {
-        push(state.source, byte_at(source, index))
+        push(state.source, source.byte_at(index))
         index = index + 1
     }
 }
@@ -427,7 +427,7 @@ fn native_c_allocate_temporary(mut state: NativeCFunctionEmitState, c_type: Stri
         let declaration = String_from("    ").concat(c_type.concat(String_from(" ").concat(native_c_local_name(encoded_id).concat(String_from(";\n")))))
         let mut index = 0
         while index < len(declaration) {
-            push(state.temporary_declarations, byte_at(declaration, index))
+            push(state.temporary_declarations, declaration.byte_at(index))
             index = index + 1
         }
     }
@@ -521,25 +521,25 @@ fn native_c_emit_constant(mut state: NativeCFunctionEmitState, instruction: MirI
         // Strip Ark/C-like suffixes that are invalid inside INT64_C(...).
         let mut literal = raw_literal
         if literal_length >= 3 &&
-        eq(substring(clone(literal), literal_length - 3, literal_length), String_from("i64")) {
-            literal = substring(literal, 0, literal_length - 3)
+        eq(clone(literal).slice(literal_length - 3, literal_length), String_from("i64")) {
+            literal = literal.slice(0, literal_length - 3)
         }
         let mut stripped_length = len(literal)
         if stripped_length >= 2 &&
-        eq(substring(clone(literal), stripped_length - 2, stripped_length), String_from("_L")) {
-            literal = substring(literal, 0, stripped_length - 2)
+        eq(clone(literal).slice(stripped_length - 2, stripped_length), String_from("_L")) {
+            literal = literal.slice(0, stripped_length - 2)
             stripped_length = len(literal)
         }
         if stripped_length >= 1 {
-            let last = byte_at(literal, stripped_length - 1)
+            let last = literal.byte_at(stripped_length - 1)
             if last == 76 || last == 108 {
-                literal = substring(literal, 0, stripped_length - 1)
+                literal = literal.slice(0, stripped_length - 1)
                 stripped_length = len(literal)
             }
         }
         // Ark allows `1_i64` / `1_000_i64`; INT64_C token-pastes a trailing `L`.
-        while stripped_length >= 1 && byte_at(literal, stripped_length - 1) == 95 {
-            literal = substring(literal, 0, stripped_length - 1)
+        while stripped_length >= 1 && literal.byte_at(stripped_length - 1) == 95 {
+            literal = literal.slice(0, stripped_length - 1)
             stripped_length = len(literal)
         }
         native_c_emit_assignment(
@@ -570,7 +570,7 @@ fn native_c_emit_constant(mut state: NativeCFunctionEmitState, instruction: MirI
             let mut index = 0
             while index < length {
                 if index > 0 { expression = expression.concat(",") }
-                expression = expression.concat((byte_at(literal, index)).to_string())
+                expression = expression.concat((literal.byte_at(index)).to_string())
                 index = index + 1
             }
             expression = expression.concat("}, UINT32_C(".concat((length).to_string().concat("))")))
@@ -639,8 +639,8 @@ fn native_c_base_type_is_funcref_vector(function: MirFunction, base_local: i32) 
     let base_type = local_record::mir_local_type_name(
         function_locals_view::MirFunction_local_at(function, base_local)
     )
-    starts_with(clone(base_type), String_from("vec:fn(")) ||
-    starts_with(clone(base_type), String_from("Vec<fn("))
+    clone(base_type).starts_with(String_from("vec:fn(")) ||
+    clone(base_type).starts_with(String_from("Vec<fn("))
 }
 
 fn native_c_type_name_elem_is_scalar(elem: String) -> bool {
@@ -666,29 +666,29 @@ fn native_c_type_name_elem_is_scalar(elem: String) -> bool {
 }
 
 fn native_c_option_result_elem_type_name(type_name: String) -> String {
-    if starts_with(clone(type_name), String_from("option:")) {
-        return substring(type_name, 7, len(type_name))
+    if clone(type_name).starts_with(String_from("option:")) {
+        return type_name.slice(7, len(type_name))
     }
-    if starts_with(clone(type_name), String_from("Option_")) {
-        return substring(type_name, 7, len(type_name))
+    if clone(type_name).starts_with(String_from("Option_")) {
+        return type_name.slice(7, len(type_name))
     }
-    if starts_with(clone(type_name), String_from("result:")) {
-        let rest = substring(type_name, 7, len(type_name))
+    if clone(type_name).starts_with(String_from("result:")) {
+        let rest = type_name.slice(7, len(type_name))
         let mut index = 0
         while index < len(rest) {
-            if byte_at(rest, index) == 58 {
-                return substring(rest, 0, index)
+            if rest.byte_at(index) == 58 {
+                return rest.slice(0, index)
             }
             index = index + 1
         }
         return rest
     }
-    if starts_with(clone(type_name), String_from("Result_")) {
-        let rest = substring(type_name, 7, len(type_name))
+    if clone(type_name).starts_with(String_from("Result_")) {
+        let rest = type_name.slice(7, len(type_name))
         let mut index = 0
         while index < len(rest) {
-            if byte_at(rest, index) == 95 {
-                return substring(rest, 0, index)
+            if rest.byte_at(index) == 95 {
+                return rest.slice(0, index)
             }
             index = index + 1
         }
@@ -779,8 +779,8 @@ fn native_c_variant_hint_is_option_result_payload(variant_hint: String) -> bool 
     eq(clone(variant_hint), String_from("Err")) {
         return true
     }
-    if contains(clone(variant_hint), String_from("Option::")) ||
-    contains(clone(variant_hint), String_from("Result::")) {
+    if clone(variant_hint).contains(String_from("Option::")) ||
+    clone(variant_hint).contains(String_from("Result::")) {
         return true
     }
     false
@@ -817,17 +817,17 @@ fn native_c_option_result_payload_is_heap_ref(
         let kind = type_table::type_entry_kind(entry)
         let entry_name = type_table::type_entry_name(entry)
         let is_option = kind == kinds::TYPE_KIND_OPTION() ||
-        starts_with(clone(entry_name), String_from("Option")) ||
-        starts_with(clone(entry_name), String_from("option"))
+        clone(entry_name).starts_with(String_from("Option")) ||
+        clone(entry_name).starts_with(String_from("option"))
         let is_result = kind == kinds::TYPE_KIND_RESULT() ||
-        starts_with(clone(entry_name), String_from("Result")) ||
-        starts_with(clone(entry_name), String_from("result"))
+        clone(entry_name).starts_with(String_from("Result")) ||
+        clone(entry_name).starts_with(String_from("result"))
         if is_option || is_result {
             if field_index < 1 {
                 return false
             }
             let mut param_index = 0
-            if is_result && contains(clone(variant_hint), String_from("Err")) {
+            if is_result && clone(variant_hint).contains(String_from("Err")) {
                 param_index = 1
             }
             let param_count = type_table::type_entry_type_param_count(entry)
@@ -1519,8 +1519,8 @@ fn native_c_short_callee_name(mangled: String) -> String {
     let length = len(mangled)
     let mut index = length - 2
     while index >= 0 {
-        if byte_at(mangled, index) == 58 && byte_at(mangled, index + 1) == 58 {
-            return substring(mangled, index + 2, length)
+        if mangled.byte_at(index) == 58 && mangled.byte_at(index + 1) == 58 {
+            return mangled.slice(index + 2, length)
         }
         index = index - 1
     }
@@ -1723,8 +1723,8 @@ fn native_c_emit_call(
             let mut index = length - 2
             let mut short = clone(callee)
             while index >= 0 {
-                if byte_at(callee, index) == 58 && byte_at(callee, index + 1) == 58 {
-                    short = substring(callee, index + 2, length)
+                if callee.byte_at(index) == 58 && callee.byte_at(index + 1) == 58 {
+                    short = callee.slice(index + 2, length)
                     index = -1
                 } else {
                     index = index - 1
@@ -2279,10 +2279,10 @@ fn native_c_local_allows_unit_enum_tag(table: TypeTable, function: MirFunction, 
 }
 
 fn native_c_vec_element_is_heap_type(mut vec_type: String) -> bool {
-    if starts_with(clone(vec_type), String_from("Vec<")) && ends_with(clone(vec_type), String_from(">")) {
-        vec_type = substring(vec_type, 4, len(vec_type) - 1)
-    } else if starts_with(clone(vec_type), String_from("vec:")) {
-        vec_type = substring(vec_type, 4, len(vec_type))
+    if clone(vec_type).starts_with(String_from("Vec<")) && clone(vec_type).ends_with(String_from(">")) {
+        vec_type = vec_type.slice(4, len(vec_type) - 1)
+    } else if clone(vec_type).starts_with(String_from("vec:")) {
+        vec_type = vec_type.slice(4, len(vec_type))
     } else {
         return false
     }
@@ -2319,9 +2319,9 @@ fn native_c_call_returns_heap_vec_element(
 }
 
 fn native_c_is_vec_new_callee(callee_name: String) -> bool {
-    starts_with(clone(callee_name), String_from("Vec::new")) ||
-    starts_with(clone(callee_name), String_from("Vec__new")) ||
-    starts_with(clone(callee_name), String_from("Vec_new"))
+    clone(callee_name).starts_with(String_from("Vec::new")) ||
+    clone(callee_name).starts_with(String_from("Vec__new")) ||
+    clone(callee_name).starts_with(String_from("Vec_new"))
 }
 
 fn native_c_emit_local_declarations(
@@ -2533,8 +2533,8 @@ fn native_c_emit_local_declarations(
                                 let base_type = local_record::mir_local_type_name(
                                     function_locals_view::MirFunction_local_at(function, base)
                                 )
-                                if starts_with(clone(base_type), String_from("vec:fn(")) ||
-                                starts_with(clone(base_type), String_from("Vec<fn(")) {
+                                if clone(base_type).starts_with(String_from("vec:fn(")) ||
+                                clone(base_type).starts_with(String_from("Vec<fn(")) {
                                     set(funcref_locals, destination, 1)
                                     funcref_changed = true
                                 }

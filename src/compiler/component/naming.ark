@@ -1,5 +1,5 @@
 use std::text
-use std::prelude::{byte_at, clone, contains, eq, substring}
+use std::prelude::{clone, eq}
 use component::constants_wit_values
 use mir::function_return_view
 use mir::local_access
@@ -9,11 +9,11 @@ fn comp_export_name(name: String) -> String {
     let n = len(name)
     let mut i = 0
     while i < n {
-        let ch = byte_at(name, i)
+        let ch = name.byte_at(i)
         if ch == 95 {
             out = out.concat(String_from("-"))
         } else {
-            out = out.concat(substring(name, i, i + 1))
+            out = out.concat(name.slice(i, i + 1))
         }
         i = i + 1
     }
@@ -32,7 +32,7 @@ fn comp_should_export_func(name: String) -> bool {
     if comp_is_std_host_helper_name(clone(name)) {
         return false
     }
-    if contains(clone(name), String_from("::")) {
+    if clone(name).contains(String_from("::")) {
         return false
     }
     true

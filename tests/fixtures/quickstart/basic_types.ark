@@ -1,10 +1,9 @@
 use std::host::stdio
-use std::prelude::{to_string}
 fn main() {
     let n: i32 = 42
     let b: bool = true
     let s: String = String_from("hello")
-    stdio::println(to_string(n))
-    stdio::println(to_string(b))
+    stdio::println(n.to_string())
+    stdio::println(b.to_string())
     stdio::println(s)
 }

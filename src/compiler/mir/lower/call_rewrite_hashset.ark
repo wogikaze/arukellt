@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, contains, ends_with, eq, index_of, starts_with, substring}
+use std::prelude::{clone, eq}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_return_type
 
@@ -65,23 +65,23 @@ fn hashset_family_for_type(type_name: String) -> String {
 // (HashSet_i32::insert, HashSet__insert__i32), bare names (insert), Vec
 // core-op rewrites (vec_len), and the GC raw-array length intrinsic.
 fn hashset_method_name_from_source(source: String) -> String {
-    if starts_with(clone(source), String_from("vec_")) {
-        return hashset_method_name_from_source(substring(source, 4, len(source)))
+    if clone(source).starts_with(String_from("vec_")) {
+        return hashset_method_name_from_source(source.slice(4, len(source)))
     }
     if eq(clone(source), String_from("raw_array_len")) {
         return String_from("len")
     }
-    if starts_with(clone(source), String_from("HashSet_i32::")) {
-        return substring(source, 13, len(source))
+    if clone(source).starts_with(String_from("HashSet_i32::")) {
+        return source.slice(13, len(source))
     }
-    if starts_with(clone(source), String_from("HashSet_String::")) {
-        return substring(source, 16, len(source))
+    if clone(source).starts_with(String_from("HashSet_String::")) {
+        return source.slice(16, len(source))
     }
-    if starts_with(clone(source), String_from("HashSet__")) {
-        let rest = substring(source, 9, len(source))
-        let separator = index_of(clone(rest), String_from("__"))
+    if clone(source).starts_with(String_from("HashSet__")) {
+        let rest = source.slice(9, len(source))
+        let separator = clone(rest).index_of(String_from("__"))
         if separator >= 0 {
-            return substring(rest, 0, separator)
+            return rest.slice(0, separator)
         }
         return rest
     }
@@ -89,7 +89,7 @@ fn hashset_method_name_from_source(source: String) -> String {
     let mut index = 0
     let limit = len(source) - 1
     while index < limit {
-        if byte_at(clone(source), index) == 58 && byte_at(clone(source), index + 1) == 58 {
+        if clone(source).byte_at(index) == 58 && clone(source).byte_at(index + 1) == 58 {
             last = index
             index = index + 2
         } else {
@@ -97,7 +97,7 @@ fn hashset_method_name_from_source(source: String) -> String {
         }
     }
     if last >= 0 {
-        return substring(source, last + 2, len(source))
+        return source.slice(last + 2, len(source))
     }
     source
 }
@@ -227,14 +227,14 @@ fn hashset_str_method_target(method: String) -> String {
 }
 
 fn mir_rewrite_hashset_method(callee_name: String) -> String {
-    if starts_with(clone(callee_name), String_from("HashSet_String::")) {
+    if clone(callee_name).starts_with(String_from("HashSet_String::")) {
         return hashset_str_method_target(hashset_method_name_from_source(callee_name))
     }
-    if !starts_with(clone(callee_name), String_from("HashSet_i32::")) &&
-    !starts_with(clone(callee_name), String_from("HashSet__")) {
+    if !clone(callee_name).starts_with(String_from("HashSet_i32::")) &&
+    !clone(callee_name).starts_with(String_from("HashSet__")) {
         return String_new()
     }
-    if ends_with(clone(callee_name), String_from("__String")) {
+    if clone(callee_name).ends_with(String_from("__String")) {
         return hashset_str_method_target(hashset_method_name_from_source(callee_name))
     }
     hashset_i32_method_target(hashset_method_name_from_source(callee_name))
@@ -264,11 +264,11 @@ fn hashset_returning_family(callee_name: String) -> String {
     eq(clone(callee_name), String_from("hash::hashset_union")) ||
     eq(clone(callee_name), String_from("hash::hashset_intersection")) ||
     eq(clone(callee_name), String_from("hash::hashset_difference")) ||
-    starts_with(clone(callee_name), String_from("HashSet_i32::from_iter__")) {
+    clone(callee_name).starts_with(String_from("HashSet_i32::from_iter__")) {
         return String_from("i32")
     }
     if eq(clone(callee_name), String_from("HashSet_String::clone")) ||
-    starts_with(clone(callee_name), String_from("HashSet_String::from_iter__")) ||
+    clone(callee_name).starts_with(String_from("HashSet_String::from_iter__")) ||
     eq(clone(callee_name), String_from("hash_string::hashset_str_union")) ||
     eq(clone(callee_name), String_from("hash_string::hashset_str_intersection")) ||
     eq(clone(callee_name), String_from("hash_string::hashset_str_difference")) {
@@ -366,8 +366,8 @@ fn mark_hashset_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32) {
         // declared `HashSet<T>` return identifies the same set result, so use
         // it as the second signal instead of enumerating every spelling.
         let return_type = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(callee_name))
-        if starts_with(clone(return_type), String_from("HashSet")) {
-            if contains(clone(return_type), String_from("String")) {
+        if clone(return_type).starts_with(String_from("HashSet")) {
+            if clone(return_type).contains(String_from("String")) {
                 returning_family = String_from("String")
             } else {
                 returning_family = String_from("i32")

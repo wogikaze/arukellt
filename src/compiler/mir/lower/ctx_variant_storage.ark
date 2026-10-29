@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, substring}
+use std::prelude::{clone}
 use collections::name_index
 fn ctx_variant_count(ctx: LowerCtx) -> i32 {
     len(ctx.variant_names)
@@ -48,7 +48,7 @@ fn variant_enum_variant_key(name: String) -> String {
     let mut prev_sep = 0 - 1
     let mut i = 0
     while i + 1 < n {
-        if byte_at(name, i) == 58 && byte_at(name, i + 1) == 58 {
+        if name.byte_at(i) == 58 && name.byte_at(i + 1) == 58 {
             prev_sep = last_sep
             last_sep = i
             i = i + 2
@@ -62,7 +62,7 @@ fn variant_enum_variant_key(name: String) -> String {
     if prev_sep < 0 {
         return name
     }
-    substring(name, prev_sep + 2, n)
+    name.slice(prev_sep + 2, n)
 }
 
 fn ctx_payload_variant_count(ctx: LowerCtx) -> i32 {

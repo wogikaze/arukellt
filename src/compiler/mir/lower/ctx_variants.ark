@@ -1,12 +1,12 @@
-use std::prelude::{byte_at, clone, eq, index_of, substring}
+use std::prelude::{clone, eq}
 use mir::lower::ctx_variant_storage
 use mir::lower::ctx_variants_builtin
 fn ctx_strip_first_path_segment(name: String) -> String {
-    let pos = index_of(clone(name), String_from("::"))
+    let pos = clone(name).index_of(String_from("::"))
     if pos < 0 {
         return String_new()
     }
-    substring(name, pos + 2, len(name))
+    name.slice(pos + 2, len(name))
 }
 
 // Enum owner of a registered variant spelling:
@@ -18,7 +18,7 @@ fn ctx_variant_owner_name(name: String) -> String {
     let mut last_sep = 0 - 1
     let mut i = 0
     while i + 1 < n {
-        if byte_at(name, i) == 58 && byte_at(name, i + 1) == 58 {
+        if name.byte_at(i) == 58 && name.byte_at(i + 1) == 58 {
             last_sep = i
             i = i + 2
             continue
@@ -28,7 +28,7 @@ fn ctx_variant_owner_name(name: String) -> String {
     if last_sep < 0 {
         return String_new()
     }
-    substring(name, 0, last_sep)
+    name.slice(0, last_sep)
 }
 
 // Resolve module::Enum::Variant spellings to the registered layout name

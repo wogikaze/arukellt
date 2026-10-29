@@ -26,7 +26,7 @@
 
 use std::collections::string
 use std::text
-use std::prelude::{eq, i32_to_i64, i64_to_i32, slice}
+use std::prelude::{eq, i32_to_i64, i64_to_i32}
 
 /// Namespace for byte-vector constructors and decoders.
 ///
@@ -54,8 +54,8 @@ impl Bytes {
         let n: i32 = len(s)
         let mut i: i32 = 0
         while i + 1 < n {
-            let hi_ch: String = slice(s, i, i + 1)
-            let lo_ch: String = slice(s, i + 1, i + 2)
+            let hi_ch: String = s.slice(i, i + 1)
+            let lo_ch: String = s.slice(i + 1, i + 2)
             let hi: i32 = hex_val_char(hi_ch)
             let lo: i32 = hex_val_char(lo_ch)
             if hi >= 0 {
@@ -74,10 +74,10 @@ impl Bytes {
         let n = len(s)
         let mut i = 0
         while i + 3 < n {
-            let c0 = base64_val(slice(s, i, i + 1))
-            let c1 = base64_val(slice(s, i + 1, i + 2))
-            let c2 = base64_val(slice(s, i + 2, i + 3))
-            let c3 = base64_val(slice(s, i + 3, i + 4))
+            let c0 = base64_val(s.slice(i, i + 1))
+            let c1 = base64_val(s.slice(i + 1, i + 2))
+            let c2 = base64_val(s.slice(i + 2, i + 3))
+            let c3 = base64_val(s.slice(i + 3, i + 4))
             if c0 >= 0 {
                 if c1 >= 0 {
                     push(result, (c0 << 2) | (c1 >> 4))
@@ -754,11 +754,11 @@ fn base64_alphabet() -> String {
 
 fn base64_char(idx: i32) -> String {
     let alpha = base64_alphabet()
-    slice(alpha, idx, idx + 1)
+    alpha.slice(idx, idx + 1)
 }
 
 fn base64_val(ch: String) -> i32 {
-    let c = slice(ch, 0, 1)
+    let c = ch.slice(0, 1)
     if eq(c, "A") {
         0
     } else {

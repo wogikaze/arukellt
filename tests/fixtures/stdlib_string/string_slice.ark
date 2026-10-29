@@ -1,7 +1,6 @@
 use std::test::Test
-use std::prelude::{slice}
 fn main() {
     let s: String = String_from("hello world")
-    let sub: String = slice(s, 0, 5)
+    let sub: String = s.slice(0, 5)
     Test::assert_eq_string(sub, "hello")
 }

@@ -1,6 +1,5 @@
 // Test: a block result stays monomorphic even when it contains a closure type.
 use std::host::stdio
-use std::prelude::{to_string}
 fn main() {
     let id = {
         let inner = |x| x
@@ -8,7 +7,7 @@ fn main() {
     }
     let number: i32 = id(42)
     let flag: bool = id(true)
-    stdio::println(to_string(number))
+    stdio::println(number.to_string())
     if flag {
         stdio::println(String_from("unexpectedly polymorphic"))
     }

@@ -1,7 +1,6 @@
 use std::test::Test
-use std::prelude::{substring}
 fn main() {
     let s = String_from("hello")
-    Test::assert_eq_string(substring(s, 1, 4), "ell")
-    Test::assert_eq_string(substring(s, 0, 5), "hello")
+    Test::assert_eq_string(s.slice(1, 4), "ell")
+    Test::assert_eq_string(s.slice(0, 5), "hello")
 }

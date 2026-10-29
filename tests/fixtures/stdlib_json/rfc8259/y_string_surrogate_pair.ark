@@ -1,6 +1,5 @@
 use std::json
 use std::test::Test
-use std::prelude::{byte_at}
 use std::text
 fn main() {
     // U+1F600 GRINNING FACE as UTF-16 surrogate pair \uD83D\uDE00
@@ -9,10 +8,10 @@ fn main() {
             Option::Some(s) => {
                 // UTF-8 encoding is 4 bytes: F0 9F 98 80
                 Test::assert_eq_i32(len(s), 4)
-                Test::assert_eq_i32(byte_at(s, 0), 240)
-                Test::assert_eq_i32(byte_at(s, 1), 159)
-                Test::assert_eq_i32(byte_at(s, 2), 152)
-                Test::assert_eq_i32(byte_at(s, 3), 128)
+                Test::assert_eq_i32(s.byte_at(0), 240)
+                Test::assert_eq_i32(s.byte_at(1), 159)
+                Test::assert_eq_i32(s.byte_at(2), 152)
+                Test::assert_eq_i32(s.byte_at(3), 128)
             },
             None => Std::panic("expected string"),
         },

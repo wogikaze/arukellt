@@ -1,7 +1,7 @@
 use std::host::clock::Clock
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{clone, eq, i64_to_i32, to_string}
+use std::prelude::{clone, eq, i64_to_i32}
 use std::text
 use mir::block_inst_access
 use mir::emit_artifacts
@@ -56,7 +56,7 @@ fn emit_slow_fn_note(enabled: i32, idx: i32, f: MirFunction, t_start: i64) -> bo
     }
     stdio::eprintln(
         "[arukellt] emit.slow_fn: idx=".concat(
-            to_string(idx).concat(" insts=".concat(to_string(emit_function_inst_count(f)).concat(" ms=".concat(to_string(ms).concat(" ".concat(function_identity::MirFunction_name(f)))))))
+            idx.to_string().concat(" insts=".concat(emit_function_inst_count(f).to_string().concat(" ms=".concat(ms.to_string().concat(" ".concat(function_identity::MirFunction_name(f)))))))
         )
     )
     true

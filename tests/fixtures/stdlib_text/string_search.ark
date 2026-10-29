@@ -1,6 +1,5 @@
 use std::host::stdio
 use std::text
-use std::prelude::{ends_with, starts_with}
 fn main() {
     let mut s = "hello world"
     stdio::println((s.contains("world")).to_string())
@@ -13,12 +12,12 @@ fn main() {
     stdio::println((s.index_of(" ")).to_string())
     stdio::println((s.index_of("xyz")).to_string())
     stdio::println((s.index_of("")).to_string())
-    stdio::println((starts_with(s, "hello")).to_string())
-    stdio::println((starts_with(s, "world")).to_string())
-    stdio::println((starts_with(s, "")).to_string())
-    stdio::println((ends_with(s, "world")).to_string())
-    stdio::println((ends_with(s, "hello")).to_string())
-    stdio::println((ends_with(s, "")).to_string())
+    stdio::println((s.starts_with("hello")).to_string())
+    stdio::println((s.starts_with("world")).to_string())
+    stdio::println((s.starts_with("")).to_string())
+    stdio::println((s.ends_with("world")).to_string())
+    stdio::println((s.ends_with("hello")).to_string())
+    stdio::println((s.ends_with("")).to_string())
     stdio::println(("a".index_of("a")).to_string())
     stdio::println(("a".index_of("b")).to_string())
 }

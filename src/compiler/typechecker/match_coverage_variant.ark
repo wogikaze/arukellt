@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, ends_with, eq, substring}
+use std::prelude::{clone, eq}
 use typechecker::ast_access
 use typechecker::match_coverage_mark_record
 use typechecker::match_coverage_record
@@ -8,24 +8,24 @@ fn ident_looks_like_unit_variant(pat: AstNode) -> bool {
     eq(clone(pat_name), String_from("None")) ||
     eq(clone(pat_name), String_from("Ok")) ||
     eq(clone(pat_name), String_from("Err")) ||
-    ends_with(clone(pat_name), String_from("::Some")) ||
-    ends_with(clone(pat_name), String_from("::None")) ||
-    ends_with(clone(pat_name), String_from("::Ok")) ||
-    ends_with(clone(pat_name), String_from("::Err"))
+    clone(pat_name).ends_with(String_from("::Some")) ||
+    clone(pat_name).ends_with(String_from("::None")) ||
+    clone(pat_name).ends_with(String_from("::Ok")) ||
+    clone(pat_name).ends_with(String_from("::Err"))
 }
 
 fn record_variant_pattern(mut coverage: MatchCoverage, pat: AstNode) {
     let pat_name = ast_access::node_text(pat)
-    if eq(clone(pat_name), String_from("Some")) || ends_with(clone(pat_name), String_from("::Some")) {
+    if eq(clone(pat_name), String_from("Some")) || clone(pat_name).ends_with(String_from("::Some")) {
         match_coverage_mark_record::match_coverage_mark_option_some(coverage)
     }
-    if eq(clone(pat_name), String_from("None")) || ends_with(clone(pat_name), String_from("::None")) {
+    if eq(clone(pat_name), String_from("None")) || clone(pat_name).ends_with(String_from("::None")) {
         match_coverage_mark_record::match_coverage_mark_option_none(coverage)
     }
-    if eq(clone(pat_name), String_from("Ok")) || ends_with(clone(pat_name), String_from("::Ok")) {
+    if eq(clone(pat_name), String_from("Ok")) || clone(pat_name).ends_with(String_from("::Ok")) {
         match_coverage_mark_record::match_coverage_mark_result_ok(coverage)
     }
-    if eq(clone(pat_name), String_from("Err")) || ends_with(clone(pat_name), String_from("::Err")) {
+    if eq(clone(pat_name), String_from("Err")) || clone(pat_name).ends_with(String_from("::Err")) {
         match_coverage_mark_record::match_coverage_mark_result_err(coverage)
     }
     match_coverage_mark_record::match_coverage_push_variant(coverage, variant_base_name(pat_name))
@@ -38,8 +38,8 @@ fn variant_base_name(name: String) -> String {
     let n = len(name)
     let mut i = n - 1
     while i >= 0 {
-        if byte_at(name, i) == 58 {
-            return substring(name, i + 1, n)
+        if name.byte_at(i) == 58 {
+            return name.slice(i + 1, n)
         }
         i = i - 1
     }

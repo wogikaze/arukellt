@@ -27,7 +27,6 @@
 //! Each node occupies `256 + 2` slots.
 
 use std::collections::vec
-use std::prelude::{byte_at}
 const HEADER_LEN: i32 = 3
 const CHILDREN_PER_NODE: i32 = 256
 const NODE_SLOTS: i32 = 258   // 256 children + has_value + value
@@ -164,7 +163,7 @@ impl Trie {
         let key_len = len(key)
         let mut i = 0
         while i < key_len {
-            let byte = byte_at(key, i)
+            let byte = key.byte_at(i)
             let child = get_child(self.nodes, current, byte)
             if child == NIL {
                 let new_node = alloc_node(self.nodes)
@@ -188,7 +187,7 @@ impl Trie {
         let key_len = len(key)
         let mut i = 0
         while i < key_len {
-            let byte = byte_at(key, i)
+            let byte = key.byte_at(i)
             let child = get_child(self.nodes, current, byte)
             if child == NIL {
                 return Option::None
@@ -220,7 +219,7 @@ impl Trie {
         let prefix_len = len(prefix)
         let mut i = 0
         while i < prefix_len {
-            let byte = byte_at(prefix, i)
+            let byte = prefix.byte_at(i)
             let child = get_child(self.nodes, current, byte)
             if child == NIL {
                 return false
@@ -244,7 +243,7 @@ impl Trie {
         let key_len = len(key)
         let mut i = 0
         while i < key_len {
-            let byte = byte_at(key, i)
+            let byte = key.byte_at(i)
             let child = get_child(self.nodes, current, byte)
             if child == NIL {
                 return false
@@ -271,7 +270,7 @@ impl Trie {
         let prefix_len = len(prefix)
         let mut i = 0
         while i < prefix_len {
-            let byte = byte_at(prefix, i)
+            let byte = prefix.byte_at(i)
             let child = get_child(self.nodes, current, byte)
             if child == NIL {
                 return 0

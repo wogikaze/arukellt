@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use mir::function_return_view
 use mir::function_return_mutation
 use mir::function_param_mutation
@@ -63,10 +63,10 @@ fn ctx_set_current_return_type_name(mut ctx: LowerCtx, type_name: String) {
     ctx_current_storage::ctx_set_current_func_value(ctx, f)
     // TYPE_FN ann becomes name "fnref" (often TY_STRUCT); align VT with param ABI (#832).
     if eq(clone(type_name), "fnref") ||
-    starts_with(clone(type_name), "fnref") ||
-    starts_with(clone(type_name), String_from("fnsig:")) ||
+    clone(type_name).starts_with("fnref") ||
+    clone(type_name).starts_with(String_from("fnsig:")) ||
     eq(clone(type_name), "fn") ||
-    starts_with(clone(type_name), "fn(") {
+    clone(type_name).starts_with("fn(") {
         ctx_set_current_return_type(ctx, value_types::VT_FUNCREF())
     }
 }

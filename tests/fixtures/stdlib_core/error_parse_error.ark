@@ -1,10 +1,9 @@
 use std::core::error
 use std::test::Test
-use std::prelude::{contains}
 fn main() {
     let e = Error::ParseError { kind: "integer", input: "abc" }
     let msg = e.message()
-    Test::assert_true(contains(msg, "ParseError"))
-    Test::assert_true(contains(msg, "integer"))
-    Test::assert_true(contains(msg, "abc"))
+    Test::assert_true(msg.contains("ParseError"))
+    Test::assert_true(msg.contains("integer"))
+    Test::assert_true(msg.contains("abc"))
 }

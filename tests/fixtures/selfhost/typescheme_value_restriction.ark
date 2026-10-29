@@ -1,12 +1,11 @@
 // Test: immutable non-expansive values generalize, while environment types stay monomorphic.
 use std::host::stdio
-use std::prelude::{to_string}
 fn main() {
     let id = |x| x
     let number: i32 = id(42)
     let flag: bool = id(true)
     let text: String = id(String_from("value restriction"))
-    stdio::println(to_string(number))
+    stdio::println(number.to_string())
     if flag {
         stdio::println(text)
     }

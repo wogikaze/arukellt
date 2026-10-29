@@ -1,5 +1,4 @@
 use std::host::stdio
-use std::prelude::{to_string}
 trait Foo {
     fn id(x: i32) -> i32,
 }
@@ -24,5 +23,5 @@ fn take_foo<T: Foo>(x: T) -> T {
 
 fn main() {
     let item = take_foo(OtherStruct { value: 7 })
-    stdio::println(to_string(item.value))
+    stdio::println(item.value.to_string())
 }

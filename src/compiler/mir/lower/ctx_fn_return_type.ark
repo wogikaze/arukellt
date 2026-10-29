@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq, substring}
+use std::prelude::{clone, eq}
 use corehir::callee_spelling
 use mir::lower::ctx_fn_index
 fn ctx_fn_return_type_name(ctx: LowerCtx, name: String) -> String {
@@ -34,14 +34,14 @@ fn ctx_fn_return_type_name(ctx: LowerCtx, name: String) -> String {
     let mut colon_pos = 0 - 1
     let mut ci = nlen - 1
     while ci >= 0 {
-        if byte_at(name, ci) == 58 {
+        if name.byte_at(ci) == 58 {
             colon_pos = ci
             ci = 0 - 1
         }
         ci = ci - 1
     }
     if colon_pos >= 0 {
-        let short = substring(name, colon_pos + 1, nlen)
+        let short = name.slice(colon_pos + 1, nlen)
         let short_found = ctx_fn_index::ctx_fn_index_find(ctx, short)
         if short_found >= 0 {
             return ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, short_found)
@@ -63,8 +63,8 @@ fn short_name_after_last_dunder(name: String) -> String {
     let name_len = len(name)
     let mut i = name_len - 2
     while i >= 0 {
-        if byte_at(name, i) == 95 && byte_at(name, i + 1) == 95 {
-            return substring(name, i + 2, name_len)
+        if name.byte_at(i) == 95 && name.byte_at(i + 1) == 95 {
+            return name.slice(i + 2, name_len)
         }
         i = i - 1
     }
@@ -77,7 +77,7 @@ fn mono_strip_suffix_for_lookup(name: String) -> String {
     let mut sep_positions = Vec::new<i32>()
     let mut i = 0
     while i < name_len - 1 {
-        if byte_at(name, i) == 95 && byte_at(name, i + 1) == 95 {
+        if name.byte_at(i) == 95 && name.byte_at(i + 1) == 95 {
             push(sep_positions, i)
         }
         i = i + 1
@@ -89,9 +89,9 @@ fn mono_strip_suffix_for_lookup(name: String) -> String {
     let mut si = 0
     while si < sep_count {
         let sep_pos = get_unchecked(sep_positions, si)
-        let suffix = substring(name, sep_pos + 2, name_len)
+        let suffix = name.slice(sep_pos + 2, name_len)
         if mono_suffix_looks_like_type_keys(suffix) {
-            return substring(name, 0, sep_pos)
+            return name.slice(0, sep_pos)
         }
         si = si + 1
     }
@@ -109,8 +109,8 @@ fn mono_suffix_looks_like_type_keys(suffix: String) -> bool {
     let mut start = 0
     let mut i = 0
     while i < slen {
-        if i < slen - 1 && byte_at(suffix, i) == 95 && byte_at(suffix, i + 1) == 95 {
-            let key = substring(suffix, start, i)
+        if i < slen - 1 && suffix.byte_at(i) == 95 && suffix.byte_at(i + 1) == 95 {
+            let key = suffix.slice(start, i)
             if !mono_type_key_looks_valid(key) {
                 return false
             }
@@ -121,7 +121,7 @@ fn mono_suffix_looks_like_type_keys(suffix: String) -> bool {
         }
     }
     if start <= slen {
-        return mono_type_key_looks_valid(substring(suffix, start, slen))
+        return mono_type_key_looks_valid(suffix.slice(start, slen))
     }
     false
 }
@@ -140,11 +140,11 @@ fn mono_type_key_looks_valid(key: String) -> bool {
     // Nominal mono keys are PascalCase type names (Point), not snake_case
     // function tails (Token_float_val).
     if len(key) > 0 {
-        let first = byte_at(key, 0)
+        let first = key.byte_at(0)
         if first >= 65 && first <= 90 {
             let mut ki = 1
             while ki < len(key) {
-                if byte_at(key, ki) == 95 {
+                if key.byte_at(ki) == 95 {
                     return false
                 }
                 ki = ki + 1

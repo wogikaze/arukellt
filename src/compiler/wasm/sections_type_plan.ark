@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq, substring}
+use std::prelude::{clone, eq}
 pub struct TypeSectionPlan {
     host_type_map: Vec<i32>,
     fn_type_map: Vec<i32>,
@@ -373,8 +373,8 @@ fn type_sig_param_segments(csig: String) -> Vec<String> {
     let mut seg_start = 0
     let mut si = 0
     while si < sig_len {
-        if byte_at(csig, si) == 95 {
-            let seg = substring(csig, seg_start, si)
+        if csig.byte_at(si) == 95 {
+            let seg = csig.slice(seg_start, si)
             push(param_segments, seg)
             seg_start = si + 1
         }
@@ -388,12 +388,12 @@ fn type_sig_result_segment(csig: String) -> String {
     let mut seg_start = 0
     let mut si = 0
     while si < sig_len {
-        if byte_at(csig, si) == 95 {
+        if csig.byte_at(si) == 95 {
             seg_start = si + 1
         }
         si = si + 1
     }
-    substring(csig, seg_start, sig_len)
+    csig.slice(seg_start, sig_len)
 }
 
 fn val_type_to_sig(vt: i32) -> String {

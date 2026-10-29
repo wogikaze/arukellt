@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq}
+use std::prelude::{clone, eq}
 use corehir::callee_spelling
 use resolver::expr_path
 use resolver::paths
@@ -84,7 +84,7 @@ fn is_type_owned_name(name: String) -> bool {
     if len(owner) == 0 {
         return false
     }
-    let first = byte_at(owner, 0)
+    let first = owner.byte_at(0)
     first == 63 || (first >= 65 && first <= 90)
 }
 

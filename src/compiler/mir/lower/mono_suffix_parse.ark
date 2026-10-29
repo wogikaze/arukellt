@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 fn split_mono_suffix(suffix: String) -> Vec<String> {
     let mut result = Vec::new<String>()
@@ -6,8 +6,8 @@ fn split_mono_suffix(suffix: String) -> Vec<String> {
     let mut start = 0
     let mut i = 0
     while i < slen - 1 {
-        if byte_at(suffix, i) == 95 && byte_at(suffix, i + 1) == 95 {
-            push(result, substring(suffix, start, i))
+        if suffix.byte_at(i) == 95 && suffix.byte_at(i + 1) == 95 {
+            push(result, suffix.slice(start, i))
             start = i + 2
             i = i + 2
         } else {
@@ -15,7 +15,7 @@ fn split_mono_suffix(suffix: String) -> Vec<String> {
         }
     }
     if start <= slen {
-        push(result, substring(suffix, start, slen))
+        push(result, suffix.slice(start, slen))
     }
     result
 }
@@ -27,18 +27,18 @@ fn split_mono_suffix(suffix: String) -> Vec<String> {
 // bind by their numeric suffix.
 fn mono_type_var_to_index(type_var: String) -> i32 {
     let mut name = clone(type_var)
-    if starts_with(clone(name), "?") {
-        name = substring(name, 1, len(name))
+    if clone(name).starts_with("?") {
+        name = name.slice(1, len(name))
     }
     let name_len = len(name)
     if name_len >= 2 {
-        let first = byte_at(clone(name), 0)
+        let first = clone(name).byte_at(0)
         if first == 116 || first == 84 {
             let mut num = 0
             let mut all_digits = true
             let mut i = 1
             while i < name_len {
-                let digit = byte_at(clone(name), i)
+                let digit = clone(name).byte_at(i)
                 if digit < 48 || digit > 57 {
                     all_digits = false
                 } else {
@@ -71,8 +71,8 @@ fn mono_type_var_to_index(type_var: String) -> i32 {
 // concrete layouts.
 fn mono_type_var_decl_index(type_var: String, type_params: Vec<String>) -> i32 {
     let mut name = clone(type_var)
-    if starts_with(clone(name), "?") {
-        name = substring(name, 1, len(name))
+    if clone(name).starts_with("?") {
+        name = name.slice(1, len(name))
     }
     let count = len(type_params)
     let mut i = 0
@@ -106,8 +106,8 @@ fn extract_first_type_var(rest: String) -> String {
     let rlen = len(rest)
     let mut ci = 0
     while ci < rlen {
-        if byte_at(rest, ci) == 58 {
-            return substring(rest, 0, ci)
+        if rest.byte_at(ci) == 58 {
+            return rest.slice(0, ci)
         }
         ci = ci + 1
     }
@@ -119,7 +119,7 @@ fn extract_mono_suffix(fn_name: String) -> String {
     let mut sep_positions = Vec::new<i32>()
     let mut i = 0
     while i < name_len - 1 {
-        if byte_at(fn_name, i) == 95 && byte_at(fn_name, i + 1) == 95 {
+        if fn_name.byte_at(i) == 95 && fn_name.byte_at(i + 1) == 95 {
             push(sep_positions, i)
         }
         i = i + 1
@@ -131,7 +131,7 @@ fn extract_mono_suffix(fn_name: String) -> String {
     let mut si = 0
     while si < sep_count {
         let sep_pos = get_unchecked(sep_positions, si)
-        let suffix = substring(fn_name, sep_pos + 2, name_len)
+        let suffix = fn_name.slice(sep_pos + 2, name_len)
         let type_keys = split_mono_suffix(suffix)
         let key_count = len(type_keys)
         if key_count > 0 && all_valid_mono_type_keys(type_keys, key_count) {
@@ -153,23 +153,23 @@ fn is_mono_type_var_name(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if starts_with(clone(type_name), "?") {
-        return is_mono_type_var_name(substring(type_name, 1, len(type_name)))
+    if clone(type_name).starts_with("?") {
+        return is_mono_type_var_name(type_name.slice(1, len(type_name)))
     }
     if len(type_name) == 1 {
-        let c = byte_at(type_name, 0)
+        let c = type_name.byte_at(0)
         if c >= 65 && c <= 90 {
             return true
         }
         return false
     }
     // Ordinal placeholders: t0, T0, t12, ...
-    let c0 = byte_at(type_name, 0)
+    let c0 = type_name.byte_at(0)
     if c0 == 116 || c0 == 84 {
         let mut i = 1
         let mut all_digit = true
         while i < len(type_name) {
-            let c = byte_at(type_name, i)
+            let c = type_name.byte_at(i)
             if c < 48 || c > 57 {
                 all_digit = false
             }
@@ -209,21 +209,21 @@ fn is_valid_mono_type_key(key: String) -> bool {
     // (Vec_i32_, Option_String, HashMap_i32_String_). These must be
     // accepted so count__Vec_i32_ substitutes vec:T → vec:Vec_i32_ and
     // takes the structref-array vec ABI (#808 nested_generic_call).
-    if starts_with(clone(key), "Vec_") ||
-    starts_with(clone(key), "Option_") ||
-    starts_with(clone(key), "Result_") ||
-    starts_with(clone(key), "HashMap_") ||
-    starts_with(clone(key), "HashSet_") {
+    if clone(key).starts_with("Vec_") ||
+    clone(key).starts_with("Option_") ||
+    clone(key).starts_with("Result_") ||
+    clone(key).starts_with("HashMap_") ||
+    clone(key).starts_with("HashSet_") {
         return true
     }
     // Nominal keys are PascalCase type names (Point). Reject snake_case
     // tails from module__FnName exports (Token_float_val).
     if len(key) > 0 {
-        let first = byte_at(key, 0)
+        let first = key.byte_at(0)
         if first >= 65 && first <= 90 {
             let mut ki = 1
             while ki < len(key) {
-                if byte_at(key, ki) == 95 {
+                if key.byte_at(ki) == 95 {
                     return false
                 }
                 ki = ki + 1

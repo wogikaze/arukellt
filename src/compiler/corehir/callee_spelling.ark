@@ -14,7 +14,7 @@
 //! falling back to their last segment would turn a constructor such as
 //! `Vec::new` into an unrelated bare `new`.
 
-use std::prelude::{byte_at, clone, eq, substring}
+use std::prelude::{clone, eq}
 use corehir::name_match
 
 fn callee_spelling_segment_count(name: String) -> i32 {
@@ -22,7 +22,7 @@ fn callee_spelling_segment_count(name: String) -> i32 {
     let mut separators = 0
     let mut i = 0
     while i + 1 < n {
-        if byte_at(name, i) == 58 && byte_at(name, i + 1) == 58 {
+        if name.byte_at(i) == 58 && name.byte_at(i + 1) == 58 {
             separators = separators + 1
             i = i + 2
         } else {
@@ -36,8 +36,8 @@ fn callee_spelling_after_first_segment(name: String) -> String {
     let n = len(name)
     let mut i = 0
     while i + 1 < n {
-        if byte_at(name, i) == 58 && byte_at(name, i + 1) == 58 {
-            return substring(name, i + 2, n)
+        if name.byte_at(i) == 58 && name.byte_at(i + 1) == 58 {
+            return name.slice(i + 2, n)
         }
         i = i + 1
     }
@@ -50,7 +50,7 @@ fn callee_spelling_last_two_segments(name: String) -> String {
     let mut last = 0 - 1
     let mut i = 0
     while i + 1 < n {
-        if byte_at(name, i) == 58 && byte_at(name, i + 1) == 58 {
+        if name.byte_at(i) == 58 && name.byte_at(i + 1) == 58 {
             previous = last
             last = i
             i = i + 2
@@ -61,7 +61,7 @@ fn callee_spelling_last_two_segments(name: String) -> String {
     if previous < 0 {
         return clone(name)
     }
-    substring(name, previous + 2, n)
+    name.slice(previous + 2, n)
 }
 
 // Namespace spellings for a sealed raw bridge: the canonical CoreOp callee
@@ -78,11 +78,11 @@ fn starts_with_mono_tail(callee: String, owner_name: String, method_name: String
         return false
     }
     name_match::name_region_equal(callee, 0, owner_name, 0, owner_len) &&
-    byte_at(callee, owner_len) == 95 &&
-    byte_at(callee, owner_len + 1) == 95 &&
+    callee.byte_at(owner_len) == 95 &&
+    callee.byte_at(owner_len + 1) == 95 &&
     name_match::name_region_equal(callee, owner_len + 2, method_name, 0, method_len) &&
-    byte_at(callee, owner_len + 2 + method_len) == 95 &&
-    byte_at(callee, owner_len + 3 + method_len) == 95
+    callee.byte_at(owner_len + 2 + method_len) == 95 &&
+    callee.byte_at(owner_len + 3 + method_len) == 95
 }
 
 fn contains_mono_qualified(callee: String, owner_name: String, method_name: String) -> bool {
@@ -92,14 +92,14 @@ fn contains_mono_qualified(callee: String, owner_name: String, method_name: Stri
     let callee_len = len(callee)
     let mut i = 0
     while i + pattern_len <= callee_len {
-        if byte_at(callee, i) == 58 &&
-        byte_at(callee, i + 1) == 58 &&
+        if callee.byte_at(i) == 58 &&
+        callee.byte_at(i + 1) == 58 &&
         name_match::name_region_equal(callee, i + 2, owner_name, 0, owner_len) &&
-        byte_at(callee, i + 2 + owner_len) == 95 &&
-        byte_at(callee, i + 3 + owner_len) == 95 &&
+        callee.byte_at(i + 2 + owner_len) == 95 &&
+        callee.byte_at(i + 3 + owner_len) == 95 &&
         name_match::name_region_equal(callee, i + 4 + owner_len, method_name, 0, method_len) &&
-        byte_at(callee, i + 4 + owner_len + method_len) == 95 &&
-        byte_at(callee, i + 5 + owner_len + method_len) == 95 {
+        callee.byte_at(i + 4 + owner_len + method_len) == 95 &&
+        callee.byte_at(i + 5 + owner_len + method_len) == 95 {
             return true
         }
         i = i + 1

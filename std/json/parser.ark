@@ -23,7 +23,7 @@
 
 use std::json
 use std::core::convert
-use std::prelude::{byte_at, eq, slice}
+use std::prelude::{eq}
 use std::text
 
 // ─── Legacy primitive helpers ────────────────────────────────────────────────
@@ -59,14 +59,14 @@ fn json_value_parse_i32(s: String) -> i32 {
     let mut i: i32 = 0
     let mut neg: bool = false
     if n > 0 {
-        let first: String = slice(s, 0, 1)
+        let first: String = s.slice(0, 1)
         if eq(first, "-") {
             neg = true
             i = 1
         }
     }
     while i < n {
-        let ch: String = slice(s, i, i + 1)
+        let ch: String = s.slice(i, i + 1)
         let d: i32 = if eq(ch, "0") {
             0
         } else {
@@ -439,7 +439,7 @@ fn find_closing(s: String, pos: i32, open_ch: i32, close_ch: i32) -> i32 {
     let mut in_str = false
     let mut esc = false
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if esc {
             esc = false
         } else {
@@ -480,7 +480,7 @@ fn find_string_end(s: String, pos: i32) -> i32 {
     let mut i = pos
     let mut esc = false
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if esc {
             esc = false
         } else {
@@ -501,7 +501,7 @@ fn find_number_end(s: String, pos: i32) -> i32 {
     let n = len(s)
     let mut i = pos
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if c >= 48 && c <= 57 || c == 46 || c == 43 || c == 45 || c == 101 || c == 69 {
             i = i + 1
         } else {
@@ -522,42 +522,42 @@ fn is_json_digit(c: i32) -> bool {
 /// runtimes whose float parser has a narrower input grammar.
 fn json_number_is_valid(s: String, start: i32, end: i32) -> bool {
     let mut i = start
-    if i < end && byte_at(s, i) == 45 {
+    if i < end && s.byte_at(i) == 45 {
         i = i + 1
     }
     if i >= end {
         return false
     }
-    if byte_at(s, i) == 48 {
+    if s.byte_at(i) == 48 {
         i = i + 1
-        if i < end && is_json_digit(byte_at(s, i)) {
+        if i < end && is_json_digit(s.byte_at(i)) {
             return false
         }
     } else {
-        if byte_at(s, i) < 49 || byte_at(s, i) > 57 {
+        if s.byte_at(i) < 49 || s.byte_at(i) > 57 {
             return false
         }
-        while i < end && is_json_digit(byte_at(s, i)) {
+        while i < end && is_json_digit(s.byte_at(i)) {
             i = i + 1
         }
     }
-    if i < end && byte_at(s, i) == 46 {
+    if i < end && s.byte_at(i) == 46 {
         i = i + 1
         let fraction_start = i
-        while i < end && is_json_digit(byte_at(s, i)) {
+        while i < end && is_json_digit(s.byte_at(i)) {
             i = i + 1
         }
         if i == fraction_start {
             return false
         }
     }
-    if i < end && (byte_at(s, i) == 101 || byte_at(s, i) == 69) {
+    if i < end && (s.byte_at(i) == 101 || s.byte_at(i) == 69) {
         i = i + 1
-        if i < end && (byte_at(s, i) == 43 || byte_at(s, i) == 45) {
+        if i < end && (s.byte_at(i) == 43 || s.byte_at(i) == 45) {
             i = i + 1
         }
         let exponent_start = i
-        while i < end && is_json_digit(byte_at(s, i)) {
+        while i < end && is_json_digit(s.byte_at(i)) {
             i = i + 1
         }
         if i == exponent_start {
@@ -572,7 +572,7 @@ fn find_value_end(s: String, pos: i32) -> i32 {
     if pos >= n {
         return n
     }
-    let c = byte_at(s, pos)
+    let c = s.byte_at(pos)
     if c == 34 {
         let end = find_string_end(s, pos + 1)
         if end < 0 {
@@ -589,7 +589,7 @@ fn find_value_end(s: String, pos: i32) -> i32 {
             } else {
                 let mut i = pos
                 while i < n {
-                    let ch = byte_at(s, i)
+                    let ch = s.byte_at(i)
                     if ch == 32 || ch == 9 || ch == 10 || ch == 13 || ch == 44 || ch == 93 || ch == 125 {
                         return i
                     }
@@ -647,21 +647,21 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
     if pos >= n {
         return JsonParseStep::err(JsonParseError::EmptyInput, pos)
     }
-    let c = byte_at(s, pos)
+    let c = s.byte_at(pos)
     if c == 110 {
-        if n >= pos + 4 && eq(slice(s, pos, pos + 4), "null") {
+        if n >= pos + 4 && eq(s.slice(pos, pos + 4), "null") {
             return JsonParseStep::ok(JsonValue::Null, pos + 4)
         }
         return JsonParseStep::err(JsonParseError::InvalidLiteral(String_from("null")), pos)
     }
     if c == 116 {
-        if n >= pos + 4 && eq(slice(s, pos, pos + 4), "true") {
+        if n >= pos + 4 && eq(s.slice(pos, pos + 4), "true") {
             return JsonParseStep::ok(JsonValue::Bool(true), pos + 4)
         }
         return JsonParseStep::err(JsonParseError::InvalidLiteral(String_from("true")), pos)
     }
     if c == 102 {
-        if n >= pos + 5 && eq(slice(s, pos, pos + 5), "false") {
+        if n >= pos + 5 && eq(s.slice(pos, pos + 5), "false") {
             return JsonParseStep::ok(JsonValue::Bool(false), pos + 5)
         }
         return JsonParseStep::err(JsonParseError::InvalidLiteral(String_from("false")), pos)
@@ -683,18 +683,18 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
         let mut expect_value = true
         while i < n {
             i = json::JsonText::skip_ws(s, i)
-            if i < n && byte_at(s, i) == 93 {
+            if i < n && s.byte_at(i) == 93 {
                 if !has_value || !expect_value {
                     return JsonParseStep::ok(JsonValue::Array(arr), i + 1)
                 }
                 return JsonParseStep::err(JsonParseError::UnexpectedCharacter(93), i)
             }
             if !expect_value {
-                if i >= n || byte_at(s, i) != 44 {
-                    return JsonParseStep::err(JsonParseError::UnexpectedCharacter(byte_at(s, i)), i)
+                if i >= n || s.byte_at(i) != 44 {
+                    return JsonParseStep::err(JsonParseError::UnexpectedCharacter(s.byte_at(i)), i)
                 }
                 i = json::JsonText::skip_ws(s, i + 1)
-                if i >= n || byte_at(s, i) == 93 {
+                if i >= n || s.byte_at(i) == 93 {
                     return JsonParseStep::err(JsonParseError::UnexpectedCharacter(93), i)
                 }
                 expect_value = true
@@ -717,24 +717,24 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
         let mut expect_field = true
         while i < n {
             i = json::JsonText::skip_ws(s, i)
-            if i < n && byte_at(s, i) == 125 {
+            if i < n && s.byte_at(i) == 125 {
                 if !has_field || !expect_field {
                     return JsonParseStep::ok(JsonValue::Object(fields), i + 1)
                 }
                 return JsonParseStep::err(JsonParseError::UnexpectedCharacter(125), i)
             }
             if !expect_field {
-                if i >= n || byte_at(s, i) != 44 {
-                    return JsonParseStep::err(JsonParseError::UnexpectedCharacter(byte_at(s, i)), i)
+                if i >= n || s.byte_at(i) != 44 {
+                    return JsonParseStep::err(JsonParseError::UnexpectedCharacter(s.byte_at(i)), i)
                 }
                 i = json::JsonText::skip_ws(s, i + 1)
-                if i >= n || byte_at(s, i) == 125 {
+                if i >= n || s.byte_at(i) == 125 {
                     return JsonParseStep::err(JsonParseError::UnexpectedCharacter(125), i)
                 }
                 expect_field = true
             }
-            if byte_at(s, i) != 34 {
-                return JsonParseStep::err(JsonParseError::UnexpectedCharacter(byte_at(s, i)), i)
+            if s.byte_at(i) != 34 {
+                return JsonParseStep::err(JsonParseError::UnexpectedCharacter(s.byte_at(i)), i)
             }
             let mut parsed_key = json::JsonText::parse_string_at(s, i)
             if !parsed_key.is_ok() {
@@ -742,7 +742,7 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
             }
             let key = parsed_key.value()
             i = json::JsonText::skip_ws(s, parsed_key.next())
-            if i >= n || byte_at(s, i) != 58 {
+            if i >= n || s.byte_at(i) != 58 {
                 return JsonParseStep::err(JsonParseError::UnexpectedCharacter(58), i)
             }
             let step = parse_value_at(s, json::JsonText::skip_ws(s, i + 1))
@@ -758,7 +758,7 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
     }
     if c >= 48 && c <= 57 || c == 45 {
         let end = find_number_end(s, pos)
-        let raw = slice(s, pos, end)
+        let raw = s.slice(pos, end)
         if json_number_is_valid(s, pos, end) {
             return JsonParseStep::ok(JsonValue::Number(raw), end)
         }
@@ -915,7 +915,7 @@ fn stringify_object_pretty(fields: Vec<JsonField>, indent: i32, depth: i32) -> S
 fn format_array_pretty(raw: String, indent: i32, depth: i32) -> String {
     let n = len(raw)
     let i0 = json::JsonText::skip_ws(raw, 1)
-    if i0 < n && byte_at(raw, i0) == 93 {
+    if i0 < n && raw.byte_at(i0) == 93 {
         return "[]"
     }
     let child_pad = repeat_spaces(indent * (depth + 1))
@@ -928,11 +928,11 @@ fn format_array_pretty(raw: String, indent: i32, depth: i32) -> String {
         if i >= n {
             break
         }
-        if byte_at(raw, i) == 93 {
+        if raw.byte_at(i) == 93 {
             break
         }
         let elem_end = find_value_end(raw, i)
-        match parse(slice(raw, i, elem_end)) {
+        match parse(raw.slice(i, elem_end)) {
             Result::Ok(elem) => {
                 if !first {
                     result = result.concat(",\n")
@@ -941,7 +941,7 @@ fn format_array_pretty(raw: String, indent: i32, depth: i32) -> String {
                 result = result.concat(child_pad)
                 result = result.concat(stringify_pretty_at(elem, indent, depth + 1))
                 i = json::JsonText::skip_ws(raw, elem_end)
-                if i < n && byte_at(raw, i) == 44 {
+                if i < n && raw.byte_at(i) == 44 {
                     i = i + 1
                 }
             },
@@ -956,7 +956,7 @@ fn format_array_pretty(raw: String, indent: i32, depth: i32) -> String {
 fn format_object_pretty(raw: String, indent: i32, depth: i32) -> String {
     let n = len(raw)
     let i0 = json::JsonText::skip_ws(raw, 1)
-    if i0 < n && byte_at(raw, i0) == 125 {
+    if i0 < n && raw.byte_at(i0) == 125 {
         return "{}"
     }
     let child_pad = repeat_spaces(indent * (depth + 1))
@@ -969,25 +969,25 @@ fn format_object_pretty(raw: String, indent: i32, depth: i32) -> String {
         if i >= n {
             break
         }
-        if byte_at(raw, i) == 125 {
+        if raw.byte_at(i) == 125 {
             break
         }
-        if byte_at(raw, i) != 34 {
+        if raw.byte_at(i) != 34 {
             return raw
         }
         let key_end = find_string_end(raw, i + 1)
         if key_end < 0 {
             return raw
         }
-        let key_raw = slice(raw, i, key_end)
+        let key_raw = raw.slice(i, key_end)
         i = json::JsonText::skip_ws(raw, key_end)
-        if i >= n || byte_at(raw, i) != 58 {
+        if i >= n || raw.byte_at(i) != 58 {
             return raw
         }
         i = json::JsonText::skip_ws(raw, i + 1)
         let val_start = i
         let val_end = find_value_end(raw, val_start)
-        match parse(slice(raw, val_start, val_end)) {
+        match parse(raw.slice(val_start, val_end)) {
             Result::Ok(v) => {
                 if !first {
                     result = result.concat(",\n")
@@ -998,7 +998,7 @@ fn format_object_pretty(raw: String, indent: i32, depth: i32) -> String {
                 result = result.concat(": ")
                 result = result.concat(stringify_pretty_at(v, indent, depth + 1))
                 i = json::JsonText::skip_ws(raw, val_end)
-                if i < n && byte_at(raw, i) == 44 {
+                if i < n && raw.byte_at(i) == 44 {
                     i = i + 1
                 }
             },
@@ -1081,9 +1081,9 @@ fn json_decode_string(s: String) -> String {
     let mut result = ""
     let mut i = 0
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if c == 92 && i + 1 < n {
-            let nxt = byte_at(s, i + 1)
+            let nxt = s.byte_at(i + 1)
             if nxt == 34 {
                 result = result.concat("\"")
                 i = i + 2
@@ -1120,7 +1120,7 @@ fn json_decode_string(s: String) -> String {
                                                 result = result.concat(json::JsonText::decode_unicode_ascii(s, i + 1))
                                                 i = i + 6
                                             } else {
-                                                result = result.concat(slice(s, i + 1, i + 2))
+                                                result = result.concat(s.slice(i + 1, i + 2))
                                                 i = i + 2
                                             }
                                         }
@@ -1132,7 +1132,7 @@ fn json_decode_string(s: String) -> String {
                 }
             }
         } else {
-            result = result.concat(slice(s, i, i + 1))
+            result = result.concat(s.slice(i, i + 1))
             i = i + 1
         }
     }
@@ -1150,7 +1150,7 @@ fn json_value_encode_string(s: String) -> String {
     let mut result = "\""
     let mut i = 0
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if c == 34 {
             result = result.concat("\\\"")
         } else {
@@ -1176,7 +1176,7 @@ fn json_value_encode_string(s: String) -> String {
                                         result = result.concat("\\u00")
                                         result = result.concat(json::JsonText::hex_byte(c))
                                     } else {
-                                        result = result.concat(slice(s, i, i + 1))
+                                        result = result.concat(s.slice(i, i + 1))
                                     }
                                 }
                             }

@@ -1,6 +1,6 @@
 use std::host::fs::Fs
 use std::text
-use std::prelude::{byte_at, clone, contains, eq, to_string}
+use std::prelude::{clone, eq}
 use component::wit_decl
 use component::wit_names
 use component::wit_type_defs
@@ -32,7 +32,7 @@ fn emit_wit_imports(wit_paths: Vec<String>, decls: Vec<AstNode>) -> String {
         let import_id = wit_import_bind::wit_import_binding_wit_import_id(binding)
         if len(import_id) > 0 {
             let line = "    import ".concat(import_id.concat(";\n"))
-            if !contains(clone(out), clone(line)) {
+            if !clone(out).contains(clone(line)) {
                 out = out.concat(line)
             }
         }
@@ -57,14 +57,14 @@ fn emit_wit_func_exports_with_world(decls: Vec<AstNode>, world: String) -> Strin
             let fname = wit_decl::wit_func_name(f)
             if eq(clone(fname), "main") || eq(clone(fname), "_start") {
                 let export_key = "    export wasi:cli/run@0.2.0;\n"
-                if !contains(clone(out), clone(export_key)) {
+                if !clone(out).contains(clone(export_key)) {
                     out = out.concat(export_key)
                 }
             } else {
                 if wit_decl::wit_func_is_export(f) {
                     let export_name = wit_names::wit_export_name(fname)
                     let export_key = "export ".concat(clone(export_name).concat(":"))
-                    if !contains(clone(out), clone(export_key)) {
+                    if !clone(out).contains(clone(export_key)) {
                         out = out.concat("    export ")
                         out = out.concat(export_name)
                         out = out.concat(": func();\n")
@@ -90,7 +90,7 @@ fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
                 for pi in 0..wit_decl::wit_func_param_count(f) {
                     if pi > 0 { out = out.concat(", ") }
                     let pname = wit_decl::wit_func_param_name_at(f, pi)
-                    if len(clone(pname)) > 0 { out = out.concat(pname) } else { out = out.concat("arg".concat(to_string(pi))) }
+                    if len(clone(pname)) > 0 { out = out.concat(pname) } else { out = out.concat("arg".concat(pi.to_string())) }
                     out = out.concat(": ")
                     if eq(clone(fname), "flip_read") {
                         out = out.concat(wit_type_defs::wit_export_flags_type_name())
@@ -138,7 +138,7 @@ fn collect_export_roots(decls: Vec<AstNode>) -> Vec<String> {
 
 fn string_to_bytes(text: String) -> Vec<i32> {
     let mut bytes = Vec::new<i32>()
-    for i in 0..len(text) { push(bytes, byte_at(text, i)) }
+    for i in 0..len(text) { push(bytes, text.byte_at(i)) }
     bytes
 }
 
@@ -151,10 +151,10 @@ fn validate_wit_import_surface(paths: Vec<String>) -> String {
                 return "unable to read WIT file ".concat(clone(path).concat(": ".concat(e)))
             },
             Result::Ok(source) => {
-                if contains(clone(source), "future<") {
+                if clone(source).contains("future<") {
                     return "E0402 unsupported WIT import type `future<T>` in ".concat(clone(path))
                 }
-                if contains(clone(source), "stream<") {
+                if clone(source).contains("stream<") {
                     return "E0402 unsupported WIT import type `stream<T>` in ".concat(clone(path))
                 }
             },
