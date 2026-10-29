@@ -16,6 +16,32 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-29 — `std::test` assertion / expectation frees の deprecation (#917, wave/test-group)
+
+- **Basis**: [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2 の Wave 1。
+  対象は `std::test` の `stable` 17 件で、`bench` は `experimental` のため
+  ADR-014 D4 により直接削除する（W0009 window は作らない）。
+- **Surface**: `pub struct Test` と associated function 群を追加した。
+  `Test::assert_true` / `assert_false` / `assert_eq_debug` / `assert_eq_i32` /
+  `assert_eq_i64` / `assert_eq_f64` / `assert_eq_string` / `assert_eq_bool` /
+  `assert_ne_i32` / `assert_ne_string` / `expect_ok_i32` / `expect_err_string` /
+  `expect_some_i32` / `expect_none_i32` / `assert_contains` /
+  `assert_eq_snapshot` / `assert_msg` / `bench` が正規の綴りで、import は
+  `use std::test::Test`。
+- **Deprecated (17)**: 上記 stable 17 件を `stability = "deprecated"`、
+  `deprecated_by = "Test::<name>"`、`deprecated_since = "0.1.0"`、
+  `remove_in = "1.0.0"` に変更した。`std/prelude.ark` の旧 assertion wrapper の
+  `deprecated_by` も `Test::assert_eq_i32` 等を指す。
+- **W0009**: bare name と `test::` qualified call の両方に replacement hint を
+  追加し、`diagnostics/deprecated_test_free*` の両 target golden を追加した。
+- **Migration**: 4,995 call sites / 1,256 files を `Test::` +
+  `use std::test::Test` へ移行済み。migration guide に before/after 表を追加。
+- **Scorecard**:  eradication scope 195、`associated-or-method` 129、
+  manifest public entries 193、`pub fn` declarations 216 は不変。Stability は
+  stable 112 → **95**、deprecated 75 → **92**、experimental 4 のまま。
+- **Evidence**: 詳細は issue #917 の `wave/test-group` landed slice を参照。
+  Wave 2 の削除は次の entry で記録する。
+
 ## 2026-10-29 — `std::seq` の provisional 汎用アルゴリズム削除 (#917, wave/associated-next)
 
 - **Basis**: [ADR-014](../adr/ADR-014-stability-labels.md) の provisional 削除規則

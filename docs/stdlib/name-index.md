@@ -5,8 +5,8 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 118
-- **Historical/deprecated names:** 75
+- **Canonical names:** 101
+- **Historical/deprecated names:** 92
 - **Total entries:** 193
 
 Related:
@@ -29,19 +29,6 @@ Current public API names, sorted alphabetically.
 | `arg_count` | `std::cli` | `stable` | Cli |
 | `args` | `prelude` | `stable` | Host Env |
 | `assert` | `prelude` | `stable` | Assert |
-| `assert_contains` | `std::test` | `stable` | Test |
-| `assert_eq_bool` | `std::test` | `stable` | Test |
-| `assert_eq_debug` | `std::test` | `stable` | Test |
-| `assert_eq_f64` | `std::test` | `stable` | Test |
-| `assert_eq_i32` | `std::test` | `stable` | Test |
-| `assert_eq_i64` | `std::test` | `stable` | Test |
-| `assert_eq_snapshot` | `std::test` | `stable` | Test |
-| `assert_eq_string` | `std::test` | `stable` | Test |
-| `assert_false` | `std::test` | `stable` | Test |
-| `assert_msg` | `std::test` | `stable` | Test |
-| `assert_ne_i32` | `std::test` | `stable` | Test |
-| `assert_ne_string` | `std::test` | `stable` | Test |
-| `assert_true` | `std::test` | `stable` | Test |
 | `bench` | `std::test` | `experimental` | Test |
 | `Box_new` | `prelude` | `stable` | Box |
 | `byte_at` | `prelude` | `stable` | String |
@@ -58,10 +45,6 @@ Current public API names, sorted alphabetically.
 | `exit` | `prelude` | `stable` | Host Process |
 | `exit` | `std::host::process` | `stable` | Host Process |
 | `exit` | `std::process` | `stable` | Process |
-| `expect_err_string` | `std::test` | `stable` | Test |
-| `expect_none_i32` | `std::test` | `stable` | Test |
-| `expect_ok_i32` | `std::test` | `stable` | Test |
-| `expect_some_i32` | `std::test` | `stable` | Test |
 | `f32_to_string` | `prelude` | `stable` | Convert |
 | `fd_fdstat_errno` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_seek` | `std::host::fs` | `experimental` | Host Fs |
@@ -149,10 +132,23 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | Old Name | Replacement | Category | Migration Guide |
 |----------|-------------|----------|-----------------|
 | ~~`as_slice`~~ | `Vec::as_slice` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_eq`~~ | `std::test::assert_eq_i32` | Assert | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_eq_i64`~~ | `std::test::assert_eq_i64` | Assert | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_eq_str`~~ | `std::test::assert_eq_string` | Assert | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_ne`~~ | `std::test::assert_ne_i32` | Assert | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_contains`~~ | `Test::assert_contains` | Test | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_eq`~~ | `Test::assert_eq_i32` | Assert | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_eq_bool`~~ | `Test::assert_eq_bool` | Test | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_eq_debug`~~ | `Test::assert_eq_debug` | Test | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_eq_f64`~~ | `Test::assert_eq_f64` | Test | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_eq_i32`~~ | `Test::assert_eq_i32` | Test | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_eq_i64`~~ | `Test::assert_eq_i64` | Assert | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_eq_i64`~~ | `Test::assert_eq_i64` | Test | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_eq_snapshot`~~ | `Test::assert_eq_snapshot` | Test | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_eq_str`~~ | `Test::assert_eq_string` | Assert | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_eq_string`~~ | `Test::assert_eq_string` | Test | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_false`~~ | `Test::assert_false` | Test | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_msg`~~ | `Test::assert_msg` | Test | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_ne`~~ | `Test::assert_ne_i32` | Assert | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_ne_i32`~~ | `Test::assert_ne_i32` | Test | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_ne_string`~~ | `Test::assert_ne_string` | Test | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_true`~~ | `Test::assert_true` | Test | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `Vec::binary_search` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`bitset_mark`~~ | `BitSet::mark` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`bitset_new`~~ | `BitSet::new` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -170,6 +166,10 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`deque_push_back`~~ | `Deque::push_back` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_push_front`~~ | `Deque::push_front` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_to_vec`~~ | `Deque::iter` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`expect_err_string`~~ | `Test::expect_err_string` | Test | [migration-guidance.md](migration-guidance.md) |
+| ~~`expect_none_i32`~~ | `Test::expect_none_i32` | Test | [migration-guidance.md](migration-guidance.md) |
+| ~~`expect_ok_i32`~~ | `Test::expect_ok_i32` | Test | [migration-guidance.md](migration-guidance.md) |
+| ~~`expect_some_i32`~~ | `Test::expect_some_i32` | Test | [migration-guidance.md](migration-guidance.md) |
 | ~~`f32_to_f64`~~ | `f32::to_f64` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_hi`~~ | `f64::to_bits_hi` | Numeric | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_lo`~~ | `f64::to_bits_lo` | Numeric | [migration-guidance.md](migration-guidance.md) |
@@ -241,23 +241,23 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `args` | ✅ `stable` | `prelude` | Host Env |
 | ~~`as_slice`~~ | ⚠️ deprecated | `prelude` | → `Vec::as_slice` · [migration guide](migration-guidance.md) |
 | `assert` | ✅ `stable` | `prelude` | Assert |
-| `assert_contains` | ✅ `stable` | `std::test` | Test |
-| ~~`assert_eq`~~ | ⚠️ deprecated | `prelude` | → `std::test::assert_eq_i32` · [migration guide](migration-guidance.md) |
-| `assert_eq_bool` | ✅ `stable` | `std::test` | Test |
-| `assert_eq_debug` | ✅ `stable` | `std::test` | Test |
-| `assert_eq_f64` | ✅ `stable` | `std::test` | Test |
-| `assert_eq_i32` | ✅ `stable` | `std::test` | Test |
-| `assert_eq_i64` | ✅ `stable` | `std::test` | Test |
-| ~~`assert_eq_i64`~~ | ⚠️ deprecated | `prelude` | → `std::test::assert_eq_i64` · [migration guide](migration-guidance.md) |
-| `assert_eq_snapshot` | ✅ `stable` | `std::test` | Test |
-| ~~`assert_eq_str`~~ | ⚠️ deprecated | `prelude` | → `std::test::assert_eq_string` · [migration guide](migration-guidance.md) |
-| `assert_eq_string` | ✅ `stable` | `std::test` | Test |
-| `assert_false` | ✅ `stable` | `std::test` | Test |
-| `assert_msg` | ✅ `stable` | `std::test` | Test |
-| ~~`assert_ne`~~ | ⚠️ deprecated | `prelude` | → `std::test::assert_ne_i32` · [migration guide](migration-guidance.md) |
-| `assert_ne_i32` | ✅ `stable` | `std::test` | Test |
-| `assert_ne_string` | ✅ `stable` | `std::test` | Test |
-| `assert_true` | ✅ `stable` | `std::test` | Test |
+| ~~`assert_contains`~~ | ⚠️ deprecated | `std::test` | → `Test::assert_contains` · [migration guide](migration-guidance.md) |
+| ~~`assert_eq`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_eq_i32` · [migration guide](migration-guidance.md) |
+| ~~`assert_eq_bool`~~ | ⚠️ deprecated | `std::test` | → `Test::assert_eq_bool` · [migration guide](migration-guidance.md) |
+| ~~`assert_eq_debug`~~ | ⚠️ deprecated | `std::test` | → `Test::assert_eq_debug` · [migration guide](migration-guidance.md) |
+| ~~`assert_eq_f64`~~ | ⚠️ deprecated | `std::test` | → `Test::assert_eq_f64` · [migration guide](migration-guidance.md) |
+| ~~`assert_eq_i32`~~ | ⚠️ deprecated | `std::test` | → `Test::assert_eq_i32` · [migration guide](migration-guidance.md) |
+| ~~`assert_eq_i64`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_eq_i64` · [migration guide](migration-guidance.md) |
+| ~~`assert_eq_i64`~~ | ⚠️ deprecated | `std::test` | → `Test::assert_eq_i64` · [migration guide](migration-guidance.md) |
+| ~~`assert_eq_snapshot`~~ | ⚠️ deprecated | `std::test` | → `Test::assert_eq_snapshot` · [migration guide](migration-guidance.md) |
+| ~~`assert_eq_str`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_eq_string` · [migration guide](migration-guidance.md) |
+| ~~`assert_eq_string`~~ | ⚠️ deprecated | `std::test` | → `Test::assert_eq_string` · [migration guide](migration-guidance.md) |
+| ~~`assert_false`~~ | ⚠️ deprecated | `std::test` | → `Test::assert_false` · [migration guide](migration-guidance.md) |
+| ~~`assert_msg`~~ | ⚠️ deprecated | `std::test` | → `Test::assert_msg` · [migration guide](migration-guidance.md) |
+| ~~`assert_ne`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_ne_i32` · [migration guide](migration-guidance.md) |
+| ~~`assert_ne_i32`~~ | ⚠️ deprecated | `std::test` | → `Test::assert_ne_i32` · [migration guide](migration-guidance.md) |
+| ~~`assert_ne_string`~~ | ⚠️ deprecated | `std::test` | → `Test::assert_ne_string` · [migration guide](migration-guidance.md) |
+| ~~`assert_true`~~ | ⚠️ deprecated | `std::test` | → `Test::assert_true` · [migration guide](migration-guidance.md) |
 | `bench` | ✅ `experimental` | `std::test` | Test |
 | ~~`binary_search`~~ | ⚠️ deprecated | `std::seq` | → `Vec::binary_search` · [migration guide](migration-guidance.md) |
 | ~~`bitset_mark`~~ | ⚠️ deprecated | `std::collections::ordered` | → `BitSet::mark` · [migration guide](migration-guidance.md) |
@@ -291,10 +291,10 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `exit` | ✅ `stable` | `prelude` | Host Process |
 | `exit` | ✅ `stable` | `std::host::process` | Host Process |
 | `exit` | ✅ `stable` | `std::process` | Process |
-| `expect_err_string` | ✅ `stable` | `std::test` | Test |
-| `expect_none_i32` | ✅ `stable` | `std::test` | Test |
-| `expect_ok_i32` | ✅ `stable` | `std::test` | Test |
-| `expect_some_i32` | ✅ `stable` | `std::test` | Test |
+| ~~`expect_err_string`~~ | ⚠️ deprecated | `std::test` | → `Test::expect_err_string` · [migration guide](migration-guidance.md) |
+| ~~`expect_none_i32`~~ | ⚠️ deprecated | `std::test` | → `Test::expect_none_i32` · [migration guide](migration-guidance.md) |
+| ~~`expect_ok_i32`~~ | ⚠️ deprecated | `std::test` | → `Test::expect_ok_i32` · [migration guide](migration-guidance.md) |
+| ~~`expect_some_i32`~~ | ⚠️ deprecated | `std::test` | → `Test::expect_some_i32` · [migration guide](migration-guidance.md) |
 | ~~`f32_to_f64`~~ | ⚠️ deprecated | `prelude` | → `f32::to_f64` · [migration guide](migration-guidance.md) |
 | `f32_to_string` | ✅ `stable` | `prelude` | Convert |
 | ~~`f64_bits_hi`~~ | ⚠️ deprecated | `prelude` | → `f64::to_bits_hi` · [migration guide](migration-guidance.md) |

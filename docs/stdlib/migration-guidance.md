@@ -128,14 +128,48 @@ exception before ADR-087; their migration rows remain in
 
 ### Assertion frees (4)
 
-`test` below is `std::test`; import it with `use std::test`.
+The replacement is the `std::test::Test` associated surface; import it with
+`use std::test::Test`.
 
 | Deprecated API | Replacement |
 |----------------|-------------|
-| `assert_eq(a, b)` | `test::assert_eq_i32(a, b)` |
-| `assert_ne(a, b)` | `test::assert_ne_i32(a, b)` |
-| `assert_eq_i64(a, b)` | `test::assert_eq_i64(a, b)` |
-| `assert_eq_str(a, b)` | `test::assert_eq_string(a, b)` |
+| `assert_eq(a, b)` | `Test::assert_eq_i32(a, b)` |
+| `assert_ne(a, b)` | `Test::assert_ne_i32(a, b)` |
+| `assert_eq_i64(a, b)` | `Test::assert_eq_i64(a, b)` |
+| `assert_eq_str(a, b)` | `Test::assert_eq_string(a, b)` |
+
+### std::test assertion / expectation frees (18) — deprecated 2026-10-29
+
+The [#917](https://github.com/wogikaze/arukellt/issues/917) `wave/test-group`
+wave moved the `std::test` helpers onto the `Test` namespace. The 17 `stable`
+entries are `deprecated` with `deprecated_by = "Test::<name>"`,
+`deprecated_since = "0.1.0"`, and `remove_in = "1.0.0"`; the `experimental`
+`bench` retires directly under ADR-014 D4. Wave 1 keeps every free callable
+with **W0009**; Wave 2 deletes the declarations and the qualified / bare old
+spellings then fail with **E0100**.
+
+Import `use std::test::Test` and prefix the call with `Test::`:
+
+| Deprecated API | Replacement |
+|----------------|-------------|
+| `assert_true(cond)` | `Test::assert_true(cond)` |
+| `assert_false(cond)` | `Test::assert_false(cond)` |
+| `assert_eq_debug(actual, expected)` | `Test::assert_eq_debug(actual, expected)` |
+| `assert_eq_i32(actual, expected)` | `Test::assert_eq_i32(actual, expected)` |
+| `assert_eq_i64(actual, expected)` | `Test::assert_eq_i64(actual, expected)` |
+| `assert_eq_f64(actual, expected)` | `Test::assert_eq_f64(actual, expected)` |
+| `assert_eq_string(actual, expected)` | `Test::assert_eq_string(actual, expected)` |
+| `assert_eq_bool(actual, expected)` | `Test::assert_eq_bool(actual, expected)` |
+| `assert_ne_i32(actual, unexpected)` | `Test::assert_ne_i32(actual, unexpected)` |
+| `assert_ne_string(actual, unexpected)` | `Test::assert_ne_string(actual, unexpected)` |
+| `expect_ok_i32(result)` | `Test::expect_ok_i32(result)` |
+| `expect_err_string(result)` | `Test::expect_err_string(result)` |
+| `expect_some_i32(option)` | `Test::expect_some_i32(option)` |
+| `expect_none_i32(option)` | `Test::expect_none_i32(option)` |
+| `assert_contains(haystack, needle)` | `Test::assert_contains(haystack, needle)` |
+| `assert_eq_snapshot(actual, expected)` | `Test::assert_eq_snapshot(actual, expected)` |
+| `assert_msg(cond, message)` | `Test::assert_msg(cond, message)` |
+| `bench(name, iterations, f)` | `Test::bench(name, iterations, f)` (`experimental`; direct retirement) |
 
 ### Removed in Wave 2: monomorphic seq/combinator frees (31)
 

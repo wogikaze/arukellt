@@ -1,0 +1,7 @@
+// W0009 on the linear wasm32 target: the std::test free names the Test
+// associated replacement (ADR-087).
+use std::test
+
+fn main() {
+    test::assert_eq_i32(1 + 1, 2)
+}

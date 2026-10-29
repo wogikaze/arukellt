@@ -1,0 +1,7 @@
+// W0009: the std::test free assertion helpers are deprecated in favour of
+// the Test associated surface (ADR-087).
+use std::test
+
+fn main() {
+    test::assert_eq_i32(1 + 1, 2)
+}
