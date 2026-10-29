@@ -1,0 +1,14 @@
+use std::host::stdio
+
+// ADR-059 §4: the trailing expression of a body is a return value even
+// without a `return` node, so reading a moved binding there is E0212.
+fn take() -> String {
+    let first = String_from("tail")
+    let second = first
+    stdio::println(second)
+    first
+}
+
+fn main() {
+    stdio::println(take())
+}

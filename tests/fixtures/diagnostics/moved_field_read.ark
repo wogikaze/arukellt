@@ -1,0 +1,16 @@
+use std::host::stdio
+
+// ADR-059 §4: a plain field read evaluates its root place. A binding moved
+// into another binding earlier is E0212 at the root, also in a let
+// initializer where the whole place is only read.
+struct Record {
+    name: String,
+}
+
+fn main() {
+    let record = Record { name: String_from("field") }
+    let owner = record
+    let copied = record.name
+    stdio::println(copied)
+    stdio::println(owner.name)
+}

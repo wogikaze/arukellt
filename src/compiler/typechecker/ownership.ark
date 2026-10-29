@@ -244,6 +244,27 @@ fn check_moved_place_use(mut env: TypeEnv, scope: LocalScope, node: AstNode) {
     }
 }
 
+// ADR-059 §4: every evaluation of a non-`Copy` binding after it was moved is
+// E0212, not only a call argument or receiver. Expression inference reaches
+// this for each identifier it evaluates, so return values, operands, and
+// field-read roots share the call position's moved/Copy predicate. The call
+// and move paths report the same span through report_ownership_error_once.
+fn check_moved_binding_use(mut env: TypeEnv, scope: LocalScope, node: AstNode) {
+    if !env.is_ownership_tracking_enabled {
+        return
+    }
+    let name = ast_access::node_text(node)
+    if !is_moved_binding(scope, clone(name)) {
+        return
+    }
+    report_ownership_error_once(
+        env,
+        codes::DIAG_TYPE_MOVE_AFTER_USE(),
+        node,
+        move_after_use_message(name)
+    )
+}
+
 fn is_moved_binding(scope: LocalScope, name: String) -> bool {
     if scope::scope_binding_index(scope, clone(name)) < 0 {
         return false

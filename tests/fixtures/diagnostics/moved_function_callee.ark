@@ -1,0 +1,17 @@
+use std::host::stdio
+
+// ADR-059 §4: calling through a local function value reads that binding.
+// Resolving the callee does not infer it as an expression, so the callee
+// position is checked separately; a moved function value is E0212.
+fn size(text: String) -> i32 {
+    text.len()
+}
+
+fn main() {
+    let measure: fn(String) -> i32 = size
+    let alias = measure
+    let moved = measure(String_from("callee"))
+    let live = alias(String_from("alias"))
+    stdio::println(moved.to_string())
+    stdio::println(live.to_string())
+}

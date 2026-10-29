@@ -6,6 +6,7 @@ use typechecker::contract_env_record
 use typechecker::contract_type_access
 use typechecker::int_lit_suffix
 use typechecker::scope
+use typechecker::ownership
 fn infer_leaf_expr(mut env: TypeEnv, scope: LocalScope, node: AstNode) -> TypeInfo {
     if ast_expr_predicates::node_is_int_lit(node) {
         let raw_text = ast_access::node_text(node)
@@ -39,6 +40,10 @@ fn infer_leaf_expr(mut env: TypeEnv, scope: LocalScope, node: AstNode) -> TypeIn
     }
     if ast_expr_predicates::node_is_ident(node) {
         let name = ast_access::node_text(node)
+        // Identifier inference is the single read-use point: return values,
+        // operands, and field/index roots all evaluate their identifiers here
+        // before the surrounding position decides whether to move them.
+        ownership::check_moved_binding_use(env, scope, node)
         contract_env_record::type_env_mark_binding_used(env, clone(name))
         let local_ty = scope::scope_lookup_instantiated(env, scope, name)
         if contract_type_access::TypeInfo_tag(local_ty) != commands::TY_UNKNOWN() {

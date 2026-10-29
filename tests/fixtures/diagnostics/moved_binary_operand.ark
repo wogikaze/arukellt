@@ -1,0 +1,26 @@
+use std::core::ops
+
+// ADR-059 §4: an operator operand is a read of its place. A binding moved
+// into another binding earlier is E0212 at the operand, not only at a call.
+struct Pair {
+    left: i32,
+    right: i32,
+}
+
+impl Add for Pair {
+    fn add(self: Pair, rhs: Pair) -> Pair {
+        Pair { left: self.left + rhs.left, right: self.right + rhs.right }
+    }
+}
+
+fn main() {
+    let pair = Pair { left: 1, right: 2 }
+    let other = Pair { left: 3, right: 4 }
+    let sum = pair + other
+    let owner = pair
+    let reused = owner + other
+    let second = pair + other
+    let _ = sum
+    let _ = reused
+    let _ = second
+}

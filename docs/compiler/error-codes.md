@@ -495,7 +495,14 @@ E0212 in argument position too. The check runs for free calls, method calls,
 calls through a function value, and builtins, and follows a field or element
 place back to its root binding.
 
-<!-- skip-doc-check kind="invalid-example" reason="E0212 rejects a moved binding passed as a call argument" -->
+Other evaluations of a binding are uses as well. A direct `return` or
+tail value, a binary or unary operand, the root of a plain field read, and the
+callee of a call through a function value are E0212 when the binding was
+already moved. Identifier inference applies the same moved/`Copy` predicate,
+so the report does not depend on the surrounding AST shape; the callee is
+resolved without expression inference and is checked at the call.
+
+<!-- skip-doc-check kind="invalid-example" reason="E0212 rejects a moved binding passed as a call argument or read after the move" -->
 ```arukellt
 struct Point {
     s: String,
@@ -509,6 +516,7 @@ fn main() {
     let a = Point { s: String_from("a") }
     let b = a
     show(a)   // error: E0212, `a` was moved into `b`
+    let s = a.s   // error: E0212, a field read is still a use
     show(b)   // OK: the call borrows `b`
 }
 ```
