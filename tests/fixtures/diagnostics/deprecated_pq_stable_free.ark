@@ -1,0 +1,7 @@
+// W0009 on the stable pq frees: they stay callable through the ADR-087
+// window and point at the PriorityQueue receiver surface.
+use std::collections::linear
+
+fn main() {
+    let _queue: Vec<i32> = linear::pq_new()
+}

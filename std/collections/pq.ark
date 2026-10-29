@@ -1,0 +1,199 @@
+//! `PriorityQueue<T>` — binary min-heap over a flat `Vec<T>`.
+//!
+//! The heap stores its elements in level order: the root is the minimum and
+//! every parent compares less than or equal to its children. `push` sifts the
+//! new element up from the last slot; `pop` moves the last element into the
+//! root and sifts it down. Empty `pop` / `peek` return `Option::None`, so
+//! there is no `0` sentinel and no panic path.
+//!
+//! The legacy `std::collections::linear::pq_*` free functions remain callable
+//! through the ADR-087 deprecation window with their `[count, ...heap]`
+//! `Vec<i32>` layout; this type is the replacement surface and does not expose
+//! that layout.
+//!
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
+
+use std::core::cmp
+
+/// Binary min-heap with `Ord`-ordered elements.
+pub struct PriorityQueue<T> {
+    items: Vec<T>,
+}
+
+// Sift-up and sift-down are module helpers because a generic impl body may
+// call module functions but a sibling generic method currently lowers to an
+// unreachable stub in the GC emitter (#917).
+fn pq_sift_up<T: Ord>(mut items: Vec<T>, mut index: i32) {
+    while index > 0 {
+        let parent: i32 = (index - 1) / 2
+        let child: T = get_unchecked(items, index)
+        let parent_value: T = get_unchecked(items, parent)
+        let mut is_less: bool = false
+        match child.cmp(parent_value) {
+            Ordering::Less => {
+                is_less = true
+            }
+            _ => {}
+        }
+        if !is_less {
+            return
+        }
+        set(items, index, parent_value)
+        set(items, parent, child)
+        index = parent
+    }
+}
+
+fn pq_sift_down<T: Ord>(mut items: Vec<T>, mut index: i32) {
+    let count: i32 = len(items)
+    let mut continue_down: bool = true
+    while continue_down {
+        let left: i32 = index * 2 + 1
+        let right: i32 = index * 2 + 2
+        let mut smallest: i32 = index
+        if left < count {
+            let mut is_less: bool = false
+            match get_unchecked(items, left).cmp(get_unchecked(items, smallest)) {
+                Ordering::Less => {
+                    is_less = true
+                }
+                _ => {}
+            }
+            if is_less {
+                smallest = left
+            }
+        }
+        if right < count {
+            let mut is_less: bool = false
+            match get_unchecked(items, right).cmp(get_unchecked(items, smallest)) {
+                Ordering::Less => {
+                    is_less = true
+                }
+                _ => {}
+            }
+            if is_less {
+                smallest = right
+            }
+        }
+        if smallest == index {
+            continue_down = false
+        } else {
+            let displaced: T = get_unchecked(items, index)
+            set(items, index, get_unchecked(items, smallest))
+            set(items, smallest, displaced)
+            index = smallest
+        }
+    }
+}
+
+fn pq_clear_items<T>(mut items: Vec<T>) {
+    while len(items) > 0 {
+        match pop(items) {
+            Option::Some(_) => {},
+            Option::None => { break },
+        }
+    }
+}
+
+impl<T: Ord> PriorityQueue<T> {
+    /// Creates an empty priority queue.
+    fn new() -> PriorityQueue<T> {
+        PriorityQueue { items: Vec::new<T>() }
+    }
+
+    /// Inserts `value`, keeping the minimum at the root.
+    fn push(mut self: PriorityQueue<T>, value: T) {
+        push(self.items, value)
+        pq_sift_up(self.items, len(self.items) - 1)
+    }
+
+    /// Removes and returns the minimum element, or `None` when empty.
+    fn pop(mut self: PriorityQueue<T>) -> Option<T> {
+        let count: i32 = len(self.items)
+        if count == 0 {
+            return Option::None
+        }
+        let result: T = get_unchecked(self.items, 0)
+        let last: T = get_unchecked(self.items, count - 1)
+        set(self.items, 0, last)
+        let _: Option<T> = pop(self.items)
+        pq_sift_down(self.items, 0)
+        Option::Some(result)
+    }
+
+    /// Returns the minimum element without removing it, or `None` when empty.
+    fn peek(self: PriorityQueue<T>) -> Option<T> {
+        if len(self.items) == 0 {
+            return Option::None
+        }
+        Option::Some(get_unchecked(self.items, 0))
+    }
+
+    /// Returns the number of elements.
+    fn len(self: PriorityQueue<T>) -> i32 {
+        len(self.items)
+    }
+
+    /// Returns true when the queue has no elements.
+    fn is_empty(self: PriorityQueue<T>) -> bool {
+        len(self.items) == 0
+    }
+
+    /// Removes every element while keeping the allocated storage.
+    fn clear(mut self: PriorityQueue<T>) {
+        pq_clear_items(self.items)
+    }
+}
+
+fn expect_queue_i32(value: Option<i32>, expected: i32) {
+    match value {
+        Option::Some(actual) => assert(actual == expected),
+        Option::None => assert(false),
+    }
+}
+
+fn expect_queue_none_i32(value: Option<i32>) {
+    match value {
+        Option::Some(_) => assert(false),
+        Option::None => {},
+    }
+}
+
+test mod "pq" {
+    test "pop_returns_minimum_order" {
+        let mut queue: PriorityQueue<i32> = PriorityQueue::new<i32>()
+        assert(queue.is_empty())
+        queue.push(5)
+        queue.push(1)
+        queue.push(3)
+        assert(queue.len() == 3)
+        expect_queue_i32(queue.peek(), 1)
+        expect_queue_i32(queue.pop(), 1)
+        expect_queue_i32(queue.pop(), 3)
+        expect_queue_i32(queue.pop(), 5)
+        expect_queue_none_i32(queue.pop())
+        assert(queue.is_empty())
+    }
+    test "duplicates_and_clear" {
+        let mut queue: PriorityQueue<i32> = PriorityQueue::new<i32>()
+        queue.push(2)
+        queue.push(2)
+        queue.push(2)
+        queue.clear()
+        assert(queue.is_empty())
+        expect_queue_none_i32(queue.peek())
+    }
+    test "string_order" {
+        let mut queue: PriorityQueue<String> = PriorityQueue::new<String>()
+        queue.push(String_from("pear"))
+        queue.push(String_from("apple"))
+        match queue.peek() {
+            Option::Some(value) => assert(value == String_from("apple")),
+            Option::None => assert(false),
+        }
+        match queue.pop() {
+            Option::Some(value) => assert(value == String_from("apple")),
+            Option::None => assert(false),
+        }
+    }
+}

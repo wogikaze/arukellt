@@ -1,26 +1,30 @@
-use std::collections::linear
+use std::collections::pq::PriorityQueue
 use std::host::stdio
 
+fn show_i32(value: Option<i32>) {
+    match value {
+        Option::Some(item) => stdio::println(item.to_string()),
+        Option::None => stdio::println(String_from("none")),
+    }
+}
+
 fn main() {
-    let mut pq: Vec<i32> = linear::pq_new()
-    linear::pq_clear(pq)
-    stdio::println((linear::pq_is_empty(pq)).to_string())
-    linear::pq_push(pq, 50)
-    linear::pq_push(pq, 10)
-    linear::pq_push(pq, 30)
-    linear::pq_push(pq, 5)
-    stdio::println((linear::pq_len(pq)).to_string())
-    stdio::println((linear::pq_peek(pq)).to_string())
-    let a: i32 = linear::pq_pop(pq)
-    let b: i32 = linear::pq_pop(pq)
-    let c: i32 = linear::pq_pop(pq)
-    stdio::println((a).to_string())
-    stdio::println((b).to_string())
-    stdio::println((c).to_string())
-    stdio::println((linear::pq_len(pq)).to_string())
-    linear::pq_push(pq, 99)
-    linear::pq_clear(pq)
-    stdio::println((linear::pq_is_empty(pq)).to_string())
+    let mut queue: PriorityQueue<i32> = PriorityQueue::new<i32>()
+    queue.clear()
+    stdio::println(queue.is_empty().to_string())
+    queue.push(50)
+    queue.push(10)
+    queue.push(30)
+    queue.push(5)
+    stdio::println(queue.len().to_string())
+    show_i32(queue.peek())
+    show_i32(queue.pop())
+    show_i32(queue.pop())
+    show_i32(queue.pop())
+    stdio::println(queue.len().to_string())
+    queue.push(99)
+    queue.clear()
+    stdio::println(queue.is_empty().to_string())
 }
 // pq_clear on empty
 // push and peek

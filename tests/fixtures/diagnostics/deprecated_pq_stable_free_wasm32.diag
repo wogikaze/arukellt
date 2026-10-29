@@ -1,0 +1,1 @@
+use `PriorityQueue::new<i32>()` from `use std::collections::pq::PriorityQueue` instead

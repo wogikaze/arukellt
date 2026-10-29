@@ -5,8 +5,8 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 72
-- **Historical/deprecated names:** 75
+- **Canonical names:** 65
+- **Historical/deprecated names:** 82
 - **Total entries:** 147
 
 Related:
@@ -62,13 +62,6 @@ Current public API names, sorted alphabetically.
 | `parse_i32` | `prelude` | `stable` | Conversion |
 | `parse_i64` | `prelude` | `stable` | Conversion |
 | `pi` | `std::signal` | `stable` | Signal |
-| `pq_clear` | `std::collections::linear` | `stable` | Collections |
-| `pq_is_empty` | `std::collections::linear` | `stable` | Collections |
-| `pq_len` | `std::collections::linear` | `stable` | Collections |
-| `pq_new` | `std::collections::linear` | `stable` | Collections |
-| `pq_peek` | `std::collections::linear` | `stable` | Collections |
-| `pq_pop` | `std::collections::linear` | `stable` | Collections |
-| `pq_push` | `std::collections::linear` | `stable` | Collections |
 | `print` | `std::host::stdio` | `stable` | Host Stdio |
 | `print_bytes` | `std::io` | `stable` | Io |
 | `println` | `std::host::stdio` | `stable` | Host Stdio |
@@ -157,6 +150,13 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`max_i32`~~ | `Vec::max` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`min_i32`~~ | `Vec::min` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`pq_clear`~~ | `PriorityQueue::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`pq_is_empty`~~ | `PriorityQueue::is_empty` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`pq_len`~~ | `PriorityQueue::len` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`pq_new`~~ | `PriorityQueue::new` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`pq_peek`~~ | `PriorityQueue::peek` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`pq_pop`~~ | `PriorityQueue::pop` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`pq_push`~~ | `PriorityQueue::push` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `VecIter::contains` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `VecIter::rev` | Seq | [migration-guidance.md](migration-guidance.md) |
@@ -282,13 +282,13 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `parse_i64` | ✅ `stable` | `prelude` | Conversion |
 | `pi` | ✅ `stable` | `std::signal` | Signal |
 | ~~`pop`~~ | ⚠️ deprecated | `prelude` | → `Vec::pop` · [migration guide](migration-guidance.md) |
-| `pq_clear` | ✅ `stable` | `std::collections::linear` | Collections |
-| `pq_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
-| `pq_len` | ✅ `stable` | `std::collections::linear` | Collections |
-| `pq_new` | ✅ `stable` | `std::collections::linear` | Collections |
-| `pq_peek` | ✅ `stable` | `std::collections::linear` | Collections |
-| `pq_pop` | ✅ `stable` | `std::collections::linear` | Collections |
-| `pq_push` | ✅ `stable` | `std::collections::linear` | Collections |
+| ~~`pq_clear`~~ | ⚠️ deprecated | `std::collections::linear` | → `PriorityQueue::clear` · [migration guide](migration-guidance.md) |
+| ~~`pq_is_empty`~~ | ⚠️ deprecated | `std::collections::linear` | → `PriorityQueue::is_empty` · [migration guide](migration-guidance.md) |
+| ~~`pq_len`~~ | ⚠️ deprecated | `std::collections::linear` | → `PriorityQueue::len` · [migration guide](migration-guidance.md) |
+| ~~`pq_new`~~ | ⚠️ deprecated | `std::collections::linear` | → `PriorityQueue::new` · [migration guide](migration-guidance.md) |
+| ~~`pq_peek`~~ | ⚠️ deprecated | `std::collections::linear` | → `PriorityQueue::peek` · [migration guide](migration-guidance.md) |
+| ~~`pq_pop`~~ | ⚠️ deprecated | `std::collections::linear` | → `PriorityQueue::pop` · [migration guide](migration-guidance.md) |
+| ~~`pq_push`~~ | ⚠️ deprecated | `std::collections::linear` | → `PriorityQueue::push` · [migration guide](migration-guidance.md) |
 | `print` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `print_bytes` | ✅ `stable` | `std::io` | Io |
 | `println` | ✅ `stable` | `std::host::stdio` | Host Stdio |

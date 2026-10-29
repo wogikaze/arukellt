@@ -1,0 +1,35 @@
+// PriorityQueue<T> surface: min-heap ordering, Option returns, clear, and the
+// String instantiation.
+use std::collections::pq::PriorityQueue
+use std::host::stdio
+
+fn show_i32(value: Option<i32>) {
+    match value {
+        Option::Some(item) => stdio::println(item.to_string()),
+        Option::None => stdio::println(String_from("none")),
+    }
+}
+
+fn main() {
+    let mut queue: PriorityQueue<i32> = PriorityQueue::new<i32>()
+    stdio::println(queue.is_empty().to_string())
+    queue.push(50)
+    queue.push(10)
+    queue.push(30)
+    queue.push(5)
+    stdio::println(queue.len().to_string())
+    show_i32(queue.peek())
+    show_i32(queue.pop())
+    show_i32(queue.pop())
+    stdio::println(queue.len().to_string())
+    queue.clear()
+    stdio::println(queue.is_empty().to_string())
+    show_i32(queue.pop())
+    let mut words: PriorityQueue<String> = PriorityQueue::new<String>()
+    words.push(String_from("pear"))
+    words.push(String_from("apple"))
+    match words.pop() {
+        Option::Some(value) => stdio::println(value),
+        Option::None => stdio::println(String_from("none")),
+    }
+}

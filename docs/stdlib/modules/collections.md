@@ -334,7 +334,7 @@ Copy the legacy i32 list into a `Vec<i32>` in front-to-back order.
 
 - Source: [`../../../std/collections/linear.ark`](../../../std/collections/linear.ark)
 - Manifest-backed functions: 18
-- Stability: deprecated 11, stable 7
+- Stability: deprecated 18
 
 Legacy linear collection helpers: monomorphic deque and priority queue.
 
@@ -394,13 +394,13 @@ Return true if the deque contains no elements.
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `pq_new` | `() -> Vec<i32>` | `stable` | ✅ functional | - |
-| `pq_push` | `(Vec<i32>, i32) -> ()` | `stable` | ✅ functional | - |
-| `pq_pop` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
-| `pq_peek` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
-| `pq_len` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
-| `pq_is_empty` | `(Vec<i32>) -> bool` | `stable` | ✅ functional | - |
-| `pq_clear` | `(Vec<i32>) -> ()` | `stable` | ✅ functional | - |
+| ~~`pq_new`~~ ⚠️ Deprecated → `PriorityQueue::new` | `() -> Vec<i32>` | `deprecated` | ✅ functional | - |
+| ~~`pq_push`~~ ⚠️ Deprecated → `PriorityQueue::push` | `(Vec<i32>, i32) -> ()` | `deprecated` | ✅ functional | - |
+| ~~`pq_pop`~~ ⚠️ Deprecated → `PriorityQueue::pop` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
+| ~~`pq_peek`~~ ⚠️ Deprecated → `PriorityQueue::peek` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
+| ~~`pq_len`~~ ⚠️ Deprecated → `PriorityQueue::len` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
+| ~~`pq_is_empty`~~ ⚠️ Deprecated → `PriorityQueue::is_empty` | `(Vec<i32>) -> bool` | `deprecated` | ✅ functional | - |
+| ~~`pq_clear`~~ ⚠️ Deprecated → `PriorityQueue::clear` | `(Vec<i32>) -> ()` | `deprecated` | ✅ functional | - |
 
 #### `std::collections::linear::pq_new`
 
@@ -455,7 +455,7 @@ Reset the deque to empty (preserves allocated capacity).
 
 Copy all deque elements (front to back) into a new Vec<i32>.
 
-> ⚠️ **11 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **18 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
 
 ## Module `std::collections::ordered`
 

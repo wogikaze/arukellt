@@ -8,10 +8,10 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 68 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 61 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 1 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 3 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 75 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 82 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -57,6 +57,7 @@
 | `LinkedListIter` | T | no | provisional | Read-only front-to-back cursor over a LinkedList<T>. |
 | `LinkedListIterMut` | T | no | provisional | Writable front-to-back cursor over a LinkedList<T> with set_current. |
 | `Opcode` | - | no | experimental | Opcode constants for the Wasm MVP instruction subset. |
+| `PriorityQueue` | T | no | provisional | Binary min-heap: the root is the minimum and every parent compares less than or equal to its children. pop / peek return Option<T> when empty. |
 | `Queue` | T | no | provisional | First-in first-out queue restricted to Deque<T> push-at-back / pop-at-front. |
 | `Range` | - | no | stable | Half-open integer range [start, end). |
 | `RangeInclusive` | - | no | stable | Closed integer range [start, end]. |
@@ -172,6 +173,7 @@
 | `LinkedListIterMut` | `set_current` | `Iterator`, `IntoIterator` |
 | `Opcode` | `unreachable`, `nop`, `block`, `loop_`, `if_`, `else_`, `end`, `br`, `br_if`, `return_`, `call`, `drop`, `select`, `local_get`, `local_set`, `local_tee`, `global_get`, `global_set`, `i32_load`, `i32_store`, `memory_size`, `memory_grow`, `i32_const`, `i64_const`, `f32_const`, `f64_const`, `i32_eqz`, `i32_eq`, `i32_ne`, `i32_lt_s`, `i32_gt_s`, `i32_le_s`, `i32_ge_s`, `i32_add`, `i32_sub`, `i32_mul`, `i32_div_s`, `i32_and`, `i32_or`, `i32_xor`, `i32_shl`, `i32_shr_s`, `i64_add`, `i64_sub`, `i64_mul` | - |
 | `Ordering` | `is_less`, `is_less_or_equal`, `is_greater`, `is_greater_or_equal` | - |
+| `PriorityQueue` | `new`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear` | - |
 | `Queue` | `new`, `with_capacity`, `push`, `pop`, `front`, `back`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
 | `Range` | `new`, `contains`, `len` | - |
 | `RangeInclusive` | `new`, `contains` | - |
@@ -273,13 +275,13 @@
 | ~~`linked_list_push_front`~~ ⚠️ Deprecated → `LinkedList::push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Push a value to the front of the legacy i32 list. |
 | ~~`linked_list_to_vec`~~ ⚠️ Deprecated → `LinkedList::iter` | `(Vec<i32>) -> Vec<i32>` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Copy the legacy i32 list into a Vec<i32> in front-to-back order. |
 | ~~`pop`~~ ⚠️ Deprecated → `Vec::pop` | `(Vec<T>) -> Option<T>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | Remove and return the last element of a Vec. Returns None if the Vec is empty. |
-| `pq_clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Reset the priority queue to empty (preserves allocated storage). |
-| `pq_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Return true if the priority queue contains no elements. |
-| `pq_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Return the number of elements in the priority queue. |
-| `pq_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Create a new empty PriorityQueue min-heap (i32, monomorphic). |
-| `pq_peek` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Return the minimum element without removing it. Panics if empty. |
-| `pq_pop` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Remove and return the minimum element. Panics if empty. |
-| `pq_push` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Insert a value into the priority queue. |
+| ~~`pq_clear`~~ ⚠️ Deprecated → `PriorityQueue::clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Reset the priority queue to empty (preserves allocated storage). |
+| ~~`pq_is_empty`~~ ⚠️ Deprecated → `PriorityQueue::is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Return true if the priority queue contains no elements. |
+| ~~`pq_len`~~ ⚠️ Deprecated → `PriorityQueue::len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Return the number of elements in the priority queue. |
+| ~~`pq_new`~~ ⚠️ Deprecated → `PriorityQueue::new` | `() -> Vec<i32>` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Create a new empty PriorityQueue min-heap (i32, monomorphic). |
+| ~~`pq_peek`~~ ⚠️ Deprecated → `PriorityQueue::peek` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Return the minimum element without removing it. Panics if empty. |
+| ~~`pq_pop`~~ ⚠️ Deprecated → `PriorityQueue::pop` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Remove and return the minimum element. Panics if empty. |
+| ~~`pq_push`~~ ⚠️ Deprecated → `PriorityQueue::push` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Insert a value into the priority queue. |
 | ~~`push`~~ ⚠️ Deprecated → `Vec::push` | `(Vec<T>, T) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | Append an element to the end of a Vec, mutating it in place. |
 | ~~`set`~~ ⚠️ Deprecated → `Vec::set` | `(Vec<T>, i32, T) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | ~~`slice_get`~~ ⚠️ Deprecated → `Slice::get` | `(Slice<T>, i32) -> T` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
@@ -519,7 +521,7 @@ let input = stdio::read_stdin()
 
 ## Deprecated APIs
 
-> ⚠️ **75 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **82 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -578,6 +580,13 @@ let input = stdio::read_stdin()
 | ~~`max_i32`~~ | `Vec::max` | [migration-guidance.md](migration-guidance.md) |
 | ~~`min_i32`~~ | `Vec::min` | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | [migration-guidance.md](migration-guidance.md) |
+| ~~`pq_clear`~~ | `PriorityQueue::clear` | [migration-guidance.md](migration-guidance.md) |
+| ~~`pq_is_empty`~~ | `PriorityQueue::is_empty` | [migration-guidance.md](migration-guidance.md) |
+| ~~`pq_len`~~ | `PriorityQueue::len` | [migration-guidance.md](migration-guidance.md) |
+| ~~`pq_new`~~ | `PriorityQueue::new` | [migration-guidance.md](migration-guidance.md) |
+| ~~`pq_peek`~~ | `PriorityQueue::peek` | [migration-guidance.md](migration-guidance.md) |
+| ~~`pq_pop`~~ | `PriorityQueue::pop` | [migration-guidance.md](migration-guidance.md) |
+| ~~`pq_push`~~ | `PriorityQueue::push` | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `VecIter::contains` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `VecIter::rev` | [migration-guidance.md](migration-guidance.md) |

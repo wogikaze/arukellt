@@ -316,6 +316,8 @@ diag:diagnostics/removed_ordered_set_free.ark
 diag:diagnostics/removed_ordered_set_free_wasm32.ark
 diag:diagnostics/deprecated_ordered_stable_free.ark
 diag:diagnostics/deprecated_ordered_stable_free_wasm32.ark
+diag:diagnostics/deprecated_pq_stable_free.ark
+diag:diagnostics/deprecated_pq_stable_free_wasm32.ark
 diag:diagnostics/removed_canonical_free.ark
 diag:diagnostics/removed_canonical_free_wasm32.ark
 diag:diagnostics/removed_hashmap_adapter.ark
@@ -1456,6 +1458,8 @@ run:stdlib_linear/deque_wrap.ark
 run:stdlib_linear/linear_basic.ark
 run:stdlib_linear/pq_ops.ark
 run:stdlib_linear/pq_sort.ark
+run:stdlib_linear/pq_type.ark
+run:stdlib_linear/pq_type_wasm32.ark
 run:stdlib_linked_list/linked_list_basic.ark
 run:stdlib_linked_list/linked_list_from_iter_eq.ark
 run:stdlib_linked_list/linked_list_iter.ark

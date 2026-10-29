@@ -2176,6 +2176,22 @@ methods = [
 trait_impls = ["IntoIterator", "FromIterator", "Clone", "Eq", "Debug"]
 
 [[modules]]
+name = "std::collections::pq"
+stability = "provisional"
+family = "collections"
+doc = "`PriorityQueue<T>` binary min-heap over a flat `Vec<T>`. Push and pop keep the minimum at the root; empty pop and peek return `Option::None`."
+availability = { t1 = true, t3 = true }
+
+[[types]]
+name = "PriorityQueue"
+kind = "struct"
+doc = "Binary min-heap: the root is the minimum and every parent compares less than or equal to its children. `pop` / `peek` return `Option<T>` when empty."
+module = "std::collections::pq"
+stability = "provisional"
+generic_params = ["T"]
+methods = ["new", "push", "pop", "peek", "len", "is_empty", "clear"]
+
+[[modules]]
 name = "std::collections::linked_list"
 stability = "provisional"
 family = "collections"
@@ -2350,12 +2366,14 @@ returns = "Vec<i32>"
 doc = "Copy the legacy i32 list into a `Vec<i32>` in front-to-back order."
 
 # ── std::collections::linear (legacy Deque free functions, i32 monomorphic) ─
-# The PriorityQueue entries further down remain stable; only the deque_*
-# helpers are deprecated. They keep the historical Vec<i32> layout and
-# sentinel behavior:
+# The deque_* helpers keep the historical Vec<i32> layout and sentinel
+# behavior:
 #   layout [head, tail, count, cap, ...data(cap)]
 # The deprecation window comes from [deprecation_policy] (since 0.1.0,
 # removable at 1.0.0); ADR-086 §8 keeps the old layout for that window.
+# The PriorityQueue entries at the end of this section follow the same
+# ADR-087 window and point at the new `std::collections::pq::PriorityQueue<T>`
+# surface.
 
 [[functions]]
 name = "deque_new"
@@ -2467,14 +2485,18 @@ params = ["Vec<i32>"]
 returns = "Vec<i32>"
 doc = "Copy all deque elements (front to back) into a new Vec<i32>."
 
-# PriorityQueue — binary min-heap backed by Vec<i32>
+# PriorityQueue — legacy binary min-heap backed by Vec<i32>
 # layout: [count, ...heap_data]
+# Deprecated: use `PriorityQueue<T>` from `std::collections::pq`.
 
 [[functions]]
 name = "pq_new"
 module = "std::collections::linear"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "PriorityQueue::new"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = []
 returns = "Vec<i32>"
 doc = "Create a new empty PriorityQueue min-heap (i32, monomorphic)."
@@ -2483,7 +2505,10 @@ doc = "Create a new empty PriorityQueue min-heap (i32, monomorphic)."
 name = "pq_push"
 module = "std::collections::linear"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "PriorityQueue::push"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>", "i32"]
 returns = "()"
 doc = "Insert a value into the priority queue."
@@ -2492,7 +2517,10 @@ doc = "Insert a value into the priority queue."
 name = "pq_pop"
 module = "std::collections::linear"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "PriorityQueue::pop"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>"]
 returns = "i32"
 doc = "Remove and return the minimum element. Panics if empty."
@@ -2501,7 +2529,10 @@ doc = "Remove and return the minimum element. Panics if empty."
 name = "pq_peek"
 module = "std::collections::linear"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "PriorityQueue::peek"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>"]
 returns = "i32"
 doc = "Return the minimum element without removing it. Panics if empty."
@@ -2510,7 +2541,10 @@ doc = "Return the minimum element without removing it. Panics if empty."
 name = "pq_len"
 module = "std::collections::linear"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "PriorityQueue::len"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>"]
 returns = "i32"
 doc = "Return the number of elements in the priority queue."
@@ -2519,7 +2553,10 @@ doc = "Return the number of elements in the priority queue."
 name = "pq_is_empty"
 module = "std::collections::linear"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "PriorityQueue::is_empty"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>"]
 returns = "bool"
 doc = "Return true if the priority queue contains no elements."
@@ -2528,7 +2565,10 @@ doc = "Return true if the priority queue contains no elements."
 name = "pq_clear"
 module = "std::collections::linear"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "PriorityQueue::clear"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>"]
 returns = "()"
 doc = "Reset the priority queue to empty (preserves allocated storage)."
