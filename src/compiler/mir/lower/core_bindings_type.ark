@@ -1,4 +1,4 @@
-use std::prelude::{eq}
+use std::prelude::{clone, eq}
 use mir::lower::core_call_arg_names
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
@@ -8,15 +8,15 @@ use mir::lower::ctx_fn_return_type
 use mir::lower::ctx_types
 use mir::value_types
 fn infer_core_let_type_name_is_string(type_name: String) -> bool {
-    eq(type_name.clone(), "String") || eq(type_name.clone(), "str") || eq(type_name.clone(), "string")
+    eq(clone(type_name), "String") || eq(clone(type_name), "str") || eq(clone(type_name), "string")
 }
 
 fn infer_core_let_call_result_type_name(ctx: LowerCtx, callee: String) -> String {
-    if core_call_arg_names::mir_core_call_string_result_name(callee.clone()) {
+    if core_call_arg_names::mir_core_call_callee_returns_string(ctx, clone(callee)) {
         return "string"
     }
-    let rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, callee.clone())
-    if infer_core_let_type_name_is_string(rtn.clone()) {
+    let rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(callee))
+    if infer_core_let_type_name_is_string(clone(rtn)) {
         return rtn
     }
     ""
@@ -62,14 +62,14 @@ fn infer_core_let_local_type_name(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, ex
     }
     if core_expr_shape_calls::mir_core_expr_is_match(init_expr) {
         let match_type = core_expr_shape_accessors::mir_core_expr_type_name(init_expr)
-        if infer_core_let_type_name_is_string(match_type.clone()) {
+        if infer_core_let_type_name_is_string(clone(match_type)) {
             ctx_api_local_types::ctx_set_local_type(ctx, local_idx, match_type)
         }
         return
     }
     if core_expr_shape_calls::mir_core_expr_is_call(init_expr) {
         let callee = core_expr_shape_accessors::mir_core_expr_text(init_expr)
-        let call_type = infer_core_let_call_result_type_name(ctx, callee.clone())
+        let call_type = infer_core_let_call_result_type_name(ctx, clone(callee))
         if len(call_type) > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, local_idx, call_type)
             return
