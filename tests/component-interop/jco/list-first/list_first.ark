@@ -1,9 +1,8 @@
 // Component interop test fixture: list<s32> parameter canonical ABI.
 
-use std::prelude::{unwrap}
 export fn first_or_zero(v: Vec<i32>) -> i32 {
     if len(v) > 0 {
-        unwrap(get(v, 0))
+        get(v, 0).unwrap()
     } else {
         0
     }

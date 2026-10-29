@@ -1,4 +1,4 @@
-use std::prelude::{clone, contains, eq, is_err, starts_with, substring}
+use std::prelude::{clone, contains, eq, starts_with, substring}
 use std::text
 use mir::lower::ctx_api_variants
 use mir::lower::ctx_api_emit

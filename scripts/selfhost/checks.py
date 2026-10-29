@@ -457,6 +457,7 @@ BOOTSTRAP_STD_SOURCE_FILES = (
     "std/host/clock.ark",
     "std/io/mod.ark",
     "std/core/error.ark",
+    "std/core/convert.ark",
 )
 CLI_VERSION_GOLDEN_REL = "tests/snapshots/selfhost/cli-version.txt"
 CLI_HELP_GOLDEN_REL = "tests/snapshots/selfhost/cli-help.txt"
@@ -4685,6 +4686,18 @@ def _prepare_flattened_selfhost_source_locked(
     core_dst = overlay_root / "std" / "core"
     core_dst.mkdir(exist_ok=True)
     shutil.copyfile(error_src, core_dst / "error.ark")
+    # The compiler itself calls `i32::try_from` / `f64::try_from` after the
+    # prelude `parse_*` frees were retired. Those associated functions live in
+    # `std::core::convert`; without the module the pin's MIR lowering emits its
+    # silent unresolved-call `unreachable` stub, and the rebuilt s2 then traps
+    # on the first float literal it lexes while parsing std/prelude.ark.
+    convert_src = root / "std" / "core" / "convert.ark"
+    if not convert_src.is_file():
+        raise BootstrapOverlayError(
+            "bootstrap overlay missing canonical TryFrom source: "
+            "std/core/convert.ark"
+        )
+    shutil.copyfile(convert_src, core_dst / "convert.ark")
     _strip_bootstrap_param_modes(overlay_root)
     _FLAT_OVERLAY_CACHE = (source_mtime, overlay_root)
     # Write disk cache so subsequent processes can skip overlay regeneration.

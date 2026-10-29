@@ -1,8 +1,10 @@
 use std::host::stdio
 use std::test::Test
-use std::prelude::{is_err}
+
 fn main() {
-    Test::assert_false(is_err(Ok(1)))
-    Test::assert_false(is_err(Ok(0)))
+    let one: Result<i32, i32> = Ok(1)
+    let zero: Result<i32, i32> = Ok(0)
+    Test::assert_false(one.is_err())
+    Test::assert_false(zero.is_err())
     stdio::println("ok")
 }

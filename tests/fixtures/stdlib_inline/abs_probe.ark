@@ -1,4 +1,5 @@
-use std::prelude::{f32_to_string, f64_bits_hi, f64_bits_lo, push_char, parse_f64, parse_i32, parse_i64}
+use std::core::convert
+use std::prelude::{f64_bits_hi, f64_bits_lo}
 use std::collections::vec
 use std::core::{Range}
 use std::core::cmp
@@ -273,13 +274,13 @@ pub fn probe_format_f64_ops() -> bool {
 
 pub fn probe_f32_to_string_ops() -> bool {
     let value: f32 = 0.5f32
-    let text = f32_to_string(value)
+    let text = value.to_string()
     text.len() == 3 && text.char_at(0) == 48 && text.char_at(2) == 53
 }
 
 pub fn probe_push_char_ops() -> bool {
     let mut text = String_new()
-    push_char(text, 'A')
+    text.push_char('A')
     text.len() == 1 && text.char_at(0) == 65
 }
 
@@ -380,19 +381,19 @@ pub fn probe_vec_new_capacity_ops() -> bool {
 }
 
 pub fn probe_parse_ops() -> bool {
-    let ok_i32 = match parse_i32("42") {
+    let ok_i32 = match i32::try_from("42") {
         Ok(n) => n == 42,
         Err(_) => false,
     }
-    let bad_i32 = match parse_i32("abc") {
+    let bad_i32 = match i32::try_from("abc") {
         Ok(_) => false,
         Err(_) => true,
     }
-    let ok_i64 = match parse_i64("-7") {
+    let ok_i64 = match i64::try_from("-7") {
         Ok(n) => n == 0_i64 - 7_i64,
         Err(_) => false,
     }
-    let ok_f64 = match parse_f64("0.5") {
+    let ok_f64 = match f64::try_from("0.5") {
         Ok(n) => n > 0.49 && n < 0.51,
         Err(_) => false,
     }

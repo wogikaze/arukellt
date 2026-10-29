@@ -34,6 +34,7 @@
 //! - `\uXXXX` surrogate pairs are decoded as ASCII-only (matching std::json).
 
 // ─── TomlValue type ──────────────────────────────────────────────────────────
+use std::core::convert
 use std::prelude::{byte_at, eq, i64_to_i32, slice}
 use std::text
 
@@ -559,7 +560,7 @@ fn toml_parse_float_token(token: String) -> Result<f64, String> {
         i = i + 1
     }
     if exp_at < 0 {
-        return parse_f64(token)
+        return f64::try_from(token)
     }
     if exp_at == 0 {
         return Err("invalid float exponent")
@@ -569,9 +570,9 @@ fn toml_parse_float_token(token: String) -> Result<f64, String> {
     if len(exp_raw) == 0 {
         return Err("invalid float exponent")
     }
-    match parse_f64(mant_raw) {
+    match f64::try_from(mant_raw) {
         Result::Ok(mant) => {
-            match parse_i64(exp_raw) {
+            match i64::try_from(exp_raw) {
                 Result::Ok(exp_i) => {
                     let mut result = mant
                     let mut exp = i64_to_i32(exp_i)
@@ -659,7 +660,7 @@ fn toml_parse_number_or_datetime_at(s: String, pos: i32) -> TomlValStep {
     if len(core) > 0 && byte_at(core, 0) == 43 {
         core = slice(core, 1, len(core))
     }
-    match parse_i64(core) {
+    match i64::try_from(core) {
         Result::Ok(v) => return TomlValStep::ok(TomlValue::Integer(v), end),
         Result::Err(e) => return TomlValStep::err("invalid integer: ".concat(e), pos),
     }

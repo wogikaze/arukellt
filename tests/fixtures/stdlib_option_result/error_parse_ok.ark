@@ -1,13 +1,14 @@
 use std::host::stdio
 use std::test::Test
-use std::prelude::{eq, is_ok}
+use std::prelude::{eq}
 use std::text
+
 fn try_parse(s: String) -> Result<i32, String> {
     if eq(s, "42") { Ok(42) } else { Err(String_from("parse error: ").concat(s)) }
 }
 fn main() {
     let r = try_parse(String_from("42"))
-    Test::assert_true(is_ok(r))
+    Test::assert_true(r.is_ok())
     match r { Result::Ok(v) => Test::assert_eq_i32(v, 42), Result::Err(e) => Std::panic(e) }
     stdio::println("ok")
 }

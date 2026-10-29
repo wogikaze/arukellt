@@ -1,11 +1,11 @@
 use std::host::stdio
 use std::test::Test
-use std::prelude::{is_some}
+
 fn main() {
     let mut count: i32 = 0
     for i in 0..50 {
         let opt: Option<i32> = if i % 2 == 0 { Some(i) } else { None }
-        if is_some(opt) { count = count + 1 }
+        if opt.is_some() { count = count + 1 }
     }
     Test::assert_eq_i32(count, 25)
     stdio::println("ok")

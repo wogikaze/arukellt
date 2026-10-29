@@ -1,0 +1,6 @@
+// E0100: the prelude `push_char` free was retired by ADR-091; the hint names
+// the `String` receiver method.
+fn main() {
+    let mut text = String_new()
+    push_char(text, 'a')
+}

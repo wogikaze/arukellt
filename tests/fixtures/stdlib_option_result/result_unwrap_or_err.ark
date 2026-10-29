@@ -1,8 +1,8 @@
 use std::host::stdio
 use std::test::Test
-use std::prelude::{unwrap_or}
+
 fn main() {
     let r: Result<i32, i32> = Err(99)
-    Test::assert_eq_i32(unwrap_or(r, 77), 77)
+    Test::assert_eq_i32(r.unwrap_or(77), 77)
     stdio::println("ok")
 }

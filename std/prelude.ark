@@ -102,21 +102,10 @@ pub fn char_to_string(c: char) -> String {
     __core_char_to_string_impl(c)
 }
 
-// Conversion: from string. These remain until the compiler/std TryFrom lane
-// is usable from non-entry modules; the fixture-facing replacement is
-// `i32::try_from(s)` / `i64::try_from(s)` / `f64::try_from(s)`.
-pub fn parse_i32(s: String) -> Result<i32, String> {
-    __core_parse_i32_impl(s)
-}
-
-pub fn parse_i64(s: String) -> Result<i64, String> {
-    __core_parse_i64_impl(s)
-}
-
-pub fn parse_f64(s: String) -> Result<f64, String> {
-    __core_parse_f64_impl(s)
-}
-
+// Conversion: from string. The canonical surface is the `TryFrom<String>`
+// associated function (`i32::try_from(s)` / `i64::try_from(s)` /
+// `f64::try_from(s)`) from `use std::core::convert`; the prelude frees were
+// retired under ADR-091.
 pub fn f64_bits_lo(x: f64) -> i32 {
     __core_scalar_f64_bits_lo_impl(x)
 }
@@ -519,28 +508,81 @@ pub fn set<T>(mut v: Vec<T>, idx: i32, val: T) {
 }
 
 // Option / Result
-pub fn unwrap(o: Option<i32>) -> i32 {
-    Std::panic(String_new()); return 0
+//
+// These are concrete per-type impls: a generic `impl<T> Option<T>` compiles
+// and validates but lowers to the unresolved-call trap stub, so the payload
+// and error types the retired prelude frees covered stay explicit (ADR-091).
+impl Option<i32> {
+    /// Returns the contained value; panics when the receiver is `None`.
+    fn unwrap(self: Option<i32>) -> i32 {
+        match self {
+            Some(value) => value,
+            None => __prelude_unwrap_panic("called `Option::unwrap` on a `None` value"),
+        }
+    }
+
+    /// Returns the contained value, or `default` for `None`.
+    fn unwrap_or(self: Option<i32>, default: i32) -> i32 {
+        match self {
+            Some(value) => value,
+            None => default,
+        }
+    }
+
+    /// Returns true when the receiver is `Some`.
+    fn is_some(self: Option<i32>) -> bool {
+        match self {
+            Some(_) => true,
+            None => false,
+        }
+    }
+
+    /// Returns true when the receiver is `None`.
+    fn is_none(self: Option<i32>) -> bool {
+        match self {
+            Some(_) => false,
+            None => true,
+        }
+    }
 }
 
-pub fn unwrap_or(o: Option<i32>, default: i32) -> i32 {
-    Std::panic(String_new()); return 0
+impl Result<i32, i32> {
+    /// Returns the `Ok` value; panics when the receiver is `Err`.
+    fn unwrap(self: Result<i32, i32>) -> i32 {
+        match self {
+            Ok(value) => value,
+            Err(_) => __prelude_unwrap_panic("called `Result::unwrap` on an `Err` value"),
+        }
+    }
+
+    /// Returns the `Ok` value, or `default` for `Err`.
+    fn unwrap_or(self: Result<i32, i32>, default: i32) -> i32 {
+        match self {
+            Ok(value) => value,
+            Err(_) => default,
+        }
+    }
+
+    /// Returns true when the receiver is `Ok`.
+    fn is_ok(self: Result<i32, i32>) -> bool {
+        match self {
+            Ok(_) => true,
+            Err(_) => false,
+        }
+    }
+
+    /// Returns true when the receiver is `Err`.
+    fn is_err(self: Result<i32, i32>) -> bool {
+        match self {
+            Ok(_) => false,
+            Err(_) => true,
+        }
+    }
 }
 
-pub fn is_some(o: Option<i32>) -> bool {
-    Std::panic(String_new()); return false
-}
-
-pub fn is_none(o: Option<i32>) -> bool {
-    Std::panic(String_new()); return false
-}
-
-pub fn is_ok(r: Result<i32, i32>) -> bool {
-    Std::panic(String_new()); return false
-}
-
-pub fn is_err(r: Result<i32, i32>) -> bool {
-    Std::panic(String_new()); return false
+fn __prelude_unwrap_panic(message: String) -> i32 {
+    Std::panic(message)
+    0
 }
 
 // Box is an owned heap wrapper. Its representation is selected by the target
@@ -608,12 +650,9 @@ pub fn index_of(s: String, sub: String) -> i32 {
     Std::panic(String_new()); return -1
 }
 
-// Mutating String append. `s.push_char(c)` compiles but does not propagate the
-// grown array to the caller on the current lowering (ADR-091 §4), so the free
-// remains until the mutating-receiver lowering lands.
-pub fn push_char(mut s: String, c: char) {
-    __core_push_char_impl(s, c)
-}
+// Mutating String append. `s.push_char(c)` is the only spelling; the free was
+// retired under ADR-091 once the receiver-method lowering started writing the
+// grown array back to the receiver (including field receivers).
 
 // Math
 // Deprecated prelude free function pow_i32 has been removed per ADR-036.
@@ -655,8 +694,11 @@ pub fn i32_to_u32(n: i32) -> u32 {
     Std::panic(String_new()); return 0
 }
 
-pub fn f32_to_string(n: f32) -> String {
-    __core_f32_to_string_impl(n)
+impl f32 {
+    /// Shortest round-trip decimal formatting for an `f32`.
+    fn to_string(self: f32) -> String {
+        __core_f32_to_string_impl(self)
+    }
 }
 
 // Portable scalar fallback bodies for the three simd CoreOps whose lowering is

@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 72
+- **Canonical names:** 61
 - **Historical/deprecated names:** 75
-- **Total entries:** 147
+- **Total entries:** 136
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -39,7 +39,6 @@ Current public API names, sorted alphabetically.
 | `eq` | `prelude` | `stable` | String |
 | `exit` | `std::host::process` | `stable` | Host Process |
 | `exit` | `std::process` | `stable` | Process |
-| `f32_to_string` | `prelude` | `stable` | Convert |
 | `fd_fdstat_errno` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_seek` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_tell` | `std::host::fs` | `experimental` | Host Fs |
@@ -50,17 +49,10 @@ Current public API names, sorted alphabetically.
 | `id` | `std::host::process` | `stable` | Host Process |
 | `ifft` | `std::signal` | `stable` | Signal |
 | `index_of` | `prelude` | `stable` | String |
-| `is_err` | `prelude` | `stable` | Option Result |
-| `is_none` | `prelude` | `stable` | Option Result |
-| `is_ok` | `prelude` | `stable` | Option Result |
-| `is_some` | `prelude` | `stable` | Option Result |
 | `magnitude` | `std::signal` | `stable` | Signal |
 | `next_f64` | `std::host::random` | `stable` | Host Random |
 | `option` | `std::cli` | `stable` | Cli |
 | `parse_args` | `std::cli` | `stable` | Cli |
-| `parse_f64` | `prelude` | `stable` | Conversion |
-| `parse_i32` | `prelude` | `stable` | Conversion |
-| `parse_i64` | `prelude` | `stable` | Conversion |
 | `pi` | `std::signal` | `stable` | Signal |
 | `pq_clear` | `std::collections::linear` | `stable` | Collections |
 | `pq_is_empty` | `std::collections::linear` | `stable` | Collections |
@@ -72,7 +64,6 @@ Current public API names, sorted alphabetically.
 | `print` | `std::host::stdio` | `stable` | Host Stdio |
 | `print_bytes` | `std::io` | `stable` | Io |
 | `println` | `std::host::stdio` | `stable` | Host Stdio |
-| `push_char` | `prelude` | `stable` | String |
 | `random_bool` | `std::host::random` | `stable` | Host Random |
 | `random_i32` | `std::host::random` | `stable` | Host Random |
 | `random_i32_range` | `std::host::random` | `stable` | Host Random |
@@ -90,8 +81,6 @@ Current public API names, sorted alphabetically.
 | `tau` | `std::signal` | `stable` | Signal |
 | `to_string` | `prelude` | `stable` | Conversion |
 | `unbox` | `prelude` | `stable` | Box |
-| `unwrap` | `prelude` | `stable` | Option Result |
-| `unwrap_or` | `prelude` | `stable` | Option Result |
 | `zeros` | `std::signal` | `stable` | Signal |
 
 ---
@@ -227,7 +216,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `exit` | ✅ `stable` | `std::host::process` | Host Process |
 | `exit` | ✅ `stable` | `std::process` | Process |
 | ~~`f32_to_f64`~~ | ⚠️ deprecated | `prelude` | → `f32::to_f64` · [migration guide](migration-guidance.md) |
-| `f32_to_string` | ✅ `stable` | `prelude` | Convert |
 | ~~`f64_bits_hi`~~ | ⚠️ deprecated | `prelude` | → `f64::to_bits_hi` · [migration guide](migration-guidance.md) |
 | ~~`f64_bits_lo`~~ | ⚠️ deprecated | `prelude` | → `f64::to_bits_lo` · [migration guide](migration-guidance.md) |
 | ~~`f64_to_f32`~~ | ⚠️ deprecated | `prelude` | → `f64::to_f32` · [migration guide](migration-guidance.md) |
@@ -254,10 +242,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `id` | ✅ `stable` | `std::host::process` | Host Process |
 | `ifft` | ✅ `stable` | `std::signal` | Signal |
 | `index_of` | ✅ `stable` | `prelude` | String |
-| `is_err` | ✅ `stable` | `prelude` | Option Result |
-| `is_none` | ✅ `stable` | `prelude` | Option Result |
-| `is_ok` | ✅ `stable` | `prelude` | Option Result |
-| `is_some` | ✅ `stable` | `prelude` | Option Result |
 | ~~`len`~~ | ⚠️ deprecated | `prelude` | → `Vec::len` · [migration guide](migration-guidance.md) |
 | ~~`linked_list_back`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::back` · [migration guide](migration-guidance.md) |
 | ~~`linked_list_clear`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::clear` · [migration guide](migration-guidance.md) |
@@ -277,9 +261,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `next_f64` | ✅ `stable` | `std::host::random` | Host Random |
 | `option` | ✅ `stable` | `std::cli` | Cli |
 | `parse_args` | ✅ `stable` | `std::cli` | Cli |
-| `parse_f64` | ✅ `stable` | `prelude` | Conversion |
-| `parse_i32` | ✅ `stable` | `prelude` | Conversion |
-| `parse_i64` | ✅ `stable` | `prelude` | Conversion |
 | `pi` | ✅ `stable` | `std::signal` | Signal |
 | ~~`pop`~~ | ⚠️ deprecated | `prelude` | → `Vec::pop` · [migration guide](migration-guidance.md) |
 | `pq_clear` | ✅ `stable` | `std::collections::linear` | Collections |
@@ -293,7 +274,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `print_bytes` | ✅ `stable` | `std::io` | Io |
 | `println` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | ~~`push`~~ | ⚠️ deprecated | `prelude` | → `Vec::push` · [migration guide](migration-guidance.md) |
-| `push_char` | ✅ `stable` | `prelude` | String |
 | `random_bool` | ✅ `stable` | `std::host::random` | Host Random |
 | `random_i32` | ✅ `stable` | `std::host::random` | Host Random |
 | `random_i32_range` | ✅ `stable` | `std::host::random` | Host Random |
@@ -330,6 +310,4 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`u8_to_i32`~~ | ⚠️ deprecated | `prelude` | → `u8::to_i32` · [migration guide](migration-guidance.md) |
 | `unbox` | ✅ `stable` | `prelude` | Box |
 | ~~`unique`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::unique` · [migration guide](migration-guidance.md) |
-| `unwrap` | ✅ `stable` | `prelude` | Option Result |
-| `unwrap_or` | ✅ `stable` | `prelude` | Option Result |
 | `zeros` | ✅ `stable` | `std::signal` | Signal |

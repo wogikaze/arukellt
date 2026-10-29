@@ -16,6 +16,46 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-29 — prelude 保留 23 件のうち 11 件を退役 (#917, wave/prelude-text)
+
+- **Basis**: [ADR-091](../adr/ADR-091-prelude-free-function-exception.md) §4 が
+  保留した 23 件のうち、replacement の lowering が安定した 11 件を同じ 0.x 例外
+  （E0100 + method / associated hint）で退役した。ADR-091 に追記した。
+- **Root cause (`parse_*`)**: 先行 wave で `parse_*` を `TryFrom` へ移すと再構築 s2 が
+  任意の入力で trap した原因は、bootstrap flat overlay の stdlib closure が
+  `std/core/convert.ark` を ship しておらず、compiler 自身の `f64::try_from` が
+  `drop; unreachable` の unresolved-call fallback に落ちていたこと。overlay に
+  convert を追加し、import なしの `try_from` は E0100 にした。
+- **Retired (11)**: `push_char`、`unwrap` / `unwrap_or` / `is_some` / `is_none` /
+  `is_ok` / `is_err`、`parse_i32` / `parse_i64` / `parse_f64`、`f32_to_string` の
+  manifest entry と `std/prelude.ark` 宣言を削除した。
+- **Replacement**: `s.push_char(c)`（mutating-receiver の grow 結果を caller local /
+  field へ書き戻す）、`o.unwrap()` / `o.unwrap_or(fallback)` と
+  `r.unwrap()` / `r.unwrap_or(fallback)`（prelude の concrete
+  `impl Option<i32>` / `impl Result<i32, i32>`）、`o.is_some()` / `o.is_none()` /
+  `r.is_ok()` / `r.is_err()`、`i32::try_from(s)` / `i64::try_from(s)` /
+  `f64::try_from(s)`（`use std::core::convert`）、`x.to_string()`（
+  `impl f32 { to_string }` と typechecker の f32 mangling）。
+- **Resolution**: call result の `option:<T>` 型を method 解決時に `Option_<T>` の
+  impl owner へ橋渡しし、`pop(v).unwrap()` のような receiver でも解決するように
+  した。compiler 自身の `pop(...).unwrap()` 5 箇所は `match` へ移した（pin が
+  bridge を持たないため fixpoint の s2 / s3 一致を保つ）。
+- **Diagnostics**: `resolver::removed_names` に 11 件の hint を追加し、
+  `diagnostics/removed_prelude_push_char*` / `removed_prelude_try_from*` の
+  E0100 golden を追加した。
+- **Scorecard**: eradication scope 149 → **138**; manifest public entries
+  147 → **136**; `pub fn` declarations 157 → **146**; `prelude_wrapper` entries
+  40 → **35**; `prelude frees (default)` 27 → **16**; `associated-or-method`
+  83 → **72**; `must delete` 66、unregistered 2、intrinsic-only 1 は不変。
+- **Deferred (12)**: `Box_new` / `unbox` と text 10 件（`clone` / `eq` /
+  `byte_at` / `substring` / `to_string` / `starts_with` / `ends_with` /
+  `contains` / `index_of` / `slice`）は `associated-or-method` のまま残す。
+- **Evidence**: `verify fixtures` **1914/1914** compile+validate PASS（108 runtime
+  smoke、38/38 `test:` PASS、2 runtime-unsupported、0 FAIL）、`verify lane` PASS、
+  `docs check` 6/6、ADR-029 fixpoint PASS（s2 == s3 at sha256
+  `ffeec82861363baccba2a8a3084a6047723336bce1341b08af975852b32fba18`、pinned base
+  `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`）。
+
 ## 2026-10-29 — prelude free 27 件の退役と安定 free 4 件の限定例外 (#917, wave/prelude-remain)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D1（trait / method /

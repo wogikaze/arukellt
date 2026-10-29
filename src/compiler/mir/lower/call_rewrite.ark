@@ -11,6 +11,7 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
 use mir::inst_convert
 use mir::value_types
+
 struct MirCallRewrite {
     callee_name: String,
     return_local: i32,
@@ -104,6 +105,13 @@ fn mir_rewrite_call_target(mut ctx: LowerCtx, callee_name: String, first_arg_idx
     }
     if first_arg_idx >= 0 && !contains(clone(rewritten), String_from("::")) {
         rewritten = call_rewrite_method::mir_try_resolve_impl_method(ctx, clone(rewritten), first_arg_idx)
+    }
+    // `String` is a GC array reference, so `push_char` must replace the
+    // caller's reference instead of mutating through it. Emitting the
+    // intrinsic spelling keeps the call-site receiver writeback; a real
+    // `String::push_char` call only updates the callee's `self` local.
+    if eq(clone(rewritten), String_from("String::push_char")) {
+        rewritten = String_from("push_char")
     }
     let hashmap_constructor = call_rewrite_hashmap::mir_rewrite_hashmap_constructor(clone(rewritten))
     if hashmap_constructor.len() > 0 {

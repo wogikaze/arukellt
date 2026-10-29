@@ -95,17 +95,32 @@ They are the v2 stable Prelude set from ADR-072 §1 (after `panic` moved to
 Wasm on the current pin, and `char_to_string` preserves the i32-codepoint call
 boundary, so these are not mechanically replaced in this wave.
 
+The `wave/prelude-text` follow-up retired 11 of the 23 families that ADR-091 §4
+had deferred. The old free calls now fail with E0100 and a replacement hint:
+
+| Removed deferred free | Replacement |
+|-----------------------|-------------|
+| `push_char(s, c)` | `s.push_char(c)` (the receiver writeback covers locals and fields) |
+| `unwrap(o)` | `o.unwrap()` on `Option<i32>`; `r.unwrap()` on `Result<i32, i32>` |
+| `unwrap_or(o, default)` | `o.unwrap_or(default)` / `r.unwrap_or(default)` |
+| `is_some(o)` / `is_none(o)` | `o.is_some()` / `o.is_none()` |
+| `is_ok(r)` / `is_err(r)` | `r.is_ok()` / `r.is_err()` |
+| `parse_i32(s)` | `i32::try_from(s)` via `use std::core::convert` |
+| `parse_i64(s)` | `i64::try_from(s)` via `use std::core::convert` |
+| `parse_f64(s)` | `f64::try_from(s)` via `use std::core::convert` |
+| `f32_to_string(x)` | `x.to_string()` |
+
+`i32::try_from` / `i64::try_from` / `f64::try_from` are associated functions from
+`std::core::convert`; calling them without that `use` is E0100 with the import
+hint. Receiver methods also resolve when the receiver is a call result
+(`pop(v).unwrap()`, `maybe(...).is_some()`): MIR maps the `option:<T>`
+call-result type to the concrete `Option_<T>` impl owner.
+
 The following remain `associated-or-method` and are **not** covered by the
-exception: `push_char` (the `s.push_char(c)` receiver method compiles and
-validates, but the grown array does not reach the caller binding because
-`String` is a GC reference; the free lowering rewrites the caller local),
-`parse_i32` / `parse_i64` / `parse_f64` (moving compiler/std call sites to
-`i32::try_from` / `i64::try_from` / `f64::try_from` made the rebuilt s2 trap
-with `unreachable` while compiling any input, in `compile_source` /
-`backend_resolve`), `Box_new` / `unbox`, the six `Option` / `Result` predicates and `unwrap*`
-frees, `f32_to_string`, and the large `clone` / `eq` / `byte_at` /
-`substring` / `to_string` / `starts_with` / `ends_with` / `contains` /
-`index_of` / `slice` migration.
+exception: `Box_new` / `unbox` (the ownership checker special-cases the free
+names; the method form needs an ownership / MIR change), and the large
+`clone` / `eq` / `byte_at` / `substring` / `to_string` / `starts_with` /
+`ends_with` / `contains` / `index_of` / `slice` migration.
 
 ## Stable-64 deprecation wave (ADR-087, 2026-10-26)
 

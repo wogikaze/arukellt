@@ -8,7 +8,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 68 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 57 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 1 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 3 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 75 | Superseded — see migration guidance. |
@@ -318,20 +318,12 @@ push(v, 2)
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `char_to_string` | `(char) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_char_to_string` | Encode a Unicode scalar as canonical UTF-8. |
-| `parse_f64` | `(String) -> Result<f64, String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_parse_f64` | - |
-| `parse_i32` | `(String) -> Result<i32, String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_parse_i32` | Parse a decimal string as an i32 integer. Returns Ok(n) on success, or Err with a description on fai… |
-| `parse_i64` | `(String) -> Result<i64, String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_parse_i64` | - |
 | `to_string` | `(any) -> String` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
-
-### `parse_i32` — `prelude`
-
-**Errors:** Returns Err if the string is not a valid decimal integer or is out of i32 range.
 
 ## Convert
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `f32_to_string` | `(f32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_f32_to_string` | - |
 | ~~`i32_to_u32`~~ ⚠️ Deprecated → `i32::to_u32_bits` | `(i32) -> u32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u32` | - |
 
 ## Host Fs
@@ -430,17 +422,6 @@ let input = stdio::read_stdin()
 | ~~`f64_bits_hi`~~ ⚠️ Deprecated → `f64::to_bits_hi` | `(f64) -> i32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_hi` | - |
 | ~~`f64_bits_lo`~~ ⚠️ Deprecated → `f64::to_bits_lo` | `(f64) -> i32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_lo` | - |
 
-## Option Result
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `is_err` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
-| `is_none` | `(Option<T>) -> bool` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
-| `is_ok` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
-| `is_some` | `(Option<T>) -> bool` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
-| `unwrap` | `(Option<T>) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
-| `unwrap_or` | `(Option<T>, T) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
-
 ## Process
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
@@ -512,7 +493,6 @@ let input = stdio::read_stdin()
 | `ends_with` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_ends_with` | - |
 | `eq` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_eq` | - |
 | `index_of` | `(String, String) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_index_of` | - |
-| `push_char` | `(String, char) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_push_char` | Append a Unicode scalar encoded as canonical UTF-8. |
 | `slice` | `(String, i32, i32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_slice` | - |
 | `starts_with` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_starts_with` | - |
 | `substring` | `(String, i32, i32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_substring` | - |

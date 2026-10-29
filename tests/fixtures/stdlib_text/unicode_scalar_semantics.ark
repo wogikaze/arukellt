@@ -1,6 +1,6 @@
 use std::test::Test
 use std::text
-use std::prelude::{byte_at, push_char}
+use std::prelude::{byte_at}
 
 fn main() {
     let source = "Aé😀é"
@@ -73,11 +73,11 @@ fn main() {
 
     let mut built = String_new()
     match source.codepoint_at(1) {
-        Option::Some(value) => push_char(built, value),
+        Option::Some(value) => built.push_char(value),
         Option::None => assert(false),
     }
     match source.codepoint_at(2) {
-        Option::Some(value) => push_char(built, value),
+        Option::Some(value) => built.push_char(value),
         Option::None => assert(false),
     }
     Test::assert_eq_string(built, "é😀")

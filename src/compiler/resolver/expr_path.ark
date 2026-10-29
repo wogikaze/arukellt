@@ -6,7 +6,9 @@ use resolver::ref_sites
 use resolver::scope_error
 use resolver::kinds
 use resolver::paths
+use resolver::modules
 use resolver::ctx_record
+
 fn resolve_path(mut ctx: ResolveCtx, mut node: AstNode) {
     let path = ast_access::node_text(node)
     let module_part = paths::path_module_part(clone(path))
@@ -45,6 +47,7 @@ fn resolve_qualified_path(mut ctx: ResolveCtx, mut node: AstNode, path: String) 
     // Associated function syntax on builtin types (Vec::new, String::from,
     // i32::from, ...) — the type is not a module, so skip module lookup.
     if is_builtin_type_name(clone(module_part)) {
+        reject_unloaded_try_from(ctx, clone(path), clone(symbol_part))
         return
     }
 
@@ -212,6 +215,27 @@ fn resolve_module_qualified_associated_fn(
     ast_access::set_node_text(node, clone(symbol_part))
     ref_sites::record_use(ctx, full_idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
     true
+}
+
+// `i32::try_from` and friends are associated functions provided by
+// `std::core::convert`. Without that module the call has no signature and MIR
+// emits its silent `drop; unreachable` unresolved-call fallback, so the
+// program traps on first use instead of failing to compile. Report the missing
+// import here. Impl methods are not bare scope symbols, so the loaded module
+// registration is the signal that the `TryFrom` impls are available.
+fn reject_unloaded_try_from(ctx: ResolveCtx, path: String, symbol_part: String) {
+    if !eq(clone(symbol_part), String_from("try_from")) {
+        return
+    }
+    if modules::module_registered(ctx_record::resolve_ctx_modules(ctx), String_from("convert")) {
+        return
+    }
+    scope_error::resolve_error(
+        ctx,
+        String_from("undefined associated function `").concat(
+            clone(path).concat(String_from("`; add `use std::core::convert` to load the `TryFrom` impls"))
+        )
+    )
 }
 
 fn path_has_nested_qualifier(symbol_part: String) -> bool {

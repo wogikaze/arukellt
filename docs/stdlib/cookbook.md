@@ -337,16 +337,17 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
+use std::prelude::{eq}
 use std::test::Test
 fn main() {
     let s = String_from("Hello World")
-    Test::assert_eq_string(to_lower(s), "hello world")
-    Test::assert_eq_string(to_upper(s), "HELLO WORLD")
+    Test::assert_eq_string(s.to_lower(), "hello world")
+    Test::assert_eq_string(s.to_upper(), "HELLO WORLD")
 
     let mut greeting = String_from("hello")
-    push_char(greeting, '!')
+    greeting.push_char('!')
     let mut expected = String_from("hello")
-    push_char(expected, '!')
+    expected.push_char('!')
     Test::assert_true(eq(greeting, expected))  // hello!
 }
 ```

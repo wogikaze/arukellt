@@ -8,7 +8,8 @@
 // violation.  The sentinel propagates through chained reads, so each
 // level checks once instead of after every field.
 
-use std::prelude::{byte_at, parse_f64}
+use std::core::convert
+use std::prelude::{byte_at}
 use std::text
 
 const ASTC_HEADER_LEN: i32 = 20
@@ -182,7 +183,7 @@ fn deserialize_node(data: String, pos: i32, limit: i32) -> (AstNode, i32) {
         return (invalid_node(), -1)
     }
     let mut float_val = 0.0
-    match parse_f64(float_text) {
+    match f64::try_from(float_text) {
         Result::Ok(v) => { float_val = v }
         Result::Err(_) => { return (invalid_node(), -1) }
     }

@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined name: push_char; use `s.push_char(c)` on `String` instead

@@ -1,11 +1,11 @@
 use std::host::stdio
 use std::test::Test
-use std::prelude::{is_none, is_some}
+
 fn maybe(opt: bool, v: i32) -> Option<i32> {
     if opt { Some(v) } else { None }
 }
 fn main() {
-    Test::assert_true(is_some(maybe(true, 10)))
-    Test::assert_true(is_none(maybe(false, 10)))
+    Test::assert_true(maybe(true, 10).is_some())
+    Test::assert_true(maybe(false, 10).is_none())
     stdio::println("ok")
 }

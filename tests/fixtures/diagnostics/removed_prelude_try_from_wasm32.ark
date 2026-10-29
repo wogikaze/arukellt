@@ -1,0 +1,5 @@
+// E0100: the prelude `parse_i32` free was retired by ADR-091; the hint names
+// the `TryFrom<String>` associated function and the module it lives in.
+fn main() {
+    let _ = parse_i32(String_from("42"))
+}

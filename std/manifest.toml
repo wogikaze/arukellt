@@ -277,17 +277,6 @@ stability = "stable"
 doc_category = "string"
 
 [[functions]]
-name = "push_char"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_push_char"
-params = ["String", "char"]
-returns = "()"
-prelude = true
-stability = "stable"
-doc_category = "string"
-doc = "Append a Unicode scalar encoded as canonical UTF-8."
-
-[[functions]]
 name = "slice"
 kind = "prelude_wrapper"
 intrinsic = "__intrinsic_string_slice"
@@ -548,40 +537,6 @@ doc_category = "conversion"
 doc = "Encode a Unicode scalar as canonical UTF-8."
 
 [[functions]]
-name = "parse_i32"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_parse_i32"
-params = ["String"]
-returns = "Result<i32, String>"
-prelude = true
-stability = "stable"
-doc_category = "conversion"
-doc = "Parse a decimal string as an i32 integer. Returns Ok(n) on success, or Err with a description on failure."
-errors = "Returns Err if the string is not a valid decimal integer or is out of i32 range."
-availability = { t1 = true, t3 = true }
-
-[[functions]]
-name = "parse_i64"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_parse_i64"
-params = ["String"]
-returns = "Result<i64, String>"
-prelude = true
-stability = "stable"
-doc_category = "conversion"
-
-[[functions]]
-name = "parse_f64"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_parse_f64"
-params = ["String"]
-returns = "Result<f64, String>"
-prelude = true
-stability = "stable"
-doc_category = "conversion"
-
-# Polymorphic to_string — dispatched by emitter based on argument type
-[[functions]]
 name = "to_string"
 kind = "builtin"
 params = ["any"]
@@ -721,68 +676,6 @@ returns = "Vec<i32>"
 prelude = true
 stability = "provisional"
 doc_category = "collections"
-
-[[functions]]
-name = "unwrap"
-kind = "builtin"
-params = ["Option<T>"]
-returns = "T"
-prelude = true
-stability = "stable"
-doc_category = "option_result"
-
-[[functions]]
-name = "unwrap_or"
-kind = "builtin"
-params = ["Option<T>", "T"]
-returns = "T"
-prelude = true
-stability = "stable"
-doc_category = "option_result"
-
-# NOTE: unwrap_or_else was removed from the prelude surface; bare calls now
-# report E0100 with the resolver::removed_names hint.
-
-[[functions]]
-name = "is_some"
-kind = "builtin"
-params = ["Option<T>"]
-returns = "bool"
-prelude = true
-stability = "stable"
-doc_category = "option_result"
-
-[[functions]]
-name = "is_none"
-kind = "builtin"
-params = ["Option<T>"]
-returns = "bool"
-prelude = true
-stability = "stable"
-doc_category = "option_result"
-
-# NOTE: is_ok is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
-[[functions]]
-name = "is_ok"
-kind = "builtin"
-params = ["Result<T, E>"]
-returns = "bool"
-prelude = true
-stability = "stable"
-doc_category = "option_result"
-
-# NOTE: is_err is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
-[[functions]]
-name = "is_err"
-kind = "builtin"
-params = ["Result<T, E>"]
-returns = "bool"
-prelude = true
-stability = "stable"
-doc_category = "option_result"
-
-# NOTE: ok_or / ok / err / expect were removed from the prelude surface; bare
-# calls now report E0100 with resolver::removed_names hints.
 
 [[functions]]
 name = "Box_new"
@@ -938,16 +831,6 @@ doc = "Read-only contiguous view."
 prelude = true
 stability = "provisional"
 generic_params = ["T"]
-
-[[functions]]
-name = "f32_to_string"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_f32_to_string"
-params = ["f32"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "convert"
 
 [[types]]
 name = "Error"
