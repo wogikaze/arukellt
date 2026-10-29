@@ -90,7 +90,11 @@ mode は `TY_FN` 型に含まれ、関数値経由の呼び出しにも同じ規
 共有仮引数の関数値を `mut` 位置へ代入できる一方、逆方向は注釈付き `let`
 binding、関数引数、return 位置で E0225 として拒否する。module 修飾された
 関数 path も同じ検査の対象である。借用した `Box<T>` 仮引数の返却・集約値への
-格納・`unbox` は E0227 として拒否する。移動済み binding の利用は E0212 として
+格納・`unbox` は E0227 として拒否する。集約値には組み込み `Option`/`Result` の
+`Option::Some`・`Ok`・`Err` も含み、escape 走査は被演算子・実引数・receiver に
+入れ子になった `Box_new`/`unbox` まで辿る。`Box` enum の generic な payload
+読み出しは合法のままである（具象 `Box<i32>` の match は既存の MIR payload-bind
+制限が残る）。移動済み binding の利用は E0212 として
 拒否する。この検査は実引数と method receiver だけでなく、直接の return / tail
 値、binary / unary の被演算子、field / element の読み取り根、関数値経由の
 呼び出しの callee にも適用する。識別子の評価時に同じ moved / `Copy` 判定を

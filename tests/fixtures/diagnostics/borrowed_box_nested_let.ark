@@ -1,0 +1,18 @@
+use std::prelude::{Box_new, unbox}
+
+fn plus_one(n: i32) -> i32 {
+    n + 1
+}
+
+// ADR-088 §6: the `let` initializer is a binding store, but the borrowed Box
+// is moved by a sink nested inside an ordinary call argument, not at the
+// initializer root.
+fn bump(b: Box<i32>) -> i32 {
+    let n = plus_one(unbox(b))
+    n
+}
+
+fn main() {
+    let boxed = Box_new(2)
+    let _n = bump(boxed)
+}

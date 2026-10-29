@@ -330,7 +330,9 @@ fn borrowed_box_escape_message(name: String) -> String {
 // Walk the value-producing shapes of an expression and reject a borrowed
 // `Box<T>` parameter in an escape position (ADR-088 §6). `if` and `match`
 // contribute only their branch values: the condition and the match scrutinee
-// are reads, not escapes.
+// are reads, not escapes. Read positions still recurse through
+// check_borrowed_box_nested_escape so a store nested inside a larger
+// expression is not hidden by the outer shape.
 fn check_borrowed_box_escape(mut env: TypeEnv, scope: LocalScope, node: AstNode) {
     if ast_expr_predicates::node_is_ident(node) {
         let name = ast_access::node_text(node)
@@ -351,6 +353,7 @@ fn check_borrowed_box_escape(mut env: TypeEnv, scope: LocalScope, node: AstNode)
     }
     if kind == kinds::NK_IF_EXPR() {
         let count = ast_access::node_child_count(node)
+        check_borrowed_box_nested_escape(env, scope, ast_access::node_child_at(node, 0))
         let mut i = 1
         while i < count {
             check_borrowed_box_escape(env, scope, ast_access::node_child_at(node, i))
@@ -359,6 +362,7 @@ fn check_borrowed_box_escape(mut env: TypeEnv, scope: LocalScope, node: AstNode)
         return
     }
     if kind == kinds::NK_MATCH_EXPR() {
+        check_borrowed_box_nested_escape(env, scope, ast_access::node_child_at(node, 0))
         check_borrowed_box_escape_match_arms(env, scope, node)
         return
     }
@@ -380,12 +384,52 @@ fn check_borrowed_box_escape(mut env: TypeEnv, scope: LocalScope, node: AstNode)
         return
     }
     if kind == kinds::NK_ASSIGN() {
+        check_borrowed_box_nested_escape(env, scope, ast_access::node_child_at(node, 0))
         check_borrowed_box_escape_child(env, scope, node, 1)
         return
     }
     if kind == kinds::NK_CALL() {
         check_borrowed_box_escape_call_args(env, scope, node)
         return
+    }
+    // The remaining shapes are reads: an operand, receiver, index, or range
+    // may contain a store, but the identifier itself is a shared read.
+    check_borrowed_box_nested_escape(env, scope, node)
+}
+
+// Report a store reached through an otherwise read-only expression. `unbox`,
+// `Box_new`, and aggregate constructors move the borrowed Box no matter how
+// deeply they are nested (binary operand, call argument, method receiver...).
+fn check_borrowed_box_nested_escape(mut env: TypeEnv, scope: LocalScope, node: AstNode) {
+    let kind = ast_access::node_kind(node)
+    if kind == kinds::NK_IDENT() || kind == kinds::NK_PATH() ||
+    kind == kinds::NK_CLOSURE() {
+        return
+    }
+    if kind == kinds::NK_CALL() {
+        if ast_access::node_child_count(node) > 0 &&
+        is_borrowed_box_sink_callee(ast_access::node_text(ast_access::node_child_at(node, 0))) {
+            check_borrowed_box_escape(env, scope, node)
+            return
+        }
+        check_borrowed_box_nested_children(env, scope, node, 1)
+        return
+    }
+    if kind == kinds::NK_TUPLE() || kind == kinds::NK_ARRAY_LIT() ||
+    kind == kinds::NK_ARRAY_REPEAT() || kind == kinds::NK_STRUCT_LIT() ||
+    kind == kinds::NK_ASSIGN() {
+        check_borrowed_box_escape(env, scope, node)
+        return
+    }
+    check_borrowed_box_nested_children(env, scope, node, 0)
+}
+
+fn check_borrowed_box_nested_children(mut env: TypeEnv, scope: LocalScope, node: AstNode, first: i32) {
+    let count = ast_access::node_child_count(node)
+    let mut i = first
+    while i < count {
+        check_borrowed_box_nested_escape(env, scope, ast_access::node_child_at(node, i))
+        i = i + 1
     }
 }
 
@@ -416,21 +460,36 @@ fn check_borrowed_box_escape_struct_fields(mut env: TypeEnv, scope: LocalScope, 
     }
 }
 
-// `unbox` moves its argument and `Box_new` stores it in a fresh Box; both are
-// escape sinks for a borrowed `Box<T>` regardless of the surrounding context.
+// `unbox` consumes its argument, while `Box_new` and the builtin
+// `Option`/`Result` payload constructors store it in a fresh aggregate. The
+// builtin constructors are not source enum defs, so the enum-constructor
+// argument check in call_fn.ark never sees `Option::Some`, `Ok`, or `Err`.
+fn is_borrowed_box_sink_callee(callee_name: String) -> bool {
+    let leaf = names::unqualified_type_name(callee_name)
+    if eq(clone(leaf), "unbox") || eq(clone(leaf), "Box_new") {
+        return true
+    }
+    eq(clone(leaf), "Some") || eq(clone(leaf), "Ok") || eq(leaf, "Err")
+}
+
 fn check_borrowed_box_escape_call_args(mut env: TypeEnv, scope: LocalScope, node: AstNode) {
-    if ast_access::node_child_count(node) < 2 {
+    if ast_access::node_child_count(node) < 1 {
         return
     }
     let callee_name = ast_access::node_text(ast_access::node_child_at(node, 0))
-    let leaf = names::unqualified_type_name(callee_name)
-    if !eq(clone(leaf), String_from("unbox")) && !eq(clone(leaf), String_from("Box_new")) {
-        return
-    }
     let count = ast_access::node_child_count(node)
     let mut i = 1
+    if is_borrowed_box_sink_callee(callee_name) {
+        while i < count {
+            check_borrowed_box_escape(env, scope, ast_access::node_child_at(node, i))
+            i = i + 1
+        }
+        return
+    }
+    // A call argument is a read, but a store nested inside it is still an
+    // escape; recurse instead of reporting the argument root.
     while i < count {
-        check_borrowed_box_escape(env, scope, ast_access::node_child_at(node, i))
+        check_borrowed_box_nested_escape(env, scope, ast_access::node_child_at(node, i))
         i = i + 1
     }
 }

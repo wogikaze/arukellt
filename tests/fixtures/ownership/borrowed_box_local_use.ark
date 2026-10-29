@@ -4,8 +4,8 @@ use std::prelude::Box_new
 // ADR-088 §6: a borrowed `Box<T>` parameter may be read locally. Matching the
 // prelude enum copies the payload and never moves the Box, so the caller
 // keeps its unique owner and can pass the same value again. The generic shape
-// mirrors the prelude `unbox` signature; a concrete `Box<i32>` parameter
-// currently hits a pre-existing match-binding limitation.
+// mirrors the prelude `unbox` signature; a concrete `Box<i32>` match is still
+// blocked by the pre-existing MIR payload-bind lowering (#951).
 fn peek<T>(b: Box<T>) -> T {
     match b {
         Box::Owned(value) => value,

@@ -3556,6 +3556,10 @@ diag:diagnostics/fn_value_mut_param_same_place.ark
 diag:diagnostics/borrowed_box_return.ark
 diag:diagnostics/borrowed_box_store.ark
 diag:diagnostics/borrowed_box_unbox.ark
+diag:diagnostics/borrowed_box_option_store.ark
+diag:diagnostics/borrowed_box_result_store.ark
+diag:diagnostics/borrowed_box_nested_operand.ark
+diag:diagnostics/borrowed_box_nested_let.ark
 fmt:fmt/mut_parameters.ark
 fmt:fmt/fn_type_mut.ark
 diag:diagnostics/removed_panic_free.ark

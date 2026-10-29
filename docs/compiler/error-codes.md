@@ -798,10 +798,15 @@ fn main() {
 
 A borrowed parameter may escape as a shared reference (ADR-088 §6), but
 `Box<T>` is a unique owner (ADR-060 §2), so sharing cannot represent it. A
-`Box<T>` parameter cannot be returned, stored in an aggregate (including an
-enum constructor), or passed to `unbox`; any of these would move the caller's
-unique owner out of the call scope. To transfer ownership, the caller passes
-an owned temporary value instead of a borrowed binding.
+`Box<T>` parameter cannot be returned, stored in an aggregate (a struct,
+tuple, array, source enum constructor, or builtin `Option`/`Result`
+constructor such as `Option::Some`, `Ok`, and `Err`), or passed to `unbox`;
+any of these would move the caller's unique owner out of the call scope. The
+walker follows aggregate members and recurses into operands, call arguments,
+and receivers, so a `Box_new`/`unbox` call nested inside a larger expression
+is still a sink. An `if` condition and a `match` scrutinee are read roots;
+their branch values are the escape positions. To transfer ownership, the
+caller passes an owned temporary value instead of a borrowed binding.
 
 <!-- skip-doc-check kind="invalid-example" reason="E0227 rejects returning a borrowed Box parameter" -->
 ```arukellt

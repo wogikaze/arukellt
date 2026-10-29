@@ -625,7 +625,12 @@ value is assignable to a `mut` position, and the reverse is rejected with
 E0225 at annotated `let` bindings, function arguments, and return positions;
 a module-qualified function path (`prelude::push`) is recovered for the same
 check. A borrowed `Box<T>` parameter cannot be returned, stored in an
-aggregate, or `unbox`ed (E0227). A moved binding is E0212 at these reads: call
+aggregate (including builtin `Option`/`Result` constructors such as
+`Option::Some`, `Ok`, and `Err`), or `unbox`ed (E0227); the escape walk
+follows aggregate members and recurses into operands, call arguments, and
+receivers, so a nested `Box_new`/`unbox` is still a sink. Matching the prelude
+`Box` enum (the generic payload-read shape) stays legal. A moved binding is
+E0212 at these reads: call
 arguments and method receivers, direct `return` and tail values, binary and
 unary operands, field or element read roots, and the callee of a call through
 a function value. The check is the same moved/`Copy` predicate; it runs when an

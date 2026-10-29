@@ -387,6 +387,66 @@ remaining §7 direction positions.
   and `wasm32`. The seven diagnostic fixtures emit E0225/E0227 under
   `check` with the built s2.
 
+## Implementation (2026-10-30, E0227 residuals)
+
+Closes two of the three E0227 residuals recorded by `096bbdbdf`; the concrete
+match residual is diagnosed below.
+
+- Builtin payload constructors: `Option::Some`, `Ok`, and `Err` construct
+  builtin types, not source enum defs, so the enum-constructor argument check
+  in `call_fn.ark` never saw them. `ownership::is_borrowed_box_sink_callee`
+  now treats `unbox`, `Box_new`, and those constructor leaves as sinks.
+- Nested expressions: `ownership::check_borrowed_box_nested_escape` walks
+  read positions and reports a nested sink or aggregate store without
+  reporting a bare borrowed-Box identifier (a shared read stays legal). The
+  escape walk uses it for binary/unary operands, call arguments, receivers,
+  index expressions, `if` conditions, and `match` scrutinees; a `let` or
+  tuple-destructure initializer now runs the escape walk instead of relying
+  only on `consume_expr`.
+- Concrete `Box<i32>` match (not landed): the checker mismatch is real and
+  general to generic source enums matched at a concrete type (`Wrap<i32>`
+  fails the same way), but the root cause is deeper than the binding type.
+  Teaching `match.ark` to instantiate the payload type (by storing the
+  declaration type parameters in `EnumInfo`) removes E0200, and then the MIR
+  payload bind emits invalid Wasm: `W0004 generated Wasm failed validation:
+  expected i32, found (ref null $type)` (reproduced with `Wrap<i32>` too).
+  `match_payload_field_vt` sees the unsubstituted `T` field and chooses
+  `VT_GC_REF` while the arm uses the value as `i32`. That is a MIR
+  payload-bind lowering gap, so the positive fixture keeps the generic
+  payload-read shape and this residual stays recorded.
+- Fixtures: `ownership/borrowed_box_local_use.ark` keeps its generic payload
+  read (`41/41`), plus the diagnostics
+  `diagnostics/borrowed_box_option_store.ark`,
+  `diagnostics/borrowed_box_result_store.ark`,
+  `diagnostics/borrowed_box_nested_operand.ark`, and
+  `diagnostics/borrowed_box_nested_let.ark`.
+- Docs: `docs/compiler/error-codes.md` (E0227),
+  `docs/language/spec.md` §3.5.1, `docs/language/memory-model.md`, and
+  `docs/current-state.md`.
+
+### Verification (2026-10-30, E0227 residuals)
+
+- `python3 scripts/manager.py selfhost build-compiler`: PASS (lane build dir,
+  47.0 s from the gc pin).
+- `python3 scripts/manager.py verify fixtures`: PASS — PASS=1918 FAIL=0,
+  1918 compile+validate, 110 runtime smoke, 2 native-cpp contracts delegated;
+  `test:` PASS=38 FAIL=0.
+- `python3 scripts/manager.py selfhost diag-parity`: PASS (current s2 against
+  every committed `diag:` golden, including the four new E0227 fixtures).
+- `python3 scripts/manager.py verify lane`: PASS (`quality changed`; lint
+  checked=3 failed=0; ratchet checked=3 failed=0).
+- `python3 scripts/manager.py docs check`: 6/6 PASS.
+- `python3 scripts/manager.py selfhost fixpoint`: PASS after deleting
+  `.build-lane/selfhost/arukellt-s3.wasm` —
+  `sha256(s2) == sha256(s3) = a670b786d791645033f0f8f50de7317695066ff3e273ac1d64453bc066b86856`
+  (pinned base `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`).
+- Manual both-target run of `ownership/borrowed_box_local_use.ark` with the
+  built s2: `41/41` on `wasm32-gc` (component) and `wasm32` (core).
+- The built s2 rejects the residual repros: `Option::Some(b)`, `Ok(b)`,
+  `Err(b)`, `return unbox(b) + 1`, and `let n = plus_one(unbox(b))` each
+  emit E0227. The concrete `Box<i32>` repro still emits
+  `E0200: 'peek' declared to return i32 but body returns T`.
+
 ## Remaining scope
 
 1. Callee-side rule (ADR-088 §2/§3): landed in the 2026-10-29 slice.
@@ -405,18 +465,13 @@ remaining §7 direction positions.
    `TY_FN`.
 3. Borrowed `Box<T>` escape (ADR-088 §6): landed. A borrowed `Box<T>`
    parameter cannot be moved, returned, stored in an aggregate, or
-   `unbox`ed (E0227). The rule is restricted to `Box<T>`; other non-`Copy`
-   parameters still escape by sharing. Two residual gaps:
-   - A concrete (non-generic) `Box<i32>` parameter still hits a pre-existing
-     match-binding type mismatch in the checker; the positive fixture uses
-     the generic shape that mirrors `unbox`.
-   - A source enum constructor (`Box::Owned(b)`) is checked, but the builtin
-     `Option`/`Result` constructors (`Option::Some(b)`, `Ok(b)`) are not
-     enum defs, so a borrowed Box stored through them is still accepted.
-   - The value-shape walker follows aggregates and control flow, but not a
-     `Box_new`/`unbox` call nested inside a larger expression such as
-     `return unbox(b) + 1`. Direct call positions and `let` initializers are
-     covered.
+   `unbox`ed (E0227). The 2026-10-30 slice closed two residuals: builtin
+   `Option`/`Result` payload constructors are sinks, and a
+   `Box_new`/`unbox` nested in a read expression is walked. The concrete
+   `Box<i32>` match residual remains: the checker binding is `T`, and
+   instantiating it exposes a MIR payload-bind lowering gap (invalid Wasm).
+   The rule is restricted to `Box<T>`; other non-`Copy` parameters still
+   escape by sharing.
 4. stdlib surface (ADR-088 §8): `push`/`set`/`pop`/`insert`/`clear` and the
    collection setters now declare `mut` parameters/receivers. No
    name-based exemption is used.

@@ -100,6 +100,10 @@ fn check_let_stmt(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, 
         )
         if env.is_ownership_tracking_enabled {
             ownership::consume_expr(env, scope, ast_access::node_child_at(node, 0))
+            // A let binding stores the initializer value. consume_expr covers
+            // moves and direct sink calls; the escape walk also catches stores
+            // nested in a larger initializer expression (ADR-088 §6).
+            ownership::check_borrowed_box_escape(env, scope, ast_access::node_child_at(node, 0))
         }
     }
     if !eq(clone(bind_name), "_") {
@@ -159,6 +163,7 @@ fn check_tuple_destructure_let(mut env: TypeEnv, mut scope: LocalScope, fn_sigs:
     if env.is_ownership_tracking_enabled {
         closure_capture::closure_capture_escape(env, scope, init)
         ownership::consume_expr(env, scope, init)
+        ownership::check_borrowed_box_escape(env, scope, init)
     }
     bind_tuple_pat_identifiers(env, scope, pat, bind_ty)
 }
