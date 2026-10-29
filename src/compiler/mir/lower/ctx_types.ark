@@ -212,11 +212,6 @@ pub struct LowerCtx {
     mono_inst_keys: Vec<String>,
     mono_inst_vals: Vec<i32>,
     mono_inst_buckets: Vec<i32>,
-    // leaf fn name -> unique non-marker mono instance index (-2 when several
-    // distinct mangled instances share the leaf). Built once when the instance
-    // list is replaced; the old lookup scanned every instance per mono body.
-    mono_leaf_index: NameIndex,
-    mono_leaf_index_count: i32,
     source_text: String,
     fn_source_locations: Vec<SourceLocation>,
     // Callee names that are not in fn_name_index (HashMap aliases, etc.).

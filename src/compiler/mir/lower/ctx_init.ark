@@ -100,8 +100,6 @@ fn LowerCtx_new_for_target(m: MirModule, target: String, source_text: String, fn
         mono_inst_keys: Vec::new<String>(),
         mono_inst_vals: Vec::new<i32>(),
         mono_inst_buckets: Vec::new<i32>(),
-        mono_leaf_index: name_index::NameIndex_new(0),
-        mono_leaf_index_count: 0 - 1,
         source_text: source_text,
         fn_source_locations: fn_source_locations,
         edge_names: Vec::new<String>(),

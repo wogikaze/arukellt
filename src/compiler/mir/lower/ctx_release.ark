@@ -106,8 +106,6 @@ fn ctx_release_lowering_scratch(mut ctx: LowerCtx) {
     ctx.mono_inst_keys = Vec::new<String>()
     ctx.mono_inst_vals = Vec::new<i32>()
     ctx.mono_inst_buckets = Vec::new<i32>()
-    ctx.mono_leaf_index = name_index::NameIndex_new(0)
-    ctx.mono_leaf_index_count = 0 - 1
     ctx.source_text = String_new()
     ctx.fn_source_locations = Vec::new<SourceLocation>()
     ctx.edge_names = Vec::new<String>()
