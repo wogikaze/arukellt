@@ -1,0 +1,25 @@
+// E0100 on the linear wasm32 target: the 18 std::test assertion / expectation frees were deleted after the
+// ADR-087 Wave 1 window; each old qualified call names the Test replacement.
+use std::test
+
+fn main() {
+    let _ = test::assert_true(1 == 1)
+    let _ = test::assert_false(1 == 2)
+    let _ = test::assert_eq_debug(1, 1)
+    let _ = test::assert_eq_i32(1 + 1, 2)
+    let _ = test::assert_eq_i64(2i64, 2i64)
+    let _ = test::assert_eq_f64(1.5, 1.5)
+    let _ = test::assert_eq_string("a", "a")
+    let _ = test::assert_eq_bool(true, true)
+    let _ = test::assert_ne_i32(1, 2)
+    let _ = test::assert_ne_string("a", "b")
+    let _ = test::expect_ok_i32(Ok(1))
+    let _ = test::expect_err_string(Err("e"))
+    let _ = test::expect_some_i32(Some(1))
+    let _ = test::expect_none_i32(None)
+    let _ = test::assert_contains("ab", "b")
+    let _ = test::assert_eq_snapshot("a", "a")
+    let _ = test::assert_msg(true, "ok")
+    let _ = test::bench("n", 1, || {
+        })
+}

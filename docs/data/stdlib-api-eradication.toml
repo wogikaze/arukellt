@@ -119,7 +119,7 @@ module_less = true
 name = ["assert_eq", "assert_ne", "assert_eq_i64", "assert_eq_str"]
 class = "must delete"
 owner = "917"
-replacement = "std::test::assert_eq_i32(actual, expected), assert_ne_i32(actual, unexpected), assert_eq_i64(...), assert_eq_string(...); the deprecated prelude wrappers delegate to the same assertions"
+replacement = "`std::test::Test` associated functions: Test::assert_eq_i32(actual, expected), Test::assert_ne_i32(actual, unexpected), Test::assert_eq_i64(...), Test::assert_eq_string(...); the deprecated prelude wrappers delegate to the same assertions"
 
 [[rules]]
 label = "monomorphic seq/combinator frees"
@@ -235,18 +235,12 @@ class = "associated-or-method"
 owner = "693"
 replacement = "Read / Write / BufRead / Seek trait methods and the typed std::io Stdout / Stderr Write handles. writer_write / writer_write_str were deleted with E0100 hints pointing at io::Stdout::new().write(...) / io::Stderr::new().write(...); the remaining free functions are the host-backed compatibility surface (stdin / stdout / stderr / read_stdin_line / print_bytes / print / println / eprintln), not the target API (#693)."
 
-# The 18 std::test assertion / expectation helpers moved to the `Test`
-# namespace in the 2026-10-29 surface wave. `Test::assert_eq_i32` and the other
-# associated functions are the canonical spelling; the free declarations are
-# the ADR-087 compatibility spelling until Wave 2 deletes them. `bench` is
-# `experimental`, so it retires directly under ADR-014 D4 without a W0009
-# window.
-[[rules]]
-label = "std::test assert frees"
-module = "std::test"
-class = "associated-or-method"
-owner = "917"
-replacement = "`std::test::Test` associated functions: Test::assert_true / assert_false / assert_eq_* / assert_ne_* / assert_eq_debug / assert_contains / assert_eq_snapshot / assert_msg, the expect_* helpers, and Test::bench; import `use std::test::Test`"
+# The 18 std::test assertion / expectation frees were retired by #917 on
+# 2026-10-29 (wave/test-group) after the ADR-087 two-phase lifecycle: Wave 1
+# deprecated the 17 stable entries with W0009, and Wave 2 deleted every
+# manifest entry and public declaration. `bench` was `experimental`, so it
+# retired directly under ADR-014 D4. The only public spelling is the
+# `std::test::Test` associated surface, so this family has no live rule.
 
 [[rules]]
 label = "std::seq remaining"

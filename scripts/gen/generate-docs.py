@@ -631,7 +631,7 @@ let dedup = seq::unique(nums)           // [3, 1, 4, 5, 9]
                 ("`Test::assert_eq_snapshot(actual, expected)`", "Line-by-line string comparison with diff on failure."),
             ],
             "typical_usage": """\
-> ⚠️ **Eradication scope (ADR-046):** `Test` is the canonical associated surface. The free helpers remain callable only through the ADR-087 window — [scorecard](../eradication.md) (issue #917).
+> ✅ **Eradication scope (ADR-046):** the module exposes only the `Test` associated surface; the former free helpers were deleted in the ADR-087 Wave 2 — [scorecard](../eradication.md) (issue #917).
 
 ```ark
 use std::test::Test

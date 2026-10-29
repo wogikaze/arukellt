@@ -10,8 +10,8 @@
 |------|-------|-------------|
 | `stable` | 95 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 2 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 4 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 92 | Superseded — see migration guidance. |
+| `experimental` | 3 | API may change without notice. Functionality is available but not finalized. |
+| [deprecated](#deprecated-apis) | 75 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -70,7 +70,7 @@
 | `Stderr` | - | no | experimental | Typed standard-error handle. Implements Write: write(data) emits the byte image unchanged without appending a newline, write_string(text) emits a string's UTF-8 bytes, and flush is synchronous. Byte-faithful replacement for the tagged stderr() / writer_write path (ADR-085 D9). |
 | `Stdout` | - | no | experimental | Typed standard-output handle. Implements Write: write(data) emits the byte image unchanged, write_string(text) emits a string's UTF-8 bytes, and flush is synchronous. Byte-faithful replacement for the tagged stdout() / writer_write path (ADR-085 D9). |
 | `String` | - | yes | stable | UTF-8 string value. |
-| `Test` | - | no | stable | Namespace for the typed assertion and expectation helpers: Test::assert_true / assert_false, the typed equality and inequality assertions, assert_eq_debug, assert_contains, assert_eq_snapshot, assert_msg, the Result/Option expect helpers, and bench. Import use std::test::Test; the associated functions are the canonical surface, and the free declarations remain only through the ADR-087 window. |
+| `Test` | - | no | stable | Namespace for the typed assertion and expectation helpers: Test::assert_true / assert_false, the typed equality and inequality assertions, assert_eq_debug, assert_contains, assert_eq_snapshot, assert_msg, the Result/Option expect helpers, and bench. Import use std::test::Test and call the associated functions; the module exposes no free assertion function (ADR-046). |
 | `Trie` | - | no | provisional | Prefix tree over String keys and i32 values backed by a private 256-way node pool. has_prefix / count_with_prefix walk the byte key, and remove clears the value flag without pruning nodes. |
 | `U16x8` | - | no | experimental | 8 × 16-bit unsigned integer lane associated operations over v128. |
 | `U32x4` | - | no | experimental | 4 × 32-bit unsigned integer lane associated operations over v128. |
@@ -563,53 +563,17 @@ let input = stdio::read_stdin()
 | `trim_end` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_trim_end` | - |
 | `trim_start` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_trim_start` | - |
 
-## Test
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| ~~`assert_contains`~~ ⚠️ Deprecated → `Test::assert_contains` | `(String, String) -> ()` | `std::test` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`assert_eq_bool`~~ ⚠️ Deprecated → `Test::assert_eq_bool` | `(bool, bool) -> ()` | `std::test` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`assert_eq_debug`~~ ⚠️ Deprecated → `Test::assert_eq_debug` | `(T, T) -> ()` | `std::test` | `deprecated` | `functional` | `builtin` | no | - | Generic Eq+Debug equality assertion. Named assert_eq_debug (not assert_eq) because bare assert_eq is… |
-| ~~`assert_eq_f64`~~ ⚠️ Deprecated → `Test::assert_eq_f64` | `(f64, f64) -> ()` | `std::test` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`assert_eq_i32`~~ ⚠️ Deprecated → `Test::assert_eq_i32` | `(i32, i32) -> ()` | `std::test` | `deprecated` | `functional` | `builtin` | no | - | Typed i32 equality assertion; failure messages use Debug renderings. |
-| ~~`assert_eq_i64`~~ ⚠️ Deprecated → `Test::assert_eq_i64` | `(i64, i64) -> ()` | `std::test` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`assert_eq_snapshot`~~ ⚠️ Deprecated → `Test::assert_eq_snapshot` | `(String, String) -> ()` | `std::test` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`assert_eq_string`~~ ⚠️ Deprecated → `Test::assert_eq_string` | `(String, String) -> ()` | `std::test` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`assert_false`~~ ⚠️ Deprecated → `Test::assert_false` | `(bool) -> ()` | `std::test` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`assert_msg`~~ ⚠️ Deprecated → `Test::assert_msg` | `(bool, String) -> ()` | `std::test` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`assert_ne_i32`~~ ⚠️ Deprecated → `Test::assert_ne_i32` | `(i32, i32) -> ()` | `std::test` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`assert_ne_string`~~ ⚠️ Deprecated → `Test::assert_ne_string` | `(String, String) -> ()` | `std::test` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`assert_true`~~ ⚠️ Deprecated → `Test::assert_true` | `(bool) -> ()` | `std::test` | `deprecated` | `functional` | `builtin` | no | - | - |
-| `bench` | `(String, i32, fn() -> ()) -> ()` | `std::test` | `experimental` | `functional` | `builtin` | no | - | Run f for iterations iterations and write a timing summary (total ns + iter count) to stderr. Stdout… |
-| ~~`expect_err_string`~~ ⚠️ Deprecated → `Test::expect_err_string` | `(Result<i32, String>) -> String` | `std::test` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`expect_none_i32`~~ ⚠️ Deprecated → `Test::expect_none_i32` | `(Option<i32>) -> ()` | `std::test` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`expect_ok_i32`~~ ⚠️ Deprecated → `Test::expect_ok_i32` | `(Result<i32, String>) -> i32` | `std::test` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`expect_some_i32`~~ ⚠️ Deprecated → `Test::expect_some_i32` | `(Option<i32>) -> i32` | `std::test` | `deprecated` | `functional` | `builtin` | no | - | - |
-
 ## Deprecated APIs
 
-> ⚠️ **92 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **75 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
 | ~~`as_slice`~~ | `Vec::as_slice` | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_contains`~~ | `Test::assert_contains` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_eq`~~ | `Test::assert_eq_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_eq_bool`~~ | `Test::assert_eq_bool` | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_eq_debug`~~ | `Test::assert_eq_debug` | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_eq_f64`~~ | `Test::assert_eq_f64` | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_eq_i32`~~ | `Test::assert_eq_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_eq_i64`~~ | `Test::assert_eq_i64` | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_eq_i64`~~ | `Test::assert_eq_i64` | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_eq_snapshot`~~ | `Test::assert_eq_snapshot` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_eq_str`~~ | `Test::assert_eq_string` | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_eq_string`~~ | `Test::assert_eq_string` | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_false`~~ | `Test::assert_false` | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_msg`~~ | `Test::assert_msg` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `Test::assert_ne_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_ne_i32`~~ | `Test::assert_ne_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_ne_string`~~ | `Test::assert_ne_string` | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_true`~~ | `Test::assert_true` | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `Vec::binary_search` | [migration-guidance.md](migration-guidance.md) |
 | ~~`bitset_mark`~~ | `BitSet::mark` | [migration-guidance.md](migration-guidance.md) |
 | ~~`bitset_new`~~ | `BitSet::new` | [migration-guidance.md](migration-guidance.md) |
@@ -627,10 +591,6 @@ let input = stdio::read_stdin()
 | ~~`deque_push_back`~~ | `Deque::push_back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_push_front`~~ | `Deque::push_front` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_to_vec`~~ | `Deque::iter` | [migration-guidance.md](migration-guidance.md) |
-| ~~`expect_err_string`~~ | `Test::expect_err_string` | [migration-guidance.md](migration-guidance.md) |
-| ~~`expect_none_i32`~~ | `Test::expect_none_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`expect_ok_i32`~~ | `Test::expect_ok_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`expect_some_i32`~~ | `Test::expect_some_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f32_to_f64`~~ | `f32::to_f64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_hi`~~ | `f64::to_bits_hi` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_lo`~~ | `f64::to_bits_lo` | [migration-guidance.md](migration-guidance.md) |

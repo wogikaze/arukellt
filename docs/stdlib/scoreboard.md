@@ -18,9 +18,8 @@
 | `std::process` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | no |
 | `std::seq` | 14 | 0 | 1 | 0 | 13 | 1/1 (100%) | no |
 | `std::signal` | 10 | 10 | 0 | 0 | 0 | 7/10 (70%) | no |
-| `std::test` | 18 | 0 | 0 | 1 | 17 | 1/1 (100%) | no |
 
-**Total**: 193 APIs, 95 stable, 2 provisional, 4 experimental, 92 deprecated, 94/101 (93%) fixture coverage
+**Total**: 175 APIs, 95 stable, 2 provisional, 3 experimental, 75 deprecated, 93/100 (93%) fixture coverage
 
 ## Legend
 

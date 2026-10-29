@@ -24,7 +24,7 @@ The `std::test` module provides typed assertion and expectation helpers for fixt
 
 **Typical usage:**
 
-> ⚠️ **Eradication scope (ADR-046):** `Test` is the canonical associated surface. The free helpers remain callable only through the ADR-087 window — [scorecard](../eradication.md) (issue #917).
+> ✅ **Eradication scope (ADR-046):** the module exposes only the `Test` associated surface; the former free helpers were deleted in the ADR-087 Wave 2 — [scorecard](../eradication.md) (issue #917).
 
 ```ark
 use std::test::Test
@@ -42,14 +42,13 @@ let value = Test::expect_ok_i32(result)  // 42
 ## Module `std::test`
 
 - Source: [`../../../std/test/mod.ark`](../../../std/test/mod.ark)
-- Manifest-backed functions: 18
-- Stability: deprecated 17, experimental 1
+- Manifest-backed functions: 0
+- Stability: n/a
 
 Testing utilities for fixture and example code.
 
 Import `use std::test::Test` and call the typed assertion / expectation
-associated functions; `Test` is the canonical surface (ADR-046). The free
-declarations in this module remain only through the ADR-087 window.
+associated functions. The module exposes no free function (ADR-046).
 
 ### `std::test` — Public Types
 
@@ -57,39 +56,4 @@ declarations in this module remain only through the ADR-087 window.
 |------|------|---------|-------------|---------|
 | `Test` | `struct` | `assert_true`, `assert_false`, `assert_eq_debug`, `assert_eq_i32`, `assert_eq_i64`, `assert_eq_f64`, `assert_eq_string`, `assert_eq_bool`, `assert_ne_i32`, `assert_ne_string`, `expect_ok_i32`, `expect_err_string`, `expect_some_i32`, `expect_none_i32`, `assert_contains`, `assert_eq_snapshot`, `assert_msg`, `bench` | - | Namespace for the typed assertion and expectation helpers. |
 
-### `std::test` — Public API
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| ~~`assert_true`~~ ⚠️ Deprecated → `Test::assert_true` | `(bool) -> ()` | `deprecated` | ✅ functional | - |
-| ~~`assert_false`~~ ⚠️ Deprecated → `Test::assert_false` | `(bool) -> ()` | `deprecated` | ✅ functional | - |
-| ~~`assert_eq_i32`~~ ⚠️ Deprecated → `Test::assert_eq_i32` | `(i32, i32) -> ()` | `deprecated` | ✅ functional | - |
-| ~~`assert_eq_i64`~~ ⚠️ Deprecated → `Test::assert_eq_i64` | `(i64, i64) -> ()` | `deprecated` | ✅ functional | - |
-| ~~`assert_eq_f64`~~ ⚠️ Deprecated → `Test::assert_eq_f64` | `(f64, f64) -> ()` | `deprecated` | ✅ functional | - |
-| ~~`assert_eq_string`~~ ⚠️ Deprecated → `Test::assert_eq_string` | `(String, String) -> ()` | `deprecated` | ✅ functional | - |
-| ~~`assert_eq_bool`~~ ⚠️ Deprecated → `Test::assert_eq_bool` | `(bool, bool) -> ()` | `deprecated` | ✅ functional | - |
-| ~~`assert_ne_i32`~~ ⚠️ Deprecated → `Test::assert_ne_i32` | `(i32, i32) -> ()` | `deprecated` | ✅ functional | - |
-| ~~`assert_ne_string`~~ ⚠️ Deprecated → `Test::assert_ne_string` | `(String, String) -> ()` | `deprecated` | ✅ functional | - |
-| ~~`expect_ok_i32`~~ ⚠️ Deprecated → `Test::expect_ok_i32` | `(Result<i32, String>) -> i32` | `deprecated` | ✅ functional | - |
-| ~~`expect_err_string`~~ ⚠️ Deprecated → `Test::expect_err_string` | `(Result<i32, String>) -> String` | `deprecated` | ✅ functional | - |
-| ~~`expect_some_i32`~~ ⚠️ Deprecated → `Test::expect_some_i32` | `(Option<i32>) -> i32` | `deprecated` | ✅ functional | - |
-| ~~`expect_none_i32`~~ ⚠️ Deprecated → `Test::expect_none_i32` | `(Option<i32>) -> ()` | `deprecated` | ✅ functional | - |
-| ~~`assert_contains`~~ ⚠️ Deprecated → `Test::assert_contains` | `(String, String) -> ()` | `deprecated` | ✅ functional | Assert that a string contains a given substring. |
-| ~~`assert_eq_snapshot`~~ ⚠️ Deprecated → `Test::assert_eq_snapshot` | `(String, String) -> ()` | `deprecated` | ✅ functional | Assert that two strings are equal, showing expected and actual blocks on failure. |
-| ~~`assert_msg`~~ ⚠️ Deprecated → `Test::assert_msg` | `(bool, String) -> ()` | `deprecated` | ✅ functional | Assert that a boolean condition holds, with a custom failure message. |
-| `bench` | `(String, i32, fn() -> ()) -> ()` | `experimental` | ✅ functional | Run f exactly iterations times and write a timing summary to stderr. |
-| ~~`assert_eq_debug`~~ ⚠️ Deprecated → `Test::assert_eq_debug` | `(T, T) -> ()` | `deprecated` | ✅ functional | - |
-
-#### `std::test::assert_eq_i32`
-
-Typed i32 equality assertion; failure messages use Debug renderings.
-
-#### `std::test::bench`
-
-Run f for iterations iterations and write a timing summary (total ns + iter count) to stderr. Stdout is unaffected, so fixture expected files remain deterministic.
-
-#### `std::test::assert_eq_debug`
-
-Generic Eq+Debug equality assertion. Named assert_eq_debug (not assert_eq) because bare assert_eq is CoreOp-bound; failure messages render both values via Debug.
-
-> ⚠️ **17 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
+_No manifest-backed functions in this module._

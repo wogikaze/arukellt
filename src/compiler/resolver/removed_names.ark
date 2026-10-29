@@ -82,6 +82,10 @@ fn is_retired_hashset_adapter_name(name: String) -> bool {
 }
 
 fn removed_name_specific_hint(name: String) -> String {
+    let test_hint = removed_test_free_hint(clone(name))
+    if len(clone(test_hint)) > 0 {
+        return test_hint
+    }
     let raw_hint = removed_raw_member_hint(clone(name))
     if len(clone(raw_hint)) > 0 {
         return raw_hint
@@ -554,12 +558,76 @@ fn removed_seq_member_hint(name: String) -> String {
     String_new()
 }
 
+// The 18 std::test assertion / expectation frees were deleted by #917 after
+// the ADR-087 Wave 1 window (bench was experimental and retired directly).
+// Both module-qualified and bare old calls name the Test replacement.
+fn removed_test_free_hint(name: String) -> String {
+    if eq(clone(name), "assert_true") {
+        return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_true(cond)` instead")
+    }
+    if eq(clone(name), "assert_false") {
+        return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_false(cond)` instead")
+    }
+    if eq(clone(name), "assert_eq_debug") {
+        return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_eq_debug(actual, expected)` instead")
+    }
+    if eq(clone(name), "assert_eq_i32") {
+        return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_eq_i32(actual, expected)` instead")
+    }
+    if eq(clone(name), "assert_eq_i64") {
+        return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_eq_i64(actual, expected)` instead")
+    }
+    if eq(clone(name), "assert_eq_f64") {
+        return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_eq_f64(actual, expected)` instead")
+    }
+    if eq(clone(name), "assert_eq_string") {
+        return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_eq_string(actual, expected)` instead")
+    }
+    if eq(clone(name), "assert_eq_bool") {
+        return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_eq_bool(actual, expected)` instead")
+    }
+    if eq(clone(name), "assert_ne_i32") {
+        return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_ne_i32(actual, unexpected)` instead")
+    }
+    if eq(clone(name), "assert_ne_string") {
+        return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_ne_string(actual, unexpected)` instead")
+    }
+    if eq(clone(name), "expect_ok_i32") {
+        return String_from("removed std::test free function; import `use std::test::Test` and call `Test::expect_ok_i32(result)` instead")
+    }
+    if eq(clone(name), "expect_err_string") {
+        return String_from("removed std::test free function; import `use std::test::Test` and call `Test::expect_err_string(result)` instead")
+    }
+    if eq(clone(name), "expect_some_i32") {
+        return String_from("removed std::test free function; import `use std::test::Test` and call `Test::expect_some_i32(option)` instead")
+    }
+    if eq(clone(name), "expect_none_i32") {
+        return String_from("removed std::test free function; import `use std::test::Test` and call `Test::expect_none_i32(option)` instead")
+    }
+    if eq(clone(name), "assert_contains") {
+        return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_contains(haystack, needle)` instead")
+    }
+    if eq(clone(name), "assert_eq_snapshot") {
+        return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_eq_snapshot(actual, expected)` instead")
+    }
+    if eq(clone(name), "assert_msg") {
+        return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_msg(cond, message)` instead")
+    }
+    if eq(clone(name), "bench") {
+        return String_from("removed std::test free function; import `use std::test::Test` and call `Test::bench(name, iterations, f)` instead")
+    }
+    String_new()
+}
+
 fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "fs") || eq(clone(module), "host::fs") || eq(clone(module), "std::fs") || eq(clone(module), "std::host::fs") {
         return removed_host_fs_member_hint(name)
     }
     if eq(clone(module), "seq") || eq(clone(module), "std::seq") {
         return removed_seq_member_hint(name)
+    }
+    if eq(clone(module), "test") || eq(clone(module), "std::test") {
+        return removed_test_free_hint(name)
     }
     if eq(clone(module), "compiler") || eq(clone(module), "collections::compiler") || eq(clone(module), "std::collections::compiler") {
         return removed_compiler_member_hint(name)
@@ -1485,6 +1553,15 @@ test mod "removed_names" {
     }
     test "gated provisional filter_i32 has an import hint" {
         assert(len(removed_name_hint("filter_i32")) > 0)
+    }
+    test "removed test frees have E0100 hints" {
+        assert(len(removed_name_hint("assert_eq_i32")) > 0)
+        assert(len(removed_name_hint("assert_true")) > 0)
+        assert(len(removed_name_hint("expect_none_i32")) > 0)
+        assert(len(removed_name_hint("bench")) > 0)
+        assert(len(removed_module_member_hint("test", "assert_msg")) > 0)
+        assert(len(removed_module_member_hint("std::test", "assert_eq_snapshot")) > 0)
+        assert(len(removed_module_member_hint("test", "unrelated")) == 0)
     }
     test "live names have no hint" {
         assert(len(removed_name_hint("len")) == 0)

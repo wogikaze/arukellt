@@ -1530,3 +1530,64 @@ classified there, in dependency-safe waves.
   shape. `std::seq` must not import `std::collections::vec` until the iterator
   mono-instance ordering is fixed. The remaining 129 `associated-or-method`
   rows are unchanged.
+
+### Landed slice (wave/test-group, 2026-10-29)
+
+- **Group**: `std::test` — all 18 remaining `associated-or-method` rows. The
+  enumeration said all 18 were `stable`; the manifest actually has 17 `stable`
+  entries plus the `experimental` `bench`. The 17 stable entries completed the
+  ADR-087 two-phase lifecycle; `bench` retired directly under ADR-014 D4.
+- **Replacement surface**: `std::test::Test` associated functions —
+  `Test::assert_true` / `assert_false` / `assert_eq_debug` / `assert_eq_i32` /
+  `assert_eq_i64` / `assert_eq_f64` / `assert_eq_string` / `assert_eq_bool` /
+  `assert_ne_i32` / `assert_ne_string` / `expect_ok_i32` /
+  `expect_err_string` / `expect_some_i32` / `expect_none_i32` /
+  `assert_contains` / `assert_eq_snapshot` / `assert_msg` / `bench`. Import is
+  `use std::test::Test`; the module exposes no free function.
+- **Wave 1** (`2c5abb211`): the 17 stable manifest entries moved to
+  `stability = "deprecated"` with `deprecated_by = "Test::<name>"`,
+  `deprecated_since = "0.1.0"`, and `remove_in = "1.0.0"`; the prelude
+  `assert_*` wrappers now point `deprecated_by` at the Test methods.
+  `deprecated_test_call_message` / `deprecated_test_qualified_message` covered
+  bare and `test::`-qualified calls with unit assertions for all 17 names, plus
+  the dual-target `diagnostics/deprecated_test_free*` goldens.
+- **Wave 2** (this slice): deleted the 18 manifest entries and the
+  `std/test/mod.ark` free declarations; added
+  `resolver::removed_names::removed_test_free_hint` for both
+  module-qualified and bare old calls (E0100), and replaced the Wave 1 goldens
+  with `diagnostics/removed_test_free*`. All 4,995 call sites in 1,256 files
+  were migrated to `Test::` before the deprecation wave.
+- **Docs**: changelog Wave 1 + Wave 2 entries, migration guide before/after
+  table, curated module overview, and regenerated eradication reference /
+  module / scoreboard pages. `std::test` now has 0 APIs and only the `Test`
+  type.
+- **Scorecard**: eradication scope 195 -> **177**; `associated-or-method`
+  129 -> **111**; manifest public entries 193 -> **175**; `pub fn`
+  declarations 216 -> **198**; `prelude_wrapper` 64 unchanged; monomorphic
+  helpers 50 -> **39**; `std::test` family 18 -> **0** APIs. Scoreboard:
+  stable 95, provisional 2, experimental 3, deprecated 75.
+- **Verification**: `verify fixtures` **1908/1908** compile+validate PASS / 0 FAIL (110 runtime
+  smoke, 36/36 `test:` fixtures, 2 runtime-unsupported); both-target
+  `wasm-tools validate` + runtime for the 7 `stdlib_test` surface fixtures
+  (wasm32-gc component and wasm32 core); the `removed_test_free*` E0100
+  goldens match byte-for-byte on both targets; `verify lane` PASS;
+  `docs check` 6/6; `check-stdlib-eradication` 176/176 manifest functions
+  (public surface 177) + 2/2 unregistered; `check-compat-orphans` clean;
+  code-quality ratchet unchanged (1739 thin wrappers); ADR-029 fixpoint
+  PASS at s2 == s3 sha256
+  `9b5c8f73b5b6bb5268d03aa82f2cb1c721c6cdf3525d42b562f33472aa94b106`
+  (pinned base `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`).
+  Wave 1 W0009 table unit assertions were rerun from the Wave 1 source
+  snapshot against the final s2 in test mode: 20/20 PASS, including
+  `deprecated::test_free_helpers_warn_until_wave2` (all 17 names non-empty,
+  `bench` empty) and `deprecated::test_namespace_methods_are_not_deprecated`.
+  The Wave 1 diag goldens were not executed against a separate Wave 1 s2
+  (one-build constraint); their table path is covered by those unit
+  assertions and the shared W0009 wiring.
+  Residual: `arukellt test --target wasm32-gc` still fails translation in
+  the linear test harness (pre-existing; the fixture gate runs `test:` on the
+  default wasm32 P1 lane and passes 36/36). One `selfhost build-compiler`
+  run (44.4 s) and one `selfhost fixpoint` run (32.2 s).
+- **Residuals**: none in `std::test`; the remaining 111
+  `associated-or-method` rows belong to the other families (#693, #703,
+  #710, #917 surfaces).

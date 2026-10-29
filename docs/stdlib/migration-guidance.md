@@ -171,6 +171,13 @@ Import `use std::test::Test` and prefix the call with `Test::`:
 | `assert_msg(cond, message)` | `Test::assert_msg(cond, message)` |
 | `bench(name, iterations, f)` | `Test::bench(name, iterations, f)` (`experimental`; direct retirement) |
 
+Wave 2 (2026-10-29) deleted the 17 deprecated declarations and the
+`experimental` `bench` declaration together with their manifest entries. A
+qualified `test::assert_eq_i32(...)` call now fails with **E0100** and a
+`resolver::removed_names` hint that names the `Test` replacement; a bare
+`assert_eq_i32(...)` gets the same hint from the bare-name table. The
+`Test` associated functions are unaffected.
+
 ### Removed in Wave 2: monomorphic seq/combinator frees (31)
 
 The 31 callable `stable` entries were deprecated in Wave 1 and deleted on

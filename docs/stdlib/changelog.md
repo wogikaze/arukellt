@@ -16,6 +16,30 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-29 — `std::test` assertion / expectation frees の Wave 2 削除 (#917, wave/test-group)
+
+- **Basis**: [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2 の Wave 2。
+  Wave 1 の deprecation は同じ branch の `2c5abb211`。
+- **Retired (18)**: `assert_true` / `assert_false` / `assert_eq_debug` /
+  `assert_eq_i32` / `assert_eq_i64` / `assert_eq_f64` / `assert_eq_string` /
+  `assert_eq_bool` / `assert_ne_i32` / `assert_ne_string` / `expect_ok_i32` /
+  `expect_err_string` / `expect_some_i32` / `expect_none_i32` /
+  `assert_contains` / `assert_eq_snapshot` / `assert_msg` の manifest entry と
+  `std/test/mod.ark` の公開宣言、および `experimental` の `bench` を削除した。
+- **Replacement**: `std::test::Test` の associated function
+  （`Test::assert_eq_i32` 等）。import は `use std::test::Test`。旧 qualified
+  call は E0100 と `resolver::removed_names` の Test hint、bare call も同じ hint
+  を返す。
+- **Docs**: module / reference / scoreboard / eradication を再生成し、
+  `Test` 型だけが残る状態にした。cookbook と migration guide の例も
+  `Test::` へ更新した。
+- **Scorecard**: eradication scope 195 → **177**、`associated-or-method`
+  129 → **111**、manifest public entries 193 → **175**、`pub fn` declarations
+  216 → **198**、`prelude_wrapper` 64 不変、monomorphic helper 50 → **39**、
+  `std::test` family 18 APIs → **0**（`Test` 型のみ）。scoreboard は
+  stable 95 / provisional 2 / experimental 3 / deprecated 75。
+- **Evidence**: 詳細は issue #917 の `wave/test-group` landed slice を参照。
+
 ## 2026-10-29 — `std::test` assertion / expectation frees の deprecation (#917, wave/test-group)
 
 - **Basis**: [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2 の Wave 1。

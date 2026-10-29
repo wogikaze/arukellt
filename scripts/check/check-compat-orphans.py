@@ -52,7 +52,6 @@ QUALIFIED_WARN_MODULES = {
     "math": "std::core::math",
     "seq": "std::seq",
     "ordered": "std::collections::ordered",
-    "test": "std::test",
 }
 
 
@@ -146,7 +145,6 @@ def main() -> int:
         "deprecated_seq_qualified_message",
         "deprecated_io_qualified_message",
         "deprecated_ordered_qualified_message",
-        "deprecated_test_qualified_message",
     ):
         qual_warn_paths += table_names(lint_text, fn)
     # The bare-name table is split into family helpers for readability; the

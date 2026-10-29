@@ -85,22 +85,5 @@ helpers are included alongside any other deprecated public entry.
 | `sum_i32` | `std::seq` | `deprecated` | `VecIter::sum` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the IteratorSum capability v.iter().sum(). |
 | `take_i32` | `std::seq` | `deprecated` | `VecIter::take` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect(). |
 | `unique` | `std::seq` | `deprecated` | `VecIter::unique` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect(). |
-| `assert_contains` | `std::test` | `deprecated` | `Test::assert_contains` | `0.1.0` | `1.0.0` | Superseded API |
-| `assert_eq_bool` | `std::test` | `deprecated` | `Test::assert_eq_bool` | `0.1.0` | `1.0.0` | Superseded API |
-| `assert_eq_debug` | `std::test` | `deprecated` | `Test::assert_eq_debug` | `0.1.0` | `1.0.0` | Generic Eq+Debug equality assertion. Named assert_eq_debug (not assert_eq) because bare assert_eq is CoreOp-bound; failure messages render both values via Debug. |
-| `assert_eq_f64` | `std::test` | `deprecated` | `Test::assert_eq_f64` | `0.1.0` | `1.0.0` | Superseded API |
-| `assert_eq_i32` | `std::test` | `deprecated` | `Test::assert_eq_i32` | `0.1.0` | `1.0.0` | Typed i32 equality assertion; failure messages use Debug renderings. |
-| `assert_eq_i64` | `std::test` | `deprecated` | `Test::assert_eq_i64` | `0.1.0` | `1.0.0` | Superseded API |
-| `assert_eq_snapshot` | `std::test` | `deprecated` | `Test::assert_eq_snapshot` | `0.1.0` | `1.0.0` | Superseded API |
-| `assert_eq_string` | `std::test` | `deprecated` | `Test::assert_eq_string` | `0.1.0` | `1.0.0` | Superseded API |
-| `assert_false` | `std::test` | `deprecated` | `Test::assert_false` | `0.1.0` | `1.0.0` | Superseded API |
-| `assert_msg` | `std::test` | `deprecated` | `Test::assert_msg` | `0.1.0` | `1.0.0` | Superseded API |
-| `assert_ne_i32` | `std::test` | `deprecated` | `Test::assert_ne_i32` | `0.1.0` | `1.0.0` | Superseded API |
-| `assert_ne_string` | `std::test` | `deprecated` | `Test::assert_ne_string` | `0.1.0` | `1.0.0` | Superseded API |
-| `assert_true` | `std::test` | `deprecated` | `Test::assert_true` | `0.1.0` | `1.0.0` | Superseded API |
-| `expect_err_string` | `std::test` | `deprecated` | `Test::expect_err_string` | `0.1.0` | `1.0.0` | Superseded API |
-| `expect_none_i32` | `std::test` | `deprecated` | `Test::expect_none_i32` | `0.1.0` | `1.0.0` | Superseded API |
-| `expect_ok_i32` | `std::test` | `deprecated` | `Test::expect_ok_i32` | `0.1.0` | `1.0.0` | Superseded API |
-| `expect_some_i32` | `std::test` | `deprecated` | `Test::expect_some_i32` | `0.1.0` | `1.0.0` | Superseded API |
 
-Total deprecated public entries: **92**.
+Total deprecated public entries: **75**.

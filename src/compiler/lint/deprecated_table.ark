@@ -36,10 +36,6 @@ pub fn deprecated_call_message(name: String) -> String {
     if len(assertion) > 0 {
         return assertion
     }
-    let test_assert = deprecated_test_call_message(clone(name))
-    if len(test_assert) > 0 {
-        return test_assert
-    }
     String_new()
 }
 
@@ -172,10 +168,6 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
     if len(msg6) > 0 {
         return msg6
     }
-    let msg7 = deprecated_test_qualified_message(path)
-    if len(msg7) > 0 {
-        return msg7
-    }
     return deprecated_hash_qualified_message(path)
 }
 
@@ -282,121 +274,6 @@ fn deprecated_ordered_qualified_message(path: String) -> String {
     }
     if eq(clone(path), "ordered::bitset_test") {
         return "use `bits.test(bit)` on `BitSet` instead"
-    }
-    String_new()
-}
-
-// ── Deprecated std::test free assertion helpers (ADR-087 Wave 1) ───────
-
-// The 17 stable free assertions moved to the `Test` namespace. Wave 1 keeps
-// them callable with W0009; Wave 2 deletes them and E0100 takes over. `bench`
-// is experimental, so it retires directly without a deprecation window.
-fn deprecated_test_call_message(name: String) -> String {
-    if eq(clone(name), "assert_true") {
-        return "use `Test::assert_true(cond)` from `use std::test::Test` instead"
-    }
-    if eq(clone(name), "assert_false") {
-        return "use `Test::assert_false(cond)` from `use std::test::Test` instead"
-    }
-    if eq(clone(name), "assert_eq_debug") {
-        return "use `Test::assert_eq_debug(actual, expected)` from `use std::test::Test` instead"
-    }
-    if eq(clone(name), "assert_eq_i32") {
-        return "use `Test::assert_eq_i32(actual, expected)` from `use std::test::Test` instead"
-    }
-    if eq(clone(name), "assert_eq_i64") {
-        return "use `Test::assert_eq_i64(actual, expected)` from `use std::test::Test` instead"
-    }
-    if eq(clone(name), "assert_eq_f64") {
-        return "use `Test::assert_eq_f64(actual, expected)` from `use std::test::Test` instead"
-    }
-    if eq(clone(name), "assert_eq_string") {
-        return "use `Test::assert_eq_string(actual, expected)` from `use std::test::Test` instead"
-    }
-    if eq(clone(name), "assert_eq_bool") {
-        return "use `Test::assert_eq_bool(actual, expected)` from `use std::test::Test` instead"
-    }
-    if eq(clone(name), "assert_ne_i32") {
-        return "use `Test::assert_ne_i32(actual, unexpected)` from `use std::test::Test` instead"
-    }
-    if eq(clone(name), "assert_ne_string") {
-        return "use `Test::assert_ne_string(actual, unexpected)` from `use std::test::Test` instead"
-    }
-    if eq(clone(name), "expect_ok_i32") {
-        return "use `Test::expect_ok_i32(result)` from `use std::test::Test` instead"
-    }
-    if eq(clone(name), "expect_err_string") {
-        return "use `Test::expect_err_string(result)` from `use std::test::Test` instead"
-    }
-    if eq(clone(name), "expect_some_i32") {
-        return "use `Test::expect_some_i32(option)` from `use std::test::Test` instead"
-    }
-    if eq(clone(name), "expect_none_i32") {
-        return "use `Test::expect_none_i32(option)` from `use std::test::Test` instead"
-    }
-    if eq(clone(name), "assert_contains") {
-        return "use `Test::assert_contains(haystack, needle)` from `use std::test::Test` instead"
-    }
-    if eq(clone(name), "assert_eq_snapshot") {
-        return "use `Test::assert_eq_snapshot(actual, expected)` from `use std::test::Test` instead"
-    }
-    if eq(clone(name), "assert_msg") {
-        return "use `Test::assert_msg(cond, message)` from `use std::test::Test` instead"
-    }
-    String_new()
-}
-
-fn deprecated_test_qualified_message(path: String) -> String {
-    if eq(clone(path), "test::assert_true") {
-        return "use `Test::assert_true(cond)` from `use std::test::Test` instead"
-    }
-    if eq(clone(path), "test::assert_false") {
-        return "use `Test::assert_false(cond)` from `use std::test::Test` instead"
-    }
-    if eq(clone(path), "test::assert_eq_debug") {
-        return "use `Test::assert_eq_debug(actual, expected)` from `use std::test::Test` instead"
-    }
-    if eq(clone(path), "test::assert_eq_i32") {
-        return "use `Test::assert_eq_i32(actual, expected)` from `use std::test::Test` instead"
-    }
-    if eq(clone(path), "test::assert_eq_i64") {
-        return "use `Test::assert_eq_i64(actual, expected)` from `use std::test::Test` instead"
-    }
-    if eq(clone(path), "test::assert_eq_f64") {
-        return "use `Test::assert_eq_f64(actual, expected)` from `use std::test::Test` instead"
-    }
-    if eq(clone(path), "test::assert_eq_string") {
-        return "use `Test::assert_eq_string(actual, expected)` from `use std::test::Test` instead"
-    }
-    if eq(clone(path), "test::assert_eq_bool") {
-        return "use `Test::assert_eq_bool(actual, expected)` from `use std::test::Test` instead"
-    }
-    if eq(clone(path), "test::assert_ne_i32") {
-        return "use `Test::assert_ne_i32(actual, unexpected)` from `use std::test::Test` instead"
-    }
-    if eq(clone(path), "test::assert_ne_string") {
-        return "use `Test::assert_ne_string(actual, unexpected)` from `use std::test::Test` instead"
-    }
-    if eq(clone(path), "test::expect_ok_i32") {
-        return "use `Test::expect_ok_i32(result)` from `use std::test::Test` instead"
-    }
-    if eq(clone(path), "test::expect_err_string") {
-        return "use `Test::expect_err_string(result)` from `use std::test::Test` instead"
-    }
-    if eq(clone(path), "test::expect_some_i32") {
-        return "use `Test::expect_some_i32(option)` from `use std::test::Test` instead"
-    }
-    if eq(clone(path), "test::expect_none_i32") {
-        return "use `Test::expect_none_i32(option)` from `use std::test::Test` instead"
-    }
-    if eq(clone(path), "test::assert_contains") {
-        return "use `Test::assert_contains(haystack, needle)` from `use std::test::Test` instead"
-    }
-    if eq(clone(path), "test::assert_eq_snapshot") {
-        return "use `Test::assert_eq_snapshot(actual, expected)` from `use std::test::Test` instead"
-    }
-    if eq(clone(path), "test::assert_msg") {
-        return "use `Test::assert_msg(cond, message)` from `use std::test::Test` instead"
     }
     String_new()
 }
@@ -590,33 +467,4 @@ test mod "deprecated" {
         assert(len(deprecated_qualified_call_message("ordered::Bitset")) == 0)
     }
 
-    test "test_free_helpers_warn_until_wave2" {
-        // 17 stable frees are deprecated in Wave 1; `bench` is experimental
-        // and retires directly, so it must not warn.
-        assert(len(deprecated_call_message("assert_true")) > 0)
-        assert(len(deprecated_call_message("assert_false")) > 0)
-        assert(len(deprecated_call_message("assert_eq_debug")) > 0)
-        assert(len(deprecated_call_message("assert_eq_i32")) > 0)
-        assert(len(deprecated_call_message("assert_eq_i64")) > 0)
-        assert(len(deprecated_call_message("assert_eq_f64")) > 0)
-        assert(len(deprecated_call_message("assert_eq_string")) > 0)
-        assert(len(deprecated_call_message("assert_eq_bool")) > 0)
-        assert(len(deprecated_call_message("assert_ne_i32")) > 0)
-        assert(len(deprecated_call_message("assert_ne_string")) > 0)
-        assert(len(deprecated_call_message("expect_ok_i32")) > 0)
-        assert(len(deprecated_call_message("expect_err_string")) > 0)
-        assert(len(deprecated_call_message("expect_some_i32")) > 0)
-        assert(len(deprecated_call_message("expect_none_i32")) > 0)
-        assert(len(deprecated_call_message("assert_contains")) > 0)
-        assert(len(deprecated_call_message("assert_eq_snapshot")) > 0)
-        assert(len(deprecated_call_message("assert_msg")) > 0)
-        assert(len(deprecated_call_message("bench")) == 0)
-        assert(len(deprecated_qualified_call_message("test::assert_eq_i32")) > 0)
-        assert(len(deprecated_qualified_call_message("test::assert_msg")) > 0)
-        assert(len(deprecated_qualified_call_message("test::bench")) == 0)
-    }
-    test "test_namespace_methods_are_not_deprecated" {
-        assert(len(deprecated_qualified_call_message("Test::assert_eq_i32")) == 0)
-        assert(len(deprecated_qualified_call_message("Test::bench")) == 0)
-    }
 }
