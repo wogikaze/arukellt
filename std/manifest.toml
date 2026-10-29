@@ -1040,27 +1040,17 @@ stability = "stable"
 family = "text"
 doc = "String receiver/associated APIs. Importing this module registers the String and Vec<String> implementations; the module itself exposes no free functions (ADR-046). Byte-oriented APIs (byte_at, len_bytes, slice_bytes) use byte indices, while len_chars, codepoint_at, chars, and slice_chars use Unicode scalar indices. This module does not implement grapheme segmentation or normalization."
 
-[[functions]]
-name = "exit"
-module = "std::host::process"
-stability = "stable"
-params = ["i32"]
-returns = "()"
-doc_category = "host_process"
-doc = "Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure."
-availability = { t1 = true, t3 = true }
-intrinsic = "__runtime_abi_process_exit"
+# The host process free functions were retired in the 2026-10-29 host/core
+# wave (#917, ADR-092). `Process` is the only process-control surface.
 
-[[functions]]
-name = "abort"
+[[types]]
+name = "Process"
 module = "std::host::process"
-stability = "stable"
-params = []
-returns = "()"
-doc_category = "host_process"
-doc = "Abort the process immediately with an abnormal-termination signal (non-zero exit)."
-availability = { t1 = true, t3 = true }
-intrinsic = "__runtime_abi_process_abort"
+stability = "provisional"
+prelude = false
+kind = "struct"
+doc = "Namespace for the host process-control operations: Process::exit(code), Process::abort(), and Process::id(). id() returns a stable Err because WASI 0.2 exposes no portable POSIX-style process id. The stable free functions were deleted in the #917 host/core wave; qualified old calls fail with an E0100 hint that names `Process`."
+methods = ["exit", "abort", "id"]
 
 # === std::host::env ===
 # The env free functions were retired in the 2026-10-28 env wave (#917). The
@@ -1209,52 +1199,17 @@ doc = "Namespace for the host clock reads: Clock::monotonic_now() returns nanose
 methods = ["monotonic_now", "now_ms"]
 
 # === std::host::random ===
+# The host-entropy free functions were retired in the 2026-10-29 host/core
+# wave (#917, ADR-092). `Random` is the only host-entropy surface.
 
-[[functions]]
-name = "random_i32"
+[[types]]
+name = "Random"
 module = "std::host::random"
-stability = "stable"
-params = []
-returns = "i32"
-intrinsic = "__runtime_abi_random_i32"
-doc_category = "host_random"
-doc = "Return a cryptographically-secure random i32 value."
-availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
-
-[[functions]]
-name = "random_i32_range"
-module = "std::host::random"
-stability = "stable"
-params = ["i32", "i32"]
-returns = "i32"
-intrinsic = "__runtime_abi_random_i32"
-doc_category = "host_random"
-doc = "Return a random i32 in the half-open range [lo, hi). Both bounds must be valid i32 values with lo < hi."
-errors = "Panics at runtime if lo >= hi."
-availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
-examples = [{code = "let n = random::random_i32_range(1, 7)", description = "Roll a six-sided die (1–6)"}]
-
-[[functions]]
-name = "random_bool"
-module = "std::host::random"
-stability = "stable"
-params = []
-returns = "bool"
-intrinsic = "__runtime_abi_random_i32"
-doc_category = "host_random"
-doc = "Return a random boolean value with equal probability of true and false."
-availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
-
-[[functions]]
-name = "next_f64"
-module = "std::host::random"
-stability = "stable"
-params = []
-returns = "f64"
-intrinsic = "__runtime_abi_random_next_f64"
-doc_category = "host_random"
-doc = "Return a host-provided random f64 value in the range [0.0, 1.0)."
-availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
+stability = "provisional"
+prelude = false
+kind = "struct"
+doc = "Namespace for the host-entropy random reads: Random::random_i32(), Random::random_i32_range(lo, hi), Random::random_bool(), and Random::next_f64(). next_f64 is still a 0.0 stub until the emitter wires __runtime_abi_random_next_f64. The stable free functions were deleted in the #917 host/core wave."
+methods = ["random_i32", "random_i32_range", "random_bool", "next_f64"]
 
 [[modules]]
 name = "std::host::clock"
@@ -1269,7 +1224,7 @@ availability = { t1 = true, t3 = true, note = "Requires the --allow-clock capabi
 name = "std::host::random"
 stability = "stable"
 family = "host"
-doc = "Host random helpers backed by the current entropy intrinsic. next_f64 returns a value in [0.0, 1.0); random_i32 returns a full i32."
+doc = "Host random helpers backed by the current entropy intrinsic. The `Random` namespace is the only host-entropy surface: Random::random_i32 returns a full i32, Random::random_i32_range(lo, hi) returns a value in [lo, hi), Random::random_bool returns a boolean, and Random::next_f64 is a 0.0 stub until the emitter wires the intrinsic. The stable free functions were deleted in the #917 host/core wave."
 availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
 
 # === std::collections::vec ===
@@ -1700,85 +1655,18 @@ stability = "experimental"
 family = "data"
 doc = "TOML 1.0 parser/serializer plus streaming section/value scanners. Supports table headers, arrays of tables, inline tables, dotted keys, multiline strings, and datetime literals; the public surface is the TomlValue type and its associated functions/methods plus the TomlText scanner namespace for compiler manifests."
 
-[[functions]]
-name = "pi"
-module = "std::signal"
-doc_category = "signal"
-stability = "stable"
-params = []
-returns = "f64"
+# === std::signal ===
+# The spectral free functions were retired in the 2026-10-29 host/core wave
+# (#917, ADR-092). `Signal` is the only public surface.
 
-[[functions]]
-name = "tau"
+[[types]]
+name = "Signal"
 module = "std::signal"
-doc_category = "signal"
-stability = "stable"
-params = []
-returns = "f64"
-
-[[functions]]
-name = "sin_approx"
-module = "std::signal"
-doc_category = "signal"
-stability = "stable"
-params = ["f64"]
-returns = "f64"
-
-[[functions]]
-name = "cos_approx"
-module = "std::signal"
-doc_category = "signal"
-stability = "stable"
-params = ["f64"]
-returns = "f64"
-
-[[functions]]
-name = "clone_f64"
-module = "std::signal"
-doc_category = "signal"
-stability = "stable"
-params = ["Vec<f64>"]
-returns = "Vec<f64>"
-
-[[functions]]
-name = "zeros"
-module = "std::signal"
-doc_category = "signal"
-stability = "stable"
-params = ["i32"]
-returns = "Vec<f64>"
-
-[[functions]]
-name = "fft"
-module = "std::signal"
-doc_category = "signal"
-stability = "stable"
-params = ["Vec<f64>", "Vec<f64>"]
-returns = "()"
-
-[[functions]]
-name = "ifft"
-module = "std::signal"
-doc_category = "signal"
-stability = "stable"
-params = ["Vec<f64>", "Vec<f64>"]
-returns = "()"
-
-[[functions]]
-name = "magnitude"
-module = "std::signal"
-doc_category = "signal"
-stability = "stable"
-params = ["Vec<f64>", "Vec<f64>"]
-returns = "Vec<f64>"
-
-[[functions]]
-name = "approx_eq"
-module = "std::signal"
-doc_category = "signal"
-stability = "stable"
-params = ["f64", "f64", "f64"]
-returns = "bool"
+stability = "provisional"
+prelude = false
+kind = "struct"
+doc = "Namespace for the split-complex FFT and spectral helpers: Signal::fft / Signal::ifft transform parallel Vec<f64> real/imag buffers in place, Signal::magnitude returns per-sample magnitudes, Signal::pi / Signal::tau are the circle constants, Signal::sin_approx / Signal::cos_approx are polynomial approximations, and Signal::clone_f64 / Signal::zeros / Signal::approx_eq are vector helpers. The stable free functions were deleted in the #917 host/core wave."
+methods = ["pi", "tau", "sin_approx", "cos_approx", "clone_f64", "zeros", "fft", "ifft", "magnitude", "approx_eq"]
 
 # === std::io ===
 #
@@ -2377,24 +2265,10 @@ returns = "Vec<i32>"
 doc = "Copy all deque elements (front to back) into a new Vec<i32>."
 
 # ── std::process ──────────────────────────────────────────────────────────────
-
-[[functions]]
-name = "exit"
-module = "std::process"
-doc_category = "process"
-stability = "stable"
-params = ["i32"]
-returns = "()"
-doc = "Terminate the process with the given exit code."
-
-[[functions]]
-name = "abort"
-module = "std::process"
-doc_category = "process"
-stability = "stable"
-params = []
-returns = "()"
-doc = "Terminate the process immediately (exit code 134, SIGABRT convention)."
+# The legacy `std::process` free functions were retired in the 2026-10-29
+# host/core wave (#917, ADR-092). The module is a compatibility facade that
+# re-exports `std::host::process::Process`; a qualified old free call fails with
+# an E0100 hint from resolver::removed_names.
 
 # ── std::env ─────────────────────────────────────────────────────────────────
 # The legacy `std::env` module path was retired in the 2026-10-28 env wave
@@ -2402,60 +2276,18 @@ doc = "Terminate the process immediately (exit code 134, SIGABRT convention)."
 # fails with an E0100 hint from resolver::removed_names.
 
 # ── std::cli ─────────────────────────────────────────────────────────────────
+# The `std::cli` free functions were retired in the 2026-10-29 host/core wave
+# (#917, ADR-092). Argument-vector reads live on `Env`; the explicit-vector
+# scanners live on `Cli`.
 
-[[functions]]
-name = "parse_args"
+[[types]]
+name = "Cli"
 module = "std::cli"
-doc_category = "cli"
-stability = "stable"
-params = []
-returns = "Vec<String>"
-doc = "Return the full process argument vector."
-
-[[functions]]
-name = "arg_count"
-module = "std::cli"
-doc_category = "cli"
-stability = "stable"
-params = []
-returns = "i32"
-doc = "Return the number of process arguments."
-
-[[functions]]
-name = "arg_at"
-module = "std::cli"
-doc_category = "cli"
-stability = "stable"
-params = ["i32"]
-returns = "Option<String>"
-doc = "Return the argument at index, or None when out of range."
-
-[[functions]]
-name = "has_flag"
-module = "std::cli"
-doc_category = "cli"
-stability = "stable"
-params = ["String"]
-returns = "bool"
-doc = "Return true when the process argument vector contains the flag verbatim."
-
-[[functions]]
-name = "flag"
-module = "std::cli"
-doc_category = "cli"
-stability = "stable"
-params = ["Vec<String>", "String"]
-returns = "bool"
-doc = "Return true when args contains name verbatim."
-
-[[functions]]
-name = "option"
-module = "std::cli"
-doc_category = "cli"
-stability = "stable"
-params = ["Vec<String>", "String"]
-returns = "Option<String>"
-doc = "Return the value associated with the named option, or None."
+stability = "provisional"
+prelude = false
+kind = "struct"
+doc = "Namespace for command-line parsing over an explicit Vec<String>: Cli::flag(args, name) and Cli::option(args, name). Process-argument reads live on std::host::env::Env (Env::args / arg_count / arg_at / has_flag). The stable free functions were deleted in the #917 host/core wave."
+methods = ["flag", "option"]
 
 # ── std::json / std::toml value types ────────────────────────────────────────
 #
@@ -3068,16 +2900,6 @@ remove_in = "1.0.0"
 doc_category = "convert"
 
 # === WASI P2 host surface production additions (#676) ===
-
-[[functions]]
-name = "id"
-module = "std::host::process"
-stability = "stable"
-params = []
-returns = "Result<i32, String>"
-doc_category = "host_process"
-doc = "Return a stable Err on WASI 0.2 because the portable process model does not expose a POSIX-style process identifier."
-availability = { t1 = true, t3 = true }
 
 # ── Numeric const modules (std::core::{i32,i64,f64}) ────────────────────────
 # Const declarations are not represented in the manifest schema yet; these

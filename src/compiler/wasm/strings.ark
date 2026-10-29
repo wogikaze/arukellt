@@ -1,4 +1,4 @@
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::prelude::{clone, eq}
 use wasm::constants
@@ -60,7 +60,7 @@ fn emit_string_layout_existing_constants(mir: MirModule, str_count: i32, mut str
         // and the emitted payload can diverge.
         if slen < 0 {
             stdio::eprintln("compiler ICE: negative string length in string table layout")
-            process::exit(1)
+            Process::exit(1)
         }
         // #851 Phase 3: offsets are final at intern (append-only packed
         // layout); the module-maintained rel table is the single source so

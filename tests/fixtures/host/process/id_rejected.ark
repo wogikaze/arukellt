@@ -1,0 +1,13 @@
+// The WASI 0.2 process model has no portable process id; Process::id must
+// return the documented Err instead of a fabricated value.
+use std::host::process::Process
+use std::host::stdio
+
+fn main() {
+    match Process::id() {
+        Result::Ok(_) => Std::panic("WASI process id must not be fabricated"),
+        Result::Err(_) => {
+        },
+    }
+    stdio::println("process id rejected")
+}

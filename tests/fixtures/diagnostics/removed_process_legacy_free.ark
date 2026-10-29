@@ -1,0 +1,6 @@
+// E0100: the legacy std::process free functions moved to Process.
+use std::process
+
+fn main() {
+    process::abort()
+}

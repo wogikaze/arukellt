@@ -1,5 +1,5 @@
 use std::host::fs::Fs
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::prelude::{clone}
 use std::text
@@ -17,7 +17,7 @@ pub fn cmd_ide_analyze(opts: CliOptions) {
         },
         Result::Err(e) => {
             stdio::eprintln("error reading input: ".concat(e))
-            process::exit(1)
+            Process::exit(1)
         },
     }
 }
@@ -35,7 +35,7 @@ pub fn cmd_dap(opts: CliOptions) {
         },
         Result::Err(e) => {
             stdio::eprintln("error reading input: ".concat(e))
-            process::exit(1)
+            Process::exit(1)
         },
     }
 }
@@ -53,7 +53,7 @@ pub fn cmd_lsp(opts: CliOptions) {
         },
         Result::Err(e) => {
             stdio::eprintln("error reading input: ".concat(e))
-            process::exit(1)
+            Process::exit(1)
         },
     }
 }

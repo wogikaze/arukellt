@@ -1,17 +1,37 @@
 //! Host process-control helpers.
 //!
 //! WASI 0.2 provides process exit semantics but does not expose a portable
-//! POSIX-style process identifier. `id()` therefore has a stable rejection
-//! contract instead of returning a fabricated value.
+//! POSIX-style process identifier. `Process::id` therefore has a stable
+//! rejection contract instead of returning a fabricated value.
+//!
+//! `Process` is the namespace type for process control (ADR-046):
+//! `Process::exit`, `Process::abort`, and `Process::id`. The module exposes no
+//! free function.
 
-pub fn exit(code: i32) {
-    __runtime_abi_process_exit(code)
-}
+/// Namespace for the host process-control operations.
+pub struct Process {}
 
-pub fn abort() {
-    __runtime_abi_process_abort()
-}
+impl Process {
+    /// Terminates the process with the given exit code.
+    ///
+    /// 0 indicates success; non-zero indicates failure. This function does not
+    /// return.
+    fn exit(code: i32) {
+        __runtime_abi_process_exit(code)
+    }
 
-pub fn id() -> Result<i32, String> {
-    Result::Err("process id is not defined by the WASI 0.2 process model")
+    /// Terminates the process immediately with an abort signal (exit code 134).
+    ///
+    /// This function does not return.
+    fn abort() {
+        __runtime_abi_process_abort()
+    }
+
+    /// Returns a stable rejection for the portable process identifier.
+    ///
+    /// WASI 0.2 does not define a POSIX-style process id, so this returns
+    /// `Result::Err` instead of a fabricated value.
+    fn id() -> Result<i32, String> {
+        Result::Err("process id is not defined by the WASI 0.2 process model")
+    }
 }

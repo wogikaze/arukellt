@@ -1,17 +1,10 @@
-//! std::process — process exit and abort.
+//! std::process — deprecated compatibility facade over `std::host::process`.
 //!
-//! Provides cross-module wrappers for host-level process control.
-//! On WASI targets these map to `proc_exit` / an abort trap.
-/// Terminates the process with the given exit code.
-///
-/// This function does not return.
-pub fn exit(code: i32) {
-    __runtime_abi_process_exit(code)
-}
-
-/// Terminates the process immediately with an abort signal (exit code 134).
-///
-/// This function does not return.
-pub fn abort() {
-    __runtime_abi_process_abort()
-}
+//! ADR-046 moved process control to the `Process` namespace; the legacy free
+//! `exit` / `abort` wrappers were deleted in the #917 host/core wave. Importing
+//! this module still emits the "module `std::process` has moved to
+//! `std::host::process`" warning, and a qualified old free call fails with an
+//! E0100 hint that names the `Process` replacement. New code should import
+//! `use std::host::process::Process` and call `Process::exit` /
+//! `Process::abort`.
+pub use std::host::process::Process

@@ -3,36 +3,47 @@
 //! Provides cryptographically-secure random values from the host entropy source.
 //! Deterministic seeded utilities live in `std::random`.
 //!
+//! `Random` is the namespace type for the host-entropy reads (ADR-046):
+//! `Random::random_i32`, `Random::random_i32_range`, `Random::random_bool`,
+//! and `Random::next_f64`. The module exposes no free function.
+//!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). Requires `--allow-random` capability.
 
-/// Returns a host-provided random `i32`.
-pub fn random_i32() -> i32 {
-    __runtime_abi_random_i32()
-}
+/// Namespace for the host-entropy random reads.
+pub struct Random {}
 
-/// Returns a host-provided random value in `[lo, hi)`.
-pub fn random_i32_range(lo: i32, hi: i32) -> i32 {
-    let r = __runtime_abi_random_i32()
-    let range = hi - lo
-    if range <= 0 {
-        lo
-    } else {
-        let val = r % range
-        if val < 0 {
-            lo + val + range
+impl Random {
+    /// Returns a host-provided random `i32`.
+    fn random_i32() -> i32 {
+        __runtime_abi_random_i32()
+    }
+
+    /// Returns a host-provided random value in `[lo, hi)`.
+    fn random_i32_range(lo: i32, hi: i32) -> i32 {
+        let r = __runtime_abi_random_i32()
+        let range = hi - lo
+        if range <= 0 {
+            lo
         } else {
-            lo + val
+            let val = r % range
+            if val < 0 {
+                lo + val + range
+            } else {
+                lo + val
+            }
         }
     }
-}
 
-/// Returns a host-provided random boolean.
-pub fn random_bool() -> bool {
-    __runtime_abi_random_i32() % 2 == 0
-}
+    /// Returns a host-provided random boolean.
+    fn random_bool() -> bool {
+        __runtime_abi_random_i32() % 2 == 0
+    }
 
-/// Returns a host-provided random f64 in the range [0.0, 1.0).
-/// Stub: returns 0.0 until __runtime_abi_random_next_f64 is wired in the wasm32 emitter.
-pub fn next_f64() -> f64 {
-    0.0
+    /// Returns a host-provided random f64 in the range [0.0, 1.0).
+    ///
+    /// Stub: returns 0.0 until `__runtime_abi_random_next_f64` is wired in the
+    /// wasm32 emitter.
+    fn next_f64() -> f64 {
+        0.0
+    }
 }

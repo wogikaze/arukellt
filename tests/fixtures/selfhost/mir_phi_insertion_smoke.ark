@@ -1,4 +1,4 @@
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::prelude::{clone, to_string}
 use std::text
@@ -51,15 +51,15 @@ fn format_ssa_value(ssa_name: String, version: i32) -> String {
 fn try_insert_simple_join_phi(join_block: Block, pred0: Block, pred1: Block, ssa_name: String, dest_vt: i32) -> Phi {
     if len(join_block.preds) != 2 {
         stdio::eprintln(String_from("join predecessor count mismatch"))
-        process::exit(1)
+        Process::exit(1)
     }
     if !block_ids_contains(pred0.dom_frontier, join_block.id) {
         stdio::eprintln(String_from("pred0 frontier missing join"))
-        process::exit(1)
+        Process::exit(1)
     }
     if !block_ids_contains(pred1.dom_frontier, join_block.id) {
         stdio::eprintln(String_from("pred1 frontier missing join"))
-        process::exit(1)
+        Process::exit(1)
     }
     let mut phi = Phi_new(ssa_name, 3, dest_vt)
     phi_add_arg(phi, pred0.id, 1)

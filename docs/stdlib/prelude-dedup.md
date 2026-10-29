@@ -48,11 +48,11 @@ These modules exist in `std/manifest.toml` and require `use` to access:
 | Module | Count | Examples |
 |---|---|---|
 | `std::host::stdio` | 3 | `println`, `print`, `eprintln` |
-| `std::host::fs` | 10 | `read_to_string`, `write_string`, `write_bytes`, `is_readable_file` |
-| `std::host::env` | 5 | `args`, `arg_count`, `arg_at`, `var`, `has_flag` |
-| `std::host::clock` | 1 | `now_ms` |
-| `std::host::random` | 3 | `random_i32`, `random_f64`, `random_bool` |
-| `std::host::process` | 2 | `exit`, `abort` |
+| `std::host::fs` | 0 free | `Fs` namespace (`Fs::read_to_string`, `Fs::write_string`) |
+| `std::host::env` | 0 free | `Env` namespace (`Env::args`, `Env::var`) |
+| `std::host::clock` | 0 free | `Clock` namespace (`Clock::now_ms`) |
+| `std::host::random` | 0 free | `Random` namespace (`Random::random_i32`, `Random::random_bool`) |
+| `std::host::process` | 0 free | `Process` namespace (`Process::exit`, `Process::abort`) |
 | `std::path` | 6 | `join`, `basename`, `dirname` |
 | `std::time` | 3 | `format_timestamp`, `parse_timestamp` |
 | `std::json` | 6 | `stringify`, `parse` |

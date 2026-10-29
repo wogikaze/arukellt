@@ -3,7 +3,7 @@
 // Supports: parse, compile, check subcommands.
 // Exit code: 0 = success, 1 = failure.
 use std::host::env::Env
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::text
 use main::args_record
@@ -23,7 +23,7 @@ fn main() {
     }
     if args_record::cli_has_error(opts) {
         stdio::eprintln("error: ".concat(args_record::cli_error_msg(opts)))
-        process::exit(2)
+        Process::exit(2)
         return
     }
     dispatch::dispatch(opts)

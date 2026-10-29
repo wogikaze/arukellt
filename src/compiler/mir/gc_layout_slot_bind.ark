@@ -1,4 +1,4 @@
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::prelude::{byte_at, clone, eq, starts_with, substring}
 use std::text
@@ -179,7 +179,7 @@ fn mir_gc_layout_bind_struct_slot(module: MirModule, slot: i32) {
         stdio::eprintln(
             "compiler ICE: GC struct slot has no semantic TypeId: ".concat(name)
         )
-        process::exit(1)
+        Process::exit(1)
     }
     gc_layout_plan::mir_gc_layout_plan_bind(
         module_gc_layout_plan::MirModule_gc_layout_plan(module),
@@ -198,7 +198,7 @@ fn mir_gc_layout_bind_enum_variant_slot(module: MirModule, slot: i32) {
         stdio::eprintln(
             "compiler ICE: GC enum variant slot has no semantic TypeId: ".concat(name)
         )
-        process::exit(1)
+        Process::exit(1)
     }
     gc_layout_plan::mir_gc_layout_plan_bind(
         module_gc_layout_plan::MirModule_gc_layout_plan(module),

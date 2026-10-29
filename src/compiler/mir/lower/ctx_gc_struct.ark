@@ -1,5 +1,5 @@
 use std::text
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::prelude::{byte_at, clone, contains, ends_with, eq, index_of, starts_with, substring}
 use corehir::kinds
@@ -89,7 +89,7 @@ fn ctx_set_gc_struct_sig(mut ctx: LowerCtx, struct_name: String, sig: String) {
             // update, and those are never materialized yet.
             if ctx.gc_seal_done && module_gc_struct::MirModule_gc_struct_sig_count(ctx.module) > i {
                 stdio::eprintln("compiler ICE: post-seal gc struct sig update after materialize")
-                process::exit(1)
+                Process::exit(1)
             }
             set(ctx.gc_struct_sigs, i, sig)
             set(ctx.gc_struct_sig_pending, i, false)

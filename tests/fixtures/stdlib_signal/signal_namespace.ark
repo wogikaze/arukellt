@@ -1,0 +1,38 @@
+// Covers the Signal scalar/vector helpers that the FFT fixture does not use:
+// pi, tau, sin_approx, cos_approx, and magnitude.
+use std::host::stdio
+use std::signal::Signal
+
+fn main() {
+    let pi = Signal::pi()
+    let tau = Signal::tau()
+    if !Signal::approx_eq(tau, pi * 2.0, 0.0001) {
+        Std::panic("tau must be 2*pi")
+    }
+    if !Signal::approx_eq(Signal::sin_approx(0.0), 0.0, 0.0001) {
+        Std::panic("sin(0) must be 0")
+    }
+    if !Signal::approx_eq(Signal::cos_approx(0.0), 1.0, 0.0001) {
+        Std::panic("cos(0) must be 1")
+    }
+    if !Signal::approx_eq(Signal::sin_approx(pi / 2.0), 1.0, 0.0001) {
+        Std::panic("sin(pi/2) must be 1")
+    }
+    if !Signal::approx_eq(Signal::cos_approx(pi), 0.0 - 1.0, 0.01) {
+        Std::panic("cos(pi) must be -1")
+    }
+    let mut real = Vec::new<f64>()
+    push(real, 3.0)
+    push(real, 0.0)
+    let mut imag = Vec::new<f64>()
+    push(imag, 4.0)
+    push(imag, 0.0)
+    let mags = Signal::magnitude(real, imag)
+    if !Signal::approx_eq(get_unchecked(mags, 0), 5.0, 0.0001) {
+        Std::panic("magnitude(3+4i) must be 5")
+    }
+    if !Signal::approx_eq(get_unchecked(mags, 1), 0.0, 0.0001) {
+        Std::panic("magnitude(0) must be 0")
+    }
+    stdio::println("signal ok")
+}

@@ -1,3 +1,4 @@
+use std::host::process::Process
 use std::host::stdio
 use std::text
 use lint::registry
@@ -37,7 +38,7 @@ pub fn cmd_lint(mut opts: CliOptions) {
     }
     stdio::eprintln("lint: checked=".concat(count.to_string().concat(" failed=".concat(failed.to_string()))))
     if failed > 0 {
-        process::exit(1)
+        Process::exit(1)
     }
 }
 // Entry point for `arukellt lint`.

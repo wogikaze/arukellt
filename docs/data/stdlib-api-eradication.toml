@@ -281,11 +281,12 @@ replacement = "Read / Write / BufRead / Seek trait methods and the typed std::io
 # needed: the family has no remaining function entry or top-level `pub fn`.
 
 [[rules]]
-label = "host/core namespace frees"
-module_pfx = ["std::host", "std::fs", "std::env", "std::process", "std::random", "std::time", "std::signal", "std::cli", "std::core", "std::path"]
+label = "experimental host fd frees"
+module = "std::host::fs"
+name = ["fd_seek", "fd_tell", "fd_fdstat_errno"]
 class = "associated-or-method"
 owner = "917"
-replacement = "Fs / Env / Process / Clock / Random / Cli / Path / Signal associated functions and methods; the std::host::env frees are `Env::args` / `Env::var` / `Env::arg_count` / `Env::arg_at` / `Env::var_or_default` / `Env::has_flag` from `use std::host::env::Env`; the std::host::fs and legacy std::fs path frees are `Fs::read_to_string` / `read_bytes` / `write_string` / `write_bytes` / `is_readable_file` / `is_file` / `is_dir` / `read_dir` / `metadata` from `use std::host::fs::Fs`; the std::core range/order/error/hash frees retired behind `Range::new` / `r.contains(value)` / `r.len()` / `RangeInclusive::new` / `r.contains(value)` / `a.cmp(b)` / `e.message()` / `h1.combine_hash(h2)`; the sealed raw bridges are `RawArray` / `RawString` / `RawFloat` associated functions (stdlib-only)"
+replacement = "No public replacement: the fd_* helpers are experimental, `wasm32` / WASI P1 only, and have no wasm32-gc parity fixture; moving them onto `Fs` would claim a surface that does not lower on the primary target. The non-public `__intrinsic_fd_*` bridges remain (ADR-046 D2). Recorded as the retained exception in docs/stdlib/migration-guidance.md."
 # Retired by #917 (2026-10-26) core-helper wave — unregistered declarations,
 # so no manifest deprecation window was involved:
 #   std::core::either (12 counted)   -> Either enum constructors + methods
@@ -312,8 +313,6 @@ replacement = "Fs / Env / Process / Clock / Random / Cli / Path / Signal associa
 #   those 5 stable fs wrappers and the 2 stable std::host::clock frees, with
 #   their manifest entries and declarations; qualified old calls now fail
 #   with E0100 hints from resolver::removed_names.
-#   The experimental fd_seek / fd_tell / fd_fdstat_errno frees remain
-#   (wasm32-only; no wasm32-gc parity fixture).
 # Deleted by the 2026-10-28 env wave: std::env::get_var (the last
 #   `deprecated module frees` entry) and the duplicate std::host::env::get_var;
 #   the replacement is `Env::var` from `use std::host::env::Env`.
@@ -323,7 +322,16 @@ replacement = "Fs / Env / Process / Clock / Random / Cli / Path / Signal associa
 #   (args / arg_count / arg_at / var / var_or_default). The surface is the
 #   `Env` namespace only; qualified old calls fail with E0100 hints from
 #   resolver::removed_names, and the module no longer needs a W0002 entry.
-# The other families (cli, process, signal, random) are untouched.
+# Retired by the 2026-10-29 host/core wave (#917, ADR-092): the remaining
+#   25 stable host/core frees moved behind namespace types —
+#     std::signal (10)       -> Signal
+#     std::cli (6)           -> Env (argument reads) + Cli (explicit-vector scanners)
+#     std::host::random (4)  -> Random
+#     std::host::process (3) -> Process
+#     std::process (2)       -> Process (legacy module keeps a facade)
+#   The stable entries used the ADR-092 narrow ADR-087 D2 exception (E0100 +
+#   migration guide + changelog) instead of a W0009 window. Only the three
+#   experimental `std::host::fs` fd_* helpers remain in this family.
 
 # -- Catch-all for unregistered std declarations --
 #

@@ -1,6 +1,6 @@
 use std::host::env::Env
 use std::host::fs::Fs
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::prelude::{clone, eq}
 use std::text
@@ -17,7 +17,7 @@ fn write_legacy_compile_result(output_path: String, result: CompileResult) {
             },
             Result::Err(e) => {
                 stdio::eprintln("error writing output: ".concat(e))
-                process::exit(1)
+                Process::exit(1)
             },
         }
     } else {
@@ -28,7 +28,7 @@ fn write_legacy_compile_result(output_path: String, result: CompileResult) {
             stdio::eprintln("error: ".concat(clone(msg)))
             j = j + 1
         }
-        process::exit(1)
+        Process::exit(1)
     }
 }
 
@@ -38,18 +38,18 @@ fn main() {
     let arg_start = cli_args::legacy_arg_start(args, argc)
     if !cli_args::has_min_compile_args(argc, arg_start) {
         stdio::eprintln("usage: arukellt compile <input> --target <target> -o <output>")
-        process::exit(1)
+        Process::exit(1)
     }
     let subcommand = get_unchecked(args, arg_start)
     if !eq(clone(subcommand), "compile") {
         stdio::eprintln("unknown subcommand: ".concat(clone(subcommand)))
-        process::exit(1)
+        Process::exit(1)
     }
     let mut config = config_record::DriverConfig_default()
     let parsed = cli_args::parse_legacy_compile_args(args, argc, arg_start, config)
     if !cli_args::legacy_compile_args_has_output(parsed) {
         stdio::eprintln("error: missing -o <output> flag")
-        process::exit(1)
+        Process::exit(1)
     }
     let result = file::compile_file(cli_args::legacy_compile_args_input_path(parsed), cli_args::legacy_compile_args_config(parsed))
     write_legacy_compile_result(cli_args::legacy_compile_args_output_path(parsed), result)

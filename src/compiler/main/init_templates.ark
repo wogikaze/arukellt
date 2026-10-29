@@ -33,11 +33,11 @@ pub fn init_template_normalize(name: String) -> String {
 
 pub fn init_template_main_ark(template: String) -> String {
     if eq(clone(template), "cli") {
-        let mut source = "use std::host::stdio\nuse std::host::process\n\n"
+        let mut source = "use std::host::stdio\nuse std::host::process::Process\n\n"
         source = source.concat("pub fn greet(name: String) -> String {\n")
         source = source.concat("    concat(concat(String_from(\"Hello, \"), name), String_from(\"!\"))\n}\n\n")
         source = source.concat("fn main() {\n    stdio::println(greet(String_from(\"World\")))\n")
-        source = source.concat("    process::exit(0)\n}\n")
+        source = source.concat("    Process::exit(0)\n}\n")
         return source
     }
     if eq(clone(template), "with-tests") {

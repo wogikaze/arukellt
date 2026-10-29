@@ -1,4 +1,4 @@
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::text
 use std::prelude::{clone, eq}
@@ -8,12 +8,12 @@ use mir::function_block_queries
 fn mir_expect_phi_format(f: MirFunction, block_id: i32, phi_index: i32, expected: String) {
     if block_id < 0 || block_id >= function_block_queries::MirFunction_block_count(f) {
         stdio::eprintln("phi format check failed: block out of range")
-        process::exit(1)
+        Process::exit(1)
     }
     let block = function_block_queries::MirFunction_block_at(f, block_id)
     if phi_index < 0 || phi_index >= block_phi_access::MirBlock_phi_count(block) {
         stdio::eprintln("phi format check failed: phi out of range")
-        process::exit(1)
+        Process::exit(1)
     }
     let phi = block_phi_access::MirBlock_phi_at(block, phi_index)
     let actual = dump_format_phi::mir_format_phi(f, phi)
@@ -23,6 +23,6 @@ fn mir_expect_phi_format(f: MirFunction, block_id: i32, phi_index: i32, expected
         msg = msg.concat(" actual ")
         msg = msg.concat(actual)
         stdio::eprintln(msg)
-        process::exit(1)
+        Process::exit(1)
     }
 }

@@ -1587,56 +1587,79 @@ classified there, in dependency-safe waves.
   sha256 `304624037927d797311cd09cc42bb26cb85fc08ee59a0da14586cbe9c0c2315e`
   (pinned base `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`).
 
-### Landed slice (wave/collections-remain, 2026-10-29)
+### Landed slice (wave/host-core3, 2026-10-29)
 
-- **Group**: `std::collections` — the last 18 `associated-or-method` rows:
-  the 7 stable `pq_*` frees, the 10 already-deprecated stable
-  `sorted_map_*` / `bitset_*` frees, and the source-only `vec::new_i32`.
-- **New surface**: `std/collections/pq.ark` adds `PriorityQueue<T>`
-  (`impl<T: Ord>`) with `PriorityQueue::new<T>()`, `queue.push(value)`,
-  `queue.pop() -> Option<T>`, `queue.peek() -> Option<T>`, `queue.len()`,
-  `queue.is_empty()`, and `queue.clear()`. The legacy `[count, ...heap]`
-  `Vec<i32>` layout and the empty-pop panic are no longer public contracts;
-  empty `pop` / `peek` return `Option::None`. The type is `provisional` and
-  registered in `std/manifest.toml` plus the collections docs generator.
-- **Wave 1 (commit `2a7a34f0e`)**: the 7 `pq_*` manifest entries became
-  `deprecated` with `deprecated_by = "PriorityQueue::<method>"`,
-  `deprecated_since = "0.1.0"`, and `remove_in = "1.0.0"`. W0009 qualified
-  messages and unit assertions landed in
-  `src/compiler/lint/deprecated_table.ark`, with a dual-target
-  `deprecated_pq_stable_free` diagnostic fixture. Existing `pq_ops` /
-  `pq_sort` / `linear_basic` fixtures and a new `pq_type` pair moved to the
-  type surface.
-- **Wave 2 (commit 2)**: deleted the 7 `pq_*`, the 10 stable ordered frees,
-  and `vec::new_i32` from the manifest, source declarations, and W0009 table;
-  `resolver::removed_names` now returns E0100 hints from
-  `removed_pq_member_hint`, 10 new `removed_ordered_member_hint` entries, and
-  the `vec::new_i32` entry. The diagnostic fixtures were replaced by the
-  E0100 `removed_ordered_stable_free`, `removed_pq_free`, and
-  `removed_vec_new_i32` dual-target pairs.
-- **Lifecycle basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md)
-  D1 and [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2. The 10
-  ordered frees had been deprecated since 2026-10-27 and completed their
-  in-tree window; the pq frees landed Wave 1 and Wave 2 in the same wave, with
-  the W0009 fixture, migration guide, and changelog entry as the three D2
-  records. The changelog records the exact symbols and replacements.
-- **Replacement**: `PriorityQueue<T>` methods, `SortedMap` / `BitSet`
-  receiver methods, `Vec::new<i32>()`; `docs/language/spec.md` and
-  `docs/stdlib/migration-guidance.md` show the method spellings. All old
-  qualified names fail with E0100 and the replacement hint.
-- **Scorecard**: eradication scope 149 -> **131**; `associated-or-method`
-  83 -> **65**; manifest public entries 147 -> **130**; `pub fn` declarations
-  157 -> **139**; unregistered std declarations 2 -> **1**; `must delete` 66,
-  `intrinsic-only` 1, and `prelude_wrapper` 40 unchanged. The
-  `std::collections frees` rule is removed because it matches no entry.
+- **Group**: `host/core namespace frees` — 25 of the 28 remaining rows:
+  `std::signal` (10), `std::cli` (6), `std::host::random` (4),
+  `std::host::process` (3), legacy `std::process` (2). The three experimental
+  `std::host::fs` fd helpers are the retained exception (below).
+- **Lifecycle**: all 25 were `stable`. [ADR-092](../adr/ADR-092-host-core-namespace-free-exception.md)
+  records the narrow ADR-087 D2 exception (E0100 + migration guide + changelog
+  instead of a W0009 window), following the ADR-090 / ADR-091 precedent. The
+  exception names exactly the 25 symbols; `std::process` keeps its W0002 facade
+  warning.
+- **Replacement surface (4 new namespace types)**:
+  `Process` (`exit` / `abort` / `id`), `Random` (`random_i32` /
+  `random_i32_range` / `random_bool` / `next_f64`), `Cli` (`flag` / `option`),
+  and `Signal` (`pi` / `tau` / `sin_approx` / `cos_approx` / `clone_f64` /
+  `zeros` / `fft` / `ifft` / `magnitude` / `approx_eq`). The four
+  argument-vector reads stay on the existing `Env` namespace rather than being
+  duplicated onto `Cli`. All four types are manifest `[[types]]` entries with
+  method lists and doc comments.
+- **Retired declarations**: the 25 manifest `[[functions]]` entries and the
+  public declarations in `std/host/process.ark`, `std/host/random.ark`,
+  `std/cli/mod.ark`, `std/signal/mod.ark`, and `std/process/mod.ark`.
+  `std/process/mod.ark` now re-exports `Process`.
+- **E0100**: `resolver::removed_names` gained
+  `removed_host_process_member_hint`, `removed_host_random_member_hint`,
+  `removed_cli_member_hint`, and `removed_signal_member_hint`; the `random`
+  alias resolves either the deterministic `Rng` hints or the host-entropy
+  hints by leaf name. Ten dual-target goldens cover the five modules:
+  `diagnostics/removed_host_process_free*`,
+  `removed_process_legacy_free*`, `removed_host_random_free*`,
+  `removed_cli_free*`, and `removed_signal_free*`.
+- **Call-site migration**: 62 compiler / std / fixture files moved from
+  `process::exit` / `process::abort` / `process::id` to `Process::*` with
+  `use std::host::process::Process`; host-entropy fixtures moved to
+  `Random::*`; `cli_flag_check` uses `Env::*` for argument reads and `Cli::*`
+  for explicit vectors; the FFT fixture uses `Signal::*`. The compiler
+  capability scan now also recognizes `Process::*` and `Random::*`.
+- **Bootstrap overlay**: the flat bootstrap overlay now ships
+  `std/host/process.ark` (alongside `Fs` / `Clock`) so the compiler's own
+  `Process::exit` calls compile to the real impl instead of the
+  unresolved-call fallback. The first rebuild attempt failed with
+  `undefined module member: Process::exit` from the entry module before this
+  overlay fix.
+- **Fixtures**: added `stdlib_signal/signal_namespace` and
+  `host/process/id_rejected` run fixtures, plus the ten E0100 diagnostics.
+  Registry 3517 -> **3529**; `docs/data/project-state.toml` updated.
+- **Scorecard**: eradication scope 149 -> **124**; `associated-or-method`
+  83 -> **58**; manifest public entries 147 -> **122**; `pub fn` declarations
+  157 -> **132**; monomorphic `*_i32` / `*_f64` helpers 36 -> **32**; the
+  `host/core namespace frees` rule drops 28 -> **3** (the fd exception).
+  `must delete` 66, `intrinsic-only` 1, unregistered 2, and `prelude_wrapper`
+  40 are unchanged.
+- **Exception (3, exact)**: `fd_seek`, `fd_tell`, `fd_fdstat_errno` remain
+  experimental free functions. They are `wasm32` / WASI P1 only and have no
+  wasm32-gc parity fixture; moving them onto `Fs` would claim a surface that
+  does not lower on the primary target. They stay in the eradication rule as
+  `associated-or-method` and in migration-guidance as the retained residual.
+- **Build**: `selfhost build-compiler` ran twice successfully, not once.
+  Attempt 1 failed at 26.9 s with the overlay `Process::exit` resolution error;
+  after the overlay fix the rebuild took 76.4 s (overlay cache miss). A late
+  hint fix for the shared `random` alias required the second successful build,
+  which took 47.3 s. The final s2 is `.build/selfhost/arukellt-s2.wasm`
+  sha256 `c4534554a7c3d6ed1b07a4a7d441578bb9902b4597953084d3524360e78c2316`.
 - **Verification**: `verify fixtures` **1914/1914** compile+validate PASS
   (110 runtime smoke, 38/38 `test:` PASS, 2 runtime-unsupported, 0 FAIL);
-  `verify lane` PASS; `docs check` 6/6; ADR-029 fixpoint PASS (s2 == s3 at
-  sha256 `4c1c5985dbdca47d121037c39dc721c57229e5a4ca95c275c94c06d5780c591c`,
-  pinned base `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`).
-  The 6 new E0100 fixtures pass diag-parity; the 4 diag-parity failures are
-  pre-existing stale `std::test` assertion goldens (`deprecated_assertion_free*`
-  and `removed_test_free*`) unrelated to this wave.
-- **Residual**: the 11 `deque_*` frees remain in `std::collections::linear`
-  under their #710 ADR-014 window; the other `associated-or-method` families
-  (io, host/core, prelude deferrals) are untouched.
+  targeted both-target compile + `wasm-tools validate` 14/14 for the seven
+  migrated / new run fixtures; all ten E0100 goldens PASS on wasm32-gc and
+  `--target wasm32`; `verify lane` PASS; `docs check` 6/6; ADR-029 fixpoint
+  PASS: s2 == s3 at sha256
+  `c4534554a7c3d6ed1b07a4a7d441578bb9902b4597953084d3524360e78c2316` (pinned
+  base `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`).
+- **Residuals**: the three experimental fd helpers above; the `Random::next_f64`
+  0.0 stub is unchanged (emitter wiring still missing); the host/core rule
+  remains at 3 rows until a wasm32-gc fd parity fixture exists. The four
+  namespace types are `provisional`, matching the existing `Env` / `Clock` /
+  `Fs` replacement surfaces.

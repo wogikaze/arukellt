@@ -1,0 +1,6 @@
+// E0100: the host process free functions moved to the Process namespace.
+use std::host::process
+
+fn main() {
+    process::exit(1)
+}

@@ -15,29 +15,29 @@ The `std::host` family exposes all runtime-environment capabilities: standard I/
 |-----|---------|
 | `std::host::stdio` — `println(s)` | Write a line to stdout. |
 | `std::host::stdio` — `eprintln(s)` | Write a line to stderr. |
-| `std::host::fs` — `read_to_string(path)` | Read a whole file as a UTF-8 string. |
-| `std::host::fs` — `write_string(path, content)` | Write or replace a UTF-8 file. |
-| `std::host::env` — `args()` | Retrieve the CLI argument vector. |
-| `std::host::env` — `var(name)` | Look up an environment variable. |
+| `std::host::fs` — `Fs::read_to_string(path)` | Read a whole file as a UTF-8 string. |
+| `std::host::fs` — `Fs::write_string(path, content)` | Write or replace a UTF-8 file. |
+| `std::host::env` — `Env::args()` | Retrieve the CLI argument vector. |
+| `std::host::env` — `Env::var(name)` | Look up an environment variable. |
+| `std::host::process` — `Process::exit(code)` | Terminate the process with an explicit exit code. |
 | `std::host::clock` — `Clock::monotonic_now()` | High-resolution monotonic timestamp (nanoseconds). |
-| `std::host::random` — `random_i32()` | Host-entropy random integer. |
+| `std::host::random` — `Random::random_i32()` | Host-entropy random integer. |
 
 **Target constraints:** Target/profile availability: mixed — see individual symbols. Host dependency: yes. Explicit runtime permission: `--dir` (or equivalent) for file I/O.
 
 **Typical usage:**
 
 ```ark
-import std::host::stdio
-import std::host::fs
-import std::host::env
+use std::host::env::Env
+use std::host::fs::Fs
+use std::host::stdio
 
-let name = var("USER").unwrap_or("world")
-println("Hello, " + name + "!")
+let name = Env::var_or_default("USER", "world")
+stdio::println("Hello, ".concat(name).concat("!"))
 
-let content = read_to_string("/etc/hostname")
-match content {
-    Ok(text) => println(text),
-    Err(e)   => eprintln("error: " + e),
+match Fs::read_to_string("hostname") {
+    Result::Ok(text) => stdio::println(text),
+    Result::Err(e) => stdio::eprintln("error: ".concat(e)),
 }
 ```
 

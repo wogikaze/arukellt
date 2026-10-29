@@ -1,4 +1,4 @@
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::prelude::{clone, eq}
 use mir::module_record
@@ -11,7 +11,7 @@ use mir::types
 fn assert_string_constant_sane(s: String) {
     if len(s) < 0 {
         stdio::eprintln("compiler ICE: string constant entered table with negative length")
-        process::exit(1)
+        Process::exit(1)
     }
 }
 

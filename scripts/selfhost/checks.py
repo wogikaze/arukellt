@@ -4654,13 +4654,14 @@ def _prepare_flattened_selfhost_source_locked(
         shutil.copyfile(source_path, wit_dst / name)
     # Ship the checked-in host namespace sources the compiler itself imports.
     # The pin resolves the free ``std::host::*`` functions as builtins, but the
-    # checked-in compiler calls ``Fs::*`` / ``Clock::*``; shipping the namespace
-    # source makes those spellings compile to the real impls instead of the
-    # unresolved-call fallback. ``std/host/fs.ark`` imports ``std::io``, so its
-    # module source ships as well.
+    # checked-in compiler calls ``Fs::*`` / ``Clock::*`` / ``Process::*``;
+    # shipping the namespace source makes those spellings compile to the real
+    # impls instead of the unresolved-call fallback. ``std/host/fs.ark`` imports
+    # ``std::io``, so its module source ships as well.
     host_sources = (
         ("std/host/fs.ark", "host/fs.ark"),
         ("std/host/clock.ark", "host/clock.ark"),
+        ("std/host/process.ark", "host/process.ark"),
         ("std/io/mod.ark", "io/mod.ark"),
     )
     for source_rel, overlay_rel in host_sources:
@@ -4695,18 +4696,18 @@ def _prepare_flattened_selfhost_source_locked(
 def _patch_bootstrap_main_host_to_prelude(compiler_out: Path) -> None:
     """Rewrite main.ark host calls to prelude free functions.
 
-    The flat overlay does not ship ``std/host/stdio.ark`` or
-    ``std/host/process.ark``, so a direct entry-module ``stdio::eprintln`` /
-    ``process::exit`` fails resolution (compiler modules only survive that
-    because non-entry resolve failures are not reported). The pin also cannot
+    The flat overlay does not ship ``std/host/stdio.ark``, so a direct
+    entry-module ``stdio::eprintln`` fails resolution. The pin also cannot
     lower ``Env::args`` (see ``_patch_bootstrap_host_env_paths``). The entry
-    module therefore calls the prelude host-intrinsic stubs ``args`` / ``exit``
-    / ``println`` and imports them explicitly.
+    module therefore calls the prelude host-intrinsic stubs ``args`` /
+    ``println`` and imports them explicitly. ``std/host/process.ark`` now
+    ships in the overlay, so ``Process::exit`` resolves; the legacy
+    ``process::exit`` rewrite below remains for older spellings.
 
     Delete condition: a pin/overlay pair that resolves the checked-in
-    ``Env::args()`` / ``stdio::eprintln`` / ``process::exit`` entry module and
-    validates the generated compiler. Until then this keeps ``main`` on the
-    known host-intrinsic stubs instead of the unresolved-call fallback.
+    ``Env::args()`` / ``stdio::eprintln`` entry module and validates the
+    generated compiler. Until then this keeps ``main`` on the known
+    host-intrinsic stubs instead of the unresolved-call fallback.
     """
     main_path = compiler_out / "main.ark"
     if not main_path.is_file():

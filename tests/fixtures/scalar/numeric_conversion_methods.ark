@@ -6,7 +6,7 @@
 // literal binding carries no local type name yet. The trailing free-wrapper
 // calls pin the prelude shims that now lower through the same CoreOps.
 use std::core::convert
-use std::host::process
+use std::host::process::Process
 use std::prelude::{i32_to_i16, i32_to_u16, u64_to_u32}
 
 fn main() {
@@ -17,13 +17,13 @@ fn main() {
     let c_i32 = (c).to_i32()
     let d_i32 = (d).to_i32()
     if a_i32 != 255 {
-        process::exit(1)
+        Process::exit(1)
     }
     if c_i32 != 1000 {
-        process::exit(1)
+        Process::exit(1)
     }
     if d_i32 != -2 {
-        process::exit(1)
+        Process::exit(1)
     }
 
     let d8: i8 = -5i8
@@ -33,13 +33,13 @@ fn main() {
     let d8_min_i32 = (d8_min).to_i32()
     let d8_max_i32 = (d8_max).to_i32()
     if d8_i32 != -5 {
-        process::exit(1)
+        Process::exit(1)
     }
     if d8_min_i32 != -128 {
-        process::exit(1)
+        Process::exit(1)
     }
     if d8_max_i32 != 127 {
-        process::exit(1)
+        Process::exit(1)
     }
 
     let e: i32 = 300
@@ -47,10 +47,10 @@ fn main() {
     let e_i8 = (e).to_i8_wrapping()
     let _e_u32 = (e).to_u32_bits()
     if e_u8 != 44u8 {
-        process::exit(1)
+        Process::exit(1)
     }
     if e_i8 != 44i8 {
-        process::exit(1)
+        Process::exit(1)
     }
 
     let e_u16 = (e).to_u16_wrapping()
@@ -61,25 +61,25 @@ fn main() {
     let wide: i32 = 40000
     let wide_i16 = (wide).to_i16_wrapping()
     if e_u16 != 300u16 {
-        process::exit(1)
+        Process::exit(1)
     }
     if e_i16 != 300i16 {
-        process::exit(1)
+        Process::exit(1)
     }
     if minus_one_u16 != 65535u16 {
-        process::exit(1)
+        Process::exit(1)
     }
     if minus_one_i16 != -1i16 {
-        process::exit(1)
+        Process::exit(1)
     }
     if wide_i16 != -25536i16 {
-        process::exit(1)
+        Process::exit(1)
     }
 
     let f: u32 = 1000u32
     let f_u64 = (f).to_u64()
     if f_u64 != 1000u64 {
-        process::exit(1)
+        Process::exit(1)
     }
 
     let w: u64 = 4294967301u64
@@ -87,52 +87,52 @@ fn main() {
     let w_zero: u64 = 4294967296u64
     let w_zero_u32 = (w_zero).to_u32_wrapping()
     if w_u32 != 5u32 {
-        process::exit(1)
+        Process::exit(1)
     }
     if w_zero_u32 != 0u32 {
-        process::exit(1)
+        Process::exit(1)
     }
 
     let h: i32 = 42
     let h_wide: i64 = (h).into()
     if h_wide != 42i64 {
-        process::exit(1)
+        Process::exit(1)
     }
     let i: i64 = 42i64
     let i_narrow = (i).to_i32_checked().unwrap_or(0)
     if i_narrow != 42 {
-        process::exit(1)
+        Process::exit(1)
     }
 
     let j: f32 = 1.5f32
     let j_wide = (j).to_f64()
     if j_wide != 1.5f64 {
-        process::exit(1)
+        Process::exit(1)
     }
     let k: f64 = 1.5f64
     let k_narrow = (k).to_f32()
     if k_narrow != 1.5f32 {
-        process::exit(1)
+        Process::exit(1)
     }
     let k_lo = (k).to_bits_lo()
     let k_hi = (k).to_bits_hi()
     if k_lo != 0 {
-        process::exit(1)
+        Process::exit(1)
     }
     if k_hi == 0 {
-        process::exit(1)
+        Process::exit(1)
     }
 
     let free_u16: u16 = i32_to_u16(-1)
     let free_i16: i16 = i32_to_i16(40000)
     let free_u32: u32 = u64_to_u32(4294967301u64)
     if free_u16 != 65535u16 {
-        process::exit(1)
+        Process::exit(1)
     }
     if free_i16 != -25536i16 {
-        process::exit(1)
+        Process::exit(1)
     }
     if free_u32 != 5u32 {
-        process::exit(1)
+        Process::exit(1)
     }
 }

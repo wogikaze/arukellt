@@ -8,10 +8,10 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 61 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 43 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 1 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 3 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 65 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 75 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -27,6 +27,7 @@
 | `Box` | T | yes | provisional | Heap-allocated owned value. |
 | `BufReader` | R | no | experimental | Buffered byte source over a Read handle; implements Read and BufRead, and Seek when the inner handle is Seek. |
 | `BufWriter` | W | no | experimental | Buffered byte sink over a Write handle; flushes at capacity and on flush/into_inner. |
+| `Cli` | - | no | provisional | Namespace for command-line parsing over an explicit Vec<String>: Cli::flag(args, name) and Cli::option(args, name). Process-argument reads live on std::host::env::Env (Env::args / arg_count / arg_at / has_flag). The stable free functions were deleted in the #917 host/core wave. |
 | `Clock` | - | no | provisional | Namespace for the host clock reads: Clock::monotonic_now() returns nanoseconds from the monotonic clock and Clock::now_ms() returns milliseconds since the Unix epoch. The WASI clock intrinsics stay behind this impl. The stable free functions were deleted in the ADR-087 Wave 2 change. |
 | `Component` | - | no | experimental | Namespace for Component Model version constants and canonical ABI scratch lift/lower helpers; all entries are associated functions. |
 | `Deque` | T | no | provisional | Double-ended queue with amortized O(1) push/pop at both ends. |
@@ -57,12 +58,14 @@
 | `LinkedListIter` | T | no | provisional | Read-only front-to-back cursor over a LinkedList<T>. |
 | `LinkedListIterMut` | T | no | provisional | Writable front-to-back cursor over a LinkedList<T> with set_current. |
 | `Opcode` | - | no | experimental | Opcode constants for the Wasm MVP instruction subset. |
-| `PriorityQueue` | T | no | provisional | Binary min-heap: the root is the minimum and every parent compares less than or equal to its children. pop / peek return Option<T> when empty. |
+| `Process` | - | no | provisional | Namespace for the host process-control operations: Process::exit(code), Process::abort(), and Process::id(). id() returns a stable Err because WASI 0.2 exposes no portable POSIX-style process id. The stable free functions were deleted in the #917 host/core wave; qualified old calls fail with an E0100 hint that names Process. |
 | `Queue` | T | no | provisional | First-in first-out queue restricted to Deque<T> push-at-back / pop-at-front. |
+| `Random` | - | no | provisional | Namespace for the host-entropy random reads: Random::random_i32(), Random::random_i32_range(lo, hi), Random::random_bool(), and Random::next_f64(). next_f64 is still a 0.0 stub until the emitter wires __runtime_abi_random_next_f64. The stable free functions were deleted in the #917 host/core wave. |
 | `Range` | - | no | stable | Half-open integer range [start, end). |
 | `RangeInclusive` | - | no | stable | Closed integer range [start, end]. |
 | `Reader` | - | no | experimental | In-memory read handle over an owned byte image; implements Read, BufRead, and Seek. |
 | `Section` | - | no | experimental | Section IDs for the standard Wasm sections. |
+| `Signal` | - | no | provisional | Namespace for the split-complex FFT and spectral helpers: Signal::fft / Signal::ifft transform parallel Vec<f64> real/imag buffers in place, Signal::magnitude returns per-sample magnitudes, Signal::pi / Signal::tau are the circle constants, Signal::sin_approx / Signal::cos_approx are polynomial approximations, and Signal::clone_f64 / Signal::zeros / Signal::approx_eq are vector helpers. The stable free functions were deleted in the #917 host/core wave. |
 | `Slice` | T | yes | provisional | Read-only contiguous view. |
 | `SlotMap` | - | no | experimental | Deletion-safe handle map for i32 values; keys stay stable across removes and removed slots report None. |
 | `SortedMap` | - | no | provisional | Map from i32 keys to i32 values read back in ascending key order. get returns 0 for a missing key and contains returns false. |
@@ -134,6 +137,7 @@
 | `BufRead` | `fill_buf`, `consume`, `read_line` | `Read` |
 | `BufReader` | `new` | `Read`, `BufRead`, `Seek` |
 | `BufWriter` | `new`, `write_string`, `into_inner` | `Write` |
+| `Cli` | `flag`, `option` | - |
 | `Clock` | `monotonic_now`, `now_ms` | - |
 | `Component` | `canonical_abi_version`, `model_version`, `scratch_new`, `lower_string`, `lift_string`, `lift_string_at`, `lower_list_i32`, `lift_list_i32`, `lift_list_i32_at` | - |
 | `Deque` | `new`, `with_capacity`, `push_back`, `push_front`, `pop_back`, `pop_front`, `front`, `back`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter`, `iter_mut` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
@@ -173,14 +177,16 @@
 | `LinkedListIterMut` | `set_current` | `Iterator`, `IntoIterator` |
 | `Opcode` | `unreachable`, `nop`, `block`, `loop_`, `if_`, `else_`, `end`, `br`, `br_if`, `return_`, `call`, `drop`, `select`, `local_get`, `local_set`, `local_tee`, `global_get`, `global_set`, `i32_load`, `i32_store`, `memory_size`, `memory_grow`, `i32_const`, `i64_const`, `f32_const`, `f64_const`, `i32_eqz`, `i32_eq`, `i32_ne`, `i32_lt_s`, `i32_gt_s`, `i32_le_s`, `i32_ge_s`, `i32_add`, `i32_sub`, `i32_mul`, `i32_div_s`, `i32_and`, `i32_or`, `i32_xor`, `i32_shl`, `i32_shr_s`, `i64_add`, `i64_sub`, `i64_mul` | - |
 | `Ordering` | `is_less`, `is_less_or_equal`, `is_greater`, `is_greater_or_equal` | - |
-| `PriorityQueue` | `new`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear` | - |
+| `Process` | `exit`, `abort`, `id` | - |
 | `Queue` | `new`, `with_capacity`, `push`, `pop`, `front`, `back`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
+| `Random` | `random_i32`, `random_i32_range`, `random_bool`, `next_f64` | - |
 | `Range` | `new`, `contains`, `len` | - |
 | `RangeInclusive` | `new`, `contains` | - |
 | `Read` | `read` | - |
 | `Reader` | `from_bytes`, `new`, `len`, `is_eof`, `into_bytes` | `Read`, `BufRead`, `Seek` |
 | `Section` | `type_id`, `import_id`, `function_id`, `table_id`, `memory_id`, `global_id`, `export_id`, `start_id`, `element_id`, `code_id`, `data_id` | - |
 | `Seek` | `seek`, `position` | - |
+| `Signal` | `pi`, `tau`, `sin_approx`, `cos_approx`, `clone_f64`, `zeros`, `fft`, `ifft`, `magnitude`, `approx_eq` | - |
 | `SlotMap` | `new`, `insert`, `get`, `remove`, `contains`, `len` | - |
 | `SortedMap` | `new`, `len`, `find_idx`, `get`, `contains`, `insert` | - |
 | `Stack` | `new`, `with_capacity`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
@@ -228,22 +234,15 @@
 | `Box_new` | `(T) -> Box<T>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `unbox` | `(Box<T>) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 
-## Cli
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `arg_at` | `(i32) -> Option<String>` | `std::cli` | `stable` | `functional` | `builtin` | no | - | Return the argument at index, or None when out of range. |
-| `arg_count` | `() -> i32` | `std::cli` | `stable` | `functional` | `builtin` | no | - | Return the number of process arguments. |
-| `flag` | `(Vec<String>, String) -> bool` | `std::cli` | `stable` | `functional` | `builtin` | no | - | Return true when args contains name verbatim. |
-| `has_flag` | `(String) -> bool` | `std::cli` | `stable` | `functional` | `builtin` | no | - | Return true when the process argument vector contains the flag verbatim. |
-| `option` | `(Vec<String>, String) -> Option<String>` | `std::cli` | `stable` | `functional` | `builtin` | no | - | Return the value associated with the named option, or None. |
-| `parse_args` | `() -> Vec<String>` | `std::cli` | `stable` | `functional` | `builtin` | no | - | Return the full process argument vector. |
-
 ## Collections
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | ~~`as_slice`~~ ⚠️ Deprecated → `Vec::as_slice` | `(Vec<T>, i32, i32) -> Slice<T>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`bitset_mark`~~ ⚠️ Deprecated → `BitSet::mark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`bitset_new`~~ ⚠️ Deprecated → `BitSet::new` | `() -> Vec<i32>` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`bitset_test`~~ ⚠️ Deprecated → `BitSet::test` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`bitset_unmark`~~ ⚠️ Deprecated → `BitSet::unmark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
 | ~~`deque_back`~~ ⚠️ Deprecated → `Deque::back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Peek at the back element without removing it. Returns 0 when empty. |
 | ~~`deque_clear`~~ ⚠️ Deprecated → `Deque::clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Reset the deque to empty (preserves allocated capacity). |
 | ~~`deque_front`~~ ⚠️ Deprecated → `Deque::front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Peek at the front element without removing it. Returns 0 when empty. |
@@ -271,10 +270,23 @@
 | ~~`linked_list_push_front`~~ ⚠️ Deprecated → `LinkedList::push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Push a value to the front of the legacy i32 list. |
 | ~~`linked_list_to_vec`~~ ⚠️ Deprecated → `LinkedList::iter` | `(Vec<i32>) -> Vec<i32>` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Copy the legacy i32 list into a Vec<i32> in front-to-back order. |
 | ~~`pop`~~ ⚠️ Deprecated → `Vec::pop` | `(Vec<T>) -> Option<T>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | Remove and return the last element of a Vec. Returns None if the Vec is empty. |
+| `pq_clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Reset the priority queue to empty (preserves allocated storage). |
+| `pq_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Return true if the priority queue contains no elements. |
+| `pq_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Return the number of elements in the priority queue. |
+| `pq_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Create a new empty PriorityQueue min-heap (i32, monomorphic). |
+| `pq_peek` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Return the minimum element without removing it. Panics if empty. |
+| `pq_pop` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Remove and return the minimum element. Panics if empty. |
+| `pq_push` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Insert a value into the priority queue. |
 | ~~`push`~~ ⚠️ Deprecated → `Vec::push` | `(Vec<T>, T) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | Append an element to the end of a Vec, mutating it in place. |
 | ~~`set`~~ ⚠️ Deprecated → `Vec::set` | `(Vec<T>, i32, T) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | ~~`slice_get`~~ ⚠️ Deprecated → `Slice::get` | `(Slice<T>, i32) -> T` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | ~~`slice_len`~~ ⚠️ Deprecated → `Slice::len` | `(Slice<T>) -> i32` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`sorted_map_contains`~~ ⚠️ Deprecated → `SortedMap::contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`sorted_map_find_idx`~~ ⚠️ Deprecated → `SortedMap::find_idx` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`sorted_map_get`~~ ⚠️ Deprecated → `SortedMap::get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`sorted_map_insert`~~ ⚠️ Deprecated → `SortedMap::insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`sorted_map_len`~~ ⚠️ Deprecated → `SortedMap::len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`sorted_map_new`~~ ⚠️ Deprecated → `SortedMap::new` | `() -> Vec<i32>` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
 
 ### `len` — `prelude`
 
@@ -326,33 +338,6 @@ push(v, 2)
 | `fd_fdstat_errno` | `(i32) -> i32` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__intrinsic_fd_fdstat_get` | Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success). |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__intrinsic_fd_seek` | Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset. |
 | `fd_tell` | `(i32) -> i64` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__intrinsic_fd_tell` | Return the current file offset for an open file descriptor. |
-
-## Host Process
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `abort` | `() -> ()` | `std::host::process` | `stable` | `functional` | `builtin` | no | `__runtime_abi_process_abort` | Abort the process immediately with an abnormal-termination signal (non-zero exit). |
-| `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `functional` | `builtin` | no | `__runtime_abi_process_exit` | Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure. |
-| `id` | `() -> Result<i32, String>` | `std::host::process` | `stable` | `functional` | `builtin` | no | - | Return a stable Err on WASI 0.2 because the portable process model does not expose a POSIX-style pro… |
-
-## Host Random
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `next_f64` | `() -> f64` | `std::host::random` | `stable` | `functional` | `builtin` | no | `__runtime_abi_random_next_f64` | Return a host-provided random f64 value in the range [0.0, 1.0). |
-| `random_bool` | `() -> bool` | `std::host::random` | `stable` | `functional` | `builtin` | no | `__runtime_abi_random_i32` | Return a random boolean value with equal probability of true and false. |
-| `random_i32` | `() -> i32` | `std::host::random` | `stable` | `functional` | `builtin` | no | `__runtime_abi_random_i32` | Return a cryptographically-secure random i32 value. |
-| `random_i32_range` | `(i32, i32) -> i32` | `std::host::random` | `stable` | `functional` | `builtin` | no | `__runtime_abi_random_i32` | Return a random i32 in the half-open range [lo, hi). Both bounds must be valid i32 values with lo < … |
-
-### `random_i32_range` — `std::host::random`
-
-**Errors:** Panics at runtime if lo >= hi.
-
-_Example — Roll a six-sided die (1–6):_
-
-```ark
-let n = random::random_i32_range(1, 7)
-```
 
 ## Host Stdio
 
@@ -426,13 +411,6 @@ let input = stdio::read_stdin()
 | `unwrap` | `(Option<T>) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `unwrap_or` | `(Option<T>, T) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 
-## Process
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `abort` | `() -> ()` | `std::process` | `stable` | `functional` | `builtin` | no | - | Terminate the process immediately (exit code 134, SIGABRT convention). |
-| `exit` | `(i32) -> ()` | `std::process` | `stable` | `functional` | `builtin` | no | - | Terminate the process with the given exit code. |
-
 ## Scalar Conversion
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
@@ -470,21 +448,6 @@ let input = stdio::read_stdin()
 | ~~`take_i32`~~ ⚠️ Deprecated → `VecIter::take` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect(). |
 | ~~`unique`~~ ⚠️ Deprecated → `VecIter::unique` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect(). |
 
-## Signal
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `approx_eq` | `(f64, f64, f64) -> bool` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
-| `clone_f64` | `(Vec<f64>) -> Vec<f64>` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
-| `cos_approx` | `(f64) -> f64` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
-| `fft` | `(Vec<f64>, Vec<f64>) -> ()` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
-| `ifft` | `(Vec<f64>, Vec<f64>) -> ()` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
-| `magnitude` | `(Vec<f64>, Vec<f64>) -> Vec<f64>` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
-| `pi` | `() -> f64` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
-| `sin_approx` | `(f64) -> f64` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
-| `tau` | `() -> f64` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
-| `zeros` | `(i32) -> Vec<f64>` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
-
 ## String
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
@@ -504,7 +467,7 @@ let input = stdio::read_stdin()
 
 ## Deprecated APIs
 
-> ⚠️ **65 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **75 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -514,6 +477,10 @@ let input = stdio::read_stdin()
 | ~~`assert_eq_str`~~ | `Test::assert_eq_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `Test::assert_ne_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `Vec::binary_search` | [migration-guidance.md](migration-guidance.md) |
+| ~~`bitset_mark`~~ | `BitSet::mark` | [migration-guidance.md](migration-guidance.md) |
+| ~~`bitset_new`~~ | `BitSet::new` | [migration-guidance.md](migration-guidance.md) |
+| ~~`bitset_test`~~ | `BitSet::test` | [migration-guidance.md](migration-guidance.md) |
+| ~~`bitset_unmark`~~ | `BitSet::unmark` | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `VecIter::count_eq` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | [migration-guidance.md](migration-guidance.md) |
@@ -566,6 +533,12 @@ let input = stdio::read_stdin()
 | ~~`skip_i32`~~ | `VecIter::skip` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_get`~~ | `Slice::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_len`~~ | `Slice::len` | [migration-guidance.md](migration-guidance.md) |
+| ~~`sorted_map_contains`~~ | `SortedMap::contains` | [migration-guidance.md](migration-guidance.md) |
+| ~~`sorted_map_find_idx`~~ | `SortedMap::find_idx` | [migration-guidance.md](migration-guidance.md) |
+| ~~`sorted_map_get`~~ | `SortedMap::get` | [migration-guidance.md](migration-guidance.md) |
+| ~~`sorted_map_insert`~~ | `SortedMap::insert` | [migration-guidance.md](migration-guidance.md) |
+| ~~`sorted_map_len`~~ | `SortedMap::len` | [migration-guidance.md](migration-guidance.md) |
+| ~~`sorted_map_new`~~ | `SortedMap::new` | [migration-guidance.md](migration-guidance.md) |
 | ~~`sum_i32`~~ | `VecIter::sum` | [migration-guidance.md](migration-guidance.md) |
 | ~~`take_i32`~~ | `VecIter::take` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u16_to_i32`~~ | `u16::to_i32` | [migration-guidance.md](migration-guidance.md) |

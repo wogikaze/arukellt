@@ -1,4 +1,4 @@
-use std::host::process
+use std::host::process::Process
 use std::core::convert
 
 struct Pair {
@@ -33,7 +33,7 @@ fn make_cell(mut log: Vec<i32>, value: i32) -> Cell {
 
 fn expect_marker(log: Vec<i32>, index: i32, expected: i32) {
     if get_unchecked(log, index) != expected {
-        process::exit(1)
+        Process::exit(1)
     }
 }
 

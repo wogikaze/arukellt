@@ -47,6 +47,59 @@ normal policy applies and the exception is void. The exception is not a blanket
 three items above. See [Stability Policy](stability-policy.md#deprecation-process)
 and the [changelog](changelog.md).
 
+## Host/core namespace retirement (ADR-092)
+
+The [#917](https://github.com/wogikaze/arukellt/issues/917) host/core wave retired
+25 `stable` free functions and moved them onto four namespace types. The three
+experimental `std::host::fs` fd helpers are the only retained exception (see
+below). [ADR-092](../adr/ADR-092-host-core-namespace-free-exception.md) records the
+narrow ADR-087 D2 exception: the old names fail with **E0100** and a replacement
+hint instead of a W0009 window, because every replacement is already callable and
+verified on both targets. The exception names exactly the 25 symbols in the table.
+
+| Removed free call | Replacement |
+|-------------------|-------------|
+| `std::host::process::exit(code)` | `Process::exit(code)` via `use std::host::process::Process` |
+| `std::host::process::abort()` | `Process::abort()` via `use std::host::process::Process` |
+| `std::host::process::id()` | `Process::id()` via `use std::host::process::Process` |
+| `std::process::exit(code)` | `Process::exit(code)` via `use std::host::process::Process` |
+| `std::process::abort()` | `Process::abort()` via `use std::host::process::Process` |
+| `std::host::random::random_i32()` | `Random::random_i32()` via `use std::host::random::Random` |
+| `std::host::random::random_i32_range(lo, hi)` | `Random::random_i32_range(lo, hi)` via `use std::host::random::Random` |
+| `std::host::random::random_bool()` | `Random::random_bool()` via `use std::host::random::Random` |
+| `std::host::random::next_f64()` | `Random::next_f64()` via `use std::host::random::Random` |
+| `std::cli::parse_args()` | `Env::args()` via `use std::host::env::Env` |
+| `std::cli::arg_count()` | `Env::arg_count()` via `use std::host::env::Env` |
+| `std::cli::arg_at(index)` | `Env::arg_at(index)` via `use std::host::env::Env` |
+| `std::cli::has_flag(flag)` | `Env::has_flag(flag)` via `use std::host::env::Env` |
+| `std::cli::flag(args, name)` | `Cli::flag(args, name)` via `use std::cli::Cli` |
+| `std::cli::option(args, name)` | `Cli::option(args, name)` via `use std::cli::Cli` |
+| `std::signal::pi()` | `Signal::pi()` via `use std::signal::Signal` |
+| `std::signal::tau()` | `Signal::tau()` via `use std::signal::Signal` |
+| `std::signal::sin_approx(x)` | `Signal::sin_approx(x)` via `use std::signal::Signal` |
+| `std::signal::cos_approx(x)` | `Signal::cos_approx(x)` via `use std::signal::Signal` |
+| `std::signal::clone_f64(v)` | `Signal::clone_f64(v)` via `use std::signal::Signal` |
+| `std::signal::zeros(n)` | `Signal::zeros(n)` via `use std::signal::Signal` |
+| `std::signal::fft(real, imag)` | `Signal::fft(real, imag)` via `use std::signal::Signal` |
+| `std::signal::ifft(real, imag)` | `Signal::ifft(real, imag)` via `use std::signal::Signal` |
+| `std::signal::magnitude(real, imag)` | `Signal::magnitude(real, imag)` via `use std::signal::Signal` |
+| `std::signal::approx_eq(a, b, eps)` | `Signal::approx_eq(a, b, eps)` via `use std::signal::Signal` |
+
+`std::process` remains a compatibility facade that re-exports `Process`; importing
+it still emits the existing W0002 "module moved" warning. The E0100 goldens are
+`diagnostics/removed_host_process_free*`, `diagnostics/removed_process_legacy_free*`,
+`diagnostics/removed_host_random_free*`, `diagnostics/removed_cli_free*`, and
+`diagnostics/removed_signal_free*`.
+
+### Retained: experimental fd helpers (3)
+
+`fd_seek`, `fd_tell`, and `fd_fdstat_errno` stay experimental free functions.
+They are `wasm32` / WASI P1 only (`t3 = false`), so they cannot be exercised on
+`wasm32-gc`; moving them to `Fs` without a target-parity fixture would claim a
+surface that does not lower on the primary target. They are the exact exception
+list of [ADR-092](../adr/ADR-092-host-core-namespace-free-exception.md) §4 and
+remain a reported residual.
+
 ## Prelude free-function retirement (ADR-091)
 
 The [#917](https://github.com/wogikaze/arukellt/issues/917) `wave/prelude-remain`
@@ -1741,8 +1794,9 @@ The E0100 goldens are `diagnostics/removed_host_fs_stable_free*`.
 `fd_seek`, `fd_tell`, and `fd_fdstat_errno` stay experimental free functions.
 They are `wasm32` / WASI P1 only (`t3 = false`), so they cannot be exercised on
 `wasm32-gc`; moving them to `Fs` without a target-parity fixture would claim a
-surface that does not lower on the primary target. They remain a reported
-residual.
+surface that does not lower on the primary target. They are the exact exception
+list of [ADR-092](../adr/ADR-092-host-core-namespace-free-exception.md) §4 and
+remain a reported residual after the host/core wave.
 
 ## std::host::clock `Clock` namespace wave (ADR-046, ADR-087, 2026-10-27)
 

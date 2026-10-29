@@ -1,5 +1,5 @@
-use std::host::process
+use std::host::process::Process
 
 fn main() {
-    process::abort()
+    Process::abort()
 }

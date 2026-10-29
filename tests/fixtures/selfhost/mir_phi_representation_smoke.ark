@@ -1,4 +1,4 @@
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::prelude::{to_string}
 use std::text
@@ -61,7 +61,7 @@ fn mir_format_phi(phi: MirPhi) -> String {
 fn ensure(ok: bool, msg: String) {
     if !ok {
         stdio::eprintln(msg)
-        process::exit(1)
+        Process::exit(1)
     }
 }
 

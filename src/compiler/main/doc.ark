@@ -1,4 +1,4 @@
-use std::host::process
+use std::host::process::Process
 use std::prelude::{clone}
 use main::args_record
 use main::doc_usage
@@ -7,7 +7,7 @@ pub fn cmd_doc(opts: CliOptions) {
     let symbol = args_record::cli_input_file(opts)
     if len(symbol) == 0 {
         doc_usage::print_doc_usage()
-        process::exit(2)
+        Process::exit(2)
         return
     }
     let json_out = args_record::cli_json_output(opts)

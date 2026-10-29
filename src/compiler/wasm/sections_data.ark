@@ -1,4 +1,4 @@
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::prelude::{byte_at}
 use wasm::opcodes
@@ -12,7 +12,7 @@ use wasm::writer_sections
 fn assert_emittable_string_len(slen: i32) {
     if slen < 0 {
         stdio::eprintln("compiler ICE: negative string length in data section emit")
-        process::exit(1)
+        Process::exit(1)
     }
 }
 

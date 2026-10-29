@@ -1,0 +1,7 @@
+// E0100: the host-entropy random frees moved to the Random namespace.
+use std::host::random
+
+fn main() {
+    let b: bool = random::random_bool()
+    let _ = b
+}
