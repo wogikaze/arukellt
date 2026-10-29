@@ -160,6 +160,11 @@ fresh s2（初回 59.2s、`.ark` 修正後 92.8s）で再測定した。
 - close gates: #472/#500 の npm install は sandbox が `~/.npm` に書けない
   環境要因だった。`_playground_env` が `NPM_CONFIG_CACHE` を
   `.build/npm-cache` に既定化し、`--no-cache` の 25 enforced が PASS。
+- lane artifact 解決: `check-mir-reachability-bfs.py` は hardcoded `.build` を
+  見て lane の s2 を force rebuild していた。MIR-BFS と
+  `lib/selfhost_s2.s2_candidates` が `ARUKELLT_BUILD_DIR` /
+  `ARUKELLT_SELFHOST_WASM` を解決するようにし、`.build/selfhost` にコピー
+  しなくても MIR-BFS と close gate #668 が lane の s2 を使うことを確認した。
 
 確認結果（同 worktree、fresh s2）:
 

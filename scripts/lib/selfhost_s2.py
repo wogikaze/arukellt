@@ -25,11 +25,34 @@ def repo_root() -> Path:
 
 
 def s2_candidates(root: Path) -> list[Path]:
-    return [
-        root / ".build" / "selfhost" / "arukellt-s2.wasm",
-        root / ".bootstrap-build" / "arukellt-s2.wasm",
-        root / ".build" / "selfhost" / "arukellt-s3.wasm",
-    ]
+    """Return current-source s2/s3 candidates in the build dir and legacy spots.
+
+    Respect ARUKELLT_BUILD_DIR (lane isolation) and an explicit
+    ARUKELLT_SELFHOST_WASM that names a current s2/s3 artifact, so gates do not
+    require a second copy under ``.build`` when a lane build dir is in use.
+    """
+    import os
+
+    try:
+        from lib.build_paths import build_dir
+    except ModuleNotFoundError:
+        # Direct ``python3 scripts/lib/selfhost_s2.py`` puts scripts/lib on
+        # sys.path[0]; import the shared build-dir resolver from scripts/.
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+        from lib.build_paths import build_dir
+
+    candidates: list[Path] = []
+    env_wasm = os.environ.get("ARUKELLT_SELFHOST_WASM", "").strip()
+    if env_wasm and is_current_selfhost_wasm(env_wasm):
+        candidates.append(Path(env_wasm))
+    candidates.extend(
+        [
+            build_dir(root) / "selfhost" / "arukellt-s2.wasm",
+            root / ".bootstrap-build" / "arukellt-s2.wasm",
+            build_dir(root) / "selfhost" / "arukellt-s3.wasm",
+        ]
+    )
+    return candidates
 
 
 def resolve_s2_wasm(root: Path | None = None) -> Path | None:
