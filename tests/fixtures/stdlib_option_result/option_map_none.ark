@@ -6,6 +6,6 @@ fn double(x: i32) -> i32 { x * 2 }
 fn main() {
     let a: Option<i32> = None
     let m = a.map(double)
-    match m { Option::Some(v) => panic("some"), None => {} }
+    match m { Option::Some(v) => Std::panic("some"), None => {} }
     stdio::println("ok")
 }

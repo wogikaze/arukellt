@@ -14,7 +14,9 @@ fn simple_type(tag: i32) -> TypeInfo {
 // but keep `panic` bodies; the emitter lowers them by name. Unlike the
 // polymorphic prelude operations (`len`, `clone`, ...), their parameters carry
 // the whole contract, so the checker must not treat the name alone as a
-// licence to skip argument checking.
+// licence to skip argument checking. `panic` itself is no longer a prelude
+// function; it is the associated `Std::panic`, checked through its impl
+// signature.
 fn is_scalar_conversion_builtin(name: String) -> bool {
     if eq(clone(name), "u8_to_i32") || eq(clone(name), "u16_to_i32") ||
     eq(clone(name), "i8_to_i32") || eq(clone(name), "i16_to_i32") {
@@ -109,8 +111,7 @@ fn is_math_prelude_builtin(name: String) -> bool {
 }
 
 fn is_runtime_prelude_builtin(name: String) -> bool {
-    if eq(clone(name), "panic") || eq(clone(name), "assert") ||
-    eq(clone(name), "assert_eq") {
+    if eq(clone(name), "assert") || eq(clone(name), "assert_eq") {
         return true
     }
     eq(clone(name), "assert_ne") || eq(clone(name), "assert_eq_str") ||

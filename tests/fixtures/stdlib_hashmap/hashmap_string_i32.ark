@@ -9,14 +9,14 @@ test "string_keys_overwrite_and_lookup_integer_values" {
     test::assert_eq_i32(m.len(), 3)
     match m.get("apple") {
         Option::Some(v) => test::assert_eq_i32(v, 3),
-        None => panic("expected Some(3)"),
+        None => Std::panic("expected Some(3)"),
     }
     match m.get("banana") {
         Option::Some(v) => test::assert_eq_i32(v, 42),
-        None => panic("expected Some(42)"),
+        None => Std::panic("expected Some(42)"),
     }
     match m.get("durian") {
-        Option::Some(v) => panic("expected None"),
+        Option::Some(v) => Std::panic("expected None"),
         None => {
         },
     }

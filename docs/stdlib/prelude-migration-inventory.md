@@ -5,7 +5,7 @@ which **stdlib implementation files** still rely on **prelude-auto-imported**
 helpers that have a **module-local or `std::*` facade** equivalent. This is a
 shelf list for future refactors, not a commitment to change every row immediately.
 
-**Scope:** implementation modules under `std/`. The tiny prelude (`panic`,
+**Scope:** implementation modules under `std/`. The tiny prelude (`Std::panic`,
 `assert`, `String_from` / `String_new`, core `len` / `push` / `pop` on `Vec`,
 etc.) may remain even after facade work; rows call out *replaceable* patterns
 where an explicit `std::text`, `std::core::convert`, or `std::collections`
@@ -94,7 +94,7 @@ operating on `Vec<T>` above the byte-buffer level.
 
 ### Families where the prelude is still acceptable
 
-- `panic(msg)` — no module-qualified version; keep using prelude form.
+- `Std::panic(msg)` — stable prelude namespace form (ADR-090); the free `panic` is removed.
 - `assert(cond, msg)` — same.
 - `String_new()` / `String_from(s)` — tiny-prelude allocation; no facade needed yet.
 - `len(s)` on `String` — keep using; module-qualified form is verbose for no gain.

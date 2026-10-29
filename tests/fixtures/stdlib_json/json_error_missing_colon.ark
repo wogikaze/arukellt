@@ -3,11 +3,11 @@ use std::test
 
 fn main() {
     match json::JsonValue::parse("{\"a\"1}") {
-        Result::Ok(_) => panic("expected error for missing colon"),
+        Result::Ok(_) => Std::panic("expected error for missing colon"),
         Result::Err(_) => {},
     }
     match json::JsonValue::parse("{\"a\" 1}") {
-        Result::Ok(_) => panic("expected error for missing colon with space"),
+        Result::Ok(_) => Std::panic("expected error for missing colon with space"),
         Result::Err(_) => {},
     }
 }

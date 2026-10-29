@@ -11,10 +11,10 @@ test "generic_key_value_collections_expose_expected_operations" {
     test::assert_eq_i32(m.len(), 2)
     match m.get("alpha") {
         Option::Some(v) => test::assert_eq_i32(v, 10),
-        None => panic("expected Some(10)"),
+        None => Std::panic("expected Some(10)"),
     }
     match m.get("gamma") {
-        Option::Some(_) => panic("expected None for gamma"),
+        Option::Some(_) => Std::panic("expected None for gamma"),
         None => {
         },
     }
@@ -29,7 +29,7 @@ test "generic_key_value_collections_expose_expected_operations" {
     test::assert_eq_i32(m2.len(), 2)
     match m2.get(1) {
         Option::Some(v) => test::assert_eq_string(v, "ONE"),
-        None => panic("expected Some(\"ONE\")"),
+        None => Std::panic("expected Some(\"ONE\")"),
     }
 
     // --- HashMap<String, String> via the method surface ---
@@ -39,7 +39,7 @@ test "generic_key_value_collections_expose_expected_operations" {
     test::assert_eq_i32(m3.len(), 2)
     match m3.get("greeting") {
         Option::Some(v) => test::assert_eq_string(v, "hello"),
-        None => panic("expected Some(\"hello\")"),
+        None => Std::panic("expected Some(\"hello\")"),
     }
     test::assert_true(m3.contains_key("farewell"))
 

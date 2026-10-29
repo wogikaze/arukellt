@@ -10,21 +10,21 @@ fn main() {
     test::assert_false(m.contains_key("z"))
     match m.get("a") {
         Option::Some(v) => test::assert_eq_i32(v, 11),
-        None => panic("expected Some(11)"),
+        None => Std::panic("expected Some(11)"),
     }
     match m.get("missing") {
-        Option::Some(_) => panic("expected None"),
+        Option::Some(_) => Std::panic("expected None"),
         None => {
         },
     }
     match m.remove("b") {
         Option::Some(v) => test::assert_eq_i32(v, 2),
-        None => panic("expected Some(2)"),
+        None => Std::panic("expected Some(2)"),
     }
     let _ = m.insert("b", 22)
     match m.get("b") {
         Option::Some(v) => test::assert_eq_i32(v, 22),
-        None => panic("expected Some(22)"),
+        None => Std::panic("expected Some(22)"),
     }
     test::assert_eq_i32(m.len(), 2)
 }

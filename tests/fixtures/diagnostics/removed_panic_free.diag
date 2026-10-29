@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined name: panic; removed prelude control function; use `Std::panic(message)` (auto-imported)

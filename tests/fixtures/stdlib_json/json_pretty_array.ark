@@ -4,6 +4,6 @@ use std::text
 fn main() {
     match json::JsonValue::parse("[1,2,3]") {
         Result::Ok(v) => test::assert_eq_string(json::JsonValue::pretty_text(v, 2), "[\n  1,\n  2,\n  3\n]"),
-        Result::Err(e) => panic("parse array failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse array failed: ".concat(e.message())),
     }
 }

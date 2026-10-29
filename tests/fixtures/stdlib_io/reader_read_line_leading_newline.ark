@@ -11,16 +11,16 @@ fn main() {
     match res {
         Result::Ok(found) => match found {
             Option::Some(line) => test::assert_eq_string(line, ""),
-            Option::None => panic("expected an empty line"),
+            Option::None => Std::panic("expected an empty line"),
         },
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     let res2: Result<Option<String>, io::IoError> = r.read_line()
     match res2 {
         Result::Ok(found) => match found {
             Option::Some(line) => test::assert_eq_string(line, "X"),
-            Option::None => panic("expected the trailing line"),
+            Option::None => Std::panic("expected the trailing line"),
         },
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
 }

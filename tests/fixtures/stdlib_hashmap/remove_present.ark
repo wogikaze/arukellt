@@ -11,7 +11,7 @@ fn main() {
 
     match hash::hashmap_remove(m, 2) {
         Option::Some(v) => test::assert_eq_i32(v, 20),
-        None => panic("expected Some(20) on remove"),
+        None => Std::panic("expected Some(20) on remove"),
     }
     test::assert_eq_i32(hash::hashmap_size(m), 2)
     test::assert_false(hash::hashmap_contains(m, 2))

@@ -3512,3 +3512,8 @@ diag:diagnostics/borrowed_box_store.ark
 diag:diagnostics/borrowed_box_unbox.ark
 fmt:fmt/mut_parameters.ark
 fmt:fmt/fn_type_mut.ark
+diag:diagnostics/removed_panic_free.ark
+diag:diagnostics/removed_panic_free_wasm32.ark
+run:stdlib_vec/vec_sort_noarg.ark
+diag:diagnostics/removed_sort_free.ark
+diag:diagnostics/removed_sort_free_wasm32.ark

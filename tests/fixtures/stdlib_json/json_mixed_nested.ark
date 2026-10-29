@@ -10,26 +10,26 @@ fn main() {
                         match person.get_field("name") {
                             Option::Some(nv) => match nv.as_string() {
                                 Option::Some(s) => test::assert_eq_string(s, "alice"),
-                                None => panic("expected string"),
+                                None => Std::panic("expected string"),
                             },
-                            None => panic("expected key name"),
+                            None => Std::panic("expected key name"),
                         }
                         match person.get_field("scores") {
                             Option::Some(scores) => match scores.get_index(1) {
                                 Option::Some(sv) => match sv.as_i32() {
                                     Option::Some(n) => test::assert_eq_i32(n, 85),
-                                    None => panic("expected number"),
+                                    None => Std::panic("expected number"),
                                 },
-                                None => panic("expected score at 1"),
+                                None => Std::panic("expected score at 1"),
                             },
-                            None => panic("expected key scores"),
+                            None => Std::panic("expected key scores"),
                         }
                     },
-                    None => panic("expected element 0"),
+                    None => Std::panic("expected element 0"),
                 },
-                None => panic("expected key data"),
+                None => Std::panic("expected key data"),
             }
         },
-        Result::Err(e) => panic("parse mixed nested failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse mixed nested failed: ".concat(e.message())),
     }
 }

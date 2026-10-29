@@ -6,33 +6,33 @@ fn main() {
         Result::Ok(v) => {
             match v.get_field("n") {
                 Option::Some(fv) => test::assert_true(fv.is_null()),
-                None => panic("expected key n"),
+                None => Std::panic("expected key n"),
             }
             match v.get_field("b") {
                 Option::Some(fv) => test::assert_true(fv.is_bool()),
-                None => panic("expected key b"),
+                None => Std::panic("expected key b"),
             }
             match v.get_field("i") {
                 Option::Some(fv) => test::assert_true(fv.is_number()),
-                None => panic("expected key i"),
+                None => Std::panic("expected key i"),
             }
             match v.get_field("f") {
                 Option::Some(fv) => test::assert_true(fv.is_number()),
-                None => panic("expected key f"),
+                None => Std::panic("expected key f"),
             }
             match v.get_field("s") {
                 Option::Some(fv) => test::assert_true(fv.is_string()),
-                None => panic("expected key s"),
+                None => Std::panic("expected key s"),
             }
             match v.get_field("a") {
                 Option::Some(fv) => test::assert_true(fv.is_array()),
-                None => panic("expected key a"),
+                None => Std::panic("expected key a"),
             }
             match v.get_field("o") {
                 Option::Some(fv) => test::assert_true(fv.is_object()),
-                None => panic("expected key o"),
+                None => Std::panic("expected key o"),
             }
         },
-        Result::Err(e) => panic("parse all-types object failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse all-types object failed: ".concat(e.message())),
     }
 }

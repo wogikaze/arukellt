@@ -7,6 +7,6 @@ fn make_err(e: i32) -> Result<i32, i32> {
 fn main() {
     let r = make_err(7)
     test::assert_true(is_err(r))
-    match r { Result::Ok(v) => panic("ok"), Result::Err(e) => test::assert_eq_i32(e, 7) }
+    match r { Result::Ok(v) => Std::panic("ok"), Result::Err(e) => test::assert_eq_i32(e, 7) }
     stdio::println("ok")
 }

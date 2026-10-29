@@ -17,10 +17,10 @@ fn main() {
     // get_option distinguishes missing from stored-zero
     match hash::hashmap_get_option(m, 5) {
         Option::Some(v) => test::assert_eq_i32(v, 0),
-        None => panic("expected Some(0) for stored zero"),
+        None => Std::panic("expected Some(0) for stored zero"),
     }
     match hash::hashmap_get_option(m, 6) {
-        Option::Some(_) => panic("expected None for missing key"),
+        Option::Some(_) => Std::panic("expected None for missing key"),
         None => {}
     }
 }

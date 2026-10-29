@@ -5,18 +5,18 @@ fn main() {
     match json::JsonValue::parse("[1,2,3]") {
         Result::Ok(v) => {
             match v.get_index(5) {
-                Option::Some(_) => panic("expected None for out-of-bounds"),
+                Option::Some(_) => Std::panic("expected None for out-of-bounds"),
                 None => {},
             }
             match v.get_index(-1) {
-                Option::Some(_) => panic("expected None for negative index"),
+                Option::Some(_) => Std::panic("expected None for negative index"),
                 None => {},
             }
             match v.get_index(0) {
                 Option::Some(_) => {},
-                None => panic("expected Some for valid index 0"),
+                None => Std::panic("expected Some for valid index 0"),
             }
         },
-        Result::Err(e) => panic("parse failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse failed: ".concat(e.message())),
     }
 }

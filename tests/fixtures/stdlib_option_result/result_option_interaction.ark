@@ -9,9 +9,9 @@ fn main() {
     match r {
         Result::Ok(opt) => match opt {
             Option::Some(v) => test::assert_eq_i32(v, 42),
-            None => panic("none"),
+            None => Std::panic("none"),
         },
-        Result::Err(e) => panic(e),
+        Result::Err(e) => Std::panic(e),
     }
     stdio::println("ok")
 }

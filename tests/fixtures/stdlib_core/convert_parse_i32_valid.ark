@@ -5,16 +5,16 @@ fn main() {
     let first: Result<i32, String> = i32::try_from("123")
     match first {
         Ok(v) => test::assert_eq_i32(v, 123),
-        Err(_) => panic("expected Ok(123)"),
+        Err(_) => Std::panic("expected Ok(123)"),
     }
     let zero: Result<i32, String> = i32::try_from("0")
     match zero {
         Ok(v) => test::assert_eq_i32(v, 0),
-        Err(_) => panic("expected Ok(0)"),
+        Err(_) => Std::panic("expected Ok(0)"),
     }
     let large: Result<i32, String> = i32::try_from("999999")
     match large {
         Ok(v) => test::assert_eq_i32(v, 999999),
-        Err(_) => panic("expected Ok(999999)"),
+        Err(_) => Std::panic("expected Ok(999999)"),
     }
 }

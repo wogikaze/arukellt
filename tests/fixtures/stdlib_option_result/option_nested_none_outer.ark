@@ -3,7 +3,7 @@ use std::test
 fn main() {
     let a: Option<Option<i32>> = None
     match a {
-        Option::Some(inner) => panic("outer some"),
+        Option::Some(inner) => Std::panic("outer some"),
         None => {},
     }
     stdio::println("ok")

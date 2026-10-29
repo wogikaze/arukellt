@@ -4,6 +4,7 @@
 //! part and one for the imaginary part. Lengths must match and the transform
 //! size must be a power of two.
 use std::core::convert
+use std::prelude::Std
 
 pub fn pi() -> f64 {
     3.141592653589793
@@ -30,13 +31,13 @@ fn i32_to_f64(n: i32) -> f64 {
 
 fn require_same_length(real: Vec<f64>, imag: Vec<f64>) {
     if len(real) != len(imag) {
-        panic("fft: real/imag length mismatch")
+        Std::panic("fft: real/imag length mismatch")
     }
 }
 
 fn require_power_of_two(n: i32) {
     if !n.is_power_of_two() {
-        panic("fft: length must be a positive power of two")
+        Std::panic("fft: length must be a positive power of two")
     }
 }
 

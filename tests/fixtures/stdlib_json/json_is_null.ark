@@ -11,6 +11,6 @@ fn main() {
             test::assert_false(v.is_array())
             test::assert_false(v.is_object())
         },
-        Result::Err(e) => panic("parse failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse failed: ".concat(e.message())),
     }
 }

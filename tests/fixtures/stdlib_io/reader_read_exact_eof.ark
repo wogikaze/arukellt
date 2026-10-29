@@ -9,10 +9,10 @@ fn main() {
     data.push_byte(73)
     let mut r: io::Reader = io::Reader::from_bytes(data)
     match io::Io::read_exact(r, 5) {
-        Result::Ok(_) => panic("expected error"),
+        Result::Ok(_) => Std::panic("expected error"),
         Result::Err(err) => match err {
             io::IoError::UnexpectedEof(msg) => test::assert_true(contains(msg, "need 5")),
-            io::IoError::Other(msg) => panic(msg),
+            io::IoError::Other(msg) => Std::panic(msg),
         },
     }
 }

@@ -14,12 +14,12 @@ fn main() {
             test::assert_eq_i32(get_unchecked(bytes, 0), 10)
             test::assert_eq_i32(get_unchecked(bytes, 1), 20)
         },
-        Result::Err(_e) => panic("expected Ok"),
+        Result::Err(_e) => Std::panic("expected Ok"),
     }
 
     // Only 1 byte left, requesting 5 should fail
     match io::Io::read_exact(reader, 5) {
-        Result::Ok(_) => panic("expected Err"),
+        Result::Ok(_) => Std::panic("expected Err"),
         Result::Err(_e) => {}
     }
 }

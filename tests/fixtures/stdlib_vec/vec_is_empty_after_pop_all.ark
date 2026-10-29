@@ -8,17 +8,17 @@ fn main() {
     match pop(v) {
         Option::Some(_) => {
         },
-        None => panic("expected Some, got None"),
+        None => Std::panic("expected Some, got None"),
     }
     match pop(v) {
         Option::Some(_) => {
         },
-        None => panic("expected Some, got None"),
+        None => Std::panic("expected Some, got None"),
     }
     match pop(v) {
         Option::Some(_) => {
         },
-        None => panic("expected Some, got None"),
+        None => Std::panic("expected Some, got None"),
     }
     test::assert_true(is_empty(v))
 }

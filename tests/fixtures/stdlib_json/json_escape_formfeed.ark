@@ -5,8 +5,8 @@ fn main() {
     match json::JsonValue::parse("\"a\\fb\"") {
         Result::Ok(v) => match v.as_string() {
             Option::Some(s) => test::assert_eq_i32(len(s), 3),
-            None => panic("expected string"),
+            None => Std::panic("expected string"),
         },
-        Result::Err(e) => panic("parse formfeed failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse formfeed failed: ".concat(e.message())),
     }
 }

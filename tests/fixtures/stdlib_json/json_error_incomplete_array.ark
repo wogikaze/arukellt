@@ -3,15 +3,15 @@ use std::test
 
 fn main() {
     match json::JsonValue::parse("[") {
-        Result::Ok(_) => panic("expected error for incomplete array"),
+        Result::Ok(_) => Std::panic("expected error for incomplete array"),
         Result::Err(_) => {},
     }
     match json::JsonValue::parse("[1") {
-        Result::Ok(_) => panic("expected error for unclosed array"),
+        Result::Ok(_) => Std::panic("expected error for unclosed array"),
         Result::Err(_) => {},
     }
     match json::JsonValue::parse("[1,") {
-        Result::Ok(_) => panic("expected error for trailing comma in array"),
+        Result::Ok(_) => Std::panic("expected error for trailing comma in array"),
         Result::Err(_) => {},
     }
 }

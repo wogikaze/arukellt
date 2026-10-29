@@ -4,14 +4,14 @@ use std::test
 fn main() {
     match 'A'.cmp('B') {
         Ordering::Less => {}
-        _ => panic("expected Less"),
+        _ => Std::panic("expected Less"),
     }
     match 'A'.cmp('A') {
         Ordering::Equal => {}
-        _ => panic("expected Equal"),
+        _ => Std::panic("expected Equal"),
     }
     match 'Z'.cmp('A') {
         Ordering::Greater => {}
-        _ => panic("expected Greater"),
+        _ => Std::panic("expected Greater"),
     }
 }

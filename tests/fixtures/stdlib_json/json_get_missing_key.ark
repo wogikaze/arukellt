@@ -5,14 +5,14 @@ fn main() {
     match json::JsonValue::parse("{\"a\":1}") {
         Result::Ok(v) => {
             match v.get_field("missing") {
-                Option::Some(_) => panic("expected None for missing key"),
+                Option::Some(_) => Std::panic("expected None for missing key"),
                 None => {},
             }
             match v.get_field("a") {
                 Option::Some(_) => {},
-                None => panic("expected Some for existing key a"),
+                None => Std::panic("expected Some for existing key a"),
             }
         },
-        Result::Err(e) => panic("parse failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse failed: ".concat(e.message())),
     }
 }

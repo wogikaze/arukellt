@@ -14,17 +14,17 @@ fn main() {
     match reader.read_line() {
         Result::Ok(found) => match found {
             Option::Some(line) => test::assert_eq_string(line, "AB"),
-            Option::None => panic("expected Ok"),
+            Option::None => Std::panic("expected Ok"),
         },
-        Result::Err(_e) => panic("expected Ok"),
+        Result::Err(_e) => Std::panic("expected Ok"),
     }
 
     // Second read should get "CD" (no trailing newline)
     match reader.read_line() {
         Result::Ok(found) => match found {
             Option::Some(line) => test::assert_eq_string(line, "CD"),
-            Option::None => panic("expected Ok"),
+            Option::None => Std::panic("expected Ok"),
         },
-        Result::Err(_e) => panic("expected Ok"),
+        Result::Err(_e) => Std::panic("expected Ok"),
     }
 }

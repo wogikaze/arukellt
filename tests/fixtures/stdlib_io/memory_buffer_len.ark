@@ -13,7 +13,7 @@ fn main() {
     let mut w2: io::Writer = io::Writer::new()
     match w2.write(data) {
         Result::Ok(count) => test::assert_eq_i32(count, 3),
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     let r2: io::Reader = w2.into_reader()
     test::assert_eq_i32(r2.len(), 3)

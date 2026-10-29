@@ -9,14 +9,14 @@ test "string_keys_map_to_overwritten_string_values" {
     test::assert_eq_i32(m.len(), 3)
     match m.get("greeting") {
         Option::Some(v) => test::assert_eq_string(v, "hello"),
-        None => panic("expected Some(hello)"),
+        None => Std::panic("expected Some(hello)"),
     }
     match m.get("color") {
         Option::Some(v) => test::assert_eq_string(v, "blue"),
-        None => panic("expected Some(blue)"),
+        None => Std::panic("expected Some(blue)"),
     }
     match m.get("missing") {
-        Option::Some(v) => panic("expected None"),
+        Option::Some(v) => Std::panic("expected None"),
         None => {
         },
     }

@@ -16,38 +16,34 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
-## 2026-10-29 — bimap / trie type surface (#917, wave/bimap-trie)
+## 2026-10-29 — `Std::panic` と Vec no-argument sort (#917, wave/sort-panic)
 
-- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の
-  free-function 根絶。対象は `std::collections` の **17** 個の未登録
-  free functions（`bimap_i32_i32_*` 10、`trie_*` 7）。manifest entry が
-  なかったため [ADR-014](../adr/ADR-014-stability-labels.md) の
-  deprecation window も W0009 warning も適用されず、同時削除した。
-- **Replacement**: `Bimap::new()` / `m.insert(key, value)` /
-  `m.get_by_key(key)` / `m.get_by_value(value)` / `m.contains_key(key)` /
-  `m.contains_value(value)` / `m.remove_by_key(key)` /
-  `m.remove_by_value(value)` / `m.len()` / `m.is_empty()`、および
-  `Trie::new()` / `t.insert(key, value)` / `t.get(key)` / `t.contains(key)` /
-  `t.has_prefix(prefix)` / `t.remove(key)` / `t.count_with_prefix(prefix)`。
-  どちらも backing store は型の private field に閉じる。
-- **Monophonic scope**: `Bimap` は `i32` key / `i32` value、`Trie` は
-  `String` key / `i32` value に固定した。現行の runtime Vec storage は
-  フラットな `Vec<i32>` で、nested pair / generic node payload を
-  持てないため、`Bimap<K, V>` / `Trie<V>` の generic 化は別の storage
-  設計を要する。
-- **E0100**: 旧 `bimap_i32_i32_*` / `trie_*` 名は
-  `resolver::removed_names::removed_bimap_member_hint` /
-  `removed_trie_member_hint` が
-  `bimap` / `collections::bimap` / `std::collections::bimap`（trie も同じ）
-  の各綴りで新しい associated / method 名を案内する。
-- **Evidence**: `stdlib_bimap/bimap_basic*` と新しい
-  `stdlib_trie/trie_basic*` を wasm32-gc component と `--target wasm32` の
-  両方で compile・validate・execute した。
-  `diagnostics/removed_bimap_free*` / `removed_trie_free*` は両 target の
-  E0100 golden として追加した。
-- **Scorecard**: eradication scope 296 → **279**、`associated-or-method`
-  230 → **213**、`pub fn` 宣言 323 → **306**、unregistered 25 → **8**。
-  manifest 公開 entry 271、`prelude_wrapper` 65、`must delete` 66 は不変。
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の free-function
+  根絶と [ADR-090](../adr/ADR-090-std-namespace-and-panic-association.md)。ADR-090 は
+  [ADR-072](../adr/ADR-072-language-v2-prelude-and-keyword-policy.md) §1 の安定集合を
+  `Std` 型の追加と `panic` の associated 化へ改訂する。
+- **Retired (5)**: `std::collections::sort` の `sort` / `sort_unstable` /
+  `is_sorted` / `select_nth` と、prelude の `panic`。
+- **Replacement**: `v.sort()` / `v.sort_unstable()` / `v.is_sorted()` /
+  `v.select_nth(k)`（`impl<T: Ord> Vec<T>`）と、`Std::panic(message: String)`。
+  `Std` は prelude の安定型として auto-import される。comparator を受ける
+  `v.sort_by(cmp)` 系は `f64` のような非 `Ord` 要素型のために残る。
+- **Lifecycle**: `panic` は `stable` のため [ADR-087](../adr/ADR-087-0x-deprecation-exception.md)
+  D2 の 0.x 例外の対象だが、W0009 の代わりに E0100（compile error + replacement
+  hint）で移行させる限定例外を ADR-090 §3 に記録した。対象は `panic` 1 件のみで、
+  他の stable entry の削除条件は変更しない。
+- **E0100**: 旧 `panic(...)` は `Std::panic(message)`、旧
+  `sort(v)` / `sort_unstable(v)` / `is_sorted(v)` / `select_nth(v, k)` は
+  `resolver::removed_names` が `v.sort()` 系の method 名を案内する。
+- **Evidence**: `tests/fixtures/stdlib_vec/vec_sort_noarg.ark` が 4 method を
+  wasm32-gc component と `--target wasm32` の両方で compile・validate・execute する。
+  std / fixtures の panic call site 921 行を `Std::panic` へ移行し、両 target の
+  panic fixture で stderr と trap を確認する。`Vec<String>` の method 解決は
+  typechecker の bare `Vec` owner fallback で修正した（#966）。
+- **Scorecard**: eradication scope 296 → **291**、`associated-or-method`
+  230 → **225**、manifest 公開 entry 271 → **270**、`pub fn` 宣言 323 → **318**、
+  unregistered 25 → **21**、`prelude_wrapper` 65 → **64**。`must delete` 66、
+  `intrinsic-only` 1 は不変。
 
 ## 2026-10-29 — compiler collections type surface (#917, wave/associated-remain)
 

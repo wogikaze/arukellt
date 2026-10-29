@@ -15,7 +15,7 @@ fn main() {
     while i < 10 {
         match hash::hashmap_remove(m, i) {
             Option::Some(v) => test::assert_eq_i32(v, i * 100),
-            None => panic("expected Some on remove"),
+            None => Std::panic("expected Some on remove"),
         }
         i = i + 1
     }

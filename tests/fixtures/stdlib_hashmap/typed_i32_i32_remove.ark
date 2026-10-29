@@ -8,7 +8,7 @@ fn main() {
 
     match m.remove(1) {
         Option::Some(v) => test::assert_eq_i32(v, 10),
-        None => panic("expected Some(10)"),
+        None => Std::panic("expected Some(10)"),
     }
     test::assert_eq_i32(m.len(), 1)
     test::assert_false(m.contains_key(1))

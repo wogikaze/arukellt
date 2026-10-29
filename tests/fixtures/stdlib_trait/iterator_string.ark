@@ -23,21 +23,21 @@ fn main() {
     let mut iterator = source.into_iter()
     match iterator.next() {
         Some(value) => test::assert_eq_string(value, "alpha"),
-        None => panic("expected first string"),
+        None => Std::panic("expected first string"),
     }
 
     let mut generic_source: Vec<String> = Vec::new<String>()
     push(generic_source, String_from("beta"))
     match first(generic_source.into_iter()) {
         Some(value) => test::assert_eq_string(value, "beta"),
-        None => panic("expected generic first string"),
+        None => Std::panic("expected generic first string"),
     }
 
     let mut converted_source: Vec<String> = Vec::new<String>()
     push(converted_source, String_from("theta"))
     match first_from_source(converted_source) {
         Some(value) => test::assert_eq_string(value, "theta"),
-        None => panic("expected converted first string"),
+        None => Std::panic("expected converted first string"),
     }
 
     let mut collect_source: Vec<String> = Vec::new<String>()

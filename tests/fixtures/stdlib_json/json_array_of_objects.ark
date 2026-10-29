@@ -8,23 +8,23 @@ fn main() {
                 Option::Some(obj) => match obj.get_field("id") {
                     Option::Some(fv) => match fv.as_i32() {
                         Option::Some(n) => test::assert_eq_i32(n, 1),
-                        None => panic("expected number"),
+                        None => Std::panic("expected number"),
                     },
-                    None => panic("expected key id"),
+                    None => Std::panic("expected key id"),
                 },
-                None => panic("expected element 0"),
+                None => Std::panic("expected element 0"),
             }
             match v.get_index(1) {
                 Option::Some(obj) => match obj.get_field("id") {
                     Option::Some(fv) => match fv.as_i32() {
                         Option::Some(n) => test::assert_eq_i32(n, 2),
-                        None => panic("expected number"),
+                        None => Std::panic("expected number"),
                     },
-                    None => panic("expected key id"),
+                    None => Std::panic("expected key id"),
                 },
-                None => panic("expected element 1"),
+                None => Std::panic("expected element 1"),
             }
         },
-        Result::Err(e) => panic("parse failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse failed: ".concat(e.message())),
     }
 }

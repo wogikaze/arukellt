@@ -1,5 +1,5 @@
 fn must_not_reach() {
-    panic(String_from("unreachable"))
+    Std::panic(String_from("unreachable"))
 }
 fn main() {
 }

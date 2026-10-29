@@ -5,8 +5,8 @@ fn main() {
     match json::JsonValue::parse("\"x\\ry\"") {
         Result::Ok(v) => match v.as_string() {
             Option::Some(s) => test::assert_eq_string(s, "x\ry"),
-            None => panic("expected string"),
+            None => Std::panic("expected string"),
         },
-        Result::Err(e) => panic("parse CR failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse CR failed: ".concat(e.message())),
     }
 }

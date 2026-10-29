@@ -7,7 +7,7 @@ fn main() {
     let last: Option<i32> = pop(v)
     match last {
         Option::Some(val) => test::assert_eq_i32(val, 20),
-        None => panic("expected Some, got None"),
+        None => Std::panic("expected Some, got None"),
     }
     test::assert_eq_i32(len(v), 1)
 }

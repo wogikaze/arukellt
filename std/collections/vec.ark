@@ -646,40 +646,178 @@ impl<T> Vec<T> {
 }
 
 // ---------------------------------------------------------------------------
-// Specialized ordering / search surface for the common contest element types.
+// `Ord`-bounded no-argument algorithms.
 //
-// Generic `T: Ord` methods are the intended surface, but on wasm32-gc a generic
-// `<` lowers to invalid Wasm (issue #965). Until that is fixed the comparison
-// methods are specialized for i32 and String. Calling module-level `vec_*`
-// helpers from a specialized impl body lowers to an unreachable stub, so bodies
-// use the builtin sibling methods (`self.len()` / `self.get_unchecked()` /
-// `self.set()`), which lower to intrinsics. String ordering uses a local byte
-// loop because `Ord::cmp` and `==` on String currently trap (#953/#966).
+// The comparator surface above (`sort_by` / `is_sorted_by` / `partition`)
+// stays on the unbounded impl so `f64` callers can pass a total order. These
+// methods compare through `Ord::cmp`, so they live in a bounded impl: `f64` is
+// not `Ord` and `v.sort()` is not available for it by construction.
+//
+// `sort` is a non-recursive bottom-up merge sort (stable, O(n log n)).
+// `sort_unstable` reuses it — stability is permitted, not promised.
+// `select_nth` is quickselect with a middle pivot (average O(n)).
 // ---------------------------------------------------------------------------
 
-impl Vec<i32> {
-    /// Sorts i32 elements in ascending order (stable insertion sort).
-    fn sort(mut self: Vec<i32>) {
-        let count: i32 = self.len()
-        let mut i: i32 = 1
-        while i < count {
-            let current = self.get_unchecked(i)
-            let mut j: i32 = i - 1
-            let mut shifting: bool = true
-            while shifting && j >= 0 {
-                let previous = self.get_unchecked(j)
-                if current < previous {
-                    self.set(j + 1, previous)
-                    j = j - 1
-                } else {
-                    shifting = false
-                }
+// Lomuto partition used by quickselect. Kept as a module helper because the
+// specialized `Vec<i32>` impl cannot call module-level helpers; generic impl
+// bodies can.
+fn partition_ord<T: Ord>(mut values: Vec<T>, lo: i32, hi: i32) -> i32 {
+    let mid: i32 = lo + (hi - lo) / 2
+    let pivot = get_unchecked(values, mid)
+    set(values, mid, get_unchecked(values, hi))
+    set(values, hi, pivot)
+    let mut boundary: i32 = lo - 1
+    let mut scan: i32 = lo
+    while scan < hi {
+        let current = get_unchecked(values, scan)
+        let mut greater: bool = false
+        match current.cmp(pivot) {
+            Ordering::Greater => {
+                greater = true
             }
-            self.set(j + 1, current)
-            i = i + 1
+            _ => {}
+        }
+        if !greater {
+            boundary = boundary + 1
+            let displaced = get_unchecked(values, boundary)
+            set(values, boundary, current)
+            set(values, scan, displaced)
+        }
+        scan = scan + 1
+    }
+    boundary = boundary + 1
+    let displaced = get_unchecked(values, boundary)
+    set(values, boundary, pivot)
+    set(values, hi, displaced)
+    boundary
+}
+
+impl<T: Ord> Vec<T> {
+    /// Sorts the vector in ascending order.
+    fn sort(mut self: Vec<T>) {
+        let count: i32 = self.len()
+        if count < 2 {
+            return
+        }
+        // Scratch handles are copied element handles, like `sort_by`; the GC
+        // keeps them alive and the merge never reads an uninitialized slot.
+        let mut scratch: Vec<T> = Vec::with_capacity<T>(count)
+        let mut fill: i32 = 0
+        while fill < count {
+            push(scratch, self.get_unchecked(0))
+            fill = fill + 1
+        }
+        let mut width: i32 = 1
+        while width < count {
+            let mut lo: i32 = 0
+            while lo < count {
+                let mut mid: i32 = lo + width
+                if mid > count {
+                    mid = count
+                }
+                let mut hi: i32 = lo + 2 * width
+                if hi > count {
+                    hi = count
+                }
+                let mut left_idx: i32 = lo
+                let mut right_idx: i32 = mid
+                let mut write: i32 = lo
+                while write < hi {
+                    let mut take_left: bool = false
+                    if left_idx < mid {
+                        if right_idx >= hi {
+                            take_left = true
+                        } else {
+                            let left = self.get_unchecked(left_idx)
+                            let right = self.get_unchecked(right_idx)
+                            match left.cmp(right) {
+                                Ordering::Greater => {}
+                                _ => {
+                                    take_left = true
+                                }
+                            }
+                        }
+                    }
+                    if take_left {
+                        vec_set(scratch, write, self.get_unchecked(left_idx))
+                        left_idx = left_idx + 1
+                    } else {
+                        vec_set(scratch, write, self.get_unchecked(right_idx))
+                        right_idx = right_idx + 1
+                    }
+                    write = write + 1
+                }
+                lo = hi
+            }
+            let mut copy: i32 = 0
+            while copy < count {
+                vec_set(self, copy, scratch.get_unchecked(copy))
+                copy = copy + 1
+            }
+            width = width * 2
         }
     }
 
+    /// Sorts the vector in ascending order without a stability promise.
+    fn sort_unstable(mut self: Vec<T>) {
+        self.sort()
+    }
+
+    /// Returns true when the vector is in non-decreasing order.
+    fn is_sorted(self: Vec<T>) -> bool {
+        let count: i32 = self.len()
+        let mut index: i32 = 1
+        while index < count {
+            let previous = self.get_unchecked(index - 1)
+            let current = self.get_unchecked(index)
+            match previous.cmp(current) {
+                Ordering::Greater => {
+                    return false
+                }
+                _ => {}
+            }
+            index = index + 1
+        }
+        true
+    }
+
+    /// Rearranges elements so index `k` holds the k-th smallest element.
+    ///
+    /// All elements before `k` are <= it and all after are >= it. An
+    /// out-of-range `k` leaves the vector unchanged.
+    fn select_nth(mut self: Vec<T>, k: i32) {
+        let count: i32 = self.len()
+        if k < 0 || k >= count {
+            return
+        }
+        let mut lo: i32 = 0
+        let mut hi: i32 = count - 1
+        while lo < hi {
+            let pivot = partition_ord(self, lo, hi)
+            if pivot == k {
+                return
+            }
+            if pivot < k {
+                lo = pivot + 1
+            } else {
+                hi = pivot - 1
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Specialized i32 search / dedup surface.
+//
+// The generic `Ord` algorithms live in the bounded `impl<T: Ord>` above. These
+// remaining i32 helpers stay specialized because generic `<` still lowers to
+// invalid Wasm on wasm32-gc (issue #965). Calling module-level `vec_*` helpers
+// from this specialized impl body lowers to an unreachable stub, so bodies use
+// the builtin sibling methods (`self.len()` / `self.get_unchecked()` /
+// `self.set()`), which lower to intrinsics.
+// ---------------------------------------------------------------------------
+
+impl Vec<i32> {
     /// Removes consecutive equal elements.
     fn dedup(mut self: Vec<i32>) {
         let count: i32 = self.len()

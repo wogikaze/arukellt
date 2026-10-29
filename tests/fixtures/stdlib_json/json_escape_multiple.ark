@@ -5,8 +5,8 @@ fn main() {
     match json::JsonValue::parse("\"a\\tb\\nc\\\\d\\\"e\"") {
         Result::Ok(v) => match v.as_string() {
             Option::Some(s) => test::assert_eq_string(s, "a\tb\nc\\d\"e"),
-            None => panic("expected string"),
+            None => Std::panic("expected string"),
         },
-        Result::Err(e) => panic("parse multiple escapes failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse multiple escapes failed: ".concat(e.message())),
     }
 }

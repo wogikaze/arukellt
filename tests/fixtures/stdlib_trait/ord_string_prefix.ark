@@ -5,14 +5,14 @@ fn main() {
     // Shorter string is Less when it is a prefix of the longer
     match String_from("ab").cmp(String_from("abc")) {
         Ordering::Less => {}
-        _ => panic("expected Less"),
+        _ => Std::panic("expected Less"),
     }
     match String_from("abc").cmp(String_from("ab")) {
         Ordering::Greater => {}
-        _ => panic("expected Greater"),
+        _ => Std::panic("expected Greater"),
     }
     match String_from("").cmp(String_from("a")) {
         Ordering::Less => {}
-        _ => panic("expected Less"),
+        _ => Std::panic("expected Less"),
     }
 }

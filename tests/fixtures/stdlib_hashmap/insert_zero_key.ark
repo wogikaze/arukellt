@@ -17,7 +17,7 @@ fn main() {
     // Remove key=0
     match hash::hashmap_remove(m, 0) {
         Option::Some(v) => test::assert_eq_i32(v, 99),
-        None => panic("expected Some(99) on remove"),
+        None => Std::panic("expected Some(99) on remove"),
     }
     test::assert_false(hash::hashmap_contains(m, 0))
     test::assert_eq_i32(hash::hashmap_size(m), 0)

@@ -68,6 +68,16 @@ literal と通常の名前解決が競合し、shadowing と target 差の検証
 旧 broad auto-import は #878 が完了するまで残るため、current-state では stable v2 policy と legacy runtime behavior を別々に記述する。
 LSP rename、playground tokenizer、formatter/highlighting fixture は同じ分類表に追随する。
 
+## 改訂 (2026-10-29)
+
+[ADR-090](ADR-090-std-namespace-and-panic-association.md) により §1 の安定集合を
+次のように改訂する。本 ADR の keyword policy と target 非依存の原則は変更しない。
+
+- 安定な型に `Std` を加える。`Std` は無レシーバの制御操作を associated function として
+  置くための名前空間型である。
+- 安定な関数から `panic` を外し、`Std::panic(message: String)` を安定な制御操作とする。
+- その他の安定型・安定値・intrinsic compatibility group は変更しない。
+
 ## 再検討条件
 
 - #878 の migration が完了し、legacy auto-import boundary を削除できる場合。

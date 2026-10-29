@@ -11,7 +11,7 @@ fn main() {
 
     match reader.read(2) {
         Result::Ok(_) => (),
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     test::assert_true(reader.is_eof())
 }

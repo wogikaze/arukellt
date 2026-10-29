@@ -3,10 +3,11 @@
 // Every other prelude declaration requires an explicit
 // 'use std::prelude::{name}' at the call site.
 // Keep in sync with [prelude_policy] stable_functions +
-// intrinsic_compatibility_functions in std/manifest.toml;
+// intrinsic_compatibility_functions + prelude-declared stable_types in
+// std/manifest.toml;
 // scripts/check/check-compat-orphans.py verifies both directions.
 fn is_stable_prelude_name(name: String) -> bool {
-    eq(clone(name), "panic") || eq(clone(name), "assert") ||
+    eq(clone(name), "Std") || eq(clone(name), "assert") ||
     eq(clone(name), "String_from") || eq(clone(name), "String_new") ||
     eq(clone(name), "char_to_string") || eq(clone(name), "len") ||
     eq(clone(name), "push") || eq(clone(name), "pop") ||
@@ -16,9 +17,10 @@ fn is_stable_prelude_name(name: String) -> bool {
 
 test mod "prelude_stable" {
     test "stable fns" {
-        assert(is_stable_prelude_name("panic"))
+        assert(is_stable_prelude_name("Std"))
         assert(is_stable_prelude_name("String_from"))
         assert(is_stable_prelude_name("char_to_string"))
+        assert(!is_stable_prelude_name("panic"))
     }
     test "intrinsic compat" {
         assert(is_stable_prelude_name("len"))

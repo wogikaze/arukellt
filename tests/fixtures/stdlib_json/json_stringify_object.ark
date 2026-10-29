@@ -4,14 +4,14 @@ use std::text
 fn main() {
     match json::JsonValue::parse("{\"a\":1}") {
         Result::Ok(v) => test::assert_eq_string(v.to_text(), "{\"a\":1}"),
-        Result::Err(e) => panic("parse object failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse object failed: ".concat(e.message())),
     }
     match json::JsonValue::parse("{}") {
         Result::Ok(v) => test::assert_eq_string(v.to_text(), "{}"),
-        Result::Err(e) => panic("parse empty object failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse empty object failed: ".concat(e.message())),
     }
     match json::JsonValue::parse("{\"a\":1,\"b\":true}") {
         Result::Ok(v) => test::assert_eq_string(v.to_text(), "{\"a\":1,\"b\":true}"),
-        Result::Err(e) => panic("parse multi object failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse multi object failed: ".concat(e.message())),
     }
 }

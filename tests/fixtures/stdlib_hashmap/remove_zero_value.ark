@@ -9,7 +9,7 @@ fn main() {
 
     match hash::hashmap_remove(m, 5) {
         Option::Some(v) => test::assert_eq_i32(v, 0),
-        None => panic("expected Some(0) for stored-zero value"),
+        None => Std::panic("expected Some(0) for stored-zero value"),
     }
     test::assert_false(hash::hashmap_contains(m, 5))
     test::assert_eq_i32(hash::hashmap_size(m), 0)

@@ -5,8 +5,8 @@ fn main() {
     match json::JsonValue::parse("\"a\\tb\"") {
         Result::Ok(v) => match v.as_string() {
             Option::Some(s) => test::assert_eq_string(s, "a\tb"),
-            None => panic("expected string"),
+            None => Std::panic("expected string"),
         },
-        Result::Err(e) => panic("parse tab failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse tab failed: ".concat(e.message())),
     }
 }

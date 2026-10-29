@@ -9,7 +9,7 @@ fn main() {
     match pop(v) {
         Option::Some(_) => {
         },
-        None => panic("expected Some, got None"),
+        None => Std::panic("expected Some, got None"),
     }
     push(v, 30)
     test::assert_eq_i32(len(v), len_before)

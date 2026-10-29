@@ -28,10 +28,10 @@ fn main() {
     // Result nesting with Error payload.
     match nest_ok(3) {
         Result::Ok(v) => test::assert_eq_i32(v, 3),
-        Result::Err(_) => panic("expected Ok"),
+        Result::Err(_) => Std::panic("expected Ok"),
     }
     match nest_err() {
-        Result::Ok(_) => panic("expected Err"),
+        Result::Ok(_) => Std::panic("expected Err"),
         Result::Err(e) => test::assert_eq_string(e.message(), "NotFound: missing"),
     }
 }

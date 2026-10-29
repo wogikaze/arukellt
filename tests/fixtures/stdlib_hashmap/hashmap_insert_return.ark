@@ -3,7 +3,7 @@ use std::test
 
 fn assert_none(v: Option<i32>) {
     match v {
-        Option::Some(_) => panic("expected None"),
+        Option::Some(_) => Std::panic("expected None"),
         None => {
         },
     }
@@ -12,7 +12,7 @@ fn assert_none(v: Option<i32>) {
 fn assert_some(v: Option<i32>, expected: i32) {
     match v {
         Option::Some(n) => test::assert_eq_i32(n, expected),
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
 }
 

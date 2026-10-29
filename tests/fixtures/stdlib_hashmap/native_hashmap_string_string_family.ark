@@ -10,21 +10,21 @@ fn main() {
     test::assert_false(m.contains_key("missing"))
     match m.get("k1") {
         Option::Some(v) => test::assert_eq_string(v, "v1b"),
-        None => panic("expected Some(v1b)"),
+        None => Std::panic("expected Some(v1b)"),
     }
     match m.get("missing") {
-        Option::Some(_) => panic("expected None"),
+        Option::Some(_) => Std::panic("expected None"),
         None => {
         },
     }
     match m.remove("k2") {
         Option::Some(v) => test::assert_eq_string(v, "v2"),
-        None => panic("expected Some(v2)"),
+        None => Std::panic("expected Some(v2)"),
     }
     let _ = m.insert("k2", "v2b")
     match m.get("k2") {
         Option::Some(v) => test::assert_eq_string(v, "v2b"),
-        None => panic("expected Some(v2b)"),
+        None => Std::panic("expected Some(v2b)"),
     }
     test::assert_eq_i32(m.len(), 2)
 }

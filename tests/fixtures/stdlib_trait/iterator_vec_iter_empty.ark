@@ -5,7 +5,7 @@ fn main() {
     let v: Vec<i32> = Vec::new<i32>()
     let mut it = v.iter()
     match it.next() {
-        Some(_) => panic("expected None on empty iterator"),
+        Some(_) => Std::panic("expected None on empty iterator"),
         None => {}
     }
 }

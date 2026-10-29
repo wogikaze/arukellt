@@ -5,18 +5,18 @@ fn main() {
     // false < true
     match false.cmp(true) {
         Ordering::Less => {}
-        _ => panic("expected Less"),
+        _ => Std::panic("expected Less"),
     }
     match true.cmp(false) {
         Ordering::Greater => {}
-        _ => panic("expected Greater"),
+        _ => Std::panic("expected Greater"),
     }
     match true.cmp(true) {
         Ordering::Equal => {}
-        _ => panic("expected Equal"),
+        _ => Std::panic("expected Equal"),
     }
     match false.cmp(false) {
         Ordering::Equal => {}
-        _ => panic("expected Equal"),
+        _ => Std::panic("expected Equal"),
     }
 }

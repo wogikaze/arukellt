@@ -7,7 +7,7 @@ fn main() {
     let mut w: io::Writer = io::Writer::new()
     match w.write(data) {
         Result::Ok(written) => test::assert_eq_i32(written, 1),
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
 
     let mut r: io::Reader = w.into_reader()
@@ -18,6 +18,6 @@ fn main() {
             test::assert_eq_i32(len(read), 1)
             test::assert_eq_i32(get_unchecked(read, 0), 65)
         },
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
 }

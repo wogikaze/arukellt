@@ -10,24 +10,24 @@ fn main() {
                     match inner.get_index(0) {
                         Option::Some(e) => match e.as_i32() {
                             Option::Some(n) => test::assert_eq_i32(n, 1),
-                            None => panic("expected 1"),
+                            None => Std::panic("expected 1"),
                         },
-                        None => panic("expected inner element 0"),
+                        None => Std::panic("expected inner element 0"),
                     }
                 },
-                None => panic("expected outer element 0"),
+                None => Std::panic("expected outer element 0"),
             }
             match v.get_index(1) {
                 Option::Some(inner) => match inner.get_index(1) {
                     Option::Some(e) => match e.as_i32() {
                         Option::Some(n) => test::assert_eq_i32(n, 4),
-                        None => panic("expected 4"),
+                        None => Std::panic("expected 4"),
                     },
-                    None => panic("expected inner element 1"),
+                    None => Std::panic("expected inner element 1"),
                 },
-                None => panic("expected outer element 1"),
+                None => Std::panic("expected outer element 1"),
             }
         },
-        Result::Err(e) => panic("parse nested array failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse nested array failed: ".concat(e.message())),
     }
 }

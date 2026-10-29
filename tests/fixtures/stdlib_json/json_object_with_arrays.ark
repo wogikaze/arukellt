@@ -10,18 +10,18 @@ fn main() {
                     match arr.get_index(1) {
                         Option::Some(e) => match e.as_i32() {
                             Option::Some(n) => test::assert_eq_i32(n, 2),
-                            None => panic("expected number"),
+                            None => Std::panic("expected number"),
                         },
-                        None => panic("expected element 1"),
+                        None => Std::panic("expected element 1"),
                     }
                 },
-                None => panic("expected key items"),
+                None => Std::panic("expected key items"),
             }
             match v.get_field("empty") {
                 Option::Some(arr) => test::assert_true(arr.is_array()),
-                None => panic("expected key empty"),
+                None => Std::panic("expected key empty"),
             }
         },
-        Result::Err(e) => panic("parse failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse failed: ".concat(e.message())),
     }
 }

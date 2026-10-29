@@ -9,9 +9,9 @@ fn main() {
             test::assert_eq_string(s, raw)
             match v.as_string() {
                 Option::Some(decoded) => test::assert_eq_string(decoded, "hello\nworld\ttab"),
-                None => panic("expected string"),
+                None => Std::panic("expected string"),
             }
         },
-        Result::Err(e) => panic("parse failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse failed: ".concat(e.message())),
     }
 }

@@ -11,7 +11,7 @@ fn main() {
 
     match m.get(1) {
         Option::Some(v) => test::assert_eq_i32(v, 100),
-        None => panic("expected Some(100)"),
+        None => Std::panic("expected Some(100)"),
     }
     test::assert_true(m.contains_key(1))
     test::assert_false(m.contains_key(99))

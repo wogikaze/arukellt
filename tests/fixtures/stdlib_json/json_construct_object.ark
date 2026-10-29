@@ -12,10 +12,10 @@ fn main() {
         Result::Ok(v) => match v.get_field("name") {
             Option::Some(nv) => match nv.as_string() {
                 Option::Some(name) => test::assert_eq_string(name, "alice"),
-                None => panic("expected string"),
+                None => Std::panic("expected string"),
             },
-            None => panic("expected key name"),
+            None => Std::panic("expected key name"),
         },
-        Result::Err(e) => panic("re-parse failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("re-parse failed: ".concat(e.message())),
     }
 }

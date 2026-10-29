@@ -11,10 +11,10 @@ fn main() {
             test::assert_false(v.is_string())
             test::assert_false(v.is_object())
         },
-        Result::Err(e) => panic("parse failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse failed: ".concat(e.message())),
     }
     match json::JsonValue::parse("[]") {
         Result::Ok(v) => test::assert_true(v.is_array()),
-        Result::Err(e) => panic("parse empty array failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse empty array failed: ".concat(e.message())),
     }
 }

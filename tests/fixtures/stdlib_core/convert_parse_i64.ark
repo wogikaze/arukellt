@@ -5,12 +5,12 @@ fn main() {
     let first: Result<i64, String> = i64::try_from("9001")
     match first {
         Ok(v) => test::assert_eq_i64(v, 9001i64),
-        Err(_) => panic("expected Ok(9001)"),
+        Err(_) => Std::panic("expected Ok(9001)"),
     }
     let zero: Result<i64, String> = i64::try_from("0")
     match zero {
         Ok(v) => test::assert_eq_i64(v, 0i64),
-        Err(_) => panic("expected Ok(0)"),
+        Err(_) => Std::panic("expected Ok(0)"),
     }
     let text: Result<i64, String> = i64::try_from("abc")
     let rejected: bool = match text {

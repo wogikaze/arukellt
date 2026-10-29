@@ -61,10 +61,10 @@ fn main() {
     push(v, 20)
     match get(v, 1) {
         Option::Some(val) => test::assert_eq_i32(val, 20),
-        None => panic("expected Some, got None"),
+        None => Std::panic("expected Some, got None"),
     }
     match get(v, 5) {
-        Option::Some(val) => panic("expected None, got Some"),
+        Option::Some(val) => Std::panic("expected None, got Some"),
         None => {
         },
     }
@@ -85,7 +85,7 @@ fn main() {
     let last: Option<i32> = pop(v)
     match last {
         Option::Some(val) => test::assert_eq_i32(val, 20),
-        None => panic("expected Some, got None"),
+        None => Std::panic("expected Some, got None"),
     }
     test::assert_eq_i32(len(v), 1)
 }
@@ -170,7 +170,7 @@ fn main() {
     let found = v.iter().find(is_even)
     match found {
         Option::Some(x) => test::assert_eq_i32(x, 30),
-        None => panic("expected Some, got None"),
+        None => Std::panic("expected Some, got None"),
     }
 }
 ```
@@ -216,7 +216,7 @@ fn main() {
 
     match m.get(2) {
         Option::Some(v) => test::assert_eq_i32(v, 200),
-        None => panic("expected Some(200)"),
+        None => Std::panic("expected Some(200)"),
     }
 
     test::assert_eq_i32(m.len(), 3)
@@ -224,7 +224,7 @@ fn main() {
     test::assert_true(m.contains_key(1))
 
     match m.get(99) {
-        Option::Some(v) => panic("expected None for key 99"),
+        Option::Some(v) => Std::panic("expected None for key 99"),
         None => {
         },
     }

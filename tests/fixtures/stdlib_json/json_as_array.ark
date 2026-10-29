@@ -10,33 +10,33 @@ fn main() {
             match v.get_index(0) {
                 Option::Some(elem) => match elem.as_i32() {
                     Option::Some(n) => test::assert_eq_i32(n, 1),
-                    None => panic("expected i32 at 0"),
+                    None => Std::panic("expected i32 at 0"),
                 },
-                None => panic("expected index 0"),
+                None => Std::panic("expected index 0"),
             }
             match v.get_index(2) {
                 Option::Some(elem) => match elem.as_i32() {
                     Option::Some(n) => test::assert_eq_i32(n, 3),
-                    None => panic("expected i32 at 2"),
+                    None => Std::panic("expected i32 at 2"),
                 },
-                None => panic("expected index 2"),
+                None => Std::panic("expected index 2"),
             }
             match v.get_index(3) {
-                Option::Some(_) => panic("expected None past end"),
+                Option::Some(_) => Std::panic("expected None past end"),
                 None => {},
             }
         },
-        Result::Err(e) => panic("parse failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse failed: ".concat(e.message())),
     }
     // Type mismatch: non-array is not an array
     match json::JsonValue::parse("{\"a\":1}") {
         Result::Ok(v) => {
             test::assert_true(!v.is_array())
             match v.get_index(0) {
-                Option::Some(_) => panic("expected None for non-array"),
+                Option::Some(_) => Std::panic("expected None for non-array"),
                 None => {},
             }
         },
-        Result::Err(e) => panic("parse object failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse object failed: ".concat(e.message())),
     }
 }

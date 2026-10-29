@@ -17,24 +17,24 @@ fn main() {
             test::assert_eq_i32(p.first, 1)
             test::assert_eq_i32(p.second, 10)
         },
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
     match it.next() {
         Some(p) => {
             test::assert_eq_i32(p.first, 2)
             test::assert_eq_i32(p.second, 20)
         },
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
     match it.next() {
         Some(p) => {
             test::assert_eq_i32(p.first, 3)
             test::assert_eq_i32(p.second, 30)
         },
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
     match it.next() {
-        Some(_) => panic("expected None"),
+        Some(_) => Std::panic("expected None"),
         None => {}
     }
 }

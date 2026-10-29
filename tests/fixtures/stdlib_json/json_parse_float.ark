@@ -7,23 +7,23 @@ fn main() {
             test::assert_true(v.is_number())
             match v.as_f64() {
                 Option::Some(n) => test::assert_eq_f64(n, 3.14),
-                None => panic("expected Some(3.14)"),
+                None => Std::panic("expected Some(3.14)"),
             }
         },
-        Result::Err(e) => panic("parse 3.14 failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse 3.14 failed: ".concat(e.message())),
     }
     match json::JsonValue::parse("0.5") {
         Result::Ok(v) => match v.as_f64() {
             Option::Some(n) => test::assert_eq_f64(n, 0.5),
-            None => panic("expected Some(0.5)"),
+            None => Std::panic("expected Some(0.5)"),
         },
-        Result::Err(e) => panic("parse 0.5 failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse 0.5 failed: ".concat(e.message())),
     }
     match json::JsonValue::parse("-2.5") {
         Result::Ok(v) => match v.as_f64() {
             Option::Some(n) => test::assert_eq_f64(n, -2.5),
-            None => panic("expected Some(-2.5)"),
+            None => Std::panic("expected Some(-2.5)"),
         },
-        Result::Err(e) => panic("parse -2.5 failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse -2.5 failed: ".concat(e.message())),
     }
 }

@@ -26,6 +26,7 @@ These are handled by `src/compiler/typechecker.ark` and are always in scope.
 | `Result<T, E>` | type |
 | `String` | type |
 | `Vec<T>` | type |
+| `Std` | namespace type (`Std::panic`) |
 | `Some(v)` | constructor |
 | `None` | constructor |
 | `Ok(v)` | constructor |
@@ -38,7 +39,7 @@ not have a second manifest or resolver entry.
 
 | Function | Purpose |
 |----------|---------|
-| `panic(s: String)` | Abort with a message |
+| `Std::panic(message: String)` | Abort with a message (associated on `Std`) |
 | `assert(cond: bool)` | Assert a condition |
 | `String_from(s)` | Construct a String |
 | `String_new()` | Construct an empty String |

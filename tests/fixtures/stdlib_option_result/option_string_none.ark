@@ -3,7 +3,7 @@ use std::test
 fn main() {
     let a: Option<String> = None
     match a {
-        Option::Some(v) => panic("some"),
+        Option::Some(v) => Std::panic("some"),
         None => {},
     }
     stdio::println("ok")

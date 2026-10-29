@@ -4,10 +4,10 @@ fn main() {
     let a: Option<Option<i32>> = Some(None)
     match a {
         Option::Some(inner) => match inner {
-            Option::Some(v) => panic("inner some"),
+            Option::Some(v) => Std::panic("inner some"),
             None => {},
         },
-        None => panic("outer none"),
+        None => Std::panic("outer none"),
     }
     stdio::println("ok")
 }

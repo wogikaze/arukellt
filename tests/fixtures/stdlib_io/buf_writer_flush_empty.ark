@@ -7,6 +7,6 @@ fn main() {
     let res: Result<(), io::IoError> = bw.flush()
     match res {
         Result::Ok(_) => (),
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
 }

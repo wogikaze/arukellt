@@ -3,7 +3,7 @@ use std::test
 
 fn main() {
     match json::JsonValue::parse("[true") {
-        Result::Ok(_) => panic("expected error for unclosed array"),
+        Result::Ok(_) => Std::panic("expected error for unclosed array"),
         Result::Err(_) => {},
     }
 }

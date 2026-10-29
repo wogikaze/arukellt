@@ -5,23 +5,23 @@ fn main() {
     match json::JsonValue::parse("3.14") {
         Result::Ok(v) => match v.as_f64() {
             Option::Some(n) => test::assert_eq_f64(n, 3.14),
-            None => panic("expected Some(3.14)"),
+            None => Std::panic("expected Some(3.14)"),
         },
-        Result::Err(e) => panic("parse failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse failed: ".concat(e.message())),
     }
     match json::JsonValue::parse("42") {
         Result::Ok(v) => match v.as_f64() {
             Option::Some(n) => test::assert_eq_f64(n, 42.0),
-            None => panic("expected Some(42.0)"),
+            None => Std::panic("expected Some(42.0)"),
         },
-        Result::Err(e) => panic("parse 42 failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse 42 failed: ".concat(e.message())),
     }
     // Type mismatch: json_as_f64 on non-number returns None
     match json::JsonValue::parse("\"str\"") {
         Result::Ok(v) => match v.as_f64() {
-            Option::Some(_) => panic("expected None for non-number"),
+            Option::Some(_) => Std::panic("expected None for non-number"),
             None => {},
         },
-        Result::Err(e) => panic("parse string failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse string failed: ".concat(e.message())),
     }
 }

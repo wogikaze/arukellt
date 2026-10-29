@@ -8,6 +8,6 @@ fn main() {
             test::assert_false(v.is_bool())
             test::assert_false(v.is_string())
         },
-        Result::Err(e) => panic("parse null failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse null failed: ".concat(e.message())),
     }
 }

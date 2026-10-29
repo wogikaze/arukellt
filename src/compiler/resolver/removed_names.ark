@@ -94,6 +94,16 @@ fn removed_name_specific_hint(name: String) -> String {
     }
     if eq(clone(name), "concat") { return "removed prelude wrapper; call `text::concat(a, b)` via `use std::text`, or `a.text::concat(b)`" }
     if eq(clone(name), "clear") { return "removed free function; use the Vec method `v.clear()`" }
+    if eq(clone(name), "panic") { return "removed prelude control function; use `Std::panic(message)` (auto-imported)" }
+    if eq(clone(name), "sort") || eq(clone(name), "sort_unstable") {
+        return "removed free sort algorithm; use `v.sort()` / `v.sort_unstable()` via `use std::collections::vec`"
+    }
+    if eq(clone(name), "is_sorted") {
+        return "removed free sort algorithm; use `v.is_sorted()` via `use std::collections::vec`"
+    }
+    if eq(clone(name), "select_nth") {
+        return "removed free sort algorithm; use `v.select_nth(k)` via `use std::collections::vec`"
+    }
     if eq(clone(name), "map_option_String_String") { return "removed free function; use `o.map(f)` via `use std::core::container`" }
     if eq(clone(name), "map_result_i32_i32") { return "removed free function; use `r.map(f)` via `use std::core::container`" }
     if eq(clone(name), "char_at") { return "removed prelude wrapper; use `byte_at(s, i)` via `use std::prelude::{byte_at}`" }
@@ -1281,7 +1291,14 @@ test mod "removed_names" {
     }
     test "live names have no hint" {
         assert(len(removed_name_hint("len")) == 0)
-        assert(len(removed_name_hint("panic")) == 0)
+        assert(len(removed_name_hint("assert")) == 0)
+    }
+    test "retired control and sort frees have E0100 hints" {
+        assert(len(removed_name_hint("panic")) > 0)
+        assert(len(removed_name_hint("sort")) > 0)
+        assert(len(removed_name_hint("sort_unstable")) > 0)
+        assert(len(removed_name_hint("is_sorted")) > 0)
+        assert(len(removed_name_hint("select_nth")) > 0)
     }
     test "removed raw bridges have E0100 hints" {
         assert(len(removed_name_hint("raw_array_new")) > 0)

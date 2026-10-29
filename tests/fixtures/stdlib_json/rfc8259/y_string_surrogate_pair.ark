@@ -14,8 +14,8 @@ fn main() {
                 test::assert_eq_i32(byte_at(s, 2), 152)
                 test::assert_eq_i32(byte_at(s, 3), 128)
             },
-            None => panic("expected string"),
+            None => Std::panic("expected string"),
         },
-        Result::Err(e) => panic("parse surrogate failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse surrogate failed: ".concat(e.message())),
     }
 }

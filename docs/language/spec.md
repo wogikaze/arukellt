@@ -1606,14 +1606,15 @@ Each `.ark` file is a module. A module consists of:
 The v2 stable Prelude is the fixed set in the `[prelude_policy]` table of
 `std/manifest.toml`:
 
-**Types**: `Option`, `Result`, `String`, `Vec`
+**Types**: `Option`, `Result`, `String`, `Vec`, `Std`
 
 **Values**: `Some`, `None`, `Ok`, `Err`
 
 **Lexical literals**: `true`, `false` (not injected values)
 
-**Stable functions**: `panic`, `assert`, `String_from`, `String_new`,
-`char_to_string`
+**Stable functions**: `assert`, `String_from`, `String_new`,
+`char_to_string`. The control operation is the associated function
+`Std::panic(message: String)`.
 
 Only this stable set is auto-imported (`legacy_auto_import = false`, #878).
 Every other `prelude = true` declaration requires an explicit
@@ -1723,7 +1724,7 @@ Non-prelude: `f32_to_string(f: f32) -> String`.
 
 | Signature | Description |
 |-----------|-------------|
-| `panic(s: String)` | Abort with message |
+| `Std::panic(message: String)` | Abort with message |
 
 ### 9.5 Vec — Constructors (prelude)
 

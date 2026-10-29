@@ -21,21 +21,21 @@ fn main() {
     let mut it = v.iter().flat_map(dup)
     match it.next() {
         Some(x) => test::assert_eq_i32(x, 1),
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
     match it.next() {
         Some(x) => test::assert_eq_i32(x, 10),
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
     match it.next() {
         Some(x) => test::assert_eq_i32(x, 2),
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
 
     // Empty inner vectors are skipped without ending the stream.
     let mut it2 = v.iter().flat_map(empty)
     match it2.next() {
-        Some(_) => panic("expected None"),
+        Some(_) => Std::panic("expected None"),
         None => {}
     }
 
@@ -45,22 +45,22 @@ fn main() {
     let mut it3 = ev.iter().flat_map(dup)
     match it3.next() {
         Some(x) => test::assert_eq_i32(x, 0),
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
     match it3.next() {
         Some(x) => test::assert_eq_i32(x, 0),
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
     match it3.next() {
         Some(x) => test::assert_eq_i32(x, 2),
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
     match it3.next() {
         Some(x) => test::assert_eq_i32(x, 20),
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
     match it3.next() {
-        Some(_) => panic("expected None"),
+        Some(_) => Std::panic("expected None"),
         None => {}
     }
 

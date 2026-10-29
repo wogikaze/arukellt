@@ -4,13 +4,13 @@ use std::test
 fn assert_some_len(v: Option<Vec<i32>>, expected: i32) {
     match v {
         Option::Some(chunk) => test::assert_eq_i32(chunk.len(), expected),
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
 }
 
 fn assert_none_vec(v: Option<Vec<i32>>) {
     match v {
-        Option::Some(_) => panic("expected None"),
+        Option::Some(_) => Std::panic("expected None"),
         None => {
         },
     }

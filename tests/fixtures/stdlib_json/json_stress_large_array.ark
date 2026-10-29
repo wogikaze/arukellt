@@ -8,25 +8,25 @@ fn main() {
             match v.get_index(0) {
                 Option::Some(e) => match e.as_i32() {
                     Option::Some(n) => test::assert_eq_i32(n, 1),
-                    None => panic("expected number at 0"),
+                    None => Std::panic("expected number at 0"),
                 },
-                None => panic("expected element at 0"),
+                None => Std::panic("expected element at 0"),
             }
             match v.get_index(10) {
                 Option::Some(e) => match e.as_i32() {
                     Option::Some(n) => test::assert_eq_i32(n, 11),
-                    None => panic("expected number at 10"),
+                    None => Std::panic("expected number at 10"),
                 },
-                None => panic("expected element at 10"),
+                None => Std::panic("expected element at 10"),
             }
             match v.get_index(19) {
                 Option::Some(e) => match e.as_i32() {
                     Option::Some(n) => test::assert_eq_i32(n, 20),
-                    None => panic("expected number at 19"),
+                    None => Std::panic("expected number at 19"),
                 },
-                None => panic("expected element at 19"),
+                None => Std::panic("expected element at 19"),
             }
         },
-        Result::Err(e) => panic("parse large array failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse large array failed: ".concat(e.message())),
     }
 }

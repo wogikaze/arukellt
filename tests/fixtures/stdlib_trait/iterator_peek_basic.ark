@@ -12,38 +12,38 @@ fn main() {
     // Repeated peeks return the same cached item without consuming it.
     match it.peek() {
         Some(x) => test::assert_eq_i32(x, 1),
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
     match it.peek() {
         Some(x) => test::assert_eq_i32(x, 1),
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
 
     // next drains the cached item first.
     match it.next() {
         Some(x) => test::assert_eq_i32(x, 1),
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
     match it.peek() {
         Some(x) => test::assert_eq_i32(x, 2),
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
     match it.next() {
         Some(x) => test::assert_eq_i32(x, 2),
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
 
     // Uncached items flow through next directly.
     match it.next() {
         Some(x) => test::assert_eq_i32(x, 3),
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
     match it.peek() {
-        Some(_) => panic("expected None"),
+        Some(_) => Std::panic("expected None"),
         None => {}
     }
     match it.next() {
-        Some(_) => panic("expected None"),
+        Some(_) => Std::panic("expected None"),
         None => {}
     }
 

@@ -10,10 +10,10 @@
 //! stdlib-visible entry points. GC/LM representation differences are absorbed
 //! by the CoreOp / target intrinsic handlers behind those helpers (RFC-006 D5).
 
-use std::prelude::{byte_at, eq, f32_to_f64}
+use std::prelude::{Std, byte_at, eq, f32_to_f64}
 
 fn raw_array_new<T>(cap: i32) -> Vec<T> {
-    panic(String_new()); return raw_array_new(cap)
+    Std::panic(String_new()); return raw_array_new(cap)
 }
 
 fn raw_array_len<T>(values: Vec<T>) -> i32 {

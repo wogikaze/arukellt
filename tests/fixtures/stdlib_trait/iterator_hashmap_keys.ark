@@ -17,7 +17,7 @@ fn main() {
         key_sum = key_sum + key
         match numbers.get(key) {
             Option::Some(v) => value_sum = value_sum + v,
-            None => panic("iterated key missing from map"),
+            None => Std::panic("iterated key missing from map"),
         }
     }
     test::assert_eq_i32(count, 3)

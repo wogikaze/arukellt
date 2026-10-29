@@ -5,23 +5,23 @@ fn main() {
     match json::JsonValue::parse("42") {
         Result::Ok(v) => match v.as_i32() {
             Option::Some(n) => test::assert_eq_i32(n, 42),
-            None => panic("expected Some(42)"),
+            None => Std::panic("expected Some(42)"),
         },
-        Result::Err(e) => panic("parse failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse failed: ".concat(e.message())),
     }
     match json::JsonValue::parse("-7") {
         Result::Ok(v) => match v.as_i32() {
             Option::Some(n) => test::assert_eq_i32(n, -7),
-            None => panic("expected Some(-7)"),
+            None => Std::panic("expected Some(-7)"),
         },
-        Result::Err(e) => panic("parse -7 failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse -7 failed: ".concat(e.message())),
     }
     // Type mismatch: json_as_i32 on non-number returns None
     match json::JsonValue::parse("true") {
         Result::Ok(v) => match v.as_i32() {
-            Option::Some(_) => panic("expected None for non-number"),
+            Option::Some(_) => Std::panic("expected None for non-number"),
             None => {},
         },
-        Result::Err(e) => panic("parse true failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse true failed: ".concat(e.message())),
     }
 }

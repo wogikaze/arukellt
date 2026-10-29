@@ -8,7 +8,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 165 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 164 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 10 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 31 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 65 | Superseded — see migration guidance. |
@@ -60,6 +60,7 @@
 | `Slice` | T | yes | provisional | Read-only contiguous view. |
 | `SlotMap` | - | no | experimental | Deletion-safe handle map for i32 values; keys stay stable across removes and removed slots report None. |
 | `Stack` | T | no | provisional | Last-in first-out stack restricted to Deque<T> push / pop at the back. |
+| `Std` | - | yes | stable | Namespace for unrecoverable process control. Use Std::panic(message) to abort. |
 | `Stderr` | - | no | experimental | Typed standard-error handle. Implements Write: write(data) emits the byte image unchanged without appending a newline, write_string(text) emits a string's UTF-8 bytes, and flush is synchronous. Byte-faithful replacement for the tagged stderr() / writer_write path (ADR-085 D9). |
 | `Stdout` | - | no | experimental | Typed standard-output handle. Implements Write: write(data) emits the byte image unchanged, write_string(text) emits a string's UTF-8 bytes, and flush is synchronous. Byte-faithful replacement for the tagged stdout() / writer_write path (ADR-085 D9). |
 | `String` | - | yes | stable | UTF-8 string value. |
@@ -167,6 +168,7 @@
 | `Seek` | `seek`, `position` | - |
 | `SlotMap` | `new`, `insert`, `get`, `remove`, `contains`, `len` | - |
 | `Stack` | `new`, `with_capacity`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
+| `Std` | `panic` | - |
 | `Stderr` | `new`, `write_string` | `Write` |
 | `Stdout` | `new`, `write_string` | `Write` |
 | `TomlValue` | `parse`, `to_text`, `as_string`, `as_int`, `as_bool`, `as_float`, `as_array`, `as_table`, `get_field`, `table_keys` | - |
@@ -365,12 +367,6 @@ let v = Vec::new<i32>()
 push(v, 1)
 push(v, 2)
 ```
-
-## Control
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `panic` | `(String) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_panic` | - |
 
 ## Conversion
 

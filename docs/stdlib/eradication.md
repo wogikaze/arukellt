@@ -15,21 +15,21 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 306 `pub fn` declarations under
-`std/**/*.ark`; 298 map to a manifest entry and
-8 are unregistered. Eradication scope = 271 manifest
-public entries + 8 unregistered declarations = **279 symbols**.
+**Real surface denominator:** 301 `pub fn` declarations under
+`std/**/*.ark`; 297 map to a manifest entry and
+4 are unregistered. Eradication scope = 270 manifest
+public entries + 4 unregistered declarations = **274 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 279 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 306 | — |
-| Unregistered std declarations (no manifest entry) | 8 | 0 |
+| Eradication-scope symbols (real std surface) | 274 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 301 | — |
+| Unregistered std declarations (no manifest entry) | 4 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
-| Manifest public entries (registered scope) | 271 | 0 |
-| `prelude_wrapper` entries | 65 | 0 |
+| Manifest public entries (registered scope) | 270 | 0 |
+| `prelude_wrapper` entries | 64 | 0 |
 | Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 50 | 0 |
 | `intrinsic-only` bridges (non-public) | 1 | — |
 
@@ -38,7 +38,7 @@ public entries + 8 unregistered declarations = **279 symbols**.
 | Class | Meaning | Symbols |
 |-------|---------|---------|
 | `must delete` | Replacement already exists or functionality retires | 66 |
-| `associated-or-method` | Replacement must land as method/associated first | 213 |
+| `associated-or-method` | Replacement must land as method/associated first | 208 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
 ## Execution Rules
@@ -50,8 +50,6 @@ registered entries and unregistered `pub fn` declarations.
 | Rule | Class | Owner | Manifest | Source | Replacement |
 |------|-------|-------|----------|--------|-------------|
 | private intrinsics | `intrinsic-only` | — | 1 | 0 | — |
-| collections sort free algorithms | `associated-or-method` | [#697](../../issues/open/697-vec-operation-extension.md) | 0 | 4 | Vec::sort_by / sort_by_key / sort_unstable_by / sort_unstable_by_key / partition / is_sorted_by methods (landed #697; the six free duplicates retired in #917); sort/sort_unstable/is_sorted/select_nth await no-argument methods |
-| panic | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 1 | 0 | associated on a core namespace type (e.g. Std::panic) or an explicit ADR exception |
 | vec intrinsic-compat frees | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 9 | 0 | Vec<T> methods: v.push(x), v.pop(), v.len(), v.get(idx), v.set(idx, val), v.get_unchecked(idx), v.as_slice(start, end); Slice<T> methods: view.len(), view.get(idx). `clear` was a stale non-callable entry and was retired directly. |
 | assertion frees | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 4 | 0 | std::test::assert_eq_i32(actual, expected), assert_ne_i32(actual, unexpected), assert_eq_i64(...), assert_eq_string(...); the deprecated prelude wrappers delegate to the same assertions |
 | monomorphic seq/combinator frees | `must delete` | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) | 1 | 0 | Vec / iterator methods: v.sort_by(cmp), v.iter().map(f).collect(), v.iter().filter(f).collect(), v.iter().fold(init, f), v.iter().sum(), v.iter().any(f), v.iter().find(f), v.iter().contains(x), v.iter().rev().collect(), v.drain(idx, idx + 1); Option::map / Result::map via std::core::container |
@@ -169,7 +167,6 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `min` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `pad_left` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `pad_right` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `panic` | `(prelude)` | `associated-or-method` | panic | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `parse_f64` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `parse_i32` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `parse_i64` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
@@ -355,9 +352,5 @@ manifest-only scorecard could not see before #703.
 |-------------|--------|--------|-------|------|-------|
 | `hashmap_entry_pairs` | `std/collections/hash.ark:347` | `std::collections::hash` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `btree_set_find_idx` | `std/collections/ordered.ark:164` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `sort` | `std/collections/sort.ark:42` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
-| `sort_unstable` | `std/collections/sort.ark:52` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
-| `is_sorted` | `std/collections/sort.ark:115` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
-| `select_nth` | `std/collections/sort.ark:132` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
 | `new_i32` | `std/collections/vec.ark:24` | `std::collections::vec` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `io_error_message` | `std/io/mod.ark:73` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |

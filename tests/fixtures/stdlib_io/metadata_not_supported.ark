@@ -3,7 +3,7 @@ use std::test
 use std::prelude::{contains}
 fn main() {
     match Fs::metadata("some_path") {
-        Result::Ok(_) => panic("expected error"),
+        Result::Ok(_) => Std::panic("expected error"),
         Result::Err(err) => test::assert_true(contains(err, "not yet supported")),
     }
 }

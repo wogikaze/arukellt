@@ -3,13 +3,13 @@ use std::signal
 use std::text
 fn assert_close(actual: f64, expected: f64) {
     if !signal::approx_eq(actual, expected, 0.001) {
-        panic("expected ".concat((expected).to_string().concat(", got ".concat((actual).to_string()))))
+        Std::panic("expected ".concat((expected).to_string().concat(", got ".concat((actual).to_string()))))
     }
 }
 
 fn assert_vec_close(actual: Vec<f64>, expected: Vec<f64>) {
     if len(actual) != len(expected) {
-        panic("vector length mismatch")
+        Std::panic("vector length mismatch")
     }
     let mut i = 0
     while i < len(actual) {

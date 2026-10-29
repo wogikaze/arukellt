@@ -21,15 +21,15 @@ fn main() {
     match l1 {
         Result::Ok(found) => match found {
             Option::Some(line) => test::assert_eq_string(line, "A"),
-            Option::None => panic("expected line A from capacity 64"),
+            Option::None => Std::panic("expected line A from capacity 64"),
         },
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     match l2 {
         Result::Ok(found) => match found {
             Option::Some(line) => test::assert_eq_string(line, "A"),
-            Option::None => panic("expected line A from capacity 1"),
+            Option::None => Std::panic("expected line A from capacity 1"),
         },
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
 }

@@ -7,7 +7,7 @@ fn find_item(found: bool) -> Result<Option<i32>, String> {
 fn main() {
     let r = find_item(false)
     match r {
-        Result::Ok(opt) => panic("ok"),
+        Result::Ok(opt) => Std::panic("ok"),
         Result::Err(e) => test::assert_eq_string(e, String_from("not found")),
     }
     stdio::println("ok")
