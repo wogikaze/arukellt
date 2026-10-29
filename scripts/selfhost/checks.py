@@ -458,6 +458,8 @@ BOOTSTRAP_STD_SOURCE_FILES = (
     "std/io/mod.ark",
     "std/core/error.ark",
     "std/core/convert.ark",
+    "std/core/raw.ark",
+    "std/core/scalar_format.ark",
 )
 CLI_VERSION_GOLDEN_REL = "tests/snapshots/selfhost/cli-version.txt"
 CLI_HELP_GOLDEN_REL = "tests/snapshots/selfhost/cli-help.txt"
@@ -4699,6 +4701,17 @@ def _prepare_flattened_selfhost_source_locked(
             "std/core/convert.ark"
         )
     shutil.copyfile(convert_src, core_dst / "convert.ark")
+    # `convert.ark` calls `__core_parse_f64_impl` from `scalar_format`; when the
+    # module is absent the call falls back to the `parse_f64` intrinsic, whose
+    # i32 result type poisons the gc MIR temp (the gc handler returns a Result
+    # ref) and the self-build emits invalid core Wasm in f64::try_from__String.
+    for core_rel in ("raw.ark", "scalar_format.ark"):
+        core_src = root / "std" / "core" / core_rel
+        if not core_src.is_file():
+            raise BootstrapOverlayError(
+                "bootstrap overlay missing canonical core source: std/core/" + core_rel
+            )
+        shutil.copyfile(core_src, core_dst / core_rel)
     _strip_bootstrap_param_modes(overlay_root)
     _FLAT_OVERLAY_CACHE = (source_mtime, overlay_root)
     # Write disk cache so subsequent processes can skip overlay regeneration.
