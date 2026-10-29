@@ -22,10 +22,10 @@ fn main() {
 
     match t.get("cart") {
         Option::Some(v) => test::assert_eq_i32(v, 2),
-        None => panic("expected Some(2)"),
+        None => Std::panic("expected Some(2)"),
     }
     match t.get("ca") {
-        Option::Some(v) => panic("expected None"),
+        Option::Some(v) => Std::panic("expected None"),
         None => {
         },
     }
@@ -34,7 +34,7 @@ fn main() {
     t.insert("car", 9)
     match t.get("car") {
         Option::Some(v) => test::assert_eq_i32(v, 9),
-        None => panic("expected Some(9)"),
+        None => Std::panic("expected Some(9)"),
     }
 
     test::assert_true(t.remove("cart"))
