@@ -72,7 +72,10 @@ fn mir_callee_name_accepts_i32_narrow_from_i64(callee_name: String) -> bool {
     if clone(callee_name).contains(String_from("hashmap_set")) ||
     clone(callee_name).contains(String_from("hashmap_insert")) ||
     clone(callee_name).contains(String_from("hashmap_get")) ||
-    clone(callee_name).contains(String_from("hashmap_contains")) {
+    clone(callee_name).contains(String_from("hashmap_contains")) ||
+    clone(callee_name).contains(String_from("hashmap_remove")) ||
+    clone(callee_name).contains(String_from("hashmap_reserve")) ||
+    clone(callee_name).contains(String_from("hashmap_try_reserve")) {
         return true
     }
     if eq(clone(callee_name), String_from("assert_eq_i32")) ||

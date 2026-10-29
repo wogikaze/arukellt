@@ -13,7 +13,9 @@
 //! flat store is the one pair whose bucket counters and bulk helpers are
 //! exposed; the String and fn-valued stores keep their bucket arrays private,
 //! so a call on those pairs is rejected with `E0200` instead of being lowered
-//! over the wrong store layout.
+//! over the wrong store layout. A generic capacity surface is deferred: those
+//! stores would need per-pair `drain` / `remove_entry` / `extend` lowering over
+//! their compiler-managed buckets before the contract could be shared.
 
 use std::core::iter
 

@@ -16,6 +16,37 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-30 — HashMap の容量境界と wide literal 引数の残件 (#917, wave/hashmap-remain)
+
+- **E0200 boundary**: 容量・一括操作 group は引き続き flat `HashMap<i32, i32>`
+  store 専用。String / fn pair では `with_capacity` を含む 9 名を型検査で拒否する。
+  診断は呼び出された method、受信 pair、group 全名、その pair で利用できる
+  `len` / `is_empty` / `insert` / `get` / `contains_key` / `remove` / `keys` /
+  `values` / `entries` を列挙する。汎用 `HashMap<K, V>` の容量 surface は、
+  non-flat store の compiler-managed bucket に対する per-pair の `drain` /
+  `remove_entry` / `extend` lowering が必要なため先送りし、理由を module docs と
+  `collections-hashmap-rust-diff.md` / migration guide に記録した。退役した 21
+  free は i32 専用だったため capability の欠落はない。
+- **Literal lowering**: method 引数の i64 temp を、direct call と同じ i64→i32
+  narrowing allowlist で i32 parameter に合わせるようにした。memory32 component
+  でも `m.insert(2147483648, v)` / `0 - 2147483648` が検証を通る。
+  `hashmap_remove` / `hashmap_reserve` / `hashmap_try_reserve` も allowlist に
+  加えた。memory64 の i64 parameter は従来どおり wide local を保つ。
+- **Fixtures**: `stdlib_hashmap/insert_max_int` / `insert_negative_keys` を wide
+  literal 表記へ戻し、`insert_wide_literal_arg`（key / get / contains_key /
+  remove / reserve / try_reserve）を追加。E0200 の
+  `hashmap_string_with_capacity*` を両 target で追加し、
+  `hashmap_string_capacity*` の golden を新診断文へ更新した。
+  `removed_hashmap_adapter*` は golden 変更なしで両 target の diag parity を確認。
+  registry 3556 -> **3559**。
+- **Evidence**: `verify fixtures` **1923/1923** compile+validate PASS（111
+  runtime smoke、38/38 `test:` PASS、2 runtime-unsupported、0 FAIL）。変更した
+  run fixture 3 件は wasm32-gc component と `--target wasm32` の両方で
+  compile+validate+実行 PASS。diag parity **260/260** PASS。`verify lane` PASS。
+  `docs check` 6/6。ADR-029 fixpoint PASS: s2 == s3 sha256
+  `d5bddc8811b482e3dbc0474f111cbabb385b33f3e1281fd61488ba8a10adeead`
+  （pinned base `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`）。
+
 ## 2026-10-29 — text free 10 件のうち 8 件を退役 (#917, wave/prelude-text2)
 
 - **Basis**: [ADR-091](../adr/ADR-091-prelude-free-function-exception.md) §4 が

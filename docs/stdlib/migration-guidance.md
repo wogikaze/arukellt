@@ -2431,6 +2431,10 @@ a method hint. The replacement is `HashMap::new<i32, i32>()` /
 `clear`, `drain`, `remove_entry`, `extend`) is implemented for
 `HashMap<i32, i32>` only: the String and fn-valued stores reject those calls
 at typecheck with `E0200` instead of lowering over the wrong bucket layout.
+The diagnostic names the rejected method, the receiver pair, and the methods
+the pair does support. A generic capacity surface is deferred because the
+non-flat stores keep compiler-managed bucket arrays and would need per-pair
+`drain` / `remove_entry` / `extend` lowering first.
 
 | Old API | Replacement |
 |---------|-------------|

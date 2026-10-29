@@ -1,0 +1,21 @@
+// An unsuffixed integer literal defaults to i32, so 2^31 has the i32::MIN
+// bit pattern. A method argument must narrow it to the flat store's i32
+// parameter instead of leaving the wide literal as an i64 operand.
+use std::test::Test
+
+fn main() {
+    let mut m = HashMap::new<i32, i32>()
+    let _ = m.insert(2147483648, 1)
+    let _ = m.insert(2147483647, 2)
+    Test::assert_eq_i32(m.len(), 2)
+    // The narrowed value is negative, so reserve treats it as no-op; the
+    // point is that the call emits a valid i32 operand.
+    m.reserve(2147483648)
+    let _ = m.try_reserve(2147483648)
+    Test::assert_eq_i32(m.len(), 2)
+    Test::assert_eq_i32(m.get(2147483648).unwrap_or(0), 1)
+    Test::assert_eq_i32(m.get(2147483647).unwrap_or(0), 2)
+    Test::assert_true(m.contains_key(2147483648))
+    Test::assert_eq_i32(m.remove(2147483648).unwrap_or(0), 1)
+    Test::assert_eq_i32(m.len(), 1)
+}
