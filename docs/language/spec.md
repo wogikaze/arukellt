@@ -2013,6 +2013,29 @@ bulk `memory.copy` / `memory.fill` are compiler intrinsics only
 `a.get(idx: i32) -> i32`,
 `a.len() -> i32`
 
+**Collections — Bimap**:
+`Bimap::new() -> Bimap`,
+`m.insert(key: i32, value: i32)`,
+`m.get_by_key(key: i32) -> Option<i32>`,
+`m.get_by_value(value: i32) -> Option<i32>`,
+`m.contains_key(key: i32) -> bool`,
+`m.contains_value(value: i32) -> bool`,
+`m.remove_by_key(key: i32) -> bool`,
+`m.remove_by_value(value: i32) -> bool`,
+`m.len() -> i32`,
+`m.is_empty() -> bool`.
+The former `bimap_i32_i32_*` free functions are retired (E0100).
+
+**Collections — Trie**:
+`Trie::new() -> Trie`,
+`t.insert(key: String, value: i32)`,
+`t.get(key: String) -> Option<i32>`,
+`t.contains(key: String) -> bool`,
+`t.has_prefix(prefix: String) -> bool`,
+`t.remove(key: String) -> bool`,
+`t.count_with_prefix(prefix: String) -> i32`.
+The former `trie_*` free functions are retired (E0100).
+
 **Collections — Deque**:
 `deque_new() -> Vec<i32>`,
 `deque_push_front(d: Vec<i32>, x: i32)`,

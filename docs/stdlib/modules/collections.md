@@ -16,6 +16,8 @@ The `std::collections` family provides the primary collection data structures fo
 | `HashMap::new` / `.insert` / `.get` | Generic HashMap API with static dispatch. |
 | `.contains_key` / `.remove` / `.len` | Typed lookup, removal, and size operations. |
 | `HashSet::new` / `.insert` / `.contains` | Unordered `i32` / `String` set with membership, aggregate, and ADR-086 trait methods. |
+| `Bimap::new` / `.insert` / `.get_by_key` | One-to-one `i32` key/value map with reverse lookup. |
+| `Trie::new` / `.insert` / `.has_prefix` | `String`-key prefix tree with prefix queries. |
 | `hashmap_new` / `hashmap_get` / `hashmap_set` | Raw i32 → i32 compatibility implementation. |
 | `Deque::new` / `.push_back` / `.pop_front` | Generic double-ended queue with both-end operations. |
 | `Queue::new` / `.push` / `.pop` | FIFO queue newtype over `Deque<T>`. |
@@ -705,3 +707,77 @@ Return the union of two BitSets.
 #### `std::collections::ordered::bitset_intersection`
 
 Return the intersection of two BitSets.
+
+## Module `std::collections::bimap`
+
+- Source: [`../../../std/collections/bimap.ark`](../../../std/collections/bimap.ark)
+- Manifest-backed functions: 0
+- Stability: n/a
+
+`Bimap` — a bidirectional map between `i32` keys and `i32` values.
+
+A bimap maintains a one-to-one correspondence between keys and values.
+Each key maps to exactly one value, and each value maps to exactly one key.
+Inserting a `(key, value)` pair automatically removes any existing pair with
+the same key or the same value.
+
+The backing store is a flat `Vec<i32>` of `[key, value, ...]` pairs. Lookup,
+insertion, and removal scan that vector, so they are O(n) in the number of
+pairs. Keeping the representation flat is required because the runtime Vec
+storage has no nested generic pair container.
+
+Construct with `Bimap::new()` and use the receiver methods; the former
+`bimap_i32_i32_*` free functions were retired by #917 with E0100
+replacement hints.
+
+**Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
+
+### `std::collections::bimap` — Public Types
+
+| Name | Kind | Methods | Trait impls | Summary |
+|------|------|---------|-------------|---------|
+| `Bimap` | `struct` | `new`, `insert`, `get_by_key`, `get_by_value`, `contains_key`, `contains_value`, `remove_by_key`, `remove_by_value`, `len`, `is_empty` | - | Bidirectional map over i32 keys and i32 values. |
+
+_No manifest-backed functions in this module._
+
+## Module `std::collections::trie`
+
+- Source: [`../../../std/collections/trie.ark`](../../../std/collections/trie.ark)
+- Manifest-backed functions: 0
+- Stability: n/a
+
+`Trie` — a prefix tree with `String` keys and `i32` values.
+
+A trie (prefix tree) stores key-value pairs where keys are strings, enabling
+prefix-based lookups: "does any key start with `P`?", "find all values
+with prefix `P`". Common uses include autocomplete, routing tables, and
+symbol interning.
+
+Implemented as a Vec-backed node pool. Each node has:
+- 256 child slots (one per byte value), each an index into the node pool
+or `-1` (no child)
+- a `has_value` flag (0 or 1)
+- an associated `i32` value
+
+Construct with `Trie::new()` and use the receiver methods; the former
+`trie_*` free functions were retired by #917 with E0100 replacement hints.
+
+**Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
+
+### Node pool layout
+
+The backing `Vec<i32>` stores:
+```text
+[root_index, node_count, free_head,
+node_0: child_0..child_255, has_value, value,
+node_1: child_0..child_255, has_value, value, ...]
+```
+Each node occupies `256 + 2` slots.
+
+### `std::collections::trie` — Public Types
+
+| Name | Kind | Methods | Trait impls | Summary |
+|------|------|---------|-------------|---------|
+| `Trie` | `struct` | `new`, `insert`, `get`, `contains`, `has_prefix`, `remove`, `count_with_prefix` | - | Prefix tree over String keys with i32 values. |
+
+_No manifest-backed functions in this module._

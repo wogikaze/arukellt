@@ -1742,6 +1742,57 @@ let id = a.alloc(42)
 Qualified old calls fail with **E0100** and the
 `resolver::removed_names::removed_compiler_member_hint` replacement hint.
 
+## std::collections bimap / trie type surface (ADR-046, 2026-10-29)
+
+The 10 `bimap_i32_i32_*` and 7 `trie_*` free functions were unregistered
+top-level declarations, so #917 removed them without an ADR-014 deprecation
+window and without W0009 warnings. Import `Bimap` or `Trie` and use the
+associated constructor plus receiver methods.
+
+| Removed free | Replacement |
+|--------------|-------------|
+| `bimap::bimap_i32_i32_new()` | `Bimap::new()` |
+| `bimap::bimap_i32_i32_insert(m, k, v)` | `m.insert(k, v)` |
+| `bimap::bimap_i32_i32_get_by_key(m, k)` | `m.get_by_key(k)` (`Option<i32>`) |
+| `bimap::bimap_i32_i32_get_by_value(m, v)` | `m.get_by_value(v)` (`Option<i32>`) |
+| `bimap::bimap_i32_i32_contains_key(m, k)` | `m.contains_key(k)` |
+| `bimap::bimap_i32_i32_contains_value(m, v)` | `m.contains_value(v)` |
+| `bimap::bimap_i32_i32_remove_by_key(m, k)` | `m.remove_by_key(k)` |
+| `bimap::bimap_i32_i32_remove_by_value(m, v)` | `m.remove_by_value(v)` |
+| `bimap::bimap_i32_i32_len(m)` | `m.len()` |
+| `bimap::bimap_i32_i32_is_empty(m)` | `m.is_empty()` |
+| `trie::trie_new()` | `Trie::new()` |
+| `trie::trie_insert(t, k, v)` | `t.insert(k, v)` |
+| `trie::trie_get(t, k)` | `t.get(k)` (`Option<i32>`) |
+| `trie::trie_contains(t, k)` | `t.contains(k)` |
+| `trie::trie_has_prefix(t, p)` | `t.has_prefix(p)` |
+| `trie::trie_remove(t, k)` | `t.remove(k)` |
+| `trie::trie_count_with_prefix(t, p)` | `t.count_with_prefix(p)` |
+
+```ark
+// Before
+use std::collections::bimap
+let mut bm = bimap::bimap_i32_i32_new()
+bimap::bimap_i32_i32_insert(bm, 1, 100)
+
+// After
+use std::collections::bimap::Bimap
+let mut bm = Bimap::new()
+bm.insert(1, 100)
+```
+
+`Bimap` is monomorphic over `i32` keys and `i32` values; `Trie` is
+monomorphic over `String` keys and `i32` values. The backing storage is a flat
+`Vec<i32>` (the bimap pair list and the trie's 256-way node pool), so generic
+`Bimap<K, V>` / `Trie<V>` spellings would need a different runtime
+representation and are deliberately not part of this surface. `Trie` has no
+`len`: the node pool does not track stored-key count, and
+`count_with_prefix("")` is the O(n) total count.
+
+Qualified old calls fail with **E0100** and the
+`resolver::removed_names::removed_bimap_member_hint` /
+`removed_trie_member_hint` replacement hint.
+
 ## Planned Deprecations
 
 The following APIs are scheduled for deprecation via the same monomorphic →

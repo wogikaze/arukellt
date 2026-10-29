@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: bimap::bimap_i32_i32_new; use `Bimap::new()` from `use std::collections::bimap::Bimap` instead

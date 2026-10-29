@@ -20,6 +20,7 @@
 | Name | Generic Params | Prelude | Stability | Summary |
 |------|----------------|---------|-----------|---------|
 | `Arena` | - | no | experimental | Bump allocator that hands out stable i32 arena ids; the backing entry vector is private. |
+| `Bimap` | - | no | provisional | Bidirectional map over i32 keys and i32 values backed by a flat pair vector. Lookup, insertion, and removal scan the pairs (O(n)); empty lookups return None and failed removals return false. |
 | `Box` | T | yes | provisional | Heap-allocated owned value. |
 | `BufReader` | R | no | experimental | Buffered byte source over a Read handle; implements Read and BufRead, and Seek when the inner handle is Seek. |
 | `BufWriter` | W | no | experimental | Buffered byte sink over a Write handle; flushes at capacity and on flush/into_inner. |
@@ -62,6 +63,7 @@
 | `Stderr` | - | no | experimental | Typed standard-error handle. Implements Write: write(data) emits the byte image unchanged without appending a newline, write_string(text) emits a string's UTF-8 bytes, and flush is synchronous. Byte-faithful replacement for the tagged stderr() / writer_write path (ADR-085 D9). |
 | `Stdout` | - | no | experimental | Typed standard-output handle. Implements Write: write(data) emits the byte image unchanged, write_string(text) emits a string's UTF-8 bytes, and flush is synchronous. Byte-faithful replacement for the tagged stdout() / writer_write path (ADR-085 D9). |
 | `String` | - | yes | stable | UTF-8 string value. |
+| `Trie` | - | no | provisional | Prefix tree over String keys and i32 values backed by a private 256-way node pool. has_prefix / count_with_prefix walk the byte key, and remove clears the value flag without pruning nodes. |
 | `U16x8` | - | no | experimental | 8 × 16-bit unsigned integer lane associated operations over v128. |
 | `U32x4` | - | no | experimental | 4 × 32-bit unsigned integer lane associated operations over v128. |
 | `U64x2` | - | no | experimental | 2 × 64-bit unsigned integer lane associated operations over v128. |
@@ -116,6 +118,7 @@
 | Type | Methods | Trait impls |
 |------|---------|-------------|
 | `Arena` | `new`, `alloc`, `get`, `len` | - |
+| `Bimap` | `new`, `insert`, `get_by_key`, `get_by_value`, `contains_key`, `contains_value`, `remove_by_key`, `remove_by_value`, `len`, `is_empty` | - |
 | `BufRead` | `fill_buf`, `consume`, `read_line` | `Read` |
 | `BufReader` | `new` | `Read`, `BufRead`, `Seek` |
 | `BufWriter` | `new`, `write_string`, `into_inner` | `Write` |
@@ -167,6 +170,7 @@
 | `Stderr` | `new`, `write_string` | `Write` |
 | `Stdout` | `new`, `write_string` | `Write` |
 | `TomlValue` | `parse`, `to_text`, `as_string`, `as_int`, `as_bool`, `as_float`, `as_array`, `as_table`, `get_field`, `table_keys` | - |
+| `Trie` | `new`, `insert`, `get`, `contains`, `has_prefix`, `remove`, `count_with_prefix` | - |
 | `U16x8` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `add_sat_u`, `sub_sat_u`, `eq`, `ne`, `lt_u`, `le_u`, `gt_u`, `ge_u`, `min_u`, `max_u`, `shl`, `shr_u` | - |
 | `U32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt_u`, `le_u`, `gt_u`, `ge_u`, `min_u`, `max_u`, `shl`, `shr_u` | - |
 | `U64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt_u`, `le_u`, `gt_u`, `ge_u`, `shl`, `shr_u` | - |

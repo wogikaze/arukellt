@@ -189,6 +189,8 @@ let text: String = String::from_utf8_lossy(back) // "hello"
             "std::collections::linked_list",
             "std::collections::linear",
             "std::collections::ordered",
+            "std::collections::bimap",
+            "std::collections::trie",
         ],
         "overview": {
             "summary": (
@@ -202,6 +204,8 @@ let text: String = String::from_utf8_lossy(back) // "hello"
                 ("`HashMap::new` / `.insert` / `.get`", "Generic HashMap API with static dispatch."),
                 ("`.contains_key` / `.remove` / `.len`", "Typed lookup, removal, and size operations."),
                 ("`HashSet::new` / `.insert` / `.contains`", "Unordered `i32` / `String` set with membership, aggregate, and ADR-086 trait methods."),
+                ("`Bimap::new` / `.insert` / `.get_by_key`", "One-to-one `i32` key/value map with reverse lookup."),
+                ("`Trie::new` / `.insert` / `.has_prefix`", "`String`-key prefix tree with prefix queries."),
                 ("`hashmap_new` / `hashmap_get` / `hashmap_set`", "Raw i32 → i32 compatibility implementation."),
                 ("`Deque::new` / `.push_back` / `.pop_front`", "Generic double-ended queue with both-end operations."),
                 ("`Queue::new` / `.push` / `.pop`", "FIFO queue newtype over `Deque<T>`."),

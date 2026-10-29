@@ -1,7 +1,7 @@
-//! `Trie` — a prefix tree for string keys with i32 values.
+//! `Trie` — a prefix tree with `String` keys and `i32` values.
 //!
 //! A trie (prefix tree) stores key-value pairs where keys are strings, enabling
-//! fast prefix-based lookups: "does any key start with `P`?", "find all values
+//! prefix-based lookups: "does any key start with `P`?", "find all values
 //! with prefix `P`". Common uses include autocomplete, routing tables, and
 //! symbol interning.
 //!
@@ -11,9 +11,12 @@
 //! - a `has_value` flag (0 or 1)
 //! - an associated `i32` value
 //!
+//! Construct with `Trie::new()` and use the receiver methods; the former
+//! `trie_*` free functions were retired by #917 with E0100 replacement hints.
+//!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 //!
-//! ## Layout
+//! ## Node pool layout
 //!
 //! The backing `Vec<i32>` stores:
 //! ```text
@@ -114,146 +117,6 @@ fn alloc_node(mut buf: Vec<i32>) -> i32 {
     new_node
 }
 
-// ── public API ──────────────────────────────────────────────────────────────
-
-/// Create a new empty `Trie`.
-pub fn trie_new() -> Vec<i32> {
-    let mut buf = Vec::new<i32>()
-    push(buf, NIL)  // root (allocated on first insert)
-    push(buf, 0)    // node_count
-    push(buf, NIL)  // free_head
-    buf
-}
-
-/// Insert a key-value pair into the trie. If the key already exists, the value
-/// is updated.
-pub fn trie_insert(mut buf: Vec<i32>, key: String, value: i32) {
-    let root = header_root(buf)
-    let mut current = root
-    if current == NIL {
-        current = alloc_node(buf)
-        set_header_root(buf, current)
-    }
-    let key_len = len(key)
-    let mut i = 0
-    while i < key_len {
-        let byte = byte_at(key, i)
-        let child = get_child(buf, current, byte)
-        if child == NIL {
-            let new_node = alloc_node(buf)
-            set_child(buf, current, byte, new_node)
-            current = new_node
-        } else {
-            current = child
-        }
-        i = i + 1
-    }
-    set_node_value(buf, current, 1, value)
-}
-
-/// Look up the value for a key. Returns `Option::Some(value)` if found,
-/// `Option::None` otherwise.
-pub fn trie_get(buf: Vec<i32>, key: String) -> Option<i32> {
-    let root = header_root(buf)
-    if root == NIL {
-        return Option::None
-    }
-    let mut current = root
-    let key_len = len(key)
-    let mut i = 0
-    while i < key_len {
-        let byte = byte_at(key, i)
-        let child = get_child(buf, current, byte)
-        if child == NIL {
-            return Option::None
-        }
-        current = child
-        i = i + 1
-    }
-    if node_has_value(buf, current) {
-        return Option::Some(node_value(buf, current))
-    }
-    Option::None
-}
-
-/// Returns true if the key exists in the trie.
-pub fn trie_contains(buf: Vec<i32>, key: String) -> bool {
-    let result = trie_get(buf, key)
-    match result {
-        Option::Some(_) => true,
-        Option::None => false,
-    }
-}
-
-/// Returns true if any key in the trie starts with the given prefix.
-pub fn trie_has_prefix(buf: Vec<i32>, prefix: String) -> bool {
-    let root = header_root(buf)
-    if root == NIL {
-        return false
-    }
-    let mut current = root
-    let prefix_len = len(prefix)
-    let mut i = 0
-    while i < prefix_len {
-        let byte = byte_at(prefix, i)
-        let child = get_child(buf, current, byte)
-        if child == NIL {
-            return false
-        }
-        current = child
-        i = i + 1
-    }
-    true
-}
-
-/// Remove a key from the trie. Returns true if the key was present.
-/// Note: this only clears the value flag; node cleanup is deferred.
-pub fn trie_remove(mut buf: Vec<i32>, key: String) -> bool {
-    let root = header_root(buf)
-    if root == NIL {
-        return false
-    }
-    let mut current = root
-    let key_len = len(key)
-    let mut i = 0
-    while i < key_len {
-        let byte = byte_at(key, i)
-        let child = get_child(buf, current, byte)
-        if child == NIL {
-            return false
-        }
-        current = child
-        i = i + 1
-    }
-    if node_has_value(buf, current) {
-        set_node_value(buf, current, 0, 0)
-        return true
-    }
-    false
-}
-
-/// Count the number of keys with the given prefix. O(n) where n is the
-/// size of the subtree under the prefix node.
-pub fn trie_count_with_prefix(buf: Vec<i32>, prefix: String) -> i32 {
-    let root = header_root(buf)
-    if root == NIL {
-        return 0
-    }
-    let mut current = root
-    let prefix_len = len(prefix)
-    let mut i = 0
-    while i < prefix_len {
-        let byte = byte_at(prefix, i)
-        let child = get_child(buf, current, byte)
-        if child == NIL {
-            return 0
-        }
-        current = child
-        i = i + 1
-    }
-    count_values_in_subtree(buf, current)
-}
-
 fn count_values_in_subtree(buf: Vec<i32>, node: i32) -> i32 {
     let mut count = 0
     if node_has_value(buf, node) {
@@ -270,78 +133,228 @@ fn count_values_in_subtree(buf: Vec<i32>, node: i32) -> i32 {
     count
 }
 
+/// Prefix tree over `String` keys with `i32` values.
+///
+/// The node pool is private: use `insert`, `get`, `contains`, `has_prefix`,
+/// `remove`, and `count_with_prefix`. A missing key returns `Option::None` and
+/// `remove` returns `false`; `has_prefix` and `count_with_prefix` match keys,
+/// not just node paths, so a stored prefix is not a key.
+pub struct Trie {
+    nodes: Vec<i32>,
+}
+
+impl Trie {
+    /// Creates an empty trie. The root node is allocated on the first insert.
+    fn new() -> Trie {
+        let mut nodes: Vec<i32> = Vec::new<i32>()
+        push(nodes, NIL)  // root (allocated on first insert)
+        push(nodes, 0)    // node_count
+        push(nodes, NIL)  // free_head
+        Trie { nodes: nodes }
+    }
+
+    /// Inserts a key-value pair. An existing key is updated in place.
+    fn insert(mut self: Trie, key: String, value: i32) {
+        let root = header_root(self.nodes)
+        let mut current = root
+        if current == NIL {
+            current = alloc_node(self.nodes)
+            set_header_root(self.nodes, current)
+        }
+        let key_len = len(key)
+        let mut i = 0
+        while i < key_len {
+            let byte = byte_at(key, i)
+            let child = get_child(self.nodes, current, byte)
+            if child == NIL {
+                let new_node = alloc_node(self.nodes)
+                set_child(self.nodes, current, byte, new_node)
+                current = new_node
+            } else {
+                current = child
+            }
+            i = i + 1
+        }
+        set_node_value(self.nodes, current, 1, value)
+    }
+
+    /// Returns the value for `key`, or `Option::None`.
+    fn get(self: Trie, key: String) -> Option<i32> {
+        let root = header_root(self.nodes)
+        if root == NIL {
+            return Option::None
+        }
+        let mut current = root
+        let key_len = len(key)
+        let mut i = 0
+        while i < key_len {
+            let byte = byte_at(key, i)
+            let child = get_child(self.nodes, current, byte)
+            if child == NIL {
+                return Option::None
+            }
+            current = child
+            i = i + 1
+        }
+        if node_has_value(self.nodes, current) {
+            return Option::Some(node_value(self.nodes, current))
+        }
+        Option::None
+    }
+
+    /// Returns true when `key` is stored.
+    fn contains(self: Trie, key: String) -> bool {
+        match self.get(key) {
+            Option::Some(_) => true,
+            Option::None => false,
+        }
+    }
+
+    /// Returns true when any stored key starts with `prefix`.
+    fn has_prefix(self: Trie, prefix: String) -> bool {
+        let root = header_root(self.nodes)
+        if root == NIL {
+            return false
+        }
+        let mut current = root
+        let prefix_len = len(prefix)
+        let mut i = 0
+        while i < prefix_len {
+            let byte = byte_at(prefix, i)
+            let child = get_child(self.nodes, current, byte)
+            if child == NIL {
+                return false
+            }
+            current = child
+            i = i + 1
+        }
+        true
+    }
+
+    /// Removes `key` and returns true when it was present.
+    ///
+    /// This clears the node's value flag only; node cleanup is deferred, so
+    /// removed keys leave their child path in the pool.
+    fn remove(mut self: Trie, key: String) -> bool {
+        let root = header_root(self.nodes)
+        if root == NIL {
+            return false
+        }
+        let mut current = root
+        let key_len = len(key)
+        let mut i = 0
+        while i < key_len {
+            let byte = byte_at(key, i)
+            let child = get_child(self.nodes, current, byte)
+            if child == NIL {
+                return false
+            }
+            current = child
+            i = i + 1
+        }
+        if node_has_value(self.nodes, current) {
+            set_node_value(self.nodes, current, 0, 0)
+            return true
+        }
+        false
+    }
+
+    /// Counts stored keys that start with `prefix`.
+    ///
+    /// O(n) in the size of the subtree under the prefix node.
+    fn count_with_prefix(self: Trie, prefix: String) -> i32 {
+        let root = header_root(self.nodes)
+        if root == NIL {
+            return 0
+        }
+        let mut current = root
+        let prefix_len = len(prefix)
+        let mut i = 0
+        while i < prefix_len {
+            let byte = byte_at(prefix, i)
+            let child = get_child(self.nodes, current, byte)
+            if child == NIL {
+                return 0
+            }
+            current = child
+            i = i + 1
+        }
+        count_values_in_subtree(self.nodes, current)
+    }
+}
+
 test mod "trie" {
     test "insert_get_roundtrip" {
-        let mut t = trie_new()
-        trie_insert(t, "abc", 42)
-        let r = match trie_get(t, "abc") {
+        let mut t = Trie::new()
+        t.insert("abc", 42)
+        let r = match t.get("abc") {
             Option::Some(v) => v,
             Option::None => 0 - 1,
         }
         assert(r == 42)
     }
     test "get_missing_is_none" {
-        let mut t = trie_new()
-        trie_insert(t, "abc", 1)
-        let r = match trie_get(t, "abd") {
+        let mut t = Trie::new()
+        t.insert("abc", 1)
+        let r = match t.get("abd") {
             Option::Some(v) => 1,
             Option::None => 2,
         }
         assert(r == 2)
     }
     test "contains_inserted_key" {
-        let mut t = trie_new()
-        trie_insert(t, "hello", 7)
-        assert(trie_contains(t, "hello"))
-        assert(trie_contains(t, "hell") == false)
+        let mut t = Trie::new()
+        t.insert("hello", 7)
+        assert(t.contains("hello"))
+        assert(t.contains("hell") == false)
     }
     test "shared_prefix_keys_independent" {
-        let mut t = trie_new()
-        trie_insert(t, "car", 1)
-        trie_insert(t, "cart", 2)
-        trie_insert(t, "carton", 3)
-        let r = match trie_get(t, "car") {
+        let mut t = Trie::new()
+        t.insert("car", 1)
+        t.insert("cart", 2)
+        t.insert("carton", 3)
+        let r = match t.get("car") {
             Option::Some(v) => v,
             Option::None => 0 - 1,
         }
         assert(r == 1)
-        assert(trie_contains(t, "carton"))
+        assert(t.contains("carton"))
     }
     test "prefix_is_not_key" {
-        let mut t = trie_new()
-        trie_insert(t, "carton", 3)
-        assert(trie_contains(t, "car") == false)
-        assert(trie_has_prefix(t, "car"))
+        let mut t = Trie::new()
+        t.insert("carton", 3)
+        assert(t.contains("car") == false)
+        assert(t.has_prefix("car"))
     }
     test "has_prefix_absent" {
-        let mut t = trie_new()
-        trie_insert(t, "dog", 1)
-        assert(trie_has_prefix(t, "cat") == false)
+        let mut t = Trie::new()
+        t.insert("dog", 1)
+        assert(t.has_prefix("cat") == false)
     }
     test "remove_key" {
-        let mut t = trie_new()
-        trie_insert(t, "key", 9)
-        assert(trie_remove(t, "key"))
-        assert(trie_contains(t, "key") == false)
+        let mut t = Trie::new()
+        t.insert("key", 9)
+        assert(t.remove("key"))
+        assert(t.contains("key") == false)
     }
     test "remove_missing_returns_false" {
-        let mut t = trie_new()
-        trie_insert(t, "key", 9)
-        assert(trie_remove(t, "lock") == false)
+        let mut t = Trie::new()
+        t.insert("key", 9)
+        assert(t.remove("lock") == false)
     }
     test "count_with_prefix" {
-        let mut t = trie_new()
-        trie_insert(t, "car", 1)
-        trie_insert(t, "cart", 2)
-        trie_insert(t, "dog", 3)
-        assert(trie_count_with_prefix(t, "car") == 2)
-        assert(trie_count_with_prefix(t, "do") == 1)
-        assert(trie_count_with_prefix(t, "x") == 0)
+        let mut t = Trie::new()
+        t.insert("car", 1)
+        t.insert("cart", 2)
+        t.insert("dog", 3)
+        assert(t.count_with_prefix("car") == 2)
+        assert(t.count_with_prefix("do") == 1)
+        assert(t.count_with_prefix("x") == 0)
     }
     test "count_with_prefix_full_key" {
-        let mut t = trie_new()
-        trie_insert(t, "ab", 1)
-        trie_insert(t, "abc", 2)
-        assert(trie_count_with_prefix(t, "abc") == 1)
+        let mut t = Trie::new()
+        t.insert("ab", 1)
+        t.insert("abc", 2)
+        assert(t.count_with_prefix("abc") == 1)
     }
 }

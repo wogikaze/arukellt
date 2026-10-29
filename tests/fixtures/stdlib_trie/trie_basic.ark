@@ -1,0 +1,46 @@
+// Trie type surface (#917, ADR-046).
+use std::collections::trie::Trie
+use std::test
+
+fn main() {
+    let mut t = Trie::new()
+    t.insert("car", 1)
+    t.insert("cart", 2)
+    t.insert("carton", 3)
+    t.insert("dog", 4)
+
+    test::assert_true(t.contains("car"))
+    test::assert_true(t.contains("carton"))
+    test::assert_false(t.contains("ca"))
+    test::assert_true(t.has_prefix("car"))
+    test::assert_true(t.has_prefix(""))
+    test::assert_false(t.has_prefix("cat"))
+    test::assert_eq_i32(t.count_with_prefix(""), 4)
+    test::assert_eq_i32(t.count_with_prefix("car"), 3)
+    test::assert_eq_i32(t.count_with_prefix("do"), 1)
+    test::assert_eq_i32(t.count_with_prefix("x"), 0)
+
+    match t.get("cart") {
+        Option::Some(v) => test::assert_eq_i32(v, 2),
+        None => panic("expected Some(2)"),
+    }
+    match t.get("ca") {
+        Option::Some(v) => panic("expected None"),
+        None => {
+        },
+    }
+
+    // A stored key update keeps the shared prefix path intact.
+    t.insert("car", 9)
+    match t.get("car") {
+        Option::Some(v) => test::assert_eq_i32(v, 9),
+        None => panic("expected Some(9)"),
+    }
+
+    test::assert_true(t.remove("cart"))
+    test::assert_false(t.contains("cart"))
+    test::assert_eq_i32(t.count_with_prefix("car"), 2)
+    test::assert_false(t.remove("cart"))
+    test::assert_true(t.contains("car"))
+    test::assert_true(t.contains("carton"))
+}

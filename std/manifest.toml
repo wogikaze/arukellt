@@ -1980,6 +1980,61 @@ stability = "stable"
 params = ["Vec<String>"]
 returns = "bool"
 
+# === std::collections::bimap / std::collections::trie ===
+#
+# The former `bimap_i32_i32_*` (10) and `trie_*` (7) free functions were
+# unregistered source declarations, so ADR-014 required no deprecation
+# window. #917 retired them with E0100 hints and landed these type surfaces.
+
+[[modules]]
+name = "std::collections::bimap"
+stability = "provisional"
+family = "collections"
+doc = "One-to-one `i32` key/value map. `Bimap::new()` plus the receiver methods are the surface; the former `bimap_i32_i32_*` free functions were retired by #917 with E0100 hints."
+availability = { t1 = true, t3 = true }
+
+[[types]]
+name = "Bimap"
+kind = "struct"
+doc = "Bidirectional map over `i32` keys and `i32` values backed by a flat pair vector. Lookup, insertion, and removal scan the pairs (O(n)); empty lookups return `None` and failed removals return false."
+module = "std::collections::bimap"
+stability = "provisional"
+methods = [
+    "new",
+    "insert",
+    "get_by_key",
+    "get_by_value",
+    "contains_key",
+    "contains_value",
+    "remove_by_key",
+    "remove_by_value",
+    "len",
+    "is_empty",
+]
+
+[[modules]]
+name = "std::collections::trie"
+stability = "provisional"
+family = "collections"
+doc = "Prefix tree with `String` keys and `i32` values. `Trie::new()` plus the receiver methods are the surface; the former `trie_*` free functions were retired by #917 with E0100 hints."
+availability = { t1 = true, t3 = true }
+
+[[types]]
+name = "Trie"
+kind = "struct"
+doc = "Prefix tree over `String` keys and `i32` values backed by a private 256-way node pool. `has_prefix` / `count_with_prefix` walk the byte key, and `remove` clears the value flag without pruning nodes."
+module = "std::collections::trie"
+stability = "provisional"
+methods = [
+    "new",
+    "insert",
+    "get",
+    "contains",
+    "has_prefix",
+    "remove",
+    "count_with_prefix",
+]
+
 # === std::collections::hash_set ===
 
 [[modules]]

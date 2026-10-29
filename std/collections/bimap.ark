@@ -1,22 +1,31 @@
-//! `Bimap<K, V>` — a bidirectional map with O(1) lookup in both directions.
+//! `Bimap` — a bidirectional map between `i32` keys and `i32` values.
 //!
 //! A bimap maintains a one-to-one correspondence between keys and values.
 //! Each key maps to exactly one value, and each value maps to exactly one key.
-//! Inserting a (key, value) pair automatically removes any existing pair with
+//! Inserting a `(key, value)` pair automatically removes any existing pair with
 //! the same key or the same value.
 //!
-//! The current monomorphic implementation stores `[key, value]` pairs in a
-//! flat `Vec<i32>`. Keeping the representation flat is required because the
-//! runtime Vec storage is not a nested generic container.
+//! The backing store is a flat `Vec<i32>` of `[key, value, ...]` pairs. Lookup,
+//! insertion, and removal scan that vector, so they are O(n) in the number of
+//! pairs. Keeping the representation flat is required because the runtime Vec
+//! storage has no nested generic pair container.
+//!
+//! Construct with `Bimap::new()` and use the receiver methods; the former
+//! `bimap_i32_i32_*` free functions were retired by #917 with E0100
+//! replacement hints.
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
-// ── i32 ↔ i32 Bimap ─────────────────────────────────────────────────────────
-
 use std::collections::vec
-/// Create a new empty `Bimap<i32, i32>`.
-pub fn bimap_i32_i32_new() -> Vec<i32> {
-    Vec::new<i32>()
+
+/// Bidirectional map over `i32` keys and `i32` values.
+///
+/// The pair vector is private: use `insert`, `get_by_key`, `get_by_value`,
+/// `contains_key`, `contains_value`, `remove_by_key`, `remove_by_value`,
+/// `len`, and `is_empty`. Empty lookups return `Option::None` and failed
+/// removals return `false`; there is no sentinel key.
+pub struct Bimap {
+    entries: Vec<i32>,
 }
 
 fn bimap_find_key(buf: Vec<i32>, key: i32) -> i32 {
@@ -45,154 +54,161 @@ fn bimap_find_value(buf: Vec<i32>, value: i32) -> i32 {
     0 - 1
 }
 
-fn bimap_remove_pair(buf: Vec<i32>, pair_index: i32) {
+fn bimap_remove_pair(mut buf: Vec<i32>, pair_index: i32) {
     let key_index: i32 = pair_index * 2
     buf.drain(key_index + 1, key_index + 2)
     buf.drain(key_index, key_index + 1)
 }
 
-/// Insert a (key, value) pair. If the key or value already exists, the old
-/// association is removed. This maintains the one-to-one invariant.
-pub fn bimap_i32_i32_insert(mut buf: Vec<i32>, key: i32, value: i32) {
-    let old_key_pair: i32 = bimap_find_key(buf, key)
-    if old_key_pair >= 0 {
-        bimap_remove_pair(buf, old_key_pair)
+impl Bimap {
+    /// Creates an empty bimap.
+    fn new() -> Bimap {
+        Bimap { entries: Vec::new<i32>() }
     }
 
-    // Search again because removing the key pair may have shifted the value
-    // pair's position.
-    let old_value_pair: i32 = bimap_find_value(buf, value)
-    if old_value_pair >= 0 {
-        bimap_remove_pair(buf, old_value_pair)
+    /// Inserts a `(key, value)` pair.
+    ///
+    /// If the key or value already exists, the old association is removed
+    /// first so the one-to-one invariant holds.
+    fn insert(mut self: Bimap, key: i32, value: i32) {
+        let old_key_pair: i32 = bimap_find_key(self.entries, key)
+        if old_key_pair >= 0 {
+            bimap_remove_pair(self.entries, old_key_pair)
+        }
+
+        // Search again because removing the key pair may have shifted the
+        // value pair's position.
+        let old_value_pair: i32 = bimap_find_value(self.entries, value)
+        if old_value_pair >= 0 {
+            bimap_remove_pair(self.entries, old_value_pair)
+        }
+
+        push(self.entries, key)
+        push(self.entries, value)
     }
 
-    push(buf, key)
-    push(buf, value)
-}
-
-/// Look up the value for a key. Returns `Option::Some(value)` or `Option::None`.
-pub fn bimap_i32_i32_get_by_key(buf: Vec<i32>, key: i32) -> Option<i32> {
-    let pair_index: i32 = bimap_find_key(buf, key)
-    if pair_index < 0 {
-        return None
+    /// Returns the value associated with `key`, or `Option::None`.
+    fn get_by_key(self: Bimap, key: i32) -> Option<i32> {
+        let pair_index: i32 = bimap_find_key(self.entries, key)
+        if pair_index < 0 {
+            return Option::None
+        }
+        Option::Some(get_unchecked(self.entries, pair_index * 2 + 1))
     }
-    Some(get_unchecked(buf, pair_index * 2 + 1))
-}
 
-/// Look up the key for a value. Returns `Option::Some(key)` or `Option::None`.
-pub fn bimap_i32_i32_get_by_value(buf: Vec<i32>, value: i32) -> Option<i32> {
-    let pair_index: i32 = bimap_find_value(buf, value)
-    if pair_index < 0 {
-        return None
+    /// Returns the key associated with `value`, or `Option::None`.
+    fn get_by_value(self: Bimap, value: i32) -> Option<i32> {
+        let pair_index: i32 = bimap_find_value(self.entries, value)
+        if pair_index < 0 {
+            return Option::None
+        }
+        Option::Some(get_unchecked(self.entries, pair_index * 2))
     }
-    Some(get_unchecked(buf, pair_index * 2))
-}
 
-/// Returns true if the key exists in the bimap.
-pub fn bimap_i32_i32_contains_key(buf: Vec<i32>, key: i32) -> bool {
-    bimap_find_key(buf, key) >= 0
-}
-
-/// Returns true if the value exists in the bimap.
-pub fn bimap_i32_i32_contains_value(buf: Vec<i32>, value: i32) -> bool {
-    bimap_find_value(buf, value) >= 0
-}
-
-/// Remove a key and its associated value from the bimap.
-/// Returns true if the key was present.
-pub fn bimap_i32_i32_remove_by_key(buf: Vec<i32>, key: i32) -> bool {
-    let pair_index: i32 = bimap_find_key(buf, key)
-    if pair_index < 0 {
-        return false
+    /// Returns true when `key` has an association.
+    fn contains_key(self: Bimap, key: i32) -> bool {
+        bimap_find_key(self.entries, key) >= 0
     }
-    bimap_remove_pair(buf, pair_index)
-    true
-}
 
-/// Remove a value and its associated key from the bimap.
-/// Returns true if the value was present.
-pub fn bimap_i32_i32_remove_by_value(buf: Vec<i32>, value: i32) -> bool {
-    let pair_index: i32 = bimap_find_value(buf, value)
-    if pair_index < 0 {
-        return false
+    /// Returns true when `value` has an association.
+    fn contains_value(self: Bimap, value: i32) -> bool {
+        bimap_find_value(self.entries, value) >= 0
     }
-    bimap_remove_pair(buf, pair_index)
-    true
+
+    /// Removes the pair for `key` and returns true when it was present.
+    fn remove_by_key(mut self: Bimap, key: i32) -> bool {
+        let pair_index: i32 = bimap_find_key(self.entries, key)
+        if pair_index < 0 {
+            return false
+        }
+        bimap_remove_pair(self.entries, pair_index)
+        true
+    }
+
+    /// Removes the pair for `value` and returns true when it was present.
+    fn remove_by_value(mut self: Bimap, value: i32) -> bool {
+        let pair_index: i32 = bimap_find_value(self.entries, value)
+        if pair_index < 0 {
+            return false
+        }
+        bimap_remove_pair(self.entries, pair_index)
+        true
+    }
+
+    /// Returns the number of key/value pairs.
+    fn len(self: Bimap) -> i32 {
+        len(self.entries) / 2
+    }
+
+    /// Returns true when the bimap has no pairs.
+    fn is_empty(self: Bimap) -> bool {
+        len(self.entries) == 0
+    }
 }
 
-/// Return the number of pairs in the bimap.
-pub fn bimap_i32_i32_len(buf: Vec<i32>) -> i32 {
-    len(buf) / 2
-}
-
-/// Return true if the bimap is empty.
-pub fn bimap_i32_i32_is_empty(buf: Vec<i32>) -> bool {
-    len(buf) == 0
-}
-
-test mod "bimap_i32_i32" {
+test mod "bimap" {
     test "new_is_empty" {
-        let b = bimap_i32_i32_new()
-        assert(bimap_i32_i32_is_empty(b))
-        assert(bimap_i32_i32_len(b) == 0)
+        let b = Bimap::new()
+        assert(b.is_empty())
+        assert(b.len() == 0)
     }
     test "get_by_key_hit" {
-        let mut b = bimap_i32_i32_new()
-        bimap_i32_i32_insert(b, 1, 100)
-        let r = match bimap_i32_i32_get_by_key(b, 1) {
+        let mut b = Bimap::new()
+        b.insert(1, 100)
+        let r = match b.get_by_key(1) {
             Option::Some(v) => v,
             Option::None => 0 - 1,
         }
         assert(r == 100)
     }
     test "get_by_key_miss" {
-        let mut b = bimap_i32_i32_new()
-        bimap_i32_i32_insert(b, 1, 100)
-        let r = match bimap_i32_i32_get_by_key(b, 2) {
+        let mut b = Bimap::new()
+        b.insert(1, 100)
+        let r = match b.get_by_key(2) {
             Option::Some(v) => v,
             Option::None => 77,
         }
         assert(r == 77)
     }
     test "get_by_value_hit" {
-        let mut b = bimap_i32_i32_new()
-        bimap_i32_i32_insert(b, 1, 100)
-        let r = match bimap_i32_i32_get_by_value(b, 100) {
+        let mut b = Bimap::new()
+        b.insert(1, 100)
+        let r = match b.get_by_value(100) {
             Option::Some(v) => v,
             Option::None => 0 - 1,
         }
         assert(r == 1)
     }
     test "contains_key_and_value" {
-        let mut b = bimap_i32_i32_new()
-        bimap_i32_i32_insert(b, 3, 30)
-        assert(bimap_i32_i32_contains_key(b, 3))
-        assert(bimap_i32_i32_contains_value(b, 30))
-        assert(bimap_i32_i32_contains_key(b, 4) == false)
+        let mut b = Bimap::new()
+        b.insert(3, 30)
+        assert(b.contains_key(3))
+        assert(b.contains_value(30))
+        assert(b.contains_key(4) == false)
     }
     test "remove_by_key_drops_both_views" {
-        let mut b = bimap_i32_i32_new()
-        bimap_i32_i32_insert(b, 1, 10)
-        assert(bimap_i32_i32_remove_by_key(b, 1))
-        assert(bimap_i32_i32_contains_key(b, 1) == false)
-        assert(bimap_i32_i32_contains_value(b, 10) == false)
-        assert(bimap_i32_i32_len(b) == 0)
+        let mut b = Bimap::new()
+        b.insert(1, 10)
+        assert(b.remove_by_key(1))
+        assert(b.contains_key(1) == false)
+        assert(b.contains_value(10) == false)
+        assert(b.len() == 0)
     }
     test "remove_by_value_drops_both_views" {
-        let mut b = bimap_i32_i32_new()
-        bimap_i32_i32_insert(b, 1, 10)
-        assert(bimap_i32_i32_remove_by_value(b, 10))
-        assert(bimap_i32_i32_contains_key(b, 1) == false)
+        let mut b = Bimap::new()
+        b.insert(1, 10)
+        assert(b.remove_by_value(10))
+        assert(b.contains_key(1) == false)
     }
     test "remove_missing_returns_false" {
-        let mut b = bimap_i32_i32_new()
-        bimap_i32_i32_insert(b, 1, 10)
-        assert(bimap_i32_i32_remove_by_key(b, 9) == false)
+        let mut b = Bimap::new()
+        b.insert(1, 10)
+        assert(b.remove_by_key(9) == false)
     }
     test "len_tracks_pairs" {
-        let mut b = bimap_i32_i32_new()
-        bimap_i32_i32_insert(b, 1, 10)
-        bimap_i32_i32_insert(b, 2, 20)
-        assert(bimap_i32_i32_len(b) == 2)
+        let mut b = Bimap::new()
+        b.insert(1, 10)
+        b.insert(2, 20)
+        assert(b.len() == 2)
     }
 }

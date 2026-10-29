@@ -16,6 +16,39 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-29 — bimap / trie type surface (#917, wave/bimap-trie)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の
+  free-function 根絶。対象は `std::collections` の **17** 個の未登録
+  free functions（`bimap_i32_i32_*` 10、`trie_*` 7）。manifest entry が
+  なかったため [ADR-014](../adr/ADR-014-stability-labels.md) の
+  deprecation window も W0009 warning も適用されず、同時削除した。
+- **Replacement**: `Bimap::new()` / `m.insert(key, value)` /
+  `m.get_by_key(key)` / `m.get_by_value(value)` / `m.contains_key(key)` /
+  `m.contains_value(value)` / `m.remove_by_key(key)` /
+  `m.remove_by_value(value)` / `m.len()` / `m.is_empty()`、および
+  `Trie::new()` / `t.insert(key, value)` / `t.get(key)` / `t.contains(key)` /
+  `t.has_prefix(prefix)` / `t.remove(key)` / `t.count_with_prefix(prefix)`。
+  どちらも backing store は型の private field に閉じる。
+- **Monophonic scope**: `Bimap` は `i32` key / `i32` value、`Trie` は
+  `String` key / `i32` value に固定した。現行の runtime Vec storage は
+  フラットな `Vec<i32>` で、nested pair / generic node payload を
+  持てないため、`Bimap<K, V>` / `Trie<V>` の generic 化は別の storage
+  設計を要する。
+- **E0100**: 旧 `bimap_i32_i32_*` / `trie_*` 名は
+  `resolver::removed_names::removed_bimap_member_hint` /
+  `removed_trie_member_hint` が
+  `bimap` / `collections::bimap` / `std::collections::bimap`（trie も同じ）
+  の各綴りで新しい associated / method 名を案内する。
+- **Evidence**: `stdlib_bimap/bimap_basic*` と新しい
+  `stdlib_trie/trie_basic*` を wasm32-gc component と `--target wasm32` の
+  両方で compile・validate・execute した。
+  `diagnostics/removed_bimap_free*` / `removed_trie_free*` は両 target の
+  E0100 golden として追加した。
+- **Scorecard**: eradication scope 296 → **279**、`associated-or-method`
+  230 → **213**、`pub fn` 宣言 323 → **306**、unregistered 25 → **8**。
+  manifest 公開 entry 271、`prelude_wrapper` 65、`must delete` 66 は不変。
+
 ## 2026-10-29 — compiler collections type surface (#917, wave/associated-remain)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の

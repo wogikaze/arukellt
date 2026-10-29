@@ -302,6 +302,10 @@ diag:diagnostics/removed_compiler_slotmap_free.ark
 diag:diagnostics/removed_compiler_slotmap_free_wasm32.ark
 diag:diagnostics/removed_compiler_interner_free.ark
 diag:diagnostics/removed_compiler_interner_free_wasm32.ark
+diag:diagnostics/removed_bimap_free.ark
+diag:diagnostics/removed_bimap_free_wasm32.ark
+diag:diagnostics/removed_trie_free.ark
+diag:diagnostics/removed_trie_free_wasm32.ark
 diag:diagnostics/removed_canonical_free.ark
 diag:diagnostics/removed_canonical_free_wasm32.ark
 diag:diagnostics/removed_hashmap_adapter.ark
@@ -806,6 +810,9 @@ run:spec_examples/syntax_let_mut_fn.ark
 run:spec_examples/type_annotations.ark
 run:spec_examples/where_clause_magnitude.ark
 run:stdlib_bimap/bimap_basic.ark
+run:stdlib_bimap/bimap_basic_wasm32.ark
+run:stdlib_trie/trie_basic.ark
+run:stdlib_trie/trie_basic_wasm32.ark
 run:stdlib_bytes/base64.ark
 run:stdlib_bytes/base64_decode_padding.ark
 run:stdlib_bytes/base64_decode_roundtrip.ark

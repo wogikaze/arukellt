@@ -1,0 +1,5 @@
+use std::collections::bimap
+
+fn main() {
+    let _b = bimap::bimap_i32_i32_new()
+}

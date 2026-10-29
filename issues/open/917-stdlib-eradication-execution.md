@@ -1275,3 +1275,58 @@ classified there, in dependency-safe waves.
   `std::collections::compiler` module has no free symbol left; the next
   coherent source-only groups are `bimap` (10) and `trie` (7), which still
   need type surfaces.
+
+### Landed slice (wave/bimap-trie, 2026-10-29)
+
+- **Group**: `std::collections` — the 10 unregistered `bimap_i32_i32_*` and
+  7 unregistered `trie_*` top-level declarations. Neither family had a
+  manifest entry, so ADR-014 D4 allowed direct removal: no deprecation
+  window, no W0009 rows, and no `[[functions]]` entries to delete.
+- **Replacement surface**: `Bimap` (`new`, `insert`, `get_by_key`,
+  `get_by_value`, `contains_key`, `contains_value`, `remove_by_key`,
+  `remove_by_value`, `len`, `is_empty`) and `Trie` (`new`, `insert`, `get`,
+  `contains`, `has_prefix`, `remove`, `count_with_prefix`) in
+  `std/collections/{bimap,trie}.ark`; the pair/node storage is a private
+  field. Both types are monomorphic over the flat `Vec<i32>` store (`i32`
+  keys/values and `String` keys / `i32` values); generic `Bimap<K, V>` /
+  `Trie<V>` spellings need a different representation and are not landed.
+  `Trie` has no `len`; `count_with_prefix("")` is the O(n) total count.
+- **Manifest**: the `std::collections::bimap` and `std::collections::trie`
+  modules and the two `struct` types are registered as `provisional`; no
+  function entry was added.
+- **E0100**: `resolver::removed_names::removed_bimap_member_hint` /
+  `removed_trie_member_hint` cover the bare, `bimap`/`trie`,
+  `collections::*`, and `std::collections::*` spellings. Four new goldens
+  (`diagnostics/removed_bimap_free*`, `removed_trie_free*`) assert the exact
+  hint on both targets.
+- **Fixtures**: `stdlib_bimap/bimap_basic` migrated to the method surface;
+  added `stdlib_bimap/bimap_basic_wasm32` and the new
+  `stdlib_trie/trie_basic` + `trie_basic_wasm32` pair (compile, validate,
+  run). `run:` registry 1891 -> **1894**.
+- **Build blocker repaired**: `removed_names.ark` contained two top-level
+  definitions of `hashmap_method_replacement_hint` (E0101 in one compilation
+  unit), introduced by the 2026-10-27 simd wave and present at the base
+  commit. The later `text::concat` definition is kept; this is a prerequisite
+  for building s2, not part of the bimap/trie surface.
+- **Scorecard**: scope 296 -> **279**; `associated-or-method` 230 ->
+  **213**; `pub fn` declarations 323 -> **306**; unregistered declarations
+  25 -> **8**; manifest public entries 271, `must delete` 66,
+  `intrinsic-only` 1, and `prelude_wrapper` 65 unchanged. Fixture registry
+  3461 -> **3468**.
+- **Verification**: `verify fixtures` **1894/1894 PASS**, 0 FAIL (110 runtime
+  smoke, 2 runtime-unsupported, 36 `test:` fixtures PASS);
+  `selfhost diag-parity` PASS; cross-backend parity **2/2**
+  (`stdlib_bimap/bimap_basic`, `stdlib_trie/trie_basic`); `docs check` 6/6;
+  `verify lane` PASS; `check-stdlib-eradication` 272/272 manifest functions
+  and 8/8 unregistered declarations classified; `check-compat-orphans`,
+  `check-comment-policy`, `check-ark-code-quality`, `check-semantic-debt`
+  clean. `selfhost build-compiler` 55.5 s (gc pin); ADR-029 fixpoint PASS at
+  s2 == s3 sha256
+  `e6fbb279ffab2c89786f511762edb91d55ebe89cc74460eab41ed6a3c188ecbf`
+  (pinned base `35a2585a…`).
+- **Residuals**: the remaining 213 `associated-or-method` symbols are
+  unchanged by this slice; the 8 unregistered declarations are the four
+  no-argument `std::collections::sort` frees, `hashmap_entry_pairs`,
+  `btree_set_find_idx`, `new_i32`, and `io_error_message`. Generic storage
+  for `Bimap<K, V>` / `Trie<V>`, a `Trie::len`, and a public iterator surface
+  for either collection remain out of scope.

@@ -1,0 +1,5 @@
+use std::collections::trie
+
+fn main() {
+    let _t = trie::trie_new()
+}

@@ -28,12 +28,6 @@ fn removed_name_hint(name: String) -> String {
     return removed_gated_prelude_hint(name)
 }
 
-fn hashmap_method_replacement_hint() -> String {
-    String_from("removed HashMap helper; use `HashMap::new<K, V>()` plus receiver methods ").concat(
-        String_from("(`m.insert(k, v)`, `m.get(k)`, `m.contains_key(k)`, `m.remove(k)`, `m.len()`, ")
-    ).concat(String_from("`m.is_empty()`, `m.keys()`, `m.values()`, `m.entries()`)"))
-}
-
 fn is_retired_hashmap_adapter_name(name: String) -> bool {
     if clone(name).starts_with(String_from("hashmap_str_")) {
         return true
@@ -80,6 +74,14 @@ fn removed_name_specific_hint(name: String) -> String {
     let compiler_hint = removed_compiler_member_hint(clone(name))
     if len(clone(compiler_hint)) > 0 {
         return compiler_hint
+    }
+    let bimap_hint = removed_bimap_member_hint(clone(name))
+    if len(clone(bimap_hint)) > 0 {
+        return bimap_hint
+    }
+    let trie_hint = removed_trie_member_hint(clone(name))
+    if len(clone(trie_hint)) > 0 {
+        return trie_hint
     }
     if clone(name).starts_with(String_from("HashMap_")) {
         return hashmap_method_replacement_hint()
@@ -311,12 +313,81 @@ fn removed_compiler_member_hint(name: String) -> String {
     String_new()
 }
 
+/// Replacement hints for the `std::collections::bimap` free functions
+/// retired by #917 (Bimap type surface).
+fn removed_bimap_member_hint(name: String) -> String {
+    if eq(clone(name), "bimap_i32_i32_new") {
+        return "use `Bimap::new()` from `use std::collections::bimap::Bimap` instead"
+    }
+    if eq(clone(name), "bimap_i32_i32_insert") {
+        return "use `m.insert(key, value)` on `Bimap` instead"
+    }
+    if eq(clone(name), "bimap_i32_i32_get_by_key") {
+        return "use `m.get_by_key(key)` on `Bimap` instead"
+    }
+    if eq(clone(name), "bimap_i32_i32_get_by_value") {
+        return "use `m.get_by_value(value)` on `Bimap` instead"
+    }
+    if eq(clone(name), "bimap_i32_i32_contains_key") {
+        return "use `m.contains_key(key)` on `Bimap` instead"
+    }
+    if eq(clone(name), "bimap_i32_i32_contains_value") {
+        return "use `m.contains_value(value)` on `Bimap` instead"
+    }
+    if eq(clone(name), "bimap_i32_i32_remove_by_key") {
+        return "use `m.remove_by_key(key)` on `Bimap` instead"
+    }
+    if eq(clone(name), "bimap_i32_i32_remove_by_value") {
+        return "use `m.remove_by_value(value)` on `Bimap` instead"
+    }
+    if eq(clone(name), "bimap_i32_i32_len") {
+        return "use `m.len()` on `Bimap` instead"
+    }
+    if eq(clone(name), "bimap_i32_i32_is_empty") {
+        return "use `m.is_empty()` on `Bimap` instead"
+    }
+    String_new()
+}
+
+/// Replacement hints for the `std::collections::trie` free functions
+/// retired by #917 (Trie type surface).
+fn removed_trie_member_hint(name: String) -> String {
+    if eq(clone(name), "trie_new") {
+        return "use `Trie::new()` from `use std::collections::trie::Trie` instead"
+    }
+    if eq(clone(name), "trie_insert") {
+        return "use `t.insert(key, value)` on `Trie` instead"
+    }
+    if eq(clone(name), "trie_get") {
+        return "use `t.get(key)` on `Trie` instead"
+    }
+    if eq(clone(name), "trie_contains") {
+        return "use `t.contains(key)` on `Trie` instead"
+    }
+    if eq(clone(name), "trie_has_prefix") {
+        return "use `t.has_prefix(prefix)` on `Trie` instead"
+    }
+    if eq(clone(name), "trie_remove") {
+        return "use `t.remove(key)` on `Trie` instead"
+    }
+    if eq(clone(name), "trie_count_with_prefix") {
+        return "use `t.count_with_prefix(prefix)` on `Trie` instead"
+    }
+    String_new()
+}
+
 fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "fs") || eq(clone(module), "host::fs") || eq(clone(module), "std::fs") || eq(clone(module), "std::host::fs") {
         return removed_host_fs_member_hint(name)
     }
     if eq(clone(module), "compiler") || eq(clone(module), "collections::compiler") || eq(clone(module), "std::collections::compiler") {
         return removed_compiler_member_hint(name)
+    }
+    if eq(clone(module), "bimap") || eq(clone(module), "collections::bimap") || eq(clone(module), "std::collections::bimap") {
+        return removed_bimap_member_hint(name)
+    }
+    if eq(clone(module), "trie") || eq(clone(module), "collections::trie") || eq(clone(module), "std::collections::trie") {
+        return removed_trie_member_hint(name)
     }
     if eq(clone(module), "clock") || eq(clone(module), "host::clock") || eq(clone(module), "std::host::clock") {
         return removed_host_clock_member_hint(name)
@@ -1158,6 +1229,18 @@ test mod "removed_names" {
         assert(len(removed_name_hint("slotmap_contains")) > 0)
         assert(len(removed_name_hint("interner_intern")) > 0)
         assert(len(removed_module_member_hint("compiler", "unrelated")) == 0)
+    }
+    test "removed bimap trie frees" {
+        assert(len(removed_module_member_hint("bimap", "bimap_i32_i32_new")) > 0)
+        assert(len(removed_module_member_hint("collections::bimap", "bimap_i32_i32_get_by_key")) > 0)
+        assert(len(removed_module_member_hint("std::collections::bimap", "bimap_i32_i32_remove_by_value")) > 0)
+        assert(len(removed_name_hint("bimap_i32_i32_len")) > 0)
+        assert(len(removed_module_member_hint("trie", "trie_new")) > 0)
+        assert(len(removed_module_member_hint("collections::trie", "trie_count_with_prefix")) > 0)
+        assert(len(removed_module_member_hint("std::collections::trie", "trie_has_prefix")) > 0)
+        assert(len(removed_name_hint("trie_contains")) > 0)
+        assert(len(removed_module_member_hint("bimap", "unrelated")) == 0)
+        assert(len(removed_module_member_hint("trie", "unrelated")) == 0)
     }
     test "result option helpers" {
         assert(len(removed_name_hint("ok")) > 0)
