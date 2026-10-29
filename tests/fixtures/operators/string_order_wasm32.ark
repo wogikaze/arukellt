@@ -1,0 +1,45 @@
+// String ordering operators must compare UTF-8 bytes, matching Ord::cmp.
+// Literals are declared out of lexical order so a pointer/reference compare
+// cannot accidentally agree. Scalar comparisons stay on their native ops.
+use std::host::stdio
+
+fn main() {
+    let pear = "pear"
+    let apple = "apple"
+
+    stdio::println((apple < pear).to_string())
+    stdio::println((apple > pear).to_string())
+    stdio::println((apple <= pear).to_string())
+    stdio::println((apple >= pear).to_string())
+
+    stdio::println((pear < apple).to_string())
+    stdio::println((pear > apple).to_string())
+    stdio::println((pear <= apple).to_string())
+    stdio::println((pear >= apple).to_string())
+
+    let zebra = String_from("zebra")
+    let aardvark = String_from("aardvark")
+    stdio::println((aardvark < zebra).to_string())
+    stdio::println((zebra < aardvark).to_string())
+    stdio::println((aardvark <= zebra).to_string())
+    stdio::println((zebra >= aardvark).to_string())
+
+    let az = "a".concat("z")
+    let aa = "a".concat("a")
+    stdio::println((aa < az).to_string())
+    stdio::println((az > aa).to_string())
+    stdio::println((aa <= az).to_string())
+    stdio::println((az >= aa).to_string())
+
+    let empty = String_new()
+    stdio::println((empty < apple).to_string())
+    stdio::println((apple < empty).to_string())
+    stdio::println((apple <= apple).to_string())
+    stdio::println((apple >= apple).to_string())
+    stdio::println((apple < apple).to_string())
+    stdio::println((apple > apple).to_string())
+
+    stdio::println((1 < 2).to_string())
+    stdio::println((2.5 > 1.5).to_string())
+    stdio::println((2.5 <= 2.5).to_string())
+}

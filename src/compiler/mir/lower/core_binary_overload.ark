@@ -14,6 +14,15 @@ fn try_lower_overloaded_binary(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
         ctx_api_local_types::ctx_get_local_type(ctx, l_idx)
     )
     let ov_is_primitive = binary_type_names::mir_is_primitive_operator_type(clone(ov_ltype))
+    // String keeps the intrinsic path for eq/add, but ordering must compare
+    // bytes rather than the String ref/pointer value. The cmp module is
+    // explicit-import-only, so operators call the always-loaded helper.
+    if ov_is_primitive &&
+    binary_type_names::mir_is_string_type_name(clone(ov_ltype)) &&
+    binary_emit::mir_is_order_comparison_op(mir_op) {
+        let _ov_r_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 1))
+        return binary_emit::mir_emit_string_order_operator(ctx, mir_op)
+    }
     if ov_is_primitive {
         return 0 - 1
     }

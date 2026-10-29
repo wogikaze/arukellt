@@ -739,6 +739,34 @@ impl String {
         __core_string_len_bytes_impl(self)
     }
 
+    /// Byte-order key shared by the String ordering operators and Ord::cmp.
+    /// Returns -1 (self < other), 0 (equal), or 1 (self > other). The `__`
+    /// prefix marks an internal helper rather than manifest API; the compiler
+    /// lowers ordering operators to it.
+    fn __cmp_bytes(self: String, other: String) -> i32 {
+        let len_a = __core_string_len_impl(self)
+        let len_b = __core_string_len_impl(other)
+        let mut index = 0
+        while index < len_a && index < len_b {
+            let byte_a = __core_string_char_at_impl(self, index)
+            let byte_b = __core_string_char_at_impl(other, index)
+            if byte_a < byte_b {
+                return 0 - 1
+            }
+            if byte_a > byte_b {
+                return 1
+            }
+            index = index + 1
+        }
+        if len_a < len_b {
+            return 0 - 1
+        }
+        if len_a > len_b {
+            return 1
+        }
+        0
+    }
+
     /// Returns true when the string has no bytes.
     fn is_empty(self: String) -> bool {
         __core_string_is_empty_impl(self)

@@ -16,6 +16,26 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-29 — `String` の ordering 演算子を byte 順比較へ修正 (wave/string-ord)
+
+- **Basis**: #965 の residual。`Vec<T: Ord>` の修正後も、`String` の `<` / `>` /
+  `<=` / `>=` は wasm32 linear と wasm32-gc の両方で ref/pointer の数値比較に
+  なっており、`"apple" < "pear"` が false を返していた。
+- **Fixed**: `String` の ordering 演算子は、`std::collections::string` の内部
+  byte 比較メソッド `String::__cmp_bytes` を直接呼び、結果を 0 と比較する。この
+  method は prelude が常に読み込む String module にあるため、`std::core::cmp` の
+  import なしでも lexicographic になる。`impl Ord for String::cmp` も同じ method
+  を使うため、operator と `a.cmp(b)` の結果は一致する。`i32` / `i64` / `f64` / `bool` / `char` の比較は
+  従来の wasm 数値比較のまま。
+- **Also fixed**: custom `Ord` 型の ordering operator が lowering 時に
+  `Ordering::is_*` projection を reachability へ登録しておらず、emit 時に
+  `unreachable` へ stub していた。operator 候補と同じ site で projection を
+  keep するようにした。
+- **Evidence**: `tests/fixtures/operators/string_order.ark` と `_wasm32` 版が
+  wasm32-gc component と `--target wasm32` core の両方で 25 行の出力を
+  検証し、同一 stdout を返す。cross-backend parity 1/1。旧 pinned bootstrap では
+  同じ fixture が linear で不一致になることを確認。
+
 ## 2026-10-29 — `Vec<T: Ord>` の i64 / String sort が wasm32-gc で動作 (#965)
 
 - **Basis**: #917 / [ADR-046](../adr/ADR-046-free-function-eradication.md) で追加した
