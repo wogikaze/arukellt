@@ -6,6 +6,7 @@ use mir::lower::ctx_fn_exists
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_types
+use mir::lower::mono_suffix_parse
 use mir::mono
 use mir::value_types
 use wasm::sections_types_gc_phase7
@@ -111,6 +112,20 @@ fn concretize_vec_ctor_projection(ctx: LowerCtx, resolved: String) -> String {
     let mut elem = substring(clone(resolved), elem_start, len(resolved))
     elem = sections_types_gc_phase7::gc_normalize_vec_element_name(elem)
     elem = call_type_vec::decode_mono_vec_element_projection(elem)
+    // A bare type-variable element (`Vec::with_capacity<T>` inside a generic
+    // body) keeps the declared spelling because the constructor name is built
+    // from the AST annotation text. The enclosing instance binds it, so
+    // rewrite through the mono map; otherwise the ctor lowers as an i32 vec
+    // and a Vec<T> local receives a mismatched struct ref (#965).
+    if mono_suffix_parse::is_mono_type_var_name(clone(elem)) {
+        let concrete = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, clone(elem))
+        if len(concrete) > 0 && !eq(clone(concrete), clone(elem)) {
+            return mono::mono_safe_name(
+                substring(clone(resolved), 0, elem_start).concat(concrete)
+            )
+        }
+        return resolved
+    }
     // Only projection-shaped elements (`Owner::Assoc`) are rewritten; a
     // concrete element like `Item` must not resolve through a stored
     // `I::Item` segment match.

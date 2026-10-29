@@ -154,6 +154,23 @@ build-compiler warm **59.8 s** / user 52.8 s（負荷 ~10、overlay 再生成込
 quiet 比較ではない）、fixpoint PASS（s2 == s3 == `be07c165…`）、
 stdlib_json / generics_v1 parity PASS。
 
+### 目標秒数の再確認と Phase 3 の見積り（2026-10-29）
+
+最新 source（`b9fbac631` 系、pin `62aecf93…`）で build-compiler warm を 3 回:
+**23.2 s**（load 2.4）/ **29.8 s**（load 2.6）/ 52.0 s（背景負荷スパイク）、
+user 22.4 / 28.8 s。quiet 時はユーザー目標 `min(0.3x, 30 s)` の 30 s を満たす。
+並行セッションが source と pin を更新し続けるため、値は commit と負荷を
+セットで記録する。
+
+overlay の `fn` decl は **12,975**、直近 s2 の wasm func は **23,698**
+（mono instance / wrapper / thunk が decl より多い）。したがって Phase 3 の
+主対象は「未到達 decl body の除去」ではなく、per-fn pipeline の module-wide
+スキャン削減と body 生存（RSS）である。
+
+overlay の disk cache が並行ビルドで stale を返すことがある（source_hash は
+一致するが overlay 内容が古い）。その場合は
+`rm .build/selfhost/flat-overlay-cache.json` してから再生成する。
+
 ## 現行床（2026-09-01）
 
 | 条件 | wall | RSS |

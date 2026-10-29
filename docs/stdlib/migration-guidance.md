@@ -1940,11 +1940,11 @@ removed in the ADR-087 Wave 2; see the
 the free `std::collections::sort` module (`sort`, `sort_unstable`,
 `is_sorted`, `select_nth`) was deleted and bare calls fail with E0100.
 
-The `i32` lanes are verified on both targets. `i64` and `String` sort on
-`wasm32` (linear) but still emit invalid core Wasm on `wasm32-gc` (#965);
-`f64` is not `Ord`, so use `v.sort_by(total_cmp)` as before. Until #965 is
-fixed, keep the i64 / String gc lanes on the documented loop fallback rather
-than assuming `v.sort()` is portable.
+The `i32`, `i64`, and `String` lanes are verified on both targets by
+`tests/fixtures/stdlib_vec/vec_sort_ord_i64.ark` /
+`vec_sort_ord_string.ark` and their `_wasm32` counterparts. `f64` is not
+`Ord`, so use `v.sort_by(total_cmp)` as before. The earlier `i64` / `String`
+invalid-Wasm failure on `wasm32-gc` (#965) is resolved.
 
 | Removed free call | Replacement |
 |-------------------|-------------|

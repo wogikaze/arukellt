@@ -233,3 +233,16 @@ revert 済み（`18e1d56a3`）。
 最新 pin `62aecf93…` / HEAD `55675414f`(+revert) の再検証:
 build-compiler warm 59.8 s / user 52.8 s（負荷 ~10、overlay 再生成込み）、
 fixpoint PASS（s2 == s3 == `be07c165…`）、stdlib_json / generics_v1 parity PASS。
+
+### 2026-10-29 更新（目標秒数の再確認）
+
+最新 source（`b9fbac631` 系、pin `62aecf93…`）の build-compiler warm:
+**23.2 s**（load 2.4）/ **29.8 s**（load 2.6）/ 52.0 s（負荷スパイク）、
+user 22.4 / 28.8 s。quiet 時は 30 s 目標を満たす。
+
+overlay の `fn` decl 12,975 に対し、s2 の wasm func は 23,698。
+mono instance / wrapper が decl より多く、Phase 3 の主対象は
+「未到達 decl の除去」ではなく per-fn pipeline のスキャン削減と RSS。
+
+並行ビルドで overlay cache が stale を返す場合は
+`rm .build/selfhost/flat-overlay-cache.json` で再生成する。
