@@ -15,6 +15,7 @@ use mir::local_access
 use mir::lower::ctx_mono_index
 use mir::lower::ctx_struct_layout
 use mir::type_contracts
+use collections::name_index
 
 // Convert a TypeInfo to a monomorphization type key string.
 // Primitive types (i32, f64, etc.) carry only a tag with an empty name,
@@ -865,16 +866,16 @@ fn ctx_setup_mono_type_params_by_ordinal_names(
 // emitted under their leaf name (sort_by inside std::seq, instantiated via
 // the qualified seq::sort_by call) resolve their binding through this
 // instead of the mangled-name lookup.
-fn ctx_find_leaf_mono_instance_index(ctx: LowerCtx, leaf_name: String) -> i32 {
-    let leaf_sep = find_last_double_colon(clone(leaf_name))
-    let mut query_leaf = clone(leaf_name)
-    if leaf_sep >= 0 {
-        query_leaf = substring(leaf_name, leaf_sep + 2, len(leaf_name))
-    }
-    let mut matched_index = 0 - 1
-    let mut matched_mangled = String_new()
-    let mut ambiguous = false
+//
+// The old form scanned every mono instance per emitted mono body (quadratic
+// on the instance list). The leaf-name index is built once when the instance
+// list is replaced; -2 marks several distinct mangled instances under one leaf.
+fn ctx_mono_leaf_index_ensure(mut ctx: LowerCtx) {
     let count = len(ctx.mono_instances)
+    if ctx.mono_leaf_index_count == count {
+        return
+    }
+    ctx.mono_leaf_index = name_index::NameIndex_new(count)
     let mut i = 0
     while i < count {
         let inst = get_unchecked(ctx.mono_instances, i)
@@ -888,26 +889,43 @@ fn ctx_find_leaf_mono_instance_index(ctx: LowerCtx, leaf_name: String) -> i32 {
         }
         let inst_name = type_contracts::MonoInstance_fn_name(inst)
         let inst_sep = find_last_double_colon(clone(inst_name))
-        let mut inst_leaf = clone(inst_name)
-        if inst_sep >= 0 {
-            inst_leaf = substring(inst_name, inst_sep + 2, len(inst_name))
+        let leaf = if inst_sep >= 0 {
+            substring(inst_name, inst_sep + 2, len(inst_name))
+        } else {
+            inst_name
         }
-        if !eq(inst_leaf, clone(query_leaf)) {
+        let mangled = type_contracts::MonoInstance_mangled_name(inst)
+        let existing = name_index::name_index_get(ctx.mono_leaf_index, clone(leaf))
+        if existing == 0 - 1 {
+            name_index::name_index_set(ctx.mono_leaf_index, leaf, i - 1)
             continue
         }
-        let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
-        if len(matched_mangled) > 0 && !eq(clone(inst_mangled), clone(matched_mangled)) {
-            ambiguous = true
+        if existing < 0 {
+            // Already ambiguous; more instances cannot make the leaf unique.
+            continue
         }
-        if len(matched_mangled) == 0 {
-            matched_index = i - 1
+        let previous = get_unchecked(ctx.mono_instances, existing)
+        let previous_mangled = type_contracts::MonoInstance_mangled_name(previous)
+        if len(previous_mangled) > 0 && !eq(clone(previous_mangled), clone(mangled)) {
+            name_index::name_index_set(ctx.mono_leaf_index, leaf, 0 - 2)
         }
-        matched_mangled = inst_mangled
     }
-    if ambiguous {
+    ctx.mono_leaf_index_count = count
+}
+
+fn ctx_find_leaf_mono_instance_index(mut ctx: LowerCtx, leaf_name: String) -> i32 {
+    ctx_mono_leaf_index_ensure(ctx)
+    let leaf_sep = find_last_double_colon(clone(leaf_name))
+    let query_leaf = if leaf_sep >= 0 {
+        substring(leaf_name, leaf_sep + 2, len(leaf_name))
+    } else {
+        leaf_name
+    }
+    let matched = name_index::name_index_get(ctx.mono_leaf_index, query_leaf)
+    if matched < 0 {
         return 0 - 1
     }
-    matched_index
+    matched
 }
 
 // A body emitted under the unqualified leaf name carries no __ suffix,

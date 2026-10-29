@@ -7,6 +7,7 @@ use mir::type_contracts
 // pulls in ctx_module/emit_inloop.
 fn ctx_set_mono_instances(mut ctx: LowerCtx, instances: Vec<MonoInstance>) {
     ctx.mono_instances = instances
+    ctx.mono_leaf_index_count = 0 - 1
     let count = len(instances)
     let mut capacity = 16
     let required = count * 2
