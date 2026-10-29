@@ -67,3 +67,23 @@ producer.
 
 Warm build-compiler with the new pin measured 44.0 / 45.0 s at host load
 13-20 (user 37.7 / 39.1 s); the quiet-host range is documented as ~30-34 s.
+
+## Leaf mono-instance index (2026-10-29)
+
+`sig_reg_leaf_instance_index` scanned every mono instance for each decl with
+`mono_index_count == 0` (quadratic on the instance list). The guest profile put
+98% of the `MonoInstance_type_arg_count` / `TypeInfo_tag` /
+`MonoInstance_type_arg_at` calls under it (~11.8% self combined).
+
+Replaced the scan with a leaf-name bucket index built once per registry build
+(`head` NameIndex + `next` chain in `signature_registry_build_mono.ark`);
+lookups walk only the leaf bucket and keep the same match/ambiguity semantics.
+
+- instruction A/B (AOT cwasm + perf): 255.30 -> 246.08 G instructions
+  (-3.61%, reproduced across runs)
+- emitted wasm byte-identical between baseline compiler, optimized compiler,
+  and pin-built stage-2
+- on HEAD `1a4690403` (change included): fixpoint PASS
+  (`s2 == s3 == 19060c25…`), fixture parity PASS, warm build-compiler
+  **25.5 s** / user 24.6 s, RSS 1.13 GiB
+- with the earlier name-scan removals the series is ~-9% instructions

@@ -255,3 +255,14 @@ mono instance / wrapper が decl より多く、Phase 3 の主対象は
 s2 == s3 == `1eb4a81c…`、fixpoint PASS、stdlib_json parity PASS、lane PASS。
 warm build-compiler は負荷 13–20 で 44–45 s（user 38–39 s）、quiet 域は
 ~30–34 s。
+
+### 2026-10-29 更新（leaf mono-instance index）
+
+`sig_reg_leaf_instance_index` の全 mono instance 走査を leaf 名バケット索引
+（1 回の O(M) 構築 + bucket 走査）に変更した。profile では
+`MonoInstance_type_arg_count` / `TypeInfo_tag` / `type_arg_at` の 98% が
+この関数配下だった（~11.8% self）。命令数 A/B: **255.30 → 246.08 G
+instructions（−3.61%）**、生成 wasm は baseline / 最適化版 / pin ビルドで
+バイト一致。HEAD `1a4690403` で fixpoint PASS（s2 == s3 == `19060c25…`）、
+parity PASS、warm build-compiler **25.5 s**（user 24.6 s、RSS 1.13 GiB）。
+既存の name-scan 除去と合わせ累積 ~−9%。
