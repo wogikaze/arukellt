@@ -9,46 +9,50 @@ the trusted bootstrap base for selfhost verification (see
 `bootstrap/arukellt-selfhost.wasm` is the current stage-2 compiler packaged as
 a `wasm32-gc` / `wasi-p2` command component, so the compiler itself executes
 on Wasmtime's GC instead of the linear-memory host. Compiling the bootstrap
-overlay with this pin takes ~28–32 s warm (the previous core pin took ~34 min
-on the same source; the first run after a pin refresh adds ~30 s while the
-component's AOT image is built).
+overlay with this pin takes ~28–30 s warm (the previous core pin took ~34 min
+on the same source; the first run after a pin refresh adds the component's AOT
+image build).
 
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 8 522 488 bytes |
-| sha256 | `35a2585ad105d7105b2bf545275ceb1cd8cd2fca70d8850d37c11b2812fa5e1e` |
-| Built from commit | `fca9acf34` (tree identical to `85568bde0`: allocation-free qualified-name matchers) |
+| Size | 8 523 687 bytes |
+| sha256 | `62aecf93d3c7c41a444745222614c89f49bb52e48773751a3aa5d17a919b4c45` |
+| Built from commit | `783be1b8f` (E0212 non-call move diagnostics, #944) |
 | Build target | `wasm32-gc` / `wasi-p2` component, cm32p2 command wrapper |
-| Producer | The previous gc pin (`3c02d18b…`) compiled the overlay to `wasm32-gc` with `--emit component`; `wasm-tools component embed/new` packaged it |
-| p1 identity | Compiling the overlay with `--target wasm32 --wasi-version wasi-p1` writes `02bd69173e8f068316d931939aaaace8d528631ad7fc35e660ffedb532d4ad34`, byte-identical to the stage-2 s2 the previous pin produced |
-| Self-reproduction | Compiling the overlay to `wasm32-gc --emit component` writes core `80469233b7b9bce1ca630b743bf9695573482344895e9ff6dfbb51aa19589d26`, the core this component packages |
+| Producer | The previous gc pin (`35a2585a…`) compiled the overlay to `wasm32-gc` with `--emit component`; `wasm-tools component embed/new` packaged it |
+| p1 identity | Compiling the overlay with `--target wasm32 --wasi-version wasi-p1` writes `d917f7cd7a559ddc17d4a1e3e45df7c449d38b946b63c228182cbefabece3836`, byte-identical to the stage-2 s2 the previous pin produced for this source |
+| Self-reproduction | Compiling the overlay to `wasm32-gc --emit component` writes core `3ca4b66e45bb462d100eb8ee26e04e9590efbc75ad08a38c9d17e5f80024de4e`, the core this component packages |
 
 The `3c02d18b` refresh restored the gc host after the 2026-10-28 core pin
-retired it; this refresh keeps that host and bakes in the 2026-10-29
-allocation-free matcher changes (`corehir::name_match`, enum-variant / callee
-spelling / signature-registry leaf comparisons), which cut the overlay's guest
-time by ~9% and its `inloop_emit` phase by ~27%. p1 identity and
-self-reproduction were re-verified against the previous pin; the emitted s2 is
-byte-identical to the previous pin's s2 for this source, so no behavioural
-drift is introduced by the refresh itself.
+retired it. The `35a2585a` refresh baked in the 2026-10-29 allocation-free
+matcher changes (`corehir::name_match`, enum-variant / callee spelling /
+signature-registry leaf comparisons). This `783be1b8f` refresh bakes in the
+#944 E0212 non-call move diagnostics. Each refresh re-verified p1 identity and
+self-reproduction against the previous pin; the host swap itself does not
+change the emitted s2. The current s2 is `d917f7cd…` for the #944 source, and
+the previous pin produces the same bytes from that source.
 
-Why the change: the 2026-10-28 core pin refresh retired the gc-host component
-because the current compiler did not emit a valid `wasm32-gc` self-build.
-The cause was a source bug, not a gc-host limit: `lsp::documents` called
-`JsonText::get_str_after`, which did not exist on the `JsonText` impl, so the
-lowering fell back to a trap stub whose result poisoned the enclosing
-if-expression join. With the associated function added (`std/json.ark`), the
-gc self-build validates and the gc host is restored as the official artifact.
+Why the gc host was restored (2026-10-28): the core pin refresh retired the
+gc-host component because the then-current compiler did not emit a valid
+`wasm32-gc` self-build. The cause was a source bug, not a gc-host limit:
+`lsp::documents` called `JsonText::get_str_after`, which did not exist on the
+`JsonText` impl, so the lowering fell back to a trap stub whose result
+poisoned the enclosing if-expression join. With the associated function added
+(`std/json.ark`), the gc self-build validates and the gc host is the official
+artifact.
 
 `BOOTSTRAP_EMIT_*` remains `wasm32` / `wasi-p1`: the pin is a **host
 accelerator**, not a change of the stage-2 output target. Flipping the emitted
 target stays gated on ADR-053's <=10 s overlay acceptance.
 
-The flat overlay strips `mut` parameter modes for pre-#951 pins. A gc pin
-built from the current source therefore runs the overlay with
-`--bootstrap-allow-shared-param-mutation`; the Python compile path passes that
-flag and reuses the shared AOT image cache for the component.
+The flat overlay strips `mut` parameter modes so the pre-#951 core
+trust-anchor/override pins can compile it. The shared overlay is therefore
+mode-free, and both self-compile stages pass
+`--bootstrap-allow-shared-param-mutation`. The official gc pin includes #951
+and would accept the real modes, but the strip keeps the stage-2 source and
+emitted s2 identical across pins. The Python compile path passes the flag and
+reuses the shared AOT image cache for the component.
 
 ## Previous core pin (recoverable)
 

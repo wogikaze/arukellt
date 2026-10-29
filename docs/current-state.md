@@ -89,12 +89,12 @@ closure_capture/nested_capture fixtures produce 5/6/7 and 5/10 on both
 targets; two mutable-borrow nested captures of one source are E0214.
 The retired
 capability diagnostic E0220 no longer exists in the implementation.
-The committed pinned bootstrap (sha256 `3f0ca605…`) handles the current
-generic enum `Box` / `Slice` prelude directly. `selfhost build-compiler`
-retains the guarded, source-only structural overlay as a fallback path for
-older pinned artifacts; the checked-in prelude and user artifacts are
-unchanged. The bootstrap chain on the current source is fixpoint-clean
-(`s2 == s3`, sha256 `33922353…`).
+The committed pinned bootstrap (sha256 `62aecf93…`, a `wasm32-gc` / `wasi-p2`
+command component) handles the current generic enum `Box` / `Slice` prelude
+directly. `selfhost build-compiler` retains the guarded, source-only structural
+overlay as a fallback path for older pinned artifacts; the checked-in prelude
+and user artifacts are unchanged. The bootstrap chain on the current source is
+fixpoint-clean (`s2 == s3`, sha256 `d917f7cd…`).
 
 ### Language v2 trait core (#856 / ADR-062)
 
@@ -175,11 +175,14 @@ parameter or receiver declares `mut` and its callers provide `let mut` or
 `mut` places. The stdlib declares `mut` on `push`, `set`, `pop`, `insert`,
 `clear`, `remove`, and the collection setters, with no name-based exemption.
 
-The official pin predates the #951 parser, so `build-compiler` strips the mode
-token from the flat overlay it compiles, and fixpoint stage 3 passes the
-internal `--bootstrap-allow-shared-param-mutation` option because that overlay
-has no modes. User programs, fixtures, and the analysis pipeline are strict.
-Both bootstrap shims and their deletion conditions are recorded in
+The core trust-anchor/override pins predate the #951 parser, so the shared
+flat overlay strips the mode token from the copy `build-compiler` compiles,
+and fixpoint stage 3 passes the internal
+`--bootstrap-allow-shared-param-mutation` option because that overlay has no
+modes. The official gc pin includes #951, but the overlay is shared so the
+stage-2 source stays identical across pins. User programs, fixtures, and the
+analysis pipeline are strict. Both bootstrap shims and their deletion
+conditions are recorded in
 [compiler/bootstrap.md](../compiler/bootstrap.md).
 
 A borrowed `Box<T>` parameter is a call-scoped borrow of a unique owner, so

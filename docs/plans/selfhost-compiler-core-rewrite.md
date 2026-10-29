@@ -21,6 +21,11 @@ warm **28.2 s**（旧 core pin は 2011 s / 34 分）、fixpoint **29.2 s**、
 s2 == s3 == `02bd6917…`。`BOOTSTRAP_EMIT_*` は wasm32 / wasi-p1 のまま据え置き。
 残る ≤10 s 目標は Phase 3 以降で詰める。
 
+同日 3 回目の refresh として #944 merge（`783be1b8f`）の source を
+`62aecf93…` に焼き込んだ。memory32 / memory64 の gc self-build は
+`wasm-tools validate --features gc,function-references,memory64` を通過し、
+p1 identity `d917f7cd…`、gc self-reproduction `3ca4b66e…` を確認した。
+
 ### 現行床（2026-10-29、gc pin、clean `7438a59fb`）
 
 | 条件 | wall | RSS |

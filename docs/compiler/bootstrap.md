@@ -8,11 +8,11 @@ Normative decision: [`../adr/ADR-029-selfhost-native-verification-contract.md`](
 Status summary: [`../state/compiler.md`](../state/compiler.md).  
 Structured SSOT: [`../data/bootstrap-contract.toml`](../data/bootstrap-contract.toml).
 
-The official pinned bootstrap is a direct `wasm32` / `wasi-p1` core module
-(`bootstrap/arukellt-selfhost.wasm`, memory32). It emits the stage-2/stage-3
-compiler as `wasm32` / `wasi-p1` core modules with memory32; the emitted
-compiler contract is unchanged. The previous core pin stays at
-`bootstrap/arukellt-selfhost-core.wasm` as the trust anchor and as an explicit
+The official pinned bootstrap is a `wasm32-gc` / `wasi-p2` command component
+(`bootstrap/arukellt-selfhost.wasm`), so the compiler itself runs on Wasmtime's
+GC. It emits the stage-2/stage-3 compiler as `wasm32` / `wasi-p1` core modules
+with memory32; the emitted compiler contract is unchanged. The core trust
+anchor stays at `bootstrap/arukellt-selfhost-core.wasm` as an explicit
 override. User-facing `wasm32-gc` / `wasi-p2` output is still packaged as an
 official WASI component with the checked-in WIT world.
 
@@ -29,28 +29,32 @@ real impls instead of the unresolved-call `drop; unreachable` fallback. The
 overlay no longer rewrites those call spellings or installs
 `bootstrap_toml_*` adapters.
 
-One host namespace remains a pin limitation: `8df2698c…` predates #917's MIR
-env call-result typing, so a reachable `Env::args` (a `Vec<String>` result)
-still produces invalid core Wasm. `_patch_bootstrap_host_env_paths` keeps the
-compiler's `Env::*` calls on the free builtin spelling, and the entry module
-uses the prelude `args` / `exit` / `println` host-intrinsic stubs. Delete both
-when the pin includes the #917 typing; the function docstrings carry the probe
-that must validate the lowering first.
+The core trust-anchor/override pins (`a2803831…`, `8df2698c…`) predate #917's
+MIR env call-result typing, so a reachable `Env::args` (a `Vec<String>` result)
+still produces invalid core Wasm under those pins.
+`_patch_bootstrap_host_env_paths` keeps the compiler's `Env::*` calls on the
+free builtin spelling, and the entry module uses the prelude `args` / `exit` /
+`println` host-intrinsic stubs. The official gc pin includes the #917 typing,
+but the shared overlay keeps the rewrite so the stage-2 source and emitted s2
+stay identical across pins. Delete both when the core pins are retired (or the
+overlay becomes pin-aware); the function docstrings carry the probe that must
+validate the lowering first.
 
-The flat overlay still strips the #951 parameter modes so the same overlay can
-be compiled by the pre-#951 core fallback pin as well as the official gc pin.
+The flat overlay still strips the #951 parameter modes so the pre-#951 core
+trust-anchor/override pins can compile the same overlay as the official gc pin.
 `_strip_bootstrap_param_modes` removes the mode token from the overlay copies
 only; the checked-in source keeps the real modes, and s2 compiles the real tree
-for fixtures with the strict callee-side rule. The official gc pin understands
-modes, but the stripped overlay keeps the stage-2 build identical across pins.
+for fixtures with the strict callee-side rule. The official gc pin includes
+#951 and understands modes, but the stripped overlay keeps the stage-2 build
+identical across pins.
 
 Both self-compile stages run the stripped overlay with
 `--bootstrap-allow-shared-param-mutation`, an internal self-compile option that
 restores the pre-#951 permissive body binding for that compilation only. User
 programs, fixtures, and the analysis pipeline never pass it and keep the
-strict rule. Delete both the overlay strip and the option when the overlay can
-ship the real parameter modes; probe with `fn bump(mut p: Point)` and a
-shared-parameter assignment before removing them.
+strict rule. Delete both the overlay strip and the option when the core pins
+are retired (or the overlay becomes pin-aware); probe with
+`fn bump(mut p: Point)` and a shared-parameter assignment before removing them.
 
 The isolated WIT parser closure in that overlay also normalizes qualified type
 names (`types::WitType`, `ast::WitNode`, and related record types) to the flat
@@ -65,7 +69,7 @@ Agents and humans confuse these two. Use the table:
 
 | Goal | Command | Typical time | Notes |
 |------|---------|--------------|-------|
-| **Refresh the compiler after editing `src/compiler/**`** | `python3 scripts/manager.py selfhost build-compiler` | **~28–32 s** with the official gc component pin (AOT-cached); ~34 min with the core fallback pin | Stage-2 only. **Default for emitter / Memory64 / T3 work.** |
+| **Refresh the compiler after editing `src/compiler/**`** | `python3 scripts/manager.py selfhost build-compiler` | **~28–30 s** with the official gc component pin (AOT-cached, quiet host); 20–40 min with the core fallback pin | Stage-2 only. **Default for emitter / Memory64 / T3 work.** |
 | Check ADR-029 fixpoint (`sha256(s2) == sha256(s3)`) | `python3 scripts/manager.py selfhost fixpoint` | seconds if s2/s3 exist; ~30 s to build s3 with the gc pin | Does not refresh the emitter by itself |
 | Rebuild s2 **and** s3 then compare (gate only) | `python3 scripts/manager.py selfhost fixpoint --build` | ~60 s with the gc pin | **Not** for routine iteration. The ≤10 s gc-host target is [#851](../../issues/open/851-selfhost-compiler-core-rewrite.md) / [ADR-053](../adr/ADR-053-selfhost-compiler-core-rewrite.md) |
 
@@ -79,18 +83,18 @@ Copy files with `/bin/cp -f` (never interactive `cp -iv`).
 ### Bootstrap pin
 
 `bootstrap/arukellt-selfhost.wasm` is the official `wasm32-gc` / `wasi-p2`
-command component (8 522 488 bytes; sha256 `35a2585a…`). It runs on Wasmtime's
+command component (8 523 687 bytes; sha256 `62aecf93…`). It runs on Wasmtime's
 GC and compiles the flat overlay through to the stage-2 `wasm32` / `wasi-p1`
-compiler in ~28–32 s warm:
+compiler in ~28–30 s warm (quiet host):
 
 ```bash
 python3 scripts/manager.py selfhost build-compiler
 ```
 
 The component's p1 output is byte-identical to the stage-2 s2 the previous pin
-produced, and it reproduces its own gc core. The Python compile path
-AOT-caches the component and passes the permissive overlay binding described
-above. The previous core pin is recoverable from commit `fb5944edb`
+produced for the same source, and it reproduces its own gc core. The Python
+compile path AOT-caches the component and passes the permissive overlay binding
+described above. The previous core pin is recoverable from commit `fb5944edb`
 (see [`bootstrap/PROVENANCE.md`](../../bootstrap/PROVENANCE.md)); the 2026-10-19
 core trust anchor is at `bootstrap/arukellt-selfhost-core.wasm` and can be
 selected with `ARUKELLT_PINNED_WASM=bootstrap/arukellt-selfhost-core.wasm`
@@ -111,7 +115,7 @@ Recommended loop:
 
 1. Classify failures / read WAT with the **current** s2 (no rebuild).
 2. Batch all planned `src/compiler/**` edits.
-3. **One** `selfhost build-compiler` (~28–32 s with the gc pin, AOT-warm).
+3. **One** `selfhost build-compiler` (~28–30 s with the gc pin, AOT-warm, quiet host).
 4. Re-validate **many** fixtures against that s2. Use
    `selfhost fixture-parity --filter-dir <area>` while a batch is in flight,
    and `ARUKELLT_FIXTURE_WORKERS=12 verify fixtures` at a checkpoint.
