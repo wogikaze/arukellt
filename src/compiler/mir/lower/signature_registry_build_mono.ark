@@ -145,75 +145,77 @@ fn sig_reg_leaf_name(name: String) -> String {
     name
 }
 
-pub fn sig_reg_leaf_index_build(mono_instances: Vec<MonoInstance>) -> SigRegLeafIndex {
-    let count = len(mono_instances)
-    let mut head = name_index::NameIndex_new(count)
-    let mut next = Vec::new<i32>()
-    let mut i = 0
-    while i < count {
-        push(next, 0 - 1)
-        i = i + 1
-    }
-    i = 0
-    while i < count {
-        let inst = get_unchecked(mono_instances, i)
-        i = i + 1
-        if type_contracts::MonoInstance_type_arg_count(inst) <= 0 {
-            continue
+impl SigRegLeafIndex {
+    fn build(mono_instances: Vec<MonoInstance>) -> SigRegLeafIndex {
+        let count = len(mono_instances)
+        let mut head = name_index::NameIndex_new(count)
+        let mut next = Vec::new<i32>()
+        let mut i = 0
+        while i < count {
+            push(next, 0 - 1)
+            i = i + 1
         }
-        let first_arg = type_contracts::MonoInstance_type_arg_at(inst, 0)
-        if type_contracts::TypeInfo_tag(first_arg) < 0 {
-            continue
+        i = 0
+        while i < count {
+            let inst = get_unchecked(mono_instances, i)
+            i = i + 1
+            if type_contracts::MonoInstance_type_arg_count(inst) <= 0 {
+                continue
+            }
+            let first_arg = type_contracts::MonoInstance_type_arg_at(inst, 0)
+            if type_contracts::TypeInfo_tag(first_arg) < 0 {
+                continue
+            }
+            let leaf = sig_reg_leaf_name(type_contracts::MonoInstance_fn_name(inst))
+            let previous = name_index::name_index_get(head, clone(leaf))
+            set(next, i - 1, previous)
+            name_index::name_index_set(head, leaf, i - 1)
         }
-        let leaf = sig_reg_leaf_name(type_contracts::MonoInstance_fn_name(inst))
-        let previous = name_index::name_index_get(head, clone(leaf))
-        set(next, i - 1, previous)
-        name_index::name_index_set(head, leaf, i - 1)
+        SigRegLeafIndex { head: head, next: next }
     }
-    SigRegLeafIndex { head: head, next: next }
-}
 
-// Return the unique non-marker instance index for the decl; -1 when absent or
-// ambiguous. Every spelling `sig_reg_leaf_instance_name_match` accepts has the
-// same leaf segment as the query, so walking the leaf bucket is equivalent to
-// the old full scan.
-pub fn sig_reg_leaf_instance_index(
-    index: SigRegLeafIndex,
-    mono_instances: Vec<MonoInstance>,
-    decl_name: String,
-    qualified_name: String
-) -> i32 {
-    let mut query_name = clone(decl_name)
-    if len(qualified_name) > 0 {
-        query_name = clone(qualified_name)
-    }
-    let query_leaf = sig_reg_leaf_name(query_name)
-    let mut matched = 0 - 1
-    let mut matched_mangled = String_new()
-    let mut ambiguous = false
-    let mut i = name_index::name_index_get(index.head, query_leaf)
-    while i >= 0 {
-        let inst = get_unchecked(mono_instances, i)
-        if sig_reg_leaf_instance_name_match(
-            type_contracts::MonoInstance_fn_name(inst),
-            clone(decl_name),
-            clone(qualified_name)
-        ) {
-            let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
-            if len(matched_mangled) > 0 && !eq(clone(inst_mangled), clone(matched_mangled)) {
-                ambiguous = true
-            }
-            if len(matched_mangled) == 0 {
-                matched = i
-            }
-            matched_mangled = inst_mangled
+    // Return the unique non-marker instance index for the decl; -1 when absent or
+    // ambiguous. Every spelling `sig_reg_leaf_instance_name_match` accepts has the
+    // same leaf segment as the query, so walking the leaf bucket is equivalent to
+    // the old full scan.
+    fn instance_index(
+        index: SigRegLeafIndex,
+        mono_instances: Vec<MonoInstance>,
+        decl_name: String,
+        qualified_name: String
+    ) -> i32 {
+        let mut query_name = clone(decl_name)
+        if len(qualified_name) > 0 {
+            query_name = clone(qualified_name)
         }
-        i = get_unchecked(index.next, i)
+        let query_leaf = sig_reg_leaf_name(query_name)
+        let mut matched = 0 - 1
+        let mut matched_mangled = String_new()
+        let mut ambiguous = false
+        let mut i = name_index::name_index_get(index.head, query_leaf)
+        while i >= 0 {
+            let inst = get_unchecked(mono_instances, i)
+            if sig_reg_leaf_instance_name_match(
+                type_contracts::MonoInstance_fn_name(inst),
+                clone(decl_name),
+                clone(qualified_name)
+            ) {
+                let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
+                if len(matched_mangled) > 0 && !eq(clone(inst_mangled), clone(matched_mangled)) {
+                    ambiguous = true
+                }
+                if len(matched_mangled) == 0 {
+                    matched = i
+                }
+                matched_mangled = inst_mangled
+            }
+            i = get_unchecked(index.next, i)
+        }
+        if ambiguous {
+            return 0 - 1
+        }
+        matched
     }
-    if ambiguous {
-        return 0 - 1
-    }
-    matched
 }
 
 // Instance fn_names can spell the same decl with different qualification
@@ -227,19 +229,19 @@ fn sig_reg_leaf_instance_name_match(
     qualified_name: String
 ) -> bool {
     if len(qualified_name) > 0 {
-        if name_match::name_equal(inst_name, qualified_name) {
+        if name_match::NameMatch::equal(inst_name, qualified_name) {
             return true
         }
         // Compare the `::`-qualified forms in place; this runs for every
         // monomorphized method instance and the per-call `"::" + name`
         // allocations showed up in the overlay GC profile.
-        if name_match::name_ends_with_qualified(inst_name, qualified_name) ||
-        name_match::name_ends_with_qualified(qualified_name, inst_name) {
+        if name_match::NameMatch::ends_with_qualified(inst_name, qualified_name) ||
+        name_match::NameMatch::ends_with_qualified(qualified_name, inst_name) {
             return true
         }
         return false
     }
-    name_match::name_equal(inst_name, decl_name)
+    name_match::NameMatch::equal(inst_name, decl_name)
 }
 
 fn sig_reg_index_method_mono(

@@ -81,6 +81,10 @@ accepted_status_markers = [
 [skip_doc_check]
 # Ceiling counts — increasing beyond ratchet_max fails the gate.
 # Prefer structured form: <!-- skip-doc-check reason="..." owner="..." kind="pseudocode|future|non-runnable" expires="YYYY-MM-DD" -->
+# Permanent notation (kind="grammar-fragment|invalid-example|notation") only
+# needs a reason: it is documentation, not deferred work, and does not consume
+# a per-file budget. This matches the #877 marker contract enforced by
+# scripts/check/check-doc-examples.py.
 require_structured = true
 require_expires = true
 

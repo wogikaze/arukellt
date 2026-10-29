@@ -91,7 +91,7 @@ fn MirModule_gc_enum_variant_matches(enum_name: String, variant_name: String) ->
     }
     let variant_len = len(variant_name)
     if variant_len >= base_len + 2 &&
-    name_match::name_region_equal(variant_name, 0, enum_name, base_start, base_len) &&
+    name_match::NameMatch::region_equal(variant_name, 0, enum_name, base_start, base_len) &&
     byte_at(variant_name, base_len) == 58 &&
     byte_at(variant_name, base_len + 1) == 58 {
         return true
@@ -101,7 +101,7 @@ fn MirModule_gc_enum_variant_matches(enum_name: String, variant_name: String) ->
     while i + pattern_len <= variant_len {
         if byte_at(variant_name, i) == 58 &&
         byte_at(variant_name, i + 1) == 58 &&
-        name_match::name_region_equal(variant_name, i + 2, enum_name, base_start, base_len) &&
+        name_match::NameMatch::region_equal(variant_name, i + 2, enum_name, base_start, base_len) &&
         byte_at(variant_name, i + 2 + base_len) == 58 &&
         byte_at(variant_name, i + 3 + base_len) == 58 {
             return true

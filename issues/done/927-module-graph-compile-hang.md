@@ -153,13 +153,13 @@ stale-collector binary until the pin moves.
 
 ## Done evidence (2026-10-19 close)
 
-- Canonical `.build/selfhost/arukellt-s2-runtime.wasm` (sha256
+- Invoked `compile src/compiler/main.ark --target wasm32-gc` with the
+  canonical `.build/selfhost/arukellt-s2-runtime.wasm` (sha256
   `b9913678`, produced by `selfhost build-compiler` under the
-  refreshed pin `a2803831`) runs `compile src/compiler/main.ark
-  --target wasm32-gc` to completion in **27.9 s** — bounded time,
-  every day, not just on a hand-installed binary. The run emits
-  E0100 cross-module visibility diagnostics (filed as #931) and
-  zero module-load misses after the #929 loader fix.
+  refreshed pin `a2803831`); execution completed in **27.9 s** —
+  bounded time, every day, not just on a hand-installed binary. The
+  run emits E0100 cross-module visibility diagnostics (filed as #931)
+  and zero module-load misses after the #929 loader fix.
 - The completion is a genuine hang fix, not slowness: pre-fix the
   same command stayed at 100% CPU with an empty log past 70 min
   (O(marked words x live records) mark scan). The post-fix mark is

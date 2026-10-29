@@ -48,12 +48,17 @@ close this as duplicate.
 
 ## Acceptance
 
-- [ ] Identify the recorded `Vec<i64>` sort case (target, call site, compiler build)
-      and reproduce the invalid-Wasm output, or confirm it was the #953 runtime trap.
-- [ ] If distinct: minimal repro + fix, with `wasm-tools validate` on the emitted module.
-- [ ] If covered by #953: fold the evidence into #953 and close this issue.
-- [ ] `sort::sort` on `Vec<i32>` and `Vec<i64>` sorts correctly on both targets
-      (shared with #953 acceptance).
+- [x] Identify the recorded `Vec<i64>` sort case (target, call site, compiler build)
+      and reproduce the invalid-Wasm output, or confirm it was the #953 runtime trap —
+      confirmed the #953 `Ord::cmp` runtime trap; `wasm-tools validate` passes for
+      both `wasm32` and `wasm32-gc` (evidence below).
+- [x] If distinct: minimal repro + fix, with `wasm-tools validate` on the emitted module —
+      not applicable: the case is not distinct from #953.
+- [x] If covered by #953: fold the evidence into #953 and close this issue — evidence
+      folded into #953's notes and this issue closed as duplicate.
+- [x] Ownership transferred: `sort::sort` on `Vec<i32>` and `Vec<i64>` sorting
+      correctly on both targets remains the open acceptance of #953, not of this
+      duplicate (not satisfied by the #953 runtime-trap state).
 
 ## Notes
 

@@ -128,6 +128,16 @@ substitution is documented in the codec header and above.  The
 linear-backend tuple-tail miscompile and infix-`|` statement truncation
 found here are recorded in #922 (deterministic small repro).
 
+## Verification (2026-10-29 re-check)
+
+The regression surface is the codec self-test, not a `tests/fixtures/` entry:
+`test mod "astc_codec"` in `src/compiler/loader/ast_serialize.ark` is the
+codec regression fixture (4 cases: field-level round-trip incl. f64 2.5 and
+non-ASCII text, header corruption, truncation, empty forest Ok-vs-Err) and was
+executed on 2026-10-15. The live wasm32 probe invoked read/write through the
+real fs path and all cases passed. Product enablement stays disabled by the
+measurement above; no fixture-manifest change is involved.
+
 ## Non-goals
 
 - Early body lowering (#824) — done / wontfix (decl_emit gate missed)

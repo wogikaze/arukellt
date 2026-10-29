@@ -521,6 +521,11 @@ let dir  = Path::new("/home/user/data.txt").parent()    // "/home/user"
         "title": "std::host::process / std::host::env",
         "description": "Source-backed docs for process control and runtime environment helpers.",
         "modules": ["std::host::process", "std::host::env"],
+        # The page bundles namespace types whose methods are not manifest
+        # functions, so the axis cannot be derived from availability shapes.
+        # `Env::var` is missing on wasm32 (docs/platform/target-runtime-and-surfaces.md),
+        # while the other symbols are available on both targets.
+        "availability_axis": "mixed",
         "overview": {
             "summary": (
                 "This page covers two closely related host modules: `std::host::process` for "
@@ -3255,7 +3260,9 @@ def render_stdlib_module_page(
         for mod in page["modules"]:
             all_page_funcs.extend(manifest_functions_by_module.get(mod, []))
         computed_constraints = build_target_constraints(
-            page["modules"], all_page_funcs
+            page["modules"],
+            all_page_funcs,
+            availability_axis=page.get("availability_axis"),
         )
         # Build a copy of the overview with the dynamically-derived constraint
         overview_with_computed = dict(page["overview"])
@@ -3682,7 +3689,11 @@ def _availability_unbacked(funcs: list[dict]) -> bool:
     )
 
 
-def build_target_constraints(page_modules: list[str], funcs: list[dict]) -> str:
+def build_target_constraints(
+    page_modules: list[str],
+    funcs: list[dict],
+    availability_axis: str | None = None,
+) -> str:
     """Derive a human-readable target-constraint string from manifest data.
 
     Reads ``availability`` (t1/t3 tier flags) and ``target`` (platform list) from
@@ -3691,9 +3702,16 @@ def build_target_constraints(page_modules: list[str], funcs: list[dict]) -> str:
     T3-only.  The ``target`` list is used as a fallback for explicit platform
     constraints that are not expressed through availability tiers.
 
+    ``availability_axis="mixed"`` is the page-level input for pages whose symbols
+    differ in availability but whose surface is declared as types/methods, which
+    the manifest function list cannot encode (e.g. ``Env::var`` is missing on
+    ``wasm32``).  Per-symbol tables stay authoritative; the page must not flatten
+    the axis into a single target badge.
+
     Args:
         page_modules: Module names on this doc page (used for filesystem runtime notes).
         funcs: List of manifest function dicts for the module(s) being described.
+        availability_axis: Optional page-level axis override (currently ``mixed``).
 
     Returns:
         A Markdown-friendly constraint string such as:
@@ -3712,6 +3730,10 @@ def build_target_constraints(page_modules: list[str], funcs: list[dict]) -> str:
         f"Host dependency: {'yes' if host_dependent else 'no'}. "
         f"Explicit runtime permission: {explicit_permission}."
     )
+
+    if availability_axis == "mixed":
+        return "Target/profile availability: mixed — see individual symbols. " + axes
+
 
     # Primary signal: availability.t1 / availability.t3 tier flags from manifest.
     if _availability_unbacked(funcs):

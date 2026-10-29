@@ -120,11 +120,12 @@ Verified under `lin_comp_v29` and the canonical
 byte-identical to the stage-2 `bootstrap-out.wasm` built by the
 refreshed pin — two producers, one output):
 
-- `compile src/compiler/main.ark --target wasm32-gc` finishes in
-  27.9 s with **zero** "failed to load module" errors; the remaining
-  diagnostics are E0100 cross-module visibility errors filed as #931.
-- `compile src/compiler/main/editor.ark` likewise reports no
-  analysis/dap/lsp misses.
+- Invoked `compile src/compiler/main.ark --target wasm32-gc`; execution
+  finishes in 27.9 s with **zero** "failed to load module" errors; the
+  remaining diagnostics are E0100 cross-module visibility errors filed
+  as #931.
+- Invoked `compile src/compiler/main/editor.ark`; the run likewise
+  reports no analysis/dap/lsp misses.
 - `module-run:modules/bare_use_root_fallback/main.ark` prints `8`
   under the new loader (sibling `sub/helper.ark` contributes 1, not
   the root's 100 — order preserved; `root_only` resolves via the new

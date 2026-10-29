@@ -4013,6 +4013,21 @@ def _compiler_constant_function_layout_violations(root: Path) -> list[tuple[str,
         "wit_tags_",
         "wit_values_",
     )
+    # Narrow, reasoned exceptions for files that are the dedicated table for
+    # one subsystem without being a general vocabulary module. The prefix keeps
+    # the exception from hiding unrelated constants added to the same file.
+    subsystem_constant_tables = {
+        "src/compiler/wasm/emit_rung_census.ark": (
+            "RUNG_",
+            "Phase 5 emitter-rung ids index SelfEmitCtx_emit_census_rungs; the "
+            "rung vocabulary and its only consumer (the census) are one table.",
+        ),
+        "src/compiler/wasm/intrinsics/helpers_io_p2.ark": (
+            "P2_",
+            "P2 chunked-write scratch slot ids (3-6) are local to the print "
+            "loop and mirror the 0-2 GC string copy slots documented beside them.",
+        ),
+    }
     violations: list[tuple[str, int, str]] = []
     compiler_root = root / "src" / "compiler"
     for path in sorted(compiler_root.rglob("*.ark")):
@@ -4025,10 +4040,15 @@ def _compiler_constant_function_layout_violations(root: Path) -> list[tuple[str,
             name in canonical_table_names
             or (in_component and name.startswith(allowed_component_prefixes))
         )
+        subsystem_table = subsystem_constant_tables.get(rel)
         for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             stripped = line.strip()
-            if _CONST_FN_RE.match(stripped) and not dedicated:
-                violations.append((rel, line_no, stripped))
+            match = _CONST_FN_RE.match(stripped)
+            if not match or dedicated:
+                continue
+            if subsystem_table and match.group(1).startswith(subsystem_table[0]):
+                continue
+            violations.append((rel, line_no, stripped))
     return violations
 
 

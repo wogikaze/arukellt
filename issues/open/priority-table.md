@@ -14,38 +14,38 @@ Scoring criteria (0-5 each, total 25):
 | 1 | 934 | 934 — typechecker resolves calls through a flat, overload-b... | compiler | 5 | 0 | 1 | 5 | 4 | 15 |
 | 2 | 951 | 951 — implement ADR-088: `mut` parameter mode, mutable-plac... | typecheck | 0 | 0 | 5 | 5 | 5 | 15 |
 | 3 | 946 | 946 — single-uppercase type names in impl heads are treated... | typecheck | 0 | 0 | 4 | 5 | 5 | 14 |
-| 4 | 708 | 708 — `TryFrom` / `TryInto` traits for fallible conversions | stdlib-api | 0 | 0 | 4 | 3 | 5 | 12 |
-| 5 | 943 | 943 — ownership and mutability rules do not hold at functio... | language-design | 0 | 0 | 2 | 5 | 5 | 12 |
-| 6 | 693 | 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO u... | stdlib-api | 0 | 0 | 5 | 3 | 3 | 11 |
-| 7 | 851 | 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay） | selfhost-infra | 1 | 0 | 2 | 5 | 3 | 11 |
-| 8 | 930 | 930 — reference-parity execution leg cannot package memory6... | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
-| 9 | 931 | 931 — module-graph compile: sibling files access each other's | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
-| 10 | 948 | 948 — `wasm32-gc` print bump-allocates linear memory per ca... | wasi | 0 | 0 | 3 | 3 | 5 | 11 |
-| 11 | 954 | 954 — wasm32: referencing a top-level `i64` const produces ... | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
-| 12 | 958 | 958 — `--emit wat` silently writes a 0-byte file with the p... | selfhost-infra | 0 | 0 | 1 | 5 | 5 | 11 |
-| 13 | 963 | 963 — `i64.to_string()` is not usable (method dispatch pick... | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
-| 14 | 697 | 697 — `Vec<T>` operation extension (windows / chunks / reta... | stdlib-api | 1 | 0 | 3 | 3 | 3 | 10 |
-| 15 | 728 | 728 — WIR / backend target IR for ADR-007 multi-target sepa... | compiler-internal | 0 | 0 | 1 | 5 | 4 | 10 |
-| 16 | 928 | 928 — bare `clone` callee resolves to `String::clone`; wasm... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
-| 17 | 936 | 936 — prelude core functions have placeholder signatures; c... | stdlib | 2 | 0 | 1 | 3 | 4 | 10 |
-| 18 | 937 | 937 — `let` type annotations silently replace a mismatching... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
-| 19 | 938 | 938 — return-type checking compares only the outer tag, not... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
-| 20 | 940 | 940 — backend type identity drops module paths; same-named ... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
-| 21 | 941 | 941 — type-name encodings use `_` as a separator; distinct ... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
-| 22 | 945 | 945 — `impl Copy` is accepted for types with non-`Copy` fie... | typecheck | 0 | 0 | 1 | 5 | 4 | 10 |
-| 23 | 949 | 949 — type-spine plans omit the typechecker → CoreHIR hando... | docs | 0 | 0 | 1 | 5 | 4 | 10 |
-| 24 | 950 | 950 — verification never exercises the failure classes foun... | selfhost-verification | 0 | 0 | 1 | 5 | 4 | 10 |
-| 25 | 953 | 953 — `Ord::cmp` traps at runtime on both targets; `std::co... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
-| 26 | 955 | 955 — wasm32: two live `Vec<i64>` corrupt the managed heap ... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
-| 27 | 956 | 956 — wasm32-gc: `print`/`println` reject strings over 4096... | wasi | 0 | 0 | 2 | 3 | 5 | 10 |
-| 28 | 960 | 960 — `String::split` is broken on both targets: runtime OO... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
-| 29 | 962 | 962 — wasm32: a single growing `Vec<i64>` loses elements pa... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
-| 30 | 964 | 964 — `let x: i64 = 0` binds x as i32 (annotation ignored f... | typecheck | 0 | 0 | 1 | 5 | 4 | 10 |
-| 31 | 966 | 966 — Same-named methods across type specializations resolv... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
-| 32 | 967 | 967 — Generic Vec methods on `Vec<String>` and generic `ite... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
-| 33 | 969 | 969 — Rust-style numeric constants (`i32::MAX`, `f64::INFIN... | language-design | 0 | 0 | 1 | 5 | 4 | 10 |
-| 34 | 970 | 970 — Module `const` references: qualified paths and multi-... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
-| 35 | 971 | 971 — `Vec::sort_by` cannot sort aggregate elements on wasm... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
+| 4 | 971 | 971 — `Vec::sort_by` cannot sort aggregate elements on wasm... | compiler | 0 | 0 | 3 | 5 | 5 | 13 |
+| 5 | 708 | 708 — `TryFrom` / `TryInto` traits for fallible conversions | stdlib-api | 0 | 0 | 4 | 3 | 5 | 12 |
+| 6 | 943 | 943 — ownership and mutability rules do not hold at functio... | language-design | 0 | 0 | 2 | 5 | 5 | 12 |
+| 7 | 693 | 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO u... | stdlib-api | 0 | 0 | 5 | 3 | 3 | 11 |
+| 8 | 851 | 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay） | selfhost-infra | 1 | 0 | 2 | 5 | 3 | 11 |
+| 9 | 930 | 930 — reference-parity execution leg cannot package memory6... | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
+| 10 | 931 | 931 — module-graph compile: sibling files access each other's | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
+| 11 | 948 | 948 — `wasm32-gc` print bump-allocates linear memory per ca... | wasi | 0 | 0 | 3 | 3 | 5 | 11 |
+| 12 | 954 | 954 — wasm32: referencing a top-level `i64` const produces ... | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
+| 13 | 958 | 958 — `--emit wat` silently writes a 0-byte file with the p... | selfhost-infra | 0 | 0 | 1 | 5 | 5 | 11 |
+| 14 | 963 | 963 — `i64.to_string()` is not usable (method dispatch pick... | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
+| 15 | 697 | 697 — `Vec<T>` operation extension (windows / chunks / reta... | stdlib-api | 1 | 0 | 3 | 3 | 3 | 10 |
+| 16 | 728 | 728 — WIR / backend target IR for ADR-007 multi-target sepa... | compiler-internal | 0 | 0 | 1 | 5 | 4 | 10 |
+| 17 | 928 | 928 — bare `clone` callee resolves to `String::clone`; wasm... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
+| 18 | 936 | 936 — prelude core functions have placeholder signatures; c... | stdlib | 2 | 0 | 1 | 3 | 4 | 10 |
+| 19 | 937 | 937 — `let` type annotations silently replace a mismatching... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
+| 20 | 938 | 938 — return-type checking compares only the outer tag, not... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
+| 21 | 940 | 940 — backend type identity drops module paths; same-named ... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
+| 22 | 941 | 941 — type-name encodings use `_` as a separator; distinct ... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
+| 23 | 945 | 945 — `impl Copy` is accepted for types with non-`Copy` fie... | typecheck | 0 | 0 | 1 | 5 | 4 | 10 |
+| 24 | 949 | 949 — type-spine plans omit the typechecker → CoreHIR hando... | docs | 0 | 0 | 1 | 5 | 4 | 10 |
+| 25 | 950 | 950 — verification never exercises the failure classes foun... | selfhost-verification | 0 | 0 | 1 | 5 | 4 | 10 |
+| 26 | 953 | 953 — `Ord::cmp` traps at runtime on both targets; `std::co... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
+| 27 | 955 | 955 — wasm32: two live `Vec<i64>` corrupt the managed heap ... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
+| 28 | 956 | 956 — wasm32-gc: `print`/`println` reject strings over 4096... | wasi | 0 | 0 | 2 | 3 | 5 | 10 |
+| 29 | 960 | 960 — `String::split` is broken on both targets: runtime OO... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
+| 30 | 962 | 962 — wasm32: a single growing `Vec<i64>` loses elements pa... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
+| 31 | 964 | 964 — `let x: i64 = 0` binds x as i32 (annotation ignored f... | typecheck | 0 | 0 | 1 | 5 | 4 | 10 |
+| 32 | 966 | 966 — Same-named methods across type specializations resolv... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
+| 33 | 967 | 967 — Generic Vec methods on `Vec<String>` and generic `ite... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
+| 34 | 969 | 969 — Rust-style numeric constants (`i32::MAX`, `f64::INFIN... | language-design | 0 | 0 | 1 | 5 | 4 | 10 |
+| 35 | 970 | 970 — Module `const` references: qualified paths and multi-... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
 | 36 | 972 | 972 — `(a..b).rev()` and tuple-of-struct values emit invali... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
 | 37 | 974 | 974 — `HashMap` runtime traps: `for k in map` with `String`... | stdlib-api | 0 | 0 | 1 | 5 | 4 | 10 |
 | 38 | 976 | 976 — Collection mutators (`push`) are reported to resolve ... | language-design | 0 | 0 | 1 | 5 | 4 | 10 |
