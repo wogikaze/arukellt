@@ -3,7 +3,6 @@
 // matching, and deterministic checksum accumulation.
 use std::host::fs::Fs
 use std::host::stdio
-use std::prelude::{clone}
 use std::text
 fn line_for(i: i32) -> String {
     "record:".concat((i).to_string()).concat(":payload:abcdefghijklmnopqrstuvwxyz0123456789").concat("\n")
@@ -21,7 +20,7 @@ fn main() {
     let mut checksum: i32 = 0
     let mut iter: i32 = 0
     while iter < 20 {
-        let write_result = Fs::write_string(path, clone(data))
+        let write_result = Fs::write_string(path, data.clone())
         match write_result {
             Result::Ok(_) => {},
             Result::Err(e) => {

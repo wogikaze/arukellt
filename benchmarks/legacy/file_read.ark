@@ -3,7 +3,6 @@
 // path and string construction.
 use std::host::fs::Fs
 use std::host::stdio
-use std::prelude::{clone}
 use std::text
 fn main() {
     let mut path = "arukellt_bench_file_read.txt"
@@ -15,7 +14,7 @@ fn main() {
         i = i + 1
     }
 
-    let write_result = Fs::write_string(path, clone(data))
+    let write_result = Fs::write_string(path, data.clone())
     match write_result {
         Result::Ok(_) => {},
         Result::Err(e) => {

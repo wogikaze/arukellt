@@ -1,4 +1,3 @@
-use std::prelude::clone
 use typechecker::contract_type_access
 use typechecker::name_display
 use typechecker::unify
