@@ -9,7 +9,7 @@ fn main() {
     let sb = sb.concat("line3")
     let result = sb
     test::assert_eq_string(result, "line1\nline2\nline3")
-    test::assert_eq_i32(sb.len(), 17)
+    test::assert_eq_i32(result.len(), 17)
 
     // Single append_line
     let sb2 = ""

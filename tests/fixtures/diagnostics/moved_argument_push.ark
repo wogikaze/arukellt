@@ -1,0 +1,11 @@
+use std::host::stdio
+
+// ADR-088 §1: `push(v1, 1)` runs after `let v2 = v1` moved the vector. The
+// moved use is E0212; the mut-place check (E0223) must not add a second
+// diagnostic for the same argument.
+fn main() {
+    let v1 = Vec::new<i32>()
+    let v2 = v1
+    push(v1, 1)
+    stdio::println(len(v2))
+}

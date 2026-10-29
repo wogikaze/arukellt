@@ -165,7 +165,9 @@ fn propagate_from_local(mut f: MirFunction, dest: i32, source: i32, mut table: T
     let dst_variant_slot = local_access::MirLocal_variant_slot(dst_loc)
     let dst_type_name = local_access::MirLocal_type_name(dst_loc)
     let mut updated = false
-    let mut new_loc = dst_loc
+    // `new_loc` is a rewritten copy of `dst_loc`; the original is still read
+    // below, so the copy must not move it.
+    let mut new_loc = clone(dst_loc)
     let destination_is_temporary = starts_with(local_access::MirLocal_name(dst_loc), "_t")
     // String/vec/hashmap payload locals must not inherit enum variant slots;
     // that makes emit cast field values to the enclosing Ok/Some/String variant.

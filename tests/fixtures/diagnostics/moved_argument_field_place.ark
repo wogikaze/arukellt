@@ -1,0 +1,17 @@
+use std::host::stdio
+
+// ADR-088 §1: a field place rooted at a moved binding is the same moved use.
+struct Holder {
+    name: String,
+}
+
+fn show(name: String) {
+    stdio::println(name)
+}
+
+fn main() {
+    let holder = Holder { name: String_from("field") }
+    let moved = holder
+    show(holder.name)
+    show(moved.name)
+}

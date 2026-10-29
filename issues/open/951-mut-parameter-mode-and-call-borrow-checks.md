@@ -422,6 +422,13 @@ remaining §7 direction positions.
    name-based exemption is used.
 5. Same-root checking is syntactic and collapses element paths to `[]`; this
    is the ADR's no-alias-analysis choice, not a temporary limitation.
+6. Moved call arguments (ADR-088 §1): landed under
+   [#944](../../issues/open/944-move-after-use-not-diagnosed.md). A binding
+   moved earlier is E0212 when passed as an argument or used as a method
+   receiver; a live argument stays borrowed and usable. Free calls, method
+   calls, function-value calls, and builtins share the check, and field /
+   element places are followed to their root binding. The `mut`-place check
+   (E0223) does not add a second diagnostic for a moved argument.
 
 ### Verification (2026-10-28)
 

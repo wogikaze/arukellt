@@ -14,6 +14,7 @@ use typechecker::match
 use typechecker::enum_expr
 use typechecker::module_structs
 use typechecker::operator_traits
+use typechecker::ownership
 use typechecker::contract_type_access
 
 fn infer_compound_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
@@ -75,9 +76,12 @@ fn infer_compound_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnS
         return infer_comprehension::infer_comprehension_expr(env, scope, fn_sigs, enum_defs, node)
     }
     if ast_expr_predicates::node_is_call(node) {
+        ownership::check_call_place_uses(env, scope, node, 1)
         return call::infer_call_expr(env, scope, fn_sigs, enum_defs, node)
     }
     if ast_expr_predicates::node_is_method_call(node) {
+        // Child 0 is the receiver; it is a place use exactly like an argument.
+        ownership::check_call_place_uses(env, scope, node, 0)
         return call::infer_method_call_expr(env, scope, fn_sigs, enum_defs, node)
     }
     if ast_expr_predicates::node_is_match_expr(node) {

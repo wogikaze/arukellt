@@ -1,0 +1,19 @@
+use std::host::stdio
+
+// ADR-088 §1: a method receiver is a place use like an argument.
+struct Parser {
+    rest: String,
+}
+
+impl Parser {
+    fn size(self: Parser) -> i32 {
+        self.rest.len()
+    }
+}
+
+fn main() {
+    let parser = Parser { rest: String_from("text") }
+    let owned = parser
+    stdio::println(parser.size().to_string())
+    stdio::println(owned.size().to_string())
+}
