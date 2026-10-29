@@ -246,3 +246,12 @@ mono instance / wrapper が decl より多く、Phase 3 の主対象は
 
 並行ビルドで overlay cache が stale を返す場合は
 `rm .build/selfhost/flat-overlay-cache.json` で再生成する。
+
+### 2026-10-29 更新（gc pin refresh 471855ad）
+
+`36f42b97e` を source に gc pin を refresh した: component 8,550,341 B /
+`471855ad…`、p1 identity `353473ae…`、gc self core `c0db44ce…`。
+採用時の HEAD は `aac7621ab` まで進んでおり、新 pin でその source を検証:
+s2 == s3 == `1eb4a81c…`、fixpoint PASS、stdlib_json parity PASS、lane PASS。
+warm build-compiler は負荷 13–20 で 44–45 s（user 38–39 s）、quiet 域は
+~30–34 s。

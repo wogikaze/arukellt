@@ -51,3 +51,19 @@ procedure (p1 identity + gc self-reproduction).
 - `ctx_mono_type_params.ark` is replaced wholesale by
   `_patch_bootstrap_stub_static_dispatch` in the bootstrap overlay, so changes
   there do not affect the selfhost compiler (see the plan's stub-module note).
+
+## Pin refresh 2026-10-29 (471855ad)
+
+Refreshed the official gc pin from `36f42b97e` with the previous pin as the
+producer.
+
+| Field | Value |
+|-------|-------|
+| component | 8 550 341 bytes, sha256 `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895` |
+| p1 identity | `353473ae5a24230b1e9c83d23d73b818396c0ae8bdd45c46688ac742a5101739` (previous pin's s2 for that source) |
+| gc self core | `c0db44ce037ba87e19c32c15a917f5b93619b00c8274f1ff778957ca5d55a5e7` |
+| HEAD at adoption | `aac7621ab` (advanced during the refresh) |
+| verification with the new pin | s2 == s3 == `1eb4a81c…`, fixpoint PASS, stdlib_json parity PASS, verify lane PASS |
+
+Warm build-compiler with the new pin measured 44.0 / 45.0 s at host load
+13-20 (user 37.7 / 39.1 s); the quiet-host range is documented as ~30-34 s.

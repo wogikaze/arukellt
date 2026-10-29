@@ -69,8 +69,8 @@ Agents and humans confuse these two. Use the table:
 
 | Goal | Command | Typical time | Notes |
 |------|---------|--------------|-------|
-| **Refresh the compiler after editing `src/compiler/**`** | `python3 scripts/manager.py selfhost build-compiler` | **~28–30 s** with the official gc component pin (AOT-cached, quiet host); 20–40 min with the core fallback pin | Stage-2 only. **Default for emitter / Memory64 / T3 work.** |
-| Check ADR-029 fixpoint (`sha256(s2) == sha256(s3)`) | `python3 scripts/manager.py selfhost fixpoint` | seconds if s2/s3 exist; ~30 s to build s3 with the gc pin | Does not refresh the emitter by itself |
+| **Refresh the compiler after editing `src/compiler/**`** | `python3 scripts/manager.py selfhost build-compiler` | **~30–34 s** with the official gc component pin (AOT-cached, quiet host); 20–40 min with the core fallback pin | Stage-2 only. **Default for emitter / Memory64 / T3 work.** |
+| Check ADR-029 fixpoint (`sha256(s2) == sha256(s3)`) | `python3 scripts/manager.py selfhost fixpoint` | seconds if s2/s3 exist; ~34 s to build s3 with the gc pin | Does not refresh the emitter by itself |
 | Rebuild s2 **and** s3 then compare (gate only) | `python3 scripts/manager.py selfhost fixpoint --build` | ~60 s with the gc pin | **Not** for routine iteration. The ≤10 s gc-host target is [#851](../../issues/open/851-selfhost-compiler-core-rewrite.md) / [ADR-053](../adr/ADR-053-selfhost-compiler-core-rewrite.md) |
 
 Aliases for `build-compiler`: `build-s2`, `rebuild-s2`.
@@ -83,9 +83,9 @@ Copy files with `/bin/cp -f` (never interactive `cp -iv`).
 ### Bootstrap pin
 
 `bootstrap/arukellt-selfhost.wasm` is the official `wasm32-gc` / `wasi-p2`
-command component (8 523 687 bytes; sha256 `62aecf93…`). It runs on Wasmtime's
+command component (8 550 341 bytes; sha256 `471855ad…`). It runs on Wasmtime's
 GC and compiles the flat overlay through to the stage-2 `wasm32` / `wasi-p1`
-compiler in ~28–30 s warm (quiet host):
+compiler in ~30–34 s warm (quiet host):
 
 ```bash
 python3 scripts/manager.py selfhost build-compiler
@@ -109,13 +109,13 @@ tag. Provenance, the refresh procedure, and removal conditions:
 rewrite; they do **not** skip that compile.
 
 **Do not rebuild once per one-line hypothesis.** That makes agents
-latency-bound (`~28 s × N` tries).
+latency-bound (`~32 s × N` tries).
 
 Recommended loop:
 
 1. Classify failures / read WAT with the **current** s2 (no rebuild).
 2. Batch all planned `src/compiler/**` edits.
-3. **One** `selfhost build-compiler` (~28–30 s with the gc pin, AOT-warm, quiet host).
+3. **One** `selfhost build-compiler` (~30–34 s with the gc pin, AOT-warm, quiet host).
 4. Re-validate **many** fixtures against that s2. Use
    `selfhost fixture-parity --filter-dir <area>` while a batch is in flight,
    and `ARUKELLT_FIXTURE_WORKERS=12 verify fixtures` at a checkpoint.

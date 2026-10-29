@@ -9,20 +9,34 @@ the trusted bootstrap base for selfhost verification (see
 `bootstrap/arukellt-selfhost.wasm` is the current stage-2 compiler packaged as
 a `wasm32-gc` / `wasi-p2` command component, so the compiler itself executes
 on Wasmtime's GC instead of the linear-memory host. Compiling the bootstrap
-overlay with this pin takes ~28–30 s warm (the previous core pin took ~34 min
+overlay with this pin takes ~30–34 s warm (the previous core pin took ~34 min
 on the same source; the first run after a pin refresh adds the component's AOT
 image build).
 
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 8 523 687 bytes |
-| sha256 | `62aecf93d3c7c41a444745222614c89f49bb52e48773751a3aa5d17a919b4c45` |
-| Built from commit | `783be1b8f` (E0212 non-call move diagnostics, #944) |
+| Size | 8 550 341 bytes |
+| sha256 | `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895` |
+| Built from commit | `36f42b97e` (#965 Vec<Ord> projection, HashSet retirement, resolver fixes) |
 | Build target | `wasm32-gc` / `wasi-p2` component, cm32p2 command wrapper |
-| Producer | The previous gc pin (`35a2585a…`) compiled the overlay to `wasm32-gc` with `--emit component`; `wasm-tools component embed/new` packaged it |
-| p1 identity | Compiling the overlay with `--target wasm32 --wasi-version wasi-p1` writes `d917f7cd7a559ddc17d4a1e3e45df7c449d38b946b63c228182cbefabece3836`, byte-identical to the stage-2 s2 the previous pin produced for this source |
-| Self-reproduction | Compiling the overlay to `wasm32-gc --emit component` writes core `3ca4b66e45bb462d100eb8ee26e04e9590efbc75ad08a38c9d17e5f80024de4e`, the core this component packages |
+| Producer | The previous gc pin (`62aecf93…`) compiled the overlay to `wasm32-gc` with `--emit component`; `wasm-tools component embed/new` packaged it |
+| p1 identity | Compiling the overlay with `--target wasm32 --wasi-version wasi-p1` writes `353473ae5a24230b1e9c83d23d73b818396c0ae8bdd45c46688ac742a5101739`, byte-identical to the stage-2 s2 the previous pin produced for this source |
+| Self-reproduction | Compiling the overlay to `wasm32-gc --emit component` writes core `c0db44ce037ba87e19c32c15a917f5b93619b00c8274f1ff778957ca5d55a5e7`, the core this component packages |
+
+The `3c02d18b` refresh restored the gc host after the 2026-10-28 core pin
+retired it. The `35a2585a` refresh baked in the 2026-10-29 allocation-free
+matcher changes (`corehir::name_match`, enum-variant / callee spelling /
+signature-registry leaf comparisons). The `783be1b8f` refresh baked in the
+#944 E0212 non-call move diagnostics; this `36f42b97e` refresh bakes in the
+#965 Vec<Ord> projection, the HashSet retirement, and the resolver fixes that
+made that series build. Each refresh re-verified p1 identity and
+self-reproduction against the previous pin; the host swap itself does not
+change the emitted s2. The current s2 is `353473ae…` for the `36f42b97e`
+source, and the previous pin produces the same bytes from that source.
+HEAD advanced while this refresh was prepared (resolver fixes + merged
+HashSet hint restoration); the new pin builds that newer source
+(s2 `1eb4a81c…`, fixpoint PASS, fixture parity PASS).
 
 The `3c02d18b` refresh restored the gc host after the 2026-10-28 core pin
 retired it. The `35a2585a` refresh baked in the 2026-10-29 allocation-free
