@@ -8,7 +8,7 @@ use std::test
 fn assert_probe(m: Vec<i32>, key: i32, expected: i32) {
     match hash::hashmap_get_option(m, key) {
         Option::Some(v) => test::assert_eq_i32(v, expected),
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
 }
 

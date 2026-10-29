@@ -8,10 +8,10 @@ fn main() {
     let res: Result<Option<String>, io::IoError> = r.read_line()
     match res {
         Result::Ok(found) => match found {
-            Option::Some(_) => panic("expected EOF"),
+            Option::Some(_) => Std::panic("expected EOF"),
             Option::None => (),
         },
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     test::assert_true(r.is_eof())
 }

@@ -498,7 +498,7 @@ For unrecoverable situations (programming errors, assertion failures):
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-panic(String_from("unreachable state"))
+Std::panic(String_from("unreachable state"))
 ```
 
 In the current implementation `panic` writes to stderr and traps. It is not intended

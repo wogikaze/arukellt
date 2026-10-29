@@ -34,20 +34,20 @@ fn main() {
     let mut iterator = source.into_iter()
     match iterator.next() {
         Some(value) => test::assert_eq_i32(value, 2),
-        None => panic("expected first range item"),
+        None => Std::panic("expected first range item"),
     }
 
     let generic_source = Range::new(7, 9)
     match first_from_source(generic_source) {
         Some(value) => test::assert_eq_i32(value, 7),
-        None => panic("expected generic range item"),
+        None => Std::panic("expected generic range item"),
     }
 
     let inclusive_source = RangeInclusive::new(3, 5)
     let mut inclusive_iterator = inclusive_source.into_iter()
     match inclusive_iterator.next() {
         Some(value) => test::assert_eq_i32(value, 3),
-        None => panic("expected inclusive range item"),
+        None => Std::panic("expected inclusive range item"),
     }
     test::assert_eq_i32(inclusive_iterator.count(), 2)
 

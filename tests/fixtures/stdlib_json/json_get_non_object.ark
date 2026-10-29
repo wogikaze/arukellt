@@ -5,19 +5,19 @@ fn main() {
     match json::JsonValue::parse("42") {
         Result::Ok(v) => {
             match v.get_field("key") {
-                Option::Some(_) => panic("expected None: json_get on non-object"),
+                Option::Some(_) => Std::panic("expected None: json_get on non-object"),
                 None => {},
             }
         },
-        Result::Err(e) => panic("parse failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse failed: ".concat(e.message())),
     }
     match json::JsonValue::parse("[1,2]") {
         Result::Ok(v) => {
             match v.get_field("key") {
-                Option::Some(_) => panic("expected None: json_get on array"),
+                Option::Some(_) => Std::panic("expected None: json_get on array"),
                 None => {},
             }
         },
-        Result::Err(e) => panic("parse array failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse array failed: ".concat(e.message())),
     }
 }

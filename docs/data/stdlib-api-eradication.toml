@@ -84,22 +84,12 @@ owner = "none"
 # targets are the now non-public implementation functions in hash_string /
 # hash_fn / hash_str_fn, so no source declaration in those modules is public.
 
-[[rules]]
-label = "collections sort free algorithms"
-source_only = true
-module = "std::collections::sort"
-class = "associated-or-method"
-owner = "697"
-replacement = "Vec::sort_by / sort_by_key / sort_unstable_by / sort_unstable_by_key / partition / is_sorted_by methods (landed #697; the six free duplicates retired in #917); sort/sort_unstable/is_sorted/select_nth await no-argument methods"
-
 # -- Prelude overrides (evaluated before the prelude default) --
-
-[[rules]]
-name = "panic"
-module_less = true
-class = "associated-or-method"
-owner = "917"
-replacement = "associated on a core namespace type (e.g. Std::panic) or an explicit ADR exception"
+#
+# The `collections sort free algorithms` source family and the `panic`
+# prelude entry were retired by #917 on 2026-10-29. The no-argument sort
+# surface is `Vec::sort` / `sort_unstable` / `is_sorted` / `select_nth` (Ord
+# bounded impl), and panic is the associated `Std::panic` control operation.
 
 [[rules]]
 label = "vec intrinsic-compat frees"

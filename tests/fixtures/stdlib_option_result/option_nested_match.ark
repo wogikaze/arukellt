@@ -5,9 +5,9 @@ fn main() {
     match a {
         Option::Some(inner) => match inner {
             Option::Some(v) => test::assert_eq_i32(v, 42),
-            None => panic("inner none"),
+            None => Std::panic("inner none"),
         },
-        None => panic("outer none"),
+        None => Std::panic("outer none"),
     }
     stdio::println("ok")
 }

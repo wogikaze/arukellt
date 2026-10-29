@@ -3,6 +3,8 @@
 //! Each value is a v128 with 16 u8 lanes.
 //! All APIs are experimental (ADR-014).
 
+use std::prelude::Std
+
 // --- Namespace ---
 
 /// Namespace for the u8x16 lane operations.
@@ -65,7 +67,7 @@ impl U8x16 {
         if lane == 13 { return __simd_u8x16_extract_lane_u(v, 13) }
         if lane == 14 { return __simd_u8x16_extract_lane_u(v, 14) }
         if lane == 15 { return __simd_u8x16_extract_lane_u(v, 15) }
-        panic("U8x16::extract_lane: lane out of range")
+        Std::panic("U8x16::extract_lane: lane out of range")
         0
     }
 
@@ -87,7 +89,7 @@ impl U8x16 {
         if lane == 13 { return __simd_u8x16_replace_lane(v, 13, x) }
         if lane == 14 { return __simd_u8x16_replace_lane(v, 14, x) }
         if lane == 15 { return __simd_u8x16_replace_lane(v, 15, x) }
-        panic("U8x16::replace_lane: lane out of range")
+        Std::panic("U8x16::replace_lane: lane out of range")
         v
     }
 

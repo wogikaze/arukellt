@@ -11,10 +11,10 @@ test "keys_values_and_removal_update_size" {
     hash::hashmap_set(empty, 5, 50)
     match hash::hashmap_get_option(empty, 5) {
         Option::Some(v) => test::assert_eq_i32(v, 50),
-        None => panic("expected Some(50)"),
+        None => Std::panic("expected Some(50)"),
     }
     match hash::hashmap_get_option(empty, 99) {
-        Option::Some(v) => panic("expected None"),
+        Option::Some(v) => Std::panic("expected None"),
         None => {
         },
     }
@@ -27,11 +27,11 @@ test "keys_values_and_removal_update_size" {
     test::assert_eq_i32(len(hash::hashmap_values(m2)), 3)
     match hash::hashmap_remove(m2, 2) {
         Option::Some(v) => test::assert_eq_i32(v, 20),
-        None => panic("expected Some(20)"),
+        None => Std::panic("expected Some(20)"),
     }
     test::assert_eq_i32(hash::hashmap_size(m2), 2)
     match hash::hashmap_remove(m2, 99) {
-        Option::Some(v) => panic("expected None"),
+        Option::Some(v) => Std::panic("expected None"),
         None => {
         },
     }

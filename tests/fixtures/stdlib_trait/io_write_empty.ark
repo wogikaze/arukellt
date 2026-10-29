@@ -7,7 +7,7 @@ fn main() {
 
     match w.write(data) {
         Result::Ok(written) => test::assert_eq_i32(written, 0),
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
 
     test::assert_eq_i32(w.into_bytes().len(), 0)

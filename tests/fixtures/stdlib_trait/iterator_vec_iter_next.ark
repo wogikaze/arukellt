@@ -33,24 +33,24 @@ fn main() {
     let mut first_it = v.iter()
     match first(first_it) {
         Some(x) => test::assert_eq_i32(x, 100),
-        None => panic("expected Some(100)"),
+        None => Std::panic("expected Some(100)"),
     }
     let mut it = v.iter()
     match it.next() {
         Some(x) => test::assert_eq_i32(x, 100),
-        None => panic("expected Some(100)"),
+        None => Std::panic("expected Some(100)"),
     }
     let mut it2 = v.iter()
     match it2.next() {
         Some(x) => test::assert_eq_i32(x, 100),
-        None => panic("expected Some(100)"),
+        None => Std::panic("expected Some(100)"),
     }
     match it2.next() {
         Some(x) => test::assert_eq_i32(x, 200),
-        None => panic("expected Some(200)"),
+        None => Std::panic("expected Some(200)"),
     }
     match it2.next() {
-        Some(_) => panic("expected None"),
+        Some(_) => Std::panic("expected None"),
         None => {}
     }
 
@@ -86,7 +86,7 @@ fn main() {
     let mut into_iter = into_source.iter().into_iter()
     match into_iter.next() {
         Some(x) => test::assert_eq_i32(x, 500),
-        None => panic("expected Some(500)"),
+        None => Std::panic("expected Some(500)"),
     }
 
     let mut vector_into_source: Vec<i32> = Vec::new<i32>()
@@ -94,6 +94,6 @@ fn main() {
     let mut vector_into_iter = vector_into_source.into_iter()
     match vector_into_iter.next() {
         Some(x) => test::assert_eq_i32(x, 800),
-        None => panic("expected Some(800)"),
+        None => Std::panic("expected Some(800)"),
     }
 }

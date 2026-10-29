@@ -7,11 +7,11 @@ fn main() {
     push(v, 3)
     match pop(v) {
         Option::Some(val) => test::assert_eq_i32(val, 3),
-        None => panic("expected Some, got None"),
+        None => Std::panic("expected Some, got None"),
     }
     match pop(v) {
         Option::Some(val) => test::assert_eq_i32(val, 2),
-        None => panic("expected Some, got None"),
+        None => Std::panic("expected Some, got None"),
     }
     test::assert_eq_i32(get_unchecked(v, 0), 1)
 }

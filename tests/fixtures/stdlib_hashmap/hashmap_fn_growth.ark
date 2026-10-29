@@ -25,11 +25,11 @@ fn main() {
     test::assert_eq_i32(m.len(), 40)
     match m.get(10) {
         Some(f) => test::assert_eq_i32(f(5), 10),
-        None => panic("missing grown fn entry"),
+        None => Std::panic("missing grown fn entry"),
     }
     match m.get(39) {
         Some(f) => test::assert_eq_i32(f(5), 15),
-        None => panic("missing grown fn entry"),
+        None => Std::panic("missing grown fn entry"),
     }
 
     let mut s = HashMap::new<String, fn(i32) -> i32>()
@@ -41,7 +41,7 @@ fn main() {
     test::assert_eq_i32(s.len(), 40)
     match s.get("f_39") {
         Some(f) => test::assert_eq_i32(f(7), 14),
-        None => panic("missing grown String->fn entry"),
+        None => Std::panic("missing grown String->fn entry"),
     }
 
     stdio::println("fn-growth-ok")

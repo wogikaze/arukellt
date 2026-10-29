@@ -4,7 +4,7 @@ use std::test
 fn main() {
     // JSON text: quote, backslash, EOF (incomplete escape).
     match json::JsonValue::parse("\"\\") {
-        Result::Ok(_) => panic("expected error for lone trailing backslash in string"),
+        Result::Ok(_) => Std::panic("expected error for lone trailing backslash in string"),
         Result::Err(_) => {},
     }
 }

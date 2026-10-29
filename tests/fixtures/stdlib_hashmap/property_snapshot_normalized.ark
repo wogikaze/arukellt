@@ -46,7 +46,7 @@ fn assert_snapshot(m: Vec<i32>) {
         let k: i32 = get_unchecked(keys, i)
         match hash::hashmap_get_option(m, k) {
             Option::Some(v) => test::assert_eq_i32(v, k * 10),
-            None => panic("expected Some"),
+            None => Std::panic("expected Some"),
         }
     }
 }

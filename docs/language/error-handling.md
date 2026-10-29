@@ -80,7 +80,7 @@ typed な dynamic source object と `dyn Error` はまだ提供していませ�
 
 <!-- fixture: spec_examples/panic_unreachable.ark -->
 ```ark
-panic(String_from("unreachable"))
+Std::panic(String_from("unreachable"))
 ```
 
 - 現行実装では panic は stderr 出力 + trap です

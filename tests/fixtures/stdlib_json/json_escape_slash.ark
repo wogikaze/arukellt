@@ -5,8 +5,8 @@ fn main() {
     match json::JsonValue::parse("\"a\\/b\"") {
         Result::Ok(v) => match v.as_string() {
             Option::Some(s) => test::assert_eq_string(s, "a/b"),
-            None => panic("expected string"),
+            None => Std::panic("expected string"),
         },
-        Result::Err(e) => panic("parse slash failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse slash failed: ".concat(e.message())),
     }
 }

@@ -10,17 +10,17 @@ fn main() {
                         Option::Some(c) => match c.get_field("d") {
                             Option::Some(d) => match d.as_i32() {
                                 Option::Some(n) => test::assert_eq_i32(n, 42),
-                                None => panic("expected number"),
+                                None => Std::panic("expected number"),
                             },
-                            None => panic("expected key d"),
+                            None => Std::panic("expected key d"),
                         },
-                        None => panic("expected key c"),
+                        None => Std::panic("expected key c"),
                     },
-                    None => panic("expected key b"),
+                    None => Std::panic("expected key b"),
                 },
-                None => panic("expected key a"),
+                None => Std::panic("expected key a"),
             }
         },
-        Result::Err(e) => panic("parse deeply nested failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse deeply nested failed: ".concat(e.message())),
     }
 }

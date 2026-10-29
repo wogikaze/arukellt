@@ -16,8 +16,8 @@ fn main() {
                 test::assert_eq_i32(byte_at(s, 6), 13)
                 test::assert_eq_i32(byte_at(s, 7), 9)
             },
-            None => panic("expected string"),
+            None => Std::panic("expected string"),
         },
-        Result::Err(e) => panic("parse escapes failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse escapes failed: ".concat(e.message())),
     }
 }

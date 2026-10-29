@@ -8,11 +8,11 @@ fn main() {
             match v.get_field("key") {
                 Option::Some(fv) => match fv.as_string() {
                     Option::Some(s) => test::assert_eq_string(s, "value"),
-                    None => panic("expected string value"),
+                    None => Std::panic("expected string value"),
                 },
-                None => panic("expected key \"key\""),
+                None => Std::panic("expected key \"key\""),
             }
         },
-        Result::Err(e) => panic("parse object failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse object failed: ".concat(e.message())),
     }
 }

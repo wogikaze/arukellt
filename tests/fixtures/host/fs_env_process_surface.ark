@@ -5,10 +5,10 @@ use std::prelude::{trim}
 use std::host::stdio
 fn main() {
     match Fs::read_to_string("tests/fixtures/stdlib_fs/present.txt") {
-        Result::Err(_) => panic("read failed"),
+        Result::Err(_) => Std::panic("read failed"),
         Result::Ok(contents) => {
             if trim(contents) != "present" {
-                panic("read returned unexpected contents")
+                Std::panic("read returned unexpected contents")
             }
         },
     }
@@ -19,7 +19,7 @@ fn main() {
         },
     }
     match process::id() {
-        Result::Ok(_) => panic("WASI process id must not be fabricated"),
+        Result::Ok(_) => Std::panic("WASI process id must not be fabricated"),
         Result::Err(_) => {
         },
     }

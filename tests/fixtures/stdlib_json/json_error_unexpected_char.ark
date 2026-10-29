@@ -3,11 +3,11 @@ use std::test
 
 fn main() {
     match json::JsonValue::parse("xyz") {
-        Result::Ok(_) => panic("expected error for xyz"),
+        Result::Ok(_) => Std::panic("expected error for xyz"),
         Result::Err(e) => test::assert_eq_string(e.message(), "unexpected character"),
     }
     match json::JsonValue::parse("@") {
-        Result::Ok(_) => panic("expected error for @"),
+        Result::Ok(_) => Std::panic("expected error for @"),
         Result::Err(e) => test::assert_eq_string(e.message(), "unexpected character"),
     }
 }

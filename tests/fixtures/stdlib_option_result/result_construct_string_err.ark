@@ -4,6 +4,6 @@ use std::prelude::{is_err}
 fn main() {
     let r: Result<i32, String> = Err(String_from("fail"))
     test::assert_true(is_err(r))
-    match r { Result::Ok(v) => panic("ok"), Result::Err(e) => test::assert_eq_string(e, String_from("fail")) }
+    match r { Result::Ok(v) => Std::panic("ok"), Result::Err(e) => test::assert_eq_string(e, String_from("fail")) }
     stdio::println("ok")
 }

@@ -12,21 +12,21 @@ fn main() {
                     match v2.get_index(0) {
                         Option::Some(e) => match e.as_i32() {
                             Option::Some(n) => test::assert_eq_i32(n, 1),
-                            None => panic("expected number"),
+                            None => Std::panic("expected number"),
                         },
-                        None => panic("expected element 0"),
+                        None => Std::panic("expected element 0"),
                     }
                     match v2.get_index(4) {
                         Option::Some(e) => match e.as_i32() {
                             Option::Some(n) => test::assert_eq_i32(n, 42),
-                            None => panic("expected number"),
+                            None => Std::panic("expected number"),
                         },
-                        None => panic("expected element 4"),
+                        None => Std::panic("expected element 4"),
                     }
                 },
-                Result::Err(e) => panic("re-parse failed: ".concat(e.message())),
+                Result::Err(e) => Std::panic("re-parse failed: ".concat(e.message())),
             }
         },
-        Result::Err(e) => panic("parse failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse failed: ".concat(e.message())),
     }
 }

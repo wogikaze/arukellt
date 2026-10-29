@@ -16,7 +16,7 @@ fn main() {
             test::assert_eq_i32(chunk.get_unchecked(0), 1)
             test::assert_eq_i32(chunk.get_unchecked(3), 4)
         },
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     test::assert_true(r.is_eof())
 }

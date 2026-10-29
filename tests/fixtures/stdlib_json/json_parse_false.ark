@@ -7,9 +7,9 @@ fn main() {
             test::assert_true(v.is_bool())
             match v.as_bool() {
                 Option::Some(b) => test::assert_eq_bool(b, false),
-                None => panic("expected Some(false)"),
+                None => Std::panic("expected Some(false)"),
             }
         },
-        Result::Err(e) => panic("parse false failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse false failed: ".concat(e.message())),
     }
 }

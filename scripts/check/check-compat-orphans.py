@@ -255,8 +255,14 @@ def main() -> int:
             )
 
     # 7. Resolver stable table must match the manifest prelude policy.
-    manifest_stable = set(policy.get("stable_functions", [])) | set(
-        policy.get("intrinsic_compatibility_functions", [])
+    # Compiler-builtin stable types (Option/Result/String/Vec) have no prelude
+    # declaration to register; only stable types declared in std/prelude.ark
+    # (currently `Std`) enter the resolver's bare-name table.
+    declared_stable_types = set(policy.get("stable_types", [])) & prelude_decls
+    manifest_stable = (
+        set(policy.get("stable_functions", []))
+        | set(policy.get("intrinsic_compatibility_functions", []))
+        | declared_stable_types
     )
     for name in sorted(stable_names - manifest_stable):
         problems.append(

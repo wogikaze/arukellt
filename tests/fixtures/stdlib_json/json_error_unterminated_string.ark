@@ -3,11 +3,11 @@ use std::test
 
 fn main() {
     match json::JsonValue::parse("\"hello") {
-        Result::Ok(_) => panic("expected error for unterminated string"),
+        Result::Ok(_) => Std::panic("expected error for unterminated string"),
         Result::Err(_) => {},
     }
     match json::JsonValue::parse("\"") {
-        Result::Ok(_) => panic("expected error for lone quote"),
+        Result::Ok(_) => Std::panic("expected error for lone quote"),
         Result::Err(_) => {},
     }
 }

@@ -13,7 +13,7 @@ fn main() {
             test::assert_eq_i32(p.first, 0)
             test::assert_eq_i32(p.second, 100)
         },
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
     let mut it2 = v.iter().enumerate()
     match it2.next() {
@@ -21,24 +21,24 @@ fn main() {
             test::assert_eq_i32(p.first, 0)
             test::assert_eq_i32(p.second, 100)
         },
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
     match it2.next() {
         Some(p) => {
             test::assert_eq_i32(p.first, 1)
             test::assert_eq_i32(p.second, 200)
         },
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
     match it2.next() {
         Some(p) => {
             test::assert_eq_i32(p.first, 2)
             test::assert_eq_i32(p.second, 300)
         },
-        None => panic("expected Some"),
+        None => Std::panic("expected Some"),
     }
     match it2.next() {
-        Some(_) => panic("expected None"),
+        Some(_) => Std::panic("expected None"),
         None => {}
     }
 }

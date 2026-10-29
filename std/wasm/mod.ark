@@ -8,6 +8,8 @@
 //!
 //! All APIs are Experimental and may change in v4+.
 
+use std::prelude::Std
+
 /// Section IDs for the standard Wasm sections.
 pub struct Section {}
 
@@ -614,7 +616,7 @@ impl V128Memory {
         if lane == 1 { return __wasm_v128_load_lane(address, offset, value, 1) }
         if lane == 2 { return __wasm_v128_load_lane(address, offset, value, 2) }
         if lane == 3 { return __wasm_v128_load_lane(address, offset, value, 3) }
-        panic("V128Memory::load_lane: lane out of range")
+        Std::panic("V128Memory::load_lane: lane out of range")
         value
     }
 
@@ -636,7 +638,7 @@ impl V128Memory {
             __wasm_v128_store_lane(address, offset, value, 3)
             return
         }
-        panic("V128Memory::store_lane: lane out of range")
+        Std::panic("V128Memory::store_lane: lane out of range")
     }
 
     /// Load 8 bytes and sign-extend each i8 to an i16 lane.

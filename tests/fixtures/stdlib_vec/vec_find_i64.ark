@@ -29,6 +29,6 @@ fn main() {
     let result = find_hundred(v)
     match result {
         Option::Some(val) => test::assert_eq_i64(val, 100i64),
-        None => panic("expected Some, got None"),
+        None => Std::panic("expected Some, got None"),
     }
 }

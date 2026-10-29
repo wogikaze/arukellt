@@ -11,7 +11,7 @@ fn main() {
     let res: Result<i32, io::IoError> = w.write(data)
     match res {
         Result::Ok(n) => test::assert_eq_i32(n, 3),
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     let b: Vec<i32> = w.into_bytes()
     test::assert_eq_i32(b.len(), 3)

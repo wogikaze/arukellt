@@ -207,12 +207,18 @@ fn path_has_nested_qualifier(symbol_part: String) -> bool {
 // Builtin type names that support Type::method / Type::Variant syntax.
 // These are not modules, so paths like `Vec::new` or `Result::Ok` must
 // bypass module lookup (variants are handled by MIR builtin tags).
+//
+// `Std` is a prelude-declared namespace type, not a compiler builtin, but it
+// has no module of its own either. Listing it here lets `Std::panic` reach the
+// signature index the same way `Vec::new` does; the type is still declared in
+// `std/prelude.ark` and registered as a stable prelude type (ADR-090).
 fn is_builtin_type_name(name: String) -> bool {
     if eq(clone(name), String_from("Vec")) { return true }
     if eq(clone(name), String_from("String")) { return true }
     if eq(clone(name), String_from("Option")) { return true }
     if eq(clone(name), String_from("Result")) { return true }
     if eq(clone(name), String_from("HashMap")) { return true }
+    if eq(clone(name), String_from("Std")) { return true }
     if eq(clone(name), String_from("i32")) { return true }
     if eq(clone(name), String_from("i64")) { return true }
     if eq(clone(name), String_from("f64")) { return true }

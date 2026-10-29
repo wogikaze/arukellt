@@ -10,12 +10,12 @@ fn main() {
     let res: Result<i32, io::IoError> = bw.write_string("hello")
     match res {
         Result::Ok(n) => test::assert_eq_i32(n, 5),
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     let res2: Result<(), io::IoError> = bw.flush()
     match res2 {
         Result::Ok(_) => (),
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     let inner_result: Result<Writer, io::IoError> = bw.into_inner()
     match inner_result {
@@ -24,6 +24,6 @@ fn main() {
             test::assert_eq_i32(b.len(), 5)
             test::assert_eq_string(String::from_utf8_lossy(b), "hello")
         },
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
 }

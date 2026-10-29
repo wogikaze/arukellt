@@ -3,6 +3,8 @@
 //! Each value is a v128 with 4 u32 lanes.
 //! All APIs are experimental (ADR-014).
 
+use std::prelude::Std
+
 // --- Namespace ---
 
 /// Namespace for the u32x4 lane operations.
@@ -38,7 +40,7 @@ impl U32x4 {
         if lane == 1 { return __simd_u32x4_extract_lane(v, 1) }
         if lane == 2 { return __simd_u32x4_extract_lane(v, 2) }
         if lane == 3 { return __simd_u32x4_extract_lane(v, 3) }
-        panic("U32x4::extract_lane: lane out of range")
+        Std::panic("U32x4::extract_lane: lane out of range")
         0
     }
 
@@ -48,7 +50,7 @@ impl U32x4 {
         if lane == 1 { return __simd_u32x4_replace_lane(v, 1, x) }
         if lane == 2 { return __simd_u32x4_replace_lane(v, 2, x) }
         if lane == 3 { return __simd_u32x4_replace_lane(v, 3, x) }
-        panic("U32x4::replace_lane: lane out of range")
+        Std::panic("U32x4::replace_lane: lane out of range")
         v
     }
 

@@ -6,7 +6,7 @@ fn main() {
 
     match w.write_string("hello") {
         Result::Ok(n) => test::assert_eq_i32(n, 5),
-        Result::Err(_e) => panic("expected Ok"),
+        Result::Err(_e) => Std::panic("expected Ok"),
     }
 
     let out: Vec<i32> = w.into_bytes()

@@ -5,8 +5,8 @@ fn main() {
     let o = (1).cmp(2)
     match o {
         Ordering::Less => {}
-        Ordering::Equal => panic("expected Less"),
-        Ordering::Greater => panic("expected Less"),
+        Ordering::Equal => Std::panic("expected Less"),
+        Ordering::Greater => Std::panic("expected Less"),
     }
     test::assert_true(true)
 }

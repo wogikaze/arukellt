@@ -35,11 +35,10 @@ minimum_complete_releases = 1
 # auto-imported; all other prelude decls require `use std::prelude::{name}`.
 language_version = "v2"
 legacy_auto_import = false
-stable_types = ["Option", "Result", "String", "Vec"]
+stable_types = ["Option", "Result", "String", "Vec", "Std"]
 stable_values = ["Some", "None", "Ok", "Err"]
 lexical_literals = ["true", "false"]
 stable_functions = [
-    "panic",
     "assert",
     "String_from",
     "String_new",
@@ -89,6 +88,7 @@ doc = "Growable contiguous sequence."
 prelude = true
 generic_params = ["T"]
 type_id = "vec"
+
 methods = [
     "new",
     "with_capacity",
@@ -130,6 +130,14 @@ methods = [
     "lower_bound",
     "upper_bound",
 ]
+
+[[types]]
+name = "Std"
+kind = "struct"
+doc = "Namespace for unrecoverable process control. Use Std::panic(message) to abort."
+prelude = true
+stability = "stable"
+methods = ["panic"]
 
 [[types]]
 name = "HashMap"
@@ -642,17 +650,6 @@ stability = "stable"
 doc_category = "math"
 
 # ── Control ──────────────────────────────────
-
-[[functions]]
-name = "panic"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_panic"
-core_op_id = "panic"
-params = ["String"]
-returns = "()"
-prelude = true
-stability = "stable"
-doc_category = "control"
 
 # ── Vec operations (direct builtins) ─────────
 

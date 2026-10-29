@@ -13,25 +13,25 @@ fn main() {
                     match v2.get_field("x") {
                         Option::Some(fv) => match fv.as_i32() {
                             Option::Some(n) => test::assert_eq_i32(n, 1),
-                            None => panic("expected number"),
+                            None => Std::panic("expected number"),
                         },
-                        None => panic("expected key x"),
+                        None => Std::panic("expected key x"),
                     }
                     match v2.get_field("y") {
                         Option::Some(fv) => match fv.as_bool() {
                             Option::Some(b) => test::assert_eq_bool(b, true),
-                            None => panic("expected bool"),
+                            None => Std::panic("expected bool"),
                         },
-                        None => panic("expected key y"),
+                        None => Std::panic("expected key y"),
                     }
                     match v2.get_field("z") {
                         Option::Some(fv) => test::assert_true(fv.is_null()),
-                        None => panic("expected key z"),
+                        None => Std::panic("expected key z"),
                     }
                 },
-                Result::Err(e) => panic("re-parse failed: ".concat(e.message())),
+                Result::Err(e) => Std::panic("re-parse failed: ".concat(e.message())),
             }
         },
-        Result::Err(e) => panic("parse failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse failed: ".concat(e.message())),
     }
 }

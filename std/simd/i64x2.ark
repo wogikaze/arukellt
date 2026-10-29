@@ -3,6 +3,8 @@
 //! Each value is a v128 with 2 i64 lanes.
 //! All APIs are experimental (ADR-014).
 
+use std::prelude::Std
+
 // --- Namespace ---
 
 /// Namespace for the i64x2 lane operations.
@@ -36,7 +38,7 @@ impl I64x2 {
     fn extract_lane(v: v128, lane: i32) -> i64 {
         if lane == 0 { return __simd_i64x2_extract_lane(v, 0) }
         if lane == 1 { return __simd_i64x2_extract_lane(v, 1) }
-        panic("I64x2::extract_lane: lane out of range")
+        Std::panic("I64x2::extract_lane: lane out of range")
         0i64
     }
 
@@ -44,7 +46,7 @@ impl I64x2 {
     fn replace_lane(v: v128, lane: i32, x: i64) -> v128 {
         if lane == 0 { return __simd_i64x2_replace_lane(v, 0, x) }
         if lane == 1 { return __simd_i64x2_replace_lane(v, 1, x) }
-        panic("I64x2::replace_lane: lane out of range")
+        Std::panic("I64x2::replace_lane: lane out of range")
         v
     }
 

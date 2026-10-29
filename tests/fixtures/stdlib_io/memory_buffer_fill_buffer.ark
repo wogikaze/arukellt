@@ -11,7 +11,7 @@ fn main() {
     let mut r: io::Reader = io::Reader::from_bytes(data)
     match r.seek(SeekFrom::Start(1i64)) {
         Result::Ok(pos) => test::assert_eq_i64(pos, 1),
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     let remaining: Result<Vec<i32>, io::IoError> = r.fill_buf()
     match remaining {
@@ -19,10 +19,10 @@ fn main() {
             test::assert_eq_i32(buf.len(), 2)
             test::assert_eq_i32(buf.get_unchecked(0), 66)
         },
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     match r.position() {
         Result::Ok(pos) => test::assert_eq_i64(pos, 1),
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
 }

@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 206
+- **Canonical names:** 205
 - **Historical/deprecated names:** 65
-- **Total entries:** 271
+- **Total entries:** 270
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -170,7 +170,6 @@ Current public API names, sorted alphabetically.
 | `option` | `std::cli` | `stable` | Cli |
 | `pad_left` | `prelude` | `stable` | String |
 | `pad_right` | `prelude` | `stable` | String |
-| `panic` | `prelude` | `stable` | Control |
 | `parse_args` | `std::cli` | `stable` | Cli |
 | `parse_f64` | `prelude` | `stable` | Conversion |
 | `parse_i32` | `prelude` | `stable` | Conversion |
@@ -509,7 +508,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `option` | ✅ `stable` | `std::cli` | Cli |
 | `pad_left` | ✅ `stable` | `prelude` | String |
 | `pad_right` | ✅ `stable` | `prelude` | String |
-| `panic` | ✅ `stable` | `prelude` | Control |
 | `parse_args` | ✅ `stable` | `std::cli` | Cli |
 | `parse_f64` | ✅ `stable` | `prelude` | Conversion |
 | `parse_i32` | ✅ `stable` | `prelude` | Conversion |

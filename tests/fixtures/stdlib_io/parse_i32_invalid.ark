@@ -4,7 +4,7 @@ use std::prelude::{parse_i32}
 fn main() {
     let r: Result<i32, String> = parse_i32(String_from("abc"))
     match r {
-        Result::Ok(_) => panic("expected error"),
+        Result::Ok(_) => Std::panic("expected error"),
         Result::Err(_) => (),
     }
 }

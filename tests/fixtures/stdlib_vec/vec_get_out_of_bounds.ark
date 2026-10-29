@@ -5,12 +5,12 @@ fn main() {
     push(v, 10)
     push(v, 20)
     match get(v, 5) {
-        Option::Some(val) => panic("expected None, got Some"),
+        Option::Some(val) => Std::panic("expected None, got Some"),
         None => {
         },
     }
     match get(v, 100) {
-        Option::Some(val) => panic("expected None, got Some"),
+        Option::Some(val) => Std::panic("expected None, got Some"),
         None => {
         },
     }

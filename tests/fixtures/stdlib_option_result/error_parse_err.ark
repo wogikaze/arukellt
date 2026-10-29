@@ -8,6 +8,6 @@ fn try_parse(s: String) -> Result<i32, String> {
 fn main() {
     let r = try_parse(String_from("bad"))
     test::assert_true(is_err(r))
-    match r { Result::Ok(v) => panic("ok"), Result::Err(e) => test::assert_eq_string(e, String_from("parse error: bad")) }
+    match r { Result::Ok(v) => Std::panic("ok"), Result::Err(e) => test::assert_eq_string(e, String_from("parse error: bad")) }
     stdio::println("ok")
 }

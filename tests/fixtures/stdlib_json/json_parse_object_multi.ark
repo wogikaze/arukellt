@@ -7,29 +7,29 @@ fn main() {
             match v.get_field("a") {
                 Option::Some(fv) => match fv.as_i32() {
                     Option::Some(n) => test::assert_eq_i32(n, 1),
-                    None => panic("expected number for a"),
+                    None => Std::panic("expected number for a"),
                 },
-                None => panic("expected key a"),
+                None => Std::panic("expected key a"),
             }
             match v.get_field("b") {
                 Option::Some(fv) => match fv.as_bool() {
                     Option::Some(b) => test::assert_eq_bool(b, true),
-                    None => panic("expected bool for b"),
+                    None => Std::panic("expected bool for b"),
                 },
-                None => panic("expected key b"),
+                None => Std::panic("expected key b"),
             }
             match v.get_field("c") {
                 Option::Some(fv) => test::assert_true(fv.is_null()),
-                None => panic("expected key c"),
+                None => Std::panic("expected key c"),
             }
             match v.get_field("d") {
                 Option::Some(fv) => match fv.as_string() {
                     Option::Some(s) => test::assert_eq_string(s, "str"),
-                    None => panic("expected string for d"),
+                    None => Std::panic("expected string for d"),
                 },
-                None => panic("expected key d"),
+                None => Std::panic("expected key d"),
             }
         },
-        Result::Err(e) => panic("parse multi-object failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse multi-object failed: ".concat(e.message())),
     }
 }

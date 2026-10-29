@@ -8,7 +8,7 @@ fn main() {
     test::assert_eq_i32(hash::hashmap_size(m), 1)
 
     match hash::hashmap_remove(m, 999) {
-        Option::Some(_) => panic("expected None for absent key"),
+        Option::Some(_) => Std::panic("expected None for absent key"),
         None => {}
     }
     test::assert_eq_i32(hash::hashmap_size(m), 1)
@@ -17,7 +17,7 @@ fn main() {
     // Remove from empty map
     let mut m2 = hash::hashmap_new()
     match hash::hashmap_remove(m2, 1) {
-        Option::Some(_) => panic("expected None for empty map"),
+        Option::Some(_) => Std::panic("expected None for empty map"),
         None => {}
     }
     test::assert_eq_i32(hash::hashmap_size(m2), 0)

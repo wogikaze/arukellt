@@ -12,10 +12,10 @@ fn main() {
 
     match m.get("apple") {
         Option::Some(v) => test::assert_eq_i32(v, 100),
-        None => panic("expected Some(100)"),
+        None => Std::panic("expected Some(100)"),
     }
     match m.get("banana") {
         Option::Some(v) => test::assert_eq_i32(v, 200),
-        None => panic("expected Some(200)"),
+        None => Std::panic("expected Some(200)"),
     }
 }

@@ -6,7 +6,7 @@ fn main() {
     test::assert_true(v.is_string())
     match v.as_string() {
         Option::Some(s) => test::assert_eq_string(s, "hello"),
-        None => panic("expected string"),
+        None => Std::panic("expected string"),
     }
     test::assert_eq_string(v.to_text(), "\"hello\"")
 }

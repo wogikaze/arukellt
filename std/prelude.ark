@@ -24,7 +24,8 @@
 //     (true / false are lexical literals, not prelude values)
 //
 //   Functions provided by THIS file:
-//     panic, assert
+//     assert
+//     Std::panic  (associated control operation)
 //     String_from, String_new
 //     char_to_string  (essential conversion)
 //     plus len, push, pop, get, set, get_unchecked (compiler intrinsics)
@@ -66,7 +67,7 @@ pub fn String_from(s: String) -> String {
 }
 
 pub fn String_new() -> String {
-    panic(String_new()); return String_new()
+    Std::panic(String_new()); return String_new()
 }
 
 // String comparison
@@ -84,27 +85,27 @@ pub fn clone(s: String) -> String {
 }
 
 pub fn to_lower(s: String) -> String {
-    panic(String_new()); return String_new()
+    Std::panic(String_new()); return String_new()
 }
 
 pub fn to_upper(s: String) -> String {
-    panic(String_new()); return String_new()
+    Std::panic(String_new()); return String_new()
 }
 
 pub fn slice(s: String, start: i32, end: i32) -> String {
-    panic(String_new()); return String_new()
+    Std::panic(String_new()); return String_new()
 }
 
 pub fn trim(s: String) -> String {
-    panic(String_new()); return String_new()
+    Std::panic(String_new()); return String_new()
 }
 
 pub fn substring(s: String, start: i32, end: i32) -> String {
-    panic(String_new()); return String_new()
+    Std::panic(String_new()); return String_new()
 }
 
 pub fn replace(s: String, from: String, to: String) -> String {
-    panic(String_new()); return String_new()
+    Std::panic(String_new()); return String_new()
 }
 
 // Conversion: to string
@@ -150,62 +151,62 @@ pub fn f64_bits_hi(x: f64) -> i32 {
 // --- Scalar type conversion functions (issue #040) ---
 // Widening narrow integer types → i32 (no-op in Wasm; all stored as i32)
 pub fn u8_to_i32(x: u8) -> i32 {
-    panic(String_new()); return 0
+    Std::panic(String_new()); return 0
 }
 
 pub fn u16_to_i32(x: u16) -> i32 {
-    panic(String_new()); return 0
+    Std::panic(String_new()); return 0
 }
 
 pub fn i8_to_i32(x: i8) -> i32 {
-    panic(String_new()); return 0
+    Std::panic(String_new()); return 0
 }
 
 pub fn i16_to_i32(x: i16) -> i32 {
-    panic(String_new()); return 0
+    Std::panic(String_new()); return 0
 }
 
 // Narrowing i32 → narrow types (masking for unsigned, sign-extension for signed)
 pub fn i32_to_u8(x: i32) -> u8 {
-    panic(String_new()); return 0
+    Std::panic(String_new()); return 0
 }
 
 pub fn i32_to_u16(x: i32) -> u16 {
-    panic(String_new()); return 0
+    Std::panic(String_new()); return 0
 }
 
 pub fn i32_to_i8(x: i32) -> i8 {
-    panic(String_new()); return 0
+    Std::panic(String_new()); return 0
 }
 
 pub fn i32_to_i16(x: i32) -> i16 {
-    panic(String_new()); return 0
+    Std::panic(String_new()); return 0
 }
 
 // i32/u32 ↔ i64/u64 widening and truncation
 pub fn u32_to_u64(x: u32) -> u64 {
-    panic(String_new()); return 0_u64
+    Std::panic(String_new()); return 0_u64
 }
 
 pub fn u64_to_u32(x: u64) -> u32 {
-    panic(String_new()); return 0
+    Std::panic(String_new()); return 0
 }
 
 pub fn i32_to_i64(x: i32) -> i64 {
-    panic(String_new()); return 0_i64
+    Std::panic(String_new()); return 0_i64
 }
 
 pub fn i64_to_i32(x: i64) -> i32 {
-    panic(String_new()); return 0
+    Std::panic(String_new()); return 0
 }
 
 // f32 ↔ f64 conversion
 pub fn f32_to_f64(x: f32) -> f64 {
-    panic(String_new()); return 0.0
+    Std::panic(String_new()); return 0.0
 }
 
 pub fn f64_to_f32(x: f64) -> f32 {
-    panic(String_new()); return f64_to_f32(0.0)
+    Std::panic(String_new()); return f64_to_f32(0.0)
 }
 
 fn __core_math_abs_impl(x: i32) -> i32 {
@@ -260,8 +261,22 @@ pub fn clamp_i32(x: i32, lo: i32, hi: i32) -> i32 {
 }
 
 // Control
-pub fn panic(s: String) {
-    panic(String_new())
+/// Namespace for unrecoverable process control.
+///
+/// `Std` is never constructed; it exists so control operations have an
+/// associated-function spelling instead of a user-reachable free function
+/// (ADR-046). The private field keeps the generated component type non-empty.
+pub struct Std {
+    reserved: i32,
+}
+
+impl Std {
+    /// Aborts the program after writing `message` to stderr.
+    ///
+    /// Lowered by the `panic` CoreOp; the body is a typechecking shell.
+    fn panic(message: String) {
+        __intrinsic_panic(message)
+    }
 }
 
 // =============================================================================
@@ -290,12 +305,12 @@ pub fn filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32> {
 // String: split/join/push_char
 // @deprecated: use `s.split(delim)` (String method) instead. See ADR-036.
 pub fn split(s: String, delim: String) -> Vec<String> {
-    panic(String_new()); return Vec::new<String>()
+    Std::panic(String_new()); return Vec::new<String>()
 }
 
 // @deprecated: use `v.join(sep)` (Vec/Iterator method, #691) instead. See ADR-036.
 pub fn join(v: Vec<String>, sep: String) -> String {
-    panic(String_new()); return String_new()
+    Std::panic(String_new()); return String_new()
 }
 
 pub fn push_char(mut s: String, c: char) {
@@ -333,7 +348,7 @@ fn __core_seq_sort_f64_impl(mut v: Vec<f64>) {
 // Assertions
 pub fn assert(cond: bool) {
     if !cond {
-        panic(String_from("assertion failed"))
+        Std::panic(String_from("assertion failed"))
     }
 }
 
@@ -349,13 +364,13 @@ pub fn assert_eq(a: i32, b: i32) {
     if a != b {
         let expected = (b).to_string().concat(", got ".concat((a).to_string()))
         let msg = "assert_eq failed: expected ".concat(expected)
-        panic(msg)
+        Std::panic(msg)
     }
 }
 
 pub fn assert_ne(a: i32, b: i32) {
     if a == b {
-        panic(String_from("assertion failed"))
+        Std::panic(String_from("assertion failed"))
     }
 }
 
@@ -364,7 +379,7 @@ pub fn assert_eq_i64(a: i64, b: i64) {
     if a != b {
         let expected = (b).to_string().concat(", got ".concat((a).to_string()))
         let msg = "assert_eq_i64 failed: expected ".concat(expected)
-        panic(msg)
+        Std::panic(msg)
     }
 }
 
@@ -373,7 +388,7 @@ pub fn assert_eq_str(a: String, b: String) {
     if a != b {
         let expected = b.concat("\", got \"".concat(a.concat("\"")))
         let msg = "assert_eq_str failed: expected \"".concat(expected)
-        panic(msg)
+        Std::panic(msg)
     }
 }
 
@@ -523,20 +538,20 @@ fn __core_seq_product_i32_impl(v: Vec<i32>) -> i32 {
 
 // IO
 pub fn to_string(n: i32) -> String {
-    panic(String_new()); return String_new()
+    Std::panic(String_new()); return String_new()
 }
 
 // Vec operations (polymorphic in practice; emitter dispatches by name)
 pub fn len(s: String) -> i32 {
-    panic(String_new()); return 0
+    Std::panic(String_new()); return 0
 }
 
 pub fn push(mut v: Vec<i32>, val: i32) {
-    panic(String_new())
+    Std::panic(String_new())
 }
 
 pub fn get(v: Vec<i32>, idx: i32) -> Option<i32> {
-    panic(String_new()); return None
+    Std::panic(String_new()); return None
 }
 
 pub fn get_unchecked<T>(v: Vec<T>, idx: i32) -> T {
@@ -549,7 +564,7 @@ pub fn pop(mut v: Vec<i32>) -> Option<i32> {
 }
 
 pub fn set<T>(mut v: Vec<T>, idx: i32, val: T) {
-    panic(String_new())
+    Std::panic(String_new())
 }
 
 pub fn values(v: Vec<i32>) -> Vec<i32> {
@@ -557,32 +572,32 @@ pub fn values(v: Vec<i32>) -> Vec<i32> {
 }
 
 pub fn is_empty(v: Vec<i32>) -> bool {
-    panic(String_new()); return false
+    Std::panic(String_new()); return false
 }
 
 // Option / Result
 pub fn unwrap(o: Option<i32>) -> i32 {
-    panic(String_new()); return 0
+    Std::panic(String_new()); return 0
 }
 
 pub fn unwrap_or(o: Option<i32>, default: i32) -> i32 {
-    panic(String_new()); return 0
+    Std::panic(String_new()); return 0
 }
 
 pub fn is_some(o: Option<i32>) -> bool {
-    panic(String_new()); return false
+    Std::panic(String_new()); return false
 }
 
 pub fn is_none(o: Option<i32>) -> bool {
-    panic(String_new()); return false
+    Std::panic(String_new()); return false
 }
 
 pub fn is_ok(r: Result<i32, i32>) -> bool {
-    panic(String_new()); return false
+    Std::panic(String_new()); return false
 }
 
 pub fn is_err(r: Result<i32, i32>) -> bool {
-    panic(String_new()); return false
+    Std::panic(String_new()); return false
 }
 
 // Box is an owned heap wrapper. Its representation is selected by the target
@@ -635,28 +650,28 @@ impl<T> Slice<T> {
 }
 // String collection helpers
 pub fn contains(s: String, sub: String) -> bool {
-    panic(String_new()); return false
+    Std::panic(String_new()); return false
 }
 
 pub fn starts_with(s: String, prefix: String) -> bool {
-    panic(String_new()); return false
+    Std::panic(String_new()); return false
 }
 
 pub fn ends_with(s: String, suffix: String) -> bool {
-    panic(String_new()); return false
+    Std::panic(String_new()); return false
 }
 
 pub fn index_of(s: String, sub: String) -> i32 {
-    panic(String_new()); return -1
+    Std::panic(String_new()); return -1
 }
 
 // Process / env
 pub fn args() -> Vec<String> {
-    panic(String_new()); return Vec::new<String>()
+    Std::panic(String_new()); return Vec::new<String>()
 }
 
 pub fn exit(code: i32) {
-    panic(String_new())
+    Std::panic(String_new())
 }
 
 // Math
@@ -696,15 +711,15 @@ pub fn gcd(a: i32, b: i32) -> i32 {
 
 // String extended
 pub fn repeat(s: String, n: i32) -> String {
-    panic(String_new()); return String_new()
+    Std::panic(String_new()); return String_new()
 }
 
 pub fn to_uppercase(s: String) -> String {
-    panic(String_new()); return String_new()
+    Std::panic(String_new()); return String_new()
 }
 
 pub fn to_lowercase(s: String) -> String {
-    panic(String_new()); return String_new()
+    Std::panic(String_new()); return String_new()
 }
 
 pub fn lines(s: String) -> Vec<String> {
@@ -712,31 +727,31 @@ pub fn lines(s: String) -> Vec<String> {
 }
 
 pub fn byte_len(s: String) -> i32 {
-    panic(String_new()); return 0
+    Std::panic(String_new()); return 0
 }
 
 pub fn byte_at(s: String, idx: i32) -> i32 {
-    panic(String_new()); return 0
+    Std::panic(String_new()); return 0
 }
 
 pub fn trim_start(s: String) -> String {
-    panic(String_new()); return String_new()
+    Std::panic(String_new()); return String_new()
 }
 
 pub fn trim_end(s: String) -> String {
-    panic(String_new()); return String_new()
+    Std::panic(String_new()); return String_new()
 }
 
 pub fn pad_left(s: String, width: i32) -> String {
-    panic(String_new()); return String_new()
+    Std::panic(String_new()); return String_new()
 }
 
 pub fn pad_right(s: String, width: i32) -> String {
-    panic(String_new()); return String_new()
+    Std::panic(String_new()); return String_new()
 }
 
 pub fn format_i32(n: i32) -> String {
-    panic(String_new()); return String_new()
+    Std::panic(String_new()); return String_new()
 }
 
 pub fn format_bool(b: bool) -> String {
@@ -744,7 +759,7 @@ pub fn format_bool(b: bool) -> String {
 }
 // Conversions extended
 pub fn i32_to_u32(n: i32) -> u32 {
-    panic(String_new()); return 0
+    Std::panic(String_new()); return 0
 }
 
 pub fn f32_to_string(n: f32) -> String {

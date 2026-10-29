@@ -3,10 +3,10 @@ use std::test
 
 fn main() {
     match json::JsonValue::parse("") {
-        Result::Ok(_) => panic("expected error for empty input"),
+        Result::Ok(_) => Std::panic("expected error for empty input"),
         Result::Err(e) => match e {
             json::JsonParseError::EmptyInput => {},
-            _ => panic("expected EmptyInput error"),
+            _ => Std::panic("expected EmptyInput error"),
         },
     }
 }

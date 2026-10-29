@@ -4,12 +4,12 @@ use std::test
 fn main() {
     match 1.cmp(2) {
         Ordering::Less => test::assert_true(true),
-        Ordering::Equal => panic("expected Less"),
-        Ordering::Greater => panic("expected Less"),
+        Ordering::Equal => Std::panic("expected Less"),
+        Ordering::Greater => Std::panic("expected Less"),
     }
     match (-5).cmp(0) {
         Ordering::Less => test::assert_true(true),
-        Ordering::Equal => panic("expected Less"),
-        Ordering::Greater => panic("expected Less"),
+        Ordering::Equal => Std::panic("expected Less"),
+        Ordering::Greater => Std::panic("expected Less"),
     }
 }

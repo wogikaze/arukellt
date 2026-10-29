@@ -4,6 +4,6 @@ use std::text
 fn main() {
     match json::JsonValue::parse("null") {
         Result::Ok(v) => test::assert_eq_string(v.to_text(), "null"),
-        Result::Err(e) => panic("parse failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse failed: ".concat(e.message())),
     }
 }

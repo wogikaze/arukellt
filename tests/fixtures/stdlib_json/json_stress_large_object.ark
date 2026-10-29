@@ -7,25 +7,25 @@ fn main() {
             match v.get_field("a") {
                 Option::Some(fv) => match fv.as_i32() {
                     Option::Some(n) => test::assert_eq_i32(n, 1),
-                    None => panic("expected number"),
+                    None => Std::panic("expected number"),
                 },
-                None => panic("expected key a"),
+                None => Std::panic("expected key a"),
             }
             match v.get_field("h") {
                 Option::Some(fv) => match fv.as_i32() {
                     Option::Some(n) => test::assert_eq_i32(n, 8),
-                    None => panic("expected number"),
+                    None => Std::panic("expected number"),
                 },
-                None => panic("expected key h"),
+                None => Std::panic("expected key h"),
             }
             match v.get_field("d") {
                 Option::Some(fv) => match fv.as_i32() {
                     Option::Some(n) => test::assert_eq_i32(n, 4),
-                    None => panic("expected number"),
+                    None => Std::panic("expected number"),
                 },
-                None => panic("expected key d"),
+                None => Std::panic("expected key d"),
             }
         },
-        Result::Err(e) => panic("parse large object failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse large object failed: ".concat(e.message())),
     }
 }

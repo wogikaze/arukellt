@@ -48,7 +48,7 @@ fn main() {
     test::assert_eq_i32(mi.len(), 60)
     match mi.get(42) {
         Option::Some(v) => test::assert_eq_string(v, "v42"),
-        None => panic("missing grown i32->String entry"),
+        None => Std::panic("missing grown i32->String entry"),
     }
 
     let mut ms = HashMap::new<String, String>()
@@ -60,7 +60,7 @@ fn main() {
     test::assert_eq_i32(ms.len(), 60)
     match ms.get("s_59") {
         Option::Some(v) => test::assert_eq_string(v, "w_59"),
-        None => panic("missing grown String->String entry"),
+        None => Std::panic("missing grown String->String entry"),
     }
 
     stdio::println("growth-ok")

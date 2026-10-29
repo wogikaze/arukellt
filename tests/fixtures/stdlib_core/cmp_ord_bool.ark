@@ -5,14 +5,14 @@ fn main() {
     // Ord trait dispatch for bool — false < true
     match false.cmp(true) {
         Ordering::Less => test::assert_true(true),
-        _ => panic("expected Less"),
+        _ => Std::panic("expected Less"),
     }
     match true.cmp(false) {
         Ordering::Greater => test::assert_true(true),
-        _ => panic("expected Greater"),
+        _ => Std::panic("expected Greater"),
     }
     match false.cmp(false) {
         Ordering::Equal => test::assert_true(true),
-        _ => panic("expected Equal"),
+        _ => Std::panic("expected Equal"),
     }
 }

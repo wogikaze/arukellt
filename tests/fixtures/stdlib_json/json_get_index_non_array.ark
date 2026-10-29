@@ -5,19 +5,19 @@ fn main() {
     match json::JsonValue::parse("42") {
         Result::Ok(v) => {
             match v.get_index(0) {
-                Option::Some(_) => panic("expected None: get_index on non-array"),
+                Option::Some(_) => Std::panic("expected None: get_index on non-array"),
                 None => {},
             }
         },
-        Result::Err(e) => panic("parse failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse failed: ".concat(e.message())),
     }
     match json::JsonValue::parse("{\"a\":1}") {
         Result::Ok(v) => {
             match v.get_index(0) {
-                Option::Some(_) => panic("expected None: get_index on object"),
+                Option::Some(_) => Std::panic("expected None: get_index on object"),
                 None => {},
             }
         },
-        Result::Err(e) => panic("parse object failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse object failed: ".concat(e.message())),
     }
 }

@@ -7,14 +7,14 @@ fn main() {
     push(v, 30)
     match get(v, 0) {
         Option::Some(val) => test::assert_eq_i32(val, 10),
-        None => panic("expected Some, got None"),
+        None => Std::panic("expected Some, got None"),
     }
     match get(v, 2) {
         Option::Some(val) => test::assert_eq_i32(val, 30),
-        None => panic("expected Some, got None"),
+        None => Std::panic("expected Some, got None"),
     }
     match get(v, 3) {
-        Option::Some(val) => panic("expected None, got Some"),
+        Option::Some(val) => Std::panic("expected None, got Some"),
         None => {
         },
     }

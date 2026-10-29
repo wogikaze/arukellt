@@ -12,7 +12,7 @@ fn main() {
     push(v, 3)
     let result = v.iter().find(is_large)
     match result {
-        Option::Some(val) => panic("expected None, got Some"),
+        Option::Some(val) => Std::panic("expected None, got Some"),
         None => {
         },
     }

@@ -1,0 +1,71 @@
+// Vec<T: Ord> no-argument algorithms: sort, sort_unstable, is_sorted, and
+// select_nth (ADR-046 method surface; #697 / #917).
+use std::collections::vec
+use std::host::stdio
+
+fn show(values: Vec<i32>) {
+    let mut parts: Vec<String> = Vec::new<String>()
+    let mut i: i32 = 0
+    while i < values.len() {
+        parts.push(values.get_unchecked(i).to_string())
+        i = i + 1
+    }
+    stdio::println(parts.join(" "))
+}
+
+fn main() {
+    let mut values: Vec<i32> = Vec::new<i32>()
+    values.push(5)
+    values.push(1)
+    values.push(4)
+    values.push(2)
+    values.push(3)
+    stdio::println(values.is_sorted().to_string())
+    values.sort()
+    stdio::println(values.is_sorted().to_string())
+    show(values)
+
+    let mut unstable: Vec<i32> = Vec::new<i32>()
+    unstable.push(9)
+    unstable.push(7)
+    unstable.push(8)
+    unstable.push(6)
+    unstable.sort_unstable()
+    show(unstable)
+
+    let mut selection: Vec<i32> = Vec::new<i32>()
+    selection.push(40)
+    selection.push(10)
+    selection.push(30)
+    selection.push(20)
+    selection.select_nth(2)
+    stdio::println(selection.get_unchecked(2).to_string())
+    let mut before_ok: bool = true
+    let mut i: i32 = 0
+    while i < 2 {
+        if selection.get_unchecked(i) > selection.get_unchecked(2) {
+            before_ok = false
+        }
+        i = i + 1
+    }
+    let mut after_ok: bool = true
+    let mut j: i32 = 3
+    while j < selection.len() {
+        if selection.get_unchecked(j) < selection.get_unchecked(2) {
+            after_ok = false
+        }
+        j = j + 1
+    }
+    stdio::println(before_ok.to_string())
+    stdio::println(after_ok.to_string())
+
+    let mut empty: Vec<i32> = Vec::new<i32>()
+    empty.sort()
+    empty.select_nth(0)
+    stdio::println(empty.is_sorted().to_string())
+
+    let mut single: Vec<i32> = Vec::new<i32>()
+    single.push(42)
+    single.sort_unstable()
+    stdio::println(single.get_unchecked(0).to_string())
+}

@@ -4,19 +4,20 @@
 //! `Result` and `Option`.
 use std::core::cmp
 use std::core::convert
+use std::prelude::Std
 
 // === Typed assertions ===
 use std::prelude::{contains}
 use std::text
 pub fn assert_true(cond: bool) {
     if !cond {
-        panic("assertion failed: expected true, got false")
+        Std::panic("assertion failed: expected true, got false")
     }
 }
 
 pub fn assert_false(cond: bool) {
     if cond {
-        panic("assertion failed: expected false, got true")
+        Std::panic("assertion failed: expected false, got true")
     }
 }
 
@@ -29,56 +30,56 @@ pub fn assert_false(cond: bool) {
 pub fn assert_eq_debug<T: Eq + Debug>(actual: T, expected: T) {
     if !actual.eq(expected) {
         let msg = "assert_eq failed: expected ".concat(expected.fmt_debug().concat(", got ".concat(actual.fmt_debug())))
-        panic(msg)
+        Std::panic(msg)
     }
 }
 
 pub fn assert_eq_i32(actual: i32, expected: i32) {
     if actual != expected {
         let msg = "assert_eq_i32 failed: expected ".concat((expected).fmt_debug().concat(", got ".concat((actual).fmt_debug())))
-        panic(msg)
+        Std::panic(msg)
     }
 }
 
 pub fn assert_eq_i64(actual: i64, expected: i64) {
     if actual != expected {
         let msg = "assert_eq_i64 failed: expected ".concat((expected).fmt_debug().concat(", got ".concat((actual).fmt_debug())))
-        panic(msg)
+        Std::panic(msg)
     }
 }
 
 pub fn assert_eq_f64(actual: f64, expected: f64) {
     if actual != expected {
         let msg = "assert_eq_f64 failed: expected ".concat((expected).fmt_debug().concat(", got ".concat((actual).fmt_debug())))
-        panic(msg)
+        Std::panic(msg)
     }
 }
 
 pub fn assert_eq_string(actual: String, expected: String) {
     if !__intrinsic_string_eq(actual, expected) {
         let msg = "assert_eq_string failed: expected ".concat((expected).fmt_debug().concat(", got ".concat((actual).fmt_debug())))
-        panic(msg)
+        Std::panic(msg)
     }
 }
 
 pub fn assert_eq_bool(actual: bool, expected: bool) {
     if actual != expected {
         let msg = "assert_eq_bool failed: expected ".concat((expected).fmt_debug().concat(", got ".concat((actual).fmt_debug())))
-        panic(msg)
+        Std::panic(msg)
     }
 }
 
 pub fn assert_ne_i32(actual: i32, unexpected: i32) {
     if actual == unexpected {
         let msg = "assert_ne_i32 failed: values should differ, both are ".concat((actual).to_string())
-        panic(msg)
+        Std::panic(msg)
     }
 }
 
 pub fn assert_ne_string(actual: String, unexpected: String) {
     if actual == unexpected {
         let msg = "assert_ne_string failed: values should differ, both are \"".concat(actual.concat("\""))
-        panic(msg)
+        Std::panic(msg)
     }
 }
 
@@ -88,7 +89,7 @@ pub fn expect_ok_i32(r: Result<i32, String>) -> i32 {
         Result::Ok(v) => v,
         Result::Err(e) => {
             let msg = "expect_ok_i32: got Err(\"".concat(e.concat("\")"))
-            panic(msg)
+            Std::panic(msg)
             0
         },
     }
@@ -98,7 +99,7 @@ pub fn expect_err_string(r: Result<i32, String>) -> String {
     match r {
         Result::Ok(v) => {
             let msg = "expect_err_string: got Ok(".concat((v).to_string().concat(")"))
-            panic(msg)
+            Std::panic(msg)
             String_new()
         },
         Result::Err(e) => e,
@@ -109,7 +110,7 @@ pub fn expect_some_i32(o: Option<i32>) -> i32 {
     match o {
         Option::Some(v) => v,
         None => {
-            panic("expect_some_i32: got None")
+            Std::panic("expect_some_i32: got None")
             0
         },
     }
@@ -119,7 +120,7 @@ pub fn expect_none_i32(o: Option<i32>) {
     match o {
         Option::Some(v) => {
             let msg = "expect_none_i32: got Some(".concat((v).to_string().concat(")"))
-            panic(msg)
+            Std::panic(msg)
         },
         None => {
         },
@@ -131,7 +132,7 @@ pub fn expect_none_i32(o: Option<i32>) {
 pub fn assert_contains(haystack: String, needle: String) {
     if !contains(haystack, needle) {
         let msg = "assert_contains failed: \"".concat(haystack.concat("\" does not contain \"".concat(needle.concat("\""))))
-        panic(msg)
+        Std::panic(msg)
     }
 }
 
@@ -139,14 +140,14 @@ pub fn assert_contains(haystack: String, needle: String) {
 pub fn assert_eq_snapshot(actual: String, expected: String) {
     if actual != expected {
         let msg = "snapshot mismatch:\n--- expected ---\n".concat(expected.concat("\n--- actual ---\n".concat(actual)))
-        panic(msg)
+        Std::panic(msg)
     }
 }
 
 /// Assert that a boolean condition holds, with a custom failure message.
 pub fn assert_msg(cond: bool, message: String) {
     if !cond {
-        panic("assertion failed: ".concat(message))
+        Std::panic("assertion failed: ".concat(message))
     }
 }
 

@@ -6,8 +6,8 @@ fn main() {
     match json::JsonValue::parse(raw) {
         Result::Ok(v) => match v.as_string() {
             Option::Some(s) => test::assert_eq_i32(len(s), 62),
-            None => panic("expected string"),
+            None => Std::panic("expected string"),
         },
-        Result::Err(e) => panic("parse long string failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse long string failed: ".concat(e.message())),
     }
 }

@@ -11,8 +11,8 @@ fn main() {
                 test::assert_eq_i32(byte_at(s, 0), 195)
                 test::assert_eq_i32(byte_at(s, 1), 169)
             },
-            None => panic("expected string"),
+            None => Std::panic("expected string"),
         },
-        Result::Err(e) => panic("parse bmp unicode failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse bmp unicode failed: ".concat(e.message())),
     }
 }

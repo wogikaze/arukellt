@@ -10,7 +10,7 @@ fn main() {
     test::assert_eq_i32(hash::hashmap_get(m, 2), 0)
     test::assert_false(hash::hashmap_contains(m, 2))
     match hash::hashmap_get_option(m, 2) {
-        Option::Some(_) => panic("expected None for missing key"),
+        Option::Some(_) => Std::panic("expected None for missing key"),
         None => {}
     }
 
@@ -20,7 +20,7 @@ fn main() {
     test::assert_eq_i32(hash::hashmap_get(m, 3), 0)
     test::assert_false(hash::hashmap_contains(m, 3))
     match hash::hashmap_get_option(m, 3) {
-        Option::Some(_) => panic("expected None for removed key"),
+        Option::Some(_) => Std::panic("expected None for removed key"),
         None => {}
     }
 }

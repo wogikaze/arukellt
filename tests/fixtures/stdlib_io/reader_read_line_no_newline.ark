@@ -12,9 +12,9 @@ fn main() {
     match res {
         Result::Ok(found) => match found {
             Option::Some(line) => test::assert_eq_string(line, "ABC"),
-            Option::None => panic("expected the unterminated line"),
+            Option::None => Std::panic("expected the unterminated line"),
         },
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     test::assert_true(r.is_eof())
 }

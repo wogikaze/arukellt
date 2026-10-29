@@ -13,10 +13,10 @@ fn main() {
         Result::Ok(v) => match v.get_index(1) {
             Option::Some(e) => match e.as_i32() {
                 Option::Some(n) => test::assert_eq_i32(n, 2),
-                None => panic("expected number"),
+                None => Std::panic("expected number"),
             },
-            None => panic("expected element at 1"),
+            None => Std::panic("expected element at 1"),
         },
-        Result::Err(e) => panic("re-parse failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("re-parse failed: ".concat(e.message())),
     }
 }

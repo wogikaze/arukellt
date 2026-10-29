@@ -5,15 +5,15 @@ fn main() {
     match json::JsonValue::parse("1000000") {
         Result::Ok(v) => match v.as_i32() {
             Option::Some(n) => test::assert_eq_i32(n, 1000000),
-            None => panic("expected 1000000"),
+            None => Std::panic("expected 1000000"),
         },
-        Result::Err(e) => panic("parse large number failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse large number failed: ".concat(e.message())),
     }
     match json::JsonValue::parse("-2147483648") {
         Result::Ok(v) => match v.as_i32() {
             Option::Some(n) => test::assert_eq_i32(n, -2147483648),
-            None => panic("expected min i32"),
+            None => Std::panic("expected min i32"),
         },
-        Result::Err(e) => panic("parse min i32 failed: ".concat(e.message())),
+        Result::Err(e) => Std::panic("parse min i32 failed: ".concat(e.message())),
     }
 }

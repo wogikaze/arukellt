@@ -6,18 +6,18 @@ fn main() {
     let b: i64 = 200i64
     match a.cmp(b) {
         Ordering::Less => {}
-        _ => panic("expected Less"),
+        _ => Std::panic("expected Less"),
     }
 
     let c: i64 = 200i64
     match b.cmp(c) {
         Ordering::Equal => {}
-        _ => panic("expected Equal"),
+        _ => Std::panic("expected Equal"),
     }
 
     let d: i64 = 50i64
     match b.cmp(d) {
         Ordering::Greater => {}
-        _ => panic("expected Greater"),
+        _ => Std::panic("expected Greater"),
     }
 }

@@ -12,8 +12,8 @@ fn main() {
     match res {
         Result::Ok(found) => match found {
             Option::Some(line) => test::assert_eq_string(line, "L"),
-            Option::None => panic("expected line L"),
+            Option::None => Std::panic("expected line L"),
         },
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
 }

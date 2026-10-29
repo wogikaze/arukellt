@@ -15,24 +15,24 @@ fn main() {
     match l1 {
         Result::Ok(found) => match found {
             Option::Some(line) => test::assert_eq_string(line, "A"),
-            Option::None => panic("expected line A"),
+            Option::None => Std::panic("expected line A"),
         },
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     let l2: Result<Option<String>, io::IoError> = br.read_line()
     match l2 {
         Result::Ok(found) => match found {
             Option::Some(line) => test::assert_eq_string(line, "B"),
-            Option::None => panic("expected line B"),
+            Option::None => Std::panic("expected line B"),
         },
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     let l3: Result<Option<String>, io::IoError> = br.read_line()
     match l3 {
         Result::Ok(found) => match found {
             Option::Some(line) => test::assert_eq_string(line, "C"),
-            Option::None => panic("expected line C"),
+            Option::None => Std::panic("expected line C"),
         },
-        Result::Err(e) => panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
 }

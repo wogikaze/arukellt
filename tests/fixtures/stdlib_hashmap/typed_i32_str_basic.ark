@@ -12,10 +12,10 @@ fn main() {
 
     match m.get(1) {
         Option::Some(v) => test::assert_eq_string(v, "one"),
-        None => panic("expected Some(one)"),
+        None => Std::panic("expected Some(one)"),
     }
     match m.get(2) {
         Option::Some(v) => test::assert_eq_string(v, "two"),
-        None => panic("expected Some(two)"),
+        None => Std::panic("expected Some(two)"),
     }
 }

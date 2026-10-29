@@ -3,19 +3,19 @@ use std::test
 
 fn main() {
     match json::JsonValue::parse("{") {
-        Result::Ok(_) => panic("expected error for incomplete object"),
+        Result::Ok(_) => Std::panic("expected error for incomplete object"),
         Result::Err(_) => {},
     }
     match json::JsonValue::parse("{\"a\"") {
-        Result::Ok(_) => panic("expected error for unclosed key"),
+        Result::Ok(_) => Std::panic("expected error for unclosed key"),
         Result::Err(_) => {},
     }
     match json::JsonValue::parse("{\"a\":") {
-        Result::Ok(_) => panic("expected error for missing value"),
+        Result::Ok(_) => Std::panic("expected error for missing value"),
         Result::Err(_) => {},
     }
     match json::JsonValue::parse("{\"a\":1") {
-        Result::Ok(_) => panic("expected error for unclosed object"),
+        Result::Ok(_) => Std::panic("expected error for unclosed object"),
         Result::Err(_) => {},
     }
 }

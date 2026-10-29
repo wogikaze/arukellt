@@ -16,24 +16,24 @@ fn main() {
 
     match m.get(1) {
         Option::Some(v) => test::assert_eq_i32(v, 111),
-        None => panic("expected Some(111)"),
+        None => Std::panic("expected Some(111)"),
     }
     match m.get(99) {
-        Option::Some(_) => panic("expected None for missing key"),
+        Option::Some(_) => Std::panic("expected None for missing key"),
         None => {
         },
     }
 
     match m.remove(2) {
         Option::Some(v) => test::assert_eq_i32(v, 200),
-        None => panic("expected Some(200)"),
+        None => Std::panic("expected Some(200)"),
     }
     test::assert_eq_i32(m.len(), 2)
     test::assert_false(m.contains_key(2))
     let _ = m.insert(2, 222)
     match m.get(2) {
         Option::Some(v) => test::assert_eq_i32(v, 222),
-        None => panic("expected Some(222) after reinsert"),
+        None => Std::panic("expected Some(222) after reinsert"),
     }
     test::assert_eq_i32(m.len(), 3)
 }

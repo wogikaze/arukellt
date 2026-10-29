@@ -10,21 +10,21 @@ fn main() {
     test::assert_false(m.contains_key(9))
     match m.get(1) {
         Option::Some(v) => test::assert_eq_string(v, "uno"),
-        None => panic("expected Some(uno)"),
+        None => Std::panic("expected Some(uno)"),
     }
     match m.get(9) {
-        Option::Some(_) => panic("expected None"),
+        Option::Some(_) => Std::panic("expected None"),
         None => {
         },
     }
     match m.remove(2) {
         Option::Some(v) => test::assert_eq_string(v, "two"),
-        None => panic("expected Some(two)"),
+        None => Std::panic("expected Some(two)"),
     }
     let _ = m.insert(2, "dos")
     match m.get(2) {
         Option::Some(v) => test::assert_eq_string(v, "dos"),
-        None => panic("expected Some(dos)"),
+        None => Std::panic("expected Some(dos)"),
     }
     test::assert_eq_i32(m.len(), 2)
 }

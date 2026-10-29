@@ -6,6 +6,6 @@ fn make_error(msg: String, ctx: String) -> Result<i32, String> {
 }
 fn main() {
     let r = make_error(String_from("fail"), String_from("ctx"))
-    match r { Result::Ok(v) => panic("ok"), Result::Err(e) => test::assert_eq_string(e, String_from("fail in ctx")) }
+    match r { Result::Ok(v) => Std::panic("ok"), Result::Err(e) => test::assert_eq_string(e, String_from("fail in ctx")) }
     stdio::println("ok")
 }

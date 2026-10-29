@@ -7,13 +7,13 @@ test "insert_get_len_and_missing_key_contracts" {
     let _ = m.insert(3, 300)
     match m.get(2) {
         Option::Some(v) => test::assert_eq_i32(v, 200),
-        None => panic("expected Some(200)"),
+        None => Std::panic("expected Some(200)"),
     }
     test::assert_eq_i32(m.len(), 3)
     test::assert_true(m.contains_key(1))
     test::assert_false(m.contains_key(99))
     match m.get(99) {
-        Option::Some(v) => panic("expected None for key 99"),
+        Option::Some(v) => Std::panic("expected None for key 99"),
         None => {
         },
     }

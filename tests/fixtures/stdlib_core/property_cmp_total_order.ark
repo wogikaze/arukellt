@@ -27,7 +27,7 @@ fn check_pair(a: i32, b: i32) {
         match result {
             Ordering::Equal => {
             },
-            _ => panic("expected Equal when a == b"),
+            _ => Std::panic("expected Equal when a == b"),
         }
     }
 }

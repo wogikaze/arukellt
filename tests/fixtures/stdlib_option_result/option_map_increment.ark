@@ -6,6 +6,6 @@ fn inc(x: i32) -> i32 { x + 1 }
 fn main() {
     let a: Option<i32> = Some(9)
     let m = a.map(inc)
-    match m { Option::Some(v) => test::assert_eq_i32(v, 10), None => panic("none") }
+    match m { Option::Some(v) => test::assert_eq_i32(v, 10), None => Std::panic("none") }
     stdio::println("ok")
 }

@@ -5,17 +5,17 @@ fn main() {
     match ok_r {
         Result::Ok(inner) => match inner {
             Result::Ok(v) => test::assert_eq_i32(v, 1),
-            Result::Err(e) => panic("inner err"),
+            Result::Err(e) => Std::panic("inner err"),
         },
-        Result::Err(e) => panic("outer err"),
+        Result::Err(e) => Std::panic("outer err"),
     }
     let err_r: Result<Result<i32, i32>, i32> = Ok(Err(2))
     match err_r {
         Result::Ok(inner) => match inner {
-            Result::Ok(v) => panic("inner ok"),
+            Result::Ok(v) => Std::panic("inner ok"),
             Result::Err(e) => test::assert_eq_i32(e, 2),
         },
-        Result::Err(e) => panic("outer err"),
+        Result::Err(e) => Std::panic("outer err"),
     }
     stdio::println("ok")
 }

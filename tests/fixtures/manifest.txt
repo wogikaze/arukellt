@@ -302,6 +302,10 @@ diag:diagnostics/removed_compiler_slotmap_free.ark
 diag:diagnostics/removed_compiler_slotmap_free_wasm32.ark
 diag:diagnostics/removed_compiler_interner_free.ark
 diag:diagnostics/removed_compiler_interner_free_wasm32.ark
+diag:diagnostics/removed_panic_free.ark
+diag:diagnostics/removed_panic_free_wasm32.ark
+diag:diagnostics/removed_sort_free.ark
+diag:diagnostics/removed_sort_free_wasm32.ark
 diag:diagnostics/removed_canonical_free.ark
 diag:diagnostics/removed_canonical_free_wasm32.ark
 diag:diagnostics/removed_hashmap_adapter.ark
@@ -2220,6 +2224,7 @@ run:stdlib_vec/vec_sort_empty.ark
 run:stdlib_vec/vec_sort_f64.ark
 run:stdlib_vec/vec_sort_i64.ark
 run:stdlib_vec/vec_sort_negative.ark
+run:stdlib_vec/vec_sort_noarg.ark
 run:stdlib_vec/vec_sort_reverse_sorted.ark
 run:stdlib_vec/vec_sort_single.ark
 run:stdlib_vec/vec_stress_push_100.ark
@@ -3329,6 +3334,7 @@ t3-run:stdlib_vec/vec_sort_empty.ark
 t3-run:stdlib_vec/vec_sort_f64.ark
 t3-run:stdlib_vec/vec_sort_i64.ark
 t3-run:stdlib_vec/vec_sort_negative.ark
+t3-run:stdlib_vec/vec_sort_noarg.ark
 t3-run:stdlib_vec/vec_sort_reverse_sorted.ark
 t3-run:stdlib_vec/vec_sort_single.ark
 t3-run:stdlib_vec/vec_stress_push_100.ark

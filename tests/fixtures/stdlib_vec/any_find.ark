@@ -21,7 +21,7 @@ fn main() {
     let found = v.iter().find(is_even)
     match found {
         Option::Some(x) => test::assert_eq_i32(x, 2),
-        None => panic("expected Some, got None"),
+        None => Std::panic("expected Some, got None"),
     }
 
     let empty = Vec::new<i32>()
@@ -30,7 +30,7 @@ fn main() {
 
     let find_neg = v.iter().find(is_negative)
     match find_neg {
-        Option::Some(x) => panic("expected None, got Some"),
+        Option::Some(x) => Std::panic("expected None, got Some"),
         None => {
         },
     }

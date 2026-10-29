@@ -1782,13 +1782,41 @@ removed in the ADR-087 Wave 2; see the
 [removal table](#removed-in-wave-2-monomorphic-seqcombinator-frees-31).
 `Vec` exposes `sort_by` / `sort_by_key` / `sort_unstable_by` /
 `sort_unstable_by_key` / `dedup_by` / `partition` / `is_sorted_by` /
-`binary_search_by_key`; `std::seq::sort_by` remains the generic `Ord`-based
-algorithm and is the reachable sort fallback for the `i64` / `f64` / `String`
-lanes until their `Vec` receiver methods lower correctly. The no-argument
-`v.sort()`, `is_sorted`, `dedup`, and `select_nth` remain the #697 residual.
+`binary_search_by_key`. The no-argument algorithms are `Vec<T: Ord>` methods:
+the free `std::collections::sort` module (`sort`, `sort_unstable`,
+`is_sorted`, `select_nth`) was deleted and bare calls fail with E0100.
+
+The `i32` lanes are verified on both targets. `i64` and `String` sort on
+`wasm32` (linear) but still emit invalid core Wasm on `wasm32-gc` (#965);
+`f64` is not `Ord`, so use `v.sort_by(total_cmp)` as before. Until #965 is
+fixed, keep the i64 / String gc lanes on the documented loop fallback rather
+than assuming `v.sort()` is portable.
+
+| Removed free call | Replacement |
+|-------------------|-------------|
+| `sort::sort(v)` | `v.sort()` |
+| `sort::sort_unstable(v)` | `v.sort_unstable()` |
+| `sort::is_sorted(v)` | `v.is_sorted()` |
+| `sort::select_nth(v, k)` | `v.select_nth(k)` |
+
+`dedup` remains the #697 residual; use `v.dedup_by(cmp)` meanwhile.
+
 Window and chunk helpers (`windows`, `chunks`, `chunks_exact`) return an eager
 `Vec<Vec<T>>`; `resize` and `extend` copy element handles without a `Clone`
 bound, and `drain` / `splice` return the removed elements as an owned `Vec<T>`.
+
+### `panic`
+
+`panic(msg)` is no longer a prelude free function. The stable control
+operation is the associated function on the `Std` namespace type
+([ADR-090](../adr/ADR-090-std-namespace-and-panic-association.md)):
+
+```ark
+Std::panic(String_from("unreachable"))
+```
+
+`Std` is auto-imported with the v2 stable prelude; no `use` statement is
+needed. A bare `panic(msg)` fails with E0100 and a hint naming `Std::panic`.
 
 ### HashMap Constructors and Operations
 
