@@ -36,6 +36,7 @@
 // ─── TomlValue type ──────────────────────────────────────────────────────────
 use std::prelude::{byte_at, eq, i64_to_i32, slice}
 use std::text
+
 pub enum TomlValue {
     String(String),
     Integer(i64),
@@ -595,7 +596,7 @@ fn toml_parse_float_token(token: String) -> Result<f64, String> {
 fn toml_parse_number_or_datetime_at(s: String, pos: i32) -> TomlValStep {
     let end = toml_scan_bare_token(s, pos)
     let raw = slice(s, pos, end)
-    let t = trim(raw)
+    let t = raw.trim()
     let tn = len(t)
     if tn == 0 {
         return TomlValStep::err("empty value", pos)
@@ -1069,8 +1070,8 @@ fn toml_parse_document(s: String) -> Result<TomlValue, String> {
 fn toml_stringify_value(v: TomlValue) -> String {
     match v {
         TomlValue::String(s) => "\"".concat(s.concat("\"")),
-        TomlValue::Integer(i) => (i).to_string(),
-        TomlValue::Float(f) => (f).to_string(),
+        TomlValue::Integer(i) => i.to_string(),
+        TomlValue::Float(f) => f.to_string(),
         TomlValue::Boolean(b) => if b { "true" } else { "false" },
         TomlValue::Array(items) => toml_stringify_array(items),
         TomlValue::Table(fields) => toml_stringify_table(fields),

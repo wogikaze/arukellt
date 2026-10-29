@@ -1,7 +1,7 @@
 use std::test
-use std::prelude::{byte_len}
+
 fn main() {
-    test::assert_eq_i32(byte_len(String_from("hello")), 5)
-    test::assert_eq_i32(byte_len(String_from("")), 0)
-    test::assert_eq_i32(byte_len(String_from("A")), 1)
+    test::assert_eq_i32((String_from("hello")).len_bytes(), 5)
+    test::assert_eq_i32((String_from("")).len_bytes(), 0)
+    test::assert_eq_i32((String_from("A")).len_bytes(), 1)
 }

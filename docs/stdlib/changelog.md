@@ -16,6 +16,61 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-29 — prelude free 27 件の退役と安定 free 4 件の限定例外 (#917, wave/prelude-remain)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D1（trait / method /
+  associated を正規形とする）と D2（例外は個別 ADR）、
+  [ADR-091](../adr/ADR-091-prelude-free-function-exception.md)。ADR-091 は
+  [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2 の 0.x 例外の限定版として、
+  対象 27 件を W0009 ではなく E0100 + 具体的な method hint で削除する。
+- **Retired (27)**: prelude の `abs` / `args` / `byte_len` / `clamp_i32` / `exit` /
+  `format_bool` / `format_i32` / `gcd` / `is_empty` / `join` / `lines` / `max` /
+  `min` / `pad_left` / `pad_right` / `repeat` / `replace` / `split` /
+  `sqrt` / `to_lower` / `to_lowercase` / `to_upper` / `to_uppercase` / `trim` /
+  `trim_end` / `trim_start` / `values` の manifest entry と
+  `std/prelude.ark` 宣言を削除した。`values` は identity helper であり
+  replacement を持たない。他の 26 件は receiver method / associated function
+  へ移行する。
+- **Underlying module frees (13)**: `std/collections/string.ark` の同名
+  `pub fn`（`to_lower` / `to_upper` / `trim` / `trim_start` / `trim_end` /
+  `repeat` / `pad_left` / `pad_right` / `replace` / `split` / `join` / `lines` /
+  `push_char`）を非公開または削除した。`push_char` の prelude free は残すため、
+  string module 側の重複宣言だけを削除した。他の 12 名は private 実装とし、
+  公開綴りは `String` / `Vec<String>` method だけになる。
+- **Replacement**: 既存の `s.len_bytes()` / `s.is_empty()` / `s.trim()` /
+  `s.split(sep)` / `parts.join(sep)`、`i32` / `f64` の `abs` / `min` /
+  `max` / `clamp` / `gcd` / `sqrt`、`Env::args()` / `Process::exit()`、
+  primitive `to_string()` を使う。全 27 件の before/after は
+  [migration-guidance.md](migration-guidance.md#prelude-free-function-retirement-adr-091)
+  に記録した。旧名は E0100 と `resolver::removed_names` の hint で失敗する。
+  `push_char` と `parse_i32` / `parse_i64` / `parse_f64` は free のまま残す
+  （下記 Deferred）。
+- **Retained exception (4)**: ADR-072 §1 の安定 Prelude 関数 `assert` /
+  `String_from` / `String_new` / `char_to_string` は prelude free のまま残す。
+  `String::from` は未提供で、`String::new` は現行 pin で invalid core Wasm になり、
+  `char_to_string` は i32 codepoint 境界を持つ。ADR-091 §3 の正確な例外リストであり、
+  他の prelude free には適用しない。
+- **Deferred (23)**: `push_char`、`parse_i32` / `parse_i64` / `parse_f64`、
+  `Box_new` / `unbox`、`unwrap` / `unwrap_or` / `is_some` / `is_none` /
+  `is_ok` / `is_err`、`f32_to_string`、および `clone` / `eq` / `byte_at` /
+  `substring` / `to_string` / `starts_with` / `ends_with` / `contains` /
+  `index_of` / `slice` は `associated-or-method` のまま残す。
+  `s.push_char(c)` は compile・validate するが、String が GC ref で method body の
+  新しい array が caller binding に伝播しない（この wave で測定）。`parse_*` を
+  `TryFrom` へ移すと、再構築した s2 が任意の入力を compile する際に `unreachable`
+  で trap した（`compile_source` / `backend_resolve` の計測）。generic な
+  `impl<T> Option<T>` の method も実行時 `unreachable` へ落ちる。
+- **Scorecard**: eradication scope 195 → **168**; `associated-or-method`
+  129 → **102**; manifest public entries 193 → **166**; `pub fn` declarations
+  216 → **176**; `prelude_wrapper` entries 64 → **40**; monomorphic helpers
+  50 → **47**; unregistered declarations 2、`must delete` 66、
+  `intrinsic-only` 1 は不変。`prelude frees (default)` family は 54 → **27**。
+- **Evidence**: `verify fixtures` **1910/1910** compile+validate PASS（110 runtime
+  smoke、36/36 `test:` PASS、2 runtime-unsupported、0 FAIL）、`verify lane` PASS、
+  `docs check` 6/6、ADR-029 fixpoint PASS（s2 == s3 at sha256
+  `304624037927d797311cd09cc42bb26cb85fc08ee59a0da14586cbe9c0c2315e`、
+  pinned base `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`）。
+
 ## 2026-10-29 — `std::seq` の provisional 汎用アルゴリズム削除 (#917, wave/associated-next)
 
 - **Basis**: [ADR-014](../adr/ADR-014-stability-labels.md) の provisional 削除規則

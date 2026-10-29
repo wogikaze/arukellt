@@ -1,14 +1,15 @@
 // Fixture: use_func_destructure_multi.ark
-// Issue #717: `use std::collections::string::{split, join}` imports both functions
-// directly into scope. Bare calls `split(...)` and `join(...)` resolve to
-// `string::split(...)` and `string::join(...)` via the use-alias mechanism.
+// Issue #717: `use std::collections::string::{index_of, starts_with}` imports
+// both functions directly into scope. Bare calls `index_of(...)` and
+// `starts_with(...)` resolve to `string::index_of(...)` and
+// `string::starts_with(...)` via the use-alias mechanism.
 //
-// Expected output: a,b,c
-use std::collections::string::{split, join}
+// Expected output: 1,true
+use std::collections::string::{index_of, starts_with}
 
 fn main() {
     let s: String = "a,b,c"
-    let parts = split(s, ",")
-    let result = join(parts, ",")
-    __intrinsic_println(result)
+    let index = index_of(s, ",")
+    let begins = starts_with(s, "a")
+    __intrinsic_println(__intrinsic_i32_to_string(index).concat(",").concat(begins.to_string()))
 }

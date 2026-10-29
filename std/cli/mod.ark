@@ -4,8 +4,9 @@
 //! `Vec<String>` (typically produced by `Env::args()` or `parse_args()`).
 //! Functions without an explicit `args` parameter read from the process
 //! argument vector directly.
-use std::prelude::{args, slice, values}
+use std::prelude::{slice}
 use std::text
+
 /// Returns the full process argument vector (excluding argv[0]).
 pub fn parse_args() -> Vec<String> {
     __intrinsic_args()

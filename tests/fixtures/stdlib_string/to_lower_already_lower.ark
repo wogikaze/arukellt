@@ -1,7 +1,7 @@
 use std::test
-use std::prelude::{to_lower}
+
 fn main() {
     let s = String_from("already lower")
-    test::assert_eq_string(to_lower(s), "already lower")
-    test::assert_eq_string(to_lower(String_from("")), "")
+    test::assert_eq_string(s.to_lower(), "already lower")
+    test::assert_eq_string((String_from("")).to_lower(), "")
 }

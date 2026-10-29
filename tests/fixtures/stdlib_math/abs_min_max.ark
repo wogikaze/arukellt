@@ -1,8 +1,8 @@
 use std::host::stdio
-use std::prelude::{abs, max, min}
+
 fn main() {
-    stdio::println(abs(-5))
-    stdio::println(abs(3))
-    stdio::println(min(3, 7))
-    stdio::println(max(3, 7))
+    stdio::println((-5).abs())
+    stdio::println((3).abs())
+    stdio::println((3).min(7))
+    stdio::println((3).max(7))
 }

@@ -82,10 +82,10 @@ fn build_fn_sig_index(fn_sigs: Vec<FnSig>, qualified_keys: Vec<String>) -> NameI
     // module, and name_index_insert_first keeps the first writer. A plain
     // in-order pass therefore lets an imported decl permanently claim the
     // bare-name slot over a same-named decl in the entry module itself:
-    // `use std::test` pulls in std::collections::string::to_lower(String) and
-    // a local generic `fn to_lower<T>` could never be found by unqualified
-    // calls, which bound the imported sig and skipped mono-instance minting
-    // (#914).
+    // `use std::test` pulls in a public std collections string function such
+    // as `string::index_of(String)` and a local generic `fn index_of<T>` could
+    // never be found by unqualified calls, which bound the imported sig and
+    // skipped mono-instance minting (#914).
     // Give entry-module GENERIC decls (empty qualified key, type params)
     // first claim on their bare names: a generic call can never resolve
     // to the imported concrete sig anyway, so that slot was dead weight.

@@ -1,8 +1,8 @@
 use std::host::stdio
-use std::prelude::{join}
 use std::collections::vec
 use std::core
 use std::core::cmp
+
 fn ascending(a: i32, b: i32) -> Ordering {
     a.cmp(b)
 }
@@ -26,5 +26,5 @@ fn main() {
         push(parts, (get_unchecked(v, i)).to_string())
         i = i + 1
     }
-    stdio::println(join(parts, String_from(" ")))
+    stdio::println(parts.join(String_from(" ")))
 }

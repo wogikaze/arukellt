@@ -1,7 +1,7 @@
 // Test: array comprehension — [expr for x in iter] (map-only)
 use std::host::stdio
 use std::core::iter
-use std::prelude::{values}
+
 fn main() {
     let mut xs: Vec<i32> = Vec::new<i32>()
     push(xs, 10)
@@ -9,8 +9,8 @@ fn main() {
     push(xs, 30)
     let doubled = [x * 2 for x in xs]
     let mut sum = 0
-    for v in values(doubled) {
+    for v in (doubled) {
         sum = sum + v
     }
-    stdio::println((sum).to_string())
+    stdio::println(sum.to_string())
 }

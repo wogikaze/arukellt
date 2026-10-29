@@ -1,8 +1,8 @@
 use std::host::stdio
 use std::text
-use std::prelude::{format_i32}
+
 fn main() {
     let parts = String_from("hello,world").split(String_from(","))
     let n = len(parts)
-    stdio::println(format_i32(n))
+    stdio::println(n.to_string())
 }

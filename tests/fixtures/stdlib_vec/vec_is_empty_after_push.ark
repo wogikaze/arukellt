@@ -1,7 +1,7 @@
 use std::test
-use std::prelude::{is_empty}
+
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 42)
-    test::assert_false(is_empty(v))
+    test::assert_false(v.is_empty())
 }

@@ -1,9 +1,10 @@
 // T2 RPN REPL — interactive stdin loop.
 // Empty stdin on the GC host (#807). Do not name this `read_stdin` — that
 // symbol collides with a core_op and the body is lowered to unreachable.
-use std::prelude::{byte_at, eq, parse_i32, substring, trim}
+use std::prelude::{byte_at, eq, substring, parse_i32}
 use std::host::stdio
 use std::text
+
 fn read_line_from_host() -> String {
     ""
 }
@@ -16,11 +17,11 @@ fn print_error(msg: String) { stdio::println("error: ".concat(msg)) }
 
 fn print_stack_count_error(count: i32) {
     stdio::print("error: stack has ")
-    stdio::print((count).to_string())
+    stdio::print(count.to_string())
     stdio::println(" values")
 }
 
-fn print_result(val: i32) { stdio::println("ok: result = ".concat((val).to_string())) }
+fn print_result(val: i32) { stdio::println("ok: result = ".concat(val.to_string())) }
 
 fn operator_from_token(tok: String) -> RpnOp {
     if eq(tok, "+") { RpnOp::Add }
@@ -66,14 +67,14 @@ fn finish_line(stack: Vec<i32>, input_trimmed: String) {
     let sp: i32 = len(stack)
     if sp == 1 {
         let val: i32 = get_unchecked(stack, 0)
-        stdio::println((val).to_string())
+        stdio::println(val.to_string())
         print_result(val)
     } else { if sp > 1 { stdio::println(input_trimmed); print_stack_count_error(sp) } }
     }
 
     fn eval_line(line: String) {
         let mut stack: Vec<i32> = Vec::new<i32>()
-        let input_trimmed: String = trim(line)
+        let input_trimmed: String = line.trim()
         let line_len: i32 = len(input_trimmed)
         let mut i: i32 = 0
         while i < line_len {
@@ -96,7 +97,7 @@ fn finish_line(stack: Vec<i32>, input_trimmed: String) {
         while running {
             stdio::print("> ")
             let input: String = read_line_from_host()
-            if len(trim(input)) == 0 { stdio::println("bye"); running = false }
+            if len(input.trim()) == 0 { stdio::println("bye"); running = false }
             else { eval_line(input) }
         }
     }

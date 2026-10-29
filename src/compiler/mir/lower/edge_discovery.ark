@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, contains, ends_with, eq, index_of, starts_with, substring, trim}
+use std::prelude::{byte_at, clone, contains, ends_with, eq, index_of, starts_with, substring}
 use std::text
 use collections::name_index
 use wasm::hash_aliases
@@ -952,7 +952,7 @@ fn edge_subst_angle_args(ty: String, keys: Vec<String>) -> String {
     let mut rebuilt = head.concat(String_from("<"))
     let mut i = 0
     while i < len(args) {
-        let arg = trim(clone(get_unchecked(args, i)))
+        let arg = (clone(get_unchecked(args, i))).trim()
         let mut out_arg = clone(arg)
         if mono_suffix_parse::is_mono_type_var_name(clone(arg)) && i < len(keys) {
             out_arg = clone(get_unchecked(keys, i))

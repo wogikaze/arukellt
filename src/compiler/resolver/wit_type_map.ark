@@ -1,10 +1,11 @@
 // WIT type mapping — WIT surface types to Arukellt type names (#653, #664, #671, #672).
 
 use std::text
-use std::prelude::{args, byte_at, clone, eq, index_of, starts_with, substring}
+use std::prelude::{byte_at, clone, eq, index_of, starts_with, substring}
 use component::wit_names_import
 use component::wit_parse_flags
 use component::wit_parse_text
+
 fn wit_primitive_to_ark(wit_type: String) -> String {
     let t = wit_trim_type(wit_type)
     if wit_parse_flags::wit_is_flags_type(clone(t)) { return "i32" }

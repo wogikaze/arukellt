@@ -1,6 +1,7 @@
 use std::test
 use std::text
 use std::prelude::{byte_at, push_char}
+
 fn main() {
     let source = "Aé😀é"
     test::assert_eq_i32(source.len_bytes(), 10)

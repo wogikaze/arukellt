@@ -415,11 +415,12 @@ fn main() {
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
 use std::host::stdio
+
 fn main() {
-    stdio::println(abs(-5))       // 5
-    stdio::println(abs(3))        // 3
-    stdio::println(min(3, 7))     // 3
-    stdio::println(max(3, 7))     // 7
+    stdio::println((-5).abs())       // 5
+    stdio::println((3).abs())        // 3
+    stdio::println((3).min(7))       // 3
+    stdio::println((3).max(7))       // 7
 }
 ```
 
@@ -430,10 +431,13 @@ fn main() {
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
 use std::host::stdio
+
 fn main() {
-    stdio::println((clamp_i32(5, 0, 10)).to_string())   // 5  (in range)
-    stdio::println((clamp_i32(-3, 0, 10)).to_string())  // 0  (clamped to min)
-    stdio::println((clamp_i32(15, 0, 10)).to_string())  // 10 (clamped to max)
+    stdio::println((5).clamp(0, 10).to_string())    // 5  (in range)
+    stdio::println((-3).clamp(0, 10).to_string())   // 0  (clamped to min)
+    stdio::println((15).clamp(0, 10).to_string())   // 10 (clamped to max)
+    stdio::println((0).clamp(0, 10).to_string())    // 0  (in range)
+    stdio::println((10).clamp(0, 10).to_string())   // 10 (in range)
 }
 ```
 

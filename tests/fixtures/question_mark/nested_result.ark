@@ -1,15 +1,14 @@
 use std::host::stdio
-
 // Nested ? calls: multi-step error propagation across several
-// fallible functions, all sharing the same error type (String).
+// fallible functions, all sharing the same error type String.
 // Each ? desugars to
 //   match expr { Ok(v) => v, Err(e) => return Err(From::from(e)) }
 // and From<String> for String is the identity impl, so errors
 // propagate unchanged through the call chain.
 
 use std::prelude::{eq, parse_i32}
-fn parse_num(s: String) -> Result<i32, String> {
-    parse_i32(s)
+
+fn parse_num(s: String) -> Result<i32, String> {parse_i32(s)
 }
 
 fn validate_positive(n: i32) -> Result<i32, String> {

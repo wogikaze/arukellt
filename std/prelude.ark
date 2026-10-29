@@ -3,12 +3,13 @@
 // =============================================================================
 //
 // v2 policy (ADR-072): the resolver auto-imports only the tiny stable set
-// recorded in std/manifest.toml [prelude_policy]. This file declares both that
-// stable set and legacy prelude entries; the legacy entries are still compiled
-// but are NOT auto-imported. A bare call to one fails with E0100 plus a
-// `resolver::removed_names` migration hint, and the name resolves only through
-// `use std::prelude::{name}` or its canonical replacement module. The resolver
-// keeps the stable-name list in src/compiler/resolver/prelude_stable.ark, which
+// recorded in std/manifest.toml [prelude_policy]. This file declares that
+// stable set and the remaining explicit-import prelude entries. ADR-091
+// retired the 27 method-replaceable prelude frees (`trim`, `split`, `abs`,
+// `values`, ...); their bare calls fail with E0100 and a receiver
+// hint, and `assert` / `String_from` / `String_new` / `char_to_string` are the
+// only retained stable-free exception. The resolver keeps the stable-name list
+// in src/compiler/resolver/prelude_stable.ark, which
 // scripts/check/check-compat-orphans.py holds in sync with the manifest.
 //
 // Compilation: RFC-005 / #816 restores prelude decls to the backend combine
@@ -28,7 +29,7 @@
 //     Std::panic  (associated control operation)
 //     String_from, String_new
 //     char_to_string  (essential conversion)
-//     plus len, push, pop, get, set, get_unchecked (compiler intrinsics)
+//     plus len, push, pop, get, set, get_unchecked
 //
 // ## Legacy / explicit-import section
 //
@@ -84,27 +85,11 @@ pub fn clone(s: String) -> String {
     s.clone()
 }
 
-pub fn to_lower(s: String) -> String {
-    Std::panic(String_new()); return String_new()
-}
-
-pub fn to_upper(s: String) -> String {
-    Std::panic(String_new()); return String_new()
-}
-
 pub fn slice(s: String, start: i32, end: i32) -> String {
     Std::panic(String_new()); return String_new()
 }
 
-pub fn trim(s: String) -> String {
-    Std::panic(String_new()); return String_new()
-}
-
 pub fn substring(s: String, start: i32, end: i32) -> String {
-    Std::panic(String_new()); return String_new()
-}
-
-pub fn replace(s: String, from: String, to: String) -> String {
     Std::panic(String_new()); return String_new()
 }
 
@@ -117,12 +102,9 @@ pub fn char_to_string(c: char) -> String {
     __core_char_to_string_impl(c)
 }
 
-// to_string — polymorphic builtin dispatched by the compiler.
-// Converts primitive scalars and String to their String representation.
-// Supported argument types: i32, i64, f64, bool, char, String (passthrough).
-// Usage: to_string(42) -> "42", to_string(true) -> "true"
-// Implementation: compiler-handled builtin in the selfhost emitter (src/compiler/emitter.ark)
-// Conversion: from string
+// Conversion: from string. These remain until the compiler/std TryFrom lane
+// is usable from non-entry modules; the fixture-facing replacement is
+// `i32::try_from(s)` / `i64::try_from(s)` / `f64::try_from(s)`.
 pub fn parse_i32(s: String) -> Result<i32, String> {
     __core_parse_i32_impl(s)
 }
@@ -133,11 +115,6 @@ pub fn parse_i64(s: String) -> Result<i64, String> {
 
 pub fn parse_f64(s: String) -> Result<f64, String> {
     __core_parse_f64_impl(s)
-}
-
-// Math
-pub fn sqrt(x: f64) -> f64 {
-    __core_math_sqrt_impl(x)
 }
 
 pub fn f64_bits_lo(x: f64) -> i32 {
@@ -217,10 +194,6 @@ fn __core_math_abs_impl(x: i32) -> i32 {
     }
 }
 
-pub fn abs(x: i32) -> i32 {
-    __core_math_abs_impl(x)
-}
-
 fn __core_math_min_impl(a: i32, b: i32) -> i32 {
     if a < b {
         a
@@ -229,20 +202,12 @@ fn __core_math_min_impl(a: i32, b: i32) -> i32 {
     }
 }
 
-pub fn min(a: i32, b: i32) -> i32 {
-    __core_math_min_impl(a, b)
-}
-
 fn __core_math_max_impl(a: i32, b: i32) -> i32 {
     if a > b {
         a
     } else {
         b
     }
-}
-
-pub fn max(a: i32, b: i32) -> i32 {
-    __core_math_max_impl(a, b)
 }
 
 // Math: clamp (i32)
@@ -254,10 +219,6 @@ fn __core_math_clamp_impl(x: i32, lo: i32, hi: i32) -> i32 {
     } else {
         x
     }
-}
-
-pub fn clamp_i32(x: i32, lo: i32, hi: i32) -> i32 {
-    __core_math_clamp_impl(x, lo, hi)
 }
 
 // Control
@@ -302,21 +263,6 @@ fn __core_seq_sort_i32_impl(mut v: Vec<i32>) {
 pub fn filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32> {
     __intrinsic_filter_i32(v, f)
 }
-// String: split/join/push_char
-// @deprecated: use `s.split(delim)` (String method) instead. See ADR-036.
-pub fn split(s: String, delim: String) -> Vec<String> {
-    Std::panic(String_new()); return Vec::new<String>()
-}
-
-// @deprecated: use `v.join(sep)` (Vec/Iterator method, #691) instead. See ADR-036.
-pub fn join(v: Vec<String>, sep: String) -> String {
-    Std::panic(String_new()); return String_new()
-}
-
-pub fn push_char(mut s: String, c: char) {
-    __core_push_char_impl(s, c)
-}
-
 // Core-op fallback for seq.sort_i64 (public wrapper deleted in ADR-087 Wave 2).
 fn __core_seq_sort_i64_impl(mut v: Vec<i64>) {
     let mut index = 1
@@ -352,7 +298,7 @@ pub fn assert(cond: bool) {
     }
 }
 
-/// Legacy i32 equality assertion (compat). Prefer `test::assert_eq_i32` or
+/// Legacy i32 equality assertion compat. Prefer `test::assert_eq_i32` or
 /// generic `test::assert_eq_debug` (#696) for Debug-backed diagnostics.
 ///
 /// Residual: bare `assert_eq` call sites are still CoreOp-inlined today, so
@@ -362,7 +308,7 @@ pub fn assert(cond: bool) {
 /// pulling Convert/Debug into the auto-prelude regresses W0011 on clean fixtures.
 pub fn assert_eq(a: i32, b: i32) {
     if a != b {
-        let expected = (b).to_string().concat(", got ".concat((a).to_string()))
+        let expected = b.to_string().concat(", got ".concat(a.to_string()))
         let msg = "assert_eq failed: expected ".concat(expected)
         Std::panic(msg)
     }
@@ -374,16 +320,16 @@ pub fn assert_ne(a: i32, b: i32) {
     }
 }
 
-/// Legacy i64 equality assertion (compat). Prefer `test::assert_eq_i64`.
+/// Legacy i64 equality assertion compat. Prefer `test::assert_eq_i64`.
 pub fn assert_eq_i64(a: i64, b: i64) {
     if a != b {
-        let expected = (b).to_string().concat(", got ".concat((a).to_string()))
+        let expected = b.to_string().concat(", got ".concat(a.to_string()))
         let msg = "assert_eq_i64 failed: expected ".concat(expected)
         Std::panic(msg)
     }
 }
 
-/// Legacy String equality assertion (compat). Prefer `test::assert_eq_string`.
+/// Legacy String equality assertion compat. Prefer `test::assert_eq_string`.
 pub fn assert_eq_str(a: String, b: String) {
     if a != b {
         let expected = b.concat("\", got \"".concat(a.concat("\"")))
@@ -536,7 +482,12 @@ fn __core_seq_product_i32_impl(v: Vec<i32>) -> i32 {
 // during MIR lowering under RFC-005 D3. Pure Ark helpers above lower normally.
 // =============================================================================
 
-// IO
+// Scalar formatting
+// to_string — polymorphic builtin dispatched by the compiler.
+// Converts primitive scalars and String to their String representation.
+// Supported argument types: i32, i64, f64, bool, char, String passthrough.
+// Usage: to_string(42) -> "42", to_string(true) -> "true"
+// Implementation: compiler-handled builtin in the selfhost emitter (src/compiler/emitter.ark)
 pub fn to_string(n: i32) -> String {
     Std::panic(String_new()); return String_new()
 }
@@ -565,14 +516,6 @@ pub fn pop(mut v: Vec<i32>) -> Option<i32> {
 
 pub fn set<T>(mut v: Vec<T>, idx: i32, val: T) {
     Std::panic(String_new())
-}
-
-pub fn values(v: Vec<i32>) -> Vec<i32> {
-    return v
-}
-
-pub fn is_empty(v: Vec<i32>) -> bool {
-    Std::panic(String_new()); return false
 }
 
 // Option / Result
@@ -665,13 +608,11 @@ pub fn index_of(s: String, sub: String) -> i32 {
     Std::panic(String_new()); return -1
 }
 
-// Process / env
-pub fn args() -> Vec<String> {
-    Std::panic(String_new()); return Vec::new<String>()
-}
-
-pub fn exit(code: i32) {
-    Std::panic(String_new())
+// Mutating String append. `s.push_char(c)` compiles but does not propagate the
+// grown array to the caller on the current lowering (ADR-091 §4), so the free
+// remains until the mutating-receiver lowering lands.
+pub fn push_char(mut s: String, c: char) {
+    __core_push_char_impl(s, c)
 }
 
 // Math
@@ -705,58 +646,10 @@ fn __core_math_pow_i32_impl(base: i32, exponent: i32) -> i32 {
     result
 }
 
-pub fn gcd(a: i32, b: i32) -> i32 {
-    __core_math_gcd_impl(a, b)
-}
-
-// String extended
-pub fn repeat(s: String, n: i32) -> String {
-    Std::panic(String_new()); return String_new()
-}
-
-pub fn to_uppercase(s: String) -> String {
-    Std::panic(String_new()); return String_new()
-}
-
-pub fn to_lowercase(s: String) -> String {
-    Std::panic(String_new()); return String_new()
-}
-
-pub fn lines(s: String) -> Vec<String> {
-    string::lines(s)
-}
-
-pub fn byte_len(s: String) -> i32 {
-    Std::panic(String_new()); return 0
-}
-
 pub fn byte_at(s: String, idx: i32) -> i32 {
     Std::panic(String_new()); return 0
 }
 
-pub fn trim_start(s: String) -> String {
-    Std::panic(String_new()); return String_new()
-}
-
-pub fn trim_end(s: String) -> String {
-    Std::panic(String_new()); return String_new()
-}
-
-pub fn pad_left(s: String, width: i32) -> String {
-    Std::panic(String_new()); return String_new()
-}
-
-pub fn pad_right(s: String, width: i32) -> String {
-    Std::panic(String_new()); return String_new()
-}
-
-pub fn format_i32(n: i32) -> String {
-    Std::panic(String_new()); return String_new()
-}
-
-pub fn format_bool(b: bool) -> String {
-    __core_format_bool_impl(b)
-}
 // Conversions extended
 pub fn i32_to_u32(n: i32) -> u32 {
     Std::panic(String_new()); return 0

@@ -1,5 +1,6 @@
 use std::test
 use std::prelude::{parse_f64}
+
 fn main() {
     let r1: Result<f64, String> = parse_f64(String_from("3.14"))
     match r1 {
@@ -18,7 +19,7 @@ fn main() {
     }
     let r4: Result<f64, String> = parse_f64(String_from("0.001"))
     match r4 {
-        Result::Ok(v) => test::assert_eq_string((v).to_string(), "0.001"),
+        Result::Ok(v) => test::assert_eq_string(v.to_string(), "0.001"),
         Result::Err(e) => Std::panic("expected Ok, got Err"),
     }
     let r5: Result<f64, String> = parse_f64(String_from("xyz"))

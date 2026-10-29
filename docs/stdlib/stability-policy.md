@@ -121,6 +121,15 @@ is the ADR-014 addendum that defines the exception:
   (3) [changelog.md](changelog.md) records the date, ADR-087 reference,
   symbols, reason, and replacement.
 
+A narrow ADR may replace condition (1) with a stronger **E0100** migration
+diagnostic when the replacement is already callable and the exception names
+its exact symbols. [ADR-090](../adr/ADR-090-std-namespace-and-panic-association.md) §3
+did this for `panic` (one symbol), and
+[ADR-091](../adr/ADR-091-prelude-free-function-exception.md) §2 does it for the
+27 method-replaceable prelude frees retired in `wave/prelude-remain` (plus the deferred `push_char` / `parse_*`).
+Conditions (2) and (3) remain mandatory, and the exception never applies
+outside its named symbol list.
+
 Under the exception `remove_in` is an **upper bound**. Early removals must
 cite the exception explicitly in the migration guide. The first ADR-087 wave
 (2026-10-26) converted 60 `stable` entries to `deprecated` with W0009 coverage
@@ -154,7 +163,10 @@ compiler bridges, which never appear in the public surface.
 - Retirement follows the deprecation process above; execution waves are
   tracked in issue #917 under policy issue #709. During 0.x, `stable` removals
   additionally require the three [ADR-087](../adr/ADR-087-0x-deprecation-exception.md)
-  conditions (W0009, migration guide, changelog).
+  conditions (W0009, migration guide, changelog), unless a named ADR exception
+  replaces W0009 with E0100 as in
+  [ADR-090](../adr/ADR-090-std-namespace-and-panic-association.md) §3 and
+  [ADR-091](../adr/ADR-091-prelude-free-function-exception.md) §2.
 
 ---
 

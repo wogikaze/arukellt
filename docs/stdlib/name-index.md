@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 118
+- **Canonical names:** 91
 - **Historical/deprecated names:** 75
-- **Total entries:** 193
+- **Total entries:** 166
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -23,11 +23,9 @@ Current public API names, sorted alphabetically.
 |------|--------|-----------|----------|
 | `abort` | `std::host::process` | `stable` | Host Process |
 | `abort` | `std::process` | `stable` | Process |
-| `abs` | `prelude` | `stable` | Math |
 | `approx_eq` | `std::signal` | `stable` | Signal |
 | `arg_at` | `std::cli` | `stable` | Cli |
 | `arg_count` | `std::cli` | `stable` | Cli |
-| `args` | `prelude` | `stable` | Host Env |
 | `assert` | `prelude` | `stable` | Assert |
 | `assert_contains` | `std::test` | `stable` | Test |
 | `assert_eq_bool` | `std::test` | `stable` | Test |
@@ -45,9 +43,7 @@ Current public API names, sorted alphabetically.
 | `bench` | `std::test` | `experimental` | Test |
 | `Box_new` | `prelude` | `stable` | Box |
 | `byte_at` | `prelude` | `stable` | String |
-| `byte_len` | `prelude` | `stable` | String |
 | `char_to_string` | `prelude` | `stable` | Conversion |
-| `clamp_i32` | `prelude` | `stable` | Math |
 | `clone` | `prelude` | `stable` | String |
 | `clone_f64` | `std::signal` | `stable` | Signal |
 | `contains` | `prelude` | `stable` | String |
@@ -55,7 +51,6 @@ Current public API names, sorted alphabetically.
 | `ends_with` | `prelude` | `stable` | String |
 | `eprintln` | `std::host::stdio` | `stable` | Host Stdio |
 | `eq` | `prelude` | `stable` | String |
-| `exit` | `prelude` | `stable` | Host Process |
 | `exit` | `std::host::process` | `stable` | Host Process |
 | `exit` | `std::process` | `stable` | Process |
 | `expect_err_string` | `std::test` | `stable` | Test |
@@ -69,27 +64,17 @@ Current public API names, sorted alphabetically.
 | `fft` | `std::signal` | `stable` | Signal |
 | `filter_i32` | `prelude` | `provisional` | Collections |
 | `flag` | `std::cli` | `stable` | Cli |
-| `format_bool` | `prelude` | `stable` | String |
-| `format_i32` | `prelude` | `stable` | String |
-| `gcd` | `prelude` | `stable` | Math |
 | `has_flag` | `std::cli` | `stable` | Cli |
 | `id` | `std::host::process` | `stable` | Host Process |
 | `ifft` | `std::signal` | `stable` | Signal |
 | `index_of` | `prelude` | `stable` | String |
-| `is_empty` | `prelude` | `stable` | String |
 | `is_err` | `prelude` | `stable` | Option Result |
 | `is_none` | `prelude` | `stable` | Option Result |
 | `is_ok` | `prelude` | `stable` | Option Result |
 | `is_some` | `prelude` | `stable` | Option Result |
-| `join` | `prelude` | `stable` | String |
-| `lines` | `prelude` | `stable` | String |
 | `magnitude` | `std::signal` | `stable` | Signal |
-| `max` | `prelude` | `stable` | Math |
-| `min` | `prelude` | `stable` | Math |
 | `next_f64` | `std::host::random` | `stable` | Host Random |
 | `option` | `std::cli` | `stable` | Cli |
-| `pad_left` | `prelude` | `stable` | String |
-| `pad_right` | `prelude` | `stable` | String |
 | `parse_args` | `std::cli` | `stable` | Cli |
 | `parse_f64` | `prelude` | `stable` | Conversion |
 | `parse_i32` | `prelude` | `stable` | Conversion |
@@ -111,13 +96,9 @@ Current public API names, sorted alphabetically.
 | `random_i32_range` | `std::host::random` | `stable` | Host Random |
 | `read_stdin` | `std::host::stdio` | `stable` | Host Stdio |
 | `read_stdin_line` | `std::io` | `stable` | Io |
-| `repeat` | `prelude` | `stable` | String |
-| `replace` | `prelude` | `stable` | String |
 | `sin_approx` | `std::signal` | `stable` | Signal |
 | `slice` | `prelude` | `stable` | String |
 | `sort_by` | `std::seq` | `provisional` | Seq |
-| `split` | `prelude` | `stable` | String |
-| `sqrt` | `prelude` | `stable` | Math |
 | `starts_with` | `prelude` | `stable` | String |
 | `stderr` | `std::io` | `stable` | Io |
 | `stdin` | `std::io` | `stable` | Io |
@@ -126,18 +107,10 @@ Current public API names, sorted alphabetically.
 | `String_new` | `prelude` | `stable` | String |
 | `substring` | `prelude` | `stable` | String |
 | `tau` | `std::signal` | `stable` | Signal |
-| `to_lower` | `prelude` | `stable` | String |
-| `to_lowercase` | `prelude` | `stable` | String |
 | `to_string` | `prelude` | `stable` | Conversion |
-| `to_upper` | `prelude` | `stable` | String |
-| `to_uppercase` | `prelude` | `stable` | String |
-| `trim` | `prelude` | `stable` | String |
-| `trim_end` | `prelude` | `stable` | String |
-| `trim_start` | `prelude` | `stable` | String |
 | `unbox` | `prelude` | `stable` | Box |
 | `unwrap` | `prelude` | `stable` | Option Result |
 | `unwrap_or` | `prelude` | `stable` | Option Result |
-| `values` | `prelude` | `stable` | Collections |
 | `zeros` | `std::signal` | `stable` | Signal |
 
 ---
@@ -234,11 +207,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 |------|--------|--------|---------------------|
 | `abort` | ✅ `stable` | `std::host::process` | Host Process |
 | `abort` | ✅ `stable` | `std::process` | Process |
-| `abs` | ✅ `stable` | `prelude` | Math |
 | `approx_eq` | ✅ `stable` | `std::signal` | Signal |
 | `arg_at` | ✅ `stable` | `std::cli` | Cli |
 | `arg_count` | ✅ `stable` | `std::cli` | Cli |
-| `args` | ✅ `stable` | `prelude` | Host Env |
 | ~~`as_slice`~~ | ⚠️ deprecated | `prelude` | → `Vec::as_slice` · [migration guide](migration-guidance.md) |
 | `assert` | ✅ `stable` | `prelude` | Assert |
 | `assert_contains` | ✅ `stable` | `std::test` | Test |
@@ -266,9 +237,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`bitset_unmark`~~ | ⚠️ deprecated | `std::collections::ordered` | → `BitSet::unmark` · [migration guide](migration-guidance.md) |
 | `Box_new` | ✅ `stable` | `prelude` | Box |
 | `byte_at` | ✅ `stable` | `prelude` | String |
-| `byte_len` | ✅ `stable` | `prelude` | String |
 | `char_to_string` | ✅ `stable` | `prelude` | Conversion |
-| `clamp_i32` | ✅ `stable` | `prelude` | Math |
 | `clone` | ✅ `stable` | `prelude` | String |
 | `clone_f64` | ✅ `stable` | `std::signal` | Signal |
 | `contains` | ✅ `stable` | `prelude` | String |
@@ -288,7 +257,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `ends_with` | ✅ `stable` | `prelude` | String |
 | `eprintln` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `eq` | ✅ `stable` | `prelude` | String |
-| `exit` | ✅ `stable` | `prelude` | Host Process |
 | `exit` | ✅ `stable` | `std::host::process` | Host Process |
 | `exit` | ✅ `stable` | `std::process` | Process |
 | `expect_err_string` | ✅ `stable` | `std::test` | Test |
@@ -308,9 +276,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`filter_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::filter` · [migration guide](migration-guidance.md) |
 | `flag` | ✅ `stable` | `std::cli` | Cli |
 | ~~`fold_i32_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::fold` · [migration guide](migration-guidance.md) |
-| `format_bool` | ✅ `stable` | `prelude` | String |
-| `format_i32` | ✅ `stable` | `prelude` | String |
-| `gcd` | ✅ `stable` | `prelude` | Math |
 | ~~`get`~~ | ⚠️ deprecated | `prelude` | → `Vec::get` · [migration guide](migration-guidance.md) |
 | ~~`get_unchecked`~~ | ⚠️ deprecated | `prelude` | → `Vec::get_unchecked` · [migration guide](migration-guidance.md) |
 | `has_flag` | ✅ `stable` | `std::cli` | Cli |
@@ -326,14 +291,11 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `id` | ✅ `stable` | `std::host::process` | Host Process |
 | `ifft` | ✅ `stable` | `std::signal` | Signal |
 | `index_of` | ✅ `stable` | `prelude` | String |
-| `is_empty` | ✅ `stable` | `prelude` | String |
 | `is_err` | ✅ `stable` | `prelude` | Option Result |
 | `is_none` | ✅ `stable` | `prelude` | Option Result |
 | `is_ok` | ✅ `stable` | `prelude` | Option Result |
 | `is_some` | ✅ `stable` | `prelude` | Option Result |
-| `join` | ✅ `stable` | `prelude` | String |
 | ~~`len`~~ | ⚠️ deprecated | `prelude` | → `Vec::len` · [migration guide](migration-guidance.md) |
-| `lines` | ✅ `stable` | `prelude` | String |
 | ~~`linked_list_back`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::back` · [migration guide](migration-guidance.md) |
 | ~~`linked_list_clear`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::clear` · [migration guide](migration-guidance.md) |
 | ~~`linked_list_front`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::front` · [migration guide](migration-guidance.md) |
@@ -347,14 +309,10 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`linked_list_to_vec`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::iter` · [migration guide](migration-guidance.md) |
 | `magnitude` | ✅ `stable` | `std::signal` | Signal |
 | ~~`map_i32_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::map` · [migration guide](migration-guidance.md) |
-| `max` | ✅ `stable` | `prelude` | Math |
 | ~~`max_i32`~~ | ⚠️ deprecated | `std::seq` | → `Vec::max` · [migration guide](migration-guidance.md) |
-| `min` | ✅ `stable` | `prelude` | Math |
 | ~~`min_i32`~~ | ⚠️ deprecated | `std::seq` | → `Vec::min` · [migration guide](migration-guidance.md) |
 | `next_f64` | ✅ `stable` | `std::host::random` | Host Random |
 | `option` | ✅ `stable` | `std::cli` | Cli |
-| `pad_left` | ✅ `stable` | `prelude` | String |
-| `pad_right` | ✅ `stable` | `prelude` | String |
 | `parse_args` | ✅ `stable` | `std::cli` | Cli |
 | `parse_f64` | ✅ `stable` | `prelude` | Conversion |
 | `parse_i32` | ✅ `stable` | `prelude` | Conversion |
@@ -378,8 +336,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `random_i32_range` | ✅ `stable` | `std::host::random` | Host Random |
 | `read_stdin` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `read_stdin_line` | ✅ `stable` | `std::io` | Io |
-| `repeat` | ✅ `stable` | `prelude` | String |
-| `replace` | ✅ `stable` | `prelude` | String |
 | ~~`seq_contains`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::contains` · [migration guide](migration-guidance.md) |
 | ~~`seq_reverse`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::rev` · [migration guide](migration-guidance.md) |
 | ~~`set`~~ | ⚠️ deprecated | `prelude` | → `Vec::set` · [migration guide](migration-guidance.md) |
@@ -395,8 +351,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`sorted_map_insert`~~ | ⚠️ deprecated | `std::collections::ordered` | → `SortedMap::insert` · [migration guide](migration-guidance.md) |
 | ~~`sorted_map_len`~~ | ⚠️ deprecated | `std::collections::ordered` | → `SortedMap::len` · [migration guide](migration-guidance.md) |
 | ~~`sorted_map_new`~~ | ⚠️ deprecated | `std::collections::ordered` | → `SortedMap::new` · [migration guide](migration-guidance.md) |
-| `split` | ✅ `stable` | `prelude` | String |
-| `sqrt` | ✅ `stable` | `prelude` | Math |
 | `starts_with` | ✅ `stable` | `prelude` | String |
 | `stderr` | ✅ `stable` | `std::io` | Io |
 | `stdin` | ✅ `stable` | `std::io` | Io |
@@ -407,14 +361,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`sum_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::sum` · [migration guide](migration-guidance.md) |
 | ~~`take_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::take` · [migration guide](migration-guidance.md) |
 | `tau` | ✅ `stable` | `std::signal` | Signal |
-| `to_lower` | ✅ `stable` | `prelude` | String |
-| `to_lowercase` | ✅ `stable` | `prelude` | String |
 | `to_string` | ✅ `stable` | `prelude` | Conversion |
-| `to_upper` | ✅ `stable` | `prelude` | String |
-| `to_uppercase` | ✅ `stable` | `prelude` | String |
-| `trim` | ✅ `stable` | `prelude` | String |
-| `trim_end` | ✅ `stable` | `prelude` | String |
-| `trim_start` | ✅ `stable` | `prelude` | String |
 | ~~`u16_to_i32`~~ | ⚠️ deprecated | `prelude` | → `u16::to_i32` · [migration guide](migration-guidance.md) |
 | ~~`u32_to_u64`~~ | ⚠️ deprecated | `prelude` | → `u32::to_u64` · [migration guide](migration-guidance.md) |
 | ~~`u64_to_u32`~~ | ⚠️ deprecated | `prelude` | → `u64::to_u32_wrapping` · [migration guide](migration-guidance.md) |
@@ -423,5 +370,4 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`unique`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::unique` · [migration guide](migration-guidance.md) |
 | `unwrap` | ✅ `stable` | `prelude` | Option Result |
 | `unwrap_or` | ✅ `stable` | `prelude` | Option Result |
-| `values` | ✅ `stable` | `prelude` | Collections |
 | `zeros` | ✅ `stable` | `std::signal` | Signal |

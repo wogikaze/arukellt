@@ -15,13 +15,13 @@ use typechecker::unify
 use diagnostics::codes
 use diagnostics::record
 use diagnostics::mod as diag_mod
-
 // Register struct declarations into the typecheck env so field-access
 // expressions can recover a concrete field type. MIR owns the layout copy;
 // this table only needs names, declaration type parameters, and annotated
 // field types.
-use std::prelude::{args, clone, eq, index_of}
+use std::prelude::{clone, eq, index_of}
 use std::text
+
 fn register_struct_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
     let count = len(decls)
     let mut i = 0

@@ -13,10 +13,7 @@
 //
 // 失敗時も trap せず、WAT コメント `;; GAP:` を差し込んで未対応箇所を残す。
 
-use std::prelude::{
-    to_string, push, join, len, get_unchecked, slice, String_from,
-    i32_to_i64, i64_to_i32,
-}
+use std::prelude::{to_string, push, len, get_unchecked, slice, String_from, i32_to_i64, i64_to_i32}
 
 // ---------------------------------------------------------------------------
 // 定数
@@ -277,7 +274,7 @@ fn quoted_bytes(mut r: Rd, count: i32) -> String {
         push(parts, escape_byte(read_byte(r)))
         i = i + 1
     }
-    return "\"".concat(join(parts, String_from("")).concat("\""))
+    return "\"".concat(parts.join(String_from("")).concat("\""))
 }
 
 fn read_name(mut r: Rd) -> String {
@@ -369,7 +366,7 @@ fn u64_hex(v: i64) -> String {
         push(reversed, get_unchecked(digits, i))
         i = i - 1
     }
-    return join(reversed, String_from(""))
+    return reversed.join(String_from(""))
 }
 
 fn u64_hex_pad(v: i64, digits: i32) -> String {
@@ -379,7 +376,7 @@ fn u64_hex_pad(v: i64, digits: i32) -> String {
         push(out, hex_digit(i64_to_i32((v >> i32_to_i64(i * 4)) & 15i64)))
         i = i - 1
     }
-    return join(out, String_from(""))
+    return out.join(String_from(""))
 }
 
 // ---------------------------------------------------------------------------
@@ -708,7 +705,7 @@ fn const_expr_text(mut r: Rd) -> String {
     if len(parts) == 1 {
         return "(".concat(get_unchecked(parts, 0)).concat(")")
     }
-    return join(parts, String_from(" "))
+    return parts.join(String_from(" "))
 }
 
 // ---------------------------------------------------------------------------
@@ -2001,7 +1998,7 @@ fn locals_text(mut r: Rd) -> String {
         }
         i = i + 1
     }
-    return " (local ".concat(join(parts, String_from(" "))).concat(")")
+    return " (local ".concat(parts.join(String_from(" "))).concat(")")
 }
 
 // ---------------------------------------------------------------------------
@@ -2080,7 +2077,7 @@ pub fn wasm_to_wat(bytes: Vec<i32>) -> String {
     if !header_is_valid(bytes, n) {
         put(o, 0, ";; GAP: not a wasm core module (bad magic or version)")
         put(o, 0, "(module)")
-        return join(o.lines, String_from("\n")).concat("\n")
+        return (o.lines).join(String_from("\n")).concat("\n")
     }
     let mut r: Rd = Rd { b: bytes, n: n, p: 8 }
     let mut func_types: Vec<i32> = Vec::new<i32>()
@@ -2128,5 +2125,5 @@ pub fn wasm_to_wat(bytes: Vec<i32>) -> String {
         }
     }
     put(o, 0, ")")
-    return join(o.lines, String_from("\n")).concat("\n")
+    return (o.lines).join(String_from("\n")).concat("\n")
 }

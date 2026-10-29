@@ -28,7 +28,7 @@ use std::text
 // ─── Legacy primitive helpers ────────────────────────────────────────────────
 /// Stringify an i32 as a JSON number.
 fn json_value_stringify_i32(val: i32) -> String {
-    (val).to_string()
+    val.to_string()
 }
 
 /// Stringify a bool as a JSON boolean literal.
@@ -1036,7 +1036,7 @@ fn json_value_string(s: String) -> JsonValue {
 
 /// Create a JSON integer value (emitted as-is, no `.0` suffix).
 fn json_value_int(n: i32) -> JsonValue {
-    JsonValue::Raw((n).to_string())
+    JsonValue::Raw(n.to_string())
 }
 
 /// Create a JSON boolean value.

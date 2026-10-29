@@ -10,7 +10,7 @@
 
 use std::wit::types
 use std::wit::types::{WitType}
-use std::prelude::{byte_at, clone, eq, index_of, slice, substring, values}
+use std::prelude::{byte_at, clone, eq, index_of, slice, substring}
 use std::text
 
 // ─── AST node type ───────────────────────────────────────────────

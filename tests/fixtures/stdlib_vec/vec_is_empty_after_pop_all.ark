@@ -1,5 +1,5 @@
 use std::test
-use std::prelude::{is_empty}
+
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 1)
@@ -20,5 +20,5 @@ fn main() {
         },
         None => Std::panic("expected Some, got None"),
     }
-    test::assert_true(is_empty(v))
+    test::assert_true(v.is_empty())
 }

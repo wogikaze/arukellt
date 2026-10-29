@@ -13,11 +13,11 @@ use mir::lower::ctx_struct_layout
 use mir::lower::ctx_gc_struct
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_types
-
 // Comma-joined declared type parameter names for a generic struct base,
 // or "" when base is not a registered generic struct.
-use std::prelude::{args, byte_at, clone, eq, starts_with, substring}
+use std::prelude::{byte_at, clone, eq, starts_with, substring}
 use std::text
+
 fn ctx_generic_struct_params(ctx: LowerCtx, base: String) -> String {
     let count = len(ctx.generic_struct_names)
     let mut i = 0

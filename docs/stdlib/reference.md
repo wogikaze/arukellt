@@ -8,7 +8,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 112 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 85 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 2 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 4 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 75 | Superseded — see migration guidance. |
@@ -288,7 +288,6 @@
 | ~~`sorted_map_insert`~~ ⚠️ Deprecated → `SortedMap::insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
 | ~~`sorted_map_len`~~ ⚠️ Deprecated → `SortedMap::len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
 | ~~`sorted_map_new`~~ ⚠️ Deprecated → `SortedMap::new` | `() -> Vec<i32>` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
-| `values` | `(Vec<i32>) -> Vec<i32>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_values` | - |
 
 ### `len` — `prelude`
 
@@ -326,26 +325,12 @@ push(v, 2)
 
 **Errors:** Returns Err if the string is not a valid decimal integer or is out of i32 range.
 
-_Example — Parse a numeric string:_
-
-```ark
-match parse_i32("42") { Ok(n) => println(i32_to_string(n)), Err(e) => eprintln(e) }
-```
-
-Expected output: `42`
-
 ## Convert
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `f32_to_string` | `(f32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_f32_to_string` | - |
 | ~~`i32_to_u32`~~ ⚠️ Deprecated → `i32::to_u32_bits` | `(i32) -> u32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u32` | - |
-
-## Host Env
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `args` | `() -> Vec<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_args` | - |
 
 ## Host Fs
 
@@ -360,7 +345,6 @@ Expected output: `42`
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `abort` | `() -> ()` | `std::host::process` | `stable` | `functional` | `builtin` | no | `__runtime_abi_process_abort` | Abort the process immediately with an abnormal-termination signal (non-zero exit). |
-| `exit` | `(i32) -> ()` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `functional` | `builtin` | no | `__runtime_abi_process_exit` | Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure. |
 | `id` | `() -> Result<i32, String>` | `std::host::process` | `stable` | `functional` | `builtin` | no | - | Return a stable Err on WASI 0.2 because the portable process model does not expose a POSIX-style pro… |
 
@@ -436,17 +420,6 @@ let input = stdio::read_stdin()
 | `stderr` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `stdin` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `stdout` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-
-## Math
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `abs` | `(i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_abs` | - |
-| `clamp_i32` | `(i32, i32, i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | - | - |
-| `gcd` | `(i32, i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_gcd` | - |
-| `max` | `(i32, i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_max` | - |
-| `min` | `(i32, i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_min` | - |
-| `sqrt` | `(f64) -> f64` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_sqrt` | - |
 
 ## Numeric
 
@@ -533,33 +506,15 @@ let input = stdio::read_stdin()
 | `String_from` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_from` | - |
 | `String_new` | `() -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_new` | - |
 | `byte_at` | `(String, i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_byte_at` | - |
-| `byte_len` | `(String) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_byte_len` | - |
 | `clone` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_clone` | - |
 | `contains` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_contains` | - |
 | `ends_with` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_ends_with` | - |
 | `eq` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_eq` | - |
-| `format_bool` | `(bool) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | - | - |
-| `format_i32` | `(i32) -> String` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `index_of` | `(String, String) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_index_of` | - |
-| `is_empty` | `(String) -> bool` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
-| `join` | `(Vec<String>, String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_join` | - |
-| `lines` | `(String) -> Vec<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_lines` | - |
-| `pad_left` | `(String, i32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_pad_left` | - |
-| `pad_right` | `(String, i32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_pad_right` | - |
 | `push_char` | `(String, char) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_push_char` | Append a Unicode scalar encoded as canonical UTF-8. |
-| `repeat` | `(String, i32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_repeat` | - |
-| `replace` | `(String, String, String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_replace` | - |
 | `slice` | `(String, i32, i32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_slice` | - |
-| `split` | `(String, String) -> Vec<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_split` | - |
 | `starts_with` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_starts_with` | - |
 | `substring` | `(String, i32, i32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_substring` | - |
-| `to_lower` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_to_lower` | - |
-| `to_lowercase` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_to_lower` | - |
-| `to_upper` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_to_upper` | - |
-| `to_uppercase` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_to_upper` | - |
-| `trim` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_trim` | - |
-| `trim_end` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_trim_end` | - |
-| `trim_start` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_trim_start` | - |
 
 ## Test
 

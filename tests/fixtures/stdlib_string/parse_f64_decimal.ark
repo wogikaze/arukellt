@@ -1,10 +1,11 @@
 use std::test
 use std::prelude::{parse_f64}
+
 fn main() {
     let r: Result<f64, String> = parse_f64(String_from("3.14159"))
     match r {
         // Compare via to_string: source f64 lit 3.14159 is not bit-identical to parse.
-        Result::Ok(v) => test::assert_eq_string((v).to_string(), "3.14159"),
+        Result::Ok(v) => test::assert_eq_string(v.to_string(), "3.14159"),
         Result::Err(e) => Std::panic("expected Ok"),
     }
 }

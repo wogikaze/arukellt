@@ -10,7 +10,7 @@ use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i32_convert
 
 // GC-target case conversion: strings are (ref null array_i8) refs.
-use std::prelude::{to_upper}
+
 fn emit_case_gc(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, range_start: i32, range_end: i32, to_upper: bool) {
     let g0 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let g1 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)

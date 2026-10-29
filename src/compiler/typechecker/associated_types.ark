@@ -1,5 +1,5 @@
 use std::text
-use std::prelude::{args, byte_at, clone, eq, index_of, substring}
+use std::prelude::{byte_at, clone, eq, index_of, substring}
 use typechecker::ast_access
 use typechecker::contract_associated_type
 use typechecker::contract_fn_sig
@@ -16,6 +16,7 @@ use typechecker::trait_method_record
 use typechecker::types
 use typechecker::names
 use typechecker::unify
+
 fn resolve_impl_signature(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnSig {
     if impl_generics::head_count(impl_node) != 2 {
         return sig

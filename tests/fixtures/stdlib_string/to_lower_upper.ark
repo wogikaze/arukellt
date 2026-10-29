@@ -1,7 +1,7 @@
 use std::test
-use std::prelude::{to_lower, to_upper}
+
 fn main() {
     let s = String_from("Hello World")
-    test::assert_eq_string(to_lower(s), "hello world")
-    test::assert_eq_string(to_upper(s), "HELLO WORLD")
+    test::assert_eq_string(s.to_lower(), "hello world")
+    test::assert_eq_string(s.to_upper(), "HELLO WORLD")
 }

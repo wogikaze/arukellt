@@ -1,6 +1,6 @@
 // WIT function signature collection for typecheck (#653, #664, #671, #672).
 
-use std::prelude::{args, byte_at, clone, eq, index_of, substring}
+use std::prelude::{byte_at, clone, eq, index_of, substring}
 use std::text
 use collections::vec_extend
 use typechecker::ast_decl_predicates
@@ -13,6 +13,7 @@ use typechecker::type_names
 use component::wit_parse_text
 use resolver::wit_register
 use resolver::wit_surface
+
 fn collect_wit_fn_sigs(wit_paths: Vec<String>, decls: Vec<AstNode>) -> Vec<FnSig> {
     let mut sigs = Vec::new<FnSig>()
     let count = len(decls)

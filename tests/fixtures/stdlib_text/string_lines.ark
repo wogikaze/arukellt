@@ -1,9 +1,9 @@
 use std::host::stdio
 use std::text
-use std::prelude::{split}
+
 fn main() {
     let input: String = String_from("line1\nline2\nline3")
-    let result: Vec<String> = split(input, String_from("\n"))
+    let result: Vec<String> = input.split(String_from("\n"))
     stdio::println((len(result)).to_string())
     let mut i: i32 = 0
     while i < len(result) {

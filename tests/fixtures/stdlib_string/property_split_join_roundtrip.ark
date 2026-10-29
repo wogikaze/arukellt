@@ -1,8 +1,9 @@
 use std::test
-use std::prelude::{eq, join, split}
+use std::prelude::{eq}
+
 fn main() {
     let s = String_from("a-b-c-d")
-    let parts = split(s, String_from("-"))
-    let rejoined = join(parts, String_from("-"))
+    let parts = s.split(String_from("-"))
+    let rejoined = parts.join(String_from("-"))
     test::assert_true(eq(rejoined, s))
 }

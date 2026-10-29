@@ -47,9 +47,22 @@ not have a second manifest or resolver entry.
 
 The intrinsic compatibility group (`len`, `push`, `pop`, `get`, `set`, and
 `get_unchecked`) remains explicit in the manifest policy for existing compiler
-and stdlib code. Other `prelude = true` entries are no longer auto-imported:
+and stdlib code. Other `prelude = true` entries are still explicit-import only:
 bare calls fail with E0100 and a migration hint, and the name resolves only
 through `use std::prelude::{name}` or its canonical replacement module.
+
+The 27 method-replaceable prelude frees (`trim`, `split`, `join`, `abs`,
+`min`, `max`, `values`, …) were retired on 2026-10-29 under
+[ADR-091](../adr/ADR-091-prelude-free-function-exception.md). Their bare calls
+now fail with E0100 and the receiver-method hint; see the
+[before/after table](migration-guidance.md#prelude-free-function-retirement-adr-091).
+`assert`, `String_from`, `String_new`, and `char_to_string` remain as the exact
+ADR-091 stable-free exception. `push_char` stays free because the mutating
+`s.push_char(c)` receiver method does not propagate its grown array to the
+caller on the current lowering. `parse_i32` / `parse_i64` / `parse_f64` also
+stay free: moving compiler/std call sites to `TryFrom` made the rebuilt s2 trap
+while compiling any input. Both are `associated-or-method` residuals, not part
+of the exception.
 
 The bare `concat`, `char_at`, `print`, and `println` bindings were removed
 from the published surface in the #917 0.x eradication wave

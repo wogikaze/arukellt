@@ -1,6 +1,6 @@
 use std::test
-use std::prelude::{replace}
+
 fn main() {
-    test::assert_eq_string(replace(String_from("a-b-c"), String_from("-"), String_from("")), "abc")
-    test::assert_eq_string(replace(String_from("xxx"), String_from("x"), String_from("")), "")
+    test::assert_eq_string((String_from("a-b-c")).replace(String_from("-"), String_from("")), "abc")
+    test::assert_eq_string((String_from("xxx")).replace(String_from("x"), String_from("")), "")
 }

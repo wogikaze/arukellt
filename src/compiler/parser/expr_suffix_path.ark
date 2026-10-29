@@ -1,4 +1,4 @@
-use std::prelude::{args, clone, eq}
+use std::prelude::{clone, eq}
 use std::text
 use lexer::tokens
 use parser::core_ast_text_fields
@@ -14,6 +14,7 @@ use parser::state_record
 use parser::token_state
 use parser::type_token_predicates
 use parser::types
+
 pub fn parse_path_suffix(mut p: Parser, lhs: AstNode) -> AstNode {
     p.pos = p.pos + 1
     let seg = expect_token(p, tokens::TK_IDENT())

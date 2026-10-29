@@ -20,13 +20,13 @@ use mir::module_strings
 use mir::opcodes
 use mir::phi_factory
 use mir::phi_record
-
 // A body store keeps the durable function representation compact while the
 // lowerer and emitter continue to use the existing MirFunction API locally.
 // The byte stream contains scalar instruction fields and CFG metadata; names
 // are module string IDs, and f64 literals live in the parallel float pool.
 
-use std::prelude::{clone, values}
+use std::prelude::{clone}
+
 fn mir_body_schema_magic() -> i32 {
     851
 }

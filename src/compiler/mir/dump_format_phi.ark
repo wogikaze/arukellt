@@ -1,9 +1,10 @@
 use std::text
-use std::prelude::{args, to_string}
+use std::prelude::{to_string}
 use mir::dump_format_local
 use mir::dump_format_types
 use mir::dump_op_names
 use mir::phi_access
+
 fn mir_format_phi_args(f: MirFunction, args: Vec<MirPhiArg>) -> String {
     let count = len(args)
     let mut out = "["

@@ -1530,3 +1530,59 @@ classified there, in dependency-safe waves.
   shape. `std::seq` must not import `std::collections::vec` until the iterator
   mono-instance ordering is fixed. The remaining 129 `associated-or-method`
   rows are unchanged.
+
+### Landed slice (wave/prelude-remain, 2026-10-29)
+
+- **Group**: prelude — 27 of the 54 `prelude frees (default)` rows retired:
+  `abs` / `args` / `byte_len` / `clamp_i32` / `exit` / `format_bool` /
+  `format_i32` / `gcd` / `is_empty` / `join` / `lines` / `max` / `min` /
+  `pad_left` / `pad_right` / `repeat` / `replace` / `split` / `sqrt` /
+  `to_lower` / `to_lowercase` / `to_upper` / `to_uppercase` / `trim` /
+  `trim_end` / `trim_start` / `values`.
+- **Lifecycle**: [ADR-091](../adr/ADR-091-prelude-free-function-exception.md)
+  records the narrow ADR-087 D2 exception (E0100 instead of W0009) because all
+  27 method/associated replacements are callable and verified; `values` is an
+  identity helper with no replacement. The 13 corresponding
+  `std/collections/string.ark` `pub fn` declarations were removed from the
+  public module surface (12 private, the duplicate `push_char` deleted), so the
+  module no longer exposes a free spelling for those names.
+- **Replacement surface**: all replacements already existed: `s.len_bytes()` /
+  `s.is_empty()` / `s.trim()` / `parts.join(sep)`, `i32` / `f64`
+  `abs` / `min` / `max` / `clamp` / `gcd` / `sqrt`, `Env::args()`,
+  `Process::exit()`, and primitive `to_string()`.
+- **Exception (4, exact)**: [ADR-091](../adr/ADR-091-prelude-free-function-exception.md) §3
+  retains `assert`, `String_from`, `String_new`, and `char_to_string`.
+  `String::new` was measured to produce invalid core Wasm on the pin;
+  `String::from` is not provided; `char_to_string` preserves the i32-codepoint
+  boundary. No other prelude free is covered.
+- **Deferred (23)**: `push_char`; `parse_i32` / `parse_i64` / `parse_f64`;
+  `Box_new` / `unbox`; `unwrap` / `unwrap_or` / `is_some` / `is_none` /
+  `is_ok` / `is_err`; `f32_to_string`; and `clone` / `eq` / `byte_at` /
+  `substring` / `to_string` / `starts_with` / `ends_with` / `contains` /
+  `index_of` / `slice`. `s.push_char(c)` compiles and validates but the grown
+  String does not reach the caller binding (String is a GC ref; the free
+  lowering rewrites the caller local). Moving compiler/std `parse_*` call sites
+  to `i32::try_from` / `i64::try_from` / `f64::try_from` made the rebuilt s2
+  trap with `unreachable` while compiling any input (`compile_source` /
+  `backend_resolve`). Generic `impl<T> Option<T>` methods compile and validate
+  but trap at runtime; concrete per-type impls are required.
+- **Migrated call sites**: 178 files for the 27 names, plus the 7
+  `module_import` fixtures that used `string::split` as a module-resolution
+  probe (retargeted to the still-public `string::eq`). `String`/`Vec` method calls replace all retired bare
+  names; E0100 hints are covered by unit assertions in
+  `resolver::removed_names`.
+- **Scorecard**: eradication scope 195 -> **168**; `associated-or-method`
+  129 -> **102**; manifest public entries 193 -> **166**; `pub fn`
+  declarations 216 -> **176**; `prelude_wrapper` entries 64 -> **40**;
+  monomorphic helpers 50 -> **47**; unregistered 2, `must delete` 66, and
+  `intrinsic-only` 1 unchanged. `prelude frees (default)` 54 -> **27**.
+- **Build**: the first generated s2 was invalid because a migration-script
+  parenthesis rewrite corrupted `src/compiler/parser/expr_suffix_path.ark`
+  (`AstNode_textlhs`); W0004 caught it before commit and the corruption was
+  repaired. A later attempt to move `parse_*` to `TryFrom` made the rebuilt s2
+  trap on every input and was reverted. The final `build-compiler` took 54.7 s.
+- **Verification**: `verify fixtures` **1910/1910** compile+validate PASS
+  (110 runtime smoke, 36/36 `test:` PASS, 2 runtime-unsupported, 0 FAIL);
+  `verify lane` PASS; `docs check` 6/6; ADR-029 fixpoint PASS: s2 == s3 at
+  sha256 `304624037927d797311cd09cc42bb26cb85fc08ee59a0da14586cbe9c0c2315e`
+  (pinned base `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`).
