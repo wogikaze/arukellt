@@ -1,3 +1,4 @@
+use std::test::Test
 use std::collections::vec
 use std::test
 
@@ -9,10 +10,10 @@ test "sorts_string_values_lexicographically" {
     v.push(String_from("kiwi"))
     v.push(String_from("apple"))
     v.sort()
-    test::assert_eq_i32(v.len(), 5)
-    test::assert_true(v.get_unchecked(0).eq(String_from("apple")))
-    test::assert_true(v.get_unchecked(1).eq(String_from("apple")))
-    test::assert_true(v.get_unchecked(2).eq(String_from("fig")))
-    test::assert_true(v.get_unchecked(3).eq(String_from("kiwi")))
-    test::assert_true(v.get_unchecked(4).eq(String_from("pear")))
+    Test::assert_eq_i32(v.len(), 5)
+    Test::assert_true(v.get_unchecked(0).eq(String_from("apple")))
+    Test::assert_true(v.get_unchecked(1).eq(String_from("apple")))
+    Test::assert_true(v.get_unchecked(2).eq(String_from("fig")))
+    Test::assert_true(v.get_unchecked(3).eq(String_from("kiwi")))
+    Test::assert_true(v.get_unchecked(4).eq(String_from("pear")))
 }

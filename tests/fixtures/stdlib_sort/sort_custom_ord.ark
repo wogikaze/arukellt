@@ -1,3 +1,4 @@
+use std::test::Test
 use std::collections::vec
 use std::core::cmp
 use std::test
@@ -24,11 +25,11 @@ test "sorts_reverse_wrapper_descending" {
     v.push(cmp::Reverse { inner: 2 })
     v.push(cmp::Reverse { inner: 4 })
     v.sort()
-    test::assert_eq_i32(v.get_unchecked(0).inner, 5)
-    test::assert_eq_i32(v.get_unchecked(1).inner, 4)
-    test::assert_eq_i32(v.get_unchecked(2).inner, 3)
-    test::assert_eq_i32(v.get_unchecked(3).inner, 2)
-    test::assert_eq_i32(v.get_unchecked(4).inner, 1)
+    Test::assert_eq_i32(v.get_unchecked(0).inner, 5)
+    Test::assert_eq_i32(v.get_unchecked(1).inner, 4)
+    Test::assert_eq_i32(v.get_unchecked(2).inner, 3)
+    Test::assert_eq_i32(v.get_unchecked(3).inner, 2)
+    Test::assert_eq_i32(v.get_unchecked(4).inner, 1)
 }
 
 test "sorts_user_parametric_impl_descending" {
@@ -39,9 +40,9 @@ test "sorts_user_parametric_impl_descending" {
     v.push(Rev { inner: 4 })
     v.push(Rev { inner: 3 })
     v.sort()
-    test::assert_eq_i32(v.get_unchecked(0).inner, 5)
-    test::assert_eq_i32(v.get_unchecked(1).inner, 4)
-    test::assert_eq_i32(v.get_unchecked(2).inner, 3)
-    test::assert_eq_i32(v.get_unchecked(3).inner, 2)
-    test::assert_eq_i32(v.get_unchecked(4).inner, 1)
+    Test::assert_eq_i32(v.get_unchecked(0).inner, 5)
+    Test::assert_eq_i32(v.get_unchecked(1).inner, 4)
+    Test::assert_eq_i32(v.get_unchecked(2).inner, 3)
+    Test::assert_eq_i32(v.get_unchecked(3).inner, 2)
+    Test::assert_eq_i32(v.get_unchecked(4).inner, 1)
 }
