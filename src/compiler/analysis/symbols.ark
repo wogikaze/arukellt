@@ -129,13 +129,13 @@ fn find_decl_by_name(text: String, decls: Vec<AstNode>, name: String) -> SymbolI
 
 fn find_use_site_sig_in_node(node: AstNode, name: String) -> String {
     if node_is_let(node) && eq(node_text(node), clone(name)) {
-        let sig = symbol_signature::use_site_signature(node, clone(name))
+        let sig: String = symbol_signature::use_site_signature(node, clone(name))
         if len(sig) > 0 { return sig }
     }
     let cn = node_child_count(node)
     let mut i = 0
     while i < cn {
-        let sig = find_use_site_sig_in_node(node_child_at(node, i), clone(name))
+        let sig: String = find_use_site_sig_in_node(node_child_at(node, i), clone(name))
         if len(sig) > 0 { return sig }
         i = i + 1
     }
@@ -146,7 +146,7 @@ fn use_site_sig_for_name(decls: Vec<AstNode>, name: String) -> String {
     let n = len(decls)
     let mut i = 0
     while i < n {
-        let sig = find_use_site_sig_in_node(get_unchecked(decls, i), clone(name))
+        let sig: String = find_use_site_sig_in_node(get_unchecked(decls, i), clone(name))
         if len(sig) > 0 { return sig }
         i = i + 1
     }

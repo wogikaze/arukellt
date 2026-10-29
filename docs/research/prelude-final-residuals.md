@@ -86,6 +86,18 @@ At clean HEAD the committed pin
 while a freshly built stage-2 from the same source compiles it. Any bisection of
 equality behaviour must use the lane `s2`, not the pin.
 
+The 2026-10-30 refresh attempt did not close that gap. The overlay packaging
+was **not** sufficient: the closure omitted `std/core/scalar_format.ark` and
+`std/core/raw.ark`, so `convert.ark`'s `__core_parse_f64_impl` call fell back
+to the i32 `parse_f64` intrinsic and the gc self-build emitted invalid core
+Wasm in `f64::try_from__String`. Shipping both modules makes the old pin's gc
+self-build validate, but that pin is not faithful (p1 identity and gc
+self-reproduction fail), and the faithful p1 s2 still cannot self-build gc
+(`try_emit_name_intrinsic_fallback`, func 5637). See
+[pin-refresh-blocker-20261030.md](pin-refresh-blocker-20261030.md) for the
+hashes and reproduction. The eq retirement therefore stays blocked on the
+pin plus the eq-path operand staging described in §2.
+
 ## `clone` — `.clone()` has no polymorphic resolution
 
 `clone(x)` is a typechecker special case keyed on the callee name
