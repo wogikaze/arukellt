@@ -144,13 +144,9 @@ receiver-typing fix, not the mechanical migration.
 ### Resolution 2026-10-30 (`wave/eq-retire`) — the parentheses were the trigger
 
 The receiver-typing loss was not about `String::slice` typing or the overlay
-closure. The migration codemod emitted `(receiver).eq(rhs)`, and a
-parenthesized receiver is a distinct AST node, so
-`lower_method_call_expr`'s composed-receiver check skipped the receiver
-`LOCAL_GET`. The emitter's stack compose rescues that shape when the call is
-a standalone expression, but not for the first expression after an `if`
-statement: the `END` breaks the compose, and the call lowers to
-`drop`/`unreachable` or `i32::eq`. A minimal probe shows it directly:
+closure. The migration codemod emitted `(receiver).eq(rhs)`, and the grouped
+receiver shape lowers to `drop`/`unreachable` or `i32::eq` when it is the
+first expression after an `if` statement. A minimal probe shows it directly:
 
 ```ark
 fn check(path: String) -> bool {
@@ -161,18 +157,29 @@ fn check(path: String) -> bool {
 
 `path.slice(0, 5).eq("std::")` (and `path.clone().eq(...)`,
 `name.clone().eq(...)`) lowers correctly, as does the same parentheses form
-before any `if`. So the unblock is to drop the unnecessary grouping
+before any `if`. So the unblock was to drop the unnecessary grouping
 parentheses in the migration (5,422 receivers; only numeric literals keep
 theirs). With that, the pin builds a non-trapping eq-source s2
 (`12ba70e6…`), and `operators/string_eq` runs 32/32 on `wasm32-gc` and
 `wasm32`.
 
+Correction 2026-10-30 (`wave/paren-receiver`): the grouping parenthesis is
+not a distinct AST node — `parse_tuple_or_group` returns the inner
+expression. The trigger was the parser's `if` handling. `parse_if_expr`
+called `skip_newlines` (which also consumes `;`) after the then-block to look
+for `else` and left the cursor past the separator when no `else` followed.
+`expr_bp_loop`'s line-start guard only recognizes a new statement while the
+newline token is still current, so the next line was read as postfix
+arguments on the `if`: `Call(callee=If, arg0=slice)`, with `.eq` applied to
+that call. The receiver `LOCAL_GET` check was not involved; the callee was a
+non-function. `parse_if_expr` now restores the separator when no `else`
+follows, so the guard applies to `(` and `[` alike. Fixture:
+`functions/paren_receiver_after_if.ark` (run/test/t3, plus a `wasm32` run
+variant).
+
 Residuals: `std::collections::string::eq` stays public for the qualified-call
 fixtures and is classified `must delete` (#917) in
-`docs/data/stdlib-api-eradication.toml`; the underlying composed-receiver
-bug in `lower_method_call_expr` / the emitter is still present for
-parenthesized receivers after `if`, so the migration avoids the shape rather
-than fixing it.
+`docs/data/stdlib-api-eradication.toml`.
 
 ## `clone` — `.clone()` has no polymorphic resolution
 

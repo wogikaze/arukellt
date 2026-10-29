@@ -4,6 +4,7 @@ use parser::core_ast_factory
 use parser::core_ast_children
 use parser::core_api_cursor
 use parser::core_api_expect
+use parser::state_record
 use parser::stmt
 
 fn parse_if_expr(mut p: Parser) -> AstNode {
@@ -15,6 +16,13 @@ fn parse_if_expr(mut p: Parser) -> AstNode {
     skip_newlines(p)
     let then_block = stmt::parse_block(p)
     core_ast_children::AstNode_push_child(node, then_block)
+    // `skip_newlines` also consumes `;`, so remember where the then-block
+    // ended. An `if` without `else` must leave that separator for the
+    // enclosing expression frame: it only treats a line-start `(`/`[` as a
+    // new statement while the newline is still visible (expr_bp_loop).
+    // Consuming it here folds the next line into a call or index on this
+    // `if`, which then lowers as a non-function callee.
+    let separator_mark = state_record::parser_position(p)
     skip_newlines(p)
     if peek_kind(p) == tokens::TK_ELSE() {
         p.pos = p.pos + 1
@@ -26,6 +34,8 @@ fn parse_if_expr(mut p: Parser) -> AstNode {
             let else_block = stmt::parse_block(p)
             core_ast_children::AstNode_push_child(node, else_block)
         }
+    } else {
+        state_record::parser_set_position(p, separator_mark)
     }
     node
 }
