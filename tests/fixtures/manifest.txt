@@ -1982,6 +1982,8 @@ run:stdlib_trait/clone_string.ark
 run:stdlib_trait/clone_unbound_typevar.ark
 run:stdlib_trait/poly_clone.ark
 run:stdlib_trait/poly_clone_wasm32.ark
+run:stdlib_trait/vec_clone_deep.ark
+run:stdlib_trait/vec_clone_deep_wasm32.ark
 run:stdlib_trait/debug_bool.ark
 run:stdlib_trait/debug_char.ark
 run:stdlib_trait/debug_f64.ark

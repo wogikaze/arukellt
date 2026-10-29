@@ -91,16 +91,13 @@ fn clone<T>(value: T) -> T {
     value
 }
 
-// `Vec<T>` needs a receiver method because the bare fallback resolves the
-// `vec:String` receiver spelling through the shared callee cache and picks the
-// unrelated `String::clone`, which passes a Vec struct where a String ref is
-// required. Shallow by design: the vector header is shared, element storage is
-// not deep-copied (deep copy needs `T: Clone` and is deferred).
-impl<T> Vec<T> {
-    fn clone(self: Vec<T>) -> Vec<T> {
-        self
-    }
-}
+// `Vec<T>` has no prelude inherent `clone`: the deep impl is
+// `impl<T: Clone> Clone for Vec<T>` in `std::core::clone`. Without an imported
+// `Clone` impl, MIR lowers `.clone()` on a concrete receiver to an identity
+// local copy, so storage stays shared but the module remains valid (the bare
+// callee used to be mis-resolved to `String::clone`, #928). The flat bootstrap
+// overlay still adds the identity inherent method for the pin; see
+// `_patch_bootstrap_prelude_vector_clone_shallow_text`.
 
 // `slice` / `substring` were retired under ADR-091; use `s.slice(start, end)`.
 // Conversion: to string

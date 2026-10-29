@@ -1,6 +1,7 @@
-// `.clone()` is polymorphic: String dispatches the Clone impl, Vec uses the
-// prelude inherent method, and structs / enums / Option without a Clone impl
-// fall back to the compiler identity shim. Every shape must compile and run.
+// `.clone()` is polymorphic: String uses its inherent clone, and Vec / structs
+// / enums / Option without an imported Clone impl use the compiler identity
+// fallback. Deep Vec cloning with `use std::core::clone` is covered by
+// vec_clone_deep. Every shape must compile and run.
 use std::test::Test
 
 struct Pair {

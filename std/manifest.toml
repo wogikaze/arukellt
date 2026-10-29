@@ -84,7 +84,7 @@ type_id = "string"
 [[types]]
 name = "Vec"
 kind = "struct"
-doc = "Growable contiguous sequence. `.clone()` is a shallow header copy: the clone shares element storage (deep element copy needs `T: Clone`)."
+doc = "Growable contiguous sequence. Import `std::core::clone` for a deep `.clone()` that allocates independent element storage; without the import, `.clone()` copies the header and shares storage."
 prelude = true
 generic_params = ["T"]
 type_id = "vec"

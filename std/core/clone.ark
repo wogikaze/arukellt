@@ -2,7 +2,8 @@
 //!
 //! Provides the `Clone` trait for duplicating values. Scalar types (i32,
 //! i64, f64, bool, char) are trivially clonable (copy semantics). `String`
-//! delegates to the existing `__intrinsic_string_clone` intrinsic.
+//! delegates to the string copy intrinsic, and `Vec<T>` allocates independent
+//! element storage and clones each element.
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
@@ -24,7 +25,8 @@ trait Copy {}
 /// | f64     | impl   | Copy semantics (returns self)      |
 /// | bool    | impl   | Copy semantics (returns self)      |
 /// | char    | impl   | Copy semantics (returns self)      |
-/// | String  | impl   | Via `__intrinsic_string_clone`     |
+/// | String  | impl   | Via the string copy intrinsic      |
+/// | Vec<T>  | impl   | Deep copy when `T: Clone`          |
 trait Clone {
     fn clone(self: Self) -> Self
 }
@@ -78,8 +80,36 @@ impl Clone for String {
         __clone_string_helper(self)
     }
 }
+
+/// `Clone` impl for `Vec<T>` — allocates a fresh element array and clones
+/// each element, so the copy shares no storage with the source.
+///
+/// Import `std::core::clone` to select this impl. Without the import, MIR
+/// lowers `.clone()` on a concrete Vec to an identity local copy, so the
+/// header is copied without a deep element copy. The bootstrap overlay keeps a
+/// shallow inherent method for the pinned compiler, whose cache mis-resolves
+/// the bare callee (#928); that bridge is not part of user-facing semantics.
+impl<T: Clone> Clone for Vec<T> {
+    fn clone(self: Vec<T>) -> Vec<T> {
+        let mut copy: Vec<T> = Vec::new<T>()
+        let mut i: i32 = 0
+        while i < len(self) {
+            copy.push(get_unchecked(self, i).clone())
+            i = i + 1
+        }
+        copy
+    }
+}
 test mod "clone" {
     test "i32" { let x: i32 = 7; assert(x.clone() == 7) }
     test "bool" { assert(true.clone() == true) }
     test "str" { assert(eq("ok".clone(), "ok")) }
+    test "vec" {
+        let mut values: Vec<String> = Vec::new<String>()
+        values.push(String_from("source"))
+        let mut copy = values.clone()
+        copy.set(0, String_from("copy"))
+        assert(eq(get_unchecked(values, 0), "source"))
+        assert(eq(get_unchecked(copy, 0), "copy"))
+    }
 }

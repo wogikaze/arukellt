@@ -203,6 +203,32 @@ def _patch_bootstrap_prelude_structural_box_slice_text(text: str) -> str:
     return text[:begin] + replacement + text[end:]
 
 
+def _patch_bootstrap_prelude_vector_clone_shallow_text(text: str) -> str:
+    """Add the identity Vec clone inherent method to the flat overlay prelude.
+
+    The checked-in prelude has no inherent `Vec::clone`: the deep impl lives in
+    `std::core::clone` and s2 lowers the un-imported `.clone()` fallback to an
+    identity local copy. The pin predates that MIR fallback and mis-resolves the
+    bare callee for a Vec receiver to `String::clone` (#928), which traps in the
+    stage-2 compiler. The overlay therefore keeps the old identity inherent
+    method so the pin can build a working compiler. The checked-in prelude and
+    user-visible semantics are unchanged. Delete when the pin's generic Vec
+    clone lowering can build the compiler without the bridge.
+    """
+    if re.search(r"^impl<T> Vec<T> \{", text, flags=re.MULTILINE):
+        raise BootstrapOverlayError(
+            "bootstrap overlay prelude already declares an inherent Vec<T> impl"
+        )
+    return text + (
+        "\n"
+        "impl<T> Vec<T> {\n"
+        "    fn clone(self: Vec<T>) -> Vec<T> {\n"
+        "        self\n"
+        "    }\n"
+        "}\n"
+    )
+
+
 def _patch_bootstrap_prelude_structural_box_slice(workspace_root: Path) -> None:
     """Apply the source-only Box/Slice compatibility transform to an overlay."""
     prelude_path = workspace_root / "std" / "prelude.ark"
@@ -458,6 +484,7 @@ BOOTSTRAP_STD_SOURCE_FILES = (
     "std/io/mod.ark",
     "std/core/error.ark",
     "std/core/convert.ark",
+    "std/core/clone.ark",
     "std/core/raw.ark",
     "std/core/scalar_format.ark",
 )
@@ -4604,6 +4631,9 @@ def _prepare_flattened_selfhost_source_locked(
             prelude_text,
             flags=re.MULTILINE,
         )
+        prelude_text = _patch_bootstrap_prelude_vector_clone_shallow_text(
+            prelude_text
+        )
         (std_dst / "prelude.ark").write_text(prelude_text, encoding="utf-8")
     # Copy std/toml.ark (top-level scanner file without pub enum) so the
     # compiler's toml helpers are not stubbed.  This file has no `use`
@@ -4701,6 +4731,18 @@ def _prepare_flattened_selfhost_source_locked(
             "std/core/convert.ark"
         )
     shutil.copyfile(convert_src, core_dst / "convert.ark")
+    # The deep `Clone for Vec<T>` impl lives in std/core/clone.ark. The
+    # bootstrap prelude intentionally does not import that module: compiler
+    # AST/MIR record element types have no `Clone` impl, so a prelude-wide
+    # import would turn their `.clone()` receivers into E0200 bound errors.
+    # Ship the module so a selfhost source can opt in explicitly; the
+    # `.clone()` fallback stays in std/prelude.ark for the pin.
+    clone_src = root / "std" / "core" / "clone.ark"
+    if not clone_src.is_file():
+        raise BootstrapOverlayError(
+            "bootstrap overlay missing canonical Clone source: std/core/clone.ark"
+        )
+    shutil.copyfile(clone_src, core_dst / "clone.ark")
     # `convert.ark` calls `__core_parse_f64_impl` from `scalar_format`; when the
     # module is absent the call falls back to the `parse_f64` intrinsic, whose
     # i32 result type poisons the gc MIR temp (the gc handler returns a Result

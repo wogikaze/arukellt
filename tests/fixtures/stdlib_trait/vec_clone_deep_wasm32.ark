@@ -1,0 +1,46 @@
+// Linear-memory target counterpart of vec_clone_deep: the deep Vec clone must
+// allocate independent element storage and clone each element on wasm32 too.
+use std::core::clone
+use std::test::Test
+
+struct Point {
+    label: String,
+    x: i32,
+}
+
+impl Clone for Point {
+    fn clone(self: Point) -> Point {
+        Point {
+            label: self.label.clone(),
+            x: self.x,
+        }
+    }
+}
+
+fn main() {
+    let mut strings: Vec<String> = Vec::new<String>()
+    strings.push(String_from("alpha"))
+    strings.push(String_from("beta"))
+    let mut strings_copy = strings.clone()
+    strings_copy.set(0, String_from("changed"))
+    Test::assert_eq_i32(strings.len(), 2)
+    Test::assert_eq_string(get_unchecked(strings, 0), "alpha")
+    Test::assert_eq_string(get_unchecked(strings_copy, 0), "changed")
+
+    let mut points: Vec<Point> = Vec::new<Point>()
+    points.push(Point { label: String_from("p0"), x: 1 })
+    let mut points_copy = points.clone()
+    Test::assert_eq_string(get_unchecked(points_copy, 0).label, "p0")
+    points_copy.set(0, Point { label: String_from("p1"), x: 2 })
+    Test::assert_eq_string(get_unchecked(points, 0).label, "p0")
+    Test::assert_eq_i32(get_unchecked(points, 0).x, 1)
+    Test::assert_eq_string(get_unchecked(points_copy, 0).label, "p1")
+    Test::assert_eq_i32(get_unchecked(points_copy, 0).x, 2)
+
+    let mut numbers: Vec<i32> = Vec::new<i32>()
+    numbers.push(7)
+    let mut numbers_copy = numbers.clone()
+    numbers_copy.set(0, 9)
+    Test::assert_eq_i32(get_unchecked(numbers, 0), 7)
+    Test::assert_eq_i32(get_unchecked(numbers_copy, 0), 9)
+}
