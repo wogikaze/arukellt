@@ -58,6 +58,9 @@ def _playground_env() -> dict[str, str]:
     for bin_dir in candidates:
         env["PATH"] = f"{bin_dir}{os.pathsep}{env.get('PATH', '')}"
         break
+    # Sandboxed runners may not be able to write ~/.npm (logs/cache). Keep the
+    # playground install hermetic by defaulting npm's cache into the build dir.
+    env.setdefault("NPM_CONFIG_CACHE", str(REPO_ROOT / ".build" / "npm-cache"))
     return env
 
 # Issues that invoke pinned-bootstrap selfhost compile or wasmtime.

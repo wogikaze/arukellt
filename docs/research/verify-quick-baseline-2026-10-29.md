@@ -121,3 +121,59 @@ python3 scripts/manager.py verify lane
 
 未解消として残るのは、このメモの範囲外である `lines_ge_200`（10 > baseline 2）と
 direct `check src/compiler/main.ark` の E0100 7 件（#931）である。
+
+## 追記: wave/verify-quick2 再ベースライン（2026-10-29、base `f1e5c736c`）
+
+fresh worktree `.worktrees/wave-verify-quick2`、`ARUKELLT_BUILD_DIR=.build-lane`、
+fresh s2（初回 59.2s、`.ark` 修正後 92.8s）で再測定した。
+
+修正して PASS にしたもの:
+
+- issue hygiene: #932 を `Status: done` にし、2026-10-19 の receipt evidence
+  （guest samples 6178 → 2248、s2 == s3、validate PASS、plan/receipt 更新）を
+  本文へ追加。#973 は retire した claim、#975 は #953 の duplicate として、
+  acceptance を実際の結末（fixture を追加していない箇所は「harness に stdin
+  sidecar がない」）で checked にした。done/ の unchecked は 0。
+- issue evidence rules: #814/#825/#927/#929/#942 に実行済みの evidence を追加。
+  `check-issue-evidence-rules.py` PASS（0 new、813 grandfathered）。
+- docs CI hard gates: `gate-765` が permanent notation
+  （`grammar-fragment` / `invalid-example` / `notation`）を deferral budget から
+  除外し、`check-doc-examples.py` の #877 contract と揃えた。error-codes.md は
+  invalid-example 8 件 + deferral 3 件で budget 3 に収まる。
+- publication contract: process page の generator input に
+  `availability_axis = "mixed"` を追加（`Env::var` が `wasm32` で未対応のため）。
+  `docs/stdlib/generation-schema.md` に使用条件を記録。
+- compiler constant-like functions: `emit_rung_census.ark` の `RUNG_*` と
+  `helpers_io_p2.ark` の `P2_*` は、subsystem の table と唯一の consumer が
+  同居している実 table。manager に prefix 限定・理由付きの例外として登録した
+  （他 file の定数は隠さない）。
+- CQ-STRUCT-005: `corehir/name_match.ark` を `NameMatch` namespace type へ、
+  `mir/lower/signature_registry_build_mono.ark` の leaf index helpers を
+  `SigRegLeafIndex` の associated functions へ移した。`quality structure` は
+  27 findings から `errors=0 warnings=0 advisories=0`。
+- test_gate / gate-676: `Process::id` の method surface に追従。22 passed。
+- fmt-parity: `imports_interleaved.expected` は #917 の source import 削除に
+  未追従だったため現行 formatter 出力へ再生成（再 fmt で不変を確認）。9/9 PASS。
+- T3: fresh s2 で 596 pass / 0 fail。T3 gate の cache key が fixture ごとに
+  compiler 12 MB hash と `--version` 2 回を実行していたのを 1 回にした
+  （cold cache 23m37s の主要因）。
+- close gates: #472/#500 の npm install は sandbox が `~/.npm` に書けない
+  環境要因だった。`_playground_env` が `NPM_CONFIG_CACHE` を
+  `.build/npm-cache` に既定化し、`--no-cache` の 25 enforced が PASS。
+
+確認結果（同 worktree、fresh s2）:
+
+- `python3 scripts/manager.py verify quick`: 157 checks / 157 pass。
+- `python3 scripts/manager.py verify lane`: PASS。
+- `python3 scripts/manager.py docs check`: 6/6 PASS。
+- `python3 scripts/manager.py quality structure`: PASS（0/0/0）。
+- `check-ark-code-quality.py`: `lines_ge_200: 0`（baseline は 2 のまま）。
+
+quick の外に残るもの:
+
+- direct `check src/compiler/main.ark` の E0100 7 件（#931）。overlay build の
+  正規経路では発生しない。
+- process page の module badge は `Env::var` の `wasm32` 欠落をまだ単一 axis で
+  表示する。page-level は mixed、per-symbol table が正本。types/methods の
+  availability を generator が扱うのは別作業。
+- `lines_ge_200` の baseline 値 2 は実測 0 に対する余裕として残る（gate PASS）。
