@@ -138,3 +138,30 @@ frontend phase が 0 になるため、phase 実測は
 keep-clock gc host で行う（手順は plan に記載）。
 
 次の作業: Phase 3 で body_emit/typecheck を削り、35 s → 20 s を狙う。
+
+### 2026-10-29 更新（alloc-free qualified-name matching）
+
+`wasmtime --profile guest`（10 ms、3,618 samples）で overlay コンパイルを
+分解: `eq` 11.9% self、`MirModule_gc_enum_variant_matches` 6.4%
+（すべて `typed_mvt_sig` から）、`name_index_find_slot` 5.9%、
+`is_namespace_member_callee` 5.5%、`sig_reg_leaf_instance_name_match` 2.2%。
+enum variant / callee spelling / sig-reg leaf の 3 matcher が per-call で
+`"::" + name` を concat し operand を clone していたため、
+`corehir::name_match` の byte-region 比較へ置換した（`407f2767e`、alloc 0）。
+
+quiet A/B（同一 keep-clock host、各 3 run）:
+
+| | wall median | guest median | body_emit | inloop_emit | edge_bfs |
+|---|---:|---:|---:|---:|---:|
+| baseline | 31.76 s | 28.93 s | 12.53 s | 4.55 s | 0.83 s |
+| alloc-free | 30.25 s | 26.34 s | 11.31 s | 3.31 s | 0.62 s |
+
+wall −4.8% / guest −8.9%。wall は host GC + 負荷が支配的で plan の wall 10%
+ルールには届かないが、inloop_emit −27%・edge_bfs −25% が安定し、
+allocation churn 削減（Phase 5）と per-fn loop（Phase 3）の前提になるため残す。
+`selfhost fixpoint`、fixture parity（stdlib_json 136/0、generics_v1）、
+fmt --check、verify lane は PASS。receipts:
+`851-alloc-free-name-match-{base,opt}-20261029.json`。
+
+次の作業: `name_index_find_slot` の probe 数（5.9%）と enum base index の
+O(types×variants) を削る。body_emit/typecheck は Phase 3/4 の本丸。

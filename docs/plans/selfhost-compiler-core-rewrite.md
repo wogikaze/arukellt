@@ -54,6 +54,34 @@ phase 実測用の keep-clock gc host は、overlay を
 embed/new` で再パッケージする。runner も同じ env で実行する（通常 overlay
 のままだと clock が stub され frontend phase が 0 になる）。
 
+wall はホスト負荷に強く依存する（同一 host/source で quiet 31.8 s 〜
+混雑時 39.9 s）。A/B は同一時間窓で baseline/変更版を交互または連続取得する。
+
+### alloc-free qualified-name matching（2026-10-29、`407f2767e`）
+
+gc overlay を `wasmtime --profile guest`（10 ms、3,618 samples）で分解:
+`eq` 11.9% self、`MirModule_gc_enum_variant_matches` 6.4%（すべて
+`typed_mvt_sig` から）、`name_index_find_slot` 5.9%、
+`is_namespace_member_callee` 5.5%、`sig_reg_leaf_instance_name_match` 2.2%。
+
+enum variant / callee spelling / sig-reg leaf の 3 matcher が per-call で
+`"::" + name` を concat し operand を clone していたため、
+`corehir::name_match` の byte-region 比較に置換した（alloc 0）。
+
+A/B（同一 keep-clock host 条件、quiet、各 3 run、receipts
+`851-alloc-free-name-match-{base,opt}-20261029.json`）:
+
+| | wall median | guest median | body_emit | inloop_emit | edge_bfs |
+|---|---:|---:|---:|---:|---:|
+| baseline | 31.76 s | 28.93 s | 12.53 s | 4.55 s | 0.83 s |
+| alloc-free | 30.25 s | 26.34 s | 11.31 s | 3.31 s | 0.62 s |
+
+wall −4.8% / guest −8.9%。plan の wall 10% ルールには届かないが、
+`inloop_emit` −27%・`edge_bfs` −25% が 3 run で安定し、allocation churn を
+減らす Phase 5 と per-fn loop（Phase 3）の前提になるため残す。
+次は `name_index` の probe 数（5.9%）と enum base index の O(types×variants)
+を削る。
+
 ## 現行床（2026-09-01）
 
 | 条件 | wall | RSS |

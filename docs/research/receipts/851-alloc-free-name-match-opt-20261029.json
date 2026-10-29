@@ -1,0 +1,173 @@
+{
+  "schema": "arukellt-selfhost-overlay-gate-summary-v2",
+  "recorded_at": "2026-10-29T04:45:03Z",
+  "source_sha": "407f2767ee4344a6dc3c719bc00e250dce3c7531",
+  "source": "src/compiler/main.ark",
+  "host": ".build/gc-opt1-keepclock/host.component.wasm",
+  "host_sha256": "22b6eb5151e34dd5cb2d30670e5b5f8da4e5d1eb821251a67bf670811a655679",
+  "overlay": ".build/gc-opt1-keepclock/selfhost/flat-src",
+  "pinned": {
+    "path": "bootstrap/arukellt-selfhost.wasm",
+    "sha256": "3c02d18b254709e25065a0e06c82bf08f8fd54a6ad7378a85a61fb5e433a4ee9"
+  },
+  "target": "wasm32-gc",
+  "wasi_version": "wasi-p2",
+  "source_cacheless": true,
+  "fixpoint": {
+    "s2_sha256": "02bd69173e8f068316d931939aaaace8d528631ad7fc35e660ffedb532d4ad34",
+    "s3_sha256": "937ecd250344c21d8e9763b947371dd79b0361b13dbdaea855b00e294df549b4",
+    "s2_eq_s3": false,
+    "s3_valid": true
+  },
+  "tooling": {
+    "wasmtime": "wasmtime 46.0.1 (823d1b8f2 2026-06-24)",
+    "wasm_tools": "wasm-tools 1.252.0"
+  },
+  "percentile_method": "linear-interpolation",
+  "samples": [
+    {
+      "run": 1,
+      "rc": 0,
+      "wall_ms": 33335,
+      "rss_max_kb": 1519008,
+      "guest_total_ms": 30519,
+      "output_sha256": "f53982c9ea8307c0ddaf6c79169ce36eb0559b6386e527e7cd5b87a334032d11",
+      "valid": true,
+      "phases_ms": {
+        "lower.fn_index": 2075,
+        "lower.ctx_prep": 239,
+        "lower.edge_table": 397,
+        "lower.edge_bfs": 826,
+        "lower.body_emit": 13398,
+        "lower.decl_emit": 15714,
+        "lower.gc_layout_plan": 2,
+        "lower.inloop_emit": 3868,
+        "lower.reachability": 232,
+        "lower.sync": 0,
+        "lower.propagate": 0,
+        "lower.total": 19817,
+        "emit.strings": 0,
+        "emit.types": 165,
+        "emit.pre_code": 11,
+        "emit.code": 176,
+        "emit.tail": 245,
+        "lex": 0,
+        "parse": 0,
+        "resolve": 3196,
+        "typecheck": 6511,
+        "lower": 20210,
+        "mir_opt": 0,
+        "mir_verify": 0,
+        "emit": 599,
+        "total": 30519
+      }
+    },
+    {
+      "run": 2,
+      "rc": 0,
+      "wall_ms": 30251,
+      "rss_max_kb": 1494116,
+      "guest_total_ms": 26344,
+      "output_sha256": "f53982c9ea8307c0ddaf6c79169ce36eb0559b6386e527e7cd5b87a334032d11",
+      "valid": true,
+      "phases_ms": {
+        "lower.fn_index": 1428,
+        "lower.ctx_prep": 224,
+        "lower.edge_table": 257,
+        "lower.edge_bfs": 585,
+        "lower.body_emit": 11236,
+        "lower.decl_emit": 12889,
+        "lower.gc_layout_plan": 2,
+        "lower.inloop_emit": 3309,
+        "lower.reachability": 182,
+        "lower.sync": 0,
+        "lower.propagate": 0,
+        "lower.total": 16383,
+        "emit.strings": 1,
+        "emit.types": 154,
+        "emit.pre_code": 11,
+        "emit.code": 159,
+        "emit.tail": 210,
+        "lex": 0,
+        "parse": 0,
+        "resolve": 3365,
+        "typecheck": 5848,
+        "lower": 16594,
+        "mir_opt": 0,
+        "mir_verify": 0,
+        "emit": 536,
+        "total": 26344
+      }
+    },
+    {
+      "run": 3,
+      "rc": 0,
+      "wall_ms": 29313,
+      "rss_max_kb": 1477284,
+      "guest_total_ms": 26206,
+      "output_sha256": "f53982c9ea8307c0ddaf6c79169ce36eb0559b6386e527e7cd5b87a334032d11",
+      "valid": true,
+      "phases_ms": {
+        "lower.fn_index": 1490,
+        "lower.ctx_prep": 234,
+        "lower.edge_table": 263,
+        "lower.edge_bfs": 621,
+        "lower.body_emit": 11310,
+        "lower.decl_emit": 13035,
+        "lower.gc_layout_plan": 2,
+        "lower.inloop_emit": 3242,
+        "lower.reachability": 195,
+        "lower.sync": 0,
+        "lower.propagate": 0,
+        "lower.total": 16475,
+        "emit.strings": 0,
+        "emit.types": 165,
+        "emit.pre_code": 10,
+        "emit.code": 153,
+        "emit.tail": 205,
+        "lex": 0,
+        "parse": 0,
+        "resolve": 3199,
+        "typecheck": 5775,
+        "lower": 16696,
+        "mir_opt": 0,
+        "mir_verify": 0,
+        "emit": 535,
+        "total": 26206
+      }
+    }
+  ],
+  "wall_ms": {
+    "median": 30251,
+    "p95": 33026.6,
+    "min": 29313,
+    "max": 33335
+  },
+  "rss_max_kb": {
+    "median": 1494116,
+    "p95": 1516518.8,
+    "min": 1477284,
+    "max": 1519008
+  },
+  "guest_total_ms": {
+    "median": 26344,
+    "p95": 30101.5,
+    "min": 26206,
+    "max": 30519
+  },
+  "output_sha256": [
+    "f53982c9ea8307c0ddaf6c79169ce36eb0559b6386e527e7cd5b87a334032d11"
+  ],
+  "all_runs_exit_zero": true,
+  "all_outputs_valid": true,
+  "all_outputs_same_sha256": true,
+  "user_goal": {
+    "wall_p95_lt_10000": false,
+    "rss_max_lt_1000000": false,
+    "all_runs_exit_zero": true
+  },
+  "canonical_plan_gate": {
+    "wall_median_le_7000": false,
+    "rss_max_le_524288": false
+  }
+}

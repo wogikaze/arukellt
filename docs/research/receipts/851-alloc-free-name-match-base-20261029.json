@@ -1,0 +1,173 @@
+{
+  "schema": "arukellt-selfhost-overlay-gate-summary-v2",
+  "recorded_at": "2026-10-29T04:47:04Z",
+  "source_sha": "5eed5f0be1226cea95863bd4c610a266f9de7854",
+  "source": "src/compiler/main.ark",
+  "host": ".build/kc-host/old-host.component.wasm",
+  "host_sha256": "9f6a7e336be8d3d365a40aa4c794acfee9f1d65d451d165898970bdf1ebadcb0",
+  "overlay": ".build/kc/selfhost/flat-src",
+  "pinned": {
+    "path": "bootstrap/arukellt-selfhost.wasm",
+    "sha256": "3c02d18b254709e25065a0e06c82bf08f8fd54a6ad7378a85a61fb5e433a4ee9"
+  },
+  "target": "wasm32-gc",
+  "wasi_version": "wasi-p2",
+  "source_cacheless": true,
+  "fixpoint": {
+    "s2_sha256": "56e7ff6af053b8add4ee310213092a581dbdda5661b1d7850c73beddde33eebd",
+    "s3_sha256": "56e7ff6af053b8add4ee310213092a581dbdda5661b1d7850c73beddde33eebd",
+    "s2_eq_s3": true,
+    "s3_valid": true
+  },
+  "tooling": {
+    "wasmtime": "wasmtime 46.0.1 (823d1b8f2 2026-06-24)",
+    "wasm_tools": "wasm-tools 1.252.0"
+  },
+  "percentile_method": "linear-interpolation",
+  "samples": [
+    {
+      "run": 1,
+      "rc": 0,
+      "wall_ms": 32172,
+      "rss_max_kb": 1482472,
+      "guest_total_ms": 29158,
+      "output_sha256": "7d5ec3f765b04234a14c67c893e9ab5f86b5d3a3796ad610e87edf3c103b9af6",
+      "valid": true,
+      "phases_ms": {
+        "lower.fn_index": 1707,
+        "lower.ctx_prep": 217,
+        "lower.edge_table": 273,
+        "lower.edge_bfs": 833,
+        "lower.body_emit": 12526,
+        "lower.decl_emit": 14451,
+        "lower.gc_layout_plan": 2,
+        "lower.inloop_emit": 4554,
+        "lower.reachability": 49,
+        "lower.sync": 0,
+        "lower.propagate": 0,
+        "lower.total": 19058,
+        "emit.strings": 0,
+        "emit.types": 233,
+        "emit.pre_code": 12,
+        "emit.code": 260,
+        "emit.tail": 94,
+        "lex": 0,
+        "parse": 0,
+        "resolve": 3577,
+        "typecheck": 5687,
+        "lower": 19291,
+        "mir_opt": 0,
+        "mir_verify": 0,
+        "emit": 602,
+        "total": 29158
+      }
+    },
+    {
+      "run": 2,
+      "rc": 0,
+      "wall_ms": 31326,
+      "rss_max_kb": 1490868,
+      "guest_total_ms": 28345,
+      "output_sha256": "7d5ec3f765b04234a14c67c893e9ab5f86b5d3a3796ad610e87edf3c103b9af6",
+      "valid": true,
+      "phases_ms": {
+        "lower.fn_index": 1617,
+        "lower.ctx_prep": 191,
+        "lower.edge_table": 271,
+        "lower.edge_bfs": 827,
+        "lower.body_emit": 12368,
+        "lower.decl_emit": 14178,
+        "lower.gc_layout_plan": 2,
+        "lower.inloop_emit": 4485,
+        "lower.reachability": 52,
+        "lower.sync": 0,
+        "lower.propagate": 0,
+        "lower.total": 18719,
+        "emit.strings": 0,
+        "emit.types": 241,
+        "emit.pre_code": 10,
+        "emit.code": 237,
+        "emit.tail": 101,
+        "lex": 0,
+        "parse": 0,
+        "resolve": 3727,
+        "typecheck": 5106,
+        "lower": 18919,
+        "mir_opt": 0,
+        "mir_verify": 0,
+        "emit": 592,
+        "total": 28345
+      }
+    },
+    {
+      "run": 3,
+      "rc": 0,
+      "wall_ms": 31761,
+      "rss_max_kb": 1482988,
+      "guest_total_ms": 28930,
+      "output_sha256": "7d5ec3f765b04234a14c67c893e9ab5f86b5d3a3796ad610e87edf3c103b9af6",
+      "valid": true,
+      "phases_ms": {
+        "lower.fn_index": 1715,
+        "lower.ctx_prep": 221,
+        "lower.edge_table": 283,
+        "lower.edge_bfs": 848,
+        "lower.body_emit": 12939,
+        "lower.decl_emit": 14876,
+        "lower.gc_layout_plan": 2,
+        "lower.inloop_emit": 4553,
+        "lower.reachability": 50,
+        "lower.sync": 0,
+        "lower.propagate": 0,
+        "lower.total": 19483,
+        "emit.strings": 0,
+        "emit.types": 250,
+        "emit.pre_code": 10,
+        "emit.code": 251,
+        "emit.tail": 98,
+        "lex": 0,
+        "parse": 0,
+        "resolve": 3422,
+        "typecheck": 5214,
+        "lower": 19681,
+        "mir_opt": 0,
+        "mir_verify": 0,
+        "emit": 612,
+        "total": 28930
+      }
+    }
+  ],
+  "wall_ms": {
+    "median": 31761,
+    "p95": 32130.9,
+    "min": 31326,
+    "max": 32172
+  },
+  "rss_max_kb": {
+    "median": 1482988,
+    "p95": 1490080.0,
+    "min": 1482472,
+    "max": 1490868
+  },
+  "guest_total_ms": {
+    "median": 28930,
+    "p95": 29135.2,
+    "min": 28345,
+    "max": 29158
+  },
+  "output_sha256": [
+    "7d5ec3f765b04234a14c67c893e9ab5f86b5d3a3796ad610e87edf3c103b9af6"
+  ],
+  "all_runs_exit_zero": true,
+  "all_outputs_valid": true,
+  "all_outputs_same_sha256": true,
+  "user_goal": {
+    "wall_p95_lt_10000": false,
+    "rss_max_lt_1000000": false,
+    "all_runs_exit_zero": true
+  },
+  "canonical_plan_gate": {
+    "wall_median_le_7000": false,
+    "rss_max_le_524288": false
+  }
+}
