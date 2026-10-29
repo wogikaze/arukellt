@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 205
-- **Historical/deprecated names:** 65
-- **Total entries:** 270
+- **Canonical names:** 168
+- **Historical/deprecated names:** 75
+- **Total entries:** 243
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -45,29 +45,7 @@ Current public API names, sorted alphabetically.
 | `bench` | `std::test` | `experimental` | Test |
 | `binary_search_by` | `std::seq` | `provisional` | Seq |
 | `binary_search_by_key` | `std::seq` | `provisional` | Seq |
-| `bitset_clear` | `std::collections::ordered` | `experimental` | Collections |
-| `bitset_count` | `std::collections::ordered` | `experimental` | Collections |
-| `bitset_intersection` | `std::collections::ordered` | `experimental` | Collections |
-| `bitset_mark` | `std::collections::ordered` | `stable` | Collections |
-| `bitset_new` | `std::collections::ordered` | `stable` | Collections |
-| `bitset_set` | `std::collections::ordered` | `experimental` | Collections |
-| `bitset_test` | `std::collections::ordered` | `stable` | Collections |
-| `bitset_union` | `std::collections::ordered` | `experimental` | Collections |
-| `bitset_unmark` | `std::collections::ordered` | `stable` | Collections |
-| `bitset_with_capacity` | `std::collections::ordered` | `experimental` | Collections |
 | `Box_new` | `prelude` | `stable` | Box |
-| `btree_contains_key` | `std::collections::ordered` | `experimental` | Collections |
-| `btree_get` | `std::collections::ordered` | `experimental` | Collections |
-| `btree_insert` | `std::collections::ordered` | `experimental` | Collections |
-| `btree_keys` | `std::collections::ordered` | `experimental` | Collections |
-| `btree_len` | `std::collections::ordered` | `experimental` | Collections |
-| `btree_new` | `std::collections::ordered` | `experimental` | Collections |
-| `btree_range` | `std::collections::ordered` | `experimental` | Collections |
-| `btree_remove` | `std::collections::ordered` | `experimental` | Collections |
-| `btree_set_contains` | `std::collections::ordered` | `experimental` | Collections |
-| `btree_set_insert` | `std::collections::ordered` | `experimental` | Collections |
-| `btree_set_len` | `std::collections::ordered` | `experimental` | Collections |
-| `btree_set_new` | `std::collections::ordered` | `experimental` | Collections |
 | `byte_at` | `prelude` | `stable` | String |
 | `byte_len` | `prelude` | `stable` | String |
 | `char_to_string` | `prelude` | `stable` | Conversion |
@@ -141,16 +119,7 @@ Current public API names, sorted alphabetically.
 | `hashset_union` | `std::collections::hash` | `stable` | Collections |
 | `id` | `std::host::process` | `stable` | Host Process |
 | `ifft` | `std::signal` | `stable` | Signal |
-| `index_map_get` | `std::collections::ordered` | `experimental` | Collections |
-| `index_map_insert` | `std::collections::ordered` | `experimental` | Collections |
-| `index_map_keys` | `std::collections::ordered` | `experimental` | Collections |
-| `index_map_len` | `std::collections::ordered` | `experimental` | Collections |
-| `index_map_new` | `std::collections::ordered` | `experimental` | Collections |
 | `index_of` | `prelude` | `stable` | String |
-| `index_set_contains` | `std::collections::ordered` | `experimental` | Collections |
-| `index_set_insert` | `std::collections::ordered` | `experimental` | Collections |
-| `index_set_len` | `std::collections::ordered` | `experimental` | Collections |
-| `index_set_new` | `std::collections::ordered` | `experimental` | Collections |
 | `is_empty` | `prelude` | `stable` | String |
 | `is_err` | `prelude` | `stable` | Option Result |
 | `is_none` | `prelude` | `stable` | Option Result |
@@ -196,12 +165,6 @@ Current public API names, sorted alphabetically.
 | `sin_approx` | `std::signal` | `stable` | Signal |
 | `slice` | `prelude` | `stable` | String |
 | `sort_by` | `std::seq` | `provisional` | Seq |
-| `sorted_map_contains` | `std::collections::ordered` | `stable` | Collections |
-| `sorted_map_find_idx` | `std::collections::ordered` | `stable` | Collections |
-| `sorted_map_get` | `std::collections::ordered` | `stable` | Collections |
-| `sorted_map_insert` | `std::collections::ordered` | `stable` | Collections |
-| `sorted_map_len` | `std::collections::ordered` | `stable` | Collections |
-| `sorted_map_new` | `std::collections::ordered` | `stable` | Collections |
 | `split` | `prelude` | `stable` | String |
 | `sqrt` | `prelude` | `stable` | Math |
 | `starts_with` | `prelude` | `stable` | String |
@@ -241,6 +204,10 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`assert_eq_str`~~ | `std::test::assert_eq_string` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `std::test::assert_ne_i32` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `std::seq::binary_search_by` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`bitset_mark`~~ | `BitSet::mark` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`bitset_new`~~ | `BitSet::new` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`bitset_test`~~ | `BitSet::test` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`bitset_unmark`~~ | `BitSet::unmark` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `VecIter::count_eq` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -293,6 +260,12 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`skip_i32`~~ | `VecIter::skip` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_get`~~ | `Slice::get` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_len`~~ | `Slice::len` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`sorted_map_contains`~~ | `SortedMap::contains` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`sorted_map_find_idx`~~ | `SortedMap::find_idx` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`sorted_map_get`~~ | `SortedMap::get` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`sorted_map_insert`~~ | `SortedMap::insert` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`sorted_map_len`~~ | `SortedMap::len` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`sorted_map_new`~~ | `SortedMap::new` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`sum_i32`~~ | `VecIter::sum` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`take_i32`~~ | `VecIter::take` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`u16_to_i32`~~ | `u16::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
@@ -339,29 +312,11 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`binary_search`~~ | ⚠️ deprecated | `std::seq` | → `std::seq::binary_search_by` · [migration guide](migration-guidance.md) |
 | `binary_search_by` | ✅ `provisional` | `std::seq` | Seq |
 | `binary_search_by_key` | ✅ `provisional` | `std::seq` | Seq |
-| `bitset_clear` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `bitset_count` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `bitset_intersection` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `bitset_mark` | ✅ `stable` | `std::collections::ordered` | Collections |
-| `bitset_new` | ✅ `stable` | `std::collections::ordered` | Collections |
-| `bitset_set` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `bitset_test` | ✅ `stable` | `std::collections::ordered` | Collections |
-| `bitset_union` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `bitset_unmark` | ✅ `stable` | `std::collections::ordered` | Collections |
-| `bitset_with_capacity` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| ~~`bitset_mark`~~ | ⚠️ deprecated | `std::collections::ordered` | → `BitSet::mark` · [migration guide](migration-guidance.md) |
+| ~~`bitset_new`~~ | ⚠️ deprecated | `std::collections::ordered` | → `BitSet::new` · [migration guide](migration-guidance.md) |
+| ~~`bitset_test`~~ | ⚠️ deprecated | `std::collections::ordered` | → `BitSet::test` · [migration guide](migration-guidance.md) |
+| ~~`bitset_unmark`~~ | ⚠️ deprecated | `std::collections::ordered` | → `BitSet::unmark` · [migration guide](migration-guidance.md) |
 | `Box_new` | ✅ `stable` | `prelude` | Box |
-| `btree_contains_key` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `btree_get` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `btree_insert` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `btree_keys` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `btree_len` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `btree_new` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `btree_range` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `btree_remove` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `btree_set_contains` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `btree_set_insert` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `btree_set_len` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `btree_set_new` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `byte_at` | ✅ `stable` | `prelude` | String |
 | `byte_len` | ✅ `stable` | `prelude` | String |
 | `char_to_string` | ✅ `stable` | `prelude` | Conversion |
@@ -464,16 +419,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`i8_to_i32`~~ | ⚠️ deprecated | `prelude` | → `i8::to_i32` · [migration guide](migration-guidance.md) |
 | `id` | ✅ `stable` | `std::host::process` | Host Process |
 | `ifft` | ✅ `stable` | `std::signal` | Signal |
-| `index_map_get` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `index_map_insert` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `index_map_keys` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `index_map_len` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `index_map_new` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `index_of` | ✅ `stable` | `prelude` | String |
-| `index_set_contains` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `index_set_insert` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `index_set_len` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `index_set_new` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `is_empty` | ✅ `stable` | `prelude` | String |
 | `is_err` | ✅ `stable` | `prelude` | Option Result |
 | `is_none` | ✅ `stable` | `prelude` | Option Result |
@@ -542,12 +488,12 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`slice_get`~~ | ⚠️ deprecated | `prelude` | → `Slice::get` · [migration guide](migration-guidance.md) |
 | ~~`slice_len`~~ | ⚠️ deprecated | `prelude` | → `Slice::len` · [migration guide](migration-guidance.md) |
 | `sort_by` | ✅ `provisional` | `std::seq` | Seq |
-| `sorted_map_contains` | ✅ `stable` | `std::collections::ordered` | Collections |
-| `sorted_map_find_idx` | ✅ `stable` | `std::collections::ordered` | Collections |
-| `sorted_map_get` | ✅ `stable` | `std::collections::ordered` | Collections |
-| `sorted_map_insert` | ✅ `stable` | `std::collections::ordered` | Collections |
-| `sorted_map_len` | ✅ `stable` | `std::collections::ordered` | Collections |
-| `sorted_map_new` | ✅ `stable` | `std::collections::ordered` | Collections |
+| ~~`sorted_map_contains`~~ | ⚠️ deprecated | `std::collections::ordered` | → `SortedMap::contains` · [migration guide](migration-guidance.md) |
+| ~~`sorted_map_find_idx`~~ | ⚠️ deprecated | `std::collections::ordered` | → `SortedMap::find_idx` · [migration guide](migration-guidance.md) |
+| ~~`sorted_map_get`~~ | ⚠️ deprecated | `std::collections::ordered` | → `SortedMap::get` · [migration guide](migration-guidance.md) |
+| ~~`sorted_map_insert`~~ | ⚠️ deprecated | `std::collections::ordered` | → `SortedMap::insert` · [migration guide](migration-guidance.md) |
+| ~~`sorted_map_len`~~ | ⚠️ deprecated | `std::collections::ordered` | → `SortedMap::len` · [migration guide](migration-guidance.md) |
+| ~~`sorted_map_new`~~ | ⚠️ deprecated | `std::collections::ordered` | → `SortedMap::new` · [migration guide](migration-guidance.md) |
 | `split` | ✅ `stable` | `prelude` | String |
 | `sqrt` | ✅ `stable` | `prelude` | Math |
 | `starts_with` | ✅ `stable` | `prelude` | String |

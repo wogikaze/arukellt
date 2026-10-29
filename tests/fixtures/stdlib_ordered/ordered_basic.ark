@@ -1,23 +1,22 @@
-use std::collections::ordered
+use std::collections::ordered::{BitSet, SortedMap}
 use std::host::stdio
 
 fn main() {
-    let mut m: Vec<i32> = ordered::sorted_map_new()
-    ordered::sorted_map_insert(m, 30, 300)
-    ordered::sorted_map_insert(m, 10, 100)
-    ordered::sorted_map_insert(m, 20, 200)
-    stdio::println((ordered::sorted_map_len(m)).to_string())
-    stdio::println((ordered::sorted_map_get(m, 10)).to_string())
-    stdio::println((ordered::sorted_map_get(m, 20)).to_string())
-    stdio::println((ordered::sorted_map_get(m, 30)).to_string())
-    stdio::println((ordered::sorted_map_contains(m, 20)).to_string())
-    stdio::println((ordered::sorted_map_contains(m, 99)).to_string())
-    let mut bs: Vec<i32> = ordered::bitset_new()
-    ordered::bitset_mark(bs, 5)
-    ordered::bitset_mark(bs, 42)
-    stdio::println((ordered::bitset_test(bs, 5)).to_string())
-    stdio::println((ordered::bitset_test(bs, 6)).to_string())
-    ordered::bitset_unmark(bs, 5)
-    stdio::println((ordered::bitset_test(bs, 5)).to_string())
+    let mut map = SortedMap::new()
+    map.insert(30, 300)
+    map.insert(10, 100)
+    map.insert(20, 200)
+    stdio::println((map.len()).to_string())
+    stdio::println((map.get(10)).to_string())
+    stdio::println((map.get(20)).to_string())
+    stdio::println((map.get(30)).to_string())
+    stdio::println((map.contains(20)).to_string())
+    stdio::println((map.contains(99)).to_string())
+    let mut bits = BitSet::new()
+    bits.mark(5)
+    bits.mark(42)
+    stdio::println((bits.test(5)).to_string())
+    stdio::println((bits.test(6)).to_string())
+    bits.unmark(5)
+    stdio::println((bits.test(5)).to_string())
 }
-// BitSet

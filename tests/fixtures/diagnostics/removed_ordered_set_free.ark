@@ -1,0 +1,6 @@
+// E0100 on the deleted IndexSet free family (#917 ordered wave).
+use std::collections::ordered
+
+fn main() {
+    let _set = ordered::index_set_new()
+}

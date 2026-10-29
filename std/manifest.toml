@@ -2068,12 +2068,81 @@ methods = [
 trait_impls = ["FromIterator", "IntoIterator", "Clone", "Eq", "Debug"]
 
 # === std::collections::ordered ===
+#
+# The ordered collection free functions were split by lifecycle in the #917
+# ordered-group wave (ADR-046 / ADR-087):
+#   * the 27 `experimental` btree / btree_set / index_map / index_set and
+#     extended bitset entries were deleted (ADR-014 D4); the replacement is the
+#     BTreeMap / BTreeSet / IndexMap / IndexSet / BitSet method surface, and
+#     qualified old calls fail with E0100 hints.
+#   * the 10 `stable` sorted_map_* / bitset_new|mark|unmark|test entries are
+#     `deprecated` through the ADR-087 window; they stay callable and warn
+#     with W0009 until a later Wave 2 deletion.
+
+[[modules]]
+name = "std::collections::ordered"
+stability = "provisional"
+family = "collections"
+doc = "Ordered collection types backed by flat sorted vectors: SortedMap / BTreeMap (key-sorted i32 maps), BTreeSet / IndexSet (unique i32 values), IndexMap (insertion-order map), and BitSet. The receiver methods are the surface; the stable sorted_map_* / bitset_* free functions are deprecated through the ADR-087 window."
+availability = { t1 = true, t3 = true }
+
+[[types]]
+name = "SortedMap"
+kind = "struct"
+doc = "Map from i32 keys to i32 values read back in ascending key order. get returns 0 for a missing key and contains returns false."
+module = "std::collections::ordered"
+stability = "provisional"
+methods = ["new", "len", "find_idx", "get", "contains", "insert"]
+
+[[types]]
+name = "BTreeMap"
+kind = "struct"
+doc = "Sorted-vector i32 map with the historical BTreeMap name. Adds remove, keys, and range to the SortedMap read surface."
+module = "std::collections::ordered"
+stability = "provisional"
+methods = ["new", "insert", "get", "remove", "contains_key", "len", "keys", "range"]
+
+[[types]]
+name = "BTreeSet"
+kind = "struct"
+doc = "Sorted set of unique i32 values. insert returns true only when the value was newly added."
+module = "std::collections::ordered"
+stability = "provisional"
+methods = ["new", "insert", "contains", "len"]
+
+[[types]]
+name = "IndexMap"
+kind = "struct"
+doc = "Insertion-order i32 key/value map. Lookup and insertion scan the flat pair vector linearly."
+module = "std::collections::ordered"
+stability = "provisional"
+methods = ["new", "insert", "get", "len", "keys"]
+
+[[types]]
+name = "IndexSet"
+kind = "struct"
+doc = "Insertion-order set of unique i32 values. insert returns true only when the value was newly added."
+module = "std::collections::ordered"
+stability = "provisional"
+methods = ["new", "insert", "contains", "len"]
+
+[[types]]
+name = "BitSet"
+kind = "struct"
+doc = "Fixed-capacity bit array backed by 32-bit words. new reserves 256 bits and with_capacity takes an explicit bit count."
+module = "std::collections::ordered"
+stability = "provisional"
+methods = ["new", "with_capacity", "mark", "unmark", "set", "clear", "test", "count", "union", "intersection"]
+
 
 [[functions]]
 name = "sorted_map_new"
 module = "std::collections::ordered"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "SortedMap::new"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = []
 returns = "Vec<i32>"
 
@@ -2081,7 +2150,10 @@ returns = "Vec<i32>"
 name = "sorted_map_len"
 module = "std::collections::ordered"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "SortedMap::len"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>"]
 returns = "i32"
 
@@ -2089,7 +2161,10 @@ returns = "i32"
 name = "sorted_map_find_idx"
 module = "std::collections::ordered"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "SortedMap::find_idx"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>", "i32"]
 returns = "i32"
 
@@ -2097,7 +2172,10 @@ returns = "i32"
 name = "sorted_map_get"
 module = "std::collections::ordered"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "SortedMap::get"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>", "i32"]
 returns = "i32"
 
@@ -2105,7 +2183,10 @@ returns = "i32"
 name = "sorted_map_contains"
 module = "std::collections::ordered"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "SortedMap::contains"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>", "i32"]
 returns = "bool"
 
@@ -2113,7 +2194,10 @@ returns = "bool"
 name = "sorted_map_insert"
 module = "std::collections::ordered"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "SortedMap::insert"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>", "i32", "i32"]
 returns = "()"
 
@@ -2121,7 +2205,10 @@ returns = "()"
 name = "bitset_new"
 module = "std::collections::ordered"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "BitSet::new"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = []
 returns = "Vec<i32>"
 
@@ -2129,7 +2216,10 @@ returns = "Vec<i32>"
 name = "bitset_mark"
 module = "std::collections::ordered"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "BitSet::mark"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>", "i32"]
 returns = "()"
 
@@ -2137,7 +2227,10 @@ returns = "()"
 name = "bitset_unmark"
 module = "std::collections::ordered"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "BitSet::unmark"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>", "i32"]
 returns = "()"
 
@@ -2145,7 +2238,10 @@ returns = "()"
 name = "bitset_test"
 module = "std::collections::ordered"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "BitSet::test"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>", "i32"]
 returns = "bool"
 
@@ -3304,248 +3400,13 @@ doc = "Return the value associated with the named option, or None."
 # `resolver::removed_names::removed_{json,toml}_member_hint`.
 
 
-[[functions]]
-name = "btree_new"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = []
-returns = "Vec<i32>"
-doc = "Create a new BTreeMap<i32,i32> (sorted-vector backed)."
-
-[[functions]]
-name = "btree_insert"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>", "i32", "i32"]
-returns = "()"
-doc = "Insert a key-value pair into a BTreeMap<i32,i32>."
-
-[[functions]]
-name = "btree_get"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>", "i32"]
-returns = "i32"
-doc = "Get a value from a BTreeMap<i32,i32>. Returns 0 if not found."
-
-[[functions]]
-name = "btree_remove"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>", "i32"]
-returns = "()"
-doc = "Remove a key from a BTreeMap<i32,i32>."
-
-[[functions]]
-name = "btree_contains_key"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>", "i32"]
-returns = "bool"
-doc = "Check if a BTreeMap<i32,i32> contains a key."
-
-[[functions]]
-name = "btree_len"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Return the number of entries in a BTreeMap<i32,i32>."
-
-[[functions]]
-name = "btree_keys"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>"]
-returns = "Vec<i32>"
-doc = "Return all keys of a BTreeMap<i32,i32> in sorted order."
-
-[[functions]]
-name = "btree_range"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>", "i32", "i32"]
-returns = "Vec<i32>"
-doc = "Return keys in [start, end) range from a BTreeMap<i32,i32>."
-
-[[functions]]
-name = "btree_set_new"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = []
-returns = "Vec<i32>"
-doc = "Create a new BTreeSet<i32> (sorted unique values)."
-
-[[functions]]
-name = "btree_set_insert"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>", "i32"]
-returns = "bool"
-doc = "Insert into a BTreeSet<i32>. Returns true if the value was newly inserted."
-
-[[functions]]
-name = "btree_set_contains"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>", "i32"]
-returns = "bool"
-doc = "Check if a BTreeSet<i32> contains a value."
-
-[[functions]]
-name = "btree_set_len"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Return the number of elements in a BTreeSet<i32>."
-
-[[functions]]
-name = "index_map_new"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = []
-returns = "Vec<i32>"
-doc = "Create a new IndexMap<i32,i32> (insertion-order map)."
-
-[[functions]]
-name = "index_map_insert"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>", "i32", "i32"]
-returns = "()"
-doc = "Insert a key-value pair into an IndexMap<i32,i32>."
-
-[[functions]]
-name = "index_map_get"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>", "i32"]
-returns = "i32"
-doc = "Get a value from an IndexMap<i32,i32>. Returns 0 if not found."
-
-[[functions]]
-name = "index_map_len"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Return the number of entries in an IndexMap<i32,i32>."
-
-[[functions]]
-name = "index_map_keys"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>"]
-returns = "Vec<i32>"
-doc = "Return all keys of an IndexMap<i32,i32> in insertion order."
-
-[[functions]]
-name = "index_set_new"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = []
-returns = "Vec<i32>"
-doc = "Create a new IndexSet<i32> (insertion-order unique values)."
-
-[[functions]]
-name = "index_set_insert"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>", "i32"]
-returns = "bool"
-doc = "Insert into an IndexSet<i32>. Returns true if the value was newly inserted."
-
-[[functions]]
-name = "index_set_contains"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>", "i32"]
-returns = "bool"
-doc = "Check if an IndexSet<i32> contains a value."
-
-[[functions]]
-name = "index_set_len"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Return the number of elements in an IndexSet<i32>."
-
-[[functions]]
-name = "bitset_set"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>", "i32"]
-returns = "()"
-doc = "Set a bit in a BitSet (alias for bitset_mark)."
-
-[[functions]]
-name = "bitset_clear"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>", "i32"]
-returns = "()"
-doc = "Clear a bit in a BitSet (alias for bitset_unmark)."
-
-[[functions]]
-name = "bitset_with_capacity"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["i32"]
-returns = "Vec<i32>"
-doc = "Create a new BitSet with the given capacity in bits."
-
-[[functions]]
-name = "bitset_count"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Return the number of set bits in a BitSet."
-
-[[functions]]
-name = "bitset_union"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>", "Vec<i32>"]
-returns = "Vec<i32>"
-doc = "Return the union of two BitSets."
-
-[[functions]]
-name = "bitset_intersection"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>", "Vec<i32>"]
-returns = "Vec<i32>"
-doc = "Return the intersection of two BitSets."
+# The 27 ordered `experimental` free functions (btree_*, btree_set_*,
+# index_map_*, index_set_*, and the extended bitset set/clear/with_capacity/
+# count/union/intersection) were retired by #917 in the ordered-group wave
+# (ADR-014 D4, no deprecation window). The replacement is the BTreeMap /
+# BTreeSet / IndexMap / IndexSet / BitSet receiver methods; qualified old
+# calls fail with E0100 hints from
+# resolver::removed_names::removed_ordered_member_hint.
 
 # ─────────────────────────────────────────────
 # std::collections::compiler — Arena, SlotMap, Interner

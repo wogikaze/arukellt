@@ -306,6 +306,12 @@ diag:diagnostics/removed_bimap_free.ark
 diag:diagnostics/removed_bimap_free_wasm32.ark
 diag:diagnostics/removed_trie_free.ark
 diag:diagnostics/removed_trie_free_wasm32.ark
+diag:diagnostics/removed_ordered_map_free.ark
+diag:diagnostics/removed_ordered_map_free_wasm32.ark
+diag:diagnostics/removed_ordered_set_free.ark
+diag:diagnostics/removed_ordered_set_free_wasm32.ark
+diag:diagnostics/deprecated_ordered_stable_free.ark
+diag:diagnostics/deprecated_ordered_stable_free_wasm32.ark
 diag:diagnostics/removed_canonical_free.ark
 diag:diagnostics/removed_canonical_free_wasm32.ark
 diag:diagnostics/removed_hashmap_adapter.ark
@@ -936,6 +942,10 @@ run:stdlib_collections_ordered/btree_keys.ark
 run:stdlib_collections_ordered/btree_set.ark
 run:stdlib_collections_ordered/index_map_order.ark
 run:stdlib_collections_ordered/index_set.ark
+run:stdlib_collections_ordered/ordered_map_methods.ark
+run:stdlib_collections_ordered/ordered_map_methods_wasm32.ark
+run:stdlib_collections_ordered/ordered_set_methods.ark
+run:stdlib_collections_ordered/ordered_set_methods_wasm32.ark
 run:stdlib_compiler/compiler_basic.ark
 run:stdlib_component/canonical_list.ark
 run:stdlib_component/canonical_list_wasm32.ark

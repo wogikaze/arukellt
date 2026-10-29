@@ -62,6 +62,16 @@ helpers are included alongside any other deprecated public entry.
 | `linked_list_push_back` | `std::collections::linked_list` | `deprecated` | `LinkedList::push_back` | `0.1.0` | `1.0.0` | Push a value to the back of the legacy i32 list. |
 | `linked_list_push_front` | `std::collections::linked_list` | `deprecated` | `LinkedList::push_front` | `0.1.0` | `1.0.0` | Push a value to the front of the legacy i32 list. |
 | `linked_list_to_vec` | `std::collections::linked_list` | `deprecated` | `LinkedList::iter` | `0.1.0` | `1.0.0` | Copy the legacy i32 list into a Vec<i32> in front-to-back order. |
+| `bitset_mark` | `std::collections::ordered` | `deprecated` | `BitSet::mark` | `0.1.0` | `1.0.0` | Superseded API |
+| `bitset_new` | `std::collections::ordered` | `deprecated` | `BitSet::new` | `0.1.0` | `1.0.0` | Superseded API |
+| `bitset_test` | `std::collections::ordered` | `deprecated` | `BitSet::test` | `0.1.0` | `1.0.0` | Superseded API |
+| `bitset_unmark` | `std::collections::ordered` | `deprecated` | `BitSet::unmark` | `0.1.0` | `1.0.0` | Superseded API |
+| `sorted_map_contains` | `std::collections::ordered` | `deprecated` | `SortedMap::contains` | `0.1.0` | `1.0.0` | Superseded API |
+| `sorted_map_find_idx` | `std::collections::ordered` | `deprecated` | `SortedMap::find_idx` | `0.1.0` | `1.0.0` | Superseded API |
+| `sorted_map_get` | `std::collections::ordered` | `deprecated` | `SortedMap::get` | `0.1.0` | `1.0.0` | Superseded API |
+| `sorted_map_insert` | `std::collections::ordered` | `deprecated` | `SortedMap::insert` | `0.1.0` | `1.0.0` | Superseded API |
+| `sorted_map_len` | `std::collections::ordered` | `deprecated` | `SortedMap::len` | `0.1.0` | `1.0.0` | Superseded API |
+| `sorted_map_new` | `std::collections::ordered` | `deprecated` | `SortedMap::new` | `0.1.0` | `1.0.0` | Superseded API |
 | `binary_search` | `std::seq` | `deprecated` | `std::seq::binary_search_by` | `0.1.0` | `1.0.0` | Deprecated monomorphic wrapper. Use the generic std::seq::binary_search_by(v, target) over T: Ord. |
 | `count_eq` | `std::seq` | `deprecated` | `VecIter::count_eq` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target). |
 | `filter_i32` | `std::seq` | `deprecated` | `VecIter::filter` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().filter(f).collect(). |
@@ -76,4 +86,4 @@ helpers are included alongside any other deprecated public entry.
 | `take_i32` | `std::seq` | `deprecated` | `VecIter::take` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect(). |
 | `unique` | `std::seq` | `deprecated` | `VecIter::unique` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect(). |
 
-Total deprecated public entries: **65**.
+Total deprecated public entries: **75**.

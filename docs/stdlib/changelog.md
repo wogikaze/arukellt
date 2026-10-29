@@ -16,6 +16,50 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-29 — ordered collections type surface (#917, wave/ordered-group)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の
+  free-function 根絶。対象は `std::collections::ordered` の **37** free
+  functions。内訳は `experimental` 27 件（btree 8、btree_set 4、
+  index_map 5、index_set 4、extended bitset 6）と `stable` 10 件
+  （sorted_map 6、bitset 4）。
+- **Retired (27)**: `experimental` の 27 件は
+  [ADR-014](../adr/ADR-014-stability-labels.md) D4 により deprecation
+  window なしで削除した。`btree_set_find_idx` は manifest 未登録の
+  declaration で、公開 method を持たない（`contains` / `insert` を使う）。
+- **Deprecated (10)**: `sorted_map_*` と `bitset_new|mark|unmark|test` は
+  `stability = "deprecated"`、`deprecated_since = "0.1.0"`、
+  `remove_in = "1.0.0"` とし、[ADR-087](../adr/ADR-087-0x-deprecation-exception.md)
+  の window 中は `ordered::` qualified call で **W0009** を出す。削除は
+  後続 Wave 2 で、migration guide と W0009 の再確認後に行う。
+- **Replacement**: `SortedMap`（new/len/find_idx/get/contains/insert）、
+  `BTreeMap`（new/insert/get/remove/contains_key/len/keys/range）、
+  `BTreeSet`（new/insert/contains/len）、`IndexMap`
+  （new/insert/get/len/keys）、`IndexSet`（new/insert/contains/len）、
+  `BitSet`（new/with_capacity/mark/unmark/set/clear/test/count/union/
+  intersection）。storage は型の private field に閉じた flat `Vec<i32>`。
+- **E0100**: 削除した 28 declaration（27 manifest + `btree_set_find_idx`）は
+  `resolver::removed_names::removed_ordered_member_hint` が
+  `ordered` / `collections::ordered` / `std::collections::ordered` の各綴りで
+  type method を案内する。
+- **Behaviour correction**: sorted pair vector の middle insert / remove が
+  key だけを offset で移動して value を取り残す不具合を修正した。deprecated
+  free も共有 helper 経由で同じ修正を受ける。fixture の key 順と value を
+  更新し、`ordered_map_methods` と module test が middle insert / remove の
+  value 保持を固定する。
+- **Evidence**: 既存 7 run fixture（`stdlib_collections_ordered/*` の 6 件と
+  `stdlib_ordered/ordered_basic`）を method surface へ移行し、
+  `stdlib_collections_ordered/{ordered_map_methods,ordered_set_methods}`
+  と各 `_wasm32` を追加した。wasm32-gc component と `--target wasm32` の
+  両方で compile・validate・execute する。diag golden は
+  `diagnostics/removed_ordered_{map,set}_free*`（E0100）と
+  `diagnostics/deprecated_ordered_stable_free*`（W0009）を両 target で追加。
+- **Scorecard**: eradication scope 274 → **246**、`associated-or-method`
+  208 → **180**、manifest 公開 entry 270 → **243**、`pub fn` 宣言
+  301 → **273**、unregistered 4 → **3**。`must delete` 66、
+  `prelude_wrapper` 64、`intrinsic-only` 1 は不変。fixture registry は
+  3473 → **3483**。
+
 ## 2026-10-29 — `Std::panic` と Vec no-argument sort (#917, wave/sort-panic)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の free-function

@@ -1,20 +1,20 @@
-use std::collections::ordered
+use std::collections::ordered::BTreeMap
 use std::host::stdio
 
 fn main() {
-    let mut m: Vec<i32> = ordered::btree_new()
-    ordered::btree_insert(m, 30, 300)
-    ordered::btree_insert(m, 10, 100)
-    ordered::btree_insert(m, 50, 500)
-    ordered::btree_insert(m, 20, 200)
-    ordered::btree_insert(m, 40, 400)
-    let keys: Vec<i32> = ordered::btree_keys(m)
+    let mut m = BTreeMap::new()
+    m.insert(30, 300)
+    m.insert(10, 100)
+    m.insert(50, 500)
+    m.insert(20, 200)
+    m.insert(40, 400)
+    let keys = m.keys()
     let mut i: i32 = 0
     while i < len(keys) {
         stdio::println((get_unchecked(keys, i)).to_string())
         i = i + 1
     }
-    let range: Vec<i32> = ordered::btree_range(m, 20, 45)
+    let range = m.range(20, 45)
     stdio::println((len(range)).to_string())
     let mut j: i32 = 0
     while j < len(range) {

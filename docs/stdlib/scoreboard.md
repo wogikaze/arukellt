@@ -10,7 +10,7 @@
 | `std::collections::hash` | 42 | 42 | 0 | 0 | 0 | 41/42 (98%) | no |
 | `std::collections::linear` | 18 | 7 | 0 | 0 | 11 | 7/7 (100%) | no |
 | `std::collections::linked_list` | 11 | 0 | 0 | 0 | 11 | 0/0 (—) | no |
-| `std::collections::ordered` | 37 | 10 | 0 | 27 | 0 | 36/37 (97%) | no |
+| `std::collections::ordered` | 10 | 0 | 0 | 0 | 10 | 0/0 (—) | no |
 | `std::host::fs` | 3 | 0 | 0 | 3 | 0 | **0/3 (0%)** | yes |
 | `std::host::process` | 3 | 3 | 0 | 0 | 0 | 3/3 (100%) | yes |
 | `std::host::random` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
@@ -21,7 +21,7 @@
 | `std::signal` | 10 | 10 | 0 | 0 | 0 | 7/10 (70%) | no |
 | `std::test` | 18 | 17 | 0 | 1 | 0 | 18/18 (100%) | no |
 
-**Total**: 270 APIs, 164 stable, 10 provisional, 31 experimental, 65 deprecated, 196/205 (96%) fixture coverage
+**Total**: 243 APIs, 154 stable, 10 provisional, 4 experimental, 75 deprecated, 160/168 (95%) fixture coverage
 
 ## Legend
 

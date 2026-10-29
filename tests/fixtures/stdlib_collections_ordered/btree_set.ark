@@ -1,14 +1,14 @@
-use std::collections::ordered
+use std::collections::ordered::BTreeSet
 use std::host::stdio
 
 fn main() {
-    let mut s: Vec<i32> = ordered::btree_set_new()
-    stdio::println((ordered::btree_set_insert(s, 30)).to_string())
-    stdio::println((ordered::btree_set_insert(s, 10)).to_string())
-    stdio::println((ordered::btree_set_insert(s, 20)).to_string())
-    stdio::println((ordered::btree_set_insert(s, 10)).to_string())
-    stdio::println((ordered::btree_set_len(s)).to_string())
-    stdio::println((ordered::btree_set_contains(s, 10)).to_string())
-    stdio::println((ordered::btree_set_contains(s, 20)).to_string())
-    stdio::println((ordered::btree_set_contains(s, 99)).to_string())
+    let mut s = BTreeSet::new()
+    stdio::println((s.insert(30)).to_string())
+    stdio::println((s.insert(10)).to_string())
+    stdio::println((s.insert(20)).to_string())
+    stdio::println((s.insert(10)).to_string())
+    stdio::println((s.len()).to_string())
+    stdio::println((s.contains(10)).to_string())
+    stdio::println((s.contains(20)).to_string())
+    stdio::println((s.contains(99)).to_string())
 }

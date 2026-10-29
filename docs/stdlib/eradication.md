@@ -15,20 +15,20 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 301 `pub fn` declarations under
-`std/**/*.ark`; 297 map to a manifest entry and
-4 are unregistered. Eradication scope = 270 manifest
-public entries + 4 unregistered declarations = **274 symbols**.
+**Real surface denominator:** 273 `pub fn` declarations under
+`std/**/*.ark`; 270 map to a manifest entry and
+3 are unregistered. Eradication scope = 243 manifest
+public entries + 3 unregistered declarations = **246 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 274 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 301 | — |
-| Unregistered std declarations (no manifest entry) | 4 | 0 |
+| Eradication-scope symbols (real std surface) | 246 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 273 | — |
+| Unregistered std declarations (no manifest entry) | 3 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
-| Manifest public entries (registered scope) | 270 | 0 |
+| Manifest public entries (registered scope) | 243 | 0 |
 | `prelude_wrapper` entries | 64 | 0 |
 | Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 50 | 0 |
 | `intrinsic-only` bridges (non-public) | 1 | — |
@@ -38,7 +38,7 @@ public entries + 4 unregistered declarations = **274 symbols**.
 | Class | Meaning | Symbols |
 |-------|---------|---------|
 | `must delete` | Replacement already exists or functionality retires | 66 |
-| `associated-or-method` | Replacement must land as method/associated first | 208 |
+| `associated-or-method` | Replacement must land as method/associated first | 180 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
 ## Execution Rules
@@ -61,7 +61,7 @@ registered entries and unregistered `pub fn` declarations.
 | std::io and host stdio frees | `associated-or-method` | [#693](../../issues/open/693-read-write-traits-io-unification.md) | 9 | 1 | Read / Write / BufRead / Seek trait methods and the typed std::io Stdout / Stderr Write handles. writer_write / writer_write_str were deleted with E0100 hints pointing at io::Stdout::new().write(...) / io::Stderr::new().write(...); the remaining free functions are the host-backed compatibility surface (stdin / stdout / stderr / read_stdin_line / print_bytes / print / println / eprintln), not the target API (#693). |
 | std::test assert frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 18 | 0 | std::test module functions; the Test associated API referenced by #719 was never implemented, so the harness-surface replacement is still open |
 | std::seq remaining | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 9 | 0 | Slice/Vec methods (sort_by, binary_search family) |
-| std::collections frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 86 | 3 | collection type methods (HashMap/HashSet/Deque/BTree/SortedMap/Arena/SlotMap/Interner/Bimap/Trie/etc.) |
+| std::collections frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 59 | 2 | collection type methods (HashMap/HashSet/Deque/BTree/SortedMap/Arena/SlotMap/Interner/Bimap/Trie/etc.) |
 | host/core namespace frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 28 | 0 | Fs / Env / Process / Clock / Random / Cli / Path / Signal associated functions and methods; the std::host::env frees are `Env::args` / `Env::var` / `Env::arg_count` / `Env::arg_at` / `Env::var_or_default` / `Env::has_flag` from `use std::host::env::Env`; the std::host::fs and legacy std::fs path frees are `Fs::read_to_string` / `read_bytes` / `write_string` / `write_bytes` / `is_readable_file` / `is_file` / `is_dir` / `read_dir` / `metadata` from `use std::host::fs::Fs`; the std::core range/order/error/hash frees retired behind `Range::new` / `r.contains(value)` / `r.len()` / `RangeInclusive::new` / `r.contains(value)` / `a.cmp(b)` / `e.message()` / `h1.combine_hash(h2)`; the sealed raw bridges are `RawArray` / `RawString` / `RawFloat` associated functions (stdlib-only) |
 
 ## Inventory (manifest entries)
@@ -245,37 +245,10 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `pq_peek` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `pq_pop` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `pq_push` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `bitset_clear` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `bitset_count` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `bitset_intersection` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `bitset_mark` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `bitset_new` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `bitset_set` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `bitset_test` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `bitset_union` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `bitset_unmark` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `bitset_with_capacity` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `btree_contains_key` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `btree_get` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `btree_insert` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `btree_keys` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `btree_len` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `btree_new` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `btree_range` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `btree_remove` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `btree_set_contains` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `btree_set_insert` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `btree_set_len` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `btree_set_new` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `index_map_get` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `index_map_insert` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `index_map_keys` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `index_map_len` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `index_map_new` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `index_set_contains` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `index_set_insert` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `index_set_len` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `index_set_new` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `sorted_map_contains` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `sorted_map_find_idx` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `sorted_map_get` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
@@ -351,6 +324,5 @@ manifest-only scorecard could not see before #703.
 | Declaration | Source | Module | Class | Rule | Owner |
 |-------------|--------|--------|-------|------|-------|
 | `hashmap_entry_pairs` | `std/collections/hash.ark:347` | `std::collections::hash` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `btree_set_find_idx` | `std/collections/ordered.ark:164` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `new_i32` | `std/collections/vec.ark:24` | `std::collections::vec` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `io_error_message` | `std/io/mod.ark:73` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |

@@ -1793,6 +1793,109 @@ Qualified old calls fail with **E0100** and the
 `resolver::removed_names::removed_bimap_member_hint` /
 `removed_trie_member_hint` replacement hint.
 
+## std::collections ordered type surface (ADR-046 / ADR-087, 2026-10-29)
+
+The 37 `std::collections::ordered` free functions split by lifecycle in the
+[#917](https://github.com/wogikaze/arukellt/issues/917) ordered-group wave:
+27 `experimental` entries were deleted under ADR-014 D4, and the 10 `stable`
+entries are deprecated through the ADR-087 window. The replacement for both
+groups is the receiver surface on `SortedMap`, `BTreeMap`, `BTreeSet`,
+`IndexMap`, `IndexSet`, and `BitSet`.
+
+### Retired (27 experimental frees)
+
+These entries were `experimental`, so no deprecation window or W0009 entry
+applies. Qualified old calls fail with **E0100** and the
+`resolver::removed_names::removed_ordered_member_hint` replacement hint.
+
+| Removed free | Replacement |
+|--------------|-------------|
+| `ordered::btree_new()` | `BTreeMap::new()` |
+| `ordered::btree_insert(m, k, v)` | `m.insert(k, v)` |
+| `ordered::btree_get(m, k)` | `m.get(k)` |
+| `ordered::btree_remove(m, k)` | `m.remove(k)` |
+| `ordered::btree_contains_key(m, k)` | `m.contains_key(k)` |
+| `ordered::btree_len(m)` | `m.len()` |
+| `ordered::btree_keys(m)` | `m.keys()` (`Vec<i32>`, ascending) |
+| `ordered::btree_range(m, s, e)` | `m.range(s, e)` (`[s, e)`) |
+| `ordered::btree_set_new()` | `BTreeSet::new()` |
+| `ordered::btree_set_insert(s, v)` | `s.insert(v)` (`bool`) |
+| `ordered::btree_set_contains(s, v)` | `s.contains(v)` |
+| `ordered::btree_set_len(s)` | `s.len()` |
+| `ordered::btree_set_find_idx(s, v)` | `s.contains(v)` / `s.insert(v)` (no public index probe) |
+| `ordered::index_map_new()` | `IndexMap::new()` |
+| `ordered::index_map_insert(m, k, v)` | `m.insert(k, v)` |
+| `ordered::index_map_get(m, k)` | `m.get(k)` |
+| `ordered::index_map_len(m)` | `m.len()` |
+| `ordered::index_map_keys(m)` | `m.keys()` (insertion order) |
+| `ordered::index_set_new()` | `IndexSet::new()` |
+| `ordered::index_set_insert(s, v)` | `s.insert(v)` (`bool`) |
+| `ordered::index_set_contains(s, v)` | `s.contains(v)` |
+| `ordered::index_set_len(s)` | `s.len()` |
+| `ordered::bitset_set(bs, b)` | `bits.set(b)` |
+| `ordered::bitset_clear(bs, b)` | `bits.clear(b)` |
+| `ordered::bitset_with_capacity(n)` | `BitSet::with_capacity(n)` |
+| `ordered::bitset_count(bs)` | `bits.count()` |
+| `ordered::bitset_union(a, b)` | `a.union(b)` |
+| `ordered::bitset_intersection(a, b)` | `a.intersection(b)` |
+
+```ark
+// Before
+use std::collections::ordered
+let mut m = ordered::btree_new()
+ordered::btree_insert(m, 1, 100)
+
+// After
+use std::collections::ordered::BTreeMap
+let mut m = BTreeMap::new()
+m.insert(1, 100)
+```
+
+### Deprecated (10 stable frees, ADR-087 window)
+
+The `sorted_map_*` and `bitset_new/mark/unmark/test` entries stay callable for
+now, emit **W0009** on a qualified call, and carry
+`deprecated_since = "0.1.0"` / `remove_in = "1.0.0"` (the 0.x exception makes
+`remove_in` an upper bound). A later Wave 2 deletion removes them once the
+ADR-087 conditions are reconfirmed.
+
+| Deprecated free | Replacement |
+|-----------------|-------------|
+| `ordered::sorted_map_new()` | `SortedMap::new()` |
+| `ordered::sorted_map_len(m)` | `m.len()` |
+| `ordered::sorted_map_find_idx(m, k)` | `m.find_idx(k)` |
+| `ordered::sorted_map_get(m, k)` | `m.get(k)` |
+| `ordered::sorted_map_contains(m, k)` | `m.contains(k)` |
+| `ordered::sorted_map_insert(m, k, v)` | `m.insert(k, v)` |
+| `ordered::bitset_new()` | `BitSet::new()` |
+| `ordered::bitset_mark(bs, b)` | `bits.mark(b)` |
+| `ordered::bitset_unmark(bs, b)` | `bits.unmark(b)` |
+| `ordered::bitset_test(bs, b)` | `bits.test(b)` |
+
+```ark
+// Before (deprecated, still callable with W0009)
+use std::collections::ordered
+let mut m = ordered::sorted_map_new()
+ordered::sorted_map_insert(m, 1, 100)
+
+// After
+use std::collections::ordered::SortedMap
+let mut m = SortedMap::new()
+m.insert(1, 100)
+```
+
+### Behaviour correction in the shared store
+
+The sorted pair vector used by `SortedMap` and `BTreeMap` shifted entries with
+a key-only offset: inserting or removing a key in the middle could move a key
+without its value and leave a stale pair behind. The ordered surface moves
+whole `(key, value)` pairs now, and
+`tests/fixtures/stdlib_collections_ordered/{btree_basic,btree_keys,ordered_map_methods}`
+and `tests/fixtures/stdlib_ordered/ordered_basic` pin the corrected values as
+well as the key order. The deprecated free
+functions share the corrected helpers, so they receive the same fix during
+their window.
+
 ## Planned Deprecations
 
 The following APIs are scheduled for deprecation via the same monomorphic →
