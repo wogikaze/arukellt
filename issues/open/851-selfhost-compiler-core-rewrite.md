@@ -165,3 +165,20 @@ fmt --check、verify lane は PASS。receipts:
 
 次の作業: `name_index_find_slot` の probe 数（5.9%）と enum base index の
 O(types×variants) を削る。body_emit/typecheck は Phase 3/4 の本丸。
+
+### 2026-10-29 更新（alloc-free matcher を pin に焼き込み）
+
+alloc-free matcher（`85568bde0`）を gc pin に焼き込み、`35a2585a…`
+（8,522,488 B）へ refresh した。p1 identity は `02bd6917…`（前 pin の
+stage-2 s2 とバイト一致）、gc self-reproduction は `80469233…`、
+`--version` は gc flags 付きで `arukellt 0.1.0`。
+
+refresh 後の実測（quiet、`.build/pinnew-verify`）:
+- build-compiler warm **28.2 s**（cold 60.4 s、pin の AOT 生成込み）
+- fixpoint **29.2 s**、s2 == s3 == `02bd6917…`
+- stdlib_json fixture parity PASS
+
+これでユーザー目標 `min(0.3x, 30 s)` の build-compiler 側（30 s）を満たした。
+gc overlay gate（ADR-053）は quiet 30.25 s で、10 s には Phase 3/4 の
+構造変更が必要。なお v2 の index/hash 変更（`15606318d`）は同一条件
+A/B で wall/guest とも有意差なしだったため revert 済み（`fca9acf34`）。

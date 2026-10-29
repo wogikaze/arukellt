@@ -5688,7 +5688,7 @@ def _ensure_current_selfhost(root: Path, wasmtime: str, pinned: Path) -> tuple[P
     print(
         f"{YELLOW}[selfhost] s2 is older than the compiler source; rebuilding "
         f"with {_find_pinned_wasm(root)}. The official gc pin builds this in "
-        f"~40 s; a core fallback pin costs 20-40 min.{NC}",
+        f"~28-30 s warm; a core fallback pin costs 20-40 min.{NC}",
         file=sys.stderr,
         flush=True,
     )

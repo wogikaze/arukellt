@@ -9,19 +9,29 @@ the trusted bootstrap base for selfhost verification (see
 `bootstrap/arukellt-selfhost.wasm` is the current stage-2 compiler packaged as
 a `wasm32-gc` / `wasi-p2` command component, so the compiler itself executes
 on Wasmtime's GC instead of the linear-memory host. Compiling the bootstrap
-overlay with this pin takes ~40 s (the previous core pin took ~34 min on the
-same source) and RSS is roughly half.
+overlay with this pin takes ~28–32 s warm (the previous core pin took ~34 min
+on the same source; the first run after a pin refresh adds ~30 s while the
+component's AOT image is built).
 
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 8 513 357 bytes |
-| sha256 | `3c02d18b254709e25065a0e06c82bf08f8fd54a6ad7378a85a61fb5e433a4ee9` |
-| Built from commit | `5784e58af` (selfhost source baked into this artifact) |
+| Size | 8 522 488 bytes |
+| sha256 | `35a2585ad105d7105b2bf545275ceb1cd8cd2fca70d8850d37c11b2812fa5e1e` |
+| Built from commit | `fca9acf34` (tree identical to `85568bde0`: allocation-free qualified-name matchers) |
 | Build target | `wasm32-gc` / `wasi-p2` component, cm32p2 command wrapper |
-| Producer | A gc compiler built from the same source by the previous core pin compiled the overlay to `wasm32-gc` with `--emit component`; `wasm-tools component embed/new` packaged it |
-| p1 identity | Compiling the overlay with `--target wasm32 --wasi-version wasi-p1` writes `56e7ff6af053b8add4ee310213092a581dbdda5661b1d7850c73beddde33eebd`, byte-identical to the stage-2 s2 the previous core pin produced |
-| Self-reproduction | Compiling the overlay to `wasm32-gc --emit component` writes core `93aa0e6bf39779e5803b0ba650666c969ede0fb8e60216025e281792726420ac`, the core this component packages |
+| Producer | The previous gc pin (`3c02d18b…`) compiled the overlay to `wasm32-gc` with `--emit component`; `wasm-tools component embed/new` packaged it |
+| p1 identity | Compiling the overlay with `--target wasm32 --wasi-version wasi-p1` writes `02bd69173e8f068316d931939aaaace8d528631ad7fc35e660ffedb532d4ad34`, byte-identical to the stage-2 s2 the previous pin produced |
+| Self-reproduction | Compiling the overlay to `wasm32-gc --emit component` writes core `80469233b7b9bce1ca630b743bf9695573482344895e9ff6dfbb51aa19589d26`, the core this component packages |
+
+The `3c02d18b` refresh restored the gc host after the 2026-10-28 core pin
+retired it; this refresh keeps that host and bakes in the 2026-10-29
+allocation-free matcher changes (`corehir::name_match`, enum-variant / callee
+spelling / signature-registry leaf comparisons), which cut the overlay's guest
+time by ~9% and its `inloop_emit` phase by ~27%. p1 identity and
+self-reproduction were re-verified against the previous pin; the emitted s2 is
+byte-identical to the previous pin's s2 for this source, so no behavioural
+drift is introduced by the refresh itself.
 
 Why the change: the 2026-10-28 core pin refresh retired the gc-host component
 because the current compiler did not emit a valid `wasm32-gc` self-build.

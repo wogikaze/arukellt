@@ -89,12 +89,12 @@ closure_capture/nested_capture fixtures produce 5/6/7 and 5/10 on both
 targets; two mutable-borrow nested captures of one source are E0214.
 The retired
 capability diagnostic E0220 no longer exists in the implementation.
-The committed pinned bootstrap (sha256 `3c02d18b…`) is a wasm32-gc / wasi-p2
+The committed pinned bootstrap (sha256 `35a2585a…`) is a wasm32-gc / wasi-p2
 component and executes the compiler on Wasm GC, cutting a self-build from
-~34 min to ~40 s. `selfhost build-compiler` retains the guarded, source-only
+~34 min to ~28–32 s. `selfhost build-compiler` retains the guarded, source-only
 structural overlay as a fallback path for older pinned artifacts; the
 checked-in prelude and user artifacts are unchanged. The bootstrap chain on
-the current source is fixpoint-clean (`s2 == s3`, sha256 `56e7ff6a…`).
+the current source is fixpoint-clean (`s2 == s3`, sha256 `02bd6917…`).
 
 ### Language v2 trait core (#856 / ADR-062)
 

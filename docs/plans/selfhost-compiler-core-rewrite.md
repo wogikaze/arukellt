@@ -14,10 +14,11 @@ Last updated: 2026-10-29
 ## gc-host pin 復帰（2026-10-29）
 
 `bootstrap/arukellt-selfhost.wasm` を wasm32-gc / wasi-p2 component pin
-（`3c02d18b…`）に更新した。overlay の p1 コンパイルは warm **35.8 s**、
-fixpoint は **34.1 s**（更新前の core pin は 2011 s / 34 分）。p1 出力は旧
-core pin の s2 `56e7ff6a…` とバイト一致し、gc self-reproduction は
-`93aa0e6b…` で一致する。`BOOTSTRAP_EMIT_*` は wasm32 / wasi-p1 のまま据え置き。
+（`3c02d18b…`）に戻し、同日 2 回目の refresh で alloc-free matcher
+（`85568bde0`）を焼き込んだ（`35a2585a…`、p1 identity `02bd6917…`、
+gc self-reproduction `80469233…`）。refresh 後の実測は build-compiler
+warm **28.2 s**（旧 core pin は 2011 s / 34 分）、fixpoint **29.2 s**、
+s2 == s3 == `02bd6917…`。`BOOTSTRAP_EMIT_*` は wasm32 / wasi-p1 のまま据え置き。
 残る ≤10 s 目標は Phase 3 以降で詰める。
 
 ### 現行床（2026-10-29、gc pin、clean `7438a59fb`）
@@ -27,6 +28,11 @@ core pin の s2 `56e7ff6a…` とバイト一致し、gc self-reproduction は
 | gc pin cwasm host（AOT、通常 overlay、wasm32-gc 出力） | median **39.1 s** / p95 39.6 s | 1.10 GiB |
 | gc pin wasm host（JIT、通常 overlay） | median **40.7 s** / p95 42.1 s | 1.48 GiB |
 | keep-clock gc host（phase 実測用） | median **39.9 s** / p95 40.2 s | 1.50 GiB |
+
+refresh 後の pin（alloc-free matcher 入り）で build-compiler warm **28.2 s** /
+fixpoint **29.2 s**（quiet、2026-10-29）。ユーザー目標
+`min(0.3x, 30 s)` の build-compiler 側は満たした。gc overlay gate の
+median は同一条件 A/B で 31.76 → 30.25 s（guest −8.9%）。
 
 receipts: `851-gc-pin-overlay-aot-20261029.json` /
 `851-gc-pin-overlay-wasm-20261029.json` /

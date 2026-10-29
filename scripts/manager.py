@@ -7475,7 +7475,8 @@ def cmd_selfhost_build_compiler(args: argparse.Namespace) -> int:
     print(f"{GREEN}✓ compiler wasm ready:{NC} {runtime}")
     print(f"  elapsed: {elapsed:.1f}s")
     print(
-        f"  tip: ~40s is the gc-pin full-compile floor. "
+        f"  tip: ~28-30s is the gc-pin full-compile floor (warm; the first run "
+        f"after a pin refresh adds the component AOT build). "
         f"Batch src/compiler edits, rebuild once, then validate many fixtures "
         f"— do not rebuild per single-line try."
     )
