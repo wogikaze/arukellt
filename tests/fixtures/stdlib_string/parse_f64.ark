@@ -1,30 +1,31 @@
+use std::test::Test
 use std::test
 use std::prelude::{parse_f64}
 
 fn main() {
     let r1: Result<f64, String> = parse_f64(String_from("3.14"))
     match r1 {
-        Result::Ok(v) => test::assert_eq_f64(v, 3.14),
+        Result::Ok(v) => Test::assert_eq_f64(v, 3.14),
         Result::Err(e) => Std::panic("expected Ok, got Err"),
     }
     let r2: Result<f64, String> = parse_f64(String_from("-2.5"))
     match r2 {
-        Result::Ok(v) => test::assert_eq_f64(v, -2.5),
+        Result::Ok(v) => Test::assert_eq_f64(v, -2.5),
         Result::Err(e) => Std::panic("expected Ok, got Err"),
     }
     let r3: Result<f64, String> = parse_f64(String_from("42"))
     match r3 {
-        Result::Ok(v) => test::assert_eq_f64(v, 42.0),
+        Result::Ok(v) => Test::assert_eq_f64(v, 42.0),
         Result::Err(e) => Std::panic("expected Ok, got Err"),
     }
     let r4: Result<f64, String> = parse_f64(String_from("0.001"))
     match r4 {
-        Result::Ok(v) => test::assert_eq_string(v.to_string(), "0.001"),
+        Result::Ok(v) => Test::assert_eq_string(v.to_string(), "0.001"),
         Result::Err(e) => Std::panic("expected Ok, got Err"),
     }
     let r5: Result<f64, String> = parse_f64(String_from("xyz"))
     match r5 {
         Result::Ok(v) => Std::panic("expected Err, got Ok"),
-        Result::Err(e) => test::assert_eq_string(e, "parse error: invalid float"),
+        Result::Err(e) => Test::assert_eq_string(e, "parse error: invalid float"),
     }
 }

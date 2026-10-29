@@ -1,6 +1,7 @@
+use std::test::Test
 use std::test
 
 fn main() {
-    test::assert_eq_string((String_from("x")).pad_right(0), "x")
-    test::assert_eq_string((String_from("x")).pad_right(1), "x")
+    Test::assert_eq_string((String_from("x")).pad_right(0), "x")
+    Test::assert_eq_string((String_from("x")).pad_right(1), "x")
 }

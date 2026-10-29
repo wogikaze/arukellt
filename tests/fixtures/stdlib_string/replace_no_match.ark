@@ -1,7 +1,8 @@
+use std::test::Test
 use std::test
 
 fn main() {
     let s = String_from("hello")
-    test::assert_eq_string(s.replace(String_from("zz"), String_from("QQ")), "hello")
-    test::assert_eq_string(s.replace(String_from(""), String_from("Q")), "hello")
+    Test::assert_eq_string(s.replace(String_from("zz"), String_from("QQ")), "hello")
+    Test::assert_eq_string(s.replace(String_from(""), String_from("Q")), "hello")
 }

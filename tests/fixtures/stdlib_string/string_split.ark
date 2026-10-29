@@ -1,10 +1,11 @@
+use std::test::Test
 use std::test
 
 fn main() {
     let s: String = String_from("a,b,c")
     let parts: Vec<String> = s.split(String_from(","))
-    test::assert_eq_i32(len(parts), 3)
-    test::assert_eq_string(get_unchecked(parts, 0), "a")
-    test::assert_eq_string(get_unchecked(parts, 1), "b")
-    test::assert_eq_string(get_unchecked(parts, 2), "c")
+    Test::assert_eq_i32(len(parts), 3)
+    Test::assert_eq_string(get_unchecked(parts, 0), "a")
+    Test::assert_eq_string(get_unchecked(parts, 1), "b")
+    Test::assert_eq_string(get_unchecked(parts, 2), "c")
 }

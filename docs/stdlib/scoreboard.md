@@ -16,11 +16,10 @@
 | `std::host::stdio` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
 | `std::io` | 5 | 5 | 0 | 0 | 0 | 4/5 (80%) | no |
 | `std::process` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | no |
-| `std::seq` | 14 | 0 | 1 | 0 | 13 | 1/1 (100%) | no |
+| `std::seq` | 13 | 0 | 0 | 0 | 13 | 0/0 (—) | no |
 | `std::signal` | 10 | 10 | 0 | 0 | 0 | 7/10 (70%) | no |
-| `std::test` | 18 | 17 | 0 | 1 | 0 | 18/18 (100%) | no |
 
-**Total**: 166 APIs, 85 stable, 2 provisional, 4 experimental, 75 deprecated, 84/91 (92%) fixture coverage
+**Total**: 147 APIs, 68 stable, 1 provisional, 3 experimental, 75 deprecated, 65/72 (90%) fixture coverage
 
 ## Legend
 

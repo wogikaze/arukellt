@@ -1,3 +1,4 @@
+use std::test::Test
 use std::test
 
 fn main() {
@@ -6,5 +7,5 @@ fn main() {
     push(parts, String_from("two"))
     push(parts, String_from("three"))
     let result: String = parts.join(String_from("-"))
-    test::assert_eq_string(result, "one-two-three")
+    Test::assert_eq_string(result, "one-two-three")
 }

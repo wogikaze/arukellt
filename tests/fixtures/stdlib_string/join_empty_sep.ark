@@ -1,3 +1,4 @@
+use std::test::Test
 use std::test
 
 fn main() {
@@ -5,5 +6,5 @@ fn main() {
     push(parts, String_from("a"))
     push(parts, String_from("b"))
     push(parts, String_from("c"))
-    test::assert_eq_string(parts.join(String_from("")), "abc")
+    Test::assert_eq_string(parts.join(String_from("")), "abc")
 }

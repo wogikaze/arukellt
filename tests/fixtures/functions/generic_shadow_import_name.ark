@@ -1,3 +1,4 @@
+use std::test::Test
 // A generic fn declared in the entry module must win the bare-name slot
 // over imported decls sharing the name: `use std::test` transitively loads
 // std::collections::string::to_lower(String). Loaded-module decls register in
@@ -18,8 +19,8 @@ fn main() {
     let b: String = (String_from("ok")).to_lower()
     let c = (11).to_lower()
     let d = (String_from("second")).to_lower()
-    test::assert_eq_i32(a, 7)
-    test::assert_eq_string(b, String_from("ok"))
-    test::assert_eq_i32(c, 11)
-    test::assert_eq_string(d, String_from("second"))
+    Test::assert_eq_i32(a, 7)
+    Test::assert_eq_string(b, String_from("ok"))
+    Test::assert_eq_i32(c, 11)
+    Test::assert_eq_string(d, String_from("second"))
 }

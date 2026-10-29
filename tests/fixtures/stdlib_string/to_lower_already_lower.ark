@@ -1,7 +1,8 @@
+use std::test::Test
 use std::test
 
 fn main() {
     let s = String_from("already lower")
-    test::assert_eq_string(s.to_lower(), "already lower")
-    test::assert_eq_string((String_from("")).to_lower(), "")
+    Test::assert_eq_string(s.to_lower(), "already lower")
+    Test::assert_eq_string((String_from("")).to_lower(), "")
 }

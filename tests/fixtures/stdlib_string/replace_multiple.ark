@@ -1,6 +1,7 @@
+use std::test::Test
 use std::test
 
 fn main() {
-    test::assert_eq_string((String_from("aaa")).replace(String_from("a"), String_from("bb")), "bbbbbb")
-    test::assert_eq_string((String_from("x.x.x")).replace(String_from("."), String_from("-")), "x-x-x")
+    Test::assert_eq_string((String_from("aaa")).replace(String_from("a"), String_from("bb")), "bbbbbb")
+    Test::assert_eq_string((String_from("x.x.x")).replace(String_from("."), String_from("-")), "x-x-x")
 }

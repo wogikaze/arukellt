@@ -1,7 +1,8 @@
+use std::test::Test
 use std::test
 
 fn main() {
     let s: String = String_new()
-    test::assert_eq_i32(len(s), 0)
-    test::assert_true(s.is_empty())
+    Test::assert_eq_i32(len(s), 0)
+    Test::assert_true(s.is_empty())
 }

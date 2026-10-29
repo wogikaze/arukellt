@@ -1,6 +1,7 @@
+use std::test::Test
 use std::test
 
 fn main() {
     let v: Vec<i32> = Vec::new<i32>()
-    test::assert_true(v.is_empty())
+    Test::assert_true(v.is_empty())
 }

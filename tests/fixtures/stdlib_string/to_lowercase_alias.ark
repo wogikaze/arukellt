@@ -1,6 +1,7 @@
+use std::test::Test
 use std::test
 
 fn main() {
-    test::assert_eq_string((String_from("ABC")).to_lower(), "abc")
-    test::assert_eq_string((String_from("MixEd")).to_lower(), "mixed")
+    Test::assert_eq_string((String_from("ABC")).to_lower(), "abc")
+    Test::assert_eq_string((String_from("MixEd")).to_lower(), "mixed")
 }
