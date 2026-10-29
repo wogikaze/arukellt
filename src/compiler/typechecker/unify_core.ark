@@ -60,8 +60,14 @@ fn unify(mut env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
         let b_name = contract_type_access::TypeInfo_name(b)
         if !names::same_type_name(clone(a_name), clone(b_name)) {
             unify_env::type_error(env, "type mismatch: ".concat(a_name.concat(" vs ".concat(b_name))))
+            return a
         }
-        return a
+        // A declaration is TY_STRUCT or TY_ENUM depending on which registry
+        // resolved the name first, so `Wrap<T>` (signature) and `Wrap<i32>`
+        // (constructor value) can disagree on the tag while naming the same
+        // type. Their arguments still have to unify: without it the generic
+        // call never binds T and falls back to the unsubstituted template.
+        return unify_named_type_args(env, a, b)
     }
     if a_tag == b_tag {
         if a_tag == commands::TY_STRUCT() || a_tag == commands::TY_ENUM() || a_tag == commands::TY_RESOURCE() {
@@ -71,26 +77,30 @@ fn unify(mut env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
                 unify_env::type_error(env, "type mismatch: ".concat(a_name.concat(" vs ".concat(b_name))))
             }
         }
-        let ad = unify_resolve::resolve_type_deep(env, a)
-        let bd = unify_resolve::resolve_type_deep(env, b)
-        let ac = contract_type_access::TypeInfo_type_arg_count(ad)
-        let bc = contract_type_access::TypeInfo_type_arg_count(bd)
-        if ac > 0 && bc > 0 {
-            if ac != bc {
-                unify_env::type_error(env, "generic arity mismatch: ".concat(names::type_tag_name(contract_type_access::TypeInfo_tag(ad))))
-            } else {
-                let mut k = 0
-                while k < ac {
-                    let ta = contract_type_access::TypeInfo_type_arg_at(ad, k)
-                    let tb = contract_type_access::TypeInfo_type_arg_at(bd, k)
-                    unify(env, ta, tb)
-                    k = k + 1
-                }
-            }
-        }
-        return a
+        return unify_named_type_args(env, a, b)
     }
     unify_env::type_error(env, type_mismatch_message(a_tag, b_tag))
+    a
+}
+
+// Unify the declared type arguments of two spellings of the same nominal
+// type and return the left operand, matching unify's argument result.
+fn unify_named_type_args(mut env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
+    let ad = unify_resolve::resolve_type_deep(env, a)
+    let bd = unify_resolve::resolve_type_deep(env, b)
+    let ac = contract_type_access::TypeInfo_type_arg_count(ad)
+    let bc = contract_type_access::TypeInfo_type_arg_count(bd)
+    if ac > 0 && bc > 0 {
+        if ac != bc {
+            unify_env::type_error(env, "generic arity mismatch: ".concat(names::type_tag_name(contract_type_access::TypeInfo_tag(ad))))
+        } else {
+            let mut k = 0
+            while k < ac {
+                unify(env, contract_type_access::TypeInfo_type_arg_at(ad, k), contract_type_access::TypeInfo_type_arg_at(bd, k))
+                k = k + 1
+            }
+        }
+    }
     a
 }
 

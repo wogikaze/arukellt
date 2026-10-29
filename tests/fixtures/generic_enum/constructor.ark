@@ -1,0 +1,29 @@
+// Regression: a variant construction must carry the enum's type arguments so
+// a generic caller binds `T` from the value. Without them the call linked
+// against the unsubstituted template and trapped on its `unreachable` body.
+use std::host::stdio
+
+enum Wrap<T> {
+    Some(T),
+    None,
+}
+
+fn keep<T>(w: Wrap<T>) -> bool {
+    match w {
+        Wrap::Some(_) => true,
+        Wrap::None => false,
+    }
+}
+
+fn main() {
+    let wrapped: Wrap<i32> = Wrap::Some(41)
+    if keep(wrapped) {
+        stdio::println("some")
+    }
+    let empty: Wrap<i32> = Wrap::None
+    if keep(empty) {
+        stdio::println("unexpected")
+    } else {
+        stdio::println("none")
+    }
+}

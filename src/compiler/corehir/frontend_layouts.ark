@@ -65,7 +65,18 @@ fn build_enum_layout(decl: AstNode) -> CoreHirLayoutDecl {
         push(variants, build_variant_layout(decl_layout_shape::decl_layout_variant_at(decl, i)))
         i = i + 1
     }
-    layout_decl::CoreHirLayoutDecl_new(commands::COREHIR_DECL_ENUM(), decl_layout_shape::decl_layout_name(decl), fields, variants, Vec::new<String>())
+    // Generic parameters are recorded like a struct's: MIR payload lowering
+    // substitutes them from the scrutinee's instantiation so `Wrap<i32>`
+    // reads `T` as `i32` instead of opening the payload as a GC reference.
+    let mut type_params = Vec::new<String>()
+    let param_count = decl_type_annotations::member_type_ann_count(decl)
+    let mut pi = 0
+    while pi < param_count {
+        let param = decl_type_annotations::member_type_ann_at(decl, pi)
+        push(type_params, decl_layout_shape::decl_layout_member_name(param))
+        pi = pi + 1
+    }
+    layout_decl::CoreHirLayoutDecl_new(commands::COREHIR_DECL_ENUM(), decl_layout_shape::decl_layout_name(decl), fields, variants, type_params)
 }
 
 fn build_layout_decls(decls: Vec<AstNode>) -> Vec<CoreHirLayoutDecl> {

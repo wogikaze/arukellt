@@ -1,10 +1,15 @@
 use typechecker::ast_access
 
-fn infer_call_args(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, start: i32, count: i32) {
+// Infer every argument left to right. The types are returned so callers can
+// constrain a callee that is not a function signature, such as an enum
+// variant constructor whose payload annotation names the enum's parameters.
+fn infer_call_args(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, start: i32, count: i32) -> Vec<TypeInfo> {
+    let mut arg_types = Vec::new<TypeInfo>()
     let mut a = 0
     while a < count {
         let arg_node = ast_access::node_child_at(node, start + a)
-        let _arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
+        push(arg_types, infer_expr(env, scope, fn_sigs, enum_defs, arg_node))
         a = a + 1
     }
+    arg_types
 }

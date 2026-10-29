@@ -78,7 +78,15 @@ fn core_emit_payload_variant_binds(
         // into an unnamed temp and destructure recursively (#902).
         let is_composite_bind = core_expr_shape_patterns::mir_core_expr_is_pat_tuple(bind_pat) ||
         core_expr_shape_patterns::mir_core_expr_is_pat_variant(bind_pat)
-        let mut bind_vt = core_match_payload_bind_types::core_payload_field_vt(ctx, clone(variant_name), bi, scrut_ok_is_f64, scrut_ok_is_i64, scrut_ok_is_ref)
+        let mut bind_vt = core_match_payload_bind_types::core_payload_field_vt(
+            ctx,
+            clone(variant_name),
+            bi,
+            scrut_ok_is_f64,
+            scrut_ok_is_i64,
+            scrut_ok_is_ref,
+            clone(scrut_type)
+        )
         if bi == 0 && core_match_payload_bind_types::core_payload_type_is_fnref(clone(payload_hint)) {
             bind_vt = value_types::VT_FUNCREF()
         }
@@ -94,7 +102,14 @@ fn core_emit_payload_variant_binds(
         } else {
             core_match_payload_bind_types::set_gc_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, bind_vt, bi)
         }
-        if bind_vt != value_types::VT_FUNCREF() && (bind_vt == value_types::VT_GC_REF() || core_match_payload_bind_types::core_payload_gc_field_is_ref(ctx, clone(variant_name), bi)) {
+        let bind_is_ref = bind_vt == value_types::VT_GC_REF() ||
+        core_match_payload_bind_types::core_payload_gc_field_is_ref(
+            ctx,
+            clone(variant_name),
+            bi,
+            clone(scrut_type)
+        )
+        if bind_vt != value_types::VT_FUNCREF() && bind_is_ref {
             if len(ctx_api_local_types::ctx_get_local_type(ctx, bind_local)) == 0 {
                 ctx_api_local_types::ctx_set_local_type(ctx, bind_local, "enum:open")
             }
@@ -149,7 +164,15 @@ fn core_subpat_load_field(
     if field_idx == 0 && is_some_or_ok {
         payload_hint = core_payload_elem_type_from_scrut(clone(scrut_type), true)
     }
-    let mut bind_vt = core_match_payload_bind_types::core_payload_field_vt(ctx, clone(variant_name), field_idx, scrut_ok_is_f64, scrut_ok_is_i64, scrut_ok_is_ref)
+    let mut bind_vt = core_match_payload_bind_types::core_payload_field_vt(
+        ctx,
+        clone(variant_name),
+        field_idx,
+        scrut_ok_is_f64,
+        scrut_ok_is_i64,
+        scrut_ok_is_ref,
+        clone(scrut_type)
+    )
     if field_idx == 0 && core_match_payload_bind_types::core_payload_type_is_fnref(clone(payload_hint)) {
         bind_vt = value_types::VT_FUNCREF()
     }
@@ -160,7 +183,14 @@ fn core_subpat_load_field(
     } else {
         core_match_payload_bind_types::set_gc_payload_bind_type_if_needed(ctx, clone(variant_name), temp, bind_vt, field_idx)
     }
-    if bind_vt != value_types::VT_FUNCREF() && (bind_vt == value_types::VT_GC_REF() || core_match_payload_bind_types::core_payload_gc_field_is_ref(ctx, clone(variant_name), field_idx)) {
+    let bind_is_ref = bind_vt == value_types::VT_GC_REF() ||
+    core_match_payload_bind_types::core_payload_gc_field_is_ref(
+        ctx,
+        clone(variant_name),
+        field_idx,
+        clone(scrut_type)
+    )
+    if bind_vt != value_types::VT_FUNCREF() && bind_is_ref {
         if len(ctx_api_local_types::ctx_get_local_type(ctx, temp)) == 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, temp, "enum:open")
         }

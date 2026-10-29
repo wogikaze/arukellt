@@ -247,7 +247,16 @@ fn should_prefer_annotation(init_ty: TypeInfo, ann_ty: TypeInfo) -> bool {
     let init_tag = contract_type_access::TypeInfo_tag(init_ty)
     let ann_tag = contract_type_access::TypeInfo_tag(ann_ty)
     if init_tag != ann_tag {
-        return false
+        // A declaration resolves as TY_STRUCT or TY_ENUM depending on which
+        // registry named it first, so the same nominal type can disagree
+        // here. Treat that pair as one kind: `let w: Wrap<i32> = Wrap::None`
+        // must keep the annotated instantiation instead of the bare enum the
+        // unit-variant constructor carries (a generic caller needs the args).
+        let nominal_pair = (init_tag == commands::TY_STRUCT() && ann_tag == commands::TY_ENUM()) ||
+        (init_tag == commands::TY_ENUM() && ann_tag == commands::TY_STRUCT())
+        if !nominal_pair {
+            return false
+        }
     }
     if init_tag != commands::TY_VEC() && init_tag != commands::TY_OPTION() && init_tag != commands::TY_ENUM() && init_tag != commands::TY_STRUCT() {
         return false

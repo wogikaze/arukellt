@@ -43,6 +43,11 @@ pub struct LowerCtx {
     // layouts such as Pair<String> on demand.
     generic_struct_names: Vec<String>,
     generic_struct_params: Vec<String>,
+    // Generic enum decl name -> comma-joined declared type parameter names
+    // (Box -> "T"). Match payload lowering instantiates the declared payload
+    // field types with the scrutinee's arguments (Box<i32> -> Owned(i32)).
+    generic_enum_names: Vec<String>,
+    generic_enum_params: Vec<String>,
     // Pending let-annotation instantiation (Pair<String>) consulted by
     // struct literal lowering so the literal picks the annotation's
     // monomorphized layout over field-value inference. Set/restored

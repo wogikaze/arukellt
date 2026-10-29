@@ -7,11 +7,12 @@ use mir::lower::ctx_api_module
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
+use mir::lower::ctx_struct_mono
 use mir::lower::ctx_types
 use mir::module_functions
 use mir::value_types
-fn mir_payload_field_vt(ctx: LowerCtx, variant_name: String, field_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool) -> i32 {
-    mir_payload_field_vt_for_payload(ctx, variant_name, field_idx, scrut_ok_is_f64, scrut_ok_is_i64, String_new())
+fn mir_payload_field_vt(ctx: LowerCtx, variant_name: String, field_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool, scrut_type: String) -> i32 {
+    mir_payload_field_vt_for_payload(ctx, variant_name, field_idx, scrut_ok_is_f64, scrut_ok_is_i64, String_new(), scrut_type)
 }
 
 fn mir_payload_field_vt_for_payload(
@@ -20,14 +21,16 @@ fn mir_payload_field_vt_for_payload(
     field_idx: i32,
     scrut_ok_is_f64: bool,
     scrut_ok_is_i64: bool,
-    payload_type_name: String
+    payload_type_name: String,
+    scrut_type: String
 ) -> i32 {
-    let declared_field_type = if len(payload_type_name) > 0 {
-        ctx_struct_field_type::ctx_struct_field_type_name_for_payload(ctx, clone(variant_name), field_idx + 1, clone(payload_type_name))
-    } else {
-        ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
-    }
-    let field_type = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(declared_field_type))
+    let field_type = mir_variant_payload_type_name_for_scrut(
+        ctx,
+        clone(variant_name),
+        field_idx,
+        payload_type_name,
+        clone(scrut_type)
+    )
     // Scrutinee-derived Option/Result payload types must win over a stale
     // first-name Option::Some(i32) layout when selecting the bind VT.
     if len(payload_type_name) > 0 && field_idx == 0 {
@@ -90,10 +93,133 @@ fn mir_payload_field_vt_for_payload(
             return value_types::VT_I64()
         }
     }
-    if ctx_gc_enum::ctx_is_gc_target(ctx) && mir_payload_gc_field_is_ref(ctx, clone(variant_name), field_idx) {
+    if ctx_gc_enum::ctx_is_gc_target(ctx) && mir_payload_gc_field_is_ref(ctx, clone(variant_name), field_idx, String_new()) {
         return value_types::VT_GC_REF()
     }
     value_types::VT_I32()
+}
+
+// Declared payload field type with the owning enum's declared type
+// parameters substituted from the scrutinee's instantiation. A generic
+// variant payload keeps `T` in the layout registry, so `Wrap<i32>` would
+// otherwise read the payload as an open GC reference: the bind VT and the
+// GC variant slot would then disagree with the constructor's `i32` field.
+fn mir_variant_payload_type_name_for_scrut(
+    ctx: LowerCtx,
+    variant_name: String,
+    field_idx: i32,
+    payload_type_name: String,
+    scrut_type: String
+) -> String {
+    let declared = if len(payload_type_name) > 0 {
+        ctx_struct_field_type::ctx_struct_field_type_name_for_payload(
+            ctx,
+            clone(variant_name),
+            field_idx + 1,
+            payload_type_name
+        )
+    } else {
+        ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+    }
+    let resolved = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(declared))
+    let source = if len(resolved) > 0 {
+        resolved
+    } else {
+        declared
+    }
+    if len(source) == 0 || len(scrut_type) == 0 {
+        return source
+    }
+    let layout_name = ctx_struct_field_type::ctx_resolve_variant_layout_name(ctx, clone(variant_name))
+    let base = mir_variant_enum_base_name(clone(layout_name))
+    if len(base) == 0 {
+        return source
+    }
+    let params = ctx_struct_mono::ctx_split_declared_params(
+        ctx_struct_mono::ctx_generic_enum_params(ctx, clone(base))
+    )
+    if len(params) == 0 {
+        return source
+    }
+    let args = mir_scrut_type_args_for_base(clone(scrut_type), clone(base))
+    if len(args) == 0 || len(args) != len(params) {
+        return source
+    }
+    ctx_mono_type_params::ctx_resolve_mono_type_name(
+        ctx,
+        ctx_struct_mono::ctx_substitute_generic_field_type(source, params, args)
+    )
+}
+
+// Variant layout name `Enum::Variant` (possibly module-qualified) -> enum base.
+fn mir_variant_enum_base_name(layout_name: String) -> String {
+    let n = len(layout_name)
+    let mut last_sep = 0 - 1
+    let mut i = 0
+    while i + 1 < n {
+        if layout_name.byte_at(i) == 58 && layout_name.byte_at(i + 1) == 58 {
+            last_sep = i
+            i = i + 2
+            continue
+        }
+        i = i + 1
+    }
+    if last_sep <= 0 {
+        return String_new()
+    }
+    layout_name.slice(0, last_sep)
+}
+
+// Type arguments of an instantiated spelling (`Wrap<i32>` / `?Wrap:i32` /
+// `enum:Wrap<i32>`) when its head names base; empty on any mismatch.
+fn mir_scrut_type_args_for_base(scrut_type: String, base: String) -> Vec<String> {
+    let mut args = Vec::new<String>()
+    let mut s = clone(scrut_type)
+    if clone(s).starts_with("enum:") {
+        s = s.slice(5, len(s))
+    } else if clone(s).starts_with("struct:") {
+        s = s.slice(7, len(s))
+    }
+    if clone(s).starts_with("?") {
+        s = s.slice(1, len(s))
+    }
+    let lt = clone(s).index_of(String_from("<"))
+    if lt > 0 && clone(s).ends_with(String_from(">")) {
+        if !eq(clone(s).slice(0, lt), clone(base)) {
+            return args
+        }
+        return ctx_mono_type_params::ctx_split_top_level_type_args(s.slice(lt + 1, len(s) - 1))
+    }
+    let prefix = clone(base).concat(String_from(":"))
+    if !clone(s).starts_with(clone(prefix)) {
+        return args
+    }
+    mir_split_colon_type_args(s.slice(len(prefix), len(s)))
+}
+
+// Split `A:B:C` argument text on encoding colons, keeping `Module::Type`
+// path separators intact.
+fn mir_split_colon_type_args(inner: String) -> Vec<String> {
+    let mut args = Vec::new<String>()
+    let n = len(inner)
+    if n == 0 {
+        return args
+    }
+    let mut seg_start = 0
+    let mut i = 0
+    while i < n {
+        if clone(inner).byte_at(i) == 58 {
+            if i + 1 < n && clone(inner).byte_at(i + 1) == 58 {
+                i = i + 2
+                continue
+            }
+            push(args, clone(inner).slice(seg_start, i))
+            seg_start = i + 1
+        }
+        i = i + 1
+    }
+    push(args, clone(inner).slice(seg_start, n))
+    args
 }
 
 fn mir_payload_type_name_is_gc_ref_payload(type_name: String) -> bool {
@@ -129,10 +255,13 @@ fn mir_variant_has_fnref_payload_field(ctx: LowerCtx, variant_name: String) -> b
     false
 }
 
-fn mir_payload_gc_field_is_ref(ctx: LowerCtx, variant_name: String, field_idx: i32) -> bool {
-    let declared_type = ctx_mono_type_params::ctx_resolve_mono_type_name(
+fn mir_payload_gc_field_is_ref(ctx: LowerCtx, variant_name: String, field_idx: i32, scrut_type: String) -> bool {
+    let declared_type = mir_variant_payload_type_name_for_scrut(
         ctx,
-        ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+        clone(variant_name),
+        field_idx,
+        String_new(),
+        clone(scrut_type)
     )
     if len(declared_type) > 0 {
         if mir_payload_scalar_type_name(clone(declared_type)) ||

@@ -625,6 +625,8 @@ run:functions/multiple_params.ark
 run:functions/pub_fn.ark
 run:functions/recursive.ark
 run:functions/return_value.ark
+run:generic_enum/constructor.ark
+run:generic_enum/payload_match.ark
 run:generics/identity_bool.ark
 run:generics/identity_i32.ark
 run:generics/identity_string.ark
@@ -3000,6 +3002,8 @@ t3-run:functions/multiple_params.ark
 t3-run:functions/pub_fn.ark
 t3-run:functions/recursive.ark
 t3-run:functions/return_value.ark
+t3-run:generic_enum/constructor.ark
+t3-run:generic_enum/payload_match.ark
 t3-run:generics/identity_bool.ark
 t3-run:generics/identity_i32.ark
 t3-run:generics/identity_string.ark

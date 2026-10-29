@@ -38,6 +38,7 @@ fn LowerCtx_new_for_target(m: MirModule, target: String, source_text: String, fn
         struct_names: Vec::new<String>(), struct_field_counts: Vec::new<i32>(),
         struct_all_fields: Vec::new<String>(), struct_field_types: Vec::new<String>(),
         generic_struct_names: Vec::new<String>(), generic_struct_params: Vec::new<String>(),
+        generic_enum_names: Vec::new<String>(), generic_enum_params: Vec::new<String>(),
         expected_struct_inst: String_new(),
         struct_layout_first_index: name_index::NameIndex_empty(),
         struct_layout_struct_index: name_index::NameIndex_empty(),

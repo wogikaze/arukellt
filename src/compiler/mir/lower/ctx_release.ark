@@ -30,6 +30,8 @@ fn ctx_release_lowering_scratch(mut ctx: LowerCtx) {
     ctx.struct_field_types = Vec::new<String>()
     ctx.generic_struct_names = Vec::new<String>()
     ctx.generic_struct_params = Vec::new<String>()
+    ctx.generic_enum_names = Vec::new<String>()
+    ctx.generic_enum_params = Vec::new<String>()
     ctx.expected_struct_inst = String_new()
     ctx.local_types = Vec::new<String>()
     ctx.local_type_indices = Vec::new<i32>()

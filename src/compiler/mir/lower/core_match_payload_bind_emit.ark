@@ -35,7 +35,12 @@ fn emit_payload_field_bind(mut ctx: LowerCtx, variant_name: String, bi: i32, scr
         eq(clone(bind_ty), "i32") ||
         eq(clone(bind_ty), "i64") ||
         eq(clone(bind_ty), "f64")
-        if !scalar_bind && core_match_payload_bind_types::core_payload_gc_field_is_ref(ctx, clone(variant_name), bi) {
+        if !scalar_bind && core_match_payload_bind_types::core_payload_gc_field_is_ref(
+            ctx,
+            clone(variant_name),
+            bi,
+            ctx_api_local_types::ctx_get_local_type(ctx, scrut_idx)
+        ) {
             effective_vt = value_types::VT_GC_REF()
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
             if len(ctx_api_local_types::ctx_get_local_type(ctx, bind_local)) == 0 {
