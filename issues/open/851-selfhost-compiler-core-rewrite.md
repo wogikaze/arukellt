@@ -200,3 +200,21 @@ gc host 自己再生成も byte 一致。同日の #944/#917 batch に同梱さ�
 
 merge 後 HEAD（`a7292c683`）実測: build-compiler warm 55.6 s / user 45.9 s
 （負荷 ~20）、fixpoint PASS（s2 == s3 == `e6fbb279…`）。
+
+### 2026-10-29 更新（gc struct slot index）
+
+`MirModule_gc_struct_slot` の線形走査を `MirModule.gc_struct_slot_index`
+（NameIndex、insert_first で first-match 維持）で O(1) 化した。
+命令数 A/B: **248.28 → 239.28 G instructions（−3.62%、2 run で再現）**、
+overlay gc 出力バイト一致、gc host の自己コンパイルが自身の s2
+`8fdebc10…` を再現、fixture 4/4 バイト一致。layout index（−1.9%）と合わせて
+累積 **−5.4%**。`f1ce43311` merge に同梱され履歴に残った。
+
+注意: 並行セッションが同じ checkout で commit するため、s2 と fixpoint の
+source がずれることがある（実際に一度 fixpoint 不一致になったが、原因は
+source レースで、HEAD `ba4811c9b` から s2/s3 を再ビルドすると
+s2 == s3 == `152f13d9…` で PASS）。fixpoint は source 変更後に同一 source から
+再ビルドして評価する。
+
+HEAD `ba4811c9b` の実測: build-compiler warm **31.5 s** / user 30.4 s（負荷 ~4）、
+stdlib_json / generics_v1 parity PASS。

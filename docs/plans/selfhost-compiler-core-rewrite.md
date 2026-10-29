@@ -121,6 +121,21 @@ merge 後の HEAD（`a7292c683`、#944/#917 取り込み済み）で build-compi
 warm **55.6 s** / user 45.9 s（負荷 ~20、overlay 再生成込み）、fixpoint PASS
 （s2 == s3 == `e6fbb279…`）。quiet 時の 28.2 s は #944 前 source での値。
 
+gc struct slot index（`MirModule.gc_struct_slot_index` で
+`MirModule_gc_struct_slot` の線形走査を O(1) 化）も同じ命令数 A/B で測った:
+**248.28 → 239.28 G instructions（−3.62%、2 run で再現）**、overlay gc 出力は
+バイト一致、gc host の自己コンパイルは自身の s2 `8fdebc10…` を再現、fixture 4/4
+バイト一致。layout index（−1.9%）と合わせて名前走査の除去で累積 **−5.4%**。
+単独では 10% ルールに届かないが、決定論的に効く O(N) scan の除去として残す
+（2026-10-29 の `f1ce43311` merge に同梱された）。
+
+並行セッションが同一 checkout で commit/push するため、s2 と fixpoint の
+source がずれることがある。fixpoint は source 変更後に s2/s3 を同一 source から
+再ビルドして評価する（`fixpoint` の cache を過信しない）。HEAD
+`ba4811c9b` で再ビルドした結果: build-compiler warm **31.5 s** / user 30.4 s
+（負荷 ~4）、fixpoint PASS（s2 == s3 == `152f13d9…`）、stdlib_json /
+generics_v1 parity PASS。
+
 ## 現行床（2026-09-01）
 
 | 条件 | wall | RSS |
