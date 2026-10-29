@@ -34,6 +34,17 @@ fn resolve_unknown_member(mut ctx: ResolveCtx, module: String, name: String, pat
     resolve_error(ctx, String_from("undefined module member: ").concat(path))
 }
 
+// A retired public name can stay in the symbol table as a non-public MIR
+// lowering target. Report the removal with its replacement instead of the
+// generic privacy error, matching the E0100 hint for a deleted declaration.
+fn resolve_retired_private_member(mut ctx: ResolveCtx, module: String, name: String, path: String) -> bool {
+    let hint = removed_names::removed_private_member_hint(clone(module), clone(name))
+    if len(clone(hint)) == 0 {
+        return false
+    }
+    resolve_diagnostic(ctx, codes::DIAG_RESOLVE_UNKNOWN_NAME(), "removed module member: ".concat(path).concat("; ".concat(hint)), 0, 0)
+    true
+}
 
 fn resolve_duplicate_symbol(mut ctx: ResolveCtx, name: String, span_start: i32, span_end: i32) {
     resolve_diagnostic(ctx, codes::DIAG_RESOLVE_DUPLICATE_SYMBOL(), "duplicate definition: ".concat(name), span_start, span_end)
