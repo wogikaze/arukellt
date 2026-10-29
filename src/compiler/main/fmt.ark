@@ -1,14 +1,13 @@
 use std::host::fs::Fs
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{eq}
 use std::text
 use diagnostics::record
 use fmt
 use main::args_record
 fn fmt_write_or_check(input_file: String, output: String, original: String, check: bool, ok_label: String) -> i32 {
     if check {
-        if !eq(output.clone(), original.clone()) {
+        if !output.clone().eq(original.clone()) {
             stdio::eprintln("fmt check failed: ".concat(input_file.clone()))
             return 1
         }

@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::block_inst_access
 use mir::function_block_queries
 use mir::function_identity
@@ -74,7 +73,7 @@ fn stdlib_inline_candidate_is_eligible(
     if len(fallback_symbol) == 0 {
         return false
     }
-    if eq(function_identity::MirFunction_name(caller), function_identity::MirFunction_name(callee)) {
+    if function_identity::MirFunction_name(caller).eq(function_identity::MirFunction_name(callee)) {
         return false
     }
     if inst_accessors_literals::MirInst_int_val(call) != function_param_view::MirFunction_param_count(callee) {

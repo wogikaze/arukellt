@@ -1,44 +1,43 @@
-use std::prelude::{eq}
 use component::contract_helpers
 fn component_fn_is_point_to_i32(f: ComponentExportFunc) -> bool {
     contract_helpers::component_export_param_count_is(f, 1) &&
-    eq(contract_helpers::component_export_param_type_name_at(f, 0), "Point") &&
-    eq(contract_helpers::component_export_return_type_name(f), "i32")
+    contract_helpers::component_export_param_type_name_at(f, 0).eq("Point") &&
+    contract_helpers::component_export_return_type_name(f).eq("i32")
 }
 
 fn component_fn_is_point_point_to_point(f: ComponentExportFunc) -> bool {
     contract_helpers::component_export_param_count_is(f, 2) &&
-    eq(contract_helpers::component_export_param_type_name_at(f, 0), "Point") &&
-    eq(contract_helpers::component_export_param_type_name_at(f, 1), "Point") &&
-    eq(contract_helpers::component_export_return_type_name(f), "Point")
+    contract_helpers::component_export_param_type_name_at(f, 0).eq("Point") &&
+    contract_helpers::component_export_param_type_name_at(f, 1).eq("Point") &&
+    contract_helpers::component_export_return_type_name(f).eq("Point")
 }
 
 fn component_fn_is_point_to_point(f: ComponentExportFunc) -> bool {
     contract_helpers::component_export_param_count_is(f, 1) &&
-    eq(contract_helpers::component_export_param_type_name_at(f, 0), "Point") &&
-    eq(contract_helpers::component_export_return_type_name(f), "Point")
+    contract_helpers::component_export_param_type_name_at(f, 0).eq("Point") &&
+    contract_helpers::component_export_return_type_name(f).eq("Point")
 }
 
 fn component_fn_is_color_to_i32(f: ComponentExportFunc) -> bool {
     contract_helpers::component_export_param_count_is(f, 1) &&
-    eq(contract_helpers::component_export_param_type_name_at(f, 0), "Color") &&
-    eq(contract_helpers::component_export_return_type_name(f), "i32")
+    contract_helpers::component_export_param_type_name_at(f, 0).eq("Color") &&
+    contract_helpers::component_export_return_type_name(f).eq("i32")
 }
 
 fn component_fn_is_color_to_color(f: ComponentExportFunc) -> bool {
     contract_helpers::component_export_param_count_is(f, 1) &&
-    eq(contract_helpers::component_export_param_type_name_at(f, 0), "Color") &&
-    eq(contract_helpers::component_export_return_type_name(f), "Color")
+    contract_helpers::component_export_param_type_name_at(f, 0).eq("Color") &&
+    contract_helpers::component_export_return_type_name(f).eq("Color")
 }
 
 fn component_fn_is_shape_to_f64(f: ComponentExportFunc) -> bool {
     contract_helpers::component_export_param_count_is(f, 1) &&
-    eq(contract_helpers::component_export_param_type_name_at(f, 0), "Shape") &&
-    eq(contract_helpers::component_export_return_type_name(f), "f64")
+    contract_helpers::component_export_param_type_name_at(f, 0).eq("Shape") &&
+    contract_helpers::component_export_return_type_name(f).eq("f64")
 }
 
 fn component_fn_is_shape_to_shape(f: ComponentExportFunc) -> bool {
     contract_helpers::component_export_param_count_is(f, 1) &&
-    eq(contract_helpers::component_export_param_type_name_at(f, 0), "Shape") &&
-    eq(contract_helpers::component_export_return_type_name(f), "Shape")
+    contract_helpers::component_export_param_type_name_at(f, 0).eq("Shape") &&
+    contract_helpers::component_export_return_type_name(f).eq("Shape")
 }

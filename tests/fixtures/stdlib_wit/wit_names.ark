@@ -1,27 +1,26 @@
 // Issue #706: WIT naming helpers through the WitName namespace type.
 use std::host::stdio
-use std::prelude::{eq}
 use std::wit::names
 
 fn main() {
     // to_kebab: snake_case -> kebab-case
-    assert(eq(names::WitName::to_kebab(String_from("my_func")), String_from("my-func")))
+    assert(names::WitName::to_kebab(String_from("my_func")).eq(String_from("my-func")))
     // to_kebab: PascalCase -> kebab-case
-    assert(eq(names::WitName::to_kebab(String_from("MyFunc")), String_from("my-func")))
+    assert(names::WitName::to_kebab(String_from("MyFunc")).eq(String_from("my-func")))
     // to_kebab: already kebab -> unchanged
-    assert(eq(names::WitName::to_kebab(String_from("my-func")), String_from("my-func")))
+    assert(names::WitName::to_kebab(String_from("my-func")).eq(String_from("my-func")))
 
     // to_snake: kebab-case -> snake_case
-    assert(eq(names::WitName::to_snake(String_from("my-func")), String_from("my_func")))
-    assert(eq(names::WitName::to_snake(String_from("parse-markdown")), String_from("parse_markdown")))
+    assert(names::WitName::to_snake(String_from("my-func")).eq(String_from("my_func")))
+    assert(names::WitName::to_snake(String_from("parse-markdown")).eq(String_from("parse_markdown")))
 
     // to_pascal: kebab-case -> PascalCase
-    assert(eq(names::WitName::to_pascal(String_from("my-func")), String_from("MyFunc")))
-    assert(eq(names::WitName::to_pascal(String_from("hello-world")), String_from("HelloWorld")))
+    assert(names::WitName::to_pascal(String_from("my-func")).eq(String_from("MyFunc")))
+    assert(names::WitName::to_pascal(String_from("hello-world")).eq(String_from("HelloWorld")))
 
     // capitalize: only the first character changes
-    assert(eq(names::WitName::capitalize(String_from("document")), String_from("Document")))
-    assert(eq(names::WitName::capitalize(String_from("Document")), String_from("Document")))
+    assert(names::WitName::capitalize(String_from("document")).eq(String_from("Document")))
+    assert(names::WitName::capitalize(String_from("Document")).eq(String_from("Document")))
 
     stdio::println(String_from("OK"))
 }

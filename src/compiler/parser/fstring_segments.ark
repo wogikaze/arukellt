@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use lexer::scan
 use parser::core_api_token
 use parser::fstring_nodes
@@ -71,7 +70,7 @@ fn fstring_push_expr_segment(mut nodes: Vec<AstNode>, content: String, span: Spa
     if colon_idx >= 1 {
         let spec_text = content.slice(colon_idx + 1, close_idx)
         let spec = fstring_trim(spec_text)
-        if eq(spec, String_from("?")) {
+        if spec.eq(String_from("?")) {
             // `{x:?}` → `x.fmt_debug()` (Debug trait dispatch).
             push(nodes, fstring_nodes::fstring_format_debug_call(expr, span))
             return i

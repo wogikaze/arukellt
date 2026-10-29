@@ -351,32 +351,37 @@ receiver を指す hint を返す。
   `use std::prelude::{clone}` を拒否できない既存の clone import 検査ギャップで、
   Box の import は E0100 で拒否する。
 
-## 追記: 2026-10-30 `wave/issue-936` — 安定 Vec free の signature 検査
+## 追記: 2026-10-30 `wave/eq-retire` — prelude free `eq` の退役
 
-§3 の安定 free のうち `push` / `get` / `pop` は、宣言を `Vec<i32>` 固定の
-placeholder から `Vec<T>` + 要素型の実 signature へ直した。typechecker は
-名前だけを根拠に引数を飛ばさず、この signature で実引数を unify する。
-`push(Vec<i32>, String)` は両 target で E0200 になる。
-`get_unchecked<T>` / `set<T>` は既に実 signature を持っていた。
+§4 の `eq` を退役した。prelude の bare `eq` は E0100 となり、
+`use \`a.eq(b)\`` の receiver hint を返す。
 
-`len` は `String` と `Vec<T>` の二つの owner を持つため、宣言は当面
-`String` 綴りのままにする。committed pin は source tree をコンパイルするので、
-Vec 専用宣言にすると pin が `len(String)` を拒否して stage-2 を build できない。
-代わりに typechecker が receiver の owner contract を選び、`String` / `Vec<T>`
-は `i32`、それ以外の具体型は
-`argument 1 has type i32, expected String or Vec<T>` で E0200 にする。
-`builtin_call_return_type` の `len` → `i32` 名 exemption は削除した。
-pin を refresh したら `len` 宣言も `Vec<T>` へ揃え、receiver dispatch を
-`String::len` / `Vec::len` の SignatureEntry で置き換える。
-
-未了は #936 の残り acceptance と同じである。emitter は依然として callee 名
-テーブル（`data/core-ops.toml` の `len` → `string.len`、`call_rewrite_vec*`）で
-intrinsic を選び、`FunctionId` → `CoreOpId` の binding は #933 の handoff 後になる。
-`len` / `push` / `get` / `pop` の body は placeholder のままで、sealed CoreOp
-binding ではない。証跡は
-`tests/fixtures/diagnostics/prelude_vec_push_arg_type.ark` /
-`prelude_len_arg_type.ark`（`_wasm32` companion を含む）と
-`tests/fixtures/stdlib_vec/prelude_generic_signatures.ark`。
+- **Root cause**: 移行 codemod が生成した `(receiver).eq(rhs)` の括弧が、
+  receiver を composed call node ではなく別 AST node にしていた。
+  `lower_method_call_expr` は composed receiver のときだけ `LOCAL_GET` を
+  再 push するため、括弧付き receiver では receiver の local が読み直されない。
+  単独式では emitter の stack compose が救うが、`if` 文の `END` 直後の
+  最初の式では compose が成立せず、callee が unresolved-call stub
+  （`drop` + `unreachable`）または `i32::eq` に落ちていた。pre-eq source は
+  free `eq(a, b)` の宣言 signature が引数を stage していたため、この形を
+  踏まなかった。
+- **Mechanism**: 移行の括弧を postfix receiver では落とし、
+  `path.slice(0, 5).eq("std::")` の形にした。`std/core/cmp.ark` から
+  `trait Eq` と 6 impl を `std/core/eq.ark` へ分割し、`cmp` は
+  `pub use std::core::eq` で再公開する（`Ord` を prelude へ巻き込まない）。
+  `std/prelude.ark` は free `eq` を削除して `use std::core::eq` を持ち、
+  `std/manifest.toml` の prelude entry を削除した。bootstrap overlay は
+  `std/core/eq.ark` を ship する（free `eq` shim は不要になり削除）。
+- **Migration**: `src/compiler` / `std` / `tests` の free `eq` 呼び出し
+  5,729 件を `.eq()` へ移行し、`use std::prelude::{eq}` を除去した。
+- **Fixtures**: `operators/string_eq`（gc / wasm32、32/32 行）、
+  `stdlib_trait/eq_*`、E0100 hint の `removed_name_hint("eq")`。
+- **Residual**: `std::collections::string::eq` は qualified call 解決の
+  module_import fixture（`string::eq(...)`）が使うため public のまま残る。
+  `docs/data/stdlib-api-eradication.toml` で `must delete` / #917 として
+  分類した。また、括弧付き receiver を `if` 直後に置く lowering bug 自体は
+  未修正であり、移行側で形を避けている。`lower_method_call_expr` の
+  composed-receiver 判定を修正する follow-up で解消する。
 
 ## 参照
 

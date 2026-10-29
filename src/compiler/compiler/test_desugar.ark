@@ -6,7 +6,6 @@
 // Desugared fns ride the normal resolve / typecheck / MIR pipeline, so no
 // MIR-level synthesis is needed. Only applies when DriverConfig.test_mode
 // is set; normal compiles still skip test decls at MIR per ADR-041 D5.
-use std::prelude::{eq}
 use std::text
 use compiler::session_parse
 use parser::ast
@@ -110,7 +109,7 @@ fn has_stdio_use(decls: Vec<AstNode>) -> bool {
     while i < decl_count {
         let decl = get_unchecked(decls, i)
         if ast::ast_node_kind(decl) == kinds::NK_USE() {
-            if eq(ast::ast_node_text(decl), "std::host::stdio") && ast::ast_node_child_count(decl) == 0 {
+            if ast::ast_node_text(decl).eq("std::host::stdio") && ast::ast_node_child_count(decl) == 0 {
                 return true
             }
         }
@@ -125,9 +124,9 @@ fn escape_test_name(name: String) -> String {
     let mut i = 0
     while i < n {
         let ch = name.clone().slice(i, i + 1)
-        if eq(ch.clone(), "\\") {
+        if ch.clone().eq("\\") {
             out = out.concat("\\\\")
-        } else if eq(ch.clone(), "\"") {
+        } else if ch.clone().eq("\"") {
             out = out.concat("\\\"")
         } else {
             out = out.concat(ch)

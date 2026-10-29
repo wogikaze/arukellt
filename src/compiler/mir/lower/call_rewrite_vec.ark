@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use corehir::callee_spelling
 use mir::lower::call_rewrite_vec_access
@@ -28,55 +27,55 @@ fn mir_vec_call_rewrite_push_i64_needs_extend(rewrite: MirVecCallRewrite) -> boo
 }
 
 fn mir_vec_call_target_is_intrinsic(callee_name: String) -> bool {
-    eq(callee_name.clone(), String_from("vec_get")) ||
-    eq(callee_name.clone(), String_from("vec_get_unchecked")) ||
-    eq(callee_name.clone(), String_from("vec_get_unchecked_i64")) ||
-    eq(callee_name.clone(), String_from("vec_get_unchecked_f64")) ||
-    eq(callee_name.clone(), String_from("vec_len")) ||
-    eq(callee_name.clone(), String_from("raw_array_len")) ||
-    eq(callee_name.clone(), String_from("raw_array_get_unchecked")) ||
-    eq(callee_name.clone(), String_from("raw_array_set_unchecked")) ||
-    eq(callee_name.clone(), String_from("raw_array_grow")) ||
-    eq(callee_name.clone(), String_from("vec_push")) ||
-    eq(callee_name.clone(), String_from("push_i64")) ||
-    eq(callee_name.clone(), String_from("push_f64")) ||
-    eq(callee_name.clone(), String_from("vec_push_i64")) ||
-    eq(callee_name.clone(), String_from("vec_push_f64")) ||
-    eq(callee_name.clone(), String_from("vec_set")) ||
-    eq(callee_name.clone(), String_from("vec_pop"))
+    callee_name.clone().eq(String_from("vec_get")) ||
+    callee_name.clone().eq(String_from("vec_get_unchecked")) ||
+    callee_name.clone().eq(String_from("vec_get_unchecked_i64")) ||
+    callee_name.clone().eq(String_from("vec_get_unchecked_f64")) ||
+    callee_name.clone().eq(String_from("vec_len")) ||
+    callee_name.clone().eq(String_from("raw_array_len")) ||
+    callee_name.clone().eq(String_from("raw_array_get_unchecked")) ||
+    callee_name.clone().eq(String_from("raw_array_set_unchecked")) ||
+    callee_name.clone().eq(String_from("raw_array_grow")) ||
+    callee_name.clone().eq(String_from("vec_push")) ||
+    callee_name.clone().eq(String_from("push_i64")) ||
+    callee_name.clone().eq(String_from("push_f64")) ||
+    callee_name.clone().eq(String_from("vec_push_i64")) ||
+    callee_name.clone().eq(String_from("vec_push_f64")) ||
+    callee_name.clone().eq(String_from("vec_set")) ||
+    callee_name.clone().eq(String_from("vec_pop"))
 }
 
 // Free `push(v, x)` is rewritten to `Vec::push` when `impl Vec<T>` is registered
 // (#700 / #845). Match that form too so GC String/struct vecs keep the
 // `vec_push` CoreOp path instead of mono → `__core_vec_push_i32_impl`.
 fn is_vec_push_callee(name: String) -> bool {
-    eq(name.clone(), String_from("push")) ||
-    eq(name.clone(), String_from("vec_push")) ||
-    eq(name.clone(), String_from("push_i64")) ||
-    eq(name.clone(), String_from("push_f64")) ||
-    eq(name.clone(), String_from("Vec::push")) ||
+    name.clone().eq(String_from("push")) ||
+    name.clone().eq(String_from("vec_push")) ||
+    name.clone().eq(String_from("push_i64")) ||
+    name.clone().eq(String_from("push_f64")) ||
+    name.clone().eq(String_from("Vec::push")) ||
     name.clone().starts_with(String_from("Vec::push__")) ||
     name.clone().starts_with(String_from("push__"))
 }
 
 fn is_vec_len_callee(name: String) -> bool {
-    eq(name.clone(), String_from("len")) ||
-    eq(name.clone(), String_from("Vec::len")) ||
+    name.clone().eq(String_from("len")) ||
+    name.clone().eq(String_from("Vec::len")) ||
     name.clone().starts_with(String_from("Vec::len__")) ||
     name.clone().starts_with(String_from("len__"))
 }
 
 fn is_vec_pop_callee(name: String) -> bool {
-    eq(name.clone(), String_from("pop")) ||
-    eq(name.clone(), String_from("Vec::pop")) ||
+    name.clone().eq(String_from("pop")) ||
+    name.clone().eq(String_from("Vec::pop")) ||
     name.clone().starts_with(String_from("Vec::pop__")) ||
     name.clone().starts_with(String_from("pop__"))
 }
 
 fn is_vec_set_callee(name: String) -> bool {
-    eq(name.clone(), String_from("set")) ||
-    eq(name.clone(), String_from("vec_set")) ||
-    eq(name.clone(), String_from("Vec::set")) ||
+    name.clone().eq(String_from("set")) ||
+    name.clone().eq(String_from("vec_set")) ||
+    name.clone().eq(String_from("Vec::set")) ||
     name.clone().starts_with(String_from("Vec::set__")) ||
     name.clone().starts_with(String_from("set__"))
 }
@@ -190,16 +189,16 @@ fn normalize_vec_constructor_callee(callee_name: String) -> String {
 }
 
 fn is_vec_get_unchecked_callee(name: String) -> bool {
-    eq(name.clone(), String_from("get_unchecked")) ||
-    eq(name.clone(), String_from("__intrinsic_get_unchecked")) ||
+    name.clone().eq(String_from("get_unchecked")) ||
+    name.clone().eq(String_from("__intrinsic_get_unchecked")) ||
     name.clone().ends_with(String_from("::get_unchecked")) ||
     name.clone().starts_with(String_from("get_unchecked__")) ||
     name.contains(String_from("::get_unchecked__"))
 }
 
 fn is_vec_get_callee(name: String) -> bool {
-    eq(name.clone(), String_from("get")) ||
-    eq(name.clone(), String_from("__intrinsic_get")) ||
+    name.clone().eq(String_from("get")) ||
+    name.clone().eq(String_from("__intrinsic_get")) ||
     name.clone().ends_with(String_from("::get")) ||
     name.clone().starts_with(String_from("get__")) ||
     name.contains(String_from("::get__"))
@@ -210,7 +209,7 @@ fn mir_rewrite_vec_is_empty_to_local(mut ctx: LowerCtx, first_arg_idx: i32) -> i
         return 0 - 1
     }
     let first_arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-    if !eq(first_arg_type.clone(), String_from("Vec")) &&
+    if !first_arg_type.clone().eq(String_from("Vec")) &&
     !first_arg_type.clone().starts_with("vec:") &&
     !first_arg_type.clone().starts_with("array:") {
         return 0 - 1
@@ -231,7 +230,7 @@ fn mir_rewrite_vec_is_empty_to_local(mut ctx: LowerCtx, first_arg_idx: i32) -> i
 fn mir_rewrite_vec_len(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
     if first_arg_idx >= 0 {
         let arg_type_len = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-        if eq(arg_type_len.clone(), String_from("Vec")) ||
+        if arg_type_len.clone().eq(String_from("Vec")) ||
         arg_type_len.clone().starts_with("vec:") ||
         arg_type_len.clone().starts_with("array:") {
             // Prefer sealed raw at the call site so GC sees the concrete vec local.

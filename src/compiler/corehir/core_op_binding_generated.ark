@@ -2,7 +2,7 @@
 // legacy_binding_patterns + std/manifest.toml.
 // Compact table + index. Do not edit by hand.
 
-use std::prelude::{byte_at, eq, substring}
+use std::prelude::{byte_at, substring}
 use std::text
 use corehir::table_blob
 
@@ -505,7 +505,7 @@ fn core_op_binding_lookup_callee(name: String) -> i32 {
         if idx < 0 {
             return 0 - 1
         }
-        if eq(name.clone(), core_op_binding_callee_at(idx)) {
+        if name.clone().eq(core_op_binding_callee_at(idx)) {
             return idx
         }
         slot = (slot + 1) % capacity

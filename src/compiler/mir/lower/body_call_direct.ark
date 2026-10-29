@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use mir::inst_local_get
 use mir::inst_convert
@@ -114,7 +113,7 @@ fn lower_direct_call_expr(mut ctx: LowerCtx, node: AstNode, callee: AstNode, chi
                 ctx_api_emit::ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64_stack())
             }
             // Capture pre-stage receiver for GC void mutators (push_char).
-            if a == 1 && eq(callee_name.clone(), String_from("push_char")) && arg_idx >= 0 {
+            if a == 1 && callee_name.clone().eq(String_from("push_char")) && arg_idx >= 0 {
                 receiver_writeback = arg_idx
             }
             if stage_call_args && arg_idx >= 0 {
@@ -146,14 +145,14 @@ fn lower_direct_call_expr(mut ctx: LowerCtx, node: AstNode, callee: AstNode, chi
 
     fn lower_direct_call_callee_name(callee: AstNode) -> String {
         let callee_name = ast_node::node_text(callee)
-        if eq(callee_name.clone(), "HashMap::new") {
+        if callee_name.clone().eq("HashMap::new") {
             return mir_hashmap_constructor_name(callee, String_from("new"))
         }
-        if eq(callee_name.clone(), "HashMap::with_capacity") {
+        if callee_name.clone().eq("HashMap::with_capacity") {
             return mir_hashmap_constructor_name(callee, String_from("with_capacity"))
         }
-        if !eq(callee_name.clone(), "Vec::new") &&
-        !eq(callee_name.clone(), "Vec::with_capacity") {
+        if !callee_name.clone().eq("Vec::new") &&
+        !callee_name.clone().eq("Vec::with_capacity") {
             return callee_name
         }
         if ast_node::node_child_count(callee) < 2 {
@@ -167,7 +166,7 @@ fn lower_direct_call_expr(mut ctx: LowerCtx, node: AstNode, callee: AstNode, chi
         if len(element_name) == 0 || element_name.clone().contains("::") {
             return callee_name
         }
-        let constructor = if eq(callee_name.clone(), "Vec::new") {
+        let constructor = if callee_name.clone().eq("Vec::new") {
             "Vec__new__"
         } else {
             "Vec__with_capacity__"

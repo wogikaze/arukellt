@@ -1,10 +1,9 @@
 use std::host::stdio
 use std::test::Test
-use std::prelude::{eq}
 use std::text
 
 fn try_parse(s: String) -> Result<i32, String> {
-    if eq(s, "42") { Ok(42) } else { Err(String_from("parse error: ").concat(s)) }
+    if s.eq("42") { Ok(42) } else { Err(String_from("parse error: ").concat(s)) }
 }
 fn main() {
     let r = try_parse(String_from("bad"))

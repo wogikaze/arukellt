@@ -2,7 +2,6 @@
 // After mono type params are set up, re-substitute type-variable param
 // locals with the concrete monomorphized type.
 
-use std::prelude::{eq}
 use std::text
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_api_local_types
@@ -151,7 +150,7 @@ fn mono_subst_fnsig_param(mut ctx: LowerCtx, p: i32, ty_name: String, mono_suffi
         if i == n || rest.clone().byte_at(i) == 59 {
             let seg = rest.clone().slice(seg_start, i)
             let resolved = resolve_fnsig_segment(ctx, seg.clone(), mono_suffix.clone(), has_mono_map)
-            if !eq(resolved.clone(), seg.clone()) {
+            if !resolved.clone().eq(seg.clone()) {
                 changed = true
             }
             out = out.concat(resolved)
@@ -209,7 +208,7 @@ fn mono_subst_named_generic_param(mut ctx: LowerCtx, p: i32, ty_name: String, mo
     }
     let base = ty_name.clone().slice(1, first_colon)
     let first_arg = ty_name.clone().slice(first_colon + 1, len(ty_name))
-    if eq(base.clone(), String_from("HashMap")) {
+    if base.clone().eq(String_from("HashMap")) {
         mono_subst_hashmap_param(ctx, p, first_arg.clone())
         return true
     }
@@ -230,7 +229,7 @@ fn mono_subst_named_generic_param(mut ctx: LowerCtx, p: i32, ty_name: String, mo
     let gcount = len(ctx.generic_struct_names)
     let mut gi = 0
     while gi < gcount {
-        if eq(get_unchecked(ctx.generic_struct_names, gi), base.clone()) {
+        if get_unchecked(ctx.generic_struct_names, gi).eq(base.clone()) {
             base_is_generic_struct = true
         }
         gi = gi + 1
@@ -300,7 +299,7 @@ fn mono_hashmap_arg_type_info(ctx: LowerCtx, arg: String) -> TypeInfo {
     let count = len(ctx.mono_type_param_names)
     let mut i = 0
     while i < count && i < inst_args {
-        if eq(get_unchecked(ctx.mono_type_param_names, i), arg.clone()) {
+        if get_unchecked(ctx.mono_type_param_names, i).eq(arg.clone()) {
             return type_contracts::MonoInstance_type_arg_at(inst, i)
         }
         i = i + 1
@@ -312,13 +311,13 @@ fn mono_hashmap_arg_type_info(ctx: LowerCtx, arg: String) -> TypeInfo {
 // scalar/fn shapes the storage adapters support need real tags; anything
 // else stays an unknown marker so the pair lookup falls back.
 fn mono_hashmap_concrete_type_info(arg: String) -> TypeInfo {
-    if eq(arg.clone(), String_from("i32")) {
+    if arg.clone().eq(String_from("i32")) {
         return type_contracts::TypeInfo_simple(lower_kinds::TY_I32())
     }
-    if eq(arg.clone(), String_from("String")) || eq(arg.clone(), String_from("string")) {
+    if arg.clone().eq(String_from("String")) || arg.clone().eq(String_from("string")) {
         return type_contracts::TypeInfo_simple(lower_kinds::TY_STRING())
     }
-    if eq(arg.clone(), String_from("fn")) || eq(arg.clone(), String_from("fnref")) ||
+    if arg.clone().eq(String_from("fn")) || arg.clone().eq(String_from("fnref")) ||
     arg.clone().starts_with(String_from("fn(")) ||
     arg.clone().starts_with(String_from("fn<")) ||
     arg.clone().starts_with(String_from("fnsig:")) ||
@@ -376,7 +375,7 @@ fn mono_subst_bare_param(mut ctx: LowerCtx, p: i32, ty_name: String, mono_suffix
         // have their own dedicated type sigs.
         let sig_type_name = concrete.clone()
         if pvt == value_types::VT_GC_REF() {
-            if !eq(concrete.clone(), String_from("String")) && !eq(concrete.clone(), String_from("string")) {
+            if !concrete.clone().eq(String_from("String")) && !concrete.clone().eq(String_from("string")) {
                 sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, concrete.clone())
             }
         }
@@ -450,19 +449,19 @@ fn mono_set_param_gc_type(mut ctx: LowerCtx, p: i32, mono_type_name: String) {
 // Primitive types map to their corresponding VT; all other types (String,
 // struct, enum, vec, etc.) are GC reference types.
 fn mono_concrete_type_vt(type_name: String) -> i32 {
-    if eq(type_name.clone(), String_from("i32")) || eq(type_name.clone(), String_from("bool")) || eq(type_name.clone(), String_from("char")) {
+    if type_name.clone().eq(String_from("i32")) || type_name.clone().eq(String_from("bool")) || type_name.clone().eq(String_from("char")) {
         return value_types::VT_I32()
     }
-    if eq(type_name.clone(), String_from("i64")) || eq(type_name.clone(), String_from("u64")) {
+    if type_name.clone().eq(String_from("i64")) || type_name.clone().eq(String_from("u64")) {
         return value_types::VT_I64()
     }
-    if eq(type_name.clone(), String_from("f64")) {
+    if type_name.clone().eq(String_from("f64")) {
         return value_types::VT_F64()
     }
-    if eq(type_name.clone(), String_from("f32")) {
+    if type_name.clone().eq(String_from("f32")) {
         return value_types::VT_F32()
     }
-    if eq(type_name.clone(), String_from("v128")) {
+    if type_name.clone().eq(String_from("v128")) {
         return value_types::VT_V128()
     }
     value_types::VT_GC_REF()

@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use typechecker::kinds
 use typechecker::contract_scope
 use typechecker::contract_type_constructors
@@ -137,7 +136,7 @@ fn scope_binding_index(scope: LocalScope, name: String) -> i32 {
     let mut i = 0
     while i < count {
         let binding = contract_scope::LocalScope_binding_at(scope, i)
-        if eq(contract_scope::VarBinding_name(binding), name.clone()) {
+        if contract_scope::VarBinding_name(binding).eq(name.clone()) {
             found = i
         }
         i = i + 1
@@ -298,7 +297,7 @@ fn scope_lookup(scope: LocalScope, name: String) -> TypeInfo {
     let mut i = 0
     while i < count {
         let b = contract_scope::LocalScope_binding_at(scope, i)
-        if eq(contract_scope::VarBinding_name(b), name.clone()) {
+        if contract_scope::VarBinding_name(b).eq(name.clone()) {
             found = contract_scope::VarBinding_type(b)
         }
         i = i + 1
@@ -312,7 +311,7 @@ fn scope_lookup_instantiated(mut env: TypeEnv, scope: LocalScope, name: String) 
     let mut i = 0
     while i < count {
         let binding = contract_scope::LocalScope_binding_at(scope, i)
-        if eq(contract_scope::VarBinding_name(binding), name.clone()) {
+        if contract_scope::VarBinding_name(binding).eq(name.clone()) {
             if contract_scope::VarBinding_is_generalized(binding) {
                 found = instantiate_scheme(env, contract_scope::VarBinding_scheme(binding))
             } else {
@@ -341,7 +340,7 @@ fn instantiate_scheme(mut env: TypeEnv, scheme: TypeScheme) -> TypeInfo {
 fn type_name_is_present(names: Vec<String>, name: String) -> bool {
     let mut i = 0
     while i < len(names) {
-        if eq(get_unchecked(names, i), name.clone()) {
+        if get_unchecked(names, i).eq(name.clone()) {
             return true
         }
         i = i + 1

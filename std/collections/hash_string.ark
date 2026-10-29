@@ -8,7 +8,6 @@
 //! `HashSet::new<String>()` plus receiver methods.
 
 use std::core::hash
-use std::prelude::{eq}
 fn hm_si_clear_slots(m: HashMap<String, i32>, cap: i32) {
     __hm_si_set_size(m, 0)
     let mut i: i32 = 0
@@ -74,7 +73,7 @@ fn hashmap_str_set_probe(m: HashMap<String, i32>, key: String, value: i32) -> bo
             probes = cap
         } else {
             let k: String = __hm_si_get_key(m, idx)
-            if eq(k, key) {
+            if k.eq(key) {
                 __hm_si_set_val(m, idx, value)
                 done = true
                 probes = cap
@@ -101,7 +100,7 @@ fn hashmap_str_get(m: HashMap<String, i32>, key: String) -> Option<i32> {
         } else {
             if flag == 1 {
                 let k: String = __hm_si_get_key(m, idx)
-                if eq(k, key) {
+                if k.eq(key) {
                     result = Some(__hm_si_get_val(m, idx))
                     probes = cap
                 } else {
@@ -131,7 +130,7 @@ fn hashmap_str_contains(m: HashMap<String, i32>, key: String) -> bool {
         } else {
             if flag == 1 {
                 let k: String = __hm_si_get_key(m, idx)
-                if eq(k, key) {
+                if k.eq(key) {
                     found = true
                     probes = cap
                 } else {
@@ -161,7 +160,7 @@ fn hashmap_str_remove(m: HashMap<String, i32>, key: String) -> Option<i32> {
         } else {
             if flag == 1 {
                 let k: String = __hm_si_get_key(m, idx)
-                if eq(k, key) {
+                if k.eq(key) {
                     result = Some(__hm_si_get_val(m, idx))
                     __hm_si_set_flag(m, idx, 2)
                     __hm_si_set_size(m, __hm_si_size(m) - 1)
@@ -508,7 +507,7 @@ fn hashmap_str_str_set_probe(m: HashMap<String, String>, key: String, value: Str
             probes = cap
         } else {
             let k: String = __hm_ss_get_key(m, idx)
-            if eq(k, key) {
+            if k.eq(key) {
                 __hm_ss_set_val(m, idx, value)
                 done = true
                 probes = cap
@@ -534,7 +533,7 @@ fn hashmap_str_str_get(m: HashMap<String, String>, key: String) -> Option<String
         } else {
             if flag == 1 {
                 let k: String = __hm_ss_get_key(m, idx)
-                if eq(k, key) {
+                if k.eq(key) {
                     result = Some(__hm_ss_get_val(m, idx))
                     probes = cap
                 } else {
@@ -563,7 +562,7 @@ fn hashmap_str_str_contains(m: HashMap<String, String>, key: String) -> bool {
         } else {
             if flag == 1 {
                 let k: String = __hm_ss_get_key(m, idx)
-                if eq(k, key) {
+                if k.eq(key) {
                     found = true
                     probes = cap
                 } else {
@@ -592,7 +591,7 @@ fn hashmap_str_str_remove(m: HashMap<String, String>, key: String) -> Option<Str
         } else {
             if flag == 1 {
                 let k: String = __hm_ss_get_key(m, idx)
-                if eq(k, key) {
+                if k.eq(key) {
                     result = Some(__hm_ss_get_val(m, idx))
                     __hm_ss_set_flag(m, idx, 2)
                     __hm_ss_set_size(m, __hm_ss_size(m) - 1)
@@ -676,7 +675,7 @@ fn hashmap_str_str_entries(m: HashMap<String, String>) -> Vec<(String, String)> 
 fn vec_string_index_of(items: Vec<String>, value: String) -> i32 {
     let mut i: i32 = 0
     while i < len(items) {
-        if eq(get_unchecked(items, i), value) {
+        if get_unchecked(items, i).eq(value) {
             return i
         }
         i = i + 1

@@ -7,40 +7,39 @@
 use std::host::stdio
 use std::core::convert
 use std::text::fmt
-use std::prelude::{eq}
 fn main() {
     // Debug for i32 — mirrors Display.
-    assert(eq((42).fmt_debug(), String_from("42")))
-    assert(eq((-7).fmt_debug(), String_from("-7")))
-    assert(eq((0).fmt_debug(), String_from("0")))
+    assert((42).fmt_debug().eq(String_from("42")))
+    assert((-7).fmt_debug().eq(String_from("-7")))
+    assert((0).fmt_debug().eq(String_from("0")))
 
     // Debug for i64 — mirrors Display.
     let big: i64 = 1000000000000i64
-    assert(eq(big.fmt_debug(), (big).to_string()))
+    assert(big.fmt_debug().eq((big).to_string()))
 
     // Debug for f64 — mirrors Display (compare against the same intrinsic).
-    assert(eq((3.14).fmt_debug(), (3.14).to_string()))
-    assert(eq((0.0).fmt_debug(), (0.0).to_string()))
+    assert((3.14).fmt_debug().eq((3.14).to_string()))
+    assert((0.0).fmt_debug().eq((0.0).to_string()))
 
     // Debug for bool.
-    assert(eq(true.fmt_debug(), String_from("true")))
-    assert(eq(false.fmt_debug(), String_from("false")))
+    assert(true.fmt_debug().eq(String_from("true")))
+    assert(false.fmt_debug().eq(String_from("false")))
 
     // Debug for char.
-    assert(eq(('A').fmt_debug(), String_from("A")))
-    assert(eq(('z').fmt_debug(), String_from("z")))
+    assert(('A').fmt_debug().eq(String_from("A")))
+    assert(('z').fmt_debug().eq(String_from("z")))
 
     // Debug for String — quoted with double quotes (Rust {:?} parity).
-    assert(eq(String_from("hello").fmt_debug(), String_from("\"hello\"")))
-    assert(eq(String_from("").fmt_debug(), String_from("\"\"")))
+    assert(String_from("hello").fmt_debug().eq(String_from("\"hello\"")))
+    assert(String_from("").fmt_debug().eq(String_from("\"\"")))
 
     // write_debug_to appends the Debug rendering onto a buffer.
     let buf = String_from("value=").concat((42).fmt_debug())
-    assert(eq(buf, String_from("value=42")))
+    assert(buf.eq(String_from("value=42")))
 
     // write_debug_to on a String quotes it.
     let buf2 = String_from("s=").concat(String_from("hi").fmt_debug())
-    assert(eq(buf2, String_from("s=\"hi\"")))
+    assert(buf2.eq(String_from("s=\"hi\"")))
 
     stdio::println(String_from("OK"))
 }

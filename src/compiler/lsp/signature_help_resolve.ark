@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use lsp::state_record
 use lsp::symbol_index_lookup
 use lsp::symbol_index_record
@@ -92,7 +91,7 @@ pub fn resolve_signature_for_name(state: LspState, name: String) -> ResolvedSign
     let mut i = 0
     while i < n {
         let sym = get_unchecked(symbols, i)
-        if eq(symbol_index_record::indexed_symbol_name(sym), name.clone()) {
+        if symbol_index_record::indexed_symbol_name(sym).eq(name.clone()) {
             return resolve_from_project_symbol(sym)
         }
         i = i + 1

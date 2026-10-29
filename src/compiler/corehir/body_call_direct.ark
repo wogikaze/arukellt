@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use corehir::expr_factory
 use corehir::expr_builder_calls
@@ -52,14 +51,14 @@ fn corehir_build_call_expr(mut table: CoreHirBodyTable, node: AstNode) -> i32 {
 
 fn corehir_direct_call_callee_name(callee: AstNode) -> String {
     let callee_name = expr_node_access::expr_text(callee)
-    if eq(callee_name.clone(), "HashMap::new") {
+    if callee_name.clone().eq("HashMap::new") {
         return corehir_hashmap_constructor_name(callee, String_from("new"))
     }
-    if eq(callee_name.clone(), "HashMap::with_capacity") {
+    if callee_name.clone().eq("HashMap::with_capacity") {
         return corehir_hashmap_constructor_name(callee, String_from("with_capacity"))
     }
-    if !eq(callee_name.clone(), "Vec::new") &&
-    !eq(callee_name.clone(), "Vec::with_capacity") {
+    if !callee_name.clone().eq("Vec::new") &&
+    !callee_name.clone().eq("Vec::with_capacity") {
         return callee_name
     }
     if expr_node_access::expr_child_count(callee) < 2 {
@@ -70,7 +69,7 @@ fn corehir_direct_call_callee_name(callee: AstNode) -> String {
     // constructor suffix fnref anyway so vec:fnref reaches the result
     // local instead of the i32 specialization fallback (#874).
     if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(element_type)) {
-        if eq(callee_name.clone(), "Vec::new") {
+        if callee_name.clone().eq("Vec::new") {
             return String_from("Vec__new__fnref")
         }
         return String_from("Vec__with_capacity__fnref")
@@ -82,7 +81,7 @@ fn corehir_direct_call_callee_name(callee: AstNode) -> String {
     if len(element_name) == 0 || element_name.clone().contains("::") {
         return callee_name
     }
-    let constructor = if eq(callee_name.clone(), "Vec::new") {
+    let constructor = if callee_name.clone().eq("Vec::new") {
         "Vec__new__"
     } else {
         "Vec__with_capacity__"

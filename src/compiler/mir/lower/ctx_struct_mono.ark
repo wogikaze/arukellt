@@ -15,14 +15,13 @@ use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_types
 // Comma-joined declared type parameter names for a generic struct base,
 // or "" when base is not a registered generic struct.
-use std::prelude::{eq}
 use std::text
 
 fn ctx_generic_struct_params(ctx: LowerCtx, base: String) -> String {
     let count = len(ctx.generic_struct_names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(ctx.generic_struct_names, i), base.clone()) {
+        if get_unchecked(ctx.generic_struct_names, i).eq(base.clone()) {
             return get_unchecked(ctx.generic_struct_params, i).clone()
         }
         i = i + 1
@@ -40,7 +39,7 @@ fn ctx_generic_enum_params(ctx: LowerCtx, base: String) -> String {
     let count = len(ctx.generic_enum_names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(ctx.generic_enum_names, i), base.clone()) {
+        if get_unchecked(ctx.generic_enum_names, i).eq(base.clone()) {
             return get_unchecked(ctx.generic_enum_params, i).clone()
         }
         i = i + 1
@@ -176,7 +175,7 @@ fn ctx_substitute_generic_field_type(ft: String, params: Vec<String>, args: Vec<
         let mut replaced = false
         let mut pi = 0
         while pi < len(params) {
-            if pi < len(args) && eq(get_unchecked(params, pi), tok.clone()) {
+            if pi < len(args) && get_unchecked(params, pi).eq(tok.clone()) {
                 out = out.concat(get_unchecked(args, pi).clone())
                 replaced = true
                 pi = len(params)

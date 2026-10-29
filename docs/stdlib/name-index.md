@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 18
+- **Canonical names:** 17
 - **Historical/deprecated names:** 65
-- **Total entries:** 83
+- **Total entries:** 82
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -24,7 +24,6 @@ Current public API names, sorted alphabetically.
 | `assert` | `prelude` | `stable` | Assert |
 | `char_to_string` | `prelude` | `stable` | Conversion |
 | `eprintln` | `std::host::stdio` | `stable` | Host Stdio |
-| `eq` | `prelude` | `stable` | String |
 | `fd_fdstat_errno` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_seek` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_tell` | `std::host::fs` | `experimental` | Host Fs |
@@ -143,7 +142,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`deque_push_front`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::push_front` · [migration guide](migration-guidance.md) |
 | ~~`deque_to_vec`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::iter` · [migration guide](migration-guidance.md) |
 | `eprintln` | ✅ `stable` | `std::host::stdio` | Host Stdio |
-| `eq` | ✅ `stable` | `prelude` | String |
 | ~~`f32_to_f64`~~ | ⚠️ deprecated | `prelude` | → `f32::to_f64` · [migration guide](migration-guidance.md) |
 | ~~`f64_bits_hi`~~ | ⚠️ deprecated | `prelude` | → `f64::to_bits_hi` · [migration guide](migration-guidance.md) |
 | ~~`f64_bits_lo`~~ | ⚠️ deprecated | `prelude` | → `f64::to_bits_lo` · [migration guide](migration-guidance.md) |

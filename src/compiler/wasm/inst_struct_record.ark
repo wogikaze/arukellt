@@ -4,7 +4,6 @@
 //            cannot be determined from MIR instruction alone; GC-typed structs
 //            like Vec use explicit writer_gc calls in intrinsic files).
 
-use std::prelude::{eq}
 use mir::inst_accessors_shape
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
@@ -67,7 +66,7 @@ fn fixed_gc_struct_field_is_i32(ctx: SelfEmitCtx, type_idx: i32, field_idx: i32)
         if get_unchecked(variant_types, variant_id) == type_idx && variant_id < len(variant_sigs) {
             let fields = sections_types_gc::struct_field_sigs(get_unchecked(variant_sigs, variant_id))
             if field_idx >= 0 && field_idx < len(fields) {
-                return eq(get_unchecked(fields, field_idx), String_from("i32"))
+                return get_unchecked(fields, field_idx).eq(String_from("i32"))
             }
             return false
         }
@@ -96,9 +95,9 @@ fn user_gc_struct_field_sig(ctx: SelfEmitCtx, type_idx: i32, field_idx: i32) -> 
 }
 
 fn gc_struct_field_sig_is_i32_scalar(field_sig: String) -> bool {
-    eq(field_sig.clone(), String_from("i32")) ||
-    eq(field_sig.clone(), String_from("bool")) ||
-    eq(field_sig.clone(), String_from("char"))
+    field_sig.clone().eq(String_from("i32")) ||
+    field_sig.clone().eq(String_from("bool")) ||
+    field_sig.clone().eq(String_from("char"))
 }
 
 fn struct_get_base_is_stack_composed(inst: MirInst, prev_arg0: i32) -> bool {

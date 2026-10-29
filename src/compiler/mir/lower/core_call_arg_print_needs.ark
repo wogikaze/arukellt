@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_return_type
 use mir::lower::ctx_fn_return_vt
@@ -16,7 +15,7 @@ fn mir_core_print_arg_needs_string_conversion(ctx: LowerCtx, arg: CoreHirExpr, a
             return false
         }
         let return_type_name = ctx_fn_return_type::ctx_fn_return_type_name(ctx, cn.clone())
-        if eq(return_type_name.clone(), "String") || eq(return_type_name.clone(), "str") || eq(return_type_name.clone(), "string") {
+        if return_type_name.clone().eq("String") || return_type_name.clone().eq("str") || return_type_name.clone().eq("string") {
             return false
         }
         let rv = ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn.clone())
@@ -31,7 +30,7 @@ fn mir_core_print_arg_needs_string_conversion(ctx: LowerCtx, arg: CoreHirExpr, a
     }
     if arg_idx >= 0 {
         let lt = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
-        if eq(lt.clone(), "String") || eq(lt.clone(), "str") || eq(lt.clone(), "string") {
+        if lt.clone().eq("String") || lt.clone().eq("str") || lt.clone().eq("string") {
             return false
         }
         let arg_vt = ctx_api_local_types::ctx_local_vt(ctx, arg_idx)
@@ -46,17 +45,17 @@ fn mir_core_print_arg_needs_string_conversion(ctx: LowerCtx, arg: CoreHirExpr, a
     core_expr_shape_ops::mir_core_expr_is_unary(arg)
     if !needs_convert {
         let lt = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
-        if eq(lt.clone(), "char") ||
-        eq(lt.clone(), "u8") ||
-        eq(lt.clone(), "i8") ||
-        eq(lt.clone(), "u16") ||
-        eq(lt.clone(), "u32") ||
-        eq(lt.clone(), "u64") ||
-        eq(lt.clone(), "i16") ||
-        eq(lt.clone(), "i32") ||
-        eq(lt.clone(), "i64") ||
-        eq(lt.clone(), "bool") ||
-        eq(lt.clone(), "f64") {
+        if lt.clone().eq("char") ||
+        lt.clone().eq("u8") ||
+        lt.clone().eq("i8") ||
+        lt.clone().eq("u16") ||
+        lt.clone().eq("u32") ||
+        lt.clone().eq("u64") ||
+        lt.clone().eq("i16") ||
+        lt.clone().eq("i32") ||
+        lt.clone().eq("i64") ||
+        lt.clone().eq("bool") ||
+        lt.clone().eq("f64") {
             needs_convert = true
         }
     }

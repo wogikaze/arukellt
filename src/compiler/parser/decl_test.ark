@@ -20,12 +20,11 @@ use parser::token_state
 // Returns true if the current token is a contextual `test` keyword starting a
 // test declaration. Looks ahead past newlines to disambiguate from `test` used
 // as a regular identifier (e.g. `Test::assert_*`, `test()`).
-use std::prelude::{eq}
 fn is_test_decl_start(p: Parser) -> bool {
     if core_api_cursor::peek_kind(p) != tokens::TK_IDENT() {
         return false
     }
-    if !eq(core_api_cursor::peek_text(p), "test") {
+    if !core_api_cursor::peek_text(p).eq("test") {
         return false
     }
     // Peek ahead past newlines to the token after `test`.
@@ -45,7 +44,7 @@ fn is_test_decl_start(p: Parser) -> bool {
     if k1 == tokens::TK_IDENT() {
         let t1 = core_api_cursor::peek_text_at_index(p, idx)
         // test mod "name" { ... }
-        if eq(t1.clone(), "mod") {
+        if t1.clone().eq("mod") {
             let mut idx2 = idx + 1
             while idx2 < state_record::parser_token_count(p) {
                 let k2 = core_api_cursor::peek_kind_at_index(p, idx2)
@@ -76,7 +75,7 @@ pub fn parse_test_decl(mut p: Parser) -> AstNode {
     let t = core_api_expect::expect_token(p, tokens::TK_IDENT())
     let span = core_api_expect::tok_span(t)
     core_api_cursor::skip_newlines(p)
-    if core_api_cursor::peek_kind(p) == tokens::TK_IDENT() && eq(core_api_cursor::peek_text(p), "mod") {
+    if core_api_cursor::peek_kind(p) == tokens::TK_IDENT() && core_api_cursor::peek_text(p).eq("mod") {
         return parse_test_mod(p, span)
     }
     parse_test_unit(p, span)

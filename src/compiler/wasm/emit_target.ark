@@ -1,21 +1,20 @@
-use std::prelude::{eq}
 use wasm::constants
 fn is_gc_target(target: String) -> bool {
-    eq(target.clone(), "wasm32-gc")
+    target.clone().eq("wasm32-gc")
 }
 
 fn is_linear_memory_target(target: String) -> bool {
-    eq(target.clone(), "wasm32")
+    target.clone().eq("wasm32")
 }
 
 // Memory width is an independent backend axis. The CLI resolves `auto` from
 // the target profile and forces component output to memory32 before reaching
 // the emitter; the fallback keeps an explicit memory32 writer.
 fn uses_memory64(target: String, _wasi_version: String, memory_width: String) -> bool {
-    if eq(memory_width.clone(), String_from("memory64")) {
+    if memory_width.clone().eq(String_from("memory64")) {
         return true
     }
-    if eq(memory_width.clone(), String_from("memory32")) {
+    if memory_width.clone().eq(String_from("memory32")) {
         return false
     }
     is_gc_target(target.clone())
@@ -28,7 +27,7 @@ fn is_simd_target(target: String) -> bool {
 }
 
 fn is_p2_wasi(wasi_version: String) -> bool {
-    eq(wasi_version.clone(), "wasi-p2")
+    wasi_version.clone().eq("wasi-p2")
 }
 
 // Canonical wasm32 modules use the same fixed Preview 1 import surface as the

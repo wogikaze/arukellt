@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use corehir::callee_spelling
 use corehir::function_id
 use corehir::signature_registry
@@ -78,8 +77,8 @@ fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, mut inst: MirInstDraft, sym
 }
 
 fn is_seq_extremum_alias(symbol: String) -> bool {
-    eq(symbol.clone(), String_from("seq::min_i32")) ||
-    eq(symbol.clone(), String_from("seq::max_i32"))
+    symbol.clone().eq(String_from("seq::min_i32")) ||
+    symbol.clone().eq(String_from("seq::max_i32"))
 }
 
 fn mir_inst_attach_func_id_if_call(ctx: LowerCtx, mut inst: MirInstDraft) -> MirInstDraft {

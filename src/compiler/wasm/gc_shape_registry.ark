@@ -2,7 +2,6 @@
 // Field types are encoded as strings: 'i'=i32, 'l'=i64, 'd'=f64.
 
 use std::text
-use std::prelude::{eq}
 use mir::value_types
 pub struct GcShapeRegistry {
     struct_names: Vec<String>,
@@ -103,7 +102,7 @@ fn find_struct_by_name(reg: GcShapeRegistry, name: String) -> i32 {
     let n = len(reg.struct_names)
     let mut i = 0
     while i < n {
-        if eq(get_unchecked(reg.struct_names, i).clone(), name.clone()) {
+        if get_unchecked(reg.struct_names, i).clone().eq(name.clone()) {
             return i
         }
         i = i + 1

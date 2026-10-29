@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use hir::kinds
 use hir::items
 use hir::node_record
@@ -22,16 +21,16 @@ pub fn trait_hir_self_check() -> String {
         return "issue504 hir fail: missing type param bound"
     }
     let bound = items::HirTypeParam_bound_at(fn_param, 0)
-    if !eq(items::HirTypeParam_name(fn_param), "T") {
+    if !items::HirTypeParam_name(fn_param).eq("T") {
         return "issue504 hir fail: wrong type param"
     }
-    if !eq(types_format::type_name(items::HirTraitBound_trait_type(bound)), "Foo") {
+    if !types_format::type_name(items::HirTraitBound_trait_type(bound)).eq("Foo") {
         return "issue504 hir fail: wrong bound"
     }
-    if !eq(types_format::type_name(items::HirImplBlock_trait_type(impl_block)), "Foo") {
+    if !types_format::type_name(items::HirImplBlock_trait_type(impl_block)).eq("Foo") {
         return "issue504 hir fail: wrong impl trait"
     }
-    if !eq(types_format::type_name(items::HirImplBlock_self_type(impl_block)), "MyStruct") {
+    if !types_format::type_name(items::HirImplBlock_self_type(impl_block)).eq("MyStruct") {
         return "issue504 hir fail: wrong impl target"
     }
     "issue504 hir ok: T bound Foo / impl Foo for MyStruct"

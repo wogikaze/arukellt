@@ -1,7 +1,6 @@
 use std::host::stdio
 use std::host::fs::Fs
 use std::host::process::Process
-use std::prelude::{eq}
 use std::text
 use main::args_record
 use main::commands
@@ -67,13 +66,13 @@ pub fn configure_target_axes(opts: CliOptions, mut config: DriverConfig, emit_mo
 }
 
 fn resolve_memory_width(target: String, emit_mode: String, requested: String) -> String {
-    if !eq(requested.clone(), String_from("auto")) {
+    if !requested.clone().eq(String_from("auto")) {
         return requested
     }
-    if eq(emit_mode.clone(), String_from("component")) || eq(emit_mode.clone(), String_from("all")) {
+    if emit_mode.clone().eq(String_from("component")) || emit_mode.clone().eq(String_from("all")) {
         return String_from("memory32")
     }
-    if eq(emit_mode.clone(), String_from("wat")) {
+    if emit_mode.clone().eq(String_from("wat")) {
         return String_from("memory32")
     }
     target_contract_generated::target_default_memory_width(target)
@@ -98,7 +97,7 @@ fn should_dump(opts: CliOptions, phase: String) -> bool {
     let mut i = 0
     while i <= phases_len - phase_len {
         let sub = phases.clone().slice(i, i + phase_len)
-        if eq(sub, phase.clone()) {
+        if sub.eq(phase.clone()) {
             let at_start = i == 0
             let after_comma = i > 0 && phases.byte_at(i - 1) == 44
             let at_end = i + phase_len == phases_len
@@ -155,7 +154,7 @@ fn stem_from_input(path: String) -> String {
     let n = len(path.clone())
     if n > 4 {
         let ext = path.clone().slice(n - 4, n)
-        if eq(ext, ".ark") {
+        if ext.eq(".ark") {
             return path.slice(0, n - 4)
         }
     }
@@ -175,7 +174,7 @@ fn component_path_for_all(opts: CliOptions) -> String {
         let n = len(out.clone())
         if n > 5 {
             let ext = out.clone().slice(n - 5, n)
-            if eq(ext, ".wasm") {
+            if ext.eq(".wasm") {
                 return out.slice(0, n - 5).concat(".component.wasm")
             }
         }

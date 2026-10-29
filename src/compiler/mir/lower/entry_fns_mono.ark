@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use corehir::mir_type_source
 use mir::lower::aggregate_tuple
 use mir::lower::ctx_mono_index
@@ -36,7 +35,7 @@ fn mir_emit_top_level_fn_mono_bodies(
     let bare_count = mono::mono_index_count(midx, decl_name.clone())
     let mono_qualified_name = entry_view_fn::mir_entry_fn_qualified_name_at(entry_view, fn_info_index, String_new())
     let mut qualified_count = 0
-    if len(mono_qualified_name) > 0 && !eq(mono_qualified_name.clone(), decl_name.clone()) {
+    if len(mono_qualified_name) > 0 && !mono_qualified_name.clone().eq(decl_name.clone()) {
         qualified_count = mono::mono_index_count(midx, mono_qualified_name.clone())
     }
     if mir_entry_decl_is_generic(entry_view, typed_index) && (bare_count > 0 || qualified_count > 1) {
@@ -228,7 +227,7 @@ fn string_vec_contains(names: Vec<String>, name: String) -> bool {
     let count = len(names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(names, i), name.clone()) {
+        if get_unchecked(names, i).eq(name.clone()) {
             return true
         }
         i = i + 1

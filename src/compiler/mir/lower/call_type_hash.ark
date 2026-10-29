@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::value_types
@@ -10,7 +9,7 @@ fn mark_hash_type_ref(mut ctx: LowerCtx, dest: i32, type_name: String) {
 }
 
 fn callee_eq(callee_name: String, expected: String) -> bool {
-    eq(callee_name.clone(), expected)
+    callee_name.clone().eq(expected)
 }
 
 fn is_hashmap_method_option_i32(callee_name: String) -> bool {

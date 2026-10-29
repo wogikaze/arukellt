@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use corehir::callee_spelling
 use resolver::expr_path
 use resolver::paths
@@ -70,7 +69,7 @@ fn resolve_fn_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> FnSig {
         i = i + 1
     }
     let leaf = names::unqualified_type_name(name.clone())
-    if !eq(leaf.clone(), name.clone()) && !is_type_owned_name(name.clone()) {
+    if !leaf.clone().eq(name.clone()) && !is_type_owned_name(name.clone()) {
         let leaf_sig = lookup_fn_sig(env, fn_sigs, leaf)
         if contract_fn_sig::FnSig_has_name(leaf_sig) {
             return leaf_sig

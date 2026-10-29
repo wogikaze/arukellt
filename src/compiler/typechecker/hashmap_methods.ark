@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use typechecker::ast_access
 use typechecker::contract_type_access
@@ -17,8 +16,8 @@ fn infer_hashmap_constructor_call(
     callee: AstNode
 ) -> TypeInfo {
     let callee_name = ast_access::node_text(callee)
-    let is_new = eq(callee_name.clone(), String_from("HashMap::new"))
-    let is_with_capacity = eq(callee_name.clone(), String_from("HashMap::with_capacity"))
+    let is_new = callee_name.clone().eq(String_from("HashMap::new"))
+    let is_with_capacity = callee_name.clone().eq(String_from("HashMap::with_capacity"))
     if !is_new && !is_with_capacity {
         return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
     }
@@ -107,7 +106,7 @@ fn infer_builtin_hashmap_method(
         hashmap_report_unavailable(env, String_from("method"), method_name, key_ty, value_ty)
         return hashmap_method_return_type(method_name.clone(), key_ty, value_ty)
     }
-    if eq(method_name.clone(), String_from("extend")) {
+    if method_name.clone().eq(String_from("extend")) {
         // `extend` takes another map, not a key: unify the argument with the
         // receiver's pair so the previous key-typed default does not report
         // `i32` vs `HashMap<...>` for the shell body (#917).
@@ -161,7 +160,7 @@ fn hashmap_report_unavailable(
     let mut seen = false
     let mut index = 0
     while index < len(env.errors) {
-        if eq(get_unchecked(env.errors, index), message.clone()) {
+        if get_unchecked(env.errors, index).eq(message.clone()) {
             seen = true
         }
         index = index + 1
@@ -177,14 +176,14 @@ fn hashmap_pair_is_flat_store(key_ty: TypeInfo, value_ty: TypeInfo) -> bool {
 }
 
 fn hashmap_method_needs_flat_store(method_name: String) -> bool {
-    eq(method_name.clone(), String_from("capacity")) ||
-    eq(method_name.clone(), String_from("reserve")) ||
-    eq(method_name.clone(), String_from("try_reserve")) ||
-    eq(method_name.clone(), String_from("shrink_to_fit")) ||
-    eq(method_name.clone(), String_from("clear")) ||
-    eq(method_name.clone(), String_from("drain")) ||
-    eq(method_name.clone(), String_from("remove_entry")) ||
-    eq(method_name.clone(), String_from("extend"))
+    method_name.clone().eq(String_from("capacity")) ||
+    method_name.clone().eq(String_from("reserve")) ||
+    method_name.clone().eq(String_from("try_reserve")) ||
+    method_name.clone().eq(String_from("shrink_to_fit")) ||
+    method_name.clone().eq(String_from("clear")) ||
+    method_name.clone().eq(String_from("drain")) ||
+    method_name.clone().eq(String_from("remove_entry")) ||
+    method_name.clone().eq(String_from("extend"))
 }
 
 fn hashmap_type(key_ty: TypeInfo, value_ty: TypeInfo) -> TypeInfo {
@@ -196,27 +195,27 @@ fn hashmap_type(key_ty: TypeInfo, value_ty: TypeInfo) -> TypeInfo {
 
 fn hashmap_method_has_arity(method_name: String, explicit_args: i32) -> bool {
     if explicit_args == 0 {
-        return eq(method_name.clone(), String_from("len")) ||
-        eq(method_name.clone(), String_from("is_empty")) ||
-        eq(method_name.clone(), String_from("keys")) ||
-        eq(method_name.clone(), String_from("values")) ||
-        eq(method_name.clone(), String_from("entries")) ||
-        eq(method_name.clone(), String_from("capacity")) ||
-        eq(method_name.clone(), String_from("shrink_to_fit")) ||
-        eq(method_name.clone(), String_from("clear")) ||
-        eq(method_name.clone(), String_from("drain"))
+        return method_name.clone().eq(String_from("len")) ||
+        method_name.clone().eq(String_from("is_empty")) ||
+        method_name.clone().eq(String_from("keys")) ||
+        method_name.clone().eq(String_from("values")) ||
+        method_name.clone().eq(String_from("entries")) ||
+        method_name.clone().eq(String_from("capacity")) ||
+        method_name.clone().eq(String_from("shrink_to_fit")) ||
+        method_name.clone().eq(String_from("clear")) ||
+        method_name.clone().eq(String_from("drain"))
     }
     if explicit_args == 1 {
-        return eq(method_name.clone(), String_from("get")) ||
-        eq(method_name.clone(), String_from("contains_key")) ||
-        eq(method_name.clone(), String_from("remove")) ||
-        eq(method_name.clone(), String_from("reserve")) ||
-        eq(method_name.clone(), String_from("try_reserve")) ||
-        eq(method_name.clone(), String_from("remove_entry")) ||
-        eq(method_name.clone(), String_from("extend"))
+        return method_name.clone().eq(String_from("get")) ||
+        method_name.clone().eq(String_from("contains_key")) ||
+        method_name.clone().eq(String_from("remove")) ||
+        method_name.clone().eq(String_from("reserve")) ||
+        method_name.clone().eq(String_from("try_reserve")) ||
+        method_name.clone().eq(String_from("remove_entry")) ||
+        method_name.clone().eq(String_from("extend"))
     }
     if explicit_args == 2 {
-        return eq(method_name.clone(), String_from("insert"))
+        return method_name.clone().eq(String_from("insert"))
     }
     false
 }
@@ -236,34 +235,34 @@ fn unify_hashmap_method_arg(
 }
 
 fn hashmap_method_return_type(method_name: String, key_ty: TypeInfo, value_ty: TypeInfo) -> TypeInfo {
-    if eq(method_name.clone(), String_from("keys")) {
+    if method_name.clone().eq(String_from("keys")) {
         return hashmap_vec_type(key_ty)
     }
-    if eq(method_name.clone(), String_from("values")) {
+    if method_name.clone().eq(String_from("values")) {
         return hashmap_vec_type(value_ty)
     }
-    if eq(method_name.clone(), String_from("entries")) ||
-    eq(method_name.clone(), String_from("drain")) {
+    if method_name.clone().eq(String_from("entries")) ||
+    method_name.clone().eq(String_from("drain")) {
         return hashmap_vec_type(hashmap_pair_type(key_ty, value_ty))
     }
-    if eq(method_name.clone(), String_from("remove_entry")) {
+    if method_name.clone().eq(String_from("remove_entry")) {
         let mut option = contract_type_constructors::TypeInfo_simple(commands::TY_OPTION())
         contract_type_mutation::TypeInfo_push_type_arg(option, hashmap_pair_type(key_ty, value_ty))
         return option
     }
-    if eq(method_name.clone(), String_from("contains_key")) ||
-    eq(method_name.clone(), String_from("is_empty")) ||
-    eq(method_name.clone(), String_from("try_reserve")) {
+    if method_name.clone().eq(String_from("contains_key")) ||
+    method_name.clone().eq(String_from("is_empty")) ||
+    method_name.clone().eq(String_from("try_reserve")) {
         return contract_type_constructors::TypeInfo_simple(commands::TY_BOOL())
     }
-    if eq(method_name.clone(), String_from("len")) ||
-    eq(method_name.clone(), String_from("capacity")) {
+    if method_name.clone().eq(String_from("len")) ||
+    method_name.clone().eq(String_from("capacity")) {
         return contract_type_constructors::TypeInfo_simple(commands::TY_I32())
     }
-    if eq(method_name.clone(), String_from("reserve")) ||
-    eq(method_name.clone(), String_from("shrink_to_fit")) ||
-    eq(method_name.clone(), String_from("clear")) ||
-    eq(method_name.clone(), String_from("extend")) {
+    if method_name.clone().eq(String_from("reserve")) ||
+    method_name.clone().eq(String_from("shrink_to_fit")) ||
+    method_name.clone().eq(String_from("clear")) ||
+    method_name.clone().eq(String_from("extend")) {
         return contract_type_constructors::TypeInfo_simple(commands::TY_UNIT())
     }
     let mut option = contract_type_constructors::TypeInfo_simple(commands::TY_OPTION())

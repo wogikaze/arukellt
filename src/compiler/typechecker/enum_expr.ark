@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use typechecker::ast_access
 use typechecker::ast_expr_predicates
@@ -157,7 +156,7 @@ fn enum_type_name_from_variant_path(path: String) -> String {
 }
 
 fn enum_names_match(declared_name: String, enum_name: String) -> bool {
-    if eq(declared_name.clone(), enum_name.clone()) {
+    if declared_name.clone().eq(enum_name.clone()) {
         return true
     }
     declared_name.clone().ends_with("::".concat(enum_name.clone()))

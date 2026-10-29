@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
@@ -132,7 +131,7 @@ fn tuple_struct_name_from_type(type_name: String) -> String {
     if inner.clone().starts_with("tuple:") {
         return inner
     }
-    if eq(inner.clone(), "tuple") {
+    if inner.clone().eq("tuple") {
         let byte_size = type_name.slice(last + 1, n)
         return tuple_struct_name_from_byte_size(byte_size)
     }
@@ -187,24 +186,24 @@ fn tuple_field_vt_from_struct_name(ctx: LowerCtx, struct_name: String, elem_inde
         return value_types::VT_I32()
     }
     let key = tuple_field_type_name(struct_name, elem_index)
-    if eq(key.clone(), "String") || eq(key.clone(), "string") {
+    if key.clone().eq("String") || key.clone().eq("string") {
         return value_types::VT_GC_REF()
     }
-    if eq(key.clone(), "f64") || eq(key.clone(), "F64") {
+    if key.clone().eq("f64") || key.clone().eq("F64") {
         return value_types::VT_F64()
     }
-    if eq(key.clone(), "f32") || eq(key.clone(), "F32") {
+    if key.clone().eq("f32") || key.clone().eq("F32") {
         return value_types::VT_F32()
     }
-    if eq(key.clone(), "i64") || eq(key.clone(), "I64") || eq(key.clone(), "u64") {
+    if key.clone().eq("i64") || key.clone().eq("I64") || key.clone().eq("u64") {
         return value_types::VT_I64()
     }
-    if eq(key.clone(), "i32") || eq(key.clone(), "I32") ||
-    eq(key.clone(), "bool") || eq(key.clone(), "char") ||
-    eq(key.clone(), "u8") || eq(key.clone(), "i8") ||
-    eq(key.clone(), "u16") || eq(key.clone(), "u32") ||
-    eq(key.clone(), "i16") ||
-    eq(key.clone(), "unit") || eq(key.clone(), "()") {
+    if key.clone().eq("i32") || key.clone().eq("I32") ||
+    key.clone().eq("bool") || key.clone().eq("char") ||
+    key.clone().eq("u8") || key.clone().eq("i8") ||
+    key.clone().eq("u16") || key.clone().eq("u32") ||
+    key.clone().eq("i16") ||
+    key.clone().eq("unit") || key.clone().eq("()") {
         return value_types::VT_I32()
     }
     // Fn-valued keys follow the same spelling set as struct field decls

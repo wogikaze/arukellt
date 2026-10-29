@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use wasm::call_resolve
 use wasm::opcodes
@@ -420,16 +419,16 @@ fn is_p2_library_export_function(mir: MirModule, f: MirFunction) -> bool {
 }
 
 fn is_p2_std_helper_name(name: String) -> bool {
-    if eq(name.clone(), "print") || eq(name.clone(), "println") || eq(name.clone(), "eprintln") {
+    if name.clone().eq("print") || name.clone().eq("println") || name.clone().eq("eprintln") {
         return true
     }
-    if eq(name.clone(), "var") || eq(name.clone(), "get_var") {
+    if name.clone().eq("var") || name.clone().eq("get_var") {
         return true
     }
-    if eq(name.clone(), "var_or_default") || eq(name.clone(), "args") {
+    if name.clone().eq("var_or_default") || name.clone().eq("args") {
         return true
     }
-    eq(name.clone(), "arg_count") || eq(name.clone(), "arg_at")
+    name.clone().eq("arg_count") || name.clone().eq("arg_at")
 }
 
 fn is_internal_export_name(name: String) -> bool {

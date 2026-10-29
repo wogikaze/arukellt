@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use corehir::function_id
 use mir::function_identity
@@ -115,7 +114,7 @@ fn verify_call_w003_excluded(callee: String) -> bool {
     if callee.clone().starts_with("__simd_") {
         return true
     }
-    if eq(callee.clone(), "print") || eq(callee.clone(), "println") {
+    if callee.clone().eq("print") || callee.clone().eq("println") {
         return true
     }
     false

@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use collections::name_index
 use wasm::ctx_record
 use wasm::ctx_gc_type_locals
@@ -102,19 +101,19 @@ fn SelfEmitCtx_vec_type_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
     let tname = normalize_vec_type_name(local_access::MirLocal_type_name(loc))
-    if eq(tname.clone(), String_from("vec:String")) || eq(tname.clone(), String_from("vec:string")) {
+    if tname.clone().eq(String_from("vec:String")) || tname.clone().eq(String_from("vec:string")) {
         return SelfEmitCtx_vec_string_type(ctx)
     }
-    if eq(tname.clone(), String_from("vec:v128")) || eq(tname.clone(), String_from("vec:V128")) {
+    if tname.clone().eq(String_from("vec:v128")) || tname.clone().eq(String_from("vec:V128")) {
         return SelfEmitCtx_vec_v128_type(ctx)
     }
-    if eq(tname.clone(), String_from("vec:i64")) || eq(tname.clone(), String_from("vec:I64")) {
+    if tname.clone().eq(String_from("vec:i64")) || tname.clone().eq(String_from("vec:I64")) {
         return SelfEmitCtx_vec_i64_type(ctx)
     }
-    if eq(tname.clone(), String_from("vec:f64")) || eq(tname.clone(), String_from("vec:F64")) {
+    if tname.clone().eq(String_from("vec:f64")) || tname.clone().eq(String_from("vec:F64")) {
         return SelfEmitCtx_vec_f64_type(ctx)
     }
-    if eq(tname.clone(), String_from("vec:fnref")) || eq(tname.clone(), String_from("vec:fn")) {
+    if tname.clone().eq(String_from("vec:fnref")) || tname.clone().eq(String_from("vec:fn")) {
         return ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx)
     }
     if tname.clone().starts_with(String_from("vec:")) {
@@ -126,7 +125,7 @@ fn SelfEmitCtx_vec_type_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
             return ctx_gc_type_vec_ref::SelfEmitCtx_vec_enum_ref_type(ctx)
         }
         if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(elem.clone()) ||
-        eq(elem.clone(), String_from("Vec")) ||
+        elem.clone().eq(String_from("Vec")) ||
         elem.clone().starts_with(String_from("vec:")) ||
         ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, elem.clone()) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)

@@ -1,12 +1,11 @@
-use std::prelude::{eq}
 use std::text
 use corehir::type_ann_node
 fn type_ann_generic_local_type_name(ann: AstNode, known_struct_fields: i32) -> String {
     let ann_name = type_ann_node::type_ann_name(ann)
-    if eq(ann_name.clone(), "Vec") {
+    if ann_name.clone().eq("Vec") {
         if type_ann_node::type_ann_child_count(ann) >= 2 {
             let elem_ty = type_ann_node::type_ann_child_at(ann, 1)
-            if type_ann_node::type_ann_is_generic(elem_ty) && eq(type_ann_node::type_ann_name(elem_ty).clone(), "Vec") {
+            if type_ann_node::type_ann_is_generic(elem_ty) && type_ann_node::type_ann_name(elem_ty).clone().eq("Vec") {
                 let inner = type_ann_shape_local_type_name(elem_ty, 0)
                 if len(inner) > 0 {
                     return "vec:".concat(inner)
@@ -21,7 +20,7 @@ fn type_ann_generic_local_type_name(ann: AstNode, known_struct_fields: i32) -> S
         }
         return "vec"
     }
-    if eq(ann_name.clone(), "Result") {
+    if ann_name.clone().eq("Result") {
         if type_ann_node::type_ann_child_count(ann) >= 2 {
             let ok_ty = type_ann_node::type_ann_child_at(ann, 1)
             if type_ann_node::type_ann_is_name(ok_ty, "f64") {
@@ -43,7 +42,7 @@ fn type_ann_generic_local_type_name(ann: AstNode, known_struct_fields: i32) -> S
         }
         return "enum:Result"
     }
-    if eq(ann_name.clone(), "Option") {
+    if ann_name.clone().eq("Option") {
         if type_ann_node::type_ann_child_count(ann) >= 2 {
             let some_ty = type_ann_node::type_ann_child_at(ann, 1)
             if type_ann_node::type_ann_is_name(some_ty, "f64") {

@@ -2,7 +2,6 @@ use wasm::ctx_gc_type
 use wasm::ctx_record
 
 // Prefer `_f1_ref0` (String payload) over name-only first match (`_f1_i32`).
-use std::prelude::{eq}
 fn find_result_string_variant_type(ctx: SelfEmitCtx, variant_name: String) -> i32 {
     let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
@@ -12,7 +11,7 @@ fn find_result_string_variant_type(ctx: SelfEmitCtx, variant_name: String) -> i3
     let mut fallback = 0 - 1
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(names, i).clone(), variant_name.clone()) {
+        if get_unchecked(names, i).clone().eq(variant_name.clone()) {
             if i < len(type_map) {
                 let variant_type = get_unchecked(type_map, i)
                 if variant_type != open_type {
@@ -42,7 +41,7 @@ fn find_result_variant_type_by_suffix(ctx: SelfEmitCtx, variant_name: String, su
     let mut fallback = 0 - 1
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(names, i).clone(), variant_name.clone()) {
+        if get_unchecked(names, i).clone().eq(variant_name.clone()) {
             if i < len(type_map) {
                 let variant_type = get_unchecked(type_map, i)
                 if variant_type != open_type {

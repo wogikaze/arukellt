@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use lexer::scan
 use parser::ast_kind_fields
@@ -33,10 +32,10 @@ fn issue652_assert_wit_import(node: AstNode, package_id: String, alias: String) 
     if issue652_import_kind(node) != kinds::IMPORT_KIND_WIT() {
         return "issue652 parser fail: expected WIT import kind"
     }
-    if !eq(core_ast_text_fields::AstNode_text(node), package_id) {
+    if !core_ast_text_fields::AstNode_text(node).eq(package_id) {
         return "issue652 parser fail: WIT package id"
     }
-    if !eq(issue652_import_alias(node), alias) {
+    if !issue652_import_alias(node).eq(alias) {
         return "issue652 parser fail: WIT import alias"
     }
     return String_new()
@@ -64,7 +63,7 @@ fn issue652_parser_self_check() -> String {
     if issue652_import_kind(local) != kinds::IMPORT_KIND_LOCAL() {
         return "issue652 parser fail: expected local import kind"
     }
-    if !eq(core_ast_text_fields::AstNode_text(local), "math") {
+    if !core_ast_text_fields::AstNode_text(local).eq("math") {
         return "issue652 parser fail: local import path"
     }
     return "issue652 parser ok: WIT and local import grammar"

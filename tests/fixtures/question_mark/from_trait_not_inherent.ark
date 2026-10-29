@@ -4,7 +4,6 @@ use std::host::stdio
 // The source and target error types are identical, so ? must propagate the
 // Err identity; a name-based fallback would still hit assert(false).
 
-use std::prelude::{eq}
 enum AppError {
     Io(String),
     Parse,
@@ -18,7 +17,7 @@ impl AppError {
 }
 
 fn read_line(s: String) -> Result<String, AppError> {
-    if eq(s, "ok") {
+    if s.eq("ok") {
         Ok(String_from("data"))
     } else {
         Err(AppError::Io(String_from("read failed")))

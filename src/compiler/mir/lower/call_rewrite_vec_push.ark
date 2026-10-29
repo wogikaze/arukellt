@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
@@ -26,7 +25,7 @@ fn mir_rewrite_vec_push(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i
     let mut push_i64_needs_extend = false
     if first_arg_idx >= 0 {
         let arg_type_push = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-        if eq(arg_type_push.clone(), "vec:i64") {
+        if arg_type_push.clone().eq("vec:i64") {
             rewritten = "push_i64"
             if second_arg_idx >= 0 && ctx_api_local_types::ctx_local_vt(ctx, second_arg_idx) == value_types::VT_I32() {
                 if stage_call_args {
@@ -36,7 +35,7 @@ fn mir_rewrite_vec_push(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i
                 }
             }
         } else {
-            if eq(arg_type_push.clone(), "vec:f64") {
+            if arg_type_push.clone().eq("vec:f64") {
                 rewritten = "push_f64"
             } else {
                 if arg_type_push.clone().starts_with("vec:") {

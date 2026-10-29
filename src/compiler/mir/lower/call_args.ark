@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::legacy_vt_compat
 use mir::lower::call_arg_print_convert
 use mir::lower::call_arg_print_needs
@@ -12,16 +11,16 @@ use mir::module_spine
 use mir::typed_mir_compat
 use mir::value_types
 fn mir_is_printlike_callee(name: String) -> bool {
-    eq(name.clone(), "stdio::println") ||
-    eq(name.clone(), "println") ||
-    eq(name.clone(), "stdio::print") ||
-    eq(name.clone(), "print") ||
-    eq(name.clone(), "stdio::eprintln") ||
-    eq(name.clone(), "eprintln") ||
-    eq(name.clone(), "__intrinsic_println") ||
-    eq(name.clone(), "__intrinsic_eprintln") ||
-    eq(name.clone(), "__intrinsic_eprint") ||
-    eq(name.clone(), "__intrinsic_print")
+    name.clone().eq("stdio::println") ||
+    name.clone().eq("println") ||
+    name.clone().eq("stdio::print") ||
+    name.clone().eq("print") ||
+    name.clone().eq("stdio::eprintln") ||
+    name.clone().eq("eprintln") ||
+    name.clone().eq("__intrinsic_println") ||
+    name.clone().eq("__intrinsic_eprintln") ||
+    name.clone().eq("__intrinsic_eprint") ||
+    name.clone().eq("__intrinsic_print")
 }
 
 fn mir_print_arg_needs_string_conversion(mut ctx: LowerCtx, arg: AstNode, arg_idx: i32) -> bool {

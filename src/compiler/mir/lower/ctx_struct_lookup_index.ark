@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::ctx_struct_storage
 fn ctx_field_index(ctx: LowerCtx, struct_name: String, field_name: String) -> i32 {
     let li = ctx_struct_storage::ctx_struct_layout_preferred_index(ctx, struct_name.clone())
@@ -10,7 +9,7 @@ fn ctx_field_index(ctx: LowerCtx, struct_name: String, field_name: String) -> i3
     let mut fi = 0
     while fi < fc {
         let fn_name = ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, offset + fi)
-        if eq(fn_name.clone(), field_name.clone()) {
+        if fn_name.clone().eq(field_name.clone()) {
             return fi
         }
         fi = fi + 1
@@ -27,7 +26,7 @@ fn ctx_field_index_any(ctx: LowerCtx, field_name: String) -> i32 {
         let mut fi = 0
         while fi < fc {
             let fn_name = ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, offset + fi)
-            if eq(fn_name.clone(), field_name.clone()) {
+            if fn_name.clone().eq(field_name.clone()) {
                 return fi
             }
             fi = fi + 1
@@ -47,7 +46,7 @@ fn ctx_field_owner_struct_name(ctx: LowerCtx, field_name: String) -> String {
         let mut fi = 0
         while fi < fc {
             let fn_name = ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, offset + fi)
-            if eq(fn_name.clone(), field_name.clone()) {
+            if fn_name.clone().eq(field_name.clone()) {
                 return ctx_struct_storage::ctx_struct_layout_name_at(ctx, si)
             }
             fi = fi + 1

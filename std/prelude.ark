@@ -52,6 +52,7 @@
 //
 // =============================================================================
 use std::collections::string
+use std::core::eq
 use std::core::scalar_format
 
 // String construction
@@ -81,11 +82,6 @@ pub fn String_from(s: String) -> String {
 
 pub fn String_new() -> String {
     Std::panic(String_new()); return String_new()
-}
-
-// String comparison
-pub fn eq(a: String, b: String) -> bool {
-    string::eq(a, b)
 }
 
 // String operations

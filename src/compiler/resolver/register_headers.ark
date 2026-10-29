@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use resolver::ctx_record
 use resolver::impl_target
 use resolver::scope_define
@@ -65,8 +64,8 @@ fn register_impl_method_headers(mut ctx: ResolveCtx, d: AstNode) {
     // on the declared base type as well; the concrete impl is selected later
     // from the call's source argument (#917).
     let register_base_alias = has_trait &&
-    eq(trait_name.clone(), String_from("FromIterator")) &&
-    !eq(base_name.clone(), struct_name.clone())
+    trait_name.clone().eq(String_from("FromIterator")) &&
+    !base_name.clone().eq(struct_name.clone())
     let mcount = ast_access::node_child_count(d)
     let mut mi = 0
     while mi < mcount {
@@ -81,7 +80,7 @@ fn register_impl_method_headers(mut ctx: ResolveCtx, d: AstNode) {
         if existing_mangled < 0 || !has_trait {
             scope_define::define_with_vis(ctx, mangled, commands::SYM_FN(), true)
         }
-        if has_trait && !eq(trait_name.clone(), struct_name.clone()) {
+        if has_trait && !trait_name.clone().eq(struct_name.clone()) {
             let existing = scope_lookup::lookup(ctx, method_name.clone())
             if existing < 0 {
                 scope_define::define_with_vis(ctx, method_name, commands::SYM_FN(), true)

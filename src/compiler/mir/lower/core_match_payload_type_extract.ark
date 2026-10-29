@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use mir::lower::ctx_api_local_types
 use mir::value_types
@@ -53,7 +52,7 @@ fn find_last_sep_char(s: String, sep_char: i32) -> i32 {
 }
 
 fn normalize_payload_elem_type_name(elem_ty: String) -> String {
-    if eq(elem_ty.clone(), "Vec") {
+    if elem_ty.clone().eq("Vec") {
         return "vec:i32"
     }
     if elem_ty.clone().starts_with("Vec<") && elem_ty.clone().ends_with(">") {
@@ -71,7 +70,7 @@ fn core_payload_type_name_is_gc_ref(ctx: LowerCtx, bind_local: i32) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if eq(type_name.clone(), "string") || eq(type_name.clone(), "String") {
+    if type_name.clone().eq("string") || type_name.clone().eq("String") {
         return true
     }
     if type_name.clone().starts_with("vec:") {

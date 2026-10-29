@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use corehir::core_op_registry_generated
 use corehir::mir_value_type
@@ -153,18 +152,18 @@ fn native_c_core_member_for_vec_element(element_type: String) -> String {
     element_type.clone().starts_with(String_from("fn(")) {
         return String_from("i64")
     }
-    if eq(element_type.clone(), String_from("i64")) {
+    if element_type.clone().eq(String_from("i64")) {
         return String_from("i64")
     }
-    if eq(element_type.clone(), String_from("f32")) {
+    if element_type.clone().eq(String_from("f32")) {
         return String_from("f32")
     }
-    if eq(element_type.clone(), String_from("f64")) {
+    if element_type.clone().eq(String_from("f64")) {
         return String_from("f64")
     }
-    if eq(element_type.clone(), String_from("i32")) ||
-    eq(element_type.clone(), String_from("bool")) ||
-    eq(element_type.clone(), String_from("char")) ||
+    if element_type.clone().eq(String_from("i32")) ||
+    element_type.clone().eq(String_from("bool")) ||
+    element_type.clone().eq(String_from("char")) ||
     enum_abi::native_c_type_name_is_unit_tag_enum(element_type.clone()) ||
     enum_abi::native_c_type_name_is_unit_tag_enum(
         enum_abi::native_c_type_name_enum_basename(element_type.clone())
@@ -569,7 +568,7 @@ fn native_c_emit_core_call(
     if handler == core_op_registry_generated::core_op_handler_runtime_f32_to_f64() {
         let dest = inst_accessors_operands::MirInst_dest(instruction)
         let dest_member = native_c_core_value_member(function, dest)
-        if eq(dest_member.clone(), String_from("f32")) {
+        if dest_member.clone().eq(String_from("f32")) {
             return native_c_core_call_expression(
                 String_from("(float)").concat(native_c_core_arg(arguments, 0))
             )

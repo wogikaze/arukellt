@@ -4,7 +4,6 @@
 // when the func_id is invalid. The emitter never selects a MIR-body callee's
 // layout from its name (INV-4).
 
-use std::prelude::{eq}
 use std::text
 use corehir::function_id
 use corehir::mir_value_type
@@ -59,7 +58,7 @@ fn infer_call_result_gc_type_from_registry(ctx: SelfEmitCtx, callee: String) -> 
     let mut fid = signature_registry::signature_registry_lookup_by_mangled(registry, callee.clone())
     if !function_id::function_id_is_valid(fid) {
         let short_name = inst_ctx::strip_module_prefix(callee.clone())
-        if !eq(short_name.clone(), callee.clone()) {
+        if !short_name.clone().eq(callee.clone()) {
             fid = signature_registry::signature_registry_lookup_by_mangled(registry, short_name)
         }
     }
@@ -149,8 +148,8 @@ fn resolve_gc_type_from_return_type_name(ctx: SelfEmitCtx, ret_name: String) -> 
     // signature maps the same name to enum-open (gc_enum_return_type_sig), so
     // the dest must as well (INV-5).
     if code_ref_locals_types::is_option_type_name(ret_name.clone()) ||
-    eq(ret_name.clone(), "Option") ||
-    eq(ret_name.clone(), "Result") ||
+    ret_name.clone().eq("Option") ||
+    ret_name.clone().eq("Result") ||
     ret_name.clone().starts_with("Result_") ||
     ret_name.clone().starts_with("Result:") ||
     ret_name.clone().starts_with("Result<") ||
@@ -160,19 +159,19 @@ fn resolve_gc_type_from_return_type_name(ctx: SelfEmitCtx, ret_name: String) -> 
     if ret_name.clone().starts_with("enum:") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
-    if eq(ret_name.clone(), "String") || eq(ret_name.clone(), "string") {
+    if ret_name.clone().eq("String") || ret_name.clone().eq("string") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
     }
-    if eq(ret_name.clone(), "vec:String") || eq(ret_name.clone(), "vec:string") {
+    if ret_name.clone().eq("vec:String") || ret_name.clone().eq("vec:string") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_string_type(ctx))
     }
-    if eq(ret_name.clone(), "vec:i64") || eq(ret_name.clone(), "vec:I64") {
+    if ret_name.clone().eq("vec:i64") || ret_name.clone().eq("vec:I64") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx))
     }
-    if eq(ret_name.clone(), "vec:f64") || eq(ret_name.clone(), "vec:F64") {
+    if ret_name.clone().eq("vec:f64") || ret_name.clone().eq("vec:F64") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx))
     }
-    if eq(ret_name.clone(), "vec:v128") || eq(ret_name.clone(), "vec:V128") {
+    if ret_name.clone().eq("vec:v128") || ret_name.clone().eq("vec:V128") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx))
     }
     if ret_name.clone().starts_with("vec:") {
@@ -215,10 +214,10 @@ fn infer_vec_new_return_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32>
         }
         return resolve_gc_type_from_return_type_name(ctx, "vec:".concat(elem))
     }
-    if eq(callee.clone(), "Vec::new") ||
-    eq(callee.clone(), "Vec::with_capacity") ||
-    eq(callee.clone(), "Vec__new") ||
-    eq(callee.clone(), "Vec__with_capacity") {
+    if callee.clone().eq("Vec::new") ||
+    callee.clone().eq("Vec::with_capacity") ||
+    callee.clone().eq("Vec__new") ||
+    callee.clone().eq("Vec__with_capacity") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))
     }
     Option::None

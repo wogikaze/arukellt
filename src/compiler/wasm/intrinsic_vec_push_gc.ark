@@ -3,7 +3,6 @@
 //                              (field (mut i32)))
 //   push: read data+len → growth check → array.set → struct.set 1
 
-use std::prelude::{eq}
 use wasm::opcodes
 use wasm::ctx_scratch
 use wasm::ctx_record
@@ -146,14 +145,14 @@ fn push_gc_element_is_gc_ref(ctx: SelfEmitCtx, inst: MirInst, is_vec_string: boo
 }
 
 fn push_gc_primitive_vec_elem(elem: String) -> bool {
-    eq(elem.clone(), "i32") ||
-    eq(elem.clone(), "i64") ||
-    eq(elem.clone(), "f64") ||
-    eq(elem.clone(), "f32") ||
-    eq(elem.clone(), "bool") ||
-    eq(elem.clone(), "char") ||
-    eq(elem.clone(), "fnref") ||
-    eq(elem.clone(), "fn") ||
+    elem.clone().eq("i32") ||
+    elem.clone().eq("i64") ||
+    elem.clone().eq("f64") ||
+    elem.clone().eq("f32") ||
+    elem.clone().eq("bool") ||
+    elem.clone().eq("char") ||
+    elem.clone().eq("fnref") ||
+    elem.clone().eq("fn") ||
     elem.clone().starts_with("fn(")
 }
 

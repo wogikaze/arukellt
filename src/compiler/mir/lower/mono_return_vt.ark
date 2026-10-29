@@ -5,7 +5,6 @@
 // Call-time mangled-name reverse lookup is forbidden (#843); spine /
 // MonoInstanceTable is the source of truth.
 
-use std::prelude::{eq}
 use mir::lower::mono_return_vt_table
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_fn_return_type
@@ -166,14 +165,14 @@ fn is_concrete_mono_return_type_name(type_name: String) -> bool {
     if type_name.clone().starts_with("hashmap:") {
         return true
     }
-    if eq(type_name.clone(), "i32") ||
-    eq(type_name.clone(), "i64") ||
-    eq(type_name.clone(), "f64") ||
-    eq(type_name.clone(), "f32") ||
-    eq(type_name.clone(), "bool") ||
-    eq(type_name.clone(), "char") ||
-    eq(type_name.clone(), "String") ||
-    eq(type_name.clone(), "string") {
+    if type_name.clone().eq("i32") ||
+    type_name.clone().eq("i64") ||
+    type_name.clone().eq("f64") ||
+    type_name.clone().eq("f32") ||
+    type_name.clone().eq("bool") ||
+    type_name.clone().eq("char") ||
+    type_name.clone().eq("String") ||
+    type_name.clone().eq("string") {
         return true
     }
     // Bare user struct names from MonoInstance TypeTable entries (Point).

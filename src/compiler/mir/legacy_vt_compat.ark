@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use corehir::mir_value_type
 use corehir::type_id
 use corehir::kinds
@@ -63,28 +62,28 @@ fn legacy_vt_from_repr_only(repr: i32) -> i32 {
 }
 
 fn legacy_vt_from_primitive_name(name: String) -> i32 {
-    if eq(name.clone(), "void") {
+    if name.clone().eq("void") {
         return value_types::VT_VOID()
     }
-    if eq(name.clone(), "()") {
+    if name.clone().eq("()") {
         return value_types::VT_VOID()
     }
-    if eq(name.clone(), "i64") {
+    if name.clone().eq("i64") {
         return value_types::VT_I64()
     }
-    if eq(name.clone(), "u64") {
+    if name.clone().eq("u64") {
         return value_types::VT_I64()
     }
-    if eq(name.clone(), "f64") {
+    if name.clone().eq("f64") {
         return value_types::VT_F64()
     }
-    if eq(name.clone(), "f32") {
+    if name.clone().eq("f32") {
         return value_types::VT_F32()
     }
-    if eq(name.clone(), "v128") {
+    if name.clone().eq("v128") {
         return value_types::VT_V128()
     }
-    if eq(name.clone(), "fn") || name.clone().starts_with("fnref") ||
+    if name.clone().eq("fn") || name.clone().starts_with("fnref") ||
     name.clone().starts_with("fnsig:") || name.clone().starts_with("fn(") {
         return value_types::VT_FUNCREF()
     }

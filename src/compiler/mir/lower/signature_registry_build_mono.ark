@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use collections::name_index
 use corehir::name_match
@@ -201,7 +200,7 @@ impl SigRegLeafIndex {
                 qualified_name.clone()
             ) {
                 let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
-                if len(matched_mangled) > 0 && !eq(inst_mangled.clone(), matched_mangled.clone()) {
+                if len(matched_mangled) > 0 && !inst_mangled.clone().eq(matched_mangled.clone()) {
                     ambiguous = true
                 }
                 if len(matched_mangled) == 0 {

@@ -1,5 +1,4 @@
 // Mono type signature helpers.
-use std::prelude::{eq}
 use std::text
 use mir::lower::mono_suffix_parse
 use mir::module_gc_enum
@@ -57,14 +56,14 @@ fn all_valid_type_keys(type_keys: Vec<String>, key_count: i32) -> bool {
 }
 
 fn is_valid_type_key(key: String) -> bool {
-    if eq(key.clone(), "i32") ||
-    eq(key.clone(), "i64") ||
-    eq(key.clone(), "f64") ||
-    eq(key.clone(), "f32") ||
-    eq(key.clone(), "bool") ||
-    eq(key.clone(), "char") ||
-    eq(key.clone(), "String") ||
-    eq(key.clone(), "string") {
+    if key.clone().eq("i32") ||
+    key.clone().eq("i64") ||
+    key.clone().eq("f64") ||
+    key.clone().eq("f32") ||
+    key.clone().eq("bool") ||
+    key.clone().eq("char") ||
+    key.clone().eq("String") ||
+    key.clone().eq("string") {
         return true
     }
     // User-defined type names start with uppercase letter (A-Z = 65-90)
@@ -207,7 +206,7 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
         return String_new()
     }
     let last_key = get_unchecked(type_keys, key_count - 1)
-    if eq(last_key.clone(), receiver.clone()) {
+    if last_key.clone().eq(receiver.clone()) {
         return String_new()
     }
     let sig = sections_types_sigs_mono_helpers::mono_type_key_to_sig(last_key.clone())
@@ -273,5 +272,5 @@ fn mono_declared_return_is_receiver(return_type_name: String, receiver: String) 
             bare = bare.slice(last_colon + 1, n)
         }
     }
-    eq(bare, receiver)
+    bare.eq(receiver)
 }

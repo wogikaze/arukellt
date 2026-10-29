@@ -1,4 +1,4 @@
-use std::prelude::{eq, String_from}
+use std::prelude::{String_from}
 use std::text
 use mir::lower::call_type_vec
 use mir::lower::ctx_fn_mono
@@ -30,7 +30,7 @@ fn mir_resolve_mono_call_target(mut ctx: LowerCtx, rewritten: String, first_arg_
             } else {
                 // Memory64 int literals are i64 locals while mono keys stay i32
                 // (write_debug_to__i32). Retry i32 before falling to name rewrite.
-                if eq(mono_type_key.clone(), "i64") {
+                if mono_type_key.clone().eq("i64") {
                     let i32_resolve = mir_try_resolve_mono_by_type_key(
                         ctx,
                         resolved.clone(),
@@ -119,7 +119,7 @@ fn concretize_vec_ctor_projection(ctx: LowerCtx, resolved: String) -> String {
     // and a Vec<T> local receives a mismatched struct ref (#965).
     if mono_suffix_parse::is_mono_type_var_name(elem.clone()) {
         let concrete = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, elem.clone())
-        if len(concrete) > 0 && !eq(concrete.clone(), elem.clone()) {
+        if len(concrete) > 0 && !concrete.clone().eq(elem.clone()) {
             return mono::mono_safe_name(
                 resolved.clone().slice(0, elem_start).concat(concrete)
             )
@@ -133,7 +133,7 @@ fn concretize_vec_ctor_projection(ctx: LowerCtx, resolved: String) -> String {
         return resolved
     }
     let concrete = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, elem.clone())
-    if len(concrete) == 0 || eq(concrete.clone(), elem.clone()) {
+    if len(concrete) == 0 || concrete.clone().eq(elem.clone()) {
         return resolved
     }
     mono::mono_safe_name(
@@ -208,7 +208,7 @@ fn mir_try_resolve_mono_by_type_key(
     if ctx_fn_exists::ctx_has_fn_name(ctx, type_method.clone()) {
         return type_method
     }
-    if eq(mono_type_key.clone(), "string") {
+    if mono_type_key.clone().eq("string") {
         let mono_candidate_string = mono::mono_safe_name(method_leaf.clone().concat("__String"))
         if ctx_fn_exists::ctx_has_fn_name(ctx, mono_candidate_string.clone()) {
             return mono_candidate_string
@@ -256,10 +256,10 @@ fn resolve_format_debug_mono_target(ctx: LowerCtx, resolved: String, first_arg_i
         if key.clone().starts_with("option:") || key.clone().starts_with("Option_") {
             key = key.clone().slice(7, len(key))
         }
-        if eq(key.clone(), "string") {
+        if key.clone().eq("string") {
             key = "String"
         }
-        if len(key) == 0 || key.clone().starts_with("?") || eq(key.clone(), "enum:open") {
+        if len(key) == 0 || key.clone().starts_with("?") || key.clone().eq("enum:open") {
             let vt = ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx)
             if vt == value_types::VT_I32() {
                 key = "i32"
@@ -273,7 +273,7 @@ fn resolve_format_debug_mono_target(ctx: LowerCtx, resolved: String, first_arg_i
                 }
             }
         }
-        if len(key) > 0 && !key.clone().starts_with("?") && !eq(key.clone(), "enum:open") {
+        if len(key) > 0 && !key.clone().starts_with("?") && !key.clone().eq("enum:open") {
             let trait_method = key.clone().concat("::fmt_debug")
             if ctx_fn_exists::ctx_has_fn_name(ctx, trait_method.clone()) {
                 return trait_method
@@ -289,7 +289,7 @@ fn call_mono_nested_vec_type_key(type_name: String) -> String {
         return "Vec<".concat(inner.concat(">"))
     }
     // Bare "Vec" from Vec<Vec<...>> annotations that lost the inner key.
-    if eq(type_name.clone(), "Vec") {
+    if type_name.clone().eq("Vec") {
         return "Vec<i32>"
     }
     type_name

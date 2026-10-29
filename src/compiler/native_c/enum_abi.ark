@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use corehir::kinds
 use corehir::mir_value_type
 use corehir::type_id
@@ -118,8 +117,8 @@ fn native_c_heap_enum_type_flags(mir_module: MirModule) -> Vec<i32> {
 }
 
 fn native_c_type_name_is_open_payload_enum(name: String) -> bool {
-    if eq(name.clone(), String_from("Option")) || eq(name.clone(), String_from("Result")) ||
-    eq(name.clone(), String_from("Either")) {
+    if name.clone().eq(String_from("Option")) || name.clone().eq(String_from("Result")) ||
+    name.clone().eq(String_from("Either")) {
         return true
     }
     if name.clone().starts_with(String_from("option:")) ||
@@ -135,13 +134,13 @@ fn native_c_type_name_is_open_payload_enum(name: String) -> bool {
 /// Unit-only enums that native-cpp lowers with CONST_I32 tags.
 fn native_c_type_name_is_unit_tag_enum(name: String) -> bool {
     let basename = native_c_type_name_enum_basename(name)
-    if eq(basename.clone(), String_from("Ordering")) {
+    if basename.clone().eq(String_from("Ordering")) {
         return true
     }
-    if eq(basename.clone(), String_from("Direction")) {
+    if basename.clone().eq(String_from("Direction")) {
         return true
     }
-    if eq(basename.clone(), String_from("RpnOp")) {
+    if basename.clone().eq(String_from("RpnOp")) {
         return true
     }
     false
@@ -202,7 +201,7 @@ fn native_c_string_list_contains(values: Vec<String>, value: String) -> bool {
     let count = len(values)
     let mut index = 0
     while index < count {
-        if eq(get_unchecked(values, index), value.clone()) {
+        if get_unchecked(values, index).eq(value.clone()) {
             return true
         }
         index = index + 1
@@ -265,7 +264,7 @@ fn native_c_table_has_unit_enum_named(
             type_index = type_index + 1
             continue
         }
-        if !eq(native_c_type_name_enum_basename(type_table::type_entry_name(entry)), basename.clone()) {
+        if !native_c_type_name_enum_basename(type_table::type_entry_name(entry)).eq(basename.clone()) {
             type_index = type_index + 1
             continue
         }

@@ -7,8 +7,6 @@ use std::host::stdio
 // and From<String> for String is the identity impl, so errors
 // propagate unchanged through the call chain.
 
-use std::prelude::{eq}
-
 fn parse_num(s: String) -> Result<i32, String> {i32::try_from(s)
 }
 
@@ -51,7 +49,7 @@ fn main() {
     let r3 = parse_validate_double(String_from("0"))
     match r3 {
         Result::Ok(_) => assert(false),
-        Result::Err(e) => assert(eq(e, String_from("must be positive"))),
+        Result::Err(e) => assert(e.eq(String_from("must be positive"))),
     }
 
     stdio::println(String_from("OK"))

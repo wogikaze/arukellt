@@ -1,9 +1,8 @@
 // Issue #701: Associated function syntax — String::from().
 // Verifies String::from("hello") compiles and produces a String.
 use std::host::stdio
-use std::prelude::{eq}
 fn main() {
     let s = String::from("hello")
-    assert(eq(s, "hello"))
+    assert(s.eq("hello"))
     stdio::println(s)
 }

@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use corehir::mir_value_type
 use corehir::type_id
@@ -170,7 +169,7 @@ fn verify_local_gc_name_i32_mismatch(vt: i32, type_name: String, local: MirLocal
     if vt != value_types::VT_I32() {
         return false
     }
-    if eq(type_name.clone(), "String") {
+    if type_name.clone().eq("String") {
         return true
     }
     if type_name.clone().starts_with("struct:") {

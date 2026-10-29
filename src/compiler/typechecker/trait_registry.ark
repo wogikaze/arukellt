@@ -18,7 +18,6 @@ use typechecker::types
 use diagnostics::mod as diag_mod
 // Register declarations before impls so arity and associated-item checks use
 // the same local trait registry as obligation solving.
-use std::prelude::{eq}
 
 fn register_trait_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
     let count = len(decls)
@@ -324,7 +323,7 @@ fn validate_impl_param_constraints(mut env: TypeEnv, node: AstNode, self_ty: Typ
 
 fn type_contains_named_var(ty: TypeInfo, name: String) -> bool {
     if contract_type_access::TypeInfo_tag(ty) == commands::TY_TYPE_VAR() &&
-    eq(contract_type_access::TypeInfo_name(ty), name.clone()) {
+    contract_type_access::TypeInfo_name(ty).eq(name.clone()) {
         return true
     }
     let count = contract_type_access::TypeInfo_type_arg_count(ty)
@@ -370,10 +369,10 @@ fn validate_trait_supertraits(mut env: TypeEnv) {
 }
 
 fn is_compiler_owned_blanket(trait_name: String, self_ty: TypeInfo) -> bool {
-    if !eq(trait_name.clone(), "Ord") {
+    if !trait_name.clone().eq("Ord") {
         return false
     }
-    if !eq(contract_type_access::TypeInfo_name(self_ty), "Reverse") {
+    if !contract_type_access::TypeInfo_name(self_ty).eq("Reverse") {
         return false
     }
     if contract_type_access::TypeInfo_type_arg_count(self_ty) != 1 {
@@ -478,10 +477,7 @@ fn associated_type_impl_exists(
         if names::same_type_name(
             contract_associated_type::trait_associated_type_info_trait_name(entry),
             trait_name.clone()
-        ) && eq(
-            contract_associated_type::trait_associated_type_info_name(entry),
-            assoc_name.clone()
-        ) && same_type(
+        ) && contract_associated_type::trait_associated_type_info_name(entry).eq(assoc_name.clone()) && same_type(
             contract_associated_type::trait_associated_type_info_self_ty(entry),
             self_ty
         ) {
@@ -496,10 +492,7 @@ fn trait_has_associated_type(info: TraitInfo, name: String) -> bool {
     let count = contract_trait_info::trait_info_associated_type_count(info)
     let mut i = 0
     while i < count {
-        if eq(
-            contract_trait_info::trait_info_associated_type_at(info, i),
-            name.clone()
-        ) {
+        if contract_trait_info::trait_info_associated_type_at(info, i).eq(name.clone()) {
             return true
         }
         i = i + 1
@@ -548,7 +541,7 @@ fn string_vec_contains(names: Vec<String>, name: String) -> bool {
     let count = len(names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(names, i), name.clone()) {
+        if get_unchecked(names, i).eq(name.clone()) {
             return true
         }
         i = i + 1

@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 struct Node {
     label: String,
     next: i32,
@@ -13,5 +12,5 @@ fn main() -> i32 {
         let _ = len(junk.label)
         i = i + 1
     }
-    if eq(a.label, String_from("a")) && eq(b.label, String_from("b")) { 0 } else { 1 }
+    if a.label.eq(String_from("a")) && b.label.eq(String_from("b")) { 0 } else { 1 }
 }

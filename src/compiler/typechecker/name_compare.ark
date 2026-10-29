@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use typechecker::contract_type_access
 fn same_named_type(a: TypeInfo, b: TypeInfo) -> bool {
@@ -28,7 +27,7 @@ fn same_nominal_type(a: TypeInfo, b: TypeInfo) -> bool {
 }
 
 fn same_type_name(left: String, right: String) -> bool {
-    if eq(left.clone(), right.clone()) {
+    if left.clone().eq(right.clone()) {
         return true
     }
     if left.index_of("::") < 0 && right.clone().ends_with("::".concat(left.clone())) {

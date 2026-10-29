@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_return_type
 
@@ -9,14 +8,14 @@ use mir::lower::ctx_fn_return_type
 // marker distinguishes `len` / `is_empty` from the Vec core-op rewrites that
 // share those names, and selects the i32 or String store (#917).
 fn hashset_constructor_family(callee_name: String) -> String {
-    if eq(callee_name.clone(), String_from("HashSet__new__i32")) ||
-    eq(callee_name.clone(), String_from("HashSet::new__i32")) ||
-    eq(callee_name.clone(), String_from("hashset_new")) {
+    if callee_name.clone().eq(String_from("HashSet__new__i32")) ||
+    callee_name.clone().eq(String_from("HashSet::new__i32")) ||
+    callee_name.clone().eq(String_from("hashset_new")) {
         return String_from("i32")
     }
-    if eq(callee_name.clone(), String_from("HashSet__new__String")) ||
-    eq(callee_name.clone(), String_from("HashSet::new__String")) ||
-    eq(callee_name.clone(), String_from("hashset_str_new")) {
+    if callee_name.clone().eq(String_from("HashSet__new__String")) ||
+    callee_name.clone().eq(String_from("HashSet::new__String")) ||
+    callee_name.clone().eq(String_from("hashset_str_new")) {
         return String_from("String")
     }
     String_new()
@@ -24,10 +23,10 @@ fn hashset_constructor_family(callee_name: String) -> String {
 
 fn mir_rewrite_hashset_constructor(callee_name: String) -> String {
     let family = hashset_constructor_family(callee_name.clone())
-    if eq(family.clone(), String_from("i32")) {
+    if family.clone().eq(String_from("i32")) {
         return String_from("hashset_new")
     }
-    if eq(family.clone(), String_from("String")) {
+    if family.clone().eq(String_from("String")) {
         return String_from("hashset_str_new")
     }
     String_new()
@@ -37,25 +36,25 @@ fn mir_rewrite_hashset_constructor(callee_name: String) -> String {
 // Vec<i32> / Vec<String>, but the source expression keeps the set type so
 // receiver-type dispatch still sees a HashSet (#917).
 fn mir_hashset_constructor_type_name(callee_name: String) -> String {
-    if eq(callee_name.clone(), String_from("HashSet__new__i32")) ||
-    eq(callee_name.clone(), String_from("HashSet::new__i32")) {
+    if callee_name.clone().eq(String_from("HashSet__new__i32")) ||
+    callee_name.clone().eq(String_from("HashSet::new__i32")) {
         return String_from("HashSet<i32>")
     }
-    if eq(callee_name.clone(), String_from("HashSet__new__String")) ||
-    eq(callee_name.clone(), String_from("HashSet::new__String")) {
+    if callee_name.clone().eq(String_from("HashSet__new__String")) ||
+    callee_name.clone().eq(String_from("HashSet::new__String")) {
         return String_from("HashSet<String>")
     }
     String_new()
 }
 
 fn hashset_family_for_type(type_name: String) -> String {
-    if eq(type_name.clone(), String_from("HashSet<i32>")) ||
-    eq(type_name.clone(), String_from("HashSet_i32")) {
+    if type_name.clone().eq(String_from("HashSet<i32>")) ||
+    type_name.clone().eq(String_from("HashSet_i32")) {
         return String_from("i32")
     }
-    if eq(type_name.clone(), String_from("HashSet<String>")) ||
-    eq(type_name.clone(), String_from("HashSet_String")) ||
-    eq(type_name.clone(), String_from("vec:String")) {
+    if type_name.clone().eq(String_from("HashSet<String>")) ||
+    type_name.clone().eq(String_from("HashSet_String")) ||
+    type_name.clone().eq(String_from("vec:String")) {
         return String_from("String")
     }
     String_new()
@@ -68,7 +67,7 @@ fn hashset_method_name_from_source(source: String) -> String {
     if source.clone().starts_with(String_from("vec_")) {
         return hashset_method_name_from_source(source.slice(4, len(source)))
     }
-    if eq(source.clone(), String_from("raw_array_len")) {
+    if source.clone().eq(String_from("raw_array_len")) {
         return String_from("len")
     }
     if source.clone().starts_with(String_from("HashSet_i32::")) {
@@ -103,124 +102,124 @@ fn hashset_method_name_from_source(source: String) -> String {
 }
 
 fn hashset_i32_method_target(method: String) -> String {
-    if eq(method.clone(), String_from("new")) {
+    if method.clone().eq(String_from("new")) {
         return String_from("hashset_new")
     }
     // ADR-086 trait methods. The flat store alias would otherwise resolve
     // `clone` / `into_iter` against Vec (or the element type) because the
     // source set spelling is gone by method lowering, so route them to the
     // concrete impl methods directly (#917).
-    if eq(method.clone(), String_from("clone")) {
+    if method.clone().eq(String_from("clone")) {
         return String_from("HashSet_i32::clone")
     }
-    if eq(method.clone(), String_from("into_iter")) {
+    if method.clone().eq(String_from("into_iter")) {
         return String_from("HashSet_i32::into_iter")
     }
-    if eq(method.clone(), String_from("eq")) {
+    if method.clone().eq(String_from("eq")) {
         return String_from("HashSet_i32::eq")
     }
-    if eq(method.clone(), String_from("fmt_debug")) {
+    if method.clone().eq(String_from("fmt_debug")) {
         return String_from("HashSet_i32::fmt_debug")
     }
-    if eq(method.clone(), String_from("insert")) {
+    if method.clone().eq(String_from("insert")) {
         return String_from("hashset_insert")
     }
-    if eq(method.clone(), String_from("contains")) {
+    if method.clone().eq(String_from("contains")) {
         return String_from("hashset_contains")
     }
-    if eq(method.clone(), String_from("remove")) {
+    if method.clone().eq(String_from("remove")) {
         return String_from("hashset_remove")
     }
-    if eq(method.clone(), String_from("len")) {
+    if method.clone().eq(String_from("len")) {
         return String_from("hashset_len")
     }
-    if eq(method.clone(), String_from("is_empty")) {
+    if method.clone().eq(String_from("is_empty")) {
         return String_from("hashset_is_empty")
     }
-    if eq(method.clone(), String_from("to_vec")) {
+    if method.clone().eq(String_from("to_vec")) {
         return String_from("hashset_to_vec")
     }
-    if eq(method.clone(), String_from("union")) {
+    if method.clone().eq(String_from("union")) {
         return String_from("hashset_union")
     }
-    if eq(method.clone(), String_from("intersection")) {
+    if method.clone().eq(String_from("intersection")) {
         return String_from("hashset_intersection")
     }
-    if eq(method.clone(), String_from("difference")) {
+    if method.clone().eq(String_from("difference")) {
         return String_from("hashset_difference")
     }
-    if eq(method.clone(), String_from("capacity")) {
+    if method.clone().eq(String_from("capacity")) {
         return String_from("hashset_capacity")
     }
-    if eq(method.clone(), String_from("reserve")) {
+    if method.clone().eq(String_from("reserve")) {
         return String_from("hashset_reserve")
     }
-    if eq(method.clone(), String_from("shrink_to_fit")) {
+    if method.clone().eq(String_from("shrink_to_fit")) {
         return String_from("hashset_shrink_to_fit")
     }
-    if eq(method.clone(), String_from("clear")) {
+    if method.clone().eq(String_from("clear")) {
         return String_from("hashset_clear")
     }
-    if eq(method.clone(), String_from("extend")) {
+    if method.clone().eq(String_from("extend")) {
         return String_from("hashset_extend")
     }
     String_new()
 }
 
 fn hashset_str_method_target(method: String) -> String {
-    if eq(method.clone(), String_from("new")) {
+    if method.clone().eq(String_from("new")) {
         return String_from("hashset_str_new")
     }
     // ADR-086 trait methods for the String store. As with the i32 family, the
     // flat Vec<String> alias would otherwise win the method rewrite, so route
     // them to the concrete impls. `to_vec` is the snapshot accessor those
     // impls share; it lives in hash_string as a private lowering target.
-    if eq(method.clone(), String_from("clone")) {
+    if method.clone().eq(String_from("clone")) {
         return String_from("HashSet_String::clone")
     }
-    if eq(method.clone(), String_from("into_iter")) {
+    if method.clone().eq(String_from("into_iter")) {
         return String_from("HashSet_String::into_iter")
     }
-    if eq(method.clone(), String_from("eq")) {
+    if method.clone().eq(String_from("eq")) {
         return String_from("HashSet_String::eq")
     }
-    if eq(method.clone(), String_from("fmt_debug")) {
+    if method.clone().eq(String_from("fmt_debug")) {
         return String_from("HashSet_String::fmt_debug")
     }
-    if eq(method.clone(), String_from("to_vec")) {
+    if method.clone().eq(String_from("to_vec")) {
         return String_from("hash_string::hashset_str_to_vec")
     }
     // The aggregate helpers are private to hash_string, so the target has to
     // carry the module prefix; the membership names stay bare because they are
     // the registered store functions.
-    if eq(method.clone(), String_from("union")) {
+    if method.clone().eq(String_from("union")) {
         return String_from("hash_string::hashset_str_union")
     }
-    if eq(method.clone(), String_from("intersection")) {
+    if method.clone().eq(String_from("intersection")) {
         return String_from("hash_string::hashset_str_intersection")
     }
-    if eq(method.clone(), String_from("difference")) {
+    if method.clone().eq(String_from("difference")) {
         return String_from("hash_string::hashset_str_difference")
     }
-    if eq(method.clone(), String_from("clear")) {
+    if method.clone().eq(String_from("clear")) {
         return String_from("hash_string::hashset_str_clear")
     }
-    if eq(method.clone(), String_from("extend")) {
+    if method.clone().eq(String_from("extend")) {
         return String_from("hash_string::hashset_str_extend")
     }
-    if eq(method.clone(), String_from("insert")) {
+    if method.clone().eq(String_from("insert")) {
         return String_from("hashset_str_insert")
     }
-    if eq(method.clone(), String_from("contains")) {
+    if method.clone().eq(String_from("contains")) {
         return String_from("hashset_str_contains")
     }
-    if eq(method.clone(), String_from("remove")) {
+    if method.clone().eq(String_from("remove")) {
         return String_from("hashset_str_remove")
     }
-    if eq(method.clone(), String_from("len")) {
+    if method.clone().eq(String_from("len")) {
         return String_from("hashset_str_len")
     }
-    if eq(method.clone(), String_from("is_empty")) {
+    if method.clone().eq(String_from("is_empty")) {
         return String_from("hashset_str_is_empty")
     }
     String_new()
@@ -243,10 +242,10 @@ fn mir_rewrite_hashset_method(callee_name: String) -> String {
 // Receiver-family spelling used by edge discovery: the supported families are
 // the flat i32 store and the Vec<String> string facade.
 fn hashset_method_target_for_family(family: String, method: String) -> String {
-    if eq(family.clone(), String_from("i32")) {
+    if family.clone().eq(String_from("i32")) {
         return hashset_i32_method_target(method)
     }
-    if eq(family.clone(), String_from("String")) {
+    if family.clone().eq(String_from("String")) {
         return hashset_str_method_target(method)
     }
     String_new()
@@ -257,21 +256,21 @@ fn hashset_method_target_for_family(family: String, method: String) -> String {
 // targets are store names or concrete impls, which carry no marker of their
 // own, so the element family has to be restated here.
 fn hashset_returning_family(callee_name: String) -> String {
-    if eq(callee_name.clone(), String_from("HashSet_i32::clone")) ||
-    eq(callee_name.clone(), String_from("hashset_union")) ||
-    eq(callee_name.clone(), String_from("hashset_intersection")) ||
-    eq(callee_name.clone(), String_from("hashset_difference")) ||
-    eq(callee_name.clone(), String_from("hash::hashset_union")) ||
-    eq(callee_name.clone(), String_from("hash::hashset_intersection")) ||
-    eq(callee_name.clone(), String_from("hash::hashset_difference")) ||
+    if callee_name.clone().eq(String_from("HashSet_i32::clone")) ||
+    callee_name.clone().eq(String_from("hashset_union")) ||
+    callee_name.clone().eq(String_from("hashset_intersection")) ||
+    callee_name.clone().eq(String_from("hashset_difference")) ||
+    callee_name.clone().eq(String_from("hash::hashset_union")) ||
+    callee_name.clone().eq(String_from("hash::hashset_intersection")) ||
+    callee_name.clone().eq(String_from("hash::hashset_difference")) ||
     callee_name.clone().starts_with(String_from("HashSet_i32::from_iter__")) {
         return String_from("i32")
     }
-    if eq(callee_name.clone(), String_from("HashSet_String::clone")) ||
+    if callee_name.clone().eq(String_from("HashSet_String::clone")) ||
     callee_name.clone().starts_with(String_from("HashSet_String::from_iter__")) ||
-    eq(callee_name.clone(), String_from("hash_string::hashset_str_union")) ||
-    eq(callee_name.clone(), String_from("hash_string::hashset_str_intersection")) ||
-    eq(callee_name.clone(), String_from("hash_string::hashset_str_difference")) {
+    callee_name.clone().eq(String_from("hash_string::hashset_str_union")) ||
+    callee_name.clone().eq(String_from("hash_string::hashset_str_intersection")) ||
+    callee_name.clone().eq(String_from("hash_string::hashset_str_difference")) {
         return String_from("String")
     }
     String_new()
@@ -287,10 +286,10 @@ fn is_hashset_returning_target(callee_name: String) -> bool {
 // both stores; that impl snapshots through `to_vec` and hides the bucket
 // layout of the i32 store from the loop.
 fn hashset_into_iter_target(family: String) -> String {
-    if eq(family.clone(), String_from("i32")) {
+    if family.clone().eq(String_from("i32")) {
         return String_from("HashSet_i32::into_iter")
     }
-    if eq(family.clone(), String_from("String")) {
+    if family.clone().eq(String_from("String")) {
         return String_from("HashSet_String::into_iter")
     }
     String_new()
@@ -332,16 +331,16 @@ fn mir_rewrite_hashset_call(ctx: LowerCtx, callee_name: String, receiver_idx: i3
     }
     let receiver_type = ctx_api_local_types::ctx_get_local_type(ctx, receiver_idx)
     let method = hashset_method_name_from_source(callee_name.clone())
-    if eq(method.clone(), String_from("insert")) ||
-    eq(method.clone(), String_from("contains")) ||
-    eq(method.clone(), String_from("remove")) {
+    if method.clone().eq(String_from("insert")) ||
+    method.clone().eq(String_from("contains")) ||
+    method.clone().eq(String_from("remove")) {
         // These names have no Vec counterpart; `len` / `is_empty` do, and the
         // String store's own `hashset_str_len` body calls `len(s)`, so they
         // stay marker-only to avoid rewriting the implementation to itself.
-        if eq(receiver_type.clone(), String_from("vec:String")) {
+        if receiver_type.clone().eq(String_from("vec:String")) {
             return hashset_str_method_target(method)
         }
-        if eq(receiver_type.clone(), String_from("vec:i32")) {
+        if receiver_type.clone().eq(String_from("vec:i32")) {
             return hashset_i32_method_target(method)
         }
     }
@@ -380,7 +379,7 @@ fn mark_hashset_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32) {
         // value is the flat Vec store. Without the store alias the generic
         // fallback resolves `HashSet<i32>` as a String-like ref and the call
         // result cannot be passed to the store functions (#917).
-        if eq(returning_family.clone(), String_from("String")) {
+        if returning_family.clone().eq(String_from("String")) {
             ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:String"))
         } else {
             ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:i32"))

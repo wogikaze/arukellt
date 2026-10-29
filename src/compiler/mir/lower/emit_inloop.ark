@@ -16,7 +16,6 @@
 //   - fid<0 calls defer by name (in_loop_emitted) so their patch lands
 //     on the post-prune index at reloc-apply time.
 
-use std::prelude::eq
 use corehir::callee_spelling
 use collections::name_index
 use mir::block_inst_access
@@ -216,7 +215,7 @@ fn emit_inloop_disc_hit(disc: NameIndex, name: String) -> bool {
         vi = vi + 1
     }
     let alias = hash_aliases::hashmap_builtin_alias(name.clone())
-    if !eq(alias.clone(), name.clone()) {
+    if !alias.clone().eq(name.clone()) {
         if name_index::name_index_get(disc, alias) >= 0 {
             return true
         }
@@ -432,7 +431,7 @@ fn emit_inloop_drain(
                 let mut seen = false
                 let mut si = 0
                 while si < len(pair_sigs) {
-                    if eq(sig.clone(), get_unchecked(pair_sigs, si).clone()) {
+                    if sig.clone().eq(get_unchecked(pair_sigs, si).clone()) {
                         seen = true
                     }
                     si = si + 1
@@ -470,7 +469,7 @@ fn emit_inloop_drain(
         let mut seen = false
         let mut si = 0
         while si < len(pair_sigs) {
-            if eq(late_sig.clone(), get_unchecked(pair_sigs, si).clone()) {
+            if late_sig.clone().eq(get_unchecked(pair_sigs, si).clone()) {
                 seen = true
             }
             si = si + 1

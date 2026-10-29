@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use wasm::inst_accessors_facade
 use mir::inst_accessors_operands
 use mir::function_identity
@@ -57,7 +56,7 @@ fn try_emit_ref_func_inst(
     let mut i = 0
     while i < fn_count {
         let f = functions.get_unchecked(i)
-        if eq(function_identity::MirFunction_name(f), fn_name.clone()) {
+        if function_identity::MirFunction_name(f).eq(fn_name.clone()) {
             mir_fn_idx = i
             found = 1
         }

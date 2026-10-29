@@ -22,7 +22,6 @@ use wasm::writer_leb
 // Convert the compiler's private GC string representation to standard32
 // canonical ABI values at a core-module export boundary. The component linker
 // consumes these exports directly; no component adapter module is involved.
-use std::prelude::{eq}
 use std::text
 fn emit_library_wrapper_body(
     mut w: WasmWriter,
@@ -298,20 +297,20 @@ fn p2_field_storage_sig(type_name: String) -> String {
     if sections_types_sigs_detail::p2_is_string_type_name(type_name.clone()) {
         return String_from("ref0")
     }
-    if eq(type_name.clone(), String_from("i64")) || eq(type_name.clone(), String_from("u64")) {
+    if type_name.clone().eq(String_from("i64")) || type_name.clone().eq(String_from("u64")) {
         return String_from("i64")
     }
-    if eq(type_name.clone(), String_from("f64")) {
+    if type_name.clone().eq(String_from("f64")) {
         return String_from("f64")
     }
-    if eq(type_name.clone(), String_from("f32")) {
+    if type_name.clone().eq(String_from("f32")) {
         return String_from("f32")
     }
     String_from("i32")
 }
 
 fn p2_field_width(field_sig: String) -> i32 {
-    if eq(field_sig.clone(), String_from("i64")) || eq(field_sig.clone(), String_from("f64")) {
+    if field_sig.clone().eq(String_from("i64")) || field_sig.clone().eq(String_from("f64")) {
         return 8
     }
     4
@@ -319,10 +318,10 @@ fn p2_field_width(field_sig: String) -> i32 {
 
 fn p2_vec_type(ctx: SelfEmitCtx, type_name: String) -> i32 {
     let elem = sections_types_sigs_detail::p2_type_argument(type_name.clone(), 0)
-    if eq(elem.clone(), String_from("i64")) || eq(elem.clone(), String_from("u64")) {
+    if elem.clone().eq(String_from("i64")) || elem.clone().eq(String_from("u64")) {
         return ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
     }
-    if eq(elem.clone(), String_from("f64")) {
+    if elem.clone().eq(String_from("f64")) {
         return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
     }
     if sections_types_sigs_detail::p2_is_string_type_name(elem.clone()) {
@@ -333,10 +332,10 @@ fn p2_vec_type(ctx: SelfEmitCtx, type_name: String) -> i32 {
 
 fn p2_vec_array_type(ctx: SelfEmitCtx, type_name: String) -> i32 {
     let elem = sections_types_sigs_detail::p2_type_argument(type_name.clone(), 0)
-    if eq(elem.clone(), String_from("i64")) || eq(elem.clone(), String_from("u64")) {
+    if elem.clone().eq(String_from("i64")) || elem.clone().eq(String_from("u64")) {
         return ctx_gc_type::SelfEmitCtx_i64_array_type(ctx)
     }
-    if eq(elem.clone(), String_from("f64")) {
+    if elem.clone().eq(String_from("f64")) {
         return ctx_gc_type::SelfEmitCtx_f64_array_type(ctx)
     }
     if sections_types_sigs_detail::p2_is_string_type_name(elem.clone()) {
@@ -355,8 +354,8 @@ fn p2_struct_type(ctx: SelfEmitCtx, type_name: String, mir: MirModule) -> i32 {
     let maps = module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
     let mut i = 0
     while i < len(names) && i < len(maps) {
-        if eq(get_unchecked(names, i).clone(), query.clone()) ||
-        eq(get_unchecked(names, i).clone(), type_name.clone()) {
+        if get_unchecked(names, i).clone().eq(query.clone()) ||
+        get_unchecked(names, i).clone().eq(type_name.clone()) {
             return get_unchecked(maps, i)
         }
         i = i + 1
@@ -400,8 +399,8 @@ fn p2_struct_fields(ctx: SelfEmitCtx, type_name: String, mir: MirModule) -> Vec<
     let sigs = ctx_record::SelfEmitCtx_gc_struct_sigs(ctx)
     let mut i = 0
     while i < len(names) && i < len(sigs) {
-        if eq(get_unchecked(names, i).clone(), query.clone()) ||
-        eq(get_unchecked(names, i).clone(), type_name.clone()) {
+        if get_unchecked(names, i).clone().eq(query.clone()) ||
+        get_unchecked(names, i).clone().eq(type_name.clone()) {
             return sections_types_gc::struct_field_sigs(get_unchecked(sigs, i))
         }
         i = i + 1
@@ -447,7 +446,7 @@ fn p2_param_ref_extra_count(type_name: String, value_type: i32, ctx: SelfEmitCtx
         let mut count = 0
         let mut i = 0
         while i < len(fields) {
-            if eq(get_unchecked(fields, i).clone(), String_from("ref0")) {
+            if get_unchecked(fields, i).clone().eq(String_from("ref0")) {
                 count = count + 1
             }
             i = i + 1
@@ -515,7 +514,7 @@ fn return_has_string_payload_name(type_name: String, mir: MirModule) -> bool {
         )
     }
     let payload = sections_types_sigs_detail::p2_enum_payload_sigs(type_name.clone(), mir)
-    len(payload) > 0 && eq(get_unchecked(payload, 0).clone(), String_from("ref0"))
+    len(payload) > 0 && get_unchecked(payload, 0).clone().eq(String_from("ref0"))
 }
 
 fn canonical_param_count(f: MirFunction, mir: MirModule) -> i32 {
@@ -553,7 +552,7 @@ fn wrapper_ref_markers(f: MirFunction, ctx: SelfEmitCtx, mir: MirModule) -> Vec<
                 let fields = p2_struct_fields(ctx, type_name.clone(), mir)
                 let mut fi = 0
                 while fi < len(fields) {
-                    if eq(get_unchecked(fields, fi).clone(), String_from("ref0")) {
+                    if get_unchecked(fields, fi).clone().eq(String_from("ref0")) {
                         push(markers, ctx_gc_type::SelfEmitCtx_string_type(ctx))
                     }
                     fi = fi + 1
@@ -590,7 +589,7 @@ fn emit_struct_input_conversion(
     let mut fi = 0
     while fi < len(fields) {
         let field = get_unchecked(fields, fi)
-        if eq(field.clone(), String_from("ref0")) {
+        if field.clone().eq(String_from("ref0")) {
             emit_string_input_copy(
                 w,
                 field_idx,
@@ -620,7 +619,7 @@ fn p2_variant_family_matches(family: String, variant_name: String) -> bool {
 
 fn p2_variant_name_matches(family: String, variant: String, name: String) -> bool {
     let wanted = family.clone().concat(String_from("::").concat(variant.clone()))
-    eq(name.clone(), wanted.clone()) || name.clone().contains(String_from("::").concat(wanted.clone()))
+    name.clone().eq(wanted.clone()) || name.clone().contains(String_from("::").concat(wanted.clone()))
 }
 
 fn p2_variant_type_named(
@@ -640,7 +639,7 @@ fn p2_variant_type_named(
                 return get_unchecked(maps, i)
             }
             if len(payload_field) > 0 && len(fields) > 1 &&
-            eq(get_unchecked(fields, 1).clone(), payload_field.clone()) {
+            get_unchecked(fields, 1).clone().eq(payload_field.clone()) {
                 return get_unchecked(maps, i)
             }
         }
@@ -731,15 +730,15 @@ fn emit_option_input_conversion(
     let none_type = p2_variant_type_named(ctx, String_from("Option"), String_from("None"), String_new())
     let payload_field = if sections_types_sigs_detail::p2_is_string_type_name(inner.clone()) {
         String_from("ref0")
-    } else if eq(inner.clone(), String_from("i64")) || eq(inner.clone(), String_from("u64")) {
+    } else if inner.clone().eq(String_from("i64")) || inner.clone().eq(String_from("u64")) {
         String_from("i64")
-    } else if eq(inner.clone(), String_from("f64")) {
+    } else if inner.clone().eq(String_from("f64")) {
         String_from("f64")
     } else {
         String_from("i32")
     }
     let some_type = p2_variant_type_named(ctx, String_from("Option"), String_from("Some"), payload_field.clone())
-    if eq(inner.clone(), String_from("bool")) {
+    if inner.clone().eq(String_from("bool")) {
         writer_core::emit_local_get(w, canonical_idx)
         helpers_numeric_i32_convert::emit_widen_i32_result(w)
         helpers_numeric_i32_const::emit_i32_const(w, 0)
@@ -758,7 +757,7 @@ fn emit_option_input_conversion(
     helpers_control::emit_if_empty(w)
     emit_variant_new(w, none_type, 1, String_new(), canonical_idx, variant_local, 0 - 1)
     helpers_control::emit_else(w)
-    if eq(payload_field.clone(), String_from("ref0")) {
+    if payload_field.clone().eq(String_from("ref0")) {
         let string_local = variant_local + 1
         emit_string_input_copy(
             w,
@@ -797,7 +796,7 @@ fn emit_result_input_conversion(
     helpers_control::emit_if_empty(w)
     emit_variant_new(w, ok_type, 0, ok_field.clone(), canonical_idx + 1, variant_local, 0 - 1)
     helpers_control::emit_else(w)
-    if eq(err_field.clone(), String_from("ref0")) {
+    if err_field.clone().eq(String_from("ref0")) {
         let string_local = variant_local + 1
         emit_string_input_copy(
             w,
@@ -818,10 +817,10 @@ fn p2_input_payload_field(type_name: String) -> String {
     if sections_types_sigs_detail::p2_is_string_type_name(type_name.clone()) {
         return String_from("ref0")
     }
-    if eq(type_name.clone(), String_from("i64")) || eq(type_name.clone(), String_from("u64")) {
+    if type_name.clone().eq(String_from("i64")) || type_name.clone().eq(String_from("u64")) {
         return String_from("i64")
     }
-    if eq(type_name.clone(), String_from("f64")) {
+    if type_name.clone().eq(String_from("f64")) {
         return String_from("f64")
     }
     String_from("i32")
@@ -875,7 +874,7 @@ fn emit_variant_new(
     helpers_numeric_i32_const::emit_i32_const(w, tag)
     helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     if len(payload_field) > 0 {
-        if eq(payload_field.clone(), String_from("ref0")) && string_local >= 0 {
+        if payload_field.clone().eq(String_from("ref0")) && string_local >= 0 {
             writer_core::emit_local_get(w, string_local)
         } else {
             writer_core::emit_local_get(w, payload_local)
@@ -1072,19 +1071,19 @@ fn emit_p2_scalar_store(mut w: WasmWriter, field_sig: String, is_bool: bool) {
         helpers_memory::emit_i32_store8_default(w)
         return
     }
-    if eq(field_sig.clone(), String_from("i64")) {
+    if field_sig.clone().eq(String_from("i64")) {
         writer_core::emit_byte(w, opcodes::OP_I64_STORE())
         writer_core::emit_byte(w, 3)
         writer_core::emit_byte(w, 0)
         return
     }
-    if eq(field_sig.clone(), String_from("f64")) {
+    if field_sig.clone().eq(String_from("f64")) {
         writer_core::emit_byte(w, opcodes::OP_F64_STORE())
         writer_core::emit_byte(w, 3)
         writer_core::emit_byte(w, 0)
         return
     }
-    if eq(field_sig.clone(), String_from("f32")) {
+    if field_sig.clone().eq(String_from("f32")) {
         writer_core::emit_byte(w, opcodes::OP_F32_STORE())
         writer_core::emit_byte(w, 2)
         writer_core::emit_byte(w, 0)
@@ -1133,8 +1132,8 @@ fn emit_struct_result_conversion(
         emit_p2_pointer_offset(w, result_ptr_local, offset)
         writer_core::emit_local_get(w, raw_result_local)
         writer_gc::emit_gc_ref_cast(w, struct_type)
-        if eq(field.clone(), String_from("i64")) || eq(field.clone(), String_from("f64")) ||
-        eq(field.clone(), String_from("f32")) {
+        if field.clone().eq(String_from("i64")) || field.clone().eq(String_from("f64")) ||
+        field.clone().eq(String_from("f32")) {
             writer_gc::emit_gc_struct_get(w, struct_type, fi)
         } else {
             writer_gc::emit_gc_struct_get_i32(w, struct_type, fi)
@@ -1216,16 +1215,16 @@ fn p2_payload_kind(type_name: String) -> i32 {
     if sections_types_sigs_detail::p2_is_string_type_name(type_name.clone()) {
         return 1
     }
-    if eq(type_name.clone(), String_from("bool")) {
+    if type_name.clone().eq(String_from("bool")) {
         return 2
     }
-    if eq(type_name.clone(), String_from("i64")) || eq(type_name.clone(), String_from("u64")) {
+    if type_name.clone().eq(String_from("i64")) || type_name.clone().eq(String_from("u64")) {
         return 3
     }
-    if eq(type_name.clone(), String_from("f64")) {
+    if type_name.clone().eq(String_from("f64")) {
         return 4
     }
-    if eq(type_name.clone(), String_from("f32")) {
+    if type_name.clone().eq(String_from("f32")) {
         return 5
     }
     6
@@ -1242,13 +1241,13 @@ fn p2_variant_output_payload_name(type_name: String, mir: MirModule) -> String {
         sections_types_sigs_detail::p2_is_string_type_name(err.clone()) {
             return String_from("String")
         }
-        if eq(ok.clone(), String_from("f64")) || eq(err.clone(), String_from("f64")) {
+        if ok.clone().eq(String_from("f64")) || err.clone().eq(String_from("f64")) {
             return String_from("f64")
         }
-        if eq(ok.clone(), String_from("i64")) || eq(err.clone(), String_from("i64")) {
+        if ok.clone().eq(String_from("i64")) || err.clone().eq(String_from("i64")) {
             return String_from("i64")
         }
-        if eq(ok.clone(), String_from("bool")) && eq(err.clone(), String_from("bool")) {
+        if ok.clone().eq(String_from("bool")) && err.clone().eq(String_from("bool")) {
             return String_from("bool")
         }
         return String_from("i32")
@@ -1258,7 +1257,7 @@ fn p2_variant_output_payload_name(type_name: String, mir: MirModule) -> String {
         return String_new()
     }
     let field = get_unchecked(payload, 0)
-    if eq(field.clone(), String_from("ref0")) {
+    if field.clone().eq(String_from("ref0")) {
         return String_from("String")
     }
     field
@@ -1318,8 +1317,8 @@ fn emit_raw_variant_payload_store(
     emit_p2_pointer_offset(w, result_ptr_local, offset)
     writer_core::emit_local_get(w, raw_result_local)
     writer_gc::emit_gc_ref_cast(w, variant_type)
-    if eq(field_sig.clone(), String_from("i64")) || eq(field_sig.clone(), String_from("f64")) ||
-    eq(field_sig.clone(), String_from("f32")) {
+    if field_sig.clone().eq(String_from("i64")) || field_sig.clone().eq(String_from("f64")) ||
+    field_sig.clone().eq(String_from("f32")) {
         writer_gc::emit_gc_struct_get(w, variant_type, 1)
     } else {
         writer_gc::emit_gc_struct_get_i32(w, variant_type, 1)
@@ -1762,26 +1761,26 @@ fn emit_canonical_to_mir_scalar(mut w: WasmWriter, type_name: String) {
 }
 
 fn p2_scalar_no_widen(type_name: String) -> bool {
-    if eq(type_name.clone(), String_from("i64")) {
+    if type_name.clone().eq(String_from("i64")) {
         return true
     }
-    if eq(type_name.clone(), String_from("u64")) {
+    if type_name.clone().eq(String_from("u64")) {
         return true
     }
-    if eq(type_name.clone(), String_from("f32")) {
+    if type_name.clone().eq(String_from("f32")) {
         return true
     }
-    eq(type_name.clone(), String_from("f64"))
+    type_name.clone().eq(String_from("f64"))
 }
 
 fn p2_scalar_is_signed(type_name: String) -> bool {
-    if eq(type_name.clone(), String_from("i8")) {
+    if type_name.clone().eq(String_from("i8")) {
         return true
     }
-    if eq(type_name.clone(), String_from("i16")) {
+    if type_name.clone().eq(String_from("i16")) {
         return true
     }
-    eq(type_name.clone(), String_from("i32"))
+    type_name.clone().eq(String_from("i32"))
 }
 
 fn emit_string_result_conversion(

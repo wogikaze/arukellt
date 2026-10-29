@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 fn wrap(label: String) -> String {
     String_from("ok:").concat(label)
@@ -11,5 +10,5 @@ fn main() -> i32 {
         let _junk = wrap(String_from("tmp"))
         i = i + 1
     }
-    if eq(value, String_from("ok:payload")) { 0 } else { 1 }
+    if value.eq(String_from("ok:payload")) { 0 } else { 1 }
 }

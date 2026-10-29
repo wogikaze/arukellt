@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::emit_artifacts
 use mir::module_emit_artifacts
 use mir::module_gc_struct
@@ -126,7 +125,7 @@ fn collect_pair_call_type_sigs(
                         let mut seen = false
                         let mut si = 0
                         while si < len(sigs) {
-                            if eq(sig.clone(), get_unchecked(sigs, si).clone()) {
+                            if sig.clone().eq(get_unchecked(sigs, si).clone()) {
                                 seen = true
                             }
                             si = si + 1

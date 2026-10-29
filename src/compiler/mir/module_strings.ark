@@ -1,6 +1,5 @@
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{eq}
 use mir::module_record
 use mir::types
 
@@ -48,7 +47,7 @@ fn intern_string(mut m: MirModule, s: String) -> i32 {
     let mut i = 0
     while i < count {
         let existing = get_unchecked(m.string_constants, i)
-        if eq(existing.clone(), s.clone()) {
+        if existing.clone().eq(s.clone()) {
             return i
         }
         i = i + 1

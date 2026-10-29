@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use corehir::expr_node_access
 use corehir::expr_node_predicates
 fn corehir_for_is_values_call(range: AstNode) -> bool {
@@ -6,5 +5,5 @@ fn corehir_for_is_values_call(range: AstNode) -> bool {
         return false
     }
     let callee = expr_node_access::expr_child_at(range, 0)
-    eq(expr_node_access::expr_text(callee), "values")
+    expr_node_access::expr_text(callee).eq("values")
 }

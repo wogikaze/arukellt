@@ -2,203 +2,203 @@
 // Do not edit by hand.
 
 fn target_is_canonical(input: String) -> bool {
-    if eq(input.clone(), "wasm32") {
+    if input.clone().eq("wasm32") {
         return true
     }
-    if eq(input.clone(), "wasm32-gc") {
+    if input.clone().eq("wasm32-gc") {
         return true
     }
-    if eq(input.clone(), "native-cpp") {
+    if input.clone().eq("native-cpp") {
         return true
     }
-    if eq(input.clone(), "native-llvm") {
+    if input.clone().eq("native-llvm") {
         return true
     }
     false
 }
 
 fn target_alias_policy(input: String) -> String {
-    if eq(input.clone(), "wasm32-wasi-p1") {
+    if input.clone().eq("wasm32-wasi-p1") {
         return "warning"
     }
-    if eq(input.clone(), "wasm32-wasi") {
+    if input.clone().eq("wasm32-wasi") {
         return "warning"
     }
-    if eq(input.clone(), "wasm32-wasi-p2") {
+    if input.clone().eq("wasm32-wasi-p2") {
         return "warning"
     }
-    if eq(input.clone(), "wasm-gc") {
+    if input.clone().eq("wasm-gc") {
         return "warning"
     }
-    if eq(input.clone(), "wasm-gc-wasi-p2") {
+    if input.clone().eq("wasm-gc-wasi-p2") {
         return "warning"
     }
-    if eq(input.clone(), "wasm32-wasi-p3") {
+    if input.clone().eq("wasm32-wasi-p3") {
         return "warning"
     }
-    if eq(input.clone(), "native") {
+    if input.clone().eq("native") {
         return "error"
     }
-    if eq(input.clone(), "wasm32-freestanding") {
+    if input.clone().eq("wasm32-freestanding") {
         return "error"
     }
     String_new()
 }
 
 fn target_alias_canonical_target(input: String) -> String {
-    if eq(input.clone(), "wasm32-wasi-p1") {
+    if input.clone().eq("wasm32-wasi-p1") {
         return "wasm32"
     }
-    if eq(input.clone(), "wasm32-wasi") {
+    if input.clone().eq("wasm32-wasi") {
         return "wasm32"
     }
-    if eq(input.clone(), "wasm32-wasi-p2") {
+    if input.clone().eq("wasm32-wasi-p2") {
         return "wasm32-gc"
     }
-    if eq(input.clone(), "wasm-gc") {
+    if input.clone().eq("wasm-gc") {
         return "wasm32-gc"
     }
-    if eq(input.clone(), "wasm-gc-wasi-p2") {
+    if input.clone().eq("wasm-gc-wasi-p2") {
         return "wasm32-gc"
     }
-    if eq(input.clone(), "wasm32-wasi-p3") {
+    if input.clone().eq("wasm32-wasi-p3") {
         return "wasm32-gc"
     }
     input
 }
 
 fn target_default_host_profile(input: String) -> String {
-    if eq(input.clone(), "wasm32") {
+    if input.clone().eq("wasm32") {
         return "wasi-p1"
     }
-    if eq(input.clone(), "wasm32-gc") {
+    if input.clone().eq("wasm32-gc") {
         return "wasi-p2"
     }
     String_new()
 }
 
 fn target_alias_host_profile(input: String) -> String {
-    if eq(input.clone(), "wasm32-wasi-p1") {
+    if input.clone().eq("wasm32-wasi-p1") {
         return "wasi-p1"
     }
-    if eq(input.clone(), "wasm32-wasi") {
+    if input.clone().eq("wasm32-wasi") {
         return "wasi-p1"
     }
-    if eq(input.clone(), "wasm32-wasi-p2") {
+    if input.clone().eq("wasm32-wasi-p2") {
         return "wasi-p2"
     }
-    if eq(input.clone(), "wasm-gc") {
+    if input.clone().eq("wasm-gc") {
         return "wasi-p2"
     }
-    if eq(input.clone(), "wasm-gc-wasi-p2") {
+    if input.clone().eq("wasm-gc-wasi-p2") {
         return "wasi-p2"
     }
-    if eq(input.clone(), "wasm32-wasi-p3") {
+    if input.clone().eq("wasm32-wasi-p3") {
         return "wasi-p3"
     }
     String_new()
 }
 
 fn target_alias_message(input: String) -> String {
-    if eq(input.clone(), "wasm32-wasi-p1") {
+    if input.clone().eq("wasm32-wasi-p1") {
         return "W0002: target `wasm32-wasi-p1` is deprecated; use `--target wasm32 --wasi-version wasi-p1`"
     }
-    if eq(input.clone(), "wasm32-wasi") {
+    if input.clone().eq("wasm32-wasi") {
         return "W0002: target `wasm32-wasi` is deprecated; use `--target wasm32 --wasi-version wasi-p1`"
     }
-    if eq(input.clone(), "wasm32-wasi-p2") {
+    if input.clone().eq("wasm32-wasi-p2") {
         return "W0002: target `wasm32-wasi-p2` is deprecated; use `--target wasm32-gc --wasi-version wasi-p2`"
     }
-    if eq(input.clone(), "wasm-gc") {
+    if input.clone().eq("wasm-gc") {
         return "W0002: target `wasm-gc` is deprecated; use `--target wasm32-gc --wasi-version wasi-p2`"
     }
-    if eq(input.clone(), "wasm-gc-wasi-p2") {
+    if input.clone().eq("wasm-gc-wasi-p2") {
         return "W0002: target `wasm-gc-wasi-p2` is deprecated; use `--target wasm32-gc --wasi-version wasi-p2`"
     }
-    if eq(input.clone(), "wasm32-wasi-p3") {
+    if input.clone().eq("wasm32-wasi-p3") {
         return "W0002: target `wasm32-wasi-p3` is deprecated; use `--target wasm32-gc --wasi-version wasi-p3`"
     }
-    if eq(input.clone(), "native") {
+    if input.clone().eq("native") {
         return "target `native` is not accepted; use --target native-cpp or --target native-llvm"
     }
-    if eq(input.clone(), "wasm32-freestanding") {
+    if input.clone().eq("wasm32-freestanding") {
         return "target `wasm32-freestanding` is not accepted; choose a canonical target; freestanding is not supported"
     }
     String_new()
 }
 
 fn target_display_line(input: String) -> String {
-    if eq(input.clone(), "wasm32") {
+    if input.clone().eq("wasm32") {
         return "  wasm32  WebAssembly linear-memory target (WASI P1)"
     }
-    if eq(input.clone(), "wasm32-gc") {
+    if input.clone().eq("wasm32-gc") {
         return "  wasm32-gc  WebAssembly GC target (WASI P2, default)"
     }
-    if eq(input.clone(), "native-cpp") {
+    if input.clone().eq("native-cpp") {
         return "  native-cpp  Native C99 backend (scaffold; experimental public run + --emit c)"
     }
-    if eq(input.clone(), "native-llvm") {
+    if input.clone().eq("native-llvm") {
         return "  native-llvm  Native LLVM backend scaffold"
     }
     String_new()
 }
 
 fn target_gc_availability(input: String) -> String {
-    if eq(input.clone(), String_from("wasm32")) {
+    if input.clone().eq(String_from("wasm32")) {
         return String_from("linear-memory")
     }
-    if eq(input.clone(), String_from("wasm32-gc")) {
+    if input.clone().eq(String_from("wasm32-gc")) {
         return String_from("wasm-gc")
     }
-    if eq(input.clone(), String_from("native-cpp")) {
+    if input.clone().eq(String_from("native-cpp")) {
         return String_from("not-applicable")
     }
-    if eq(input.clone(), String_from("native-llvm")) {
+    if input.clone().eq(String_from("native-llvm")) {
         return String_from("not-applicable")
     }
     String_new()
 }
 
 fn target_default_memory_width(input: String) -> String {
-    if eq(input.clone(), String_from("wasm32")) {
+    if input.clone().eq(String_from("wasm32")) {
         return String_from("memory32")
     }
-    if eq(input.clone(), String_from("wasm32-gc")) {
+    if input.clone().eq(String_from("wasm32-gc")) {
         return String_from("memory64")
     }
-    if eq(input.clone(), String_from("native-cpp")) {
+    if input.clone().eq(String_from("native-cpp")) {
         return String_from("none")
     }
-    if eq(input.clone(), String_from("native-llvm")) {
+    if input.clone().eq(String_from("native-llvm")) {
         return String_from("none")
     }
     String_new()
 }
 
 fn target_allows_memory_width(target: String, width: String) -> bool {
-    if eq(target.clone(), String_from("wasm32")) {
-        if eq(width.clone(), String_from("memory32")) {
+    if target.clone().eq(String_from("wasm32")) {
+        if width.clone().eq(String_from("memory32")) {
             return true
         }
         return false
     }
-    if eq(target.clone(), String_from("wasm32-gc")) {
-        if eq(width.clone(), String_from("memory32")) {
+    if target.clone().eq(String_from("wasm32-gc")) {
+        if width.clone().eq(String_from("memory32")) {
             return true
         }
-        if eq(width.clone(), String_from("memory64")) {
-            return true
-        }
-        return false
-    }
-    if eq(target.clone(), String_from("native-cpp")) {
-        if eq(width.clone(), String_from("none")) {
+        if width.clone().eq(String_from("memory64")) {
             return true
         }
         return false
     }
-    if eq(target.clone(), String_from("native-llvm")) {
-        if eq(width.clone(), String_from("none")) {
+    if target.clone().eq(String_from("native-cpp")) {
+        if width.clone().eq(String_from("none")) {
+            return true
+        }
+        return false
+    }
+    if target.clone().eq(String_from("native-llvm")) {
+        if width.clone().eq(String_from("none")) {
             return true
         }
         return false
@@ -207,102 +207,102 @@ fn target_allows_memory_width(target: String, width: String) -> bool {
 }
 
 fn target_allowed_memory_widths_message(input: String) -> String {
-    if eq(input.clone(), String_from("wasm32")) {
+    if input.clone().eq(String_from("wasm32")) {
         return String_from("memory32")
     }
-    if eq(input.clone(), String_from("wasm32-gc")) {
+    if input.clone().eq(String_from("wasm32-gc")) {
         return String_from("memory32, memory64")
     }
-    if eq(input.clone(), String_from("native-cpp")) {
+    if input.clone().eq(String_from("native-cpp")) {
         return String_from("none")
     }
-    if eq(input.clone(), String_from("native-llvm")) {
+    if input.clone().eq(String_from("native-llvm")) {
         return String_from("none")
     }
     String_new()
 }
 
 fn target_allows_host_profile(target: String, host: String) -> bool {
-    if eq(target.clone(), String_from("wasm32")) && eq(host.clone(), String_from("wasi-p1")) {
+    if target.clone().eq(String_from("wasm32")) && host.clone().eq(String_from("wasi-p1")) {
         return true
     }
-    if eq(target.clone(), String_from("wasm32-gc")) && eq(host.clone(), String_from("wasi-p2")) {
+    if target.clone().eq(String_from("wasm32-gc")) && host.clone().eq(String_from("wasi-p2")) {
         return true
     }
-    if eq(target.clone(), String_from("wasm32-gc")) && eq(host.clone(), String_from("wasi-p3")) {
+    if target.clone().eq(String_from("wasm32-gc")) && host.clone().eq(String_from("wasi-p3")) {
         return true
     }
     false
 }
 
 fn target_run_supported(input: String) -> bool {
-    if eq(input.clone(), String_from("wasm32")) {
+    if input.clone().eq(String_from("wasm32")) {
         return true
     }
-    if eq(input.clone(), String_from("wasm32-gc")) {
+    if input.clone().eq(String_from("wasm32-gc")) {
         return true
     }
-    if eq(input.clone(), String_from("native-cpp")) {
+    if input.clone().eq(String_from("native-cpp")) {
         return true
     }
-    if eq(input.clone(), String_from("native-llvm")) {
+    if input.clone().eq(String_from("native-llvm")) {
         return false
     }
     false
 }
 
 fn target_default_emit_kind(input: String) -> String {
-    if eq(input.clone(), String_from("wasm32")) {
+    if input.clone().eq(String_from("wasm32")) {
         return String_from("wasm")
     }
-    if eq(input.clone(), String_from("wasm32-gc")) {
+    if input.clone().eq(String_from("wasm32-gc")) {
         return String_from("wasm")
     }
-    if eq(input.clone(), String_from("native-cpp")) {
+    if input.clone().eq(String_from("native-cpp")) {
         return String_from("c")
     }
-    if eq(input.clone(), String_from("native-llvm")) {
+    if input.clone().eq(String_from("native-llvm")) {
         return String_from("llvm")
     }
     String_from("wasm")
 }
 
 fn target_allows_emit_kind(target: String, emit_kind: String) -> bool {
-    if eq(target.clone(), String_from("wasm32")) {
-        if eq(emit_kind.clone(), String_from("wasm")) {
+    if target.clone().eq(String_from("wasm32")) {
+        if emit_kind.clone().eq(String_from("wasm")) {
             return true
         }
-        if eq(emit_kind.clone(), String_from("wat")) {
-            return true
-        }
-        return false
-    }
-    if eq(target.clone(), String_from("wasm32-gc")) {
-        if eq(emit_kind.clone(), String_from("wasm")) {
-            return true
-        }
-        if eq(emit_kind.clone(), String_from("wat")) {
-            return true
-        }
-        if eq(emit_kind.clone(), String_from("component")) {
-            return true
-        }
-        if eq(emit_kind.clone(), String_from("wit")) {
-            return true
-        }
-        if eq(emit_kind.clone(), String_from("all")) {
+        if emit_kind.clone().eq(String_from("wat")) {
             return true
         }
         return false
     }
-    if eq(target.clone(), String_from("native-cpp")) {
-        if eq(emit_kind.clone(), String_from("c")) {
+    if target.clone().eq(String_from("wasm32-gc")) {
+        if emit_kind.clone().eq(String_from("wasm")) {
+            return true
+        }
+        if emit_kind.clone().eq(String_from("wat")) {
+            return true
+        }
+        if emit_kind.clone().eq(String_from("component")) {
+            return true
+        }
+        if emit_kind.clone().eq(String_from("wit")) {
+            return true
+        }
+        if emit_kind.clone().eq(String_from("all")) {
             return true
         }
         return false
     }
-    if eq(target.clone(), String_from("native-llvm")) {
-        if eq(emit_kind.clone(), String_from("llvm")) {
+    if target.clone().eq(String_from("native-cpp")) {
+        if emit_kind.clone().eq(String_from("c")) {
+            return true
+        }
+        return false
+    }
+    if target.clone().eq(String_from("native-llvm")) {
+        if emit_kind.clone().eq(String_from("llvm")) {
             return true
         }
         return false
@@ -311,16 +311,16 @@ fn target_allows_emit_kind(target: String, emit_kind: String) -> bool {
 }
 
 fn target_allowed_emit_kinds_message(input: String) -> String {
-    if eq(input.clone(), String_from("wasm32")) {
+    if input.clone().eq(String_from("wasm32")) {
         return String_from("wasm, wat")
     }
-    if eq(input.clone(), String_from("wasm32-gc")) {
+    if input.clone().eq(String_from("wasm32-gc")) {
         return String_from("wasm, wat, component, wit, all")
     }
-    if eq(input.clone(), String_from("native-cpp")) {
+    if input.clone().eq(String_from("native-cpp")) {
         return String_from("c")
     }
-    if eq(input.clone(), String_from("native-llvm")) {
+    if input.clone().eq(String_from("native-llvm")) {
         return String_from("llvm")
     }
     String_new()
@@ -331,16 +331,16 @@ test mod "target_contract_generated" {
     test "canonical_1" { assert(target_is_canonical("wasm32-gc")) }
     test "canonical_2" { assert(target_is_canonical("native-cpp")) }
     test "canonical_3" { assert(target_is_canonical("native-llvm")) }
-    test "gc_availability_0" { assert(eq(target_gc_availability(String_from("wasm32")), String_from("linear-memory"))) }
-    test "default_memory_width_0" { assert(eq(target_default_memory_width(String_from("wasm32")), String_from("memory32"))) }
-    test "default_emit_0" { assert(eq(target_default_emit_kind(String_from("wasm32")), String_from("wasm"))) }
+    test "gc_availability_0" { assert(target_gc_availability(String_from("wasm32")).eq(String_from("linear-memory"))) }
+    test "default_memory_width_0" { assert(target_default_memory_width(String_from("wasm32")).eq(String_from("memory32"))) }
+    test "default_emit_0" { assert(target_default_emit_kind(String_from("wasm32")).eq(String_from("wasm"))) }
     test "run_supported_0" { assert(target_run_supported(String_from("wasm32")) == true) }
     test "allows_0_0" { assert(target_allows_emit_kind(String_from("wasm32"), String_from("wasm"))) }
     test "allows_0_1" { assert(target_allows_emit_kind(String_from("wasm32"), String_from("wat"))) }
     test "memory_width_0_0" { assert(target_allows_memory_width(String_from("wasm32"), String_from("memory32"))) }
-    test "gc_availability_1" { assert(eq(target_gc_availability(String_from("wasm32-gc")), String_from("wasm-gc"))) }
-    test "default_memory_width_1" { assert(eq(target_default_memory_width(String_from("wasm32-gc")), String_from("memory64"))) }
-    test "default_emit_1" { assert(eq(target_default_emit_kind(String_from("wasm32-gc")), String_from("wasm"))) }
+    test "gc_availability_1" { assert(target_gc_availability(String_from("wasm32-gc")).eq(String_from("wasm-gc"))) }
+    test "default_memory_width_1" { assert(target_default_memory_width(String_from("wasm32-gc")).eq(String_from("memory64"))) }
+    test "default_emit_1" { assert(target_default_emit_kind(String_from("wasm32-gc")).eq(String_from("wasm"))) }
     test "run_supported_1" { assert(target_run_supported(String_from("wasm32-gc")) == true) }
     test "allows_1_0" { assert(target_allows_emit_kind(String_from("wasm32-gc"), String_from("wasm"))) }
     test "allows_1_1" { assert(target_allows_emit_kind(String_from("wasm32-gc"), String_from("wat"))) }
@@ -349,45 +349,45 @@ test mod "target_contract_generated" {
     test "allows_1_4" { assert(target_allows_emit_kind(String_from("wasm32-gc"), String_from("all"))) }
     test "memory_width_1_0" { assert(target_allows_memory_width(String_from("wasm32-gc"), String_from("memory32"))) }
     test "memory_width_1_1" { assert(target_allows_memory_width(String_from("wasm32-gc"), String_from("memory64"))) }
-    test "gc_availability_2" { assert(eq(target_gc_availability(String_from("native-cpp")), String_from("not-applicable"))) }
-    test "default_memory_width_2" { assert(eq(target_default_memory_width(String_from("native-cpp")), String_from("none"))) }
-    test "default_emit_2" { assert(eq(target_default_emit_kind(String_from("native-cpp")), String_from("c"))) }
+    test "gc_availability_2" { assert(target_gc_availability(String_from("native-cpp")).eq(String_from("not-applicable"))) }
+    test "default_memory_width_2" { assert(target_default_memory_width(String_from("native-cpp")).eq(String_from("none"))) }
+    test "default_emit_2" { assert(target_default_emit_kind(String_from("native-cpp")).eq(String_from("c"))) }
     test "run_supported_2" { assert(target_run_supported(String_from("native-cpp")) == true) }
     test "allows_2_0" { assert(target_allows_emit_kind(String_from("native-cpp"), String_from("c"))) }
     test "memory_width_2_0" { assert(target_allows_memory_width(String_from("native-cpp"), String_from("none"))) }
-    test "gc_availability_3" { assert(eq(target_gc_availability(String_from("native-llvm")), String_from("not-applicable"))) }
-    test "default_memory_width_3" { assert(eq(target_default_memory_width(String_from("native-llvm")), String_from("none"))) }
-    test "default_emit_3" { assert(eq(target_default_emit_kind(String_from("native-llvm")), String_from("llvm"))) }
+    test "gc_availability_3" { assert(target_gc_availability(String_from("native-llvm")).eq(String_from("not-applicable"))) }
+    test "default_memory_width_3" { assert(target_default_memory_width(String_from("native-llvm")).eq(String_from("none"))) }
+    test "default_emit_3" { assert(target_default_emit_kind(String_from("native-llvm")).eq(String_from("llvm"))) }
     test "run_supported_3" { assert(target_run_supported(String_from("native-llvm")) == false) }
     test "allows_3_0" { assert(target_allows_emit_kind(String_from("native-llvm"), String_from("llvm"))) }
     test "memory_width_3_0" { assert(target_allows_memory_width(String_from("native-llvm"), String_from("none"))) }
     test "host_0_0" { assert(target_allows_host_profile(String_from("wasm32"), String_from("wasi-p1"))) }
     test "host_1_0" { assert(target_allows_host_profile(String_from("wasm32-gc"), String_from("wasi-p2"))) }
     test "host_2_0" { assert(target_allows_host_profile(String_from("wasm32-gc"), String_from("wasi-p3"))) }
-    test "policy_0" { assert(eq(target_alias_policy("wasm32-wasi-p1"), "warning")) }
-    test "canonicalize_0" { assert(eq(target_alias_canonical_target("wasm32-wasi-p1"), "wasm32")) }
-    test "host_0" { assert(eq(target_alias_host_profile("wasm32-wasi-p1"), "wasi-p1")) }
+    test "policy_0" { assert(target_alias_policy("wasm32-wasi-p1").eq("warning")) }
+    test "canonicalize_0" { assert(target_alias_canonical_target("wasm32-wasi-p1").eq("wasm32")) }
+    test "host_0" { assert(target_alias_host_profile("wasm32-wasi-p1").eq("wasi-p1")) }
     test "warning_0" { assert(contains(target_alias_message("wasm32-wasi-p1"), "W0002")) }
-    test "policy_1" { assert(eq(target_alias_policy("wasm32-wasi"), "warning")) }
-    test "canonicalize_1" { assert(eq(target_alias_canonical_target("wasm32-wasi"), "wasm32")) }
-    test "host_1" { assert(eq(target_alias_host_profile("wasm32-wasi"), "wasi-p1")) }
+    test "policy_1" { assert(target_alias_policy("wasm32-wasi").eq("warning")) }
+    test "canonicalize_1" { assert(target_alias_canonical_target("wasm32-wasi").eq("wasm32")) }
+    test "host_1" { assert(target_alias_host_profile("wasm32-wasi").eq("wasi-p1")) }
     test "warning_1" { assert(contains(target_alias_message("wasm32-wasi"), "W0002")) }
-    test "policy_2" { assert(eq(target_alias_policy("wasm32-wasi-p2"), "warning")) }
-    test "canonicalize_2" { assert(eq(target_alias_canonical_target("wasm32-wasi-p2"), "wasm32-gc")) }
-    test "host_2" { assert(eq(target_alias_host_profile("wasm32-wasi-p2"), "wasi-p2")) }
+    test "policy_2" { assert(target_alias_policy("wasm32-wasi-p2").eq("warning")) }
+    test "canonicalize_2" { assert(target_alias_canonical_target("wasm32-wasi-p2").eq("wasm32-gc")) }
+    test "host_2" { assert(target_alias_host_profile("wasm32-wasi-p2").eq("wasi-p2")) }
     test "warning_2" { assert(contains(target_alias_message("wasm32-wasi-p2"), "W0002")) }
-    test "policy_3" { assert(eq(target_alias_policy("wasm-gc"), "warning")) }
-    test "canonicalize_3" { assert(eq(target_alias_canonical_target("wasm-gc"), "wasm32-gc")) }
-    test "host_3" { assert(eq(target_alias_host_profile("wasm-gc"), "wasi-p2")) }
+    test "policy_3" { assert(target_alias_policy("wasm-gc").eq("warning")) }
+    test "canonicalize_3" { assert(target_alias_canonical_target("wasm-gc").eq("wasm32-gc")) }
+    test "host_3" { assert(target_alias_host_profile("wasm-gc").eq("wasi-p2")) }
     test "warning_3" { assert(contains(target_alias_message("wasm-gc"), "W0002")) }
-    test "policy_4" { assert(eq(target_alias_policy("wasm-gc-wasi-p2"), "warning")) }
-    test "canonicalize_4" { assert(eq(target_alias_canonical_target("wasm-gc-wasi-p2"), "wasm32-gc")) }
-    test "host_4" { assert(eq(target_alias_host_profile("wasm-gc-wasi-p2"), "wasi-p2")) }
+    test "policy_4" { assert(target_alias_policy("wasm-gc-wasi-p2").eq("warning")) }
+    test "canonicalize_4" { assert(target_alias_canonical_target("wasm-gc-wasi-p2").eq("wasm32-gc")) }
+    test "host_4" { assert(target_alias_host_profile("wasm-gc-wasi-p2").eq("wasi-p2")) }
     test "warning_4" { assert(contains(target_alias_message("wasm-gc-wasi-p2"), "W0002")) }
-    test "policy_5" { assert(eq(target_alias_policy("wasm32-wasi-p3"), "warning")) }
-    test "canonicalize_5" { assert(eq(target_alias_canonical_target("wasm32-wasi-p3"), "wasm32-gc")) }
-    test "host_5" { assert(eq(target_alias_host_profile("wasm32-wasi-p3"), "wasi-p3")) }
+    test "policy_5" { assert(target_alias_policy("wasm32-wasi-p3").eq("warning")) }
+    test "canonicalize_5" { assert(target_alias_canonical_target("wasm32-wasi-p3").eq("wasm32-gc")) }
+    test "host_5" { assert(target_alias_host_profile("wasm32-wasi-p3").eq("wasi-p3")) }
     test "warning_5" { assert(contains(target_alias_message("wasm32-wasi-p3"), "W0002")) }
-    test "policy_6" { assert(eq(target_alias_policy("native"), "error")) }
-    test "policy_7" { assert(eq(target_alias_policy("wasm32-freestanding"), "error")) }
+    test "policy_6" { assert(target_alias_policy("native").eq("error")) }
+    test "policy_7" { assert(target_alias_policy("wasm32-freestanding").eq("error")) }
 }

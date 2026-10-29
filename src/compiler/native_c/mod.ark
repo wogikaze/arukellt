@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use corehir::function_id
 use corehir::core_op_id
@@ -110,12 +109,9 @@ fn native_c_resolve_function_id(
     let mut ordinal = 0
     let mut prior_index = 0
     while prior_index < function_index {
-        if eq(
-            function_identity::MirFunction_name(
-                module_functions::MirModule_function_at(mir_module, prior_index)
-            ),
-            name.clone()
-        ) {
+        if function_identity::MirFunction_name(
+            module_functions::MirModule_function_at(mir_module, prior_index)
+        ).eq(name.clone()) {
             ordinal = ordinal + 1
         }
         prior_index = prior_index + 1
@@ -123,10 +119,7 @@ fn native_c_resolve_function_id(
     let registry = module_spine::MirModule_signature_registry(mir_module)
     let mut registry_index = 0
     while registry_index < signature_registry::signature_registry_entry_count(registry) {
-        if eq(
-            signature_registry::signature_registry_mangled_at(registry, registry_index),
-            name.clone()
-        ) {
+        if signature_registry::signature_registry_mangled_at(registry, registry_index).eq(name.clone()) {
             if ordinal == 0 { return function_id::FunctionId_new(registry_index) }
             ordinal = ordinal - 1
         }
@@ -334,7 +327,7 @@ pub fn emit_native_c_module(mut mir_module: MirModule) -> NativeCEmitResult {
         let emitted = native_c_emit_function(mir_module, function, function_index)
         if !native_c_emit_result_success(emitted) { return emitted }
         native_c_append_bytes(source_bytes, native_c_emit_result_source(emitted))
-        if eq(function_identity::MirFunction_name(function), String_from("main")) {
+        if function_identity::MirFunction_name(function).eq(String_from("main")) {
             main_count = main_count + 1
             if main_count > 1 {
                 return NativeCEmitResult_err(

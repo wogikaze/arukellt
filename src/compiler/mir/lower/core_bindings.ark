@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::closure_registry
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
@@ -99,7 +98,7 @@ fn lower_core_let(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr)
     if child_count >= 1 {
         let init_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
         if core_expr_shape_calls::mir_core_expr_is_closure(init_expr) {
-            if !eq(binding_name.clone(), "_") {
+            if !binding_name.clone().eq("_") {
                 closure_registry::closure_flush_pending_bind(ctx, binding_name.clone())
             } else {
                 closure_registry::closure_clear_pending_bind(ctx)

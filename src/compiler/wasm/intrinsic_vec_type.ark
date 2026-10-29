@@ -5,7 +5,6 @@
 // that looks at the preceding MIR_LOCAL_GET in the block to find the source
 // local, then uses the local's type_name to pick the correct GC struct type.
 
-use std::prelude::{eq}
 use std::text
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
@@ -50,9 +49,9 @@ fn is_string_byte_vec_push_context(ctx: SelfEmitCtx) -> bool {
     let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
     let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
     let name = function_identity::MirFunction_name(f)
-    eq(name.clone(), String_from("__core_string_push_range")) ||
-    eq(name.clone(), String_from("__core_string_push_byte")) ||
-    eq(name.clone(), String_from("__core_string_ascii_case_impl"))
+    name.clone().eq(String_from("__core_string_push_range")) ||
+    name.clone().eq(String_from("__core_string_push_byte")) ||
+    name.clone().eq(String_from("__core_string_ascii_case_impl"))
 }
 
 fn resolve_vec_type_for_call(ctx: SelfEmitCtx, callee: String, inst: MirInst) -> i32 {
@@ -88,19 +87,19 @@ fn resolve_array_type_for_call(ctx: SelfEmitCtx, callee: String, inst: MirInst) 
 }
 
 fn array_type_from_type_name(ctx: SelfEmitCtx, tname: String) -> i32 {
-    if eq(tname.clone(), String_from("vec:String")) || eq(tname.clone(), String_from("vec:string")) {
+    if tname.clone().eq(String_from("vec:String")) || tname.clone().eq(String_from("vec:string")) {
         return ctx_gc_type::SelfEmitCtx_string_array_type(ctx)
     }
-    if eq(tname.clone(), String_from("vec:v128")) || eq(tname.clone(), String_from("vec:V128")) {
+    if tname.clone().eq(String_from("vec:v128")) || tname.clone().eq(String_from("vec:V128")) {
         return ctx_gc_type::SelfEmitCtx_v128_array_type(ctx)
     }
-    if eq(tname.clone(), String_from("vec:i64")) || eq(tname.clone(), String_from("vec:I64")) {
+    if tname.clone().eq(String_from("vec:i64")) || tname.clone().eq(String_from("vec:I64")) {
         return ctx_gc_type::SelfEmitCtx_i64_array_type(ctx)
     }
-    if eq(tname.clone(), String_from("vec:f64")) || eq(tname.clone(), String_from("vec:F64")) {
+    if tname.clone().eq(String_from("vec:f64")) || tname.clone().eq(String_from("vec:F64")) {
         return ctx_gc_type::SelfEmitCtx_f64_array_type(ctx)
     }
-    if eq(tname.clone(), String_from("vec:fnref")) || eq(tname.clone(), String_from("vec:fn")) {
+    if tname.clone().eq(String_from("vec:fnref")) || tname.clone().eq(String_from("vec:fn")) {
         return ctx_gc_type_vec_ref::SelfEmitCtx_fnref_array_type(ctx)
     }
     if tname.clone().starts_with(String_from("vec:")) {
@@ -112,7 +111,7 @@ fn array_type_from_type_name(ctx: SelfEmitCtx, tname: String) -> i32 {
             return ctx_gc_type_vec_ref::SelfEmitCtx_enum_ref_array_type(ctx)
         }
         if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(elem.clone()) ||
-        eq(elem.clone(), String_from("Vec")) ||
+        elem.clone().eq(String_from("Vec")) ||
         elem.clone().starts_with(String_from("vec:")) ||
         ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, elem.clone()) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_struct_ref_array_type(ctx)
@@ -123,20 +122,20 @@ fn array_type_from_type_name(ctx: SelfEmitCtx, tname: String) -> i32 {
 }
 
 fn vec_type_from_callee_name(ctx: SelfEmitCtx, callee: String) -> i32 {
-    if eq(callee.clone(), String_from("push_i64")) || eq(callee.clone(), String_from("pop_i64")) || eq(callee.clone(), String_from("vec_get_unchecked_i64")) {
+    if callee.clone().eq(String_from("push_i64")) || callee.clone().eq(String_from("pop_i64")) || callee.clone().eq(String_from("vec_get_unchecked_i64")) {
         return ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
     }
-    if eq(callee.clone(), String_from("push_f64")) || eq(callee.clone(), String_from("pop_f64")) || eq(callee.clone(), String_from("vec_get_unchecked_f64")) {
+    if callee.clone().eq(String_from("push_f64")) || callee.clone().eq(String_from("pop_f64")) || callee.clone().eq(String_from("vec_get_unchecked_f64")) {
         return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
     }
     0 - 1
 }
 
 fn array_type_from_callee_name(ctx: SelfEmitCtx, callee: String) -> i32 {
-    if eq(callee.clone(), String_from("push_i64")) || eq(callee.clone(), String_from("pop_i64")) || eq(callee.clone(), String_from("vec_get_unchecked_i64")) {
+    if callee.clone().eq(String_from("push_i64")) || callee.clone().eq(String_from("pop_i64")) || callee.clone().eq(String_from("vec_get_unchecked_i64")) {
         return ctx_gc_type::SelfEmitCtx_i64_array_type(ctx)
     }
-    if eq(callee.clone(), String_from("push_f64")) || eq(callee.clone(), String_from("pop_f64")) || eq(callee.clone(), String_from("vec_get_unchecked_f64")) {
+    if callee.clone().eq(String_from("push_f64")) || callee.clone().eq(String_from("pop_f64")) || callee.clone().eq(String_from("vec_get_unchecked_f64")) {
         return ctx_gc_type::SelfEmitCtx_f64_array_type(ctx)
     }
     0 - 1
@@ -219,7 +218,7 @@ fn find_call_source_local(ctx: SelfEmitCtx, callee: String, inst: MirInst) -> i3
             let cur = block_inst_access::MirBlock_inst_at(block, ii)
             if inst_accessors_shape::MirInst_op(cur) == mir_opcodes::MIR_CALL() {
                 let cur_callee = inst_accessors_literals::MirInst_str_val(cur)
-                if eq(cur_callee.clone(), callee.clone()) {
+                if cur_callee.clone().eq(callee.clone()) {
                     if inst_accessors_operands::MirInst_dest(cur) == dest {
                         let cur_arg_count = inst_accessors_operands::MirInst_int_val(cur)
                         let found = find_vec_local_from_call_args(ctx, block, ii, cur_arg_count)
@@ -282,35 +281,35 @@ fn vec_source_local_from_prev_inst(ctx: SelfEmitCtx, block: MirBlock, call_ii: i
 }
 
 fn resolve_container_elem_gc_type(ctx: SelfEmitCtx, type_name: String) -> i32 {
-    if eq(type_name.clone(), "vec:String") ||
-    eq(type_name.clone(), "vec:string") ||
-    eq(type_name.clone(), "Vec<String>") ||
-    eq(type_name.clone(), "Vec<string>") ||
-    eq(type_name.clone(), "Vec_String") ||
-    eq(type_name.clone(), "Vec_string") {
+    if type_name.clone().eq("vec:String") ||
+    type_name.clone().eq("vec:string") ||
+    type_name.clone().eq("Vec<String>") ||
+    type_name.clone().eq("Vec<string>") ||
+    type_name.clone().eq("Vec_String") ||
+    type_name.clone().eq("Vec_string") {
         return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
     }
-    if eq(type_name.clone(), "vec:i64") || eq(type_name.clone(), "vec:I64") || eq(type_name.clone(), "Vec_i64") {
+    if type_name.clone().eq("vec:i64") || type_name.clone().eq("vec:I64") || type_name.clone().eq("Vec_i64") {
         return ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
     }
-    if eq(type_name.clone(), "vec:f64") || eq(type_name.clone(), "vec:F64") || eq(type_name.clone(), "Vec_f64") {
+    if type_name.clone().eq("vec:f64") || type_name.clone().eq("vec:F64") || type_name.clone().eq("Vec_f64") {
         return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
     }
-    if eq(type_name.clone(), "vec:v128") || eq(type_name.clone(), "vec:V128") || eq(type_name.clone(), "Vec_v128") {
+    if type_name.clone().eq("vec:v128") || type_name.clone().eq("vec:V128") || type_name.clone().eq("Vec_v128") {
         return ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
     }
-    if eq(type_name.clone(), "vec:i32") || eq(type_name.clone(), "vec:I32") || eq(type_name.clone(), "Vec_i32") {
+    if type_name.clone().eq("vec:i32") || type_name.clone().eq("vec:I32") || type_name.clone().eq("Vec_i32") {
         return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
     }
     // Bare "Vec" is ambiguous in nested Vec<Vec<String>>; prefer string-vec
     // when the surrounding module uses Vec_String rows (#726 csv). Fall back
     // to i32-vec only when no better signal exists.
-    if eq(type_name.clone(), "Vec") {
+    if type_name.clone().eq("Vec") {
         return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
     }
     if type_name.clone().starts_with("vec:") {
         let elem = type_name.clone().slice(4, len(type_name))
-        if eq(elem.clone(), "String") || eq(elem.clone(), "string") || eq(elem.clone(), "Vec_String") {
+        if elem.clone().eq("String") || elem.clone().eq("string") || elem.clone().eq("Vec_String") {
             return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
         }
         if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(elem.clone()) {
@@ -328,7 +327,7 @@ fn resolve_container_elem_gc_type(ctx: SelfEmitCtx, type_name: String) -> i32 {
     }
     if type_name.clone().starts_with("Vec_") {
         // Mono names like Vec_String / Vec_Token.
-        if eq(type_name.clone(), "Vec_String") || eq(type_name.clone(), "Vec_string") {
+        if type_name.clone().eq("Vec_String") || type_name.clone().eq("Vec_string") {
             return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
         }
         return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)

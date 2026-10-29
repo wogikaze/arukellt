@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use compiler::session_parse
 use lsp::state_record
 use lsp::symbol_index_extract
@@ -17,7 +16,7 @@ pub fn symbol_index_remove_uri(mut state: LspState, uri: String) {
     let n = len(symbols)
     let mut i = 0
     while i < n {
-        if !eq(symbol_index_record::indexed_symbol_uri(get_unchecked(symbols, i)), uri.clone()) {
+        if !symbol_index_record::indexed_symbol_uri(get_unchecked(symbols, i)).eq(uri.clone()) {
             symbol_index_record::symbol_index_push_symbol(kept, get_unchecked(symbols, i))
         }
         i = i + 1

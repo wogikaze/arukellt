@@ -6,7 +6,7 @@
 //! and `from_id` / `name_from_ark` are associated functions. The former
 //! `wit_type_*` free functions were retired by the #917 WIT wave.
 
-use std::prelude::{Box, eq}
+use std::prelude::{Box}
 use std::text
 /// A WIT value type (primitive, compound, or named reference).
 pub enum WitType {
@@ -184,43 +184,43 @@ impl WitType {
     /// Handles the built-in mappings (`i32`→`s32`, `String`→`string`, …) and
     /// passes other names through unchanged for the resolver to qualify.
     fn name_from_ark(name: String) -> String {
-        if eq(name, "i32") {
+        if name.eq("i32") {
             return String_from("s32")
         }
-        if eq(name, "i64") {
+        if name.eq("i64") {
             return String_from("s64")
         }
-        if eq(name, "f32") {
+        if name.eq("f32") {
             return String_from("f32")
         }
-        if eq(name, "f64") {
+        if name.eq("f64") {
             return String_from("f64")
         }
-        if eq(name, "bool") {
+        if name.eq("bool") {
             return String_from("bool")
         }
-        if eq(name, "char") {
+        if name.eq("char") {
             return String_from("char")
         }
-        if eq(name, "u8") {
+        if name.eq("u8") {
             return String_from("u8")
         }
-        if eq(name, "u16") {
+        if name.eq("u16") {
             return String_from("u16")
         }
-        if eq(name, "u32") {
+        if name.eq("u32") {
             return String_from("u32")
         }
-        if eq(name, "u64") {
+        if name.eq("u64") {
             return String_from("u64")
         }
-        if eq(name, "i8") {
+        if name.eq("i8") {
             return String_from("s8")
         }
-        if eq(name, "i16") {
+        if name.eq("i16") {
             return String_from("s16")
         }
-        if eq(name, "String") || eq(name, "string") {
+        if name.eq("String") || name.eq("string") {
             return String_from("string")
         }
         name.clone()

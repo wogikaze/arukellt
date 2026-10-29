@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use corehir::kinds
 use corehir::mir_value_type
@@ -9,26 +8,26 @@ use mir::local_record
 use mir::value_types
 use native_c::enum_abi
 fn native_c_scalar_type_name(name: String) -> String {
-    if eq(name.clone(), "i8") { return "int8_t" }
-    if eq(name.clone(), "i16") { return "int16_t" }
-    if eq(name.clone(), "i32") { return "int32_t" }
-    if eq(name.clone(), "i64") { return "int64_t" }
-    if eq(name.clone(), "u8") { return "uint8_t" }
-    if eq(name.clone(), "u16") { return "uint16_t" }
-    if eq(name.clone(), "u32") { return "uint32_t" }
-    if eq(name.clone(), "u64") { return "uint64_t" }
-    if eq(name.clone(), "f32") { return "float" }
-    if eq(name.clone(), "f64") { return "double" }
-    if eq(name.clone(), "bool") { return "uint8_t" }
-    if eq(name.clone(), "char") { return "uint32_t" }
-    if eq(name.clone(), "unit") || eq(name.clone(), "void") {
+    if name.clone().eq("i8") { return "int8_t" }
+    if name.clone().eq("i16") { return "int16_t" }
+    if name.clone().eq("i32") { return "int32_t" }
+    if name.clone().eq("i64") { return "int64_t" }
+    if name.clone().eq("u8") { return "uint8_t" }
+    if name.clone().eq("u16") { return "uint16_t" }
+    if name.clone().eq("u32") { return "uint32_t" }
+    if name.clone().eq("u64") { return "uint64_t" }
+    if name.clone().eq("f32") { return "float" }
+    if name.clone().eq("f64") { return "double" }
+    if name.clone().eq("bool") { return "uint8_t" }
+    if name.clone().eq("char") { return "uint32_t" }
+    if name.clone().eq("unit") || name.clone().eq("void") {
         return "ark_unit"
     }
     String_new()
 }
 
 fn native_c_type_name_is_funcref(name: String) -> bool {
-    if eq(name.clone(), String_from("fnref")) || eq(name.clone(), String_from("fn")) {
+    if name.clone().eq(String_from("fnref")) || name.clone().eq(String_from("fn")) {
         return true
     }
     name.clone().starts_with(String_from("fn("))
@@ -70,10 +69,7 @@ fn native_c_type_for_value(
 }
 
 fn native_c_type_names_enum_equal(left: String, right: String) -> bool {
-    eq(
-        enum_abi::native_c_type_name_enum_basename(left),
-        enum_abi::native_c_type_name_enum_basename(right)
-    )
+    enum_abi::native_c_type_name_enum_basename(left).eq(enum_abi::native_c_type_name_enum_basename(right))
 }
 
 fn native_c_table_has_unit_enum_named(
@@ -85,7 +81,7 @@ fn native_c_table_has_unit_enum_named(
 }
 
 fn native_c_type_name_is_heap_object(name: String) -> bool {
-    if eq(name.clone(), String_from("string")) || eq(name.clone(), String_from("String")) {
+    if name.clone().eq(String_from("string")) || name.clone().eq(String_from("String")) {
         return true
     }
     if name.clone().starts_with(String_from("vec:")) || name.clone().starts_with(String_from("Vec<")) {
@@ -184,19 +180,19 @@ fn native_c_type_encoding(table: TypeTable, value_type: MirValueType) -> String 
     }
     let entry = type_table::TypeTable_entry_at(table, raw_type_id)
     let name = type_table::type_entry_name(entry)
-    if eq(name.clone(), "i8") { return "i8" }
-    if eq(name.clone(), "i16") { return "i16" }
-    if eq(name.clone(), "i32") { return "i32" }
-    if eq(name.clone(), "i64") { return "i64" }
-    if eq(name.clone(), "u8") { return "u8" }
-    if eq(name.clone(), "u16") { return "u16" }
-    if eq(name.clone(), "u32") { return "u32" }
-    if eq(name.clone(), "u64") { return "u64" }
-    if eq(name.clone(), "f32") { return "f32" }
-    if eq(name.clone(), "f64") { return "f64" }
-    if eq(name.clone(), "bool") { return "b" }
-    if eq(name.clone(), "char") { return "c" }
-    if eq(name.clone(), "unit") || eq(name.clone(), "void") {
+    if name.clone().eq("i8") { return "i8" }
+    if name.clone().eq("i16") { return "i16" }
+    if name.clone().eq("i32") { return "i32" }
+    if name.clone().eq("i64") { return "i64" }
+    if name.clone().eq("u8") { return "u8" }
+    if name.clone().eq("u16") { return "u16" }
+    if name.clone().eq("u32") { return "u32" }
+    if name.clone().eq("u64") { return "u64" }
+    if name.clone().eq("f32") { return "f32" }
+    if name.clone().eq("f64") { return "f64" }
+    if name.clone().eq("bool") { return "b" }
+    if name.clone().eq("char") { return "c" }
+    if name.clone().eq("unit") || name.clone().eq("void") {
         return "v"
     }
     let prefix = if mir_value_type::mir_value_type_nullability(value_type) == kinds::NULLABILITY_NULLABLE() {
@@ -263,7 +259,7 @@ fn native_c_signature_return_type(
             signature_entry::signature_entry_return_at(signature, 0),
             heap_enum_flags
         )
-        if eq(c_type.clone(), "ark_unit") { return "void" }
+        if c_type.clone().eq("ark_unit") { return "void" }
         return c_type
     }
     String_new()

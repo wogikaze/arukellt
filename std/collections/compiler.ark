@@ -10,7 +10,6 @@
 //! in v4+.
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
-use std::prelude::{eq}
 
 // ── Arena (bump allocator) ───────────────────────────────────────────────────
 //
@@ -150,7 +149,7 @@ impl Interner {
         let n: i32 = len(self.values)
         let mut idx: i32 = 0
         while idx < n {
-            if eq(get_unchecked(self.values, idx), value) {
+            if get_unchecked(self.values, idx).eq(value) {
                 return idx
             }
             idx = idx + 1

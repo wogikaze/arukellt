@@ -8,6 +8,6 @@ use std::collections::string::{eq}
 
 fn main() {
     let s: String = "a,b"
-    let equal = eq(s, "a,b")
+    let equal = s.eq("a,b")
     __intrinsic_println(equal.to_string())
 }

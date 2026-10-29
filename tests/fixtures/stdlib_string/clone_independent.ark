@@ -1,11 +1,10 @@
 use std::test::Test
-use std::prelude::{eq}
 
 fn main() {
     let mut s = String_from("data")
     let c = s.clone()
-    Test::assert_true(eq(s, c))
+    Test::assert_true(s.eq(c))
     s.push_char('!')
-    Test::assert_false(eq(s, c))
+    Test::assert_false(s.eq(c))
     Test::assert_eq_string(c, "data")
 }

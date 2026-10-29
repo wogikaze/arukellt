@@ -10,7 +10,6 @@
 
 use std::wit::types
 use std::wit::types::{WitType}
-use std::prelude::{eq}
 use std::text
 
 // ─── AST node type ───────────────────────────────────────────────
@@ -886,43 +885,43 @@ fn p_find_matching_brace(s: String, pos: i32) -> i32 {
 
 /// Parse a WIT type from a type-name string.
 fn p_type_name(name: String) -> types::WitType {
-    if eq(name, "bool") {
+    if name.eq("bool") {
         return WitType::Bool
     }
-    if eq(name, "u8") {
+    if name.eq("u8") {
         return WitType::U8
     }
-    if eq(name, "u16") {
+    if name.eq("u16") {
         return WitType::U16
     }
-    if eq(name, "u32") {
+    if name.eq("u32") {
         return WitType::U32
     }
-    if eq(name, "u64") {
+    if name.eq("u64") {
         return WitType::U64
     }
-    if eq(name, "s8") {
+    if name.eq("s8") {
         return WitType::S8
     }
-    if eq(name, "s16") {
+    if name.eq("s16") {
         return WitType::S16
     }
-    if eq(name, "s32") {
+    if name.eq("s32") {
         return WitType::S32
     }
-    if eq(name, "s64") {
+    if name.eq("s64") {
         return WitType::S64
     }
-    if eq(name, "f32") {
+    if name.eq("f32") {
         return WitType::F32
     }
-    if eq(name, "f64") {
+    if name.eq("f64") {
         return WitType::F64
     }
-    if eq(name, "char") {
+    if name.eq("char") {
         return WitType::Char
     }
-    if eq(name, "string") {
+    if name.eq("string") {
         return WitType::String
     }
     // Preserve named references for the compiler metadata adapter. The
@@ -937,7 +936,7 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
     let n = len(s)
     let (word, p1) = p_word(s, i)
     i = p1
-    if eq(word, "list") {
+    if word.eq("list") {
         i = p_skip_ws_comments(s, i)
         if i < n && s.byte_at(i) == 60 {
             let (inner, p2) = p_type(s, i + 1)
@@ -949,7 +948,7 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
         }
         return (WitType::list(WitType::Unknown(0)), i)
     }
-    if eq(word, "option") {
+    if word.eq("option") {
         i = p_skip_ws_comments(s, i)
         if i < n && s.byte_at(i) == 60 {
             let (inner, p3) = p_type(s, i + 1)
@@ -961,7 +960,7 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
         }
         return (WitType::option(WitType::Unknown(0)), i)
     }
-    if eq(word, "tuple") {
+    if word.eq("tuple") {
         i = p_skip_ws_comments(s, i)
         if i >= n || s.byte_at(i) != 60 {
             return (types::WitType::Tuple(Vec::new<WitType>()), i)
@@ -983,7 +982,7 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
         }
         return (types::WitType::Tuple(items), i)
     }
-    if eq(word, "own") {
+    if word.eq("own") {
         i = p_skip_ws_comments(s, i)
         if i < n && s.byte_at(i) == 60 {
             let (inner, p4) = p_type(s, i + 1)
@@ -995,7 +994,7 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
         }
         return (types::WitType::Resource(String_new()), i)
     }
-    if eq(word, "borrow") {
+    if word.eq("borrow") {
         i = p_skip_ws_comments(s, i)
         if i < n && s.byte_at(i) == 60 {
             let (inner, p5) = p_type(s, i + 1)
@@ -1007,7 +1006,7 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
         }
         return (types::WitType::Resource(String_new()), i)
     }
-    if eq(word, "result") || eq(word, "future") || eq(word, "stream") {
+    if word.eq("result") || word.eq("future") || word.eq("stream") {
         let constructor = word.clone()
         i = p_skip_ws_comments(s, i)
         if i >= n || s.byte_at(i) != 60 {
@@ -1069,7 +1068,7 @@ fn p_func(s: String, pos: i32) -> (WitNode, i32) {
     if i < len(s) && s.byte_at(i) == 58 {
         i = p_skip_ws_comments(s, i + 1)
         let (kw, p2) = p_word(s, i)
-        if eq(kw, "func") {
+        if kw.eq("func") {
             i = p_skip_ws_comments(s, p2)
             if i < len(s) && s.byte_at(i) == 40 {
                 let (params, p3) = p_params(s, i + 1)
@@ -1184,7 +1183,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
     }
     let (kw, p1) = p_word(s, i)
     // Check for import/export with path: `import path: iface;`
-    if eq(kw, "import") || eq(kw, "export") {
+    if kw.eq("import") || kw.eq("export") {
         i = p_skip_ws_comments(s, p1)
         // Check if next is a path (followed by `:` and then a keyword like `interface` or `func`)
         let (path, p2) = p_path(s, i)
@@ -1193,7 +1192,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
             // `import path: interface { ... }` or `import path: func(...);`
             i = p_skip_ws_comments(s, i + 1)
             let (kind_word, p3) = p_word(s, i)
-            if eq(kind_word, "interface") {
+            if kind_word.eq("interface") {
                 i = p_skip_ws_comments(s, p3)
                 if i < n && s.byte_at(i) == 123 {
                     let close = p_find_matching_brace(s, i)
@@ -1202,7 +1201,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
                     }
                     let body = s.slice(i + 1, close)
                     let (items, _) = p_body(body, 0)
-                    if eq(kw, "import") {
+                    if kw.eq("import") {
                         return (WitNode::Import(path, String_from("interface")), close + 1)
                     } else {
                         // For inline export interface, we return the interface node
@@ -1212,7 +1211,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
                     }
                 }
             } else {
-                if eq(kind_word, "func") {
+                if kind_word.eq("func") {
                     // `import path: func(...);`
                     i = p_skip_ws_comments(s, p3)
                     if i < n && s.byte_at(i) == 40 {
@@ -1229,7 +1228,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
                             i = i + 1
                         }
                         let func_node = WitNode::Func(path, params, result)
-                        if eq(kw, "import") {
+                        if kw.eq("import") {
                             return (WitNode::Import(path, String_from("func")), i)
                         } else {
                             let _ = func_node
@@ -1244,20 +1243,20 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         if i < n && s.byte_at(i) == 59 {
             i = i + 1
         }
-        if eq(kw, "import") {
+        if kw.eq("import") {
             return (WitNode::Import(path, String_new()), i)
         } else {
             return (WitNode::Export(path, String_new()), i)
         }
     }
-    if eq(kw, "use") {
+    if kw.eq("use") {
         i = p_skip_ws_comments(s, p1)
         let (path, p2) = p_path(s, i)
         i = p_skip_ws_comments(s, p2)
         let mut alias = String_new()
         // Check for `as alias`
         let (as_kw, p3) = p_word(s, i)
-        if eq(as_kw, "as") {
+        if as_kw.eq("as") {
             i = p_skip_ws_comments(s, p3)
             let (aname, p4) = p_word(s, i)
             alias = aname
@@ -1268,7 +1267,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         }
         return (WitNode::Use(path, alias), i)
     }
-    if eq(kw, "type") {
+    if kw.eq("type") {
         i = p_skip_ws_comments(s, p1)
         let (tname, p2) = p_word(s, i)
         i = p_skip_ws_comments(s, p2)
@@ -1284,7 +1283,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         }
         return (WitNode::Error(String_from("expected = in type alias")), i)
     }
-    if eq(kw, "record") {
+    if kw.eq("record") {
         i = p_skip_ws_comments(s, p1)
         let (rname, p2) = p_word(s, i)
         i = p_skip_ws_comments(s, p2)
@@ -1298,7 +1297,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         }
         return (WitNode::Error(String_from("expected { in record")), i)
     }
-    if eq(kw, "enum") {
+    if kw.eq("enum") {
         i = p_skip_ws_comments(s, p1)
         let (ename, p2) = p_word(s, i)
         i = p_skip_ws_comments(s, p2)
@@ -1312,7 +1311,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         }
         return (WitNode::Error(String_from("expected { in enum")), i)
     }
-    if eq(kw, "flags") {
+    if kw.eq("flags") {
         i = p_skip_ws_comments(s, p1)
         let (fname, p2) = p_word(s, i)
         i = p_skip_ws_comments(s, p2)
@@ -1326,7 +1325,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         }
         return (WitNode::Error(String_from("expected { in flags")), i)
     }
-    if eq(kw, "variant") {
+    if kw.eq("variant") {
         i = p_skip_ws_comments(s, p1)
         let (vname, p2) = p_word(s, i)
         i = p_skip_ws_comments(s, p2)
@@ -1340,7 +1339,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         }
         return (WitNode::Error(String_from("expected { in variant")), i)
     }
-    if eq(kw, "resource") {
+    if kw.eq("resource") {
         i = p_skip_ws_comments(s, p1)
         let (rname, p2) = p_word(s, i)
         i = p_skip_ws_comments(s, p2)
@@ -1361,7 +1360,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         let error = WitNode::Error(String_from("expected { or ; in resource"))
         return (error, i)
     }
-    if eq(kw, "interface") {
+    if kw.eq("interface") {
         i = p_skip_ws_comments(s, p1)
         let (iname, p2) = p_word(s, i)
         i = p_skip_ws_comments(s, p2)
@@ -1380,7 +1379,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
     // Rewind to the start of the word and try parsing as func
     i = p_skip_ws_comments(s, pos)
     let (func_node, func_pos) = p_func(s, i)
-    if !eq(func_node.kind(), "error") {
+    if !func_node.kind().eq("error") {
         return (func_node, func_pos)
     }
     // Skip unknown token
@@ -1399,11 +1398,11 @@ fn p_body(s: String, pos: i32) -> (Vec<WitNode>, i32) {
             return (items, i)
         }
         let (node, p1) = p_decl(s, i)
-        if !eq(node.kind(), "error") {
+        if !node.kind().eq("error") {
             push(items, node)
         } else {
             // Check if it's just a closing brace marker
-            if eq(node.name(), "}") {
+            if node.name().eq("}") {
                 return (items, i)
             }
         }
@@ -1419,7 +1418,7 @@ fn p_body(s: String, pos: i32) -> (Vec<WitNode>, i32) {
 fn p_world(s: String, pos: i32) -> (WitNode, i32) {
     let mut i = p_skip_ws_comments(s, pos)
     let (kw, p1) = p_word(s, i)
-    if !eq(kw, "world") {
+    if !kw.eq("world") {
         return (WitNode::Error(String_from("expected world")), p1)
     }
     i = p_skip_ws_comments(s, p1)
@@ -1442,7 +1441,7 @@ fn p_world(s: String, pos: i32) -> (WitNode, i32) {
 fn p_interface(s: String, pos: i32) -> (WitNode, i32) {
     let mut i = p_skip_ws_comments(s, pos)
     let (kw, p1) = p_word(s, i)
-    if !eq(kw, "interface") {
+    if !kw.eq("interface") {
         return (WitNode::Error(String_from("expected interface")), p1)
     }
     i = p_skip_ws_comments(s, p1)
@@ -1465,7 +1464,7 @@ fn p_interface(s: String, pos: i32) -> (WitNode, i32) {
 fn p_package_decl(s: String, pos: i32) -> (String, i32) {
     let mut i = p_skip_ws_comments(s, pos)
     let (kw, p1) = p_word(s, i)
-    if !eq(kw, "package") {
+    if !kw.eq("package") {
         return (String_new(), p1)
     }
     i = p_skip_ws_comments(s, p1)
@@ -1494,7 +1493,7 @@ fn parse_wit_document(source: String) -> WitNode {
     }
     // Check for package declaration
     let (first_word, _) = p_word(source, i)
-    if eq(first_word, "package") {
+    if first_word.eq("package") {
         let (pkg, p1) = p_package_decl(source, i)
         i = p_skip_ws_comments(source, p1)
         // Parse all top-level items (world, interface, etc.)
@@ -1505,19 +1504,19 @@ fn parse_wit_document(source: String) -> WitNode {
                 break
             }
             let (kw, _) = p_word(source, i)
-            if eq(kw, "world") {
+            if kw.eq("world") {
                 let (node, p2) = p_world(source, i)
                 push(items, node)
                 i = p2
             } else {
-                if eq(kw, "interface") {
+                if kw.eq("interface") {
                     let (node, p2) = p_interface(source, i)
                     push(items, node)
                     i = p2
                 } else {
                     // Try generic decl
                     let (node, p2) = p_decl(source, i)
-                    if !eq(node.kind(), "error") {
+                    if !node.kind().eq("error") {
                         push(items, node)
                     }
                     i = p2
@@ -1528,11 +1527,11 @@ fn parse_wit_document(source: String) -> WitNode {
         return WitNode::Package(pkg, items)
     }
     // No package — try single top-level declaration
-    if eq(first_word, "world") {
+    if first_word.eq("world") {
         let (node, _) = p_world(source, i)
         return node
     }
-    if eq(first_word, "interface") {
+    if first_word.eq("interface") {
         let (node, _) = p_interface(source, i)
         return node
     }

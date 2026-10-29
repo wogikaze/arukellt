@@ -196,14 +196,15 @@ E0100 with the replacement hint.
 `Vec<T>::clone` is shallow (shared element storage) until the pin refresh
 allows a `T: Clone`-bounded deep impl.
 
-The following remain `associated-or-method` and are **not** covered by the
-exception:
+`eq` was retired on 2026-10-30 as well: use `a.eq(b)`; a bare call is E0100.
+The bootstrap overlay now ships `std/core/eq.ark` (`impl Eq for String`), and
+the migration drops the optional grouping parentheses around postfix receivers
+because a parenthesized receiver after an `if` block loses the receiver
+`LOCAL_GET` and lowers to an unresolved-call stub (ADR-091 addendum).
 
-- `eq`: `String`'s `==` lowers through the `eq` operator method; the bootstrap
-  flat overlay does not ship `std::core::cmp` (`impl Eq for String`), so removing
-  the free makes the pin lower String `==` as `i32.eq` (reference comparison)
-  and produce invalid core Wasm. Keep the free until the overlay carries the
-  `Eq` dispatch or the operator lowering has a string-eq fallback.
+The remaining `associated-or-method` frees are listed by the generated
+scorecard (`docs/stdlib/eradication.md`); they are not covered by the stable
+free exception.
 
 ## Stable-64 deprecation wave (ADR-087, 2026-10-26)
 

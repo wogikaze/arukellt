@@ -2,7 +2,6 @@
 // Replaces body-scan infer_local_storage_gc_type: field ABI and Result/Option
 // base type_names decide storage, not producer rescans.
 
-use std::prelude::{eq}
 use corehir::kinds
 use corehir::mir_value_type
 use corehir::type_id
@@ -347,9 +346,9 @@ fn vec_access_receiver_local(
 }
 
 fn is_vec_access_callee(callee: String) -> bool {
-    eq(callee.clone(), "raw_array_get_unchecked") ||
-    eq(callee.clone(), "vec_get_unchecked") ||
-    eq(callee.clone(), "get_unchecked") ||
+    callee.clone().eq("raw_array_get_unchecked") ||
+    callee.clone().eq("vec_get_unchecked") ||
+    callee.clone().eq("get_unchecked") ||
     callee.clone().starts_with("get_unchecked__") ||
     callee.clone().starts_with("vec_get_unchecked__")
 }

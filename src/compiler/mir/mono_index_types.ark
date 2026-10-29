@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 
 pub struct MonoIndex {
     names: Vec<String>,
@@ -115,7 +114,7 @@ fn mono_index_probe(keys: Vec<String>, slots: Vec<i32>, name: String) -> i32 {
         if bucket == 0 {
             return slot
         }
-        if eq(get_unchecked(keys, bucket - 1), name.clone()) {
+        if get_unchecked(keys, bucket - 1).eq(name.clone()) {
             return slot
         }
         slot = (slot + 1) % capacity
@@ -243,7 +242,7 @@ fn mono_index_base_has_mangled(idx: MonoIndex, base: String, mangled: String) ->
     }
     let mut cur = get_unchecked(idx.base_heads, base_pos)
     while cur >= 0 {
-        if eq(get_unchecked(idx.mangled_names, cur), mangled.clone()) {
+        if get_unchecked(idx.mangled_names, cur).eq(mangled.clone()) {
             return true
         }
         cur = get_unchecked(idx.mangled_next, cur)

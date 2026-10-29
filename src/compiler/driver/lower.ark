@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use compiler::session
 use corehir::export_surface
 use driver::checked_program
@@ -13,9 +12,9 @@ use wasm::emit_target
 fn lower_emit_spec_for(program: CheckedProgram, config: DriverConfig) -> MirLowerEmitSpec {
     let emit_mode = config_record::config_emit_mode(config)
     let target = config_record::config_target(config)
-    let emits_wasm = eq(emit_mode.clone(), String_from("wasm")) ||
-    eq(emit_mode.clone(), String_from("core-wasm")) ||
-    eq(emit_mode.clone(), String_from("component"))
+    let emits_wasm = emit_mode.clone().eq(String_from("wasm")) ||
+    emit_mode.clone().eq(String_from("core-wasm")) ||
+    emit_mode.clone().eq(String_from("component"))
     if !emits_wasm || !emit_target::is_gc_target(target.clone()) {
         return emit_spec::mir_lower_emit_spec_disabled()
     }
@@ -44,7 +43,7 @@ fn lower_report_phase_timing(config: DriverConfig) -> i32 {
 
 fn lower_checked_program(program: CheckedProgram, config: DriverConfig, source: String) -> MirModule {
     let emit_mode = config_record::config_emit_mode(config)
-    let component_mode = eq(emit_mode.clone(), "component") || eq(emit_mode.clone(), "wit")
+    let component_mode = emit_mode.clone().eq("component") || emit_mode.clone().eq("wit")
     if component_mode {
         return lower_component_program(program, config, source.clone())
     }
@@ -68,13 +67,13 @@ fn lower_checked_program(program: CheckedProgram, config: DriverConfig, source: 
 }
 
 fn is_t3_wasm_emit(config: DriverConfig, emit_mode: String) -> bool {
-    if !eq(emit_mode.clone(), "wasm") && !eq(emit_mode.clone(), "core-wasm") {
+    if !emit_mode.clone().eq("wasm") && !emit_mode.clone().eq("core-wasm") {
         return false
     }
     let target = config_record::config_target(config)
     // Primary GC target is T3 even when wasi-version is a separate CLI flag
     // (config_target is often just "wasm32-gc", without "-p2" in the string).
-    eq(target.clone(), "wasm32-gc")
+    target.clone().eq("wasm32-gc")
     || target.clone().contains("wasm32-gc")
     || target.clone().contains("-p2")
 }

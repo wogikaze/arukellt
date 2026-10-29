@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use corehir::decl_node_identity
 use corehir::decl_children
@@ -27,7 +26,7 @@ fn find_named_fn_decl_index(decls: Vec<AstNode>, name: String) -> i32 {
     while i < decl_count {
         let decl = get_unchecked(decls, i)
         if decl_node::decl_is_fn(decl) {
-            if eq(decl_node_identity::decl_name(decl), name.clone()) {
+            if decl_node_identity::decl_name(decl).eq(name.clone()) {
                 entry_main_decl_index = i
             }
         }
@@ -70,7 +69,7 @@ fn build_fn_type_params(decl: AstNode) -> Vec<String> {
         let annotation = frontend_ast_node::corehir_node_type_ann_at(decl, i)
         if frontend_ast_node::corehir_node_kind(annotation) != frontend_kind_map::nk_proof_contract() {
             let annotation_name = frontend_ast_node::corehir_node_text(annotation)
-            if !eq(annotation_name.clone(), "__return") {
+            if !annotation_name.clone().eq("__return") {
                 push(names, annotation_name)
             }
         }
@@ -95,7 +94,7 @@ fn module_qualified_fn_name(modules: Vec<CoreHirModuleInfo>, decl_index: i32, fn
         let decl_end = decl_start + raw_dto::CoreHirModuleInfo_decl_count(module_info)
         if decl_index >= decl_start && decl_index < decl_end {
             let module_name = module_info.name.clone()
-            if !eq(module_name.clone(), "<main>") {
+            if !module_name.clone().eq("<main>") {
                 return module_name.concat("::".concat(fn_name))
             }
             return String_new()

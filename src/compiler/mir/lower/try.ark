@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
@@ -89,13 +88,13 @@ fn try_ok_payload_vt(ok_type_name: String) -> i32 {
     if len(ok_type_name) == 0 {
         return value_types::VT_I32()
     }
-    if eq(ok_type_name.clone(), "String") || eq(ok_type_name.clone(), "string") {
+    if ok_type_name.clone().eq("String") || ok_type_name.clone().eq("string") {
         return value_types::VT_GC_REF()
     }
-    if eq(ok_type_name.clone(), "f64") || eq(ok_type_name.clone(), "F64") {
+    if ok_type_name.clone().eq("f64") || ok_type_name.clone().eq("F64") {
         return value_types::VT_F64()
     }
-    if eq(ok_type_name.clone(), "i64") || eq(ok_type_name.clone(), "I64") {
+    if ok_type_name.clone().eq("i64") || ok_type_name.clone().eq("I64") {
         return value_types::VT_I64()
     }
     if ok_type_name.clone().starts_with("vec:") ||

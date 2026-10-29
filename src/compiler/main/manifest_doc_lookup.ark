@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use main::manifest_doc_record
 fn doc_last_segment(path: String) -> String {
     let n = len(path)
@@ -13,11 +12,11 @@ fn doc_last_segment(path: String) -> String {
 }
 
 fn doc_fn_matches_name(e: DocFnEntry, name: String) -> bool {
-    eq(manifest_doc_record::DocFnEntry_name(e), name.clone())
+    manifest_doc_record::DocFnEntry_name(e).eq(name.clone())
 }
 
 fn doc_fn_matches_module_name(e: DocFnEntry, module: String, name: String) -> bool {
-    eq(manifest_doc_record::DocFnEntry_name(e), name.clone()) && eq(manifest_doc_record::DocFnEntry_module(e), module.clone())
+    manifest_doc_record::DocFnEntry_name(e).eq(name.clone()) && manifest_doc_record::DocFnEntry_module(e).eq(module.clone())
 }
 
 fn doc_find_by_name(table: DocManifestTable, name: String) -> Vec<i32> {
@@ -53,7 +52,7 @@ fn doc_module_has_functions(table: DocManifestTable, module: String) -> bool {
     let mut i = 0
     while i < n {
         let e = manifest_doc_record::DocManifestTable_function_at(table, i)
-        if eq(manifest_doc_record::DocFnEntry_module(e), module.clone()) {
+        if manifest_doc_record::DocFnEntry_module(e).eq(module.clone()) {
             return true
         }
         i = i + 1
@@ -66,7 +65,7 @@ pub fn doc_find_module(table: DocManifestTable, module: String) -> i32 {
     let mut i = 0
     while i < n {
         let m = manifest_doc_record::DocManifestTable_module_at(table, i)
-        if eq(manifest_doc_record::DocModuleEntry_name(m), module.clone()) {
+        if manifest_doc_record::DocModuleEntry_name(m).eq(module.clone()) {
             return i
         }
         i = i + 1

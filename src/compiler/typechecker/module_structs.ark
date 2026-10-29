@@ -19,7 +19,6 @@ use diagnostics::mod as diag_mod
 // expressions can recover a concrete field type. MIR owns the layout copy;
 // this table only needs names, declaration type parameters, and annotated
 // field types.
-use std::prelude::{eq}
 use std::text
 
 fn register_struct_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
@@ -53,7 +52,7 @@ fn report_struct_enum_shadow_conflict(mut env: TypeEnv, decls: Vec<AstNode>, nod
     while j < decl_count {
         let e_node = get_unchecked(decls, j)
         if !ast_decl_predicates::node_is_enum_decl(e_node) ||
-        !eq(ast_access::node_text(e_node).clone(), struct_name.clone()) {
+        !ast_access::node_text(e_node).clone().eq(struct_name.clone()) {
             j = j + 1
             continue
         }
@@ -121,7 +120,7 @@ fn struct_field_type(env: TypeEnv, recv_ty: TypeInfo, field_name: String) -> Typ
     let mut i = 0
     while i < def_count {
         let def = get_unchecked(env.struct_defs, i)
-        if !eq(contract_struct_info::StructInfo_name(def), recv_name.clone()) {
+        if !contract_struct_info::StructInfo_name(def).eq(recv_name.clone()) {
             i = i + 1
             continue
         }
@@ -174,7 +173,7 @@ fn infer_generic_literal_args(env: TypeEnv, mut aggregate_ty: TypeInfo, node: As
     let mut di = 0
     while di < def_count {
         let def = get_unchecked(env.struct_defs, di)
-        if !eq(contract_struct_info::StructInfo_name(def), base_name.clone()) {
+        if !contract_struct_info::StructInfo_name(def).eq(base_name.clone()) {
             di = di + 1
             continue
         }
@@ -240,7 +239,7 @@ fn infer_generic_literal_args(env: TypeEnv, mut aggregate_ty: TypeInfo, node: As
 fn struct_lit_name_in_params(name: String, params: Vec<String>) -> bool {
     let mut pi = 0
     while pi < len(params) {
-        if eq(name.clone(), get_unchecked(params, pi).clone()) {
+        if name.clone().eq(get_unchecked(params, pi).clone()) {
             return true
         }
         pi = pi + 1

@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use mir::function_locals_view
 use mir::local_access
@@ -34,8 +33,8 @@ fn mir_closure_capture_vts(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
             pvt = ctx_api_local_types::ctx_local_vt(ctx, cli)
             let cap_type = closure_capture_type::mir_closure_lookup_capture_type(ctx, cli)
             if cap_type.clone().starts_with("struct:") ||
-            eq(cap_type.clone(), "String") ||
-            eq(cap_type.clone(), "string") ||
+            cap_type.clone().eq("String") ||
+            cap_type.clone().eq("string") ||
             cap_type.clone().starts_with("enum:") ||
             cap_type.clone().starts_with("vec:") ||
             cap_type.clone().starts_with("Option_") ||

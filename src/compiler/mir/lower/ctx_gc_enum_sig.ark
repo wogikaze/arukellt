@@ -1,6 +1,5 @@
 // GC enum variant signature helpers.
 use std::text
-use std::prelude::{eq}
 use mir::lower::ctx_gc_struct
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
@@ -54,7 +53,7 @@ fn should_use_typed_payload_field_sig(vt: i32, type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if vt == value_types::VT_FUNCREF() || eq(type_name.clone(), "fnref") {
+    if vt == value_types::VT_FUNCREF() || type_name.clone().eq("fnref") {
         return true
     }
     if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
@@ -67,25 +66,25 @@ fn should_use_typed_payload_field_sig(vt: i32, type_name: String) -> bool {
 }
 
 fn typed_payload_type_name_is_scalar(type_name: String) -> bool {
-    if eq(type_name.clone(), "i32") || eq(type_name.clone(), "I32") {
+    if type_name.clone().eq("i32") || type_name.clone().eq("I32") {
         return true
     }
-    if eq(type_name.clone(), "i64") || eq(type_name.clone(), "I64") {
+    if type_name.clone().eq("i64") || type_name.clone().eq("I64") {
         return true
     }
-    if eq(type_name.clone(), "f64") || eq(type_name.clone(), "F64") {
+    if type_name.clone().eq("f64") || type_name.clone().eq("F64") {
         return true
     }
-    if eq(type_name.clone(), "f32") || eq(type_name.clone(), "F32") {
+    if type_name.clone().eq("f32") || type_name.clone().eq("F32") {
         return true
     }
-    if eq(type_name.clone(), "bool") || eq(type_name.clone(), "Bool") {
+    if type_name.clone().eq("bool") || type_name.clone().eq("Bool") {
         return true
     }
-    if eq(type_name.clone(), "char") || eq(type_name.clone(), "u8") ||
-    eq(type_name.clone(), "i8") || eq(type_name.clone(), "u16") ||
-    eq(type_name.clone(), "u32") || eq(type_name.clone(), "u64") ||
-    eq(type_name.clone(), "i16") {
+    if type_name.clone().eq("char") || type_name.clone().eq("u8") ||
+    type_name.clone().eq("i8") || type_name.clone().eq("u16") ||
+    type_name.clone().eq("u32") || type_name.clone().eq("u64") ||
+    type_name.clone().eq("i16") {
         return true
     }
     false
@@ -102,7 +101,7 @@ fn gc_enum_payload_suffix_after_prefix(s: String, prefix: String) -> String {
 fn gc_enum_payload_sigs_compatible(existing_sig: String, want_field_sigs: String) -> bool {
     let base = "SubF+14_S_f0_i32"
     let existing_payload = gc_enum_payload_suffix_after_prefix(existing_sig.clone(), base.clone())
-    if eq(existing_payload.clone(), want_field_sigs.clone()) {
+    if existing_payload.clone().eq(want_field_sigs.clone()) {
         return true
     }
     // Distinct scalar widths must not reuse each other (#726 debug_vec:
@@ -135,13 +134,13 @@ fn gc_enum_payload_sigs_compatible(existing_sig: String, want_field_sigs: String
 }
 
 fn gc_enum_payload_is_scalar_sig(field_sigs: String) -> bool {
-    if eq(field_sigs.clone(), "_f1_i32") {
+    if field_sigs.clone().eq("_f1_i32") {
         return true
     }
-    if eq(field_sigs.clone(), "_f1_i64") {
+    if field_sigs.clone().eq("_f1_i64") {
         return true
     }
-    if eq(field_sigs.clone(), "_f1_f64") {
+    if field_sigs.clone().eq("_f1_f64") {
         return true
     }
     false
@@ -191,32 +190,32 @@ fn gc_enum_field_sig_for_type_ctx(mut ctx: LowerCtx, type_name: String) -> Strin
 }
 
 fn gc_enum_field_sig_for_type_ctx_slot(struct_slot: i32, type_name: String) -> String {
-    if eq(type_name.clone(), "fnref") || eq(type_name.clone(), "fn") || type_name.clone().starts_with("fn(") {
+    if type_name.clone().eq("fnref") || type_name.clone().eq("fn") || type_name.clone().starts_with("fn(") {
         return "_f1_fnref"
     }
-    if eq(type_name.clone(), "f64") || eq(type_name.clone(), "F64") {
+    if type_name.clone().eq("f64") || type_name.clone().eq("F64") {
         return "_f1_f64"
     }
-    if eq(type_name.clone(), "i64") || eq(type_name.clone(), "I64") {
+    if type_name.clone().eq("i64") || type_name.clone().eq("I64") {
         return "_f1_i64"
     }
-    if eq(type_name.clone(), "String") || eq(type_name.clone(), "string") {
+    if type_name.clone().eq("String") || type_name.clone().eq("string") {
         return "_f1_ref0"
     }
-    if eq(type_name.clone(), "bool") || eq(type_name.clone(), "Bool") {
+    if type_name.clone().eq("bool") || type_name.clone().eq("Bool") {
         return "_f1_i32"
     }
-    if eq(type_name.clone(), "i32") || eq(type_name.clone(), "I32") {
+    if type_name.clone().eq("i32") || type_name.clone().eq("I32") {
         return "_f1_i32"
     }
-    if eq(type_name.clone(), "char") || eq(type_name.clone(), "u8") ||
-    eq(type_name.clone(), "i8") || eq(type_name.clone(), "u16") ||
-    eq(type_name.clone(), "u32") || eq(type_name.clone(), "u64") ||
-    eq(type_name.clone(), "i16") {
+    if type_name.clone().eq("char") || type_name.clone().eq("u8") ||
+    type_name.clone().eq("i8") || type_name.clone().eq("u16") ||
+    type_name.clone().eq("u32") || type_name.clone().eq("u64") ||
+    type_name.clone().eq("i16") {
         return "_f1_i32"
     }
     // Vec types: pick the concrete GC vec slot (String→ref19, i32→ref10).
-    if eq(type_name.clone(), "Vec") ||
+    if type_name.clone().eq("Vec") ||
     type_name.clone().starts_with("vec:") ||
     type_name.clone().starts_with("Vec_") ||
     type_name.clone().starts_with("Vec<") {
@@ -243,7 +242,7 @@ fn gc_enum_field_sig_for_type_ctx_slot(struct_slot: i32, type_name: String) -> S
     if type_name.clone().starts_with("enum:") {
         return "_f1_ref14"
     }
-    if eq(type_name.clone(), "Ordering") {
+    if type_name.clone().eq("Ordering") {
         return "_f1_ref14"
     }
     if struct_slot >= 0 {
@@ -258,7 +257,7 @@ fn gc_enum_build_payload_field_sigs(mut ctx: LowerCtx, variant_name: String) -> 
     let layout_count = len(ctx.struct_names)
     let mut li = 0
     while li < layout_count {
-        if eq(get_unchecked(ctx.struct_names, li), layout_name.clone()) || eq(get_unchecked(ctx.struct_names, li), variant_name.clone()) {
+        if get_unchecked(ctx.struct_names, li).eq(layout_name.clone()) || get_unchecked(ctx.struct_names, li).eq(variant_name.clone()) {
             let field_count = get_unchecked(ctx.struct_field_counts, li)
             let mut fi = 1
             while fi < field_count {

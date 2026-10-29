@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use corehir::type_ann_node
 use corehir::hashmap_type_name
@@ -14,7 +13,7 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
         return type_ann_node::type_ann_function_ref_name(ann)
     }
     if type_ann_node::type_ann_is_generic(ann) {
-        if eq(ann_name.clone(), "Vec") {
+        if ann_name.clone().eq("Vec") {
             if type_ann_node::type_ann_child_count(ann) >= 2 {
                 let elem_ty = type_ann_node::type_ann_child_at(ann, 1)
                 // Vec<(A, B)> elements are heap tuples; keep the tuple:<a,b>
@@ -35,7 +34,7 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
             }
             return "vec"
         }
-        if eq(ann_name.clone(), "HashMap") {
+        if ann_name.clone().eq("HashMap") {
             if type_ann_node::type_ann_child_count(ann) >= 3 {
                 let key = type_ann_node::type_ann_child_at(ann, 1)
                 let val = type_ann_node::type_ann_child_at(ann, 2)
@@ -45,7 +44,7 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
             }
             return "hashmap:"
         }
-        if eq(ann_name.clone(), "Result") {
+        if ann_name.clone().eq("Result") {
             if type_ann_node::type_ann_child_count(ann) >= 2 {
                 let ok_ty = type_ann_node::type_ann_child_at(ann, 1)
                 if type_ann_node::type_ann_is_name(ok_ty, "f64") {
@@ -74,7 +73,7 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
             }
             return "enum:Result"
         }
-        if eq(ann_name.clone(), "Option") {
+        if ann_name.clone().eq("Option") {
             if type_ann_node::type_ann_child_count(ann) >= 2 {
                 let some_ty = type_ann_node::type_ann_child_at(ann, 1)
                 if type_ann_node::type_ann_is_name(some_ty, "f64") {
@@ -113,26 +112,26 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
     if type_ann_node::type_ann_is_tuple(ann) {
         return type_ann_node::type_ann_tuple_local_name(ann)
     }
-    if eq(ann_name.clone(), "Vec") {
+    if ann_name.clone().eq("Vec") {
         return "vec"
     }
-    if eq(ann_name.clone(), "String") ||
-    eq(ann_name.clone(), "str") ||
-    eq(ann_name.clone(), "string") {
+    if ann_name.clone().eq("String") ||
+    ann_name.clone().eq("str") ||
+    ann_name.clone().eq("string") {
         return "String"
     }
-    if eq(ann_name.clone(), "char") ||
-    eq(ann_name.clone(), "u8") ||
-    eq(ann_name.clone(), "i8") ||
-    eq(ann_name.clone(), "u16") ||
-    eq(ann_name.clone(), "u32") ||
-    eq(ann_name.clone(), "u64") ||
-    eq(ann_name.clone(), "i16") ||
-    eq(ann_name.clone(), "i32") ||
-    eq(ann_name.clone(), "i64") ||
-    eq(ann_name.clone(), "bool") ||
-    eq(ann_name.clone(), "f64") ||
-    eq(ann_name.clone(), "f32") {
+    if ann_name.clone().eq("char") ||
+    ann_name.clone().eq("u8") ||
+    ann_name.clone().eq("i8") ||
+    ann_name.clone().eq("u16") ||
+    ann_name.clone().eq("u32") ||
+    ann_name.clone().eq("u64") ||
+    ann_name.clone().eq("i16") ||
+    ann_name.clone().eq("i32") ||
+    ann_name.clone().eq("i64") ||
+    ann_name.clone().eq("bool") ||
+    ann_name.clone().eq("f64") ||
+    ann_name.clone().eq("f32") {
         return ann_name
     }
     if known_struct_fields > 0 {

@@ -19,22 +19,21 @@ use wasm::writer_core
 // HOST_ABI_GC_REF for intrinsics that return a GC reference directly,
 // and HOST_ABI_LINEAR_MEMORY_PTR for intrinsics that return an i32
 // pointer into linear memory which must be converted to a GC ref.
-use std::prelude::{eq}
 fn host_intrinsic_abi_kind(name: String) -> i32 {
     // Scalar intrinsics: return plain numeric values, no GC ref needed.
-    if eq(name.clone(), String_from("clock_now")) {
+    if name.clone().eq(String_from("clock_now")) {
         return kinds::HOST_ABI_SCALAR()
     }
-    if eq(name.clone(), String_from("exists")) {
+    if name.clone().eq(String_from("exists")) {
         return kinds::HOST_ABI_SCALAR()
     }
-    if eq(name.clone(), String_from("is_file")) {
+    if name.clone().eq(String_from("is_file")) {
         return kinds::HOST_ABI_SCALAR()
     }
-    if eq(name.clone(), String_from("is_dir")) {
+    if name.clone().eq(String_from("is_dir")) {
         return kinds::HOST_ABI_SCALAR()
     }
-    if eq(name.clone(), String_from("is_readable_file")) {
+    if name.clone().eq(String_from("is_readable_file")) {
         return kinds::HOST_ABI_SCALAR()
     }
     // All other host intrinsics return i32 pointers (string handles,
@@ -54,19 +53,19 @@ fn host_intrinsic_needs_gc_adapter(name: String) -> bool {
     if host_intrinsic_abi_kind(name.clone()) != kinds::HOST_ABI_LINEAR_MEMORY_PTR() {
         return false
     }
-    if eq(name.clone(), String_from("args")) {
+    if name.clone().eq(String_from("args")) {
         return true
     }
-    if eq(name.clone(), String_from("arg_at")) {
+    if name.clone().eq(String_from("arg_at")) {
         return true
     }
-    if eq(name.clone(), String_from("var")) || eq(name.clone(), String_from("get_var")) {
+    if name.clone().eq(String_from("var")) || name.clone().eq(String_from("get_var")) {
         return true
     }
-    if eq(name.clone(), String_from("var_or_default")) {
+    if name.clone().eq(String_from("var_or_default")) {
         return true
     }
-    if eq(name.clone(), String_from("read_stdin")) {
+    if name.clone().eq(String_from("read_stdin")) {
         return true
     }
     false

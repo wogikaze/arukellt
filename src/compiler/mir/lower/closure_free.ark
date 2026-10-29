@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
 use mir::lower_kinds
@@ -11,7 +10,7 @@ fn closure_is_param_name(clos: AstNode, name: String) -> bool {
     let mut i = 0
     while i < c - 1 {
         let p = ast_node::node_child_at(clos, i)
-        if ast_node::node_kind_is(p, lower_kinds::NK_IDENT()) && eq(ast_node::node_text(p), name.clone()) {
+        if ast_node::node_kind_is(p, lower_kinds::NK_IDENT()) && ast_node::node_text(p).eq(name.clone()) {
             return true
         }
         i = i + 1
@@ -61,7 +60,7 @@ fn closure_collect_free_mode(ctx: LowerCtx, expr: AstNode, clos: AstNode, mut ac
 fn closure_caps_contain(caps: Vec<String>, name: String) -> bool {
     let mut i = 0
     while i < len(caps) {
-        if eq(get_unchecked(caps, i), name.clone()) {
+        if get_unchecked(caps, i).eq(name.clone()) {
             return true
         }
         i = i + 1
@@ -81,7 +80,7 @@ fn collect_free_ident(ctx: LowerCtx, expr: AstNode, clos: AstNode, mut acc: Vec<
     let mut j = len(acc) - 1
     let mut dup = false
     while j >= 0 && !dup {
-        if eq(get_unchecked(acc, j).clone(), n.clone()) {
+        if get_unchecked(acc, j).clone().eq(n.clone()) {
             dup = true
         }
         j = j - 1
@@ -135,7 +134,7 @@ fn closure_mark_rebind(node: AstNode, caps: Vec<String>, mut flags: Vec<i32>, sh
             if !closure_rebind_name_is_shadowed(shadowed, name.clone()) {
                 let mut ci = 0
                 while ci < len(caps) {
-                    if eq(get_unchecked(caps, ci), name.clone()) {
+                    if get_unchecked(caps, ci).eq(name.clone()) {
                         set(flags, ci, 1)
                         ci = len(caps)
                     }
@@ -175,7 +174,7 @@ fn closure_rebind_extend_shadowed(node: AstNode, shadowed: Vec<String>, child_co
 fn closure_rebind_name_is_shadowed(shadowed: Vec<String>, name: String) -> bool {
     let mut i = 0
     while i < len(shadowed) {
-        if eq(get_unchecked(shadowed, i), name.clone()) {
+        if get_unchecked(shadowed, i).eq(name.clone()) {
             return true
         }
         i = i + 1

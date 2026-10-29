@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use lexer::tokens
 use parser::core_api_cursor
 use parser::token_state
@@ -14,7 +13,7 @@ fn has_next_clause(mut p: Parser, name: String) -> bool {
         core_api_cursor::skip_only_newlines(p)
         if core_api_cursor::at(p, tokens::TK_IDENT()) {
             let nt = core_api_cursor::cur(p)
-            if eq(token_state::Token_text(nt), name.clone()) {
+            if token_state::Token_text(nt).eq(name.clone()) {
                 result = true
             }
         }

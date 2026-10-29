@@ -1,6 +1,5 @@
 // Extracted from core_match_payload_bind_core.ark to reduce import fan-out.
 
-use std::prelude::{eq}
 use std::text
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
@@ -29,12 +28,12 @@ fn emit_payload_field_bind(mut ctx: LowerCtx, variant_name: String, bi: i32, scr
         ctx_api_local_types::ctx_set_local_type(ctx, bind_local, String_from("fnref"))
     } else if ctx_gc_enum::ctx_is_gc_target(ctx) && effective_vt != value_types::VT_GC_REF() {
         let bind_ty = ctx_api_local_types::ctx_get_local_type(ctx, bind_local)
-        let is_fnref_bind = eq(bind_ty.clone(), String_from("fnref")) || bind_ty.clone().starts_with(String_from("fn("))
+        let is_fnref_bind = bind_ty.clone().eq(String_from("fnref")) || bind_ty.clone().starts_with(String_from("fn("))
         let scalar_bind = is_fnref_bind ||
         core_match_payload_bind_types::core_payload_scalar_type_name(bind_ty.clone()) ||
-        eq(bind_ty.clone(), "i32") ||
-        eq(bind_ty.clone(), "i64") ||
-        eq(bind_ty.clone(), "f64")
+        bind_ty.clone().eq("i32") ||
+        bind_ty.clone().eq("i64") ||
+        bind_ty.clone().eq("f64")
         if !scalar_bind && core_match_payload_bind_types::core_payload_gc_field_is_ref(
             ctx,
             variant_name.clone(),
@@ -113,10 +112,10 @@ fn emit_payload_field_bind_gc(mut ctx: LowerCtx, variant_name: String, bi: i32, 
     let mut eff_vt = effective_vt
     if bi == 0 {
         let bind_type_name = emit_payload_field_bind_gc_resolve_type(ctx, variant_name.clone(), bi, bind_local)
-        let is_fnref_payload = eq(bind_type_name.clone(), String_from("fnref")) ||
-        eq(bind_type_name.clone(), String_from("fn")) ||
+        let is_fnref_payload = bind_type_name.clone().eq(String_from("fnref")) ||
+        bind_type_name.clone().eq(String_from("fn")) ||
         bind_type_name.clone().starts_with(String_from("fn(")) ||
-        eq(bind_type_name.clone(), String_from("option:fnref")) ||
+        bind_type_name.clone().eq(String_from("option:fnref")) ||
         eff_vt == value_types::VT_FUNCREF()
         let mut typed_payload_name = bind_type_name.clone()
         if is_fnref_payload {
@@ -129,8 +128,8 @@ fn emit_payload_field_bind_gc(mut ctx: LowerCtx, variant_name: String, bi: i32, 
             bind_type_name.clone().starts_with(String_from("enum:")) ||
             bind_type_name.clone().starts_with(String_from("result:")) ||
             bind_type_name.clone().starts_with(String_from("option:")) ||
-            eq(bind_type_name.clone(), String_from("string")) ||
-            eq(bind_type_name.clone(), String_from("String")) ||
+            bind_type_name.clone().eq(String_from("string")) ||
+            bind_type_name.clone().eq(String_from("String")) ||
             ctx_struct_field_type::field_type_is_registered_enum(ctx, bind_type_name.clone()) {
                 eff_vt = value_types::VT_GC_REF()
                 ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
@@ -171,14 +170,14 @@ fn emit_payload_field_bind_gc(mut ctx: LowerCtx, variant_name: String, bi: i32, 
     }
 
     fn core_payload_type_value_type(type_name: String) -> i32 {
-        if eq(type_name.clone(), String_from("f64")) || eq(type_name.clone(), String_from("F64")) {
+        if type_name.clone().eq(String_from("f64")) || type_name.clone().eq(String_from("F64")) {
             return value_types::VT_F64()
         }
-        if eq(type_name.clone(), String_from("i64")) || eq(type_name.clone(), String_from("I64")) {
+        if type_name.clone().eq(String_from("i64")) || type_name.clone().eq(String_from("I64")) {
             return value_types::VT_I64()
         }
-        if eq(type_name.clone(), String_from("fnref")) ||
-        eq(type_name.clone(), String_from("fn")) ||
+        if type_name.clone().eq(String_from("fnref")) ||
+        type_name.clone().eq(String_from("fn")) ||
         type_name.clone().starts_with(String_from("fn(")) {
             return value_types::VT_FUNCREF()
         }
@@ -202,13 +201,13 @@ fn emit_payload_field_bind_gc(mut ctx: LowerCtx, variant_name: String, bi: i32, 
             layout_vec = String_from("vec:").concat(layout_norm.clone().slice(4, len(layout_norm) - 1))
         } else if layout_norm.clone().starts_with(String_from("Vec_")) {
             layout_vec = String_from("vec:").concat(layout_norm.clone().slice(4, len(layout_norm)))
-        } else if eq(layout_norm.clone(), String_from("Vec")) {
+        } else if layout_norm.clone().eq(String_from("Vec")) {
             layout_vec = String_from("vec:i32")
         }
         if len(layout_vec) > 0 {
             bind_type_name = layout_vec
             ctx_api_local_types::ctx_set_local_type(ctx, bind_local, bind_type_name.clone())
-        } else if len(bind_type_name) == 0 || eq(bind_type_name.clone(), String_from("enum:open")) {
+        } else if len(bind_type_name) == 0 || bind_type_name.clone().eq(String_from("enum:open")) {
             if len(layout_norm) > 0 {
                 bind_type_name = layout_norm
                 ctx_api_local_types::ctx_set_local_type(ctx, bind_local, bind_type_name.clone())
@@ -217,11 +216,11 @@ fn emit_payload_field_bind_gc(mut ctx: LowerCtx, variant_name: String, bi: i32, 
         if ctx_gc_enum::gc_enum_variant_is_vec_container(variant_name.clone()) {
             if !bind_type_name.clone().starts_with(String_from("vec:")) && !bind_type_name.clone().starts_with(String_from("Vec")) {
                 let bare = ctx_gc_enum::ctx_gc_enum_bare_variant_name(variant_name.clone())
-                if eq(bare.clone(), String_from("Table")) {
+                if bare.clone().eq(String_from("Table")) {
                     bind_type_name = String_from("vec:TomlField")
-                } else if eq(bare.clone(), String_from("Object")) {
+                } else if bare.clone().eq(String_from("Object")) {
                     bind_type_name = String_from("vec:JsonField")
-                } else if eq(bare.clone(), String_from("Array")) {
+                } else if bare.clone().eq(String_from("Array")) {
                     if variant_name.clone().starts_with(String_from("Json")) || variant_name.clone().contains(String_from("JsonValue")) {
                         bind_type_name = String_from("vec:JsonValue")
                     } else {

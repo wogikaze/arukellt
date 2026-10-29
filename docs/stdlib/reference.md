@@ -8,7 +8,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 14 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 13 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 1 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 3 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 65 | Superseded — see migration guidance. |
@@ -412,7 +412,6 @@ let input = stdio::read_stdin()
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `String_from` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_from` | - |
 | `String_new` | `() -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_new` | - |
-| `eq` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_eq` | - |
 
 ## Deprecated APIs
 

@@ -1,6 +1,5 @@
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{eq}
 use std::text
 use corehir::kinds
 use corehir::type_id
@@ -42,7 +41,7 @@ fn gc_layout_plan_find_named_type(
         return direct
     }
     let bare = gc_layout_plan_bare_suffix(name.clone())
-    if len(bare) > 0 && !eq(bare.clone(), name) {
+    if len(bare) > 0 && !bare.clone().eq(name) {
         return type_table::type_table_find_existing(
             table,
             kind,
@@ -111,7 +110,7 @@ fn gc_layout_plan_find_struct_type(table: TypeTable, name: String) -> TypeId {
         let entry = type_table::TypeTable_entry_at(table, index)
         if type_table::type_entry_kind(entry) == kinds::TYPE_KIND_STRUCT() {
             let entry_name = type_table::type_entry_name(entry)
-            if eq(gc_layout_plan_normalize_struct_name(entry_name), want.clone()) {
+            if gc_layout_plan_normalize_struct_name(entry_name).eq(want.clone()) {
                 return type_table::type_entry_id(entry)
             }
         }
@@ -129,14 +128,14 @@ fn gc_layout_plan_type_id_for_struct_slot(mut table: TypeTable, name: String) ->
 }
 
 fn gc_layout_plan_name_is_option_variant(name: String) -> bool {
-    eq(name.clone(), "Some") ||
-    eq(name.clone(), "None") ||
+    name.clone().eq("Some") ||
+    name.clone().eq("None") ||
     name.starts_with("Option::")
 }
 
 fn gc_layout_plan_name_is_result_variant(name: String) -> bool {
-    eq(name.clone(), "Ok") ||
-    eq(name.clone(), "Err") ||
+    name.clone().eq("Ok") ||
+    name.clone().eq("Err") ||
     name.starts_with("Result::")
 }
 

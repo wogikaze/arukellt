@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::call_arg_i64
 use mir::lower::call_mono
 use mir::lower::call_mono_by_type
@@ -51,7 +50,7 @@ fn mir_rewrite_call_target(mut ctx: LowerCtx, callee_name: String, first_arg_idx
     let mut push_i64_needs_extend = false
     // String identity for x.to_string() must run before impl resolution
     // rewrites plain "to_string" into "Type::to_string".
-    if eq(callee_name.clone(), String_from("to_string")) {
+    if callee_name.clone().eq(String_from("to_string")) {
         let string_rewrite = call_rewrite_string::mir_rewrite_to_string(ctx, callee_name, first_arg_idx)
         return_local = call_rewrite_string::mir_string_call_rewrite_return_local(string_rewrite)
         rewritten = call_rewrite_string::mir_string_call_rewrite_callee_name(string_rewrite)
@@ -63,26 +62,26 @@ fn mir_rewrite_call_target(mut ctx: LowerCtx, callee_name: String, first_arg_idx
     // Keep qualified text queries on their exact core-op aliases.  Rewriting
     // `text::is_empty` through the generic Vec `is_empty` path interprets the
     // String array reference as a Vec struct and traps on GC targets.
-    if eq(callee_name.clone(), String_from("text::is_empty")) ||
-    eq(callee_name.clone(), String_from("std::text::is_empty")) {
+    if callee_name.clone().eq(String_from("text::is_empty")) ||
+    callee_name.clone().eq(String_from("std::text::is_empty")) {
         return MirCallRewrite_new(String_from("text::is_empty"), return_local, push_i64_needs_extend)
     }
-    if eq(callee_name.clone(), String_from("text::len_bytes")) ||
-    eq(callee_name.clone(), String_from("std::text::len_bytes")) {
+    if callee_name.clone().eq(String_from("text::len_bytes")) ||
+    callee_name.clone().eq(String_from("std::text::len_bytes")) {
         return MirCallRewrite_new(String_from("text::len_bytes"), return_local, push_i64_needs_extend)
     }
     if first_arg_idx >= 0 && rewritten.clone().contains(String_from("::")) {
         rewritten = call_rewrite_method::mir_try_resolve_associated_function(ctx, rewritten.clone(), first_arg_idx)
     }
-    if eq(callee_name.clone(), String_from("is_empty")) && hashset_early.len() == 0 {
+    if callee_name.clone().eq(String_from("is_empty")) && hashset_early.len() == 0 {
         // Prefer String::is_empty before vec rewrite — String_from locals can
         // look like byte arrays and must not take the Vec struct.get path (#807).
         if first_arg_idx >= 0 {
             let arg_ty = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-            let is_string_arg = eq(arg_ty.clone(), String_from("String")) ||
-            eq(arg_ty.clone(), String_from("string")) ||
+            let is_string_arg = arg_ty.clone().eq(String_from("String")) ||
+            arg_ty.clone().eq(String_from("string")) ||
             (
-                !eq(arg_ty.clone(), String_from("Vec")) &&
+                !arg_ty.clone().eq(String_from("Vec")) &&
                 !arg_ty.clone().starts_with(String_from("vec:")) &&
                 // HashMap receivers are managed refs too, but is_empty on
                 // them must reach the hashmap adapter rewrite below, not
@@ -110,7 +109,7 @@ fn mir_rewrite_call_target(mut ctx: LowerCtx, callee_name: String, first_arg_idx
     // caller's reference instead of mutating through it. Emitting the
     // intrinsic spelling keeps the call-site receiver writeback; a real
     // `String::push_char` call only updates the callee's `self` local.
-    if eq(rewritten.clone(), String_from("String::push_char")) {
+    if rewritten.clone().eq(String_from("String::push_char")) {
         rewritten = String_from("push_char")
     }
     let hashmap_constructor = call_rewrite_hashmap::mir_rewrite_hashmap_constructor(rewritten.clone())
@@ -125,7 +124,7 @@ fn mir_rewrite_call_target(mut ctx: LowerCtx, callee_name: String, first_arg_idx
     if hashset_call.len() > 0 {
         rewritten = hashset_call
     }
-    if eq(rewritten.clone(), "to_string") {
+    if rewritten.clone().eq("to_string") {
         let string_rewrite = call_rewrite_string::mir_rewrite_to_string(ctx, rewritten, first_arg_idx)
         rewritten = call_rewrite_string::mir_string_call_rewrite_callee_name(string_rewrite)
         return_local = call_rewrite_string::mir_string_call_rewrite_return_local(string_rewrite)
@@ -155,15 +154,15 @@ fn mir_rewrite_call_target(mut ctx: LowerCtx, callee_name: String, first_arg_idx
         }
     }
     // write_debug_to is specialized on arg1 (value), not arg0 (buffer).
-    let skip_first_arg_mono = eq(rewritten.clone(), String_from("write_debug_to")) ||
+    let skip_first_arg_mono = rewritten.clone().eq(String_from("write_debug_to")) ||
     rewritten.clone().starts_with(String_from("write_debug_to__")) ||
     rewritten.clone().ends_with(String_from("::write_debug_to")) ||
     rewritten.clone().contains(String_from("write_debug_to__"))
     // These qualified aliases have the same short name as scalar math
     // operations.  Generic mono lookup must not erase the module qualifier
     // before FunctionId binding selects the sequence operation.
-    let is_seq_extremum_alias = eq(rewritten.clone(), String_from("seq::min_i32")) ||
-    eq(rewritten.clone(), String_from("seq::max_i32"))
+    let is_seq_extremum_alias = rewritten.clone().eq(String_from("seq::min_i32")) ||
+    rewritten.clone().eq(String_from("seq::max_i32"))
     if !is_seq_extremum_alias &&
     !call_rewrite_hashmap::mir_hashmap_target_is_lowering(rewritten.clone()) &&
     !call_rewrite_vec::mir_vec_call_target_is_intrinsic(rewritten.clone()) &&
@@ -189,7 +188,7 @@ fn mir_rewrite_call_target(mut ctx: LowerCtx, callee_name: String, first_arg_idx
     rewritten = call_rewrite_vec::mir_rewrite_vec_access_after_mono(ctx, rewritten, first_arg_idx)
     // Only re-dispatch format_debug / format_debug__?t0 shells — applying
     // mono_by_type to every callee regresses modules/multi_import (to_string).
-    if eq(rewritten.clone(), String_from("format_debug")) ||
+    if rewritten.clone().eq(String_from("format_debug")) ||
     rewritten.clone().starts_with(String_from("format_debug__")) ||
     rewritten.clone().ends_with(String_from("::format_debug")) ||
     rewritten.clone().contains(String_from("format_debug__")) {
@@ -201,7 +200,7 @@ fn mir_rewrite_call_target(mut ctx: LowerCtx, callee_name: String, first_arg_idx
     // Strip any first-arg (buffer) specialization such as write_debug_to__String
     // before resolving on the value arg — otherwise i32 sites stay stuck on
     // the String specialization and get pruned wrongly.
-    if eq(rewritten.clone(), String_from("write_debug_to")) ||
+    if rewritten.clone().eq(String_from("write_debug_to")) ||
     rewritten.clone().starts_with(String_from("write_debug_to__")) ||
     rewritten.clone().ends_with(String_from("::write_debug_to")) ||
     rewritten.clone().contains(String_from("write_debug_to__")) ||
@@ -221,7 +220,7 @@ fn callee_needs_i64_trailing_arg(callee_name: String) -> bool {
     if callee_name.clone().ends_with(String_from("seek_to")) {
         return true
     }
-    if eq(callee_name.clone(), String_from("seek")) {
+    if callee_name.clone().eq(String_from("seek")) {
         return true
     }
     if callee_name.clone().ends_with(String_from("::seek")) {

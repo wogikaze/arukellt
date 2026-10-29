@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use diagnostics::codes
 use diagnostics::record
@@ -74,7 +73,7 @@ pub fn check_unused_symbols(decls: Vec<AstNode>) -> Vec<Diagnostic> {
         let node = get_unchecked(decls, i)
         if ast_decl_predicates::node_is_fn_decl(node) && !ast_access::node_is_pub(node) {
             let name = ast_access::node_text(node)
-            if !eq(name.clone(), "main") {
+            if !name.clone().eq("main") {
                 push(fn_names, name.clone())
                 push(fn_spans_start, ast_access::node_decl_name_span_start(node))
                 push(fn_spans_end, ast_access::node_decl_name_span_end(node))
@@ -144,7 +143,7 @@ pub fn check_capability_stubs(decls: Vec<AstNode>, target: String) -> Vec<Diagno
         !ast_access::node_is_component_export(node) {
             let name = ast_access::node_text(node)
             // Skip main and private helpers starting with _
-            if eq(name.clone(), "main") {
+            if name.clone().eq("main") {
                 i = i + 1
                 continue
             }
@@ -162,7 +161,7 @@ pub fn check_capability_stubs(decls: Vec<AstNode>, target: String) -> Vec<Diagno
 }
 
 fn is_component_target(target: String) -> bool {
-    eq(target.clone(), "wasm32-gc")
+    target.clone().eq("wasm32-gc")
 }
 
 // ── W0008: doc drift ───────────────────────────────────────────────────

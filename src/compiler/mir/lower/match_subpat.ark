@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::ast_node
 use mir::lower::ctx_api_nesting
 use mir::lower::ctx_api_local_alloc
@@ -43,7 +42,7 @@ fn mir_subpat_child_is_condition(ctx: LowerCtx, pat: AstNode) -> bool {
         return true
     }
     if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_IDENT()) {
-        if eq(ast_node::node_text(pat).clone(), "_") {
+        if ast_node::node_text(pat).clone().eq("_") {
             return false
         }
         return ctx_api_variants::ctx_variant_tag(ctx, ast_node::node_text(pat)) >= 0

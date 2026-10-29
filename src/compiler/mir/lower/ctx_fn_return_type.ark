@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use corehir::callee_spelling
 use mir::lower::ctx_fn_index
 fn ctx_fn_return_type_name(ctx: LowerCtx, name: String) -> String {
@@ -24,7 +23,7 @@ fn ctx_fn_return_type_name(ctx: LowerCtx, name: String) -> String {
         vi = vi + 1
     }
     let base_name = mono_strip_suffix_for_lookup(name.clone())
-    if !eq(base_name.clone(), name.clone()) {
+    if !base_name.clone().eq(name.clone()) {
         let base_found = ctx_fn_index::ctx_fn_index_find(ctx, base_name.clone())
         if base_found >= 0 {
             return ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, base_found)
@@ -127,14 +126,14 @@ fn mono_suffix_looks_like_type_keys(suffix: String) -> bool {
 }
 
 fn mono_type_key_looks_valid(key: String) -> bool {
-    if eq(key.clone(), "i32") ||
-    eq(key.clone(), "i64") ||
-    eq(key.clone(), "f64") ||
-    eq(key.clone(), "f32") ||
-    eq(key.clone(), "bool") ||
-    eq(key.clone(), "char") ||
-    eq(key.clone(), "String") ||
-    eq(key.clone(), "string") {
+    if key.clone().eq("i32") ||
+    key.clone().eq("i64") ||
+    key.clone().eq("f64") ||
+    key.clone().eq("f32") ||
+    key.clone().eq("bool") ||
+    key.clone().eq("char") ||
+    key.clone().eq("String") ||
+    key.clone().eq("string") {
         return true
     }
     // Nominal mono keys are PascalCase type names (Point), not snake_case

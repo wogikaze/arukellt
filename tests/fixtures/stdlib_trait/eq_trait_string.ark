@@ -12,7 +12,7 @@ struct Person {
 
 impl Eq for Person {
     fn eq(self: Person, other: Person) -> bool {
-        eq(self.name, other.name) && self.age == other.age
+        self.name.eq(other.name) && self.age == other.age
     }
 }
 
@@ -27,11 +27,11 @@ fn main() {
     let bob = Person { name: String_from("Bob"), age: 30 }
 
     // Direct trait method call -- uses String field equality
-    stdio::println((eq(alice, alice2)).to_string())
-    stdio::println((eq(alice, bob)).to_string())
+    stdio::println((alice.eq(alice2)).to_string())
+    stdio::println((alice.eq(bob)).to_string())
 
     // Generic function with Eq trait bound
     let p = check_eq(alice, alice2)
-    stdio::println((eq(p, alice2)).to_string())
-    stdio::println((eq(p, bob)).to_string())
+    stdio::println((p.eq(alice2)).to_string())
+    stdio::println((p.eq(bob)).to_string())
 }

@@ -18,7 +18,6 @@ use mir::type_contracts
 // Convert a TypeInfo to a monomorphization type key string.
 // Primitive types (i32, f64, etc.) carry only a tag with an empty name,
 // so we must use the tag to produce the correct key.
-use std::prelude::{eq}
 use std::text
 
 fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
@@ -63,7 +62,7 @@ fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
         // Built-in Vec is represented as a generic struct by the type
         // checker. Preserve its element type when it appears inside a
         // compound return such as `(Vec<T>, i32)`.
-        if eq(name.clone(), "Vec") && type_contracts::TypeInfo_type_arg_count(ty) > 0 {
+        if name.clone().eq("Vec") && type_contracts::TypeInfo_type_arg_count(ty) > 0 {
             return return_typeinfo_names::mir_vec_return_type_name_from_type_info(ty)
         }
         // User generic structs keep their argument list (Pair<String>) so
@@ -109,7 +108,7 @@ fn ctx_set_mono_type_params(mut ctx: LowerCtx, names: Vec<String>, types: Vec<St
 // key; splitting it into ordinary type-variable segments would lose the
 // projection boundary and could resolve an unrelated `T` instead.
 fn ctx_set_mono_type_projection(mut ctx: LowerCtx, generic_name: String, concrete_name: String) {
-    if len(generic_name) == 0 || len(concrete_name) == 0 || eq(generic_name.clone(), concrete_name.clone()) {
+    if len(generic_name) == 0 || len(concrete_name) == 0 || generic_name.clone().eq(concrete_name.clone()) {
         return
     }
     push(ctx.mono_type_param_names, generic_name.clone())
@@ -154,10 +153,7 @@ fn ctx_register_projection_arg_pairs(mut ctx: LowerCtx, generic_name: String, co
     !concrete_name.clone().ends_with(String_from(">")) {
         return
     }
-    if !eq(
-        generic_name.clone().slice(0, glt),
-        concrete_name.clone().slice(0, clt)
-    ) {
+    if !generic_name.clone().slice(0, glt).eq(concrete_name.clone().slice(0, clt)) {
         return
     }
     let g_args = ctx_split_top_level_type_args(
@@ -254,7 +250,7 @@ fn ctx_resolve_mono_type_param(ctx: LowerCtx, type_var_name: String) -> String {
     let mut i = 0
     while i < count {
         let stored_name = get_unchecked(ctx.mono_type_param_names, i).clone()
-        if eq(stored_name.clone(), type_var_name.clone()) {
+        if stored_name.clone().eq(type_var_name.clone()) {
             return get_unchecked(ctx.mono_type_param_types, i).clone()
         }
         let seg_idx = ctx_mono_type_match_segment_index(stored_name, type_var_name.clone())
@@ -282,7 +278,7 @@ fn ctx_mono_type_match_segment_index(stored_name: String, query_name: String) ->
         let at_end = i == len(stored_name)
         if at_end || stored_name.clone().byte_at(i) == 58 {
             let segment = stored_name.clone().slice(segment_start, i)
-            if eq(ctx_mono_type_var_bare_name(segment.clone()), query.clone()) {
+            if ctx_mono_type_var_bare_name(segment.clone()).eq(query.clone()) {
                 return seg_index
             }
             segment_start = i + 1
@@ -377,7 +373,7 @@ fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
             let rcount = len(result)
             let mut k = 0
             while k < rcount {
-                if eq(get_unchecked(result, k), var_name.clone()) {
+                if get_unchecked(result, k).eq(var_name.clone()) {
                     found = true
                 }
                 k = k + 1
@@ -608,7 +604,7 @@ fn ctx_resolve_fnsig_type_vars(ctx: LowerCtx, type_name: String) -> String {
         if i == n || rest.clone().byte_at(i) == 59 {
             let seg = rest.clone().slice(seg_start, i)
             let resolved = ctx_resolve_fnsig_segment(ctx, seg.clone())
-            if !eq(resolved.clone(), seg.clone()) {
+            if !resolved.clone().eq(seg.clone()) {
                 changed = true
             }
             out = out.concat(resolved)
@@ -734,7 +730,7 @@ fn ctx_resolve_mono_base_projection(ctx: LowerCtx, base: String) -> String {
     let count = len(ctx.mono_type_param_names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(ctx.mono_type_param_names, i), base.clone()) {
+        if get_unchecked(ctx.mono_type_param_names, i).eq(base.clone()) {
             return get_unchecked(ctx.mono_type_param_types, i).clone()
         }
         i = i + 1
@@ -765,7 +761,7 @@ fn ctx_wrapper_payload_projection(stored: String, concrete: String, prefix: Stri
         return String_new()
     }
     let plen = len(prefix)
-    if !eq(stored.slice(plen, len(stored)), base.clone()) {
+    if !stored.slice(plen, len(stored)).eq(base.clone()) {
         return String_new()
     }
     concrete.slice(plen, len(concrete))
@@ -892,11 +888,11 @@ fn ctx_find_leaf_mono_instance_index(ctx: LowerCtx, leaf_name: String) -> i32 {
         if inst_sep >= 0 {
             inst_leaf = inst_name.slice(inst_sep + 2, len(inst_name))
         }
-        if !eq(inst_leaf, query_leaf.clone()) {
+        if !inst_leaf.eq(query_leaf.clone()) {
             continue
         }
         let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
-        if len(matched_mangled) > 0 && !eq(inst_mangled.clone(), matched_mangled.clone()) {
+        if len(matched_mangled) > 0 && !inst_mangled.clone().eq(matched_mangled.clone()) {
             ambiguous = true
         }
         if len(matched_mangled) == 0 {
@@ -1074,7 +1070,7 @@ fn ctx_resolve_assoc_projection_type(ctx: LowerCtx, seg: String) -> String {
         return String_new()
     }
     let assoc = seg.clone().slice(sep + 2, len(seg))
-    if !eq(assoc.clone(), String_from("Item")) {
+    if !assoc.clone().eq(String_from("Item")) {
         return String_new()
     }
     let mut owner = seg.clone().slice(0, sep)
@@ -1156,7 +1152,7 @@ fn ctx_resolve_field_type_projections(ctx: LowerCtx, ft: String) -> String {
             }
             let assoc = ft.clone().slice(i + 2, assoc_end)
             let mut resolved = String_new()
-            if eq(assoc.clone(), String_from("Item")) {
+            if assoc.clone().eq(String_from("Item")) {
                 resolved = ctx_resolve_iterator_item_type(ctx, owner.clone())
             }
             out = out.concat(ft.clone().slice(out_start, owner_start))

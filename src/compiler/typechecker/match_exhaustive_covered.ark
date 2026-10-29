@@ -1,11 +1,10 @@
-use std::prelude::{eq}
 use typechecker::match_coverage_read_record
 fn is_variant_covered(coverage: MatchCoverage, vname: String) -> bool {
     let cv_count = match_coverage_read_record::MatchCoverage_variant_count(coverage)
     let mut cv = 0
     while cv < cv_count {
         let cname = match_coverage_read_record::MatchCoverage_variant_at(coverage, cv)
-        if eq(cname.clone(), vname.clone()) {
+        if cname.clone().eq(vname.clone()) {
             return true
         }
         cv = cv + 1

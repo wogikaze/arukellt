@@ -1,4 +1,4 @@
-use std::prelude::{eq, get_unchecked, push}
+use std::prelude::{get_unchecked, push}
 use std::text
 use corehir::decl_ann_children
 use corehir::decl_impl_target
@@ -30,31 +30,31 @@ fn return_index_type_name_with_result_payload(
     }
     let ret = return_ann_shape::return_ann_child(node)
     let name = decl_ann_name::decl_ann_name(ret)
-    if eq(name.clone(), "f64") {
+    if name.clone().eq("f64") {
         return "f64"
     }
-    if eq(name.clone(), "i64") || eq(name.clone(), "u64") {
+    if name.clone().eq("i64") || name.clone().eq("u64") {
         return name.clone()
     }
-    if eq(name.clone(), "void") || eq(name.clone(), "()") {
+    if name.clone().eq("void") || name.clone().eq("()") {
         return ""
     }
-    if eq(name.clone(), "i32") ||
-    eq(name.clone(), "u32") ||
-    eq(name.clone(), "u8") ||
-    eq(name.clone(), "u16") ||
-    eq(name.clone(), "i16") ||
-    eq(name.clone(), "i8") {
+    if name.clone().eq("i32") ||
+    name.clone().eq("u32") ||
+    name.clone().eq("u8") ||
+    name.clone().eq("u16") ||
+    name.clone().eq("i16") ||
+    name.clone().eq("i8") {
         return "i32"
     }
-    if eq(name.clone(), "bool") {
+    if name.clone().eq("bool") {
         return "bool"
     }
-    if eq(name.clone(), "String") || eq(name.clone(), "str") {
+    if name.clone().eq("String") || name.clone().eq("str") {
         return "String"
     }
     if decl_ann_name::decl_ann_is_generic(ret) {
-        if eq(name.clone(), "Vec") && decl_ann_children::decl_ann_child_count(ret) >= 2 {
+        if name.clone().eq("Vec") && decl_ann_children::decl_ann_child_count(ret) >= 2 {
             let elem = decl_ann_children::decl_ann_child_at(ret, 1)
             // Vec<(A, B)> returns keep the tuple:<k,...> element spelling
             // (#888).
@@ -63,40 +63,40 @@ fn return_index_type_name_with_result_payload(
             }
             return "vec:".concat(decl_ann_name::decl_ann_name(elem))
         }
-        if eq(name.clone(), "Option") && decl_ann_children::decl_ann_child_count(ret) >= 2 {
+        if name.clone().eq("Option") && decl_ann_children::decl_ann_child_count(ret) >= 2 {
             let elem_opt = decl_ann_children::decl_ann_child_at(ret, 1)
             if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(elem_opt)) ||
-            eq(decl_ann_name::decl_ann_name(elem_opt), "fnref") {
+            decl_ann_name::decl_ann_name(elem_opt).eq("fnref") {
                 return "option:fnref"
             }
             return "option:".concat(decl_ann_name::decl_ann_name(elem_opt))
         }
-        if eq(name.clone(), "HashMap") && decl_ann_children::decl_ann_child_count(ret) >= 3 {
+        if name.clone().eq("HashMap") && decl_ann_children::decl_ann_child_count(ret) >= 3 {
             let key = decl_ann_children::decl_ann_child_at(ret, 1)
             let val = decl_ann_children::decl_ann_child_at(ret, 2)
             let key_name = decl_ann_name::decl_ann_name(key)
             let val_name = decl_ann_name::decl_ann_name(val)
-            if eq(key_name.clone(), "String") && eq(val_name.clone(), "i32") {
+            if key_name.clone().eq("String") && val_name.clone().eq("i32") {
                 return "hashmap:si32"
             }
-            if eq(key_name.clone(), "i32") && eq(val_name.clone(), "String") {
+            if key_name.clone().eq("i32") && val_name.clone().eq("String") {
                 return "hashmap:i32str"
             }
-            if eq(key_name.clone(), "String") && eq(val_name.clone(), "String") {
+            if key_name.clone().eq("String") && val_name.clone().eq("String") {
                 return "hashmap:strstr"
             }
-            if eq(key_name.clone(), "i32") && eq(val_name.clone(), "i32") {
+            if key_name.clone().eq("i32") && val_name.clone().eq("i32") {
                 return "hashmap:i32i32"
             }
-            if eq(key_name.clone(), "i32") && (
+            if key_name.clone().eq("i32") && (
                 frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(val)) ||
-                eq(val_name.clone(), "fnref")
+                val_name.clone().eq("fnref")
             ) {
                 return "hashmap:i32fn"
             }
-            if eq(key_name.clone(), "String") && (
+            if key_name.clone().eq("String") && (
                 frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(val)) ||
-                eq(val_name.clone(), "fnref")
+                val_name.clone().eq("fnref")
             ) {
                 return "hashmap:strfn"
             }
@@ -104,17 +104,17 @@ fn return_index_type_name_with_result_payload(
         // Result payloads must survive into the method return spelling so
         // MIR lowering can type `Ok` / `Err` binds. A bare `Result` made every
         // impl method returning Result an untyped scrutinee (#693 Phase D).
-        if encode_result && eq(name.clone(), "Result") && decl_ann_children::decl_ann_child_count(ret) >= 3 {
+        if encode_result && name.clone().eq("Result") && decl_ann_children::decl_ann_child_count(ret) >= 3 {
             let ok_ty = decl_ann_children::decl_ann_child_at(ret, 1)
             let err_ty = decl_ann_children::decl_ann_child_at(ret, 2)
             let ok_name = decl_layout_shape::decl_layout_type_name(ok_ty)
             let err_name = decl_layout_shape::decl_layout_type_name(err_ty)
-            let ok_segment = if len(ok_name) == 0 || eq(ok_name.clone(), String_from("()")) {
+            let ok_segment = if len(ok_name) == 0 || ok_name.clone().eq(String_from("()")) {
                 String_from("void")
             } else {
                 ok_name
             }
-            let err_segment = if len(err_name) == 0 || eq(err_name.clone(), String_from("()")) {
+            let err_segment = if len(err_name) == 0 || err_name.clone().eq(String_from("()")) {
                 String_from("void")
             } else {
                 err_name
@@ -127,9 +127,9 @@ fn return_index_type_name_with_result_payload(
         // substituted layouts plus per-instantiation impl owners. Generic
         // enums keep the bare base name: Result/Box/Slice layout handling
         // keys on it.
-        if !eq(name.clone(), String_from("Result")) &&
-        !eq(name.clone(), String_from("Box")) &&
-        !eq(name.clone(), String_from("Slice")) {
+        if !name.clone().eq(String_from("Result")) &&
+        !name.clone().eq(String_from("Box")) &&
+        !name.clone().eq(String_from("Slice")) {
             let inst = type_ann_local_name::type_ann_generic_inst_local_name(ret)
             if len(inst) > 0 {
                 return inst
@@ -138,7 +138,7 @@ fn return_index_type_name_with_result_payload(
         return name.clone()
     }
     if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ret)) ||
-    eq(name.clone(), "fnref") {
+    name.clone().eq("fnref") {
         return "fnref"
     }
     // Declared type parameters are the function's only variables (ADR-089).
@@ -199,10 +199,10 @@ fn return_index_type_name_for_impl(
     // store alias that the method body actually returns (#917).
     if replaced.clone().starts_with("HashSet") {
         let owner_name = decl_impl_target::impl_self_type_name(impl_node, known_type_names)
-        if eq(owner_name.clone(), "HashSet_String") {
+        if owner_name.clone().eq("HashSet_String") {
             return String_from("vec:String")
         }
-        if eq(owner_name.clone(), "HashSet_i32") {
+        if owner_name.clone().eq("HashSet_i32") {
             return String_from("vec:i32")
         }
     }

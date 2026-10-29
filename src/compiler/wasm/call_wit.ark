@@ -1,6 +1,5 @@
 // Wasm WIT call emission (#654).
 
-use std::prelude::{eq}
 use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
@@ -37,5 +36,5 @@ fn try_emit_wit_call(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, binding
 fn wit_binding_has_result(bindings: Vec<wit_import_bind::WitImportBinding>, bind_idx: i32) -> bool {
     let sig = module_wit_imports::wit_import_type_sig(bindings, bind_idx)
     let result_seg = sections_type_plan::type_sig_result_segment(sig)
-    return !eq(result_seg.clone(), "0")
+    return !result_seg.clone().eq("0")
 }

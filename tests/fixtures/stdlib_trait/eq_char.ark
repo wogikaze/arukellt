@@ -1,9 +1,8 @@
 use std::core::cmp
 use std::test::Test
-use std::prelude::{eq}
 fn main() {
-    Test::assert_true(eq('A', 'A'))
-    Test::assert_false(eq('A', 'B'))
-    Test::assert_true(eq('z', 'z'))
-    Test::assert_false(eq('a', 'A'))
+    Test::assert_true('A'.eq('A'))
+    Test::assert_false('A'.eq('B'))
+    Test::assert_true('z'.eq('z'))
+    Test::assert_false('a'.eq('A'))
 }

@@ -1,19 +1,18 @@
-use std::prelude::{eq}
 use lexer::tokens
 pub fn keyword_kind_module(word: String) -> i32 {
-    if eq(word, "pub") {
+    if word.eq("pub") {
         return tokens::TK_PUB()
     }
-    if eq(word, "import") {
+    if word.eq("import") {
         return tokens::TK_IMPORT()
     }
-    if eq(word, "as") {
+    if word.eq("as") {
         return tokens::TK_AS()
     }
-    if eq(word, "use") {
+    if word.eq("use") {
         return tokens::TK_USE()
     }
-    if eq(word, "where") {
+    if word.eq("where") {
         return tokens::TK_WHERE()
     }
     0 - 1

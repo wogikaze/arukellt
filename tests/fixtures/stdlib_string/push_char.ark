@@ -1,10 +1,9 @@
 use std::test::Test
-use std::prelude::{eq}
 
 fn main() {
     let mut s = String_from("hello")
     s.push_char('!')
     let mut expected = String_from("hello")
     expected.push_char('!')
-    Test::assert_true(eq(s, expected))
+    Test::assert_true(s.eq(expected))
 }

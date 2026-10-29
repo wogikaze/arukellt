@@ -1,6 +1,5 @@
 use std::host::stdio
 use std::text
-use std::prelude::{eq}
 pub fn init_list_templates() {
     stdio::println("minimal    - Minimal Hello World project (default)")
     stdio::println("cli        - CLI tool with argument parsing")
@@ -9,16 +8,16 @@ pub fn init_list_templates() {
 }
 
 pub fn init_template_is_valid(name: String) -> bool {
-    if eq(name.clone(), "minimal") {
+    if name.clone().eq("minimal") {
         return true
     }
-    if eq(name.clone(), "cli") {
+    if name.clone().eq("cli") {
         return true
     }
-    if eq(name.clone(), "with-tests") {
+    if name.clone().eq("with-tests") {
         return true
     }
-    if eq(name.clone(), "wasi-host") {
+    if name.clone().eq("wasi-host") {
         return true
     }
     false
@@ -32,7 +31,7 @@ pub fn init_template_normalize(name: String) -> String {
 }
 
 pub fn init_template_main_ark(template: String) -> String {
-    if eq(template.clone(), "cli") {
+    if template.clone().eq("cli") {
         let mut source = "use std::host::stdio\nuse std::host::process::Process\n\n"
         source = source.concat("pub fn greet(name: String) -> String {\n")
         source = source.concat("    concat(concat(String_from(\"Hello, \"), name), String_from(\"!\"))\n}\n\n")
@@ -40,7 +39,7 @@ pub fn init_template_main_ark(template: String) -> String {
         source = source.concat("    Process::exit(0)\n}\n")
         return source
     }
-    if eq(template.clone(), "with-tests") {
+    if template.clone().eq("with-tests") {
         let mut source = "use std::host::stdio\n\npub fn add(a: i32, b: i32) -> i32 {\n    a + b\n}\n\n"
         source = source.concat("pub fn subtract(a: i32, b: i32) -> i32 {\n    a - b\n}\n\n")
         source = source.concat("pub fn test_add() {\n    let result = add(2, 3)\n    assert(result == 5)\n}\n\n")
@@ -49,7 +48,7 @@ pub fn init_template_main_ark(template: String) -> String {
         source = source.concat("    stdio::println(concat(String_from(\"1 + 2 = \"), result.to_string()))\n}\n")
         return source
     }
-    if eq(template.clone(), "wasi-host") {
+    if template.clone().eq("wasi-host") {
         let mut source = "// Build with: arukellt run --target wasm32-gc main.ark\n"
         source = source.concat("use std::host::stdio\n\nfn main() {\n")
         source = source.concat("    stdio::println(String_from(\"Use an explicit official WASI WIT import for network access.\"))\n}\n")
@@ -64,7 +63,7 @@ pub fn init_template_ark_toml(project_name: String, template: String) -> String 
     out = out.concat("\"\nversion = \"0.1.0\"\n\n[bin]\nname = \"")
     out = out.concat(project_name.clone())
     out = out.concat("\"\npath = \"main.ark\"\n")
-    if eq(template.clone(), "wasi-host") {
+    if template.clone().eq("wasi-host") {
         out = out.concat("target = \"wasm32-gc\"\n")
     }
     out
@@ -77,10 +76,10 @@ pub fn init_template_print_next_steps(project_name: String, template: String) {
     stdio::eprintln("  cd ".concat(project_name.clone()))
     stdio::eprintln("  arukellt check main.ark        # type-check")
     stdio::eprintln("  arukellt run main.ark          # run the program")
-    if eq(template.clone(), "with-tests") {
+    if template.clone().eq("with-tests") {
         stdio::eprintln("  arukellt test main.ark         # run tests")
     }
-    if eq(template.clone(), "wasi-host") {
+    if template.clone().eq("wasi-host") {
         stdio::eprintln("  arukellt check --target wasm32-gc main.ark")
     }
 }

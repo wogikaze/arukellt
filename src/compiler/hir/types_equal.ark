@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use hir::type_contracts
 use hir::kinds
 fn types_equal(a: HirType, b: HirType) -> bool {
@@ -8,7 +7,7 @@ fn types_equal(a: HirType, b: HirType) -> bool {
         return false
     }
     if atag == commands::TY_STRUCT() || atag == commands::TY_ENUM() || atag == commands::TY_RESOURCE() {
-        if !eq(type_contracts::HirType_name(a), type_contracts::HirType_name(b)) {
+        if !type_contracts::HirType_name(a).eq(type_contracts::HirType_name(b)) {
             return false
         }
     }

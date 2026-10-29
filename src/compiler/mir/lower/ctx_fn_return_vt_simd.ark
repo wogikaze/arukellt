@@ -1,7 +1,6 @@
-use std::prelude::{eq}
 fn ctx_is_v128_returning_simd_intrinsic(bare_name: String) -> bool {
     if bare_name.clone().starts_with("__simd_v128_") {
-        if eq(bare_name.clone(), "__simd_v128_any_true") {
+        if bare_name.clone().eq("__simd_v128_any_true") {
             return false
         }
         return true
@@ -65,28 +64,28 @@ fn ctx_is_v128_returning_unsigned_simd_intrinsic(bare_name: String) -> bool {
 }
 
 fn ctx_is_f32_returning_simd_intrinsic(bare_name: String) -> bool {
-    eq(bare_name.clone(), "__simd_f32x4_extract_lane")
+    bare_name.clone().eq("__simd_f32x4_extract_lane")
 }
 
 fn ctx_is_f64_returning_simd_intrinsic(bare_name: String) -> bool {
-    eq(bare_name.clone(), "__simd_f64x2_extract_lane")
+    bare_name.clone().eq("__simd_f64x2_extract_lane")
 }
 
 fn ctx_is_i64_returning_simd_intrinsic(bare_name: String) -> bool {
-    eq(bare_name.clone(), "__simd_i64x2_extract_lane") ||
-    eq(bare_name.clone(), "__simd_u64x2_extract_lane")
+    bare_name.clone().eq("__simd_i64x2_extract_lane") ||
+    bare_name.clone().eq("__simd_u64x2_extract_lane")
 }
 
 fn ctx_is_v128_returning_wasm_intrinsic(bare_name: String) -> bool {
-    eq(bare_name.clone(), "__wasm_v128_load") ||
-    eq(bare_name.clone(), "__wasm_v128_load_splat") ||
-    eq(bare_name.clone(), "__wasm_v128_load_lane") ||
-    eq(bare_name.clone(), "__wasm_v128_load8x8_s") ||
-    eq(bare_name.clone(), "__wasm_v128_load8x8_u") ||
-    eq(bare_name.clone(), "__wasm_v128_load16x4_s") ||
-    eq(bare_name.clone(), "__wasm_v128_load16x4_u") ||
-    eq(bare_name.clone(), "__wasm_v128_load32x2_s") ||
-    eq(bare_name.clone(), "__wasm_v128_load32x2_u")
+    bare_name.clone().eq("__wasm_v128_load") ||
+    bare_name.clone().eq("__wasm_v128_load_splat") ||
+    bare_name.clone().eq("__wasm_v128_load_lane") ||
+    bare_name.clone().eq("__wasm_v128_load8x8_s") ||
+    bare_name.clone().eq("__wasm_v128_load8x8_u") ||
+    bare_name.clone().eq("__wasm_v128_load16x4_s") ||
+    bare_name.clone().eq("__wasm_v128_load16x4_u") ||
+    bare_name.clone().eq("__wasm_v128_load32x2_s") ||
+    bare_name.clone().eq("__wasm_v128_load32x2_u")
 }
 
 fn simd_i32x4_is_v128(bare_name: String) -> bool {

@@ -26,7 +26,6 @@ use mir::opcodes as mir_opcodes
 // Checks gc_struct_names first, then falls back to byte_size-based lookup.
 // Container element names (vec:String, Vec, ...) resolve via fixed GC slots
 // so structref-array gets cast before calls (#726 csv_perf).
-use std::prelude::{eq}
 use std::text
 fn resolve_concrete_struct_type(ctx: SelfEmitCtx, struct_name: String) -> i32 {
     if struct_name.clone().starts_with("enum:") {
@@ -118,7 +117,7 @@ fn lookup_struct_byte_size_in_func(f: MirFunction, struct_name: String) -> i32 {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
             if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_STRUCT_NEW() {
                 let name = inst_accessors_literals::MirInst_str_val(inst)
-                if eq(name.clone(), struct_name.clone()) {
+                if name.clone().eq(struct_name.clone()) {
                     return inst_accessors_literals::MirInst_int_val(inst)
                 }
             }
@@ -254,7 +253,7 @@ fn resolve_get_unchecked_elem_from_next_call(ctx: SelfEmitCtx, inst: MirInst) ->
             let cur = block_inst_access::MirBlock_inst_at(block, ii)
             if inst_accessors_shape::MirInst_op(cur) == mir_opcodes::MIR_CALL() {
                 let cur_callee = inst_accessors_literals::MirInst_str_val(cur)
-                let same_get = eq(cur_callee.clone(), callee.clone()) &&
+                let same_get = cur_callee.clone().eq(callee.clone()) &&
                 inst_accessors_operands::MirInst_dest(cur) == dest
                 if same_get {
                     let mut look = ii + 1
@@ -545,7 +544,7 @@ fn find_gcsref_suffix_for_struct(ctx: SelfEmitCtx, struct_name: String) -> Strin
     let count = len(names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(names, i).clone(), struct_name.clone()) {
+        if get_unchecked(names, i).clone().eq(struct_name.clone()) {
             return "_f1_gcsref".concat((i).to_string())
         }
         i = i + 1
@@ -585,7 +584,7 @@ fn find_option_some_variant_type(ctx: SelfEmitCtx, field_suffix: String, enum_ty
     let mut i = 0
     while i < count {
         let name = get_unchecked(names, i).clone()
-        if eq(name.clone(), "Option::Some") || eq(name.clone(), "Some") {
+        if name.clone().eq("Option::Some") || name.clone().eq("Some") {
             if i < len(type_map) {
                 let variant_type = get_unchecked(type_map, i)
                 if variant_type != open_type {

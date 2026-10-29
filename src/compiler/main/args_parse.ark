@@ -1,5 +1,4 @@
 use std::host::stdio
-use std::prelude::{eq}
 use std::text
 use main::args_parse_flags
 use main::args_parse_opts
@@ -34,11 +33,11 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
 fn canonicalize_target_input(mut opts: CliOptions) {
     let input = args_record::cli_target(opts)
     let policy = target_contract_generated::target_alias_policy(input.clone())
-    if eq(policy.clone(), "error") {
+    if policy.clone().eq("error") {
         args_record::cli_set_error(opts, target_contract_generated::target_alias_message(input))
         return
     }
-    if eq(policy.clone(), "warning") {
+    if policy.clone().eq("warning") {
         stdio::eprintln(target_contract_generated::target_alias_message(input.clone()))
         args_record::cli_set_target(opts, target_contract_generated::target_alias_canonical_target(input.clone()))
         if !args_record::cli_has_wasi_version(opts) {
@@ -81,7 +80,7 @@ fn validate_target_configuration(mut opts: CliOptions) {
         return
     }
     let requested_width = args_record::cli_memory_width(opts)
-    if !eq(requested_width.clone(), String_from("auto")) &&
+    if !requested_width.clone().eq(String_from("auto")) &&
     !target_contract_generated::target_allows_memory_width(target.clone(), requested_width.clone()) {
         args_record::cli_set_error(
             opts,
@@ -93,12 +92,12 @@ fn validate_target_configuration(mut opts: CliOptions) {
         )
         return
     }
-    if (eq(emit_mode.clone(), String_from("component")) || eq(emit_mode.clone(), String_from("all"))) &&
-    eq(requested_width.clone(), String_from("memory64")) {
+    if (emit_mode.clone().eq(String_from("component")) || emit_mode.clone().eq(String_from("all"))) &&
+    requested_width.clone().eq(String_from("memory64")) {
         args_record::cli_set_error(opts, String_from("component emission requires memory32; use --memory-width memory32 or auto"))
         return
     }
-    if eq(emit_mode.clone(), String_from("wat")) && eq(requested_width.clone(), String_from("memory64")) {
+    if emit_mode.clone().eq(String_from("wat")) && requested_width.clone().eq(String_from("memory64")) {
         args_record::cli_set_error(opts, String_from("wat emission requires memory32; use --memory-width memory32 or auto"))
     }
 }

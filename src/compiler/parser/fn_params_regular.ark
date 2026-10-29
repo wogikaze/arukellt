@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use lexer::tokens
 use parser::kinds
 use parser::core_ast_factory
@@ -23,7 +22,7 @@ fn parse_regular_fn_params(mut p: Parser, mut node: AstNode) {
         let pname_text = token_state::Token_text(pname)
         let mut param = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), pname_text.clone(), core_api_expect::tok_span(pname))
         core_ast_flag_fields::AstNode_set_is_mut(param, is_mut)
-        if eq(pname_text.clone(), "self") && core_api_cursor::peek_kind(p) != tokens::TK_COLON() {
+        if pname_text.clone().eq("self") && core_api_cursor::peek_kind(p) != tokens::TK_COLON() {
             core_ast_children::AstNode_push_child(node, param)
         } else {
             core_api_expect::expect_token(p, tokens::TK_COLON())

@@ -1,6 +1,5 @@
 use std::text
 use std::json
-use std::prelude::{eq}
 use fmt
 use lsp::positions
 use lsp::source_text
@@ -32,7 +31,7 @@ fn build_formatting_result(text: String) -> String {
             String_from("[]")
         },
         Option::Some(formatted) => {
-            if eq(formatted.clone(), text.clone()) {
+            if formatted.clone().eq(text.clone()) {
                 return String_from("[]")
             }
             build_full_document_edit(text, formatted)
@@ -65,7 +64,7 @@ pub fn build_range_formatting_response_for_request(state: LspState, body: String
             out = out.concat(String_from("[]"))
         },
         Option::Some(formatted) => {
-            if eq(formatted.clone(), text.clone()) {
+            if formatted.clone().eq(text.clone()) {
                 out = out.concat(String_from("[]"))
             } else {
                 out = out.concat(build_full_document_edit(text, formatted))

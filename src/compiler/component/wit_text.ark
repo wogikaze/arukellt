@@ -1,6 +1,5 @@
 use std::host::fs::Fs
 use std::text
-use std::prelude::{eq}
 use component::wit_decl
 use component::wit_names
 use component::wit_type_defs
@@ -55,7 +54,7 @@ fn emit_wit_func_exports_with_world(decls: Vec<AstNode>, world: String) -> Strin
         if wit_decl::wit_decl_is_func(decl) {
             let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
             let fname = wit_decl::wit_func_name(f)
-            if eq(fname.clone(), "main") || eq(fname.clone(), "_start") {
+            if fname.clone().eq("main") || fname.clone().eq("_start") {
                 let export_key = "    export wasi:cli/run@0.2.0;\n"
                 if !out.clone().contains(export_key.clone()) {
                     out = out.concat(export_key)
@@ -92,10 +91,10 @@ fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
                     let pname = wit_decl::wit_func_param_name_at(f, pi)
                     if len(pname.clone()) > 0 { out = out.concat(pname) } else { out = out.concat("arg".concat(pi.to_string())) }
                     out = out.concat(": ")
-                    if eq(fname.clone(), "flip_read") {
+                    if fname.clone().eq("flip_read") {
                         out = out.concat(wit_type_defs::wit_export_flags_type_name())
                     } else {
-                        if eq(fname.clone(), "pass_handle") {
+                        if fname.clone().eq("pass_handle") {
                             out = out.concat(wit_type_defs::wit_export_own_handle_type())
                         } else {
                             if wit_decl::wit_func_param_has_type_at(f, pi) {
@@ -111,10 +110,10 @@ fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
                 if wit_decl::wit_func_return_has_type(f) { ret = wit_types::component_wit_type_to_text(wit_decl::wit_func_return_type_view(f)) }
                 if len(ret) > 0 {
                     out = out.concat(" -> ")
-                    if eq(fname.clone(), "flip_read") {
+                    if fname.clone().eq("flip_read") {
                         out = out.concat(wit_type_defs::wit_export_flags_type_name())
                     } else {
-                        if eq(fname.clone(), "pass_handle") { out = out.concat(wit_type_defs::wit_export_own_handle_type()) } else { out = out.concat(ret) }
+                        if fname.clone().eq("pass_handle") { out = out.concat(wit_type_defs::wit_export_own_handle_type()) } else { out = out.concat(ret) }
                     }
                 }
                 out = out.concat(";\n")

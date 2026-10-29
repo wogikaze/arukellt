@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 fn gc_struct_ref_array_offset() -> i32 {
     24
@@ -37,8 +36,8 @@ fn gc_vec_enum_ref_type_sig() -> String {
 }
 
 fn gc_vec_elem_name_is_fnref(elem: String) -> bool {
-    eq(elem.clone(), "fnref") ||
-    eq(elem.clone(), "fn") ||
+    elem.clone().eq("fnref") ||
+    elem.clone().eq("fn") ||
     elem.clone().starts_with("fn(")
 }
 
@@ -46,35 +45,35 @@ fn gc_vec_elem_name_is_struct_ref(elem: String) -> bool {
     if len(elem) == 0 {
         return false
     }
-    if eq(elem.clone(), "i32") ||
-    eq(elem.clone(), "I32") ||
-    eq(elem.clone(), "bool") ||
-    eq(elem.clone(), "char") ||
-    eq(elem.clone(), "u8") ||
-    eq(elem.clone(), "i8") ||
-    eq(elem.clone(), "u16") ||
-    eq(elem.clone(), "u32") ||
-    eq(elem.clone(), "u64") ||
-    eq(elem.clone(), "i16") {
+    if elem.clone().eq("i32") ||
+    elem.clone().eq("I32") ||
+    elem.clone().eq("bool") ||
+    elem.clone().eq("char") ||
+    elem.clone().eq("u8") ||
+    elem.clone().eq("i8") ||
+    elem.clone().eq("u16") ||
+    elem.clone().eq("u32") ||
+    elem.clone().eq("u64") ||
+    elem.clone().eq("i16") {
         return false
     }
-    if eq(elem.clone(), "i64") ||
-    eq(elem.clone(), "I64") ||
-    eq(elem.clone(), "f64") ||
-    eq(elem.clone(), "F64") ||
-    eq(elem.clone(), "f32") ||
-    eq(elem.clone(), "F32") {
+    if elem.clone().eq("i64") ||
+    elem.clone().eq("I64") ||
+    elem.clone().eq("f64") ||
+    elem.clone().eq("F64") ||
+    elem.clone().eq("f32") ||
+    elem.clone().eq("F32") {
         return false
     }
-    if eq(elem.clone(), "String") || eq(elem.clone(), "string") || eq(elem.clone(), "str") {
+    if elem.clone().eq("String") || elem.clone().eq("string") || elem.clone().eq("str") {
         return false
     }
-    if eq(elem.clone(), "v128") || eq(elem.clone(), "V128") {
+    if elem.clone().eq("v128") || elem.clone().eq("V128") {
         return false
     }
     // Funcref elems use a dedicated (array (mut (ref null $sig))) layout (#832).
-    if eq(elem.clone(), "fnref") ||
-    eq(elem.clone(), "fn") ||
+    if elem.clone().eq("fnref") ||
+    elem.clone().eq("fn") ||
     elem.clone().starts_with("fn(") {
         return false
     }
@@ -100,7 +99,7 @@ fn gc_vec_elem_name_is_enum_like(elem: String) -> bool {
     if elem.clone().starts_with("?_") {
         return true
     }
-    if eq(elem.clone(), "Option") || eq(elem.clone(), "Result") {
+    if elem.clone().eq("Option") || elem.clone().eq("Result") {
         return true
     }
     if elem.clone().starts_with("Option") ||
@@ -151,7 +150,7 @@ fn gc_normalize_vec_type_name(type_name: String) -> String {
         let elem = type_name.clone().slice(4, len(type_name))
         return "vec:".concat(gc_normalize_vec_element_name(elem))
     }
-    if eq(type_name.clone(), "Vec") {
+    if type_name.clone().eq("Vec") {
         return "vec:i32"
     }
     type_name

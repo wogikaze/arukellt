@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use typechecker::kinds
 use typechecker::contract_type_access
@@ -19,7 +18,7 @@ fn unify(mut env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
     // during signature construction. Equal names denote the same parameter;
     // binding that parameter to its copy would incorrectly trigger occurs check.
     if a_tag == commands::TY_TYPE_VAR() && b_tag == commands::TY_TYPE_VAR() &&
-    eq(contract_type_access::TypeInfo_name(a), contract_type_access::TypeInfo_name(b)) {
+    contract_type_access::TypeInfo_name(a).eq(contract_type_access::TypeInfo_name(b)) {
         return a
     }
     if a_tag == commands::TY_TYPE_VAR() {
@@ -29,7 +28,7 @@ fn unify(mut env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
         // the call and then trapped at runtime (#887).
         let resolved_a = unify_resolve::resolve_type(env, a)
         if contract_type_access::TypeInfo_tag(resolved_a) != commands::TY_TYPE_VAR() ||
-        !eq(contract_type_access::TypeInfo_name(resolved_a), contract_type_access::TypeInfo_name(a)) {
+        !contract_type_access::TypeInfo_name(resolved_a).eq(contract_type_access::TypeInfo_name(a)) {
             return unify(env, resolved_a, b)
         }
         unify_bind::bind_var(env, contract_type_access::TypeInfo_name(a), b)
@@ -38,7 +37,7 @@ fn unify(mut env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
     if b_tag == commands::TY_TYPE_VAR() {
         let resolved_b = unify_resolve::resolve_type(env, b)
         if contract_type_access::TypeInfo_tag(resolved_b) != commands::TY_TYPE_VAR() ||
-        !eq(contract_type_access::TypeInfo_name(resolved_b), contract_type_access::TypeInfo_name(b)) {
+        !contract_type_access::TypeInfo_name(resolved_b).eq(contract_type_access::TypeInfo_name(b)) {
             return unify(env, a, resolved_b)
         }
         unify_bind::bind_var(env, contract_type_access::TypeInfo_name(b), a)

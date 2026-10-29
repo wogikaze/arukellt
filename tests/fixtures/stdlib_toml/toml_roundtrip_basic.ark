@@ -1,6 +1,5 @@
 use std::host::stdio
 use std::toml
-use std::prelude::{eq}
 use std::text
 
 /// Parity/differential: basic table round-trip.
@@ -14,7 +13,7 @@ fn main() {
     match toml::TomlValue::parse(doc) {
         Result::Ok(table) => {
             let back = table.to_text()
-            if eq(back, doc) {
+            if back.eq(doc) {
                 stdio::println("roundtrip ok")
             } else {
                 stdio::println("roundtrip mismatch")

@@ -23,7 +23,6 @@ use mir::opcodes as mir_opcodes
 
 // Hint segments 3/4 written by closure_pair_call_hint: the nk/vk signature
 // keys that identify the trampoline carrying this call's exact wasm type.
-use std::prelude::{eq}
 use std::text
 fn call_ref_hint_seg3(hint: String) -> String {
     let first = hint.clone().index_of(String_from("|"))
@@ -68,10 +67,7 @@ fn fn_is_pair_trampoline(f: MirFunction) -> bool {
     if function_param_view::MirFunction_param_count(f) == 0 {
         return false
     }
-    eq(
-        local_access::MirLocal_type_name(function_param_view::MirFunction_param_at(f, 0)),
-        String_from("structref")
-    )
+    local_access::MirLocal_type_name(function_param_view::MirFunction_param_at(f, 0)).eq(String_from("structref"))
 }
 
 // Same normalization as closure_pair_seg_norm so producer/call-site keys
@@ -131,16 +127,16 @@ fn pair_key_matches(hint_key: String, cand_key: String) -> bool {
     let hp = hint_key.clone().index_of(String_from(";"))
     let cp = cand_key.clone().index_of(String_from(";"))
     if hp < 0 || cp < 0 {
-        return eq(hint_key, cand_key)
+        return hint_key.eq(cand_key)
     }
-    if !eq(hint_key.clone().slice(0, hp), cand_key.clone().slice(0, cp)) {
+    if !hint_key.clone().slice(0, hp).eq(cand_key.clone().slice(0, cp)) {
         return false
     }
     let hret = hint_key.clone().slice(hp + 1, len(hint_key))
     if len(hret) == 0 {
         return true
     }
-    eq(hret, cand_key.clone().slice(cp + 1, len(cand_key)))
+    hret.eq(cand_key.clone().slice(cp + 1, len(cand_key)))
 }
 
 // Resolve the wasm type index of the (env, params...) -> ret trampoline
@@ -399,7 +395,7 @@ fn pair_sig_named_sig_token(name: String, gc_struct_names: Vec<String>, memory64
 // struct slots from the gc_struct_names list, which is available to both
 // the type-section collector and the emit-side lookup (#872).
 fn pair_sig_ref_name_token(name: String, gc_struct_names: Vec<String>) -> String {
-    if eq(name.clone(), String_from("String")) || eq(name.clone(), String_from("string")) {
+    if name.clone().eq(String_from("String")) || name.clone().eq(String_from("string")) {
         return sections_types_gc::gc_string_type_sig()
     }
     if name.clone().starts_with(String_from("vec:")) ||
@@ -413,7 +409,7 @@ fn pair_sig_ref_name_token(name: String, gc_struct_names: Vec<String>) -> String
     name.clone().starts_with(String_from("Result")) {
         return sections_types_gc::gc_enum_open_type_sig()
     }
-    if eq(name.clone(), String_from("fn")) ||
+    if name.clone().eq(String_from("fn")) ||
     name.clone().starts_with(String_from("fnref")) ||
     name.clone().starts_with(String_from("fnsig:")) ||
     name.clone().starts_with(String_from("fn(")) {
@@ -434,7 +430,7 @@ fn pair_sig_ref_name_token(name: String, gc_struct_names: Vec<String>) -> String
 fn pair_sig_struct_slot(gc_struct_names: Vec<String>, name: String) -> i32 {
     let mut i = 0
     while i < len(gc_struct_names) {
-        if eq(get_unchecked(gc_struct_names, i), name.clone()) {
+        if get_unchecked(gc_struct_names, i).eq(name.clone()) {
             return i
         }
         i = i + 1
@@ -447,19 +443,19 @@ fn pair_sig_struct_slot(gc_struct_names: Vec<String>, name: String) -> i32 {
 // branch (Vec of user structs) resolves through gc_struct_names (#872).
 fn pair_sig_collection_name_token(name: String, gc_struct_names: Vec<String>) -> String {
     if name.clone().starts_with(String_from("vec:")) {
-        if eq(name.clone(), String_from("vec:String")) || eq(name.clone(), String_from("vec:string")) {
+        if name.clone().eq(String_from("vec:String")) || name.clone().eq(String_from("vec:string")) {
             return sections_types_gc::gc_vec_string_type_sig()
         }
-        if eq(name.clone(), String_from("vec:i64")) || eq(name.clone(), String_from("vec:I64")) {
+        if name.clone().eq(String_from("vec:i64")) || name.clone().eq(String_from("vec:I64")) {
             return sections_types_gc::gc_vec_i64_type_sig()
         }
-        if eq(name.clone(), String_from("vec:f64")) || eq(name.clone(), String_from("vec:F64")) {
+        if name.clone().eq(String_from("vec:f64")) || name.clone().eq(String_from("vec:F64")) {
             return sections_types_gc::gc_vec_f64_type_sig()
         }
-        if eq(name.clone(), String_from("vec:v128")) || eq(name.clone(), String_from("vec:V128")) {
+        if name.clone().eq(String_from("vec:v128")) || name.clone().eq(String_from("vec:V128")) {
             return sections_types_gc::gc_vec_v128_type_sig()
         }
-        if eq(name.clone(), String_from("vec:fnref")) || eq(name.clone(), String_from("vec:fn")) {
+        if name.clone().eq(String_from("vec:fnref")) || name.clone().eq(String_from("vec:fn")) {
             return sections_types_gc::gc_vec_fnref_type_sig()
         }
         let elem = name.clone().slice(4, len(name))
@@ -470,7 +466,7 @@ fn pair_sig_collection_name_token(name: String, gc_struct_names: Vec<String>) ->
             return sections_types_gc::gc_vec_enum_ref_type_sig()
         }
         if sections_types_gc_phase7::gc_vec_elem_name_is_struct_ref(elem.clone()) ||
-        eq(elem.clone(), String_from("Vec")) ||
+        elem.clone().eq(String_from("Vec")) ||
         elem.clone().starts_with(String_from("vec:")) ||
         pair_sig_struct_slot(gc_struct_names.clone(), elem.clone()) >= 0 {
             return sections_types_gc_phase7::gc_vec_struct_ref_type_sig()
@@ -522,7 +518,7 @@ fn call_ref_pair_sig_type_idx(ctx: SelfEmitCtx, sig: String) -> i32 {
     let n = len(sigs)
     let mut i = 0
     while i < n {
-        if eq(sig.clone(), get_unchecked(sigs, i).clone()) {
+        if sig.clone().eq(get_unchecked(sigs, i).clone()) {
             return module_canon::MirModule_canon_index_of(ctx.mir, sig)
         }
         i = i + 1
@@ -765,10 +761,10 @@ fn typed_string_callback_type_idx_from_struct_field(
             return 0 - 1
         }
         let field_sig = get_unchecked(fields, field_idx)
-        if eq(field_sig.clone(), String_from("fnrefss")) {
+        if field_sig.clone().eq(String_from("fnrefss")) {
             return callback_base
         }
-        if eq(field_sig.clone(), String_from("fnrefsb")) {
+        if field_sig.clone().eq(String_from("fnrefsb")) {
             if ctx_record::SelfEmitCtx_memory64(ctx) {
                 return callback_base + 2
             }
@@ -832,10 +828,10 @@ fn typed_string_callback_type_idx(ctx: SelfEmitCtx, type_name: String) -> i32 {
     if type_name.clone().starts_with(String_from("fnsig:")) {
         return fnsig_string_callback_type_idx(ctx, type_name.clone(), callback_base)
     }
-    if eq(type_name.clone(), String_from("fnrefss")) {
+    if type_name.clone().eq(String_from("fnrefss")) {
         return callback_base
     }
-    if eq(type_name.clone(), String_from("fnrefsb")) {
+    if type_name.clone().eq(String_from("fnrefsb")) {
         if ctx_record::SelfEmitCtx_memory64(ctx) {
             return callback_base + 2
         }
@@ -868,7 +864,7 @@ fn fnsig_string_callback_type_idx(ctx: SelfEmitCtx, type_name: String, callback_
     if fnsig_segment_is_string(ret_seg.clone()) {
         return callback_base
     }
-    if eq(ret_seg.clone(), String_from("i64")) || eq(ret_seg.clone(), String_from("u64")) {
+    if ret_seg.clone().eq(String_from("i64")) || ret_seg.clone().eq(String_from("u64")) {
         return callback_base + 2
     }
     if ctx_record::SelfEmitCtx_memory64(ctx) {
@@ -878,9 +874,9 @@ fn fnsig_string_callback_type_idx(ctx: SelfEmitCtx, type_name: String, callback_
 }
 
 fn fnsig_segment_is_string(seg: String) -> bool {
-    eq(seg.clone(), String_from("String")) ||
-    eq(seg.clone(), String_from("string")) ||
-    eq(seg.clone(), String_from("gcref0"))
+    seg.clone().eq(String_from("String")) ||
+    seg.clone().eq(String_from("string")) ||
+    seg.clone().eq(String_from("gcref0"))
 }
 
 // Local-declaration type index for `fnsig:<param>;<return>` locals. String
@@ -913,21 +909,21 @@ fn resolve_fnsig_local_type_idx(ctx: SelfEmitCtx, type_name: String) -> i32 {
 }
 
 fn fnsig_segment_value_type(seg: String) -> i32 {
-    if eq(seg.clone(), String_from("i32")) || eq(seg.clone(), String_from("I32")) ||
-    eq(seg.clone(), String_from("bool")) || eq(seg.clone(), String_from("Bool")) ||
-    eq(seg.clone(), String_from("char")) || eq(seg.clone(), String_from("u8")) ||
-    eq(seg.clone(), String_from("i8")) || eq(seg.clone(), String_from("u16")) ||
-    eq(seg.clone(), String_from("i16")) || eq(seg.clone(), String_from("u32")) {
+    if seg.clone().eq(String_from("i32")) || seg.clone().eq(String_from("I32")) ||
+    seg.clone().eq(String_from("bool")) || seg.clone().eq(String_from("Bool")) ||
+    seg.clone().eq(String_from("char")) || seg.clone().eq(String_from("u8")) ||
+    seg.clone().eq(String_from("i8")) || seg.clone().eq(String_from("u16")) ||
+    seg.clone().eq(String_from("i16")) || seg.clone().eq(String_from("u32")) {
         return value_types::VT_I32()
     }
-    if eq(seg.clone(), String_from("i64")) || eq(seg.clone(), String_from("I64")) ||
-    eq(seg.clone(), String_from("u64")) {
+    if seg.clone().eq(String_from("i64")) || seg.clone().eq(String_from("I64")) ||
+    seg.clone().eq(String_from("u64")) {
         return value_types::VT_I64()
     }
-    if eq(seg.clone(), String_from("f64")) || eq(seg.clone(), String_from("F64")) {
+    if seg.clone().eq(String_from("f64")) || seg.clone().eq(String_from("F64")) {
         return value_types::VT_F64()
     }
-    if eq(seg.clone(), String_from("f32")) || eq(seg.clone(), String_from("F32")) {
+    if seg.clone().eq(String_from("f32")) || seg.clone().eq(String_from("F32")) {
         return value_types::VT_F32()
     }
     // String, containers, user structs, and enum payloads are all GC

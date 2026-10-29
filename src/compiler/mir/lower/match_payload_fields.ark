@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
@@ -118,8 +117,8 @@ fn mir_emit_payload_variant_binds(mut ctx: LowerCtx, pat: AstNode, scrut_idx: i3
         // The weak spellings a generic ref payload gets before the
         // instantiation is known: unset, enum:open, or enum:<declared T>.
         let weak_placeholder = len(current_bind_type) == 0 ||
-        eq(current_bind_type.clone(), "enum:open") ||
-        eq(current_bind_type.clone(), String_from("enum:").concat(declared_payload.clone()))
+        current_bind_type.clone().eq("enum:open") ||
+        current_bind_type.clone().eq(String_from("enum:").concat(declared_payload.clone()))
         if !is_some_or_ok && !is_err && weak_placeholder {
             let payload_type = match_payload_field_type::mir_variant_payload_type_name_for_scrut(
                 ctx,
@@ -129,7 +128,7 @@ fn mir_emit_payload_variant_binds(mut ctx: LowerCtx, pat: AstNode, scrut_idx: i3
                 scrut_type.clone()
             )
             let instantiated = len(current_bind_type) == 0 ||
-            !eq(payload_type.clone(), declared_payload)
+            !payload_type.clone().eq(declared_payload)
             if len(payload_type) > 0 && instantiated {
                 ctx_set_local_type(ctx, bind_local, payload_type)
             }
@@ -139,7 +138,7 @@ fn mir_emit_payload_variant_binds(mut ctx: LowerCtx, pat: AstNode, scrut_idx: i3
         // children never consume the payload and composite children only
         // need a ref read, which the emitter can always emit.
         if !is_composite_bind && ast_node::node_kind_is(bind_pat, lower_kinds::NK_PAT_IDENT()) &&
-        !eq(ast_node::node_text(bind_pat).clone(), String_from("_")) {
+        !ast_node::node_text(bind_pat).clone().eq(String_from("_")) {
             match_payload_field_type::mir_report_weak_payload_scrutinee(ctx, variant_name.clone(), payload_hint.clone())
         }
         emit_payload_field_bind(ctx, variant_name.clone(), scrut_idx, bind_local, bind_vt, bi)
@@ -189,7 +188,7 @@ fn mir_subpat_load_field(mut ctx: LowerCtx, variant_name: String, scrut_idx: i32
     // was pre-stamped as `enum:open`; replace that placeholder when the
     // scrutinee supplies a concrete type argument.
     let temp_type = ctx_get_local_type(ctx, temp)
-    if len(temp_type) == 0 || eq(temp_type.clone(), "enum:open") {
+    if len(temp_type) == 0 || temp_type.clone().eq("enum:open") {
         let payload_type = match_payload_field_type::mir_variant_payload_type_name_for_scrut(
             ctx,
             variant_name.clone(),
@@ -203,7 +202,7 @@ fn mir_subpat_load_field(mut ctx: LowerCtx, variant_name: String, scrut_idx: i32
             field_idx + 1
         )
         let instantiated = len(temp_type) == 0 ||
-        !eq(payload_type.clone(), declared_payload)
+        !payload_type.clone().eq(declared_payload)
         if len(payload_type) > 0 && instantiated {
             ctx_set_local_type(ctx, temp, payload_type)
         }
@@ -219,7 +218,7 @@ fn mir_subpat_load_field(mut ctx: LowerCtx, variant_name: String, scrut_idx: i32
 fn mir_emit_subpat_binds(mut ctx: LowerCtx, pat: AstNode, val_idx: i32) {
     if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_IDENT()) {
         let name = ast_node::node_text(pat)
-        if eq(name.clone(), "_") {
+        if name.clone().eq("_") {
             return
         }
         if ctx_api_variants::ctx_variant_tag(ctx, name.clone()) >= 0 {
@@ -272,7 +271,7 @@ fn mir_emit_subpat_binds(mut ctx: LowerCtx, pat: AstNode, val_idx: i32) {
             }
             if ast_node::node_kind_is(bind_pat, lower_kinds::NK_PAT_IDENT()) {
                 let bind_name = ast_node::node_text(bind_pat)
-                if !eq(bind_name.clone(), "_") && ctx_api_variants::ctx_variant_tag(ctx, bind_name.clone()) < 0 {
+                if !bind_name.clone().eq("_") && ctx_api_variants::ctx_variant_tag(ctx, bind_name.clone()) < 0 {
                     let field_local = mir_subpat_load_field(ctx, variant_name.clone(), val_idx, bi, is_f64, is_i64, is_i32, scrut_type.clone())
                     let subpat_hint = if bi == 0 {
                         mir_payload_elem_type_from_scrut(scrut_type.clone(), match_payload_field_type::mir_match_variant_is_some_or_ok(variant_name.clone()))
@@ -302,9 +301,9 @@ fn mir_emit_subpat_binds(mut ctx: LowerCtx, pat: AstNode, val_idx: i32) {
     }
 }
 fn mir_option_scrut_type_is_untyped(scrut_type: String) -> bool {
-    eq(scrut_type.clone(), String_from("Option")) ||
-    eq(scrut_type.clone(), String_from("option:")) ||
-    eq(scrut_type.clone(), String_from("Option:")) ||
+    scrut_type.clone().eq(String_from("Option")) ||
+    scrut_type.clone().eq(String_from("option:")) ||
+    scrut_type.clone().eq(String_from("Option:")) ||
     len(scrut_type) == 0
 }
 
@@ -313,7 +312,7 @@ fn mir_payload_bind_type_is_weak(current_type: String, is_err: bool) -> bool {
     if len(current_type) == 0 {
         return true
     }
-    if eq(current_type.clone(), String_from("enum:open")) {
+    if current_type.clone().eq(String_from("enum:open")) {
         return true
     }
     if current_type.clone().starts_with(String_from("enum:")) {
@@ -322,10 +321,10 @@ fn mir_payload_bind_type_is_weak(current_type: String, is_err: bool) -> bool {
     if match_payload_field_type::mir_payload_scalar_type_name(current_type.clone()) {
         return true
     }
-    if eq(current_type.clone(), String_from("string")) || eq(current_type.clone(), String_from("String")) {
+    if current_type.clone().eq(String_from("string")) || current_type.clone().eq(String_from("String")) {
         return true
     }
-    if is_err && eq(current_type.clone(), String_from("string")) {
+    if is_err && current_type.clone().eq(String_from("string")) {
         return true
     }
     false
@@ -404,7 +403,7 @@ fn mir_infer_payload_set_type(mut ctx: LowerCtx, elem_ty: String) -> String {
     // name so Option::Some can use gcsref<slot> (#726 display).
     let mut set_type = elem_ty.clone()
     if !match_payload_field_type::mir_payload_scalar_type_name(elem_ty.clone()) {
-        if !eq(elem_ty.clone(), "String") && !eq(elem_ty.clone(), "string") {
+        if !elem_ty.clone().eq("String") && !elem_ty.clone().eq("string") {
             if elem_ty.clone().starts_with("tuple:") {
                 // Tuple payloads keep the tuple:<k,...> layout name and must
                 // have the GC struct registered before emit resolves the
@@ -418,7 +417,7 @@ fn mir_infer_payload_set_type(mut ctx: LowerCtx, elem_ty: String) -> String {
             if !elem_ty.clone().starts_with(String_from("vec:")) &&
             !elem_ty.clone().starts_with(String_from("Vec<")) &&
             !elem_ty.clone().starts_with(String_from("Vec_")) &&
-            !eq(elem_ty.clone(), String_from("Vec")) &&
+            !elem_ty.clone().eq(String_from("Vec")) &&
             !elem_ty.clone().starts_with(String_from("hashmap:")) &&
             !elem_ty.clone().starts_with(String_from("Option_")) &&
             !elem_ty.clone().starts_with(String_from("option:")) &&
@@ -467,8 +466,8 @@ fn mir_infer_payload_bind_type(mut ctx: LowerCtx, variant_name: String, bind_loc
     } else {
         current_type.clone()
     }
-    if eq(elem_ty.clone(), String_from("fnref")) ||
-    eq(elem_ty.clone(), String_from("fn")) ||
+    if elem_ty.clone().eq(String_from("fnref")) ||
+    elem_ty.clone().eq(String_from("fn")) ||
     elem_ty.clone().starts_with(String_from("fn(")) {
         ctx_set_local_type(ctx, bind_local, String_from("fnref"))
         ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_FUNCREF())
@@ -482,16 +481,16 @@ fn mir_infer_payload_bind_type(mut ctx: LowerCtx, variant_name: String, bind_loc
     }
     let mut set_type = mir_infer_payload_set_type(ctx, elem_ty.clone())
     // Normalize unit Ok payload to i32 (matches Ok(()) lowering).
-    if eq(elem_ty.clone(), "unit") || eq(elem_ty.clone(), "()") || eq(elem_ty.clone(), "void") {
+    if elem_ty.clone().eq("unit") || elem_ty.clone().eq("()") || elem_ty.clone().eq("void") {
         set_type = String_from("i32")
     }
     ctx_set_local_type(ctx, bind_local, set_type)
     // Fix vt for scalars: i64/f64 keep their width; other
     // scalars collapse to i32. Do not force i64 → i32 (#726 debug_vec).
     if match_payload_field_type::mir_payload_scalar_type_name(elem_ty.clone()) {
-        if eq(elem_ty.clone(), "i64") || eq(elem_ty.clone(), "I64") {
+        if elem_ty.clone().eq("i64") || elem_ty.clone().eq("I64") {
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I64())
-        } else if eq(elem_ty.clone(), "f64") || eq(elem_ty.clone(), "F64") {
+        } else if elem_ty.clone().eq("f64") || elem_ty.clone().eq("F64") {
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_F64())
         } else {
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I32())
@@ -522,12 +521,12 @@ fn emit_payload_field_bind(mut ctx: LowerCtx, variant_name: String, scrut_idx: i
         // just because a stale Result::Ok slot was registered with _f1_ref*
         // (#726 Result<(), E> match vs Ok(()) emit).
         let bind_ty = ctx_get_local_type(ctx, bind_local)
-        let is_fnref_bind = eq(bind_ty.clone(), String_from("fnref")) || bind_ty.clone().starts_with(String_from("fn("))
+        let is_fnref_bind = bind_ty.clone().eq(String_from("fnref")) || bind_ty.clone().starts_with(String_from("fn("))
         let scalar_bind = is_fnref_bind ||
         match_payload_field_type::mir_payload_scalar_type_name(bind_ty.clone()) ||
-        eq(bind_ty.clone(), "i32") ||
-        eq(bind_ty.clone(), "i64") ||
-        eq(bind_ty.clone(), "f64")
+        bind_ty.clone().eq("i32") ||
+        bind_ty.clone().eq("i64") ||
+        bind_ty.clone().eq("f64")
         if !scalar_bind && match_payload_field_type::mir_payload_gc_field_is_ref(
             ctx,
             variant_name.clone(),
@@ -621,10 +620,10 @@ fn emit_payload_field_bind_gc(mut ctx: LowerCtx, variant_name: String, field_idx
         // Resolve bind type first so vec:/enum: names force GC ref vt
         // before payload variant registration (#726 json Array / Result).
         let bind_type_name = match_payload_bind_gc_resolve::emit_payload_field_bind_gc_resolve_type(ctx, variant_name.clone(), field_idx, bind_local)
-        let is_fnref_payload = eq(bind_type_name.clone(), String_from("fnref")) ||
-        eq(bind_type_name.clone(), String_from("fn")) ||
+        let is_fnref_payload = bind_type_name.clone().eq(String_from("fnref")) ||
+        bind_type_name.clone().eq(String_from("fn")) ||
         bind_type_name.clone().starts_with(String_from("fn(")) ||
-        eq(bind_type_name.clone(), String_from("option:fnref")) ||
+        bind_type_name.clone().eq(String_from("option:fnref")) ||
         eff_vt == value_types::VT_FUNCREF()
         let mut typed_payload_name = bind_type_name.clone()
         if is_fnref_payload {
@@ -637,8 +636,8 @@ fn emit_payload_field_bind_gc(mut ctx: LowerCtx, variant_name: String, field_idx
             bind_type_name.clone().starts_with(String_from("enum:")) ||
             bind_type_name.clone().starts_with(String_from("result:")) ||
             bind_type_name.clone().starts_with(String_from("option:")) ||
-            eq(bind_type_name.clone(), String_from("string")) ||
-            eq(bind_type_name.clone(), String_from("String")) ||
+            bind_type_name.clone().eq(String_from("string")) ||
+            bind_type_name.clone().eq(String_from("String")) ||
             ctx_struct_field_type::field_type_is_registered_enum(ctx, bind_type_name.clone()) {
                 eff_vt = value_types::VT_GC_REF()
                 ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
@@ -680,14 +679,14 @@ fn emit_payload_field_bind_gc(mut ctx: LowerCtx, variant_name: String, field_idx
     }
 
     fn mir_payload_type_value_type(type_name: String) -> i32 {
-        if eq(type_name.clone(), "f64") || eq(type_name.clone(), "F64") {
+        if type_name.clone().eq("f64") || type_name.clone().eq("F64") {
             return value_types::VT_F64()
         }
-        if eq(type_name.clone(), "i64") || eq(type_name.clone(), "I64") {
+        if type_name.clone().eq("i64") || type_name.clone().eq("I64") {
             return value_types::VT_I64()
         }
-        if eq(type_name.clone(), "fnref") ||
-        eq(type_name.clone(), "fn") ||
+        if type_name.clone().eq("fnref") ||
+        type_name.clone().eq("fn") ||
         type_name.clone().starts_with("fn(") {
             return value_types::VT_FUNCREF()
         }

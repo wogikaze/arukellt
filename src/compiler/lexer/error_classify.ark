@@ -1,20 +1,19 @@
-use std::prelude::{eq}
 use lexer::error_codes
 fn classify_lex_error_text(text: String) -> i32 {
     let first = if len(text) > 0 { text.byte_at(0) } else { 0 }
     if len(text) == 1 && first != 0 {
         return error_codes::LEX_E_UNKNOWN_CHAR()
     }
-    if eq(text.clone(), "unterminated string") {
+    if text.clone().eq("unterminated string") {
         return error_codes::LEX_E_UNTERMINATED_STRING()
     }
-    if eq(text.clone(), "unterminated char literal") {
+    if text.clone().eq("unterminated char literal") {
         return error_codes::LEX_E_UNTERMINATED_CHAR()
     }
-    if eq(text.clone(), "unterminated f-string") {
+    if text.clone().eq("unterminated f-string") {
         return error_codes::LEX_E_UNTERMINATED_FSTRING()
     }
-    if eq(text.clone(), "unterminated escape") {
+    if text.clone().eq("unterminated escape") {
         return error_codes::LEX_E_UNTERMINATED_ESCAPE()
     }
     error_codes::LEX_E_INVALID_NUMBER()

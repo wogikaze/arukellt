@@ -1,44 +1,43 @@
-use std::prelude::{eq}
 use mir::lower::ctx_fn_return_type
 fn mir_core_is_printlike_callee(name: String) -> bool {
-    eq(name.clone(), "stdio::println") ||
-    eq(name.clone(), "println") ||
-    eq(name.clone(), "stdio::print") ||
-    eq(name.clone(), "print") ||
-    eq(name.clone(), "stdio::eprintln") ||
-    eq(name.clone(), "eprintln") ||
-    eq(name.clone(), "__intrinsic_println") ||
-    eq(name.clone(), "__intrinsic_eprintln") ||
-    eq(name.clone(), "__intrinsic_eprint") ||
-    eq(name.clone(), "__intrinsic_print")
+    name.clone().eq("stdio::println") ||
+    name.clone().eq("println") ||
+    name.clone().eq("stdio::print") ||
+    name.clone().eq("print") ||
+    name.clone().eq("stdio::eprintln") ||
+    name.clone().eq("eprintln") ||
+    name.clone().eq("__intrinsic_println") ||
+    name.clone().eq("__intrinsic_eprintln") ||
+    name.clone().eq("__intrinsic_eprint") ||
+    name.clone().eq("__intrinsic_print")
 }
 
 fn mir_core_call_bool_result_name(name: String) -> bool {
-    eq(name.clone(), "contains_i32") ||
-    eq(name.clone(), "contains_string") ||
-    eq(name.clone(), "contains_String") ||
-    eq(name.clone(), "contains") ||
-    eq(name.clone(), "is_empty") ||
-    eq(name.clone(), "is_some") ||
-    eq(name.clone(), "is_none") ||
-    eq(name.clone(), "starts_with") ||
-    eq(name.clone(), "ends_with")
+    name.clone().eq("contains_i32") ||
+    name.clone().eq("contains_string") ||
+    name.clone().eq("contains_String") ||
+    name.clone().eq("contains") ||
+    name.clone().eq("is_empty") ||
+    name.clone().eq("is_some") ||
+    name.clone().eq("is_none") ||
+    name.clone().eq("starts_with") ||
+    name.clone().eq("ends_with")
 }
 
 fn mir_core_call_i32_result_name(name: String) -> bool {
-    eq(name.clone(), "len") ||
-    eq(name.clone(), "parse_i32") ||
-    eq(name.clone(), "abs") ||
-    eq(name.clone(), "min") ||
-    eq(name.clone(), "max") ||
-    eq(name.clone(), "sum_i32") ||
-    eq(name.clone(), "product_i32") ||
-    eq(name.clone(), "index_of") ||
-    eq(name.clone(), "clamp_i32") ||
-    eq(name.clone(), "get_unchecked") ||
-    eq(name.clone(), "vec_get_unchecked_i32") ||
-    eq(name.clone(), "bytes_get") ||
-    eq(name.clone(), "bytes_len")
+    name.clone().eq("len") ||
+    name.clone().eq("parse_i32") ||
+    name.clone().eq("abs") ||
+    name.clone().eq("min") ||
+    name.clone().eq("max") ||
+    name.clone().eq("sum_i32") ||
+    name.clone().eq("product_i32") ||
+    name.clone().eq("index_of") ||
+    name.clone().eq("clamp_i32") ||
+    name.clone().eq("get_unchecked") ||
+    name.clone().eq("vec_get_unchecked_i32") ||
+    name.clone().eq("bytes_get") ||
+    name.clone().eq("bytes_len")
 }
 
 fn mir_core_call_short_name(name: String) -> String {
@@ -54,37 +53,37 @@ fn mir_core_call_short_name(name: String) -> String {
 }
 
 fn mir_core_call_string_result_name(name: String) -> bool {
-    if eq(name.clone(), "String_from") ||
-    eq(name.clone(), "concat") ||
-    eq(name.clone(), "text::concat") ||
-    eq(name.clone(), "to_string") ||
-    eq(name.clone(), "slice") ||
-    eq(name.clone(), "substring") ||
-    eq(name.clone(), "trim") ||
-    eq(name.clone(), "replace") ||
-    eq(name.clone(), "to_upper") ||
-    eq(name.clone(), "to_lower") ||
-    eq(name.clone(), "to_uppercase") ||
-    eq(name.clone(), "to_lowercase") {
+    if name.clone().eq("String_from") ||
+    name.clone().eq("concat") ||
+    name.clone().eq("text::concat") ||
+    name.clone().eq("to_string") ||
+    name.clone().eq("slice") ||
+    name.clone().eq("substring") ||
+    name.clone().eq("trim") ||
+    name.clone().eq("replace") ||
+    name.clone().eq("to_upper") ||
+    name.clone().eq("to_lower") ||
+    name.clone().eq("to_uppercase") ||
+    name.clone().eq("to_lowercase") {
         return true
     }
     if name.clone().ends_with("_to_string") || name.clone().ends_with("_from_string") || name.clone().ends_with("_from_bytes") || name.clone().ends_with("_encode") {
         return true
     }
     let short = mir_core_call_short_name(name.clone())
-    if eq(short.clone(), "slice") ||
-    eq(short.clone(), "greet") ||
-    eq(short.clone(), "string_from_bytes") ||
-    eq(short.clone(), "hex_encode") ||
-    eq(short.clone(), "rope_new") {
+    if short.clone().eq("slice") ||
+    short.clone().eq("greet") ||
+    short.clone().eq("string_from_bytes") ||
+    short.clone().eq("hex_encode") ||
+    short.clone().eq("rope_new") {
         return true
     }
-    if eq(short.clone(), "rope_to_string") ||
-    eq(short.clone(), "rope_from_string") ||
-    eq(short.clone(), "rope_slice") ||
-    eq(short.clone(), "rope_insert") ||
-    eq(short.clone(), "rope_delete") ||
-    eq(short.clone(), "rope_concat") {
+    if short.clone().eq("rope_to_string") ||
+    short.clone().eq("rope_from_string") ||
+    short.clone().eq("rope_slice") ||
+    short.clone().eq("rope_insert") ||
+    short.clone().eq("rope_delete") ||
+    short.clone().eq("rope_concat") {
         return true
     }
     false

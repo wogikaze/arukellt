@@ -1,5 +1,4 @@
 use std::text
-use std::prelude::{eq}
 use parser::core_ast_children
 use parser::core_ast_flag_fields
 use parser::core_ast_factory
@@ -16,7 +15,7 @@ fn parse_type(mut p: Parser) -> AstNode {
     core_api_cursor::skip_newlines(p)
     let t = core_api_cursor::cur(p)
     let kind = token_state::Token_kind(t)
-    if kind == tokens::TK_IDENT() && eq(token_state::Token_text(t), "dyn") {
+    if kind == tokens::TK_IDENT() && token_state::Token_text(t).eq("dyn") {
         return parse_dyn_type(p, t)
     }
     if type_token_predicates::is_named_start(kind) {

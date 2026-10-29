@@ -35,7 +35,7 @@
 
 // ─── TomlValue type ──────────────────────────────────────────────────────────
 use std::core::convert
-use std::prelude::{eq, i64_to_i32}
+use std::prelude::{i64_to_i32}
 use std::text
 
 pub enum TomlValue {
@@ -126,7 +126,7 @@ impl TomlValue {
                 let mut i = 0
                 while i < n {
                     let f = get_unchecked(fields, i)
-                    if eq(f.key, key) {
+                    if f.key.eq(key) {
                         return Some(f.value)
                     }
                     i = i + 1
@@ -603,14 +603,14 @@ fn toml_parse_number_or_datetime_at(s: String, pos: i32) -> TomlValStep {
         return TomlValStep::err("empty value", pos)
     }
     // Booleans (also reachable directly from value dispatch).
-    if eq(t, "true") {
+    if t.eq("true") {
         return TomlValStep::ok(TomlValue::Boolean(true), end)
     }
-    if eq(t, "false") {
+    if t.eq("false") {
         return TomlValStep::ok(TomlValue::Boolean(false), end)
     }
     // inf / nan — stored as String (no f64 inf/nan constructor in runtime).
-    if eq(t, "inf") || eq(t, "+inf") || eq(t, "-inf") || eq(t, "nan") || eq(t, "+nan") || eq(t, "-nan") {
+    if t.eq("inf") || t.eq("+inf") || t.eq("-inf") || t.eq("nan") || t.eq("+nan") || t.eq("-nan") {
         return TomlValStep::ok(TomlValue::String(t), end)
     }
     // Datetime: contains ':' (time), or YYYY-MM-DD date pattern.
@@ -693,10 +693,10 @@ fn toml_parse_value_at(s: String, pos: i32) -> TomlValStep {
     if c == 123 {
         return toml_parse_inline_table_at(s, p + 1)
     }
-    if c == 116 && p + 3 < n && eq(s.slice(p, p + 4), "true") {
+    if c == 116 && p + 3 < n && (s.slice(p, p + 4)).eq("true") {
         return TomlValStep::ok(TomlValue::Boolean(true), p + 4)
     }
-    if c == 102 && p + 4 < n && eq(s.slice(p, p + 5), "false") {
+    if c == 102 && p + 4 < n && (s.slice(p, p + 5)).eq("false") {
         return TomlValStep::ok(TomlValue::Boolean(false), p + 5)
     }
     toml_parse_number_or_datetime_at(s, p)
@@ -875,7 +875,7 @@ fn toml_find_field_index(fields: Vec<TomlField>, key: String) -> i32 {
     let n = len(fields)
     let mut i = 0
     while i < n {
-        if eq(get_unchecked(fields, i).key, key) {
+        if (get_unchecked(fields, i).key).eq(key) {
             return i
         }
         i = i + 1

@@ -1,5 +1,4 @@
 use std::text
-use std::prelude::{eq}
 use parser::ast
 use parser::kinds
 fn AT_NK_FN_DECL() -> i32 { kinds::NK_FN_DECL() }
@@ -28,7 +27,7 @@ fn fn_return_type_text(decl: AstNode) -> String {
     let mut i = 0
     while i < tn {
         let ann = node_type_ann_at(decl, i)
-        if eq(node_text(ann), "__return") && node_child_count(ann) > 0 {
+        if node_text(ann).eq("__return") && node_child_count(ann) > 0 {
             return node_text(node_child_at(ann, 0))
         }
         i = i + 1

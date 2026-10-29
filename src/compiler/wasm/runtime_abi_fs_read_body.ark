@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use wasm::constants
 use wasm::ctx_gc_type
 use wasm::ctx_record
@@ -281,7 +280,7 @@ fn find_result_string_variant_type(ctx: SelfEmitCtx, variant_name: String) -> i3
     let mut fallback = 0 - 1
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(names, i).clone(), variant_name.clone()) {
+        if get_unchecked(names, i).clone().eq(variant_name.clone()) {
             if i < len(type_map) {
                 let variant_type = get_unchecked(type_map, i)
                 if variant_type != open_type {

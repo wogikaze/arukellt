@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use corehir::mir_value_type
 use corehir::kinds
 use corehir::type_id
@@ -44,10 +43,10 @@ fn lower_scalar_value_type(tt: TypeTable, mvt: MirValueType) -> WasmValueType {
         return gc_layout_table::WasmValueType_i32()
     }
     let name = type_table::type_entry_name(entry)
-    if eq(name.clone(), "i64") {
+    if name.clone().eq("i64") {
         return gc_layout_table::WasmValueType_i64()
     }
-    if eq(name.clone(), "f64") {
+    if name.clone().eq("f64") {
         return gc_layout_table::WasmValueType_f64()
     }
     gc_layout_table::WasmValueType_i32()

@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::emit_artifacts
 use mir::module_emit_artifacts
 use mir::local_access
@@ -63,7 +62,7 @@ fn module_has_funcref_params(mir: MirModule) -> bool {
         while pi < pc {
             let p = function_param_view::MirFunction_param_at(f, pi)
             let type_name = local_access::MirLocal_type_name(p)
-            if eq(type_name.clone(), "fnref") {
+            if type_name.clone().eq("fnref") {
                 return true
             }
             pi = pi + 1

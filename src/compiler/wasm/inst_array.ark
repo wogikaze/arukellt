@@ -2,7 +2,6 @@
 // GC target: use array.new_default/get/set for all arrays.
 // Linear-memory target: bump allocator + i32 load/store.
 
-use std::prelude::{eq}
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
 use wasm::opcodes
@@ -88,7 +87,7 @@ fn array_base_is_vec_v128(inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if base_idx < function_locals_view::MirFunction_local_count(f) {
         let loc = function_locals_view::MirFunction_local_at(f, base_idx)
         let tname = local_access::MirLocal_type_name(loc)
-        if eq(tname.clone(), "vec:v128") || eq(tname.clone(), "vec:V128") {
+        if tname.clone().eq("vec:v128") || tname.clone().eq("vec:V128") {
             return true
         }
     }

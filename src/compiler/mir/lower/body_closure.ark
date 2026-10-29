@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::ast_node
 use mir::lower::closure_free
 use mir::lower::closure_capture_args
@@ -91,5 +90,5 @@ fn is_identity_closure(node: AstNode) -> bool {
     !ast_node::node_kind_is(body, lower_kinds::NK_IDENT()) {
         return false
     }
-    eq(ast_node::node_text(param), ast_node::node_text(body))
+    ast_node::node_text(param).eq(ast_node::node_text(body))
 }

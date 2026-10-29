@@ -1,12 +1,11 @@
 use std::json
-use std::prelude::{eq}
 use lsp::framing
 use lsp::init_workspace
 use lsp::lsp_config
 use lsp::responses
 use lsp::state_record
 fn dispatch_lifecycle(mut state: LspState, body: String, method: String) -> bool {
-    if eq(method.clone(), "initialize") {
+    if method.clone().eq("initialize") {
         let id = json::JsonText::get_int(body.clone(), String_from("id"))
         state_record::lsp_state_mark_initialized(state)
         init_workspace::initialize_workspace_index(state, body.clone())
@@ -14,16 +13,16 @@ fn dispatch_lifecycle(mut state: LspState, body: String, method: String) -> bool
         framing::append_framed(state, responses::build_initialize_response(id))
         return true
     }
-    if eq(method.clone(), "initialized") {
+    if method.clone().eq("initialized") {
         return true
     }
-    if eq(method.clone(), "shutdown") {
+    if method.clone().eq("shutdown") {
         let id = json::JsonText::get_int(body.clone(), String_from("id"))
         state_record::lsp_state_mark_shutdown(state)
         framing::append_framed(state, responses::build_shutdown_response(id))
         return true
     }
-    if eq(method.clone(), "exit") {
+    if method.clone().eq("exit") {
         state_record::lsp_state_mark_exited(state)
         return true
     }

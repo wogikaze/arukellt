@@ -487,6 +487,7 @@ BOOTSTRAP_STD_SOURCE_FILES = (
     "std/core/clone.ark",
     "std/core/raw.ark",
     "std/core/scalar_format.ark",
+    "std/core/eq.ark",
 )
 CLI_VERSION_GOLDEN_REL = "tests/snapshots/selfhost/cli-version.txt"
 CLI_HELP_GOLDEN_REL = "tests/snapshots/selfhost/cli-help.txt"
@@ -2961,7 +2962,7 @@ def _patch_monolithic_typechecker_unify(text: str) -> str:
     let mut i = 0
     while i < count {
         let tv = get_unchecked(env.vars, i)
-        if eq(concat(String_from("t"), to_string(tv.id)), clone(ty.name)) {
+        if concat(String_from("t"), to_string(tv.id)).eq(clone(ty.name)) {
             if tv.is_bound {
                 return resolve_type(env, tv.bound)
             }
@@ -2986,7 +2987,7 @@ fn resolve_type_depth(env: TypeEnv, ty: TypeInfo, depth: i32) -> TypeInfo {
     let mut i = 0
     while i < count {
         let tv = get_unchecked(env.vars, i)
-        if eq(concat(String_from("t"), to_string(tv.id)), clone(ty.name)) {
+        if concat(String_from("t"), to_string(tv.id)).eq(clone(ty.name)) {
             if tv.is_bound {
                 return resolve_type_depth(env, tv.bound, depth + 1)
             }
@@ -3059,7 +3060,7 @@ def _patch_monolithic_typechecker_per_fn_env(text: str) -> str:
         let mut j = 0
         while j < dst_count {
             let existing = get_unchecked(dst.mono_instances, j)
-            if eq(clone(existing.mangled_name), clone(incoming.mangled_name)) {
+            if clone(existing.mangled_name).eq(clone(incoming.mangled_name)) {
                 found = true
             }
             j = j + 1
@@ -3398,7 +3399,7 @@ fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
     }
     if tag == mir_lower_kinds::TY_STRUCT() || tag == mir_lower_kinds::TY_ENUM() {
         let name = mir_type_contracts::mir_type_contracts__TypeInfo_name(ty)
-        if eq(name.clone(), String_from("Vec")) && mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_count(ty) > 0 {
+        if name.clone().eq(String_from("Vec")) && mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_count(ty) > 0 {
             return stub_vec_mono_key(ty)
         }
         let arg_count = mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_count(ty)
@@ -3435,7 +3436,7 @@ pub fn ctx_set_mono_type_params(ctx: LowerCtx, names: Vec<String>, types: Vec<St
 }
 
 pub fn ctx_set_mono_type_projection(ctx: LowerCtx, generic_name: String, concrete_name: String) {
-    if len(generic_name) == 0 || len(concrete_name) == 0 || eq(generic_name.clone(), concrete_name.clone()) {
+    if len(generic_name) == 0 || len(concrete_name) == 0 || generic_name.clone().eq(concrete_name.clone()) {
         return
     }
     push(ctx.mono_type_param_names, generic_name)
@@ -3452,7 +3453,7 @@ pub fn ctx_resolve_mono_type_param(ctx: LowerCtx, type_var_name: String) -> Stri
     let mut i = 0
     while i < count {
         let stored_name = (get_unchecked(ctx.mono_type_param_names, i)).clone()
-        if eq(stored_name.clone(), type_var_name.clone()) {
+        if stored_name.clone().eq(type_var_name.clone()) {
             return (get_unchecked(ctx.mono_type_param_types, i)).clone()
         }
         let seg_idx = ctx_mono_type_match_segment_index(stored_name, type_var_name.clone())
@@ -3477,7 +3478,7 @@ fn ctx_mono_type_match_segment_index(stored_name: String, query_name: String) ->
         let at_end = i == len(stored_name)
         if at_end || byte_at(stored_name.clone(), i) == 58 {
             let segment = substring(stored_name.clone(), segment_start, i)
-            if eq(ctx_mono_type_var_bare_name(segment.clone()), query.clone()) {
+            if ctx_mono_type_var_bare_name(segment.clone()).eq(query.clone()) {
                 return seg_index
             }
             segment_start = i + 1
@@ -3596,7 +3597,7 @@ fn ctx_resolve_fnsig_type_vars(ctx: LowerCtx, type_name: String) -> String {
         if i == n || byte_at(rest.clone(), i) == 59 {
             let seg = substring(rest.clone(), seg_start, i)
             let resolved = ctx_resolve_fnsig_segment(ctx, seg.clone())
-            if !eq(resolved.clone(), seg.clone()) {
+            if !resolved.clone().eq(seg.clone()) {
                 changed = true
             }
             out = concat(out, resolved)
@@ -3734,7 +3735,7 @@ fn stub_base_payload_projection(ctx: LowerCtx, base: String) -> String {
     let count = len(ctx.mono_type_param_names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(ctx.mono_type_param_names, i), base.clone()) {
+        if get_unchecked(ctx.mono_type_param_names, i).eq(base.clone()) {
             return (get_unchecked(ctx.mono_type_param_types, i)).clone()
         }
         i = i + 1
@@ -3744,17 +3745,17 @@ fn stub_base_payload_projection(ctx: LowerCtx, base: String) -> String {
         let stored = (get_unchecked(ctx.mono_type_param_names, i)).clone()
         let concrete = (get_unchecked(ctx.mono_type_param_types, i)).clone()
         if starts_with(stored.clone(), String_from("option:")) && starts_with(concrete.clone(), String_from("option:")) {
-            if eq(substring(stored, 7, len(stored)), base.clone()) {
+            if substring(stored, 7, len(stored)).eq(base.clone()) {
                 return substring(concrete, 7, len(concrete))
             }
         }
         if starts_with(stored.clone(), String_from("Option_")) && starts_with(concrete.clone(), String_from("Option_")) {
-            if eq(substring(stored, 7, len(stored)), base.clone()) {
+            if substring(stored, 7, len(stored)).eq(base.clone()) {
                 return substring(concrete, 7, len(concrete))
             }
         }
         if starts_with(stored.clone(), String_from("vec:")) && starts_with(concrete.clone(), String_from("vec:")) {
-            if eq(substring(stored, 4, len(stored)), base.clone()) {
+            if substring(stored, 4, len(stored)).eq(base.clone()) {
                 return substring(concrete, 4, len(concrete))
             }
         }
@@ -3780,7 +3781,7 @@ pub fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
             let rcount = len(result)
             let mut k = 0
             while k < rcount {
-                if eq(get_unchecked(result, k), var_name.clone()) {
+                if get_unchecked(result, k).eq(var_name.clone()) {
                     found = true
                 }
                 k = k + 1
@@ -4039,7 +4040,7 @@ fn stub_apply_mono_ordinal_map(ctx: LowerCtx, mangled_name: String, type_var_nam
         let inst = get_unchecked(ctx.mono_instances, i)
         let inst_mangled = mir_type_contracts::mir_type_contracts__MonoInstance_mangled_name(inst)
         let safe_mangled = mir_mono_names::mono_safe_name(inst_mangled)
-        if eq(safe_mangled.clone(), mangled_name.clone()) {
+        if safe_mangled.clone().eq(mangled_name.clone()) {
             let arg_count = mir_type_contracts::mir_type_contracts__MonoInstance_type_arg_count(inst)
             let names = Vec_new_String()
             let types = Vec_new_String()
@@ -4091,11 +4092,11 @@ pub fn ctx_find_leaf_mono_instance_index(ctx: LowerCtx, leaf_name: String) -> i3
         if inst_sep >= 0 {
             inst_leaf = substring(inst_name, inst_sep + 2, len(inst_name))
         }
-        if !eq(inst_leaf, query_leaf.clone()) {
+        if !inst_leaf.eq(query_leaf.clone()) {
             continue
         }
         let inst_mangled = mir_type_contracts::mir_type_contracts__MonoInstance_mangled_name(inst)
-        if len(matched_mangled) > 0 && !eq(inst_mangled.clone(), matched_mangled.clone()) {
+        if len(matched_mangled) > 0 && !inst_mangled.clone().eq(matched_mangled.clone()) {
             ambiguous = true
         }
         if len(matched_mangled) == 0 {
@@ -4273,7 +4274,7 @@ fn ctx_resolve_assoc_projection_type(ctx: LowerCtx, seg: String) -> String {
         return String_new()
     }
     let assoc = substring(seg.clone(), sep + 2, len(seg))
-    if !eq(assoc.clone(), String_from("Item")) {
+    if !assoc.clone().eq(String_from("Item")) {
         return String_new()
     }
     let mut owner = substring(seg.clone(), 0, sep)
@@ -4369,7 +4370,7 @@ fn ctx_resolve_field_type_projections(ctx: LowerCtx, ft: String) -> String {
             }
             let assoc = substring(ft.clone(), i + 2, assoc_end)
             let mut resolved = String_new()
-            if eq(assoc.clone(), String_from("Item")) {
+            if assoc.clone().eq(String_from("Item")) {
                 resolved = ctx_resolve_iterator_item_type(ctx, owner.clone())
             }
             out = concat(out, substring(ft.clone(), out_start, owner_start))
@@ -4747,7 +4748,7 @@ def _prepare_flattened_selfhost_source_locked(
     # module is absent the call falls back to the `parse_f64` intrinsic, whose
     # i32 result type poisons the gc MIR temp (the gc handler returns a Result
     # ref) and the self-build emits invalid core Wasm in f64::try_from__String.
-    for core_rel in ("raw.ark", "scalar_format.ark"):
+    for core_rel in ("raw.ark", "scalar_format.ark", "eq.ark"):
         core_src = root / "std" / "core" / core_rel
         if not core_src.is_file():
             raise BootstrapOverlayError(

@@ -14,7 +14,7 @@
 //! falling back to their last segment would turn a constructor such as
 //! `Vec::new` into an unrelated bare `new`.
 
-use std::prelude::{byte_at, eq, substring}
+use std::prelude::{byte_at, substring}
 use corehir::name_match
 
 fn callee_spelling_segment_count(name: String) -> i32 {
@@ -140,15 +140,15 @@ fn callee_spelling_variants(name: String) -> Vec<String> {
         return variants
     }
     let last_two = callee_spelling_last_two_segments(name.clone())
-    if len(last_two) > 0 && !eq(last_two.clone(), name.clone()) {
+    if len(last_two) > 0 && !last_two.clone().eq(name.clone()) {
         push(variants, last_two.clone())
     }
     let after_first = callee_spelling_after_first_segment(name.clone())
-    if len(after_first) > 0 && !eq(after_first.clone(), name.clone()) {
+    if len(after_first) > 0 && !after_first.clone().eq(name.clone()) {
         let mut seen = false
         let mut i = 0
         while i < len(variants) {
-            if eq(get_unchecked(variants, i).clone(), after_first.clone()) {
+            if get_unchecked(variants, i).clone().eq(after_first.clone()) {
                 seen = true
                 i = len(variants)
             } else {

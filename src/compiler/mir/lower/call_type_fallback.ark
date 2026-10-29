@@ -16,7 +16,6 @@ use corehir::kinds
 // Layout / local-type tables use bare struct names. Strip only `::` qualifiers
 // so `import_block::ImportBlockSpan` → `ImportBlockSpan`, without touching
 // single-colon encodings like `struct:Name:8` or `option:i32`.
-use std::prelude::{eq}
 use std::text
 fn strip_module_double_colon(type_name: String) -> String {
     let n = len(type_name)
@@ -90,8 +89,8 @@ fn mark_call_result_from_return_type_name(mut ctx: LowerCtx, dest: i32, type_nam
     if len(cleaned) == 0 {
         return
     }
-    if eq(cleaned.clone(), "fnref") ||
-    eq(cleaned.clone(), "fn") ||
+    if cleaned.clone().eq("fnref") ||
+    cleaned.clone().eq("fn") ||
     cleaned.clone().starts_with("fn(") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, "fnref")
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_FUNCREF())
@@ -100,23 +99,23 @@ fn mark_call_result_from_return_type_name(mut ctx: LowerCtx, dest: i32, type_nam
     // Built-in names are also valid enum-variant basenames (for example
     // `WitType::String`). Keep the semantic built-in type before consulting
     // the layout registry, whose basename lookup cannot distinguish them.
-    if eq(cleaned.clone(), "String") ||
-    eq(cleaned.clone(), "string") ||
-    eq(cleaned.clone(), "bool") ||
-    eq(cleaned.clone(), "char") ||
-    eq(cleaned.clone(), "i32") ||
-    eq(cleaned.clone(), "i64") ||
-    eq(cleaned.clone(), "f32") ||
-    eq(cleaned.clone(), "f64") ||
-    eq(cleaned.clone(), "u8") ||
-    eq(cleaned.clone(), "i8") ||
-    eq(cleaned.clone(), "u16") ||
-    eq(cleaned.clone(), "u32") ||
-    eq(cleaned.clone(), "u64") ||
-    eq(cleaned.clone(), "i16") ||
-    eq(cleaned.clone(), "unit") ||
-    eq(cleaned.clone(), "()") ||
-    eq(cleaned.clone(), "v128") {
+    if cleaned.clone().eq("String") ||
+    cleaned.clone().eq("string") ||
+    cleaned.clone().eq("bool") ||
+    cleaned.clone().eq("char") ||
+    cleaned.clone().eq("i32") ||
+    cleaned.clone().eq("i64") ||
+    cleaned.clone().eq("f32") ||
+    cleaned.clone().eq("f64") ||
+    cleaned.clone().eq("u8") ||
+    cleaned.clone().eq("i8") ||
+    cleaned.clone().eq("u16") ||
+    cleaned.clone().eq("u32") ||
+    cleaned.clone().eq("u64") ||
+    cleaned.clone().eq("i16") ||
+    cleaned.clone().eq("unit") ||
+    cleaned.clone().eq("()") ||
+    cleaned.clone().eq("v128") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, cleaned.clone())
         set_vt_for_resolved_type_name(ctx, dest, cleaned.clone())
         return
@@ -199,7 +198,7 @@ fn mark_fallback_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: 
     // Re-apply known stdlib Result types when unset or demoted away from
     // Result/Option encodings (#834 cmd_init: write_main was i32).
     let existing = ctx_api_local_types::ctx_get_local_type(ctx, dest)
-    let existing_is_weak = len(existing) == 0 || eq(existing.clone(), "enum:open")
+    let existing_is_weak = len(existing) == 0 || existing.clone().eq("enum:open")
     let needs_stdlib_result = existing_is_weak ||
     !is_option_or_result_type_name(existing.clone())
     if needs_stdlib_result &&
@@ -258,29 +257,29 @@ fn set_vt_for_resolved_type_name(mut ctx: LowerCtx, dest: i32, type_name: String
     if len(type_name) == 0 {
         return
     }
-    if eq(type_name.clone(), "fnref") ||
-    eq(type_name.clone(), "fn") ||
+    if type_name.clone().eq("fnref") ||
+    type_name.clone().eq("fn") ||
     type_name.clone().starts_with("fn(") {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_FUNCREF())
         return
     }
-    if eq(type_name.clone(), "i32") || eq(type_name.clone(), "I32") || eq(type_name.clone(), "bool") || eq(type_name.clone(), "char") {
+    if type_name.clone().eq("i32") || type_name.clone().eq("I32") || type_name.clone().eq("bool") || type_name.clone().eq("char") {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
         return
     }
-    if eq(type_name.clone(), "i64") || eq(type_name.clone(), "I64") || eq(type_name.clone(), "u64") {
+    if type_name.clone().eq("i64") || type_name.clone().eq("I64") || type_name.clone().eq("u64") {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I64())
         return
     }
-    if eq(type_name.clone(), "f64") || eq(type_name.clone(), "F64") {
+    if type_name.clone().eq("f64") || type_name.clone().eq("F64") {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_F64())
         return
     }
-    if eq(type_name.clone(), "f32") || eq(type_name.clone(), "F32") {
+    if type_name.clone().eq("f32") || type_name.clone().eq("F32") {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_F32())
         return
     }
-    if eq(type_name.clone(), "v128") || eq(type_name.clone(), "V128") {
+    if type_name.clone().eq("v128") || type_name.clone().eq("V128") {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_V128())
         return
     }
@@ -292,7 +291,7 @@ fn mark_struct_constructor_result_type(mut ctx: LowerCtx, callee_name: String, d
     let cn_len = len(cn_stripped)
     if cn_len > 4 {
         let cn_suffix = cn_stripped.slice(cn_len - 4, cn_len)
-        if eq(cn_suffix.clone(), "_new") {
+        if cn_suffix.clone().eq("_new") {
             let struct_cand = cn_stripped.slice(0, cn_len - 4)
             // Name shadowing makes an X_new callee ambiguous: Box_new is
             // the prelude enum ctor, but a user struct Box claims the bare
@@ -310,7 +309,7 @@ fn mark_struct_constructor_result_type(mut ctx: LowerCtx, callee_name: String, d
     // TomlValStep_ok / similar Type_ok helpers return the named struct.
     if cn_len > 3 {
         let ok_suffix = cn_stripped.slice(cn_len - 3, cn_len)
-        if eq(ok_suffix.clone(), "_ok") {
+        if ok_suffix.clone().eq("_ok") {
             let struct_cand = cn_stripped.slice(0, cn_len - 3)
             if ctx_struct_lookup::ctx_struct_field_count(ctx, struct_cand.clone()) > 0 {
                 ctx_api_local_types::ctx_set_local_type(ctx, dest, struct_cand.clone())
@@ -355,7 +354,7 @@ fn mir_promote_gc_enum_container_vt(mut ctx: LowerCtx, local_idx: i32) {
 }
 
 fn is_ref_type_name(ctx: LowerCtx, type_name: String) -> bool {
-    if eq(type_name.clone(), "String") || eq(type_name.clone(), "string") {
+    if type_name.clone().eq("String") || type_name.clone().eq("string") {
         return true
     }
     if type_name.clone().starts_with("vec:") || type_name.clone().starts_with("hashmap:") {

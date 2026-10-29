@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use corehir::core_op_id
 use corehir::core_op_registry
 use corehir::core_op_registry_generated
@@ -98,10 +97,10 @@ fn effective_lowering_decisions_match(a: EffectiveLoweringDecision, b: Effective
     if a.runtime_kind != b.runtime_kind {
         return false
     }
-    if !eq(a.core_op_canonical_id.clone(), b.core_op_canonical_id.clone()) {
+    if !a.core_op_canonical_id.clone().eq(b.core_op_canonical_id.clone()) {
         return false
     }
-    if !eq(a.handler_id.clone(), b.handler_id.clone()) {
+    if !a.handler_id.clone().eq(b.handler_id.clone()) {
         return false
     }
     true

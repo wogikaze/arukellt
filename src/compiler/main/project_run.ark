@@ -1,7 +1,6 @@
 use std::host::fs::Fs
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{eq}
 use std::text
 use compiler::session_parse
 use driver::config_record
@@ -43,7 +42,7 @@ fn run_output_path(opts: CliOptions, input_file: String) -> String {
     let base_len = len(base)
     if base_len > 4 {
         let ext = base.slice(base_len - 4, base_len)
-        if eq(ext, ".ark") {
+        if ext.eq(".ark") {
             return base.slice(0, base_len - 4).concat(".wasm")
         }
     }

@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
@@ -14,10 +13,10 @@ fn lower_core_pattern_value(mut ctx: LowerCtx, pat: CoreHirExpr) -> i32 {
     if core_expr_shape_patterns::mir_core_expr_is_pat_literal(pat) {
         let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
         let mut pval = core_expr_shape_accessors::mir_core_expr_int_val(pat)
-        if eq(core_expr_shape_accessors::mir_core_expr_text(pat), "true") {
+        if core_expr_shape_accessors::mir_core_expr_text(pat).eq("true") {
             pval = 1
         }
-        if eq(core_expr_shape_accessors::mir_core_expr_text(pat), "false") {
+        if core_expr_shape_accessors::mir_core_expr_text(pat).eq("false") {
             pval = 0
         }
         ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(pval, dest))
@@ -40,7 +39,7 @@ fn lower_core_pattern_value(mut ctx: LowerCtx, pat: CoreHirExpr) -> i32 {
 // integer 0 instead of by content (#894).
 fn mir_core_pat_is_string_literal(pat: CoreHirExpr) -> bool {
     core_expr_shape_patterns::mir_core_expr_is_pat_literal(pat) &&
-    eq(core_expr_shape_accessors::mir_core_expr_type_name(pat), "pat:string")
+    core_expr_shape_accessors::mir_core_expr_type_name(pat).eq("pat:string")
 }
 
 fn core_emit_match_ident_bind(mut ctx: LowerCtx, pat: CoreHirExpr, scrut_idx: i32) {

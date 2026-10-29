@@ -1,7 +1,6 @@
 use std::bytes
 use std::bytes::Bytes
 use std::host::stdio
-use std::prelude::{eq}
 fn main() {
     let mut b: Vec<i32> = Vec::new<i32>()
     b.push_byte(0)
@@ -20,7 +19,7 @@ fn main() {
     let empty: Vec<i32> = Bytes::from_hex("")
     stdio::println((empty.len()).to_string())
     let empty_enc: String = Vec::new<i32>().to_hex()
-    stdio::println((eq(empty_enc, "")).to_string())
+    stdio::println((empty_enc.eq("")).to_string())
 }
 // hex_encode
 // hex_decode roundtrip

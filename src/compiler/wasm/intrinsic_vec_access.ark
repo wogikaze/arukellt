@@ -4,7 +4,6 @@
 //   get_unchecked: local.set idx → struct.get vec_type 0 (data) → local.get idx → array.get A_i32
 //   vec_get: bounds check + struct.get + array.get
 
-use std::prelude::{eq}
 use wasm::opcodes
 use wasm::ctx_scratch
 use wasm::ctx_record
@@ -28,10 +27,10 @@ fn lm_get_unchecked_elem_kind(ctx: SelfEmitCtx, inst: MirInst) -> i32 {
     // sealed-raw Ark bodies can load i64/f64 lanes (#822).
     let callee = inst_accessors_literals::MirInst_str_val(inst)
     let elem = intrinsic_vec_type::vec_element_type_name_for_call(ctx, callee.clone(), inst)
-    if eq(elem.clone(), String_from("i64")) || eq(elem.clone(), String_from("I64")) {
+    if elem.clone().eq(String_from("i64")) || elem.clone().eq(String_from("I64")) {
         return 1
     }
-    if eq(elem.clone(), String_from("f64")) || eq(elem.clone(), String_from("F64")) {
+    if elem.clone().eq(String_from("f64")) || elem.clone().eq(String_from("F64")) {
         return 2
     }
     0
@@ -275,7 +274,7 @@ fn emit_vec_get_gc_some_scalar(mut w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, 
     writer_core::emit_leb128_s(w, 0)
     helpers_core::emit_local_get(w, s_val)
     // Option::Some(i32) fields stay true i32; Memory64 scratch locals hold i64.
-    if eq(suffix.clone(), "_f1_i32") {
+    if suffix.clone().eq("_f1_i32") {
         helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     }
     writer_gc::emit_gc_struct_new(w, some_type_idx)

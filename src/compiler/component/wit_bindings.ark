@@ -1,7 +1,6 @@
 // WIT -> Arukellt binding source renderer (#672).
 
 use std::text
-use std::prelude::{eq}
 use component
 use component::wit_names_import
 use component::wit_parse_text
@@ -18,13 +17,13 @@ fn wit_binding_generic_inner(t: String) -> String {
 
 fn wit_binding_type(wit_type: String) -> String {
     let t = wit_parse_text_scan::wit_trim_txt(wit_type)
-    if eq(t.clone(), "s32") || eq(t.clone(), "u32") || eq(t.clone(), "s8") || eq(t.clone(), "u8") || eq(t.clone(), "s16") || eq(t.clone(), "u16") { return "i32" }
-    if eq(t.clone(), "s64") || eq(t.clone(), "u64") { return "i64" }
-    if eq(t.clone(), "f32") { return "f32" }
-    if eq(t.clone(), "f64") { return "f64" }
-    if eq(t.clone(), "bool") { return "bool" }
-    if eq(t.clone(), "char") { return "char" }
-    if eq(t.clone(), "string") { return "String" }
+    if t.clone().eq("s32") || t.clone().eq("u32") || t.clone().eq("s8") || t.clone().eq("u8") || t.clone().eq("s16") || t.clone().eq("u16") { return "i32" }
+    if t.clone().eq("s64") || t.clone().eq("u64") { return "i64" }
+    if t.clone().eq("f32") { return "f32" }
+    if t.clone().eq("f64") { return "f64" }
+    if t.clone().eq("bool") { return "bool" }
+    if t.clone().eq("char") { return "char" }
+    if t.clone().eq("string") { return "String" }
     if t.clone().starts_with("list<") {
         return "Vec<".concat(wit_binding_type(wit_binding_generic_inner(t)).concat(">"))
     }
@@ -55,7 +54,7 @@ fn wit_binding_validation_error(doc: wit_parse_text::WitParsedInterface) -> Stri
         let record = get_unchecked(records, ri)
         for fi in 0..len(record.field_wit_types) {
             let field_type = get_unchecked(record.field_wit_types, fi)
-            if eq(wit_parse_text_scan::wit_trim_txt(field_type.clone()), record.wit_name.clone()) {
+            if wit_parse_text_scan::wit_trim_txt(field_type.clone()).eq(record.wit_name.clone()) {
                 return "E0402 recursive WIT record binding: ".concat(record.wit_name.clone())
             }
             if field_type.clone().contains("own<") || field_type.clone().contains("borrow<") {

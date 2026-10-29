@@ -3,7 +3,6 @@
 // monomorphized impl method (e.g. "Token::to_string", "Point::eq") when the
 // receiver type is a user-defined struct carried via enum:/struct: local types.
 
-use std::prelude::{eq}
 use std::text
 use corehir::callee_spelling
 use mir::lower::ctx_fn_exists
@@ -35,13 +34,13 @@ fn mir_bare_receiver_type_name(arg_type: String) -> String {
     if arg_type.clone().starts_with("vec:") {
         return "Vec"
     }
-    if eq(arg_type.clone(), "Vec") {
+    if arg_type.clone().eq("Vec") {
         return "Vec"
     }
     if arg_type.clone().starts_with("hashmap:") {
         return "HashMap"
     }
-    if eq(arg_type.clone(), "HashMap") {
+    if arg_type.clone().eq("HashMap") {
         return "HashMap"
     }
     if arg_type.clone().starts_with("option:") {
@@ -105,9 +104,9 @@ fn mir_try_resolve_impl_method(ctx: LowerCtx, bare_method: String, first_arg_idx
     // free shim, so normalize before the receiver lookup to reach the same
     // Clone / Hash impls as `s.clone()` / `s.hash()`. Other bare builtin
     // calls keep their name-based prelude rewrites (#702).
-    if eq(bare_type.clone(), String_from("string")) &&
-    (eq(bare_method.clone(), String_from("clone")) ||
-        eq(bare_method.clone(), String_from("hash"))) {
+    if bare_type.clone().eq(String_from("string")) &&
+    (bare_method.clone().eq(String_from("clone")) ||
+        bare_method.clone().eq(String_from("hash"))) {
         bare_type = String_from("String")
     }
     if method_resolve::mir_is_vec_string_iteration_method(bare_method.clone()) &&
@@ -120,7 +119,7 @@ fn mir_try_resolve_impl_method(ctx: LowerCtx, bare_method: String, first_arg_idx
     // Concrete generic receivers (GenTakeIter<VecIter>) own impl methods
     // under the per-instantiation owner (GenTakeIter_VecIter).
     let inst_type = method_resolve::mir_inst_owner_name(bare_type.clone())
-    if !eq(inst_type.clone(), bare_type.clone()) {
+    if !inst_type.clone().eq(bare_type.clone()) {
         let inst_mangled = inst_type.clone().concat("::".concat(bare_method.clone()))
         if ctx_fn_exists::ctx_has_fn_name(ctx, inst_mangled.clone()) {
             return inst_mangled
@@ -155,11 +154,11 @@ fn mir_try_resolve_associated_function(ctx: LowerCtx, associated_name: String, f
     // String literals and String_from results carry the builtin "string"
     // local spelling while impl headers register the source as "String".
     // Canonicalize before building the symbol suffix.
-    if eq(source_name.clone(), String_from("string")) {
+    if source_name.clone().eq(String_from("string")) {
         source_name = String_from("String")
     }
     let mut owner_name = mir_type_prefix(associated_name.clone())
-    if eq(associated_name.clone(), String_from("Vec::from_iter")) &&
+    if associated_name.clone().eq(String_from("Vec::from_iter")) &&
     method_resolve::mir_is_vec_string_from_iter_source(source_name.clone()) {
         owner_name = String_from("Vec_String")
     }
@@ -172,8 +171,8 @@ fn mir_try_resolve_associated_function(ctx: LowerCtx, associated_name: String, f
     // owner (HashSet_i32::from_iter__VecIter_i32), while the source spelling
     // only names the bare `HashSet` owner. The source suffix in each probed
     // candidate makes exactly one family match.
-    if eq(owner_name.clone(), String_from("HashSet")) &&
-    eq(method_name.clone(), String_from("from_iter")) {
+    if owner_name.clone().eq(String_from("HashSet")) &&
+    method_name.clone().eq(String_from("from_iter")) {
         let i32_candidate = String_from("HashSet_i32::from_iter__").concat(source_name.clone())
         if ctx_fn_exists::ctx_has_fn_name(ctx, i32_candidate.clone()) {
             return i32_candidate

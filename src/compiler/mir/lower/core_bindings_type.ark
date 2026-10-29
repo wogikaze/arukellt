@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::core_call_arg_names
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
@@ -8,7 +7,7 @@ use mir::lower::ctx_fn_return_type
 use mir::lower::ctx_types
 use mir::value_types
 fn infer_core_let_type_name_is_string(type_name: String) -> bool {
-    eq(type_name.clone(), "String") || eq(type_name.clone(), "str") || eq(type_name.clone(), "string")
+    type_name.clone().eq("String") || type_name.clone().eq("str") || type_name.clone().eq("string")
 }
 
 fn infer_core_let_call_result_type_name(ctx: LowerCtx, callee: String) -> String {

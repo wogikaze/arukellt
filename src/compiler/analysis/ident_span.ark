@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 pub struct IdentSpan {
     found: bool,
     name: String,
@@ -34,6 +33,6 @@ test mod "ident_span" {
     test "found" {
         let s = IdentSpan_found("foo", 1, 4)
         assert(ident_span_found(s))
-        assert(eq(ident_span_name(s), "foo"))
+        assert(ident_span_name(s).eq("foo"))
     }
 }

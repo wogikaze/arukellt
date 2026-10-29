@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use corehir::decl_impl_target
 use resolver::ast_access
@@ -79,17 +78,17 @@ fn impl_self_base_type_name(decl: AstNode) -> String {
 
 fn impl_target_type_name(target: AstNode, declared: Vec<String>) -> String {
     let target_name = ast_access::node_text(target)
-    if eq(target_name.clone(), String_from("Vec")) &&
+    if target_name.clone().eq(String_from("Vec")) &&
     ast_access::node_child_count(target) > 1 {
         let element = ast_access::node_child_at(target, 1)
-        if eq(ast_access::node_text(element), String_from("String")) {
+        if ast_access::node_text(element).eq(String_from("String")) {
             return String_from("Vec_String")
         }
     }
     // Concrete HashMap<K, V> impls need a per-pair owner name so each impl
     // method registers a unique HashMap_K_V::method symbol. Generic impl
     // heads (HashMap<K, V> with type params) keep the bare HashMap owner.
-    if eq(target_name.clone(), String_from("HashMap")) &&
+    if target_name.clone().eq(String_from("HashMap")) &&
     ast_access::node_child_count(target) > 2 {
         let key_node = ast_access::node_child_at(target, 1)
         let value_node = ast_access::node_child_at(target, 2)
@@ -105,8 +104,8 @@ fn impl_target_type_name(target: AstNode, declared: Vec<String>) -> String {
     // owner because the impl itself is generic (impl Pair<T> -> Pair).
     // Vec and HashMap keep their established owner spellings above.
     if ast_access::node_kind_is(target, kinds::NK_TYPE_GENERIC()) &&
-    !eq(target_name.clone(), String_from("Vec")) &&
-    !eq(target_name.clone(), String_from("HashMap")) {
+    !target_name.clone().eq(String_from("Vec")) &&
+    !target_name.clone().eq(String_from("HashMap")) {
         let inst_suffix = impl_inst_arg_suffix(target, declared.clone())
         if len(inst_suffix) > 0 {
             return target_name.clone().concat(String_from("_").concat(inst_suffix))
@@ -119,7 +118,7 @@ fn is_declared_impl_param(name: String, declared: Vec<String>) -> bool {
     let count = len(declared)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(declared, i), name.clone()) {
+        if get_unchecked(declared, i).eq(name.clone()) {
             return true
         }
         i = i + 1

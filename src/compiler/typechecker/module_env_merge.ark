@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use collections::vec_extend
 use typechecker::contract_mono
 use typechecker::contract_env_mono_record
@@ -23,7 +22,7 @@ fn merge_mono_instances(mut dst: TypeEnv, src: TypeEnv) {
         let mut j = 0
         while j < dst_count {
             let existing = get_unchecked(dst_instances, j)
-            if eq(contract_mono::MonoInstance_mangled_name(existing), incoming_mangled.clone()) {
+            if contract_mono::MonoInstance_mangled_name(existing).eq(incoming_mangled.clone()) {
                 found = true
             }
             j = j + 1
@@ -60,8 +59,8 @@ fn merge_mono_template_sites(mut dst: TypeEnv, src: TypeEnv) {
         let mut j = 0
         while j < dst_count {
             let existing = get_unchecked(dst.mono_template_sites, j)
-            if eq(existing.mangled_name.clone(), incoming_mangled.clone()) &&
-            eq(existing.enclosing_fn.clone(), incoming_enclosing.clone()) {
+            if existing.mangled_name.clone().eq(incoming_mangled.clone()) &&
+            existing.enclosing_fn.clone().eq(incoming_enclosing.clone()) {
                 found = true
             }
             j = j + 1

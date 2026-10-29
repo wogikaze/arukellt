@@ -1,43 +1,42 @@
-use std::prelude::{eq}
 use lexer::tokens
 pub fn keyword_kind_decl(word: String) -> i32 {
-    if eq(word, "fn") {
+    if word.eq("fn") {
         return tokens::TK_FN()
     }
-    if eq(word, "struct") {
+    if word.eq("struct") {
         return tokens::TK_STRUCT()
     }
-    if eq(word, "enum") {
+    if word.eq("enum") {
         return tokens::TK_ENUM()
     }
-    if eq(word, "let") {
+    if word.eq("let") {
         return tokens::TK_LET()
     }
-    if eq(word, "mut") {
+    if word.eq("mut") {
         return tokens::TK_MUT()
     }
-    if eq(word, "trait") {
+    if word.eq("trait") {
         return tokens::TK_TRAIT()
     }
-    if eq(word, "impl") {
+    if word.eq("impl") {
         return tokens::TK_IMPL()
     }
-    if eq(word, "const") {
+    if word.eq("const") {
         return tokens::TK_CONST()
     }
-    if eq(word, "proof") {
+    if word.eq("proof") {
         return tokens::TK_PROOF()
     }
-    if eq(word, "export") {
+    if word.eq("export") {
         return tokens::TK_EXPORT()
     }
-    if eq(word, "resource") {
+    if word.eq("resource") {
         return tokens::TK_RESOURCE()
     }
-    if eq(word, "async") {
+    if word.eq("async") {
         return tokens::TK_ASYNC()
     }
-    if eq(word, "Self") {
+    if word.eq("Self") {
         return tokens::TK_SELF()
     }
     0 - 1

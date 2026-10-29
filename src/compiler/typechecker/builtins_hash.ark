@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use typechecker::kinds
 use typechecker::contract_type_access
 use typechecker::contract_type_constructors
@@ -46,66 +45,66 @@ fn hashmap_string_string_type() -> TypeInfo {
 // `typechecker::hashmap_methods` types. Only the non-public __hm_* storage
 // bridge keeps builtin call typing here.
 fn hashmap_builtin_return_type(name: String) -> TypeInfo {
-    if eq(name.clone(), "__hm_si_new") || eq(name.clone(), "__hm_si_new_with_cap") {
+    if name.clone().eq("__hm_si_new") || name.clone().eq("__hm_si_new_with_cap") {
         return hashmap_string_i32_type()
     }
-    if eq(name.clone(), "__hm_si_cap") ||
-    eq(name.clone(), "__hm_si_size") ||
-    eq(name.clone(), "__hm_si_get_flag") ||
-    eq(name.clone(), "__hm_si_get_val") {
+    if name.clone().eq("__hm_si_cap") ||
+    name.clone().eq("__hm_si_size") ||
+    name.clone().eq("__hm_si_get_flag") ||
+    name.clone().eq("__hm_si_get_val") {
         return simple_type(commands::TY_I32())
     }
-    if eq(name.clone(), "__hm_si_get_key") {
+    if name.clone().eq("__hm_si_get_key") {
         return simple_type(commands::TY_STRING())
     }
-    if eq(name.clone(), "__hm_is_new") || eq(name.clone(), "__hm_is_new_with_cap") {
+    if name.clone().eq("__hm_is_new") || name.clone().eq("__hm_is_new_with_cap") {
         return hashmap_i32_string_type()
     }
-    if eq(name.clone(), "__hm_is_cap") ||
-    eq(name.clone(), "__hm_is_size") ||
-    eq(name.clone(), "__hm_is_get_flag") ||
-    eq(name.clone(), "__hm_is_get_key") {
+    if name.clone().eq("__hm_is_cap") ||
+    name.clone().eq("__hm_is_size") ||
+    name.clone().eq("__hm_is_get_flag") ||
+    name.clone().eq("__hm_is_get_key") {
         return simple_type(commands::TY_I32())
     }
-    if eq(name.clone(), "__hm_is_get_val") {
+    if name.clone().eq("__hm_is_get_val") {
         return simple_type(commands::TY_STRING())
     }
-    if eq(name.clone(), "__hm_if_new") || eq(name.clone(), "__hm_if_new_with_cap") {
+    if name.clone().eq("__hm_if_new") || name.clone().eq("__hm_if_new_with_cap") {
         return hashmap_i32_fn_type()
     }
-    if eq(name.clone(), "__hm_if_cap") ||
-    eq(name.clone(), "__hm_if_size") ||
-    eq(name.clone(), "__hm_if_get_flag") ||
-    eq(name.clone(), "__hm_if_get_key") {
+    if name.clone().eq("__hm_if_cap") ||
+    name.clone().eq("__hm_if_size") ||
+    name.clone().eq("__hm_if_get_flag") ||
+    name.clone().eq("__hm_if_get_key") {
         return simple_type(commands::TY_I32())
     }
-    if eq(name.clone(), "__hm_if_get_val") {
+    if name.clone().eq("__hm_if_get_val") {
         return simple_type(kinds::TY_FN())
     }
-    if eq(name.clone(), "__hm_sf_new") || eq(name.clone(), "__hm_sf_new_with_cap") {
+    if name.clone().eq("__hm_sf_new") || name.clone().eq("__hm_sf_new_with_cap") {
         return hashmap_string_fn_type()
     }
-    if eq(name.clone(), "__hm_sf_cap") ||
-    eq(name.clone(), "__hm_sf_size") ||
-    eq(name.clone(), "__hm_sf_get_flag") {
+    if name.clone().eq("__hm_sf_cap") ||
+    name.clone().eq("__hm_sf_size") ||
+    name.clone().eq("__hm_sf_get_flag") {
         return simple_type(commands::TY_I32())
     }
-    if eq(name.clone(), "__hm_sf_get_key") {
+    if name.clone().eq("__hm_sf_get_key") {
         return simple_type(commands::TY_STRING())
     }
-    if eq(name.clone(), "__hm_sf_get_val") {
+    if name.clone().eq("__hm_sf_get_val") {
         return simple_type(kinds::TY_FN())
     }
-    if eq(name.clone(), "__hm_ss_new") || eq(name.clone(), "__hm_ss_new_with_cap") {
+    if name.clone().eq("__hm_ss_new") || name.clone().eq("__hm_ss_new_with_cap") {
         return hashmap_string_string_type()
     }
-    if eq(name.clone(), "__hm_ss_cap") || eq(name.clone(), "__hm_ss_size") || eq(name.clone(), "__hm_ss_get_flag") {
+    if name.clone().eq("__hm_ss_cap") || name.clone().eq("__hm_ss_size") || name.clone().eq("__hm_ss_get_flag") {
         return simple_type(commands::TY_I32())
     }
-    if eq(name.clone(), "__hm_ss_get_key") || eq(name.clone(), "__hm_ss_get_val") {
+    if name.clone().eq("__hm_ss_get_key") || name.clone().eq("__hm_ss_get_val") {
         return simple_type(commands::TY_STRING())
     }
-    if eq(name.clone(), "__intrinsic_i31_box") || eq(name.clone(), "i31_box") {
+    if name.clone().eq("__intrinsic_i31_box") || name.clone().eq("i31_box") {
         return simple_type(commands::TY_I32())
     }
     simple_type(commands::TY_UNKNOWN())

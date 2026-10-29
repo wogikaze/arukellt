@@ -1,11 +1,10 @@
-use std::prelude::{eq}
 use std::text
 pub fn path_parent_dir(path: String) -> String {
     let n = len(path)
     let mut last_slash = 0 - 1
     let mut i = n - 1
     while i >= 0 {
-        if eq(path.slice(i, i + 1), "/") {
+        if path.slice(i, i + 1).eq("/") {
             last_slash = i
             i = 0 - 1
         } else {
@@ -48,6 +47,6 @@ pub fn module_stem_to_file_path(base_dir: String, stem: String) -> String {
     base_dir.clone().concat("/".concat(stem.clone().concat(".ark")))
 }
 test mod "local_path" {
-    test "parent" { assert(eq(path_parent_dir("a/b/c.ark"), "a/b")) }
-    test "stem" { assert(eq(module_path_to_file_stem("foo::bar"), "foo/bar")) }
+    test "parent" { assert(path_parent_dir("a/b/c.ark").eq("a/b")) }
+    test "stem" { assert(module_path_to_file_stem("foo::bar").eq("foo/bar")) }
 }

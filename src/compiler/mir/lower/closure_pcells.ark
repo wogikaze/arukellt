@@ -9,7 +9,6 @@
 // because local indices are per-function — the synth flags its own
 // payload shadow under its own frame name.
 
-use std::prelude::{eq}
 use std::text
 use mir::function_identity
 use mir::inst_draft
@@ -37,7 +36,7 @@ fn ctx_pcell_find(ctx: LowerCtx, fn_name: String, local_idx: i32) -> i32 {
     let mut i = 0
     while i < len(ctx.pcell_fn_names) {
         if get_unchecked(ctx.pcell_lis, i) == local_idx &&
-        eq(get_unchecked(ctx.pcell_fn_names, i), fn_name.clone()) {
+        get_unchecked(ctx.pcell_fn_names, i).eq(fn_name.clone()) {
             return i
         }
         i = i + 1
@@ -105,7 +104,7 @@ fn ctx_pcell_cell_name_for(mut ctx: LowerCtx, payload_type: String, payload_vt: 
     }
     let mut i = 0
     while i < len(ctx.pcell_reg_keys) {
-        if eq(get_unchecked(ctx.pcell_reg_keys, i), key.clone()) {
+        if get_unchecked(ctx.pcell_reg_keys, i).eq(key.clone()) {
             return get_unchecked(ctx.pcell_reg_cells, i).clone()
         }
         i = i + 1
@@ -132,7 +131,7 @@ fn ctx_pcell_cell_name_for(mut ctx: LowerCtx, payload_type: String, payload_vt: 
 fn ctx_pcell_reg_lookup(ctx: LowerCtx, cell_name: String) -> i32 {
     let mut i = 0
     while i < len(ctx.pcell_reg_cells) {
-        if eq(get_unchecked(ctx.pcell_reg_cells, i), cell_name.clone()) {
+        if get_unchecked(ctx.pcell_reg_cells, i).eq(cell_name.clone()) {
             return i
         }
         i = i + 1
@@ -241,7 +240,7 @@ fn ctx_pcell_mat_lookup(ctx: LowerCtx, fn_name: String, value_li: i32) -> i32 {
     let mut i = len(ctx.pcell_mat_fns) - 1
     while i >= 0 {
         if get_unchecked(ctx.pcell_mat_lis, i) == value_li &&
-        eq(get_unchecked(ctx.pcell_mat_fns, i), fn_name.clone()) {
+        get_unchecked(ctx.pcell_mat_fns, i).eq(fn_name.clone()) {
             return get_unchecked(ctx.pcell_mat_tmps, i)
         }
         i = i - 1
@@ -253,7 +252,7 @@ fn ctx_pcell_clear_mat_entry(mut ctx: LowerCtx, fn_name: String, value_li: i32) 
     let mut i = len(ctx.pcell_mat_fns) - 1
     while i >= 0 {
         if get_unchecked(ctx.pcell_mat_lis, i) == value_li &&
-        eq(get_unchecked(ctx.pcell_mat_fns, i), fn_name.clone()) {
+        get_unchecked(ctx.pcell_mat_fns, i).eq(fn_name.clone()) {
             set(ctx.pcell_mat_lis, i, 0 - 1)
         }
         i = i - 1
@@ -265,7 +264,7 @@ fn ctx_pcell_clear_mat_entry(mut ctx: LowerCtx, fn_name: String, value_li: i32) 
 fn ctx_pcell_clear_fn_mats(mut ctx: LowerCtx, fn_name: String) {
     let mut i = len(ctx.pcell_mat_fns) - 1
     while i >= 0 {
-        if eq(get_unchecked(ctx.pcell_mat_fns, i), fn_name.clone()) {
+        if get_unchecked(ctx.pcell_mat_fns, i).eq(fn_name.clone()) {
             set(ctx.pcell_mat_lis, i, 0 - 1)
         }
         i = i - 1
@@ -396,7 +395,7 @@ fn pcell_op_clears_mats(op: i32) -> bool {
 fn ctx_pcell_fn_has_cells(ctx: LowerCtx, fn_name: String) -> bool {
     let mut i = 0
     while i < len(ctx.pcell_fn_names) {
-        if eq(get_unchecked(ctx.pcell_fn_names, i), fn_name.clone()) {
+        if get_unchecked(ctx.pcell_fn_names, i).eq(fn_name.clone()) {
             return true
         }
         i = i + 1

@@ -14,7 +14,6 @@ use wasm::hash_aliases
 // Pre-#823 fixpoint walk kept for A/B measurement only.
 // Enable with MIR_REACHABILITY_LEGACY_FIXPOINT=1 on a clock-capable artifact.
 
-use std::prelude::{eq}
 fn mir_reachability_legacy_enabled() -> bool {
     // Legacy walk stays off: enable via source edit for A/B, not env.
     false
@@ -25,7 +24,7 @@ fn mir_legacy_mark_reachable_name(functions: Vec<MirFunction>, mut reachable: Ve
     let mut i = 0
     while i < count {
         let f = get_unchecked(functions, i)
-        if eq(function_identity::MirFunction_name(f), name.clone()) {
+        if function_identity::MirFunction_name(f).eq(name.clone()) {
             if get_unchecked(reachable, i) == 0 {
                 set(reachable, i, 1)
                 return true
@@ -35,14 +34,14 @@ fn mir_legacy_mark_reachable_name(functions: Vec<MirFunction>, mut reachable: Ve
         i = i + 1
     }
     let short = resolver::use_module_short_name(name.clone())
-    if eq(short.clone(), name.clone()) {
+    if short.clone().eq(name.clone()) {
         return false
     }
     let mut changed = false
     let mut j = 0
     while j < count {
         let f = get_unchecked(functions, j)
-        if eq(function_identity::MirFunction_name(f), short.clone()) {
+        if function_identity::MirFunction_name(f).eq(short.clone()) {
             if get_unchecked(reachable, j) == 0 {
                 set(reachable, j, 1)
                 changed = true
@@ -97,7 +96,7 @@ fn mir_legacy_mark_function_call_targets(
                     changed = true
                 }
                 let alias = hash_aliases::hashmap_builtin_alias(callee.clone())
-                if !eq(alias.clone(), callee.clone()) &&
+                if !alias.clone().eq(callee.clone()) &&
                 mir_legacy_mark_reachable_name(functions, reachable, alias) {
                     changed = true
                 }

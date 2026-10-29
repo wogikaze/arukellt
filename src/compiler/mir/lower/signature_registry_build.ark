@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use corehir::kinds
 use corehir::mir_signature_method
@@ -101,7 +100,7 @@ fn sig_reg_index_top_level_fn(
         typed_index = fn_index_source::mir_fn_index_source_fn_typed_index_at(source, fn_info_index, typed_index)
     }
     let entry_main = fn_index_source::mir_fn_index_source_entry_main_decl_index(source)
-    let skip_shadow = eq(decl_name.clone(), String_from("main")) && decl_index != entry_main
+    let skip_shadow = decl_name.clone().eq(String_from("main")) && decl_index != entry_main
     // string.join(Vec,…) stays CoreOp-only; registering it as bare `join`
     // overwrites path::join(String,String) and yields invalid wasm (#807).
     if !skip_shadow && !sig_reg_skip_join_vec_overload(sig_source, fn_info_index, decl_name.clone()) {
@@ -174,7 +173,7 @@ fn sig_reg_index_top_level_fn(
             // registration above; anything beyond that needs per-variant entries.
             let bare_mono_count = mono::mono_index_count(midx, decl_name.clone())
             let mut qualified_mono_count = 0
-            if len(qualified_name) > 0 && !eq(qualified_name.clone(), decl_name.clone()) {
+            if len(qualified_name) > 0 && !qualified_name.clone().eq(decl_name.clone()) {
                 qualified_mono_count = mono::mono_index_count(midx, qualified_name.clone())
             }
             if qualified_mono_count > 1 || (bare_mono_count > 0 && qualified_mono_count > 0) {
@@ -209,7 +208,7 @@ fn sig_reg_import_facing_qualified_name(qualified_name: String) -> String {
 }
 
 fn sig_reg_skip_join_vec_overload(sig_source: CoreHirMirSignatureSource, fn_info_index: i32, decl_name: String) -> bool {
-    if !eq(decl_name.clone(), String_from("join")) {
+    if !decl_name.clone().eq(String_from("join")) {
         return false
     }
     if fn_info_index < 0 {
@@ -240,8 +239,8 @@ fn sig_reg_fn_is_signature_only(
         return false
     }
     if fn_info_index >= 0 && fn_index_source::mir_fn_index_source_fn_param_count_at(source, fn_info_index) > 0 {
-        if eq(decl_name.clone(), String_from("write_bytes")) ||
-        eq(decl_name.clone(), String_from("join")) {
+        if decl_name.clone().eq(String_from("write_bytes")) ||
+        decl_name.clone().eq(String_from("join")) {
             let param0 = fn_index_source::mir_fn_index_source_fn_param_at(source, fn_info_index, 0)
             return stdlib_body_defer::mir_should_defer_stdlib_body_with_param0(decl_name.clone(), param0)
         }

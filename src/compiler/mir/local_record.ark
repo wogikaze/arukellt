@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use collections::name_index
 use corehir::kinds
 use corehir::mir_value_type
@@ -44,7 +43,7 @@ fn mir_str_pool_find(pool: MirStrPool, text: String) -> i32 {
     }
     let mut i = 0
     while i < n {
-        if eq(get_unchecked(pool.strings, i).clone(), text.clone()) {
+        if get_unchecked(pool.strings, i).clone().eq(text.clone()) {
             return i
         }
         i = i + 1
@@ -161,7 +160,7 @@ fn mir_local_is_string_type(local: MirLocal, table: TypeTable) -> bool {
         return false
     }
     let type_name = mir_local_type_name(local)
-    eq(type_name.clone(), "String") || eq(type_name, "string")
+    type_name.clone().eq("String") || type_name.eq("string")
 }
 
 fn mir_local_is_string_or_untyped(local: MirLocal, table: TypeTable) -> bool {

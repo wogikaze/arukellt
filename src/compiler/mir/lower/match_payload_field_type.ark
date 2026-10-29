@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use mir::function_identity
 use mir::function_param_view
@@ -34,18 +33,18 @@ fn mir_payload_field_vt_for_payload(
     // Scrutinee-derived Option/Result payload types must win over a stale
     // first-name Option::Some(i32) layout when selecting the bind VT.
     if len(payload_type_name) > 0 && field_idx == 0 {
-        if eq(payload_type_name.clone(), "fnref") ||
-        eq(payload_type_name.clone(), "fn") ||
+        if payload_type_name.clone().eq("fnref") ||
+        payload_type_name.clone().eq("fn") ||
         payload_type_name.clone().starts_with("fn(") {
             return value_types::VT_FUNCREF()
         }
         if mir_payload_type_name_is_gc_ref_payload(payload_type_name.clone()) {
             return value_types::VT_GC_REF()
         }
-        if eq(payload_type_name.clone(), "f64") || eq(payload_type_name.clone(), "F64") {
+        if payload_type_name.clone().eq("f64") || payload_type_name.clone().eq("F64") {
             return value_types::VT_F64()
         }
-        if eq(payload_type_name.clone(), "i64") || eq(payload_type_name.clone(), "I64") {
+        if payload_type_name.clone().eq("i64") || payload_type_name.clone().eq("I64") {
             return value_types::VT_I64()
         }
         if mir_payload_scalar_type_name(payload_type_name.clone()) {
@@ -56,10 +55,10 @@ fn mir_payload_field_vt_for_payload(
     // payload.  Decide known scalar fields from the declaration first so that
     // a recursive field does not make an earlier i32 bind look like a ref.
     if len(payload_type_name) == 0 {
-        if eq(field_type.clone(), "f64") || eq(field_type.clone(), "F64") {
+        if field_type.clone().eq("f64") || field_type.clone().eq("F64") {
             return value_types::VT_F64()
         }
-        if eq(field_type.clone(), "i64") || eq(field_type.clone(), "I64") {
+        if field_type.clone().eq("i64") || field_type.clone().eq("I64") {
             return value_types::VT_I64()
         }
         if mir_payload_scalar_type_name(field_type.clone()) {
@@ -185,7 +184,7 @@ fn mir_scrut_type_args_for_base(scrut_type: String, base: String) -> Vec<String>
     }
     let lt = s.clone().index_of(String_from("<"))
     if lt > 0 && s.clone().ends_with(String_from(">")) {
-        if !eq(s.clone().slice(0, lt), base.clone()) {
+        if !s.clone().slice(0, lt).eq(base.clone()) {
             return args
         }
         return ctx_mono_type_params::ctx_split_top_level_type_args(s.slice(lt + 1, len(s) - 1))
@@ -223,12 +222,12 @@ fn mir_split_colon_type_args(inner: String) -> Vec<String> {
 }
 
 fn mir_payload_type_name_is_gc_ref_payload(type_name: String) -> bool {
-    if eq(type_name.clone(), "fnref") ||
-    eq(type_name.clone(), "fn") ||
+    if type_name.clone().eq("fnref") ||
+    type_name.clone().eq("fn") ||
     type_name.clone().starts_with("fn(") {
         return false
     }
-    if eq(type_name.clone(), "String") || eq(type_name.clone(), "string") {
+    if type_name.clone().eq("String") || type_name.clone().eq("string") {
         return true
     }
     if mir_payload_scalar_type_name(type_name.clone()) {
@@ -265,8 +264,8 @@ fn mir_payload_gc_field_is_ref(ctx: LowerCtx, variant_name: String, field_idx: i
     )
     if len(declared_type) > 0 {
         if mir_payload_scalar_type_name(declared_type.clone()) ||
-        eq(declared_type.clone(), "fnref") ||
-        eq(declared_type.clone(), "fn") ||
+        declared_type.clone().eq("fnref") ||
+        declared_type.clone().eq("fn") ||
         declared_type.clone().starts_with("fn(") {
             return false
         }
@@ -300,54 +299,54 @@ fn mir_payload_gc_field_is_ref(ctx: LowerCtx, variant_name: String, field_idx: i
 }
 
 fn mir_match_variant_is_err(variant_name: String) -> bool {
-    eq(variant_name.clone(), "Err") || eq(variant_name.clone(), "Result::Err")
+    variant_name.clone().eq("Err") || variant_name.clone().eq("Result::Err")
 }
 
 // Narrow integer ABI names. They occupy the i32 slot but keep their source
 // spelling so payload binds can sign/zero-extend on print and resolve the
 // narrow receiver's methods instead of collapsing to a plain i32.
 fn mir_narrow_int_type_name(type_name: String) -> bool {
-    eq(type_name.clone(), "i8") ||
-    eq(type_name.clone(), "u8") ||
-    eq(type_name.clone(), "i16") ||
-    eq(type_name.clone(), "u16") ||
-    eq(type_name.clone(), "u32")
+    type_name.clone().eq("i8") ||
+    type_name.clone().eq("u8") ||
+    type_name.clone().eq("i16") ||
+    type_name.clone().eq("u16") ||
+    type_name.clone().eq("u32")
 }
 
 fn mir_payload_scalar_type_name(type_name: String) -> bool {
-    if eq(type_name.clone(), "i32") || eq(type_name.clone(), "I32") {
+    if type_name.clone().eq("i32") || type_name.clone().eq("I32") {
         return true
     }
-    if eq(type_name.clone(), "i64") || eq(type_name.clone(), "I64") {
+    if type_name.clone().eq("i64") || type_name.clone().eq("I64") {
         return true
     }
-    if eq(type_name.clone(), "u64") || eq(type_name.clone(), "U64") {
+    if type_name.clone().eq("u64") || type_name.clone().eq("U64") {
         return true
     }
-    if eq(type_name.clone(), "f64") || eq(type_name.clone(), "F64") {
+    if type_name.clone().eq("f64") || type_name.clone().eq("F64") {
         return true
     }
-    if eq(type_name.clone(), "bool") || eq(type_name.clone(), "Bool") {
+    if type_name.clone().eq("bool") || type_name.clone().eq("Bool") {
         return true
     }
-    if eq(type_name.clone(), "char") {
+    if type_name.clone().eq("char") {
         return true
     }
     if mir_narrow_int_type_name(type_name.clone()) {
         return true
     }
     // Result<(), E> Ok payload is represented as i32 0 (#726 toml_insert_key).
-    if eq(type_name.clone(), "unit") || eq(type_name.clone(), "()") || eq(type_name.clone(), "void") {
+    if type_name.clone().eq("unit") || type_name.clone().eq("()") || type_name.clone().eq("void") {
         return true
     }
     false
 }
 
 fn mir_match_variant_is_some_or_ok(variant_name: String) -> bool {
-    if eq(variant_name.clone(), "Ok") || eq(variant_name.clone(), "Result::Ok") {
+    if variant_name.clone().eq("Ok") || variant_name.clone().eq("Result::Ok") {
         return true
     }
-    if eq(variant_name.clone(), "Some") || eq(variant_name.clone(), "Option::Some") {
+    if variant_name.clone().eq("Some") || variant_name.clone().eq("Option::Some") {
         return true
     }
     false

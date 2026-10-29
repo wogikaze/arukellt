@@ -2,7 +2,6 @@ use std::host::env::Env
 use std::host::fs::Fs
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{eq}
 use std::text
 use driver::config_record
 use driver::file
@@ -41,7 +40,7 @@ fn main() {
         Process::exit(1)
     }
     let subcommand = get_unchecked(args, arg_start)
-    if !eq(subcommand.clone(), "compile") {
+    if !subcommand.clone().eq("compile") {
         stdio::eprintln("unknown subcommand: ".concat(subcommand.clone()))
         Process::exit(1)
     }

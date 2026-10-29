@@ -1,13 +1,12 @@
-use std::prelude::{eq}
 use corehir::export_surface
 use corehir::decl_node_identity
 use corehir::frontend_decl_kind
 use corehir::frontend_ast_identity
 fn should_export_func(name: String) -> bool {
-    if eq(name.clone(), "main") || eq(name.clone(), "_start") {
+    if name.clone().eq("main") || name.clone().eq("_start") {
         return false
     }
-    if eq(name.clone(), "print") || eq(name.clone(), "println") || eq(name.clone(), "eprintln") {
+    if name.clone().eq("print") || name.clone().eq("println") || name.clone().eq("eprintln") {
         return false
     }
     if name.clone().contains("::") {

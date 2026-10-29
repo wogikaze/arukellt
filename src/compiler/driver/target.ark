@@ -1,14 +1,13 @@
-use std::prelude::{eq}
 fn is_native_target(target: String) -> bool {
     is_native_cpp_target(target.clone()) || is_native_llvm_target(target)
 }
 
 pub fn is_native_cpp_target(target: String) -> bool {
-    eq(target, "native-cpp")
+    target.eq("native-cpp")
 }
 
 pub fn is_native_llvm_target(target: String) -> bool {
-    eq(target, "native-llvm")
+    target.eq("native-llvm")
 }
 
 fn is_wasm_target(target: String) -> bool {

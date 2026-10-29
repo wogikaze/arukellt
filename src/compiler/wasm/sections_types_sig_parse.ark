@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 fn parse_sub_super_offset(sig: String) -> i32 {
     let plus = find_type_sig_char(sig, 43)
@@ -23,7 +22,7 @@ fn parse_sub_super_offset(sig: String) -> i32 {
 fn parse_sub_struct_sig(sig: String) -> String {
     // Zero-field user structs emit as `SubF_GS` and carry no `_GS_` field
     // marker; their body is the bare `GS` (zero fields).
-    if eq(sig.clone(), String_from("SubF_GS")) {
+    if sig.clone().eq(String_from("SubF_GS")) {
         return String_from("GS")
     }
     let marker = "_GS_"
@@ -101,7 +100,7 @@ fn parse_type_sig_int(s: String) -> i32 {
 }
 
 fn parse_gcref_offset(sig: String) -> i32 {
-    if eq(sig.clone(), "gcref") {
+    if sig.clone().eq("gcref") {
         return 2
     }
     if sig.clone().starts_with("gcref") {
