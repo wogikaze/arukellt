@@ -89,12 +89,12 @@ closure_capture/nested_capture fixtures produce 5/6/7 and 5/10 on both
 targets; two mutable-borrow nested captures of one source are E0214.
 The retired
 capability diagnostic E0220 no longer exists in the implementation.
-The committed pinned bootstrap (sha256 `3f0ca605…`) handles the current
-generic enum `Box` / `Slice` prelude directly. `selfhost build-compiler`
-retains the guarded, source-only structural overlay as a fallback path for
-older pinned artifacts; the checked-in prelude and user artifacts are
-unchanged. The bootstrap chain on the current source is fixpoint-clean
-(`s2 == s3`, sha256 `33922353…`).
+The committed pinned bootstrap (sha256 `3c02d18b…`) is a wasm32-gc / wasi-p2
+component and executes the compiler on Wasm GC, cutting a self-build from
+~34 min to ~40 s. `selfhost build-compiler` retains the guarded, source-only
+structural overlay as a fallback path for older pinned artifacts; the
+checked-in prelude and user artifacts are unchanged. The bootstrap chain on
+the current source is fixpoint-clean (`s2 == s3`, sha256 `56e7ff6a…`).
 
 ### Language v2 trait core (#856 / ADR-062)
 
@@ -175,11 +175,12 @@ parameter or receiver declares `mut` and its callers provide `let mut` or
 `mut` places. The stdlib declares `mut` on `push`, `set`, `pop`, `insert`,
 `clear`, `remove`, and the collection setters, with no name-based exemption.
 
-The official pin predates the #951 parser, so `build-compiler` strips the mode
-token from the flat overlay it compiles, and fixpoint stage 3 passes the
-internal `--bootstrap-allow-shared-param-mutation` option because that overlay
-has no modes. User programs, fixtures, and the analysis pipeline are strict.
-Both bootstrap shims and their deletion conditions are recorded in
+The flat bootstrap overlay strips the mode token so the same overlay can feed
+the core fallback pin as well as the official gc component pin, and the
+self-compile stages pass the internal
+`--bootstrap-allow-shared-param-mutation` option because that overlay has no
+modes. User programs, fixtures, and the analysis pipeline are strict. Both
+bootstrap shims and their deletion conditions are recorded in
 [compiler/bootstrap.md](../compiler/bootstrap.md).
 
 A borrowed `Box<T>` parameter is a call-scoped borrow of a unique owner, so

@@ -1,15 +1,24 @@
 # セルフホストコンパイラ中核再構築
 
-Status: active — Phase 0 NEXT  
+Status: active — Phase 3 (function-at-a-time) is the remaining gate  
 Owner: overlay / #851 / ADR-053  
 Created: 2026-09-01  
-Last updated: 2026-10-12
+Last updated: 2026-10-29
 
 決定: [`docs/adr/ADR-053-selfhost-compiler-core-rewrite.md`](../adr/ADR-053-selfhost-compiler-core-rewrite.md)  
 追跡: [`issues/open/851-selfhost-compiler-core-rewrite.md`](../../issues/open/851-selfhost-compiler-core-rewrite.md)
 
 この文書が **wasm32-gc + wasi-p2 overlay ≤10s** の実行正本である。
 `#850` の tick 探索と、局所 hotspot 削りはこの正本に従わない。
+
+## gc-host pin 復帰（2026-10-29）
+
+`bootstrap/arukellt-selfhost.wasm` を wasm32-gc / wasi-p2 component pin
+（`3c02d18b…`）に更新した。overlay の p1 コンパイルは warm **35.8 s**、
+fixpoint は **34.1 s**（更新前の core pin は 2011 s / 34 分）。p1 出力は旧
+core pin の s2 `56e7ff6a…` とバイト一致し、gc self-reproduction は
+`93aa0e6b…` で一致する。`BOOTSTRAP_EMIT_*` は wasm32 / wasi-p1 のまま据え置き。
+残る ≤10 s 目標は Phase 3 以降で詰める。
 
 ## 現行床（2026-09-01）
 

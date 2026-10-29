@@ -100,3 +100,20 @@ perfmap では host 側 wasmtime copying GC が ~55-60%（allocation churn、
 Phase 5 arena が最大レバー）。Phase 0 の未消化: 208s vs 239s の切り分けと、
 linear host での再現測定（現行は >600s timeout で計測不能 — mark_candidate が
 改善しない限り linear host 計測は取れない）。
+
+### 2026-10-29 更新（gc-host pin 復帰）
+
+`lsp::documents::handle_did_change` の else 分岐が `JsonText::get_str_after` を
+呼んでいたが、この associated function は `JsonText` impl に存在せず、bootstrap
+overlay では trap stub に lower され、if 式の結果型を i64 に汚染していた。これが
+wasm32-gc self-build の validation 失敗（`handle_did_change` の local.set）の
+原因だった。`std/json.ark` に associated function を追加して解消した。
+
+- pin: `3c02d18b…`（wasm32-gc / wasi-p2 component、8 513 357 bytes）
+- build-compiler: warm **35.8 s**（旧 core pin は 2011 s）
+- fixpoint: **34.1 s**（s2 == s3 == `56e7ff6a…`）
+- p1 identity: component の p1 出力 == 旧 core pin の s2 `56e7ff6a…`
+- gc self-reproduction: `93aa0e6b…` で一致
+- `BOOTSTRAP_EMIT_*` は wasm32 / wasi-p1 のまま（ADR-053 の ≤10s 受入後に翻す）
+
+次の作業: Phase 3（function-at-a-time）で 35 s → 20 s → 12 s を詰める。

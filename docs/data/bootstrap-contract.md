@@ -19,9 +19,9 @@
 
 | ID | Name | Description | Artifact | Command | Comparison |
 |----|------|-------------|----------|---------|------------|
-| `0` | `trust_base` | Pinned wasm32-gc/wasi-p2 P2 component is the trust base; it emits the same wasm32/wasi-p1 memory32 s2 as the previous core pin (a2803831) in ~73 s | `bootstrap/arukellt-selfhost.wasm` | — | `n/a` |
-| `build_s2` | `current_selfhost` | Pinned gc component compiles src/compiler/main.ark → s2 under the 8192-page memory32 contract (stage-2 only; use for emitter refresh) | `.build/selfhost/arukellt-s2.wasm` | `python3 scripts/manager.py selfhost build-compiler` | `build succeeds` |
-| `fixpoint` | `s2_equals_s3` | sha256(s2) == sha256(s3) (ADR-029 gate; not for routine s2 refresh) | `.build/selfhost/arukellt-s3.wasm` | `python3 scripts/manager.py selfhost fixpoint` | `sha256` |
+| `0` | `trust_base` | Pinned wasm32-gc/wasi-p2 component is the trust base; it emits the same wasm32/wasi-p1 memory32 s2 as the previous core pin (56e7ff6a) in ~40 s and reproduces its own gc core (93aa0e6b) | `bootstrap/arukellt-selfhost.wasm` | — | `n/a` |
+| `build_s2` | `current_selfhost` | Pinned gc component compiles src/compiler/main.ark → s2 under the 8192-page memory32 contract in ~40 s (stage-2 only, AOT-cached; the mode-stripped overlay runs with --bootstrap-allow-shared-param-mutation) | `.build/selfhost/arukellt-s2.wasm` | `python3 scripts/manager.py selfhost build-compiler` | `build succeeds` |
+| `fixpoint` | `s2_equals_s3` | sha256(s2) == sha256(s3); the gc component builds both stages in ~40 s each (ADR-029 gate; not for routine s2 refresh) | `.build/selfhost/arukellt-s3.wasm` | `python3 scripts/manager.py selfhost fixpoint` | `sha256` |
 
 ## Gates
 
