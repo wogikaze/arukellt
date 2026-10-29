@@ -65,7 +65,18 @@ fn emit_hm_si_new_gc(mut w: WasmWriter, ctx: SelfEmitCtx, cap_local: i32) {
     emit_hm_struct_new_gc(w, ctx, hm_type, string_ref_array_type, i32_array_type, i32_array_type, s_keys, s_vals, s_flags, cap_local)
 }
 
-fn emit_hm_struct_new_gc(mut w: WasmWriter, ctx: SelfEmitCtx, hm_type: i32, keys_array_type: i32, vals_array_type: i32, flags_array_type: i32, s_keys: i32, s_vals: i32, s_flags: i32, cap_local: i32) {
+fn emit_hm_struct_new_gc(
+    mut w: WasmWriter,
+    ctx: SelfEmitCtx,
+    hm_type: i32,
+    keys_array_type: i32,
+    vals_array_type: i32,
+    flags_array_type: i32,
+    s_keys: i32,
+    s_vals: i32,
+    s_flags: i32,
+    cap_local: i32
+) {
     emit_hm_struct_new_gc_array(w, keys_array_type, s_keys, cap_local)
     emit_hm_struct_new_gc_array(w, vals_array_type, s_vals, cap_local)
     emit_hm_struct_new_gc_array(w, flags_array_type, s_flags, cap_local)

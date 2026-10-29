@@ -965,7 +965,12 @@ fn removed_path_member_hint(name: String) -> String {
     if eq(clone(name), "stem") { return String_from("use `Path::new(path).stem()` from `use std::path::Path` instead") }
     if eq(clone(name), "normalize") { return String_from("use `Path::new(path).normalize()` from `use std::path::Path` instead") }
     if eq(clone(name), "components") { return String_from("use `Path::new(path).components()` from `use std::path::Path` instead") }
-    if eq(clone(name), "last_index_of") { return String_from("removed helper; use the `Path` methods (`file_name`, `extension`, `parent`, `stem`, `normalize`) or `String::index_of` for forward searches") }
+    if eq(clone(name), "last_index_of") {
+        return text::concat(
+            String_from("removed helper; use the `Path` methods (`file_name`, `extension`, "),
+            String_from("`parent`, `stem`, `normalize`) or `String::index_of` for forward searches")
+        )
+    }
     String_new()
 }
 

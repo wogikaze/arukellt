@@ -79,7 +79,20 @@ fn emit_contains_String_gc_setup(mut w: WasmWriter, s_needle: i32, s_vec: i32, s
     helpers_core::emit_local_set(w, s_i)
 }
 
-fn emit_contains_String_gc_outer_loop(mut w: WasmWriter, s_arr: i32, s_i: i32, s_len: i32, s_found: i32, s_cand: i32, s_clen: i32, s_nlen: i32, s_needle: i32, s_j: i32, string_type: i32, arr_type: i32) {
+fn emit_contains_String_gc_outer_loop(
+    mut w: WasmWriter,
+    s_arr: i32,
+    s_i: i32,
+    s_len: i32,
+    s_found: i32,
+    s_cand: i32,
+    s_clen: i32,
+    s_nlen: i32,
+    s_needle: i32,
+    s_j: i32,
+    string_type: i32,
+    arr_type: i32
+) {
     // outer loop: while i < len and !found
     string_gc_helpers::emit_gc_block_loop(w)
     helpers_core::emit_local_get(w, s_i)
