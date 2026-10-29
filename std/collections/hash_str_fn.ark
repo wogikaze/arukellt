@@ -7,7 +7,7 @@
 //! plus receiver methods.
 
 use std::core::hash
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 fn hashmap_str_fn_new() -> HashMap<String, fn(i32) -> i32> {
     __hm_sf_new()
 }
@@ -41,7 +41,7 @@ fn hashmap_str_fn_set(
     key: String,
     value: fn(i32) -> i32
 ) -> bool {
-    hm_sf_ensure_insert_capacity(m, clone(key))
+    hm_sf_ensure_insert_capacity(m, key.clone())
     hashmap_str_fn_set_probe(m, key, value)
 }
 

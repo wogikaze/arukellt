@@ -2,7 +2,7 @@ use corehir::mir_value_type
 use corehir::type_id
 // Column store for MirInst. Handles are (table, hid). Floats are kept as
 // IEEE-754 bits so compiler-source records do not carry nested f64 fields.
-use std::prelude::{clone, eq, f64_bits_hi, f64_bits_lo}
+use std::prelude::{eq, f64_bits_hi, f64_bits_lo}
 
 pub struct MirFloatBits {
     lo: i32,
@@ -422,7 +422,7 @@ fn mir_inst_table_str_val(table: MirInstTable, hid: i32) -> String {
     if string_id < 0 || string_id >= len(table.string_pool) {
         return String_new()
     }
-    clone(get_unchecked(table.string_pool, string_id))
+    get_unchecked(table.string_pool, string_id).clone()
 }
 
 fn mir_inst_table_str_id(table: MirInstTable, hid: i32) -> i32 {
@@ -500,7 +500,7 @@ fn mir_inst_table_string_id(mut table: MirInstTable, value: String) -> i32 {
     }
     let mut i = 0
     while i < len(table.string_pool) {
-        if eq(clone(get_unchecked(table.string_pool, i)), clone(value)) {
+        if eq(get_unchecked(table.string_pool, i).clone(), value.clone()) {
             return i
         }
         i = i + 1

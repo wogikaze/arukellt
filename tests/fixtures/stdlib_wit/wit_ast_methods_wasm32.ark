@@ -2,7 +2,7 @@
 // The method form must emit valid core Wasm on wasm32-gc exactly like the
 // free-function form; the wildcard receiver copy is the regression shape.
 use std::host::stdio
-use std::prelude::{clone, eq, get_unchecked, len}
+use std::prelude::{eq, get_unchecked, len}
 
 pub enum Node {
     Leaf(String),
@@ -36,14 +36,14 @@ impl Node {
                 let mut i = 0
                 while i < len(items) {
                     match get_unchecked(items, i) {
-                        Node::Leaf(name) => return clone(name),
+                        Node::Leaf(name) => return name.clone(),
                         _ => {},
                     }
                     i = i + 1
                 }
                 String_new()
             },
-            Node::Leaf(name) => clone(name),
+            Node::Leaf(name) => name.clone(),
         }
     }
 }
@@ -57,7 +57,7 @@ fn free_child_count(node: Node) -> i32 {
 
 fn free_first_leaf_name(node: Node) -> String {
     match node {
-        Node::Leaf(name) => clone(name),
+        Node::Leaf(name) => name.clone(),
         _ => String_new(),
     }
 }

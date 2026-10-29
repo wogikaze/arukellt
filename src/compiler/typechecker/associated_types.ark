@@ -1,5 +1,5 @@
 use std::text
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use corehir::decl_impl_target
 use typechecker::ast_access
 use typechecker::contract_associated_type
@@ -33,7 +33,7 @@ fn resolve_impl_signature(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnSig
         self_node,
         decl_impl_target::effective_impl_param_names(
             impl_node,
-            clone(env.declared_type_names)
+            env.declared_type_names.clone()
         )
     )
     let mut params = Vec::new<TypeInfo>()
@@ -44,7 +44,7 @@ fn resolve_impl_signature(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnSig
             params,
             resolve_projection(
                 env,
-                clone(trait_name),
+                trait_name.clone(),
                 self_ty,
                 contract_fn_sig::FnSig_param_at(sig, i)
             )
@@ -53,7 +53,7 @@ fn resolve_impl_signature(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnSig
     }
     let return_type = resolve_projection(
         env,
-        clone(trait_name),
+        trait_name.clone(),
         self_ty,
         contract_fn_sig::FnSig_return_type(sig)
     )
@@ -76,7 +76,7 @@ fn resolve_impl_self_return(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnS
         ast_access::node_type_ann_at(impl_node, heads - 1),
         decl_impl_target::effective_impl_param_names(
             impl_node,
-            clone(env.declared_type_names)
+            env.declared_type_names.clone()
         )
     )
     let return_type = resolve_self_type(self_ty, contract_fn_sig::FnSig_return_type(sig))
@@ -142,7 +142,7 @@ fn resolve_trait_method_signature(
             params,
             resolve_trait_method_type(
                 env,
-                clone(trait_name),
+                trait_name.clone(),
                 bound,
                 receiver,
                 sig,
@@ -154,7 +154,7 @@ fn resolve_trait_method_signature(
     }
     let return_type = resolve_trait_method_type(
         env,
-        clone(trait_name),
+        trait_name.clone(),
         bound,
         receiver,
         sig,
@@ -176,10 +176,10 @@ fn resolve_trait_method_type(
     let tag = contract_type_access::TypeInfo_tag(ty)
     if tag == commands::TY_TYPE_VAR() {
         let name = contract_type_access::TypeInfo_name(ty)
-        if eq(clone(name), "Self") {
+        if eq(name.clone(), "Self") {
             return receiver
         }
-        let param_index = trait_type_param_index(sig, trait_param_count, clone(name))
+        let param_index = trait_type_param_index(sig, trait_param_count, name.clone())
         let bound_arg_count = contract_type_access::TypeInfo_type_arg_count(bound)
         if param_index >= 0 && param_index < bound_arg_count {
             return contract_type_access::TypeInfo_type_arg_at(bound, param_index)
@@ -189,11 +189,11 @@ fn resolve_trait_method_type(
     if tag == commands::TY_STRUCT() {
         let name = contract_type_access::TypeInfo_name(ty)
         let prefix = String_from("Self::")
-        if clone(name).starts_with(clone(prefix)) {
+        if name.clone().starts_with(prefix.clone()) {
             let assoc_name = name.slice(len(prefix), len(name))
             let mut resolved = lookup_associated_type(
                 env,
-                clone(trait_name),
+                trait_name.clone(),
                 receiver,
                 assoc_name
             )
@@ -214,7 +214,7 @@ fn resolve_trait_method_type(
             resolved,
             resolve_trait_method_type(
                 env,
-                clone(trait_name),
+                trait_name.clone(),
                 bound,
                 receiver,
                 sig,
@@ -232,7 +232,7 @@ fn trait_type_param_index(sig: FnSig, count: i32, name: String) -> i32 {
     while i < count {
         if eq(
             contract_fn_sig::FnSig_type_param_at(sig, i),
-            clone(name)
+            name.clone()
         ) {
             return i
         }
@@ -257,9 +257,9 @@ fn resolve_projection(
     if tag == commands::TY_STRUCT() {
         let name = contract_type_access::TypeInfo_name(ty)
         let prefix = String_from("Self::")
-        if clone(name).starts_with(clone(prefix)) {
+        if name.clone().starts_with(prefix.clone()) {
             let assoc_name = name.slice(len(prefix), len(name))
-            let mut resolved = lookup_associated_type(env, clone(trait_name), receiver, assoc_name)
+            let mut resolved = lookup_associated_type(env, trait_name.clone(), receiver, assoc_name)
             if contract_type_access::TypeInfo_tag(resolved) != commands::TY_UNKNOWN() {
                 return resolved
             }
@@ -277,7 +277,7 @@ fn resolve_projection(
             resolved,
             resolve_projection(
                 env,
-                clone(trait_name),
+                trait_name.clone(),
                 receiver,
                 contract_type_access::TypeInfo_type_arg_at(ty, i)
             )
@@ -297,7 +297,7 @@ fn unresolved_projection_for_receiver(receiver: TypeInfo, assoc_name: String) ->
     let receiver_name = contract_type_access::TypeInfo_name(receiver)
     contract_type_constructors::TypeInfo_named(
         commands::TY_STRUCT(),
-        clone(receiver_name).concat("::".concat(assoc_name))
+        receiver_name.clone().concat("::".concat(assoc_name))
     )
 }
 
@@ -314,11 +314,11 @@ fn resolve_generic_call_type(
 ) -> TypeInfo {
     if contract_type_access::TypeInfo_tag(ty) == commands::TY_STRUCT() {
         let name = contract_type_access::TypeInfo_name(ty)
-        let separator = clone(name).index_of("::")
+        let separator = name.clone().index_of("::")
         if separator > 0 {
-            let type_param = clone(name).slice(0, separator)
-            let assoc_name = clone(name).slice(separator + 2, len(name))
-            let var_index = generic_type_var_index(var_names, clone(type_param))
+            let type_param = name.clone().slice(0, separator)
+            let assoc_name = name.clone().slice(separator + 2, len(name))
+            let var_index = generic_type_var_index(var_names, type_param.clone())
             if var_index >= 0 && var_index < len(var_types) {
                 let receiver = unify::resolve_type_deep(
                     infer_env,
@@ -327,9 +327,9 @@ fn resolve_generic_call_type(
                 let mut resolved = resolve_bound_projection(
                     env,
                     sig,
-                    clone(type_param),
+                    type_param.clone(),
                     receiver,
-                    clone(assoc_name)
+                    assoc_name.clone()
                 )
                 if contract_type_access::TypeInfo_tag(resolved) != commands::TY_UNKNOWN() {
                     return resolve_generic_call_type(
@@ -371,7 +371,7 @@ fn generic_type_var_index(names: Vec<String>, target: String) -> i32 {
     let count = len(names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(names, i), clone(target)) {
+        if eq(get_unchecked(names, i), target.clone()) {
             return i
         }
         i = i + 1
@@ -392,7 +392,7 @@ fn resolve_bound_projection(
         let bound_info = contract_fn_sig::FnSig_type_param_bound_at(sig, i)
         if eq(
             contract_type_param_bounds::TypeParamBounds_name(bound_info),
-            clone(type_param)
+            type_param.clone()
         ) {
             let trait_count = contract_type_param_bounds::TypeParamBounds_bound_count(bound_info)
             let mut j = 0
@@ -402,7 +402,7 @@ fn resolve_bound_projection(
                     env,
                     contract_type_access::TypeInfo_name(bound),
                     receiver,
-                    clone(assoc_name)
+                    assoc_name.clone()
                 )
                 if contract_type_access::TypeInfo_tag(resolved) != commands::TY_UNKNOWN() {
                     return resolved
@@ -431,10 +431,10 @@ fn lookup_associated_type(
         let entry = get_unchecked(env.associated_types, i)
         if names::same_type_name(
             contract_associated_type::trait_associated_type_info_trait_name(entry),
-            clone(trait_name)
+            trait_name.clone()
         ) && eq(
             contract_associated_type::trait_associated_type_info_name(entry),
-            clone(assoc_name)
+            assoc_name.clone()
         ) && same_type(
             contract_associated_type::trait_associated_type_info_self_ty(entry),
             receiver
@@ -452,10 +452,10 @@ fn lookup_associated_type(
         let pattern = contract_associated_type::trait_associated_type_info_self_ty(entry)
         if names::same_type_name(
             contract_associated_type::trait_associated_type_info_trait_name(entry),
-            clone(trait_name)
+            trait_name.clone()
         ) && eq(
             contract_associated_type::trait_associated_type_info_name(entry),
-            clone(assoc_name)
+            assoc_name.clone()
         ) {
             // The entry's self pattern can degrade impl type variables to
             // named structs (I spelled as a struct), which hides the
@@ -465,9 +465,9 @@ fn lookup_associated_type(
             let impl_self = lookup_var_carrying_impl_self(
                 env,
                 contract_associated_type::trait_associated_type_info_trait_name(entry),
-                clone(pattern)
+                pattern.clone()
             )
-            if type_contains_var(clone(impl_self)) {
+            if type_contains_var(impl_self.clone()) {
                 let mut var_names = Vec::new<String>()
                 let mut var_types = Vec::new<TypeInfo>()
                 if match_pattern_collect_vars(impl_self, receiver, var_names, var_types) {
@@ -478,8 +478,8 @@ fn lookup_associated_type(
                     // does or callers see the raw I::Item spelling.
                     return normalize_projection_ty(
                         env,
-                        clone(var_names),
-                        clone(var_types),
+                        var_names.clone(),
+                        var_types.clone(),
                         instantiate::instantiate_type(
                             contract_associated_type::trait_associated_type_info_value_ty(entry),
                             var_names,
@@ -511,14 +511,14 @@ fn normalize_projection_ty(
     let tag = contract_type_access::TypeInfo_tag(ty)
     if tag == commands::TY_STRUCT() || tag == commands::TY_ENUM() {
         let name = contract_type_access::TypeInfo_name(ty)
-        let sep = projection_sep_index(clone(name))
+        let sep = projection_sep_index(name.clone())
         if sep >= 0 {
-            let owner_name = clone(name).slice(0, sep)
-            let assoc_name = clone(name).slice(sep + 2, len(name))
+            let owner_name = name.clone().slice(0, sep)
+            let assoc_name = name.clone().slice(sep + 2, len(name))
             let receiver = projection_owner_ty(
                 env,
-                clone(var_names),
-                clone(var_types),
+                var_names.clone(),
+                var_types.clone(),
                 owner_name
             )
             if contract_type_access::TypeInfo_tag(receiver) != commands::TY_UNKNOWN() {
@@ -540,8 +540,8 @@ fn normalize_projection_ty(
             result,
             normalize_projection_ty(
                 env,
-                clone(var_names),
-                clone(var_types),
+                var_names.clone(),
+                var_types.clone(),
                 contract_type_access::TypeInfo_type_arg_at(ty, i)
             )
         )
@@ -554,7 +554,7 @@ fn normalize_projection_ty(
 fn projection_sep_index(name: String) -> i32 {
     let mut i = len(name) - 2
     while i >= 0 {
-        if clone(name).byte_at(i) == 58 && clone(name).byte_at(i + 1) == 58 {
+        if name.clone().byte_at(i) == 58 && name.clone().byte_at(i + 1) == 58 {
             return i
         }
         i = i - 1
@@ -576,26 +576,26 @@ fn projection_owner_ty(
     while b < bound_count {
         if eq(
             projection_bare_name(get_unchecked(var_names, b)),
-            projection_bare_name(clone(owner_name))
+            projection_bare_name(owner_name.clone())
         ) {
             return get_unchecked(var_types, b)
         }
         b = b + 1
     }
     let n = len(owner_name)
-    if n > 2 && clone(owner_name).byte_at(n - 1) == 62 {
+    if n > 2 && owner_name.clone().byte_at(n - 1) == 62 {
         let mut lt = 0 - 1
         let mut i = 0
         while i < n {
-            if clone(owner_name).byte_at(i) == 60 {
+            if owner_name.clone().byte_at(i) == 60 {
                 lt = i
                 i = n
             }
             i = i + 1
         }
         if lt > 0 {
-            let ctor = clone(owner_name).slice(0, lt)
-            let inner = clone(owner_name).slice(lt + 1, n - 1)
+            let ctor = owner_name.clone().slice(0, lt)
+            let inner = owner_name.clone().slice(lt + 1, n - 1)
             let mut args = Vec::new<TypeInfo>()
             let mut seg_start = 0
             let mut depth = 0
@@ -603,7 +603,7 @@ fn projection_owner_ty(
             let mut j = 0
             while j <= m {
                 let at_end = j == m
-                let ch = if at_end { 44 } else { clone(inner).byte_at(j) }
+                let ch = if at_end { 44 } else { inner.clone().byte_at(j) }
                 if ch == 60 {
                     depth = depth + 1
                 }
@@ -615,9 +615,9 @@ fn projection_owner_ty(
                         args,
                         projection_owner_ty(
                             env,
-                            clone(var_names),
-                            clone(var_types),
-                            trim_type_ws(clone(inner).slice(seg_start, j))
+                            var_names.clone(),
+                            var_types.clone(),
+                            trim_type_ws(inner.clone().slice(seg_start, j))
                         )
                     )
                     seg_start = j + 1
@@ -633,7 +633,7 @@ fn projection_owner_ty(
 // Type-variable spellings differ between signature params (?I) and
 // projection names (I::Item). Compare on the bare identifier.
 fn projection_bare_name(name: String) -> String {
-    if len(name) > 0 && clone(name).byte_at(0) == 63 {
+    if len(name) > 0 && name.clone().byte_at(0) == 63 {
         return name.slice(1, len(name))
     }
     name
@@ -642,10 +642,10 @@ fn projection_bare_name(name: String) -> String {
 fn trim_type_ws(seg: String) -> String {
     let mut start = 0
     let mut end = len(seg)
-    while start < end && clone(seg).byte_at(start) == 32 {
+    while start < end && seg.clone().byte_at(start) == 32 {
         start = start + 1
     }
-    while end > start && clone(seg).byte_at(end - 1) == 32 {
+    while end > start && seg.clone().byte_at(end - 1) == 32 {
         end = end - 1
     }
     seg.slice(start, end)
@@ -663,10 +663,10 @@ fn lookup_assoc_for_ctor(env: TypeEnv, receiver: TypeInfo, assoc_name: String) -
         let entry_self = contract_associated_type::trait_associated_type_info_self_ty(entry)
         if eq(
             contract_associated_type::trait_associated_type_info_name(entry),
-            clone(assoc_name)
+            assoc_name.clone()
         ) && names::same_type_name(
             contract_type_access::TypeInfo_name(entry_self),
-            clone(ctor)
+            ctor.clone()
         ) {
             // The entry's self pattern can degrade impl type variables to
             // named structs (T spelled as a struct). The trait_impls entry
@@ -674,20 +674,20 @@ fn lookup_assoc_for_ctor(env: TypeEnv, receiver: TypeInfo, assoc_name: String) -
             let impl_self = lookup_var_carrying_impl_self(
                 env,
                 contract_associated_type::trait_associated_type_info_trait_name(entry),
-                clone(entry_self)
+                entry_self.clone()
             )
             let mut bound_names = Vec::new<String>()
             let mut bound_types = Vec::new<TypeInfo>()
             if match_pattern_collect_vars(
-                clone(impl_self),
-                clone(receiver),
+                impl_self.clone(),
+                receiver.clone(),
                 bound_names,
                 bound_types
             ) {
                 return normalize_projection_ty(
                     env,
-                    clone(bound_names),
-                    clone(bound_types),
+                    bound_names.clone(),
+                    bound_types.clone(),
                     instantiate::instantiate_type(
                         contract_associated_type::trait_associated_type_info_value_ty(entry),
                         bound_names,
@@ -695,7 +695,7 @@ fn lookup_assoc_for_ctor(env: TypeEnv, receiver: TypeInfo, assoc_name: String) -
                     )
                 )
             }
-            if same_type(clone(entry_self), clone(receiver)) {
+            if same_type(entry_self.clone(), receiver.clone()) {
                 return contract_associated_type::trait_associated_type_info_value_ty(entry)
             }
         }
@@ -714,11 +714,11 @@ fn lookup_var_carrying_impl_self(env: TypeEnv, trait_name: String, entry_self: T
         let self_ty = contract_trait_impl::TraitImplInfo_self_ty(impl_info)
         if names::same_type_name(
             contract_trait_impl::TraitImplInfo_trait_name(impl_info),
-            clone(trait_name)
+            trait_name.clone()
         ) && names::same_type_name(
             contract_type_access::TypeInfo_name(self_ty),
             contract_type_access::TypeInfo_name(entry_self)
-        ) && type_contains_var(clone(self_ty)) {
+        ) && type_contains_var(self_ty.clone()) {
             return self_ty
         }
         i = i + 1
@@ -752,7 +752,7 @@ fn match_pattern_collect_vars(
         let bound_count = len(names)
         let mut i = 0
         while i < bound_count {
-            if eq(get_unchecked(names, i), clone(var_name)) {
+            if eq(get_unchecked(names, i), var_name.clone()) {
                 return same_type(get_unchecked(types, i), actual)
             }
             i = i + 1

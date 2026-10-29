@@ -1,13 +1,12 @@
 use std::json
-use std::prelude::{clone}
 use lsp::framing
 use lsp::references_semantic
 pub fn handle_references(mut state: LspState, body: String) {
-    let id = json::JsonText::get_int(clone(body), String_from("id"))
+    let id = json::JsonText::get_int(body.clone(), String_from("id"))
     framing::append_framed(state, references_semantic::build_references_response(state, body, id))
 }
 
 pub fn handle_document_highlight(mut state: LspState, body: String) {
-    let id = json::JsonText::get_int(clone(body), String_from("id"))
+    let id = json::JsonText::get_int(body.clone(), String_from("id"))
     framing::append_framed(state, references_semantic::build_document_highlight_response(state, body, id))
 }

@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 21
+- **Canonical names:** 20
 - **Historical/deprecated names:** 65
-- **Total entries:** 86
+- **Total entries:** 85
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -24,7 +24,6 @@ Current public API names, sorted alphabetically.
 | `assert` | `prelude` | `stable` | Assert |
 | `Box_new` | `prelude` | `stable` | Box |
 | `char_to_string` | `prelude` | `stable` | Conversion |
-| `clone` | `prelude` | `stable` | String |
 | `eprintln` | `std::host::stdio` | `stable` | Host Stdio |
 | `eq` | `prelude` | `stable` | String |
 | `fd_fdstat_errno` | `std::host::fs` | `experimental` | Host Fs |
@@ -134,7 +133,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`binary_search`~~ | ⚠️ deprecated | `std::seq` | → `Vec::binary_search` · [migration guide](migration-guidance.md) |
 | `Box_new` | ✅ `stable` | `prelude` | Box |
 | `char_to_string` | ✅ `stable` | `prelude` | Conversion |
-| `clone` | ✅ `stable` | `prelude` | String |
 | ~~`count_eq`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::count_eq` · [migration guide](migration-guidance.md) |
 | ~~`deque_back`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::back` · [migration guide](migration-guidance.md) |
 | ~~`deque_clear`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::clear` · [migration guide](migration-guidance.md) |

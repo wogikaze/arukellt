@@ -1,16 +1,16 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use corehir::export_surface
 use corehir::decl_node_identity
 use corehir::frontend_decl_kind
 use corehir::frontend_ast_identity
 fn should_export_func(name: String) -> bool {
-    if eq(clone(name), "main") || eq(clone(name), "_start") {
+    if eq(name.clone(), "main") || eq(name.clone(), "_start") {
         return false
     }
-    if eq(clone(name), "print") || eq(clone(name), "println") || eq(clone(name), "eprintln") {
+    if eq(name.clone(), "print") || eq(name.clone(), "println") || eq(name.clone(), "eprintln") {
         return false
     }
-    if clone(name).contains("::") {
+    if name.clone().contains("::") {
         return false
     }
     true
@@ -25,7 +25,7 @@ fn build_export_surface(decls: Vec<AstNode>) -> CoreHirExportSurface {
         let kind = frontend_ast_identity::corehir_node_kind(decl)
         if frontend_decl_kind::corehir_kind_is_decl_fn(kind) {
             let name = decl_node_identity::decl_name(decl)
-            if decl_node_identity::decl_is_component_export(decl) && should_export_func(clone(name)) {
+            if decl_node_identity::decl_is_component_export(decl) && should_export_func(name.clone()) {
                 push(export_names, name)
             }
         }

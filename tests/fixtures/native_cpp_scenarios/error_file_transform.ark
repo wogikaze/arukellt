@@ -1,7 +1,6 @@
 use std::host::fs::Fs
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{clone}
 use std::text
 fn transform_line(line: String) -> Result<String, String> {
     if len(line) == 0 {
@@ -13,7 +12,7 @@ fn transform_line(line: String) -> Result<String, String> {
 
 fn main() {
     let mut path = String_from("native_cpp_scenario_transform.txt")
-    match Fs::write_string(clone(path), String_from("payload")) {
+    match Fs::write_string(path.clone(), String_from("payload")) {
         Result::Ok(_) => {
         },
         Result::Err(err) => {

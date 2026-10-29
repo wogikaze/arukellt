@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::decl_ann_children
 use corehir::type_ann_local_name
@@ -34,22 +34,22 @@ fn param_named_local_type_name(
 ) -> String {
     if decl_ann_name::decl_ann_is_named(ann) {
         let name = decl_ann_name::decl_ann_name(ann)
-        if param_shape_declared::corehir_declared_type_param_contains(clone(type_params), clone(name)) {
+        if param_shape_declared::corehir_declared_type_param_contains(type_params.clone(), name.clone()) {
             return String_new()
         }
-        if param_shape_declared::corehir_nominal_types_has_enum(nominal_types, clone(name)) {
+        if param_shape_declared::corehir_nominal_types_has_enum(nominal_types, name.clone()) {
             return String_from("enum:").concat(name)
         }
-        if param_shape_declared::corehir_nominal_types_has_struct(nominal_types, clone(name)) {
+        if param_shape_declared::corehir_nominal_types_has_struct(nominal_types, name.clone()) {
             return name
         }
-        if !eq(clone(name), "i32") &&
-        !eq(clone(name), "f64") &&
-        !eq(clone(name), "i64") &&
-        !eq(clone(name), "bool") &&
-        !eq(clone(name), "String") &&
-        !eq(clone(name), "u8") &&
-        !eq(clone(name), "char") &&
+        if !eq(name.clone(), "i32") &&
+        !eq(name.clone(), "f64") &&
+        !eq(name.clone(), "i64") &&
+        !eq(name.clone(), "bool") &&
+        !eq(name.clone(), "String") &&
+        !eq(name.clone(), "u8") &&
+        !eq(name.clone(), "char") &&
         len(name) > 1 {
             return name
         }
@@ -270,8 +270,8 @@ fn generic_user_type_local_name(
     while i < arg_count {
         let arg_name = decl_ann_name::decl_ann_name(decl_ann_children::decl_ann_child_at(ann, i))
         if is_generic_type_param_name(
-            clone(arg_name),
-            clone(type_params),
+            arg_name.clone(),
+            type_params.clone(),
             nominal_types
         ) {
             has_type_var = true
@@ -284,7 +284,7 @@ fn generic_user_type_local_name(
         // spelling so field access derives the substituted layout.
         return type_ann_local_name::type_ann_generic_inst_local_name(ann)
     }
-    let mut marker = String_from("?").concat(clone(name))
+    let mut marker = String_from("?").concat(name.clone())
     i = 1
     while i < arg_count {
         let arg_name = decl_ann_name::decl_ann_name(decl_ann_children::decl_ann_child_at(ann, i))
@@ -299,10 +299,10 @@ fn is_generic_type_param_name(
     type_params: Vec<String>,
     nominal_types: CoreHirNominalTypes
 ) -> bool {
-    if param_shape_declared::corehir_declared_type_param_contains(clone(type_params), clone(name)) {
+    if param_shape_declared::corehir_declared_type_param_contains(type_params.clone(), name.clone()) {
         return true
     }
-    if param_shape_declared::corehir_nominal_types_contains(nominal_types, clone(name)) {
+    if param_shape_declared::corehir_nominal_types_contains(nominal_types, name.clone()) {
         return false
     }
     if len(name) != 1 {

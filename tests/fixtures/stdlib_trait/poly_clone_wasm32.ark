@@ -1,0 +1,49 @@
+// `.clone()` is polymorphic: String dispatches the Clone impl, Vec uses the
+// prelude inherent method, and structs / enums / Option without a Clone impl
+// fall back to the compiler identity shim. Every shape must compile and run.
+use std::test::Test
+
+struct Pair {
+    a: i32,
+    b: i32,
+}
+
+enum Choice {
+    Left,
+    Right,
+}
+
+fn main() {
+    let s = String_from("abc")
+    Test::assert_eq_string(s.clone(), "abc")
+
+    let mut v: Vec<String> = Vec::new<String>()
+    v.push(String_from("a"))
+    let vc = v.clone()
+    Test::assert_eq_i32(vc.len(), 1)
+    Test::assert_eq_string(get_unchecked(vc, 0), "a")
+
+    let mut nums: Vec<i32> = Vec::new<i32>()
+    nums.push(7)
+    let nc = nums.clone()
+    Test::assert_eq_i32(get_unchecked(nc, 0), 7)
+
+    let p = Pair { a: 1, b: 2 }
+    let pc = p.clone()
+    Test::assert_eq_i32(pc.a, 1)
+    Test::assert_eq_i32(pc.b, 2)
+
+    let c = Choice::Left
+    let cc = c.clone()
+    match cc {
+        Choice::Left => { Test::assert_true(true) },
+        Choice::Right => { Test::assert_true(false) },
+    }
+
+    let o: Option<i32> = Option::Some(3)
+    let oc = o.clone()
+    match oc {
+        Option::Some(x) => { Test::assert_eq_i32(x, 3) },
+        Option::None => { Test::assert_true(false) },
+    }
+}

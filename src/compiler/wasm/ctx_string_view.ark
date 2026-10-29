@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use wasm::constants
 use wasm::ctx_record
 use mir::module_strings
@@ -22,7 +22,7 @@ fn SelfEmitCtx_string_offset_for_value(ctx: SelfEmitCtx, value: String) -> i32 {
     let values = module_strings::MirModule_string_constants(ctx.mir)
     let mut i = 0
     while i < len(values) {
-        if eq(clone(get_unchecked(values, i)), clone(value)) {
+        if eq(get_unchecked(values, i).clone(), value.clone()) {
             return SelfEmitCtx_string_offset_at(ctx, i)
         }
         i = i + 1

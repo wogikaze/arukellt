@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::callee_spelling
 use mir::lower::call_rewrite_vec_access
@@ -20,7 +20,7 @@ fn mir_vec_call_rewrite_new(callee_name: String, push_i64_needs_extend: bool) ->
 }
 
 fn mir_vec_call_rewrite_callee_name(rewrite: MirVecCallRewrite) -> String {
-    clone(rewrite.callee_name)
+    rewrite.callee_name.clone()
 }
 
 fn mir_vec_call_rewrite_push_i64_needs_extend(rewrite: MirVecCallRewrite) -> bool {
@@ -28,64 +28,64 @@ fn mir_vec_call_rewrite_push_i64_needs_extend(rewrite: MirVecCallRewrite) -> boo
 }
 
 fn mir_vec_call_target_is_intrinsic(callee_name: String) -> bool {
-    eq(clone(callee_name), String_from("vec_get")) ||
-    eq(clone(callee_name), String_from("vec_get_unchecked")) ||
-    eq(clone(callee_name), String_from("vec_get_unchecked_i64")) ||
-    eq(clone(callee_name), String_from("vec_get_unchecked_f64")) ||
-    eq(clone(callee_name), String_from("vec_len")) ||
-    eq(clone(callee_name), String_from("raw_array_len")) ||
-    eq(clone(callee_name), String_from("raw_array_get_unchecked")) ||
-    eq(clone(callee_name), String_from("raw_array_set_unchecked")) ||
-    eq(clone(callee_name), String_from("raw_array_grow")) ||
-    eq(clone(callee_name), String_from("vec_push")) ||
-    eq(clone(callee_name), String_from("push_i64")) ||
-    eq(clone(callee_name), String_from("push_f64")) ||
-    eq(clone(callee_name), String_from("vec_push_i64")) ||
-    eq(clone(callee_name), String_from("vec_push_f64")) ||
-    eq(clone(callee_name), String_from("vec_set")) ||
-    eq(clone(callee_name), String_from("vec_pop"))
+    eq(callee_name.clone(), String_from("vec_get")) ||
+    eq(callee_name.clone(), String_from("vec_get_unchecked")) ||
+    eq(callee_name.clone(), String_from("vec_get_unchecked_i64")) ||
+    eq(callee_name.clone(), String_from("vec_get_unchecked_f64")) ||
+    eq(callee_name.clone(), String_from("vec_len")) ||
+    eq(callee_name.clone(), String_from("raw_array_len")) ||
+    eq(callee_name.clone(), String_from("raw_array_get_unchecked")) ||
+    eq(callee_name.clone(), String_from("raw_array_set_unchecked")) ||
+    eq(callee_name.clone(), String_from("raw_array_grow")) ||
+    eq(callee_name.clone(), String_from("vec_push")) ||
+    eq(callee_name.clone(), String_from("push_i64")) ||
+    eq(callee_name.clone(), String_from("push_f64")) ||
+    eq(callee_name.clone(), String_from("vec_push_i64")) ||
+    eq(callee_name.clone(), String_from("vec_push_f64")) ||
+    eq(callee_name.clone(), String_from("vec_set")) ||
+    eq(callee_name.clone(), String_from("vec_pop"))
 }
 
 // Free `push(v, x)` is rewritten to `Vec::push` when `impl Vec<T>` is registered
 // (#700 / #845). Match that form too so GC String/struct vecs keep the
 // `vec_push` CoreOp path instead of mono → `__core_vec_push_i32_impl`.
 fn is_vec_push_callee(name: String) -> bool {
-    eq(clone(name), String_from("push")) ||
-    eq(clone(name), String_from("vec_push")) ||
-    eq(clone(name), String_from("push_i64")) ||
-    eq(clone(name), String_from("push_f64")) ||
-    eq(clone(name), String_from("Vec::push")) ||
-    clone(name).starts_with(String_from("Vec::push__")) ||
-    clone(name).starts_with(String_from("push__"))
+    eq(name.clone(), String_from("push")) ||
+    eq(name.clone(), String_from("vec_push")) ||
+    eq(name.clone(), String_from("push_i64")) ||
+    eq(name.clone(), String_from("push_f64")) ||
+    eq(name.clone(), String_from("Vec::push")) ||
+    name.clone().starts_with(String_from("Vec::push__")) ||
+    name.clone().starts_with(String_from("push__"))
 }
 
 fn is_vec_len_callee(name: String) -> bool {
-    eq(clone(name), String_from("len")) ||
-    eq(clone(name), String_from("Vec::len")) ||
-    clone(name).starts_with(String_from("Vec::len__")) ||
-    clone(name).starts_with(String_from("len__"))
+    eq(name.clone(), String_from("len")) ||
+    eq(name.clone(), String_from("Vec::len")) ||
+    name.clone().starts_with(String_from("Vec::len__")) ||
+    name.clone().starts_with(String_from("len__"))
 }
 
 fn is_vec_pop_callee(name: String) -> bool {
-    eq(clone(name), String_from("pop")) ||
-    eq(clone(name), String_from("Vec::pop")) ||
-    clone(name).starts_with(String_from("Vec::pop__")) ||
-    clone(name).starts_with(String_from("pop__"))
+    eq(name.clone(), String_from("pop")) ||
+    eq(name.clone(), String_from("Vec::pop")) ||
+    name.clone().starts_with(String_from("Vec::pop__")) ||
+    name.clone().starts_with(String_from("pop__"))
 }
 
 fn is_vec_set_callee(name: String) -> bool {
-    eq(clone(name), String_from("set")) ||
-    eq(clone(name), String_from("vec_set")) ||
-    eq(clone(name), String_from("Vec::set")) ||
-    clone(name).starts_with(String_from("Vec::set__")) ||
-    clone(name).starts_with(String_from("set__"))
+    eq(name.clone(), String_from("set")) ||
+    eq(name.clone(), String_from("vec_set")) ||
+    eq(name.clone(), String_from("Vec::set")) ||
+    name.clone().starts_with(String_from("Vec::set__")) ||
+    name.clone().starts_with(String_from("set__"))
 }
 
 fn mir_rewrite_vec_access_after_mono(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
-    if is_vec_get_unchecked_callee(clone(callee_name)) {
+    if is_vec_get_unchecked_callee(callee_name.clone()) {
         return call_rewrite_vec_access::mir_rewrite_vec_get_unchecked(ctx, callee_name, first_arg_idx)
     }
-    if is_vec_get_callee(clone(callee_name)) {
+    if is_vec_get_callee(callee_name.clone()) {
         return call_rewrite_vec_access::mir_rewrite_vec_get(ctx, callee_name, first_arg_idx)
     }
     callee_name
@@ -97,7 +97,7 @@ fn mir_rewrite_vec_access_after_mono(ctx: LowerCtx, callee_name: String, first_a
 // concrete Vec element type from the enclosing return (#917).
 fn mir_rewrite_raw_array_namespace(callee_name: String) -> String {
     if callee_spelling::is_namespace_member_callee(
-        clone(callee_name),
+        callee_name.clone(),
         String_from("raw_array_new"),
         String_from("RawArray"),
         String_from("new")
@@ -105,7 +105,7 @@ fn mir_rewrite_raw_array_namespace(callee_name: String) -> String {
         return String_from("raw_array_new")
     }
     if callee_spelling::is_namespace_member_callee(
-        clone(callee_name),
+        callee_name.clone(),
         String_from("raw_array_len"),
         String_from("RawArray"),
         String_from("len")
@@ -113,7 +113,7 @@ fn mir_rewrite_raw_array_namespace(callee_name: String) -> String {
         return String_from("raw_array_len")
     }
     if callee_spelling::is_namespace_member_callee(
-        clone(callee_name),
+        callee_name.clone(),
         String_from("raw_array_get_unchecked"),
         String_from("RawArray"),
         String_from("get_unchecked")
@@ -121,7 +121,7 @@ fn mir_rewrite_raw_array_namespace(callee_name: String) -> String {
         return String_from("raw_array_get_unchecked")
     }
     if callee_spelling::is_namespace_member_callee(
-        clone(callee_name),
+        callee_name.clone(),
         String_from("raw_array_set_unchecked"),
         String_from("RawArray"),
         String_from("set_unchecked")
@@ -129,7 +129,7 @@ fn mir_rewrite_raw_array_namespace(callee_name: String) -> String {
         return String_from("raw_array_set_unchecked")
     }
     if callee_spelling::is_namespace_member_callee(
-        clone(callee_name),
+        callee_name.clone(),
         String_from("raw_array_grow"),
         String_from("RawArray"),
         String_from("grow")
@@ -137,7 +137,7 @@ fn mir_rewrite_raw_array_namespace(callee_name: String) -> String {
         return String_from("raw_array_grow")
     }
     if callee_spelling::is_namespace_member_callee(
-        clone(callee_name),
+        callee_name.clone(),
         String_from("raw_array_set_len"),
         String_from("RawArray"),
         String_from("set_len")
@@ -152,10 +152,10 @@ fn mir_rewrite_vec_call(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i
         normalize_vec_constructor_callee(callee_name)
     )
     let mut push_i64_needs_extend = false
-    if is_vec_len_callee(clone(rewritten)) {
+    if is_vec_len_callee(rewritten.clone()) {
         rewritten = mir_rewrite_vec_len(ctx, rewritten, first_arg_idx)
     }
-    if is_vec_push_callee(clone(rewritten)) {
+    if is_vec_push_callee(rewritten.clone()) {
         // Normalize to bare `push` so element-type rewrite (vec_push / push_i64)
         // stays centralized in call_rewrite_vec_push.
         rewritten = String_from("push")
@@ -163,10 +163,10 @@ fn mir_rewrite_vec_call(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i
         rewritten = call_rewrite_vec_push::mir_vec_push_rewrite_callee_name(push_rewrite)
         push_i64_needs_extend = call_rewrite_vec_push::mir_vec_push_rewrite_push_i64_needs_extend(push_rewrite)
     }
-    if is_vec_get_unchecked_callee(clone(rewritten)) {
+    if is_vec_get_unchecked_callee(rewritten.clone()) {
         rewritten = call_rewrite_vec_access::mir_rewrite_vec_get_unchecked(ctx, rewritten, first_arg_idx)
     }
-    if is_vec_get_callee(clone(rewritten)) {
+    if is_vec_get_callee(rewritten.clone()) {
         rewritten = call_rewrite_vec_access::mir_rewrite_vec_get(ctx, rewritten, first_arg_idx)
     }
     rewritten = mir_rewrite_vec_basic(rewritten)
@@ -174,34 +174,34 @@ fn mir_rewrite_vec_call(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i
 }
 
 fn normalize_vec_constructor_callee(callee_name: String) -> String {
-    if clone(callee_name).starts_with(String_from("Vec_new_")) {
+    if callee_name.clone().starts_with(String_from("Vec_new_")) {
         return String_from("Vec__new__").concat(callee_name.slice(8, len(callee_name)))
     }
-    if clone(callee_name).starts_with(String_from("Vec::new__")) {
+    if callee_name.clone().starts_with(String_from("Vec::new__")) {
         return String_from("Vec__new__").concat(callee_name.slice(10, len(callee_name)))
     }
-    if clone(callee_name).starts_with(String_from("Vec_with_capacity_")) {
+    if callee_name.clone().starts_with(String_from("Vec_with_capacity_")) {
         return String_from("Vec__with_capacity__").concat(callee_name.slice(18, len(callee_name)))
     }
-    if clone(callee_name).starts_with(String_from("Vec::with_capacity__")) {
+    if callee_name.clone().starts_with(String_from("Vec::with_capacity__")) {
         return String_from("Vec__with_capacity__").concat(callee_name.slice(20, len(callee_name)))
     }
     callee_name
 }
 
 fn is_vec_get_unchecked_callee(name: String) -> bool {
-    eq(clone(name), String_from("get_unchecked")) ||
-    eq(clone(name), String_from("__intrinsic_get_unchecked")) ||
-    clone(name).ends_with(String_from("::get_unchecked")) ||
-    clone(name).starts_with(String_from("get_unchecked__")) ||
+    eq(name.clone(), String_from("get_unchecked")) ||
+    eq(name.clone(), String_from("__intrinsic_get_unchecked")) ||
+    name.clone().ends_with(String_from("::get_unchecked")) ||
+    name.clone().starts_with(String_from("get_unchecked__")) ||
     name.contains(String_from("::get_unchecked__"))
 }
 
 fn is_vec_get_callee(name: String) -> bool {
-    eq(clone(name), String_from("get")) ||
-    eq(clone(name), String_from("__intrinsic_get")) ||
-    clone(name).ends_with(String_from("::get")) ||
-    clone(name).starts_with(String_from("get__")) ||
+    eq(name.clone(), String_from("get")) ||
+    eq(name.clone(), String_from("__intrinsic_get")) ||
+    name.clone().ends_with(String_from("::get")) ||
+    name.clone().starts_with(String_from("get__")) ||
     name.contains(String_from("::get__"))
 }
 
@@ -210,9 +210,9 @@ fn mir_rewrite_vec_is_empty_to_local(mut ctx: LowerCtx, first_arg_idx: i32) -> i
         return 0 - 1
     }
     let first_arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-    if !eq(clone(first_arg_type), String_from("Vec")) &&
-    !clone(first_arg_type).starts_with("vec:") &&
-    !clone(first_arg_type).starts_with("array:") {
+    if !eq(first_arg_type.clone(), String_from("Vec")) &&
+    !first_arg_type.clone().starts_with("vec:") &&
+    !first_arg_type.clone().starts_with("array:") {
         return 0 - 1
     }
     // The receiver value is already on the stack from lower_expr.
@@ -231,9 +231,9 @@ fn mir_rewrite_vec_is_empty_to_local(mut ctx: LowerCtx, first_arg_idx: i32) -> i
 fn mir_rewrite_vec_len(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
     if first_arg_idx >= 0 {
         let arg_type_len = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-        if eq(clone(arg_type_len), String_from("Vec")) ||
-        clone(arg_type_len).starts_with("vec:") ||
-        clone(arg_type_len).starts_with("array:") {
+        if eq(arg_type_len.clone(), String_from("Vec")) ||
+        arg_type_len.clone().starts_with("vec:") ||
+        arg_type_len.clone().starts_with("array:") {
             // Prefer sealed raw at the call site so GC sees the concrete vec local.
             return String_from("raw_array_len")
         }
@@ -243,10 +243,10 @@ fn mir_rewrite_vec_len(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -
 
 fn mir_rewrite_vec_basic(callee_name: String) -> String {
     let mut rewritten = callee_name
-    if is_vec_pop_callee(clone(rewritten)) {
+    if is_vec_pop_callee(rewritten.clone()) {
         rewritten = String_from("vec_pop")
     }
-    if is_vec_set_callee(clone(rewritten)) {
+    if is_vec_set_callee(rewritten.clone()) {
         rewritten = String_from("raw_array_set_unchecked")
     }
     rewritten

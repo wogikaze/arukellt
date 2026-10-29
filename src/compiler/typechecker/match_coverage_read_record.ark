@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use typechecker::match_coverage_record
 fn MatchCoverage_has_wildcard(coverage: MatchCoverage) -> bool {
     coverage.has_wildcard
@@ -37,5 +36,5 @@ fn MatchCoverage_variant_count(coverage: MatchCoverage) -> i32 {
 }
 
 fn MatchCoverage_variant_at(coverage: MatchCoverage, index: i32) -> String {
-    clone(get_unchecked(coverage.covered_variants, index))
+    get_unchecked(coverage.covered_variants, index).clone()
 }

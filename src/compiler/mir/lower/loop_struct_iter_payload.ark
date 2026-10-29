@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
@@ -22,7 +21,7 @@ fn mir_emit_struct_iterator_payload(mut ctx: LowerCtx, opt_local: i32, iter_var:
             type_slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(
                 ctx,
                 "Option::Some",
-                clone(payload_vts),
+                payload_vts.clone(),
                 payload_type
             )
         }

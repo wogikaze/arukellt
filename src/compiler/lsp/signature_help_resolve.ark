@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use lsp::state_record
 use lsp::symbol_index_lookup
 use lsp::symbol_index_record
@@ -18,11 +18,11 @@ pub fn resolved_signature_found(sig: ResolvedSignature) -> bool {
 }
 
 pub fn resolved_signature_label(sig: ResolvedSignature) -> String {
-    clone(sig.label)
+    sig.label.clone()
 }
 
 pub fn resolved_signature_doc(sig: ResolvedSignature) -> String {
-    clone(sig.doc)
+    sig.doc.clone()
 }
 
 pub fn resolved_signature_params(sig: ResolvedSignature) -> Vec<String> {
@@ -61,7 +61,7 @@ fn split_param_list(inner: String) -> Vec<String> {
 }
 
 fn params_from_detail(detail: String) -> Vec<String> {
-    let open = clone(detail).index_of("(")
+    let open = detail.clone().index_of("(")
     if open < 0 {
         return Vec::new<String>()
     }
@@ -74,16 +74,16 @@ fn params_from_detail(detail: String) -> Vec<String> {
 
 fn resolve_from_index_def(def: symbol_index_lookup::IndexDefinition) -> ResolvedSignature {
     let detail = symbol_index_lookup::index_definition_detail(def)
-    ResolvedSignature { found: true, label: clone(detail), doc: symbol_index_lookup::index_definition_doc(def), params: params_from_detail(detail) }
+    ResolvedSignature { found: true, label: detail.clone(), doc: symbol_index_lookup::index_definition_doc(def), params: params_from_detail(detail) }
 }
 
 fn resolve_from_project_symbol(sym: symbol_index_record::IndexedSymbol) -> ResolvedSignature {
     let detail = symbol_index_record::indexed_symbol_detail(sym)
-    ResolvedSignature { found: true, label: clone(detail), doc: String_new(), params: params_from_detail(detail) }
+    ResolvedSignature { found: true, label: detail.clone(), doc: String_new(), params: params_from_detail(detail) }
 }
 
 pub fn resolve_signature_for_name(state: LspState, name: String) -> ResolvedSignature {
-    let def = symbol_index_lookup::lookup_definition(state, clone(name))
+    let def = symbol_index_lookup::lookup_definition(state, name.clone())
     if symbol_index_lookup::index_definition_found(def) {
         return resolve_from_index_def(def)
     }
@@ -92,7 +92,7 @@ pub fn resolve_signature_for_name(state: LspState, name: String) -> ResolvedSign
     let mut i = 0
     while i < n {
         let sym = get_unchecked(symbols, i)
-        if eq(symbol_index_record::indexed_symbol_name(sym), clone(name)) {
+        if eq(symbol_index_record::indexed_symbol_name(sym), name.clone()) {
             return resolve_from_project_symbol(sym)
         }
         i = i + 1

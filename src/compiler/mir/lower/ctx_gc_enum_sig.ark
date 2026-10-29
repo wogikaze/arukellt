@@ -1,6 +1,6 @@
 // GC enum variant signature helpers.
 use std::text
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ctx_gc_struct
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
@@ -38,8 +38,8 @@ fn ctx_gc_enum_payload_field_sigs_typed(mut ctx: LowerCtx, payload_vts: Vec<i32>
     let mut sig = String_new()
     for i in 0..len(payload_vts) {
         let vt = get_unchecked(payload_vts, i)
-        if i == 0 && should_use_typed_payload_field_sig(vt, clone(type_name)) {
-            sig = sig.concat(gc_enum_field_sig_for_type_ctx(ctx, clone(type_name)))
+        if i == 0 && should_use_typed_payload_field_sig(vt, type_name.clone()) {
+            sig = sig.concat(gc_enum_field_sig_for_type_ctx(ctx, type_name.clone()))
         } else {
             sig = sig.concat(gc_enum_field_sig_for_vt(ctx, vt))
         }
@@ -54,66 +54,66 @@ fn should_use_typed_payload_field_sig(vt: i32, type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if vt == value_types::VT_FUNCREF() || eq(clone(type_name), "fnref") {
+    if vt == value_types::VT_FUNCREF() || eq(type_name.clone(), "fnref") {
         return true
     }
     if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
         return true
     }
-    if typed_payload_type_name_is_scalar(clone(type_name)) {
+    if typed_payload_type_name_is_scalar(type_name.clone()) {
         return false
     }
     true
 }
 
 fn typed_payload_type_name_is_scalar(type_name: String) -> bool {
-    if eq(clone(type_name), "i32") || eq(clone(type_name), "I32") {
+    if eq(type_name.clone(), "i32") || eq(type_name.clone(), "I32") {
         return true
     }
-    if eq(clone(type_name), "i64") || eq(clone(type_name), "I64") {
+    if eq(type_name.clone(), "i64") || eq(type_name.clone(), "I64") {
         return true
     }
-    if eq(clone(type_name), "f64") || eq(clone(type_name), "F64") {
+    if eq(type_name.clone(), "f64") || eq(type_name.clone(), "F64") {
         return true
     }
-    if eq(clone(type_name), "f32") || eq(clone(type_name), "F32") {
+    if eq(type_name.clone(), "f32") || eq(type_name.clone(), "F32") {
         return true
     }
-    if eq(clone(type_name), "bool") || eq(clone(type_name), "Bool") {
+    if eq(type_name.clone(), "bool") || eq(type_name.clone(), "Bool") {
         return true
     }
-    if eq(clone(type_name), "char") || eq(clone(type_name), "u8") ||
-    eq(clone(type_name), "i8") || eq(clone(type_name), "u16") ||
-    eq(clone(type_name), "u32") || eq(clone(type_name), "u64") ||
-    eq(clone(type_name), "i16") {
+    if eq(type_name.clone(), "char") || eq(type_name.clone(), "u8") ||
+    eq(type_name.clone(), "i8") || eq(type_name.clone(), "u16") ||
+    eq(type_name.clone(), "u32") || eq(type_name.clone(), "u64") ||
+    eq(type_name.clone(), "i16") {
         return true
     }
     false
 }
 
 fn gc_enum_payload_suffix_after_prefix(s: String, prefix: String) -> String {
-    if !clone(s).starts_with(clone(prefix)) {
+    if !s.clone().starts_with(prefix.clone()) {
         return String_new()
     }
-    let prefix_len = len(clone(prefix))
-    return clone(s).slice(prefix_len, len(clone(s)))
+    let prefix_len = len(prefix.clone())
+    return s.clone().slice(prefix_len, len(s.clone()))
 }
 
 fn gc_enum_payload_sigs_compatible(existing_sig: String, want_field_sigs: String) -> bool {
     let base = "SubF+14_S_f0_i32"
-    let existing_payload = gc_enum_payload_suffix_after_prefix(clone(existing_sig), clone(base))
-    if eq(clone(existing_payload), clone(want_field_sigs)) {
+    let existing_payload = gc_enum_payload_suffix_after_prefix(existing_sig.clone(), base.clone())
+    if eq(existing_payload.clone(), want_field_sigs.clone()) {
         return true
     }
     // Distinct scalar widths must not reuse each other (#726 debug_vec:
     // Option::Some(i64) must not bind via the i32 Some variant).
-    if gc_enum_payload_is_scalar_sig(clone(existing_payload)) || gc_enum_payload_is_scalar_sig(clone(want_field_sigs)) {
+    if gc_enum_payload_is_scalar_sig(existing_payload.clone()) || gc_enum_payload_is_scalar_sig(want_field_sigs.clone()) {
         return false
     }
     // Treat gcsrefN as a distinct ref family from refN / ref0 so Token
     // payloads do not collide with String Option::Some (#726 display).
-    let want_has_ref = clone(want_field_sigs).contains("ref") || clone(want_field_sigs).contains("gcsref")
-    let existing_has_ref = clone(existing_payload).contains("ref") || clone(existing_payload).contains("gcsref")
+    let want_has_ref = want_field_sigs.clone().contains("ref") || want_field_sigs.clone().contains("gcsref")
+    let existing_has_ref = existing_payload.clone().contains("ref") || existing_payload.clone().contains("gcsref")
     if want_has_ref && existing_has_ref {
         return false
     }
@@ -135,13 +135,13 @@ fn gc_enum_payload_sigs_compatible(existing_sig: String, want_field_sigs: String
 }
 
 fn gc_enum_payload_is_scalar_sig(field_sigs: String) -> bool {
-    if eq(clone(field_sigs), "_f1_i32") {
+    if eq(field_sigs.clone(), "_f1_i32") {
         return true
     }
-    if eq(clone(field_sigs), "_f1_i64") {
+    if eq(field_sigs.clone(), "_f1_i64") {
         return true
     }
-    if eq(clone(field_sigs), "_f1_f64") {
+    if eq(field_sigs.clone(), "_f1_f64") {
         return true
     }
     false
@@ -167,14 +167,14 @@ fn gc_enum_field_sig_for_type(type_name: String) -> String {
 // (GS_f0_ref14 box). Preferring that gcsref makes struct.get yield the box
 // while match arms expect open-enum (#808 nested_enum / from_auto_convert).
 fn gc_enum_field_sig_for_type_ctx(mut ctx: LowerCtx, type_name: String) -> String {
-    let bare = clone(type_name)
-    let mut lookup = clone(bare)
-    if clone(bare).starts_with("enum:") {
+    let bare = type_name.clone()
+    let mut lookup = bare.clone()
+    if bare.clone().starts_with("enum:") {
         return "_f1_ref14"
     }
     // fn payloads hold a {fnptr, env} __fnpair ref under the pair ABI
     // (#872), sharing the storage mapping with declared struct fields.
-    if ctx_gc_struct::gc_struct_field_type_is_fn_value(clone(bare)) {
+    if ctx_gc_struct::gc_struct_field_type_is_fn_value(bare.clone()) {
         let pair_slot = ctx_gc_struct::ctx_ensure_fnpair_struct(ctx)
         if pair_slot >= 0 {
             return "_f1_gcsref".concat((pair_slot).to_string())
@@ -182,68 +182,68 @@ fn gc_enum_field_sig_for_type_ctx(mut ctx: LowerCtx, type_name: String) -> Strin
     }
     // Bare enum names (Inner, AppError) share the open-enum ABI; do not bind
     // them to a layout gc_struct slot even when one exists under the same name.
-    if ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(bare)) ||
-    ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(lookup)) {
+    if ctx_struct_field_type::field_type_is_registered_enum(ctx, bare.clone()) ||
+    ctx_struct_field_type::field_type_is_registered_enum(ctx, lookup.clone()) {
         return "_f1_ref14"
     }
-    let slot = ctx_gc_struct::ctx_gc_struct_slot(ctx, clone(lookup))
+    let slot = ctx_gc_struct::ctx_gc_struct_slot(ctx, lookup.clone())
     gc_enum_field_sig_for_type_ctx_slot(slot, type_name)
 }
 
 fn gc_enum_field_sig_for_type_ctx_slot(struct_slot: i32, type_name: String) -> String {
-    if eq(clone(type_name), "fnref") || eq(clone(type_name), "fn") || clone(type_name).starts_with("fn(") {
+    if eq(type_name.clone(), "fnref") || eq(type_name.clone(), "fn") || type_name.clone().starts_with("fn(") {
         return "_f1_fnref"
     }
-    if eq(clone(type_name), "f64") || eq(clone(type_name), "F64") {
+    if eq(type_name.clone(), "f64") || eq(type_name.clone(), "F64") {
         return "_f1_f64"
     }
-    if eq(clone(type_name), "i64") || eq(clone(type_name), "I64") {
+    if eq(type_name.clone(), "i64") || eq(type_name.clone(), "I64") {
         return "_f1_i64"
     }
-    if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
+    if eq(type_name.clone(), "String") || eq(type_name.clone(), "string") {
         return "_f1_ref0"
     }
-    if eq(clone(type_name), "bool") || eq(clone(type_name), "Bool") {
+    if eq(type_name.clone(), "bool") || eq(type_name.clone(), "Bool") {
         return "_f1_i32"
     }
-    if eq(clone(type_name), "i32") || eq(clone(type_name), "I32") {
+    if eq(type_name.clone(), "i32") || eq(type_name.clone(), "I32") {
         return "_f1_i32"
     }
-    if eq(clone(type_name), "char") || eq(clone(type_name), "u8") ||
-    eq(clone(type_name), "i8") || eq(clone(type_name), "u16") ||
-    eq(clone(type_name), "u32") || eq(clone(type_name), "u64") ||
-    eq(clone(type_name), "i16") {
+    if eq(type_name.clone(), "char") || eq(type_name.clone(), "u8") ||
+    eq(type_name.clone(), "i8") || eq(type_name.clone(), "u16") ||
+    eq(type_name.clone(), "u32") || eq(type_name.clone(), "u64") ||
+    eq(type_name.clone(), "i16") {
         return "_f1_i32"
     }
     // Vec types: pick the concrete GC vec slot (String→ref19, i32→ref10).
-    if eq(clone(type_name), "Vec") ||
-    clone(type_name).starts_with("vec:") ||
-    clone(type_name).starts_with("Vec_") ||
-    clone(type_name).starts_with("Vec<") {
-        return "_f1".concat(ctx_gc_struct::gc_struct_container_ref_suffix(clone(type_name)))
+    if eq(type_name.clone(), "Vec") ||
+    type_name.clone().starts_with("vec:") ||
+    type_name.clone().starts_with("Vec_") ||
+    type_name.clone().starts_with("Vec<") {
+        return "_f1".concat(ctx_gc_struct::gc_struct_container_ref_suffix(type_name.clone()))
     }
     // HashMap types map to specific hashmap struct types.
-    if clone(type_name).starts_with("hashmap:") || clone(type_name).starts_with("HashMap_") || clone(type_name).starts_with("HashMap") {
-        return "_f1".concat(ctx_gc_struct::gc_struct_container_ref_suffix(clone(type_name)))
+    if type_name.clone().starts_with("hashmap:") || type_name.clone().starts_with("HashMap_") || type_name.clone().starts_with("HashMap") {
+        return "_f1".concat(ctx_gc_struct::gc_struct_container_ref_suffix(type_name.clone()))
     }
     // Result/Option are GC enum-open payloads (#726 json JsonParseStep.value).
-    if clone(type_name).starts_with("result:") ||
-    clone(type_name).starts_with("Result_") ||
-    clone(type_name).starts_with("Result<") ||
-    clone(type_name).starts_with("Result:") {
+    if type_name.clone().starts_with("result:") ||
+    type_name.clone().starts_with("Result_") ||
+    type_name.clone().starts_with("Result<") ||
+    type_name.clone().starts_with("Result:") {
         return "_f1_ref14"
     }
-    if clone(type_name).starts_with("option:") ||
-    clone(type_name).starts_with("Option_") ||
-    clone(type_name).starts_with("Option<") ||
-    clone(type_name).starts_with("Option:") {
+    if type_name.clone().starts_with("option:") ||
+    type_name.clone().starts_with("Option_") ||
+    type_name.clone().starts_with("Option<") ||
+    type_name.clone().starts_with("Option:") {
         return "_f1_ref14"
     }
     // enum: must win over gcsref — see gc_enum_field_sig_for_type_ctx.
-    if clone(type_name).starts_with("enum:") {
+    if type_name.clone().starts_with("enum:") {
         return "_f1_ref14"
     }
-    if eq(clone(type_name), "Ordering") {
+    if eq(type_name.clone(), "Ordering") {
         return "_f1_ref14"
     }
     if struct_slot >= 0 {
@@ -254,11 +254,11 @@ fn gc_enum_field_sig_for_type_ctx_slot(struct_slot: i32, type_name: String) -> S
 
 fn gc_enum_build_payload_field_sigs(mut ctx: LowerCtx, variant_name: String) -> String {
     let mut sig = String_new()
-    let layout_name = ctx_struct_field_type::ctx_resolve_variant_layout_name(ctx, clone(variant_name))
+    let layout_name = ctx_struct_field_type::ctx_resolve_variant_layout_name(ctx, variant_name.clone())
     let layout_count = len(ctx.struct_names)
     let mut li = 0
     while li < layout_count {
-        if eq(get_unchecked(ctx.struct_names, li), clone(layout_name)) || eq(get_unchecked(ctx.struct_names, li), clone(variant_name)) {
+        if eq(get_unchecked(ctx.struct_names, li), layout_name.clone()) || eq(get_unchecked(ctx.struct_names, li), variant_name.clone()) {
             let field_count = get_unchecked(ctx.struct_field_counts, li)
             let mut fi = 1
             while fi < field_count {
@@ -270,8 +270,8 @@ fn gc_enum_build_payload_field_sigs(mut ctx: LowerCtx, variant_name: String) -> 
                 }
                 off = off + fi
                 let ft = get_unchecked(ctx.struct_field_types, off)
-                let resolved_ft = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(ft))
-                sig = sig.concat(gc_enum_field_sig_for_type_ctx(ctx, clone(resolved_ft)))
+                let resolved_ft = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, ft.clone())
+                sig = sig.concat(gc_enum_field_sig_for_type_ctx(ctx, resolved_ft.clone()))
                 fi = fi + 1
             }
             return sig

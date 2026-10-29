@@ -15,7 +15,7 @@ fn mir_emit_impl_methods(mut ctx: LowerCtx, mut body_source: MirLowerEntryBodySo
     let mut skipped = 0
     while mi < method_count {
         let method_info_index = entry_view_method::mir_entry_method_info_index(entry_view, impl_decl_index, mi)
-        let mut mangled = clone(struct_name)
+        let mut mangled = struct_name.clone()
         let mut m_body_idx = 0 - 1
         let mut method_param_count = 0
         if method_info_index >= 0 {
@@ -27,13 +27,13 @@ fn mir_emit_impl_methods(mut ctx: LowerCtx, mut body_source: MirLowerEntryBodySo
         if ctx_corehir_probe::mir_probe_edges_enabled() != 0 {
             let probe_body = entry_body_input::mir_entry_body_input_core(body_input)
             ctx_corehir_probe::mir_probe_dump_body_calls(
-                clone(mangled),
+                mangled.clone(),
                 entry_core_body::mir_entry_core_body_exprs(probe_body),
                 entry_core_body::mir_entry_core_body_root(probe_body)
             )
             let fb = entry_body_input::mir_entry_body_input_fallback(body_input)
             ctx_corehir_probe::mir_probe_dump_ast_calls(
-                clone(mangled),
+                mangled.clone(),
                 legacy_body::mir_legacy_body_node(entry_fallback_body::mir_entry_fallback_body_legacy(fb))
             )
         }
@@ -42,7 +42,7 @@ fn mir_emit_impl_methods(mut ctx: LowerCtx, mut body_source: MirLowerEntryBodySo
         let mut emit_bodies = true
         if prune_enabled {
             emit_bodies = edge_discovery::mir_ast_edge_emit_names_needed(
-                edge_discovery::edge_emit_names_for_method(clone(mangled), midx),
+                edge_discovery::edge_emit_names_for_method(mangled.clone(), midx),
                 emit_keep
             )
         }

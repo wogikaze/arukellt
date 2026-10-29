@@ -9,7 +9,7 @@
 // because local indices are per-function — the synth flags its own
 // payload shadow under its own frame name.
 
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use mir::function_identity
 use mir::inst_draft
@@ -37,7 +37,7 @@ fn ctx_pcell_find(ctx: LowerCtx, fn_name: String, local_idx: i32) -> i32 {
     let mut i = 0
     while i < len(ctx.pcell_fn_names) {
         if get_unchecked(ctx.pcell_lis, i) == local_idx &&
-        eq(get_unchecked(ctx.pcell_fn_names, i), clone(fn_name)) {
+        eq(get_unchecked(ctx.pcell_fn_names, i), fn_name.clone()) {
             return i
         }
         i = i + 1
@@ -60,7 +60,7 @@ fn ctx_pcell_ref_name(ctx: LowerCtx, local_idx: i32) -> String {
     if idx < 0 {
         return String_new()
     }
-    clone(get_unchecked(ctx.pcell_ref_names, idx))
+    get_unchecked(ctx.pcell_ref_names, idx).clone()
 }
 
 // Declared type spelling for the cell ref (struct:__cell_N:slot), used
@@ -70,7 +70,7 @@ fn ctx_pcell_cell_spelling(ctx: LowerCtx, local_idx: i32) -> String {
     if idx < 0 {
         return String_new()
     }
-    "struct:".concat(clone(get_unchecked(ctx.pcell_cell_names, idx)).concat(":".concat(closure_env_layout::closure_env_slot_width(get_unchecked(ctx.pcell_vts, idx)).to_string())))
+    "struct:".concat(get_unchecked(ctx.pcell_cell_names, idx).clone().concat(":".concat(closure_env_layout::closure_env_slot_width(get_unchecked(ctx.pcell_vts, idx)).to_string())))
 }
 
 fn ctx_pcell_vt_sig(payload_vt: i32) -> String {
@@ -99,22 +99,22 @@ fn ctx_pcell_vt_sig(payload_vt: i32) -> String {
 // one __cell_N GC type (and one linear slot width). Untyped payloads fall
 // back to a vt-derived field signature.
 fn ctx_pcell_cell_name_for(mut ctx: LowerCtx, payload_type: String, payload_vt: i32) -> String {
-    let mut key = clone(payload_type)
+    let mut key = payload_type.clone()
     if len(key) == 0 {
         key = "vt:".concat(payload_vt.to_string())
     }
     let mut i = 0
     while i < len(ctx.pcell_reg_keys) {
-        if eq(get_unchecked(ctx.pcell_reg_keys, i), clone(key)) {
-            return clone(get_unchecked(ctx.pcell_reg_cells, i))
+        if eq(get_unchecked(ctx.pcell_reg_keys, i), key.clone()) {
+            return get_unchecked(ctx.pcell_reg_cells, i).clone()
         }
         i = i + 1
     }
     let cell_name = "__cell_".concat(len(ctx.pcell_reg_cells).to_string())
     push(ctx.pcell_reg_keys, key)
-    push(ctx.pcell_reg_cells, clone(cell_name))
+    push(ctx.pcell_reg_cells, cell_name.clone())
     push(ctx.pcell_reg_vts, payload_vt)
-    push(ctx.pcell_reg_types, clone(payload_type))
+    push(ctx.pcell_reg_types, payload_type.clone())
     if ctx.is_gc_target {
         let mut field_sig = "_f0_".concat(ctx_pcell_vt_sig(payload_vt))
         if len(payload_type) > 0 {
@@ -122,7 +122,7 @@ fn ctx_pcell_cell_name_for(mut ctx: LowerCtx, payload_type: String, payload_vt: 
         }
         ctx_gc_struct::ctx_register_gc_struct(
             ctx,
-            clone(cell_name),
+            cell_name.clone(),
             "GS".concat(field_sig)
         )
     }
@@ -132,7 +132,7 @@ fn ctx_pcell_cell_name_for(mut ctx: LowerCtx, payload_type: String, payload_vt: 
 fn ctx_pcell_reg_lookup(ctx: LowerCtx, cell_name: String) -> i32 {
     let mut i = 0
     while i < len(ctx.pcell_reg_cells) {
-        if eq(get_unchecked(ctx.pcell_reg_cells, i), clone(cell_name)) {
+        if eq(get_unchecked(ctx.pcell_reg_cells, i), cell_name.clone()) {
             return i
         }
         i = i + 1
@@ -149,34 +149,34 @@ fn ctx_pcell_reg_lookup(ctx: LowerCtx, cell_name: String) -> i32 {
 // cell starts from the live value). Returns the payload local, or -1
 // when the name is unbound.
 fn ctx_promote_capture_cell(mut ctx: LowerCtx, name: String) -> i32 {
-    let src_li = ctx_api_local_alloc::ctx_lookup_local(ctx, clone(name))
+    let src_li = ctx_api_local_alloc::ctx_lookup_local(ctx, name.clone())
     if src_li < 0 {
         return 0 - 1
     }
     let fn_name = ctx_pcell_fn_name(ctx)
-    if ctx_pcell_find(ctx, clone(fn_name), src_li) >= 0 {
+    if ctx_pcell_find(ctx, fn_name.clone(), src_li) >= 0 {
         // Already cell-backed: a nested closure re-promoting a synth
         // shadow shares the existing cell through its ref name.
         return src_li
     }
     let payload_vt = ctx_api_local_types::ctx_local_vt(ctx, src_li)
     let payload_type = closure_capture_type::mir_closure_lookup_capture_type(ctx, src_li)
-    let cell_name = ctx_pcell_cell_name_for(ctx, clone(payload_type), payload_vt)
+    let cell_name = ctx_pcell_cell_name_for(ctx, payload_type.clone(), payload_vt)
     let slot_width = closure_env_layout::closure_env_slot_width(payload_vt)
     let ref_vt = closure_env_layout::closure_env_ref_vt(ctx)
-    let cell_local_type = "struct:".concat(clone(cell_name).concat(":".concat(slot_width.to_string())))
-    let ref_name = "__cellref_".concat(clone(name).concat("_".concat(src_li.to_string())))
-    let ref_li = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(ref_name), ref_vt)
+    let cell_local_type = "struct:".concat(cell_name.clone().concat(":".concat(slot_width.to_string())))
+    let ref_name = "__cellref_".concat(name.clone().concat("_".concat(src_li.to_string())))
+    let ref_li = ctx_api_local_alloc::ctx_alloc_local(ctx, ref_name.clone(), ref_vt)
     ctx_api_local_types::ctx_set_local_type(ctx, ref_li, cell_local_type)
     ctx_emit_core::ctx_emit_verbatim(ctx, inst_struct_new::MirInst_struct_new_named(
             ref_li,
-            clone(cell_name),
+            cell_name.clone(),
             slot_width
         ))
     ctx_emit_core::ctx_emit_verbatim(ctx, inst_struct_set::MirInst_struct_set_named_idx(
             ref_li,
             src_li,
-            clone(cell_name),
+            cell_name.clone(),
             0,
             0,
             slot_width,
@@ -193,7 +193,7 @@ fn ctx_promote_capture_cell(mut ctx: LowerCtx, name: String) -> i32 {
 }
 
 fn ctx_pcell_cap_type_is_cell(cap_type: String) -> bool {
-    clone(cap_type).starts_with("struct:__cell_")
+    cap_type.clone().starts_with("struct:__cell_")
 }
 
 // Param name for a cap whose packed supply carries a promoted cell ref.
@@ -202,7 +202,7 @@ fn ctx_pcell_cap_type_is_cell(cap_type: String) -> bool {
 // expressions keep the source's declared type (a ref-typed "count" would
 // misdispatch operators like + to string concat).
 fn ctx_pcell_cap_param_name(cap_type: String, cname: String) -> String {
-    if !ctx_pcell_cap_type_is_cell(clone(cap_type)) {
+    if !ctx_pcell_cap_type_is_cell(cap_type.clone()) {
         return cname
     }
     "__cellarg_".concat(cname)
@@ -214,17 +214,17 @@ fn ctx_pcell_cap_param_name(cap_type: String, cname: String) -> String {
 // resolvable so a nested closure can re-pack the same cell ref as its own
 // capture supply (write-through chains share one heap cell).
 fn ctx_pcell_bind_cap_param(mut ctx: LowerCtx, param_li: i32, cap_type: String, cname: String) {
-    if !ctx_pcell_cap_type_is_cell(clone(cap_type)) {
+    if !ctx_pcell_cap_type_is_cell(cap_type.clone()) {
         return
     }
     let cell_name = ctx_struct_layout::strip_struct_type_prefix(cap_type)
-    let reg = ctx_pcell_reg_lookup(ctx, clone(cell_name))
+    let reg = ctx_pcell_reg_lookup(ctx, cell_name.clone())
     if reg < 0 {
         return
     }
     let payload_vt = get_unchecked(ctx.pcell_reg_vts, reg)
-    let payload_type = clone(get_unchecked(ctx.pcell_reg_types, reg))
-    let shadow = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(cname), payload_vt)
+    let payload_type = get_unchecked(ctx.pcell_reg_types, reg).clone()
+    let shadow = ctx_api_local_alloc::ctx_alloc_local(ctx, cname.clone(), payload_vt)
     if len(payload_type) > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, shadow, payload_type)
     }
@@ -233,15 +233,15 @@ fn ctx_pcell_bind_cap_param(mut ctx: LowerCtx, param_li: i32, cap_type: String, 
     push(ctx.pcell_cell_lis, param_li)
     push(ctx.pcell_cell_names, cell_name)
     push(ctx.pcell_vts, payload_vt)
-    push(ctx.pcell_types, clone(get_unchecked(ctx.pcell_reg_types, reg)))
-    push(ctx.pcell_ref_names, ctx_pcell_cap_param_name(clone(cap_type), cname))
+    push(ctx.pcell_types, get_unchecked(ctx.pcell_reg_types, reg).clone())
+    push(ctx.pcell_ref_names, ctx_pcell_cap_param_name(cap_type.clone(), cname))
 }
 
 fn ctx_pcell_mat_lookup(ctx: LowerCtx, fn_name: String, value_li: i32) -> i32 {
     let mut i = len(ctx.pcell_mat_fns) - 1
     while i >= 0 {
         if get_unchecked(ctx.pcell_mat_lis, i) == value_li &&
-        eq(get_unchecked(ctx.pcell_mat_fns, i), clone(fn_name)) {
+        eq(get_unchecked(ctx.pcell_mat_fns, i), fn_name.clone()) {
             return get_unchecked(ctx.pcell_mat_tmps, i)
         }
         i = i - 1
@@ -253,7 +253,7 @@ fn ctx_pcell_clear_mat_entry(mut ctx: LowerCtx, fn_name: String, value_li: i32) 
     let mut i = len(ctx.pcell_mat_fns) - 1
     while i >= 0 {
         if get_unchecked(ctx.pcell_mat_lis, i) == value_li &&
-        eq(get_unchecked(ctx.pcell_mat_fns, i), clone(fn_name)) {
+        eq(get_unchecked(ctx.pcell_mat_fns, i), fn_name.clone()) {
             set(ctx.pcell_mat_lis, i, 0 - 1)
         }
         i = i - 1
@@ -265,7 +265,7 @@ fn ctx_pcell_clear_mat_entry(mut ctx: LowerCtx, fn_name: String, value_li: i32) 
 fn ctx_pcell_clear_fn_mats(mut ctx: LowerCtx, fn_name: String) {
     let mut i = len(ctx.pcell_mat_fns) - 1
     while i >= 0 {
-        if eq(get_unchecked(ctx.pcell_mat_fns, i), clone(fn_name)) {
+        if eq(get_unchecked(ctx.pcell_mat_fns, i), fn_name.clone()) {
             set(ctx.pcell_mat_lis, i, 0 - 1)
         }
         i = i - 1
@@ -274,7 +274,7 @@ fn ctx_pcell_clear_fn_mats(mut ctx: LowerCtx, fn_name: String) {
 
 fn ctx_pcell_fresh_payload_tmp(mut ctx: LowerCtx, idx: i32) -> i32 {
     let tmp = ctx_api_local_alloc::ctx_fresh_local(ctx, get_unchecked(ctx.pcell_vts, idx))
-    let ptype = clone(get_unchecked(ctx.pcell_types, idx))
+    let ptype = get_unchecked(ctx.pcell_types, idx).clone()
     if len(ptype) > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, tmp, ptype)
     }
@@ -291,7 +291,7 @@ fn ctx_pcell_value_local(mut ctx: LowerCtx, res: i32) -> i32 {
         return res
     }
     let fn_name = ctx_pcell_fn_name(ctx)
-    let idx = ctx_pcell_find(ctx, clone(fn_name), res)
+    let idx = ctx_pcell_find(ctx, fn_name.clone(), res)
     if idx < 0 {
         return res
     }
@@ -308,14 +308,14 @@ fn ctx_pcell_value_local(mut ctx: LowerCtx, res: i32) -> i32 {
 fn ctx_pcell_materialize(mut ctx: LowerCtx, idx: i32, mut out: Vec<MirInstDraft>) -> i32 {
     let value_li = get_unchecked(ctx.pcell_lis, idx)
     let fn_name = ctx_pcell_fn_name(ctx)
-    let cached = ctx_pcell_mat_lookup(ctx, clone(fn_name), value_li)
+    let cached = ctx_pcell_mat_lookup(ctx, fn_name.clone(), value_li)
     if cached >= 0 {
         return cached
     }
     let tmp = ctx_pcell_fresh_payload_tmp(ctx, idx)
     push(out, inst_struct_get::MirInst_struct_get_field_idx(
             get_unchecked(ctx.pcell_cell_lis, idx),
-            clone(get_unchecked(ctx.pcell_cell_names, idx)),
+            get_unchecked(ctx.pcell_cell_names, idx).clone(),
             0,
             0,
             closure_env_layout::closure_env_slot_width(get_unchecked(ctx.pcell_vts, idx)),
@@ -332,7 +332,7 @@ fn ctx_pcell_store_inst(ctx: LowerCtx, idx: i32, src_li: i32) -> MirInstDraft {
     inst_struct_set::MirInst_struct_set_named_idx(
         get_unchecked(ctx.pcell_cell_lis, idx),
         src_li,
-        clone(get_unchecked(ctx.pcell_cell_names, idx)),
+        get_unchecked(ctx.pcell_cell_names, idx).clone(),
         0,
         0,
         closure_env_layout::closure_env_slot_width(get_unchecked(ctx.pcell_vts, idx)),
@@ -396,7 +396,7 @@ fn pcell_op_clears_mats(op: i32) -> bool {
 fn ctx_pcell_fn_has_cells(ctx: LowerCtx, fn_name: String) -> bool {
     let mut i = 0
     while i < len(ctx.pcell_fn_names) {
-        if eq(get_unchecked(ctx.pcell_fn_names, i), clone(fn_name)) {
+        if eq(get_unchecked(ctx.pcell_fn_names, i), fn_name.clone()) {
             return true
         }
         i = i + 1
@@ -410,10 +410,10 @@ fn ctx_pcell_fn_has_cells(ctx: LowerCtx, fn_name: String) -> bool {
 fn ctx_pcell_rewrite_local_set(mut ctx: LowerCtx, fn_name: String, inst: MirInstDraft, mut out: Vec<MirInstDraft>) -> Vec<MirInstDraft> {
     let dest = inst_draft::MirInstDraft_arg0(inst)
     let src = inst_draft::MirInstDraft_arg1(inst)
-    let dcell = ctx_pcell_find(ctx, clone(fn_name), dest)
+    let dcell = ctx_pcell_find(ctx, fn_name.clone(), dest)
     let mut scell = 0 - 1
     if src >= 0 {
-        scell = ctx_pcell_find(ctx, clone(fn_name), src)
+        scell = ctx_pcell_find(ctx, fn_name.clone(), src)
     }
     if dcell < 0 && scell < 0 {
         push(out, inst)
@@ -451,17 +451,17 @@ fn ctx_pcell_rewrite(mut ctx: LowerCtx, mut inst: MirInstDraft) -> Vec<MirInstDr
         return out
     }
     let fn_name = ctx_pcell_fn_name(ctx)
-    if !ctx_pcell_fn_has_cells(ctx, clone(fn_name)) {
+    if !ctx_pcell_fn_has_cells(ctx, fn_name.clone()) {
         push(out, inst)
         return out
     }
     let op = inst_draft::MirInstDraft_op(inst)
     if pcell_op_clears_mats(op) {
-        ctx_pcell_clear_fn_mats(ctx, clone(fn_name))
+        ctx_pcell_clear_fn_mats(ctx, fn_name.clone())
     }
     if op == opcodes::MIR_LOCAL_GET() {
         let arg0 = inst_draft::MirInstDraft_arg0(inst)
-        let idx = ctx_pcell_find(ctx, clone(fn_name), arg0)
+        let idx = ctx_pcell_find(ctx, fn_name.clone(), arg0)
         if idx < 0 {
             push(out, inst)
             return out
@@ -480,26 +480,26 @@ fn ctx_pcell_rewrite(mut ctx: LowerCtx, mut inst: MirInstDraft) -> Vec<MirInstDr
     let mut warg0 = inst_draft::MirInstDraft_arg0(inst)
     let mut warg1 = inst_draft::MirInstDraft_arg1(inst)
     if pcell_arg0_is_read(op) && warg0 >= 0 {
-        let ridx = ctx_pcell_find(ctx, clone(fn_name), warg0)
+        let ridx = ctx_pcell_find(ctx, fn_name.clone(), warg0)
         if ridx >= 0 {
             warg0 = ctx_pcell_materialize(ctx, ridx, out)
         }
     }
     if pcell_arg1_is_read(op) && warg1 >= 0 {
-        let ridx = ctx_pcell_find(ctx, clone(fn_name), warg1)
+        let ridx = ctx_pcell_find(ctx, fn_name.clone(), warg1)
         if ridx >= 0 {
             warg1 = ctx_pcell_materialize(ctx, ridx, out)
         }
     }
     if pcell_dest_is_read(op) && wdest >= 0 {
-        let ridx = ctx_pcell_find(ctx, clone(fn_name), wdest)
+        let ridx = ctx_pcell_find(ctx, fn_name.clone(), wdest)
         if ridx >= 0 {
             wdest = ctx_pcell_materialize(ctx, ridx, out)
         }
     }
     let mut write_cell = 0 - 1
     if pcell_dest_is_write(op) && wdest >= 0 {
-        write_cell = ctx_pcell_find(ctx, clone(fn_name), wdest)
+        write_cell = ctx_pcell_find(ctx, fn_name.clone(), wdest)
     }
     if write_cell >= 0 {
         let tmp = ctx_pcell_fresh_payload_tmp(ctx, write_cell)

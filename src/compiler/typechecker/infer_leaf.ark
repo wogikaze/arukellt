@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use typechecker::kinds
 use typechecker::ast_expr_predicates
 use typechecker::ast_access
@@ -44,7 +43,7 @@ fn infer_leaf_expr(mut env: TypeEnv, scope: LocalScope, node: AstNode) -> TypeIn
         // operands, and field/index roots all evaluate their identifiers here
         // before the surrounding position decides whether to move them.
         ownership::check_moved_binding_use(env, scope, node)
-        contract_env_record::type_env_mark_binding_used(env, clone(name))
+        contract_env_record::type_env_mark_binding_used(env, name.clone())
         let local_ty = scope::scope_lookup_instantiated(env, scope, name)
         if contract_type_access::TypeInfo_tag(local_ty) != commands::TY_UNKNOWN() {
             return local_ty

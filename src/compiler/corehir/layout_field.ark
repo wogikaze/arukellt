@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 struct CoreHirLayoutField {
     name: String,
     type_name: String,
@@ -9,9 +8,9 @@ fn CoreHirLayoutField_new(name: String, type_name: String) -> CoreHirLayoutField
 }
 
 fn layout_field_name(field: CoreHirLayoutField) -> String {
-    clone(field.name)
+    field.name.clone()
 }
 
 fn layout_field_type_name(field: CoreHirLayoutField) -> String {
-    clone(field.type_name)
+    field.type_name.clone()
 }

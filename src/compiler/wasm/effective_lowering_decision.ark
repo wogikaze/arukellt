@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use corehir::core_op_id
 use corehir::core_op_registry
 use corehir::core_op_registry_generated
@@ -50,29 +50,29 @@ fn effective_lowering_from_core_op_canonical(canonical_id: String) -> EffectiveL
     if len(canonical_id) == 0 {
         return EffectiveLoweringDecision_empty()
     }
-    let coid = core_op_registry::CoreOpRegistry_lookup_by_canonical(clone(canonical_id))
+    let coid = core_op_registry::CoreOpRegistry_lookup_by_canonical(canonical_id.clone())
     let raw = core_op_id::CoreOpId_raw(coid)
     if raw < 0 {
         return EffectiveLoweringDecision_empty()
     }
     let entry = core_op_registry::CoreOpRegistry_entry_at(raw)
     EffectiveLoweringDecision {
-        core_op_canonical_id: clone(canonical_id),
+        core_op_canonical_id: canonical_id.clone(),
         lowering_kind: entry.lowering_kind,
-        handler_id: clone(canonical_id),
+        handler_id: canonical_id.clone(),
         runtime_kind: entry.runtime_kind,
-        runtime_symbol: clone(entry.runtime_symbol),
-        wit_package: clone(entry.wit_package),
-        wit_interface: clone(entry.wit_interface),
-        wit_function: clone(entry.wit_function),
-        wit_version: clone(entry.wit_version),
-        target_id: clone(entry.target_id),
-        mir_operation: clone(entry.mir_operation),
+        runtime_symbol: entry.runtime_symbol.clone(),
+        wit_package: entry.wit_package.clone(),
+        wit_interface: entry.wit_interface.clone(),
+        wit_function: entry.wit_function.clone(),
+        wit_version: entry.wit_version.clone(),
+        target_id: entry.target_id.clone(),
+        mir_operation: entry.mir_operation.clone(),
     }
 }
 
 fn effective_lowering_from_callee(callee: String) -> EffectiveLoweringDecision {
-    let canonical_id = core_op_binding_generated::core_op_binding_core_op_id_for_callee(clone(callee))
+    let canonical_id = core_op_binding_generated::core_op_binding_core_op_id_for_callee(callee.clone())
     effective_lowering_from_core_op_canonical(canonical_id)
 }
 
@@ -98,10 +98,10 @@ fn effective_lowering_decisions_match(a: EffectiveLoweringDecision, b: Effective
     if a.runtime_kind != b.runtime_kind {
         return false
     }
-    if !eq(clone(a.core_op_canonical_id), clone(b.core_op_canonical_id)) {
+    if !eq(a.core_op_canonical_id.clone(), b.core_op_canonical_id.clone()) {
         return false
     }
-    if !eq(clone(a.handler_id), clone(b.handler_id)) {
+    if !eq(a.handler_id.clone(), b.handler_id.clone()) {
         return false
     }
     true

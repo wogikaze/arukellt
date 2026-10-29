@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use corehir::mir_type_source
 use mir::lower::aggregate_tuple
 use mir::lower::ctx_mono_index
@@ -33,23 +33,23 @@ fn mir_emit_top_level_fn_mono_bodies(
     // dedup'd union of both keys' mangled names; a single qualified
     // instance (bare==0 && qualified<=1) still uses the concrete leaf
     // body below.
-    let bare_count = mono::mono_index_count(midx, clone(decl_name))
+    let bare_count = mono::mono_index_count(midx, decl_name.clone())
     let mono_qualified_name = entry_view_fn::mir_entry_fn_qualified_name_at(entry_view, fn_info_index, String_new())
     let mut qualified_count = 0
-    if len(mono_qualified_name) > 0 && !eq(clone(mono_qualified_name), clone(decl_name)) {
-        qualified_count = mono::mono_index_count(midx, clone(mono_qualified_name))
+    if len(mono_qualified_name) > 0 && !eq(mono_qualified_name.clone(), decl_name.clone()) {
+        qualified_count = mono::mono_index_count(midx, mono_qualified_name.clone())
     }
     if mir_entry_decl_is_generic(entry_view, typed_index) && (bare_count > 0 || qualified_count > 1) {
         let mut emit_mangled_list = Vec::new<String>()
         let mut bare_i = 0
         while bare_i < bare_count {
-            push(emit_mangled_list, mono::mono_index_mangled_at(midx, clone(decl_name), bare_i))
+            push(emit_mangled_list, mono::mono_index_mangled_at(midx, decl_name.clone(), bare_i))
             bare_i = bare_i + 1
         }
         let mut qualified_i = 0
         while qualified_i < qualified_count {
-            let mangled = mono::mono_index_mangled_at(midx, clone(mono_qualified_name), qualified_i)
-            if !string_vec_contains(clone(emit_mangled_list), clone(mangled)) {
+            let mangled = mono::mono_index_mangled_at(midx, mono_qualified_name.clone(), qualified_i)
+            if !string_vec_contains(emit_mangled_list.clone(), mangled.clone()) {
                 push(emit_mangled_list, mangled)
             }
             qualified_i = qualified_i + 1
@@ -62,7 +62,7 @@ fn mir_emit_top_level_fn_mono_bodies(
         while mono_emit_i < len(emit_mangled_list) {
             let mangled = get_unchecked(emit_mangled_list, mono_emit_i)
             let emit_fn_name = mono::mono_safe_name(mangled)
-            let emit_inst = ctx_mono_index::ctx_mono_instance_at(ctx, clone(mangled))
+            let emit_inst = ctx_mono_index::ctx_mono_instance_at(ctx, mangled.clone())
             if len(type_contracts::MonoInstance_mangled_name(emit_inst)) > 0 &&
             !type_contracts::MonoInstance_demanded(emit_inst) {
                 // Speculatively recorded instance that no real call site
@@ -70,20 +70,20 @@ fn mir_emit_top_level_fn_mono_bodies(
                 mono_emit_i = mono_emit_i + 1
                 continue
             }
-            if clone(mangled).contains(String_from("?")) {
+            if mangled.clone().contains(String_from("?")) {
                 // Unsubstituted template instances are registration-only;
                 // no call site can ever name a ?-mangled body.
                 mono_emit_i = mono_emit_i + 1
                 continue
             }
             let mut rt_tag = generic_rt_tag
-            let mut rt_type_name = clone(generic_rt_type_name)
-            let concrete = mono_instantiate_return_from_instance(ctx, clone(mangled), generic_return_ty)
+            let mut rt_type_name = generic_rt_type_name.clone()
+            let concrete = mono_instantiate_return_from_instance(ctx, mangled.clone(), generic_return_ty)
             if type_contracts::TypeInfo_tag(concrete) != 0 {
                 rt_tag = return_typeinfo::mir_return_tag_from_type_info(concrete)
                 rt_type_name = return_typeinfo::mir_return_type_name_from_type_info(concrete)
                 if type_contracts::TypeInfo_tag(concrete) == lower_kinds::TY_TUPLE() {
-                    aggregate_tuple::ctx_register_tuple_gc_struct_from_return_name(ctx, clone(rt_type_name))
+                    aggregate_tuple::ctx_register_tuple_gc_struct_from_return_name(ctx, rt_type_name.clone())
                 }
             }
             entry_top::mir_emit_top_level_fn_body(
@@ -91,7 +91,7 @@ fn mir_emit_top_level_fn_mono_bodies(
                 body_input,
                 rt_tag,
                 rt_type_name,
-                clone(generic_rt_type_name),
+                generic_rt_type_name.clone(),
                 emit_fn_name,
                 param_count,
                 typed_index,
@@ -106,7 +106,7 @@ fn mir_emit_top_level_fn_mono_bodies(
     let generic_rt_tag = mir_entry_typed_return_tag_at(entry_view, typed_index)
     let generic_rt_type_name = mir_entry_typed_return_type_name_at(entry_view, typed_index)
     let mut leaf_rt_tag = generic_rt_tag
-    let mut leaf_rt_type_name = clone(generic_rt_type_name)
+    let mut leaf_rt_type_name = generic_rt_type_name.clone()
     // A generic emitted under its leaf name reaches this branch because its
     // instances were recorded under the qualified caller spelling
     // (Vec::sort -> Vec::sort__i32 while the decl is sort). The
@@ -114,7 +114,7 @@ fn mir_emit_top_level_fn_mono_bodies(
     // recorded return type concrete so callee-propagation hands callers
     // vec:i32 instead of the declared vec:T, which would declare the
     // caller's result local as the structref-element vec on wasm32-gc.
-    let leaf_inst_idx = ctx_mono_type_params::ctx_find_leaf_mono_instance_index(ctx, clone(decl_name))
+    let leaf_inst_idx = ctx_mono_type_params::ctx_find_leaf_mono_instance_index(ctx, decl_name.clone())
     if leaf_inst_idx >= 0 {
         let leaf_inst = get_unchecked(ctx.mono_instances, leaf_inst_idx)
         let leaf_concrete = mono_instantiate_return_from_instance(
@@ -126,7 +126,7 @@ fn mir_emit_top_level_fn_mono_bodies(
             leaf_rt_tag = return_typeinfo::mir_return_tag_from_type_info(leaf_concrete)
             leaf_rt_type_name = return_typeinfo::mir_return_type_name_from_type_info(leaf_concrete)
             if type_contracts::TypeInfo_tag(leaf_concrete) == lower_kinds::TY_TUPLE() {
-                aggregate_tuple::ctx_register_tuple_gc_struct_from_return_name(ctx, clone(leaf_rt_type_name))
+                aggregate_tuple::ctx_register_tuple_gc_struct_from_return_name(ctx, leaf_rt_type_name.clone())
             }
         }
     }
@@ -134,9 +134,9 @@ fn mir_emit_top_level_fn_mono_bodies(
         ctx,
         body_input,
         leaf_rt_tag,
-        clone(leaf_rt_type_name),
-        clone(generic_rt_type_name),
-        clone(decl_name),
+        leaf_rt_type_name.clone(),
+        generic_rt_type_name.clone(),
+        decl_name.clone(),
         param_count,
         typed_index,
         mir_tr,
@@ -228,7 +228,7 @@ fn string_vec_contains(names: Vec<String>, name: String) -> bool {
     let count = len(names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(names, i), clone(name)) {
+        if eq(get_unchecked(names, i), name.clone()) {
             return true
         }
         i = i + 1

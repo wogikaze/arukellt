@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use mir::function_core_record
 use mir::module_record
@@ -39,7 +39,7 @@ fn MirModule_has_export_name(m: MirModule, name: String) -> bool {
     }
     let mut i = 0
     while i < len(m.export_names) {
-        if eq(clone(get_unchecked(m.export_names, i)), clone(name)) {
+        if eq(get_unchecked(m.export_names, i).clone(), name.clone()) {
             return true
         }
         i = i + 1
@@ -100,7 +100,7 @@ fn MirModule_discovery_fn_ret_names(m: MirModule) -> Vec<String> {
 fn MirModule_record_diagnostic(mut m: MirModule, message: String) {
     let mut i = 0
     while i < len(m.diagnostics) {
-        if eq(get_unchecked(m.diagnostics, i), clone(message)) {
+        if eq(get_unchecked(m.diagnostics, i), message.clone()) {
             return
         }
         i = i + 1
@@ -112,7 +112,7 @@ fn MirModule_record_diagnostic(mut m: MirModule, message: String) {
 // list. Returning the Vec keeps callers on std sequence ops instead of
 // one accessor per query.
 fn MirModule_drain_diagnostics(mut m: MirModule) -> Vec<String> {
-    let out = clone(m.diagnostics)
+    let out = m.diagnostics.clone()
     m.diagnostics = Vec::new<String>()
     out
 }

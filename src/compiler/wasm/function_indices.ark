@@ -1,16 +1,15 @@
-use std::prelude::{clone}
 use wasm::emit_target
 use wasm::constants
 fn defined_function_index(function_idx: i32, target: String, wasi_version: String, wit_import_count: i32) -> i32 {
-    function_idx + emit_target::total_import_count(clone(target), clone(wasi_version), wit_import_count)
+    function_idx + emit_target::total_import_count(target.clone(), wasi_version.clone(), wit_import_count)
 }
 
 fn wrapper_function_index(fn_count: i32, target: String, wasi_version: String, wit_import_count: i32) -> i32 {
-    fn_count + emit_target::total_import_count(clone(target), clone(wasi_version), wit_import_count)
+    fn_count + emit_target::total_import_count(target.clone(), wasi_version.clone(), wit_import_count)
 }
 
 fn p2_post_function_index(fn_count: i32, target: String, wasi_version: String, wit_import_count: i32) -> i32 {
-    wrapper_function_index(fn_count, clone(target), clone(wasi_version), wit_import_count) + 1
+    wrapper_function_index(fn_count, target.clone(), wasi_version.clone(), wit_import_count) + 1
 }
 
 fn p2_library_post_function_index(
@@ -21,11 +20,11 @@ fn p2_library_post_function_index(
     wasi_version: String,
     wit_import_count: i32
 ) -> i32 {
-    let command_post_count = if needs_wrapper == 1 && emit_target::is_p2_wasi(clone(wasi_version)) { 1 } else { 0 }
+    let command_post_count = if needs_wrapper == 1 && emit_target::is_p2_wasi(wasi_version.clone()) { 1 } else { 0 }
     fn_count +
     needs_wrapper +
     command_post_count +
-    emit_target::total_import_count(clone(target), clone(wasi_version), wit_import_count) +
+    emit_target::total_import_count(target.clone(), wasi_version.clone(), wit_import_count) +
     library_ordinal
 }
 
@@ -38,11 +37,11 @@ fn p2_library_wrapper_function_index(
     wasi_version: String,
     wit_import_count: i32
 ) -> i32 {
-    let command_post_count = if needs_wrapper == 1 && emit_target::is_p2_wasi(clone(wasi_version)) { 1 } else { 0 }
+    let command_post_count = if needs_wrapper == 1 && emit_target::is_p2_wasi(wasi_version.clone()) { 1 } else { 0 }
     fn_count +
     needs_wrapper +
     command_post_count +
-    emit_target::total_import_count(clone(target), clone(wasi_version), wit_import_count) +
+    emit_target::total_import_count(target.clone(), wasi_version.clone(), wit_import_count) +
     p2_library_post_count +
     wrapper_ordinal
 }
@@ -56,13 +55,13 @@ fn p2_runtime_realloc_function_index(
     wasi_version: String,
     wit_import_count: i32
 ) -> i32 {
-    let command_post_count = if needs_wrapper == 1 && emit_target::is_p2_wasi(clone(wasi_version)) { 1 } else { 0 }
+    let command_post_count = if needs_wrapper == 1 && emit_target::is_p2_wasi(wasi_version.clone()) { 1 } else { 0 }
     fn_count +
     needs_wrapper +
     command_post_count +
     p2_library_post_count +
     p2_library_wrapper_count +
-    emit_target::total_import_count(clone(target), clone(wasi_version), wit_import_count)
+    emit_target::total_import_count(target.clone(), wasi_version.clone(), wit_import_count)
 }
 
 fn linear_gc_runtime_function_index(
@@ -76,24 +75,24 @@ fn linear_gc_runtime_function_index(
     wasi_version: String,
     wit_import_count: i32
 ) -> i32 {
-    let command_post_count = if needs_wrapper == 1 && emit_target::is_p2_wasi(clone(wasi_version)) { 1 } else { 0 }
+    let command_post_count = if needs_wrapper == 1 && emit_target::is_p2_wasi(wasi_version.clone()) { 1 } else { 0 }
     fn_count +
     needs_wrapper +
     command_post_count +
     p2_library_post_count +
     p2_library_wrapper_count +
     p2_runtime_function_count +
-    emit_target::total_import_count(clone(target), clone(wasi_version), wit_import_count) +
+    emit_target::total_import_count(target.clone(), wasi_version.clone(), wit_import_count) +
     ordinal
 }
 
 fn linear_gc_runtime_function_count(target: String) -> i32 {
-    if emit_target::is_linear_memory_target(clone(target)) {
+    if emit_target::is_linear_memory_target(target.clone()) {
         return constants::LINEAR_GC_RUNTIME_FUNCTION_COUNT()
     }
     0
 }
 
 fn wit_import_function_index(wit_idx: i32, target: String, wasi_version: String, wit_import_count: i32) -> i32 {
-    emit_target::host_import_count(clone(target), clone(wasi_version)) + wit_idx
+    emit_target::host_import_count(target.clone(), wasi_version.clone()) + wit_idx
 }

@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
@@ -22,9 +21,9 @@ fn emit_call_ref_inst(mut w: WasmWriter, inst: MirInst, mut ctx: SelfEmitCtx, ne
     let arg_count = inst_accessors_literals::MirInst_int_val(inst)
     let dest_vt = inst_accessors_shape::MirInst_val_type(inst)
     let raw_hint = inst_accessors_literals::MirInst_str_val(inst)
-    let first_arg_vt = call_indirect::parse_first_arg_vt_hint(clone(raw_hint))
+    let first_arg_vt = call_indirect::parse_first_arg_vt_hint(raw_hint.clone())
     let callee_local = inst_accessors_operands::MirInst_arg0(inst)
-    let hint_type_name = call_indirect::parse_call_ref_type_name_hint(clone(raw_hint))
+    let hint_type_name = call_indirect::parse_call_ref_type_name_hint(raw_hint.clone())
     let current_type_name = code_locals::current_local_type_name(ctx, callee_local)
     let callee_type_name = if len(hint_type_name) > 0 {
         hint_type_name
@@ -33,13 +32,13 @@ fn emit_call_ref_inst(mut w: WasmWriter, inst: MirInst, mut ctx: SelfEmitCtx, ne
     }
     // Pair ABI (#872): the stack top is the raw funcref field of __fnpair;
     // the nk/vk hint keys pin the exact (env, args...) -> ret signature.
-    let mut type_idx = call_indirect::call_ref_pair_key_type_idx(ctx, clone(raw_hint))
+    let mut type_idx = call_indirect::call_ref_pair_key_type_idx(ctx, raw_hint.clone())
     if type_idx < 0 {
         // No trampoline carries this signature; fall back to the exact
         // pair-call signature registered in the type section instead of
         // arity-guessing a program function (#872).
         let pair_sig = call_indirect::pair_call_sig_from_hint(
-            clone(raw_hint),
+            raw_hint.clone(),
             dest_vt,
             ctx_record::SelfEmitCtx_memory64(ctx),
             ctx_record::SelfEmitCtx_gc_struct_names(ctx)
@@ -88,8 +87,8 @@ fn emit_call_ref_inst(mut w: WasmWriter, inst: MirInst, mut ctx: SelfEmitCtx, ne
                 arg_count,
                 dest_vt,
                 callee_local,
-                clone(raw_hint),
-                clone(callee_type_name)
+                raw_hint.clone(),
+                callee_type_name.clone()
             )
             writer_core::writer_note_ref_top(w, type_idx)
         }
@@ -101,8 +100,8 @@ fn emit_call_ref_inst(mut w: WasmWriter, inst: MirInst, mut ctx: SelfEmitCtx, ne
             arg_count,
             dest_vt,
             callee_local,
-            clone(raw_hint),
-            clone(callee_type_name)
+            raw_hint.clone(),
+            callee_type_name.clone()
         )
     }
     inst_store::emit_store_result_if_needed(
@@ -123,11 +122,11 @@ fn emit_call_ref_inst(mut w: WasmWriter, inst: MirInst, mut ctx: SelfEmitCtx, ne
 //   ikey = arg_count, ikey2 = dest_vt, ikey3 = callee_local
 //   skey = MirInst_str_val raw hint, skey2 = resolved callee_type_name
 fn resolve_call_ref_reloc(ctx: SelfEmitCtx, ikey: i32, ikey2: i32, ikey3: i32, skey: String, skey2: String) -> i32 {
-    let first_arg_vt = call_indirect::parse_first_arg_vt_hint(clone(skey))
-    let mut type_idx = call_indirect::call_ref_pair_key_type_idx(ctx, clone(skey))
+    let first_arg_vt = call_indirect::parse_first_arg_vt_hint(skey.clone())
+    let mut type_idx = call_indirect::call_ref_pair_key_type_idx(ctx, skey.clone())
     if type_idx < 0 {
         let pair_sig = call_indirect::pair_call_sig_from_hint(
-            clone(skey),
+            skey.clone(),
             ikey2,
             ctx_record::SelfEmitCtx_memory64(ctx),
             ctx_record::SelfEmitCtx_gc_struct_names(ctx)

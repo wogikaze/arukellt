@@ -1,15 +1,14 @@
 use std::json
-use std::prelude::{clone}
 use lsp::dispatch_documents
 use lsp::dispatch_features
 use lsp::dispatch_lifecycle
 use lsp::state_record
 pub fn handle_message(mut state: LspState, body: String) {
-    let method = json::JsonText::get_str(clone(body), String_from("method"))
+    let method = json::JsonText::get_str(body.clone(), String_from("method"))
     if len(method) == 0 {
         return
     }
-    if dispatch_lifecycle::dispatch_lifecycle(state, clone(body), clone(method)) { return }
-    if dispatch_documents::dispatch_documents(state, clone(body), clone(method)) { return }
-    if dispatch_features::dispatch_features(state, clone(body), clone(method)) { return }
+    if dispatch_lifecycle::dispatch_lifecycle(state, body.clone(), method.clone()) { return }
+    if dispatch_documents::dispatch_documents(state, body.clone(), method.clone()) { return }
+    if dispatch_features::dispatch_features(state, body.clone(), method.clone()) { return }
 }

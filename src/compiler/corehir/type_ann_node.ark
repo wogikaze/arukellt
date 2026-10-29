@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::frontend_ast_children
 use corehir::frontend_ast_identity
@@ -36,14 +36,14 @@ fn type_ann_function_ref_name(node: AstNode) -> String {
         let result = type_ann_return_at(node, 0)
         let param_name = type_ann_name(param)
         let result_name = type_ann_name(result)
-        let param_is_string = eq(clone(param_name), String_from("String")) ||
-        eq(clone(param_name), String_from("string"))
-        let result_is_string = eq(clone(result_name), String_from("String")) ||
-        eq(clone(result_name), String_from("string"))
+        let param_is_string = eq(param_name.clone(), String_from("String")) ||
+        eq(param_name.clone(), String_from("string"))
+        let result_is_string = eq(result_name.clone(), String_from("String")) ||
+        eq(result_name.clone(), String_from("string"))
         if param_is_string && result_is_string {
             return String_from("fnrefss")
         }
-        if param_is_string && eq(clone(result_name), String_from("bool")) {
+        if param_is_string && eq(result_name.clone(), String_from("bool")) {
             return String_from("fnrefsb")
         }
         // Scalar-to-scalar callbacks keep the legacy `fnref` bucket so
@@ -51,8 +51,8 @@ fn type_ann_function_ref_name(node: AstNode) -> String {
         // signature carries its segment spellings so monomorphized fields
         // such as `fn(T) -> U` substitute to a concrete callback ABI
         // (fnsig:<param>;<return>, #860/#691).
-        if fn_sig_segment_is_i32_family(clone(param_name)) &&
-        fn_sig_segment_is_i32_family(clone(result_name)) {
+        if fn_sig_segment_is_i32_family(param_name.clone()) &&
+        fn_sig_segment_is_i32_family(result_name.clone()) {
             return String_from("fnref")
         }
         return String_from("fnsig:").concat(fn_sig_segment_name(param).concat(String_from(";").concat(fn_sig_segment_name(result))))
@@ -65,7 +65,7 @@ fn type_ann_function_ref_name(node: AstNode) -> String {
         // call_ref results land in i64 locals on GC (#874/#881).
         if type_ann_return_count(node) == 1 {
             let result_name = fn_sig_segment_name(type_ann_return_at(node, 0))
-            if len(result_name) > 0 && !fn_sig_segment_is_i32_family(clone(result_name)) {
+            if len(result_name) > 0 && !fn_sig_segment_is_i32_family(result_name.clone()) {
                 let mut params = String_new()
                 let mut pi = 0
                 while pi < type_ann_child_count(node) {
@@ -75,7 +75,7 @@ fn type_ann_function_ref_name(node: AstNode) -> String {
                     params = params.concat(fn_sig_segment_name(type_ann_child_at(node, pi)))
                     pi = pi + 1
                 }
-                return String_from("fnsig:").concat(clone(params).concat(String_from(";").concat(result_name)))
+                return String_from("fnsig:").concat(params.clone().concat(String_from(";").concat(result_name)))
             }
         }
         return String_from("fnref2")
@@ -87,7 +87,7 @@ fn type_ann_function_ref_name(node: AstNode) -> String {
         // `fnsig:;<ret>` spelling so an indirect call dest local carries
         // the ref type instead of collapsing to the scalar bucket (#872).
         let ret_seg_zero = fn_sig_segment_name(type_ann_return_at(node, 0))
-        if len(ret_seg_zero) == 0 || fn_sig_segment_is_i32_family(clone(ret_seg_zero)) {
+        if len(ret_seg_zero) == 0 || fn_sig_segment_is_i32_family(ret_seg_zero.clone()) {
             return String_from("fnref")
         }
         return String_from("fnsig:;").concat(ret_seg_zero)
@@ -100,16 +100,16 @@ fn type_ann_function_ref_name(node: AstNode) -> String {
 // needs an explicit fnsig segment so GC emission can pick the real func
 // type.
 fn fn_sig_segment_is_i32_family(name: String) -> bool {
-    eq(clone(name), String_from("i32")) ||
-    eq(clone(name), String_from("I32")) ||
-    eq(clone(name), String_from("bool")) ||
-    eq(clone(name), String_from("Bool")) ||
-    eq(clone(name), String_from("char")) ||
-    eq(clone(name), String_from("u8")) ||
-    eq(clone(name), String_from("i8")) ||
-    eq(clone(name), String_from("u16")) ||
-    eq(clone(name), String_from("i16")) ||
-    eq(clone(name), String_from("u32"))
+    eq(name.clone(), String_from("i32")) ||
+    eq(name.clone(), String_from("I32")) ||
+    eq(name.clone(), String_from("bool")) ||
+    eq(name.clone(), String_from("Bool")) ||
+    eq(name.clone(), String_from("char")) ||
+    eq(name.clone(), String_from("u8")) ||
+    eq(name.clone(), String_from("i8")) ||
+    eq(name.clone(), String_from("u16")) ||
+    eq(name.clone(), String_from("i16")) ||
+    eq(name.clone(), String_from("u32"))
 }
 
 // Canonical field-type spelling for one fnsig segment. Mirrors
@@ -123,17 +123,17 @@ fn fn_sig_segment_name(node: AstNode) -> String {
     }
     if type_ann_is_generic(node) {
         let seg_name = type_ann_name(node)
-        if eq(clone(seg_name), String_from("Vec")) && type_ann_child_count(node) >= 2 {
+        if eq(seg_name.clone(), String_from("Vec")) && type_ann_child_count(node) >= 2 {
             return String_from("vec:").concat(fn_sig_segment_name(type_ann_child_at(node, 1)))
         }
-        if eq(clone(seg_name), String_from("Option")) && type_ann_child_count(node) >= 2 {
+        if eq(seg_name.clone(), String_from("Option")) && type_ann_child_count(node) >= 2 {
             return String_from("option:").concat(fn_sig_segment_name(type_ann_child_at(node, 1)))
         }
-        if eq(clone(seg_name), String_from("Result")) && type_ann_child_count(node) >= 3 {
+        if eq(seg_name.clone(), String_from("Result")) && type_ann_child_count(node) >= 3 {
             return String_from("result:").concat(fn_sig_segment_name(type_ann_child_at(node, 1)).concat(String_from(":").concat(fn_sig_segment_name(type_ann_child_at(node, 2)))))
         }
         if type_ann_child_count(node) >= 2 {
-            let mut out = clone(seg_name).concat(String_from("<"))
+            let mut out = seg_name.clone().concat(String_from("<"))
             let mut gi = 1
             while gi < type_ann_child_count(node) {
                 if gi > 1 {
@@ -212,11 +212,11 @@ fn type_ann_tuple_local_name(node: AstNode) -> String {
 // that ABI name so annotation-built and value-type-built tuples resolve to
 // the same nominal GC struct type instead of two identical-layout twins.
 fn type_ann_narrow_int_name(name: String) -> bool {
-    eq(clone(name), "i8") ||
-    eq(clone(name), "u8") ||
-    eq(clone(name), "i16") ||
-    eq(clone(name), "u16") ||
-    eq(clone(name), "u32")
+    eq(name.clone(), "i8") ||
+    eq(name.clone(), "u8") ||
+    eq(name.clone(), "i16") ||
+    eq(name.clone(), "u16") ||
+    eq(name.clone(), "u32")
 }
 
 fn type_ann_tuple_field_key_name(field: AstNode) -> String {
@@ -224,10 +224,10 @@ fn type_ann_tuple_field_key_name(field: AstNode) -> String {
         return type_ann_tuple_local_name(field)
     }
     let key = fn_sig_segment_name(field)
-    if eq(clone(key), String_from("string")) || eq(clone(key), String_from("str")) {
+    if eq(key.clone(), String_from("string")) || eq(key.clone(), String_from("str")) {
         return String_from("String")
     }
-    if type_ann_narrow_int_name(clone(key)) {
+    if type_ann_narrow_int_name(key.clone()) {
         return String_from("i32")
     }
     key

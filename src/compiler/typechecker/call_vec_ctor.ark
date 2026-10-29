@@ -2,7 +2,7 @@
 //! impl sig is not yet in `fn_sigs` (prelude may not have loaded
 //! `std::collections::vec`). Still record mono so MIR rewrite can mark
 //! `vec:Elem` without a let annotation (#845).
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use typechecker::ast_access
 use typechecker::ast_expr_predicates
 use typechecker::contract_type_access
@@ -11,8 +11,8 @@ use typechecker::contract_type_mutation
 use typechecker::mono
 use typechecker::types
 fn is_vec_associated_ctor_name(name: String) -> bool {
-    eq(clone(name), String_from("Vec::new")) ||
-    eq(clone(name), String_from("Vec::with_capacity"))
+    eq(name.clone(), String_from("Vec::new")) ||
+    eq(name.clone(), String_from("Vec::with_capacity"))
 }
 
 fn infer_vec_ctor_turbofish_call(mut env: TypeEnv, node: AstNode, callee: AstNode) -> TypeInfo {
@@ -39,7 +39,7 @@ fn infer_vec_ctor_turbofish_call(mut env: TypeEnv, node: AstNode, callee: AstNod
     let mut resolved = Vec::new<TypeInfo>()
     push(resolved, elem_ty)
     let fn_name = ast_access::node_text(callee)
-    let mangled = mono::record_mono_instance(env, clone(fn_name), resolved)
+    let mangled = mono::record_mono_instance(env, fn_name.clone(), resolved)
     mono::record_mono_call_site(env, ast_access::node_span_start(node), fn_name, mangled)
     let mut vec_ty = contract_type_constructors::TypeInfo_simple(commands::TY_VEC())
     contract_type_mutation::TypeInfo_push_type_arg(vec_ty, elem_ty)

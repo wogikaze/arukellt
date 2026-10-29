@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use mir::lower::ctx_fn_mono
 use corehir::type_ann_node
@@ -49,7 +49,7 @@ fn closure_register_synth_fn(mut ctx: LowerCtx, mut mf: MirFunction, packed: Str
     let mut cap_types = Vec::new<String>()
     let mut ci = 0
     while ci < len(cap_names) {
-        let li = ctx_api_local_alloc::ctx_lookup_local(ctx, clone(get_unchecked(cap_names, ci)))
+        let li = ctx_api_local_alloc::ctx_lookup_local(ctx, get_unchecked(cap_names, ci).clone())
         if li >= 0 {
             push(cap_vts, ctx_api_local_types::ctx_local_vt(ctx, li))
             push(cap_types, closure_capture_type::mir_closure_lookup_capture_type(ctx, li))
@@ -59,14 +59,14 @@ fn closure_register_synth_fn(mut ctx: LowerCtx, mut mf: MirFunction, packed: Str
         }
         ci = ci + 1
     }
-    let env_name = closure_env::closure_env_type_name(clone(synth))
+    let env_name = closure_env::closure_env_type_name(synth.clone())
     ctx_gc_struct::ctx_ensure_fnpair_struct(ctx)
-    closure_env::closure_register_env_type(ctx, clone(env_name), cap_types)
-    let env_local = closure_env::closure_emit_env_alloc(ctx, clone(env_name), cap_names, cap_vts)
+    closure_env::closure_register_env_type(ctx, env_name.clone(), cap_types)
+    let env_local = closure_env::closure_emit_env_alloc(ctx, env_name.clone(), cap_names, cap_vts)
     // env_local is registered only when the synth owns cells: a direct
     // name(...) call passes it as the trailing __env arg (#874).
     let bind_env = if has_env_cell != 0 { env_local } else { 0 - 1 }
-    closure_storage::closure_storage_set_pending_bind(ctx, clone(synth), clone(packed), extra, bind_env)
+    closure_storage::closure_storage_set_pending_bind(ctx, synth.clone(), packed.clone(), extra, bind_env)
     // Mutable-borrow write-through (#874, ADR-061): in a non-move
     // closure a rebound capture is a mutable borrow, so the env cell is
     // the shared place the borrow aliases. After every direct call the
@@ -81,15 +81,15 @@ fn closure_register_synth_fn(mut ctx: LowerCtx, mut mf: MirFunction, packed: Str
             if wi < len(wb_rebinds) && get_unchecked(wb_rebinds, wi) != 0 {
                 let src_li = ctx_api_local_alloc::ctx_lookup_local(
                     ctx,
-                    clone(get_unchecked(wb_caps, wi))
+                    get_unchecked(wb_caps, wi).clone()
                 )
                 if src_li >= 0 {
                     closure_cells::ctx_register_env_writeback(
                         ctx,
-                        clone(synth),
+                        synth.clone(),
                         src_li,
                         env_local,
-                        clone(env_name),
+                        env_name.clone(),
                         wb_off,
                         wi,
                         env_total,
@@ -108,9 +108,9 @@ fn closure_register_synth_fn(mut ctx: LowerCtx, mut mf: MirFunction, packed: Str
     // The trampoline's own call edge is dropped by the edge-frame
     // bookkeeping (same as synthetic fn bodies), so keep the synthetic
     // function reachable from the producing frame explicitly.
-    ctx_call_edges::ctx_edge_record_name(ctx, clone(synth))
-    let pair = closure_env::closure_emit_pair(ctx, env_local, clone(tramp))
-    ctx_api_local_types::ctx_set_local_type(ctx, pair, clone(type_name))
+    ctx_call_edges::ctx_edge_record_name(ctx, synth.clone())
+    let pair = closure_env::closure_emit_pair(ctx, env_local, tramp.clone())
+    ctx_api_local_types::ctx_set_local_type(ctx, pair, type_name.clone())
     pair
 }
 
@@ -129,7 +129,7 @@ fn closure_funcref_type_name(mf: MirFunction, cap_count: i32) -> String {
         // spells fnsig:<params>;<ret> so indirect-call dests carry the real
         // type instead of collapsing to i32 (and i64 on GC) (#874/#881).
         let ret_seg_multi = function_return_view::MirFunction_return_type_name(mf)
-        if len(ret_seg_multi) > 0 && !type_ann_node::fn_sig_segment_is_i32_family(clone(ret_seg_multi)) {
+        if len(ret_seg_multi) > 0 && !type_ann_node::fn_sig_segment_is_i32_family(ret_seg_multi.clone()) {
             let mut params = String_new()
             let mut pi = 0
             while pi < closure_params {
@@ -143,7 +143,7 @@ fn closure_funcref_type_name(mf: MirFunction, cap_count: i32) -> String {
                 params = params.concat(pseg)
                 pi = pi + 1
             }
-            return String_from("fnsig:").concat(clone(params).concat(String_from(";").concat(ret_seg_multi)))
+            return String_from("fnsig:").concat(params.clone().concat(String_from(";").concat(ret_seg_multi)))
         }
         return "fnref2"
     }
@@ -159,7 +159,7 @@ fn closure_funcref_type_name(mf: MirFunction, cap_count: i32) -> String {
         return "fnref"
     }
     if closure_params == 0 {
-        if len(ret_seg) == 0 || type_ann_node::fn_sig_segment_is_i32_family(clone(ret_seg)) {
+        if len(ret_seg) == 0 || type_ann_node::fn_sig_segment_is_i32_family(ret_seg.clone()) {
             return "fnref"
         }
         return String_from("fnsig:;").concat(ret_seg)
@@ -169,17 +169,17 @@ fn closure_funcref_type_name(mf: MirFunction, cap_count: i32) -> String {
     if len(param_seg) == 0 {
         param_seg = "i32"
     }
-    if eq(clone(param_seg), String_from("String")) && eq(clone(ret_seg), String_from("String")) {
+    if eq(param_seg.clone(), String_from("String")) && eq(ret_seg.clone(), String_from("String")) {
         return String_from("fnrefss")
     }
-    if eq(clone(param_seg), String_from("String")) && eq(clone(ret_seg), String_from("bool")) {
+    if eq(param_seg.clone(), String_from("String")) && eq(ret_seg.clone(), String_from("bool")) {
         return String_from("fnrefsb")
     }
-    if type_ann_node::fn_sig_segment_is_i32_family(clone(param_seg)) &&
-    type_ann_node::fn_sig_segment_is_i32_family(clone(ret_seg)) {
+    if type_ann_node::fn_sig_segment_is_i32_family(param_seg.clone()) &&
+    type_ann_node::fn_sig_segment_is_i32_family(ret_seg.clone()) {
         return String_from("fnref")
     }
-    String_from("fnsig:").concat(clone(param_seg).concat(String_from(";").concat(ret_seg)))
+    String_from("fnsig:").concat(param_seg.clone().concat(String_from(";").concat(ret_seg)))
 }
 
 fn ctx_closure_lookup(ctx: LowerCtx, name: String) -> i32 {
@@ -189,8 +189,8 @@ fn ctx_closure_lookup(ctx: LowerCtx, name: String) -> i32 {
     let count = closure_storage::closure_storage_bind_count(ctx)
     let mut i = count - 1
     while i >= 0 {
-        if eq(closure_storage::closure_storage_bind_name_at(ctx, i), clone(name)) &&
-        eq(closure_storage::closure_storage_bind_fn_at(ctx, i), clone(cur_fn)) {
+        if eq(closure_storage::closure_storage_bind_name_at(ctx, i), name.clone()) &&
+        eq(closure_storage::closure_storage_bind_fn_at(ctx, i), cur_fn.clone()) {
             return i
         }
         i = i - 1

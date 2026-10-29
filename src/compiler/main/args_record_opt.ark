@@ -1,9 +1,8 @@
-use std::prelude::{clone}
 pub fn parse_opt_level_value(value: String, current: i32) -> i32 {
-    if len(clone(value)) != 1 {
+    if len(value.clone()) != 1 {
         return current
     }
-    let ch = clone(value).byte_at(0)
+    let ch = value.clone().byte_at(0)
     if ch == 48 {
         return 0
     }

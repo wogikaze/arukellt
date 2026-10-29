@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::call_rewrite_hashset
 use mir::lower::ctx_fn_return_type
 use mir::lower::ctx_fn_return_vt
@@ -30,25 +29,25 @@ fn lower_core_for_iter(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
         return 0 - 1
     }
     let raw_struct_type = ctx_api_local_types::ctx_get_local_type(ctx, source_idx)
-    let si_struct_type = method_resolve::mir_normalize_type_name(clone(raw_struct_type))
+    let si_struct_type = method_resolve::mir_normalize_type_name(raw_struct_type.clone())
     // A marked HashSet local is a flat hash store, not a dense Vec: its Vec
     // cursor would yield bucket-layout slots. Resolve the set's concrete
     // IntoIterator impl (which snapshots `to_vec`) before the Vec path (#917).
     let mut into_iter_callee = String_new()
     let hashset_family = ctx_api_local_types::ctx_hashset_local_family(ctx, source_idx)
-    if len(clone(hashset_family)) > 0 {
+    if len(hashset_family.clone()) > 0 {
         into_iter_callee = call_rewrite_hashset::hashset_into_iter_target(hashset_family)
     }
-    if len(clone(into_iter_callee)) == 0 {
+    if len(into_iter_callee.clone()) == 0 {
         into_iter_callee = for_iter_resolve::mir_for_into_iterator_callee(
             ctx,
             core_expr_shape_accessors::mir_core_expr_span_start(expr),
-            clone(raw_struct_type)
+            raw_struct_type.clone()
         )
     }
     let mut si_into_iter_type = String_new()
-    if len(clone(into_iter_callee)) > 0 {
-        si_into_iter_type = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(into_iter_callee))
+    if len(into_iter_callee.clone()) > 0 {
+        si_into_iter_type = ctx_fn_return_type::ctx_fn_return_type_name(ctx, into_iter_callee.clone())
     }
     if len(si_into_iter_type) > 0 {
         return lower_core_into_iterator_for(
@@ -60,13 +59,13 @@ fn lower_core_for_iter(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
             into_iter_callee
         )
     }
-    if loop_vec::mir_is_vec_type_name(clone(si_struct_type)) && source_is_ident {
+    if loop_vec::mir_is_vec_type_name(si_struct_type.clone()) && source_is_ident {
         return core_for_values::lower_core_for_values(ctx, exprs, expr)
     }
     let si_next_callee = for_iter_resolve::mir_for_next_callee(
         ctx,
         core_expr_shape_accessors::mir_core_expr_span_start(expr),
-        clone(si_struct_type)
+        si_struct_type.clone()
     )
     if len(si_next_callee) == 0 {
         return 0 - 1
@@ -87,14 +86,14 @@ fn lower_core_into_iterator_for(
     into_iter_callee: String
 ) -> i32 {
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(source_idx))
-    let into_iter_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(into_iter_callee))
+    let into_iter_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, into_iter_callee.clone())
     let into_iter_local = ctx_api_local_alloc::ctx_fresh_local(ctx, into_iter_vt)
-    ctx_api_local_types::ctx_set_local_type(ctx, into_iter_local, clone(iterator_type))
+    ctx_api_local_types::ctx_set_local_type(ctx, into_iter_local, iterator_type.clone())
     ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(into_iter_callee, 1, into_iter_local))
     let next_callee = for_iter_resolve::mir_for_next_callee(
         ctx,
         core_expr_shape_accessors::mir_core_expr_span_start(expr),
-        clone(iterator_type)
+        iterator_type.clone()
     )
     if len(next_callee) == 0 {
         return 0 - 1

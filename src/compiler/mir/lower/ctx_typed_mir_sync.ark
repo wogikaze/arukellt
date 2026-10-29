@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use corehir::mir_value_type
 use corehir::type_id
 use mir::inst_draft
@@ -19,7 +18,7 @@ fn ctx_sync_local_value_type(mut ctx: LowerCtx, local_idx: i32) {
     let loc = function_locals_view::MirFunction_local_at(func, local_idx)
     let vt = local_access::MirLocal_val_type(loc)
     let tn = local_access::MirLocal_type_name(loc)
-    let mvt = spine_lookup::legacy_vt_to_mvt(m, vt, clone(tn))
+    let mvt = spine_lookup::legacy_vt_to_mvt(m, vt, tn.clone())
     let mut f = func
     let mut new_loc = local_mutation::MirLocal_copy_with_value_type(loc, mvt)
     function_local_mutation::MirFunction_set_local(f, local_idx, new_loc)

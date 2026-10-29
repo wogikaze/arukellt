@@ -1,7 +1,6 @@
 use std::host::fs::Fs
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{clone}
 use std::text
 use main::args_record
 use main::init_templates
@@ -17,28 +16,28 @@ pub fn cmd_init(opts: CliOptions) {
         Process::exit(2)
     }
     let template = init_templates::init_template_normalize(args_record::cli_init_template(opts))
-    if !init_templates::init_template_is_valid(clone(template)) {
-        stdio::eprintln(String_from("error: unknown template '").concat(clone(template).concat(String_from("' (use --list-templates)"))))
+    if !init_templates::init_template_is_valid(template.clone()) {
+        stdio::eprintln(String_from("error: unknown template '").concat(template.clone().concat(String_from("' (use --list-templates)"))))
         Process::exit(2)
     }
-    let src_main = clone(project_name).concat(String_from("/main.ark"))
-    let ark_toml = clone(project_name).concat(String_from("/ark.toml"))
-    match Fs::read_to_string(clone(ark_toml)) {
+    let src_main = project_name.clone().concat(String_from("/main.ark"))
+    let ark_toml = project_name.clone().concat(String_from("/ark.toml"))
+    match Fs::read_to_string(ark_toml.clone()) {
         Result::Ok(_) => {
-            stdio::eprintln(String_from("error: ark.toml already exists in ").concat(clone(project_name)))
+            stdio::eprintln(String_from("error: ark.toml already exists in ").concat(project_name.clone()))
             Process::exit(1)
         },
         Result::Err(_) => {},
     }
-    let main_content = init_templates::init_template_main_ark(clone(template))
-    let toml_content = init_templates::init_template_ark_toml(clone(project_name), clone(template))
+    let main_content = init_templates::init_template_main_ark(template.clone())
+    let toml_content = init_templates::init_template_ark_toml(project_name.clone(), template.clone())
     let write_main: Result<(), String> = Fs::write_string(src_main, main_content)
     match write_main {
         Result::Ok(_) => {
             let write_toml: Result<(), String> = Fs::write_string(ark_toml, toml_content)
             match write_toml {
                 Result::Ok(_) => {
-                    init_templates::init_template_print_next_steps(clone(project_name), clone(template))
+                    init_templates::init_template_print_next_steps(project_name.clone(), template.clone())
                 },
                 Result::Err(e) => {
                     // write_string returns Result<(), String> — e is already a message.

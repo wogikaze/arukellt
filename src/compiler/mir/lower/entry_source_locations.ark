@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use corehir::fn_info
 use corehir::mir_signature_source_record
 use corehir::mod
@@ -17,7 +16,7 @@ fn compute_fn_source_locations(view: CoreHirMirView, decl_nodes: Vec<AstNode>, s
             let node = get_unchecked(decl_nodes, decl_index)
             if ast_node::node_kind(node) == ast_node::fn_decl_kind() {
                 let span_start = ast_node::node_span_start(node)
-                let line = source_map_offsets::offset_to_line(clone(source_text), span_start)
+                let line = source_map_offsets::offset_to_line(source_text.clone(), span_start)
                 let column = source_map_offsets::offset_to_column(source_text, span_start)
                 source_location_record::SourceLocation_new(1, line, column)
             } else {

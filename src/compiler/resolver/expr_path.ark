@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use resolver::scope_lookup
 use resolver::ast_access
@@ -11,43 +11,43 @@ use resolver::ctx_record
 
 fn resolve_path(mut ctx: ResolveCtx, mut node: AstNode) {
     let path = ast_access::node_text(node)
-    let module_part = paths::path_module_part(clone(path))
-    let symbol_part = paths::path_symbol_part(clone(path))
+    let module_part = paths::path_module_part(path.clone())
+    let symbol_part = paths::path_symbol_part(path.clone())
     // When the parser rewrites associated function syntax (String::from →
     // String_from, i32::from → parse_i32), the NK_PATH node text no longer
     // contains "::". Treat it as a simple ident lookup — the prelude function
     // is already in the scope. Vec::new keeps "::" and resolves as builtin
     // associated path (#845).
-    if eq(clone(module_part), clone(path)) {
-        let idx = scope_lookup::lookup(ctx, clone(path))
+    if eq(module_part.clone(), path.clone()) {
+        let idx = scope_lookup::lookup(ctx, path.clone())
         if idx < 0 {
-            let alias_target = ctx_record::resolve_ctx_lookup_use_alias(ctx, clone(path))
-            if len(clone(alias_target)) > 0 {
-                ast_access::set_node_text(node, clone(alias_target))
-                resolve_qualified_path(ctx, node, clone(alias_target))
+            let alias_target = ctx_record::resolve_ctx_lookup_use_alias(ctx, path.clone())
+            if len(alias_target.clone()) > 0 {
+                ast_access::set_node_text(node, alias_target.clone())
+                resolve_qualified_path(ctx, node, alias_target.clone())
                 return
             }
         }
         ref_sites::record_use(ctx, idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
         return
     }
-    resolve_qualified_path(ctx, node, clone(path))
+    resolve_qualified_path(ctx, node, path.clone())
 }
 
 fn resolve_qualified_path(mut ctx: ResolveCtx, mut node: AstNode, path: String) {
-    let module_part = paths::path_module_part(clone(path))
-    let symbol_part = paths::path_symbol_part(clone(path))
-    let module_alias = ctx_record::resolve_ctx_lookup_use_alias(ctx, clone(module_part))
-    if len(clone(module_alias)) > 0 && !eq(clone(module_alias), clone(module_part)) {
-        let canonical_path = clone(module_alias).concat("::".concat(clone(symbol_part)))
-        ast_access::set_node_text(node, clone(canonical_path))
+    let module_part = paths::path_module_part(path.clone())
+    let symbol_part = paths::path_symbol_part(path.clone())
+    let module_alias = ctx_record::resolve_ctx_lookup_use_alias(ctx, module_part.clone())
+    if len(module_alias.clone()) > 0 && !eq(module_alias.clone(), module_part.clone()) {
+        let canonical_path = module_alias.clone().concat("::".concat(symbol_part.clone()))
+        ast_access::set_node_text(node, canonical_path.clone())
         resolve_qualified_path(ctx, node, canonical_path)
         return
     }
     // Associated function syntax on builtin types (Vec::new, String::from,
     // i32::from, ...) — the type is not a module, so skip module lookup.
-    if is_builtin_type_name(clone(module_part)) {
-        reject_unloaded_try_from(ctx, clone(path), clone(symbol_part))
+    if is_builtin_type_name(module_part.clone()) {
+        reject_unloaded_try_from(ctx, path.clone(), symbol_part.clone())
         return
     }
 
@@ -57,15 +57,15 @@ fn resolve_qualified_path(mut ctx: ResolveCtx, mut node: AstNode, path: String) 
     // 3. enum variant lookup
     // 4. module-qualified function lookup
     // 5. unresolved diagnostic
-    let head_idx = scope_lookup::lookup(ctx, clone(module_part))
+    let head_idx = scope_lookup::lookup(ctx, module_part.clone())
     let head_kind = if head_idx >= 0 {
-        scope_lookup::lookup_kind(ctx, clone(module_part))
+        scope_lookup::lookup_kind(ctx, module_part.clone())
     } else {
         0 - 1
     }
-    let full_idx = scope_lookup::lookup(ctx, clone(path))
+    let full_idx = scope_lookup::lookup(ctx, path.clone())
     let full_kind = if full_idx >= 0 {
-        scope_lookup::lookup_kind(ctx, clone(path))
+        scope_lookup::lookup_kind(ctx, path.clone())
     } else {
         0 - 1
     }
@@ -76,35 +76,35 @@ fn resolve_qualified_path(mut ctx: ResolveCtx, mut node: AstNode, path: String) 
             ref_sites::record_use(ctx, full_idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
             return
         }
-        scope_error::resolve_error(ctx, String_from("undefined variant: ").concat(clone(path)))
+        scope_error::resolve_error(ctx, String_from("undefined variant: ").concat(path.clone()))
         return
     }
 
     // Module head: `io::IoError::Other` or `io::io_error_message`.
     if head_idx >= 0 && head_kind == commands::SYM_MODULE() {
-        if path_has_nested_qualifier(clone(symbol_part)) {
-            if resolve_module_qualified_enum_variant(ctx, node, clone(symbol_part), full_idx, full_kind) {
+        if path_has_nested_qualifier(symbol_part.clone()) {
+            if resolve_module_qualified_enum_variant(ctx, node, symbol_part.clone(), full_idx, full_kind) {
                 return
             }
-            if resolve_module_qualified_associated_fn(ctx, node, clone(path), clone(symbol_part), full_idx, full_kind) {
+            if resolve_module_qualified_associated_fn(ctx, node, path.clone(), symbol_part.clone(), full_idx, full_kind) {
                 return
             }
-            scope_error::resolve_error(ctx, String_from("undefined variant: ").concat(clone(path)))
+            scope_error::resolve_error(ctx, String_from("undefined variant: ").concat(path.clone()))
             return
         }
         if full_idx >= 0 {
             if full_kind != commands::SYM_VARIANT() {
-                if !scope_lookup::lookup_is_pub(ctx, clone(path)) {
+                if !scope_lookup::lookup_is_pub(ctx, path.clone()) {
                     if !scope_error::resolve_retired_private_member(
                         ctx,
-                        clone(module_part),
-                        clone(symbol_part),
-                        clone(path)
+                        module_part.clone(),
+                        symbol_part.clone(),
+                        path.clone()
                     ) {
                         scope_error::resolve_error(
                             ctx,
                             String_from("visibility error: `").concat(
-                                clone(symbol_part).concat(String_from("` is private and cannot be accessed from module `").concat(clone(module_part).concat(String_from("`"))))
+                                symbol_part.clone().concat(String_from("` is private and cannot be accessed from module `").concat(module_part.clone().concat(String_from("`"))))
                             )
                         )
                     }
@@ -112,7 +112,7 @@ fn resolve_qualified_path(mut ctx: ResolveCtx, mut node: AstNode, path: String) 
             }
             ref_sites::record_use(ctx, full_idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
         } else {
-            scope_error::resolve_unknown_member(ctx, clone(module_part), clone(symbol_part), clone(path))
+            scope_error::resolve_unknown_member(ctx, module_part.clone(), symbol_part.clone(), path.clone())
         }
         return
     }
@@ -124,7 +124,7 @@ fn resolve_qualified_path(mut ctx: ResolveCtx, mut node: AstNode, path: String) 
             ref_sites::record_use(ctx, full_idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
             return
         }
-        scope_error::resolve_error(ctx, String_from("undefined module: ").concat(clone(module_part)))
+        scope_error::resolve_error(ctx, String_from("undefined module: ").concat(module_part.clone()))
         return
     }
 
@@ -136,8 +136,8 @@ fn resolve_qualified_path(mut ctx: ResolveCtx, mut node: AstNode, path: String) 
     // the typechecker signature index and MIR lowering key impl methods by that
     // spelling (#710 / #693).
     if (head_kind == commands::SYM_LOCAL() || head_kind == commands::SYM_PARAM()) &&
-    path_has_nested_qualifier(clone(symbol_part)) &&
-    resolve_module_qualified_associated_fn(ctx, node, clone(path), clone(symbol_part), full_idx, full_kind) {
+    path_has_nested_qualifier(symbol_part.clone()) &&
+    resolve_module_qualified_associated_fn(ctx, node, path.clone(), symbol_part.clone(), full_idx, full_kind) {
         return
     }
 
@@ -145,16 +145,16 @@ fn resolve_qualified_path(mut ctx: ResolveCtx, mut node: AstNode, path: String) 
     // function visibility checks when the full path exists.
     if full_idx >= 0 {
         if head_kind != commands::SYM_ENUM() {
-            if !scope_lookup::lookup_is_pub(ctx, clone(path)) {
+            if !scope_lookup::lookup_is_pub(ctx, path.clone()) {
                 if !scope_error::resolve_retired_private_member(
                     ctx,
-                    clone(module_part),
-                    clone(symbol_part),
-                    clone(path)
+                    module_part.clone(),
+                    symbol_part.clone(),
+                    path.clone()
                 ) {
                     scope_error::resolve_error(
                         ctx,
-                        "visibility error: `".concat(clone(symbol_part).concat("` is private and cannot be accessed from module `".concat(clone(module_part).concat("`"))))
+                        "visibility error: `".concat(symbol_part.clone().concat("` is private and cannot be accessed from module `".concat(module_part.clone().concat("`"))))
                     )
                 }
             }
@@ -162,7 +162,7 @@ fn resolve_qualified_path(mut ctx: ResolveCtx, mut node: AstNode, path: String) 
         ref_sites::record_use(ctx, full_idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
         return
     }
-    scope_error::resolve_error(ctx, String_from("undefined module: ").concat(clone(module_part)))
+    scope_error::resolve_error(ctx, String_from("undefined module: ").concat(module_part.clone()))
 }
 
 fn resolve_module_qualified_enum_variant(
@@ -176,14 +176,14 @@ fn resolve_module_qualified_enum_variant(
     if full_idx >= 0 && full_kind == commands::SYM_VARIANT() {
         // Rewrite to the enum-local constructor name so MIR variant layouts
         // (`IoError::Other`) match without dedicated runtime Error helpers.
-        ast_access::set_node_text(node, clone(symbol_part))
+        ast_access::set_node_text(node, symbol_part.clone())
         ref_sites::record_use(ctx, full_idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
         return true
     }
     // Canonical type + variant: `IoError::Other` after stripping the module.
-    let bare_idx = scope_lookup::lookup(ctx, clone(symbol_part))
-    if bare_idx >= 0 && scope_lookup::lookup_kind(ctx, clone(symbol_part)) == commands::SYM_VARIANT() {
-        ast_access::set_node_text(node, clone(symbol_part))
+    let bare_idx = scope_lookup::lookup(ctx, symbol_part.clone())
+    if bare_idx >= 0 && scope_lookup::lookup_kind(ctx, symbol_part.clone()) == commands::SYM_VARIANT() {
+        ast_access::set_node_text(node, symbol_part.clone())
         ref_sites::record_use(ctx, bare_idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
         return true
     }
@@ -205,14 +205,14 @@ fn resolve_module_qualified_associated_fn(
     if full_idx < 0 || full_kind != commands::SYM_FN() {
         return false
     }
-    if !scope_lookup::lookup_is_pub(ctx, clone(path)) {
+    if !scope_lookup::lookup_is_pub(ctx, path.clone()) {
         scope_error::resolve_error(
             ctx,
-            String_from("visibility error: `").concat(clone(symbol_part).concat(String_from("` is private and cannot be accessed")))
+            String_from("visibility error: `").concat(symbol_part.clone().concat(String_from("` is private and cannot be accessed")))
         )
         return true
     }
-    ast_access::set_node_text(node, clone(symbol_part))
+    ast_access::set_node_text(node, symbol_part.clone())
     ref_sites::record_use(ctx, full_idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
     true
 }
@@ -224,7 +224,7 @@ fn resolve_module_qualified_associated_fn(
 // import here. Impl methods are not bare scope symbols, so the loaded module
 // registration is the signal that the `TryFrom` impls are available.
 fn reject_unloaded_try_from(ctx: ResolveCtx, path: String, symbol_part: String) {
-    if !eq(clone(symbol_part), String_from("try_from")) {
+    if !eq(symbol_part.clone(), String_from("try_from")) {
         return
     }
     if modules::module_registered(ctx_record::resolve_ctx_modules(ctx), String_from("convert")) {
@@ -233,13 +233,13 @@ fn reject_unloaded_try_from(ctx: ResolveCtx, path: String, symbol_part: String) 
     scope_error::resolve_error(
         ctx,
         String_from("undefined associated function `").concat(
-            clone(path).concat(String_from("`; add `use std::core::convert` to load the `TryFrom` impls"))
+            path.clone().concat(String_from("`; add `use std::core::convert` to load the `TryFrom` impls"))
         )
     )
 }
 
 fn path_has_nested_qualifier(symbol_part: String) -> bool {
-    clone(symbol_part).index_of(String_from("::")) >= 0
+    symbol_part.clone().index_of(String_from("::")) >= 0
 }
 
 // Builtin type names that support Type::method / Type::Variant syntax.
@@ -251,17 +251,17 @@ fn path_has_nested_qualifier(symbol_part: String) -> bool {
 // signature index the same way `Vec::new` does; the type is still declared in
 // `std/prelude.ark` and registered as a stable prelude type (ADR-090).
 fn is_builtin_type_name(name: String) -> bool {
-    if eq(clone(name), String_from("Vec")) { return true }
-    if eq(clone(name), String_from("String")) { return true }
-    if eq(clone(name), String_from("Option")) { return true }
-    if eq(clone(name), String_from("Result")) { return true }
-    if eq(clone(name), String_from("HashMap")) { return true }
-    if eq(clone(name), String_from("Std")) { return true }
-    if eq(clone(name), String_from("i32")) { return true }
-    if eq(clone(name), String_from("i64")) { return true }
-    if eq(clone(name), String_from("f64")) { return true }
-    if eq(clone(name), String_from("f32")) { return true }
-    if eq(clone(name), String_from("bool")) { return true }
-    if eq(clone(name), String_from("char")) { return true }
+    if eq(name.clone(), String_from("Vec")) { return true }
+    if eq(name.clone(), String_from("String")) { return true }
+    if eq(name.clone(), String_from("Option")) { return true }
+    if eq(name.clone(), String_from("Result")) { return true }
+    if eq(name.clone(), String_from("HashMap")) { return true }
+    if eq(name.clone(), String_from("Std")) { return true }
+    if eq(name.clone(), String_from("i32")) { return true }
+    if eq(name.clone(), String_from("i64")) { return true }
+    if eq(name.clone(), String_from("f64")) { return true }
+    if eq(name.clone(), String_from("f32")) { return true }
+    if eq(name.clone(), String_from("bool")) { return true }
+    if eq(name.clone(), String_from("char")) { return true }
     false
 }

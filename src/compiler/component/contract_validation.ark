@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use std::text
 use component::contract_allows
 use component::contract_helpers
@@ -34,10 +33,10 @@ fn validate_export_params(f: ComponentExportFunc, fname: String, allows: Compone
     let mut pi = 0
     while pi < contract_helpers::component_export_param_count(f) {
         if !contract_helpers::component_export_param_has_type_at(f, pi) {
-            return "E0401: component export requires explicit parameter type annotations: ".concat(clone(fname))
+            return "E0401: component export requires explicit parameter type annotations: ".concat(fname.clone())
         }
         if !component_param_type_supported_for_func_at(f, pi, allows) {
-            return "E0401: component export uses a type not yet supported by canonical ABI: ".concat(clone(fname))
+            return "E0401: component export uses a type not yet supported by canonical ABI: ".concat(fname.clone())
         }
         pi = pi + 1
     }
@@ -46,7 +45,7 @@ fn validate_export_params(f: ComponentExportFunc, fname: String, allows: Compone
 
 fn validate_export_returns(f: ComponentExportFunc, fname: String, allows: ComponentContractAllows) -> String {
     if !component_return_type_supported_for_func(f, allows) {
-        return "E0401: component export uses a type not yet supported by canonical ABI: ".concat(clone(fname))
+        return "E0401: component export uses a type not yet supported by canonical ABI: ".concat(fname.clone())
     }
     String_new()
 }
@@ -58,11 +57,11 @@ fn validate_export_function(f: AstNode, allows: ComponentContractAllows) -> Stri
     if len(sig_error) > 0 {
         return sig_error
     }
-    let param_error = validate_export_params(func, clone(fname), allows)
+    let param_error = validate_export_params(func, fname.clone(), allows)
     if len(param_error) > 0 {
         return param_error
     }
-    let return_error = validate_export_returns(func, clone(fname), allows)
+    let return_error = validate_export_returns(func, fname.clone(), allows)
     if len(return_error) > 0 {
         return return_error
     }

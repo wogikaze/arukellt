@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use typechecker::kinds
 use typechecker::ast_access
@@ -62,7 +62,7 @@ fn infer_match_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>
 fn bind_match_pattern(mut env: TypeEnv, mut scope: LocalScope, enum_defs: Vec<EnumInfo>, scrutinee_ty: TypeInfo, pat: AstNode) {
     if ast_access::node_kind_is(pat, kinds::NK_PAT_IDENT()) {
         let name = ast_access::node_text(pat)
-        if !eq(clone(name), "_") {
+        if !eq(name.clone(), "_") {
             scope::scope_define(scope, name, scrutinee_ty)
         }
         return
@@ -119,7 +119,7 @@ fn check_or_variant_alt_children(mut env: TypeEnv, alt: AstNode) {
         let sub = ast_access::node_child_at(alt, i)
         if ast_access::node_kind_is(sub, kinds::NK_PAT_IDENT()) {
             let sub_name = ast_access::node_text(sub)
-            if !eq(clone(sub_name), "_") {
+            if !eq(sub_name.clone(), "_") {
                 unify::type_error(env, String_from("unsupported match pattern: or-pattern alternatives cannot introduce bindings"))
                 return
             }
@@ -144,7 +144,7 @@ fn check_or_variant_alt_children(mut env: TypeEnv, alt: AstNode) {
 fn bind_variant_payload_idents(mut env: TypeEnv, mut scope: LocalScope, enum_defs: Vec<EnumInfo>, scrutinee_ty: TypeInfo, pat: AstNode) {
     let variant_name = ast_access::node_text(pat)
     let enum_info = match_enum_info(enum_defs, scrutinee_ty)
-    let variant_index = contract_enum_info::EnumInfo_variant_index(enum_info, clone(variant_name))
+    let variant_index = contract_enum_info::EnumInfo_variant_index(enum_info, variant_name.clone())
     let type_params = contract_enum_info::EnumInfo_type_params(enum_info)
     let inst_args = enum_scrutinee_type_args(enum_info, scrutinee_ty)
     let bind_count = ast_access::node_child_count(pat)
@@ -189,11 +189,11 @@ fn enum_scrutinee_type_args(enum_info: EnumInfo, scrutinee_ty: TypeInfo) -> Vec<
 fn bind_payload_subpat_idents(mut env: TypeEnv, mut scope: LocalScope, enum_defs: Vec<EnumInfo>, payload_ty: TypeInfo, pat: AstNode) {
     if ast_access::node_kind_is(pat, kinds::NK_PAT_IDENT()) {
         let name = ast_access::node_text(pat)
-        if eq(clone(name), "_") {
+        if eq(name.clone(), "_") {
             return
         }
         let payload_enum = match_enum_info(enum_defs, payload_ty)
-        if contract_enum_info::EnumInfo_variant_index(payload_enum, clone(name)) >= 0 {
+        if contract_enum_info::EnumInfo_variant_index(payload_enum, name.clone()) >= 0 {
             return
         }
         if match_coverage_variant::ident_looks_like_unit_variant(pat) {
@@ -238,7 +238,7 @@ fn bind_tuple_arm_pattern(mut env: TypeEnv, mut scope: LocalScope, enum_defs: Ve
         let elem_ty = stmt_let::tuple_element_type_at(scrutinee_ty, i)
         if ast_access::node_kind_is(sub, kinds::NK_PAT_IDENT()) {
             let name = ast_access::node_text(sub)
-            if !eq(clone(name), "_") && !match_coverage_variant::ident_looks_like_unit_variant(sub) {
+            if !eq(name.clone(), "_") && !match_coverage_variant::ident_looks_like_unit_variant(sub) {
                 scope::scope_define_with_flags(
                     scope,
                     name,
@@ -312,7 +312,7 @@ fn match_enum_info(enum_defs: Vec<EnumInfo>, scrutinee_ty: TypeInfo) -> EnumInfo
     while i < len(enum_defs) {
         let info = get_unchecked(enum_defs, i)
         let declared = contract_enum_info::EnumInfo_name(info)
-        if eq(clone(declared), clone(enum_name)) || clone(declared).ends_with("::".concat(clone(enum_name))) {
+        if eq(declared.clone(), enum_name.clone()) || declared.clone().ends_with("::".concat(enum_name.clone())) {
             return info
         }
         i = i + 1

@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ast_node
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_alloc
@@ -17,7 +17,7 @@ use mir::value_types
 fn lower_struct_lit_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     let raw_name = ast_node::node_text(node)
-    let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
+    let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, raw_name.clone())
     let struct_name = if len(canon) > 0 {
         canon
     } else {
@@ -35,14 +35,14 @@ fn lower_struct_lit_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     // nested literal is lowered. Otherwise the nested literal falls back to
     // the generic declaration and emits i32 Vec slots for reference elements
     // (#710).
-    let outer_expected = clone(ctx.expected_struct_inst)
+    let outer_expected = ctx.expected_struct_inst.clone()
     let mut outer_params = Vec::new<String>()
     let mut outer_args = Vec::new<String>()
-    if eq(ctx_struct_mono::generic_inst_base_name(clone(outer_expected)), clone(struct_name)) {
-        outer_args = ctx_struct_mono::generic_inst_args(clone(outer_expected))
+    if eq(ctx_struct_mono::generic_inst_base_name(outer_expected.clone()), struct_name.clone()) {
+        outer_args = ctx_struct_mono::generic_inst_args(outer_expected.clone())
         if len(outer_args) > 0 {
             outer_params = struct_lit::struct_lit_split_params(
-                ctx_struct_mono::ctx_generic_struct_params(ctx, clone(struct_name))
+                ctx_struct_mono::ctx_generic_struct_params(ctx, struct_name.clone())
             )
         }
     }
@@ -58,15 +58,15 @@ fn lower_struct_lit_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
             let fc = ast_node::node_child_count(field)
             if fc >= 1 {
                 let init = ast_node::node_child_at(field, 0)
-                let saved_expected = clone(ctx.expected_struct_inst)
+                let saved_expected = ctx.expected_struct_inst.clone()
                 if len(outer_params) > 0 && len(outer_params) == len(outer_args) {
-                    let fi = ctx_struct_lookup::ctx_field_index(ctx, clone(struct_name), ast_node::node_text(field))
+                    let fi = ctx_struct_lookup::ctx_field_index(ctx, struct_name.clone(), ast_node::node_text(field))
                     if fi >= 0 {
-                        let ft = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(struct_name), fi)
+                        let ft = ctx_struct_field_type::ctx_struct_field_type_name(ctx, struct_name.clone(), fi)
                         let sub = ctx_struct_mono::ctx_substitute_generic_field_type(
                             ft,
-                            clone(outer_params),
-                            clone(outer_args)
+                            outer_params.clone(),
+                            outer_args.clone()
                         )
                         if len(sub) > 0 {
                             ctx.expected_struct_inst = sub
@@ -74,7 +74,7 @@ fn lower_struct_lit_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
                     }
                 }
                 let mut val_idx = 0 - 1
-                if mir_struct_lit_field_fn_ident(ctx, clone(struct_name), ast_node::node_text(field), init) {
+                if mir_struct_lit_field_fn_ident(ctx, struct_name.clone(), ast_node::node_text(field), init) {
                     val_idx = value_variants::lower_function_value(ctx, ast_node::node_text(init))
                 } else {
                     val_idx = lower_expr(ctx, init)
@@ -90,25 +90,25 @@ fn lower_struct_lit_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
         }
         f = f + 1
     }
-    let inst_name = struct_lit::mir_struct_lit_instance_name(ctx, clone(struct_name), field_names, field_vals, base_idx)
-    let dest = struct_lit::mir_emit_struct_new(ctx, clone(inst_name))
+    let inst_name = struct_lit::mir_struct_lit_instance_name(ctx, struct_name.clone(), field_names, field_vals, base_idx)
+    let dest = struct_lit::mir_emit_struct_new(ctx, inst_name.clone())
     // If this is an enum variant, set the _tag field to the variant's tag value.
-    let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(inst_name))
+    let tag = ctx_api_variants::ctx_variant_tag(ctx, inst_name.clone())
     if tag >= 0 {
         let tag_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
         ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_local))
-        struct_lit::mir_emit_struct_field_set(ctx, clone(inst_name), dest, "_tag", tag_local)
+        struct_lit::mir_emit_struct_field_set(ctx, inst_name.clone(), dest, "_tag", tag_local)
     }
     if has_base {
-        struct_lit::mir_copy_struct_base_fields(ctx, clone(inst_name), dest, base_idx)
+        struct_lit::mir_copy_struct_base_fields(ctx, inst_name.clone(), dest, base_idx)
     }
     let mut emit_i = 0
     while emit_i < len(field_names) {
         struct_lit::mir_emit_struct_field_set(
             ctx,
-            clone(inst_name),
+            inst_name.clone(),
             dest,
-            clone(get_unchecked(field_names, emit_i)),
+            get_unchecked(field_names, emit_i).clone(),
             get_unchecked(field_vals, emit_i)
         )
         emit_i = emit_i + 1
@@ -129,9 +129,9 @@ fn mir_struct_lit_field_fn_ident(ctx: LowerCtx, struct_name: String, field_name:
     if ctx_fn_index::ctx_fn_index_find(ctx, ast_node::node_text(init)) < 0 {
         return false
     }
-    let fi_idx = ctx_struct_lookup::ctx_field_index(ctx, clone(struct_name), clone(field_name))
+    let fi_idx = ctx_struct_lookup::ctx_field_index(ctx, struct_name.clone(), field_name.clone())
     if fi_idx < 0 {
         return false
     }
-    struct_lit::mir_struct_field_type_is_fn(ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(struct_name), fi_idx))
+    struct_lit::mir_struct_field_type_is_fn(ctx_struct_field_type::ctx_struct_field_type_name(ctx, struct_name.clone(), fi_idx))
 }

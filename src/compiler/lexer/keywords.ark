@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use lexer::keyword_policy
 use lexer::keywords_control
 use lexer::keywords_decl
@@ -11,22 +10,22 @@ const KEYWORD_CLASS_CONTEXTUAL: i32 = 2
 const KEYWORD_CLASS_FUTURE_RESERVED: i32 = 3
 
 fn keyword_kind(word: String) -> i32 {
-    if keyword_policy::is_future_reserved_keyword(clone(word)) {
+    if keyword_policy::is_future_reserved_keyword(word.clone()) {
         return tokens::TK_RESERVED()
     }
-    let decl_kind = keywords_decl::keyword_kind_decl(clone(word))
+    let decl_kind = keywords_decl::keyword_kind_decl(word.clone())
     if decl_kind >= 0 {
         return decl_kind
     }
-    let control_kind = keywords_control::keyword_kind_control(clone(word))
+    let control_kind = keywords_control::keyword_kind_control(word.clone())
     if control_kind >= 0 {
         return control_kind
     }
-    let module_kind = keywords_module::keyword_kind_module(clone(word))
+    let module_kind = keywords_module::keyword_kind_module(word.clone())
     if module_kind >= 0 {
         return module_kind
     }
-    let literal_kind = keywords_literals::keyword_kind_literal(clone(word))
+    let literal_kind = keywords_literals::keyword_kind_literal(word.clone())
     if literal_kind >= 0 {
         return literal_kind
     }
@@ -34,20 +33,20 @@ fn keyword_kind(word: String) -> i32 {
 }
 
 pub fn keyword_class(word: String) -> i32 {
-    if keyword_policy::is_future_reserved_keyword(clone(word)) {
+    if keyword_policy::is_future_reserved_keyword(word.clone()) {
         return KEYWORD_CLASS_FUTURE_RESERVED
     }
-    if keyword_policy::is_contextual_keyword(clone(word)) {
+    if keyword_policy::is_contextual_keyword(word.clone()) {
         return KEYWORD_CLASS_CONTEXTUAL
     }
-    if keyword_kind(clone(word)) >= 0 {
+    if keyword_kind(word.clone()) >= 0 {
         return KEYWORD_CLASS_HARD
     }
     KEYWORD_CLASS_IDENTIFIER
 }
 
 pub fn is_reserved_name(word: String) -> bool {
-    let class = keyword_class(clone(word))
+    let class = keyword_class(word.clone())
     class == KEYWORD_CLASS_HARD || class == KEYWORD_CLASS_FUTURE_RESERVED
 }
 

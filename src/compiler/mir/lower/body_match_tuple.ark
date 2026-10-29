@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
@@ -60,8 +60,8 @@ fn emit_tuple_arm_binds(mut ctx: LowerCtx, pat: AstNode, scrut_idx: i32) {
         let sub = ast_node::node_child_at(pat, ei)
         if ast_node::node_kind_is(sub, lower_kinds::NK_PAT_IDENT()) {
             let name = ast_node::node_text(sub)
-            if !eq(clone(name), "_") && ctx_api_variants::ctx_variant_tag(ctx, clone(name)) < 0 {
-                emit_tuple_elem_ident_bind(ctx, clone(name), scrut_idx, ei, elem_count)
+            if !eq(name.clone(), "_") && ctx_api_variants::ctx_variant_tag(ctx, name.clone()) < 0 {
+                emit_tuple_elem_ident_bind(ctx, name.clone(), scrut_idx, ei, elem_count)
             }
         }
         if ast_node::node_kind_is(sub, lower_kinds::NK_PAT_VARIANT()) {
@@ -79,10 +79,10 @@ fn emit_tuple_elem_condition(mut ctx: LowerCtx, sub: AstNode, scrut_idx: i32, el
     }
     if ast_node::node_kind_is(sub, lower_kinds::NK_PAT_IDENT()) {
         let name = ast_node::node_text(sub)
-        if eq(clone(name), "_") {
+        if eq(name.clone(), "_") {
             return false
         }
-        if ctx_api_variants::ctx_variant_tag(ctx, clone(name)) < 0 {
+        if ctx_api_variants::ctx_variant_tag(ctx, name.clone()) < 0 {
             return false
         }
         return emit_tuple_elem_variant_compare(ctx, sub, scrut_idx, elem_index, elem_count)
@@ -119,7 +119,7 @@ fn emit_tuple_elem_condition(mut ctx: LowerCtx, sub: AstNode, scrut_idx: i32, el
 // form so payload reads stay inside the tag-true branch (#902).
 fn emit_tuple_elem_variant_compare(mut ctx: LowerCtx, sub: AstNode, scrut_idx: i32, elem_index: i32, elem_count: i32) -> bool {
     let vname = ast_node::node_text(sub)
-    let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(vname))
+    let tag = ctx_api_variants::ctx_variant_tag(ctx, vname.clone())
     if tag < 0 {
         return false
     }
@@ -131,7 +131,7 @@ fn emit_tuple_elem_variant_compare(mut ctx: LowerCtx, sub: AstNode, scrut_idx: i
         return true
     }
     let mut compare_idx = elem_local
-    if ctx_gc_enum::ctx_is_gc_target(ctx) || ctx_api_variants::ctx_is_payload_variant(ctx, clone(vname)) {
+    if ctx_gc_enum::ctx_is_gc_target(ctx) || ctx_api_variants::ctx_is_payload_variant(ctx, vname.clone()) {
         compare_idx = match_payload_prepare::mir_emit_payload_tag_local(ctx, elem_local)
     }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
@@ -230,11 +230,11 @@ fn tuple_or_alt_is_record_variant(ctx: LowerCtx, sub: AstNode) -> bool {
 fn emit_tuple_elem_ident_bind(mut ctx: LowerCtx, name: String, scrut_idx: i32, elem_index: i32, elem_count: i32) {
     let elem_local = stmt_let_tuple::emit_tuple_element_extract(ctx, scrut_idx, elem_index, elem_count)
     let bind_vt = ctx_api_local_types::ctx_local_vt(ctx, elem_local)
-    let bind_local = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(name), bind_vt)
+    let bind_local = ctx_api_local_alloc::ctx_alloc_local(ctx, name.clone(), bind_vt)
     let elem_type = ctx_api_local_types::ctx_get_local_type(ctx, elem_local)
     if len(elem_type) > 0 {
-        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, clone(elem_type))
-        if clone(elem_type).starts_with("enum:") {
+        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, elem_type.clone())
+        if elem_type.clone().starts_with("enum:") {
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         }
     }
@@ -251,8 +251,8 @@ fn emit_tuple_elem_variant_binds(mut ctx: LowerCtx, sub: AstNode, scrut_idx: i32
     }
     let elem_local = stmt_let_tuple::emit_tuple_element_extract(ctx, scrut_idx, elem_index, elem_count)
     let elem_type = ctx_api_local_types::ctx_get_local_type(ctx, elem_local)
-    let is_f64 = match_payload_prepare::mir_option_result_scrut_type_is_f64(clone(elem_type))
-    let is_i64 = match_payload_prepare::mir_option_result_scrut_type_is_i64(clone(elem_type))
-    let is_i32 = match_payload_prepare::mir_option_result_scrut_type_is_i32(clone(elem_type))
+    let is_f64 = match_payload_prepare::mir_option_result_scrut_type_is_f64(elem_type.clone())
+    let is_i64 = match_payload_prepare::mir_option_result_scrut_type_is_i64(elem_type.clone())
+    let is_i32 = match_payload_prepare::mir_option_result_scrut_type_is_i32(elem_type.clone())
     match_payload_fields::mir_emit_payload_variant_binds(ctx, sub, elem_local, is_f64, is_i64, is_i32)
 }

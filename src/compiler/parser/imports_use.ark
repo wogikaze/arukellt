@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use parser::core_ast_text_fields
 use lexer::tokens
 use parser::core_ast_factory
@@ -16,7 +15,7 @@ fn parse_use_decl(mut p: Parser) -> AstNode {
     while core_api_cursor::peek_kind(p) == tokens::TK_COLONCOLON() {
         p.pos = p.pos + 1
         if core_api_cursor::peek_kind(p) == tokens::TK_LBRACE() {
-            imports_group::parse_use_group(p, node, clone(path))
+            imports_group::parse_use_group(p, node, path.clone())
             return node
         }
         path = imports_path::parse_next_use_segment(p, path)

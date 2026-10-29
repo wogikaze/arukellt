@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
@@ -11,7 +10,7 @@ fn emit_capture_arg_segment(mut ctx: LowerCtx, packed: String, start: i32, end: 
     if len(name) == 0 {
         return
     }
-    let li = ctx_lookup_local(ctx, clone(name))
+    let li = ctx_lookup_local(ctx, name.clone())
     if li < 0 {
         return
     }

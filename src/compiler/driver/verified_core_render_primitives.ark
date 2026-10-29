@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::body_table
 use corehir::expr_raw
@@ -18,8 +18,8 @@ fn vc_string_has_question(s: String) -> bool {
 }
 
 fn vc_normalize_type_name(value_type: i32, supplied: String) -> String {
-    if len(clone(supplied)) > 0 {
-        if vc_string_has_question(clone(supplied)) || eq(clone(supplied), "unknown") { return "" }
+    if len(supplied.clone()) > 0 {
+        if vc_string_has_question(supplied.clone()) || eq(supplied.clone(), "unknown") { return "" }
         return supplied
     }
     if value_type == value_types::VT_VOID() { return "()" }
@@ -34,16 +34,16 @@ fn vc_normalize_type_name(value_type: i32, supplied: String) -> String {
 
 fn vc_type_id(value_type: i32, supplied_name: String) -> i32 {
     let name = vc_normalize_type_name(value_type, supplied_name)
-    if value_type == value_types::VT_VOID() && eq(clone(name), "()") { return 0 }
-    if value_type == value_types::VT_I32() && eq(clone(name), "i32") { return 1 }
-    if value_type == value_types::VT_I32() && eq(clone(name), "bool") { return 2 }
-    if value_type == value_types::VT_I32() && eq(clone(name), "char") { return 3 }
-    if value_type == value_types::VT_I64() && eq(clone(name), "i64") { return 4 }
-    if value_type == value_types::VT_F32() && eq(clone(name), "f32") { return 5 }
-    if value_type == value_types::VT_F64() && eq(clone(name), "f64") { return 6 }
-    if value_type == value_types::VT_V128() && eq(clone(name), "v128") { return 7 }
-    if value_type == value_types::VT_REF() && (eq(clone(name), "String") || eq(clone(name), "string")) { return 8 }
-    if value_type == value_types::VT_FUNCREF() && (eq(clone(name), "fnref") || eq(clone(name), "fn")) { return 9 }
+    if value_type == value_types::VT_VOID() && eq(name.clone(), "()") { return 0 }
+    if value_type == value_types::VT_I32() && eq(name.clone(), "i32") { return 1 }
+    if value_type == value_types::VT_I32() && eq(name.clone(), "bool") { return 2 }
+    if value_type == value_types::VT_I32() && eq(name.clone(), "char") { return 3 }
+    if value_type == value_types::VT_I64() && eq(name.clone(), "i64") { return 4 }
+    if value_type == value_types::VT_F32() && eq(name.clone(), "f32") { return 5 }
+    if value_type == value_types::VT_F64() && eq(name.clone(), "f64") { return 6 }
+    if value_type == value_types::VT_V128() && eq(name.clone(), "v128") { return 7 }
+    if value_type == value_types::VT_REF() && (eq(name.clone(), "String") || eq(name.clone(), "string")) { return 8 }
+    if value_type == value_types::VT_FUNCREF() && (eq(name.clone(), "fnref") || eq(name.clone(), "fn")) { return 9 }
     0 - 1
 }
 
@@ -111,10 +111,10 @@ fn vc_value_type_name(value_type: i32) -> String {
 
 fn vc_type_kind(value_type: i32, name: String) -> String {
     if value_type == value_types::VT_VOID() { return "unit" }
-    if eq(clone(name), "bool") { return "bool" }
+    if eq(name.clone(), "bool") { return "bool" }
     if value_type == value_types::VT_F32() || value_type == value_types::VT_F64() { return "float" }
     if value_type == value_types::VT_V128() { return "vector" }
-    if eq(clone(name), "String") || eq(clone(name), "string") { return "string" }
+    if eq(name.clone(), "String") || eq(name.clone(), "string") { return "string" }
     if value_type == value_types::VT_FUNCREF() { return "function" }
     if value_type == value_types::VT_REF() || value_type == value_types::VT_GC_REF() { return "reference" }
     "integer"
@@ -188,7 +188,7 @@ fn vc_json_escape(s: String) -> String {
         } else if c == 9 {
             out = out.concat("\\t")
         } else {
-            out = out.concat(clone(s).slice(i, i + 1))
+            out = out.concat(s.clone().slice(i, i + 1))
         }
         i = i + 1
     }
@@ -203,7 +203,7 @@ fn vc_render_type(type_id: i32, pointer_width: i32) -> String {
     let name = vc_type_name_for_id(type_id)
     let value_type = vc_value_type_for_id(type_id)
     let mut out = "{\"id\":".concat(type_id.to_string())
-    out = out.concat(",\"kind\":".concat(vc_quote(vc_type_kind(value_type, clone(name)))))
+    out = out.concat(",\"kind\":".concat(vc_quote(vc_type_kind(value_type, name.clone()))))
     out = out.concat(",\"name\":".concat(vc_quote(name)))
     out = out.concat(",\"value_type\":".concat(vc_quote(vc_value_type_name(value_type))))
     out = out.concat(",\"representation\":{\"kind\":".concat(vc_quote(vc_representation_kind(value_type))))
@@ -289,10 +289,10 @@ fn vc_unary_operator_text(op: i32) -> String {
 }
 
 fn vc_expression_text(kind: i32, raw_text: String, int_value: i32) -> String {
-    if kind == 11 && len(clone(raw_text)) == 0 {
+    if kind == 11 && len(raw_text.clone()) == 0 {
         return vc_binary_operator_text(int_value)
     }
-    if kind == 12 && len(clone(raw_text)) == 0 {
+    if kind == 12 && len(raw_text.clone()) == 0 {
         return vc_unary_operator_text(int_value)
     }
     raw_text

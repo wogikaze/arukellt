@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use lsp::feature_request
 use lsp::framing
 use lsp::qualified_name
@@ -7,7 +6,7 @@ use lsp::responses_signature
 use lsp::signature_help_call
 use lsp::signature_help_resolve
 pub fn handle_signature_help(mut state: LspState, body: String) {
-    let req = feature_request::read_text_position_request(state, clone(body))
+    let req = feature_request::read_text_position_request(state, body.clone())
     let req_id = feature_request::text_position_request_id(req)
     if !feature_request::text_position_request_has_text(req) {
         framing::append_framed(state, responses::build_null_response(req_id))
@@ -15,10 +14,10 @@ pub fn handle_signature_help(mut state: LspState, body: String) {
     }
     let req_text = feature_request::text_position_request_text(req)
     let offset = feature_request::text_position_request_offset(req)
-    let ctx = signature_help_call::call_context_at_offset(clone(req_text), offset)
+    let ctx = signature_help_call::call_context_at_offset(req_text.clone(), offset)
     let mut callee = signature_help_call::call_context_callee(ctx)
     if !signature_help_call::call_context_found(ctx) {
-        let lookup = qualified_name::lookup_name_at_offset(clone(req_text), offset)
+        let lookup = qualified_name::lookup_name_at_offset(req_text.clone(), offset)
         if len(lookup) > 0 {
             callee = lookup
         }
@@ -27,8 +26,8 @@ pub fn handle_signature_help(mut state: LspState, body: String) {
         framing::append_framed(state, responses::build_null_response(req_id))
         return
     }
-    let mut short_name = clone(callee)
-    if clone(callee).contains("::") {
+    let mut short_name = callee.clone()
+    if callee.clone().contains("::") {
         let mut last_colon = 0
         let mut pos = len(callee) - 1
         while pos >= 0 {

@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
 use mir::lower::ctx_api_local_alloc
@@ -35,14 +35,14 @@ fn mir_core_int_text_needs_i64(text: String) -> bool {
     if len(text) >= 2 && text.byte_at(0) == 48 && (text.byte_at(1) == 120 || text.byte_at(1) == 88 || text.byte_at(1) == 98 || text.byte_at(1) == 66) {
         return false
     }
-    if clone(text).ends_with(String_from("i64")) || clone(text).ends_with(String_from("u64")) {
+    if text.clone().ends_with(String_from("i64")) || text.clone().ends_with(String_from("u64")) {
         return true
     }
-    if clone(text).ends_with(String_from("i32")) || clone(text).ends_with(String_from("u32")) {
+    if text.clone().ends_with(String_from("i32")) || text.clone().ends_with(String_from("u32")) {
         return false
     }
     // Positive magnitude that does not fit in signed i32 (i32::MIN abs).
-    eq(clone(text), String_from("2147483648"))
+    eq(text.clone(), String_from("2147483648"))
 }
 
 fn mir_initial_binop_vt(lhs_vt: i32, rhs_vt: i32) -> i32 {

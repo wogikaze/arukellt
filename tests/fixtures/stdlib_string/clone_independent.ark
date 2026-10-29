@@ -1,9 +1,9 @@
 use std::test::Test
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 
 fn main() {
     let mut s = String_from("data")
-    let c = clone(s)
+    let c = s.clone()
     Test::assert_true(eq(s, c))
     s.push_char('!')
     Test::assert_false(eq(s, c))

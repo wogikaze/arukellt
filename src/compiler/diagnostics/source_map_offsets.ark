@@ -1,5 +1,4 @@
 use std::text
-use std::prelude::{clone}
 use diagnostics::record
 pub fn offset_to_line(source: String, offset: i32) -> i32 {
     let n = len(source)
@@ -63,13 +62,13 @@ pub fn zero_based_position_to_offset(source: String, line: i32, column: i32) -> 
 }
 
 fn span_from_offsets(source: String, file: String, start: i32, end: i32) -> DiagnosticSpan {
-    record::DiagnosticSpan_new_full(file, offset_to_line(clone(source), start), offset_to_column(source, start), start, end)
+    record::DiagnosticSpan_new_full(file, offset_to_line(source.clone(), start), offset_to_column(source, start), start, end)
 }
 
 fn location_text(source: String, file: String, offset: i32) -> String {
     let mut out = file
     out = out.concat(":")
-    out = out.concat(offset_to_line(clone(source), offset).to_string())
+    out = out.concat(offset_to_line(source.clone(), offset).to_string())
     out = out.concat(":")
     out = out.concat(offset_to_column(source, offset).to_string())
     out

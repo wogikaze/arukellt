@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use corehir::expr_factory
 use corehir::expr_access_types
 use corehir::expr_builder_ops
@@ -25,7 +24,7 @@ fn corehir_type_name_from_ann(node: AstNode) -> String {
 fn corehir_build_let_expr(mut table: CoreHirBodyTable, node: AstNode) -> i32 {
     let mut children = Vec::new<i32>()
     let mut type_name = corehir_type_name_from_ann(node)
-    let mut vt = types::corehir_vt_from_type_name(clone(type_name))
+    let mut vt = types::corehir_vt_from_type_name(type_name.clone())
     if expr_node_access::expr_child_count(node) >= 1 {
         let child_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 0))
         push(children, child_index)

@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use parser::ast_node_record
 use parser::ast_span_record
 fn ast_node_kind(node: AstNode) -> i32 {
@@ -10,7 +9,7 @@ fn ast_node_set_kind(mut node: AstNode, kind: i32) {
 }
 
 fn ast_node_text(node: AstNode) -> String {
-    clone(node.text)
+    node.text.clone()
 }
 
 fn ast_node_set_text(mut node: AstNode, text: String) {

@@ -1,18 +1,17 @@
 use std::json
-use std::prelude::{clone}
 fn extract_position_field(body: String, key: String) -> i32 {
-    let p = json::JsonText::find_key_pos(clone(body), String_from("position"), 0)
+    let p = json::JsonText::find_key_pos(body.clone(), String_from("position"), 0)
     if p < 0 {
         return 0
     }
-    let q = json::JsonText::find_key_pos(clone(body), key, p)
+    let q = json::JsonText::find_key_pos(body.clone(), key, p)
     if q < 0 {
         return 0
     }
-    let r = json::JsonText::skip_ws(clone(body), q)
+    let r = json::JsonText::skip_ws(body.clone(), q)
     let n = len(body)
     if r >= n || body.byte_at(r) != 58 {
         return 0
     }
-    json::JsonText::parse_int_at(clone(body), r + 1)
+    json::JsonText::parse_int_at(body.clone(), r + 1)
 }

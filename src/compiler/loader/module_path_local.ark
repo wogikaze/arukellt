@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 pub fn path_parent_dir(path: String) -> String {
     let n = len(path)
@@ -30,22 +30,22 @@ pub fn module_path_to_file_stem(path: String) -> String {
     let mut seg_start = 0
     while i < n {
         if path.byte_at(i) == 58 && i + 1 < n && path.byte_at(i + 1) == 58 {
-            result = clone(result).concat(clone(path).slice(seg_start, i).concat("/"))
+            result = result.clone().concat(path.clone().slice(seg_start, i).concat("/"))
             i = i + 2
             seg_start = i
         } else {
             i = i + 1
         }
     }
-    clone(result).concat(clone(path).slice(seg_start, n))
+    result.clone().concat(path.clone().slice(seg_start, n))
 }
 
 pub fn module_stem_to_mod_path(base_dir: String, stem: String) -> String {
-    clone(base_dir).concat("/".concat(clone(stem).concat("/mod.ark")))
+    base_dir.clone().concat("/".concat(stem.clone().concat("/mod.ark")))
 }
 
 pub fn module_stem_to_file_path(base_dir: String, stem: String) -> String {
-    clone(base_dir).concat("/".concat(clone(stem).concat(".ark")))
+    base_dir.clone().concat("/".concat(stem.clone().concat(".ark")))
 }
 test mod "local_path" {
     test "parent" { assert(eq(path_parent_dir("a/b/c.ark"), "a/b")) }

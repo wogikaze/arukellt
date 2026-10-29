@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_api_local_frame
@@ -37,7 +36,7 @@ fn mir_emit_method_body(
     // binder that the signature never mentions (#946).
     ctx_mono_type_params::ctx_setup_mono_type_params_by_ordinal_declared(
         ctx,
-        clone(emit_method_name),
+        emit_method_name.clone(),
         entry_view_method::mir_entry_method_type_params_at(entry_view, method_info_index)
     )
     // Register the declared -> concrete return projection (vec:I::Item ->
@@ -46,7 +45,7 @@ fn mir_emit_method_body(
     ctx_mono_type_params::ctx_set_mono_type_projection(
         ctx,
         generic_rt_type_name,
-        clone(rt_type_name)
+        rt_type_name.clone()
     )
     // Re-substitute type-variable param locals with concrete mono types (#707).
     mono_param_subst::mir_substitute_mono_param_types(ctx)

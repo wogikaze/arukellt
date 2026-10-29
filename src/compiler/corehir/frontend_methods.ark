@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use corehir::decl_impl_target
 use corehir::decl_member_collections
 use corehir::decl_node
@@ -22,7 +21,7 @@ fn build_method_params(
             params,
             param_shape::method_param_from_node(
                 decl_member_collections::decl_method_at(method, i),
-                clone(type_params),
+                type_params.clone(),
                 nominal_types
             )
         )
@@ -42,7 +41,7 @@ fn build_method_infos(
     while i < decl_count {
         let decl = get_unchecked(decls, i)
         if decl_node::decl_is_impl(decl) {
-            let owner_name = decl_impl_target::impl_self_type_name(decl, clone(known_type_names))
+            let owner_name = decl_impl_target::impl_self_type_name(decl, known_type_names.clone())
             let trait_id = decl_impl_target::impl_semantic_trait_id(decl)
             let method_count = decl_member_collections::decl_method_count(decl)
             let mut mi = 0
@@ -53,43 +52,43 @@ fn build_method_infos(
                 let type_params = return_type_name::return_declared_type_params(
                     decl,
                     method,
-                    clone(known_type_names)
+                    known_type_names.clone()
                 )
                 let type_param_count = len(type_params)
                 let params = build_method_params(
                     decl,
                     method,
                     param_count,
-                    clone(type_params),
+                    type_params.clone(),
                     nominal_types
                 )
                 let method_name = decl_node_identity::method_name(method)
                 let mangled = decl_impl_target::impl_method_mangled_name(
                     decl,
-                    clone(method_name),
-                    clone(known_type_names)
+                    method_name.clone(),
+                    known_type_names.clone()
                 )
                 let return_vt = return_type::return_value_type_tag_for_impl(
                     decl,
                     method,
-                    clone(known_type_names)
+                    known_type_names.clone()
                 )
                 let return_type_name = return_type::return_index_type_name_for_impl(
                     decl,
                     method,
-                    clone(known_type_names)
+                    known_type_names.clone()
                 )
                 push(
                     infos,
                     method_info::CoreHirMethodInfo_new(
                         i,
                         mi,
-                        clone(owner_name),
+                        owner_name.clone(),
                         method_name,
                         mangled,
                         param_count,
                         type_param_count,
-                        clone(type_params),
+                        type_params.clone(),
                         params,
                         body_index,
                         return_vt,

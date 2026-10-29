@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use typechecker::contract_types_record
 struct MonoInstance {
     fn_name: String,
@@ -60,11 +59,11 @@ fn MonoInstance_set_demanded(mut instance: MonoInstance) {
 }
 
 fn MonoInstance_fn_name(instance: MonoInstance) -> String {
-    clone(instance.fn_name)
+    instance.fn_name.clone()
 }
 
 fn MonoInstance_mangled_name(instance: MonoInstance) -> String {
-    clone(instance.mangled_name)
+    instance.mangled_name.clone()
 }
 
 fn MonoInstance_type_arg_count(instance: MonoInstance) -> i32 {
@@ -92,5 +91,5 @@ fn MonoCallSite_span_start(site: MonoCallSite) -> i32 {
 }
 
 fn MonoCallSite_fn_name(site: MonoCallSite) -> String {
-    clone(site.fn_name)
+    site.fn_name.clone()
 }

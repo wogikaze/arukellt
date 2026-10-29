@@ -15,7 +15,7 @@ use corehir::type_info_to_mir_value
 
 // Set type_name / variant_slot on dest based on the producer instruction type.
 // For CALL, looks up the callee's return metadata from the module cache.
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 fn propagate_from_producer_inst(
     cache: CalleePropCache,
     mut f: MirFunction,
@@ -33,12 +33,12 @@ fn propagate_from_producer_inst(
     let mut updated = false
     // `new_loc` is a rewritten copy of `dst_loc`; the original is still read
     // below, so the copy must not move it.
-    let mut new_loc = clone(dst_loc)
+    let mut new_loc = dst_loc.clone()
     if op == opcodes::MIR_GC_STRUCT_NEW() {
         let slot = inst_accessors_operands::MirInst_arg0(inst)
         if dst_variant_slot < 0 && slot >= 0 {
             let dst_type_name_now = local_access::MirLocal_type_name(dst_loc)
-            if !post_pass_enum_normalize::is_open_enum_container_type_name(clone(dst_type_name_now)) && !post_pass_enum_normalize::is_ref_container_type_name(clone(dst_type_name_now)) {
+            if !post_pass_enum_normalize::is_open_enum_container_type_name(dst_type_name_now.clone()) && !post_pass_enum_normalize::is_ref_container_type_name(dst_type_name_now.clone()) {
                 local_access::MirLocal_set_variant_slot(new_loc, slot)
                 updated = true
             }
@@ -66,14 +66,14 @@ fn propagate_from_producer_inst(
         // lowering. A wrong mono name (get_unchecked__String) would otherwise
         // overwrite WitParsedInterface/etc. with string here.
         let skip_ret_sync =
-        (is_get_unchecked_callee(clone(callee)) && len(dst_type_name) > 0) ||
-        (is_vec_constructor_callee(clone(callee)) &&
-            clone(dst_type_name).starts_with("vec:"))
-        if is_vec_constructor_callee(clone(callee)) &&
-        clone(dst_type_name).starts_with("vec:") {
+        (is_get_unchecked_callee(callee.clone()) && len(dst_type_name) > 0) ||
+        (is_vec_constructor_callee(callee.clone()) &&
+            dst_type_name.clone().starts_with("vec:"))
+        if is_vec_constructor_callee(callee.clone()) &&
+        dst_type_name.clone().starts_with("vec:") {
             new_loc = typed_mir_sync_module::mir_local_with_type_name_synced(
                 new_loc,
-                clone(dst_type_name),
+                dst_type_name.clone(),
                 table
             )
             updated = true
@@ -82,13 +82,13 @@ fn propagate_from_producer_inst(
         // clone(T)->T must win over CalleePropCache / string-intrinsic tables.
         // Cache often maps bare "clone" to String and poisons GC struct temps
         // (doc_parse_manifest → doc_flush_fn validate fail, #730).
-        if !skip_ret_sync && is_generic_clone_intrinsic(clone(callee)) {
+        if !skip_ret_sync && is_generic_clone_intrinsic(callee.clone()) {
             ret_name = type_name_of_call_arg(f, inst)
         } else {
             if !skip_ret_sync {
                 ret_name = producer_result_type_name(inst, table)
                 if len(ret_name) == 0 {
-                    ret_name = post_pass_callee_cache::callee_prop_cache_return_type_name(cache, clone(callee))
+                    ret_name = post_pass_callee_cache::callee_prop_cache_return_type_name(cache, callee.clone())
                 }
                 if len(ret_name) == 0 {
                     ret_name = lookup_intrinsic_return_type_name(callee)
@@ -97,7 +97,7 @@ fn propagate_from_producer_inst(
         }
         if len(ret_name) > 0 {
             new_loc = typed_mir_sync_module::mir_local_with_type_name_synced(new_loc, ret_name, table)
-            if !post_pass_enum_normalize::is_open_enum_container_type_name(clone(ret_name)) {
+            if !post_pass_enum_normalize::is_open_enum_container_type_name(ret_name.clone()) {
                 local_access::MirLocal_set_variant_slot(new_loc, 0 - 1)
             }
             updated = true
@@ -131,7 +131,7 @@ fn propagate_call_variant_slot(
     }
     let ret_slot = post_pass_callee_cache::callee_prop_cache_return_variant_slot(cache, callee)
     if ret_slot >= 0 {
-        if !post_pass_enum_normalize::is_open_enum_container_type_name(clone(dst_type_name)) && !post_pass_enum_normalize::is_ref_container_type_name(clone(dst_type_name)) {
+        if !post_pass_enum_normalize::is_open_enum_container_type_name(dst_type_name.clone()) && !post_pass_enum_normalize::is_ref_container_type_name(dst_type_name.clone()) {
             local_access::MirLocal_set_variant_slot(new_loc, ret_slot)
             return true
         }
@@ -141,46 +141,46 @@ fn propagate_call_variant_slot(
 
 // Keep in sync with mir::lower::call_types::is_clone_result_callee.
 fn is_generic_clone_intrinsic(name: String) -> bool {
-    eq(clone(name), "clone") ||
-    eq(clone(name), "__intrinsic_clone") ||
-    eq(clone(name), "__intrinsic_string_clone") ||
-    eq(clone(name), "__core_string_clone_impl") ||
-    eq(clone(name), "raw_string_clone") ||
-    eq(clone(name), "RawString__clone") ||
-    clone(name).starts_with("RawString__clone__") ||
-    clone(name).ends_with("::clone") ||
-    clone(name).ends_with("__clone") ||
-    clone(name).ends_with("::raw_string_clone") ||
-    clone(name).ends_with("string_clone")
+    eq(name.clone(), "clone") ||
+    eq(name.clone(), "__intrinsic_clone") ||
+    eq(name.clone(), "__intrinsic_string_clone") ||
+    eq(name.clone(), "__core_string_clone_impl") ||
+    eq(name.clone(), "raw_string_clone") ||
+    eq(name.clone(), "RawString__clone") ||
+    name.clone().starts_with("RawString__clone__") ||
+    name.clone().ends_with("::clone") ||
+    name.clone().ends_with("__clone") ||
+    name.clone().ends_with("::raw_string_clone") ||
+    name.clone().ends_with("string_clone")
 }
 
 fn is_get_unchecked_callee(name: String) -> bool {
-    if eq(clone(name), "vec_get_unchecked") ||
-    eq(clone(name), "get_unchecked") ||
-    eq(clone(name), "__intrinsic_get_unchecked") ||
+    if eq(name.clone(), "vec_get_unchecked") ||
+    eq(name.clone(), "get_unchecked") ||
+    eq(name.clone(), "__intrinsic_get_unchecked") ||
     callee_spelling::is_namespace_member_callee(
-        clone(name),
+        name.clone(),
         String_from("raw_array_get_unchecked"),
         String_from("RawArray"),
         String_from("get_unchecked")
     ) {
         return true
     }
-    clone(name).starts_with("get_unchecked__") ||
-    clone(name).starts_with("vec_get_unchecked__") ||
-    clone(name).starts_with("__intrinsic_get_unchecked__") ||
-    clone(name).starts_with("raw_array_get_unchecked__")
+    name.clone().starts_with("get_unchecked__") ||
+    name.clone().starts_with("vec_get_unchecked__") ||
+    name.clone().starts_with("__intrinsic_get_unchecked__") ||
+    name.clone().starts_with("raw_array_get_unchecked__")
 }
 
 fn is_vec_constructor_callee(name: String) -> bool {
-    eq(clone(name), "Vec::new") ||
-    eq(clone(name), "Vec__new") ||
-    eq(clone(name), "Vec::with_capacity") ||
-    eq(clone(name), "Vec__with_capacity") ||
-    clone(name).starts_with("Vec::new__") ||
-    clone(name).starts_with("Vec__new__") ||
-    clone(name).starts_with("Vec::with_capacity__") ||
-    clone(name).starts_with("Vec__with_capacity__")
+    eq(name.clone(), "Vec::new") ||
+    eq(name.clone(), "Vec__new") ||
+    eq(name.clone(), "Vec::with_capacity") ||
+    eq(name.clone(), "Vec__with_capacity") ||
+    name.clone().starts_with("Vec::new__") ||
+    name.clone().starts_with("Vec__new__") ||
+    name.clone().starts_with("Vec::with_capacity__") ||
+    name.clone().starts_with("Vec__with_capacity__")
 }
 
 fn type_name_of_call_arg(f: MirFunction, inst: MirInst) -> String {
@@ -189,18 +189,18 @@ fn type_name_of_call_arg(f: MirFunction, inst: MirInst) -> String {
         return String_new()
     }
     let loc = function_locals_view::MirFunction_local_at(f, arg0)
-    clone(local_access::MirLocal_type_name(loc))
+    local_access::MirLocal_type_name(loc).clone()
 }
 
 fn lookup_intrinsic_return_type_name(callee: String) -> String {
-    if is_string_returning_intrinsic(clone(callee)) {
+    if is_string_returning_intrinsic(callee.clone()) {
         return "string"
     }
-    if is_vec_string_returning_intrinsic(clone(callee)) {
+    if is_vec_string_returning_intrinsic(callee.clone()) {
         return "vec:String"
     }
-    let base = intrinsic_strip_mono_suffix(clone(callee))
-    if len(base) > 0 && !eq(clone(base), clone(callee)) {
+    let base = intrinsic_strip_mono_suffix(callee.clone())
+    if len(base) > 0 && !eq(base.clone(), callee.clone()) {
         if is_string_returning_intrinsic(base) {
             return "string"
         }
@@ -212,96 +212,96 @@ fn lookup_intrinsic_return_type_name(callee: String) -> String {
 }
 
 fn is_string_returning_intrinsic(name: String) -> bool {
-    if is_string_constructor_or_conversion(clone(name)) {
+    if is_string_constructor_or_conversion(name.clone()) {
         return true
     }
-    if is_common_string_method(clone(name)) {
+    if is_common_string_method(name.clone()) {
         return true
     }
-    if is_text_free_function_returning_string(clone(name)) {
+    if is_text_free_function_returning_string(name.clone()) {
         return true
     }
-    if is_core_string_impl_returning_string(clone(name)) {
+    if is_core_string_impl_returning_string(name.clone()) {
         return true
     }
-    if is_raw_string_intrinsic_returning_string(clone(name)) {
+    if is_raw_string_intrinsic_returning_string(name.clone()) {
         return true
     }
-    if is_hashmap_string_accessor(clone(name)) {
+    if is_hashmap_string_accessor(name.clone()) {
         return true
     }
-    if is_string_type_method(clone(name)) {
+    if is_string_type_method(name.clone()) {
         return true
     }
     false
 }
 
 fn is_vec_string_returning_intrinsic(name: String) -> bool {
-    if eq(clone(name), "split")
-    || eq(clone(name), "text::split")
-    || eq(clone(name), "string::split")
-    || eq(clone(name), "__intrinsic_split")
-    || eq(clone(name), "chars")
-    || eq(clone(name), "text::chars")
-    || eq(clone(name), "__intrinsic_chars")
-    || eq(clone(name), "lines") {
+    if eq(name.clone(), "split")
+    || eq(name.clone(), "text::split")
+    || eq(name.clone(), "string::split")
+    || eq(name.clone(), "__intrinsic_split")
+    || eq(name.clone(), "chars")
+    || eq(name.clone(), "text::chars")
+    || eq(name.clone(), "__intrinsic_chars")
+    || eq(name.clone(), "lines") {
         return true
     }
-    if clone(name).ends_with("::split") || clone(name).ends_with("::chars") || clone(name).ends_with("::lines") {
+    if name.clone().ends_with("::split") || name.clone().ends_with("::chars") || name.clone().ends_with("::lines") {
         return true
     }
-    if clone(name).starts_with("split__") || clone(name).starts_with("chars__") {
+    if name.clone().starts_with("split__") || name.clone().starts_with("chars__") {
         return true
     }
-    if eq(clone(name), "filter_String") || eq(clone(name), "__intrinsic_filter_String") || clone(name).starts_with("filter_String__") {
+    if eq(name.clone(), "filter_String") || eq(name.clone(), "__intrinsic_filter_String") || name.clone().starts_with("filter_String__") {
         return true
     }
-    if eq(clone(name), "map_String_String") || eq(clone(name), "__intrinsic_map_String_String") || clone(name).starts_with("map_String_String__") {
+    if eq(name.clone(), "map_String_String") || eq(name.clone(), "__intrinsic_map_String_String") || name.clone().starts_with("map_String_String__") {
         return true
     }
-    if eq(clone(name), "std::vec::Vec<String>::new") {
+    if eq(name.clone(), "std::vec::Vec<String>::new") {
         return true
     }
     false
 }
 
 fn is_string_constructor_or_conversion(name: String) -> bool {
-    if is_string_new_like(clone(name)) || is_string_from_like(clone(name)) {
+    if is_string_new_like(name.clone()) || is_string_from_like(name.clone()) {
         return true
     }
-    if is_to_string_name(clone(name)) {
+    if is_to_string_name(name.clone()) {
         return true
     }
     false
 }
 
 fn is_string_new_like(name: String) -> bool {
-    if eq(clone(name), "new") || eq(clone(name), "String_new") || eq(clone(name), "String::new") {
+    if eq(name.clone(), "new") || eq(name.clone(), "String_new") || eq(name.clone(), "String::new") {
         return true
     }
     false
 }
 
 fn is_string_from_like(name: String) -> bool {
-    if eq(clone(name), "from") || eq(clone(name), "String_from") || eq(clone(name), "String::from") || eq(clone(name), "__intrinsic_string_from") {
+    if eq(name.clone(), "from") || eq(name.clone(), "String_from") || eq(name.clone(), "String::from") || eq(name.clone(), "__intrinsic_string_from") {
         return true
     }
     false
 }
 
 fn is_to_string_name(name: String) -> bool {
-    if eq(clone(name), "to_string")
-    || eq(clone(name), "char_to_string")
-    || eq(clone(name), "bool_to_string")
-    || eq(clone(name), "f64_to_string")
-    || eq(clone(name), "i32_to_string")
-    || eq(clone(name), "i64_to_string") {
+    if eq(name.clone(), "to_string")
+    || eq(name.clone(), "char_to_string")
+    || eq(name.clone(), "bool_to_string")
+    || eq(name.clone(), "f64_to_string")
+    || eq(name.clone(), "i32_to_string")
+    || eq(name.clone(), "i64_to_string") {
         return true
     }
-    if clone(name).starts_with("__intrinsic_") && clone(name).ends_with("_to_string") {
+    if name.clone().starts_with("__intrinsic_") && name.clone().ends_with("_to_string") {
         return true
     }
-    if clone(name).ends_with("::to_string") || clone(name).ends_with("::to_string__1") {
+    if name.clone().ends_with("::to_string") || name.clone().ends_with("::to_string__1") {
         return true
     }
     false
@@ -311,35 +311,35 @@ fn is_common_string_method(name: String) -> bool {
     // "clone" is identity clone(T)->T (see is_generic_clone_intrinsic), not a
     // String-only method. Keeping it here made GC struct clone temps validate
     // as (ref null String) (#730).
-    if eq(clone(name), "concat")
-    || eq(clone(name), "trim")
-    || eq(clone(name), "trim_start")
-    || eq(clone(name), "trim_end")
-    || eq(clone(name), "to_lower")
-    || eq(clone(name), "to_upper") {
+    if eq(name.clone(), "concat")
+    || eq(name.clone(), "trim")
+    || eq(name.clone(), "trim_start")
+    || eq(name.clone(), "trim_end")
+    || eq(name.clone(), "to_lower")
+    || eq(name.clone(), "to_upper") {
         return true
     }
-    if eq(clone(name), "to_lowercase")
-    || eq(clone(name), "to_uppercase")
-    || eq(clone(name), "replace")
-    || eq(clone(name), "replace_all")
-    || eq(clone(name), "repeat")
-    || eq(clone(name), "slice")
-    || eq(clone(name), "slice_bytes")
-    || eq(clone(name), "substring")
-    || eq(clone(name), "reverse")
-    || eq(clone(name), "pad_left")
-    || eq(clone(name), "pad_right")
-    || eq(clone(name), "pad_start")
-    || eq(clone(name), "pad_end")
-    || eq(clone(name), "join") {
+    if eq(name.clone(), "to_lowercase")
+    || eq(name.clone(), "to_uppercase")
+    || eq(name.clone(), "replace")
+    || eq(name.clone(), "replace_all")
+    || eq(name.clone(), "repeat")
+    || eq(name.clone(), "slice")
+    || eq(name.clone(), "slice_bytes")
+    || eq(name.clone(), "substring")
+    || eq(name.clone(), "reverse")
+    || eq(name.clone(), "pad_left")
+    || eq(name.clone(), "pad_right")
+    || eq(name.clone(), "pad_start")
+    || eq(name.clone(), "pad_end")
+    || eq(name.clone(), "join") {
         return true
     }
     false
 }
 
 fn is_text_free_function_returning_string(name: String) -> bool {
-    if clone(name).starts_with("text::") || clone(name).starts_with("string::") {
+    if name.clone().starts_with("text::") || name.clone().starts_with("string::") {
         let base = strip_module_prefix(name)
         if is_common_string_method(base) {
             return true
@@ -349,7 +349,7 @@ fn is_text_free_function_returning_string(name: String) -> bool {
 }
 
 fn is_string_type_method(name: String) -> bool {
-    if clone(name).starts_with("String::") {
+    if name.clone().starts_with("String::") {
         let n = len(name)
         let prefix_len = len("String::")
         let base = name.slice(prefix_len, n)
@@ -357,7 +357,7 @@ fn is_string_type_method(name: String) -> bool {
             return true
         }
     }
-    if clone(name).starts_with("std::text::String::") {
+    if name.clone().starts_with("std::text::String::") {
         let n = len(name)
         let prefix_len = len("std::text::String::")
         let base = name.slice(prefix_len, n)
@@ -388,10 +388,10 @@ fn strip_module_prefix(name: String) -> String {
 }
 
 fn is_core_string_impl_returning_string(name: String) -> bool {
-    if !clone(name).starts_with("__core_string_") {
+    if !name.clone().starts_with("__core_string_") {
         return false
     }
-    if !clone(name).ends_with("_impl") {
+    if !name.clone().ends_with("_impl") {
         return false
     }
     let n = len(name)
@@ -402,56 +402,56 @@ fn is_core_string_impl_returning_string(name: String) -> bool {
         return false
     }
     let middle = name.slice(prefix_len, n - suffix_len)
-    if eq(clone(middle), "concat")
-    || eq(clone(middle), "clone")
-    || eq(clone(middle), "from_bytes")
-    || eq(clone(middle), "new")
-    || eq(clone(middle), "slice")
-    || eq(clone(middle), "push_range")
-    || eq(clone(middle), "join")
-    || eq(clone(middle), "pad_left")
-    || eq(clone(middle), "pad_left_fill")
-    || eq(clone(middle), "pad_right")
-    || eq(clone(middle), "pad_right_fill")
-    || eq(clone(middle), "repeat")
-    || eq(clone(middle), "replace")
-    || eq(clone(middle), "to_lowercase")
-    || eq(clone(middle), "to_uppercase")
-    || eq(clone(middle), "trim")
-    || eq(clone(middle), "trim_end")
-    || eq(clone(middle), "trim_start") {
+    if eq(middle.clone(), "concat")
+    || eq(middle.clone(), "clone")
+    || eq(middle.clone(), "from_bytes")
+    || eq(middle.clone(), "new")
+    || eq(middle.clone(), "slice")
+    || eq(middle.clone(), "push_range")
+    || eq(middle.clone(), "join")
+    || eq(middle.clone(), "pad_left")
+    || eq(middle.clone(), "pad_left_fill")
+    || eq(middle.clone(), "pad_right")
+    || eq(middle.clone(), "pad_right_fill")
+    || eq(middle.clone(), "repeat")
+    || eq(middle.clone(), "replace")
+    || eq(middle.clone(), "to_lowercase")
+    || eq(middle.clone(), "to_uppercase")
+    || eq(middle.clone(), "trim")
+    || eq(middle.clone(), "trim_end")
+    || eq(middle.clone(), "trim_start") {
         return true
     }
     false
 }
 
 fn is_raw_string_intrinsic_returning_string(name: String) -> bool {
-    if is_direct_string_intrinsic(clone(name)) {
+    if is_direct_string_intrinsic(name.clone()) {
         return true
     }
-    if eq(clone(name), "raw.string_new")
-    || eq(clone(name), "raw.string_clone")
-    || eq(clone(name), "raw.string_from_bytes")
-    || eq(clone(name), "raw::raw_string_new")
-    || eq(clone(name), "raw::raw_string_clone")
-    || eq(clone(name), "raw::raw_string_from_bytes")
-    || eq(clone(name), "std::core::raw::raw_string_new")
-    || eq(clone(name), "std::core::raw::raw_string_clone")
-    || eq(clone(name), "std::core::raw::raw_string_from_bytes")
+    if eq(name.clone(), "raw.string_new")
+    || eq(name.clone(), "raw.string_clone")
+    || eq(name.clone(), "raw.string_from_bytes")
+    || eq(name.clone(), "raw::raw_string_new")
+    || eq(name.clone(), "raw::raw_string_clone")
+    || eq(name.clone(), "raw::raw_string_from_bytes")
+    || eq(name.clone(), "std::core::raw::raw_string_new")
+    || eq(name.clone(), "std::core::raw::raw_string_clone")
+    || eq(name.clone(), "std::core::raw::raw_string_from_bytes")
     || callee_spelling::is_namespace_member_callee(
-        clone(name),
+        name.clone(),
         String_from("raw_string_new"),
         String_from("RawString"),
         String_from("new")
     )
     || callee_spelling::is_namespace_member_callee(
-        clone(name),
+        name.clone(),
         String_from("raw_string_clone"),
         String_from("RawString"),
         String_from("clone")
     )
     || callee_spelling::is_namespace_member_callee(
-        clone(name),
+        name.clone(),
         String_from("raw_string_from_bytes"),
         String_from("RawString"),
         String_from("from_bytes")
@@ -462,32 +462,32 @@ fn is_raw_string_intrinsic_returning_string(name: String) -> bool {
 }
 
 fn is_direct_string_intrinsic(name: String) -> bool {
-    if eq(clone(name), "__intrinsic_string_new")
-    || eq(clone(name), "__intrinsic_string_clone")
-    || eq(clone(name), "__intrinsic_string_from")
-    || eq(clone(name), "__intrinsic_string_from_bytes")
-    || eq(clone(name), "__intrinsic_string_slice")
-    || eq(clone(name), "__intrinsic_concat")
-    || eq(clone(name), "__intrinsic_substring")
-    || eq(clone(name), "__intrinsic_replace")
-    || eq(clone(name), "__intrinsic_trim")
-    || eq(clone(name), "__intrinsic_to_lower")
-    || eq(clone(name), "__intrinsic_to_upper")
-    || eq(clone(name), "__intrinsic_join")
-    || eq(clone(name), "__intrinsic_char_to_string") {
+    if eq(name.clone(), "__intrinsic_string_new")
+    || eq(name.clone(), "__intrinsic_string_clone")
+    || eq(name.clone(), "__intrinsic_string_from")
+    || eq(name.clone(), "__intrinsic_string_from_bytes")
+    || eq(name.clone(), "__intrinsic_string_slice")
+    || eq(name.clone(), "__intrinsic_concat")
+    || eq(name.clone(), "__intrinsic_substring")
+    || eq(name.clone(), "__intrinsic_replace")
+    || eq(name.clone(), "__intrinsic_trim")
+    || eq(name.clone(), "__intrinsic_to_lower")
+    || eq(name.clone(), "__intrinsic_to_upper")
+    || eq(name.clone(), "__intrinsic_join")
+    || eq(name.clone(), "__intrinsic_char_to_string") {
         return true
     }
     false
 }
 
 fn is_hashmap_string_accessor(name: String) -> bool {
-    if eq(clone(name), "__hm_si_get_key") || eq(clone(name), "__hm_is_get_val") || eq(clone(name), "__hm_ss_get_key") || eq(clone(name), "__hm_ss_get_val") {
+    if eq(name.clone(), "__hm_si_get_key") || eq(name.clone(), "__hm_is_get_val") || eq(name.clone(), "__hm_ss_get_key") || eq(name.clone(), "__hm_ss_get_val") {
         return true
     }
-    if eq(clone(name), "hash_string::hashmap_str_str_get_key") ||
-    eq(clone(name), "hash_string::hashmap_str_str_get_val") ||
-    eq(clone(name), "hash_string::hashmap_i32_str_get_val") ||
-    eq(clone(name), "hash_string::hashmap_str_i32_get_key") {
+    if eq(name.clone(), "hash_string::hashmap_str_str_get_key") ||
+    eq(name.clone(), "hash_string::hashmap_str_str_get_val") ||
+    eq(name.clone(), "hash_string::hashmap_i32_str_get_val") ||
+    eq(name.clone(), "hash_string::hashmap_str_i32_get_key") {
         return true
     }
     false

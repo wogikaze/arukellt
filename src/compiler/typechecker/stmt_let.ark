@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use typechecker::kinds
 use diagnostics::codes
 use typechecker::ast_access
@@ -31,7 +31,7 @@ fn fn_type_of_initializer(env: TypeEnv, fn_sigs: Vec<FnSig>, bind_ty: TypeInfo, 
         return bind_ty
     }
     let name = ast_access::node_text(init)
-    if contract_env_record::type_env_is_const_name(env, clone(name)) {
+    if contract_env_record::type_env_is_const_name(env, name.clone()) {
         return bind_ty
     }
     sigs::fn_value_type_from_sig(env, fn_sigs, name)
@@ -39,7 +39,7 @@ fn fn_type_of_initializer(env: TypeEnv, fn_sigs: Vec<FnSig>, bind_ty: TypeInfo, 
 
 fn check_let_stmt(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
     let bind_name = ast_access::node_text(node)
-    if eq(clone(bind_name), "__tuple_destructure") {
+    if eq(bind_name.clone(), "__tuple_destructure") {
         check_tuple_destructure_let(env, scope, fn_sigs, enum_defs, node)
         return
     }
@@ -106,7 +106,7 @@ fn check_let_stmt(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, 
             ownership::check_borrowed_box_escape(env, scope, ast_access::node_child_at(node, 0))
         }
     }
-    if !eq(clone(bind_name), "_") {
+    if !eq(bind_name.clone(), "_") {
         let borrow_mode = if ast_access::node_child_count(node) > 0 {
             closure_capture::value_borrow_mode(
                 env,
@@ -131,9 +131,9 @@ fn check_let_stmt(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, 
         }
         if env.is_ownership_tracking_enabled && borrow_mode > 0 {
             if closure_capture::value_borrow_is_mutable(borrow_mode) {
-                scope::scope_mark_mutable_borrow(scope, clone(bind_name), true)
+                scope::scope_mark_mutable_borrow(scope, bind_name.clone(), true)
             } else {
-                scope::scope_mark_shared_borrow(scope, clone(bind_name), true)
+                scope::scope_mark_shared_borrow(scope, bind_name.clone(), true)
             }
         }
         // A bound closure value keeps its capture-ness so later escape
@@ -143,12 +143,12 @@ fn check_let_stmt(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, 
         if env.is_ownership_tracking_enabled &&
         ast_access::node_child_count(node) > 0 &&
         closure_capture::value_has_captures(env, scope, ast_access::node_child_at(node, 0)) {
-            scope::scope_mark_has_captures(scope, clone(bind_name), true)
+            scope::scope_mark_has_captures(scope, bind_name.clone(), true)
             if closure_capture::value_has_borrow_captures(env, scope, ast_access::node_child_at(node, 0)) {
-                scope::scope_mark_has_borrow_captures(scope, clone(bind_name), true)
+                scope::scope_mark_has_borrow_captures(scope, bind_name.clone(), true)
             }
         }
-        contract_env_record::type_env_track_binding(env, clone(bind_name), ast_access::node_span_start(node), ast_access::node_span_end(node))
+        contract_env_record::type_env_track_binding(env, bind_name.clone(), ast_access::node_span_start(node), ast_access::node_span_end(node))
     }
 }
 
@@ -178,7 +178,7 @@ fn bind_tuple_pat_identifiers(env: TypeEnv, mut scope: LocalScope, pat: AstNode,
         let elem = ast_access::node_child_at(pat, i)
         if ast_access::node_kind_is(elem, kinds::NK_PAT_IDENT()) {
             let name = ast_access::node_text(elem)
-            if !eq(clone(name), "_") {
+            if !eq(name.clone(), "_") {
                 let elem_ty = tuple_element_type_at(tuple_ty, i)
                 scope::scope_define_with_flags(
                     scope,

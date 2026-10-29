@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
 use mir::inst_call
@@ -14,29 +13,29 @@ use mir::value_types
 // when the callee has none. The SIMD lane intrinsics put the lane second;
 // the v128 memory lane intrinsics are (address, offset, value, lane).
 fn mir_simd_lane_immediate_argument_index(callee_name: String) -> i32 {
-    if eq(clone(callee_name), "__wasm_v128_load_lane") {
+    if eq(callee_name.clone(), "__wasm_v128_load_lane") {
         return 4
     }
-    if eq(clone(callee_name), "__wasm_v128_store_lane") {
+    if eq(callee_name.clone(), "__wasm_v128_store_lane") {
         return 4
     }
-    if mir_is_simd_lane_immediate_callee(clone(callee_name)) {
+    if mir_is_simd_lane_immediate_callee(callee_name.clone()) {
         return 2
     }
     0 - 1
 }
 
 fn mir_is_simd_lane_immediate_callee(callee_name: String) -> bool {
-    if clone(callee_name).starts_with(String_from("__simd_")) && clone(callee_name).ends_with(String_from("_replace_lane")) {
+    if callee_name.clone().starts_with(String_from("__simd_")) && callee_name.clone().ends_with(String_from("_replace_lane")) {
         return true
     }
-    if clone(callee_name).starts_with(String_from("__simd_")) && clone(callee_name).ends_with(String_from("_extract_lane")) {
+    if callee_name.clone().starts_with(String_from("__simd_")) && callee_name.clone().ends_with(String_from("_extract_lane")) {
         return true
     }
-    if clone(callee_name).starts_with(String_from("__simd_")) && clone(callee_name).ends_with(String_from("_extract_lane_s")) {
+    if callee_name.clone().starts_with(String_from("__simd_")) && callee_name.clone().ends_with(String_from("_extract_lane_s")) {
         return true
     }
-    if clone(callee_name).starts_with(String_from("__simd_")) && clone(callee_name).ends_with(String_from("_extract_lane_u")) {
+    if callee_name.clone().starts_with(String_from("__simd_")) && callee_name.clone().ends_with(String_from("_extract_lane_u")) {
         return true
     }
     false
@@ -55,14 +54,14 @@ fn mir_emit_direct_call(
     lane_immediate: i32,
     receiver_writeback: i32
 ) -> i32 {
-    let call_rewrite = call_rewrite::mir_rewrite_call_target(ctx, clone(callee_text), first_arg_idx, second_arg_idx, stage_call_args, span_start)
+    let call_rewrite = call_rewrite::mir_rewrite_call_target(ctx, callee_text.clone(), first_arg_idx, second_arg_idx, stage_call_args, span_start)
     let return_local = call_rewrite::MirCallRewrite_return_local(call_rewrite)
     if return_local >= 0 {
         return return_local
     }
     let callee_name = call_rewrite::MirCallRewrite_callee_name(call_rewrite)
-    let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, clone(callee_name), first_arg_idx)
-    call_types::mir_mark_call_result_type(ctx, clone(callee_name), dest, first_arg_idx)
+    let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, callee_name.clone(), first_arg_idx)
+    call_types::mir_mark_call_result_type(ctx, callee_name.clone(), dest, first_arg_idx)
     let mut dest_vt = value_types::VT_VOID()
     if dest >= 0 {
         dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
@@ -74,7 +73,7 @@ fn mir_emit_direct_call(
             let last_param = staged_count - 1
             let last_local = staged_arg_locals.get_unchecked(last_param)
             if ctx_api_local_types::ctx_local_vt(ctx, last_local) == value_types::VT_I32() {
-                if call_arg_i64::mir_callee_param_is_i64(ctx, clone(callee_name), last_param) {
+                if call_arg_i64::mir_callee_param_is_i64(ctx, callee_name.clone(), last_param) {
                     push_i64_needs_extend = true
                 }
             }
@@ -102,14 +101,14 @@ fn mir_emit_direct_call(
     // Do not record first_arg on len/is_empty: STRUCT_GET→CALL stack-compose
     // keeps the vec on the stack only when CALL.arg0 < 0 (#807 / #834).
     if recorded_first >= 0 && (
-        call_args::mir_is_printlike_callee(clone(callee_name)) ||
-        call_type_vec::is_vec_receiver_recording_callee(clone(callee_name))
+        call_args::mir_is_printlike_callee(callee_name.clone()) ||
+        call_type_vec::is_vec_receiver_recording_callee(callee_name.clone())
     ) {
-        ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_first_arg_vt(clone(callee_name), arg_count, dest, recorded_first, dest_vt))
-    } else if lane_immediate >= 0 && mir_simd_lane_immediate_argument_index(clone(callee_name)) >= 0 {
-        ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_lane_vt(clone(callee_name), arg_count, dest, lane_immediate, dest_vt))
+        ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_first_arg_vt(callee_name.clone(), arg_count, dest, recorded_first, dest_vt))
+    } else if lane_immediate >= 0 && mir_simd_lane_immediate_argument_index(callee_name.clone()) >= 0 {
+        ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_lane_vt(callee_name.clone(), arg_count, dest, lane_immediate, dest_vt))
     } else {
-        ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_val_type(clone(callee_name), arg_count, dest, dest_vt))
+        ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_val_type(callee_name.clone(), arg_count, dest, dest_vt))
     }
     if dest < 0 {
         return 0 - 1

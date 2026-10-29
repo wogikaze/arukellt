@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::kinds
 use corehir::mir_signature_method
@@ -63,7 +63,7 @@ fn signature_registry_apply_core_op_bindings(mut registry: SignatureRegistry) {
             continue
         }
         let mangled = signature_registry::signature_registry_mangled_at(registry, i)
-        let coid = core_op_binding::core_op_binding_lookup_for_mangled(clone(mangled))
+        let coid = core_op_binding::core_op_binding_lookup_for_mangled(mangled.clone())
         if core_op_id::core_op_id_is_some(coid) {
             signature_registry::signature_registry_set_core_op_id_at(registry, i, coid)
         }
@@ -101,10 +101,10 @@ fn sig_reg_index_top_level_fn(
         typed_index = fn_index_source::mir_fn_index_source_fn_typed_index_at(source, fn_info_index, typed_index)
     }
     let entry_main = fn_index_source::mir_fn_index_source_entry_main_decl_index(source)
-    let skip_shadow = eq(clone(decl_name), String_from("main")) && decl_index != entry_main
+    let skip_shadow = eq(decl_name.clone(), String_from("main")) && decl_index != entry_main
     // string.join(Vec,…) stays CoreOp-only; registering it as bare `join`
     // overwrites path::join(String,String) and yields invalid wasm (#807).
-    if !skip_shadow && !sig_reg_skip_join_vec_overload(sig_source, fn_info_index, clone(decl_name)) {
+    if !skip_shadow && !sig_reg_skip_join_vec_overload(sig_source, fn_info_index, decl_name.clone()) {
         let qualified_name = fn_index_source::mir_fn_index_source_fn_qualified_name_at(source, fn_info_index)
         let mut registered = function_id::FUNCTION_ID_INVALID()
         // A generic whose instances all arrived through the qualified path
@@ -112,12 +112,12 @@ fn sig_reg_index_top_level_fn(
         // is what qualified calls resolve, so register that instance's
         // concrete signature instead of the declared vec:T.
         let mut leaf_inst_idx = 0 - 1
-        if mono::mono_index_count(midx, clone(decl_name)) == 0 {
+        if mono::mono_index_count(midx, decl_name.clone()) == 0 {
             leaf_inst_idx = signature_registry_build_mono::SigRegLeafIndex::instance_index(
                 leaf_index,
                 fn_index_source::mir_fn_index_source_mono_instances(source),
-                clone(decl_name),
-                clone(qualified_name)
+                decl_name.clone(),
+                qualified_name.clone()
             )
         }
         if leaf_inst_idx >= 0 {
@@ -133,21 +133,21 @@ fn sig_reg_index_top_level_fn(
                 sig_source,
                 fn_info_index,
                 typed_index,
-                clone(decl_name),
+                decl_name.clone(),
                 type_contracts::MonoInstance_mangled_name(leaf_inst),
                 fn_index_source::mir_fn_index_source_mono_instances(source),
                 decl_index
             )
         } else {
-            registered = signature_registry_entry::sig_reg_register_fn(table, registry, source, sig_source, fn_info_index, typed_index, clone(decl_name), decl_index, 0 - 1, kinds::ABI_KIND_NORMAL())
+            registered = signature_registry_entry::sig_reg_register_fn(table, registry, source, sig_source, fn_info_index, typed_index, decl_name.clone(), decl_index, 0 - 1, kinds::ABI_KIND_NORMAL())
         }
-        if sig_reg_fn_is_signature_only(source, fn_info_index, clone(decl_name)) {
+        if sig_reg_fn_is_signature_only(source, fn_info_index, decl_name.clone()) {
             signature_registry::signature_registry_mark_signature_only(registry, FunctionId_raw(registered))
         }
         if len(qualified_name) > 0 {
-            signature_registry::signature_registry_register_alias(registry, clone(qualified_name), registered)
+            signature_registry::signature_registry_register_alias(registry, qualified_name.clone(), registered)
             let import_name = sig_reg_import_facing_qualified_name(qualified_name)
-            let qualified_coid = core_op_binding::core_op_binding_lookup_for_callee(clone(qualified_name))
+            let qualified_coid = core_op_binding::core_op_binding_lookup_for_callee(qualified_name.clone())
             if core_op_id::core_op_id_is_some(qualified_coid) {
                 signature_registry::signature_registry_set_core_op_id_at(
                     registry,
@@ -164,7 +164,7 @@ fn sig_reg_index_top_level_fn(
         // the same mono-index group and register identity__String with its
         // own concrete param signature (#914).
         if fn_index_source::mir_fn_index_source_decl_is_generic(source, typed_index) {
-            signature_registry_build_mono::sig_reg_index_mono_variants(table, registry, mono_table, source, sig_source, midx, clone(decl_name), typed_index, fn_info_index, decl_index)
+            signature_registry_build_mono::sig_reg_index_mono_variants(table, registry, mono_table, source, sig_source, midx, decl_name.clone(), typed_index, fn_info_index, decl_index)
             // Qualified-keyed instances (Test::assert_eq_debug__i32, ...) also
             // need registry entries so call sites can bind variant FunctionIds.
             // The decl keeps the generic signature as the unresolved fallback.
@@ -172,13 +172,13 @@ fn sig_reg_index_top_level_fn(
             // the bare name while downstream calls record the qualified name
             // (#908). The bare==0 && qualified==1 case stays on the leaf
             // registration above; anything beyond that needs per-variant entries.
-            let bare_mono_count = mono::mono_index_count(midx, clone(decl_name))
+            let bare_mono_count = mono::mono_index_count(midx, decl_name.clone())
             let mut qualified_mono_count = 0
-            if len(qualified_name) > 0 && !eq(clone(qualified_name), clone(decl_name)) {
-                qualified_mono_count = mono::mono_index_count(midx, clone(qualified_name))
+            if len(qualified_name) > 0 && !eq(qualified_name.clone(), decl_name.clone()) {
+                qualified_mono_count = mono::mono_index_count(midx, qualified_name.clone())
             }
             if qualified_mono_count > 1 || (bare_mono_count > 0 && qualified_mono_count > 0) {
-                signature_registry_build_mono::sig_reg_index_mono_variants(table, registry, mono_table, source, sig_source, midx, clone(qualified_name), typed_index, fn_info_index, decl_index)
+                signature_registry_build_mono::sig_reg_index_mono_variants(table, registry, mono_table, source, sig_source, midx, qualified_name.clone(), typed_index, fn_info_index, decl_index)
             }
         }
     }
@@ -209,7 +209,7 @@ fn sig_reg_import_facing_qualified_name(qualified_name: String) -> String {
 }
 
 fn sig_reg_skip_join_vec_overload(sig_source: CoreHirMirSignatureSource, fn_info_index: i32, decl_name: String) -> bool {
-    if !eq(clone(decl_name), String_from("join")) {
+    if !eq(decl_name.clone(), String_from("join")) {
         return false
     }
     if fn_info_index < 0 {
@@ -220,7 +220,7 @@ fn sig_reg_skip_join_vec_overload(sig_source: CoreHirMirSignatureSource, fn_info
         return false
     }
     let param0 = mir_signature_fn::mir_signature_fn_param_at(sig_source, fn_info_index, 0)
-    stdlib_body_defer::mir_is_vec_join_overload(clone(decl_name), param0)
+    stdlib_body_defer::mir_is_vec_join_overload(decl_name.clone(), param0)
 }
 
 // Mirrors mir_defer_body_for_decl: a stdlib decl whose body is deferred for
@@ -240,10 +240,10 @@ fn sig_reg_fn_is_signature_only(
         return false
     }
     if fn_info_index >= 0 && fn_index_source::mir_fn_index_source_fn_param_count_at(source, fn_info_index) > 0 {
-        if eq(clone(decl_name), String_from("write_bytes")) ||
-        eq(clone(decl_name), String_from("join")) {
+        if eq(decl_name.clone(), String_from("write_bytes")) ||
+        eq(decl_name.clone(), String_from("join")) {
             let param0 = fn_index_source::mir_fn_index_source_fn_param_at(source, fn_info_index, 0)
-            return stdlib_body_defer::mir_should_defer_stdlib_body_with_param0(clone(decl_name), param0)
+            return stdlib_body_defer::mir_should_defer_stdlib_body_with_param0(decl_name.clone(), param0)
         }
     }
     let qualified_name = fn_index_source::mir_fn_index_source_fn_qualified_name_at(source, fn_info_index)
@@ -264,12 +264,12 @@ fn sig_reg_index_impl_methods(
     let mut mi = 0
     while mi < method_count {
         let method_info_index = fn_index_source::mir_fn_index_source_method_info_index(source, impl_decl_index, mi)
-        let mut mangled = clone(struct_name)
+        let mut mangled = struct_name.clone()
         if method_info_index >= 0 {
             mangled = fn_index_source::mir_fn_index_source_method_mangled_name_at(source, method_info_index, mangled)
         }
-        signature_registry_entry::sig_reg_register_method(table, registry, mono_table, source, sig_source, method_info_index, clone(mangled), impl_decl_index)
-        signature_registry_build_mono::sig_reg_index_method_mono(table, registry, mono_table, source, sig_source, midx, clone(mangled), method_info_index, impl_decl_index)
+        signature_registry_entry::sig_reg_register_method(table, registry, mono_table, source, sig_source, method_info_index, mangled.clone(), impl_decl_index)
+        signature_registry_build_mono::sig_reg_index_method_mono(table, registry, mono_table, source, sig_source, midx, mangled.clone(), method_info_index, impl_decl_index)
         mi = mi + 1
     }
 }

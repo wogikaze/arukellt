@@ -1,18 +1,18 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use main::manifest_doc_record
 fn doc_qualified_name(module: String, name: String) -> String {
-    clone(module).concat("::".concat(clone(name)))
+    module.clone().concat("::".concat(name.clone()))
 }
 
 fn doc_score_name(query: String, candidate: String) -> i32 {
-    if eq(clone(query), clone(candidate)) {
+    if eq(query.clone(), candidate.clone()) {
         return 0
     }
-    if clone(candidate).starts_with(clone(query)) {
+    if candidate.clone().starts_with(query.clone()) {
         return len(candidate) - len(query)
     }
-    if clone(candidate).contains(clone(query)) {
+    if candidate.clone().contains(query.clone()) {
         return len(candidate)
     }
     len(candidate) + len(query)
@@ -32,15 +32,15 @@ pub fn doc_find_closest(table: DocManifestTable, query: String, limit: i32) -> V
             let mut skip = false
             let mut oi = 0
             while oi < len(out) {
-                if eq(get_unchecked(out, oi), clone(label)) {
+                if eq(get_unchecked(out, oi), label.clone()) {
                     skip = true
                 }
                 oi = oi + 1
             }
             if !skip {
                 let name = manifest_doc_record::DocFnEntry_name(e)
-                let bare = doc_score_name(clone(query), clone(name))
-                let qual = doc_score_name(clone(query), clone(label))
+                let bare = doc_score_name(query.clone(), name.clone())
+                let qual = doc_score_name(query.clone(), label.clone())
                 let score = if bare < qual { bare } else { qual }
                 if score < best_score {
                     best_score = score

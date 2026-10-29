@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use hir::type_contracts_record
 struct HirTraitBound {
     trait_ty: HirType,
@@ -22,7 +21,7 @@ fn HirTypeParam_new(name: String) -> HirTypeParam {
 }
 
 fn hir_type_param_name(param: HirTypeParam) -> String {
-    clone(param.name)
+    param.name.clone()
 }
 
 fn hir_type_param_push_bound(mut param: HirTypeParam, bound: HirTraitBound) {

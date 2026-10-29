@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::emit_artifacts
 use mir::module_emit_artifacts
 use mir::module_gc_struct
@@ -26,9 +26,9 @@ fn append_wasi_type_sigs(mut type_sigs: Vec<String>, wasi_version: String) {
     push(type_sigs, "i32_i32_i32_i32_i32_i64_i64_i32_i32_1i32")
     push(type_sigs, "i32_1i32")
     push(type_sigs, "i32_0")
-    if emit_target::is_minimal_p1_wasi(clone(wasi_version)) {
+    if emit_target::is_minimal_p1_wasi(wasi_version.clone()) {
         push(type_sigs, "i32_i64_i32_1i32")
-    } else if emit_target::is_p2_wasi(clone(wasi_version)) {
+    } else if emit_target::is_p2_wasi(wasi_version.clone()) {
         push(type_sigs, "1i64")
         // Official P2 signatures, in the same order as the host type map.
         push(type_sigs, "i32_0")
@@ -81,7 +81,7 @@ fn append_function_type_sigs(
         let uf = get_unchecked(functions, ui)
         push(
             type_sigs,
-            sections_types_sigs_detail::build_function_type_sig(uf, clone(target), clone(wasi_version), memory64, mir)
+            sections_types_sigs_detail::build_function_type_sig(uf, target.clone(), wasi_version.clone(), memory64, mir)
         )
         ui = ui + 1
     }
@@ -101,7 +101,7 @@ fn collect_pair_call_type_sigs(
     gc_struct_names: Vec<String>
 ) -> Vec<String> {
     let mut sigs = Vec::new<String>()
-    if !emit_target::is_gc_target(clone(target)) {
+    if !emit_target::is_gc_target(target.clone()) {
         return sigs
     }
     let mut fi = 0
@@ -120,19 +120,19 @@ fn collect_pair_call_type_sigs(
                         inst_accessors_literals::MirInst_str_val(inst),
                         inst_accessors_shape::MirInst_val_type(inst),
                         memory64,
-                        clone(gc_struct_names)
+                        gc_struct_names.clone()
                     )
                     if len(sig) > 0 {
                         let mut seen = false
                         let mut si = 0
                         while si < len(sigs) {
-                            if eq(clone(sig), clone(get_unchecked(sigs, si))) {
+                            if eq(sig.clone(), get_unchecked(sigs, si).clone()) {
                                 seen = true
                             }
                             si = si + 1
                         }
                         if !seen {
-                            push(sigs, clone(sig))
+                            push(sigs, sig.clone())
                         }
                     }
                 }
@@ -164,7 +164,7 @@ fn pair_call_sigs_for_emit(
     collect_pair_call_type_sigs(
         functions,
         fn_count,
-        clone(target),
+        target.clone(),
         memory64,
         module_gc_struct::MirModule_gc_struct_names(mir)
     )
@@ -172,7 +172,7 @@ fn pair_call_sigs_for_emit(
 
 fn append_wrapper_type_sig(mut type_sigs: Vec<String>, needs_wrapper: i32, wasi_version: String) {
     if needs_wrapper == 1 {
-        if emit_target::is_p2_wasi(clone(wasi_version)) {
+        if emit_target::is_p2_wasi(wasi_version.clone()) {
             push(type_sigs, "1i32")
             // P2 command post-return for the unit result of wasi:cli/run.
             push(type_sigs, "i32_0")
@@ -197,8 +197,8 @@ fn append_p2_library_post_type_sigs(
         if sections_exports::is_p2_library_export_function(mir, f) {
             let function_sig = sections_types_sigs_detail::build_function_type_sig(
                 f,
-                clone(target),
-                clone(wasi_version),
+                target.clone(),
+                wasi_version.clone(),
                 memory64,
                 mir
             )
@@ -225,8 +225,8 @@ fn append_p2_library_wrapper_type_sigs(
         if sections_exports::is_p2_library_export_function(mir, f) &&
         sections_types_sigs_detail::p2_function_needs_string_wrapper(
             f,
-            clone(target),
-            clone(wasi_version),
+            target.clone(),
+            wasi_version.clone(),
             mir
         ) {
             push(type_sigs, sections_types_sigs_detail::p2_canonical_function_type_sig(f, mir))
@@ -236,7 +236,7 @@ fn append_p2_library_wrapper_type_sigs(
 }
 
 fn append_p2_runtime_type_sigs(mut type_sigs: Vec<String>, wasi_version: String) {
-    if !emit_target::is_p2_wasi(clone(wasi_version)) {
+    if !emit_target::is_p2_wasi(wasi_version.clone()) {
         return
     }
     // These are the standard32 component runtime exports consumed by
@@ -247,7 +247,7 @@ fn append_p2_runtime_type_sigs(mut type_sigs: Vec<String>, wasi_version: String)
 }
 
 fn append_linear_gc_type_sigs(mut type_sigs: Vec<String>, target: String) {
-    if !emit_target::is_linear_memory_target(clone(target)) {
+    if !emit_target::is_linear_memory_target(target.clone()) {
         return
     }
     push(type_sigs, "1i32")

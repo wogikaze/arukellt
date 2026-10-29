@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::decl_node
 use corehir::decl_node_identity
@@ -57,7 +57,7 @@ fn corehir_nominal_types_has_enum(types: CoreHirNominalTypes, name: String) -> b
 }
 
 fn corehir_nominal_types_contains(types: CoreHirNominalTypes, name: String) -> bool {
-    corehir_nominal_types_has_struct(types, clone(name)) ||
+    corehir_nominal_types_has_struct(types, name.clone()) ||
     corehir_nominal_types_has_enum(types, name)
 }
 
@@ -65,7 +65,7 @@ fn corehir_nominal_type_list_contains(names: Vec<String>, name: String) -> bool 
     let count = len(names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(names, i), clone(name)) {
+        if eq(get_unchecked(names, i), name.clone()) {
             return true
         }
         i = i + 1
@@ -76,8 +76,8 @@ fn corehir_nominal_type_list_contains(names: Vec<String>, name: String) -> bool 
 // A `?T` spelling is the explicit type-variable marker, so compare its bare
 // name. Declared single-uppercase nominal types are not parameters (ADR-089).
 fn corehir_declared_type_param_contains(type_params: Vec<String>, name: String) -> bool {
-    let mut bare = clone(name)
-    if clone(bare).starts_with("?") {
+    let mut bare = name.clone()
+    if bare.clone().starts_with("?") {
         bare = bare.slice(1, len(bare))
     }
     corehir_nominal_type_list_contains(type_params, bare)

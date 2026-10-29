@@ -4,7 +4,7 @@
 // bounds can resolve `x.method()` calls against the trait's method
 // signature when the receiver type is a type variable.
 
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use typechecker::ast_access
 use typechecker::ast_decl_predicates
 use typechecker::contract_env_record
@@ -43,13 +43,13 @@ fn register_trait_methods(mut env: TypeEnv, trait_node: AstNode) {
             let method_name = ast_access::node_text(child)
             let sig = sigs::fn_sig_from_fn_decl_with_type_params(
                 child,
-                clone(trait_type_params)
+                trait_type_params.clone()
             )
             push(
                 env.trait_methods,
                 contract_trait_method_record::TraitMethodEntry_new(
-                    clone(trait_name),
-                    clone(method_name),
+                    trait_name.clone(),
+                    method_name.clone(),
                     sig,
                     trait_type_param_count
                 )
@@ -75,7 +75,7 @@ fn trait_type_param_names(trait_node: AstNode) -> Vec<String> {
 }
 
 fn lookup_trait_method(env: TypeEnv, trait_name: String, method_name: String) -> TraitMethodEntry {
-    let direct = lookup_trait_method_direct(env, clone(trait_name), clone(method_name))
+    let direct = lookup_trait_method_direct(env, trait_name.clone(), method_name.clone())
     if contract_fn_sig::FnSig_has_name(
         contract_trait_method_record::trait_method_entry_sig(direct)
     ) {
@@ -91,10 +91,10 @@ fn lookup_trait_method_direct(env: TypeEnv, trait_name: String, method_name: Str
         let entry = get_unchecked(env.trait_methods, i)
         if names::same_type_name(
             contract_trait_method_record::trait_method_entry_trait_name(entry),
-            clone(trait_name)
+            trait_name.clone()
         ) && eq(
             contract_trait_method_record::trait_method_entry_method_name(entry),
-            clone(method_name)
+            method_name.clone()
         ) {
             return entry
         }
@@ -112,12 +112,12 @@ fn lookup_supertrait_method(
     if depth >= len(env.trait_defs) {
         return empty_trait_method_entry()
     }
-    let trait_info = trait_info_for_name(env, clone(trait_name))
+    let trait_info = trait_info_for_name(env, trait_name.clone())
     let super_count = contract_trait_info::trait_info_supertrait_count(trait_info)
     let mut i = 0
     while i < super_count {
         let super_name = contract_trait_info::trait_info_supertrait_at(trait_info, i)
-        let direct = lookup_trait_method_direct(env, clone(super_name), clone(method_name))
+        let direct = lookup_trait_method_direct(env, super_name.clone(), method_name.clone())
         if contract_fn_sig::FnSig_has_name(
             contract_trait_method_record::trait_method_entry_sig(direct)
         ) {
@@ -125,8 +125,8 @@ fn lookup_supertrait_method(
         }
         let nested = lookup_supertrait_method(
             env,
-            clone(super_name),
-            clone(method_name),
+            super_name.clone(),
+            method_name.clone(),
             depth + 1
         )
         if contract_fn_sig::FnSig_has_name(
@@ -144,7 +144,7 @@ fn trait_info_for_name(env: TypeEnv, trait_name: String) -> TraitInfo {
     let mut i = 0
     while i < count {
         let info = get_unchecked(env.trait_defs, i)
-        if names::same_type_name(contract_trait_info::trait_info_name(info), clone(trait_name)) {
+        if names::same_type_name(contract_trait_info::trait_info_name(info), trait_name.clone()) {
             return info
         }
         i = i + 1

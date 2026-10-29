@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use lsp::completion_items
 use lsp::import_graph
@@ -11,11 +11,11 @@ fn starts_with_prefix(label: String, prefix: String) -> bool {
     if len(label) < len(prefix) {
         return false
     }
-    clone(label).slice(0, len(prefix)) == prefix
+    label.clone().slice(0, len(prefix)) == prefix
 }
 
 fn push_keyword(items: String, text: String, prefix: String, label: String) -> String {
-    if !starts_with_prefix(clone(label), clone(prefix)) {
+    if !starts_with_prefix(label.clone(), prefix.clone()) {
         return items
     }
     completion_items::append_item(items, completion_items::completion_item_json(label, 14, "keyword", text, String_new(), false))
@@ -23,15 +23,15 @@ fn push_keyword(items: String, text: String, prefix: String, label: String) -> S
 
 fn push_keywords(items: String, text: String, prefix: String) -> String {
     let mut out = items
-    out = push_keyword(out, clone(text), clone(prefix), "fn")
-    out = push_keyword(out, clone(text), clone(prefix), "let")
-    out = push_keyword(out, clone(text), clone(prefix), "mut")
-    out = push_keyword(out, clone(text), clone(prefix), "if")
-    out = push_keyword(out, clone(text), clone(prefix), "else")
-    out = push_keyword(out, clone(text), clone(prefix), "match")
-    out = push_keyword(out, clone(text), clone(prefix), "use")
-    out = push_keyword(out, clone(text), clone(prefix), "pub")
-    out = push_keyword(out, clone(text), clone(prefix), "return")
+    out = push_keyword(out, text.clone(), prefix.clone(), "fn")
+    out = push_keyword(out, text.clone(), prefix.clone(), "let")
+    out = push_keyword(out, text.clone(), prefix.clone(), "mut")
+    out = push_keyword(out, text.clone(), prefix.clone(), "if")
+    out = push_keyword(out, text.clone(), prefix.clone(), "else")
+    out = push_keyword(out, text.clone(), prefix.clone(), "match")
+    out = push_keyword(out, text.clone(), prefix.clone(), "use")
+    out = push_keyword(out, text.clone(), prefix.clone(), "pub")
+    out = push_keyword(out, text.clone(), prefix.clone(), "return")
     out
 }
 
@@ -45,24 +45,24 @@ fn push_stdlib(items: String, text: String, prefix: String, state: LspState) -> 
         let name = symbol_index_record::stdlib_indexed_symbol_name(sym)
         let module_path = symbol_index_record::stdlib_indexed_symbol_module_path(sym)
         let label = if len(module_path) > 0 {
-            clone(module_path).concat("::").concat(clone(name))
+            module_path.clone().concat("::").concat(name.clone())
         } else {
-            clone(name)
+            name.clone()
         }
-        if starts_with_prefix(clone(label), clone(prefix)) || starts_with_prefix(clone(name), clone(prefix)) {
+        if starts_with_prefix(label.clone(), prefix.clone()) || starts_with_prefix(name.clone(), prefix.clone()) {
             let import_path = if len(module_path) > 0 {
-                import_graph::stdlib_import_path(clone(module_path), clone(name))
+                import_graph::stdlib_import_path(module_path.clone(), name.clone())
             } else {
-                clone(name)
+                name.clone()
             }
-            let needs_import = !import_graph::is_path_imported(clone(text), clone(import_path))
+            let needs_import = !import_graph::is_path_imported(text.clone(), import_path.clone())
             out = completion_items::append_item(
                 out,
                 completion_items::completion_item_json(
                     label,
                     symbol_index_record::stdlib_indexed_symbol_kind(sym),
                     symbol_index_record::stdlib_indexed_symbol_detail(sym),
-                    clone(text),
+                    text.clone(),
                     import_path,
                     needs_import
                 )
@@ -81,10 +81,10 @@ fn push_project(items: String, text: String, prefix: String, state: LspState) ->
     while i < n {
         let sym = get_unchecked(symbols, i)
         let name = symbol_index_record::indexed_symbol_name(sym)
-        if starts_with_prefix(clone(name), clone(prefix)) {
+        if starts_with_prefix(name.clone(), prefix.clone()) {
             out = completion_items::append_item(
                 out,
-                completion_items::completion_item_json(name, symbol_index_record::indexed_symbol_kind(sym), symbol_index_record::indexed_symbol_detail(sym), clone(text), String_new(), false)
+                completion_items::completion_item_json(name, symbol_index_record::indexed_symbol_kind(sym), symbol_index_record::indexed_symbol_detail(sym), text.clone(), String_new(), false)
             )
         }
         i = i + 1
@@ -93,7 +93,7 @@ fn push_project(items: String, text: String, prefix: String, state: LspState) ->
 }
 
 fn dot_completion_items(text: String, offset: i32) -> String {
-    if clone(text).index_of("p.") < 0 {
+    if text.clone().index_of("p.") < 0 {
         return String_new()
     }
     let mut pos = offset - 1
@@ -113,17 +113,17 @@ fn dot_completion_items(text: String, offset: i32) -> String {
         start = start - 1
     }
     let recv = text.slice(start, pos)
-    let needle = "let ".concat(clone(recv)).concat(": Point")
-    if clone(text).index_of(needle) < 0 {
+    let needle = "let ".concat(recv.clone()).concat(": Point")
+    if text.clone().index_of(needle) < 0 {
         return String_new()
     }
-    let prefix = prefix_at_offset(clone(text), offset)
+    let prefix = prefix_at_offset(text.clone(), offset)
     let mut out = String_new()
-    if len(prefix) == 0 || starts_with_prefix("x", clone(prefix)) {
-        out = completion_items::append_item(out, completion_items::completion_item_json("x", 5, "field", clone(text), String_new(), false))
+    if len(prefix) == 0 || starts_with_prefix("x", prefix.clone()) {
+        out = completion_items::append_item(out, completion_items::completion_item_json("x", 5, "field", text.clone(), String_new(), false))
     }
-    if len(prefix) == 0 || starts_with_prefix("y", clone(prefix)) {
-        out = completion_items::append_item(out, completion_items::completion_item_json("y", 5, "field", clone(text), String_new(), false))
+    if len(prefix) == 0 || starts_with_prefix("y", prefix.clone()) {
+        out = completion_items::append_item(out, completion_items::completion_item_json("y", 5, "field", text.clone(), String_new(), false))
     }
     out
 }
@@ -140,11 +140,11 @@ fn type_completion_items(state: LspState, text: String, offset: i32, prefix: Str
                     scan = scan - 1
                 } else {
                     let mut out = String_new()
-                    if starts_with_prefix("Point", clone(prefix)) {
-                        out = completion_items::append_item(out, completion_items::completion_item_json("Point", 25, "type", clone(text), String_new(), false))
+                    if starts_with_prefix("Point", prefix.clone()) {
+                        out = completion_items::append_item(out, completion_items::completion_item_json("Point", 25, "type", text.clone(), String_new(), false))
                     }
-                    if starts_with_prefix("i32", clone(prefix)) {
-                        out = completion_items::append_item(out, completion_items::completion_item_json("i32", 25, "type", clone(text), String_new(), false))
+                    if starts_with_prefix("i32", prefix.clone()) {
+                        out = completion_items::append_item(out, completion_items::completion_item_json("i32", 25, "type", text.clone(), String_new(), false))
                     }
                     return out
                 }
@@ -160,8 +160,8 @@ fn use_completion_items(state: LspState, text: String, offset: i32, prefix: Stri
     while pos > 0 && text.byte_at(pos - 1) != 10 {
         pos = pos - 1
     }
-    let line_prefix = clone(text).slice(pos, offset)
-    if len(line_prefix) < 4 || !eq(clone(line_prefix).slice(0, 4), "use ") {
+    let line_prefix = text.clone().slice(pos, offset)
+    if len(line_prefix) < 4 || !eq(line_prefix.clone().slice(0, 4), "use ") {
         return String_new()
     }
     let stdlib = state_record::lsp_state_symbol_stdlib_symbols(state)
@@ -171,8 +171,8 @@ fn use_completion_items(state: LspState, text: String, offset: i32, prefix: Stri
     while j < sn {
         let sym = get_unchecked(stdlib, j)
         let module_path = symbol_index_record::stdlib_indexed_symbol_module_path(sym)
-        if len(module_path) > 0 && starts_with_prefix(clone(module_path), clone(prefix)) {
-            out = completion_items::append_item(out, completion_items::completion_item_json(module_path, 9, "module", clone(text), String_new(), false))
+        if len(module_path) > 0 && starts_with_prefix(module_path.clone(), prefix.clone()) {
+            out = completion_items::append_item(out, completion_items::completion_item_json(module_path, 9, "module", text.clone(), String_new(), false))
         }
         j = j + 1
     }
@@ -198,21 +198,21 @@ fn prefix_at_offset(text: String, offset: i32) -> String {
 }
 
 pub fn collect_completion_items(state: LspState, text: String, offset: i32, prefix: String) -> String {
-    let dot_items = dot_completion_items(clone(text), offset)
+    let dot_items = dot_completion_items(text.clone(), offset)
     if len(dot_items) > 0 {
         return dot_items
     }
-    let type_items = type_completion_items(state, clone(text), offset, clone(prefix))
+    let type_items = type_completion_items(state, text.clone(), offset, prefix.clone())
     if len(type_items) > 0 {
         return type_items
     }
-    let use_items = use_completion_items(state, clone(text), offset, clone(prefix))
+    let use_items = use_completion_items(state, text.clone(), offset, prefix.clone())
     if len(use_items) > 0 {
         return use_items
     }
     let mut items = String_new()
-    items = push_keywords(items, clone(text), clone(prefix))
-    items = push_stdlib(items, clone(text), clone(prefix), state)
-    items = push_project(items, clone(text), clone(prefix), state)
+    items = push_keywords(items, text.clone(), prefix.clone())
+    items = push_stdlib(items, text.clone(), prefix.clone(), state)
+    items = push_project(items, text.clone(), prefix.clone(), state)
     items
 }

@@ -1,7 +1,7 @@
 use std::host::stdio
 use std::host::fs::Fs
 use std::host::process::Process
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use main::args_record
 use main::commands
@@ -15,7 +15,7 @@ use driver::file
 use diagnostics::mod as diag_mod
 pub fn build_emit_config(opts: CliOptions, emit_mode: String, include_dumps: bool) -> DriverConfig {
     let mut config = config_record::DriverConfig_default()
-    configure_target_axes(opts, config, clone(emit_mode))
+    configure_target_axes(opts, config, emit_mode.clone())
     config_record::config_set_opt_level(config, args_record::cli_opt_level(opts))
     config_record::config_set_emit_mode(config, emit_mode)
     config_record::config_set_wit_paths(config, args_record::cli_wit_paths(opts))
@@ -51,7 +51,7 @@ pub fn build_emit_config(opts: CliOptions, emit_mode: String, include_dumps: boo
 
 pub fn configure_target_axes(opts: CliOptions, mut config: DriverConfig, emit_mode: String) {
     let target = args_record::cli_target(opts)
-    config_record::config_set_target(config, clone(target))
+    config_record::config_set_target(config, target.clone())
     if args_record::cli_has_wasi_version(opts) {
         config_record::config_set_wasi_version(config, args_record::cli_wasi_version(opts))
     }
@@ -59,21 +59,21 @@ pub fn configure_target_axes(opts: CliOptions, mut config: DriverConfig, emit_mo
     config_record::config_set_memory_width(
         config,
         resolve_memory_width(
-            clone(target),
-            clone(emit_mode),
+            target.clone(),
+            emit_mode.clone(),
             args_record::cli_memory_width(opts)
         )
     )
 }
 
 fn resolve_memory_width(target: String, emit_mode: String, requested: String) -> String {
-    if !eq(clone(requested), String_from("auto")) {
+    if !eq(requested.clone(), String_from("auto")) {
         return requested
     }
-    if eq(clone(emit_mode), String_from("component")) || eq(clone(emit_mode), String_from("all")) {
+    if eq(emit_mode.clone(), String_from("component")) || eq(emit_mode.clone(), String_from("all")) {
         return String_from("memory32")
     }
-    if eq(clone(emit_mode), String_from("wat")) {
+    if eq(emit_mode.clone(), String_from("wat")) {
         return String_from("memory32")
     }
     target_contract_generated::target_default_memory_width(target)
@@ -97,8 +97,8 @@ fn should_dump(opts: CliOptions, phase: String) -> bool {
     let phases_len = len(phases)
     let mut i = 0
     while i <= phases_len - phase_len {
-        let sub = clone(phases).slice(i, i + phase_len)
-        if eq(sub, clone(phase)) {
+        let sub = phases.clone().slice(i, i + phase_len)
+        if eq(sub, phase.clone()) {
             let at_start = i == 0
             let after_comma = i > 0 && phases.byte_at(i - 1) == 44
             let at_end = i + phase_len == phases_len
@@ -114,7 +114,7 @@ fn should_dump(opts: CliOptions, phase: String) -> bool {
 
 fn print_compile_diagnostics(input_file: String, result: CompileResult, json_mode: bool) {
     if json_mode {
-        stdio::println(output::format_error_json(clone(input_file), result_record::compile_result_phase_reached(result), result_record::compile_result_diagnostics(result)))
+        stdio::println(output::format_error_json(input_file.clone(), result_record::compile_result_phase_reached(result), result_record::compile_result_diagnostics(result)))
         return
     }
     let err_count = result_record::compile_result_error_message_count(result)
@@ -130,17 +130,17 @@ fn print_compile_diagnostics(input_file: String, result: CompileResult, json_mod
     let diag_count = len(diags)
     let mut j = 0
     while j < diag_count {
-        stdio::eprintln(diag_mod::format_diagnostic_text(String_new(), clone(input_file), get_unchecked(diags, j)))
+        stdio::eprintln(diag_mod::format_diagnostic_text(String_new(), input_file.clone(), get_unchecked(diags, j)))
         j = j + 1
     }
 }
 
 fn write_compile_output(path: String, bytes: Vec<i32>, json_mode: bool) -> bool {
-    let write_result: Result<(), String> = Fs::write_bytes(clone(path), bytes)
+    let write_result: Result<(), String> = Fs::write_bytes(path.clone(), bytes)
     match write_result {
         Result::Ok(_) => {
             if !json_mode {
-                stdio::eprintln("wrote ".concat(len(bytes).to_string().concat(" bytes to ".concat(clone(path)))))
+                stdio::eprintln("wrote ".concat(len(bytes).to_string().concat(" bytes to ".concat(path.clone()))))
             }
             true
         },
@@ -152,9 +152,9 @@ fn write_compile_output(path: String, bytes: Vec<i32>, json_mode: bool) -> bool 
 }
 
 fn stem_from_input(path: String) -> String {
-    let n = len(clone(path))
+    let n = len(path.clone())
     if n > 4 {
-        let ext = clone(path).slice(n - 4, n)
+        let ext = path.clone().slice(n - 4, n)
         if eq(ext, ".ark") {
             return path.slice(0, n - 4)
         }
@@ -172,9 +172,9 @@ fn wasm_path_for_all(opts: CliOptions) -> String {
 fn component_path_for_all(opts: CliOptions) -> String {
     if args_record::cli_has_output_file(opts) {
         let out = args_record::cli_output_file(opts)
-        let n = len(clone(out))
+        let n = len(out.clone())
         if n > 5 {
-            let ext = clone(out).slice(n - 5, n)
+            let ext = out.clone().slice(n - 5, n)
             if eq(ext, ".wasm") {
                 return out.slice(0, n - 5).concat(".component.wasm")
             }
@@ -196,15 +196,15 @@ pub fn cmd_compile_single_status(opts: CliOptions) -> i32 {
         return 1
     }
     let input_file = args_record::cli_input_file(opts)
-    if !enforce_capability_denies(opts, clone(input_file)) {
+    if !enforce_capability_denies(opts, input_file.clone()) {
         return 1
     }
     let mut config = build_command_config(opts)
     let json_mode = args_record::cli_json_output(opts)
-    let result = file::compile_file(clone(input_file), config)
+    let result = file::compile_file(input_file.clone(), config)
     let has_messages = result_record::compile_result_error_message_count(result) > 0 || len(result_record::compile_result_diagnostics(result)) > 0
     if has_messages {
-        print_compile_diagnostics(clone(input_file), result, json_mode)
+        print_compile_diagnostics(input_file.clone(), result, json_mode)
     }
     if !result_record::compile_result_success(result) {
         return 1
@@ -214,19 +214,19 @@ pub fn cmd_compile_single_status(opts: CliOptions) -> i32 {
     if command == kinds::CMD_CHECK() || command == kinds::CMD_LINT() {
         return 0
     }
-    handle_single_compile_success(opts, clone(input_file), result, json_mode)
+    handle_single_compile_success(opts, input_file.clone(), result, json_mode)
 }
 
 fn print_compile_success(input_file: String, result: CompileResult, json_mode: bool) {
     if json_mode {
-        stdio::println(output::format_success_json(clone(input_file), result_record::compile_result_phase_reached(result), result_record::compile_result_output_byte_count(result)))
+        stdio::println(output::format_success_json(input_file.clone(), result_record::compile_result_phase_reached(result), result_record::compile_result_output_byte_count(result)))
         return
     }
     stdio::eprintln("compilation succeeded (phase ".concat(result_record::compile_result_phase_reached(result).to_string().concat(")")))
 }
 
 fn handle_single_compile_success(opts: CliOptions, input_file: String, result: CompileResult, json_mode: bool) -> i32 {
-    print_compile_success(clone(input_file), result, json_mode)
+    print_compile_success(input_file.clone(), result, json_mode)
     if args_record::cli_has_output_file(opts) {
         if !write_compile_output(args_record::cli_output_file(opts), result_record::compile_result_output_bytes(result), json_mode) {
             return 1
@@ -243,12 +243,12 @@ fn validate_wit_paths(opts: CliOptions) -> bool {
     let mut i = 0
     while i < args_record::cli_wit_path_count(opts) {
         let path = args_record::cli_wit_path_at(opts, i)
-        let read_result = Fs::read_to_string(clone(path))
+        let read_result = Fs::read_to_string(path.clone())
         match read_result {
             Result::Ok(_) => {
             },
             Result::Err(e) => {
-                stdio::eprintln("error: unable to read WIT file ".concat(clone(path).concat(": ".concat(e))))
+                stdio::eprintln("error: unable to read WIT file ".concat(path.clone().concat(": ".concat(e))))
                 return false
             },
         }
@@ -258,26 +258,26 @@ fn validate_wit_paths(opts: CliOptions) -> bool {
 }
 
 fn source_uses_clock_intrinsics(source: String) -> bool {
-    clone(source).contains(String_from("clock::")) ||
-    clone(source).contains(String_from("monotonic_now")) ||
+    source.clone().contains(String_from("clock::")) ||
+    source.clone().contains(String_from("monotonic_now")) ||
     source.contains(String_from("std::host::clock"))
 }
 
 fn source_uses_random_intrinsics(source: String) -> bool {
-    clone(source).contains(String_from("random::")) ||
-    clone(source).contains(String_from("random_i32")) ||
-    clone(source).contains(String_from("Random::")) ||
+    source.clone().contains(String_from("random::")) ||
+    source.clone().contains(String_from("random_i32")) ||
+    source.clone().contains(String_from("Random::")) ||
     source.contains(String_from("std::host::random"))
 }
 
 fn source_uses_process_intrinsics(source: String) -> bool {
-    clone(source).contains(String_from("process::exit")) ||
-    clone(source).contains(String_from("process::abort")) ||
-    clone(source).contains(String_from("Process::exit")) ||
-    clone(source).contains(String_from("Process::abort")) ||
-    clone(source).contains(String_from("Process::id")) ||
-    clone(source).contains(String_from("std::host::process")) ||
-    clone(source).contains(String_from("__runtime_abi_process_exit")) ||
+    source.clone().contains(String_from("process::exit")) ||
+    source.clone().contains(String_from("process::abort")) ||
+    source.clone().contains(String_from("Process::exit")) ||
+    source.clone().contains(String_from("Process::abort")) ||
+    source.clone().contains(String_from("Process::id")) ||
+    source.clone().contains(String_from("std::host::process")) ||
+    source.clone().contains(String_from("__runtime_abi_process_exit")) ||
     source.contains(String_from("__runtime_abi_process_abort"))
 }
 
@@ -285,14 +285,14 @@ fn enforce_capability_denies(opts: CliOptions, input_file: String) -> bool {
     if !args_record::cli_deny_clock(opts) && !args_record::cli_deny_random(opts) && !args_record::cli_deny_process(opts) {
         return true
     }
-    let read_result = Fs::read_to_string(clone(input_file))
+    let read_result = Fs::read_to_string(input_file.clone())
     match read_result {
         Result::Ok(source) => {
-            if args_record::cli_deny_clock(opts) && source_uses_clock_intrinsics(clone(source)) {
+            if args_record::cli_deny_clock(opts) && source_uses_clock_intrinsics(source.clone()) {
                 stdio::eprintln(String_from("--deny-clock: this program uses clock intrinsics"))
                 return false
             }
-            if args_record::cli_deny_random(opts) && source_uses_random_intrinsics(clone(source)) {
+            if args_record::cli_deny_random(opts) && source_uses_random_intrinsics(source.clone()) {
                 stdio::eprintln(String_from("--deny-random: this program uses random intrinsics"))
                 return false
             }
@@ -303,7 +303,7 @@ fn enforce_capability_denies(opts: CliOptions, input_file: String) -> bool {
             true
         },
         Result::Err(e) => {
-            stdio::eprintln(String_from("error: unable to read input file ").concat(clone(input_file).concat(String_from(": ").concat(e))))
+            stdio::eprintln(String_from("error: unable to read input file ").concat(input_file.clone().concat(String_from(": ").concat(e))))
             false
         },
     }

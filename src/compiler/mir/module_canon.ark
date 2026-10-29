@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use collections::name_index
 use mir::module_record
 
@@ -8,18 +7,18 @@ use mir::module_record
 // payload variants with identical field layouts) share one canon type,
 // preserving nominal equality for ref.cast/ref.test.
 fn MirModule_canon_ensure(mut m: MirModule, sig: String) -> i32 {
-    let found = name_index::name_index_get(m.canon_index, clone(sig))
+    let found = name_index::name_index_get(m.canon_index, sig.clone())
     if found >= 0 {
         return found
     }
     let canon_idx = len(m.canon_sigs)
-    push(m.canon_sigs, clone(sig))
+    push(m.canon_sigs, sig.clone())
     name_index::name_index_insert_first(m.canon_index, sig, canon_idx)
     canon_idx
 }
 
 fn MirModule_canon_sig_at(m: MirModule, idx: i32) -> String {
-    clone(get_unchecked(m.canon_sigs, idx))
+    get_unchecked(m.canon_sigs, idx).clone()
 }
 
 fn MirModule_canon_sigs(m: MirModule) -> Vec<String> {

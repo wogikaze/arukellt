@@ -1,5 +1,5 @@
 // MIR match payload bind types.
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
@@ -15,62 +15,62 @@ fn set_gc_payload_bind_type_if_needed(mut ctx: LowerCtx, variant_name: String, b
         return
     }
     let field_type = if len(payload_type_name) > 0 {
-        ctx_struct_field_type::ctx_struct_field_type_name_for_payload(ctx, clone(variant_name), field_idx + 1, clone(payload_type_name))
+        ctx_struct_field_type::ctx_struct_field_type_name_for_payload(ctx, variant_name.clone(), field_idx + 1, payload_type_name.clone())
     } else {
-        ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+        ctx_struct_field_type::ctx_struct_field_type_name(ctx, variant_name.clone(), field_idx + 1)
     }
     // Prefer the scrutinee-derived payload type when layout lookup is ambiguous.
     if len(payload_type_name) > 0 {
-        if eq(clone(payload_type_name), "String") || eq(clone(payload_type_name), "string") {
+        if eq(payload_type_name.clone(), "String") || eq(payload_type_name.clone(), "string") {
             ctx_set_local_type(ctx, bind_local, "string")
             return
         }
-        let hint_vec = normalize_payload_vec_type_name(clone(payload_type_name))
+        let hint_vec = normalize_payload_vec_type_name(payload_type_name.clone())
         if len(hint_vec) > 0 {
             ctx_set_local_type(ctx, bind_local, hint_vec)
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
             return
         }
-        if ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(payload_type_name)) {
+        if ctx_struct_field_type::field_type_is_registered_enum(ctx, payload_type_name.clone()) {
             ctx_set_local_type(ctx, bind_local, "enum:".concat(payload_type_name))
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
             return
         }
-        if !match_payload_field_type::mir_payload_scalar_type_name(clone(payload_type_name)) {
-            if ctx_gc_struct::ctx_gc_struct_slot(ctx, clone(payload_type_name)) >= 0 {
-                ctx_set_local_type(ctx, bind_local, clone(payload_type_name))
+        if !match_payload_field_type::mir_payload_scalar_type_name(payload_type_name.clone()) {
+            if ctx_gc_struct::ctx_gc_struct_slot(ctx, payload_type_name.clone()) >= 0 {
+                ctx_set_local_type(ctx, bind_local, payload_type_name.clone())
             } else {
-                ctx_set_local_type(ctx, bind_local, clone(payload_type_name))
+                ctx_set_local_type(ctx, bind_local, payload_type_name.clone())
             }
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
             return
         }
     }
-    if eq(clone(field_type), "String") || eq(clone(field_type), "string") {
+    if eq(field_type.clone(), "String") || eq(field_type.clone(), "string") {
         ctx_set_local_type(ctx, bind_local, "string")
         return
     }
     // Vec<T> / Vec_T must stay container types — never enum:Vec<...> which
     // collapses Table payloads to enum-open (#726 toml_full_*).
-    let vec_type = normalize_payload_vec_type_name(clone(field_type))
+    let vec_type = normalize_payload_vec_type_name(field_type.clone())
     if len(vec_type) > 0 {
         ctx_set_local_type(ctx, bind_local, vec_type)
         ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         return
     }
-    if len(field_type) > 0 && ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(field_type)) {
+    if len(field_type) > 0 && ctx_struct_field_type::field_type_is_registered_enum(ctx, field_type.clone()) {
         ctx_set_local_type(ctx, bind_local, "enum:".concat(field_type))
         ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         return
     }
-    if len(field_type) > 0 && !match_payload_field_type::mir_payload_scalar_type_name(clone(field_type)) {
+    if len(field_type) > 0 && !match_payload_field_type::mir_payload_scalar_type_name(field_type.clone()) {
         // Named GC structs keep bare names for gcsref Option payloads (#726).
         // Linear-memory targets have no GC struct slots; the layout registry
         // must also keep a bare struct name or field binds resolve as enum:Name
         // and every field index falls back to 0.
-        let derived_field = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, clone(field_type))
-        if ctx_gc_struct::ctx_gc_struct_slot(ctx, clone(derived_field)) >= 0 ||
-        ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(derived_field)) {
+        let derived_field = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, field_type.clone())
+        if ctx_gc_struct::ctx_gc_struct_slot(ctx, derived_field.clone()) >= 0 ||
+        ctx_struct_layout::ctx_is_registered_struct_type(ctx, derived_field.clone()) {
             ctx_set_local_type(ctx, bind_local, derived_field)
         } else {
             ctx_set_local_type(ctx, bind_local, "enum:".concat(field_type))
@@ -78,24 +78,24 @@ fn set_gc_payload_bind_type_if_needed(mut ctx: LowerCtx, variant_name: String, b
         ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         return
     }
-    if match_payload_field_type::mir_match_variant_is_err(clone(variant_name)) && field_idx == 0 {
+    if match_payload_field_type::mir_match_variant_is_err(variant_name.clone()) && field_idx == 0 {
         ctx_set_local_type(ctx, bind_local, "string")
     }
 }
 
 fn normalize_payload_vec_type_name(field_type: String) -> String {
-    if clone(field_type).starts_with("vec:") {
+    if field_type.clone().starts_with("vec:") {
         return field_type
     }
-    if eq(clone(field_type), "Vec") {
+    if eq(field_type.clone(), "Vec") {
         return "vec:i32"
     }
-    if clone(field_type).starts_with("Vec<") && clone(field_type).ends_with(">") {
-        let inner = clone(field_type).slice(4, len(field_type) - 1)
+    if field_type.clone().starts_with("Vec<") && field_type.clone().ends_with(">") {
+        let inner = field_type.clone().slice(4, len(field_type) - 1)
         return "vec:".concat(inner)
     }
-    if clone(field_type).starts_with("Vec_") {
-        let inner = clone(field_type).slice(4, len(field_type))
+    if field_type.clone().starts_with("Vec_") {
+        let inner = field_type.clone().slice(4, len(field_type))
         return "vec:".concat(inner)
     }
     String_new()
@@ -103,7 +103,7 @@ fn normalize_payload_vec_type_name(field_type: String) -> String {
 
 fn set_i32_payload_bind_type_if_needed(mut ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32, scrut_ok_is_i32: bool) {
     if bind_vt == value_types::VT_I32() && scrut_ok_is_i32 && field_idx == 0 {
-        if match_payload_field_type::mir_match_variant_is_some_or_ok(clone(variant_name)) {
+        if match_payload_field_type::mir_match_variant_is_some_or_ok(variant_name.clone()) {
             ctx_set_local_type(ctx, bind_local, "i32")
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I32())
         }
@@ -122,9 +122,9 @@ fn set_narrow_int_payload_bind_type_if_needed(mut ctx: LowerCtx, variant_name: S
     }
     let field_type = ctx_mono_type_params::ctx_resolve_mono_type_name(
         ctx,
-        ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+        ctx_struct_field_type::ctx_struct_field_type_name(ctx, variant_name.clone(), field_idx + 1)
     )
-    if !match_payload_field_type::mir_narrow_int_type_name(clone(field_type)) {
+    if !match_payload_field_type::mir_narrow_int_type_name(field_type.clone()) {
         return
     }
     ctx_set_local_type(ctx, bind_local, field_type)
@@ -132,31 +132,31 @@ fn set_narrow_int_payload_bind_type_if_needed(mut ctx: LowerCtx, variant_name: S
 }
 
 fn normalize_payload_elem_type_name(elem_ty: String) -> String {
-    if eq(clone(elem_ty), "Vec") {
+    if eq(elem_ty.clone(), "Vec") {
         return "vec:i32"
     }
-    if clone(elem_ty).starts_with("Vec<") && clone(elem_ty).ends_with(">") {
-        let inner = clone(elem_ty).slice(4, len(elem_ty) - 1)
+    if elem_ty.clone().starts_with("Vec<") && elem_ty.clone().ends_with(">") {
+        let inner = elem_ty.clone().slice(4, len(elem_ty) - 1)
         return "vec:".concat(inner)
     }
-    if clone(elem_ty).starts_with("Vec_") {
-        return "vec:".concat(clone(elem_ty).slice(4, len(elem_ty)))
+    if elem_ty.clone().starts_with("Vec_") {
+        return "vec:".concat(elem_ty.clone().slice(4, len(elem_ty)))
     }
     elem_ty
 }
 
 fn payload_bind_needs_variant_slot(type_name: String, variant_name: String) -> bool {
-    if match_payload_field_type::mir_match_variant_is_some_or_ok(clone(variant_name)) || match_payload_field_type::mir_match_variant_is_err(clone(variant_name)) {
+    if match_payload_field_type::mir_match_variant_is_some_or_ok(variant_name.clone()) || match_payload_field_type::mir_match_variant_is_err(variant_name.clone()) {
         return false
     }
-    if len(type_name) == 0 || eq(clone(type_name), "enum:open") {
+    if len(type_name) == 0 || eq(type_name.clone(), "enum:open") {
         return false
     }
     // Nested enum payloads (enum:Inner from Outer::Wrap) must stay
     // enum-open. The container's payload type_slot is Outer::Wrap, not
     // Inner — applying it types the bind as the wrong concrete variant
     // (#726 nested_enum).
-    if clone(type_name).starts_with("enum:") {
+    if type_name.clone().starts_with("enum:") {
         return false
     }
     false
@@ -168,8 +168,8 @@ fn extract_first_result_type_param(scrut_type: String) -> String {
     // Split Ok/Err on the LAST encoding separator so nested vec:T /
     // Vec_T / option:T stay intact (#726 toml Result<Vec<T>, E>).
     // result:vec:T:E → last ':'; Result_vec:T_E / Result_Vec_T_E → last '_'.
-    let sep_char = if clone(scrut_type).starts_with("result:") { 58 } else { 95 }
-    let last = find_last_sep_char(clone(rest), sep_char)
+    let sep_char = if scrut_type.clone().starts_with("result:") { 58 } else { 95 }
+    let last = find_last_sep_char(rest.clone(), sep_char)
     if last > 0 {
         return normalize_payload_elem_type_name(rest.slice(0, last))
     }
@@ -179,8 +179,8 @@ fn extract_first_result_type_param(scrut_type: String) -> String {
 fn extract_second_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
     let rest = scrut_type.slice(prefix_len, len(scrut_type))
-    let sep_char = if clone(scrut_type).starts_with("result:") { 58 } else { 95 }
-    let last = find_last_sep_char(clone(rest), sep_char)
+    let sep_char = if scrut_type.clone().starts_with("result:") { 58 } else { 95 }
+    let last = find_last_sep_char(rest.clone(), sep_char)
     if last >= 0 && last + 1 < len(rest) {
         return rest.slice(last + 1, len(rest))
     }
@@ -191,13 +191,13 @@ fn find_last_sep_char(s: String, sep_char: i32) -> i32 {
     let n = len(s)
     let mut i = n - 1
     while i >= 0 {
-        if clone(s).byte_at(i) == sep_char {
+        if s.clone().byte_at(i) == sep_char {
             // `Module::Type` payloads carry a ':' inside the module path.
             // Splitting there turns `result:Option_String:io::IoError` into
             // the payload hint "Option_String:io:" and opens the inner enum.
-            if sep_char == 58 && i > 0 && clone(s).byte_at(i - 1) == 58 {
+            if sep_char == 58 && i > 0 && s.clone().byte_at(i - 1) == 58 {
                 i = i - 2
-            } else if sep_char == 58 && i + 1 < n && clone(s).byte_at(i + 1) == 58 {
+            } else if sep_char == 58 && i + 1 < n && s.clone().byte_at(i + 1) == 58 {
                 i = i - 2
             } else {
                 return i
@@ -214,28 +214,28 @@ fn payload_type_name_is_gc_ref(ctx: LowerCtx, bind_local: i32) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if eq(clone(type_name), "string") || eq(clone(type_name), "String") {
+    if eq(type_name.clone(), "string") || eq(type_name.clone(), "String") {
         return true
     }
-    if clone(type_name).starts_with("vec:") ||
-    clone(type_name).starts_with("Vec<") ||
-    clone(type_name).starts_with("Vec_") ||
-    eq(clone(type_name), "Vec") {
+    if type_name.clone().starts_with("vec:") ||
+    type_name.clone().starts_with("Vec<") ||
+    type_name.clone().starts_with("Vec_") ||
+    eq(type_name.clone(), "Vec") {
         return true
     }
-    if clone(type_name).starts_with("hashmap:") {
+    if type_name.clone().starts_with("hashmap:") {
         return true
     }
-    if clone(type_name).starts_with("option:") || clone(type_name).starts_with("Option_") {
+    if type_name.clone().starts_with("option:") || type_name.clone().starts_with("Option_") {
         return true
     }
-    if clone(type_name).starts_with("Result_") || clone(type_name).starts_with("result:") {
+    if type_name.clone().starts_with("Result_") || type_name.clone().starts_with("result:") {
         return true
     }
-    if clone(type_name).starts_with("enum:") {
+    if type_name.clone().starts_with("enum:") {
         return true
     }
-    if clone(type_name).starts_with("struct:") {
+    if type_name.clone().starts_with("struct:") {
         return true
     }
     false

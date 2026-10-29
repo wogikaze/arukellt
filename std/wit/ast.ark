@@ -10,7 +10,7 @@
 
 use std::wit::types
 use std::wit::types::{WitType}
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 
 // ─── AST node type ───────────────────────────────────────────────
@@ -59,20 +59,20 @@ impl WitNode {
     /// Return the name string of this node.
     fn name(self: WitNode) -> String {
         match self {
-            WitNode::Package(name, _) => clone(name),
-            WitNode::World(name, _) => clone(name),
-            WitNode::Interface(name, _) => clone(name),
-            WitNode::Record(name, _) => clone(name),
-            WitNode::Enum(name, _) => clone(name),
-            WitNode::Flags(name, _) => clone(name),
-            WitNode::Variant(name, _) => clone(name),
-            WitNode::Resource(name, _) => clone(name),
-            WitNode::TypeAlias(name, _) => clone(name),
-            WitNode::Use(path, _) => clone(path),
-            WitNode::Func(name, _, _) => clone(name),
-            WitNode::Import(path, _) => clone(path),
-            WitNode::Export(path, _) => clone(path),
-            WitNode::Error(msg) => clone(msg),
+            WitNode::Package(name, _) => name.clone(),
+            WitNode::World(name, _) => name.clone(),
+            WitNode::Interface(name, _) => name.clone(),
+            WitNode::Record(name, _) => name.clone(),
+            WitNode::Enum(name, _) => name.clone(),
+            WitNode::Flags(name, _) => name.clone(),
+            WitNode::Variant(name, _) => name.clone(),
+            WitNode::Resource(name, _) => name.clone(),
+            WitNode::TypeAlias(name, _) => name.clone(),
+            WitNode::Use(path, _) => path.clone(),
+            WitNode::Func(name, _, _) => name.clone(),
+            WitNode::Import(path, _) => path.clone(),
+            WitNode::Export(path, _) => path.clone(),
+            WitNode::Error(msg) => msg.clone(),
         }
     }
 
@@ -141,15 +141,15 @@ impl WitNode {
     /// value to callers that only need metadata.
     fn first_interface_name(self: WitNode) -> String {
         match self {
-            WitNode::Interface(name, _) => clone(name),
+            WitNode::Interface(name, _) => name.clone(),
             WitNode::Package(_, items) => {
                 for i in 0..len(items) {
                     match get_unchecked(items, i) {
-                        WitNode::Interface(name, _) => return clone(name),
+                        WitNode::Interface(name, _) => return name.clone(),
                         WitNode::World(_, world_items) => {
                             for j in 0..len(world_items) {
                                 match get_unchecked(world_items, j) {
-                                    WitNode::Interface(name, _) => return clone(name),
+                                    WitNode::Interface(name, _) => return name.clone(),
                                     _ => {},
                                 }
                             }
@@ -162,7 +162,7 @@ impl WitNode {
             WitNode::World(_, items) => {
                 for i in 0..len(items) {
                     match get_unchecked(items, i) {
-                        WitNode::Interface(name, _) => return clone(name),
+                        WitNode::Interface(name, _) => return name.clone(),
                         _ => {},
                     }
                 }
@@ -189,14 +189,14 @@ impl WitNode {
                 if index < 0 || index >= len(fields) {
                     String_new()
                 } else {
-                    clone(get_unchecked(fields, index).name)
+                    get_unchecked(fields, index).name.clone()
                 }
             },
             WitNode::Resource(_, fields) => {
                 if index < 0 || index >= len(fields) {
                     String_new()
                 } else {
-                    clone(get_unchecked(fields, index).name)
+                    get_unchecked(fields, index).name.clone()
                 }
             },
             WitNode::Package(_, _) |
@@ -253,7 +253,7 @@ impl WitNode {
                 if index < 0 || index >= len(variants) {
                     String_new()
                 } else {
-                    clone(get_unchecked(variants, index))
+                    get_unchecked(variants, index).clone()
                 }
             },
             WitNode::Package(_, _) |
@@ -279,7 +279,7 @@ impl WitNode {
                 if index < 0 || index >= len(members) {
                     String_new()
                 } else {
-                    clone(get_unchecked(members, index))
+                    get_unchecked(members, index).clone()
                 }
             },
             WitNode::Package(_, _) |
@@ -305,7 +305,7 @@ impl WitNode {
                 if index < 0 || index >= len(cases) {
                     String_new()
                 } else {
-                    clone(get_unchecked(cases, index).name)
+                    get_unchecked(cases, index).name.clone()
                 }
             },
             WitNode::Package(_, _) |
@@ -409,7 +409,7 @@ impl WitNode {
                 if index < 0 || index >= len(params) {
                     String_new()
                 } else {
-                    clone(get_unchecked(params, index).name)
+                    get_unchecked(params, index).name.clone()
                 }
             },
             WitNode::Package(_, _) |
@@ -529,7 +529,7 @@ impl WitNode {
     /// Return the use path.
     fn use_path(self: WitNode) -> String {
         match self {
-            WitNode::Use(path, _) => clone(path),
+            WitNode::Use(path, _) => path.clone(),
             WitNode::Package(_, _) |
             WitNode::World(_, _) |
             WitNode::Interface(_, _) |
@@ -549,7 +549,7 @@ impl WitNode {
     /// Return the use alias (may be empty).
     fn use_alias(self: WitNode) -> String {
         match self {
-            WitNode::Use(_, alias) => clone(alias),
+            WitNode::Use(_, alias) => alias.clone(),
             WitNode::Package(_, _) |
             WitNode::World(_, _) |
             WitNode::Interface(_, _) |
@@ -603,7 +603,7 @@ impl WitNode {
 }
 
 fn wit_import_package_name(package: String) -> String {
-    let at = clone(package).index_of("@")
+    let at = package.clone().index_of("@")
     if at < 0 {
         package
     } else {
@@ -612,7 +612,7 @@ fn wit_import_package_name(package: String) -> String {
 }
 
 fn wit_import_package_version(package: String) -> String {
-    let at = clone(package).index_of("@")
+    let at = package.clone().index_of("@")
     if at < 0 {
         String_new()
     } else {
@@ -626,7 +626,7 @@ fn wit_import_serialized_string_list(values: Vec<String>) -> String {
         if i > 0 {
             out = String::concat(out, String_from("~"))
         }
-        out = String::concat(out, clone(get_unchecked(values, i)))
+        out = String::concat(out, get_unchecked(values, i).clone())
     }
     out
 }
@@ -645,7 +645,7 @@ fn wit_import_serialized_param_types(params: Vec<types::WitParam>) -> String {
 fn wit_import_serialized_field_names(fields: Vec<types::WitField>) -> String {
     let mut names = Vec::new<String>()
     for i in 0..len(fields) {
-        push(names, clone(get_unchecked(fields, i).name))
+        push(names, get_unchecked(fields, i).name.clone())
     }
     wit_import_serialized_string_list(names)
 }
@@ -668,7 +668,7 @@ fn wit_import_serialized_enum_variants(variants: Vec<String>) -> String {
 fn wit_import_serialized_variant_names(cases: Vec<types::WitVariantCase>) -> String {
     let mut names = Vec::new<String>()
     for i in 0..len(cases) {
-        push(names, clone(get_unchecked(cases, i).name))
+        push(names, get_unchecked(cases, i).name.clone())
     }
     wit_import_serialized_string_list(names)
 }
@@ -699,7 +699,7 @@ fn wit_import_serialized_entry(kind: String, name: String, first: String, second
 }
 
 fn wit_import_serialized_interface(package: String, name: String, items: Vec<WitNode>) -> String {
-    let package_name = wit_import_package_name(clone(package))
+    let package_name = wit_import_package_name(package.clone())
     let package_version = wit_import_package_version(package)
     let mut out = String::concat(String_from("header|"), package_name)
     out = String::concat(out, String_from("|"))
@@ -761,7 +761,7 @@ fn wit_import_serialized_container(package: String, items: Vec<WitNode>) -> Stri
                 for j in 0..len(world_items) {
                     match get_unchecked(world_items, j) {
                         WitNode::Interface(name, interface_items) => {
-                            return wit_import_serialized_interface(clone(package), name, interface_items)
+                            return wit_import_serialized_interface(package.clone(), name, interface_items)
                         },
                         _ => {},
                     }
@@ -1008,7 +1008,7 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
         return (types::WitType::Resource(String_new()), i)
     }
     if eq(word, "result") || eq(word, "future") || eq(word, "stream") {
-        let constructor = clone(word)
+        let constructor = word.clone()
         i = p_skip_ws_comments(s, i)
         if i >= n || s.byte_at(i) != 60 {
             return (types::WitType::Resource(constructor), i)

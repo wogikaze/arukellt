@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use typechecker::ast_access
 use typechecker::ast_expr_predicates
@@ -25,15 +25,15 @@ fn infer_enum_variant_struct_lit(enum_defs: Vec<EnumInfo>, node: AstNode) -> Typ
 
 fn infer_enum_variant_value(enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let path = ast_access::node_text(node)
-    let enum_name = enum_name_from_variant_path(clone(path))
+    let enum_name = enum_name_from_variant_path(path.clone())
     if len(enum_name) == 0 {
         return unknown_type()
     }
-    let enum_type_name = enum_type_name_from_variant_path(clone(path))
+    let enum_type_name = enum_type_name_from_variant_path(path.clone())
     if len(enum_type_name) == 0 {
         return unknown_type()
     }
-    let enum_def = find_enum_def(enum_defs, clone(path), clone(enum_name))
+    let enum_def = find_enum_def(enum_defs, path.clone(), enum_name.clone())
     let declared_name = contract_enum_info::EnumInfo_name(enum_def)
     if len(declared_name) == 0 {
         return unknown_type()
@@ -52,12 +52,12 @@ fn infer_enum_variant_call(enum_defs: Vec<EnumInfo>, callee: AstNode) -> TypeInf
 // back to the unsubstituted template.
 fn instantiate_variant_result(mut env: TypeEnv, enum_defs: Vec<EnumInfo>, callee: AstNode, base_ty: TypeInfo, arg_types: Vec<TypeInfo>) -> TypeInfo {
     let path = ast_access::node_text(callee)
-    let enum_def = find_enum_def(enum_defs, clone(path), enum_name_from_variant_path(clone(path)))
+    let enum_def = find_enum_def(enum_defs, path.clone(), enum_name_from_variant_path(path.clone()))
     let type_params = contract_enum_info::EnumInfo_type_params(enum_def)
     if len(type_params) == 0 {
         return base_ty
     }
-    let variant_index = contract_enum_info::EnumInfo_variant_index(enum_def, clone(path))
+    let variant_index = contract_enum_info::EnumInfo_variant_index(enum_def, path.clone())
     if variant_index < 0 {
         return base_ty
     }
@@ -72,7 +72,7 @@ fn instantiate_variant_result(mut env: TypeEnv, enum_defs: Vec<EnumInfo>, callee
     let mut payload_index = 0
     while payload_index < payload_count && payload_index < len(arg_types) {
         let declared = contract_enum_info::EnumInfo_variant_payload_at(enum_def, variant_index, payload_index)
-        let inst_payload = instantiate::instantiate_type(declared, clone(type_params), inst_args)
+        let inst_payload = instantiate::instantiate_type(declared, type_params.clone(), inst_args)
         unify::unify(infer_env, inst_payload, get_unchecked(arg_types, payload_index))
         payload_index = payload_index + 1
     }
@@ -106,8 +106,8 @@ fn find_enum_def(enum_defs: Vec<EnumInfo>, path: String, enum_name: String) -> E
     while i < count {
         let enum_def = get_unchecked(enum_defs, i)
         let declared_name = contract_enum_info::EnumInfo_name(enum_def)
-        if enum_names_match(clone(declared_name), clone(enum_name)) &&
-        contract_enum_info::EnumInfo_variant_index(enum_def, clone(path)) >= 0 {
+        if enum_names_match(declared_name.clone(), enum_name.clone()) &&
+        contract_enum_info::EnumInfo_variant_index(enum_def, path.clone()) >= 0 {
             return enum_def
         }
         i = i + 1
@@ -157,10 +157,10 @@ fn enum_type_name_from_variant_path(path: String) -> String {
 }
 
 fn enum_names_match(declared_name: String, enum_name: String) -> bool {
-    if eq(clone(declared_name), clone(enum_name)) {
+    if eq(declared_name.clone(), enum_name.clone()) {
         return true
     }
-    clone(declared_name).ends_with("::".concat(clone(enum_name)))
+    declared_name.clone().ends_with("::".concat(enum_name.clone()))
 }
 
 fn unknown_type() -> TypeInfo {

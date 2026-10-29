@@ -1,9 +1,9 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 fn vec_has(v: Vec<String>, name: String) -> bool {
     let count = len(v)
     let mut i = 0
     while i < count {
-        if eq(clone(get_unchecked(v, i)), clone(name)) {
+        if eq(get_unchecked(v, i).clone(), name.clone()) {
             return true
         }
         i = i + 1
@@ -46,7 +46,7 @@ fn load_state_probe(keys: Vec<String>, slots: Vec<i32>, name: String) -> i32 {
         if bucket == 0 {
             return slot
         }
-        if eq(get_unchecked(keys, bucket - 1), clone(name)) {
+        if eq(get_unchecked(keys, bucket - 1), name.clone()) {
             return slot
         }
         slot = (slot + 1) % capacity
@@ -69,7 +69,7 @@ fn load_state_rehash(keys: Vec<String>, capacity: i32) -> Vec<i32> {
     let mut slots = load_state_zero_slots(capacity)
     let mut i = 0
     while i < len(keys) {
-        let slot = load_state_probe(clone(keys), slots, clone(get_unchecked(keys, i)))
+        let slot = load_state_probe(keys.clone(), slots, get_unchecked(keys, i).clone())
         set(slots, slot, i + 1)
         i = i + 1
     }
@@ -87,14 +87,14 @@ fn load_state_ensure_loaded_index(mut state: LoadState) {
     while capacity <= len(state.loaded_names) * 2 {
         capacity = capacity * 2
     }
-    state.loaded_slots = load_state_rehash(clone(state.loaded_names), capacity)
+    state.loaded_slots = load_state_rehash(state.loaded_names.clone(), capacity)
 }
 
 fn LoadState_has_loaded(state: LoadState, name: String) -> bool {
     if len(state.loaded_slots) <= 0 {
         return false
     }
-    let slot = load_state_probe(clone(state.loaded_names), clone(state.loaded_slots), clone(name))
+    let slot = load_state_probe(state.loaded_names.clone(), state.loaded_slots.clone(), name.clone())
     if slot < 0 {
         return false
     }
@@ -118,7 +118,7 @@ fn LoadState_pop_loading(mut state: LoadState) {
 fn LoadState_push_loaded(mut state: LoadState, name: String) {
     push(state.loaded_names, name)
     load_state_ensure_loaded_index(state)
-    let slot = load_state_probe(clone(state.loaded_names), clone(state.loaded_slots), clone(name))
+    let slot = load_state_probe(state.loaded_names.clone(), state.loaded_slots.clone(), name.clone())
     if slot < 0 {
         return
     }

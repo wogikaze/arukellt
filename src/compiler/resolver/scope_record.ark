@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use resolver::symbol_record
 struct Scope {
     symbols: Vec<Symbol>,
@@ -54,7 +53,7 @@ fn scope_find_symbol_index(scope: Scope, name: String) -> i32 {
 }
 
 fn scope_hash_set(mut scope: Scope, name: String) {
-    let mut slot = scope_hash_probe_slot(scope, clone(name))
+    let mut slot = scope_hash_probe_slot(scope, name.clone())
     if slot < 0 {
         scope_hash_grow(scope)
         slot = scope_hash_probe_slot(scope, name)

@@ -1,29 +1,29 @@
 use std::json
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use lsp::framing
 use lsp::init_workspace
 use lsp::lsp_config
 use lsp::responses
 use lsp::state_record
 fn dispatch_lifecycle(mut state: LspState, body: String, method: String) -> bool {
-    if eq(clone(method), "initialize") {
-        let id = json::JsonText::get_int(clone(body), String_from("id"))
+    if eq(method.clone(), "initialize") {
+        let id = json::JsonText::get_int(body.clone(), String_from("id"))
         state_record::lsp_state_mark_initialized(state)
-        init_workspace::initialize_workspace_index(state, clone(body))
-        lsp_config::apply_initialize_config(state, clone(body))
+        init_workspace::initialize_workspace_index(state, body.clone())
+        lsp_config::apply_initialize_config(state, body.clone())
         framing::append_framed(state, responses::build_initialize_response(id))
         return true
     }
-    if eq(clone(method), "initialized") {
+    if eq(method.clone(), "initialized") {
         return true
     }
-    if eq(clone(method), "shutdown") {
-        let id = json::JsonText::get_int(clone(body), String_from("id"))
+    if eq(method.clone(), "shutdown") {
+        let id = json::JsonText::get_int(body.clone(), String_from("id"))
         state_record::lsp_state_mark_shutdown(state)
         framing::append_framed(state, responses::build_shutdown_response(id))
         return true
     }
-    if eq(clone(method), "exit") {
+    if eq(method.clone(), "exit") {
         state_record::lsp_state_mark_exited(state)
         return true
     }

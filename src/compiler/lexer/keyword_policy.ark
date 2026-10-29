@@ -1,17 +1,17 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 pub fn is_contextual_keyword(word: String) -> bool {
-    eq(clone(word), "test") ||
-    eq(clone(word), "move") ||
-    eq(clone(word), "dyn") ||
-    eq(clone(word), "type") ||
-    eq(clone(word), "mod")
+    eq(word.clone(), "test") ||
+    eq(word.clone(), "move") ||
+    eq(word.clone(), "dyn") ||
+    eq(word.clone(), "type") ||
+    eq(word.clone(), "mod")
 }
 
 pub fn is_future_reserved_keyword(word: String) -> bool {
-    eq(clone(word), "await") ||
-    eq(clone(word), "unsafe") ||
-    eq(clone(word), "extern") ||
-    eq(clone(word), "super")
+    eq(word.clone(), "await") ||
+    eq(word.clone(), "unsafe") ||
+    eq(word.clone(), "extern") ||
+    eq(word.clone(), "super")
 }
 
 test mod "keyword_policy" {

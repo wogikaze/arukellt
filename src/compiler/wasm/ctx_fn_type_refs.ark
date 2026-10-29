@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::module_canon
 use mir::module_gc_struct
 use mir::types
@@ -18,19 +18,19 @@ use wasm::sections_types_sigs_detail
 // Mirror of the kind dispatch in emit_canon_type_entries: only sigs that
 // fall through to the functype branch carry FuncTypeRefs entries.
 fn canon_sig_is_fn_type(sig: String) -> bool {
-    if clone(sig).starts_with(String_from("SubF")) {
+    if sig.clone().starts_with(String_from("SubF")) {
         return false
     }
-    if clone(sig).starts_with(String_from("Sub0_")) {
+    if sig.clone().starts_with(String_from("Sub0_")) {
         return false
     }
-    if clone(sig).starts_with(String_from("Sub")) {
+    if sig.clone().starts_with(String_from("Sub")) {
         return false
     }
-    if clone(sig).starts_with(String_from("GS_f")) {
+    if sig.clone().starts_with(String_from("GS_f")) {
         return false
     }
-    if eq(clone(sig), String_from("A_fnref")) {
+    if eq(sig.clone(), String_from("A_fnref")) {
         return false
     }
     sig.byte_at(0) != 65
@@ -46,7 +46,7 @@ fn SelfEmitCtx_param_ref_type(ctx: SelfEmitCtx, type_idx: i32, param_idx: i32) -
         return 0 - 1
     }
     let sig = get_unchecked(canon_sigs, type_idx)
-    if !canon_sig_is_fn_type(clone(sig)) {
+    if !canon_sig_is_fn_type(sig.clone()) {
         return 0 - 1
     }
     let segs = sections_type_plan::type_sig_param_segments(sig)
@@ -67,11 +67,11 @@ fn SelfEmitCtx_result_ref_type(ctx: SelfEmitCtx, type_idx: i32) -> i32 {
         return 0 - 1
     }
     let sig = get_unchecked(canon_sigs, type_idx)
-    if !canon_sig_is_fn_type(clone(sig)) {
+    if !canon_sig_is_fn_type(sig.clone()) {
         return 0 - 1
     }
     let result_seg = sections_type_plan::type_sig_result_segment(sig)
-    if eq(clone(result_seg), "0") {
+    if eq(result_seg.clone(), "0") {
         return 0 - 1
     }
     sections_types_emit::sig_ref_null_type_index(
@@ -128,7 +128,7 @@ fn SelfEmitCtx_fn_sig_result_ref_type(ctx: SelfEmitCtx, f: MirFunction) -> i32 {
         ctx.mir
     )
     let result_seg = sections_type_plan::type_sig_result_segment(sig)
-    if eq(clone(result_seg), "0") {
+    if eq(result_seg.clone(), "0") {
         return 0 - 1
     }
     sections_types_emit::sig_ref_null_type_index(

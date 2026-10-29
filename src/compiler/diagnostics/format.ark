@@ -1,23 +1,23 @@
 use std::text
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use diagnostics::record
 use diagnostics::severity
 use diagnostics::source_map_offsets
 fn diagnostic_phase_name(code: String, msg: String) -> String {
-    if eq(clone(code), String_from("E0500")) {
-        if len(msg) >= 8 && eq(clone(msg).slice(0, 8), String_from("module `")) {
+    if eq(code.clone(), String_from("E0500")) {
+        if len(msg) >= 8 && eq(msg.clone().slice(0, 8), String_from("module `")) {
             return String_from("resolve")
         }
         return String_from("emit")
     }
-    if eq(clone(code), String_from("W0101")) {
+    if eq(code.clone(), String_from("W0101")) {
         return String_from("parse")
     }
-    if len(code) >= 1 && eq(clone(code).slice(0, 1), String_from("W")) {
+    if len(code) >= 1 && eq(code.clone().slice(0, 1), String_from("W")) {
         return String_from("typecheck")
     }
     if len(code) >= 3 {
-        let family = clone(code).slice(1, 3)
+        let family = code.clone().slice(1, 3)
         if eq(family, String_from("00")) {
             return String_from("parse")
         }
@@ -28,7 +28,7 @@ fn diagnostic_phase_name(code: String, msg: String) -> String {
             return String_from("typecheck")
         }
     }
-    if len(code) >= 1 && eq(clone(code).slice(0, 1), String_from("W")) {
+    if len(code) >= 1 && eq(code.clone().slice(0, 1), String_from("W")) {
         return String_from("typecheck")
     }
     String_from("unknown")
@@ -38,7 +38,7 @@ fn format_diagnostic_text(source: String, source_file: String, diag: Diagnostic)
     let code = record::diagnostic_code(diag)
     let sev = record::diagnostic_severity(diag)
     let msg = record::diagnostic_message(diag)
-    let phase = diagnostic_phase_name(clone(code), clone(msg))
+    let phase = diagnostic_phase_name(code.clone(), msg.clone())
     let mut out = severity::severity_name(sev)
     out = out.concat(String_from("["))
     out = out.concat(code.concat(String_from("|").concat(phase.concat((String_from("]: ")).concat(msg)))))
@@ -46,11 +46,11 @@ fn format_diagnostic_text(source: String, source_file: String, diag: Diagnostic)
     let start = record::diagnostic_span_start(span)
     let end = record::diagnostic_span_end(span)
     if start > 0 || end > 0 {
-        out = out.concat(String_from("\n  --> ").concat(source_map_offsets::location_text(clone(source), clone(source_file), start)))
+        out = out.concat(String_from("\n  --> ").concat(source_map_offsets::location_text(source.clone(), source_file.clone(), start)))
         return out
     }
     if len(source_file) > 0 {
-        out = out.concat(String_from("\n  --> ").concat(clone(source_file)))
+        out = out.concat(String_from("\n  --> ").concat(source_file.clone()))
     }
     out
 }

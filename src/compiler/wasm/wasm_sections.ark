@@ -1,6 +1,6 @@
 use std::host::clock::Clock
 use std::host::stdio
-use std::prelude::{clone, i64_to_i32}
+use std::prelude::{i64_to_i32}
 use std::text
 use wasm::code
 use wasm::ctx_gc_type
@@ -37,7 +37,7 @@ fn emit_section_note(enabled: i32, label: String, t_start: i64) -> i64 {
     let diff = t_end - t_start
     let ms = if diff < 0i64 { 0 } else { i64_to_i32(diff / 1000000i64) }
     stdio::eprintln(
-        "[arukellt] emit.".concat(clone(label).concat(": ".concat(ms.to_string().concat("ms"))))
+        "[arukellt] emit.".concat(label.clone().concat(": ".concat(ms.to_string().concat("ms"))))
     )
     t_end
 }
@@ -67,20 +67,20 @@ fn emit_wasm_module_sections(
     let fn_count = module_functions::MirModule_function_count(mir)
     let functions = module_functions::MirModule_functions(mir)
     let main_idx = wasm_start::wasm_module_start_function_index(mir, fn_count)
-    let library_export_count = if emit_target::is_p2_wasi(clone(wasi_version)) {
+    let library_export_count = if emit_target::is_p2_wasi(wasi_version.clone()) {
         sections_exports::p2_library_export_count(mir, fn_count)
     } else {
         0
     }
-    let library_wrapper_count = if emit_target::is_p2_wasi(clone(wasi_version)) {
-        sections_exports::p2_library_wrapper_count(mir, fn_count, clone(target), clone(wasi_version))
+    let library_wrapper_count = if emit_target::is_p2_wasi(wasi_version.clone()) {
+        sections_exports::p2_library_wrapper_count(mir, fn_count, target.clone(), wasi_version.clone())
     } else {
         0
     }
     let strings = strings::prepare_string_table(mir)
     t_phase = emit_section_note(report_timing, "strings", t_phase)
     let mut gc_layout = gc_layout_table::GcLayoutTable_new()
-    let needs_wrapper = if emit_target::is_p2_wasi(clone(wasi_version)) {
+    let needs_wrapper = if emit_target::is_p2_wasi(wasi_version.clone()) {
         if main_idx >= 0 { 1 } else { 0 }
     } else {
         wasm_start::wasm_module_needs_start_wrapper(mir, fn_count)
@@ -94,10 +94,10 @@ fn emit_wasm_module_sections(
         mir,
         functions,
         strings,
-        clone(target),
-        clone(wasi_version),
+        target.clone(),
+        wasi_version.clone(),
         writer_core::writer_memory64(out),
-        clone(source_file)
+        source_file.clone()
     )
     wasm_context::emit_wasm_context_set_gc_enum_variant_names(ctx, module_gc_enum::MirModule_gc_enum_variant_names(mir))
     wasm_context::emit_wasm_context_set_gc_enum_variant_sigs(ctx, module_gc_enum::MirModule_gc_enum_variant_sigs(mir))
@@ -138,14 +138,14 @@ fn emit_wasm_module_sections(
             mir,
             functions,
             fn_count,
-            clone(target),
+            target.clone(),
             writer_core::writer_memory64(out)
         )
     )
     wasm_context::emit_wasm_context_set_gc_layout_table(ctx, gc_layout)
     // The layout table needs only module data plus the gc base/canon vecs —
     // all final here, so it no longer rides inside emit_type_section.
-    if emit_target::is_gc_target(clone(target)) {
+    if emit_target::is_gc_target(target.clone()) {
         gc_layout_table_build::populate_gc_layout_table_for_emit(
             gc_layout,
             mir,
@@ -160,16 +160,16 @@ fn emit_wasm_module_sections(
         functions,
         fn_count,
         needs_wrapper,
-        clone(target),
-        clone(wasi_version),
+        target.clone(),
+        wasi_version.clone(),
         bindings
     )
     t_phase = emit_section_note(report_timing, "types", t_phase)
     wasm_sections_facade::emit_import_section(
         out,
         wasm_sections_facade::type_plan_host_type_map(type_plan),
-        clone(target),
-        clone(wasi_version),
+        target.clone(),
+        wasi_version.clone(),
         bindings,
         wasm_sections_facade::type_plan_wit_type_map(type_plan)
     )
@@ -189,17 +189,17 @@ fn emit_wasm_module_sections(
     wasm_sections_facade::emit_table_section(out, mir)
     wasm_sections_facade::emit_memory_section(
         out,
-        clone(target),
+        target.clone(),
         strings::EmitStringTablePlan_data_offset(strings)
     )
     wasm_sections_facade::emit_global_section(
         out,
         strings::EmitStringTablePlan_data_offset(strings),
         string_literal_cache_global(ctx, strings),
-        clone(target)
+        target.clone()
     )
-    wasm_sections_facade::emit_export_section(out, mir, fn_count, needs_wrapper, clone(target), clone(wasi_version), wit_import_count)
-    wasm_sections_facade::emit_element_section(out, mir, clone(target), clone(wasi_version), wit_import_count)
+    wasm_sections_facade::emit_export_section(out, mir, fn_count, needs_wrapper, target.clone(), wasi_version.clone(), wit_import_count)
+    wasm_sections_facade::emit_element_section(out, mir, target.clone(), wasi_version.clone(), wit_import_count)
     t_phase = emit_section_note(report_timing, "pre_code", t_phase)
     // #851 Phase 3 fused emit: when the lowering drain already emitted the
     // declared bodies into the module's artifact record, adopt them so the
@@ -223,7 +223,7 @@ fn emit_wasm_module_sections(
         report_timing
     )
     t_phase = emit_section_note(report_timing, "code", t_phase)
-    let import_count = emit_target::total_import_count(clone(target), clone(wasi_version), wit_import_count)
+    let import_count = emit_target::total_import_count(target.clone(), wasi_version.clone(), wit_import_count)
     wasm_sections_facade::emit_tail_sections(out, ctx, strings, opt_level, import_count, strip_debug, source_file)
     emit_section_note(report_timing, "tail", t_phase)
     registry_return_audit::registry_audit_print_summary(ctx)

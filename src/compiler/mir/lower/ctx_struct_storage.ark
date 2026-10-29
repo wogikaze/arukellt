@@ -1,11 +1,11 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use collections::name_index
 fn ctx_struct_layout_count(ctx: LowerCtx) -> i32 {
     len(ctx.struct_names)
 }
 
 fn ctx_struct_layout_name_at(ctx: LowerCtx, index: i32) -> String {
-    clone(get_unchecked(ctx.struct_names, index))
+    get_unchecked(ctx.struct_names, index).clone()
 }
 
 fn ctx_struct_layout_field_count_at(ctx: LowerCtx, index: i32) -> i32 {
@@ -13,11 +13,11 @@ fn ctx_struct_layout_field_count_at(ctx: LowerCtx, index: i32) -> i32 {
 }
 
 fn ctx_struct_field_name_at_offset(ctx: LowerCtx, offset: i32) -> String {
-    clone(get_unchecked(ctx.struct_all_fields, offset))
+    get_unchecked(ctx.struct_all_fields, offset).clone()
 }
 
 fn ctx_struct_field_type_at_offset(ctx: LowerCtx, offset: i32) -> String {
-    clone(get_unchecked(ctx.struct_field_types, offset))
+    get_unchecked(ctx.struct_field_types, offset).clone()
 }
 
 fn ctx_struct_push_layout(mut ctx: LowerCtx, struct_name: String, field_count: i32) {
@@ -27,7 +27,7 @@ fn ctx_struct_push_layout(mut ctx: LowerCtx, struct_name: String, field_count: i
     } else {
         get_unchecked(ctx.struct_layout_field_offsets, index - 1) + get_unchecked(ctx.struct_field_counts, index - 1)
     }
-    name_index::name_index_insert_first(ctx.struct_layout_first_index, clone(struct_name), index)
+    name_index::name_index_insert_first(ctx.struct_layout_first_index, struct_name.clone(), index)
     push(ctx.struct_layout_field_offsets, field_offset)
     push(ctx.struct_names, struct_name)
     push(ctx.struct_field_counts, field_count)
@@ -81,7 +81,7 @@ fn ctx_struct_layout_struct_index(ctx: LowerCtx, struct_name: String) -> i32 {
 // enum base under the same name, otherwise the first exact registration so
 // enum-only names keep resolving to their base layout.
 fn ctx_struct_layout_preferred_index(ctx: LowerCtx, struct_name: String) -> i32 {
-    let si = ctx_struct_layout_struct_index(ctx, clone(struct_name))
+    let si = ctx_struct_layout_struct_index(ctx, struct_name.clone())
     if si >= 0 {
         return si
     }
@@ -103,7 +103,7 @@ fn ctx_struct_layout_name_memo_slot(ctx: LowerCtx, type_name: String) -> i32 {
 }
 
 fn ctx_struct_layout_name_memo_value_at(ctx: LowerCtx, slot: i32) -> String {
-    clone(get_unchecked(ctx.struct_layout_name_memo_values, slot))
+    get_unchecked(ctx.struct_layout_name_memo_values, slot).clone()
 }
 
 fn ctx_struct_layout_name_memo_put(mut ctx: LowerCtx, type_name: String, resolved: String) {

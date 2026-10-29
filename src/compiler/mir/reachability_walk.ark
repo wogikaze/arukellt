@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
 use mir::inst_record
@@ -173,7 +173,7 @@ fn mir_enqueue_call_edges(
             functions,
             reachable,
             queue,
-            clone(target),
+            target.clone(),
             packed,
             fi,
             fn_names,
@@ -211,7 +211,7 @@ fn mir_enqueue_recorded_payload(
                 functions,
                 reachable,
                 queue,
-                clone(get_unchecked(fn_names, tagged))
+                get_unchecked(fn_names, tagged).clone()
             )
         }
         return
@@ -223,7 +223,7 @@ fn mir_enqueue_recorded_payload(
             functions,
             reachable,
             queue,
-            clone(get_unchecked(edge_names, overflow))
+            get_unchecked(edge_names, overflow).clone()
         )
     }
 }
@@ -252,7 +252,7 @@ fn mir_enqueue_recorded_callees(
             reachable,
             queue,
             get_unchecked(packed, i),
-            clone(target),
+            target.clone(),
             fn_names,
             edge_names
         )
@@ -271,7 +271,7 @@ fn mir_enqueue_call_edges_from_insts(
 ) {
     let call_op = opcodes::MIR_CALL()
     let ref_op = opcodes::MIR_REF_FUNC()
-    let skip_fallback = eq(clone(target), String_from("wasm32-gc"))
+    let skip_fallback = eq(target.clone(), String_from("wasm32-gc"))
     let block_count = function_block_queries::MirFunction_block_count(f)
     let mut bi = 0
     while bi < block_count {
@@ -282,12 +282,12 @@ fn mir_enqueue_call_edges_from_insts(
             let op = block_inst_access::MirBlock_inst_op(block, ii)
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
             if op == call_op || op == ref_op {
-                mir_enqueue_inst_callee(m, index, functions, reachable, queue, inst, clone(target))
+                mir_enqueue_inst_callee(m, index, functions, reachable, queue, inst, target.clone())
             }
             if op == call_op && !skip_fallback {
                 let fallback = core_op_call::mir_call_normal_fallback_symbol(m, inst)
                 if len(fallback) > 0 {
-                    mir_enqueue_symbol(m, index, functions, reachable, queue, fallback, clone(target))
+                    mir_enqueue_symbol(m, index, functions, reachable, queue, fallback, target.clone())
                 }
             }
             ii = ii + 1
@@ -323,7 +323,7 @@ fn mir_enqueue_inst_callee(
 }
 
 fn mir_reachability_skips_hashmap_alias_bodies(target: String) -> bool {
-    clone(target).starts_with(String_from("native"))
+    target.clone().starts_with(String_from("native"))
 }
 
 fn mir_enqueue_symbol(
@@ -337,7 +337,7 @@ fn mir_enqueue_symbol(
 ) {
     if module_spine::MirModule_signature_spine_populated(m) {
         let registry = module_spine::MirModule_signature_registry(m)
-        let fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(symbol))
+        let fid = signature_registry::signature_registry_lookup_by_mangled(registry, symbol.clone())
         if function_id::function_id_is_valid(fid) {
             if reachability_index::mir_reachability_enqueue_by_func_id(
                 index,
@@ -349,15 +349,15 @@ fn mir_enqueue_symbol(
             }
         }
     }
-    if reachability_names::mir_enqueue_reachable_name(index, functions, reachable, queue, clone(symbol)) {
+    if reachability_names::mir_enqueue_reachable_name(index, functions, reachable, queue, symbol.clone()) {
         return
     }
-    let alias = hash_aliases::hashmap_builtin_alias(clone(symbol))
-    if eq(clone(alias), clone(symbol)) {
+    let alias = hash_aliases::hashmap_builtin_alias(symbol.clone())
+    if eq(alias.clone(), symbol.clone()) {
         return
     }
-    if mir_reachability_skips_hashmap_alias_bodies(clone(target)) {
-        let coid = core_op_binding::core_op_binding_lookup_for_callee(clone(symbol))
+    if mir_reachability_skips_hashmap_alias_bodies(target.clone()) {
+        let coid = core_op_binding::core_op_binding_lookup_for_callee(symbol.clone())
         if core_op_id::core_op_id_is_some(coid) {
             return
         }

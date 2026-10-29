@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use lexer::tokens
 use parser::core_ast_factory
 use parser::core_ast_literal_fields
@@ -28,13 +27,13 @@ fn parse_wit_import(mut p: Parser, import_span: Span) -> AstNode {
     let package_id = token_state::Token_text(path_tok)
     let path_span = core_api_expect::tok_span(path_tok)
     let mut node = core_ast_factory::AstNode_new(kinds::NK_IMPORT(), import_span)
-    core_ast_text_fields::AstNode_set_text(node, clone(package_id))
+    core_ast_text_fields::AstNode_set_text(node, package_id.clone())
     core_ast_literal_fields::AstNode_set_int_val(node, kinds::IMPORT_KIND_WIT())
-    let err = wit_identity::wit_identifier_error(clone(package_id))
+    let err = wit_identity::wit_identifier_error(package_id.clone())
     if len(err) > 0 {
         diagnostics::parser_push_unexpected_error(p, err)
     }
     imports_alias::parse_use_alias(p, node)
-    wit_attach_default_alias(node, clone(package_id), path_span)
+    wit_attach_default_alias(node, package_id.clone(), path_span)
     node
 }

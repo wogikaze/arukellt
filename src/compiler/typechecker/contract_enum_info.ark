@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use typechecker::contract_types_record
 struct EnumInfo {
     name: String,
@@ -42,11 +42,11 @@ fn EnumInfo_new_with_payloads(
 }
 
 fn EnumInfo_type_params(info: EnumInfo) -> Vec<String> {
-    clone(info.type_params)
+    info.type_params.clone()
 }
 
 fn EnumInfo_name(info: EnumInfo) -> String {
-    clone(info.name)
+    info.name.clone()
 }
 
 fn EnumInfo_variant_count(info: EnumInfo) -> i32 {
@@ -54,7 +54,7 @@ fn EnumInfo_variant_count(info: EnumInfo) -> i32 {
 }
 
 fn EnumInfo_variant_at(info: EnumInfo, index: i32) -> String {
-    clone(get_unchecked(info.variant_names, index))
+    get_unchecked(info.variant_names, index).clone()
 }
 
 fn EnumInfo_variant_index(info: EnumInfo, name: String) -> i32 {
@@ -62,7 +62,7 @@ fn EnumInfo_variant_index(info: EnumInfo, name: String) -> i32 {
     let count = len(info.variant_names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(info.variant_names, i), clone(variant_name)) {
+        if eq(get_unchecked(info.variant_names, i), variant_name.clone()) {
             return i
         }
         i = i + 1

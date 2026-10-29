@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use corehir::mir_signature_method
 use corehir::mod
 use mir::lower::decl_source
@@ -27,7 +27,7 @@ fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex, mut m: Mi
             fn_index = fn_index_fns::mir_index_top_level_fn(fn_names, fn_return_vts, fn_return_type_names, d, decl_name, fn_index, source, midx)
             if mir_entry_generic_decl(source, d) &&
             len(fn_names) > base_name_position &&
-            eq(get_unchecked(fn_names, base_name_position), clone(decl_name)) {
+            eq(get_unchecked(fn_names, base_name_position), decl_name.clone()) {
                 push(priority_fn_indices, base_name_position)
             }
         }
@@ -104,9 +104,9 @@ fn mir_collect_qualified_fn_aliases(
                     let typed_index = fn_index_source::mir_fn_index_source_fn_typed_index_at(source, info_index, info_index)
                     let return_vt = fn_index_source::mir_fn_index_source_typed_return_vt(source, typed_index)
                     let return_type_name = fn_index_source::mir_fn_index_source_typed_return_type_name(source, typed_index)
-                    push(fn_names, clone(qualified_name))
+                    push(fn_names, qualified_name.clone())
                     push(fn_return_vts, return_vt)
-                    push(fn_return_type_names, clone(return_type_name))
+                    push(fn_return_type_names, return_type_name.clone())
                     let import_name = mir_import_facing_qualified_name(qualified_name)
                     if len(import_name) > 0 {
                         push(fn_names, import_name)

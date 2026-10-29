@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::decl_node_identity
 use corehir::decl_member_collections
@@ -119,7 +119,7 @@ fn decl_layout_type_name(ann: AstNode) -> String {
         return ann_name
     }
     if type_ann_node::type_ann_is_named(ann) {
-        if eq(clone(ann_name), "u8") {
+        if eq(ann_name.clone(), "u8") {
             return "i32"
         }
         return ann_name

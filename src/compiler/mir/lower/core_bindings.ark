@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::closure_registry
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
@@ -20,17 +20,17 @@ fn lower_core_let(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr)
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
     let binding_name = core_expr_shape_accessors::mir_core_expr_text(expr)
     let type_name = core_expr_shape_accessors::mir_core_expr_type_name(expr)
-    let resolved_type_name = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(type_name))
+    let resolved_type_name = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, type_name.clone())
     let resolved_type_name = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, resolved_type_name)
     let mut val_idx = 0 - 1
     if child_count >= 1 {
         // A Pair<String> annotation is the literal's expected instantiation;
         // saved/restored so nested initializers cannot leak it.
-        let saved_expected = clone(ctx.expected_struct_inst)
-        ctx.expected_struct_inst = clone(resolved_type_name)
+        let saved_expected = ctx.expected_struct_inst.clone()
+        ctx.expected_struct_inst = resolved_type_name.clone()
         let init_index = core_expr_shape_accessors::mir_core_expr_child(expr, 0)
         let init_expr = get_unchecked(exprs, init_index)
-        if mir_core_let_init_is_fn_value(ctx, init_expr, clone(resolved_type_name)) {
+        if mir_core_let_init_is_fn_value(ctx, init_expr, resolved_type_name.clone()) {
             val_idx = value_variants::lower_function_value(ctx, core_expr_shape_accessors::mir_core_expr_text(init_expr))
         } else {
             val_idx = lower_core_expr(ctx, exprs, init_index)
@@ -46,10 +46,10 @@ fn lower_core_let(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr)
     }
     // A `fn(...) -> R` annotation makes the binding a fn-pair slot, so the
     // local must be VT_FUNCREF to receive the lowered pair (#884).
-    if struct_lit::struct_lit_decl_is_fn_value(clone(resolved_type_name)) {
+    if struct_lit::struct_lit_decl_is_fn_value(resolved_type_name.clone()) {
         vt = value_types::VT_FUNCREF()
     }
-    let local_idx = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(binding_name), vt)
+    let local_idx = ctx_api_local_alloc::ctx_alloc_local(ctx, binding_name.clone(), vt)
     // The initializer is the authoritative storage type for an unannotated
     // binding.  CoreHIR's let node can retain its default i32 value type even
     // when its child was widened (for example, `100i64`), so repair the newly
@@ -62,7 +62,7 @@ fn lower_core_let(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr)
         )
     }
     if len(resolved_type_name) > 0 {
-        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, clone(resolved_type_name))
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, resolved_type_name.clone())
     }
     if child_count >= 1 && val_idx >= 0 {
         if ctx_api_local_types::ctx_local_vt(ctx, val_idx) == value_types::VT_F64() && ctx_api_local_types::ctx_local_vt(ctx, local_idx) == value_types::VT_I32() {
@@ -84,8 +84,8 @@ fn lower_core_let(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr)
         // initializer temp so Vec_new emission uses the structref-vec layout.
         let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
         if len(resolved_type_name) > 0 {
-            if clone(resolved_type_name).starts_with("vec:") || clone(resolved_type_name).starts_with("hashmap:") {
-                ctx_api_local_types::ctx_set_local_type(ctx, val_idx, clone(resolved_type_name))
+            if resolved_type_name.clone().starts_with("vec:") || resolved_type_name.clone().starts_with("hashmap:") {
+                ctx_api_local_types::ctx_set_local_type(ctx, val_idx, resolved_type_name.clone())
                 ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
             }
         } else if len(init_type) > 0 {
@@ -94,13 +94,13 @@ fn lower_core_let(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr)
             // instead of becoming an untyped local that cannot dispatch.
             ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)
         }
-        core_bindings_type::infer_core_let_local_type_name(ctx, exprs, expr, local_idx, val_idx, clone(resolved_type_name), child_count)
+        core_bindings_type::infer_core_let_local_type_name(ctx, exprs, expr, local_idx, val_idx, resolved_type_name.clone(), child_count)
     }
     if child_count >= 1 {
         let init_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
         if core_expr_shape_calls::mir_core_expr_is_closure(init_expr) {
-            if !eq(clone(binding_name), "_") {
-                closure_registry::closure_flush_pending_bind(ctx, clone(binding_name))
+            if !eq(binding_name.clone(), "_") {
+                closure_registry::closure_flush_pending_bind(ctx, binding_name.clone())
             } else {
                 closure_registry::closure_clear_pending_bind(ctx)
             }

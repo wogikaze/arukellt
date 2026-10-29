@@ -2,7 +2,7 @@
 // `std::wit::names::kebab_name` edges in a full compiler compile.
 
 use std::text
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 fn wit_kebab_name(name: String) -> String {
     let mut out = String_from("")
     let n = len(name)
@@ -35,51 +35,51 @@ fn wit_export_name(name: String) -> String {
 
 fn wit_type_name(name: String) -> String {
     let kebab = wit_kebab_name(name)
-    if wit_type_name_is_reserved(clone(kebab)) {
+    if wit_type_name_is_reserved(kebab.clone()) {
         return String_from("ark-").concat(kebab)
     }
     kebab
 }
 
 fn wit_type_name_is_reserved(name: String) -> bool {
-    eq(clone(name), "bool") ||
-    eq(clone(name), "u8") ||
-    eq(clone(name), "s8") ||
-    eq(clone(name), "u16") ||
-    eq(clone(name), "s16") ||
-    eq(clone(name), "u32") ||
-    eq(clone(name), "s32") ||
-    eq(clone(name), "u64") ||
-    eq(clone(name), "s64") ||
-    eq(clone(name), "u128") ||
-    eq(clone(name), "s128") ||
-    eq(clone(name), "float32") ||
-    eq(clone(name), "float64") ||
-    eq(clone(name), "char") ||
-    eq(clone(name), "string") ||
-    eq(clone(name), "list") ||
-    eq(clone(name), "option") ||
-    eq(clone(name), "result") ||
-    eq(clone(name), "tuple") ||
-    eq(clone(name), "resource") ||
-    eq(clone(name), "record") ||
-    eq(clone(name), "variant") ||
-    eq(clone(name), "enum") ||
-    eq(clone(name), "flags") ||
-    eq(clone(name), "type") ||
-    eq(clone(name), "interface") ||
-    eq(clone(name), "world") ||
-    eq(clone(name), "use") ||
-    eq(clone(name), "include") ||
-    eq(clone(name), "import") ||
-    eq(clone(name), "export") ||
-    eq(clone(name), "package") ||
-    eq(clone(name), "constructor") ||
-    eq(clone(name), "func") ||
-    eq(clone(name), "async") ||
-    eq(clone(name), "stream") ||
-    eq(clone(name), "future") ||
-    eq(clone(name), "own") ||
-    eq(clone(name), "borrow") ||
-    eq(clone(name), "static")
+    eq(name.clone(), "bool") ||
+    eq(name.clone(), "u8") ||
+    eq(name.clone(), "s8") ||
+    eq(name.clone(), "u16") ||
+    eq(name.clone(), "s16") ||
+    eq(name.clone(), "u32") ||
+    eq(name.clone(), "s32") ||
+    eq(name.clone(), "u64") ||
+    eq(name.clone(), "s64") ||
+    eq(name.clone(), "u128") ||
+    eq(name.clone(), "s128") ||
+    eq(name.clone(), "float32") ||
+    eq(name.clone(), "float64") ||
+    eq(name.clone(), "char") ||
+    eq(name.clone(), "string") ||
+    eq(name.clone(), "list") ||
+    eq(name.clone(), "option") ||
+    eq(name.clone(), "result") ||
+    eq(name.clone(), "tuple") ||
+    eq(name.clone(), "resource") ||
+    eq(name.clone(), "record") ||
+    eq(name.clone(), "variant") ||
+    eq(name.clone(), "enum") ||
+    eq(name.clone(), "flags") ||
+    eq(name.clone(), "type") ||
+    eq(name.clone(), "interface") ||
+    eq(name.clone(), "world") ||
+    eq(name.clone(), "use") ||
+    eq(name.clone(), "include") ||
+    eq(name.clone(), "import") ||
+    eq(name.clone(), "export") ||
+    eq(name.clone(), "package") ||
+    eq(name.clone(), "constructor") ||
+    eq(name.clone(), "func") ||
+    eq(name.clone(), "async") ||
+    eq(name.clone(), "stream") ||
+    eq(name.clone(), "future") ||
+    eq(name.clone(), "own") ||
+    eq(name.clone(), "borrow") ||
+    eq(name.clone(), "static")
 }

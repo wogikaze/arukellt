@@ -1,5 +1,4 @@
 use std::text
-use std::prelude::{clone}
 use typechecker::kinds
 use typechecker::ast_access
 use typechecker::call_generic_common
@@ -40,11 +39,11 @@ fn infer_generic_method_call_expr(
     // call as legitimately deferred.
     let resolved_recv = unify::resolve_type_deep(env, recv_ty)
     if infer_env.error_count > 0 &&
-    !associated_types::type_contains_var(clone(resolved_recv)) &&
+    !associated_types::type_contains_var(resolved_recv.clone()) &&
     contract_type_access::TypeInfo_tag(resolved_recv) != commands::TY_UNKNOWN() {
         let mut speculation_error = 0
         while speculation_error < infer_env.error_count {
-            unify::type_error(env, clone(get_unchecked(infer_env.errors, speculation_error)))
+            unify::type_error(env, get_unchecked(infer_env.errors, speculation_error).clone())
             speculation_error = speculation_error + 1
         }
     }
@@ -59,12 +58,12 @@ fn infer_generic_method_call_expr(
     traits::enforce_fn_sig_bounds(env, infer_env, sig, var_types)
     let resolved_recv_ty = unify::resolve_type_deep(infer_env, inst_p0)
     let method_name = ast_access::node_text(node)
-    let mut mono_fn_name = clone(method_name)
+    let mut mono_fn_name = method_name.clone()
     let type_prefix = type_name_for_mono(resolved_recv_ty)
     if len(type_prefix) > 0 {
         mono_fn_name = type_prefix.concat("::".concat(method_name))
     }
-    if !hashmap_api::validate_hashmap_method(env, clone(mono_fn_name), resolved_recv_ty) {
+    if !hashmap_api::validate_hashmap_method(env, mono_fn_name.clone(), resolved_recv_ty) {
         return ret_ty
     }
     // A receiver that is still a bare type variable may resolve to an
@@ -75,12 +74,12 @@ fn infer_generic_method_call_expr(
     if contract_type_access::TypeInfo_tag(resolved_recv_ty) == commands::TY_TYPE_VAR() {
         mono_instances::record_var_method_site(
             env,
-            clone(method_name),
-            clone(resolved_recv_ty)
+            method_name.clone(),
+            resolved_recv_ty.clone()
         )
     }
-    let mangled_name = mono::record_mono_instance(env, clone(mono_fn_name), resolved_type_args)
-    mono::record_mono_return_type(env, clone(mangled_name), ret_ty)
+    let mangled_name = mono::record_mono_instance(env, mono_fn_name.clone(), resolved_type_args)
+    mono::record_mono_return_type(env, mangled_name.clone(), ret_ty)
     mono::record_mono_call_site(env, ast_access::node_span_start(node), mono_fn_name, mangled_name)
     ret_ty
 }
@@ -96,7 +95,7 @@ fn report_unresolved_fresh_type_params(mut env: TypeEnv, infer_env: TypeEnv, var
     if infer_env.error_count > 0 {
         return
     }
-    if associated_types::type_contains_var(clone(resolved_recv)) ||
+    if associated_types::type_contains_var(resolved_recv.clone()) ||
     contract_type_access::TypeInfo_tag(resolved_recv) == commands::TY_UNKNOWN() {
         return
     }

@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::function_locals_view
 use mir::function_local_mutation
 use mir::local_factory
@@ -20,9 +19,9 @@ fn mir_ssa_define_value(mut f: MirFunction, mut state: ssa_state_types::MirSsaRe
     let new_version = old_version + 1
     let mut value_id = original_local
     if old_version >= 0 {
-        value_id = mir_ssa_append_value_slot(f, original_local, clone(ssa_name), new_version)
+        value_id = mir_ssa_append_value_slot(f, original_local, ssa_name.clone(), new_version)
     } else {
-        ssa_phi::mir_assign_local_ssa(f, original_local, clone(ssa_name), new_version)
+        ssa_phi::mir_assign_local_ssa(f, original_local, ssa_name.clone(), new_version)
     }
     ssa_state_slots::mir_ssa_set_version(state, original_local, new_version)
     ssa_state_slots::mir_ssa_set_current(state, original_local, value_id)

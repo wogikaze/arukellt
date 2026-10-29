@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use diagnostics::severity
 struct DiagnosticSpan {
     file: String,
@@ -36,11 +35,11 @@ fn Diagnostic_new_parse(code: String, message: String, start: i32, end: i32) -> 
 }
 
 fn diagnostic_message(diag: Diagnostic) -> String {
-    clone(diag.message)
+    diag.message.clone()
 }
 
 fn diagnostic_code(diag: Diagnostic) -> String {
-    clone(diag.code)
+    diag.code.clone()
 }
 
 fn diagnostic_severity(diag: Diagnostic) -> i32 {
@@ -60,7 +59,7 @@ fn diagnostic_span(diag: Diagnostic) -> DiagnosticSpan {
 }
 
 fn diagnostic_span_file(span: DiagnosticSpan) -> String {
-    clone(span.file)
+    span.file.clone()
 }
 
 fn diagnostic_span_line(span: DiagnosticSpan) -> i32 {

@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use typechecker::contract_type_param_bounds
 use typechecker::contract_types_record
 struct TraitImplInfo {
@@ -23,7 +22,7 @@ fn TraitImplInfo_new(
 }
 
 fn trait_impl_info_trait_name(info: TraitImplInfo) -> String {
-    clone(info.trait_name)
+    info.trait_name.clone()
 }
 
 fn trait_impl_info_self_ty(info: TraitImplInfo) -> TypeInfo {

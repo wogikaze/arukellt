@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use loader::module_graph
 use loader::module_state
 use loader::module_state_modules
@@ -17,13 +16,13 @@ fn load_modules_for_source(source: String, decls: Vec<AstNode>, config: DriverCo
     // Canonical v2 HashMap syntax lowers into the dedicated method-shell
     // module. The per-pair MIR lowering targets live in the implementation
     // modules, so load them explicitly: hash_map no longer imports them.
-    if clone(source).contains("HashMap::") {
+    if source.clone().contains("HashMap::") {
         module_graph::load_stdlib_module("std::collections::hash_map", load_state)
         module_graph::load_stdlib_module("std::collections::hash_string", load_state)
         module_graph::load_stdlib_module("std::collections::hash_fn", load_state)
         module_graph::load_stdlib_module("std::collections::hash_str_fn", load_state)
     }
-    if clone(source).contains("HashSet_") {
+    if source.clone().contains("HashSet_") {
         module_graph::load_stdlib_module("std::collections::hash", load_state)
     }
     load_state

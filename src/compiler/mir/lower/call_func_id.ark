@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use corehir::callee_spelling
 use corehir::function_id
 use corehir::signature_registry
@@ -15,20 +15,20 @@ fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, mut inst: MirInstDraft, sym
         return inst
     }
     let mut registry = module_spine::MirModule_signature_registry(m)
-    let mut canonical_symbol = clone(symbol)
-    let mut fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(symbol))
+    let mut canonical_symbol = symbol.clone()
+    let mut fid = signature_registry::signature_registry_lookup_by_mangled(registry, symbol.clone())
     // Loaded-module bodies keep `module::Type::method` because the resolver
     // only rewrites the entry module. The registry holds the impl under
     // `Type::method`, so retry the canonical spellings before giving up;
     // the call keeps the matching name for emit-side fallbacks.
     if !function_id::function_id_is_valid(fid) {
-        let variants = callee_spelling::callee_spelling_variants(clone(symbol))
+        let variants = callee_spelling::callee_spelling_variants(symbol.clone())
         let mut vi = 0
         while vi < len(variants) {
-            let variant = clone(get_unchecked(variants, vi))
+            let variant = get_unchecked(variants, vi).clone()
             let variant_fid = signature_registry::signature_registry_lookup_by_mangled(
                 registry,
-                clone(variant)
+                variant.clone()
             )
             if function_id::function_id_is_valid(variant_fid) {
                 fid = variant_fid
@@ -42,15 +42,15 @@ fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, mut inst: MirInstDraft, sym
             }
         }
     }
-    let exact_coid = core_op_binding::core_op_binding_lookup_for_callee(clone(symbol))
-    if function_id::function_id_is_valid(fid) && is_seq_extremum_alias(clone(symbol)) {
+    let exact_coid = core_op_binding::core_op_binding_lookup_for_callee(symbol.clone())
+    if function_id::function_id_is_valid(fid) && is_seq_extremum_alias(symbol.clone()) {
         let entry = signature_registry::signature_registry_lookup_by_id(registry, fid)
         let entry_coid = signature_entry::signature_entry_core_op_id(entry)
         if !core_op_id::core_op_id_is_some(entry_coid) ||
         core_op_id::CoreOpId_raw(entry_coid) != core_op_id::CoreOpId_raw(exact_coid) {
             fid = signature_registry::signature_registry_register_core_op_alias(
                 registry,
-                clone(symbol),
+                symbol.clone(),
                 exact_coid
             )
         }
@@ -58,11 +58,11 @@ fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, mut inst: MirInstDraft, sym
     if !function_id::function_id_is_valid(fid) {
         // Exact SignatureRegistry miss → exact CoreOp alias → family pattern.
         // Do not use short-name / param-count FunctionId search.
-        let coid = core_op_binding::core_op_binding_lookup_for_callee_exact_then_family(clone(symbol))
+        let coid = core_op_binding::core_op_binding_lookup_for_callee_exact_then_family(symbol.clone())
         if core_op_id::core_op_id_is_some(coid) {
             fid = signature_registry::signature_registry_register_core_op_alias(
                 registry,
-                clone(symbol),
+                symbol.clone(),
                 coid
             )
         }
@@ -78,8 +78,8 @@ fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, mut inst: MirInstDraft, sym
 }
 
 fn is_seq_extremum_alias(symbol: String) -> bool {
-    eq(clone(symbol), String_from("seq::min_i32")) ||
-    eq(clone(symbol), String_from("seq::max_i32"))
+    eq(symbol.clone(), String_from("seq::min_i32")) ||
+    eq(symbol.clone(), String_from("seq::max_i32"))
 }
 
 fn mir_inst_attach_func_id_if_call(ctx: LowerCtx, mut inst: MirInstDraft) -> MirInstDraft {

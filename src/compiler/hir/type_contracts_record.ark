@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use hir::kinds
 struct HirType {
     tag: i32,
@@ -21,7 +20,7 @@ fn hir_type_tag(ty: HirType) -> i32 {
 }
 
 fn hir_type_name(ty: HirType) -> String {
-    clone(ty.name)
+    ty.name.clone()
 }
 
 fn hir_type_type_arg_count(ty: HirType) -> i32 {

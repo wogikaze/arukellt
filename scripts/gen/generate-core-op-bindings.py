@@ -131,7 +131,7 @@ def render(alias_map: dict[str, str], patterns: list[dict[str, object]]) -> str:
         "// legacy_binding_patterns + std/manifest.toml.",
         "// Compact table + index. Do not edit by hand.",
         "",
-        "use std::prelude::{byte_at, clone, eq, substring}",
+        "use std::prelude::{byte_at, eq, substring}",
         "use std::text",
         "use corehir::table_blob",
         "",
@@ -175,7 +175,7 @@ def render(alias_map: dict[str, str], patterns: list[dict[str, object]]) -> str:
             "",
             # Exact-only API: keep historical meaning for Wasm effective lowering.
             "fn core_op_binding_core_op_id_for_callee_exact(callee: String) -> String {",
-            "    let index = core_op_binding_lookup_callee(clone(callee))",
+            "    let index = core_op_binding_lookup_callee(callee.clone())",
             "    if index < 0 {",
             "        return String_new()",
             "    }",
@@ -187,7 +187,7 @@ def render(alias_map: dict[str, str], patterns: list[dict[str, object]]) -> str:
             "    let mut i = 0",
             "    while i < count {",
             "        let pattern = core_op_binding_pattern_at(i)",
-            "        if starts_with(clone(callee), clone(pattern)) {",
+            "        if starts_with(callee.clone(), pattern.clone()) {",
             "            let suffix_len = len(callee) - len(pattern)",
             "            if core_op_binding_pattern_requires_nonempty_suffix_at(i) && suffix_len <= 0 {",
             "                i = i + 1",
@@ -202,16 +202,16 @@ def render(alias_map: dict[str, str], patterns: list[dict[str, object]]) -> str:
             "",
             # Compatibility wrapper: exact only (Wasm / historical callers).
             "fn core_op_binding_core_op_id_for_callee(callee: String) -> String {",
-            "    return core_op_binding_core_op_id_for_callee_exact(clone(callee))",
+            "    return core_op_binding_core_op_id_for_callee_exact(callee.clone())",
             "}",
             "",
             # MIR call_func_id path: exact then family.
             "fn core_op_binding_core_op_id_for_callee_exact_then_family(callee: String) -> String {",
-            "    let exact = core_op_binding_core_op_id_for_callee_exact(clone(callee))",
+            "    let exact = core_op_binding_core_op_id_for_callee_exact(callee.clone())",
             "    if len(exact) > 0 {",
             "        return exact",
             "    }",
-            "    return core_op_binding_core_op_id_for_callee_family(clone(callee))",
+            "    return core_op_binding_core_op_id_for_callee_family(callee.clone())",
             "}",
         ]
     )

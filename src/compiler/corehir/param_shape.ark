@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use corehir::param
 use corehir::param_shape_declared
 use corehir::param_shape_local
@@ -6,7 +5,7 @@ use corehir::param_shape_node
 use corehir::param_shape_value
 use corehir::type_ann_param_name
 fn param_type_name(node: AstNode) -> String {
-    if param_shape_node::param_has_type_ann(clone(node)) {
+    if param_shape_node::param_has_type_ann(node.clone()) {
         return type_ann_param_name::type_ann_shape_param_type_name(param_shape_node::param_type_ann(node))
     }
     String_new()
@@ -17,12 +16,12 @@ fn fn_param_from_node(
     type_params: Vec<String>,
     nominal_types: CoreHirNominalTypes
 ) -> CoreHirParam {
-    let name = param_shape_node::param_name(clone(node))
-    let bindable = param_shape_node::param_is_ident(clone(node))
+    let name = param_shape_node::param_name(node.clone())
+    let bindable = param_shape_node::param_is_ident(node.clone())
     param::CoreHirParam_new(
         name,
-        param_shape_value::fn_param_value_type(clone(node), clone(type_params), nominal_types),
-        param_type_name(clone(node)),
+        param_shape_value::fn_param_value_type(node.clone(), type_params.clone(), nominal_types),
+        param_type_name(node.clone()),
         param_shape_local::fn_param_local_type_name(node, type_params, nominal_types),
         bindable,
         false
@@ -34,12 +33,12 @@ fn method_param_from_node(
     type_params: Vec<String>,
     nominal_types: CoreHirNominalTypes
 ) -> CoreHirParam {
-    let name = param_shape_node::param_name(clone(node))
-    let bindable = param_shape_node::param_is_ident(clone(node))
+    let name = param_shape_node::param_name(node.clone())
+    let bindable = param_shape_node::param_is_ident(node.clone())
     param::CoreHirParam_new(
-        clone(name),
-        param_shape_value::method_param_value_type(clone(node), clone(type_params), nominal_types),
-        param_type_name(clone(node)),
+        name.clone(),
+        param_shape_value::method_param_value_type(node.clone(), type_params.clone(), nominal_types),
+        param_type_name(node.clone()),
         param_shape_local::method_param_local_type_name(node, type_params, nominal_types),
         bindable,
         param_shape_node::param_is_self_name(name)

@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use collections::name_index
 use mir::module_record
 fn MirModule_gc_struct_sig_count(m: MirModule) -> i32 {
@@ -6,11 +5,11 @@ fn MirModule_gc_struct_sig_count(m: MirModule) -> i32 {
 }
 
 fn MirModule_gc_struct_sig_at(m: MirModule, idx: i32) -> String {
-    clone(get_unchecked(m.gc_struct_sigs, idx))
+    get_unchecked(m.gc_struct_sigs, idx).clone()
 }
 
 fn MirModule_gc_struct_name_at(m: MirModule, idx: i32) -> String {
-    clone(get_unchecked(m.gc_struct_names, idx))
+    get_unchecked(m.gc_struct_names, idx).clone()
 }
 
 fn MirModule_gc_struct_names(m: MirModule) -> Vec<String> {
@@ -22,7 +21,7 @@ fn MirModule_gc_struct_sigs(m: MirModule) -> Vec<String> {
 }
 
 fn MirModule_push_gc_struct(mut m: MirModule, name: String, sig: String) {
-    name_index::name_index_insert_first(m.gc_struct_slot_index, clone(name), len(m.gc_struct_names))
+    name_index::name_index_insert_first(m.gc_struct_slot_index, name.clone(), len(m.gc_struct_names))
     push(m.gc_struct_names, name)
     push(m.gc_struct_sigs, sig)
     // Canon idx is -1 until ordered ensure runs (sealed: inline at flush;

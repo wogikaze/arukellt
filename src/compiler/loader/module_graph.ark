@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use loader::module_state_loading
 use loader::module_import_paths
 use loader::module_local_decls
@@ -14,7 +14,7 @@ pub fn load_stdlib_module(stdlib_path: String, mut state: LoadState) {
     let mod_decls = module_stdlib_decls::load_stdlib_module_decls(stdlib_path, state)
     // Stdlib modules may import sealed raw APIs.
     load_imported_modules_at(mod_decls, ".", ".", state, true)
-    if stdlib_adapter_needs_flat_hashmap(clone(stdlib_path)) {
+    if stdlib_adapter_needs_flat_hashmap(stdlib_path.clone()) {
         // __hm_*_new calls inside these adapter bodies lower to a call of
         // hash::hashmap_new on linear targets. The adapters cannot spell the
         // dependency as `use std::collections::hash` because its short name
@@ -25,16 +25,16 @@ pub fn load_stdlib_module(stdlib_path: String, mut state: LoadState) {
 }
 
 fn stdlib_adapter_needs_flat_hashmap(stdlib_path: String) -> bool {
-    eq(clone(stdlib_path), "std::collections::hash_map") ||
-    eq(clone(stdlib_path), "std::collections::hash_string") ||
-    eq(clone(stdlib_path), "std::collections::hash_fn") ||
-    eq(clone(stdlib_path), "std::collections::hash_str_fn")
+    eq(stdlib_path.clone(), "std::collections::hash_map") ||
+    eq(stdlib_path.clone(), "std::collections::hash_string") ||
+    eq(stdlib_path.clone(), "std::collections::hash_fn") ||
+    eq(stdlib_path.clone(), "std::collections::hash_str_fn")
 }
 
 pub fn load_imported_modules(decls: Vec<AstNode>, base_dir: String, mut state: LoadState) {
-    let root_dir = module_package_root::find_package_root(clone(base_dir))
+    let root_dir = module_package_root::find_package_root(base_dir.clone())
     // User/package modules cannot import sealed raw APIs.
-    load_imported_modules_at(decls, clone(base_dir), root_dir, state, false)
+    load_imported_modules_at(decls, base_dir.clone(), root_dir, state, false)
 }
 
 fn load_imported_modules_at(
@@ -49,9 +49,9 @@ fn load_imported_modules_at(
     let mut i = 0
     while i < count {
         load_import_path(
-            clone(get_unchecked(import_paths, i)),
-            clone(current_dir),
-            clone(root_dir),
+            get_unchecked(import_paths, i).clone(),
+            current_dir.clone(),
+            root_dir.clone(),
             state,
             importer_is_stdlib
         )
@@ -66,28 +66,28 @@ fn load_import_path(
     mut state: LoadState,
     importer_is_stdlib: bool
 ) {
-    if module_sealed_raw::is_sealed_raw_api_path(clone(use_path)) {
+    if module_sealed_raw::is_sealed_raw_api_path(use_path.clone()) {
         if !importer_is_stdlib {
             module_state_errors::LoadState_push_error(
                 state,
-                module_sealed_raw::sealed_raw_api_reject_message(clone(use_path))
+                module_sealed_raw::sealed_raw_api_reject_message(use_path.clone())
             )
             return
         }
-        let std_path = module_sealed_raw::sealed_raw_api_stdlib_path(clone(use_path))
+        let std_path = module_sealed_raw::sealed_raw_api_stdlib_path(use_path.clone())
         load_stdlib_module(std_path, state)
         return
     }
-    if module_paths::is_stdlib_path(clone(use_path)) {
-        load_stdlib_module(clone(use_path), state)
+    if module_paths::is_stdlib_path(use_path.clone()) {
+        load_stdlib_module(use_path.clone(), state)
         return
     }
-    if wit_manifest::is_wit_package_id(clone(use_path)) {
+    if wit_manifest::is_wit_package_id(use_path.clone()) {
         return
     }
     load_local_module_or_parent(
-        clone(use_path),
-        module_base_dir_for_import(clone(use_path), clone(current_dir), clone(root_dir)),
+        use_path.clone(),
+        module_base_dir_for_import(use_path.clone(), current_dir.clone(), root_dir.clone()),
         current_dir,
         root_dir,
         state
@@ -104,26 +104,26 @@ fn load_local_module_or_parent(
     // Dedup before touching the filesystem: every `use` edge reaches this
     // point, and re-reading an already-loaded module file per edge multiplied
     // file I/O by the edge count.
-    if module_local_decls::should_skip_local_module_read(clone(module_name), clone(base_dir), state) {
+    if module_local_decls::should_skip_local_module_read(module_name.clone(), base_dir.clone(), state) {
         return
     }
-    let direct = module_file_load_local::read_local_module_source(clone(module_name), clone(base_dir))
+    let direct = module_file_load_local::read_local_module_source(module_name.clone(), base_dir.clone())
     if module_file_load_local::DriverLoadedSource_is_ok(direct) {
         load_single_module(module_name, base_dir, root_dir, state)
         return
     }
-    if try_load_at_package_root(clone(module_name), clone(base_dir), clone(root_dir), state) {
+    if try_load_at_package_root(module_name.clone(), base_dir.clone(), root_dir.clone(), state) {
         return
     }
-    let parent_name = resolver::paths::use_module_parent_path(clone(module_name))
-    if len(clone(parent_name)) > 0 {
-        let parent_base = module_base_dir_for_import(clone(parent_name), clone(fallback_dir), clone(root_dir))
-        let parent = module_file_load_local::read_local_module_source(clone(parent_name), clone(parent_base))
+    let parent_name = resolver::paths::use_module_parent_path(module_name.clone())
+    if len(parent_name.clone()) > 0 {
+        let parent_base = module_base_dir_for_import(parent_name.clone(), fallback_dir.clone(), root_dir.clone())
+        let parent = module_file_load_local::read_local_module_source(parent_name.clone(), parent_base.clone())
         if module_file_load_local::DriverLoadedSource_is_ok(parent) {
             load_single_module(parent_name, parent_base, root_dir, state)
             return
         }
-        if try_load_at_package_root(clone(parent_name), clone(parent_base), clone(root_dir), state) {
+        if try_load_at_package_root(parent_name.clone(), parent_base.clone(), root_dir.clone(), state) {
             return
         }
     }
@@ -135,15 +135,15 @@ fn load_local_module_or_parent(
 // there before reporting a miss. Runs after the sibling candidates so
 // existing resolution order is unchanged.
 fn try_load_at_package_root(module_name: String, tried_dir: String, root_dir: String, mut state: LoadState) -> bool {
-    if eq(clone(tried_dir), clone(root_dir)) {
+    if eq(tried_dir.clone(), root_dir.clone()) {
         return false
     }
-    if module_local_decls::should_skip_local_module_read(clone(module_name), clone(root_dir), state) {
+    if module_local_decls::should_skip_local_module_read(module_name.clone(), root_dir.clone(), state) {
         // Already loaded from the root location (or a circular edge, which
         // pushed its own error) — resolved, nothing left to try.
         return true
     }
-    let at_root = module_file_load_local::read_local_module_source(clone(module_name), clone(root_dir))
+    let at_root = module_file_load_local::read_local_module_source(module_name.clone(), root_dir.clone())
     if !module_file_load_local::DriverLoadedSource_is_ok(at_root) {
         return false
     }
@@ -152,7 +152,7 @@ fn try_load_at_package_root(module_name: String, tried_dir: String, root_dir: St
 }
 
 fn load_single_module(module_name: String, base_dir: String, root_dir: String, mut state: LoadState) {
-    let loaded = module_local_decls::load_local_module_decls(clone(module_name), clone(base_dir), state)
+    let loaded = module_local_decls::load_local_module_decls(module_name.clone(), base_dir.clone(), state)
     let next_dir = module_paths::parent_dir(module_local_decls::DriverLocalModuleDecls_path(loaded))
     // Local package modules are never stdlib importers.
     load_imported_modules_at(module_local_decls::DriverLocalModuleDecls_decls(loaded), next_dir, root_dir, state, false)

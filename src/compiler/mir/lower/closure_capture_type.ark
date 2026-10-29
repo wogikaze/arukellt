@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::function_locals_view
 use mir::local_access
 use mir::lower::ctx_api_local_types
@@ -23,7 +22,7 @@ fn mir_closure_lookup_capture_type(mut ctx: LowerCtx, cli: i32) -> String {
         cap_type = ctx_api_local_types::ctx_get_local_type(ctx, cli)
     }
     if len(cap_type) > 0 {
-        cap_type = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(cap_type))
+        cap_type = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, cap_type.clone())
     } else if ctx_api_local_types::ctx_local_vt(ctx, cli) == value_types::VT_GC_REF() {
         cap_type = "String"
     }

@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ann_shape
 use mir::value_types
 fn mir_param_type_name_from_ann(ty: AstNode) -> String {
@@ -6,32 +6,32 @@ fn mir_param_type_name_from_ann(ty: AstNode) -> String {
 }
 
 fn mir_local_vt_from_type_name(type_name: String) -> i32 {
-    if eq(clone(type_name), "f64") {
+    if eq(type_name.clone(), "f64") {
         return value_types::VT_F64()
     }
-    if eq(clone(type_name), "f32") {
+    if eq(type_name.clone(), "f32") {
         return value_types::VT_F32()
     }
-    if eq(clone(type_name), "v128") {
+    if eq(type_name.clone(), "v128") {
         return value_types::VT_V128()
     }
-    if eq(clone(type_name), "i64") || eq(clone(type_name), "u64") {
+    if eq(type_name.clone(), "i64") || eq(type_name.clone(), "u64") {
         return value_types::VT_I64()
     }
-    if eq(clone(type_name), "Vec") ||
-    eq(clone(type_name), "HashMap") ||
-    eq(clone(type_name), "HashSet") ||
-    eq(clone(type_name), "String") ||
-    eq(clone(type_name), "Option") ||
-    eq(clone(type_name), "Result") {
+    if eq(type_name.clone(), "Vec") ||
+    eq(type_name.clone(), "HashMap") ||
+    eq(type_name.clone(), "HashSet") ||
+    eq(type_name.clone(), "String") ||
+    eq(type_name.clone(), "Option") ||
+    eq(type_name.clone(), "Result") {
         return value_types::VT_GC_REF()
     }
     // fnref-family spellings (fnref/fnref2/fnrefss/fnrefsb/fnsig:/fn)
     // mark a callback ABI local, which must keep the pair-ABI value type
     // so stores into it do not expect a scalar (#884).
-    if eq(clone(type_name), "fn") ||
-    clone(type_name).starts_with("fnref") ||
-    clone(type_name).starts_with("fnsig:") {
+    if eq(type_name.clone(), "fn") ||
+    type_name.clone().starts_with("fnref") ||
+    type_name.clone().starts_with("fnsig:") {
         return value_types::VT_FUNCREF()
     }
     value_types::VT_I32()

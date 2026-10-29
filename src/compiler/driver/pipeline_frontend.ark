@@ -1,5 +1,4 @@
 use std::host::clock::Clock
-use std::prelude::{clone}
 use std::text
 use compiler::phases
 use driver::result_record
@@ -15,7 +14,7 @@ use parser::program
 use component
 fn run_frontend(source: String, config: DriverConfig) -> DriverFrontendResult {
     let t0 = Clock::monotonic_now()
-    let parsed = run_lex_parse(clone(source), config, t0)
+    let parsed = run_lex_parse(source.clone(), config, t0)
     if frontend_result_should_return(parsed) {
         return parsed
     }
@@ -44,7 +43,7 @@ fn run_frontend(source: String, config: DriverConfig) -> DriverFrontendResult {
 }
 
 fn run_lex_parse(source: String, config: DriverConfig, t0: i64) -> DriverFrontendResult {
-    let parsed_source = session_frontend_query::session_parse_source(clone(source))
+    let parsed_source = session_frontend_query::session_parse_source(source.clone())
     let lex_result = session_frontend_query::frontend_result_lex(parsed_source)
     let parse_result = session_frontend_query::frontend_result_parse(parsed_source)
     let tokens = session_lex_query::session_lex_tokens(lex_result)
@@ -72,7 +71,7 @@ fn run_lex_parse(source: String, config: DriverConfig, t0: i64) -> DriverFronten
     if parse_error_count > 0 {
         return frontend_stop(
             errors::parse_errors_result(
-                clone(source),
+                source.clone(),
                 config_record::config_source_file(config),
                 session_parse_tokens::session_parse_errors_from_result(parse_result),
                 parse_warnings
@@ -87,7 +86,7 @@ fn run_lex_parse(source: String, config: DriverConfig, t0: i64) -> DriverFronten
         if len(parse_warnings) > 0 {
             return frontend_stop(
                 errors_parse::parse_warnings_result(
-                    clone(source),
+                    source.clone(),
                     config_record::config_source_file(config),
                     parse_warnings
                 ),

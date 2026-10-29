@@ -6,7 +6,7 @@
 //! and `from_id` / `name_from_ark` are associated functions. The former
 //! `wit_type_*` free functions were retired by the #917 WIT wave.
 
-use std::prelude::{Box, Box_new, clone, eq, unbox}
+use std::prelude::{Box, Box_new, eq, unbox}
 use std::text
 /// A WIT value type (primitive, compound, or named reference).
 pub enum WitType {
@@ -223,7 +223,7 @@ impl WitType {
         if eq(name, "String") || eq(name, "string") {
             return String_from("string")
         }
-        clone(name)
+        name.clone()
     }
 }
 

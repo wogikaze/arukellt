@@ -17,7 +17,7 @@
 //! the honest unsupported `read_dir` / `metadata` rejections. The module
 //! exports no free path function; the whole-path API is `Fs` plus `File`.
 use std::io::{IoError, Read, Reader, Seek, SeekFrom, Write}
-use std::prelude::{clone, i32_to_i64, i64_to_i32}
+use std::prelude::{i32_to_i64, i64_to_i32}
 use std::text
 
 const BYTE_MASK: i32 = 255
@@ -129,7 +129,7 @@ pub struct File {
 impl File {
     /// Opens `path` as a read-only byte image.
     fn open(path: String) -> Result<File, IoError> {
-        match Fs::read_bytes(clone(path)) {
+        match Fs::read_bytes(path.clone()) {
             Result::Ok(image) => Ok(File {
                     reader: Reader::from_bytes(image),
                     image: Vec::new<i32>(),
@@ -183,7 +183,7 @@ impl File {
         if !self.writable || !self.dirty {
             return Ok(())
         }
-        match Fs::write_bytes(clone(self.path), clone(self.image)) {
+        match Fs::write_bytes(self.path.clone(), self.image.clone()) {
             Result::Ok(_) => {
                 self.dirty = false
                 Ok(())

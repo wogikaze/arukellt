@@ -1,29 +1,29 @@
 use std::text
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use component::constants_world_spec
 fn world_spec_kind(world: String) -> i32 {
-    if eq(clone(world), "wasi:cli/command") { return constants_world_spec::WORLD_KIND_CLI_COMMAND() }
+    if eq(world.clone(), "wasi:cli/command") { return constants_world_spec::WORLD_KIND_CLI_COMMAND() }
     constants_world_spec::WORLD_KIND_NONE()
 }
 
 fn world_spec_is_cli_command(world: String) -> bool {
-    world_spec_kind(clone(world)) == constants_world_spec::WORLD_KIND_CLI_COMMAND()
+    world_spec_kind(world.clone()) == constants_world_spec::WORLD_KIND_CLI_COMMAND()
 }
 
 fn world_spec_world_name(world: String) -> String {
-    let kind = world_spec_kind(clone(world))
+    let kind = world_spec_kind(world.clone())
     if kind == constants_world_spec::WORLD_KIND_CLI_COMMAND() { return "command" }
     "arukellt"
 }
 
 fn world_spec_parse_error(world: String) -> String {
     if len(world) == 0 { return String_new() }
-    if world_spec_kind(clone(world)) != constants_world_spec::WORLD_KIND_NONE() { return String_new() }
-    "unknown world `".concat(clone(world).concat("` (supported: wasi:cli/command)"))
+    if world_spec_kind(world.clone()) != constants_world_spec::WORLD_KIND_NONE() { return String_new() }
+    "unknown world `".concat(world.clone().concat("` (supported: wasi:cli/command)"))
 }
 
 fn world_spec_emit_use_block(world: String) -> String {
-    let kind = world_spec_kind(clone(world))
+    let kind = world_spec_kind(world.clone())
     let mut out = String_new()
     if kind == constants_world_spec::WORLD_KIND_CLI_COMMAND() {
         out = out.concat(world_spec_wasi_imports())
@@ -53,8 +53,8 @@ fn world_spec_wasi_imports() -> String {
 
 fn world_target_error(world: String, target: String, emit_mode: String) -> String {
     if len(world) == 0 { return String_new() }
-    let unknown = world_spec_parse_error(clone(world))
+    let unknown = world_spec_parse_error(world.clone())
     if len(unknown) > 0 { return unknown }
-    if !eq(clone(target), "wasm32-gc") { return "--world requires --target wasm32-gc" }
+    if !eq(target.clone(), "wasm32-gc") { return "--world requires --target wasm32-gc" }
     String_new()
 }

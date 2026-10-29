@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::function_core_record
 use mir::local_record
 use mir::types_function
@@ -25,7 +24,7 @@ fn MirFunction_has_unsubstituted_generic_param(f: MirFunction) -> bool {
     let mut j = 0
     while j < pc {
         let tn = MirFunction_param_type_name(f, j)
-        if clone(tn).starts_with("?") && !mir_type_name_is_concrete_option_result_wrapper(tn) {
+        if tn.clone().starts_with("?") && !mir_type_name_is_concrete_option_result_wrapper(tn) {
             return true
         }
         j = j + 1
@@ -34,11 +33,11 @@ fn MirFunction_has_unsubstituted_generic_param(f: MirFunction) -> bool {
 }
 
 fn mir_type_name_is_concrete_option_result_wrapper(type_name: String) -> bool {
-    if clone(type_name).starts_with("?Option:") {
+    if type_name.clone().starts_with("?Option:") {
         let inner = type_name.slice(8, len(type_name))
         return len(inner) > 0 && !mir_type_name_is_generic_type_var(inner)
     }
-    if clone(type_name).starts_with("?Result:") {
+    if type_name.clone().starts_with("?Result:") {
         let inner = type_name.slice(8, len(type_name))
         if len(inner) == 0 {
             return false
@@ -59,7 +58,7 @@ fn mir_type_name_is_generic_type_var(name: String) -> bool {
     if len(name) == 0 {
         return false
     }
-    if clone(name).starts_with("?") {
+    if name.clone().starts_with("?") {
         return mir_type_name_is_generic_type_var(name.slice(1, len(name)))
     }
     if len(name) == 1 {

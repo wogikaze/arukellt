@@ -1,23 +1,23 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use typechecker::kinds
 use typechecker::contract_type_constructors
 fn resolve_alias_type_name(name: String) -> TypeInfo {
-    if eq(clone(name), "u8") {
+    if eq(name.clone(), "u8") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_I32())
     }
-    if eq(clone(name), "u16") {
+    if eq(name.clone(), "u16") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_I32())
     }
-    if eq(clone(name), "u32") {
+    if eq(name.clone(), "u32") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_I32())
     }
-    if eq(clone(name), "u64") {
+    if eq(name.clone(), "u64") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_I64())
     }
-    if eq(clone(name), "i8") {
+    if eq(name.clone(), "i8") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_I32())
     }
-    if eq(clone(name), "i16") {
+    if eq(name.clone(), "i16") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_I32())
     }
     contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())

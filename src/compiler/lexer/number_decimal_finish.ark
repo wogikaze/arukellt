@@ -1,12 +1,11 @@
 use std::core::convert
-use std::prelude::{clone}
 use lexer::tokens
 
 fn finish_decimal_number(lex: Lexer, start: i32, val: i32, is_float: bool, suffix_len: i32) -> Token {
     let text = lex.src.slice(start, lex.pos)
     if is_float {
         let num_text = lex.src.slice(start, lex.pos - suffix_len)
-        let f_result: Result<f64, String> = f64::try_from(clone(num_text))
+        let f_result: Result<f64, String> = f64::try_from(num_text.clone())
         let mut fv: f64 = 0.0
         let mut parse_ok = true
         match f_result {

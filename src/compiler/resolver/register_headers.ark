@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use resolver::ctx_record
 use resolver::impl_target
 use resolver::scope_define
@@ -56,7 +56,7 @@ fn register_non_type_decl_header(mut ctx: ResolveCtx, d: AstNode) {
 
 fn register_impl_method_headers(mut ctx: ResolveCtx, d: AstNode) {
     let known_type_names = ctx_record::resolve_ctx_declared_type_names(ctx)
-    let struct_name = impl_target::impl_self_type_name(d, clone(known_type_names))
+    let struct_name = impl_target::impl_self_type_name(d, known_type_names.clone())
     let base_name = impl_target::impl_self_base_type_name(d)
     let trait_name = ast_access::node_text(d)
     let has_trait = impl_target::impl_head_count(d) >= 2
@@ -65,8 +65,8 @@ fn register_impl_method_headers(mut ctx: ResolveCtx, d: AstNode) {
     // on the declared base type as well; the concrete impl is selected later
     // from the call's source argument (#917).
     let register_base_alias = has_trait &&
-    eq(clone(trait_name), String_from("FromIterator")) &&
-    !eq(clone(base_name), clone(struct_name))
+    eq(trait_name.clone(), String_from("FromIterator")) &&
+    !eq(base_name.clone(), struct_name.clone())
     let mcount = ast_access::node_child_count(d)
     let mut mi = 0
     while mi < mcount {
@@ -74,22 +74,22 @@ fn register_impl_method_headers(mut ctx: ResolveCtx, d: AstNode) {
         let method_name = ast_access::node_text(method)
         let mangled = decl_impl_target::impl_method_mangled_name(
             d,
-            clone(method_name),
-            clone(known_type_names)
+            method_name.clone(),
+            known_type_names.clone()
         )
-        let existing_mangled = scope_lookup::lookup(ctx, clone(mangled))
+        let existing_mangled = scope_lookup::lookup(ctx, mangled.clone())
         if existing_mangled < 0 || !has_trait {
             scope_define::define_with_vis(ctx, mangled, commands::SYM_FN(), true)
         }
-        if has_trait && !eq(clone(trait_name), clone(struct_name)) {
-            let existing = scope_lookup::lookup(ctx, clone(method_name))
+        if has_trait && !eq(trait_name.clone(), struct_name.clone()) {
+            let existing = scope_lookup::lookup(ctx, method_name.clone())
             if existing < 0 {
                 scope_define::define_with_vis(ctx, method_name, commands::SYM_FN(), true)
             }
         }
         if register_base_alias {
-            let alias_name = clone(base_name).concat(String_from("::".concat(clone(method_name))))
-            let existing_alias = scope_lookup::lookup(ctx, clone(alias_name))
+            let alias_name = base_name.clone().concat(String_from("::".concat(method_name.clone())))
+            let existing_alias = scope_lookup::lookup(ctx, alias_name.clone())
             if existing_alias < 0 {
                 scope_define::define_with_vis(ctx, alias_name, commands::SYM_FN(), true)
             }

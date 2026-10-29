@@ -1,5 +1,4 @@
 use std::host::fs::Fs
-use std::prelude::{clone}
 use loader::module_paths
 struct DriverLoadedSource {
     path: String,
@@ -24,7 +23,7 @@ fn DriverLoadedSource_err(error: String) -> DriverLoadedSource {
 }
 
 pub fn DriverLoadedSource_path(loaded: DriverLoadedSource) -> String {
-    clone(loaded.path)
+    loaded.path.clone()
 }
 
 pub fn DriverLoadedSource_source(loaded: DriverLoadedSource) -> String {
@@ -39,16 +38,16 @@ pub fn DriverLoadedSource_is_ok(loaded: DriverLoadedSource) -> bool {
 // `Result<DriverLoadedSource, String>` on wasm32-gc where Ok's payload
 // field can be typed as the open Result heap type instead of the struct.
 pub fn read_local_module_source(module_name: String, base_dir: String) -> DriverLoadedSource {
-    let stem = module_paths::module_path_to_file_stem(clone(module_name))
-    let primary_path = module_paths::module_stem_to_file_path(clone(base_dir), clone(stem))
-    let primary_result = Fs::read_to_string(clone(primary_path))
+    let stem = module_paths::module_path_to_file_stem(module_name.clone())
+    let primary_path = module_paths::module_stem_to_file_path(base_dir.clone(), stem.clone())
+    let primary_result = Fs::read_to_string(primary_path.clone())
     match primary_result {
         Result::Ok(source) => {
             DriverLoadedSource_ok(primary_path, source)
         },
         Result::Err(_) => {
-            let mod_path = module_paths::module_stem_to_mod_path(clone(base_dir), clone(stem))
-            let mod_result = Fs::read_to_string(clone(mod_path))
+            let mod_path = module_paths::module_stem_to_mod_path(base_dir.clone(), stem.clone())
+            let mod_result = Fs::read_to_string(mod_path.clone())
             match mod_result {
                 Result::Ok(source) => {
                     DriverLoadedSource_ok(mod_path, source)

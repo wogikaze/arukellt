@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use component::compose_wit_validate
 fn issue443_compose_wit_match_self_check() -> bool {
     let ok = compose_wit_validate::validate_plug_surfaces(
@@ -13,8 +12,8 @@ fn issue443_compose_wit_name_mismatch_self_check() -> bool {
         "tests/component-interop/compose/fixtures/provider-match.wasm",
         "tests/component-interop/compose/fixtures/socket-name-mismatch.wasm"
     )
-    clone(err).contains("error: compose conflict:")
-    && clone(err).contains("no matching provider export")
+    err.clone().contains("error: compose conflict:")
+    && err.clone().contains("no matching provider export")
 }
 
 fn issue443_compose_wit_type_mismatch_self_check() -> bool {
@@ -22,6 +21,6 @@ fn issue443_compose_wit_type_mismatch_self_check() -> bool {
         "tests/component-interop/compose/fixtures/provider-match.wasm",
         "tests/component-interop/compose/fixtures/socket-type-mismatch.wasm"
     )
-    clone(err).contains("error: compose conflict:")
-    && clone(err).contains("type mismatch")
+    err.clone().contains("error: compose conflict:")
+    && err.clone().contains("type mismatch")
 }

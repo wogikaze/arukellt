@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::ast_node
 use mir::lower::ctx_api_nesting
 use mir::lower::ctx_api_emit
@@ -63,10 +62,10 @@ fn mir_emit_string_pattern_compare(mut ctx: LowerCtx, compare_idx: i32, pat: Ast
 
 fn mir_emit_string_pattern_compare_text(mut ctx: LowerCtx, compare_idx: i32, pat_text: String) -> i32 {
     ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
-    let str_idx = ctx_api_module::ctx_intern_string(ctx, clone(pat_text))
+    let str_idx = ctx_api_module::ctx_intern_string(ctx, pat_text.clone())
     let str_vt = if ctx_gc_enum::ctx_is_gc_target(ctx) { value_types::VT_GC_REF() } else { value_types::VT_REF() }
     let str_local = ctx_api_local_alloc::ctx_fresh_local(ctx, str_vt)
-    ctx_emit(ctx, inst_const_string::MirInst_const_string_indexed(clone(pat_text), str_local, str_idx))
+    ctx_emit(ctx, inst_const_string::MirInst_const_string_indexed(pat_text.clone(), str_local, str_idx))
     let cmp_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_emit(ctx, inst_call::MirInst_call("__intrinsic_string_eq", 2, cmp_dest))
     cmp_dest

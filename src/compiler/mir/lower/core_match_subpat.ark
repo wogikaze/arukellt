@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ctx_api_nesting
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
@@ -37,7 +37,7 @@ fn core_subpat_child_is_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: C
     }
     if core_expr_shape_patterns::mir_core_expr_is_pat_ident(pat) {
         let name = core_expr_shape_accessors::mir_core_expr_text(pat)
-        if eq(clone(name), "_") {
+        if eq(name.clone(), "_") {
             return false
         }
         return ctx_api_variants::ctx_variant_tag(ctx, name) >= 0
@@ -77,7 +77,7 @@ fn core_emit_subpat_cond(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHi
     }
     if core_expr_shape_patterns::mir_core_expr_is_pat_ident(pat) {
         let name = core_expr_shape_accessors::mir_core_expr_text(pat)
-        let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(name))
+        let tag = ctx_api_variants::ctx_variant_tag(ctx, name.clone())
         if tag >= 0 {
             return core_emit_tag_compare_cond(ctx, val_idx, tag)
         }
@@ -125,7 +125,7 @@ fn core_emit_variant_subpat_flag_tagged(mut ctx: LowerCtx, exprs: Vec<CoreHirExp
         tag_idx = core_match_payload_info::core_emit_payload_tag_local(ctx, val_idx)
     }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(tag_idx))
-    let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(variant_name))
+    let tag = ctx_api_variants::ctx_variant_tag(ctx, variant_name.clone())
     let tag_const = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_const))
     let tag_cmp = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
@@ -135,10 +135,10 @@ fn core_emit_variant_subpat_flag_tagged(mut ctx: LowerCtx, exprs: Vec<CoreHirExp
     // Payload-field reads belong to this variant's layout only while the
     // tag check holds; every child load stays inside the if (#902).
     let scrut_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
-    let is_f64 = match_payload_prepare::mir_option_result_scrut_type_is_f64(clone(scrut_type))
-    let is_i64 = match_payload_prepare::mir_option_result_scrut_type_is_i64(clone(scrut_type))
-    let is_i32 = match_payload_prepare::mir_option_result_scrut_type_is_i32(clone(scrut_type))
-    let is_ref = core_match_payload_info::core_scrut_type_is_ref(clone(scrut_type))
+    let is_f64 = match_payload_prepare::mir_option_result_scrut_type_is_f64(scrut_type.clone())
+    let is_i64 = match_payload_prepare::mir_option_result_scrut_type_is_i64(scrut_type.clone())
+    let is_i32 = match_payload_prepare::mir_option_result_scrut_type_is_i32(scrut_type.clone())
+    let is_ref = core_match_payload_info::core_scrut_type_is_ref(scrut_type.clone())
     let mut cond_count = 0
     let mut acc = 0 - 1
     let count = core_expr_shape_accessors::mir_core_expr_child_count(pat)
@@ -151,14 +151,14 @@ fn core_emit_variant_subpat_flag_tagged(mut ctx: LowerCtx, exprs: Vec<CoreHirExp
         }
         let field_local = core_match_payload_bind_core::core_subpat_load_field(
             ctx,
-            clone(variant_name),
+            variant_name.clone(),
             val_idx,
             i,
             is_f64,
             is_i64,
             is_i32,
             is_ref,
-            clone(scrut_type)
+            scrut_type.clone()
         )
         let child_cond = core_emit_subpat_cond(ctx, exprs, child, field_local)
         if cond_count > 0 {

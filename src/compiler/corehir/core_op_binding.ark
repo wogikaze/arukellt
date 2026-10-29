@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use corehir::core_op_binding_generated
 use corehir::core_op_id
 use corehir::core_op_registry
@@ -12,17 +11,17 @@ fn core_op_binding_lookup_canonical(canonical: String) -> CoreOpId {
 // Exact alias only — Wasm effective lowering and historical callers.
 fn core_op_binding_lookup_for_callee(callee: String) -> CoreOpId {
     core_op_binding_lookup_canonical(
-        core_op_binding_generated::core_op_binding_core_op_id_for_callee_exact(clone(callee))
+        core_op_binding_generated::core_op_binding_core_op_id_for_callee_exact(callee.clone())
     )
 }
 
 // Exact alias, then prefix family patterns (MIR call_func_id).
 fn core_op_binding_lookup_for_callee_exact_then_family(callee: String) -> CoreOpId {
     core_op_binding_lookup_canonical(
-        core_op_binding_generated::core_op_binding_core_op_id_for_callee_exact_then_family(clone(callee))
+        core_op_binding_generated::core_op_binding_core_op_id_for_callee_exact_then_family(callee.clone())
     )
 }
 
 fn core_op_binding_lookup_for_mangled(mangled: String) -> CoreOpId {
-    core_op_binding_lookup_for_callee(clone(mangled))
+    core_op_binding_lookup_for_callee(mangled.clone())
 }

@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use driver::config_record
 
 struct LegacyCompileOptions {
@@ -17,7 +17,7 @@ fn parse_legacy_compile_options(args: Vec<String>, argc: i32, start: i32, mut co
     let mut i = start
     while i < argc {
         let flag = get_unchecked(args, i)
-        if eq(clone(flag), "-o") {
+        if eq(flag.clone(), "-o") {
             if i + 1 < argc {
                 output_path = get_unchecked(args, i + 1)
                 has_output = true
@@ -26,7 +26,7 @@ fn parse_legacy_compile_options(args: Vec<String>, argc: i32, start: i32, mut co
                 i = i + 1
             }
         } else {
-            if eq(clone(flag), "--target") {
+            if eq(flag.clone(), "--target") {
                 if i + 1 < argc {
                     config_record::config_set_target(config, get_unchecked(args, i + 1))
                     i = i + 2
@@ -34,7 +34,7 @@ fn parse_legacy_compile_options(args: Vec<String>, argc: i32, start: i32, mut co
                     i = i + 1
                 }
             } else {
-                if eq(clone(flag), "--emit") {
+                if eq(flag.clone(), "--emit") {
                     if i + 1 < argc {
                         config_record::config_set_emit_mode(config, get_unchecked(args, i + 1))
                         i = i + 2
@@ -51,7 +51,7 @@ fn parse_legacy_compile_options(args: Vec<String>, argc: i32, start: i32, mut co
 }
 
 fn legacy_compile_options_output_path(options: LegacyCompileOptions) -> String {
-    clone(options.output_path)
+    options.output_path.clone()
 }
 
 fn legacy_compile_options_has_output(options: LegacyCompileOptions) -> bool {

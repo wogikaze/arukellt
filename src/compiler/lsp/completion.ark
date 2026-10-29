@@ -1,5 +1,4 @@
 use std::json::parser
-use std::prelude::{clone}
 use lsp::completion_providers
 use lsp::positions
 fn is_ident_char(ch: i32) -> bool {
@@ -29,8 +28,8 @@ fn prefix_at_offset(text: String, offset: i32) -> String {
 }
 
 pub fn build_completion_response(state: LspState, id: i32, text: String, offset: i32) -> String {
-    let prefix = prefix_at_offset(clone(text), offset)
-    let items = completion_providers::collect_completion_items(state, clone(text), offset, prefix)
+    let prefix = prefix_at_offset(text.clone(), offset)
+    let items = completion_providers::collect_completion_items(state, text.clone(), offset, prefix)
     let mut items_arr = Vec::new<parser::JsonValue>()
     push(items_arr, parser::JsonValue::raw(items))
     let mut result_obj = Vec::new<parser::JsonField>()

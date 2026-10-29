@@ -2,7 +2,6 @@ use std::host::fs::Fs
 use std::toml
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{clone}
 use std::text
 use driver::config_record
 use driver::file
@@ -24,7 +23,7 @@ fn print_project_compile_errors(entry: String, result: CompileResult) {
     let mut i = 0
     while i < err_count {
         let msg = result_record::compile_result_error_message_at(result, i)
-        stdio::eprintln(output::format_error(clone(entry), clone(msg)))
+        stdio::eprintln(output::format_error(entry.clone(), msg.clone()))
         i = i + 1
     }
 }
@@ -35,7 +34,7 @@ fn exit_missing_build_entry() {
 }
 
 fn exit_build_manifest_read_error(manifest_path: String, error: String) {
-    stdio::eprintln(String_from("error: cannot read ").concat(clone(manifest_path).concat(String_from(": ").concat(error))))
+    stdio::eprintln(String_from("error: cannot read ").concat(manifest_path.clone().concat(String_from(": ").concat(error))))
     Process::exit(1)
 }
 
@@ -47,13 +46,13 @@ fn exit_project_compile_error(entry: String, result: CompileResult) {
 fn print_build_start(info: ProjectBuildManifest, manifest_path: String, entry: String) {
     if manifest_has_pkg_name(info) {
         let pkg_label = manifest_pkg_name(info).concat(String_from(" v").concat(manifest_pkg_version(info)))
-        let target_label = (String_from(" (")).concat(clone(entry).concat(String_from(")")))
+        let target_label = (String_from(" (")).concat(entry.clone().concat(String_from(")")))
         stdio::eprintln(
             String_from("building ").concat(pkg_label.concat(target_label))
         )
     } else {
-        let target_label = (String_from(" (entry: ")).concat(clone(entry).concat(String_from(")")))
-        stdio::eprintln(String_from("building ").concat(clone(manifest_path).concat(target_label)))
+        let target_label = (String_from(" (entry: ")).concat(entry.clone().concat(String_from(")")))
+        stdio::eprintln(String_from("building ").concat(manifest_path.clone().concat(target_label)))
     }
 }
 
@@ -69,11 +68,11 @@ fn build_output_path(opts: CliOptions, info: ProjectBuildManifest) -> String {
 
 fn write_build_output(entry: String, out_path: String, bytes: Vec<i32>) {
     let byte_count = len(bytes)
-    let write_result: Result<(), String> = Fs::write_bytes(clone(out_path), bytes)
+    let write_result: Result<(), String> = Fs::write_bytes(out_path.clone(), bytes)
     match write_result {
         Result::Ok(_) => {
             let size_label = (String_from(" (")).concat(byte_count.to_string().concat(String_from(" bytes)")))
-            let arrow_label = clone(entry).concat(String_from(" -> ").concat(clone(out_path)))
+            let arrow_label = entry.clone().concat(String_from(" -> ").concat(out_path.clone()))
             stdio::eprintln(
                 String_from("built ").concat(arrow_label.concat(size_label))
             )
@@ -87,7 +86,7 @@ fn write_build_output(entry: String, out_path: String, bytes: Vec<i32>) {
 
 pub fn cmd_build(opts: CliOptions) {
     let manifest_path = build_manifest_path(opts)
-    let manifest_result = Fs::read_to_string(clone(manifest_path))
+    let manifest_result = Fs::read_to_string(manifest_path.clone())
     match manifest_result {
         Result::Ok(content) => {
             let info = parse_project_manifest(content)
@@ -98,7 +97,7 @@ pub fn cmd_build(opts: CliOptions) {
             }
             print_build_start(info, manifest_path, entry)
             let mut config = build_project_driver_config(opts)
-            let result = file::compile_file(clone(entry), config)
+            let result = file::compile_file(entry.clone(), config)
             if result_record::compile_result_success(result) {
                 let out_path = build_output_path(opts, info)
                 write_build_output(entry, out_path, result_record::compile_result_output_bytes(result))
@@ -124,7 +123,7 @@ fn ProjectBuildManifest_new(pkg_name: String, pkg_version: String, bin_path: Str
 }
 
 fn manifest_bin_path(info: ProjectBuildManifest) -> String {
-    clone(info.bin_path)
+    info.bin_path.clone()
 }
 
 fn manifest_bin_path_len(info: ProjectBuildManifest) -> i32 {
@@ -132,7 +131,7 @@ fn manifest_bin_path_len(info: ProjectBuildManifest) -> i32 {
 }
 
 fn manifest_entry_path(info: ProjectBuildManifest) -> String {
-    clone(info.entry_path)
+    info.entry_path.clone()
 }
 
 fn manifest_entry_path_len(info: ProjectBuildManifest) -> i32 {
@@ -148,19 +147,19 @@ fn build_manifest_path(opts: CliOptions) -> String {
 
 fn parse_project_manifest(content: String) -> ProjectBuildManifest {
     ProjectBuildManifest_new(
-        toml::TomlText::find_value(clone(content), String_from("name")),
-        toml::TomlText::find_value(clone(content), String_from("version")),
-        toml::TomlText::find_value(clone(content), String_from("path")),
-        toml::TomlText::find_value(clone(content), String_from("entry"))
+        toml::TomlText::find_value(content.clone(), String_from("name")),
+        toml::TomlText::find_value(content.clone(), String_from("version")),
+        toml::TomlText::find_value(content.clone(), String_from("path")),
+        toml::TomlText::find_value(content.clone(), String_from("entry"))
     )
 }
 
 fn manifest_pkg_name(info: ProjectBuildManifest) -> String {
-    clone(info.pkg_name)
+    info.pkg_name.clone()
 }
 
 fn manifest_pkg_version(info: ProjectBuildManifest) -> String {
-    clone(info.pkg_version)
+    info.pkg_version.clone()
 }
 
 fn manifest_has_pkg_name(info: ProjectBuildManifest) -> bool {

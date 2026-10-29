@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_types
@@ -22,14 +22,14 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     // method that exists on the owning enum (Error::message) instead of
     // falling through the ambiguous bare-name fallback; the payload value is
     // a subtype/pointer-compatible receiver on both targets.
-    if len(clone(struct_name)) > 0 {
-        let variant = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(struct_name))
-        if ctx_api_variants::ctx_variant_tag(ctx, clone(variant)) >= 0 {
-            let owner = ctx_api_variants::ctx_variant_owner_name(clone(variant))
-            let enum_name = ctx_struct_layout::ctx_struct_basename(clone(owner))
-            if len(clone(enum_name)) > 0 {
-                let candidate = clone(enum_name).concat(String_from("::").concat(clone(method_name)))
-                if ctx_has_fn_name(ctx, clone(candidate)) {
+    if len(struct_name.clone()) > 0 {
+        let variant = ctx_api_variants::ctx_canonical_variant_name(ctx, struct_name.clone())
+        if ctx_api_variants::ctx_variant_tag(ctx, variant.clone()) >= 0 {
+            let owner = ctx_api_variants::ctx_variant_owner_name(variant.clone())
+            let enum_name = ctx_struct_layout::ctx_struct_basename(owner.clone())
+            if len(enum_name.clone()) > 0 {
+                let candidate = enum_name.clone().concat(String_from("::").concat(method_name.clone()))
+                if ctx_has_fn_name(ctx, candidate.clone()) {
                     return candidate
                 }
             }
@@ -39,8 +39,8 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     // resolve it to a concrete type via the monomorphization type
     // parameter mapping. This enables `x.method()` inside generic
     // functions `<T: Trait>` to resolve to `ConcreteType::method`.
-    if len(struct_name) > 0 && clone(struct_name).starts_with("?") {
-        let bare_name = clone(struct_name).slice(1, len(struct_name))
+    if len(struct_name) > 0 && struct_name.clone().starts_with("?") {
+        let bare_name = struct_name.clone().slice(1, len(struct_name))
         let resolved = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, bare_name)
         if len(resolved) > 0 {
             struct_name = resolved
@@ -50,18 +50,18 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     // Vec locals carry type "vec:i32" / "vec:String" etc.; the String
     // conversion has its own impl owner because GC references are distinct.
     // String locals carry type "string"; normalize to "String".
-    if clone(struct_name).starts_with("vec:") {
-        if method_resolve::mir_is_vec_string_iteration_method(clone(method_name)) &&
-        method_resolve::mir_is_vec_string_type(clone(struct_name)) {
+    if struct_name.clone().starts_with("vec:") {
+        if method_resolve::mir_is_vec_string_iteration_method(method_name.clone()) &&
+        method_resolve::mir_is_vec_string_type(struct_name.clone()) {
             struct_name = "Vec_String"
         } else {
             struct_name = "Vec"
         }
     }
-    if clone(struct_name).starts_with("hashmap:") {
+    if struct_name.clone().starts_with("hashmap:") {
         struct_name = "HashMap"
     }
-    if eq(clone(struct_name), "string") {
+    if eq(struct_name.clone(), "string") {
         struct_name = "String"
     }
     // An Option call result carries the canonical `option:<T>` encoding from
@@ -70,25 +70,25 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     // two when the concrete method exists so a receiver call on a call result
     // (`pop(v).unwrap()`) resolves instead of lowering to the unresolved-call
     // trap stub. Falling through keeps generic `impl<T> Option<T>` methods.
-    if clone(struct_name).starts_with("option:") {
-        let some_type = clone(struct_name).slice(7, len(struct_name))
+    if struct_name.clone().starts_with("option:") {
+        let some_type = struct_name.clone().slice(7, len(struct_name))
         let concrete_method = String_from("Option_").concat(
-            some_type.concat(String_from("::").concat(clone(method_name)))
+            some_type.concat(String_from("::").concat(method_name.clone()))
         )
-        if ctx_has_fn_name(ctx, clone(concrete_method)) {
+        if ctx_has_fn_name(ctx, concrete_method.clone()) {
             return concrete_method
         }
     }
     // Strip aggregate classifiers, module path prefixes, and per-use instance
     // suffixes (e.g. "struct:VecIter:12" or "std::core::iter::VecIter:12")
     // so method calls resolve to the unqualified base type name.
-    struct_name = method_resolve::mir_normalize_type_name(clone(struct_name))
+    struct_name = method_resolve::mir_normalize_type_name(struct_name.clone())
     // Concrete generic receivers (GenTakeIter<VecIter>) own their impl
     // methods under the per-instantiation owner (GenTakeIter_VecIter), the
     // same collision rule as HashMap_K_V.
-    struct_name = method_resolve::mir_inst_owner_name(clone(struct_name))
+    struct_name = method_resolve::mir_inst_owner_name(struct_name.clone())
     if len(struct_name) > 0 {
-        return clone(struct_name).concat("::".concat(clone(method_name)))
+        return struct_name.clone().concat("::".concat(method_name.clone()))
     }
     method_name
 }
@@ -106,8 +106,8 @@ fn mir_resolve_method_callee(mut ctx: LowerCtx, callee_name: String, first_metho
 // replaces the receiver local. A field receiver is materialized into a load
 // temp, so the caller must store that replaced value back into its owner.
 fn mir_method_replaces_string_receiver(callee_name: String) -> bool {
-    eq(clone(callee_name), String_from("String::push_char")) ||
-    eq(clone(callee_name), String_from("push_char"))
+    eq(callee_name.clone(), String_from("String::push_char")) ||
+    eq(callee_name.clone(), String_from("push_char"))
 }
 
 fn mir_emit_method_call(mut ctx: LowerCtx, mut callee_name: String, arg_count: i32, first_arg_idx: i32, value_arg_idx: i32) -> i32 {

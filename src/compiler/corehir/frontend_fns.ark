@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::decl_node_identity
 use corehir::decl_children
@@ -27,7 +27,7 @@ fn find_named_fn_decl_index(decls: Vec<AstNode>, name: String) -> i32 {
     while i < decl_count {
         let decl = get_unchecked(decls, i)
         if decl_node::decl_is_fn(decl) {
-            if eq(decl_node_identity::decl_name(decl), clone(name)) {
+            if eq(decl_node_identity::decl_name(decl), name.clone()) {
                 entry_main_decl_index = i
             }
         }
@@ -49,7 +49,7 @@ fn build_fn_params(
             params,
             param_shape::fn_param_from_node(
                 decl_children::decl_child_at(decl, i),
-                clone(type_params),
+                type_params.clone(),
                 nominal_types
             )
         )
@@ -70,7 +70,7 @@ fn build_fn_type_params(decl: AstNode) -> Vec<String> {
         let annotation = frontend_ast_node::corehir_node_type_ann_at(decl, i)
         if frontend_ast_node::corehir_node_kind(annotation) != frontend_kind_map::nk_proof_contract() {
             let annotation_name = frontend_ast_node::corehir_node_text(annotation)
-            if !eq(clone(annotation_name), "__return") {
+            if !eq(annotation_name.clone(), "__return") {
                 push(names, annotation_name)
             }
         }
@@ -94,8 +94,8 @@ fn module_qualified_fn_name(modules: Vec<CoreHirModuleInfo>, decl_index: i32, fn
         let decl_start = raw_dto::CoreHirModuleInfo_decl_start(module_info)
         let decl_end = decl_start + raw_dto::CoreHirModuleInfo_decl_count(module_info)
         if decl_index >= decl_start && decl_index < decl_end {
-            let module_name = clone(module_info.name)
-            if !eq(clone(module_name), "<main>") {
+            let module_name = module_info.name.clone()
+            if !eq(module_name.clone(), "<main>") {
                 return module_name.concat("::".concat(fn_name))
             }
             return String_new()
@@ -139,12 +139,12 @@ fn build_fn_infos(
             let body_index = decl_children::decl_body_index(decl)
             let param_count = decl_children::decl_param_count(decl)
             let type_params = build_fn_type_params(decl)
-            let params = build_fn_params(decl, param_count, clone(type_params), nominal_types)
+            let params = build_fn_params(decl, param_count, type_params.clone(), nominal_types)
             let fn_name = decl_node_identity::decl_name(decl)
             let info = fn_info::CoreHirFnInfo_new(
                 i,
                 typed_fn_index,
-                clone(fn_name),
+                fn_name.clone(),
                 module_qualified_fn_name(modules, i, fn_name),
                 module_fn_is_stdlib(modules, i),
                 param_count,

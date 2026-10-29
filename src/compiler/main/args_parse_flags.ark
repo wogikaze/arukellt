@@ -1,64 +1,63 @@
-use std::prelude::{clone}
 use main::args_record
 use main::commands
 pub fn parse_flag_option(mut opts: CliOptions, arg: String) -> bool {
-    if commands::cli_str_eq(clone(arg), "--help") {
+    if commands::cli_str_eq(arg.clone(), "--help") {
         args_record::cli_set_show_help(opts, true)
         return true
     }
-    if commands::cli_str_eq(clone(arg), "--json") {
+    if commands::cli_str_eq(arg.clone(), "--json") {
         args_record::cli_set_json_output(opts, true)
         return true
     }
-    if commands::cli_str_eq(clone(arg), "--time") {
+    if commands::cli_str_eq(arg.clone(), "--time") {
         args_record::cli_set_show_timing(opts, true)
         return true
     }
-    if commands::cli_str_eq(clone(arg), "--version") {
+    if commands::cli_str_eq(arg.clone(), "--version") {
         args_record::cli_set_show_version(opts, true)
         return true
     }
-    if commands::cli_str_eq(clone(arg), "--list-templates") {
+    if commands::cli_str_eq(arg.clone(), "--list-templates") {
         args_record::cli_set_list_templates(opts, true)
         return true
     }
-    if commands::cli_str_eq(clone(arg), "--check") {
+    if commands::cli_str_eq(arg.clone(), "--check") {
         args_record::cli_set_fmt_check(opts, true)
         return true
     }
-    if commands::cli_str_eq(clone(arg), "--fix") {
+    if commands::cli_str_eq(arg.clone(), "--fix") {
         args_record::cli_set_fmt_fix(opts, true)
         return true
     }
-    if commands::cli_str_eq(clone(arg), "--list") {
+    if commands::cli_str_eq(arg.clone(), "--list") {
         args_record::cli_set_lint_list(opts, true)
         return true
     }
-    if commands::cli_str_eq(clone(arg), "--local") {
+    if commands::cli_str_eq(arg.clone(), "--local") {
         args_record::cli_set_lint_local(opts, true)
         return true
     }
-    if commands::cli_str_eq(clone(arg), "--strip-debug") {
+    if commands::cli_str_eq(arg.clone(), "--strip-debug") {
         args_record::cli_set_strip_debug(opts, true)
         return true
     }
-    if commands::cli_str_eq(clone(arg), String_from("--deny-clock")) {
+    if commands::cli_str_eq(arg.clone(), String_from("--deny-clock")) {
         args_record::cli_set_deny_clock(opts, true)
         return true
     }
-    if commands::cli_str_eq(clone(arg), String_from("--deny-random")) {
+    if commands::cli_str_eq(arg.clone(), String_from("--deny-random")) {
         args_record::cli_set_deny_random(opts, true)
         return true
     }
-    if commands::cli_str_eq(clone(arg), String_from("--bootstrap-allow-shared-param-mutation")) {
+    if commands::cli_str_eq(arg.clone(), String_from("--bootstrap-allow-shared-param-mutation")) {
         args_record::cli_set_bootstrap_shared_param_mutation(opts, true)
         return true
     }
-    if commands::cli_str_eq(clone(arg), String_from("--deny-process")) {
+    if commands::cli_str_eq(arg.clone(), String_from("--deny-process")) {
         args_record::cli_set_deny_process(opts, true)
         return true
     }
-    if commands::cli_str_eq(clone(arg), String_from("--strict")) {
+    if commands::cli_str_eq(arg.clone(), String_from("--strict")) {
         args_record::cli_set_strict_impl_binders(opts, true)
         return true
     }

@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use mir::function_block_queries
 use mir::function_identity
@@ -25,7 +25,7 @@ fn verify_mir_warn_only_verbose(m: MirModule, verbose: bool) -> MirVerifyReport 
     while fi < count {
         let f = module_functions::MirModule_function_at(m, fi)
         let fname = function_identity::MirFunction_name(f)
-        verify_local::verify_locals_in_function(f, plan, report, verbose, clone(fname))
+        verify_local::verify_locals_in_function(f, plan, report, verbose, fname.clone())
         verify_local::verify_function_return(f, report, verbose)
         fi = fi + 1
     }
@@ -54,7 +54,7 @@ fn verify_report_print_largest_function(m: MirModule) {
         }
         if inst_count > max_count {
             max_count = inst_count
-            max_name = clone(fname)
+            max_name = fname.clone()
         }
         fi = fi + 1
     }
@@ -88,8 +88,8 @@ fn verify_mir_pipeline(m: MirModule) -> i32 {
 }
 
 fn verify_mir_is_representative_fixture(fn_name: String) -> bool {
-    if eq(clone(fn_name), "display_trait_vec") { return true }
-    if eq(clone(fn_name), "two_params") { return true }
-    if eq(clone(fn_name), "fs_read_error") { return true }
+    if eq(fn_name.clone(), "display_trait_vec") { return true }
+    if eq(fn_name.clone(), "two_params") { return true }
+    if eq(fn_name.clone(), "fs_read_error") { return true }
     false
 }

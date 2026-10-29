@@ -1,7 +1,7 @@
 use std::host::clock::Clock
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{clone, eq, i64_to_i32}
+use std::prelude::{eq, i64_to_i32}
 use std::text
 use mir::block_inst_access
 use mir::emit_artifacts
@@ -90,8 +90,8 @@ fn code_configure_linear_gc_writer(
             p2_library_wrapper_count,
             p2_runtime_function_count,
             constants::LINEAR_GC_COMMIT_TOP(),
-            clone(target),
-            clone(wasi_version),
+            target.clone(),
+            wasi_version.clone(),
             wit_import_count
         )
     )
@@ -104,8 +104,8 @@ fn code_configure_linear_gc_writer(
             p2_library_wrapper_count,
             p2_runtime_function_count,
             constants::LINEAR_GC_ALLOC(),
-            clone(target),
-            clone(wasi_version),
+            target.clone(),
+            wasi_version.clone(),
             wit_import_count
         )
     )
@@ -118,8 +118,8 @@ fn code_configure_linear_gc_writer(
             p2_library_wrapper_count,
             p2_runtime_function_count,
             constants::LINEAR_GC_ROOT_FRAME_ENTER(),
-            clone(target),
-            clone(wasi_version),
+            target.clone(),
+            wasi_version.clone(),
             wit_import_count
         )
     )
@@ -132,8 +132,8 @@ fn code_configure_linear_gc_writer(
             p2_library_wrapper_count,
             p2_runtime_function_count,
             constants::LINEAR_GC_ROOT_PUSH(),
-            clone(target),
-            clone(wasi_version),
+            target.clone(),
+            wasi_version.clone(),
             wit_import_count
         )
     )
@@ -146,8 +146,8 @@ fn code_configure_linear_gc_writer(
             p2_library_wrapper_count,
             p2_runtime_function_count,
             constants::LINEAR_GC_ROOT_UPDATE(),
-            clone(target),
-            clone(wasi_version),
+            target.clone(),
+            wasi_version.clone(),
             wit_import_count
         )
     )
@@ -160,8 +160,8 @@ fn code_configure_linear_gc_writer(
             p2_library_wrapper_count,
             p2_runtime_function_count,
             constants::LINEAR_GC_ROOT_FRAME_LEAVE(),
-            clone(target),
-            clone(wasi_version),
+            target.clone(),
+            wasi_version.clone(),
             wit_import_count
         )
     )
@@ -174,8 +174,8 @@ fn code_configure_linear_gc_writer(
             p2_library_wrapper_count,
             p2_runtime_function_count,
             constants::LINEAR_GC_COLLECT(),
-            clone(target),
-            clone(wasi_version),
+            target.clone(),
+            wasi_version.clone(),
             wit_import_count
         )
     )
@@ -195,8 +195,8 @@ fn code_apply_pending_relocs(mut ctx: SelfEmitCtx, wit_import_count: i32) {
         let ikey = get_unchecked(ctx.reloc_ikey, i)
         let ikey2 = get_unchecked(ctx.reloc_ikey2, i)
         let ikey3 = get_unchecked(ctx.reloc_ikey3, i)
-        let skey = clone(get_unchecked(ctx.reloc_skey, i))
-        let skey2 = clone(get_unchecked(ctx.reloc_skey2, i))
+        let skey = get_unchecked(ctx.reloc_skey, i).clone()
+        let skey2 = get_unchecked(ctx.reloc_skey2, i).clone()
         let mut value = 0 - 1
         if kind == ctx_reloc::RELOC_KIND_STR_TRUE() {
             value = ctx_string_view::SelfEmitCtx_true_string_offset(ctx)
@@ -250,7 +250,7 @@ fn resolve_ref_func_reloc(ctx: SelfEmitCtx, fn_name: String, wit_import_count: i
     let mut mir_fn_idx = 0 - 1
     let mut i = 0
     while i < fn_count {
-        if eq(function_identity::MirFunction_name(get_unchecked(functions, i)), clone(fn_name)) {
+        if eq(function_identity::MirFunction_name(get_unchecked(functions, i)), fn_name.clone()) {
             mir_fn_idx = i
         }
         i = i + 1
@@ -315,8 +315,8 @@ fn emit_ctx_adopt_inloop_artifacts(mut ctx: SelfEmitCtx, art: MirEmitArtifacts) 
                 push(ri1, get_unchecked(art.reloc_ikey, ri))
                 push(ri2, get_unchecked(art.reloc_ikey2, ri))
                 push(ri3, get_unchecked(art.reloc_ikey3, ri))
-                push(rs1, clone(get_unchecked(art.reloc_skey, ri)))
-                push(rs2, clone(get_unchecked(art.reloc_skey2, ri)))
+                push(rs1, get_unchecked(art.reloc_skey, ri).clone())
+                push(rs2, get_unchecked(art.reloc_skey2, ri).clone())
             }
             ri = ri + 1
         }
@@ -339,7 +339,7 @@ fn emit_ctx_adopt_inloop_artifacts(mut ctx: SelfEmitCtx, art: MirEmitArtifacts) 
                 push(coffs, get_unchecked(art.call_reloc_offs, cii))
                 push(cfids, get_unchecked(art.call_reloc_fids, cii))
                 push(cfuncs, mapped)
-                push(cnames, clone(get_unchecked(art.call_reloc_names, cii)))
+                push(cnames, get_unchecked(art.call_reloc_names, cii).clone())
             }
             cii = cii + 1
         }
@@ -380,7 +380,7 @@ fn emit_code_section(
     let mut code_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     let target = ctx_record::SelfEmitCtx_target(ctx)
     let wasi_version = ctx_record::SelfEmitCtx_wasi_version(ctx)
-    let linear_gc_runtime_count = function_indices::linear_gc_runtime_function_count(clone(target))
+    let linear_gc_runtime_count = function_indices::linear_gc_runtime_function_count(target.clone())
     if linear_gc_runtime_count > 0 {
         let commit_index = function_indices::linear_gc_runtime_function_index(
             fn_count,
@@ -389,8 +389,8 @@ fn emit_code_section(
             p2_library_wrapper_count,
             p2_runtime_function_count,
             constants::LINEAR_GC_COMMIT_TOP(),
-            clone(target),
-            clone(wasi_version),
+            target.clone(),
+            wasi_version.clone(),
             module_wit_imports::wit_import_count(bindings)
         )
         writer_core::writer_set_linear_gc_commit_function_index(code_sec, commit_index)
@@ -401,8 +401,8 @@ fn emit_code_section(
             p2_library_wrapper_count,
             p2_runtime_function_count,
             constants::LINEAR_GC_ALLOC(),
-            clone(target),
-            clone(wasi_version),
+            target.clone(),
+            wasi_version.clone(),
             module_wit_imports::wit_import_count(bindings)
         )
         writer_core::writer_set_linear_gc_alloc_function_index(code_sec, alloc_index)
@@ -413,8 +413,8 @@ fn emit_code_section(
             p2_library_wrapper_count,
             p2_runtime_function_count,
             constants::LINEAR_GC_ROOT_FRAME_ENTER(),
-            clone(target),
-            clone(wasi_version),
+            target.clone(),
+            wasi_version.clone(),
             module_wit_imports::wit_import_count(bindings)
         )
         writer_core::writer_set_linear_gc_root_frame_enter_function_index(code_sec, root_frame_enter_index)
@@ -425,8 +425,8 @@ fn emit_code_section(
             p2_library_wrapper_count,
             p2_runtime_function_count,
             constants::LINEAR_GC_ROOT_PUSH(),
-            clone(target),
-            clone(wasi_version),
+            target.clone(),
+            wasi_version.clone(),
             module_wit_imports::wit_import_count(bindings)
         )
         writer_core::writer_set_linear_gc_root_push_function_index(code_sec, root_push_index)
@@ -437,8 +437,8 @@ fn emit_code_section(
             p2_library_wrapper_count,
             p2_runtime_function_count,
             constants::LINEAR_GC_ROOT_UPDATE(),
-            clone(target),
-            clone(wasi_version),
+            target.clone(),
+            wasi_version.clone(),
             module_wit_imports::wit_import_count(bindings)
         )
         writer_core::writer_set_linear_gc_root_update_function_index(code_sec, root_update_index)
@@ -449,8 +449,8 @@ fn emit_code_section(
             p2_library_wrapper_count,
             p2_runtime_function_count,
             constants::LINEAR_GC_ROOT_FRAME_LEAVE(),
-            clone(target),
-            clone(wasi_version),
+            target.clone(),
+            wasi_version.clone(),
             module_wit_imports::wit_import_count(bindings)
         )
         writer_core::writer_set_linear_gc_root_frame_leave_function_index(code_sec, root_frame_leave_index)
@@ -461,8 +461,8 @@ fn emit_code_section(
             p2_library_wrapper_count,
             p2_runtime_function_count,
             constants::LINEAR_GC_COLLECT(),
-            clone(target),
-            clone(wasi_version),
+            target.clone(),
+            wasi_version.clone(),
             module_wit_imports::wit_import_count(bindings)
         )
         writer_core::writer_set_linear_gc_collect_function_index(code_sec, collect_index)
@@ -475,8 +475,8 @@ fn emit_code_section(
         p2_library_wrapper_count,
         p2_runtime_function_count,
         linear_gc_runtime_count,
-        clone(target),
-        clone(wasi_version),
+        target.clone(),
+        wasi_version.clone(),
         module_wit_imports::wit_import_count(bindings)
     )
     let p2_command_extra = if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) && needs_wrapper == 1 {
@@ -519,8 +519,8 @@ fn emit_code_section(
                 p2_library_wrapper_count,
                 p2_runtime_function_count,
                 linear_gc_runtime_count,
-                clone(target),
-                clone(wasi_version),
+                target.clone(),
+                wasi_version.clone(),
                 module_wit_imports::wit_import_count(bindings)
             )
             code_body::emit_function_body(body_w, f, ctx, bindings)
@@ -593,8 +593,8 @@ fn emit_code_section(
             p2_library_wrapper_count,
             p2_runtime_function_count,
             0,
-            clone(target),
-            clone(wasi_version),
+            target.clone(),
+            wasi_version.clone(),
             wit_import_count
         )
         let mut runtime_idx = 0
@@ -634,8 +634,8 @@ fn emit_p2_library_wrapper_bodies(
         needs_wrapper,
         p2_library_post_count,
         p2_library_wrapper_count,
-        clone(target),
-        clone(wasi_version),
+        target.clone(),
+        wasi_version.clone(),
         wit_import_count
     )
     let mut function_idx = 0
@@ -644,8 +644,8 @@ fn emit_p2_library_wrapper_bodies(
         if sections_exports::is_p2_library_export_function(mir, f) &&
         sections_types_sigs_detail::p2_function_needs_string_wrapper(
             f,
-            clone(target),
-            clone(wasi_version),
+            target.clone(),
+            wasi_version.clone(),
             mir
         ) {
             let size_off = emit_sized_code_body_begin(code_sec)

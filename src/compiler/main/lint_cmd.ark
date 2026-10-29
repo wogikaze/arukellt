@@ -26,12 +26,12 @@ pub fn cmd_lint(mut opts: CliOptions) {
     let mut i = 0
     while i < count {
         let path = args_record::cli_lint_input_at(opts, i)
-        args_record::cli_set_input_file(opts, clone(path))
+        args_record::cli_set_input_file(opts, path.clone())
         let status = compile_core::cmd_compile_single_status(opts)
         if status == 0 {
-            stdio::eprintln("ok: ".concat(clone(path)))
+            stdio::eprintln("ok: ".concat(path.clone()))
         } else {
-            stdio::eprintln("lint failed: ".concat(clone(path)))
+            stdio::eprintln("lint failed: ".concat(path.clone()))
             failed = failed + 1
         }
         i = i + 1

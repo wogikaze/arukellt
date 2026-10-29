@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 pub struct IdentSpan {
     found: bool,
     name: String,
@@ -19,7 +19,7 @@ pub fn ident_span_found(span: IdentSpan) -> bool {
 }
 
 pub fn ident_span_name(span: IdentSpan) -> String {
-    clone(span.name)
+    span.name.clone()
 }
 
 pub fn ident_span_start(span: IdentSpan) -> i32 {

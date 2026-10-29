@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 pub struct SymbolInfo {
     found: bool,
     name: String,
@@ -22,7 +21,7 @@ pub fn symbol_info_found(info: SymbolInfo) -> bool {
 }
 
 pub fn symbol_info_name(info: SymbolInfo) -> String {
-    clone(info.name)
+    info.name.clone()
 }
 
 pub fn symbol_info_decl_start(info: SymbolInfo) -> i32 {
@@ -38,9 +37,9 @@ pub fn symbol_info_kind(info: SymbolInfo) -> i32 {
 }
 
 pub fn symbol_info_signature(info: SymbolInfo) -> String {
-    clone(info.signature)
+    info.signature.clone()
 }
 
 pub fn symbol_info_doc(info: SymbolInfo) -> String {
-    clone(info.doc)
+    info.doc.clone()
 }

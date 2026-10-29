@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::kinds
 use corehir::function_id
@@ -13,8 +13,8 @@ fn sig_reg_register_host_intrinsics(mut table: TypeTable, mut registry: Signatur
     let mut i = 0
     while i < stub_count {
         let stub_name = host_intrinsic_stub_names::host_intrinsic_stub_name_at(i)
-        if !sig_reg_registry_has_mangled(registry, clone(stub_name)) {
-            sig_reg_register_host_entry(table, registry, clone(stub_name))
+        if !sig_reg_registry_has_mangled(registry, stub_name.clone()) {
+            sig_reg_register_host_entry(table, registry, stub_name.clone())
             missing = missing + 1
         }
         i = i + 1
@@ -27,7 +27,7 @@ fn sig_reg_registry_has_mangled(registry: SignatureRegistry, name: String) -> bo
     let count = signature_registry::signature_registry_entry_count(registry)
     let mut i = 0
     while i < count {
-        if eq(clone(name), signature_registry::signature_registry_mangled_at(registry, i)) {
+        if eq(name.clone(), signature_registry::signature_registry_mangled_at(registry, i)) {
             return true
         }
         i = i + 1
@@ -37,7 +37,7 @@ fn sig_reg_registry_has_mangled(registry: SignatureRegistry, name: String) -> bo
 
 fn sig_reg_register_host_entry(mut table: TypeTable, mut registry: SignatureRegistry, name: String) {
     let mut returns = Vec::new<MirValueType>()
-    push(returns, sig_reg_host_return_mvt(table, clone(name)))
+    push(returns, sig_reg_host_return_mvt(table, name.clone()))
     let params = Vec::new<MirValueType>()
     let receiver = mir_value_type::MirValueType_new(
         type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "void", Vec::new<TypeId>()),
@@ -46,7 +46,7 @@ fn sig_reg_register_host_entry(mut table: TypeTable, mut registry: SignatureRegi
     )
     let entry = signature_entry::SignatureEntry_new(
         function_id::FunctionId_new(0),
-        clone(name),
+        name.clone(),
         params,
         returns,
         false,
@@ -55,7 +55,7 @@ fn sig_reg_register_host_entry(mut table: TypeTable, mut registry: SignatureRegi
         0 - 1,
         0 - 1,
         kinds::ABI_KIND_HOST_INTRINSIC(),
-        core_op_binding::core_op_binding_lookup_for_mangled(clone(name))
+        core_op_binding::core_op_binding_lookup_for_mangled(name.clone())
     )
     signature_registry::signature_registry_register(registry, entry, name)
 }
@@ -63,19 +63,19 @@ fn sig_reg_register_host_entry(mut table: TypeTable, mut registry: SignatureRegi
 // Host stub return shapes used when the mangled name is absent from the
 // regular fn index. Keep names aligned with std::host surfaces.
 fn sig_reg_host_return_mvt(mut table: TypeTable, name: String) -> MirValueType {
-    if sig_reg_host_returns_bool(clone(name)) {
+    if sig_reg_host_returns_bool(name.clone()) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "bool", Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
     }
-    if eq(clone(name), String_from("clock_now")) {
+    if eq(name.clone(), String_from("clock_now")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "i64", Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
     }
-    if eq(clone(name), String_from("args")) {
+    if eq(name.clone(), String_from("args")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_VEC(), "Vec<String>", Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
-    if sig_reg_host_returns_option_string(clone(name)) {
+    if sig_reg_host_returns_option_string(name.clone()) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_OPTION(), "Option<String>", Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
@@ -85,16 +85,16 @@ fn sig_reg_host_return_mvt(mut table: TypeTable, name: String) -> MirValueType {
 }
 
 fn sig_reg_host_returns_bool(name: String) -> bool {
-    eq(clone(name), String_from("exists")) ||
-    eq(clone(name), String_from("is_file")) ||
-    eq(clone(name), String_from("is_dir")) ||
-    eq(clone(name), String_from("is_readable_file"))
+    eq(name.clone(), String_from("exists")) ||
+    eq(name.clone(), String_from("is_file")) ||
+    eq(name.clone(), String_from("is_dir")) ||
+    eq(name.clone(), String_from("is_readable_file"))
 }
 
 fn sig_reg_host_returns_option_string(name: String) -> bool {
-    eq(clone(name), String_from("arg_at")) ||
-    eq(clone(name), String_from("var")) ||
-    eq(clone(name), String_from("get_var"))
+    eq(name.clone(), String_from("arg_at")) ||
+    eq(name.clone(), String_from("var")) ||
+    eq(name.clone(), String_from("get_var"))
 }
 
 fn sig_reg_log_stub_diff(registry: SignatureRegistry, stub_count: i32) {
@@ -102,7 +102,7 @@ fn sig_reg_log_stub_diff(registry: SignatureRegistry, stub_count: i32) {
     let mut i = 0
     while i < stub_count {
         let stub_name = host_intrinsic_stub_names::host_intrinsic_stub_name_at(i)
-        if !sig_reg_registry_has_mangled(registry, clone(stub_name)) {
+        if !sig_reg_registry_has_mangled(registry, stub_name.clone()) {
             diff = diff + 1
         }
         i = i + 1

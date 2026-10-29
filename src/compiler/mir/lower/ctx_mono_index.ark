@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::mono_names
 use mir::type_contracts
 
@@ -35,7 +34,7 @@ fn ctx_set_mono_instances(mut ctx: LowerCtx, instances: Vec<MonoInstance>) {
 }
 
 fn ctx_mono_inst_insert_first(mut ctx: LowerCtx, name: String, value: i32) {
-    let slot = ctx_mono_inst_probe_slot(ctx, clone(name))
+    let slot = ctx_mono_inst_probe_slot(ctx, name.clone())
     if slot < 0 {
         return
     }

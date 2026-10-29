@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use main::kinds
 fn parse_command(name: String) -> i32 {
     let ascii_cmd = parse_ascii_core_command(name)
@@ -9,45 +8,45 @@ fn parse_command(name: String) -> i32 {
 }
 
 fn parse_ascii_core_command(name: String) -> i32 {
-    let name_len = len(clone(name))
-    if name_len == 5 && clone(name).byte_at(0) == 99 && clone(name).byte_at(1) == 104 && clone(name).byte_at(2) == 101 && clone(name).byte_at(3) == 99 && clone(name).byte_at(4) == 107 {
+    let name_len = len(name.clone())
+    if name_len == 5 && name.clone().byte_at(0) == 99 && name.clone().byte_at(1) == 104 && name.clone().byte_at(2) == 101 && name.clone().byte_at(3) == 99 && name.clone().byte_at(4) == 107 {
         return kinds::CMD_CHECK()
     }
     if name_len == 7 &&
-    clone(name).byte_at(0) == 99 &&
-    clone(name).byte_at(1) == 111 &&
-    clone(name).byte_at(2) == 109 &&
-    clone(name).byte_at(3) == 112 &&
-    clone(name).byte_at(4) == 105 &&
-    clone(name).byte_at(5) == 108 &&
-    clone(name).byte_at(6) == 101 {
+    name.clone().byte_at(0) == 99 &&
+    name.clone().byte_at(1) == 111 &&
+    name.clone().byte_at(2) == 109 &&
+    name.clone().byte_at(3) == 112 &&
+    name.clone().byte_at(4) == 105 &&
+    name.clone().byte_at(5) == 108 &&
+    name.clone().byte_at(6) == 101 {
         return kinds::CMD_COMPILE()
     }
-    if name_len == 5 && clone(name).byte_at(0) == 112 && clone(name).byte_at(1) == 97 && clone(name).byte_at(2) == 114 && clone(name).byte_at(3) == 115 && clone(name).byte_at(4) == 101 {
+    if name_len == 5 && name.clone().byte_at(0) == 112 && name.clone().byte_at(1) == 97 && name.clone().byte_at(2) == 114 && name.clone().byte_at(3) == 115 && name.clone().byte_at(4) == 101 {
         return kinds::CMD_PARSE()
     }
-    if name_len == 4 && clone(name).byte_at(0) == 104 && clone(name).byte_at(1) == 101 && clone(name).byte_at(2) == 108 && clone(name).byte_at(3) == 112 {
+    if name_len == 4 && name.clone().byte_at(0) == 104 && name.clone().byte_at(1) == 101 && name.clone().byte_at(2) == 108 && name.clone().byte_at(3) == 112 {
         return kinds::CMD_HELP()
     }
     if name_len == 7 &&
-    clone(name).byte_at(0) == 118 &&
-    clone(name).byte_at(1) == 101 &&
-    clone(name).byte_at(2) == 114 &&
-    clone(name).byte_at(3) == 115 &&
-    clone(name).byte_at(4) == 105 &&
-    clone(name).byte_at(5) == 111 &&
-    clone(name).byte_at(6) == 110 {
+    name.clone().byte_at(0) == 118 &&
+    name.clone().byte_at(1) == 101 &&
+    name.clone().byte_at(2) == 114 &&
+    name.clone().byte_at(3) == 115 &&
+    name.clone().byte_at(4) == 105 &&
+    name.clone().byte_at(5) == 111 &&
+    name.clone().byte_at(6) == 110 {
         return kinds::CMD_VERSION()
     }
     kinds::CMD_UNKNOWN()
 }
 
 fn parse_named_command(name: String) -> i32 {
-    let implemented = parse_implemented_command(clone(name))
+    let implemented = parse_implemented_command(name.clone())
     if implemented != kinds::CMD_UNKNOWN() {
         return implemented
     }
-    let service = parse_service_command(clone(name))
+    let service = parse_service_command(name.clone())
     if service != kinds::CMD_UNKNOWN() {
         return service
     }
@@ -55,68 +54,68 @@ fn parse_named_command(name: String) -> i32 {
 }
 
 fn parse_implemented_command(name: String) -> i32 {
-    if cli_str_eq(clone(name), "parse") {
+    if cli_str_eq(name.clone(), "parse") {
         return kinds::CMD_PARSE()
     }
-    if cli_str_eq(clone(name), "compile") {
+    if cli_str_eq(name.clone(), "compile") {
         return kinds::CMD_COMPILE()
     }
-    if cli_str_eq(clone(name), "check") {
+    if cli_str_eq(name.clone(), "check") {
         return kinds::CMD_CHECK()
     }
-    if cli_str_eq(clone(name), "run") {
+    if cli_str_eq(name.clone(), "run") {
         return kinds::CMD_RUN()
     }
-    if cli_str_eq(clone(name), "build") {
+    if cli_str_eq(name.clone(), "build") {
         return kinds::CMD_BUILD()
     }
-    if cli_str_eq(clone(name), "test") {
+    if cli_str_eq(name.clone(), "test") {
         return kinds::CMD_TEST()
     }
-    if cli_str_eq(clone(name), "help") {
+    if cli_str_eq(name.clone(), "help") {
         return kinds::CMD_HELP()
     }
-    if cli_str_eq(clone(name), "version") {
+    if cli_str_eq(name.clone(), "version") {
         return kinds::CMD_VERSION()
     }
-    if cli_str_eq(clone(name), "init") {
+    if cli_str_eq(name.clone(), "init") {
         return kinds::CMD_INIT()
     }
-    if cli_str_eq(clone(name), "fmt") {
+    if cli_str_eq(name.clone(), "fmt") {
         return kinds::CMD_FMT()
     }
-    if cli_str_eq(clone(name), "targets") {
+    if cli_str_eq(name.clone(), "targets") {
         return kinds::CMD_TARGETS()
     }
-    if cli_str_eq(clone(name), "script") {
+    if cli_str_eq(name.clone(), "script") {
         return kinds::CMD_SCRIPT()
     }
-    if cli_str_eq(clone(name), "component") {
+    if cli_str_eq(name.clone(), "component") {
         return kinds::CMD_COMPONENT()
     }
-    if cli_str_eq(clone(name), "lint") {
+    if cli_str_eq(name.clone(), "lint") {
         return kinds::CMD_LINT()
     }
-    if cli_str_eq(clone(name), "analyze") {
+    if cli_str_eq(name.clone(), "analyze") {
         return kinds::CMD_ANALYZE()
     }
-    if cli_str_eq(clone(name), "doc") {
+    if cli_str_eq(name.clone(), "doc") {
         return kinds::CMD_DOC()
     }
-    if cli_str_eq(clone(name), "compose") {
+    if cli_str_eq(name.clone(), "compose") {
         return kinds::CMD_COMPOSE()
     }
     kinds::CMD_UNKNOWN()
 }
 
 fn parse_service_command(name: String) -> i32 {
-    if cli_str_eq(clone(name), "lsp") {
+    if cli_str_eq(name.clone(), "lsp") {
         return kinds::CMD_LSP()
     }
-    if cli_str_eq(clone(name), "debug-adapter") {
+    if cli_str_eq(name.clone(), "debug-adapter") {
         return kinds::CMD_DAP()
     }
-    if cli_str_eq(clone(name), "ide-analyze") {
+    if cli_str_eq(name.clone(), "ide-analyze") {
         return kinds::CMD_IDE_ANALYZE()
     }
     kinds::CMD_UNKNOWN()
@@ -127,13 +126,13 @@ fn parse_reserved_command(name: String) -> i32 {
 }
 
 fn cli_str_eq(a: String, b: String) -> bool {
-    let n = len(clone(a))
-    if n != len(clone(b)) {
+    let n = len(a.clone())
+    if n != len(b.clone()) {
         return false
     }
     let mut i = 0
     while i < n {
-        if clone(a).byte_at(i) != clone(b).byte_at(i) {
+        if a.clone().byte_at(i) != b.clone().byte_at(i) {
             return false
         }
         i = i + 1

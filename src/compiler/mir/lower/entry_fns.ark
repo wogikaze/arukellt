@@ -31,20 +31,20 @@ fn mir_emit_top_level_fn_decl(
         param_count = entry_view_fn::mir_entry_fn_param_count_at(entry_view, fn_info_index, param_count)
         is_entry_main = entry_view_fn::mir_entry_fn_is_entry_main_at(entry_view, fn_info_index, is_entry_main)
     }
-    let skip_shadow_main = eq(clone(decl_name), String_from("main")) && !is_entry_main
-    let defer_stdlib_body = mir_defer_body_for_decl(clone(decl_name), entry_view, fn_info_index, param_count)
+    let skip_shadow_main = eq(decl_name.clone(), String_from("main")) && !is_entry_main
+    let defer_stdlib_body = mir_defer_body_for_decl(decl_name.clone(), entry_view, fn_info_index, param_count)
     if emit_bodies && !skip_shadow_main && !defer_stdlib_body {
         let body_input = entry_body_source::mir_entry_body_source_fn_input(body_source, decl_index, fn_info_index, body_idx)
         if ctx_corehir_probe::mir_probe_edges_enabled() != 0 {
             let probe_body = entry_body_input::mir_entry_body_input_core(body_input)
             ctx_corehir_probe::mir_probe_dump_body_calls(
-                clone(decl_name),
+                decl_name.clone(),
                 entry_core_body::mir_entry_core_body_exprs(probe_body),
                 entry_core_body::mir_entry_core_body_root(probe_body)
             )
             let fb = entry_body_input::mir_entry_body_input_fallback(body_input)
             ctx_corehir_probe::mir_probe_dump_ast_calls(
-                clone(decl_name),
+                decl_name.clone(),
                 legacy_body::mir_legacy_body_node(entry_fallback_body::mir_entry_fallback_body_legacy(fb))
             )
         }
@@ -76,10 +76,10 @@ fn mir_defer_body_for_decl(
         return false
     }
     if fn_info_index >= 0 && param_count > 0 {
-        if eq(clone(decl_name), String_from("write_bytes")) ||
-        eq(clone(decl_name), String_from("join")) {
+        if eq(decl_name.clone(), String_from("write_bytes")) ||
+        eq(decl_name.clone(), String_from("join")) {
             let param0 = entry_view_fn::mir_entry_fn_param_at(entry_view, fn_info_index, 0)
-            return stdlib_body_defer::mir_should_defer_stdlib_body_with_param0(clone(decl_name), param0)
+            return stdlib_body_defer::mir_should_defer_stdlib_body_with_param0(decl_name.clone(), param0)
         }
     }
     let qualified_name = entry_view_fn::mir_entry_fn_qualified_name_at(entry_view, fn_info_index, String_new())

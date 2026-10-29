@@ -7,24 +7,24 @@ use mir::lower::method_resolve
 // Resolve the concrete IntoIterator owner used by a `for` source. The
 // lowering runs after monomorphisation, so this is a concrete type lookup;
 // generic type variables must not be turned into guessed method names.
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 fn mir_for_into_iterator_owner(source_type: String) -> String {
-    let normalized = method_resolve::mir_normalize_type_name(clone(source_type))
+    let normalized = method_resolve::mir_normalize_type_name(source_type.clone())
     if len(normalized) == 0 || normalized.byte_at(0) == 63 {
         return String_from("")
     }
-    if loop_vec::mir_is_vec_type_name(clone(source_type)) {
-        let element_type = loop_vec::mir_vec_element_type_name(clone(source_type))
-        if eq(clone(element_type), "i32") || eq(clone(element_type), "I32") {
+    if loop_vec::mir_is_vec_type_name(source_type.clone()) {
+        let element_type = loop_vec::mir_vec_element_type_name(source_type.clone())
+        if eq(element_type.clone(), "i32") || eq(element_type.clone(), "I32") {
             return String_from("Vec")
         }
-        if eq(clone(element_type), "String") || eq(clone(element_type), "string") {
+        if eq(element_type.clone(), "String") || eq(element_type.clone(), "string") {
             return String_from("Vec_String")
         }
         return String_from("")
     }
-    let hashmap_owner = method_resolve::mir_hashmap_impl_owner_name(clone(normalized))
+    let hashmap_owner = method_resolve::mir_hashmap_impl_owner_name(normalized.clone())
     if len(hashmap_owner) > 0 {
         return hashmap_owner
     }
@@ -47,19 +47,19 @@ fn mir_for_into_iterator_type(mut ctx: LowerCtx, span_start: i32, source_type: S
 // constructor owner (`Ctor::into_iter`). The instantiated owner wins when
 // both exist because it is the more specific impl.
 fn mir_for_into_iterator_callee(mut ctx: LowerCtx, span_start: i32, source_type: String) -> String {
-    let owner = mir_for_into_iterator_owner(clone(source_type))
+    let owner = mir_for_into_iterator_owner(source_type.clone())
     if len(owner) > 0 {
         let resolved = mir_for_desugar_callee(
             ctx,
             span_start,
-            clone(owner).concat("::into_iter")
+            owner.clone().concat("::into_iter")
         )
         if len(resolved) > 0 {
             return resolved
         }
     }
     let bare = method_resolve::mir_bare_owner_name(source_type)
-    if len(bare) == 0 || eq(clone(bare), clone(owner)) {
+    if len(bare) == 0 || eq(bare.clone(), owner.clone()) {
         return String_new()
     }
     mir_for_desugar_callee(ctx, span_start, bare.concat("::into_iter"))
@@ -68,13 +68,13 @@ fn mir_for_into_iterator_callee(mut ctx: LowerCtx, span_start: i32, source_type:
 // Resolve the `next` callee for a `for` iterator with the same
 // instantiation-then-bare-owner order as `into_iter`.
 fn mir_for_next_callee(mut ctx: LowerCtx, span_start: i32, iterator_type: String) -> String {
-    let inst_next = method_resolve::mir_inst_owner_name(clone(iterator_type)).concat("::next")
-    let resolved = mir_for_desugar_callee(ctx, span_start, clone(inst_next))
+    let inst_next = method_resolve::mir_inst_owner_name(iterator_type.clone()).concat("::next")
+    let resolved = mir_for_desugar_callee(ctx, span_start, inst_next.clone())
     if len(resolved) > 0 {
         return resolved
     }
     let bare_next = method_resolve::mir_bare_owner_name(iterator_type).concat("::next")
-    if eq(clone(bare_next), clone(inst_next)) {
+    if eq(bare_next.clone(), inst_next.clone()) {
         return String_new()
     }
     mir_for_desugar_callee(ctx, span_start, bare_next)
@@ -86,21 +86,21 @@ fn mir_for_next_callee(mut ctx: LowerCtx, span_start: i32, iterator_type: String
 // recorded by the typechecker or, as a fallback, the first registered
 // name rewrite for the declared callee.
 fn mir_for_desugar_callee(mut ctx: LowerCtx, span_start: i32, declared: String) -> String {
-    let span_target = ctx_fn_mono::ctx_mono_lookup_call(ctx, span_start, clone(declared))
+    let span_target = ctx_fn_mono::ctx_mono_lookup_call(ctx, span_start, declared.clone())
     if len(span_target) > 0 {
         return span_target
     }
-    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(declared)) {
+    if ctx_fn_exists::ctx_has_fn_name(ctx, declared.clone()) {
         return declared
     }
     // Per-instantiation owner spellings (Take_VecIter::next) map to the
     // propagated parametric instance (Take__next__VecIter) by argument
     // segments; the instantiation-blind name pool only runs after that.
-    let parametric_target = method_resolve::mir_parametric_impl_callee(ctx, clone(declared))
+    let parametric_target = method_resolve::mir_parametric_impl_callee(ctx, declared.clone())
     if len(parametric_target) > 0 {
         return parametric_target
     }
-    let name_target = ctx_fn_mono::ctx_mono_lookup_name_rewrite(ctx, clone(declared))
+    let name_target = ctx_fn_mono::ctx_mono_lookup_name_rewrite(ctx, declared.clone())
     if len(name_target) > 0 {
         return name_target
     }

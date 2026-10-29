@@ -1,8 +1,7 @@
-use std::prelude::{clone}
 use std::text
 use lsp::state_record
 fn frame(body: String) -> String {
-    let header = "Content-Length: ".concat(len(clone(body)).to_string().concat("\r\n\r\n"))
+    let header = "Content-Length: ".concat(len(body.clone()).to_string().concat("\r\n\r\n"))
     header.concat(body)
 }
 

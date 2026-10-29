@@ -1,6 +1,5 @@
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{clone}
 use driver::file
 use driver::result_record
 use main::args_record
@@ -14,16 +13,16 @@ fn cmd_compile_all(opts: CliOptions) {
     let input_file = args_record::cli_input_file(opts)
     let json_mode = args_record::cli_json_output(opts)
     let mut wasm_config = compile_core::build_emit_config(opts, "wasm", true)
-    let wasm_result = file::compile_file(clone(input_file), wasm_config)
+    let wasm_result = file::compile_file(input_file.clone(), wasm_config)
     if !result_record::compile_result_success(wasm_result) {
-        compile_core::print_compile_diagnostics(clone(input_file), wasm_result, json_mode)
+        compile_core::print_compile_diagnostics(input_file.clone(), wasm_result, json_mode)
         Process::exit(1)
         return
     }
     let mut comp_config = compile_core::build_emit_config(opts, "component", false)
-    let comp_result = file::compile_file(clone(input_file), comp_config)
+    let comp_result = file::compile_file(input_file.clone(), comp_config)
     if !result_record::compile_result_success(comp_result) {
-        compile_core::print_compile_diagnostics(clone(input_file), comp_result, json_mode)
+        compile_core::print_compile_diagnostics(input_file.clone(), comp_result, json_mode)
         Process::exit(1)
         return
     }
@@ -36,6 +35,6 @@ fn cmd_compile_all(opts: CliOptions) {
         return
     }
     if json_mode {
-        stdio::println(output::format_success_json(clone(input_file), result_record::compile_result_phase_reached(comp_result), result_record::compile_result_output_byte_count(comp_result)))
+        stdio::println(output::format_success_json(input_file.clone(), result_record::compile_result_phase_reached(comp_result), result_record::compile_result_output_byte_count(comp_result)))
     }
 }

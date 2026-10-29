@@ -1,6 +1,5 @@
-use std::prelude::{clone}
 fn ctx_local_index_push(mut ctx: LowerCtx, name: String, index: i32) {
-    push(ctx.local_names, clone(name))
+    push(ctx.local_names, name.clone())
     push(ctx.local_indices, index)
     ctx_local_hash_set(ctx, name, index)
 }
@@ -10,7 +9,7 @@ fn ctx_local_index_count(ctx: LowerCtx) -> i32 {
 }
 
 fn ctx_local_index_name_at(ctx: LowerCtx, index: i32) -> String {
-    clone(get_unchecked(ctx.local_names, index))
+    get_unchecked(ctx.local_names, index).clone()
 }
 
 fn ctx_local_index_value_at(ctx: LowerCtx, index: i32) -> i32 {
@@ -62,7 +61,7 @@ fn ctx_local_hash_rebuild(mut ctx: LowerCtx) {
 }
 
 fn ctx_local_hash_set(mut ctx: LowerCtx, name: String, _value: i32) {
-    let mut slot = ctx_local_hash_probe_slot(ctx, clone(name))
+    let mut slot = ctx_local_hash_probe_slot(ctx, name.clone())
     if slot < 0 {
         ctx_local_hash_grow(ctx)
         slot = ctx_local_hash_probe_slot(ctx, name)

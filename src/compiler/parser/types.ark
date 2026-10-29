@@ -1,5 +1,5 @@
 use std::text
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use parser::core_ast_children
 use parser::core_ast_flag_fields
 use parser::core_ast_factory
@@ -62,7 +62,7 @@ fn parse_named_type(mut p: Parser, t: Token) -> AstNode {
         let seg = type_token_expect::expect_ident(p)
         type_name = type_name.concat("::".concat(token_state::Token_text(seg)))
     }
-    core_ast_factory::AstNode_leaf(kinds::NK_TYPE_NAMED(), clone(type_name), core_api_expect::tok_span(t))
+    core_ast_factory::AstNode_leaf(kinds::NK_TYPE_NAMED(), type_name.clone(), core_api_expect::tok_span(t))
 }
 
 fn parse_generic_type_args(mut p: Parser, t: Token, base: AstNode) -> AstNode {

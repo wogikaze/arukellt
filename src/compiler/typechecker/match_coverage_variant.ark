@@ -1,31 +1,31 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use typechecker::ast_access
 use typechecker::match_coverage_mark_record
 use typechecker::match_coverage_record
 fn ident_looks_like_unit_variant(pat: AstNode) -> bool {
     let pat_name = ast_access::node_text(pat)
-    eq(clone(pat_name), String_from("Some")) ||
-    eq(clone(pat_name), String_from("None")) ||
-    eq(clone(pat_name), String_from("Ok")) ||
-    eq(clone(pat_name), String_from("Err")) ||
-    clone(pat_name).ends_with(String_from("::Some")) ||
-    clone(pat_name).ends_with(String_from("::None")) ||
-    clone(pat_name).ends_with(String_from("::Ok")) ||
-    clone(pat_name).ends_with(String_from("::Err"))
+    eq(pat_name.clone(), String_from("Some")) ||
+    eq(pat_name.clone(), String_from("None")) ||
+    eq(pat_name.clone(), String_from("Ok")) ||
+    eq(pat_name.clone(), String_from("Err")) ||
+    pat_name.clone().ends_with(String_from("::Some")) ||
+    pat_name.clone().ends_with(String_from("::None")) ||
+    pat_name.clone().ends_with(String_from("::Ok")) ||
+    pat_name.clone().ends_with(String_from("::Err"))
 }
 
 fn record_variant_pattern(mut coverage: MatchCoverage, pat: AstNode) {
     let pat_name = ast_access::node_text(pat)
-    if eq(clone(pat_name), String_from("Some")) || clone(pat_name).ends_with(String_from("::Some")) {
+    if eq(pat_name.clone(), String_from("Some")) || pat_name.clone().ends_with(String_from("::Some")) {
         match_coverage_mark_record::match_coverage_mark_option_some(coverage)
     }
-    if eq(clone(pat_name), String_from("None")) || clone(pat_name).ends_with(String_from("::None")) {
+    if eq(pat_name.clone(), String_from("None")) || pat_name.clone().ends_with(String_from("::None")) {
         match_coverage_mark_record::match_coverage_mark_option_none(coverage)
     }
-    if eq(clone(pat_name), String_from("Ok")) || clone(pat_name).ends_with(String_from("::Ok")) {
+    if eq(pat_name.clone(), String_from("Ok")) || pat_name.clone().ends_with(String_from("::Ok")) {
         match_coverage_mark_record::match_coverage_mark_result_ok(coverage)
     }
-    if eq(clone(pat_name), String_from("Err")) || clone(pat_name).ends_with(String_from("::Err")) {
+    if eq(pat_name.clone(), String_from("Err")) || pat_name.clone().ends_with(String_from("::Err")) {
         match_coverage_mark_record::match_coverage_mark_result_err(coverage)
     }
     match_coverage_mark_record::match_coverage_push_variant(coverage, variant_base_name(pat_name))

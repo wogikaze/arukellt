@@ -81,5 +81,5 @@ impl Clone for String {
 test mod "clone" {
     test "i32" { let x: i32 = 7; assert(x.clone() == 7) }
     test "bool" { assert(true.clone() == true) }
-    test "str" { assert(eq(clone("ok"), "ok")) }
+    test "str" { assert(eq("ok".clone(), "ok")) }
 }

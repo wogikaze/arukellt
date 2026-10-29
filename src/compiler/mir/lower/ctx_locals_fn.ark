@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::function_return_view
 use mir::function_return_mutation
 use mir::function_param_mutation
@@ -26,7 +26,7 @@ fn ctx_set_func_param_type(mut ctx: LowerCtx, param_ordinal: i32, pvt: i32, type
         if param_ordinal < function_locals_view::MirFunction_local_count(f) {
             let local = function_locals_view::MirFunction_local_at(f, param_ordinal)
             let mut typed = local_mutation::MirLocal_copy_with_val_type(local, pvt)
-            let mut updated = local_mutation::MirLocal_copy_with_type_name(typed, clone(type_name))
+            let mut updated = local_mutation::MirLocal_copy_with_type_name(typed, type_name.clone())
             function_local_mutation::MirFunction_set_local(f, param_ordinal, updated)
         }
         ctx_current_storage::ctx_set_current_func_value(ctx, f)
@@ -62,11 +62,11 @@ fn ctx_set_current_return_type_name(mut ctx: LowerCtx, type_name: String) {
     function_return_mutation::MirFunction_set_return_type_name(f, type_name)
     ctx_current_storage::ctx_set_current_func_value(ctx, f)
     // TYPE_FN ann becomes name "fnref" (often TY_STRUCT); align VT with param ABI (#832).
-    if eq(clone(type_name), "fnref") ||
-    clone(type_name).starts_with("fnref") ||
-    clone(type_name).starts_with(String_from("fnsig:")) ||
-    eq(clone(type_name), "fn") ||
-    clone(type_name).starts_with("fn(") {
+    if eq(type_name.clone(), "fnref") ||
+    type_name.clone().starts_with("fnref") ||
+    type_name.clone().starts_with(String_from("fnsig:")) ||
+    eq(type_name.clone(), "fn") ||
+    type_name.clone().starts_with("fn(") {
         ctx_set_current_return_type(ctx, value_types::VT_FUNCREF())
     }
 }

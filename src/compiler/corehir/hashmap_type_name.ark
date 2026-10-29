@@ -2,33 +2,33 @@
 // MirValueType encoding. Kept free of TypeInfo/TypeTable so type_ann_* can
 // call it without pulling the typed-spine overlay into annotation lowering.
 
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 fn hashmap_type_alias(k_name: String, v_name: String) -> String {
-    if eq(clone(k_name), "String") && eq(clone(v_name), "i32") {
+    if eq(k_name.clone(), "String") && eq(v_name.clone(), "i32") {
         return "si32"
     }
-    if eq(clone(k_name), "i32") && eq(clone(v_name), "String") {
+    if eq(k_name.clone(), "i32") && eq(v_name.clone(), "String") {
         return "i32str"
     }
-    if eq(clone(k_name), "String") && eq(clone(v_name), "String") {
+    if eq(k_name.clone(), "String") && eq(v_name.clone(), "String") {
         return "strstr"
     }
-    if eq(clone(k_name), "i32") && eq(clone(v_name), "i32") {
+    if eq(k_name.clone(), "i32") && eq(v_name.clone(), "i32") {
         return "i32i32"
     }
     // TYPE_FN ann text is "fnref" (#831); also accept bare fn / fn(...).
-    if eq(clone(k_name), "i32") && (
-        eq(clone(v_name), "fnref") ||
-        eq(clone(v_name), "fn") ||
-        clone(v_name).starts_with("fn(")
+    if eq(k_name.clone(), "i32") && (
+        eq(v_name.clone(), "fnref") ||
+        eq(v_name.clone(), "fn") ||
+        v_name.clone().starts_with("fn(")
     ) {
         return "i32fn"
     }
-    if eq(clone(k_name), "String") && (
-        eq(clone(v_name), "fnref") ||
-        eq(clone(v_name), "fn") ||
-        clone(v_name).starts_with("fn(")
+    if eq(k_name.clone(), "String") && (
+        eq(v_name.clone(), "fnref") ||
+        eq(v_name.clone(), "fn") ||
+        v_name.clone().starts_with("fn(")
     ) {
         return "strfn"
     }

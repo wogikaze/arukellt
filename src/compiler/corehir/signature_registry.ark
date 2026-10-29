@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use corehir::kinds
 use corehir::mir_value_type
 use corehir::signature_entry
@@ -28,7 +27,7 @@ fn signature_registry_entry_count(registry: SignatureRegistry) -> i32 {
 }
 
 fn signature_registry_register(mut registry: SignatureRegistry, entry: SignatureEntry, mangled_name: String) -> FunctionId {
-    name_index::name_index_insert_first(registry.mangled_to_id, clone(mangled_name), registry.next_id)
+    name_index::name_index_insert_first(registry.mangled_to_id, mangled_name.clone(), registry.next_id)
     push(registry.entries, entry)
     push(registry.id_to_mangled, mangled_name)
     push(registry.signature_only, false)
@@ -106,7 +105,7 @@ fn signature_registry_register_core_op_alias(
     )
     let entry = signature_entry::SignatureEntry_new(
         FunctionId_new(0),
-        clone(alias),
+        alias.clone(),
         Vec::new<MirValueType>(),
         Vec::new<MirValueType>(),
         false,
@@ -117,7 +116,7 @@ fn signature_registry_register_core_op_alias(
         kinds::ABI_KIND_CORE_OP_ALIAS(),
         coid
     )
-    let id = signature_registry_register(registry, entry, clone(alias))
+    let id = signature_registry_register(registry, entry, alias.clone())
     // An alias can already point at a normal entry with a different CoreOp
     // identity (e.g. bare min_i32 versus seq::min_i32).  insert_first keeps
     // the old mapping, so explicitly rebind this alias to the synthetic

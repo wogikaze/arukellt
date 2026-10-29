@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 struct CoreHirExpr {
     kind: i32,
     text: String,
@@ -27,7 +26,7 @@ fn corehir_expr_kind(expr: CoreHirExpr) -> i32 {
 }
 
 fn corehir_expr_text(expr: CoreHirExpr) -> String {
-    clone(expr.text)
+    expr.text.clone()
 }
 
 fn corehir_expr_int_val(expr: CoreHirExpr) -> i32 {
@@ -43,7 +42,7 @@ fn corehir_expr_val_type(expr: CoreHirExpr) -> i32 {
 }
 
 fn corehir_expr_type_name(expr: CoreHirExpr) -> String {
-    clone(expr.type_name)
+    expr.type_name.clone()
 }
 
 // Lowering consumes each body exactly once. Clear the payload after its final

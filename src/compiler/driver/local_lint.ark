@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use collections::vec_extend
 use compiler::phases
 use driver::config_record
@@ -15,7 +14,7 @@ fn local_filter_allowed(warnings: Vec<Diagnostic>, allow_codes: Vec<String>) -> 
     while i < count {
         let diag = get_unchecked(warnings, i)
         let code = diag_record::diagnostic_code(diag)
-        if lint_registry::should_suppress(clone(code), allow_codes) {
+        if lint_registry::should_suppress(code.clone(), allow_codes) {
             i = i + 1
             continue
         }
@@ -35,7 +34,7 @@ fn local_partition_deny(warnings: Vec<Diagnostic>, deny_codes: Vec<String>, mut 
     while i < count {
         let diag = get_unchecked(warnings, i)
         let code = diag_record::diagnostic_code(diag)
-        if lint_registry::should_deny(clone(code), deny_codes) {
+        if lint_registry::should_deny(code.clone(), deny_codes) {
             push(denied, local_escalate(diag))
         } else {
             push(kept, diag)
@@ -60,10 +59,10 @@ pub fn run_local_lint_stage(source: String, config: DriverConfig, decls: Vec<Ast
         let mut all = Vec::new<Diagnostic>()
         vec_extend::Vec_extend_Diagnostic(all, denied)
         vec_extend::Vec_extend_Diagnostic(all, kept)
-        return errors::type_errors_result(clone(source), config_record::config_source_file(config), len(denied), all, Vec::new<String>())
+        return errors::type_errors_result(source.clone(), config_record::config_source_file(config), len(denied), all, Vec::new<String>())
     }
     if len(kept) > 0 {
-        return errors::type_warnings_result(clone(source), config_record::config_source_file(config), kept)
+        return errors::type_warnings_result(source.clone(), config_record::config_source_file(config), kept)
     }
     result_record::CompileResult_ok(phases::PHASE_PARSE())
 }

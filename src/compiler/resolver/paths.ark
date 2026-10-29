@@ -1,14 +1,13 @@
-use std::prelude::{clone}
 fn path_module_part(path: String) -> String {
-    let pos = clone(path).index_of("::")
+    let pos = path.clone().index_of("::")
     if pos < 0 {
-        return clone(path)
+        return path.clone()
     }
     path.slice(0, pos)
 }
 
 fn path_symbol_part(path: String) -> String {
-    let pos = clone(path).index_of("::")
+    let pos = path.clone().index_of("::")
     if pos < 0 {
         return String_new()
     }
@@ -27,7 +26,7 @@ fn use_module_short_name(path: String) -> String {
         i = i - 1
     }
     if last_sep < 0 {
-        clone(path)
+        path.clone()
     } else {
         path.slice(last_sep + 2, n)
     }

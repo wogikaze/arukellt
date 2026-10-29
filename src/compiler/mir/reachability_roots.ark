@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::reachability_names
 use mir::reachability_index
 use mir::types
@@ -48,7 +47,7 @@ fn mir_mark_roots(
             functions,
             reachable,
             queue,
-            clone(get_unchecked(extra_roots, ei))
+            get_unchecked(extra_roots, ei).clone()
         ) {
             root_count = root_count + 1
         }

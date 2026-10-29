@@ -1689,14 +1689,14 @@ def render_compiler_target_contract(state: dict) -> str:
     ]
     for target in canonical:
         lines.extend([
-            f'    if eq(clone(input), "{_ark_string(target)}") {{',
+            f'    if eq(input.clone(), "{_ark_string(target)}") {{',
             "        return true",
             "    }",
         ])
     lines.extend(["    false", "}", "", "fn target_alias_policy(input: String) -> String {"])
     for alias in aliases:
         lines.extend([
-            f'    if eq(clone(input), "{_ark_string(alias["input"])}") {{',
+            f'    if eq(input.clone(), "{_ark_string(alias["input"])}") {{',
             f'        return "{_ark_string(alias["policy"])}"',
             "    }",
         ])
@@ -1704,7 +1704,7 @@ def render_compiler_target_contract(state: dict) -> str:
     for alias in aliases:
         if alias["policy"] == "warning":
             lines.extend([
-                f'    if eq(clone(input), "{_ark_string(alias["input"])}") {{',
+                f'    if eq(input.clone(), "{_ark_string(alias["input"])}") {{',
                 f'        return "{_ark_string(alias["canonical_target"])}"',
                 "    }",
             ])
@@ -1713,7 +1713,7 @@ def render_compiler_target_contract(state: dict) -> str:
         host = profile.get("default_host_profile")
         if host:
             lines.extend([
-                f'    if eq(clone(input), "{_ark_string(profile["id"])}") {{',
+                f'    if eq(input.clone(), "{_ark_string(profile["id"])}") {{',
                 f'        return "{_ark_string(host)}"',
                 "    }",
             ])
@@ -1721,7 +1721,7 @@ def render_compiler_target_contract(state: dict) -> str:
     for alias in aliases:
         if alias["policy"] == "warning":
             lines.extend([
-                f'    if eq(clone(input), "{_ark_string(alias["input"])}") {{',
+                f'    if eq(input.clone(), "{_ark_string(alias["input"])}") {{',
                 f'        return "{_ark_string(alias["host_profile"])}"',
                 "    }",
             ])
@@ -1732,7 +1732,7 @@ def render_compiler_target_contract(state: dict) -> str:
         else:
             message = f'target `{alias["input"]}` is not accepted; {alias["replacement"]}'
         lines.extend([
-            f'    if eq(clone(input), "{_ark_string(alias["input"])}") {{',
+            f'    if eq(input.clone(), "{_ark_string(alias["input"])}") {{',
             f'        return "{_ark_string(message)}"',
             "    }",
         ])
@@ -1741,31 +1741,31 @@ def render_compiler_target_contract(state: dict) -> str:
         target_id = _ark_string(profile["id"])
         display = _ark_string(profile.get("display", profile.get("role", "")))
         lines.extend([
-            f'    if eq(clone(input), "{target_id}") {{',
+            f'    if eq(input.clone(), "{target_id}") {{',
             f'        return "  {target_id}  {display}"',
             "    }",
         ])
     lines.extend(["    String_new()", "}", "", "fn target_gc_availability(input: String) -> String {"])
     for profile in state.get("target_profiles", []):
         lines.extend([
-            f'    if eq(clone(input), String_from("{_ark_string(profile["id"])}")) {{',
+            f'    if eq(input.clone(), String_from("{_ark_string(profile["id"])}")) {{',
             f'        return String_from("{_ark_string(profile["gc_availability"])}")',
             "    }",
         ])
     lines.extend(["    String_new()", "}", "", "fn target_default_memory_width(input: String) -> String {"])
     for profile in state.get("target_profiles", []):
         lines.extend([
-            f'    if eq(clone(input), String_from("{_ark_string(profile["id"])}")) {{',
+            f'    if eq(input.clone(), String_from("{_ark_string(profile["id"])}")) {{',
             f'        return String_from("{_ark_string(profile["default_memory_width"])}")',
             "    }",
         ])
     lines.extend(["    String_new()", "}", "", "fn target_allows_memory_width(target: String, width: String) -> bool {"])
     for profile in state.get("target_profiles", []):
         target_id = _ark_string(profile["id"])
-        lines.append(f'    if eq(clone(target), String_from("{target_id}")) {{')
+        lines.append(f'    if eq(target.clone(), String_from("{target_id}")) {{')
         for width in profile.get("allowed_memory_widths", []):
             lines.extend([
-                f'        if eq(clone(width), String_from("{_ark_string(width)}")) {{',
+                f'        if eq(width.clone(), String_from("{_ark_string(width)}")) {{',
                 "            return true",
                 "        }",
             ])
@@ -1774,7 +1774,7 @@ def render_compiler_target_contract(state: dict) -> str:
     for profile in state.get("target_profiles", []):
         allowed = ", ".join(profile.get("allowed_memory_widths", []))
         lines.extend([
-            f'    if eq(clone(input), String_from("{_ark_string(profile["id"])}")) {{',
+            f'    if eq(input.clone(), String_from("{_ark_string(profile["id"])}")) {{',
             f'        return String_from("{_ark_string(allowed)}")',
             "    }",
         ])
@@ -1782,7 +1782,7 @@ def render_compiler_target_contract(state: dict) -> str:
     for profile in state.get("host_profiles", []):
         for target in profile.get("supported_targets", []):
             lines.extend([
-                f'    if eq(clone(target), String_from("{_ark_string(target)}")) && eq(clone(host), String_from("{_ark_string(profile["id"])}")) {{',
+                f'    if eq(target.clone(), String_from("{_ark_string(target)}")) && eq(host.clone(), String_from("{_ark_string(profile["id"])}")) {{',
                 "        return true",
                 "    }",
             ])
@@ -1790,24 +1790,24 @@ def render_compiler_target_contract(state: dict) -> str:
     for profile in state.get("target_profiles", []):
         supported = "true" if profile.get("run_supported") else "false"
         lines.extend([
-            f'    if eq(clone(input), String_from("{_ark_string(profile["id"])}")) {{',
+            f'    if eq(input.clone(), String_from("{_ark_string(profile["id"])}")) {{',
             f"        return {supported}",
             "    }",
         ])
     lines.extend(["    false", "}", "", "fn target_default_emit_kind(input: String) -> String {"])
     for profile in state.get("target_profiles", []):
         lines.extend([
-            f'    if eq(clone(input), String_from("{_ark_string(profile["id"])}")) {{',
+            f'    if eq(input.clone(), String_from("{_ark_string(profile["id"])}")) {{',
             f'        return String_from("{_ark_string(profile["default_emit_kind"])}")',
             "    }",
         ])
     lines.extend(['    String_from("wasm")', "}", "", "fn target_allows_emit_kind(target: String, emit_kind: String) -> bool {"])
     for profile in state.get("target_profiles", []):
         target_id = _ark_string(profile["id"])
-        lines.append(f'    if eq(clone(target), String_from("{target_id}")) {{')
+        lines.append(f'    if eq(target.clone(), String_from("{target_id}")) {{')
         for kind in profile.get("allowed_emit_kinds", []):
             lines.extend([
-                f'        if eq(clone(emit_kind), String_from("{_ark_string(kind)}")) {{',
+                f'        if eq(emit_kind.clone(), String_from("{_ark_string(kind)}")) {{',
                 "            return true",
                 "        }",
             ])
@@ -1816,7 +1816,7 @@ def render_compiler_target_contract(state: dict) -> str:
     for profile in state.get("target_profiles", []):
         allowed = ", ".join(profile.get("allowed_emit_kinds", []))
         lines.extend([
-            f'    if eq(clone(input), String_from("{_ark_string(profile["id"])}")) {{',
+            f'    if eq(input.clone(), String_from("{_ark_string(profile["id"])}")) {{',
             f'        return String_from("{_ark_string(allowed)}")',
             "    }",
         ])

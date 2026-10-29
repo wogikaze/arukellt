@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::expr_factory
 use corehir::expr_builder_calls
@@ -52,14 +52,14 @@ fn corehir_build_call_expr(mut table: CoreHirBodyTable, node: AstNode) -> i32 {
 
 fn corehir_direct_call_callee_name(callee: AstNode) -> String {
     let callee_name = expr_node_access::expr_text(callee)
-    if eq(clone(callee_name), "HashMap::new") {
+    if eq(callee_name.clone(), "HashMap::new") {
         return corehir_hashmap_constructor_name(callee, String_from("new"))
     }
-    if eq(clone(callee_name), "HashMap::with_capacity") {
+    if eq(callee_name.clone(), "HashMap::with_capacity") {
         return corehir_hashmap_constructor_name(callee, String_from("with_capacity"))
     }
-    if !eq(clone(callee_name), "Vec::new") &&
-    !eq(clone(callee_name), "Vec::with_capacity") {
+    if !eq(callee_name.clone(), "Vec::new") &&
+    !eq(callee_name.clone(), "Vec::with_capacity") {
         return callee_name
     }
     if expr_node_access::expr_child_count(callee) < 2 {
@@ -70,7 +70,7 @@ fn corehir_direct_call_callee_name(callee: AstNode) -> String {
     // constructor suffix fnref anyway so vec:fnref reaches the result
     // local instead of the i32 specialization fallback (#874).
     if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(element_type)) {
-        if eq(clone(callee_name), "Vec::new") {
+        if eq(callee_name.clone(), "Vec::new") {
             return String_from("Vec__new__fnref")
         }
         return String_from("Vec__with_capacity__fnref")
@@ -79,10 +79,10 @@ fn corehir_direct_call_callee_name(callee: AstNode) -> String {
         return callee_name
     }
     let element_name = type_ann_node::type_ann_name(element_type)
-    if len(element_name) == 0 || clone(element_name).contains("::") {
+    if len(element_name) == 0 || element_name.clone().contains("::") {
         return callee_name
     }
-    let constructor = if eq(clone(callee_name), "Vec::new") {
+    let constructor = if eq(callee_name.clone(), "Vec::new") {
         "Vec__new__"
     } else {
         "Vec__with_capacity__"
@@ -91,7 +91,7 @@ fn corehir_direct_call_callee_name(callee: AstNode) -> String {
 }
 
 fn corehir_hashmap_constructor_name(callee: AstNode, ctor_name: String) -> String {
-    let source_name = String_from("HashMap::").concat(clone(ctor_name))
+    let source_name = String_from("HashMap::").concat(ctor_name.clone())
     if expr_node_access::expr_child_count(callee) < 3 {
         return source_name
     }
@@ -100,7 +100,7 @@ fn corehir_hashmap_constructor_name(callee: AstNode, ctor_name: String) -> Strin
     let key_name = corehir_hashmap_ctor_type_arg_name(key_node)
     let value_name = corehir_hashmap_ctor_type_arg_name(value_node)
     if len(key_name) == 0 || len(value_name) == 0 ||
-    clone(key_name).contains("::") || clone(value_name).contains("::") {
+    key_name.clone().contains("::") || value_name.clone().contains("::") {
         return source_name
     }
     let pair = String_from("__").concat(key_name.concat(String_from("__").concat(value_name)))

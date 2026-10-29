@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use typechecker::contract_fn_sig
 use typechecker::contract_type_param_bounds
@@ -57,7 +57,7 @@ fn type_satisfies_trait_bound_at_depth(
         if !type_satisfies_trait_bound_at_depth(
             env,
             resolved_ty,
-            type_names::resolve_type_name(clone(super_name)),
+            type_names::resolve_type_name(super_name.clone()),
             depth + 1
         ) {
             return false
@@ -78,8 +78,8 @@ fn env_type_var_has_trait_bound(env: TypeEnv, type_param_name: String, trait_nam
         let param = get_unchecked(env.current_fn_bounds, i)
         if eq(
             contract_type_param_bounds::TypeParamBounds_name(param),
-            clone(type_param_name)
-        ) && type_param_bounds_has_trait(param, clone(trait_name)) {
+            type_param_name.clone()
+        ) && type_param_bounds_has_trait(param, trait_name.clone()) {
             return true
         }
         i = i + 1
@@ -92,7 +92,7 @@ fn type_param_bounds_has_trait(param: TypeParamBounds, trait_name: String) -> bo
     let mut i = 0
     while i < count {
         let bound = contract_type_param_bounds::TypeParamBounds_bound_at(param, i)
-        if names::same_type_name(contract_type_access::TypeInfo_name(bound), clone(trait_name)) {
+        if names::same_type_name(contract_type_access::TypeInfo_name(bound), trait_name.clone()) {
             return true
         }
         i = i + 1
@@ -105,7 +105,7 @@ fn trait_info_for_name(env: TypeEnv, trait_name: String) -> TraitInfo {
     let mut i = 0
     while i < count {
         let info = get_unchecked(env.trait_defs, i)
-        if names::same_type_name(contract_trait_info::trait_info_name(info), clone(trait_name)) {
+        if names::same_type_name(contract_trait_info::trait_info_name(info), trait_name.clone()) {
             return info
         }
         i = i + 1
@@ -155,7 +155,7 @@ fn trait_impl_matches_at_depth(
         return false
     }
     let self_ty = contract_trait_impl::TraitImplInfo_self_ty(impl_info)
-    if !type_matches_pattern(clone(self_ty), resolved_ty) {
+    if !type_matches_pattern(self_ty.clone(), resolved_ty) {
         return false
     }
     if !type_args_match(
@@ -164,7 +164,7 @@ fn trait_impl_matches_at_depth(
     ) {
         return false
     }
-    impl_bounds_satisfied(env, impl_info, clone(self_ty), resolved_ty, depth)
+    impl_bounds_satisfied(env, impl_info, self_ty.clone(), resolved_ty, depth)
 }
 
 // ADR-078 §3: a parametric impl that matches a concrete instantiation must
@@ -184,8 +184,8 @@ fn impl_bounds_satisfied(
     while i < count {
         let param = get_unchecked(bounds, i)
         let actual = match_impl_param(
-            clone(self_pattern),
-            clone(resolved_ty),
+            self_pattern.clone(),
+            resolved_ty.clone(),
             contract_type_param_bounds::TypeParamBounds_name(param)
         )
         if contract_type_access::TypeInfo_tag(actual) == commands::TY_UNKNOWN() {
@@ -196,7 +196,7 @@ fn impl_bounds_satisfied(
         while j < bound_count {
             if !type_satisfies_trait_bound_at_depth(
                 env,
-                clone(actual),
+                actual.clone(),
                 contract_type_param_bounds::TypeParamBounds_bound_at(param, j),
                 depth + 1
             ) {
@@ -214,7 +214,7 @@ fn impl_bounds_satisfied(
 // parameter does not occur in the pattern.
 fn match_impl_param(pattern: TypeInfo, actual: TypeInfo, param_name: String) -> TypeInfo {
     if contract_type_access::TypeInfo_tag(pattern) == commands::TY_TYPE_VAR() {
-        if eq(contract_type_access::TypeInfo_name(pattern), clone(param_name)) {
+        if eq(contract_type_access::TypeInfo_name(pattern), param_name.clone()) {
             return actual
         }
         return type_names::type_info_simple(commands::TY_UNKNOWN())
@@ -237,7 +237,7 @@ fn match_impl_param(pattern: TypeInfo, actual: TypeInfo, param_name: String) -> 
         let found = match_impl_param(
             contract_type_access::TypeInfo_type_arg_at(pattern, i),
             contract_type_access::TypeInfo_type_arg_at(actual, i),
-            clone(param_name)
+            param_name.clone()
         )
         if contract_type_access::TypeInfo_tag(found) != commands::TY_UNKNOWN() {
             return found

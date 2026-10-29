@@ -1,9 +1,8 @@
-use std::prelude::{clone}
 use main::args_record
 pub fn parse_lint_allow_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        args_record::cli_add_lint_allow(opts, clone(get_unchecked(argv, next)))
+        args_record::cli_add_lint_allow(opts, get_unchecked(argv, next).clone())
     } else {
         args_record::cli_set_error(opts, "--allow requires a rule name or code")
     }
@@ -13,7 +12,7 @@ pub fn parse_lint_allow_option(argv: Vec<String>, argc: i32, mut opts: CliOption
 pub fn parse_lint_deny_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        args_record::cli_add_lint_deny(opts, clone(get_unchecked(argv, next)))
+        args_record::cli_add_lint_deny(opts, get_unchecked(argv, next).clone())
     } else {
         args_record::cli_set_error(opts, "--deny requires a rule name or code")
     }

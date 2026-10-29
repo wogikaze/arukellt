@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use lsp::kinds
 use lsp::state_record
 use lsp::symbol_index_record
@@ -21,7 +21,7 @@ pub fn index_definition_found(def: IndexDefinition) -> bool {
 }
 
 pub fn index_definition_uri(def: IndexDefinition) -> String {
-    clone(def.uri)
+    def.uri.clone()
 }
 
 pub fn index_definition_decl_start(def: IndexDefinition) -> i32 {
@@ -33,11 +33,11 @@ pub fn index_definition_decl_end(def: IndexDefinition) -> i32 {
 }
 
 pub fn index_definition_detail(def: IndexDefinition) -> String {
-    clone(def.detail)
+    def.detail.clone()
 }
 
 pub fn index_definition_doc(def: IndexDefinition) -> String {
-    clone(def.doc)
+    def.doc.clone()
 }
 
 pub fn lookup_definition(state: LspState, name: String) -> IndexDefinition {
@@ -46,7 +46,7 @@ pub fn lookup_definition(state: LspState, name: String) -> IndexDefinition {
     let mut i = 0
     while i < n {
         let sym = get_unchecked(symbols, i)
-        if eq(symbol_index_record::indexed_symbol_name(sym), clone(name)) {
+        if eq(symbol_index_record::indexed_symbol_name(sym), name.clone()) {
             return IndexDefinition {
                 found: true,
                 uri: symbol_index_record::indexed_symbol_uri(sym),
@@ -63,12 +63,12 @@ pub fn lookup_definition(state: LspState, name: String) -> IndexDefinition {
     let mut j = 0
     while j < sn {
         let sym = get_unchecked(stdlib, j)
-        if eq(symbol_index_record::stdlib_indexed_symbol_name(sym), clone(name)) {
+        if eq(symbol_index_record::stdlib_indexed_symbol_name(sym), name.clone()) {
             let source_uri = symbol_index_record::stdlib_indexed_symbol_source_uri(sym)
             let mut decl_start = symbol_index_record::stdlib_indexed_symbol_decl_start(sym)
             let mut decl_end = symbol_index_record::stdlib_indexed_symbol_decl_end(sym)
             if len(source_uri) > 0 {
-                let span = symbol_index_stdlib_spans::lookup_stdlib_source_span(clone(source_uri), clone(name))
+                let span = symbol_index_stdlib_spans::lookup_stdlib_source_span(source_uri.clone(), name.clone())
                 if symbol_index_stdlib_spans::source_span_found(span) {
                     decl_start = symbol_index_stdlib_spans::source_span_start(span)
                     decl_end = symbol_index_stdlib_spans::source_span_end(span)
@@ -94,7 +94,7 @@ pub fn lookup_type_definition(state: LspState, name: String) -> IndexDefinition 
     let mut i = 0
     while i < n {
         let sym = get_unchecked(symbols, i)
-        if eq(symbol_index_record::indexed_symbol_name(sym), clone(name)) {
+        if eq(symbol_index_record::indexed_symbol_name(sym), name.clone()) {
             let kind = symbol_index_record::indexed_symbol_kind(sym)
             if kind == kinds::LSP_SYMBOL_STRUCT() || kind == kinds::LSP_SYMBOL_ENUM() {
                 return IndexDefinition {

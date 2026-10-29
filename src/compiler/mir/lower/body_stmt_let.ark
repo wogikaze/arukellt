@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ast_node
 use mir::lower::ann_types
 use mir::lower::ctx_api_local_alloc
@@ -9,7 +9,7 @@ use mir::lower::value_variants
 use mir::lower_kinds
 fn lower_let_stmt(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let binding_name = ast_node::node_text(node)
-    if eq(clone(binding_name), "__tuple_destructure") {
+    if eq(binding_name.clone(), "__tuple_destructure") {
         stmt_let_tuple::lower_tuple_destructure_let(ctx, node)
         return 0 - 1
     }
@@ -23,7 +23,7 @@ fn lower_let_stmt(mut ctx: LowerCtx, node: AstNode) -> i32 {
         // A `Pair<String>` annotation is the expected instantiation for a
         // struct literal init; literals otherwise infer it from field
         // value types. Saved/restored so nested initializers cannot leak it.
-        let saved_expected = clone(ctx.expected_struct_inst)
+        let saved_expected = ctx.expected_struct_inst.clone()
         let ta_count = ast_node::node_type_ann_count(node)
         if ta_count >= 1 {
             let shaped = ann_types::mir_local_type_name_from_ann(
@@ -58,7 +58,7 @@ fn mir_let_init_is_fn_value(ctx: LowerCtx, node: AstNode, init: AstNode) -> bool
         return false
     }
     let init_name = ast_node::node_text(init)
-    if ctx_api_local_alloc::ctx_lookup_local(ctx, clone(init_name)) >= 0 {
+    if ctx_api_local_alloc::ctx_lookup_local(ctx, init_name.clone()) >= 0 {
         return false
     }
     ctx_fn_index::ctx_fn_index_find(ctx, init_name) >= 0

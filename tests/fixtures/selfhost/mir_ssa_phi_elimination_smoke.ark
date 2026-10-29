@@ -1,6 +1,5 @@
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{clone}
 use std::text
 struct PhiArg {
     pred_block: i32,
@@ -71,15 +70,15 @@ fn format_phi(phi: Phi) -> String {
     let arg0 = get_unchecked(phi.args, 0)
     let arg1 = get_unchecked(phi.args, 1)
     let mut out = String_from("phi ")
-    out = out.concat(format_ssa_value(clone(phi.ssa_name), phi.dest_version))
+    out = out.concat(format_ssa_value(phi.ssa_name.clone(), phi.dest_version))
     out = out.concat(String_from(" = [bb"))
     out = out.concat(arg0.pred_block.to_string())
     out = out.concat(String_from(" -> "))
-    out = out.concat(format_ssa_value(clone(phi.ssa_name), arg0.version))
+    out = out.concat(format_ssa_value(phi.ssa_name.clone(), arg0.version))
     out = out.concat(String_from(", bb"))
     out = out.concat(arg1.pred_block.to_string())
     out = out.concat(String_from(" -> "))
-    out = out.concat(format_ssa_value(clone(phi.ssa_name), arg1.version))
+    out = out.concat(format_ssa_value(phi.ssa_name.clone(), arg1.version))
     out = out.concat(String_from("] : i32"))
     out
 }

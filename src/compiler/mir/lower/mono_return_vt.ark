@@ -5,7 +5,7 @@
 // Call-time mangled-name reverse lookup is forbidden (#843); spine /
 // MonoInstanceTable is the source of truth.
 
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::mono_return_vt_table
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_fn_return_type
@@ -18,15 +18,15 @@ use corehir::signature_entry
 use corehir::signature_registry
 use corehir::type_info_to_mir_value
 fn mono_return_vt(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
-    let mono_id = mono_return_vt_registry_mono_id(ctx, clone(name))
+    let mono_id = mono_return_vt_registry_mono_id(ctx, name.clone())
     let table_vt = mono_return_vt_table::mono_return_vt_from_instance_table(ctx, mono_id)
     if table_vt >= 0 {
         // Prefer concrete spine / fn_index names over spine VT placeholders
         // left from generic T (add_any__f64 must not keep an i64 spine VT).
-        let base_rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(name))
-        let rtn = mono_return_type_name(ctx, clone(name), base_rtn)
+        let base_rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, name.clone())
+        let rtn = mono_return_type_name(ctx, name.clone(), base_rtn)
         if len(rtn) > 0 &&
-        !mono_suffix_parse::is_mono_type_var_name(clone(rtn)) {
+        !mono_suffix_parse::is_mono_type_var_name(rtn.clone()) {
             let resolved_vt = fn_index_method_return_type::method_return_vt_from_type_name(rtn)
             if resolved_vt == value_types::VT_GC_REF() || resolved_vt == value_types::VT_REF() {
                 return resolved_vt
@@ -46,7 +46,7 @@ fn mono_return_vt(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
 }
 
 fn mono_return_mvt(ctx: LowerCtx, callee_name: String) -> MirValueType {
-    let mono_id = mono_return_vt_registry_mono_id(ctx, clone(callee_name))
+    let mono_id = mono_return_vt_registry_mono_id(ctx, callee_name.clone())
     mono_return_vt_table::mono_return_mvt_from_instance_table(ctx, mono_id)
 }
 
@@ -94,22 +94,22 @@ fn short_name_after_last_double_colon(name: String) -> String {
 fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> String {
     // Spine first (#843). Build-time registration already concretes mono
     // returns via MonoInstanceTable; call-time must not parse mangled suffixes.
-    let mono_id = mono_return_vt_registry_mono_id(ctx, clone(name))
+    let mono_id = mono_return_vt_registry_mono_id(ctx, name.clone())
     let spine_name = mono_return_vt_table::mono_return_type_name_from_instance_table(ctx, mono_id, String_new())
-    if is_concrete_mono_return_type_name(clone(spine_name)) {
+    if is_concrete_mono_return_type_name(spine_name.clone()) {
         return spine_name
     }
-    let registry_name = mono_return_type_name_from_registry(ctx, clone(name))
+    let registry_name = mono_return_type_name_from_registry(ctx, name.clone())
     if len(registry_name) > 0 {
         return registry_name
     }
-    if is_concrete_mono_return_type_name(clone(fallback_name)) {
+    if is_concrete_mono_return_type_name(fallback_name.clone()) {
         return fallback_name
     }
     if len(fallback_name) > 0 &&
-    !mono_suffix_parse::is_mono_type_var_name(clone(fallback_name)) &&
-    !clone(fallback_name).starts_with("?") &&
-    !is_container_mono_return_type_name(clone(fallback_name)) {
+    !mono_suffix_parse::is_mono_type_var_name(fallback_name.clone()) &&
+    !fallback_name.clone().starts_with("?") &&
+    !is_container_mono_return_type_name(fallback_name.clone()) {
         return fallback_name
     }
     fallback_name
@@ -133,17 +133,17 @@ fn mono_return_type_name_from_registry(ctx: LowerCtx, name: String) -> String {
 }
 
 fn is_container_mono_return_type_name(type_name: String) -> bool {
-    clone(type_name).starts_with("vec:") ||
-    clone(type_name).starts_with("option:") ||
-    clone(type_name).starts_with("Option") ||
-    clone(type_name).starts_with("result:") ||
-    clone(type_name).starts_with("Result") ||
-    clone(type_name).starts_with("hashmap:") ||
-    clone(type_name).starts_with("HashMap")
+    type_name.clone().starts_with("vec:") ||
+    type_name.clone().starts_with("option:") ||
+    type_name.clone().starts_with("Option") ||
+    type_name.clone().starts_with("result:") ||
+    type_name.clone().starts_with("Result") ||
+    type_name.clone().starts_with("hashmap:") ||
+    type_name.clone().starts_with("HashMap")
 }
 
 fn mono_resolve_return_type_name(ctx: LowerCtx, name: String) -> String {
-    let base_rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(name))
+    let base_rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, name.clone())
     mono_return_type_name(ctx, name, base_rtn)
 }
 
@@ -151,33 +151,33 @@ fn is_concrete_mono_return_type_name(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if clone(type_name).starts_with("?") {
+    if type_name.clone().starts_with("?") {
         return false
     }
-    if clone(type_name).starts_with("struct:") {
+    if type_name.clone().starts_with("struct:") {
         return true
     }
-    if clone(type_name).starts_with("vec:") {
-        return !type_name_has_type_var_suffix(clone(type_name))
+    if type_name.clone().starts_with("vec:") {
+        return !type_name_has_type_var_suffix(type_name.clone())
     }
-    if clone(type_name).starts_with("option:") {
-        return !type_name_has_type_var_suffix(clone(type_name))
+    if type_name.clone().starts_with("option:") {
+        return !type_name_has_type_var_suffix(type_name.clone())
     }
-    if clone(type_name).starts_with("hashmap:") {
+    if type_name.clone().starts_with("hashmap:") {
         return true
     }
-    if eq(clone(type_name), "i32") ||
-    eq(clone(type_name), "i64") ||
-    eq(clone(type_name), "f64") ||
-    eq(clone(type_name), "f32") ||
-    eq(clone(type_name), "bool") ||
-    eq(clone(type_name), "char") ||
-    eq(clone(type_name), "String") ||
-    eq(clone(type_name), "string") {
+    if eq(type_name.clone(), "i32") ||
+    eq(type_name.clone(), "i64") ||
+    eq(type_name.clone(), "f64") ||
+    eq(type_name.clone(), "f32") ||
+    eq(type_name.clone(), "bool") ||
+    eq(type_name.clone(), "char") ||
+    eq(type_name.clone(), "String") ||
+    eq(type_name.clone(), "string") {
         return true
     }
     // Bare user struct names from MonoInstance TypeTable entries (Point).
-    if !mono_suffix_parse::is_mono_type_var_name(clone(type_name)) {
+    if !mono_suffix_parse::is_mono_type_var_name(type_name.clone()) {
         let first = type_name.byte_at(0)
         if first >= 65 && first <= 90 {
             return true

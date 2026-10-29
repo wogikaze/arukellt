@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::kinds
 use corehir::function_id
@@ -49,7 +49,7 @@ fn sig_reg_register_fn(
     let receiver = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
     let entry = signature_entry::SignatureEntry_new(
         function_id::FunctionId_new(0),
-        clone(mangled),
+        mangled.clone(),
         params,
         returns,
         false,
@@ -87,8 +87,8 @@ fn sig_reg_register_fn_leaf_instance(
         sig_source,
         fn_info_index,
         table,
-        clone(inst_mangled),
-        clone(mono_instances)
+        inst_mangled.clone(),
+        mono_instances.clone()
     )
     let mut returns = Vec::new<MirValueType>()
     let mut return_vt = fn_index_source::mir_fn_index_source_typed_return_vt(source, typed_index)
@@ -118,7 +118,7 @@ fn sig_reg_register_fn_leaf_instance(
     let receiver = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
     let entry = signature_entry::SignatureEntry_new(
         function_id::FunctionId_new(0),
-        clone(decl_name),
+        decl_name.clone(),
         params,
         returns,
         false,
@@ -143,25 +143,25 @@ fn sig_reg_register_method(
     impl_decl_index: i32
 ) {
     let mono_instances = fn_index_source::mir_fn_index_source_mono_instances(source)
-    let params = sig_reg_params_from_method_info(sig_source, method_info_index, table, clone(mangled), mono_instances)
+    let params = sig_reg_params_from_method_info(sig_source, method_info_index, table, mangled.clone(), mono_instances)
     let mut returns = Vec::new<MirValueType>()
     let mrvt_name = fn_index_source::mir_fn_index_source_method_return_type_name_at(source, method_info_index, "")
     let mut return_vt = fn_index_source::mir_fn_index_source_method_return_vt_at(source, method_info_index, 1)
-    let mut return_type_name = clone(mrvt_name)
+    let mut return_type_name = mrvt_name.clone()
     // Monomorphized method instances (Pair__get_first__String) must register
     // the substituted return so call sites see String, not the T template.
     // Plain method registrations carry no mono suffix and keep the declared
     // return untouched.
-    let generic_return_ty = fn_index_method_return_type::method_return_type_info_from_name(clone(mrvt_name))
-    let concrete_ret = fn_index_mono::mir_mono_concrete_return_type(mono_instances, clone(mangled), generic_return_ty)
+    let generic_return_ty = fn_index_method_return_type::method_return_type_info_from_name(mrvt_name.clone())
+    let concrete_ret = fn_index_mono::mir_mono_concrete_return_type(mono_instances, mangled.clone(), generic_return_ty)
     if type_contracts::TypeInfo_tag(concrete_ret) != 0 {
         return_vt = return_typeinfo::mir_return_vt_from_type_info(concrete_ret)
         return_type_name = return_typeinfo::mir_return_type_name_from_type_info(concrete_ret)
     } else {
-        let concrete = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(clone(mangled), clone(mrvt_name))
+        let concrete = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(mangled.clone(), mrvt_name.clone())
         if len(concrete) > 0 {
             return_type_name = concrete
-            return_vt = fn_index_method_return_type::method_return_vt_from_type_name(clone(return_type_name))
+            return_vt = fn_index_method_return_type::method_return_vt_from_type_name(return_type_name.clone())
         }
     }
     push(returns, type_info_to_mir_value::vt_to_mir_value(table, return_vt, return_type_name))
@@ -169,7 +169,7 @@ fn sig_reg_register_method(
         mono_table,
         table,
         mono_instances,
-        clone(mangled),
+        mangled.clone(),
         params,
         returns
     )
@@ -177,7 +177,7 @@ fn sig_reg_register_method(
     let trait_id = mir_signature_method::mir_signature_method_trait_id_at(sig_source, method_info_index)
     let entry = signature_entry::SignatureEntry_new(
         function_id::FunctionId_new(0),
-        clone(mangled),
+        mangled.clone(),
         params,
         returns,
         true,
@@ -217,20 +217,20 @@ fn sig_reg_params_from_fn_info_mono(
             type_name = local_name
         }
         if len(mangled) > 0 {
-            type_name = sig_reg_subst_mono_param_type_name(clone(type_name), clone(mangled), mono_instances, type_params)
+            type_name = sig_reg_subst_mono_param_type_name(type_name.clone(), mangled.clone(), mono_instances, type_params)
         }
-        if clone(type_name).starts_with(String_from("hashmap:")) ||
-        clone(type_name).starts_with(String_from("?HashMap:")) {
-            type_name = sig_reg_mono_hashmap_param_alias(type_name, clone(mangled), mono_instances)
+        if type_name.clone().starts_with(String_from("hashmap:")) ||
+        type_name.clone().starts_with(String_from("?HashMap:")) {
+            type_name = sig_reg_mono_hashmap_param_alias(type_name, mangled.clone(), mono_instances)
         }
         let mut vt = param::param_value_type(p)
-        if clone(type_name).starts_with("vec:") ||
-        clone(type_name).starts_with("option:") ||
-        clone(type_name).starts_with("struct:") {
+        if type_name.clone().starts_with("vec:") ||
+        type_name.clone().starts_with("option:") ||
+        type_name.clone().starts_with("struct:") {
             vt = value_types::VT_GC_REF()
-        } else if !mono_suffix_parse::is_mono_type_var_name(clone(type_name)) &&
+        } else if !mono_suffix_parse::is_mono_type_var_name(type_name.clone()) &&
             len(type_name) > 0 {
-                vt = fn_index_method_return_type::method_return_vt_from_type_name(clone(type_name))
+                vt = fn_index_method_return_type::method_return_vt_from_type_name(type_name.clone())
             }
             push(result, type_info_to_mir_value::vt_to_mir_value(table, vt, type_name))
             pi = pi + 1
@@ -244,7 +244,7 @@ fn sig_reg_params_from_fn_info_mono(
         mono_instances: Vec<MonoInstance>,
         type_params: Vec<String>
     ) -> String {
-        let suffix = mono_suffix_parse::extract_mono_suffix(clone(mangled))
+        let suffix = mono_suffix_parse::extract_mono_suffix(mangled.clone())
         if len(suffix) == 0 {
             // Mangle keys that is_valid_mono_type_key rejects: fn(A) -> R
             // flattens to fn_<params>_<ret>_ with lowercase + underscores,
@@ -252,30 +252,30 @@ fn sig_reg_params_from_fn_info_mono(
             // Vec<fn(i32) -> i32> params spell vec:fnref (#874).
             return sig_reg_subst_via_mono_instance(type_name, mangled, mono_instances, type_params)
         }
-        if clone(type_name).starts_with("vec:") {
-            let elem = clone(type_name).slice(4, len(type_name))
-            if !mono_suffix_parse::is_mono_type_var_name(clone(elem)) {
+        if type_name.clone().starts_with("vec:") {
+            let elem = type_name.clone().slice(4, len(type_name))
+            if !mono_suffix_parse::is_mono_type_var_name(elem.clone()) {
                 return type_name
             }
-            let concrete = sig_reg_resolve_mono_type_key(clone(elem), clone(suffix), type_params)
+            let concrete = sig_reg_resolve_mono_type_key(elem.clone(), suffix.clone(), type_params)
             if len(concrete) == 0 {
                 return type_name
             }
             return "vec:".concat(concrete)
         }
-        if clone(type_name).starts_with("option:") {
-            let elem = clone(type_name).slice(7, len(type_name))
-            if !mono_suffix_parse::is_mono_type_var_name(clone(elem)) {
+        if type_name.clone().starts_with("option:") {
+            let elem = type_name.clone().slice(7, len(type_name))
+            if !mono_suffix_parse::is_mono_type_var_name(elem.clone()) {
                 return type_name
             }
-            let concrete = sig_reg_resolve_mono_type_key(clone(elem), clone(suffix), type_params)
+            let concrete = sig_reg_resolve_mono_type_key(elem.clone(), suffix.clone(), type_params)
             if len(concrete) == 0 {
                 return type_name
             }
             return "option:".concat(concrete)
         }
-        if mono_suffix_parse::is_mono_type_var_name(clone(type_name)) {
-            let concrete = sig_reg_resolve_mono_type_key(clone(type_name), clone(suffix), type_params)
+        if mono_suffix_parse::is_mono_type_var_name(type_name.clone()) {
+            let concrete = sig_reg_resolve_mono_type_key(type_name.clone(), suffix.clone(), type_params)
             if len(concrete) > 0 {
                 return concrete
             }
@@ -284,10 +284,10 @@ fn sig_reg_params_from_fn_info_mono(
     }
 
     fn sig_reg_resolve_mono_type_key(type_var: String, mono_suffix: String, type_params: Vec<String>) -> String {
-        if clone(mono_suffix).starts_with("Vec") {
+        if mono_suffix.clone().starts_with("Vec") {
             return mono_suffix
         }
-        let keys = mono_suffix_parse::split_mono_suffix(clone(mono_suffix))
+        let keys = mono_suffix_parse::split_mono_suffix(mono_suffix.clone())
         let key_count = len(keys)
         if key_count <= 0 {
             return String_new()
@@ -295,7 +295,7 @@ fn sig_reg_params_from_fn_info_mono(
         if key_count == 1 {
             return get_unchecked(keys, 0)
         }
-        let idx = mono_suffix_parse::mono_type_var_index(clone(type_var), type_params)
+        let idx = mono_suffix_parse::mono_type_var_index(type_var.clone(), type_params)
         if idx >= 0 && idx < key_count {
             return get_unchecked(keys, idx)
         }
@@ -317,34 +317,34 @@ fn sig_reg_params_from_fn_info_mono(
         if len(type_name) == 0 || len(mangled) == 0 || len(mono_instances) == 0 {
             return type_name
         }
-        let inst = mono_instance_build::mono_find_instance(mono_instances, clone(mangled))
+        let inst = mono_instance_build::mono_find_instance(mono_instances, mangled.clone())
         if type_contracts::MonoInstance_type_arg_count(inst) <= 0 {
             return type_name
         }
-        if clone(type_name).starts_with("vec:") {
-            let elem = clone(type_name).slice(4, len(type_name))
-            if !mono_suffix_parse::is_mono_type_var_name(clone(elem)) {
+        if type_name.clone().starts_with("vec:") {
+            let elem = type_name.clone().slice(4, len(type_name))
+            if !mono_suffix_parse::is_mono_type_var_name(elem.clone()) {
                 return type_name
             }
-            let key = sig_reg_mono_instance_arg_key(inst, clone(elem), type_params)
+            let key = sig_reg_mono_instance_arg_key(inst, elem.clone(), type_params)
             if len(key) > 0 {
                 return "vec:".concat(key)
             }
             return type_name
         }
-        if clone(type_name).starts_with("option:") {
-            let elem = clone(type_name).slice(7, len(type_name))
-            if !mono_suffix_parse::is_mono_type_var_name(clone(elem)) {
+        if type_name.clone().starts_with("option:") {
+            let elem = type_name.clone().slice(7, len(type_name))
+            if !mono_suffix_parse::is_mono_type_var_name(elem.clone()) {
                 return type_name
             }
-            let key = sig_reg_mono_instance_arg_key(inst, clone(elem), type_params)
+            let key = sig_reg_mono_instance_arg_key(inst, elem.clone(), type_params)
             if len(key) > 0 {
                 return "option:".concat(key)
             }
             return type_name
         }
-        if mono_suffix_parse::is_mono_type_var_name(clone(type_name)) {
-            let key = sig_reg_mono_instance_arg_key(inst, clone(type_name), type_params)
+        if mono_suffix_parse::is_mono_type_var_name(type_name.clone()) {
+            let key = sig_reg_mono_instance_arg_key(inst, type_name.clone(), type_params)
             if len(key) > 0 {
                 return key
             }
@@ -353,7 +353,7 @@ fn sig_reg_params_from_fn_info_mono(
     }
 
     fn sig_reg_mono_instance_arg_key(inst: MonoInstance, type_var: String, type_params: Vec<String>) -> String {
-        let idx = mono_suffix_parse::mono_type_var_index(clone(type_var), type_params)
+        let idx = mono_suffix_parse::mono_type_var_index(type_var.clone(), type_params)
         if idx < 0 || idx >= type_contracts::MonoInstance_type_arg_count(inst) {
             return String_new()
         }
@@ -389,19 +389,19 @@ fn sig_reg_params_from_fn_info_mono(
                 type_name = local_name
             }
             if len(mangled) > 0 {
-                type_name = sig_reg_subst_mono_param_type_name(clone(type_name), clone(mangled), mono_instances, type_params)
+                type_name = sig_reg_subst_mono_param_type_name(type_name.clone(), mangled.clone(), mono_instances, type_params)
             }
-            if clone(type_name).starts_with(String_from("hashmap:")) {
-                type_name = sig_reg_mono_hashmap_param_alias(type_name, clone(mangled), mono_instances)
+            if type_name.clone().starts_with(String_from("hashmap:")) {
+                type_name = sig_reg_mono_hashmap_param_alias(type_name, mangled.clone(), mono_instances)
             }
-            let is_container = clone(type_name).starts_with("vec:") ||
-            clone(type_name).starts_with("option:") ||
-            clone(type_name).starts_with("struct:")
+            let is_container = type_name.clone().starts_with("vec:") ||
+            type_name.clone().starts_with("option:") ||
+            type_name.clone().starts_with("struct:")
             let mut vt = param::param_value_type(p)
             if is_container {
                 vt = value_types::VT_GC_REF()
-            } else if len(type_name) > 0 && !mono_suffix_parse::is_mono_type_var_name(clone(type_name)) {
-                vt = fn_index_method_return_type::method_return_vt_from_type_name(clone(type_name))
+            } else if len(type_name) > 0 && !mono_suffix_parse::is_mono_type_var_name(type_name.clone()) {
+                vt = fn_index_method_return_type::method_return_vt_from_type_name(type_name.clone())
             }
             push(result, type_info_to_mir_value::vt_to_mir_value(table, vt, type_name))
             pi = pi + 1
@@ -416,22 +416,22 @@ fn sig_reg_params_from_fn_info_mono(
     // signatures the mangled suffix cannot) and rebuild the canonical
     // hashmap:<pair> alias (#691).
     fn sig_reg_mono_hashmap_param_alias(type_name: String, mangled: String, mono_instances: Vec<MonoInstance>) -> String {
-        let args = if clone(type_name).starts_with(String_from("?HashMap:")) {
-            clone(type_name).slice(9, len(type_name))
+        let args = if type_name.clone().starts_with(String_from("?HashMap:")) {
+            type_name.clone().slice(9, len(type_name))
         } else {
-            clone(type_name).slice(8, len(type_name))
+            type_name.clone().slice(8, len(type_name))
         }
-        let colon = clone(args).index_of(String_from(":"))
+        let colon = args.clone().index_of(String_from(":"))
         if colon < 0 {
             return type_name
         }
-        let key_seg = clone(args).slice(0, colon)
-        let val_seg = clone(args).slice(colon + 1, len(args))
-        if !mono_suffix_parse::is_mono_type_var_name(clone(key_seg)) &&
-        !mono_suffix_parse::is_mono_type_var_name(clone(val_seg)) {
+        let key_seg = args.clone().slice(0, colon)
+        let val_seg = args.clone().slice(colon + 1, len(args))
+        if !mono_suffix_parse::is_mono_type_var_name(key_seg.clone()) &&
+        !mono_suffix_parse::is_mono_type_var_name(val_seg.clone()) {
             return type_name
         }
-        let inst = mono_instance_build::mono_find_instance(mono_instances, clone(mangled))
+        let inst = mono_instance_build::mono_find_instance(mono_instances, mangled.clone())
         if type_contracts::MonoInstance_type_arg_count(inst) < 2 {
             return type_name
         }
@@ -456,7 +456,7 @@ fn sig_reg_params_from_fn_info_mono(
     // `HashMap<K,V>` annotation lists impl parameters in declaration order,
     // so segment position and argument position agree (#691).
     fn sig_reg_hashmap_seg_type_info(seg: String, inst: MonoInstance, ordinal: i32) -> TypeInfo {
-        if mono_suffix_parse::is_mono_type_var_name(clone(seg)) {
+        if mono_suffix_parse::is_mono_type_var_name(seg.clone()) {
             if ordinal >= 0 && ordinal < type_contracts::MonoInstance_type_arg_count(inst) {
                 return type_contracts::MonoInstance_type_arg_at(inst, ordinal)
             }
@@ -466,18 +466,18 @@ fn sig_reg_params_from_fn_info_mono(
     }
 
     fn sig_reg_hashmap_concrete_seg_type_info(seg: String) -> TypeInfo {
-        if eq(clone(seg), String_from("i32")) {
+        if eq(seg.clone(), String_from("i32")) {
             return type_contracts::TypeInfo_simple(lower_kinds::TY_I32())
         }
-        if eq(clone(seg), String_from("String")) || eq(clone(seg), String_from("string")) {
+        if eq(seg.clone(), String_from("String")) || eq(seg.clone(), String_from("string")) {
             return type_contracts::TypeInfo_simple(lower_kinds::TY_STRING())
         }
-        if eq(clone(seg), String_from("fn")) ||
-        eq(clone(seg), String_from("fnref")) ||
-        clone(seg).starts_with(String_from("fn(")) ||
-        clone(seg).starts_with(String_from("fn<")) ||
-        clone(seg).starts_with(String_from("fnsig:")) ||
-        clone(seg).starts_with(String_from("fn_")) {
+        if eq(seg.clone(), String_from("fn")) ||
+        eq(seg.clone(), String_from("fnref")) ||
+        seg.clone().starts_with(String_from("fn(")) ||
+        seg.clone().starts_with(String_from("fn<")) ||
+        seg.clone().starts_with(String_from("fnsig:")) ||
+        seg.clone().starts_with(String_from("fn_")) {
             return type_contracts::TypeInfo_new(lower_kinds::TY_STRUCT(), String_from("fnref"), Vec::new<TypeInfo>())
         }
         type_contracts::TypeInfo_simple(lower_kinds::TY_TYPE_VAR())

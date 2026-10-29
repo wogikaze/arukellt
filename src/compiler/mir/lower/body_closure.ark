@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ast_node
 use mir::lower::closure_free
 use mir::lower::closure_capture_args
@@ -24,7 +24,7 @@ fn mir_emit_closure_fn(mut ctx: LowerCtx, synth: String, clos: AstNode, caps: Ve
     let child_count = ast_node::node_child_count(clos)
     let body = ast_node::node_child_at(clos, child_count - 1)
     body_closure_params::mir_emit_closure_params(ctx, clos, child_count)
-    body_closure_capture::mir_emit_closure_captures(ctx, caps, cap_vts, cap_types, rebind_flags, closure_env::closure_env_type_name(clone(synth)))
+    body_closure_capture::mir_emit_closure_captures(ctx, caps, cap_vts, cap_types, rebind_flags, closure_env::closure_env_type_name(synth.clone()))
     let res = body_closure_return::mir_emit_closure_return(ctx, body)
     let mut fret = ctx_api_local_frame::ctx_current_function(ctx)
     closure_return_type::mir_set_closure_return_from_local(ctx, fret, res)
@@ -66,14 +66,14 @@ fn lower_closure_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
         // the source place, so the cell promotion applies regardless of
         // this frame's move prefix (#900).
         if eff != 0 && (is_move == 0 ||
-            !closure_free::closure_caps_contain(direct_caps, clone(get_unchecked(caps, pi)))) &&
-        closure_pcells::ctx_promote_capture_cell(ctx, clone(get_unchecked(caps, pi))) >= 0 {
+            !closure_free::closure_caps_contain(direct_caps, get_unchecked(caps, pi).clone())) &&
+        closure_pcells::ctx_promote_capture_cell(ctx, get_unchecked(caps, pi).clone()) >= 0 {
             eff = 0
         }
         push(eff_rebinds, eff)
         pi = pi + 1
     }
-    let supply_caps = body_closure_capture::mir_closure_snapshot_copy_captures(ctx, caps, clone(synth))
+    let supply_caps = body_closure_capture::mir_closure_snapshot_copy_captures(ctx, caps, synth.clone())
     let packed = closure_capture_args::closure_pack_caps(supply_caps)
     let extra = len(caps)
     let mut mf = mir_emit_closure_fn(ctx, synth, node, caps, eff_rebinds)

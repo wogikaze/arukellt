@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::function_locals_view
 use mir::function_param_view
 use mir::function_local_mutation
@@ -14,7 +13,7 @@ fn ctx_set_local_type(mut ctx: LowerCtx, local_idx: i32, type_name: String) {
     if local_idx >= 0 && local_idx < function_locals_view::MirFunction_local_count(func) {
         let mut f = func
         let mut loc = function_locals_view::MirFunction_local_at(f, local_idx)
-        let mut new_loc = local_mutation::MirLocal_copy_with_type_name(loc, clone(type_name))
+        let mut new_loc = local_mutation::MirLocal_copy_with_type_name(loc, type_name.clone())
         function_local_mutation::MirFunction_set_local(f, local_idx, new_loc)
         ctx_current_storage::ctx_set_current_func_value(ctx, f)
     }

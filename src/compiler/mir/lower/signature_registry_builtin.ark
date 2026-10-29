@@ -3,7 +3,6 @@
 // Emit resolves their return GC types via SignatureRegistry → TypeId /
 // type_name → GcLayoutTable (#842), not emit-time name→wasm-type tables.
 
-use std::prelude::{clone}
 use corehir::kinds
 use corehir::function_id
 use corehir::mir_value_type
@@ -36,8 +35,8 @@ fn sig_reg_register_builtin_named(
     let mut i = 0
     while i < len(names) {
         let name = get_unchecked(names, i)
-        if !signature_registry_host::sig_reg_registry_has_mangled(registry, clone(name)) {
-            sig_reg_register_builtin_entry(table, registry, clone(name), mir_value_type::mir_value_type_copy(ret))
+        if !signature_registry_host::sig_reg_registry_has_mangled(registry, name.clone()) {
+            sig_reg_register_builtin_entry(table, registry, name.clone(), mir_value_type::mir_value_type_copy(ret))
             added = added + 1
         }
         i = i + 1
@@ -61,7 +60,7 @@ fn sig_reg_register_builtin_entry(
     )
     let entry = signature_entry::SignatureEntry_new(
         function_id::FunctionId_new(0),
-        clone(name),
+        name.clone(),
         params,
         returns,
         false,
@@ -70,7 +69,7 @@ fn sig_reg_register_builtin_entry(
         0 - 1,
         0 - 1,
         kinds::ABI_KIND_BUILTIN(),
-        core_op_binding::core_op_binding_lookup_for_mangled(clone(name))
+        core_op_binding::core_op_binding_lookup_for_mangled(name.clone())
     )
     signature_registry::signature_registry_register(registry, entry, name)
 }

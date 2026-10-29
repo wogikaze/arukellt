@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use wasm::constants
 use wasm::ctx_record
@@ -34,7 +34,7 @@ fn emit_gc_local_enum_like(mut body: WasmWriter, f: MirFunction, local_idx: i32,
     let is_variant_constructor_dest = code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx, ctx)
     if variant_slot >= 0 &&
     is_variant_constructor_dest &&
-    !local_has_container_type_name(clone(type_name)) {
+    !local_has_container_type_name(type_name.clone()) {
         let variant_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
         if variant_gc >= 0 {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
@@ -42,22 +42,22 @@ fn emit_gc_local_enum_like(mut body: WasmWriter, f: MirFunction, local_idx: i32,
             return true
         }
     }
-    if clone(type_name).starts_with("enum:") ||
-    clone(type_name).starts_with("option:") ||
-    clone(type_name).starts_with("Option_") ||
-    clone(type_name).starts_with("Option:") ||
-    clone(type_name).starts_with("Option<") ||
-    clone(type_name).starts_with("result:") ||
-    clone(type_name).starts_with("Result_") ||
-    clone(type_name).starts_with("Result:") ||
-    clone(type_name).starts_with("Result<") {
+    if type_name.clone().starts_with("enum:") ||
+    type_name.clone().starts_with("option:") ||
+    type_name.clone().starts_with("Option_") ||
+    type_name.clone().starts_with("Option:") ||
+    type_name.clone().starts_with("Option<") ||
+    type_name.clone().starts_with("result:") ||
+    type_name.clone().starts_with("Result_") ||
+    type_name.clone().starts_with("Result:") ||
+    type_name.clone().starts_with("Result<") {
         emit_gc_enum_open_local(body, ctx)
         return true
     }
     // 'Head<Args>' enum instantiations (e.g. Box<WitType>): the head names a
     // registered enum so the local is the open-enum ref, not the VT_GC_REF
     // fallback's i8-array default (#860).
-    if local_type_name_is_enum_instance(clone(type_name), ctx) {
+    if local_type_name_is_enum_instance(type_name.clone(), ctx) {
         emit_gc_enum_open_local(body, ctx)
         return true
     }
@@ -89,8 +89,8 @@ fn local_type_name_is_enum_instance(type_name: String, ctx: SelfEmitCtx) -> bool
     let mut vi = 0
     while vi < len(names) {
         let variant = get_unchecked(names, vi)
-        if clone(variant).starts_with(clone(head).concat(String_from("::"))) ||
-        clone(variant).contains(String_from("::").concat(clone(head).concat(String_from("::")))) {
+        if variant.clone().starts_with(head.clone().concat(String_from("::"))) ||
+        variant.clone().contains(String_from("::").concat(head.clone().concat(String_from("::")))) {
             return true
         }
         vi = vi + 1
@@ -101,56 +101,56 @@ fn enum_payload_type_name(type_name: String) -> bool {
     if len(type_name) <= 5 {
         return false
     }
-    if !clone(type_name).starts_with("enum:") {
+    if !type_name.clone().starts_with("enum:") {
         return false
     }
-    if eq(clone(type_name), "enum:open") {
+    if eq(type_name.clone(), "enum:open") {
         return false
     }
     true
 }
 fn local_has_result_option_enum_type_name(type_name: String) -> bool {
-    eq(clone(type_name), "Option") ||
-    eq(clone(type_name), "Result") ||
-    clone(type_name).starts_with(String_from("enum:")) ||
-    clone(type_name).starts_with(String_from("option:")) ||
-    clone(type_name).starts_with(String_from("Option_")) ||
-    clone(type_name).starts_with(String_from("Option:")) ||
-    clone(type_name).starts_with(String_from("Option<")) ||
-    clone(type_name).starts_with(String_from("result:")) ||
-    clone(type_name).starts_with(String_from("Result_")) ||
-    clone(type_name).starts_with(String_from("Result:")) ||
-    clone(type_name).starts_with(String_from("Result<"))
+    eq(type_name.clone(), "Option") ||
+    eq(type_name.clone(), "Result") ||
+    type_name.clone().starts_with(String_from("enum:")) ||
+    type_name.clone().starts_with(String_from("option:")) ||
+    type_name.clone().starts_with(String_from("Option_")) ||
+    type_name.clone().starts_with(String_from("Option:")) ||
+    type_name.clone().starts_with(String_from("Option<")) ||
+    type_name.clone().starts_with(String_from("result:")) ||
+    type_name.clone().starts_with(String_from("Result_")) ||
+    type_name.clone().starts_with(String_from("Result:")) ||
+    type_name.clone().starts_with(String_from("Result<"))
 }
 
 fn local_has_container_type_name(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if clone(type_name).starts_with("vec:") || clone(type_name).starts_with("hashmap:") || clone(type_name).starts_with("struct:") {
+    if type_name.clone().starts_with("vec:") || type_name.clone().starts_with("hashmap:") || type_name.clone().starts_with("struct:") {
         return true
     }
-    if eq(clone(type_name), "string") || eq(clone(type_name), "String") {
+    if eq(type_name.clone(), "string") || eq(type_name.clone(), "String") {
         return true
     }
     false
 }
 // GC-target local val type for hashmap/string/inferred types.
 fn emit_gc_local_named_type(mut body: WasmWriter, type_name: String, vt: i32, f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
-    if clone(type_name).starts_with("hashmap:") {
+    if type_name.clone().starts_with("hashmap:") {
         if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx) {
             // Local is reused for i32 — skip ref type, try inference fallback.
         } else {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            if clone(type_name).starts_with("hashmap:i32str") {
+            if type_name.clone().starts_with("hashmap:i32str") {
                 writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx))
-            } else if clone(type_name).starts_with("hashmap:i32fn") {
+            } else if type_name.clone().starts_with("hashmap:i32fn") {
                 writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_i32_fn_type(ctx))
-            } else if clone(type_name).starts_with("hashmap:strfn") {
+            } else if type_name.clone().starts_with("hashmap:strfn") {
                 writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_str_fn_type(ctx))
-            } else if clone(type_name).starts_with("hashmap:strstr") {
+            } else if type_name.clone().starts_with("hashmap:strstr") {
                 writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx))
-            } else if clone(type_name).starts_with("hashmap:i32i32") {
+            } else if type_name.clone().starts_with("hashmap:i32i32") {
                 writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
             } else {
                 writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
@@ -158,7 +158,7 @@ fn emit_gc_local_named_type(mut body: WasmWriter, type_name: String, vt: i32, f:
             return true
         }
     }
-    if eq(clone(type_name), "string") || eq(clone(type_name), "String") {
+    if eq(type_name.clone(), "string") || eq(type_name.clone(), "String") {
         if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx) {
             // Local is reused for i32 — skip ref type, try inference fallback.
         } else {
@@ -174,18 +174,18 @@ fn emit_gc_local_named_type(mut body: WasmWriter, type_name: String, vt: i32, f:
 }
 // GC-target local val type for struct:/raw struct names, with inference fallback.
 fn emit_gc_local_struct_type(mut body: WasmWriter, type_name: String, vt: i32, f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
-    if eq(clone(type_name), "HashMap") ||
-    eq(clone(type_name), "HashSet") ||
-    clone(type_name).starts_with("struct:HashMap:") ||
-    clone(type_name).starts_with("struct:HashSet:") {
+    if eq(type_name.clone(), "HashMap") ||
+    eq(type_name.clone(), "HashSet") ||
+    type_name.clone().starts_with("struct:HashMap:") ||
+    type_name.clone().starts_with("struct:HashSet:") {
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
         return true
     }
-    if clone(type_name).starts_with("struct:") {
-        let struct_name = extract_struct_name_from_type_name(clone(type_name))
-        if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
-            let named_gc = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
+    if type_name.clone().starts_with("struct:") {
+        let struct_name = extract_struct_name_from_type_name(type_name.clone())
+        if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
+            let named_gc = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, struct_name.clone())
             // Declared type_name / value_type is authoritative (#843). Stale
             // reuse must be fixed in post_pass, not by emit-time infer (#808).
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
@@ -193,7 +193,7 @@ fn emit_gc_local_struct_type(mut body: WasmWriter, type_name: String, vt: i32, f
             return true
         }
         // Fallback for structs without ref fields: extract byte_size and map to GC struct type index.
-        let byte_size = extract_struct_byte_size(clone(type_name))
+        let byte_size = extract_struct_byte_size(type_name.clone())
         if byte_size > 0 {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
             writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size))
@@ -201,8 +201,8 @@ fn emit_gc_local_struct_type(mut body: WasmWriter, type_name: String, vt: i32, f
         }
     }
     // Check raw struct name (without "struct:" prefix) as gc_struct.
-    if len(type_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(type_name)) {
-        let struct_gc = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(type_name))
+    if len(type_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, type_name.clone()) {
+        let struct_gc = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, type_name.clone())
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(body, struct_gc)
         return true
@@ -211,7 +211,7 @@ fn emit_gc_local_struct_type(mut body: WasmWriter, type_name: String, vt: i32, f
     // lookup below is authoritative; the remaining name handling is limited to
     // fixed compatibility classes and struct byte-size diagnostics.
     if len(type_name) > 0 {
-        let byte_size = lookup_struct_byte_size(f, clone(type_name), ctx)
+        let byte_size = lookup_struct_byte_size(f, type_name.clone(), ctx)
         if byte_size > 0 {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
             writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size))
@@ -237,7 +237,7 @@ fn lookup_struct_byte_size(f: MirFunction, struct_name: String, ctx: SelfEmitCtx
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
             if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_STRUCT_NEW() {
                 let name = inst_accessors_literals::MirInst_str_val(inst)
-                if eq(clone(name), clone(struct_name)) {
+                if eq(name.clone(), struct_name.clone()) {
                     return inst_accessors_literals::MirInst_int_val(inst)
                 }
             }
@@ -308,7 +308,7 @@ fn emit_gc_local_inferred_type(mut body: WasmWriter, f: MirFunction, local_idx: 
     if spine_gc >= 0 {
         let loc = function_locals_view::MirFunction_local_at(f, local_idx)
         let type_name = local_access::MirLocal_type_name(loc)
-        if code_ref_locals_infer_dest::is_scalar_get_unchecked_result(clone(type_name), vt) &&
+        if code_ref_locals_infer_dest::is_scalar_get_unchecked_result(type_name.clone(), vt) &&
         !code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx) {
             return false
         }

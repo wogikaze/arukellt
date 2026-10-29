@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use resolver::scope_record
 use resolver::scope_stack_scopes
 use resolver::scope_stack_symbols
@@ -30,7 +29,7 @@ fn find_symbol(ctx: ResolveCtx, name: String) -> Symbol {
     let mut depth = scope_stack_scopes::ResolveCtx_current_depth(ctx)
     while depth >= 0 {
         let scope = scope_stack_scopes::ResolveCtx_scope_at(ctx, depth)
-        let index = scope_record::scope_find_symbol_index(scope, clone(name))
+        let index = scope_record::scope_find_symbol_index(scope, name.clone())
         if index >= 0 {
             return scope_stack_scopes::Scope_symbol_at(scope, index)
         }

@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 struct Symbol {
     name: String,
     kind: i32,
@@ -9,11 +8,11 @@ struct Symbol {
 }
 
 fn Symbol_new(name: String, kind: i32, scope_depth: i32, decl_index: i32, is_pub: bool) -> Symbol {
-    Symbol { name: clone(name), kind: kind, scope_depth: scope_depth, decl_index: decl_index, is_mut: false, is_pub: is_pub }
+    Symbol { name: name.clone(), kind: kind, scope_depth: scope_depth, decl_index: decl_index, is_mut: false, is_pub: is_pub }
 }
 
 fn symbol_name(sym: Symbol) -> String {
-    clone(sym.name)
+    sym.name.clone()
 }
 
 fn symbol_kind(sym: Symbol) -> i32 {

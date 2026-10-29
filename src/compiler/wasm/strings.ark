@@ -1,6 +1,6 @@
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use wasm::constants
 use mir::module_strings
 struct EmitStringTablePlan {
@@ -103,13 +103,13 @@ fn scan_string_layout_bool_literals(mir: MirModule, str_count: i32, data_offset:
     let mut bi = 0
     while bi < str_count {
         let bs = module_strings::MirModule_string_constant_at(mir, bi)
-        if eq(clone(bs), "true") {
+        if eq(bs.clone(), "true") {
             true_idx = bi
         }
-        if eq(clone(bs), "false") {
+        if eq(bs.clone(), "false") {
             false_idx = bi
         }
-        if eq(clone(bs), "assertion failed") {
+        if eq(bs.clone(), "assertion failed") {
             assert_idx = bi
         }
         bi = bi + 1

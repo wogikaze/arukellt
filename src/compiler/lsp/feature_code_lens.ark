@@ -1,11 +1,10 @@
 use std::json
-use std::prelude::{clone}
 use lsp::feature_request
 use lsp::framing
 use lsp::responses
 use lsp::state_record
 pub fn handle_code_lens(mut state: LspState, body: String) {
-    let id = json::JsonText::get_int(clone(body), String_from("id"))
+    let id = json::JsonText::get_int(body.clone(), String_from("id"))
     if !state_record::lsp_state_enable_code_lens(state) {
         framing::append_framed(state, responses::build_empty_array_response(id))
         return

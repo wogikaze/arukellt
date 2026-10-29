@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 struct DeclSite {
     decl_index: i32,
     start: i32,
@@ -33,7 +32,7 @@ fn decl_site_end(site: DeclSite) -> i32 {
 }
 
 fn decl_site_name(site: DeclSite) -> String {
-    clone(site.name)
+    site.name.clone()
 }
 
 fn use_site_decl_index(site: UseSite) -> i32 {

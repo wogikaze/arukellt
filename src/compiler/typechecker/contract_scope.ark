@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use typechecker::contract_types_record
 struct TypeScheme {
     vars: Vec<String>,
@@ -89,7 +88,7 @@ fn VarBinding_new_scheme_with_flags(name: String, scheme: TypeScheme, is_mutable
 }
 
 fn VarBinding_name(binding: VarBinding) -> String {
-    clone(binding.name)
+    binding.name.clone()
 }
 
 fn VarBinding_type(binding: VarBinding) -> TypeInfo {

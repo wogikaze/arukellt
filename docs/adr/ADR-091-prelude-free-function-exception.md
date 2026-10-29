@@ -273,6 +273,42 @@ receiver を指す hint を返す。
 - `to_string` は退役済みだが、`String` の `Display` impl は
   `std::core::convert`（overlay ship 済み）に依存する。
 
+## 追記: 2026-10-30 `wave/poly-clone` — free `clone` の退役
+
+§4 の `clone` を退役した。§3 の prelude free 例外は 4 件から 3 件
+（`eq`、`Box_new` / `unbox`、`to_string` の Display 依存）へ減る。
+
+- **Root cause**: `.clone()` の bare fallback は `(String) -> String` の free 宣言を
+  拾っていた。generic な shim を置いても、`vec:String` receiver は共有 callee
+  cache で `String::clone` に解決され、Vec struct を String ref 引数へ渡して
+  `type mismatch: expected (ref null $type), found (ref null $type)` の invalid
+  core Wasm になった（`wasm-tools validate` の func 単位の型不一致）。
+- **Mechanism**: `std/prelude.ark` に private な generic identity shim
+  `fn clone<T>(value: T) -> T` と、`impl<T> Vec<T> { fn clone(self) -> Vec<T> }`
+  （shallow。header を共有し element storage は deep copy しない）を置いた。
+  `clone` を module graph に常時存在させることで、compiler 自身の `.clone()` は
+  pin と stage-2/3 で同じ lowering になる。typechecker / MIR のロジックは変えて
+  いない。committed pin が polymorphic method 解決を持たないため、この境界が
+  bootstrap の成立条件である。
+- **Deleted**: `std::collections::string::clone` は retired CoreOp 経由で
+  `wasm unreachable` に落ちていたため削除した。`s.clone()` が replacement。
+- **Migration**: compiler / std / fixture の 761 ファイル、14,057 call site を
+  receiver method へ移し、747 件の selective import から `clone` を外した。
+- **Diagnostics**: bare `clone(x)` は E0100 + `use \`x.clone()\` on the value
+  instead`、`use std::prelude::{clone}` も E0100 で拒否する。
+  `diagnostics/removed_prelude_free_clone` / `removed_prelude_import_clone` の
+  golden を追加した。`std::collections::string::clone` の qualified call も
+  module member hint を返す。
+- **Delete condition (shim)**: pin を refresh し、bare-name signature なしで
+  `.clone()` が全 receiver に解決できるようになったら private な
+  `fn clone<T>` を削除する。`Vec<T>::clone` の shallow 実装は、`T: Clone` を
+  要求する deep impl に置き換えるまで残す（compiler の AST / MIR record は
+  `Clone` impl を持たない）。
+- **Evidence**: `verify fixtures` 1924/1924 PASS（38/38 `test:`）、`verify lane`
+  PASS、`docs check` 6/6、ADR-029 fixpoint PASS（s2 == s3 at sha256
+  `9cec2ac2523c567cd6b8d4d88d9ada2a7f3bb202fb12dca92062f1783cf9b0bd`、pinned base
+  `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`）。
+
 ## 参照
 
 - [ADR-014](ADR-014-stability-labels.md)

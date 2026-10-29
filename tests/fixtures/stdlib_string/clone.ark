@@ -1,7 +1,6 @@
 use std::test::Test
-use std::prelude::{clone}
 fn main() {
     let s = String_from("original")
-    let c = clone(s)
+    let c = s.clone()
     Test::assert_eq_string(c, "original")
 }

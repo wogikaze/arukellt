@@ -26,39 +26,39 @@ use mir::opcodes as mir_opcodes
 // Checks gc_struct_names first, then falls back to byte_size-based lookup.
 // Container element names (vec:String, Vec, ...) resolve via fixed GC slots
 // so structref-array gets cast before calls (#726 csv_perf).
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 fn resolve_concrete_struct_type(ctx: SelfEmitCtx, struct_name: String) -> i32 {
-    if clone(struct_name).starts_with("enum:") {
+    if struct_name.clone().starts_with("enum:") {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     }
     // Accept "struct:Name:byte_size" / module::Name / bare Name.
-    let mut bare = strip_module_prefix_type_name(clone(struct_name))
-    if clone(bare).starts_with("struct:") {
-        bare = parse_struct_name_from_encoding(clone(bare))
+    let mut bare = strip_module_prefix_type_name(struct_name.clone())
+    if bare.clone().starts_with("struct:") {
+        bare = parse_struct_name_from_encoding(bare.clone())
     }
     if len(bare) == 0 {
-        bare = clone(struct_name)
+        bare = struct_name.clone()
     }
-    let container = intrinsic_vec_type::resolve_container_elem_gc_type(ctx, clone(bare))
+    let container = intrinsic_vec_type::resolve_container_elem_gc_type(ctx, bare.clone())
     if container >= 0 {
         return container
     }
-    if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(bare)) {
-        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(bare))
+    if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, bare.clone()) {
+        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, bare.clone())
     }
-    if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
-        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
+    if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
+        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, struct_name.clone())
     }
     // Registered enum type names (TomlValue, JsonValue) without enum: prefix
     // still need enum-open casts after structref array.get (#726 toml/json).
     let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let ev_count = len(ev_names)
     let mut ei = 0
-    let prefix = clone(bare).concat("::")
+    let prefix = bare.clone().concat("::")
     while ei < ev_count {
-        let nm = clone(get_unchecked(ev_names, ei))
-        if clone(nm).starts_with(clone(prefix)) {
+        let nm = get_unchecked(ev_names, ei).clone()
+        if nm.clone().starts_with(prefix.clone()) {
             return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
         }
         ei = ei + 1
@@ -66,7 +66,7 @@ fn resolve_concrete_struct_type(ctx: SelfEmitCtx, struct_name: String) -> i32 {
     // Look up byte_size from the current function's MIR_STRUCT_NEW instructions.
     let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
     let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
-    let byte_size = lookup_struct_byte_size_in_func(f, clone(bare))
+    let byte_size = lookup_struct_byte_size_in_func(f, bare.clone())
     if byte_size > 0 {
         return ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size)
     }
@@ -118,7 +118,7 @@ fn lookup_struct_byte_size_in_func(f: MirFunction, struct_name: String) -> i32 {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
             if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_STRUCT_NEW() {
                 let name = inst_accessors_literals::MirInst_str_val(inst)
-                if eq(clone(name), clone(struct_name)) {
+                if eq(name.clone(), struct_name.clone()) {
                     return inst_accessors_literals::MirInst_int_val(inst)
                 }
             }
@@ -136,7 +136,7 @@ fn emit_get_unchecked_gc(mut w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> 
     let vec_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
     // Array literals are raw GC arrays, not Vec structs. Casting them to the
     // Vec layout traps on `get_unchecked(values, i)` (#807 core/property).
-    let raw_array_type = raw_gc_array_type(ctx, clone(callee), inst, array_type)
+    let raw_array_type = raw_gc_array_type(ctx, callee.clone(), inst, array_type)
     if raw_array_type >= 0 {
         helpers_core::emit_local_set(w, s_idx)
         writer_gc::emit_gc_ref_cast(w, raw_array_type)
@@ -170,7 +170,7 @@ fn emit_get_unchecked_gc(mut w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> 
         if dest >= 0 {
             let dest_tname = intrinsic_vec_type::local_type_name(ctx, dest)
             if len(dest_tname) > 0 {
-                elem_gc_type = resolve_concrete_struct_type(ctx, clone(dest_tname))
+                elem_gc_type = resolve_concrete_struct_type(ctx, dest_tname.clone())
                 // Mis-typed dest locals (e.g. String) must not steal the cast;
                 // structref elems need the vec's element struct type.
                 if elem_gc_type == ctx_gc_type::SelfEmitCtx_string_type(ctx) ||
@@ -180,9 +180,9 @@ fn emit_get_unchecked_gc(mut w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> 
             }
         }
         if elem_gc_type < 0 {
-            let elem_name = intrinsic_vec_type::vec_element_type_name_for_call(ctx, clone(callee), inst)
+            let elem_name = intrinsic_vec_type::vec_element_type_name_for_call(ctx, callee.clone(), inst)
             if len(elem_name) > 0 {
-                elem_gc_type = resolve_concrete_struct_type(ctx, clone(elem_name))
+                elem_gc_type = resolve_concrete_struct_type(ctx, elem_name.clone())
             }
         }
         // structref arrays never store String / i32-array elems; a poisoned
@@ -215,7 +215,7 @@ fn emit_get_unchecked_gc(mut w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> 
 }
 
 fn raw_gc_array_type(ctx: SelfEmitCtx, callee: String, inst: MirInst, array_type: i32) -> i32 {
-    let src_local = intrinsic_vec_type::find_call_source_local(ctx, clone(callee), inst)
+    let src_local = intrinsic_vec_type::find_call_source_local(ctx, callee.clone(), inst)
     if src_local < 0 {
         return 0 - 1
     }
@@ -254,7 +254,7 @@ fn resolve_get_unchecked_elem_from_next_call(ctx: SelfEmitCtx, inst: MirInst) ->
             let cur = block_inst_access::MirBlock_inst_at(block, ii)
             if inst_accessors_shape::MirInst_op(cur) == mir_opcodes::MIR_CALL() {
                 let cur_callee = inst_accessors_literals::MirInst_str_val(cur)
-                let same_get = eq(clone(cur_callee), clone(callee)) &&
+                let same_get = eq(cur_callee.clone(), callee.clone()) &&
                 inst_accessors_operands::MirInst_dest(cur) == dest
                 if same_get {
                     let mut look = ii + 1
@@ -263,7 +263,7 @@ fn resolve_get_unchecked_elem_from_next_call(ctx: SelfEmitCtx, inst: MirInst) ->
                         let nop = inst_accessors_shape::MirInst_op(next)
                         if nop == mir_opcodes::MIR_CALL() {
                             let next_callee = inst_accessors_literals::MirInst_str_val(next)
-                            let fn_idx = inst_ctx::resolve_fn_index(ctx, clone(next_callee))
+                            let fn_idx = inst_ctx::resolve_fn_index(ctx, next_callee.clone())
                             if fn_idx >= 0 {
                                 let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
                                 let pc = function_param_view::MirFunction_param_count(called)
@@ -271,12 +271,12 @@ fn resolve_get_unchecked_elem_from_next_call(ctx: SelfEmitCtx, inst: MirInst) ->
                                 // Using param 0 wrongly picks the Vec receiver for push(vec, elem).
                                 if pc > 0 {
                                     let pname = function_param_view::MirFunction_param_type_name(called, pc - 1)
-                                    let resolved = resolve_concrete_struct_type(ctx, clone(pname))
+                                    let resolved = resolve_concrete_struct_type(ctx, pname.clone())
                                     if resolved >= 0 &&
                                     resolved != ctx_gc_type::SelfEmitCtx_string_type(ctx) &&
                                     resolved != ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) &&
-                                    !clone(pname).starts_with("vec:") &&
-                                    !clone(pname).starts_with("Vec") {
+                                    !pname.clone().starts_with("vec:") &&
+                                    !pname.clone().starts_with("Vec") {
                                         return resolved
                                     }
                                 }
@@ -318,12 +318,12 @@ fn resolve_get_unchecked_elem_from_dest_uses(ctx: SelfEmitCtx, dest: i32) -> i32
                 let feeds = call_arg_local_gets_include(block, ii, dest)
                 if feeds {
                     let call_callee = inst_accessors_literals::MirInst_str_val(cur)
-                    let fn_idx = inst_ctx::resolve_fn_index(ctx, clone(call_callee))
+                    let fn_idx = inst_ctx::resolve_fn_index(ctx, call_callee.clone())
                     if fn_idx >= 0 {
                         let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
                         if function_param_view::MirFunction_param_count(called) > 0 {
                             let pname = function_param_view::MirFunction_param_type_name(called, 0)
-                            let resolved = resolve_concrete_struct_type(ctx, clone(pname))
+                            let resolved = resolve_concrete_struct_type(ctx, pname.clone())
                             if resolved >= 0 &&
                             resolved != ctx_gc_type::SelfEmitCtx_string_type(ctx) &&
                             resolved != ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) {
@@ -384,7 +384,7 @@ fn resolve_get_unchecked_elem_from_field_use(ctx: SelfEmitCtx, dest: i32) -> i32
 }
 
 fn is_get_unchecked_callee_name(name: String) -> bool {
-    clone(name).contains("get_unchecked")
+    name.clone().contains("get_unchecked")
 }
 
 // Local declarations are emitted before body instructions, so a get_unchecked
@@ -520,7 +520,7 @@ fn resolve_get_unchecked_elem_from_func_return(ctx: SelfEmitCtx) -> i32 {
     if len(ret_name) == 0 {
         return 0 - 1
     }
-    let resolved = resolve_concrete_struct_type(ctx, clone(ret_name))
+    let resolved = resolve_concrete_struct_type(ctx, ret_name.clone())
     if resolved >= 0 &&
     resolved != ctx_gc_type::SelfEmitCtx_string_type(ctx) &&
     resolved != ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) {
@@ -533,10 +533,10 @@ fn resolve_get_unchecked_elem_from_func_return(ctx: SelfEmitCtx) -> i32 {
 // Shares the MIR container slot map so outer get on Vec<Vec<T>> does not
 // fall through to string _f1_ref0 (#836).
 fn option_some_suffix_for_container_elem(elem_name: String) -> String {
-    if !ctx_gc_struct::gc_struct_field_type_is_container(clone(elem_name)) {
+    if !ctx_gc_struct::gc_struct_field_type_is_container(elem_name.clone()) {
         return String_new()
     }
-    "_f1".concat(ctx_gc_struct::gc_struct_container_ref_suffix(clone(elem_name)))
+    "_f1".concat(ctx_gc_struct::gc_struct_container_ref_suffix(elem_name.clone()))
 }
 
 // Map a named GC struct to `_f1_gcsref<slot>` for Option::Some payloads.
@@ -545,7 +545,7 @@ fn find_gcsref_suffix_for_struct(ctx: SelfEmitCtx, struct_name: String) -> Strin
     let count = len(names)
     let mut i = 0
     while i < count {
-        if eq(clone(get_unchecked(names, i)), clone(struct_name)) {
+        if eq(get_unchecked(names, i).clone(), struct_name.clone()) {
             return "_f1_gcsref".concat((i).to_string())
         }
         i = i + 1
@@ -554,18 +554,18 @@ fn find_gcsref_suffix_for_struct(ctx: SelfEmitCtx, struct_name: String) -> Strin
 }
 
 fn elem_name_looks_like_enum(ctx: SelfEmitCtx, struct_name: String) -> bool {
-    let bare = if clone(struct_name).starts_with("enum:") {
-        clone(struct_name).slice(5, len(struct_name))
+    let bare = if struct_name.clone().starts_with("enum:") {
+        struct_name.clone().slice(5, len(struct_name))
     } else {
-        clone(struct_name)
+        struct_name.clone()
     }
     let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let ev_count = len(ev_names)
     let mut ei = 0
-    let prefix = clone(bare).concat("::")
+    let prefix = bare.clone().concat("::")
     while ei < ev_count {
-        let nm = clone(get_unchecked(ev_names, ei))
-        if clone(nm).starts_with(clone(prefix)) {
+        let nm = get_unchecked(ev_names, ei).clone()
+        if nm.clone().starts_with(prefix.clone()) {
             return true
         }
         ei = ei + 1
@@ -584,12 +584,12 @@ fn find_option_some_variant_type(ctx: SelfEmitCtx, field_suffix: String, enum_ty
     let mut fallback = 0 - 1
     let mut i = 0
     while i < count {
-        let name = clone(get_unchecked(names, i))
-        if eq(clone(name), "Option::Some") || eq(clone(name), "Some") {
+        let name = get_unchecked(names, i).clone()
+        if eq(name.clone(), "Option::Some") || eq(name.clone(), "Some") {
             if i < len(type_map) {
                 let variant_type = get_unchecked(type_map, i)
                 if variant_type != open_type {
-                    if i < len(sigs) && clone(get_unchecked(sigs, i)).ends_with(clone(field_suffix)) {
+                    if i < len(sigs) && get_unchecked(sigs, i).clone().ends_with(field_suffix.clone()) {
                         return variant_type
                     }
                     if fallback < 0 {

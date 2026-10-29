@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 fn parse_sub_super_offset(sig: String) -> i32 {
     let plus = find_type_sig_char(sig, 43)
@@ -9,7 +9,7 @@ fn parse_sub_super_offset(sig: String) -> i32 {
     let mut i = plus + 1
     let n = len(sig)
     while i < n {
-        let c = clone(sig).byte_at(i)
+        let c = sig.clone().byte_at(i)
         if c >= 48 && c <= 57 {
             val = val * 10 + (c - 48)
             i = i + 1
@@ -23,7 +23,7 @@ fn parse_sub_super_offset(sig: String) -> i32 {
 fn parse_sub_struct_sig(sig: String) -> String {
     // Zero-field user structs emit as `SubF_GS` and carry no `_GS_` field
     // marker; their body is the bare `GS` (zero fields).
-    if eq(clone(sig), String_from("SubF_GS")) {
+    if eq(sig.clone(), String_from("SubF_GS")) {
         return String_from("GS")
     }
     let marker = "_GS_"
@@ -32,9 +32,9 @@ fn parse_sub_struct_sig(sig: String) -> String {
         let body_start = start + 1
         let at = find_type_sig_char(sig, 64)
         if at >= body_start {
-            return clone(sig).slice(body_start, at)
+            return sig.clone().slice(body_start, at)
         }
-        return clone(sig).slice(body_start, len(sig))
+        return sig.clone().slice(body_start, len(sig))
     }
     // Enum variant sigs use _S_ instead of _GS_ (e.g. SubF+14_S_f0_i32_f1_i32)
     let s_marker = "_S_"
@@ -43,9 +43,9 @@ fn parse_sub_struct_sig(sig: String) -> String {
         let body_start = s_start + 3
         let at = find_type_sig_char(sig, 64)
         if at >= body_start {
-            return "GS_".concat(clone(sig).slice(body_start, at))
+            return "GS_".concat(sig.clone().slice(body_start, at))
         }
-        return "GS_".concat(clone(sig).slice(body_start, len(sig)))
+        return "GS_".concat(sig.clone().slice(body_start, len(sig)))
     }
     "GS_f0_i32"
 }
@@ -54,7 +54,7 @@ fn find_type_sig_char(s: String, c: i32) -> i32 {
     let n = len(s)
     let mut i = 0
     while i < n {
-        if clone(s).byte_at(i) == c {
+        if s.clone().byte_at(i) == c {
             return i
         }
         i = i + 1
@@ -73,7 +73,7 @@ fn find_type_sig_str(s: String, needle: String) -> i32 {
         let mut matched = 1
         let mut j = 0
         while j < nn {
-            if clone(s).byte_at(i + j) != clone(needle).byte_at(j) {
+            if s.clone().byte_at(i + j) != needle.clone().byte_at(j) {
                 matched = 0
             }
             j = j + 1
@@ -91,7 +91,7 @@ fn parse_type_sig_int(s: String) -> i32 {
     let mut val = 0
     let mut i = 0
     while i < n {
-        let c = clone(s).byte_at(i)
+        let c = s.clone().byte_at(i)
         if c >= 48 && c <= 57 {
             val = val * 10 + (c - 48)
         }
@@ -101,10 +101,10 @@ fn parse_type_sig_int(s: String) -> i32 {
 }
 
 fn parse_gcref_offset(sig: String) -> i32 {
-    if eq(clone(sig), "gcref") {
+    if eq(sig.clone(), "gcref") {
         return 2
     }
-    if clone(sig).starts_with("gcref") {
+    if sig.clone().starts_with("gcref") {
         return parse_type_sig_int(sig.slice(5, len(sig)))
     }
     2

@@ -31,7 +31,7 @@
 // in ast_serialize_parse.ark must stay in sync (no pub const in Ark).
 
 use std::host::fs::Fs
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::core::ops
 use loader::ast_serialize_parse
 // The two parser imports read as unused in package builds (type names
@@ -121,7 +121,7 @@ fn serialize_node(mut buf: Vec<i32>, node: AstNode) {
     buf_push_i32(buf, node.span.end)
     buf_push_i32(buf, node.name_span.start)
     buf_push_i32(buf, node.name_span.end)
-    buf_push_string(buf, clone(node.text))
+    buf_push_string(buf, node.text.clone())
     buf_push_i32(buf, node.int_val)
     buf_push_string(buf, node.float_val.to_string())
     buf_push_i32(buf, node.op)
@@ -159,7 +159,7 @@ pub fn write_ast_cache(path: String, nodes: Vec<AstNode>) -> bool {
         return false
     }
     let bytes = serialize_ast_nodes(nodes)
-    let write: Result<(), String> = Fs::write_bytes(clone(path), bytes)
+    let write: Result<(), String> = Fs::write_bytes(path.clone(), bytes)
     match write {
         Result::Ok(_) => true,
         Result::Err(_) => false,
@@ -183,7 +183,7 @@ fn count_nodes_vec(nodes: Vec<AstNode>) -> i32 {
 // well-formed v2 cache — callers must treat it as a cache miss, never as
 // an empty AST.
 pub fn read_ast_cache(path: String) -> Result<Vec<AstNode>, String> {
-    match Fs::read_to_string(clone(path)) {
+    match Fs::read_to_string(path.clone()) {
         Result::Ok(data) => { return ast_serialize_parse::deserialize_ast_nodes(data) }
         Result::Err(e) => { return Result::Err(e) }
     }
@@ -252,7 +252,7 @@ test mod "astc_codec" {
                 assert(leaf.kind == 7)
                 assert(leaf.int_val == 4242)
                 assert(leaf.float_val == 2.5)
-                assert(eq(clone(leaf.text), "あいうえお"))
+                assert(eq(leaf.text.clone(), "あいうえお"))
                 assert(leaf.is_mut && leaf.is_async && leaf.is_move)
                 assert(!leaf.is_pub && !leaf.is_component_export)
                 assert(leaf.span.start == 5 && leaf.span.end == 9)

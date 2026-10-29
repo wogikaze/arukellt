@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::ctx_api_nesting
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
@@ -27,8 +26,8 @@ fn mir_store_if_branch_result(mut ctx: LowerCtx, result: i32, branch_result: i32
         let branch_slot = ctx_api_local_types::ctx_get_local_variant_slot(ctx, branch_result)
         let branch_type = ctx_api_local_types::ctx_get_local_type(ctx, branch_result)
         let current_type = ctx_api_local_types::ctx_get_local_type(ctx, result)
-        let branch_is_variant_struct = clone(branch_type).starts_with("struct:") &&
-        clone(branch_type).contains("::")
+        let branch_is_variant_struct = branch_type.clone().starts_with("struct:") &&
+        branch_type.clone().contains("::")
         // A conditional that selects different enum variants needs the enum
         // base as its storage type.  Choosing the first variant here makes
         // the second branch's LOCAL_SET invalid on GC targets before the

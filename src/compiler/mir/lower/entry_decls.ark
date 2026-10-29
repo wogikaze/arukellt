@@ -48,7 +48,7 @@ fn mir_emit_view_decls(
                     edge_discovery::edge_emit_names_for_fn_decl(
                         entry_view,
                         i,
-                        clone(decl_name),
+                        decl_name.clone(),
                         fn_info_index,
                         typed_index,
                         midx
@@ -60,7 +60,7 @@ fn mir_emit_view_decls(
             // body, and a value path such as `i32::MAX` is not an AST call edge,
             // so the stdlib edge prune would drop the callee and the emitted
             // call would trap (#970).
-            if ctx_fn_index::ctx_is_const_name(ctx, clone(decl_name)) {
+            if ctx_fn_index::ctx_is_const_name(ctx, decl_name.clone()) {
                 emit_bodies = true
             }
             if emit_bodies {
@@ -68,7 +68,7 @@ fn mir_emit_view_decls(
             } else {
                 skip_n = skip_n + 1
             }
-            let wall_key = clone(decl_name)
+            let wall_key = decl_name.clone()
             let wall_t = entry_timing::mir_lower_phase_now()
             fn_idx = entry_fns::mir_emit_top_level_fn_decl(
                 ctx,
@@ -85,7 +85,7 @@ fn mir_emit_view_decls(
         }
         if decl_source::mir_decl_source_is_impl_at(decl_source, i) {
             let struct_name = signature_method::mir_signature_method_owner_name_for_impl(mod::view_signature_source(view), i, decl_name)
-            let wall_key = "impl ".concat(clone(struct_name))
+            let wall_key = "impl ".concat(struct_name.clone())
             let wall_t = entry_timing::mir_lower_phase_now()
             skip_n = skip_n + entry_methods::mir_emit_impl_methods(ctx, body_source, i, struct_name, midx, emit_keep, prune_enabled && ctx_corehir_probe::mir_probe_skip_enabled() != 0)
             entry_timing::mir_lower_wall_record(timing, wall_ms, wall_name, wall_t, wall_key)

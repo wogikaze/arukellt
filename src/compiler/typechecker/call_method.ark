@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use typechecker::kinds
 use typechecker::ast_access
@@ -49,7 +49,7 @@ fn infer_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<
     let recv_ty = infer_expr(env, scope, fn_sigs, enum_defs, recv_node)
     // Primitive .to_string() always returns String and does not require an
     // inherent impl block to be present in the prelude.
-    if eq(clone(method_name), String_from("to_string")) {
+    if eq(method_name.clone(), String_from("to_string")) {
         let tag = contract_type_access::TypeInfo_tag(recv_ty)
         if tag == commands::TY_I32() || tag == commands::TY_I64() || tag == commands::TY_F64() ||
         tag == commands::TY_BOOL() || tag == commands::TY_CHAR() || tag == commands::TY_STRING() {
@@ -70,14 +70,14 @@ fn infer_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<
         return builtin_hashmap_return
     }
     if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_STRING() &&
-    eq(clone(method_name), String_from("lines")) && child_count == 1 {
+    eq(method_name.clone(), String_from("lines")) && child_count == 1 {
         return string_vec_type()
     }
     // Try mangled name lookup first (e.g. "String::len", "i32::to_string")
     // so that impl-block methods are resolved to the correct signature.
     let recv_type_name = type_name_for_mangling(recv_ty)
     if len(recv_type_name) > 0 {
-        let mangled = clone(recv_type_name).concat(String_from("::").concat(clone(method_name)))
+        let mangled = recv_type_name.clone().concat(String_from("::").concat(method_name.clone()))
         let mangled_sig = sigs::lookup_fn_sig(env, fn_sigs, mangled)
         if contract_fn_sig::FnSig_has_name(mangled_sig) {
             return infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, mangled_sig, recv_ty, child_count)
@@ -88,8 +88,8 @@ fn infer_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<
         // like Pair<i32> still reaches impl Pair<T> methods.
         if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_STRUCT() {
             let bare_recv = names::unqualified_type_name(contract_type_access::TypeInfo_name(recv_ty))
-            if len(bare_recv) > 0 && !eq(clone(recv_type_name), clone(bare_recv)) {
-                let shell = clone(bare_recv).concat(String_from("::").concat(clone(method_name)))
+            if len(bare_recv) > 0 && !eq(recv_type_name.clone(), bare_recv.clone()) {
+                let shell = bare_recv.clone().concat(String_from("::").concat(method_name.clone()))
                 let shell_sig = sigs::lookup_fn_sig(env, fn_sigs, shell)
                 if contract_fn_sig::FnSig_has_name(shell_sig) {
                     return infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, shell_sig, recv_ty, child_count)
@@ -102,8 +102,8 @@ fn infer_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<
         // method fell through to bare-name lookup and lowered to a trap stub
         // (#966).
         if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_VEC() &&
-        !eq(clone(recv_type_name), String_from("Vec")) {
-            let shell = String_from("Vec::").concat(clone(method_name))
+        !eq(recv_type_name.clone(), String_from("Vec")) {
+            let shell = String_from("Vec::").concat(method_name.clone())
             let shell_sig = sigs::lookup_fn_sig(env, fn_sigs, shell)
             if contract_fn_sig::FnSig_has_name(shell_sig) {
                 return infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, shell_sig, recv_ty, child_count)
@@ -114,14 +114,14 @@ fn infer_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<
         // stay on the generic HashMap<K, V> shell. Retry the bare owner so
         // pair receivers keep resolving the canonical API.
         if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_HASHMAP() &&
-        !eq(clone(recv_type_name), String_from("HashMap")) {
-            let shell = String_from("HashMap::").concat(clone(method_name))
+        !eq(recv_type_name.clone(), String_from("HashMap")) {
+            let shell = String_from("HashMap::").concat(method_name.clone())
             let shell_sig = sigs::lookup_fn_sig(env, fn_sigs, shell)
             if contract_fn_sig::FnSig_has_name(shell_sig) {
                 return infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, shell_sig, recv_ty, child_count)
             }
         }
-        if reject_hashset_method_outside_family(env, fn_sigs, clone(recv_type_name), clone(method_name)) {
+        if reject_hashset_method_outside_family(env, fn_sigs, recv_type_name.clone(), method_name.clone()) {
             return simple_type(commands::TY_UNKNOWN())
         }
     }
@@ -166,16 +166,16 @@ fn infer_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<
         // demand edge so the enclosing instantiation mints
         // `Receiver::method` at rebind (#912).
         if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_TYPE_VAR() {
-            mono_instances::record_var_method_site(env, clone(method_name), clone(recv_ty))
+            mono_instances::record_var_method_site(env, method_name.clone(), recv_ty.clone())
         }
         // Without this diagnostic an unloaded std::core::iter resolves the
         // method to TY_UNKNOWN and MIR emits the unresolved drop+unreachable
         // fallback, so a runtime trap replaces a missing-import error.
-        if is_iterator_api_method(clone(method_name)) && receiver_exposes_iterator_api(recv_ty) {
+        if is_iterator_api_method(method_name.clone()) && receiver_exposes_iterator_api(recv_ty) {
             let message = text::concat(
                 String_from("method `"),
                 text::concat(
-                    clone(method_name),
+                    method_name.clone(),
                     String_from("` requires `use std::core::iter`")
                 )
             )
@@ -184,7 +184,7 @@ fn infer_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<
             let mut seen = false
             let mut ei = 0
             while ei < len(env.errors) {
-                if eq(clone(get_unchecked(env.errors, ei)), clone(message)) {
+                if eq(get_unchecked(env.errors, ei).clone(), message.clone()) {
                     seen = true
                 }
                 ei = ei + 1
@@ -210,7 +210,7 @@ fn infer_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<
         // `x.clone()` on an unbound type var keeps the receiver type
         // instead of falling through to the String-shaped prelude sig
         // (#691 generic adapter bodies).
-        if eq(clone(method_name), String_from("clone")) {
+        if eq(method_name.clone(), String_from("clone")) {
             return recv_ty
         }
     }
@@ -230,26 +230,26 @@ fn reject_hashset_method_outside_family(
     recv_type_name: String,
     method_name: String
 ) -> bool {
-    let family = hashset_family_from_owner(clone(recv_type_name))
-    if len(clone(family)) == 0 {
+    let family = hashset_family_from_owner(recv_type_name.clone())
+    if len(family.clone()) == 0 {
         return false
     }
     let mut other_family = String_from("i32")
-    if eq(clone(family), String_from("i32")) {
+    if eq(family.clone(), String_from("i32")) {
         other_family = String_from("String")
     }
     let other_method = String_from("HashSet_").concat(
-        clone(other_family).concat(String_from("::").concat(clone(method_name)))
+        other_family.clone().concat(String_from("::").concat(method_name.clone()))
     )
     if !contract_fn_sig::FnSig_has_name(sigs::lookup_fn_sig(env, fn_sigs, other_method)) {
         return false
     }
-    let message = hashset_method_unavailable_message(clone(method_name), clone(family))
+    let message = hashset_method_unavailable_message(method_name.clone(), family.clone())
     // Speculative inference can visit the same method node more than once;
     // report the family rejection once per environment.
     let mut index = 0
     while index < len(env.errors) {
-        if eq(clone(get_unchecked(env.errors, index)), clone(message)) {
+        if eq(get_unchecked(env.errors, index).clone(), message.clone()) {
             return true
         }
         index = index + 1
@@ -262,24 +262,24 @@ fn reject_hashset_method_outside_family(
 // Any other owner (including a HashSet<T> with a still-open type argument)
 // returns "" so the call keeps the deferred/generic resolution path.
 fn hashset_family_from_owner(owner_name: String) -> String {
-    if eq(clone(owner_name), String_from("HashSet_i32")) {
+    if eq(owner_name.clone(), String_from("HashSet_i32")) {
         return String_from("i32")
     }
-    if eq(clone(owner_name), String_from("HashSet_String")) {
+    if eq(owner_name.clone(), String_from("HashSet_String")) {
         return String_from("String")
     }
     String_new()
 }
 
 fn hashset_method_unavailable_message(method_name: String, family: String) -> String {
-    let other_family = if eq(clone(family), String_from("String")) {
+    let other_family = if eq(family.clone(), String_from("String")) {
         String_from("i32")
     } else {
         String_from("String")
     }
-    let head = String_from("method `").concat(clone(method_name))
-    let available = String_from("` is not available on `HashSet<").concat(clone(family))
-    let defined = String_from(">`; it is defined only for `HashSet<").concat(clone(other_family))
+    let head = String_from("method `").concat(method_name.clone())
+    let available = String_from("` is not available on `HashSet<").concat(family.clone())
+    let defined = String_from(">`; it is defined only for `HashSet<").concat(other_family.clone())
     head.concat(available.concat(defined.concat(String_from(">`"))))
 }
 
@@ -296,20 +296,20 @@ fn infer_concrete_numeric_consumer_call(
     recv_ty: TypeInfo,
     method_name: String
 ) -> TypeInfo {
-    if !is_numeric_consumer_method(clone(method_name)) ||
+    if !is_numeric_consumer_method(method_name.clone()) ||
     !receiver_has_iterator_contract(env, recv_ty) {
         return simple_type(commands::TY_UNKNOWN())
     }
-    let bound = numeric_consumer_bound(clone(method_name))
+    let bound = numeric_consumer_bound(method_name.clone())
     if !trait_bounds::type_satisfies_trait_bound(env, recv_ty, bound) {
         trait_bounds::enforce_trait_bound(env, recv_ty, bound)
         return simple_type(commands::TY_UNKNOWN())
     }
-    let trait_name = numeric_consumer_trait_name(clone(method_name))
+    let trait_name = numeric_consumer_trait_name(method_name.clone())
     let entry = trait_method_registry::lookup_trait_method(
         env,
-        clone(trait_name),
-        clone(method_name)
+        trait_name.clone(),
+        method_name.clone()
     )
     let sig = associated_types::resolve_trait_method_signature(
         env,
@@ -322,12 +322,12 @@ fn infer_concrete_numeric_consumer_call(
 }
 
 fn is_numeric_consumer_method(method_name: String) -> bool {
-    eq(clone(method_name), String_from("sum")) ||
-    eq(clone(method_name), String_from("fold"))
+    eq(method_name.clone(), String_from("sum")) ||
+    eq(method_name.clone(), String_from("fold"))
 }
 
 fn numeric_consumer_trait_name(method_name: String) -> String {
-    if eq(clone(method_name), String_from("sum")) {
+    if eq(method_name.clone(), String_from("sum")) {
         return String_from("IteratorSum")
     }
     String_from("IteratorFold")
@@ -335,7 +335,7 @@ fn numeric_consumer_trait_name(method_name: String) -> String {
 
 fn numeric_consumer_bound(method_name: String) -> TypeInfo {
     let mut bound = type_names::resolve_type_name(
-        numeric_consumer_trait_name(clone(method_name))
+        numeric_consumer_trait_name(method_name.clone())
     )
     contract_type_mutation::TypeInfo_push_type_arg(
         bound,
@@ -384,18 +384,18 @@ fn infer_builtin_vec_method(
         return simple_type(commands::TY_UNKNOWN())
     }
     let explicit_args = child_count - 1
-    if !is_vec_method_with_arity(clone(method_name), explicit_args) {
+    if !is_vec_method_with_arity(method_name.clone(), explicit_args) {
         return simple_type(commands::TY_UNKNOWN())
     }
     call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, explicit_args)
-    vec_core_mono::record_vec_core_mono_for_callee(env, clone(method_name), recv_ty)
-    if eq(clone(method_name), String_from("len")) {
+    vec_core_mono::record_vec_core_mono_for_callee(env, method_name.clone(), recv_ty)
+    if eq(method_name.clone(), String_from("len")) {
         return simple_type(commands::TY_I32())
     }
-    if eq(clone(method_name), String_from("is_empty")) {
+    if eq(method_name.clone(), String_from("is_empty")) {
         return simple_type(commands::TY_BOOL())
     }
-    if eq(clone(method_name), String_from("pop")) {
+    if eq(method_name.clone(), String_from("pop")) {
         // pop returns Option<T> like get; without this the bare Vec<T>
         // receiver falls through to the concrete Vec<i32> prelude fn and
         // rejects every non-i32 element type (#874).
@@ -407,13 +407,13 @@ fn infer_builtin_vec_method(
         }
         return simple_type(commands::TY_OPTION())
     }
-    if eq(clone(method_name), String_from("get_unchecked")) {
+    if eq(method_name.clone(), String_from("get_unchecked")) {
         if contract_type_access::TypeInfo_type_arg_count(recv_ty) > 0 {
             return contract_type_access::TypeInfo_type_arg_at(recv_ty, 0)
         }
         return simple_type(commands::TY_UNKNOWN())
     }
-    if eq(clone(method_name), String_from("get")) {
+    if eq(method_name.clone(), String_from("get")) {
         // Bounds-checked get returns Option<T> (spec / docs/quickstart).
         if contract_type_access::TypeInfo_type_arg_count(recv_ty) > 0 {
             let elem = contract_type_access::TypeInfo_type_arg_at(recv_ty, 0)
@@ -428,17 +428,17 @@ fn infer_builtin_vec_method(
 
 fn is_vec_method_with_arity(method_name: String, explicit_args: i32) -> bool {
     if explicit_args == 0 {
-        return eq(clone(method_name), String_from("len")) ||
-        eq(clone(method_name), String_from("pop")) ||
-        eq(clone(method_name), String_from("is_empty"))
+        return eq(method_name.clone(), String_from("len")) ||
+        eq(method_name.clone(), String_from("pop")) ||
+        eq(method_name.clone(), String_from("is_empty"))
     }
     if explicit_args == 1 {
-        return eq(clone(method_name), String_from("push")) ||
-        eq(clone(method_name), String_from("get")) ||
-        eq(clone(method_name), String_from("get_unchecked"))
+        return eq(method_name.clone(), String_from("push")) ||
+        eq(method_name.clone(), String_from("get")) ||
+        eq(method_name.clone(), String_from("get_unchecked"))
     }
     if explicit_args == 2 {
-        return eq(clone(method_name), String_from("set"))
+        return eq(method_name.clone(), String_from("set"))
     }
     false
 }
@@ -515,7 +515,7 @@ fn type_name_for_mangling(ty: TypeInfo) -> String {
                 contract_type_access::TypeInfo_type_arg_at(ty, 1)
             )
             if len(key_name) > 0 && len(value_name) > 0 {
-                return String_from("HashMap_").concat(clone(key_name).concat(String_from("_").concat(clone(value_name))))
+                return String_from("HashMap_").concat(key_name.clone().concat(String_from("_").concat(value_name.clone())))
             }
         }
         return String_from("HashMap")
@@ -569,7 +569,7 @@ fn struct_inst_owner_name(ty: TypeInfo) -> String {
         suffix = suffix.concat(key)
         i = i + 1
     }
-    clone(base).concat(String_from("_").concat(suffix))
+    base.clone().concat(String_from("_").concat(suffix))
 }
 
 // Owner-key spelling for one concrete type argument. Type variables return
@@ -606,7 +606,7 @@ fn inst_arg_key(ty: TypeInfo) -> String {
         if len(key_key) == 0 || len(value_key) == 0 {
             return String_new()
         }
-        return String_from("HashMap_").concat(clone(key_key).concat(String_from("_").concat(value_key)))
+        return String_from("HashMap_").concat(key_key.clone().concat(String_from("_").concat(value_key)))
     }
     if tag == commands::TY_OPTION() {
         if contract_type_access::TypeInfo_type_arg_count(ty) == 0 {
@@ -640,7 +640,7 @@ fn inst_arg_key(ty: TypeInfo) -> String {
             inner = inner.concat(key)
             i = i + 1
         }
-        return clone(name).concat(String_from("_").concat(inner))
+        return name.clone().concat(String_from("_").concat(inner))
     }
     String_new()
 }
@@ -660,7 +660,7 @@ fn try_resolve_trait_method_from_bounds(mut env: TypeEnv, mut scope: LocalScope,
     while i < bound_count {
         let tp_bound = get_unchecked(env.current_fn_bounds, i)
         let tp_name = contract_type_param_bounds::TypeParamBounds_name(tp_bound)
-        if eq(clone(tp_name), clone(recv_ty_name)) {
+        if eq(tp_name.clone(), recv_ty_name.clone()) {
             let inner_bound_count = contract_type_param_bounds::TypeParamBounds_bound_count(tp_bound)
             let mut j = 0
             while j < inner_bound_count {
@@ -668,8 +668,8 @@ fn try_resolve_trait_method_from_bounds(mut env: TypeEnv, mut scope: LocalScope,
                 let trait_name = contract_type_access::TypeInfo_name(bound_ty)
                 let trait_entry = trait_method_registry::lookup_trait_method(
                     env,
-                    clone(trait_name),
-                    clone(method_name)
+                    trait_name.clone(),
+                    method_name.clone()
                 )
                 let trait_sig = contract_trait_method_record::trait_method_entry_sig(trait_entry)
                 if contract_fn_sig::FnSig_has_name(trait_sig) {
@@ -714,14 +714,14 @@ fn infer_trait_method_call(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
     mono_instances::record_var_method_site(
         env,
         ast_access::node_text(node),
-        clone(recv_ty)
+        recv_ty.clone()
     )
     let ret_ty = contract_fn_sig::FnSig_return_type(sig)
     // Self substitution: if the trait method's return type is a TY_TYPE_VAR
     // named "Self", substitute the receiver's concrete type (#707).
     if contract_type_access::TypeInfo_tag(ret_ty) == commands::TY_TYPE_VAR() {
         let ret_name = contract_type_access::TypeInfo_name(ret_ty)
-        if eq(clone(ret_name), String_from("Self")) {
+        if eq(ret_name.clone(), String_from("Self")) {
             return recv_ty
         }
     }
@@ -729,7 +729,7 @@ fn infer_trait_method_call(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
     // treat that the same as a type variable named Self.
     if contract_type_access::TypeInfo_tag(ret_ty) == commands::TY_STRUCT() {
         let ret_name = contract_type_access::TypeInfo_name(ret_ty)
-        if eq(clone(ret_name), String_from("Self")) {
+        if eq(ret_name.clone(), String_from("Self")) {
             return recv_ty
         }
     }
@@ -751,5 +751,5 @@ fn receiver_exposes_iterator_api(recv_ty: TypeInfo) -> bool {
     if n >= 4 && name.contains(String_from("Iter")) {
         return true
     }
-    eq(clone(name), String_from("Range")) || eq(clone(name), String_from("RangeInclusive"))
+    eq(name.clone(), String_from("Range")) || eq(name.clone(), String_from("RangeInclusive"))
 }

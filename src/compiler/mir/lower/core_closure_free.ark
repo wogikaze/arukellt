@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_types
 use mir::lower::core_closure_free_acc
@@ -14,7 +14,7 @@ fn core_closure_is_param_name(exprs: Vec<CoreHirExpr>, clos: CoreHirExpr, name: 
     let mut i = 0
     while i < c - 1 {
         let p = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(clos, i))
-        if core_expr_shape_atoms::mir_core_expr_is_ident(p) && eq(core_expr_shape_accessors::mir_core_expr_text(p), clone(name)) {
+        if core_expr_shape_atoms::mir_core_expr_is_ident(p) && eq(core_expr_shape_accessors::mir_core_expr_text(p), name.clone()) {
             return true
         }
         i = i + 1
@@ -40,10 +40,10 @@ fn core_closure_collect_free(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreH
     }
     if core_expr_shape_atoms::mir_core_expr_is_ident(expr) {
         let capture_name = core_expr_shape_accessors::mir_core_expr_text(expr)
-        if core_closure_is_param_name(exprs, clos, clone(capture_name)) {
+        if core_closure_is_param_name(exprs, clos, capture_name.clone()) {
             return
         }
-        if ctx_api_local_alloc::ctx_lookup_local(ctx, clone(capture_name)) < 0 {
+        if ctx_api_local_alloc::ctx_lookup_local(ctx, capture_name.clone()) < 0 {
             return
         }
         core_closure_free_acc::core_closure_push_unique_cap(acc, capture_name)
@@ -108,10 +108,10 @@ fn core_closure_mark_rebind(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, caps: Ve
         // CoreHIR ASSIGN carries the plain target name in node text;
         // field/index targets leave it empty (ref mutation, not a rebind).
         let name = core_expr_shape_accessors::mir_core_expr_text(expr)
-        if len(name) > 0 && !core_closure_name_is_shadowed(shadowed, clone(name)) {
+        if len(name) > 0 && !core_closure_name_is_shadowed(shadowed, name.clone()) {
             let mut ci = 0
             while ci < len(caps) {
-                if eq(get_unchecked(caps, ci), clone(name)) {
+                if eq(get_unchecked(caps, ci), name.clone()) {
                     set(flags, ci, 1)
                     ci = len(caps)
                 }
@@ -139,7 +139,7 @@ fn core_closure_extend_shadowed(exprs: Vec<CoreHirExpr>, clos: CoreHirExpr, shad
     let mut inner = Vec::new<String>()
     let mut i = 0
     while i < len(shadowed) {
-        push(inner, clone(get_unchecked(shadowed, i)))
+        push(inner, get_unchecked(shadowed, i).clone())
         i = i + 1
     }
     let mut pi = 0
@@ -156,7 +156,7 @@ fn core_closure_extend_shadowed(exprs: Vec<CoreHirExpr>, clos: CoreHirExpr, shad
 fn core_closure_name_is_shadowed(shadowed: Vec<String>, name: String) -> bool {
     let mut i = 0
     while i < len(shadowed) {
-        if eq(get_unchecked(shadowed, i), clone(name)) {
+        if eq(get_unchecked(shadowed, i), name.clone()) {
             return true
         }
         i = i + 1

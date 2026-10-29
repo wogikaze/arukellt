@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use compiler::session
 use corehir::export_surface
 use driver::checked_program
@@ -13,10 +13,10 @@ use wasm::emit_target
 fn lower_emit_spec_for(program: CheckedProgram, config: DriverConfig) -> MirLowerEmitSpec {
     let emit_mode = config_record::config_emit_mode(config)
     let target = config_record::config_target(config)
-    let emits_wasm = eq(clone(emit_mode), String_from("wasm")) ||
-    eq(clone(emit_mode), String_from("core-wasm")) ||
-    eq(clone(emit_mode), String_from("component"))
-    if !emits_wasm || !emit_target::is_gc_target(clone(target)) {
+    let emits_wasm = eq(emit_mode.clone(), String_from("wasm")) ||
+    eq(emit_mode.clone(), String_from("core-wasm")) ||
+    eq(emit_mode.clone(), String_from("component"))
+    if !emits_wasm || !emit_target::is_gc_target(target.clone()) {
         return emit_spec::mir_lower_emit_spec_disabled()
     }
     let wasi_version = config_record::config_wasi_version(config)
@@ -25,9 +25,9 @@ fn lower_emit_spec_for(program: CheckedProgram, config: DriverConfig) -> MirLowe
         checked_program::checked_program_wit_decls(program)
     )
     emit_spec::mir_lower_emit_spec_new(
-        clone(wasi_version),
-        emit_target::uses_memory64(clone(target), wasi_version, config_record::config_memory_width(config)),
-        clone(target),
+        wasi_version.clone(),
+        emit_target::uses_memory64(target.clone(), wasi_version, config_record::config_memory_width(config)),
+        target.clone(),
         config_record::config_source_file(config),
         bindings,
         config_record::config_opt_level(config),
@@ -44,12 +44,12 @@ fn lower_report_phase_timing(config: DriverConfig) -> i32 {
 
 fn lower_checked_program(program: CheckedProgram, config: DriverConfig, source: String) -> MirModule {
     let emit_mode = config_record::config_emit_mode(config)
-    let component_mode = eq(clone(emit_mode), "component") || eq(clone(emit_mode), "wit")
+    let component_mode = eq(emit_mode.clone(), "component") || eq(emit_mode.clone(), "wit")
     if component_mode {
-        return lower_component_program(program, config, clone(source))
+        return lower_component_program(program, config, source.clone())
     }
-    if is_t3_wasm_emit(config, clone(emit_mode)) {
-        return lower_t3_wasm_program(program, config, clone(source))
+    if is_t3_wasm_emit(config, emit_mode.clone()) {
+        return lower_t3_wasm_program(program, config, source.clone())
     }
     let decls = checked_program::checked_program_all_decls(program)
     let export_roots = export_surface::export_surface_names(
@@ -68,15 +68,15 @@ fn lower_checked_program(program: CheckedProgram, config: DriverConfig, source: 
 }
 
 fn is_t3_wasm_emit(config: DriverConfig, emit_mode: String) -> bool {
-    if !eq(clone(emit_mode), "wasm") && !eq(clone(emit_mode), "core-wasm") {
+    if !eq(emit_mode.clone(), "wasm") && !eq(emit_mode.clone(), "core-wasm") {
         return false
     }
     let target = config_record::config_target(config)
     // Primary GC target is T3 even when wasi-version is a separate CLI flag
     // (config_target is often just "wasm32-gc", without "-p2" in the string).
-    eq(clone(target), "wasm32-gc")
-    || clone(target).contains("wasm32-gc")
-    || clone(target).contains("-p2")
+    eq(target.clone(), "wasm32-gc")
+    || target.clone().contains("wasm32-gc")
+    || target.clone().contains("-p2")
 }
 
 fn lower_t3_wasm_program(program: CheckedProgram, config: DriverConfig, source: String) -> MirModule {

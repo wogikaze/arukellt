@@ -1,7 +1,7 @@
 use std::host::fs::Fs
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use compiler::session_parse
 use driver::config_record
@@ -25,7 +25,7 @@ fn print_run_compile_errors(input_file: String, result: CompileResult) {
     let mut i = 0
     while i < err_count {
         let msg = result_record::compile_result_error_message_at(result, i)
-        stdio::eprintln(output::format_error(clone(input_file), clone(msg)))
+        stdio::eprintln(output::format_error(input_file.clone(), msg.clone()))
         i = i + 1
     }
 }
@@ -39,7 +39,7 @@ fn run_output_path(opts: CliOptions, input_file: String) -> String {
     if args_record::cli_has_output_file(opts) {
         return args_record::cli_output_file(opts)
     }
-    let base = clone(input_file)
+    let base = input_file.clone()
     let base_len = len(base)
     if base_len > 4 {
         let ext = base.slice(base_len - 4, base_len)
@@ -47,14 +47,14 @@ fn run_output_path(opts: CliOptions, input_file: String) -> String {
             return base.slice(0, base_len - 4).concat(".wasm")
         }
     }
-    clone(base).concat(".wasm")
+    base.clone().concat(".wasm")
 }
 
 fn write_run_output(input_file: String, out_path: String, bytes: Vec<i32>) {
-    let write_result: Result<(), String> = Fs::write_bytes(clone(out_path), bytes)
+    let write_result: Result<(), String> = Fs::write_bytes(out_path.clone(), bytes)
     match write_result {
         Result::Ok(_) => {
-            stdio::eprintln("compiled ".concat(clone(input_file).concat(" -> ".concat(clone(out_path)))))
+            stdio::eprintln("compiled ".concat(input_file.clone().concat(" -> ".concat(out_path.clone()))))
             stdio::eprintln("run: execute with `wasmtime <output.wasm>`")
         },
         Result::Err(e) => {
@@ -67,12 +67,12 @@ fn write_run_output(input_file: String, out_path: String, bytes: Vec<i32>) {
 pub fn cmd_run(opts: CliOptions) {
     let input_file = args_record::cli_input_file(opts)
     let mut config = build_run_driver_config(opts)
-    let result = file::compile_file(clone(input_file), config)
+    let result = file::compile_file(input_file.clone(), config)
     if !result_record::compile_result_success(result) {
-        exit_run_compile_error(clone(input_file), result)
+        exit_run_compile_error(input_file.clone(), result)
         return
     }
-    let out_path = run_output_path(opts, clone(input_file))
+    let out_path = run_output_path(opts, input_file.clone())
     write_run_output(input_file, out_path, result_record::compile_result_output_bytes(result))
 }
 
@@ -112,12 +112,12 @@ fn print_test_start(input_file: String) {
 }
 
 fn print_test_fail(input_file: String, result: CompileResult) {
-    stdio::println("  FAIL  ".concat(clone(input_file)))
+    stdio::println("  FAIL  ".concat(input_file.clone()))
     let err_count = result_record::compile_result_error_count(result)
     let mut i = 0
     while i < err_count {
         let msg = result_record::compile_result_error_message_at(result, i)
-        stdio::eprintln("    ".concat(clone(msg)))
+        stdio::eprintln("    ".concat(msg.clone()))
         i = i + 1
     }
 }
@@ -127,10 +127,10 @@ pub fn cmd_test(opts: CliOptions) {
         exit_missing_test_input()
     }
     let input_file = args_record::cli_input_file(opts)
-    print_test_start(clone(input_file))
-    let test_count = discover_and_print_tests(clone(input_file))
+    print_test_start(input_file.clone())
+    let test_count = discover_and_print_tests(input_file.clone())
     let mut config = build_test_driver_config(opts)
-    let result = file::compile_file(clone(input_file), config)
+    let result = file::compile_file(input_file.clone(), config)
     if !result_record::compile_result_success(result) {
         print_test_fail(input_file, result)
         exit_test_failure()
@@ -140,14 +140,14 @@ pub fn cmd_test(opts: CliOptions) {
         stdio::eprintln("test: no test declarations found")
         Process::exit(2)
     }
-    let out_path = run_output_path(opts, clone(input_file))
+    let out_path = run_output_path(opts, input_file.clone())
     write_run_output(input_file, out_path, result_record::compile_result_output_bytes(result))
 }
 
 // Parses the source file and prints discovered `test` declarations.
 // Returns the number of discovered tests.
 fn discover_and_print_tests(input_file: String) -> i32 {
-    let read_result = Fs::read_to_string(clone(input_file))
+    let read_result = Fs::read_to_string(input_file.clone())
     let mut count = 0
     match read_result {
         Result::Ok(source) => {
@@ -166,7 +166,7 @@ fn collect_test_names(decls: Vec<AstNode>, prefix: String) -> i32 {
     let mut i = 0
     while i < n {
         let d = get_unchecked(decls, i)
-        count = count + collect_test_name_node(d, clone(prefix))
+        count = count + collect_test_name_node(d, prefix.clone())
         i = i + 1
     }
     count
@@ -180,13 +180,13 @@ fn collect_test_name_node(node: AstNode, prefix: String) -> i32 {
     }
     if kind == parser_kinds::NK_TEST_MOD() {
         let mod_name = ast::ast_node_text(node)
-        let new_prefix = make_test_prefix(clone(prefix), clone(mod_name))
+        let new_prefix = make_test_prefix(prefix.clone(), mod_name.clone())
         let cc = ast::ast_node_child_count(node)
         let mut count = 0
         let mut i = 0
         while i < cc {
             let inner = ast::ast_node_child_at(node, i)
-            let child_count = collect_test_name_node(inner, clone(new_prefix))
+            let child_count = collect_test_name_node(inner, new_prefix.clone())
             count = count + child_count
             i = i + 1
         }
@@ -196,14 +196,14 @@ fn collect_test_name_node(node: AstNode, prefix: String) -> i32 {
 }
 
 fn make_test_prefix(prefix: String, name: String) -> String {
-    if len(clone(prefix)) == 0 {
+    if len(prefix.clone()) == 0 {
         return name
     }
     prefix.concat("::".concat(name))
 }
 
 fn print_test_entry(prefix: String, name: String) {
-    if len(clone(prefix)) == 0 {
+    if len(prefix.clone()) == 0 {
         stdio::eprintln("  test  ".concat(name))
         return
     }

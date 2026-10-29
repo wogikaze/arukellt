@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
 use mir::lower::core_call_arg_names
@@ -9,27 +9,27 @@ use mir::lower::ctx_fn_return_vt
 use mir::value_types
 fn mir_core_print_call_arg_needs_string_conversion(mut ctx: LowerCtx, arg: CoreHirExpr, arg_idx: i32) -> bool {
     let cn = core_expr_shape_accessors::mir_core_expr_text(arg)
-    if core_call_arg_names::mir_core_call_string_result_name(clone(cn)) {
+    if core_call_arg_names::mir_core_call_string_result_name(cn.clone()) {
         return false
     }
-    let return_type_name = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(cn))
-    if eq(clone(return_type_name), "String") || eq(clone(return_type_name), "str") || eq(clone(return_type_name), "string") {
+    let return_type_name = ctx_fn_return_type::ctx_fn_return_type_name(ctx, cn.clone())
+    if eq(return_type_name.clone(), "String") || eq(return_type_name.clone(), "str") || eq(return_type_name.clone(), "string") {
         return false
     }
     let expr_type_name = core_expr_shape_accessors::mir_core_expr_type_name(arg)
-    if eq(clone(expr_type_name), "String") || eq(clone(expr_type_name), "str") || eq(clone(expr_type_name), "string") {
+    if eq(expr_type_name.clone(), "String") || eq(expr_type_name.clone(), "str") || eq(expr_type_name.clone(), "string") {
         return false
     }
-    if ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(cn)) == value_types::VT_REF() {
+    if ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn.clone()) == value_types::VT_REF() {
         return false
     }
     if arg_idx >= 0 {
         let lt = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
-        if eq(clone(lt), "String") || eq(clone(lt), "str") || eq(clone(lt), "string") {
+        if eq(lt.clone(), "String") || eq(lt.clone(), "str") || eq(lt.clone(), "string") {
             return false
         }
     }
-    if core_call_arg_names::mir_core_call_bool_result_name(clone(cn)) {
+    if core_call_arg_names::mir_core_call_bool_result_name(cn.clone()) {
         ctx_api_local_types::ctx_set_local_type(ctx, arg_idx, "bool")
         return true
     }
@@ -39,7 +39,7 @@ fn mir_core_print_call_arg_needs_string_conversion(mut ctx: LowerCtx, arg: CoreH
     }
     if arg_idx >= 0 {
         let lt = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
-        if eq(clone(lt), "i32") || eq(clone(lt), "i64") || eq(clone(lt), "f64") {
+        if eq(lt.clone(), "i32") || eq(lt.clone(), "i64") || eq(lt.clone(), "f64") {
             return true
         }
     }

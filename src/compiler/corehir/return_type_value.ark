@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use corehir::decl_ann_name
 use corehir::frontend_ast_identity
 use corehir::frontend_fns
@@ -29,43 +29,43 @@ fn return_value_type_tag_declared(node: AstNode, type_params: Vec<String>) -> i3
     let ret = return_ann_shape::return_ann_child(node)
     let name = decl_ann_name::decl_ann_name(ret)
     if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ret)) ||
-    eq(clone(name), "fnref") {
+    eq(name.clone(), "fnref") {
         return value_types::VT_FUNCREF()
     }
-    if eq(clone(name), "f64") {
+    if eq(name.clone(), "f64") {
         return value_types::VT_F64()
     }
-    if eq(clone(name), "f32") {
+    if eq(name.clone(), "f32") {
         return value_types::VT_F32()
     }
-    if eq(clone(name), "v128") {
+    if eq(name.clone(), "v128") {
         return value_types::VT_V128()
     }
-    if eq(clone(name), "i64") || eq(clone(name), "u64") {
+    if eq(name.clone(), "i64") || eq(name.clone(), "u64") {
         return value_types::VT_I64()
     }
-    if eq(clone(name), "void") || eq(clone(name), "()") {
+    if eq(name.clone(), "void") || eq(name.clone(), "()") {
         return value_types::VT_VOID()
     }
-    if eq(clone(name), "String") || eq(clone(name), "string") ||
-    eq(clone(name), "str") {
+    if eq(name.clone(), "String") || eq(name.clone(), "string") ||
+    eq(name.clone(), "str") {
         return value_types::VT_REF()
     }
-    if eq(clone(name), "i32") ||
-    eq(clone(name), "u32") ||
-    eq(clone(name), "u8") ||
-    eq(clone(name), "u16") ||
-    eq(clone(name), "i16") ||
-    eq(clone(name), "i8") ||
-    eq(clone(name), "bool") ||
-    eq(clone(name), "char") ||
-    eq(clone(name), "unit") {
+    if eq(name.clone(), "i32") ||
+    eq(name.clone(), "u32") ||
+    eq(name.clone(), "u8") ||
+    eq(name.clone(), "u16") ||
+    eq(name.clone(), "i16") ||
+    eq(name.clone(), "i8") ||
+    eq(name.clone(), "bool") ||
+    eq(name.clone(), "char") ||
+    eq(name.clone(), "unit") {
         return value_types::VT_I32()
     }
     // A declared type parameter stays a scalar placeholder until mono
     // substitution; every other named annotation is a nominal GC value
     // (ADR-089: name length and case do not decide this).
-    if len(name) > 0 && !frontend_fns::fn_type_param_is_declared(clone(type_params), clone(name)) {
+    if len(name) > 0 && !frontend_fns::fn_type_param_is_declared(type_params.clone(), name.clone()) {
         return value_types::VT_GC_REF()
     }
     value_types::VT_I32()

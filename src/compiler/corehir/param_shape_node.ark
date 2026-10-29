@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use corehir::decl_ann_member
 use corehir::frontend_ast_identity
 use corehir::frontend_expr_kind
@@ -19,5 +19,5 @@ fn param_name(node: AstNode) -> String {
 }
 
 fn param_is_self_name(name: String) -> bool {
-    eq(clone(name), "self") || eq(clone(name), "&self") || eq(clone(name), "&mut self")
+    eq(name.clone(), "self") || eq(name.clone(), "&self") || eq(name.clone(), "&mut self")
 }

@@ -1,16 +1,15 @@
 use std::host::fs::Fs
-use std::prelude::{clone}
 use loader::module_paths
 pub fn read_stdlib_module_source(stdlib_path: String) -> Result<String, String> {
-    let primary = module_paths::stdlib_path_to_file(clone(stdlib_path))
-    let source_res = Fs::read_to_string(clone(primary))
+    let primary = module_paths::stdlib_path_to_file(stdlib_path.clone())
+    let source_res = Fs::read_to_string(primary.clone())
     match source_res {
         Result::Ok(src) => {
             Result::Ok(src)
         },
         Result::Err(_) => {
-            let mod_path = module_paths::stdlib_mod_fallback_path(clone(primary))
-            Fs::read_to_string(clone(mod_path))
+            let mod_path = module_paths::stdlib_mod_fallback_path(primary.clone())
+            Fs::read_to_string(mod_path.clone())
         },
     }
 }

@@ -12,7 +12,7 @@ fn check_return_type_compat(mut env: TypeEnv, fn_name: String, ret_type: TypeInf
     }
     let ret_name = name_display::type_display_name_with_args(unify::resolve_type(env, ret_type))
     let val_name = name_display::type_display_name_with_args(unify::resolve_type(env, val_ty))
-    let prefix = String_from("return type mismatch: '").concat(clone(fn_name))
+    let prefix = String_from("return type mismatch: '").concat(fn_name.clone())
     let expected = prefix.concat(String_from("' declared to return ").concat(ret_name))
     unify::type_error(env, expected.concat(String_from(" but body returns ").concat(val_name)))
 }

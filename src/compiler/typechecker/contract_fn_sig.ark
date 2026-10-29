@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use typechecker::contract_type_param_bounds
 use typechecker::contract_types_record
 struct FnSig {
@@ -76,7 +75,7 @@ fn FnSig_with_types(sig: FnSig, param_types: Vec<TypeInfo>, return_type: TypeInf
 }
 
 fn FnSig_name(sig: FnSig) -> String {
-    clone(sig.name)
+    sig.name.clone()
 }
 
 fn FnSig_has_name(sig: FnSig) -> bool {
@@ -107,7 +106,7 @@ fn FnSig_type_param_count(sig: FnSig) -> i32 {
 }
 
 fn FnSig_type_param_at(sig: FnSig, index: i32) -> String {
-    clone(get_unchecked(sig.type_params, index))
+    get_unchecked(sig.type_params, index).clone()
 }
 
 fn FnSig_type_param_bound_count(sig: FnSig) -> i32 {

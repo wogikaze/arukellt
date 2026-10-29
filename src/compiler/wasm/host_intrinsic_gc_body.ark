@@ -7,7 +7,7 @@
 // function index itself is also a valid GC entry point (HostIntrinsicSpec
 // adapter role).
 
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::block_inst_mutation
 use mir::function_identity
 use mir::host_intrinsic_stub_names
@@ -20,40 +20,40 @@ use wasm::runtime_abi_stdio_read_gc
 use wasm::intrinsics::helpers_core
 fn try_emit_host_intrinsic_gc_adapter_body(mut w: WasmWriter, f: MirFunction, ctx: SelfEmitCtx) -> bool {
     let name = function_identity::MirFunction_name(f)
-    if !host_intrinsic_stub_names::host_intrinsic_stub_is_known(clone(name)) {
+    if !host_intrinsic_stub_names::host_intrinsic_stub_is_known(name.clone()) {
         return false
     }
-    if !host_intrinsic_adapter::host_intrinsic_needs_gc_adapter(clone(name)) {
+    if !host_intrinsic_adapter::host_intrinsic_needs_gc_adapter(name.clone()) {
         return false
     }
-    if try_emit_env_stdio_gc_adapter_body(w, clone(name), ctx) {
+    if try_emit_env_stdio_gc_adapter_body(w, name.clone(), ctx) {
         return true
     }
     false
 }
 
 fn try_emit_env_stdio_gc_adapter_body(mut w: WasmWriter, name: String, ctx: SelfEmitCtx) -> bool {
-    if eq(clone(name), String_from("args")) {
+    if eq(name.clone(), String_from("args")) {
         return runtime_abi_env_args_gc::emit_env_args_gc(w, ctx)
     }
-    if eq(clone(name), String_from("arg_at")) {
+    if eq(name.clone(), String_from("arg_at")) {
         // Param 0 is the index; the CoreOp emitter consumes it from the stack.
         helpers_core::emit_local_get(w, 0)
         return runtime_abi_env_args_gc::emit_env_arg_at_gc(w, ctx)
     }
-    if eq(clone(name), String_from("var")) || eq(clone(name), String_from("get_var")) {
+    if eq(name.clone(), String_from("var")) || eq(name.clone(), String_from("get_var")) {
         helpers_core::emit_local_get(w, 0)
-        let inst = block_inst_mutation::MirInst_bind_draft(inst_call::MirInst_call(clone(name), 1, 0 - 1))
+        let inst = block_inst_mutation::MirInst_bind_draft(inst_call::MirInst_call(name.clone(), 1, 0 - 1))
         return runtime_abi_env_var::emit_env_var(w, inst, ctx)
     }
-    if eq(clone(name), String_from("var_or_default")) {
+    if eq(name.clone(), String_from("var_or_default")) {
         // Params: 0=name, 1=default. Stack order for emitter: name then default.
         helpers_core::emit_local_get(w, 0)
         helpers_core::emit_local_get(w, 1)
-        let inst = block_inst_mutation::MirInst_bind_draft(inst_call::MirInst_call(clone(name), 2, 0 - 1))
+        let inst = block_inst_mutation::MirInst_bind_draft(inst_call::MirInst_call(name.clone(), 2, 0 - 1))
         return runtime_abi_env_var_gc::emit_env_var_or_default_gc(w, inst, ctx)
     }
-    if eq(clone(name), String_from("read_stdin")) {
+    if eq(name.clone(), String_from("read_stdin")) {
         runtime_abi_stdio_read_gc::emit_gc_wasi_read_stdin_to_string(w, ctx)
         return true
     }

@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use typechecker::contract_types_record
 struct TraitAssociatedTypeInfo {
     trait_name: String,
@@ -22,7 +21,7 @@ fn TraitAssociatedTypeInfo_new(
 }
 
 fn trait_associated_type_info_trait_name(info: TraitAssociatedTypeInfo) -> String {
-    clone(info.trait_name)
+    info.trait_name.clone()
 }
 
 fn trait_associated_type_info_self_ty(info: TraitAssociatedTypeInfo) -> TypeInfo {
@@ -30,7 +29,7 @@ fn trait_associated_type_info_self_ty(info: TraitAssociatedTypeInfo) -> TypeInfo
 }
 
 fn trait_associated_type_info_name(info: TraitAssociatedTypeInfo) -> String {
-    clone(info.name)
+    info.name.clone()
 }
 
 fn trait_associated_type_info_value_ty(info: TraitAssociatedTypeInfo) -> TypeInfo {

@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use compiler::phases
 use diagnostics::record
 use driver::result_record
@@ -8,18 +7,18 @@ pub fn enrich_diagnostic(source: String, source_file: String, diag: Diagnostic) 
     let start = record::diagnostic_span_start(span)
     let end = record::diagnostic_span_end(span)
     if start == 0 && end == 0 && len(record::diagnostic_span_file(span)) == 0 {
-        let filled = diag_mod::span_from_offsets(clone(source), clone(source_file), start, end)
+        let filled = diag_mod::span_from_offsets(source.clone(), source_file.clone(), start, end)
         let enriched = diag_mod::Diagnostic_new(record::diagnostic_code(diag), record::diagnostic_severity(diag), filled, record::diagnostic_message(diag))
-        return diag_mod::format_diagnostic_text(clone(source), clone(source_file), enriched)
+        return diag_mod::format_diagnostic_text(source.clone(), source_file.clone(), enriched)
     }
-    diag_mod::format_diagnostic_text(clone(source), clone(source_file), diag)
+    diag_mod::format_diagnostic_text(source.clone(), source_file.clone(), diag)
 }
 
 pub fn module_loading_errors_result(errors: Vec<String>) -> CompileResult {
     let mut result = result_record::CompileResult_err(phases::PHASE_RESOLVE(), "module loading error(s)")
     let mut le = 0
     while le < len(errors) {
-        result_record::compile_result_push_error_message(result, clone(get_unchecked(errors, le)))
+        result_record::compile_result_push_error_message(result, get_unchecked(errors, le).clone())
         le = le + 1
     }
     result_record::compile_result_set_error_count(result, len(errors))
@@ -34,13 +33,13 @@ pub fn resolve_errors_result(source: String, source_file: String, error_count: i
         while i < diag_count {
             let diag = get_unchecked(diagnostics, i)
             result_record::compile_result_push_diagnostic(result, diag)
-            result_record::compile_result_push_error_message(result, enrich_diagnostic(clone(source), clone(source_file), diag))
+            result_record::compile_result_push_error_message(result, enrich_diagnostic(source.clone(), source_file.clone(), diag))
             i = i + 1
         }
     } else {
         let mut ei = 0
         while ei < len(errors) {
-            result_record::compile_result_push_error_message(result, clone(get_unchecked(errors, ei)))
+            result_record::compile_result_push_error_message(result, get_unchecked(errors, ei).clone())
             ei = ei + 1
         }
     }
@@ -56,13 +55,13 @@ pub fn type_errors_result(source: String, source_file: String, error_count: i32,
         while i < diag_count {
             let diag = get_unchecked(diagnostics, i)
             result_record::compile_result_push_diagnostic(result, diag)
-            result_record::compile_result_push_error_message(result, enrich_diagnostic(clone(source), clone(source_file), diag))
+            result_record::compile_result_push_error_message(result, enrich_diagnostic(source.clone(), source_file.clone(), diag))
             i = i + 1
         }
     } else {
         let mut ei = 0
         while ei < len(errors) {
-            result_record::compile_result_push_error_message(result, clone(get_unchecked(errors, ei)))
+            result_record::compile_result_push_error_message(result, get_unchecked(errors, ei).clone())
             ei = ei + 1
         }
     }
@@ -77,7 +76,7 @@ pub fn type_warnings_result(source: String, source_file: String, warnings: Vec<D
     for i in 0..len(warnings) {
         let diag = get_unchecked(warnings, i)
         result_record::compile_result_push_diagnostic(result, diag)
-        result_record::compile_result_push_error_message(result, enrich_diagnostic(clone(source), clone(source_file), diag))
+        result_record::compile_result_push_error_message(result, enrich_diagnostic(source.clone(), source_file.clone(), diag))
     }
     result_record::compile_result_set_error_count(result, len(warnings))
     result

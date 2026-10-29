@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use collections::name_index
 use corehir::frontend_decl_kind
 use corehir::frontend_ast_node
@@ -7,7 +7,7 @@ fn ctx_fn_index_count(ctx: LowerCtx) -> i32 {
 }
 
 fn ctx_fn_index_name_at(ctx: LowerCtx, index: i32) -> String {
-    clone(get_unchecked(ctx.fn_names, index))
+    get_unchecked(ctx.fn_names, index).clone()
 }
 
 fn ctx_fn_index_return_vt_at(ctx: LowerCtx, index: i32) -> i32 {
@@ -15,7 +15,7 @@ fn ctx_fn_index_return_vt_at(ctx: LowerCtx, index: i32) -> i32 {
 }
 
 fn ctx_fn_index_return_type_name_at(ctx: LowerCtx, index: i32) -> String {
-    clone(get_unchecked(ctx.fn_return_type_names, index))
+    get_unchecked(ctx.fn_return_type_names, index).clone()
 }
 
 fn ctx_fn_index_find(ctx: LowerCtx, name: String) -> i32 {
@@ -27,7 +27,7 @@ fn ctx_qualified_fn_index_find(ctx: LowerCtx, name: String) -> i32 {
 }
 
 fn ctx_qualified_fn_return_type_name_at(ctx: LowerCtx, index: i32) -> String {
-    clone(get_unchecked(ctx.qualified_fn_return_type_names, index))
+    get_unchecked(ctx.qualified_fn_return_type_names, index).clone()
 }
 
 fn ctx_fn_index_replace(
@@ -55,7 +55,7 @@ fn ctx_fn_index_replace(
         if priority_index >= 0 && priority_index < count {
             name_index::name_index_insert_first(
                 index,
-                clone(get_unchecked(fn_names, priority_index)),
+                get_unchecked(fn_names, priority_index).clone(),
                 priority_index
             )
         }
@@ -64,8 +64,8 @@ fn ctx_fn_index_replace(
     let mut lengths = Vec::new<i32>()
     let mut i = 0
     while i < count {
-        let name = clone(get_unchecked(fn_names, i))
-        push(lengths, len(clone(name)))
+        let name = get_unchecked(fn_names, i).clone()
+        push(lengths, len(name.clone()))
         name_index::name_index_insert_first(index, name, i)
         i = i + 1
     }
@@ -86,7 +86,7 @@ fn ctx_qualified_fn_index_replace(
     let mut index = name_index::NameIndex_new(count)
     let mut i = 0
     while i < count {
-        name_index::name_index_insert_first(index, clone(get_unchecked(names, i)), i)
+        name_index::name_index_insert_first(index, get_unchecked(names, i).clone(), i)
         i = i + 1
     }
     ctx.qualified_fn_name_index = index
@@ -94,8 +94,8 @@ fn ctx_qualified_fn_index_replace(
 
 fn ctx_fn_index_push(mut ctx: LowerCtx, name: String, return_vt: i32, return_type_name: String) {
     let index = len(ctx.fn_names)
-    name_index::name_index_insert_first(ctx.fn_name_index, clone(name), index)
-    push(ctx.fn_name_lengths, len(clone(name)))
+    name_index::name_index_insert_first(ctx.fn_name_index, name.clone(), index)
+    push(ctx.fn_name_lengths, len(name.clone()))
     push(ctx.fn_names, name)
     push(ctx.fn_return_vts, return_vt)
     push(ctx.fn_return_type_names, return_type_name)
@@ -116,7 +116,7 @@ fn ctx_set_const_names(mut ctx: LowerCtx, decls: Vec<AstNode>) {
 fn ctx_is_const_name(ctx: LowerCtx, name: String) -> bool {
     let mut i = len(ctx.const_names) - 1
     while i >= 0 {
-        if eq(get_unchecked(ctx.const_names, i), clone(name)) {
+        if eq(get_unchecked(ctx.const_names, i), name.clone()) {
             return true
         }
         i = i - 1

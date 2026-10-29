@@ -1,6 +1,6 @@
 use std::host::fs::Fs
 use std::host::stdio
-use std::prelude::{clone, i64_to_i32}
+use std::prelude::{i64_to_i32}
 use std::text
 use component
 use component::wit_parse_text
@@ -66,22 +66,22 @@ fn dump_backend_plan_if_enabled(config: DriverConfig) {
     stdio::eprintln("wit-imports: ".concat(len(paths).to_string()))
     for i in 0..len(paths) {
         let path = get_unchecked(paths, i)
-        let scan_package = match Fs::read_to_string(clone(path)) {
+        let scan_package = match Fs::read_to_string(path.clone()) {
             Result::Ok(source) => wit_parse_text_scan::wit_extract_package(source),
             Result::Err(_) => String_new(),
         }
-        let scan_interface = match Fs::read_to_string(clone(path)) {
+        let scan_interface = match Fs::read_to_string(path.clone()) {
             Result::Ok(source) => wit_parse_text_scan::wit_extract_interface_name(source),
             Result::Err(_) => String_new(),
         }
-        let doc = match Fs::read_to_string(clone(path)) {
+        let doc = match Fs::read_to_string(path.clone()) {
             Result::Ok(source) => component::parse_wit_import_text(source),
-            Result::Err(_) => component::parse_wit_import_file(clone(path)),
+            Result::Err(_) => component::parse_wit_import_file(path.clone()),
         }
         // Read identity through the source scanner because bootstrap record
         // field access can alias scalar fields while parsed fields are moved.
-        let package = if len(scan_package) > 0 { scan_package } else { clone(doc.package) }
-        let interface = if len(scan_interface) > 0 { scan_interface } else { clone(doc.interface) }
+        let package = if len(scan_package) > 0 { scan_package } else { doc.package.clone() }
+        let interface = if len(scan_interface) > 0 { scan_interface } else { doc.interface.clone() }
         let identity = package.concat("/".concat(interface))
         let mut summary = "wit-import ".concat(identity)
         let funcs = wit_parse_text::WitParsedInterface_funcs(doc)
@@ -108,10 +108,10 @@ fn dump_wit_bindings_if_enabled(config: DriverConfig) {
     let paths = config_record::config_wit_paths(config)
     for i in 0..len(paths) {
         let path = get_unchecked(paths, i)
-        let read_result = Fs::read_to_string(clone(path))
+        let read_result = Fs::read_to_string(path.clone())
         match read_result {
             Result::Ok(source) => {
-                stdio::eprintln("// source: ".concat(clone(path)))
+                stdio::eprintln("// source: ".concat(path.clone()))
                 stdio::eprintln(component::emit_wit_bindings_text(source))
             },
             Result::Err(error) => {

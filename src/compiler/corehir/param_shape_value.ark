@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use corehir::decl_ann_name
 use corehir::frontend_ast_identity
 use corehir::frontend_type_kind
@@ -74,13 +73,13 @@ fn param_ann_value_type(
     // concrete GC value even when its name is one uppercase letter.
     if decl_ann_name::decl_ann_is_named(ann) {
         let name = decl_ann_name::decl_ann_name(ann)
-        if param_shape_declared::corehir_declared_type_param_contains(clone(type_params), clone(name)) {
+        if param_shape_declared::corehir_declared_type_param_contains(type_params.clone(), name.clone()) {
             return value_types::VT_I32()
         }
-        if param_shape_declared::corehir_nominal_types_contains(nominal_types, clone(name)) {
+        if param_shape_declared::corehir_nominal_types_contains(nominal_types, name.clone()) {
             return value_types::VT_GC_REF()
         }
-        if param_ann_name_is_type_param(clone(name)) {
+        if param_ann_name_is_type_param(name.clone()) {
             return value_types::VT_I32()
         }
         return value_types::VT_GC_REF()
@@ -101,7 +100,7 @@ fn param_ann_name_is_type_param(name: String) -> bool {
     if len(name) == 0 {
         return false
     }
-    if clone(name).starts_with("?") {
+    if name.clone().starts_with("?") {
         return param_ann_name_is_type_param(name.slice(1, len(name)))
     }
     if len(name) == 1 {

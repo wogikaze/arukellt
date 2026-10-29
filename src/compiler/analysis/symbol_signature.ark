@@ -1,5 +1,5 @@
 use std::text
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use parser::ast
 use parser::kinds
 fn AT_NK_FN_DECL() -> i32 { kinds::NK_FN_DECL() }
@@ -80,7 +80,7 @@ pub fn enrich_signature_for_decl(decl: AstNode, name: String, kind: i32, base_si
     if kind == AT_NK_LET() {
         let ty = infer_let_type(decl)
         if len(ty) > 0 {
-            return "let ".concat(clone(name)).concat(": ".concat(ty))
+            return "let ".concat(name.clone()).concat(": ".concat(ty))
         }
     }
     base_sig
@@ -90,7 +90,7 @@ pub fn use_site_signature(decl: AstNode, name: String) -> String {
     if node_is_let(decl) {
         let ty = infer_let_type(decl)
         if len(ty) > 0 {
-            return clone(name).concat(": ").concat(ty)
+            return name.clone().concat(": ").concat(ty)
         }
     }
     String_new()

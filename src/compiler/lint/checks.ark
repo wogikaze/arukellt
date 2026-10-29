@@ -18,7 +18,7 @@ use diagnostics::mod as diag_mod
 
 // ── W0006: unused import ──────────────────────────────────────────────
 
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 fn collect_use_decls(decls: Vec<AstNode>) -> Vec<UseDeclInfo> {
     let mut uses = Vec::new<UseDeclInfo>()
@@ -35,13 +35,13 @@ fn collect_use_decls(decls: Vec<AstNode>) -> Vec<UseDeclInfo> {
 fn collect_use_decls_in_node(node: AstNode, mut uses: Vec<UseDeclInfo>) {
     if ast_decl_predicates::node_is_use(node) {
         let path = ast_access::node_text(node)
-        let short = paths::use_module_short_name(clone(path))
+        let short = paths::use_module_short_name(path.clone())
         let alias_name = if ast_access::node_type_ann_count(node) > 0 {
             ast_access::node_text(ast_access::node_type_ann_at(node, 0))
         } else {
             String_new()
         }
-        let effective_name = if len(clone(alias_name)) > 0 { alias_name } else { short }
+        let effective_name = if len(alias_name.clone()) > 0 { alias_name } else { short }
         push(uses, UseDeclInfo_new(effective_name, path, ast_access::node_span_start(node), ast_access::node_span_end(node)))
         let child_count = ast_access::node_child_count(node)
         let mut ci = 0
@@ -49,7 +49,7 @@ fn collect_use_decls_in_node(node: AstNode, mut uses: Vec<UseDeclInfo>) {
             let child = ast_access::node_child_at(node, ci)
             if ast_decl_predicates::node_is_use(child) {
                 let child_path = ast_access::node_text(child)
-                let child_short = paths::use_module_short_name(clone(child_path))
+                let child_short = paths::use_module_short_name(child_path.clone())
                 push(uses, UseDeclInfo_new(child_short, child_path, ast_access::node_span_start(child), ast_access::node_span_end(child)))
             }
             ci = ci + 1
@@ -78,8 +78,8 @@ fn collect_referenced_modules(decls: Vec<AstNode>, mut referenced: Vec<String>) 
 fn collect_referenced_modules_in_node(node: AstNode, mut referenced: Vec<String>) {
     if ast_expr_predicates::node_is_path(node) {
         let path = ast_access::node_text(node)
-        let mod_part = paths::path_module_part(clone(path))
-        if len(clone(mod_part)) > 0 {
+        let mod_part = paths::path_module_part(path.clone())
+        if len(mod_part.clone()) > 0 {
             push(referenced, mod_part)
         }
         return
@@ -96,7 +96,7 @@ fn name_in_vec(name: String, vec: Vec<String>) -> bool {
     let count = len(vec)
     let mut i = 0
     while i < count {
-        if eq(clone(get_unchecked(vec, i)), clone(name)) {
+        if eq(get_unchecked(vec, i).clone(), name.clone()) {
             return true
         }
         i = i + 1
@@ -114,13 +114,13 @@ pub fn check_unused_imports(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     while i < use_count {
         let info = get_unchecked(uses, i)
         let short_name = use_decl_info_short_name(info)
-        if clone(short_name).starts_with("_") {
+        if short_name.clone().starts_with("_") {
             i = i + 1
             continue
         }
-        if !name_in_vec(clone(short_name), referenced) {
+        if !name_in_vec(short_name.clone(), referenced) {
             let path = use_decl_info_path(info)
-            let msg = "unused import `".concat(clone(path).concat("`"))
+            let msg = "unused import `".concat(path.clone().concat("`"))
             let span = record::DiagnosticSpan_from_raw(use_decl_info_span_start(info), use_decl_info_span_end(info))
             push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_UNUSED_IMPORT(), diag_mod::SEV_WARNING(), span, msg))
         }
@@ -163,7 +163,7 @@ fn UseDeclInfo_new(short_name: String, path: String, span_start: i32, span_end: 
     UseDeclInfo { short_name: short_name, path: path, span_start: span_start, span_end: span_end }
 }
 
-fn use_decl_info_short_name(info: UseDeclInfo) -> String { clone(info.short_name) }
-fn use_decl_info_path(info: UseDeclInfo) -> String { clone(info.path) }
+fn use_decl_info_short_name(info: UseDeclInfo) -> String { info.short_name.clone() }
+fn use_decl_info_path(info: UseDeclInfo) -> String { info.path.clone() }
 fn use_decl_info_span_start(info: UseDeclInfo) -> i32 { info.span_start }
 fn use_decl_info_span_end(info: UseDeclInfo) -> i32 { info.span_end }

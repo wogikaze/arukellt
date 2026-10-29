@@ -19,7 +19,7 @@ fn mono_type_key(ty: TypeInfo) -> String {
     // A concrete container arg then looks like a template spelling, so span
     // rewrites such as `Vec::new__Option<i32>` were dropped and the call
     // bound to the bare constructor (vec:i32 layout for Vec<Option<i32>>).
-    if eq(clone(base), "?") {
+    if eq(base.clone(), "?") {
         if tag == commands::TY_OPTION() {
             base = "Option"
         }

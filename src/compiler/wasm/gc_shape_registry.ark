@@ -2,7 +2,7 @@
 // Field types are encoded as strings: 'i'=i32, 'l'=i64, 'd'=f64.
 
 use std::text
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::value_types
 pub struct GcShapeRegistry {
     struct_names: Vec<String>,
@@ -19,8 +19,8 @@ fn GcShapeRegistry_add_struct(reg: GcShapeRegistry, struct_name: String, field_t
     if existing >= 0 {
         return existing
     }
-    push(clone(reg.struct_names), struct_name)
-    push(clone(reg.struct_field_types), field_types_code)
+    push(reg.struct_names.clone(), struct_name)
+    push(reg.struct_field_types.clone(), field_types_code)
     len(reg.struct_names) - 1
 }
 
@@ -29,7 +29,7 @@ fn GcShapeRegistry_add_array(reg: GcShapeRegistry, elem_type: i32) -> i32 {
     if existing >= 0 {
         return existing
     }
-    push(clone(reg.array_elem_types), elem_type)
+    push(reg.array_elem_types.clone(), elem_type)
     len(reg.array_elem_types) - 1
 }
 
@@ -47,7 +47,7 @@ fn GcShapeRegistry_struct_field_count(reg: GcShapeRegistry, idx: i32) -> i32 {
 
 fn GcShapeRegistry_struct_field_type_at(reg: GcShapeRegistry, struct_idx: i32, field_idx: i32) -> i32 {
     let types_code = get_unchecked(reg.struct_field_types, struct_idx)
-    let c = clone(types_code).byte_at(field_idx)
+    let c = types_code.clone().byte_at(field_idx)
     if c == 108 { value_types::VT_I64() }
     else if c == 100 { value_types::VT_F64() }
     else if c == 102 { value_types::VT_F32() }
@@ -69,7 +69,7 @@ fn GcShapeRegistry_struct_sig(reg: GcShapeRegistry, idx: i32) -> String {
         sig = sig.concat("_f")
         sig = sig.concat(fi.to_string())
         sig = sig.concat("_")
-        sig = sig.concat(code_to_gc_sig(clone(types_code).byte_at(fi)))
+        sig = sig.concat(code_to_gc_sig(types_code.clone().byte_at(fi)))
         fi = fi + 1
     }
     sig
@@ -103,7 +103,7 @@ fn find_struct_by_name(reg: GcShapeRegistry, name: String) -> i32 {
     let n = len(reg.struct_names)
     let mut i = 0
     while i < n {
-        if eq(clone(get_unchecked(reg.struct_names, i)), clone(name)) {
+        if eq(get_unchecked(reg.struct_names, i).clone(), name.clone()) {
             return i
         }
         i = i + 1

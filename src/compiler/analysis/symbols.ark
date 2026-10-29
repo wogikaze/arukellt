@@ -1,5 +1,5 @@
 use std::text
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use analysis::doc_scan
 use analysis::ident_span
 use analysis::symbol_signature
@@ -80,25 +80,25 @@ fn find_ident_span_in_decls(decls: Vec<AstNode>, offset: i32) -> IdentSpan {
 }
 
 pub fn ident_span_at_offset(text: String, offset: i32) -> IdentSpan {
-    find_ident_span_in_decls(session_parse::session_parse_decls(clone(text)), offset)
+    find_ident_span_in_decls(session_parse::session_parse_decls(text.clone()), offset)
 }
 
 pub fn ident_at_offset(text: String, offset: i32) -> String {
-    let span = ident_span_at_offset(clone(text), offset)
+    let span = ident_span_at_offset(text.clone(), offset)
     if ident_span::ident_span_found(span) { return ident_span::ident_span_name(span) }
     String_new()
 }
 
 fn find_decl_in_node(node: AstNode, name: String) -> SymbolInfo {
-    if node_is_decl(node) && eq(node_text(node), clone(name)) {
+    if node_is_decl(node) && eq(node_text(node), name.clone()) {
         let kind = node_kind(node)
-        let sig = symbol_signature::enrich_signature_for_decl(node, clone(name), kind, symbol_signature::render_signature(node))
+        let sig = symbol_signature::enrich_signature_for_decl(node, name.clone(), kind, symbol_signature::render_signature(node))
         return symbol_types::SymbolInfo_found(name, kind, node_decl_name_span_start(node), node_decl_name_span_end(node), sig, String_new())
     }
     let cn = node_child_count(node)
     let mut i = 0
     while i < cn {
-        let found = find_decl_in_node(node_child_at(node, i), clone(name))
+        let found = find_decl_in_node(node_child_at(node, i), name.clone())
         if symbol_types::symbol_info_found(found) { return found }
         i = i + 1
     }
@@ -109,9 +109,9 @@ fn find_decl_by_name(text: String, decls: Vec<AstNode>, name: String) -> SymbolI
     let n = len(decls)
     let mut i = n - 1
     while i >= 0 {
-        let found = find_decl_in_node(get_unchecked(decls, i), clone(name))
+        let found = find_decl_in_node(get_unchecked(decls, i), name.clone())
         if symbol_types::symbol_info_found(found) {
-            let doc = doc_scan::doc_comment_before_offset(clone(text), symbol_types::symbol_info_decl_start(found))
+            let doc = doc_scan::doc_comment_before_offset(text.clone(), symbol_types::symbol_info_decl_start(found))
             return symbol_types::SymbolInfo_found(
                 name,
                 symbol_types::symbol_info_kind(found),
@@ -128,14 +128,14 @@ fn find_decl_by_name(text: String, decls: Vec<AstNode>, name: String) -> SymbolI
 }
 
 fn find_use_site_sig_in_node(node: AstNode, name: String) -> String {
-    if node_is_let(node) && eq(node_text(node), clone(name)) {
-        let sig: String = symbol_signature::use_site_signature(node, clone(name))
+    if node_is_let(node) && eq(node_text(node), name.clone()) {
+        let sig: String = symbol_signature::use_site_signature(node, name.clone())
         if len(sig) > 0 { return sig }
     }
     let cn = node_child_count(node)
     let mut i = 0
     while i < cn {
-        let sig: String = find_use_site_sig_in_node(node_child_at(node, i), clone(name))
+        let sig: String = find_use_site_sig_in_node(node_child_at(node, i), name.clone())
         if len(sig) > 0 { return sig }
         i = i + 1
     }
@@ -146,7 +146,7 @@ fn use_site_sig_for_name(decls: Vec<AstNode>, name: String) -> String {
     let n = len(decls)
     let mut i = 0
     while i < n {
-        let sig: String = find_use_site_sig_in_node(get_unchecked(decls, i), clone(name))
+        let sig: String = find_use_site_sig_in_node(get_unchecked(decls, i), name.clone())
         if len(sig) > 0 { return sig }
         i = i + 1
     }
@@ -154,7 +154,7 @@ fn use_site_sig_for_name(decls: Vec<AstNode>, name: String) -> String {
 }
 
 pub fn symbol_at(text: String, offset: i32) -> SymbolInfo {
-    let decls = session_parse::session_parse_decls(clone(text))
+    let decls = session_parse::session_parse_decls(text.clone())
     let ctx = session_resolve_query::session_resolve_decls(decls)
     let target = ref_sites::find_decl_index_at_offset(ctx, offset)
     if target < 0 { return symbol_types::SymbolInfo_none() }
@@ -163,18 +163,18 @@ pub fn symbol_at(text: String, offset: i32) -> SymbolInfo {
     let name = ref_record::decl_site_name(site)
     let decl_start = ref_record::decl_site_start(site)
     let decl_end = ref_record::decl_site_end(site)
-    let decls2 = session_parse::session_parse_decls(clone(text))
-    let info = find_decl_by_name(clone(text), decls2, clone(name))
+    let decls2 = session_parse::session_parse_decls(text.clone())
+    let info = find_decl_by_name(text.clone(), decls2, name.clone())
     if symbol_types::symbol_info_found(info) {
         if symbol_types::symbol_info_kind(info) == AT_NK_LET() {
-            let site_sig = use_site_sig_for_name(decls2, clone(name))
+            let site_sig = use_site_sig_for_name(decls2, name.clone())
             if len(site_sig) > 0 {
                 return symbol_types::SymbolInfo_found(name, symbol_types::symbol_info_kind(info), decl_start, decl_end, site_sig, symbol_types::symbol_info_doc(info))
             }
         }
         return symbol_types::SymbolInfo_found(name, symbol_types::symbol_info_kind(info), decl_start, decl_end, symbol_types::symbol_info_signature(info), symbol_types::symbol_info_doc(info))
     }
-    let sig = use_site_sig_for_name(decls2, clone(name))
+    let sig = use_site_sig_for_name(decls2, name.clone())
     if len(sig) > 0 {
         return symbol_types::SymbolInfo_found(name, kinds::NK_IDENT(), decl_start, decl_end, sig, String_new())
     }

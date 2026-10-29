@@ -1,13 +1,12 @@
 use std::json
-use std::prelude::{clone}
 use lsp::formatting
 use lsp::framing
 pub fn handle_formatting(mut state: LspState, body: String) {
-    let id = json::JsonText::get_int(clone(body), String_from("id"))
-    framing::append_framed(state, formatting::build_formatting_response_for_request(state, clone(body), id))
+    let id = json::JsonText::get_int(body.clone(), String_from("id"))
+    framing::append_framed(state, formatting::build_formatting_response_for_request(state, body.clone(), id))
 }
 
 pub fn handle_range_formatting(mut state: LspState, body: String) {
-    let id = json::JsonText::get_int(clone(body), String_from("id"))
-    framing::append_framed(state, formatting::build_range_formatting_response_for_request(state, clone(body), id))
+    let id = json::JsonText::get_int(body.clone(), String_from("id"))
+    framing::append_framed(state, formatting::build_range_formatting_response_for_request(state, body.clone(), id))
 }

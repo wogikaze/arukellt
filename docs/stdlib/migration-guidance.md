@@ -182,9 +182,14 @@ calls fail with E0100 and a receiver hint:
 | `ends_with(s, suffix)` | `s.ends_with(suffix)` |
 | `contains(s, sub)` | `s.contains(sub)` |
 | `index_of(s, sub)` | `s.index_of(sub)` |
+| `clone(x)` | `x.clone()` |
 
-The `std::collections::string` module-scoped frees for these eight names were
-deleted as well, so there is no second free spelling.
+The `std::collections::string` module-scoped frees for these eight names and
+`clone` were deleted as well, so there is no second free spelling. `clone`
+keeps a private generic identity shim in `std/prelude.ark` for receivers
+without a `Clone` impl; a bare call and `use std::prelude::{clone}` are E0100.
+`Vec<T>::clone` is shallow (shared element storage) until the pin refresh
+allows a `T: Clone`-bounded deep impl.
 
 The following remain `associated-or-method` and are **not** covered by the
 exception:
@@ -193,9 +198,6 @@ exception:
   (ADR-088 §6), and the generic `Box<T>` associated-function / method spelling
   cannot infer `T` under the current lowering. The method form needs an
   ownership / MIR change.
-- `clone`: the free is the compiler-polymorphic copy path for values without a
-  `Clone` impl (`Vec<String>`, `Vec<TypeInfo>`, `AstNode`, ...). `s.clone()` only
-  covers `String` / scalar / registered collection impls.
 - `eq`: `String`'s `==` lowers through the `eq` operator method; the bootstrap
   flat overlay does not ship `std::core::cmp` (`impl Eq for String`), so removing
   the free makes the pin lower String `==` as `i32.eq` (reference comparison)

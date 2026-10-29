@@ -8,7 +8,7 @@ use typechecker::unify_env
 
 // Canonical protocol names used by language syntax. Keep this table aligned
 // with ADR-065; operator syntax must not search an inherent method namespace.
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 fn binary_trait_name(op: i32) -> String {
     if op == kinds::OP_ADD() { return "Add" }
@@ -118,17 +118,17 @@ fn enforce_operator_trait(
         if trait_bounds::env_type_var_has_trait_bound(
             env,
             contract_type_access::TypeInfo_name(resolved_ty),
-            clone(trait_name)
+            trait_name.clone()
         ) {
             return
         }
         report_missing_operator_bound(env, symbol, trait_name, resolved_ty)
         return
     }
-    if is_builtin_operator_type(resolved_ty, clone(trait_name)) {
+    if is_builtin_operator_type(resolved_ty, trait_name.clone()) {
         return
     }
-    let bound = types::resolve_type_name(clone(trait_name))
+    let bound = types::resolve_type_name(trait_name.clone())
     if trait_bounds::type_satisfies_trait_bound(env, resolved_ty, bound) {
         return
     }
@@ -146,7 +146,7 @@ fn enforce_operator_trait(
 // linear pointer arithmetic) (#885).
 fn is_builtin_operator_type(ty: TypeInfo, trait_name: String) -> bool {
     let tag = contract_type_access::TypeInfo_tag(ty)
-    if eq(clone(trait_name), String_from("Eq")) || eq(clone(trait_name), String_from("Ord")) {
+    if eq(trait_name.clone(), String_from("Eq")) || eq(trait_name.clone(), String_from("Ord")) {
         return tag == commands::TY_I32() ||
         tag == commands::TY_I64() ||
         tag == commands::TY_F64() ||
@@ -155,17 +155,17 @@ fn is_builtin_operator_type(ty: TypeInfo, trait_name: String) -> bool {
         tag == commands::TY_CHAR() ||
         tag == commands::TY_STRING()
     }
-    if eq(clone(trait_name), String_from("Not")) {
+    if eq(trait_name.clone(), String_from("Not")) {
         return tag == commands::TY_BOOL() ||
         tag == commands::TY_I32() ||
         tag == commands::TY_I64()
     }
-    if eq(clone(trait_name), String_from("BitAnd")) ||
-    eq(clone(trait_name), String_from("BitOr")) ||
-    eq(clone(trait_name), String_from("BitXor")) ||
-    eq(clone(trait_name), String_from("Shl")) ||
-    eq(clone(trait_name), String_from("Shr")) ||
-    eq(clone(trait_name), String_from("BitNot")) {
+    if eq(trait_name.clone(), String_from("BitAnd")) ||
+    eq(trait_name.clone(), String_from("BitOr")) ||
+    eq(trait_name.clone(), String_from("BitXor")) ||
+    eq(trait_name.clone(), String_from("Shl")) ||
+    eq(trait_name.clone(), String_from("Shr")) ||
+    eq(trait_name.clone(), String_from("BitNot")) {
         return tag == commands::TY_I32() || tag == commands::TY_I64()
     }
     // Arithmetic family (Add/Sub/Mul/Div/Rem/Neg): numeric scalars only.
@@ -182,7 +182,7 @@ fn report_missing_operator_bound(
     operand_ty: TypeInfo
 ) {
     let type_name = contract_type_access::TypeInfo_name(operand_ty)
-    let message = String_from("operator `").concat(clone(symbol).concat("` requires ".concat(clone(trait_name).concat(" bound for ".concat(clone(type_name))))))
+    let message = String_from("operator `").concat(symbol.clone().concat("` requires ".concat(trait_name.clone().concat(" bound for ".concat(type_name.clone())))))
     unify_env::type_error_unsupported_operator(env, message)
 }
 
@@ -192,6 +192,6 @@ fn report_missing_operator_impl(
     trait_name: String,
     type_name: String
 ) {
-    let message = String_from("operator `").concat(clone(symbol).concat("` requires ".concat(clone(trait_name).concat(" for ".concat(clone(type_name))))))
+    let message = String_from("operator `").concat(symbol.clone().concat("` requires ".concat(trait_name.clone().concat(" for ".concat(type_name.clone())))))
     unify_env::type_error_unsupported_operator(env, message)
 }

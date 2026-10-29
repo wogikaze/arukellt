@@ -6,7 +6,6 @@
 //! #917 wave (ADR-044/ADR-046).
 
 use std::wit::types
-use std::prelude::{clone}
 
 pub struct WitFunc {
     name: String,
@@ -73,7 +72,7 @@ impl World {
 
     /// Return the world name.
     fn name(self: World) -> String {
-        clone(self.name)
+        self.name.clone()
     }
 
     /// Return the number of exported interfaces.

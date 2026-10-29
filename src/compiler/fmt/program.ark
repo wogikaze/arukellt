@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use fmt::comments
 use fmt::indent
 use fmt::parse_gate
@@ -6,16 +5,16 @@ use fmt::sort_imports
 use fmt::whitespace
 
 fn fmt_format_source_impl(input: String) -> Option<String> {
-    let gate = parse_gate::fmt_parse_gate(clone(input))
+    let gate = parse_gate::fmt_parse_gate(input.clone())
     if parse_gate::fmt_parse_gate_error_count(gate) > 0 {
         return Option::None
     }
-    match sort_imports::fmt_sort_imports_text(clone(input)) {
+    match sort_imports::fmt_sort_imports_text(input.clone()) {
         Option::None => {
             return Option::None
         },
         Option::Some(sorted_text) => {
-            let lines = whitespace::fmt_split_lines(clone(sorted_text))
+            let lines = whitespace::fmt_split_lines(sorted_text.clone())
             let with_comments = comments::fmt_preserve_comment_lines(lines)
             let indented = indent::fmt_indent_apply(with_comments)
             let collapsed = whitespace::fmt_collapse_blank_lines(indented)

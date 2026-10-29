@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_current_storage
@@ -21,7 +20,7 @@ fn mir_emit_entry_body_result(mut ctx: LowerCtx, input: MirLowerEntryBodyInput) 
     // the concrete instance (#710 / #845).
     let current_func = ctx_current_storage::ctx_current_func_value(ctx)
     let declared_return = function_return_view::MirFunction_return_type_name(current_func)
-    if len(clone(declared_return)) > 0 {
+    if len(declared_return.clone()) > 0 {
         ctx.expected_struct_inst = declared_return
     }
     let result = entry_body_value::mir_lower_entry_body_value(ctx, input)
@@ -36,7 +35,7 @@ fn mir_emit_entry_body_result(mut ctx: LowerCtx, input: MirLowerEntryBodyInput) 
 }
 
 fn mir_entry_body_input_can_emit_body(input: MirLowerEntryBodyInput) -> bool {
-    if entry_body_input::mir_entry_body_input_has_fallback(clone(input)) {
+    if entry_body_input::mir_entry_body_input_has_fallback(input.clone()) {
         return true
     }
     entry_core_body::mir_entry_core_body_is_supported(entry_body_input::mir_entry_body_input_core(input))

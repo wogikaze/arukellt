@@ -1,7 +1,6 @@
-use std::prelude::{clone}
 use mir::lower::ctx_struct_storage
 fn ctx_struct_field_count(ctx: LowerCtx, struct_name: String) -> i32 {
-    let li = ctx_struct_storage::ctx_struct_layout_preferred_index(ctx, clone(struct_name))
+    let li = ctx_struct_storage::ctx_struct_layout_preferred_index(ctx, struct_name.clone())
     if li < 0 {
         return 0
     }
@@ -9,7 +8,7 @@ fn ctx_struct_field_count(ctx: LowerCtx, struct_name: String) -> i32 {
 }
 
 fn ctx_struct_field_name(ctx: LowerCtx, struct_name: String, field_idx: i32) -> String {
-    let li = ctx_struct_storage::ctx_struct_layout_preferred_index(ctx, clone(struct_name))
+    let li = ctx_struct_storage::ctx_struct_layout_preferred_index(ctx, struct_name.clone())
     if li < 0 {
         return String_new()
     }

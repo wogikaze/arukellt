@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ast_node
 use mir::lower::ann_types
 use mir::lower::ctx_api_local_alloc
@@ -23,29 +23,29 @@ fn mir_emit_closure_params(mut ctx: LowerCtx, clos: AstNode, child_count: i32) {
             if ast_node::node_type_ann_count(p) > 0 {
                 let ann = ast_node::node_type_ann_at(p, 0)
                 let ann_name = ast_node::node_text(ann)
-                pvt = ann_types::mir_local_vt_from_type_name(clone(ann_name))
+                pvt = ann_types::mir_local_vt_from_type_name(ann_name.clone())
                 ptype = ctx_struct_layout::ctx_maybe_enum_return_type_name(
                     ctx,
                     ann_types::mir_local_type_name_from_ann(ann, 0)
                 )
                 if len(ptype) == 0 {
-                    ptype = clone(ann_name)
+                    ptype = ann_name.clone()
                 }
                 if pvt == value_types::VT_I32() {
-                    if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(ann_name)) ||
-                    ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(ann_name)) {
+                    if ctx_struct_layout::ctx_is_registered_struct_type(ctx, ann_name.clone()) ||
+                    ctx_struct_layout::ctx_is_registered_enum_type(ctx, ann_name.clone()) {
                         pvt = value_types::VT_GC_REF()
                     }
                 }
-                if closure_param_type_is_fnref(clone(ptype)) {
+                if closure_param_type_is_fnref(ptype.clone()) {
                     pvt = value_types::VT_FUNCREF()
                 }
             }
-            let _idx = ctx_alloc_local(ctx, clone(param_name), pvt)
+            let _idx = ctx_alloc_local(ctx, param_name.clone(), pvt)
             if len(ptype) > 0 {
-                ctx_api_local_types::ctx_set_local_type(ctx, _idx, clone(ptype))
+                ctx_api_local_types::ctx_set_local_type(ctx, _idx, ptype.clone())
             }
-            ctx_api_function_frame::ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(param_name), pvt, clone(ptype)))
+            ctx_api_function_frame::ctx_push_func_param(ctx, local_factory::MirLocal_new(param_name.clone(), pvt, ptype.clone()))
         }
         pi = pi + 1
     }
@@ -54,9 +54,9 @@ fn mir_emit_closure_params(mut ctx: LowerCtx, clos: AstNode, child_count: i32) {
 // fnref-family spellings (fnref/fnref2/fnsig:/fn() mark a callback ABI
 // param; they must keep VT_FUNCREF rather than widening to a data ref.
 fn closure_param_type_is_fnref(type_name: String) -> bool {
-    eq(clone(type_name), String_from("fnref")) ||
-    eq(clone(type_name), String_from("fnref2")) ||
-    clone(type_name).starts_with(String_from("fnref")) ||
-    clone(type_name).starts_with(String_from("fnsig:")) ||
-    clone(type_name).starts_with(String_from("fn("))
+    eq(type_name.clone(), String_from("fnref")) ||
+    eq(type_name.clone(), String_from("fnref2")) ||
+    type_name.clone().starts_with(String_from("fnref")) ||
+    type_name.clone().starts_with(String_from("fnsig:")) ||
+    type_name.clone().starts_with(String_from("fn("))
 }

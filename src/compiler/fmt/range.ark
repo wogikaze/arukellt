@@ -1,5 +1,4 @@
 use std::text
-use std::prelude::{clone}
 use fmt::program
 use fmt::whitespace
 
@@ -25,7 +24,7 @@ fn fmt_snap_line_end(line: i32, max_line: i32) -> i32 {
 }
 
 fn fmt_extract_line_range(text: String, start_line: i32, end_line: i32) -> String {
-    let lines = whitespace::fmt_split_lines(clone(text))
+    let lines = whitespace::fmt_split_lines(text.clone())
     let max_line = len(lines) - 1
     let start = fmt_snap_line_start(start_line)
     let end = fmt_snap_line_end(end_line, max_line)
@@ -35,7 +34,7 @@ fn fmt_extract_line_range(text: String, start_line: i32, end_line: i32) -> Strin
         if i > start {
             out = out.concat("\n")
         }
-        out = out.concat(clone(get_unchecked(lines, i)))
+        out = out.concat(get_unchecked(lines, i).clone())
         i = i + 1
     }
     if end < max_line {
@@ -45,7 +44,7 @@ fn fmt_extract_line_range(text: String, start_line: i32, end_line: i32) -> Strin
 }
 
 fn fmt_replace_line_range(text: String, start_line: i32, end_line: i32, replacement: String) -> String {
-    let lines = whitespace::fmt_split_lines(clone(text))
+    let lines = whitespace::fmt_split_lines(text.clone())
     let max_line = len(lines) - 1
     let start = fmt_snap_line_start(start_line)
     let end = fmt_snap_line_end(end_line, max_line)
@@ -55,18 +54,18 @@ fn fmt_replace_line_range(text: String, start_line: i32, end_line: i32, replacem
         if i > 0 {
             out = out.concat("\n")
         }
-        out = out.concat(clone(get_unchecked(lines, i)))
+        out = out.concat(get_unchecked(lines, i).clone())
         i = i + 1
     }
     if len(replacement) > 0 {
         if start > 0 {
             out = out.concat("\n")
         }
-        out = out.concat(clone(replacement))
+        out = out.concat(replacement.clone())
     }
     for j in (end + 1)..len(lines) {
         out = out.concat("\n")
-        out = out.concat(clone(get_unchecked(lines, j)))
+        out = out.concat(get_unchecked(lines, j).clone())
     }
     if len(lines) > 0 {
         out = out.concat("\n")
@@ -75,7 +74,7 @@ fn fmt_replace_line_range(text: String, start_line: i32, end_line: i32, replacem
 }
 
 fn fmt_range_format(input: String, start_line: i32, end_line: i32) -> Option<String> {
-    let formatted = match program::fmt_format_source(clone(input)) {
+    let formatted = match program::fmt_format_source(input.clone()) {
         Option::None => {
             return Option::None
         },
@@ -83,10 +82,10 @@ fn fmt_range_format(input: String, start_line: i32, end_line: i32) -> Option<Str
             text
         },
     }
-    let original_region = fmt_extract_line_range(clone(input), start_line, end_line)
-    let formatted_region = fmt_extract_line_range(clone(formatted), start_line, end_line)
+    let original_region = fmt_extract_line_range(input.clone(), start_line, end_line)
+    let formatted_region = fmt_extract_line_range(formatted.clone(), start_line, end_line)
     if original_region == formatted_region {
-        return Option::Some(clone(input))
+        return Option::Some(input.clone())
     }
     Option::Some(fmt_replace_line_range(input, start_line, end_line, formatted_region))
 }

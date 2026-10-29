@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use component::contract
 use component::wit_text
@@ -17,7 +17,7 @@ fn world_spec_has_command_entry(decls: Vec<AstNode>) -> bool {
         if wit_decl::wit_decl_is_func(decl) {
             let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
             let name = wit_decl::wit_func_name(f)
-            if eq(clone(name), "main") || eq(clone(name), "_start") { return true }
+            if eq(name.clone(), "main") || eq(name.clone(), "_start") { return true }
         }
     }
     false
@@ -25,7 +25,7 @@ fn world_spec_has_command_entry(decls: Vec<AstNode>) -> bool {
 
 fn world_spec_export_roots_satisfy_run(export_roots: Vec<String>, decls: Vec<AstNode>) -> bool {
     for i in 0..len(export_roots) {
-        if eq(clone(get_unchecked(export_roots, i)), "run") { return true }
+        if eq(get_unchecked(export_roots, i).clone(), "run") { return true }
     }
     world_spec_has_command_entry(decls)
 }
@@ -33,14 +33,14 @@ fn world_spec_export_roots_satisfy_run(export_roots: Vec<String>, decls: Vec<Ast
 fn preflight_frontend(config_emit_mode: String, wit_paths: Vec<String>, decls: Vec<AstNode>, world: String) -> String {
     let wit_error = preflight_wit_imports(wit_paths)
     if len(wit_error) > 0 { return wit_error }
-    let world_error = world_spec::world_spec_parse_error(clone(world))
+    let world_error = world_spec::world_spec_parse_error(world.clone())
     if len(world_error) > 0 { return world_error }
-    if len(world) > 0 && world_spec::world_spec_is_cli_command(clone(world)) {
+    if len(world) > 0 && world_spec::world_spec_is_cli_command(world.clone()) {
         let export_roots = wit_text::collect_export_roots(decls)
         if !world_spec_export_roots_satisfy_run(export_roots, decls) {
-            return "world `".concat(clone(world).concat("` requires export `wasi:cli/run/run`, but no matching function found"))
+            return "world `".concat(world.clone().concat("` requires export `wasi:cli/run/run`, but no matching function found"))
         }
     }
-    if eq(clone(config_emit_mode), "component") { return contract::validate_export_surface(decls) }
+    if eq(config_emit_mode.clone(), "component") { return contract::validate_export_surface(decls) }
     ""
 }

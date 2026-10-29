@@ -1,6 +1,5 @@
 // Compiler WIT AST-view facade — package/interface callable and binding surfaces (#663, #664, #672).
 
-use std::prelude::{clone}
 struct WitParsedFunc {
     wit_name: String,
     ark_name: String,
@@ -67,7 +66,7 @@ fn WitParsedInterface_new(package: String, interface: String, funcs: Vec<WitPars
 }
 
 fn WitParsedInterface_funcs(doc: WitParsedInterface) -> Vec<WitParsedFunc> { doc.funcs }
-fn WitParsedInterface_package_version(doc: WitParsedInterface) -> String { clone(doc.package_version) }
+fn WitParsedInterface_package_version(doc: WitParsedInterface) -> String { doc.package_version.clone() }
 fn WitParsedInterface_records(doc: WitParsedInterface) -> Vec<WitParsedRecord> { doc.records }
 fn WitParsedInterface_enums(doc: WitParsedInterface) -> Vec<WitParsedEnum> { doc.enums }
 fn WitParsedInterface_variants(doc: WitParsedInterface) -> Vec<WitParsedVariant> { doc.variants }

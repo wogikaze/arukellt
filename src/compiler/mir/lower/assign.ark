@@ -10,7 +10,7 @@ use mir::inst_local_set
 use mir::value_types
 
 fn mir_emit_ident_assign(mut ctx: LowerCtx, name: String, val_idx: i32) {
-    let local_idx = ctx_lookup_local(ctx, clone(name))
+    let local_idx = ctx_lookup_local(ctx, name.clone())
     if local_idx >= 0 && val_idx >= 0 {
         // Widen i32 values assigned into i64 locals before the local.set.
         // Use local_set_from: struct/if RHS values live in `val_idx` and are
@@ -41,16 +41,16 @@ fn mir_emit_field_assign(mut ctx: LowerCtx, field_name: String, struct_idx: i32,
     let mut field_vt = value_types::VT_I32()
     let mut struct_byte_size = 0
     if len(base_type) > 0 {
-        fi_assign = ctx_field_index(ctx, clone(base_type), clone(field_name))
-        field_off = ctx_struct_field_offset(ctx, clone(base_type), fi_assign)
-        struct_byte_size = ctx_struct_byte_size(ctx, clone(base_type))
-        if ctx_struct_field_is_f64(ctx, clone(base_type), fi_assign) {
+        fi_assign = ctx_field_index(ctx, base_type.clone(), field_name.clone())
+        field_off = ctx_struct_field_offset(ctx, base_type.clone(), fi_assign)
+        struct_byte_size = ctx_struct_byte_size(ctx, base_type.clone())
+        if ctx_struct_field_is_f64(ctx, base_type.clone(), fi_assign) {
             field_vt = value_types::VT_F64()
-        } else if ctx_struct_field_is_i64(ctx, clone(base_type), fi_assign) {
+        } else if ctx_struct_field_is_i64(ctx, base_type.clone(), fi_assign) {
             field_vt = value_types::VT_I64()
-        } else if ctx_struct_field_is_v128(ctx, clone(base_type), fi_assign) {
+        } else if ctx_struct_field_is_v128(ctx, base_type.clone(), fi_assign) {
             field_vt = value_types::VT_V128()
-        } else if ctx_struct_layout::ctx_struct_field_is_gc_ref(ctx, clone(base_type), fi_assign) {
+        } else if ctx_struct_layout::ctx_struct_field_is_gc_ref(ctx, base_type.clone(), fi_assign) {
             if ctx_gc_enum::ctx_is_gc_target(ctx) {
                 field_vt = value_types::VT_GC_REF()
             } else {
@@ -58,8 +58,8 @@ fn mir_emit_field_assign(mut ctx: LowerCtx, field_name: String, struct_idx: i32,
             }
         }
     } else {
-        fi_assign = ctx_field_index_any(ctx, clone(field_name))
+        fi_assign = ctx_field_index_any(ctx, field_name.clone())
         field_off = fi_assign * 4
     }
-    ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named_idx(struct_idx, val_idx, clone(base_type), field_off, fi_assign, struct_byte_size, field_vt))
+    ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named_idx(struct_idx, val_idx, base_type.clone(), field_off, fi_assign, struct_byte_size, field_vt))
 }

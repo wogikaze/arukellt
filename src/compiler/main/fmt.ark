@@ -1,64 +1,64 @@
 use std::host::fs::Fs
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use diagnostics::record
 use fmt
 use main::args_record
 fn fmt_write_or_check(input_file: String, output: String, original: String, check: bool, ok_label: String) -> i32 {
     if check {
-        if !eq(clone(output), clone(original)) {
-            stdio::eprintln("fmt check failed: ".concat(clone(input_file)))
+        if !eq(output.clone(), original.clone()) {
+            stdio::eprintln("fmt check failed: ".concat(input_file.clone()))
             return 1
         }
-        stdio::eprintln("ok: ".concat(clone(input_file)))
+        stdio::eprintln("ok: ".concat(input_file.clone()))
         return 0
     }
-    let write_result: Result<(), String> = Fs::write_string(clone(input_file), clone(output))
+    let write_result: Result<(), String> = Fs::write_string(input_file.clone(), output.clone())
     match write_result {
         Result::Ok(_) => {
-            stdio::eprintln(ok_label.concat(clone(input_file)))
+            stdio::eprintln(ok_label.concat(input_file.clone()))
             return 0
         },
         Result::Err(e) => {
-            stdio::eprintln("error writing formatted file: ".concat(clone(input_file).concat(": ".concat(e))))
+            stdio::eprintln("error writing formatted file: ".concat(input_file.clone().concat(": ".concat(e))))
             return 1
         },
     }
 }
 
 fn cmd_fmt_one(opts: CliOptions, input_file: String) -> i32 {
-    let read_result = Fs::read_to_string(clone(input_file))
+    let read_result = Fs::read_to_string(input_file.clone())
     match read_result {
         Result::Err(e) => {
-            stdio::eprintln("error reading input: ".concat(clone(input_file).concat(": ".concat(e))))
+            stdio::eprintln("error reading input: ".concat(input_file.clone().concat(": ".concat(e))))
             return 1
         },
         Result::Ok(text) => {
-            let original = clone(text)
+            let original = text.clone()
             if args_record::cli_fmt_fix(opts) {
                 let fixed_opt = fmt::fix_source(text)
                 match fixed_opt {
                     Option::None => {
-                        stdio::eprintln("fmt parse error: ".concat(clone(input_file)))
+                        stdio::eprintln("fmt parse error: ".concat(input_file.clone()))
                         fmt_emit_parse_errors(original)
                         return 1
                     },
                     Option::Some(fixed) => {
-                        return fmt_write_or_check(clone(input_file), fixed, original, args_record::cli_fmt_check(opts), "fixed ")
+                        return fmt_write_or_check(input_file.clone(), fixed, original, args_record::cli_fmt_check(opts), "fixed ")
                     },
                 }
             }
             let formatted_opt = fmt::format_source(text)
             match formatted_opt {
                 Option::None => {
-                    stdio::eprintln("fmt parse error: ".concat(clone(input_file)))
+                    stdio::eprintln("fmt parse error: ".concat(input_file.clone()))
                     fmt_emit_parse_errors(original)
                     return 1
                 },
                 Option::Some(formatted) => {
-                    return fmt_write_or_check(clone(input_file), formatted, original, args_record::cli_fmt_check(opts), "formatted ")
+                    return fmt_write_or_check(input_file.clone(), formatted, original, args_record::cli_fmt_check(opts), "formatted ")
                 },
             }
         },
@@ -85,7 +85,7 @@ pub fn cmd_fmt(opts: CliOptions) {
     let mut i = 0
     while i < count {
         let path = args_record::cli_fmt_input_at(opts, i)
-        let rc = cmd_fmt_one(opts, clone(path))
+        let rc = cmd_fmt_one(opts, path.clone())
         checked = checked + 1
         if rc != 0 {
             failed = failed + 1
@@ -99,10 +99,10 @@ pub fn cmd_fmt(opts: CliOptions) {
 }
 
 fn fmt_emit_parse_errors(text: String) {
-    let count = fmt::format_parse_error_count(clone(text))
+    let count = fmt::format_parse_error_count(text.clone())
     let mut i = 0
     while i < count {
-        let diag = fmt::format_parse_error_at(clone(text), i)
+        let diag = fmt::format_parse_error_at(text.clone(), i)
         stdio::eprintln(record::diagnostic_code(diag).concat(": ".concat(record::diagnostic_message(diag))))
         i = i + 1
     }

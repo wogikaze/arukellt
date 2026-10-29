@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use hir::item_param_record
 use hir::item_type_param_record
 use hir::node_record
@@ -17,7 +16,7 @@ fn HirFunction_new(name: String, return_type: HirType, body: HirNode, is_pub: bo
 }
 
 fn hir_function_name(func: HirFunction) -> String {
-    clone(func.name)
+    func.name.clone()
 }
 
 fn hir_function_push_param(mut func: HirFunction, param: HirParam) {

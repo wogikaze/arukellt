@@ -1,14 +1,14 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use wasm::emit_target
 use wasm::sections_types_gc
 fn gc_param_is_scalar_type_name(type_name: String) -> bool {
-    eq(clone(type_name), "i32") ||
-    eq(clone(type_name), "i64") ||
-    eq(clone(type_name), "f64") ||
-    eq(clone(type_name), "f32") ||
-    eq(clone(type_name), "bool") ||
-    eq(clone(type_name), "char") ||
-    eq(clone(type_name), "u32")
+    eq(type_name.clone(), "i32") ||
+    eq(type_name.clone(), "i64") ||
+    eq(type_name.clone(), "f64") ||
+    eq(type_name.clone(), "f32") ||
+    eq(type_name.clone(), "bool") ||
+    eq(type_name.clone(), "char") ||
+    eq(type_name.clone(), "u32")
 }
 
 // The String set-algebra helpers take a second Vec<String> operand. Their
@@ -16,10 +16,10 @@ fn gc_param_is_scalar_type_name(type_name: String) -> bool {
 // otherwise fall through to the scalar signature. `insert` / `remove` take a
 // String second param and must not match.
 fn gc_is_hashset_str_pair_store(fn_name: String) -> bool {
-    clone(fn_name).ends_with(String_from("hashset_str_union")) ||
-    clone(fn_name).ends_with(String_from("hashset_str_intersection")) ||
-    clone(fn_name).ends_with(String_from("hashset_str_difference")) ||
-    clone(fn_name).ends_with(String_from("hashset_str_extend"))
+    fn_name.clone().ends_with(String_from("hashset_str_union")) ||
+    fn_name.clone().ends_with(String_from("hashset_str_intersection")) ||
+    fn_name.clone().ends_with(String_from("hashset_str_difference")) ||
+    fn_name.clone().ends_with(String_from("hashset_str_extend"))
 }
 
 // Typed HashMap<i32,i32> / HashSet<i32> wrappers pass container refs in params 0/1.
@@ -27,26 +27,26 @@ fn gc_typed_hash_container_param_sig(fn_name: String, param_idx: i32, type_name:
     if param_idx < 0 || param_idx > 1 {
         return String_new()
     }
-    if gc_param_is_scalar_type_name(clone(type_name)) {
+    if gc_param_is_scalar_type_name(type_name.clone()) {
         return String_new()
     }
-    if gc_is_hashset_str_pair_store(clone(fn_name)) {
+    if gc_is_hashset_str_pair_store(fn_name.clone()) {
         return sections_types_gc::gc_vec_string_type_sig()
     }
-    if clone(fn_name).contains("hashset_i32_") ||
-    clone(fn_name).contains("hashmap_i32_i32_") ||
-    clone(fn_name).ends_with("hashset_i32_extend") ||
-    clone(fn_name).ends_with("hashmap_i32_i32_extend") {
+    if fn_name.clone().contains("hashset_i32_") ||
+    fn_name.clone().contains("hashmap_i32_i32_") ||
+    fn_name.clone().ends_with("hashset_i32_extend") ||
+    fn_name.clone().ends_with("hashmap_i32_i32_extend") {
         return sections_types_gc::gc_vec_type_sig()
     }
-    if eq(clone(fn_name), "hash::hashset_extend") || eq(clone(fn_name), "hashset_extend") {
+    if eq(fn_name.clone(), "hash::hashset_extend") || eq(fn_name.clone(), "hashset_extend") {
         return sections_types_gc::gc_vec_type_sig()
     }
     String_new()
 }
 
 fn gc_param_type_sig_override(fn_name: String, param_idx: i32, type_name: String, target: String) -> String {
-    if !emit_target::is_gc_target(clone(target)) {
+    if !emit_target::is_gc_target(target.clone()) {
         return String_new()
     }
     // Generic monomorphizations: function names ending with __String have
@@ -54,12 +54,12 @@ fn gc_param_type_sig_override(fn_name: String, param_idx: i32, type_name: String
     // Only override params that lack concrete type info (empty or type
     // variable "?..."). Params with concrete types (enum:, struct:, vec:,
     // string, i32, etc.) keep their proper GC type.
-    if clone(fn_name).ends_with("__String") {
-        if len(type_name) == 0 || clone(type_name).starts_with("?") {
+    if fn_name.clone().ends_with("__String") {
+        if len(type_name) == 0 || type_name.clone().starts_with("?") {
             return sections_types_gc::gc_string_type_sig()
         }
     }
-    let typed_container_sig = gc_typed_hash_container_param_sig(clone(fn_name), param_idx, clone(type_name))
+    let typed_container_sig = gc_typed_hash_container_param_sig(fn_name.clone(), param_idx, type_name.clone())
     if len(typed_container_sig) > 0 {
         return typed_container_sig
     }
@@ -72,49 +72,49 @@ fn gc_param_type_sig_override(fn_name: String, param_idx: i32, type_name: String
     // their declared GC type; only container or empty type names continue to
     // the storage sigs below.
     if len(type_name) > 0 &&
-    !clone(type_name).starts_with("vec:") &&
-    !clone(type_name).starts_with("hashmap:") &&
-    !clone(type_name).starts_with("hashset:") &&
-    !clone(type_name).starts_with("Vec") &&
-    !clone(type_name).starts_with("HashMap") &&
-    !clone(type_name).starts_with("HashSet") {
+    !type_name.clone().starts_with("vec:") &&
+    !type_name.clone().starts_with("hashmap:") &&
+    !type_name.clone().starts_with("hashset:") &&
+    !type_name.clone().starts_with("Vec") &&
+    !type_name.clone().starts_with("HashMap") &&
+    !type_name.clone().starts_with("HashSet") {
         return String_new()
     }
     // Check function name before type_name: hashmap functions may have "vec:..."
     // type names (from their linear-memory representation) but need their proper
     // GC struct type assigned on GC targets.
-    if clone(fn_name).starts_with("hash_string::hashmap_str_str_") || clone(fn_name).starts_with("hashmap_str_str_") {
+    if fn_name.clone().starts_with("hash_string::hashmap_str_str_") || fn_name.clone().starts_with("hashmap_str_str_") {
         return sections_types_gc::gc_hashmap_str_str_type_sig()
     }
-    if clone(fn_name).starts_with("hash_string::hashmap_i32_str_") || clone(fn_name).starts_with("hashmap_i32_str_") {
+    if fn_name.clone().starts_with("hash_string::hashmap_i32_str_") || fn_name.clone().starts_with("hashmap_i32_str_") {
         return sections_types_gc::gc_hashmap_i32_str_type_sig()
     }
-    if clone(fn_name).starts_with("hash_fn::hashmap_i32_fn_") || clone(fn_name).starts_with("hashmap_i32_fn_") {
+    if fn_name.clone().starts_with("hash_fn::hashmap_i32_fn_") || fn_name.clone().starts_with("hashmap_i32_fn_") {
         return sections_types_gc::gc_hashmap_i32_fn_type_sig()
     }
     // Before hashmap_str_*: hashmap_str_fn_* shares that prefix (#838).
-    if clone(fn_name).starts_with("hash_str_fn::hashmap_str_fn_") ||
-    clone(fn_name).starts_with("hashmap_str_fn_") {
+    if fn_name.clone().starts_with("hash_str_fn::hashmap_str_fn_") ||
+    fn_name.clone().starts_with("hashmap_str_fn_") {
         return sections_types_gc::gc_hashmap_str_fn_type_sig()
     }
-    if clone(fn_name).starts_with("hashmap_str_") || eq(clone(fn_name), "hashmap_str_i32_new") || clone(fn_name).starts_with("hash_string::hashmap_str_") {
+    if fn_name.clone().starts_with("hashmap_str_") || eq(fn_name.clone(), "hashmap_str_i32_new") || fn_name.clone().starts_with("hash_string::hashmap_str_") {
         return sections_types_gc::gc_hashmap_str_i32_type_sig()
     }
-    if clone(fn_name).starts_with("hashmap_") ||
-    clone(fn_name).starts_with("hashset_") ||
-    clone(fn_name).starts_with("hash::hashmap_") ||
-    clone(fn_name).starts_with("hash::hashset_") {
+    if fn_name.clone().starts_with("hashmap_") ||
+    fn_name.clone().starts_with("hashset_") ||
+    fn_name.clone().starts_with("hash::hashmap_") ||
+    fn_name.clone().starts_with("hash::hashset_") {
         // Exclude helper functions whose first parameter is i32, not Vec.
-        if eq(clone(fn_name), "hashmap_key_index") ||
-        eq(clone(fn_name), "hashmap_value_index") ||
-        eq(clone(fn_name), "hashmap_flag_index") ||
-        eq(clone(fn_name), "hashmap_required_vec_len") ||
-        eq(clone(fn_name), "hashmap_min_capacity_for_entries") ||
-        eq(clone(fn_name), "hashmap_with_capacity") {
+        if eq(fn_name.clone(), "hashmap_key_index") ||
+        eq(fn_name.clone(), "hashmap_value_index") ||
+        eq(fn_name.clone(), "hashmap_flag_index") ||
+        eq(fn_name.clone(), "hashmap_required_vec_len") ||
+        eq(fn_name.clone(), "hashmap_min_capacity_for_entries") ||
+        eq(fn_name.clone(), "hashmap_with_capacity") {
             return String_new()
         }
         // hashset_str_* and hash_vec_string_* functions take Vec<String>, not Vec<i32>.
-        if clone(fn_name).starts_with("hashset_str_") || clone(fn_name).starts_with("hash_vec_string_") {
+        if fn_name.clone().starts_with("hashset_str_") || fn_name.clone().starts_with("hash_vec_string_") {
             return sections_types_gc::gc_vec_string_type_sig()
         }
         return sections_types_gc::gc_vec_type_sig()
@@ -126,160 +126,160 @@ fn gc_param_type_sig_override(fn_name: String, param_idx: i32, type_name: String
 }
 
 fn gc_enum_return_type_sig(type_name: String, target: String) -> String {
-    if !emit_target::is_gc_target(clone(target)) {
+    if !emit_target::is_gc_target(target.clone()) {
         return String_new()
     }
-    if clone(type_name).starts_with("enum:") {
+    if type_name.clone().starts_with("enum:") {
         return sections_types_gc::gc_enum_open_type_sig()
     }
-    if clone(type_name).starts_with("option:") || clone(type_name).starts_with("Option:") {
+    if type_name.clone().starts_with("option:") || type_name.clone().starts_with("Option:") {
         return sections_types_gc::gc_enum_open_type_sig()
     }
-    if clone(type_name).starts_with("Option_") {
+    if type_name.clone().starts_with("Option_") {
         return sections_types_gc::gc_enum_open_type_sig()
     }
-    if clone(type_name).starts_with("Result_") || clone(type_name).starts_with("result:") || clone(type_name).starts_with("Result:") {
+    if type_name.clone().starts_with("Result_") || type_name.clone().starts_with("result:") || type_name.clone().starts_with("Result:") {
         return sections_types_gc::gc_enum_open_type_sig()
     }
-    if eq(clone(type_name), "Option") || eq(clone(type_name), "Result") {
+    if eq(type_name.clone(), "Option") || eq(type_name.clone(), "Result") {
         return sections_types_gc::gc_enum_open_type_sig()
     }
     String_new()
 }
 
 fn gc_return_type_sig_override(fn_name: String, type_name: String, target: String) -> String {
-    if !emit_target::is_gc_target(clone(target)) {
+    if !emit_target::is_gc_target(target.clone()) {
         return String_new()
     }
-    if gc_fn_returns_option(clone(fn_name)) {
+    if gc_fn_returns_option(fn_name.clone()) {
         return sections_types_gc::gc_enum_open_type_sig()
     }
     // Only real constructors — not helpers like `hashmap_new_return_type`
     // or predicates like `is_hashset_i32_new` (suffix/prefix false friends).
-    if clone(fn_name).starts_with("is_") {
+    if fn_name.clone().starts_with("is_") {
         return String_new()
     }
     // ADR-086 HashSet trait impls return the source set type, whose storage
     // is the flat Vec alias; emit the alias ref so the body's vec value
     // matches the declared return (#917). The String family returns the
     // Vec<String> alias, which is a different GC ref type.
-    if eq(clone(fn_name), "HashSet_i32::clone") ||
-    eq(clone(fn_name), "HashSet_i32::union") ||
-    eq(clone(fn_name), "HashSet_i32::intersection") ||
-    eq(clone(fn_name), "HashSet_i32::difference") ||
-    clone(fn_name).starts_with("HashSet_i32::from_iter__") {
+    if eq(fn_name.clone(), "HashSet_i32::clone") ||
+    eq(fn_name.clone(), "HashSet_i32::union") ||
+    eq(fn_name.clone(), "HashSet_i32::intersection") ||
+    eq(fn_name.clone(), "HashSet_i32::difference") ||
+    fn_name.clone().starts_with("HashSet_i32::from_iter__") {
         return sections_types_gc::gc_vec_type_sig()
     }
-    if eq(clone(fn_name), "HashSet_String::clone") ||
-    eq(clone(fn_name), "HashSet_String::union") ||
-    eq(clone(fn_name), "HashSet_String::intersection") ||
-    eq(clone(fn_name), "HashSet_String::difference") ||
-    clone(fn_name).starts_with("HashSet_String::from_iter__") {
+    if eq(fn_name.clone(), "HashSet_String::clone") ||
+    eq(fn_name.clone(), "HashSet_String::union") ||
+    eq(fn_name.clone(), "HashSet_String::intersection") ||
+    eq(fn_name.clone(), "HashSet_String::difference") ||
+    fn_name.clone().starts_with("HashSet_String::from_iter__") {
         return sections_types_gc::gc_vec_string_type_sig()
     }
-    if eq(clone(fn_name), "hashmap_new") ||
-    clone(fn_name).starts_with("hashmap_new__") ||
-    eq(clone(fn_name), "hash::hashmap_new") ||
-    clone(fn_name).ends_with("::hashmap_new") ||
-    eq(clone(fn_name), "hashmap_with_capacity") ||
-    clone(fn_name).starts_with("hashmap_with_capacity__") ||
-    eq(clone(fn_name), "hash::hashmap_with_capacity") ||
-    eq(clone(fn_name), "hashset_new") ||
-    clone(fn_name).starts_with("hashset_new__") ||
-    eq(clone(fn_name), "hash::hashset_new") ||
-    clone(fn_name).ends_with("::hashset_new") ||
-    eq(clone(fn_name), "hashset_i32_new") ||
-    clone(fn_name).starts_with("hashset_i32_new__") ||
-    clone(fn_name).ends_with("::hashset_i32_new") {
+    if eq(fn_name.clone(), "hashmap_new") ||
+    fn_name.clone().starts_with("hashmap_new__") ||
+    eq(fn_name.clone(), "hash::hashmap_new") ||
+    fn_name.clone().ends_with("::hashmap_new") ||
+    eq(fn_name.clone(), "hashmap_with_capacity") ||
+    fn_name.clone().starts_with("hashmap_with_capacity__") ||
+    eq(fn_name.clone(), "hash::hashmap_with_capacity") ||
+    eq(fn_name.clone(), "hashset_new") ||
+    fn_name.clone().starts_with("hashset_new__") ||
+    eq(fn_name.clone(), "hash::hashset_new") ||
+    fn_name.clone().ends_with("::hashset_new") ||
+    eq(fn_name.clone(), "hashset_i32_new") ||
+    fn_name.clone().starts_with("hashset_i32_new__") ||
+    fn_name.clone().ends_with("::hashset_i32_new") {
         return sections_types_gc::gc_vec_type_sig()
     }
-    let enum_sig = gc_enum_return_type_sig(clone(type_name), clone(target))
+    let enum_sig = gc_enum_return_type_sig(type_name.clone(), target.clone())
     if len(enum_sig) > 0 {
         return enum_sig
     }
     if len(type_name) > 0 {
         return String_new()
     }
-    if eq(clone(fn_name), "hashmap_str_i32_new") ||
-    clone(fn_name).starts_with("hashmap_str_i32_new__") ||
-    clone(fn_name).ends_with("::hashmap_str_i32_new") {
+    if eq(fn_name.clone(), "hashmap_str_i32_new") ||
+    fn_name.clone().starts_with("hashmap_str_i32_new__") ||
+    fn_name.clone().ends_with("::hashmap_str_i32_new") {
         return sections_types_gc::gc_hashmap_str_i32_type_sig()
     }
-    if eq(clone(fn_name), "hash_string::hashmap_i32_str_new") ||
-    clone(fn_name).starts_with("hash_string::hashmap_i32_str_new__") {
+    if eq(fn_name.clone(), "hash_string::hashmap_i32_str_new") ||
+    fn_name.clone().starts_with("hash_string::hashmap_i32_str_new__") {
         return sections_types_gc::gc_hashmap_i32_str_type_sig()
     }
-    if eq(clone(fn_name), "hash_fn::hashmap_i32_fn_new") ||
-    clone(fn_name).starts_with("hash_fn::hashmap_i32_fn_new__") {
+    if eq(fn_name.clone(), "hash_fn::hashmap_i32_fn_new") ||
+    fn_name.clone().starts_with("hash_fn::hashmap_i32_fn_new__") {
         return sections_types_gc::gc_hashmap_i32_fn_type_sig()
     }
-    if eq(clone(fn_name), "hashmap_str_fn_new") ||
-    clone(fn_name).starts_with("hashmap_str_fn_new__") ||
-    clone(fn_name).ends_with("::hashmap_str_fn_new") ||
-    eq(clone(fn_name), "hash_str_fn::hashmap_str_fn_new") ||
-    clone(fn_name).starts_with("hash_str_fn::hashmap_str_fn_new__") {
+    if eq(fn_name.clone(), "hashmap_str_fn_new") ||
+    fn_name.clone().starts_with("hashmap_str_fn_new__") ||
+    fn_name.clone().ends_with("::hashmap_str_fn_new") ||
+    eq(fn_name.clone(), "hash_str_fn::hashmap_str_fn_new") ||
+    fn_name.clone().starts_with("hash_str_fn::hashmap_str_fn_new__") {
         return sections_types_gc::gc_hashmap_str_fn_type_sig()
     }
-    if eq(clone(fn_name), "hash_string::hashmap_str_str_new") ||
-    clone(fn_name).starts_with("hash_string::hashmap_str_str_new__") {
+    if eq(fn_name.clone(), "hash_string::hashmap_str_str_new") ||
+    fn_name.clone().starts_with("hash_string::hashmap_str_str_new__") {
         return sections_types_gc::gc_hashmap_str_str_type_sig()
     }
     String_new()
 }
 
 fn gc_fn_returns_option(fn_name: String) -> bool {
-    if eq(clone(fn_name), "hashmap_get_option") ||
-    eq(clone(fn_name), "hash::hashmap_get_option") ||
-    clone(fn_name).ends_with("hashmap_i32_i32_get") {
+    if eq(fn_name.clone(), "hashmap_get_option") ||
+    eq(fn_name.clone(), "hash::hashmap_get_option") ||
+    fn_name.clone().ends_with("hashmap_i32_i32_get") {
         return true
     }
-    if eq(clone(fn_name), "hashmap_remove") ||
-    eq(clone(fn_name), "hash::hashmap_remove") ||
-    clone(fn_name).ends_with("hashmap_i32_i32_remove") {
+    if eq(fn_name.clone(), "hashmap_remove") ||
+    eq(fn_name.clone(), "hash::hashmap_remove") ||
+    fn_name.clone().ends_with("hashmap_i32_i32_remove") {
         return true
     }
-    if eq(clone(fn_name), "hashmap_remove_entry_pair") ||
-    eq(clone(fn_name), "hash::hashmap_remove_entry_pair") {
+    if eq(fn_name.clone(), "hashmap_remove_entry_pair") ||
+    eq(fn_name.clone(), "hash::hashmap_remove_entry_pair") {
         return true
     }
-    if eq(clone(fn_name), "hash_string::hashmap_str_get") ||
-    eq(clone(fn_name), "hashmap_str_get") ||
-    eq(clone(fn_name), "hash::hashmap_str_get") {
+    if eq(fn_name.clone(), "hash_string::hashmap_str_get") ||
+    eq(fn_name.clone(), "hashmap_str_get") ||
+    eq(fn_name.clone(), "hash::hashmap_str_get") {
         return true
     }
-    if eq(clone(fn_name), "hash_string::hashmap_str_remove") ||
-    eq(clone(fn_name), "hashmap_str_remove") ||
-    eq(clone(fn_name), "hash::hashmap_str_remove") {
+    if eq(fn_name.clone(), "hash_string::hashmap_str_remove") ||
+    eq(fn_name.clone(), "hashmap_str_remove") ||
+    eq(fn_name.clone(), "hash::hashmap_str_remove") {
         return true
     }
-    if eq(clone(fn_name), "hash_string::hashmap_i32_str_get") ||
-    eq(clone(fn_name), "hash_string::hashmap_str_str_get") {
+    if eq(fn_name.clone(), "hash_string::hashmap_i32_str_get") ||
+    eq(fn_name.clone(), "hash_string::hashmap_str_str_get") {
         return true
     }
-    if eq(clone(fn_name), "hash_string::hashmap_str_insert") ||
-    eq(clone(fn_name), "hash_string::hashmap_i32_str_insert") ||
-    eq(clone(fn_name), "hash_string::hashmap_str_str_insert") ||
-    eq(clone(fn_name), "hash_fn::hashmap_i32_fn_insert") ||
-    eq(clone(fn_name), "hash_str_fn::hashmap_str_fn_insert") {
+    if eq(fn_name.clone(), "hash_string::hashmap_str_insert") ||
+    eq(fn_name.clone(), "hash_string::hashmap_i32_str_insert") ||
+    eq(fn_name.clone(), "hash_string::hashmap_str_str_insert") ||
+    eq(fn_name.clone(), "hash_fn::hashmap_i32_fn_insert") ||
+    eq(fn_name.clone(), "hash_str_fn::hashmap_str_fn_insert") {
         return true
     }
-    if eq(clone(fn_name), "hash_fn::hashmap_i32_fn_get") {
+    if eq(fn_name.clone(), "hash_fn::hashmap_i32_fn_get") {
         return true
     }
-    if eq(clone(fn_name), "hash_fn::hashmap_i32_fn_remove") {
+    if eq(fn_name.clone(), "hash_fn::hashmap_i32_fn_remove") {
         return true
     }
-    if eq(clone(fn_name), "hash_str_fn::hashmap_str_fn_get") {
+    if eq(fn_name.clone(), "hash_str_fn::hashmap_str_fn_get") {
         return true
     }
-    if eq(clone(fn_name), "hash_str_fn::hashmap_str_fn_remove") {
+    if eq(fn_name.clone(), "hash_str_fn::hashmap_str_fn_remove") {
         return true
     }
-    if eq(clone(fn_name), "hashmap_str_str_get") || eq(clone(fn_name), "hash_string::hashmap_str_str_get") {
+    if eq(fn_name.clone(), "hashmap_str_str_get") || eq(fn_name.clone(), "hash_string::hashmap_str_str_get") {
         return true
     }
-    if eq(clone(fn_name), "hashmap_str_str_remove") ||
-    eq(clone(fn_name), "hash_string::hashmap_str_str_remove") {
+    if eq(fn_name.clone(), "hashmap_str_str_remove") ||
+    eq(fn_name.clone(), "hash_string::hashmap_str_str_remove") {
         return true
     }
     false

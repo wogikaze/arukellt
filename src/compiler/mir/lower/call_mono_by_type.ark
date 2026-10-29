@@ -1,49 +1,49 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use mir::lower::ctx_fn_exists
 use mir::lower::ctx_api_local_types
 use mir::value_types
 use mir::mono
 fn mir_resolve_mono_call_by_type(ctx: LowerCtx, resolved: String, first_arg_idx: i32) -> String {
-    let mut out = call_mono_by_type_strip_module_prefix(clone(resolved))
+    let mut out = call_mono_by_type_strip_module_prefix(resolved.clone())
     if first_arg_idx < 0 {
         return out
     }
     let mono_arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-    let mut mono_type_key = clone(mono_arg_type)
-    if clone(mono_arg_type).starts_with("vec:") {
+    let mut mono_type_key = mono_arg_type.clone()
+    if mono_arg_type.clone().starts_with("vec:") {
         mono_type_key = mono_type_key_from_local_type_name(mono_arg_type.slice(4, len(mono_arg_type)))
     }
-    if clone(mono_type_key).starts_with("Option:") {
-        mono_type_key = clone(mono_type_key).slice(7, len(mono_type_key))
+    if mono_type_key.clone().starts_with("Option:") {
+        mono_type_key = mono_type_key.clone().slice(7, len(mono_type_key))
     }
-    if clone(mono_type_key).starts_with("option:") {
-        mono_type_key = clone(mono_type_key).slice(7, len(mono_type_key))
+    if mono_type_key.clone().starts_with("option:") {
+        mono_type_key = mono_type_key.clone().slice(7, len(mono_type_key))
     }
-    if clone(mono_type_key).starts_with("Option_") {
-        mono_type_key = clone(mono_type_key).slice(7, len(mono_type_key))
+    if mono_type_key.clone().starts_with("Option_") {
+        mono_type_key = mono_type_key.clone().slice(7, len(mono_type_key))
     }
-    if clone(mono_type_key).starts_with("enum:") {
-        mono_type_key = clone(mono_type_key).slice(5, len(mono_type_key))
+    if mono_type_key.clone().starts_with("enum:") {
+        mono_type_key = mono_type_key.clone().slice(5, len(mono_type_key))
     }
     if len(mono_type_key) == 0 {
         return out
     }
-    let mono_candidate = mono::mono_safe_name(clone(out).concat("__".concat(mono_type_key)))
-    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate)) {
+    let mono_candidate = mono::mono_safe_name(out.clone().concat("__".concat(mono_type_key)))
+    if ctx_fn_exists::ctx_has_fn_name(ctx, mono_candidate.clone()) {
         return mono_candidate
     }
-    let type_method = clone(mono_type_key).concat("::".concat(clone(out)))
-    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(type_method)) {
+    let type_method = mono_type_key.clone().concat("::".concat(out.clone()))
+    if ctx_fn_exists::ctx_has_fn_name(ctx, type_method.clone()) {
         return type_method
     }
-    if eq(clone(mono_type_key), "string") {
-        let mono_candidate_string = mono::mono_safe_name(clone(out).concat("__String"))
-        if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate_string)) {
+    if eq(mono_type_key.clone(), "string") {
+        let mono_candidate_string = mono::mono_safe_name(out.clone().concat("__String"))
+        if ctx_fn_exists::ctx_has_fn_name(ctx, mono_candidate_string.clone()) {
             return mono_candidate_string
         }
     }
-    let special = resolve_special_mono_target(ctx, clone(out), clone(mono_type_key), first_arg_idx)
+    let special = resolve_special_mono_target(ctx, out.clone(), mono_type_key.clone(), first_arg_idx)
     if len(special) > 0 {
         return special
     }
@@ -53,33 +53,33 @@ fn mir_resolve_mono_call_by_type(ctx: LowerCtx, resolved: String, first_arg_idx:
 fn resolve_special_mono_target(ctx: LowerCtx, out: String, mono_type_key: String, first_arg_idx: i32) -> String {
     // ADR-040 Phase 5: format_debug<T> / format_debug__?t0 defers to
     // T::fmt_debug. Type-var mono shells must not stay as unreachable stubs.
-    if eq(clone(out), "format_debug") || clone(out).starts_with("format_debug__") {
-        let mut key = clone(mono_type_key)
-        if len(key) == 0 || clone(key).starts_with("?") {
+    if eq(out.clone(), "format_debug") || out.clone().starts_with("format_debug__") {
+        let mut key = mono_type_key.clone()
+        if len(key) == 0 || key.clone().starts_with("?") {
             key = call_mono_by_type_scalar_key_from_local(ctx, first_arg_idx)
         }
-        if eq(clone(key), "string") {
+        if eq(key.clone(), "string") {
             key = "String"
         }
-        if len(key) > 0 && !clone(key).starts_with("?") {
-            let trait_method = clone(key).concat("::fmt_debug")
-            if ctx_fn_exists::ctx_has_fn_name(ctx, clone(trait_method)) {
+        if len(key) > 0 && !key.clone().starts_with("?") {
+            let trait_method = key.clone().concat("::fmt_debug")
+            if ctx_fn_exists::ctx_has_fn_name(ctx, trait_method.clone()) {
                 return trait_method
             }
         }
     }
     // write_debug_to__?t0 → write_debug_to__i32 / __String (value type key).
-    if eq(clone(out), "write_debug_to") || clone(out).starts_with("write_debug_to__") {
-        let mut key = clone(mono_type_key)
-        if len(key) == 0 || clone(key).starts_with("?") {
+    if eq(out.clone(), "write_debug_to") || out.clone().starts_with("write_debug_to__") {
+        let mut key = mono_type_key.clone()
+        if len(key) == 0 || key.clone().starts_with("?") {
             key = call_mono_by_type_scalar_key_from_local(ctx, first_arg_idx)
         }
-        if eq(clone(key), "string") {
+        if eq(key.clone(), "string") {
             key = "String"
         }
-        if len(key) > 0 && !clone(key).starts_with("?") {
+        if len(key) > 0 && !key.clone().starts_with("?") {
             let mono_candidate = mono::mono_safe_name("write_debug_to__".concat(key))
-            if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate)) {
+            if ctx_fn_exists::ctx_has_fn_name(ctx, mono_candidate.clone()) {
                 return mono_candidate
             }
         }
@@ -100,13 +100,13 @@ fn call_mono_by_type_scalar_key_from_local(ctx: LowerCtx, arg_idx: i32) -> Strin
     }
     if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
         let tn = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
-        if eq(clone(tn), "string") || eq(clone(tn), "String") {
+        if eq(tn.clone(), "string") || eq(tn.clone(), "String") {
             return "String"
         }
-        if eq(clone(tn), "bool") || eq(clone(tn), "Bool") {
+        if eq(tn.clone(), "bool") || eq(tn.clone(), "Bool") {
             return "bool"
         }
-        if eq(clone(tn), "char") {
+        if eq(tn.clone(), "char") {
             return "char"
         }
     }
@@ -114,11 +114,11 @@ fn call_mono_by_type_scalar_key_from_local(ctx: LowerCtx, arg_idx: i32) -> Strin
 }
 
 fn mono_type_key_from_local_type_name(type_name: String) -> String {
-    if clone(type_name).starts_with("vec:") {
-        let inner = mono_type_key_from_local_type_name(clone(type_name).slice(4, len(type_name)))
+    if type_name.clone().starts_with("vec:") {
+        let inner = mono_type_key_from_local_type_name(type_name.clone().slice(4, len(type_name)))
         return "Vec<".concat(inner.concat(">"))
     }
-    if eq(clone(type_name), "Vec") {
+    if eq(type_name.clone(), "Vec") {
         return "Vec<i32>"
     }
     type_name
@@ -133,5 +133,5 @@ fn call_mono_by_type_strip_module_prefix(name: String) -> String {
         }
         i = i - 1
     }
-    clone(name)
+    name.clone()
 }

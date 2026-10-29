@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
@@ -53,7 +53,7 @@ fn try_emit_ok_payload_extract(mut ctx: LowerCtx, inner_idx: i32, is_gc: bool, r
     if is_gc {
         ok_type_name = try_extract_ok_payload_type(ctx_api_local_types::ctx_get_local_type(ctx, inner_idx))
     }
-    let ok_vt = try_ok_payload_vt(clone(ok_type_name))
+    let ok_vt = try_ok_payload_vt(ok_type_name.clone())
     let result = ctx_api_local_alloc::ctx_fresh_local(ctx, ok_vt)
     if len(ok_type_name) > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, result, ok_type_name)
@@ -61,7 +61,7 @@ fn try_emit_ok_payload_extract(mut ctx: LowerCtx, inner_idx: i32, is_gc: bool, r
     if is_gc {
         let mut payload_vts = Vec::new<i32>()
         push(payload_vts, ok_vt)
-        let mut ok_slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, "Ok", payload_vts, clone(ok_type_name))
+        let mut ok_slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, "Ok", payload_vts, ok_type_name.clone())
         if ok_slot < 0 {
             ok_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, "Ok")
         }
@@ -89,24 +89,24 @@ fn try_ok_payload_vt(ok_type_name: String) -> i32 {
     if len(ok_type_name) == 0 {
         return value_types::VT_I32()
     }
-    if eq(clone(ok_type_name), "String") || eq(clone(ok_type_name), "string") {
+    if eq(ok_type_name.clone(), "String") || eq(ok_type_name.clone(), "string") {
         return value_types::VT_GC_REF()
     }
-    if eq(clone(ok_type_name), "f64") || eq(clone(ok_type_name), "F64") {
+    if eq(ok_type_name.clone(), "f64") || eq(ok_type_name.clone(), "F64") {
         return value_types::VT_F64()
     }
-    if eq(clone(ok_type_name), "i64") || eq(clone(ok_type_name), "I64") {
+    if eq(ok_type_name.clone(), "i64") || eq(ok_type_name.clone(), "I64") {
         return value_types::VT_I64()
     }
-    if clone(ok_type_name).starts_with("vec:") ||
-    clone(ok_type_name).starts_with("Vec_") ||
-    clone(ok_type_name).starts_with("hashmap:") ||
-    clone(ok_type_name).starts_with("HashMap_") ||
-    clone(ok_type_name).starts_with("Option_") ||
-    clone(ok_type_name).starts_with("option:") ||
-    clone(ok_type_name).starts_with("Result_") ||
-    clone(ok_type_name).starts_with("result:") ||
-    clone(ok_type_name).starts_with("enum:") {
+    if ok_type_name.clone().starts_with("vec:") ||
+    ok_type_name.clone().starts_with("Vec_") ||
+    ok_type_name.clone().starts_with("hashmap:") ||
+    ok_type_name.clone().starts_with("HashMap_") ||
+    ok_type_name.clone().starts_with("Option_") ||
+    ok_type_name.clone().starts_with("option:") ||
+    ok_type_name.clone().starts_with("Result_") ||
+    ok_type_name.clone().starts_with("result:") ||
+    ok_type_name.clone().starts_with("enum:") {
         return value_types::VT_GC_REF()
     }
     value_types::VT_I32()
@@ -116,16 +116,16 @@ fn try_ok_payload_vt(ok_type_name: String) -> i32 {
 // For "Result_i32_String" → "i32", "Result_String_String" → "String",
 // "Option_Token" → "Token", etc.
 fn try_extract_ok_payload_type(scrut_type: String) -> String {
-    if clone(scrut_type).starts_with("Result_") {
+    if scrut_type.clone().starts_with("Result_") {
         return try_extract_first_result_type_param(scrut_type)
     }
-    if clone(scrut_type).starts_with("result:") {
+    if scrut_type.clone().starts_with("result:") {
         return try_extract_first_result_type_param(scrut_type)
     }
-    if clone(scrut_type).starts_with("Option_") {
+    if scrut_type.clone().starts_with("Option_") {
         return scrut_type.slice(7, len(scrut_type))
     }
-    if clone(scrut_type).starts_with("option:") {
+    if scrut_type.clone().starts_with("option:") {
         return scrut_type.slice(7, len(scrut_type))
     }
     String_new()
@@ -158,7 +158,7 @@ fn try_extract_first_result_type_param(scrut_type: String) -> String {
 // "result:i32:AppError" → "AppError", etc.
 // Returns empty string for non-Result types.
 fn try_extract_err_payload_type(scrut_type: String) -> String {
-    if clone(scrut_type).starts_with("Result_") || clone(scrut_type).starts_with("result:") {
+    if scrut_type.clone().starts_with("Result_") || scrut_type.clone().starts_with("result:") {
         return try_extract_second_result_type_param(scrut_type)
     }
     String_new()

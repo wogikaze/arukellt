@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use corehir::expr_factory
 use corehir::expr_access_types
 use corehir::kinds
@@ -21,5 +20,5 @@ fn corehir_expr_struct_field(field_name: String, value_expr: CoreHirExpr, span_s
 }
 
 fn corehir_expr_struct_lit(struct_name: String, span_start: i32, children: Vec<i32>) -> CoreHirExpr {
-    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_STRUCT_LIT(), clone(struct_name), 0, 0.0, value_types::VT_GC_REF(), struct_name, span_start, children)
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_STRUCT_LIT(), struct_name.clone(), 0, 0.0, value_types::VT_GC_REF(), struct_name, span_start, children)
 }

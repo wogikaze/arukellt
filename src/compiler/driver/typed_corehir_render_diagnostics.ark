@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use std::text
 use corehir::body_table
 use corehir::expr_raw
@@ -46,7 +45,7 @@ fn diagnose_first_untyped_expression(
         let expression = get_unchecked(exprs, expression_id)
         let value_type = expr_raw::corehir_expr_val_type(expression)
         let type_name = expr_raw::corehir_expr_type_name(expression)
-        let type_id = verified_core_render_primitives::vc_type_id(value_type, clone(type_name))
+        let type_id = verified_core_render_primitives::vc_type_id(value_type, type_name.clone())
         if type_id < 0 {
             let mut message = "TypedCoreHIR reject: untyped expression function=".concat(function_name)
             message = message.concat(" function_index=".concat(function_index.to_string()))
@@ -100,7 +99,7 @@ fn diagnose_typed_corehir_rejection(program: CoreHirRawProgram) -> String {
                 ).concat(" value_type=".concat(return_vt.to_string()).concat(" type_id=".concat(return_type_id.to_string())))
             }
             let name = verified_core_render_safe::vcs_function_name(program, function_index)
-            if len(clone(name)) == 0 {
+            if len(name.clone()) == 0 {
                 return "TypedCoreHIR reject: empty function name index=".concat(function_index.to_string())
             }
             if !verified_core_render_safe::vcs_parameters_are_valid(program, function_index) {

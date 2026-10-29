@@ -8,7 +8,6 @@
 // The expected stdout is the canonical JSON shape committed to
 // `.expected` and is the contract migrated phases will emit.
 use std::host::stdio
-use std::prelude::{clone}
 use std::text
 fn SEV_ERROR() -> i32 {
     1
@@ -94,7 +93,7 @@ fn diag_json_escape(s: String) -> String {
                                 out = out.concat(String_from("\\u00"))
                                 out = out.concat(diag_hex_byte(c))
                             } else {
-                                out = out.concat(clone(s).slice(i, i + 1))
+                                out = out.concat(s.clone().slice(i, i + 1))
                             }
                         }
                     }
@@ -108,7 +107,7 @@ fn diag_json_escape(s: String) -> String {
 
 fn diagnostic_span_to_json(span: DiagnosticSpan) -> String {
     let mut out = String_from("{\"file\":\"")
-    out = out.concat(diag_json_escape(clone(span.file)))
+    out = out.concat(diag_json_escape(span.file.clone()))
     out = out.concat(String_from("\",\"line\":"))
     out = out.concat((span.line).to_string())
     out = out.concat(String_from(",\"col\":"))
@@ -119,13 +118,13 @@ fn diagnostic_span_to_json(span: DiagnosticSpan) -> String {
 
 fn diagnostic_to_json(diag: Diagnostic) -> String {
     let mut out = String_from("{\"code\":\"")
-    out = out.concat(diag_json_escape(clone(diag.code)))
+    out = out.concat(diag_json_escape(diag.code.clone()))
     out = out.concat(String_from("\",\"severity\":\""))
     out = out.concat(diag_json_escape(severity_name(diag.severity)))
     out = out.concat(String_from("\",\"span\":"))
     out = out.concat(diagnostic_span_to_json(diag.span))
     out = out.concat(String_from(",\"message\":\""))
-    out = out.concat(diag_json_escape(clone(diag.message)))
+    out = out.concat(diag_json_escape(diag.message.clone()))
     out = out.concat(String_from("\"}"))
     out
 }

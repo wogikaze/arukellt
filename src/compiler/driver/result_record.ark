@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use diagnostics::record
 struct CompileResult {
     success: bool,
@@ -56,7 +55,7 @@ fn compile_result_error_count(result: CompileResult) -> i32 {
 }
 
 fn compile_result_error_message_at(result: CompileResult, index: i32) -> String {
-    clone(get_unchecked(result.error_messages, index))
+    get_unchecked(result.error_messages, index).clone()
 }
 
 fn compile_result_error_message_count(result: CompileResult) -> i32 {

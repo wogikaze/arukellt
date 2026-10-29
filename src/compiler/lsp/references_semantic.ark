@@ -1,6 +1,5 @@
 use std::host::fs::Fs
 use std::text
-use std::prelude::{clone}
 use analysis::symbol_references
 use analysis::symbols
 use lsp::feature_request
@@ -52,7 +51,7 @@ fn build_highlight_response(id: i32, items: String) -> String {
 }
 
 fn append_highlight(items: String, text: String, start: i32, end: i32) -> String {
-    let start_pos = positions::offset_to_position(clone(text), start)
+    let start_pos = positions::offset_to_position(text.clone(), start)
     let end_pos = positions::offset_to_position(text, end)
     let mut item = "{\"range\":{\"start\":{\"line\":"
     item = item.concat(positions::lsp_position_line(start_pos).to_string())
@@ -76,7 +75,7 @@ fn indexed_symbol_references(state: LspState, name: String, cursor_uri: String, 
     }
     let mut items = String_new()
     let def_uri = symbol_index_lookup::index_definition_uri(def)
-    let def_text = read_uri_text(clone(def_uri))
+    let def_text = read_uri_text(def_uri.clone())
     items = append_location(items, def_uri, def_text, symbol_index_lookup::index_definition_decl_start(def), symbol_index_lookup::index_definition_decl_end(def))
     let ident_len = len(name)
     items = append_location(items, cursor_uri, cursor_text, cursor_offset, cursor_offset + ident_len)
@@ -87,19 +86,19 @@ fn semantic_items_for_request(state: LspState, req: LspTextPositionRequest) -> S
     let req_text = feature_request::text_position_request_text(req)
     let offset = feature_request::text_position_request_offset(req)
     let uri = feature_request::text_position_request_uri(req)
-    let refs = symbol_references::collect_semantic_references(clone(req_text), offset)
+    let refs = symbol_references::collect_semantic_references(req_text.clone(), offset)
     let rn = len(refs)
     if rn > 0 {
         let mut items = String_new()
         let mut ri = 0
         while ri < rn {
             let loc = get_unchecked(refs, ri)
-            items = append_location(items, uri, clone(req_text), symbol_references::reference_location_start(loc), symbol_references::reference_location_end(loc))
+            items = append_location(items, uri, req_text.clone(), symbol_references::reference_location_start(loc), symbol_references::reference_location_end(loc))
             ri = ri + 1
         }
         return items
     }
-    let ident = symbols::ident_at_offset(clone(req_text), offset)
+    let ident = symbols::ident_at_offset(req_text.clone(), offset)
     if len(ident) == 0 {
         return String_new()
     }
@@ -109,13 +108,13 @@ fn semantic_items_for_request(state: LspState, req: LspTextPositionRequest) -> S
 fn highlight_items_for_request(req: LspTextPositionRequest) -> String {
     let req_text = feature_request::text_position_request_text(req)
     let offset = feature_request::text_position_request_offset(req)
-    let refs = symbol_references::collect_semantic_references(clone(req_text), offset)
+    let refs = symbol_references::collect_semantic_references(req_text.clone(), offset)
     let rn = len(refs)
     let mut items = String_new()
     let mut ri = 0
     while ri < rn {
         let loc = get_unchecked(refs, ri)
-        items = append_highlight(items, clone(req_text), symbol_references::reference_location_start(loc), symbol_references::reference_location_end(loc))
+        items = append_highlight(items, req_text.clone(), symbol_references::reference_location_start(loc), symbol_references::reference_location_end(loc))
         ri = ri + 1
     }
     items

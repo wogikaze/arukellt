@@ -1,6 +1,6 @@
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::kinds
 use corehir::type_id
@@ -20,7 +20,7 @@ fn gc_layout_plan_bare_suffix(name: String) -> String {
     let n = len(name)
     let mut index = n - 1
     while index >= 0 {
-        if clone(name).byte_at(index) == 58 {
+        if name.clone().byte_at(index) == 58 {
             if index + 1 < n {
                 return name.slice(index + 1, n)
             }
@@ -37,12 +37,12 @@ fn gc_layout_plan_find_named_type(
     name: String
 ) -> TypeId {
     let empty = Vec::new<TypeId>()
-    let direct = type_table::type_table_find_existing(table, kind, clone(name), empty)
+    let direct = type_table::type_table_find_existing(table, kind, name.clone(), empty)
     if type_id::type_id_is_valid(direct) {
         return direct
     }
-    let bare = gc_layout_plan_bare_suffix(clone(name))
-    if len(bare) > 0 && !eq(clone(bare), name) {
+    let bare = gc_layout_plan_bare_suffix(name.clone())
+    if len(bare) > 0 && !eq(bare.clone(), name) {
         return type_table::type_table_find_existing(
             table,
             kind,
@@ -56,7 +56,7 @@ fn gc_layout_plan_find_named_type(
 // Typed MIR intern names are `struct:Name` or `struct:tuple:A,B:bytes`.
 // GC slots keep the bare layout name (`Range`, `tuple:i32,i32`).
 fn gc_layout_plan_strip_struct_prefix(name: String) -> String {
-    if clone(name).starts_with("struct:") {
+    if name.clone().starts_with("struct:") {
         return name.slice(7, len(name))
     }
     name
@@ -67,7 +67,7 @@ fn gc_layout_plan_strip_trailing_size(name: String) -> String {
     let mut index = n - 1
     let mut digits = 0
     while index >= 0 {
-        let ch = clone(name).byte_at(index)
+        let ch = name.clone().byte_at(index)
         if ch >= 48 && ch <= 57 {
             digits = digits + 1
             index = index - 1
@@ -75,26 +75,26 @@ fn gc_layout_plan_strip_trailing_size(name: String) -> String {
             break
         }
     }
-    if digits > 0 && index >= 0 && clone(name).byte_at(index) == 58 {
+    if digits > 0 && index >= 0 && name.clone().byte_at(index) == 58 {
         return name.slice(0, index)
     }
     name
 }
 
 fn gc_layout_plan_normalize_struct_name(name: String) -> String {
-    if clone(name).starts_with("struct:") {
+    if name.clone().starts_with("struct:") {
         return gc_layout_plan_strip_trailing_size(gc_layout_plan_strip_struct_prefix(name))
     }
     name
 }
 
 fn gc_layout_plan_find_struct_type(table: TypeTable, name: String) -> TypeId {
-    let found = gc_layout_plan_find_named_type(table, kinds::TYPE_KIND_STRUCT(), clone(name))
+    let found = gc_layout_plan_find_named_type(table, kinds::TYPE_KIND_STRUCT(), name.clone())
     if type_id::type_id_is_valid(found) {
         return found
     }
-    if !clone(name).starts_with("struct:") {
-        let prefixed = "struct:".concat(clone(name))
+    if !name.clone().starts_with("struct:") {
+        let prefixed = "struct:".concat(name.clone())
         let prefixed_id = gc_layout_plan_find_named_type(
             table,
             kinds::TYPE_KIND_STRUCT(),
@@ -104,14 +104,14 @@ fn gc_layout_plan_find_struct_type(table: TypeTable, name: String) -> TypeId {
             return prefixed_id
         }
     }
-    let want = gc_layout_plan_normalize_struct_name(clone(name))
+    let want = gc_layout_plan_normalize_struct_name(name.clone())
     let count = type_table::TypeTable_entry_count(table)
     let mut index = 0
     while index < count {
         let entry = type_table::TypeTable_entry_at(table, index)
         if type_table::type_entry_kind(entry) == kinds::TYPE_KIND_STRUCT() {
             let entry_name = type_table::type_entry_name(entry)
-            if eq(gc_layout_plan_normalize_struct_name(entry_name), clone(want)) {
+            if eq(gc_layout_plan_normalize_struct_name(entry_name), want.clone()) {
                 return type_table::type_entry_id(entry)
             }
         }
@@ -121,7 +121,7 @@ fn gc_layout_plan_find_struct_type(table: TypeTable, name: String) -> TypeId {
 }
 
 fn gc_layout_plan_type_id_for_struct_slot(mut table: TypeTable, name: String) -> TypeId {
-    let found = gc_layout_plan_find_struct_type(table, clone(name))
+    let found = gc_layout_plan_find_struct_type(table, name.clone())
     if type_id::type_id_is_valid(found) {
         return found
     }
@@ -129,19 +129,19 @@ fn gc_layout_plan_type_id_for_struct_slot(mut table: TypeTable, name: String) ->
 }
 
 fn gc_layout_plan_name_is_option_variant(name: String) -> bool {
-    eq(clone(name), "Some") ||
-    eq(clone(name), "None") ||
+    eq(name.clone(), "Some") ||
+    eq(name.clone(), "None") ||
     name.starts_with("Option::")
 }
 
 fn gc_layout_plan_name_is_result_variant(name: String) -> bool {
-    eq(clone(name), "Ok") ||
-    eq(clone(name), "Err") ||
+    eq(name.clone(), "Ok") ||
+    eq(name.clone(), "Err") ||
     name.starts_with("Result::")
 }
 
 fn gc_layout_plan_variant_type_kind(name: String) -> i32 {
-    if gc_layout_plan_name_is_option_variant(clone(name)) {
+    if gc_layout_plan_name_is_option_variant(name.clone()) {
         return kinds::TYPE_KIND_OPTION()
     }
     if gc_layout_plan_name_is_result_variant(name) {
@@ -158,9 +158,9 @@ fn gc_layout_plan_type_id_for_variant_slot(
     name: String,
     sig: String
 ) -> TypeId {
-    let kind = gc_layout_plan_variant_type_kind(clone(name))
+    let kind = gc_layout_plan_variant_type_kind(name.clone())
     let intern_name = name.concat("#".concat(sig))
-    let found = gc_layout_plan_find_named_type(table, kind, clone(intern_name))
+    let found = gc_layout_plan_find_named_type(table, kind, intern_name.clone())
     if type_id::type_id_is_valid(found) {
         return found
     }

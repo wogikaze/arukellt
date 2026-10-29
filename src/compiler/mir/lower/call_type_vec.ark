@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, ends_with, eq, index_of, starts_with, substring}
+use std::prelude::{byte_at, ends_with, eq, index_of, starts_with, substring}
 use std::text
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_mono
@@ -19,48 +19,48 @@ fn resolved_vec_type_from_element(ctx: LowerCtx, elem: String) -> String {
     normalized = decode_mono_vec_element_projection(normalized)
     let resolved_vec_type = ctx_mono_type_params::ctx_resolve_mono_type_name(
         ctx,
-        String_from("vec:").concat(clone(normalized))
+        String_from("vec:").concat(normalized.clone())
     )
-    if starts_with(clone(resolved_vec_type), String_from("vec:")) {
+    if starts_with(resolved_vec_type.clone(), String_from("vec:")) {
         normalized = substring(resolved_vec_type, 4, resolved_vec_type.len())
     }
     let mut set_ty = String_from("vec:").concat(normalized)
-    if eq(clone(normalized), String_from("Vec_String")) || eq(clone(normalized), String_from("Vec_string")) {
+    if eq(normalized.clone(), String_from("Vec_String")) || eq(normalized.clone(), String_from("Vec_string")) {
         set_ty = String_from("vec:Vec_String")
     }
     // mono_type_key may emit "string"; canonicalize for GC layout.
-    if eq(clone(normalized), String_from("string")) {
+    if eq(normalized.clone(), String_from("string")) {
         set_ty = String_from("vec:String")
     }
     set_ty
 }
 
 fn mark_vec_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
-    let mut effective = clone(callee_name)
-    if call_rewrite_vec::is_vec_push_callee(clone(callee_name)) {
+    let mut effective = callee_name.clone()
+    if call_rewrite_vec::is_vec_push_callee(callee_name.clone()) {
         mark_vec_push_result_type(ctx, dest, first_arg_idx)
         return
     }
     // Bare Vec::new may still lack a mono suffix on the MIR callee text;
     // prefer the registered turbofish rewrite so locals stay vec:Elem (#845).
-    if eq(clone(effective), String_from("Vec::new")) ||
-    eq(clone(effective), String_from("Vec__new")) ||
-    eq(clone(effective), String_from("Vec::with_capacity")) ||
-    eq(clone(effective), String_from("Vec__with_capacity")) {
-        let mono_target = ctx_fn_mono::ctx_mono_lookup_name_rewrite(ctx, clone(effective))
+    if eq(effective.clone(), String_from("Vec::new")) ||
+    eq(effective.clone(), String_from("Vec__new")) ||
+    eq(effective.clone(), String_from("Vec::with_capacity")) ||
+    eq(effective.clone(), String_from("Vec__with_capacity")) {
+        let mono_target = ctx_fn_mono::ctx_mono_lookup_name_rewrite(ctx, effective.clone())
         if mono_target.len() > 0 {
             effective = mono_target
         }
     }
     // Associated Vec::new__T / Vec::with_capacity__T (#845).
     // Also accept mono_safe_name form Vec__new__T.
-    if starts_with(clone(effective), String_from("Vec::new__")) ||
-    starts_with(clone(effective), String_from("Vec::with_capacity__")) ||
-    starts_with(clone(effective), String_from("Vec__new__")) ||
-    starts_with(clone(effective), String_from("Vec__with_capacity__")) {
-        let last_sep = last_index_of_double_underscore(clone(effective))
+    if starts_with(effective.clone(), String_from("Vec::new__")) ||
+    starts_with(effective.clone(), String_from("Vec::with_capacity__")) ||
+    starts_with(effective.clone(), String_from("Vec__new__")) ||
+    starts_with(effective.clone(), String_from("Vec__with_capacity__")) {
+        let last_sep = last_index_of_double_underscore(effective.clone())
         if last_sep >= 0 {
-            let elem_start = vec_constructor_element_start(clone(effective), last_sep + 2)
+            let elem_start = vec_constructor_element_start(effective.clone(), last_sep + 2)
             let elem = substring(effective, elem_start, effective.len())
             let set_ty = resolved_vec_type_from_element(ctx, elem)
             ctx_api_local_types::ctx_set_local_type(ctx, dest, set_ty)
@@ -76,17 +76,17 @@ fn mark_vec_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32, 
     // Leave type_name empty so let-annotations / store-target emit can fill
     // fnref / String / struct layouts. Bare String/i32 without annotation is
     // covered by call_vec_ctor mono recording (#845).
-    if eq(clone(effective), String_from("Vec::new")) ||
-    eq(clone(effective), String_from("Vec__new")) ||
-    eq(clone(effective), String_from("Vec::with_capacity")) ||
-    eq(clone(effective), String_from("Vec__with_capacity")) {
+    if eq(effective.clone(), String_from("Vec::new")) ||
+    eq(effective.clone(), String_from("Vec__new")) ||
+    eq(effective.clone(), String_from("Vec::with_capacity")) ||
+    eq(effective.clone(), String_from("Vec__with_capacity")) {
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
         } else {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
         }
     }
-    if is_vec_string_producer_callee(clone(callee_name)) {
+    if is_vec_string_producer_callee(callee_name.clone()) {
         // Canonicalize to vec:String so emitter array/vec type resolution
         // matches SelfEmitCtx_vec_string_type / string_array_type (#726 csv).
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:String"))
@@ -94,15 +94,15 @@ fn mark_vec_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32, 
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
         }
     }
-    if eq(clone(callee_name), "env::args") {
+    if eq(callee_name.clone(), "env::args") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:String"))
     }
     // `Env::args` has no registered free-call spine entry to copy the Vec
     // layout from; without this the call site keeps a scalar dest and stores
     // the returned Vec ref into an i64 local (#917).
-    if eq(clone(callee_name), String_from("Env::args")) ||
-    eq(clone(callee_name), String_from("Env__args")) ||
-    ends_with(clone(callee_name), String_from("::Env::args")) {
+    if eq(callee_name.clone(), String_from("Env::args")) ||
+    eq(callee_name.clone(), String_from("Env__args")) ||
+    ends_with(callee_name.clone(), String_from("::Env::args")) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:String"))
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
@@ -112,7 +112,7 @@ fn mark_vec_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32, 
     }
     // Sealed raw ctor with no MIR annotation defaults to i32-element vec.
     // Empty type_name left VT_I32 and broke format_i32 digit buffers (#845).
-    if is_raw_array_new_callee(clone(callee_name)) {
+    if is_raw_array_new_callee(callee_name.clone()) {
         let existing = ctx_api_local_types::ctx_get_local_type(ctx, dest)
         if existing.len() == 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:i32"))
@@ -123,10 +123,10 @@ fn mark_vec_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32, 
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
         }
     }
-    if eq(clone(callee_name), "vec_len") ||
-    eq(clone(callee_name), "len") ||
+    if eq(callee_name.clone(), "vec_len") ||
+    eq(callee_name.clone(), "len") ||
     callee_spelling::is_namespace_member_callee(
-        clone(callee_name),
+        callee_name.clone(),
         String_from("raw_array_len"),
         String_from("RawArray"),
         String_from("len")
@@ -138,39 +138,39 @@ fn mark_vec_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32, 
     // CoreOp keeps a declared Vec<T> whose unresolved type param would pin the
     // dest to the i32-vec dead-shell layout (#872 __core_string_push_part).
     if callee_spelling::is_namespace_member_callee(
-        clone(callee_name),
+        callee_name.clone(),
         String_from("raw_array_grow"),
         String_from("RawArray"),
         String_from("grow")
     ) {
         mark_vec_push_result_type(ctx, dest, first_arg_idx)
     }
-    if eq(clone(callee_name), "vec_is_empty") || eq(clone(callee_name), "is_empty") {
+    if eq(callee_name.clone(), "vec_is_empty") || eq(callee_name.clone(), "is_empty") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("bool"))
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
     }
-    if is_get_unchecked_callee(clone(callee_name)) {
+    if is_get_unchecked_callee(callee_name.clone()) {
         // Prefer the vec argument's element type over a mono suffix
         // (get_unchecked__String). Shared spans can attach the wrong
         // specialization while the receiver is Vec<Struct> (wit_find).
         mark_vec_get_unchecked_result_type(ctx, dest, first_arg_idx)
     }
-    if eq(clone(callee_name), "vec_get_unchecked_i64") {
+    if eq(callee_name.clone(), "vec_get_unchecked_i64") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i64"))
         set_ref_vt_for_elem_type(ctx, dest, String_from("i64"))
     }
-    if eq(clone(callee_name), "vec_get_unchecked_f64") {
+    if eq(callee_name.clone(), "vec_get_unchecked_f64") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("f64"))
         set_ref_vt_for_elem_type(ctx, dest, String_from("f64"))
     }
-    if eq(clone(callee_name), "vec_get") {
+    if eq(callee_name.clone(), "vec_get") {
         mark_vec_option_elem_result_type(ctx, dest, first_arg_idx)
     }
     // is_vec_pop_callee covers pop / Vec::pop* spellings; post-rewrite callees
     // arrive already normalized as vec_pop / vec_pop__T (#874).
-    if call_rewrite_vec::is_vec_pop_callee(clone(callee_name)) ||
-    eq(clone(callee_name), "vec_pop") ||
-    starts_with(clone(callee_name), "vec_pop__") {
+    if call_rewrite_vec::is_vec_pop_callee(callee_name.clone()) ||
+    eq(callee_name.clone(), "vec_pop") ||
+    starts_with(callee_name.clone(), "vec_pop__") {
         mark_vec_option_elem_result_type(ctx, dest, first_arg_idx)
     }
 }
@@ -181,7 +181,7 @@ fn mark_vec_push_result_type(mut ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
     }
     let receiver_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
     if receiver_type.len() > 0 {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(receiver_type))
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, receiver_type.clone())
     }
     ctx_api_local_types::ctx_set_local_vt(ctx, dest, mir_vec_receiver_vt(ctx, first_arg_idx))
 }
@@ -203,22 +203,22 @@ fn is_get_unchecked_callee(callee_name: String) -> bool {
     // `mir_rewrite_vec_get_unchecked` lowers a Vec/array accessor to the bare
     // sealed CoreOp, so this predicate must accept that post-rewrite spelling;
     // otherwise the result local stays i32 and `==` compares String pointers.
-    if eq(clone(callee_name), "vec_get_unchecked") ||
-    eq(clone(callee_name), "raw_array_get_unchecked") ||
-    eq(clone(callee_name), "get_unchecked") ||
-    eq(clone(callee_name), "__intrinsic_get_unchecked") ||
+    if eq(callee_name.clone(), "vec_get_unchecked") ||
+    eq(callee_name.clone(), "raw_array_get_unchecked") ||
+    eq(callee_name.clone(), "get_unchecked") ||
+    eq(callee_name.clone(), "__intrinsic_get_unchecked") ||
     callee_spelling::is_namespace_member_callee(
-        clone(callee_name),
+        callee_name.clone(),
         String_from("raw_array_get_unchecked"),
         String_from("RawArray"),
         String_from("get_unchecked")
     ) {
         return true
     }
-    starts_with(clone(callee_name), String_from("get_unchecked__")) ||
-    starts_with(clone(callee_name), String_from("vec_get_unchecked__")) ||
-    starts_with(clone(callee_name), String_from("raw_array_get_unchecked__")) ||
-    starts_with(clone(callee_name), String_from("__intrinsic_get_unchecked__"))
+    starts_with(callee_name.clone(), String_from("get_unchecked__")) ||
+    starts_with(callee_name.clone(), String_from("vec_get_unchecked__")) ||
+    starts_with(callee_name.clone(), String_from("raw_array_get_unchecked__")) ||
+    starts_with(callee_name.clone(), String_from("__intrinsic_get_unchecked__"))
 }
 
 // Vec intrinsics resolve their GC element layout at emit time from the
@@ -234,38 +234,38 @@ fn is_get_unchecked_callee(callee_name: String) -> bool {
 // composition that depends on CALL.arg0 < 0 (#807 / #834); its receiver is
 // also always the nearest LOCAL_GET, so the scan already resolves it.
 fn is_vec_receiver_recording_callee(callee_name: String) -> bool {
-    if call_rewrite_vec::is_vec_push_callee(clone(callee_name)) {
+    if call_rewrite_vec::is_vec_push_callee(callee_name.clone()) {
         return true
     }
-    if is_get_unchecked_callee(clone(callee_name)) {
+    if is_get_unchecked_callee(callee_name.clone()) {
         return true
     }
     callee_spelling::is_namespace_member_callee(
-        clone(callee_name),
+        callee_name.clone(),
         String_from("raw_array_set_unchecked"),
         String_from("RawArray"),
         String_from("set_unchecked")
     ) ||
-    eq(clone(callee_name), String_from("vec_set")) ||
-    eq(clone(callee_name), String_from("vec_get")) ||
+    eq(callee_name.clone(), String_from("vec_set")) ||
+    eq(callee_name.clone(), String_from("vec_get")) ||
     callee_spelling::is_namespace_member_callee(
-        clone(callee_name),
+        callee_name.clone(),
         String_from("raw_array_grow"),
         String_from("RawArray"),
         String_from("grow")
     ) ||
     callee_spelling::is_namespace_member_callee(
-        clone(callee_name),
+        callee_name.clone(),
         String_from("raw_array_set_len"),
         String_from("RawArray"),
         String_from("set_len")
     ) ||
-    eq(clone(callee_name), String_from("push_char"))
+    eq(callee_name.clone(), String_from("push_char"))
 }
 
 fn is_raw_array_new_callee(callee_name: String) -> bool {
     callee_spelling::is_namespace_member_callee(
-        clone(callee_name),
+        callee_name.clone(),
         String_from("raw_array_new"),
         String_from("RawArray"),
         String_from("new")
@@ -287,30 +287,30 @@ fn strip_module_prefix_elem_name(elem_ty: String) -> String {
 fn mark_vec_get_unchecked_result_type(mut ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
     if first_arg_idx >= 0 {
         let vec_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-        if starts_with(clone(vec_type), "vec:") || starts_with(clone(vec_type), "array:") {
-            let elem_start = if starts_with(clone(vec_type), "array:") { 6 } else { 4 }
+        if starts_with(vec_type.clone(), "vec:") || starts_with(vec_type.clone(), "array:") {
+            let elem_start = if starts_with(vec_type.clone(), "array:") { 6 } else { 4 }
             let raw_elem = substring(vec_type, elem_start, vec_type.len())
             let elem_ty = sections_types_gc_phase7::gc_normalize_vec_element_name(
-                strip_module_prefix_elem_name(clone(raw_elem))
+                strip_module_prefix_elem_name(raw_elem.clone())
             )
             // Normalize mono names: Vec_String → vec:String so emitter casts
             // structref elems to the string-vec GC type (#726 csv_perf).
-            let mut set_ty = clone(elem_ty)
+            let mut set_ty = elem_ty.clone()
             // An elem name registered as both enum and struct belongs to the
             // user struct shadowing the enum (struct Box vs prelude enum Box,
             // #905); rewriting it to enum:* would mistype the vec element.
-            let elem_is_unshadowed_enum = ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(elem_ty)) &&
-            !ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(elem_ty))
-            if eq(clone(elem_ty), String_from("Vec_String")) || eq(clone(elem_ty), String_from("Vec_string")) {
+            let elem_is_unshadowed_enum = ctx_struct_layout::ctx_is_registered_enum_type(ctx, elem_ty.clone()) &&
+            !ctx_struct_layout::ctx_is_registered_struct_type(ctx, elem_ty.clone())
+            if eq(elem_ty.clone(), String_from("Vec_String")) || eq(elem_ty.clone(), String_from("Vec_string")) {
                 set_ty = String_from("vec:String")
-            } else if eq(clone(elem_ty), String_from("Vec")) {
+            } else if eq(elem_ty.clone(), String_from("Vec")) {
                 set_ty = String_from("vec:String")
-            } else if starts_with(clone(elem_ty), String_from("Vec_")) {
+            } else if starts_with(elem_ty.clone(), String_from("Vec_")) {
                 set_ty = String_from("vec:").concat(substring(elem_ty, 4, elem_ty.len()))
             } else if elem_is_unshadowed_enum {
                 // Bare TomlValue/JsonValue must become enum:* so locals and
                 // array.get casts use enum-open, not string fallback (#726).
-                set_ty = String_from("enum:").concat(clone(elem_ty))
+                set_ty = String_from("enum:").concat(elem_ty.clone())
             }
             ctx_api_local_types::ctx_set_local_type(ctx, dest, set_ty)
             set_ref_vt_for_elem_type(ctx, dest, set_ty)
@@ -321,17 +321,17 @@ fn mark_vec_get_unchecked_result_type(mut ctx: LowerCtx, dest: i32, first_arg_id
 fn mark_vec_option_elem_result_type(mut ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
     if first_arg_idx >= 0 {
         let vec_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-        if starts_with(clone(vec_type), "vec:") || starts_with(clone(vec_type), "array:") {
-            let elem_start = if starts_with(clone(vec_type), "array:") { 6 } else { 4 }
+        if starts_with(vec_type.clone(), "vec:") || starts_with(vec_type.clone(), "array:") {
+            let elem_start = if starts_with(vec_type.clone(), "array:") { 6 } else { 4 }
             let elem_ty = substring(vec_type, elem_start, vec_type.len())
             // dest is Option<T> (the container), not T — always a GC ref.
             // set_ref_vt_for_elem_type would wrongly set VT_I32 for option:i32.
             let opt_ty = String_from("option:").concat(elem_ty)
-            ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(opt_ty))
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, opt_ty.clone())
             call_type_fallback::set_ref_vt_for_type_name(ctx, dest, opt_ty)
             // Ensure Option::Some payload variant matches the element type
             // before emit (Token → gcsref, i64 → _f1_i64) (#726 display/debug).
-            ensure_option_some_for_vec_elem(ctx, clone(elem_ty))
+            ensure_option_some_for_vec_elem(ctx, elem_ty.clone())
         }
     }
 }
@@ -341,24 +341,24 @@ fn ensure_option_some_for_vec_elem(mut ctx: LowerCtx, elem_ty: String) {
         return
     }
     let mut payload_vts = Vec::new<i32>()
-    if eq(clone(elem_ty), String_from("i64")) || eq(clone(elem_ty), String_from("I64")) {
+    if eq(elem_ty.clone(), String_from("i64")) || eq(elem_ty.clone(), String_from("I64")) {
         payload_vts.push(value_types::VT_I64())
-        let _slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Option::Some"), payload_vts, clone(elem_ty))
+        let _slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Option::Some"), payload_vts, elem_ty.clone())
         return
     }
-    if eq(clone(elem_ty), String_from("f64")) || eq(clone(elem_ty), String_from("F64")) {
+    if eq(elem_ty.clone(), String_from("f64")) || eq(elem_ty.clone(), String_from("F64")) {
         payload_vts.push(value_types::VT_F64())
-        let _slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Option::Some"), payload_vts, clone(elem_ty))
+        let _slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Option::Some"), payload_vts, elem_ty.clone())
         return
     }
-    if eq(clone(elem_ty), String_from("i32")) || eq(clone(elem_ty), String_from("I32")) || eq(clone(elem_ty), String_from("bool")) || eq(clone(elem_ty), String_from("char")) {
+    if eq(elem_ty.clone(), String_from("i32")) || eq(elem_ty.clone(), String_from("I32")) || eq(elem_ty.clone(), String_from("bool")) || eq(elem_ty.clone(), String_from("char")) {
         payload_vts.push(value_types::VT_I32())
-        let _slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Option::Some"), payload_vts, clone(elem_ty))
+        let _slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Option::Some"), payload_vts, elem_ty.clone())
         return
     }
     // String / named struct / other GC refs
     payload_vts.push(value_types::VT_GC_REF())
-    let _slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Option::Some"), payload_vts, clone(elem_ty))
+    let _slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Option::Some"), payload_vts, elem_ty.clone())
 }
 
 // Set the local's val_type to VT_GC_REF or VT_REF when the element type
@@ -366,27 +366,27 @@ fn ensure_option_some_for_vec_elem(mut ctx: LowerCtx, elem_ty: String) {
 // This prevents the emitter from declaring the local as i32 and then
 // storing a GC reference value into it, which produces invalid wasm.
 fn set_ref_vt_for_elem_type(mut ctx: LowerCtx, dest: i32, elem_ty: String) {
-    if eq(clone(elem_ty), String_from("fnref")) ||
-    eq(clone(elem_ty), String_from("fn")) ||
-    starts_with(clone(elem_ty), String_from("fn(")) {
+    if eq(elem_ty.clone(), String_from("fnref")) ||
+    eq(elem_ty.clone(), String_from("fn")) ||
+    starts_with(elem_ty.clone(), String_from("fn(")) {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_FUNCREF())
         return
     }
-    if eq(clone(elem_ty), String_from("i32")) || eq(clone(elem_ty), String_from("I32")) || eq(clone(elem_ty), String_from("bool")) || eq(clone(elem_ty), String_from("char")) {
+    if eq(elem_ty.clone(), String_from("i32")) || eq(elem_ty.clone(), String_from("I32")) || eq(elem_ty.clone(), String_from("bool")) || eq(elem_ty.clone(), String_from("char")) {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
         return
     }
-    if eq(clone(elem_ty), String_from("String")) || eq(clone(elem_ty), String_from("string")) {
+    if eq(elem_ty.clone(), String_from("String")) || eq(elem_ty.clone(), String_from("string")) {
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
         } else {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
         }
     }
-    if eq(clone(elem_ty), String_from("i64")) || eq(clone(elem_ty), String_from("I64")) {
+    if eq(elem_ty.clone(), String_from("i64")) || eq(elem_ty.clone(), String_from("I64")) {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I64())
     }
-    if eq(clone(elem_ty), String_from("f64")) || eq(clone(elem_ty), String_from("F64")) {
+    if eq(elem_ty.clone(), String_from("f64")) || eq(elem_ty.clone(), String_from("F64")) {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_F64())
     }
     // Struct/enum element types are GC references on GC targets.
@@ -398,22 +398,22 @@ fn set_ref_vt_for_elem_type(mut ctx: LowerCtx, dest: i32, elem_ty: String) {
             return
         }
     }
-    if starts_with(clone(elem_ty), String_from("?")) {
+    if starts_with(elem_ty.clone(), String_from("?")) {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
         return
     }
-    if !eq(clone(elem_ty), String_from("i32")) &&
-    !eq(clone(elem_ty), String_from("I32")) &&
-    !eq(clone(elem_ty), String_from("i64")) &&
-    !eq(clone(elem_ty), String_from("I64")) &&
-    !eq(clone(elem_ty), String_from("f64")) &&
-    !eq(clone(elem_ty), String_from("F64")) &&
-    !eq(clone(elem_ty), String_from("String")) &&
-    !eq(clone(elem_ty), String_from("string")) &&
-    !eq(clone(elem_ty), String_from("bool")) &&
-    !eq(clone(elem_ty), String_from("char")) &&
-    !eq(clone(elem_ty), String_from("fnref")) &&
-    !eq(clone(elem_ty), String_from("fn")) {
+    if !eq(elem_ty.clone(), String_from("i32")) &&
+    !eq(elem_ty.clone(), String_from("I32")) &&
+    !eq(elem_ty.clone(), String_from("i64")) &&
+    !eq(elem_ty.clone(), String_from("I64")) &&
+    !eq(elem_ty.clone(), String_from("f64")) &&
+    !eq(elem_ty.clone(), String_from("F64")) &&
+    !eq(elem_ty.clone(), String_from("String")) &&
+    !eq(elem_ty.clone(), String_from("string")) &&
+    !eq(elem_ty.clone(), String_from("bool")) &&
+    !eq(elem_ty.clone(), String_from("char")) &&
+    !eq(elem_ty.clone(), String_from("fnref")) &&
+    !eq(elem_ty.clone(), String_from("fn")) {
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
         } else {
@@ -423,39 +423,39 @@ fn set_ref_vt_for_elem_type(mut ctx: LowerCtx, dest: i32, elem_ty: String) {
 }
 
 fn is_vec_string_producer_callee(callee_name: String) -> bool {
-    if vec_string_producer_base_matches(clone(callee_name)) {
+    if vec_string_producer_base_matches(callee_name.clone()) {
         return true
     }
-    let base = strip_mono_suffix_for_vec_producer(clone(callee_name))
-    if base.len() > 0 && !eq(clone(base), clone(callee_name)) {
+    let base = strip_mono_suffix_for_vec_producer(callee_name.clone())
+    if base.len() > 0 && !eq(base.clone(), callee_name.clone()) {
         return vec_string_producer_base_matches(base)
     }
     false
 }
 
 fn vec_string_producer_base_matches(name: String) -> bool {
-    if eq(clone(name), "text::chars") ||
-    eq(clone(name), "chars") ||
-    eq(clone(name), "split") ||
-    eq(clone(name), "text::split") ||
-    eq(clone(name), "string::split") ||
-    eq(clone(name), "lines") ||
-    eq(clone(name), "text::lines") ||
-    eq(clone(name), "string::lines") ||
-    eq(clone(name), "__intrinsic_split") {
+    if eq(name.clone(), "text::chars") ||
+    eq(name.clone(), "chars") ||
+    eq(name.clone(), "split") ||
+    eq(name.clone(), "text::split") ||
+    eq(name.clone(), "string::split") ||
+    eq(name.clone(), "lines") ||
+    eq(name.clone(), "text::lines") ||
+    eq(name.clone(), "string::lines") ||
+    eq(name.clone(), "__intrinsic_split") {
         return true
     }
-    if ends_with(clone(name), String_from("::split")) ||
-    ends_with(clone(name), String_from("::chars")) ||
-    ends_with(clone(name), String_from("::lines")) ||
-    ends_with(clone(name), String_from("__split")) ||
-    ends_with(clone(name), String_from("__chars")) ||
-    ends_with(clone(name), String_from("__lines")) {
+    if ends_with(name.clone(), String_from("::split")) ||
+    ends_with(name.clone(), String_from("::chars")) ||
+    ends_with(name.clone(), String_from("::lines")) ||
+    ends_with(name.clone(), String_from("__split")) ||
+    ends_with(name.clone(), String_from("__chars")) ||
+    ends_with(name.clone(), String_from("__lines")) {
         return true
     }
-    if starts_with(clone(name), String_from("split__")) ||
-    starts_with(clone(name), String_from("chars__")) ||
-    starts_with(clone(name), String_from("lines__")) {
+    if starts_with(name.clone(), String_from("split__")) ||
+    starts_with(name.clone(), String_from("chars__")) ||
+    starts_with(name.clone(), String_from("lines__")) {
         return true
     }
     false
@@ -477,7 +477,7 @@ fn strip_with_cap_suffix(s: String) -> String {
     let suffix = String_from("_with_cap")
     let sl = s.len()
     let sufl = suffix.len()
-    if sl > sufl && ends_with(clone(s), clone(suffix)) {
+    if sl > sufl && ends_with(s.clone(), suffix.clone()) {
         return substring(s, 0, sl - sufl)
     }
     s
@@ -496,12 +496,12 @@ fn last_index_of_double_underscore(s: String) -> i32 {
 }
 
 fn vec_constructor_element_start(callee_name: String, fallback: i32) -> i32 {
-    if starts_with(clone(callee_name), String_from("Vec__new__")) ||
-    starts_with(clone(callee_name), String_from("Vec::new__")) {
+    if starts_with(callee_name.clone(), String_from("Vec__new__")) ||
+    starts_with(callee_name.clone(), String_from("Vec::new__")) {
         return (String_from("Vec__new__")).len()
     }
-    if starts_with(clone(callee_name), String_from("Vec__with_capacity__")) ||
-    starts_with(clone(callee_name), String_from("Vec::with_capacity__")) {
+    if starts_with(callee_name.clone(), String_from("Vec__with_capacity__")) ||
+    starts_with(callee_name.clone(), String_from("Vec::with_capacity__")) {
         return (String_from("Vec__with_capacity__")).len()
     }
     fallback
@@ -511,9 +511,9 @@ fn vec_constructor_element_start(callee_name: String, fallback: i32) -> i32 {
 // separator uses the same spelling. Recover the projection after extracting
 // the constructor suffix so the associated type remains one semantic name.
 fn decode_mono_vec_element_projection(elem: String) -> String {
-    let separator = index_of(clone(elem), String_from("__"))
+    let separator = index_of(elem.clone(), String_from("__"))
     if separator < 0 {
         return elem
     }
-    substring(clone(elem), 0, separator).concat(String_from("::").concat(substring(elem, separator + 2, elem.len())))
+    substring(elem.clone(), 0, separator).concat(String_from("::").concat(substring(elem, separator + 2, elem.len())))
 }

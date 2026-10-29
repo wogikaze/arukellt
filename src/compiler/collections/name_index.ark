@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 
 pub struct NameIndex {
     capacity: i32,
@@ -126,7 +125,7 @@ fn name_index_grow_if_needed(mut index: NameIndex) {
     let key_count = len(index.keys)
     let mut ki = 0
     while ki < key_count {
-        let slot = name_index_find_slot(index, clone(get_unchecked(index.keys, ki)))
+        let slot = name_index_find_slot(index, get_unchecked(index.keys, ki).clone())
         set(index.buckets, slot, ki + 1)
         ki = ki + 1
     }
@@ -140,7 +139,7 @@ fn name_index_push_entry(mut index: NameIndex, slot: i32, name: String, value: i
 
 pub fn name_index_insert_first(mut index: NameIndex, name: String, value: i32) {
     name_index_grow_if_needed(index)
-    let slot = name_index_find_slot(index, clone(name))
+    let slot = name_index_find_slot(index, name.clone())
     if slot < 0 || get_unchecked(index.buckets, slot) != 0 {
         return
     }
@@ -149,7 +148,7 @@ pub fn name_index_insert_first(mut index: NameIndex, name: String, value: i32) {
 
 pub fn name_index_set(mut index: NameIndex, name: String, value: i32) {
     name_index_grow_if_needed(index)
-    let slot = name_index_find_slot(index, clone(name))
+    let slot = name_index_find_slot(index, name.clone())
     if slot < 0 {
         return
     }
@@ -163,7 +162,7 @@ pub fn name_index_set(mut index: NameIndex, name: String, value: i32) {
 
 pub fn name_index_increment(mut index: NameIndex, name: String) {
     name_index_grow_if_needed(index)
-    let slot = name_index_find_slot(index, clone(name))
+    let slot = name_index_find_slot(index, name.clone())
     if slot < 0 {
         return
     }

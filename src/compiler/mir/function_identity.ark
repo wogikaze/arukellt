@@ -1,9 +1,8 @@
-use std::prelude::{clone}
 use mir::function_core_record
 use mir::source_location_record
 use mir::types_function
 fn MirFunction_name(f: MirFunction) -> String {
-    clone(f.name)
+    f.name.clone()
 }
 
 fn MirFunction_source_location(f: MirFunction) -> SourceLocation {

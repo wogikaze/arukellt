@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower_kinds
 struct MirHofCallPlan {
     kind: i32,
@@ -31,7 +30,7 @@ fn mir_hof_call_plan_callback_index(plan: MirHofCallPlan) -> i32 {
 }
 
 fn mir_hof_call_plan_vec_type_name(plan: MirHofCallPlan) -> String {
-    clone(plan.vec_type_name)
+    plan.vec_type_name.clone()
 }
 
 fn mir_hof_call_plan_is_map(plan: MirHofCallPlan) -> bool {

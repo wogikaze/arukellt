@@ -1,4 +1,4 @@
-use std::prelude::{clone, len}
+use std::prelude::{len}
 use typechecker::names
 use typechecker::kinds
 use typechecker::contract_type_constructors
@@ -22,19 +22,19 @@ fn resolve_type_name(name: String) -> TypeInfo {
     // through the impl's associated types. A lowercase owner is a module
     // path: `mod::T` refers to the same type as `T`, matching
     // names::unqualified_type_name on the method-lookup side.
-    if projection_owner_keeps_qualifier(clone(name)) {
+    if projection_owner_keeps_qualifier(name.clone()) {
         return type_info_named(commands::TY_STRUCT(), name)
     }
     let leaf = names::unqualified_type_name(name)
-    let primitive = type_name_primitives::resolve_primitive_type_name(clone(leaf))
+    let primitive = type_name_primitives::resolve_primitive_type_name(leaf.clone())
     if contract_type_access::TypeInfo_tag(primitive) != commands::TY_UNKNOWN() {
         return primitive
     }
-    let container = type_name_containers::resolve_container_type_name(clone(leaf))
+    let container = type_name_containers::resolve_container_type_name(leaf.clone())
     if contract_type_access::TypeInfo_tag(container) != commands::TY_UNKNOWN() {
         return container
     }
-    let alias = type_name_aliases::resolve_alias_type_name(clone(leaf))
+    let alias = type_name_aliases::resolve_alias_type_name(leaf.clone())
     if contract_type_access::TypeInfo_tag(alias) != commands::TY_UNKNOWN() {
         return alias
     }
@@ -47,7 +47,7 @@ fn resolve_type_name(name: String) -> TypeInfo {
 fn projection_owner_keeps_qualifier(name: String) -> bool {
     let mut i = len(name) - 2
     while i >= 0 {
-        if clone(name).byte_at(i) == 58 && clone(name).byte_at(i + 1) == 58 {
+        if name.clone().byte_at(i) == 58 && name.clone().byte_at(i + 1) == 58 {
             let first = name.byte_at(0)
             return first == 63 || (first >= 65 && first <= 90)
         }

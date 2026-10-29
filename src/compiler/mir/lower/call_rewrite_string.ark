@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::call_rewrite_method
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
@@ -13,7 +13,7 @@ fn mir_string_call_rewrite_new(callee_name: String, return_local: i32) -> MirStr
 }
 
 fn mir_string_call_rewrite_callee_name(rewrite: MirStringCallRewrite) -> String {
-    clone(rewrite.callee_name)
+    rewrite.callee_name.clone()
 }
 
 fn mir_string_call_rewrite_return_local(rewrite: MirStringCallRewrite) -> i32 {
@@ -29,23 +29,23 @@ fn mir_rewrite_to_string(ctx: LowerCtx, callee_name: String, first_arg_idx: i32)
         // fallbacks below remain for unresolved type variables and for
         // builds whose fn index does not yet carry the impl method.
         let impl_method = call_rewrite_method::mir_try_resolve_impl_method(ctx, "to_string", first_arg_idx)
-        if !eq(clone(impl_method), String_from("to_string")) {
+        if !eq(impl_method.clone(), String_from("to_string")) {
             return mir_string_call_rewrite_new(impl_method, 0 - 1)
         }
         let arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-        if eq(clone(arg_type), "char") {
+        if eq(arg_type.clone(), "char") {
             rewritten = "char_to_string"
         } else {
-            if eq(clone(arg_type), "f64") || ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx) == value_types::VT_F64() {
+            if eq(arg_type.clone(), "f64") || ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx) == value_types::VT_F64() {
                 rewritten = "f64_to_string"
             } else {
-                if eq(clone(arg_type), "bool") {
+                if eq(arg_type.clone(), "bool") {
                     rewritten = "bool_to_string"
                 } else {
-                    if eq(clone(arg_type), "i64") || eq(clone(arg_type), "u64") || ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx) == value_types::VT_I64() {
+                    if eq(arg_type.clone(), "i64") || eq(arg_type.clone(), "u64") || ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx) == value_types::VT_I64() {
                         rewritten = "i64_to_string"
                     } else {
-                        if eq(clone(arg_type), "string") || eq(clone(arg_type), "String") {
+                        if eq(arg_type.clone(), "string") || eq(arg_type.clone(), "String") {
                             return_local = first_arg_idx
                         } else {
                             rewritten = call_rewrite_method::mir_try_resolve_impl_method(ctx, "to_string", first_arg_idx)

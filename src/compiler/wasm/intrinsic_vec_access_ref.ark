@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use wasm::ctx_record
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
@@ -40,52 +40,52 @@ fn vec_ref_target_type_from_name(ctx: SelfEmitCtx, tname: String) -> i32 {
     if len(tname) == 0 {
         return 0 - 1
     }
-    if clone(tname).starts_with("vec:") {
-        let elem = clone(tname).slice(4, len(tname))
-        if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) ||
-        ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, clone(elem)) {
+    if tname.clone().starts_with("vec:") {
+        let elem = tname.clone().slice(4, len(tname))
+        if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(elem.clone()) ||
+        ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, elem.clone()) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
         }
-        if eq(clone(elem), "String") || eq(clone(elem), "string") {
+        if eq(elem.clone(), "String") || eq(elem.clone(), "string") {
             return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
         }
-        if eq(clone(elem), "i64") || eq(clone(elem), "I64") {
+        if eq(elem.clone(), "i64") || eq(elem.clone(), "I64") {
             return ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
         }
-        if eq(clone(elem), "f64") || eq(clone(elem), "F64") {
+        if eq(elem.clone(), "f64") || eq(elem.clone(), "F64") {
             return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
         }
-        if eq(clone(elem), "v128") || eq(clone(elem), "V128") {
+        if eq(elem.clone(), "v128") || eq(elem.clone(), "V128") {
             return ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
         }
         return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
     }
-    if eq(clone(tname), "string") || eq(clone(tname), "String") {
+    if eq(tname.clone(), "string") || eq(tname.clone(), "String") {
         return ctx_gc_type::SelfEmitCtx_string_type(ctx)
     }
-    if clone(tname).starts_with("enum:") ||
-    clone(tname).starts_with("option:") ||
-    clone(tname).starts_with("Option_") ||
-    clone(tname).starts_with("result:") ||
-    clone(tname).starts_with("Result_") {
+    if tname.clone().starts_with("enum:") ||
+    tname.clone().starts_with("option:") ||
+    tname.clone().starts_with("Option_") ||
+    tname.clone().starts_with("result:") ||
+    tname.clone().starts_with("Result_") {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     }
-    if clone(tname).starts_with("hashmap:") {
+    if tname.clone().starts_with("hashmap:") {
         return 0 - 1
     }
-    if clone(tname).starts_with("struct:") {
-        let sname = code_locals_struct_parse::extract_struct_name_from_type_name(clone(tname))
-        if len(sname) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(sname)) {
-            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(sname))
+    if tname.clone().starts_with("struct:") {
+        let sname = code_locals_struct_parse::extract_struct_name_from_type_name(tname.clone())
+        if len(sname) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, sname.clone()) {
+            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, sname.clone())
         }
-        let byte_size = code_locals_struct_parse::extract_struct_byte_size(clone(tname))
+        let byte_size = code_locals_struct_parse::extract_struct_byte_size(tname.clone())
         if byte_size > 0 {
             return ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size)
         }
         return 0 - 1
     }
-    if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(tname)) {
-        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(tname))
+    if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, tname.clone()) {
+        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, tname.clone())
     }
     0 - 1
 }

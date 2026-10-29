@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 fn split_mono_suffix(suffix: String) -> Vec<String> {
     let mut result = Vec::new<String>()
@@ -26,19 +26,19 @@ fn split_mono_suffix(suffix: String) -> Vec<String> {
 // that carry nothing but a name. Ordinal placeholders (t0, T0, t12, ...)
 // bind by their numeric suffix.
 fn mono_type_var_to_index(type_var: String) -> i32 {
-    let mut name = clone(type_var)
-    if clone(name).starts_with("?") {
+    let mut name = type_var.clone()
+    if name.clone().starts_with("?") {
         name = name.slice(1, len(name))
     }
     let name_len = len(name)
     if name_len >= 2 {
-        let first = clone(name).byte_at(0)
+        let first = name.clone().byte_at(0)
         if first == 116 || first == 84 {
             let mut num = 0
             let mut all_digits = true
             let mut i = 1
             while i < name_len {
-                let digit = clone(name).byte_at(i)
+                let digit = name.clone().byte_at(i)
                 if digit < 48 || digit > 57 {
                     all_digits = false
                 } else {
@@ -51,16 +51,16 @@ fn mono_type_var_to_index(type_var: String) -> i32 {
             }
         }
     }
-    if eq(clone(name), "T") { return 0 }
-    if eq(clone(name), "E") { return 1 }
-    if eq(clone(name), "U") { return 2 }
-    if eq(clone(name), "V") { return 3 }
-    if eq(clone(name), "W") { return 4 }
-    if eq(clone(name), "K") { return 0 }
-    if eq(clone(name), "A") { return 0 }
-    if eq(clone(name), "B") { return 1 }
-    if eq(clone(name), "C") { return 2 }
-    if eq(clone(name), "D") { return 3 }
+    if eq(name.clone(), "T") { return 0 }
+    if eq(name.clone(), "E") { return 1 }
+    if eq(name.clone(), "U") { return 2 }
+    if eq(name.clone(), "V") { return 3 }
+    if eq(name.clone(), "W") { return 4 }
+    if eq(name.clone(), "K") { return 0 }
+    if eq(name.clone(), "A") { return 0 }
+    if eq(name.clone(), "B") { return 1 }
+    if eq(name.clone(), "C") { return 2 }
+    if eq(name.clone(), "D") { return 3 }
     0
 }
 
@@ -70,14 +70,14 @@ fn mono_type_var_to_index(type_var: String) -> i32 {
 // so this is the only ordinal that binds R/W-style names to their own
 // concrete layouts.
 fn mono_type_var_decl_index(type_var: String, type_params: Vec<String>) -> i32 {
-    let mut name = clone(type_var)
-    if clone(name).starts_with("?") {
+    let mut name = type_var.clone()
+    if name.clone().starts_with("?") {
         name = name.slice(1, len(name))
     }
     let count = len(type_params)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(type_params, i), clone(name)) {
+        if eq(get_unchecked(type_params, i), name.clone()) {
             return i
         }
         i = i + 1
@@ -86,7 +86,7 @@ fn mono_type_var_decl_index(type_var: String, type_params: Vec<String>) -> i32 {
 }
 
 fn mono_type_var_index(type_var: String, type_params: Vec<String>) -> i32 {
-    let declared = mono_type_var_decl_index(clone(type_var), type_params)
+    let declared = mono_type_var_decl_index(type_var.clone(), type_params)
     if declared >= 0 {
         return declared
     }
@@ -153,7 +153,7 @@ fn is_mono_type_var_name(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if clone(type_name).starts_with("?") {
+    if type_name.clone().starts_with("?") {
         return is_mono_type_var_name(type_name.slice(1, len(type_name)))
     }
     if len(type_name) == 1 {
@@ -195,25 +195,25 @@ fn all_valid_mono_type_keys(type_keys: Vec<String>, key_count: i32) -> bool {
 }
 
 fn is_valid_mono_type_key(key: String) -> bool {
-    if eq(clone(key), "i32") ||
-    eq(clone(key), "i64") ||
-    eq(clone(key), "f64") ||
-    eq(clone(key), "f32") ||
-    eq(clone(key), "bool") ||
-    eq(clone(key), "char") ||
-    eq(clone(key), "String") ||
-    eq(clone(key), "string") {
+    if eq(key.clone(), "i32") ||
+    eq(key.clone(), "i64") ||
+    eq(key.clone(), "f64") ||
+    eq(key.clone(), "f32") ||
+    eq(key.clone(), "bool") ||
+    eq(key.clone(), "char") ||
+    eq(key.clone(), "String") ||
+    eq(key.clone(), "string") {
         return true
     }
     // Nested container mangling uses underscores for type args
     // (Vec_i32_, Option_String, HashMap_i32_String_). These must be
     // accepted so count__Vec_i32_ substitutes vec:T → vec:Vec_i32_ and
     // takes the structref-array vec ABI (#808 nested_generic_call).
-    if clone(key).starts_with("Vec_") ||
-    clone(key).starts_with("Option_") ||
-    clone(key).starts_with("Result_") ||
-    clone(key).starts_with("HashMap_") ||
-    clone(key).starts_with("HashSet_") {
+    if key.clone().starts_with("Vec_") ||
+    key.clone().starts_with("Option_") ||
+    key.clone().starts_with("Result_") ||
+    key.clone().starts_with("HashMap_") ||
+    key.clone().starts_with("HashSet_") {
         return true
     }
     // Nominal keys are PascalCase type names (Point). Reject snake_case

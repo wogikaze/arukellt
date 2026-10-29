@@ -2,7 +2,7 @@
 // legacy_binding_patterns + std/manifest.toml.
 // Compact table + index. Do not edit by hand.
 
-use std::prelude::{clone, eq}
+use std::prelude::{byte_at, eq, substring}
 use std::text
 use corehir::table_blob
 
@@ -162,7 +162,7 @@ fn core_op_binding_callee_at(index: i32) -> String {
     if start_chunk == end_chunk {
         let piece = core_op_binding_callee_data_chunk(start_chunk)
         let local = start - start_chunk * 144
-        return piece.slice(local, local + (end - start))
+        return substring(piece, local, local + (end - start))
     }
     let mut out = String_new()
     let mut i = start
@@ -176,7 +176,7 @@ fn core_op_binding_callee_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = text::concat(out, piece.slice(local, local + take))
+        out = text::concat(out, substring(piece, local, local + take))
         i = i + take
     }
     return out
@@ -322,7 +322,7 @@ fn core_op_binding_core_op_id_at(index: i32) -> String {
     if start_chunk == end_chunk {
         let piece = core_op_binding_core_op_id_data_chunk(start_chunk)
         let local = start - start_chunk * 144
-        return piece.slice(local, local + (end - start))
+        return substring(piece, local, local + (end - start))
     }
     let mut out = String_new()
     let mut i = start
@@ -336,7 +336,7 @@ fn core_op_binding_core_op_id_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = text::concat(out, piece.slice(local, local + take))
+        out = text::concat(out, substring(piece, local, local + take))
         i = i + take
     }
     return out
@@ -489,7 +489,7 @@ fn core_op_binding_lookup_callee(name: String) -> i32 {
     let name_len = len(name)
     let mut hi = 0
     while hi < name_len {
-        hash = hash * fnv_prime ^ name.byte_at(hi)
+        hash = hash * fnv_prime ^ byte_at(name, hi)
         if hash < 0 {
             hash = 0 - hash
         }
@@ -505,7 +505,7 @@ fn core_op_binding_lookup_callee(name: String) -> i32 {
         if idx < 0 {
             return 0 - 1
         }
-        if eq(clone(name), core_op_binding_callee_at(idx)) {
+        if eq(name.clone(), core_op_binding_callee_at(idx)) {
             return idx
         }
         slot = (slot + 1) % capacity
@@ -515,7 +515,7 @@ fn core_op_binding_lookup_callee(name: String) -> i32 {
 }
 
 fn core_op_binding_core_op_id_for_callee_exact(callee: String) -> String {
-    let index = core_op_binding_lookup_callee(clone(callee))
+    let index = core_op_binding_lookup_callee(callee.clone())
     if index < 0 {
         return String_new()
     }
@@ -527,7 +527,7 @@ fn core_op_binding_core_op_id_for_callee_family(callee: String) -> String {
     let mut i = 0
     while i < count {
         let pattern = core_op_binding_pattern_at(i)
-        if clone(callee).starts_with(clone(pattern)) {
+        if starts_with(callee.clone(), pattern.clone()) {
             let suffix_len = len(callee) - len(pattern)
             if core_op_binding_pattern_requires_nonempty_suffix_at(i) && suffix_len <= 0 {
                 i = i + 1
@@ -541,13 +541,13 @@ fn core_op_binding_core_op_id_for_callee_family(callee: String) -> String {
 }
 
 fn core_op_binding_core_op_id_for_callee(callee: String) -> String {
-    return core_op_binding_core_op_id_for_callee_exact(clone(callee))
+    return core_op_binding_core_op_id_for_callee_exact(callee.clone())
 }
 
 fn core_op_binding_core_op_id_for_callee_exact_then_family(callee: String) -> String {
-    let exact = core_op_binding_core_op_id_for_callee_exact(clone(callee))
+    let exact = core_op_binding_core_op_id_for_callee_exact(callee.clone())
     if len(exact) > 0 {
         return exact
     }
-    return core_op_binding_core_op_id_for_callee_family(clone(callee))
+    return core_op_binding_core_op_id_for_callee_family(callee.clone())
 }

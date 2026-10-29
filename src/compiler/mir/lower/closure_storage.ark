@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use std::text
 use mir::function_identity
 use mir::lower::ctx_current_storage
@@ -17,7 +16,7 @@ fn closure_storage_next_synth_name(mut ctx: LowerCtx) -> String {
 }
 
 fn closure_storage_pending_synth(ctx: LowerCtx) -> String {
-    clone(ctx.closure_last_synth)
+    ctx.closure_last_synth.clone()
 }
 
 fn closure_storage_set_pending_bind(mut ctx: LowerCtx, synth: String, packed: String, extra: i32, env_local: i32) {
@@ -38,8 +37,8 @@ fn closure_storage_set_pending_identity(mut ctx: LowerCtx) {
 
 fn closure_storage_push_bind(mut ctx: LowerCtx, bind_name: String) {
     push(ctx.closure_bind_names, bind_name)
-    push(ctx.closure_bind_synth, clone(ctx.closure_last_synth))
-    push(ctx.closure_bind_caps, clone(ctx.closure_last_caps))
+    push(ctx.closure_bind_synth, ctx.closure_last_synth.clone())
+    push(ctx.closure_bind_caps, ctx.closure_last_caps.clone())
     push(ctx.closure_bind_extra, ctx.closure_last_extra)
     push(ctx.closure_bind_identity, ctx.closure_last_identity)
     push(ctx.closure_bind_env, ctx.closure_last_env)
@@ -54,15 +53,15 @@ fn closure_storage_bind_count(ctx: LowerCtx) -> i32 {
 }
 
 fn closure_storage_bind_name_at(ctx: LowerCtx, index: i32) -> String {
-    clone(get_unchecked(ctx.closure_bind_names, index))
+    get_unchecked(ctx.closure_bind_names, index).clone()
 }
 
 fn closure_storage_bind_synth_at(ctx: LowerCtx, index: i32) -> String {
-    clone(get_unchecked(ctx.closure_bind_synth, index))
+    get_unchecked(ctx.closure_bind_synth, index).clone()
 }
 
 fn closure_storage_bind_caps_at(ctx: LowerCtx, index: i32) -> String {
-    clone(get_unchecked(ctx.closure_bind_caps, index))
+    get_unchecked(ctx.closure_bind_caps, index).clone()
 }
 
 fn closure_storage_bind_extra_at(ctx: LowerCtx, index: i32) -> i32 {
@@ -74,7 +73,7 @@ fn closure_storage_bind_env_at(ctx: LowerCtx, index: i32) -> i32 {
 }
 
 fn closure_storage_bind_fn_at(ctx: LowerCtx, index: i32) -> String {
-    clone(get_unchecked(ctx.closure_bind_fns, index))
+    get_unchecked(ctx.closure_bind_fns, index).clone()
 }
 
 fn closure_storage_bind_identity_at(ctx: LowerCtx, index: i32) -> bool {

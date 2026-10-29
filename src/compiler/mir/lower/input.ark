@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::entry_body_source
 use mir::emit_spec
 use corehir::body
@@ -22,7 +21,7 @@ fn mir_lower_input_new(
     report_phase_timing: i32,
     source_text: String
 ) -> MirLowerInput {
-    let mut effective_target = clone(target)
+    let mut effective_target = target.clone()
     if len(effective_target) == 0 {
         effective_target = "wasm32-gc"
     }
@@ -74,5 +73,5 @@ fn mir_lower_input_body_source(input: MirLowerInput) -> MirLowerEntryBodySource 
 }
 
 fn mir_lower_input_target(input: MirLowerInput) -> String {
-    clone(input.target)
+    input.target.clone()
 }

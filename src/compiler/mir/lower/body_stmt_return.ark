@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::ast_node
 use mir::lower::control
 use mir::lower::ctx_api_function_frame
@@ -34,7 +33,7 @@ fn mir_return_expr_is_fn_value(ctx: LowerCtx, expr: AstNode) -> bool {
         return false
     }
     let expr_name = ast_node::node_text(expr)
-    if ctx_api_local_alloc::ctx_lookup_local(ctx, clone(expr_name)) >= 0 {
+    if ctx_api_local_alloc::ctx_lookup_local(ctx, expr_name.clone()) >= 0 {
         return false
     }
     ctx_fn_index::ctx_fn_index_find(ctx, expr_name) >= 0

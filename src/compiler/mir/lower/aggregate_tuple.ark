@@ -1,5 +1,5 @@
 use std::text
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_gc_enum
@@ -27,12 +27,12 @@ fn mir_emit_tuple_from_locals(mut ctx: LowerCtx, field_locals: Vec<i32>, field_v
     let tuple_name = tuple_name_keys_from_field_locals(ctx, field_locals, field_vts, child_count)
     let mut struct_name = String_new()
     if tuple_field_vts_need_named_gc_struct(ctx, field_vts, child_count) {
-        struct_name = clone(tuple_name)
+        struct_name = tuple_name.clone()
     }
     if len(struct_name) > 0 {
         let sig = tuple_gc_sig_from_type_keys(ctx, struct_name.slice(6, len(struct_name)))
-        ctx_gc_struct::ctx_register_gc_struct(ctx, clone(struct_name), sig)
-        ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new_named(dest, clone(struct_name), total_bytes))
+        ctx_gc_struct::ctx_register_gc_struct(ctx, struct_name.clone(), sig)
+        ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new_named(dest, struct_name.clone(), total_bytes))
     } else {
         ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new(dest, total_bytes))
     }
@@ -58,7 +58,7 @@ fn mir_emit_tuple_from_locals(mut ctx: LowerCtx, field_locals: Vec<i32>, field_v
             byte_off = byte_off + 4
         }
         if len(struct_name) > 0 {
-            ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named_idx(dest, field_local, clone(struct_name), set_off, ti, total_bytes, set_vt))
+            ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named_idx(dest, field_local, struct_name.clone(), set_off, ti, total_bytes, set_vt))
         } else {
             ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named_sized(dest, field_local, String_new(), set_off, total_bytes, set_vt))
         }
@@ -66,7 +66,7 @@ fn mir_emit_tuple_from_locals(mut ctx: LowerCtx, field_locals: Vec<i32>, field_v
     }
     // Value lives in `dest`; callers load via local_set_from / return_value.
     if len(struct_name) > 0 {
-        let type_name = "struct:".concat(clone(struct_name).concat(":".concat((total_bytes).to_string())))
+        let type_name = "struct:".concat(struct_name.clone().concat(":".concat((total_bytes).to_string())))
         ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name)
     } else if len(tuple_name) > 0 {
         // Anonymous small-int tuples (LM path) still record the tuple:<k,...>
@@ -101,22 +101,22 @@ fn tuple_key_from_local_type(type_name: String, field_vt: i32) -> String {
     // fn/fnref/fnsig spellings. Vec<(K,V)> entries adapters derive the vec
     // element name from the annotation, so the literal-built struct must pick
     // the same tuple:* name (#888).
-    if eq(clone(type_name), "string") || eq(clone(type_name), "str") {
+    if eq(type_name.clone(), "string") || eq(type_name.clone(), "str") {
         return "String"
     }
     // Narrow integers occupy the i32 ABI slot; using their source spelling
     // here would register a second identical-layout tuple type and break
     // calls/returns that name the tuple through their annotation.
-    if match_payload_field_type::mir_narrow_int_type_name(clone(type_name)) {
+    if match_payload_field_type::mir_narrow_int_type_name(type_name.clone()) {
         return "i32"
     }
-    if ctx_gc_struct::gc_struct_field_type_is_fn_value(clone(type_name)) {
+    if ctx_gc_struct::gc_struct_field_type_is_fn_value(type_name.clone()) {
         return "fnref"
     }
-    if clone(type_name).starts_with(String_from("enum:")) {
+    if type_name.clone().starts_with(String_from("enum:")) {
         return type_name.slice(5, len(type_name))
     }
-    if clone(type_name).starts_with(String_from("struct:")) {
+    if type_name.clone().starts_with(String_from("struct:")) {
         let n = len(type_name)
         let mut first = 0 - 1
         let mut last = 0 - 1
@@ -216,7 +216,7 @@ fn tuple_gc_field_sig_for_vt(field_vt: i32, field_idx: i32) -> String {
 
 fn tuple_wasm_name_from_param_alias(param_type_name: String) -> String {
     // CoreHIR param aliases use Tuple:A:B; GC structs are tuple:A,B (#810).
-    if !clone(param_type_name).starts_with(String_from("Tuple:")) {
+    if !param_type_name.clone().starts_with(String_from("Tuple:")) {
         return String_new()
     }
     let rest = param_type_name.slice(6, len(param_type_name))
@@ -260,7 +260,7 @@ fn tuple_type_name_from_param_alias(mut ctx: LowerCtx, param_type_name: String) 
     if len(sig) <= 2 {
         return String_new()
     }
-    ctx_gc_struct::ctx_register_gc_struct(ctx, clone(wasm_name), sig)
+    ctx_gc_struct::ctx_register_gc_struct(ctx, wasm_name.clone(), sig)
     "struct:".concat(wasm_name.concat(":".concat((tuple_byte_size_from_keys(keys)).to_string())))
 }
 
@@ -270,9 +270,9 @@ fn tuple_byte_size_from_keys(keys: String) -> i32 {
     let mut i = 0
     while i < count {
         let key = tuple_field_key_at(keys, i)
-        if eq(clone(key), "f64") || eq(clone(key), "F64") ||
-        eq(clone(key), "i64") || eq(clone(key), "I64") ||
-        eq(clone(key), "u64") {
+        if eq(key.clone(), "f64") || eq(key.clone(), "F64") ||
+        eq(key.clone(), "i64") || eq(key.clone(), "I64") ||
+        eq(key.clone(), "u64") {
             total = total + 8
         } else {
             total = total + 4
@@ -283,7 +283,7 @@ fn tuple_byte_size_from_keys(keys: String) -> i32 {
 }
 
 fn ctx_register_tuple_gc_struct_from_return_name(mut ctx: LowerCtx, return_type_name: String) -> i32 {
-    if !clone(return_type_name).starts_with("struct:") {
+    if !return_type_name.clone().starts_with("struct:") {
         return 0
     }
     let n = len(return_type_name)
@@ -303,7 +303,7 @@ fn ctx_register_tuple_gc_struct_from_return_name(mut ctx: LowerCtx, return_type_
         return 0
     }
     let inner = return_type_name.slice(first_colon + 1, last_colon)
-    if !clone(inner).starts_with("tuple:") {
+    if !inner.clone().starts_with("tuple:") {
         return 0
     }
     let keys = inner.slice(6, len(inner))
@@ -311,7 +311,7 @@ fn ctx_register_tuple_gc_struct_from_return_name(mut ctx: LowerCtx, return_type_
     if len(sig) <= 2 {
         return 0
     }
-    ctx_gc_struct::ctx_register_gc_struct(ctx, clone(inner), sig)
+    ctx_gc_struct::ctx_register_gc_struct(ctx, inner.clone(), sig)
     1
 }
 
@@ -392,46 +392,46 @@ fn tuple_field_key_at(keys: String, index: i32) -> String {
 
 fn tuple_gc_field_sig_for_key(mut ctx: LowerCtx, key: String, field_idx: i32) -> String {
     let prefix = "_f".concat((field_idx).to_string())
-    if eq(clone(key), "f64") || eq(clone(key), "F64") {
+    if eq(key.clone(), "f64") || eq(key.clone(), "F64") {
         return prefix.concat("_f64")
     }
-    if eq(clone(key), "i64") || eq(clone(key), "I64") || eq(clone(key), "u64") {
+    if eq(key.clone(), "i64") || eq(key.clone(), "I64") || eq(key.clone(), "u64") {
         return prefix.concat("_i64")
     }
-    if eq(clone(key), "f32") || eq(clone(key), "F32") {
+    if eq(key.clone(), "f32") || eq(key.clone(), "F32") {
         return prefix.concat("_f32")
     }
-    if eq(clone(key), "i32") || eq(clone(key), "I32") ||
-    eq(clone(key), "bool") || eq(clone(key), "char") ||
-    eq(clone(key), "u8") || eq(clone(key), "i8") ||
-    eq(clone(key), "u16") || eq(clone(key), "u32") ||
-    eq(clone(key), "i16") ||
-    eq(clone(key), "unit") || eq(clone(key), "()") {
+    if eq(key.clone(), "i32") || eq(key.clone(), "I32") ||
+    eq(key.clone(), "bool") || eq(key.clone(), "char") ||
+    eq(key.clone(), "u8") || eq(key.clone(), "i8") ||
+    eq(key.clone(), "u16") || eq(key.clone(), "u32") ||
+    eq(key.clone(), "i16") ||
+    eq(key.clone(), "unit") || eq(key.clone(), "()") {
         return prefix.concat("_i32")
     }
-    if eq(clone(key), "String") || eq(clone(key), "string") {
+    if eq(key.clone(), "String") || eq(key.clone(), "string") {
         return prefix.concat("_ref0")
     }
     // fn-valued fields hold a {fnptr, env} pair under the managed closure
     // ABI (#872): the shared __fnpair struct slot, not the open enum base.
-    if ctx_gc_struct::gc_struct_field_type_is_fn_value(clone(key)) {
+    if ctx_gc_struct::gc_struct_field_type_is_fn_value(key.clone()) {
         let pair_slot = ctx_gc_struct::ctx_ensure_fnpair_struct(ctx)
         if pair_slot >= 0 {
             return prefix.concat(String_from("_gcsref").concat((pair_slot).to_string()))
         }
         return prefix.concat("_ref14")
     }
-    if clone(key).starts_with("vec:") ||
-    clone(key).starts_with("Vec<") ||
-    clone(key).starts_with("Vec_") {
-        return prefix.concat(tuple_gc_vec_field_ref_suffix(clone(key)))
+    if key.clone().starts_with("vec:") ||
+    key.clone().starts_with("Vec<") ||
+    key.clone().starts_with("Vec_") {
+        return prefix.concat(tuple_gc_vec_field_ref_suffix(key.clone()))
     }
-    if clone(key).starts_with("option:") ||
-    clone(key).starts_with("Option:") ||
-    clone(key).starts_with("Option_") ||
-    clone(key).starts_with("result:") ||
-    clone(key).starts_with("Result:") ||
-    clone(key).starts_with("Result_") {
+    if key.clone().starts_with("option:") ||
+    key.clone().starts_with("Option:") ||
+    key.clone().starts_with("Option_") ||
+    key.clone().starts_with("result:") ||
+    key.clone().starts_with("Result:") ||
+    key.clone().starts_with("Result_") {
         return prefix.concat("_ref14")
     }
     if len(key) == 1 {
@@ -441,8 +441,8 @@ fn tuple_gc_field_sig_for_key(mut ctx: LowerCtx, key: String, field_idx: i32) ->
             // named struct slot so the stored value keeps its concrete type;
             // enums stay on the open base. Only an unbound type parameter
             // keeps the scalar placeholder.
-            if ctx_gc_struct::gc_struct_field_name_is_declared(ctx, clone(key)) {
-                let slot = ctx_gc_struct::ctx_ensure_gc_struct_registered(ctx, clone(key))
+            if ctx_gc_struct::gc_struct_field_name_is_declared(ctx, key.clone()) {
+                let slot = ctx_gc_struct::ctx_ensure_gc_struct_registered(ctx, key.clone())
                 if slot >= 0 {
                     return prefix.concat(String_from("_gcsref").concat((slot).to_string()))
                 }
@@ -458,42 +458,42 @@ fn tuple_gc_field_sig_for_key(mut ctx: LowerCtx, key: String, field_idx: i32) ->
 }
 
 fn tuple_gc_vec_field_ref_suffix(type_name: String) -> String {
-    let elem = if clone(type_name).starts_with("vec:") {
+    let elem = if type_name.clone().starts_with("vec:") {
         type_name.slice(4, len(type_name))
-    } else if clone(type_name).starts_with("Vec<") && clone(type_name).ends_with(">") {
+    } else if type_name.clone().starts_with("Vec<") && type_name.clone().ends_with(">") {
         type_name.slice(4, len(type_name) - 1)
-    } else if clone(type_name).starts_with("Vec_") {
+    } else if type_name.clone().starts_with("Vec_") {
         type_name.slice(4, len(type_name))
     } else {
         String_new()
     }
-    if eq(clone(elem), "String") || eq(clone(elem), "string") {
+    if eq(elem.clone(), "String") || eq(elem.clone(), "string") {
         return "_ref19"
     }
-    if eq(clone(elem), "i64") || eq(clone(elem), "I64") {
+    if eq(elem.clone(), "i64") || eq(elem.clone(), "I64") {
         return "_ref22"
     }
-    if eq(clone(elem), "f64") || eq(clone(elem), "F64") {
+    if eq(elem.clone(), "f64") || eq(elem.clone(), "F64") {
         return "_ref23"
     }
-    if eq(clone(elem), "v128") || eq(clone(elem), "V128") {
+    if eq(elem.clone(), "v128") || eq(elem.clone(), "V128") {
         return "_ref21"
     }
-    if eq(clone(elem), "fnref") || eq(clone(elem), "fn") || clone(elem).starts_with("fn(") {
+    if eq(elem.clone(), "fnref") || eq(elem.clone(), "fn") || elem.clone().starts_with("fn(") {
         return "_ref28"
     }
-    if clone(elem).starts_with("Option") ||
-    clone(elem).starts_with("option:") ||
-    clone(elem).starts_with("Result") ||
-    clone(elem).starts_with("result:") ||
-    clone(elem).starts_with("enum:") {
+    if elem.clone().starts_with("Option") ||
+    elem.clone().starts_with("option:") ||
+    elem.clone().starts_with("Result") ||
+    elem.clone().starts_with("result:") ||
+    elem.clone().starts_with("enum:") {
         return "_ref30"
     }
-    if eq(clone(elem), "i32") || eq(clone(elem), "I32") ||
-    eq(clone(elem), "bool") || eq(clone(elem), "char") ||
-    eq(clone(elem), "u8") || eq(clone(elem), "i8") ||
-    eq(clone(elem), "u16") || eq(clone(elem), "u32") ||
-    eq(clone(elem), "u64") || eq(clone(elem), "i16") {
+    if eq(elem.clone(), "i32") || eq(elem.clone(), "I32") ||
+    eq(elem.clone(), "bool") || eq(elem.clone(), "char") ||
+    eq(elem.clone(), "u8") || eq(elem.clone(), "i8") ||
+    eq(elem.clone(), "u16") || eq(elem.clone(), "u32") ||
+    eq(elem.clone(), "u64") || eq(elem.clone(), "i16") {
         return "_ref10"
     }
     "_ref25"

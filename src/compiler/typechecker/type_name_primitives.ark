@@ -1,29 +1,29 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use typechecker::kinds
 use typechecker::contract_type_constructors
 fn resolve_primitive_type_name(name: String) -> TypeInfo {
-    if eq(clone(name), "i32") {
+    if eq(name.clone(), "i32") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_I32())
     }
-    if eq(clone(name), "i64") {
+    if eq(name.clone(), "i64") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_I64())
     }
-    if eq(clone(name), "f64") {
+    if eq(name.clone(), "f64") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_F64())
     }
-    if eq(clone(name), "f32") {
+    if eq(name.clone(), "f32") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_F32())
     }
-    if eq(clone(name), "v128") {
+    if eq(name.clone(), "v128") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_V128())
     }
-    if eq(clone(name), "bool") {
+    if eq(name.clone(), "bool") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_BOOL())
     }
-    if eq(clone(name), "String") {
+    if eq(name.clone(), "String") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_STRING())
     }
-    if eq(clone(name), "char") {
+    if eq(name.clone(), "char") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_CHAR())
     }
     contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())

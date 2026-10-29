@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ast_node
 use mir::lower::ctx_api_nesting
 use mir::lower::ctx_api_local_alloc
@@ -43,7 +43,7 @@ fn mir_subpat_child_is_condition(ctx: LowerCtx, pat: AstNode) -> bool {
         return true
     }
     if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_IDENT()) {
-        if eq(clone(ast_node::node_text(pat)), "_") {
+        if eq(ast_node::node_text(pat).clone(), "_") {
             return false
         }
         return ctx_api_variants::ctx_variant_tag(ctx, ast_node::node_text(pat)) >= 0
@@ -87,7 +87,7 @@ fn mir_emit_subpat_cond(mut ctx: LowerCtx, pat: AstNode, val_idx: i32) -> i32 {
     }
     if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_IDENT()) {
         let name = ast_node::node_text(pat)
-        let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(name))
+        let tag = ctx_api_variants::ctx_variant_tag(ctx, name.clone())
         if tag >= 0 {
             return mir_emit_tag_compare_cond(ctx, val_idx, tag)
         }
@@ -139,7 +139,7 @@ fn mir_emit_variant_subpat_flag_tagged(mut ctx: LowerCtx, pat: AstNode, val_idx:
         tag_idx = match_payload_prepare::mir_emit_payload_tag_local(ctx, val_idx)
     }
     ctx_emit(ctx, inst_local_get::MirInst_local_get(tag_idx))
-    let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(variant_name))
+    let tag = ctx_api_variants::ctx_variant_tag(ctx, variant_name.clone())
     let tag_const = ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_const))
     let tag_cmp = ctx_fresh_local(ctx, value_types::VT_I32())
@@ -149,9 +149,9 @@ fn mir_emit_variant_subpat_flag_tagged(mut ctx: LowerCtx, pat: AstNode, val_idx:
     // Payload-field reads belong to this variant's layout only while the
     // tag check holds; emit every child load inside the if (#902).
     let scrut_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
-    let is_f64 = match_payload_prepare::mir_option_result_scrut_type_is_f64(clone(scrut_type))
-    let is_i64 = match_payload_prepare::mir_option_result_scrut_type_is_i64(clone(scrut_type))
-    let is_i32 = match_payload_prepare::mir_option_result_scrut_type_is_i32(clone(scrut_type))
+    let is_f64 = match_payload_prepare::mir_option_result_scrut_type_is_f64(scrut_type.clone())
+    let is_i64 = match_payload_prepare::mir_option_result_scrut_type_is_i64(scrut_type.clone())
+    let is_i32 = match_payload_prepare::mir_option_result_scrut_type_is_i32(scrut_type.clone())
     let mut cond_count = 0
     let mut acc = 0 - 1
     let count = ast_node::node_child_count(pat)
@@ -164,13 +164,13 @@ fn mir_emit_variant_subpat_flag_tagged(mut ctx: LowerCtx, pat: AstNode, val_idx:
         }
         let field_local = match_payload_fields::mir_subpat_load_field(
             ctx,
-            clone(variant_name),
+            variant_name.clone(),
             val_idx,
             i,
             is_f64,
             is_i64,
             is_i32,
-            clone(scrut_type)
+            scrut_type.clone()
         )
         let child_cond = mir_emit_subpat_cond(ctx, child, field_local)
         if cond_count > 0 {

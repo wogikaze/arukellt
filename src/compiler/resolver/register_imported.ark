@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use resolver::ctx_record
 use resolver::scope_lookup
@@ -20,7 +20,7 @@ fn register_imported_modules(mut ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
     while mi < mod_count {
         let m = get_unchecked(modules, mi)
         let module_name = modules::module_name(m)
-        let existing = scope_lookup::lookup(ctx, clone(module_name))
+        let existing = scope_lookup::lookup(ctx, module_name.clone())
         if existing < 0 {
             scope_define::define(ctx, module_name, commands::SYM_MODULE())
         }
@@ -37,7 +37,7 @@ fn register_prelude_bare_names(mut ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
     while mi < mod_count {
         let m = get_unchecked(modules, mi)
         let module_name = modules::module_name(m)
-        if eq(clone(module_name), "prelude") {
+        if eq(module_name.clone(), "prelude") {
             register_prelude_module_bare_names(ctx, m)
         }
         mi = mi + 1
@@ -52,7 +52,7 @@ fn register_prelude_module_bare_names(mut ctx: ResolveCtx, m: ModuleDecls) {
         let is_pub = ast_access::node_is_pub(d)
         if is_pub && prelude_stable::is_stable_prelude_name(ast_access::node_text(d)) {
             let symbol_name = ast_access::node_text(d)
-            let existing = scope_lookup::lookup(ctx, clone(symbol_name))
+            let existing = scope_lookup::lookup(ctx, symbol_name.clone())
             if existing < 0 {
                 if ast_decl_predicates::node_is_fn_decl(d) {
                     scope_define::define(ctx, symbol_name, commands::SYM_FN())
@@ -84,19 +84,19 @@ fn register_imported_module_exports(mut ctx: ResolveCtx, m: ModuleDecls) {
         let symbol_name = ast_access::node_text(d)
         let is_pub = ast_access::node_is_pub(d)
         if ast_decl_predicates::node_is_fn_decl(d) {
-            register_exports::register_module_export(ctx, clone(module_name), clone(symbol_name), commands::SYM_FN(), is_pub)
+            register_exports::register_module_export(ctx, module_name.clone(), symbol_name.clone(), commands::SYM_FN(), is_pub)
         } else {
             if ast_decl_predicates::node_is_struct_decl(d) {
-                register_exports::register_module_export(ctx, clone(module_name), clone(symbol_name), commands::SYM_STRUCT(), is_pub)
+                register_exports::register_module_export(ctx, module_name.clone(), symbol_name.clone(), commands::SYM_STRUCT(), is_pub)
             } else {
                 if ast_decl_predicates::node_is_resource_decl(d) {
-                    register_exports::register_module_export(ctx, clone(module_name), clone(symbol_name), commands::SYM_RESOURCE(), is_pub)
+                    register_exports::register_module_export(ctx, module_name.clone(), symbol_name.clone(), commands::SYM_RESOURCE(), is_pub)
                 } else {
                     if ast_decl_predicates::node_is_enum_decl(d) {
-                        register_imported_enum_exports(ctx, clone(module_name), d, clone(symbol_name), is_pub)
+                        register_imported_enum_exports(ctx, module_name.clone(), d, symbol_name.clone(), is_pub)
                     } else {
                         if ast_decl_predicates::node_is_impl_decl(d) {
-                            register_imported_impl_exports(ctx, m, clone(module_name), d)
+                            register_imported_impl_exports(ctx, m, module_name.clone(), d)
                         }
                     }
                 }
@@ -113,13 +113,13 @@ fn register_imported_module_exports(mut ctx: ResolveCtx, m: ModuleDecls) {
 // module member for a cross-module associated call to resolve.
 fn register_imported_impl_exports(mut ctx: ResolveCtx, m: ModuleDecls, module_name: String, impl_decl: AstNode) {
     let known_type_names = ctx_record::resolve_ctx_declared_type_names(ctx)
-    let type_name = impl_target::impl_self_type_name(impl_decl, clone(known_type_names))
+    let type_name = impl_target::impl_self_type_name(impl_decl, known_type_names.clone())
     let base_name = impl_target::impl_self_base_type_name(impl_decl)
-    if len(clone(type_name)) == 0 || len(clone(base_name)) == 0 {
+    if len(type_name.clone()) == 0 || len(base_name.clone()) == 0 {
         return
     }
-    let declares_type = module_declares_pub_type(m, clone(type_name))
-    let declares_base = module_declares_pub_type(m, clone(base_name))
+    let declares_type = module_declares_pub_type(m, type_name.clone())
+    let declares_base = module_declares_pub_type(m, base_name.clone())
     if !declares_type && !declares_base {
         return
     }
@@ -132,7 +132,7 @@ fn register_imported_impl_exports(mut ctx: ResolveCtx, m: ModuleDecls, module_na
     // family claims the alias; the selection stays argument-directed.
     let is_from_iterator = has_trait &&
     eq(ast_access::node_text(impl_decl), String_from("FromIterator"))
-    let register_base_alias = is_from_iterator && !eq(clone(base_name), clone(type_name))
+    let register_base_alias = is_from_iterator && !eq(base_name.clone(), type_name.clone())
     let child_count = ast_access::node_child_count(impl_decl)
     let mut ci = 0
     while ci < child_count {
@@ -142,11 +142,11 @@ fn register_imported_impl_exports(mut ctx: ResolveCtx, m: ModuleDecls, module_na
                 let mangled = decl_impl_target::impl_method_mangled_name(
                     impl_decl,
                     ast_access::node_text(method),
-                    clone(known_type_names)
+                    known_type_names.clone()
                 )
                 register_exports::register_module_export(
                     ctx,
-                    clone(module_name),
+                    module_name.clone(),
                     mangled,
                     commands::SYM_FN(),
                     true
@@ -155,8 +155,8 @@ fn register_imported_impl_exports(mut ctx: ResolveCtx, m: ModuleDecls, module_na
             if register_base_alias {
                 register_exports::register_module_export(
                     ctx,
-                    clone(module_name),
-                    clone(base_name).concat(String_from("::".concat(ast_access::node_text(method)))),
+                    module_name.clone(),
+                    base_name.clone().concat(String_from("::".concat(ast_access::node_text(method)))),
                     commands::SYM_FN(),
                     true
                 )
@@ -174,7 +174,7 @@ fn module_declares_pub_type(m: ModuleDecls, type_name: String) -> bool {
     let mut di = 0
     while di < mdecl_count {
         let d = modules::module_decl_at(m, di)
-        if ast_access::node_is_pub(d) && eq(ast_access::node_text(d), clone(type_name)) {
+        if ast_access::node_is_pub(d) && eq(ast_access::node_text(d), type_name.clone()) {
             if ast_decl_predicates::node_is_struct_decl(d) ||
             ast_decl_predicates::node_is_enum_decl(d) {
                 return true
@@ -186,30 +186,30 @@ fn module_declares_pub_type(m: ModuleDecls, type_name: String) -> bool {
 }
 
 fn register_imported_enum_exports(mut ctx: ResolveCtx, module_name: String, enum_decl: AstNode, enum_name: String, is_pub: bool) {
-    register_exports::register_module_export(ctx, clone(module_name), clone(enum_name), commands::SYM_ENUM(), is_pub)
+    register_exports::register_module_export(ctx, module_name.clone(), enum_name.clone(), commands::SYM_ENUM(), is_pub)
     // Bare enum name enables Error::Variant after 'use std::core::error'.
     // Prelude enums outside the v2 stable set keep only the qualified
     // prelude::Name registration; the bare name needs 'use std::prelude::{Name}'.
-    if eq(clone(module_name), "prelude") && !prelude_stable::is_stable_prelude_name(clone(enum_name)) {
+    if eq(module_name.clone(), "prelude") && !prelude_stable::is_stable_prelude_name(enum_name.clone()) {
         register_variants_only(ctx, module_name, enum_decl, enum_name, is_pub)
         return
     }
-    let existing_bare = scope_lookup::lookup(ctx, clone(enum_name))
+    let existing_bare = scope_lookup::lookup(ctx, enum_name.clone())
     if existing_bare < 0 {
-        scope_define::define_with_vis(ctx, clone(enum_name), commands::SYM_ENUM(), is_pub)
+        scope_define::define_with_vis(ctx, enum_name.clone(), commands::SYM_ENUM(), is_pub)
     }
     let child_count = ast_access::node_child_count(enum_decl)
     let mut vi = 0
     while vi < child_count {
         let variant = ast_access::node_child_at(enum_decl, vi)
         let variant_name = ast_access::node_text(variant)
-        let bare_variant = clone(enum_name).concat(String_from("::").concat(clone(variant_name)))
-        let existing_variant = scope_lookup::lookup(ctx, clone(bare_variant))
+        let bare_variant = enum_name.clone().concat(String_from("::").concat(variant_name.clone()))
+        let existing_variant = scope_lookup::lookup(ctx, bare_variant.clone())
         if existing_variant < 0 {
-            scope_define::define_with_vis(ctx, clone(bare_variant), commands::SYM_VARIANT(), is_pub)
+            scope_define::define_with_vis(ctx, bare_variant.clone(), commands::SYM_VARIANT(), is_pub)
         }
         // `module::Enum::Variant` for fully qualified constructor paths.
-        register_exports::register_module_export(ctx, clone(module_name), clone(bare_variant), commands::SYM_VARIANT(), is_pub)
+        register_exports::register_module_export(ctx, module_name.clone(), bare_variant.clone(), commands::SYM_VARIANT(), is_pub)
         vi = vi + 1
     }
 }
@@ -223,12 +223,12 @@ fn register_variants_only(mut ctx: ResolveCtx, module_name: String, enum_decl: A
     while vi < child_count {
         let variant = ast_access::node_child_at(enum_decl, vi)
         let variant_name = ast_access::node_text(variant)
-        let bare_variant = clone(enum_name).concat(String_from("::").concat(clone(variant_name)))
-        let existing_variant = scope_lookup::lookup(ctx, clone(bare_variant))
+        let bare_variant = enum_name.clone().concat(String_from("::").concat(variant_name.clone()))
+        let existing_variant = scope_lookup::lookup(ctx, bare_variant.clone())
         if existing_variant < 0 {
-            scope_define::define_with_vis(ctx, clone(bare_variant), commands::SYM_VARIANT(), is_pub)
+            scope_define::define_with_vis(ctx, bare_variant.clone(), commands::SYM_VARIANT(), is_pub)
         }
-        register_exports::register_module_export(ctx, clone(module_name), clone(bare_variant), commands::SYM_VARIANT(), is_pub)
+        register_exports::register_module_export(ctx, module_name.clone(), bare_variant.clone(), commands::SYM_VARIANT(), is_pub)
         vi = vi + 1
     }
 }
@@ -255,8 +255,8 @@ fn register_pub_use_reexports(mut ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
         while ei < edge_count {
             if reexport_module_symbols(
                 ctx,
-                clone(get_unchecked(edge_targets, ei)),
-                clone(get_unchecked(edge_sources, ei))
+                get_unchecked(edge_targets, ei).clone(),
+                get_unchecked(edge_sources, ei).clone()
             ) {
                 defined_any = true
             }
@@ -278,14 +278,14 @@ fn collect_pub_use_edges(m: ModuleDecls, module_name: String, modules: Vec<Modul
         if !ast_decl_predicates::node_is_use(d) || !ast_access::node_is_pub(d) {
             continue
         }
-        push(edge_targets, clone(module_name))
+        push(edge_targets, module_name.clone())
         push(edge_sources, pub_use_source_key(ast_access::node_text(d), modules))
         let child_count = ast_access::node_child_count(d)
         let mut ci = 0
         while ci < child_count {
             let child = ast_access::node_child_at(d, ci)
             if ast_decl_predicates::node_is_use(child) {
-                push(edge_targets, clone(module_name))
+                push(edge_targets, module_name.clone())
                 push(edge_sources, pub_use_source_key(ast_access::node_text(child), modules))
             }
             ci = ci + 1
@@ -301,28 +301,28 @@ fn collect_pub_use_edges(m: ModuleDecls, module_name: String, modules: Vec<Modul
 // otherwise the parent module's member is selected. Unknown shapes fall back
 // to the written path so two-segment module::member sources keep working.
 fn pub_use_source_key(source: String, modules: Vec<ModuleDecls>) -> String {
-    let leaf = paths::use_module_short_name(clone(source))
-    if modules::module_registered(modules, clone(leaf)) {
+    let leaf = paths::use_module_short_name(source.clone())
+    if modules::module_registered(modules, leaf.clone()) {
         return leaf
     }
-    let parent = paths::use_module_parent_path(clone(source))
-    if len(clone(parent)) == 0 {
-        return clone(source)
+    let parent = paths::use_module_parent_path(source.clone())
+    if len(parent.clone()) == 0 {
+        return source.clone()
     }
     let parent_leaf = paths::use_module_short_name(parent)
-    if !modules::module_registered(modules, clone(parent_leaf)) {
-        return clone(source)
+    if !modules::module_registered(modules, parent_leaf.clone()) {
+        return source.clone()
     }
     parent_leaf.concat("::".concat(leaf))
 }
 
 // True when at least one new qualified symbol was defined.
 fn reexport_module_symbols(mut ctx: ResolveCtx, target_module: String, source_module: String) -> bool {
-    let source_root = paths::path_module_part(clone(source_module))
-    let selected_symbol = paths::path_symbol_part(clone(source_module))
-    let module_prefix = clone(source_root).concat("::")
-    let module_prefix_len = len(clone(module_prefix))
-    let selected_prefix = clone(source_module).concat("::")
+    let source_root = paths::path_module_part(source_module.clone())
+    let selected_symbol = paths::path_symbol_part(source_module.clone())
+    let module_prefix = source_root.clone().concat("::")
+    let module_prefix_len = len(module_prefix.clone())
+    let selected_prefix = source_module.clone().concat("::")
     let scope = scope_stack_scopes::ResolveCtx_scope_at(ctx, 0)
     let sym_count = scope_stack_scopes::Scope_symbol_count(scope)
     let mut defined_any = false
@@ -330,15 +330,15 @@ fn reexport_module_symbols(mut ctx: ResolveCtx, target_module: String, source_mo
     while i < sym_count {
         let sym = scope_stack_scopes::Scope_symbol_at(scope, i)
         let sym_name = scope_stack_symbols::Symbol_name(sym)
-        let matches_source = if len(clone(selected_symbol)) == 0 {
-            clone(sym_name).starts_with(clone(module_prefix))
+        let matches_source = if len(selected_symbol.clone()) == 0 {
+            sym_name.clone().starts_with(module_prefix.clone())
         } else {
-            eq(clone(sym_name), clone(source_module)) || clone(sym_name).starts_with(clone(selected_prefix))
+            eq(sym_name.clone(), source_module.clone()) || sym_name.clone().starts_with(selected_prefix.clone())
         }
         if matches_source && scope_stack_symbols::Symbol_is_pub(sym) {
-            let suffix = clone(sym_name).slice(module_prefix_len, len(clone(sym_name)))
-            let qualified = clone(target_module).concat("::".concat(clone(suffix)))
-            let existing = scope_lookup::lookup(ctx, clone(qualified))
+            let suffix = sym_name.clone().slice(module_prefix_len, len(sym_name.clone()))
+            let qualified = target_module.clone().concat("::".concat(suffix.clone()))
+            let existing = scope_lookup::lookup(ctx, qualified.clone())
             if existing < 0 {
                 let kind = scope_stack_symbols::Symbol_kind(sym)
                 scope_define::define_with_vis(ctx, qualified, kind, true)

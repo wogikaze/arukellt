@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use collections::vec_extend
 use typechecker::contract_mono
 use typechecker::contract_env_mono_record
@@ -23,7 +23,7 @@ fn merge_mono_instances(mut dst: TypeEnv, src: TypeEnv) {
         let mut j = 0
         while j < dst_count {
             let existing = get_unchecked(dst_instances, j)
-            if eq(contract_mono::MonoInstance_mangled_name(existing), clone(incoming_mangled)) {
+            if eq(contract_mono::MonoInstance_mangled_name(existing), incoming_mangled.clone()) {
                 found = true
             }
             j = j + 1
@@ -40,7 +40,7 @@ fn merge_mono_instances(mut dst: TypeEnv, src: TypeEnv) {
                 mono_instances::rebind_enclosing_template_sites(
                     dst,
                     contract_mono::MonoInstance_fn_name(incoming),
-                    clone(incoming.type_args)
+                    incoming.type_args.clone()
                 )
             }
         }
@@ -53,15 +53,15 @@ fn merge_mono_template_sites(mut dst: TypeEnv, src: TypeEnv) {
     let mut i = 0
     while i < src_count {
         let incoming = get_unchecked(src.mono_template_sites, i)
-        let incoming_mangled = clone(incoming.mangled_name)
-        let incoming_enclosing = clone(incoming.enclosing_fn)
+        let incoming_mangled = incoming.mangled_name.clone()
+        let incoming_enclosing = incoming.enclosing_fn.clone()
         let dst_count = len(dst.mono_template_sites)
         let mut found = false
         let mut j = 0
         while j < dst_count {
             let existing = get_unchecked(dst.mono_template_sites, j)
-            if eq(clone(existing.mangled_name), clone(incoming_mangled)) &&
-            eq(clone(existing.enclosing_fn), clone(incoming_enclosing)) {
+            if eq(existing.mangled_name.clone(), incoming_mangled.clone()) &&
+            eq(existing.enclosing_fn.clone(), incoming_enclosing.clone()) {
                 found = true
             }
             j = j + 1
@@ -84,7 +84,7 @@ fn merge_type_env(mut dst: TypeEnv, src: TypeEnv) {
     let err_count = src.error_count
     let mut e = 0
     while e < err_count {
-        push(dst.errors, clone(get_unchecked(src.errors, e)))
+        push(dst.errors, get_unchecked(src.errors, e).clone())
         dst.error_count = dst.error_count + 1
         e = e + 1
     }

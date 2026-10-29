@@ -1,5 +1,6 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
+use resolver::scope_error
 use resolver::scope_lookup
 use resolver::ast_decl_predicates
 use resolver::ast_access
@@ -10,7 +11,7 @@ use resolver::modules
 use resolver::expr_path
 fn register_use_decl(mut ctx: ResolveCtx, d: AstNode) {
     let use_path = ast_access::node_text(d)
-    let existing_use = scope_lookup::lookup(ctx, clone(use_path))
+    let existing_use = scope_lookup::lookup(ctx, use_path.clone())
     if existing_use < 0 {
         scope_define::define(ctx, use_path, commands::SYM_IMPORT())
     }
@@ -24,32 +25,32 @@ fn register_use_decl_func_alias(mut ctx: ResolveCtx, d: AstNode) {
     if ast_access::node_child_count(d) == 0 {
         return
     }
-    let child_short = paths::use_module_short_name(clone(use_path))
-    register_use_func_alias(ctx, clone(use_path), clone(child_short))
+    let child_short = paths::use_module_short_name(use_path.clone())
+    register_use_func_alias(ctx, use_path.clone(), child_short.clone())
 }
 
 fn register_use_module_alias(mut ctx: ResolveCtx, d: AstNode) {
     let full_path = ast_access::node_text(d)
-    let default_name = paths::use_module_short_name(clone(full_path))
+    let default_name = paths::use_module_short_name(full_path.clone())
     let short_name = if ast_access::node_type_ann_count(d) > 0 {
         let alias_node = ast_access::node_type_ann_at(d, 0)
         ast_access::node_text(alias_node)
     } else {
-        clone(default_name)
+        default_name.clone()
     }
-    let existing_mod = scope_lookup::lookup(ctx, clone(short_name))
+    let existing_mod = scope_lookup::lookup(ctx, short_name.clone())
     let existing_kind = if existing_mod >= 0 {
-        scope_lookup::lookup_kind(ctx, clone(short_name))
+        scope_lookup::lookup_kind(ctx, short_name.clone())
     } else {
         0 - 1
     }
     if existing_mod < 0 {
-        scope_define::define(ctx, clone(short_name), commands::SYM_MODULE())
+        scope_define::define(ctx, short_name.clone(), commands::SYM_MODULE())
     }
-    if !eq(clone(short_name), clone(default_name)) {
-        ctx_record::resolve_ctx_add_use_alias(ctx, clone(short_name), clone(default_name))
+    if !eq(short_name.clone(), default_name.clone()) {
+        ctx_record::resolve_ctx_add_use_alias(ctx, short_name.clone(), default_name.clone())
     }
-    register_type_use_alias(ctx, full_path, clone(short_name), existing_kind)
+    register_type_use_alias(ctx, full_path, short_name.clone(), existing_kind)
 }
 
 // `use std::io::Reader` binds the imported name as a module symbol so
@@ -67,41 +68,41 @@ fn register_type_use_alias(mut ctx: ResolveCtx, full_path: String, short_name: S
     if existing_kind >= 0 && existing_kind != commands::SYM_MODULE() {
         return
     }
-    if expr_path::is_builtin_type_name(clone(short_name)) {
+    if expr_path::is_builtin_type_name(short_name.clone()) {
         return
     }
     let loaded_modules = ctx_record::resolve_ctx_modules(ctx)
-    if modules::module_registered(loaded_modules, clone(short_name)) {
+    if modules::module_registered(loaded_modules, short_name.clone()) {
         return
     }
-    let parent_path = paths::use_module_parent_path(clone(full_path))
-    if len(clone(parent_path)) == 0 {
+    let parent_path = paths::use_module_parent_path(full_path.clone())
+    if len(parent_path.clone()) == 0 {
         return
     }
-    let parent_short = paths::use_module_short_name(clone(parent_path))
-    if len(clone(parent_short)) == 0 {
+    let parent_short = paths::use_module_short_name(parent_path.clone())
+    if len(parent_short.clone()) == 0 {
         return
     }
-    if !modules::module_registered(loaded_modules, clone(parent_short)) {
+    if !modules::module_registered(loaded_modules, parent_short.clone()) {
         return
     }
-    let target = clone(parent_short).concat("::".concat(clone(short_name)))
-    ctx_record::resolve_ctx_add_use_alias(ctx, clone(short_name), target)
+    let target = parent_short.clone().concat("::".concat(short_name.clone()))
+    ctx_record::resolve_ctx_add_use_alias(ctx, short_name.clone(), target)
 }
 
 fn register_local_import_decl(mut ctx: ResolveCtx, d: AstNode) {
     let path = ast_access::node_text(d)
-    let default_name = paths::use_module_short_name(clone(path))
+    let default_name = paths::use_module_short_name(path.clone())
     let alias = if ast_access::node_type_ann_count(d) > 0 {
         ast_access::node_text(ast_access::node_type_ann_at(d, 0))
     } else {
-        clone(default_name)
+        default_name.clone()
     }
-    let existing_mod = scope_lookup::lookup(ctx, clone(alias))
+    let existing_mod = scope_lookup::lookup(ctx, alias.clone())
     if existing_mod < 0 {
-        scope_define::define(ctx, clone(alias), commands::SYM_MODULE())
+        scope_define::define(ctx, alias.clone(), commands::SYM_MODULE())
     }
-    if !eq(clone(alias), clone(default_name)) {
+    if !eq(alias.clone(), default_name.clone()) {
         ctx_record::resolve_ctx_add_use_alias(ctx, alias, default_name)
     }
 }
@@ -113,22 +114,22 @@ fn register_use_children(mut ctx: ResolveCtx, d: AstNode) {
         let child = ast_access::node_child_at(d, ci)
         if ast_decl_predicates::node_is_use(child) {
             let child_path = ast_access::node_text(child)
-            let existing_child = scope_lookup::lookup(ctx, clone(child_path))
+            let existing_child = scope_lookup::lookup(ctx, child_path.clone())
             if existing_child < 0 {
-                scope_define::define(ctx, clone(child_path), commands::SYM_IMPORT())
+                scope_define::define(ctx, child_path.clone(), commands::SYM_IMPORT())
             }
             let child_short = paths::use_module_short_name(child_path)
-            let existing_child_mod = scope_lookup::lookup(ctx, clone(child_short))
+            let existing_child_mod = scope_lookup::lookup(ctx, child_short.clone())
             let existing_child_kind = if existing_child_mod >= 0 {
-                scope_lookup::lookup_kind(ctx, clone(child_short))
+                scope_lookup::lookup_kind(ctx, child_short.clone())
             } else {
                 0 - 1
             }
             if existing_child_mod < 0 {
-                scope_define::define(ctx, clone(child_short), commands::SYM_MODULE())
+                scope_define::define(ctx, child_short.clone(), commands::SYM_MODULE())
             }
-            register_type_use_alias(ctx, clone(child_path), clone(child_short), existing_child_kind)
-            register_use_func_alias(ctx, clone(child_path), clone(child_short))
+            register_type_use_alias(ctx, child_path.clone(), child_short.clone(), existing_child_kind)
+            register_use_func_alias(ctx, child_path.clone(), child_short.clone())
         }
         ci = ci + 1
     }
@@ -140,17 +141,29 @@ fn register_use_func_alias(mut ctx: ResolveCtx, child_path: String, child_short:
     // canonicalize "string::split" into the unresolvable "text::string::split".
     // Function children ("use std::text::string::{split}") still need the alias
     // so bare calls resolve to "string::split".
-    if modules::module_registered(ctx_record::resolve_ctx_modules(ctx), clone(child_short)) {
+    if modules::module_registered(ctx_record::resolve_ctx_modules(ctx), child_short.clone()) {
         return
     }
-    let parent_path = paths::use_module_parent_path(clone(child_path))
-    if len(clone(parent_path)) == 0 {
+    let parent_path = paths::use_module_parent_path(child_path.clone())
+    if len(parent_path.clone()) == 0 {
         return
     }
-    let parent_short = paths::use_module_short_name(clone(parent_path))
-    if len(clone(parent_short)) == 0 {
+    let parent_short = paths::use_module_short_name(parent_path.clone())
+    if len(parent_short.clone()) == 0 {
         return
     }
-    let alias_target = clone(parent_short).concat("::".concat(clone(child_short)))
+    let alias_target = parent_short.clone().concat("::".concat(child_short.clone()))
+    // `clone` stays in the prelude as a private method-resolution shim, but the
+    // free itself is retired (ADR-091). The scope resolver would otherwise let
+    // an explicit selective import resurrect it; reject the import instead of
+    // silently binding a non-public lowering target.
+    if eq(child_short.clone(), "clone") &&
+    (eq(parent_short.clone(), "prelude") || eq(parent_short.clone(), "std::prelude")) {
+        scope_error::resolve_error(
+            ctx,
+            String_from("removed prelude free function: clone; use `x.clone()` on the value instead")
+        )
+        return
+    }
     ctx_record::resolve_ctx_add_use_alias(ctx, child_short, alias_target)
 }

@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 pub struct Token {
     kind: i32,
     text: String,
@@ -17,7 +16,7 @@ fn token_kind(tok: Token) -> i32 {
 }
 
 fn token_text(tok: Token) -> String {
-    clone(tok.text)
+    tok.text.clone()
 }
 
 fn token_int_val(tok: Token) -> i32 {

@@ -1,5 +1,4 @@
 use std::host::stdio
-use std::prelude::{clone}
 use std::text
 use lexer::scan
 use parser::core_api_token
@@ -57,7 +56,7 @@ fn main() {
         let mut j = 0
         while j < err_count {
             let e = state_record::parser_error_at(p, j)
-            stdio::println("  ".concat(clone(e.message)))
+            stdio::println("  ".concat(e.message.clone()))
             j = j + 1
         }
     } else {

@@ -1,5 +1,4 @@
 use std::host::clock::Clock
-use std::prelude::{clone}
 use compiler::phases
 use compiler::session_resolve_query
 use driver::config_record
@@ -80,7 +79,7 @@ fn backend_resolve(source: String, config: DriverConfig, decls: Vec<AstNode>) ->
         return DriverResolveResult_new(
             true,
             errors::resolve_errors_result(
-                clone(source),
+                source.clone(),
                 config_record::config_source_file(config),
                 resolve_error_count,
                 session_resolve_query::session_resolve_diagnostics(resolve_ctx),

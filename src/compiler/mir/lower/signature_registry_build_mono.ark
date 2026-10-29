@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use collections::name_index
 use corehir::name_match
@@ -28,11 +28,11 @@ fn sig_reg_index_mono_variants(
     fn_info_index: i32,
     decl_index: i32
 ) {
-    let mono_count = mono::mono_index_count(midx, clone(base_name))
+    let mono_count = mono::mono_index_count(midx, base_name.clone())
     let mono_instances = fn_index_source::mir_fn_index_source_mono_instances(source)
     let mut mono_i = 0
     while mono_i < mono_count {
-        let mono_name = mono::mono_index_mangled_at(midx, clone(base_name), mono_i)
+        let mono_name = mono::mono_index_mangled_at(midx, base_name.clone(), mono_i)
         let safe_name = mono::mono_safe_name(mono_name)
         sig_reg_register_mono_fn(
             table,
@@ -42,7 +42,7 @@ fn sig_reg_index_mono_variants(
             sig_source,
             fn_info_index,
             typed_index,
-            clone(safe_name),
+            safe_name.clone(),
             mono_instances,
             decl_index
         )
@@ -66,7 +66,7 @@ fn sig_reg_register_mono_fn(
         sig_source,
         fn_info_index,
         table,
-        clone(mangled),
+        mangled.clone(),
         mono_instances
     )
     let mut returns = Vec::new<MirValueType>()
@@ -75,7 +75,7 @@ fn sig_reg_register_mono_fn(
     let generic_return_ty = fn_index_source::mir_fn_index_source_typed_return_type(source, typed_index)
     let concrete_ret = fn_index_mono::mir_mono_concrete_return_type(
         mono_instances,
-        clone(mangled),
+        mangled.clone(),
         generic_return_ty
     )
     if type_contracts::TypeInfo_tag(concrete_ret) != 0 {
@@ -85,12 +85,12 @@ fn sig_reg_register_mono_fn(
         // Keep a build-time fallback for incomplete type facts. Call-time
         // lowering still receives only the registered concrete result.
         let concrete = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(
-            clone(mangled),
-            clone(return_type_name)
+            mangled.clone(),
+            return_type_name.clone()
         )
         if len(concrete) > 0 {
             return_type_name = concrete
-            return_vt = fn_index_method_return_type::method_return_vt_from_type_name(clone(return_type_name))
+            return_vt = fn_index_method_return_type::method_return_vt_from_type_name(return_type_name.clone())
         }
     }
     push(
@@ -101,14 +101,14 @@ fn sig_reg_register_mono_fn(
         mono_table,
         table,
         mono_instances,
-        clone(mangled),
+        mangled.clone(),
         params,
         returns
     )
     let receiver = type_info_to_mir_value::vt_to_mir_value(table, 0, String_new())
     let entry = signature_entry::SignatureEntry_new(
         function_id::FunctionId_new(0),
-        clone(mangled),
+        mangled.clone(),
         params,
         returns,
         false,
@@ -167,7 +167,7 @@ impl SigRegLeafIndex {
                 continue
             }
             let leaf = sig_reg_leaf_name(type_contracts::MonoInstance_fn_name(inst))
-            let previous = name_index::name_index_get(head, clone(leaf))
+            let previous = name_index::name_index_get(head, leaf.clone())
             set(next, i - 1, previous)
             name_index::name_index_set(head, leaf, i - 1)
         }
@@ -184,9 +184,9 @@ impl SigRegLeafIndex {
         decl_name: String,
         qualified_name: String
     ) -> i32 {
-        let mut query_name = clone(decl_name)
+        let mut query_name = decl_name.clone()
         if len(qualified_name) > 0 {
-            query_name = clone(qualified_name)
+            query_name = qualified_name.clone()
         }
         let query_leaf = sig_reg_leaf_name(query_name)
         let mut matched = 0 - 1
@@ -197,11 +197,11 @@ impl SigRegLeafIndex {
             let inst = get_unchecked(mono_instances, i)
             if sig_reg_leaf_instance_name_match(
                 type_contracts::MonoInstance_fn_name(inst),
-                clone(decl_name),
-                clone(qualified_name)
+                decl_name.clone(),
+                qualified_name.clone()
             ) {
                 let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
-                if len(matched_mangled) > 0 && !eq(clone(inst_mangled), clone(matched_mangled)) {
+                if len(matched_mangled) > 0 && !eq(inst_mangled.clone(), matched_mangled.clone()) {
                     ambiguous = true
                 }
                 if len(matched_mangled) == 0 {
@@ -255,10 +255,10 @@ fn sig_reg_index_method_mono(
     method_info_index: i32,
     impl_decl_index: i32
 ) {
-    let mono_count = mono::mono_index_count(midx, clone(mangled))
+    let mono_count = mono::mono_index_count(midx, mangled.clone())
     let mut mono_i = 0
     while mono_i < mono_count {
-        let mono_name = mono::mono_index_mangled_at(midx, clone(mangled), mono_i)
+        let mono_name = mono::mono_index_mangled_at(midx, mangled.clone(), mono_i)
         let safe_name = mono::mono_safe_name(mono_name)
         signature_registry_entry::sig_reg_register_method(
             table,
@@ -267,7 +267,7 @@ fn sig_reg_index_method_mono(
             source,
             sig_source,
             method_info_index,
-            clone(safe_name),
+            safe_name.clone(),
             impl_decl_index
         )
         mono_i = mono_i + 1

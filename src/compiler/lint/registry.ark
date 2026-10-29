@@ -2,7 +2,7 @@
 // Defines all lint rules with id, severity, category, and description.
 // Used by `arukellt lint --list` and severity override filtering.
 use std::text
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use diagnostics::codes
 use diagnostics::severity
 fn LINT_ALLOW() -> i32 {
@@ -51,11 +51,11 @@ fn LintRule_new(code: String, name: String, default_severity: i32, category: Str
 }
 
 fn lint_rule_code(rule: LintRule) -> String {
-    clone(rule.code)
+    rule.code.clone()
 }
 
 fn lint_rule_name(rule: LintRule) -> String {
-    clone(rule.name)
+    rule.name.clone()
 }
 
 fn lint_rule_default_severity(rule: LintRule) -> i32 {
@@ -63,11 +63,11 @@ fn lint_rule_default_severity(rule: LintRule) -> i32 {
 }
 
 fn lint_rule_category(rule: LintRule) -> String {
-    clone(rule.category)
+    rule.category.clone()
 }
 
 fn lint_rule_description(rule: LintRule) -> String {
-    clone(rule.description)
+    rule.description.clone()
 }
 
 // Total number of registered lint rules.
@@ -118,7 +118,7 @@ fn lint_rule_index_by_code(code: String) -> i32 {
     let count = lint_rule_count()
     let mut i = 0
     while i < count {
-        if eq(lint_rule_code(lint_rule_at(i)), clone(code)) {
+        if eq(lint_rule_code(lint_rule_at(i)), code.clone()) {
             return i
         }
         i = i + 1
@@ -131,7 +131,7 @@ fn lint_rule_index_by_name(name: String) -> i32 {
     let count = lint_rule_count()
     let mut i = 0
     while i < count {
-        if eq(lint_rule_name(lint_rule_at(i)), clone(name)) {
+        if eq(lint_rule_name(lint_rule_at(i)), name.clone()) {
             return i
         }
         i = i + 1
@@ -183,7 +183,7 @@ pub fn effective_severity(code: String, allow_codes: Vec<String>, deny_codes: Ve
     let allow_count = len(allow_codes)
     let mut ai = 0
     while ai < allow_count {
-        if eq(clone(get_unchecked(allow_codes, ai)), clone(code)) {
+        if eq(get_unchecked(allow_codes, ai).clone(), code.clone()) {
             return LINT_ALLOW()
         }
         ai = ai + 1
@@ -191,12 +191,12 @@ pub fn effective_severity(code: String, allow_codes: Vec<String>, deny_codes: Ve
     let deny_count = len(deny_codes)
     let mut di = 0
     while di < deny_count {
-        if eq(clone(get_unchecked(deny_codes, di)), clone(code)) {
+        if eq(get_unchecked(deny_codes, di).clone(), code.clone()) {
             return LINT_DENY()
         }
         di = di + 1
     }
-    let idx = lint_rule_index_by_code(clone(code))
+    let idx = lint_rule_index_by_code(code.clone())
     if idx < 0 {
         return LINT_WARN()
     }
@@ -210,11 +210,11 @@ pub fn should_suppress(code: String, allow_codes: Vec<String>) -> bool {
     let mut i = 0
     while i < count {
         let entry = get_unchecked(allow_codes, i)
-        if eq(clone(entry), clone(code)) {
+        if eq(entry.clone(), code.clone()) {
             return true
         }
-        let resolved = resolve_rule_code(clone(entry))
-        if len(clone(resolved)) > 0 && eq(clone(resolved), clone(code)) {
+        let resolved = resolve_rule_code(entry.clone())
+        if len(resolved.clone()) > 0 && eq(resolved.clone(), code.clone()) {
             return true
         }
         i = i + 1
@@ -229,11 +229,11 @@ pub fn should_deny(code: String, deny_codes: Vec<String>) -> bool {
     let mut i = 0
     while i < count {
         let entry = get_unchecked(deny_codes, i)
-        if eq(clone(entry), clone(code)) {
+        if eq(entry.clone(), code.clone()) {
             return true
         }
-        let resolved = resolve_rule_code(clone(entry))
-        if len(clone(resolved)) > 0 && eq(clone(resolved), clone(code)) {
+        let resolved = resolve_rule_code(entry.clone())
+        if len(resolved.clone()) > 0 && eq(resolved.clone(), code.clone()) {
             return true
         }
         i = i + 1
@@ -244,11 +244,11 @@ pub fn should_deny(code: String, deny_codes: Vec<String>) -> bool {
 // Resolve a CLI --allow/--deny argument (either a W-code or a rule name) to a W-code.
 // Returns empty string if not recognized.
 pub fn resolve_rule_code(arg: String) -> String {
-    let idx = lint_rule_index_by_code(clone(arg))
+    let idx = lint_rule_index_by_code(arg.clone())
     if idx >= 0 {
         return lint_rule_code(lint_rule_at(idx))
     }
-    let name_idx = lint_rule_index_by_name(clone(arg))
+    let name_idx = lint_rule_index_by_name(arg.clone())
     if name_idx >= 0 {
         return lint_rule_code(lint_rule_at(name_idx))
     }

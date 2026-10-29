@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use lsp::framing_record
 fn parse_frame(input: String, pos: i32) -> FrameResult {
     let n = len(input)
@@ -13,12 +12,12 @@ fn parse_frame(input: String, pos: i32) -> FrameResult {
     if p >= n {
         return framing_record::FrameResult_new(String_new(), n, false)
     }
-    let header_end_rel = clone(input).slice(p, n).index_of("\r\n\r\n")
+    let header_end_rel = input.clone().slice(p, n).index_of("\r\n\r\n")
     if header_end_rel < 0 {
         return framing_record::FrameResult_new(String_new(), n, false)
     }
-    let header_block = clone(input).slice(p, p + header_end_rel)
-    let cl_idx = clone(header_block).index_of("Content-Length:")
+    let header_block = input.clone().slice(p, p + header_end_rel)
+    let cl_idx = header_block.clone().index_of("Content-Length:")
     if cl_idx < 0 {
         return framing_record::FrameResult_new(String_new(), n, false)
     }
@@ -44,6 +43,6 @@ fn parse_frame(input: String, pos: i32) -> FrameResult {
     if body_start + clen > n {
         return framing_record::FrameResult_new(String_new(), n, false)
     }
-    let body = clone(input).slice(body_start, body_start + clen)
+    let body = input.clone().slice(body_start, body_start + clen)
     framing_record::FrameResult_new(body, body_start + clen, true)
 }

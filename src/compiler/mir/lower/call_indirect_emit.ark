@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::inst_call_ref
 use mir::inst_local_get
 use mir::lower::ast_node
@@ -20,19 +20,19 @@ fn mir_is_funcref_local(ctx: LowerCtx, local_idx: i32) -> bool {
     }
     let type_name = ctx_api_local_types::ctx_get_local_type(ctx, local_idx)
     // fnref2 = binary fold callbacks; must take call_ref, not direct CALL (#807).
-    eq(clone(type_name), String_from("fnref")) ||
-    eq(clone(type_name), String_from("fnref2")) ||
-    clone(type_name).starts_with(String_from("fnref")) ||
-    clone(type_name).starts_with(String_from("fnsig:")) ||
-    eq(clone(type_name), String_from("fn")) ||
-    clone(type_name).starts_with(String_from("fn("))
+    eq(type_name.clone(), String_from("fnref")) ||
+    eq(type_name.clone(), String_from("fnref2")) ||
+    type_name.clone().starts_with(String_from("fnref")) ||
+    type_name.clone().starts_with(String_from("fnsig:")) ||
+    eq(type_name.clone(), String_from("fn")) ||
+    type_name.clone().starts_with(String_from("fn("))
 }
 
 fn mark_indirect_callback_result_type(mut ctx: LowerCtx, callee_type_name: String, dest: i32) {
     if dest < 0 {
         return
     }
-    if eq(clone(callee_type_name), String_from("fnrefss")) {
+    if eq(callee_type_name.clone(), String_from("fnrefss")) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("String"))
         let string_vt = if ctx_gc_enum::ctx_is_gc_target(ctx) {
             value_types::VT_GC_REF()
@@ -42,15 +42,15 @@ fn mark_indirect_callback_result_type(mut ctx: LowerCtx, callee_type_name: Strin
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, string_vt)
         return
     }
-    if eq(clone(callee_type_name), String_from("fnrefsb")) {
+    if eq(callee_type_name.clone(), String_from("fnrefsb")) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("bool"))
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
     }
     // `fnsig:<param>;<return>` carries the concrete callback signature, so
     // the call result can be typed from the return segment instead of
     // collapsing to i32 (#860/#691).
-    if clone(callee_type_name).starts_with(String_from("fnsig:")) {
-        mark_fnsig_callback_result_type(ctx, clone(callee_type_name), dest)
+    if callee_type_name.clone().starts_with(String_from("fnsig:")) {
+        mark_fnsig_callback_result_type(ctx, callee_type_name.clone(), dest)
     }
 }
 
@@ -58,34 +58,34 @@ fn mark_indirect_callback_result_type(mut ctx: LowerCtx, callee_type_name: Strin
 // `fnsig:<param>;<return>` callee. Scalars keep their value type; named
 // and container returns are reference types on both backends.
 fn mark_fnsig_callback_result_type(mut ctx: LowerCtx, callee_type_name: String, dest: i32) {
-    let rest = clone(callee_type_name).slice(6, len(callee_type_name))
-    let sep = clone(rest).index_of(String_from(";"))
+    let rest = callee_type_name.clone().slice(6, len(callee_type_name))
+    let sep = rest.clone().index_of(String_from(";"))
     if sep < 0 {
         return
     }
-    let ret_seg = clone(rest).slice(sep + 1, len(rest))
+    let ret_seg = rest.clone().slice(sep + 1, len(rest))
     if len(ret_seg) == 0 {
         return
     }
-    if eq(clone(ret_seg), String_from("i32")) || eq(clone(ret_seg), String_from("bool")) ||
-    eq(clone(ret_seg), String_from("char")) || eq(clone(ret_seg), String_from("u8")) ||
-    eq(clone(ret_seg), String_from("i8")) || eq(clone(ret_seg), String_from("u16")) ||
-    eq(clone(ret_seg), String_from("u32")) {
+    if eq(ret_seg.clone(), String_from("i32")) || eq(ret_seg.clone(), String_from("bool")) ||
+    eq(ret_seg.clone(), String_from("char")) || eq(ret_seg.clone(), String_from("u8")) ||
+    eq(ret_seg.clone(), String_from("i8")) || eq(ret_seg.clone(), String_from("u16")) ||
+    eq(ret_seg.clone(), String_from("u32")) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, ret_seg)
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
         return
     }
-    if eq(clone(ret_seg), String_from("i64")) || eq(clone(ret_seg), String_from("u64")) {
+    if eq(ret_seg.clone(), String_from("i64")) || eq(ret_seg.clone(), String_from("u64")) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, ret_seg)
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I64())
         return
     }
-    if eq(clone(ret_seg), String_from("f64")) {
+    if eq(ret_seg.clone(), String_from("f64")) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, ret_seg)
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_F64())
         return
     }
-    if eq(clone(ret_seg), String_from("f32")) {
+    if eq(ret_seg.clone(), String_from("f32")) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, ret_seg)
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_F32())
         return
@@ -122,7 +122,7 @@ fn mir_lower_indirect_call(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
     // store it into a local of the wrong type (#872).
     let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"), 0 - 1)
     call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1)
-    mark_indirect_callback_result_type(ctx, clone(callee_type_name), dest)
+    mark_indirect_callback_result_type(ctx, callee_type_name.clone(), dest)
     let dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
     call_emit_staged::mir_emit_staged_call_args(ctx, arg_lis, Vec::new<i32>())
     // The fnptr field read leaves a raw funcref/table-index on the stack;
@@ -157,7 +157,7 @@ fn mir_lower_ast_indirect_call(mut ctx: LowerCtx, node: AstNode, child_count: i3
     }
     let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"), 0 - 1)
     call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1)
-    mark_indirect_callback_result_type(ctx, clone(callee_type_name), dest)
+    mark_indirect_callback_result_type(ctx, callee_type_name.clone(), dest)
     let dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
     call_emit_staged::mir_emit_staged_call_args(ctx, arg_lis, Vec::new<i32>())
     closure_env::closure_emit_pair_fnptr(ctx, callee_local)

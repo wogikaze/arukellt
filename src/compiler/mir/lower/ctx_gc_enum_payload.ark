@@ -1,68 +1,68 @@
 use std::text
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_sig
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
 fn ctx_ensure_gc_enum_payload_variant(mut ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>) -> i32 {
-    let payload_found = ctx_gc_enum::ctx_gc_enum_variant_slot_for_payload(ctx, clone(variant_name), payload_vts)
+    let payload_found = ctx_gc_enum::ctx_gc_enum_variant_slot_for_payload(ctx, variant_name.clone(), payload_vts)
     if payload_found >= 0 {
         return payload_found
     }
-    let name_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
+    let name_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, variant_name.clone())
     if name_slot >= 0 {
-        let layout_field_sigs = gc_enum_build_payload_field_sigs(ctx, clone(variant_name))
+        let layout_field_sigs = gc_enum_build_payload_field_sigs(ctx, variant_name.clone())
         if len(layout_field_sigs) > 0 {
-            let existing_sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, name_slot))
-            let existing_payload = ctx_gc_enum_sig::gc_enum_payload_suffix_after_prefix(clone(existing_sig), "SubF+14_S_f0_i32")
-            if eq(clone(existing_payload), clone(layout_field_sigs)) {
+            let existing_sig = get_unchecked(ctx.gc_enum_variant_sigs, name_slot).clone()
+            let existing_payload = ctx_gc_enum_sig::gc_enum_payload_suffix_after_prefix(existing_sig.clone(), "SubF+14_S_f0_i32")
+            if eq(existing_payload.clone(), layout_field_sigs.clone()) {
                 return name_slot
             }
         }
-        let existing_sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, name_slot))
+        let existing_sig = get_unchecked(ctx.gc_enum_variant_sigs, name_slot).clone()
         let want_field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(ctx, payload_vts)
         if ctx_gc_enum_sig::gc_enum_payload_sigs_compatible(existing_sig, want_field_sigs) {
             return name_slot
         }
     }
-    let normalized = ctx_gc_enum::ctx_gc_enum_normalize_variant_name(clone(variant_name))
+    let normalized = ctx_gc_enum::ctx_gc_enum_normalize_variant_name(variant_name.clone())
     let field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(ctx, payload_vts)
     let sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(len(ctx.gc_enum_variant_names), field_sigs)
-    ctx_gc_enum::ctx_register_gc_enum_variant(ctx, clone(normalized), sig)
+    ctx_gc_enum::ctx_register_gc_enum_variant(ctx, normalized.clone(), sig)
 }
 
 fn ctx_ensure_gc_enum_payload_variant_typed(mut ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>, type_name: String) -> i32 {
-    let layout_field_sigs = gc_enum_build_payload_field_sigs_for_type(ctx, clone(variant_name), clone(type_name))
-    let field_sigs = gc_enum_payload_typed_resolve_field_sigs(ctx, clone(variant_name), payload_vts, clone(type_name), clone(layout_field_sigs))
-    let normalized = ctx_gc_enum::ctx_gc_enum_normalize_variant_name(clone(variant_name))
-    let want_sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(0, clone(field_sigs))
-    let slot = gc_enum_payload_typed_find_slot(ctx, clone(variant_name), clone(normalized), want_sig, clone(field_sigs), clone(layout_field_sigs), clone(type_name))
+    let layout_field_sigs = gc_enum_build_payload_field_sigs_for_type(ctx, variant_name.clone(), type_name.clone())
+    let field_sigs = gc_enum_payload_typed_resolve_field_sigs(ctx, variant_name.clone(), payload_vts, type_name.clone(), layout_field_sigs.clone())
+    let normalized = ctx_gc_enum::ctx_gc_enum_normalize_variant_name(variant_name.clone())
+    let want_sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(0, field_sigs.clone())
+    let slot = gc_enum_payload_typed_find_slot(ctx, variant_name.clone(), normalized.clone(), want_sig, field_sigs.clone(), layout_field_sigs.clone(), type_name.clone())
     if slot >= 0 {
         return slot
     }
-    let sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(len(ctx.gc_enum_variant_names), clone(field_sigs))
-    ctx_gc_enum::ctx_register_gc_enum_variant(ctx, clone(normalized), sig)
+    let sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(len(ctx.gc_enum_variant_names), field_sigs.clone())
+    ctx_gc_enum::ctx_register_gc_enum_variant(ctx, normalized.clone(), sig)
 }
 
 fn gc_enum_payload_typed_resolve_field_sigs(mut ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>, type_name: String, layout_field_sigs: String) -> String {
-    let mut field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_typed(ctx, payload_vts, clone(type_name))
-    let normalized = ctx_gc_enum::ctx_gc_enum_normalize_variant_name(clone(variant_name))
-    let is_vec_container = ctx_gc_enum::gc_enum_variant_is_vec_container(clone(normalized))
+    let mut field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_typed(ctx, payload_vts, type_name.clone())
+    let normalized = ctx_gc_enum::ctx_gc_enum_normalize_variant_name(variant_name.clone())
+    let is_vec_container = ctx_gc_enum::gc_enum_variant_is_vec_container(normalized.clone())
     // For user enum variants the declaration layout describes every payload
     // field, while the typed call site only carries a type hint for its first
     // field.  Using `_f1_ref0` for a later GC_REF payload aliases it to the
     // String reference type and produces invalid `struct.set` operations for
     // recursive enums such as `List::Cons(i32, List)`.
     if len(layout_field_sigs) > 0 &&
-    !gc_enum_payload_is_builtin_result_or_option(clone(normalized)) {
+    !gc_enum_payload_is_builtin_result_or_option(normalized.clone()) {
         return layout_field_sigs
     }
     if is_vec_container {
-        if clone(field_sigs).contains("ref14") || len(field_sigs) == 0 {
-            if len(layout_field_sigs) > 0 && !clone(layout_field_sigs).contains("ref14") {
+        if field_sigs.clone().contains("ref14") || len(field_sigs) == 0 {
+            if len(layout_field_sigs) > 0 && !layout_field_sigs.clone().contains("ref14") {
                 field_sigs = layout_field_sigs
-            } else if clone(type_name).starts_with("vec:") || clone(type_name).starts_with("Vec") {
-                field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_typed(ctx, payload_vts, clone(type_name))
+            } else if type_name.clone().starts_with("vec:") || type_name.clone().starts_with("Vec") {
+                field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_typed(ctx, payload_vts, type_name.clone())
             } else {
                 field_sigs = "_f1_ref25"
             }
@@ -71,37 +71,37 @@ fn gc_enum_payload_typed_resolve_field_sigs(mut ctx: LowerCtx, variant_name: Str
     // Only reuse layout field sigs when the typed want is still open/enum-open
     // and the layout itself was selected for this payload type. Never let a
     // first-name Option::Some(String) layout override a concrete Inner want.
-    let typed_is_open = len(type_name) == 0 || eq(clone(type_name), "enum:open")
+    let typed_is_open = len(type_name) == 0 || eq(type_name.clone(), "enum:open")
     if len(layout_field_sigs) > 0 && typed_is_open {
-        if clone(layout_field_sigs).contains("ref") || clone(layout_field_sigs).contains("gcsref") {
-            if !(is_vec_container && clone(layout_field_sigs).contains("ref14")) {
+        if layout_field_sigs.clone().contains("ref") || layout_field_sigs.clone().contains("gcsref") {
+            if !(is_vec_container && layout_field_sigs.clone().contains("ref14")) {
                 field_sigs = layout_field_sigs
             }
         }
-    } else if len(layout_field_sigs) > 0 && clone(field_sigs).contains("ref14") && is_vec_container {
-        if clone(layout_field_sigs).contains("ref") || clone(layout_field_sigs).contains("gcsref") {
-            if !clone(layout_field_sigs).contains("ref14") {
+    } else if len(layout_field_sigs) > 0 && field_sigs.clone().contains("ref14") && is_vec_container {
+        if layout_field_sigs.clone().contains("ref") || layout_field_sigs.clone().contains("gcsref") {
+            if !layout_field_sigs.clone().contains("ref14") {
                 field_sigs = layout_field_sigs
             }
         }
     }
-    if is_vec_container && len(layout_field_sigs) > 0 && !clone(layout_field_sigs).contains("ref14") {
+    if is_vec_container && len(layout_field_sigs) > 0 && !layout_field_sigs.clone().contains("ref14") {
         field_sigs = layout_field_sigs
     }
     field_sigs
 }
 
 fn gc_enum_payload_is_builtin_result_or_option(variant_name: String) -> bool {
-    clone(variant_name).starts_with("Option::") ||
-    clone(variant_name).starts_with("Result::")
+    variant_name.clone().starts_with("Option::") ||
+    variant_name.clone().starts_with("Result::")
 }
 
 fn gc_enum_payload_typed_find_slot(ctx: LowerCtx, variant_name: String, normalized: String, want_sig: String, field_sigs: String, layout_field_sigs: String, type_name: String) -> i32 {
     let count = len(ctx.gc_enum_variant_sigs)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(ctx.gc_enum_variant_sigs, i), clone(want_sig)) {
-            if ctx_gc_enum::ctx_gc_enum_variant_names_match(clone(get_unchecked(ctx.gc_enum_variant_names, i)), clone(normalized)) {
+        if eq(get_unchecked(ctx.gc_enum_variant_sigs, i), want_sig.clone()) {
+            if ctx_gc_enum::ctx_gc_enum_variant_names_match(get_unchecked(ctx.gc_enum_variant_names, i).clone(), normalized.clone()) {
                 return i
             }
         }
@@ -109,10 +109,10 @@ fn gc_enum_payload_typed_find_slot(ctx: LowerCtx, variant_name: String, normaliz
     }
     i = 0
     while i < count {
-        if ctx_gc_enum::ctx_gc_enum_variant_names_match(clone(get_unchecked(ctx.gc_enum_variant_names, i)), clone(normalized)) {
-            let existing_sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, i))
-            let existing_payload = ctx_gc_enum_sig::gc_enum_payload_suffix_after_prefix(clone(existing_sig), "SubF+14_S_f0_i32")
-            if eq(clone(existing_payload), clone(field_sigs)) {
+        if ctx_gc_enum::ctx_gc_enum_variant_names_match(get_unchecked(ctx.gc_enum_variant_names, i).clone(), normalized.clone()) {
+            let existing_sig = get_unchecked(ctx.gc_enum_variant_sigs, i).clone()
+            let existing_payload = ctx_gc_enum_sig::gc_enum_payload_suffix_after_prefix(existing_sig.clone(), "SubF+14_S_f0_i32")
+            if eq(existing_payload.clone(), field_sigs.clone()) {
                 return i
             }
         }
@@ -124,33 +124,33 @@ fn gc_enum_payload_typed_find_slot(ctx: LowerCtx, variant_name: String, normaliz
     if len(field_sigs) > 0 {
         return 0 - 1
     }
-    let name_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
+    let name_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, variant_name.clone())
     if name_slot >= 0 {
-        let existing_sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, name_slot))
-        let existing_payload = ctx_gc_enum_sig::gc_enum_payload_suffix_after_prefix(clone(existing_sig), "SubF+14_S_f0_i32")
-        let is_vec_container = ctx_gc_enum::gc_enum_variant_is_vec_container(clone(normalized))
-        if is_vec_container && clone(existing_payload).contains("ref14") && clone(field_sigs).contains("ref25") {
+        let existing_sig = get_unchecked(ctx.gc_enum_variant_sigs, name_slot).clone()
+        let existing_payload = ctx_gc_enum_sig::gc_enum_payload_suffix_after_prefix(existing_sig.clone(), "SubF+14_S_f0_i32")
+        let is_vec_container = ctx_gc_enum::gc_enum_variant_is_vec_container(normalized.clone())
+        if is_vec_container && existing_payload.clone().contains("ref14") && field_sigs.clone().contains("ref25") {
             // fall through to register a fresh typed slot
         } else {
-            if len(layout_field_sigs) > 0 && eq(clone(existing_payload), clone(layout_field_sigs)) {
-                if len(field_sigs) == 0 || eq(clone(existing_payload), clone(field_sigs)) {
+            if len(layout_field_sigs) > 0 && eq(existing_payload.clone(), layout_field_sigs.clone()) {
+                if len(field_sigs) == 0 || eq(existing_payload.clone(), field_sigs.clone()) {
                     return name_slot
                 }
             }
-            if (len(type_name) == 0 || eq(clone(type_name), "enum:open")) && len(existing_payload) > 0 {
-                if len(layout_field_sigs) == 0 || eq(clone(existing_payload), clone(layout_field_sigs)) {
-                    if len(field_sigs) == 0 || eq(clone(existing_payload), clone(field_sigs)) {
-                        if clone(existing_payload).contains("ref") || clone(existing_payload).contains("gcsref") {
+            if (len(type_name) == 0 || eq(type_name.clone(), "enum:open")) && len(existing_payload) > 0 {
+                if len(layout_field_sigs) == 0 || eq(existing_payload.clone(), layout_field_sigs.clone()) {
+                    if len(field_sigs) == 0 || eq(existing_payload.clone(), field_sigs.clone()) {
+                        if existing_payload.clone().contains("ref") || existing_payload.clone().contains("gcsref") {
                             return name_slot
                         }
                     }
                 }
             }
             if len(field_sigs) > 0 &&
-            !ctx_gc_enum_sig::gc_enum_payload_is_scalar_sig(clone(field_sigs)) &&
-            ctx_gc_enum_sig::gc_enum_payload_is_scalar_sig(clone(existing_payload)) {
+            !ctx_gc_enum_sig::gc_enum_payload_is_scalar_sig(field_sigs.clone()) &&
+            ctx_gc_enum_sig::gc_enum_payload_is_scalar_sig(existing_payload.clone()) {
                 // fall through
-            } else if ctx_gc_enum_sig::gc_enum_payload_sigs_compatible(existing_sig, clone(field_sigs)) {
+            } else if ctx_gc_enum_sig::gc_enum_payload_sigs_compatible(existing_sig, field_sigs.clone()) {
                 return name_slot
             }
         }
@@ -164,12 +164,12 @@ fn gc_enum_build_payload_field_sigs(mut ctx: LowerCtx, variant_name: String) -> 
 
 fn gc_enum_build_payload_field_sigs_for_type(mut ctx: LowerCtx, variant_name: String, type_name: String) -> String {
     let mut sig = String_new()
-    let layout_name = ctx_struct_field_type::ctx_resolve_variant_layout_name(ctx, clone(variant_name))
+    let layout_name = ctx_struct_field_type::ctx_resolve_variant_layout_name(ctx, variant_name.clone())
     let layout_count = len(ctx.struct_names)
     let mut li = 0
     let mut first_sig = String_new()
     while li < layout_count {
-        if eq(get_unchecked(ctx.struct_names, li), clone(layout_name)) || eq(get_unchecked(ctx.struct_names, li), clone(variant_name)) {
+        if eq(get_unchecked(ctx.struct_names, li), layout_name.clone()) || eq(get_unchecked(ctx.struct_names, li), variant_name.clone()) {
             let field_count = get_unchecked(ctx.struct_field_counts, li)
             let mut row_sig = String_new()
             let mut payload_ft = String_new()
@@ -183,21 +183,21 @@ fn gc_enum_build_payload_field_sigs_for_type(mut ctx: LowerCtx, variant_name: St
                 }
                 off = off + fi
                 let raw_ft = get_unchecked(ctx.struct_field_types, off)
-                let ft = if fi == 1 && len(type_name) > 0 && ctx_struct_field_type::ctx_payload_field_types_match(clone(raw_ft), clone(type_name)) {
-                    clone(type_name)
+                let ft = if fi == 1 && len(type_name) > 0 && ctx_struct_field_type::ctx_payload_field_types_match(raw_ft.clone(), type_name.clone()) {
+                    type_name.clone()
                 } else {
-                    ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(raw_ft))
+                    ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, raw_ft.clone())
                 }
                 if fi == 1 {
-                    payload_ft = clone(raw_ft)
+                    payload_ft = raw_ft.clone()
                 }
-                row_sig = row_sig.concat(ctx_gc_enum_sig::gc_enum_field_sig_for_type_ctx(ctx, clone(ft)))
+                row_sig = row_sig.concat(ctx_gc_enum_sig::gc_enum_field_sig_for_type_ctx(ctx, ft.clone()))
                 fi = fi + 1
             }
             if len(first_sig) == 0 {
-                first_sig = clone(row_sig)
+                first_sig = row_sig.clone()
             }
-            if len(type_name) > 0 && ctx_struct_field_type::ctx_payload_field_types_match(clone(payload_ft), clone(type_name)) {
+            if len(type_name) > 0 && ctx_struct_field_type::ctx_payload_field_types_match(payload_ft.clone(), type_name.clone()) {
                 return row_sig
             }
             if len(type_name) == 0 {

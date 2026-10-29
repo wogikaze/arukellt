@@ -1,9 +1,8 @@
-use std::prelude::{clone}
 use main::args_record
 pub fn parse_cache_dir_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        args_record::cli_set_cache_dir(opts, clone(get_unchecked(argv, next)))
+        args_record::cli_set_cache_dir(opts, get_unchecked(argv, next).clone())
     } else {
         args_record::cli_set_error(opts, "--cache-dir requires a directory path")
     }

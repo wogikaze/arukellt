@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::ast_node
 use mir::lower::call_type_fallback
 use mir::lower::closure_capture_args
@@ -49,12 +48,12 @@ fn try_lower_closure_call(mut ctx: LowerCtx, node: AstNode, callee: AstNode, chi
         ctx_emit(ctx, inst_local_get::MirInst_local_get_to(env_li, env_li))
     }
     let env_arg = if env_li >= 0 { 1 } else { 0 }
-    let dest_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(synth))
+    let dest_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, synth.clone())
     let c_dest = ctx_fresh_local(ctx, dest_vt)
-    ctx_emit(ctx, inst_call::MirInst_call(clone(synth), child_count - 1 + extra + env_arg, c_dest))
+    ctx_emit(ctx, inst_call::MirInst_call(synth.clone(), child_count - 1 + extra + env_arg, c_dest))
     // Refresh mut-borrowed source locals from their env cells so reads
     // after the call observe the closure's writes (#874, ADR-061).
     closure_cells::ctx_emit_closure_writeback(ctx, synth)
-    call_type_fallback::mark_fallback_call_result_type(ctx, clone(synth), c_dest)
+    call_type_fallback::mark_fallback_call_result_type(ctx, synth.clone(), c_dest)
     c_dest
 }

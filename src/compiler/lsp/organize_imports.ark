@@ -1,6 +1,5 @@
 use std::text
 use std::json
-use std::prelude::{clone}
 use fmt::import_block
 use lsp::organize_imports_detect
 use lsp::positions
@@ -13,7 +12,7 @@ fn build_semantic_fix_edit(
     span: import_block::ImportBlockSpan
 ) -> String {
     let start_pos = positions::offset_to_position(
-        clone(text),
+        text.clone(),
         import_block::ImportBlockSpan_start(span)
     )
     let end_pos = positions::offset_to_position(text, import_block::ImportBlockSpan_end(span))
@@ -57,9 +56,9 @@ pub fn build_fix_all_action(uri: String, text: String) -> String {
 }
 
 pub fn request_wants_organize_imports(body: String) -> bool {
-    clone(body).index_of(String_from("source.organizeImports")) >= 0
+    body.clone().index_of(String_from("source.organizeImports")) >= 0
 }
 
 pub fn request_wants_fix_all(body: String) -> bool {
-    clone(body).index_of(String_from("source.fixAll")) >= 0
+    body.clone().index_of(String_from("source.fixAll")) >= 0
 }

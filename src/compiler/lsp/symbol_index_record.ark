@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 pub struct IndexedSymbol {
     uri: String,
     name: String,
@@ -31,11 +31,11 @@ pub fn SymbolIndex_new() -> SymbolIndex {
 }
 
 fn indexed_symbol_uri(sym: IndexedSymbol) -> String {
-    clone(sym.uri)
+    sym.uri.clone()
 }
 
 fn indexed_symbol_name(sym: IndexedSymbol) -> String {
-    clone(sym.name)
+    sym.name.clone()
 }
 
 fn indexed_symbol_kind(sym: IndexedSymbol) -> i32 {
@@ -51,15 +51,15 @@ fn indexed_symbol_decl_end(sym: IndexedSymbol) -> i32 {
 }
 
 fn indexed_symbol_detail(sym: IndexedSymbol) -> String {
-    clone(sym.detail)
+    sym.detail.clone()
 }
 
 fn indexed_symbol_module_path(sym: IndexedSymbol) -> String {
-    clone(sym.module_path)
+    sym.module_path.clone()
 }
 
 fn stdlib_indexed_symbol_name(sym: StdlibIndexedSymbol) -> String {
-    clone(sym.name)
+    sym.name.clone()
 }
 
 fn stdlib_indexed_symbol_kind(sym: StdlibIndexedSymbol) -> i32 {
@@ -67,15 +67,15 @@ fn stdlib_indexed_symbol_kind(sym: StdlibIndexedSymbol) -> i32 {
 }
 
 fn stdlib_indexed_symbol_detail(sym: StdlibIndexedSymbol) -> String {
-    clone(sym.detail)
+    sym.detail.clone()
 }
 
 fn stdlib_indexed_symbol_module_path(sym: StdlibIndexedSymbol) -> String {
-    clone(sym.module_path)
+    sym.module_path.clone()
 }
 
 fn stdlib_indexed_symbol_source_uri(sym: StdlibIndexedSymbol) -> String {
-    clone(sym.source_uri)
+    sym.source_uri.clone()
 }
 
 fn IndexedSymbol_new(uri: String, name: String, kind: i32, decl_start: i32, decl_end: i32, detail: String, module_path: String) -> IndexedSymbol {
@@ -91,7 +91,7 @@ fn stdlib_indexed_symbol_decl_end(sym: StdlibIndexedSymbol) -> i32 {
 }
 
 fn stdlib_indexed_symbol_doc(sym: StdlibIndexedSymbol) -> String {
-    clone(sym.doc)
+    sym.doc.clone()
 }
 
 fn StdlibIndexedSymbol_new(name: String, kind: i32, detail: String, module_path: String, source_uri: String, decl_start: i32, decl_end: i32, doc: String) -> StdlibIndexedSymbol {
@@ -103,7 +103,7 @@ fn symbol_index_push_symbol(mut symbols: Vec<IndexedSymbol>, sym: IndexedSymbol)
 }
 
 fn symbol_index_mark_indexed(mut indexed_uris: Vec<String>, uri: String) {
-    if symbol_index_uri_index(indexed_uris, clone(uri)) < 0 {
+    if symbol_index_uri_index(indexed_uris, uri.clone()) < 0 {
         push(indexed_uris, uri)
     }
 }
@@ -112,7 +112,7 @@ fn symbol_index_uri_index(indexed_uris: Vec<String>, uri: String) -> i32 {
     let n = len(indexed_uris)
     let mut i = 0
     while i < n {
-        if eq(clone(get_unchecked(indexed_uris, i)), clone(uri)) {
+        if eq(get_unchecked(indexed_uris, i).clone(), uri.clone()) {
             return i
         }
         i = i + 1

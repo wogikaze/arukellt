@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use std::text
 use mir::lower::binary_method
 use mir::lower::binary_type_names
@@ -11,12 +10,12 @@ fn try_lower_overloaded_binary(mut ctx: LowerCtx, rhs: AstNode, mir_op: i32, l_i
         ctx,
         ctx_get_local_type(ctx, l_idx)
     )
-    let ov_is_primitive = binary_type_names::mir_is_primitive_operator_type(clone(ov_ltype))
+    let ov_is_primitive = binary_type_names::mir_is_primitive_operator_type(ov_ltype.clone())
     // String keeps the intrinsic path for eq/add, but ordering must compare
     // bytes rather than the String ref/pointer value. The cmp module is
     // explicit-import-only, so operators call the always-loaded helper.
     if ov_is_primitive &&
-    binary_type_names::mir_is_string_type_name(clone(ov_ltype)) &&
+    binary_type_names::mir_is_string_type_name(ov_ltype.clone()) &&
     binary_emit::mir_is_order_comparison_op(mir_op) {
         let _ov_r_idx = lower_expr(ctx, rhs)
         return binary_emit::mir_emit_string_order_operator(ctx, mir_op)
@@ -24,8 +23,8 @@ fn try_lower_overloaded_binary(mut ctx: LowerCtx, rhs: AstNode, mir_op: i32, l_i
     if !ov_is_primitive {
         let ov_method = binary_method::mir_operator_method_name(mir_op)
         if len(ov_method) > 0 {
-            let ov_callee = clone(ov_ltype).concat("::".concat(clone(ov_method)))
-            if ctx_fn_exists(ctx, clone(ov_callee)) != 0 {
+            let ov_callee = ov_ltype.clone().concat("::".concat(ov_method.clone()))
+            if ctx_fn_exists(ctx, ov_callee.clone()) != 0 {
                 let ov_r_idx = lower_expr(ctx, rhs)
                 return binary_emit::mir_emit_overloaded_operator(ctx, ov_callee, mir_op)
             }

@@ -1670,7 +1670,6 @@ import. Non-prelude functions require a `use` or `import` declaration.
 | `byte_at(s: String, i: i32) -> i32` | Raw UTF-8 byte at a byte index |
 | `byte_len(s: String) -> i32` | UTF-8 byte length |
 | `eq(a: String, b: String) -> bool` | Equality |
-| `clone(s: String) -> String` | Clone |
 | `starts_with(s: String, prefix: String) -> bool` | Prefix test |
 | `ends_with(s: String, suffix: String) -> bool` | Suffix test |
 | `to_lower(s: String) -> String` | Lowercase |
@@ -1688,7 +1687,8 @@ import. Non-prelude functions require a `use` or `import` declaration.
 
 The deprecated char_at entry returns a raw byte for compatibility. Use byte_at for
 byte inspection and codepoint_at for a Unicode scalar value. byte_at and byte_len
-remain prelude compatibility names for the byte API.
+remain prelude compatibility names for the byte API. The free `clone(s)` was
+retired under ADR-091; use the receiver method `s.clone()`.
 
 ### 9.1.1 std::text — Unicode and byte operations
 

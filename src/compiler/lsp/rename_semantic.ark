@@ -1,6 +1,5 @@
 use std::text
 use std::json
-use std::prelude::{clone}
 use analysis::ident_span
 use analysis::symbol_references
 use analysis::symbols
@@ -14,15 +13,15 @@ fn null_result(id: i32) -> String {
 }
 
 fn is_keyword_name(name: String) -> bool {
-    keywords::is_reserved_name(clone(name))
+    keywords::is_reserved_name(name.clone())
 }
 
 fn is_renamable_at_offset(text: String, offset: i32) -> bool {
-    let refs = symbol_references::collect_semantic_references(clone(text), offset)
+    let refs = symbol_references::collect_semantic_references(text.clone(), offset)
     if len(refs) > 0 {
         return true
     }
-    let span = symbols::ident_span_at_offset(clone(text), offset)
+    let span = symbols::ident_span_at_offset(text.clone(), offset)
     if !ident_span::ident_span_found(span) {
         return false
     }
@@ -30,10 +29,10 @@ fn is_renamable_at_offset(text: String, offset: i32) -> bool {
 }
 
 fn build_prepare_rename_response(id: i32, text: String, offset: i32) -> String {
-    if !is_renamable_at_offset(clone(text), offset) {
+    if !is_renamable_at_offset(text.clone(), offset) {
         return null_result(id)
     }
-    let refs = symbol_references::collect_semantic_references(clone(text), offset)
+    let refs = symbol_references::collect_semantic_references(text.clone(), offset)
     let mut start = 0
     let mut end = 0
     let mut name = String_new()
@@ -41,9 +40,9 @@ fn build_prepare_rename_response(id: i32, text: String, offset: i32) -> String {
         let loc = get_unchecked(refs, 0)
         start = symbol_references::reference_location_start(loc)
         end = symbol_references::reference_location_end(loc)
-        name = clone(text).slice(start, end)
+        name = text.clone().slice(start, end)
     } else {
-        let span = symbols::ident_span_at_offset(clone(text), offset)
+        let span = symbols::ident_span_at_offset(text.clone(), offset)
         if !ident_span::ident_span_found(span) {
             return null_result(id)
         }
@@ -51,7 +50,7 @@ fn build_prepare_rename_response(id: i32, text: String, offset: i32) -> String {
         end = ident_span::ident_span_end(span)
         name = ident_span::ident_span_name(span)
     }
-    let start_pos = positions::offset_to_position(clone(text), start)
+    let start_pos = positions::offset_to_position(text.clone(), start)
     let end_pos = positions::offset_to_position(text, end)
     let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
     body = body.concat(id.to_string())
@@ -79,7 +78,7 @@ fn build_rename_response(id: i32, changes: String) -> String {
 }
 
 pub fn build_prepare_rename_response_for_request(state: LspState, body: String, id: i32) -> String {
-    let req = feature_request::read_text_position_request(state, clone(body))
+    let req = feature_request::read_text_position_request(state, body.clone())
     if !feature_request::text_position_request_has_text(req) {
         return null_result(id)
     }
@@ -87,20 +86,20 @@ pub fn build_prepare_rename_response_for_request(state: LspState, body: String, 
 }
 
 pub fn build_rename_response_for_request(state: LspState, body: String, id: i32) -> String {
-    let req = feature_request::read_text_position_request(state, clone(body))
+    let req = feature_request::read_text_position_request(state, body.clone())
     if !feature_request::text_position_request_has_text(req) {
         return null_result(id)
     }
     let req_text = feature_request::text_position_request_text(req)
     let offset = feature_request::text_position_request_offset(req)
-    if !is_renamable_at_offset(clone(req_text), offset) {
+    if !is_renamable_at_offset(req_text.clone(), offset) {
         return null_result(id)
     }
-    let new_name = json::JsonText::get_str(clone(body), String_from("newName"))
-    if len(new_name) == 0 || is_keyword_name(clone(new_name)) {
+    let new_name = json::JsonText::get_str(body.clone(), String_from("newName"))
+    if len(new_name) == 0 || is_keyword_name(new_name.clone()) {
         return null_result(id)
     }
-    let changes = rename_workspace::collect_workspace_changes(state, feature_request::text_position_request_uri(req), clone(req_text), offset, new_name)
+    let changes = rename_workspace::collect_workspace_changes(state, feature_request::text_position_request_uri(req), req_text.clone(), offset, new_name)
     if len(changes) == 0 {
         return null_result(id)
     }

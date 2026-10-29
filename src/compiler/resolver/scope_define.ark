@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use resolver::kinds
 use resolver::ref_sites
 use resolver::scope_error
@@ -10,7 +9,7 @@ fn define_impl(mut ctx: ResolveCtx, name: String, kind: i32, is_pub: bool, span_
     let idx = scope_stack_scopes::ResolveCtx_take_next_decl_index(ctx)
     let current_depth = scope_stack_scopes::ResolveCtx_current_depth(ctx)
     let mut scope = scope_stack_scopes::ResolveCtx_scope_at(ctx, current_depth)
-    let existing_index = scope_record::scope_find_symbol_index(scope, clone(name))
+    let existing_index = scope_record::scope_find_symbol_index(scope, name.clone())
     if existing_index >= 0 {
         let mut existing = scope_stack_scopes::Scope_symbol_at(scope, existing_index)
         if scope_stack_symbols::Symbol_scope_depth(existing) == current_depth {
@@ -20,7 +19,7 @@ fn define_impl(mut ctx: ResolveCtx, name: String, kind: i32, is_pub: bool, span_
                 scope_stack_symbols::Symbol_set_is_pub(existing, is_pub)
                 return
             }
-            scope_error::resolve_duplicate_symbol(ctx, clone(name), span_start, span_end)
+            scope_error::resolve_duplicate_symbol(ctx, name.clone(), span_start, span_end)
             return
         }
     }
@@ -29,7 +28,7 @@ fn define_impl(mut ctx: ResolveCtx, name: String, kind: i32, is_pub: bool, span_
 }
 
 fn record_decl_for_name(ctx: ResolveCtx, name: String, span_start: i32, span_end: i32) {
-    let idx = scope_lookup::lookup(ctx, clone(name))
+    let idx = scope_lookup::lookup(ctx, name.clone())
     if idx < 0 {
         return
     }
@@ -59,11 +58,11 @@ fn define_with_vis(mut ctx: ResolveCtx, name: String, kind: i32, is_pub: bool) {
 }
 
 fn define_span(mut ctx: ResolveCtx, name: String, kind: i32, span_start: i32, span_end: i32) {
-    define_impl(ctx, clone(name), kind, false, span_start, span_end)
+    define_impl(ctx, name.clone(), kind, false, span_start, span_end)
     record_decl_for_name(ctx, name, span_start, span_end)
 }
 
 fn define_with_vis_span(mut ctx: ResolveCtx, name: String, kind: i32, is_pub: bool, span_start: i32, span_end: i32) {
-    define_impl(ctx, clone(name), kind, is_pub, span_start, span_end)
+    define_impl(ctx, name.clone(), kind, is_pub, span_start, span_end)
     record_decl_for_name(ctx, name, span_start, span_end)
 }

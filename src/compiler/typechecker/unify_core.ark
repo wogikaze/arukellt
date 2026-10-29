@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use typechecker::kinds
 use typechecker::contract_type_access
@@ -58,7 +58,7 @@ fn unify(mut env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
     (a_tag == commands::TY_ENUM() && b_tag == commands::TY_STRUCT()) {
         let a_name = contract_type_access::TypeInfo_name(a)
         let b_name = contract_type_access::TypeInfo_name(b)
-        if !names::same_type_name(clone(a_name), clone(b_name)) {
+        if !names::same_type_name(a_name.clone(), b_name.clone()) {
             unify_env::type_error(env, "type mismatch: ".concat(a_name.concat(" vs ".concat(b_name))))
             return a
         }

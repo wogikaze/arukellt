@@ -7,10 +7,6 @@ pub fn eq(a: String, b: String) -> bool {
     __core_string_eq_impl(a, b)
 }
 
-pub fn clone(s: String) -> String {
-    __core_string_clone_impl(s)
-}
-
 fn __core_string_len_impl(s: String) -> i32 {
     RawString::len_bytes(s)
 }

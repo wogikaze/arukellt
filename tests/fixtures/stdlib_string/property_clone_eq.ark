@@ -1,7 +1,7 @@
 use std::test::Test
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 fn main() {
     let s = String_from("clone-me")
-    Test::assert_true(eq(clone(s), s))
-    Test::assert_eq_i32(len(clone(s)), len(s))
+    Test::assert_true(eq(s.clone(), s))
+    Test::assert_eq_i32(len(s.clone()), len(s))
 }

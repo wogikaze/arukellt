@@ -14,7 +14,7 @@
 //! falling back to their last segment would turn a constructor such as
 //! `Vec::new` into an unrelated bare `new`.
 
-use std::prelude::{byte_at, clone, eq, substring}
+use std::prelude::{byte_at, eq, substring}
 use corehir::name_match
 
 fn callee_spelling_segment_count(name: String) -> i32 {
@@ -41,7 +41,7 @@ fn callee_spelling_after_first_segment(name: String) -> String {
         }
         i = i + 1
     }
-    clone(name)
+    name.clone()
 }
 
 fn callee_spelling_last_two_segments(name: String) -> String {
@@ -59,7 +59,7 @@ fn callee_spelling_last_two_segments(name: String) -> String {
         }
     }
     if previous < 0 {
-        return clone(name)
+        return name.clone()
     }
     substring(name, previous + 2, n)
 }
@@ -136,19 +136,19 @@ fn is_namespace_member_callee(
 
 fn callee_spelling_variants(name: String) -> Vec<String> {
     let mut variants = Vec::new<String>()
-    if callee_spelling_segment_count(clone(name)) < 3 {
+    if callee_spelling_segment_count(name.clone()) < 3 {
         return variants
     }
-    let last_two = callee_spelling_last_two_segments(clone(name))
-    if len(last_two) > 0 && !eq(clone(last_two), clone(name)) {
-        push(variants, clone(last_two))
+    let last_two = callee_spelling_last_two_segments(name.clone())
+    if len(last_two) > 0 && !eq(last_two.clone(), name.clone()) {
+        push(variants, last_two.clone())
     }
-    let after_first = callee_spelling_after_first_segment(clone(name))
-    if len(after_first) > 0 && !eq(clone(after_first), clone(name)) {
+    let after_first = callee_spelling_after_first_segment(name.clone())
+    if len(after_first) > 0 && !eq(after_first.clone(), name.clone()) {
         let mut seen = false
         let mut i = 0
         while i < len(variants) {
-            if eq(clone(get_unchecked(variants, i)), clone(after_first)) {
+            if eq(get_unchecked(variants, i).clone(), after_first.clone()) {
                 seen = true
                 i = len(variants)
             } else {

@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use std::text
 use corehir::type_contracts
 use corehir::kinds
@@ -34,7 +33,7 @@ fn type_info_display_name(ty: TypeInfo) -> String {
     if tag == 20 { return "fnref" }
     let name = type_contracts::TypeInfo_name(ty)
     if len(name) > 0 {
-        return clone(name)
+        return name.clone()
     }
     "i32"
 }

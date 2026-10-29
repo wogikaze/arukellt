@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use analysis::symbols
 use analysis::symbol_types
 use lsp::feature_request
@@ -21,7 +20,7 @@ pub fn symbol_request_id(sym: LspSymbolRequest) -> i32 {
 }
 
 pub fn symbol_request_uri(sym: LspSymbolRequest) -> String {
-    clone(sym.uri)
+    sym.uri.clone()
 }
 
 pub fn symbol_request_found(sym: LspSymbolRequest) -> bool {
@@ -53,7 +52,7 @@ fn resolve_symbol_request(state: LspState, body: String) -> LspSymbolRequest {
         )
     }
     let req_text = feature_request::text_position_request_text(req)
-    let info = symbols::symbol_at(clone(req_text), feature_request::text_position_request_offset(req))
+    let info = symbols::symbol_at(req_text.clone(), feature_request::text_position_request_offset(req))
     if !symbol_types::symbol_info_found(info) {
         return LspSymbolRequest_new(
             feature_request::text_position_request_id(req),
@@ -66,7 +65,7 @@ fn resolve_symbol_request(state: LspState, body: String) -> LspSymbolRequest {
     }
     let decl_start = symbol_types::symbol_info_decl_start(info)
     let decl_end = symbol_types::symbol_info_decl_end(info)
-    let start = positions::offset_to_position(clone(req_text), decl_start)
-    let end = positions::offset_to_position(clone(req_text), decl_end)
+    let start = positions::offset_to_position(req_text.clone(), decl_start)
+    let end = positions::offset_to_position(req_text.clone(), decl_end)
     LspSymbolRequest_new(feature_request::text_position_request_id(req), feature_request::text_position_request_uri(req), true, info, start, end)
 }

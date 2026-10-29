@@ -4,7 +4,6 @@
 
 use std::core::iter
 use std::test::Test
-use std::prelude::{clone}
 use std::host::stdio
 use std::text
 fn itos(value: i32) -> String {
@@ -20,7 +19,7 @@ fn non_empty(value: String) -> bool {
 }
 
 fn same(value: String) -> String {
-    clone(value)
+    value.clone()
 }
 
 fn main() {

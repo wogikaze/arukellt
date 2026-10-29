@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use corehir::type_id
 use corehir::kinds
 use collections::name_index
@@ -61,7 +60,7 @@ fn type_entry_kind(entry: TypeEntry) -> i32 {
 }
 
 fn type_entry_name(entry: TypeEntry) -> String {
-    clone(entry.name)
+    entry.name.clone()
 }
 
 fn type_entry_type_param_count(entry: TypeEntry) -> i32 {
@@ -102,17 +101,17 @@ fn type_table_find_existing(table: TypeTable, kind: i32, name: String, type_para
 }
 
 fn TypeTable_intern(mut table: TypeTable, kind: i32, name: String, type_param_ids: Vec<TypeId>) -> TypeId {
-    let existing = type_table_find_existing(table, kind, clone(name), type_param_ids)
+    let existing = type_table_find_existing(table, kind, name.clone(), type_param_ids)
     if type_id_is_valid(existing) {
         return existing
     }
     let id = TypeId_new(table.next_id)
     table.next_id = table.next_id + 1
     let entry_index = len(table.entries)
-    push(table.next_same_name, name_index::name_index_get(table.name_head, clone(name)))
-    name_index::name_index_set(table.name_head, clone(name), entry_index)
+    push(table.next_same_name, name_index::name_index_get(table.name_head, name.clone()))
+    name_index::name_index_set(table.name_head, name.clone(), entry_index)
     // The entry owns a copy; `id` is returned below, so it must stay live.
-    let entry = TypeEntry { id: clone(id), kind: kind, name: name, type_param_ids: type_param_ids }
+    let entry = TypeEntry { id: id.clone(), kind: kind, name: name, type_param_ids: type_param_ids }
     push(table.entries, entry)
     id
 }

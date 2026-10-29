@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::function_id
 use mir::function_identity
@@ -52,10 +52,10 @@ fn verify_one_call(inst: MirInst, m: MirModule, mut report: MirVerifyReport, ver
         }
         return
     }
-    if verify_call_w003_excluded(clone(callee)) {
+    if verify_call_w003_excluded(callee.clone()) {
         return
     }
-    if !verify_fn_names_contains(fn_names, clone(callee)) {
+    if !verify_fn_names_contains(fn_names, callee.clone()) {
         mir_verify_report_add_w003(report)
     }
     verify_call_result_type_present(inst, report, verbose, caller)
@@ -106,16 +106,16 @@ fn verify_call_inv8_result_types(inst: MirInst, m: MirModule, mut report: MirVer
 }
 
 fn verify_call_w003_excluded(callee: String) -> bool {
-    if host_intrinsic_stub_names::host_intrinsic_stub_is_known(clone(callee)) {
+    if host_intrinsic_stub_names::host_intrinsic_stub_is_known(callee.clone()) {
         return true
     }
-    if clone(callee).starts_with("__intrinsic_") {
+    if callee.clone().starts_with("__intrinsic_") {
         return true
     }
-    if clone(callee).starts_with("__simd_") {
+    if callee.clone().starts_with("__simd_") {
         return true
     }
-    if eq(clone(callee), "print") || eq(clone(callee), "println") {
+    if eq(callee.clone(), "print") || eq(callee.clone(), "println") {
         return true
     }
     false

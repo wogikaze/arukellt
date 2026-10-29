@@ -1,6 +1,5 @@
 // MIR WIT call lowering (#653).
 
-use std::prelude::{clone}
 use mir::lower::ast_node
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_alloc
@@ -13,7 +12,7 @@ fn try_lower_wit_call(mut ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
         return 0 - 2
     }
     let callee_name = ast_node::node_text(callee)
-    let bind_idx = ctx_wit_bindings::ctx_wit_call_index(ctx, clone(callee_name))
+    let bind_idx = ctx_wit_bindings::ctx_wit_call_index(ctx, callee_name.clone())
     if bind_idx < 0 {
         return 0 - 2
     }

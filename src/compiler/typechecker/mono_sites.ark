@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use typechecker::contract_mono
 use typechecker::contract_env_mono_record
 use typechecker::contract_type_constructors
@@ -11,13 +11,13 @@ fn record_mono_call_site(mut env: TypeEnv, span_start: i32, fn_name: String, man
     let mut i = 0
     while i < count {
         let site = contract_env_mono_record::type_env_mono_call_site_at(env, i)
-        if contract_mono::MonoCallSite_span_start(site) == span_start && eq(contract_mono::MonoCallSite_fn_name(site), clone(fn_name)) {
+        if contract_mono::MonoCallSite_span_start(site) == span_start && eq(contract_mono::MonoCallSite_fn_name(site), fn_name.clone()) {
             return
         }
         i = i + 1
     }
-    contract_env_mono_record::type_env_push_mono_call_site(env, contract_mono::MonoCallSite_new(span_start, clone(fn_name), clone(mangled_name)))
+    contract_env_mono_record::type_env_push_mono_call_site(env, contract_mono::MonoCallSite_new(span_start, fn_name.clone(), mangled_name.clone()))
     let mut marker_args = Vec::new<TypeInfo>()
     push(marker_args, simple_type(0 - span_start - 1000))
-    contract_env_mono_record::type_env_push_mono_instance(env, contract_mono::MonoInstance_new(clone(fn_name), mangled_name, marker_args))
+    contract_env_mono_record::type_env_push_mono_instance(env, contract_mono::MonoInstance_new(fn_name.clone(), mangled_name, marker_args))
 }

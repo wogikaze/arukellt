@@ -2,7 +2,7 @@
 // Extracted from emitter.ark for module-level organization and indentation control.
 // Handles MIR_CONST_I32/I64/F64/STRING opcode emission.
 
-use std::prelude::{clone, f64_bits_hi, f64_bits_lo}
+use std::prelude::{f64_bits_hi, f64_bits_lo}
 use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use wasm::constants
@@ -25,7 +25,7 @@ fn emit_const_i32(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 fn emit_const_i64(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_I64_CONST())
     if len(inst_accessors_literals::MirInst_str_val(inst)) > 0 {
-        let val64 = writer_numbers::parse_decimal_as_i64_emitter(clone(inst_accessors_literals::MirInst_str_val(inst)))
+        let val64 = writer_numbers::parse_decimal_as_i64_emitter(inst_accessors_literals::MirInst_str_val(inst).clone())
         writer_core::emit_leb128_s_i64(w, val64)
     } else {
         writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))

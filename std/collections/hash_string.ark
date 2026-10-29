@@ -8,7 +8,7 @@
 //! `HashSet::new<String>()` plus receiver methods.
 
 use std::core::hash
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 fn hm_si_clear_slots(m: HashMap<String, i32>, cap: i32) {
     __hm_si_set_size(m, 0)
     let mut i: i32 = 0
@@ -53,7 +53,7 @@ fn hm_si_ensure_insert_capacity(m: HashMap<String, i32>, key: String) {
 /// String-keyed set: store key in keys array, value in values array.
 /// The table grows before the load factor exceeds 0.75.
 fn hashmap_str_set(m: HashMap<String, i32>, key: String, value: i32) -> bool {
-    hm_si_ensure_insert_capacity(m, clone(key))
+    hm_si_ensure_insert_capacity(m, key.clone())
     hashmap_str_set_probe(m, key, value)
 }
 
@@ -186,7 +186,7 @@ fn hashmap_str_len(m: HashMap<String, i32>) -> i32 {
 
 /// `HashMap::insert` for HashMap<String, i32>: return the previous value.
 fn hashmap_str_insert(m: HashMap<String, i32>, key: String, value: i32) -> Option<i32> {
-    let old: Option<i32> = hashmap_str_get(m, clone(key))
+    let old: Option<i32> = hashmap_str_get(m, key.clone())
     let _stored: bool = hashmap_str_set(m, key, value)
     old
 }
@@ -487,7 +487,7 @@ fn hm_ss_ensure_insert_capacity(m: HashMap<String, String>, key: String) {
 
 /// String→String set: grows before the load factor exceeds 0.75 (#895).
 fn hashmap_str_str_set(m: HashMap<String, String>, key: String, value: String) -> bool {
-    hm_ss_ensure_insert_capacity(m, clone(key))
+    hm_ss_ensure_insert_capacity(m, key.clone())
     hashmap_str_str_set_probe(m, key, value)
 }
 
@@ -616,7 +616,7 @@ fn hashmap_str_str_len(m: HashMap<String, String>) -> i32 {
 
 /// `HashMap::insert` for HashMap<String, String>: return the previous value.
 fn hashmap_str_str_insert(m: HashMap<String, String>, key: String, value: String) -> Option<String> {
-    let old: Option<String> = hashmap_str_str_get(m, clone(key))
+    let old: Option<String> = hashmap_str_str_get(m, key.clone())
     let _stored: bool = hashmap_str_str_set(m, key, value)
     old
 }
@@ -699,7 +699,7 @@ fn hashset_str_new() -> Vec<String> {
 }
 
 fn hashset_str_insert(mut s: Vec<String>, value: String) -> bool {
-    if vec_string_index_of(s, clone(value)) >= 0 {
+    if vec_string_index_of(s, value.clone()) >= 0 {
         false
     } else {
         push(s, value)
@@ -737,7 +737,7 @@ fn hashset_str_to_vec(s: Vec<String>) -> Vec<String> {
     let mut result: Vec<String> = Vec::new<String>()
     let mut i: i32 = 0
     while i < len(s) {
-        push(result, clone(get_unchecked(s, i)))
+        push(result, get_unchecked(s, i).clone())
         i = i + 1
     }
     result
@@ -755,12 +755,12 @@ fn hashset_str_union(a: Vec<String>, b: Vec<String>) -> Vec<String> {
     let mut result: Vec<String> = hashset_str_new()
     let mut i: i32 = 0
     while i < len(a) {
-        let _ = hashset_str_insert(result, clone(get_unchecked(a, i)))
+        let _ = hashset_str_insert(result, get_unchecked(a, i).clone())
         i = i + 1
     }
     let mut j: i32 = 0
     while j < len(b) {
-        let _ = hashset_str_insert(result, clone(get_unchecked(b, j)))
+        let _ = hashset_str_insert(result, get_unchecked(b, j).clone())
         j = j + 1
     }
     result
@@ -771,7 +771,7 @@ fn hashset_str_intersection(a: Vec<String>, b: Vec<String>) -> Vec<String> {
     let mut i: i32 = 0
     while i < len(a) {
         let value: String = get_unchecked(a, i)
-        if hashset_str_contains(b, clone(value)) {
+        if hashset_str_contains(b, value.clone()) {
             let _ = hashset_str_insert(result, value)
         }
         i = i + 1
@@ -784,7 +784,7 @@ fn hashset_str_difference(a: Vec<String>, b: Vec<String>) -> Vec<String> {
     let mut i: i32 = 0
     while i < len(a) {
         let value: String = get_unchecked(a, i)
-        if !hashset_str_contains(b, clone(value)) {
+        if !hashset_str_contains(b, value.clone()) {
             let _ = hashset_str_insert(result, value)
         }
         i = i + 1

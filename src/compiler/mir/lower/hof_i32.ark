@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
@@ -20,7 +20,7 @@ fn mir_lower_hof_i32(
 ) -> i32 {
     // map_String_String / filter_String ride the i32 HOF plan but operate on
     // Vec<String>; their element and mapped values are GC string refs.
-    let hof32_is_string = eq(clone(hof_callee_text), "map_String_String") || eq(clone(hof_callee_text), "filter_String")
+    let hof32_is_string = eq(hof_callee_text.clone(), "map_String_String") || eq(hof_callee_text.clone(), "filter_String")
     let mut hof32_elem_vt = value_types::VT_I32()
     if hof32_is_string {
         hof32_elem_vt = value_types::VT_GC_REF()
@@ -64,7 +64,7 @@ fn emit_i32_result_vec(mut ctx: LowerCtx, hof_callee_text: String, is_fold_i32_i
     let hof32_result_local = hof_results::hof_result_local(ctx)
     if !is_fold_i32_i32 {
         hof_results::emit_hof_result_vec_init(ctx, hof32_result_local, "Vec::new__i32", "vec:i32")
-        if eq(clone(hof_callee_text), "map_String_String") || eq(clone(hof_callee_text), "filter_String") {
+        if eq(hof_callee_text.clone(), "map_String_String") || eq(hof_callee_text.clone(), "filter_String") {
             ctx_api_local_types::ctx_set_local_type(ctx, hof32_result_local, "vec:String")
         }
     }

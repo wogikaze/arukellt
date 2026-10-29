@@ -13,7 +13,7 @@ use wasm::ctx_record
 // Without this, emit_local_decls calls local_is_direct_gc_struct_new_dest /
 // infer_ref_local_gc_type once per local, each rescanning the whole body.
 
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 fn begin_function_local_gc_cache(mut ctx: SelfEmitCtx, f: MirFunction) {
     let local_count = function_locals_view::MirFunction_local_count(f)
     let mut infer = Vec::new<i32>()
@@ -116,7 +116,7 @@ fn begin_function_local_gc_cache(mut ctx: SelfEmitCtx, f: MirFunction) {
 // Keeps the first size seen per name so lookups match the body-order scan
 // they replace.
 fn record_struct_new_size(mut names: Vec<String>, mut sizes: Vec<i32>, struct_name: String, byte_size: i32) {
-    if struct_new_size_index(names, clone(struct_name)) >= 0 {
+    if struct_new_size_index(names, struct_name.clone()) >= 0 {
         return
     }
     push(names, struct_name)
@@ -127,7 +127,7 @@ fn struct_new_size_index(names: Vec<String>, struct_name: String) -> i32 {
     let count = len(names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(names, i), clone(struct_name)) {
+        if eq(get_unchecked(names, i), struct_name.clone()) {
             return i
         }
         i = i + 1

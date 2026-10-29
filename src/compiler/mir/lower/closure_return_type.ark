@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::function_locals_view
 use mir::function_return_mutation
 use mir::local_access
@@ -27,19 +27,19 @@ fn mir_set_closure_return_from_local(mut ctx: LowerCtx, mut f: MirFunction, res_
         ret_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
     }
     if len(ret_type) > 0 {
-        ret_type = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(ret_type))
+        ret_type = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, ret_type.clone())
     } else {
         if ret_vt == value_types::VT_GC_REF() {
             ret_type = "String"
         }
     }
-    if clone(ret_type).starts_with("struct:") ||
-    eq(clone(ret_type), "String") ||
-    eq(clone(ret_type), "string") ||
-    clone(ret_type).starts_with("enum:") ||
-    clone(ret_type).starts_with("vec:") ||
-    clone(ret_type).starts_with("Option_") ||
-    clone(ret_type).starts_with("Result_") {
+    if ret_type.clone().starts_with("struct:") ||
+    eq(ret_type.clone(), "String") ||
+    eq(ret_type.clone(), "string") ||
+    ret_type.clone().starts_with("enum:") ||
+    ret_type.clone().starts_with("vec:") ||
+    ret_type.clone().starts_with("Option_") ||
+    ret_type.clone().starts_with("Result_") {
         ret_vt = value_types::VT_GC_REF()
     }
     function_return_mutation::MirFunction_set_return_type(f, ret_vt)

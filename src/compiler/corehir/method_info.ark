@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use corehir::param
 use corehir::semantic_trait_id
 use corehir::value_types
@@ -66,7 +65,7 @@ fn method_info_index_for_method(method_infos: Vec<CoreHirMethodInfo>, impl_decl_
 fn method_info_mangled_name_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32, fallback: String) -> String {
     if info_index >= 0 && info_index < len(method_infos) {
         let info = get_unchecked(method_infos, info_index)
-        return clone(info.mangled_name)
+        return info.mangled_name.clone()
     }
     fallback
 }
@@ -123,7 +122,7 @@ fn method_info_owner_name_for_impl(method_infos: Vec<CoreHirMethodInfo>, impl_de
     while i < count {
         let info = get_unchecked(method_infos, i)
         if info.impl_decl_index == impl_decl_index {
-            return clone(info.owner_name)
+            return info.owner_name.clone()
         }
         i = i + 1
     }
@@ -155,7 +154,7 @@ fn method_info_return_vt_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i3
 fn method_info_return_type_name_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32, fallback: String) -> String {
     if info_index >= 0 && info_index < len(method_infos) {
         let info = get_unchecked(method_infos, info_index)
-        return clone(info.return_type_name)
+        return info.return_type_name.clone()
     }
     fallback
 }

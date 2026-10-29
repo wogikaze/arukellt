@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::inst_local_get
 use mir::inst_convert
 use mir::value_types
@@ -25,7 +25,7 @@ use mir::lower_kinds
 use mir::lower::value_variants
 fn lower_core_direct_call_args(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32) -> i32 {
     let callee_name = core_expr_shape_accessors::mir_core_expr_text(expr)
-    if eq(clone(callee_name), "String_from") && child_count == 2 {
+    if eq(callee_name.clone(), "String_from") && child_count == 2 {
         let arg_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 1))
         if core_expr_shape_atoms::mir_core_expr_is_string(arg_expr) {
             return core_literals::lower_core_literal_value(ctx, arg_expr)
@@ -47,7 +47,7 @@ fn lower_core_direct_call_args(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
             return call_indirect_emit::mir_lower_indirect_call(ctx, exprs, expr, child_count, callee_local)
         }
     }
-    let is_println = core_call_args::mir_core_is_printlike_callee(clone(callee_name))
+    let is_println = core_call_args::mir_core_is_printlike_callee(callee_name.clone())
     let stage_call_args = !is_println && child_count > 2
     let mut staged_arg_locals = Vec::new<i32>()
     let mut arg_widen_i64 = Vec::new<i32>()
@@ -56,7 +56,7 @@ fn lower_core_direct_call_args(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
     let mut lane_immediate = 0 - 1
     let mut receiver_writeback = 0 - 1
     let mut call_result = 0 - 1
-    let lane_immediate_position = call_emit::mir_simd_lane_immediate_argument_index(clone(callee_name))
+    let lane_immediate_position = call_emit::mir_simd_lane_immediate_argument_index(callee_name.clone())
     let mut a = 1
     if child_count == 1 {
         call_result = call_emit::mir_emit_direct_call(
@@ -116,7 +116,7 @@ fn lower_core_direct_call_args(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
             arg_idx = staged_ident_local
         } else if needs_print_convert {
             arg_idx = core_names::mir_core_lookup_local(ctx, arg_expr)
-        } else if core_expr_shape_atoms::mir_core_expr_is_int(arg_expr) && call_arg_i64::mir_should_force_int_lit_i64(ctx, clone(callee_name), param_idx) {
+        } else if core_expr_shape_atoms::mir_core_expr_is_int(arg_expr) && call_arg_i64::mir_should_force_int_lit_i64(ctx, callee_name.clone(), param_idx) {
             arg_idx = core_literals::lower_core_int_literal_forced_i64(ctx, arg_expr)
         } else if core_expr_shape_ops::mir_core_expr_is_unary(arg_expr) &&
             core_expr_shape_accessors::mir_core_expr_int_val(arg_expr) == lower_kinds::UOP_NEG() &&
@@ -124,7 +124,7 @@ fn lower_core_direct_call_args(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
                 // -100 passed to format_i64 / parse_i64 must be i64 NEG, not i32 (#807).
                 let unary_operand = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(arg_expr, 0))
                 if core_expr_shape_atoms::mir_core_expr_is_int(unary_operand) &&
-                call_arg_i64::mir_should_force_int_lit_i64(ctx, clone(callee_name), param_idx) {
+                call_arg_i64::mir_should_force_int_lit_i64(ctx, callee_name.clone(), param_idx) {
                     arg_idx = core_literals::lower_core_unary_neg_forced_i64(ctx, unary_operand)
                 } else {
                     arg_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
@@ -132,8 +132,8 @@ fn lower_core_direct_call_args(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
                         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(arg_idx))
                     }
                 }
-            } else if mir_core_arg_is_fn_value_for_param(ctx, clone(callee_name), arg_expr, param_idx) ||
-                mir_core_vec_push_arg_is_fn(ctx, clone(callee_name), arg_expr, param_idx, first_arg_idx) {
+            } else if mir_core_arg_is_fn_value_for_param(ctx, callee_name.clone(), arg_expr, param_idx) ||
+                mir_core_vec_push_arg_is_fn(ctx, callee_name.clone(), arg_expr, param_idx, first_arg_idx) {
                     arg_idx = value_variants::lower_function_value(ctx, core_expr_shape_accessors::mir_core_expr_text(arg_expr))
                 } else {
                     arg_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
@@ -141,7 +141,7 @@ fn lower_core_direct_call_args(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
                         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(arg_idx))
                     }
                 }
-                if arg_idx >= 0 && call_arg_i64::mir_should_wrap_i64_arg_to_i32(ctx, clone(callee_name), param_idx) {
+                if arg_idx >= 0 && call_arg_i64::mir_should_wrap_i64_arg_to_i32(ctx, callee_name.clone(), param_idx) {
                     arg_idx = binary_cast::mir_wrap_i64_to_i32_if_needed(ctx, arg_idx)
                 }
                 arg_idx = core_call_direct_arg::mir_lower_core_direct_print_arg(ctx, arg_expr, arg_idx, is_println, a)
@@ -149,12 +149,12 @@ fn lower_core_direct_call_args(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
                 // i32 locals as real i32 on the operand stack. Unstaged args
                 // are already pushed; staged args widen on re-read (#923).
                 let needs_i64_arg_widen = arg_idx >= 0 &&
-                call_arg_i64::mir_callee_param_is_i64(ctx, clone(callee_name), param_idx) &&
+                call_arg_i64::mir_callee_param_is_i64(ctx, callee_name.clone(), param_idx) &&
                 ctx_api_local_types::ctx_local_vt(ctx, arg_idx) == value_types::VT_I32()
                 if !stage_call_args && needs_i64_arg_widen {
                     ctx_api_emit::ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64_stack())
                 }
-                if a == 1 && eq(clone(callee_name), String_from("push_char")) && arg_idx >= 0 {
+                if a == 1 && eq(callee_name.clone(), String_from("push_char")) && arg_idx >= 0 {
                     receiver_writeback = arg_idx
                 }
                 let mut staged_arg_now = false
@@ -204,7 +204,7 @@ fn lower_core_direct_call_args(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
                 return false
             }
             let arg_name = core_expr_shape_accessors::mir_core_expr_text(arg_expr)
-            if core_names::mir_function_parameter_count(ctx, clone(arg_name)) < 0 {
+            if core_names::mir_function_parameter_count(ctx, arg_name.clone()) < 0 {
                 return false
             }
             call_arg_i64::mir_callee_param_is_funcref(ctx, callee_name, param_idx)
@@ -227,7 +227,7 @@ fn lower_core_direct_call_args(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
                 return false
             }
             let arg_name = core_expr_shape_accessors::mir_core_expr_text(arg_expr)
-            if core_names::mir_function_parameter_count(ctx, clone(arg_name)) < 0 {
+            if core_names::mir_function_parameter_count(ctx, arg_name.clone()) < 0 {
                 return false
             }
             let vec_type = ctx_api_local_types::ctx_get_local_type(ctx, vec_idx)

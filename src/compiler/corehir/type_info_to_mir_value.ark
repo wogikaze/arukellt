@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::mir_value_type
 use corehir::kinds
@@ -34,7 +34,7 @@ fn type_info_nullability_approx(tag: i32) -> i32 {
 
 fn vt_to_mir_value(mut table: TypeTable, val_type: i32, type_name: String) -> MirValueType {
     if len(type_name) > 0 {
-        return mir_value_type_from_type_name(table, clone(type_name), val_type)
+        return mir_value_type_from_type_name(table, type_name.clone(), val_type)
     }
     let tag = vt_tag_from_mir_vt(val_type)
     let ty = type_contracts::TypeInfo_simple(tag)
@@ -53,42 +53,42 @@ fn vt_tag_from_mir_vt(vt: i32) -> i32 {
 }
 
 fn mir_value_type_from_type_name(mut table: TypeTable, type_name: String, val_type: i32) -> MirValueType {
-    if eq(clone(type_name), String_from("fn")) ||
-    clone(type_name).starts_with(String_from("fnref")) ||
-    clone(type_name).starts_with(String_from("fnsig:")) ||
-    clone(type_name).starts_with(String_from("fn(")) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), clone(type_name), Vec::new<TypeId>())
+    if eq(type_name.clone(), String_from("fn")) ||
+    type_name.clone().starts_with(String_from("fnref")) ||
+    type_name.clone().starts_with(String_from("fnsig:")) ||
+    type_name.clone().starts_with(String_from("fn(")) {
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), type_name.clone(), Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NULLABLE())
     }
-    if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
+    if eq(type_name.clone(), String_from("String")) || eq(type_name.clone(), String_from("string")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRING(), String_from("String"), Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_LINEAR_PTR(), kinds::NULLABILITY_NULLABLE())
     }
-    if clone(type_name).starts_with(String_from("struct:")) {
+    if type_name.clone().starts_with(String_from("struct:")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRUCT(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
-    if clone(type_name).starts_with(String_from("enum:")) {
+    if type_name.clone().starts_with(String_from("enum:")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_ENUM(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
-    if clone(type_name).starts_with(String_from("vec:")) {
+    if type_name.clone().starts_with(String_from("vec:")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_VEC(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
-    if clone(type_name).starts_with(String_from("hashmap:")) {
+    if type_name.clone().starts_with(String_from("hashmap:")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_HASHMAP(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
-    if clone(type_name).starts_with(String_from("hashset:")) {
+    if type_name.clone().starts_with(String_from("hashset:")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_HASHSET(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
-    if clone(type_name).starts_with(String_from("option:")) || clone(type_name).starts_with(String_from("Option_")) {
+    if type_name.clone().starts_with(String_from("option:")) || type_name.clone().starts_with(String_from("Option_")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_OPTION(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
-    if clone(type_name).starts_with(String_from("result:")) || clone(type_name).starts_with(String_from("Result_")) {
+    if type_name.clone().starts_with(String_from("result:")) || type_name.clone().starts_with(String_from("Result_")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
@@ -98,8 +98,8 @@ fn mir_value_type_from_type_name(mut table: TypeTable, type_name: String, val_ty
     // Only upgrade when val_type is already a GC/ref; leave other bare names
     // alone so scalar/fnref locals are not rewritten into struct refs.
     if val_type == value_types::VT_GC_REF() || val_type == value_types::VT_REF() {
-        if !type_name_is_scalar_primitive(clone(type_name)) {
-            let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRUCT(), clone(type_name), Vec::new<TypeId>())
+        if !type_name_is_scalar_primitive(type_name.clone()) {
+            let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRUCT(), type_name.clone(), Vec::new<TypeId>())
             return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
         }
     }
@@ -109,26 +109,26 @@ fn mir_value_type_from_type_name(mut table: TypeTable, type_name: String, val_ty
 }
 
 fn type_name_is_scalar_primitive(type_name: String) -> bool {
-    if eq(clone(type_name), String_from("i32")) || eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("f64")) || eq(clone(type_name), String_from("f32")) {
+    if eq(type_name.clone(), String_from("i32")) || eq(type_name.clone(), String_from("i64")) || eq(type_name.clone(), String_from("f64")) || eq(type_name.clone(), String_from("f32")) {
         return true
     }
-    if eq(clone(type_name), String_from("bool")) ||
-    eq(clone(type_name), String_from("char")) ||
-    eq(clone(type_name), String_from("u8")) ||
-    eq(clone(type_name), String_from("i8")) ||
-    eq(clone(type_name), String_from("u16")) ||
-    eq(clone(type_name), String_from("u32")) ||
-    eq(clone(type_name), String_from("u64")) ||
-    eq(clone(type_name), String_from("i16")) {
+    if eq(type_name.clone(), String_from("bool")) ||
+    eq(type_name.clone(), String_from("char")) ||
+    eq(type_name.clone(), String_from("u8")) ||
+    eq(type_name.clone(), String_from("i8")) ||
+    eq(type_name.clone(), String_from("u16")) ||
+    eq(type_name.clone(), String_from("u32")) ||
+    eq(type_name.clone(), String_from("u64")) ||
+    eq(type_name.clone(), String_from("i16")) {
         return true
     }
-    if eq(clone(type_name), String_from("void")) || eq(clone(type_name), String_from("()")) || eq(clone(type_name), String_from("v128")) {
+    if eq(type_name.clone(), String_from("void")) || eq(type_name.clone(), String_from("()")) || eq(type_name.clone(), String_from("v128")) {
         return true
     }
     // Function refs stay scalar/i32 (or funcref) — not GC structs.
-    if eq(clone(type_name), String_from("fnref")) ||
-    eq(clone(type_name), String_from("fn")) ||
-    clone(type_name).starts_with(String_from("fnsig:")) {
+    if eq(type_name.clone(), String_from("fnref")) ||
+    eq(type_name.clone(), String_from("fn")) ||
+    type_name.clone().starts_with(String_from("fnsig:")) {
         return true
     }
     false
@@ -164,7 +164,7 @@ fn mvt_gc_layout_alias(table: TypeTable, mvt: MirValueType) -> String {
         // Tag-only spine intern (type_info_to_type_id) yields bare container
         // names without element aliases. Those must not overwrite concrete
         // CoreHIR names such as option:fnref / vec:String (#831).
-        if mvt_gc_layout_alias_is_bare_container(clone(name)) {
+        if mvt_gc_layout_alias_is_bare_container(name.clone()) {
             return String_new()
         }
         return name
@@ -173,10 +173,10 @@ fn mvt_gc_layout_alias(table: TypeTable, mvt: MirValueType) -> String {
 }
 
 fn mvt_gc_layout_alias_is_bare_container(name: String) -> bool {
-    eq(clone(name), String_from("Option")) ||
-    eq(clone(name), String_from("Result")) ||
-    eq(clone(name), String_from("Vec")) ||
-    eq(clone(name), String_from("HashMap"))
+    eq(name.clone(), String_from("Option")) ||
+    eq(name.clone(), String_from("Result")) ||
+    eq(name.clone(), String_from("Vec")) ||
+    eq(name.clone(), String_from("HashMap"))
 }
 
 // True when a CoreHIR-shaped local type must be kept over a tag-only MVT alias.
@@ -184,19 +184,19 @@ fn concrete_type_outranks_mvt_alias(local_type: String, alias: String) -> bool {
     if len(local_type) == 0 {
         return false
     }
-    if !mvt_gc_layout_alias_is_bare_container(clone(alias)) {
+    if !mvt_gc_layout_alias_is_bare_container(alias.clone()) {
         return false
     }
-    clone(local_type).starts_with(String_from("option:")) ||
-    clone(local_type).starts_with(String_from("Option_")) ||
-    clone(local_type).starts_with(String_from("Option:")) ||
-    clone(local_type).starts_with(String_from("result:")) ||
-    clone(local_type).starts_with(String_from("Result_")) ||
-    clone(local_type).starts_with(String_from("Result:")) ||
-    clone(local_type).starts_with(String_from("vec:")) ||
-    clone(local_type).starts_with(String_from("hashmap:")) ||
-    eq(clone(local_type), String_from("fnref")) ||
-    clone(local_type).starts_with(String_from("fnsig:"))
+    local_type.clone().starts_with(String_from("option:")) ||
+    local_type.clone().starts_with(String_from("Option_")) ||
+    local_type.clone().starts_with(String_from("Option:")) ||
+    local_type.clone().starts_with(String_from("result:")) ||
+    local_type.clone().starts_with(String_from("Result_")) ||
+    local_type.clone().starts_with(String_from("Result:")) ||
+    local_type.clone().starts_with(String_from("vec:")) ||
+    local_type.clone().starts_with(String_from("hashmap:")) ||
+    eq(local_type.clone(), String_from("fnref")) ||
+    local_type.clone().starts_with(String_from("fnsig:"))
 }
 
 // Convert a concrete MirValueType back to the GC-layout alias string used by

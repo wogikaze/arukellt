@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::entry_emit_method
 use mir::lower::ctx_mono_index
 use mir::lower::entry_fns_mono
@@ -20,7 +19,7 @@ fn mir_emit_method_mono_bodies(
     midx: MonoIndex
 ) {
     let generic_rtn = entry_view_method::mir_entry_method_return_type_name_at(entry_view, method_info_index)
-    let method_mono_emit_count_raw = mono::mono_index_count(midx, clone(mangled))
+    let method_mono_emit_count_raw = mono::mono_index_count(midx, mangled.clone())
     // A generic impl method with no recorded instance has no call site: its
     // template body would lower type-variable receivers/params as scalar
     // placeholders, which is not valid Wasm on gc. Top-level generic fns are
@@ -30,7 +29,7 @@ fn mir_emit_method_mono_bodies(
     entry_view_method::mir_entry_method_type_param_count_at(entry_view, method_info_index, 0) > 0 {
         return
     }
-    let generic_return_ty = fn_index_method_return_type::method_generic_return_type_from_name(clone(generic_rtn), method_mono_emit_count_raw > 0)
+    let generic_return_ty = fn_index_method_return_type::method_generic_return_type_from_name(generic_rtn.clone(), method_mono_emit_count_raw > 0)
     let method_mono_emit_count = method_mono_emit_count_raw + 1
     let mut method_mono_emit_i = 0
     // Top-level fns omit the unsubstituted generic when instances exist.
@@ -40,29 +39,29 @@ fn mir_emit_method_mono_bodies(
         method_mono_emit_i = 1
     }
     while method_mono_emit_i < method_mono_emit_count {
-        let mut emit_method_name = clone(mangled)
+        let mut emit_method_name = mangled.clone()
         if method_mono_emit_i > 0 {
-            emit_method_name = mono::mono_safe_name(mono::mono_index_mangled_at(midx, clone(mangled), method_mono_emit_i - 1))
+            emit_method_name = mono::mono_safe_name(mono::mono_index_mangled_at(midx, mangled.clone(), method_mono_emit_i - 1))
         }
         if method_mono_emit_i > 0 {
-            let emit_inst = ctx_mono_index::ctx_mono_instance_at(ctx, clone(emit_method_name))
+            let emit_inst = ctx_mono_index::ctx_mono_instance_at(ctx, emit_method_name.clone())
             if len(type_contracts::MonoInstance_mangled_name(emit_inst)) > 0 &&
             !type_contracts::MonoInstance_demanded(emit_inst) {
                 method_mono_emit_i = method_mono_emit_i + 1
                 continue
             }
-            if clone(emit_method_name).contains(String_from("?")) {
+            if emit_method_name.clone().contains(String_from("?")) {
                 method_mono_emit_i = method_mono_emit_i + 1
                 continue
             }
         }
         let mut return_vt = return_typeinfo::mir_return_vt_from_type_info(generic_return_ty)
-        let mut rt_type_name = clone(generic_rtn)
+        let mut rt_type_name = generic_rtn.clone()
         if len(rt_type_name) == 0 && method_mono_emit_count_raw > 0 {
             rt_type_name = "T"
         }
         if method_mono_emit_i > 0 || method_mono_emit_count_raw > 0 {
-            let concrete = entry_fns_mono::mono_instantiate_return_from_instance(ctx, clone(emit_method_name), generic_return_ty)
+            let concrete = entry_fns_mono::mono_instantiate_return_from_instance(ctx, emit_method_name.clone(), generic_return_ty)
             if type_contracts::TypeInfo_tag(concrete) != 0 {
                 return_vt = return_typeinfo::mir_return_vt_from_type_info(concrete)
                 if return_vt == value_types::VT_REF() && ctx_gc_enum::ctx_is_gc_target(ctx) {
@@ -70,10 +69,10 @@ fn mir_emit_method_mono_bodies(
                 }
                 rt_type_name = return_typeinfo::mir_return_type_name_from_type_info(concrete)
             } else {
-                let suffix_rtn = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(clone(emit_method_name), clone(generic_rtn))
+                let suffix_rtn = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(emit_method_name.clone(), generic_rtn.clone())
                 if len(suffix_rtn) > 0 {
-                    rt_type_name = clone(suffix_rtn)
-                    return_vt = fn_index_method_return_type::method_return_vt_from_type_name(clone(suffix_rtn))
+                    rt_type_name = suffix_rtn.clone()
+                    return_vt = fn_index_method_return_type::method_return_vt_from_type_name(suffix_rtn.clone())
                     if return_vt == value_types::VT_REF() && ctx_gc_enum::ctx_is_gc_target(ctx) {
                         return_vt = value_types::VT_GC_REF()
                     }
@@ -81,9 +80,9 @@ fn mir_emit_method_mono_bodies(
             }
         }
         entry_emit_method::mir_emit_method_body(
-            ctx, body_input, clone(struct_name), clone(mangled), emit_method_name,
+            ctx, body_input, struct_name.clone(), mangled.clone(), emit_method_name,
             method_param_count, entry_view, method_info_index, return_vt, rt_type_name,
-            clone(generic_rtn)
+            generic_rtn.clone()
         )
         method_mono_emit_i = method_mono_emit_i + 1
     }

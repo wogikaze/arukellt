@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use wasm::call_text_core
 use wasm::call_text_extra
 use wasm::inst_store
@@ -168,7 +168,7 @@ fn to_string_arg_is_ref(inst: MirInst, ctx: SelfEmitCtx) -> bool {
     }
     let loc = call_text_mir_view::local_at(f, arg0)
     let type_name = call_text_mir_view::local_type_name(loc)
-    if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
+    if eq(type_name.clone(), "String") || eq(type_name.clone(), "string") {
         return true
     }
     false
@@ -194,10 +194,10 @@ fn to_string_arg_vt(inst: MirInst, ctx: SelfEmitCtx) -> i32 {
     }
     let loc = call_text_mir_view::local_at(f, arg0)
     let type_name = call_text_mir_view::local_type_name(loc)
-    if eq(clone(type_name), "i64") || eq(clone(type_name), "I64") {
+    if eq(type_name.clone(), "i64") || eq(type_name.clone(), "I64") {
         return call_text_mir_view::VT_I64()
     }
-    if eq(clone(type_name), "f64") || eq(clone(type_name), "F64") {
+    if eq(type_name.clone(), "f64") || eq(type_name.clone(), "F64") {
         return call_text_mir_view::VT_F64()
     }
     // Fallback: check the local's val_type for i64/f64.

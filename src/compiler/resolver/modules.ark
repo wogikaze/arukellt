@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 pub struct ModuleDecls {
     name: String,
     decls: Vec<AstNode>,
@@ -9,7 +9,7 @@ fn ModuleDecls_new(name: String, decls: Vec<AstNode>) -> ModuleDecls {
 }
 
 fn module_name(module: ModuleDecls) -> String {
-    clone(module.name)
+    module.name.clone()
 }
 
 fn module_decl_count(module: ModuleDecls) -> i32 {
@@ -27,7 +27,7 @@ fn module_registered(modules: Vec<ModuleDecls>, name: String) -> bool {
     let count = len(modules)
     let mut i = 0
     while i < count {
-        if eq(modules::module_name(get_unchecked(modules, i)), clone(name)) {
+        if eq(modules::module_name(get_unchecked(modules, i)), name.clone()) {
             return true
         }
         i = i + 1

@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use mir::typeinfo_shape
 use mir::lower::return_typeinfo_names
@@ -125,7 +125,7 @@ fn mir_fn_return_type_name_from_type_info(ty: TypeInfo) -> String {
         let ret_seg_zero = return_typeinfo_names::mir_generic_inst_arg_type_name(
             typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
         )
-        if len(ret_seg_zero) == 0 || type_ann_node::fn_sig_segment_is_i32_family(clone(ret_seg_zero)) {
+        if len(ret_seg_zero) == 0 || type_ann_node::fn_sig_segment_is_i32_family(ret_seg_zero.clone()) {
             return String_from("fnref")
         }
         return String_from("fnsig:;").concat(ret_seg_zero)
@@ -137,17 +137,17 @@ fn mir_fn_return_type_name_from_type_info(ty: TypeInfo) -> String {
         let rseg = return_typeinfo_names::mir_generic_inst_arg_type_name(
             typeinfo_shape::mir_type_info_type_arg_at(ty, 1)
         )
-        if eq(clone(pseg), String_from("String")) && eq(clone(rseg), String_from("String")) {
+        if eq(pseg.clone(), String_from("String")) && eq(rseg.clone(), String_from("String")) {
             return String_from("fnrefss")
         }
-        if eq(clone(pseg), String_from("String")) && eq(clone(rseg), String_from("bool")) {
+        if eq(pseg.clone(), String_from("String")) && eq(rseg.clone(), String_from("bool")) {
             return String_from("fnrefsb")
         }
-        if type_ann_node::fn_sig_segment_is_i32_family(clone(pseg)) &&
-        type_ann_node::fn_sig_segment_is_i32_family(clone(rseg)) {
+        if type_ann_node::fn_sig_segment_is_i32_family(pseg.clone()) &&
+        type_ann_node::fn_sig_segment_is_i32_family(rseg.clone()) {
             return String_from("fnref")
         }
-        return String_from("fnsig:").concat(clone(pseg).concat(String_from(";").concat(rseg)))
+        return String_from("fnsig:").concat(pseg.clone().concat(String_from(";").concat(rseg)))
     }
     if argc > 2 {
         // Mirror the multi-param annotation rule: a named non-scalar return
@@ -157,7 +157,7 @@ fn mir_fn_return_type_name_from_type_info(ty: TypeInfo) -> String {
             typeinfo_shape::mir_type_info_type_arg_at(ty, argc - 1)
         )
         if len(ret_seg_multi) > 0 &&
-        !type_ann_node::fn_sig_segment_is_i32_family(clone(ret_seg_multi)) {
+        !type_ann_node::fn_sig_segment_is_i32_family(ret_seg_multi.clone()) {
             let mut params = String_new()
             let mut pi = 0
             let mut unresolved = false
@@ -175,7 +175,7 @@ fn mir_fn_return_type_name_from_type_info(ty: TypeInfo) -> String {
                 pi = pi + 1
             }
             if !unresolved {
-                return String_from("fnsig:").concat(clone(params).concat(String_from(";").concat(ret_seg_multi)))
+                return String_from("fnsig:").concat(params.clone().concat(String_from(";").concat(ret_seg_multi)))
             }
         }
         return String_from("fnref2")
@@ -184,9 +184,9 @@ fn mir_fn_return_type_name_from_type_info(ty: TypeInfo) -> String {
 }
 
 fn mir_return_type_name_is_fnref(type_name: String) -> bool {
-    eq(clone(type_name), "fnref") ||
-    eq(clone(type_name), "fn") ||
-    clone(type_name).starts_with("fn(")
+    eq(type_name.clone(), "fnref") ||
+    eq(type_name.clone(), "fn") ||
+    type_name.clone().starts_with("fn(")
 }
 
 // Build a return type name for enum types.  For Result, include type

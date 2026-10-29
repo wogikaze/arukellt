@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use driver::cli_arg_options
 use driver::cli_arg_position
 
@@ -33,11 +32,11 @@ fn parse_legacy_compile_args(args: Vec<String>, argc: i32, arg_start: i32, mut c
 }
 
 fn legacy_compile_args_input_path(parsed: LegacyCompileArgs) -> String {
-    clone(parsed.input_path)
+    parsed.input_path.clone()
 }
 
 fn legacy_compile_args_output_path(parsed: LegacyCompileArgs) -> String {
-    clone(parsed.output_path)
+    parsed.output_path.clone()
 }
 
 fn legacy_compile_args_has_output(parsed: LegacyCompileArgs) -> bool {

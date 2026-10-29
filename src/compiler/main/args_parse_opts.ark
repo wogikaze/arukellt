@@ -1,11 +1,11 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use main::args_record
 use main::args_record_opt
 use main::commands
 pub fn parse_target_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        args_record::cli_set_target(opts, clone(get_unchecked(argv, next)))
+        args_record::cli_set_target(opts, get_unchecked(argv, next).clone())
     }
     next
 }
@@ -16,10 +16,10 @@ pub fn parse_memory_width_option(argv: Vec<String>, argc: i32, mut opts: CliOpti
         args_record::cli_set_error(opts, String_from("--memory-width requires auto, memory32, or memory64"))
         return next
     }
-    let width = clone(get_unchecked(argv, next))
-    if eq(clone(width), String_from("auto")) ||
-    eq(clone(width), String_from("memory32")) ||
-    eq(clone(width), String_from("memory64")) {
+    let width = get_unchecked(argv, next).clone()
+    if eq(width.clone(), String_from("auto")) ||
+    eq(width.clone(), String_from("memory32")) ||
+    eq(width.clone(), String_from("memory64")) {
         args_record::cli_set_memory_width(opts, width)
         return next
     }
@@ -30,17 +30,17 @@ pub fn parse_memory_width_option(argv: Vec<String>, argc: i32, mut opts: CliOpti
 pub fn parse_wasi_version_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        let input = clone(get_unchecked(argv, next))
-        if eq(clone(input), String_from("p1")) {
+        let input = get_unchecked(argv, next).clone()
+        if eq(input.clone(), String_from("p1")) {
             args_record::cli_set_wasi_version(opts, String_from("wasi-p1"))
             args_record::cli_set_wasi_version_explicit(opts, true)
-        } else if eq(clone(input), String_from("p2")) {
+        } else if eq(input.clone(), String_from("p2")) {
             args_record::cli_set_wasi_version(opts, String_from("wasi-p2"))
             args_record::cli_set_wasi_version_explicit(opts, true)
-        } else if eq(clone(input), String_from("p3")) {
+        } else if eq(input.clone(), String_from("p3")) {
             args_record::cli_set_wasi_version(opts, String_from("wasi-p3"))
             args_record::cli_set_wasi_version_explicit(opts, true)
-        } else if eq(clone(input), String_from("wasi-p1")) || eq(clone(input), String_from("wasi-p2")) || eq(clone(input), String_from("wasi-p3")) {
+        } else if eq(input.clone(), String_from("wasi-p1")) || eq(input.clone(), String_from("wasi-p2")) || eq(input.clone(), String_from("wasi-p3")) {
             args_record::cli_set_wasi_version(opts, input)
             args_record::cli_set_wasi_version_explicit(opts, true)
         } else {
@@ -55,7 +55,7 @@ pub fn parse_wasi_version_option(argv: Vec<String>, argc: i32, mut opts: CliOpti
 pub fn parse_emit_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        args_record::cli_set_emit_mode(opts, clone(get_unchecked(argv, next)))
+        args_record::cli_set_emit_mode(opts, get_unchecked(argv, next).clone())
     }
     next
 }
@@ -63,7 +63,7 @@ pub fn parse_emit_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: 
 pub fn parse_dump_phases_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        args_record::cli_set_dump_phases(opts, clone(get_unchecked(argv, next)))
+        args_record::cli_set_dump_phases(opts, get_unchecked(argv, next).clone())
     }
     next
 }
@@ -72,7 +72,7 @@ pub fn parse_opt_level_option(argv: Vec<String>, argc: i32, mut opts: CliOptions
     let next = i + 1
     if next < argc {
         let val = get_unchecked(argv, next)
-        args_record::cli_set_opt_level(opts, args_record_opt::parse_opt_level_value(clone(val), args_record::cli_opt_level(opts)))
+        args_record::cli_set_opt_level(opts, args_record_opt::parse_opt_level_value(val.clone(), args_record::cli_opt_level(opts)))
     }
     next
 }
@@ -80,7 +80,7 @@ pub fn parse_opt_level_option(argv: Vec<String>, argc: i32, mut opts: CliOptions
 pub fn parse_wit_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        args_record::cli_add_wit_path(opts, clone(get_unchecked(argv, next)))
+        args_record::cli_add_wit_path(opts, get_unchecked(argv, next).clone())
     } else {
         args_record::cli_set_error(opts, String_from("--wit requires a path"))
     }
@@ -90,11 +90,11 @@ pub fn parse_wit_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i
 pub fn parse_output_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, arg: String, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        let out_arg = clone(get_unchecked(argv, next))
-        if commands::cli_str_eq(clone(arg), String_from("--output")) && commands::cli_str_eq(clone(out_arg), String_from("json")) {
+        let out_arg = get_unchecked(argv, next).clone()
+        if commands::cli_str_eq(arg.clone(), String_from("--output")) && commands::cli_str_eq(out_arg.clone(), String_from("json")) {
             args_record::cli_set_json_output(opts, true)
         } else {
-            args_record::cli_set_output_file(opts, clone(out_arg))
+            args_record::cli_set_output_file(opts, out_arg.clone())
         }
     }
     next
@@ -103,7 +103,7 @@ pub fn parse_output_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, a
 pub fn parse_template_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        args_record::cli_set_init_template(opts, clone(get_unchecked(argv, next)))
+        args_record::cli_set_init_template(opts, get_unchecked(argv, next).clone())
     } else {
         args_record::cli_set_error(opts, String_from("--template requires a template name"))
     }

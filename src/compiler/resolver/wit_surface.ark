@@ -1,6 +1,5 @@
 // WIT import document loading and lookup (#653, #664).
 
-use std::prelude::{clone}
 use std::text
 use component::wit_parse_import
 use component::wit_parse_text
@@ -19,13 +18,13 @@ fn wit_load_interfaces(paths: Vec<String>) -> Vec<wit_parse_text::WitParsedInter
 }
 
 fn wit_lookup_import(paths: Vec<String>, package_id: String) -> WitParsedInterface {
-    return wit_find_interface(wit_load_interfaces(paths), clone(package_id))
+    return wit_find_interface(wit_load_interfaces(paths), package_id.clone())
 }
 
 fn wit_find_interface(docs: Vec<wit_parse_text::WitParsedInterface>, package_id: String) -> WitParsedInterface {
     for i in 0..len(docs) {
         let doc = get_unchecked(docs, i)
-        if wit_parse_import::wit_import_id_matches(clone(package_id), doc) {
+        if wit_parse_import::wit_import_id_matches(package_id.clone(), doc) {
             return doc
         }
     }
@@ -33,7 +32,7 @@ fn wit_find_interface(docs: Vec<wit_parse_text::WitParsedInterface>, package_id:
 }
 
 fn wit_interface_id(doc: wit_parse_text::WitParsedInterface) -> String {
-    wit_identity::wit_identifier_path(clone(doc.package), clone(doc.interface))
+    wit_identity::wit_identifier_path(doc.package.clone(), doc.interface.clone())
 }
 
 fn wit_component_interface_id(doc: wit_parse_text::WitParsedInterface) -> String {
@@ -48,9 +47,9 @@ fn wit_component_interface_id(doc: wit_parse_text::WitParsedInterface) -> String
 fn wit_import_id(doc: wit_parse_text::WitParsedInterface) -> String {
     let version = wit_parse_text::WitParsedInterface_package_version(doc)
     wit_identity::wit_identifier_canonical(
-        clone(doc.package),
-        clone(doc.interface),
-        clone(version)
+        doc.package.clone(),
+        doc.interface.clone(),
+        version.clone()
     )
 }
 
@@ -73,15 +72,15 @@ fn wit_enum_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
 fn wit_func_param_ark_types(func: wit_parse_text::WitParsedFunc, alias: String, doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let mut out = Vec::new<String>()
     for pi in 0..len(func.param_wit_types) {
-        push(out, wit_type_map::wit_type_to_ark(get_unchecked(func.param_wit_types, pi), clone(alias), doc))
+        push(out, wit_type_map::wit_type_to_ark(get_unchecked(func.param_wit_types, pi), alias.clone(), doc))
     }
     out
 }
 
 fn wit_func_ret_ark_type(func: wit_parse_text::WitParsedFunc, alias: String, doc: wit_parse_text::WitParsedInterface) -> String {
-    wit_type_map::wit_type_to_ark(func.ret_wit_type, clone(alias), doc)
+    wit_type_map::wit_type_to_ark(func.ret_wit_type, alias.clone(), doc)
 }
 
 fn wit_binding_key(interface_id: String, wit_func_name: String) -> String {
-    clone(interface_id).concat("\x1f".concat(clone(wit_func_name)))
+    interface_id.clone().concat("\x1f".concat(wit_func_name.clone()))
 }

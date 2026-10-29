@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use typechecker::ast_access
 use typechecker::ast_expr_predicates
@@ -52,7 +52,7 @@ fn proof_expression_identifiers_are_bound(
 ) -> bool {
     if ast_expr_predicates::node_is_ident(node) {
         let name = ast_access::node_text(node)
-        let binding_type = scope::scope_lookup(contract_scope, clone(name))
+        let binding_type = scope::scope_lookup(contract_scope, name.clone())
         if contract_type_access::TypeInfo_tag(binding_type) == commands::TY_UNKNOWN() {
             unify::type_error(env, "unknown proof identifier: ".concat(name))
             return false
@@ -90,7 +90,7 @@ fn check_proof_contracts(
         let contract = get_unchecked(contracts, i)
         let kind_name = ast_access::node_text(contract)
         let mut contract_scope = proof_contract_scope(env, node, sig)
-        if eq(clone(kind_name), "ensures") {
+        if eq(kind_name.clone(), "ensures") {
             scope::scope_define(
                 contract_scope,
                 "result",
@@ -103,7 +103,7 @@ fn check_proof_contracts(
             continue
         }
         let expression = ast_access::node_child_at(contract, 0)
-        if eq(clone(kind_name), "requires") && proof_expression_uses_result(expression) {
+        if eq(kind_name.clone(), "requires") && proof_expression_uses_result(expression) {
             unify::type_error(env, "result is only available in ensures contracts")
             i = i + 1
             continue

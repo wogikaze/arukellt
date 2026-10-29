@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 struct TraitInfo {
     name: String,
     type_param_count: i32,
@@ -16,7 +15,7 @@ fn TraitInfo_new(name: String, type_param_count: i32) -> TraitInfo {
 }
 
 fn trait_info_name(info: TraitInfo) -> String {
-    clone(info.name)
+    info.name.clone()
 }
 
 fn trait_info_type_param_count(info: TraitInfo) -> i32 {
@@ -28,7 +27,7 @@ fn trait_info_associated_type_count(info: TraitInfo) -> i32 {
 }
 
 fn trait_info_associated_type_at(info: TraitInfo, index: i32) -> String {
-    clone(get_unchecked(info.associated_type_names, index))
+    get_unchecked(info.associated_type_names, index).clone()
 }
 
 fn trait_info_push_associated_type(mut info: TraitInfo, name: String) {
@@ -40,7 +39,7 @@ fn trait_info_supertrait_count(info: TraitInfo) -> i32 {
 }
 
 fn trait_info_supertrait_at(info: TraitInfo, index: i32) -> String {
-    clone(get_unchecked(info.supertrait_names, index))
+    get_unchecked(info.supertrait_names, index).clone()
 }
 
 fn trait_info_push_supertrait(mut info: TraitInfo, name: String) {

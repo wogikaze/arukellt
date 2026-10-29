@@ -1,7 +1,7 @@
 use std::host::process::Process
 use std::host::stdio
 use std::text
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::function_locals_view
 use mir::local_access
 use mir::dump_format_local
@@ -12,7 +12,7 @@ fn mir_expect_local_ssa(f: MirFunction, local_id: i32, expected_name: String, ex
         Process::exit(1)
     }
     let local = function_locals_view::MirFunction_local_at(f, local_id)
-    if !eq(local_access::MirLocal_ssa_name(local), clone(expected_name)) || local_access::MirLocal_ssa_version(local) != expected_version {
+    if !eq(local_access::MirLocal_ssa_name(local), expected_name.clone()) || local_access::MirLocal_ssa_version(local) != expected_version {
         let mut msg = "ssa local check failed for ".concat(dump_format_local::mir_format_local_ref(f, local_id))
         msg = msg.concat(": expected %")
         msg = msg.concat(expected_name)
@@ -25,7 +25,7 @@ fn mir_expect_local_ssa(f: MirFunction, local_id: i32, expected_name: String, ex
 
 fn mir_expect_local_ref_eq(f: MirFunction, local_id: i32, expected: String, label: String) {
     let actual = dump_format_local::mir_format_local_ref(f, local_id)
-    if !eq(clone(actual), clone(expected)) {
+    if !eq(actual.clone(), expected.clone()) {
         let mut msg = "ssa ref check failed for ".concat(label)
         msg = msg.concat(": expected ")
         msg = msg.concat(expected)

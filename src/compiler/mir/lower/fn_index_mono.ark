@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::fn_index_method_return_type
 use mir::lower::mono_suffix_parse
 use mir::lower::return_typeinfo
@@ -18,7 +17,7 @@ fn mir_index_mono_variants(
     mono_instances: Vec<MonoInstance>,
     generic_return_ty: TypeInfo
 ) {
-    mir_index_mono_variants_with_method_fallback(fn_names, fn_return_vts, fn_return_type_names, midx, clone(base_name), return_vt, clone(return_type_name), mono_instances, generic_return_ty, false)
+    mir_index_mono_variants_with_method_fallback(fn_names, fn_return_vts, fn_return_type_names, midx, base_name.clone(), return_vt, return_type_name.clone(), mono_instances, generic_return_ty, false)
 }
 
 fn mir_index_method_mono_variants(
@@ -32,7 +31,7 @@ fn mir_index_method_mono_variants(
     mono_instances: Vec<MonoInstance>,
     generic_return_ty: TypeInfo
 ) {
-    mir_index_mono_variants_with_method_fallback(fn_names, fn_return_vts, fn_return_type_names, midx, clone(base_name), return_vt, clone(return_type_name), mono_instances, generic_return_ty, true)
+    mir_index_mono_variants_with_method_fallback(fn_names, fn_return_vts, fn_return_type_names, midx, base_name.clone(), return_vt, return_type_name.clone(), mono_instances, generic_return_ty, true)
 }
 
 fn mir_index_mono_variants_with_method_fallback(
@@ -47,23 +46,23 @@ fn mir_index_mono_variants_with_method_fallback(
     generic_return_ty: TypeInfo,
     method_return_suffix_fallback: bool
 ) {
-    let mono_count = mono::mono_index_count(midx, clone(base_name))
+    let mono_count = mono::mono_index_count(midx, base_name.clone())
     if mono_count > 0 {
         let mut mono_i = 0
         while mono_i < mono_count {
-            let mono_name = mono::mono_index_mangled_at(midx, clone(base_name), mono_i)
+            let mono_name = mono::mono_index_mangled_at(midx, base_name.clone(), mono_i)
             let safe_name = mono::mono_safe_name(mono_name)
             let mut mono_rvt = return_vt
-            let mut mono_rtn = clone(return_type_name)
-            let concrete_ret = mono_concrete_return_type(mono_instances, clone(safe_name), generic_return_ty)
+            let mut mono_rtn = return_type_name.clone()
+            let concrete_ret = mono_concrete_return_type(mono_instances, safe_name.clone(), generic_return_ty)
             if type_contracts::TypeInfo_tag(concrete_ret) != 0 {
                 mono_rvt = return_typeinfo::mir_return_vt_from_type_info(concrete_ret)
                 mono_rtn = return_typeinfo::mir_return_type_name_from_type_info(concrete_ret)
             } else if method_return_suffix_fallback {
-                let suffix_rtn = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(clone(safe_name), clone(return_type_name))
+                let suffix_rtn = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(safe_name.clone(), return_type_name.clone())
                 if len(suffix_rtn) > 0 {
-                    mono_rtn = clone(suffix_rtn)
-                    mono_rvt = fn_index_method_return_type::method_return_vt_from_type_name(clone(suffix_rtn))
+                    mono_rtn = suffix_rtn.clone()
+                    mono_rvt = fn_index_method_return_type::method_return_vt_from_type_name(suffix_rtn.clone())
                 }
             }
             push(fn_names, safe_name)
@@ -79,7 +78,7 @@ fn mir_mono_concrete_return_type(mono_instances: Vec<MonoInstance>, mangled: Str
 }
 
 fn mono_concrete_return_type(mono_instances: Vec<MonoInstance>, mangled: String, generic_return_ty: TypeInfo) -> TypeInfo {
-    let inst = mono_find_instance(mono_instances, clone(mangled))
+    let inst = mono_find_instance(mono_instances, mangled.clone())
     let recorded_return = corehir::type_contracts::MonoInstance_return_type(inst)
     if type_contracts::TypeInfo_tag(recorded_return) != 0 {
         return recorded_return
@@ -122,7 +121,7 @@ fn mono_find_instance(mono_instances: Vec<MonoInstance>, mangled: String) -> Mon
     while i < count {
         let inst = get_unchecked(mono_instances, i)
         let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
-        if mono_names::mono_name_eq_safe(inst_mangled, clone(safe)) {
+        if mono_names::mono_name_eq_safe(inst_mangled, safe.clone()) {
             return inst
         }
         i = i + 1

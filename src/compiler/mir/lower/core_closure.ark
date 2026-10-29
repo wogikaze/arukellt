@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::closure_capture_args
 use mir::lower::ctx_env_cells
 use mir::lower::closure_pcells
@@ -25,13 +25,13 @@ fn lower_core_closure(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirE
     while pi < len(caps) {
         let mut eff = get_unchecked(rebind_flags, pi)
         if eff != 0 &&
-        closure_pcells::ctx_promote_capture_cell(ctx, clone(get_unchecked(caps, pi))) >= 0 {
+        closure_pcells::ctx_promote_capture_cell(ctx, get_unchecked(caps, pi).clone()) >= 0 {
             eff = 0
         }
         push(eff_rebinds, eff)
         pi = pi + 1
     }
-    let supply_caps = body_closure_capture::mir_closure_snapshot_copy_captures(ctx, caps, clone(synth))
+    let supply_caps = body_closure_capture::mir_closure_snapshot_copy_captures(ctx, caps, synth.clone())
     let packed = closure_capture_args::closure_pack_caps(supply_caps)
     let extra = len(caps)
     let mut mf = core_closure_emit::core_emit_closure_fn(ctx, exprs, synth, expr, caps, eff_rebinds)

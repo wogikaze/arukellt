@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::function_param_view
 use mir::function_return_view
 use mir::lower::ctx_api_local_types
@@ -21,7 +20,7 @@ fn mir_scrutinee_is_fn_param(ctx: LowerCtx, local_idx: i32) -> bool {
 
 fn mir_stamp_scrutinee_type(mut ctx: LowerCtx, local_idx: i32, type_name: String) {
     if mir_scrutinee_is_fn_param(ctx, local_idx) {
-        ctx_locals_fn::ctx_set_func_param_type(ctx, local_idx, value_types::VT_GC_REF(), clone(type_name))
+        ctx_locals_fn::ctx_set_func_param_type(ctx, local_idx, value_types::VT_GC_REF(), type_name.clone())
     }
     // ctx_set_func_param_type only rewrites the MirLocal/signature records;
     // the local-type side table keeps its stale empty entry and wins the

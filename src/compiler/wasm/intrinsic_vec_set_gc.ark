@@ -3,7 +3,6 @@
 //                              (field (mut i32)))
 //   set: struct.get 0 (data) → array.set data idx value
 
-use std::prelude::{clone}
 use wasm::opcodes
 use wasm::ctx_scratch
 use wasm::writer_core
@@ -41,7 +40,7 @@ fn emit_vec_set_gc(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_s
     // fnref elements are {fnptr, env} pair refs: they need a ref-typed
     // spill and the fnref element array — the i32 value scratch rejects a
     // ref value outright (#874).
-    let is_fnref_elem = intrinsic_vec_type::resolve_array_type_for_call(ctx, clone(callee), inst) ==
+    let is_fnref_elem = intrinsic_vec_type::resolve_array_type_for_call(ctx, callee.clone(), inst) ==
     ctx_gc_type_vec_ref::SelfEmitCtx_fnref_array_type(ctx)
     if is_fnref_elem {
         array_type = ctx_gc_type_vec_ref::SelfEmitCtx_fnref_array_type(ctx)

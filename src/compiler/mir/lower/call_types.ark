@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::call_type_fallback
 use mir::lower::call_type_hash
 use mir::lower::call_rewrite_hashset
@@ -12,33 +12,33 @@ use mir::lower::core_call_arg_names
 use mir::lower::gc_layout_plan_build
 use mir::value_types
 fn mir_mark_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
-    call_rewrite_hashset::mark_hashset_result_type(ctx, clone(callee_name), dest)
-    call_type_vec::mark_vec_call_result_type(ctx, clone(callee_name), dest, first_arg_idx)
-    call_type_hash::mark_hash_call_result_type(ctx, clone(callee_name), dest)
+    call_rewrite_hashset::mark_hashset_result_type(ctx, callee_name.clone(), dest)
+    call_type_vec::mark_vec_call_result_type(ctx, callee_name.clone(), dest, first_arg_idx)
+    call_type_hash::mark_hash_call_result_type(ctx, callee_name.clone(), dest)
     // clone(T) -> T (identity). Never force "string" or prelude String return;
     // that makes GC struct temps validate as String while holding a user struct.
-    if is_clone_result_callee(clone(callee_name)) {
-        mark_clone_call_result_type(ctx, clone(callee_name), dest, first_arg_idx)
+    if is_clone_result_callee(callee_name.clone()) {
+        mark_clone_call_result_type(ctx, callee_name.clone(), dest, first_arg_idx)
         return
     }
-    mark_string_call_result_type(ctx, clone(callee_name), dest)
+    mark_string_call_result_type(ctx, callee_name.clone(), dest)
     call_type_fallback::mark_fallback_call_result_type(ctx, callee_name, dest)
 }
 
 fn is_clone_result_callee(callee_name: String) -> bool {
-    eq(clone(callee_name), "clone") ||
-    eq(clone(callee_name), "__intrinsic_clone") ||
-    eq(clone(callee_name), "__intrinsic_string_clone") ||
-    eq(clone(callee_name), "__core_string_clone_impl") ||
-    eq(clone(callee_name), "raw_string_clone") ||
-    clone(callee_name).ends_with("::clone") ||
-    clone(callee_name).ends_with("__clone") ||
-    clone(callee_name).ends_with("::raw_string_clone") ||
-    clone(callee_name).ends_with("string_clone")
+    eq(callee_name.clone(), "clone") ||
+    eq(callee_name.clone(), "__intrinsic_clone") ||
+    eq(callee_name.clone(), "__intrinsic_string_clone") ||
+    eq(callee_name.clone(), "__core_string_clone_impl") ||
+    eq(callee_name.clone(), "raw_string_clone") ||
+    callee_name.clone().ends_with("::clone") ||
+    callee_name.clone().ends_with("__clone") ||
+    callee_name.clone().ends_with("::raw_string_clone") ||
+    callee_name.clone().ends_with("string_clone")
 }
 
 fn mark_clone_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) -> bool {
-    if dest < 0 || first_arg_idx < 0 || !is_clone_result_callee(clone(callee_name)) {
+    if dest < 0 || first_arg_idx < 0 || !is_clone_result_callee(callee_name.clone()) {
         return false
     }
     let arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
@@ -55,8 +55,8 @@ fn mark_clone_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32
     let arg_vt = ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx)
     // Generic receivers can keep a ?T spelling inside mono bodies; resolve
     // through the substitution map before layout checks (#691).
-    let resolved_type = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(arg_type))
-    ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(resolved_type))
+    let resolved_type = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, arg_type.clone())
+    ctx_api_local_types::ctx_set_local_type(ctx, dest, resolved_type.clone())
     if arg_vt != value_types::VT_I32() {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, arg_vt)
     } else if ctx_gc_enum::ctx_is_gc_target(ctx) {
@@ -64,7 +64,7 @@ fn mark_clone_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32
         // a real scalar (e.g. clone(mapped) with mapped: i32). Keeping the
         // scalar vt lets the local declare i64; forcing GC_REF made the
         // producer scan adopt the callee's String return (#691).
-        if gc_layout_plan_build::gc_layout_plan_name_is_i32(clone(resolved_type)) {
+        if gc_layout_plan_build::gc_layout_plan_name_is_i32(resolved_type.clone()) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
         } else {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
@@ -76,7 +76,7 @@ fn mark_clone_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32
 }
 
 fn mark_string_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32) {
-    if mir_callee_returns_string(clone(callee_name)) {
+    if mir_callee_returns_string(callee_name.clone()) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, "string")
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
@@ -87,49 +87,49 @@ fn mark_string_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i3
 }
 
 fn mir_callee_returns_string(callee_name: String) -> bool {
-    if core_call_arg_names::mir_core_call_string_result_name(clone(callee_name)) {
+    if core_call_arg_names::mir_core_call_string_result_name(callee_name.clone()) {
         return true
     }
-    if eq(clone(callee_name), "String_from") ||
-    eq(clone(callee_name), "concat") ||
-    eq(clone(callee_name), "String::concat") ||
-    eq(clone(callee_name), "std::text::String::concat") ||
-    eq(clone(callee_name), "__intrinsic_concat") ||
-    eq(clone(callee_name), "text::concat") ||
-    eq(clone(callee_name), "text::builder_append") ||
-    eq(clone(callee_name), "to_string") ||
-    eq(clone(callee_name), "i32_to_string") ||
-    eq(clone(callee_name), "i64_to_string") ||
-    eq(clone(callee_name), "text::format_i32") ||
-    eq(clone(callee_name), "convert::i32_to_string") ||
-    eq(clone(callee_name), "to_upper") ||
-    eq(clone(callee_name), "to_lower") ||
-    eq(clone(callee_name), "to_uppercase") ||
-    eq(clone(callee_name), "to_lowercase") ||
-    eq(clone(callee_name), "char_to_string") ||
-    eq(clone(callee_name), "bool_to_string") ||
-    eq(clone(callee_name), "f32_to_string") ||
-    eq(clone(callee_name), "f64_to_string") ||
-    eq(clone(callee_name), "slice") ||
-    eq(clone(callee_name), "substring") ||
-    eq(clone(callee_name), "__intrinsic_string_slice") ||
-    eq(clone(callee_name), "trim") ||
-    eq(clone(callee_name), "replace") ||
-    eq(clone(callee_name), "string::repeat") ||
-    eq(clone(callee_name), "stdio::read_stdin") ||
-    eq(clone(callee_name), "__intrinsic_stdin_read_to_string") ||
-    eq(clone(callee_name), "__intrinsic_i32_to_string") ||
-    eq(clone(callee_name), "__intrinsic_i64_to_string") ||
-    eq(clone(callee_name), "__intrinsic_f64_to_string") ||
-    eq(clone(callee_name), "__intrinsic_bool_to_string") ||
-    eq(clone(callee_name), "__intrinsic_char_to_string") ||
-    eq(clone(callee_name), "join") ||
-    eq(clone(callee_name), "text::join") ||
-    eq(clone(callee_name), "__intrinsic_join") ||
-    eq(clone(callee_name), "string_from_bytes") ||
-    eq(clone(callee_name), "__intrinsic_string_from_bytes") ||
-    eq(clone(callee_name), "bytes::string_from_bytes") {
+    if eq(callee_name.clone(), "String_from") ||
+    eq(callee_name.clone(), "concat") ||
+    eq(callee_name.clone(), "String::concat") ||
+    eq(callee_name.clone(), "std::text::String::concat") ||
+    eq(callee_name.clone(), "__intrinsic_concat") ||
+    eq(callee_name.clone(), "text::concat") ||
+    eq(callee_name.clone(), "text::builder_append") ||
+    eq(callee_name.clone(), "to_string") ||
+    eq(callee_name.clone(), "i32_to_string") ||
+    eq(callee_name.clone(), "i64_to_string") ||
+    eq(callee_name.clone(), "text::format_i32") ||
+    eq(callee_name.clone(), "convert::i32_to_string") ||
+    eq(callee_name.clone(), "to_upper") ||
+    eq(callee_name.clone(), "to_lower") ||
+    eq(callee_name.clone(), "to_uppercase") ||
+    eq(callee_name.clone(), "to_lowercase") ||
+    eq(callee_name.clone(), "char_to_string") ||
+    eq(callee_name.clone(), "bool_to_string") ||
+    eq(callee_name.clone(), "f32_to_string") ||
+    eq(callee_name.clone(), "f64_to_string") ||
+    eq(callee_name.clone(), "slice") ||
+    eq(callee_name.clone(), "substring") ||
+    eq(callee_name.clone(), "__intrinsic_string_slice") ||
+    eq(callee_name.clone(), "trim") ||
+    eq(callee_name.clone(), "replace") ||
+    eq(callee_name.clone(), "string::repeat") ||
+    eq(callee_name.clone(), "stdio::read_stdin") ||
+    eq(callee_name.clone(), "__intrinsic_stdin_read_to_string") ||
+    eq(callee_name.clone(), "__intrinsic_i32_to_string") ||
+    eq(callee_name.clone(), "__intrinsic_i64_to_string") ||
+    eq(callee_name.clone(), "__intrinsic_f64_to_string") ||
+    eq(callee_name.clone(), "__intrinsic_bool_to_string") ||
+    eq(callee_name.clone(), "__intrinsic_char_to_string") ||
+    eq(callee_name.clone(), "join") ||
+    eq(callee_name.clone(), "text::join") ||
+    eq(callee_name.clone(), "__intrinsic_join") ||
+    eq(callee_name.clone(), "string_from_bytes") ||
+    eq(callee_name.clone(), "__intrinsic_string_from_bytes") ||
+    eq(callee_name.clone(), "bytes::string_from_bytes") {
         return true
     }
-    clone(callee_name).ends_with("::to_string")
+    callee_name.clone().ends_with("::to_string")
 }

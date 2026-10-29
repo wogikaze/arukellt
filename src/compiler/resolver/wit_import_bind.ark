@@ -1,6 +1,6 @@
 // WIT import binding collection for MIR and Wasm emit (#653, #706).
 
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use component::wit_parse_text
 use resolver::ast_decl_predicates
@@ -39,23 +39,23 @@ fn wit_import_binding_type_sig(binding: WitImportBinding) -> String {
 }
 
 fn wit_import_binding_interface_id(binding: WitImportBinding) -> String {
-    clone(binding.interface_id)
+    binding.interface_id.clone()
 }
 
 fn wit_import_binding_component_interface_id(binding: WitImportBinding) -> String {
-    clone(binding.component_interface_id)
+    binding.component_interface_id.clone()
 }
 
 fn wit_import_binding_wit_import_id(binding: WitImportBinding) -> String {
-    clone(binding.wit_import_id)
+    binding.wit_import_id.clone()
 }
 
 fn wit_import_binding_wit_func_name(binding: WitImportBinding) -> String {
-    clone(binding.wit_func_name)
+    binding.wit_func_name.clone()
 }
 
 fn wit_import_binding_qualified_name(binding: WitImportBinding) -> String {
-    clone(binding.qualified_name)
+    binding.qualified_name.clone()
 }
 
 fn wit_collect_bindings(wit_paths: Vec<String>, decls: Vec<AstNode>) -> Vec<WitImportBinding> {
@@ -83,26 +83,26 @@ fn wit_push_bindings_for_import(mut bindings: Vec<WitImportBinding>, wit_paths: 
     if len(alias) == 0 {
         return
     }
-    let doc = wit_register::wit_doc_from_import(wit_paths, clone(package_id))
+    let doc = wit_register::wit_doc_from_import(wit_paths, package_id.clone())
     if wit_register::wit_doc_has_surface(doc) {
-        wit_push_bindings_for_doc(bindings, clone(alias), doc)
+        wit_push_bindings_for_doc(bindings, alias.clone(), doc)
         return
     }
-    if eq(clone(package_id), "test:host/math") {
-        push(bindings, WitImportBinding_new("i32_i32_1i32", "test:host/math", "test:host/math", "test:host/math", "add", clone(alias).concat("::add")))
+    if eq(package_id.clone(), "test:host/math") {
+        push(bindings, WitImportBinding_new("i32_i32_1i32", "test:host/math", "test:host/math", "test:host/math", "add", alias.clone().concat("::add")))
         return
     }
-    if eq(clone(package_id), "test:doc/parse") {
-        push(bindings, WitImportBinding_new("String_1i32", "test:doc/parse", "test:doc/parse", "test:doc/parse", "parse-markdown", clone(alias).concat("::parse_markdown")))
+    if eq(package_id.clone(), "test:doc/parse") {
+        push(bindings, WitImportBinding_new("String_1i32", "test:doc/parse", "test:doc/parse", "test:doc/parse", "parse-markdown", alias.clone().concat("::parse_markdown")))
         return
     }
-    if eq(clone(package_id), "test:host/host") {
-        push(bindings, WitImportBinding_new("i32_0", "test:host/host", "test:host/host", "test:host/host", "set-perms", clone(alias).concat("::set_perms")))
+    if eq(package_id.clone(), "test:host/host") {
+        push(bindings, WitImportBinding_new("i32_0", "test:host/host", "test:host/host", "test:host/host", "set-perms", alias.clone().concat("::set_perms")))
         return
     }
-    if eq(clone(package_id), "test:host/handles") {
-        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "take", clone(alias).concat("::take")))
-        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "peek", clone(alias).concat("::peek")))
+    if eq(package_id.clone(), "test:host/handles") {
+        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "take", alias.clone().concat("::take")))
+        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "peek", alias.clone().concat("::peek")))
     }
 }
 
@@ -115,11 +115,11 @@ fn wit_push_bindings_for_doc(mut bindings: Vec<WitImportBinding>, alias: String,
         let func = get_unchecked(funcs, fi)
         push(bindings, WitImportBinding_new(
                 wit_register::wit_binding_type_sig(func, doc),
-                clone(interface_id),
-                clone(component_interface_id),
-                clone(wit_import_id),
-                clone(func.wit_name),
-                wit_register::wit_binding_qualified_name(clone(alias), func)
+                interface_id.clone(),
+                component_interface_id.clone(),
+                wit_import_id.clone(),
+                func.wit_name.clone(),
+                wit_register::wit_binding_qualified_name(alias.clone(), func)
             ))
     }
 }

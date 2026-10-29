@@ -1,7 +1,7 @@
 use std::text
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use corehir::kinds
 use corehir::type_id
 use corehir::type_table
@@ -38,13 +38,13 @@ fn ctx_register_gc_struct(mut ctx: LowerCtx, struct_name: String, sig: String) {
     let count = len(ctx.gc_struct_names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(ctx.gc_struct_names, i), clone(struct_name)) {
+        if eq(get_unchecked(ctx.gc_struct_names, i), struct_name.clone()) {
             ctx_intern_gc_struct_type(ctx, struct_name)
             return
         }
         i = i + 1
     }
-    push(ctx.gc_struct_names, clone(struct_name))
+    push(ctx.gc_struct_names, struct_name.clone())
     push(ctx.gc_struct_sigs, sig)
     push(ctx.gc_struct_sig_pending, false)
     ctx_gc_note_late_struct(ctx, len(ctx.gc_struct_names) - 1)
@@ -82,7 +82,7 @@ fn ctx_set_gc_struct_sig(mut ctx: LowerCtx, struct_name: String, sig: String) {
     let count = len(ctx.gc_struct_names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(ctx.gc_struct_names, i), clone(struct_name)) {
+        if eq(get_unchecked(ctx.gc_struct_names, i), struct_name.clone()) {
             // A materialized module slot mirrors the sig pushed at
             // materialize time; rewriting it afterwards would desync the
             // emitted type from the canon entry. Only pending slots may
@@ -114,7 +114,7 @@ fn ctx_set_gc_struct_sig(mut ctx: LowerCtx, struct_name: String, sig: String) {
 // unmaterialized — and blocks the drain — until the real sig lands, so a
 // nested ensure that finalizes first cannot jump the canon order.
 fn ctx_gc_struct_push_pending(mut ctx: LowerCtx, struct_name: String) {
-    push(ctx.gc_struct_names, clone(struct_name))
+    push(ctx.gc_struct_names, struct_name.clone())
     push(ctx.gc_struct_sigs, "GS")
     push(ctx.gc_struct_sig_pending, true)
     ctx_gc_note_late_struct(ctx, len(ctx.gc_struct_names) - 1)
@@ -134,11 +134,11 @@ fn ctx_gc_struct_materialize_ready(mut ctx: LowerCtx) {
         if get_unchecked(ctx.gc_struct_sig_pending, slot) {
             return
         }
-        let sig = clone(get_unchecked(ctx.gc_struct_sigs, slot))
+        let sig = get_unchecked(ctx.gc_struct_sigs, slot).clone()
         module_gc_struct::MirModule_push_gc_struct(
             m,
-            clone(get_unchecked(ctx.gc_struct_names, slot)),
-            clone(sig)
+            get_unchecked(ctx.gc_struct_names, slot).clone(),
+            sig.clone()
         )
         let canon = ctx_gc_canon::ctx_gc_canon_ensure_struct_sig(ctx, sig)
         module_gc_struct::MirModule_set_gc_struct_canon_idx(m, slot, canon)
@@ -151,11 +151,11 @@ fn ctx_gc_struct_materialize_ready(mut ctx: LowerCtx) {
 // sealed. Decl order can register AstNode before Span; without this the field
 // falls through to _ref14 (enum open) and struct.get fails validation.
 fn ctx_ensure_gc_struct_registered(mut ctx: LowerCtx, struct_name: String) -> i32 {
-    let existing = ctx_gc_struct_slot(ctx, clone(struct_name))
+    let existing = ctx_gc_struct_slot(ctx, struct_name.clone())
     if existing >= 0 {
         return existing
     }
-    if !ctx_struct_field_type::ctx_struct_layout_exists(ctx, clone(struct_name)) {
+    if !ctx_struct_field_type::ctx_struct_layout_exists(ctx, struct_name.clone()) {
         return 0 - 1
     }
     // Enum base layouts (_tag only) and variant layouts (Enum::Var) must not
@@ -165,27 +165,27 @@ fn ctx_ensure_gc_struct_registered(mut ctx: LowerCtx, struct_name: String) -> i3
     // struct-preferred index skips enum bases, so a user struct that shadows
     // an enum name (struct Box vs prelude enum Box) still reaches this check
     // and gets its own named type.
-    if ctx_struct_storage::ctx_struct_layout_struct_index(ctx, clone(struct_name)) < 0 {
+    if ctx_struct_storage::ctx_struct_layout_struct_index(ctx, struct_name.clone()) < 0 {
         return 0 - 1
     }
-    if clone(struct_name).contains(String_from("::")) {
+    if struct_name.clone().contains(String_from("::")) {
         return 0 - 1
     }
     // Zero-field handles take this path too: a zero-sized struct still needs
     // its own named type so signatures and local declarations use
     // `(ref null $Handle)` instead of the legacy byte-size struct shell.
-    let field_count = ctx_struct_size::ctx_struct_layout_field_count(ctx, clone(struct_name))
+    let field_count = ctx_struct_size::ctx_struct_layout_field_count(ctx, struct_name.clone())
     // Placeholder slot breaks cycles (A→B→A) while nested fields resolve.
-    ctx_gc_struct_push_pending(ctx, clone(struct_name))
-    let sig = gc_struct_build_sig(ctx, clone(struct_name), field_count)
-    ctx_set_gc_struct_sig(ctx, clone(struct_name), sig)
-    ctx_gc_struct_slot(ctx, clone(struct_name))
+    ctx_gc_struct_push_pending(ctx, struct_name.clone())
+    let sig = gc_struct_build_sig(ctx, struct_name.clone(), field_count)
+    ctx_set_gc_struct_sig(ctx, struct_name.clone(), sig)
+    ctx_gc_struct_slot(ctx, struct_name.clone())
 }
 fn ctx_gc_struct_slot(ctx: LowerCtx, struct_name: String) -> i32 {
     let count = len(ctx.gc_struct_names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(ctx.gc_struct_names, i), clone(struct_name)) {
+        if eq(get_unchecked(ctx.gc_struct_names, i), struct_name.clone()) {
             return i
         }
         i = i + 1
@@ -211,8 +211,8 @@ fn ctx_flush_gc_structs_from(mut ctx: LowerCtx, start: i32) {
         i = materialized
     }
     while i < count {
-        let sig = clone(get_unchecked(ctx.gc_struct_sigs, i))
-        module_gc_struct::MirModule_push_gc_struct(m, clone(get_unchecked(ctx.gc_struct_names, i)), clone(sig))
+        let sig = get_unchecked(ctx.gc_struct_sigs, i).clone()
+        module_gc_struct::MirModule_push_gc_struct(m, get_unchecked(ctx.gc_struct_names, i).clone(), sig.clone())
         // Sealed registrations emit in slot order, so ensure inline while
         // pushing. Post-seal entries were materialized at registration; any
         // stragglers keep -1 until ctx_gc_canon_ensure_late assigns them in
@@ -225,43 +225,43 @@ fn ctx_flush_gc_structs_from(mut ctx: LowerCtx, start: i32) {
     }
 }
 fn gc_struct_scalar_field_suffix(type_name: String) -> String {
-    if eq(clone(type_name), "f64") || eq(clone(type_name), "F64") {
+    if eq(type_name.clone(), "f64") || eq(type_name.clone(), "F64") {
         return String_from("_f64")
     }
-    if eq(clone(type_name), "i64") || eq(clone(type_name), "I64") {
+    if eq(type_name.clone(), "i64") || eq(type_name.clone(), "I64") {
         return String_from("_i64")
     }
-    if eq(clone(type_name), "v128") || eq(clone(type_name), "V128") {
+    if eq(type_name.clone(), "v128") || eq(type_name.clone(), "V128") {
         return String_from("_v128")
     }
-    if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
+    if eq(type_name.clone(), "String") || eq(type_name.clone(), "string") {
         return String_from("_ref0")
     }
-    if eq(clone(type_name), "bool") || eq(clone(type_name), "Bool") {
+    if eq(type_name.clone(), "bool") || eq(type_name.clone(), "Bool") {
         return String_from("_i32")
     }
-    if eq(clone(type_name), "i32") || eq(clone(type_name), "I32") {
+    if eq(type_name.clone(), "i32") || eq(type_name.clone(), "I32") {
         return String_from("_i32")
     }
-    if eq(clone(type_name), "char") || eq(clone(type_name), "u8") ||
-    eq(clone(type_name), "i8") || eq(clone(type_name), "u16") ||
-    eq(clone(type_name), "u32") || eq(clone(type_name), "u64") ||
-    eq(clone(type_name), "i16") {
+    if eq(type_name.clone(), "char") || eq(type_name.clone(), "u8") ||
+    eq(type_name.clone(), "i8") || eq(type_name.clone(), "u16") ||
+    eq(type_name.clone(), "u32") || eq(type_name.clone(), "u64") ||
+    eq(type_name.clone(), "i16") {
         return String_from("_i32")
     }
     // Struct-field funcrefs use nullable `(ref $sig)` (emit_struct_field_type).
     // Keeping i32 here made MapIter.f validate as expected-i32/found-ref (#807).
-    if eq(clone(type_name), String_from("fnrefss")) {
+    if eq(type_name.clone(), String_from("fnrefss")) {
         return String_from("_fnrefss")
     }
-    if eq(clone(type_name), String_from("fnrefsb")) {
+    if eq(type_name.clone(), String_from("fnrefsb")) {
         return String_from("_fnrefsb")
     }
-    if eq(clone(type_name), "fnref") || eq(clone(type_name), "fnref2") || eq(clone(type_name), "fn") || clone(type_name).starts_with(String_from("fn(")) {
+    if eq(type_name.clone(), "fnref") || eq(type_name.clone(), "fnref2") || eq(type_name.clone(), "fn") || type_name.clone().starts_with(String_from("fn(")) {
         return String_from("_fnref")
     }
     // Unsubstituted type parameters (T, U, ?T) stay i32 until mono fills them.
-    if gc_struct_field_type_is_type_param(clone(type_name)) {
+    if gc_struct_field_type_is_type_param(type_name.clone()) {
         return String_from("_i32")
     }
     String_new()
@@ -273,19 +273,19 @@ fn gc_struct_field_name_is_declared(ctx: LowerCtx, type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    ctx_struct_field_type::ctx_struct_layout_exists(ctx, clone(type_name)) ||
-    ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(type_name))
+    ctx_struct_field_type::ctx_struct_layout_exists(ctx, type_name.clone()) ||
+    ctx_struct_field_type::field_type_is_registered_enum(ctx, type_name.clone())
 }
 
 // vec:X / Vec<X> element spelling; empty when the container has no single
 // element segment (hashmap:, Vec_, and nested spellings stay with the
 // suffix fn, which maps them before the type-param check).
 fn gc_struct_vec_elem_spelling(type_name: String) -> String {
-    if clone(type_name).starts_with(String_from("vec:")) {
-        return clone(type_name).slice(4, len(type_name))
+    if type_name.clone().starts_with(String_from("vec:")) {
+        return type_name.clone().slice(4, len(type_name))
     }
-    if clone(type_name).starts_with(String_from("Vec<")) && clone(type_name).ends_with(String_from(">")) {
-        return clone(type_name).slice(4, len(type_name) - 1)
+    if type_name.clone().starts_with(String_from("Vec<")) && type_name.clone().ends_with(String_from(">")) {
+        return type_name.clone().slice(4, len(type_name) - 1)
     }
     String_new()
 }
@@ -300,21 +300,21 @@ fn gc_struct_field_sig_for_type(mut ctx: LowerCtx, type_name: String, field_idx:
     // fn-valued fields hold a {fnptr, env} pair under the managed closure
     // ABI (#872): one shared __fnpair struct type instead of per-signature
     // funcref slots. This covers fnref/fnref2/fnrefss/fnrefsb/fnsig:/fn(.
-    if gc_struct_field_type_is_fn_value(clone(type_name)) {
+    if gc_struct_field_type_is_fn_value(type_name.clone()) {
         let pair_slot = ctx_ensure_fnpair_struct(ctx)
         if pair_slot >= 0 {
             return prefix.concat(String_from("_gcsref").concat((pair_slot).to_string()))
         }
     }
-    let scalar = gc_struct_scalar_field_suffix(clone(type_name))
+    let scalar = gc_struct_scalar_field_suffix(type_name.clone())
     // A single-letter spelling is also a legal user type name (struct P,
     // enum E): when it names a declared aggregate the scalar suffix is the
     // unsubstituted-type-param fallback, which must not claim the field.
     // Collapsing a ref field to _i32 dedupes the env/struct layout onto the
     // all-i32 shell and makes later struct.get/struct.set invalid (#874).
     let param_fallback_on_declared = len(scalar) > 0 &&
-    gc_struct_field_type_is_type_param(clone(type_name)) &&
-    gc_struct_field_name_is_declared(ctx, clone(type_name))
+    gc_struct_field_type_is_type_param(type_name.clone()) &&
+    gc_struct_field_name_is_declared(ctx, type_name.clone())
     if len(scalar) > 0 && !param_fallback_on_declared {
         return prefix.concat(scalar)
     }
@@ -322,33 +322,33 @@ fn gc_struct_field_sig_for_type(mut ctx: LowerCtx, type_name: String, field_idx:
     // option:SkipIter<VecIter<String>>::Item) resolve through the owner's
     // Iterator::next signature before the enum/container fallthroughs
     // (#860/#691).
-    if clone(type_name).contains(String_from("::")) {
-        let resolved = ctx_mono_type_params::ctx_resolve_field_type_projections(ctx, clone(type_name))
-        if !eq(clone(resolved), clone(type_name)) {
+    if type_name.clone().contains(String_from("::")) {
+        let resolved = ctx_mono_type_params::ctx_resolve_field_type_projections(ctx, type_name.clone())
+        if !eq(resolved.clone(), type_name.clone()) {
             return gc_struct_field_sig_for_type(ctx, resolved, field_idx)
         }
     }
     // Enum-typed fields must use the GC enum open type (gcref14), not the
     // all-i32 generic struct slot derived from byte size (#726 TomlValStep).
-    if ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(type_name)) {
+    if ctx_struct_field_type::field_type_is_registered_enum(ctx, type_name.clone()) {
         return prefix.concat(String_from("_ref14"))
     }
     // Container fields: pick the concrete GC vec/map type when the
     // element type is known (Vec<String> ≠ Vec<i32>; #726 TomlKeyStep).
-    if gc_struct_field_type_is_container(clone(type_name)) {
+    if gc_struct_field_type_is_container(type_name.clone()) {
         // A declared element name keeps the structref-array layout; the
         // type-param fallback inside the suffix fn would demote vec:P to
         // the dead-shell i32 array even though P is a real struct.
-        let elem = gc_struct_vec_elem_spelling(clone(type_name))
-        if sections_types_gc_phase7::gc_vec_elem_name_is_type_param(clone(elem)) &&
-        gc_struct_field_name_is_declared(ctx, clone(elem)) {
+        let elem = gc_struct_vec_elem_spelling(type_name.clone())
+        if sections_types_gc_phase7::gc_vec_elem_name_is_type_param(elem.clone()) &&
+        gc_struct_field_name_is_declared(ctx, elem.clone()) {
             return prefix.concat(String_from("_ref25"))
         }
-        return prefix.concat(gc_struct_container_ref_suffix(clone(type_name)))
+        return prefix.concat(gc_struct_container_ref_suffix(type_name.clone()))
     }
     // Struct-typed field: ensure the nested layout has a named GC slot even
     // when decl order registers the parent first (AstNode before Span).
-    let struct_slot = ctx_ensure_gc_struct_registered(ctx, clone(type_name))
+    let struct_slot = ctx_ensure_gc_struct_registered(ctx, type_name.clone())
     if struct_slot >= 0 {
         return prefix.concat(String_from("_gcsref").concat((struct_slot).to_string()))
     }
@@ -361,14 +361,14 @@ fn gc_struct_field_sig_for_type(mut ctx: LowerCtx, type_name: String, field_idx:
 // non-callback fields. Only unary callbacks resolve today; anything else
 // falls back to the legacy `fnref` slot.
 fn gc_struct_fnsig_suffix(mut ctx: LowerCtx, type_name: String) -> String {
-    let rest = clone(type_name).slice(6, len(type_name))
-    let sep = clone(rest).index_of(String_from(";"))
+    let rest = type_name.clone().slice(6, len(type_name))
+    let sep = rest.clone().index_of(String_from(";"))
     if sep < 0 {
         return String_from("_fnref")
     }
-    let param_seg = clone(rest).slice(0, sep)
-    let ret_seg = clone(rest).slice(sep + 1, len(rest))
-    if clone(ret_seg).contains(String_from(";")) {
+    let param_seg = rest.clone().slice(0, sep)
+    let ret_seg = rest.clone().slice(sep + 1, len(rest))
+    if ret_seg.clone().contains(String_from(";")) {
         return String_from("_fnref")
     }
     let param_tok = gc_struct_fnsig_segment_token(ctx, param_seg)
@@ -383,30 +383,30 @@ fn gc_struct_fnsig_suffix(mut ctx: LowerCtx, type_name: String) -> String {
 // ordinary field-suffix machinery and converting the ref-offset dialect
 // (refN) to the func-sig dialect (gcrefN).
 fn gc_struct_fnsig_segment_token(mut ctx: LowerCtx, seg: String) -> String {
-    if len(seg) == 0 || clone(seg).starts_with(String_from("fnsig:")) {
+    if len(seg) == 0 || seg.clone().starts_with(String_from("fnsig:")) {
         return String_new()
     }
-    let suffixed = gc_struct_field_sig_for_type(ctx, clone(seg), 0)
+    let suffixed = gc_struct_field_sig_for_type(ctx, seg.clone(), 0)
     if len(suffixed) <= 4 {
         return String_new()
     }
-    let suffix = clone(suffixed).slice(4, len(suffixed))
-    if clone(suffix).starts_with(String_from("gcsref")) {
+    let suffix = suffixed.clone().slice(4, len(suffixed))
+    if suffix.clone().starts_with(String_from("gcsref")) {
         return suffix
     }
-    if clone(suffix).starts_with(String_from("ref")) {
+    if suffix.clone().starts_with(String_from("ref")) {
         return String_from("gc").concat(suffix)
     }
     suffix
 }
 fn gc_struct_field_type_is_container(type_name: String) -> bool {
-    if eq(clone(type_name), String_from("Vec")) || eq(clone(type_name), String_from("HashMap")) || eq(clone(type_name), String_from("HashSet")) {
+    if eq(type_name.clone(), String_from("Vec")) || eq(type_name.clone(), String_from("HashMap")) || eq(type_name.clone(), String_from("HashSet")) {
         return true
     }
-    if clone(type_name).starts_with(String_from("vec:")) || clone(type_name).starts_with(String_from("hashmap:")) || clone(type_name).starts_with(String_from("hashset:")) {
+    if type_name.clone().starts_with(String_from("vec:")) || type_name.clone().starts_with(String_from("hashmap:")) || type_name.clone().starts_with(String_from("hashset:")) {
         return true
     }
-    if clone(type_name).starts_with(String_from("Vec<")) || clone(type_name).starts_with(String_from("HashMap<")) || clone(type_name).starts_with(String_from("HashSet<")) {
+    if type_name.clone().starts_with(String_from("Vec<")) || type_name.clone().starts_with(String_from("HashMap<")) || type_name.clone().starts_with(String_from("HashSet<")) {
         return true
     }
     false
@@ -416,127 +416,127 @@ fn gc_struct_field_type_is_container(type_name: String) -> bool {
 // type-name detection used by mir_is_funcref_local. Shared by tuple field
 // vt recovery so the fn-key spelling set stays defined in one place.
 fn gc_struct_field_type_is_fn_value(type_name: String) -> bool {
-    if eq(clone(type_name), String_from("fnref")) ||
-    eq(clone(type_name), String_from("fnref2")) ||
-    eq(clone(type_name), String_from("fnrefss")) ||
-    eq(clone(type_name), String_from("fnrefsb")) ||
-    eq(clone(type_name), String_from("fn")) {
+    if eq(type_name.clone(), String_from("fnref")) ||
+    eq(type_name.clone(), String_from("fnref2")) ||
+    eq(type_name.clone(), String_from("fnrefss")) ||
+    eq(type_name.clone(), String_from("fnrefsb")) ||
+    eq(type_name.clone(), String_from("fn")) {
         return true
     }
-    clone(type_name).starts_with(String_from("fnref")) ||
-    clone(type_name).starts_with(String_from("fnsig:")) ||
-    clone(type_name).starts_with(String_from("fn("))
+    type_name.clone().starts_with(String_from("fnref")) ||
+    type_name.clone().starts_with(String_from("fnsig:")) ||
+    type_name.clone().starts_with(String_from("fn("))
 }
 // Map container type names to the fixed GC type-section offsets used by
 // sections_types_gc (vec i32=10, vec string≈15/string-array vec, etc.).
 fn gc_struct_container_ref_suffix(type_name: String) -> String {
-    if eq(clone(type_name), String_from("vec:String")) ||
-    eq(clone(type_name), String_from("vec:string")) ||
-    eq(clone(type_name), String_from("Vec<String>")) ||
-    eq(clone(type_name), String_from("Vec<string>")) ||
-    eq(clone(type_name), String_from("Vec_String")) {
+    if eq(type_name.clone(), String_from("vec:String")) ||
+    eq(type_name.clone(), String_from("vec:string")) ||
+    eq(type_name.clone(), String_from("Vec<String>")) ||
+    eq(type_name.clone(), String_from("Vec<string>")) ||
+    eq(type_name.clone(), String_from("Vec_String")) {
         // Vec<String> fixed GC slot is gcref19 (SubF_GS_f0_ref15_f1_i32 in
         // sections_types_gc — string-array vec, not the A_ref0 at offset 15).
         return String_from("_ref19")
     }
-    if eq(clone(type_name), String_from("vec:v128")) || eq(clone(type_name), String_from("vec:V128")) {
+    if eq(type_name.clone(), String_from("vec:v128")) || eq(type_name.clone(), String_from("vec:V128")) {
         return String_from("_ref21")
     }
-    if eq(clone(type_name), String_from("vec:i64")) || eq(clone(type_name), String_from("vec:I64")) {
+    if eq(type_name.clone(), String_from("vec:i64")) || eq(type_name.clone(), String_from("vec:I64")) {
         return String_from("_ref22")
     }
-    if eq(clone(type_name), String_from("vec:f64")) || eq(clone(type_name), String_from("vec:F64")) {
+    if eq(type_name.clone(), String_from("vec:f64")) || eq(type_name.clone(), String_from("vec:F64")) {
         return String_from("_ref23")
     }
     // Vec<fn> / fnpair array header (gcref28). Must win over structref (#832/#872).
-    if eq(clone(type_name), String_from("vec:fnref")) ||
-    eq(clone(type_name), String_from("vec:fn")) ||
-    clone(type_name).starts_with(String_from("vec:fn(")) {
+    if eq(type_name.clone(), String_from("vec:fnref")) ||
+    eq(type_name.clone(), String_from("vec:fn")) ||
+    type_name.clone().starts_with(String_from("vec:fn(")) {
         return String_from("_ref28")
     }
     // Vec<Option/Result/enum> open-enum array header (gcref30).
-    if clone(type_name).starts_with(String_from("vec:Option_")) ||
-    clone(type_name).starts_with(String_from("vec:Result_")) ||
-    clone(type_name).starts_with(String_from("vec:option:")) ||
-    clone(type_name).starts_with(String_from("vec:result:")) ||
-    clone(type_name).starts_with(String_from("vec:enum:")) {
+    if type_name.clone().starts_with(String_from("vec:Option_")) ||
+    type_name.clone().starts_with(String_from("vec:Result_")) ||
+    type_name.clone().starts_with(String_from("vec:option:")) ||
+    type_name.clone().starts_with(String_from("vec:result:")) ||
+    type_name.clone().starts_with(String_from("vec:enum:")) {
         return String_from("_ref30")
     }
-    if clone(type_name).starts_with(String_from("hashmap:i32fn")) {
+    if type_name.clone().starts_with(String_from("hashmap:i32fn")) {
         return String_from("_ref31")
     }
-    if clone(type_name).starts_with(String_from("hashmap:strfn")) {
+    if type_name.clone().starts_with(String_from("hashmap:strfn")) {
         return String_from("_ref32")
     }
-    if clone(type_name).starts_with(String_from("hashmap:i32str")) {
+    if type_name.clone().starts_with(String_from("hashmap:i32str")) {
         return String_from("_ref17")
     }
-    if clone(type_name).starts_with(String_from("hashmap:strstr")) {
+    if type_name.clone().starts_with(String_from("hashmap:strstr")) {
         return String_from("_ref18")
     }
-    if clone(type_name).starts_with(String_from("hashmap:")) || clone(type_name).starts_with(String_from("HashMap")) {
+    if type_name.clone().starts_with(String_from("hashmap:")) || type_name.clone().starts_with(String_from("HashMap")) {
         return String_from("_ref16")
     }
-    if clone(type_name).starts_with(String_from("hashset:")) || clone(type_name).starts_with(String_from("HashSet")) {
+    if type_name.clone().starts_with(String_from("hashset:")) || type_name.clone().starts_with(String_from("HashSet")) {
         return String_from("_ref16")
     }
     // Nested / struct-element Vec → structref-array vec (gcref25).
-    if eq(clone(type_name), String_from("vec:Vec_String")) || clone(type_name).starts_with(String_from("vec:Vec")) || clone(type_name).starts_with(String_from("vec:vec:")) {
+    if eq(type_name.clone(), String_from("vec:Vec_String")) || type_name.clone().starts_with(String_from("vec:Vec")) || type_name.clone().starts_with(String_from("vec:vec:")) {
         return String_from("_ref25")
     }
     // Angle-bracket Vec<T> for non-scalar T (TomlField, TomlValue, …) (#726).
-    if clone(type_name).starts_with(String_from("Vec<")) && clone(type_name).ends_with(String_from(">")) {
-        let elem = clone(type_name).slice(4, len(type_name) - 1)
-        if eq(clone(elem), String_from("String")) || eq(clone(elem), String_from("string")) {
+    if type_name.clone().starts_with(String_from("Vec<")) && type_name.clone().ends_with(String_from(">")) {
+        let elem = type_name.clone().slice(4, len(type_name) - 1)
+        if eq(elem.clone(), String_from("String")) || eq(elem.clone(), String_from("string")) {
             return String_from("_ref19")
         }
-        if eq(clone(elem), String_from("i64")) || eq(clone(elem), String_from("I64")) {
+        if eq(elem.clone(), String_from("i64")) || eq(elem.clone(), String_from("I64")) {
             return String_from("_ref22")
         }
-        if eq(clone(elem), String_from("f64")) || eq(clone(elem), String_from("F64")) {
+        if eq(elem.clone(), String_from("f64")) || eq(elem.clone(), String_from("F64")) {
             return String_from("_ref23")
         }
-        if eq(clone(elem), String_from("i32")) || eq(clone(elem), String_from("I32")) || eq(clone(elem), String_from("bool")) || eq(clone(elem), String_from("char")) {
+        if eq(elem.clone(), String_from("i32")) || eq(elem.clone(), String_from("I32")) || eq(elem.clone(), String_from("bool")) || eq(elem.clone(), String_from("char")) {
             return String_from("_ref10")
         }
-        if eq(clone(elem), String_from("fnref")) ||
-        eq(clone(elem), String_from("fn")) ||
-        clone(elem).starts_with(String_from("fn(")) {
+        if eq(elem.clone(), String_from("fnref")) ||
+        eq(elem.clone(), String_from("fn")) ||
+        elem.clone().starts_with(String_from("fn(")) {
             return String_from("_ref28")
         }
-        if clone(elem).starts_with(String_from("Option")) ||
-        clone(elem).starts_with(String_from("Result")) ||
-        clone(elem).starts_with(String_from("option:")) ||
-        clone(elem).starts_with(String_from("result:")) ||
-        clone(elem).starts_with(String_from("enum:")) {
+        if elem.clone().starts_with(String_from("Option")) ||
+        elem.clone().starts_with(String_from("Result")) ||
+        elem.clone().starts_with(String_from("option:")) ||
+        elem.clone().starts_with(String_from("result:")) ||
+        elem.clone().starts_with(String_from("enum:")) {
             return String_from("_ref30")
         }
         // Unsubstituted type params keep the dead-shell i32-vec layout;
         // a generic shell's param/variant ABI is Vec<i32> (#872 as_slice).
-        if sections_types_gc_phase7::gc_vec_elem_name_is_type_param(clone(elem)) {
+        if sections_types_gc_phase7::gc_vec_elem_name_is_type_param(elem.clone()) {
             return String_from("_ref10")
         }
         return String_from("_ref25")
     }
-    if clone(type_name).starts_with(String_from("vec:")) {
-        let elem = clone(type_name).slice(4, len(type_name))
-        if eq(clone(elem), String_from("fnref")) ||
-        eq(clone(elem), String_from("fn")) ||
-        clone(elem).starts_with(String_from("fn(")) {
+    if type_name.clone().starts_with(String_from("vec:")) {
+        let elem = type_name.clone().slice(4, len(type_name))
+        if eq(elem.clone(), String_from("fnref")) ||
+        eq(elem.clone(), String_from("fn")) ||
+        elem.clone().starts_with(String_from("fn(")) {
             return String_from("_ref28")
         }
-        if clone(elem).starts_with(String_from("Option")) ||
-        clone(elem).starts_with(String_from("Result")) ||
-        clone(elem).starts_with(String_from("option:")) ||
-        clone(elem).starts_with(String_from("result:")) ||
-        clone(elem).starts_with(String_from("enum:")) {
+        if elem.clone().starts_with(String_from("Option")) ||
+        elem.clone().starts_with(String_from("Result")) ||
+        elem.clone().starts_with(String_from("option:")) ||
+        elem.clone().starts_with(String_from("result:")) ||
+        elem.clone().starts_with(String_from("enum:")) {
             return String_from("_ref30")
         }
-        if sections_types_gc_phase7::gc_vec_elem_name_is_type_param(clone(elem)) {
+        if sections_types_gc_phase7::gc_vec_elem_name_is_type_param(elem.clone()) {
             return String_from("_ref10")
         }
-        if !(eq(clone(elem), String_from("i32")) || eq(clone(elem), String_from("I32")) || eq(clone(elem), String_from("bool")) || eq(clone(elem), String_from("char"))) {
-            if !eq(clone(elem), String_from("String")) && !eq(clone(elem), String_from("string")) {
+        if !(eq(elem.clone(), String_from("i32")) || eq(elem.clone(), String_from("I32")) || eq(elem.clone(), String_from("bool")) || eq(elem.clone(), String_from("char"))) {
+            if !eq(elem.clone(), String_from("String")) && !eq(elem.clone(), String_from("string")) {
                 return String_from("_ref25")
             }
         }
@@ -548,7 +548,7 @@ fn gc_struct_field_type_is_type_param(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if clone(type_name).starts_with(String_from("?")) {
+    if type_name.clone().starts_with(String_from("?")) {
         return gc_struct_field_type_is_type_param(type_name.slice(1, len(type_name)))
     }
     // Single uppercase letter (T, U, V, ...) — unsubstituted generic field.
@@ -563,7 +563,7 @@ fn gc_struct_field_type_is_type_param(type_name: String) -> bool {
 fn gc_struct_has_ref_field(ctx: LowerCtx, struct_name: String, field_count: i32) -> bool {
     let mut fi = 0
     while fi < field_count {
-        if ctx_struct_field_type::ctx_struct_field_is_gc_ref(ctx, clone(struct_name), fi) {
+        if ctx_struct_field_type::ctx_struct_field_is_gc_ref(ctx, struct_name.clone(), fi) {
             return true
         }
         fi = fi + 1
@@ -575,7 +575,7 @@ fn gc_struct_build_sig(mut ctx: LowerCtx, struct_name: String, field_count: i32)
     let mut sig = String_from("GS")
     let mut fi = 0
     while fi < field_count {
-        let ft = ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, ctx_struct_offset_for_field(ctx, clone(struct_name), fi))
+        let ft = ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, ctx_struct_offset_for_field(ctx, struct_name.clone(), fi))
         let field_sig = gc_struct_field_sig_for_type(ctx, ft, fi)
         sig = sig.concat(field_sig)
         fi = fi + 1
@@ -586,7 +586,7 @@ fn gc_struct_build_sig(mut ctx: LowerCtx, struct_name: String, field_count: i32)
 fn ctx_struct_offset_for_field(ctx: LowerCtx, struct_name: String, target_field_idx: i32) -> i32 {
     // A user struct shadowing an enum name (struct Box vs prelude enum Box)
     // must read its own field offsets, not the enum base registered first.
-    let li = ctx_struct_storage::ctx_struct_layout_preferred_index(ctx, clone(struct_name))
+    let li = ctx_struct_storage::ctx_struct_layout_preferred_index(ctx, struct_name.clone())
     if li >= 0 {
         return ctx_struct_storage::ctx_struct_layout_field_offset_at(ctx, li) + target_field_idx
     }

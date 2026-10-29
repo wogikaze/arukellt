@@ -1,5 +1,4 @@
 use std::json
-use std::prelude::{clone}
 use std::text
 struct DapFrameResult {
     body: String,
@@ -8,7 +7,7 @@ struct DapFrameResult {
 }
 
 fn dap_frame(body: String) -> String {
-    let header = "Content-Length: ".concat(len(clone(body)).to_string().concat("\r\n\r\n"))
+    let header = "Content-Length: ".concat(len(body.clone()).to_string().concat("\r\n\r\n"))
     header.concat(body)
 }
 
@@ -25,12 +24,12 @@ fn dap_parse_frame(input: String, pos: i32) -> DapFrameResult {
     if p >= n {
         return DapFrameResult { body: String_new(), next: n, ok: false }
     }
-    let header_end_rel = clone(input).slice(p, n).index_of("\r\n\r\n")
+    let header_end_rel = input.clone().slice(p, n).index_of("\r\n\r\n")
     if header_end_rel < 0 {
         return DapFrameResult { body: String_new(), next: n, ok: false }
     }
-    let header_block = clone(input).slice(p, p + header_end_rel)
-    let clen = json::JsonText::content_length(clone(header_block))
+    let header_block = input.clone().slice(p, p + header_end_rel)
+    let clen = json::JsonText::content_length(header_block.clone())
     if clen < 0 {
         return DapFrameResult { body: String_new(), next: n, ok: false }
     }
@@ -38,7 +37,7 @@ fn dap_parse_frame(input: String, pos: i32) -> DapFrameResult {
     if body_start + clen > n {
         return DapFrameResult { body: String_new(), next: n, ok: false }
     }
-    let body_text = clone(input).slice(body_start, body_start + clen)
+    let body_text = input.clone().slice(body_start, body_start + clen)
     DapFrameResult { body: body_text, next: body_start + clen, ok: true }
 }
 
@@ -47,7 +46,7 @@ fn dap_frame_result_ok(result: DapFrameResult) -> bool {
 }
 
 fn dap_frame_result_body(result: DapFrameResult) -> String {
-    clone(result.body)
+    result.body.clone()
 }
 
 fn dap_frame_result_next(result: DapFrameResult) -> i32 {

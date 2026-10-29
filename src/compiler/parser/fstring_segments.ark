@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use lexer::scan
 use parser::core_api_token
 use parser::fstring_nodes
@@ -65,7 +65,7 @@ fn fstring_push_expr_segment(mut nodes: Vec<AstNode>, content: String, span: Spa
     let close_idx = i - 1
     let end_of_expr = if colon_idx >= 1 { colon_idx } else { close_idx }
     let expr_text = content.slice(expr_start, end_of_expr)
-    let toks = scan::tokenize(clone(expr_text))
+    let toks = scan::tokenize(expr_text.clone())
     let mut sub_p = Parser_new(toks)
     let expr = parse_expr(sub_p)
     if colon_idx >= 1 {

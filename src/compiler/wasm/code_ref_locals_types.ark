@@ -1,17 +1,17 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 fn is_gc_container_type_name(type_name: String) -> bool {
-    if clone(type_name).starts_with("vec:") || clone(type_name).starts_with("hashmap:") {
+    if type_name.clone().starts_with("vec:") || type_name.clone().starts_with("hashmap:") {
         return true
     }
     false
 }
 
 fn is_option_type_name(type_name: String) -> bool {
-    if clone(type_name).starts_with("Option_") ||
-    clone(type_name).starts_with("option:") ||
-    clone(type_name).starts_with("Option:") ||
-    clone(type_name).starts_with("Option<") ||
-    eq(clone(type_name), "enum:Option") {
+    if type_name.clone().starts_with("Option_") ||
+    type_name.clone().starts_with("option:") ||
+    type_name.clone().starts_with("Option:") ||
+    type_name.clone().starts_with("Option<") ||
+    eq(type_name.clone(), "enum:Option") {
         return true
     }
     false

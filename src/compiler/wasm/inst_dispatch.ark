@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::inst_accessors_literals
 use mir::inst_accessors_shape
 use mir::opcodes
@@ -92,8 +91,8 @@ fn try_emit_call_inst(
     if inst_accessors_shape::MirInst_op(inst) != opcodes::MIR_CALL() {
         return false
     }
-    let callee = clone(inst_accessors_literals::MirInst_str_val(inst))
-    core_op_shadow::core_op_shadow_observe_call(ctx, inst, clone(callee))
+    let callee = inst_accessors_literals::MirInst_str_val(inst).clone()
+    core_op_shadow::core_op_shadow_observe_call(ctx, inst, callee.clone())
     if core_op_dispatch::try_emit_call_via_core_op_registry(
         w,
         inst,

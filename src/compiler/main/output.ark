@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use std::text
 use diagnostics::record
 use main::output_json
@@ -25,11 +24,11 @@ pub fn phase_error_tag(phase: i32) -> String {
 }
 
 pub fn format_error(file: String, msg: String) -> String {
-    clone(file).concat(": error: ".concat(msg))
+    file.clone().concat(": error: ".concat(msg))
 }
 
 pub fn format_error_phased(file: String, phase: i32, msg: String) -> String {
-    clone(file).concat(": ".concat(phase_error_tag(phase).concat(msg)))
+    file.clone().concat(": ".concat(phase_error_tag(phase).concat(msg)))
 }
 
 pub fn format_error_json(file: String, phase: i32, diagnostics_vec: Vec<Diagnostic>) -> String {

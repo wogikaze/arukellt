@@ -1,5 +1,4 @@
 use std::host::process::Process
-use std::prelude::{clone}
 use main::args_record
 use main::doc_usage
 use main::manifest_doc
@@ -12,5 +11,5 @@ pub fn cmd_doc(opts: CliOptions) {
     }
     let json_out = args_record::cli_json_output(opts)
     let filter_target = args_record::cli_target(opts)
-    manifest_doc::cmd_manifest_doc(clone(symbol), json_out, filter_target)
+    manifest_doc::cmd_manifest_doc(symbol.clone(), json_out, filter_target)
 }

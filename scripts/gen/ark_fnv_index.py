@@ -77,7 +77,7 @@ def emit_lookup_fn(fn_name: str, key_at_fn: str, bucket_fn: str, keys: list[str]
             "        if idx < 0 {",
             "            return 0 - 1",
             "        }",
-            f"        if eq(clone(name), {key_at_fn}(idx)) {{",
+            f"        if eq(name.clone(), {key_at_fn}(idx)) {{",
             "            return idx",
             "        }",
             "        slot = (slot + 1) % capacity",

@@ -1,4 +1,4 @@
-use std::prelude::{clone, i32_to_i64}
+use std::prelude::{i32_to_i64}
 use wasm::opcodes
 use wasm::constants
 use wasm::writer_core
@@ -7,7 +7,7 @@ use wasm::emit_target
 
 fn emit_memory_section(mut out: WasmWriter, target: String, data_offset: i32) {
     let mut mem_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
-    if emit_target::is_gc_target(clone(target)) {
+    if emit_target::is_gc_target(target.clone()) {
         // Keep the memory32 reservation within the bootstrap RSS contract;
         // the selfhost heap grows from this initial size when needed.
         let pages = if writer_core::writer_memory64(out) {
@@ -35,7 +35,7 @@ fn emit_memory_section(mut out: WasmWriter, target: String, data_offset: i32) {
 // `gc_string_literal_cache_none()` and emit only the heap pointer.
 fn emit_global_section(mut out: WasmWriter, data_offset: i32, literal_cache: GcStringLiteralCacheGlobal, target: String) {
     let mut global_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
-    let linear_gc = emit_target::is_linear_memory_target(clone(target))
+    let linear_gc = emit_target::is_linear_memory_target(target.clone())
     let cache_count = if literal_cache.array_type_idx >= 0 { 1 } else { 0 }
     let linear_gc_count = if linear_gc { 15 } else { 0 }
     let global_count = 1 + cache_count + linear_gc_count

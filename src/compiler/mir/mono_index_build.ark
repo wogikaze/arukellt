@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::mono_instance_shape
 use mir::mono_index_types
 use mir::type_contracts
@@ -15,8 +14,8 @@ fn build_mono_index(instances: Vec<MonoInstance>) -> MonoIndex {
         if mono_instance_shape::mir_mono_instance_type_arg_count(mi) > 0 {
             let fn_name = mono_instance_shape::mir_mono_instance_fn_name(mi)
             let mangled = mono_instance_shape::mir_mono_instance_mangled_name(mi)
-            if !mono_index_has_mangled(idx, clone(fn_name), clone(mangled)) {
-                let found_at = mono_index_types::mono_index_find_name(idx, clone(fn_name))
+            if !mono_index_has_mangled(idx, fn_name.clone(), mangled.clone()) {
+                let found_at = mono_index_types::mono_index_find_name(idx, fn_name.clone())
                 if found_at >= 0 {
                     mono_index_types::mono_index_increment_name(idx, found_at, mangled)
                 } else {

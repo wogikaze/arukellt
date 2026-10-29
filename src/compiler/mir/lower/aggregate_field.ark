@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ctx_struct_lookup
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_mono
@@ -15,27 +15,27 @@ fn mir_field_access_dest_vt(ctx: LowerCtx, base_type: String, field_name: String
         dest_vt = value_types::VT_F64()
     }
     if len(base_type) > 0 {
-        let ft_vt = ctx_struct_lookup::ctx_get_field_type(ctx, clone(base_type), clone(field_name))
-        if eq(clone(ft_vt), "i64") {
+        let ft_vt = ctx_struct_lookup::ctx_get_field_type(ctx, base_type.clone(), field_name.clone())
+        if eq(ft_vt.clone(), "i64") {
             dest_vt = value_types::VT_I64()
         }
         // fn fields are typed funcrefs so `(self.f)(x)` can call_ref (#807).
-        if eq(clone(ft_vt), "fnref") ||
-        eq(clone(ft_vt), "fn") ||
-        clone(ft_vt).starts_with(String_from("fnref")) ||
-        clone(ft_vt).starts_with(String_from("fnsig:")) ||
-        clone(ft_vt).starts_with(String_from("fn(")) {
+        if eq(ft_vt.clone(), "fnref") ||
+        eq(ft_vt.clone(), "fn") ||
+        ft_vt.clone().starts_with(String_from("fnref")) ||
+        ft_vt.clone().starts_with(String_from("fnsig:")) ||
+        ft_vt.clone().starts_with(String_from("fn(")) {
             dest_vt = value_types::VT_FUNCREF()
         }
     }
-    if len(base_type) > 0 && ctx_struct_layout::ctx_struct_field_is_gc_ref(ctx, clone(base_type), field_idx) {
+    if len(base_type) > 0 && ctx_struct_layout::ctx_struct_field_is_gc_ref(ctx, base_type.clone(), field_idx) {
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             dest_vt = value_types::VT_GC_REF()
         } else {
             dest_vt = value_types::VT_REF()
         }
     }
-    if len(base_type) > 0 && ctx_struct_layout::ctx_struct_field_is_v128(ctx, clone(base_type), field_idx) {
+    if len(base_type) > 0 && ctx_struct_layout::ctx_struct_field_is_v128(ctx, base_type.clone(), field_idx) {
         dest_vt = value_types::VT_V128()
     }
     dest_vt
@@ -52,29 +52,29 @@ fn mir_emit_field_access(mut ctx: LowerCtx, field_name: String, base_idx: i32) -
     let mut field_idx = 0
     let mut is_f64_field = false
     if len(base_type) > 0 {
-        field_idx = ctx_struct_lookup::ctx_field_index(ctx, clone(base_type), clone(field_name))
-        is_f64_field = ctx_struct_layout::ctx_struct_field_is_f64(ctx, clone(base_type), field_idx)
+        field_idx = ctx_struct_lookup::ctx_field_index(ctx, base_type.clone(), field_name.clone())
+        is_f64_field = ctx_struct_layout::ctx_struct_field_is_f64(ctx, base_type.clone(), field_idx)
     } else {
-        field_idx = ctx_struct_lookup::ctx_field_index_any(ctx, clone(field_name))
+        field_idx = ctx_struct_lookup::ctx_field_index_any(ctx, field_name.clone())
     }
-    let dest_vt = mir_field_access_dest_vt(ctx, clone(base_type), clone(field_name), field_idx, is_f64_field)
+    let dest_vt = mir_field_access_dest_vt(ctx, base_type.clone(), field_name.clone(), field_idx, is_f64_field)
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, dest_vt)
     let mut field_off = field_idx * 4
     // Default to dest_vt so Memory64 struct.get widen/narrow sees REF vs i32.
     // Previously VOID left the emitter treating String/struct fields as i32.
     let mut field_vt = dest_vt
     if len(base_type) > 0 {
-        field_off = ctx_struct_layout::ctx_struct_field_offset(ctx, clone(base_type), field_idx)
+        field_off = ctx_struct_layout::ctx_struct_field_offset(ctx, base_type.clone(), field_idx)
         if is_f64_field {
             field_vt = value_types::VT_F64()
         }
         if dest_vt == value_types::VT_I64() {
             field_vt = value_types::VT_I64()
         }
-        if ctx_struct_layout::ctx_struct_field_is_v128(ctx, clone(base_type), field_idx) {
+        if ctx_struct_layout::ctx_struct_field_is_v128(ctx, base_type.clone(), field_idx) {
             field_vt = value_types::VT_V128()
         }
-        let ft = ctx_struct_lookup::ctx_get_field_type(ctx, clone(base_type), clone(field_name))
+        let ft = ctx_struct_lookup::ctx_get_field_type(ctx, base_type.clone(), field_name.clone())
         if len(ft) > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, dest, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, ft))
         } else if dest_vt == value_types::VT_GC_REF() || dest_vt == value_types::VT_REF() {
@@ -85,8 +85,8 @@ fn mir_emit_field_access(mut ctx: LowerCtx, field_name: String, base_idx: i32) -
     }
     let mut struct_byte_size = 0
     if len(base_type) > 0 {
-        struct_byte_size = ctx_struct_layout::ctx_struct_byte_size(ctx, clone(base_type))
+        struct_byte_size = ctx_struct_layout::ctx_struct_byte_size(ctx, base_type.clone())
     }
-    ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(base_idx, clone(base_type), field_off, field_idx, struct_byte_size, field_vt, dest))
+    ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(base_idx, base_type.clone(), field_off, field_idx, struct_byte_size, field_vt, dest))
     dest
 }

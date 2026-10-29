@@ -5,17 +5,17 @@
 // ── Deprecated module paths ─────────────────────────────────────────────
 
 // Returns a non-empty replacement message if the `use` path is deprecated.
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 pub fn deprecated_use_message(path: String) -> String {
-    if eq(clone(path), "std::time") {
+    if eq(path.clone(), "std::time") {
         return "import `use std::host::clock::Clock` and call `Clock::monotonic_now()`"
     }
-    if eq(clone(path), "std::fs") {
+    if eq(path.clone(), "std::fs") {
         return "module `std::fs` has moved to `std::host::fs`"
     }
     // `std::env` is retired, not deprecated: the module path no longer
     // resolves, so a W0002 here would be a dead warning (#917).
-    if eq(clone(path), "std::process") {
+    if eq(path.clone(), "std::process") {
         return "module `std::process` has moved to `std::host::process`"
     }
     String_new()
@@ -24,15 +24,15 @@ pub fn deprecated_use_message(path: String) -> String {
 // ── Deprecated bare prelude calls ──────────────────────────────────────
 
 pub fn deprecated_call_message(name: String) -> String {
-    let numeric = deprecated_numeric_call_message(clone(name))
+    let numeric = deprecated_numeric_call_message(name.clone())
     if len(numeric) > 0 {
         return numeric
     }
-    let vec = deprecated_vec_call_message(clone(name))
+    let vec = deprecated_vec_call_message(name.clone())
     if len(vec) > 0 {
         return vec
     }
-    let assertion = deprecated_assert_call_message(clone(name))
+    let assertion = deprecated_assert_call_message(name.clone())
     if len(assertion) > 0 {
         return assertion
     }
@@ -45,55 +45,55 @@ pub fn deprecated_call_message(name: String) -> String {
 // `map_result_i32_i32` were stale non-callable entries and were retired
 // directly. `i8_to_i32` joined the numeric set once `i8::to_i32` landed.
 fn deprecated_numeric_call_message(name: String) -> String {
-    if eq(clone(name), "u8_to_i32") {
+    if eq(name.clone(), "u8_to_i32") {
         return "use `(x).to_i32()` on the `u8` value instead"
     }
-    if eq(clone(name), "i8_to_i32") {
+    if eq(name.clone(), "i8_to_i32") {
         return "use `(x).to_i32()` on the `i8` value instead"
     }
-    if eq(clone(name), "u16_to_i32") {
+    if eq(name.clone(), "u16_to_i32") {
         return "use `(x).to_i32()` on the `u16` value instead"
     }
-    if eq(clone(name), "i16_to_i32") {
+    if eq(name.clone(), "i16_to_i32") {
         return "use `(x).to_i32()` on the `i16` value instead"
     }
-    if eq(clone(name), "i32_to_u8") {
+    if eq(name.clone(), "i32_to_u8") {
         return "use `(x).to_u8_wrapping()` instead"
     }
-    if eq(clone(name), "i32_to_u16") {
+    if eq(name.clone(), "i32_to_u16") {
         return "use `(x).to_u16_wrapping()` instead"
     }
-    if eq(clone(name), "i32_to_i8") {
+    if eq(name.clone(), "i32_to_i8") {
         return "use `(x).to_i8_wrapping()` instead"
     }
-    if eq(clone(name), "i32_to_i16") {
+    if eq(name.clone(), "i32_to_i16") {
         return "use `(x).to_i16_wrapping()` instead"
     }
-    if eq(clone(name), "u32_to_u64") {
+    if eq(name.clone(), "u32_to_u64") {
         return "use `(x).to_u64()` instead"
     }
-    if eq(clone(name), "u64_to_u32") {
+    if eq(name.clone(), "u64_to_u32") {
         return "use `(x).to_u32_wrapping()` instead"
     }
-    if eq(clone(name), "i32_to_i64") {
+    if eq(name.clone(), "i32_to_i64") {
         return "use `(x).into()` instead"
     }
-    if eq(clone(name), "i64_to_i32") {
+    if eq(name.clone(), "i64_to_i32") {
         return "use `(x).to_i32_checked()` (or wrapping/saturating) instead"
     }
-    if eq(clone(name), "f32_to_f64") {
+    if eq(name.clone(), "f32_to_f64") {
         return "use `(x).to_f64()` instead"
     }
-    if eq(clone(name), "f64_to_f32") {
+    if eq(name.clone(), "f64_to_f32") {
         return "use `(x).to_f32()` instead"
     }
-    if eq(clone(name), "i32_to_u32") {
+    if eq(name.clone(), "i32_to_u32") {
         return "use `(x).to_u32_bits()` instead"
     }
-    if eq(clone(name), "f64_bits_lo") {
+    if eq(name.clone(), "f64_bits_lo") {
         return "use `(x).to_bits_lo()` instead"
     }
-    if eq(clone(name), "f64_bits_hi") {
+    if eq(name.clone(), "f64_bits_hi") {
         return "use `(x).to_bits_hi()` instead"
     }
     String_new()
@@ -101,47 +101,47 @@ fn deprecated_numeric_call_message(name: String) -> String {
 
 // ── Deprecated qualified path calls (cmp::min → a.cmp(b)) ──────────────
 fn deprecated_vec_call_message(name: String) -> String {
-    if eq(clone(name), "push") {
+    if eq(name.clone(), "push") {
         return "use the Vec method `v.push(x)` instead"
     }
-    if eq(clone(name), "pop") {
+    if eq(name.clone(), "pop") {
         return "use the Vec method `v.pop()` instead"
     }
-    if eq(clone(name), "len") {
+    if eq(name.clone(), "len") {
         return "use the Vec/String method `v.len()` instead"
     }
-    if eq(clone(name), "get") {
+    if eq(name.clone(), "get") {
         return "use the Vec method `v.get(idx)` instead"
     }
-    if eq(clone(name), "set") {
+    if eq(name.clone(), "set") {
         return "use the Vec method `v.set(idx, val)` instead"
     }
-    if eq(clone(name), "get_unchecked") {
+    if eq(name.clone(), "get_unchecked") {
         return "use the Vec method `v.get_unchecked(idx)` instead"
     }
-    if eq(clone(name), "as_slice") {
+    if eq(name.clone(), "as_slice") {
         return "use the Vec method `v.as_slice(start, end)` instead"
     }
-    if eq(clone(name), "slice_len") {
+    if eq(name.clone(), "slice_len") {
         return "use the Slice method `view.len()` instead"
     }
-    if eq(clone(name), "slice_get") {
+    if eq(name.clone(), "slice_get") {
         return "use the Slice method `view.get(idx)` instead"
     }
     String_new()
 }
 
 fn deprecated_assert_call_message(name: String) -> String {
-    if eq(clone(name), "assert_eq") {
+    if eq(name.clone(), "assert_eq") {
         return "use `std::Test::assert_eq_i32(actual, expected)` instead"
     }
-    if eq(clone(name), "assert_ne") {
+    if eq(name.clone(), "assert_ne") {
         return "use `std::Test::assert_ne_i32(actual, unexpected)` instead"
     }
-    if eq(clone(name), "assert_eq_i64") {
+    if eq(name.clone(), "assert_eq_i64") {
         return "use `std::Test::assert_eq_i64(actual, expected)` instead"
     }
-    if eq(clone(name), "assert_eq_str") {
+    if eq(name.clone(), "assert_eq_str") {
         return "use `std::Test::assert_eq_string(actual, expected)` instead"
     }
     String_new()
@@ -186,43 +186,43 @@ fn deprecated_convert_qualified_message(path: String) -> String {
 // the bare names overlap the still-stable prelude frees (for example
 // `sum_i32`), which must not warn before Wave 1 deprecates them.
 fn deprecated_seq_qualified_message(path: String) -> String {
-    if eq(clone(path), "seq::map_i32_i32") {
+    if eq(path.clone(), "seq::map_i32_i32") {
         return "use `v.iter().map(f).collect()` instead"
     }
-    if eq(clone(path), "seq::filter_i32") {
+    if eq(path.clone(), "seq::filter_i32") {
         return "use `v.iter().filter(f).collect()` instead"
     }
-    if eq(clone(path), "seq::take_i32") {
+    if eq(path.clone(), "seq::take_i32") {
         return "use `v.iter().take(n).collect()` instead"
     }
-    if eq(clone(path), "seq::skip_i32") {
+    if eq(path.clone(), "seq::skip_i32") {
         return "use `v.iter().skip(n).collect()` instead"
     }
-    if eq(clone(path), "seq::fold_i32_i32") {
+    if eq(path.clone(), "seq::fold_i32_i32") {
         return "use `v.iter().fold(init, f)` instead"
     }
-    if eq(clone(path), "seq::binary_search") {
+    if eq(path.clone(), "seq::binary_search") {
         return "use `v.binary_search(target)` instead"
     }
-    if eq(clone(path), "seq::min_i32") {
+    if eq(path.clone(), "seq::min_i32") {
         return "use `v.min()` instead"
     }
-    if eq(clone(path), "seq::max_i32") {
+    if eq(path.clone(), "seq::max_i32") {
         return "use `v.max()` instead"
     }
-    if eq(clone(path), "seq::sum_i32") {
+    if eq(path.clone(), "seq::sum_i32") {
         return "use `v.iter().sum()` instead"
     }
-    if eq(clone(path), "seq::seq_reverse") {
+    if eq(path.clone(), "seq::seq_reverse") {
         return "use `v.iter().rev().collect()` instead"
     }
-    if eq(clone(path), "seq::seq_contains") {
+    if eq(path.clone(), "seq::seq_contains") {
         return "use `v.iter().contains(target)` instead"
     }
-    if eq(clone(path), "seq::unique") {
+    if eq(path.clone(), "seq::unique") {
         return "use `v.iter().unique().collect()` instead"
     }
-    if eq(clone(path), "seq::count_eq") {
+    if eq(path.clone(), "seq::count_eq") {
         return "use `v.iter().count_eq(target)` instead"
     }
     String_new()

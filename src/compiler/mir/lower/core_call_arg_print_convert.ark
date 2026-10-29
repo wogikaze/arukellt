@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
@@ -11,16 +11,16 @@ use mir::value_types
 fn mir_core_convert_print_arg_to_string(mut ctx: LowerCtx, arg: CoreHirExpr, arg_idx: i32) -> i32 {
     let wrap_lt = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
     let mut wrap_callee = "to_string"
-    if eq(clone(wrap_lt), "char") || core_expr_shape_atoms::mir_core_expr_is_char(arg) {
+    if eq(wrap_lt.clone(), "char") || core_expr_shape_atoms::mir_core_expr_is_char(arg) {
         wrap_callee = "char_to_string"
     } else {
-        if eq(clone(wrap_lt), "bool") || core_expr_shape_atoms::mir_core_expr_is_bool(arg) {
+        if eq(wrap_lt.clone(), "bool") || core_expr_shape_atoms::mir_core_expr_is_bool(arg) {
             wrap_callee = "bool_to_string"
         } else {
-            if eq(clone(wrap_lt), "f64") || core_expr_shape_atoms::mir_core_expr_is_float(arg) {
+            if eq(wrap_lt.clone(), "f64") || core_expr_shape_atoms::mir_core_expr_is_float(arg) {
                 wrap_callee = "f64_to_string"
             } else {
-                if eq(clone(wrap_lt), "i64") || eq(clone(wrap_lt), "u64") || ctx_api_local_types::ctx_local_vt(ctx, arg_idx) == value_types::VT_I64() {
+                if eq(wrap_lt.clone(), "i64") || eq(wrap_lt.clone(), "u64") || ctx_api_local_types::ctx_local_vt(ctx, arg_idx) == value_types::VT_I64() {
                     wrap_callee = "i64_to_string"
                 }
             }

@@ -1,5 +1,4 @@
 use std::text
-use std::prelude::{clone}
 
 struct FmtIndentScan {
     opens: i32,
@@ -16,10 +15,10 @@ fn fmt_indent_scan_new(opens: i32, closes: i32, in_block_comment: bool) -> FmtIn
 }
 
 fn fmt_indent_trimmed(line: String) -> String {
-    let n = len(clone(line))
+    let n = len(line.clone())
     let mut start = 0
     while start < n {
-        let c = clone(line).byte_at(start)
+        let c = line.clone().byte_at(start)
         if c != 32 && c != 9 {
             break
         }
@@ -32,10 +31,10 @@ fn fmt_indent_closes_else_opens(trimmed: String, scan: FmtIndentScan) -> bool {
     if len(trimmed) < 6 {
         return false
     }
-    if clone(trimmed).byte_at(0) != 125 {
+    if trimmed.clone().byte_at(0) != 125 {
         return false
     }
-    return clone(trimmed).index_of("else") >= 0 && scan.opens > 0
+    return trimmed.clone().index_of("else") >= 0 && scan.opens > 0
 }
 
 fn fmt_indent_starts_close(trimmed: String) -> bool {
@@ -60,11 +59,11 @@ fn fmt_indent_apply(lines: Vec<String>) -> Vec<String> {
             i = i + 1
             continue
         }
-        let scan = fmt_indent_scan_line(clone(trimmed), in_block_comment)
+        let scan = fmt_indent_scan_line(trimmed.clone(), in_block_comment)
         in_block_comment = scan.in_block_comment
-        let closes_else = fmt_indent_closes_else_opens(clone(trimmed), scan)
+        let closes_else = fmt_indent_closes_else_opens(trimmed.clone(), scan)
         let mut line_indent = indent
-        if fmt_indent_starts_close(clone(trimmed)) {
+        if fmt_indent_starts_close(trimmed.clone()) {
             line_indent = indent - 1
             if line_indent < 0 {
                 line_indent = 0
@@ -99,8 +98,8 @@ fn fmt_indent_scan_line(text: String, starts_in_block_comment: bool) -> FmtInden
     let mut in_block_comment = starts_in_block_comment
     let mut i = 0
     while i < n {
-        let ch = clone(text).byte_at(i)
-        let next = if i + 1 < n { clone(text).byte_at(i + 1) } else { 0 }
+        let ch = text.clone().byte_at(i)
+        let next = if i + 1 < n { text.clone().byte_at(i + 1) } else { 0 }
         if in_block_comment {
             if ch == 42 && next == 47 {
                 in_block_comment = false

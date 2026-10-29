@@ -3,7 +3,7 @@
 // in one file, recommend importing via `use` and calling the short name.
 // Type/enum qualifiers (PascalCase::...) are excluded.
 
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use diagnostics::codes
 use diagnostics::record
@@ -15,16 +15,16 @@ use diagnostics::mod as diag_mod
 fn prefer_use_import_threshold() -> i32 { 3 }
 
 fn is_module_style_qualified_path(path: String) -> bool {
-    let pos = clone(path).index_of("::")
+    let pos = path.clone().index_of("::")
     if pos < 0 {
         return false
     }
-    let mod_part = paths::path_module_part(clone(path))
-    if len(clone(mod_part)) == 0 {
+    let mod_part = paths::path_module_part(path.clone())
+    if len(mod_part.clone()) == 0 {
         return false
     }
-    let sym_part = paths::path_symbol_part(clone(path))
-    if len(clone(sym_part)) == 0 {
+    let sym_part = paths::path_symbol_part(path.clone())
+    if len(sym_part.clone()) == 0 {
         return false
     }
     let c = mod_part.byte_at(0)
@@ -43,7 +43,7 @@ fn is_module_style_qualified_path(path: String) -> bool {
 fn collect_paths(node: AstNode, mut paths: Vec<String>, mut starts: Vec<i32>, mut ends: Vec<i32>) {
     if ast_expr_predicates::node_is_path(node) {
         let path = ast_access::node_text(node)
-        if is_module_style_qualified_path(clone(path)) {
+        if is_module_style_qualified_path(path.clone()) {
             push(paths, path)
             push(starts, ast_access::node_span_start(node))
             push(ends, ast_access::node_span_end(node))
@@ -61,7 +61,7 @@ fn collect_paths(node: AstNode, mut paths: Vec<String>, mut starts: Vec<i32>, mu
 fn path_seen_before(paths: Vec<String>, path: String, before: i32) -> bool {
     let mut j = 0
     while j < before {
-        if eq(clone(get_unchecked(paths, j)), clone(path)) {
+        if eq(get_unchecked(paths, j).clone(), path.clone()) {
             return true
         }
         j = j + 1
@@ -74,7 +74,7 @@ fn count_same_path(paths: Vec<String>, path: String) -> i32 {
     let mut uses = 0
     let mut k = 0
     while k < n {
-        if eq(clone(get_unchecked(paths, k)), clone(path)) {
+        if eq(get_unchecked(paths, k).clone(), path.clone()) {
             uses = uses + 1
         }
         k = k + 1
@@ -97,14 +97,14 @@ pub fn check_prefer_use_import(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     let n = len(paths)
     let mut i = 0
     while i < n {
-        let path = clone(get_unchecked(paths, i))
-        if path_seen_before(paths, clone(path), i) {
+        let path = get_unchecked(paths, i).clone()
+        if path_seen_before(paths, path.clone(), i) {
             i = i + 1
             continue
         }
-        let uses = count_same_path(paths, clone(path))
+        let uses = count_same_path(paths, path.clone())
         if uses >= threshold {
-            let msg = "qualified path `".concat(clone(path)).concat("` used repeatedly; prefer `use` and call the short name")
+            let msg = "qualified path `".concat(path.clone()).concat("` used repeatedly; prefer `use` and call the short name")
             let span = record::DiagnosticSpan_from_raw(get_unchecked(starts, i), get_unchecked(ends, i))
             push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_PREFER_USE_IMPORT(), diag_mod::SEV_WARNING(), span, msg))
         }

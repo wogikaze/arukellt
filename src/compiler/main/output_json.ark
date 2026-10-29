@@ -1,10 +1,9 @@
 use std::text
-use std::prelude::{clone}
 use diagnostics::mod
 use diagnostics::record
 pub fn format_error_json(file: String, phase: i32, diagnostics_vec: Vec<Diagnostic>) -> String {
     let mut out = "{\"file\":\""
-    out = out.concat(clone(file).concat("\",\"phase\":"))
+    out = out.concat(file.clone().concat("\",\"phase\":"))
     out = out.concat(phase.to_string().concat(",\"diagnostics\":["))
     let count = len(diagnostics_vec)
     let mut i = 0
@@ -22,7 +21,7 @@ pub fn format_error_json(file: String, phase: i32, diagnostics_vec: Vec<Diagnost
 
 pub fn format_success_json(file: String, phase: i32, size: i32) -> String {
     let mut out = "{\"file\":\""
-    out = out.concat(clone(file).concat("\",\"phase\":"))
+    out = out.concat(file.clone().concat("\",\"phase\":"))
     out = out.concat(phase.to_string().concat(",\"success\":true,\"output_size\":"))
     out = out.concat(size.to_string().concat("}"))
     out

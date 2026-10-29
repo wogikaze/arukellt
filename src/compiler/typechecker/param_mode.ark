@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use typechecker::ast_access
 use typechecker::ast_expr_predicates
 use typechecker::contract_fn_sig
@@ -149,7 +149,7 @@ fn mutable_place_message(param_index: i32, first_arg: i32) -> String {
 fn arg_is_mutable_place(scope: LocalScope, node: AstNode) -> bool {
     if ast_expr_predicates::node_is_ident(node) {
         let name = ast_access::node_text(node)
-        if scope::scope_binding_index(scope, clone(name)) < 0 {
+        if scope::scope_binding_index(scope, name.clone()) < 0 {
             return true
         }
         return scope::scope_binding_is_mutable(scope, name)
@@ -192,7 +192,7 @@ fn check_fn_type_assignment(mut env: TypeEnv, node: AstNode, expected: TypeInfo,
                 env,
                 codes::DIAG_TYPE_FN_MODE_ASSIGN(),
                 node,
-                clone(message)
+                message.clone()
             )
             return
         }
@@ -227,7 +227,7 @@ fn check_fn_type_value(
                 ast_access::node_child_at(node, count - 1),
                 expected,
                 actual,
-                clone(message)
+                message.clone()
             )
         }
         return
@@ -277,7 +277,7 @@ fn check_fn_type_value_children(
             ast_access::node_child_at(node, i),
             expected,
             actual,
-            clone(message)
+            message.clone()
         )
         i = i + 1
     }
@@ -305,7 +305,7 @@ fn check_fn_type_value_match_arms(
                 ast_access::node_child_at(arm, body_index),
                 expected,
                 actual,
-                clone(message)
+                message.clone()
             )
         }
         i = i + 1
@@ -331,7 +331,7 @@ fn check_closure_param_modes(mut env: TypeEnv, node: AstNode, expected: TypeInfo
                 env,
                 codes::DIAG_TYPE_FN_MODE_ASSIGN(),
                 node,
-                clone(message)
+                message.clone()
             )
             return
         }
@@ -342,7 +342,7 @@ fn check_closure_param_modes(mut env: TypeEnv, node: AstNode, expected: TypeInfo
 fn fn_value_expr_type(mut env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNode) -> TypeInfo {
     if ast_expr_predicates::node_is_ident(node) {
         let name = ast_access::node_text(node)
-        if scope::scope_binding_index(scope, clone(name)) >= 0 {
+        if scope::scope_binding_index(scope, name.clone()) >= 0 {
             return scope::scope_lookup_instantiated(env, scope, name)
         }
         return sigs::fn_value_type_from_sig(env, fn_sigs, name)
@@ -398,7 +398,7 @@ fn check_overlapping_places(
                     scope,
                     ast_access::node_child_at(node, first_arg + right)
                 )
-                if place_keys_overlap(clone(left_key), clone(right_key)) {
+                if place_keys_overlap(left_key.clone(), right_key.clone()) {
                     ownership::report_ownership_error(
                         env,
                         codes::DIAG_TYPE_SAME_PLACE_BORROW(),
@@ -418,7 +418,7 @@ fn check_overlapping_places(
 fn place_key(scope: LocalScope, node: AstNode) -> String {
     if ast_expr_predicates::node_is_ident(node) {
         let name = ast_access::node_text(node)
-        if scope::scope_binding_index(scope, clone(name)) < 0 {
+        if scope::scope_binding_index(scope, name.clone()) < 0 {
             return String_new()
         }
         return name
@@ -444,15 +444,15 @@ fn place_keys_overlap(left: String, right: String) -> bool {
     if len(left) == 0 || len(right) == 0 {
         return false
     }
-    if eq(clone(left), clone(right)) {
+    if eq(left.clone(), right.clone()) {
         return true
     }
-    let left_dot = clone(left).concat(".")
-    let left_bracket = clone(left).concat("[")
-    let right_dot = clone(right).concat(".")
-    let right_bracket = clone(right).concat("[")
-    return clone(left).starts_with(right_dot) ||
-    clone(left).starts_with(right_bracket) ||
-    clone(right).starts_with(left_dot) ||
-    clone(right).starts_with(left_bracket)
+    let left_dot = left.clone().concat(".")
+    let left_bracket = left.clone().concat("[")
+    let right_dot = right.clone().concat(".")
+    let right_bracket = right.clone().concat("[")
+    return left.clone().starts_with(right_dot) ||
+    left.clone().starts_with(right_bracket) ||
+    right.clone().starts_with(left_dot) ||
+    right.clone().starts_with(left_bracket)
 }

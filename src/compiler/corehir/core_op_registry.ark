@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use corehir::core_op_id
 use corehir::core_op_registry_generated
 use corehir::kinds
@@ -19,7 +18,7 @@ struct CoreOpEntry {
 }
 
 fn CoreOpRegistry_lookup_by_canonical(canonical_id: String) -> CoreOpId {
-    let index = core_op_registry_generated::core_op_registry_lookup_index(clone(canonical_id))
+    let index = core_op_registry_generated::core_op_registry_lookup_index(canonical_id.clone())
     if index < 0 {
         return core_op_id::CORE_OP_ID_NONE()
     }
@@ -45,7 +44,7 @@ fn CoreOpRegistry_entry_at(index: i32) -> CoreOpEntry {
 }
 
 fn CoreOpRegistry_lookup_entry(canonical_id: String) -> CoreOpEntry {
-    let id = CoreOpRegistry_lookup_by_canonical(clone(canonical_id))
+    let id = CoreOpRegistry_lookup_by_canonical(canonical_id.clone())
     let raw = core_op_id::CoreOpId_raw(id)
     if raw < 0 {
         return CoreOpEntry {

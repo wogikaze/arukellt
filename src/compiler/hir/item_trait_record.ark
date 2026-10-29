@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use hir::item_function_core_record
 use hir::item_type_param_record
 use hir::type_contracts_record
@@ -21,7 +20,7 @@ fn HirTraitDecl_new(name: String, is_pub: bool) -> HirTraitDecl {
 }
 
 fn hir_trait_name(decl: HirTraitDecl) -> String {
-    clone(decl.name)
+    decl.name.clone()
 }
 
 fn hir_trait_push_method(mut decl: HirTraitDecl, method: HirFunction) {

@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use corehir::kinds
 use corehir::mir_value_type
 use corehir::type_id
@@ -50,7 +50,7 @@ fn native_c_heap_enum_type_flags(mir_module: MirModule) -> Vec<i32> {
                 // during match lowering and must not flip Ordering to heap.
                 if op == opcodes::MIR_STRUCT_NEW() || op == opcodes::MIR_GC_STRUCT_NEW() {
                     let named = inst_accessors_literals::MirInst_str_val(instruction)
-                    if native_c_type_name_has_variant_path(clone(named)) {
+                    if native_c_type_name_has_variant_path(named.clone()) {
                         native_c_push_unique_string(
                             payload_enum_names,
                             native_c_type_name_enum_basename(named)
@@ -67,7 +67,7 @@ fn native_c_heap_enum_type_flags(mir_module: MirModule) -> Vec<i32> {
                     // field_idx 0 is the tag; only payload fields prove heap ABI.
                     let packed = inst_accessors_operands::MirInst_dest(instruction)
                     if packed >= 100000 {
-                        if native_c_type_name_has_variant_path(clone(named)) {
+                        if native_c_type_name_has_variant_path(named.clone()) {
                             native_c_push_unique_string(
                                 payload_enum_names,
                                 native_c_type_name_enum_basename(named)
@@ -104,11 +104,11 @@ fn native_c_heap_enum_type_flags(mir_module: MirModule) -> Vec<i32> {
             continue
         }
         let entry_name = type_table::type_entry_name(entry)
-        let basename = native_c_type_name_enum_basename(clone(entry_name))
-        let in_payload = native_c_string_list_contains(payload_enum_names, clone(basename)) ||
-        native_c_type_name_is_open_payload_enum(clone(entry_name)) ||
-        native_c_type_name_is_open_payload_enum(clone(basename))
-        let in_product = native_c_string_list_contains(product_struct_names, clone(basename))
+        let basename = native_c_type_name_enum_basename(entry_name.clone())
+        let in_payload = native_c_string_list_contains(payload_enum_names, basename.clone()) ||
+        native_c_type_name_is_open_payload_enum(entry_name.clone()) ||
+        native_c_type_name_is_open_payload_enum(basename.clone())
+        let in_product = native_c_string_list_contains(product_struct_names, basename.clone())
         if in_payload || in_product {
             set(flags, type_index, 1)
         }
@@ -118,15 +118,15 @@ fn native_c_heap_enum_type_flags(mir_module: MirModule) -> Vec<i32> {
 }
 
 fn native_c_type_name_is_open_payload_enum(name: String) -> bool {
-    if eq(clone(name), String_from("Option")) || eq(clone(name), String_from("Result")) ||
-    eq(clone(name), String_from("Either")) {
+    if eq(name.clone(), String_from("Option")) || eq(name.clone(), String_from("Result")) ||
+    eq(name.clone(), String_from("Either")) {
         return true
     }
-    if clone(name).starts_with(String_from("option:")) ||
-    clone(name).starts_with(String_from("Option_")) ||
-    clone(name).starts_with(String_from("result:")) ||
-    clone(name).starts_with(String_from("Result_")) ||
-    clone(name).starts_with(String_from("either:")) {
+    if name.clone().starts_with(String_from("option:")) ||
+    name.clone().starts_with(String_from("Option_")) ||
+    name.clone().starts_with(String_from("result:")) ||
+    name.clone().starts_with(String_from("Result_")) ||
+    name.clone().starts_with(String_from("either:")) {
         return true
     }
     false
@@ -135,13 +135,13 @@ fn native_c_type_name_is_open_payload_enum(name: String) -> bool {
 /// Unit-only enums that native-cpp lowers with CONST_I32 tags.
 fn native_c_type_name_is_unit_tag_enum(name: String) -> bool {
     let basename = native_c_type_name_enum_basename(name)
-    if eq(clone(basename), String_from("Ordering")) {
+    if eq(basename.clone(), String_from("Ordering")) {
         return true
     }
-    if eq(clone(basename), String_from("Direction")) {
+    if eq(basename.clone(), String_from("Direction")) {
         return true
     }
-    if eq(clone(basename), String_from("RpnOp")) {
+    if eq(basename.clone(), String_from("RpnOp")) {
         return true
     }
     false
@@ -158,9 +158,9 @@ fn native_c_collect_payload_enum_from_local(
     }
     let local = function_locals_view::MirFunction_local_at(function, local_id)
     let type_name = local_record::mir_local_type_name(local)
-    if clone(type_name).starts_with(String_from("enum:")) ||
-    native_c_type_name_has_variant_path(clone(type_name)) ||
-    native_c_type_name_is_open_payload_enum(clone(type_name)) {
+    if type_name.clone().starts_with(String_from("enum:")) ||
+    native_c_type_name_has_variant_path(type_name.clone()) ||
+    native_c_type_name_is_open_payload_enum(type_name.clone()) {
         native_c_push_unique_string(
             payload_enum_names,
             native_c_type_name_enum_basename(type_name)
@@ -192,7 +192,7 @@ fn native_c_push_unique_string(mut values: Vec<String>, value: String) {
     if len(value) == 0 {
         return
     }
-    if native_c_string_list_contains(values, clone(value)) {
+    if native_c_string_list_contains(values, value.clone()) {
         return
     }
     push(values, value)
@@ -202,7 +202,7 @@ fn native_c_string_list_contains(values: Vec<String>, value: String) -> bool {
     let count = len(values)
     let mut index = 0
     while index < count {
-        if eq(get_unchecked(values, index), clone(value)) {
+        if eq(get_unchecked(values, index), value.clone()) {
             return true
         }
         index = index + 1
@@ -224,7 +224,7 @@ fn native_c_type_name_has_variant_path(name: String) -> bool {
 
 fn native_c_type_name_enum_basename(name: String) -> String {
     let mut base = name
-    if clone(base).starts_with(String_from("enum:")) {
+    if base.clone().starts_with(String_from("enum:")) {
         base = base.slice(5, len(base))
     }
     let length = len(base)
@@ -265,7 +265,7 @@ fn native_c_table_has_unit_enum_named(
             type_index = type_index + 1
             continue
         }
-        if !eq(native_c_type_name_enum_basename(type_table::type_entry_name(entry)), clone(basename)) {
+        if !eq(native_c_type_name_enum_basename(type_table::type_entry_name(entry)), basename.clone()) {
             type_index = type_index + 1
             continue
         }

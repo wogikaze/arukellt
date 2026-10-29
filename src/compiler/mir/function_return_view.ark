@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::function_core_record
 use mir::types_function
 use mir::block_inst_access
@@ -13,7 +12,7 @@ fn MirFunction_return_type(f: MirFunction) -> i32 {
 }
 
 fn MirFunction_return_type_name(f: MirFunction) -> String {
-    clone(f.return_type_name)
+    f.return_type_name.clone()
 }
 
 // Consistent variant slot of the locals this function returns. The first

@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::call_rewrite
 use mir::lower::call_rewrite_string
 use mir::lower::call_rewrite_vec
@@ -12,8 +12,8 @@ use mir::lower::call_types
 use mir::inst_call
 use mir::value_types
 fn mir_emit_method_call(mut ctx: LowerCtx, mut callee_name: String, arg_count: i32, first_arg_idx: i32, value_arg_idx: i32) -> i32 {
-    let bare_method = mir_method_bare_name(clone(callee_name))
-    if eq(clone(bare_method), "to_string") {
+    let bare_method = mir_method_bare_name(callee_name.clone())
+    if eq(bare_method.clone(), "to_string") {
         let string_rewrite = call_rewrite_string::mir_rewrite_to_string(ctx, "to_string", first_arg_idx)
         let return_local = call_rewrite_string::mir_string_call_rewrite_return_local(string_rewrite)
         if return_local >= 0 {
@@ -28,23 +28,23 @@ fn mir_emit_method_call(mut ctx: LowerCtx, mut callee_name: String, arg_count: i
     // i64 heuristics are direct-call contracts; applying them to arbitrary
     // methods emits an i64 widen the linear target's code does not expect.
     let mut push_value_arg_idx = 0 - 1
-    if call_rewrite_vec::is_vec_push_callee(clone(callee_name)) ||
-    clone(callee_name).starts_with(String_from("__core_vec_push_")) {
+    if call_rewrite_vec::is_vec_push_callee(callee_name.clone()) ||
+    callee_name.clone().starts_with(String_from("__core_vec_push_")) {
         push_value_arg_idx = value_arg_idx
     }
-    let call_rewrite = call_rewrite::mir_rewrite_call_target(ctx, clone(callee_name), first_arg_idx, push_value_arg_idx, false, 0)
+    let call_rewrite = call_rewrite::mir_rewrite_call_target(ctx, callee_name.clone(), first_arg_idx, push_value_arg_idx, false, 0)
     let return_local = call_rewrite::MirCallRewrite_return_local(call_rewrite)
     if return_local >= 0 {
         return return_local
     }
     callee_name = call_rewrite::MirCallRewrite_callee_name(call_rewrite)
     // Match direct-call dest allocation (including ::to_string GC-ref override).
-    let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, clone(callee_name), first_arg_idx)
+    let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, callee_name.clone(), first_arg_idx)
     // Reuse the same result-type propagation as direct calls so that
     // String/Vec/Hash/struct return types are inferred consistently.
     // first_arg_idx is the receiver's local index, which corresponds to
     // the first argument of the resolved intrinsic (e.g. vec_get_unchecked).
-    call_types::mir_mark_call_result_type(ctx, clone(callee_name), dest, first_arg_idx)
+    call_types::mir_mark_call_result_type(ctx, callee_name.clone(), dest, first_arg_idx)
     // Carry the marked dest vt onto the inst like mir_emit_direct_call does.
     // VT_VOID here made GC local-decl scans adopt the callee's declared
     // return (String for __core_string_clone_impl) even when the receiver
@@ -61,12 +61,12 @@ fn mir_emit_method_call(mut ctx: LowerCtx, mut callee_name: String, arg_count: i
     // STRUCT_GET→CALL stack-compose that depends on CALL.arg0 < 0
     // (#807 / #834).
     if first_arg_idx >= 0 && (
-        call_args::mir_is_printlike_callee(clone(callee_name)) ||
-        call_type_vec::is_vec_receiver_recording_callee(clone(callee_name))
+        call_args::mir_is_printlike_callee(callee_name.clone()) ||
+        call_type_vec::is_vec_receiver_recording_callee(callee_name.clone())
     ) {
-        ctx_emit(ctx, inst_call::MirInst_call_with_first_arg_vt(clone(callee_name), arg_count, dest, first_arg_idx, dest_vt))
+        ctx_emit(ctx, inst_call::MirInst_call_with_first_arg_vt(callee_name.clone(), arg_count, dest, first_arg_idx, dest_vt))
     } else {
-        ctx_emit(ctx, inst_call::MirInst_call_with_val_type(clone(callee_name), arg_count, dest, dest_vt))
+        ctx_emit(ctx, inst_call::MirInst_call_with_val_type(callee_name.clone(), arg_count, dest, dest_vt))
     }
     if dest < 0 {
         return 0 - 1
@@ -75,9 +75,9 @@ fn mir_emit_method_call(mut ctx: LowerCtx, mut callee_name: String, arg_count: i
 }
 
 fn mir_method_bare_name(mangled: String) -> String {
-    let pos = clone(mangled).index_of("::")
+    let pos = mangled.clone().index_of("::")
     if pos < 0 {
-        return clone(mangled)
+        return mangled.clone()
     }
     mangled.slice(pos + 2, mangled.len())
 }

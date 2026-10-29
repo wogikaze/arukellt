@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_variants
@@ -19,7 +18,7 @@ use mir::value_types
 fn lower_core_struct_lit(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
     let raw_name = core_expr_shape_accessors::mir_core_expr_text(expr)
-    let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
+    let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, raw_name.clone())
     let struct_name = if len(canon) > 0 {
         canon
     } else {
@@ -43,10 +42,10 @@ fn lower_core_struct_lit(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreH
             let field_name = core_expr_shape_accessors::mir_core_expr_text(field_expr)
             let val_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(field_expr, 0))
             let mut val_idx = 0 - 1
-            let fi_idx = ctx_struct_lookup::ctx_field_index(ctx, clone(struct_name), clone(field_name))
-            if core_expr_shape_atoms::mir_core_expr_is_int(val_expr) && fi_idx >= 0 && ctx_struct_layout::ctx_struct_field_is_i64(ctx, clone(struct_name), fi_idx) {
+            let fi_idx = ctx_struct_lookup::ctx_field_index(ctx, struct_name.clone(), field_name.clone())
+            if core_expr_shape_atoms::mir_core_expr_is_int(val_expr) && fi_idx >= 0 && ctx_struct_layout::ctx_struct_field_is_i64(ctx, struct_name.clone(), fi_idx) {
                 val_idx = core_literals::lower_core_int_literal_forced_i64(ctx, val_expr)
-            } else if core_struct_lit_field_is_fn_ident(ctx, clone(struct_name), fi_idx, val_expr) {
+            } else if core_struct_lit_field_is_fn_ident(ctx, struct_name.clone(), fi_idx, val_expr) {
                 val_idx = value_variants::lower_function_value(ctx, core_expr_shape_accessors::mir_core_expr_text(val_expr))
             } else {
                 val_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(field_expr, 0))
@@ -59,25 +58,25 @@ fn lower_core_struct_lit(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreH
         }
         i = i + 1
     }
-    let inst_name = struct_lit::mir_struct_lit_instance_name(ctx, clone(struct_name), field_names, field_vals, base_idx)
-    let dest = struct_lit::mir_emit_struct_new(ctx, clone(inst_name))
+    let inst_name = struct_lit::mir_struct_lit_instance_name(ctx, struct_name.clone(), field_names, field_vals, base_idx)
+    let dest = struct_lit::mir_emit_struct_new(ctx, inst_name.clone())
     // If this is an enum variant, set the _tag field to the variant's tag value.
-    let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(inst_name))
+    let tag = ctx_api_variants::ctx_variant_tag(ctx, inst_name.clone())
     if tag >= 0 {
         let tag_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
         ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_local))
-        struct_lit::mir_emit_struct_field_set(ctx, clone(inst_name), dest, "_tag", tag_local)
+        struct_lit::mir_emit_struct_field_set(ctx, inst_name.clone(), dest, "_tag", tag_local)
     }
     if has_base {
-        struct_lit::mir_copy_struct_base_fields(ctx, clone(inst_name), dest, base_idx)
+        struct_lit::mir_copy_struct_base_fields(ctx, inst_name.clone(), dest, base_idx)
     }
     let mut emit_i = 0
     while emit_i < len(field_names) {
         struct_lit::mir_emit_struct_field_set(
             ctx,
-            clone(inst_name),
+            inst_name.clone(),
             dest,
-            clone(get_unchecked(field_names, emit_i)),
+            get_unchecked(field_names, emit_i).clone(),
             get_unchecked(field_vals, emit_i)
         )
         emit_i = emit_i + 1
@@ -98,5 +97,5 @@ fn core_struct_lit_field_is_fn_ident(ctx: LowerCtx, struct_name: String, fi_idx:
     if core_names::mir_function_parameter_count(ctx, core_expr_shape_accessors::mir_core_expr_text(val_expr)) < 0 {
         return false
     }
-    struct_lit::mir_struct_field_type_is_fn(ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(struct_name), fi_idx))
+    struct_lit::mir_struct_field_type_is_fn(ctx_struct_field_type::ctx_struct_field_type_name(ctx, struct_name.clone(), fi_idx))
 }

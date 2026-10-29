@@ -1,10 +1,9 @@
-use std::prelude::{clone}
 use std::text
 use resolver::scope_define
 use resolver::scope_lookup
 fn register_module_export(mut ctx: ResolveCtx, module_name: String, symbol_name: String, kind: i32, is_pub: bool) {
-    let qualified = clone(module_name).concat("::".concat(clone(symbol_name)))
-    if scope_lookup::lookup(ctx, clone(qualified)) >= 0 {
+    let qualified = module_name.clone().concat("::".concat(symbol_name.clone()))
+    if scope_lookup::lookup(ctx, qualified.clone()) >= 0 {
         return
     }
     scope_define::define_impl(ctx, qualified, kind, is_pub, 0, 0)

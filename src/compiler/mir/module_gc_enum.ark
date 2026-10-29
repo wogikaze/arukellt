@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq}
+use std::prelude::{byte_at, eq}
 use std::text
 use corehir::name_match
 use mir::module_record
@@ -7,11 +7,11 @@ fn MirModule_gc_enum_variant_sig_count(m: MirModule) -> i32 {
 }
 
 fn MirModule_gc_enum_variant_sig_at(m: MirModule, idx: i32) -> String {
-    clone(get_unchecked(m.gc_enum_variant_sigs, idx))
+    get_unchecked(m.gc_enum_variant_sigs, idx).clone()
 }
 
 fn MirModule_gc_enum_variant_name_at(m: MirModule, idx: i32) -> String {
-    clone(get_unchecked(m.gc_enum_variant_names, idx))
+    get_unchecked(m.gc_enum_variant_names, idx).clone()
 }
 
 fn MirModule_gc_enum_variant_names(m: MirModule) -> Vec<String> {
@@ -59,7 +59,7 @@ fn MirModule_gc_enum_variant_slot(m: MirModule, name: String) -> i32 {
     let count = MirModule_gc_enum_variant_sig_count(m)
     let mut i = 0
     while i < count {
-        if eq(MirModule_gc_enum_variant_name_at(m, i), clone(name)) {
+        if eq(MirModule_gc_enum_variant_name_at(m, i), name.clone()) {
             return i
         }
         i = i + 1

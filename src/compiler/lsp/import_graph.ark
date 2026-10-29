@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use compiler::session_parse
 use loader::module_import_paths
@@ -6,7 +6,7 @@ fn path_is_imported(paths: Vec<String>, import_path: String) -> bool {
     let n = len(paths)
     let mut i = 0
     while i < n {
-        if eq(get_unchecked(paths, i), clone(import_path)) {
+        if eq(get_unchecked(paths, i), import_path.clone()) {
             return true
         }
         i = i + 1
@@ -15,11 +15,11 @@ fn path_is_imported(paths: Vec<String>, import_path: String) -> bool {
 }
 
 pub fn import_paths_in_text(text: String) -> Vec<String> {
-    module_import_paths::collect_import_paths(session_parse::session_parse_decls(clone(text)))
+    module_import_paths::collect_import_paths(session_parse::session_parse_decls(text.clone()))
 }
 
 pub fn is_path_imported(text: String, import_path: String) -> bool {
-    path_is_imported(import_paths_in_text(clone(text)), import_path)
+    path_is_imported(import_paths_in_text(text.clone()), import_path)
 }
 
 pub fn stdlib_import_path(module_path: String, symbol_name: String) -> String {
@@ -31,7 +31,7 @@ pub fn build_use_statement(import_path: String) -> String {
 }
 
 pub fn first_use_insert_offset(text: String) -> i32 {
-    let use_pos = clone(text).index_of("use ")
+    let use_pos = text.clone().index_of("use ")
     if use_pos < 0 {
         return 0
     }

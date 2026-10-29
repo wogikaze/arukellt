@@ -1,5 +1,4 @@
 use std::host::clock::Clock
-use std::prelude::{clone}
 use collections::vec_extend
 use compiler::phases
 use compiler::session_typecheck_query
@@ -54,7 +53,7 @@ fn filter_lint_warnings(warnings: Vec<Diagnostic>, allow_codes: Vec<String>) -> 
     while i < count {
         let diag = get_unchecked(warnings, i)
         let code = diag_record::diagnostic_code(diag)
-        if lint_registry::should_suppress(clone(code), allow_codes) {
+        if lint_registry::should_suppress(code.clone(), allow_codes) {
             i = i + 1
             continue
         }
@@ -75,7 +74,7 @@ fn partition_deny_lists(warnings: Vec<Diagnostic>, deny_codes: Vec<String>, mut 
     while i < count {
         let diag = get_unchecked(warnings, i)
         let code = diag_record::diagnostic_code(diag)
-        if lint_registry::should_deny(clone(code), deny_codes) {
+        if lint_registry::should_deny(code.clone(), deny_codes) {
             push(denied, escalate_lint_to_error(diag))
         } else {
             push(kept, diag)
@@ -103,7 +102,7 @@ fn backend_typecheck(source: String, config: DriverConfig, all_decls: Vec<AstNod
         return DriverTypecheckResult_new(
             true,
             errors::type_errors_result(
-                clone(source),
+                source.clone(),
                 config_record::config_source_file(config),
                 error_count,
                 session_typecheck_query::session_typecheck_diagnostics(check_result),
@@ -138,11 +137,11 @@ fn backend_typecheck(source: String, config: DriverConfig, all_decls: Vec<AstNod
             let mut all = Vec::new<Diagnostic>()
             merge_warnings(all, denied)
             merge_warnings(all, kept)
-            let denied_result = errors::type_errors_result(clone(source), config_record::config_source_file(config), len(denied), all, Vec::new<String>())
+            let denied_result = errors::type_errors_result(source.clone(), config_record::config_source_file(config), len(denied), all, Vec::new<String>())
             return DriverTypecheckResult_new(true, denied_result, check_result, Clock::monotonic_now())
         }
         if len(kept) > 0 {
-            let warn_result = errors::type_warnings_result(clone(source), config_record::config_source_file(config), kept)
+            let warn_result = errors::type_warnings_result(source.clone(), config_record::config_source_file(config), kept)
             return DriverTypecheckResult_new(true, warn_result, check_result, Clock::monotonic_now())
         }
         return DriverTypecheckResult_new(true, result_record::CompileResult_ok(phases::PHASE_TYPECHECK()), check_result, Clock::monotonic_now())

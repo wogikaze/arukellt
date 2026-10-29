@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use typechecker::ast_access
 use typechecker::call_generic_common
@@ -40,7 +40,7 @@ fn infer_generic_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
     if infer_env.error_count > 0 && generic_call_args_concrete(arg_types) {
         let mut speculation_error = 0
         while speculation_error < infer_env.error_count {
-            unify::type_error(env, clone(get_unchecked(infer_env.errors, speculation_error)))
+            unify::type_error(env, get_unchecked(infer_env.errors, speculation_error).clone())
             speculation_error = speculation_error + 1
         }
     }
@@ -59,10 +59,10 @@ fn infer_generic_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
             env,
             infer_env,
             sig,
-            clone(fn_name),
-            clone(var_names),
-            clone(var_types),
-            clone(arg_types)
+            fn_name.clone(),
+            var_names.clone(),
+            var_types.clone(),
+            arg_types.clone()
         )
     }
     // Unresolved polymorphic calls must not mint mono instances.
@@ -74,11 +74,11 @@ fn infer_generic_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
     }
     let resolved_type_args = call_generic_common::resolve_type_args(infer_env, var_types)
     traits::enforce_fn_sig_bounds(env, infer_env, sig, var_types)
-    if !hashmap_api::validate_hashmap_constructor(env, clone(fn_name), resolved_type_args) {
+    if !hashmap_api::validate_hashmap_constructor(env, fn_name.clone(), resolved_type_args) {
         return ret_ty
     }
-    let mangled_name = mono::record_mono_instance(env, clone(fn_name), resolved_type_args)
-    mono::record_mono_return_type(env, clone(mangled_name), ret_ty)
+    let mangled_name = mono::record_mono_instance(env, fn_name.clone(), resolved_type_args)
+    mono::record_mono_return_type(env, mangled_name.clone(), ret_ty)
     mono::record_mono_call_site(env, ast_access::node_span_start(node), fn_name, mangled_name)
     ret_ty
 }
@@ -88,7 +88,7 @@ fn generic_call_args_concrete(arg_types: Vec<TypeInfo>) -> bool {
     let mut i = 0
     while i < count {
         let arg_ty = get_unchecked(arg_types, i)
-        if associated_types::type_contains_var(clone(arg_ty)) {
+        if associated_types::type_contains_var(arg_ty.clone()) {
             return false
         }
         if contract_type_access::TypeInfo_tag(arg_ty) == commands::TY_UNKNOWN() {
@@ -120,7 +120,7 @@ fn bind_uninferable_impl_type_params(
     if !generic_call_args_concrete(arg_types) {
         return
     }
-    let impl_param_count = call_owner_type_param_count(env, clone(fn_name))
+    let impl_param_count = call_owner_type_param_count(env, fn_name.clone())
     let count = len(var_types)
     let mut i = 0
     while i < count && i < impl_param_count {
@@ -141,7 +141,7 @@ fn fn_sig_mentions_type_param(sig: FnSig, param_name: String) -> bool {
     let param_count = contract_fn_sig::FnSig_param_count(sig)
     let mut i = 0
     while i < param_count {
-        if type_mentions_var(contract_fn_sig::FnSig_param_at(sig, i), clone(param_name)) {
+        if type_mentions_var(contract_fn_sig::FnSig_param_at(sig, i), param_name.clone()) {
             return true
         }
         i = i + 1
@@ -174,7 +174,7 @@ fn call_owner_segment(name: String) -> String {
 // merged parameter list. Owners that are not user structs (traits, builtins)
 // return 0 and stay on the existing deferral path.
 fn call_owner_type_param_count(env: TypeEnv, fn_name: String) -> i32 {
-    let owner = call_owner_segment(clone(fn_name))
+    let owner = call_owner_segment(fn_name.clone())
     if len(owner) == 0 {
         return 0
     }
@@ -183,7 +183,7 @@ fn call_owner_type_param_count(env: TypeEnv, fn_name: String) -> i32 {
     let mut i = 0
     while i < count {
         let def = get_unchecked(env.struct_defs, i)
-        if eq(contract_struct_info::StructInfo_name(def), clone(base)) {
+        if eq(contract_struct_info::StructInfo_name(def), base.clone()) {
             return len(contract_struct_info::StructInfo_type_params(def))
         }
         i = i + 1
@@ -207,7 +207,7 @@ fn report_unbindable_type_params(mut env: TypeEnv, infer_env: TypeEnv, var_names
             if !type_mentions_var(ret_ty, var_name) {
                 unify::type_error(
                     env,
-                    "cannot infer type parameter ".concat(get_unchecked(var_names, i).concat(" in call ".concat(clone(fn_name))))
+                    "cannot infer type parameter ".concat(get_unchecked(var_names, i).concat(" in call ".concat(fn_name.clone())))
                 )
             }
         }
@@ -222,7 +222,7 @@ fn type_mentions_var(ty: TypeInfo, var_name: String) -> bool {
     let count = contract_type_access::TypeInfo_type_arg_count(ty)
     let mut i = 0
     while i < count {
-        if type_mentions_var(contract_type_access::TypeInfo_type_arg_at(ty, i), clone(var_name)) {
+        if type_mentions_var(contract_type_access::TypeInfo_type_arg_at(ty, i), var_name.clone()) {
             return true
         }
         i = i + 1

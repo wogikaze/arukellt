@@ -2,7 +2,6 @@ use std::host::fs::Fs
 use std::host::process::Process
 use std::host::stdio
 use std::toml
-use std::prelude::{clone}
 use std::text
 use main::args_record
 use main::script_list
@@ -11,17 +10,17 @@ pub fn cmd_script(opts: CliOptions) {
     match manifest_result {
         Result::Ok(content) => {
             let script_name = args_record::cli_input_file(opts)
-            let scripts_content = toml::TomlText::find_section(clone(content), String_from("scripts"))
+            let scripts_content = toml::TomlText::find_section(content.clone(), String_from("scripts"))
             if len(script_name) == 0 {
                 script_list::print_script_list(scripts_content)
                 return
             }
-            let found = toml::TomlText::find_value(clone(scripts_content), clone(script_name))
+            let found = toml::TomlText::find_value(scripts_content.clone(), script_name.clone())
             if len(found) > 0 {
-                stdio::println(clone(found))
+                stdio::println(found.clone())
                 return
             }
-            stdio::eprintln(String_from("error: script '").concat(clone(script_name).concat(String_from("' not found in ark.toml [scripts]"))))
+            stdio::eprintln(String_from("error: script '").concat(script_name.clone().concat(String_from("' not found in ark.toml [scripts]"))))
             Process::exit(1)
         },
         Result::Err(e) => {

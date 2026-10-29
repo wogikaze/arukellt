@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use std::text
 use mir::lower::ctx_api_nesting
 use mir::lower::ctx_api_loop_state
@@ -42,7 +41,7 @@ fn mir_set_comprehension_result_type(mut ctx: LowerCtx, state: ComprehensionStat
 }
 
 fn rewrite_comprehension_constructor(ctx: LowerCtx, result_local: i32, elem_type: String) {
-    let constructor = "Vec::new__".concat(clone(elem_type))
+    let constructor = "Vec::new__".concat(elem_type.clone())
     let f = ctx_api_local_frame::ctx_current_function(ctx)
     let block_count = function_block_queries::MirFunction_block_count(f)
     let mut bi = 0
@@ -55,8 +54,8 @@ fn rewrite_comprehension_constructor(ctx: LowerCtx, result_local: i32, elem_type
             if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() &&
             inst_accessors_operands::MirInst_dest(inst) == result_local {
                 let callee = inst_accessors_literals::MirInst_str_val(inst)
-                if clone(callee).starts_with("Vec::new__") {
-                    inst_record::mir_inst_with_call_target(inst, clone(constructor), 0 - 1)
+                if callee.clone().starts_with("Vec::new__") {
+                    inst_record::mir_inst_with_call_target(inst, constructor.clone(), 0 - 1)
                     return
                 }
             }
@@ -88,7 +87,7 @@ fn comprehension_element_type_name(ctx: LowerCtx, elem_idx: i32) -> String {
     }
     let type_name = ctx_api_local_types::ctx_get_local_type(ctx, elem_idx)
     if len(type_name) > 0 {
-        return clone(type_name)
+        return type_name.clone()
     }
     "i32"
 }

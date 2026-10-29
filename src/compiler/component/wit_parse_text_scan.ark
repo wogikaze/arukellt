@@ -3,7 +3,6 @@
 // full compiler compile, which left String wrappers as drop+unreachable
 // (`expected ref, found i32` at wit_trim_txt).
 
-use std::prelude::{clone}
 fn wit_find_char_from(s: String, ch: i32, from: i32) -> i32 {
     let n = len(s)
     let mut i = from
@@ -40,7 +39,7 @@ fn wit_trim_txt(s: String) -> String {
 fn wit_strip_version_txt(pkg: String) -> String {
     let at = wit_find_char_from(pkg, 64, 0)
     if at < 0 {
-        return clone(pkg)
+        return pkg.clone()
     }
     pkg.slice(0, at)
 }

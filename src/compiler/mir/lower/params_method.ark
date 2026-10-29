@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::param
 use corehir::type_info_to_mir_value
@@ -32,85 +32,85 @@ fn mir_bind_method_param(mut ctx: LowerCtx, struct_name: String, param: CoreHirP
     let mut pvt = param::param_value_type(param)
     let p_type_name = param::param_type_name(param)
     let local_type_name = param::param_local_type_name(param)
-    let mut mir_type_name = clone(p_type_name)
-    let mut sig_type_name = clone(p_type_name)
+    let mut mir_type_name = p_type_name.clone()
+    let mut sig_type_name = p_type_name.clone()
     if len(local_type_name) > 0 {
         // The frontend spells a declared enum parameter as enum:<name> so
         // the enum kind survives call and local typing (ADR-089). It is not
         // a struct layout and must keep its canonical spelling.
-        if clone(local_type_name).starts_with("enum:") {
+        if local_type_name.clone().starts_with("enum:") {
             pvt = value_types::VT_GC_REF()
-            mir_type_name = clone(local_type_name)
-            sig_type_name = clone(local_type_name)
+            mir_type_name = local_type_name.clone()
+            sig_type_name = local_type_name.clone()
         } else {
             // Concrete instantiation spellings (GenTakeIter<VecIter>) derive
             // the substituted layout so the registered-struct check sees the
             // real GC layout instead of the unsubstituted declaration.
-            let derived_local = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, clone(local_type_name))
-            mir_type_name = clone(derived_local)
-            sig_type_name = clone(derived_local)
-            if clone(local_type_name).starts_with("vec:") ||
-            clone(local_type_name).starts_with("hashmap:") ||
-            clone(local_type_name).starts_with("Option_") ||
-            clone(local_type_name).starts_with("option:") ||
-            clone(local_type_name).starts_with("result:") ||
-            clone(local_type_name).starts_with("Result_") {
+            let derived_local = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, local_type_name.clone())
+            mir_type_name = derived_local.clone()
+            sig_type_name = derived_local.clone()
+            if local_type_name.clone().starts_with("vec:") ||
+            local_type_name.clone().starts_with("hashmap:") ||
+            local_type_name.clone().starts_with("Option_") ||
+            local_type_name.clone().starts_with("option:") ||
+            local_type_name.clone().starts_with("result:") ||
+            local_type_name.clone().starts_with("Result_") {
                 pvt = value_types::VT_GC_REF()
-            } else if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(derived_local)) {
+            } else if ctx_struct_layout::ctx_is_registered_struct_type(ctx, derived_local.clone()) {
                 // Struct context wins when a user struct shadows an enum name:
                 // a bare Box param is the user struct, while enum decls stay
                 // reachable through enum:/variant-qualified spellings.
                 pvt = value_types::VT_GC_REF()
-                sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(derived_local))
-            } else if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(derived_local)) {
+                sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, derived_local.clone())
+            } else if ctx_struct_layout::ctx_is_registered_enum_type(ctx, derived_local.clone()) {
                 pvt = value_types::VT_GC_REF()
-                mir_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(derived_local))
-                sig_type_name = clone(mir_type_name)
-            } else if !params_fn::mir_param_type_is_fnref(clone(local_type_name)) {
+                mir_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, derived_local.clone())
+                sig_type_name = mir_type_name.clone()
+            } else if !params_fn::mir_param_type_is_fnref(local_type_name.clone()) {
                 // fnref-family names (fnref/fnref2/fnsig:/fn() keep the
                 // callback ABI: the ':' inside fnsig: is a signature
                 // separator, not a module qualifier (#860).
-                let bare = mir_method_strip_module_prefix(clone(local_type_name))
-                let named = mir_method_resolve_named_user_type(clone(bare))
+                let bare = mir_method_strip_module_prefix(local_type_name.clone())
+                let named = mir_method_resolve_named_user_type(bare.clone())
                 if len(named) > 0 {
                     pvt = value_types::VT_GC_REF()
-                    mir_type_name = clone(named)
-                    sig_type_name = clone(named)
+                    mir_type_name = named.clone()
+                    sig_type_name = named.clone()
                 }
             }
         }
     } else {
-        if clone(p_type_name).starts_with("Option:") {
+        if p_type_name.clone().starts_with("Option:") {
             mir_type_name = "option:".concat(p_type_name.slice(7, len(p_type_name)))
-            sig_type_name = clone(mir_type_name)
+            sig_type_name = mir_type_name.clone()
             pvt = value_types::VT_GC_REF()
-        } else if clone(p_type_name).starts_with("Result:") {
+        } else if p_type_name.clone().starts_with("Result:") {
             mir_type_name = "result:".concat(p_type_name.slice(7, len(p_type_name)))
-            sig_type_name = clone(mir_type_name)
+            sig_type_name = mir_type_name.clone()
             pvt = value_types::VT_GC_REF()
-        } else if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(p_type_name)) {
+        } else if ctx_struct_layout::ctx_is_registered_struct_type(ctx, p_type_name.clone()) {
             pvt = value_types::VT_GC_REF()
-            sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(p_type_name))
+            sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, p_type_name.clone())
         } else {
-            let named = mir_method_resolve_named_user_type(clone(p_type_name))
+            let named = mir_method_resolve_named_user_type(p_type_name.clone())
             if len(named) > 0 {
                 pvt = value_types::VT_GC_REF()
-                mir_type_name = "?".concat(clone(named))
-                sig_type_name = clone(mir_type_name)
+                mir_type_name = "?".concat(named.clone())
+                sig_type_name = mir_type_name.clone()
             }
         }
     }
-    let param_local = ctx_alloc_local(ctx, clone(p_name), pvt)
-    ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(p_name), pvt, sig_type_name))
+    let param_local = ctx_alloc_local(ctx, p_name.clone(), pvt)
+    ctx_push_func_param(ctx, local_factory::MirLocal_new(p_name.clone(), pvt, sig_type_name))
     ctx_api_local_types::ctx_set_local_type(ctx, param_local, mir_type_name)
-    if clone(p_type_name).starts_with(String_from("HashSet")) {
+    if p_type_name.clone().starts_with(String_from("HashSet")) {
         // Method parameters take this path rather than params_fn; mark a
         // HashSet operand (the `other` side of union / eq / extend) so its
         // own `len` / `is_empty` stay on the hash store (#917).
         let mut family = String_from("i32")
-        if eq(clone(local_type_name), String_from("vec:String")) ||
-        clone(p_type_name).starts_with(String_from("HashSet<String>")) ||
-        clone(p_type_name).starts_with(String_from("HashSet_String")) {
+        if eq(local_type_name.clone(), String_from("vec:String")) ||
+        p_type_name.clone().starts_with(String_from("HashSet<String>")) ||
+        p_type_name.clone().starts_with(String_from("HashSet_String")) {
             family = String_from("String")
         }
         ctx_api_local_types::ctx_mark_hashset_local(ctx, param_local, family)
@@ -129,25 +129,25 @@ fn mir_bind_method_self_param(mut ctx: LowerCtx, struct_name: String, param: Cor
     // Prefer the annotated local type (e.g. vec:i32) over the bare impl
     // type name ("Vec"). Bare "Vec" falls through to string GC type in the
     // emitter and causes ref-vs-ref on `local.set self` (#726 Vec::read).
-    let mut self_type_name = clone(struct_name)
+    let mut self_type_name = struct_name.clone()
     if len(local_type_name) > 0 {
         // A concrete instantiation spelling (GenTakeIter<VecIter>) derives
         // its substituted layout here so the registered-struct check and the
         // signature type name both see the real GC layout, not the impl
         // owner spelling (GenTakeIter_VecIter) or the unsubstituted decl.
-        self_type_name = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, clone(local_type_name))
-        if clone(local_type_name).starts_with("vec:") || clone(local_type_name).starts_with("hashmap:") {
+        self_type_name = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, local_type_name.clone())
+        if local_type_name.clone().starts_with("vec:") || local_type_name.clone().starts_with("hashmap:") {
             self_vt = value_types::VT_GC_REF()
         } else {
-            if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(self_type_name)) {
+            if ctx_struct_layout::ctx_is_registered_struct_type(ctx, self_type_name.clone()) {
                 self_vt = value_types::VT_GC_REF()
             }
         }
     } else {
-        if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(struct_name)) {
+        if ctx_struct_layout::ctx_is_registered_enum_type(ctx, struct_name.clone()) {
             self_vt = value_types::VT_GC_REF()
         } else {
-            if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(struct_name)) {
+            if ctx_struct_layout::ctx_is_registered_struct_type(ctx, struct_name.clone()) {
                 self_vt = value_types::VT_GC_REF()
             }
         }
@@ -156,49 +156,49 @@ fn mir_bind_method_self_param(mut ctx: LowerCtx, struct_name: String, param: Cor
         // (ctx_setup_mono_type_params_by_ordinal) collects type-variable
         // names from param spellings, and a bare Holder drops T so ?T span
         // rewrites cannot concretize inside the body (#874).
-        let impl_params = ctx_struct_mono::ctx_generic_struct_params(ctx, clone(struct_name))
+        let impl_params = ctx_struct_mono::ctx_generic_struct_params(ctx, struct_name.clone())
         if len(impl_params) > 0 {
-            self_type_name = clone(struct_name).concat(String_from("<").concat(impl_params.concat(String_from(">"))))
+            self_type_name = struct_name.clone().concat(String_from("<").concat(impl_params.concat(String_from(">"))))
         }
         // Bare Vec / HashMap / HashSet without element annotation → i32 vec.
-        if eq(clone(struct_name), "Vec") || eq(clone(struct_name), "HashMap") || eq(clone(struct_name), "HashSet") {
+        if eq(struct_name.clone(), "Vec") || eq(struct_name.clone(), "HashMap") || eq(struct_name.clone(), "HashSet") {
             self_vt = value_types::VT_GC_REF()
             self_type_name = "vec:i32"
         }
     }
     let self_local = ctx_alloc_local(ctx, "self", self_vt)
-    let self_sig_type_name = if clone(self_type_name).starts_with("vec:") || clone(self_type_name).starts_with("hashmap:") {
-        clone(self_type_name)
+    let self_sig_type_name = if self_type_name.clone().starts_with("vec:") || self_type_name.clone().starts_with("hashmap:") {
+        self_type_name.clone()
     } else if self_vt == value_types::VT_GC_REF() {
-        ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(self_type_name))
+        ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, self_type_name.clone())
     } else {
-        clone(self_type_name)
+        self_type_name.clone()
     }
     // The receiver local carries the same enum-open spelling a free-function
     // parameter gets. With the bare owner name, a match wildcard that copies
     // `self` resolves through the struct/type table and falls back to the
     // string storage type; the resulting `(ref null <string>)` local cannot
     // accept the enum-open receiver (#917).
-    let mut self_local_type_name = clone(self_type_name)
+    let mut self_local_type_name = self_type_name.clone()
     if self_vt == value_types::VT_GC_REF() {
-        let enum_spelling = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(self_type_name))
-        if clone(enum_spelling).starts_with(String_from("enum:")) {
+        let enum_spelling = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, self_type_name.clone())
+        if enum_spelling.clone().starts_with(String_from("enum:")) {
             self_local_type_name = enum_spelling
         }
     }
-    ctx_push_func_param(ctx, local_factory::MirLocal_new("self", self_vt, clone(self_sig_type_name)))
-    ctx_set_local_type(ctx, self_local, clone(self_local_type_name))
-    if clone(struct_name).starts_with("HashSet") {
+    ctx_push_func_param(ctx, local_factory::MirLocal_new("self", self_vt, self_sig_type_name.clone()))
+    ctx_set_local_type(ctx, self_local, self_local_type_name.clone())
+    if struct_name.clone().starts_with("HashSet") {
         // The set receiver is a flat Vec alias. The marker is what keeps
         // `len` / `is_empty` on the hash store instead of the Vec core-op
         // rewrites; the element family selects the i32 or String store.
         // Concrete impl owners reach here as HashSet_i32 / HashSet_String,
         // generic shells as HashSet (#917).
         let mut family = String_from("i32")
-        if eq(clone(self_type_name), String_from("vec:String")) ||
-        eq(clone(local_type_name), String_from("vec:String")) ||
-        clone(self_type_name).starts_with(String_from("HashSet<String>")) ||
-        clone(self_type_name).starts_with(String_from("HashSet_String")) {
+        if eq(self_type_name.clone(), String_from("vec:String")) ||
+        eq(local_type_name.clone(), String_from("vec:String")) ||
+        self_type_name.clone().starts_with(String_from("HashSet<String>")) ||
+        self_type_name.clone().starts_with(String_from("HashSet_String")) {
             family = String_from("String")
         }
         ctx_api_local_types::ctx_mark_hashset_local(ctx, self_local, family)
@@ -217,21 +217,21 @@ fn mir_apply_param_mvt_override(mut ctx: LowerCtx, param_local: i32) {
     let mut table = module_spine::MirModule_type_table(m)
     let mut param_mvt = spine_lookup::function_param_mvt(m, func_name, param_local)
     let current_type = ctx_api_local_types::ctx_get_local_type(ctx, param_local)
-    if mir_method_param_type_name_is_concrete(clone(current_type)) {
+    if mir_method_param_type_name_is_concrete(current_type.clone()) {
         param_mvt = type_info_to_mir_value::vt_to_mir_value(
             table,
             ctx_api_local_types::ctx_local_vt(ctx, param_local),
-            clone(current_type)
+            current_type.clone()
         )
     }
     if typed_mir_compat::mvt_is_invalid(param_mvt) {
         return
     }
-    if clone(current_type).starts_with(String_from("enum:")) {
+    if current_type.clone().starts_with(String_from("enum:")) {
         param_mvt = type_info_to_mir_value::vt_to_mir_value(
             table,
             value_types::VT_GC_REF(),
-            clone(current_type)
+            current_type.clone()
         )
     }
     ctx_api_local_types::ctx_set_local_mvt(ctx, param_local, param_mvt)
@@ -242,10 +242,10 @@ fn mir_apply_param_mvt_override(mut ctx: LowerCtx, param_local: i32) {
     let current = ctx_api_local_types::ctx_get_local_type(ctx, param_local)
     // fnref-family params keep the callback ABI; a container/struct alias
     // from the legacy spine must not rewrite fnsig: locals to GC refs (#860).
-    if params_fn::mir_param_type_is_fnref(clone(current)) {
+    if params_fn::mir_param_type_is_fnref(current.clone()) {
         return
     }
-    if type_info_to_mir_value::concrete_type_outranks_mvt_alias(clone(current), clone(alias)) {
+    if type_info_to_mir_value::concrete_type_outranks_mvt_alias(current.clone(), alias.clone()) {
         return
     }
     let mvt_vt = legacy_vt_compat::legacy_vt_from_mir_value_type(table, param_mvt)
@@ -255,18 +255,18 @@ fn mir_apply_param_mvt_override(mut ctx: LowerCtx, param_local: i32) {
     // Overwriting the local type name here would erase the vars and leave
     // the map empty; ctx_set_func_param_type would also sync the local
     // record, so only the signature record takes the alias (#691).
-    if len(ctx_mono_type_params::ctx_type_var_names_from_local_type(clone(current))) > 0 {
+    if len(ctx_mono_type_params::ctx_type_var_names_from_local_type(current.clone())) > 0 {
         ctx_api_local_types::ctx_set_local_vt(ctx, param_local, mvt_vt)
-        ctx_api_function_frame::ctx_set_func_param_sig_type(ctx, param_local, mvt_vt, clone(alias))
+        ctx_api_function_frame::ctx_set_func_param_sig_type(ctx, param_local, mvt_vt, alias.clone())
         return
     }
     ctx_api_local_types::ctx_set_local_vt(ctx, param_local, mvt_vt)
-    ctx_api_local_types::ctx_set_local_type(ctx, param_local, clone(alias))
-    ctx_api_function_frame::ctx_set_func_param_type(ctx, param_local, mvt_vt, clone(alias))
+    ctx_api_local_types::ctx_set_local_type(ctx, param_local, alias.clone())
+    ctx_api_function_frame::ctx_set_func_param_type(ctx, param_local, mvt_vt, alias.clone())
 }
 
 fn mir_method_param_type_name_is_concrete(type_name: String) -> bool {
-    if len(type_name) == 0 || clone(type_name).starts_with(String_from("?")) {
+    if len(type_name) == 0 || type_name.clone().starts_with(String_from("?")) {
         return false
     }
     if len(type_name) == 1 {
@@ -279,9 +279,9 @@ fn mir_method_param_type_name_is_concrete(type_name: String) -> bool {
 }
 
 fn mir_method_resolve_named_user_type(bare: String) -> String {
-    if !binary_type_names::mir_is_builtin_type_name(clone(bare)) &&
+    if !binary_type_names::mir_is_builtin_type_name(bare.clone()) &&
     len(bare) > 0 &&
-    mir_method_param_type_name_is_concrete(clone(bare)) {
+    mir_method_param_type_name_is_concrete(bare.clone()) {
         return bare
     }
     String_new()
@@ -296,5 +296,5 @@ fn mir_method_strip_module_prefix(name: String) -> String {
         }
         i = i - 1
     }
-    clone(name)
+    name.clone()
 }

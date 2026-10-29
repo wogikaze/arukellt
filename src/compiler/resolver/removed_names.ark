@@ -5,47 +5,47 @@
 // undefined-name error. Keep aligned with std/manifest.toml
 // deprecations and docs/stdlib/migration-guidance.md;
 // scripts/check/check-compat-orphans.py verifies both directions.
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 
 fn removed_name_hint(name: String) -> String {
-    let specific = removed_name_specific_hint(clone(name))
-    if len(clone(specific)) > 0 {
+    let specific = removed_name_specific_hint(name.clone())
+    if len(specific.clone()) > 0 {
         return specific
     }
-    let json_hint = removed_json_member_hint(clone(name))
-    if len(clone(json_hint)) > 0 {
+    let json_hint = removed_json_member_hint(name.clone())
+    if len(json_hint.clone()) > 0 {
         return json_hint
     }
-    let toml_hint = removed_toml_member_hint(clone(name))
-    if len(clone(toml_hint)) > 0 {
+    let toml_hint = removed_toml_member_hint(name.clone())
+    if len(toml_hint.clone()) > 0 {
         return toml_hint
     }
-    let csv_hint = removed_csv_member_hint(clone(name))
-    if len(clone(csv_hint)) > 0 {
+    let csv_hint = removed_csv_member_hint(name.clone())
+    if len(csv_hint.clone()) > 0 {
         return csv_hint
     }
     return removed_gated_prelude_hint(name)
 }
 
 fn is_retired_hashmap_adapter_name(name: String) -> bool {
-    if clone(name).starts_with(String_from("hashmap_str_")) {
+    if name.clone().starts_with(String_from("hashmap_str_")) {
         return true
     }
-    if clone(name).starts_with(String_from("hashmap_i32_str_")) {
+    if name.clone().starts_with(String_from("hashmap_i32_str_")) {
         return true
     }
-    if clone(name).starts_with(String_from("hashmap_i32_fn_")) {
+    if name.clone().starts_with(String_from("hashmap_i32_fn_")) {
         return true
     }
-    clone(name).starts_with(String_from("hashmap_str_fn_"))
+    name.clone().starts_with(String_from("hashmap_str_fn_"))
 }
 
 fn is_retired_hashmap_module(module: String) -> bool {
-    if eq(clone(module), "hash_map") || eq(clone(module), "hash_string") {
+    if eq(module.clone(), "hash_map") || eq(module.clone(), "hash_string") {
         return true
     }
-    eq(clone(module), "hash_fn") || eq(clone(module), "hash_str_fn")
+    eq(module.clone(), "hash_fn") || eq(module.clone(), "hash_str_fn")
 }
 
 fn hashset_method_surface_text() -> String {
@@ -75,150 +75,150 @@ fn hashmap_free_replacement_hint() -> String {
 }
 
 fn is_retired_hashset_adapter_name(name: String) -> bool {
-    if clone(name).starts_with("hashset_i32_") {
+    if name.clone().starts_with("hashset_i32_") {
         return true
     }
-    clone(name).starts_with("hashset_str_")
+    name.clone().starts_with("hashset_str_")
 }
 
 fn removed_name_specific_hint(name: String) -> String {
-    let test_hint = removed_test_free_hint(clone(name))
-    if len(clone(test_hint)) > 0 {
+    let test_hint = removed_test_free_hint(name.clone())
+    if len(test_hint.clone()) > 0 {
         return test_hint
     }
-    let raw_hint = removed_raw_member_hint(clone(name))
-    if len(clone(raw_hint)) > 0 {
+    let raw_hint = removed_raw_member_hint(name.clone())
+    if len(raw_hint.clone()) > 0 {
         return raw_hint
     }
-    let core_hint = removed_core_free_hint(clone(name))
-    if len(clone(core_hint)) > 0 {
+    let core_hint = removed_core_free_hint(name.clone())
+    if len(core_hint.clone()) > 0 {
         return core_hint
     }
-    let compiler_hint = removed_compiler_member_hint(clone(name))
-    if len(clone(compiler_hint)) > 0 {
+    let compiler_hint = removed_compiler_member_hint(name.clone())
+    if len(compiler_hint.clone()) > 0 {
         return compiler_hint
     }
-    let bimap_hint = removed_bimap_member_hint(clone(name))
-    if len(clone(bimap_hint)) > 0 {
+    let bimap_hint = removed_bimap_member_hint(name.clone())
+    if len(bimap_hint.clone()) > 0 {
         return bimap_hint
     }
-    let trie_hint = removed_trie_member_hint(clone(name))
-    if len(clone(trie_hint)) > 0 {
+    let trie_hint = removed_trie_member_hint(name.clone())
+    if len(trie_hint.clone()) > 0 {
         return trie_hint
     }
-    let ordered_hint = removed_ordered_member_hint(clone(name))
-    if len(clone(ordered_hint)) > 0 {
+    let ordered_hint = removed_ordered_member_hint(name.clone())
+    if len(ordered_hint.clone()) > 0 {
         return ordered_hint
     }
-    let pq_hint = removed_pq_member_hint(clone(name))
-    if len(clone(pq_hint)) > 0 {
+    let pq_hint = removed_pq_member_hint(name.clone())
+    if len(pq_hint.clone()) > 0 {
         return pq_hint
     }
-    if eq(clone(name), "new_i32") {
+    if eq(name.clone(), "new_i32") {
         return "removed free Vec constructor; use `Vec::new<i32>()` instead"
     }
-    if clone(name).starts_with(String_from("HashMap_")) {
+    if name.clone().starts_with(String_from("HashMap_")) {
         return hashmap_method_replacement_hint()
     }
-    if is_retired_hashmap_adapter_name(clone(name)) {
+    if is_retired_hashmap_adapter_name(name.clone()) {
         return hashmap_method_replacement_hint()
     }
-    if is_retired_hashset_adapter_name(clone(name)) {
+    if is_retired_hashset_adapter_name(name.clone()) {
         return hashset_method_replacement_hint()
     }
-    if eq(clone(name), "concat") { return "removed prelude wrapper; call `text::concat(a, b)` via `use std::text`, or `a.text::concat(b)`" }
-    if eq(clone(name), "clear") { return "removed free function; use the Vec method `v.clear()`" }
-    if eq(clone(name), "panic") { return "removed prelude control function; use `Std::panic(message)` (auto-imported)" }
-    if eq(clone(name), "sort") || eq(clone(name), "sort_unstable") {
+    if eq(name.clone(), "concat") { return "removed prelude wrapper; call `text::concat(a, b)` via `use std::text`, or `a.text::concat(b)`" }
+    if eq(name.clone(), "clear") { return "removed free function; use the Vec method `v.clear()`" }
+    if eq(name.clone(), "panic") { return "removed prelude control function; use `Std::panic(message)` (auto-imported)" }
+    if eq(name.clone(), "sort") || eq(name.clone(), "sort_unstable") {
         return "removed free sort algorithm; use `v.sort()` / `v.sort_unstable()` via `use std::collections::vec`"
     }
-    if eq(clone(name), "is_sorted") {
+    if eq(name.clone(), "is_sorted") {
         return "removed free sort algorithm; use `v.is_sorted()` via `use std::collections::vec`"
     }
-    if eq(clone(name), "select_nth") {
+    if eq(name.clone(), "select_nth") {
         return "removed free sort algorithm; use `v.select_nth(k)` via `use std::collections::vec`"
     }
-    if eq(clone(name), "map_option_String_String") { return "removed free function; use `o.map(f)` via `use std::core::container`" }
-    if eq(clone(name), "map_result_i32_i32") { return "removed free function; use `r.map(f)` via `use std::core::container`" }
-    if eq(clone(name), "char_at") { return "removed prelude wrapper; use `s.byte_at(i)` on `String` instead" }
-    if eq(clone(name), "println") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::println(...)`" }
-    if eq(clone(name), "print") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::print(...)`" }
-    if eq(clone(name), "eprintln") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::eprintln(...)`" }
-    if eq(clone(name), "read_to_string") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::read_stdin()`" }
-    if eq(clone(name), "exists") { return "removed prelude binding; import `use std::host::fs::Fs` and call `Fs::is_readable_file(...)`" }
-    if eq(clone(name), "get_var") { return "removed module function; import `use std::host::env::Env` and call `Env::var(name)`" }
-    if eq(clone(name), "var_or_default") { return "removed module function; import `use std::host::env::Env` and call `Env::var_or_default(name, default)`" }
-    if eq(clone(name), "arg_at") { return "removed module function; import `use std::host::env::Env` and call `Env::arg_at(index)`" }
-    if eq(clone(name), "arg_count") { return "removed module function; import `use std::host::env::Env` and call `Env::arg_count()`" }
-    if eq(clone(name), "has_flag") { return "removed module function; import `use std::host::env::Env` and call `Env::has_flag(flag)`" }
-    if eq(clone(name), "sort_i32") || eq(clone(name), "sort_i64") || eq(clone(name), "sort_f64") || eq(clone(name), "sort_String") {
+    if eq(name.clone(), "map_option_String_String") { return "removed free function; use `o.map(f)` via `use std::core::container`" }
+    if eq(name.clone(), "map_result_i32_i32") { return "removed free function; use `r.map(f)` via `use std::core::container`" }
+    if eq(name.clone(), "char_at") { return "removed prelude wrapper; use `s.byte_at(i)` on `String` instead" }
+    if eq(name.clone(), "println") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::println(...)`" }
+    if eq(name.clone(), "print") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::print(...)`" }
+    if eq(name.clone(), "eprintln") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::eprintln(...)`" }
+    if eq(name.clone(), "read_to_string") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::read_stdin()`" }
+    if eq(name.clone(), "exists") { return "removed prelude binding; import `use std::host::fs::Fs` and call `Fs::is_readable_file(...)`" }
+    if eq(name.clone(), "get_var") { return "removed module function; import `use std::host::env::Env` and call `Env::var(name)`" }
+    if eq(name.clone(), "var_or_default") { return "removed module function; import `use std::host::env::Env` and call `Env::var_or_default(name, default)`" }
+    if eq(name.clone(), "arg_at") { return "removed module function; import `use std::host::env::Env` and call `Env::arg_at(index)`" }
+    if eq(name.clone(), "arg_count") { return "removed module function; import `use std::host::env::Env` and call `Env::arg_count()`" }
+    if eq(name.clone(), "has_flag") { return "removed module function; import `use std::host::env::Env` and call `Env::has_flag(flag)`" }
+    if eq(name.clone(), "sort_i32") || eq(name.clone(), "sort_i64") || eq(name.clone(), "sort_f64") || eq(name.clone(), "sort_String") {
         return "removed free function; use `v.sort()` via `use std::collections::vec`"
     }
-    if eq(clone(name), "map_i32_i32") || eq(clone(name), "map_i64_i64") || eq(clone(name), "map_f64_f64") || eq(clone(name), "map_String_String") {
+    if eq(name.clone(), "map_i32_i32") || eq(name.clone(), "map_i64_i64") || eq(name.clone(), "map_f64_f64") || eq(name.clone(), "map_String_String") {
         return "removed free function; use `v.iter().map(f).collect()` via `use std::core::iter`"
     }
-    if eq(clone(name), "filter_i64") || eq(clone(name), "filter_f64") || eq(clone(name), "filter_String") {
+    if eq(name.clone(), "filter_i64") || eq(name.clone(), "filter_f64") || eq(name.clone(), "filter_String") {
         return "removed free function; use `v.iter().filter(f).collect()` via `use std::core::iter`"
     }
-    if eq(clone(name), "filter_i32") {
+    if eq(name.clone(), "filter_i32") {
         return "provisional prelude helper; import `use std::prelude::{filter_i32}` or use `v.iter().filter(f).collect()` via `use std::core::iter`"
     }
-    if eq(clone(name), "fold_i32_i32") || eq(clone(name), "fold_i64_i64") || eq(clone(name), "fold_f64_f64") {
+    if eq(name.clone(), "fold_i32_i32") || eq(name.clone(), "fold_i64_i64") || eq(name.clone(), "fold_f64_f64") {
         return "removed free function; use `v.iter().fold(init, f)` via `use std::core::iter`"
     }
-    if eq(clone(name), "any_i32") || eq(clone(name), "any_i64") || eq(clone(name), "any_f64") || eq(clone(name), "any_String") {
+    if eq(name.clone(), "any_i32") || eq(name.clone(), "any_i64") || eq(name.clone(), "any_f64") || eq(name.clone(), "any_String") {
         return "removed free function; use `v.iter().any(f)` via `use std::core::iter`"
     }
-    if eq(clone(name), "find_i32") || eq(clone(name), "find_i64") || eq(clone(name), "find_f64") || eq(clone(name), "find_String") {
+    if eq(name.clone(), "find_i32") || eq(name.clone(), "find_i64") || eq(name.clone(), "find_f64") || eq(name.clone(), "find_String") {
         return "removed free function; use `v.iter().find(f)` via `use std::core::iter`"
     }
-    if eq(clone(name), "contains_i32") || eq(clone(name), "contains_String") {
+    if eq(name.clone(), "contains_i32") || eq(name.clone(), "contains_String") {
         return "removed free function; use `v.iter().contains(x)` via `use std::core::iter`"
     }
-    if eq(clone(name), "reverse_i32") || eq(clone(name), "reverse_String") {
+    if eq(name.clone(), "reverse_i32") || eq(name.clone(), "reverse_String") {
         return "removed free function; use `v.iter().rev().collect()` via `use std::core::iter`"
     }
-    if eq(clone(name), "remove_i32") {
+    if eq(name.clone(), "remove_i32") {
         return "removed free function; use `v.drain(i, i + 1)` via `use std::collections::vec`"
     }
-    if eq(clone(name), "sum_i32") {
+    if eq(name.clone(), "sum_i32") {
         return "removed free function; use `v.iter().sum()` via `use std::core::iter`"
     }
-    if eq(clone(name), "product_i32") {
+    if eq(name.clone(), "product_i32") {
         return "removed free function; use `v.iter().fold(1, mul)` via `use std::core::iter`"
     }
-    if eq(clone(name), "map_option_i32_i32") {
+    if eq(name.clone(), "map_option_i32_i32") {
         return "removed free function; use `o.map(f)` via `use std::core::container`"
     }
-    if eq(clone(name), "contains_string") {
+    if eq(name.clone(), "contains_string") {
         return "removed free function; use the String method `s.contains(sub)`"
     }
-    if eq(clone(name), "take_i32") { return "removed free function; use `v.iter().take(n).collect()` via `use std::core::iter`" }
-    if eq(clone(name), "skip_i32") { return "removed free function; use `v.iter().skip(n).collect()` via `use std::core::iter`" }
-    if eq(clone(name), "seq_reverse") { return "removed free function; use `v.iter().rev().collect()` via `use std::core::iter`" }
-    if eq(clone(name), "seq_contains") { return "removed free function; use `v.iter().contains(x)` via `use std::core::iter`" }
-    if eq(clone(name), "unique") { return "removed free function; use `v.iter().unique().collect()` via `use std::core::iter`" }
-    if eq(clone(name), "count_eq") { return "removed free function; use `v.iter().count_eq(x)` via `use std::core::iter`" }
-    if eq(clone(name), "binary_search") { return "removed free function; use `v.binary_search(target)` via `use std::collections::vec`" }
-    if eq(clone(name), "min_i32") { return "removed free function; use `v.min()` via `use std::collections::vec`" }
-    if eq(clone(name), "max_i32") { return "removed free function; use `v.max()` via `use std::collections::vec`" }
-    if eq(clone(name), "i32_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
-    if eq(clone(name), "i64_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
-    if eq(clone(name), "f64_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
-    if eq(clone(name), "bool_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
-    if eq(clone(name), "Vec_new") { return "removed Vec constructor; use `Vec::new<T>()`" }
-    if eq(clone(name), "Vec_new_i32") { return "removed Vec constructor; use `Vec::new<i32>()`" }
-    if eq(clone(name), "Vec_new_String") { return "removed Vec constructor; use `Vec::new<String>()`" }
-    if eq(clone(name), "Vec_with_capacity") { return "removed Vec constructor; use `Vec::new<T>()`" }
-    if eq(clone(name), "Vec_with_capacity_i32") { return "removed Vec constructor; use `Vec::new<i32>()`" }
-    if eq(clone(name), "Vec_with_capacity_String") { return "removed Vec constructor; use `Vec::new<String>()`" }
-    if eq(clone(name), "ok") { return "removed free function; construct the variant directly with `Ok(...)`" }
-    if eq(clone(name), "err") { return "removed free function; construct the variant directly with `Err(...)`" }
-    if eq(clone(name), "expect") { return "removed free function; use `o.unwrap_or(fallback)` or match on the variant" }
-    if eq(clone(name), "unwrap_or_else") { return "removed free function; use `o.unwrap_or(fallback)`" }
-    if eq(clone(name), "ok_or") { return "removed free function; convert Option to Result explicitly with `Ok`/`Err` or `match`" }
-    let prelude_hint = removed_prelude_free_hint(clone(name))
-    if len(clone(prelude_hint)) > 0 {
+    if eq(name.clone(), "take_i32") { return "removed free function; use `v.iter().take(n).collect()` via `use std::core::iter`" }
+    if eq(name.clone(), "skip_i32") { return "removed free function; use `v.iter().skip(n).collect()` via `use std::core::iter`" }
+    if eq(name.clone(), "seq_reverse") { return "removed free function; use `v.iter().rev().collect()` via `use std::core::iter`" }
+    if eq(name.clone(), "seq_contains") { return "removed free function; use `v.iter().contains(x)` via `use std::core::iter`" }
+    if eq(name.clone(), "unique") { return "removed free function; use `v.iter().unique().collect()` via `use std::core::iter`" }
+    if eq(name.clone(), "count_eq") { return "removed free function; use `v.iter().count_eq(x)` via `use std::core::iter`" }
+    if eq(name.clone(), "binary_search") { return "removed free function; use `v.binary_search(target)` via `use std::collections::vec`" }
+    if eq(name.clone(), "min_i32") { return "removed free function; use `v.min()` via `use std::collections::vec`" }
+    if eq(name.clone(), "max_i32") { return "removed free function; use `v.max()` via `use std::collections::vec`" }
+    if eq(name.clone(), "i32_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
+    if eq(name.clone(), "i64_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
+    if eq(name.clone(), "f64_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
+    if eq(name.clone(), "bool_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
+    if eq(name.clone(), "Vec_new") { return "removed Vec constructor; use `Vec::new<T>()`" }
+    if eq(name.clone(), "Vec_new_i32") { return "removed Vec constructor; use `Vec::new<i32>()`" }
+    if eq(name.clone(), "Vec_new_String") { return "removed Vec constructor; use `Vec::new<String>()`" }
+    if eq(name.clone(), "Vec_with_capacity") { return "removed Vec constructor; use `Vec::new<T>()`" }
+    if eq(name.clone(), "Vec_with_capacity_i32") { return "removed Vec constructor; use `Vec::new<i32>()`" }
+    if eq(name.clone(), "Vec_with_capacity_String") { return "removed Vec constructor; use `Vec::new<String>()`" }
+    if eq(name.clone(), "ok") { return "removed free function; construct the variant directly with `Ok(...)`" }
+    if eq(name.clone(), "err") { return "removed free function; construct the variant directly with `Err(...)`" }
+    if eq(name.clone(), "expect") { return "removed free function; use `o.unwrap_or(fallback)` or match on the variant" }
+    if eq(name.clone(), "unwrap_or_else") { return "removed free function; use `o.unwrap_or(fallback)`" }
+    if eq(name.clone(), "ok_or") { return "removed free function; convert Option to Result explicitly with `Ok`/`Err` or `match`" }
+    let prelude_hint = removed_prelude_free_hint(name.clone())
+    if len(prelude_hint.clone()) > 0 {
         return prelude_hint
     }
     String_new()
@@ -229,14 +229,14 @@ fn removed_name_specific_hint(name: String) -> String {
 // per-module entries here so ADR-085 Phase F removals still produce an E0100
 // migration hint instead of a bare "undefined module member".
 fn removed_wasm_member_hint(name: String) -> String {
-    if eq(clone(name), "module_new") { return String_from("removed free function; use the `WasmModuleBuilder` associated function from `use std::wasm` instead") }
-    if eq(clone(name), "wasm_magic") { return String_from("removed free function; use the `WasmModuleBuilder` associated function from `use std::wasm` instead") }
-    if eq(clone(name), "wasm_version") { return String_from("removed free function; use the `WasmModuleBuilder` associated function from `use std::wasm` instead") }
-    if eq(clone(name), "v128_load") { return String_from("removed free function; use `V128Memory::load(address, offset)` from `use std::wasm` instead") }
-    if eq(clone(name), "v128_store") { return String_from("removed free function; use `V128Memory::store(address, offset, value)` from `use std::wasm` instead") }
-    if eq(clone(name), "v128_load_splat") { return String_from("removed free function; use `V128Memory::load_splat(address, offset)` from `use std::wasm` instead") }
-    if eq(clone(name), "v128_load_lane") { return String_from("removed free function; use `V128Memory::load_lane(address, offset, value, lane)` from `use std::wasm` instead") }
-    if eq(clone(name), "v128_store_lane") { return String_from("removed free function; use `V128Memory::store_lane(address, offset, value, lane)` from `use std::wasm` instead") }
+    if eq(name.clone(), "module_new") { return String_from("removed free function; use the `WasmModuleBuilder` associated function from `use std::wasm` instead") }
+    if eq(name.clone(), "wasm_magic") { return String_from("removed free function; use the `WasmModuleBuilder` associated function from `use std::wasm` instead") }
+    if eq(name.clone(), "wasm_version") { return String_from("removed free function; use the `WasmModuleBuilder` associated function from `use std::wasm` instead") }
+    if eq(name.clone(), "v128_load") { return String_from("removed free function; use `V128Memory::load(address, offset)` from `use std::wasm` instead") }
+    if eq(name.clone(), "v128_store") { return String_from("removed free function; use `V128Memory::store(address, offset, value)` from `use std::wasm` instead") }
+    if eq(name.clone(), "v128_load_splat") { return String_from("removed free function; use `V128Memory::load_splat(address, offset)` from `use std::wasm` instead") }
+    if eq(name.clone(), "v128_load_lane") { return String_from("removed free function; use `V128Memory::load_lane(address, offset, value, lane)` from `use std::wasm` instead") }
+    if eq(name.clone(), "v128_store_lane") { return String_from("removed free function; use `V128Memory::store_lane(address, offset, value, lane)` from `use std::wasm` instead") }
     String_from("removed free function; use the owning type from `use std::wasm` instead")
 }
 
@@ -245,31 +245,31 @@ fn removed_wasm_member_hint(name: String) -> String {
 // intrinsic yet, so their hint states the unsupported capability instead of
 // promising a replacement.
 fn removed_host_fs_member_hint(name: String) -> String {
-    if eq(clone(name), "read_to_string") || eq(clone(name), "read_string") {
+    if eq(name.clone(), "read_to_string") || eq(name.clone(), "read_string") {
         return String_from("use `Fs::read_to_string(path)` from `use std::host::fs::Fs` instead")
     }
-    if eq(clone(name), "read_bytes") {
+    if eq(name.clone(), "read_bytes") {
         return String_from("use `Fs::read_bytes(path)` from `use std::host::fs::Fs` instead")
     }
-    if eq(clone(name), "write_string") {
+    if eq(name.clone(), "write_string") {
         return String_from("use `Fs::write_string(path, contents)` from `use std::host::fs::Fs` instead")
     }
-    if eq(clone(name), "write_bytes") {
+    if eq(name.clone(), "write_bytes") {
         return String_from("use `Fs::write_bytes(path, bytes)` from `use std::host::fs::Fs` instead")
     }
-    if eq(clone(name), "is_readable_file") || eq(clone(name), "exists") {
+    if eq(name.clone(), "is_readable_file") || eq(name.clone(), "exists") {
         return String_from("use `Fs::is_readable_file(path)` from `use std::host::fs::Fs` instead")
     }
-    if eq(clone(name), "is_file") {
+    if eq(name.clone(), "is_file") {
         return String_from("use `Fs::is_file(path)` from `use std::host::fs::Fs` instead")
     }
-    if eq(clone(name), "is_dir") {
+    if eq(name.clone(), "is_dir") {
         return String_from("use `Fs::is_dir(path)` from `use std::host::fs::Fs` instead")
     }
-    if eq(clone(name), "read_dir") {
+    if eq(name.clone(), "read_dir") {
         return String_from("directory listing is not supported by the current host intrinsic layer; no replacement")
     }
-    if eq(clone(name), "metadata") {
+    if eq(name.clone(), "metadata") {
         return String_from("path metadata is not supported by the current host intrinsic layer; no replacement")
     }
     String_new()
@@ -279,10 +279,10 @@ fn removed_host_fs_member_hint(name: String) -> String {
 // #917). Both names were deleted in the ADR-087 Wave 2 change, so a qualified
 // old call states the replacement instead of a bare undefined-member error.
 fn removed_host_clock_member_hint(name: String) -> String {
-    if eq(clone(name), "monotonic_now") {
+    if eq(name.clone(), "monotonic_now") {
         return String_from("use `Clock::monotonic_now()` from `use std::host::clock::Clock` instead")
     }
-    if eq(clone(name), "now_ms") {
+    if eq(name.clone(), "now_ms") {
         return String_from("use `Clock::now_ms()` from `use std::host::clock::Clock` instead")
     }
     String_new()
@@ -292,22 +292,22 @@ fn removed_host_clock_member_hint(name: String) -> String {
 // deleted in the ADR-087 Wave 2 env wave (2026-10-28). `Env` is the only env
 // surface; each retired member names its method replacement (#917).
 fn removed_host_env_member_hint(name: String) -> String {
-    if eq(clone(name), "get_var") || eq(clone(name), "var") {
+    if eq(name.clone(), "get_var") || eq(name.clone(), "var") {
         return String_from("use `Env::var(name)` from `use std::host::env::Env` instead")
     }
-    if eq(clone(name), "args") {
+    if eq(name.clone(), "args") {
         return String_from("use `Env::args()` from `use std::host::env::Env` instead")
     }
-    if eq(clone(name), "arg_count") {
+    if eq(name.clone(), "arg_count") {
         return String_from("use `Env::arg_count()` from `use std::host::env::Env` instead")
     }
-    if eq(clone(name), "arg_at") {
+    if eq(name.clone(), "arg_at") {
         return String_from("use `Env::arg_at(index)` from `use std::host::env::Env` instead")
     }
-    if eq(clone(name), "var_or_default") {
+    if eq(name.clone(), "var_or_default") {
         return String_from("use `Env::var_or_default(name, default)` from `use std::host::env::Env` instead")
     }
-    if eq(clone(name), "has_flag") {
+    if eq(name.clone(), "has_flag") {
         return String_from("use `Env::has_flag(flag)` from `use std::host::env::Env` instead")
     }
     String_new()
@@ -317,13 +317,13 @@ fn removed_host_env_member_hint(name: String) -> String {
 // host/core wave (#917, ADR-092). The legacy `std::process` facade dispatches
 // here too, so both qualified old spellings name the same replacement.
 fn removed_host_process_member_hint(name: String) -> String {
-    if eq(clone(name), "exit") {
+    if eq(name.clone(), "exit") {
         return String_from("use `Process::exit(code)` from `use std::host::process::Process` instead")
     }
-    if eq(clone(name), "abort") {
+    if eq(name.clone(), "abort") {
         return String_from("use `Process::abort()` from `use std::host::process::Process` instead")
     }
-    if eq(clone(name), "id") {
+    if eq(name.clone(), "id") {
         return String_from("use `Process::id()` from `use std::host::process::Process` instead")
     }
     String_new()
@@ -333,16 +333,16 @@ fn removed_host_process_member_hint(name: String) -> String {
 // wave (#917, ADR-092). The deterministic `std::random` module keeps its own
 // Rng hints in removed_random_member_hint.
 fn removed_host_random_member_hint(name: String) -> String {
-    if eq(clone(name), "random_i32") {
+    if eq(name.clone(), "random_i32") {
         return String_from("use `Random::random_i32()` from `use std::host::random::Random` instead")
     }
-    if eq(clone(name), "random_i32_range") {
+    if eq(name.clone(), "random_i32_range") {
         return String_from("use `Random::random_i32_range(lo, hi)` from `use std::host::random::Random` instead")
     }
-    if eq(clone(name), "random_bool") {
+    if eq(name.clone(), "random_bool") {
         return String_from("use `Random::random_bool()` from `use std::host::random::Random` instead")
     }
-    if eq(clone(name), "next_f64") {
+    if eq(name.clone(), "next_f64") {
         return String_from("use `Random::next_f64()` from `use std::host::random::Random` instead")
     }
     String_new()
@@ -352,22 +352,22 @@ fn removed_host_random_member_hint(name: String) -> String {
 // explicit-vector scanners behind `Cli` in the 2026-10-29 host/core wave
 // (#917, ADR-092).
 fn removed_cli_member_hint(name: String) -> String {
-    if eq(clone(name), "parse_args") {
+    if eq(name.clone(), "parse_args") {
         return String_from("use `Env::args()` from `use std::host::env::Env` instead")
     }
-    if eq(clone(name), "arg_count") {
+    if eq(name.clone(), "arg_count") {
         return String_from("use `Env::arg_count()` from `use std::host::env::Env` instead")
     }
-    if eq(clone(name), "arg_at") {
+    if eq(name.clone(), "arg_at") {
         return String_from("use `Env::arg_at(index)` from `use std::host::env::Env` instead")
     }
-    if eq(clone(name), "has_flag") {
+    if eq(name.clone(), "has_flag") {
         return String_from("use `Env::has_flag(flag)` from `use std::host::env::Env` instead")
     }
-    if eq(clone(name), "flag") {
+    if eq(name.clone(), "flag") {
         return String_from("use `Cli::flag(args, name)` from `use std::cli::Cli` instead")
     }
-    if eq(clone(name), "option") {
+    if eq(name.clone(), "option") {
         return String_from("use `Cli::option(args, name)` from `use std::cli::Cli` instead")
     }
     String_new()
@@ -376,62 +376,62 @@ fn removed_cli_member_hint(name: String) -> String {
 // The spectral helpers moved to the `Signal` namespace in the 2026-10-29
 // host/core wave (#917, ADR-092).
 fn removed_signal_member_hint(name: String) -> String {
-    if eq(clone(name), "pi") { return String_from("use `Signal::pi()` from `use std::signal::Signal` instead") }
-    if eq(clone(name), "tau") { return String_from("use `Signal::tau()` from `use std::signal::Signal` instead") }
-    if eq(clone(name), "sin_approx") { return String_from("use `Signal::sin_approx(x)` from `use std::signal::Signal` instead") }
-    if eq(clone(name), "cos_approx") { return String_from("use `Signal::cos_approx(x)` from `use std::signal::Signal` instead") }
-    if eq(clone(name), "clone_f64") { return String_from("use `Signal::clone_f64(v)` from `use std::signal::Signal` instead") }
-    if eq(clone(name), "zeros") { return String_from("use `Signal::zeros(n)` from `use std::signal::Signal` instead") }
-    if eq(clone(name), "fft") { return String_from("use `Signal::fft(real, imag)` from `use std::signal::Signal` instead") }
-    if eq(clone(name), "ifft") { return String_from("use `Signal::ifft(real, imag)` from `use std::signal::Signal` instead") }
-    if eq(clone(name), "magnitude") { return String_from("use `Signal::magnitude(real, imag)` from `use std::signal::Signal` instead") }
-    if eq(clone(name), "approx_eq") { return String_from("use `Signal::approx_eq(a, b, eps)` from `use std::signal::Signal` instead") }
+    if eq(name.clone(), "pi") { return String_from("use `Signal::pi()` from `use std::signal::Signal` instead") }
+    if eq(name.clone(), "tau") { return String_from("use `Signal::tau()` from `use std::signal::Signal` instead") }
+    if eq(name.clone(), "sin_approx") { return String_from("use `Signal::sin_approx(x)` from `use std::signal::Signal` instead") }
+    if eq(name.clone(), "cos_approx") { return String_from("use `Signal::cos_approx(x)` from `use std::signal::Signal` instead") }
+    if eq(name.clone(), "clone_f64") { return String_from("use `Signal::clone_f64(v)` from `use std::signal::Signal` instead") }
+    if eq(name.clone(), "zeros") { return String_from("use `Signal::zeros(n)` from `use std::signal::Signal` instead") }
+    if eq(name.clone(), "fft") { return String_from("use `Signal::fft(real, imag)` from `use std::signal::Signal` instead") }
+    if eq(name.clone(), "ifft") { return String_from("use `Signal::ifft(real, imag)` from `use std::signal::Signal` instead") }
+    if eq(name.clone(), "magnitude") { return String_from("use `Signal::magnitude(real, imag)` from `use std::signal::Signal` instead") }
+    if eq(name.clone(), "approx_eq") { return String_from("use `Signal::approx_eq(a, b, eps)` from `use std::signal::Signal` instead") }
     String_new()
 }
 
 /// Replacement hints for the `std::collections::compiler` free functions
 /// retired by #917 (Arena / SlotMap / Interner type surface).
 fn removed_compiler_member_hint(name: String) -> String {
-    if eq(clone(name), "arena_new") {
+    if eq(name.clone(), "arena_new") {
         return "use `Arena::new()` from `use std::collections::compiler::Arena` instead"
     }
-    if eq(clone(name), "arena_alloc") {
+    if eq(name.clone(), "arena_alloc") {
         return "use `a.alloc(value)` on `Arena` instead"
     }
-    if eq(clone(name), "arena_get") {
+    if eq(name.clone(), "arena_get") {
         return "use `a.get(idx)` on `Arena` instead"
     }
-    if eq(clone(name), "arena_len") {
+    if eq(name.clone(), "arena_len") {
         return "use `a.len()` on `Arena` instead"
     }
-    if eq(clone(name), "slotmap_new") {
+    if eq(name.clone(), "slotmap_new") {
         return "use `SlotMap::new()` from `use std::collections::compiler::SlotMap` instead"
     }
-    if eq(clone(name), "slotmap_insert") {
+    if eq(name.clone(), "slotmap_insert") {
         return "use `m.insert(value)` on `SlotMap` instead"
     }
-    if eq(clone(name), "slotmap_get") {
+    if eq(name.clone(), "slotmap_get") {
         return "use `m.get(key)` on `SlotMap` instead"
     }
-    if eq(clone(name), "slotmap_remove") {
+    if eq(name.clone(), "slotmap_remove") {
         return "use `m.remove(key)` on `SlotMap` instead"
     }
-    if eq(clone(name), "slotmap_contains") {
+    if eq(name.clone(), "slotmap_contains") {
         return "use `m.contains(key)` on `SlotMap` instead"
     }
-    if eq(clone(name), "slotmap_len") {
+    if eq(name.clone(), "slotmap_len") {
         return "use `m.len()` on `SlotMap` instead"
     }
-    if eq(clone(name), "interner_new") {
+    if eq(name.clone(), "interner_new") {
         return "use `Interner::new()` from `use std::collections::compiler::Interner` instead"
     }
-    if eq(clone(name), "interner_intern") {
+    if eq(name.clone(), "interner_intern") {
         return "use `i.intern(value)` on `Interner` instead"
     }
-    if eq(clone(name), "interner_lookup") {
+    if eq(name.clone(), "interner_lookup") {
         return "use `i.lookup(sym)` on `Interner` instead"
     }
-    if eq(clone(name), "interner_len") {
+    if eq(name.clone(), "interner_len") {
         return "use `i.len()` on `Interner` instead"
     }
     String_new()
@@ -440,34 +440,34 @@ fn removed_compiler_member_hint(name: String) -> String {
 /// Replacement hints for the `std::collections::bimap` free functions
 /// retired by #917 (Bimap type surface).
 fn removed_bimap_member_hint(name: String) -> String {
-    if eq(clone(name), "bimap_i32_i32_new") {
+    if eq(name.clone(), "bimap_i32_i32_new") {
         return "use `Bimap::new()` from `use std::collections::bimap::Bimap` instead"
     }
-    if eq(clone(name), "bimap_i32_i32_insert") {
+    if eq(name.clone(), "bimap_i32_i32_insert") {
         return "use `m.insert(key, value)` on `Bimap` instead"
     }
-    if eq(clone(name), "bimap_i32_i32_get_by_key") {
+    if eq(name.clone(), "bimap_i32_i32_get_by_key") {
         return "use `m.get_by_key(key)` on `Bimap` instead"
     }
-    if eq(clone(name), "bimap_i32_i32_get_by_value") {
+    if eq(name.clone(), "bimap_i32_i32_get_by_value") {
         return "use `m.get_by_value(value)` on `Bimap` instead"
     }
-    if eq(clone(name), "bimap_i32_i32_contains_key") {
+    if eq(name.clone(), "bimap_i32_i32_contains_key") {
         return "use `m.contains_key(key)` on `Bimap` instead"
     }
-    if eq(clone(name), "bimap_i32_i32_contains_value") {
+    if eq(name.clone(), "bimap_i32_i32_contains_value") {
         return "use `m.contains_value(value)` on `Bimap` instead"
     }
-    if eq(clone(name), "bimap_i32_i32_remove_by_key") {
+    if eq(name.clone(), "bimap_i32_i32_remove_by_key") {
         return "use `m.remove_by_key(key)` on `Bimap` instead"
     }
-    if eq(clone(name), "bimap_i32_i32_remove_by_value") {
+    if eq(name.clone(), "bimap_i32_i32_remove_by_value") {
         return "use `m.remove_by_value(value)` on `Bimap` instead"
     }
-    if eq(clone(name), "bimap_i32_i32_len") {
+    if eq(name.clone(), "bimap_i32_i32_len") {
         return "use `m.len()` on `Bimap` instead"
     }
-    if eq(clone(name), "bimap_i32_i32_is_empty") {
+    if eq(name.clone(), "bimap_i32_i32_is_empty") {
         return "use `m.is_empty()` on `Bimap` instead"
     }
     String_new()
@@ -476,25 +476,25 @@ fn removed_bimap_member_hint(name: String) -> String {
 /// Replacement hints for the `std::collections::trie` free functions
 /// retired by #917 (Trie type surface).
 fn removed_trie_member_hint(name: String) -> String {
-    if eq(clone(name), "trie_new") {
+    if eq(name.clone(), "trie_new") {
         return "use `Trie::new()` from `use std::collections::trie::Trie` instead"
     }
-    if eq(clone(name), "trie_insert") {
+    if eq(name.clone(), "trie_insert") {
         return "use `t.insert(key, value)` on `Trie` instead"
     }
-    if eq(clone(name), "trie_get") {
+    if eq(name.clone(), "trie_get") {
         return "use `t.get(key)` on `Trie` instead"
     }
-    if eq(clone(name), "trie_contains") {
+    if eq(name.clone(), "trie_contains") {
         return "use `t.contains(key)` on `Trie` instead"
     }
-    if eq(clone(name), "trie_has_prefix") {
+    if eq(name.clone(), "trie_has_prefix") {
         return "use `t.has_prefix(prefix)` on `Trie` instead"
     }
-    if eq(clone(name), "trie_remove") {
+    if eq(name.clone(), "trie_remove") {
         return "use `t.remove(key)` on `Trie` instead"
     }
-    if eq(clone(name), "trie_count_with_prefix") {
+    if eq(name.clone(), "trie_count_with_prefix") {
         return "use `t.count_with_prefix(prefix)` on `Trie` instead"
     }
     String_new()
@@ -504,200 +504,204 @@ fn removed_trie_member_hint(name: String) -> String {
 /// retired by #917 (ordered type surface). `btree_set_find_idx` has no
 /// public method: callers use `contains` / `insert` instead.
 fn removed_ordered_member_hint(name: String) -> String {
-    if eq(clone(name), "btree_new") {
+    if eq(name.clone(), "btree_new") {
         return "use `BTreeMap::new()` from `use std::collections::ordered::BTreeMap` instead"
     }
-    if eq(clone(name), "btree_insert") {
+    if eq(name.clone(), "btree_insert") {
         return "use `m.insert(key, value)` on `BTreeMap` instead"
     }
-    if eq(clone(name), "btree_get") {
+    if eq(name.clone(), "btree_get") {
         return "use `m.get(key)` on `BTreeMap` instead"
     }
-    if eq(clone(name), "btree_remove") {
+    if eq(name.clone(), "btree_remove") {
         return "use `m.remove(key)` on `BTreeMap` instead"
     }
-    if eq(clone(name), "btree_contains_key") {
+    if eq(name.clone(), "btree_contains_key") {
         return "use `m.contains_key(key)` on `BTreeMap` instead"
     }
-    if eq(clone(name), "btree_len") {
+    if eq(name.clone(), "btree_len") {
         return "use `m.len()` on `BTreeMap` instead"
     }
-    if eq(clone(name), "btree_keys") {
+    if eq(name.clone(), "btree_keys") {
         return "use `m.keys()` on `BTreeMap` instead"
     }
-    if eq(clone(name), "btree_range") {
+    if eq(name.clone(), "btree_range") {
         return "use `m.range(start, end)` on `BTreeMap` instead"
     }
-    if eq(clone(name), "btree_set_new") {
+    if eq(name.clone(), "btree_set_new") {
         return "use `BTreeSet::new()` from `use std::collections::ordered::BTreeSet` instead"
     }
-    if eq(clone(name), "btree_set_insert") {
+    if eq(name.clone(), "btree_set_insert") {
         return "use `s.insert(value)` on `BTreeSet` instead"
     }
-    if eq(clone(name), "btree_set_contains") {
+    if eq(name.clone(), "btree_set_contains") {
         return "use `s.contains(value)` on `BTreeSet` instead"
     }
-    if eq(clone(name), "btree_set_len") {
+    if eq(name.clone(), "btree_set_len") {
         return "use `s.len()` on `BTreeSet` instead"
     }
-    if eq(clone(name), "btree_set_find_idx") {
+    if eq(name.clone(), "btree_set_find_idx") {
         return "use `s.contains(value)` / `s.insert(value)` on `BTreeSet` instead"
     }
-    if eq(clone(name), "index_map_new") {
+    if eq(name.clone(), "index_map_new") {
         return "use `IndexMap::new()` from `use std::collections::ordered::IndexMap` instead"
     }
-    if eq(clone(name), "index_map_insert") {
+    if eq(name.clone(), "index_map_insert") {
         return "use `m.insert(key, value)` on `IndexMap` instead"
     }
-    if eq(clone(name), "index_map_get") {
+    if eq(name.clone(), "index_map_get") {
         return "use `m.get(key)` on `IndexMap` instead"
     }
-    if eq(clone(name), "index_map_len") {
+    if eq(name.clone(), "index_map_len") {
         return "use `m.len()` on `IndexMap` instead"
     }
-    if eq(clone(name), "index_map_keys") {
+    if eq(name.clone(), "index_map_keys") {
         return "use `m.keys()` on `IndexMap` instead"
     }
-    if eq(clone(name), "index_set_new") {
+    if eq(name.clone(), "index_set_new") {
         return "use `IndexSet::new()` from `use std::collections::ordered::IndexSet` instead"
     }
-    if eq(clone(name), "index_set_insert") {
+    if eq(name.clone(), "index_set_insert") {
         return "use `s.insert(value)` on `IndexSet` instead"
     }
-    if eq(clone(name), "index_set_contains") {
+    if eq(name.clone(), "index_set_contains") {
         return "use `s.contains(value)` on `IndexSet` instead"
     }
-    if eq(clone(name), "index_set_len") {
+    if eq(name.clone(), "index_set_len") {
         return "use `s.len()` on `IndexSet` instead"
     }
-    if eq(clone(name), "bitset_set") {
+    if eq(name.clone(), "bitset_set") {
         return "use `bits.set(bit)` on `BitSet` instead"
     }
-    if eq(clone(name), "bitset_clear") {
+    if eq(name.clone(), "bitset_clear") {
         return "use `bits.clear(bit)` on `BitSet` instead"
     }
-    if eq(clone(name), "bitset_with_capacity") {
+    if eq(name.clone(), "bitset_with_capacity") {
         return "use `BitSet::with_capacity(bits)` instead"
     }
-    if eq(clone(name), "bitset_count") {
+    if eq(name.clone(), "bitset_count") {
         return "use `bits.count()` on `BitSet` instead"
     }
-    if eq(clone(name), "bitset_union") {
+    if eq(name.clone(), "bitset_union") {
         return "use `a.union(b)` on `BitSet` instead"
     }
-    if eq(clone(name), "bitset_intersection") {
+    if eq(name.clone(), "bitset_intersection") {
         return "use `a.intersection(b)` on `BitSet` instead"
     }
-    if eq(clone(name), "sorted_map_new") {
+    if eq(name.clone(), "sorted_map_new") {
         return "use `SortedMap::new()` from `use std::collections::ordered::SortedMap` instead"
     }
-    if eq(clone(name), "sorted_map_len") {
+    if eq(name.clone(), "sorted_map_len") {
         return "use `m.len()` on `SortedMap` instead"
     }
-    if eq(clone(name), "sorted_map_find_idx") {
+    if eq(name.clone(), "sorted_map_find_idx") {
         return "use `m.find_idx(key)` on `SortedMap` instead"
     }
-    if eq(clone(name), "sorted_map_get") {
+    if eq(name.clone(), "sorted_map_get") {
         return "use `m.get(key)` on `SortedMap` instead"
     }
-    if eq(clone(name), "sorted_map_contains") {
+    if eq(name.clone(), "sorted_map_contains") {
         return "use `m.contains(key)` on `SortedMap` instead"
     }
-    if eq(clone(name), "sorted_map_insert") {
+    if eq(name.clone(), "sorted_map_insert") {
         return "use `m.insert(key, value)` on `SortedMap` instead"
     }
-    if eq(clone(name), "bitset_new") {
+    if eq(name.clone(), "bitset_new") {
         return "use `BitSet::new()` from `use std::collections::ordered::BitSet` instead"
     }
-    if eq(clone(name), "bitset_mark") {
+    if eq(name.clone(), "bitset_mark") {
         return "use `bits.mark(bit)` on `BitSet` instead"
     }
-    if eq(clone(name), "bitset_unmark") {
+    if eq(name.clone(), "bitset_unmark") {
         return "use `bits.unmark(bit)` on `BitSet` instead"
     }
-    if eq(clone(name), "bitset_test") {
+    if eq(name.clone(), "bitset_test") {
         return "use `bits.test(bit)` on `BitSet` instead"
     }
     String_new()
 }
 
 fn removed_pq_member_hint(name: String) -> String {
-    if eq(clone(name), "pq_new") {
+    if eq(name.clone(), "pq_new") {
         return "removed free constructor; use `PriorityQueue::new<i32>()` from `use std::collections::pq::PriorityQueue` instead"
     }
-    if eq(clone(name), "pq_push") {
+    if eq(name.clone(), "pq_push") {
         return "removed free function; use `queue.push(value)` on `PriorityQueue<i32>` instead"
     }
-    if eq(clone(name), "pq_pop") {
+    if eq(name.clone(), "pq_pop") {
         return "removed free function; use `queue.pop()` on `PriorityQueue<i32>` (`Option<i32>`) instead"
     }
-    if eq(clone(name), "pq_peek") {
+    if eq(name.clone(), "pq_peek") {
         return "removed free function; use `queue.peek()` on `PriorityQueue<i32>` (`Option<i32>`) instead"
     }
-    if eq(clone(name), "pq_len") {
+    if eq(name.clone(), "pq_len") {
         return "removed free function; use `queue.len()` on `PriorityQueue<i32>` instead"
     }
-    if eq(clone(name), "pq_is_empty") {
+    if eq(name.clone(), "pq_is_empty") {
         return "removed free function; use `queue.is_empty()` on `PriorityQueue<i32>` instead"
     }
-    if eq(clone(name), "pq_clear") {
+    if eq(name.clone(), "pq_clear") {
         return "removed free function; use `queue.clear()` on `PriorityQueue<i32>` instead"
     }
     String_new()
 }
 
 fn is_retired_hash_free_module(module: String) -> bool {
-    if eq(clone(module), "hash") || eq(clone(module), "collections::hash") {
+    if eq(module.clone(), "hash") || eq(module.clone(), "collections::hash") {
         return true
     }
-    eq(clone(module), "std::collections::hash")
+    eq(module.clone(), "std::collections::hash")
 }
 
 // A retired public name can stay in the symbol table as a non-public MIR
 // lowering target. Report the removal with its replacement instead of the
 // generic privacy error, matching the E0100 hint for a deleted declaration.
 fn removed_private_member_hint(module: String, name: String) -> String {
-    if is_retired_hash_free_module(clone(module)) && clone(name).starts_with("hashset_") {
+    if (eq(module.clone(), "prelude") || eq(module.clone(), "std::prelude")) &&
+    eq(name.clone(), "clone") {
+        return String_from("use `x.clone()` on the value instead")
+    }
+    if is_retired_hash_free_module(module.clone()) && name.clone().starts_with("hashset_") {
         return hashset_free_replacement_hint()
     }
-    if eq(clone(module), "hash_string") && clone(name).starts_with("hashset_") {
+    if eq(module.clone(), "hash_string") && name.clone().starts_with("hashset_") {
         return hashset_free_replacement_hint()
     }
-    if is_retired_hash_free_module(clone(module)) && clone(name).starts_with("hashmap_") {
+    if is_retired_hash_free_module(module.clone()) && name.clone().starts_with("hashmap_") {
         return hashmap_free_replacement_hint()
     }
-    if is_retired_hashmap_module(clone(module)) && clone(name).starts_with("hashmap_") {
+    if is_retired_hashmap_module(module.clone()) && name.clone().starts_with("hashmap_") {
         return hashmap_method_replacement_hint()
     }
     String_new()
 }
 
 fn removed_seq_member_hint(name: String) -> String {
-    if eq(clone(name), "sort_by") {
+    if eq(name.clone(), "sort_by") {
         return "removed free sort algorithm; use `v.sort()` via `use std::collections::vec`"
     }
-    if eq(clone(name), "binary_search_by") {
+    if eq(name.clone(), "binary_search_by") {
         return "removed free function; use `v.binary_search(target)` via `use std::collections::vec`"
     }
-    if eq(clone(name), "binary_search_by_key") {
+    if eq(name.clone(), "binary_search_by_key") {
         return "removed free function; use `v.binary_search_by_key(target_key, key)` via `use std::collections::vec`"
     }
-    if eq(clone(name), "lower_bound") {
+    if eq(name.clone(), "lower_bound") {
         return "removed free function; use `v.lower_bound(target)` via `use std::collections::vec`"
     }
-    if eq(clone(name), "upper_bound") {
+    if eq(name.clone(), "upper_bound") {
         return "removed free function; use `v.upper_bound(target)` via `use std::collections::vec`"
     }
-    if eq(clone(name), "min_by") {
+    if eq(name.clone(), "min_by") {
         return "removed free function; use `v.min()` via `use std::collections::vec`"
     }
-    if eq(clone(name), "max_by") {
+    if eq(name.clone(), "max_by") {
         return "removed free function; use `v.max()` via `use std::collections::vec`"
     }
-    if eq(clone(name), "min_by_key") {
+    if eq(name.clone(), "min_by_key") {
         return "removed free function; use `v.min_by_key(key)` via `use std::collections::vec`"
     }
-    if eq(clone(name), "max_by_key") {
+    if eq(name.clone(), "max_by_key") {
         return "removed free function; use `v.max_by_key(key)` via `use std::collections::vec`"
     }
     String_new()
@@ -707,527 +711,531 @@ fn removed_seq_member_hint(name: String) -> String {
 // the ADR-087 Wave 1 window (bench was experimental and retired directly).
 // Both module-qualified and bare old calls name the Test replacement.
 fn removed_test_free_hint(name: String) -> String {
-    if eq(clone(name), "assert_true") {
+    if eq(name.clone(), "assert_true") {
         return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_true(cond)` instead")
     }
-    if eq(clone(name), "assert_false") {
+    if eq(name.clone(), "assert_false") {
         return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_false(cond)` instead")
     }
-    if eq(clone(name), "assert_eq_debug") {
+    if eq(name.clone(), "assert_eq_debug") {
         return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_eq_debug(actual, expected)` instead")
     }
-    if eq(clone(name), "assert_eq_i32") {
+    if eq(name.clone(), "assert_eq_i32") {
         return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_eq_i32(actual, expected)` instead")
     }
-    if eq(clone(name), "assert_eq_i64") {
+    if eq(name.clone(), "assert_eq_i64") {
         return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_eq_i64(actual, expected)` instead")
     }
-    if eq(clone(name), "assert_eq_f64") {
+    if eq(name.clone(), "assert_eq_f64") {
         return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_eq_f64(actual, expected)` instead")
     }
-    if eq(clone(name), "assert_eq_string") {
+    if eq(name.clone(), "assert_eq_string") {
         return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_eq_string(actual, expected)` instead")
     }
-    if eq(clone(name), "assert_eq_bool") {
+    if eq(name.clone(), "assert_eq_bool") {
         return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_eq_bool(actual, expected)` instead")
     }
-    if eq(clone(name), "assert_ne_i32") {
+    if eq(name.clone(), "assert_ne_i32") {
         return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_ne_i32(actual, unexpected)` instead")
     }
-    if eq(clone(name), "assert_ne_string") {
+    if eq(name.clone(), "assert_ne_string") {
         return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_ne_string(actual, unexpected)` instead")
     }
-    if eq(clone(name), "expect_ok_i32") {
+    if eq(name.clone(), "expect_ok_i32") {
         return String_from("removed std::test free function; import `use std::test::Test` and call `Test::expect_ok_i32(result)` instead")
     }
-    if eq(clone(name), "expect_err_string") {
+    if eq(name.clone(), "expect_err_string") {
         return String_from("removed std::test free function; import `use std::test::Test` and call `Test::expect_err_string(result)` instead")
     }
-    if eq(clone(name), "expect_some_i32") {
+    if eq(name.clone(), "expect_some_i32") {
         return String_from("removed std::test free function; import `use std::test::Test` and call `Test::expect_some_i32(option)` instead")
     }
-    if eq(clone(name), "expect_none_i32") {
+    if eq(name.clone(), "expect_none_i32") {
         return String_from("removed std::test free function; import `use std::test::Test` and call `Test::expect_none_i32(option)` instead")
     }
-    if eq(clone(name), "assert_contains") {
+    if eq(name.clone(), "assert_contains") {
         return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_contains(haystack, needle)` instead")
     }
-    if eq(clone(name), "assert_eq_snapshot") {
+    if eq(name.clone(), "assert_eq_snapshot") {
         return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_eq_snapshot(actual, expected)` instead")
     }
-    if eq(clone(name), "assert_msg") {
+    if eq(name.clone(), "assert_msg") {
         return String_from("removed std::test free function; import `use std::test::Test` and call `Test::assert_msg(cond, message)` instead")
     }
-    if eq(clone(name), "bench") {
+    if eq(name.clone(), "bench") {
         return String_from("removed std::test free function; import `use std::test::Test` and call `Test::bench(name, iterations, f)` instead")
     }
     String_new()
 }
 
 fn removed_module_member_hint(module: String, name: String) -> String {
-    if eq(clone(module), "fs") || eq(clone(module), "host::fs") || eq(clone(module), "std::fs") || eq(clone(module), "std::host::fs") {
+    if eq(module.clone(), "fs") || eq(module.clone(), "host::fs") || eq(module.clone(), "std::fs") || eq(module.clone(), "std::host::fs") {
         return removed_host_fs_member_hint(name)
     }
-    if eq(clone(module), "seq") || eq(clone(module), "std::seq") {
+    if (eq(module.clone(), "string") || eq(module.clone(), "collections::string") ||
+        eq(module.clone(), "std::collections::string")) && eq(name.clone(), "clone") {
+        return String_from("removed free function; use `s.clone()` on the String receiver instead")
+    }
+    if eq(module.clone(), "seq") || eq(module.clone(), "std::seq") {
         return removed_seq_member_hint(name)
     }
-    if eq(clone(module), "test") || eq(clone(module), "std::test") {
+    if eq(module.clone(), "test") || eq(module.clone(), "std::test") {
         return removed_test_free_hint(name)
     }
-    if eq(clone(module), "compiler") || eq(clone(module), "collections::compiler") || eq(clone(module), "std::collections::compiler") {
+    if eq(module.clone(), "compiler") || eq(module.clone(), "collections::compiler") || eq(module.clone(), "std::collections::compiler") {
         return removed_compiler_member_hint(name)
     }
-    if eq(clone(module), "bimap") || eq(clone(module), "collections::bimap") || eq(clone(module), "std::collections::bimap") {
+    if eq(module.clone(), "bimap") || eq(module.clone(), "collections::bimap") || eq(module.clone(), "std::collections::bimap") {
         return removed_bimap_member_hint(name)
     }
-    if eq(clone(module), "trie") || eq(clone(module), "collections::trie") || eq(clone(module), "std::collections::trie") {
+    if eq(module.clone(), "trie") || eq(module.clone(), "collections::trie") || eq(module.clone(), "std::collections::trie") {
         return removed_trie_member_hint(name)
     }
-    if eq(clone(module), "ordered") || eq(clone(module), "collections::ordered") || eq(clone(module), "std::collections::ordered") {
+    if eq(module.clone(), "ordered") || eq(module.clone(), "collections::ordered") || eq(module.clone(), "std::collections::ordered") {
         return removed_ordered_member_hint(name)
     }
-    if eq(clone(module), "linear") || eq(clone(module), "collections::linear") || eq(clone(module), "std::collections::linear") {
+    if eq(module.clone(), "linear") || eq(module.clone(), "collections::linear") || eq(module.clone(), "std::collections::linear") {
         return removed_pq_member_hint(name)
     }
-    if eq(clone(module), "vec") || eq(clone(module), "collections::vec") || eq(clone(module), "std::collections::vec") {
-        if eq(clone(name), "new_i32") {
+    if eq(module.clone(), "vec") || eq(module.clone(), "collections::vec") || eq(module.clone(), "std::collections::vec") {
+        if eq(name.clone(), "new_i32") {
             return "removed free Vec constructor; use `Vec::new<i32>()` instead"
         }
         return String_new()
     }
-    if eq(clone(module), "clock") || eq(clone(module), "host::clock") || eq(clone(module), "std::host::clock") {
+    if eq(module.clone(), "clock") || eq(module.clone(), "host::clock") || eq(module.clone(), "std::host::clock") {
         return removed_host_clock_member_hint(name)
     }
-    if eq(clone(module), "env") || eq(clone(module), "host::env") || eq(clone(module), "std::env") || eq(clone(module), "std::host::env") {
+    if eq(module.clone(), "env") || eq(module.clone(), "host::env") || eq(module.clone(), "std::env") || eq(module.clone(), "std::host::env") {
         return removed_host_env_member_hint(name)
     }
-    if eq(clone(module), "process") || eq(clone(module), "host::process") || eq(clone(module), "std::process") || eq(clone(module), "std::host::process") {
+    if eq(module.clone(), "process") || eq(module.clone(), "host::process") || eq(module.clone(), "std::process") || eq(module.clone(), "std::host::process") {
         return removed_host_process_member_hint(name)
     }
-    if eq(clone(module), "host::random") || eq(clone(module), "std::host::random") {
+    if eq(module.clone(), "host::random") || eq(module.clone(), "std::host::random") {
         return removed_host_random_member_hint(name)
     }
-    if eq(clone(module), "cli") || eq(clone(module), "std::cli") {
+    if eq(module.clone(), "cli") || eq(module.clone(), "std::cli") {
         return removed_cli_member_hint(name)
     }
-    if eq(clone(module), "signal") || eq(clone(module), "std::signal") {
+    if eq(module.clone(), "signal") || eq(module.clone(), "std::signal") {
         return removed_signal_member_hint(name)
     }
-    if is_retired_hashmap_module(clone(module)) {
+    if is_retired_hashmap_module(module.clone()) {
         return hashmap_method_replacement_hint()
     }
-    if eq(clone(module), "hash_set") || eq(clone(module), "hashset") {
+    if eq(module.clone(), "hash_set") || eq(module.clone(), "hashset") {
         return hashset_method_replacement_hint()
     }
-    if eq(clone(module), "wit") || eq(clone(module), "types") {
+    if eq(module.clone(), "wit") || eq(module.clone(), "types") {
         return removed_wit_type_member_hint(name)
     }
-    if eq(clone(module), "scan") {
+    if eq(module.clone(), "scan") {
         return removed_wit_scan_member_hint(name)
     }
-    if eq(clone(module), "names") {
+    if eq(module.clone(), "names") {
         return removed_wit_name_member_hint(name)
     }
-    if eq(clone(module), "ast") {
+    if eq(module.clone(), "ast") {
         return removed_wit_ast_member_hint(name)
     }
-    if eq(clone(module), "parser") {
-        let parser_json_hint = removed_json_member_hint(clone(name))
-        if len(clone(parser_json_hint)) > 0 {
+    if eq(module.clone(), "parser") {
+        let parser_json_hint = removed_json_member_hint(name.clone())
+        if len(parser_json_hint.clone()) > 0 {
             return parser_json_hint
         }
-        let parser_toml_hint = removed_toml_member_hint(clone(name))
-        if len(clone(parser_toml_hint)) > 0 {
+        let parser_toml_hint = removed_toml_member_hint(name.clone())
+        if len(parser_toml_hint.clone()) > 0 {
             return parser_toml_hint
         }
         return removed_wit_parser_member_hint(name)
     }
-    if eq(clone(module), "component") {
+    if eq(module.clone(), "component") {
         return removed_component_member_hint(name)
     }
-    if eq(clone(module), "handle") {
+    if eq(module.clone(), "handle") {
         return removed_component_handle_member_hint(name)
     }
-    if eq(clone(module), "printer") && eq(clone(name), "print_wit") {
+    if eq(module.clone(), "printer") && eq(name.clone(), "print_wit") {
         return String_from("use `w.to_wit()` on `World` instead")
     }
-    if eq(clone(module), "fmt") {
+    if eq(module.clone(), "fmt") {
         return removed_fmt_member_hint(name)
     }
-    if eq(clone(module), "rope") {
+    if eq(module.clone(), "rope") {
         return removed_rope_member_hint(name)
     }
-    if eq(clone(module), "text") {
+    if eq(module.clone(), "text") {
         return removed_text_member_hint(name)
     }
-    if eq(clone(module), "string") {
+    if eq(module.clone(), "string") {
         return removed_string_member_hint(name)
     }
-    if eq(clone(module), "iter") {
+    if eq(module.clone(), "iter") {
         return removed_iter_member_hint(name)
     }
-    if eq(clone(module), "wasm") {
+    if eq(module.clone(), "wasm") {
         return removed_wasm_member_hint(name)
     }
-    if eq(clone(module), "bytes") {
+    if eq(module.clone(), "bytes") {
         return removed_bytes_member_hint(name)
     }
-    if eq(clone(module), "path") {
+    if eq(module.clone(), "path") {
         return removed_path_member_hint(name)
     }
-    if eq(clone(module), "time") {
+    if eq(module.clone(), "time") {
         return removed_time_member_hint(name)
     }
-    if eq(clone(module), "random") || eq(clone(module), "std::random") {
+    if eq(module.clone(), "random") || eq(module.clone(), "std::random") {
         // The alias `random` is shared by std::random (seeded Rng helpers) and
         // std::host::random (host entropy). The leaf names do not overlap, so
         // try the deterministic hints first and fall through to the host ones.
-        let seeded_hint = removed_random_member_hint(clone(name))
-        if len(clone(seeded_hint)) > 0 {
+        let seeded_hint = removed_random_member_hint(name.clone())
+        if len(seeded_hint.clone()) > 0 {
             return seeded_hint
         }
         return removed_host_random_member_hint(name)
     }
-    if eq(clone(module), "raw") {
+    if eq(module.clone(), "raw") {
         return removed_raw_member_hint(name)
     }
-    if eq(clone(module), "core") {
+    if eq(module.clone(), "core") {
         return removed_core_free_hint(name)
     }
-    if eq(clone(module), "error") {
+    if eq(module.clone(), "error") {
         return removed_error_member_hint(name)
     }
-    if eq(clone(module), "hash") {
+    if eq(module.clone(), "hash") {
         return removed_hash_member_hint(name)
     }
-    if eq(clone(module), "canonical") {
+    if eq(module.clone(), "canonical") {
         return removed_canonical_member_hint(name)
     }
-    if eq(clone(module), "json") {
+    if eq(module.clone(), "json") {
         return removed_json_member_hint(name)
     }
-    if eq(clone(module), "toml") {
+    if eq(module.clone(), "toml") {
         return removed_toml_member_hint(name)
     }
-    if eq(clone(module), "csv") {
+    if eq(module.clone(), "csv") {
         return removed_csv_member_hint(name)
     }
-    let simd_type = removed_simd_lane_type(clone(module))
-    if len(clone(simd_type)) > 0 {
+    let simd_type = removed_simd_lane_type(module.clone())
+    if len(simd_type.clone()) > 0 {
         return "removed free function; call `"
         .concat(simd_type)
         .concat("::")
-        .concat(clone(name))
+        .concat(name.clone())
         .concat("(...)` with the namespace type from `use std::simd::")
-        .concat(clone(module))
+        .concat(module.clone())
         .concat("` instead")
     }
-    if !eq(clone(module), "io") {
+    if !eq(module.clone(), "io") {
         return String_new()
     }
-    if eq(clone(name), "reader_eof") { return "use `r.is_eof()` on `Reader` instead" }
-    if eq(clone(name), "reader_read") { return "use `r.read(n)` on `Reader` instead" }
-    if eq(clone(name), "reader_read_exact") { return "use `Io::read_exact(r, n)` from `use std::io::Io` instead" }
-    if eq(clone(name), "reader_read_all") { return "use `Io::read_to_end(r)` from `use std::io::Io` instead" }
-    if eq(clone(name), "reader_read_line") { return "use `r.read_line()` from `use std::io::BufRead` instead (`Option<String>`, `None` at EOF)" }
-    if eq(clone(name), "copy_bytes") { return "use `Io::copy(from, to)` from `use std::io::Io` instead" }
-    if eq(clone(name), "copy") { return "use `Io::copy(from, to)` from `use std::io::Io` instead" }
-    if eq(clone(name), "copy_trait") { return "use `Io::copy(from, to)` from `use std::io::Io` instead" }
-    if eq(clone(name), "new_memory_buffer") { return "use `Reader::new()` for a source or `Writer::new()` for a sink instead" }
-    if eq(clone(name), "write_bytes") { return "use `w.write(data)` on `Writer` instead" }
-    if eq(clone(name), "read_bytes") { return "use `r.read(n)` on `Reader` instead" }
-    if eq(clone(name), "seek_to") { return "use `r.seek(SeekFrom::Start(pos))` from `use std::io::{Seek, SeekFrom}` instead" }
-    if eq(clone(name), "buffer_position") { return "use `r.position()` from `use std::io::Seek` instead" }
-    if eq(clone(name), "buffer_len") { return "use `r.len()` on `Reader` instead" }
-    if eq(clone(name), "fill_buffer") { return "use `r.fill_buf()` from `use std::io::BufRead` instead" }
-    if eq(clone(name), "file_from_fd") { return "the experimental fd lane was retired; use `std::host::fs::File::open(path)` instead" }
-    if eq(clone(name), "file_read") { return "the experimental fd lane was retired; use `Read::read` on `std::host::fs::File` instead" }
-    if eq(clone(name), "file_write") { return "the experimental fd lane was retired; use `std::host::fs::File::create` and `Write::write` instead (write side open under #693)" }
-    if eq(clone(name), "reader_from_bytes") { return "use `Reader::from_bytes(data)` from `use std::io::Reader` instead" }
-    if eq(clone(name), "buf_reader_new") { return "use `BufReader::new(r, cap)` from `use std::io::BufReader` instead" }
-    if eq(clone(name), "buffered_reader") { return "use `BufReader::new(r, cap)` from `use std::io::BufReader` instead" }
-    if eq(clone(name), "buf_reader_read_line") { return "use `br.read_line()` from `use std::io::BufRead` instead (`Option<String>`, `None` at EOF)" }
-    if eq(clone(name), "buf_writer_new") { return "use `BufWriter::new(w, cap)` from `use std::io::BufWriter` instead" }
-    if eq(clone(name), "buffered_writer") { return "use `BufWriter::new(w, cap)` from `use std::io::BufWriter` instead" }
-    if eq(clone(name), "buf_writer_write_str") { return "use `bw.write_string(s)` on `BufWriter` instead" }
-    if eq(clone(name), "buf_writer_flush") { return "use `bw.flush()` on `BufWriter` instead" }
-    if eq(clone(name), "writer_new") { return "use `Writer::new()` from `use std::io::Writer` instead" }
-    if eq(clone(name), "write_all") { return "use `Io::write_all(w, data)` from `use std::io::Io` instead" }
-    if eq(clone(name), "write_string") { return "use `w.write_string(s)` on `Writer` instead" }
-    if eq(clone(name), "writer_flush") { return "use `w.flush()` on `Writer` instead" }
-    if eq(clone(name), "writer_to_bytes") { return "use `w.into_bytes()` on `Writer` instead" }
-    if eq(clone(name), "writer_write") { return "use `io::Stdout::new().write(data)` or `io::Stderr::new().write(data)` from `use std::io` instead" }
-    if eq(clone(name), "writer_write_str") { return "use `io::Stdout::new().write_string(s)` or `io::Stderr::new().write_string(s)` from `use std::io` instead" }
+    if eq(name.clone(), "reader_eof") { return "use `r.is_eof()` on `Reader` instead" }
+    if eq(name.clone(), "reader_read") { return "use `r.read(n)` on `Reader` instead" }
+    if eq(name.clone(), "reader_read_exact") { return "use `Io::read_exact(r, n)` from `use std::io::Io` instead" }
+    if eq(name.clone(), "reader_read_all") { return "use `Io::read_to_end(r)` from `use std::io::Io` instead" }
+    if eq(name.clone(), "reader_read_line") { return "use `r.read_line()` from `use std::io::BufRead` instead (`Option<String>`, `None` at EOF)" }
+    if eq(name.clone(), "copy_bytes") { return "use `Io::copy(from, to)` from `use std::io::Io` instead" }
+    if eq(name.clone(), "copy") { return "use `Io::copy(from, to)` from `use std::io::Io` instead" }
+    if eq(name.clone(), "copy_trait") { return "use `Io::copy(from, to)` from `use std::io::Io` instead" }
+    if eq(name.clone(), "new_memory_buffer") { return "use `Reader::new()` for a source or `Writer::new()` for a sink instead" }
+    if eq(name.clone(), "write_bytes") { return "use `w.write(data)` on `Writer` instead" }
+    if eq(name.clone(), "read_bytes") { return "use `r.read(n)` on `Reader` instead" }
+    if eq(name.clone(), "seek_to") { return "use `r.seek(SeekFrom::Start(pos))` from `use std::io::{Seek, SeekFrom}` instead" }
+    if eq(name.clone(), "buffer_position") { return "use `r.position()` from `use std::io::Seek` instead" }
+    if eq(name.clone(), "buffer_len") { return "use `r.len()` on `Reader` instead" }
+    if eq(name.clone(), "fill_buffer") { return "use `r.fill_buf()` from `use std::io::BufRead` instead" }
+    if eq(name.clone(), "file_from_fd") { return "the experimental fd lane was retired; use `std::host::fs::File::open(path)` instead" }
+    if eq(name.clone(), "file_read") { return "the experimental fd lane was retired; use `Read::read` on `std::host::fs::File` instead" }
+    if eq(name.clone(), "file_write") { return "the experimental fd lane was retired; use `std::host::fs::File::create` and `Write::write` instead (write side open under #693)" }
+    if eq(name.clone(), "reader_from_bytes") { return "use `Reader::from_bytes(data)` from `use std::io::Reader` instead" }
+    if eq(name.clone(), "buf_reader_new") { return "use `BufReader::new(r, cap)` from `use std::io::BufReader` instead" }
+    if eq(name.clone(), "buffered_reader") { return "use `BufReader::new(r, cap)` from `use std::io::BufReader` instead" }
+    if eq(name.clone(), "buf_reader_read_line") { return "use `br.read_line()` from `use std::io::BufRead` instead (`Option<String>`, `None` at EOF)" }
+    if eq(name.clone(), "buf_writer_new") { return "use `BufWriter::new(w, cap)` from `use std::io::BufWriter` instead" }
+    if eq(name.clone(), "buffered_writer") { return "use `BufWriter::new(w, cap)` from `use std::io::BufWriter` instead" }
+    if eq(name.clone(), "buf_writer_write_str") { return "use `bw.write_string(s)` on `BufWriter` instead" }
+    if eq(name.clone(), "buf_writer_flush") { return "use `bw.flush()` on `BufWriter` instead" }
+    if eq(name.clone(), "writer_new") { return "use `Writer::new()` from `use std::io::Writer` instead" }
+    if eq(name.clone(), "write_all") { return "use `Io::write_all(w, data)` from `use std::io::Io` instead" }
+    if eq(name.clone(), "write_string") { return "use `w.write_string(s)` on `Writer` instead" }
+    if eq(name.clone(), "writer_flush") { return "use `w.flush()` on `Writer` instead" }
+    if eq(name.clone(), "writer_to_bytes") { return "use `w.into_bytes()` on `Writer` instead" }
+    if eq(name.clone(), "writer_write") { return "use `io::Stdout::new().write(data)` or `io::Stderr::new().write(data)` from `use std::io` instead" }
+    if eq(name.clone(), "writer_write_str") { return "use `io::Stdout::new().write_string(s)` or `io::Stderr::new().write_string(s)` from `use std::io` instead" }
     String_new()
 }
 
 fn removed_bytes_member_hint(name: String) -> String {
-    if eq(clone(name), "bytes_new") { return String_from("use `Vec::new<i32>()` instead") }
-    if eq(clone(name), "bytes_len") { return String_from("use `b.len()` on the byte vector instead") }
-    if eq(clone(name), "bytes_get") { return String_from("use `b.get_unchecked(i)` instead") }
-    if eq(clone(name), "bytes_push") { return String_from("use `b.push_byte(x)` instead") }
-    if eq(clone(name), "bytes_eq") { return String_from("use `a.equals_bytes(b)` instead") }
-    if eq(clone(name), "bytes_from_string") { return String_from("use `s.to_utf8_bytes()` on the `String` instead") }
-    if eq(clone(name), "string_from_bytes") { return String_from("use `String::from_utf8_lossy(b)` instead") }
-    if eq(clone(name), "bytes_concat") { return String_from("use `a.concat_bytes(b)` instead") }
-    if eq(clone(name), "bytes_slice") { return String_from("use `b.slice_bytes(start, end)` instead") }
-    if eq(clone(name), "byte_length") { return String_from("use `s.len_bytes()` on the `String` instead") }
-    if eq(clone(name), "hex_encode") { return String_from("use `b.to_hex()` instead") }
-    if eq(clone(name), "hex_decode") { return String_from("use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "leb128_encode_u32") { return String_from("use `Bytes::from_leb128_u32(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "leb128_encode_i32") { return String_from("use `Bytes::from_leb128_i32(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "u16_to_le_bytes") { return String_from("use `Bytes::from_u16_le(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "u16_from_le_bytes") { return String_from("use `b.to_u16_le()` instead") }
-    if eq(clone(name), "u32_to_le_bytes") { return String_from("use `Bytes::from_u32_le(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "u32_from_le_bytes") { return String_from("use `b.to_u32_le()` instead") }
-    if eq(clone(name), "u32_to_be_bytes") { return String_from("use `Bytes::from_u32_be(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "u32_from_be_bytes") { return String_from("use `b.to_u32_be()` instead") }
-    if eq(clone(name), "bytes_from_array") { return String_from("use `Bytes::from_array(xs)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "buf_new") { return String_from("use `Vec::new<i32>()` instead") }
-    if eq(clone(name), "buf_with_capacity") { return String_from("use `Vec::with_capacity<i32>(cap)` instead") }
-    if eq(clone(name), "buf_push_u8") { return String_from("use `b.push_byte(x)` instead") }
-    if eq(clone(name), "buf_push_u16_le") { return String_from("use `b.push_u16_le(x)` instead") }
-    if eq(clone(name), "buf_push_u32_le") { return String_from("use `b.push_u32_le(x)` instead") }
-    if eq(clone(name), "buf_push_u64_le") { return String_from("use `b.push_u64_le(x)` instead") }
-    if eq(clone(name), "buf_extend") { return String_from("use `b.extend_bytes(other)` instead") }
-    if eq(clone(name), "buf_freeze") { return String_from("use `b.freeze()` (identity; both layouts are `Vec<i32>`)") }
-    if eq(clone(name), "buf_len") { return String_from("use `b.len()` on the byte vector instead") }
-    if eq(clone(name), "cursor_new") { return String_from("use `data.byte_cursor()` instead") }
-    if eq(clone(name), "cursor_pos") { return String_from("use `c.cursor_pos()` instead") }
-    if eq(clone(name), "cursor_remaining") { return String_from("use `c.cursor_remaining()` instead") }
-    if eq(clone(name), "read_u8") { return String_from("use `c.read_u8()` instead") }
-    if eq(clone(name), "read_u16_le") { return String_from("use `c.read_u16_le()` instead") }
-    if eq(clone(name), "read_u32_le") { return String_from("use `c.read_u32_le()` instead") }
-    if eq(clone(name), "read_u64_le") { return String_from("use `c.read_u64_le()` instead") }
-    if eq(clone(name), "read_u32_be") { return String_from("use `c.read_u32_be()` instead") }
-    if eq(clone(name), "read_bytes") { return String_from("use `c.read_bytes(n)` instead") }
-    if eq(clone(name), "base64_encode") { return String_from("use `b.to_base64()` instead") }
-    if eq(clone(name), "base64_decode") { return String_from("use `Bytes::from_base64(s)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "leb128_decode_u32") { return String_from("use `c.read_leb128_u32()` instead") }
-    if eq(clone(name), "leb128_decode_i32") { return String_from("use `c.read_leb128_i32()` instead") }
-    if eq(clone(name), "leb128_encode_u64") { return String_from("use `Bytes::from_leb128_u64(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "leb128_decode_u64") { return String_from("use `c.read_leb128_u64()` instead") }
-    if eq(clone(name), "hex_char") { return String_from("removed helper; use `b.to_hex()` instead") }
-    if eq(clone(name), "hex_val_char") { return String_from("removed helper; use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "try_hex_val_char") { return String_from("removed helper; use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "try_read_u8") { return String_from("removed free function; use `c.try_read_u8()` instead") }
-    if eq(clone(name), "try_read_u16_le") { return String_from("removed free function; use `c.try_read_u16_le()` instead") }
-    if eq(clone(name), "try_read_u32_le") { return String_from("removed free function; use `c.try_read_u32_le()` instead") }
-    if eq(clone(name), "try_read_u32_be") { return String_from("removed free function; use `c.try_read_u32_be()` instead") }
-    if eq(clone(name), "try_read_bytes") { return String_from("removed free function; use `c.try_read_bytes(n)` instead") }
+    if eq(name.clone(), "bytes_new") { return String_from("use `Vec::new<i32>()` instead") }
+    if eq(name.clone(), "bytes_len") { return String_from("use `b.len()` on the byte vector instead") }
+    if eq(name.clone(), "bytes_get") { return String_from("use `b.get_unchecked(i)` instead") }
+    if eq(name.clone(), "bytes_push") { return String_from("use `b.push_byte(x)` instead") }
+    if eq(name.clone(), "bytes_eq") { return String_from("use `a.equals_bytes(b)` instead") }
+    if eq(name.clone(), "bytes_from_string") { return String_from("use `s.to_utf8_bytes()` on the `String` instead") }
+    if eq(name.clone(), "string_from_bytes") { return String_from("use `String::from_utf8_lossy(b)` instead") }
+    if eq(name.clone(), "bytes_concat") { return String_from("use `a.concat_bytes(b)` instead") }
+    if eq(name.clone(), "bytes_slice") { return String_from("use `b.slice_bytes(start, end)` instead") }
+    if eq(name.clone(), "byte_length") { return String_from("use `s.len_bytes()` on the `String` instead") }
+    if eq(name.clone(), "hex_encode") { return String_from("use `b.to_hex()` instead") }
+    if eq(name.clone(), "hex_decode") { return String_from("use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
+    if eq(name.clone(), "leb128_encode_u32") { return String_from("use `Bytes::from_leb128_u32(x)` via `use std::bytes::Bytes` instead") }
+    if eq(name.clone(), "leb128_encode_i32") { return String_from("use `Bytes::from_leb128_i32(x)` via `use std::bytes::Bytes` instead") }
+    if eq(name.clone(), "u16_to_le_bytes") { return String_from("use `Bytes::from_u16_le(x)` via `use std::bytes::Bytes` instead") }
+    if eq(name.clone(), "u16_from_le_bytes") { return String_from("use `b.to_u16_le()` instead") }
+    if eq(name.clone(), "u32_to_le_bytes") { return String_from("use `Bytes::from_u32_le(x)` via `use std::bytes::Bytes` instead") }
+    if eq(name.clone(), "u32_from_le_bytes") { return String_from("use `b.to_u32_le()` instead") }
+    if eq(name.clone(), "u32_to_be_bytes") { return String_from("use `Bytes::from_u32_be(x)` via `use std::bytes::Bytes` instead") }
+    if eq(name.clone(), "u32_from_be_bytes") { return String_from("use `b.to_u32_be()` instead") }
+    if eq(name.clone(), "bytes_from_array") { return String_from("use `Bytes::from_array(xs)` via `use std::bytes::Bytes` instead") }
+    if eq(name.clone(), "buf_new") { return String_from("use `Vec::new<i32>()` instead") }
+    if eq(name.clone(), "buf_with_capacity") { return String_from("use `Vec::with_capacity<i32>(cap)` instead") }
+    if eq(name.clone(), "buf_push_u8") { return String_from("use `b.push_byte(x)` instead") }
+    if eq(name.clone(), "buf_push_u16_le") { return String_from("use `b.push_u16_le(x)` instead") }
+    if eq(name.clone(), "buf_push_u32_le") { return String_from("use `b.push_u32_le(x)` instead") }
+    if eq(name.clone(), "buf_push_u64_le") { return String_from("use `b.push_u64_le(x)` instead") }
+    if eq(name.clone(), "buf_extend") { return String_from("use `b.extend_bytes(other)` instead") }
+    if eq(name.clone(), "buf_freeze") { return String_from("use `b.freeze()` (identity; both layouts are `Vec<i32>`)") }
+    if eq(name.clone(), "buf_len") { return String_from("use `b.len()` on the byte vector instead") }
+    if eq(name.clone(), "cursor_new") { return String_from("use `data.byte_cursor()` instead") }
+    if eq(name.clone(), "cursor_pos") { return String_from("use `c.cursor_pos()` instead") }
+    if eq(name.clone(), "cursor_remaining") { return String_from("use `c.cursor_remaining()` instead") }
+    if eq(name.clone(), "read_u8") { return String_from("use `c.read_u8()` instead") }
+    if eq(name.clone(), "read_u16_le") { return String_from("use `c.read_u16_le()` instead") }
+    if eq(name.clone(), "read_u32_le") { return String_from("use `c.read_u32_le()` instead") }
+    if eq(name.clone(), "read_u64_le") { return String_from("use `c.read_u64_le()` instead") }
+    if eq(name.clone(), "read_u32_be") { return String_from("use `c.read_u32_be()` instead") }
+    if eq(name.clone(), "read_bytes") { return String_from("use `c.read_bytes(n)` instead") }
+    if eq(name.clone(), "base64_encode") { return String_from("use `b.to_base64()` instead") }
+    if eq(name.clone(), "base64_decode") { return String_from("use `Bytes::from_base64(s)` via `use std::bytes::Bytes` instead") }
+    if eq(name.clone(), "leb128_decode_u32") { return String_from("use `c.read_leb128_u32()` instead") }
+    if eq(name.clone(), "leb128_decode_i32") { return String_from("use `c.read_leb128_i32()` instead") }
+    if eq(name.clone(), "leb128_encode_u64") { return String_from("use `Bytes::from_leb128_u64(x)` via `use std::bytes::Bytes` instead") }
+    if eq(name.clone(), "leb128_decode_u64") { return String_from("use `c.read_leb128_u64()` instead") }
+    if eq(name.clone(), "hex_char") { return String_from("removed helper; use `b.to_hex()` instead") }
+    if eq(name.clone(), "hex_val_char") { return String_from("removed helper; use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
+    if eq(name.clone(), "try_hex_val_char") { return String_from("removed helper; use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
+    if eq(name.clone(), "try_read_u8") { return String_from("removed free function; use `c.try_read_u8()` instead") }
+    if eq(name.clone(), "try_read_u16_le") { return String_from("removed free function; use `c.try_read_u16_le()` instead") }
+    if eq(name.clone(), "try_read_u32_le") { return String_from("removed free function; use `c.try_read_u32_le()` instead") }
+    if eq(name.clone(), "try_read_u32_be") { return String_from("removed free function; use `c.try_read_u32_be()` instead") }
+    if eq(name.clone(), "try_read_bytes") { return String_from("removed free function; use `c.try_read_bytes(n)` instead") }
     String_new()
 }
 
 fn removed_canonical_member_hint(name: String) -> String {
-    if eq(clone(name), "canonical_scratch_new") {
+    if eq(name.clone(), "canonical_scratch_new") {
         return String_from("use `Component::scratch_new()` from `use std::component::Component` instead")
     }
-    if eq(clone(name), "canonical_lower_string") {
+    if eq(name.clone(), "canonical_lower_string") {
         return String_from("use `Component::lower_string(scratch, s)` from `use std::component::Component` instead")
     }
-    if eq(clone(name), "canonical_lift_string") {
+    if eq(name.clone(), "canonical_lift_string") {
         return String_from("use `Component::lift_string(scratch, slice)` from `use std::component::Component` instead")
     }
-    if eq(clone(name), "canonical_lift_string_at") {
+    if eq(name.clone(), "canonical_lift_string_at") {
         return String_from("use `Component::lift_string_at(scratch, ptr, len)` from `use std::component::Component` instead")
     }
-    if eq(clone(name), "canonical_lower_list_i32") {
+    if eq(name.clone(), "canonical_lower_list_i32") {
         return String_from("use `Component::lower_list_i32(scratch, items)` from `use std::component::Component` instead")
     }
-    if eq(clone(name), "canonical_lift_list_i32") {
+    if eq(name.clone(), "canonical_lift_list_i32") {
         return String_from("use `Component::lift_list_i32(scratch, slice)` from `use std::component::Component` instead")
     }
-    if eq(clone(name), "canonical_lift_list_i32_at") {
+    if eq(name.clone(), "canonical_lift_list_i32_at") {
         return String_from("use `Component::lift_list_i32_at(scratch, ptr, count)` from `use std::component::Component` instead")
     }
     String_new()
 }
 
 fn removed_json_member_hint(name: String) -> String {
-    if eq(clone(name), "parse") { return "removed free function; use `JsonValue::parse(s)` on `json::JsonValue` instead" }
-    if eq(clone(name), "JsonParseStep_ok") { return "use `JsonParseStep::ok(v, next)` instead" }
-    if eq(clone(name), "JsonParseStep_err") { return "use `JsonParseStep::err(e, next)` instead" }
-    if eq(clone(name), "json_parse_step_value") { return "use `step.value()` on `JsonParseStep` instead" }
-    if eq(clone(name), "json_parse_step_next") { return "use `step.next()` on `JsonParseStep` instead" }
-    if eq(clone(name), "json_get") { return "use `v.get_field(key)` on `JsonValue` instead" }
-    if eq(clone(name), "json_get_index") { return "use `v.get_index(index)` on `JsonValue` instead" }
-    if eq(clone(name), "json_as_string") { return "use `v.as_string()` on `JsonValue` instead" }
-    if eq(clone(name), "json_as_i32") { return "use `v.as_i32()` on `JsonValue` instead" }
-    if eq(clone(name), "json_as_bool") { return "use `v.as_bool()` on `JsonValue` instead" }
-    if eq(clone(name), "json_as_f64") { return "use `v.as_f64()` on `JsonValue` instead" }
-    if eq(clone(name), "json_as_array") { return "use `v.as_array()` on `JsonValue` instead" }
-    if eq(clone(name), "is_null") { return "use `v.is_null()` on `JsonValue` instead" }
-    if eq(clone(name), "is_bool") { return "use `v.is_bool()` on `JsonValue` instead" }
-    if eq(clone(name), "is_number") { return "use `v.is_number()` on `JsonValue` instead" }
-    if eq(clone(name), "is_string") { return "use `v.is_string()` on `JsonValue` instead" }
-    if eq(clone(name), "is_array") { return "use `v.is_array()` on `JsonValue` instead" }
-    if eq(clone(name), "is_object") { return "use `v.is_object()` on `JsonValue` instead" }
-    if eq(clone(name), "stringify") { return "use `v.to_text()` on `JsonValue` instead" }
-    if eq(clone(name), "parse_error_message") { return "use `e.message()` on `JsonParseError` instead" }
-    if eq(clone(name), "json_escape") { return "use `json::JsonText::escape(s)` via `use std::json` instead" }
-    if eq(clone(name), "quote_string") { return "use `json::JsonText::quote(s)` via `use std::json` instead" }
-    if eq(clone(name), "skip_ws") { return "use `json::JsonText::skip_ws(s, pos)` via `use std::json` instead" }
-    if eq(clone(name), "parse_int_at") { return "use `json::JsonText::parse_int_at(s, pos)` via `use std::json` instead" }
-    if eq(clone(name), "parse_content_length") { return "use `json::JsonText::content_length(header_block)` via `use std::json` instead" }
-    if eq(clone(name), "find_key_pos") { return "use `json::JsonText::find_key_pos(json, key, from)` via `use std::json` instead" }
-    if eq(clone(name), "json_hex_byte") { return "use `json::JsonText::hex_byte(b)` via `use std::json` instead" }
-    if eq(clone(name), "json_hex_value") { return "use `json::JsonText::hex_value(c)` via `use std::json` instead" }
-    if eq(clone(name), "json_parse_string_at") { return "use `json::JsonText::parse_string_at(s, pos)` via `use std::json` instead" }
-    if eq(clone(name), "json_decode_escape_at") { return "use `json::JsonText::decode_escape_at(s, pos)` via `use std::json` instead" }
-    if eq(clone(name), "json_decode_escape") { return "use `json::JsonText::decode_escape(s, pos)` via `use std::json` instead" }
-    if eq(clone(name), "json_decode_unicode_ascii") { return "use `json::JsonText::decode_unicode_ascii(s, pos)` via `use std::json` instead" }
-    if eq(clone(name), "json_get_str") { return "use `json::JsonText::get_str(json, key)` via `use std::json` instead" }
-    if eq(clone(name), "json_get_str_after") { return "use `json::JsonText::get_str_after(json, key, from)` via `use std::json` instead" }
-    if eq(clone(name), "json_get_int") { return "use `json::JsonText::get_int(json, key)` via `use std::json` instead" }
-    if eq(clone(name), "json_str_result_ok") { return "use `result.is_ok()` on `JsonStrResult` instead" }
-    if eq(clone(name), "json_str_result_value") { return "use `result.value()` on `JsonStrResult` instead" }
-    if eq(clone(name), "json_str_result_next") { return "use `result.next()` on `JsonStrResult` instead" }
-    if eq(clone(name), "JsonStrResult_new") { return "use `JsonStrResult::new(value, next, ok)` instead" }
-    if eq(clone(name), "JsonEscapeResult_new") { return "use `JsonEscapeResult::new(value, advance, ok)` instead" }
-    if eq(clone(name), "json_stringify_i32") { return "use `json::JsonValue::stringify_i32(n)` via `use std::json` instead" }
-    if eq(clone(name), "json_stringify_bool") { return "use `json::JsonValue::stringify_bool(b)` via `use std::json` instead" }
-    if eq(clone(name), "json_stringify_string") { return "use `json::JsonValue::stringify_string(s)` via `use std::json` instead" }
-    if eq(clone(name), "json_null") { return "use `json::JsonValue::null_text()` via `use std::json` instead" }
-    if eq(clone(name), "json_parse_i32") { return "use `json::JsonValue::parse_i32(s)` via `use std::json` instead" }
-    if eq(clone(name), "json_parse_bool") { return "use `json::JsonValue::parse_bool(s)` via `use std::json` instead" }
-    if eq(clone(name), "stringify_pretty") { return "use `json::JsonValue::pretty_text(v, indent)` via `use std::json` instead" }
-    if eq(clone(name), "json_field") { return "use `json::JsonField::new(key, value)` via `use std::json` instead" }
-    if eq(clone(name), "json_str") { return "use `json::JsonValue::string(s)` via `use std::json` instead" }
-    if eq(clone(name), "json_i32") { return "use `json::JsonValue::int(n)` via `use std::json` instead" }
-    if eq(clone(name), "json_bool") { return "use `json::JsonValue::bool(b)` via `use std::json` instead" }
-    if eq(clone(name), "json_null_val") { return "use `json::JsonValue::null()` via `use std::json` instead" }
-    if eq(clone(name), "json_raw") { return "use `json::JsonValue::raw(s)` via `use std::json` instead" }
-    if eq(clone(name), "json_obj_new") { return "use `Vec::new<json::JsonField>()` via `use std::json` instead" }
-    if eq(clone(name), "json_arr_new") { return "use `Vec::new<json::JsonValue>()` via `use std::json` instead" }
-    if eq(clone(name), "json_obj_string") { return "use `json::JsonValue::object(fields).to_text()` via `use std::json` instead" }
-    if eq(clone(name), "json_arr_string") { return "use `json::JsonValue::array(items).to_text()` via `use std::json` instead" }
-    if eq(clone(name), "json_encode_string") { return "use `json::JsonValue::encode_string(s)` via `use std::json` instead" }
+    if eq(name.clone(), "parse") { return "removed free function; use `JsonValue::parse(s)` on `json::JsonValue` instead" }
+    if eq(name.clone(), "JsonParseStep_ok") { return "use `JsonParseStep::ok(v, next)` instead" }
+    if eq(name.clone(), "JsonParseStep_err") { return "use `JsonParseStep::err(e, next)` instead" }
+    if eq(name.clone(), "json_parse_step_value") { return "use `step.value()` on `JsonParseStep` instead" }
+    if eq(name.clone(), "json_parse_step_next") { return "use `step.next()` on `JsonParseStep` instead" }
+    if eq(name.clone(), "json_get") { return "use `v.get_field(key)` on `JsonValue` instead" }
+    if eq(name.clone(), "json_get_index") { return "use `v.get_index(index)` on `JsonValue` instead" }
+    if eq(name.clone(), "json_as_string") { return "use `v.as_string()` on `JsonValue` instead" }
+    if eq(name.clone(), "json_as_i32") { return "use `v.as_i32()` on `JsonValue` instead" }
+    if eq(name.clone(), "json_as_bool") { return "use `v.as_bool()` on `JsonValue` instead" }
+    if eq(name.clone(), "json_as_f64") { return "use `v.as_f64()` on `JsonValue` instead" }
+    if eq(name.clone(), "json_as_array") { return "use `v.as_array()` on `JsonValue` instead" }
+    if eq(name.clone(), "is_null") { return "use `v.is_null()` on `JsonValue` instead" }
+    if eq(name.clone(), "is_bool") { return "use `v.is_bool()` on `JsonValue` instead" }
+    if eq(name.clone(), "is_number") { return "use `v.is_number()` on `JsonValue` instead" }
+    if eq(name.clone(), "is_string") { return "use `v.is_string()` on `JsonValue` instead" }
+    if eq(name.clone(), "is_array") { return "use `v.is_array()` on `JsonValue` instead" }
+    if eq(name.clone(), "is_object") { return "use `v.is_object()` on `JsonValue` instead" }
+    if eq(name.clone(), "stringify") { return "use `v.to_text()` on `JsonValue` instead" }
+    if eq(name.clone(), "parse_error_message") { return "use `e.message()` on `JsonParseError` instead" }
+    if eq(name.clone(), "json_escape") { return "use `json::JsonText::escape(s)` via `use std::json` instead" }
+    if eq(name.clone(), "quote_string") { return "use `json::JsonText::quote(s)` via `use std::json` instead" }
+    if eq(name.clone(), "skip_ws") { return "use `json::JsonText::skip_ws(s, pos)` via `use std::json` instead" }
+    if eq(name.clone(), "parse_int_at") { return "use `json::JsonText::parse_int_at(s, pos)` via `use std::json` instead" }
+    if eq(name.clone(), "parse_content_length") { return "use `json::JsonText::content_length(header_block)` via `use std::json` instead" }
+    if eq(name.clone(), "find_key_pos") { return "use `json::JsonText::find_key_pos(json, key, from)` via `use std::json` instead" }
+    if eq(name.clone(), "json_hex_byte") { return "use `json::JsonText::hex_byte(b)` via `use std::json` instead" }
+    if eq(name.clone(), "json_hex_value") { return "use `json::JsonText::hex_value(c)` via `use std::json` instead" }
+    if eq(name.clone(), "json_parse_string_at") { return "use `json::JsonText::parse_string_at(s, pos)` via `use std::json` instead" }
+    if eq(name.clone(), "json_decode_escape_at") { return "use `json::JsonText::decode_escape_at(s, pos)` via `use std::json` instead" }
+    if eq(name.clone(), "json_decode_escape") { return "use `json::JsonText::decode_escape(s, pos)` via `use std::json` instead" }
+    if eq(name.clone(), "json_decode_unicode_ascii") { return "use `json::JsonText::decode_unicode_ascii(s, pos)` via `use std::json` instead" }
+    if eq(name.clone(), "json_get_str") { return "use `json::JsonText::get_str(json, key)` via `use std::json` instead" }
+    if eq(name.clone(), "json_get_str_after") { return "use `json::JsonText::get_str_after(json, key, from)` via `use std::json` instead" }
+    if eq(name.clone(), "json_get_int") { return "use `json::JsonText::get_int(json, key)` via `use std::json` instead" }
+    if eq(name.clone(), "json_str_result_ok") { return "use `result.is_ok()` on `JsonStrResult` instead" }
+    if eq(name.clone(), "json_str_result_value") { return "use `result.value()` on `JsonStrResult` instead" }
+    if eq(name.clone(), "json_str_result_next") { return "use `result.next()` on `JsonStrResult` instead" }
+    if eq(name.clone(), "JsonStrResult_new") { return "use `JsonStrResult::new(value, next, ok)` instead" }
+    if eq(name.clone(), "JsonEscapeResult_new") { return "use `JsonEscapeResult::new(value, advance, ok)` instead" }
+    if eq(name.clone(), "json_stringify_i32") { return "use `json::JsonValue::stringify_i32(n)` via `use std::json` instead" }
+    if eq(name.clone(), "json_stringify_bool") { return "use `json::JsonValue::stringify_bool(b)` via `use std::json` instead" }
+    if eq(name.clone(), "json_stringify_string") { return "use `json::JsonValue::stringify_string(s)` via `use std::json` instead" }
+    if eq(name.clone(), "json_null") { return "use `json::JsonValue::null_text()` via `use std::json` instead" }
+    if eq(name.clone(), "json_parse_i32") { return "use `json::JsonValue::parse_i32(s)` via `use std::json` instead" }
+    if eq(name.clone(), "json_parse_bool") { return "use `json::JsonValue::parse_bool(s)` via `use std::json` instead" }
+    if eq(name.clone(), "stringify_pretty") { return "use `json::JsonValue::pretty_text(v, indent)` via `use std::json` instead" }
+    if eq(name.clone(), "json_field") { return "use `json::JsonField::new(key, value)` via `use std::json` instead" }
+    if eq(name.clone(), "json_str") { return "use `json::JsonValue::string(s)` via `use std::json` instead" }
+    if eq(name.clone(), "json_i32") { return "use `json::JsonValue::int(n)` via `use std::json` instead" }
+    if eq(name.clone(), "json_bool") { return "use `json::JsonValue::bool(b)` via `use std::json` instead" }
+    if eq(name.clone(), "json_null_val") { return "use `json::JsonValue::null()` via `use std::json` instead" }
+    if eq(name.clone(), "json_raw") { return "use `json::JsonValue::raw(s)` via `use std::json` instead" }
+    if eq(name.clone(), "json_obj_new") { return "use `Vec::new<json::JsonField>()` via `use std::json` instead" }
+    if eq(name.clone(), "json_arr_new") { return "use `Vec::new<json::JsonValue>()` via `use std::json` instead" }
+    if eq(name.clone(), "json_obj_string") { return "use `json::JsonValue::object(fields).to_text()` via `use std::json` instead" }
+    if eq(name.clone(), "json_arr_string") { return "use `json::JsonValue::array(items).to_text()` via `use std::json` instead" }
+    if eq(name.clone(), "json_encode_string") { return "use `json::JsonValue::encode_string(s)` via `use std::json` instead" }
     String_new()
 }
 
 fn removed_toml_member_hint(name: String) -> String {
-    if eq(clone(name), "toml_parse") { return "removed free function; use `TomlValue::parse(s)` on `toml::TomlValue` instead" }
-    if eq(clone(name), "toml_stringify") { return "removed free function; use `v.to_text()` on `TomlValue` instead" }
-    if eq(clone(name), "TomlValStep_ok") { return "use `TomlValStep::ok(v, next)` instead" }
-    if eq(clone(name), "TomlValStep_err") { return "use `TomlValStep::err(e, next)` instead" }
-    if eq(clone(name), "TomlKeyStep_ok") { return "use `TomlKeyStep::ok(parts, next)` instead" }
-    if eq(clone(name), "TomlKeyStep_err") { return "use `TomlKeyStep::err(e, next)` instead" }
-    if eq(clone(name), "toml_get") { return "use `v.get_field(key)` on `TomlValue` instead" }
-    if eq(clone(name), "toml_table_keys") { return "use `v.table_keys()` on `TomlValue` instead" }
-    if eq(clone(name), "toml_as_string") { return "use `v.as_string()` on `TomlValue` instead" }
-    if eq(clone(name), "toml_as_int") { return "use `v.as_int()` on `TomlValue` instead" }
-    if eq(clone(name), "toml_as_bool") { return "use `v.as_bool()` on `TomlValue` instead" }
-    if eq(clone(name), "toml_as_float") { return "use `v.as_float()` on `TomlValue` instead" }
-    if eq(clone(name), "toml_as_array") { return "use `v.as_array()` on `TomlValue` instead" }
-    if eq(clone(name), "toml_as_table") { return "use `v.as_table()` on `TomlValue` instead" }
-    if eq(clone(name), "toml_parse_line") { return "use `toml::TomlText::parse_line(line)` via `use std::toml` instead" }
-    if eq(clone(name), "toml_find_section") || eq(clone(name), "find_toml_section") {
+    if eq(name.clone(), "toml_parse") { return "removed free function; use `TomlValue::parse(s)` on `toml::TomlValue` instead" }
+    if eq(name.clone(), "toml_stringify") { return "removed free function; use `v.to_text()` on `TomlValue` instead" }
+    if eq(name.clone(), "TomlValStep_ok") { return "use `TomlValStep::ok(v, next)` instead" }
+    if eq(name.clone(), "TomlValStep_err") { return "use `TomlValStep::err(e, next)` instead" }
+    if eq(name.clone(), "TomlKeyStep_ok") { return "use `TomlKeyStep::ok(parts, next)` instead" }
+    if eq(name.clone(), "TomlKeyStep_err") { return "use `TomlKeyStep::err(e, next)` instead" }
+    if eq(name.clone(), "toml_get") { return "use `v.get_field(key)` on `TomlValue` instead" }
+    if eq(name.clone(), "toml_table_keys") { return "use `v.table_keys()` on `TomlValue` instead" }
+    if eq(name.clone(), "toml_as_string") { return "use `v.as_string()` on `TomlValue` instead" }
+    if eq(name.clone(), "toml_as_int") { return "use `v.as_int()` on `TomlValue` instead" }
+    if eq(name.clone(), "toml_as_bool") { return "use `v.as_bool()` on `TomlValue` instead" }
+    if eq(name.clone(), "toml_as_float") { return "use `v.as_float()` on `TomlValue` instead" }
+    if eq(name.clone(), "toml_as_array") { return "use `v.as_array()` on `TomlValue` instead" }
+    if eq(name.clone(), "toml_as_table") { return "use `v.as_table()` on `TomlValue` instead" }
+    if eq(name.clone(), "toml_parse_line") { return "use `toml::TomlText::parse_line(line)` via `use std::toml` instead" }
+    if eq(name.clone(), "toml_find_section") || eq(name.clone(), "find_toml_section") {
         return "use `toml::TomlText::find_section(content, section)` via `use std::toml` instead"
     }
-    if eq(clone(name), "toml_find_value") || eq(clone(name), "find_toml_value") {
+    if eq(name.clone(), "toml_find_value") || eq(name.clone(), "find_toml_value") {
         return "use `toml::TomlText::find_value(content, key)` via `use std::toml` instead"
     }
-    if eq(clone(name), "toml_find_raw_value") { return "use `toml::TomlText::find_raw_value(content, key)` via `use std::toml` instead" }
-    if eq(clone(name), "toml_parse_string_array") { return "use `toml::TomlText::parse_string_array(raw)` via `use std::toml` instead" }
+    if eq(name.clone(), "toml_find_raw_value") { return "use `toml::TomlText::find_raw_value(content, key)` via `use std::toml` instead" }
+    if eq(name.clone(), "toml_parse_string_array") { return "use `toml::TomlText::parse_string_array(raw)` via `use std::toml` instead" }
     String_new()
 }
 
 // CSV row/document helpers moved onto the `Csv` namespace. The leaf name is
 // the same, so one prefix rule covers the whole family.
 fn removed_csv_member_hint(name: String) -> String {
-    if !clone(name).starts_with(String_from("csv_")) {
+    if !name.clone().starts_with(String_from("csv_")) {
         return String_new()
     }
-    let leaf = clone(name).slice(4, len(name))
+    let leaf = name.clone().slice(4, len(name))
     "use `csv::Csv::".concat(
-        clone(leaf)
+        leaf.clone()
     ).concat("(...)` via `use std::csv` instead")
 }
 
 fn removed_fmt_member_hint(name: String) -> String {
-    if eq(clone(name), "format_i32") { return String_from("use `n.to_string()` on the `i32` value instead") }
-    if eq(clone(name), "format_i64") { return String_from("use `n.to_string()` on the `i64` value instead") }
-    if eq(clone(name), "format_f64") { return String_from("use `n.to_string()` on the `f64` value instead") }
-    if eq(clone(name), "format_bool") { return String_from("use `b.to_string()` on the `bool` value instead") }
-    if eq(clone(name), "pad_left") { return String_from("use `s.pad_left_with(width, fill)` on `String` instead") }
-    if eq(clone(name), "pad_right") { return String_from("use `s.pad_right_with(width, fill)` on `String` instead") }
-    if eq(clone(name), "format_debug") { return String_from("use `value.fmt_debug()` instead") }
-    if eq(clone(name), "write_debug_to") { return String_from("use `buf.concat(value.fmt_debug())` instead") }
-    if eq(clone(name), "debug_format_vec_i32") { return String_from("use `fmt::DebugFormat::vec_i32(v)` instead") }
-    if eq(clone(name), "debug_format_vec_i64") { return String_from("use `fmt::DebugFormat::vec_i64(v)` instead") }
-    if eq(clone(name), "debug_format_vec_f64") { return String_from("use `fmt::DebugFormat::vec_f64(v)` instead") }
-    if eq(clone(name), "debug_format_vec_bool") { return String_from("use `fmt::DebugFormat::vec_bool(v)` instead") }
-    if eq(clone(name), "debug_format_vec_string") { return String_from("use `fmt::DebugFormat::vec_string(v)` instead") }
-    if eq(clone(name), "debug_format_option_i32") { return String_from("use `fmt::DebugFormat::option_i32(o)` instead") }
-    if eq(clone(name), "debug_format_option_string") { return String_from("use `fmt::DebugFormat::option_string(o)` instead") }
-    if eq(clone(name), "debug_format_result_i32_string") { return String_from("use `fmt::DebugFormat::result_i32_string(r)` instead") }
-    if eq(clone(name), "debug_format_result_string_string") { return String_from("use `fmt::DebugFormat::result_string_string(r)` instead") }
+    if eq(name.clone(), "format_i32") { return String_from("use `n.to_string()` on the `i32` value instead") }
+    if eq(name.clone(), "format_i64") { return String_from("use `n.to_string()` on the `i64` value instead") }
+    if eq(name.clone(), "format_f64") { return String_from("use `n.to_string()` on the `f64` value instead") }
+    if eq(name.clone(), "format_bool") { return String_from("use `b.to_string()` on the `bool` value instead") }
+    if eq(name.clone(), "pad_left") { return String_from("use `s.pad_left_with(width, fill)` on `String` instead") }
+    if eq(name.clone(), "pad_right") { return String_from("use `s.pad_right_with(width, fill)` on `String` instead") }
+    if eq(name.clone(), "format_debug") { return String_from("use `value.fmt_debug()` instead") }
+    if eq(name.clone(), "write_debug_to") { return String_from("use `buf.concat(value.fmt_debug())` instead") }
+    if eq(name.clone(), "debug_format_vec_i32") { return String_from("use `fmt::DebugFormat::vec_i32(v)` instead") }
+    if eq(name.clone(), "debug_format_vec_i64") { return String_from("use `fmt::DebugFormat::vec_i64(v)` instead") }
+    if eq(name.clone(), "debug_format_vec_f64") { return String_from("use `fmt::DebugFormat::vec_f64(v)` instead") }
+    if eq(name.clone(), "debug_format_vec_bool") { return String_from("use `fmt::DebugFormat::vec_bool(v)` instead") }
+    if eq(name.clone(), "debug_format_vec_string") { return String_from("use `fmt::DebugFormat::vec_string(v)` instead") }
+    if eq(name.clone(), "debug_format_option_i32") { return String_from("use `fmt::DebugFormat::option_i32(o)` instead") }
+    if eq(name.clone(), "debug_format_option_string") { return String_from("use `fmt::DebugFormat::option_string(o)` instead") }
+    if eq(name.clone(), "debug_format_result_i32_string") { return String_from("use `fmt::DebugFormat::result_i32_string(r)` instead") }
+    if eq(name.clone(), "debug_format_result_string_string") { return String_from("use `fmt::DebugFormat::result_string_string(r)` instead") }
     String_new()
 }
 
 fn removed_rope_member_hint(name: String) -> String {
-    if eq(clone(name), "rope_new") { return String_from("use an empty string literal instead") }
-    if eq(clone(name), "rope_from_string") { return String_from("use `s.clone()` on the source `String` instead") }
-    if eq(clone(name), "rope_len") { return String_from("use `s.len()` on `String` instead") }
-    if eq(clone(name), "rope_to_string") { return String_from("use `s.clone()` on `String` instead") }
-    if eq(clone(name), "rope_insert") { return String_from("use `r.insert_text(pos, text)` on `String` instead") }
-    if eq(clone(name), "rope_delete") { return String_from("use `r.delete_range(start, end)` on `String` instead") }
-    if eq(clone(name), "rope_slice") { return String_from("use `r.slice(start, end)` on `String` instead") }
-    if eq(clone(name), "rope_line_count") { return String_from("use `r.line_count()` on `String` instead") }
+    if eq(name.clone(), "rope_new") { return String_from("use an empty string literal instead") }
+    if eq(name.clone(), "rope_from_string") { return String_from("use `s.clone()` on the source `String` instead") }
+    if eq(name.clone(), "rope_len") { return String_from("use `s.len()` on `String` instead") }
+    if eq(name.clone(), "rope_to_string") { return String_from("use `s.clone()` on `String` instead") }
+    if eq(name.clone(), "rope_insert") { return String_from("use `r.insert_text(pos, text)` on `String` instead") }
+    if eq(name.clone(), "rope_delete") { return String_from("use `r.delete_range(start, end)` on `String` instead") }
+    if eq(name.clone(), "rope_slice") { return String_from("use `r.slice(start, end)` on `String` instead") }
+    if eq(name.clone(), "rope_line_count") { return String_from("use `r.line_count()` on `String` instead") }
     String_new()
 }
 
 fn removed_string_member_hint(name: String) -> String {
-    if eq(clone(name), "concat") { return String_from("use `a.concat(b)` on `String` instead") }
-    if eq(clone(name), "chars") { return String_from("use `s.chars()` on `String` instead") }
-    if eq(clone(name), "len_chars") { return String_from("use `s.len_chars()` on `String` instead") }
-    if eq(clone(name), "codepoint_at") { return String_from("use `s.codepoint_at(i)` on `String` instead") }
-    if eq(clone(name), "try_slice_bytes") { return String_from("use `s.try_slice_bytes(start, end)` on `String` instead") }
-    if eq(clone(name), "slice_chars") { return String_from("use `s.slice_chars(start, end)` on `String` instead") }
-    if eq(clone(name), "try_slice_chars") { return String_from("use `s.try_slice_chars(start, end)` on `String` instead") }
+    if eq(name.clone(), "concat") { return String_from("use `a.concat(b)` on `String` instead") }
+    if eq(name.clone(), "chars") { return String_from("use `s.chars()` on `String` instead") }
+    if eq(name.clone(), "len_chars") { return String_from("use `s.len_chars()` on `String` instead") }
+    if eq(name.clone(), "codepoint_at") { return String_from("use `s.codepoint_at(i)` on `String` instead") }
+    if eq(name.clone(), "try_slice_bytes") { return String_from("use `s.try_slice_bytes(start, end)` on `String` instead") }
+    if eq(name.clone(), "slice_chars") { return String_from("use `s.slice_chars(start, end)` on `String` instead") }
+    if eq(name.clone(), "try_slice_chars") { return String_from("use `s.try_slice_chars(start, end)` on `String` instead") }
     String_new()
 }
 
 fn removed_text_member_hint(name: String) -> String {
-    if eq(clone(name), "from_utf8") { return String_from("use `String::from_utf8_lossy(bytes)` instead") }
-    if eq(clone(name), "try_from_utf8") { return String_from("use `String::try_from_utf8(bytes)` instead") }
-    if eq(clone(name), "to_utf8_bytes") { return String_from("use `s.to_utf8_bytes()` on `String` instead") }
-    if eq(clone(name), "len_bytes") { return String_from("use `s.len_bytes()` on `String` instead") }
-    if eq(clone(name), "is_empty") { return String_from("use `s.is_empty()` on `String` instead") }
-    if eq(clone(name), "index_of") { return String_from("use `s.index_of(sub)` on `String` instead") }
-    if eq(clone(name), "trim") { return String_from("use `s.trim()` on `String` instead") }
-    if eq(clone(name), "trim_start") { return String_from("use `s.trim_start()` on `String` instead") }
-    if eq(clone(name), "trim_end") { return String_from("use `s.trim_end()` on `String` instead") }
-    if eq(clone(name), "replace") { return String_from("use `s.replace(from, to)` on `String` instead") }
-    if eq(clone(name), "lines") { return String_from("use `s.lines()` on `String` instead") }
-    if eq(clone(name), "chars") { return String_from("use `s.chars()` on `String` instead") }
-    if eq(clone(name), "pad_left") { return String_from("use `s.pad_left_with(width, fill)` on `String` instead") }
-    if eq(clone(name), "pad_right") { return String_from("use `s.pad_right_with(width, fill)` on `String` instead") }
-    if eq(clone(name), "format_i32") { return String_from("use `n.to_string()` on `i32` instead") }
-    if eq(clone(name), "format_i64") { return String_from("use `n.to_string()` on `i64` instead") }
-    if eq(clone(name), "format_f64") { return String_from("use `n.to_string()` on `f64` instead") }
-    if eq(clone(name), "format_bool") { return String_from("use `b.to_string()` on `bool` instead") }
-    if eq(clone(name), "repeat") { return String_from("use `s.repeat(n)` on `String` instead") }
-    if eq(clone(name), "len_chars") { return String_from("use `s.len_chars()` on `String` instead") }
-    if eq(clone(name), "codepoint_at") { return String_from("use `s.codepoint_at(i)` on `String` instead") }
-    if eq(clone(name), "slice_bytes") { return String_from("use `s.slice_bytes(start, end)` on `String` instead") }
-    if eq(clone(name), "try_slice_bytes") { return String_from("use `s.try_slice_bytes(start, end)` on `String` instead") }
-    if eq(clone(name), "slice_chars") { return String_from("use `s.slice_chars(start, end)` on `String` instead") }
-    if eq(clone(name), "try_slice_chars") { return String_from("use `s.try_slice_chars(start, end)` on `String` instead") }
-    if eq(clone(name), "split") { return String_from("use `s.split(sep)` on `String` instead") }
-    if eq(clone(name), "join") { return String_from("use `parts.join(sep)` on `Vec<String>` instead") }
-    if eq(clone(name), "concat") { return String_from("use `a.concat(b)` on `String` instead") }
-    if eq(clone(name), "starts_with") { return String_from("use `s.starts_with(prefix)` on `String` instead") }
-    if eq(clone(name), "ends_with") { return String_from("use `s.ends_with(suffix)` on `String` instead") }
-    if eq(clone(name), "contains") { return String_from("use `s.contains(sub)` on `String` instead") }
-    if eq(clone(name), "to_lower") { return String_from("use `s.to_lower()` on `String` instead") }
-    if eq(clone(name), "to_upper") { return String_from("use `s.to_upper()` on `String` instead") }
-    if eq(clone(name), "builder_new") { return String_from("use an empty string literal instead") }
-    if eq(clone(name), "builder_append") { return String_from("use `s.concat(text)` instead") }
-    if eq(clone(name), "builder_append_char") { return String_from("use `s.concat(c.to_string())` instead") }
-    if eq(clone(name), "builder_append_line") { return String_from("use `s.concat(text).concat(newline)` instead") }
-    if eq(clone(name), "builder_build") { return String_from("use the builder string directly instead") }
-    if eq(clone(name), "builder_len") { return String_from("use `s.len()` on `String` instead") }
+    if eq(name.clone(), "from_utf8") { return String_from("use `String::from_utf8_lossy(bytes)` instead") }
+    if eq(name.clone(), "try_from_utf8") { return String_from("use `String::try_from_utf8(bytes)` instead") }
+    if eq(name.clone(), "to_utf8_bytes") { return String_from("use `s.to_utf8_bytes()` on `String` instead") }
+    if eq(name.clone(), "len_bytes") { return String_from("use `s.len_bytes()` on `String` instead") }
+    if eq(name.clone(), "is_empty") { return String_from("use `s.is_empty()` on `String` instead") }
+    if eq(name.clone(), "index_of") { return String_from("use `s.index_of(sub)` on `String` instead") }
+    if eq(name.clone(), "trim") { return String_from("use `s.trim()` on `String` instead") }
+    if eq(name.clone(), "trim_start") { return String_from("use `s.trim_start()` on `String` instead") }
+    if eq(name.clone(), "trim_end") { return String_from("use `s.trim_end()` on `String` instead") }
+    if eq(name.clone(), "replace") { return String_from("use `s.replace(from, to)` on `String` instead") }
+    if eq(name.clone(), "lines") { return String_from("use `s.lines()` on `String` instead") }
+    if eq(name.clone(), "chars") { return String_from("use `s.chars()` on `String` instead") }
+    if eq(name.clone(), "pad_left") { return String_from("use `s.pad_left_with(width, fill)` on `String` instead") }
+    if eq(name.clone(), "pad_right") { return String_from("use `s.pad_right_with(width, fill)` on `String` instead") }
+    if eq(name.clone(), "format_i32") { return String_from("use `n.to_string()` on `i32` instead") }
+    if eq(name.clone(), "format_i64") { return String_from("use `n.to_string()` on `i64` instead") }
+    if eq(name.clone(), "format_f64") { return String_from("use `n.to_string()` on `f64` instead") }
+    if eq(name.clone(), "format_bool") { return String_from("use `b.to_string()` on `bool` instead") }
+    if eq(name.clone(), "repeat") { return String_from("use `s.repeat(n)` on `String` instead") }
+    if eq(name.clone(), "len_chars") { return String_from("use `s.len_chars()` on `String` instead") }
+    if eq(name.clone(), "codepoint_at") { return String_from("use `s.codepoint_at(i)` on `String` instead") }
+    if eq(name.clone(), "slice_bytes") { return String_from("use `s.slice_bytes(start, end)` on `String` instead") }
+    if eq(name.clone(), "try_slice_bytes") { return String_from("use `s.try_slice_bytes(start, end)` on `String` instead") }
+    if eq(name.clone(), "slice_chars") { return String_from("use `s.slice_chars(start, end)` on `String` instead") }
+    if eq(name.clone(), "try_slice_chars") { return String_from("use `s.try_slice_chars(start, end)` on `String` instead") }
+    if eq(name.clone(), "split") { return String_from("use `s.split(sep)` on `String` instead") }
+    if eq(name.clone(), "join") { return String_from("use `parts.join(sep)` on `Vec<String>` instead") }
+    if eq(name.clone(), "concat") { return String_from("use `a.concat(b)` on `String` instead") }
+    if eq(name.clone(), "starts_with") { return String_from("use `s.starts_with(prefix)` on `String` instead") }
+    if eq(name.clone(), "ends_with") { return String_from("use `s.ends_with(suffix)` on `String` instead") }
+    if eq(name.clone(), "contains") { return String_from("use `s.contains(sub)` on `String` instead") }
+    if eq(name.clone(), "to_lower") { return String_from("use `s.to_lower()` on `String` instead") }
+    if eq(name.clone(), "to_upper") { return String_from("use `s.to_upper()` on `String` instead") }
+    if eq(name.clone(), "builder_new") { return String_from("use an empty string literal instead") }
+    if eq(name.clone(), "builder_append") { return String_from("use `s.concat(text)` instead") }
+    if eq(name.clone(), "builder_append_char") { return String_from("use `s.concat(c.to_string())` instead") }
+    if eq(name.clone(), "builder_append_line") { return String_from("use `s.concat(text).concat(newline)` instead") }
+    if eq(name.clone(), "builder_build") { return String_from("use the builder string directly instead") }
+    if eq(name.clone(), "builder_len") { return String_from("use `s.len()` on `String` instead") }
     String_new()
 }
 
@@ -1235,151 +1243,151 @@ fn removed_text_member_hint(name: String) -> String {
 // the lazy adapter methods on `VecIter` and the `Iterator` capabilities are
 // the only reachable spellings now.
 fn removed_iter_member_hint(name: String) -> String {
-    if eq(clone(name), "vec_iter") { return String_from("use `v.iter()` instead") }
-    if eq(clone(name), "range_iter") { return String_from("use `r.into_iter()` instead") }
-    if eq(clone(name), "range_inclusive_iter") { return String_from("use `r.into_iter()` instead") }
-    if eq(clone(name), "map_iter") { return String_from("use `v.iter().map(f)` instead") }
-    if eq(clone(name), "filter_iter") { return String_from("use `v.iter().filter(f)` instead") }
-    if eq(clone(name), "take_iter") { return String_from("use `v.iter().take(n)` instead") }
-    if eq(clone(name), "skip_iter") { return String_from("use `v.iter().skip(n)` instead") }
-    if eq(clone(name), "chain_iter") { return String_from("use `a.iter().chain(b.iter())` instead") }
-    if eq(clone(name), "enumerate_iter") { return String_from("use `v.iter().enumerate()` instead") }
-    if eq(clone(name), "zip_iter") { return String_from("use `a.iter().zip(b.iter())` instead") }
-    if eq(clone(name), "flat_map_iter") { return String_from("use `v.iter().flat_map(f)` instead") }
-    if eq(clone(name), "peek_iter") { return String_from("use `v.iter().peekable()` instead") }
-    if eq(clone(name), "step_by_iter") { return String_from("use `v.iter().step_by(n)` instead") }
-    if eq(clone(name), "scan_iter") { return String_from("use `v.iter().scan(init, f)` instead") }
-    if eq(clone(name), "unique_iter") { return String_from("use `v.iter().unique()` instead") }
-    if eq(clone(name), "rev_iter") { return String_from("use `v.iter().rev()` instead") }
-    if eq(clone(name), "collect_vec_iter") { return String_from("use `it.collect()` instead") }
-    if eq(clone(name), "collect_map_iter") { return String_from("use `it.collect()` instead") }
-    if eq(clone(name), "collect_filter_iter") { return String_from("use `it.collect()` instead") }
-    if eq(clone(name), "collect_take_iter") { return String_from("use `it.collect()` instead") }
-    if eq(clone(name), "collect_skip_iter") { return String_from("use `it.collect()` instead") }
-    if eq(clone(name), "collect_chain_iter") { return String_from("use `it.collect()` instead") }
-    if eq(clone(name), "collect_flat_map_iter") { return String_from("use `it.collect()` instead") }
-    if eq(clone(name), "collect_peek_iter") { return String_from("use `it.collect()` instead") }
-    if eq(clone(name), "collect_step_by_iter") { return String_from("use `it.collect()` instead") }
-    if eq(clone(name), "collect_scan_iter") { return String_from("use `it.collect()` instead") }
-    if eq(clone(name), "collect_range_iter") { return String_from("use `it.collect()` instead") }
-    if eq(clone(name), "collect_map_i32") { return String_from("use `v.iter().map(f).collect()` instead") }
-    if eq(clone(name), "collect_filter_i32") { return String_from("use `v.iter().filter(f).collect()` instead") }
-    if eq(clone(name), "collect_take_i32") { return String_from("use `v.iter().take(n).collect()` instead") }
-    if eq(clone(name), "collect_skip_i32") { return String_from("use `v.iter().skip(n).collect()` instead") }
-    if eq(clone(name), "collect_chain_i32") { return String_from("use `a.iter().chain(b.iter()).collect()` instead") }
-    if eq(clone(name), "collect_range_i32") { return String_from("use `r.into_iter().collect()` instead") }
-    if eq(clone(name), "collect_map_filter_i32") { return String_from("use `v.iter().map(f).filter(g).collect()` instead") }
-    if eq(clone(name), "collect_map_filter_take_i32") { return String_from("use `v.iter().map(f).filter(g).take(n).collect()` instead") }
-    if eq(clone(name), "iter_fold_i32") { return String_from("use `v.iter().fold(init, f)` instead") }
-    if eq(clone(name), "iter_count_i32") { return String_from("use `v.iter().count()` instead") }
-    if eq(clone(name), "iter_sum_i32") { return String_from("use `v.iter().sum()` instead") }
-    if eq(clone(name), "iter_any_i32") { return String_from("use `v.iter().any(f)` instead") }
-    if eq(clone(name), "iter_all_i32") { return String_from("use `v.iter().all(f)` instead") }
-    if eq(clone(name), "iter_contains_i32") { return String_from("use `v.iter().contains(target)` instead") }
-    if eq(clone(name), "iter_count_eq_i32") { return String_from("use `v.iter().count_eq(target)` instead") }
-    if eq(clone(name), "iter_unique_i32") { return String_from("use `v.iter().unique().collect()` instead") }
-    if eq(clone(name), "iter_reverse_i32") { return String_from("use `v.iter().rev().collect()` instead") }
+    if eq(name.clone(), "vec_iter") { return String_from("use `v.iter()` instead") }
+    if eq(name.clone(), "range_iter") { return String_from("use `r.into_iter()` instead") }
+    if eq(name.clone(), "range_inclusive_iter") { return String_from("use `r.into_iter()` instead") }
+    if eq(name.clone(), "map_iter") { return String_from("use `v.iter().map(f)` instead") }
+    if eq(name.clone(), "filter_iter") { return String_from("use `v.iter().filter(f)` instead") }
+    if eq(name.clone(), "take_iter") { return String_from("use `v.iter().take(n)` instead") }
+    if eq(name.clone(), "skip_iter") { return String_from("use `v.iter().skip(n)` instead") }
+    if eq(name.clone(), "chain_iter") { return String_from("use `a.iter().chain(b.iter())` instead") }
+    if eq(name.clone(), "enumerate_iter") { return String_from("use `v.iter().enumerate()` instead") }
+    if eq(name.clone(), "zip_iter") { return String_from("use `a.iter().zip(b.iter())` instead") }
+    if eq(name.clone(), "flat_map_iter") { return String_from("use `v.iter().flat_map(f)` instead") }
+    if eq(name.clone(), "peek_iter") { return String_from("use `v.iter().peekable()` instead") }
+    if eq(name.clone(), "step_by_iter") { return String_from("use `v.iter().step_by(n)` instead") }
+    if eq(name.clone(), "scan_iter") { return String_from("use `v.iter().scan(init, f)` instead") }
+    if eq(name.clone(), "unique_iter") { return String_from("use `v.iter().unique()` instead") }
+    if eq(name.clone(), "rev_iter") { return String_from("use `v.iter().rev()` instead") }
+    if eq(name.clone(), "collect_vec_iter") { return String_from("use `it.collect()` instead") }
+    if eq(name.clone(), "collect_map_iter") { return String_from("use `it.collect()` instead") }
+    if eq(name.clone(), "collect_filter_iter") { return String_from("use `it.collect()` instead") }
+    if eq(name.clone(), "collect_take_iter") { return String_from("use `it.collect()` instead") }
+    if eq(name.clone(), "collect_skip_iter") { return String_from("use `it.collect()` instead") }
+    if eq(name.clone(), "collect_chain_iter") { return String_from("use `it.collect()` instead") }
+    if eq(name.clone(), "collect_flat_map_iter") { return String_from("use `it.collect()` instead") }
+    if eq(name.clone(), "collect_peek_iter") { return String_from("use `it.collect()` instead") }
+    if eq(name.clone(), "collect_step_by_iter") { return String_from("use `it.collect()` instead") }
+    if eq(name.clone(), "collect_scan_iter") { return String_from("use `it.collect()` instead") }
+    if eq(name.clone(), "collect_range_iter") { return String_from("use `it.collect()` instead") }
+    if eq(name.clone(), "collect_map_i32") { return String_from("use `v.iter().map(f).collect()` instead") }
+    if eq(name.clone(), "collect_filter_i32") { return String_from("use `v.iter().filter(f).collect()` instead") }
+    if eq(name.clone(), "collect_take_i32") { return String_from("use `v.iter().take(n).collect()` instead") }
+    if eq(name.clone(), "collect_skip_i32") { return String_from("use `v.iter().skip(n).collect()` instead") }
+    if eq(name.clone(), "collect_chain_i32") { return String_from("use `a.iter().chain(b.iter()).collect()` instead") }
+    if eq(name.clone(), "collect_range_i32") { return String_from("use `r.into_iter().collect()` instead") }
+    if eq(name.clone(), "collect_map_filter_i32") { return String_from("use `v.iter().map(f).filter(g).collect()` instead") }
+    if eq(name.clone(), "collect_map_filter_take_i32") { return String_from("use `v.iter().map(f).filter(g).take(n).collect()` instead") }
+    if eq(name.clone(), "iter_fold_i32") { return String_from("use `v.iter().fold(init, f)` instead") }
+    if eq(name.clone(), "iter_count_i32") { return String_from("use `v.iter().count()` instead") }
+    if eq(name.clone(), "iter_sum_i32") { return String_from("use `v.iter().sum()` instead") }
+    if eq(name.clone(), "iter_any_i32") { return String_from("use `v.iter().any(f)` instead") }
+    if eq(name.clone(), "iter_all_i32") { return String_from("use `v.iter().all(f)` instead") }
+    if eq(name.clone(), "iter_contains_i32") { return String_from("use `v.iter().contains(target)` instead") }
+    if eq(name.clone(), "iter_count_eq_i32") { return String_from("use `v.iter().count_eq(target)` instead") }
+    if eq(name.clone(), "iter_unique_i32") { return String_from("use `v.iter().unique().collect()` instead") }
+    if eq(name.clone(), "iter_reverse_i32") { return String_from("use `v.iter().rev().collect()` instead") }
     String_new()
 }
 
 fn removed_wit_type_member_hint(name: String) -> String {
-    if eq(clone(name), "wit_type_bool") { return String_from("use the `WitType::Bool` variant instead") }
-    if eq(clone(name), "wit_type_u8") { return String_from("use the `WitType::U8` variant instead") }
-    if eq(clone(name), "wit_type_u16") { return String_from("use the `WitType::U16` variant instead") }
-    if eq(clone(name), "wit_type_u32") { return String_from("use the `WitType::U32` variant instead") }
-    if eq(clone(name), "wit_type_u64") { return String_from("use the `WitType::U64` variant instead") }
-    if eq(clone(name), "wit_type_s8") { return String_from("use the `WitType::S8` variant instead") }
-    if eq(clone(name), "wit_type_s16") { return String_from("use the `WitType::S16` variant instead") }
-    if eq(clone(name), "wit_type_s32") { return String_from("use the `WitType::S32` variant instead") }
-    if eq(clone(name), "wit_type_s64") { return String_from("use the `WitType::S64` variant instead") }
-    if eq(clone(name), "wit_type_f32") { return String_from("use the `WitType::F32` variant instead") }
-    if eq(clone(name), "wit_type_f64") { return String_from("use the `WitType::F64` variant instead") }
-    if eq(clone(name), "wit_type_char") { return String_from("use the `WitType::Char` variant instead") }
-    if eq(clone(name), "wit_type_string") { return String_from("use the `WitType::String` variant instead") }
-    if eq(clone(name), "wit_type_list") { return String_from("use `WitType::list(inner)` instead") }
-    if eq(clone(name), "wit_type_option") { return String_from("use `WitType::option(inner)` instead") }
-    if eq(clone(name), "wit_type_id") { return String_from("use `ty.id()` on `WitType` instead") }
-    if eq(clone(name), "wit_type_from_id") { return String_from("use `WitType::from_id(id)` instead") }
-    if eq(clone(name), "wit_type_name") { return String_from("use `ty.name()` on `WitType` instead") }
-    if eq(clone(name), "wit_type_from_ast") { return String_from("use `ty.wit_text()` on `WitType` instead") }
-    if eq(clone(name), "wit_type_name_from_ark") { return String_from("use `WitType::name_from_ark(name)` instead") }
+    if eq(name.clone(), "wit_type_bool") { return String_from("use the `WitType::Bool` variant instead") }
+    if eq(name.clone(), "wit_type_u8") { return String_from("use the `WitType::U8` variant instead") }
+    if eq(name.clone(), "wit_type_u16") { return String_from("use the `WitType::U16` variant instead") }
+    if eq(name.clone(), "wit_type_u32") { return String_from("use the `WitType::U32` variant instead") }
+    if eq(name.clone(), "wit_type_u64") { return String_from("use the `WitType::U64` variant instead") }
+    if eq(name.clone(), "wit_type_s8") { return String_from("use the `WitType::S8` variant instead") }
+    if eq(name.clone(), "wit_type_s16") { return String_from("use the `WitType::S16` variant instead") }
+    if eq(name.clone(), "wit_type_s32") { return String_from("use the `WitType::S32` variant instead") }
+    if eq(name.clone(), "wit_type_s64") { return String_from("use the `WitType::S64` variant instead") }
+    if eq(name.clone(), "wit_type_f32") { return String_from("use the `WitType::F32` variant instead") }
+    if eq(name.clone(), "wit_type_f64") { return String_from("use the `WitType::F64` variant instead") }
+    if eq(name.clone(), "wit_type_char") { return String_from("use the `WitType::Char` variant instead") }
+    if eq(name.clone(), "wit_type_string") { return String_from("use the `WitType::String` variant instead") }
+    if eq(name.clone(), "wit_type_list") { return String_from("use `WitType::list(inner)` instead") }
+    if eq(name.clone(), "wit_type_option") { return String_from("use `WitType::option(inner)` instead") }
+    if eq(name.clone(), "wit_type_id") { return String_from("use `ty.id()` on `WitType` instead") }
+    if eq(name.clone(), "wit_type_from_id") { return String_from("use `WitType::from_id(id)` instead") }
+    if eq(name.clone(), "wit_type_name") { return String_from("use `ty.name()` on `WitType` instead") }
+    if eq(name.clone(), "wit_type_from_ast") { return String_from("use `ty.wit_text()` on `WitType` instead") }
+    if eq(name.clone(), "wit_type_name_from_ark") { return String_from("use `WitType::name_from_ark(name)` instead") }
     String_new()
 }
 
 fn removed_wit_scan_member_hint(name: String) -> String {
-    if eq(clone(name), "wit_find_char") { return String_from("use `WitText::find_char(s, ch, from)` instead") }
-    if eq(clone(name), "wit_trim") { return String_from("use `WitText::trim(s)` instead") }
-    if eq(clone(name), "wit_strip_version") { return String_from("use `WitText::strip_version(pkg)` instead") }
-    if eq(clone(name), "wit_before_colon") { return String_from("use `WitText::before_colon(s)` instead") }
-    if eq(clone(name), "wit_split_param") { return String_from("use `WitText::split_param(param)` instead") }
-    if eq(clone(name), "wit_split_csv_items") { return String_from("use `WitText::split_csv_items(inner)` instead") }
-    if eq(clone(name), "wit_line_start") { return String_from("use `WitText::line_start(text, pos)` instead") }
-    if eq(clone(name), "wit_line_end") { return String_from("use `WitText::line_end(text, pos)` instead") }
+    if eq(name.clone(), "wit_find_char") { return String_from("use `WitText::find_char(s, ch, from)` instead") }
+    if eq(name.clone(), "wit_trim") { return String_from("use `WitText::trim(s)` instead") }
+    if eq(name.clone(), "wit_strip_version") { return String_from("use `WitText::strip_version(pkg)` instead") }
+    if eq(name.clone(), "wit_before_colon") { return String_from("use `WitText::before_colon(s)` instead") }
+    if eq(name.clone(), "wit_split_param") { return String_from("use `WitText::split_param(param)` instead") }
+    if eq(name.clone(), "wit_split_csv_items") { return String_from("use `WitText::split_csv_items(inner)` instead") }
+    if eq(name.clone(), "wit_line_start") { return String_from("use `WitText::line_start(text, pos)` instead") }
+    if eq(name.clone(), "wit_line_end") { return String_from("use `WitText::line_end(text, pos)` instead") }
     String_new()
 }
 
 fn removed_wit_name_member_hint(name: String) -> String {
-    if eq(clone(name), "kebab_name") { return String_from("use `WitName::to_kebab(name)` instead") }
-    if eq(clone(name), "kebab_to_snake") { return String_from("use `WitName::to_snake(name)` instead") }
-    if eq(clone(name), "pascal_case") { return String_from("use `WitName::to_pascal(name)` instead") }
-    if eq(clone(name), "capitalize_first") { return String_from("use `WitName::capitalize(name)` instead") }
+    if eq(name.clone(), "kebab_name") { return String_from("use `WitName::to_kebab(name)` instead") }
+    if eq(name.clone(), "kebab_to_snake") { return String_from("use `WitName::to_snake(name)` instead") }
+    if eq(name.clone(), "pascal_case") { return String_from("use `WitName::to_pascal(name)` instead") }
+    if eq(name.clone(), "capitalize_first") { return String_from("use `WitName::capitalize(name)` instead") }
     String_new()
 }
 
 fn removed_wit_ast_member_hint(name: String) -> String {
-    if eq(clone(name), "ast_kind") { return String_from("use `node.kind()` on `WitNode` instead") }
-    if eq(clone(name), "ast_name") { return String_from("use `node.name()` on `WitNode` instead") }
-    if eq(clone(name), "ast_child_count") { return String_from("use `node.child_count()` on `WitNode` instead") }
-    if eq(clone(name), "ast_child_at") { return String_from("use `node.child_at(index)` on `WitNode` instead") }
-    if eq(clone(name), "ast_first_interface_name") { return String_from("use `node.first_interface_name()` on `WitNode` instead") }
-    if eq(clone(name), "ast_field_name_at") { return String_from("use `node.field_name_at(index)` on `WitNode` instead") }
-    if eq(clone(name), "ast_field_type_at") { return String_from("use `node.field_type_at(index)` on `WitNode` instead") }
-    if eq(clone(name), "ast_enum_variant_at") { return String_from("use `node.enum_variant_at(index)` on `WitNode` instead") }
-    if eq(clone(name), "ast_flags_member_at") { return String_from("use `node.flags_member_at(index)` on `WitNode` instead") }
-    if eq(clone(name), "ast_variant_case_name_at") { return String_from("use `node.variant_case_name_at(index)` on `WitNode` instead") }
-    if eq(clone(name), "ast_variant_case_has_payload") { return String_from("use `node.variant_case_has_payload(index)` on `WitNode` instead") }
-    if eq(clone(name), "ast_variant_case_type_at") { return String_from("use `node.variant_case_type_at(index)` on `WitNode` instead") }
-    if eq(clone(name), "ast_func_param_count") { return String_from("use `node.func_param_count()` on `WitNode` instead") }
-    if eq(clone(name), "ast_func_param_name_at") { return String_from("use `node.func_param_name_at(index)` on `WitNode` instead") }
-    if eq(clone(name), "ast_func_param_type_at") { return String_from("use `node.func_param_type_at(index)` on `WitNode` instead") }
-    if eq(clone(name), "ast_func_has_result") { return String_from("use `node.func_has_result()` on `WitNode` instead") }
-    if eq(clone(name), "ast_func_result") { return String_from("use `node.func_result()` on `WitNode` instead") }
-    if eq(clone(name), "ast_type_alias_target") { return String_from("use `node.type_alias_target()` on `WitNode` instead") }
-    if eq(clone(name), "ast_use_path") { return String_from("use `node.use_path()` on `WitNode` instead") }
-    if eq(clone(name), "ast_use_alias") { return String_from("use `node.use_alias()` on `WitNode` instead") }
-    if eq(clone(name), "parse") { return String_from("use `WitNode::parse(source)` instead") }
-    if eq(clone(name), "parse_import_text") { return String_from("use `WitNode::import_metadata(source)` instead") }
-    if eq(clone(name), "ast_import_serialized") { return String_from("use `node.import_serialized()` on `WitNode` instead") }
+    if eq(name.clone(), "ast_kind") { return String_from("use `node.kind()` on `WitNode` instead") }
+    if eq(name.clone(), "ast_name") { return String_from("use `node.name()` on `WitNode` instead") }
+    if eq(name.clone(), "ast_child_count") { return String_from("use `node.child_count()` on `WitNode` instead") }
+    if eq(name.clone(), "ast_child_at") { return String_from("use `node.child_at(index)` on `WitNode` instead") }
+    if eq(name.clone(), "ast_first_interface_name") { return String_from("use `node.first_interface_name()` on `WitNode` instead") }
+    if eq(name.clone(), "ast_field_name_at") { return String_from("use `node.field_name_at(index)` on `WitNode` instead") }
+    if eq(name.clone(), "ast_field_type_at") { return String_from("use `node.field_type_at(index)` on `WitNode` instead") }
+    if eq(name.clone(), "ast_enum_variant_at") { return String_from("use `node.enum_variant_at(index)` on `WitNode` instead") }
+    if eq(name.clone(), "ast_flags_member_at") { return String_from("use `node.flags_member_at(index)` on `WitNode` instead") }
+    if eq(name.clone(), "ast_variant_case_name_at") { return String_from("use `node.variant_case_name_at(index)` on `WitNode` instead") }
+    if eq(name.clone(), "ast_variant_case_has_payload") { return String_from("use `node.variant_case_has_payload(index)` on `WitNode` instead") }
+    if eq(name.clone(), "ast_variant_case_type_at") { return String_from("use `node.variant_case_type_at(index)` on `WitNode` instead") }
+    if eq(name.clone(), "ast_func_param_count") { return String_from("use `node.func_param_count()` on `WitNode` instead") }
+    if eq(name.clone(), "ast_func_param_name_at") { return String_from("use `node.func_param_name_at(index)` on `WitNode` instead") }
+    if eq(name.clone(), "ast_func_param_type_at") { return String_from("use `node.func_param_type_at(index)` on `WitNode` instead") }
+    if eq(name.clone(), "ast_func_has_result") { return String_from("use `node.func_has_result()` on `WitNode` instead") }
+    if eq(name.clone(), "ast_func_result") { return String_from("use `node.func_result()` on `WitNode` instead") }
+    if eq(name.clone(), "ast_type_alias_target") { return String_from("use `node.type_alias_target()` on `WitNode` instead") }
+    if eq(name.clone(), "ast_use_path") { return String_from("use `node.use_path()` on `WitNode` instead") }
+    if eq(name.clone(), "ast_use_alias") { return String_from("use `node.use_alias()` on `WitNode` instead") }
+    if eq(name.clone(), "parse") { return String_from("use `WitNode::parse(source)` instead") }
+    if eq(name.clone(), "parse_import_text") { return String_from("use `WitNode::import_metadata(source)` instead") }
+    if eq(name.clone(), "ast_import_serialized") { return String_from("use `node.import_serialized()` on `WitNode` instead") }
     String_new()
 }
 
 fn removed_wit_parser_member_hint(name: String) -> String {
-    if eq(clone(name), "parse_full") { return String_from("use `WitNode::parse(source)` instead") }
-    if eq(clone(name), "parse_full_import_text") { return String_from("use `WitNode::import_metadata(source)` instead") }
-    if eq(clone(name), "parse_wit") { return String_from("removed World-shaped compatibility parser; use `WitNode::parse(source)` and the `World` builders instead") }
+    if eq(name.clone(), "parse_full") { return String_from("use `WitNode::parse(source)` instead") }
+    if eq(name.clone(), "parse_full_import_text") { return String_from("use `WitNode::import_metadata(source)` instead") }
+    if eq(name.clone(), "parse_wit") { return String_from("removed World-shaped compatibility parser; use `WitNode::parse(source)` and the `World` builders instead") }
     String_new()
 }
 
 fn removed_component_member_hint(name: String) -> String {
-    if eq(clone(name), "canonical_abi_version") { return String_from("use `Component::canonical_abi_version()` instead") }
-    if eq(clone(name), "component_model_version") { return String_from("use `Component::model_version()` instead") }
+    if eq(name.clone(), "canonical_abi_version") { return String_from("use `Component::canonical_abi_version()` instead") }
+    if eq(name.clone(), "component_model_version") { return String_from("use `Component::model_version()` instead") }
     String_new()
 }
 
 fn removed_component_handle_member_hint(name: String) -> String {
-    if eq(clone(name), "handle_table_new") || eq(clone(name), "handle_table_i32_new") {
+    if eq(name.clone(), "handle_table_new") || eq(name.clone(), "handle_table_i32_new") {
         return String_from("use `HandleTableI32::new()` instead")
     }
-    if eq(clone(name), "handle_new") || eq(clone(name), "handle_table_i32_new_handle") {
+    if eq(name.clone(), "handle_new") || eq(name.clone(), "handle_table_i32_new_handle") {
         return String_from("use `t.insert(value)` on `HandleTableI32` instead")
     }
-    if eq(clone(name), "handle_get") || eq(clone(name), "handle_table_i32_get") {
+    if eq(name.clone(), "handle_get") || eq(name.clone(), "handle_table_i32_get") {
         return String_from("use `t.get(handle)` on `HandleTableI32` instead")
     }
-    if eq(clone(name), "handle_drop") || eq(clone(name), "handle_table_i32_drop") {
+    if eq(name.clone(), "handle_drop") || eq(name.clone(), "handle_table_i32_drop") {
         return String_from("use `t.remove(handle)` on `HandleTableI32` instead")
     }
-    if eq(clone(name), "handle_len") || eq(clone(name), "handle_table_i32_len") {
+    if eq(name.clone(), "handle_len") || eq(name.clone(), "handle_table_i32_len") {
         return String_from("use `t.len()` on `HandleTableI32` instead")
     }
     String_new()
@@ -1389,7 +1397,7 @@ fn removed_component_handle_member_hint(name: String) -> String {
 // std::prelude but no longer auto-imported. The hint keeps the call
 // working through an explicit selective import.
 fn removed_gated_prelude_hint(name: String) -> String {
-    if !is_gated_prelude_name(clone(name)) {
+    if !is_gated_prelude_name(name.clone()) {
         return String_new()
     }
     "no longer auto-imported; add `use std::prelude::{".concat(name.concat("}`"))
@@ -1400,90 +1408,91 @@ fn removed_gated_prelude_hint(name: String) -> String {
 // usable migration target, not a request to import a name that no longer
 // exists.
 fn removed_prelude_free_hint(name: String) -> String {
-    if eq(clone(name), "abs") { return String_from("use `x.abs()` on the `i32` value instead") }
-    if eq(clone(name), "args") { return String_from("use `Env::args()` from `use std::host::env::Env` instead") }
-    if eq(clone(name), "byte_len") { return String_from("use `s.len_bytes()` on `String` instead") }
-    if eq(clone(name), "clamp_i32") { return String_from("use `x.clamp(lo, hi)` on the `i32` value instead") }
-    if eq(clone(name), "exit") { return String_from("use `Process::exit(code)` from `use std::host::process::Process` instead") }
-    if eq(clone(name), "format_bool") { return String_from("use `b.to_string()` on the `bool` value instead") }
-    if eq(clone(name), "format_i32") { return String_from("use `n.to_string()` on the `i32` value instead") }
-    if eq(clone(name), "gcd") { return String_from("use `a.gcd(b)` on the `i32` value instead") }
-    if eq(clone(name), "is_empty") { return String_from("use `x.is_empty()` on the `String` / `Vec` receiver instead") }
-    if eq(clone(name), "join") { return String_from("use `parts.join(sep)` on `Vec<String>` instead") }
-    if eq(clone(name), "lines") { return String_from("use `s.lines()` on `String` instead") }
-    if eq(clone(name), "max") { return String_from("use `a.max(b)` on the `i32` value instead") }
-    if eq(clone(name), "min") { return String_from("use `a.min(b)` on the `i32` value instead") }
-    if eq(clone(name), "pad_left") { return String_from("use `s.pad_left(width)` or `s.pad_left_with(width, fill)` on `String` instead") }
-    if eq(clone(name), "pad_right") { return String_from("use `s.pad_right(width)` or `s.pad_right_with(width, fill)` on `String` instead") }
-    if eq(clone(name), "repeat") { return String_from("use `s.repeat(n)` on `String` instead") }
-    if eq(clone(name), "replace") { return String_from("use `s.replace(from, to)` on `String` instead") }
-    if eq(clone(name), "split") { return String_from("use `s.split(sep)` on `String` instead") }
-    if eq(clone(name), "sqrt") { return String_from("use `x.sqrt()` on the `f64` value instead") }
-    if eq(clone(name), "to_lower") { return String_from("use `s.to_lower()` on `String` instead") }
-    if eq(clone(name), "to_lowercase") { return String_from("use `s.to_lower()` on `String` instead (ASCII case fold)") }
-    if eq(clone(name), "to_upper") { return String_from("use `s.to_upper()` on `String` instead") }
-    if eq(clone(name), "to_uppercase") { return String_from("use `s.to_upper()` on `String` instead (ASCII case fold)") }
-    if eq(clone(name), "trim") { return String_from("use `s.trim()` on `String` instead") }
-    if eq(clone(name), "trim_end") { return String_from("use `s.trim_end()` on `String` instead") }
-    if eq(clone(name), "trim_start") { return String_from("use `s.trim_start()` on `String` instead") }
-    if eq(clone(name), "values") { return String_from("removed identity helper; iterate the value directly (`for x in v`)") }
-    if eq(clone(name), "push_char") { return String_from("use `s.push_char(c)` on `String` instead") }
-    if eq(clone(name), "parse_i32") { return String_from("use `i32::try_from(s)` from `use std::core::convert` instead") }
-    if eq(clone(name), "parse_i64") { return String_from("use `i64::try_from(s)` from `use std::core::convert` instead") }
-    if eq(clone(name), "parse_f64") { return String_from("use `f64::try_from(s)` from `use std::core::convert` instead") }
-    if eq(clone(name), "unwrap") { return String_from("use `o.unwrap()` on `Option<i32>` or `r.unwrap()` on `Result<i32, i32>` instead") }
-    if eq(clone(name), "unwrap_or") { return String_from("use `o.unwrap_or(fallback)` on `Option<i32>` or `r.unwrap_or(fallback)` on `Result<i32, i32>` instead") }
-    if eq(clone(name), "is_some") { return String_from("use `o.is_some()` on `Option<i32>` instead") }
-    if eq(clone(name), "is_none") { return String_from("use `o.is_none()` on `Option<i32>` instead") }
-    if eq(clone(name), "is_ok") { return String_from("use `r.is_ok()` on `Result<i32, i32>` instead") }
-    if eq(clone(name), "is_err") { return String_from("use `r.is_err()` on `Result<i32, i32>` instead") }
-    if eq(clone(name), "f32_to_string") { return String_from("use `x.to_string()` on the `f32` value instead") }
-    if eq(clone(name), "byte_at") { return String_from("use `s.byte_at(i)` on `String` instead") }
-    if eq(clone(name), "slice") { return String_from("use `s.slice(start, end)` on `String` instead") }
-    if eq(clone(name), "substring") { return String_from("use `s.slice(start, end)` on `String` instead") }
-    if eq(clone(name), "to_string") { return String_from("use `x.to_string()` on the value instead") }
-    if eq(clone(name), "starts_with") { return String_from("use `s.starts_with(prefix)` on `String` instead") }
-    if eq(clone(name), "ends_with") { return String_from("use `s.ends_with(suffix)` on `String` instead") }
-    if eq(clone(name), "contains") { return String_from("use `s.contains(sub)` on `String` instead") }
-    if eq(clone(name), "index_of") { return String_from("use `s.index_of(sub)` on `String` instead") }
+    if eq(name.clone(), "abs") { return String_from("use `x.abs()` on the `i32` value instead") }
+    if eq(name.clone(), "args") { return String_from("use `Env::args()` from `use std::host::env::Env` instead") }
+    if eq(name.clone(), "byte_len") { return String_from("use `s.len_bytes()` on `String` instead") }
+    if eq(name.clone(), "clamp_i32") { return String_from("use `x.clamp(lo, hi)` on the `i32` value instead") }
+    if eq(name.clone(), "clone") { return String_from("use `x.clone()` on the value instead") }
+    if eq(name.clone(), "exit") { return String_from("use `Process::exit(code)` from `use std::host::process::Process` instead") }
+    if eq(name.clone(), "format_bool") { return String_from("use `b.to_string()` on the `bool` value instead") }
+    if eq(name.clone(), "format_i32") { return String_from("use `n.to_string()` on the `i32` value instead") }
+    if eq(name.clone(), "gcd") { return String_from("use `a.gcd(b)` on the `i32` value instead") }
+    if eq(name.clone(), "is_empty") { return String_from("use `x.is_empty()` on the `String` / `Vec` receiver instead") }
+    if eq(name.clone(), "join") { return String_from("use `parts.join(sep)` on `Vec<String>` instead") }
+    if eq(name.clone(), "lines") { return String_from("use `s.lines()` on `String` instead") }
+    if eq(name.clone(), "max") { return String_from("use `a.max(b)` on the `i32` value instead") }
+    if eq(name.clone(), "min") { return String_from("use `a.min(b)` on the `i32` value instead") }
+    if eq(name.clone(), "pad_left") { return String_from("use `s.pad_left(width)` or `s.pad_left_with(width, fill)` on `String` instead") }
+    if eq(name.clone(), "pad_right") { return String_from("use `s.pad_right(width)` or `s.pad_right_with(width, fill)` on `String` instead") }
+    if eq(name.clone(), "repeat") { return String_from("use `s.repeat(n)` on `String` instead") }
+    if eq(name.clone(), "replace") { return String_from("use `s.replace(from, to)` on `String` instead") }
+    if eq(name.clone(), "split") { return String_from("use `s.split(sep)` on `String` instead") }
+    if eq(name.clone(), "sqrt") { return String_from("use `x.sqrt()` on the `f64` value instead") }
+    if eq(name.clone(), "to_lower") { return String_from("use `s.to_lower()` on `String` instead") }
+    if eq(name.clone(), "to_lowercase") { return String_from("use `s.to_lower()` on `String` instead (ASCII case fold)") }
+    if eq(name.clone(), "to_upper") { return String_from("use `s.to_upper()` on `String` instead") }
+    if eq(name.clone(), "to_uppercase") { return String_from("use `s.to_upper()` on `String` instead (ASCII case fold)") }
+    if eq(name.clone(), "trim") { return String_from("use `s.trim()` on `String` instead") }
+    if eq(name.clone(), "trim_end") { return String_from("use `s.trim_end()` on `String` instead") }
+    if eq(name.clone(), "trim_start") { return String_from("use `s.trim_start()` on `String` instead") }
+    if eq(name.clone(), "values") { return String_from("removed identity helper; iterate the value directly (`for x in v`)") }
+    if eq(name.clone(), "push_char") { return String_from("use `s.push_char(c)` on `String` instead") }
+    if eq(name.clone(), "parse_i32") { return String_from("use `i32::try_from(s)` from `use std::core::convert` instead") }
+    if eq(name.clone(), "parse_i64") { return String_from("use `i64::try_from(s)` from `use std::core::convert` instead") }
+    if eq(name.clone(), "parse_f64") { return String_from("use `f64::try_from(s)` from `use std::core::convert` instead") }
+    if eq(name.clone(), "unwrap") { return String_from("use `o.unwrap()` on `Option<i32>` or `r.unwrap()` on `Result<i32, i32>` instead") }
+    if eq(name.clone(), "unwrap_or") { return String_from("use `o.unwrap_or(fallback)` on `Option<i32>` or `r.unwrap_or(fallback)` on `Result<i32, i32>` instead") }
+    if eq(name.clone(), "is_some") { return String_from("use `o.is_some()` on `Option<i32>` instead") }
+    if eq(name.clone(), "is_none") { return String_from("use `o.is_none()` on `Option<i32>` instead") }
+    if eq(name.clone(), "is_ok") { return String_from("use `r.is_ok()` on `Result<i32, i32>` instead") }
+    if eq(name.clone(), "is_err") { return String_from("use `r.is_err()` on `Result<i32, i32>` instead") }
+    if eq(name.clone(), "f32_to_string") { return String_from("use `x.to_string()` on the `f32` value instead") }
+    if eq(name.clone(), "byte_at") { return String_from("use `s.byte_at(i)` on `String` instead") }
+    if eq(name.clone(), "slice") { return String_from("use `s.slice(start, end)` on `String` instead") }
+    if eq(name.clone(), "substring") { return String_from("use `s.slice(start, end)` on `String` instead") }
+    if eq(name.clone(), "to_string") { return String_from("use `x.to_string()` on the value instead") }
+    if eq(name.clone(), "starts_with") { return String_from("use `s.starts_with(prefix)` on `String` instead") }
+    if eq(name.clone(), "ends_with") { return String_from("use `s.ends_with(suffix)` on `String` instead") }
+    if eq(name.clone(), "contains") { return String_from("use `s.contains(sub)` on `String` instead") }
+    if eq(name.clone(), "index_of") { return String_from("use `s.index_of(sub)` on `String` instead") }
     String_new()
 }
 
 fn is_gated_prelude_name(name: String) -> bool {
-    if eq(clone(name), "Box") || eq(clone(name), "Box_new") || eq(clone(name), "Slice") {
+    if eq(name.clone(), "Box") || eq(name.clone(), "Box_new") || eq(name.clone(), "Slice") {
         return true
     }
-    if eq(clone(name), "unbox") {
+    if eq(name.clone(), "unbox") {
         return true
     }
-    if eq(clone(name), "as_slice") || eq(clone(name), "assert_eq") || eq(clone(name), "assert_eq_i64") {
+    if eq(name.clone(), "as_slice") || eq(name.clone(), "assert_eq") || eq(name.clone(), "assert_eq_i64") {
         return true
     }
-    if eq(clone(name), "assert_eq_str") || eq(clone(name), "assert_ne") || eq(clone(name), "clone") {
+    if eq(name.clone(), "assert_eq_str") || eq(name.clone(), "assert_ne") {
         return true
     }
-    if eq(clone(name), "eq") {
+    if eq(name.clone(), "eq") {
         return true
     }
-    if eq(clone(name), "f64_bits_hi") || eq(clone(name), "f64_bits_lo") || eq(clone(name), "f64_to_f32") {
+    if eq(name.clone(), "f64_bits_hi") || eq(name.clone(), "f64_bits_lo") || eq(name.clone(), "f64_to_f32") {
         return true
     }
-    if eq(clone(name), "f32_to_f64") {
+    if eq(name.clone(), "f32_to_f64") {
         return true
     }
-    if eq(clone(name), "i16_to_i32") || eq(clone(name), "i32_to_i16") || eq(clone(name), "i32_to_i64") {
+    if eq(name.clone(), "i16_to_i32") || eq(name.clone(), "i32_to_i16") || eq(name.clone(), "i32_to_i64") {
         return true
     }
-    if eq(clone(name), "i32_to_i8") || eq(clone(name), "i32_to_u16") || eq(clone(name), "i32_to_u32") {
+    if eq(name.clone(), "i32_to_i8") || eq(name.clone(), "i32_to_u16") || eq(name.clone(), "i32_to_u32") {
         return true
     }
-    if eq(clone(name), "i32_to_u8") || eq(clone(name), "i64_to_i32") || eq(clone(name), "i8_to_i32") {
+    if eq(name.clone(), "i32_to_u8") || eq(name.clone(), "i64_to_i32") || eq(name.clone(), "i8_to_i32") {
         return true
     }
-    if eq(clone(name), "slice_get") || eq(clone(name), "slice_len") || eq(clone(name), "u16_to_i32") {
+    if eq(name.clone(), "slice_get") || eq(name.clone(), "slice_len") || eq(name.clone(), "u16_to_i32") {
         return true
     }
-    if eq(clone(name), "u32_to_u64") || eq(clone(name), "u64_to_u32") || eq(clone(name), "u8_to_i32") {
+    if eq(name.clone(), "u32_to_u64") || eq(name.clone(), "u64_to_u32") || eq(name.clone(), "u8_to_i32") {
         return true
     }
     false
@@ -1498,31 +1507,31 @@ fn hashmap_method_replacement_hint() -> String {
 // alias used at the call site to the namespace type so the E0100 hint names
 // the associated-function spelling.
 fn removed_simd_lane_type(module: String) -> String {
-    if eq(clone(module), "f32x4") { return String_from("F32x4") }
-    if eq(clone(module), "f64x2") { return String_from("F64x2") }
-    if eq(clone(module), "i8x16") { return String_from("I8x16") }
-    if eq(clone(module), "i16x8") { return String_from("I16x8") }
-    if eq(clone(module), "i32x4") { return String_from("I32x4") }
-    if eq(clone(module), "i64x2") { return String_from("I64x2") }
-    if eq(clone(module), "u8x16") { return String_from("U8x16") }
-    if eq(clone(module), "u16x8") { return String_from("U16x8") }
-    if eq(clone(module), "u32x4") { return String_from("U32x4") }
-    if eq(clone(module), "u64x2") { return String_from("U64x2") }
-    if eq(clone(module), "v128") { return String_from("V128") }
+    if eq(module.clone(), "f32x4") { return String_from("F32x4") }
+    if eq(module.clone(), "f64x2") { return String_from("F64x2") }
+    if eq(module.clone(), "i8x16") { return String_from("I8x16") }
+    if eq(module.clone(), "i16x8") { return String_from("I16x8") }
+    if eq(module.clone(), "i32x4") { return String_from("I32x4") }
+    if eq(module.clone(), "i64x2") { return String_from("I64x2") }
+    if eq(module.clone(), "u8x16") { return String_from("U8x16") }
+    if eq(module.clone(), "u16x8") { return String_from("U16x8") }
+    if eq(module.clone(), "u32x4") { return String_from("U32x4") }
+    if eq(module.clone(), "u64x2") { return String_from("U64x2") }
+    if eq(module.clone(), "v128") { return String_from("V128") }
     String_new()
 }
 
 fn removed_path_member_hint(name: String) -> String {
-    if eq(clone(name), "join") { return String_from("use `Path::new(base).join(child)` from `use std::path::Path` instead") }
-    if eq(clone(name), "parent") { return String_from("use `Path::new(path).parent()` from `use std::path::Path` instead") }
-    if eq(clone(name), "file_name") { return String_from("use `Path::new(path).file_name()` from `use std::path::Path` instead") }
-    if eq(clone(name), "extension") { return String_from("use `Path::new(path).extension()` from `use std::path::Path` instead") }
-    if eq(clone(name), "with_extension") { return String_from("use `Path::new(path).with_extension(ext)` from `use std::path::Path` instead") }
-    if eq(clone(name), "is_absolute") { return String_from("use `Path::new(path).is_absolute()` from `use std::path::Path` instead") }
-    if eq(clone(name), "stem") { return String_from("use `Path::new(path).stem()` from `use std::path::Path` instead") }
-    if eq(clone(name), "normalize") { return String_from("use `Path::new(path).normalize()` from `use std::path::Path` instead") }
-    if eq(clone(name), "components") { return String_from("use `Path::new(path).components()` from `use std::path::Path` instead") }
-    if eq(clone(name), "last_index_of") {
+    if eq(name.clone(), "join") { return String_from("use `Path::new(base).join(child)` from `use std::path::Path` instead") }
+    if eq(name.clone(), "parent") { return String_from("use `Path::new(path).parent()` from `use std::path::Path` instead") }
+    if eq(name.clone(), "file_name") { return String_from("use `Path::new(path).file_name()` from `use std::path::Path` instead") }
+    if eq(name.clone(), "extension") { return String_from("use `Path::new(path).extension()` from `use std::path::Path` instead") }
+    if eq(name.clone(), "with_extension") { return String_from("use `Path::new(path).with_extension(ext)` from `use std::path::Path` instead") }
+    if eq(name.clone(), "is_absolute") { return String_from("use `Path::new(path).is_absolute()` from `use std::path::Path` instead") }
+    if eq(name.clone(), "stem") { return String_from("use `Path::new(path).stem()` from `use std::path::Path` instead") }
+    if eq(name.clone(), "normalize") { return String_from("use `Path::new(path).normalize()` from `use std::path::Path` instead") }
+    if eq(name.clone(), "components") { return String_from("use `Path::new(path).components()` from `use std::path::Path` instead") }
+    if eq(name.clone(), "last_index_of") {
         return text::concat(
             String_from("removed helper; use the `Path` methods (`file_name`, `extension`, "),
             String_from("`parent`, `stem`, `normalize`) or `String::index_of` for forward searches")
@@ -1532,103 +1541,103 @@ fn removed_path_member_hint(name: String) -> String {
 }
 
 fn removed_time_member_hint(name: String) -> String {
-    if eq(clone(name), "duration_ms") { return String_from("use `Duration::between(start, end).as_ms()` from `use std::time::Duration` instead") }
-    if eq(clone(name), "duration_us") { return String_from("use `Duration::between(start, end).as_us()` from `use std::time::Duration` instead") }
-    if eq(clone(name), "duration_ns") { return String_from("use `Duration::between(start, end).as_ns()` from `use std::time::Duration` instead") }
+    if eq(name.clone(), "duration_ms") { return String_from("use `Duration::between(start, end).as_ms()` from `use std::time::Duration` instead") }
+    if eq(name.clone(), "duration_us") { return String_from("use `Duration::between(start, end).as_us()` from `use std::time::Duration` instead") }
+    if eq(name.clone(), "duration_ns") { return String_from("use `Duration::between(start, end).as_ns()` from `use std::time::Duration` instead") }
     String_new()
 }
 
 fn removed_raw_member_hint(name: String) -> String {
-    if eq(clone(name), "raw_array_new") {
+    if eq(name.clone(), "raw_array_new") {
         return "the sealed raw bridge was retired; use `Vec::new<T>()` or `Vec::with_capacity<T>(cap)`"
     }
-    if eq(clone(name), "raw_array_len") {
+    if eq(name.clone(), "raw_array_len") {
         return "the sealed raw bridge was retired; use `v.len()`"
     }
-    if eq(clone(name), "raw_array_get_unchecked") {
+    if eq(name.clone(), "raw_array_get_unchecked") {
         return "the sealed raw bridge was retired; use `v.get_unchecked(i)` via `use std::collections::vec`"
     }
-    if eq(clone(name), "raw_array_set_unchecked") {
+    if eq(name.clone(), "raw_array_set_unchecked") {
         return "the sealed raw bridge was retired; use `v.set(i, value)` via `use std::collections::vec`"
     }
-    if eq(clone(name), "raw_array_grow") {
+    if eq(name.clone(), "raw_array_grow") {
         return "the sealed raw bridge was retired; stdlib uses `RawArray::grow(values, new_len)` and has no public replacement"
     }
-    if eq(clone(name), "raw_array_set_len") {
+    if eq(name.clone(), "raw_array_set_len") {
         return "the sealed raw bridge was retired; stdlib uses `RawArray::set_len(values, new_len)` and has no public replacement"
     }
-    if eq(clone(name), "raw_string_new") {
+    if eq(name.clone(), "raw_string_new") {
         return "the sealed raw bridge was retired; use `String_new()` or `String::new()`"
     }
-    if eq(clone(name), "raw_string_from_bytes") {
+    if eq(name.clone(), "raw_string_from_bytes") {
         return "the sealed raw bridge was retired; use `String::from_utf8_lossy(bytes)` for validated UTF-8 input"
     }
-    if eq(clone(name), "raw_string_len_bytes") {
+    if eq(name.clone(), "raw_string_len_bytes") {
         return "the sealed raw bridge was retired; use `s.len_bytes()` via `use std::collections::string`"
     }
-    if eq(clone(name), "raw_string_byte_at_unchecked") {
+    if eq(name.clone(), "raw_string_byte_at_unchecked") {
         return "the sealed raw bridge was retired; use `s.byte_at(i)` via `use std::collections::string`"
     }
-    if eq(clone(name), "raw_string_clone") {
+    if eq(name.clone(), "raw_string_clone") {
         return "the sealed raw bridge was retired; use `s.clone()`"
     }
-    if eq(clone(name), "raw_string_push_char") {
+    if eq(name.clone(), "raw_string_push_char") {
         return "the sealed raw bridge was retired; use `s.push_char(c)` on `String` instead"
     }
-    if eq(clone(name), "raw_parse_i32") {
+    if eq(name.clone(), "raw_parse_i32") {
         return "the sealed raw bridge was retired; use `i32::try_from(s)` instead"
     }
-    if eq(clone(name), "raw_parse_i64") {
+    if eq(name.clone(), "raw_parse_i64") {
         return "the sealed raw bridge was retired; use `i64::try_from(s)` instead"
     }
-    if eq(clone(name), "raw_parse_f64") {
+    if eq(name.clone(), "raw_parse_f64") {
         return "the sealed raw bridge was retired; use `f64::try_from(s)` instead"
     }
-    if eq(clone(name), "raw_f64_sqrt") {
+    if eq(name.clone(), "raw_f64_sqrt") {
         return "the sealed raw bridge was retired; use `x.sqrt()` via `use std::core::convert`"
     }
-    if eq(clone(name), "raw_f64_bits_lo") {
+    if eq(name.clone(), "raw_f64_bits_lo") {
         return "the sealed raw bridge was retired; use `x.to_bits_lo()` via `use std::core::convert`"
     }
-    if eq(clone(name), "raw_f64_bits_hi") {
+    if eq(name.clone(), "raw_f64_bits_hi") {
         return "the sealed raw bridge was retired; use `x.to_bits_hi()` via `use std::core::convert`"
     }
-    if eq(clone(name), "raw_f64_to_string") {
+    if eq(name.clone(), "raw_f64_to_string") {
         return "the sealed raw bridge was retired; use `x.to_string()` instead"
     }
-    if eq(clone(name), "raw_f32_promote_f64") {
+    if eq(name.clone(), "raw_f32_promote_f64") {
         return "the sealed raw bridge was retired; use `f32_to_f64(x)` or `x.to_f64()` instead"
     }
     String_new()
 }
 
 fn removed_core_free_hint(name: String) -> String {
-    if eq(clone(name), "range_new") { return String_from("use `Range::new(start, end)` from `use std::core::{Range}` instead") }
-    if eq(clone(name), "range_contains") { return String_from("use `r.contains(value)` on the `Range` value instead") }
-    if eq(clone(name), "range_len") { return String_from("use `r.len()` on the `Range` value instead") }
-    if eq(clone(name), "range_inclusive_new") { return String_from("use `RangeInclusive::new(start, end)` from `use std::core::{RangeInclusive}` instead") }
-    if eq(clone(name), "range_inclusive_contains") { return String_from("use `r.contains(value)` on the `RangeInclusive` value instead") }
-    if eq(clone(name), "cmp_i32") { return String_from("use `a.cmp(b)` via `use std::core::cmp` instead") }
-    if eq(clone(name), "error_message") { return String_from("use `e.message()` on the `Error` value instead") }
-    if eq(clone(name), "combine") { return String_from("use `h1.combine_hash(h2)` on the first hash value instead") }
-    if eq(clone(name), "identity") { return String_from("removed identity helper; delete the call (no replacement)") }
+    if eq(name.clone(), "range_new") { return String_from("use `Range::new(start, end)` from `use std::core::{Range}` instead") }
+    if eq(name.clone(), "range_contains") { return String_from("use `r.contains(value)` on the `Range` value instead") }
+    if eq(name.clone(), "range_len") { return String_from("use `r.len()` on the `Range` value instead") }
+    if eq(name.clone(), "range_inclusive_new") { return String_from("use `RangeInclusive::new(start, end)` from `use std::core::{RangeInclusive}` instead") }
+    if eq(name.clone(), "range_inclusive_contains") { return String_from("use `r.contains(value)` on the `RangeInclusive` value instead") }
+    if eq(name.clone(), "cmp_i32") { return String_from("use `a.cmp(b)` via `use std::core::cmp` instead") }
+    if eq(name.clone(), "error_message") { return String_from("use `e.message()` on the `Error` value instead") }
+    if eq(name.clone(), "combine") { return String_from("use `h1.combine_hash(h2)` on the first hash value instead") }
+    if eq(name.clone(), "identity") { return String_from("removed identity helper; delete the call (no replacement)") }
     String_new()
 }
 
 fn removed_error_member_hint(name: String) -> String {
-    if eq(clone(name), "error_message") { return String_from("use `e.message()` on the `Error` value instead") }
+    if eq(name.clone(), "error_message") { return String_from("use `e.message()` on the `Error` value instead") }
     String_new()
 }
 
 fn removed_hash_member_hint(name: String) -> String {
-    if eq(clone(name), "combine") { return String_from("use `h1.combine_hash(h2)` on the first hash value instead") }
+    if eq(name.clone(), "combine") { return String_from("use `h1.combine_hash(h2)` on the first hash value instead") }
     String_new()
 }
 
 fn removed_random_member_hint(name: String) -> String {
-    if eq(clone(name), "seeded_random") { return String_from("use `Rng::new(seed).next()` from `use std::random::Rng` instead") }
-    if eq(clone(name), "seeded_range") { return String_from("use `Rng::new(seed).range(lo, hi)` from `use std::random::Rng` instead") }
-    if eq(clone(name), "shuffle_i32") { return String_from("use `Rng::new(seed).shuffle(v)` from `use std::random::Rng` instead") }
+    if eq(name.clone(), "seeded_random") { return String_from("use `Rng::new(seed).next()` from `use std::random::Rng` instead") }
+    if eq(name.clone(), "seeded_range") { return String_from("use `Rng::new(seed).range(lo, hi)` from `use std::random::Rng` instead") }
+    if eq(name.clone(), "shuffle_i32") { return String_from("use `Rng::new(seed).shuffle(v)` from `use std::random::Rng` instead") }
     String_new()
 }
 
@@ -1742,9 +1751,13 @@ test mod "removed_names" {
     }
     test "gated prelude hints" {
         assert(len(removed_name_hint("eq")) > 0)
-        assert(len(removed_name_hint("clone")) > 0)
         assert(len(removed_name_hint("substring")) > 0)
         assert(len(removed_name_hint("push_char")) > 0)
+    }
+    test "retired clone free has receiver and module hints" {
+        assert(len(removed_name_hint("clone")) > 0)
+        assert(len(removed_module_member_hint("string", "clone")) > 0)
+        assert(len(removed_private_member_hint("prelude", "clone")) > 0)
     }
     test "retired text prelude frees have method hints" {
         assert(len(removed_name_hint("byte_at")) > 0)

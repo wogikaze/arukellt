@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use mir::function_identity
 use mir::function_block_queries
@@ -103,7 +103,7 @@ fn mir_function_forwards_to(f: MirFunction, target: String) -> bool {
     if len(sole) == 0 {
         return false
     }
-    eq(clone(sole), clone(target))
+    eq(sole.clone(), target.clone())
 }
 
 fn mir_pick_largest_non_forwarder_index(functions: Vec<MirFunction>, short_name: String, skip_target: String) -> i32 {
@@ -113,8 +113,8 @@ fn mir_pick_largest_non_forwarder_index(functions: Vec<MirFunction>, short_name:
     let mut i = 0
     while i < count {
         let f = get_unchecked(functions, i)
-        if eq(function_identity::MirFunction_name(f), clone(short_name)) {
-            if len(skip_target) > 0 && mir_function_forwards_to(f, clone(skip_target)) {
+        if eq(function_identity::MirFunction_name(f), short_name.clone()) {
+            if len(skip_target) > 0 && mir_function_forwards_to(f, skip_target.clone()) {
             } else {
                 if !mir_function_is_single_call_forwarder(f) {
                     let size = mir_function_inst_count(f)
@@ -156,31 +156,31 @@ fn mir_resolve_duplicate_call_target_depth(
     let mut exact_i = 0
     while exact_i < len(functions) {
         let exact_f = get_unchecked(functions, exact_i)
-        if eq(function_identity::MirFunction_name(exact_f), clone(callee_name)) {
+        if eq(function_identity::MirFunction_name(exact_f), callee_name.clone()) {
             return exact_i
         }
         exact_i = exact_i + 1
     }
-    let short_name = resolver::use_module_short_name(clone(callee_name))
-    if mir_count_functions_named(function_name_counts, clone(short_name)) <= 1 {
+    let short_name = resolver::use_module_short_name(callee_name.clone())
+    if mir_count_functions_named(function_name_counts, short_name.clone()) <= 1 {
         for i in 0..len(functions) {
             let f = get_unchecked(functions, i)
-            if eq(function_identity::MirFunction_name(f), clone(short_name)) {
+            if eq(function_identity::MirFunction_name(f), short_name.clone()) {
                 return i
             }
         }
         return 0 - 1
     }
-    let module_stem = mir_module_stem_from_qualified(clone(callee_name))
+    let module_stem = mir_module_stem_from_qualified(callee_name.clone())
     if len(module_stem) > 0 {
-        let impl_idx = mir_pick_largest_non_forwarder_index(functions, clone(short_name), clone(callee_name))
+        let impl_idx = mir_pick_largest_non_forwarder_index(functions, short_name.clone(), callee_name.clone())
         if impl_idx >= 0 {
             return impl_idx
         }
     }
     for i in 0..len(functions) {
         let f = get_unchecked(functions, i)
-        if eq(function_identity::MirFunction_name(f), clone(short_name)) {
+        if eq(function_identity::MirFunction_name(f), short_name.clone()) {
             if mir_function_is_single_call_forwarder(f) {
                 let sole = mir_function_sole_call_target(f)
                 let resolved = mir_resolve_duplicate_call_target_depth(
@@ -212,14 +212,14 @@ fn mir_resolve_self_delegate_collision(
         return 0 - 1
     }
     let candidate_name = function_identity::MirFunction_name(get_unchecked(functions, candidate_idx))
-    if eq(clone(candidate_name), clone(name)) && clone(name).contains("::") {
+    if eq(candidate_name.clone(), name.clone()) && name.clone().contains("::") {
         return candidate_idx
     }
-    let short_name = resolver::use_module_short_name(clone(name))
-    if mir_count_functions_named(function_name_counts, clone(short_name)) <= 1 {
+    let short_name = resolver::use_module_short_name(name.clone())
+    if mir_count_functions_named(function_name_counts, short_name.clone()) <= 1 {
         return candidate_idx
     }
-    let resolved = mir_resolve_duplicate_call_target(functions, function_name_counts, clone(name))
+    let resolved = mir_resolve_duplicate_call_target(functions, function_name_counts, name.clone())
     if resolved >= 0 {
         return resolved
     }
@@ -235,12 +235,12 @@ fn call_resolve_remap_colliding_short_names(
     let mut i = 0
     while i < count {
         let fname = function_identity::MirFunction_name(get_unchecked(functions, i))
-        let short_name = resolver::use_module_short_name(clone(fname))
-        if mir_count_functions_named(function_name_counts, clone(short_name)) > 1 {
+        let short_name = resolver::use_module_short_name(fname.clone())
+        if mir_count_functions_named(function_name_counts, short_name.clone()) > 1 {
             let resolved = mir_resolve_duplicate_call_target(
                 functions,
                 function_name_counts,
-                clone(short_name)
+                short_name.clone()
             )
             if resolved >= 0 {
                 name_index::name_index_set(function_name_index, short_name, resolved)
@@ -252,15 +252,15 @@ fn call_resolve_remap_colliding_short_names(
 
 fn mir_collision_export_name(functions: Vec<MirFunction>, fn_idx: i32, short_name: String, seen_count: i32) -> String {
     if seen_count <= 0 {
-        return clone(short_name)
+        return short_name.clone()
     }
     let f = get_unchecked(functions, fn_idx)
     if mir_function_is_single_call_forwarder(f) {
         let sole = mir_function_sole_call_target(f)
-        let stem = mir_module_stem_from_qualified(clone(sole))
+        let stem = mir_module_stem_from_qualified(sole.clone())
         if len(stem) > 0 {
-            return stem.concat("__".concat(clone(short_name)))
+            return stem.concat("__".concat(short_name.clone()))
         }
     }
-    clone(short_name).concat("__").concat(seen_count.to_string())
+    short_name.clone().concat("__").concat(seen_count.to_string())
 }

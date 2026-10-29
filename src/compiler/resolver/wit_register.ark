@@ -1,6 +1,5 @@
 // WIT import registration helpers (#663, #664, #670, #672).
 
-use std::prelude::{clone}
 use std::text
 use component::wit_parse_text
 use resolver::register_exports
@@ -10,12 +9,12 @@ use resolver::scope_lookup
 use resolver::wit_surface
 use resolver::wit_type_map
 fn wit_ensure_module_alias_at(mut ctx: ResolveCtx, alias: String, span_start: i32, span_end: i32) {
-    let existing = scope_lookup::lookup(ctx, clone(alias))
+    let existing = scope_lookup::lookup(ctx, alias.clone())
     if existing < 0 {
-        scope_define::define_with_vis_span(ctx, clone(alias), commands::SYM_MODULE(), true, span_start, span_end)
+        scope_define::define_with_vis_span(ctx, alias.clone(), commands::SYM_MODULE(), true, span_start, span_end)
         return
     }
-    if scope_lookup::lookup_kind(ctx, clone(alias)) != commands::SYM_MODULE() {
+    if scope_lookup::lookup_kind(ctx, alias.clone()) != commands::SYM_MODULE() {
         scope_error::resolve_duplicate_symbol(ctx, alias, span_start, span_end)
     }
 }
@@ -29,25 +28,25 @@ fn wit_doc_has_surface(doc: wit_parse_text::WitParsedInterface) -> bool {
 }
 
 fn wit_doc_from_import(wit_paths: Vec<String>, package_id: String) -> WitParsedInterface {
-    wit_surface::wit_lookup_import(wit_paths, clone(package_id))
+    wit_surface::wit_lookup_import(wit_paths, package_id.clone())
 }
 
 fn register_wit_doc(mut ctx: ResolveCtx, alias: String, doc: wit_parse_text::WitParsedInterface) {
     if !wit_doc_has_surface(doc) { return }
-    wit_ensure_module_alias(ctx, clone(alias))
+    wit_ensure_module_alias(ctx, alias.clone())
     let records = wit_parse_text::WitParsedInterface_records(doc)
     for ri in 0..len(records) {
         let rec = get_unchecked(records, ri)
-        register_exports::register_module_export(ctx, clone(alias), clone(rec.ark_name), commands::SYM_STRUCT(), true)
+        register_exports::register_module_export(ctx, alias.clone(), rec.ark_name.clone(), commands::SYM_STRUCT(), true)
     }
     let enums = wit_parse_text::WitParsedInterface_enums(doc)
     for ei in 0..len(enums) {
         let en = get_unchecked(enums, ei)
-        register_exports::register_module_export(ctx, clone(alias), clone(en.ark_name), commands::SYM_ENUM(), true)
+        register_exports::register_module_export(ctx, alias.clone(), en.ark_name.clone(), commands::SYM_ENUM(), true)
         for vi in 0..len(en.variant_ark_names) {
             let variant = get_unchecked(en.variant_ark_names, vi)
-            let qual_variant = clone(en.ark_name).concat("::".concat(clone(variant)))
-            register_exports::register_module_export(ctx, clone(alias), qual_variant, commands::SYM_VARIANT(), true)
+            let qual_variant = en.ark_name.clone().concat("::".concat(variant.clone()))
+            register_exports::register_module_export(ctx, alias.clone(), qual_variant, commands::SYM_VARIANT(), true)
         }
     }
     let variants = wit_parse_text::WitParsedInterface_variants(doc)
@@ -55,17 +54,17 @@ fn register_wit_doc(mut ctx: ResolveCtx, alias: String, doc: wit_parse_text::Wit
         let variant = get_unchecked(variants, vi)
         // Payload variants are sum types. Register the binding as a named type and
         // each case as a variant constructor; payload typing is retained on the parsed view.
-        register_exports::register_module_export(ctx, clone(alias), clone(variant.ark_name), commands::SYM_STRUCT(), true)
+        register_exports::register_module_export(ctx, alias.clone(), variant.ark_name.clone(), commands::SYM_STRUCT(), true)
         for ci in 0..len(variant.case_ark_names) {
             let case_name = get_unchecked(variant.case_ark_names, ci)
-            let qualified = clone(variant.ark_name).concat("::".concat(clone(case_name)))
-            register_exports::register_module_export(ctx, clone(alias), qualified, commands::SYM_VARIANT(), true)
+            let qualified = variant.ark_name.clone().concat("::".concat(case_name.clone()))
+            register_exports::register_module_export(ctx, alias.clone(), qualified, commands::SYM_VARIANT(), true)
         }
     }
     let funcs = wit_parse_text::WitParsedInterface_funcs(doc)
     for fi in 0..len(funcs) {
         let func = get_unchecked(funcs, fi)
-        register_exports::register_module_export(ctx, clone(alias), clone(func.ark_name), commands::SYM_FN(), true)
+        register_exports::register_module_export(ctx, alias.clone(), func.ark_name.clone(), commands::SYM_FN(), true)
     }
 }
 
@@ -74,5 +73,5 @@ fn wit_binding_type_sig(func: wit_parse_text::WitParsedFunc, doc: wit_parse_text
 }
 
 fn wit_binding_qualified_name(alias: String, func: wit_parse_text::WitParsedFunc) -> String {
-    clone(alias).concat("::".concat(clone(func.ark_name)))
+    alias.clone().concat("::".concat(func.ark_name.clone()))
 }

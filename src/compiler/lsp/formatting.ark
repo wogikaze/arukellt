@@ -1,12 +1,12 @@
 use std::text
 use std::json
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use fmt
 use lsp::positions
 use lsp::source_text
 fn extract_section_line(body: String, section: String) -> i32 {
     let marker = section.concat(String_from("\"line\""))
-    let pos = clone(body).index_of(marker)
+    let pos = body.clone().index_of(marker)
     if pos < 0 {
         return 0
     }
@@ -15,7 +15,7 @@ fn extract_section_line(body: String, section: String) -> i32 {
 }
 
 fn build_full_document_edit(text: String, formatted: String) -> String {
-    let end_pos = positions::offset_to_position(clone(text), len(text))
+    let end_pos = positions::offset_to_position(text.clone(), len(text))
     let mut out = String_from("[{\"range\":{\"start\":{\"line\":0,\"character\":0},\"end\":{\"line\":")
     out = out.concat(positions::lsp_position_line(end_pos).to_string())
     out = out.concat(String_from(",\"character\":"))
@@ -27,12 +27,12 @@ fn build_full_document_edit(text: String, formatted: String) -> String {
 }
 
 fn build_formatting_result(text: String) -> String {
-    match fmt::format_source(clone(text)) {
+    match fmt::format_source(text.clone()) {
         Option::None => {
             String_from("[]")
         },
         Option::Some(formatted) => {
-            if eq(clone(formatted), clone(text)) {
+            if eq(formatted.clone(), text.clone()) {
                 return String_from("[]")
             }
             build_full_document_edit(text, formatted)
@@ -41,8 +41,8 @@ fn build_formatting_result(text: String) -> String {
 }
 
 pub fn build_formatting_response_for_request(state: LspState, body: String, id: i32) -> String {
-    let uri = json::JsonText::get_str(clone(body), String_from("uri"))
-    let text = source_text::text_for_uri(state, clone(uri))
+    let uri = json::JsonText::get_str(body.clone(), String_from("uri"))
+    let text = source_text::text_for_uri(state, uri.clone())
     let edits = build_formatting_result(text)
     let mut out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
     out = out.concat(id.to_string())
@@ -53,19 +53,19 @@ pub fn build_formatting_response_for_request(state: LspState, body: String, id: 
 }
 
 pub fn build_range_formatting_response_for_request(state: LspState, body: String, id: i32) -> String {
-    let uri = json::JsonText::get_str(clone(body), String_from("uri"))
-    let text = source_text::text_for_uri(state, clone(uri))
-    let start_line = extract_section_line(clone(body), String_from("\"start\":{"))
-    let end_line = extract_section_line(clone(body), String_from("\"end\":{"))
+    let uri = json::JsonText::get_str(body.clone(), String_from("uri"))
+    let text = source_text::text_for_uri(state, uri.clone())
+    let start_line = extract_section_line(body.clone(), String_from("\"start\":{"))
+    let end_line = extract_section_line(body.clone(), String_from("\"end\":{"))
     let mut out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
     out = out.concat(id.to_string())
     out = out.concat(String_from(",\"result\":"))
-    match fmt::format_range(clone(text), start_line, end_line) {
+    match fmt::format_range(text.clone(), start_line, end_line) {
         Option::None => {
             out = out.concat(String_from("[]"))
         },
         Option::Some(formatted) => {
-            if eq(clone(formatted), clone(text)) {
+            if eq(formatted.clone(), text.clone()) {
                 out = out.concat(String_from("[]"))
             } else {
                 out = out.concat(build_full_document_edit(text, formatted))

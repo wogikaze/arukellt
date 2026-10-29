@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use std::text
 use lsp::state_docs
 use lsp::symbol_index_record
@@ -59,7 +58,7 @@ fn lsp_state_symbol_indexed_uris(state: LspState) -> Vec<String> {
 }
 
 fn lsp_state_project_root(state: LspState) -> String {
-    clone(state.project_root)
+    state.project_root.clone()
 }
 
 fn lsp_state_set_project_root(mut state: LspState, root: String) {
@@ -71,7 +70,7 @@ fn lsp_state_workspace_roots_len(state: LspState) -> i32 {
 }
 
 fn lsp_state_workspace_root_at(state: LspState, index: i32) -> String {
-    clone(get_unchecked(state.workspace_roots, index))
+    get_unchecked(state.workspace_roots, index).clone()
 }
 
 fn lsp_state_set_workspace_roots(mut state: LspState, roots: Vec<String>) {
@@ -79,7 +78,7 @@ fn lsp_state_set_workspace_roots(mut state: LspState, roots: Vec<String>) {
 }
 
 fn lsp_state_hover_detail_level(state: LspState) -> String {
-    clone(state.hover_detail_level)
+    state.hover_detail_level.clone()
 }
 
 fn lsp_state_set_hover_detail_level(mut state: LspState, level: String) {
@@ -127,7 +126,7 @@ fn lsp_state_has_exited(state: LspState) -> bool {
 }
 
 fn lsp_state_append_output(mut state: LspState, chunk: String) {
-    state.output = clone(state.output).concat(chunk)
+    state.output = state.output.clone().concat(chunk)
 }
 
 fn lsp_state_output(state: LspState) -> String {

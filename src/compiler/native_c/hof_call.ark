@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::function_id
 use corehir::signature_entry
@@ -32,8 +32,8 @@ fn native_c_hof_error(diagnostic: String) -> NativeCHofEmit {
 }
 
 fn native_c_hof_is_handled(result: NativeCHofEmit) -> bool { result.handled }
-fn native_c_hof_source(result: NativeCHofEmit) -> String { clone(result.expression) }
-fn native_c_hof_diagnostic(result: NativeCHofEmit) -> String { clone(result.diagnostic) }
+fn native_c_hof_source(result: NativeCHofEmit) -> String { result.expression.clone() }
+fn native_c_hof_diagnostic(result: NativeCHofEmit) -> String { result.diagnostic.clone() }
 
 fn native_c_hof_resolve_function_id(mir_module: MirModule, instruction: MirInst) -> i32 {
     let mut function_id_raw = inst_record::mir_inst_func_id_raw(instruction)
@@ -42,11 +42,11 @@ fn native_c_hof_resolve_function_id(mir_module: MirModule, instruction: MirInst)
     }
     let registry = module_spine::MirModule_signature_registry(mir_module)
     let callee = inst_record::mir_inst_str_val(instruction)
-    let mut resolved = signature_registry::signature_registry_lookup_by_mangled(registry, clone(callee))
+    let mut resolved = signature_registry::signature_registry_lookup_by_mangled(registry, callee.clone())
     if !function_id::function_id_is_valid(resolved) {
         let length = len(callee)
         let mut index = length - 2
-        let mut short = clone(callee)
+        let mut short = callee.clone()
         while index >= 0 {
             if callee.byte_at(index) == 58 && callee.byte_at(index + 1) == 58 {
                 short = callee.slice(index + 2, length)
@@ -64,7 +64,7 @@ fn native_c_hof_resolve_function_id(mir_module: MirModule, instruction: MirInst)
     let mut function_index = 0
     while function_index < function_count {
         let function = module_functions::MirModule_function_at(mir_module, function_index)
-        if eq(function_identity::MirFunction_name(function), clone(callee)) {
+        if eq(function_identity::MirFunction_name(function), callee.clone()) {
             let by_name = signature_registry::signature_registry_lookup_by_mangled(registry, callee)
             if function_id::function_id_is_valid(by_name) {
                 return function_id::FunctionId_raw(by_name)
@@ -131,11 +131,11 @@ fn native_c_hof_find_matching_function_id(
             continue
         }
         // bool lowers as uint8_t / encoding `b`, but many callbacks are typed i32.
-        let encodings_match = eq(result_encoding, clone(dest_result_encoding)) ||
-        (eq(clone(result_encoding), String_from("b")) &&
-            eq(clone(dest_result_encoding), String_from("i32"))) ||
-        (eq(clone(result_encoding), String_from("i32")) &&
-            eq(clone(dest_result_encoding), String_from("b")))
+        let encodings_match = eq(result_encoding, dest_result_encoding.clone()) ||
+        (eq(result_encoding.clone(), String_from("b")) &&
+            eq(dest_result_encoding.clone(), String_from("i32"))) ||
+        (eq(result_encoding.clone(), String_from("i32")) &&
+            eq(dest_result_encoding.clone(), String_from("b")))
         if !encodings_match {
             function_index = function_index + 1
             continue
@@ -253,13 +253,13 @@ fn native_c_collect_funcref_typedefs(mir_module: MirModule) -> String {
                 let mut already = false
                 let mut scan = 0
                 while scan < len(emitted_names) {
-                    if eq(get_unchecked(emitted_names, scan), clone(typedef_name)) {
+                    if eq(get_unchecked(emitted_names, scan), typedef_name.clone()) {
                         already = true
                     }
                     scan = scan + 1
                 }
                 if !already {
-                    push(emitted_names, clone(typedef_name))
+                    push(emitted_names, typedef_name.clone())
                     let decl = abi::native_c_funcref_typedef_decl(table, signature, heap_enum_flags)
                     if len(decl) > 0 {
                         out = out.concat(decl)

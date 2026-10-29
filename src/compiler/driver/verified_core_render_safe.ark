@@ -17,7 +17,6 @@ use typechecker::name_display
 // backend otherwise has to assign several unrelated struct/array reference
 // types inside one large renderer function.
 
-use std::prelude::{clone}
 use std::text
 fn vcs_typed_index(program: CoreHirRawProgram, function_index: i32) -> i32 {
     let fn_infos = raw_decls::program_fn_infos(program)
@@ -148,7 +147,7 @@ fn vcs_reachable_is_typed(program: CoreHirRawProgram, reachable: Vec<i32>) -> bo
 fn vcs_function_name(program: CoreHirRawProgram, function_index: i32) -> String {
     let fn_infos = raw_decls::program_fn_infos(program)
     let qualified = fn_info::fn_info_qualified_name_at(fn_infos, function_index, "")
-    if len(clone(qualified)) > 0 {
+    if len(qualified.clone()) > 0 {
         return qualified
     }
     fn_info::fn_info_name_at(fn_infos, function_index, "")
@@ -284,7 +283,7 @@ fn vcs_render_function(program: CoreHirRawProgram, function_index: i32) -> Strin
         return ""
     }
     let name = vcs_function_name(program, function_index)
-    if len(clone(name)) == 0 || !vcs_parameters_are_valid(program, function_index) {
+    if len(name.clone()) == 0 || !vcs_parameters_are_valid(program, function_index) {
         return ""
     }
 
@@ -347,7 +346,7 @@ fn render_verified_core(program: CoreHirRawProgram, config: DriverConfig) -> Str
         let decl_index = fn_info::fn_info_decl_index_at(fn_infos, function_index, 0 - 1)
         if decl_index >= main_decl_start && decl_index < main_decl_end {
             let rendered = vcs_render_function(program, function_index)
-            if len(clone(rendered)) == 0 {
+            if len(rendered.clone()) == 0 {
                 return ""
             }
             if !first_function {

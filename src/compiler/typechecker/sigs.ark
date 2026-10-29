@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use corehir::callee_spelling
 use resolver::expr_path
 use resolver::paths
@@ -56,21 +56,21 @@ fn collect_type_param_names(bound_infos: Vec<TypeParamBounds>) -> Vec<String> {
 // Type-owned heads (`Vec::new`) are excluded from the leaf fallback so an
 // unrelated bare `new` cannot supply a function type.
 fn resolve_fn_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> FnSig {
-    let mut sig = lookup_fn_sig(env, fn_sigs, clone(name))
+    let mut sig = lookup_fn_sig(env, fn_sigs, name.clone())
     if contract_fn_sig::FnSig_has_name(sig) {
         return sig
     }
-    let variants = callee_spelling::callee_spelling_variants(clone(name))
+    let variants = callee_spelling::callee_spelling_variants(name.clone())
     let mut i = 0
     while i < len(variants) {
-        let variant_sig = lookup_fn_sig(env, fn_sigs, clone(get_unchecked(variants, i)))
+        let variant_sig = lookup_fn_sig(env, fn_sigs, get_unchecked(variants, i).clone())
         if contract_fn_sig::FnSig_has_name(variant_sig) {
             return variant_sig
         }
         i = i + 1
     }
-    let leaf = names::unqualified_type_name(clone(name))
-    if !eq(clone(leaf), clone(name)) && !is_type_owned_name(clone(name)) {
+    let leaf = names::unqualified_type_name(name.clone())
+    if !eq(leaf.clone(), name.clone()) && !is_type_owned_name(name.clone()) {
         let leaf_sig = lookup_fn_sig(env, fn_sigs, leaf)
         if contract_fn_sig::FnSig_has_name(leaf_sig) {
             return leaf_sig
@@ -80,7 +80,7 @@ fn resolve_fn_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> FnSig {
 }
 
 fn is_type_owned_name(name: String) -> bool {
-    let owner = paths::path_module_part(clone(name))
+    let owner = paths::path_module_part(name.clone())
     if len(owner) == 0 {
         return false
     }

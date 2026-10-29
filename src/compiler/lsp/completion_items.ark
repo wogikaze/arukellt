@@ -1,6 +1,5 @@
 use std::text
 use std::json
-use std::prelude::{clone}
 use lsp::import_graph
 use lsp::positions
 pub fn completion_item(label: String, kind: i32, detail: String) -> String {
@@ -18,8 +17,8 @@ pub fn completion_item_json(label: String, kind: i32, detail: String, text: Stri
     if !needs_import || len(import_path) == 0 {
         return completion_item(label, kind, detail)
     }
-    let offset = import_graph::first_use_insert_offset(clone(text))
-    let pos = positions::offset_to_position(clone(text), offset)
+    let offset = import_graph::first_use_insert_offset(text.clone())
+    let pos = positions::offset_to_position(text.clone(), offset)
     let mut out = String_from("{\"label\":")
     out = out.concat(json::JsonText::quote(label))
     out = out.concat(String_from(",\"kind\":"))

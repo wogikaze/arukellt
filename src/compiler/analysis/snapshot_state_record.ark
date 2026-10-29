@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use analysis::diagnostic_record
 pub struct AnalysisSnapshot {
     uri: String,
@@ -19,7 +18,7 @@ fn snapshot_push(mut snap: AnalysisSnapshot, diag: AnalysisDiagnostic) {
 }
 
 fn snapshot_uri(snap: AnalysisSnapshot) -> String {
-    clone(snap.uri)
+    snap.uri.clone()
 }
 
 fn snapshot_set_decl_count(mut snap: AnalysisSnapshot, count: i32) {

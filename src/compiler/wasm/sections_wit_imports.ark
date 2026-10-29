@@ -1,6 +1,5 @@
 // Wasm WIT import section entries (#654).
 
-use std::prelude::{clone}
 use std::text
 use resolver::wit_import_bind
 use wasm::emit_target
@@ -14,7 +13,7 @@ fn emit_wit_import_entries(
 ) {
     for i in 0..len(bindings) {
         let binding = get_unchecked(bindings, i)
-        let iface = wit_import_module_name(binding, clone(wasi_version))
+        let iface = wit_import_module_name(binding, wasi_version.clone())
         let func = wit_import_bind::wit_import_binding_wit_func_name(binding)
         let type_idx = get_unchecked(wit_type_map, i)
         writer_string::emit_string(import_sec, iface)
@@ -25,7 +24,7 @@ fn emit_wit_import_entries(
 }
 
 fn wit_import_module_name(binding: wit_import_bind::WitImportBinding, wasi_version: String) -> String {
-    if emit_target::is_p2_wasi(clone(wasi_version)) {
+    if emit_target::is_p2_wasi(wasi_version.clone()) {
         return "cm32p2|".concat(wit_import_bind::wit_import_binding_component_interface_id(binding))
     }
     wit_import_bind::wit_import_binding_interface_id(binding)

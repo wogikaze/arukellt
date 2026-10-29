@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 struct MonoInstance {
     fn_name: String,
     mangled_name: String,
@@ -36,7 +35,7 @@ fn TypeInfo_tag(ty: TypeInfo) -> i32 {
 }
 
 fn TypeInfo_name(ty: TypeInfo) -> String {
-    clone(ty.name)
+    ty.name.clone()
 }
 
 fn TypeInfo_type_arg_count(ty: TypeInfo) -> i32 {
@@ -52,11 +51,11 @@ fn TypedFn_return_type(fn_info: TypedFn) -> TypeInfo {
 }
 
 fn MonoInstance_fn_name(instance: MonoInstance) -> String {
-    clone(instance.fn_name)
+    instance.fn_name.clone()
 }
 
 fn MonoInstance_mangled_name(instance: MonoInstance) -> String {
-    clone(instance.mangled_name)
+    instance.mangled_name.clone()
 }
 
 fn MonoInstance_type_arg_count(instance: MonoInstance) -> i32 {

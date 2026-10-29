@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use std::text
 use mir::opcodes
 use mir::lower::binary_method
@@ -17,13 +16,13 @@ fn lower_unary_from_operand(mut ctx: LowerCtx, op: i32, operand_idx: i32) -> i32
         ctx,
         ctx_get_local_type(ctx, operand_idx)
     )
-    let can_use_trait_overload = !binary_type_names::mir_is_primitive_operator_type(clone(ov_type)) ||
+    let can_use_trait_overload = !binary_type_names::mir_is_primitive_operator_type(ov_type.clone()) ||
     op == lower_kinds::UOP_BITNOT()
     if can_use_trait_overload {
         let ov_method = binary_method::mir_unary_operator_method_name(op)
         if len(ov_method) > 0 {
-            let ov_callee = clone(ov_type).concat("::".concat(clone(ov_method)))
-            if ctx_fn_exists(ctx, clone(ov_callee)) != 0 {
+            let ov_callee = ov_type.clone().concat("::".concat(ov_method.clone()))
+            if ctx_fn_exists(ctx, ov_callee.clone()) != 0 {
                 return binary_emit::mir_emit_overloaded_unary_call(ctx, ov_callee)
             }
         }

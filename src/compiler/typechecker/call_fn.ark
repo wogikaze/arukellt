@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::callee_spelling
 use resolver::expr_path
@@ -84,7 +84,7 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
     // `clone` is a compiler-provided polymorphic operation. The prelude keeps
     // a String-shaped declaration for compatibility, but typechecking must
     // preserve the argument type for structs, enums, and collection elements.
-    if eq(clone(callee_name), "clone") && child_count == 2 {
+    if eq(callee_name.clone(), "clone") && child_count == 2 {
         return infer_expr(
             env,
             scope,
@@ -99,7 +99,7 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
     // not to an imported module function that happens to share the bare
     // name after signature-index flattening.
     if ast_expr_predicates::node_is_ident(callee) {
-        let local_fn_ty = scope::scope_lookup_instantiated(env, scope, clone(callee_name))
+        let local_fn_ty = scope::scope_lookup_instantiated(env, scope, callee_name.clone())
         if contract_type_access::TypeInfo_tag(local_fn_ty) == commands::TY_FN() {
             return call_unknown::infer_local_function_call(
                 env,
@@ -111,18 +111,18 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
             )
         }
     }
-    let mut mono_fn_name = clone(callee_name)
-    let mut sig = sigs::lookup_fn_sig(env, fn_sigs, clone(callee_name))
+    let mut mono_fn_name = callee_name.clone()
+    let mut sig = sigs::lookup_fn_sig(env, fn_sigs, callee_name.clone())
     if !contract_fn_sig::FnSig_has_name(sig) {
         // Loaded-module bodies are not resolver-processed, so a
         // `module::Type::method` call keeps the module prefix. The signature
         // index registers the impl as `Type::method`; retry the canonical
         // spellings before falling back to the last segment.
-        let variants = callee_spelling::callee_spelling_variants(clone(callee_name))
+        let variants = callee_spelling::callee_spelling_variants(callee_name.clone())
         let mut vi = 0
         while vi < len(variants) {
-            let variant = clone(get_unchecked(variants, vi))
-            let variant_sig = sigs::lookup_fn_sig(env, fn_sigs, clone(variant))
+            let variant = get_unchecked(variants, vi).clone()
+            let variant_sig = sigs::lookup_fn_sig(env, fn_sigs, variant.clone())
             if contract_fn_sig::FnSig_has_name(variant_sig) {
                 sig = variant_sig
                 mono_fn_name = variant
@@ -133,10 +133,10 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
         }
     }
     if !contract_fn_sig::FnSig_has_name(sig) {
-        let stripped = tc_strip_module_prefix(clone(callee_name))
-        if !eq(clone(stripped), clone(callee_name)) &&
-        !expr_path::is_builtin_type_name(paths::path_module_part(clone(callee_name))) {
-            let bare_sig = sigs::lookup_fn_sig(env, fn_sigs, clone(stripped))
+        let stripped = tc_strip_module_prefix(callee_name.clone())
+        if !eq(stripped.clone(), callee_name.clone()) &&
+        !expr_path::is_builtin_type_name(paths::path_module_part(callee_name.clone())) {
+            let bare_sig = sigs::lookup_fn_sig(env, fn_sigs, stripped.clone())
             // Imported declarations are flattened into the typecheck signature
             // index, while the source path keeps its module alias. Use the bare
             // signature for both generic and concrete calls after the direct
@@ -159,9 +159,9 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
             fn_sigs,
             enum_defs,
             node,
-            clone(callee_name)
+            callee_name.clone()
         )
-        if len(clone(conversion_name)) > 0 {
+        if len(conversion_name.clone()) > 0 {
             let conversion_sig = sigs::lookup_fn_sig(env, fn_sigs, conversion_name)
             if contract_fn_sig::FnSig_has_name(conversion_sig) {
                 return infer_concrete_call_expr(
@@ -177,7 +177,7 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
         }
         // Vec::new<T>() / with_capacity without inherent-impl sig still need
         // mono sites so bare (unannotated) lets get vec:T (#845).
-        if call_vec_ctor::is_vec_associated_ctor_name(clone(callee_name)) {
+        if call_vec_ctor::is_vec_associated_ctor_name(callee_name.clone()) {
             let ctor_ty = call_vec_ctor::infer_vec_ctor_turbofish_call(env, node, callee)
             if contract_type_access::TypeInfo_tag(ctor_ty) != commands::TY_UNKNOWN() {
                 call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, child_count - 1)
@@ -193,7 +193,7 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
                 ast_access::node_child_at(node, 1)
             )
             if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_VEC() {
-                vec_core_mono::record_vec_core_mono_for_callee(env, clone(callee_name), recv_ty)
+                vec_core_mono::record_vec_core_mono_for_callee(env, callee_name.clone(), recv_ty)
             }
         }
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, child_count - 1)
@@ -218,8 +218,8 @@ fn hashset_from_iter_candidate(
     node: AstNode,
     callee_name: String
 ) -> String {
-    let is_from_iter = eq(clone(callee_name), String_from("HashSet::from_iter")) ||
-    clone(callee_name).ends_with(String_from("::HashSet::from_iter"))
+    let is_from_iter = eq(callee_name.clone(), String_from("HashSet::from_iter")) ||
+    callee_name.clone().ends_with(String_from("::HashSet::from_iter"))
     if !is_from_iter || ast_access::node_child_count(node) < 2 {
         return String_new()
     }
@@ -231,15 +231,15 @@ fn hashset_from_iter_candidate(
         ast_access::node_child_at(node, 1)
     )
     let source_name = call_method::type_name_for_mangling(source_ty)
-    if len(clone(source_name)) == 0 {
+    if len(source_name.clone()) == 0 {
         return String_new()
     }
-    let i32_name = String_from("HashSet_i32::from_iter__").concat(clone(source_name))
-    if contract_fn_sig::FnSig_has_name(sigs::lookup_fn_sig(env, fn_sigs, clone(i32_name))) {
+    let i32_name = String_from("HashSet_i32::from_iter__").concat(source_name.clone())
+    if contract_fn_sig::FnSig_has_name(sigs::lookup_fn_sig(env, fn_sigs, i32_name.clone())) {
         return i32_name
     }
     let string_name = String_from("HashSet_String::from_iter__").concat(source_name)
-    if contract_fn_sig::FnSig_has_name(sigs::lookup_fn_sig(env, fn_sigs, clone(string_name))) {
+    if contract_fn_sig::FnSig_has_name(sigs::lookup_fn_sig(env, fn_sigs, string_name.clone())) {
         return string_name
     }
     String_new()
@@ -260,7 +260,7 @@ fn infer_concrete_call_expr(
         unify::type_error_bad_arity(
             env,
             String_from("wrong number of arguments for `").concat(
-                clone(fname).concat(String_from("`: expected ").concat(param_count.to_string().concat(String_from(", found ").concat(arg_count.to_string()))))
+                fname.clone().concat(String_from("`: expected ").concat(param_count.to_string().concat(String_from(", found ").concat(arg_count.to_string()))))
             )
         )
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, arg_count)
@@ -274,7 +274,7 @@ fn infer_concrete_call_expr(
         1,
         TypeInfo_simple(commands::TY_UNKNOWN())
     )
-    if builtins::is_concrete_prelude_builtin(clone(fname)) {
+    if builtins::is_concrete_prelude_builtin(fname.clone()) {
         infer_prelude_concrete_call_args(env, scope, fn_sigs, enum_defs, node, sig, arg_count)
         return contract_fn_sig::FnSig_return_type(sig)
     }
@@ -338,7 +338,7 @@ fn infer_prelude_concrete_call_args(
         let resolved_arg_ty = unify::resolve_type(env, arg_ty)
         if has_concrete_arg_conflict(param_ty, resolved_arg_ty) {
             let mut message = String_from("type mismatch in call to `")
-            message = message.concat(clone(callee_name))
+            message = message.concat(callee_name.clone())
             message = message.concat(String_from("`: argument "))
             message = message.concat((i + 1).to_string())
             message = message.concat(String_from(" has type "))
@@ -377,5 +377,5 @@ fn tc_strip_module_prefix(name: String) -> String {
         }
         i = i - 1
     }
-    clone(name)
+    name.clone()
 }

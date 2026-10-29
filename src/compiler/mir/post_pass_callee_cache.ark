@@ -7,7 +7,6 @@ use mir::module_functions
 // Linear scan of every MirFunction on each CALL (× fixpoint iterations) was
 // the dominant cost of lower.propagate on selfhost-scale modules (#829).
 
-use std::prelude::{clone}
 struct CalleePropCache {
     by_name: NameIndex,
     by_bare: NameIndex,
@@ -34,9 +33,9 @@ fn callee_prop_cache_build(m: MirModule) -> CalleePropCache {
     while fi < count {
         let f = module_functions::MirModule_function_at(m, fi)
         let fname = function_identity::MirFunction_name(f)
-        name_index::name_index_insert_first(by_name, clone(fname), fi)
-        let bare = strip_module_prefix(clone(fname))
-        let existing_bare = name_index::name_index_get(by_bare, clone(bare))
+        name_index::name_index_insert_first(by_name, fname.clone(), fi)
+        let bare = strip_module_prefix(fname.clone())
+        let existing_bare = name_index::name_index_get(by_bare, bare.clone())
         if existing_bare < 0 {
             name_index::name_index_set(by_bare, bare, fi)
         } else if existing_bare != fi {
@@ -59,7 +58,7 @@ fn callee_prop_cache_build(m: MirModule) -> CalleePropCache {
     let mut disc_index = name_index::NameIndex_new(len(disc_names_list))
     let mut di = 0
     while di < len(disc_names_list) {
-        name_index::name_index_insert_first(disc_index, clone(get_unchecked(disc_names_list, di)), di)
+        name_index::name_index_insert_first(disc_index, get_unchecked(disc_names_list, di).clone(), di)
         di = di + 1
     }
     CalleePropCache {
@@ -76,9 +75,9 @@ fn callee_prop_cache_build(m: MirModule) -> CalleePropCache {
 // loop exactly: same insert order semantics for by_name/by_bare and the
 // same parallel ret tables.
 fn callee_prop_cache_add_fn(mut cache: CalleePropCache, fi: i32, fname: String, ret_name: String, ret_slot: i32) {
-    name_index::name_index_insert_first(cache.by_name, clone(fname), fi)
-    let bare = strip_module_prefix(clone(fname))
-    let existing_bare = name_index::name_index_get(cache.by_bare, clone(bare))
+    name_index::name_index_insert_first(cache.by_name, fname.clone(), fi)
+    let bare = strip_module_prefix(fname.clone())
+    let existing_bare = name_index::name_index_get(cache.by_bare, bare.clone())
     if existing_bare < 0 {
         name_index::name_index_set(cache.by_bare, bare, fi)
     } else if existing_bare != fi {
@@ -89,7 +88,7 @@ fn callee_prop_cache_add_fn(mut cache: CalleePropCache, fi: i32, fname: String, 
 }
 
 fn callee_prop_cache_lookup(cache: CalleePropCache, callee: String) -> i32 {
-    let exact = name_index::name_index_get(cache.by_name, clone(callee))
+    let exact = name_index::name_index_get(cache.by_name, callee.clone())
     if exact >= 0 {
         return exact
     }
@@ -104,13 +103,13 @@ fn callee_prop_cache_lookup(cache: CalleePropCache, callee: String) -> i32 {
 fn callee_prop_cache_return_type_name(cache: CalleePropCache, callee: String) -> String {
     let idx = callee_prop_cache_lookup(cache, callee)
     if idx >= 0 && idx < len(cache.ret_type_names) {
-        return clone(get_unchecked(cache.ret_type_names, idx))
+        return get_unchecked(cache.ret_type_names, idx).clone()
     }
     let di = name_index::name_index_get(cache.disc_names, callee)
     if di < 0 || di >= len(cache.disc_ret_names) {
         return String_new()
     }
-    clone(get_unchecked(cache.disc_ret_names, di))
+    get_unchecked(cache.disc_ret_names, di).clone()
 }
 
 fn callee_prop_cache_return_variant_slot(cache: CalleePropCache, callee: String) -> i32 {

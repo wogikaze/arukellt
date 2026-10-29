@@ -8,7 +8,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 17 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 16 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 1 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 3 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 65 | Superseded — see migration guidance. |
@@ -84,7 +84,7 @@
 | `V128` | - | no | experimental | Raw 128-bit vector bitwise associated operations. |
 | `V128Memory` | - | no | experimental | Raw v128 linear-memory load and store associated operations. |
 | `ValType` | - | no | experimental | Value-type constants matching the Wasm binary encoding, including the reference types. |
-| `Vec` | T | yes | - | Growable contiguous sequence. |
+| `Vec` | T | yes | - | Growable contiguous sequence. .clone() is a shallow header copy: the clone shares element storage (deep element copy needs T: Clone). |
 | `WasmModuleBuilder` | - | no | experimental | Minimal Wasm module builder that counts signatures, functions, memories, and exports and encodes the module header. |
 | `Writer` | - | no | experimental | In-memory write handle over an owned byte image; implements Write. |
 
@@ -205,7 +205,7 @@
 | `V128` | `zero`, `and`, `andnot`, `or`, `xor`, `not`, `bitselect`, `any_true`, `new` | - |
 | `V128Memory` | `load`, `store`, `load_splat`, `load_lane`, `store_lane`, `load8x8_s`, `load8x8_u`, `load16x4_s`, `load16x4_u`, `load32x2_s`, `load32x2_u` | - |
 | `ValType` | `i32`, `i64`, `f32`, `f64`, `v128`, `funcref`, `externref` | - |
-| `Vec` | `new`, `with_capacity`, `push`, `pop`, `get`, `set`, `len`, `is_empty`, `get_unchecked`, `windows`, `chunks`, `chunks_exact`, `retain`, `truncate`, `append`, `drain`, `splice`, `sort_by`, `sort_by_key`, `sort_unstable_by`, `sort_unstable_by_key`, `dedup_by`, `partition`, `is_sorted_by`, `binary_search_by_key`, `resize`, `extend`, `clear`, `first`, `last`, `swap`, `reverse`, `insert`, `remove`, `swap_remove`, `sort`, `dedup`, `lower_bound`, `upper_bound`, `binary_search`, `min`, `max`, `min_by_key`, `max_by_key` | - |
+| `Vec` | `new`, `clone`, `with_capacity`, `push`, `pop`, `get`, `set`, `len`, `is_empty`, `get_unchecked`, `windows`, `chunks`, `chunks_exact`, `retain`, `truncate`, `append`, `drain`, `splice`, `sort_by`, `sort_by_key`, `sort_unstable_by`, `sort_unstable_by_key`, `dedup_by`, `partition`, `is_sorted_by`, `binary_search_by_key`, `resize`, `extend`, `clear`, `first`, `last`, `swap`, `reverse`, `insert`, `remove`, `swap_remove`, `sort`, `dedup`, `lower_bound`, `upper_bound`, `binary_search`, `min`, `max`, `min_by_key`, `max_by_key` | - |
 | `WasmModuleBuilder` | `new`, `add_type`, `add_func`, `add_memory`, `add_export_func`, `type_count`, `func_count`, `mem_count`, `export_count`, `magic`, `version`, `encode_header` | - |
 | `Write` | `write`, `flush` | - |
 | `Writer` | `new`, `into_bytes`, `into_reader`, `write_string` | `Write` |
@@ -419,7 +419,6 @@ let input = stdio::read_stdin()
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `String_from` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_from` | - |
 | `String_new` | `() -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_new` | - |
-| `clone` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_clone` | - |
 | `eq` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_eq` | - |
 
 ## Deprecated APIs

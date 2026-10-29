@@ -2,7 +2,6 @@
 // so that callers (ctx_typed_mir_sync, verify_call, call_fallback) stay under
 // the direct import fan-out limit (13).
 
-use std::prelude::{clone}
 use corehir::function_id
 use corehir::mir_value_type
 use corehir::signature_entry
@@ -71,9 +70,9 @@ fn function_return_mvt(m: MirModule, func_name: String) -> MirValueType {
 
 fn legacy_vt_to_mvt(m: MirModule, val_type: i32, type_name: String) -> MirValueType {
     if module_spine::MirModule_signature_spine_populated(m) {
-        return type_info_to_mir_value::vt_to_mir_value(module_spine::MirModule_type_table(m), val_type, clone(type_name))
+        return type_info_to_mir_value::vt_to_mir_value(module_spine::MirModule_type_table(m), val_type, type_name.clone())
     }
-    typed_mir_compat::mvt_from_legacy_vt(val_type, clone(type_name))
+    typed_mir_compat::mvt_from_legacy_vt(val_type, type_name.clone())
 }
 
 fn call_return_mvts(m: MirModule, inst: MirInst) -> Vec<MirValueType> {

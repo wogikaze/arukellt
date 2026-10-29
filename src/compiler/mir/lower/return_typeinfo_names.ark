@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use mir::typeinfo_shape
 use mir::lower_kinds
@@ -99,17 +99,17 @@ fn mir_hashmap_return_type_name_from_type_info(ty: TypeInfo) -> String {
     let val_name = typeinfo_shape::mir_type_info_name(val)
     if key_tag == 1 && (
         val_tag == 20 ||
-        eq(clone(val_name), String_from("fnref")) ||
-        eq(clone(val_name), String_from("fn")) ||
-        clone(val_name).starts_with(String_from("fn("))
+        eq(val_name.clone(), String_from("fnref")) ||
+        eq(val_name.clone(), String_from("fn")) ||
+        val_name.clone().starts_with(String_from("fn("))
     ) {
         return String_from("hashmap:i32fn")
     }
     if key_tag == 5 && (
         val_tag == 20 ||
-        eq(clone(val_name), String_from("fnref")) ||
-        eq(clone(val_name), String_from("fn")) ||
-        clone(val_name).starts_with(String_from("fn("))
+        eq(val_name.clone(), String_from("fnref")) ||
+        eq(val_name.clone(), String_from("fn")) ||
+        val_name.clone().starts_with(String_from("fn("))
     ) {
         return String_from("hashmap:strfn")
     }
@@ -224,7 +224,7 @@ fn mir_result_return_type_name_from_type_info(ty: TypeInfo) -> String {
 
 fn mir_enum_return_type_name_from_type_info(ty: TypeInfo) -> String {
     let name = typeinfo_shape::mir_type_info_name(ty)
-    if eq(clone(name), String_from("Result")) {
+    if eq(name.clone(), String_from("Result")) {
         return mir_result_return_type_name_from_type_info(ty)
     }
     String_from("enum:").concat(name)
@@ -237,24 +237,24 @@ fn mir_enum_return_type_name_from_type_info(ty: TypeInfo) -> String {
 // the substituted type instead of the bare declaration.
 fn mir_struct_return_type_name_from_type_info(ty: TypeInfo) -> String {
     let name = typeinfo_shape::mir_type_info_name(ty)
-    if eq(clone(name), String_from("Vec")) &&
+    if eq(name.clone(), String_from("Vec")) &&
     typeinfo_shape::mir_type_info_type_arg_count(ty) > 0 {
         return mir_vec_return_type_name_from_type_info(ty)
     }
-    if eq(clone(name), String_from("HashSet")) {
+    if eq(name.clone(), String_from("HashSet")) {
         return mir_vec_return_type_name_from_type_info(ty)
     }
-    if eq(clone(name), String_from("HashMap")) {
+    if eq(name.clone(), String_from("HashMap")) {
         return mir_hashmap_return_type_name_from_type_info(ty)
     }
     if len(name) == 0 {
         return name
     }
     let arg_count = typeinfo_shape::mir_type_info_type_arg_count(ty)
-    if arg_count <= 0 || clone(name).contains(String_from("<")) {
+    if arg_count <= 0 || name.clone().contains(String_from("<")) {
         return name
     }
-    let mut out = clone(name).concat(String_from("<"))
+    let mut out = name.clone().concat(String_from("<"))
     let mut i = 0
     while i < arg_count {
         if i > 0 {
@@ -314,14 +314,14 @@ fn mir_generic_inst_arg_type_name(ty: TypeInfo) -> String {
     if tag == lower_kinds::TY_STRUCT() ||
     tag == lower_kinds::TY_ENUM() ||
     tag == 24 {
-        if eq(clone(name), String_from("Vec")) && arg_count > 0 {
+        if eq(name.clone(), String_from("Vec")) && arg_count > 0 {
             return String_from("vec:").concat(mir_generic_inst_arg_type_name(typeinfo_shape::mir_type_info_type_arg_at(ty, 0)))
         }
-        if eq(clone(name), String_from("HashMap")) {
+        if eq(name.clone(), String_from("HashMap")) {
             return mir_hashmap_return_type_name_from_type_info(ty)
         }
-        if arg_count > 0 && !clone(name).contains(String_from("<")) {
-            let mut nested = clone(name).concat(String_from("<"))
+        if arg_count > 0 && !name.clone().contains(String_from("<")) {
+            let mut nested = name.clone().concat(String_from("<"))
             let mut i = 0
             while i < arg_count {
                 if i > 0 {

@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::ctx_fn_mono
 use mir::lower::ctx_types
 use mir::mono
@@ -19,8 +18,8 @@ fn mir_register_mono_rewrites(mut ctx: LowerCtx, mono_instances: Vec<MonoInstanc
                 ctx_fn_mono::ctx_register_mono_span_rewrite(
                     ctx,
                     mono_instance_shape::mir_mono_instance_marker_span_start(site_marker),
-                    clone(source_name),
-                    clone(safe_target)
+                    source_name.clone(),
+                    safe_target.clone()
                 )
             } else {
                 ctx_fn_mono::ctx_register_mono_name_rewrite(ctx, source_name, safe_target)

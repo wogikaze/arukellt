@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 struct LoadState {
     loaded_names: Vec<String>,
     loaded_slots: Vec<i32>,
@@ -22,7 +22,7 @@ pub fn LoadState_new() -> LoadState {
 }
 
 pub fn LoadState_cache_dir(state: LoadState) -> String {
-    clone(state.cache_dir)
+    state.cache_dir.clone()
 }
 
 pub fn LoadState_set_cache_dir(mut state: LoadState, cache_dir: String) {

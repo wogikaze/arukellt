@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use diagnostics::source_map_offsets
 struct LspDiagPosition {
     line: i32,
@@ -6,7 +5,7 @@ struct LspDiagPosition {
 }
 
 fn offset_to_diag_position(text: String, offset: i32) -> LspDiagPosition {
-    LspDiagPosition { line: source_map_offsets::offset_to_zero_based_line(clone(text), offset), character: source_map_offsets::offset_to_zero_based_column(text, offset) }
+    LspDiagPosition { line: source_map_offsets::offset_to_zero_based_line(text.clone(), offset), character: source_map_offsets::offset_to_zero_based_column(text, offset) }
 }
 
 fn lsp_diag_position_line(pos: LspDiagPosition) -> i32 {

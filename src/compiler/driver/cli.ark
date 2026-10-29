@@ -2,7 +2,7 @@ use std::host::env::Env
 use std::host::fs::Fs
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use driver::config_record
 use driver::file
@@ -11,7 +11,7 @@ use driver::result_record
 
 fn write_legacy_compile_result(output_path: String, result: CompileResult) {
     if result_record::compile_result_success(result) {
-        let write: Result<(), String> = Fs::write_bytes(clone(output_path), result_record::compile_result_output_bytes(result))
+        let write: Result<(), String> = Fs::write_bytes(output_path.clone(), result_record::compile_result_output_bytes(result))
         match write {
             Result::Ok(_) => {
             },
@@ -25,7 +25,7 @@ fn write_legacy_compile_result(output_path: String, result: CompileResult) {
         let mut j = 0
         while j < err_count {
             let msg = result_record::compile_result_error_message_at(result, j)
-            stdio::eprintln("error: ".concat(clone(msg)))
+            stdio::eprintln("error: ".concat(msg.clone()))
             j = j + 1
         }
         Process::exit(1)
@@ -41,8 +41,8 @@ fn main() {
         Process::exit(1)
     }
     let subcommand = get_unchecked(args, arg_start)
-    if !eq(clone(subcommand), "compile") {
-        stdio::eprintln("unknown subcommand: ".concat(clone(subcommand)))
+    if !eq(subcommand.clone(), "compile") {
+        stdio::eprintln("unknown subcommand: ".concat(subcommand.clone()))
         Process::exit(1)
     }
     let mut config = config_record::DriverConfig_default()

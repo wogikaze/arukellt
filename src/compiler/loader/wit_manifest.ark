@@ -1,22 +1,22 @@
 use std::host::fs::Fs
 use std::toml
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use compiler::wit_identity
 use loader::module_paths
 use loader::module_package_root
 use loader::registry_config
 pub fn is_wit_package_id(name: String) -> bool {
-    if len(wit_identity::wit_identifier_error(clone(name))) == 0 {
+    if len(wit_identity::wit_identifier_error(name.clone())) == 0 {
         return true
     }
-    len(wit_identity::wit_package_identity_error(clone(name))) == 0
+    len(wit_identity::wit_package_identity_error(name.clone())) == 0
 }
 
 pub fn merge_wit_paths_for_source(source_file: String, cli_paths: Vec<String>) -> Vec<String> {
-    let base_dir = module_paths::parent_dir(clone(source_file))
-    let package_root = module_package_root::find_package_root(clone(base_dir))
-    let mut merged = collect_wit_paths_from_manifest(clone(package_root))
+    let base_dir = module_paths::parent_dir(source_file.clone())
+    let package_root = module_package_root::find_package_root(base_dir.clone())
+    let mut merged = collect_wit_paths_from_manifest(package_root.clone())
     for i in 0..len(cli_paths) {
         wit_push_unique(merged, get_unchecked(cli_paths, i))
     }
@@ -28,7 +28,7 @@ fn wit_push_unique(mut paths: Vec<String>, path: String) {
         return
     }
     for i in 0..len(paths) {
-        if eq(get_unchecked(paths, i), clone(path)) {
+        if eq(get_unchecked(paths, i), path.clone()) {
             return
         }
     }
@@ -37,11 +37,11 @@ fn wit_push_unique(mut paths: Vec<String>, path: String) {
 
 fn collect_wit_paths_from_manifest(package_root: String) -> Vec<String> {
     let mut paths = Vec::new<String>()
-    let content = registry_config::read_package_manifest(clone(package_root))
+    let content = registry_config::read_package_manifest(package_root.clone())
     if len(content) == 0 {
         return paths
     }
-    let deps_section = toml::TomlText::find_section(clone(content), String_from("dependencies"))
+    let deps_section = toml::TomlText::find_section(content.clone(), String_from("dependencies"))
     if len(deps_section) == 0 {
         return paths
     }
@@ -52,7 +52,7 @@ fn collect_wit_paths_from_manifest(package_root: String) -> Vec<String> {
         if deps_section.byte_at(i) == 10 || i == content_len - 1 {
             let line_end = if deps_section.byte_at(i) == 10 { i } else { i + 1 }
             let line = deps_section.slice(line_start, line_end)
-            wit_collect_line_dependency(paths, clone(package_root), line)
+            wit_collect_line_dependency(paths, package_root.clone(), line)
             line_start = i + 1
         }
         i = i + 1
@@ -63,20 +63,20 @@ fn collect_wit_paths_from_manifest(package_root: String) -> Vec<String> {
 // Side-effecting collector: no bool result. A discarded i32 return was left on
 // the wasm stack under the caller's loop increment (KEEP_CLOCK validate fail).
 fn wit_collect_line_dependency(mut paths: Vec<String>, package_root: String, line: String) {
-    let eq_pos = clone(line).index_of(String_from("="))
+    let eq_pos = line.clone().index_of(String_from("="))
     if eq_pos < 0 {
         return
     }
     let key = wit_trim_key(line.slice(0, eq_pos))
-    if !is_wit_package_id(clone(key)) {
+    if !is_wit_package_id(key.clone()) {
         return
     }
-    let vendor_rel = wit_vendor_rel_from_line(clone(line))
+    let vendor_rel = wit_vendor_rel_from_line(line.clone())
     if len(vendor_rel) == 0 {
         return
     }
-    let vendor_dir = wit_resolve_relative_path(clone(package_root), vendor_rel)
-    let wit_path = wit_vendor_wit_file(clone(vendor_dir))
+    let vendor_dir = wit_resolve_relative_path(package_root.clone(), vendor_rel)
+    let wit_path = wit_vendor_wit_file(vendor_dir.clone())
     if len(wit_path) == 0 {
         return
     }
@@ -85,12 +85,12 @@ fn wit_collect_line_dependency(mut paths: Vec<String>, package_root: String, lin
 
 fn wit_vendor_rel_from_line(line: String) -> String {
     let path_marker = String_from("path = \"")
-    let pos = clone(line).index_of(path_marker)
+    let pos = line.clone().index_of(path_marker)
     if pos < 0 {
         return String_new()
     }
     let tail = line.slice(pos + len(path_marker), len(line))
-    let end = clone(tail).index_of(String_from("\""))
+    let end = tail.clone().index_of(String_from("\""))
     if end < 0 {
         return String_new()
     }
@@ -118,7 +118,7 @@ fn wit_join_path(base: String, rel: String) -> String {
     if len(base) == 0 {
         return rel
     }
-    if clone(base).ends_with(String_from("/")) {
+    if base.clone().ends_with(String_from("/")) {
         return base.concat(rel)
     }
     base.concat(String_from("/")).concat(rel)
@@ -126,28 +126,28 @@ fn wit_join_path(base: String, rel: String) -> String {
 
 fn wit_resolve_relative_path(base: String, rel: String) -> String {
     if len(rel) == 0 {
-        return clone(base)
+        return base.clone()
     }
-    if clone(rel).starts_with(String_from("../")) {
-        let parent = module_paths::parent_dir(clone(base))
+    if rel.clone().starts_with(String_from("../")) {
+        let parent = module_paths::parent_dir(base.clone())
         return wit_resolve_relative_path(parent, rel.slice(3, len(rel)))
     }
-    if clone(rel).starts_with(String_from("./")) {
-        return wit_resolve_relative_path(clone(base), rel.slice(2, len(rel)))
+    if rel.clone().starts_with(String_from("./")) {
+        return wit_resolve_relative_path(base.clone(), rel.slice(2, len(rel)))
     }
-    wit_join_path(clone(base), rel)
+    wit_join_path(base.clone(), rel)
 }
 
 fn wit_vendor_wit_file(vendor_dir: String) -> String {
     // Avoid the `Fs` read probe on wasm32-gc (GC String → i64 scratch validate fail).
-    let mod_wit = wit_join_path(clone(vendor_dir), String_from("mod.wit"))
-    match Fs::read_to_string(clone(mod_wit)) {
+    let mod_wit = wit_join_path(vendor_dir.clone(), String_from("mod.wit"))
+    match Fs::read_to_string(mod_wit.clone()) {
         Result::Ok(_) => {
             mod_wit
         },
         Result::Err(_) => {
-            let iface_wit = wit_join_path(clone(vendor_dir), String_from("interface.wit"))
-            match Fs::read_to_string(clone(iface_wit)) {
+            let iface_wit = wit_join_path(vendor_dir.clone(), String_from("interface.wit"))
+            match Fs::read_to_string(iface_wit.clone()) {
                 Result::Ok(_) => {
                     iface_wit
                 },

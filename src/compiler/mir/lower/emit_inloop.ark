@@ -17,7 +17,6 @@
 //     on the post-prune index at reloc-apply time.
 
 use std::prelude::eq
-use std::prelude::{clone}
 use corehir::callee_spelling
 use collections::name_index
 use mir::block_inst_access
@@ -121,7 +120,7 @@ fn emit_inloop_prepare(mut ctx: LowerCtx) {
     let spec = ctx.emit_spec
     let mut ectx = ctx.emit_ctx
     ectx.functions = module_functions::MirModule_functions(m)
-    ectx.wasi_version = clone(emit_spec::mir_lower_emit_spec_wasi_version(spec))
+    ectx.wasi_version = emit_spec::mir_lower_emit_spec_wasi_version(spec).clone()
     ectx.memory64 = emit_spec::mir_lower_emit_spec_memory64(spec)
     ectx.source_file = emit_spec::mir_lower_emit_spec_source_file(spec)
     if !ectx.spine_populated {
@@ -201,23 +200,23 @@ fn emit_inloop_prepare(mut ctx: LowerCtx) {
 // fallback must not run — defer. Covers the exact, stripped, and builtin
 // alias spellings resolve_fn_index tries.
 fn emit_inloop_disc_hit(disc: NameIndex, name: String) -> bool {
-    if name_index::name_index_get(disc, clone(name)) >= 0 {
+    if name_index::name_index_get(disc, name.clone()) >= 0 {
         return true
     }
     // A loaded-module call keeps `module::Type::method`; the pushed body is
     // registered as `Type::method`. Without these variants the oracle misses
     // and the call is emitted as a permanent drop+unreachable instead of
     // being deferred to the drain.
-    let variants = callee_spelling::callee_spelling_variants(clone(name))
+    let variants = callee_spelling::callee_spelling_variants(name.clone())
     let mut vi = 0
     while vi < len(variants) {
-        if name_index::name_index_get(disc, clone(get_unchecked(variants, vi))) >= 0 {
+        if name_index::name_index_get(disc, get_unchecked(variants, vi).clone()) >= 0 {
             return true
         }
         vi = vi + 1
     }
-    let alias = hash_aliases::hashmap_builtin_alias(clone(name))
-    if !eq(clone(alias), clone(name)) {
+    let alias = hash_aliases::hashmap_builtin_alias(name.clone())
+    if !eq(alias.clone(), name.clone()) {
         if name_index::name_index_get(disc, alias) >= 0 {
             return true
         }
@@ -299,10 +298,10 @@ fn emit_inloop_fn_emittable(ctx: LowerCtx, f: MirFunction) -> bool {
                         return false
                     }
                 } else {
-                    let callee = clone(
-                        inst_accessors_literals::MirInst_str_val(inst))
+                    let callee =
+                    inst_accessors_literals::MirInst_str_val(inst).clone()
                     if inst_ctx::resolve_fn_index_for_call(
-                        ectx, clone(callee), fid_raw) >= 0 {
+                        ectx, callee.clone(), fid_raw) >= 0 {
                         return false
                     }
                     if emit_inloop_disc_hit(disc, callee) {
@@ -370,7 +369,7 @@ fn emit_inloop_drain(
     let mut opt_i = art.opt_fn_count
     while opt_i < len(fns_for_opt) {
         let mut opt_f = get_unchecked(fns_for_opt, opt_i)
-        let mut opt_f = mir_opt::optimize_fn(module, opt_f, opt_level, clone(target))
+        let mut opt_f = mir_opt::optimize_fn(module, opt_f, opt_level, target.clone())
         module_functions::MirModule_set_function_at(module, opt_i, opt_f)
         opt_i = opt_i + 1
     }
@@ -388,7 +387,7 @@ fn emit_inloop_drain(
         reachability_entry::mir_reachability_marks_for_target_and_edges(
             module,
             export_roots,
-            clone(target),
+            target.clone(),
             ctx_call_edges::ctx_edge_table(ctx),
             ctx_call_edges::ctx_edge_fn_names(ctx),
             ctx_call_edges::ctx_edge_overflow_names(ctx)
@@ -408,7 +407,7 @@ fn emit_inloop_drain(
     // over the post-prune module — kept order equals pruned order, so the
     // emit-phase canonicalize replays as lookups only.
     let main_idx = emit_inloop_start_fn_index(kept)
-    let needs_wrapper = if emit_target::is_p2_wasi(clone(wasi_version)) {
+    let needs_wrapper = if emit_target::is_p2_wasi(wasi_version.clone()) {
         if main_idx >= 0 { 1 } else { 0 }
     } else {
         emit_inloop_needs_start_wrapper(kept)
@@ -424,16 +423,16 @@ fn emit_inloop_drain(
         let owner = get_unchecked(art.pair_ref_fn, pr)
         if len(marks) == 0 || get_unchecked(marks, owner) != 0 {
             let sig = call_indirect::pair_call_sig_from_hint(
-                clone(get_unchecked(art.pair_ref_hint, pr)),
+                get_unchecked(art.pair_ref_hint, pr).clone(),
                 get_unchecked(art.pair_ref_vt, pr),
                 memory64,
-                clone(gc_names)
+                gc_names.clone()
             )
             if len(sig) > 0 {
                 let mut seen = false
                 let mut si = 0
                 while si < len(pair_sigs) {
-                    if eq(clone(sig), clone(get_unchecked(pair_sigs, si))) {
+                    if eq(sig.clone(), get_unchecked(pair_sigs, si).clone()) {
                         seen = true
                     }
                     si = si + 1
@@ -461,9 +460,9 @@ fn emit_inloop_drain(
     let late_pair_sigs = sections_types_sigs::collect_pair_call_type_sigs(
         late_kept,
         len(late_kept),
-        clone(target),
+        target.clone(),
         memory64,
-        clone(gc_names)
+        gc_names.clone()
     )
     let mut lsi = 0
     while lsi < len(late_pair_sigs) {
@@ -471,7 +470,7 @@ fn emit_inloop_drain(
         let mut seen = false
         let mut si = 0
         while si < len(pair_sigs) {
-            if eq(clone(late_sig), clone(get_unchecked(pair_sigs, si))) {
+            if eq(late_sig.clone(), get_unchecked(pair_sigs, si).clone()) {
                 seen = true
             }
             si = si + 1
@@ -491,8 +490,8 @@ fn emit_inloop_drain(
         kept,
         len(kept),
         needs_wrapper,
-        clone(target),
-        clone(wasi_version),
+        target.clone(),
+        wasi_version.clone(),
         memory64,
         bindings,
         pair_sigs
@@ -508,7 +507,7 @@ fn emit_inloop_drain(
     // plan-tail appends carried as STR relocs, resolved on the emit ctx.
     let mut ectx = ctx.emit_ctx
     ectx.functions = functions
-    ectx.wasi_version = clone(wasi_version)
+    ectx.wasi_version = wasi_version.clone()
     ectx.memory64 = memory64
     ectx.source_file = emit_spec::mir_lower_emit_spec_source_file(spec)
     ctx_record::SelfEmitCtx_fn_index_drain(ectx)

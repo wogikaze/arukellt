@@ -35,7 +35,7 @@ use corehir::type_info_to_mir_value
 // #829: CalleePropCache makes per-CALL callee lookup O(1) instead of scanning
 // the whole MirModule (and each callee body) on every fixpoint iteration.
 
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 fn mir_module_propagate_local_types(mut m: MirModule) {
     mir_module_propagate_local_types_report(m, 0)
 }
@@ -167,24 +167,24 @@ fn propagate_from_local(mut f: MirFunction, dest: i32, source: i32, mut table: T
     let mut updated = false
     // `new_loc` is a rewritten copy of `dst_loc`; the original is still read
     // below, so the copy must not move it.
-    let mut new_loc = clone(dst_loc)
+    let mut new_loc = dst_loc.clone()
     let destination_is_temporary = local_access::MirLocal_name(dst_loc).starts_with("_t")
     // String/vec/hashmap payload locals must not inherit enum variant slots;
     // that makes emit cast field values to the enclosing Ok/Some/String variant.
-    let dst_is_payload_container = post_pass_enum_normalize::is_ref_container_type_name(clone(dst_type_name)) ||
-    eq(clone(dst_type_name), "string") ||
-    eq(clone(dst_type_name), "String")
-    let src_is_payload_container = post_pass_enum_normalize::is_ref_container_type_name(clone(src_type_name)) ||
-    eq(clone(src_type_name), "string") ||
-    eq(clone(src_type_name), "String")
+    let dst_is_payload_container = post_pass_enum_normalize::is_ref_container_type_name(dst_type_name.clone()) ||
+    eq(dst_type_name.clone(), "string") ||
+    eq(dst_type_name.clone(), "String")
+    let src_is_payload_container = post_pass_enum_normalize::is_ref_container_type_name(src_type_name.clone()) ||
+    eq(src_type_name.clone(), "string") ||
+    eq(src_type_name.clone(), "String")
     let destination_has_string_fallback =
-    eq(clone(dst_type_name), "string") ||
-    eq(clone(dst_type_name), "String")
+    eq(dst_type_name.clone(), "string") ||
+    eq(dst_type_name.clone(), "String")
     let source_is_string =
-    eq(clone(src_type_name), "string") ||
-    eq(clone(src_type_name), "String")
+    eq(src_type_name.clone(), "string") ||
+    eq(src_type_name.clone(), "String")
     let destination_is_variant_struct =
-    post_pass_enum_normalize::is_enum_variant_struct_type_name(clone(dst_type_name))
+    post_pass_enum_normalize::is_enum_variant_struct_type_name(dst_type_name.clone())
     if !dst_is_payload_container && !src_is_payload_container {
         if destination_is_temporary && dst_variant_slot != src_variant_slot {
             local_access::MirLocal_set_variant_slot(new_loc, src_variant_slot)
@@ -192,10 +192,10 @@ fn propagate_from_local(mut f: MirFunction, dest: i32, source: i32, mut table: T
         } else if dst_variant_slot < 0 && src_variant_slot >= 0 {
             if (
                 len(src_type_name) == 0 ||
-                post_pass_enum_normalize::is_open_enum_container_type_name(clone(src_type_name))
+                post_pass_enum_normalize::is_open_enum_container_type_name(src_type_name.clone())
             ) &&
-            !post_pass_enum_normalize::is_open_enum_container_type_name(clone(dst_type_name)) &&
-            !post_pass_enum_normalize::is_ref_container_type_name(clone(dst_type_name)) {
+            !post_pass_enum_normalize::is_open_enum_container_type_name(dst_type_name.clone()) &&
+            !post_pass_enum_normalize::is_ref_container_type_name(dst_type_name.clone()) {
                 local_access::MirLocal_set_variant_slot(new_loc, src_variant_slot)
                 updated = true
             }
@@ -207,21 +207,21 @@ fn propagate_from_local(mut f: MirFunction, dest: i32, source: i32, mut table: T
     let should_replace_type_name =
     len(src_type_name) > 0 &&
     (len(dst_type_name) == 0 ||
-        (destination_is_temporary && !eq(clone(dst_type_name), clone(src_type_name))) ||
+        (destination_is_temporary && !eq(dst_type_name.clone(), src_type_name.clone())) ||
         (destination_is_variant_struct && src_is_payload_container &&
-            !eq(clone(dst_type_name), clone(src_type_name))) ||
+            !eq(dst_type_name.clone(), src_type_name.clone())) ||
         (destination_has_string_fallback &&
             !source_is_string &&
-            !eq(clone(dst_type_name), clone(src_type_name))))
+            !eq(dst_type_name.clone(), src_type_name.clone())))
     let should_sync_value_type =
     len(spine_type_name) > 0 &&
-    (should_replace_type_name || eq(clone(dst_type_name), clone(src_type_name))) &&
+    (should_replace_type_name || eq(dst_type_name.clone(), src_type_name.clone())) &&
     !mir_value_types_equal(source_value_type, destination_value_type)
     if should_replace_type_name || should_sync_value_type {
         if should_replace_type_name {
             new_loc = typed_mir_sync_module::mir_local_with_type_name_synced(
                 new_loc,
-                clone(src_type_name),
+                src_type_name.clone(),
                 table
             )
         }
@@ -232,7 +232,7 @@ fn propagate_from_local(mut f: MirFunction, dest: i32, source: i32, mut table: T
                 table
             )
         }
-        if !post_pass_enum_normalize::is_open_enum_container_type_name(clone(src_type_name)) {
+        if !post_pass_enum_normalize::is_open_enum_container_type_name(src_type_name.clone()) {
             local_access::MirLocal_set_variant_slot(new_loc, 0 - 1)
         }
         updated = true

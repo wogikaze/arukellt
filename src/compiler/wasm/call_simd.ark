@@ -1,14 +1,13 @@
 // Emits Wasm SIMD instructions (0xFD prefix + LEB128 sub-opcode) on T2/T3/T5.
 // On T1 (no SIMD), emits scalar expansion using 4 i32 locals per v128.
 
-use std::prelude::{clone}
 use wasm::call_simd_native
 use wasm::call_simd_scalar
 use wasm::ctx_record
 use wasm::emit_target
 fn try_emit_simd_call(mut w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     let target = ctx_record::SelfEmitCtx_target(ctx)
-    if emit_target::is_simd_target(clone(target)) {
+    if emit_target::is_simd_target(target.clone()) {
         return call_simd_native::try_emit_simd_native(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
     }
     call_simd_scalar::try_emit_simd_scalar(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op)

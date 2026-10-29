@@ -1,24 +1,24 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use wasm::constants
 fn is_gc_target(target: String) -> bool {
-    eq(clone(target), "wasm32-gc")
+    eq(target.clone(), "wasm32-gc")
 }
 
 fn is_linear_memory_target(target: String) -> bool {
-    eq(clone(target), "wasm32")
+    eq(target.clone(), "wasm32")
 }
 
 // Memory width is an independent backend axis. The CLI resolves `auto` from
 // the target profile and forces component output to memory32 before reaching
 // the emitter; the fallback keeps an explicit memory32 writer.
 fn uses_memory64(target: String, _wasi_version: String, memory_width: String) -> bool {
-    if eq(clone(memory_width), String_from("memory64")) {
+    if eq(memory_width.clone(), String_from("memory64")) {
         return true
     }
-    if eq(clone(memory_width), String_from("memory32")) {
+    if eq(memory_width.clone(), String_from("memory32")) {
         return false
     }
-    is_gc_target(clone(target))
+    is_gc_target(target.clone())
 }
 
 fn is_simd_target(target: String) -> bool {
@@ -28,13 +28,13 @@ fn is_simd_target(target: String) -> bool {
 }
 
 fn is_p2_wasi(wasi_version: String) -> bool {
-    eq(clone(wasi_version), "wasi-p2")
+    eq(wasi_version.clone(), "wasi-p2")
 }
 
 // Canonical wasm32 modules use the same fixed Preview 1 import surface as the
 // pinned bootstrap and component stubs (ADR-029 parity).
 fn is_minimal_p1_wasi(wasi_version: String) -> bool {
-    !is_p2_wasi(clone(wasi_version))
+    !is_p2_wasi(wasi_version.clone())
 }
 
 fn p2_host_import_count() -> i32 {
@@ -54,25 +54,25 @@ fn p2_host_type_count() -> i32 {
 }
 
 fn host_import_count(_target: String, wasi_version: String) -> i32 {
-    if is_p2_wasi(clone(wasi_version)) {
+    if is_p2_wasi(wasi_version.clone()) {
         return p2_host_import_count()
     }
-    if is_minimal_p1_wasi(clone(wasi_version)) {
+    if is_minimal_p1_wasi(wasi_version.clone()) {
         return constants::NUM_WASI_IMPORTS_COMPONENT()
     }
     constants::NUM_WASI_IMPORTS_BASE()
 }
 
 fn host_type_count(_target: String, wasi_version: String) -> i32 {
-    if is_p2_wasi(clone(wasi_version)) {
+    if is_p2_wasi(wasi_version.clone()) {
         return p2_host_type_count()
     }
-    if is_minimal_p1_wasi(clone(wasi_version)) {
+    if is_minimal_p1_wasi(wasi_version.clone()) {
         return constants::NUM_WASI_TYPES_COMPONENT() + reserved_callback_type_count()
     }
     constants::NUM_WASI_TYPES_BASE() + reserved_callback_type_count()
 }
 
 fn total_import_count(target: String, wasi_version: String, wit_import_count: i32) -> i32 {
-    host_import_count(clone(target), clone(wasi_version)) + wit_import_count
+    host_import_count(target.clone(), wasi_version.clone()) + wit_import_count
 }

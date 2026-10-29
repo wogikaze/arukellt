@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use std::text
 use mir::lower::binary_type_select
 use mir::lower::binary_type_names
@@ -15,10 +14,10 @@ use mir::inst_op
 use mir::opcodes
 use mir::value_types
 fn mir_emit_overloaded_binary_call(mut ctx: LowerCtx, callee: String) -> i32 {
-    let ret_vt = ctx_fn_return_vt(ctx, clone(callee))
+    let ret_vt = ctx_fn_return_vt(ctx, callee.clone())
     let dest_vt = binary_type_select::mir_call_return_dest_vt(ret_vt)
     let dest = ctx_fresh_local(ctx, dest_vt)
-    let rtn = ctx_fn_return_type_name(ctx, clone(callee))
+    let rtn = ctx_fn_return_type_name(ctx, callee.clone())
     if len(rtn) > 0 {
         ctx_set_local_type(ctx, dest, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, rtn))
     }
@@ -40,7 +39,7 @@ fn mir_emit_string_order_operator(mut ctx: LowerCtx, mir_op: i32) -> i32 {
 }
 
 fn mir_emit_overloaded_operator(mut ctx: LowerCtx, callee: String, mir_op: i32) -> i32 {
-    let result = mir_emit_overloaded_binary_call(ctx, clone(callee))
+    let result = mir_emit_overloaded_binary_call(ctx, callee.clone())
     if mir_op == opcodes::MIR_NEQ() {
         return mir_emit_boolean_inverse(ctx, result)
     }
@@ -79,10 +78,10 @@ fn mir_order_projection_method(mir_op: i32) -> String {
 }
 
 fn mir_emit_overloaded_unary_call(mut ctx: LowerCtx, callee: String) -> i32 {
-    let ret_vt = ctx_fn_return_vt(ctx, clone(callee))
+    let ret_vt = ctx_fn_return_vt(ctx, callee.clone())
     let dest_vt = binary_type_select::mir_call_return_dest_vt(ret_vt)
     let dest = ctx_fresh_local(ctx, dest_vt)
-    let rtn = ctx_fn_return_type_name(ctx, clone(callee))
+    let rtn = ctx_fn_return_type_name(ctx, callee.clone())
     if len(rtn) > 0 {
         ctx_set_local_type(ctx, dest, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, rtn))
     }

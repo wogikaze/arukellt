@@ -1,7 +1,6 @@
 // Extracted from call_fallback.ark to reduce import fan-out.
 // Opcode constants inlined to avoid extra import (values from mir::opcodes).
 
-use std::prelude::{clone}
 use std::text
 use mir::function_param_view
 use corehir::function_id
@@ -52,7 +51,7 @@ fn try_emit_resolved_fallback_call(
     }
     let fn_idx = inst_ctx::resolve_fn_index_for_call(
         ctx,
-        clone(resolved_name),
+        resolved_name.clone(),
         fid_raw
     )
     // Bodies are emitted after every MIR function exists, so a callee with no
@@ -93,7 +92,7 @@ fn try_emit_resolved_fallback_call(
             // pre-prune index, so the defined_function_index value would go
             // stale. Defer by name — the apply-time name index is post-prune
             // and yields the same target today's immediate patch wrote.
-            ctx_call_reloc::SelfEmitCtx_push_call_reloc_name(ctx, slot, clone(resolved_name))
+            ctx_call_reloc::SelfEmitCtx_push_call_reloc_name(ctx, slot, resolved_name.clone())
         } else {
             writer_core::patch_leb128_u_fixed(
                 w,
@@ -148,10 +147,10 @@ fn resolve_call_param_gc_cast_type(ctx: SelfEmitCtx, param_type_name: String) ->
     if len(param_type_name) == 0 {
         return 0 - 1
     }
-    if call_param_type_is_enum_like(ctx, clone(param_type_name)) {
+    if call_param_type_is_enum_like(ctx, param_type_name.clone()) {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     }
-    let named = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(param_type_name))
+    let named = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, param_type_name.clone())
     if named >= 0 {
         return named
     }
@@ -159,25 +158,25 @@ fn resolve_call_param_gc_cast_type(ctx: SelfEmitCtx, param_type_name: String) ->
 }
 
 fn call_param_type_is_enum_like(ctx: SelfEmitCtx, param_type_name: String) -> bool {
-    if clone(param_type_name).starts_with("enum:") {
+    if param_type_name.clone().starts_with("enum:") {
         return true
     }
-    if clone(param_type_name).starts_with("Option") || clone(param_type_name).starts_with("option") {
+    if param_type_name.clone().starts_with("Option") || param_type_name.clone().starts_with("option") {
         return true
     }
-    if clone(param_type_name).starts_with("Result") || clone(param_type_name).starts_with("result") {
+    if param_type_name.clone().starts_with("Result") || param_type_name.clone().starts_with("result") {
         return true
     }
-    let bare = if clone(param_type_name).starts_with("enum:") {
-        clone(param_type_name).slice(5, len(param_type_name))
+    let bare = if param_type_name.clone().starts_with("enum:") {
+        param_type_name.clone().slice(5, len(param_type_name))
     } else {
-        clone(param_type_name)
+        param_type_name.clone()
     }
-    let prefix = clone(bare).concat("::")
+    let prefix = bare.clone().concat("::")
     let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let mut ei = 0
     while ei < len(ev_names) {
-        if clone(get_unchecked(ev_names, ei)).starts_with(clone(prefix)) {
+        if get_unchecked(ev_names, ei).clone().starts_with(prefix.clone()) {
             return true
         }
         ei = ei + 1

@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use std::text
 use typechecker::ast_access
 use typechecker::ast_expr_predicates
@@ -31,7 +30,7 @@ fn constrain_generic_fn_args(
         unify::type_error_bad_arity(
             env,
             String_from("wrong number of arguments for `").concat(
-                clone(fname).concat(String_from("`: expected ").concat(param_count.to_string().concat(String_from(", found ").concat(arg_count.to_string()))))
+                fname.clone().concat(String_from("`: expected ").concat(param_count.to_string().concat(String_from(", found ").concat(arg_count.to_string()))))
             )
         )
     }
@@ -62,7 +61,7 @@ fn constrain_generic_fn_args(
                 arg_ty = fn_ty
             }
         }
-        push(arg_types, clone(arg_ty))
+        push(arg_types, arg_ty.clone())
         let param_ty = contract_fn_sig::FnSig_param_at(sig, a)
         let inst_param = instantiate::instantiate_type(param_ty, var_names, var_types)
         let projected_param = associated_types::resolve_generic_call_type(env, infer_env, sig, var_names, var_types, inst_param)

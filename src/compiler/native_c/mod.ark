@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::function_id
 use corehir::core_op_id
@@ -47,12 +47,12 @@ pub fn native_c_emit_result_success(result: NativeCEmitResult) -> bool {
 
 /// Returns generated C99 after successful native-cpp emission.
 pub fn native_c_emit_result_source(result: NativeCEmitResult) -> String {
-    clone(result.source)
+    result.source.clone()
 }
 
 /// Returns the target or ICE diagnostic after failed native-cpp emission.
 pub fn native_c_emit_result_diagnostic(result: NativeCEmitResult) -> String {
-    clone(result.diagnostic)
+    result.diagnostic.clone()
 }
 
 fn native_c_target_capability_diagnostic(op: i32, function_name: String) -> String {
@@ -85,7 +85,7 @@ fn native_c_validate_capabilities(mir_module: MirModule) -> String {
                     return String_from("target `native-cpp` does not support CoreOp `").concat(
                         core_op_registry_generated::core_op_registry_canonical_id_at(core_op_index).concat(
                             String_from("` in function `").concat(
-                                clone(function_name).concat(
+                                function_name.clone().concat(
                                     (String_from("` (")).concat(native_c_capabilities_generated::native_c_core_capability_status_detail(core_op_index).concat(String_from(")")))
                                 )
                             )
@@ -114,7 +114,7 @@ fn native_c_resolve_function_id(
             function_identity::MirFunction_name(
                 module_functions::MirModule_function_at(mir_module, prior_index)
             ),
-            clone(name)
+            name.clone()
         ) {
             ordinal = ordinal + 1
         }
@@ -125,7 +125,7 @@ fn native_c_resolve_function_id(
     while registry_index < signature_registry::signature_registry_entry_count(registry) {
         if eq(
             signature_registry::signature_registry_mangled_at(registry, registry_index),
-            clone(name)
+            name.clone()
         ) {
             if ordinal == 0 { return function_id::FunctionId_new(registry_index) }
             ordinal = ordinal - 1
@@ -170,7 +170,7 @@ fn native_c_register_function_id_from_mir(
     )
     let entry = signature_entry::SignatureEntry_new(
         function_id::FunctionId_new(0),
-        clone(name),
+        name.clone(),
         params,
         returns,
         false,

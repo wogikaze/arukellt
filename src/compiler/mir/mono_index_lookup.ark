@@ -1,7 +1,6 @@
-use std::prelude::{clone}
 use mir::mono_index_types
 fn mono_index_count(idx: MonoIndex, fn_name: String) -> i32 {
-    let pos = mono_index_types::mono_index_name_pos(idx, clone(fn_name))
+    let pos = mono_index_types::mono_index_name_pos(idx, fn_name.clone())
     if pos < 0 {
         return 0
     }

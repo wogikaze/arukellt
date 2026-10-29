@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
@@ -7,7 +6,7 @@ use mir::inst_local_get
 use mir::inst_convert
 use mir::value_types
 fn emit_variant_payload_fields(mut ctx: LowerCtx, dest: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, variant_name: String) {
-    let total_bytes = ctx_struct_layout::ctx_struct_byte_size(ctx, clone(variant_name))
+    let total_bytes = ctx_struct_layout::ctx_struct_byte_size(ctx, variant_name.clone())
     let mut byte_off = 4
     let mut pi = 0
     let payload_count = len(payload_locals)
@@ -26,7 +25,7 @@ fn emit_variant_payload_fields(mut ctx: LowerCtx, dest: i32, payload_locals: Vec
                 field_vt = value_types::VT_I64()
                 byte_off = byte_off + 8
             } else {
-                if ctx_struct_field_is_i64(ctx, clone(variant_name), pi + 1) {
+                if ctx_struct_field_is_i64(ctx, variant_name.clone(), pi + 1) {
                     field_vt = value_types::VT_I64()
                     byte_off = byte_off + 8
                     if p_vt == value_types::VT_I32() {
@@ -39,7 +38,7 @@ fn emit_variant_payload_fields(mut ctx: LowerCtx, dest: i32, payload_locals: Vec
                 }
             }
         }
-        ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named_idx(dest, store_local, clone(variant_name), set_off, pi + 1, total_bytes, field_vt))
+        ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named_idx(dest, store_local, variant_name.clone(), set_off, pi + 1, total_bytes, field_vt))
         pi = pi + 1
     }
 }

@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
@@ -8,36 +8,36 @@ use mir::lower::loop_conditions
 use mir::lower::ctx_gc_struct
 use mir::value_types
 fn mir_is_vec_type_name(vec_type: String) -> bool {
-    if eq(clone(vec_type), "Vec") || clone(vec_type).starts_with("vec:") {
+    if eq(vec_type.clone(), "Vec") || vec_type.clone().starts_with("vec:") {
         return true
     }
-    clone(vec_type).starts_with("Vec<") && clone(vec_type).ends_with(">")
+    vec_type.clone().starts_with("Vec<") && vec_type.clone().ends_with(">")
 }
 
 fn mir_vec_element_type_name(vec_type: String) -> String {
-    if clone(vec_type).starts_with("vec:") {
+    if vec_type.clone().starts_with("vec:") {
         return vec_type.slice(4, len(vec_type))
     }
-    if clone(vec_type).starts_with("Vec<") && clone(vec_type).ends_with(">") {
+    if vec_type.clone().starts_with("Vec<") && vec_type.clone().ends_with(">") {
         return vec_type.slice(4, len(vec_type) - 1)
     }
     "i32"
 }
 
 fn mir_vec_element_vt(ctx: LowerCtx, elem_type: String) -> i32 {
-    if eq(clone(elem_type), "i64") || eq(clone(elem_type), "I64") {
+    if eq(elem_type.clone(), "i64") || eq(elem_type.clone(), "I64") {
         return value_types::VT_I64()
     }
-    if eq(clone(elem_type), "f64") || eq(clone(elem_type), "F64") {
+    if eq(elem_type.clone(), "f64") || eq(elem_type.clone(), "F64") {
         return value_types::VT_F64()
     }
-    if eq(clone(elem_type), "v128") || eq(clone(elem_type), "V128") {
+    if eq(elem_type.clone(), "v128") || eq(elem_type.clone(), "V128") {
         return value_types::VT_V128()
     }
-    if eq(clone(elem_type), "fnref") || eq(clone(elem_type), "fn") || clone(elem_type).starts_with("fn(") {
+    if eq(elem_type.clone(), "fnref") || eq(elem_type.clone(), "fn") || elem_type.clone().starts_with("fn(") {
         return value_types::VT_FUNCREF()
     }
-    if eq(clone(elem_type), "i32") || eq(clone(elem_type), "I32") || eq(clone(elem_type), "bool") || eq(clone(elem_type), "char") {
+    if eq(elem_type.clone(), "i32") || eq(elem_type.clone(), "I32") || eq(elem_type.clone(), "bool") || eq(elem_type.clone(), "char") {
         return value_types::VT_I32()
     }
     if len(elem_type) == 1 {
@@ -45,7 +45,7 @@ fn mir_vec_element_vt(ctx: LowerCtx, elem_type: String) -> i32 {
         if ch >= 65 && ch <= 90 {
             // A declared single-letter element type (struct P) is a ref,
             // not an unsubstituted-param scalar.
-            if ctx_gc_struct::gc_struct_field_name_is_declared(ctx, clone(elem_type)) {
+            if ctx_gc_struct::gc_struct_field_name_is_declared(ctx, elem_type.clone()) {
                 return value_types::VT_GC_REF()
             }
             return value_types::VT_I32()

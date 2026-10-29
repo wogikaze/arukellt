@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use typechecker::ast_access
 use typechecker::contract_env_record
@@ -124,21 +124,21 @@ fn scan_capture_target(env: TypeEnv, scope: LocalScope, closure: AstNode, node: 
 }
 
 fn is_mutating_method(name: String) -> bool {
-    eq(clone(name), "push") || eq(clone(name), "set") ||
-    eq(clone(name), "append") || eq(clone(name), "insert") ||
-    eq(clone(name), "remove") || eq(clone(name), "clear")
+    eq(name.clone(), "push") || eq(name.clone(), "set") ||
+    eq(name.clone(), "append") || eq(name.clone(), "insert") ||
+    eq(name.clone(), "remove") || eq(name.clone(), "clear")
 }
 
 fn add_capture(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode, is_mutable_use: bool, is_rebind: bool, mut summary: ClosureCaptureSummary) {
     let name = ast_access::node_text(node)
-    if closure_name_is_local(closure, clone(name)) {
+    if closure_name_is_local(closure, name.clone()) {
         return
     }
-    let binding_index = scope::scope_binding_index(scope, clone(name))
+    let binding_index = scope::scope_binding_index(scope, name.clone())
     if binding_index < 0 {
         return
     }
-    let is_copy_capture = scope::scope_binding_is_copy(scope, clone(name))
+    let is_copy_capture = scope::scope_binding_is_copy(scope, name.clone())
     // A non-move rebind of a Copy binding is a mutable borrow, not a
     // shared-copy read: it must stay in the apply summary so the source is
     // marked and assign/borrow-conflict diagnostics fire (#874, ADR-061).
@@ -174,9 +174,9 @@ fn add_capture(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode,
     // A rebind pins the capture to rebind_mode: it must not be upgraded
     // back by later reads of the same name.
     let rebind_use = is_mutable_use && is_rebind
-    let existing = capture_name_index(summary, clone(name))
+    let existing = capture_name_index(summary, name.clone())
     if existing < 0 {
-        push(summary.names, clone(name))
+        push(summary.names, name.clone())
         push(summary.modes, mode)
         push(summary.nodes, node)
         if rebind_use {
@@ -205,7 +205,7 @@ fn add_capture(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode,
 fn capture_name_index(summary: ClosureCaptureSummary, name: String) -> i32 {
     let mut i = 0
     while i < len(summary.names) {
-        if eq(get_unchecked(summary.names, i), clone(name)) {
+        if eq(get_unchecked(summary.names, i), name.clone()) {
             return i
         }
         i = i + 1
@@ -221,12 +221,12 @@ fn closure_name_is_local(closure: AstNode, name: String) -> bool {
     let mut i = 0
     while i < child_count - 1 {
         let parameter = ast_access::node_child_at(closure, i)
-        if eq(ast_access::node_text(parameter), clone(name)) {
+        if eq(ast_access::node_text(parameter), name.clone()) {
             return true
         }
         i = i + 1
     }
-    closure_body_declares_name(ast_access::node_child_at(closure, child_count - 1), clone(name))
+    closure_body_declares_name(ast_access::node_child_at(closure, child_count - 1), name.clone())
 }
 
 fn closure_body_declares_name(node: AstNode, name: String) -> bool {
@@ -234,13 +234,13 @@ fn closure_body_declares_name(node: AstNode, name: String) -> bool {
         return false
     }
     if ast_access::node_kind_is(node, kinds::NK_LET()) &&
-    eq(ast_access::node_text(node), clone(name)) {
+    eq(ast_access::node_text(node), name.clone()) {
         return true
     }
     let child_count = ast_access::node_child_count(node)
     let mut i = 0
     while i < child_count {
-        if closure_body_declares_name(ast_access::node_child_at(node, i), clone(name)) {
+        if closure_body_declares_name(ast_access::node_child_at(node, i), name.clone()) {
             return true
         }
         i = i + 1
@@ -254,7 +254,7 @@ fn apply_closure_capture_summary(mut env: TypeEnv, mut scope: LocalScope, summar
     }
     let mut i = 0
     while i < len(summary.names) {
-        let name = clone(get_unchecked(summary.names, i))
+        let name = get_unchecked(summary.names, i).clone()
         let mode = get_unchecked(summary.modes, i)
         let node = get_unchecked(summary.nodes, i)
         if mode == capture_move() {
@@ -267,8 +267,8 @@ fn apply_closure_capture_summary(mut env: TypeEnv, mut scope: LocalScope, summar
 }
 
 fn apply_move_capture(mut env: TypeEnv, mut scope: LocalScope, name: String, node: AstNode) {
-    if scope::scope_binding_has_shared_borrow(scope, clone(name)) ||
-    scope::scope_binding_has_mutable_borrow(scope, clone(name)) {
+    if scope::scope_binding_has_shared_borrow(scope, name.clone()) ||
+    scope::scope_binding_has_mutable_borrow(scope, name.clone()) {
         report_capture_conflict(env, node, name, "cannot move a value while it is borrowed")
         return
     }
@@ -276,20 +276,20 @@ fn apply_move_capture(mut env: TypeEnv, mut scope: LocalScope, name: String, nod
 }
 
 fn apply_borrow_capture(mut env: TypeEnv, mut scope: LocalScope, name: String, node: AstNode, is_mutable: bool) {
-    if scope::scope_binding_is_moved(scope, clone(name)) {
+    if scope::scope_binding_is_moved(scope, name.clone()) {
         ownership::consume_expr(env, scope, node)
         return
     }
     if is_mutable {
-        if scope::scope_binding_has_shared_borrow(scope, clone(name)) ||
-        scope::scope_binding_has_mutable_borrow(scope, clone(name)) {
+        if scope::scope_binding_has_shared_borrow(scope, name.clone()) ||
+        scope::scope_binding_has_mutable_borrow(scope, name.clone()) {
             report_capture_conflict(env, node, name, "cannot create a mutable capture while the value is borrowed")
             return
         }
         scope::scope_mark_mutable_borrow(scope, name, true)
         return
     }
-    if scope::scope_binding_has_mutable_borrow(scope, clone(name)) {
+    if scope::scope_binding_has_mutable_borrow(scope, name.clone()) {
         report_capture_conflict(env, node, name, "cannot create a shared capture while the value is mutably borrowed")
         return
     }
@@ -316,10 +316,10 @@ fn value_borrow_mode(env: TypeEnv, scope: LocalScope, node: AstNode) -> i32 {
     }
     if ast_access::node_kind_is(node, kinds::NK_IDENT()) {
         let name = ast_access::node_text(node)
-        if scope::scope_binding_has_mutable_borrow(scope, clone(name)) {
+        if scope::scope_binding_has_mutable_borrow(scope, name.clone()) {
             return capture_mutable_borrow()
         }
-        if scope::scope_binding_has_shared_borrow(scope, clone(name)) {
+        if scope::scope_binding_has_shared_borrow(scope, name.clone()) {
             return capture_shared_borrow()
         }
         return 0
@@ -358,9 +358,9 @@ fn value_has_captures(env: TypeEnv, scope: LocalScope, node: AstNode) -> bool {
     }
     if ast_access::node_kind_is(node, kinds::NK_IDENT()) {
         let name = ast_access::node_text(node)
-        return scope::scope_binding_has_captures(scope, clone(name)) ||
-        scope::scope_binding_has_shared_borrow(scope, clone(name)) ||
-        scope::scope_binding_has_mutable_borrow(scope, clone(name))
+        return scope::scope_binding_has_captures(scope, name.clone()) ||
+        scope::scope_binding_has_shared_borrow(scope, name.clone()) ||
+        scope::scope_binding_has_mutable_borrow(scope, name.clone())
     }
     let kind = ast_access::node_kind(node)
     if kind == kinds::NK_BLOCK() {
@@ -409,7 +409,7 @@ fn value_has_borrow_captures(env: TypeEnv, scope: LocalScope, node: AstNode) -> 
     }
     if ast_access::node_kind_is(node, kinds::NK_IDENT()) {
         let name = ast_access::node_text(node)
-        return scope::scope_binding_has_borrow_captures(scope, clone(name))
+        return scope::scope_binding_has_borrow_captures(scope, name.clone())
     }
     let kind = ast_access::node_kind(node)
     if kind == kinds::NK_BLOCK() {
@@ -465,10 +465,10 @@ fn capture_escape_witness(env: TypeEnv, scope: LocalScope, node: AstNode) -> Cap
     }
     if ast_access::node_kind_is(node, kinds::NK_IDENT()) {
         let name = ast_access::node_text(node)
-        if scope::scope_binding_has_shared_borrow(scope, clone(name)) ||
-        scope::scope_binding_has_mutable_borrow(scope, clone(name)) {
+        if scope::scope_binding_has_shared_borrow(scope, name.clone()) ||
+        scope::scope_binding_has_mutable_borrow(scope, name.clone()) {
             let mut borrow_mode = capture_shared_borrow()
-            if scope::scope_binding_has_mutable_borrow(scope, clone(name)) {
+            if scope::scope_binding_has_mutable_borrow(scope, name.clone()) {
                 borrow_mode = capture_mutable_borrow()
             }
             return CaptureEscape {
@@ -480,7 +480,7 @@ fn capture_escape_witness(env: TypeEnv, scope: LocalScope, node: AstNode) -> Cap
         // A binding whose closure captured by borrow keeps an env snapshot
         // of a live local; escaping it would observe stale state (E0213).
         // Move/Copy captures travel inside the pair env and escape freely.
-        if scope::scope_binding_has_borrow_captures(scope, clone(name)) {
+        if scope::scope_binding_has_borrow_captures(scope, name.clone()) {
             return CaptureEscape {
                 mode: capture_shared_borrow(),
                 span_start: ast_access::node_span_start(node),

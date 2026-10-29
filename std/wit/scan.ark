@@ -10,7 +10,6 @@
 //! so it can be loaded by the bootstrap compiler without overflowing the
 //! call stack.
 
-use std::prelude::{clone}
 /// Namespace for WIT text scanning helpers.
 pub struct WitText {}
 
@@ -55,7 +54,7 @@ impl WitText {
     fn strip_version(pkg: String) -> String {
         let at = WitText::find_char(pkg, 64, 0)
         if at < 0 {
-            return clone(pkg)
+            return pkg.clone()
         }
         pkg.slice(0, at)
     }

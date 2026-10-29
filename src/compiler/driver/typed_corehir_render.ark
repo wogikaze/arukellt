@@ -1,5 +1,4 @@
 use std::host::stdio
-use std::prelude::{clone}
 use std::text
 use corehir::fn_info
 use corehir::raw_decls
@@ -81,7 +80,7 @@ fn render_typed_corehir(program: CoreHirRawProgram, config: DriverConfig) -> Str
         let decl_index = fn_info::fn_info_decl_index_at(fn_infos, function_index, 0 - 1)
         if decl_index >= source_decl_start && decl_index < source_decl_end {
             let rendered = typed_corehir_contract_render::render_function(program, function_index)
-            if len(clone(rendered)) == 0 {
+            if len(rendered.clone()) == 0 {
                 stdio::eprintln(
                     typed_corehir_render_diagnostics::diagnose_typed_corehir_rejection(program)
                 )

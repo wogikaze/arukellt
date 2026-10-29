@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use loader::module_state_loading
 use loader::module_state_modules
 use loader::module_file_load_stdlib
@@ -6,17 +5,17 @@ use loader::module_names
 use loader::module_parse
 use loader::module_state
 pub fn load_stdlib_module_decls(stdlib_path: String, mut state: LoadState) -> Vec<AstNode> {
-    if module_state_loading::LoadState_has_loaded(state, clone(stdlib_path)) {
+    if module_state_loading::LoadState_has_loaded(state, stdlib_path.clone()) {
         return Vec::new<AstNode>()
     }
-    if module_state_loading::LoadState_has_loading(state, clone(stdlib_path)) {
+    if module_state_loading::LoadState_has_loading(state, stdlib_path.clone()) {
         return Vec::new<AstNode>()
     }
-    let short_name = module_names::module_short_name(clone(stdlib_path))
-    let source_res = module_file_load_stdlib::read_stdlib_module_source(clone(stdlib_path))
+    let short_name = module_names::module_short_name(stdlib_path.clone())
+    let source_res = module_file_load_stdlib::read_stdlib_module_source(stdlib_path.clone())
     match source_res {
         Result::Ok(src) => {
-            register_stdlib_source(clone(stdlib_path), clone(short_name), src, state)
+            register_stdlib_source(stdlib_path.clone(), short_name.clone(), src, state)
         },
         Result::Err(_) => {
             Vec::new<AstNode>()
@@ -25,9 +24,9 @@ pub fn load_stdlib_module_decls(stdlib_path: String, mut state: LoadState) -> Ve
 }
 
 fn register_stdlib_source(stdlib_path: String, short_name: String, source: String, mut state: LoadState) -> Vec<AstNode> {
-    module_state_loading::LoadState_push_loading(state, clone(stdlib_path))
+    module_state_loading::LoadState_push_loading(state, stdlib_path.clone())
     let mod_decls = module_parse::parse_module_source(source, module_state::LoadState_cache_dir(state))
-    module_state_loading::LoadState_push_loaded(state, clone(stdlib_path))
-    module_state_modules::LoadState_add_module(state, clone(short_name), mod_decls, true)
+    module_state_loading::LoadState_push_loaded(state, stdlib_path.clone())
+    module_state_modules::LoadState_add_module(state, short_name.clone(), mod_decls, true)
     mod_decls
 }

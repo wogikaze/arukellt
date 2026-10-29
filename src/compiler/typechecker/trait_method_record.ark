@@ -4,7 +4,6 @@
 // against the trait's method signature when the receiver type is a
 // type variable.
 
-use std::prelude::{clone}
 use typechecker::contract_fn_sig
 struct TraitMethodEntry {
     trait_name: String,
@@ -28,11 +27,11 @@ fn TraitMethodEntry_new(
 }
 
 fn trait_method_entry_trait_name(entry: TraitMethodEntry) -> String {
-    clone(entry.trait_name)
+    entry.trait_name.clone()
 }
 
 fn trait_method_entry_method_name(entry: TraitMethodEntry) -> String {
-    clone(entry.method_name)
+    entry.method_name.clone()
 }
 
 fn trait_method_entry_sig(entry: TraitMethodEntry) -> FnSig {

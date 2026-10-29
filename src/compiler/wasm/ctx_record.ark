@@ -1,5 +1,5 @@
 // Wasm emitter context data record.
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use corehir::signature_registry
 use mir::local_write_index
 use corehir::type_table
@@ -161,8 +161,8 @@ fn SelfEmitCtx_new(
     let mut fi = 0
     while fi < fn_count {
         let fname = function_identity::MirFunction_name(get_unchecked(functions, fi))
-        push(name_lengths, len(clone(fname)))
-        name_index::name_index_insert_first(function_name_index, clone(fname), fi)
+        push(name_lengths, len(fname.clone()))
+        name_index::name_index_insert_first(function_name_index, fname.clone(), fi)
         name_index::name_index_increment(function_name_counts, fname)
         fi = fi + 1
     }
@@ -276,9 +276,9 @@ fn SelfEmitCtx_fn_index_drain(mut ctx: SelfEmitCtx) {
     while ctx.fn_index_watermark < n {
         let fi = ctx.fn_index_watermark
         let fname = function_identity::MirFunction_name(get_unchecked(functions, fi))
-        push(ctx.function_name_lengths, len(clone(fname)))
+        push(ctx.function_name_lengths, len(fname.clone()))
         name_index::name_index_insert_first(
-            ctx.function_name_index, clone(fname), fi)
+            ctx.function_name_index, fname.clone(), fi)
         name_index::name_index_increment(ctx.function_name_counts, fname)
         if fid_live {
             // Consume one same-name registry entry per pushed fn, matching
@@ -286,7 +286,7 @@ fn SelfEmitCtx_fn_index_drain(mut ctx: SelfEmitCtx) {
             // growth after bind) simply stay unmapped — a deferred-emit
             // decision, never a wrong resolution.
             let raw = name_index::name_index_get(
-                ctx.fid_chain_heads, clone(fname))
+                ctx.fid_chain_heads, fname.clone())
             if raw >= 0 {
                 if raw < len(ctx.fid_to_mir) {
                     if get_unchecked(ctx.fid_to_mir, raw) < 0 {
@@ -548,7 +548,7 @@ fn SelfEmitCtx_rebuild_gc_enum_variant_name_index(mut ctx: SelfEmitCtx) {
             0 - 1
         }
         if type_idx >= 0 {
-            name_index::name_index_insert_first(index, clone(get_unchecked(names, i)), type_idx)
+            name_index::name_index_insert_first(index, get_unchecked(names, i).clone(), type_idx)
         }
         i = i + 1
     }
@@ -626,7 +626,7 @@ fn SelfEmitCtx_rebuild_gc_struct_name_index(mut ctx: SelfEmitCtx) {
     while i < count {
         name_index::name_index_insert_first(
             stripped_index,
-            SelfEmitCtx_module_stripped_name(clone(get_unchecked(names, i))),
+            SelfEmitCtx_module_stripped_name(get_unchecked(names, i).clone()),
             i
         )
         let type_idx = if i < len(map) {
@@ -635,10 +635,10 @@ fn SelfEmitCtx_rebuild_gc_struct_name_index(mut ctx: SelfEmitCtx) {
             0 - 1
         }
         if type_idx >= 0 {
-            let full_name = clone(get_unchecked(names, i))
+            let full_name = get_unchecked(names, i).clone()
             name_index::name_index_insert_first(index, full_name, type_idx)
             let bare = SelfEmitCtx_bare_suffix(full_name)
-            if len(bare) > 0 && !eq(clone(bare), clone(full_name)) {
+            if len(bare) > 0 && !eq(bare.clone(), full_name.clone()) {
                 name_index::name_index_insert_first(index, bare, type_idx)
             }
         }

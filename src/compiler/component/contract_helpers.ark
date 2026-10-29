@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use component::ast_node
 use component::type_node
@@ -11,13 +11,13 @@ fn component_func_from_decl(node: AstNode) -> ComponentExportFunc {
 }
 
 fn should_export_func(name: String) -> bool {
-    if eq(clone(name), "main") || eq(clone(name), "_start") {
+    if eq(name.clone(), "main") || eq(name.clone(), "_start") {
         return false
     }
-    if eq(clone(name), "print") || eq(clone(name), "println") || eq(clone(name), "eprintln") {
+    if eq(name.clone(), "print") || eq(name.clone(), "println") || eq(name.clone(), "eprintln") {
         return false
     }
-    if clone(name).contains("::") {
+    if name.clone().contains("::") {
         return false
     }
     true

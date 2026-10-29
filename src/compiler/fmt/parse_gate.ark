@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use compiler::session_frontend_query
 use parser
 struct FmtParseGate {
@@ -7,7 +6,7 @@ struct FmtParseGate {
 }
 
 fn fmt_parse_gate(input: String) -> FmtParseGate {
-    let frontend = session_frontend_query::session_parse_source(clone(input))
+    let frontend = session_frontend_query::session_parse_source(input.clone())
     let parse_result = session_frontend_query::frontend_result_parse(frontend)
     FmtParseGate {
         decls: parser::ParseResult_decls(parse_result),

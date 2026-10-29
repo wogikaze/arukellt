@@ -1,11 +1,10 @@
 use std::text
 use std::json
-use std::prelude::{clone}
 use lsp::positions
 use lsp::symbol_index_record
 fn symbol_location_json(uri: String, text: String, decl_start: i32, decl_end: i32) -> String {
-    let start = positions::offset_to_position(clone(text), decl_start)
-    let end = positions::offset_to_position(clone(text), decl_end)
+    let start = positions::offset_to_position(text.clone(), decl_start)
+    let end = positions::offset_to_position(text.clone(), decl_end)
     let mut out = String_from("{\"uri\":")
     out = out.concat(json::JsonText::quote(uri))
     out = out.concat(String_from(",\"range\":{\"start\":{\"line\":"))

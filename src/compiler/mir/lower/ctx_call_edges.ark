@@ -11,7 +11,7 @@ use wasm::hash_aliases
 // Unused LowerCtx.fn_indices / gc_type_base hold CALL edges. Adding a field
 // to MirFunction makes wasm32 KEEP_CLOCK self-emit trap in NameIndex_new.
 // Official 10s path is stub clocks; edge_names is only extra LowerCtx storage.
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 fn ctx_edge_stack_slots() -> i32 {
     8
 }
@@ -122,14 +122,14 @@ fn ctx_edge_record_name(mut ctx: LowerCtx, name: String) {
     if len(name) == 0 {
         return
     }
-    let ni = ctx_fn_index::ctx_fn_index_find(ctx, clone(name))
+    let ni = ctx_fn_index::ctx_fn_index_find(ctx, name.clone())
     if ni >= 0 {
         ctx_edge_record_callee(ctx, ctx_edge_name_tag(ni))
         return
     }
-    let alias = hash_aliases::hashmap_builtin_alias(clone(name))
-    if !eq(clone(alias), clone(name)) {
-        let alias_ni = ctx_fn_index::ctx_fn_index_find(ctx, clone(alias))
+    let alias = hash_aliases::hashmap_builtin_alias(name.clone())
+    if !eq(alias.clone(), name.clone()) {
+        let alias_ni = ctx_fn_index::ctx_fn_index_find(ctx, alias.clone())
         if alias_ni >= 0 {
             ctx_edge_record_callee(ctx, ctx_edge_name_tag(alias_ni))
             return
@@ -157,7 +157,7 @@ fn ctx_edge_record_inst(mut ctx: LowerCtx, inst: MirInstDraft) {
     if op != opcodes::MIR_CALL() {
         return
     }
-    if eq(clone(ctx.lower_target), String_from("wasm32-gc")) {
+    if eq(ctx.lower_target.clone(), String_from("wasm32-gc")) {
         return
     }
     let m = ctx_current_storage::ctx_current_module_value(ctx)
@@ -167,7 +167,7 @@ fn ctx_edge_record_inst(mut ctx: LowerCtx, inst: MirInstDraft) {
     }
     if module_spine::MirModule_signature_spine_populated(m) {
         let registry = module_spine::MirModule_signature_registry(m)
-        let fb_fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(fallback))
+        let fb_fid = signature_registry::signature_registry_lookup_by_mangled(registry, fallback.clone())
         if function_id::function_id_is_valid(fb_fid) {
             ctx_edge_record_callee(ctx, function_id::FunctionId_raw(fb_fid))
         }

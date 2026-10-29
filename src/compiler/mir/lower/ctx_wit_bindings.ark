@@ -1,10 +1,10 @@
 // MIR WIT call binding table accessors (#653).
 
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ctx_types
 fn ctx_wit_call_index(ctx: LowerCtx, qualified_name: String) -> i32 {
     for i in 0..len(ctx.wit_call_names) {
-        if eq(get_unchecked(ctx.wit_call_names, i), clone(qualified_name)) {
+        if eq(get_unchecked(ctx.wit_call_names, i), qualified_name.clone()) {
             return i
         }
     }
@@ -12,9 +12,9 @@ fn ctx_wit_call_index(ctx: LowerCtx, qualified_name: String) -> i32 {
 }
 
 fn ctx_wit_call_iface(ctx: LowerCtx, index: i32) -> String {
-    clone(get_unchecked(ctx.wit_call_iface_ids, index))
+    get_unchecked(ctx.wit_call_iface_ids, index).clone()
 }
 
 fn ctx_wit_call_func(ctx: LowerCtx, index: i32) -> String {
-    clone(get_unchecked(ctx.wit_call_func_names, index))
+    get_unchecked(ctx.wit_call_func_names, index).clone()
 }

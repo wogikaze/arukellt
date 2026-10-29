@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
@@ -49,10 +49,10 @@ fn is_unused_lower_core_expr_before_next_call(inst: MirInst, dest: i32, next_op:
         return false
     }
     let callee = inst_accessors_literals::MirInst_str_val(inst)
-    if eq(clone(callee), "lower_core_expr") {
+    if eq(callee.clone(), "lower_core_expr") {
         return true
     }
-    eq(clone(callee), "lower_expr")
+    eq(callee.clone(), "lower_expr")
 }
 
 fn call_result_next_consumes_stack(next_op: i32, next_arg0: i32, next_arg1: i32) -> bool {

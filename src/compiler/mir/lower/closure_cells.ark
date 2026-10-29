@@ -19,7 +19,7 @@ use mir::lower::ctx_current_storage
 // per-function — a nested closure body lowering under a different frame
 // name never matches the parent's cells.
 
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 fn ctx_register_env_cell(mut ctx: LowerCtx, fn_name: String, local_idx: i32, env_local: i32, env_name: String, offset: i32, field_idx: i32, total: i32, vt: i32) {
     push(ctx.cell_fn_names, fn_name)
     push(ctx.cell_local_indices, local_idx)
@@ -72,14 +72,14 @@ fn ctx_bind_closure_env_cells(mut ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec
         if get_unchecked(rebind_flags, ci) != 0 {
             let cap_li = ctx_api_local_alloc::ctx_lookup_local(
                 ctx,
-                clone(get_unchecked(caps, ci))
+                get_unchecked(caps, ci).clone()
             )
             ctx_register_env_cell(
                 ctx,
-                clone(fn_name),
+                fn_name.clone(),
                 cap_li,
                 env_li,
-                clone(env_name),
+                env_name.clone(),
                 off,
                 ci,
                 total,
@@ -87,7 +87,7 @@ fn ctx_bind_closure_env_cells(mut ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec
             )
             ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(
                     env_li,
-                    clone(env_name),
+                    env_name.clone(),
                     off,
                     ci,
                     total,
@@ -128,10 +128,10 @@ fn ctx_emit_closure_writeback(mut ctx: LowerCtx, synth: String) {
     }
     let mut i = 0
     while i < len(ctx.wb_synths) {
-        if eq(get_unchecked(ctx.wb_synths, i), clone(synth)) {
+        if eq(get_unchecked(ctx.wb_synths, i), synth.clone()) {
             ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(
                     get_unchecked(ctx.wb_env_lis, i),
-                    clone(get_unchecked(ctx.wb_env_names, i)),
+                    get_unchecked(ctx.wb_env_names, i).clone(),
                     get_unchecked(ctx.wb_offsets, i),
                     get_unchecked(ctx.wb_field_indices, i),
                     get_unchecked(ctx.wb_totals, i),

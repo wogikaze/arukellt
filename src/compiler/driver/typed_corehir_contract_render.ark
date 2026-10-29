@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use std::text
 use corehir::body_table
 use corehir::expr_raw
@@ -88,7 +87,7 @@ fn tccr_render_contracts(program: CoreHirRawProgram, function_index: i32) -> Str
         )
         out = out.concat("{\"kind\":".concat(verified_core_render_primitives::vc_quote(kind_name)))
         out = out.concat(",\"expression_id\":".concat(expression_id.to_string()))
-        if len(clone(result_name)) > 0 {
+        if len(result_name.clone()) > 0 {
             out = out.concat(",\"result_name\":".concat(verified_core_render_primitives::vc_quote(result_name)))
         }
         out = out.concat("}")
@@ -115,7 +114,7 @@ fn render_function(program: CoreHirRawProgram, function_index: i32) -> String {
         return ""
     }
     let name = verified_core_render_safe::vcs_function_name(program, function_index)
-    if len(clone(name)) == 0 ||
+    if len(name.clone()) == 0 ||
     !verified_core_render_safe::vcs_parameters_are_valid(program, function_index) {
         return ""
     }

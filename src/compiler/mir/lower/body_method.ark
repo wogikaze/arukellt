@@ -52,7 +52,7 @@ fn lower_method_call_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
             ast_node::node_span_start(node)
         )
         let call_result = method::mir_emit_method_call(ctx, resolved_callee, child_count, receiver_idx, last_method_arg_idx)
-        if method::mir_method_replaces_string_receiver(clone(resolved_callee)) &&
+        if method::mir_method_replaces_string_receiver(resolved_callee.clone()) &&
         receiver_idx >= 0 &&
         ast_node::node_kind_is(receiver, lower_kinds::NK_FIELD_ACCESS()) {
             let struct_idx = body_aggregate_assign_field::lower_field_assign_base(ctx, receiver)

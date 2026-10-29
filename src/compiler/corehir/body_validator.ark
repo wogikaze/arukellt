@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use corehir::body_table
 fn corehir_body_artifact_root_valid(table: CoreHirBodyTable, root: i32) -> bool {
     root == 0 - 1 ||
@@ -67,12 +67,12 @@ fn corehir_body_artifact_valid(table: CoreHirBodyTable) -> bool {
         }
         let kind = body_table::corehir_body_table_contract_kind_flat_at(table, i)
         let result_name = body_table::corehir_body_table_contract_result_name_flat_at(table, i)
-        if eq(clone(kind), "requires") {
+        if eq(kind.clone(), "requires") {
             if len(result_name) != 0 {
                 return false
             }
         } else {
-            if eq(clone(kind), "ensures") {
+            if eq(kind.clone(), "ensures") {
                 if !eq(result_name, "result") {
                     return false
                 }

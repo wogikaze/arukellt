@@ -15,7 +15,6 @@
 //! - `WitName::to_pascal` — kebab-case / snake_case → PascalCase
 
 use std::text
-use std::prelude::{clone}
 
 /// Namespace for WIT identifier case conversion.
 pub struct WitName {}
@@ -124,7 +123,7 @@ impl WitName {
         if first >= 97 && first <= 122 {
             String::concat(char_to_string(first - 32), name.slice(1, len(name)))
         } else {
-            clone(name)
+            name.clone()
         }
     }
 }

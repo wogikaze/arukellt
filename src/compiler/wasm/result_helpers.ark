@@ -2,7 +2,7 @@ use wasm::ctx_gc_type
 use wasm::ctx_record
 
 // Prefer `_f1_ref0` (String payload) over name-only first match (`_f1_i32`).
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 fn find_result_string_variant_type(ctx: SelfEmitCtx, variant_name: String) -> i32 {
     let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
@@ -12,11 +12,11 @@ fn find_result_string_variant_type(ctx: SelfEmitCtx, variant_name: String) -> i3
     let mut fallback = 0 - 1
     let mut i = 0
     while i < count {
-        if eq(clone(get_unchecked(names, i)), clone(variant_name)) {
+        if eq(get_unchecked(names, i).clone(), variant_name.clone()) {
             if i < len(type_map) {
                 let variant_type = get_unchecked(type_map, i)
                 if variant_type != open_type {
-                    if i < len(sigs) && clone(get_unchecked(sigs, i)).ends_with("_f1_ref0") {
+                    if i < len(sigs) && get_unchecked(sigs, i).clone().ends_with("_f1_ref0") {
                         return variant_type
                     }
                     if fallback < 0 {
@@ -30,7 +30,7 @@ fn find_result_string_variant_type(ctx: SelfEmitCtx, variant_name: String) -> i3
     if fallback >= 0 {
         return fallback
     }
-    ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(variant_name))
+    ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, variant_name.clone())
 }
 
 fn find_result_variant_type_by_suffix(ctx: SelfEmitCtx, variant_name: String, suffix: String) -> i32 {
@@ -42,11 +42,11 @@ fn find_result_variant_type_by_suffix(ctx: SelfEmitCtx, variant_name: String, su
     let mut fallback = 0 - 1
     let mut i = 0
     while i < count {
-        if eq(clone(get_unchecked(names, i)), clone(variant_name)) {
+        if eq(get_unchecked(names, i).clone(), variant_name.clone()) {
             if i < len(type_map) {
                 let variant_type = get_unchecked(type_map, i)
                 if variant_type != open_type {
-                    if i < len(sigs) && clone(get_unchecked(sigs, i)).ends_with(clone(suffix)) {
+                    if i < len(sigs) && get_unchecked(sigs, i).clone().ends_with(suffix.clone()) {
                         return variant_type
                     }
                     if fallback < 0 {
@@ -60,6 +60,6 @@ fn find_result_variant_type_by_suffix(ctx: SelfEmitCtx, variant_name: String, su
     if fallback >= 0 {
         return fallback
     }
-    ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(variant_name))
+    ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, variant_name.clone())
 }
 use mir::module_gc_enum

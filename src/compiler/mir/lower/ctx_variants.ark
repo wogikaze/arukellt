@@ -1,8 +1,8 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ctx_variant_storage
 use mir::lower::ctx_variants_builtin
 fn ctx_strip_first_path_segment(name: String) -> String {
-    let pos = clone(name).index_of(String_from("::"))
+    let pos = name.clone().index_of(String_from("::"))
     if pos < 0 {
         return String_new()
     }
@@ -37,17 +37,17 @@ fn ctx_variant_owner_name(name: String) -> String {
 // spelling rather than the caller's text; downstream layout/GC lookups are
 // keyed by the registered name and miss on module-prefixed spellings.
 fn ctx_canonical_variant_name(ctx: LowerCtx, name: String) -> String {
-    let exact = ctx_variant_storage::ctx_variant_name_index(ctx, clone(name))
+    let exact = ctx_variant_storage::ctx_variant_name_index(ctx, name.clone())
     if exact >= 0 {
         return ctx_variant_storage::ctx_variant_name_at(ctx, exact)
     }
-    let mut rest = clone(name)
+    let mut rest = name.clone()
     while true {
-        let next = ctx_strip_first_path_segment(clone(rest))
+        let next = ctx_strip_first_path_segment(rest.clone())
         if len(next) == 0 {
             return String_new()
         }
-        let idx = ctx_variant_storage::ctx_variant_name_index(ctx, clone(next))
+        let idx = ctx_variant_storage::ctx_variant_name_index(ctx, next.clone())
         if idx >= 0 {
             return ctx_variant_storage::ctx_variant_name_at(ctx, idx)
         }
@@ -57,11 +57,11 @@ fn ctx_canonical_variant_name(ctx: LowerCtx, name: String) -> String {
 }
 
 fn ctx_variant_tag(ctx: LowerCtx, name: String) -> i32 {
-    let canon = ctx_canonical_variant_name(ctx, clone(name))
+    let canon = ctx_canonical_variant_name(ctx, name.clone())
     if len(canon) == 0 {
         return 0 - 1
     }
-    let idx = ctx_variant_storage::ctx_variant_name_index(ctx, clone(canon))
+    let idx = ctx_variant_storage::ctx_variant_name_index(ctx, canon.clone())
     if idx < 0 {
         return 0 - 1
     }
@@ -72,16 +72,16 @@ fn ctx_is_payload_variant_exact(ctx: LowerCtx, name: String) -> bool {
     let count = ctx_variant_storage::ctx_payload_variant_count(ctx)
     let mut i = 0
     while i < count {
-        if eq(ctx_variant_storage::ctx_payload_variant_name_at(ctx, i), clone(name)) {
+        if eq(ctx_variant_storage::ctx_payload_variant_name_at(ctx, i), name.clone()) {
             return true
         }
         i = i + 1
     }
-    let query_key = ctx_variant_storage::variant_enum_variant_key(clone(name))
+    let query_key = ctx_variant_storage::variant_enum_variant_key(name.clone())
     i = 0
     while i < count {
         let vn = ctx_variant_storage::ctx_payload_variant_name_at(ctx, i)
-        if eq(ctx_variant_storage::variant_enum_variant_key(clone(vn)), clone(query_key)) {
+        if eq(ctx_variant_storage::variant_enum_variant_key(vn.clone()), query_key.clone()) {
             return true
         }
         i = i + 1

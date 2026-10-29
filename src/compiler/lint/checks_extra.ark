@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use diagnostics::codes
 use diagnostics::record
@@ -24,8 +24,8 @@ pub fn check_deprecated_api(decls: Vec<AstNode>) -> Vec<Diagnostic> {
 fn check_deprecated_api_in_node(node: AstNode, mut warnings: Vec<Diagnostic>) {
     if ast_decl_predicates::node_is_use(node) {
         let path = ast_access::node_text(node)
-        let dep_msg = deprecated_table::deprecated_use_message(clone(path))
-        if len(clone(dep_msg)) > 0 {
+        let dep_msg = deprecated_table::deprecated_use_message(path.clone())
+        if len(dep_msg.clone()) > 0 {
             let span = record::DiagnosticSpan_from_raw(ast_access::node_span_start(node), ast_access::node_span_end(node))
             push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_API(), diag_mod::SEV_WARNING(), span, dep_msg))
         }
@@ -33,8 +33,8 @@ fn check_deprecated_api_in_node(node: AstNode, mut warnings: Vec<Diagnostic>) {
     }
     if ast_expr_predicates::node_is_ident(node) {
         let name = ast_access::node_text(node)
-        let dep_msg = deprecated_table::deprecated_call_message(clone(name))
-        if len(clone(dep_msg)) > 0 {
+        let dep_msg = deprecated_table::deprecated_call_message(name.clone())
+        if len(dep_msg.clone()) > 0 {
             let span = record::DiagnosticSpan_from_raw(ast_access::node_span_start(node), ast_access::node_span_end(node))
             push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_API(), diag_mod::SEV_WARNING(), span, dep_msg))
         }
@@ -43,13 +43,13 @@ fn check_deprecated_api_in_node(node: AstNode, mut warnings: Vec<Diagnostic>) {
     // Check qualified path calls (e.g., math::abs_i32, cmp::min, hash::hash_i32)
     if ast_expr_predicates::node_is_path(node) {
         let path = ast_access::node_text(node)
-        let mut dep_msg = deprecated_table::deprecated_qualified_call_message(clone(path))
+        let mut dep_msg = deprecated_table::deprecated_qualified_call_message(path.clone())
         // A bare callee such as `assert_eq` parses as a path node, so the
         // unqualified table must also be consulted before giving up.
-        if len(clone(dep_msg)) == 0 {
-            dep_msg = deprecated_table::deprecated_call_message(clone(path))
+        if len(dep_msg.clone()) == 0 {
+            dep_msg = deprecated_table::deprecated_call_message(path.clone())
         }
-        if len(clone(dep_msg)) > 0 {
+        if len(dep_msg.clone()) > 0 {
             let span = record::DiagnosticSpan_from_raw(ast_access::node_span_start(node), ast_access::node_span_end(node))
             push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_API(), diag_mod::SEV_WARNING(), span, dep_msg))
         }
@@ -74,8 +74,8 @@ pub fn check_unused_symbols(decls: Vec<AstNode>) -> Vec<Diagnostic> {
         let node = get_unchecked(decls, i)
         if ast_decl_predicates::node_is_fn_decl(node) && !ast_access::node_is_pub(node) {
             let name = ast_access::node_text(node)
-            if !eq(clone(name), "main") {
-                push(fn_names, clone(name))
+            if !eq(name.clone(), "main") {
+                push(fn_names, name.clone())
                 push(fn_spans_start, ast_access::node_decl_name_span_start(node))
                 push(fn_spans_end, ast_access::node_decl_name_span_end(node))
             }
@@ -92,10 +92,10 @@ pub fn check_unused_symbols(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     let fn_count = len(fn_names)
     let mut fi = 0
     while fi < fn_count {
-        let name = clone(get_unchecked(fn_names, fi))
-        if !name_in_vec(clone(name), referenced) &&
-        !core_op_registry_generated::core_op_registry_has_fallback_symbol(clone(name)) {
-            let msg = "unused symbol `".concat(clone(name).concat("`"))
+        let name = get_unchecked(fn_names, fi).clone()
+        if !name_in_vec(name.clone(), referenced) &&
+        !core_op_registry_generated::core_op_registry_has_fallback_symbol(name.clone()) {
+            let msg = "unused symbol `".concat(name.clone().concat("`"))
             let span = record::DiagnosticSpan_from_raw(get_unchecked(fn_spans_start, fi), get_unchecked(fn_spans_end, fi))
             push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_UNUSED_SYMBOL(), diag_mod::SEV_WARNING(), span, msg))
         }
@@ -111,8 +111,8 @@ fn collect_referenced_idents(node: AstNode, mut referenced: Vec<String>) {
     }
     if ast_expr_predicates::node_is_path(node) {
         let path = ast_access::node_text(node)
-        let sym_part = paths::path_symbol_part(clone(path))
-        if len(clone(sym_part)) > 0 {
+        let sym_part = paths::path_symbol_part(path.clone())
+        if len(sym_part.clone()) > 0 {
             push(referenced, sym_part)
         }
         return
@@ -144,15 +144,15 @@ pub fn check_capability_stubs(decls: Vec<AstNode>, target: String) -> Vec<Diagno
         !ast_access::node_is_component_export(node) {
             let name = ast_access::node_text(node)
             // Skip main and private helpers starting with _
-            if eq(clone(name), "main") {
+            if eq(name.clone(), "main") {
                 i = i + 1
                 continue
             }
-            if clone(name).starts_with("_") {
+            if name.clone().starts_with("_") {
                 i = i + 1
                 continue
             }
-            let msg = "non-exportable function `".concat(clone(name).concat("` will be skipped from component exports"))
+            let msg = "non-exportable function `".concat(name.clone().concat("` will be skipped from component exports"))
             let span = record::DiagnosticSpan_from_raw(ast_access::node_decl_name_span_start(node), ast_access::node_decl_name_span_end(node))
             push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_CAPABILITY_STUB(), diag_mod::SEV_WARNING(), span, msg))
         }
@@ -162,7 +162,7 @@ pub fn check_capability_stubs(decls: Vec<AstNode>, target: String) -> Vec<Diagno
 }
 
 fn is_component_target(target: String) -> bool {
-    eq(clone(target), "wasm32-gc")
+    eq(target.clone(), "wasm32-gc")
 }
 
 // ── W0008: doc drift ───────────────────────────────────────────────────

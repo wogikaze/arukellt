@@ -28,13 +28,13 @@ use mir::function_return_view
 // ADR-039 D2 / RFC-004 §6: language-syntax desugaring resolves by canonical
 // SemanticTraitId::From on SignatureEntry (import-independent). The callee
 // mangled name is the lookup result, not a string invented at the use site.
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 fn try_resolve_from_conversion(ctx: LowerCtx, inner_idx: i32) -> String {
     let inner_type_name = ctx_api_local_types::ctx_get_local_type(ctx, inner_idx)
     let fn_return_type_name = function_return_view::MirFunction_return_type_name(ctx_current_storage::ctx_current_func_value(ctx))
-    let source_err_type = try_extract_err_payload_type(clone(inner_type_name))
-    let target_err_type = try_extract_err_payload_type(clone(fn_return_type_name))
-    if len(source_err_type) == 0 || len(target_err_type) == 0 || eq(clone(source_err_type), clone(target_err_type)) {
+    let source_err_type = try_extract_err_payload_type(inner_type_name.clone())
+    let target_err_type = try_extract_err_payload_type(fn_return_type_name.clone())
+    if len(source_err_type) == 0 || len(target_err_type) == 0 || eq(source_err_type.clone(), target_err_type.clone()) {
         return String_new()
     }
     let module = ctx_api_module::ctx_current_module(ctx)
@@ -49,7 +49,7 @@ fn try_resolve_from_conversion(ctx: LowerCtx, inner_idx: i32) -> String {
         source_err_type,
         target_err_type
     )
-    if len(from_fn_name) > 0 && ctx_fn_exists::ctx_has_fn_name(ctx, clone(from_fn_name)) {
+    if len(from_fn_name) > 0 && ctx_fn_exists::ctx_has_fn_name(ctx, from_fn_name.clone()) {
         return from_fn_name
     }
     String_new()
@@ -70,7 +70,7 @@ fn try_emit_err_from_conversion(mut ctx: LowerCtx, res_ptr: i32, from_fn_name: S
     ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(err_local))
     let converted_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(err_local))
-    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(clone(from_fn_name), 1, converted_local))
+    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(from_fn_name.clone(), 1, converted_local))
     ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set(res_ptr, converted_local, 4, value_types::VT_VOID()))
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(res_ptr))
     ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_void())
@@ -89,7 +89,7 @@ fn try_emit_err_identity_result(mut ctx: LowerCtx, res_ptr: i32, inner_idx: i32)
     let target_result_type = function_return_view::MirFunction_return_type_name(
         ctx_current_storage::ctx_current_func_value(ctx)
     )
-    if !try_identity_result_needs_rebuild(clone(source_result_type), clone(target_result_type)) {
+    if !try_identity_result_needs_rebuild(source_result_type.clone(), target_result_type.clone()) {
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(res_ptr))
         ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_void())
         return
@@ -98,27 +98,27 @@ fn try_emit_err_identity_result(mut ctx: LowerCtx, res_ptr: i32, inner_idx: i32)
 }
 
 fn try_identity_result_needs_rebuild(source_result_type: String, target_result_type: String) -> bool {
-    if !try_is_result_type(clone(source_result_type)) || !try_is_result_type(clone(target_result_type)) {
+    if !try_is_result_type(source_result_type.clone()) || !try_is_result_type(target_result_type.clone()) {
         return false
     }
-    if eq(clone(source_result_type), clone(target_result_type)) {
+    if eq(source_result_type.clone(), target_result_type.clone()) {
         return false
     }
-    let source_err_type = try_extract_err_payload_type(clone(source_result_type))
-    let target_err_type = try_extract_err_payload_type(clone(target_result_type))
-    len(source_err_type) > 0 && eq(clone(source_err_type), clone(target_err_type))
+    let source_err_type = try_extract_err_payload_type(source_result_type.clone())
+    let target_err_type = try_extract_err_payload_type(target_result_type.clone())
+    len(source_err_type) > 0 && eq(source_err_type.clone(), target_err_type.clone())
 }
 
 fn try_is_result_type(type_name: String) -> bool {
-    clone(type_name).starts_with("Result_") || clone(type_name).starts_with("result:")
+    type_name.clone().starts_with("Result_") || type_name.clone().starts_with("result:")
 }
 
 fn try_emit_err_identity_result_gc(mut ctx: LowerCtx, res_ptr: i32, inner_idx: i32) {
     let source_err_type = try_extract_err_payload_type(ctx_api_local_types::ctx_get_local_type(ctx, inner_idx))
-    let source_vt = try_err_payload_vt_gc(clone(source_err_type))
+    let source_vt = try_err_payload_vt_gc(source_err_type.clone())
     let err_local = ctx_api_local_alloc::ctx_fresh_local(ctx, source_vt)
     if len(source_err_type) > 0 {
-        ctx_api_local_types::ctx_set_local_type(ctx, err_local, clone(source_err_type))
+        ctx_api_local_types::ctx_set_local_type(ctx, err_local, source_err_type.clone())
     }
     let mut source_payload_vts = Vec::new<i32>()
     push(source_payload_vts, source_vt)
@@ -126,7 +126,7 @@ fn try_emit_err_identity_result_gc(mut ctx: LowerCtx, res_ptr: i32, inner_idx: i
         ctx,
         String_from("Err"),
         source_payload_vts,
-        clone(source_err_type)
+        source_err_type.clone()
     )
     if err_slot < 0 {
         err_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, String_from("Err"))
@@ -158,11 +158,11 @@ fn try_emit_err_identity_result_gc(mut ctx: LowerCtx, res_ptr: i32, inner_idx: i
 fn try_emit_err_from_conversion_gc(mut ctx: LowerCtx, res_ptr: i32, from_fn_name: String, inner_idx: i32) {
     let source_err_type = try_extract_err_payload_type(ctx_api_local_types::ctx_get_local_type(ctx, inner_idx))
     let fn_return_type_name = function_return_view::MirFunction_return_type_name(ctx_current_storage::ctx_current_func_value(ctx))
-    let target_err_type = try_extract_err_payload_type(clone(fn_return_type_name))
-    let source_vt = try_err_payload_vt_gc(clone(source_err_type))
+    let target_err_type = try_extract_err_payload_type(fn_return_type_name.clone())
+    let source_vt = try_err_payload_vt_gc(source_err_type.clone())
     let err_local = ctx_api_local_alloc::ctx_fresh_local(ctx, source_vt)
     if len(source_err_type) > 0 {
-        ctx_api_local_types::ctx_set_local_type(ctx, err_local, clone(source_err_type))
+        ctx_api_local_types::ctx_set_local_type(ctx, err_local, source_err_type.clone())
     }
     let mut source_payload_vts = Vec::new<i32>()
     push(source_payload_vts, source_vt)
@@ -170,7 +170,7 @@ fn try_emit_err_from_conversion_gc(mut ctx: LowerCtx, res_ptr: i32, from_fn_name
         ctx,
         String_from("Err"),
         source_payload_vts,
-        clone(source_err_type)
+        source_err_type.clone()
     )
     if err_slot < 0 {
         err_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, String_from("Err"))
@@ -182,15 +182,15 @@ fn try_emit_err_from_conversion_gc(mut ctx: LowerCtx, res_ptr: i32, from_fn_name
         field_vt = value_types::VT_I64()
     }
     ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(err_local, res_ptr, err_slot, 1, field_vt))
-    let target_vt = try_err_payload_vt_gc(clone(target_err_type))
+    let target_vt = try_err_payload_vt_gc(target_err_type.clone())
     let converted_local = ctx_api_local_alloc::ctx_fresh_local(ctx, target_vt)
     if len(target_err_type) > 0 {
-        ctx_api_local_types::ctx_set_local_type(ctx, converted_local, clone(target_err_type))
+        ctx_api_local_types::ctx_set_local_type(ctx, converted_local, target_err_type.clone())
     }
     // Push the Err payload explicitly — call_with_first_arg alone does not
     // reload GC refs before the callee on this path (#840 from_error).
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(err_local))
-    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(clone(from_fn_name), 1, converted_local))
+    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(from_fn_name.clone(), 1, converted_local))
     let mut out_locals = Vec::new<i32>()
     push(out_locals, converted_local)
     let mut out_vts = Vec::new<i32>()
@@ -213,16 +213,16 @@ fn try_err_payload_vt_gc(err_type_name: String) -> i32 {
     if len(err_type_name) == 0 {
         return value_types::VT_I32()
     }
-    if eq(clone(err_type_name), "f64") || eq(clone(err_type_name), "F64") {
+    if eq(err_type_name.clone(), "f64") || eq(err_type_name.clone(), "F64") {
         return value_types::VT_F64()
     }
-    if eq(clone(err_type_name), "i64") || eq(clone(err_type_name), "I64") {
+    if eq(err_type_name.clone(), "i64") || eq(err_type_name.clone(), "I64") {
         return value_types::VT_I64()
     }
-    if eq(clone(err_type_name), "i32") ||
-    eq(clone(err_type_name), "I32") ||
-    eq(clone(err_type_name), "bool") ||
-    eq(clone(err_type_name), "Bool") {
+    if eq(err_type_name.clone(), "i32") ||
+    eq(err_type_name.clone(), "I32") ||
+    eq(err_type_name.clone(), "bool") ||
+    eq(err_type_name.clone(), "Bool") {
         return value_types::VT_I32()
     }
     value_types::VT_GC_REF()

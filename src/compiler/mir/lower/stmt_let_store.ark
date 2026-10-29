@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
@@ -75,14 +75,14 @@ fn sync_let_local_value_type(mut ctx: LowerCtx, vt: i32, local_idx: i32, val_idx
 
 fn sync_let_local_type_name(mut ctx: LowerCtx, local_idx: i32, val_idx: i32, pre_init_kind: i32, ta_count: i32) {
     let existing = ctx_api_local_types::ctx_get_local_type(ctx, local_idx)
-    if clone(existing).starts_with("enum:") {
+    if existing.clone().starts_with("enum:") {
         let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
         let init_vt = ctx_api_local_types::ctx_local_vt(ctx, val_idx)
-        let is_enum_annotation = eq(clone(existing), "enum:Option") || eq(clone(existing), "enum:Result")
-        let init_is_result = clone(init_type).starts_with("option:") ||
-        clone(init_type).starts_with("result:") ||
-        clone(init_type).starts_with("Option_") ||
-        clone(init_type).starts_with("Result_")
+        let is_enum_annotation = eq(existing.clone(), "enum:Option") || eq(existing.clone(), "enum:Result")
+        let init_is_result = init_type.clone().starts_with("option:") ||
+        init_type.clone().starts_with("result:") ||
+        init_type.clone().starts_with("Option_") ||
+        init_type.clone().starts_with("Result_")
         if is_enum_annotation && init_is_result {
             ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)
             return
@@ -92,7 +92,7 @@ fn sync_let_local_type_name(mut ctx: LowerCtx, local_idx: i32, val_idx: i32, pre
         init_vt == value_types::VT_I64() {
             // A scalar/default call-result temp under an enum annotation is
             // the initializer of a ref-valued binding; carry the annotation.
-            ctx_api_local_types::ctx_set_local_type(ctx, val_idx, clone(existing))
+            ctx_api_local_types::ctx_set_local_type(ctx, val_idx, existing.clone())
             ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
         }
         return
@@ -102,14 +102,14 @@ fn sync_let_local_type_name(mut ctx: LowerCtx, local_idx: i32, val_idx: i32, pre
     // annotation to a scalar/empty call-result temp. A trait method returning
     // Result<T, E> otherwise registers its call dest as the i64 default while
     // the callee actually returns the Result ref (#708).
-    if eq(clone(existing), "Option") || eq(clone(existing), "Result") ||
-    clone(existing).starts_with("Option_") ||
-    clone(existing).starts_with("Result_") ||
-    clone(existing).starts_with("option:") ||
-    clone(existing).starts_with("result:") {
+    if eq(existing.clone(), "Option") || eq(existing.clone(), "Result") ||
+    existing.clone().starts_with("Option_") ||
+    existing.clone().starts_with("Result_") ||
+    existing.clone().starts_with("option:") ||
+    existing.clone().starts_with("result:") {
         // The annotation is authoritative even when the callee's placeholder
         // Result is a GC ref without the concrete args (#708).
-        ctx_api_local_types::ctx_set_local_type(ctx, val_idx, clone(existing))
+        ctx_api_local_types::ctx_set_local_type(ctx, val_idx, existing.clone())
         ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
         let mvt = ctx_api_local_types::ctx_local_mvt(ctx, local_idx)
         if !typed_mir_compat::mvt_is_invalid(mvt) {
@@ -121,12 +121,12 @@ fn sync_let_local_type_name(mut ctx: LowerCtx, local_idx: i32, val_idx: i32, pre
     }
     // Preserve explicit vec:/hashmap: annotations (e.g. Vec<Vec<i32>> → vec:Vec)
     // so Vec::new<i32>() initializers do not collapse nested container locals to vec:i32.
-    if clone(existing).starts_with("vec:") || clone(existing).starts_with("hashmap:") || clone(existing).starts_with("hashset:") {
+    if existing.clone().starts_with("vec:") || existing.clone().starts_with("hashmap:") || existing.clone().starts_with("hashset:") {
         // Propagate the annotation back onto the initializer temp so Vec_new
         // emission (resolve_vec_type_for_new_dest) sees vec:Vec / structref layout.
         let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
-        if clone(init_type).starts_with("vec:") || len(init_type) == 0 {
-            ctx_api_local_types::ctx_set_local_type(ctx, val_idx, clone(existing))
+        if init_type.clone().starts_with("vec:") || len(init_type) == 0 {
+            ctx_api_local_types::ctx_set_local_type(ctx, val_idx, existing.clone())
             ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
         }
         return
@@ -136,7 +136,7 @@ fn sync_let_local_type_name(mut ctx: LowerCtx, local_idx: i32, val_idx: i32, pre
     // lowered pair initializer is not a refinement. Letting it overwrite
     // drops the return segment, so indirect-call dests fall back to the
     // scalar bucket and land in i64 locals on GC (#872).
-    if clone(existing).starts_with("fnsig:") || clone(existing).starts_with("fn(") {
+    if existing.clone().starts_with("fnsig:") || existing.clone().starts_with("fn(") {
         return
     }
     let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)

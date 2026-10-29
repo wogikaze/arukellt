@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use corehir::kinds
 use corehir::mir_value_type
 use corehir::type_id
@@ -12,14 +12,14 @@ use wasm::emit_target
 use wasm::sections_types_gc
 use wasm::sections_types_gc_phase7
 fn typed_function_param_sig(mir: MirModule, fn_name: String, param_idx: i32, target: String) -> String {
-    if !emit_target::is_gc_target(clone(target)) {
+    if !emit_target::is_gc_target(target.clone()) {
         return String_new()
     }
     typed_mvt_sig(mir, spine_lookup::function_param_mvt(mir, fn_name, param_idx), target)
 }
 
 fn typed_function_return_sig(mir: MirModule, fn_name: String, target: String) -> String {
-    if !emit_target::is_gc_target(clone(target)) {
+    if !emit_target::is_gc_target(target.clone()) {
         return String_new()
     }
     typed_mvt_sig(mir, spine_lookup::function_return_mvt(mir, fn_name), target)
@@ -63,14 +63,14 @@ fn typed_mvt_sig(mir: MirModule, mvt: MirValueType, target: String) -> String {
 // one uppercase letter. Only unresolved legacy generic spellings fall back
 // to the shared open structref base.
 fn is_legacy_generic_struct_name(mir: MirModule, name: String) -> bool {
-    if module_gc_struct::MirModule_gc_struct_slot(mir, clone(name)) >= 0 {
+    if module_gc_struct::MirModule_gc_struct_slot(mir, name.clone()) >= 0 {
         return false
     }
     if len(name) == 1 {
         let first = name.byte_at(0)
         return first >= 65 && first <= 90
     }
-    if clone(name).starts_with("struct:") && len(name) >= 9 {
+    if name.clone().starts_with("struct:") && len(name) >= 9 {
         let marker = name.byte_at(7)
         return marker >= 65 && marker <= 90 && name.byte_at(8) == 58
     }
@@ -78,54 +78,54 @@ fn is_legacy_generic_struct_name(mir: MirModule, name: String) -> bool {
 }
 
 fn collection_type_sig(mir: MirModule, type_name: String, target: String) -> String {
-    if !emit_target::is_gc_target(clone(target)) {
+    if !emit_target::is_gc_target(target.clone()) {
         return String_new()
     }
-    if clone(type_name).starts_with("vec:") {
-        if eq(clone(type_name), "vec:String") || eq(clone(type_name), "vec:string") {
+    if type_name.clone().starts_with("vec:") {
+        if eq(type_name.clone(), "vec:String") || eq(type_name.clone(), "vec:string") {
             return sections_types_gc::gc_vec_string_type_sig()
         }
-        if eq(clone(type_name), "vec:i64") || eq(clone(type_name), "vec:I64") {
+        if eq(type_name.clone(), "vec:i64") || eq(type_name.clone(), "vec:I64") {
             return sections_types_gc::gc_vec_i64_type_sig()
         }
-        if eq(clone(type_name), "vec:f64") || eq(clone(type_name), "vec:F64") {
+        if eq(type_name.clone(), "vec:f64") || eq(type_name.clone(), "vec:F64") {
             return sections_types_gc::gc_vec_f64_type_sig()
         }
-        if eq(clone(type_name), "vec:v128") || eq(clone(type_name), "vec:V128") {
+        if eq(type_name.clone(), "vec:v128") || eq(type_name.clone(), "vec:V128") {
             return sections_types_gc::gc_vec_v128_type_sig()
         }
-        if eq(clone(type_name), "vec:fnref") || eq(clone(type_name), "vec:fn") {
+        if eq(type_name.clone(), "vec:fnref") || eq(type_name.clone(), "vec:fn") {
             return sections_types_gc::gc_vec_fnref_type_sig()
         }
-        let elem = clone(type_name).slice(4, len(type_name))
-        if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(clone(elem)) {
+        let elem = type_name.clone().slice(4, len(type_name))
+        if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(elem.clone()) {
             return sections_types_gc::gc_vec_fnref_type_sig()
         }
-        if sections_types_gc_phase7::gc_vec_elem_name_is_enum_like(clone(elem)) {
+        if sections_types_gc_phase7::gc_vec_elem_name_is_enum_like(elem.clone()) {
             return sections_types_gc::gc_vec_enum_ref_type_sig()
         }
-        if sections_types_gc_phase7::gc_vec_elem_name_is_struct_ref(clone(elem)) ||
-        eq(clone(elem), "Vec") ||
-        clone(elem).starts_with("vec:") ||
-        module_gc_struct::MirModule_gc_struct_slot(mir, clone(elem)) >= 0 {
+        if sections_types_gc_phase7::gc_vec_elem_name_is_struct_ref(elem.clone()) ||
+        eq(elem.clone(), "Vec") ||
+        elem.clone().starts_with("vec:") ||
+        module_gc_struct::MirModule_gc_struct_slot(mir, elem.clone()) >= 0 {
             return sections_types_gc_phase7::gc_vec_struct_ref_type_sig()
         }
         return sections_types_gc::gc_vec_type_sig()
     }
-    if clone(type_name).starts_with("hashmap:") {
-        if clone(type_name).starts_with("hashmap:i32str") {
+    if type_name.clone().starts_with("hashmap:") {
+        if type_name.clone().starts_with("hashmap:i32str") {
             return sections_types_gc::gc_hashmap_i32_str_type_sig()
         }
-        if clone(type_name).starts_with("hashmap:i32fn") {
+        if type_name.clone().starts_with("hashmap:i32fn") {
             return sections_types_gc::gc_hashmap_i32_fn_type_sig()
         }
-        if clone(type_name).starts_with("hashmap:strfn") {
+        if type_name.clone().starts_with("hashmap:strfn") {
             return sections_types_gc::gc_hashmap_str_fn_type_sig()
         }
-        if clone(type_name).starts_with("hashmap:strstr") {
+        if type_name.clone().starts_with("hashmap:strstr") {
             return sections_types_gc::gc_hashmap_str_str_type_sig()
         }
-        if clone(type_name).starts_with("hashmap:i32i32") {
+        if type_name.clone().starts_with("hashmap:i32i32") {
             return sections_types_gc::gc_vec_type_sig()
         }
         return sections_types_gc::gc_hashmap_str_i32_type_sig()

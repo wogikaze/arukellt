@@ -106,12 +106,20 @@ def resolve_deprecated_target(
 
 
 def table_names(text: str, fn_name: str) -> list[str]:
-    """Extract string literals used in eq(clone(x), "NAME") comparisons of one fn."""
+    """Extract string literals used in eq(clone(x), "NAME") comparisons of one fn.
+
+    The source may spell the copy as the free ``clone(x)`` or the receiver
+    method ``x.clone()``; both are the same comparison after the ADR-091
+    migration.
+    """
     m = re.search(rf"fn {re.escape(fn_name)}\(.*?(?=\n(?:pub )?fn |\ntest mod |\Z)", text, re.S)
     if not m:
         return []
     body = m.group(0)
-    return re.findall(r'eq\(clone\([^)]*\), "([^"]+)"\)', body)
+    return re.findall(
+        r'eq\((?:clone\([^)]*\)|[A-Za-z_][A-Za-z0-9_]*\.clone\(\)), "([^"]+)"\)',
+        body,
+    )
 
 
 def resolver_builtin_names() -> set[str]:

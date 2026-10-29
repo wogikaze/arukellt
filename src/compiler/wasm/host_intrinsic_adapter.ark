@@ -19,22 +19,22 @@ use wasm::writer_core
 // HOST_ABI_GC_REF for intrinsics that return a GC reference directly,
 // and HOST_ABI_LINEAR_MEMORY_PTR for intrinsics that return an i32
 // pointer into linear memory which must be converted to a GC ref.
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 fn host_intrinsic_abi_kind(name: String) -> i32 {
     // Scalar intrinsics: return plain numeric values, no GC ref needed.
-    if eq(clone(name), String_from("clock_now")) {
+    if eq(name.clone(), String_from("clock_now")) {
         return kinds::HOST_ABI_SCALAR()
     }
-    if eq(clone(name), String_from("exists")) {
+    if eq(name.clone(), String_from("exists")) {
         return kinds::HOST_ABI_SCALAR()
     }
-    if eq(clone(name), String_from("is_file")) {
+    if eq(name.clone(), String_from("is_file")) {
         return kinds::HOST_ABI_SCALAR()
     }
-    if eq(clone(name), String_from("is_dir")) {
+    if eq(name.clone(), String_from("is_dir")) {
         return kinds::HOST_ABI_SCALAR()
     }
-    if eq(clone(name), String_from("is_readable_file")) {
+    if eq(name.clone(), String_from("is_readable_file")) {
         return kinds::HOST_ABI_SCALAR()
     }
     // All other host intrinsics return i32 pointers (string handles,
@@ -45,28 +45,28 @@ fn host_intrinsic_abi_kind(name: String) -> i32 {
 // Check whether a host intrinsic can emit a real body on GC targets
 // without an adapter (i.e. it is Scalar or GcRef).
 fn host_intrinsic_can_emit_gc_body(name: String) -> bool {
-    let abi = host_intrinsic_abi_kind(clone(name))
+    let abi = host_intrinsic_abi_kind(name.clone())
     abi == kinds::HOST_ABI_SCALAR() || abi == kinds::HOST_ABI_GC_REF()
 }
 
 // LinearMemoryPtr stubs that `host_intrinsic_gc_body` can synthesize today.
 fn host_intrinsic_needs_gc_adapter(name: String) -> bool {
-    if host_intrinsic_abi_kind(clone(name)) != kinds::HOST_ABI_LINEAR_MEMORY_PTR() {
+    if host_intrinsic_abi_kind(name.clone()) != kinds::HOST_ABI_LINEAR_MEMORY_PTR() {
         return false
     }
-    if eq(clone(name), String_from("args")) {
+    if eq(name.clone(), String_from("args")) {
         return true
     }
-    if eq(clone(name), String_from("arg_at")) {
+    if eq(name.clone(), String_from("arg_at")) {
         return true
     }
-    if eq(clone(name), String_from("var")) || eq(clone(name), String_from("get_var")) {
+    if eq(name.clone(), String_from("var")) || eq(name.clone(), String_from("get_var")) {
         return true
     }
-    if eq(clone(name), String_from("var_or_default")) {
+    if eq(name.clone(), String_from("var_or_default")) {
         return true
     }
-    if eq(clone(name), String_from("read_stdin")) {
+    if eq(name.clone(), String_from("read_stdin")) {
         return true
     }
     false
@@ -77,7 +77,7 @@ fn host_intrinsic_needs_gc_adapter(name: String) -> bool {
 // full param/return type population will be added as adapters are
 // implemented.
 fn host_intrinsic_spec_for(name: String) -> HostIntrinsicSpec {
-    let abi = host_intrinsic_abi_kind(clone(name))
+    let abi = host_intrinsic_abi_kind(name.clone())
     let mut returns = Vec::new<MirValueType>()
     let mut boundary_returns = Vec::new<MirValueType>()
     let i32_mvt = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
@@ -122,11 +122,11 @@ fn host_intrinsic_should_emit_unreachable_gc_stub(f: MirFunction, ctx: SelfEmitC
     if !host_intrinsic_stub_names::host_intrinsic_stub_is_known(name) {
         return false
     }
-    if host_intrinsic_can_emit_gc_body(clone(name)) {
+    if host_intrinsic_can_emit_gc_body(name.clone()) {
         return false
     }
     // Adapter-capable LinearMemoryPtr stubs synthesize a GC body instead.
-    if host_intrinsic_needs_gc_adapter(clone(name)) {
+    if host_intrinsic_needs_gc_adapter(name.clone()) {
         return false
     }
     true
@@ -140,5 +140,5 @@ fn host_intrinsic_should_emit_gc_adapter_body(f: MirFunction, ctx: SelfEmitCtx) 
     if !host_intrinsic_stub_names::host_intrinsic_stub_is_known(name) {
         return false
     }
-    host_intrinsic_needs_gc_adapter(clone(name))
+    host_intrinsic_needs_gc_adapter(name.clone())
 }

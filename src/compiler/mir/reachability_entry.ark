@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::reachability_prune
 use mir::reachability_roots
 use mir::reachability_walk
@@ -99,7 +98,7 @@ fn mir_reachability_marks_for_target_and_edges(
             reachable,
             queue,
             f,
-            clone(target),
+            target.clone(),
             packed_edges,
             fi,
             fn_names,

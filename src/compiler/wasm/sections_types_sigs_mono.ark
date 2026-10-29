@@ -1,5 +1,5 @@
 // Mono type signature helpers.
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use mir::lower::mono_suffix_parse
 use mir::module_gc_enum
@@ -57,14 +57,14 @@ fn all_valid_type_keys(type_keys: Vec<String>, key_count: i32) -> bool {
 }
 
 fn is_valid_type_key(key: String) -> bool {
-    if eq(clone(key), "i32") ||
-    eq(clone(key), "i64") ||
-    eq(clone(key), "f64") ||
-    eq(clone(key), "f32") ||
-    eq(clone(key), "bool") ||
-    eq(clone(key), "char") ||
-    eq(clone(key), "String") ||
-    eq(clone(key), "string") {
+    if eq(key.clone(), "i32") ||
+    eq(key.clone(), "i64") ||
+    eq(key.clone(), "f64") ||
+    eq(key.clone(), "f32") ||
+    eq(key.clone(), "bool") ||
+    eq(key.clone(), "char") ||
+    eq(key.clone(), "String") ||
+    eq(key.clone(), "string") {
         return true
     }
     // User-defined type names start with uppercase letter (A-Z = 65-90)
@@ -100,7 +100,7 @@ fn resolve_mono_param_type_from_fn_name(fn_name: String, type_var_name: String, 
     // Determine which type parameter index to use based on the type variable name.
     // The fallback table is centralized in mono_suffix_parse; declared
     // ordinals are bound by the signature registry before this path is hit.
-    let type_idx = mono_suffix_parse::mono_type_var_to_index(clone(type_var_name))
+    let type_idx = mono_suffix_parse::mono_type_var_to_index(type_var_name.clone())
     if type_idx < 0 || type_idx >= key_count {
         return sections_types_sigs_mono_helpers::mono_type_key_to_sig(get_unchecked(type_keys, 0))
     }
@@ -121,12 +121,12 @@ fn try_mono_gc_struct_param_sig(fn_name: String, type_var_name: String, _param_o
     if key_count == 0 {
         return String_new()
     }
-    let type_idx = mono_suffix_parse::mono_type_var_to_index(clone(type_var_name))
+    let type_idx = mono_suffix_parse::mono_type_var_to_index(type_var_name.clone())
     if type_idx < 0 || type_idx >= key_count {
         return String_new()
     }
     let key = get_unchecked(type_keys, type_idx)
-    let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(key))
+    let slot = module_gc_struct::MirModule_gc_struct_slot(mir, key.clone())
     if slot >= 0 {
         return "gcsref".concat((slot).to_string())
     }
@@ -162,26 +162,26 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
     if len(full_suffix) == 0 {
         return String_new()
     }
-    let suffix_with_sep = "__".concat(clone(full_suffix))
+    let suffix_with_sep = "__".concat(full_suffix.clone())
     let fn_len = len(fn_name)
     let suffix_sep_len = len(suffix_with_sep)
-    if fn_len <= suffix_sep_len || !clone(fn_name).ends_with(clone(suffix_with_sep)) {
+    if fn_len <= suffix_sep_len || !fn_name.clone().ends_with(suffix_with_sep.clone()) {
         return String_new()
     }
     let base = fn_name.slice(0, fn_len - suffix_sep_len)
-    let base_parts = split_by_double_underscore(clone(base))
+    let base_parts = split_by_double_underscore(base.clone())
     // Require Type__method base shape; plain mono functions like id__i32 must not match.
     if len(base_parts) < 2 {
         return String_new()
     }
-    let mut receiver = sections_types_sigs_mono_helpers::mono_method_receiver_name(clone(return_type_name), mir)
+    let mut receiver = sections_types_sigs_mono_helpers::mono_method_receiver_name(return_type_name.clone(), mir)
     if len(receiver) == 0 {
         receiver = get_unchecked(base_parts, 0)
     }
     if len(receiver) == 0 {
         return String_new()
     }
-    if !clone(fn_name).starts_with(clone(receiver).concat("__")) {
+    if !fn_name.clone().starts_with(receiver.clone().concat("__")) {
         return String_new()
     }
     // The suffix keys bind the method's type arguments; they double as the
@@ -191,13 +191,13 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
     // enum:Ordering on Reverse__cmp__i32 names a different type and must
     // resolve through the normal return-type paths below.
     if len(return_type_name) > 0 {
-        let mut var_probe = clone(return_type_name)
-        if clone(var_probe).starts_with("?") {
+        let mut var_probe = return_type_name.clone()
+        if var_probe.clone().starts_with("?") {
             var_probe = var_probe.slice(1, len(var_probe))
         }
-        let is_var_return = !mono_return_name_is_declared_nominal(mir, clone(var_probe)) &&
-        mono_suffix_parse::is_mono_type_var_name(clone(var_probe))
-        if !is_var_return && !mono_declared_return_is_receiver(clone(return_type_name), clone(receiver)) {
+        let is_var_return = !mono_return_name_is_declared_nominal(mir, var_probe.clone()) &&
+        mono_suffix_parse::is_mono_type_var_name(var_probe.clone())
+        if !is_var_return && !mono_declared_return_is_receiver(return_type_name.clone(), receiver.clone()) {
             return String_new()
         }
     }
@@ -207,14 +207,14 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
         return String_new()
     }
     let last_key = get_unchecked(type_keys, key_count - 1)
-    if eq(clone(last_key), clone(receiver)) {
+    if eq(last_key.clone(), receiver.clone()) {
         return String_new()
     }
-    let sig = sections_types_sigs_mono_helpers::mono_type_key_to_sig(clone(last_key))
+    let sig = sections_types_sigs_mono_helpers::mono_type_key_to_sig(last_key.clone())
     if len(sig) > 0 {
         return sig
     }
-    let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(last_key))
+    let slot = module_gc_struct::MirModule_gc_struct_slot(mir, last_key.clone())
     if slot >= 0 {
         return "gcsref".concat((slot).to_string())
     }
@@ -226,7 +226,7 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
 // type-variable fallback (ADR-089). Registered struct and enum tables are
 // the declaration evidence available at signature-emit time.
 fn mono_return_name_is_declared_nominal(mir: MirModule, name: String) -> bool {
-    if module_gc_struct::MirModule_gc_struct_slot(mir, clone(name)) >= 0 {
+    if module_gc_struct::MirModule_gc_struct_slot(mir, name.clone()) >= 0 {
         return true
     }
     module_gc_enum::MirModule_gc_enum_base_has_variants(mir, name)
@@ -239,9 +239,9 @@ fn mono_declared_return_is_receiver(return_type_name: String, receiver: String) 
     if len(receiver) == 0 {
         return false
     }
-    let mut bare = clone(return_type_name)
+    let mut bare = return_type_name.clone()
     let n = len(bare)
-    if clone(bare).starts_with("struct:") {
+    if bare.clone().starts_with("struct:") {
         // struct:Name:size — keep the middle segment.
         let mut first_colon = 0 - 1
         let mut last_colon = 0 - 1

@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use collections::vec_extend
 use parser::ast
 use typechecker::kinds
@@ -121,7 +121,7 @@ fn fn_sig_from_fn_decl_with_impl_type_params(
 ) -> FnSig {
     let method_bounds = sig_bounds::collect_type_param_bounds(ast_access::node_type_ann(node))
     let method_type_params = sig_bounds::collect_type_param_names(method_bounds)
-    let type_params = merge_type_params(clone(impl_type_params), method_type_params)
+    let type_params = merge_type_params(impl_type_params.clone(), method_type_params)
     let type_param_bounds = merge_type_param_bounds(
         impl_type_params,
         impl_type_param_bounds,
@@ -149,7 +149,7 @@ fn merge_type_param_bounds(
     while j < method_count {
         let info = get_unchecked(method_bounds, j)
         if !string_vec_contains(
-            clone(impl_params),
+            impl_params.clone(),
             contract_type_param_bounds::TypeParamBounds_name(info)
         ) {
             push(merged, info)
@@ -163,7 +163,7 @@ fn string_vec_contains(names: Vec<String>, name: String) -> bool {
     let count = len(names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(names, i), clone(name)) {
+        if eq(get_unchecked(names, i), name.clone()) {
             return true
         }
         i = i + 1
@@ -179,11 +179,11 @@ fn merge_type_params(impl_params: Vec<String>, method_params: Vec<String>) -> Ve
     let method_count = len(method_params)
     let mut k = 0
     while k < method_count {
-        let mp = clone(get_unchecked(method_params, k))
+        let mp = get_unchecked(method_params, k).clone()
         let mut found = false
         let mut j = 0
         while j < impl_count {
-            if eq(clone(get_unchecked(impl_params, j)), clone(mp)) {
+            if eq(get_unchecked(impl_params, j).clone(), mp.clone()) {
                 found = true
             }
             j = j + 1

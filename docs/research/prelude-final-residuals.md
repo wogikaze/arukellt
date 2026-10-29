@@ -86,38 +86,88 @@ At clean HEAD the committed pin
 while a freshly built stage-2 from the same source compiles it. Any bisection of
 equality behaviour must use the lane `s2`, not the pin.
 
-The 2026-10-30 refresh attempt did not close that gap. The overlay packaging
-was **not** sufficient: the closure omitted `std/core/scalar_format.ark` and
-`std/core/raw.ark`, so `convert.ark`'s `__core_parse_f64_impl` call fell back
-to the i32 `parse_f64` intrinsic and the gc self-build emitted invalid core
-Wasm in `f64::try_from__String`. Shipping both modules makes the old pin's gc
-self-build validate, but that pin is not faithful (p1 identity and gc
-self-reproduction fail), and the faithful p1 s2 still cannot self-build gc
-(`try_emit_name_intrinsic_fallback`, func 5637). See
-[pin-refresh-blocker-20261030.md](pin-refresh-blocker-20261030.md) for the
-hashes and reproduction. The eq retirement therefore stays blocked on the
-pin plus the eq-path operand staging described in §2.
+## `clone` — resolved in `wave/poly-clone` (2026-10-30)
 
-## `clone` — `.clone()` has no polymorphic resolution
-
-`clone(x)` is a typechecker special case keyed on the callee name
-(`typechecker/call_fn.ark`), so it preserves the argument type for
-`Vec<String>`, `Vec<TypeInfo>`, `AstNode`, and every other value without a
-`Clone` impl. `.clone()` has no equivalent: the method falls back to the bare
-function `clone`, which is declared `(String) -> String`, so non-String
-receivers fail typechecking:
+The recorded E0200 failures reproduced at the base commit:
 
 ```text
 error[E0200|typecheck]: type mismatch: String vs Vec
 error[E0200|typecheck]: type mismatch: String vs struct
+error[E0200|typecheck]: type mismatch: String vs enum
+error[E0200|typecheck]: type mismatch: String vs ?
 ```
 
-A generic prelude declaration (`pub fn clone<T>(value: T) -> T`) makes
-`.clone()` resolve for structs, enums, and `Option`, but `Vec<T>::clone` then
-emits invalid core Wasm, so the 13,947 free call sites in 743 compiler / std
-files cannot be migrated yet. `std::collections::string::clone` is also a dead
-path: its body reaches `raw_string_clone`, a retired CoreOp
-(`resolver::removed_names`), and traps when called.
+`clone(x)` is a typechecker special case keyed on the callee name
+(`typechecker/call_fn.ark`), so it preserves the argument type. `.clone()` has no
+equivalent: the method falls back to the bare prelude `clone`, which is declared
+`(String) -> String`.
+
+### Root cause of the `Vec<T>` invalid Wasm
+
+A generic prelude declaration (`pub fn clone<T>(value: T) -> T`) makes `.clone()`
+resolve for structs, enums, and `Option`, but `Vec<String>` then emitted invalid
+core Wasm. Instrumenting `mir_rewrite_call_target` showed the receiver type is
+correct (`argty=vec:String vt=5`); the callee was rewritten to `String::clone`
+while `vec:i32` / `vec:Point` lowered as the identity `clone`:
+
+```text
+DBG-CLONE callee=clone argty=vec:String vt=5 resolved=String::clone
+DBG-CLONE callee=clone argty=vec:i32 vt=5 resolved=clone
+```
+
+The emitted module confirms the type confusion:
+
+```text
+(func $String::clone (;17;) (type 33) (param $self (ref null 0)) (result (ref null 0)))
+...
+local.get $v            ;; (ref null 19) = Vec struct
+call $String::clone     ;; expects (ref null 0) = String
+```
+
+`wasm-tools validate` reports
+`func 18 failed to validate: type mismatch: expected (ref null $type), found
+(ref null $type)`. The `vec:String` receiver spelling reaches the shared
+callee/return cache as the bare `String` owner, so the Vec argument is passed
+to the unrelated String impl method. Adding an inherent `Vec<T>::clone` gives
+the bare-name rewrite a concrete owner and removes the hijack; the same fix
+works for both targets.
+
+### Mechanism that landed
+
+1. `std/prelude.ark` keeps a **private** `fn clone<T>(value: T) -> T` as the
+   polymorphic identity signature for receivers without a `Clone` impl. It is
+   not importable and a bare call fails with E0100 plus a `.clone()` hint.
+2. `std/prelude.ark` declares `impl<T> Vec<T> { fn clone(self) -> Vec<T> }`
+   (shallow: the vector header is shared, element storage is not deep-copied).
+   It is always in the module graph, so the compiler source (which does not
+   import `std::collections::vec`) resolves `.clone()` on Vec the same way in
+   the pin and in stage-2/3.
+3. `std::collections::string::clone` was deleted. It reached
+   `__core_string_clone_impl` through the retired CoreOp path and trapped with
+   `wasm unreachable`; `s.clone()` is the replacement.
+4. The resolver rejects `use std::prelude::{clone}` and reports the retired
+   free with `removed_prelude_free_hint` / `removed_module_member_hint`.
+
+No typechecker or MIR logic changed. That is deliberate: the committed pin
+predates polymorphic method resolution, so the migrated source must compile
+with the old pin. With only the std shim, the pin compiles `.clone()` on
+`String`, `Vec<String>`, structs, enums, and `Option` on both `wasm32-gc` and
+`wasm32`, and the stage-2 build of the fully migrated compiler succeeds.
+
+### Residual
+
+`Vec<T>::clone` is shallow (header shared) because a deep elementwise copy
+needs `T: Clone` and `Vec<T>` carries values without Clone impls (compiler AST /
+MIR records). That matches the pre-existing bootstrap-overlay lowering
+(identity). A deep `impl<T: Clone> Clone for Vec<T>` can replace the inherent
+method once the pin is refreshed and the source no longer needs the
+`Clone`-impl-free path.
+
+Lane evidence: 762 files / 13,984 call sites migrated; `verify fixtures`
+1921/1921 PASS (38/38 `test:`), `verify lane` PASS, `docs check` 6/6, and the
+ADR-029 fixpoint reached s2 == s3 at
+`107c7c4d4bb7a072021c4277e20b0a1181f08603a863bbe384994de2a71b407e`
+(pinned base `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`).
 
 ## `Box_new` / `unbox` — generic enum construction is not lowered
 

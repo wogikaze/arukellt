@@ -1,5 +1,5 @@
 use std::text
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use collections::name_index
 use typechecker::associated_types
 use typechecker::contract_fn_sig
@@ -36,7 +36,7 @@ use typechecker::types
 // set) still need fuel to cut off.
 
 fn record_mono_instance(mut env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) -> String {
-    let mut mangled = clone(fn_name)
+    let mut mangled = fn_name.clone()
     let count = len(resolved_types)
     let mut i = 0
     while i < count {
@@ -44,24 +44,24 @@ fn record_mono_instance(mut env: TypeEnv, fn_name: String, resolved_types: Vec<T
         mangled = mangled.concat("__".concat(mono_key::mono_type_key(ty)))
         i = i + 1
     }
-    record_template_site_if_generic(env, clone(fn_name), clone(mangled), clone(resolved_types))
+    record_template_site_if_generic(env, fn_name.clone(), mangled.clone(), resolved_types.clone())
     let mi_count = contract_env_mono_record::type_env_mono_instance_count(env)
     let mut j = 0
     while j < mi_count {
         let mut mi = contract_env_mono_record::type_env_mono_instance_at(env, j)
-        if eq(contract_mono::MonoInstance_mangled_name(mi), clone(mangled)) {
+        if eq(contract_mono::MonoInstance_mangled_name(mi), mangled.clone()) {
             if !contract_mono::MonoInstance_demanded(mi) {
                 // An instance minted without demand (module merge or a
                 // call-site marker) turned out to be a real call target:
                 // upgrade it and bind its body's own demand edges.
                 contract_mono::MonoInstance_set_demanded(mi)
-                rebind_enclosing_template_sites(env, clone(fn_name), resolved_types)
+                rebind_enclosing_template_sites(env, fn_name.clone(), resolved_types)
             }
             return mangled
         }
         j = j + 1
     }
-    let mut inst = contract_mono::MonoInstance_new(clone(fn_name), clone(mangled), clone(resolved_types))
+    let mut inst = contract_mono::MonoInstance_new(fn_name.clone(), mangled.clone(), resolved_types.clone())
     contract_mono::MonoInstance_set_demanded(inst)
     contract_env_mono_record::type_env_push_mono_instance(env, inst)
     rebind_enclosing_template_sites(env, fn_name, resolved_types)
@@ -95,8 +95,8 @@ fn record_template_site_if_generic(mut env: TypeEnv, fn_name: String, mangled_na
     let mut s = 0
     while s < site_count {
         let site = get_unchecked(env.mono_template_sites, s)
-        if eq(clone(site.mangled_name), clone(mangled_name)) &&
-        eq(clone(site.enclosing_fn), clone(env.current_fn_name)) {
+        if eq(site.mangled_name.clone(), mangled_name.clone()) &&
+        eq(site.enclosing_fn.clone(), env.current_fn_name.clone()) {
             return
         }
         s = s + 1
@@ -105,8 +105,8 @@ fn record_template_site_if_generic(mut env: TypeEnv, fn_name: String, mangled_na
             fn_name: fn_name,
             mangled_name: mangled_name,
             type_args: resolved_types,
-            enclosing_fn: clone(env.current_fn_name),
-            enclosing_vars: clone(env.current_fn_type_params),
+            enclosing_fn: env.current_fn_name.clone(),
+            enclosing_vars: env.current_fn_type_params.clone(),
             is_var_method: false
         })
 }
@@ -124,30 +124,30 @@ fn record_var_method_site(mut env: TypeEnv, method_name: String, recv_ty: TypeIn
     if len(env.current_fn_name) == 0 {
         return
     }
-    if !associated_types::type_contains_var(clone(recv_ty)) &&
-    !is_var_projection_receiver(env, clone(recv_ty)) {
+    if !associated_types::type_contains_var(recv_ty.clone()) &&
+    !is_var_projection_receiver(env, recv_ty.clone()) {
         return
     }
-    let mut mangled = clone(method_name)
-    mangled = mangled.concat(String_from("__").concat(mono_key::mono_type_key(clone(recv_ty))))
+    let mut mangled = method_name.clone()
+    mangled = mangled.concat(String_from("__").concat(mono_key::mono_type_key(recv_ty.clone())))
     let site_count = len(env.mono_template_sites)
     let mut s = 0
     while s < site_count {
         let site = get_unchecked(env.mono_template_sites, s)
-        if eq(clone(site.mangled_name), clone(mangled)) &&
-        eq(clone(site.enclosing_fn), clone(env.current_fn_name)) {
+        if eq(site.mangled_name.clone(), mangled.clone()) &&
+        eq(site.enclosing_fn.clone(), env.current_fn_name.clone()) {
             return
         }
         s = s + 1
     }
     let mut site_args = Vec::new<TypeInfo>()
-    push(site_args, clone(recv_ty))
+    push(site_args, recv_ty.clone())
     push(env.mono_template_sites, MonoTemplateSite {
             fn_name: method_name,
             mangled_name: mangled,
             type_args: site_args,
-            enclosing_fn: clone(env.current_fn_name),
-            enclosing_vars: clone(env.current_fn_type_params),
+            enclosing_fn: env.current_fn_name.clone(),
+            enclosing_vars: env.current_fn_type_params.clone(),
             is_var_method: true
         })
 }
@@ -160,15 +160,15 @@ fn is_var_projection_receiver(env: TypeEnv, recv_ty: TypeInfo) -> bool {
         return false
     }
     let name = contract_type_access::TypeInfo_name(recv_ty)
-    let sep = associated_types::projection_sep_index(clone(name))
+    let sep = associated_types::projection_sep_index(name.clone())
     if sep <= 0 {
         return false
     }
-    let owner = clone(name).slice(0, sep)
+    let owner = name.clone().slice(0, sep)
     let count = len(env.current_fn_type_params)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(env.current_fn_type_params, i), clone(owner)) {
+        if eq(get_unchecked(env.current_fn_type_params, i), owner.clone()) {
             return true
         }
         i = i + 1
@@ -227,16 +227,16 @@ fn erase_impl_owner_args(name: String) -> String {
 // unqualified compare collapses every `cmp`/`next`/`eq` impl into one
 // bucket and the mint chain explodes (#920 emit-phase stall).
 fn enclosing_matches_instantiation(site_name: String, fn_name: String) -> bool {
-    if eq(clone(site_name), clone(fn_name)) {
+    if eq(site_name.clone(), fn_name.clone()) {
         return true
     }
-    let site_erased = erase_impl_owner_args(clone(site_name))
-    let fn_erased = erase_impl_owner_args(clone(fn_name))
-    if eq(clone(site_erased), clone(fn_erased)) {
+    let site_erased = erase_impl_owner_args(site_name.clone())
+    let fn_erased = erase_impl_owner_args(fn_name.clone())
+    if eq(site_erased.clone(), fn_erased.clone()) {
         return true
     }
-    if clone(site_name).index_of(String_from("::")) < 0 {
-        if eq(names::unqualified_type_name(clone(fn_erased)), clone(site_name)) {
+    if site_name.clone().index_of(String_from("::")) < 0 {
+        if eq(names::unqualified_type_name(fn_erased.clone()), site_name.clone()) {
             return true
         }
     }
@@ -263,10 +263,10 @@ fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_t
     let mut s = 0
     while s < site_count {
         let site = get_unchecked(env.mono_template_sites, s)
-        if enclosing_matches_instantiation(clone(site.enclosing_fn), clone(fn_name)) {
-            let site_vars = clone(site.enclosing_vars)
+        if enclosing_matches_instantiation(site.enclosing_fn.clone(), fn_name.clone()) {
+            let site_vars = site.enclosing_vars.clone()
             if len(site_vars) == arg_count {
-                let site_args = clone(site.type_args)
+                let site_args = site.type_args.clone()
                 let mut bound_args = Vec::new<TypeInfo>()
                 let mut b = 0
                 while b < len(site_args) {
@@ -274,12 +274,12 @@ fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_t
                         bound_args,
                         associated_types::normalize_projection_ty(
                             env,
-                            clone(site_vars),
-                            clone(resolved_types),
+                            site_vars.clone(),
+                            resolved_types.clone(),
                             instantiate::instantiate_type(
                                 get_unchecked(site_args, b),
-                                clone(site_vars),
-                                clone(resolved_types)
+                                site_vars.clone(),
+                                resolved_types.clone()
                             )
                         )
                     )
@@ -295,18 +295,18 @@ fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_t
                     if len(bound_args) > 0 {
                         _rebound = resolve_var_method_site(
                             env,
-                            clone(site.fn_name),
+                            site.fn_name.clone(),
                             get_unchecked(bound_args, 0)
                         )
                     }
                 } else {
                     let mut resolved_via_trait = false
-                    let sep = associated_types::projection_sep_index(clone(site.fn_name))
+                    let sep = associated_types::projection_sep_index(site.fn_name.clone())
                     if sep >= 0 && len(bound_args) > 0 {
                         let trait_entry = trait_method_registry::lookup_trait_method(
                             env,
-                            clone(site.fn_name).slice(0, sep),
-                            clone(site.fn_name).slice(sep + 2, len(site.fn_name))
+                            site.fn_name.clone().slice(0, sep),
+                            site.fn_name.clone().slice(sep + 2, len(site.fn_name))
                         )
                         if contract_fn_sig::FnSig_has_name(
                             contract_trait_method_record::trait_method_entry_sig(trait_entry)
@@ -316,7 +316,7 @@ fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_t
                             _rebound = mint_trait_method_instance(
                                 env,
                                 trait_entry,
-                                clone(site.fn_name).slice(sep + 2, len(site.fn_name)),
+                                site.fn_name.clone().slice(sep + 2, len(site.fn_name)),
                                 get_unchecked(bound_args, 0)
                             )
                             resolved_via_trait = true
@@ -325,7 +325,7 @@ fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_t
                     if !resolved_via_trait {
                         _rebound = record_mono_instance(
                             env,
-                            clone(site.fn_name),
+                            site.fn_name.clone(),
                             bound_args
                         )
                     }
@@ -337,20 +337,20 @@ fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_t
                 // vec:T::Item with an opaque structref element (#691).
                 let template_ret = mono_instance_return_type_by_mangled(
                     env,
-                    clone(site.mangled_name)
+                    site.mangled_name.clone()
                 )
-                if contract_type_access::TypeInfo_tag(clone(template_ret)) != 0 {
+                if contract_type_access::TypeInfo_tag(template_ret.clone()) != 0 {
                     let rebound_ret = associated_types::normalize_projection_ty(
                         env,
-                        clone(site_vars),
-                        clone(resolved_types),
+                        site_vars.clone(),
+                        resolved_types.clone(),
                         instantiate::instantiate_type(
-                            clone(template_ret),
-                            clone(site_vars),
-                            clone(resolved_types)
+                            template_ret.clone(),
+                            site_vars.clone(),
+                            resolved_types.clone()
                         )
                     )
-                    record_mono_return_type(env, clone(_rebound), rebound_ret)
+                    record_mono_return_type(env, _rebound.clone(), rebound_ret)
                 }
             }
         }
@@ -365,7 +365,7 @@ fn mono_instance_return_type_by_mangled(env: TypeEnv, mangled_name: String) -> T
         let instance = contract_env_mono_record::type_env_mono_instance_at(env, i)
         if eq(
             contract_mono::MonoInstance_mangled_name(instance),
-            clone(mangled_name)
+            mangled_name.clone()
         ) {
             return contract_mono::MonoInstance_return_type(instance)
         }
@@ -381,7 +381,7 @@ fn record_mono_return_type(env: TypeEnv, mangled_name: String, return_type: Type
         let mut instance = contract_env_mono_record::type_env_mono_instance_at(env, i)
         if eq(
             contract_mono::MonoInstance_mangled_name(instance),
-            clone(mangled_name)
+            mangled_name.clone()
         ) {
             contract_mono::MonoInstance_set_return_type(instance, return_type)
             return
@@ -400,7 +400,7 @@ fn record_mono_return_type(env: TypeEnv, mangled_name: String, return_type: Type
 // whose own type parameters outnumber the trait's cannot be resolved
 // from the receiver alone; its call sites record directly instead.
 fn mint_trait_method_instance(mut env: TypeEnv, entry: TraitMethodEntry, method_name: String, receiver: TypeInfo) -> String {
-    if associated_types::type_contains_var(clone(receiver)) {
+    if associated_types::type_contains_var(receiver.clone()) {
         return String_new()
     }
     let sig = contract_trait_method_record::trait_method_entry_sig(entry)
@@ -409,7 +409,7 @@ fn mint_trait_method_instance(mut env: TypeEnv, entry: TraitMethodEntry, method_
         return String_new()
     }
     let trait_name = contract_trait_method_record::trait_method_entry_trait_name(entry)
-    let owner_name = names::unqualified_type_name(contract_type_access::TypeInfo_name(clone(receiver)))
+    let owner_name = names::unqualified_type_name(contract_type_access::TypeInfo_name(receiver.clone()))
     let impl_count = len(env.trait_impls)
     let mut i = 0
     while i < impl_count {
@@ -417,32 +417,32 @@ fn mint_trait_method_instance(mut env: TypeEnv, entry: TraitMethodEntry, method_
         let self_ty = contract_trait_impl::TraitImplInfo_self_ty(impl_info)
         if eq(
             contract_trait_impl::TraitImplInfo_trait_name(impl_info),
-            clone(trait_name)
+            trait_name.clone()
         ) && names::same_type_name(
             contract_type_access::TypeInfo_name(self_ty),
-            contract_type_access::TypeInfo_name(clone(receiver))
+            contract_type_access::TypeInfo_name(receiver.clone())
         ) {
             let mut var_names = Vec::new<String>()
             let mut var_types = Vec::new<TypeInfo>()
             if !associated_types::match_pattern_collect_vars(
                 self_ty,
-                clone(receiver),
+                receiver.clone(),
                 var_names,
                 var_types
             ) {
                 i = i + 1
                 continue
             }
-            let method_fn = clone(owner_name).concat(String_from("::").concat(clone(method_name)))
+            let method_fn = owner_name.clone().concat(String_from("::").concat(method_name.clone()))
             // Only impl-defined methods have a body to monomorphize;
             // trait defaults live under the trait's own owner name and
             // would record a phantom instance here.
-            if name_index::name_index_get(env.fn_sig_index, clone(method_fn)) < 0 {
+            if name_index::name_index_get(env.fn_sig_index, method_fn.clone()) < 0 {
                 i = i + 1
                 continue
             }
-            let mangled = record_mono_instance(env, clone(method_fn), clone(var_types))
-            let recorded_ret = mono_instance_return_type_by_mangled(env, clone(mangled))
+            let mangled = record_mono_instance(env, method_fn.clone(), var_types.clone())
+            let recorded_ret = mono_instance_return_type_by_mangled(env, mangled.clone())
             if contract_type_access::TypeInfo_tag(recorded_ret) != 0 {
                 return mangled
             }
@@ -450,21 +450,21 @@ fn mint_trait_method_instance(mut env: TypeEnv, entry: TraitMethodEntry, method_
                 impl_info,
                 var_names,
                 var_types,
-                clone(trait_name)
+                trait_name.clone()
             )
             let resolved_sig = associated_types::resolve_trait_method_signature(
                 env,
                 entry,
                 bound,
-                clone(receiver)
+                receiver.clone()
             )
             record_mono_return_type(
                 env,
-                clone(mangled),
+                mangled.clone(),
                 associated_types::normalize_projection_ty(
                     env,
-                    clone(var_names),
-                    clone(var_types),
+                    var_names.clone(),
+                    var_types.clone(),
                     // resolve_trait_method_signature substitutes Self and
                     // trait-level params only; impl-head vars (I in
                     // TakeIter<I>) survive in the signature. Bind them to
@@ -472,8 +472,8 @@ fn mint_trait_method_instance(mut env: TypeEnv, entry: TraitMethodEntry, method_
                     // return is TakeIter<VecIter>, not TakeIter<I>.
                     instantiate::instantiate_type(
                         contract_fn_sig::FnSig_return_type(resolved_sig),
-                        clone(var_names),
-                        clone(var_types)
+                        var_names.clone(),
+                        var_types.clone()
                     )
                 )
             )
@@ -494,7 +494,7 @@ fn mint_trait_method_instance(mut env: TypeEnv, entry: TraitMethodEntry, method_
 // unresolvable at check time as well, so an empty result is correct.
 fn resolve_var_method_site(mut env: TypeEnv, method_name: String, receiver: TypeInfo) -> String {
     let owner_name = names::unqualified_type_name(
-        contract_type_access::TypeInfo_name(clone(receiver))
+        contract_type_access::TypeInfo_name(receiver.clone())
     )
     let impl_count = len(env.trait_impls)
     let mut i = 0
@@ -504,12 +504,12 @@ fn resolve_var_method_site(mut env: TypeEnv, method_name: String, receiver: Type
         let trait_name = contract_trait_impl::TraitImplInfo_trait_name(impl_info)
         if len(trait_name) > 0 && names::same_type_name(
             contract_type_access::TypeInfo_name(self_ty),
-            clone(owner_name)
+            owner_name.clone()
         ) {
             let entry = trait_method_registry::lookup_trait_method(
                 env,
-                clone(trait_name),
-                clone(method_name)
+                trait_name.clone(),
+                method_name.clone()
             )
             if contract_fn_sig::FnSig_has_name(
                 contract_trait_method_record::trait_method_entry_sig(entry)
@@ -528,7 +528,7 @@ fn propagated_trait_bound(
     var_types: Vec<TypeInfo>,
     trait_name: String
 ) -> TypeInfo {
-    let base = types::resolve_type_name(clone(trait_name))
+    let base = types::resolve_type_name(trait_name.clone())
     let arg_patterns = contract_trait_impl_record::trait_impl_info_trait_args(impl_info)
     let arg_count = len(arg_patterns)
     if arg_count == 0 {
@@ -541,8 +541,8 @@ fn propagated_trait_bound(
             concrete_args,
             instantiate::instantiate_type(
                 get_unchecked(arg_patterns, i),
-                clone(var_names),
-                clone(var_types)
+                var_names.clone(),
+                var_types.clone()
             )
         )
         i = i + 1
@@ -559,7 +559,7 @@ fn has_mono_instance_for(mono_instances: Vec<MonoInstance>, fn_name: String) -> 
     let mut i = 0
     while i < count {
         let mi = get_unchecked(mono_instances, i)
-        if eq(contract_mono::MonoInstance_fn_name(mi), clone(fn_name)) {
+        if eq(contract_mono::MonoInstance_fn_name(mi), fn_name.clone()) {
             return true
         }
         i = i + 1

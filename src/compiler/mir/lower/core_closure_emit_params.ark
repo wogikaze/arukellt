@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_api_local_types
@@ -22,11 +21,11 @@ fn core_emit_closure_params(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, clos: Co
             if pvt <= 0 {
                 pvt = value_types::VT_I32()
             }
-            let _idx = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(param_name), pvt)
+            let _idx = ctx_api_local_alloc::ctx_alloc_local(ctx, param_name.clone(), pvt)
             if len(ptype) > 0 {
-                ctx_api_local_types::ctx_set_local_type(ctx, _idx, clone(ptype))
+                ctx_api_local_types::ctx_set_local_type(ctx, _idx, ptype.clone())
             }
-            ctx_api_function_frame::ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(param_name), pvt, clone(ptype)))
+            ctx_api_function_frame::ctx_push_func_param(ctx, local_factory::MirLocal_new(param_name.clone(), pvt, ptype.clone()))
         }
         pi = pi + 1
     }

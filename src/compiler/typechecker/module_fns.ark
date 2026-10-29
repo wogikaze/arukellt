@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use typechecker::ast_decl_predicates
 use typechecker::ast_access
 use typechecker::associated_types
@@ -54,7 +54,7 @@ fn collect_impl_method_sigs(mut fn_sigs: Vec<FnSig>, node: AstNode, env: TypeEnv
 fn impl_method_sig(env: TypeEnv, impl_decl: AstNode, method_decl: AstNode) -> FnSig {
     let impl_type_params = decl_impl_target::effective_impl_param_names(
         impl_decl,
-        clone(env.declared_type_names)
+        env.declared_type_names.clone()
     )
     let impl_type_param_bounds = impl_generics::type_param_bounds(impl_decl)
     let bare_sig = if len(impl_type_params) > 0 {
@@ -70,7 +70,7 @@ fn impl_method_sig(env: TypeEnv, impl_decl: AstNode, method_decl: AstNode) -> Fn
     let mangled_name = decl_impl_target::impl_method_mangled_name(
         impl_decl,
         contract_fn_sig::FnSig_name(bare_sig),
-        clone(env.declared_type_names)
+        env.declared_type_names.clone()
     )
     let named_sig = contract_fn_sig::FnSig_with_name(typed_sig, mangled_name)
     let projected_sig = associated_types::resolve_impl_signature(env, impl_decl, named_sig)
@@ -106,7 +106,7 @@ fn impl_self_param_sig(impl_decl: AstNode, method_decl: AstNode, sig: FnSig, imp
         return sig
     }
     let head_name = ast_access::node_text(head_type)
-    if eq(clone(head_name), String_from("Vec")) || eq(clone(head_name), String_from("HashMap")) {
+    if eq(head_name.clone(), String_from("Vec")) || eq(head_name.clone(), String_from("HashMap")) {
         return sig
     }
     let self_ty = types::resolve_type_ann_node_generic(head_type, impl_type_params)

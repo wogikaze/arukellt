@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::ast_node
 use mir::lower_kinds
 use mir::lower::ctx_api_variants
@@ -14,18 +13,18 @@ use mir::lower::variants
 fn lower_atomic_path_variant(mut ctx: LowerCtx, node: AstNode) -> i32 {
     if ast_node::node_kind_is(node, lower_kinds::NK_PATH()) {
         let raw_name = ast_node::node_text(node)
-        let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
+        let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, raw_name.clone())
         let variant_name = if len(canon) > 0 {
             canon
         } else {
             raw_name
         }
-        let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(variant_name))
+        let tag = ctx_api_variants::ctx_variant_tag(ctx, variant_name.clone())
         if tag >= 0 {
             return variants::lower_variant_value(ctx, variant_name, tag)
         }
         let fn_name = ast_node::node_text(node)
-        let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, clone(fn_name))
+        let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, fn_name.clone())
         if fn_idx >= 0 {
             return lower_function_value(ctx, fn_name)
         }
@@ -39,32 +38,32 @@ fn lower_atomic_function(mut ctx: LowerCtx, node: AstNode) -> i32 {
         return 0 - 2
     }
     let fn_name = ast_node::node_text(node)
-    if ctx_fn_index::ctx_is_const_name(ctx, clone(fn_name)) {
+    if ctx_fn_index::ctx_is_const_name(ctx, fn_name.clone()) {
         return 0 - 2
     }
-    if ctx_fn_index::ctx_fn_index_find(ctx, clone(fn_name)) < 0 {
+    if ctx_fn_index::ctx_fn_index_find(ctx, fn_name.clone()) < 0 {
         return 0 - 2
     }
     lower_function_value(ctx, fn_name)
 }
 
 fn lower_function_value(mut ctx: LowerCtx, fn_name: String) -> i32 {
-    let type_name = core_names::mir_fnref_type_name_for_function(ctx, clone(fn_name))
-    let tramp = closure_env::closure_ensure_fn_thunk(ctx, clone(fn_name))
-    let pair = closure_env::closure_emit_pair(ctx, 0 - 1, clone(tramp))
-    ctx_api_local_types::ctx_set_local_type(ctx, pair, clone(type_name))
+    let type_name = core_names::mir_fnref_type_name_for_function(ctx, fn_name.clone())
+    let tramp = closure_env::closure_ensure_fn_thunk(ctx, fn_name.clone())
+    let pair = closure_env::closure_emit_pair(ctx, 0 - 1, tramp.clone())
+    ctx_api_local_types::ctx_set_local_type(ctx, pair, type_name.clone())
     pair
 }
 
 fn lower_atomic_ident_variant(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let raw_name = ast_node::node_text(node)
-    let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
+    let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, raw_name.clone())
     let variant_name = if len(canon) > 0 {
         canon
     } else {
         raw_name
     }
-    let ident_tag = ctx_api_variants::ctx_variant_tag(ctx, clone(variant_name))
+    let ident_tag = ctx_api_variants::ctx_variant_tag(ctx, variant_name.clone())
     if ident_tag >= 0 {
         return variants::lower_variant_value(ctx, variant_name, ident_tag)
     }

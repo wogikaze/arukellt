@@ -3,7 +3,6 @@
 //                              (field (mut i32)))
 //   vec_len: struct.get vec_type 1 (len field)
 
-use std::prelude::{clone}
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
 use wasm::inst_ctx
@@ -16,7 +15,7 @@ use wasm::ctx_record
 use wasm::emit_target
 fn emit_gc_vec_len(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let callee = inst_accessors_literals::MirInst_str_val(inst)
-    let source = intrinsic_vec_type::find_call_source_local(ctx, clone(callee), inst)
+    let source = intrinsic_vec_type::find_call_source_local(ctx, callee.clone(), inst)
     if intrinsic_vec_type::local_is_raw_array(ctx, source) {
         writer_gc::emit_gc_array_len(w)
         return true

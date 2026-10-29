@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use typechecker::contract_enum_info
 use typechecker::contract_type_access
@@ -12,14 +12,14 @@ fn check_enum_match_exhaustive(mut env: TypeEnv, resolved_scrutinee: TypeInfo, e
     while enum_idx < enum_def_count {
         let edef = get_unchecked(enum_defs, enum_idx)
         let declared_name = contract_enum_info::EnumInfo_name(edef)
-        if enum_name_matches(clone(enum_name), clone(declared_name)) {
+        if enum_name_matches(enum_name.clone(), declared_name.clone()) {
             found_enum = true
             check_enum_variants_covered(env, declared_name, edef, coverage)
         }
         enum_idx = enum_idx + 1
     }
     if !found_enum {
-        unify::type_error(env, "non-exhaustive match: unknown enum '".concat(clone(enum_name)))
+        unify::type_error(env, "non-exhaustive match: unknown enum '".concat(enum_name.clone()))
     }
 }
 
@@ -29,7 +29,7 @@ fn enum_def_exists(resolved_scrutinee: TypeInfo, enum_defs: Vec<EnumInfo>) -> bo
     let def_count = len(enum_defs)
     while i < def_count {
         let declared_name = contract_enum_info::EnumInfo_name(get_unchecked(enum_defs, i))
-        if enum_name_matches(clone(enum_name), clone(declared_name)) {
+        if enum_name_matches(enum_name.clone(), declared_name.clone()) {
             return true
         }
         i = i + 1
@@ -38,7 +38,7 @@ fn enum_def_exists(resolved_scrutinee: TypeInfo, enum_defs: Vec<EnumInfo>) -> bo
 }
 
 fn enum_name_matches(resolved_name: String, declared_name: String) -> bool {
-    if eq(clone(resolved_name), clone(declared_name)) {
+    if eq(resolved_name.clone(), declared_name.clone()) {
         return true
     }
     if resolved_name.ends_with("::".concat(declared_name)) {
@@ -56,7 +56,7 @@ fn check_enum_variants_covered(mut env: TypeEnv, enum_name: String, edef: EnumIn
     while v < variant_count {
         let vname = contract_enum_info::EnumInfo_variant_at(edef, v)
         if !match_exhaustive_covered::is_variant_covered(coverage, vname) {
-            unify::type_error(env, "non-exhaustive match: missing ".concat(clone(enum_name).concat("::".concat(clone(vname)))))
+            unify::type_error(env, "non-exhaustive match: missing ".concat(enum_name.clone().concat("::".concat(vname.clone()))))
         }
         v = v + 1
     }

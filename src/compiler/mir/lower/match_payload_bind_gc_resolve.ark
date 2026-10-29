@@ -1,5 +1,5 @@
 // MIR match payload GC bind type resolution.
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_mono_type_params
@@ -10,49 +10,49 @@ fn emit_payload_field_bind_gc_resolve_type(mut ctx: LowerCtx, variant_name: Stri
     // A bind declared as `T` inside a monomorphized body must use the
     // concrete argument so variant-layout matching compares real payload
     // types instead of the parameter name (#882).
-    let resolved_bind = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(bind_type_name))
+    let resolved_bind = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, bind_type_name.clone())
     if len(resolved_bind) > 0 {
         bind_type_name = resolved_bind
-        ctx_set_local_type(ctx, bind_local, clone(bind_type_name))
+        ctx_set_local_type(ctx, bind_local, bind_type_name.clone())
     }
     // When the bind already has a concrete payload type (from scrutinee
     // inference), select the matching Option/Result layout instead of the
     // first same-named Some/Ok/Err registration.
-    let layout_ft = if len(bind_type_name) > 0 && !eq(clone(bind_type_name), "enum:open") {
-        ctx_struct_field_type::ctx_struct_field_type_name_for_payload(ctx, clone(variant_name), field_idx + 1, clone(bind_type_name))
+    let layout_ft = if len(bind_type_name) > 0 && !eq(bind_type_name.clone(), "enum:open") {
+        ctx_struct_field_type::ctx_struct_field_type_name_for_payload(ctx, variant_name.clone(), field_idx + 1, bind_type_name.clone())
     } else {
-        ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+        ctx_struct_field_type::ctx_struct_field_type_name(ctx, variant_name.clone(), field_idx + 1)
     }
-    let resolved_layout_ft = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(layout_ft))
-    let layout_norm = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(resolved_layout_ft))
+    let resolved_layout_ft = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, layout_ft.clone())
+    let layout_norm = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, resolved_layout_ft.clone())
     let mut layout_vec = String_new()
-    if clone(layout_norm).starts_with("vec:") {
-        layout_vec = clone(layout_norm)
-    } else if clone(layout_norm).starts_with("Vec<") && clone(layout_norm).ends_with(">") {
-        layout_vec = "vec:".concat(clone(layout_norm).slice(4, len(layout_norm) - 1))
-    } else if clone(layout_norm).starts_with("Vec_") {
-        layout_vec = "vec:".concat(clone(layout_norm).slice(4, len(layout_norm)))
-    } else if eq(clone(layout_norm), "Vec") {
+    if layout_norm.clone().starts_with("vec:") {
+        layout_vec = layout_norm.clone()
+    } else if layout_norm.clone().starts_with("Vec<") && layout_norm.clone().ends_with(">") {
+        layout_vec = "vec:".concat(layout_norm.clone().slice(4, len(layout_norm) - 1))
+    } else if layout_norm.clone().starts_with("Vec_") {
+        layout_vec = "vec:".concat(layout_norm.clone().slice(4, len(layout_norm)))
+    } else if eq(layout_norm.clone(), "Vec") {
         layout_vec = "vec:i32"
     }
     if len(layout_vec) > 0 {
         bind_type_name = layout_vec
-        ctx_set_local_type(ctx, bind_local, clone(bind_type_name))
-    } else if len(bind_type_name) == 0 || eq(clone(bind_type_name), "enum:open") {
+        ctx_set_local_type(ctx, bind_local, bind_type_name.clone())
+    } else if len(bind_type_name) == 0 || eq(bind_type_name.clone(), "enum:open") {
         if len(layout_norm) > 0 {
             bind_type_name = layout_norm
-            ctx_set_local_type(ctx, bind_local, clone(bind_type_name))
+            ctx_set_local_type(ctx, bind_local, bind_type_name.clone())
         }
     }
-    if ctx_gc_enum::gc_enum_variant_is_vec_container(clone(variant_name)) {
-        if !clone(bind_type_name).starts_with("vec:") && !clone(bind_type_name).starts_with("Vec") {
-            let bare = ctx_gc_enum::ctx_gc_enum_bare_variant_name(clone(variant_name))
-            if eq(clone(bare), "Table") {
+    if ctx_gc_enum::gc_enum_variant_is_vec_container(variant_name.clone()) {
+        if !bind_type_name.clone().starts_with("vec:") && !bind_type_name.clone().starts_with("Vec") {
+            let bare = ctx_gc_enum::ctx_gc_enum_bare_variant_name(variant_name.clone())
+            if eq(bare.clone(), "Table") {
                 bind_type_name = "vec:TomlField"
-            } else if eq(clone(bare), "Object") {
+            } else if eq(bare.clone(), "Object") {
                 bind_type_name = "vec:JsonField"
-            } else if eq(clone(bare), "Array") {
-                if clone(variant_name).starts_with("Json") || clone(variant_name).contains("JsonValue") {
+            } else if eq(bare.clone(), "Array") {
+                if variant_name.clone().starts_with("Json") || variant_name.clone().contains("JsonValue") {
                     bind_type_name = "vec:JsonValue"
                 } else {
                     bind_type_name = "vec:TomlValue"
@@ -60,7 +60,7 @@ fn emit_payload_field_bind_gc_resolve_type(mut ctx: LowerCtx, variant_name: Stri
             } else {
                 bind_type_name = "vec:TomlValue"
             }
-            ctx_set_local_type(ctx, bind_local, clone(bind_type_name))
+            ctx_set_local_type(ctx, bind_local, bind_type_name.clone())
         }
     }
     bind_type_name

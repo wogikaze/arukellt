@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::decl_impl_target
 use resolver::ast_access
@@ -79,7 +79,7 @@ fn impl_self_base_type_name(decl: AstNode) -> String {
 
 fn impl_target_type_name(target: AstNode, declared: Vec<String>) -> String {
     let target_name = ast_access::node_text(target)
-    if eq(clone(target_name), String_from("Vec")) &&
+    if eq(target_name.clone(), String_from("Vec")) &&
     ast_access::node_child_count(target) > 1 {
         let element = ast_access::node_child_at(target, 1)
         if eq(ast_access::node_text(element), String_from("String")) {
@@ -89,14 +89,14 @@ fn impl_target_type_name(target: AstNode, declared: Vec<String>) -> String {
     // Concrete HashMap<K, V> impls need a per-pair owner name so each impl
     // method registers a unique HashMap_K_V::method symbol. Generic impl
     // heads (HashMap<K, V> with type params) keep the bare HashMap owner.
-    if eq(clone(target_name), String_from("HashMap")) &&
+    if eq(target_name.clone(), String_from("HashMap")) &&
     ast_access::node_child_count(target) > 2 {
         let key_node = ast_access::node_child_at(target, 1)
         let value_node = ast_access::node_child_at(target, 2)
-        let key_key = impl_inst_arg_key(key_node, clone(declared))
-        let value_key = impl_inst_arg_key(value_node, clone(declared))
+        let key_key = impl_inst_arg_key(key_node, declared.clone())
+        let value_key = impl_inst_arg_key(value_node, declared.clone())
         if len(key_key) > 0 && len(value_key) > 0 {
-            return String_from("HashMap_").concat(clone(key_key).concat(String_from("_").concat(clone(value_key))))
+            return String_from("HashMap_").concat(key_key.clone().concat(String_from("_").concat(value_key.clone())))
         }
     }
     // Concrete user-generic impl targets need a per-instantiation owner so
@@ -105,11 +105,11 @@ fn impl_target_type_name(target: AstNode, declared: Vec<String>) -> String {
     // owner because the impl itself is generic (impl Pair<T> -> Pair).
     // Vec and HashMap keep their established owner spellings above.
     if ast_access::node_kind_is(target, kinds::NK_TYPE_GENERIC()) &&
-    !eq(clone(target_name), String_from("Vec")) &&
-    !eq(clone(target_name), String_from("HashMap")) {
-        let inst_suffix = impl_inst_arg_suffix(target, clone(declared))
+    !eq(target_name.clone(), String_from("Vec")) &&
+    !eq(target_name.clone(), String_from("HashMap")) {
+        let inst_suffix = impl_inst_arg_suffix(target, declared.clone())
         if len(inst_suffix) > 0 {
-            return clone(target_name).concat(String_from("_").concat(inst_suffix))
+            return target_name.clone().concat(String_from("_").concat(inst_suffix))
         }
     }
     target_name
@@ -119,7 +119,7 @@ fn is_declared_impl_param(name: String, declared: Vec<String>) -> bool {
     let count = len(declared)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(declared, i), clone(name)) {
+        if eq(get_unchecked(declared, i), name.clone()) {
             return true
         }
         i = i + 1
@@ -140,7 +140,7 @@ fn impl_inst_arg_suffix(target: AstNode, declared: Vec<String>) -> String {
     while i < child_count {
         let key = impl_inst_arg_key(
             ast_access::node_child_at(target, i),
-            clone(declared)
+            declared.clone()
         )
         if len(key) == 0 {
             return String_new()
@@ -157,7 +157,7 @@ fn impl_inst_arg_suffix(target: AstNode, declared: Vec<String>) -> String {
 fn impl_inst_arg_key(arg: AstNode, declared: Vec<String>) -> String {
     if ast_access::node_kind_is(arg, kinds::NK_TYPE_NAMED()) {
         let name = ast_access::node_text(arg)
-        if is_declared_impl_param(clone(name), declared) {
+        if is_declared_impl_param(name.clone(), declared) {
             return String_new()
         }
         return name
@@ -168,7 +168,7 @@ fn impl_inst_arg_key(arg: AstNode, declared: Vec<String>) -> String {
         if len(inner) == 0 {
             return String_new()
         }
-        return clone(base).concat(String_from("_").concat(inner))
+        return base.clone().concat(String_from("_").concat(inner))
     }
     if ast_access::node_kind_is(arg, kinds::NK_TYPE_FN()) {
         return String_from("fnref")

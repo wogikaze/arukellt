@@ -15,15 +15,15 @@ use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_types
 // Comma-joined declared type parameter names for a generic struct base,
 // or "" when base is not a registered generic struct.
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 
 fn ctx_generic_struct_params(ctx: LowerCtx, base: String) -> String {
     let count = len(ctx.generic_struct_names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(ctx.generic_struct_names, i), clone(base)) {
-            return clone(get_unchecked(ctx.generic_struct_params, i))
+        if eq(get_unchecked(ctx.generic_struct_names, i), base.clone()) {
+            return get_unchecked(ctx.generic_struct_params, i).clone()
         }
         i = i + 1
     }
@@ -40,8 +40,8 @@ fn ctx_generic_enum_params(ctx: LowerCtx, base: String) -> String {
     let count = len(ctx.generic_enum_names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(ctx.generic_enum_names, i), clone(base)) {
-            return clone(get_unchecked(ctx.generic_enum_params, i))
+        if eq(get_unchecked(ctx.generic_enum_names, i), base.clone()) {
+            return get_unchecked(ctx.generic_enum_params, i).clone()
         }
         i = i + 1
     }
@@ -58,8 +58,8 @@ fn ctx_split_declared_params(joined: String) -> Vec<String> {
     let mut seg_start = 0
     let mut k = 0
     while k <= pn {
-        if k == pn || clone(joined).byte_at(k) == 44 {
-            push(params, clone(joined).slice(seg_start, k))
+        if k == pn || joined.clone().byte_at(k) == 44 {
+            push(params, joined.clone().slice(seg_start, k))
             seg_start = k + 1
         }
         k = k + 1
@@ -70,16 +70,16 @@ fn ctx_split_declared_params(joined: String) -> Vec<String> {
 // "Pair<String>" -> "Pair"; "" when name is not a Name<args> spelling.
 fn generic_inst_base_name(name: String) -> String {
     let n = len(name)
-    if n < 3 || clone(name).byte_at(n - 1) != 62 {
+    if n < 3 || name.clone().byte_at(n - 1) != 62 {
         return String_new()
     }
     let mut depth = 0
     let mut i = 0
     while i < n {
-        let ch = clone(name).byte_at(i)
+        let ch = name.clone().byte_at(i)
         if ch == 60 {
             if depth == 0 {
-                return clone(name).slice(0, i)
+                return name.clone().slice(0, i)
             }
             depth = depth + 1
         }
@@ -95,13 +95,13 @@ fn generic_inst_base_name(name: String) -> String {
 fn generic_inst_args(name: String) -> Vec<String> {
     let mut result = Vec::new<String>()
     let n = len(name)
-    if n < 3 || clone(name).byte_at(n - 1) != 62 {
+    if n < 3 || name.clone().byte_at(n - 1) != 62 {
         return result
     }
     let mut lt = 0 - 1
     let mut i = 0
     while i < n {
-        if clone(name).byte_at(i) == 60 {
+        if name.clone().byte_at(i) == 60 {
             lt = i
             i = n
         }
@@ -110,14 +110,14 @@ fn generic_inst_args(name: String) -> Vec<String> {
     if lt < 0 {
         return result
     }
-    let inner = clone(name).slice(lt + 1, n - 1)
+    let inner = name.clone().slice(lt + 1, n - 1)
     let mut depth = 0
     let mut seg_start = 0
     let m = len(inner)
     let mut j = 0
     while j <= m {
         let at_end = j == m
-        let ch = if at_end { 44 } else { clone(inner).byte_at(j) }
+        let ch = if at_end { 44 } else { inner.clone().byte_at(j) }
         if !at_end && ch == 60 {
             depth = depth + 1
         }
@@ -125,7 +125,7 @@ fn generic_inst_args(name: String) -> Vec<String> {
             depth = depth - 1
         }
         if (at_end || ch == 44) && depth == 0 {
-            push(result, clone(inner).slice(seg_start, j))
+            push(result, inner.clone().slice(seg_start, j))
             seg_start = j + 1
         }
         j = j + 1
@@ -143,7 +143,7 @@ fn generic_arg_is_unbound(arg: String) -> bool {
     if len(arg) == 0 {
         return true
     }
-    if clone(arg).starts_with(String_from("?")) {
+    if arg.clone().starts_with(String_from("?")) {
         return true
     }
     if len(arg) == 1 {
@@ -162,22 +162,22 @@ fn ctx_substitute_generic_field_type(ft: String, params: Vec<String>, args: Vec<
     let mut out = String_new()
     let mut i = 0
     while i < n {
-        let ch = clone(ft).byte_at(i)
+        let ch = ft.clone().byte_at(i)
         if !type_ident_char(ch) {
-            out = out.concat(clone(ft).slice(i, i + 1))
+            out = out.concat(ft.clone().slice(i, i + 1))
             i = i + 1
             continue
         }
         let start = i
-        while i < n && type_ident_char(clone(ft).byte_at(i)) {
+        while i < n && type_ident_char(ft.clone().byte_at(i)) {
             i = i + 1
         }
-        let tok = clone(ft).slice(start, i)
+        let tok = ft.clone().slice(start, i)
         let mut replaced = false
         let mut pi = 0
         while pi < len(params) {
-            if pi < len(args) && eq(get_unchecked(params, pi), clone(tok)) {
-                out = out.concat(clone(get_unchecked(args, pi)))
+            if pi < len(args) && eq(get_unchecked(params, pi), tok.clone()) {
+                out = out.concat(get_unchecked(args, pi).clone())
                 replaced = true
                 pi = len(params)
             }
@@ -194,30 +194,30 @@ fn ctx_substitute_generic_field_type(ft: String, params: Vec<String>, args: Vec<
 // generic base declaration. Idempotent; returns false when inst_name is
 // not a fully concrete instantiation of a registered generic struct.
 fn ctx_derive_generic_struct_layout(mut ctx: LowerCtx, inst_name: String) -> bool {
-    if ctx_struct_storage::ctx_struct_layout_first_index(ctx, clone(inst_name)) >= 0 {
+    if ctx_struct_storage::ctx_struct_layout_first_index(ctx, inst_name.clone()) >= 0 {
         // A layout registered by a non-derive path can lack its GC struct;
         // keep the derive contract "layout + GC struct exist" on GC targets.
         if ctx_gc_struct::ctx_is_gc_target(ctx) {
-            let _slot = ctx_gc_struct::ctx_ensure_gc_struct_registered(ctx, clone(inst_name))
+            let _slot = ctx_gc_struct::ctx_ensure_gc_struct_registered(ctx, inst_name.clone())
         }
         return true
     }
-    let base = generic_inst_base_name(clone(inst_name))
+    let base = generic_inst_base_name(inst_name.clone())
     if len(base) == 0 {
         return false
     }
-    let joined = ctx_generic_struct_params(ctx, clone(base))
+    let joined = ctx_generic_struct_params(ctx, base.clone())
     if len(joined) == 0 {
         return false
     }
-    let args = generic_inst_args(clone(inst_name))
-    let params = ctx_split_declared_params(clone(joined))
+    let args = generic_inst_args(inst_name.clone())
+    let params = ctx_split_declared_params(joined.clone())
     if len(args) != len(params) || len(args) == 0 {
         return false
     }
     let mut ai = 0
     while ai < len(args) {
-        if generic_arg_is_unbound(clone(get_unchecked(args, ai))) {
+        if generic_arg_is_unbound(get_unchecked(args, ai).clone()) {
             return false
         }
         ai = ai + 1
@@ -226,13 +226,13 @@ fn ctx_derive_generic_struct_layout(mut ctx: LowerCtx, inst_name: String) -> boo
     // A generic struct may shadow an enum name (struct Box<T> vs prelude
     // enum Box); the mono derivation must read the struct layout, not the
     // enum base registered first.
-    let base_index = ctx_struct_storage::ctx_struct_layout_struct_index(ctx, clone(base))
+    let base_index = ctx_struct_storage::ctx_struct_layout_struct_index(ctx, base.clone())
     if base_index < 0 {
         return false
     }
     let fc = ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, base_index)
     let base_off = ctx_struct_storage::ctx_struct_layout_field_offset_at(ctx, base_index)
-    ctx_struct_storage::ctx_struct_push_layout(ctx, clone(inst_name), fc)
+    ctx_struct_storage::ctx_struct_push_layout(ctx, inst_name.clone(), fc)
     let mut fi = 0
     while fi < fc {
         let fname = ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, base_off + fi)
@@ -268,10 +268,10 @@ fn ctx_derive_generic_struct_type_name(mut ctx: LowerCtx, type_name: String) -> 
     // strip it so instantiation derivation sees the semantic type name.
     let semantic = ctx_struct_layout::ctx_struct_semantic_type_name(type_name)
     let resolved = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, semantic)
-    if len(generic_inst_base_name(clone(resolved))) == 0 {
+    if len(generic_inst_base_name(resolved.clone())) == 0 {
         return resolved
     }
-    if ctx_derive_generic_struct_layout(ctx, clone(resolved)) {
+    if ctx_derive_generic_struct_layout(ctx, resolved.clone()) {
         return resolved
     }
     resolved

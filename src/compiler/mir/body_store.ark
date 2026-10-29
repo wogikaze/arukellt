@@ -25,8 +25,6 @@ use mir::phi_record
 // The byte stream contains scalar instruction fields and CFG metadata; names
 // are module string IDs, and f64 literals live in the parallel float pool.
 
-use std::prelude::{clone}
-
 fn mir_body_schema_magic() -> i32 {
     851
 }
@@ -194,7 +192,7 @@ fn MirModule_body_store_sole_call_target(m: MirModule, idx: i32) -> String {
                 if op == opcodes::MIR_CALL() {
                     call_count = call_count + 1
                     if string_id >= 0 && string_id < len(strings) {
-                        sole_target = clone(get_unchecked(strings, string_id))
+                        sole_target = get_unchecked(strings, string_id).clone()
                     } else {
                         sole_target = String_new()
                     }

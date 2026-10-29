@@ -1,5 +1,5 @@
 use std::test::Test
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 
 // #922: mark_candidate used to treat record ranges as half-open, so a
@@ -61,7 +61,7 @@ fn load_state_probe(keys: Vec<String>, slots: Vec<i32>, name: String) -> i32 {
         if bucket == 0 {
             return slot
         }
-        if eq(get_unchecked(keys, bucket - 1), clone(name)) {
+        if eq(get_unchecked(keys, bucket - 1), name.clone()) {
             return slot
         }
         slot = (slot + 1) % capacity
@@ -89,7 +89,7 @@ fn load_state_clone_names(src: Vec<String>) -> Vec<String> {
     let mut out: Vec<String> = Vec::new<String>()
     let mut i = 0
     while i < len(src) {
-        push(out, clone(get_unchecked(src, i)))
+        push(out, get_unchecked(src, i).clone())
         i = i + 1
     }
     out
@@ -109,7 +109,7 @@ fn load_state_rehash(keys: Vec<String>, capacity: i32) -> Vec<i32> {
     let mut slots = load_state_zero_slots(capacity)
     let mut i = 0
     while i < len(keys) {
-        let slot = load_state_probe(load_state_clone_names(keys), slots, clone(get_unchecked(keys, i)))
+        let slot = load_state_probe(load_state_clone_names(keys), slots, get_unchecked(keys, i).clone())
         set(slots, slot, i + 1)
         i = i + 1
     }
@@ -134,7 +134,7 @@ fn LoadState_has_loaded(state: LoadState, name: String) -> bool {
     if len(state.loaded_slots) <= 0 {
         return false
     }
-    let slot = load_state_probe(load_state_clone_names(state.loaded_names), load_state_clone_slots(state.loaded_slots), clone(name))
+    let slot = load_state_probe(load_state_clone_names(state.loaded_names), load_state_clone_slots(state.loaded_slots), name.clone())
     if slot < 0 {
         return false
     }
@@ -144,7 +144,7 @@ fn LoadState_has_loaded(state: LoadState, name: String) -> bool {
 fn LoadState_push_loaded(mut state: LoadState, name: String) {
     push(state.loaded_names, name)
     LoadState_ensure_loaded_index(state)
-    let slot = load_state_probe(load_state_clone_names(state.loaded_names), load_state_clone_slots(state.loaded_slots), clone(name))
+    let slot = load_state_probe(load_state_clone_names(state.loaded_names), load_state_clone_slots(state.loaded_slots), name.clone())
     if slot < 0 {
         return
     }
@@ -227,11 +227,11 @@ fn main() {
     i = 0
     while i < 96 {
         let stem = String_from("mod").concat(i.to_string())
-        let path = String_from("mod/dir/").concat(clone(stem).concat(String_from(".ark")))
-        if LoadState_has_loaded(state, clone(path)) == false {
-            LoadState_push_loaded(state, clone(path))
+        let path = String_from("mod/dir/").concat(stem.clone().concat(String_from(".ark")))
+        if LoadState_has_loaded(state, path.clone()) == false {
+            LoadState_push_loaded(state, path.clone())
         }
-        push(state.loading_stack, clone(path))
+        push(state.loading_stack, path.clone())
         Test::assert_eq_i32(stack_scan(state, 1), 0 - 1)
         pop(state.loading_stack)
         let _n = churn_big(524288)
@@ -240,7 +240,7 @@ fn main() {
     i = 0
     while i < 96 {
         let stem = String_from("mod").concat(i.to_string())
-        let path = String_from("mod/dir/").concat(clone(stem).concat(String_from(".ark")))
+        let path = String_from("mod/dir/").concat(stem.clone().concat(String_from(".ark")))
         Test::assert_true(LoadState_has_loaded(state, path))
         i = i + 1
     }

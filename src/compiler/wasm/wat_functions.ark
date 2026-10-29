@@ -1,5 +1,5 @@
 use std::text
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::function_identity
 use mir::function_param_view
 use mir::function_return_view
@@ -39,8 +39,8 @@ fn emit_wat_params(out: String, f: MirFunction) -> String {
 
 fn emit_wat_start_export(out: String, f: MirFunction) -> String {
     let fname = function_identity::MirFunction_name(f)
-    if eq(clone(fname), "main") || eq(clone(fname), "_start") {
-        return out.concat((String_from("  (export \"_start\" (func $")).concat(clone(fname).concat(String_from("))\n"))))
+    if eq(fname.clone(), "main") || eq(fname.clone(), "_start") {
+        return out.concat((String_from("  (export \"_start\" (func $")).concat(fname.clone().concat(String_from("))\n"))))
     }
     out
 }

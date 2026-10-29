@@ -4,7 +4,6 @@
 // must win over the compiler's identity fallback.
 use std::core::clone
 use std::host::stdio
-use std::prelude::{clone}
 use std::test::Test
 
 struct Pair {
@@ -20,14 +19,14 @@ impl Clone for Pair {
 
 fn main() {
     let s = String_from("hello")
-    Test::assert_eq_string(clone(s), s.clone())
+    Test::assert_eq_string(s.clone(), s.clone())
     Test::assert_eq_string(s.clone(), "hello")
 
     let n: i32 = 42
-    Test::assert_eq_i32(clone(n), n.clone())
+    Test::assert_eq_i32(n.clone(), n.clone())
 
     let p = Pair { a: 1, b: 2 }
-    let free_clone = clone(p)
+    let free_clone = p.clone()
     let method_clone = p.clone()
     Test::assert_eq_i32(free_clone.a, 2)
     Test::assert_eq_i32(free_clone.b, 3)

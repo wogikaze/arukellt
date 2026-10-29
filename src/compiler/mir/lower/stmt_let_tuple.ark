@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
@@ -55,7 +55,7 @@ fn emit_tuple_pattern_ident_binds(mut ctx: LowerCtx, pat: AstNode, tuple_local: 
         if ast_node::node_kind_is(elem, lower_kinds::NK_PAT_IDENT()) {
             let bind_name = ast_node::node_text(elem)
             let field_vt = tuple_field_vt_from_struct_name(ctx, struct_name, ei)
-            let dest = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(bind_name), field_vt)
+            let dest = ctx_api_local_alloc::ctx_alloc_local(ctx, bind_name.clone(), field_vt)
             let field_type_name = tuple_field_type_name(struct_name, ei)
             if len(field_type_name) > 0 {
                 ctx_api_local_types::ctx_set_local_type(
@@ -64,7 +64,7 @@ fn emit_tuple_pattern_ident_binds(mut ctx: LowerCtx, pat: AstNode, tuple_local: 
                     ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, field_type_name)
                 )
             }
-            emit_tuple_field_read(ctx, tuple_local, clone(struct_name), ei, total_bytes, field_vt, dest)
+            emit_tuple_field_read(ctx, tuple_local, struct_name.clone(), ei, total_bytes, field_vt, dest)
         }
         ei = ei + 1
     }
@@ -91,9 +91,9 @@ fn emit_tuple_field_read(mut ctx: LowerCtx, tuple_local: i32, struct_name: Strin
 fn emit_tuple_element_extract(mut ctx: LowerCtx, tuple_local: i32, elem_index: i32, elem_count: i32) -> i32 {
     let tuple_type = ctx_api_local_types::ctx_get_local_type(ctx, tuple_local)
     let struct_name = tuple_struct_name_from_type(tuple_type)
-    let field_vt = tuple_field_vt_from_struct_name(ctx, clone(struct_name), elem_index)
+    let field_vt = tuple_field_vt_from_struct_name(ctx, struct_name.clone(), elem_index)
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, field_vt)
-    let field_type_name = tuple_field_type_name(clone(struct_name), elem_index)
+    let field_type_name = tuple_field_type_name(struct_name.clone(), elem_index)
     if len(field_type_name) > 0 {
         ctx_api_local_types::ctx_set_local_type(
             ctx,
@@ -106,10 +106,10 @@ fn emit_tuple_element_extract(mut ctx: LowerCtx, tuple_local: i32, elem_index: i
 }
 
 fn tuple_struct_name_from_type(type_name: String) -> String {
-    if clone(type_name).starts_with("tuple:") {
+    if type_name.clone().starts_with("tuple:") {
         return type_name
     }
-    if !clone(type_name).starts_with("struct:") {
+    if !type_name.clone().starts_with("struct:") {
         return String_new()
     }
     let n = len(type_name)
@@ -129,10 +129,10 @@ fn tuple_struct_name_from_type(type_name: String) -> String {
         return String_new()
     }
     let inner = type_name.slice(first + 1, last)
-    if clone(inner).starts_with("tuple:") {
+    if inner.clone().starts_with("tuple:") {
         return inner
     }
-    if eq(clone(inner), "tuple") {
+    if eq(inner.clone(), "tuple") {
         let byte_size = type_name.slice(last + 1, n)
         return tuple_struct_name_from_byte_size(byte_size)
     }
@@ -187,43 +187,43 @@ fn tuple_field_vt_from_struct_name(ctx: LowerCtx, struct_name: String, elem_inde
         return value_types::VT_I32()
     }
     let key = tuple_field_type_name(struct_name, elem_index)
-    if eq(clone(key), "String") || eq(clone(key), "string") {
+    if eq(key.clone(), "String") || eq(key.clone(), "string") {
         return value_types::VT_GC_REF()
     }
-    if eq(clone(key), "f64") || eq(clone(key), "F64") {
+    if eq(key.clone(), "f64") || eq(key.clone(), "F64") {
         return value_types::VT_F64()
     }
-    if eq(clone(key), "f32") || eq(clone(key), "F32") {
+    if eq(key.clone(), "f32") || eq(key.clone(), "F32") {
         return value_types::VT_F32()
     }
-    if eq(clone(key), "i64") || eq(clone(key), "I64") || eq(clone(key), "u64") {
+    if eq(key.clone(), "i64") || eq(key.clone(), "I64") || eq(key.clone(), "u64") {
         return value_types::VT_I64()
     }
-    if eq(clone(key), "i32") || eq(clone(key), "I32") ||
-    eq(clone(key), "bool") || eq(clone(key), "char") ||
-    eq(clone(key), "u8") || eq(clone(key), "i8") ||
-    eq(clone(key), "u16") || eq(clone(key), "u32") ||
-    eq(clone(key), "i16") ||
-    eq(clone(key), "unit") || eq(clone(key), "()") {
+    if eq(key.clone(), "i32") || eq(key.clone(), "I32") ||
+    eq(key.clone(), "bool") || eq(key.clone(), "char") ||
+    eq(key.clone(), "u8") || eq(key.clone(), "i8") ||
+    eq(key.clone(), "u16") || eq(key.clone(), "u32") ||
+    eq(key.clone(), "i16") ||
+    eq(key.clone(), "unit") || eq(key.clone(), "()") {
         return value_types::VT_I32()
     }
     // Fn-valued keys follow the same spelling set as struct field decls
     // (fnref*, fnsig:<p>;<r>, fn(...) and bare fn) so a destructured binding
     // keeps the pair-ABI vt instead of collapsing to a generic ref (#874).
-    if ctx_gc_struct::gc_struct_field_type_is_fn_value(clone(key)) {
+    if ctx_gc_struct::gc_struct_field_type_is_fn_value(key.clone()) {
         return value_types::VT_FUNCREF()
     }
-    if clone(key).starts_with("vec:") ||
-    clone(key).starts_with("option:") ||
-    clone(key).starts_with("result:") ||
-    clone(key).starts_with("hashmap:") ||
-    clone(key).starts_with("hashset:") {
+    if key.clone().starts_with("vec:") ||
+    key.clone().starts_with("option:") ||
+    key.clone().starts_with("result:") ||
+    key.clone().starts_with("hashmap:") ||
+    key.clone().starts_with("hashset:") {
         return value_types::VT_GC_REF()
     }
     // A declared aggregate is a GC value even when its name is one uppercase
     // letter (struct S). Unbound single-letter type parameters keep the
     // scalar placeholder until mono substitution (ADR-089).
-    if ctx_gc_struct::gc_struct_field_name_is_declared(ctx, clone(key)) {
+    if ctx_gc_struct::gc_struct_field_name_is_declared(ctx, key.clone()) {
         return value_types::VT_GC_REF()
     }
     // A non-primitive tuple element is a named GC value even when its layout

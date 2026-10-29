@@ -1,6 +1,6 @@
 use std::host::clock::Clock
 use std::host::stdio
-use std::prelude::{clone, get_unchecked, i64_to_i32, len, push, set}
+use std::prelude::{get_unchecked, i64_to_i32, len, push, set}
 use std::text
 fn mir_lower_phase_timing_enabled(report_flag: i32) -> i32 {
     // Env override is disabled; --time / report_flag remains the supported
@@ -30,7 +30,7 @@ fn mir_lower_phase_note(enabled: i32, label: String, t_start: i64, t_end: i64) {
     }
     let ms = mir_lower_phase_ms(t_start, t_end)
     stdio::eprintln(
-        "[arukellt] lower.".concat(clone(label).concat(": ".concat(ms.to_string().concat("ms"))))
+        "[arukellt] lower.".concat(label.clone().concat(": ".concat(ms.to_string().concat("ms"))))
     )
 }
 
@@ -120,7 +120,7 @@ fn mir_lower_top_walls_note(enabled: i32, mut wall_ms: Vec<i32>, wall_name: Vec<
         }
         set(wall_ms, best, -1)
         stdio::eprintln(
-            "[arukellt] lower.fn_wall ".concat(rank.to_string().concat(" ".concat(clone(get_unchecked(wall_name, best)).concat(" ".concat(best_ms.to_string().concat("ms"))))))
+            "[arukellt] lower.fn_wall ".concat(rank.to_string().concat(" ".concat(get_unchecked(wall_name, best).clone().concat(" ".concat(best_ms.to_string().concat("ms"))))))
         )
         rank = rank + 1
     }

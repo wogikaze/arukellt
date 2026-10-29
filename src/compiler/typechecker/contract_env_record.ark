@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use diagnostics::codes
 use diagnostics::record
@@ -102,7 +102,7 @@ fn type_env_mark_binding_used(mut env: TypeEnv, name: String) {
     let count = len(env.tracked_binding_names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(env.tracked_binding_names, i), clone(name)) {
+        if eq(get_unchecked(env.tracked_binding_names, i), name.clone()) {
             set(env.tracked_binding_used, i, 1)
             return
         }
@@ -130,7 +130,7 @@ fn type_env_const_type(env: TypeEnv, name: String) -> TypeInfo {
     let count = len(env.const_names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(env.const_names, i), clone(name)) {
+        if eq(get_unchecked(env.const_names, i), name.clone()) {
             return get_unchecked(env.const_types, i)
         }
         i = i + 1
@@ -142,7 +142,7 @@ fn type_env_is_const_name(env: TypeEnv, name: String) -> bool {
     let count = len(env.const_names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(env.const_names, i), clone(name)) {
+        if eq(get_unchecked(env.const_names, i), name.clone()) {
             return true
         }
         i = i + 1
@@ -155,7 +155,7 @@ fn type_env_finalize_unused_bindings(mut env: TypeEnv) {
     let mut i = 0
     while i < count {
         if get_unchecked(env.tracked_binding_used, i) == 0 {
-            let name = clone(get_unchecked(env.tracked_binding_names, i))
+            let name = get_unchecked(env.tracked_binding_names, i).clone()
             let span_start = get_unchecked(env.tracked_binding_spans_start, i)
             let span_end = get_unchecked(env.tracked_binding_spans_end, i)
             let msg = "unused binding `".concat(name.concat("`"))

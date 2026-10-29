@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use std::text
 use mir::lower::ast_node
 use mir::lower_kinds
@@ -63,9 +62,9 @@ fn lower_index_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
             ctx,
             ctx_get_local_type(ctx, base_idx)
         )
-        if !binary_type_names::mir_is_primitive_operator_type(clone(base_type)) {
-            let ov_callee = clone(base_type).concat("::index")
-            if ctx_fn_exists(ctx, clone(ov_callee)) != 0 {
+        if !binary_type_names::mir_is_primitive_operator_type(base_type.clone()) {
+            let ov_callee = base_type.clone().concat("::index")
+            if ctx_fn_exists(ctx, ov_callee.clone()) != 0 {
                 let _index_idx = lower_expr(ctx, idx_expr)
                 return binary_emit::mir_emit_overloaded_binary_call(ctx, ov_callee)
             }
@@ -87,7 +86,7 @@ fn mir_assign_value_is_fn_pair(ctx: LowerCtx, target: AstNode, value: AstNode) -
         return false
     }
     let value_name = ast_node::node_text(value)
-    if ctx_api_local_alloc::ctx_lookup_local(ctx, clone(value_name)) >= 0 {
+    if ctx_api_local_alloc::ctx_lookup_local(ctx, value_name.clone()) >= 0 {
         return false
     }
     ctx_fn_index::ctx_fn_index_find(ctx, value_name) >= 0

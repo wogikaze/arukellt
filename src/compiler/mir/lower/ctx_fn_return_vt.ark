@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use corehir::callee_spelling
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_fn_return_type
@@ -9,33 +9,33 @@ use mir::value_types
 fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
     // Host clock APIs are always i64. Prefer this over fn_index: a wrong i32
     // dest makes binary `/ 1000000i64` insert extend_i32_s on a real i64 load.
-    if ctx_is_i64_clock_callee(clone(name)) {
+    if ctx_is_i64_clock_callee(name.clone()) {
         return value_types::VT_I64()
     }
     // SIMD intrinsic declarations can be shadowed in the flat fn_index by
     // short names with a scalar placeholder return type. The intrinsic name
     // is the authoritative ABI here, so resolve v128 before consulting that
     // index.
-    let bare_simd_name = ctx_bare_builtin_name(clone(name))
-    if ctx_fn_return_vt_simd::ctx_is_v128_returning_simd_intrinsic(clone(bare_simd_name)) {
+    let bare_simd_name = ctx_bare_builtin_name(name.clone())
+    if ctx_fn_return_vt_simd::ctx_is_v128_returning_simd_intrinsic(bare_simd_name.clone()) {
         return value_types::VT_V128()
     }
-    if ctx_fn_return_vt_simd::ctx_is_v128_returning_wasm_intrinsic(clone(bare_simd_name)) {
+    if ctx_fn_return_vt_simd::ctx_is_v128_returning_wasm_intrinsic(bare_simd_name.clone()) {
         return value_types::VT_V128()
     }
-    if ctx_fn_return_vt_simd::ctx_is_f32_returning_simd_intrinsic(clone(bare_simd_name)) {
+    if ctx_fn_return_vt_simd::ctx_is_f32_returning_simd_intrinsic(bare_simd_name.clone()) {
         return value_types::VT_F32()
     }
-    if ctx_fn_return_vt_simd::ctx_is_f64_returning_simd_intrinsic(clone(bare_simd_name)) {
+    if ctx_fn_return_vt_simd::ctx_is_f64_returning_simd_intrinsic(bare_simd_name.clone()) {
         return value_types::VT_F64()
     }
-    if ctx_fn_return_vt_simd::ctx_is_i64_returning_simd_intrinsic(clone(bare_simd_name)) {
+    if ctx_fn_return_vt_simd::ctx_is_i64_returning_simd_intrinsic(bare_simd_name.clone()) {
         return value_types::VT_I64()
     }
-    let found = ctx_fn_index::ctx_fn_index_find(ctx, clone(name))
+    let found = ctx_fn_index::ctx_fn_index_find(ctx, name.clone())
     if found >= 0 {
         let rvt = ctx_fn_index::ctx_fn_index_return_vt_at(ctx, found)
-        let resolved = mono_return_vt::mono_return_vt(ctx, clone(name), rvt)
+        let resolved = mono_return_vt::mono_return_vt(ctx, name.clone(), rvt)
         if resolved == value_types::VT_GC_REF() ||
         resolved == value_types::VT_REF() ||
         resolved == value_types::VT_I32() ||
@@ -54,7 +54,7 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
         }
         return rvt
     }
-    let qualified = ctx_fn_index::ctx_qualified_fn_index_find(ctx, clone(name))
+    let qualified = ctx_fn_index::ctx_qualified_fn_index_find(ctx, name.clone())
     if qualified >= 0 {
         let qualified_vt = get_unchecked(ctx.qualified_fn_return_vts, qualified)
         if qualified_vt == value_types::VT_REF() && ctx_gc_enum::ctx_is_gc_target(ctx) {
@@ -64,11 +64,11 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
     }
     // Loaded-module calls keep `module::Type::method`; resolve the registered
     // `Type::method` spelling before the last-segment fallback.
-    let variants = callee_spelling::callee_spelling_variants(clone(name))
+    let variants = callee_spelling::callee_spelling_variants(name.clone())
     let mut vi = 0
     while vi < len(variants) {
-        let variant = clone(get_unchecked(variants, vi))
-        let variant_found = ctx_fn_index::ctx_fn_index_find(ctx, clone(variant))
+        let variant = get_unchecked(variants, vi).clone()
+        let variant_found = ctx_fn_index::ctx_fn_index_find(ctx, variant.clone())
         if variant_found >= 0 {
             let variant_vt = ctx_fn_index::ctx_fn_index_return_vt_at(ctx, variant_found)
             if variant_vt == value_types::VT_REF() && ctx_gc_enum::ctx_is_gc_target(ctx) {
@@ -96,16 +96,16 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
         }
     }
     // Same as ctx_fn_return_type_name: module__FnName export mangling.
-    let dunder_short = ctx_fn_return_type::short_name_after_last_dunder(clone(name))
+    let dunder_short = ctx_fn_return_type::short_name_after_last_dunder(name.clone())
     if len(dunder_short) > 0 {
-        let dunder_found = ctx_fn_index::ctx_fn_index_find(ctx, clone(dunder_short))
+        let dunder_found = ctx_fn_index::ctx_fn_index_find(ctx, dunder_short.clone())
         if dunder_found >= 0 {
             let dunder_vt = ctx_fn_index::ctx_fn_index_return_vt_at(ctx, dunder_found)
-            return mono_return_vt::mono_return_vt(ctx, clone(name), dunder_vt)
+            return mono_return_vt::mono_return_vt(ctx, name.clone(), dunder_vt)
         }
     }
     let bare_name = ctx_bare_builtin_name(name)
-    let bare_found = ctx_fn_index::ctx_fn_index_find(ctx, clone(bare_name))
+    let bare_found = ctx_fn_index::ctx_fn_index_find(ctx, bare_name.clone())
     if bare_found >= 0 {
         return ctx_fn_index::ctx_fn_index_return_vt_at(ctx, bare_found)
     }
@@ -113,71 +113,71 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
 }
 
 fn ctx_fn_return_vt_builtin(ctx: LowerCtx, bare_name: String) -> i32 {
-    if is_void_returning_builtin(clone(bare_name)) {
+    if is_void_returning_builtin(bare_name.clone()) {
         return value_types::VT_VOID()
     }
-    if eq(clone(bare_name), "to_string") ||
-    eq(clone(bare_name), "i32_to_string") ||
-    eq(clone(bare_name), "i64_to_string") ||
-    eq(clone(bare_name), "f64_to_string") ||
-    eq(clone(bare_name), "bool_to_string") ||
-    eq(clone(bare_name), "char_to_string") ||
-    eq(clone(bare_name), "f32_to_string") {
+    if eq(bare_name.clone(), "to_string") ||
+    eq(bare_name.clone(), "i32_to_string") ||
+    eq(bare_name.clone(), "i64_to_string") ||
+    eq(bare_name.clone(), "f64_to_string") ||
+    eq(bare_name.clone(), "bool_to_string") ||
+    eq(bare_name.clone(), "char_to_string") ||
+    eq(bare_name.clone(), "f32_to_string") {
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             return value_types::VT_GC_REF()
         }
         return value_types::VT_REF()
     }
-    if clone(bare_name).ends_with("::to_string") {
+    if bare_name.clone().ends_with("::to_string") {
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             return value_types::VT_GC_REF()
         }
         return value_types::VT_REF()
     }
-    if eq(clone(bare_name), "i32_to_i64") || eq(clone(bare_name), "u32_to_u64") {
+    if eq(bare_name.clone(), "i32_to_i64") || eq(bare_name.clone(), "u32_to_u64") {
         return value_types::VT_I64()
     }
-    if eq(clone(bare_name), "clock_now") ||
-    eq(clone(bare_name), "clock_now_ms") ||
-    eq(clone(bare_name), "monotonic_now") ||
-    eq(clone(bare_name), "now_ms") ||
-    eq(clone(bare_name), "__intrinsic_clock_now") ||
-    eq(clone(bare_name), "__intrinsic_clock_now_ms") {
+    if eq(bare_name.clone(), "clock_now") ||
+    eq(bare_name.clone(), "clock_now_ms") ||
+    eq(bare_name.clone(), "monotonic_now") ||
+    eq(bare_name.clone(), "now_ms") ||
+    eq(bare_name.clone(), "__intrinsic_clock_now") ||
+    eq(bare_name.clone(), "__intrinsic_clock_now_ms") {
         return value_types::VT_I64()
     }
-    if eq(clone(bare_name), "sqrt") || eq(clone(bare_name), "math::sqrt") || eq(clone(bare_name), "abs_f64") || eq(clone(bare_name), "f64_abs") || eq(clone(bare_name), "__intrinsic_sqrt") {
+    if eq(bare_name.clone(), "sqrt") || eq(bare_name.clone(), "math::sqrt") || eq(bare_name.clone(), "abs_f64") || eq(bare_name.clone(), "f64_abs") || eq(bare_name.clone(), "__intrinsic_sqrt") {
         return value_types::VT_F64()
     }
     if ctx_fn_return_vt_simd::ctx_is_v128_returning_simd_intrinsic(bare_name) {
         return value_types::VT_V128()
     }
-    if ctx_fn_return_vt_simd::ctx_is_v128_returning_wasm_intrinsic(clone(bare_name)) {
+    if ctx_fn_return_vt_simd::ctx_is_v128_returning_wasm_intrinsic(bare_name.clone()) {
         return value_types::VT_V128()
     }
-    if ctx_fn_return_vt_simd::ctx_is_f32_returning_simd_intrinsic(clone(bare_name)) {
+    if ctx_fn_return_vt_simd::ctx_is_f32_returning_simd_intrinsic(bare_name.clone()) {
         return value_types::VT_F32()
     }
-    if ctx_fn_return_vt_simd::ctx_is_f64_returning_simd_intrinsic(clone(bare_name)) {
+    if ctx_fn_return_vt_simd::ctx_is_f64_returning_simd_intrinsic(bare_name.clone()) {
         return value_types::VT_F64()
     }
-    if ctx_fn_return_vt_simd::ctx_is_i64_returning_simd_intrinsic(clone(bare_name)) {
+    if ctx_fn_return_vt_simd::ctx_is_i64_returning_simd_intrinsic(bare_name.clone()) {
         return value_types::VT_I64()
     }
-    if eq(clone(bare_name), "concat") || eq(clone(bare_name), "__intrinsic_concat") {
+    if eq(bare_name.clone(), "concat") || eq(bare_name.clone(), "__intrinsic_concat") {
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             return value_types::VT_GC_REF()
         }
         return value_types::VT_REF()
     }
     // String-returning stdlib functions that may not be in the fn_index.
-    if eq(clone(bare_name), "split") ||
-    eq(clone(bare_name), "join") ||
-    eq(clone(bare_name), "clone") ||
-    eq(clone(bare_name), "slice") ||
-    eq(clone(bare_name), "to_lower") ||
-    eq(clone(bare_name), "to_upper") ||
-    eq(clone(bare_name), "trim") ||
-    eq(clone(bare_name), "replace") {
+    if eq(bare_name.clone(), "split") ||
+    eq(bare_name.clone(), "join") ||
+    eq(bare_name.clone(), "clone") ||
+    eq(bare_name.clone(), "slice") ||
+    eq(bare_name.clone(), "to_lower") ||
+    eq(bare_name.clone(), "to_upper") ||
+    eq(bare_name.clone(), "trim") ||
+    eq(bare_name.clone(), "replace") {
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             return value_types::VT_GC_REF()
         }
@@ -187,96 +187,96 @@ fn ctx_fn_return_vt_builtin(ctx: LowerCtx, bare_name: String) -> i32 {
 }
 
 fn ctx_bare_builtin_name(name: String) -> String {
-    let mut bare_name = clone(name)
-    if len(bare_name) > 12 && clone(bare_name).starts_with("__intrinsic_") {
+    let mut bare_name = name.clone()
+    if len(bare_name) > 12 && bare_name.clone().starts_with("__intrinsic_") {
         bare_name = bare_name.slice(12, len(bare_name))
     }
     bare_name
 }
 
 fn ctx_is_i64_clock_callee(name: String) -> bool {
-    if clone(name).ends_with("::monotonic_now") ||
-    clone(name).ends_with("::now_ms") ||
-    clone(name).ends_with("::clock_now") ||
-    clone(name).ends_with("::clock_now_ms") {
+    if name.clone().ends_with("::monotonic_now") ||
+    name.clone().ends_with("::now_ms") ||
+    name.clone().ends_with("::clock_now") ||
+    name.clone().ends_with("::clock_now_ms") {
         return true
     }
     let bare = ctx_bare_builtin_name(name)
-    eq(clone(bare), "clock_now") ||
-    eq(clone(bare), "clock_now_ms") ||
-    eq(clone(bare), "monotonic_now") ||
-    eq(clone(bare), "now_ms")
+    eq(bare.clone(), "clock_now") ||
+    eq(bare.clone(), "clock_now_ms") ||
+    eq(bare.clone(), "monotonic_now") ||
+    eq(bare.clone(), "now_ms")
 }
 
 fn is_void_returning_builtin(bare_name: String) -> bool {
-    if eq(clone(bare_name), "__hm_si_set_size") || eq(clone(bare_name), "__hm_si_set_flag") || eq(clone(bare_name), "__hm_si_set_val") || eq(clone(bare_name), "__hm_si_set_key") {
+    if eq(bare_name.clone(), "__hm_si_set_size") || eq(bare_name.clone(), "__hm_si_set_flag") || eq(bare_name.clone(), "__hm_si_set_val") || eq(bare_name.clone(), "__hm_si_set_key") {
         return true
     }
-    if eq(clone(bare_name), "__hm_is_set_size") || eq(clone(bare_name), "__hm_is_set_flag") || eq(clone(bare_name), "__hm_is_set_val") || eq(clone(bare_name), "__hm_is_set_key") {
+    if eq(bare_name.clone(), "__hm_is_set_size") || eq(bare_name.clone(), "__hm_is_set_flag") || eq(bare_name.clone(), "__hm_is_set_val") || eq(bare_name.clone(), "__hm_is_set_key") {
         return true
     }
-    if eq(clone(bare_name), "__hm_if_set_size") || eq(clone(bare_name), "__hm_if_set_flag") || eq(clone(bare_name), "__hm_if_set_val") || eq(clone(bare_name), "__hm_if_set_key") {
+    if eq(bare_name.clone(), "__hm_if_set_size") || eq(bare_name.clone(), "__hm_if_set_flag") || eq(bare_name.clone(), "__hm_if_set_val") || eq(bare_name.clone(), "__hm_if_set_key") {
         return true
     }
-    if eq(clone(bare_name), "__hm_ss_set_size") || eq(clone(bare_name), "__hm_ss_set_flag") || eq(clone(bare_name), "__hm_ss_set_val") || eq(clone(bare_name), "__hm_ss_set_key") {
+    if eq(bare_name.clone(), "__hm_ss_set_size") || eq(bare_name.clone(), "__hm_ss_set_flag") || eq(bare_name.clone(), "__hm_ss_set_val") || eq(bare_name.clone(), "__hm_ss_set_key") {
         return true
     }
-    if eq(clone(bare_name), "hash_string::hashmap_i32_str_set") ||
-    eq(clone(bare_name), "hash_fn::hashmap_i32_fn_set") ||
-    eq(clone(bare_name), "hash_string::hashmap_str_str_set") {
+    if eq(bare_name.clone(), "hash_string::hashmap_i32_str_set") ||
+    eq(bare_name.clone(), "hash_fn::hashmap_i32_fn_set") ||
+    eq(bare_name.clone(), "hash_string::hashmap_str_str_set") {
         return true
     }
-    eq(clone(bare_name), "stdio::println") ||
-    eq(clone(bare_name), "println") ||
-    eq(clone(bare_name), "stdio::print") ||
-    eq(clone(bare_name), "print") ||
-    eq(clone(bare_name), "stdio::eprintln") ||
-    eq(clone(bare_name), "eprintln") ||
-    eq(clone(bare_name), "stdio::eprint") ||
-    eq(clone(bare_name), "eprint") ||
-    eq(clone(bare_name), "process::exit") ||
-    eq(clone(bare_name), "host::process::exit") ||
-    eq(clone(bare_name), "process::abort") ||
-    eq(clone(bare_name), "host::process::abort") ||
-    eq(clone(bare_name), "push_char") ||
-    eq(clone(bare_name), "push") ||
-    eq(clone(bare_name), "push_byte") ||
-    eq(clone(bare_name), "push_i64") ||
-    eq(clone(bare_name), "push_f64") ||
-    eq(clone(bare_name), "sort_i32") ||
-    eq(clone(bare_name), "sort_i64") ||
-    eq(clone(bare_name), "sort_f64") ||
-    eq(clone(bare_name), "reverse_String") ||
-    eq(clone(bare_name), "assert") ||
-    eq(clone(bare_name), "assert_eq") ||
-    eq(clone(bare_name), "assert_ne") ||
-    eq(clone(bare_name), "assert_eq_str") ||
-    eq(clone(bare_name), "assert_eq_i64") ||
-    eq(clone(bare_name), "memory_copy") ||
-    eq(clone(bare_name), "memory_fill") ||
-    eq(clone(bare_name), "hashmap_set") ||
-    eq(clone(bare_name), "hashmap_str_set") ||
-    eq(clone(bare_name), "hashmap_i32_str_set") ||
-    eq(clone(bare_name), "hashmap_i32_fn_set") ||
-    eq(clone(bare_name), "hashmap_str_fn_set") ||
-    eq(clone(bare_name), "hashmap_str_str_set") ||
-    eq(clone(bare_name), "hashmap_clear") ||
-    eq(clone(bare_name), "hashmap_reserve") ||
-    eq(clone(bare_name), "hashmap_shrink_to_fit") ||
-    eq(clone(bare_name), "hashmap_extend") ||
-    eq(clone(bare_name), "hashset_insert") ||
-    eq(clone(bare_name), "hashset_remove") ||
-    eq(clone(bare_name), "hashset_str_insert") ||
-    eq(clone(bare_name), "hashset_str_remove") ||
-    eq(clone(bare_name), "assert_true") ||
-    eq(clone(bare_name), "assert_false") ||
-    eq(clone(bare_name), "assert_eq_i32") ||
-    eq(clone(bare_name), "assert_eq_f64") ||
-    eq(clone(bare_name), "assert_eq_string") ||
-    eq(clone(bare_name), "assert_eq_bool") ||
-    eq(clone(bare_name), "assert_ne_i32") ||
-    eq(clone(bare_name), "assert_ne_string") ||
-    eq(clone(bare_name), "assert_contains") ||
-    eq(clone(bare_name), "assert_eq_snapshot") ||
-    eq(clone(bare_name), "assert_msg")
+    eq(bare_name.clone(), "stdio::println") ||
+    eq(bare_name.clone(), "println") ||
+    eq(bare_name.clone(), "stdio::print") ||
+    eq(bare_name.clone(), "print") ||
+    eq(bare_name.clone(), "stdio::eprintln") ||
+    eq(bare_name.clone(), "eprintln") ||
+    eq(bare_name.clone(), "stdio::eprint") ||
+    eq(bare_name.clone(), "eprint") ||
+    eq(bare_name.clone(), "process::exit") ||
+    eq(bare_name.clone(), "host::process::exit") ||
+    eq(bare_name.clone(), "process::abort") ||
+    eq(bare_name.clone(), "host::process::abort") ||
+    eq(bare_name.clone(), "push_char") ||
+    eq(bare_name.clone(), "push") ||
+    eq(bare_name.clone(), "push_byte") ||
+    eq(bare_name.clone(), "push_i64") ||
+    eq(bare_name.clone(), "push_f64") ||
+    eq(bare_name.clone(), "sort_i32") ||
+    eq(bare_name.clone(), "sort_i64") ||
+    eq(bare_name.clone(), "sort_f64") ||
+    eq(bare_name.clone(), "reverse_String") ||
+    eq(bare_name.clone(), "assert") ||
+    eq(bare_name.clone(), "assert_eq") ||
+    eq(bare_name.clone(), "assert_ne") ||
+    eq(bare_name.clone(), "assert_eq_str") ||
+    eq(bare_name.clone(), "assert_eq_i64") ||
+    eq(bare_name.clone(), "memory_copy") ||
+    eq(bare_name.clone(), "memory_fill") ||
+    eq(bare_name.clone(), "hashmap_set") ||
+    eq(bare_name.clone(), "hashmap_str_set") ||
+    eq(bare_name.clone(), "hashmap_i32_str_set") ||
+    eq(bare_name.clone(), "hashmap_i32_fn_set") ||
+    eq(bare_name.clone(), "hashmap_str_fn_set") ||
+    eq(bare_name.clone(), "hashmap_str_str_set") ||
+    eq(bare_name.clone(), "hashmap_clear") ||
+    eq(bare_name.clone(), "hashmap_reserve") ||
+    eq(bare_name.clone(), "hashmap_shrink_to_fit") ||
+    eq(bare_name.clone(), "hashmap_extend") ||
+    eq(bare_name.clone(), "hashset_insert") ||
+    eq(bare_name.clone(), "hashset_remove") ||
+    eq(bare_name.clone(), "hashset_str_insert") ||
+    eq(bare_name.clone(), "hashset_str_remove") ||
+    eq(bare_name.clone(), "assert_true") ||
+    eq(bare_name.clone(), "assert_false") ||
+    eq(bare_name.clone(), "assert_eq_i32") ||
+    eq(bare_name.clone(), "assert_eq_f64") ||
+    eq(bare_name.clone(), "assert_eq_string") ||
+    eq(bare_name.clone(), "assert_eq_bool") ||
+    eq(bare_name.clone(), "assert_ne_i32") ||
+    eq(bare_name.clone(), "assert_ne_string") ||
+    eq(bare_name.clone(), "assert_contains") ||
+    eq(bare_name.clone(), "assert_eq_snapshot") ||
+    eq(bare_name.clone(), "assert_msg")
 }

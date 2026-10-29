@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 pub fn is_stdlib_path(path: String) -> bool {
     let n = len(path)
@@ -15,19 +15,19 @@ pub fn stdlib_path_to_file(path: String) -> String {
     let mut seg_start = 0
     while i < n {
         if path.byte_at(i) == 58 && i + 1 < n && path.byte_at(i + 1) == 58 {
-            result = clone(result).concat(clone(path).slice(seg_start, i).concat("/"))
+            result = result.clone().concat(path.clone().slice(seg_start, i).concat("/"))
             i = i + 2
             seg_start = i
         } else {
             i = i + 1
         }
     }
-    clone(result).concat(clone(path).slice(seg_start, n).concat(".ark"))
+    result.clone().concat(path.clone().slice(seg_start, n).concat(".ark"))
 }
 
 pub fn stdlib_mod_fallback_path(primary: String) -> String {
     let n = len(primary)
-    clone(primary).slice(0, n - 4).concat("/mod.ark")
+    primary.clone().slice(0, n - 4).concat("/mod.ark")
 }
 test mod "stdlib_path" {
     test "is_std" { assert(is_stdlib_path("std::core")) }

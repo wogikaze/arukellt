@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use component::wit_parse_flags
 use component
 fn issue651_flags_parse_self_check() -> bool {
@@ -13,20 +13,20 @@ fn issue651_flags_parse_self_check() -> bool {
         return false
     }
     let doc = component::parse_wit_import_file("tests/fixtures/component/import_flags_type.wit")
-    if !eq(clone(doc.package), "test:host") {
+    if !eq(doc.package.clone(), "test:host") {
         return false
     }
-    if !eq(clone(doc.interface), "host") {
+    if !eq(doc.interface.clone(), "host") {
         return false
     }
     if len(doc.funcs) != 1 {
         return false
     }
     let func = get_unchecked(doc.funcs, 0)
-    if !eq(clone(func.wit_name), "set-perms") {
+    if !eq(func.wit_name.clone(), "set-perms") {
         return false
     }
-    if !eq(clone(func.ark_name), "set_perms") {
+    if !eq(func.ark_name.clone(), "set_perms") {
         return false
     }
     if len(func.param_wit_types) != 1 {

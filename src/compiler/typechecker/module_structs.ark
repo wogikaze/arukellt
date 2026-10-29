@@ -19,7 +19,7 @@ use diagnostics::mod as diag_mod
 // expressions can recover a concrete field type. MIR owns the layout copy;
 // this table only needs names, declaration type parameters, and annotated
 // field types.
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 
 fn register_struct_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
@@ -53,7 +53,7 @@ fn report_struct_enum_shadow_conflict(mut env: TypeEnv, decls: Vec<AstNode>, nod
     while j < decl_count {
         let e_node = get_unchecked(decls, j)
         if !ast_decl_predicates::node_is_enum_decl(e_node) ||
-        !eq(clone(ast_access::node_text(e_node)), clone(struct_name)) {
+        !eq(ast_access::node_text(e_node).clone(), struct_name.clone()) {
             j = j + 1
             continue
         }
@@ -63,10 +63,10 @@ fn report_struct_enum_shadow_conflict(mut env: TypeEnv, decls: Vec<AstNode>, nod
             continue
         }
         let message = String_from("ambiguous type name '").concat(
-            clone(struct_name).concat(String_from("': only a non-generic struct may shadow a generic enum; rename the struct or drop its type parameters"))
+            struct_name.clone().concat(String_from("': only a non-generic struct may shadow a generic enum; rename the struct or drop its type parameters"))
         )
         env.error_count = env.error_count + 1
-        push(env.errors, clone(message))
+        push(env.errors, message.clone())
         let span = record::DiagnosticSpan_from_raw(
             ast_access::node_span_start(node),
             ast_access::node_span_end(node)
@@ -121,11 +121,11 @@ fn struct_field_type(env: TypeEnv, recv_ty: TypeInfo, field_name: String) -> Typ
     let mut i = 0
     while i < def_count {
         let def = get_unchecked(env.struct_defs, i)
-        if !eq(contract_struct_info::StructInfo_name(def), clone(recv_name)) {
+        if !eq(contract_struct_info::StructInfo_name(def), recv_name.clone()) {
             i = i + 1
             continue
         }
-        let field_idx = contract_struct_info::StructInfo_field_index(def, clone(field_name))
+        let field_idx = contract_struct_info::StructInfo_field_index(def, field_name.clone())
         if field_idx < 0 {
             return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
         }
@@ -166,15 +166,15 @@ fn infer_generic_literal_args(env: TypeEnv, mut aggregate_ty: TypeInfo, node: As
     }
     let lit_name = contract_type_access::TypeInfo_name(aggregate_ty)
     // An explicit `Name<args>` spelling is authoritative; skip inference.
-    if clone(lit_name).index_of("<") >= 0 {
+    if lit_name.clone().index_of("<") >= 0 {
         return aggregate_ty
     }
-    let base_name = names::unqualified_type_name(clone(lit_name))
+    let base_name = names::unqualified_type_name(lit_name.clone())
     let def_count = len(env.struct_defs)
     let mut di = 0
     while di < def_count {
         let def = get_unchecked(env.struct_defs, di)
-        if !eq(contract_struct_info::StructInfo_name(def), clone(base_name)) {
+        if !eq(contract_struct_info::StructInfo_name(def), base_name.clone()) {
             di = di + 1
             continue
         }
@@ -196,8 +196,8 @@ fn infer_generic_literal_args(env: TypeEnv, mut aggregate_ty: TypeInfo, node: As
             let decl_idx = contract_struct_info::StructInfo_field_index(def, ast_access::node_text(field))
             if decl_idx >= 0 && fi < len(val_tys) {
                 let field_ty = contract_struct_info::StructInfo_field_type_at(def, decl_idx)
-                if struct_lit_ty_mentions_params(clone(field_ty), clone(type_params)) {
-                    let inst_ty = instantiate::instantiate_type(field_ty, clone(type_params), clone(var_types))
+                if struct_lit_ty_mentions_params(field_ty.clone(), type_params.clone()) {
+                    let inst_ty = instantiate::instantiate_type(field_ty, type_params.clone(), var_types.clone())
                     // Field value types can carry vars bound in the real env
                     // (e.g. a generic call result); resolve them there first
                     // so the scratch env only sees concrete or param types.
@@ -207,7 +207,7 @@ fn infer_generic_literal_args(env: TypeEnv, mut aggregate_ty: TypeInfo, node: As
             }
             fi = fi + 1
         }
-        if call_generic_resolve::has_unresolved_fresh_type_arg(infer_env, clone(var_types)) {
+        if call_generic_resolve::has_unresolved_fresh_type_arg(infer_env, var_types.clone()) {
             return aggregate_ty
         }
         let resolved = call_generic_common::resolve_type_args(infer_env, var_types)
@@ -222,7 +222,7 @@ fn infer_generic_literal_args(env: TypeEnv, mut aggregate_ty: TypeInfo, node: As
             // legitimately produce Box<T>); a stray inference var would leak
             // into mono keys, so keep the bare name instead.
             if contract_type_access::TypeInfo_tag(arg_ty) == commands::TY_TYPE_VAR() &&
-            !struct_lit_name_in_params(contract_type_access::TypeInfo_name(arg_ty), clone(type_params)) {
+            !struct_lit_name_in_params(contract_type_access::TypeInfo_name(arg_ty), type_params.clone()) {
                 return aggregate_ty
             }
             ri = ri + 1
@@ -240,7 +240,7 @@ fn infer_generic_literal_args(env: TypeEnv, mut aggregate_ty: TypeInfo, node: As
 fn struct_lit_name_in_params(name: String, params: Vec<String>) -> bool {
     let mut pi = 0
     while pi < len(params) {
-        if eq(clone(name), clone(get_unchecked(params, pi))) {
+        if eq(name.clone(), get_unchecked(params, pi).clone()) {
             return true
         }
         pi = pi + 1
@@ -258,7 +258,7 @@ fn struct_lit_ty_mentions_params(ty: TypeInfo, params: Vec<String>) -> bool {
     let arg_count = contract_type_access::TypeInfo_type_arg_count(ty)
     let mut ai = 0
     while ai < arg_count {
-        if struct_lit_ty_mentions_params(contract_type_access::TypeInfo_type_arg_at(ty, ai), clone(params)) {
+        if struct_lit_ty_mentions_params(contract_type_access::TypeInfo_type_arg_at(ty, ai), params.clone()) {
             return true
         }
         ai = ai + 1

@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::function_id
 use corehir::signature_entry
@@ -24,7 +24,7 @@ fn stdlib_inline_find_function(m: MirModule, name: String) -> i32 {
     let mut index = 0
     while index < count {
         let candidate = module_functions::MirModule_function_at(m, index)
-        if eq(function_identity::MirFunction_name(candidate), clone(name)) {
+        if eq(function_identity::MirFunction_name(candidate), name.clone()) {
             return index
         }
         index = index + 1
@@ -41,14 +41,14 @@ fn stdlib_inline_rewrite_block(m: MirModule, mut caller: MirFunction, mut block:
         let inst = block_inst_access::MirBlock_inst_at(block, index)
         if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() {
             let fallback = core_op_call::mir_call_inline_fallback_symbol(m, inst)
-            let callee_index = stdlib_inline_find_function(m, clone(fallback))
+            let callee_index = stdlib_inline_find_function(m, fallback.clone())
             if callee_index >= 0 {
                 let callee = module_functions::MirModule_function_at(m, callee_index)
                 if stdlib_inline_eligibility::stdlib_inline_candidate_is_eligible(
                     caller,
                     callee,
                     inst,
-                    clone(fallback)
+                    fallback.clone()
                 ) && stdlib_inline_rewrite::stdlib_inline_append_call(
                     caller,
                     block,
@@ -102,8 +102,8 @@ fn stdlib_inline_fn(m: MirModule, mut caller: MirFunction) -> i32 {
 }
 
 fn stdlib_vec_elem_suffix_from_type_name(type_name: String) -> String {
-    if clone(type_name).starts_with(String_from("vec:")) {
-        return clone(type_name).slice(4, len(type_name))
+    if type_name.clone().starts_with(String_from("vec:")) {
+        return type_name.clone().slice(4, len(type_name))
     }
     String_new()
 }
@@ -131,23 +131,23 @@ fn stdlib_resolve_call_receiver_local(block: MirBlock, call_index: i32, call: Mi
 fn stdlib_vec_concrete_fallback_matches_elem(fallback: String, suffix: String) -> bool {
     // Concrete scalar fallbacks must not absorb String/struct/fn vec calls —
     // those stay on the CoreOp path for GC intrinsic emit (#822 / #845).
-    if eq(clone(fallback), String_from("__core_vec_push_i32_impl")) ||
-    eq(clone(fallback), String_from("__core_vec_set_impl")) ||
-    eq(clone(fallback), String_from("__core_vec_get_impl")) ||
-    eq(clone(fallback), String_from("__core_vec_pop_impl")) ||
-    eq(clone(fallback), String_from("__core_vec_get_unchecked_impl")) {
-        return eq(clone(suffix), String_from("i32")) ||
-        eq(clone(suffix), String_from("I32")) ||
-        eq(clone(suffix), String_from("bool")) ||
-        eq(clone(suffix), String_from("char"))
+    if eq(fallback.clone(), String_from("__core_vec_push_i32_impl")) ||
+    eq(fallback.clone(), String_from("__core_vec_set_impl")) ||
+    eq(fallback.clone(), String_from("__core_vec_get_impl")) ||
+    eq(fallback.clone(), String_from("__core_vec_pop_impl")) ||
+    eq(fallback.clone(), String_from("__core_vec_get_unchecked_impl")) {
+        return eq(suffix.clone(), String_from("i32")) ||
+        eq(suffix.clone(), String_from("I32")) ||
+        eq(suffix.clone(), String_from("bool")) ||
+        eq(suffix.clone(), String_from("char"))
     }
-    if eq(clone(fallback), String_from("__core_vec_push_i64_impl")) ||
-    eq(clone(fallback), String_from("__core_vec_get_unchecked_i64_impl")) {
-        return eq(clone(suffix), String_from("i64")) || eq(clone(suffix), String_from("I64"))
+    if eq(fallback.clone(), String_from("__core_vec_push_i64_impl")) ||
+    eq(fallback.clone(), String_from("__core_vec_get_unchecked_i64_impl")) {
+        return eq(suffix.clone(), String_from("i64")) || eq(suffix.clone(), String_from("I64"))
     }
-    if eq(clone(fallback), String_from("__core_vec_push_f64_impl")) ||
-    eq(clone(fallback), String_from("__core_vec_get_unchecked_f64_impl")) {
-        return eq(clone(suffix), String_from("f64")) || eq(clone(suffix), String_from("F64"))
+    if eq(fallback.clone(), String_from("__core_vec_push_f64_impl")) ||
+    eq(fallback.clone(), String_from("__core_vec_get_unchecked_f64_impl")) {
+        return eq(suffix.clone(), String_from("f64")) || eq(suffix.clone(), String_from("F64"))
     }
     true
 }
@@ -160,13 +160,13 @@ fn stdlib_specialize_vec_fallback(
     call_index: i32,
     call: MirInst
 ) -> String {
-    if !clone(fallback).starts_with(String_from("__core_vec_")) {
+    if !fallback.clone().starts_with(String_from("__core_vec_")) {
         return fallback
     }
-    if !clone(fallback).ends_with(String_from("_impl")) {
+    if !fallback.clone().ends_with(String_from("_impl")) {
         return fallback
     }
-    if eq(clone(fallback), String_from("__core_vec_pop_impl")) {
+    if eq(fallback.clone(), String_from("__core_vec_pop_impl")) {
         return String_new()
     }
     let recv = stdlib_resolve_call_receiver_local(block, call_index, call)
@@ -176,19 +176,19 @@ fn stdlib_specialize_vec_fallback(
     let type_name = local_access::MirLocal_type_name(function_locals_view::MirFunction_local_at(f, recv))
     let suffix = stdlib_vec_elem_suffix_from_type_name(type_name)
     if len(suffix) == 0 {
-        if !stdlib_vec_concrete_fallback_matches_elem(clone(fallback), suffix) {
+        if !stdlib_vec_concrete_fallback_matches_elem(fallback.clone(), suffix) {
             return String_new()
         }
         return fallback
     }
-    let specialized = clone(fallback).concat(String_from("__").concat(suffix))
-    let specialized_id = signature_registry::signature_registry_lookup_by_mangled(registry, clone(specialized))
+    let specialized = fallback.clone().concat(String_from("__").concat(suffix))
+    let specialized_id = signature_registry::signature_registry_lookup_by_mangled(registry, specialized.clone())
     if function_id::FunctionId_raw(specialized_id) >= 0 {
         return specialized
     }
     // Known non-matching element (e.g. vec:String vs __core_vec_push_i32_impl):
     // empty → caller keeps the CoreOp callee for intrinsic lowering.
-    if !stdlib_vec_concrete_fallback_matches_elem(clone(fallback), clone(suffix)) {
+    if !stdlib_vec_concrete_fallback_matches_elem(fallback.clone(), suffix.clone()) {
         return String_new()
     }
     fallback
@@ -214,7 +214,7 @@ fn stdlib_resolve_normal_call_block(m: MirModule, f: MirFunction, mut block: Mir
             )
             // Empty specialized means "leave CoreOp" (String/struct/fn vec).
             if len(specialized) > 0 {
-                let fallback_id = signature_registry::signature_registry_lookup_by_mangled(registry, clone(specialized))
+                let fallback_id = signature_registry::signature_registry_lookup_by_mangled(registry, specialized.clone())
                 let fallback_raw = function_id::FunctionId_raw(fallback_id)
                 if fallback_raw >= 0 {
                     // Do not shadow mut resolved (i32 count) with MirInst — shared

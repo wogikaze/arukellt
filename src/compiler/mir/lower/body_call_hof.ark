@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::ast_node
 use mir::lower_kinds
 use mir::lower::hof_call_plan
@@ -10,7 +9,7 @@ use mir::inst_local_set
 use mir::lower::hof
 fn try_lower_hof_call(mut ctx: LowerCtx, node: AstNode, callee: AstNode, child_count: i32) -> i32 {
     let hof_callee_text = ast_node::node_text(callee)
-    let hof_plan = hof_call_classify::mir_classify_hof_call(clone(hof_callee_text))
+    let hof_plan = hof_call_classify::mir_classify_hof_call(hof_callee_text.clone())
     if hof_call_plan::mir_hof_call_plan_is_none(hof_plan) || !hof_call_plan::mir_hof_call_plan_has_min_children(hof_plan, child_count) {
         return 0 - 1
     }
@@ -26,7 +25,7 @@ fn try_lower_hof_call(mut ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
     // map_String_String is classified under the i32 HOF plan, but the source
     // vec may be vec:String).
     let existing_vec_type = ctx_get_local_type(ctx, hof_vec_local)
-    if !clone(existing_vec_type).starts_with("vec:") {
+    if !existing_vec_type.clone().starts_with("vec:") {
         ctx_set_local_type(ctx, hof_vec_local, hof_call_plan::mir_hof_call_plan_vec_type_name(hof_plan))
     }
     let mut hof_init_idx = 0 - 1

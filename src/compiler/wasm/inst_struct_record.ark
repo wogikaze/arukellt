@@ -4,7 +4,7 @@
 //            cannot be determined from MIR instruction alone; GC-typed structs
 //            like Vec use explicit writer_gc calls in intrinsic files).
 
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::inst_accessors_shape
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
@@ -96,9 +96,9 @@ fn user_gc_struct_field_sig(ctx: SelfEmitCtx, type_idx: i32, field_idx: i32) -> 
 }
 
 fn gc_struct_field_sig_is_i32_scalar(field_sig: String) -> bool {
-    eq(clone(field_sig), String_from("i32")) ||
-    eq(clone(field_sig), String_from("bool")) ||
-    eq(clone(field_sig), String_from("char"))
+    eq(field_sig.clone(), String_from("i32")) ||
+    eq(field_sig.clone(), String_from("bool")) ||
+    eq(field_sig.clone(), String_from("char"))
 }
 
 fn struct_get_base_is_stack_composed(inst: MirInst, prev_arg0: i32) -> bool {
@@ -121,8 +121,8 @@ fn emit_struct_new(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: 
     let dest = inst_accessors_operands::MirInst_dest(inst)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let struct_name = inst_accessors_literals::MirInst_str_val(inst)
-        let gc_type_idx = if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
-            ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
+        let gc_type_idx = if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
+            ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, struct_name.clone())
         } else {
             ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_accessors_literals::MirInst_int_val(inst))
         }
@@ -315,8 +315,8 @@ fn resolve_gc_struct_type_idx(inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, pre
         }
     }
     let struct_name = inst_accessors_literals::MirInst_str_val(inst)
-    if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
-        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
+    if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
+        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, struct_name.clone())
     }
     let size_hint_val = size_hint
     let struct_size_est = if size_hint_val >= 100000 {
@@ -340,11 +340,11 @@ fn gc_struct_type_from_local_name(f: MirFunction, local_idx: i32, ctx: SelfEmitC
     let type_name = local_access::MirLocal_type_name(
         function_locals_view::MirFunction_local_at(f, local_idx)
     )
-    if !clone(type_name).starts_with(String_from("struct:")) {
+    if !type_name.clone().starts_with(String_from("struct:")) {
         return 0 - 1
     }
-    let struct_name = gc_struct_name_without_size(clone(type_name))
-    if len(struct_name) == 0 || !ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
+    let struct_name = gc_struct_name_without_size(type_name.clone())
+    if len(struct_name) == 0 || !ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
         return 0 - 1
     }
     ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, struct_name)

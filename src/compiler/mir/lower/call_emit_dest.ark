@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ctx_fn_return_vt
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
@@ -9,26 +9,26 @@ use mir::value_types
 fn mir_prepare_direct_call_dest(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> i32 {
     // Direct calls take the callee's return value type as-is (f64 included);
     // narrowing to i32/i64 only mistypes f64-returning call destinations.
-    let mut dest_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(callee_name))
+    let mut dest_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, callee_name.clone())
     if dest_vt == value_types::VT_VOID() {
-        dest_vt = mir_vec_call_dest_vt(ctx, clone(callee_name), first_arg_idx)
+        dest_vt = mir_vec_call_dest_vt(ctx, callee_name.clone(), first_arg_idx)
         if dest_vt == value_types::VT_VOID() {
             return 0 - 1
         }
     }
-    if mir_is_vec_get_unchecked_callee(clone(callee_name)) {
-        dest_vt = mir_vec_call_dest_vt(ctx, clone(callee_name), first_arg_idx)
+    if mir_is_vec_get_unchecked_callee(callee_name.clone()) {
+        dest_vt = mir_vec_call_dest_vt(ctx, callee_name.clone(), first_arg_idx)
     }
-    if clone(callee_name).ends_with("::to_string") && ctx_gc_enum::ctx_is_gc_target(ctx) {
+    if callee_name.clone().ends_with("::to_string") && ctx_gc_enum::ctx_is_gc_target(ctx) {
         dest_vt = value_types::VT_GC_REF()
     }
-    if eq(clone(callee_name), "vec_get_unchecked_i64") {
+    if eq(callee_name.clone(), "vec_get_unchecked_i64") {
         dest_vt = value_types::VT_I64()
     }
-    if eq(clone(callee_name), "vec_get_unchecked_f64") {
+    if eq(callee_name.clone(), "vec_get_unchecked_f64") {
         dest_vt = value_types::VT_F64()
     }
-    if call_rewrite_vec::is_vec_push_callee(clone(callee_name)) && first_arg_idx >= 0 {
+    if call_rewrite_vec::is_vec_push_callee(callee_name.clone()) && first_arg_idx >= 0 {
         dest_vt = mir_vec_receiver_vt(ctx, first_arg_idx)
     }
     ctx_api_local_alloc::ctx_fresh_local(ctx, dest_vt)
@@ -51,28 +51,28 @@ fn mir_vec_call_dest_vt(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) 
     if first_arg_idx < 0 {
         return value_types::VT_VOID()
     }
-    if eq(clone(callee_name), "vec_get") {
+    if eq(callee_name.clone(), "vec_get") {
         return value_types::VT_GC_REF()
     }
-    if !mir_is_vec_get_unchecked_callee(clone(callee_name)) {
+    if !mir_is_vec_get_unchecked_callee(callee_name.clone()) {
         return value_types::VT_VOID()
     }
     let vec_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-    if !clone(vec_type).starts_with("vec:") && !clone(vec_type).starts_with("array:") {
+    if !vec_type.clone().starts_with("vec:") && !vec_type.clone().starts_with("array:") {
         return value_types::VT_VOID()
     }
-    let elem_start = if clone(vec_type).starts_with("array:") { 6 } else { 4 }
+    let elem_start = if vec_type.clone().starts_with("array:") { 6 } else { 4 }
     let elem_type = vec_type.slice(elem_start, len(vec_type))
-    if eq(clone(elem_type), "i64") || eq(clone(elem_type), "I64") {
+    if eq(elem_type.clone(), "i64") || eq(elem_type.clone(), "I64") {
         return value_types::VT_I64()
     }
-    if eq(clone(elem_type), "f64") || eq(clone(elem_type), "F64") {
+    if eq(elem_type.clone(), "f64") || eq(elem_type.clone(), "F64") {
         return value_types::VT_F64()
     }
-    if eq(clone(elem_type), "i32") ||
-    eq(clone(elem_type), "I32") ||
-    eq(clone(elem_type), "bool") ||
-    eq(clone(elem_type), "char") {
+    if eq(elem_type.clone(), "i32") ||
+    eq(elem_type.clone(), "I32") ||
+    eq(elem_type.clone(), "bool") ||
+    eq(elem_type.clone(), "char") {
         return value_types::VT_I32()
     }
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
@@ -82,12 +82,12 @@ fn mir_vec_call_dest_vt(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) 
 }
 
 fn mir_is_vec_get_unchecked_callee(callee_name: String) -> bool {
-    if eq(clone(callee_name), "vec_get_unchecked") ||
-    eq(clone(callee_name), "raw_array_get_unchecked") ||
-    eq(clone(callee_name), "get_unchecked") {
+    if eq(callee_name.clone(), "vec_get_unchecked") ||
+    eq(callee_name.clone(), "raw_array_get_unchecked") ||
+    eq(callee_name.clone(), "get_unchecked") {
         return true
     }
-    clone(callee_name).starts_with("vec_get_unchecked__") ||
-    clone(callee_name).starts_with("get_unchecked__") ||
-    clone(callee_name).starts_with("raw_array_get_unchecked__")
+    callee_name.clone().starts_with("vec_get_unchecked__") ||
+    callee_name.clone().starts_with("get_unchecked__") ||
+    callee_name.clone().starts_with("raw_array_get_unchecked__")
 }

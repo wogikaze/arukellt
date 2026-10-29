@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 pub struct FrameResult {
     body: String,
     next: i32,
@@ -14,7 +13,7 @@ fn frame_result_ok(result: FrameResult) -> bool {
 }
 
 fn frame_result_body(result: FrameResult) -> String {
-    clone(result.body)
+    result.body.clone()
 }
 
 fn frame_result_next(result: FrameResult) -> i32 {

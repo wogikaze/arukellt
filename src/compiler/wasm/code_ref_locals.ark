@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::function_return_view
 use mir::function_locals_view
 use mir::local_access
@@ -21,7 +21,7 @@ fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) 
     let storage = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, local_idx)
     // String / vec / hashmap payload locals must cast to their container type,
     // never to a stray enclosing enum variant_slot.
-    if eq(clone(type_name), "string") || eq(clone(type_name), "String") {
+    if eq(type_name.clone(), "string") || eq(type_name.clone(), "String") {
         return true
     }
     // Phase 5e: variant_slot on a GC_STRUCT_NEW dest → cast to variant type.
@@ -31,21 +31,21 @@ fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) 
         if !local_is_direct_gc_struct_new_dest(f, local_idx, ctx) {
             return false
         }
-        return !code_ref_locals_types::is_gc_container_type_name(clone(type_name))
+        return !code_ref_locals_types::is_gc_container_type_name(type_name.clone())
     }
-    if code_ref_locals_types::is_gc_container_type_name(clone(type_name)) {
+    if code_ref_locals_types::is_gc_container_type_name(type_name.clone()) {
         return false
     }
-    if code_ref_locals_types::is_option_type_name(clone(type_name)) {
+    if code_ref_locals_types::is_option_type_name(type_name.clone()) {
         return true
     }
-    if clone(type_name).starts_with("Result_") ||
-    clone(type_name).starts_with("result:") ||
-    clone(type_name).starts_with("Result:") ||
-    clone(type_name).starts_with("Result<") {
+    if type_name.clone().starts_with("Result_") ||
+    type_name.clone().starts_with("result:") ||
+    type_name.clone().starts_with("Result:") ||
+    type_name.clone().starts_with("Result<") {
         return true
     }
-    if clone(type_name).starts_with("struct:") {
+    if type_name.clone().starts_with("struct:") {
         return true
     }
     let open = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
@@ -119,13 +119,13 @@ fn mir_function_returns_enum_open(f: MirFunction) -> bool {
         return false
     }
     let ret_name = function_return_view::MirFunction_return_type_name(f)
-    if clone(ret_name).starts_with("Result_") ||
-    clone(ret_name).starts_with("result:") ||
-    clone(ret_name).starts_with("Result:") ||
-    clone(ret_name).starts_with("Result<") {
+    if ret_name.clone().starts_with("Result_") ||
+    ret_name.clone().starts_with("result:") ||
+    ret_name.clone().starts_with("Result:") ||
+    ret_name.clone().starts_with("Result<") {
         return true
     }
-    if clone(ret_name).starts_with("enum:") {
+    if ret_name.clone().starts_with("enum:") {
         return true
     }
     false

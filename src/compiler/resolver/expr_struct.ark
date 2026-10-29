@@ -1,11 +1,10 @@
-use std::prelude::{clone}
 use std::text
 use resolver::scope_lookup
 use resolver::ast_access
 use resolver::scope_error
 fn resolve_struct_lit(mut ctx: ResolveCtx, node: AstNode) {
     let struct_name = ast_access::node_text(node)
-    let idx = scope_lookup::lookup(ctx, clone(struct_name))
+    let idx = scope_lookup::lookup(ctx, struct_name.clone())
     if idx < 0 {
         scope_error::resolve_error(ctx, "undefined struct: ".concat(struct_name))
     }

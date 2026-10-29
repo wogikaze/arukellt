@@ -1,5 +1,5 @@
 use std::text
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ctx_gc_enum_sig
 use mir::lower::ctx_gc_canon
 use mir::lower::ctx_struct_field_type
@@ -8,18 +8,18 @@ use mir::module_gc_order
 use mir::module_gc_enum
 use wasm::emit_target
 fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
-    emit_target::is_gc_target(clone(ctx.lower_target))
+    emit_target::is_gc_target(ctx.lower_target.clone())
 }
 
 fn ctx_register_gc_enum_variant(mut ctx: LowerCtx, variant_name: String, sig: String) -> i32 {
-    let canon = ctx_gc_enum_normalize_variant_name(clone(variant_name))
+    let canon = ctx_gc_enum_normalize_variant_name(variant_name.clone())
     let count = len(ctx.gc_enum_variant_sigs)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(ctx.gc_enum_variant_sigs, i), clone(sig)) {
-            let existing = clone(get_unchecked(ctx.gc_enum_variant_names, i))
-            let existing_canon = ctx_gc_enum_normalize_variant_name(clone(existing))
-            if eq(existing_canon, clone(canon)) || eq(existing, clone(variant_name)) {
+        if eq(get_unchecked(ctx.gc_enum_variant_sigs, i), sig.clone()) {
+            let existing = get_unchecked(ctx.gc_enum_variant_names, i).clone()
+            let existing_canon = ctx_gc_enum_normalize_variant_name(existing.clone())
+            if eq(existing_canon, canon.clone()) || eq(existing, variant_name.clone()) {
                 push(ctx.gc_enum_variant_alias_names, variant_name)
                 push(ctx.gc_enum_variant_alias_slots, i)
                 return i
@@ -46,10 +46,10 @@ fn ctx_register_gc_enum_variant(mut ctx: LowerCtx, variant_name: String, sig: St
         let slot = len(ctx.gc_enum_variant_names) - 1
         module_gc_enum::MirModule_push_gc_enum_variant(
             m,
-            clone(variant_name),
-            clone(sig)
+            variant_name.clone(),
+            sig.clone()
         )
-        let canon = ctx_gc_canon::ctx_gc_canon_ensure_sig(ctx, clone(sig))
+        let canon = ctx_gc_canon::ctx_gc_canon_ensure_sig(ctx, sig.clone())
         module_gc_enum::MirModule_set_gc_enum_variant_canon_idx(m, slot, canon)
         gc_layout_slot_bind::mir_gc_layout_bind_enum_variant_slot(m, slot)
     }
@@ -60,7 +60,7 @@ fn ctx_gc_enum_lookup_slot(ctx: LowerCtx, variant_name: String) -> i32 {
     let count = len(ctx.gc_enum_variant_names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(ctx.gc_enum_variant_names, i), clone(variant_name)) {
+        if eq(get_unchecked(ctx.gc_enum_variant_names, i), variant_name.clone()) {
             return i
         }
         i = i + 1
@@ -68,7 +68,7 @@ fn ctx_gc_enum_lookup_slot(ctx: LowerCtx, variant_name: String) -> i32 {
     let alias_count = len(ctx.gc_enum_variant_alias_names)
     let mut ai = 0
     while ai < alias_count {
-        if eq(get_unchecked(ctx.gc_enum_variant_alias_names, ai), clone(variant_name)) {
+        if eq(get_unchecked(ctx.gc_enum_variant_alias_names, ai), variant_name.clone()) {
             return get_unchecked(ctx.gc_enum_variant_alias_slots, ai)
         }
         ai = ai + 1
@@ -77,16 +77,16 @@ fn ctx_gc_enum_lookup_slot(ctx: LowerCtx, variant_name: String) -> i32 {
 }
 
 fn ctx_gc_enum_normalize_variant_name(variant_name: String) -> String {
-    if eq(clone(variant_name), "Some") {
+    if eq(variant_name.clone(), "Some") {
         return "Option::Some"
     }
-    if eq(clone(variant_name), "None") {
+    if eq(variant_name.clone(), "None") {
         return "Option::None"
     }
-    if eq(clone(variant_name), "Ok") {
+    if eq(variant_name.clone(), "Ok") {
         return "Result::Ok"
     }
-    if eq(clone(variant_name), "Err") {
+    if eq(variant_name.clone(), "Err") {
         return "Result::Err"
     }
     variant_name
@@ -95,18 +95,18 @@ fn ctx_gc_enum_normalize_variant_name(variant_name: String) -> String {
 // Bare variant leaf after the last `::` (TomlValue::Table → Table).
 // Option/Result keep their qualified normalize form for disambiguation.
 fn ctx_gc_enum_bare_variant_name(variant_name: String) -> String {
-    let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
-    if clone(normalized).starts_with("Option::") || clone(normalized).starts_with("Result::") {
+    let normalized = ctx_gc_enum_normalize_variant_name(variant_name.clone())
+    if normalized.clone().starts_with("Option::") || normalized.clone().starts_with("Result::") {
         return normalized
     }
-    if !clone(normalized).contains("::") {
+    if !normalized.clone().contains("::") {
         return normalized
     }
     let n = len(normalized)
     let mut i = n - 1
     while i >= 0 {
-        if clone(normalized).byte_at(i) == 58 {
-            return clone(normalized).slice(i + 1, n)
+        if normalized.clone().byte_at(i) == 58 {
+            return normalized.clone().slice(i + 1, n)
         }
         i = i - 1
     }
@@ -117,7 +117,7 @@ fn ctx_gc_enum_bare_variant_name(variant_name: String) -> String {
 // semantic type on the result local so a later aggregate can choose the enum
 // reference field instead of treating the value as a String reference.
 fn ctx_gc_enum_type_name_from_variant(variant_name: String) -> String {
-    let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
+    let normalized = ctx_gc_enum_normalize_variant_name(variant_name.clone())
     let n = len(normalized)
     let mut last_sep = 0 - 1
     let mut prev_sep = 0 - 1
@@ -141,37 +141,37 @@ fn ctx_gc_enum_type_name_from_variant(variant_name: String) -> String {
 }
 
 fn ctx_gc_enum_variant_names_match(a: String, b: String) -> bool {
-    if eq(clone(a), clone(b)) {
+    if eq(a.clone(), b.clone()) {
         return true
     }
-    let a_norm = ctx_gc_enum_normalize_variant_name(clone(a))
-    let b_norm = ctx_gc_enum_normalize_variant_name(clone(b))
-    if eq(clone(a_norm), clone(b_norm)) {
+    let a_norm = ctx_gc_enum_normalize_variant_name(a.clone())
+    let b_norm = ctx_gc_enum_normalize_variant_name(b.clone())
+    if eq(a_norm.clone(), b_norm.clone()) {
         return true
     }
-    eq(ctx_gc_enum_bare_variant_name(clone(a_norm)), ctx_gc_enum_bare_variant_name(clone(b_norm)))
+    eq(ctx_gc_enum_bare_variant_name(a_norm.clone()), ctx_gc_enum_bare_variant_name(b_norm.clone()))
 }
 
 fn ctx_gc_enum_variant_slot(ctx: LowerCtx, variant_name: String) -> i32 {
-    let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
-    let found = ctx_gc_enum_lookup_slot(ctx, clone(normalized))
+    let normalized = ctx_gc_enum_normalize_variant_name(variant_name.clone())
+    let found = ctx_gc_enum_lookup_slot(ctx, normalized.clone())
     if found >= 0 {
         return found
     }
-    let direct = ctx_gc_enum_lookup_slot(ctx, clone(variant_name))
+    let direct = ctx_gc_enum_lookup_slot(ctx, variant_name.clone())
     if direct >= 0 {
         return direct
     }
     // Bare `Table` must resolve to `TomlValue::Table` when unique (#726).
-    let bare = ctx_gc_enum_bare_variant_name(clone(normalized))
-    let suffix = "::".concat(clone(bare))
+    let bare = ctx_gc_enum_bare_variant_name(normalized.clone())
+    let suffix = "::".concat(bare.clone())
     let count = len(ctx.gc_enum_variant_names)
     let mut i = 0
     let mut hit = 0 - 1
     let mut hits = 0
     while i < count {
-        let nm = clone(get_unchecked(ctx.gc_enum_variant_names, i))
-        if eq(clone(nm), clone(bare)) || clone(nm).ends_with(clone(suffix)) {
+        let nm = get_unchecked(ctx.gc_enum_variant_names, i).clone()
+        if eq(nm.clone(), bare.clone()) || nm.clone().ends_with(suffix.clone()) {
             hit = i
             hits = hits + 1
         }
@@ -184,14 +184,14 @@ fn ctx_gc_enum_variant_slot(ctx: LowerCtx, variant_name: String) -> i32 {
 }
 
 fn ctx_gc_enum_variant_slot_for_payload(mut ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>) -> i32 {
-    let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
+    let normalized = ctx_gc_enum_normalize_variant_name(variant_name.clone())
     let field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(ctx, payload_vts)
     let want_sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(0, field_sigs)
     let count = len(ctx.gc_enum_variant_sigs)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(ctx.gc_enum_variant_sigs, i), clone(want_sig)) {
-            let name_canon = ctx_gc_enum_normalize_variant_name(clone(get_unchecked(ctx.gc_enum_variant_names, i)))
+        if eq(get_unchecked(ctx.gc_enum_variant_sigs, i), want_sig.clone()) {
+            let name_canon = ctx_gc_enum_normalize_variant_name(get_unchecked(ctx.gc_enum_variant_names, i).clone())
             if eq(name_canon, normalized) {
                 return i
             }
@@ -202,8 +202,8 @@ fn ctx_gc_enum_variant_slot_for_payload(mut ctx: LowerCtx, variant_name: String,
 }
 
 fn gc_enum_variant_is_vec_container(normalized: String) -> bool {
-    let bare = ctx_gc_enum_bare_variant_name(clone(normalized))
-    eq(clone(bare), "Array") || eq(clone(bare), "Table") || eq(clone(bare), "Object")
+    let bare = ctx_gc_enum_bare_variant_name(normalized.clone())
+    eq(bare.clone(), "Array") || eq(bare.clone(), "Table") || eq(bare.clone(), "Object")
 }
 
 fn ctx_gc_enum_variant_count(ctx: LowerCtx) -> i32 {
@@ -224,8 +224,8 @@ fn ctx_flush_gc_enum_variants_from(mut ctx: LowerCtx, start: i32) {
         i = materialized
     }
     while i < count {
-        let sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, i))
-        module_gc_enum::MirModule_push_gc_enum_variant(m, clone(get_unchecked(ctx.gc_enum_variant_names, i)), clone(sig))
+        let sig = get_unchecked(ctx.gc_enum_variant_sigs, i).clone()
+        module_gc_enum::MirModule_push_gc_enum_variant(m, get_unchecked(ctx.gc_enum_variant_names, i).clone(), sig.clone())
         if !ctx.gc_seal_done {
             let canon = ctx_gc_canon::ctx_gc_canon_ensure_sig(ctx, sig)
             module_gc_enum::MirModule_set_gc_enum_variant_canon_idx(m, i, canon)

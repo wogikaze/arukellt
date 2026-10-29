@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
@@ -42,10 +42,10 @@ fn apply_vec_ctor_fn_turbofish_name(mut ctx: LowerCtx, node: AstNode, local_idx:
     }
     let callee = ast_node::node_child_at(init, 0)
     let callee_name = ast_node::node_text(callee)
-    if !eq(clone(callee_name), "Vec::new") &&
-    !eq(clone(callee_name), "Vec::with_capacity") &&
-    !eq(clone(callee_name), "Vec__new") &&
-    !eq(clone(callee_name), "Vec__with_capacity") {
+    if !eq(callee_name.clone(), "Vec::new") &&
+    !eq(callee_name.clone(), "Vec::with_capacity") &&
+    !eq(callee_name.clone(), "Vec__new") &&
+    !eq(callee_name.clone(), "Vec__with_capacity") {
         return
     }
     if ast_node::node_child_count(callee) < 2 {
@@ -58,10 +58,10 @@ fn apply_vec_ctor_fn_turbofish_name(mut ctx: LowerCtx, node: AstNode, local_idx:
             return
         }
         let vec_ty = String_from("vec:").concat(tuple_name)
-        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, clone(vec_ty))
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, vec_ty.clone())
         ctx_api_local_types::ctx_set_local_vt(ctx, local_idx, value_types::VT_GC_REF())
         if val_idx >= 0 {
-            ctx_api_local_types::ctx_set_local_type(ctx, val_idx, clone(vec_ty))
+            ctx_api_local_types::ctx_set_local_type(ctx, val_idx, vec_ty.clone())
             ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
         }
         return
@@ -86,7 +86,7 @@ fn apply_let_annotation_type(mut ctx: LowerCtx, node: AstNode, local_idx: i32, t
         let ta_name = ast_node::node_text(ta)
         let local_type_name = ctx_mono_type_params::ctx_resolve_mono_type_name(
             ctx,
-            ann_types::mir_local_type_name_from_ann(ta, ctx_struct_lookup::ctx_struct_field_count(ctx, clone(ta_name)))
+            ann_types::mir_local_type_name_from_ann(ta, ctx_struct_lookup::ctx_struct_field_count(ctx, ta_name.clone()))
         )
         let local_type_name = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, local_type_name)
         if len(local_type_name) > 0 {
@@ -103,20 +103,20 @@ fn apply_let_annotation_type(mut ctx: LowerCtx, node: AstNode, local_idx: i32, t
 }
 
 fn let_annotation_is_gc_ref_type(ctx: LowerCtx, local_type_name: String) -> bool {
-    if clone(local_type_name).starts_with("enum:") {
+    if local_type_name.clone().starts_with("enum:") {
         return true
     }
-    if clone(local_type_name).starts_with("vec:") || clone(local_type_name).starts_with("hashmap:") {
+    if local_type_name.clone().starts_with("vec:") || local_type_name.clone().starts_with("hashmap:") {
         return true
     }
-    if clone(local_type_name).starts_with("Option_") ||
-    clone(local_type_name).starts_with("option:") ||
-    clone(local_type_name).starts_with("Option:") ||
-    clone(local_type_name).starts_with("Result_") ||
-    clone(local_type_name).starts_with("result:") ||
-    clone(local_type_name).starts_with("Result:") {
+    if local_type_name.clone().starts_with("Option_") ||
+    local_type_name.clone().starts_with("option:") ||
+    local_type_name.clone().starts_with("Option:") ||
+    local_type_name.clone().starts_with("Result_") ||
+    local_type_name.clone().starts_with("result:") ||
+    local_type_name.clone().starts_with("Result:") {
         return true
     }
-    ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(local_type_name)) ||
-    ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(local_type_name))
+    ctx_struct_layout::ctx_is_registered_struct_type(ctx, local_type_name.clone()) ||
+    ctx_struct_layout::ctx_is_registered_enum_type(ctx, local_type_name.clone())
 }

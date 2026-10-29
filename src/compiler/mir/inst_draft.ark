@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use corehir::mir_value_type
 pub struct MirInstDraft {
     op: i32,
@@ -46,7 +45,7 @@ fn MirInstDraft_arg0(inst: MirInstDraft) -> i32 { inst.arg0 }
 fn MirInstDraft_arg1(inst: MirInstDraft) -> i32 { inst.arg1 }
 fn MirInstDraft_int_val(inst: MirInstDraft) -> i32 { inst.int_val }
 fn MirInstDraft_float_val(inst: MirInstDraft) -> f64 { inst.float_val }
-fn MirInstDraft_str_val(inst: MirInstDraft) -> String { clone(inst.str_val) }
+fn MirInstDraft_str_val(inst: MirInstDraft) -> String { inst.str_val.clone() }
 fn MirInstDraft_val_type(inst: MirInstDraft) -> i32 { inst.val_type }
 fn MirInstDraft_func_id_raw(inst: MirInstDraft) -> i32 { inst.func_id_raw }
 fn MirInstDraft_result_types(inst: MirInstDraft) -> Vec<MirValueType> { inst.result_types }

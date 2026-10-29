@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use lexer::token_record
 pub struct LexDiagnostic {
     code: i32,
@@ -37,7 +36,7 @@ fn LexDiagnostic_code(diag: LexDiagnostic) -> i32 {
 }
 
 fn LexDiagnostic_message(diag: LexDiagnostic) -> String {
-    clone(diag.message)
+    diag.message.clone()
 }
 
 fn LexDiagnostic_start(diag: LexDiagnostic) -> i32 {

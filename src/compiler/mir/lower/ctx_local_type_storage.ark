@@ -1,6 +1,5 @@
-use std::prelude::{clone}
 fn ctx_local_type_push(mut ctx: LowerCtx, local_idx: i32, type_name: String) {
-    push(ctx.local_types, clone(type_name))
+    push(ctx.local_types, type_name.clone())
     push(ctx.local_type_indices, local_idx)
 }
 
@@ -17,7 +16,7 @@ fn ctx_local_type_index_at(ctx: LowerCtx, index: i32) -> i32 {
 }
 
 fn ctx_local_type_name_at(ctx: LowerCtx, index: i32) -> String {
-    clone(get_unchecked(ctx.local_types, index))
+    get_unchecked(ctx.local_types, index).clone()
 }
 
 fn ctx_local_type_reset_for_function(mut ctx: LowerCtx) {

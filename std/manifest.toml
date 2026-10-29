@@ -84,13 +84,14 @@ type_id = "string"
 [[types]]
 name = "Vec"
 kind = "struct"
-doc = "Growable contiguous sequence."
+doc = "Growable contiguous sequence. `.clone()` is a shallow header copy: the clone shares element storage (deep element copy needs `T: Clone`)."
 prelude = true
 generic_params = ["T"]
 type_id = "vec"
 
 methods = [
     "new",
+    "clone",
     "with_capacity",
     "push",
     "pop",
@@ -243,16 +244,6 @@ stability = "stable"
 doc_category = "string"
 
 # ── String operations ────────────────────────
-
-[[functions]]
-name = "clone"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_string_clone"
-params = ["String"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "string"
 
 [[functions]]
 name = "f64_bits_lo"

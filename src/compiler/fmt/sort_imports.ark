@@ -1,5 +1,4 @@
 use std::text
-use std::prelude::{clone}
 use fmt::import_block
 use fmt::parse_gate
 use resolver::ast_access
@@ -20,7 +19,7 @@ fn fmt_import_sort_group(path: String, has_alias: bool) -> i32 {
     if has_alias {
         return 2
     }
-    if clone(path).starts_with("std::") {
+    if path.clone().starts_with("std::") {
         return 0
     }
     1
@@ -52,8 +51,8 @@ fn fmt_collect_import_entries(text: String, decls: Vec<AstNode>) -> Vec<FmtImpor
             while line_begin > 0 && text.byte_at(line_begin - 1) != 10 {
                 line_begin = line_begin - 1
             }
-            let line_end = fmt_import_line_end(clone(text), line_begin)
-            let group = fmt_import_sort_group(clone(path), has_alias)
+            let line_end = fmt_import_line_end(text.clone(), line_begin)
+            let group = fmt_import_sort_group(path.clone(), has_alias)
             push(out, fmt_import_entry_new(line_begin, line_end, path, group, has_alias))
         }
         i = i + 1
@@ -100,7 +99,7 @@ fn fmt_sorted_import_text(text: String, entries: Vec<FmtImportEntry>) -> String 
         while i < en {
             let entry = get_unchecked(entries, i)
             if fmt_import_entry_sort_group(entry) == group {
-                let line = clone(text).slice(fmt_import_entry_line_start(entry), fmt_import_entry_line_end(entry))
+                let line = text.clone().slice(fmt_import_entry_line_start(entry), fmt_import_entry_line_end(entry))
                 out = out.concat(line)
             }
             i = i + 1
@@ -136,32 +135,32 @@ fn fmt_import_entries_are_contiguous(text: String, entries: Vec<FmtImportEntry>)
 }
 
 fn fmt_apply_sorted_imports(text: String, entries: Vec<FmtImportEntry>) -> String {
-    if !fmt_import_entries_are_contiguous(clone(text), entries) {
-        return clone(text)
+    if !fmt_import_entries_are_contiguous(text.clone(), entries) {
+        return text.clone()
     }
     let block = fmt_import_block_bounds(entries)
-    let sorted = fmt_sorted_import_text(clone(text), entries)
-    clone(text).slice(0, import_block::ImportBlockSpan_start(block)).concat(sorted).concat(text.slice(import_block::ImportBlockSpan_end(block), len(text)))
+    let sorted = fmt_sorted_import_text(text.clone(), entries)
+    text.clone().slice(0, import_block::ImportBlockSpan_start(block)).concat(sorted).concat(text.slice(import_block::ImportBlockSpan_end(block), len(text)))
 }
 
 fn fmt_sort_imports_text(input: String) -> Option<String> {
-    let gate = parse_gate::fmt_parse_gate(clone(input))
+    let gate = parse_gate::fmt_parse_gate(input.clone())
     if parse_gate::fmt_parse_gate_error_count(gate) > 0 {
         return Option::None
     }
-    let entries = fmt_collect_import_entries(clone(input), parse_gate::fmt_parse_gate_decls(gate))
+    let entries = fmt_collect_import_entries(input.clone(), parse_gate::fmt_parse_gate_decls(gate))
     if len(entries) == 0 {
-        return Option::Some(clone(input))
+        return Option::Some(input.clone())
     }
     Option::Some(fmt_apply_sorted_imports(input, entries))
 }
 
 fn fmt_sorted_import_block(input: String) -> Option<String> {
-    let gate = parse_gate::fmt_parse_gate(clone(input))
+    let gate = parse_gate::fmt_parse_gate(input.clone())
     if parse_gate::fmt_parse_gate_error_count(gate) > 0 {
         return Option::None
     }
-    let entries = fmt_collect_import_entries(clone(input), parse_gate::fmt_parse_gate_decls(gate))
+    let entries = fmt_collect_import_entries(input.clone(), parse_gate::fmt_parse_gate_decls(gate))
     if len(entries) == 0 {
         return Option::Some(String_new())
     }
@@ -169,11 +168,11 @@ fn fmt_sorted_import_block(input: String) -> Option<String> {
 }
 
 fn fmt_import_block_span_value(input: String) -> Option<import_block::ImportBlockSpan> {
-    let gate = parse_gate::fmt_parse_gate(clone(input))
+    let gate = parse_gate::fmt_parse_gate(input.clone())
     if parse_gate::fmt_parse_gate_error_count(gate) > 0 {
         return Option::None
     }
-    let entries = fmt_collect_import_entries(clone(input), parse_gate::fmt_parse_gate_decls(gate))
+    let entries = fmt_collect_import_entries(input.clone(), parse_gate::fmt_parse_gate_decls(gate))
     if len(entries) == 0 {
         return Option::None
     }

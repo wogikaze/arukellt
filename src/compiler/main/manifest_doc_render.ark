@@ -1,26 +1,26 @@
 use std::host::stdio
 use std::text
 use std::json
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use main::manifest_doc_lookup
 use main::manifest_doc_record
 fn doc_target_is_p1(target: String) -> bool {
-    eq(clone(target), String_from("wasm32"))
+    eq(target.clone(), String_from("wasm32"))
 }
 
 fn doc_target_is_p2(target: String) -> bool {
-    eq(clone(target), String_from("wasm32-gc"))
+    eq(target.clone(), String_from("wasm32-gc"))
 }
 
 fn doc_target_warning(e: manifest_doc_record::DocFnEntry, filter_target: String) -> String {
     if len(filter_target) == 0 {
         return String_new()
     }
-    if doc_target_is_p1(clone(filter_target)) && manifest_doc_record::DocFnEntry_avail_t1(e) == 0 {
-        return String_from("Not available on ").concat(clone(filter_target))
+    if doc_target_is_p1(filter_target.clone()) && manifest_doc_record::DocFnEntry_avail_t1(e) == 0 {
+        return String_from("Not available on ").concat(filter_target.clone())
     }
-    if doc_target_is_p2(clone(filter_target)) && manifest_doc_record::DocFnEntry_avail_t3(e) == 0 {
-        return String_from("Not available on ").concat(clone(filter_target))
+    if doc_target_is_p2(filter_target.clone()) && manifest_doc_record::DocFnEntry_avail_t3(e) == 0 {
+        return String_from("Not available on ").concat(filter_target.clone())
     }
     String_new()
 }
@@ -43,7 +43,7 @@ fn doc_format_signature(e: manifest_doc_record::DocFnEntry) -> String {
 }
 
 pub fn doc_print_function(e: manifest_doc_record::DocFnEntry, filter_target: String) {
-    let warn = doc_target_warning(e, clone(filter_target))
+    let warn = doc_target_warning(e, filter_target.clone())
     if len(warn) > 0 {
         stdio::println(String_from("warning: ").concat(warn))
     }
@@ -80,7 +80,7 @@ pub fn doc_print_function(e: manifest_doc_record::DocFnEntry, filter_target: Str
 fn doc_json_string_field(out: String, key: String, value: String, comma: bool) -> String {
     let mut r = out
     if comma { r = r.concat(String_from(",")) }
-    r = r.concat(String_from("\"").concat(clone(key)).concat(String_from("\":\"")).concat(json::JsonText::escape(value).concat(String_from("\""))))
+    r = r.concat(String_from("\"").concat(key.clone()).concat(String_from("\":\"")).concat(json::JsonText::escape(value).concat(String_from("\""))))
     r
 }
 
@@ -88,9 +88,9 @@ fn doc_json_bool_field(out: String, key: String, value: bool, comma: bool) -> St
     let mut r = out
     if comma { r = r.concat(String_from(",")) }
     if value {
-        r = r.concat(String_from("\"").concat(clone(key)).concat(String_from("\":")).concat(String_from("true")))
+        r = r.concat(String_from("\"").concat(key.clone()).concat(String_from("\":")).concat(String_from("true")))
     } else {
-        r = r.concat(String_from("\"").concat(clone(key)).concat(String_from("\":")).concat(String_from("false")))
+        r = r.concat(String_from("\"").concat(key.clone()).concat(String_from("\":")).concat(String_from("false")))
     }
     r
 }
@@ -109,7 +109,7 @@ pub fn doc_emit_function_json(e: manifest_doc_record::DocFnEntry, filter_target:
     if len(doc) > 0 {
         out = doc_json_string_field(out, String_from("doc"), doc, true)
     }
-    let warn = doc_target_warning(e, clone(filter_target))
+    let warn = doc_target_warning(e, filter_target.clone())
     if len(warn) > 0 {
         out = doc_json_string_field(out, String_from("target_warning"), warn, true)
     }
@@ -118,8 +118,8 @@ pub fn doc_emit_function_json(e: manifest_doc_record::DocFnEntry, filter_target:
 }
 
 pub fn doc_print_module(table: manifest_doc_record::DocManifestTable, module: String, filter_target: String) {
-    let mid = manifest_doc_lookup::doc_find_module(table, clone(module))
-    stdio::println(String_from("module ").concat(clone(module)))
+    let mid = manifest_doc_lookup::doc_find_module(table, module.clone())
+    stdio::println(String_from("module ").concat(module.clone()))
     if mid >= 0 {
         let m = manifest_doc_record::DocManifestTable_module_at(table, mid)
         let stab = manifest_doc_record::DocModuleEntry_stability(m)
@@ -142,8 +142,8 @@ pub fn doc_print_module(table: manifest_doc_record::DocManifestTable, module: St
     let mut i = 0
     while i < n {
         let e = manifest_doc_record::DocManifestTable_function_at(table, i)
-        if eq(manifest_doc_record::DocFnEntry_module(e), clone(module)) {
-            let warn = doc_target_warning(e, clone(filter_target))
+        if eq(manifest_doc_record::DocFnEntry_module(e), module.clone()) {
+            let warn = doc_target_warning(e, filter_target.clone())
             let mut line = String_from("    ").concat(doc_format_signature(e))
             if len(warn) > 0 {
                 line = line.concat((String_from("  [")).concat(warn.concat(String_from("]"))))

@@ -1,6 +1,6 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 fn is_native_target(target: String) -> bool {
-    is_native_cpp_target(clone(target)) || is_native_llvm_target(target)
+    is_native_cpp_target(target.clone()) || is_native_llvm_target(target)
 }
 
 pub fn is_native_cpp_target(target: String) -> bool {
@@ -12,14 +12,14 @@ pub fn is_native_llvm_target(target: String) -> bool {
 }
 
 fn is_wasm_target(target: String) -> bool {
-    if is_native_target(clone(target)) {
+    if is_native_target(target.clone()) {
         return false
     }
-    clone(target).contains("wasm")
+    target.clone().contains("wasm")
 }
 
 fn target_run_supported(target: String) -> bool {
-    if is_native_target(clone(target)) {
+    if is_native_target(target.clone()) {
         return false
     }
     true

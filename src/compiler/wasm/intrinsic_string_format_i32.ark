@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use wasm::ctx_scratch
 use wasm::emit_target
 use wasm::opcodes
@@ -22,7 +21,7 @@ fn emit_to_string(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_neg)
     emit_i32_digits(w, s_val, s_wpos, s_neg)
-    if emit_target::is_gc_target(clone(ctx.target)) {
+    if emit_target::is_gc_target(ctx.target.clone()) {
         let string_type = ctx.gc_type_base
         emit_i32_string_alloc_gc(w, buf_end, s_wpos, s_len, string_type, ctx, inst)
     } else {

@@ -1,5 +1,4 @@
 use std::json
-use std::prelude::{clone}
 use lsp::feature_position
 use lsp::positions
 use lsp::source_text
@@ -22,11 +21,11 @@ pub fn text_position_request_id(req: LspTextPositionRequest) -> i32 {
 }
 
 pub fn text_position_request_uri(req: LspTextPositionRequest) -> String {
-    clone(req.uri)
+    req.uri.clone()
 }
 
 pub fn text_position_request_text(req: LspTextPositionRequest) -> String {
-    clone(req.text)
+    req.text.clone()
 }
 
 pub fn text_position_request_offset(req: LspTextPositionRequest) -> i32 {
@@ -38,17 +37,17 @@ pub fn text_position_request_has_text(req: LspTextPositionRequest) -> bool {
 }
 
 fn read_text_position_request(state: LspState, body: String) -> LspTextPositionRequest {
-    let id = json::JsonText::get_int(clone(body), String_from("id"))
-    let uri = json::JsonText::get_str(clone(body), String_from("uri"))
-    let line = feature_position::extract_position_field(clone(body), String_from("line"))
-    let character = feature_position::extract_position_field(clone(body), String_from("character"))
-    let text = state_docs::lsp_doc_store_lookup_text(state_record::lsp_state_doc_store(state), clone(uri))
+    let id = json::JsonText::get_int(body.clone(), String_from("id"))
+    let uri = json::JsonText::get_str(body.clone(), String_from("uri"))
+    let line = feature_position::extract_position_field(body.clone(), String_from("line"))
+    let character = feature_position::extract_position_field(body.clone(), String_from("character"))
+    let text = state_docs::lsp_doc_store_lookup_text(state_record::lsp_state_doc_store(state), uri.clone())
     if len(text) == 0 {
-        text = source_text::text_for_uri(state, clone(uri))
+        text = source_text::text_for_uri(state, uri.clone())
     }
     if len(text) == 0 {
         return LspTextPositionRequest_new(id, uri, text, 0, false)
     }
-    let offset = positions::position_to_offset(clone(text), line, character)
+    let offset = positions::position_to_offset(text.clone(), line, character)
     LspTextPositionRequest_new(id, uri, text, offset, true)
 }

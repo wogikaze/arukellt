@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::entry_body_core_source
 use mir::lower::entry_core_body
 use mir::lower::entry_fallback_body
@@ -51,7 +50,7 @@ fn mir_entry_body_source_fn_input(mut source: MirLowerEntryBodySource, decl_inde
     }
     let fallback_source = source.fallback_source
     let fallback = fallback_source::mir_fallback_source_fn_body(fallback_source, decl_index, body_idx)
-    let fallback_has_body = entry_fallback_body::mir_entry_fallback_body_has_body(clone(fallback))
+    let fallback_has_body = entry_fallback_body::mir_entry_fallback_body_has_body(fallback.clone())
     entry_body_input::mir_entry_body_input_new(fallback, fallback_has_body, core_body)
 }
 
@@ -64,7 +63,7 @@ fn mir_entry_body_source_method_input(mut source: MirLowerEntryBodySource, impl_
     }
     let fallback_source = source.fallback_source
     let fallback = fallback_source::mir_fallback_source_method_body(fallback_source, impl_decl_index, method_index, body_idx)
-    let fallback_has_body = entry_fallback_body::mir_entry_fallback_body_has_body(clone(fallback))
+    let fallback_has_body = entry_fallback_body::mir_entry_fallback_body_has_body(fallback.clone())
     entry_body_input::mir_entry_body_input_new(fallback, fallback_has_body, core_body)
 }
 

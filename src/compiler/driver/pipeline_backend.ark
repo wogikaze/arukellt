@@ -1,6 +1,6 @@
 use std::host::clock::Clock
 use std::host::stdio
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use compiler::phases
 use driver::config_record
 use driver::errors_phase
@@ -26,7 +26,7 @@ fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     }
     if config_record::config_lint_local_only(config) {
         return local_lint::run_local_lint_stage(
-            clone(source),
+            source.clone(),
             config,
             pipeline_frontend::frontend_result_decls(frontend),
             pipeline_frontend::frontend_result_parse_warnings(frontend)
@@ -58,10 +58,10 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     }
     let all_decls = module_decls::combine_loaded_and_main_decls(backend_resolve::resolve_result_loaded_modules(resolved), decls)
     let mut checked = backend_typecheck::backend_typecheck(
-        clone(source),
+        source.clone(),
         config,
         all_decls,
-        clone(decls),
+        decls.clone(),
         backend_resolve::resolve_result_ctx(resolved),
         parse_warnings
     )
@@ -78,8 +78,8 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
         backend_resolve::resolve_result_loaded_modules(resolved),
         backend_resolve::resolve_result_module_stdlib_flags(resolved),
         decls,
-        eq(clone(config_record::config_emit_mode(config)), "typed-corehir") ||
-        !eq(clone(config_record::config_target(config)), "wasm32-gc")
+        eq(config_record::config_emit_mode(config).clone(), "typed-corehir") ||
+        !eq(config_record::config_target(config).clone(), "wasm32-gc")
     )
     backend_typecheck::typecheck_result_release_check_result(checked)
     backend_resolve::resolve_result_release_ctx(resolved)
@@ -92,7 +92,7 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
             checked_program::checked_program_core_program(program),
             config
         )
-        if len(clone(rendered)) == 0 {
+        if len(rendered.clone()) == 0 {
             return result_record::CompileResult_err(4, "TypedCoreHIR rendering failed")
         }
         stdio::println(rendered)
@@ -101,7 +101,7 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     }
     mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
     let t_typecheck = backend_typecheck::typecheck_result_t_typecheck(checked)
-    let mut mir_lowered = lower::lower_checked_program(program, config, clone(source))
+    let mut mir_lowered = lower::lower_checked_program(program, config, source.clone())
     let t_lower = Clock::monotonic_now()
     let mut mir_module = mir_opt::optimize_module(mir_lowered, config_record::config_opt_level(config), config_record::config_target(config))
     let t_mir_opt = Clock::monotonic_now()
@@ -114,11 +114,11 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     if lower_diag_count > 0 {
         let mut result = result_record::CompileResult_err(
             phases::PHASE_LOWER(),
-            clone(get_unchecked(lower_diags, 0))
+            get_unchecked(lower_diags, 0).clone()
         )
         let mut di = 1
         while di < lower_diag_count {
-            result_record::compile_result_push_error_message(result, clone(get_unchecked(lower_diags, di)))
+            result_record::compile_result_push_error_message(result, get_unchecked(lower_diags, di).clone())
             di = di + 1
         }
         result_record::compile_result_set_error_count(result, lower_diag_count)

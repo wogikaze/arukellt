@@ -1,10 +1,9 @@
 use std::text
 use std::json
-use std::prelude::{clone}
 use analysis::symbol_references
 use lsp::positions
 fn append_text_edit(edits: String, text: String, start: i32, end: i32, new_text: String) -> String {
-    let start_pos = positions::offset_to_position(clone(text), start)
+    let start_pos = positions::offset_to_position(text.clone(), start)
     let end_pos = positions::offset_to_position(text, end)
     let mut item = String_from("{\"range\":{\"start\":{\"line\":")
     item = item.concat(positions::lsp_position_line(start_pos).to_string())
@@ -38,13 +37,13 @@ fn append_uri_edits(changes: String, uri: String, edits: String) -> String {
 }
 
 pub fn collect_workspace_changes(state: LspState, req_uri: String, req_text: String, offset: i32, new_name: String) -> String {
-    let refs = symbol_references::collect_semantic_references(clone(req_text), offset)
+    let refs = symbol_references::collect_semantic_references(req_text.clone(), offset)
     let rn = len(refs)
     let mut edits = String_new()
     let mut ri = 0
     while ri < rn {
         let loc = get_unchecked(refs, ri)
-        edits = append_text_edit(edits, clone(req_text), symbol_references::reference_location_start(loc), symbol_references::reference_location_end(loc), clone(new_name))
+        edits = append_text_edit(edits, req_text.clone(), symbol_references::reference_location_start(loc), symbol_references::reference_location_end(loc), new_name.clone())
         ri = ri + 1
     }
     append_uri_edits(String_new(), req_uri, edits)

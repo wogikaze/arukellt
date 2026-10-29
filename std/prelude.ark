@@ -77,12 +77,29 @@ pub fn eq(a: String, b: String) -> bool {
 }
 
 // String operations
-// Free `clone` is the explicit-import signature shim for the
-// compiler-polymorphic `text.clone` CoreOp. The canonical surface is the
-// receiver method `s.clone()`, which the compiler prefers for concrete
-// receivers (#702).
-pub fn clone(s: String) -> String {
-    s.clone()
+//
+// `.clone()` is the canonical surface (ADR-091). The declaration stays private
+// and non-importable: the typechecker and MIR use its signature as the
+// polymorphic identity fallback for receivers without a `Clone` impl, while a
+// bare `clone(x)` call is retired and diagnosed as E0100.
+//
+// The body must stay `value`. Monomorphising this shim is what keeps the
+// bootstrap and stage-2/3 lowering of `.clone()` on structs, enums, and
+// `Option` identical while the committed pin predates polymorphic method
+// resolution.
+fn clone<T>(value: T) -> T {
+    value
+}
+
+// `Vec<T>` needs a receiver method because the bare fallback resolves the
+// `vec:String` receiver spelling through the shared callee cache and picks the
+// unrelated `String::clone`, which passes a Vec struct where a String ref is
+// required. Shallow by design: the vector header is shared, element storage is
+// not deep-copied (deep copy needs `T: Clone` and is deferred).
+impl<T> Vec<T> {
+    fn clone(self: Vec<T>) -> Vec<T> {
+        self
+    }
 }
 
 // `slice` / `substring` were retired under ADR-091; use `s.slice(start, end)`.

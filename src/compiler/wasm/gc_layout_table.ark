@@ -221,9 +221,9 @@ fn gc_layout_table_register_key(
     table.next_id = table.next_id + 1
     let entry = GcLayoutEntry {
         // `id` is returned below; the entry owns a copy.
-        id: clone(id),
+        id: id.clone(),
         // `key` is still read by link_entry below; the entry owns a copy.
-        key: clone(key),
+        key: key.clone(),
         wasm_ref_type: wasm_ref_type,
         struct_type_idx: struct_type_idx,
         field_layouts: Vec::new<FieldLayout>()

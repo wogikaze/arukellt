@@ -1,5 +1,4 @@
 use std::text
-use std::prelude::{clone}
 use lexer::tokens
 use parser::core_ast_text_fields
 use parser::core_ast_span
@@ -19,5 +18,5 @@ fn parse_named_or_generic_type(mut p: Parser, t: Token) -> AstNode {
         end_span = token_state::Token_end(seg)
     }
     let base_span = core_ast_span::Span_new(token_state::Token_start(t), end_span)
-    core_ast_factory::AstNode_leaf(kinds::NK_TYPE_NAMED(), clone(type_name), base_span)
+    core_ast_factory::AstNode_leaf(kinds::NK_TYPE_NAMED(), type_name.clone(), base_span)
 }

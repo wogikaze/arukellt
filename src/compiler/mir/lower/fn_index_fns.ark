@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::fn_index_mono
 use mir::lower::fn_index_source
 use mir::lower::stdlib_body_defer
@@ -23,12 +23,12 @@ fn mir_index_top_level_fn(
     let generic_return_ty = fn_index_source::mir_fn_index_source_typed_return_type(source, typed_index)
     let mono_instances = fn_index_source::mir_fn_index_source_mono_instances(source)
     let entry_main_decl_index = fn_index_source::mir_fn_index_source_entry_main_decl_index(source)
-    let skip_shadow_main = eq(clone(decl_name), "main") && decl_index != entry_main_decl_index
+    let skip_shadow_main = eq(decl_name.clone(), "main") && decl_index != entry_main_decl_index
     let skip_join_vec = if fn_info_index >= 0 {
         let param_count = fn_index_source::mir_fn_index_source_fn_param_count_at(source, fn_info_index)
         if param_count > 0 {
             let param0 = fn_index_source::mir_fn_index_source_fn_param_at(source, fn_info_index, 0)
-            stdlib_body_defer::mir_is_vec_join_overload(clone(decl_name), param0)
+            stdlib_body_defer::mir_is_vec_join_overload(decl_name.clone(), param0)
         } else {
             false
         }
@@ -36,16 +36,16 @@ fn mir_index_top_level_fn(
         false
     }
     if !skip_shadow_main && !skip_join_vec {
-        push(fn_names, clone(decl_name))
+        push(fn_names, decl_name.clone())
         push(fn_return_vts, rvt)
-        push(fn_return_type_names, clone(rtn))
+        push(fn_return_type_names, rtn.clone())
         // Mono variants belong to the generic decl only. A concrete decl
         // sharing the bare name with an entry-module generic (imported
         // std::collections::string::to_lower vs the program's to_lower<T>)
         // would otherwise publish to_lower__String with its own signature
         // (#914).
         if fn_index_source::mir_fn_index_source_decl_is_generic(source, typed_index) {
-            fn_index_mono::mir_index_mono_variants(fn_names, fn_return_vts, fn_return_type_names, midx, clone(decl_name), rvt, clone(rtn), mono_instances, generic_return_ty)
+            fn_index_mono::mir_index_mono_variants(fn_names, fn_return_vts, fn_return_type_names, midx, decl_name.clone(), rvt, rtn.clone(), mono_instances, generic_return_ty)
             // Instances of a module member record under the qualified fn_name
             // (Test::assert_eq_debug), which the decl-keyed index above never
             // sees. With two or more distinct instantiations the leaf emit is a
@@ -61,13 +61,13 @@ fn mir_index_top_level_fn(
             // (#908).
             if fn_info_index >= 0 {
                 let mono_qualified_name = fn_index_source::mir_fn_index_source_fn_qualified_name_at(source, fn_info_index)
-                let bare_mono_count = mono::mono_index_count(midx, clone(decl_name))
+                let bare_mono_count = mono::mono_index_count(midx, decl_name.clone())
                 let mut qualified_mono_count = 0
-                if len(mono_qualified_name) > 0 && !eq(clone(mono_qualified_name), clone(decl_name)) {
-                    qualified_mono_count = mono::mono_index_count(midx, clone(mono_qualified_name))
+                if len(mono_qualified_name) > 0 && !eq(mono_qualified_name.clone(), decl_name.clone()) {
+                    qualified_mono_count = mono::mono_index_count(midx, mono_qualified_name.clone())
                 }
                 if qualified_mono_count > 1 || (bare_mono_count > 0 && qualified_mono_count > 0) {
-                    fn_index_mono::mir_index_mono_variants(fn_names, fn_return_vts, fn_return_type_names, midx, mono_qualified_name, rvt, clone(rtn), mono_instances, generic_return_ty)
+                    fn_index_mono::mir_index_mono_variants(fn_names, fn_return_vts, fn_return_type_names, midx, mono_qualified_name, rvt, rtn.clone(), mono_instances, generic_return_ty)
                 }
             }
         }

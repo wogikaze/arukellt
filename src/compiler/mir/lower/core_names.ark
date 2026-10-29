@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use corehir::function_id
 use corehir::signature_entry
 use corehir::signature_registry
@@ -37,12 +37,12 @@ fn mir_fnref_type_name_for_function(ctx: LowerCtx, fn_name: String) -> String {
     let mut i = 0
     while i < n {
         let f = module_functions::MirModule_function_at(m, i)
-        if eq(function_identity::MirFunction_name(f), clone(fn_name)) {
+        if eq(function_identity::MirFunction_name(f), fn_name.clone()) {
             return closure_registry::closure_funcref_type_name(f, 0)
         }
         i = i + 1
     }
-    let parameter_count = mir_function_parameter_count(ctx, clone(fn_name))
+    let parameter_count = mir_function_parameter_count(ctx, fn_name.clone())
     // Binary fold callbacks need fnref2 so ref.func type matches call param (#807).
     if parameter_count >= 2 {
         return String_from("fnref2")
@@ -54,7 +54,7 @@ fn mir_function_parameter_count(ctx: LowerCtx, fn_name: String) -> i32 {
     let m = ctx_current_storage::ctx_current_module_value(ctx)
     if module_spine::MirModule_signature_spine_populated(m) {
         let registry = module_spine::MirModule_signature_registry(m)
-        let fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(fn_name))
+        let fid = signature_registry::signature_registry_lookup_by_mangled(registry, fn_name.clone())
         if function_id::function_id_is_valid(fid) {
             let entry = signature_registry::signature_registry_lookup_by_id(registry, fid)
             return signature_entry::signature_entry_param_count(entry)
@@ -64,7 +64,7 @@ fn mir_function_parameter_count(ctx: LowerCtx, fn_name: String) -> i32 {
     let mut i = 0
     while i < n {
         let f = module_functions::MirModule_function_at(m, i)
-        if eq(function_identity::MirFunction_name(f), clone(fn_name)) {
+        if eq(function_identity::MirFunction_name(f), fn_name.clone()) {
             return function_param_view::MirFunction_param_count(f)
         }
         i = i + 1
@@ -78,10 +78,10 @@ fn mir_function_parameter_count(ctx: LowerCtx, fn_name: String) -> i32 {
 // locals (the frontend has no type for a const ident), so binary operands
 // extended the wrong side and validation failed (#954, #970).
 fn lower_core_const_reference(mut ctx: LowerCtx, const_name: String) -> i32 {
-    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, ctx_fn_return_vt(ctx, clone(const_name)))
-    let type_name = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(const_name))
+    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, ctx_fn_return_vt(ctx, const_name.clone()))
+    let type_name = ctx_fn_return_type::ctx_fn_return_type_name(ctx, const_name.clone())
     if len(type_name) > 0 {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(type_name))
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name.clone())
     }
     ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(const_name, 0, dest))
     dest
@@ -92,10 +92,10 @@ fn lower_core_const_reference(mut ctx: LowerCtx, const_name: String) -> i32 {
 // the bare lookup. The leaf segment is what the const decl registered, and the
 // qualified index resolves the module spelling to the decl's signature.
 fn lower_core_qualified_const_reference(mut ctx: LowerCtx, path_name: String, leaf_name: String) -> i32 {
-    if !ctx_fn_index::ctx_is_const_name(ctx, clone(leaf_name)) {
+    if !ctx_fn_index::ctx_is_const_name(ctx, leaf_name.clone()) {
         return 0 - 2
     }
-    if ctx_fn_index::ctx_qualified_fn_index_find(ctx, clone(path_name)) < 0 {
+    if ctx_fn_index::ctx_qualified_fn_index_find(ctx, path_name.clone()) < 0 {
         return 0 - 2
     }
     lower_core_const_reference(ctx, path_name)
@@ -119,30 +119,30 @@ fn const_path_leaf(name: String) -> String {
 fn lower_core_name_value(mut ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_atoms::mir_core_expr_is_ident(expr) {
         let raw_name = core_expr_shape_accessors::mir_core_expr_text(expr)
-        let idx = ctx_api_local_alloc::ctx_lookup_local(ctx, clone(raw_name))
+        let idx = ctx_api_local_alloc::ctx_lookup_local(ctx, raw_name.clone())
         if idx >= 0 {
             ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(idx, idx))
             return idx
         }
-        let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
+        let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, raw_name.clone())
         let variant_name = if len(canon) > 0 {
             canon
         } else {
-            clone(raw_name)
+            raw_name.clone()
         }
-        let ident_tag = ctx_api_variants::ctx_variant_tag(ctx, clone(variant_name))
+        let ident_tag = ctx_api_variants::ctx_variant_tag(ctx, variant_name.clone())
         if ident_tag >= 0 {
             return variants::lower_variant_value(ctx, variant_name, ident_tag)
         }
         let fn_name = core_expr_shape_accessors::mir_core_expr_text(expr)
-        let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, clone(fn_name))
+        let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, fn_name.clone())
         if fn_idx >= 0 {
-            if ctx_fn_index::ctx_is_const_name(ctx, clone(fn_name)) {
+            if ctx_fn_index::ctx_is_const_name(ctx, fn_name.clone()) {
                 return lower_core_const_reference(ctx, fn_name)
             }
             let expr_vt = core_expr_shape_accessors::mir_core_expr_val_type(expr)
             if expr_vt != value_types::VT_FUNCREF() &&
-            mir_function_parameter_count(ctx, clone(fn_name)) <= 0 {
+            mir_function_parameter_count(ctx, fn_name.clone()) <= 0 {
                 let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, expr_vt)
                 let expr_type_name = core_expr_shape_accessors::mir_core_expr_type_name(expr)
                 if len(expr_type_name) > 0 {
@@ -151,37 +151,37 @@ fn lower_core_name_value(mut ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
                 ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(fn_name, 0, dest))
                 return dest
             }
-            let type_name = mir_fnref_type_name_for_function(ctx, clone(fn_name))
-            let tramp = closure_env::closure_ensure_fn_thunk(ctx, clone(fn_name))
-            let pair = closure_env::closure_emit_pair(ctx, 0 - 1, clone(tramp))
-            ctx_api_local_types::ctx_set_local_type(ctx, pair, clone(type_name))
+            let type_name = mir_fnref_type_name_for_function(ctx, fn_name.clone())
+            let tramp = closure_env::closure_ensure_fn_thunk(ctx, fn_name.clone())
+            let pair = closure_env::closure_emit_pair(ctx, 0 - 1, tramp.clone())
+            ctx_api_local_types::ctx_set_local_type(ctx, pair, type_name.clone())
             return pair
         }
         return 0 - 1
     }
     if core_expr_shape_atoms::mir_core_expr_is_path(expr) {
         let raw_name = core_expr_shape_accessors::mir_core_expr_text(expr)
-        let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
+        let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, raw_name.clone())
         let variant_name = if len(canon) > 0 {
             canon
         } else {
             raw_name
         }
-        let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(variant_name))
+        let tag = ctx_api_variants::ctx_variant_tag(ctx, variant_name.clone())
         if tag >= 0 {
             return variants::lower_variant_value(ctx, variant_name, tag)
         }
         let fn_name = core_expr_shape_accessors::mir_core_expr_text(expr)
-        let const_ref = lower_core_qualified_const_reference(ctx, clone(fn_name), const_path_leaf(clone(fn_name)))
+        let const_ref = lower_core_qualified_const_reference(ctx, fn_name.clone(), const_path_leaf(fn_name.clone()))
         if const_ref != 0 - 2 {
             return const_ref
         }
-        let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, clone(fn_name))
+        let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, fn_name.clone())
         if fn_idx >= 0 {
-            let type_name = mir_fnref_type_name_for_function(ctx, clone(fn_name))
-            let tramp = closure_env::closure_ensure_fn_thunk(ctx, clone(fn_name))
-            let pair = closure_env::closure_emit_pair(ctx, 0 - 1, clone(tramp))
-            ctx_api_local_types::ctx_set_local_type(ctx, pair, clone(type_name))
+            let type_name = mir_fnref_type_name_for_function(ctx, fn_name.clone())
+            let tramp = closure_env::closure_ensure_fn_thunk(ctx, fn_name.clone())
+            let pair = closure_env::closure_emit_pair(ctx, 0 - 1, tramp.clone())
+            ctx_api_local_types::ctx_set_local_type(ctx, pair, type_name.clone())
             return pair
         }
         return 0 - 1

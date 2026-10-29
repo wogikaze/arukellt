@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::kinds
 use corehir::mir_value_type
@@ -49,7 +49,7 @@ fn mir_function_sync_all_value_types(mut f: MirFunction, mut table: TypeTable) -
 
 fn mir_sync_type_name_alias(type_name: String) -> String {
     let n = len(type_name)
-    if n > 8 && clone(type_name).starts_with("Option<") && type_name.byte_at(n - 1) == 62 {
+    if n > 8 && type_name.clone().starts_with("Option<") && type_name.byte_at(n - 1) == 62 {
         return "option:".concat(type_name.slice(7, n - 1))
     }
     type_name
@@ -57,7 +57,7 @@ fn mir_sync_type_name_alias(type_name: String) -> String {
 
 fn mir_local_name_is_string(loc: MirLocal) -> bool {
     let type_name = local_access::MirLocal_type_name(loc)
-    eq(clone(type_name), "String") || eq(type_name, "string")
+    eq(type_name.clone(), "String") || eq(type_name, "string")
 }
 
 fn mir_canonical_string_type_id(table: TypeTable) -> TypeId {
@@ -87,7 +87,7 @@ fn mir_canonicalize_string_mvt(
 fn mir_local_sync_value_type(loc: MirLocal, mut table: TypeTable) -> MirLocal {
     let vt = local_access::MirLocal_val_type(loc)
     let tn = local_access::MirLocal_type_name(loc)
-    let lookup_name = mir_sync_type_name_alias(clone(tn))
+    let lookup_name = mir_sync_type_name_alias(tn.clone())
     let inferred = type_info_to_mir_value::vt_to_mir_value(table, vt, lookup_name)
     let mvt = mir_canonicalize_string_mvt(loc, table, inferred)
     let mut synced = local_mutation::MirLocal_copy_with_value_type(loc, mvt)

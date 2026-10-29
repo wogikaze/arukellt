@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 pub struct AnalysisDiagnostic {
     phase: i32,
     message: String,
@@ -15,7 +14,7 @@ fn analysis_diagnostic_phase(diag: AnalysisDiagnostic) -> i32 {
 }
 
 fn analysis_diagnostic_message(diag: AnalysisDiagnostic) -> String {
-    clone(diag.message)
+    diag.message.clone()
 }
 
 fn analysis_diagnostic_start(diag: AnalysisDiagnostic) -> i32 {

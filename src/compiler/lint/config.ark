@@ -9,7 +9,6 @@
 
 use std::host::fs::Fs
 use std::toml
-use std::prelude::{clone}
 use std::text
 use collections::vec_extend
 struct LintConfig {
@@ -32,18 +31,18 @@ fn lint_config_deny(config: LintConfig) -> Vec<String> { config.deny }
 // Returns an empty LintConfig if ark.toml doesn't exist or has no [lint] section.
 pub fn load_lint_config(project_dir: String) -> LintConfig {
     let config = LintConfig_new()
-    let manifest_path = clone(project_dir).concat(String_from("/ark.toml"))
-    let read_result = Fs::read_to_string(clone(manifest_path))
+    let manifest_path = project_dir.clone().concat(String_from("/ark.toml"))
+    let read_result = Fs::read_to_string(manifest_path.clone())
     match read_result {
         Result::Ok(content) => {
             let lint_section = toml::TomlText::find_section(content, String_from("lint"))
-            if len(clone(lint_section)) > 0 {
-                let allow_raw = toml::TomlText::find_raw_value(clone(lint_section), String_from("allow"))
-                if len(clone(allow_raw)) > 0 {
+            if len(lint_section.clone()) > 0 {
+                let allow_raw = toml::TomlText::find_raw_value(lint_section.clone(), String_from("allow"))
+                if len(allow_raw.clone()) > 0 {
                     config.allow = toml::TomlText::parse_string_array(allow_raw)
                 }
-                let deny_raw = toml::TomlText::find_raw_value(clone(lint_section), String_from("deny"))
-                if len(clone(deny_raw)) > 0 {
+                let deny_raw = toml::TomlText::find_raw_value(lint_section.clone(), String_from("deny"))
+                if len(deny_raw.clone()) > 0 {
                     config.deny = toml::TomlText::parse_string_array(deny_raw)
                 }
             }

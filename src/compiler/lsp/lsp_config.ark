@@ -1,33 +1,33 @@
 use std::json
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use lsp::state_record
 fn parse_bool_field(body: String, key: String, default_value: bool) -> bool {
-    let raw = json::JsonText::get_str(clone(body), clone(key))
+    let raw = json::JsonText::get_str(body.clone(), key.clone())
     if len(raw) == 0 {
-        if clone(body).contains(String_from("\"").concat(clone(key)).concat(String_from("\":false"))) {
+        if body.clone().contains(String_from("\"").concat(key.clone()).concat(String_from("\":false"))) {
             return false
         }
-        if clone(body).contains(String_from("\"").concat(clone(key)).concat(String_from("\":true"))) {
+        if body.clone().contains(String_from("\"").concat(key.clone()).concat(String_from("\":true"))) {
             return true
         }
         return default_value
     }
-    if eq(clone(raw), String_from("false")) {
+    if eq(raw.clone(), String_from("false")) {
         return false
     }
     true
 }
 
 pub fn apply_initialize_config(mut state: LspState, body: String) {
-    let level = json::JsonText::get_str(clone(body), String_from("hoverDetailLevel"))
+    let level = json::JsonText::get_str(body.clone(), String_from("hoverDetailLevel"))
     if len(level) > 0 {
         state_record::lsp_state_set_hover_detail_level(state, level)
     }
-    state_record::lsp_state_set_enable_code_lens(state, parse_bool_field(clone(body), String_from("enableCodeLens"), true))
-    state_record::lsp_state_set_check_on_save(state, parse_bool_field(clone(body), String_from("checkOnSave"), true))
-    let report = json::JsonText::get_str(clone(body), String_from("diagnosticsReportLevel"))
-    if eq(clone(report), String_from("errors")) {
+    state_record::lsp_state_set_enable_code_lens(state, parse_bool_field(body.clone(), String_from("enableCodeLens"), true))
+    state_record::lsp_state_set_check_on_save(state, parse_bool_field(body.clone(), String_from("checkOnSave"), true))
+    let report = json::JsonText::get_str(body.clone(), String_from("diagnosticsReportLevel"))
+    if eq(report.clone(), String_from("errors")) {
         state_record::lsp_state_set_diagnostics_errors_only(state, true)
     }
 }

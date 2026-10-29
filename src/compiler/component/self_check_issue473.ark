@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use component
 use component::wit_parse_resource
 fn issue473_resource_parse_self_check() -> bool {
@@ -12,17 +12,17 @@ fn issue473_resource_parse_self_check() -> bool {
         return false
     }
     let doc = component::parse_wit_import_file("tests/fixtures/component/import_resource_handle_type.wit")
-    if !eq(clone(doc.package), "test:host") {
+    if !eq(doc.package.clone(), "test:host") {
         return false
     }
-    if !eq(clone(doc.interface), "handles") {
+    if !eq(doc.interface.clone(), "handles") {
         return false
     }
     if len(doc.funcs) != 2 {
         return false
     }
     let take = get_unchecked(doc.funcs, 0)
-    if !eq(clone(take.wit_name), "take") {
+    if !eq(take.wit_name.clone(), "take") {
         return false
     }
     if len(take.param_wit_types) != 1 {
@@ -32,7 +32,7 @@ fn issue473_resource_parse_self_check() -> bool {
         return false
     }
     let peek = get_unchecked(doc.funcs, 1)
-    if !eq(clone(peek.wit_name), "peek") {
+    if !eq(peek.wit_name.clone(), "peek") {
         return false
     }
     if len(peek.param_wit_types) != 1 {

@@ -1,5 +1,4 @@
 use std::host::stdio
-use std::prelude::{clone}
 struct Pair {
     a: i32,
     b: i32,
@@ -11,9 +10,9 @@ fn take_pair(p: Pair) -> i32 {
 
 fn main() {
     let mut state = Pair { a: 3, b: 4 }
-    let n = take_pair(clone(state))
+    let n = take_pair(state.clone())
     state = Pair { a: 1, b: 2 }
-    let m = take_pair(clone(state))
+    let m = take_pair(state.clone())
     stdio::println(n.to_string())
     stdio::println(m.to_string())
 }

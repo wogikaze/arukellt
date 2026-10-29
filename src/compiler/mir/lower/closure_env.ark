@@ -9,7 +9,7 @@
 // direct-call path keeps working. Named functions coerce through a
 // __fnthunk_<name> shim that ignores the env slot.
 
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_function_frame
@@ -100,7 +100,7 @@ fn closure_register_env_type(mut ctx: LowerCtx, env_name: String, cap_types: Vec
     while i < len(cap_types) {
         // Capture types arrive as local spellings (struct:Name:size); the
         // layout registry and named GC slots key on the bare name.
-        let cap_type = ctx_struct_layout::strip_struct_type_prefix(clone(get_unchecked(cap_types, i)))
+        let cap_type = ctx_struct_layout::strip_struct_type_prefix(get_unchecked(cap_types, i).clone())
         sig = sig.concat(ctx_gc_struct::gc_struct_field_sig_for_type(ctx, cap_type, i))
         i = i + 1
     }
@@ -123,19 +123,19 @@ fn closure_emit_env_alloc(mut ctx: LowerCtx, env_name: String, cap_names: Vec<St
     ctx_api_local_types::ctx_set_local_type(
         ctx,
         env_local,
-        "struct:".concat(clone(env_name).concat(":".concat((total).to_string())))
+        "struct:".concat(env_name.clone().concat(":".concat((total).to_string())))
     )
-    ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new_named(env_local, clone(env_name), total))
+    ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new_named(env_local, env_name.clone(), total))
     let mut off = 0
     let mut i = 0
     while i < cap_n {
         let cvt = get_unchecked(cap_vts, i)
-        let cap_li = ctx_api_local_alloc::ctx_lookup_local(ctx, clone(get_unchecked(cap_names, i)))
+        let cap_li = ctx_api_local_alloc::ctx_lookup_local(ctx, get_unchecked(cap_names, i).clone())
         if cap_li >= 0 {
             ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named_idx(
                     env_local,
                     cap_li,
-                    clone(env_name),
+                    env_name.clone(),
                     off,
                     i,
                     total,
@@ -160,7 +160,7 @@ fn closure_emit_pair(mut ctx: LowerCtx, env_local: i32, tramp_name: String) -> i
         ))
     let fref = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_FUNCREF())
     ctx_api_local_types::ctx_set_local_type(ctx, fref, closure_rawfnref_type_name())
-    ctx_api_emit::ctx_emit(ctx, inst_ref_func::MirInst_ref_func(clone(tramp_name), fref))
+    ctx_api_emit::ctx_emit(ctx, inst_ref_func::MirInst_ref_func(tramp_name.clone(), fref))
     ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named_idx(
             pair,
             fref,
@@ -220,7 +220,7 @@ fn closure_trampoline_frame_begin(mut ctx: LowerCtx, tramp_name: String) -> Lowe
     let saved = ctx_api_local_frame::LowerCtxLocalFrame_capture(ctx)
     let _entry = ctx_api_local_frame::ctx_begin_function_frame(
         ctx,
-        function_factory::MirFunction_new(clone(tramp_name), source_location_record::SourceLocation_unmapped())
+        function_factory::MirFunction_new(tramp_name.clone(), source_location_record::SourceLocation_unmapped())
     )
     let env_vt = closure_env_layout::closure_env_ref_vt(ctx)
     let env_li = ctx_api_local_alloc::ctx_alloc_local(ctx, "__env", env_vt)
@@ -233,7 +233,7 @@ fn closure_trampoline_frame_finish(mut ctx: LowerCtx, saved: LowerCtxLocalFrame,
     let mut f = ctx_api_local_frame::ctx_current_function(ctx)
     function_return_mutation::MirFunction_set_return_type(f, ret_vt)
     if len(ret_name) > 0 {
-        function_return_mutation::MirFunction_set_return_type_name(f, clone(ret_name))
+        function_return_mutation::MirFunction_set_return_type_name(f, ret_name.clone())
     }
     // Canonical edge-frame order: restore the parent frame first, then push
     // the module function. ctx_push_module_function binds the open frame's
@@ -255,9 +255,9 @@ fn closure_trampoline_push_params(mut ctx: LowerCtx, mf: MirFunction, count: i32
         let pvt = local_access::MirLocal_val_type(p)
         let pt = local_access::MirLocal_type_name(p)
         let pname = local_access::MirLocal_name(p)
-        let li = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(pname), pvt)
+        let li = ctx_api_local_alloc::ctx_alloc_local(ctx, pname.clone(), pvt)
         if len(pt) > 0 {
-            ctx_api_local_types::ctx_set_local_type(ctx, li, clone(pt))
+            ctx_api_local_types::ctx_set_local_type(ctx, li, pt.clone())
         }
         ctx_api_function_frame::ctx_push_func_param(ctx, local_factory::MirLocal_new(pname, pvt, pt))
         push(param_lis, li)
@@ -274,7 +274,7 @@ fn closure_trampoline_return_call(mut ctx: LowerCtx, callee: String, arg_count: 
     }
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, ret_vt)
     if len(ret_name) > 0 {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(ret_name))
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, ret_name.clone())
     }
     ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(callee, arg_count, dest))
     ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_value(dest))
@@ -287,7 +287,7 @@ fn closure_trampoline_return_call(mut ctx: LowerCtx, callee: String, arg_count: 
 // and flush the mutable capture slots (#874).
 fn closure_synth_env_trampoline(mut ctx: LowerCtx, synth: String, mf: MirFunction, env_name: String, cap_vts: Vec<i32>, closure_param_count: i32, has_env_cell: i32) -> String {
     let tramp = closure_tramp_name(synth)
-    let saved = closure_trampoline_frame_begin(ctx, clone(tramp))
+    let saved = closure_trampoline_frame_begin(ctx, tramp.clone())
     let param_lis = closure_trampoline_push_params(ctx, mf, closure_param_count)
     let cap_n = len(cap_vts)
     let env_li = ctx_api_local_alloc::ctx_lookup_local(ctx, "__env")
@@ -307,7 +307,7 @@ fn closure_synth_env_trampoline(mut ctx: LowerCtx, synth: String, mf: MirFunctio
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(env_li, env_li))
         ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(
                 env_li,
-                clone(env_name),
+                env_name.clone(),
                 off,
                 ci,
                 total,
@@ -322,8 +322,8 @@ fn closure_synth_env_trampoline(mut ctx: LowerCtx, synth: String, mf: MirFunctio
     if has_env_cell != 0 {
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(env_li, env_li))
     }
-    closure_trampoline_return_call(ctx, clone(synth), closure_param_count + cap_n + has_env_cell, ret_vt, clone(ret_name))
-    closure_trampoline_frame_finish(ctx, saved, clone(tramp), ret_vt, ret_name)
+    closure_trampoline_return_call(ctx, synth.clone(), closure_param_count + cap_n + has_env_cell, ret_vt, ret_name.clone())
+    closure_trampoline_frame_finish(ctx, saved, tramp.clone(), ret_vt, ret_name)
     tramp
 }
 
@@ -331,7 +331,7 @@ fn closure_synth_env_trampoline(mut ctx: LowerCtx, synth: String, mf: MirFunctio
 // function coerce to the same pair ABI as closure literals.
 fn closure_synth_fn_thunk(mut ctx: LowerCtx, fn_name: String, target: MirFunction) -> String {
     let thunk = closure_thunk_name(fn_name)
-    let saved = closure_trampoline_frame_begin(ctx, clone(thunk))
+    let saved = closure_trampoline_frame_begin(ctx, thunk.clone())
     let param_count = function_param_view::MirFunction_param_count(target)
     let param_lis = closure_trampoline_push_params(ctx, target, param_count)
     let mut pi = 0
@@ -342,8 +342,8 @@ fn closure_synth_fn_thunk(mut ctx: LowerCtx, fn_name: String, target: MirFunctio
     }
     let ret_vt = function_return_view::MirFunction_return_type(target)
     let ret_name = function_return_view::MirFunction_return_type_name(target)
-    closure_trampoline_return_call(ctx, clone(fn_name), param_count, ret_vt, clone(ret_name))
-    closure_trampoline_frame_finish(ctx, saved, clone(thunk), ret_vt, ret_name)
+    closure_trampoline_return_call(ctx, fn_name.clone(), param_count, ret_vt, ret_name.clone())
+    closure_trampoline_frame_finish(ctx, saved, thunk.clone(), ret_vt, ret_name)
     thunk
 }
 
@@ -353,7 +353,7 @@ fn closure_find_module_function(ctx: LowerCtx, fn_name: String) -> i32 {
     let mut i = 0
     while i < n {
         let f = module_functions::MirModule_function_at(m, i)
-        if eq(function_identity::MirFunction_name(f), clone(fn_name)) {
+        if eq(function_identity::MirFunction_name(f), fn_name.clone()) {
             return i
         }
         i = i + 1
@@ -366,29 +366,29 @@ fn closure_ensure_fn_thunk(mut ctx: LowerCtx, fn_name: String) -> String {
     let thunk = closure_thunk_name(fn_name)
     let mut i = 0
     while i < len(ctx.closure_thunk_names) {
-        if eq(get_unchecked(ctx.closure_thunk_names, i), clone(fn_name)) {
+        if eq(get_unchecked(ctx.closure_thunk_names, i), fn_name.clone()) {
             return thunk
         }
         i = i + 1
     }
-    let fi = closure_find_module_function(ctx, clone(fn_name))
+    let fi = closure_find_module_function(ctx, fn_name.clone())
     if fi < 0 {
         // Forward reference: the target body is not pushed yet. The
         // callee edge must still be recorded from the coercing frame or
         // reachability prunes a function the emitted ref.func names.
         // The shim itself is synthesized by
         // closure_flush_pending_fn_thunks once every body is pushed.
-        ctx_call_edges::ctx_edge_record_name(ctx, clone(fn_name))
-        push(ctx.closure_thunk_names, clone(fn_name))
+        ctx_call_edges::ctx_edge_record_name(ctx, fn_name.clone())
+        push(ctx.closure_thunk_names, fn_name.clone())
         push(ctx.pending_fn_thunks, fn_name)
         return thunk
     }
     let m = ctx_current_storage::ctx_current_module_value(ctx)
     let target = module_functions::MirModule_function_at(m, fi)
-    let out = closure_synth_fn_thunk(ctx, clone(fn_name), target)
+    let out = closure_synth_fn_thunk(ctx, fn_name.clone(), target)
     // The thunk's call edge is dropped by edge-frame bookkeeping; keep the
     // named function reachable from the coercing frame explicitly.
-    ctx_call_edges::ctx_edge_record_name(ctx, clone(fn_name))
+    ctx_call_edges::ctx_edge_record_name(ctx, fn_name.clone())
     push(ctx.closure_thunk_names, fn_name)
     out
 }
@@ -400,12 +400,12 @@ fn closure_ensure_fn_thunk(mut ctx: LowerCtx, fn_name: String) -> String {
 fn closure_flush_pending_fn_thunks(mut ctx: LowerCtx) {
     let mut i = 0
     while i < len(ctx.pending_fn_thunks) {
-        let fn_name = clone(get_unchecked(ctx.pending_fn_thunks, i))
-        let fi = closure_find_module_function(ctx, clone(fn_name))
+        let fn_name = get_unchecked(ctx.pending_fn_thunks, i).clone()
+        let fi = closure_find_module_function(ctx, fn_name.clone())
         if fi >= 0 {
             let m = ctx_current_storage::ctx_current_module_value(ctx)
             let target = module_functions::MirModule_function_at(m, fi)
-            closure_synth_fn_thunk(ctx, clone(fn_name), target)
+            closure_synth_fn_thunk(ctx, fn_name.clone(), target)
         }
         i = i + 1
     }
@@ -427,10 +427,10 @@ fn closure_pair_seg_norm(name: String, vt: i32) -> String {
     }
     // Normalize container spellings toward the fnsig segment form so a
     // fnsig:vec:i32;i32 callee matches a Vec<i32>-typed producer param.
-    if clone(name).starts_with("Vec<") && clone(name).ends_with(">") {
+    if name.clone().starts_with("Vec<") && name.clone().ends_with(">") {
         return "vec:".concat(name.slice(4, len(name) - 1))
     }
-    if clone(name).starts_with("Option<") && clone(name).ends_with(">") {
+    if name.clone().starts_with("Option<") && name.clone().ends_with(">") {
         return "option:".concat(name.slice(7, len(name) - 1))
     }
     name
@@ -474,7 +474,7 @@ fn closure_pair_call_hint(ctx: LowerCtx, type_name: String, arg_lis: Vec<i32>, d
             // emitting "~<vt>" there pinned a wrong ret to every thunk key
             // and Option-returning multi-param calls fell to the i32 binary
             // fallback (#881 / #874).
-            nk = nk.concat(closure_pair_seg_norm(clone(dname), dvt))
+            nk = nk.concat(closure_pair_seg_norm(dname.clone(), dvt))
             vk = vk.concat((dvt).to_string())
         }
     }
@@ -482,16 +482,16 @@ fn closure_pair_call_hint(ctx: LowerCtx, type_name: String, arg_lis: Vec<i32>, d
 }
 
 fn closure_type_name_is_fn_value(type_name: String) -> bool {
-    if eq(clone(type_name), "fnref") ||
-    eq(clone(type_name), "fnref2") ||
-    eq(clone(type_name), "fnrefss") ||
-    eq(clone(type_name), "fnrefsb") ||
-    eq(clone(type_name), "fn") {
+    if eq(type_name.clone(), "fnref") ||
+    eq(type_name.clone(), "fnref2") ||
+    eq(type_name.clone(), "fnrefss") ||
+    eq(type_name.clone(), "fnrefsb") ||
+    eq(type_name.clone(), "fn") {
         return true
     }
-    clone(type_name).starts_with("fnref") ||
-    clone(type_name).starts_with("fnsig:") ||
-    clone(type_name).starts_with("fn(")
+    type_name.clone().starts_with("fnref") ||
+    type_name.clone().starts_with("fnsig:") ||
+    type_name.clone().starts_with("fn(")
 }
 
 // Signature-only fn usage: a module can declare fn-typed params, returns,

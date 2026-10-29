@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use typechecker::kinds
 use typechecker::contract_type_constructors
 use typechecker::contract_type_access
@@ -9,7 +9,7 @@ fn instantiate_type(ty: TypeInfo, names: Vec<String>, types: Vec<TypeInfo>) -> T
         let mut i = 0
         while i < count {
             let n = get_unchecked(names, i)
-            if eq(clone(n), contract_type_access::TypeInfo_name(ty)) {
+            if eq(n.clone(), contract_type_access::TypeInfo_name(ty)) {
                 return get_unchecked(types, i)
             }
             i = i + 1

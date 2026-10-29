@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
@@ -8,7 +7,7 @@ use parser::multiclause_where_match
 use parser::multiclause_where_param
 fn desugar_multiclause_with_where(mut result: AstNode, first: AstNode, clauses: Vec<AstNode>, where_bindings: Vec<AstNode>, fn_span: Span) -> AstNode {
     let param_name = multiclause_where_param::where_multiclause_param_name(first)
-    let mut param = AstNode_leaf(kinds::NK_IDENT(), clone(param_name), fn_span)
+    let mut param = AstNode_leaf(kinds::NK_IDENT(), param_name.clone(), fn_span)
     let first_param = core_ast_children::AstNode_child_at(first, 0)
     let ann_count = core_ast_type_ann::AstNode_type_ann_count(first_param)
     let mut i = 0

@@ -1,15 +1,15 @@
 // Fixture: use_func_destructure_multi.ark
-// Issue #717: `use std::collections::string::{clone, eq}` imports both
-// functions directly into scope. Bare calls `clone(...)` and `eq(...)`
-// resolve to `string::clone(...)` / `string::eq(...)` via the use-alias
-// mechanism.
+// Issue #717: `use std::text::{concat, is_empty}` imports both functions
+// directly into scope. Bare calls `concat(...)` and `is_empty(...)` resolve to
+// `text::concat(...)` / `text::is_empty(...)` via the use-alias mechanism.
 //
 // Expected output: true
-use std::collections::string::{clone, eq}
+use std::text::{concat, is_empty}
+use std::prelude::{eq}
 
 fn main() {
     let s: String = "a,b,c"
-    let copy = clone(s)
-    let begins = eq(copy, "a,b,c")
-    __intrinsic_println(begins.to_string())
+    let joined = concat(s, "!")
+    let empty = is_empty("")
+    __intrinsic_println((eq(joined, "a,b,c!") && !empty).to_string())
 }

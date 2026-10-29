@@ -1,0 +1,7 @@
+// E0100 on an explicit selective import of the retired free `clone` (ADR-091).
+use std::prelude::{clone}
+
+fn main() {
+    let s = String_from("x")
+    let _copy = clone(s)
+}

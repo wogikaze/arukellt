@@ -58,12 +58,12 @@ fn type_ann_shape_param_type_name(ty: AstNode) -> String {
         let b = type_ann_node::type_ann_child_at(ty, 1)
         let a_name = type_ann_node::type_ann_name(a)
         let b_name = type_ann_node::type_ann_name(b)
-        let a_key = if type_ann_node::type_ann_narrow_int_name(clone(a_name)) {
+        let a_key = if type_ann_node::type_ann_narrow_int_name(a_name.clone()) {
             String_from("i32")
         } else {
             a_name
         }
-        let b_key = if type_ann_node::type_ann_narrow_int_name(clone(b_name)) {
+        let b_key = if type_ann_node::type_ann_narrow_int_name(b_name.clone()) {
             String_from("i32")
         } else {
             b_name

@@ -1,14 +1,13 @@
-use std::prelude::{clone}
 use resolver::scope_lookup
 use resolver::ast_access
 use resolver::ref_sites
 use resolver::scope_error
 fn resolve_ident(mut ctx: ResolveCtx, node: AstNode) {
     let name = ast_access::node_text(node)
-    let idx = scope_lookup::lookup(ctx, clone(name))
+    let idx = scope_lookup::lookup(ctx, name.clone())
     ref_sites::record_use(ctx, idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
     if idx < 0 {
-        if !resolver_ident_is_builtin(clone(name)) {
+        if !resolver_ident_is_builtin(name.clone()) {
             scope_error::resolve_unknown_name(ctx, name, ast_access::node_span_start(node), ast_access::node_span_end(node))
         }
     }

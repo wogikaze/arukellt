@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use corehir::callee_spelling
 use mir::function_identity
 use wasm::call_resolve
@@ -39,7 +39,7 @@ fn strip_module_prefix(name: String) -> String {
         }
         i = i - 1
     }
-    clone(name)
+    name.clone()
 }
 
 fn resolve_fn_index_for_call(ctx: SelfEmitCtx, name: String, func_id_raw: i32) -> i32 {
@@ -60,64 +60,64 @@ fn resolve_fn_index_for_call(ctx: SelfEmitCtx, name: String, func_id_raw: i32) -
 
 fn resolve_fn_index(ctx: SelfEmitCtx, name: String) -> i32 {
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
-    let exact_idx = resolve_fn_index_by_name(ctx, clone(name))
+    let exact_idx = resolve_fn_index_by_name(ctx, name.clone())
     if exact_idx >= 0 {
         return call_resolve::mir_resolve_self_delegate_collision(
             functions,
             ctx.function_name_counts,
             exact_idx,
-            clone(name)
+            name.clone()
         )
     }
     // A loaded-module call keeps `module::Type::method`; try the registered
     // `Type::method` (and after-first-segment) spellings before the last
     // segment fallback so the drain can patch fid<0 calls by name.
-    let variants = callee_spelling::callee_spelling_variants(clone(name))
+    let variants = callee_spelling::callee_spelling_variants(name.clone())
     let mut vi = 0
     while vi < len(variants) {
-        let variant_idx = resolve_fn_index_by_name(ctx, clone(get_unchecked(variants, vi)))
+        let variant_idx = resolve_fn_index_by_name(ctx, get_unchecked(variants, vi).clone())
         if variant_idx >= 0 {
             return call_resolve::mir_resolve_self_delegate_collision(
                 functions,
                 ctx.function_name_counts,
                 variant_idx,
-                clone(name)
+                name.clone()
             )
         }
         vi = vi + 1
     }
-    let short_name = strip_module_prefix(clone(name))
-    if !eq(clone(short_name), clone(name)) {
+    let short_name = strip_module_prefix(name.clone())
+    if !eq(short_name.clone(), name.clone()) {
         let short_idx = resolve_fn_index_by_name(ctx, short_name)
         if short_idx >= 0 {
             return call_resolve::mir_resolve_self_delegate_collision(
                 functions,
                 ctx.function_name_counts,
                 short_idx,
-                clone(name)
+                name.clone()
             )
         }
     }
-    let alias = hash_aliases::hashmap_builtin_alias(clone(name))
-    if !eq(clone(alias), clone(name)) {
-        let alias_idx = resolve_fn_index_by_name(ctx, clone(alias))
+    let alias = hash_aliases::hashmap_builtin_alias(name.clone())
+    if !eq(alias.clone(), name.clone()) {
+        let alias_idx = resolve_fn_index_by_name(ctx, alias.clone())
         if alias_idx >= 0 {
             return call_resolve::mir_resolve_self_delegate_collision(
                 functions,
                 ctx.function_name_counts,
                 alias_idx,
-                clone(name)
+                name.clone()
             )
         }
-        let alias_short = strip_module_prefix(clone(alias))
-        if !eq(clone(alias_short), clone(alias)) {
-            let alias_short_idx = resolve_fn_index_by_name(ctx, clone(alias_short))
+        let alias_short = strip_module_prefix(alias.clone())
+        if !eq(alias_short.clone(), alias.clone()) {
+            let alias_short_idx = resolve_fn_index_by_name(ctx, alias_short.clone())
             if alias_short_idx >= 0 {
                 return call_resolve::mir_resolve_self_delegate_collision(
                     functions,
                     ctx.function_name_counts,
                     alias_short_idx,
-                    clone(name)
+                    name.clone()
                 )
             }
         }

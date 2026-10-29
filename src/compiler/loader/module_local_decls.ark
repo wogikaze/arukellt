@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use std::text
 use loader::module_state_errors
 use loader::module_state_loading
@@ -26,7 +25,7 @@ pub fn DriverLocalModuleDecls_decls(loaded: DriverLocalModuleDecls) -> Vec<AstNo
 }
 
 fn DriverLocalModuleDecls_path(loaded: DriverLocalModuleDecls) -> String {
-    clone(loaded.path)
+    loaded.path.clone()
 }
 
 pub fn DriverLocalModuleDecls_pushed_stack(loaded: DriverLocalModuleDecls) -> bool {
@@ -34,34 +33,34 @@ pub fn DriverLocalModuleDecls_pushed_stack(loaded: DriverLocalModuleDecls) -> bo
 }
 
 pub fn load_local_module_decls(module_name: String, base_dir: String, mut state: LoadState) -> DriverLocalModuleDecls {
-    let skip = should_skip_local_module_read(clone(module_name), clone(base_dir), state)
+    let skip = should_skip_local_module_read(module_name.clone(), base_dir.clone(), state)
     if skip {
         return DriverLocalModuleDecls_new(Vec::new<AstNode>(), String_new(), false)
     }
-    let loaded = module_file_load_local::read_local_module_source(clone(module_name), clone(base_dir))
+    let loaded = module_file_load_local::read_local_module_source(module_name.clone(), base_dir.clone())
     if module_file_load_local::DriverLoadedSource_is_ok(loaded) {
         register_local_module_source(
-            clone(module_name),
+            module_name.clone(),
             module_file_load_local::DriverLoadedSource_path(loaded),
             module_file_load_local::DriverLoadedSource_source(loaded),
             state
         )
     } else {
-        try_load_registry_module(clone(module_name), clone(base_dir), state)
+        try_load_registry_module(module_name.clone(), base_dir.clone(), state)
     }
 }
 
 fn try_load_registry_module(module_name: String, base_dir: String, mut state: LoadState) -> DriverLocalModuleDecls {
-    let package_root = module_package_root::find_package_root(clone(base_dir))
-    if !registry_config::is_registry_dependency(clone(package_root), clone(module_name)) {
-        module_state_errors::LoadState_push_error(state, "failed to load module `".concat(clone(module_name).concat("`")))
+    let package_root = module_package_root::find_package_root(base_dir.clone())
+    if !registry_config::is_registry_dependency(package_root.clone(), module_name.clone()) {
+        module_state_errors::LoadState_push_error(state, "failed to load module `".concat(module_name.clone().concat("`")))
         return DriverLocalModuleDecls_new(Vec::new<AstNode>(), String_new(), false)
     }
-    let registry_result = registry_resolve::resolve_registry_module_source(clone(package_root), clone(module_name))
+    let registry_result = registry_resolve::resolve_registry_module_source(package_root.clone(), module_name.clone())
     match registry_result {
         Result::Ok(source) => {
-            let virtual_path = clone(package_root).concat("/.registry/".concat(clone(module_name).concat(".ark")))
-            register_local_module_source(clone(module_name), virtual_path, source, state)
+            let virtual_path = package_root.clone().concat("/.registry/".concat(module_name.clone().concat(".ark")))
+            register_local_module_source(module_name.clone(), virtual_path, source, state)
         },
         Result::Err(e) => {
             module_state_errors::LoadState_push_error(state, e)
@@ -71,20 +70,20 @@ fn try_load_registry_module(module_name: String, base_dir: String, mut state: Lo
 }
 
 pub fn should_skip_local_module_read(module_name: String, base_dir: String, mut state: LoadState) -> bool {
-    let stem = module_paths::module_path_to_file_stem(clone(module_name))
-    let primary_path = module_paths::module_stem_to_file_path(clone(base_dir), clone(stem))
-    if local_candidate_loaded_or_loading(clone(module_name), clone(primary_path), state) {
+    let stem = module_paths::module_path_to_file_stem(module_name.clone())
+    let primary_path = module_paths::module_stem_to_file_path(base_dir.clone(), stem.clone())
+    if local_candidate_loaded_or_loading(module_name.clone(), primary_path.clone(), state) {
         return true
     }
-    let mod_path = module_paths::module_stem_to_mod_path(clone(base_dir), clone(stem))
+    let mod_path = module_paths::module_stem_to_mod_path(base_dir.clone(), stem.clone())
     local_candidate_loaded_or_loading(module_name, mod_path, state)
 }
 
 fn local_candidate_loaded_or_loading(module_name: String, path: String, mut state: LoadState) -> bool {
-    if module_state_loading::LoadState_has_loaded(state, clone(path)) {
+    if module_state_loading::LoadState_has_loaded(state, path.clone()) {
         return true
     }
-    if module_state_loading::LoadState_has_loading(state, clone(path)) {
+    if module_state_loading::LoadState_has_loading(state, path.clone()) {
         module_state_errors::LoadState_push_error(state, "circular import detected: ".concat(module_name))
         return true
     }
@@ -92,17 +91,17 @@ fn local_candidate_loaded_or_loading(module_name: String, path: String, mut stat
 }
 
 fn register_local_module_source(module_name: String, canonical_path: String, source: String, mut state: LoadState) -> DriverLocalModuleDecls {
-    if module_state_loading::LoadState_has_loaded(state, clone(canonical_path)) {
+    if module_state_loading::LoadState_has_loaded(state, canonical_path.clone()) {
         return DriverLocalModuleDecls_new(Vec::new<AstNode>(), String_new(), false)
     }
-    if module_state_loading::LoadState_has_loading(state, clone(canonical_path)) {
-        module_state_errors::LoadState_push_error(state, "circular import detected: ".concat(clone(module_name)))
+    if module_state_loading::LoadState_has_loading(state, canonical_path.clone()) {
+        module_state_errors::LoadState_push_error(state, "circular import detected: ".concat(module_name.clone()))
         return DriverLocalModuleDecls_new(Vec::new<AstNode>(), String_new(), false)
     }
-    module_state_loading::LoadState_push_loading(state, clone(canonical_path))
+    module_state_loading::LoadState_push_loading(state, canonical_path.clone())
     let mod_decls = module_parse::parse_module_source(source, module_state::LoadState_cache_dir(state))
-    let module_alias = module_names::module_short_name(clone(module_name))
-    module_state_loading::LoadState_push_loaded(state, clone(canonical_path))
+    let module_alias = module_names::module_short_name(module_name.clone())
+    module_state_loading::LoadState_push_loaded(state, canonical_path.clone())
     module_state_modules::LoadState_add_module(state, module_alias, mod_decls, false)
     DriverLocalModuleDecls_new(mod_decls, canonical_path, true)
 }

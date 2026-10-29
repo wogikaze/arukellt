@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 
 struct DocFnEntry {
     name: String,
@@ -42,17 +41,17 @@ fn DocFnEntry_new(
     }
 }
 
-fn DocFnEntry_name(e: DocFnEntry) -> String { clone(e.name) }
-fn DocFnEntry_module(e: DocFnEntry) -> String { clone(e.module) }
-fn DocFnEntry_params(e: DocFnEntry) -> String { clone(e.params) }
-fn DocFnEntry_returns(e: DocFnEntry) -> String { clone(e.returns) }
-fn DocFnEntry_stability(e: DocFnEntry) -> String { clone(e.stability) }
-fn DocFnEntry_doc(e: DocFnEntry) -> String { clone(e.doc) }
-fn DocFnEntry_errors(e: DocFnEntry) -> String { clone(e.errors) }
-fn DocFnEntry_target(e: DocFnEntry) -> String { clone(e.target) }
+fn DocFnEntry_name(e: DocFnEntry) -> String { e.name.clone() }
+fn DocFnEntry_module(e: DocFnEntry) -> String { e.module.clone() }
+fn DocFnEntry_params(e: DocFnEntry) -> String { e.params.clone() }
+fn DocFnEntry_returns(e: DocFnEntry) -> String { e.returns.clone() }
+fn DocFnEntry_stability(e: DocFnEntry) -> String { e.stability.clone() }
+fn DocFnEntry_doc(e: DocFnEntry) -> String { e.doc.clone() }
+fn DocFnEntry_errors(e: DocFnEntry) -> String { e.errors.clone() }
+fn DocFnEntry_target(e: DocFnEntry) -> String { e.target.clone() }
 fn DocFnEntry_avail_t1(e: DocFnEntry) -> i32 { e.avail_t1 }
 fn DocFnEntry_avail_t3(e: DocFnEntry) -> i32 { e.avail_t3 }
-fn DocFnEntry_avail_note(e: DocFnEntry) -> String { clone(e.avail_note) }
+fn DocFnEntry_avail_note(e: DocFnEntry) -> String { e.avail_note.clone() }
 
 struct DocModuleEntry {
     name: String,
@@ -65,10 +64,10 @@ fn DocModuleEntry_new(name: String, stability: String, target: String, doc: Stri
     DocModuleEntry { name: name, stability: stability, target: target, doc: doc }
 }
 
-fn DocModuleEntry_name(e: DocModuleEntry) -> String { clone(e.name) }
-fn DocModuleEntry_stability(e: DocModuleEntry) -> String { clone(e.stability) }
-fn DocModuleEntry_target(e: DocModuleEntry) -> String { clone(e.target) }
-fn DocModuleEntry_doc(e: DocModuleEntry) -> String { clone(e.doc) }
+fn DocModuleEntry_name(e: DocModuleEntry) -> String { e.name.clone() }
+fn DocModuleEntry_stability(e: DocModuleEntry) -> String { e.stability.clone() }
+fn DocModuleEntry_target(e: DocModuleEntry) -> String { e.target.clone() }
+fn DocModuleEntry_doc(e: DocModuleEntry) -> String { e.doc.clone() }
 
 struct DocManifestTable {
     functions: Vec<DocFnEntry>,
@@ -95,8 +94,8 @@ fn DocModuleNameParts_new(module: String, name: String) -> DocModuleNameParts {
     DocModuleNameParts { module: module, name: name }
 }
 
-fn DocModuleNameParts_module(p: DocModuleNameParts) -> String { clone(p.module) }
-fn DocModuleNameParts_name(p: DocModuleNameParts) -> String { clone(p.name) }
+fn DocModuleNameParts_module(p: DocModuleNameParts) -> String { p.module.clone() }
+fn DocModuleNameParts_name(p: DocModuleNameParts) -> String { p.name.clone() }
 
 fn doc_split_module_and_name(symbol: String) -> DocModuleNameParts {
     let n = len(symbol)
@@ -111,7 +110,7 @@ fn doc_split_module_and_name(symbol: String) -> DocModuleNameParts {
         }
     }
     if split < 0 {
-        return DocModuleNameParts_new(String_new(), clone(symbol))
+        return DocModuleNameParts_new(String_new(), symbol.clone())
     }
     DocModuleNameParts_new(symbol.slice(0, split - 2), symbol.slice(split, n))
 }

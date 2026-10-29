@@ -17,16 +17,16 @@ use mir::value_types
 // from, in order: an explicit Pair<...> literal spelling, the pending
 // let annotation, the functional-update base, or the field value types
 // bound to the declared parameters. Non-generic names pass through.
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 
 fn mir_struct_lit_instance_name(mut ctx: LowerCtx, base_name: String, field_names: Vec<String>, val_idxs: Vec<i32>, base_idx: i32) -> String {
-    let canon = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, clone(base_name))
-    if len(ctx_struct_mono::generic_inst_base_name(clone(canon))) > 0 {
-        let _ok = ctx_struct_mono::ctx_derive_generic_struct_layout(ctx, clone(canon))
+    let canon = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, base_name.clone())
+    if len(ctx_struct_mono::generic_inst_base_name(canon.clone())) > 0 {
+        let _ok = ctx_struct_mono::ctx_derive_generic_struct_layout(ctx, canon.clone())
         return canon
     }
-    if !ctx_struct_mono::ctx_struct_name_is_generic(ctx, clone(canon)) {
+    if !ctx_struct_mono::ctx_struct_name_is_generic(ctx, canon.clone()) {
         return canon
     }
     // The let annotation is authoritative when present (Pair<i64> must
@@ -35,9 +35,9 @@ fn mir_struct_lit_instance_name(mut ctx: LowerCtx, base_name: String, field_name
     // payload type before comparing base names.
     let expected = ctx_struct_mono::ctx_derive_generic_struct_type_name(
         ctx,
-        struct_lit_expected_payload_type(clone(ctx.expected_struct_inst))
+        struct_lit_expected_payload_type(ctx.expected_struct_inst.clone())
     )
-    if eq(ctx_struct_mono::generic_inst_base_name(clone(expected)), clone(canon)) {
+    if eq(ctx_struct_mono::generic_inst_base_name(expected.clone()), canon.clone()) {
         return expected
     }
     if base_idx >= 0 {
@@ -45,7 +45,7 @@ fn mir_struct_lit_instance_name(mut ctx: LowerCtx, base_name: String, field_name
             ctx,
             ctx_api_local_types::ctx_get_local_type(ctx, base_idx)
         )
-        if eq(ctx_struct_mono::generic_inst_base_name(clone(base_type)), clone(canon)) {
+        if eq(ctx_struct_mono::generic_inst_base_name(base_type.clone()), canon.clone()) {
             return base_type
         }
     }
@@ -54,7 +54,7 @@ fn mir_struct_lit_instance_name(mut ctx: LowerCtx, base_name: String, field_name
     // (vec:T, option:T, result:T:E, Inner<T>), not only as a bare T, so the
     // binding unifies the declared shape against the value's resolved type
     // segment by segment.
-    let joined = ctx_struct_mono::ctx_generic_struct_params(ctx, clone(canon))
+    let joined = ctx_struct_mono::ctx_generic_struct_params(ctx, canon.clone())
     let params = struct_lit_split_params(joined)
     if len(params) == 0 {
         return canon
@@ -69,9 +69,9 @@ fn mir_struct_lit_instance_name(mut ctx: LowerCtx, base_name: String, field_name
     }
     let mut i = 0
     while i < len(field_names) {
-        let fi = ctx_struct_lookup::ctx_field_index(ctx, clone(canon), clone(get_unchecked(field_names, i)))
-        let ft = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(canon), fi)
-        if i < len(val_idxs) && struct_lit_field_type_mentions_params(clone(ft), params) {
+        let fi = ctx_struct_lookup::ctx_field_index(ctx, canon.clone(), get_unchecked(field_names, i).clone())
+        let ft = ctx_struct_field_type::ctx_struct_field_type_name(ctx, canon.clone(), fi)
+        if i < len(val_idxs) && struct_lit_field_type_mentions_params(ft.clone(), params) {
             let mut val_ty = ctx_struct_mono::ctx_derive_generic_struct_type_name(
                 ctx,
                 ctx_api_local_types::ctx_get_local_type(ctx, get_unchecked(val_idxs, i))
@@ -84,9 +84,9 @@ fn mir_struct_lit_instance_name(mut ctx: LowerCtx, base_name: String, field_name
             if len(val_ty) == 0 {
                 return canon
             }
-            if !struct_lit_unify_segments(clone(ft), clone(val_ty), params, args, bound) {
-                if !struct_lit_fn_field_already_bound(clone(ft), clone(val_ty), params, bound) &&
-                !struct_lit_enum_field_already_bound(clone(ft), clone(val_ty), params, bound) {
+            if !struct_lit_unify_segments(ft.clone(), val_ty.clone(), params, args, bound) {
+                if !struct_lit_fn_field_already_bound(ft.clone(), val_ty.clone(), params, bound) &&
+                !struct_lit_enum_field_already_bound(ft.clone(), val_ty.clone(), params, bound) {
                     return canon
                 }
             }
@@ -94,7 +94,7 @@ fn mir_struct_lit_instance_name(mut ctx: LowerCtx, base_name: String, field_name
         i = i + 1
     }
     let mut all_bound = true
-    let mut inst = clone(canon).concat(String_from("<"))
+    let mut inst = canon.clone().concat(String_from("<"))
     let mut bi = 0
     while bi < len(params) {
         if !get_unchecked(bound, bi) {
@@ -103,14 +103,14 @@ fn mir_struct_lit_instance_name(mut ctx: LowerCtx, base_name: String, field_name
         if bi > 0 {
             inst = inst.concat(String_from(","))
         }
-        inst = inst.concat(clone(get_unchecked(args, bi)))
+        inst = inst.concat(get_unchecked(args, bi).clone())
         bi = bi + 1
     }
     inst = inst.concat(String_from(">"))
     if !all_bound {
         return canon
     }
-    if ctx_struct_mono::ctx_derive_generic_struct_layout(ctx, clone(inst)) {
+    if ctx_struct_mono::ctx_derive_generic_struct_layout(ctx, inst.clone()) {
         return inst
     }
     canon
@@ -119,13 +119,13 @@ fn mir_struct_lit_instance_name(mut ctx: LowerCtx, base_name: String, field_name
 // When the expected type is Option<T> (let annotation on a Some(payload)
 // initializer), the struct literal instantiates T, not the Option name.
 fn struct_lit_expected_payload_type(expected: String) -> String {
-    if clone(expected).starts_with(String_from("Option_")) {
+    if expected.clone().starts_with(String_from("Option_")) {
         return expected.slice(7, len(expected))
     }
-    if clone(expected).starts_with(String_from("option:")) {
+    if expected.clone().starts_with(String_from("option:")) {
         return expected.slice(7, len(expected))
     }
-    if clone(expected).starts_with(String_from("Option<")) && clone(expected).ends_with(String_from(">")) {
+    if expected.clone().starts_with(String_from("Option<")) && expected.clone().ends_with(String_from(">")) {
         return expected.slice(7, len(expected) - 1)
     }
     expected
@@ -154,7 +154,7 @@ fn struct_lit_ident_char(ch: i32) -> bool {
 fn struct_lit_param_index(params: Vec<String>, name: String) -> i32 {
     let mut i = 0
     while i < len(params) {
-        if eq(get_unchecked(params, i), clone(name)) {
+        if eq(get_unchecked(params, i), name.clone()) {
             return i
         }
         i = i + 1
@@ -169,15 +169,15 @@ fn struct_lit_field_type_mentions_params(ft: String, params: Vec<String>) -> boo
     let n = len(ft)
     let mut i = 0
     while i < n {
-        let ch = clone(ft).byte_at(i)
+        let ch = ft.clone().byte_at(i)
         if !struct_lit_ident_char(ch) {
             i = i + 1
         } else {
             let start = i
-            while i < n && struct_lit_ident_char(clone(ft).byte_at(i)) {
+            while i < n && struct_lit_ident_char(ft.clone().byte_at(i)) {
                 i = i + 1
             }
-            let tok = clone(ft).slice(start, i)
+            let tok = ft.clone().slice(start, i)
             if struct_lit_param_index(params, tok) >= 0 {
                 return true
             }
@@ -189,31 +189,31 @@ fn struct_lit_field_type_mentions_params(ft: String, params: Vec<String>) -> boo
 // Normalize the surface spellings a resolved value type can carry into the
 // canonical vec:/option:/result: space used by declared field types.
 fn struct_lit_canonical_type_spelling(name: String) -> String {
-    if clone(name).starts_with(String_from("Vec<")) && clone(name).ends_with(String_from(">")) {
-        return String_from("vec:").concat(struct_lit_canonical_type_spelling(clone(name).slice(4, len(name) - 1)))
+    if name.clone().starts_with(String_from("Vec<")) && name.clone().ends_with(String_from(">")) {
+        return String_from("vec:").concat(struct_lit_canonical_type_spelling(name.clone().slice(4, len(name) - 1)))
     }
-    if clone(name).starts_with(String_from("Option<")) && clone(name).ends_with(String_from(">")) {
-        return String_from("option:").concat(struct_lit_canonical_type_spelling(clone(name).slice(7, len(name) - 1)))
+    if name.clone().starts_with(String_from("Option<")) && name.clone().ends_with(String_from(">")) {
+        return String_from("option:").concat(struct_lit_canonical_type_spelling(name.clone().slice(7, len(name) - 1)))
     }
-    if clone(name).starts_with(String_from("Option_")) {
-        return String_from("option:").concat(struct_lit_canonical_type_spelling(clone(name).slice(7, len(name))))
+    if name.clone().starts_with(String_from("Option_")) {
+        return String_from("option:").concat(struct_lit_canonical_type_spelling(name.clone().slice(7, len(name))))
     }
-    if clone(name).starts_with(String_from("Result<")) && clone(name).ends_with(String_from(">")) {
-        let inner = clone(name).slice(7, len(name) - 1)
+    if name.clone().starts_with(String_from("Result<")) && name.clone().ends_with(String_from(">")) {
+        let inner = name.clone().slice(7, len(name) - 1)
         let parts = ctx_mono_type_params::ctx_split_top_level_type_args(inner)
         if len(parts) == 2 {
             return String_from("result:").concat(
-                struct_lit_canonical_type_spelling(clone(get_unchecked(parts, 0))).concat(String_from(":").concat(struct_lit_canonical_type_spelling(clone(get_unchecked(parts, 1)))))
+                struct_lit_canonical_type_spelling(get_unchecked(parts, 0).clone()).concat(String_from(":").concat(struct_lit_canonical_type_spelling(get_unchecked(parts, 1).clone())))
             )
         }
         return name
     }
-    if clone(name).starts_with(String_from("Result_")) {
-        let inner = clone(name).slice(7, len(name))
-        let us = clone(inner).index_of(String_from("_"))
+    if name.clone().starts_with(String_from("Result_")) {
+        let inner = name.clone().slice(7, len(name))
+        let us = inner.clone().index_of(String_from("_"))
         if us > 0 && us + 1 < len(inner) {
             return String_from("result:").concat(
-                struct_lit_canonical_type_spelling(clone(inner).slice(0, us)).concat(String_from(":").concat(struct_lit_canonical_type_spelling(clone(inner).slice(us + 1, len(inner)))))
+                struct_lit_canonical_type_spelling(inner.clone().slice(0, us)).concat(String_from(":").concat(struct_lit_canonical_type_spelling(inner.clone().slice(us + 1, len(inner)))))
             )
         }
         return String_from("result:").concat(inner)
@@ -233,7 +233,7 @@ fn struct_lit_split_colon_top(name: String) -> Vec<String> {
     let mut i = 0
     while i <= n {
         let at_end = i == n
-        let ch = if at_end { 58 } else { clone(name).byte_at(i) }
+        let ch = if at_end { 58 } else { name.clone().byte_at(i) }
         if !at_end && (ch == 60 || ch == 40) {
             depth = depth + 1
         }
@@ -242,12 +242,12 @@ fn struct_lit_split_colon_top(name: String) -> Vec<String> {
         }
         // `Owner::Assoc` projections stay one segment: the double colon is
         // a name qualifier, not a type-spelling separator (#860/#691).
-        if !at_end && ch == 58 && i + 1 < n && clone(name).byte_at(i + 1) == 58 {
+        if !at_end && ch == 58 && i + 1 < n && name.clone().byte_at(i + 1) == 58 {
             i = i + 2
             continue
         }
         if (at_end || ch == 58 || ch == 59) && depth == 0 {
-            push(result, clone(name).slice(seg_start, i))
+            push(result, name.clone().slice(seg_start, i))
             seg_start = i + 1
         }
         i = i + 1
@@ -256,7 +256,7 @@ fn struct_lit_split_colon_top(name: String) -> Vec<String> {
 }
 
 fn struct_lit_type_is_composite(name: String) -> bool {
-    clone(name).contains(String_from("<")) || clone(name).contains(String_from(":"))
+    name.clone().contains(String_from("<")) || name.clone().contains(String_from(":"))
 }
 
 // Legacy fnref-family value spellings carry no param/return segments.
@@ -266,23 +266,23 @@ fn struct_lit_type_is_composite(name: String) -> bool {
 // while concrete declared segments stay fixed — a declared fn(T)->bool
 // expands a fnref value to fnsig:i32;bool, not fnsig:i32;i32.
 fn struct_lit_fnref_value_spelling(f: String, v: String, params: Vec<String>) -> String {
-    if !clone(f).starts_with(String_from("fnsig:")) {
+    if !f.clone().starts_with(String_from("fnsig:")) {
         return v
     }
     let mut family = Vec::new<String>()
-    if eq(clone(v), String_from("fnref")) {
+    if eq(v.clone(), String_from("fnref")) {
         push(family, String_from("i32"))
         push(family, String_from("i32"))
-    } else if eq(clone(v), String_from("fnrefss")) {
+    } else if eq(v.clone(), String_from("fnrefss")) {
         push(family, String_from("String"))
         push(family, String_from("String"))
-    } else if eq(clone(v), String_from("fnrefsb")) {
+    } else if eq(v.clone(), String_from("fnrefsb")) {
         push(family, String_from("String"))
         push(family, String_from("bool"))
     } else {
         return v
     }
-    let f_segs = struct_lit_split_colon_top(clone(f))
+    let f_segs = struct_lit_split_colon_top(f.clone())
     if len(f_segs) != 3 {
         return v
     }
@@ -293,8 +293,8 @@ fn struct_lit_fnref_value_spelling(f: String, v: String, params: Vec<String>) ->
             out = out.concat(String_from(";"))
         }
         let f_seg = get_unchecked(f_segs, k)
-        if struct_lit_param_index(params, clone(f_seg)) >= 0 {
-            out = out.concat(clone(get_unchecked(family, k - 1)))
+        if struct_lit_param_index(params, f_seg.clone()) >= 0 {
+            out = out.concat(get_unchecked(family, k - 1).clone())
         } else {
             out = out.concat(f_seg)
         }
@@ -311,11 +311,11 @@ fn struct_lit_fnref_value_spelling(f: String, v: String, params: Vec<String>) ->
 // shapes cannot align — the caller then keeps the unsubstituted base
 // layout instead of guessing an instantiation.
 fn struct_lit_unify_segments(ft: String, vt: String, params: Vec<String>, mut args: Vec<String>, mut bound: Vec<bool>) -> bool {
-    let direct = struct_lit_param_index(params, clone(ft))
+    let direct = struct_lit_param_index(params, ft.clone())
     if direct >= 0 {
         if len(vt) == 0 ||
-        ctx_struct_mono::generic_arg_is_unbound(clone(vt)) ||
-        struct_lit_field_type_mentions_params(clone(vt), params) {
+        ctx_struct_mono::generic_arg_is_unbound(vt.clone()) ||
+        struct_lit_field_type_mentions_params(vt.clone(), params) {
             return false
         }
         set(args, direct, vt)
@@ -323,9 +323,9 @@ fn struct_lit_unify_segments(ft: String, vt: String, params: Vec<String>, mut ar
         return true
     }
     let f = struct_lit_canonical_type_spelling(ft)
-    let v = struct_lit_fnref_value_spelling(clone(f), struct_lit_canonical_type_spelling(vt), params)
-    let f_segs = struct_lit_split_colon_top(clone(f))
-    let v_segs = struct_lit_split_colon_top(clone(v))
+    let v = struct_lit_fnref_value_spelling(f.clone(), struct_lit_canonical_type_spelling(vt), params)
+    let f_segs = struct_lit_split_colon_top(f.clone())
+    let v_segs = struct_lit_split_colon_top(v.clone())
     if len(f_segs) > 1 || len(v_segs) > 1 {
         if len(f_segs) != len(v_segs) {
             return !struct_lit_field_type_mentions_params(f, params)
@@ -334,40 +334,40 @@ fn struct_lit_unify_segments(ft: String, vt: String, params: Vec<String>, mut ar
         while k < len(f_segs) {
             let f_seg = get_unchecked(f_segs, k)
             let v_seg = get_unchecked(v_segs, k)
-            if struct_lit_param_index(params, clone(f_seg)) >= 0 {
-                if !struct_lit_unify_segments(clone(f_seg), clone(v_seg), params, args, bound) {
+            if struct_lit_param_index(params, f_seg.clone()) >= 0 {
+                if !struct_lit_unify_segments(f_seg.clone(), v_seg.clone(), params, args, bound) {
                     return false
                 }
-            } else if !eq(clone(f_seg), clone(v_seg)) {
+            } else if !eq(f_seg.clone(), v_seg.clone()) {
                 // `X::Assoc` declared leaf: a projection binds no
                 // parameter here; the derived layout resolves it through
                 // the owner's impl (#860/#691).
-                if clone(f_seg).contains(String_from("::")) {
+                if f_seg.clone().contains(String_from("::")) {
                     // compatible — keep checking the remaining segments
-                } else if struct_lit_type_is_composite(clone(f_seg)) {
-                    if !struct_lit_unify_segments(clone(f_seg), clone(v_seg), params, args, bound) {
+                } else if struct_lit_type_is_composite(f_seg.clone()) {
+                    if !struct_lit_unify_segments(f_seg.clone(), v_seg.clone(), params, args, bound) {
                         return false
                     }
                 } else {
-                    return !struct_lit_field_type_mentions_params(clone(f), params)
+                    return !struct_lit_field_type_mentions_params(f.clone(), params)
                 }
             }
             k = k + 1
         }
         return true
     }
-    let f_base = ctx_struct_mono::generic_inst_base_name(clone(f))
-    if len(f_base) > 0 && eq(clone(f_base), ctx_struct_mono::generic_inst_base_name(clone(v))) {
-        let f_args = ctx_struct_mono::generic_inst_args(clone(f))
-        let v_args = ctx_struct_mono::generic_inst_args(clone(v))
+    let f_base = ctx_struct_mono::generic_inst_base_name(f.clone())
+    if len(f_base) > 0 && eq(f_base.clone(), ctx_struct_mono::generic_inst_base_name(v.clone())) {
+        let f_args = ctx_struct_mono::generic_inst_args(f.clone())
+        let v_args = ctx_struct_mono::generic_inst_args(v.clone())
         if len(f_args) != len(v_args) {
             return false
         }
         let mut k = 0
         while k < len(f_args) {
             if !struct_lit_unify_segments(
-                clone(get_unchecked(f_args, k)),
-                clone(get_unchecked(v_args, k)),
+                get_unchecked(f_args, k).clone(),
+                get_unchecked(v_args, k).clone(),
                 params,
                 args,
                 bound
@@ -380,7 +380,7 @@ fn struct_lit_unify_segments(ft: String, vt: String, params: Vec<String>, mut ar
     }
     // A bare `X::Assoc` declared type binds no parameter; the derived
     // layout resolves it through the owner's impl (#860/#691).
-    if clone(f).contains(String_from("::")) {
+    if f.clone().contains(String_from("::")) {
         return true
     }
     !struct_lit_field_type_mentions_params(f, params)
@@ -392,8 +392,8 @@ fn struct_lit_split_params(joined: String) -> Vec<String> {
     let mut seg_start = 0
     let mut i = 0
     while i <= n {
-        if i == n || clone(joined).byte_at(i) == 44 {
-            push(params, clone(joined).slice(seg_start, i))
+        if i == n || joined.clone().byte_at(i) == 44 {
+            push(params, joined.clone().slice(seg_start, i))
             seg_start = i + 1
         }
         i = i + 1
@@ -408,10 +408,10 @@ fn struct_lit_split_params(joined: String) -> Vec<String> {
 // other fields — e.g. ScanBox<T>.f: fnsig:T,T;option:T with vec:vec:i32
 // and state:i32 (#881).
 fn struct_lit_fn_field_already_bound(ft: String, vt: String, params: Vec<String>, bound: Vec<bool>) -> bool {
-    if !struct_lit_decl_is_fn_value(clone(ft)) || !struct_lit_decl_is_fn_value(clone(vt)) {
+    if !struct_lit_decl_is_fn_value(ft.clone()) || !struct_lit_decl_is_fn_value(vt.clone()) {
         return false
     }
-    struct_lit_params_bound(clone(ft), params, bound)
+    struct_lit_params_bound(ft.clone(), params, bound)
 }
 
 // Same fallback for enum-typed fields: variant literals type their local
@@ -420,22 +420,22 @@ fn struct_lit_fn_field_already_bound(ft: String, vt: String, params: Vec<String>
 // value is compatible when the enum head matches and every declared
 // parameter is already bound by other fields (#881).
 fn struct_lit_enum_field_already_bound(ft: String, vt: String, params: Vec<String>, bound: Vec<bool>) -> bool {
-    if !struct_lit_enum_head_matches(clone(ft), clone(vt)) {
+    if !struct_lit_enum_head_matches(ft.clone(), vt.clone()) {
         return false
     }
-    struct_lit_params_bound(clone(ft), params, bound)
+    struct_lit_params_bound(ft.clone(), params, bound)
 }
 
 fn struct_lit_enum_head_matches(ft: String, vt: String) -> bool {
-    if clone(ft).starts_with(String_from("option:")) {
-        return eq(clone(vt), String_from("enum:Option"))
+    if ft.clone().starts_with(String_from("option:")) {
+        return eq(vt.clone(), String_from("enum:Option"))
     }
-    if clone(ft).starts_with(String_from("result:")) {
-        return eq(clone(vt), String_from("enum:Result"))
+    if ft.clone().starts_with(String_from("result:")) {
+        return eq(vt.clone(), String_from("enum:Result"))
     }
-    if clone(ft).starts_with(String_from("enum:")) {
-        let want = clone(ft).slice(5, len(ft))
-        return eq(clone(vt), String_from("enum:").concat(want))
+    if ft.clone().starts_with(String_from("enum:")) {
+        let want = ft.clone().slice(5, len(ft))
+        return eq(vt.clone(), String_from("enum:").concat(want))
     }
     false
 }
@@ -445,16 +445,16 @@ fn struct_lit_params_bound(ft: String, params: Vec<String>, bound: Vec<bool>) ->
     let n = len(ft)
     let mut i = 0
     while i < n {
-        let ch = clone(ft).byte_at(i)
+        let ch = ft.clone().byte_at(i)
         if !struct_lit_ident_char(ch) {
             i = i + 1
         } else {
             let start = i
-            while i < n && struct_lit_ident_char(clone(ft).byte_at(i)) {
+            while i < n && struct_lit_ident_char(ft.clone().byte_at(i)) {
                 i = i + 1
             }
-            let tok = clone(ft).slice(start, i)
-            let pi = struct_lit_param_index(clone(params), clone(tok))
+            let tok = ft.clone().slice(start, i)
+            let pi = struct_lit_param_index(params.clone(), tok.clone())
             if pi >= 0 && (pi >= len(bound) || !get_unchecked(bound, pi)) {
                 return false
             }
@@ -464,26 +464,26 @@ fn struct_lit_params_bound(ft: String, params: Vec<String>, bound: Vec<bool>) ->
 }
 
 fn struct_lit_decl_is_fn_value(type_name: String) -> bool {
-    eq(clone(type_name), String_from("fn")) ||
-    clone(type_name).starts_with(String_from("fnref")) ||
-    clone(type_name).starts_with(String_from("fnsig:")) ||
-    clone(type_name).starts_with(String_from("fn("))
+    eq(type_name.clone(), String_from("fn")) ||
+    type_name.clone().starts_with(String_from("fnref")) ||
+    type_name.clone().starts_with(String_from("fnsig:")) ||
+    type_name.clone().starts_with(String_from("fn("))
 }
 
 fn mir_emit_struct_new(mut ctx: LowerCtx, struct_name: String) -> i32 {
     let canon = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, struct_name)
     let dest = ctx_fresh_local(ctx, value_types::VT_GC_REF())
-    ctx_emit(ctx, inst_struct_new::MirInst_struct_new_named(dest, clone(canon), ctx_struct_byte_size(ctx, clone(canon))))
-    ctx_set_local_type(ctx, dest, clone(canon))
+    ctx_emit(ctx, inst_struct_new::MirInst_struct_new_named(dest, canon.clone(), ctx_struct_byte_size(ctx, canon.clone())))
+    ctx_set_local_type(ctx, dest, canon.clone())
     dest
 }
 
 // fn-typed struct field type names use the same spelling set as the
 // aggregate/call paths: "fn", "fnref*", "fn(...)" (#883).
 fn mir_struct_field_type_is_fn(type_name: String) -> bool {
-    eq(clone(type_name), String_from("fn")) ||
-    clone(type_name).starts_with(String_from("fnref")) ||
-    clone(type_name).starts_with(String_from("fn("))
+    eq(type_name.clone(), String_from("fn")) ||
+    type_name.clone().starts_with(String_from("fnref")) ||
+    type_name.clone().starts_with(String_from("fn("))
 }
 
 fn mir_copy_struct_base_fields(mut ctx: LowerCtx, struct_name: String, dest: i32, base_idx: i32) {
@@ -493,45 +493,45 @@ fn mir_copy_struct_base_fields(mut ctx: LowerCtx, struct_name: String, dest: i32
 
 fn mir_emit_struct_field_set(mut ctx: LowerCtx, struct_name: String, dest: i32, field_name: String, val_idx: i32) {
     let canon = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, struct_name)
-    let fi_idx = ctx_field_index(ctx, clone(canon), clone(field_name))
+    let fi_idx = ctx_field_index(ctx, canon.clone(), field_name.clone())
     let mut field_vt = value_types::VT_VOID()
-    if ctx_struct_field_is_f64(ctx, clone(canon), fi_idx) {
+    if ctx_struct_field_is_f64(ctx, canon.clone(), fi_idx) {
         field_vt = value_types::VT_F64()
     }
-    if field_vt == value_types::VT_VOID() && ctx_struct_field_is_i64(ctx, clone(canon), fi_idx) {
+    if field_vt == value_types::VT_VOID() && ctx_struct_field_is_i64(ctx, canon.clone(), fi_idx) {
         field_vt = value_types::VT_I64()
     }
-    if field_vt == value_types::VT_VOID() && ctx_struct_field_is_v128(ctx, clone(canon), fi_idx) {
+    if field_vt == value_types::VT_VOID() && ctx_struct_field_is_v128(ctx, canon.clone(), fi_idx) {
         field_vt = value_types::VT_V128()
     }
     // i32 / fn-table-index fields must carry VT_I32 so Memory64 emit wraps
     // i64 locals before struct.set (MapIter.f, FilterIter.f, …).
     if field_vt == value_types::VT_VOID() &&
-    !ctx_struct_field_is_gc_ref(ctx, clone(canon), fi_idx) {
+    !ctx_struct_field_is_gc_ref(ctx, canon.clone(), fi_idx) {
         field_vt = value_types::VT_I32()
     }
     // GC-typed struct fields give their concrete type to the initializer temp
     // so Vec::new resolves the field's GC layout instead of vec:i32.
-    if ctx_struct_field_is_gc_ref(ctx, clone(canon), fi_idx) {
-        let field_type_name = ctx_struct_field_type_name(ctx, clone(canon), fi_idx)
+    if ctx_struct_field_is_gc_ref(ctx, canon.clone(), fi_idx) {
+        let field_type_name = ctx_struct_field_type_name(ctx, canon.clone(), fi_idx)
         let normalized_type_name = ctx_struct_field_type::normalize_gc_field_type_name(
-            clone(field_type_name)
+            field_type_name.clone()
         )
         if len(normalized_type_name) > 0 {
             let semantic_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(
                 ctx,
-                clone(normalized_type_name)
+                normalized_type_name.clone()
             )
             // A still-generic field type (vec:T on the unbound base layout)
             // must not overwrite the value local's concrete mono type —
             // stamping vec:T onto a Vec<i32> parameter collapses later
             // len()/get_unchecked calls to the Vec<i32> fallback.
-            let base_name = ctx_struct_mono::generic_inst_base_name(clone(canon))
-            let param_owner = if len(base_name) > 0 { base_name } else { clone(canon) }
+            let base_name = ctx_struct_mono::generic_inst_base_name(canon.clone())
+            let param_owner = if len(base_name) > 0 { base_name } else { canon.clone() }
             let decl_params = struct_lit_split_params(
                 ctx_struct_mono::ctx_generic_struct_params(ctx, param_owner)
             )
-            if !struct_lit_field_type_mentions_params(clone(semantic_type_name), decl_params) {
+            if !struct_lit_field_type_mentions_params(semantic_type_name.clone(), decl_params) {
                 ctx_api_local_types::ctx_set_local_type(ctx, val_idx, semantic_type_name)
                 if ctx_gc_enum::ctx_is_gc_target(ctx) {
                     ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
@@ -546,10 +546,10 @@ fn mir_emit_struct_field_set(mut ctx: LowerCtx, struct_name: String, dest: i32, 
         inst_struct_set::MirInst_struct_set_named_idx(
             dest,
             val_idx,
-            clone(canon),
-            ctx_struct_field_offset(ctx, clone(canon), fi_idx),
+            canon.clone(),
+            ctx_struct_field_offset(ctx, canon.clone(), fi_idx),
             fi_idx,
-            ctx_struct_byte_size(ctx, clone(canon)),
+            ctx_struct_byte_size(ctx, canon.clone()),
             field_vt
         )
     )

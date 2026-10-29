@@ -2,7 +2,7 @@
 // Syntax paths (operators, `?`) reference these ids directly and must not
 // depend on import scope or bare trait-name string matching at use sites.
 
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 fn SEMANTIC_TRAIT_ID_NONE() -> i32 {
     0 - 1
 }
@@ -15,7 +15,7 @@ fn SEMANTIC_TRAIT_ID_FROM() -> i32 {
 // Map an impl-header trait name discovered in CoreHIR to a canonical id.
 // Discovery may read the declaration name; resolution of `?` uses the id.
 fn semantic_trait_id_from_trait_name(trait_name: String) -> i32 {
-    if eq(clone(trait_name), "From") {
+    if eq(trait_name.clone(), "From") {
         return SEMANTIC_TRAIT_ID_FROM()
     }
     SEMANTIC_TRAIT_ID_NONE()

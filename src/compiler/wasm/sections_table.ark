@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::emit_artifacts
 use mir::module_emit_artifacts
 use mir::local_access
@@ -63,7 +63,7 @@ fn module_has_funcref_params(mir: MirModule) -> bool {
         while pi < pc {
             let p = function_param_view::MirFunction_param_at(f, pi)
             let type_name = local_access::MirLocal_type_name(p)
-            if eq(clone(type_name), "fnref") {
+            if eq(type_name.clone(), "fnref") {
                 return true
             }
             pi = pi + 1
@@ -100,7 +100,7 @@ fn emit_element_section(mut out: WasmWriter, mir: MirModule, target: String, was
     writer_core::emit_leb128_u(elem_sec, fn_count)
     let mut i = 0
     while i < fn_count {
-        let defined_idx = function_indices::defined_function_index(i, clone(target), clone(wasi_version), wit_import_count)
+        let defined_idx = function_indices::defined_function_index(i, target.clone(), wasi_version.clone(), wit_import_count)
         writer_core::emit_leb128_u(elem_sec, defined_idx)
         i = i + 1
     }

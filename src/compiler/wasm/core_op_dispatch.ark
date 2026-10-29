@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use corehir::core_op_id
 use corehir::core_op_binding
 use corehir::core_op_registry_generated
@@ -43,7 +42,7 @@ fn try_emit_call_via_core_op_registry(
         return false
     }
     let callee = inst_record::mir_inst_str_val(inst)
-    let exact_coid = core_op_binding::core_op_binding_lookup_for_callee(clone(callee))
+    let exact_coid = core_op_binding::core_op_binding_lookup_for_callee(callee.clone())
     if !core_op_id::core_op_id_is_some(exact_coid) {
         return false
     }

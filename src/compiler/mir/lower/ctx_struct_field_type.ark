@@ -1,15 +1,15 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use mir::lower::ctx_struct_storage
 fn ctx_struct_field_type_name(ctx: LowerCtx, struct_name: String, field_idx: i32) -> String {
-    let found = ctx_struct_field_type_name_exact(ctx, clone(struct_name), field_idx)
-    if len(found) > 0 || ctx_struct_layout_exists(ctx, clone(struct_name)) {
+    let found = ctx_struct_field_type_name_exact(ctx, struct_name.clone(), field_idx)
+    if len(found) > 0 || ctx_struct_layout_exists(ctx, struct_name.clone()) {
         return found
     }
     // Match arms may use bare `Table` while layouts are registered as
     // `TomlValue::Table` (#726 toml_full_*).
-    let resolved = ctx_resolve_variant_layout_name(ctx, clone(struct_name))
-    if len(resolved) > 0 && !eq(clone(resolved), clone(struct_name)) {
+    let resolved = ctx_resolve_variant_layout_name(ctx, struct_name.clone())
+    if len(resolved) > 0 && !eq(resolved.clone(), struct_name.clone()) {
         return ctx_struct_field_type_name_exact(ctx, resolved, field_idx)
     }
     String_new()
@@ -22,14 +22,14 @@ fn ctx_struct_field_type_name_for_payload(ctx: LowerCtx, struct_name: String, fi
     if len(payload_type_name) == 0 {
         return ctx_struct_field_type_name(ctx, struct_name, field_idx)
     }
-    let want = ctx_normalize_payload_field_type_name(clone(payload_type_name))
-    let found = ctx_struct_field_type_name_exact_for_payload(ctx, clone(struct_name), field_idx, clone(want))
+    let want = ctx_normalize_payload_field_type_name(payload_type_name.clone())
+    let found = ctx_struct_field_type_name_exact_for_payload(ctx, struct_name.clone(), field_idx, want.clone())
     if len(found) > 0 {
         return found
     }
-    let resolved = ctx_resolve_variant_layout_name(ctx, clone(struct_name))
-    if len(resolved) > 0 && !eq(clone(resolved), clone(struct_name)) {
-        let resolved_found = ctx_struct_field_type_name_exact_for_payload(ctx, resolved, field_idx, clone(want))
+    let resolved = ctx_resolve_variant_layout_name(ctx, struct_name.clone())
+    if len(resolved) > 0 && !eq(resolved.clone(), struct_name.clone()) {
+        let resolved_found = ctx_struct_field_type_name_exact_for_payload(ctx, resolved, field_idx, want.clone())
         if len(resolved_found) > 0 {
             return resolved_found
         }
@@ -38,58 +38,58 @@ fn ctx_struct_field_type_name_for_payload(ctx: LowerCtx, struct_name: String, fi
 }
 
 fn ctx_normalize_payload_field_type_name(type_name: String) -> String {
-    if eq(clone(type_name), String_from("string")) {
+    if eq(type_name.clone(), String_from("string")) {
         return String_from("String")
     }
-    if clone(type_name).starts_with(String_from("enum:")) {
+    if type_name.clone().starts_with(String_from("enum:")) {
         return type_name.slice(5, len(type_name))
     }
-    if clone(type_name).starts_with(String_from("option:")) {
+    if type_name.clone().starts_with(String_from("option:")) {
         return String_from("option:").concat(type_name.slice(7, len(type_name)))
     }
-    if clone(type_name).starts_with(String_from("Option_")) {
+    if type_name.clone().starts_with(String_from("Option_")) {
         return String_from("option:").concat(type_name.slice(7, len(type_name)))
     }
-    if clone(type_name).starts_with(String_from("Option:")) {
+    if type_name.clone().starts_with(String_from("Option:")) {
         return String_from("option:").concat(type_name.slice(7, len(type_name)))
     }
-    if clone(type_name).starts_with(String_from("Option<")) && clone(type_name).ends_with(String_from(">")) {
+    if type_name.clone().starts_with(String_from("Option<")) && type_name.clone().ends_with(String_from(">")) {
         return String_from("option:").concat(type_name.slice(7, len(type_name) - 1))
     }
     type_name
 }
 
 fn ctx_payload_field_types_match(layout_ft: String, want: String) -> bool {
-    if eq(clone(layout_ft), clone(want)) {
+    if eq(layout_ft.clone(), want.clone()) {
         return true
     }
-    let layout_norm = ctx_normalize_payload_field_type_name(clone(layout_ft))
-    let want_norm = ctx_normalize_payload_field_type_name(clone(want))
-    if eq(clone(layout_norm), clone(want_norm)) {
+    let layout_norm = ctx_normalize_payload_field_type_name(layout_ft.clone())
+    let want_norm = ctx_normalize_payload_field_type_name(want.clone())
+    if eq(layout_norm.clone(), want_norm.clone()) {
         return true
     }
-    if eq(clone(layout_norm), String_from("String")) && eq(clone(want_norm), String_from("String")) {
+    if eq(layout_norm.clone(), String_from("String")) && eq(want_norm.clone(), String_from("String")) {
         return true
     }
-    if ctx_generic_field_type_matches(clone(layout_norm), clone(want_norm)) {
+    if ctx_generic_field_type_matches(layout_norm.clone(), want_norm.clone()) {
         return true
     }
     false
 }
 
 fn ctx_generic_field_type_matches(layout_type: String, want_type: String) -> bool {
-    if is_generic_type_parameter_name(clone(layout_type)) {
+    if is_generic_type_parameter_name(layout_type.clone()) {
         return true
     }
-    if clone(layout_type).starts_with("vec:") && clone(want_type).starts_with("vec:") {
-        let layout_elem = clone(layout_type).slice(4, len(layout_type))
-        return is_generic_type_parameter_name(clone(layout_elem))
+    if layout_type.clone().starts_with("vec:") && want_type.clone().starts_with("vec:") {
+        let layout_elem = layout_type.clone().slice(4, len(layout_type))
+        return is_generic_type_parameter_name(layout_elem.clone())
     }
     false
 }
 
 fn is_generic_type_parameter_name(type_name: String) -> bool {
-    let bare = if clone(type_name).starts_with("?") {
+    let bare = if type_name.clone().starts_with("?") {
         type_name.slice(1, len(type_name))
     } else {
         type_name
@@ -102,7 +102,7 @@ fn is_generic_type_parameter_name(type_name: String) -> bool {
 }
 
 fn ctx_struct_field_type_name_exact(ctx: LowerCtx, struct_name: String, field_idx: i32) -> String {
-    let li = ctx_struct_storage::ctx_struct_layout_preferred_index(ctx, clone(struct_name))
+    let li = ctx_struct_storage::ctx_struct_layout_preferred_index(ctx, struct_name.clone())
     if li < 0 {
         return String_new()
     }
@@ -121,10 +121,10 @@ fn ctx_struct_field_type_name_exact_for_payload(ctx: LowerCtx, struct_name: Stri
     while si < sc {
         let sn = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si)
         let fc = ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si)
-        if eq(clone(sn), clone(struct_name)) {
+        if eq(sn.clone(), struct_name.clone()) {
             if field_idx < fc {
                 let ft = ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, offset + field_idx)
-                if ctx_payload_field_types_match(clone(ft), clone(want)) {
+                if ctx_payload_field_types_match(ft.clone(), want.clone()) {
                     return ft
                 }
             }
@@ -139,7 +139,7 @@ fn ctx_struct_layout_exists(ctx: LowerCtx, struct_name: String) -> bool {
     let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
     let mut si = 0
     while si < sc {
-        if eq(ctx_struct_storage::ctx_struct_layout_name_at(ctx, si), clone(struct_name)) {
+        if eq(ctx_struct_storage::ctx_struct_layout_name_at(ctx, si), struct_name.clone()) {
             return true
         }
         si = si + 1
@@ -150,14 +150,14 @@ fn ctx_struct_layout_exists(ctx: LowerCtx, struct_name: String) -> bool {
 fn ctx_resolve_variant_layout_name(ctx: LowerCtx, variant_name: String) -> String {
     let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
     // Bare `Table` → unique `TomlValue::Table` (#726).
-    if !clone(variant_name).contains(String_from("::")) {
-        let suffix = String_from("::").concat(clone(variant_name))
+    if !variant_name.clone().contains(String_from("::")) {
+        let suffix = String_from("::").concat(variant_name.clone())
         let mut si = 0
         let mut found = String_new()
         let mut hits = 0
         while si < sc {
             let sn = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si)
-            if clone(sn).ends_with(clone(suffix)) {
+            if sn.clone().ends_with(suffix.clone()) {
                 found = sn
                 hits = hits + 1
             }
@@ -170,14 +170,14 @@ fn ctx_resolve_variant_layout_name(ctx: LowerCtx, variant_name: String) -> Strin
     }
     // Module-qualified arms (`types::WitType::List`) share the Enum::Variant
     // key with layouts registered as `WitType::List` (#809).
-    let query_key = variant_layout_enum_variant_key(clone(variant_name))
+    let query_key = variant_layout_enum_variant_key(variant_name.clone())
     let mut si2 = 0
     let mut best = String_new()
     let mut best_len = 0 - 1
     let mut hits2 = 0
     while si2 < sc {
         let sn = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si2)
-        if eq(variant_layout_enum_variant_key(clone(sn)), clone(query_key)) {
+        if eq(variant_layout_enum_variant_key(sn.clone()), query_key.clone()) {
             hits2 = hits2 + 1
             let sn_len = len(sn)
             if sn_len > best_len {
@@ -214,55 +214,55 @@ fn variant_layout_enum_variant_key(name: String) -> String {
 }
 
 fn ctx_struct_field_is_gc_ref(ctx: LowerCtx, struct_name: String, field_idx: i32) -> bool {
-    let ft = ctx_struct_field_type_name(ctx, clone(struct_name), field_idx)
+    let ft = ctx_struct_field_type_name(ctx, struct_name.clone(), field_idx)
     if len(ft) == 0 {
         return false
     }
-    if eq(clone(ft), "String") || eq(clone(ft), "string") {
+    if eq(ft.clone(), "String") || eq(ft.clone(), "string") {
         return true
     }
     // Declared aggregates win over the single-letter type-param heuristic:
     // `p: P` on a declared struct P is a ref field, not a scalar param slot.
-    if field_type_is_registered_enum(ctx, clone(ft)) {
+    if field_type_is_registered_enum(ctx, ft.clone()) {
         return true
     }
-    if field_type_is_registered_struct(ctx, clone(ft)) {
+    if field_type_is_registered_struct(ctx, ft.clone()) {
         return true
     }
     // Unsubstituted type params are scalar placeholders, not GC refs.
-    if field_type_is_type_param(clone(ft)) {
+    if field_type_is_type_param(ft.clone()) {
         return false
     }
     // Function refs are i32 table indices.
-    if eq(clone(ft), "fnref") || clone(ft).starts_with(String_from("fnref")) || eq(clone(ft), "fn") || clone(ft).starts_with(String_from("fn(")) {
+    if eq(ft.clone(), "fnref") || ft.clone().starts_with(String_from("fnref")) || eq(ft.clone(), "fn") || ft.clone().starts_with(String_from("fn(")) {
         return false
     }
     // `fnsig:` callback fields are typed funcrefs, not GC data refs (#860).
-    if clone(ft).starts_with(String_from("fnsig:")) {
+    if ft.clone().starts_with(String_from("fnsig:")) {
         return false
     }
     // Vec/HashMap/HashSet container fields are GC refs (not i32 handles).
-    if field_type_is_container_ref(clone(ft)) {
+    if field_type_is_container_ref(ft.clone()) {
         return true
     }
     false
 }
 
 fn field_type_is_container_ref(type_name: String) -> bool {
-    if eq(clone(type_name), String_from("Vec")) || eq(clone(type_name), String_from("HashMap")) || eq(clone(type_name), String_from("HashSet")) {
+    if eq(type_name.clone(), String_from("Vec")) || eq(type_name.clone(), String_from("HashMap")) || eq(type_name.clone(), String_from("HashSet")) {
         return true
     }
-    if clone(type_name).starts_with(String_from("vec:")) || clone(type_name).starts_with(String_from("hashmap:")) || clone(type_name).starts_with(String_from("hashset:")) {
+    if type_name.clone().starts_with(String_from("vec:")) || type_name.clone().starts_with(String_from("hashmap:")) || type_name.clone().starts_with(String_from("hashset:")) {
         return true
     }
-    if clone(type_name).starts_with(String_from("Vec<")) || clone(type_name).starts_with(String_from("HashMap<")) || clone(type_name).starts_with(String_from("HashSet<")) {
+    if type_name.clone().starts_with(String_from("Vec<")) || type_name.clone().starts_with(String_from("HashMap<")) || type_name.clone().starts_with(String_from("HashSet<")) {
         return true
     }
     // Result/Option angle-bracket forms are GC enum-open refs (#726 json).
-    if clone(type_name).starts_with(String_from("Result<")) || clone(type_name).starts_with(String_from("Result_")) || clone(type_name).starts_with(String_from("result:")) {
+    if type_name.clone().starts_with(String_from("Result<")) || type_name.clone().starts_with(String_from("Result_")) || type_name.clone().starts_with(String_from("result:")) {
         return true
     }
-    if clone(type_name).starts_with(String_from("Option<")) || clone(type_name).starts_with(String_from("Option_")) || clone(type_name).starts_with(String_from("option:")) {
+    if type_name.clone().starts_with(String_from("Option<")) || type_name.clone().starts_with(String_from("Option_")) || type_name.clone().starts_with(String_from("option:")) {
         return true
     }
     false
@@ -272,7 +272,7 @@ fn field_type_is_type_param(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if clone(type_name).starts_with(String_from("?")) {
+    if type_name.clone().starts_with(String_from("?")) {
         return field_type_is_type_param(type_name.slice(1, len(type_name)))
     }
     if len(type_name) == 1 {
@@ -288,7 +288,7 @@ fn field_type_is_registered_struct(ctx: LowerCtx, type_name: String) -> bool {
     let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
     let mut si = 0
     while si < sc {
-        if eq(ctx_struct_storage::ctx_struct_layout_name_at(ctx, si), clone(type_name)) {
+        if eq(ctx_struct_storage::ctx_struct_layout_name_at(ctx, si), type_name.clone()) {
             return true
         }
         si = si + 1
@@ -300,7 +300,7 @@ fn field_type_is_registered_enum(ctx: LowerCtx, type_name: String) -> bool {
     let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
     let mut si = 0
     while si < sc {
-        if eq(ctx_struct_storage::ctx_struct_layout_name_at(ctx, si), clone(type_name)) {
+        if eq(ctx_struct_storage::ctx_struct_layout_name_at(ctx, si), type_name.clone()) {
             if ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si) == 1 {
                 let mut off = 0
                 let mut li = 0
@@ -326,10 +326,10 @@ fn ctx_struct_field_is_f64(ctx: LowerCtx, struct_name: String, field_idx: i32) -
     while si < sc {
         let sn = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si)
         let fc = ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si)
-        if eq(clone(sn), clone(struct_name)) {
+        if eq(sn.clone(), struct_name.clone()) {
             if field_idx < fc {
                 let ft = ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, offset + field_idx)
-                return eq(clone(ft), "f64")
+                return eq(ft.clone(), "f64")
             }
             return false
         }
@@ -346,10 +346,10 @@ fn ctx_struct_field_is_i64(ctx: LowerCtx, struct_name: String, field_idx: i32) -
     while si < sc {
         let sn = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si)
         let fc = ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si)
-        if eq(clone(sn), clone(struct_name)) {
+        if eq(sn.clone(), struct_name.clone()) {
             if field_idx < fc {
                 let ft = ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, offset + field_idx)
-                return eq(clone(ft), "i64") || eq(clone(ft), "u64")
+                return eq(ft.clone(), "i64") || eq(ft.clone(), "u64")
             }
             return false
         }
@@ -360,37 +360,37 @@ fn ctx_struct_field_is_i64(ctx: LowerCtx, struct_name: String, field_idx: i32) -
 }
 
 fn ctx_struct_field_is_v128(ctx: LowerCtx, struct_name: String, field_idx: i32) -> bool {
-    let ft = ctx_struct_field_type_name(ctx, clone(struct_name), field_idx)
-    eq(clone(ft), "v128") || eq(clone(ft), "V128")
+    let ft = ctx_struct_field_type_name(ctx, struct_name.clone(), field_idx)
+    eq(ft.clone(), "v128") || eq(ft.clone(), "V128")
 }
 
 // Normalize a struct field type name (possibly module-qualified) to the MIR
 // local type name used by the GC emitter (e.g. Vec<String> -> vec:String).
 fn normalize_gc_field_type_name(type_name: String) -> String {
-    if clone(type_name).starts_with(String_from("vec:")) {
-        let elem = clone(type_name).slice(4, len(type_name))
+    if type_name.clone().starts_with(String_from("vec:")) {
+        let elem = type_name.clone().slice(4, len(type_name))
         return String_from("vec:").concat(normalize_gc_field_type_name(elem))
     }
-    if clone(type_name).starts_with(String_from("Vec<")) &&
-    clone(type_name).ends_with(String_from(">")) {
-        let elem = clone(type_name).slice(4, len(type_name) - 1)
-        if eq(clone(elem), String_from("String")) || eq(clone(elem), String_from("string")) {
+    if type_name.clone().starts_with(String_from("Vec<")) &&
+    type_name.clone().ends_with(String_from(">")) {
+        let elem = type_name.clone().slice(4, len(type_name) - 1)
+        if eq(elem.clone(), String_from("String")) || eq(elem.clone(), String_from("string")) {
             return String_from("vec:String")
         }
-        return String_from("vec:").concat(normalize_gc_field_type_name(clone(elem)))
+        return String_from("vec:").concat(normalize_gc_field_type_name(elem.clone()))
     }
-    if clone(type_name).starts_with(String_from("Vec_")) {
-        let elem = clone(type_name).slice(4, len(type_name))
-        if eq(clone(elem), String_from("String")) || eq(clone(elem), String_from("string")) {
+    if type_name.clone().starts_with(String_from("Vec_")) {
+        let elem = type_name.clone().slice(4, len(type_name))
+        if eq(elem.clone(), String_from("String")) || eq(elem.clone(), String_from("string")) {
             return String_from("vec:String")
         }
-        return String_from("vec:").concat(normalize_gc_field_type_name(clone(elem)))
+        return String_from("vec:").concat(normalize_gc_field_type_name(elem.clone()))
     }
-    let base = strip_module_prefix(clone(type_name))
-    if eq(clone(base), String_from("Vec")) {
+    let base = strip_module_prefix(type_name.clone())
+    if eq(base.clone(), String_from("Vec")) {
         return String_from("vec:i32")
     }
-    if eq(clone(base), String_from("String")) || eq(clone(base), String_from("string")) {
+    if eq(base.clone(), String_from("String")) || eq(base.clone(), String_from("string")) {
         return String_from("String")
     }
     base

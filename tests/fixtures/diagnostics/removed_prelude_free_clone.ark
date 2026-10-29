@@ -1,0 +1,7 @@
+// E0100 on the retired free `clone(x)` (ADR-091): the receiver method is the
+// canonical surface and the prelude declaration stays only as a private
+// lowering shim.
+fn main() {
+    let s = String_from("x")
+    let _copy = clone(s)
+}

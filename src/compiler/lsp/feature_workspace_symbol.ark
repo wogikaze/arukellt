@@ -1,6 +1,5 @@
 use std::host::fs::Fs
 use std::json
-use std::prelude::{clone}
 use lsp::framing
 use lsp::responses
 use lsp::symbol_index
@@ -9,21 +8,21 @@ use lsp::symbol_index_record
 use lsp::state_docs
 use lsp::state_record
 pub fn handle_workspace_symbol(mut state: LspState, body: String) {
-    let id = json::JsonText::get_int(clone(body), String_from("id"))
-    let query = json::JsonText::get_str(clone(body), String_from("query"))
-    let matches = symbol_index::symbol_index_search_query(state, clone(query))
+    let id = json::JsonText::get_int(body.clone(), String_from("id"))
+    let query = json::JsonText::get_str(body.clone(), String_from("query"))
+    let matches = symbol_index::symbol_index_search_query(state, query.clone())
     let mut source_texts = Vec::new<String>()
     let mn = len(matches)
     let mut mi = 0
     while mi < mn {
         let sym = get_unchecked(matches, mi)
         let uri = symbol_index_record::indexed_symbol_uri(sym)
-        let doc_text = state_docs::lsp_doc_store_lookup_text(state_record::lsp_state_doc_store(state), clone(uri))
+        let doc_text = state_docs::lsp_doc_store_lookup_text(state_record::lsp_state_doc_store(state), uri.clone())
         if len(doc_text) > 0 {
             push(source_texts, doc_text)
         } else {
-            let file_path = symbol_index_paths::uri_to_file_path(clone(uri))
-            let read_result = Fs::read_to_string(clone(file_path))
+            let file_path = symbol_index_paths::uri_to_file_path(uri.clone())
+            let read_result = Fs::read_to_string(file_path.clone())
             match read_result {
                 Result::Ok(text) => {
                     push(source_texts, text)

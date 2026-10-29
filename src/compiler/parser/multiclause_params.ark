@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use std::text
 use parser::kinds
 use parser::core_ast_factory
@@ -17,7 +16,7 @@ fn build_synthetic_param_names(param_count: i32) -> Vec<String> {
 fn append_synthetic_params(mut result: AstNode, param_names: Vec<String>, clauses: Vec<AstNode>, fn_span: Span) {
     for pi in 0..len(param_names) {
         let syn_name = get_unchecked(param_names, pi)
-        let mut param = AstNode_leaf(kinds::NK_IDENT(), clone(syn_name), fn_span)
+        let mut param = AstNode_leaf(kinds::NK_IDENT(), syn_name.clone(), fn_span)
         copy_first_typed_clause_param_annotations(param, clauses, pi)
         core_ast_children::AstNode_push_child(result, param)
     }

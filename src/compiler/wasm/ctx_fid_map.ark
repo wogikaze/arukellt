@@ -7,7 +7,6 @@ use collections::name_index
 // and synthetic aliases, so a plain NameIndex lookup is not enough; consuming
 // one chain entry per MIR declaration preserves the old ordinal rule without
 // rescanning either collection for every function.
-use std::prelude::{clone}
 fn ctx_fid_map_build_registry_chains(
     registry: SignatureRegistry,
     mut registry_heads: NameIndex,
@@ -26,9 +25,9 @@ fn ctx_fid_map_build_registry_chains(
             continue
         }
         let name = signature_registry::signature_registry_mangled_at(registry, raw)
-        let tail = name_index::name_index_get(registry_tails, clone(name))
+        let tail = name_index::name_index_get(registry_tails, name.clone())
         if tail < 0 {
-            name_index::name_index_insert_first(registry_heads, clone(name), raw)
+            name_index::name_index_insert_first(registry_heads, name.clone(), raw)
         } else {
             set(registry_next, tail, raw)
         }
@@ -55,7 +54,7 @@ fn SelfEmitCtx_build_fid_to_mir(mut ctx: SelfEmitCtx) {
     let mut fi = 0
     while fi < fn_count {
         let fname = function_identity::MirFunction_name(get_unchecked(functions, fi))
-        let raw = name_index::name_index_get(registry_heads, clone(fname))
+        let raw = name_index::name_index_get(registry_heads, fname.clone())
         if raw >= 0 {
             if get_unchecked(fid_to_mir, raw) < 0 {
                 set(fid_to_mir, raw, fi)

@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use std::text
 struct DapState {
     initialized: bool,
@@ -29,7 +28,7 @@ fn dap_state_is_disconnected(state: DapState) -> bool {
 }
 
 fn dap_state_append_output(mut state: DapState, chunk: String) {
-    state.output = clone(state.output).concat(chunk)
+    state.output = state.output.clone().concat(chunk)
 }
 
 fn dap_state_output(state: DapState) -> String {

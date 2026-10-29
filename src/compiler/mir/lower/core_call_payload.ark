@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
@@ -15,25 +14,25 @@ use mir::value_types
 fn lower_core_payload_variant_call(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
     let raw_name = core_expr_shape_accessors::mir_core_expr_text(expr)
-    let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
+    let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, raw_name.clone())
     let variant_name = if len(canon) > 0 {
         canon
     } else {
         raw_name
     }
-    let var_tag = ctx_api_variants::ctx_variant_tag(ctx, clone(variant_name))
+    let var_tag = ctx_api_variants::ctx_variant_tag(ctx, variant_name.clone())
     if var_tag < 0 || child_count <= 1 {
         return 0 - 2
     }
     let mut payload_locals = Vec::new<i32>()
     let mut payload_vts = Vec::new<i32>()
-    let struct_bytes = ctx_struct_byte_size(ctx, clone(variant_name))
+    let struct_bytes = ctx_struct_byte_size(ctx, variant_name.clone())
     let mut total_bytes = 4
     let mut pa = 1
     while pa < child_count {
         let parg_index = core_expr_shape_accessors::mir_core_expr_child(expr, pa)
         let parg_expr = get_unchecked(exprs, parg_index)
-        let p_idx = if mir_core_variant_arg_is_fn_value(ctx, clone(variant_name), parg_expr) {
+        let p_idx = if mir_core_variant_arg_is_fn_value(ctx, variant_name.clone(), parg_expr) {
             value_variants::lower_function_value(ctx, core_expr_shape_accessors::mir_core_expr_text(parg_expr))
         } else {
             lower_core_expr(ctx, exprs, parg_index)
@@ -42,7 +41,7 @@ fn lower_core_payload_variant_call(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, e
         let save_local = ctx_api_local_alloc::ctx_fresh_local(ctx, p_vt)
         let src_type = ctx_api_local_types::ctx_get_local_type(ctx, p_idx)
         if len(src_type) > 0 {
-            ctx_api_local_types::ctx_set_local_type(ctx, save_local, clone(src_type))
+            ctx_api_local_types::ctx_set_local_type(ctx, save_local, src_type.clone())
         }
         // Keep the exact producer storage type.  Re-resolving a named enum
         // from its display name can select the wrong nominal GC type.
@@ -67,7 +66,7 @@ fn lower_core_payload_variant_call(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, e
     if struct_bytes > total_bytes {
         total_bytes = struct_bytes
     }
-    variants::lower_payload_variant_from_locals(ctx, var_tag, payload_locals, payload_vts, total_bytes, clone(variant_name))
+    variants::lower_payload_variant_from_locals(ctx, var_tag, payload_locals, payload_vts, total_bytes, variant_name.clone())
 }
 
 // `Some(answer)` / `Ok(answer)` / `Err(answer)` inside an enum-typed
@@ -83,7 +82,7 @@ fn mir_core_variant_arg_is_fn_value(ctx: LowerCtx, variant_name: String, parg: C
         return false
     }
     let parg_name = core_expr_shape_accessors::mir_core_expr_text(parg)
-    if ctx_api_local_alloc::ctx_lookup_local(ctx, clone(parg_name)) >= 0 {
+    if ctx_api_local_alloc::ctx_lookup_local(ctx, parg_name.clone()) >= 0 {
         return false
     }
     core_names::mir_function_parameter_count(ctx, parg_name) >= 0

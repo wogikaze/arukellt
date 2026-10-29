@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use corehir::function_id
 use corehir::mir_value_type
 use corehir::type_id
@@ -54,7 +54,7 @@ fn mono_instance_table_find_by_mangled(table: MonoInstanceTable, mangled: String
     let mut i = 0
     while i < count {
         let entry = get_unchecked(table.entries, i)
-        if eq(clone(entry.mangled_name), clone(mangled)) {
+        if eq(entry.mangled_name.clone(), mangled.clone()) {
             return i
         }
         i = i + 1

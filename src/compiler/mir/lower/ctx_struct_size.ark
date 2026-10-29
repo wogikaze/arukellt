@@ -1,7 +1,7 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ctx_struct_storage
 fn ctx_struct_layout_field_count(ctx: LowerCtx, struct_name: String) -> i32 {
-    let li = ctx_struct_storage::ctx_struct_layout_preferred_index(ctx, clone(struct_name))
+    let li = ctx_struct_storage::ctx_struct_layout_preferred_index(ctx, struct_name.clone())
     if li < 0 {
         return 0
     }
@@ -9,7 +9,7 @@ fn ctx_struct_layout_field_count(ctx: LowerCtx, struct_name: String) -> i32 {
 }
 
 fn ctx_struct_byte_size(ctx: LowerCtx, struct_name: String) -> i32 {
-    let li = ctx_struct_storage::ctx_struct_layout_preferred_index(ctx, clone(struct_name))
+    let li = ctx_struct_storage::ctx_struct_layout_preferred_index(ctx, struct_name.clone())
     if li < 0 {
         return 0
     }
@@ -26,10 +26,10 @@ fn ctx_struct_byte_size(ctx: LowerCtx, struct_name: String) -> i32 {
 }
 
 fn ctx_struct_field_byte_size(field_type: String) -> i32 {
-    if eq(clone(field_type), "f64") {
+    if eq(field_type.clone(), "f64") {
         return 8
     }
-    if eq(clone(field_type), "i64") || eq(clone(field_type), "u64") {
+    if eq(field_type.clone(), "i64") || eq(field_type.clone(), "u64") {
         return 8
     }
     4

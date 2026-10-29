@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use corehir::core_op_registry_generated
 use corehir::mir_value_type
@@ -31,8 +31,8 @@ fn native_c_core_call_error(diagnostic: String) -> NativeCCoreCall {
 }
 
 fn native_c_core_call_is_handled(call: NativeCCoreCall) -> bool { call.handled }
-fn native_c_core_call_source(call: NativeCCoreCall) -> String { clone(call.expression) }
-fn native_c_core_call_diagnostic(call: NativeCCoreCall) -> String { clone(call.diagnostic) }
+fn native_c_core_call_source(call: NativeCCoreCall) -> String { call.expression.clone() }
+fn native_c_core_call_diagnostic(call: NativeCCoreCall) -> String { call.diagnostic.clone() }
 
 fn native_c_core_call_result_is_receiver(mir_module: MirModule, instruction: MirInst) -> bool {
     // Native runtime mutators return ark_unit, but MIR/Wasm treat push as
@@ -105,21 +105,21 @@ fn native_c_core_value_member(function: MirFunction, local_id: i32) -> String {
     }
     let local = function_locals_view::MirFunction_local_at(function, local_id)
     let type_name = local_record::mir_local_type_name(local)
-    if abi::native_c_type_name_is_funcref(clone(type_name)) {
+    if abi::native_c_type_name_is_funcref(type_name.clone()) {
         return String_from("i64")
     }
     // Named enum/struct payloads may keep VT_I32 while the C local is a heap pointer.
     // Prefer type_name so vec_push/get use .ref instead of .i32.
-    if enum_abi::native_c_type_name_is_unit_tag_enum(clone(type_name)) ||
+    if enum_abi::native_c_type_name_is_unit_tag_enum(type_name.clone()) ||
     enum_abi::native_c_type_name_is_unit_tag_enum(
-        enum_abi::native_c_type_name_enum_basename(clone(type_name))
+        enum_abi::native_c_type_name_enum_basename(type_name.clone())
     ) {
         return String_from("i32")
     }
-    if clone(type_name).starts_with(String_from("enum:")) ||
-    clone(type_name).starts_with(String_from("struct:")) ||
-    abi::native_c_type_name_is_heap_object(clone(type_name)) ||
-    enum_abi::native_c_type_name_is_open_payload_enum(clone(type_name)) {
+    if type_name.clone().starts_with(String_from("enum:")) ||
+    type_name.clone().starts_with(String_from("struct:")) ||
+    abi::native_c_type_name_is_heap_object(type_name.clone()) ||
+    enum_abi::native_c_type_name_is_open_payload_enum(type_name.clone()) {
         return String_from("ref")
     }
     let value_type = local_record::mir_local_val_type(local)
@@ -135,10 +135,10 @@ fn native_c_core_value_member(function: MirFunction, local_id: i32) -> String {
 }
 
 fn native_c_core_vec_element_type_name(vec_type: String) -> String {
-    if clone(vec_type).starts_with(String_from("vec:")) {
+    if vec_type.clone().starts_with(String_from("vec:")) {
         return vec_type.slice(4, len(vec_type))
     }
-    if clone(vec_type).starts_with(String_from("Vec<")) && clone(vec_type).ends_with(String_from(">")) {
+    if vec_type.clone().starts_with(String_from("Vec<")) && vec_type.clone().ends_with(String_from(">")) {
         return vec_type.slice(4, len(vec_type) - 1)
     }
     String_new()
@@ -149,25 +149,25 @@ fn native_c_core_member_for_vec_element(element_type: String) -> String {
     if len(element_type) == 0 {
         return String_new()
     }
-    if abi::native_c_type_name_is_funcref(clone(element_type)) ||
-    clone(element_type).starts_with(String_from("fn(")) {
+    if abi::native_c_type_name_is_funcref(element_type.clone()) ||
+    element_type.clone().starts_with(String_from("fn(")) {
         return String_from("i64")
     }
-    if eq(clone(element_type), String_from("i64")) {
+    if eq(element_type.clone(), String_from("i64")) {
         return String_from("i64")
     }
-    if eq(clone(element_type), String_from("f32")) {
+    if eq(element_type.clone(), String_from("f32")) {
         return String_from("f32")
     }
-    if eq(clone(element_type), String_from("f64")) {
+    if eq(element_type.clone(), String_from("f64")) {
         return String_from("f64")
     }
-    if eq(clone(element_type), String_from("i32")) ||
-    eq(clone(element_type), String_from("bool")) ||
-    eq(clone(element_type), String_from("char")) ||
-    enum_abi::native_c_type_name_is_unit_tag_enum(clone(element_type)) ||
+    if eq(element_type.clone(), String_from("i32")) ||
+    eq(element_type.clone(), String_from("bool")) ||
+    eq(element_type.clone(), String_from("char")) ||
+    enum_abi::native_c_type_name_is_unit_tag_enum(element_type.clone()) ||
     enum_abi::native_c_type_name_is_unit_tag_enum(
-        enum_abi::native_c_type_name_enum_basename(clone(element_type))
+        enum_abi::native_c_type_name_enum_basename(element_type.clone())
     ) {
         return String_from("i32")
     }
@@ -233,16 +233,16 @@ fn native_c_core_local_type_name(function: MirFunction, local_id: i32) -> String
 }
 
 fn native_c_core_hashmap_family_supported(type_name: String) -> bool {
-    if clone(type_name).starts_with(String_from("hashmap:i32i32")) {
+    if type_name.clone().starts_with(String_from("hashmap:i32i32")) {
         return true
     }
-    if clone(type_name).starts_with(String_from("hashmap:si32")) {
+    if type_name.clone().starts_with(String_from("hashmap:si32")) {
         return true
     }
-    if clone(type_name).starts_with(String_from("hashmap:i32str")) {
+    if type_name.clone().starts_with(String_from("hashmap:i32str")) {
         return true
     }
-    if clone(type_name).starts_with(String_from("hashmap:strstr")) {
+    if type_name.clone().starts_with(String_from("hashmap:strstr")) {
         return true
     }
     false
@@ -250,10 +250,10 @@ fn native_c_core_hashmap_family_supported(type_name: String) -> bool {
 
 /// kind: 0 = i32, 1 = String.
 fn native_c_core_hashmap_key_kind(type_name: String) -> i32 {
-    if clone(type_name).starts_with(String_from("hashmap:si32")) {
+    if type_name.clone().starts_with(String_from("hashmap:si32")) {
         return 1
     }
-    if clone(type_name).starts_with(String_from("hashmap:strstr")) {
+    if type_name.clone().starts_with(String_from("hashmap:strstr")) {
         return 1
     }
     0
@@ -261,10 +261,10 @@ fn native_c_core_hashmap_key_kind(type_name: String) -> i32 {
 
 /// kind: 0 = i32, 1 = String.
 fn native_c_core_hashmap_value_kind(type_name: String) -> i32 {
-    if clone(type_name).starts_with(String_from("hashmap:i32str")) {
+    if type_name.clone().starts_with(String_from("hashmap:i32str")) {
         return 1
     }
-    if clone(type_name).starts_with(String_from("hashmap:strstr")) {
+    if type_name.clone().starts_with(String_from("hashmap:strstr")) {
         return 1
     }
     0
@@ -569,7 +569,7 @@ fn native_c_emit_core_call(
     if handler == core_op_registry_generated::core_op_handler_runtime_f32_to_f64() {
         let dest = inst_accessors_operands::MirInst_dest(instruction)
         let dest_member = native_c_core_value_member(function, dest)
-        if eq(clone(dest_member), String_from("f32")) {
+        if eq(dest_member.clone(), String_from("f32")) {
             return native_c_core_call_expression(
                 String_from("(float)").concat(native_c_core_arg(arguments, 0))
             )

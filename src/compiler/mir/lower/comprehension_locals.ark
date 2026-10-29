@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use std::text
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
@@ -16,9 +15,9 @@ fn emit_comprehension_source_vec_local(mut ctx: LowerCtx) -> i32 {
 }
 
 fn emit_comprehension_result_local(mut ctx: LowerCtx, elem_type_name: String, vec_type_str: String) -> i32 {
-    let comp_vec_new_name = String_from("Vec::new__").concat(clone(elem_type_name))
+    let comp_vec_new_name = String_from("Vec::new__").concat(elem_type_name.clone())
     let comp_result_local = ctx_fresh_local(ctx, value_types::VT_I32())
-    ctx_emit(ctx, inst_call::MirInst_call(clone(comp_vec_new_name), 0, comp_result_local))
+    ctx_emit(ctx, inst_call::MirInst_call(comp_vec_new_name.clone(), 0, comp_result_local))
     ctx_emit(ctx, inst_local_set::MirInst_local_set_from(comp_result_local, comp_result_local))
     ctx_set_local_type(ctx, comp_result_local, vec_type_str)
     comp_result_local

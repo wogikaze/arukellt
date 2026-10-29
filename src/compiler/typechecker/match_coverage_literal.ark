@@ -1,13 +1,13 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use typechecker::ast_access
 use typechecker::match_coverage_mark_record
 use typechecker::match_coverage_record
 fn record_literal_pattern(mut coverage: MatchCoverage, pat: AstNode) {
     let pat_name = ast_access::node_text(pat)
-    if eq(clone(pat_name), "true") {
+    if eq(pat_name.clone(), "true") {
         match_coverage_mark_record::match_coverage_mark_bool_true(coverage)
     }
-    if eq(clone(pat_name), "false") {
+    if eq(pat_name.clone(), "false") {
         match_coverage_mark_record::match_coverage_mark_bool_false(coverage)
     }
 }

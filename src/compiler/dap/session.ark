@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use dap::framing
 use dap::handlers
 use dap::state
@@ -7,7 +6,7 @@ fn run_dap_session(input: String) -> String {
     let n = len(input)
     let mut pos = 0
     while pos < n {
-        let f = framing::dap_parse_frame(clone(input), pos)
+        let f = framing::dap_parse_frame(input.clone(), pos)
         if !framing::dap_frame_result_ok(f) {
             break
         }

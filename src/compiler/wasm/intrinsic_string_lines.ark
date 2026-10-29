@@ -11,7 +11,6 @@ use wasm::intrinsics::helpers_numeric_i32_convert
 // GC implementation of String::lines. Normalize CRLF first, then reuse the
 // exact delimiter splitting implementation so empty lines and trailing lines
 // retain the same behavior as String::split.
-use std::prelude::{clone}
 fn emit_lines(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return false
@@ -27,7 +26,7 @@ fn emit_lines(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 fn emit_static_string(mut w: WasmWriter, ctx: SelfEmitCtx, value: String) {
     let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
     let local = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
-    let length = len(clone(value))
+    let length = len(value.clone())
     string_gc_helpers::emit_gc_i32_const(w, length)
     string_gc_helpers::emit_gc_array_new(w, string_type)
     helpers_core::emit_local_set(w, local)
@@ -37,7 +36,7 @@ fn emit_static_string(mut w: WasmWriter, ctx: SelfEmitCtx, value: String) {
         string_gc_helpers::emit_gc_i32_const(w, index)
         // GC array index must stay a true i32 under Memory64 scalar widen.
         helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
-        string_gc_helpers::emit_gc_i32_const(w, string_byte_at(clone(value), index))
+        string_gc_helpers::emit_gc_i32_const(w, string_byte_at(value.clone(), index))
         string_gc_helpers::emit_gc_array_set(w, string_type)
         index = index + 1
     }
@@ -45,7 +44,7 @@ fn emit_static_string(mut w: WasmWriter, ctx: SelfEmitCtx, value: String) {
 }
 
 fn string_byte_at(value: String, index: i32) -> i32 {
-    let ch = clone(value).byte_at(index)
+    let ch = value.clone().byte_at(index)
     if ch == '\r' {
         return 13
     }

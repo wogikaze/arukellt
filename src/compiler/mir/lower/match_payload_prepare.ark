@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use std::text
 use mir::lower::ast_node
 use mir::function_return_view
@@ -57,9 +57,9 @@ fn mir_prepare_match_payload(mut ctx: LowerCtx, node: AstNode, child_count: i32,
     let has_variant_arm = mir_match_has_variant_pattern(node, child_count)
     mir_fix_unresolved_scrutinee_type(ctx, node, child_count, scrut_idx, has_variant_arm)
     let scrut_type = ctx_get_local_type(ctx, scrut_idx)
-    let scrut_ok_is_f64 = mir_option_result_scrut_type_is_f64(clone(scrut_type))
-    let scrut_ok_is_i64 = mir_option_result_scrut_type_is_i64(clone(scrut_type))
-    let scrut_ok_is_i32 = mir_option_result_scrut_type_is_i32(clone(scrut_type))
+    let scrut_ok_is_f64 = mir_option_result_scrut_type_is_f64(scrut_type.clone())
+    let scrut_ok_is_i64 = mir_option_result_scrut_type_is_i64(scrut_type.clone())
+    let scrut_ok_is_i32 = mir_option_result_scrut_type_is_i32(scrut_type.clone())
     // On wasm32 every variant of an enum that declares payloads is a heap
     // record, including payload-less arms like `Opt::None`.  Comparing the
     // record pointer against the tag constant is always false, so variant
@@ -80,27 +80,27 @@ fn mir_prepare_match_payload(mut ctx: LowerCtx, node: AstNode, child_count: i32,
 // whose field type is option:i32/result:... needs the same flags a
 // top-level Option/Result scrutinee would.
 fn mir_option_result_scrut_type_is_f64(scrut_type: String) -> bool {
-    eq(clone(scrut_type), "Result_f64") ||
-    eq(clone(scrut_type), "Option_f64") ||
-    eq(clone(scrut_type), "option:f64") ||
-    clone(scrut_type).starts_with("Result_f64_") ||
-    clone(scrut_type).starts_with("result:f64:")
+    eq(scrut_type.clone(), "Result_f64") ||
+    eq(scrut_type.clone(), "Option_f64") ||
+    eq(scrut_type.clone(), "option:f64") ||
+    scrut_type.clone().starts_with("Result_f64_") ||
+    scrut_type.clone().starts_with("result:f64:")
 }
 
 fn mir_option_result_scrut_type_is_i64(scrut_type: String) -> bool {
-    eq(clone(scrut_type), "Result_i64") ||
-    eq(clone(scrut_type), "Option_i64") ||
-    eq(clone(scrut_type), "option:i64") ||
-    clone(scrut_type).starts_with("Result_i64_") ||
-    clone(scrut_type).starts_with("result:i64:")
+    eq(scrut_type.clone(), "Result_i64") ||
+    eq(scrut_type.clone(), "Option_i64") ||
+    eq(scrut_type.clone(), "option:i64") ||
+    scrut_type.clone().starts_with("Result_i64_") ||
+    scrut_type.clone().starts_with("result:i64:")
 }
 
 fn mir_option_result_scrut_type_is_i32(scrut_type: String) -> bool {
-    eq(clone(scrut_type), "Option_i32") ||
-    eq(clone(scrut_type), "Result_i32") ||
-    eq(clone(scrut_type), "option:i32") ||
-    clone(scrut_type).starts_with("Result_i32_") ||
-    clone(scrut_type).starts_with("result:i32:")
+    eq(scrut_type.clone(), "Option_i32") ||
+    eq(scrut_type.clone(), "Result_i32") ||
+    eq(scrut_type.clone(), "option:i32") ||
+    scrut_type.clone().starts_with("Result_i32_") ||
+    scrut_type.clone().starts_with("result:i32:")
 }
 
 fn mir_match_has_variant_pattern(node: AstNode, child_count: i32) -> bool {
@@ -150,10 +150,10 @@ fn mir_pat_or_has_variant_alternative(pat: AstNode) -> bool {
 }
 
 fn mir_ident_is_unit_variant_name(name: String) -> bool {
-    eq(clone(name), String_from("None")) ||
-    eq(clone(name), String_from("Some")) ||
-    eq(clone(name), String_from("Ok")) ||
-    eq(clone(name), String_from("Err"))
+    eq(name.clone(), String_from("None")) ||
+    eq(name.clone(), String_from("Some")) ||
+    eq(name.clone(), String_from("Ok")) ||
+    eq(name.clone(), String_from("Err"))
 }
 
 fn mir_match_has_payload_pattern(node: AstNode, child_count: i32) -> bool {
@@ -321,7 +321,7 @@ fn mir_match_guard_struct_owner(ctx: LowerCtx, node: AstNode, child_count: i32) 
 fn mir_match_option_scrutinee_type(ctx: LowerCtx, node: AstNode, child_count: i32) -> String {
     let f = ctx_current_storage::ctx_current_func_value(ctx)
     let rtn = function_return_view::MirFunction_return_type_name(f)
-    if !mir_option_elem_name_is_usable(clone(rtn)) {
+    if !mir_option_elem_name_is_usable(rtn.clone()) {
         return String_new()
     }
     let mut arm_scan = 1
@@ -339,7 +339,7 @@ fn mir_option_elem_name_is_usable(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
+    if eq(type_name.clone(), String_from("String")) || eq(type_name.clone(), String_from("string")) {
         return true
     }
     match_payload_field_type::mir_payload_scalar_type_name(type_name)
@@ -365,11 +365,11 @@ fn mir_arm_is_option_bind_return(arm: AstNode) -> bool {
     if !ast_node::node_kind_is(body, lower_kinds::NK_IDENT()) {
         return false
     }
-    eq(clone(ast_node::node_text(body)), clone(ast_node::node_text(bind_pat)))
+    eq(ast_node::node_text(body).clone(), ast_node::node_text(bind_pat).clone())
 }
 
 fn mir_variant_owner_is_option(variant_name: String) -> bool {
-    let normalized = ctx_gc_enum::ctx_gc_enum_normalize_variant_name(clone(variant_name))
+    let normalized = ctx_gc_enum::ctx_gc_enum_normalize_variant_name(variant_name.clone())
     normalized.starts_with(String_from("Option::"))
 }
 
@@ -410,12 +410,12 @@ fn mir_arm_is_bind_return_ident(ctx: LowerCtx, arm: AstNode) -> bool {
     if !ast_node::node_kind_is(body, lower_kinds::NK_IDENT()) {
         return false
     }
-    eq(clone(ast_node::node_text(body)), clone(ast_node::node_text(pat)))
+    eq(ast_node::node_text(body).clone(), ast_node::node_text(pat).clone())
 }
 
 fn mir_pat_is_plain_binding(ctx: LowerCtx, pat: AstNode) -> bool {
     let name = ast_node::node_text(pat)
-    if mir_ident_is_unit_variant_name(clone(name)) {
+    if mir_ident_is_unit_variant_name(name.clone()) {
         return false
     }
     ctx_api_variants::ctx_variant_tag(ctx, name) < 0
@@ -427,14 +427,14 @@ fn mir_pat_is_plain_binding(ctx: LowerCtx, pat: AstNode) -> bool {
 fn mir_guard_ident_field_owner(ctx: LowerCtx, expr: AstNode, bind_name: String) -> String {
     if ast_node::node_kind_is(expr, lower_kinds::NK_FIELD_ACCESS()) {
         let base = ast_node::node_child_at(expr, 0)
-        if ast_node::node_kind_is(base, lower_kinds::NK_IDENT()) && eq(clone(ast_node::node_text(base)), clone(bind_name)) {
+        if ast_node::node_kind_is(base, lower_kinds::NK_IDENT()) && eq(ast_node::node_text(base).clone(), bind_name.clone()) {
             return ctx_struct_lookup_index::ctx_field_owner_struct_name(ctx, ast_node::node_text(expr))
         }
     }
     let cc = ast_node::node_child_count(expr)
     let mut ci = 0
     while ci < cc {
-        let owner = mir_guard_ident_field_owner(ctx, ast_node::node_child_at(expr, ci), clone(bind_name))
+        let owner = mir_guard_ident_field_owner(ctx, ast_node::node_child_at(expr, ci), bind_name.clone())
         if len(owner) > 0 {
             return owner
         }

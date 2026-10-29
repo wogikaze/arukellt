@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use resolver::builtins
 use resolver::scope_stack_scopes
 use resolver::scope_define
@@ -9,7 +9,7 @@ fn ResolveCtx_new() -> ResolveCtx {
 }
 
 fn ResolveCtx_new_for_target(target: String) -> ResolveCtx {
-    let host_profile = if eq(clone(target), "wasm32") { "wasi-p1" } else { "wasi-p2" }
+    let host_profile = if eq(target.clone(), "wasm32") { "wasi-p1" } else { "wasi-p2" }
     ResolveCtx_new_for_target_and_host(target, host_profile)
 }
 
@@ -49,10 +49,10 @@ fn ResolveCtx_target(ctx: ResolveCtx) -> String {
 fn register_builtins(mut ctx: ResolveCtx) {
     let builtin_names = builtins::resolver_builtin_symbol_names()
     for i in 0..len(builtin_names) {
-        scope_define::define(ctx, clone(get_unchecked(builtin_names, i)), commands::SYM_BUILTIN())
+        scope_define::define(ctx, get_unchecked(builtin_names, i).clone(), commands::SYM_BUILTIN())
     }
     let module_names = builtins::resolver_builtin_module_names()
     for m in 0..len(module_names) {
-        scope_define::define(ctx, clone(get_unchecked(module_names, m)), commands::SYM_MODULE())
+        scope_define::define(ctx, get_unchecked(module_names, m).clone(), commands::SYM_MODULE())
     }
 }

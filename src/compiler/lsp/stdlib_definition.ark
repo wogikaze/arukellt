@@ -1,41 +1,40 @@
-use std::prelude::{clone}
 use lsp::positions
 use lsp::source_text
 use lsp::symbol_index_lookup
 fn is_stdlib_uri(uri: String) -> bool {
-    clone(uri).starts_with("file://std/")
+    uri.clone().starts_with("file://std/")
 }
 
 pub fn lookup_stdlib_definition(state: LspState, short_name: String) -> bool {
-    let def = symbol_index_lookup::lookup_definition(state, clone(short_name))
+    let def = symbol_index_lookup::lookup_definition(state, short_name.clone())
     symbol_index_lookup::index_definition_found(def) && is_stdlib_uri(symbol_index_lookup::index_definition_uri(def))
 }
 
 pub fn stdlib_definition_uri(state: LspState, short_name: String) -> String {
-    let def = symbol_index_lookup::lookup_definition(state, clone(short_name))
+    let def = symbol_index_lookup::lookup_definition(state, short_name.clone())
     symbol_index_lookup::index_definition_uri(def)
 }
 
 pub fn stdlib_definition_start(state: LspState, short_name: String) -> LspPosition {
-    let def = symbol_index_lookup::lookup_definition(state, clone(short_name))
+    let def = symbol_index_lookup::lookup_definition(state, short_name.clone())
     let def_uri = symbol_index_lookup::index_definition_uri(def)
-    let def_text = source_text::text_for_uri(state, clone(def_uri))
+    let def_text = source_text::text_for_uri(state, def_uri.clone())
     positions::offset_to_position(def_text, symbol_index_lookup::index_definition_decl_start(def))
 }
 
 pub fn stdlib_definition_end(state: LspState, short_name: String) -> LspPosition {
-    let def = symbol_index_lookup::lookup_definition(state, clone(short_name))
+    let def = symbol_index_lookup::lookup_definition(state, short_name.clone())
     let def_uri = symbol_index_lookup::index_definition_uri(def)
-    let def_text = source_text::text_for_uri(state, clone(def_uri))
+    let def_text = source_text::text_for_uri(state, def_uri.clone())
     positions::offset_to_position(def_text, symbol_index_lookup::index_definition_decl_end(def))
 }
 
 pub fn stdlib_definition_detail(state: LspState, short_name: String) -> String {
-    let def = symbol_index_lookup::lookup_definition(state, clone(short_name))
+    let def = symbol_index_lookup::lookup_definition(state, short_name.clone())
     symbol_index_lookup::index_definition_detail(def)
 }
 
 pub fn stdlib_definition_doc(state: LspState, short_name: String) -> String {
-    let def = symbol_index_lookup::lookup_definition(state, clone(short_name))
+    let def = symbol_index_lookup::lookup_definition(state, short_name.clone())
     symbol_index_lookup::index_definition_doc(def)
 }

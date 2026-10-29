@@ -1,4 +1,3 @@
-use std::prelude::{clone}
 use mir::module_wit_imports
 use mir::module_gc_enum
 use mir::module_gc_struct
@@ -25,26 +24,26 @@ fn emit_type_section(
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>
 ) -> TypeSectionPlan {
     let memory64 = writer_core::writer_memory64(out)
-    let num_host_types = emit_target::host_type_count(clone(target), clone(wasi_version))
+    let num_host_types = emit_target::host_type_count(target.clone(), wasi_version.clone())
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
     let mut gc_fixed_count = 0
     let mut enum_variant_count = 0
     let mut gc_struct_count = 0
     let mut gc_callback_count = 0
-    if emit_target::is_gc_target(clone(target)) {
+    if emit_target::is_gc_target(target.clone()) {
         gc_fixed_count = sections_types_gc::gc_type_sig_count()
         enum_variant_count = module_gc_enum::MirModule_gc_enum_variant_sig_count(mir)
         gc_struct_count = module_gc_struct::MirModule_gc_struct_sig_count(mir)
         gc_callback_count = sections_types_sigs::gc_typed_callback_type_sig_count()
     }
     let gc_type_count = gc_fixed_count + enum_variant_count + gc_struct_count + gc_callback_count
-    let p2_library_post_count = if emit_target::is_p2_wasi(clone(wasi_version)) {
+    let p2_library_post_count = if emit_target::is_p2_wasi(wasi_version.clone()) {
         sections_exports::p2_library_export_count(mir, fn_count)
     } else {
         0
     }
-    let p2_library_wrapper_count = if emit_target::is_p2_wasi(clone(wasi_version)) {
-        sections_exports::p2_library_wrapper_count(mir, fn_count, clone(target), clone(wasi_version))
+    let p2_library_wrapper_count = if emit_target::is_p2_wasi(wasi_version.clone()) {
+        sections_exports::p2_library_wrapper_count(mir, fn_count, target.clone(), wasi_version.clone())
     } else {
         0
     }
@@ -52,7 +51,7 @@ fn emit_type_section(
         mir,
         functions,
         fn_count,
-        clone(target),
+        target.clone(),
         memory64
     )
     let pair_sig_count = len(pair_sigs)
@@ -61,8 +60,8 @@ fn emit_type_section(
         functions,
         fn_count,
         needs_wrapper,
-        clone(target),
-        clone(wasi_version),
+        target.clone(),
+        wasi_version.clone(),
         memory64,
         bindings,
         pair_sigs
@@ -70,15 +69,15 @@ fn emit_type_section(
     let canon_plan = canonicalize_type_sigs(mir, type_sigs)
     let canon_types = TypeCanonPlan_canon_types(canon_plan)
     let type_map = TypeCanonPlan_type_map(canon_plan)
-    let linear_gc_enabled = emit_target::is_linear_memory_target(clone(target))
+    let linear_gc_enabled = emit_target::is_linear_memory_target(target.clone())
     let linear_gc_sig_count = if linear_gc_enabled { 8 } else { 0 }
     let p2_runtime_start = len(type_map) - 2 - linear_gc_sig_count - pair_sig_count
-    let p2_realloc_type_idx = if emit_target::is_p2_wasi(clone(wasi_version)) {
+    let p2_realloc_type_idx = if emit_target::is_p2_wasi(wasi_version.clone()) {
         get_unchecked(type_map, p2_runtime_start)
     } else {
         0 - 1
     }
-    let p2_initialize_type_idx = if emit_target::is_p2_wasi(clone(wasi_version)) {
+    let p2_initialize_type_idx = if emit_target::is_p2_wasi(wasi_version.clone()) {
         get_unchecked(type_map, p2_runtime_start + 1)
     } else {
         0 - 1
@@ -92,7 +91,7 @@ fn emit_type_section(
         needs_wrapper,
         p2_library_post_count,
         p2_library_wrapper_count,
-        emit_target::is_p2_wasi(clone(wasi_version)),
+        emit_target::is_p2_wasi(wasi_version.clone()),
         linear_gc_enabled
     )
     let gc_type_base = first_gc_type_index(canon_types)
@@ -128,7 +127,7 @@ fn emit_type_section(
         gc_enum_variant_type_map,
         gc_struct_base,
         gc_struct_type_map,
-        emit_target::is_p2_wasi(clone(wasi_version)),
+        emit_target::is_p2_wasi(wasi_version.clone()),
         p2_library_post_count,
         p2_library_wrapper_count,
         p2_realloc_type_idx,
@@ -203,9 +202,9 @@ fn build_type_sigs(
     pair_sigs: Vec<String>
 ) -> Vec<String> {
     let mut type_sigs = Vec::new<String>()
-    sections_types_sigs::append_wasi_type_sigs(type_sigs, clone(wasi_version))
+    sections_types_sigs::append_wasi_type_sigs(type_sigs, wasi_version.clone())
     sections_types_sigs::append_wit_type_sigs(type_sigs, bindings)
-    if emit_target::is_gc_target(clone(target)) {
+    if emit_target::is_gc_target(target.clone()) {
         sections_types_gc::append_gc_type_sigs(type_sigs)
         sections_types_sigs::append_gc_typed_callback_type_sigs(type_sigs)
         // Module GC types: sealed slots first, then late registrations in
@@ -217,19 +216,19 @@ fn build_type_sigs(
         type_sigs,
         functions,
         fn_count,
-        clone(target),
-        clone(wasi_version),
+        target.clone(),
+        wasi_version.clone(),
         memory64,
         mir
     )
-    sections_types_sigs::append_wrapper_type_sig(type_sigs, needs_wrapper, clone(wasi_version))
-    if emit_target::is_p2_wasi(clone(wasi_version)) {
+    sections_types_sigs::append_wrapper_type_sig(type_sigs, needs_wrapper, wasi_version.clone())
+    if emit_target::is_p2_wasi(wasi_version.clone()) {
         sections_types_sigs::append_p2_library_post_type_sigs(
             type_sigs,
             functions,
             fn_count,
-            clone(target),
-            clone(wasi_version),
+            target.clone(),
+            wasi_version.clone(),
             memory64,
             mir
         )
@@ -237,13 +236,13 @@ fn build_type_sigs(
             type_sigs,
             functions,
             fn_count,
-            clone(target),
-            clone(wasi_version),
+            target.clone(),
+            wasi_version.clone(),
             mir
         )
     }
-    sections_types_sigs::append_p2_runtime_type_sigs(type_sigs, clone(wasi_version))
-    sections_types_sigs::append_linear_gc_type_sigs(type_sigs, clone(target))
+    sections_types_sigs::append_p2_runtime_type_sigs(type_sigs, wasi_version.clone())
+    sections_types_sigs::append_linear_gc_type_sigs(type_sigs, target.clone())
     // Pair-ABI call-site signatures (#872): registered last so their canon
     // indices never shift host/GC/function regions; dedup maps them onto an
     // existing canon type whenever a program function already carries the
@@ -266,7 +265,7 @@ fn canonicalize_type_sigs(mut mir: MirModule, type_sigs: Vec<String>) -> TypeCan
     let ts_count = len(type_sigs)
     let mut tsi = 0
     while tsi < ts_count {
-        push(type_map, module_canon::MirModule_canon_ensure(mir, clone(get_unchecked(type_sigs, tsi))))
+        push(type_map, module_canon::MirModule_canon_ensure(mir, get_unchecked(type_sigs, tsi).clone()))
         tsi = tsi + 1
     }
     TypeCanonPlan_new(module_canon::MirModule_canon_sigs(mir), type_map)
@@ -275,13 +274,13 @@ fn canonicalize_type_sigs(mut mir: MirModule, type_sigs: Vec<String>) -> TypeCan
 fn first_gc_type_index(canon_types: Vec<String>) -> i32 {
     for i in 0..len(canon_types) {
         let sig = get_unchecked(canon_types, i)
-        if clone(sig).byte_at(0) == 65 {
+        if sig.clone().byte_at(0) == 65 {
             return i
         }
-        if clone(sig).starts_with("GS_f") {
+        if sig.clone().starts_with("GS_f") {
             return i
         }
-        if clone(sig).starts_with("Sub") {
+        if sig.clone().starts_with("Sub") {
             return i
         }
     }

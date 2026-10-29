@@ -273,7 +273,7 @@ fn main() {
     Test::assert_eq_string(c, "hello world")
 
     let s = String_from("original")
-    let d: String = clone(s)    // 独立したコピー
+    let d: String = s.clone()    // 独立したコピー
     Test::assert_eq_string(d, "original")
 }
 ```
