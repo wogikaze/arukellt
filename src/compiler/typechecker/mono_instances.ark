@@ -218,9 +218,9 @@ fn erase_impl_owner_args(name: String) -> String {
 
 // `enclosing_fn` stores FnSig_name of the body being checked: bare decl
 // names for free fns and trait-decl methods, `Owner<I>::m` for impl
-// methods. Instantiated keys arrive module-qualified (seq::sort_by) or
+// methods. Instantiated keys arrive type-qualified (Vec::sort) or
 // impl-qualified (Reverse::cmp). Match shapes:
-//   sort_by          vs seq::sort_by  -> last `::` segment
+//   sort             vs Vec::sort     -> last `::` segment
 //   Reverse<I>::cmp  vs Reverse::cmp  -> owner type-arg erasure
 //   cmp              vs Ord::cmp      -> trait-decl vs trait name
 // Critically `Ord::cmp` must NOT match `Reverse<I>::cmp` sites: a purely

@@ -1,0 +1,9 @@
+// E0100: the 9 provisional std::seq generics were removed under ADR-014's
+// notice rule; the qualified old call names the Vec receiver replacement.
+use std::seq
+
+fn main() {
+    let mut v: Vec<i32> = Vec::new<i32>()
+    push(v, 1)
+    let _ = seq::lower_bound(v, 1)
+}

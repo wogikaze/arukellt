@@ -320,6 +320,8 @@ diag:diagnostics/removed_hashmap_adapter.ark
 diag:diagnostics/removed_hashmap_adapter_wasm32.ark
 diag:diagnostics/removed_hashmap_free.ark
 diag:diagnostics/removed_hashmap_free_wasm32.ark
+diag:diagnostics/removed_seq_free.ark
+diag:diagnostics/removed_seq_free_wasm32.ark
 diag:diagnostics/removed_hashset_adapter.ark
 diag:diagnostics/removed_hashset_adapter_wasm32.ark
 diag:diagnostics/deprecated_time_monotonic_now.ark
@@ -1611,6 +1613,7 @@ run:stdlib_seq/seq_take_skip_fold.ark
 run:stdlib_seq/seq_take_skip_collect.ark
 run:stdlib_seq/seq_take_skip_collect_wasm32.ark
 run:stdlib_seq/seq_generic_string_instantiation.ark
+run:stdlib_seq/seq_generic_string_instantiation_wasm32.ark
 run:stdlib_signal/fft.ark
 test:stdlib_sort/sort_f64.ark
 test:stdlib_sort/sort_i64.ark
@@ -2126,6 +2129,7 @@ run:stdlib_trait/seek_then_read.ark
 run:stdlib_trait/seek_to_end.ark
 run:stdlib_trait/seek_to_zero.ark
 run:stdlib_trait/seq_ord_generic_algorithms.ark
+run:stdlib_trait/seq_ord_generic_algorithms_wasm32.ark
 run:stdlib_trait/self_return_add.ark
 run:stdlib_trait/self_return_clone.ark
 run:stdlib_trait/try_from_narrow.ark

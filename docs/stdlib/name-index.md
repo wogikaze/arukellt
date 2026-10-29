@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 126
+- **Canonical names:** 118
 - **Historical/deprecated names:** 75
-- **Total entries:** 201
+- **Total entries:** 193
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -43,8 +43,6 @@ Current public API names, sorted alphabetically.
 | `assert_ne_string` | `std::test` | `stable` | Test |
 | `assert_true` | `std::test` | `stable` | Test |
 | `bench` | `std::test` | `experimental` | Test |
-| `binary_search_by` | `std::seq` | `provisional` | Seq |
-| `binary_search_by_key` | `std::seq` | `provisional` | Seq |
 | `Box_new` | `prelude` | `stable` | Box |
 | `byte_at` | `prelude` | `stable` | String |
 | `byte_len` | `prelude` | `stable` | String |
@@ -85,14 +83,9 @@ Current public API names, sorted alphabetically.
 | `is_some` | `prelude` | `stable` | Option Result |
 | `join` | `prelude` | `stable` | String |
 | `lines` | `prelude` | `stable` | String |
-| `lower_bound` | `std::seq` | `provisional` | Seq |
 | `magnitude` | `std::signal` | `stable` | Signal |
 | `max` | `prelude` | `stable` | Math |
-| `max_by` | `std::seq` | `provisional` | Seq |
-| `max_by_key` | `std::seq` | `provisional` | Seq |
 | `min` | `prelude` | `stable` | Math |
-| `min_by` | `std::seq` | `provisional` | Seq |
-| `min_by_key` | `std::seq` | `provisional` | Seq |
 | `next_f64` | `std::host::random` | `stable` | Host Random |
 | `option` | `std::cli` | `stable` | Cli |
 | `pad_left` | `prelude` | `stable` | String |
@@ -144,7 +137,6 @@ Current public API names, sorted alphabetically.
 | `unbox` | `prelude` | `stable` | Box |
 | `unwrap` | `prelude` | `stable` | Option Result |
 | `unwrap_or` | `prelude` | `stable` | Option Result |
-| `upper_bound` | `std::seq` | `provisional` | Seq |
 | `values` | `prelude` | `stable` | Collections |
 | `zeros` | `std::signal` | `stable` | Signal |
 
@@ -161,7 +153,7 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`assert_eq_i64`~~ | `std::test::assert_eq_i64` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_eq_str`~~ | `std::test::assert_eq_string` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `std::test::assert_ne_i32` | Assert | [migration-guidance.md](migration-guidance.md) |
-| ~~`binary_search`~~ | `std::seq::binary_search_by` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`binary_search`~~ | `Vec::binary_search` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`bitset_mark`~~ | `BitSet::mark` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`bitset_new`~~ | `BitSet::new` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`bitset_test`~~ | `BitSet::test` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -208,8 +200,8 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`linked_list_push_front`~~ | `LinkedList::push_front` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_to_vec`~~ | `LinkedList::iter` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`map_i32_i32`~~ | `VecIter::map` | Seq | [migration-guidance.md](migration-guidance.md) |
-| ~~`max_i32`~~ | `std::seq::max_by` | Seq | [migration-guidance.md](migration-guidance.md) |
-| ~~`min_i32`~~ | `std::seq::min_by` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`max_i32`~~ | `Vec::max` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`min_i32`~~ | `Vec::min` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `VecIter::contains` | Seq | [migration-guidance.md](migration-guidance.md) |
@@ -267,9 +259,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `assert_ne_string` | ✅ `stable` | `std::test` | Test |
 | `assert_true` | ✅ `stable` | `std::test` | Test |
 | `bench` | ✅ `experimental` | `std::test` | Test |
-| ~~`binary_search`~~ | ⚠️ deprecated | `std::seq` | → `std::seq::binary_search_by` · [migration guide](migration-guidance.md) |
-| `binary_search_by` | ✅ `provisional` | `std::seq` | Seq |
-| `binary_search_by_key` | ✅ `provisional` | `std::seq` | Seq |
+| ~~`binary_search`~~ | ⚠️ deprecated | `std::seq` | → `Vec::binary_search` · [migration guide](migration-guidance.md) |
 | ~~`bitset_mark`~~ | ⚠️ deprecated | `std::collections::ordered` | → `BitSet::mark` · [migration guide](migration-guidance.md) |
 | ~~`bitset_new`~~ | ⚠️ deprecated | `std::collections::ordered` | → `BitSet::new` · [migration guide](migration-guidance.md) |
 | ~~`bitset_test`~~ | ⚠️ deprecated | `std::collections::ordered` | → `BitSet::test` · [migration guide](migration-guidance.md) |
@@ -355,17 +345,12 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`linked_list_push_back`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::push_back` · [migration guide](migration-guidance.md) |
 | ~~`linked_list_push_front`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::push_front` · [migration guide](migration-guidance.md) |
 | ~~`linked_list_to_vec`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::iter` · [migration guide](migration-guidance.md) |
-| `lower_bound` | ✅ `provisional` | `std::seq` | Seq |
 | `magnitude` | ✅ `stable` | `std::signal` | Signal |
 | ~~`map_i32_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::map` · [migration guide](migration-guidance.md) |
 | `max` | ✅ `stable` | `prelude` | Math |
-| `max_by` | ✅ `provisional` | `std::seq` | Seq |
-| `max_by_key` | ✅ `provisional` | `std::seq` | Seq |
-| ~~`max_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::seq::max_by` · [migration guide](migration-guidance.md) |
+| ~~`max_i32`~~ | ⚠️ deprecated | `std::seq` | → `Vec::max` · [migration guide](migration-guidance.md) |
 | `min` | ✅ `stable` | `prelude` | Math |
-| `min_by` | ✅ `provisional` | `std::seq` | Seq |
-| `min_by_key` | ✅ `provisional` | `std::seq` | Seq |
-| ~~`min_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::seq::min_by` · [migration guide](migration-guidance.md) |
+| ~~`min_i32`~~ | ⚠️ deprecated | `std::seq` | → `Vec::min` · [migration guide](migration-guidance.md) |
 | `next_f64` | ✅ `stable` | `std::host::random` | Host Random |
 | `option` | ✅ `stable` | `std::cli` | Cli |
 | `pad_left` | ✅ `stable` | `prelude` | String |
@@ -438,6 +423,5 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`unique`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::unique` · [migration guide](migration-guidance.md) |
 | `unwrap` | ✅ `stable` | `prelude` | Option Result |
 | `unwrap_or` | ✅ `stable` | `prelude` | Option Result |
-| `upper_bound` | ✅ `provisional` | `std::seq` | Seq |
 | `values` | ✅ `stable` | `prelude` | Collections |
 | `zeros` | ✅ `stable` | `std::signal` | Signal |

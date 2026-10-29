@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: seq::lower_bound; removed free function; use `v.lower_bound(target)` via `use std::collections::vec`

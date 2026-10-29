@@ -1757,10 +1757,17 @@ Non-prelude: `f32_to_string(f: f32) -> String`.
 
 The monomorphic prelude sort frees (`sort_i32`, `sort_i64`, `sort_f64`,
 `sort_String`) were removed in the ADR-087 Wave 2 (issue #703 / #917). Use the
-`Vec` method `v.sort_by(cmp)` from `std::collections::vec` for the verified
-`Vec<i32>` / `Vec<String>` lanes. The `i64` / `f64` `Vec` receiver lanes still
-emit invalid Wasm; `std::seq::sort_by(v)` is the reachable generic
-`Ord`-based fallback until those lanes land.
+`Vec` receiver methods from `std::collections::vec`: `v.sort()` for `i32` and
+`String`, and `v.sort_by(cmp)` when a total order is supplied (`f64` is not
+`Ord`) or a comparator-based order is wanted. The `Vec<i64>` `v.sort()` lane is
+correct below 5 elements but not on the linear / core-emit paths, so
+`std::seq::sort_by` remains the reachable generic `Ord` sort for that lane
+until #965. Of the remaining generic `Ord` algorithms in `std::seq`
+(`sort_by`, `binary_search_by`, `binary_search_by_key`, `lower_bound`,
+`upper_bound`, `min_by`, `max_by`, `min_by_key`, `max_by_key`), the last 8
+were removed on 2026-10-29 as provisional entries; their replacements are the
+`Vec<T: Ord>` methods `binary_search` / `binary_search_by_key` /
+`lower_bound` / `upper_bound` / `min` / `max` / `min_by_key` / `max_by_key`.
 
 ### 9.8 Vec — Higher-Order Functions
 

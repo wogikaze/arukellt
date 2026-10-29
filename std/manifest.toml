@@ -129,6 +129,11 @@ methods = [
     "dedup",
     "lower_bound",
     "upper_bound",
+    "binary_search",
+    "min",
+    "max",
+    "min_by_key",
+    "max_by_key",
 ]
 
 [[types]]
@@ -2024,30 +2029,30 @@ name = "binary_search"
 module = "std::seq"
 doc_category = "seq"
 stability = "deprecated"
-deprecated_by = "std::seq::binary_search_by"
+deprecated_by = "Vec::binary_search"
 params = ["Vec<i32>", "i32"]
 returns = "i32"
-doc = "Deprecated monomorphic wrapper. Use the generic std::seq::binary_search_by(v, target) over T: Ord."
+doc = "Deprecated monomorphic wrapper. Use `v.binary_search(target)` over T: Ord."
 
 [[functions]]
 name = "min_i32"
 module = "std::seq"
 doc_category = "seq"
 stability = "deprecated"
-deprecated_by = "std::seq::min_by"
+deprecated_by = "Vec::min"
 params = ["Vec<i32>"]
 returns = "i32"
-doc = "Deprecated monomorphic wrapper. Use the generic std::seq::min_by(v) over T: Ord."
+doc = "Deprecated monomorphic wrapper. Use `v.min()` over T: Ord."
 
 [[functions]]
 name = "max_i32"
 module = "std::seq"
 doc_category = "seq"
 stability = "deprecated"
-deprecated_by = "std::seq::max_by"
+deprecated_by = "Vec::max"
 params = ["Vec<i32>"]
 returns = "i32"
-doc = "Deprecated monomorphic wrapper. Use the generic std::seq::max_by(v) over T: Ord."
+doc = "Deprecated monomorphic wrapper. Use `v.max()` over T: Ord."
 
 [[functions]]
 name = "sum_i32"
@@ -2100,85 +2105,13 @@ returns = "i32"
 doc = "Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target)."
 
 [[functions]]
-name = "binary_search_by"
-module = "std::seq"
-doc_category = "seq"
-stability = "provisional"
-params = ["Vec<T>", "T"]
-returns = "i32"
-doc = "Binary search on a sorted Vec<T> using T: Ord. Returns the index of target or -1."
-
-[[functions]]
-name = "min_by"
-module = "std::seq"
-doc_category = "seq"
-stability = "provisional"
-params = ["Vec<T>"]
-returns = "T"
-doc = "Return the minimum element of v under T: Ord."
-
-[[functions]]
-name = "max_by"
-module = "std::seq"
-doc_category = "seq"
-stability = "provisional"
-params = ["Vec<T>"]
-returns = "T"
-doc = "Return the maximum element of v under T: Ord."
-
-[[functions]]
-name = "binary_search_by_key"
-module = "std::seq"
-doc_category = "seq"
-stability = "provisional"
-params = ["Vec<T>", "K", "fn(T) -> K"]
-returns = "i32"
-doc = "Binary search on a sorted Vec<T> by extracted key. Returns the index of the element whose key equals target_key, or -1."
-
-[[functions]]
-name = "lower_bound"
-module = "std::seq"
-doc_category = "seq"
-stability = "provisional"
-params = ["Vec<T>", "T"]
-returns = "i32"
-doc = "Return the index of the first element >= target in a sorted Vec<T: Ord>; len(v) if all elements are smaller."
-
-[[functions]]
-name = "upper_bound"
-module = "std::seq"
-doc_category = "seq"
-stability = "provisional"
-params = ["Vec<T>", "T"]
-returns = "i32"
-doc = "Return the index of the first element > target in a sorted Vec<T: Ord>; len(v) if all elements are <= target."
-
-[[functions]]
 name = "sort_by"
 module = "std::seq"
 doc_category = "seq"
 stability = "provisional"
 params = ["Vec<T>"]
 returns = "Vec<T>"
-doc = "Sort v into ascending order under T: Ord (stable insertion sort, in place; returns the same vector)."
-
-[[functions]]
-name = "min_by_key"
-module = "std::seq"
-doc_category = "seq"
-stability = "provisional"
-params = ["Vec<T>", "fn(T) -> K"]
-returns = "T"
-doc = "Return the element of v whose key(element) is minimal under K: Ord."
-
-[[functions]]
-name = "max_by_key"
-module = "std::seq"
-doc_category = "seq"
-stability = "provisional"
-params = ["Vec<T>", "fn(T) -> K"]
-returns = "T"
-doc = "Return the element of v whose key(element) is maximal under K: Ord."
+doc = "Sort v into ascending order under T: Ord (stable insertion sort, in place; returns the same vector). Retained until the Vec<T: Ord> method surface is correct for Vec<i64> at 5+ elements on every target (#965)."
 
 # === std::wit ===
 #

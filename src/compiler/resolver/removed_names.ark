@@ -188,9 +188,9 @@ fn removed_name_specific_hint(name: String) -> String {
     if eq(clone(name), "seq_contains") { return "removed free function; use `v.iter().contains(x)` via `use std::core::iter`" }
     if eq(clone(name), "unique") { return "removed free function; use `v.iter().unique().collect()` via `use std::core::iter`" }
     if eq(clone(name), "count_eq") { return "removed free function; use `v.iter().count_eq(x)` via `use std::core::iter`" }
-    if eq(clone(name), "binary_search") { return "removed free function; import `use std::seq::{binary_search_by}`" }
-    if eq(clone(name), "min_i32") { return "removed free function; import `use std::seq::{min_by}`" }
-    if eq(clone(name), "max_i32") { return "removed free function; import `use std::seq::{max_by}`" }
+    if eq(clone(name), "binary_search") { return "removed free function; use `v.binary_search(target)` via `use std::collections::vec`" }
+    if eq(clone(name), "min_i32") { return "removed free function; use `v.min()` via `use std::collections::vec`" }
+    if eq(clone(name), "max_i32") { return "removed free function; use `v.max()` via `use std::collections::vec`" }
     if eq(clone(name), "i32_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
     if eq(clone(name), "i64_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
     if eq(clone(name), "f64_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
@@ -526,9 +526,40 @@ fn removed_private_member_hint(module: String, name: String) -> String {
     String_new()
 }
 
+fn removed_seq_member_hint(name: String) -> String {
+    if eq(clone(name), "binary_search_by") {
+        return "removed free function; use `v.binary_search(target)` via `use std::collections::vec`"
+    }
+    if eq(clone(name), "binary_search_by_key") {
+        return "removed free function; use `v.binary_search_by_key(target_key, key)` via `use std::collections::vec`"
+    }
+    if eq(clone(name), "lower_bound") {
+        return "removed free function; use `v.lower_bound(target)` via `use std::collections::vec`"
+    }
+    if eq(clone(name), "upper_bound") {
+        return "removed free function; use `v.upper_bound(target)` via `use std::collections::vec`"
+    }
+    if eq(clone(name), "min_by") {
+        return "removed free function; use `v.min()` via `use std::collections::vec`"
+    }
+    if eq(clone(name), "max_by") {
+        return "removed free function; use `v.max()` via `use std::collections::vec`"
+    }
+    if eq(clone(name), "min_by_key") {
+        return "removed free function; use `v.min_by_key(key)` via `use std::collections::vec`"
+    }
+    if eq(clone(name), "max_by_key") {
+        return "removed free function; use `v.max_by_key(key)` via `use std::collections::vec`"
+    }
+    String_new()
+}
+
 fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "fs") || eq(clone(module), "host::fs") || eq(clone(module), "std::fs") || eq(clone(module), "std::host::fs") {
         return removed_host_fs_member_hint(name)
+    }
+    if eq(clone(module), "seq") || eq(clone(module), "std::seq") {
+        return removed_seq_member_hint(name)
     }
     if eq(clone(module), "compiler") || eq(clone(module), "collections::compiler") || eq(clone(module), "std::collections::compiler") {
         return removed_compiler_member_hint(name)
@@ -1438,6 +1469,19 @@ test mod "removed_names" {
         assert(len(removed_name_hint("product_i32")) > 0)
         assert(len(removed_name_hint("map_option_i32_i32")) > 0)
         assert(len(removed_name_hint("contains_string")) > 0)
+    }
+    test "retired seq generics have method hints" {
+        assert(len(removed_module_member_hint("std::seq", "binary_search_by")) > 0)
+        assert(len(removed_module_member_hint("seq", "binary_search_by_key")) > 0)
+        assert(len(removed_module_member_hint("seq", "lower_bound")) > 0)
+        assert(len(removed_module_member_hint("seq", "upper_bound")) > 0)
+        assert(len(removed_module_member_hint("seq", "min_by")) > 0)
+        assert(len(removed_module_member_hint("seq", "max_by")) > 0)
+        assert(len(removed_module_member_hint("seq", "min_by_key")) > 0)
+        assert(len(removed_module_member_hint("seq", "max_by_key")) > 0)
+        assert(len(removed_module_member_hint("seq", "unrelated")) == 0)
+        // The 13 deprecated helpers stay callable through the W0009 window.
+        assert(len(removed_module_member_hint("seq", "unique")) == 0)
     }
     test "gated provisional filter_i32 has an import hint" {
         assert(len(removed_name_hint("filter_i32")) > 0)

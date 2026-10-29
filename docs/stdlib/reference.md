@@ -9,7 +9,7 @@
 | Tier | Count | Description |
 |------|-------|-------------|
 | `stable` | 112 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
-| `provisional` | 10 | API is usable but may change in minor versions based on feedback. |
+| `provisional` | 2 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 4 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 75 | Superseded — see migration guidance. |
 
@@ -193,7 +193,7 @@
 | `V128` | `zero`, `and`, `andnot`, `or`, `xor`, `not`, `bitselect`, `any_true`, `new` | - |
 | `V128Memory` | `load`, `store`, `load_splat`, `load_lane`, `store_lane`, `load8x8_s`, `load8x8_u`, `load16x4_s`, `load16x4_u`, `load32x2_s`, `load32x2_u` | - |
 | `ValType` | `i32`, `i64`, `f32`, `f64`, `v128`, `funcref`, `externref` | - |
-| `Vec` | `new`, `with_capacity`, `push`, `pop`, `get`, `set`, `len`, `is_empty`, `get_unchecked`, `windows`, `chunks`, `chunks_exact`, `retain`, `truncate`, `append`, `drain`, `splice`, `sort_by`, `sort_by_key`, `sort_unstable_by`, `sort_unstable_by_key`, `dedup_by`, `partition`, `is_sorted_by`, `binary_search_by_key`, `resize`, `extend`, `clear`, `first`, `last`, `swap`, `reverse`, `insert`, `remove`, `swap_remove`, `sort`, `dedup`, `lower_bound`, `upper_bound` | - |
+| `Vec` | `new`, `with_capacity`, `push`, `pop`, `get`, `set`, `len`, `is_empty`, `get_unchecked`, `windows`, `chunks`, `chunks_exact`, `retain`, `truncate`, `append`, `drain`, `splice`, `sort_by`, `sort_by_key`, `sort_unstable_by`, `sort_unstable_by_key`, `dedup_by`, `partition`, `is_sorted_by`, `binary_search_by_key`, `resize`, `extend`, `clear`, `first`, `last`, `swap`, `reverse`, `insert`, `remove`, `swap_remove`, `sort`, `dedup`, `lower_bound`, `upper_bound`, `binary_search`, `min`, `max`, `min_by_key`, `max_by_key` | - |
 | `WasmModuleBuilder` | `new`, `add_type`, `add_func`, `add_memory`, `add_export_func`, `type_count`, `func_count`, `mem_count`, `export_count`, `magic`, `version`, `encode_header` | - |
 | `Write` | `write`, `flush` | - |
 | `Writer` | `new`, `into_bytes`, `into_reader`, `write_string` | `Write` |
@@ -496,28 +496,20 @@ let input = stdio::read_stdin()
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| ~~`binary_search`~~ ⚠️ Deprecated → `std::seq::binary_search_by` | `(Vec<i32>, i32) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated monomorphic wrapper. Use the generic std::seq::binary_search_by(v, target) over T: Ord. |
-| `binary_search_by` | `(Vec<T>, T) -> i32` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Binary search on a sorted Vec<T> using T: Ord. Returns the index of target or -1. |
-| `binary_search_by_key` | `(Vec<T>, K, fn(T) -> K) -> i32` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Binary search on a sorted Vec<T> by extracted key. Returns the index of the element whose key equals… |
+| ~~`binary_search`~~ ⚠️ Deprecated → `Vec::binary_search` | `(Vec<i32>, i32) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated monomorphic wrapper. Use v.binary_search(target) over T: Ord. |
 | ~~`count_eq`~~ ⚠️ Deprecated → `VecIter::count_eq` | `(Vec<i32>, i32) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target). |
 | ~~`filter_i32`~~ ⚠️ Deprecated → `VecIter::filter` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().filter(f).collect(). |
 | ~~`fold_i32_i32`~~ ⚠️ Deprecated → `VecIter::fold` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorFold capability v.iter().fold(init, f). |
-| `lower_bound` | `(Vec<T>, T) -> i32` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Return the index of the first element >= target in a sorted Vec<T: Ord>; len(v) if all elements are … |
 | ~~`map_i32_i32`~~ ⚠️ Deprecated → `VecIter::map` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().map(f).collect(). |
-| `max_by` | `(Vec<T>) -> T` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Return the maximum element of v under T: Ord. |
-| `max_by_key` | `(Vec<T>, fn(T) -> K) -> T` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Return the element of v whose key(element) is maximal under K: Ord. |
-| ~~`max_i32`~~ ⚠️ Deprecated → `std::seq::max_by` | `(Vec<i32>) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated monomorphic wrapper. Use the generic std::seq::max_by(v) over T: Ord. |
-| `min_by` | `(Vec<T>) -> T` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Return the minimum element of v under T: Ord. |
-| `min_by_key` | `(Vec<T>, fn(T) -> K) -> T` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Return the element of v whose key(element) is minimal under K: Ord. |
-| ~~`min_i32`~~ ⚠️ Deprecated → `std::seq::min_by` | `(Vec<i32>) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated monomorphic wrapper. Use the generic std::seq::min_by(v) over T: Ord. |
+| ~~`max_i32`~~ ⚠️ Deprecated → `Vec::max` | `(Vec<i32>) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated monomorphic wrapper. Use v.max() over T: Ord. |
+| ~~`min_i32`~~ ⚠️ Deprecated → `Vec::min` | `(Vec<i32>) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated monomorphic wrapper. Use v.min() over T: Ord. |
 | ~~`seq_contains`~~ ⚠️ Deprecated → `VecIter::contains` | `(Vec<i32>, i32) -> bool` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorContains capability v.iter().contains(target). |
 | ~~`seq_reverse`~~ ⚠️ Deprecated → `VecIter::rev` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().rev().collect(). |
 | ~~`skip_i32`~~ ⚠️ Deprecated → `VecIter::skip` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().skip(n).collect(). |
-| `sort_by` | `(Vec<T>) -> Vec<T>` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Sort v into ascending order under T: Ord (stable insertion sort, in place; returns the same vector). |
+| `sort_by` | `(Vec<T>) -> Vec<T>` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Sort v into ascending order under T: Ord (stable insertion sort, in place; returns the same vector).… |
 | ~~`sum_i32`~~ ⚠️ Deprecated → `VecIter::sum` | `(Vec<i32>) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorSum capability v.iter().sum(). |
 | ~~`take_i32`~~ ⚠️ Deprecated → `VecIter::take` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect(). |
 | ~~`unique`~~ ⚠️ Deprecated → `VecIter::unique` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect(). |
-| `upper_bound` | `(Vec<T>, T) -> i32` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Return the index of the first element > target in a sorted Vec<T: Ord>; len(v) if all elements are <… |
 
 ## Signal
 
@@ -603,7 +595,7 @@ let input = stdio::read_stdin()
 | ~~`assert_eq_i64`~~ | `std::test::assert_eq_i64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_eq_str`~~ | `std::test::assert_eq_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `std::test::assert_ne_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`binary_search`~~ | `std::seq::binary_search_by` | [migration-guidance.md](migration-guidance.md) |
+| ~~`binary_search`~~ | `Vec::binary_search` | [migration-guidance.md](migration-guidance.md) |
 | ~~`bitset_mark`~~ | `BitSet::mark` | [migration-guidance.md](migration-guidance.md) |
 | ~~`bitset_new`~~ | `BitSet::new` | [migration-guidance.md](migration-guidance.md) |
 | ~~`bitset_test`~~ | `BitSet::test` | [migration-guidance.md](migration-guidance.md) |
@@ -650,8 +642,8 @@ let input = stdio::read_stdin()
 | ~~`linked_list_push_front`~~ | `LinkedList::push_front` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_to_vec`~~ | `LinkedList::iter` | [migration-guidance.md](migration-guidance.md) |
 | ~~`map_i32_i32`~~ | `VecIter::map` | [migration-guidance.md](migration-guidance.md) |
-| ~~`max_i32`~~ | `std::seq::max_by` | [migration-guidance.md](migration-guidance.md) |
-| ~~`min_i32`~~ | `std::seq::min_by` | [migration-guidance.md](migration-guidance.md) |
+| ~~`max_i32`~~ | `Vec::max` | [migration-guidance.md](migration-guidance.md) |
+| ~~`min_i32`~~ | `Vec::min` | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `VecIter::contains` | [migration-guidance.md](migration-guidance.md) |

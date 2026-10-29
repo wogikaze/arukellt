@@ -206,13 +206,13 @@ fn deprecated_seq_qualified_message(path: String) -> String {
         return "use `v.iter().fold(init, f)` instead"
     }
     if eq(clone(path), "seq::binary_search") {
-        return "use `std::seq::binary_search_by(v, target)` instead"
+        return "use `v.binary_search(target)` instead"
     }
     if eq(clone(path), "seq::min_i32") {
-        return "use `std::seq::min_by(v)` instead"
+        return "use `v.min()` instead"
     }
     if eq(clone(path), "seq::max_i32") {
-        return "use `std::seq::max_by(v)` instead"
+        return "use `v.max()` instead"
     }
     if eq(clone(path), "seq::sum_i32") {
         return "use `v.iter().sum()` instead"

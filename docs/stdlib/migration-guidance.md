@@ -62,7 +62,7 @@ bound under ADR-087, not the earliest removal. Wave 2 (2026-10-27) deleted the
 and assertion families remain deprecated for their own waves. The `i64` /
 `f64` / `String` iterator consumer lanes listed as *planned* below are still
 not callable for every row, so the removal table names the reachable loop or
-`std::seq::sort_by` fallback alongside the target method shape.
+`v.sort()` / `v.sort_by(cmp)` replacement alongside the target method shape.
 
 Three stale, non-callable builtin manifest entries were retired directly in the
 same wave because they had no declaration and no resolver registration:
@@ -146,18 +146,19 @@ provisional (individual deferral) and is not part of this removal.
 
 The `i32` producer/consumer lanes and the `Vec<String>` `map` / `filter` /
 `any` / `find` lanes are verified on both targets. The `i64` / `f64` numeric
-consumers, the `Vec<String>` reverse/contains lanes, and the generic
-`Vec::sort_by` receiver for `i64` / `f64` still emit invalid Wasm in the
-current emitter. Their rows give the **reachable** loop or
-`std::seq::sort_by` replacement and mark the method shape they will move to.
-`v.sort_by(cmp)` works for `Vec<i32>` and `Vec<String>`.
+consumers and the `Vec<String>` reverse/contains lanes still use the
+**reachable** explicit loop; the `i32` / `String` sort lanes moved to the
+verified `Vec<T: Ord>` receiver (`v.sort()`), and `f64` uses
+`v.sort_by(total_cmp)`. The `i64` `v.sort()` lane is only correct below 5
+elements on the linear and core-emit paths, so `seq::sort_by` remains the
+reachable generic replacement there until #965.
 
 | Removed API | Replacement |
 |-------------|-------------|
-| `sort_i32(v)` | `v.sort_by(cmp)` |
-| `sort_i64(v)` | `std::seq::sort_by(v)` (the `Vec` receiver lane is pending) |
-| `sort_f64(v)` | `std::seq::sort_by(v)` (the `Vec` receiver lane is pending) |
-| `sort_String(v)` | `std::seq::sort_by(v)` or `v.sort_by(cmp)` |
+| `sort_i32(v)` | `v.sort()` |
+| `sort_i64(v)` | `seq::sort_by(v)` until the `Vec<i64>` 5+ element method fix (#965); `v.sort()` on the verified smaller/component lanes |
+| `sort_f64(v)` | `v.sort_by(total_cmp)` (`f64` is not `Ord`) |
+| `sort_String(v)` | `v.sort()` |
 | `map_i32_i32(v, f)` | `v.iter().map(f).collect()` |
 | `map_i64_i64(v, f)` | explicit `while` loop over `v.get_unchecked(i)` (the i64 lane is pending) |
 | `map_f64_f64(v, f)` | explicit `while` loop over `v.get_unchecked(i)` (the f64 lane is pending) |
@@ -206,10 +207,41 @@ use std::core::iter
 
 let doubled: Vec<i32> = values.iter().map(double).collect()
 let total: i32 = values.iter().sum()
-values.sort_by(cmp)
+values.sort()
 ```
 
 ---
+
+## Provisional `std::seq` generic algorithms (8 removed 2026-10-29, #917)
+
+The 8 provisional generic `std::seq` frees were removed directly under
+ADR-014's provisional notice rule (changelog + this migration entry; no
+ADR-087 stable window and no W0009). Import the receiver surface with
+`use std::collections::vec`; old qualified calls fail with E0100 and a
+`resolver::removed_names` hint.
+
+| Removed API | Replacement |
+|-------------|-------------|
+| `seq::binary_search_by(v, target)` | `v.binary_search(target)` |
+| `seq::binary_search_by_key(v, key, target_key)` | `v.binary_search_by_key(target_key, key)` |
+| `seq::lower_bound(v, target)` | `v.lower_bound(target)` |
+| `seq::upper_bound(v, target)` | `v.upper_bound(target)` |
+| `seq::min_by(v)` | `v.min()` |
+| `seq::max_by(v)` | `v.max()` |
+| `seq::min_by_key(v, key)` | `v.min_by_key(key)` |
+| `seq::max_by_key(v, key)` | `v.max_by_key(key)` |
+
+`min` / `max` / `min_by_key` / `max_by_key` trap on an empty vector, matching
+the removed free functions. The 13 deprecated i32 wrappers (`binary_search`,
+`min_i32`, `max_i32`, ...) remain callable until their own #703 Wave 2 and now
+delegate to these methods.
+
+`seq::sort_by` was **not** removed. Its method replacement (`v.sort()` /
+`v.sort_by(cmp)`) is correct for `i32`, `String`, and the gc component path,
+but miscompiles `Vec<i64>` at 5+ elements on the linear and core-emit paths
+(#965). The allocation-free `seq::sort_by` therefore stays `provisional` as
+the reachable generic `Ord` sort for that lane; the method replaces it once
+the scratch layout is fixed.
 
 ## Currently Deprecated APIs
 
@@ -231,9 +263,9 @@ The following public entries currently carry `deprecated_by` in
 | `std::seq::seq_contains` | `v.iter().contains(target)` |
 | `std::seq::unique` | `v.iter().unique().collect()` |
 | `std::seq::count_eq` | `v.iter().count_eq(target)` |
-| `std::seq::binary_search` | `std::seq::binary_search_by` |
-| `std::seq::min_i32` | `std::seq::min_by` |
-| `std::seq::max_i32` | `std::seq::max_by` |
+| `std::seq::binary_search` | `v.binary_search(target)` |
+| `std::seq::min_i32` | `v.min()` |
+| `std::seq::max_i32` | `v.max()` |
 | `std::collections::linear::deque_new` | `Deque::new<T>()` or `Deque::with_capacity<T>(n)` |
 | `std::collections::linear::deque_push_front` | `d.push_front(v)` |
 | `std::collections::linear::deque_push_back` | `d.push_back(v)` |

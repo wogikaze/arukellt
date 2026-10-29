@@ -16,6 +16,31 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-29 — `std::seq` の provisional 汎用アルゴリズム削除 (#917, wave/associated-next)
+
+- **Basis**: [ADR-014](../adr/ADR-014-stability-labels.md) の provisional 削除規則
+  （changelog と migration guide の告知。ADR-087 の stable window と W0009 は不要）。
+  対象は `provisional` で、`remove_in` の対象ではない。
+- **Retired (8)**: `binary_search_by` / `binary_search_by_key` / `lower_bound` /
+  `upper_bound` / `min_by` / `max_by` / `min_by_key` / `max_by_key` の manifest
+  entry と `std/seq/mod.ark` の公開宣言を削除した。qualified な旧 call は E0100 と
+  `resolver::removed_names` の method hint（`use std::collections::vec`）を返す。
+- **Replacement**: `Vec<T: Ord>` の receiver method
+  `v.binary_search(target)` / `v.binary_search_by_key(target_key, key)` /
+  `v.lower_bound(target)` / `v.upper_bound(target)` / `v.min()` / `v.max()` /
+  `v.min_by_key(key)` / `v.max_by_key(key)`。`min` / `max` 系は空 vector で
+  従来同様に trap する。
+- **Kept**: `sort_by` は `provisional` のまま残す。method 置換の `v.sort()` /
+  `v.sort_by(cmp)` は i32 / String / gc component 経路では正しいが、`Vec<i64>` の
+  5 要素以上で linear / core-emit 経路が誤った値を生成する（#965）。scratch
+  layout が直るまで allocation-free な free を到達可能な generic `Ord` sort とする。
+  13 の deprecated i32 wrapper も #703 の Wave 2 まで callable のままで、
+  そのうち `binary_search` / `min_i32` / `max_i32` は新しい method へ委譲する。
+- **Scorecard**: public surface 203 → **195**; manifest public entries 201 →
+  **193**; `pub fn` declarations 224 → **216**; `associated-or-method` 137 →
+  **129**; `must delete` 66、unregistered 2、intrinsic 1 は不変。
+- **Evidence**: 詳細は issue #917 の `wave/associated-next` landed slice を参照。
+
 ## 2026-10-29 — `hash::hashmap_*` の Wave 2 削除 (#917, wave/hashmap-surface)
 
 - **Basis**: [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2 の

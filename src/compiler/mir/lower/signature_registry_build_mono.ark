@@ -123,7 +123,7 @@ fn sig_reg_register_mono_fn(
 }
 
 // A decl emitted under its leaf name resolves its single instantiation
-// through the qualified instance fn_name (seq::sort_by), which mono_index
+// through the qualified instance fn_name (Vec::sort), which mono_index
 // never keys by the leaf. The registry build asks this for every decl without
 // mono instances, so the previous all-instance scan was quadratic on the
 // instance list. Build a leaf-name bucket index once instead: `head` maps a
@@ -216,9 +216,9 @@ pub fn sig_reg_leaf_instance_index(
     matched
 }
 
-// Instance fn_names can spell the same decl as seq::sort_by or
-// std::seq::sort_by depending on which side recorded the instance, so a
-// strict equality check would miss real instantiations. Suffix matching on
+// Instance fn_names can spell the same decl with different qualification
+// depending on which side recorded the instance, so a strict equality check
+// would miss real instantiations. Suffix matching on
 // either side keeps the binding without accepting an unrelated module's
 // same-leaf generic.
 fn sig_reg_leaf_instance_name_match(

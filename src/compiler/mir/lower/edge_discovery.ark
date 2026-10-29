@@ -63,7 +63,7 @@ struct AstEdgeTable {
     bare_index: NameIndex,
     bare_names: Vec<String>,
     bare_lists: Vec<Vec<String>>,
-    // mono base ("Vec::new" / "seq::binary_search_by") -> instance emit
+    // mono base ("Vec::new" / "Vec::binary_search") -> instance emit
     // names, for path callees whose mono site was not span-registered.
     base_index: NameIndex,
     base_names: Vec<String>,
@@ -228,8 +228,8 @@ fn edge_bare_candidates_of(name: String, mut out: Vec<String>) {
 }
 
 // Mono base key of a mangled emit name: `Pair__get_first__String` ->
-// `Pair::get_first`, `seq::binary_search_by__String` ->
-// `seq::binary_search_by`. Names without `__` return empty.
+// `Pair::get_first`, `Vec::binary_search__String` ->
+// `Vec::binary_search`. Names without `__` return empty.
 fn edge_mono_base_key(name: String) -> String {
     let last = edge_last_double_underscore(clone(name))
     if last <= 0 {

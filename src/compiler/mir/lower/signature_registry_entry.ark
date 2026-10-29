@@ -63,8 +63,8 @@ fn sig_reg_register_fn(
 }
 
 // Register a generic decl that was emitted under its leaf name because its
-// only instantiation arrived through the qualified spelling (seq::sort_by
-// records the instance under seq::sort_by, while the decl key is sort_by).
+// only instantiation arrived through the qualified spelling (Vec::sort
+// records the instance under Vec::sort, while the decl key is sort).
 // The leaf-emitted body is that one concrete instance, so the decl entry —
 // which call sites resolve through the qualified alias — must carry the
 // instance's substituted params/return and mono link. Leaving the declared

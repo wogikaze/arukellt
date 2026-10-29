@@ -40,16 +40,21 @@ let dedup = seq::unique(nums)           // [3, 1, 4, 5, 9]
 ## Module `std::seq`
 
 - Source: [`../../../std/seq/mod.ark`](../../../std/seq/mod.ark)
-- Manifest-backed functions: 22
-- Stability: deprecated 13, provisional 9
+- Manifest-backed functions: 14
+- Stability: deprecated 13, provisional 1
 
-Sequence helpers over `Vec<i32>`.
+Deprecated `Vec<i32>` sequence helpers plus the provisional `sort_by`.
 
 `map`/`filter`/`take`/`skip`/`fold`/`sum` and the query helpers
 (`binary_search`, `min_i32`, `max_i32`, `seq_reverse`,
 `seq_contains`, `unique`, `count_eq`) are deprecated compatibility
-entries. They delegate to the lazy iterator methods or the generic
-`Ord`-based algorithms below (ADR-076).
+entries. The transformation helpers delegate to the lazy iterator methods;
+the query helpers keep local i32 loops so this deprecated module stays
+independent of the `std::collections::vec` extension surface. Each wrapper
+retires with the #703 Wave 2.
+
+`sort_by<T: Ord>` remains provisional: its `Vec<T: Ord>` method replacement
+is not correct for `Vec<i64>` at 5+ elements on every target yet (#965).
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
@@ -62,23 +67,15 @@ entries. They delegate to the lazy iterator methods or the generic
 | ~~`take_i32`~~ ⚠️ Deprecated → `VecIter::take` | `(Vec<i32>, i32) -> Vec<i32>` | `deprecated` | ✅ functional | Return the first n elements of v. |
 | ~~`skip_i32`~~ ⚠️ Deprecated → `VecIter::skip` | `(Vec<i32>, i32) -> Vec<i32>` | `deprecated` | ✅ functional | Return all elements of v after skipping the first n. |
 | ~~`fold_i32_i32`~~ ⚠️ Deprecated → `VecIter::fold` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `deprecated` | ✅ functional | Reduce v to a single value using f, starting from init. |
-| ~~`binary_search`~~ ⚠️ Deprecated → `std::seq::binary_search_by` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | - |
-| ~~`min_i32`~~ ⚠️ Deprecated → `std::seq::min_by` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
-| ~~`max_i32`~~ ⚠️ Deprecated → `std::seq::max_by` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
+| ~~`binary_search`~~ ⚠️ Deprecated → `Vec::binary_search` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | - |
+| ~~`min_i32`~~ ⚠️ Deprecated → `Vec::min` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
+| ~~`max_i32`~~ ⚠️ Deprecated → `Vec::max` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
 | ~~`sum_i32`~~ ⚠️ Deprecated → `VecIter::sum` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
 | ~~`seq_reverse`~~ ⚠️ Deprecated → `VecIter::rev` | `(Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | - |
 | ~~`seq_contains`~~ ⚠️ Deprecated → `VecIter::contains` | `(Vec<i32>, i32) -> bool` | `deprecated` | ✅ functional | - |
 | ~~`unique`~~ ⚠️ Deprecated → `VecIter::unique` | `(Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | - |
 | ~~`count_eq`~~ ⚠️ Deprecated → `VecIter::count_eq` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | - |
-| `binary_search_by` | `(Vec<T>, T) -> i32` | `provisional` | ✅ functional | - |
-| `binary_search_by_key` | `(Vec<T>, K, fn(T) -> K) -> i32` | `provisional` | ✅ functional | - |
-| `lower_bound` | `(Vec<T>, T) -> i32` | `provisional` | ✅ functional | - |
-| `max_by` | `(Vec<T>) -> T` | `provisional` | ✅ functional | - |
-| `max_by_key` | `(Vec<T>, fn(T) -> K) -> T` | `provisional` | ✅ functional | - |
-| `min_by` | `(Vec<T>) -> T` | `provisional` | ✅ functional | - |
-| `min_by_key` | `(Vec<T>, fn(T) -> K) -> T` | `provisional` | ✅ functional | - |
 | `sort_by` | `(Vec<T>) -> Vec<T>` | `provisional` | ✅ functional | - |
-| `upper_bound` | `(Vec<T>, T) -> i32` | `provisional` | ✅ functional | - |
 
 #### `std::seq::map_i32_i32`
 
@@ -102,15 +99,15 @@ Deprecated eager helper. Use the IteratorFold capability v.iter().fold(init, f).
 
 #### `std::seq::binary_search`
 
-Deprecated monomorphic wrapper. Use the generic std::seq::binary_search_by(v, target) over T: Ord.
+Deprecated monomorphic wrapper. Use `v.binary_search(target)` over T: Ord.
 
 #### `std::seq::min_i32`
 
-Deprecated monomorphic wrapper. Use the generic std::seq::min_by(v) over T: Ord.
+Deprecated monomorphic wrapper. Use `v.min()` over T: Ord.
 
 #### `std::seq::max_i32`
 
-Deprecated monomorphic wrapper. Use the generic std::seq::max_by(v) over T: Ord.
+Deprecated monomorphic wrapper. Use `v.max()` over T: Ord.
 
 #### `std::seq::sum_i32`
 
@@ -132,40 +129,8 @@ Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect().
 
 Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target).
 
-#### `std::seq::binary_search_by`
-
-Binary search on a sorted Vec<T> using T: Ord. Returns the index of target or -1.
-
-#### `std::seq::binary_search_by_key`
-
-Binary search on a sorted Vec<T> by extracted key. Returns the index of the element whose key equals target_key, or -1.
-
-#### `std::seq::lower_bound`
-
-Return the index of the first element >= target in a sorted Vec<T: Ord>; len(v) if all elements are smaller.
-
-#### `std::seq::max_by`
-
-Return the maximum element of v under T: Ord.
-
-#### `std::seq::max_by_key`
-
-Return the element of v whose key(element) is maximal under K: Ord.
-
-#### `std::seq::min_by`
-
-Return the minimum element of v under T: Ord.
-
-#### `std::seq::min_by_key`
-
-Return the element of v whose key(element) is minimal under K: Ord.
-
 #### `std::seq::sort_by`
 
-Sort v into ascending order under T: Ord (stable insertion sort, in place; returns the same vector).
-
-#### `std::seq::upper_bound`
-
-Return the index of the first element > target in a sorted Vec<T: Ord>; len(v) if all elements are <= target.
+Sort v into ascending order under T: Ord (stable insertion sort, in place; returns the same vector). Retained until the Vec<T: Ord> method surface is correct for Vec<i64> at 5+ elements on every target (#965).
 
 > ⚠️ **13 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.

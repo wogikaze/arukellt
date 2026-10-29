@@ -1469,3 +1469,64 @@ classified there, in dependency-safe waves.
   covers the rewritten direct-call names), so the boundary fixtures use
   `(0 - 2147483647) - 1`. Borrowed `entry` / `iter` / `retain` and
   `FromIterator` parity remain deferred with the collection iterator design.
+
+### Landed slice (wave/associated-next, 2026-10-29)
+
+- **Group**: `std::seq` — 8 of the 9 remaining `associated-or-method` generic
+  frees (`binary_search_by`, `binary_search_by_key`, `lower_bound`,
+  `upper_bound`, `min_by`, `max_by`, `min_by_key`, `max_by_key`). All 8 were
+  `provisional`, so ADR-014's provisional notice rule applied: changelog and
+  migration-guide rows, no W0009 and no ADR-087 stable window.
+- **Retained**: `sort_by` stays `provisional`. Its `Vec<T: Ord>` method
+  replacement is correct for `i32` / `String` / the gc component path, but
+  `v.sort()` and `v.sort_by(cmp)` miscompile `Vec<i64>` at 5+ elements on the
+  linear and core-emit paths (wrong element from index 3; i32 is unaffected).
+  The allocation-free `sort_by` remains the reachable generic `Ord` sort for
+  that lane until the method scratch layout is fixed (#965). Its
+  `use std::core::cmp` import is required for the `Ord::cmp` dispatch and was
+  restored.
+- **Replacement surface**: `Vec<T: Ord>` receiver methods. This wave adds
+  `v.binary_search(target)`, `v.lower_bound(target)`, `v.upper_bound(target)`,
+  `v.min()`, `v.max()`, `v.min_by_key(key)`, and `v.max_by_key(key)`;
+  `v.binary_search_by_key(target_key, key)` already existed. The former
+  i32-only `lower_bound` / `upper_bound` moved from the `Vec<i32>` impl to the
+  bounded `impl<T: Ord>` and compare through `Ord::cmp`, so String and struct
+  elements share one method surface.
+- **Semantics**: `min` / `max` / `min_by_key` / `max_by_key` trap on an empty
+  vector, matching the removed frees. `binary_search` returns `-1` when
+  absent; `lower_bound` / `upper_bound` return `len()` when no element
+  qualifies.
+- **Compiler**: `resolver::removed_names::removed_seq_member_hint` maps the
+  eight qualified old calls to the method surface (E0100); the deprecated
+  `binary_search` / `min_i32` / `max_i32` W0009 messages now point at
+  `v.binary_search` / `v.min` / `v.max`. The `seq::sort_by` layout special case
+  is unchanged because that free remains live.
+- **Deprecated shims**: the 13 `deprecated` i32 helpers stay callable until
+  their #703 Wave 2. `seq::unique` uses a local seen-loop, and
+  `binary_search` / `min_i32` / `max_i32` use local i32 loops, so
+  `std::seq` does not import `std::collections::vec`. That import changed the
+  iterator mono-instance ordering and made `take` / `skip` / `unique` collect
+  emit invalid core Wasm; the shims keep the module's behavior without the
+  dependency.
+- **Fixtures**: `stdlib_seq/seq_generic_string_instantiation*` and
+  `stdlib_trait/seq_ord_generic_algorithms*` now cover binary search, bounds,
+  min/max, and keyed variants for i32 and String on both targets;
+  `diagnostics/removed_seq_free*` pins the E0100 text on wasm32-gc and wasm32.
+  The `sort_by` fixtures stay on the free. Registry 3501 -> 3505.
+- **Scorecard**: eradication scope 203 -> **195**; `associated-or-method`
+  137 -> **129**; manifest public entries 201 -> **193**; `pub fn`
+  declarations 224 -> **216**; `must delete` 66, unregistered 2, and
+  intrinsic-only 1 unchanged. The `std::seq remaining` rule drops to one
+  `sort_by` row; `std::seq` is 13 deprecated helpers + 1 provisional free.
+- **Build**: two `selfhost build-compiler` runs — the first after the initial 9-row attempt, the second after restoring `sort_by` and its compiler layout special case; the final build took 55.0 s and the resulting s2 is the fixpoint sha above. The second build was required by the decision reversal, not by per-edit rebuilding.
+- **Verification**: `verify fixtures` **1907/1907** compile+validate PASS, 110 runtime smoke, 36/36 `test:` fixtures PASS, 2 runtime-unsupported, 0 FAIL; `verify lane` PASS; `docs check` 6/6;
+  `check-stdlib-eradication` 194/194 manifest + 2/2 unregistered; both-target
+  compile + `wasm-tools validate` + runtime for the two method fixtures, the
+  restored `sort_by` fixtures, and the E0100 pair; ADR-029 fixpoint PASS at s2 == s3 sha256 `909111d5ecee5eeebc6ee6b61d84efa87c491dbef1f065cec4fb91833115d9f6` (pinned base `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`).
+- **Residuals**: `sort_by` is the one remaining `std::seq` row (i64 5+ method
+  blocker above). The no-argument `Vec::sort()` still traps for a custom
+  struct element (`Vec<cmp::Reverse<i32>>`) on both targets; the
+  comparator-form `v.sort_by(cmp)` works and is the reachable method for that
+  shape. `std::seq` must not import `std::collections::vec` until the iterator
+  mono-instance ordering is fixed. The remaining 129 `associated-or-method`
+  rows are unchanged.
