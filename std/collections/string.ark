@@ -687,6 +687,11 @@ impl String {
         __core_string_len_bytes_impl(self)
     }
 
+    /// Appends one Unicode scalar to the string.
+    fn push_char(mut self: String, value: char) {
+        __core_push_char_impl(self, value)
+    }
+
     /// Byte-order key shared by the String ordering operators and Ord::cmp.
     /// Returns -1 (self < other), 0 (equal), or 1 (self > other). The `__`
     /// prefix marks an internal helper rather than manifest API; the compiler

@@ -1,7 +1,8 @@
 use std::host::stdio
 use std::test::Test
-use std::prelude::{is_some}
+
 fn main() {
-    Test::assert_false(is_some(None))
+    let value: Option<i32> = None
+    Test::assert_false(value.is_some())
     stdio::println("ok")
 }

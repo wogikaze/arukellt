@@ -1,11 +1,11 @@
 use std::host::stdio
 use std::test::Test
-use std::prelude::{is_err, is_ok}
+
 fn maybe(ok: bool, v: i32) -> Result<i32, i32> {
     if ok { Ok(v) } else { Err(v) }
 }
 fn main() {
-    Test::assert_true(is_ok(maybe(true, 10)))
-    Test::assert_true(is_err(maybe(false, 10)))
+    Test::assert_true(maybe(true, 10).is_ok())
+    Test::assert_true(maybe(false, 10).is_err())
     stdio::println("ok")
 }

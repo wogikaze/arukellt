@@ -1,6 +1,6 @@
 # ADR-091: prelude の安定 free function 例外と method 移行
 
-ステータス: **ACCEPTED** — method 代替可能な prelude free 27 件を退役し、残す安定 free を 4 件に限定する
+ステータス: **ACCEPTED** — method 代替可能な prelude free 27 件を退役し、残す安定 free を 4 件に限定する（2026-10-29 追記: 保留 23 件のうち 11 件を追加退役。末尾の追記を参照）
 
 決定日: 2026-10-29
 
@@ -208,6 +208,31 @@ generic な `impl<T> Option<T>` は compile・validate までは通るが、実�
   安定して動くようになったとき（`parse_*` free を退役する）。
 - 4 件以外の prelude free function を追加したくなったとき
   （本 ADR の例外リストを拡張しない）。
+
+## 追記: 2026-10-29 `wave/prelude-text` — 保留 23 件のうち 11 件の退役
+
+§4 で保留した 23 件のうち、次の 11 件を追加で退役した。§3 の 4 件例外は不変である。
+
+| Retired free | Replacement |
+|--------------|-------------|
+| `push_char(s, c)` | `s.push_char(c)`（mutating receiver の grow 結果を caller local / field へ書き戻す） |
+| `unwrap(o)` / `unwrap_or(o, d)` | `o.unwrap()` / `o.unwrap_or(d)`（`impl Option<i32>`） |
+| `is_some(o)` / `is_none(o)` | `o.is_some()` / `o.is_none()` |
+| `is_ok(r)` / `is_err(r)` | `r.is_ok()` / `r.is_err()`（`impl Result<i32, i32>`） |
+| `parse_i32(s)` / `parse_i64(s)` / `parse_f64(s)` | `i32::try_from(s)` / `i64::try_from(s)` / `f64::try_from(s)`（`use std::core::convert`） |
+| `f32_to_string(x)` | `x.to_string()`（`impl f32 { to_string }`） |
+
+`parse_*` の再構築 s2 trap の原因は、bootstrap flat overlay の stdlib closure が
+`std/core/convert.ark` を ship しておらず、compiler 自身の `f64::try_from` が
+MIR の unresolved-call fallback（`drop; unreachable`）に落ちていたことだった。
+overlay に convert を追加し、`try_from` を import せずに呼ぶ経路は E0100 で止める。
+`option:<T>` 形式の call-result 型は method 解決時に `Option_<T>` の impl owner へ
+正規化する。compiler 自身の `pop(...).unwrap()` は `match` へ移し、pin が bridge を
+持たない状態でも s2 / s3 が一致するようにした。
+
+残る 12 件（`Box_new` / `unbox` と text 10 件）は §4 の `associated-or-method` の
+まま残す。§4 の「この wave で退役しない残り」は、この追記の 11 件についてのみ
+更新されたものとして読む。
 
 ## 参照
 

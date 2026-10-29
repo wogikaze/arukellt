@@ -1,6 +1,7 @@
 use std::host::stdio
-use std::prelude::{eq, is_err, is_none, is_ok, is_some, unwrap, unwrap_or}
+use std::prelude::{eq}
 use std::text
+
 fn try_parse(s: String) -> Result<i32, String> {
     if eq(s, "42") {
         Ok(42)
@@ -15,26 +16,26 @@ fn try_parse(s: String) -> Result<i32, String> {
 
 fn main() {
     let r1 = try_parse("42")
-    stdio::println((is_ok(r1)).to_string())
-    stdio::println((is_err(r1)).to_string())
-    stdio::println((unwrap(r1)).to_string())
+    stdio::println((r1.is_ok()).to_string())
+    stdio::println((r1.is_err()).to_string())
+    stdio::println((r1.unwrap()).to_string())
     let r2 = try_parse("bad")
-    stdio::println((is_ok(r2)).to_string())
-    stdio::println((is_err(r2)).to_string())
+    stdio::println((r2.is_ok()).to_string())
+    stdio::println((r2.is_err()).to_string())
     match r2 {
         Result::Ok(v) => stdio::println((v).to_string()),
         Result::Err(e) => stdio::println(e),
     }
     let r3 = try_parse("bad")
-    stdio::println((unwrap_or(r3, 99)).to_string())
+    stdio::println((r3.unwrap_or(99)).to_string())
     let r4 = try_parse("0")
-    stdio::println((unwrap_or(r4, 99)).to_string())
+    stdio::println((r4.unwrap_or(99)).to_string())
     let s1: Option<i32> = Some(10)
-    stdio::println((is_some(s1)).to_string())
-    stdio::println((unwrap(s1)).to_string())
+    stdio::println((s1.is_some()).to_string())
+    stdio::println((s1.unwrap()).to_string())
     let n1: Option<i32> = None
-    stdio::println((is_none(n1)).to_string())
-    stdio::println((unwrap_or(n1, 77)).to_string())
+    stdio::println((n1.is_none()).to_string())
+    stdio::println((n1.unwrap_or(77)).to_string())
     let r5 = try_parse("42")
     let msg = match r5 {
         Result::Ok(v) => "got: ".concat((v).to_string()),

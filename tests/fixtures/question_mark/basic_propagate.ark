@@ -1,5 +1,5 @@
+use std::core::convert
 use std::host::stdio
-use std::prelude::{parse_i32}
 
 // Basic ? propagation: the error type (String) matches between the
 // fallible call and the enclosing function, so no From conversion is
@@ -8,7 +8,7 @@ use std::prelude::{parse_i32}
 // and From<String> for String is the identity impl.
 
 fn parse_and_double(s: String) -> Result<i32, String> {
-    let n: i32 =parse_i32(s)?
+    let n: i32 =i32::try_from(s)?
     Ok(n * 2)
 }
 

@@ -93,7 +93,10 @@ fn vcs_collect_reachable(program: CoreHirRawProgram, root: i32) -> Vec<i32> {
     let mut stack = Vec::new<i32>()
     push(stack, root)
     while len(stack) > 0 {
-        let id = pop(stack).unwrap()
+        let id = match pop(stack) {
+            Some(value) => value,
+            None => return reachable,
+        }
         let mut already_seen = false
         let mut seen_i = 0
         while seen_i < len(reachable) {

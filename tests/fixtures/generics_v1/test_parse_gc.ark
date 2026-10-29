@@ -1,8 +1,8 @@
+use std::core::convert
 use std::host::stdio
 use std::prelude
-use std::prelude::{parse_i32}
 
 fn main() {
-    let r = parse_i32(String_from("42"))
+    let r = i32::try_from(String_from("42"))
     stdio::println(String_from("done"))
 }

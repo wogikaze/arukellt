@@ -32,7 +32,10 @@ fn tccr_collect_reachable(
     }
 
     while len(stack) > 0 {
-        let id = pop(stack).unwrap()
+        let id = match pop(stack) {
+            Some(value) => value,
+            None => return reachable,
+        }
         let mut already_seen = false
         let mut seen_index = 0
         while seen_index < len(reachable) {

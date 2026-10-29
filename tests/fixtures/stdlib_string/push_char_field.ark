@@ -1,0 +1,22 @@
+// The receiver-method lowering must write the grown array back into the
+// owning record, not only into the load temp (ADR-091 §4 / #917).
+use std::host::stdio
+use std::prelude::{String_from, String_new}
+use std::test::Test
+
+struct Buffer {
+    text: String,
+}
+
+fn main() {
+    let mut buffer = Buffer { text: String_from("x") }
+    buffer.text.push_char('y')
+    buffer.text.push_char('z')
+    Test::assert_eq_string(buffer.text, "xyz")
+
+    let mut empty = Buffer { text: String_new() }
+    empty.text.push_char('A')
+    Test::assert_eq_i32(empty.text.len_bytes(), 1)
+    Test::assert_eq_string(empty.text, "A")
+    stdio::println("push_char field ok")
+}

@@ -1710,6 +1710,8 @@ run:stdlib_string/push_char.ark
 run:stdlib_string/push_char_builds_word.ark
 run:stdlib_string/push_char_multiple.ark
 run:stdlib_string/push_char_to_empty.ark
+run:stdlib_string/push_char_field.ark
+run:stdlib_string/push_char_field_wasm32.ark
 run:stdlib_string/repeat_basic.ark
 run:stdlib_string/repeat_many.ark
 run:stdlib_string/repeat_one.ark
@@ -3579,3 +3581,7 @@ run:stdlib_string/prelude_method_replacements.ark
 run:stdlib_string/prelude_method_replacements_wasm32.ark
 diag:diagnostics/removed_prelude_free.ark
 diag:diagnostics/removed_prelude_free_wasm32.ark
+diag:diagnostics/removed_prelude_try_from.ark
+diag:diagnostics/removed_prelude_try_from_wasm32.ark
+diag:diagnostics/removed_prelude_push_char.ark
+diag:diagnostics/removed_prelude_push_char_wasm32.ark

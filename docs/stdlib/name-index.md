@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 40
+- **Canonical names:** 29
 - **Historical/deprecated names:** 65
-- **Total entries:** 105
+- **Total entries:** 94
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -30,23 +30,14 @@ Current public API names, sorted alphabetically.
 | `ends_with` | `prelude` | `stable` | String |
 | `eprintln` | `std::host::stdio` | `stable` | Host Stdio |
 | `eq` | `prelude` | `stable` | String |
-| `f32_to_string` | `prelude` | `stable` | Convert |
 | `fd_fdstat_errno` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_seek` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_tell` | `std::host::fs` | `experimental` | Host Fs |
 | `filter_i32` | `prelude` | `provisional` | Collections |
 | `index_of` | `prelude` | `stable` | String |
-| `is_err` | `prelude` | `stable` | Option Result |
-| `is_none` | `prelude` | `stable` | Option Result |
-| `is_ok` | `prelude` | `stable` | Option Result |
-| `is_some` | `prelude` | `stable` | Option Result |
-| `parse_f64` | `prelude` | `stable` | Conversion |
-| `parse_i32` | `prelude` | `stable` | Conversion |
-| `parse_i64` | `prelude` | `stable` | Conversion |
 | `print` | `std::host::stdio` | `stable` | Host Stdio |
 | `print_bytes` | `std::io` | `stable` | Io |
 | `println` | `std::host::stdio` | `stable` | Host Stdio |
-| `push_char` | `prelude` | `stable` | String |
 | `read_stdin` | `std::host::stdio` | `stable` | Host Stdio |
 | `read_stdin_line` | `std::io` | `stable` | Io |
 | `slice` | `prelude` | `stable` | String |
@@ -59,8 +50,6 @@ Current public API names, sorted alphabetically.
 | `substring` | `prelude` | `stable` | String |
 | `to_string` | `prelude` | `stable` | Conversion |
 | `unbox` | `prelude` | `stable` | Box |
-| `unwrap` | `prelude` | `stable` | Option Result |
-| `unwrap_or` | `prelude` | `stable` | Option Result |
 
 ---
 
@@ -172,7 +161,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `eprintln` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `eq` | ✅ `stable` | `prelude` | String |
 | ~~`f32_to_f64`~~ | ⚠️ deprecated | `prelude` | → `f32::to_f64` · [migration guide](migration-guidance.md) |
-| `f32_to_string` | ✅ `stable` | `prelude` | Convert |
 | ~~`f64_bits_hi`~~ | ⚠️ deprecated | `prelude` | → `f64::to_bits_hi` · [migration guide](migration-guidance.md) |
 | ~~`f64_bits_lo`~~ | ⚠️ deprecated | `prelude` | → `f64::to_bits_lo` · [migration guide](migration-guidance.md) |
 | ~~`f64_to_f32`~~ | ⚠️ deprecated | `prelude` | → `f64::to_f32` · [migration guide](migration-guidance.md) |
@@ -194,10 +182,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`i64_to_i32`~~ | ⚠️ deprecated | `prelude` | → `i64::to_i32_checked` · [migration guide](migration-guidance.md) |
 | ~~`i8_to_i32`~~ | ⚠️ deprecated | `prelude` | → `i8::to_i32` · [migration guide](migration-guidance.md) |
 | `index_of` | ✅ `stable` | `prelude` | String |
-| `is_err` | ✅ `stable` | `prelude` | Option Result |
-| `is_none` | ✅ `stable` | `prelude` | Option Result |
-| `is_ok` | ✅ `stable` | `prelude` | Option Result |
-| `is_some` | ✅ `stable` | `prelude` | Option Result |
 | ~~`len`~~ | ⚠️ deprecated | `prelude` | → `Vec::len` · [migration guide](migration-guidance.md) |
 | ~~`linked_list_back`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::back` · [migration guide](migration-guidance.md) |
 | ~~`linked_list_clear`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::clear` · [migration guide](migration-guidance.md) |
@@ -213,15 +197,11 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`map_i32_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::map` · [migration guide](migration-guidance.md) |
 | ~~`max_i32`~~ | ⚠️ deprecated | `std::seq` | → `Vec::max` · [migration guide](migration-guidance.md) |
 | ~~`min_i32`~~ | ⚠️ deprecated | `std::seq` | → `Vec::min` · [migration guide](migration-guidance.md) |
-| `parse_f64` | ✅ `stable` | `prelude` | Conversion |
-| `parse_i32` | ✅ `stable` | `prelude` | Conversion |
-| `parse_i64` | ✅ `stable` | `prelude` | Conversion |
 | ~~`pop`~~ | ⚠️ deprecated | `prelude` | → `Vec::pop` · [migration guide](migration-guidance.md) |
 | `print` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `print_bytes` | ✅ `stable` | `std::io` | Io |
 | `println` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | ~~`push`~~ | ⚠️ deprecated | `prelude` | → `Vec::push` · [migration guide](migration-guidance.md) |
-| `push_char` | ✅ `stable` | `prelude` | String |
 | `read_stdin` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `read_stdin_line` | ✅ `stable` | `std::io` | Io |
 | ~~`seq_contains`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::contains` · [migration guide](migration-guidance.md) |
@@ -247,5 +227,3 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`u8_to_i32`~~ | ⚠️ deprecated | `prelude` | → `u8::to_i32` · [migration guide](migration-guidance.md) |
 | `unbox` | ✅ `stable` | `prelude` | Box |
 | ~~`unique`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::unique` · [migration guide](migration-guidance.md) |
-| `unwrap` | ✅ `stable` | `prelude` | Option Result |
-| `unwrap_or` | ✅ `stable` | `prelude` | Option Result |

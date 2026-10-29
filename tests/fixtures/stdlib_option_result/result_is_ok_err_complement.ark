@@ -1,10 +1,10 @@
 use std::host::stdio
 use std::test::Test
-use std::prelude::{is_err, is_ok}
+
 fn main() {
     let ok_r: Result<i32, i32> = Ok(5)
     let err_r: Result<i32, i32> = Err(5)
-    Test::assert_true(is_ok(ok_r) != is_err(ok_r))
-    Test::assert_true(is_ok(err_r) != is_err(err_r))
+    Test::assert_true(ok_r.is_ok() != ok_r.is_err())
+    Test::assert_true(err_r.is_ok() != err_r.is_err())
     stdio::println("ok")
 }

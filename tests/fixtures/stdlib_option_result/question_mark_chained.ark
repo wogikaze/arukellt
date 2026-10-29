@@ -1,9 +1,9 @@
+use std::core::convert
 use std::host::stdio
 use std::test::Test
-use std::prelude::{parse_i32}
 
 fn step1(s: String) -> Result<i32, String> {
-    let v: i32 =parse_i32(s)?
+    let v: i32 =i32::try_from(s)?
     Ok(v + 1)
 }
 fn step2(s: String) -> Result<i32, String> {

@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined name: parse_i32; use `i32::try_from(s)` from `use std::core::convert` instead

@@ -118,8 +118,8 @@ fn main() {
     stdio::println(inferred_string())
     stdio::println(inferred_result().to_string())
     stdio::println(inferred_result_err().to_string())
-    stdio::println(unwrap_or(Option::Some(7), 9).to_string())
-    stdio::println(unwrap_or(Option::None, 9).to_string())
+    stdio::println(Option::Some(7).unwrap_or(9).to_string())
+    stdio::println(Option::None.unwrap_or(9).to_string())
     stdio::println(merged(true).to_string())
     stdio::println(merged(false).to_string())
 }

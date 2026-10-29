@@ -22,6 +22,7 @@
 //!   under #704.
 
 use std::json
+use std::core::convert
 use std::prelude::{byte_at, eq, slice}
 use std::text
 
@@ -229,7 +230,7 @@ impl JsonValue {
     fn as_i32(self: JsonValue) -> Option<i32> {
         match self {
             JsonValue::Number(n) => {
-                match parse_i32(n) {
+                match i32::try_from(n) {
                     Result::Ok(i) => Some(i),
                     Result::Err(_) => None,
                 }
@@ -246,7 +247,7 @@ impl JsonValue {
     fn as_f64(self: JsonValue) -> Option<f64> {
         match self {
             JsonValue::Number(n) => {
-                match parse_f64(n) {
+                match f64::try_from(n) {
                     Result::Ok(f) => Some(f),
                     Result::Err(_) => None,
                 }

@@ -476,6 +476,9 @@ fn type_name_for_mangling(ty: TypeInfo) -> String {
     if tag == commands::TY_F64() {
         return String_from("f64")
     }
+    if tag == commands::TY_F32() {
+        return String_from("f32")
+    }
     if tag == commands::TY_BOOL() {
         return String_from("bool")
     }

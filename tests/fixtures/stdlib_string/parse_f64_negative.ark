@@ -1,8 +1,8 @@
+use std::core::convert
 use std::test::Test
-use std::prelude::{parse_f64}
 
 fn main() {
-    let r: Result<f64, String> = parse_f64(String_from("-0.5"))
+    let r: Result<f64, String> = f64::try_from(String_from("-0.5"))
     match r {
         Result::Ok(v) => Test::assert_eq_f64(v, -0.5),
         Result::Err(e) => Std::panic("expected Ok"),

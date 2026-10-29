@@ -1,11 +1,11 @@
 use std::host::stdio
 use std::test::Test
-use std::prelude::{is_none, is_some, unwrap_or}
+
 fn main() {
     let n: Option<i32> = None
-    Test::assert_true(is_none(n))
-    Test::assert_false(is_some(n))
+    Test::assert_true(n.is_none())
+    Test::assert_false(n.is_some())
     match n { Option::Some(v) => Std::panic("some"), None => {} }
-    Test::assert_eq_i32(unwrap_or(n, 42), 42)
+    Test::assert_eq_i32(n.unwrap_or(42), 42)
     stdio::println("ok")
 }

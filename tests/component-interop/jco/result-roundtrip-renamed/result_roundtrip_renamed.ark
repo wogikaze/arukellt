@@ -1,8 +1,7 @@
 // Component interop smoke test: result<s32, s32> parameter/result canonical ABI is name-independent.
 
-use std::prelude::{unwrap_or}
 export fn normalize_result(r: Result<i32, i32>) -> Result<i32, i32> {
-    let n = unwrap_or(r, -1)
+    let n = r.unwrap_or(-1)
     if n >= 0 {
         Ok(n + 2)
     } else {

@@ -1,9 +1,9 @@
 use std::host::stdio
 use std::test::Test
-use std::prelude::{is_some}
+
 fn main() {
     let a: Option<i32> = Some(-7)
-    Test::assert_true(is_some(a))
+    Test::assert_true(a.is_some())
     match a { Option::Some(v) => Test::assert_eq_i32(v, -7), None => Std::panic("none") }
     stdio::println("ok")
 }

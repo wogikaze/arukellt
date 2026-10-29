@@ -1,7 +1,7 @@
 // Export with Result<i32, String> parameter maps to WIT result<s32, string>.
-use std::prelude::{unwrap_or}
+
 export fn result_or_default(r: Result<i32, String>) -> i32 {
-    unwrap_or(r, -5)
+    r.unwrap_or(-5)
 }
 
 fn main() {

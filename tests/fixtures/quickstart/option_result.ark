@@ -1,8 +1,9 @@
+use std::core::convert
 use std::host::stdio
-use std::prelude::{to_string, parse_i32}
+use std::prelude::{to_string}
 
 fn parse_positive(s: String) -> Result<i32, String> {
-    let n =parse_i32(s)?
+    let n =i32::try_from(s)?
     if n < 0 {
         return Err(String_from("negative value"))
     }

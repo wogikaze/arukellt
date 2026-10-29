@@ -214,8 +214,8 @@ fn removed_name_specific_hint(name: String) -> String {
     if eq(clone(name), "Vec_with_capacity_String") { return "removed Vec constructor; use `Vec::new<String>()`" }
     if eq(clone(name), "ok") { return "removed free function; construct the variant directly with `Ok(...)`" }
     if eq(clone(name), "err") { return "removed free function; construct the variant directly with `Err(...)`" }
-    if eq(clone(name), "expect") { return "removed free function; use `unwrap_or(value, fallback)` or match on the variant" }
-    if eq(clone(name), "unwrap_or_else") { return "removed free function; use `unwrap_or(value, fallback)`" }
+    if eq(clone(name), "expect") { return "removed free function; use `o.unwrap_or(fallback)` or match on the variant" }
+    if eq(clone(name), "unwrap_or_else") { return "removed free function; use `o.unwrap_or(fallback)`" }
     if eq(clone(name), "ok_or") { return "removed free function; convert Option to Result explicitly with `Ok`/`Err` or `match`" }
     let prelude_hint = removed_prelude_free_hint(clone(name))
     if len(clone(prelude_hint)) > 0 {
@@ -1427,15 +1427,25 @@ fn removed_prelude_free_hint(name: String) -> String {
     if eq(clone(name), "trim_end") { return String_from("use `s.trim_end()` on `String` instead") }
     if eq(clone(name), "trim_start") { return String_from("use `s.trim_start()` on `String` instead") }
     if eq(clone(name), "values") { return String_from("removed identity helper; iterate the value directly (`for x in v`)") }
+    if eq(clone(name), "push_char") { return String_from("use `s.push_char(c)` on `String` instead") }
+    if eq(clone(name), "parse_i32") { return String_from("use `i32::try_from(s)` from `use std::core::convert` instead") }
+    if eq(clone(name), "parse_i64") { return String_from("use `i64::try_from(s)` from `use std::core::convert` instead") }
+    if eq(clone(name), "parse_f64") { return String_from("use `f64::try_from(s)` from `use std::core::convert` instead") }
+    if eq(clone(name), "unwrap") { return String_from("use `o.unwrap()` on `Option<i32>` or `r.unwrap()` on `Result<i32, i32>` instead") }
+    if eq(clone(name), "unwrap_or") { return String_from("use `o.unwrap_or(fallback)` on `Option<i32>` or `r.unwrap_or(fallback)` on `Result<i32, i32>` instead") }
+    if eq(clone(name), "is_some") { return String_from("use `o.is_some()` on `Option<i32>` instead") }
+    if eq(clone(name), "is_none") { return String_from("use `o.is_none()` on `Option<i32>` instead") }
+    if eq(clone(name), "is_ok") { return String_from("use `r.is_ok()` on `Result<i32, i32>` instead") }
+    if eq(clone(name), "is_err") { return String_from("use `r.is_err()` on `Result<i32, i32>` instead") }
+    if eq(clone(name), "f32_to_string") { return String_from("use `x.to_string()` on the `f32` value instead") }
     String_new()
 }
 
 fn is_gated_prelude_name(name: String) -> bool {
-    if eq(clone(name), "parse_i32") || eq(clone(name), "parse_i64") || eq(clone(name), "parse_f64") {
+    if eq(clone(name), "Box") || eq(clone(name), "Box_new") || eq(clone(name), "Slice") {
         return true
     }
-    if eq(clone(name), "push_char") { return true }
-    if eq(clone(name), "Box") || eq(clone(name), "Box_new") || eq(clone(name), "Slice") {
+    if eq(clone(name), "unbox") {
         return true
     }
     if eq(clone(name), "as_slice") || eq(clone(name), "assert_eq") || eq(clone(name), "assert_eq_i64") {
@@ -1447,10 +1457,13 @@ fn is_gated_prelude_name(name: String) -> bool {
     if eq(clone(name), "clone") || eq(clone(name), "contains") || eq(clone(name), "ends_with") {
         return true
     }
-    if eq(clone(name), "eq") || eq(clone(name), "f32_to_f64") || eq(clone(name), "f32_to_string") {
+    if eq(clone(name), "eq") {
         return true
     }
     if eq(clone(name), "f64_bits_hi") || eq(clone(name), "f64_bits_lo") || eq(clone(name), "f64_to_f32") {
+        return true
+    }
+    if eq(clone(name), "f32_to_f64") {
         return true
     }
     if eq(clone(name), "i16_to_i32") || eq(clone(name), "i32_to_i16") || eq(clone(name), "i32_to_i64") {
@@ -1462,22 +1475,16 @@ fn is_gated_prelude_name(name: String) -> bool {
     if eq(clone(name), "i32_to_u8") || eq(clone(name), "i64_to_i32") || eq(clone(name), "i8_to_i32") {
         return true
     }
-    if eq(clone(name), "index_of") || eq(clone(name), "is_err") || eq(clone(name), "is_none") {
-        return true
-    }
-    if eq(clone(name), "is_ok") || eq(clone(name), "is_some") || eq(clone(name), "slice") {
-        return true
-    }
     if eq(clone(name), "slice_get") || eq(clone(name), "slice_len") || eq(clone(name), "starts_with") {
+        return true
+    }
+    if eq(clone(name), "slice") || eq(clone(name), "index_of") {
         return true
     }
     if eq(clone(name), "substring") || eq(clone(name), "to_string") || eq(clone(name), "u16_to_i32") {
         return true
     }
     if eq(clone(name), "u32_to_u64") || eq(clone(name), "u64_to_u32") || eq(clone(name), "u8_to_i32") {
-        return true
-    }
-    if eq(clone(name), "unbox") || eq(clone(name), "unwrap") || eq(clone(name), "unwrap_or") {
         return true
     }
     false
@@ -1567,7 +1574,7 @@ fn removed_raw_member_hint(name: String) -> String {
         return "the sealed raw bridge was retired; use `s.clone()`"
     }
     if eq(clone(name), "raw_string_push_char") {
-        return "the sealed raw bridge was retired; use `push_char(s, c)` via `use std::prelude::push_char`"
+        return "the sealed raw bridge was retired; use `s.push_char(c)` on `String` instead"
     }
     if eq(clone(name), "raw_parse_i32") {
         return "the sealed raw bridge was retired; use `i32::try_from(s)` instead"

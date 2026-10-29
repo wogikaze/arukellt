@@ -1,8 +1,8 @@
+use std::core::convert
 use std::host::stdio
-use std::prelude::{parse_i32}
 
 fn parse_and_double(s: String) -> Result<i32, String> {
-    let val: i32 =parse_i32(s)?
+    let val: i32 =i32::try_from(s)?
     Ok(val * 2)
 }
 

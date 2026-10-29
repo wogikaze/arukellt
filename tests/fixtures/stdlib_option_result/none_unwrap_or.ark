@@ -1,6 +1,6 @@
 use std::host::stdio
-use std::prelude::{unwrap_or}
+
 fn main() {
     let x: Option<i32> = None
-    stdio::println((unwrap_or(x, 99)).to_string())
+    stdio::println((x.unwrap_or(99)).to_string())
 }

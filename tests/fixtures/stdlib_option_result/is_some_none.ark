@@ -1,10 +1,10 @@
 use std::host::stdio
-use std::prelude::{is_none, is_some}
+
 fn main() {
     let a: Option<i32> = Some(1)
     let b: Option<i32> = None
-    stdio::println((is_some(a)).to_string())
-    stdio::println((is_none(a)).to_string())
-    stdio::println((is_some(b)).to_string())
-    stdio::println((is_none(b)).to_string())
+    stdio::println((a.is_some()).to_string())
+    stdio::println((a.is_none()).to_string())
+    stdio::println((b.is_some()).to_string())
+    stdio::println((b.is_none()).to_string())
 }

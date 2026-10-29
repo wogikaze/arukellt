@@ -1,8 +1,8 @@
 use std::host::stdio
 use std::test::Test
-use std::prelude::{unwrap_or}
+
 fn main() {
     let a: Option<i32> = None
-    Test::assert_eq_i32(unwrap_or(a, 99), 99)
+    Test::assert_eq_i32(a.unwrap_or(99), 99)
     stdio::println("ok")
 }

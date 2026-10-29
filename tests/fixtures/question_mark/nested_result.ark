@@ -1,3 +1,4 @@
+use std::core::convert
 use std::host::stdio
 // Nested ? calls: multi-step error propagation across several
 // fallible functions, all sharing the same error type String.
@@ -6,9 +7,9 @@ use std::host::stdio
 // and From<String> for String is the identity impl, so errors
 // propagate unchanged through the call chain.
 
-use std::prelude::{eq, parse_i32}
+use std::prelude::{eq}
 
-fn parse_num(s: String) -> Result<i32, String> {parse_i32(s)
+fn parse_num(s: String) -> Result<i32, String> {i32::try_from(s)
 }
 
 fn validate_positive(n: i32) -> Result<i32, String> {

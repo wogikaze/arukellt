@@ -1,7 +1,8 @@
 // T2 RPN REPL — interactive stdin loop.
 // Empty stdin on the GC host (#807). Do not name this `read_stdin` — that
 // symbol collides with a core_op and the body is lowered to unreachable.
-use std::prelude::{byte_at, eq, substring, parse_i32}
+use std::core::convert
+use std::prelude::{byte_at, eq, substring}
 use std::host::stdio
 use std::text
 
@@ -46,7 +47,7 @@ fn apply_op(mut stack: Vec<i32>, op: RpnOp) -> Vec<i32> {
 
 fn process_token(mut stack: Vec<i32>, tok: String) -> Vec<i32> {
     match operator_from_token(tok) {
-        RpnOp::Invalid => match parse_i32(tok) {
+        RpnOp::Invalid => match i32::try_from(tok) {
             Result::Ok(val) => { push(stack, val); stack }
             Result::Err(_) => { print_error("invalid token: ".concat(tok)); stack }
         }

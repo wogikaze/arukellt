@@ -40,9 +40,14 @@ fn mir_opt_collect_loop_regions(insts: Vec<MirInst>) -> Vec<LoopRegion> {
         }
         if op == opcodes::MIR_END() {
             if len(stack) > 0 {
-                // pop returns Option<i32>; unwrap before the i32 LoopRegion fields.
-                let start = pop(stack).unwrap()
-                let depth = pop(depths).unwrap()
+                let start = match pop(stack) {
+                    Some(value) => value,
+                    None => return regions,
+                }
+                let depth = match pop(depths) {
+                    Some(value) => value,
+                    None => return regions,
+                }
                 push(regions, LoopRegion_new(start, i, depth))
             }
         }
@@ -66,8 +71,14 @@ fn mir_opt_collect_loop_regions_draft(insts: Vec<MirInstDraft>) -> Vec<LoopRegio
         }
         if op == opcodes::MIR_END() {
             if len(stack) > 0 {
-                let start = pop(stack).unwrap()
-                let depth = pop(depths).unwrap()
+                let start = match pop(stack) {
+                    Some(value) => value,
+                    None => return regions,
+                }
+                let depth = match pop(depths) {
+                    Some(value) => value,
+                    None => return regions,
+                }
                 push(regions, LoopRegion_new(start, i, depth))
             }
         }

@@ -1,5 +1,4 @@
 use std::host::stdio
-use std::prelude::{unwrap}
 
 fn main() {
     let mut m: HashMap<i32, i32> = HashMap::new<i32, i32>()
