@@ -1,0 +1,22 @@
+use std::core::ops
+
+// ADR-059 §4: a unary operator evaluates its operand, so a binding moved into
+// another binding earlier is E0212 when the operand is read.
+struct Wrapper {
+    value: i32,
+}
+
+impl Neg for Wrapper {
+    fn neg(self: Wrapper) -> Wrapper {
+        Wrapper { value: -self.value }
+    }
+}
+
+fn main() {
+    let wrapper = Wrapper { value: 42 }
+    let owner = wrapper
+    let negated = -wrapper
+    let from_owner = -owner
+    let _ = negated
+    let _ = from_owner
+}

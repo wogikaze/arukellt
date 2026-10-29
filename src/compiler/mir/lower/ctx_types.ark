@@ -51,6 +51,11 @@ pub struct LowerCtx {
     // struct_names[i] -> i for the first layout with that name, and the
     // field offset (prefix sum of struct_field_counts) of every layout.
     struct_layout_first_index: NameIndex,
+    // struct_names[i] -> i for the first layout that is not an enum base.
+    // ctx_struct_layout_struct_index used to scan the whole registry per
+    // struct-context lookup; a layout is recorded here when its fields finish
+    // registering (zero-field layouts at registration), so lookups are O(1).
+    struct_layout_struct_index: NameIndex,
     struct_layout_field_offsets: Vec<i32>,
     // type_name -> resolved layout name memo (ctx_struct_layout); reset on
     // every ctx_struct_push_layout because registration can change the answer.

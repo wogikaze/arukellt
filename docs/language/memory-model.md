@@ -90,12 +90,15 @@ mode は `TY_FN` 型に含まれ、関数値経由の呼び出しにも同じ規
 共有仮引数の関数値を `mut` 位置へ代入できる一方、逆方向は注釈付き `let`
 binding、関数引数、return 位置で E0225 として拒否する。module 修飾された
 関数 path も同じ検査の対象である。借用した `Box<T>` 仮引数の返却・集約値への
-格納・`unbox` は E0227 として拒否する。移動済み binding を実引数に渡すこと、
-または method receiver として使うことは E0212 として拒否する。この検査は
-free call、method call、関数値経由の呼び出し、builtin に共通で、field / element
-place は根の binding まで辿る。呼び出し時点で生きている実引数は借用されるだけで
-move されない。`std/`、`src/compiler/`、fixture は `mut` 仮引数と `let mut`
-place へ移行済みである。規則の詳細は
+格納・`unbox` は E0227 として拒否する。移動済み binding の利用は E0212 として
+拒否する。この検査は実引数と method receiver だけでなく、直接の return / tail
+値、binary / unary の被演算子、field / element の読み取り根、関数値経由の
+呼び出しの callee にも適用する。識別子の評価時に同じ moved / `Copy` 判定を
+使い、field / element place は根の binding まで辿る。呼び出し時点で生きている
+実引数は借用されるだけで move されない。`if` 条件は通常の式として評価されない
+ため、その条件だけから到達する移動済み読み取りは現行では報告しない（既存の
+推論上の制限であり、ownership 規則の違いではない）。`std/`、`src/compiler/`、
+fixture は `mut` 仮引数と `let mut` place へ移行済みである。規則の詳細は
 [spec.md §3.5.1](spec.md#351-argument-passing-and-parameter-modes)、実装は
 [#951](../../issues/open/951-mut-parameter-mode-and-call-borrow-checks.md) と
 [#944](../../issues/open/944-move-after-use-not-diagnosed.md) で追跡する。

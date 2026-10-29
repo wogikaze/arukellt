@@ -3484,6 +3484,12 @@ diag:diagnostics/moved_argument_push.ark
 diag:diagnostics/moved_argument_method_receiver.ark
 diag:diagnostics/moved_argument_function_value.ark
 diag:diagnostics/moved_argument_field_place.ark
+diag:diagnostics/moved_return_value.ark
+diag:diagnostics/moved_tail_value.ark
+diag:diagnostics/moved_binary_operand.ark
+diag:diagnostics/moved_unary_operand.ark
+diag:diagnostics/moved_field_read.ark
+diag:diagnostics/moved_function_callee.ark
 diag:diagnostics/mut_param_immutable_place.ark
 diag:diagnostics/mut_self_immutable_receiver.ark
 diag:diagnostics/mut_param_same_place.ark

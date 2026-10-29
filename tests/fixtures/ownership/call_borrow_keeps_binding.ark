@@ -13,7 +13,10 @@ fn main() {
     let h = Holder { name: String_from("keep"), count: 7 }
     let first = describe(h)
     let second = describe(h)
-    stdio::println(h.name)
+    // A plain field read in a let initializer is a read, not a move: the call
+    // borrow leaves `h` live and the field is still readable here.
+    let label = h.name
+    stdio::println(label)
     stdio::println(first.to_string())
     stdio::println(second.to_string())
     stdio::println(h.count.to_string())

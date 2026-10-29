@@ -32,6 +32,23 @@ fn ctx_struct_push_layout(mut ctx: LowerCtx, struct_name: String, field_count: i
     push(ctx.struct_names, struct_name)
     push(ctx.struct_field_counts, field_count)
     ctx_struct_layout_name_memo_reset(ctx)
+    if field_count == 0 {
+        ctx_struct_layout_record_struct_index(ctx, index)
+    }
+}
+
+// Record `index` as a struct-context layout unless it is an enum base. Called
+// once per layout, when the layout's fields finish registering; a layout is
+// never mutated after that point.
+fn ctx_struct_layout_record_struct_index(mut ctx: LowerCtx, index: i32) {
+    if ctx_struct_layout_is_enum_base_at(ctx, index) {
+        return
+    }
+    name_index::name_index_insert_first(
+        ctx.struct_layout_struct_index,
+        ctx_struct_layout_name_at(ctx, index),
+        index
+    )
 }
 
 // Index of the first layout named `struct_name`, or -1.
@@ -54,18 +71,10 @@ fn ctx_struct_layout_is_enum_base_at(ctx: LowerCtx, index: i32) -> bool {
 // or -1. A user struct may reuse a name an earlier enum registration claimed
 // (`struct Box` next to the prelude `enum Box`); the user decl shadows the
 // enum for struct-context lookups while enum machinery keeps its own
-// variant/tag registries.
+// variant/tag registries. `struct_layout_struct_index` is filled as layouts
+// finish registering, so this is O(1) rather than a registry scan.
 fn ctx_struct_layout_struct_index(ctx: LowerCtx, struct_name: String) -> i32 {
-    let sc = ctx_struct_layout_count(ctx)
-    let mut si = 0
-    while si < sc {
-        if eq(ctx_struct_layout_name_at(ctx, si), clone(struct_name)) &&
-        !ctx_struct_layout_is_enum_base_at(ctx, si) {
-            return si
-        }
-        si = si + 1
-    }
-    0 - 1
+    name_index::name_index_get(ctx.struct_layout_struct_index, struct_name)
 }
 
 // Preferred layout for `struct_name`: the user struct when one shadows an
@@ -105,5 +114,13 @@ fn ctx_struct_layout_name_memo_put(mut ctx: LowerCtx, type_name: String, resolve
 fn ctx_struct_push_field(mut ctx: LowerCtx, field_name: String, field_type: String) {
     push(ctx.struct_all_fields, field_name)
     push(ctx.struct_field_types, field_type)
+    let index = len(ctx.struct_names) - 1
+    if index >= 0 {
+        let field_count = get_unchecked(ctx.struct_field_counts, index)
+        let field_offset = get_unchecked(ctx.struct_layout_field_offsets, index)
+        if len(ctx.struct_all_fields) - field_offset == field_count {
+            ctx_struct_layout_record_struct_index(ctx, index)
+        }
+    }
     ctx_struct_layout_name_memo_reset(ctx)
 }

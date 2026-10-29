@@ -76,6 +76,16 @@ fn infer_compound_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnS
         return infer_comprehension::infer_comprehension_expr(env, scope, fn_sigs, enum_defs, node)
     }
     if ast_expr_predicates::node_is_call(node) {
+        // Child 0 is the callee. Callee resolution reads the node text instead
+        // of inferring it, so a call through a moved function value needs the
+        // same place check here. A module function is not a local binding.
+        if ast_access::node_child_count(node) > 0 {
+            ownership::check_moved_place_use(
+                env,
+                scope,
+                ast_access::node_child_at(node, 0)
+            )
+        }
         ownership::check_call_place_uses(env, scope, node, 1)
         return call::infer_call_expr(env, scope, fn_sigs, enum_defs, node)
     }

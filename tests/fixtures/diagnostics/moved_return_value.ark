@@ -1,0 +1,14 @@
+use std::host::stdio
+
+// ADR-059 §4: an explicit `return` reads its value. Returning a binding that
+// was moved into another binding is E0212 even though no call is involved.
+fn take() -> String {
+    let first = String_from("returned")
+    let second = first
+    stdio::println(second)
+    return first
+}
+
+fn main() {
+    stdio::println(take())
+}

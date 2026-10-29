@@ -36,7 +36,6 @@ graph LR
   I940["940 940 — backend type identity drops module paths; same-named types in different modules collide"]
   I941["941 941 — type-name encodings use `_` as a separator; distinct generic instances collide and miscompile"]
   I943["943 943 — ownership and mutability rules do not hold at function-call boundaries"]
-  I944["944 944 — use of a moved binding is not diagnosed when the use is a call argument"]
   I945["945 945 — `impl Copy` is accepted for types with non-`Copy` fields; the "copy" aliases"]
   I946["946 946 — single-uppercase type names in impl heads are treated as implicit type parameters"]
   I947["947 947 — `wasm32-gc` print leaks a WASI output-stream handle per call; programs die after 500,000 lines"]
@@ -129,7 +128,6 @@ graph LR
 - **940** depends on: none; blocks: none
 - **941** depends on: none; blocks: none
 - **943** depends on: none; blocks: none
-- **944** depends on: none; blocks: none
 - **945** depends on: none; blocks: none
 - **946** depends on: none; blocks: none
 - **947** depends on: none; blocks: none

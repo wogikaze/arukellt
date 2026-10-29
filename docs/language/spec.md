@@ -625,13 +625,16 @@ value is assignable to a `mut` position, and the reverse is rejected with
 E0225 at annotated `let` bindings, function arguments, and return positions;
 a module-qualified function path (`prelude::push`) is recovered for the same
 check. A borrowed `Box<T>` parameter cannot be returned, stored in an
-aggregate, or `unbox`ed (E0227). A moved binding passed as an argument or used
-as a method receiver is E0212; this covers free calls, method calls, calls
-through a function value, and builtins, and follows a field or element place
-back to its root binding. A live argument is only borrowed, so it stays usable.
-Reads outside those call positions (for example a moved binding returned
-directly or used as a binary operand) are not covered by this call-boundary
-check. See [../current-state.md](../current-state.md).
+aggregate, or `unbox`ed (E0227). A moved binding is E0212 at these reads: call
+arguments and method receivers, direct `return` and tail values, binary and
+unary operands, field or element read roots, and the callee of a call through
+a function value. The check is the same moved/`Copy` predicate; it runs when an
+identifier is evaluated, and the callee, which is resolved without expression
+inference, uses that predicate at the call. A live argument is only borrowed,
+so it stays usable. An `if` condition is not evaluated as an ordinary
+expression, so a moved read reached only through that condition is not
+reported yet; this is an existing inference limitation, not a different
+ownership rule. See [../current-state.md](../current-state.md).
 
 ### 3.6 Method Call
 

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-28T22:11:36Z",
+  "generated_at": "2026-10-29T05:27:34Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -574,23 +574,6 @@
       "acceptance": {
         "checked": 2,
         "unchecked": 2
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "none"
-      }
-    },
-    {
-      "id": "944",
-      "path": "944-move-after-use-not-diagnosed.md",
-      "title": "944 — use of a moved binding is not diagnosed when the use is a call argument",
-      "track": "typecheck",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
       },
       "orchestration": {
         "class": "implementation-ready",
