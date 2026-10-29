@@ -1,5 +1,5 @@
-use std::seq
-use std::test::Test
+use std::collections::vec
+use std::test
 
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
@@ -7,9 +7,10 @@ fn main() {
     push(v, -2147483647)
     push(v, 0)
 
-    let s = seq::sort_by(v)
-    Test::assert_eq_i32(len(s), 3)
-    Test::assert_eq_i32(get_unchecked(s, 0), -2147483647)
-    Test::assert_eq_i32(get_unchecked(s, 1), 0)
-    Test::assert_eq_i32(get_unchecked(s, 2), 2147483647)
+    v.sort()
+    let s = v
+    test::assert_eq_i32(len(s), 3)
+    test::assert_eq_i32(get_unchecked(s, 0), -2147483647)
+    test::assert_eq_i32(get_unchecked(s, 1), 0)
+    test::assert_eq_i32(get_unchecked(s, 2), 2147483647)
 }

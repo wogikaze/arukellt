@@ -13,12 +13,6 @@ use mir::lower::gc_layout_plan_build
 use mir::value_types
 fn mir_mark_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
     call_rewrite_hashset::mark_hashset_result_type(ctx, clone(callee_name), dest)
-    // seq::sort_by<T>(v: Vec<T>) -> Vec<T> is the identity on its receiver.
-    // Copy the receiver's typed-MIR Vec type before the generic fallback can
-    // leave the dest at vec:i32; skip the other markers when handled (#695).
-    if call_type_vec::mark_seq_sort_by_result_type(ctx, clone(callee_name), dest, first_arg_idx) {
-        return
-    }
     call_type_vec::mark_vec_call_result_type(ctx, clone(callee_name), dest, first_arg_idx)
     call_type_hash::mark_hash_call_result_type(ctx, clone(callee_name), dest)
     // clone(T) -> T (identity). Never force "string" or prelude String return;

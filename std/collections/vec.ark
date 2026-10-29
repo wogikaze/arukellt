@@ -104,7 +104,13 @@ impl<T> Vec<T> {
     }
 
     /// Returns the element at `idx` without bounds checking.
-    fn get_unchecked(self, idx: i32) -> T {
+    ///
+    /// The receiver type is explicit so the element type reaches this
+    /// signature. With an untyped receiver the result is an unbound type
+    /// parameter inside a generic `Vec<T>` body, so `self.get_unchecked(i)`
+    /// loses `T` before an `Ord` call such as `.cmp()` can select the
+    /// element's impl (#965).
+    fn get_unchecked(self: Vec<T>, idx: i32) -> T {
         get_unchecked(self, idx)
     }
 

@@ -33,6 +33,7 @@ fn main() {
     values.push("pear")
     values.push("apple")
     values.push("fig")
+    values.push("kiwi")
     values.push("apple")
     stdio::println(values.is_sorted().to_string())
     values.sort()
@@ -44,6 +45,7 @@ fn main() {
     unstable.push("bravo")
     unstable.push("charlie")
     unstable.push("alpha")
+    unstable.push("echo")
     unstable.sort_unstable()
     show(unstable)
 
@@ -52,6 +54,7 @@ fn main() {
     selection.push("apple")
     selection.push("fig")
     selection.push("kiwi")
+    selection.push("zebra")
     selection.select_nth(2)
     stdio::println(selection.get_unchecked(2))
     let mut before_ok: bool = true

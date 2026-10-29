@@ -14,6 +14,7 @@ fn show(values: Vec<i64>) {
 
 fn main() {
     let mut values: Vec<i64> = Vec::new<i64>()
+    values.push(50i64)
     values.push(30i64)
     values.push(10i64)
     values.push(20i64)
@@ -28,6 +29,7 @@ fn main() {
     unstable.push(7i64)
     unstable.push(8i64)
     unstable.push(6i64)
+    unstable.push(5i64)
     unstable.sort_unstable()
     show(unstable)
 
@@ -36,6 +38,7 @@ fn main() {
     selection.push(10i64)
     selection.push(30i64)
     selection.push(20i64)
+    selection.push(50i64)
     selection.select_nth(2)
     stdio::println(selection.get_unchecked(2).to_string())
     let mut before_ok: bool = true

@@ -189,7 +189,7 @@ fn lower_direct_call_expr(mut ctx: LowerCtx, node: AstNode, callee: AstNode, chi
             return source_name
         }
         let pair = String_from("__").concat(key_name.concat(String_from("__").concat(value_name)))
-    String_from("HashMap__").concat(ctor_name.concat(pair))
+        String_from("HashMap__").concat(ctor_name.concat(pair))
     }
 
     // Type-argument spelling for `HashMap::new<K, V>` callees. fn(i32) -> i32

@@ -188,16 +188,16 @@ provisional (individual deferral) and is not part of this removal.
 The `i32` producer/consumer lanes and the `Vec<String>` `map` / `filter` /
 `any` / `find` lanes are verified on both targets. The `i64` / `f64` numeric
 consumers and the `Vec<String>` reverse/contains lanes still use the
-**reachable** explicit loop; the `i32` / `String` sort lanes moved to the
-verified `Vec<T: Ord>` receiver (`v.sort()`), and `f64` uses
-`v.sort_by(total_cmp)`. The `i64` `v.sort()` lane is only correct below 5
-elements on the linear and core-emit paths, so `seq::sort_by` remains the
-reachable generic replacement there until #965.
+**reachable** explicit loop; the `i32` / `i64` / `String` sort lanes moved to
+the verified `Vec<T: Ord>` receiver (`v.sort()`), and `f64` uses
+`v.sort_by(total_cmp)`. `v.sort()` is correct for `Vec<i64>` and
+`Vec<String>` at 5+ elements on both targets, including the gc core/test
+path, so `seq::sort_by` was retired (#965).
 
 | Removed API | Replacement |
 |-------------|-------------|
 | `sort_i32(v)` | `v.sort()` |
-| `sort_i64(v)` | `seq::sort_by(v)` until the `Vec<i64>` 5+ element method fix (#965); `v.sort()` on the verified smaller/component lanes |
+| `sort_i64(v)` | `v.sort()` |
 | `sort_f64(v)` | `v.sort_by(total_cmp)` (`f64` is not `Ord`) |
 | `sort_String(v)` | `v.sort()` |
 | `map_i32_i32(v, f)` | `v.iter().map(f).collect()` |
@@ -253,9 +253,9 @@ values.sort()
 
 ---
 
-## Provisional `std::seq` generic algorithms (8 removed 2026-10-29, #917)
+## Provisional `std::seq` generic algorithms (9 removed 2026-10-29, #917)
 
-The 8 provisional generic `std::seq` frees were removed directly under
+The 9 provisional generic `std::seq` frees were removed directly under
 ADR-014's provisional notice rule (changelog + this migration entry; no
 ADR-087 stable window and no W0009). Import the receiver surface with
 `use std::collections::vec`; old qualified calls fail with E0100 and a
@@ -263,6 +263,7 @@ ADR-087 stable window and no W0009). Import the receiver surface with
 
 | Removed API | Replacement |
 |-------------|-------------|
+| `seq::sort_by(v)` | `v.sort()` (`T: Ord`; `v.sort_by(cmp)` for a custom order) |
 | `seq::binary_search_by(v, target)` | `v.binary_search(target)` |
 | `seq::binary_search_by_key(v, key, target_key)` | `v.binary_search_by_key(target_key, key)` |
 | `seq::lower_bound(v, target)` | `v.lower_bound(target)` |
@@ -277,12 +278,10 @@ the removed free functions. The 13 deprecated i32 wrappers (`binary_search`,
 `min_i32`, `max_i32`, ...) remain callable until their own #703 Wave 2 and now
 delegate to these methods.
 
-`seq::sort_by` was **not** removed. Its method replacement (`v.sort()` /
-`v.sort_by(cmp)`) is correct for `i32`, `String`, and the gc component path,
-but miscompiles `Vec<i64>` at 5+ elements on the linear and core-emit paths
-(#965). The allocation-free `seq::sort_by` therefore stays `provisional` as
-the reachable generic `Ord` sort for that lane; the method replaces it once
-the scratch layout is fixed.
+`seq::sort_by` was removed with this wave once the `Vec<T: Ord>` method
+scratch layout and the parametric `Ord::cmp` dispatch were fixed (#965).
+`v.sort()` is correct for `i32`, `i64`, `String`, and custom-struct elements
+at 5+ elements on both targets, including the gc core/test path.
 
 ## Currently Deprecated APIs
 
@@ -2015,9 +2014,14 @@ the free `std::collections::sort` module (`sort`, `sort_unstable`,
 
 The `i32`, `i64`, and `String` lanes are verified on both targets by
 `tests/fixtures/stdlib_vec/vec_sort_ord_i64.ark` /
-`vec_sort_ord_string.ark` and their `_wasm32` counterparts. `f64` is not
-`Ord`, so use `v.sort_by(total_cmp)` as before. The earlier `i64` / `String`
-invalid-Wasm failure on `wasm32-gc` (#965) is resolved.
+`vec_sort_ord_string.ark` and their `_wasm32` counterparts, including 5+
+elements that exercise scratch growth. Custom-struct elements with a
+parametric `Ord` impl are covered by
+`tests/fixtures/stdlib_trait/ord_sort_custom_struct.ark` and its `_wasm32`
+counterpart. `f64` is not `Ord`, so use `v.sort_by(total_cmp)` as before.
+The earlier `i64` / `String` scratch-layout failure on the linear and gc
+core/test paths and the `Ord::cmp` trap for custom structs (#965) are
+resolved.
 
 `String` ordering operators (`<`, `>`, `<=`, `>=`) compare UTF-8 bytes and
 agree with `a.cmp(b)` on both targets. They no longer depend on

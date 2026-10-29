@@ -1,1 +1,1 @@
-removed free function; use `v.sort_by(cmp)` via `use std::collections::vec`
+removed free function; use `v.sort()` via `use std::collections::vec`

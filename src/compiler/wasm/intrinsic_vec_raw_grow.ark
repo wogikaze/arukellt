@@ -1,12 +1,13 @@
 //! Target lowering for the sealed `raw_array_grow` / `raw_array_set_len` /
 //! `raw_array_new` primitives.
-use std::prelude::{clone, contains, eq}
+use std::prelude::{clone, eq}
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::emit_target
 use wasm::intrinsic_vec_type
+use wasm::intrinsic_vec_type_new
 use wasm::intrinsic_vec_new_layout
 use wasm::intrinsic_vec_push_gc
 use wasm::intrinsics::helpers_core
@@ -19,19 +20,9 @@ use wasm::writer_gc
 use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 fn lm_grow_elem_stride(ctx: SelfEmitCtx, inst: MirInst) -> i32 {
-    // Mirror typed set/get: i64/f64 lanes are 8 bytes; default scalar is 4 (#822).
     let callee = inst_accessors_literals::MirInst_str_val(inst)
     let elem = intrinsic_vec_type::vec_element_type_name_for_call(ctx, clone(callee), inst)
-    if eq(clone(elem), String_from("i64")) || eq(clone(elem), String_from("I64")) {
-        return 8
-    }
-    if eq(clone(elem), String_from("f64")) || eq(clone(elem), String_from("F64")) {
-        return 8
-    }
-    if eq(clone(elem), String_from("v128")) || eq(clone(elem), String_from("V128")) {
-        return 16
-    }
-    4
+    intrinsic_vec_type_new::linear_element_stride(elem)
 }
 
 fn emit_raw_array_grow(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -324,14 +315,9 @@ fn emit_raw_array_set_len_gc(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx)
 
 fn emit_raw_array_new(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let dest_local = inst_accessors_operands::MirInst_dest(inst)
-    let elem = intrinsic_vec_type::local_type_name(ctx, dest_local)
-    let heap_bump = if contains(clone(elem), String_from("i64")) ||
-    contains(clone(elem), String_from("f64")) ||
-    contains(clone(elem), String_from("v128")) {
-        64
-    } else {
-        32
-    }
+    // The linear buffer size must follow the resolved element type; the dest
+    // local of a constructor inside a generic body is still `vec:T` (#965).
+    let heap_bump = intrinsic_vec_type_new::linear_vec_new_heap_bump(ctx, dest_local)
     intrinsic_vec_new_layout::emit_vec_new_layout(w, heap_bump, heap_bump + 12, inst, ctx)
     true
 }

@@ -1,0 +1,18 @@
+use std::collections::vec
+use std::test
+
+test "sorts_string_values_lexicographically" {
+    let mut v: Vec<String> = Vec::new<String>()
+    v.push(String_from("pear"))
+    v.push(String_from("apple"))
+    v.push(String_from("fig"))
+    v.push(String_from("kiwi"))
+    v.push(String_from("apple"))
+    v.sort()
+    test::assert_eq_i32(v.len(), 5)
+    test::assert_true(v.get_unchecked(0).eq(String_from("apple")))
+    test::assert_true(v.get_unchecked(1).eq(String_from("apple")))
+    test::assert_true(v.get_unchecked(2).eq(String_from("fig")))
+    test::assert_true(v.get_unchecked(3).eq(String_from("kiwi")))
+    test::assert_true(v.get_unchecked(4).eq(String_from("pear")))
+}

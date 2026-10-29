@@ -290,7 +290,7 @@ pub fn probe_sort_i64_ops() -> bool {
     push(values, 30_i64)
     push(values, 10_i64)
     push(values, 20_i64)
-    values = seq::sort_by(values)
+    values.sort()
     len(values) == 3 && get_unchecked(values, 0) == 10_i64 && get_unchecked(values, 1) == 20_i64 && get_unchecked(values, 2) == 30_i64
 }
 

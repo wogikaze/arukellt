@@ -16,55 +16,30 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
-## 2026-10-29 — `std::test` assertion / expectation frees の Wave 2 削除 (#917, wave/test-group)
+## 2026-10-29 — `seq::sort_by` の削除と `Vec<T: Ord>` sort 修正 (#965, wave/vec-sort-custom)
 
-- **Basis**: [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2 の Wave 2。
-  Wave 1 の deprecation は同じ branch の `2c5abb211`。
-- **Retired (18)**: `assert_true` / `assert_false` / `assert_eq_debug` /
-  `assert_eq_i32` / `assert_eq_i64` / `assert_eq_f64` / `assert_eq_string` /
-  `assert_eq_bool` / `assert_ne_i32` / `assert_ne_string` / `expect_ok_i32` /
-  `expect_err_string` / `expect_some_i32` / `expect_none_i32` /
-  `assert_contains` / `assert_eq_snapshot` / `assert_msg` の manifest entry と
-  `std/test/mod.ark` の公開宣言、および `experimental` の `bench` を削除した。
-- **Replacement**: `std::test::Test` の associated function
-  （`Test::assert_eq_i32` 等）。import は `use std::test::Test`。旧 qualified
-  call は E0100 と `resolver::removed_names` の Test hint、bare call も同じ hint
-  を返す。
-- **Docs**: module / reference / scoreboard / eradication を再生成し、
-  `Test` 型だけが残る状態にした。cookbook と migration guide の例も
-  `Test::` へ更新した。
-- **Scorecard**: eradication scope 195 → **177**、`associated-or-method`
-  129 → **111**、manifest public entries 193 → **175**、`pub fn` declarations
-  216 → **198**、`prelude_wrapper` 64 不変、monomorphic helper 50 → **39**、
-  `std::test` family 18 APIs → **0**（`Test` 型のみ）。scoreboard は
-  stable 95 / provisional 2 / experimental 3 / deprecated 75。
-- **Evidence**: 詳細は issue #917 の `wave/test-group` landed slice を参照。
-
-## 2026-10-29 — `std::test` assertion / expectation frees の deprecation (#917, wave/test-group)
-
-- **Basis**: [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2 の Wave 1。
-  対象は `std::test` の `stable` 17 件で、`bench` は `experimental` のため
-  ADR-014 D4 により直接削除する（W0009 window は作らない）。
-- **Surface**: `pub struct Test` と associated function 群を追加した。
-  `Test::assert_true` / `assert_false` / `assert_eq_debug` / `assert_eq_i32` /
-  `assert_eq_i64` / `assert_eq_f64` / `assert_eq_string` / `assert_eq_bool` /
-  `assert_ne_i32` / `assert_ne_string` / `expect_ok_i32` / `expect_err_string` /
-  `expect_some_i32` / `expect_none_i32` / `assert_contains` /
-  `assert_eq_snapshot` / `assert_msg` / `bench` が正規の綴りで、import は
-  `use std::test::Test`。
-- **Deprecated (17)**: 上記 stable 17 件を `stability = "deprecated"`、
-  `deprecated_by = "Test::<name>"`、`deprecated_since = "0.1.0"`、
-  `remove_in = "1.0.0"` に変更した。`std/prelude.ark` の旧 assertion wrapper の
-  `deprecated_by` も `Test::assert_eq_i32` 等を指す。
-- **W0009**: bare name と `test::` qualified call の両方に replacement hint を
-  追加し、`diagnostics/deprecated_test_free*` の両 target golden を追加した。
-- **Migration**: 4,995 call sites / 1,256 files を `Test::` +
-  `use std::test::Test` へ移行済み。migration guide に before/after 表を追加。
-- **Scorecard**:  eradication scope 195、`associated-or-method` 129、
-  manifest public entries 193、`pub fn` declarations 216 は不変。Stability は
-  stable 112 → **95**、deprecated 75 → **92**、experimental 4 のまま。
-- **Evidence**: 詳細は issue #917 の `wave/test-group` landed slice を参照。
-  Wave 2 の削除は次の entry で記録する。
+- **Basis**: [ADR-014](../adr/ADR-014-stability-labels.md) の provisional 削除規則
+  （changelog と migration guide の告知。ADR-087 の stable window と W0009 は不要）。
+  対象は `provisional` の `seq::sort_by` のみ。
+- **Fixed prerequisite**: `Vec<T: Ord>` の method sort が custom struct 要素で
+  `Ord::cmp` を解決できず trap し、`Vec<i64>` / `Vec<String>` の 5 要素以上で
+  linear / gc core-test 経路の scratch が不足していた。`get_unchecked` の receiver
+  型を明示して要素型を signature へ通し、linear の Vec 構築時に解決済み要素型から
+  buffer サイズを決めるよう修正した（#965）。`v.sort()` / `v.sort_unstable()` /
+  `v.select_nth()` は i32 / i64 / String / custom struct で両 target 正しい。
+- **Retired (1)**: `sort_by` の manifest entry と `std/seq/mod.ark` の公開宣言を
+  削除した。qualified な旧 call は E0100 と `resolver::removed_names` の method
+  hint（`use std::collections::vec`）を返す。
+- **Replacement**: `v.sort()`（`T: Ord`）。custom order は `v.sort_by(cmp)`、
+  stability 不要なら `v.sort_unstable()`。
+- **Scorecard**: public surface 195 → **194**; manifest public entries 193 →
+  **192**; `pub fn` declarations 216 → **215**; `associated-or-method` 129 →
+  **128**; `must delete` 66、unregistered 2、intrinsic 1 は不変。
+- **Evidence**: `tests/fixtures/stdlib_vec/vec_sort_ord_i64{,_wasm32}.ark` と
+  `vec_sort_ord_string{,_wasm32}.ark` を 5 要素へ拡張、custom struct は
+  `tests/fixtures/stdlib_trait/ord_sort_custom_struct{,_wasm32}.ark`、gc
+  core/test 経路は `test:` fixture の `stdlib_sort/sort_i64.ark` /
+  `sort_string.ark` / `sort_custom_ord.ark` が固定する。
 
 ## 2026-10-29 — `std::seq` の provisional 汎用アルゴリズム削除 (#917, wave/associated-next)
 

@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-10-28
-Updated: 2026-10-28
+Updated: 2026-10-29
 ID: 971
 Track: compiler
 Depends on: none
@@ -91,6 +91,28 @@ external key requires either self-contained elements or a capture mechanism.
 
 ## Acceptance
 
-- [ ] `Vec<(i32, i32)>.sort_by` and `Vec<Point>.sort_by` compile and run on `wasm32-gc`.
-- [ ] `Vec<String>.sort_by` runs without trapping.
+- [x] `Vec<(i32, i32)>.sort_by` and `Vec<Point>.sort_by` compile and run on `wasm32-gc`.
+- [x] `Vec<String>.sort_by` runs without trapping.
 - [ ] A comparator may capture an immutable local vector (or an equivalent index-sort API exists).
+
+## Update (2026-10-29, wave/vec-sort-custom)
+
+The two element-type failures are no longer reproducible on this checkout.
+With the current selfhost compiler (and the `Vec<T: Ord>` scratch/dispatch
+fixes from #965), the issue's own repros now compile, `wasm-tools validate`
+and run on **both** targets:
+
+- Repro A (`Vec<(i32, i32)>.sort_by`, gc component): prints `9`; the same
+  program on `wasm32` prints `9`.
+- Repro B (`Vec<String>.sort_by` with a length comparator, gc component):
+  prints `fig`, `pear`, `apple`; the same program on `wasm32` matches.
+- `struct Point` aggregate elements follow Repro A (same GC struct-ref array
+  path).
+
+The receiver now needs `mut` (`let mut v`) because `sort_by` is a `mut self`
+method and E0223 rejects an immutable place; the repros above were rerun with
+`let mut v`.
+
+Remaining from this issue: a comparator still cannot capture an immutable
+local vector (Repro C, E0213). The sort_by element-type acceptance items can
+be checked with the reruns above; the closure-capture item stays open.

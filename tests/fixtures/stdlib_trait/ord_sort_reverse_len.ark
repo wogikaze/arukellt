@@ -1,14 +1,15 @@
-// Focused #695 regression: seq::sort_by on a Vec of a generic struct must
+// Focused #695 regression: Vec::sort on a Vec of a generic struct must
 // keep the receiver's Vec layout even when the element is not read back.
 use std::core::cmp
-use std::seq
-use std::test::Test
+use std::collections::vec
+use std::test
 
 fn main() {
     let mut r: Vec<cmp::Reverse<i32>> = Vec::new<cmp::Reverse<i32>>()
     r.push(cmp::Reverse { inner: 1 })
     r.push(cmp::Reverse { inner: 3 })
     r.push(cmp::Reverse { inner: 2 })
-    let sr = seq::sort_by(r)
-    Test::assert_eq_i32(sr.len(), 3)
+    r.sort()
+    let sr = r
+    test::assert_eq_i32(sr.len(), 3)
 }
