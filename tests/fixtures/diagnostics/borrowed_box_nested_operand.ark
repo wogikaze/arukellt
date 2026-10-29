@@ -1,13 +1,13 @@
-use std::prelude::{Box_new, unbox}
+use std::prelude::Box
 
-// ADR-088 §6: `unbox` moves the borrowed Box even when the call is an operand
+// ADR-088 §6: `take` moves the borrowed Box even when the call is an operand
 // of a larger expression. The value-shape walk must recurse through read
 // positions instead of stopping at the binary node.
 fn offset(b: Box<i32>) -> i32 {
-    return unbox(b) + 1
+    return b.take() + 1
 }
 
 fn main() {
-    let boxed = Box_new(2)
+    let boxed: Box<i32> = Box::new(2)
     let _n = offset(boxed)
 }

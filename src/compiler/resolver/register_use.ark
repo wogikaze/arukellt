@@ -18,6 +18,34 @@ fn register_use_decl(mut ctx: ResolveCtx, d: AstNode) {
     register_use_module_alias(ctx, d)
     register_use_children(ctx, d)
     register_use_decl_func_alias(ctx, d)
+    register_use_reject_retired_prelude(ctx, d)
+}
+
+// A path import (`use std::prelude::Box_new`, including the flattened form of
+// a braced group) can name a retired prelude free. Reject the import instead
+// of letting the alias resurrect a declaration that no longer exists.
+fn register_use_reject_retired_prelude(ctx: ResolveCtx, d: AstNode) {
+    let use_path = ast_access::node_text(d)
+    let parent = paths::use_module_parent_path(use_path.clone())
+    if !eq(parent.clone(), "std::prelude") && !eq(parent.clone(), "prelude") {
+        return
+    }
+    let name = paths::use_module_short_name(use_path)
+    // `clone` keeps a private prelude shim and is still imported by compiler
+    // modules; only the Box free pair is fully retired here.
+    let hint = if eq(name.clone(), "Box_new") {
+        String_from("use `Box::new(value)` instead")
+    } else if eq(name.clone(), "unbox") {
+        String_from("use `boxed.take()` instead")
+    } else {
+        String_new()
+    }
+    if len(hint) > 0 {
+        scope_error::resolve_error(
+            ctx,
+            String_from("removed prelude free function: ").concat(name.concat("; ".concat(hint)))
+        )
+    }
 }
 
 fn register_use_decl_func_alias(mut ctx: ResolveCtx, d: AstNode) {

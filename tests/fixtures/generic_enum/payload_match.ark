@@ -3,7 +3,7 @@
 // payload (`T`), but MIR still chose the open GC reference representation and
 // the emitted module failed validation (`expected i32, found (ref null ...)`).
 use std::host::stdio
-use std::prelude::{Box_new, unbox}
+use std::prelude::Box
 
 enum Wrap<T> {
     Some(T),
@@ -17,15 +17,13 @@ fn peek_wrap(w: Wrap<i32>) -> i32 {
     }
 }
 
-fn peek_box(b: Box<i32>) -> i32 {
-    match b {
-        Box::Owned(value) => value,
-    }
+fn make_box() -> Box<i32> {
+    Box::Owned(41)
 }
 
 fn main() {
     let wrapped: Wrap<i32> = Wrap::Some(41)
     stdio::println((peek_wrap(wrapped) + 1).to_string())
-    stdio::println((peek_box(Box_new(41)) + 1).to_string())
-    stdio::println((unbox(Box::Owned(41)) + 1).to_string())
+    stdio::println((make_box().take() + 1).to_string())
+    stdio::println((Box::new(41).take() + 1).to_string())
 }

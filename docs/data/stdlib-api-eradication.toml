@@ -234,14 +234,14 @@ replacement = "method / associated equivalent on the receiver or namespace type"
 # `is_err` receivers, `parse_i32` / `parse_i64` / `parse_f64` (now `TryFrom`
 # associated functions), and `f32_to_string`. `wave/prelude-text2` then retired
 # 8 of the text 10: `byte_at`, `slice`, `substring`, `to_string`,
-# `starts_with`, `ends_with`, `contains`, and `index_of`. The 8 rows still
+# `starts_with`, `ends_with`, `contains`, and `index_of`. `wave/box-new` then
+# retired `Box_new` / `unbox` (`Box::new` / `.take()`). The rows still
 # matched here are:
 #   - the exact retained exception: `assert`, `String_from`, `String_new`,
 #     `char_to_string` (ADR-091 §3; ADR-072 §1 minus panic);
-#   - the still-deferred families: `Box_new` / `unbox` (the ownership checker
-#     special-cases the free names), `clone` (the compiler-polymorphic copy path
-#     for values without a Clone impl), and `eq` (String `==` lowering in the
-#     bootstrap overlay still dispatches through the free).
+#   - the still-deferred families: `eq` (String `==` lowering in the
+#     bootstrap overlay still dispatches through the free), plus the private
+#     `clone` shim that keeps the compiler-polymorphic copy path.
 # Do not add a prelude free function outside the four-name exception.
 
 # -- Module-scoped free functions -> methods / associated --

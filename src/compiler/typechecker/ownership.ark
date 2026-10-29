@@ -79,7 +79,18 @@ fn consume_expr(mut env: TypeEnv, mut scope: LocalScope, node: AstNode) {
         }
         return
     }
-    if kind == kinds::NK_ASSIGN() || kind == kinds::NK_METHOD_CALL() ||
+    if kind == kinds::NK_METHOD_CALL() {
+        // `boxed.take()` consumes its receiver like the retired `unbox(b)`.
+        // A user type may also define a `take` method; only the prelude
+        // `Box<T>` receiver is the unique-owner boundary.
+        if eq(ast_access::node_text(node), "take") &&
+        ast_access::node_child_count(node) > 0 &&
+        box_typed_identifier(env, scope, ast_access::node_child_at(node, 0)) {
+            consume_expr(env, scope, ast_access::node_child_at(node, 0))
+        }
+        return
+    }
+    if kind == kinds::NK_ASSIGN() ||
     kind == kinds::NK_PATH() || kind == kinds::NK_BLOCK() || kind == kinds::NK_BINARY() ||
     kind == kinds::NK_UNARY() || kind == kinds::NK_IF_EXPR() || kind == kinds::NK_MATCH_EXPR() ||
     kind == kinds::NK_CLOSURE() || kind == kinds::NK_COMPREHENSION() || kind == kinds::NK_TRY() {
@@ -111,9 +122,16 @@ fn consume_box_boundary_argument(mut env: TypeEnv, mut scope: LocalScope, node: 
     }
     let callee = ast_access::node_child_at(node, 0)
     let callee_name = ast_access::node_text(callee)
-    if eq(callee_name.clone(), "Box_new") || eq(callee_name.clone(), "unbox") {
+    if is_box_new_callee(callee_name) {
         consume_expr(env, scope, ast_access::node_child_at(node, 1))
     }
+}
+
+// `Box::new(value)` is the associated-function replacement for `Box_new`.
+// Module-qualified spellings may extend the path, so accept any suffix.
+fn is_box_new_callee(callee_name: String) -> bool {
+    eq(callee_name.clone(), "Box::new") ||
+    callee_name.clone().ends_with(String_from("::Box::new"))
 }
 
 fn consume_aggregate_children(mut env: TypeEnv, mut scope: LocalScope, node: AstNode) {
@@ -181,13 +199,27 @@ fn borrowed_box_param(env: TypeEnv, scope: LocalScope, name: String) -> bool {
     if !scope::scope_binding_is_param(scope, name.clone()) {
         return false
     }
-    type_is_borrowed_box(env, scope::scope_binding_type(scope, name))
+    type_is_box(env, scope::scope_binding_type(scope, name))
+}
+
+// True for an identifier binding whose declared/inferred type is the prelude
+// `Box<T>`. Method calls use this to distinguish the unique-owner `take` from
+// an unrelated user method with the same name.
+fn box_typed_identifier(env: TypeEnv, scope: LocalScope, node: AstNode) -> bool {
+    if !ast_expr_predicates::node_is_ident(node) {
+        return false
+    }
+    let name = ast_access::node_text(node)
+    if scope::scope_binding_index(scope, name.clone()) < 0 {
+        return false
+    }
+    type_is_box(env, scope::scope_binding_type(scope, name))
 }
 
 // The prelude `Box<T>` is a generic enum. A user non-generic `struct Box`
 // shadows only the bare name, so requiring a type argument distinguishes the
 // unique-owner type from the shadowing struct.
-fn type_is_borrowed_box(env: TypeEnv, ty: TypeInfo) -> bool {
+fn type_is_box(env: TypeEnv, ty: TypeInfo) -> bool {
     let resolved = unify::resolve_type(env, ty)
     let tag = contract_type_access::TypeInfo_tag(resolved)
     if tag != commands::TY_STRUCT() && tag != commands::TY_ENUM() {
@@ -397,13 +429,21 @@ fn check_borrowed_box_escape(mut env: TypeEnv, scope: LocalScope, node: AstNode)
     check_borrowed_box_nested_escape(env, scope, node)
 }
 
-// Report a store reached through an otherwise read-only expression. `unbox`,
-// `Box_new`, and aggregate constructors move the borrowed Box no matter how
-// deeply they are nested (binary operand, call argument, method receiver...).
+// Report a store reached through an otherwise read-only expression.
+// `Box::new`, `.take()`, and aggregate constructors move the borrowed Box no
+// matter how deeply they are nested (binary operand, call argument, method
+// receiver...).
 fn check_borrowed_box_nested_escape(mut env: TypeEnv, scope: LocalScope, node: AstNode) {
     let kind = ast_access::node_kind(node)
     if kind == kinds::NK_IDENT() || kind == kinds::NK_PATH() ||
     kind == kinds::NK_CLOSURE() {
+        return
+    }
+    if kind == kinds::NK_METHOD_CALL() {
+        if eq(ast_access::node_text(node), "take") && ast_access::node_child_count(node) > 0 {
+            check_borrowed_box_escape(env, scope, ast_access::node_child_at(node, 0))
+        }
+        check_borrowed_box_nested_children(env, scope, node, 1)
         return
     }
     if kind == kinds::NK_CALL() {
@@ -460,15 +500,16 @@ fn check_borrowed_box_escape_struct_fields(mut env: TypeEnv, scope: LocalScope, 
     }
 }
 
-// `unbox` consumes its argument, while `Box_new` and the builtin
-// `Option`/`Result` payload constructors store it in a fresh aggregate. The
-// builtin constructors are not source enum defs, so the enum-constructor
-// argument check in call_fn.ark never sees `Option::Some`, `Ok`, or `Err`.
+// `Box::new` stores its argument in a fresh aggregate and `.take()` consumes
+// its receiver, while the builtin `Option`/`Result` payload constructors
+// store it in a fresh aggregate. The builtin constructors are not source enum
+// defs, so the enum-constructor argument check in call_fn.ark never sees
+// `Option::Some`, `Ok`, or `Err`.
 fn is_borrowed_box_sink_callee(callee_name: String) -> bool {
-    let leaf = names::unqualified_type_name(callee_name)
-    if eq(leaf.clone(), "unbox") || eq(leaf.clone(), "Box_new") {
+    if is_box_new_callee(callee_name.clone()) {
         return true
     }
+    let leaf = names::unqualified_type_name(callee_name)
     eq(leaf.clone(), "Some") || eq(leaf.clone(), "Ok") || eq(leaf, "Err")
 }
 

@@ -193,8 +193,11 @@ conditions are recorded in
 
 A borrowed `Box<T>` parameter is a call-scoped borrow of a unique owner, so
 it cannot be returned, stored in an aggregate (including an enum constructor),
-or passed to `unbox`; these are E0227. A local read (matching the `Box::Owned`
-payload) and passing the value to another shared parameter stay legal. ADR-014's
+or consumed with `boxed.take()`; these are E0227. A local read (matching the
+`Box::Owned` payload) and passing the value to another shared parameter stay
+legal. `Box::new(value)` and `boxed.take()` are the only public spellings; the
+retired `Box_new` / `unbox` frees produce E0100 with the replacement hint.
+ADR-014's
 warning window was not run because no pre-existing declaration used the new
 spelling before the migration; the diagnostics are errors (same posture as
 #946).

@@ -151,6 +151,22 @@ ownership checker's `Box_new` / `unbox` name special cases
 that lowering fixed first; the name special cases cannot be replaced by
 `.new()` / match today.
 
+### Resolution (2026-10-30, `wave/box-new`)
+
+The blocker was the mono method return signature, not the payload lowering
+alone. `ctx_maybe_enum_return_type_name` collapsed the constructor's declared
+`Wrap<i32>` return to `enum:Wrap`, and
+`resolve_mono_method_return_value_sig` read the receiver-shaped name as a
+generic method returning its type parameter, substituting the mono key (`i32`
+or `String`) as the Wasm result type. Return positions now keep
+`enum:Wrap<i32>`, `let`/call-result locals keep the instantiation arguments,
+and a generic ref payload bind replaces its `enum:<T>` placeholder once the
+scrutinee supplies arguments. `impl<T> Box<T> { new, take }` lives in
+`std/prelude.ark`; `Box_new` / `unbox` are retired with E0100 hints and the
+borrowed-`Box` E0227 sink now recognizes `Box::new` / `.take()`. Evidence:
+`verify fixtures` 1926/1926, `verify lane`, `docs check` 6/6, and the ADR-029
+fixpoint (`ddf46a2f…`).
+
 ## Reproduction
 
 ```bash

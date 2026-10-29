@@ -1,0 +1,5 @@
+// E0100: an explicit selective import of the retired `unbox` free is
+// rejected instead of resurrecting the removed prelude binding.
+use std::prelude::{unbox}
+
+fn main() {}

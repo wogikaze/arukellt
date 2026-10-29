@@ -595,24 +595,6 @@ prelude = true
 stability = "provisional"
 doc_category = "collections"
 
-[[functions]]
-name = "Box_new"
-kind = "builtin"
-params = ["T"]
-returns = "Box<T>"
-prelude = true
-stability = "stable"
-doc_category = "box"
-
-[[functions]]
-name = "unbox"
-kind = "builtin"
-params = ["Box<T>"]
-returns = "T"
-prelude = true
-stability = "stable"
-doc_category = "box"
-
 # ── Assertions ───────────────────────────────
 
 [[functions]]

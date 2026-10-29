@@ -1,0 +1,34 @@
+// Regression: an associated constructor on a generic enum keeps the enum
+// reference as its wasm result, not the monomorphized type argument. The
+// declared `Wrap<T>` return must stay distinguishable from a generic method
+// returning its own type parameter (`Wrap__new__i32` vs `Wrap__echo__i32`).
+use std::host::stdio
+
+enum Wrap<T> {
+    Some(T),
+    None,
+}
+
+impl<T> Wrap<T> {
+    fn new(value: T) -> Wrap<T> {
+        Wrap::Some(value)
+    }
+}
+
+fn main() {
+    let number: Wrap<i32> = Wrap::new(41)
+    let word = Wrap::new(String_from("hi"))
+    let turbofish: Wrap<String> = Wrap::new<String>(String_from("yo"))
+    match number {
+        Wrap::Some(value) => stdio::println((value + 1).to_string()),
+        Wrap::None => stdio::println("none"),
+    }
+    match word {
+        Wrap::Some(value) => stdio::println(value),
+        Wrap::None => stdio::println("none"),
+    }
+    match turbofish {
+        Wrap::Some(value) => stdio::println(value),
+        Wrap::None => stdio::println("none"),
+    }
+}

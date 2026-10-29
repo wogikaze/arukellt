@@ -8,7 +8,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 16 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 14 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 1 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 3 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 65 | Superseded — see migration guidance. |
@@ -228,13 +228,6 @@
 | ~~`assert_eq_i64`~~ ⚠️ Deprecated → `Test::assert_eq_i64` | `(i64, i64) -> ()` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_assert_eq_i64` | - |
 | ~~`assert_eq_str`~~ ⚠️ Deprecated → `Test::assert_eq_string` | `(String, String) -> ()` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_assert_eq_str` | - |
 | ~~`assert_ne`~~ ⚠️ Deprecated → `Test::assert_ne_i32` | `(i32, i32) -> ()` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_assert_ne` | - |
-
-## Box
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `Box_new` | `(T) -> Box<T>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
-| `unbox` | `(Box<T>) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 
 ## Collections
 

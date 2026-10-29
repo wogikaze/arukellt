@@ -607,7 +607,8 @@ bump(a)               // error: `a` is an immutable binding
   guarantees that no mutation happens through a path rooted at an immutable
   binding or a shared parameter; a mutation through another alias is visible
   through every alias, identically on every target. `Box<T>` is excluded: a
-  borrowed `Box<T>` parameter cannot be returned, stored, or `unbox`ed.
+  borrowed `Box<T>` parameter cannot be returned, stored, or consumed with
+  `boxed.take()`.
 - **Function types.** The mode is part of the signature and of function types
   (`fn(mut Vec<i32>) -> i32`). A function value with a shared parameter is
   assignable where the same position is `mut`; the reverse is rejected.
@@ -626,9 +627,10 @@ E0225 at annotated `let` bindings, function arguments, and return positions;
 a module-qualified function path (`prelude::push`) is recovered for the same
 check. A borrowed `Box<T>` parameter cannot be returned, stored in an
 aggregate (including builtin `Option`/`Result` constructors such as
-`Option::Some`, `Ok`, and `Err`), or `unbox`ed (E0227); the escape walk
+`Option::Some`, `Ok`, and `Err`), or consumed with `boxed.take()` (E0227); the
+escape walk
 follows aggregate members and recurses into operands, call arguments, and
-receivers, so a nested `Box_new`/`unbox` is still a sink. Matching the prelude
+receivers, so a nested `Box::new`/`take()` is still a sink. Matching the prelude
 `Box` enum (the generic payload-read shape) stays legal. A moved binding is
 E0212 at these reads: call
 arguments and method receivers, direct `return` and tail values, binary and
@@ -1836,8 +1838,8 @@ lane lands; `s.contains(sub)` replaces the String substring helper.
 
 | Signature | Description |
 |-----------|-------------|
-| `Box_new(x: T) -> Box<T>` | Consume a non-`Copy` `x` and wrap it in a unique owner |
-| `unbox(b: Box<T>) -> T` | Consume the unique owner and return its `T` |
+| `Box::new(x: T) -> Box<T>` | Consume a non-`Copy` `x` and wrap it in a unique owner |
+| `b.take() -> T` | Consume the unique owner and return its `T` |
 
 ### 9.12.1 Slice (prelude)
 

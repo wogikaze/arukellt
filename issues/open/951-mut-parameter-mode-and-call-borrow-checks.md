@@ -414,6 +414,12 @@ match residual is diagnosed below.
   `VT_GC_REF` while the arm uses the value as `i32`. That is a MIR
   payload-bind lowering gap, so the positive fixture keeps the generic
   payload-read shape and this residual stays recorded.
+  Resolved on 2026-10-30 (`wave/box-new`): the generic constructor return
+  signature no longer substitutes the mono key, match payload binds replace
+  the generic `enum:<T>` placeholder with the scrutinee instantiation, and
+  `Box_new` / `unbox` are retired in favour of `Box::new` / `.take()`.
+  `generic_enum/impl_constructor` and `ownership/box_methods` cover the
+  concrete i32/String shapes on both targets.
 - Fixtures: `ownership/borrowed_box_local_use.ark` keeps its generic payload
   read (`41/41`), plus the diagnostics
   `diagnostics/borrowed_box_option_store.ark`,

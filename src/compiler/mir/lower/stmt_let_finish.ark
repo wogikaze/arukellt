@@ -106,6 +106,9 @@ fn let_annotation_is_gc_ref_type(ctx: LowerCtx, local_type_name: String) -> bool
     if local_type_name.clone().starts_with("enum:") {
         return true
     }
+    if ctx_struct_layout::ctx_type_name_is_generic_enum_instance(ctx, local_type_name.clone()) {
+        return true
+    }
     if local_type_name.clone().starts_with("vec:") || local_type_name.clone().starts_with("hashmap:") {
         return true
     }

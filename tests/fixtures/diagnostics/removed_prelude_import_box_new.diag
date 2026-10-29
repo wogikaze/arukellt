@@ -1,0 +1,1 @@
+error[E0100|resolve]: removed prelude free function: Box_new; use `Box::new(value)` instead

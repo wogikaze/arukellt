@@ -106,8 +106,21 @@ fn mir_emit_payload_variant_binds(mut ctx: LowerCtx, pat: AstNode, scrut_idx: i3
         // a type parameter. Stamp the instantiated payload name so the GC
         // variant slot below selects the same typed variant the constructor
         // registered (Box<i32>::Owned -> i32), instead of the declaration's
-        // reference-shaped `T` slot.
-        if !is_some_or_ok && !is_err && len(ctx_get_local_type(ctx, bind_local)) == 0 {
+        // reference-shaped `T` slot. A generic ref payload was pre-stamped
+        // as the weak `enum:open`; replace that placeholder once the
+        // scrutinee supplies concrete arguments.
+        let current_bind_type = ctx_get_local_type(ctx, bind_local)
+        let declared_payload = ctx_struct_field_type::ctx_struct_field_type_name(
+            ctx,
+            variant_name.clone(),
+            bi + 1
+        )
+        // The weak spellings a generic ref payload gets before the
+        // instantiation is known: unset, enum:open, or enum:<declared T>.
+        let weak_placeholder = len(current_bind_type) == 0 ||
+        eq(current_bind_type.clone(), "enum:open") ||
+        eq(current_bind_type.clone(), String_from("enum:").concat(declared_payload.clone()))
+        if !is_some_or_ok && !is_err && weak_placeholder {
             let payload_type = match_payload_field_type::mir_variant_payload_type_name_for_scrut(
                 ctx,
                 variant_name.clone(),
@@ -115,7 +128,9 @@ fn mir_emit_payload_variant_binds(mut ctx: LowerCtx, pat: AstNode, scrut_idx: i3
                 String_new(),
                 scrut_type.clone()
             )
-            if len(payload_type) > 0 {
+            let instantiated = len(current_bind_type) == 0 ||
+            !eq(payload_type.clone(), declared_payload)
+            if len(payload_type) > 0 && instantiated {
                 ctx_set_local_type(ctx, bind_local, payload_type)
             }
         }
@@ -170,17 +185,27 @@ fn mir_subpat_load_field(mut ctx: LowerCtx, variant_name: String, scrut_idx: i32
     }
     // Declared-field types keep the nested value's own type name (an enum
     // or tuple payload) so deeper tag/payload reads resolve layouts the
-    // Option/Result inference would not see (#902).
-    if len(ctx_get_local_type(ctx, temp)) == 0 {
-        let declared = match_payload_field_type::mir_variant_payload_type_name_for_scrut(
+    // Option/Result inference would not see (#902). The generic ref payload
+    // was pre-stamped as `enum:open`; replace that placeholder when the
+    // scrutinee supplies a concrete type argument.
+    let temp_type = ctx_get_local_type(ctx, temp)
+    if len(temp_type) == 0 || eq(temp_type.clone(), "enum:open") {
+        let payload_type = match_payload_field_type::mir_variant_payload_type_name_for_scrut(
             ctx,
             variant_name.clone(),
             field_idx,
             String_new(),
             scrut_type.clone()
         )
-        if len(declared) > 0 {
-            ctx_set_local_type(ctx, temp, declared)
+        let declared_payload = ctx_struct_field_type::ctx_struct_field_type_name(
+            ctx,
+            variant_name.clone(),
+            field_idx + 1
+        )
+        let instantiated = len(temp_type) == 0 ||
+        !eq(payload_type.clone(), declared_payload)
+        if len(payload_type) > 0 && instantiated {
+            ctx_set_local_type(ctx, temp, payload_type)
         }
     }
     emit_payload_field_bind(ctx, variant_name.clone(), scrut_idx, temp, bind_vt, field_idx)

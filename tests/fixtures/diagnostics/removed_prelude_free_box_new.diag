@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined name: Box_new; use `Box::new(value)` instead

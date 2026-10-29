@@ -79,7 +79,7 @@ fill(xs)               // error: xs は不変 binding
 - callee が借用した値を返却・保存すると、その値は複製されず GC reference として共有される。
   言語が保証するのは「不変 binding と共有仮引数を根とする経路からは書き換えが起きない」ことであり、
   別名から `mut` 経路で書き換えた結果は元の binding からも見える。この観測結果は全 target で同一である。
-- `Box<T>` は一意所有のため共有 escape の対象外で、借用した `Box<T>` 仮引数は返却・保存・`unbox` できない。
+- `Box<T>` は一意所有のため共有 escape の対象外で、借用した `Box<T>` 仮引数は返却・保存・`take()` できない。
 
 **実装状態**: コンパイラは `mut` 仮引数、`mut self`、`|mut v|`、関数型の
 `mut` 位置（`fn(mut T) -> U`）を解析し、`mut` 仮引数へ渡す実引数が可変 place で
@@ -90,9 +90,9 @@ mode は `TY_FN` 型に含まれ、関数値経由の呼び出しにも同じ規
 共有仮引数の関数値を `mut` 位置へ代入できる一方、逆方向は注釈付き `let`
 binding、関数引数、return 位置で E0225 として拒否する。module 修飾された
 関数 path も同じ検査の対象である。借用した `Box<T>` 仮引数の返却・集約値への
-格納・`unbox` は E0227 として拒否する。集約値には組み込み `Option`/`Result` の
+格納・`take()` による消費は E0227 として拒否する。集約値には組み込み `Option`/`Result` の
 `Option::Some`・`Ok`・`Err` も含み、escape 走査は被演算子・実引数・receiver に
-入れ子になった `Box_new`/`unbox` まで辿る。`Box` enum の generic な payload
+入れ子になった `Box::new`/`take()` まで辿る。`Box` enum の generic な payload
 読み出しは合法であり、具象 `Box<i32>` の match も宣言側の型パラメータを
 scrutinee の実引数で置換して payload を読む。移動済み binding の利用は E0212 として
 拒否する。この検査は実引数と method receiver だけでなく、直接の return / tail

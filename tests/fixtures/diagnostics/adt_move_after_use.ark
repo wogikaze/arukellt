@@ -1,9 +1,9 @@
 use std::host::stdio
-use std::prelude::{Box_new, unbox}
+use std::prelude::Box
 fn main() {
-    let boxed = Box_new(7)
+    let boxed: Box<i32> = Box::new(7)
     let moved = boxed
     let reused = boxed
-    stdio::println(unbox(moved).to_string())
-    stdio::println(unbox(reused).to_string())
+    stdio::println(moved.take().to_string())
+    stdio::println(reused.take().to_string())
 }

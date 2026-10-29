@@ -146,8 +146,8 @@ i32 codepoint 境界が解消した場合は、この例外を見直す。
   した（`compile_source` / `backend_resolve` の計測）。compiler / std module から
   `TryFrom` を使う経路が安定するまで free を残す。fixture 側の移行も同じ理由で
   この wave では行わない。
-- `Box_new` / `unbox`: ownership checker が free 名を特別扱いしており、
-  method 化には ownership / MIR の変更が必要。
+- `Box_new` / `unbox`: 2026-10-30 に退役した。`Box::new` / `Box::take` は
+  prelude の `impl<T> Box<T>` に置いた（末尾の追記を参照）。
 - `unwrap` / `unwrap_or` / `is_some` / `is_none` / `is_ok` / `is_err`:
   generic な `impl<T> Option<T>` / `impl<T, E> Result<T, E>` の receiver method は
   現行 lowering で実行時に `unreachable` へ落ちる。concrete impl の網羅が前提。
@@ -308,6 +308,48 @@ receiver を指す hint を返す。
   PASS、`docs check` 6/6、ADR-029 fixpoint PASS（s2 == s3 at sha256
   `9cec2ac2523c567cd6b8d4d88d9ada2a7f3bb202fb12dca92062f1783cf9b0bd`、pinned base
   `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`）。
+
+## 追記: 2026-10-30 `wave/box-new` — `Box_new` / `unbox` の退役
+
+§4 の `Box_new` / `unbox` を退役した。§3 の prelude free 例外は不変である。
+
+- **Root cause**: generic enum の associated constructor
+  `impl<T> Wrap<T> { fn new(value: T) -> Wrap<T> }` は型検査を通るが、
+  `ctx_maybe_enum_return_type_name` が返り値の `Wrap<i32>` を `enum:Wrap` に
+  畳み、`sections_types_sigs_mono::resolve_mono_method_return_value_sig` が
+  それを「receiver を返す generic method」と解釈して mono key の `i32` を
+  Wasm の result type にしていた。本体は enum 参照を返すため
+  `type mismatch: expected i32, found (ref null $type)` で invalid core Wasm
+  になった。`Wrap<String>` では `gcref0`（String）を返し、同じく不一致。
+- **Mechanism**:
+  - 関数の return type name は generic enum の instantiation を保持する
+    `enum:Wrap<i32>` を返し（`ctx_maybe_enum_return_type_name_keep_instance`）、
+    mono method の receiver 判定にかからないようにした。
+  - `let w: Wrap<i32>` の annotation と call result も type argument を保持し、
+    match payload が宣言側 `T` の layout ではなく instantiated layout を読む。
+  - prelude の `Box<T>` enum と同じファイルに `impl<T> Box<T>` を置き、
+    `Box::new` / `take` を公開した。user module の `impl<T> Box<T>` は
+    E0100（`undefined module: Box`）で拒否されるため、declaring module に
+    置く必要がある。
+  - ownership checker の free 名 special case を `Box::new` / `.take()` の
+    sink に置き換えた。borrowed `Box<T>` の E0227 は維持している。
+- **Deleted**: `std/prelude.ark` の `Box_new` / `unbox` と
+  `std/manifest.toml` の該当 entry。bare call は E0100 +
+  `use \`Box::new(value)\`` / `use \`boxed.take()\`` の hint。
+- **Migration**: `std/wit/types.ark`、fixtures、diagnostics を
+  `Box::new` / `.take()` へ移行した。
+- **Fixtures**: `generic_enum/impl_constructor`（annotated / inferred /
+  turbofish、i32 と String）、`ownership/box_methods`、E0100 golden
+  `diagnostics/removed_prelude_free_box_new` /
+  `diagnostics/removed_prelude_free_unbox`。
+- **Evidence**: `verify fixtures` **1926/1926** PASS（111 runtime smoke、
+  38/38 `test:` PASS、2 runtime-unsupported、0 FAIL）。`verify lane` PASS。
+  `docs check` 6/6 PASS。ADR-029 fixpoint PASS: s2 == s3 at sha256
+  `ddf46a2ff3f9a758d4020f0f656667855e719217fc89ef0288f37e4d4dada166`
+  （pinned base `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`）。
+  `selfhost diag-parity` は 261 PASS / 1 FAIL。FAIL は本 wave 以前から
+  `use std::prelude::{clone}` を拒否できない既存の clone import 検査ギャップで、
+  Box の import は E0100 で拒否する。
 
 ## 参照
 

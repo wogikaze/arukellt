@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 20
+- **Canonical names:** 18
 - **Historical/deprecated names:** 65
-- **Total entries:** 85
+- **Total entries:** 83
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -22,7 +22,6 @@ Current public API names, sorted alphabetically.
 | Name | Module | Stability | Category |
 |------|--------|-----------|----------|
 | `assert` | `prelude` | `stable` | Assert |
-| `Box_new` | `prelude` | `stable` | Box |
 | `char_to_string` | `prelude` | `stable` | Conversion |
 | `eprintln` | `std::host::stdio` | `stable` | Host Stdio |
 | `eq` | `prelude` | `stable` | String |
@@ -40,7 +39,6 @@ Current public API names, sorted alphabetically.
 | `stdout` | `std::io` | `stable` | Io |
 | `String_from` | `prelude` | `stable` | String |
 | `String_new` | `prelude` | `stable` | String |
-| `unbox` | `prelude` | `stable` | Box |
 
 ---
 
@@ -131,7 +129,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`assert_eq_str`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_eq_string` · [migration guide](migration-guidance.md) |
 | ~~`assert_ne`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_ne_i32` · [migration guide](migration-guidance.md) |
 | ~~`binary_search`~~ | ⚠️ deprecated | `std::seq` | → `Vec::binary_search` · [migration guide](migration-guidance.md) |
-| `Box_new` | ✅ `stable` | `prelude` | Box |
 | `char_to_string` | ✅ `stable` | `prelude` | Conversion |
 | ~~`count_eq`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::count_eq` · [migration guide](migration-guidance.md) |
 | ~~`deque_back`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::back` · [migration guide](migration-guidance.md) |
@@ -207,5 +204,4 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`u32_to_u64`~~ | ⚠️ deprecated | `prelude` | → `u32::to_u64` · [migration guide](migration-guidance.md) |
 | ~~`u64_to_u32`~~ | ⚠️ deprecated | `prelude` | → `u64::to_u32_wrapping` · [migration guide](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | ⚠️ deprecated | `prelude` | → `u8::to_i32` · [migration guide](migration-guidance.md) |
-| `unbox` | ✅ `stable` | `prelude` | Box |
 | ~~`unique`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::unique` · [migration guide](migration-guidance.md) |

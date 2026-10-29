@@ -1,10 +1,10 @@
 use std::host::stdio
-use std::prelude::{Box_new, as_slice, slice_get, slice_len, unbox}
+use std::prelude::{Box, as_slice, slice_get, slice_len}
 
 fn main() {
-    let boxed = Box_new(42)
+    let boxed: Box<i32> = Box::new(42)
     let moved = boxed
-    let value = unbox(moved)
+    let value = moved.take()
     stdio::println(value.to_string())
 
     let mut values: Vec<i32> = Vec::new<i32>()

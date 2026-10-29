@@ -1,4 +1,4 @@
-use std::prelude::Box_new
+use std::prelude::Box
 
 // ADR-088 §6: `Ok` and `Err` are builtin payload constructors, not source
 // enum definitions, so a borrowed Box stored through either is rejected by
@@ -12,7 +12,7 @@ fn wrap_err(b: Box<i32>) -> Result<i32, Box<i32>> {
 }
 
 fn main() {
-    let boxed = Box_new(2)
+    let boxed: Box<i32> = Box::new(2)
     let _ok = wrap_ok(boxed)
     let _err = wrap_err(boxed)
 }
