@@ -1,0 +1,69 @@
+// Vec<T: Ord> algorithms with an i64 element type. The generic merge-sort
+// scratch buffer, the Ord::cmp dispatch, and quickselect must all keep the
+// i64 GC array layout instead of falling back to the i32 vec (#965).
+use std::collections::vec
+use std::host::stdio
+
+fn show(values: Vec<i64>) {
+    let mut index: i32 = 0
+    while index < values.len() {
+        stdio::println(values.get_unchecked(index).to_string())
+        index = index + 1
+    }
+}
+
+fn main() {
+    let mut values: Vec<i64> = Vec::new<i64>()
+    values.push(30i64)
+    values.push(10i64)
+    values.push(20i64)
+    values.push(10i64)
+    stdio::println(values.is_sorted().to_string())
+    values.sort()
+    stdio::println(values.is_sorted().to_string())
+    show(values)
+
+    let mut unstable: Vec<i64> = Vec::new<i64>()
+    unstable.push(9i64)
+    unstable.push(7i64)
+    unstable.push(8i64)
+    unstable.push(6i64)
+    unstable.sort_unstable()
+    show(unstable)
+
+    let mut selection: Vec<i64> = Vec::new<i64>()
+    selection.push(40i64)
+    selection.push(10i64)
+    selection.push(30i64)
+    selection.push(20i64)
+    selection.select_nth(2)
+    stdio::println(selection.get_unchecked(2).to_string())
+    let mut before_ok: bool = true
+    let mut before: i32 = 0
+    while before < 2 {
+        if selection.get_unchecked(before) > selection.get_unchecked(2) {
+            before_ok = false
+        }
+        before = before + 1
+    }
+    let mut after_ok: bool = true
+    let mut after: i32 = 3
+    while after < selection.len() {
+        if selection.get_unchecked(after) < selection.get_unchecked(2) {
+            after_ok = false
+        }
+        after = after + 1
+    }
+    stdio::println(before_ok.to_string())
+    stdio::println(after_ok.to_string())
+
+    let mut empty: Vec<i64> = Vec::new<i64>()
+    empty.sort()
+    empty.select_nth(0)
+    stdio::println(empty.is_sorted().to_string())
+
+    let mut single: Vec<i64> = Vec::new<i64>()
+    single.push(42i64)
+    single.sort_unstable()
+    stdio::println(single.get_unchecked(0).to_string())
+}

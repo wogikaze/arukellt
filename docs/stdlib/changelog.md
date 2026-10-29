@@ -16,6 +16,21 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-29 — `Vec<T: Ord>` の i64 / String sort が wasm32-gc で動作 (#965)
+
+- **Basis**: #917 / [ADR-046](../adr/ADR-046-free-function-eradication.md) で追加した
+  `Vec<T: Ord>` の `sort` / `sort_unstable` / `is_sorted` / `select_nth`。
+- **Fixed**: monomorphized impl method の signature registry が宣言時の `vec:T` を
+  そのまま登録し、callee の receiver が `Vec<i32>` layout になっていた。generic body
+  内の `Vec::with_capacity<T>` / `Vec::new<T>` も AST の型名 `T` を callee 名へ
+  埋め込んで enclosing instance の型束縛を無視していた。両方とも enclosing mono
+  instance の型引数で具体化する。
+- **Evidence**: `tests/fixtures/stdlib_vec/vec_sort_ord_i64.ark` /
+  `vec_sort_ord_string.ark` と各 `_wasm32` 版が wasm32-gc component と
+  `--target wasm32` core の両方で compile・validate・execute して同一 stdout を
+  返す。cross-backend parity 2/2。`T: Eq` bound は `std::core::cmp` の import 下で
+  `impl Eq for i32` に解決する。
+
 ## 2026-10-29 — `Std::panic` と Vec no-argument sort (#917, wave/sort-panic)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の free-function

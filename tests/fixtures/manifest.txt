@@ -3517,3 +3517,11 @@ diag:diagnostics/removed_panic_free_wasm32.ark
 run:stdlib_vec/vec_sort_noarg.ark
 diag:diagnostics/removed_sort_free.ark
 diag:diagnostics/removed_sort_free_wasm32.ark
+run:stdlib_vec/vec_sort_ord_i64.ark
+run:stdlib_vec/vec_sort_ord_i64_wasm32.ark
+run:stdlib_vec/vec_sort_ord_string.ark
+run:stdlib_vec/vec_sort_ord_string_wasm32.ark
+t3-compile:stdlib_vec/vec_sort_ord_i64.ark
+t3-compile:stdlib_vec/vec_sort_ord_string.ark
+t3-run:stdlib_vec/vec_sort_ord_i64.ark
+t3-run:stdlib_vec/vec_sort_ord_string.ark

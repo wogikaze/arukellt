@@ -1,0 +1,85 @@
+// Vec<T: Ord> algorithms with a String element type. The generic merge-sort
+// scratch buffer and the Ord::cmp dispatch must keep the String GC element
+// layout on both targets (#965). Ordering goes through `cmp` because the
+// `<` / `>` operators are not a String ordering contract on every target.
+use std::collections::vec
+use std::core::cmp
+use std::host::stdio
+
+fn show(values: Vec<String>) {
+    let mut index: i32 = 0
+    while index < values.len() {
+        stdio::println(values.get_unchecked(index))
+        index = index + 1
+    }
+}
+
+fn is_greater(left: String, right: String) -> bool {
+    match left.cmp(right) {
+        Ordering::Greater => true,
+        _ => false,
+    }
+}
+
+fn is_less(left: String, right: String) -> bool {
+    match left.cmp(right) {
+        Ordering::Less => true,
+        _ => false,
+    }
+}
+
+fn main() {
+    let mut values: Vec<String> = Vec::new<String>()
+    values.push("pear")
+    values.push("apple")
+    values.push("fig")
+    values.push("apple")
+    stdio::println(values.is_sorted().to_string())
+    values.sort()
+    stdio::println(values.is_sorted().to_string())
+    show(values)
+
+    let mut unstable: Vec<String> = Vec::new<String>()
+    unstable.push("delta")
+    unstable.push("bravo")
+    unstable.push("charlie")
+    unstable.push("alpha")
+    unstable.sort_unstable()
+    show(unstable)
+
+    let mut selection: Vec<String> = Vec::new<String>()
+    selection.push("pear")
+    selection.push("apple")
+    selection.push("fig")
+    selection.push("kiwi")
+    selection.select_nth(2)
+    stdio::println(selection.get_unchecked(2))
+    let mut before_ok: bool = true
+    let mut before: i32 = 0
+    while before < 2 {
+        if is_greater(selection.get_unchecked(before), selection.get_unchecked(2)) {
+            before_ok = false
+        }
+        before = before + 1
+    }
+    let mut after_ok: bool = true
+    let mut after: i32 = 3
+    while after < selection.len() {
+        if is_less(selection.get_unchecked(after), selection.get_unchecked(2)) {
+            after_ok = false
+        }
+        after = after + 1
+    }
+    stdio::println(before_ok.to_string())
+    stdio::println(after_ok.to_string())
+
+    let mut empty: Vec<String> = Vec::new<String>()
+    empty.sort()
+    empty.select_nth(0)
+    stdio::println(empty.is_sorted().to_string())
+
+    let mut single: Vec<String> = Vec::new<String>()
+    single.push("solo")
+    single.sort_unstable()
+    stdio::println(single.get_unchecked(0))
+}

@@ -372,14 +372,37 @@ fn sig_reg_params_from_fn_info_mono(
             return result
         }
         let pc = mir_signature_method::mir_signature_method_param_count_at(sig_source, method_info_index, 0)
+        // Method instances carry the same declared binders as top-level
+        // generics (impl binders first, then method binders). Without the
+        // suffix projection `self: Vec<T>` registers as vec:T and the
+        // signature fallback selects the vec:i32 layout while the MIR body
+        // holds the concrete Vec<i64>/Vec<String>; callers then pass a
+        // mismatched struct ref (#965).
+        let type_params = mir_signature_method::mir_signature_method_type_params_at(sig_source, method_info_index)
         let mut pi = 0
         while pi < pc {
             let p = mir_signature_method::mir_signature_method_param_at(sig_source, method_info_index, pi)
             let mut type_name = param::param_type_name(p)
+            let local_name = param::param_local_type_name(p)
+            if len(local_name) > 0 {
+                type_name = local_name
+            }
+            if len(mangled) > 0 {
+                type_name = sig_reg_subst_mono_param_type_name(clone(type_name), clone(mangled), mono_instances, type_params)
+            }
             if starts_with(clone(type_name), String_from("hashmap:")) {
                 type_name = sig_reg_mono_hashmap_param_alias(type_name, clone(mangled), mono_instances)
             }
-            push(result, type_info_to_mir_value::vt_to_mir_value(table, param::param_value_type(p), type_name))
+            let is_container = starts_with(clone(type_name), "vec:") ||
+            starts_with(clone(type_name), "option:") ||
+            starts_with(clone(type_name), "struct:")
+            let mut vt = param::param_value_type(p)
+            if is_container {
+                vt = value_types::VT_GC_REF()
+            } else if len(type_name) > 0 && !mono_suffix_parse::is_mono_type_var_name(clone(type_name)) {
+                vt = fn_index_method_return_type::method_return_vt_from_type_name(clone(type_name))
+            }
+            push(result, type_info_to_mir_value::vt_to_mir_value(table, vt, type_name))
             pi = pi + 1
         }
         result
