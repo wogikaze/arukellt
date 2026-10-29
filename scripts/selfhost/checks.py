@@ -3197,7 +3197,8 @@ _FLAT_OVERLAY_CACHE: tuple[float, Path] | None = None
 _FLAT_OVERLAY_DISK_CACHE_REL = ".build/selfhost/flat-overlay-cache.json"
 # v2: stage-2 bootstrap skips full MIR verify (see _patch_bootstrap_skip_mir_verify).
 # v4: static-dispatch stub names Option<(A, B)> as option:tuple:k1,k2 (#890).
-_FLAT_OVERLAY_DISK_CACHE_VERSION = 7
+# v8: static-dispatch stub carries the declared-name ordinal map (#946).
+_FLAT_OVERLAY_DISK_CACHE_VERSION = 8
 
 
 def _bootstrap_overlay_root(root: Path) -> Path:
@@ -3952,23 +3953,48 @@ fn is_plain_type_var_name(name: String) -> bool {
     c >= 65 && c <= 90
 }
 
-pub fn ctx_setup_mono_type_params_by_ordinal(ctx: LowerCtx, mangled_name: String) {
-    let name_len = len(mangled_name)
-    let mut si = 0
-    let mut has_sep = false
-    while si < name_len - 1 {
-        if byte_at(mangled_name, si) == 95 && byte_at(mangled_name, si + 1) == 95 {
-            has_sep = true
-            si = name_len
-        } else {
-            si = si + 1
+fn stub_mono_name_has_separator(name: String) -> bool {
+    let name_len = len(name)
+    let mut i = 0
+    while i < name_len - 1 {
+        if byte_at(name, i) == 95 && byte_at(name, i + 1) == 95 {
+            return true
         }
+        i = i + 1
     }
-    if !has_sep {
+    false
+}
+
+pub fn ctx_setup_mono_type_params_by_ordinal(ctx: LowerCtx, mangled_name: String) {
+    if !stub_mono_name_has_separator(clone(mangled_name)) {
         ctx_setup_mono_type_params_leaf_instance(ctx, mangled_name)
         return
     }
     let type_var_names = ctx_collect_type_var_names(ctx)
+    stub_apply_mono_ordinal_map(ctx, mangled_name, type_var_names)
+}
+
+// Declared binder names are authoritative for a monomorphized method: a
+// signature-absent impl binder is not in any local, and dropping it shifts
+// every later ordinal (#946). Kept in sync with the product
+// ctx_setup_mono_type_params_by_ordinal_declared.
+pub fn ctx_setup_mono_type_params_by_ordinal_declared(
+    ctx: LowerCtx,
+    mangled_name: String,
+    declared_names: Vec<String>
+) {
+    if !stub_mono_name_has_separator(clone(mangled_name)) {
+        ctx_setup_mono_type_params_leaf_instance(ctx, mangled_name)
+        return
+    }
+    let mut type_var_names = declared_names
+    if len(type_var_names) == 0 {
+        type_var_names = ctx_collect_type_var_names(ctx)
+    }
+    stub_apply_mono_ordinal_map(ctx, mangled_name, type_var_names)
+}
+
+fn stub_apply_mono_ordinal_map(ctx: LowerCtx, mangled_name: String, type_var_names: Vec<String>) {
     if len(type_var_names) == 0 {
         ctx_clear_mono_type_params(ctx)
         return

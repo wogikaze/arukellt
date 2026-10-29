@@ -120,17 +120,33 @@ and inherent impls alike. A binder-less head resolves its names as ordinary
 types, so `impl Copy for S {}` targets a declared `struct S`; the retired
 single-uppercase implicit form is rejected with E0222 and a binder hint.
 Resolver and CoreHIR owner keys use only binder-declared parameters, and a
-`let` copy keeps a one-character nominal storage type. The stdlib and fixture
+`let` copy keeps a one-character nominal storage type. Parameter and return
+encoding, mono substitution, and ordinal collection consult the declared
+binder list and registered nominal layouts before the one-character shape
+fallback, so a declared `struct S` or `enum E` stays concrete while an
+undeclared binder name remains a type parameter. The stdlib and fixture
 corpus is migrated to binders.
 
-Verification: the positive fixture `trait/single_uppercase_impl_target.ark`
-runs on both `wasm32-gc` and `wasm32`; the diagnostic fixtures
+Verification: the positive fixtures `trait/single_uppercase_impl_target.ark`,
+`functions/single_uppercase_struct_return.ark`,
+`functions/single_uppercase_enum_return.ark`,
+`enums/single_uppercase_generic_impl_param.ark`, and
+`generics_v1/generic_impl_single_uppercase_struct.ark` run on both
+`wasm32-gc` and `wasm32`; the diagnostic fixtures
 `diagnostics/implicit_impl_type_parameter.ark` and
 `diagnostics/implicit_inherent_impl_type_parameter.ark` assert E0222. The
 ADR-014 warning window was not run, so the diagnostic is an error rather than
-a warning. A single-uppercase struct in a function return position still hits
-the pre-existing one-character type-variable heuristic and is not covered by
-this slice.
+a warning. An associated function of a generic impl that returns its own
+method type parameter (`Wrap<T>::pass<U>(value: U) -> U`) instantiates an impl
+binder absent from the callee signature with the canonical scalar `i32` key, so
+the call mints a mono instance instead of emitting `drop; unreachable`; the
+MIR ordinal map is built from the declared method binder names, so the
+parameter and return keys stay aligned. `generics_v1/generic_associated_self_return.ark`
+covers the associated, self-method, and free-function forms with `S` and
+`Point`. The full fixture gate passes 1890/1890 compile/validate (0 failures,
+109 runtime executions, 2 runtime contracts delegated to native-cpp);
+`verify lane` and `docs check` (6/6) pass, and the ADR-029 fixpoint is
+s2 == s3 (`906a1cfb…`).
 
 ### Language v2 call-boundary parameter modes (#951 / ADR-088)
 
@@ -337,9 +353,9 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 - Observed quick gate: `python3 scripts/manager.py verify quick` — 151/151 checks pass.
 - Coverage: not exhaustive runtime or pinned/reference parity; not a release-readiness receipt. Historical failures are not individually resolved by this observation.
 - Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 3447 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1859 registry entries (not proof they fail)
-- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 3390 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, target capability, ADT fallback runtime, hygienic desugaring, iterator capability diagnostics, linear GC entry-collection, linear GC HashMap-survival, HashMap for-in iteration, generic for-source diagnostic, parametric trait impl, generic struct field-method, generic inherent struct-literal, enum struct-payload field-access, generic struct-item iterator, nested generic iterator adapter, desugared-iteration equivalence, generic struct Vec-field, generic fn-field iterator, item-generic iterator adapter migration, generic Ord seq-algorithm, unbound-typevar clone, HashMap keys/fn-valued-map iteration, closure capture-escape diagnostic, closure copy-capture snapshot, generic inferred struct-literal, generic fn-field Option-step, struct fn-field call, zero-param fn-valued HashMap call, struct option vec fn fields, generic scan iterator, flat-map adapter, peek adapter, and step+scan iterator, and String-lane generic scan iterator, and borrow-rebind write-through, and Option-tuple-payload, and method-level-generics iterator map type-change plus unresolved method type-parameter diagnostic, and zero-param fn-value ref-return, and payload-enum unit-variant match arm, and cyclic graph walk, and spec-example normative-doc, and migration-diagnostic, and match-exhaustiveness, and or-pattern variant-alternative, and nested-closure capture-through, and variant-payload sub-pattern plus variant-payload struct-subpattern diagnostic, and untyped-option-scrutinee fixtures were added, and the untyped-None-scrutinee-bind compile-error fixture was added, plus the prelude-enum name-shadow run fixture and the generic struct-enum shadow diagnostic fixture, and the nested-closure mark-propagation diagnostics and shadow-scope guard fixtures, plus the hashmap-unsupported-pair diagnostic reclassification from t3-compile to diag and the duplicate numeric-implicit-promotion t3-compile removal, and the two-bound distinct-layout GC fixture and the prelude concrete/conversion argument-type diagnostic fixtures were added, so the current registry remainder is 1802, after the stdlib_deque run/t3 fixtures, the typed stdio handle fixtures, and the empty-struct lowering fixture, the ADR-088 mut-parameter fixtures were added, and the ADR-088 §6 Box-escape and §7 function-type-position fixtures were added. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
+- Fixture registry: 3449 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1861 registry entries (not proof they fail)
+- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 3443 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, target capability, ADT fallback runtime, hygienic desugaring, iterator capability diagnostics, linear GC entry-collection, linear GC HashMap-survival, HashMap for-in iteration, generic for-source diagnostic, parametric trait impl, generic struct field-method, generic inherent struct-literal, enum struct-payload field-access, generic struct-item iterator, nested generic iterator adapter, desugared-iteration equivalence, generic struct Vec-field, generic fn-field iterator, item-generic iterator adapter migration, generic Ord seq-algorithm, unbound-typevar clone, HashMap keys/fn-valued-map iteration, closure capture-escape diagnostic, closure copy-capture snapshot, generic inferred struct-literal, generic fn-field Option-step, struct fn-field call, zero-param fn-valued HashMap call, struct option vec fn fields, generic scan iterator, flat-map adapter, peek adapter, and step+scan iterator, and String-lane generic scan iterator, and borrow-rebind write-through, and Option-tuple-payload, and method-level-generics iterator map type-change plus unresolved method type-parameter diagnostic, and zero-param fn-value ref-return, and payload-enum unit-variant match arm, and cyclic graph walk, and spec-example normative-doc, and migration-diagnostic, and match-exhaustiveness, and or-pattern variant-alternative, and nested-closure capture-through, and variant-payload sub-pattern plus variant-payload struct-subpattern diagnostic, and untyped-option-scrutinee fixtures were added, and the untyped-None-scrutinee-bind compile-error fixture was added, plus the prelude-enum name-shadow run fixture and the generic struct-enum shadow diagnostic fixture, and the nested-closure mark-propagation diagnostics and shadow-scope guard fixtures, plus the hashmap-unsupported-pair diagnostic reclassification from t3-compile to diag and the duplicate numeric-implicit-promotion t3-compile removal, and the two-bound distinct-layout GC fixture and the prelude concrete/conversion argument-type diagnostic fixtures were added, so the current registry remainder is 1855, after the stdlib_deque run/t3 fixtures, the typed stdio handle fixtures, and the empty-struct lowering fixture, the ADR-088 mut-parameter fixtures were added, and the ADR-088 §6 Box-escape and §7 function-type-position fixtures were added, and the ADR-089 associated generic-return fixture was added. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
 - Wasm validation is a hard error (W0004)
 - Historical verification: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
 
@@ -384,15 +400,9 @@ The current selfhost path implements the #854 owned-ADT boundary described by
 [ADR-060](adr/ADR-060-language-v2-owned-adts-box-slice.md): `Option`, `Result`,
 and user enums are owned tagged values; `Box<T>` is a non-`Copy` unique owner;
 and `Slice<T>` is a non-`Copy` bounded read view whose source binding remains
-usable. Move-after-use is diagnosed as E0212. The call-boundary rule of
-[ADR-088 §1](adr/ADR-088-language-v2-call-boundary-borrow-and-mut-parameters.md)
-is implemented for call arguments and method receivers: a moved binding passed
-to a live call is E0212, while a live argument is only borrowed and stays
-usable; free calls, method calls, function-value calls, and builtins share the
-check, and a field or element place is followed to its root binding. The
-positive and negative fixtures are compiled on both `wasm32-gc` and `wasm32`;
-the GC component and linear core outputs validate and the positive fixture has
-matching runtime output.
+usable. Move-after-use is diagnosed as E0212. The positive and negative fixtures
+are compiled on both `wasm32-gc` and `wasm32`; the GC component and linear core
+outputs validate and the positive fixture has matching runtime output.
 
 This milestone does not claim complete lifetime / mutation-exclusion checking
 for views, or a completed tracing-GC runtime on the linear target. Those remain

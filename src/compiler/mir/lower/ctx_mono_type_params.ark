@@ -791,22 +791,52 @@ fn ctx_trim_type_arg_ws(seg: String) -> String {
 fn ctx_setup_mono_type_params_by_ordinal(mut ctx: LowerCtx, mangled_name: String) {
     // Concrete names have no "__" suffix. Walking locals just to allocate
     // two empty maps was extra GC traffic on every function.
-    let name_len = len(mangled_name)
-    let mut i = 0
-    let mut has_sep = false
-    while i < name_len - 1 {
-        if byte_at(mangled_name, i) == 95 && byte_at(mangled_name, i + 1) == 95 {
-            has_sep = true
-            i = name_len
-        } else {
-            i = i + 1
-        }
-    }
-    if !has_sep {
+    if !ctx_mono_name_has_separator(clone(mangled_name)) {
         ctx_setup_mono_type_params_leaf_instance(ctx, mangled_name)
         return
     }
     let type_var_names = ctx_collect_type_var_names(ctx)
+    ctx_setup_mono_type_params_by_ordinal_names(ctx, mangled_name, type_var_names)
+}
+
+// Declared binder names are authoritative when the signature never mentions
+// an impl binder: local collection cannot place a parameter that appears
+// nowhere in the body, and the MonoInstance arguments are recorded in
+// declared order. Empty declarations fall back to the local walk for
+// synthesized functions with no signature source.
+fn ctx_setup_mono_type_params_by_ordinal_declared(
+    mut ctx: LowerCtx,
+    mangled_name: String,
+    declared_names: Vec<String>
+) {
+    if !ctx_mono_name_has_separator(clone(mangled_name)) {
+        ctx_setup_mono_type_params_leaf_instance(ctx, mangled_name)
+        return
+    }
+    let mut type_var_names = declared_names
+    if len(type_var_names) == 0 {
+        type_var_names = ctx_collect_type_var_names(ctx)
+    }
+    ctx_setup_mono_type_params_by_ordinal_names(ctx, mangled_name, type_var_names)
+}
+
+fn ctx_mono_name_has_separator(name: String) -> bool {
+    let name_len = len(name)
+    let mut i = 0
+    while i < name_len - 1 {
+        if byte_at(name, i) == 95 && byte_at(name, i + 1) == 95 {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn ctx_setup_mono_type_params_by_ordinal_names(
+    mut ctx: LowerCtx,
+    mangled_name: String,
+    type_var_names: Vec<String>
+) {
     if len(type_var_names) == 0 {
         ctx_clear_mono_type_params(ctx)
         return

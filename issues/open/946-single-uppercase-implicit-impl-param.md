@@ -219,6 +219,71 @@ Verification (2026-10-29):
 - Both-target runtime evidence: the `wasm32-gc` component and the `wasm32`
   linear core print `7`, `6`, and `43` for the three fixtures.
 
+### Associated generic return residual removal (2026-10-29)
+
+The residual recorded after 9fb2e0910 was not a return-substitution gap.
+`Wrap<T>::pick<U>(self: Wrap<T>, value: U) -> U` and
+`Wrap<T>::pass<U>(seed: T, value: U) -> U` already specialize `U` correctly
+(`Wrap__pick__i32__S`, `Wrap__pass__i32__Point`). The failing call
+`Wrap::pass(S { x: 41 })` has no argument that binds the impl binder `T`, so
+`has_unresolved_fresh_type_arg` returned before `record_mono_instance`. At the
+call site the emitter left `drop; unreachable`; the result local stayed
+`i32`, and the following `ref.cast` / `struct.get` produced W0004
+(`expected anyref, found i64`). The linear target trapped at the same
+`unreachable`.
+
+`typechecker/call_generic_fn.ark` now gives an unresolved *impl-level* type
+parameter that the callee signature never mentions the canonical scalar `i32`
+key. The impl prefix is identified by the owner struct's declared type
+parameter count, so method-level parameters keep the ADR-079 deferral and
+diagnostic path.
+
+A second gap appeared once the call resolved: the MIR ordinal mono map was
+built from type-variable names found in the callee's locals. `Wrap::pass` has
+no local mentioning `T`, so the map paired the first instance argument (`i32`
+for `T`) with `U`; the callee parameter stayed scalar (`i64` on memory64)
+while the return was the struct ref, and `wasm32-gc` still failed validation
+(`expected (ref null $type), found i64`). `corehir/method_info.ark` now
+carries the declared method binder names, and
+`mir/lower/entry_emit_method.ark` passes them to
+`ctx_setup_mono_type_params_by_ordinal_declared`; the declared order is the
+same order the typechecker records in the MonoInstance. The local-derived
+list remains the fallback for synthesized functions with no signature source.
+With parameters and return on the same map, the call returns the concrete
+struct reference on both targets.
+
+Fixture: `generics_v1/generic_associated_self_return.ark` (run + t3-run,
+expected `62`) covers `Wrap<T>::pass<U>`, the self-carrying method form, and
+a free generic function with `S` and `Point`.
+
+Verification (2026-10-29):
+
+- `python3 scripts/manager.py selfhost build-compiler`: PASS, elapsed
+  2873.7s, final s2 sha256
+  `906a1cfb3adb31c8ff7eed5a244bd721a18117614979836dc0cc5f178df52515`.
+  Two earlier stage-2 builds exposed the two additional gaps: the first
+  fixed the typechecker call but left the MIR parameter/return mismatch;
+  the second exposed that `scripts/selfhost/checks.py` replaces
+  `mir/lower/ctx_mono_type_params.ark` with a bootstrap stub that did not
+  carry the new declared-name function, so every method compile hit an
+  unresolved `drop; unreachable`. The stub now has the declared-name
+  variant and the flat-overlay cache version is bumped to 8.
+- `python3 scripts/manager.py verify fixtures`: PASS=1890 FAIL=0
+  COMPILE_VALIDATE=1890 EXECUTED=109 RUNTIME_UNSUPPORTED=2; test PASS=36
+  FAIL=0.
+- `python3 scripts/manager.py verify lane`: PASS; lint checked=8 failed=0,
+  lint ratchet checked=8 failed=0.
+- `python3 scripts/manager.py docs check`: 6/6 PASS.
+- `python3 scripts/manager.py selfhost fixpoint`: PASS, sha256(s2) ==
+  sha256(s3) = `906a1cfb3adb31c8ff7eed5a244bd721a18117614979836dc0cc5f178df52515`
+  (pinned base `8df2698c8401693879ca4f9ced289ed2c285d95eb526cf70fda02dd5876259ee`).
+- Both-target runtime: `generic_associated_self_return.ark` prints `62` on
+  the `wasm32-gc` component and the `wasm32` linear core; the two residual
+  repros print `42` on both. WAT for `Wrap__pass__i32__S` is
+  `(param $value (ref null 2)) (result (ref null 2))` with
+  `call $Wrap__pass__i32__S`; `wasm-tools validate` passes the component
+  core.
+
 ### Residuals
 
 - E0222 covers only the removed single-uppercase spelling in impl heads.
@@ -228,9 +293,14 @@ Verification (2026-10-29):
   before the shape test. `mir/lower/mono_suffix_parse.ark::is_mono_type_var_name`
   keeps the single-uppercase/ordinal shape test only as the last fallback for
   a spelling with no declaration or registered layout.
-- A generic method whose declared return is its own type parameter
-  (`fn pass<U>(value: U) -> U`) is still not specialized when `U` is a user
-  struct: both `S` and `Point` fail W0004 (`expected anyref, found i64`).
-  This is a generic return-substitution gap, not a one-character shape case,
-  and is not fixed here.
+- The associated-function default key covers owners that are declared structs.
+  A trait owner, or an impl whose binder arity exceeds the owner struct's
+  declared arity, keeps the previous deferred path.
+- A method-level type parameter that no argument binds on a non-zero-argument
+  associated call keeps the previous deferral; only the zero-argument path
+  reports `cannot infer type parameter`.
+- The stage-2 bootstrap replaces `mir/lower/ctx_mono_type_params.ark` with
+  the hand-written stub in `scripts/selfhost/checks.py`. New functions that
+  the compiler calls from that module must be mirrored there; a missed
+  mirror compiles to `drop; unreachable` in the compiler itself.
 - The ADR-014 migration-warning window was not run; E0222 is an error.

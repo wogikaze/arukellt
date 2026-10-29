@@ -36,6 +36,10 @@ user blanket impl として E0216 で拒否される（#946）。
 2026-10-29 の残差解消で、return・tuple・parameter・mono の符号化は、宣言済み binder、宣言済み struct/enum 名、登録済み集約レイアウトを参照する。
 parameter の初期型付けは宣言済み型パラメータと宣言済み nominal 型を先に区別し、宣言済み enum は `enum:` 綴りを保つ。
 mono の型変数置換と ordinal 収集も、登録済み struct/enum を型変数として扱わない。
+associated function の呼び出しで自身の signature に現れない impl binder だけが未解決になった場合は、
+owner struct の宣言 arity を impl 前置として canonical scalar key（`i32`）で補い、mono instance を mint する。
+method-level parameter は ADR-079 の延期・診断経路を保つ。
+MIR の ordinal mono map は宣言 binder 名の順序を使い、signature に現れない impl binder による parameter と return のずれを防ぐ。
 名前の形による型変数判定は、宣言も登録もない綴りに対する最後のフォールバックに限る。
 検証と残差は [#946](../../issues/open/946-single-uppercase-implicit-impl-param.md) と `docs/current-state.md` に記録する。
 

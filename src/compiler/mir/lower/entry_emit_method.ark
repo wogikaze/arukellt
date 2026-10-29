@@ -12,6 +12,7 @@ use mir::lower::ctx_current_storage
 use mir::lower::entry_body_result
 use mir::lower::entry_params
 use mir::lower::ctx_struct_layout
+use mir::lower::entry_view_method
 use mir::source_location_record
 fn mir_emit_method_body(
     mut ctx: LowerCtx,
@@ -31,8 +32,14 @@ fn mir_emit_method_body(
     entry_params::mir_bind_method_params(ctx, entry_view, method_info_index, struct_name, method_param_count)
     // For monomorphized method instances, setup the type parameter mapping
     // so that trait method calls on type-variable receivers can resolve to
-    // the concrete type's impl method.
-    ctx_mono_type_params::ctx_setup_mono_type_params_by_ordinal(ctx, clone(emit_method_name))
+    // the concrete type's impl method. The declared binder list is the
+    // source of the ordinal positions: a local-derived list drops an impl
+    // binder that the signature never mentions (#946).
+    ctx_mono_type_params::ctx_setup_mono_type_params_by_ordinal_declared(
+        ctx,
+        clone(emit_method_name),
+        entry_view_method::mir_entry_method_type_params_at(entry_view, method_info_index)
+    )
     // Register the declared -> concrete return projection (vec:I::Item ->
     // vec:i32) so associated-type spellings inside the body resolve through
     // the same map top-level mono fns get in mir_emit_top_level_fn_body.

@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{byte_at, clone, eq, substring}
 use std::text
 use typechecker::ast_access
 use typechecker::call_generic_common
@@ -7,11 +7,14 @@ use typechecker::call_generic_resolve
 use typechecker::call_generic_turbofish
 use typechecker::associated_types
 use typechecker::contract_fn_sig
+use typechecker::contract_struct_info
 use typechecker::contract_type_access
+use typechecker::contract_type_constructors
 use typechecker::infer_env_scope
 use typechecker::instantiate
 use typechecker::hashmap_api
 use typechecker::mono
+use typechecker::names
 use typechecker::traits
 use typechecker::unify
 fn infer_generic_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig, fn_name: String) -> TypeInfo {
@@ -44,6 +47,24 @@ fn infer_generic_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
     let inst_ret = instantiate::instantiate_type(contract_fn_sig::FnSig_return_type(sig), var_names, var_types)
     let projected_ret = associated_types::resolve_generic_call_type(env, infer_env, sig, var_names, var_types, inst_ret)
     let ret_ty = call_generic_resolve::resolve_call_return_type(infer_env, projected_ret)
+    // An associated function of a generic impl can be called without binding
+    // an impl type parameter that its own signature never mentions. That
+    // parameter is not inferable from the call, but it is also absent from
+    // the callee's parameter and return ABI. Give it the canonical scalar key
+    // so the concrete call can mint a mono instance; otherwise the unresolved
+    // fresh variable skips `record_mono_instance` and MIR emits the
+    // drop+unreachable stub (#946).
+    if call_generic_resolve::has_unresolved_fresh_type_arg(infer_env, var_types) {
+        bind_uninferable_impl_type_params(
+            env,
+            infer_env,
+            sig,
+            clone(fn_name),
+            clone(var_names),
+            clone(var_types),
+            clone(arg_types)
+        )
+    }
     // Unresolved polymorphic calls must not mint mono instances.
     if call_generic_resolve::has_unresolved_fresh_type_arg(infer_env, var_types) {
         if len(arg_types) == 0 {
@@ -76,6 +97,98 @@ fn generic_call_args_concrete(arg_types: Vec<TypeInfo>) -> bool {
         i = i + 1
     }
     true
+}
+
+// An impl-level type parameter that the callee signature never mentions has
+// no binding site in an associated-function call: it is not in any argument
+// and not in the return type. The impl binder still contributes a type
+// argument to the mono key. Defaulting it to the canonical scalar keeps the
+// instance arity aligned with the impl and does not change the callee ABI,
+// because the signature does not mention the parameter. Method-level
+// parameters are deliberately not defaulted here: they keep the ADR-079
+// deferral and diagnostic path (impl params occupy the head of `var_names`,
+// matching the owner type's declared arity).
+fn bind_uninferable_impl_type_params(
+    env: TypeEnv,
+    mut infer_env: TypeEnv,
+    sig: FnSig,
+    fn_name: String,
+    var_names: Vec<String>,
+    var_types: Vec<TypeInfo>,
+    arg_types: Vec<TypeInfo>
+) {
+    if !generic_call_args_concrete(arg_types) {
+        return
+    }
+    let impl_param_count = call_owner_type_param_count(env, clone(fn_name))
+    let count = len(var_types)
+    let mut i = 0
+    while i < count && i < impl_param_count {
+        let resolved = unify::resolve_type(infer_env, get_unchecked(var_types, i))
+        if call_generic_resolve::is_unresolved_fresh_type_var(infer_env, resolved) &&
+        !fn_sig_mentions_type_param(sig, get_unchecked(var_names, i)) {
+            unify::bind_var(
+                infer_env,
+                contract_type_access::TypeInfo_name(resolved),
+                contract_type_constructors::TypeInfo_simple(commands::TY_I32())
+            )
+        }
+        i = i + 1
+    }
+}
+
+fn fn_sig_mentions_type_param(sig: FnSig, param_name: String) -> bool {
+    let param_count = contract_fn_sig::FnSig_param_count(sig)
+    let mut i = 0
+    while i < param_count {
+        if type_mentions_var(contract_fn_sig::FnSig_param_at(sig, i), clone(param_name)) {
+            return true
+        }
+        i = i + 1
+    }
+    type_mentions_var(contract_fn_sig::FnSig_return_type(sig), param_name)
+}
+
+// The owner segment of an associated call (`Wrap::pass` -> `Wrap`,
+// `module::Wrap::pass` -> `module::Wrap`). A bare function name has no owner.
+fn call_owner_segment(name: String) -> String {
+    let n = len(name)
+    let mut last_separator = 0 - 1
+    let mut i = 0
+    while i + 1 < n {
+        if byte_at(name, i) == 58 && byte_at(name, i + 1) == 58 {
+            last_separator = i
+            i = i + 2
+        } else {
+            i = i + 1
+        }
+    }
+    if last_separator < 0 {
+        return String_new()
+    }
+    substring(name, 0, last_separator)
+}
+
+// Impl binder arity for an inherent/trait associated call. The owner's
+// declared struct parameters are the impl-level prefix of the callee's
+// merged parameter list. Owners that are not user structs (traits, builtins)
+// return 0 and stay on the existing deferral path.
+fn call_owner_type_param_count(env: TypeEnv, fn_name: String) -> i32 {
+    let owner = call_owner_segment(clone(fn_name))
+    if len(owner) == 0 {
+        return 0
+    }
+    let base = names::unqualified_type_name(owner)
+    let count = len(env.struct_defs)
+    let mut i = 0
+    while i < count {
+        let def = get_unchecked(env.struct_defs, i)
+        if eq(contract_struct_info::StructInfo_name(def), clone(base)) {
+            return len(contract_struct_info::StructInfo_type_params(def))
+        }
+        i = i + 1
+    }
+    0
 }
 
 // On a zero-argument call, a fresh type variable that is unreachable from

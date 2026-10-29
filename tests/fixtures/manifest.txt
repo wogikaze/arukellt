@@ -593,6 +593,7 @@ run:generics/struct_option_vec_fn_fields.ark
 run:generics/two_params.ark
 run:generics/vec_generic.ark
 run:generics_v1/bounded_clone_impl.ark
+run:generics_v1/generic_associated_self_return.ark
 run:generics_v1/generic_inherent_struct_lit.ark
 run:generics_v1/generic_inferred_struct_lit.ark
 run:generics_v1/generic_inst_trait_impl.ark
@@ -2946,6 +2947,7 @@ t3-run:generics/struct_option_vec_fn_fields.ark
 t3-run:generics/two_params.ark
 t3-run:generics/vec_generic.ark
 t3-run:generics_v1/bounded_clone_impl.ark
+t3-run:generics_v1/generic_associated_self_return.ark
 t3-run:generics_v1/generic_inherent_struct_lit.ark
 t3-run:generics_v1/generic_inferred_struct_lit.ark
 t3-run:generics_v1/generic_impl_single_uppercase_struct.ark

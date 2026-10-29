@@ -29,6 +29,10 @@ fn mir_entry_method_type_param_count_at(view: MirLowerEntryView, info_index: i32
     signature_method::mir_signature_method_type_param_count_at(entry_view_record::entry_view_signature_source(view), info_index, fallback)
 }
 
+fn mir_entry_method_type_params_at(view: MirLowerEntryView, info_index: i32) -> Vec<String> {
+    signature_method::mir_signature_method_type_params_at(entry_view_record::entry_view_signature_source(view), info_index)
+}
+
 fn mir_entry_method_return_type_name_at(view: MirLowerEntryView, info_index: i32) -> String {
     signature_method::mir_signature_method_return_type_name_at(entry_view_record::entry_view_signature_source(view), info_index, String_new())
 }

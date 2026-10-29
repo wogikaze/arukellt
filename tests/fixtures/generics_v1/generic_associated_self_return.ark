@@ -1,0 +1,40 @@
+// An associated function of a generic impl can return its own method type
+// parameter. The impl binder is absent from the callee signature, so it is
+// defaulted instead of leaving the concrete call unresolved (ADR-089, #946).
+use std::host::stdio
+
+struct S {
+    x: i32,
+}
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+struct Wrap<T> {
+    v: T,
+}
+
+impl<T> Wrap<T> {
+    fn pass<U>(value: U) -> U {
+        value
+    }
+
+    fn pass_with_self<U>(self: Wrap<T>, value: U) -> U {
+        value
+    }
+}
+
+fn pass_free<U>(value: U) -> U {
+    value
+}
+
+fn main() {
+    let w: Wrap<i32> = Wrap { v: 1 }
+    let s: S = Wrap::pass(S { x: 40 })
+    let p: Point = Wrap::pass(Point { x: 1, y: 2 })
+    let q = w.pass_with_self(Point { x: 3, y: 4 })
+    let r = pass_free(Point { x: 5, y: 6 })
+    stdio::println((s.x + p.x + p.y + q.x + q.y + r.x + r.y + w.v).to_string())
+}
