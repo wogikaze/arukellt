@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-29T05:27:34Z",
+  "generated_at": "2026-10-29T07:31:40Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -908,23 +908,6 @@
       "path": "964-let-i64-annotation-ignored-unsuffixed-literal.md",
       "title": "964 — `let x: i64 = 0` binds x as i32 (annotation ignored for unsuffixed numeric literals)",
       "track": "typecheck",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "none"
-      }
-    },
-    {
-      "id": "965",
-      "path": "965-wasm32gc-generic-ord-operator-invalid-wasm.md",
-      "title": "965 — wasm32-gc: generic `<` on `T: Ord` compiles to invalid Wasm; generic `Vec<T: Ord>` algorithms are blocked",
-      "track": "compiler",
       "status": "open",
       "depends_on": [],
       "blocks_issue_ids": [],

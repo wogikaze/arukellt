@@ -56,7 +56,6 @@ graph LR
   I962["962 962 — wasm32: a single growing `Vec<i64>` loses elements past index 4"]
   I963["963 963 — `i64.to_string()` is not usable (method dispatch picks the i32 impl)"]
   I964["964 964 — `let x: i64 = 0` binds x as i32 (annotation ignored for unsuffixed numeric literals)"]
-  I965["965 965 — wasm32-gc: generic `<` on `T: Ord` compiles to invalid Wasm; generic `Vec<T: Ord>` algorithms are blocked"]
   I966["966 966 — Same-named methods across type specializations resolve to one impl: `Vec::contains` traps and `Vec<String>::sort` runs the i32 sort"]
   I967["967 967 — Generic Vec methods on `Vec<String>` and generic `iter()` are missing/broken on wasm32"]
   I968["968 968 — `Deque<T>` traps on wasm32-gc in real use; `is_empty`/`len` collide with the Vec methods"]
@@ -148,7 +147,6 @@ graph LR
 - **962** depends on: none; blocks: none
 - **963** depends on: none; blocks: none
 - **964** depends on: none; blocks: none
-- **965** depends on: none; blocks: none
 - **966** depends on: none; blocks: none
 - **967** depends on: none; blocks: none
 - **968** depends on: none; blocks: none
