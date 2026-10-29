@@ -351,6 +351,33 @@ receiver を指す hint を返す。
   `use std::prelude::{clone}` を拒否できない既存の clone import 検査ギャップで、
   Box の import は E0100 で拒否する。
 
+## 追記: 2026-10-30 `wave/issue-936` — 安定 Vec free の signature 検査
+
+§3 の安定 free のうち `push` / `get` / `pop` は、宣言を `Vec<i32>` 固定の
+placeholder から `Vec<T>` + 要素型の実 signature へ直した。typechecker は
+名前だけを根拠に引数を飛ばさず、この signature で実引数を unify する。
+`push(Vec<i32>, String)` は両 target で E0200 になる。
+`get_unchecked<T>` / `set<T>` は既に実 signature を持っていた。
+
+`len` は `String` と `Vec<T>` の二つの owner を持つため、宣言は当面
+`String` 綴りのままにする。committed pin は source tree をコンパイルするので、
+Vec 専用宣言にすると pin が `len(String)` を拒否して stage-2 を build できない。
+代わりに typechecker が receiver の owner contract を選び、`String` / `Vec<T>`
+は `i32`、それ以外の具体型は
+`argument 1 has type i32, expected String or Vec<T>` で E0200 にする。
+`builtin_call_return_type` の `len` → `i32` 名 exemption は削除した。
+pin を refresh したら `len` 宣言も `Vec<T>` へ揃え、receiver dispatch を
+`String::len` / `Vec::len` の SignatureEntry で置き換える。
+
+未了は #936 の残り acceptance と同じである。emitter は依然として callee 名
+テーブル（`data/core-ops.toml` の `len` → `string.len`、`call_rewrite_vec*`）で
+intrinsic を選び、`FunctionId` → `CoreOpId` の binding は #933 の handoff 後になる。
+`len` / `push` / `get` / `pop` の body は placeholder のままで、sealed CoreOp
+binding ではない。証跡は
+`tests/fixtures/diagnostics/prelude_vec_push_arg_type.ark` /
+`prelude_len_arg_type.ark`（`_wasm32` companion を含む）と
+`tests/fixtures/stdlib_vec/prelude_generic_signatures.ark`。
+
 ## 参照
 
 - [ADR-014](ADR-014-stability-labels.md)

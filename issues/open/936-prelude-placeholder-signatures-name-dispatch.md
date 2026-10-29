@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-10-27
-Updated: 2026-10-27
+Updated: 2026-10-30
 ID: 936
 Track: stdlib
 Depends on: "#934"
@@ -85,9 +85,56 @@ CoreOp (ADR-042), not through the call-site spelling.
       signature-driven).
 - [ ] The emitter selects intrinsics through the resolved FunctionId / CoreOp,
       not by callee-name prefix (`starts_with(callee, "push__")` etc.).
-- [ ] Compile-error fixtures for both repros pass on `wasm32` and
+- [x] Compile-error fixtures for both repros pass on `wasm32` and
       `wasm32-gc`.
 - [ ] #928 (`clone(Vec<T>)` on `wasm32-gc`) is fixed by the same change.
+
+## Update (2026-10-30, `wave/issue-936`) — signature-driven Vec free checks
+
+Landed the first increment: the stable Vec prelude frees no longer take an
+unchecked, name-only path in the typechecker.
+
+- `std/prelude.ark`: `push<T>(mut Vec<T>, T)`, `get<T>(Vec<T>, i32) -> Option<T>`,
+  and `pop<T>(mut Vec<T>) -> Option<T>` now declare the contract the manifest
+  already records (`Vec<T>` + element type), so `push(Vec<i32>, String)` is
+  E0200 at the call instead of memory reinterpretation/invalid Wasm.
+  `get_unchecked<T>` / `set<T>` already had real generic signatures.
+  Generic argument inference also adapts an unsuffixed integer literal to an
+  already-bound `i64` parameter (`push(Vec<i64>, 10)`), so the stricter
+  signatures do not reject valid literal calls; typed `i32`/`i64` values still
+  follow ADR-067.
+- `src/compiler/typechecker/call_fn.ark`: `len` is the one stable free with
+  two owners (`String`, `Vec<T>`). Its declaration must keep the String
+  spelling until the committed pin is refreshed (the pin compiles the source
+  tree and would reject `len(String)` against a Vec-only declaration), so the
+  checker selects the receiver's owner contract: `String` and `Vec<T>` return
+  `i32`, any other concrete first argument is E0200
+  (`argument 1 has type i32, expected String or Vec<T>`). The
+  `builtin_call_return_type` `len` → `i32` name exemption is removed.
+- Fixtures: `diagnostics/prelude_vec_push_arg_type.ark` and
+  `diagnostics/prelude_len_arg_type.ark` (plus `_wasm32` companions with
+  `--target wasm32 --wasi-version wasi-p1`) assert the two repros fail on both
+  targets; `stdlib_vec/prelude_generic_signatures.ark` runs `len` on `Vec` and
+  `String` plus generic `push`/`get`/`pop` on both targets.
+
+Remaining acceptance work (not landed here):
+
+- The emitter still selects the intrinsic through the callee-name tables.
+  Bare `len` is bound to `string.len` in `data/core-ops.toml`, and MIR rewrites
+  it to `raw_array_len` only from the first argument's local type; `push` /
+  `get` / `pop` still lower through `call_rewrite_vec*` name/predicate
+  dispatch. Binding the call to the resolved `FunctionId` → `CoreOpId` needs
+  the #933 handoff.
+- `len`, `push`, `get`, and `pop` still have `Std::panic`/placeholder bodies.
+  They are deferred signature-only decls, not sealed CoreOp bindings.
+- The typechecker still keeps name-keyed tables for concrete prelude
+  conversions (`builtins::is_concrete_prelude_builtin`,
+  `builtin_call_return_type`) and for `eq`/`assert_eq_i64`; those are outside
+  this increment's Vec-operation scope.
+- A `len` call whose receiver is still a type variable is deferred: the
+  variable may later bind to `Vec<T>`, so the checker cannot reject
+  `len(x)` on an unconstrained `T` that is instantiated with a scalar.
+- #928 is not changed by this diff; it remains tracked separately.
 
 ## Notes
 

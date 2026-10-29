@@ -1,0 +1,6 @@
+use std::prelude::len
+
+fn main() {
+    let n = 42
+    let _count = len(n)
+}

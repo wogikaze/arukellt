@@ -492,16 +492,22 @@ fn __core_seq_product_i32_impl(v: Vec<i32>) -> i32 {
 
 // Scalar formatting: the retired `to_string(x)` free is now `x.to_string()`
 // (Display impls for i32 / i64 / f64 / bool / char / String).
-// Vec operations (polymorphic in practice; emitter dispatches by name)
+// Vec operations. These declarations are the call contract: the checker
+// unifies the argument types with these generic signatures instead of
+// skipping the arguments because the emitter happens to lower the name
+// (#936). `len` takes its contract from the receiver's owner (`String::len`
+// or `Vec::len`); the String spelling below is the committed pin's bootstrap
+// contract and cannot be replaced by the Vec signature until the pin is
+// refreshed.
 pub fn len(s: String) -> i32 {
     Std::panic(String_new()); return 0
 }
 
-pub fn push(mut v: Vec<i32>, val: i32) {
+pub fn push<T>(mut v: Vec<T>, val: T) {
     Std::panic(String_new())
 }
 
-pub fn get(v: Vec<i32>, idx: i32) -> Option<i32> {
+pub fn get<T>(v: Vec<T>, idx: i32) -> Option<T> {
     Std::panic(String_new()); return None
 }
 
@@ -509,7 +515,7 @@ pub fn get_unchecked<T>(v: Vec<T>, idx: i32) -> T {
     return v[idx]
 }
 
-pub fn pop(mut v: Vec<i32>) -> Option<i32> {
+pub fn pop<T>(mut v: Vec<T>) -> Option<T> {
     // Rewrite to vec_pop intrinsic (prelude panic stub had no emitter) (#807).
     vec_pop(v)
 }

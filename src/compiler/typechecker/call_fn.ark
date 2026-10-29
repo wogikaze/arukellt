@@ -199,10 +199,74 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, child_count - 1)
         return call_unknown::infer_unknown_ident_call(env, scope, callee)
     }
+    if is_prelude_len_signature(sig.clone()) {
+        return infer_prelude_len_call(env, scope, fn_sigs, enum_defs, node, child_count - 1)
+    }
     if contract_fn_sig::FnSig_type_param_count(sig) == 0 {
         return infer_concrete_call_expr(env, scope, fn_sigs, enum_defs, node, sig, child_count - 1)
     }
     call_generic::infer_generic_call_expr(env, scope, fn_sigs, enum_defs, node, sig, mono_fn_name)
+}
+
+// `len` is the one stable prelude free that serves two owners: `String` and
+// `Vec<T>`. The committed pin can only compile the String declaration, so the
+// checker selects the receiver's owner contract instead of checking every
+// receiver against that spelling or skipping the arguments because the
+// emitter lowers by name (#936). A user generic `len` does not have this
+// concrete String parameter and keeps the ordinary generic checking path.
+fn is_prelude_len_signature(sig: FnSig) -> bool {
+    if !eq(contract_fn_sig::FnSig_name(sig.clone()), String_from("len")) {
+        return false
+    }
+    if contract_fn_sig::FnSig_type_param_count(sig.clone()) != 0 {
+        return false
+    }
+    if contract_fn_sig::FnSig_param_count(sig.clone()) != 1 {
+        return false
+    }
+    contract_type_access::TypeInfo_tag(contract_fn_sig::FnSig_param_at(sig, 0)) ==
+    commands::TY_STRING()
+}
+
+fn infer_prelude_len_call(
+    mut env: TypeEnv,
+    mut scope: LocalScope,
+    fn_sigs: Vec<FnSig>,
+    enum_defs: Vec<EnumInfo>,
+    node: AstNode,
+    arg_count: i32
+) -> TypeInfo {
+    if arg_count != 1 {
+        unify::type_error_bad_arity(
+            env,
+            String_from("wrong number of arguments for `len`: expected 1, found ").concat(
+                arg_count.to_string()
+            )
+        )
+        call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, arg_count)
+        return simple_type(commands::TY_I32())
+    }
+    let recv_ty = infer_expr(
+        env,
+        scope,
+        fn_sigs,
+        enum_defs,
+        ast_access::node_child_at(node, 1)
+    )
+    let tag = contract_type_access::TypeInfo_tag(recv_ty)
+    // An unbound type variable may later become a Vec through another use;
+    // the call keeps the historical unchecked path for that deferred case.
+    if tag == commands::TY_STRING() || tag == commands::TY_VEC() ||
+    tag == commands::TY_TYPE_VAR() || tag == commands::TY_UNKNOWN() {
+        return simple_type(commands::TY_I32())
+    }
+    unify::type_error(
+        env,
+        String_from("type mismatch in call to `len`: argument 1 has type ").concat(
+            names::type_display_name(recv_ty).concat(String_from(", expected String or Vec<T>"))
+        )
+    )
+    simple_type(commands::TY_I32())
 }
 
 // Concrete FromIterator impls carry their source type in the symbol

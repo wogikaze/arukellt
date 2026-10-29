@@ -366,6 +366,16 @@ close gate はファイル名や特定の構文ではなく、次の semantic in
 - public binding と semantic signature が整合する
 - fallback と specialized lowering の differential test が通る
 
+2026-10-30 の #936 increment では、prelude の安定 Vec free
+（`push` / `get` / `pop`、既存の `get_unchecked` / `set`）の宣言を実 generic
+signature にし、typechecker が実引数をその signature で検査するようにした。
+`len` は receiver の owner（`String` / `Vec<T>`）で契約を選ぶ。
+ただし backend は未だ callee 名で intrinsic を選んでおり
+（`data/core-ops.toml` の `len` → `string.len`、`call_rewrite_vec*`）、
+D6 の「call lowering が診断用途以外で callee 文字列を参照しない」は未達である。
+`FunctionId` → `CoreOpId` の dispatch は #933 の checker-to-lowering handoff を
+前提とする。#936 に残差を記録している。
+
 ### D7: target intrinsic の名前空間と raw V128 型
 
 target-specific intrinsic の公開場所は **`std::wasm`** とする（ADR-037 と整合）。

@@ -1,0 +1,6 @@
+use std::prelude::push
+
+fn main() {
+    let mut v = Vec::new<i32>()
+    push(v, String_from("oops"))
+}

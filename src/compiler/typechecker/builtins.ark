@@ -106,9 +106,6 @@ fn builtin_call_return_type(name: String) -> TypeInfo {
     eq(name.clone(), "__intrinsic_stdin_read_to_string") {
         return simple_type(commands::TY_STRING())
     }
-    if eq(name.clone(), "len") {
-        return simple_type(commands::TY_I32())
-    }
     if eq(name.clone(), "__runtime_abi_fs_read_file") || eq(name.clone(), "__runtime_abi_fs_write_file") || eq(name.clone(), "__runtime_abi_fs_write_bytes") {
         return simple_type(commands::TY_RESULT())
     }
