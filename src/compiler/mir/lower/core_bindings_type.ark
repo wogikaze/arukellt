@@ -12,7 +12,7 @@ fn infer_core_let_type_name_is_string(type_name: String) -> bool {
 }
 
 fn infer_core_let_call_result_type_name(ctx: LowerCtx, callee: String) -> String {
-    if core_call_arg_names::mir_core_call_string_result_name(clone(callee)) {
+    if core_call_arg_names::mir_core_call_callee_returns_string(ctx, clone(callee)) {
         return "string"
     }
     let rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(callee))

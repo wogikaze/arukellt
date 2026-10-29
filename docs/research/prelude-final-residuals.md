@@ -92,8 +92,18 @@ was **not** sufficient: the closure omitted `std/core/scalar_format.ark` and
 to the i32 `parse_f64` intrinsic and the gc self-build emitted invalid core
 Wasm in `f64::try_from__String`. Shipping both modules makes the old pin's gc
 self-build validate, but that pin is not faithful (p1 identity and gc
-self-reproduction fail), and the faithful p1 s2 still cannot self-build gc
-(`try_emit_name_intrinsic_fallback`, func 5637). See
+self-reproduction fail), and the faithful p1 s2 still hit a CoreOp
+result/local typing bug (`try_emit_name_intrinsic_fallback`, func 5637).
+
+That typing bug is now fixed: the `_to_string` suffix table in
+`mir_core_call_string_result_name` was retyping the generated
+`core_op_handler_text_to_string` accessor (an i32 handler id) as a `String`
+ref, so `handler_id == core_op_handler_text_to_string()` lowered as reference
+equality. The faithful p1 s2 now emits a gc core that validates
+(`db883d23…`) and the packaged component reproduces it. The pin still is not
+refreshed: p1 identity fails because the committed pin's build source is 39
+compiler commits stale, which is a generation convergence problem, not this
+typing bug. See
 [pin-refresh-blocker-20261030.md](pin-refresh-blocker-20261030.md) for the
 hashes and reproduction. The eq retirement therefore stays blocked on the
 pin plus the eq-path operand staging described in §2.

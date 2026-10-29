@@ -76,7 +76,7 @@ fn mark_clone_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32
 }
 
 fn mark_string_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32) {
-    if mir_callee_returns_string(clone(callee_name)) {
+    if mir_callee_returns_string(ctx, clone(callee_name)) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, "string")
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
@@ -86,8 +86,8 @@ fn mark_string_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i3
     }
 }
 
-fn mir_callee_returns_string(callee_name: String) -> bool {
-    if core_call_arg_names::mir_core_call_string_result_name(clone(callee_name)) {
+fn mir_callee_returns_string(ctx: LowerCtx, callee_name: String) -> bool {
+    if core_call_arg_names::mir_core_call_callee_returns_string(ctx, clone(callee_name)) {
         return true
     }
     if eq(clone(callee_name), "String_from") ||

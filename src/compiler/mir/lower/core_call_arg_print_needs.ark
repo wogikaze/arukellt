@@ -12,7 +12,7 @@ use mir::value_types
 fn mir_core_print_arg_needs_string_conversion(ctx: LowerCtx, arg: CoreHirExpr, arg_idx: i32) -> bool {
     if core_expr_shape_calls::mir_core_expr_is_call(arg) {
         let cn = core_expr_shape_accessors::mir_core_expr_text(arg)
-        if core_call_arg_names::mir_core_call_string_result_name(clone(cn)) {
+        if core_call_arg_names::mir_core_call_callee_returns_string(ctx, clone(cn)) {
             return false
         }
         let return_type_name = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(cn))

@@ -1,4 +1,5 @@
 use std::prelude::{clone, eq}
+use mir::lower::ctx_fn_return_type
 fn mir_core_is_printlike_callee(name: String) -> bool {
     eq(clone(name), "stdio::println") ||
     eq(clone(name), "println") ||
@@ -87,4 +88,20 @@ fn mir_core_call_string_result_name(name: String) -> bool {
         return true
     }
     false
+}
+
+// `mir_core_call_string_result_name` reads the callee spelling. That evidence
+// is only conclusive for the removed CoreOp impl symbols (`raw_f64_to_string`,
+// `__core_i32_to_string_impl`, `..._from_bytes`) that the DCE pass drops: they
+// have no declaration left, so the name is all a call site can resolve.
+// A live declaration owns its return type. The generated
+// `core_op_handler_text_to_string` accessor ends with `_to_string` but returns
+// the i32 handler id; typing that result as a String ref lowered
+// `handler_id == core_op_handler_text_to_string()` as a reference comparison
+// and produced invalid core Wasm.
+fn mir_core_call_callee_returns_string(ctx: LowerCtx, name: String) -> bool {
+    if !mir_core_call_string_result_name(clone(name)) {
+        return false
+    }
+    len(ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(name))) == 0
 }

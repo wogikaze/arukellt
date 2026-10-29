@@ -741,6 +741,7 @@ run:question_mark/option_propagate.ark
 run:question_mark/from_trait_not_inherent.ark
 run:question_mark/user_error_type.ark
 run:regression/generic_adapter_field_method_arg.ark
+run:regression/coreop_accessor_result_type.ark
 run:regression/t2_scaffold.ark
 run:regression/type_table/enum_match_variants.ark
 run:regression/type_table/struct_field_access.ark
@@ -2560,6 +2561,7 @@ t3-compile:question_mark/nested_result.ark
 t3-compile:question_mark/option_propagate.ark
 t3-compile:question_mark/from_trait_not_inherent.ark
 t3-compile:question_mark/user_error_type.ark
+t3-compile:regression/coreop_accessor_result_type.ark
 t3-compile:regression/type_table/enum_match_variants.ark
 t3-compile:regression/type_table/struct_field_access.ark
 t3-compile:stdlib_filter/filter_string.ark
@@ -3458,6 +3460,7 @@ t3-run:variables/string_lit.ark
 t3-run:variables/tuple.ark
 # Field receiver staging for a method call with an explicit argument.
 t3-run:regression/generic_adapter_field_method_arg.ark
+t3-run:regression/coreop_accessor_result_type.ark
 t4-compile:t4/native_scaffold.ark
 # native-cpp practical scenario corpus (Phase 4 readiness scaffolding)
 run:native_cpp_scenarios/config_loader.ark
