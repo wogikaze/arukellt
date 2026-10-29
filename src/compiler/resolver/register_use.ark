@@ -1,3 +1,4 @@
+use std::prelude::{eq}
 use std::text
 use resolver::scope_error
 use resolver::scope_lookup
@@ -17,34 +18,47 @@ fn register_use_decl(mut ctx: ResolveCtx, d: AstNode) {
     register_use_module_alias(ctx, d)
     register_use_children(ctx, d)
     register_use_decl_func_alias(ctx, d)
-    register_use_reject_retired_prelude(ctx, d)
+    try_reject_retired_prelude_import(ctx, d)
 }
 
-// A path import (`use std::prelude::Box_new`, including the flattened form of
-// a braced group) can name a retired prelude free. Reject the import instead
-// of letting the alias resurrect a declaration that no longer exists.
-fn register_use_reject_retired_prelude(ctx: ResolveCtx, d: AstNode) {
+// An explicit import of a retired prelude free must not bind an alias that
+// resurrects it. This covers both a plain path (`use std::prelude::Box_new`)
+// and each member of a braced group (`use std::prelude::{eq, Box_new}`): the
+// parser keeps the first group member as the declaration path and the rest as
+// child use nodes, so every path has to be checked on its own.
+fn try_reject_retired_prelude_import(ctx: ResolveCtx, d: AstNode) -> bool {
     let use_path = ast_access::node_text(d)
     let parent = paths::use_module_parent_path(use_path.clone())
-    if !parent.clone().eq("std::prelude") && !parent.clone().eq("prelude") {
-        return
+    if !eq(parent.clone(), "std::prelude") && !eq(parent.clone(), "prelude") {
+        return false
     }
     let name = paths::use_module_short_name(use_path)
-    // `clone` keeps a private prelude shim and is still imported by compiler
-    // modules; only the Box free pair is fully retired here.
-    let hint = if name.clone().eq("Box_new") {
-        String_from("use `Box::new(value)` instead")
-    } else if name.clone().eq("unbox") {
-        String_from("use `boxed.take()` instead")
-    } else {
-        String_new()
+    let hint = retired_prelude_import_hint(name.clone())
+    if len(hint) == 0 {
+        return false
     }
-    if len(hint) > 0 {
-        scope_error::resolve_error(
-            ctx,
-            String_from("removed prelude free function: ").concat(name.concat("; ".concat(hint)))
-        )
+    scope_error::resolve_error(
+        ctx,
+        String_from("removed prelude free function: ").concat(name.concat("; ".concat(hint)))
+    )
+    return true
+}
+
+// `clone` stays in std/prelude as a private identity shim for method
+// lowering, but it is not importable (ADR-091): only the receiver method is
+// public, and the shim is found by name in the module graph rather than
+// through a source import.
+fn retired_prelude_import_hint(name: String) -> String {
+    if eq(name.clone(), "Box_new") {
+        return String_from("use `Box::new(value)` instead")
     }
+    if eq(name.clone(), "unbox") {
+        return String_from("use `boxed.take()` instead")
+    }
+    if eq(name.clone(), "clone") {
+        return String_from("use `x.clone()` on the value instead")
+    }
+    String_new()
 }
 
 fn register_use_decl_func_alias(mut ctx: ResolveCtx, d: AstNode) {
@@ -74,7 +88,7 @@ fn register_use_module_alias(mut ctx: ResolveCtx, d: AstNode) {
     if existing_mod < 0 {
         scope_define::define(ctx, short_name.clone(), commands::SYM_MODULE())
     }
-    if !short_name.clone().eq(default_name.clone()) {
+    if !eq(short_name.clone(), default_name.clone()) {
         ctx_record::resolve_ctx_add_use_alias(ctx, short_name.clone(), default_name.clone())
     }
     register_type_use_alias(ctx, full_path, short_name.clone(), existing_kind)
@@ -129,7 +143,7 @@ fn register_local_import_decl(mut ctx: ResolveCtx, d: AstNode) {
     if existing_mod < 0 {
         scope_define::define(ctx, alias.clone(), commands::SYM_MODULE())
     }
-    if !alias.clone().eq(default_name.clone()) {
+    if !eq(alias.clone(), default_name.clone()) {
         ctx_record::resolve_ctx_add_use_alias(ctx, alias, default_name)
     }
 }
@@ -141,6 +155,10 @@ fn register_use_children(mut ctx: ResolveCtx, d: AstNode) {
         let child = ast_access::node_child_at(d, ci)
         if ast_decl_predicates::node_is_use(child) {
             let child_path = ast_access::node_text(child)
+            if try_reject_retired_prelude_import(ctx, child) {
+                ci = ci + 1
+                continue
+            }
             let existing_child = scope_lookup::lookup(ctx, child_path.clone())
             if existing_child < 0 {
                 scope_define::define(ctx, child_path.clone(), commands::SYM_IMPORT())
@@ -180,17 +198,5 @@ fn register_use_func_alias(mut ctx: ResolveCtx, child_path: String, child_short:
         return
     }
     let alias_target = parent_short.clone().concat("::".concat(child_short.clone()))
-    // `clone` stays in the prelude as a private method-resolution shim, but the
-    // free itself is retired (ADR-091). The scope resolver would otherwise let
-    // an explicit selective import resurrect it; reject the import instead of
-    // silently binding a non-public lowering target.
-    if child_short.clone().eq("clone") &&
-    (parent_short.clone().eq("prelude") || parent_short.clone().eq("std::prelude")) {
-        scope_error::resolve_error(
-            ctx,
-            String_from("removed prelude free function: clone; use `x.clone()` on the value instead")
-        )
-        return
-    }
     ctx_record::resolve_ctx_add_use_alias(ctx, child_short, alias_target)
 }
