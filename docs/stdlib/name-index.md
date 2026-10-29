@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 168
+- **Canonical names:** 147
 - **Historical/deprecated names:** 75
-- **Total entries:** 243
+- **Total entries:** 222
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -96,27 +96,6 @@ Current public API names, sorted alphabetically.
 | `hashmap_try_reserve` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_values` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_with_capacity` | `std::collections::hash` | `stable` | Collections |
-| `hashset_capacity` | `std::collections::hash` | `stable` | Collections |
-| `hashset_clear` | `std::collections::hash` | `stable` | Collections |
-| `hashset_contains` | `std::collections::hash` | `stable` | Collections |
-| `hashset_difference` | `std::collections::hash` | `stable` | Collections |
-| `hashset_extend` | `std::collections::hash` | `stable` | Collections |
-| `hashset_insert` | `std::collections::hash` | `stable` | Collections |
-| `hashset_intersection` | `std::collections::hash` | `stable` | Collections |
-| `hashset_is_empty` | `std::collections::hash` | `stable` | Collections |
-| `hashset_len` | `std::collections::hash` | `stable` | Collections |
-| `hashset_new` | `std::collections::hash` | `stable` | Collections |
-| `hashset_remove` | `std::collections::hash` | `stable` | Collections |
-| `hashset_reserve` | `std::collections::hash` | `stable` | Collections |
-| `hashset_shrink_to_fit` | `std::collections::hash` | `stable` | Collections |
-| `hashset_str_contains` | `std::collections::hash` | `stable` | Collections |
-| `hashset_str_insert` | `std::collections::hash` | `stable` | Collections |
-| `hashset_str_is_empty` | `std::collections::hash` | `stable` | Collections |
-| `hashset_str_len` | `std::collections::hash` | `stable` | Collections |
-| `hashset_str_new` | `std::collections::hash` | `stable` | Collections |
-| `hashset_str_remove` | `std::collections::hash` | `stable` | Collections |
-| `hashset_to_vec` | `std::collections::hash` | `stable` | Collections |
-| `hashset_union` | `std::collections::hash` | `stable` | Collections |
 | `id` | `std::host::process` | `stable` | Host Process |
 | `ifft` | `std::signal` | `stable` | Signal |
 | `index_of` | `prelude` | `stable` | String |
@@ -387,27 +366,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `hashmap_try_reserve` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_values` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_with_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_clear` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_contains` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_difference` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_extend` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_insert` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_intersection` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_is_empty` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_len` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_new` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_remove` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_reserve` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_shrink_to_fit` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_str_contains` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_str_insert` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_str_is_empty` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_str_len` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_str_new` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_str_remove` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_to_vec` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_union` | ✅ `stable` | `std::collections::hash` | Collections |
 | ~~`i16_to_i32`~~ | ⚠️ deprecated | `prelude` | → `i16::to_i32` · [migration guide](migration-guidance.md) |
 | ~~`i32_to_i16`~~ | ⚠️ deprecated | `prelude` | → `i32::to_i16_wrapping` · [migration guide](migration-guidance.md) |
 | ~~`i32_to_i64`~~ | ⚠️ deprecated | `prelude` | → `i32::into` · [migration guide](migration-guidance.md) |

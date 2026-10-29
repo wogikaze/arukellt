@@ -22,6 +22,14 @@
 //! The functions in this module operate on `Vec<i32>` and serve as the raw
 //! implementation layer for the `i32`->`i32` family.
 //!
+//! The `hashset_*` store functions are non-public MIR lowering targets for
+//! `HashSet<i32>`; `std::collections::hash_string` owns the equivalent
+//! `HashSet<String>` targets. Their public free spellings were retired by
+//! #917 after the receiver surface landed. The remaining public functions are
+//! the HashMap capacity / bulk-maintenance helpers (`capacity`,
+//! `with_capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`,
+//! `drain`, `remove_entry`, `extend`), which have no method spelling yet.
+//!
 //! ## Hash policy
 //!
 //! All hash functions in this module use a consistent FNV-1 algorithm
@@ -40,7 +48,6 @@ use std::core::hash
 
 // ─── Core HashMap (monomorphic i32→i32) ─────────────────────────────────────
 
-use std::prelude::{clone, eq}
 pub fn hashmap_new() -> Vec<i32> {
     let cap: i32 = 16
     let mut m: Vec<i32> = Vec::new<i32>()
@@ -421,13 +428,13 @@ pub fn hashmap_extend(mut m: Vec<i32>, other: Vec<i32>) {
 
 // ─── HashSet API (monomorphic i32, backed by HashMap<i32,i32>) ──────────────
 /// Create a new empty HashSet.
-pub fn hashset_new() -> Vec<i32> {
+fn hashset_new() -> Vec<i32> {
     hashmap_new()
 }
 
 /// Insert a value into the set. Returns true if the value was newly added,
 /// false if it was already present.
-pub fn hashset_insert(mut s: Vec<i32>, value: i32) -> bool {
+fn hashset_insert(mut s: Vec<i32>, value: i32) -> bool {
     if hashmap_contains(s, value) {
         false
     } else {
@@ -436,12 +443,12 @@ pub fn hashset_insert(mut s: Vec<i32>, value: i32) -> bool {
 }
 
 /// Return true if the set contains the given value.
-pub fn hashset_contains(s: Vec<i32>, value: i32) -> bool {
+fn hashset_contains(s: Vec<i32>, value: i32) -> bool {
     hashmap_contains(s, value)
 }
 
 /// Remove a value from the set. Returns true if the value was present, false otherwise.
-pub fn hashset_remove(mut s: Vec<i32>, value: i32) -> bool {
+fn hashset_remove(mut s: Vec<i32>, value: i32) -> bool {
     if hashmap_contains(s, value) {
         let _ = hashmap_remove(s, value)
         true
@@ -451,22 +458,22 @@ pub fn hashset_remove(mut s: Vec<i32>, value: i32) -> bool {
 }
 
 /// Return the number of elements in the set.
-pub fn hashset_len(s: Vec<i32>) -> i32 {
+fn hashset_len(s: Vec<i32>) -> i32 {
     hashmap_size(s)
 }
 
 /// Return true if the set is empty.
-pub fn hashset_is_empty(s: Vec<i32>) -> bool {
+fn hashset_is_empty(s: Vec<i32>) -> bool {
     hashmap_is_empty(s)
 }
 
 /// Return all elements of the set as a Vec<i32>.
-pub fn hashset_to_vec(s: Vec<i32>) -> Vec<i32> {
+fn hashset_to_vec(s: Vec<i32>) -> Vec<i32> {
     hashmap_keys(s)
 }
 
 /// Return the union of two sets (all elements present in a or b).
-pub fn hashset_union(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
+fn hashset_union(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
     let mut result: Vec<i32> = hashset_new()
     let ak: Vec<i32> = hashmap_keys(a)
     let na: i32 = len(ak)
@@ -486,7 +493,7 @@ pub fn hashset_union(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
 }
 
 /// Return the intersection of two sets (elements present in both a and b).
-pub fn hashset_intersection(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
+fn hashset_intersection(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
     let mut result: Vec<i32> = hashset_new()
     let ak: Vec<i32> = hashmap_keys(a)
     let n: i32 = len(ak)
@@ -502,7 +509,7 @@ pub fn hashset_intersection(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
 }
 
 /// Return the difference a - b (elements in a that are not in b).
-pub fn hashset_difference(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
+fn hashset_difference(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
     let mut result: Vec<i32> = hashset_new()
     let ak: Vec<i32> = hashmap_keys(a)
     let n: i32 = len(ak)
@@ -518,29 +525,29 @@ pub fn hashset_difference(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
 }
 
 /// Return the current bucket capacity of the set.
-pub fn hashset_capacity(s: Vec<i32>) -> i32 {
+fn hashset_capacity(s: Vec<i32>) -> i32 {
     hashmap_capacity(s)
 }
 
 /// Ensure the set can hold at least `additional` more elements without
 /// exceeding the load-factor threshold.
-pub fn hashset_reserve(mut s: Vec<i32>, additional: i32) {
+fn hashset_reserve(mut s: Vec<i32>, additional: i32) {
     hashmap_reserve(s, additional)
 }
 
 /// Shrink the set to the minimum capacity preserving the load-factor invariant.
-pub fn hashset_shrink_to_fit(mut s: Vec<i32>) {
+fn hashset_shrink_to_fit(mut s: Vec<i32>) {
     hashmap_shrink_to_fit(s)
 }
 
 /// Remove all elements from the set, resetting size to 0.
-pub fn hashset_clear(mut s: Vec<i32>) {
+fn hashset_clear(mut s: Vec<i32>) {
     hashmap_clear(s)
 }
 
 /// Extend a set with all elements from another set (`other`).
 /// Mirrors Rust's `HashSet::extend`.
-pub fn hashset_extend(mut s: Vec<i32>, other: Vec<i32>) {
+fn hashset_extend(mut s: Vec<i32>, other: Vec<i32>) {
     let keys: Vec<i32> = hashmap_keys(other)
     let n: i32 = len(keys)
     let mut i: i32 = 0
@@ -550,63 +557,6 @@ pub fn hashset_extend(mut s: Vec<i32>, other: Vec<i32>) {
     }
 }
 
-// ─── HashSet<String> facade (Vec<String>-backed) ────────────────────────────
-
-fn hash_vec_string_index_of(items: Vec<String>, value: String) -> i32 {
-    let mut i: i32 = 0
-    while i < len(items) {
-        if eq(get_unchecked(items, i), value) {
-            return i
-        }
-        i = i + 1
-    }
-    -1
-}
-
-fn hash_vec_string_remove_at(mut items: Vec<String>, index: i32) {
-    let n: i32 = len(items)
-    let mut i: i32 = index
-    while i < n - 1 {
-        set(items, i, get_unchecked(items, i + 1))
-        i = i + 1
-    }
-    let _last: Option<String> = pop(items)
-}
-
-pub fn hashset_str_new() -> Vec<String> {
-    Vec::new<String>()
-}
-
-pub fn hashset_str_insert(mut s: Vec<String>, value: String) -> bool {
-    if hash_vec_string_index_of(s, clone(value)) >= 0 {
-        false
-    } else {
-        push(s, value)
-        true
-    }
-}
-
-pub fn hashset_str_contains(s: Vec<String>, value: String) -> bool {
-    hash_vec_string_index_of(s, value) >= 0
-}
-
-pub fn hashset_str_remove(mut s: Vec<String>, value: String) -> bool {
-    let idx: i32 = hash_vec_string_index_of(s, value)
-    if idx < 0 {
-        false
-    } else {
-        hash_vec_string_remove_at(s, idx)
-        true
-    }
-}
-
-pub fn hashset_str_len(s: Vec<String>) -> i32 {
-    len(s)
-}
-
-pub fn hashset_str_is_empty(s: Vec<String>) -> bool {
-    len(s) == 0
-}
 test mod "hashmap" {
     test "new_empty" { assert(hashmap_is_empty(hashmap_new())) }
     test "insert_get" {

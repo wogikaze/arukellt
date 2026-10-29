@@ -1,0 +1,9 @@
+// E0100: the std::collections::hash HashSet frees were deleted after the
+// ADR-087 W0009 window; the qualified old call names the method replacement.
+use std::collections::hash
+use std::collections::hash_set::HashSet
+
+fn main() {
+    let mut s: HashSet<i32> = HashSet::new<i32>()
+    let _ = hash::hashset_insert(s, 1)
+}

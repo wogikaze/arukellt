@@ -8,7 +8,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 154 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 133 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 10 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 4 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 75 | Superseded — see migration guidance. |
@@ -278,27 +278,6 @@
 | `hashmap_try_reserve` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
 | `hashmap_values` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
 | `hashmap_with_capacity` | `(i32) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_capacity` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | Return the current bucket capacity of a HashSet<i32>. |
-| `hashset_clear` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | Remove all elements from a HashSet<i32>, resetting size to 0. |
-| `hashset_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_difference` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | Extend a HashSet<i32> with all elements from another set. Mirrors Rust's HashSet::extend. |
-| `hashset_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_is_empty` | `(Vec<i32>) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_len` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_remove` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_reserve` | `(Vec<i32>, i32) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | Ensure a HashSet<i32> can hold at least additional more elements without exceeding the load-factor… |
-| `hashset_shrink_to_fit` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | Shrink a HashSet<i32> to the minimum capacity preserving the load-factor invariant. |
-| `hashset_str_contains` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_str_insert` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_str_is_empty` | `(Vec<String>) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_str_len` | `(Vec<String>) -> i32` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_str_new` | `() -> Vec<String>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_str_remove` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_to_vec` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
 | ~~`len`~~ ⚠️ Deprecated → `Vec::len` | `(Vec<T>) -> i32` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | Return the number of elements in a Vec. |
 | ~~`linked_list_back`~~ ⚠️ Deprecated → `LinkedList::back` | `(Vec<i32>, i32) -> i32` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Peek the back value of the legacy i32 list, or the caller's fallback when empty. |
 | ~~`linked_list_clear`~~ ⚠️ Deprecated → `LinkedList::clear` | `(Vec<i32>) -> ()` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Remove all elements from the legacy i32 list, keeping node capacity. |

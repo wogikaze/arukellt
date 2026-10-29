@@ -2107,6 +2107,43 @@ let _ = s.insert(1)
 let n = s.len()
 ```
 
+### `std::collections::hash` HashSet Frees
+
+The 21 `hash::hashset_*` / `hash::hashset_str_*` free functions were the flat
+`Vec<i32>` / `Vec<String>` store layer behind the `HashSet<T>` methods. They
+were deprecated with W0009 under the [ADR-087](../adr/ADR-087-0x-deprecation-exception.md)
+0.x exception and deleted in the same #917 wave (2026-10-29); the declarations
+stay as non-public MIR lowering targets, and qualified old calls fail with
+E0100 and a method hint. Import `use std::collections::hash_set::HashSet` for
+the receiver spelling.
+
+| Old API | Replacement |
+|---------|-------------|
+| `hash::hashset_new()` | `HashSet::new<i32>()` |
+| `hash::hashset_insert(s, v)` | `s.insert(v)` |
+| `hash::hashset_contains(s, v)` | `s.contains(v)` |
+| `hash::hashset_remove(s, v)` | `s.remove(v)` |
+| `hash::hashset_len(s)` | `s.len()` |
+| `hash::hashset_is_empty(s)` | `s.is_empty()` |
+| `hash::hashset_to_vec(s)` | `s.to_vec()` |
+| `hash::hashset_union(a, b)` | `a.union(b)` |
+| `hash::hashset_intersection(a, b)` | `a.intersection(b)` |
+| `hash::hashset_difference(a, b)` | `a.difference(b)` |
+| `hash::hashset_capacity(s)` | `s.capacity()` |
+| `hash::hashset_reserve(s, n)` | `s.reserve(n)` |
+| `hash::hashset_shrink_to_fit(s)` | `s.shrink_to_fit()` |
+| `hash::hashset_clear(s)` | `s.clear()` |
+| `hash::hashset_extend(s, other)` | `s.extend(other)` |
+| `hash::hashset_str_new()` | `HashSet::new<String>()` |
+| `hash::hashset_str_insert(s, v)` | `s.insert(v)` |
+| `hash::hashset_str_contains(s, v)` | `s.contains(v)` |
+| `hash::hashset_str_remove(s, v)` | `s.remove(v)` |
+| `hash::hashset_str_len(s)` | `s.len()` |
+| `hash::hashset_str_is_empty(s)` | `s.is_empty()` |
+
+The remaining `hash::hashmap_*` flat-store frees are a separate HashMap wave;
+only the HashSet rows above were retired here.
+
 ### Option/Result Map
 
 The receiver methods landed with the #917 wave in `std::core::container`:

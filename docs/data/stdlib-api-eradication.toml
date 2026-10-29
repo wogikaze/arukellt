@@ -83,6 +83,14 @@ owner = "none"
 # `impl HashMap<K,V>` methods are the only spelling; their MIR lowering
 # targets are the now non-public implementation functions in hash_string /
 # hash_fn / hash_str_fn, so no source declaration in those modules is public.
+#
+# The 21 `std::collections::hash` HashSet frees (`hashset_*` 15 and
+# `hashset_str_*` 6) were deprecated with W0009 and deleted by #917 on
+# 2026-10-29 (wave/hash-group). The declarations stay as non-public MIR
+# lowering targets behind `HashSet<i32>` / `HashSet<String>`, so no `pub fn`
+# remains for those names. The same module's HashMap flat-store frees
+# (`hashmap_*`, 21) stay public until the HashMap capacity/bulk method
+# surface lands; they remain on the `std::collections frees` rule below.
 
 # -- Prelude overrides (evaluated before the prelude default) --
 #

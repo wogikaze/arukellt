@@ -424,6 +424,14 @@ test mod "deprecated" {
         assert(len(deprecated_call_message("contains_string")) == 0)
         assert(len(deprecated_call_message("filter_i32")) == 0)
     }
+    test "removed_hashset_frees_have_no_w0009_entry" {
+        // The 21 HashSet frees moved stable -> deprecated -> deleted in the
+        // same #917 wave; E0100 from resolver::removed_names owns them now,
+        // so a live W0009 entry would be a dead warning.
+        assert(len(deprecated_qualified_call_message("hash::hashset_new")) == 0)
+        assert(len(deprecated_qualified_call_message("hash::hashset_insert")) == 0)
+        assert(len(deprecated_qualified_call_message("hash::hashset_str_is_empty")) == 0)
+    }
     test "retired_stale_builtin_entries_are_not_warned" {
         // `clear`, `map_option_String_String`, and `map_result_i32_i32`
         // were stale non-callable builtin entries; they were retired with
