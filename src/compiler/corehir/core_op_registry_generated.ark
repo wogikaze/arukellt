@@ -1,7 +1,7 @@
 // Generated from data/core-ops.toml by scripts/gen/generate-core-ops-registry.py.
 // Compact table + index. Do not edit by hand.
 
-use std::prelude::{byte_at, clone, eq, substring}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::table_blob
 
@@ -98,7 +98,7 @@ fn core_op_registry_canonical_id_at(index: i32) -> String {
     if start_chunk == end_chunk {
         let piece = core_op_registry_canonical_id_data_chunk(start_chunk)
         let local = start - start_chunk * 144
-        return substring(piece, local, local + (end - start))
+        return piece.slice(local, local + (end - start))
     }
     let mut out = String_new()
     let mut i = start
@@ -112,7 +112,7 @@ fn core_op_registry_canonical_id_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = text::concat(out, substring(piece, local, local + take))
+        out = text::concat(out, piece.slice(local, local + take))
         i = i + take
     }
     return out
@@ -283,7 +283,7 @@ fn core_op_registry_target_id_at(index: i32) -> String {
     if start_chunk == end_chunk {
         let piece = core_op_registry_target_id_data_chunk(start_chunk)
         let local = start - start_chunk * 144
-        return substring(piece, local, local + (end - start))
+        return piece.slice(local, local + (end - start))
     }
     let mut out = String_new()
     let mut i = start
@@ -297,7 +297,7 @@ fn core_op_registry_target_id_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = text::concat(out, substring(piece, local, local + take))
+        out = text::concat(out, piece.slice(local, local + take))
         i = i + take
     }
     return out
@@ -390,7 +390,7 @@ fn core_op_registry_runtime_symbol_at(index: i32) -> String {
     if start_chunk == end_chunk {
         let piece = core_op_registry_runtime_symbol_data_chunk(start_chunk)
         let local = start - start_chunk * 144
-        return substring(piece, local, local + (end - start))
+        return piece.slice(local, local + (end - start))
     }
     let mut out = String_new()
     let mut i = start
@@ -404,7 +404,7 @@ fn core_op_registry_runtime_symbol_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = text::concat(out, substring(piece, local, local + take))
+        out = text::concat(out, piece.slice(local, local + take))
         i = i + take
     }
     return out
@@ -606,7 +606,7 @@ fn core_op_registry_mir_operation_at(index: i32) -> String {
     if start_chunk == end_chunk {
         let piece = core_op_registry_mir_operation_data_chunk(start_chunk)
         let local = start - start_chunk * 144
-        return substring(piece, local, local + (end - start))
+        return piece.slice(local, local + (end - start))
     }
     let mut out = String_new()
     let mut i = start
@@ -620,7 +620,7 @@ fn core_op_registry_mir_operation_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = text::concat(out, substring(piece, local, local + take))
+        out = text::concat(out, piece.slice(local, local + take))
         i = i + take
     }
     return out
@@ -728,7 +728,7 @@ fn core_op_registry_fallback_symbol_at(index: i32) -> String {
     if start_chunk == end_chunk {
         let piece = core_op_registry_fallback_symbol_data_chunk(start_chunk)
         let local = start - start_chunk * 144
-        return substring(piece, local, local + (end - start))
+        return piece.slice(local, local + (end - start))
     }
     let mut out = String_new()
     let mut i = start
@@ -742,7 +742,7 @@ fn core_op_registry_fallback_symbol_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = text::concat(out, substring(piece, local, local + take))
+        out = text::concat(out, piece.slice(local, local + take))
         i = i + take
     }
     return out
@@ -2162,7 +2162,7 @@ fn core_op_registry_lookup_index(name: String) -> i32 {
     let name_len = len(name)
     let mut hi = 0
     while hi < name_len {
-        hash = hash * fnv_prime ^ byte_at(name, hi)
+        hash = hash * fnv_prime ^ name.byte_at(hi)
         if hash < 0 {
             hash = 0 - hash
         }

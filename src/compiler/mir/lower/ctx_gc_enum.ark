@@ -1,5 +1,5 @@
 use std::text
-use std::prelude::{byte_at, clone, contains, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use mir::lower::ctx_gc_enum_sig
 use mir::lower::ctx_gc_canon
 use mir::lower::ctx_struct_field_type
@@ -96,17 +96,17 @@ fn ctx_gc_enum_normalize_variant_name(variant_name: String) -> String {
 // Option/Result keep their qualified normalize form for disambiguation.
 fn ctx_gc_enum_bare_variant_name(variant_name: String) -> String {
     let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
-    if starts_with(clone(normalized), "Option::") || starts_with(clone(normalized), "Result::") {
+    if clone(normalized).starts_with("Option::") || clone(normalized).starts_with("Result::") {
         return normalized
     }
-    if !contains(clone(normalized), "::") {
+    if !clone(normalized).contains("::") {
         return normalized
     }
     let n = len(normalized)
     let mut i = n - 1
     while i >= 0 {
-        if byte_at(clone(normalized), i) == 58 {
-            return substring(clone(normalized), i + 1, n)
+        if clone(normalized).byte_at(i) == 58 {
+            return clone(normalized).slice(i + 1, n)
         }
         i = i - 1
     }
@@ -123,7 +123,7 @@ fn ctx_gc_enum_type_name_from_variant(variant_name: String) -> String {
     let mut prev_sep = 0 - 1
     let mut i = 0
     while i + 1 < n {
-        if byte_at(normalized, i) == 58 && byte_at(normalized, i + 1) == 58 {
+        if normalized.byte_at(i) == 58 && normalized.byte_at(i + 1) == 58 {
             prev_sep = last_sep
             last_sep = i
             i = i + 2
@@ -135,9 +135,9 @@ fn ctx_gc_enum_type_name_from_variant(variant_name: String) -> String {
         return String_new()
     }
     if prev_sep < 0 {
-        return substring(normalized, 0, last_sep)
+        return normalized.slice(0, last_sep)
     }
-    substring(normalized, prev_sep + 2, last_sep)
+    normalized.slice(prev_sep + 2, last_sep)
 }
 
 fn ctx_gc_enum_variant_names_match(a: String, b: String) -> bool {
@@ -171,7 +171,7 @@ fn ctx_gc_enum_variant_slot(ctx: LowerCtx, variant_name: String) -> i32 {
     let mut hits = 0
     while i < count {
         let nm = clone(get_unchecked(ctx.gc_enum_variant_names, i))
-        if eq(clone(nm), clone(bare)) || ends_with(clone(nm), clone(suffix)) {
+        if eq(clone(nm), clone(bare)) || clone(nm).ends_with(clone(suffix)) {
             hit = i
             hits = hits + 1
         }

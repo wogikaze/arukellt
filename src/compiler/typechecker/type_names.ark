@@ -1,4 +1,4 @@
-use std::prelude::{clone, len, byte_at}
+use std::prelude::{clone, len}
 use typechecker::names
 use typechecker::kinds
 use typechecker::contract_type_constructors
@@ -47,8 +47,8 @@ fn resolve_type_name(name: String) -> TypeInfo {
 fn projection_owner_keeps_qualifier(name: String) -> bool {
     let mut i = len(name) - 2
     while i >= 0 {
-        if byte_at(clone(name), i) == 58 && byte_at(clone(name), i + 1) == 58 {
-            let first = byte_at(name, 0)
+        if clone(name).byte_at(i) == 58 && clone(name).byte_at(i + 1) == 58 {
+            let first = name.byte_at(0)
             return first == 63 || (first >= 65 && first <= 90)
         }
         i = i - 1

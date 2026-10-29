@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::decl_ann_children
 use corehir::type_ann_local_name
@@ -308,6 +308,6 @@ fn is_generic_type_param_name(
     if len(name) != 1 {
         return false
     }
-    let ch = byte_at(name, 0)
+    let ch = name.byte_at(0)
     ch >= 65 && ch <= 90
 }

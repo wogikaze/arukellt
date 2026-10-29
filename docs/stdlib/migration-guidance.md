@@ -169,11 +169,38 @@ hint. Receiver methods also resolve when the receiver is a call result
 (`pop(v).unwrap()`, `maybe(...).is_some()`): MIR maps the `option:<T>`
 call-result type to the concrete `Option_<T>` impl owner.
 
+The `wave/prelude-text2` follow-up retired 8 of the text 10. The old free
+calls fail with E0100 and a receiver hint:
+
+| Removed text free | Replacement |
+|-------------------|-------------|
+| `byte_at(s, i)` | `s.byte_at(i)` |
+| `slice(s, start, end)` | `s.slice(start, end)` |
+| `substring(s, start, end)` | `s.slice(start, end)` (same `string.slice` CoreOp) |
+| `to_string(x)` | `x.to_string()` |
+| `starts_with(s, prefix)` | `s.starts_with(prefix)` |
+| `ends_with(s, suffix)` | `s.ends_with(suffix)` |
+| `contains(s, sub)` | `s.contains(sub)` |
+| `index_of(s, sub)` | `s.index_of(sub)` |
+
+The `std::collections::string` module-scoped frees for these eight names were
+deleted as well, so there is no second free spelling.
+
 The following remain `associated-or-method` and are **not** covered by the
-exception: `Box_new` / `unbox` (the ownership checker special-cases the free
-names; the method form needs an ownership / MIR change), and the large
-`clone` / `eq` / `byte_at` / `substring` / `to_string` / `starts_with` /
-`ends_with` / `contains` / `index_of` / `slice` migration.
+exception:
+
+- `Box_new` / `unbox`: the ownership checker special-cases the free names
+  (ADR-088 §6), and the generic `Box<T>` associated-function / method spelling
+  cannot infer `T` under the current lowering. The method form needs an
+  ownership / MIR change.
+- `clone`: the free is the compiler-polymorphic copy path for values without a
+  `Clone` impl (`Vec<String>`, `Vec<TypeInfo>`, `AstNode`, ...). `s.clone()` only
+  covers `String` / scalar / registered collection impls.
+- `eq`: `String`'s `==` lowers through the `eq` operator method; the bootstrap
+  flat overlay does not ship `std::core::cmp` (`impl Eq for String`), so removing
+  the free makes the pin lower String `==` as `i32.eq` (reference comparison)
+  and produce invalid core Wasm. Keep the free until the overlay carries the
+  `Eq` dispatch or the operator lowering has a string-eq fallback.
 
 ## Stable-64 deprecation wave (ADR-087, 2026-10-26)
 

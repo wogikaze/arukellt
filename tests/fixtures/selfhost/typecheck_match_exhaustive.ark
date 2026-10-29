@@ -2,7 +2,6 @@
 // Exercises: match on bool with true/false arms, match with wildcard arm,
 //            match as expression assigned to a variable.
 use std::host::stdio
-use std::prelude::{to_string}
 fn classify_bool(b: bool) -> i32 {
     match b {
         true => 1,
@@ -19,18 +18,18 @@ fn classify_int(n: i32) -> i32 {
 }
 
 fn main() {
-    stdio::println(to_string(classify_bool(true)))
-    stdio::println(to_string(classify_bool(false)))
-    stdio::println(to_string(classify_int(0)))
-    stdio::println(to_string(classify_int(1)))
-    stdio::println(to_string(classify_int(5)))
+    stdio::println(classify_bool(true).to_string())
+    stdio::println(classify_bool(false).to_string())
+    stdio::println(classify_int(0).to_string())
+    stdio::println(classify_int(1).to_string())
+    stdio::println(classify_int(5).to_string())
     let x = 3
     let r = match x {
         0 => 100,
         1 => 200,
         _ => 300,
     }
-    stdio::println(to_string(r))
+    stdio::println(r.to_string())
     stdio::println(String_from("exhaustive match OK"))
 }
 // bool match with both true and false arms — exhaustive

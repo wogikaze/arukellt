@@ -1,4 +1,4 @@
-use std::prelude::{clone, to_string}
+use std::prelude::{clone}
 use std::text
 use mir::function_identity
 use mir::lower::ctx_current_storage
@@ -11,7 +11,7 @@ fn closure_storage_clear_pending_bind(mut ctx: LowerCtx) {
 }
 
 fn closure_storage_next_synth_name(mut ctx: LowerCtx) -> String {
-    let synth = "__closure_".concat(to_string(ctx.closure_counter))
+    let synth = "__closure_".concat(ctx.closure_counter.to_string())
     ctx.closure_counter = ctx.closure_counter + 1
     synth
 }

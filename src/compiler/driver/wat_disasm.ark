@@ -13,7 +13,7 @@
 //
 // 失敗時も trap せず、WAT コメント `;; GAP:` を差し込んで未対応箇所を残す。
 
-use std::prelude::{to_string, push, len, get_unchecked, slice, String_from, i32_to_i64, i64_to_i32}
+use std::prelude::{push, len, get_unchecked, String_from, i32_to_i64, i64_to_i32}
 
 // ---------------------------------------------------------------------------
 // 定数
@@ -100,7 +100,7 @@ fn ascii_table() -> String {
 }
 
 fn hex_digit(n: i32) -> String {
-    slice("0123456789abcdef", n, n + 1)
+    "0123456789abcdef".slice(n, n + 1)
 }
 
 fn hex_byte(v: i32) -> String {
@@ -114,9 +114,9 @@ fn opcode_text(op: i32) -> String {
 // 符号なし 32bit として表示する（インデックス・件数・オフセット用）。
 fn text_u32(v: i32) -> String {
     if v < 0 {
-        return to_string(i32_to_i64(v) & 4294967295i64)
+        return (i32_to_i64(v) & 4294967295i64).to_string()
     }
-    return to_string(v)
+    return v.to_string()
 }
 
 // ---------------------------------------------------------------------------
@@ -262,7 +262,7 @@ fn escape_byte(b: i32) -> String {
         return String_from("\\\\")
     }
     if b >= 32 && b <= 126 {
-        return slice(ascii_table(), b - 32, b - 31)
+        return ascii_table().slice(b - 32, b - 31)
     }
     return String_from("\\").concat(hex_byte(b))
 }
@@ -284,9 +284,9 @@ fn read_name(mut r: Rd) -> String {
 
 fn signed_text(v: i32) -> String {
     if v < 0 {
-        return "-".concat(to_string(0 - v))
+        return "-".concat((0 - v).to_string())
     }
-    return "+".concat(to_string(v))
+    return "+".concat(v.to_string())
 }
 
 // f64 のビット列を WAT の 16 進浮動小数（例 0x1.8p+3）へ。
@@ -483,7 +483,7 @@ fn abstract_heap_name(h: i32) -> String {
 fn read_heaptype_text(mut r: Rd) -> String {
     let h: i32 = read_s32(r)
     if h >= 0 {
-        return to_string(h)
+        return h.to_string()
     }
     let name: String = abstract_heap_name(h)
     if name == "" {
@@ -549,13 +549,13 @@ fn read_limits_text(mut r: Rd) -> String {
     let mut s: String = String_from("")
     if is_64 {
         s = s.concat("i64 ")
-        s = s.concat(to_string(read_u64(r)))
+        s = s.concat(read_u64(r).to_string())
     } else {
         s = s.concat(text_u32(read_u32(r)))
     }
     if has_max {
         if is_64 {
-            s = s.concat(" ").concat(to_string(read_u64(r)))
+            s = s.concat(" ").concat(read_u64(r).to_string())
         } else {
             s = s.concat(" ").concat(text_u32(read_u32(r)))
         }
@@ -670,7 +670,7 @@ fn emit_type_section(mut r: Rd, mut o: Out) {
 }
 
 fn type_entry_text(mut r: Rd, index: i32) -> String {
-    return "(type (;".concat(to_string(index)).concat(";) ").concat(subtype_text(r)).concat(")")
+    return "(type (;".concat(index.to_string()).concat(";) ").concat(subtype_text(r)).concat(")")
 }
 
 // ---------------------------------------------------------------------------
@@ -815,10 +815,10 @@ fn memarg_text(mut r: Rd, op: i32, name: String) -> String {
         s = s.concat(" ").concat(text_u32(memidx))
     }
     if offset != 0i64 {
-        s = s.concat(" offset=").concat(to_string(offset))
+        s = s.concat(" offset=").concat(offset.to_string())
     }
     if align_exp != natural_align(op) {
-        s = s.concat(" align=").concat(to_string(1 << align_exp))
+        s = s.concat(" align=").concat((1 << align_exp).to_string())
     }
     return s
 }
@@ -1592,10 +1592,10 @@ fn instr_text(mut r: Rd) -> String {
     }
     // 定数
     if op == 0x41 {
-        return "i32.const ".concat(to_string(read_s32(r)))
+        return "i32.const ".concat(read_s32(r).to_string())
     }
     if op == 0x42 {
-        return "i64.const ".concat(to_string(read_s64(r)))
+        return "i64.const ".concat(read_s64(r).to_string())
     }
     if op == 0x43 {
         return "f32.const ".concat(f32_text(read_u32_le(r)))
@@ -1780,7 +1780,7 @@ fn emit_table_section(mut r: Rd, mut o: Out) {
     let count: i32 = read_u32(r)
     let mut i: i32 = 0
     while i < count && r.p < r.n {
-        let mut text: String = "(table (;".concat(to_string(i)).concat(";) ")
+        let mut text: String = "(table (;".concat(i.to_string()).concat(";) ")
         if peek_byte(r) == 0x40 {
             // 明示初期化式つきテーブル: 0x40 0x00 reftype limits expr
             skip_bytes(r, 1)
@@ -1801,7 +1801,7 @@ fn emit_memory_section(mut r: Rd, mut o: Out) {
     let count: i32 = read_u32(r)
     let mut i: i32 = 0
     while i < count && r.p < r.n {
-        put(o, 1, "(memory (;".concat(to_string(i)).concat(";) ").concat(read_limits_text(r)).concat(")"))
+        put(o, 1, "(memory (;".concat(i.to_string()).concat(";) ").concat(read_limits_text(r)).concat(")"))
         i = i + 1
     }
 }
@@ -1812,7 +1812,7 @@ fn emit_global_section(mut r: Rd, mut o: Out) {
     while i < count && r.p < r.n {
         let gt: String = read_globaltype_text(r)
         let init: String = const_expr_text(r)
-        put(o, 1, "(global (;".concat(to_string(i)).concat(";) ").concat(gt).concat(" ").concat(init).concat(")"))
+        put(o, 1, "(global (;".concat(i.to_string()).concat(";) ").concat(gt).concat(" ").concat(init).concat(")"))
         i = i + 1
     }
 }
@@ -1974,7 +1974,7 @@ fn emit_code_section(mut r: Rd, mut o: Out, func_types: Vec<i32>) {
         emit_body(r, o, body_end)
         put(o, 1, ")")
         if r.p != body_end {
-            put_gap(o, 1, "code body size mismatch at byte ".concat(to_string(r.p)))
+            put_gap(o, 1, "code body size mismatch at byte ".concat(r.p.to_string()))
             r.p = body_end
         }
         i = i + 1
@@ -2064,7 +2064,7 @@ fn section_name(id: i32) -> String {
     if id == DISASM_SEC_TAG {
         return "tag"
     }
-    return "section ".concat(to_string(id))
+    return "section ".concat(id.to_string())
 }
 
 /// Disassembles a core Wasm module into WAT text for `--emit wat`.
@@ -2117,7 +2117,7 @@ pub fn wasm_to_wat(bytes: Vec<i32>) -> String {
         } else if id == DISASM_SEC_CUSTOM {
             skip_bytes(r, end - r.p)
         } else {
-            let message: String = "unsupported ".concat(section_name(id)).concat(" (").concat(to_string(size))
+            let message: String = "unsupported ".concat(section_name(id)).concat(" (").concat(size.to_string())
             put_gap(o, 1, message.concat(" bytes) skipped"))
         }
         if r.p != end {

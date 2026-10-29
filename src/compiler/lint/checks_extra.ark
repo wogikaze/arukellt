@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use std::text
 use diagnostics::codes
 use diagnostics::record
@@ -148,7 +148,7 @@ pub fn check_capability_stubs(decls: Vec<AstNode>, target: String) -> Vec<Diagno
                 i = i + 1
                 continue
             }
-            if starts_with(clone(name), "_") {
+            if clone(name).starts_with("_") {
                 i = i + 1
                 continue
             }

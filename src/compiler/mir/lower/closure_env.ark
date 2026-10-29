@@ -9,7 +9,7 @@
 // direct-call path keeps working. Named functions coerce through a
 // __fnthunk_<name> shim that ignores the env slot.
 
-use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_function_frame
@@ -71,13 +71,13 @@ fn closure_split_packed(packed: String) -> Vec<String> {
     let mut i = 0
     let L = len(packed)
     while i <= L {
-        if i == L || byte_at(packed, i) == 44 {
+        if i == L || packed.byte_at(i) == 44 {
             // Skip empty segments: an empty packed string must yield no
             // capture names. Without this guard, a zero-capture closure gets
             // a phantom "" capture, which allocates a bogus i32 env field and
             // makes the env trampoline append one extra call argument the
             // synthetic function does not declare (#872).
-            let piece = substring(packed, start, i)
+            let piece = packed.slice(start, i)
             if len(piece) > 0 {
                 push(out, piece)
             }
@@ -427,11 +427,11 @@ fn closure_pair_seg_norm(name: String, vt: i32) -> String {
     }
     // Normalize container spellings toward the fnsig segment form so a
     // fnsig:vec:i32;i32 callee matches a Vec<i32>-typed producer param.
-    if starts_with(clone(name), "Vec<") && ends_with(clone(name), ">") {
-        return "vec:".concat(substring(name, 4, len(name) - 1))
+    if clone(name).starts_with("Vec<") && clone(name).ends_with(">") {
+        return "vec:".concat(name.slice(4, len(name) - 1))
     }
-    if starts_with(clone(name), "Option<") && ends_with(clone(name), ">") {
-        return "option:".concat(substring(name, 7, len(name) - 1))
+    if clone(name).starts_with("Option<") && clone(name).ends_with(">") {
+        return "option:".concat(name.slice(7, len(name) - 1))
     }
     name
 }
@@ -489,9 +489,9 @@ fn closure_type_name_is_fn_value(type_name: String) -> bool {
     eq(clone(type_name), "fn") {
         return true
     }
-    starts_with(clone(type_name), "fnref") ||
-    starts_with(clone(type_name), "fnsig:") ||
-    starts_with(clone(type_name), "fn(")
+    clone(type_name).starts_with("fnref") ||
+    clone(type_name).starts_with("fnsig:") ||
+    clone(type_name).starts_with("fn(")
 }
 
 // Signature-only fn usage: a module can declare fn-typed params, returns,

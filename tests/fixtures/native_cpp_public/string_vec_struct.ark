@@ -1,5 +1,4 @@
 use std::host::stdio
-use std::prelude::{to_string}
 use std::text
 struct Point {
     x: i32,
@@ -13,6 +12,6 @@ fn main() {
     push(numbers, 2)
     let point = Point { x: 3, y: 4 }
     stdio::println(
-        text.concat(String_from("|").concat(to_string(len(numbers)).concat(String_from("|").concat(to_string(point.x).concat(String_from(",").concat(to_string(point.y)))))))
+        text.concat(String_from("|").concat(len(numbers).to_string().concat(String_from("|").concat(point.x.to_string().concat(String_from(",").concat(point.y.to_string()))))))
     )
 }

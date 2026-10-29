@@ -1,8 +1,7 @@
 use std::host::stdio
-use std::prelude::{to_string}
 fn main() {
-    stdio::println(to_string(0))
-    stdio::println(to_string(-1))
-    stdio::println(to_string(2147483647))
-    stdio::println(to_string(-2147483648))
+    stdio::println(0.to_string())
+    stdio::println((-1).to_string())
+    stdio::println(2147483647.to_string())
+    stdio::println((-2147483648).to_string())
 }

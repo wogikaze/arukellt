@@ -10,7 +10,7 @@
 //! so it can be loaded by the bootstrap compiler without overflowing the
 //! call stack.
 
-use std::prelude::{byte_at, clone, substring}
+use std::prelude::{clone}
 /// Namespace for WIT text scanning helpers.
 pub struct WitText {}
 
@@ -21,7 +21,7 @@ impl WitText {
         let n = len(s)
         let mut i = from
         while i < n {
-            if byte_at(s, i) == ch {
+            if s.byte_at(i) == ch {
                 return i
             }
             i = i + 1
@@ -34,7 +34,7 @@ impl WitText {
         let n = len(s)
         let mut start = 0
         while start < n {
-            let ch = byte_at(s, start)
+            let ch = s.byte_at(start)
             if ch != 32 && ch != 9 && ch != 13 && ch != 10 {
                 break
             }
@@ -42,13 +42,13 @@ impl WitText {
         }
         let mut end = n
         while end > start {
-            let ch = byte_at(s, end - 1)
+            let ch = s.byte_at(end - 1)
             if ch != 32 && ch != 9 && ch != 13 && ch != 10 {
                 break
             }
             end = end - 1
         }
-        substring(s, start, end)
+        s.slice(start, end)
     }
 
     /// Strip a `@version` suffix from a package path.
@@ -57,7 +57,7 @@ impl WitText {
         if at < 0 {
             return clone(pkg)
         }
-        substring(pkg, 0, at)
+        pkg.slice(0, at)
     }
 
     /// Return the trimmed substring before the first colon in `s`.
@@ -66,7 +66,7 @@ impl WitText {
         if colon < 0 {
             return WitText::trim(s)
         }
-        WitText::trim(substring(s, 0, colon))
+        WitText::trim(s.slice(0, colon))
     }
 
     /// Return the trimmed substring after the first colon in `param`.
@@ -75,7 +75,7 @@ impl WitText {
         if colon < 0 {
             return WitText::trim(param)
         }
-        WitText::trim(substring(param, colon + 1, len(param)))
+        WitText::trim(param.slice(colon + 1, len(param)))
     }
 
     /// Split `inner` on top-level commas (tracking `<`/`>` nesting) into a
@@ -87,7 +87,7 @@ impl WitText {
         let mut depth = 0
         let mut i = 0
         while i < n {
-            let ch = byte_at(inner, i)
+            let ch = inner.byte_at(i)
             if ch == 60 {
                 depth = depth + 1
             }
@@ -95,13 +95,13 @@ impl WitText {
                 depth = depth - 1
             }
             if ch == 44 && depth == 0 {
-                push(items, WitText::trim(substring(inner, start, i)))
+                push(items, WitText::trim(inner.slice(start, i)))
                 start = i + 1
             }
             i = i + 1
         }
         if start < n {
-            push(items, WitText::trim(substring(inner, start, n)))
+            push(items, WitText::trim(inner.slice(start, n)))
         }
         items
     }
@@ -110,7 +110,7 @@ impl WitText {
     fn line_start(text: String, pos: i32) -> i32 {
         let mut i = pos
         while i > 0 {
-            if byte_at(text, i - 1) == 10 {
+            if text.byte_at(i - 1) == 10 {
                 return i
             }
             i = i - 1
@@ -123,7 +123,7 @@ impl WitText {
         let n = len(text)
         let mut i = pos
         while i < n {
-            if byte_at(text, i) == 10 {
+            if text.byte_at(i) == 10 {
                 return i
             }
             i = i + 1

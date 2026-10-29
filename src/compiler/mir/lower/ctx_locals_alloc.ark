@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, to_string}
+use std::prelude::{clone, eq}
 use std::text
 use mir::function_local_alloc
 use mir::lower::ctx_current_storage
@@ -30,7 +30,7 @@ fn ctx_lookup_local(ctx: LowerCtx, name: String) -> i32 {
 fn ctx_fresh_local(mut ctx: LowerCtx, vt: i32) -> i32 {
     let mut f = ctx_current_storage::ctx_current_func_value(ctx)
     let idx = function_local_alloc::MirFunction_next_local(f)
-    function_local_alloc::alloc_local(f, "_t".concat(to_string(idx)), vt)
+    function_local_alloc::alloc_local(f, "_t".concat(idx.to_string()), vt)
     ctx_current_storage::ctx_set_current_func_value(ctx, f)
     idx
 }

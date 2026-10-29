@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use resolver::scope_lookup
 use resolver::scope_stack_scopes
@@ -328,12 +328,12 @@ fn reexport_module_symbols(mut ctx: ResolveCtx, target_module: String, source_mo
         let sym = scope_stack_scopes::Scope_symbol_at(scope, i)
         let sym_name = scope_stack_symbols::Symbol_name(sym)
         let matches_source = if len(clone(selected_symbol)) == 0 {
-            starts_with(clone(sym_name), clone(module_prefix))
+            clone(sym_name).starts_with(clone(module_prefix))
         } else {
-            eq(clone(sym_name), clone(source_module)) || starts_with(clone(sym_name), clone(selected_prefix))
+            eq(clone(sym_name), clone(source_module)) || clone(sym_name).starts_with(clone(selected_prefix))
         }
         if matches_source && scope_stack_symbols::Symbol_is_pub(sym) {
-            let suffix = substring(clone(sym_name), module_prefix_len, len(clone(sym_name)))
+            let suffix = clone(sym_name).slice(module_prefix_len, len(clone(sym_name)))
             let qualified = clone(target_module).concat("::".concat(clone(suffix)))
             let existing = scope_lookup::lookup(ctx, clone(qualified))
             if existing < 0 {

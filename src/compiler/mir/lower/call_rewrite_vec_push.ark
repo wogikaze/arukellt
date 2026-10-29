@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
@@ -39,7 +39,7 @@ fn mir_rewrite_vec_push(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i
             if eq(clone(arg_type_push), "vec:f64") {
                 rewritten = "push_f64"
             } else {
-                if starts_with(clone(arg_type_push), "vec:") {
+                if clone(arg_type_push).starts_with("vec:") {
                     rewritten = "vec_push"
                 }
             }

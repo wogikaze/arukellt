@@ -255,68 +255,6 @@ stability = "stable"
 doc_category = "string"
 
 [[functions]]
-name = "starts_with"
-kind = "prelude_wrapper"
-core_op_id = "string.starts_with"
-intrinsic = "__intrinsic_starts_with"
-params = ["String", "String"]
-returns = "bool"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "ends_with"
-kind = "prelude_wrapper"
-core_op_id = "string.ends_with"
-intrinsic = "__intrinsic_ends_with"
-params = ["String", "String"]
-returns = "bool"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "slice"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_string_slice"
-params = ["String", "i32", "i32"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "contains"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_contains"
-params = ["String", "String"]
-returns = "bool"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "index_of"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_index_of"
-params = ["String", "String"]
-returns = "i32"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "substring"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_substring"
-params = ["String", "i32", "i32"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
 name = "f64_bits_lo"
 kind = "prelude_wrapper"
 intrinsic = "__intrinsic_f64_bits_lo"
@@ -535,17 +473,6 @@ prelude = true
 stability = "stable"
 doc_category = "conversion"
 doc = "Encode a Unicode scalar as canonical UTF-8."
-
-[[functions]]
-name = "to_string"
-kind = "builtin"
-params = ["any"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "conversion"
-
-# ── Conversion: from string (parsing) ────────
 
 [[functions]]
 name = "push"
@@ -2758,16 +2685,6 @@ methods = [
     "load32x2_s",
     "load32x2_u",
 ]
-
-[[functions]]
-name = "byte_at"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_byte_at"
-params = ["String", "i32"]
-returns = "i32"
-prelude = true
-stability = "stable"
-doc_category = "string"
 
 [[functions]]
 name = "i32_to_u32"

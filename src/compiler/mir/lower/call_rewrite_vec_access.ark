@@ -1,4 +1,4 @@
-use std::prelude::{clone, contains, starts_with}
+use std::prelude::{clone}
 use std::text
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
@@ -6,7 +6,7 @@ use mir::lower::mono_suffix_parse
 fn mir_rewrite_vec_get(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
     if first_arg_idx >= 0 {
         let arg_type_get2 = vec_access_receiver_type(ctx, clone(callee_name), first_arg_idx)
-        if starts_with(clone(arg_type_get2), "vec:") {
+        if clone(arg_type_get2).starts_with("vec:") {
             return String_from("vec_get")
         }
     }
@@ -19,8 +19,8 @@ fn mir_rewrite_vec_get_unchecked(ctx: LowerCtx, callee_name: String, first_arg_i
         // Keep one entry point for every Vec element type. The emitter uses
         // the source local's storage layout to distinguish a raw array from a
         // Vec struct, so i64/f64 cannot be selected by a stale mono suffix.
-        if starts_with(clone(arg_type_get), "vec:") ||
-        starts_with(clone(arg_type_get), "array:") {
+        if clone(arg_type_get).starts_with("vec:") ||
+        clone(arg_type_get).starts_with("array:") {
             return String_from("raw_array_get_unchecked")
         }
     }
@@ -29,12 +29,12 @@ fn mir_rewrite_vec_get_unchecked(ctx: LowerCtx, callee_name: String, first_arg_i
 
 fn vec_access_receiver_type(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
     let receiver_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-    if starts_with(clone(receiver_type), String_from("vec:")) ||
-    starts_with(clone(receiver_type), String_from("array:")) {
+    if clone(receiver_type).starts_with(String_from("vec:")) ||
+    clone(receiver_type).starts_with(String_from("array:")) {
         return receiver_type
     }
     let mono_suffix = mono_suffix_parse::extract_mono_suffix(callee_name)
-    if len(mono_suffix) == 0 || contains(clone(mono_suffix), String_from("__")) {
+    if len(mono_suffix) == 0 || clone(mono_suffix).contains(String_from("__")) {
         return receiver_type
     }
     // Infer only for rewrite decisions. Do not overwrite the receiver local:

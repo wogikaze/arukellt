@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::kinds
 use corehir::mir_value_type
@@ -31,7 +31,7 @@ fn native_c_type_name_is_funcref(name: String) -> bool {
     if eq(clone(name), String_from("fnref")) || eq(clone(name), String_from("fn")) {
         return true
     }
-    starts_with(clone(name), String_from("fn("))
+    clone(name).starts_with(String_from("fn("))
 }
 
 fn native_c_type_for_value(
@@ -88,16 +88,16 @@ fn native_c_type_name_is_heap_object(name: String) -> bool {
     if eq(clone(name), String_from("string")) || eq(clone(name), String_from("String")) {
         return true
     }
-    if starts_with(clone(name), String_from("vec:")) || starts_with(clone(name), String_from("Vec<")) {
+    if clone(name).starts_with(String_from("vec:")) || clone(name).starts_with(String_from("Vec<")) {
         return true
     }
-    if starts_with(clone(name), String_from("option:")) || starts_with(clone(name), String_from("Option_")) {
+    if clone(name).starts_with(String_from("option:")) || clone(name).starts_with(String_from("Option_")) {
         return true
     }
-    if starts_with(clone(name), String_from("result:")) || starts_with(clone(name), String_from("Result_")) {
+    if clone(name).starts_with(String_from("result:")) || clone(name).starts_with(String_from("Result_")) {
         return true
     }
-    if starts_with(clone(name), String_from("hashmap:")) || starts_with(clone(name), String_from("hashset:")) {
+    if clone(name).starts_with(String_from("hashmap:")) || clone(name).starts_with(String_from("hashset:")) {
         return true
     }
     false

@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, ends_with, eq}
+use std::prelude::{clone, eq}
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
 use mir::lower::ctx_api_local_alloc
@@ -32,13 +32,13 @@ fn mir_peek_core_expr_vt(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
 
 fn mir_core_int_text_needs_i64(text: String) -> bool {
     // Match literal_int::mir_int_literal_needs_i64 for plain decimals.
-    if len(text) >= 2 && byte_at(text, 0) == 48 && (byte_at(text, 1) == 120 || byte_at(text, 1) == 88 || byte_at(text, 1) == 98 || byte_at(text, 1) == 66) {
+    if len(text) >= 2 && text.byte_at(0) == 48 && (text.byte_at(1) == 120 || text.byte_at(1) == 88 || text.byte_at(1) == 98 || text.byte_at(1) == 66) {
         return false
     }
-    if ends_with(clone(text), String_from("i64")) || ends_with(clone(text), String_from("u64")) {
+    if clone(text).ends_with(String_from("i64")) || clone(text).ends_with(String_from("u64")) {
         return true
     }
-    if ends_with(clone(text), String_from("i32")) || ends_with(clone(text), String_from("u32")) {
+    if clone(text).ends_with(String_from("i32")) || clone(text).ends_with(String_from("u32")) {
         return false
     }
     // Positive magnitude that does not fit in signed i32 (i32::MIN abs).

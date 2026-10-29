@@ -1,5 +1,5 @@
 use std::json
-use std::prelude::{byte_at, clone, index_of, substring, to_string}
+use std::prelude::{clone}
 use std::text
 struct DapFrameResult {
     body: String,
@@ -8,7 +8,7 @@ struct DapFrameResult {
 }
 
 fn dap_frame(body: String) -> String {
-    let header = "Content-Length: ".concat(to_string(len(clone(body))).concat("\r\n\r\n"))
+    let header = "Content-Length: ".concat(len(clone(body)).to_string().concat("\r\n\r\n"))
     header.concat(body)
 }
 
@@ -16,7 +16,7 @@ fn dap_parse_frame(input: String, pos: i32) -> DapFrameResult {
     let n = len(input)
     let mut p = pos
     while p < n {
-        let c = byte_at(input, p)
+        let c = input.byte_at(p)
         if c != 32 && c != 9 && c != 10 && c != 13 {
             break
         }
@@ -25,11 +25,11 @@ fn dap_parse_frame(input: String, pos: i32) -> DapFrameResult {
     if p >= n {
         return DapFrameResult { body: String_new(), next: n, ok: false }
     }
-    let header_end_rel = index_of(substring(clone(input), p, n), "\r\n\r\n")
+    let header_end_rel = clone(input).slice(p, n).index_of("\r\n\r\n")
     if header_end_rel < 0 {
         return DapFrameResult { body: String_new(), next: n, ok: false }
     }
-    let header_block = substring(clone(input), p, p + header_end_rel)
+    let header_block = clone(input).slice(p, p + header_end_rel)
     let clen = json::JsonText::content_length(clone(header_block))
     if clen < 0 {
         return DapFrameResult { body: String_new(), next: n, ok: false }
@@ -38,7 +38,7 @@ fn dap_parse_frame(input: String, pos: i32) -> DapFrameResult {
     if body_start + clen > n {
         return DapFrameResult { body: String_new(), next: n, ok: false }
     }
-    let body_text = substring(clone(input), body_start, body_start + clen)
+    let body_text = clone(input).slice(body_start, body_start + clen)
     DapFrameResult { body: body_text, next: body_start + clen, ok: true }
 }
 

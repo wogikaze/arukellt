@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use mir::lower::ann_shape
 use mir::value_types
 fn mir_param_type_name_from_ann(ty: AstNode) -> String {
@@ -30,8 +30,8 @@ fn mir_local_vt_from_type_name(type_name: String) -> i32 {
     // mark a callback ABI local, which must keep the pair-ABI value type
     // so stores into it do not expect a scalar (#884).
     if eq(clone(type_name), "fn") ||
-    starts_with(clone(type_name), "fnref") ||
-    starts_with(clone(type_name), "fnsig:") {
+    clone(type_name).starts_with("fnref") ||
+    clone(type_name).starts_with("fnsig:") {
         return value_types::VT_FUNCREF()
     }
     value_types::VT_I32()

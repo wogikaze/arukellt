@@ -4,7 +4,6 @@ use std::core::iter
 use std::collections::vec
 use std::core
 use std::core::cmp
-use std::prelude::{byte_at}
 fn is_space(ch: i32) -> bool {
     ch == 32 || ch == 10 || ch == 13 || ch == 9
 }
@@ -22,12 +21,12 @@ fn main() {
     match read_result {
         Result::Ok(raw) => {
             let mut pos = 0
-            while pos < len(raw) && is_space(byte_at(raw, pos)) {
+            while pos < len(raw) && is_space(raw.byte_at(pos)) {
                 pos = pos + 1
             }
             let mut n = 0
-            while pos < len(raw) && !is_space(byte_at(raw, pos)) {
-                n = n * 10 + byte_at(raw, pos) - 48
+            while pos < len(raw) && !is_space(raw.byte_at(pos)) {
+                n = n * 10 + raw.byte_at(pos) - 48
                 pos = pos + 1
             }
             let mut dists: Vec<i32> = Vec::new<i32>()
@@ -35,12 +34,12 @@ fn main() {
             while i < n {
                 let mut j = i + 1
                 while j < n {
-                    while pos < len(raw) && is_space(byte_at(raw, pos)) {
+                    while pos < len(raw) && is_space(raw.byte_at(pos)) {
                         pos = pos + 1
                     }
                     let mut value = 0
-                    while pos < len(raw) && !is_space(byte_at(raw, pos)) {
-                        value = value * 10 + byte_at(raw, pos) - 48
+                    while pos < len(raw) && !is_space(raw.byte_at(pos)) {
+                        value = value * 10 + raw.byte_at(pos) - 48
                         pos = pos + 1
                     }
                     push(dists, value)

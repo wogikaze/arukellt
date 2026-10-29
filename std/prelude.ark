@@ -85,14 +85,7 @@ pub fn clone(s: String) -> String {
     s.clone()
 }
 
-pub fn slice(s: String, start: i32, end: i32) -> String {
-    Std::panic(String_new()); return String_new()
-}
-
-pub fn substring(s: String, start: i32, end: i32) -> String {
-    Std::panic(String_new()); return String_new()
-}
-
+// `slice` / `substring` were retired under ADR-091; use `s.slice(start, end)`.
 // Conversion: to string
 // Deprecated prelude free functions (i32_to_string, i64_to_string,
 // f64_to_string, bool_to_string) have been removed per ADR-036.
@@ -471,16 +464,8 @@ fn __core_seq_product_i32_impl(v: Vec<i32>) -> i32 {
 // during MIR lowering under RFC-005 D3. Pure Ark helpers above lower normally.
 // =============================================================================
 
-// Scalar formatting
-// to_string — polymorphic builtin dispatched by the compiler.
-// Converts primitive scalars and String to their String representation.
-// Supported argument types: i32, i64, f64, bool, char, String passthrough.
-// Usage: to_string(42) -> "42", to_string(true) -> "true"
-// Implementation: compiler-handled builtin in the selfhost emitter (src/compiler/emitter.ark)
-pub fn to_string(n: i32) -> String {
-    Std::panic(String_new()); return String_new()
-}
-
+// Scalar formatting: the retired `to_string(x)` free is now `x.to_string()`
+// (Display impls for i32 / i64 / f64 / bool / char / String).
 // Vec operations (polymorphic in practice; emitter dispatches by name)
 pub fn len(s: String) -> i32 {
     Std::panic(String_new()); return 0
@@ -633,23 +618,8 @@ impl<T> Slice<T> {
         }
     }
 }
-// String collection helpers
-pub fn contains(s: String, sub: String) -> bool {
-    Std::panic(String_new()); return false
-}
-
-pub fn starts_with(s: String, prefix: String) -> bool {
-    Std::panic(String_new()); return false
-}
-
-pub fn ends_with(s: String, suffix: String) -> bool {
-    Std::panic(String_new()); return false
-}
-
-pub fn index_of(s: String, sub: String) -> i32 {
-    Std::panic(String_new()); return -1
-}
-
+// String collection helpers (`contains` / `starts_with` / `ends_with` /
+// `index_of`) were retired under ADR-091; use the receiver methods on String.
 // Mutating String append. `s.push_char(c)` is the only spelling; the free was
 // retired under ADR-091 once the receiver-method lowering started writing the
 // grown array back to the receiver (including field receivers).
@@ -685,10 +655,7 @@ fn __core_math_pow_i32_impl(base: i32, exponent: i32) -> i32 {
     result
 }
 
-pub fn byte_at(s: String, idx: i32) -> i32 {
-    Std::panic(String_new()); return 0
-}
-
+// `byte_at(s, i)` was retired under ADR-091; use `s.byte_at(i)`.
 // Conversions extended
 pub fn i32_to_u32(n: i32) -> u32 {
     Std::panic(String_new()); return 0

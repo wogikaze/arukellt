@@ -7,7 +7,7 @@ use mir::module_functions
 // Linear scan of every MirFunction on each CALL (× fixpoint iterations) was
 // the dominant cost of lower.propagate on selfhost-scale modules (#829).
 
-use std::prelude::{byte_at, clone, substring}
+use std::prelude::{clone}
 struct CalleePropCache {
     by_name: NameIndex,
     by_bare: NameIndex,
@@ -126,7 +126,7 @@ fn strip_module_prefix(name: String) -> String {
     let mut last = 0 - 1
     let mut i = 0
     while i + 1 < n {
-        if byte_at(name, i) == 58 && byte_at(name, i + 1) == 58 {
+        if name.byte_at(i) == 58 && name.byte_at(i + 1) == 58 {
             let next = i + 2
             if next < n {
                 last = next
@@ -135,7 +135,7 @@ fn strip_module_prefix(name: String) -> String {
         i = i + 1
     }
     if last >= 0 {
-        return substring(name, last, n)
+        return name.slice(last, n)
     }
     name
 }

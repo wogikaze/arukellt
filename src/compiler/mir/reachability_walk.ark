@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
 use mir::inst_record
@@ -323,7 +323,7 @@ fn mir_enqueue_inst_callee(
 }
 
 fn mir_reachability_skips_hashmap_alias_bodies(target: String) -> bool {
-    starts_with(clone(target), String_from("native"))
+    clone(target).starts_with(String_from("native"))
 }
 
 fn mir_enqueue_symbol(

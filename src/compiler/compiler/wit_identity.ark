@@ -1,12 +1,12 @@
 // Canonical Layer C WIT identity validation and rendering.
 // Source-module paths intentionally remain outside this namespace.
 
-use std::prelude::{byte_at, clone, substring}
+use std::prelude::{clone}
 use std::text
 fn wit_identity_find(s: String, ch: i32, from: i32) -> i32 {
     let mut i = from
     while i < len(s) {
-        if byte_at(s, i) == ch {
+        if s.byte_at(i) == ch {
             return i
         }
         i = i + 1
@@ -22,18 +22,18 @@ fn wit_identity_name_is_valid(s: String, start: i32, end: i32) -> bool {
     if end <= start {
         return false
     }
-    let first = byte_at(s, start)
+    let first = s.byte_at(start)
     if first < 97 || first > 122 {
         return false
     }
     let mut i = start
     while i < end {
-        let ch = byte_at(s, i)
+        let ch = s.byte_at(i)
         if !wit_identity_name_byte(ch) {
             return false
         }
         if ch == 45 {
-            if i == start || i + 1 == end || byte_at(s, i - 1) == 45 {
+            if i == start || i + 1 == end || s.byte_at(i - 1) == 45 {
                 return false
             }
         }
@@ -50,14 +50,14 @@ fn wit_identity_version_is_valid(version: String) -> bool {
     let mut component_count = 0
     let mut i = 0
     while i <= len(version) {
-        if i == len(version) || byte_at(version, i) == 46 {
+        if i == len(version) || version.byte_at(i) == 46 {
             if i == component_start {
                 return false
             }
             component_count = component_count + 1
             component_start = i + 1
         } else {
-            let ch = byte_at(version, i)
+            let ch = version.byte_at(i)
             if ch < 48 || ch > 57 {
                 return false
             }
@@ -90,7 +90,7 @@ pub fn wit_package_identity_error(id: String) -> String {
         if wit_identity_find(id, 64, at + 1) >= 0 {
             return "WIT package identifier may contain only one @version suffix"
         }
-        if !wit_identity_version_is_valid(substring(id, at + 1, len(id))) {
+        if !wit_identity_version_is_valid(id.slice(at + 1, len(id))) {
             return "WIT package version must use major.minor.patch form"
         }
     }
@@ -124,7 +124,7 @@ pub fn wit_identifier_error(id: String) -> String {
         if wit_identity_find(id, 64, at + 1) >= 0 {
             return "WIT import may contain only one @version suffix"
         }
-        let version = substring(id, at + 1, len(id))
+        let version = id.slice(at + 1, len(id))
         if !wit_identity_version_is_valid(version) {
             return "WIT import version must use major.minor.patch form"
         }
@@ -137,7 +137,7 @@ pub fn wit_identifier_package(id: String) -> String {
     if slash < 0 {
         return clone(id)
     }
-    substring(id, 0, slash)
+    id.slice(0, slash)
 }
 
 pub fn wit_identifier_interface(id: String) -> String {
@@ -148,9 +148,9 @@ pub fn wit_identifier_interface(id: String) -> String {
     let start = slash + 1
     let at = wit_identity_find(id, 64, start)
     if at < 0 {
-        return substring(id, start, len(id))
+        return id.slice(start, len(id))
     }
-    substring(id, start, at)
+    id.slice(start, at)
 }
 
 pub fn wit_identifier_version(id: String) -> String {
@@ -162,7 +162,7 @@ pub fn wit_identifier_version(id: String) -> String {
     if at < 0 {
         return String_new()
     }
-    substring(id, at + 1, len(id))
+    id.slice(at + 1, len(id))
 }
 
 pub fn wit_identifier_path(package: String, interface: String) -> String {

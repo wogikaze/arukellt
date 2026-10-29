@@ -1,4 +1,3 @@
-use std::prelude::{byte_at, substring}
 pub struct Lexer {
     src: String,
     pos: i32,
@@ -14,7 +13,7 @@ fn peek(lex: Lexer) -> i32 {
     if lexer_at_end(lex) {
         -1
     } else {
-        byte_at(lex.src, lex.pos)
+        lex.src.byte_at(lex.pos)
     }
 }
 
@@ -23,12 +22,12 @@ fn peek_at(lex: Lexer, offset: i32) -> i32 {
     if p >= lex.src_len {
         -1
     } else {
-        byte_at(lex.src, p)
+        lex.src.byte_at(p)
     }
 }
 
 fn advance(mut lex: Lexer) -> i32 {
-    let c = byte_at(lex.src, lex.pos)
+    let c = lex.src.byte_at(lex.pos)
     lex.pos = lex.pos + 1
     c
 }
@@ -50,5 +49,5 @@ fn lexer_at_end(lex: Lexer) -> bool {
 }
 
 fn lexer_slice(lex: Lexer, start: i32, end: i32) -> String {
-    substring(lex.src, start, end)
+    lex.src.slice(start, end)
 }

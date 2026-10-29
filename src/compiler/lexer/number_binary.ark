@@ -1,4 +1,3 @@
-use std::prelude::{substring}
 use lexer::number_suffix
 fn lex_binary_number(mut lex: Lexer, start: i32) -> Token {
     lex.pos = lex.pos + 2
@@ -11,6 +10,6 @@ fn lex_binary_number(mut lex: Lexer, start: i32) -> Token {
         lex.pos = lex.pos + 1
     }
     number_suffix::try_eat_type_suffix(lex)
-    let text = substring(lex.src, start, lex.pos)
+    let text = lex.src.slice(start, lex.pos)
     Token_int(val, text, start, lex.pos)
 }

@@ -14,7 +14,7 @@ use wasm::writer_gc
 // The enum open type only has field 0 (discriminant), so accessing field 1
 // requires casting to a variant type that has the payload field.
 // We search the variant names for "Some" or "Ok" (the payload variants).
-use std::prelude::{clone, contains}
+use std::prelude::{clone}
 fn find_payload_variant_type(ctx: SelfEmitCtx) -> i32 {
     let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let type_map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
@@ -23,7 +23,7 @@ fn find_payload_variant_type(ctx: SelfEmitCtx) -> i32 {
     while i < count {
         let name = clone(get_unchecked(names, i))
         // Look for "Some" or "Ok" variants (payload variants with i32 field 1)
-        if contains(name, "Some") || contains(name, "Ok") {
+        if name.contains("Some") || name.contains("Ok") {
             if i < len(type_map) {
                 let variant_type = get_unchecked(type_map, i)
                 let enum_open = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)

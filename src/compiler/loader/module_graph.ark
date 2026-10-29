@@ -1,4 +1,4 @@
-use std::prelude::{clone, contains, eq}
+use std::prelude::{clone, eq}
 use loader::module_state_loading
 use loader::module_import_paths
 use loader::module_local_decls
@@ -162,7 +162,7 @@ fn load_single_module(module_name: String, base_dir: String, root_dir: String, m
 }
 
 fn module_base_dir_for_import(use_path: String, current_dir: String, root_dir: String) -> String {
-    if contains(use_path, "::") {
+    if use_path.contains("::") {
         return root_dir
     }
     current_dir

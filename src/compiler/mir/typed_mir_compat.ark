@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use corehir::kinds
 use corehir::mir_value_type
 use corehir::type_id
@@ -42,7 +42,7 @@ fn legacy_vt_to_repr(val_type: i32, type_name: String) -> i32 {
         if eq(clone(type_name), "String") {
             return kinds::VALUE_REPR_GC_REF()
         }
-        if starts_with(clone(type_name), "struct:") || starts_with(clone(type_name), "enum:") {
+        if clone(type_name).starts_with("struct:") || clone(type_name).starts_with("enum:") {
             return kinds::VALUE_REPR_GC_REF()
         }
     }

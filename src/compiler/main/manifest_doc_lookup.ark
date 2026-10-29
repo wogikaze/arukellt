@@ -1,11 +1,11 @@
-use std::prelude::{byte_at, clone, contains, eq, substring}
+use std::prelude::{clone, eq}
 use main::manifest_doc_record
 fn doc_last_segment(path: String) -> String {
     let n = len(path)
     let mut i = n - 1
     while i >= 0 {
-        if i + 1 < n && byte_at(path, i) == 58 && byte_at(path, i + 1) == 58 {
-            return substring(path, i + 2, n)
+        if i + 1 < n && path.byte_at(i) == 58 && path.byte_at(i + 1) == 58 {
+            return path.slice(i + 2, n)
         }
         i = i - 1
     }
@@ -75,18 +75,18 @@ pub fn doc_find_module(table: DocManifestTable, module: String) -> i32 {
 }
 
 fn doc_symbol_is_module_query(symbol: String) -> bool {
-    if !contains(clone(symbol), "::") {
+    if !clone(symbol).contains("::") {
         return false
     }
     let last = doc_last_segment(clone(symbol))
-    let ch = byte_at(last, 0)
+    let ch = last.byte_at(0)
     ch >= 65 && ch <= 90
 }
 
 pub fn doc_resolve_query(table: DocManifestTable, symbol: String) -> DocQuery {
     let mut hits = Vec::new<i32>()
     let mut show_module = 0
-    if contains(clone(symbol), "::") {
+    if clone(symbol).contains("::") {
         let parts = manifest_doc_record::doc_split_module_and_name(clone(symbol))
         hits = doc_find_by_module_name(table, manifest_doc_record::DocModuleNameParts_module(parts), manifest_doc_record::DocModuleNameParts_name(parts))
         if len(hits) == 0 && (doc_find_module(table, clone(symbol)) >= 0 || doc_module_has_functions(table, clone(symbol))) {

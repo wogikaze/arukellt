@@ -1,6 +1,5 @@
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{to_string}
 use std::text
 use mir::block_pred_access
 use mir::dump_format_edges
@@ -11,10 +10,10 @@ fn mir_expect_preds(f: MirFunction, block_id: i32, expected_count: i32, expected
     let actual_count = block_pred_access::MirBlock_pred_count(block)
     if actual_count != expected_count {
         let msg = "pred check failed for bb".concat(
-            to_string(block_id).concat(
+            block_id.to_string().concat(
                 ": expected count=".concat(
-                    to_string(expected_count).concat(
-                        " actual=".concat(to_string(actual_count).concat(" preds=".concat(dump_format_edges::mir_format_block_ids(block_pred_access::MirBlock_preds(block)))))
+                    expected_count.to_string().concat(
+                        " actual=".concat(actual_count.to_string().concat(" preds=".concat(dump_format_edges::mir_format_block_ids(block_pred_access::MirBlock_preds(block)))))
                     )
                 )
             )
@@ -24,10 +23,10 @@ fn mir_expect_preds(f: MirFunction, block_id: i32, expected_count: i32, expected
     }
     if expected_count > 0 && block_pred_access::MirBlock_pred_at(block, 0) != expected0 {
         let msg = "pred check failed for bb".concat(
-            to_string(block_id).concat(
+            block_id.to_string().concat(
                 ": expected preds=".concat(
                     "[".concat(
-                        to_string(expected0).concat(",".concat(to_string(expected1).concat("] actual=".concat(dump_format_edges::mir_format_block_ids(block_pred_access::MirBlock_preds(block))))))
+                        expected0.to_string().concat(",".concat(expected1.to_string().concat("] actual=".concat(dump_format_edges::mir_format_block_ids(block_pred_access::MirBlock_preds(block))))))
                     )
                 )
             )
@@ -37,10 +36,10 @@ fn mir_expect_preds(f: MirFunction, block_id: i32, expected_count: i32, expected
     }
     if expected_count > 1 && block_pred_access::MirBlock_pred_at(block, 1) != expected1 {
         let msg = "pred check failed for bb".concat(
-            to_string(block_id).concat(
+            block_id.to_string().concat(
                 ": expected preds=".concat(
                     "[".concat(
-                        to_string(expected0).concat(",".concat(to_string(expected1).concat("] actual=".concat(dump_format_edges::mir_format_block_ids(block_pred_access::MirBlock_preds(block))))))
+                        expected0.to_string().concat(",".concat(expected1.to_string().concat("] actual=".concat(dump_format_edges::mir_format_block_ids(block_pred_access::MirBlock_preds(block))))))
                     )
                 )
             )
@@ -55,7 +54,7 @@ fn mir_expect_idom(f: MirFunction, block_id: i32, expected_idom: i32) {
     let actual_idom = block_dominance_access::MirBlock_idom(block)
     if actual_idom != expected_idom {
         let msg = "idom check failed for bb".concat(
-            to_string(block_id).concat(": expected=".concat(dump_format_edges::mir_format_edge(expected_idom).concat(" actual=".concat(dump_format_edges::mir_format_edge(actual_idom)))))
+            block_id.to_string().concat(": expected=".concat(dump_format_edges::mir_format_edge(expected_idom).concat(" actual=".concat(dump_format_edges::mir_format_edge(actual_idom)))))
         )
         stdio::eprintln(msg)
         Process::exit(1)
@@ -67,10 +66,10 @@ fn mir_expect_frontier(f: MirFunction, block_id: i32, expected_count: i32, expec
     let actual_count = block_dominance_access::MirBlock_dom_frontier_count(block)
     if actual_count != expected_count {
         let msg = "frontier check failed for bb".concat(
-            to_string(block_id).concat(
+            block_id.to_string().concat(
                 ": expected count=".concat(
-                    to_string(expected_count).concat(
-                        " actual=".concat(to_string(actual_count).concat(" frontier=".concat(dump_format_edges::mir_format_block_ids(block_dominance_access::MirBlock_dom_frontier(block)))))
+                    expected_count.to_string().concat(
+                        " actual=".concat(actual_count.to_string().concat(" frontier=".concat(dump_format_edges::mir_format_block_ids(block_dominance_access::MirBlock_dom_frontier(block)))))
                     )
                 )
             )
@@ -80,11 +79,11 @@ fn mir_expect_frontier(f: MirFunction, block_id: i32, expected_count: i32, expec
     }
     if expected_count > 0 && block_dominance_access::MirBlock_dom_frontier_at(block, 0) != expected0 {
         let msg = "frontier check failed for bb".concat(
-            to_string(block_id).concat(
+            block_id.to_string().concat(
                 ": expected frontier=".concat(
                     "[".concat(
-                        to_string(expected0).concat(
-                            ",".concat(to_string(expected1).concat("] actual=".concat(dump_format_edges::mir_format_block_ids(block_dominance_access::MirBlock_dom_frontier(block)))))
+                        expected0.to_string().concat(
+                            ",".concat(expected1.to_string().concat("] actual=".concat(dump_format_edges::mir_format_block_ids(block_dominance_access::MirBlock_dom_frontier(block)))))
                         )
                     )
                 )
@@ -95,11 +94,11 @@ fn mir_expect_frontier(f: MirFunction, block_id: i32, expected_count: i32, expec
     }
     if expected_count > 1 && block_dominance_access::MirBlock_dom_frontier_at(block, 1) != expected1 {
         let msg = "frontier check failed for bb".concat(
-            to_string(block_id).concat(
+            block_id.to_string().concat(
                 ": expected frontier=".concat(
                     "[".concat(
-                        to_string(expected0).concat(
-                            ",".concat(to_string(expected1).concat("] actual=".concat(dump_format_edges::mir_format_block_ids(block_dominance_access::MirBlock_dom_frontier(block)))))
+                        expected0.to_string().concat(
+                            ",".concat(expected1.to_string().concat("] actual=".concat(dump_format_edges::mir_format_block_ids(block_dominance_access::MirBlock_dom_frontier(block)))))
                         )
                     )
                 )

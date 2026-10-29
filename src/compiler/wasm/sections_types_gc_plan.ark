@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use corehir::kinds
 use corehir::mir_value_type
 use corehir::type_id
@@ -67,12 +67,12 @@ fn is_legacy_generic_struct_name(mir: MirModule, name: String) -> bool {
         return false
     }
     if len(name) == 1 {
-        let first = byte_at(name, 0)
+        let first = name.byte_at(0)
         return first >= 65 && first <= 90
     }
-    if starts_with(clone(name), "struct:") && len(name) >= 9 {
-        let marker = byte_at(name, 7)
-        return marker >= 65 && marker <= 90 && byte_at(name, 8) == 58
+    if clone(name).starts_with("struct:") && len(name) >= 9 {
+        let marker = name.byte_at(7)
+        return marker >= 65 && marker <= 90 && name.byte_at(8) == 58
     }
     false
 }
@@ -81,7 +81,7 @@ fn collection_type_sig(mir: MirModule, type_name: String, target: String) -> Str
     if !emit_target::is_gc_target(clone(target)) {
         return String_new()
     }
-    if starts_with(clone(type_name), "vec:") {
+    if clone(type_name).starts_with("vec:") {
         if eq(clone(type_name), "vec:String") || eq(clone(type_name), "vec:string") {
             return sections_types_gc::gc_vec_string_type_sig()
         }
@@ -97,7 +97,7 @@ fn collection_type_sig(mir: MirModule, type_name: String, target: String) -> Str
         if eq(clone(type_name), "vec:fnref") || eq(clone(type_name), "vec:fn") {
             return sections_types_gc::gc_vec_fnref_type_sig()
         }
-        let elem = substring(clone(type_name), 4, len(type_name))
+        let elem = clone(type_name).slice(4, len(type_name))
         if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(clone(elem)) {
             return sections_types_gc::gc_vec_fnref_type_sig()
         }
@@ -106,26 +106,26 @@ fn collection_type_sig(mir: MirModule, type_name: String, target: String) -> Str
         }
         if sections_types_gc_phase7::gc_vec_elem_name_is_struct_ref(clone(elem)) ||
         eq(clone(elem), "Vec") ||
-        starts_with(clone(elem), "vec:") ||
+        clone(elem).starts_with("vec:") ||
         module_gc_struct::MirModule_gc_struct_slot(mir, clone(elem)) >= 0 {
             return sections_types_gc_phase7::gc_vec_struct_ref_type_sig()
         }
         return sections_types_gc::gc_vec_type_sig()
     }
-    if starts_with(clone(type_name), "hashmap:") {
-        if starts_with(clone(type_name), "hashmap:i32str") {
+    if clone(type_name).starts_with("hashmap:") {
+        if clone(type_name).starts_with("hashmap:i32str") {
             return sections_types_gc::gc_hashmap_i32_str_type_sig()
         }
-        if starts_with(clone(type_name), "hashmap:i32fn") {
+        if clone(type_name).starts_with("hashmap:i32fn") {
             return sections_types_gc::gc_hashmap_i32_fn_type_sig()
         }
-        if starts_with(clone(type_name), "hashmap:strfn") {
+        if clone(type_name).starts_with("hashmap:strfn") {
             return sections_types_gc::gc_hashmap_str_fn_type_sig()
         }
-        if starts_with(clone(type_name), "hashmap:strstr") {
+        if clone(type_name).starts_with("hashmap:strstr") {
             return sections_types_gc::gc_hashmap_str_str_type_sig()
         }
-        if starts_with(clone(type_name), "hashmap:i32i32") {
+        if clone(type_name).starts_with("hashmap:i32i32") {
             return sections_types_gc::gc_vec_type_sig()
         }
         return sections_types_gc::gc_hashmap_str_i32_type_sig()

@@ -1,4 +1,4 @@
-use std::prelude::{clone, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::function_id
 use corehir::signature_entry
@@ -102,8 +102,8 @@ fn stdlib_inline_fn(m: MirModule, mut caller: MirFunction) -> i32 {
 }
 
 fn stdlib_vec_elem_suffix_from_type_name(type_name: String) -> String {
-    if starts_with(clone(type_name), String_from("vec:")) {
-        return substring(clone(type_name), 4, len(type_name))
+    if clone(type_name).starts_with(String_from("vec:")) {
+        return clone(type_name).slice(4, len(type_name))
     }
     String_new()
 }
@@ -160,10 +160,10 @@ fn stdlib_specialize_vec_fallback(
     call_index: i32,
     call: MirInst
 ) -> String {
-    if !starts_with(clone(fallback), String_from("__core_vec_")) {
+    if !clone(fallback).starts_with(String_from("__core_vec_")) {
         return fallback
     }
-    if !ends_with(clone(fallback), String_from("_impl")) {
+    if !clone(fallback).ends_with(String_from("_impl")) {
         return fallback
     }
     if eq(clone(fallback), String_from("__core_vec_pop_impl")) {

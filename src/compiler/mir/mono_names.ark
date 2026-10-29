@@ -1,7 +1,6 @@
 use std::text
 
 // `<`, `>`, `,`, `:`, ` ` cannot appear in a mangled mono function name.
-use std::prelude::{byte_at, substring}
 fn is_mono_unsafe_char(ch: i32) -> bool {
     ch == 60 || ch == 62 || ch == 44 || ch == 58 || ch == 32
 }
@@ -15,8 +14,8 @@ fn mono_safe_name(name: String) -> String {
     let mut out = ""
     let mut i = 0
     while i < n {
-        if is_mono_unsafe_char(byte_at(name, i)) {
-            out = out.concat(substring(name, run_start, i))
+        if is_mono_unsafe_char(name.byte_at(i)) {
+            out = out.concat(name.slice(run_start, i))
             out = out.concat("_")
             run_start = i + 1
         }
@@ -25,7 +24,7 @@ fn mono_safe_name(name: String) -> String {
     if run_start == 0 {
         return name
     }
-    out.concat(substring(name, run_start, n))
+    out.concat(name.slice(run_start, n))
 }
 
 // Compare a possibly-unsafe mangled name against an already-safe name without
@@ -39,12 +38,12 @@ fn mono_name_eq_safe(name: String, safe: String) -> bool {
     }
     let mut i = 0
     while i < n {
-        let ch = byte_at(name, i)
+        let ch = name.byte_at(i)
         let mut expected = ch
         if is_mono_unsafe_char(ch) {
             expected = 95
         }
-        if byte_at(safe, i) != expected {
+        if safe.byte_at(i) != expected {
             return false
         }
         i = i + 1

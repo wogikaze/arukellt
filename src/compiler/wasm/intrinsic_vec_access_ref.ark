@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use wasm::ctx_record
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
@@ -40,8 +40,8 @@ fn vec_ref_target_type_from_name(ctx: SelfEmitCtx, tname: String) -> i32 {
     if len(tname) == 0 {
         return 0 - 1
     }
-    if starts_with(clone(tname), "vec:") {
-        let elem = substring(clone(tname), 4, len(tname))
+    if clone(tname).starts_with("vec:") {
+        let elem = clone(tname).slice(4, len(tname))
         if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) ||
         ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, clone(elem)) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
@@ -63,17 +63,17 @@ fn vec_ref_target_type_from_name(ctx: SelfEmitCtx, tname: String) -> i32 {
     if eq(clone(tname), "string") || eq(clone(tname), "String") {
         return ctx_gc_type::SelfEmitCtx_string_type(ctx)
     }
-    if starts_with(clone(tname), "enum:") ||
-    starts_with(clone(tname), "option:") ||
-    starts_with(clone(tname), "Option_") ||
-    starts_with(clone(tname), "result:") ||
-    starts_with(clone(tname), "Result_") {
+    if clone(tname).starts_with("enum:") ||
+    clone(tname).starts_with("option:") ||
+    clone(tname).starts_with("Option_") ||
+    clone(tname).starts_with("result:") ||
+    clone(tname).starts_with("Result_") {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     }
-    if starts_with(clone(tname), "hashmap:") {
+    if clone(tname).starts_with("hashmap:") {
         return 0 - 1
     }
-    if starts_with(clone(tname), "struct:") {
+    if clone(tname).starts_with("struct:") {
         let sname = code_locals_struct_parse::extract_struct_name_from_type_name(clone(tname))
         if len(sname) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(sname)) {
             return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(sname))

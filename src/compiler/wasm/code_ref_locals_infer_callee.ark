@@ -4,7 +4,7 @@
 // when the func_id is invalid. The emitter never selects a MIR-body callee's
 // layout from its name (INV-4).
 
-use std::prelude::{byte_at, clone, contains, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::function_id
 use corehir::mir_value_type
@@ -151,13 +151,13 @@ fn resolve_gc_type_from_return_type_name(ctx: SelfEmitCtx, ret_name: String) -> 
     if code_ref_locals_types::is_option_type_name(clone(ret_name)) ||
     eq(clone(ret_name), "Option") ||
     eq(clone(ret_name), "Result") ||
-    starts_with(clone(ret_name), "Result_") ||
-    starts_with(clone(ret_name), "Result:") ||
-    starts_with(clone(ret_name), "Result<") ||
-    starts_with(clone(ret_name), "result:") {
+    clone(ret_name).starts_with("Result_") ||
+    clone(ret_name).starts_with("Result:") ||
+    clone(ret_name).starts_with("Result<") ||
+    clone(ret_name).starts_with("result:") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
-    if starts_with(clone(ret_name), "enum:") {
+    if clone(ret_name).starts_with("enum:") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
     if eq(clone(ret_name), "String") || eq(clone(ret_name), "string") {
@@ -175,8 +175,8 @@ fn resolve_gc_type_from_return_type_name(ctx: SelfEmitCtx, ret_name: String) -> 
     if eq(clone(ret_name), "vec:v128") || eq(clone(ret_name), "vec:V128") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx))
     }
-    if starts_with(clone(ret_name), "vec:") {
-        let elem = substring(clone(ret_name), 4, len(ret_name))
+    if clone(ret_name).starts_with("vec:") {
+        let elem = clone(ret_name).slice(4, len(ret_name))
         // Mirror emit_explicit_vec_gc_type: fnref elements live in the
         // dedicated fnpair array and enum-like elements in the enum-ref
         // array. The bare default below is the i32-element vec.
@@ -192,7 +192,7 @@ fn resolve_gc_type_from_return_type_name(ctx: SelfEmitCtx, ret_name: String) -> 
         }
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))
     }
-    if starts_with(clone(ret_name), "Vec<") || starts_with(clone(ret_name), "Vec_") {
+    if clone(ret_name).starts_with("Vec<") || clone(ret_name).starts_with("Vec_") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx))
     }
     Option::None
@@ -201,15 +201,15 @@ fn resolve_gc_type_from_return_type_name(ctx: SelfEmitCtx, ret_name: String) -> 
 // Mono Vec::new__Elem / Vec__new__Elem names are not all
 // pre-registered; derive vec:Elem and resolve through layout helpers (#842 / #845).
 fn infer_vec_new_return_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
-    if starts_with(clone(callee), "Vec::new__") ||
-    starts_with(clone(callee), "Vec::with_capacity__") ||
-    starts_with(clone(callee), "Vec__new__") ||
-    starts_with(clone(callee), "Vec__with_capacity__") {
+    if clone(callee).starts_with("Vec::new__") ||
+    clone(callee).starts_with("Vec::with_capacity__") ||
+    clone(callee).starts_with("Vec__new__") ||
+    clone(callee).starts_with("Vec__with_capacity__") {
         let last_sep = last_index_of_double_underscore(clone(callee))
         if last_sep < 0 {
             return Option::None
         }
-        let elem = substring(clone(callee), last_sep + 2, len(callee))
+        let elem = clone(callee).slice(last_sep + 2, len(callee))
         if len(elem) == 0 {
             return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))
         }
@@ -228,7 +228,7 @@ fn last_index_of_double_underscore(s: String) -> i32 {
     let n = len(s)
     let mut i = n - 2
     while i >= 0 {
-        if byte_at(s, i) == 95 && byte_at(s, i + 1) == 95 {
+        if s.byte_at(i) == 95 && s.byte_at(i + 1) == 95 {
             return i
         }
         i = i - 1
@@ -244,7 +244,7 @@ fn named_ret_head_registers_enum_variants(ctx: SelfEmitCtx, name: String) -> boo
     let mut head_end = 0 - 1
     let mut i = 0
     while i < n {
-        if byte_at(name, i) == 60 {
+        if name.byte_at(i) == 60 {
             head_end = i
             i = n
         }
@@ -253,13 +253,13 @@ fn named_ret_head_registers_enum_variants(ctx: SelfEmitCtx, name: String) -> boo
     if head_end <= 0 {
         return false
     }
-    let head = substring(name, 0, head_end)
+    let head = name.slice(0, head_end)
     let variants = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let mut vi = 0
     while vi < len(variants) {
         let variant = get_unchecked(variants, vi)
-        if starts_with(clone(variant), clone(head).concat(String_from("::"))) ||
-        contains(clone(variant), String_from("::").concat(clone(head).concat(String_from("::")))) {
+        if clone(variant).starts_with(clone(head).concat(String_from("::"))) ||
+        clone(variant).contains(String_from("::").concat(clone(head).concat(String_from("::")))) {
             return true
         }
         vi = vi + 1
@@ -274,7 +274,7 @@ fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i3
     // An 'enum:Box' spelling names the enum base even when a user 'struct Box'
     // shadows the bare name (#905). The last-colon strip below would otherwise
     // leak 'Box' into struct resolution and retype an enum dest as the struct.
-    if starts_with(clone(ret_name), "enum:") {
+    if clone(ret_name).starts_with("enum:") {
         return Option::None
     }
     // 'Head<Args>' whose head owns enum variants spells the generic enum
@@ -285,24 +285,24 @@ fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i3
     }
     // `vec:Diagnostic` must not resolve as the Diagnostic gc_struct. The last
     // colon strip below would do that and type a Vec return as the element.
-    if starts_with(clone(ret_name), "vec:") ||
-    starts_with(clone(ret_name), "Vec<") ||
-    starts_with(clone(ret_name), "Vec_") ||
-    starts_with(clone(ret_name), "hashmap:") ||
-    starts_with(clone(ret_name), "HashMap") ||
-    starts_with(clone(ret_name), "hashset:") ||
-    starts_with(clone(ret_name), "HashSet") ||
-    starts_with(clone(ret_name), "option:") ||
-    starts_with(clone(ret_name), "Option") ||
-    starts_with(clone(ret_name), "result:") ||
-    starts_with(clone(ret_name), "Result") {
+    if clone(ret_name).starts_with("vec:") ||
+    clone(ret_name).starts_with("Vec<") ||
+    clone(ret_name).starts_with("Vec_") ||
+    clone(ret_name).starts_with("hashmap:") ||
+    clone(ret_name).starts_with("HashMap") ||
+    clone(ret_name).starts_with("hashset:") ||
+    clone(ret_name).starts_with("HashSet") ||
+    clone(ret_name).starts_with("option:") ||
+    clone(ret_name).starts_with("Option") ||
+    clone(ret_name).starts_with("result:") ||
+    clone(ret_name).starts_with("Result") {
         return Option::None
     }
     let bare_name = ctx_record::SelfEmitCtx_module_stripped_name(ret_name)
     if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(bare_name)) {
         return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, bare_name))
     }
-    if starts_with(clone(ret_name), "struct:") {
+    if clone(ret_name).starts_with("struct:") {
         let struct_name = parse_struct_name_from_ret_name(clone(ret_name))
         if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
             return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name)))
@@ -316,14 +316,14 @@ fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i3
     let mut colon_pos = 0 - 1
     let mut ci = name_len - 1
     while ci >= 0 {
-        if byte_at(ret_name, ci) == 58 {
+        if ret_name.byte_at(ci) == 58 {
             colon_pos = ci
             ci = 0 - 1
         }
         ci = ci - 1
     }
     if colon_pos >= 0 {
-        let bare = substring(ret_name, colon_pos + 1, name_len)
+        let bare = ret_name.slice(colon_pos + 1, name_len)
         if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(bare)) {
             return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, bare))
         }
@@ -344,7 +344,7 @@ fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i3
 // Struct/enum-oriented fallback for a MIR function return whose name does not
 // resolve through resolve_gc_type_from_return_type_name.
 fn infer_gc_type_from_return_struct(ctx: SelfEmitCtx, ret_type: i32, ret_name: String) -> Option<i32> {
-    if starts_with(clone(ret_name), "struct:") {
+    if clone(ret_name).starts_with("struct:") {
         let struct_name = parse_struct_name_from_ret_name(clone(ret_name))
         if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
             return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name)))
@@ -356,11 +356,11 @@ fn infer_gc_type_from_return_struct(ctx: SelfEmitCtx, ret_type: i32, ret_name: S
     }
     if ret_type == value_types::mir_value_types__VT_GC_REF() {
         if code_ref_locals_types::is_option_type_name(clone(ret_name)) ||
-        starts_with(clone(ret_name), "enum:") ||
-        starts_with(clone(ret_name), "Result_") ||
-        starts_with(clone(ret_name), "Result:") ||
-        starts_with(clone(ret_name), "Result<") ||
-        starts_with(clone(ret_name), "result:") {
+        clone(ret_name).starts_with("enum:") ||
+        clone(ret_name).starts_with("Result_") ||
+        clone(ret_name).starts_with("Result:") ||
+        clone(ret_name).starts_with("Result<") ||
+        clone(ret_name).starts_with("result:") {
             return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
         }
         let named = resolve_named_struct_gc_type(ctx, clone(ret_name))
@@ -383,7 +383,7 @@ fn parse_struct_name_from_ret_name(type_name: String) -> String {
     let mut last_colon = 0 - 1
     let mut i = 0
     while i < n {
-        if byte_at(type_name, i) == 58 {
+        if type_name.byte_at(i) == 58 {
             if first_colon < 0 {
                 first_colon = i
             }
@@ -394,7 +394,7 @@ fn parse_struct_name_from_ret_name(type_name: String) -> String {
     if first_colon < 0 || last_colon < 0 || first_colon == last_colon {
         return String_new()
     }
-    substring(type_name, first_colon + 1, last_colon)
+    type_name.slice(first_colon + 1, last_colon)
 }
 
 fn parse_struct_byte_size_from_ret_name(type_name: String) -> i32 {
@@ -402,7 +402,7 @@ fn parse_struct_byte_size_from_ret_name(type_name: String) -> i32 {
     let mut last_colon = 0 - 1
     let mut i = 0
     while i < n {
-        if byte_at(type_name, i) == 58 {
+        if type_name.byte_at(i) == 58 {
             last_colon = i
         }
         i = i + 1
@@ -413,7 +413,7 @@ fn parse_struct_byte_size_from_ret_name(type_name: String) -> i32 {
     let mut byte_size = 0
     let mut j = last_colon + 1
     while j < n {
-        let d = byte_at(type_name, j)
+        let d = type_name.byte_at(j)
         if d >= 48 && d <= 57 {
             byte_size = byte_size * 10 + (d - 48)
         } else {

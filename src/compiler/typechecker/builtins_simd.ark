@@ -1,4 +1,4 @@
-use std::prelude::{clone, ends_with, eq, starts_with}
+use std::prelude::{clone, eq}
 use typechecker::kinds
 use typechecker::builtins_simd_lanes
 use typechecker::contract_type_access
@@ -43,16 +43,16 @@ fn simd_builtin_call_return_type(name: String) -> TypeInfo {
 // Unsigned lane families share the signed machine instructions (and add the
 // unsigned compare/min/max variants), so only extract_lane returns a scalar.
 fn simd_return_unsigned_v128(name: String) -> bool {
-    if !starts_with(clone(name), "__simd_u8x16_") &&
-    !starts_with(clone(name), "__simd_u16x8_") &&
-    !starts_with(clone(name), "__simd_u32x4_") &&
-    !starts_with(clone(name), "__simd_u64x2_") {
+    if !clone(name).starts_with("__simd_u8x16_") &&
+    !clone(name).starts_with("__simd_u16x8_") &&
+    !clone(name).starts_with("__simd_u32x4_") &&
+    !clone(name).starts_with("__simd_u64x2_") {
         return false
     }
-    if ends_with(clone(name), "_extract_lane") {
+    if clone(name).ends_with("_extract_lane") {
         return false
     }
-    if ends_with(clone(name), "_extract_lane_u") {
+    if clone(name).ends_with("_extract_lane_u") {
         return false
     }
     true

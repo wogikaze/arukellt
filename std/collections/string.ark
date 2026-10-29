@@ -11,10 +11,6 @@ pub fn clone(s: String) -> String {
     __core_string_clone_impl(s)
 }
 
-pub fn slice(s: String, start: i32, end: i32) -> String {
-    __core_string_slice_impl(s, start, end)
-}
-
 fn __core_string_len_impl(s: String) -> i32 {
     RawString::len_bytes(s)
 }
@@ -604,26 +600,6 @@ fn __core_string_index_of_impl(s: String, needle: String) -> i32 {
 
 fn __core_string_contains_impl(s: String, needle: String) -> bool {
     __core_string_index_of_impl(s, needle) >= 0
-}
-
-pub fn starts_with(s: String, prefix: String) -> bool {
-    __core_string_starts_with_impl(s, prefix)
-}
-
-pub fn ends_with(s: String, suffix: String) -> bool {
-    __core_string_ends_with_impl(s, suffix)
-}
-
-pub fn index_of(s: String, needle: String) -> i32 {
-    __core_string_index_of_impl(s, needle)
-}
-
-pub fn contains(s: String, needle: String) -> bool {
-    __core_string_contains_impl(s, needle)
-}
-
-pub fn byte_at(s: String, index: i32) -> i32 {
-    __core_string_char_at_impl(s, index)
 }
 
 // ---------------------------------------------------------------------------

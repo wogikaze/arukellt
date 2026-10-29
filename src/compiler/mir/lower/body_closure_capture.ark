@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with, to_string}
+use std::prelude::{clone, eq}
 use std::text
 use mir::function_locals_view
 use mir::local_access
@@ -33,13 +33,13 @@ fn mir_closure_capture_vts(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
             }
             pvt = ctx_api_local_types::ctx_local_vt(ctx, cli)
             let cap_type = closure_capture_type::mir_closure_lookup_capture_type(ctx, cli)
-            if starts_with(clone(cap_type), "struct:") ||
+            if clone(cap_type).starts_with("struct:") ||
             eq(clone(cap_type), "String") ||
             eq(clone(cap_type), "string") ||
-            starts_with(clone(cap_type), "enum:") ||
-            starts_with(clone(cap_type), "vec:") ||
-            starts_with(clone(cap_type), "Option_") ||
-            starts_with(clone(cap_type), "Result_") {
+            clone(cap_type).starts_with("enum:") ||
+            clone(cap_type).starts_with("vec:") ||
+            clone(cap_type).starts_with("Option_") ||
+            clone(cap_type).starts_with("Result_") {
                 pvt = value_types::VT_GC_REF()
             }
         }
@@ -125,7 +125,7 @@ fn mir_closure_snapshot_copy_captures(mut ctx: LowerCtx, caps: Vec<String>, scop
             continue
         }
         let vt = ctx_api_local_types::ctx_local_vt(ctx, li)
-        let snap_name = "__capsnap_".concat(clone(scope)).concat("_".concat(to_string(ci)))
+        let snap_name = "__capsnap_".concat(clone(scope)).concat("_".concat(ci.to_string()))
         let snap = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(snap_name), vt)
         let cap_type = closure_capture_type::mir_closure_lookup_capture_type(ctx, li)
         if len(cap_type) > 0 {

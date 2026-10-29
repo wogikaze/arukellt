@@ -1,4 +1,4 @@
-use std::prelude::{eq, to_string}
+use std::prelude::{eq}
 use std::text
 use lexer::tokens
 use parser::kinds
@@ -39,7 +39,7 @@ pub fn parse_prefix(mut p: Parser) -> AstNode {
     if expr_prefix_controls::is_control_prefix(kind) {
         return expr_prefix_controls::parse_control_prefix(p)
     }
-    core_api_expect::error(p, "unexpected token in expression: ".concat(to_string(kind)))
+    core_api_expect::error(p, "unexpected token in expression: ".concat(kind.to_string()))
     p.pos = p.pos + 1
     core_ast_factory::AstNode_error("expr", core_api_expect::tok_span(t))
 }

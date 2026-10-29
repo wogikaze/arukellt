@@ -2,7 +2,7 @@
 // Empty stdin on the GC host (#807). Do not name this `read_stdin` — that
 // symbol collides with a core_op and the body is lowered to unreachable.
 use std::core::convert
-use std::prelude::{byte_at, eq, substring}
+use std::prelude::{eq}
 use std::host::stdio
 use std::text
 
@@ -58,7 +58,7 @@ fn process_token(mut stack: Vec<i32>, tok: String) -> Vec<i32> {
 fn token_end(line: String, start: i32, line_len: i32) -> i32 {
     let mut end: i32 = start + 1
     while end < line_len {
-        if is_ascii_ws(byte_at(line, end)) { return end }
+        if is_ascii_ws(line.byte_at(end)) { return end }
         end = end + 1
     }
     line_len
@@ -79,11 +79,11 @@ fn finish_line(stack: Vec<i32>, input_trimmed: String) {
         let line_len: i32 = len(input_trimmed)
         let mut i: i32 = 0
         while i < line_len {
-            if is_ascii_ws(byte_at(input_trimmed, i)) { i = i + 1 }
+            if is_ascii_ws(input_trimmed.byte_at(i)) { i = i + 1 }
             else {
                 let start: i32 = i
                 let end: i32 = token_end(input_trimmed, start, line_len)
-                stack = process_token(stack, substring(input_trimmed, start, end))
+                stack = process_token(stack, input_trimmed.slice(start, end))
                 i = end
             }
         }

@@ -15,7 +15,7 @@ use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_types
 // Comma-joined declared type parameter names for a generic struct base,
 // or "" when base is not a registered generic struct.
-use std::prelude::{byte_at, clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 
 fn ctx_generic_struct_params(ctx: LowerCtx, base: String) -> String {
@@ -37,16 +37,16 @@ fn ctx_struct_name_is_generic(ctx: LowerCtx, base: String) -> bool {
 // "Pair<String>" -> "Pair"; "" when name is not a Name<args> spelling.
 fn generic_inst_base_name(name: String) -> String {
     let n = len(name)
-    if n < 3 || byte_at(clone(name), n - 1) != 62 {
+    if n < 3 || clone(name).byte_at(n - 1) != 62 {
         return String_new()
     }
     let mut depth = 0
     let mut i = 0
     while i < n {
-        let ch = byte_at(clone(name), i)
+        let ch = clone(name).byte_at(i)
         if ch == 60 {
             if depth == 0 {
-                return substring(clone(name), 0, i)
+                return clone(name).slice(0, i)
             }
             depth = depth + 1
         }
@@ -62,13 +62,13 @@ fn generic_inst_base_name(name: String) -> String {
 fn generic_inst_args(name: String) -> Vec<String> {
     let mut result = Vec::new<String>()
     let n = len(name)
-    if n < 3 || byte_at(clone(name), n - 1) != 62 {
+    if n < 3 || clone(name).byte_at(n - 1) != 62 {
         return result
     }
     let mut lt = 0 - 1
     let mut i = 0
     while i < n {
-        if byte_at(clone(name), i) == 60 {
+        if clone(name).byte_at(i) == 60 {
             lt = i
             i = n
         }
@@ -77,14 +77,14 @@ fn generic_inst_args(name: String) -> Vec<String> {
     if lt < 0 {
         return result
     }
-    let inner = substring(clone(name), lt + 1, n - 1)
+    let inner = clone(name).slice(lt + 1, n - 1)
     let mut depth = 0
     let mut seg_start = 0
     let m = len(inner)
     let mut j = 0
     while j <= m {
         let at_end = j == m
-        let ch = if at_end { 44 } else { byte_at(clone(inner), j) }
+        let ch = if at_end { 44 } else { clone(inner).byte_at(j) }
         if !at_end && ch == 60 {
             depth = depth + 1
         }
@@ -92,7 +92,7 @@ fn generic_inst_args(name: String) -> Vec<String> {
             depth = depth - 1
         }
         if (at_end || ch == 44) && depth == 0 {
-            push(result, substring(clone(inner), seg_start, j))
+            push(result, clone(inner).slice(seg_start, j))
             seg_start = j + 1
         }
         j = j + 1
@@ -110,11 +110,11 @@ fn generic_arg_is_unbound(arg: String) -> bool {
     if len(arg) == 0 {
         return true
     }
-    if starts_with(clone(arg), String_from("?")) {
+    if clone(arg).starts_with(String_from("?")) {
         return true
     }
     if len(arg) == 1 {
-        let ch = byte_at(arg, 0)
+        let ch = arg.byte_at(0)
         if ch >= 65 && ch <= 90 {
             return true
         }
@@ -129,17 +129,17 @@ fn ctx_substitute_generic_field_type(ft: String, params: Vec<String>, args: Vec<
     let mut out = String_new()
     let mut i = 0
     while i < n {
-        let ch = byte_at(clone(ft), i)
+        let ch = clone(ft).byte_at(i)
         if !type_ident_char(ch) {
-            out = out.concat(substring(clone(ft), i, i + 1))
+            out = out.concat(clone(ft).slice(i, i + 1))
             i = i + 1
             continue
         }
         let start = i
-        while i < n && type_ident_char(byte_at(clone(ft), i)) {
+        while i < n && type_ident_char(clone(ft).byte_at(i)) {
             i = i + 1
         }
-        let tok = substring(clone(ft), start, i)
+        let tok = clone(ft).slice(start, i)
         let mut replaced = false
         let mut pi = 0
         while pi < len(params) {
@@ -184,8 +184,8 @@ fn ctx_derive_generic_struct_layout(mut ctx: LowerCtx, inst_name: String) -> boo
     let pn = len(joined)
     let mut k = 0
     while k <= pn {
-        if k == pn || byte_at(clone(joined), k) == 44 {
-            push(params, substring(clone(joined), seg_start, k))
+        if k == pn || clone(joined).byte_at(k) == 44 {
+            push(params, clone(joined).slice(seg_start, k))
             seg_start = k + 1
         }
         k = k + 1

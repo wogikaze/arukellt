@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
@@ -46,11 +46,11 @@ fn lower_payload_variant_call(mut ctx: LowerCtx, node: AstNode, child_count: i32
         // so emit does not cast them to the enclosing variant type.
         let src_slot = ctx_api_local_types::ctx_get_local_variant_slot(ctx, p_idx)
         if src_slot >= 0 &&
-        (starts_with(clone(src_type), "enum:") ||
-            starts_with(clone(src_type), "Option") ||
-            starts_with(clone(src_type), "option") ||
-            starts_with(clone(src_type), "Result") ||
-            starts_with(clone(src_type), "result")) {
+        (clone(src_type).starts_with("enum:") ||
+            clone(src_type).starts_with("Option") ||
+            clone(src_type).starts_with("option") ||
+            clone(src_type).starts_with("Result") ||
+            clone(src_type).starts_with("result")) {
             ctx_api_local_types::ctx_set_local_variant_slot(ctx, save_local, src_slot)
         } else {
             ctx_api_local_types::ctx_set_local_variant_slot(ctx, save_local, 0 - 1)
@@ -96,9 +96,9 @@ fn mir_variant_arg_is_fn_value(ctx: LowerCtx, node: AstNode, parg: AstNode) -> b
 }
 
 fn mir_expected_enum_payload_is_fn(ctx: LowerCtx, callee_name: String) -> bool {
-    let is_err = eq(clone(callee_name), "Err") || ends_with(clone(callee_name), "::Err")
-    let is_some_or_ok = eq(clone(callee_name), "Some") || ends_with(clone(callee_name), "::Some") ||
-    eq(clone(callee_name), "Ok") || ends_with(clone(callee_name), "::Ok")
+    let is_err = eq(clone(callee_name), "Err") || clone(callee_name).ends_with("::Err")
+    let is_some_or_ok = eq(clone(callee_name), "Some") || clone(callee_name).ends_with("::Some") ||
+    eq(clone(callee_name), "Ok") || clone(callee_name).ends_with("::Ok")
     if !is_err && !is_some_or_ok {
         return false
     }
@@ -111,14 +111,14 @@ fn mir_expected_enum_payload_is_fn(ctx: LowerCtx, callee_name: String) -> bool {
 // "Result_<a>_<b>"/"result:<a>:<b>"/"Result<a, b>" use the head's own
 // separator ("_" or ":") or top-level commas inside angle brackets.
 fn mir_expected_enum_type_arg(expected: String, which: i32) -> String {
-    if starts_with(clone(expected), String_from("Option<")) && ends_with(clone(expected), String_from(">")) {
+    if clone(expected).starts_with(String_from("Option<")) && clone(expected).ends_with(String_from(">")) {
         if which == 1 {
-            return substring(expected, 7, len(expected) - 1)
+            return expected.slice(7, len(expected) - 1)
         }
         return String_new()
     }
-    if starts_with(clone(expected), String_from("Result<")) && ends_with(clone(expected), String_from(">")) {
-        let inner = substring(clone(expected), 7, len(expected) - 1)
+    if clone(expected).starts_with(String_from("Result<")) && clone(expected).ends_with(String_from(">")) {
+        let inner = clone(expected).slice(7, len(expected) - 1)
         let parts = mir_expected_enum_split_args(inner)
         if which >= 1 && which <= len(parts) {
             return get_unchecked(parts, which - 1)
@@ -127,11 +127,11 @@ fn mir_expected_enum_type_arg(expected: String, which: i32) -> String {
     }
     let mut args = String_new()
     let mut sep = 0
-    if starts_with(clone(expected), "Option_") || starts_with(clone(expected), "Result_") {
-        args = substring(clone(expected), 7, len(expected))
+    if clone(expected).starts_with("Option_") || clone(expected).starts_with("Result_") {
+        args = clone(expected).slice(7, len(expected))
         sep = 95
-    } else if starts_with(clone(expected), "option:") || starts_with(clone(expected), "result:") {
-        args = substring(clone(expected), 7, len(expected))
+    } else if clone(expected).starts_with("option:") || clone(expected).starts_with("result:") {
+        args = clone(expected).slice(7, len(expected))
         sep = 58
     } else {
         return String_new()
@@ -141,9 +141,9 @@ fn mir_expected_enum_type_arg(expected: String, which: i32) -> String {
     let mut index = 1
     let mut i = 0
     while i <= n {
-        if i == n || byte_at(clone(args), i) == sep {
+        if i == n || clone(args).byte_at(i) == sep {
             if index == which {
-                return substring(clone(args), seg_start, i)
+                return clone(args).slice(seg_start, i)
             }
             seg_start = i + 1
             index = index + 1
@@ -166,11 +166,11 @@ fn mir_expected_enum_split_args(inner: String) -> Vec<String> {
     let mut i = 0
     while i <= n {
         if i < n {
-            let ch = byte_at(clone(inner), i)
+            let ch = clone(inner).byte_at(i)
             if ch == 60 {
                 angle_depth = angle_depth + 1
             }
-            if ch == 62 && (i == 0 || byte_at(clone(inner), i - 1) != 45) {
+            if ch == 62 && (i == 0 || clone(inner).byte_at(i - 1) != 45) {
                 angle_depth = angle_depth - 1
             }
             if ch == 40 {
@@ -180,8 +180,8 @@ fn mir_expected_enum_split_args(inner: String) -> Vec<String> {
                 paren_depth = paren_depth - 1
             }
         }
-        if (i == n || byte_at(clone(inner), i) == 44) && angle_depth == 0 && paren_depth == 0 {
-            push(args, substring(clone(inner), seg_start, i))
+        if (i == n || clone(inner).byte_at(i) == 44) && angle_depth == 0 && paren_depth == 0 {
+            push(args, clone(inner).slice(seg_start, i))
             seg_start = i + 1
         }
         i = i + 1

@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq, substring}
+use std::prelude::{clone, eq}
 use corehir::callee_spelling
 use mir::function_identity
 use wasm::call_resolve
@@ -34,8 +34,8 @@ fn strip_module_prefix(name: String) -> String {
     let n = len(name)
     let mut i = n - 1
     while i >= 0 {
-        if byte_at(name, i) == 58 {
-            return substring(name, i + 1, n)
+        if name.byte_at(i) == 58 {
+            return name.slice(i + 1, n)
         }
         i = i - 1
     }

@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, starts_with}
+use std::prelude::{clone}
 use mir::module_wit_imports
 use mir::module_gc_enum
 use mir::module_gc_struct
@@ -275,13 +275,13 @@ fn canonicalize_type_sigs(mut mir: MirModule, type_sigs: Vec<String>) -> TypeCan
 fn first_gc_type_index(canon_types: Vec<String>) -> i32 {
     for i in 0..len(canon_types) {
         let sig = get_unchecked(canon_types, i)
-        if byte_at(clone(sig), 0) == 65 {
+        if clone(sig).byte_at(0) == 65 {
             return i
         }
-        if starts_with(clone(sig), "GS_f") {
+        if clone(sig).starts_with("GS_f") {
             return i
         }
-        if starts_with(clone(sig), "Sub") {
+        if clone(sig).starts_with("Sub") {
             return i
         }
     }

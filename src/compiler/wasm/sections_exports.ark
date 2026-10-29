@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, contains, eq, starts_with}
+use std::prelude::{clone, eq}
 use std::text
 use wasm::call_resolve
 use wasm::opcodes
@@ -113,7 +113,7 @@ fn export_name_seen_bump(mut counts: ExportNameCounts, name: String) -> i32 {
     let name_len = len(name)
     let mut hi = 0
     while hi < name_len {
-        hash = hash * fnv_prime ^ byte_at(name, hi)
+        hash = hash * fnv_prime ^ name.byte_at(hi)
         if hash < 0 {
             hash = 0 - hash
         }
@@ -137,7 +137,7 @@ fn export_name_seen_bump(mut counts: ExportNameCounts, name: String) -> i32 {
         if same {
             let mut i = 0
             while i < name_len {
-                if byte_at(key, i) != byte_at(name, i) {
+                if key.byte_at(i) != name.byte_at(i) {
                     same = false
                     i = name_len
                 } else {
@@ -415,7 +415,7 @@ fn is_p2_library_export_function(mir: MirModule, f: MirFunction) -> bool {
     !start_names::is_wasm_start_function_name(clone(name)) &&
     !is_internal_export_name(clone(name)) &&
     !is_p2_std_helper_name(clone(name)) &&
-    !contains(clone(name), "::") &&
+    !clone(name).contains("::") &&
     !is_generic_function(f)
 }
 
@@ -434,7 +434,7 @@ fn is_p2_std_helper_name(name: String) -> bool {
 
 fn is_internal_export_name(name: String) -> bool {
     let name_len = len(name)
-    name_len > 2 && byte_at(name, 0) == 95 && byte_at(name, 1) == 95
+    name_len > 2 && name.byte_at(0) == 95 && name.byte_at(1) == 95
 }
 
 fn is_generic_function(f: MirFunction) -> bool {
@@ -445,7 +445,7 @@ fn is_generic_function(f: MirFunction) -> bool {
     let mut has_sep = false
     let mut i = 0
     while i < name_len - 1 {
-        if byte_at(fn_name, i) == 95 && byte_at(fn_name, i + 1) == 95 {
+        if fn_name.byte_at(i) == 95 && fn_name.byte_at(i + 1) == 95 {
             has_sep = true
         }
         i = i + 1
@@ -458,7 +458,7 @@ fn is_generic_function(f: MirFunction) -> bool {
     while j < pc {
         let p = function_param_view::MirFunction_param_at(f, j)
         let tn = local_access::MirLocal_type_name(p)
-        if starts_with(clone(tn), "?") {
+        if clone(tn).starts_with("?") {
             return true
         }
         j = j + 1

@@ -1,11 +1,10 @@
 use std::test::Test
 use std::test
-use std::prelude::{byte_at, slice}
 
 fn main() {
     let s = String_from("A")
     Test::assert_eq_i32(len(s), 1)
     Test::assert_false(s.is_empty())
-    Test::assert_eq_string(slice(s, 0, 1), "A")
-    Test::assert_eq_i32(byte_at(s, 0), 65)
+    Test::assert_eq_string(s.slice(0, 1), "A")
+    Test::assert_eq_i32(s.byte_at(0), 65)
 }

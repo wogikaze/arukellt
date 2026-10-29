@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::function_id
 use corehir::core_op_id
@@ -283,7 +283,7 @@ fn native_c_append_bytes(mut output: Vec<i32>, fragment: String) {
     let length = len(fragment)
     let mut index = 0
     while index < length {
-        push(output, byte_at(fragment, index))
+        push(output, fragment.byte_at(index))
         index = index + 1
     }
 }

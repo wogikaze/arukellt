@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use corehir::callee_spelling
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_fn_return_type
@@ -82,14 +82,14 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
     let mut colon_pos = 0 - 1
     let mut ci = nlen - 1
     while ci >= 0 {
-        if byte_at(name, ci) == 58 {
+        if name.byte_at(ci) == 58 {
             colon_pos = ci
             ci = 0 - 1
         }
         ci = ci - 1
     }
     if colon_pos >= 0 {
-        let short = substring(name, colon_pos + 1, nlen)
+        let short = name.slice(colon_pos + 1, nlen)
         let short_found = ctx_fn_index::ctx_fn_index_find(ctx, short)
         if short_found >= 0 {
             return ctx_fn_index::ctx_fn_index_return_vt_at(ctx, short_found)
@@ -128,7 +128,7 @@ fn ctx_fn_return_vt_builtin(ctx: LowerCtx, bare_name: String) -> i32 {
         }
         return value_types::VT_REF()
     }
-    if ends_with(clone(bare_name), "::to_string") {
+    if clone(bare_name).ends_with("::to_string") {
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             return value_types::VT_GC_REF()
         }
@@ -188,17 +188,17 @@ fn ctx_fn_return_vt_builtin(ctx: LowerCtx, bare_name: String) -> i32 {
 
 fn ctx_bare_builtin_name(name: String) -> String {
     let mut bare_name = clone(name)
-    if len(bare_name) > 12 && starts_with(clone(bare_name), "__intrinsic_") {
-        bare_name = substring(bare_name, 12, len(bare_name))
+    if len(bare_name) > 12 && clone(bare_name).starts_with("__intrinsic_") {
+        bare_name = bare_name.slice(12, len(bare_name))
     }
     bare_name
 }
 
 fn ctx_is_i64_clock_callee(name: String) -> bool {
-    if ends_with(clone(name), "::monotonic_now") ||
-    ends_with(clone(name), "::now_ms") ||
-    ends_with(clone(name), "::clock_now") ||
-    ends_with(clone(name), "::clock_now_ms") {
+    if clone(name).ends_with("::monotonic_now") ||
+    clone(name).ends_with("::now_ms") ||
+    clone(name).ends_with("::clock_now") ||
+    clone(name).ends_with("::clock_now_ms") {
         return true
     }
     let bare = ctx_bare_builtin_name(name)

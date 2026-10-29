@@ -1,5 +1,5 @@
 use std::text
-use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_gc_enum
@@ -30,7 +30,7 @@ fn mir_emit_tuple_from_locals(mut ctx: LowerCtx, field_locals: Vec<i32>, field_v
         struct_name = clone(tuple_name)
     }
     if len(struct_name) > 0 {
-        let sig = tuple_gc_sig_from_type_keys(ctx, substring(struct_name, 6, len(struct_name)))
+        let sig = tuple_gc_sig_from_type_keys(ctx, struct_name.slice(6, len(struct_name)))
         ctx_gc_struct::ctx_register_gc_struct(ctx, clone(struct_name), sig)
         ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new_named(dest, clone(struct_name), total_bytes))
     } else {
@@ -113,16 +113,16 @@ fn tuple_key_from_local_type(type_name: String, field_vt: i32) -> String {
     if ctx_gc_struct::gc_struct_field_type_is_fn_value(clone(type_name)) {
         return "fnref"
     }
-    if starts_with(clone(type_name), String_from("enum:")) {
-        return substring(type_name, 5, len(type_name))
+    if clone(type_name).starts_with(String_from("enum:")) {
+        return type_name.slice(5, len(type_name))
     }
-    if starts_with(clone(type_name), String_from("struct:")) {
+    if clone(type_name).starts_with(String_from("struct:")) {
         let n = len(type_name)
         let mut first = 0 - 1
         let mut last = 0 - 1
         let mut i = 0
         while i < n {
-            if byte_at(type_name, i) == 58 {
+            if type_name.byte_at(i) == 58 {
                 if first < 0 {
                     first = i
                 }
@@ -131,7 +131,7 @@ fn tuple_key_from_local_type(type_name: String, field_vt: i32) -> String {
             i = i + 1
         }
         if first >= 0 && last > first {
-            return substring(type_name, first + 1, last)
+            return type_name.slice(first + 1, last)
         }
     }
     type_name
@@ -216,14 +216,14 @@ fn tuple_gc_field_sig_for_vt(field_vt: i32, field_idx: i32) -> String {
 
 fn tuple_wasm_name_from_param_alias(param_type_name: String) -> String {
     // CoreHIR param aliases use Tuple:A:B; GC structs are tuple:A,B (#810).
-    if !starts_with(clone(param_type_name), String_from("Tuple:")) {
+    if !clone(param_type_name).starts_with(String_from("Tuple:")) {
         return String_new()
     }
-    let rest = substring(param_type_name, 6, len(param_type_name))
+    let rest = param_type_name.slice(6, len(param_type_name))
     let mut sep = 0 - 1
     let mut i = 0
     while i < len(rest) {
-        if byte_at(rest, i) == 58 {
+        if rest.byte_at(i) == 58 {
             sep = i
             i = len(rest)
         }
@@ -232,7 +232,7 @@ fn tuple_wasm_name_from_param_alias(param_type_name: String) -> String {
     if sep <= 0 {
         return String_new()
     }
-    let keys = substring(rest, 0, sep).concat(String_from(",").concat(substring(rest, sep + 1, len(rest))))
+    let keys = rest.slice(0, sep).concat(String_from(",").concat(rest.slice(sep + 1, len(rest))))
     String_from("tuple:").concat(keys)
 }
 
@@ -241,7 +241,7 @@ fn ctx_register_tuple_gc_struct_from_param_name(mut ctx: LowerCtx, param_type_na
     if len(wasm_name) == 0 {
         return 0
     }
-    let keys = substring(wasm_name, 6, len(wasm_name))
+    let keys = wasm_name.slice(6, len(wasm_name))
     let sig = tuple_gc_sig_from_type_keys(ctx, keys)
     if len(sig) <= 2 {
         return 0
@@ -255,7 +255,7 @@ fn tuple_type_name_from_param_alias(mut ctx: LowerCtx, param_type_name: String) 
     if len(wasm_name) == 0 {
         return String_new()
     }
-    let keys = substring(wasm_name, 6, len(wasm_name))
+    let keys = wasm_name.slice(6, len(wasm_name))
     let sig = tuple_gc_sig_from_type_keys(ctx, keys)
     if len(sig) <= 2 {
         return String_new()
@@ -283,7 +283,7 @@ fn tuple_byte_size_from_keys(keys: String) -> i32 {
 }
 
 fn ctx_register_tuple_gc_struct_from_return_name(mut ctx: LowerCtx, return_type_name: String) -> i32 {
-    if !starts_with(clone(return_type_name), "struct:") {
+    if !clone(return_type_name).starts_with("struct:") {
         return 0
     }
     let n = len(return_type_name)
@@ -291,7 +291,7 @@ fn ctx_register_tuple_gc_struct_from_return_name(mut ctx: LowerCtx, return_type_
     let mut last_colon = 0 - 1
     let mut i = 0
     while i < n {
-        if byte_at(return_type_name, i) == 58 {
+        if return_type_name.byte_at(i) == 58 {
             if first_colon < 0 {
                 first_colon = i
             }
@@ -302,11 +302,11 @@ fn ctx_register_tuple_gc_struct_from_return_name(mut ctx: LowerCtx, return_type_
     if first_colon < 0 || last_colon <= first_colon {
         return 0
     }
-    let inner = substring(return_type_name, first_colon + 1, last_colon)
-    if !starts_with(clone(inner), "tuple:") {
+    let inner = return_type_name.slice(first_colon + 1, last_colon)
+    if !clone(inner).starts_with("tuple:") {
         return 0
     }
-    let keys = substring(inner, 6, len(inner))
+    let keys = inner.slice(6, len(inner))
     let sig = tuple_gc_sig_from_type_keys(ctx, keys)
     if len(sig) <= 2 {
         return 0
@@ -364,7 +364,7 @@ fn tuple_key_count(keys: String) -> i32 {
     let mut count = 1
     let mut i = 0
     while i < n {
-        if byte_at(keys, i) == 44 {
+        if keys.byte_at(i) == 44 {
             count = count + 1
         }
         i = i + 1
@@ -378,9 +378,9 @@ fn tuple_field_key_at(keys: String, index: i32) -> String {
     let mut start = 0
     let mut i = 0
     while i <= n {
-        if i == n || byte_at(keys, i) == 44 {
+        if i == n || keys.byte_at(i) == 44 {
             if cur == index {
-                return substring(keys, start, i)
+                return keys.slice(start, i)
             }
             cur = cur + 1
             start = i + 1
@@ -421,21 +421,21 @@ fn tuple_gc_field_sig_for_key(mut ctx: LowerCtx, key: String, field_idx: i32) ->
         }
         return prefix.concat("_ref14")
     }
-    if starts_with(clone(key), "vec:") ||
-    starts_with(clone(key), "Vec<") ||
-    starts_with(clone(key), "Vec_") {
+    if clone(key).starts_with("vec:") ||
+    clone(key).starts_with("Vec<") ||
+    clone(key).starts_with("Vec_") {
         return prefix.concat(tuple_gc_vec_field_ref_suffix(clone(key)))
     }
-    if starts_with(clone(key), "option:") ||
-    starts_with(clone(key), "Option:") ||
-    starts_with(clone(key), "Option_") ||
-    starts_with(clone(key), "result:") ||
-    starts_with(clone(key), "Result:") ||
-    starts_with(clone(key), "Result_") {
+    if clone(key).starts_with("option:") ||
+    clone(key).starts_with("Option:") ||
+    clone(key).starts_with("Option_") ||
+    clone(key).starts_with("result:") ||
+    clone(key).starts_with("Result:") ||
+    clone(key).starts_with("Result_") {
         return prefix.concat("_ref14")
     }
     if len(key) == 1 {
-        let ch = byte_at(key, 0)
+        let ch = key.byte_at(0)
         if ch >= 65 && ch <= 90 {
             // A declared single-letter aggregate is a ref field. Use the
             // named struct slot so the stored value keeps its concrete type;
@@ -458,12 +458,12 @@ fn tuple_gc_field_sig_for_key(mut ctx: LowerCtx, key: String, field_idx: i32) ->
 }
 
 fn tuple_gc_vec_field_ref_suffix(type_name: String) -> String {
-    let elem = if starts_with(clone(type_name), "vec:") {
-        substring(type_name, 4, len(type_name))
-    } else if starts_with(clone(type_name), "Vec<") && ends_with(clone(type_name), ">") {
-        substring(type_name, 4, len(type_name) - 1)
-    } else if starts_with(clone(type_name), "Vec_") {
-        substring(type_name, 4, len(type_name))
+    let elem = if clone(type_name).starts_with("vec:") {
+        type_name.slice(4, len(type_name))
+    } else if clone(type_name).starts_with("Vec<") && clone(type_name).ends_with(">") {
+        type_name.slice(4, len(type_name) - 1)
+    } else if clone(type_name).starts_with("Vec_") {
+        type_name.slice(4, len(type_name))
     } else {
         String_new()
     }
@@ -479,14 +479,14 @@ fn tuple_gc_vec_field_ref_suffix(type_name: String) -> String {
     if eq(clone(elem), "v128") || eq(clone(elem), "V128") {
         return "_ref21"
     }
-    if eq(clone(elem), "fnref") || eq(clone(elem), "fn") || starts_with(clone(elem), "fn(") {
+    if eq(clone(elem), "fnref") || eq(clone(elem), "fn") || clone(elem).starts_with("fn(") {
         return "_ref28"
     }
-    if starts_with(clone(elem), "Option") ||
-    starts_with(clone(elem), "option:") ||
-    starts_with(clone(elem), "Result") ||
-    starts_with(clone(elem), "result:") ||
-    starts_with(clone(elem), "enum:") {
+    if clone(elem).starts_with("Option") ||
+    clone(elem).starts_with("option:") ||
+    clone(elem).starts_with("Result") ||
+    clone(elem).starts_with("result:") ||
+    clone(elem).starts_with("enum:") {
         return "_ref30"
     }
     if eq(clone(elem), "i32") || eq(clone(elem), "I32") ||

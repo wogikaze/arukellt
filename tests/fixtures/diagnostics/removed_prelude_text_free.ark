@@ -1,0 +1,9 @@
+// E0100: the prelude `slice` free was retired by ADR-091; the hint names the
+// `String` receiver method.
+fn main() {
+    let text = "abc"
+    let first = slice(text, 0, 1)
+    if first.is_empty() {
+        Std::panic("unreachable")
+    }
+}

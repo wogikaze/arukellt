@@ -1,7 +1,7 @@
 // Extracted from call_fallback.ark to reduce import fan-out.
 // Opcode constants inlined to avoid extra import (values from mir::opcodes).
 
-use std::prelude::{clone, starts_with, substring}
+use std::prelude::{clone}
 use std::text
 use mir::function_param_view
 use corehir::function_id
@@ -159,17 +159,17 @@ fn resolve_call_param_gc_cast_type(ctx: SelfEmitCtx, param_type_name: String) ->
 }
 
 fn call_param_type_is_enum_like(ctx: SelfEmitCtx, param_type_name: String) -> bool {
-    if starts_with(clone(param_type_name), "enum:") {
+    if clone(param_type_name).starts_with("enum:") {
         return true
     }
-    if starts_with(clone(param_type_name), "Option") || starts_with(clone(param_type_name), "option") {
+    if clone(param_type_name).starts_with("Option") || clone(param_type_name).starts_with("option") {
         return true
     }
-    if starts_with(clone(param_type_name), "Result") || starts_with(clone(param_type_name), "result") {
+    if clone(param_type_name).starts_with("Result") || clone(param_type_name).starts_with("result") {
         return true
     }
-    let bare = if starts_with(clone(param_type_name), "enum:") {
-        substring(clone(param_type_name), 5, len(param_type_name))
+    let bare = if clone(param_type_name).starts_with("enum:") {
+        clone(param_type_name).slice(5, len(param_type_name))
     } else {
         clone(param_type_name)
     }
@@ -177,7 +177,7 @@ fn call_param_type_is_enum_like(ctx: SelfEmitCtx, param_type_name: String) -> bo
     let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let mut ei = 0
     while ei < len(ev_names) {
-        if starts_with(clone(get_unchecked(ev_names, ei)), clone(prefix)) {
+        if clone(get_unchecked(ev_names, ei)).starts_with(clone(prefix)) {
             return true
         }
         ei = ei + 1

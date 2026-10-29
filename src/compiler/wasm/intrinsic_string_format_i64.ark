@@ -13,7 +13,7 @@ use wasm::intrinsics::helpers_numeric_i64_const
 use wasm::intrinsic_string_format_i64_digit_loop
 
 // Handler for: i64_to_string, text::format_i64, convert::i64_to_string
-use std::prelude::{clone, contains}
+use std::prelude::{clone}
 fn emit_i64_to_string(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_val64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
     let s_wpos64 = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
@@ -29,8 +29,8 @@ fn emit_i64_to_string(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> boo
     // wasm32-gc (and wasi-p2/p3) must allocate GC strings; the old -p2/-p3
     // substring check skipped wasm32-gc and emitted linear i32 pointers (#807).
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) ||
-    contains(clone(ctx.target), String_from("-p2")) ||
-    contains(clone(ctx.target), String_from("-p3")) {
+    clone(ctx.target).contains(String_from("-p2")) ||
+    clone(ctx.target).contains(String_from("-p3")) {
         let string_type = ctx.gc_type_base
         emit_i64_string_alloc_gc(w, buf_end64, s_wpos64, s_len64, string_type, ctx, inst)
     } else {

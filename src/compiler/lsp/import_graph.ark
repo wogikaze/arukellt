@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq, index_of}
+use std::prelude::{clone, eq}
 use std::text
 use compiler::session_parse
 use loader::module_import_paths
@@ -31,13 +31,13 @@ pub fn build_use_statement(import_path: String) -> String {
 }
 
 pub fn first_use_insert_offset(text: String) -> i32 {
-    let use_pos = index_of(clone(text), "use ")
+    let use_pos = clone(text).index_of("use ")
     if use_pos < 0 {
         return 0
     }
     let n = len(text)
     let mut line_end = use_pos
-    while line_end < n && byte_at(text, line_end) != 10 {
+    while line_end < n && text.byte_at(line_end) != 10 {
         line_end = line_end + 1
     }
     if line_end < n {

@@ -1,6 +1,6 @@
 use std::text
 use std::json
-use std::prelude::{clone, index_of, to_string}
+use std::prelude::{clone}
 use fmt::import_block
 use lsp::organize_imports_detect
 use lsp::positions
@@ -24,13 +24,13 @@ fn build_semantic_fix_edit(
     out = out.concat(String_from(",\"edit\":{\"changes\":{"))
     out = out.concat(json::JsonText::quote(uri))
     out = out.concat(String_from(":[{\"range\":{\"start\":{\"line\":"))
-    out = out.concat(to_string(positions::lsp_position_line(start_pos)))
+    out = out.concat(positions::lsp_position_line(start_pos).to_string())
     out = out.concat(String_from(",\"character\":"))
-    out = out.concat(to_string(positions::lsp_position_character(start_pos)))
+    out = out.concat(positions::lsp_position_character(start_pos).to_string())
     out = out.concat(String_from("},\"end\":{\"line\":"))
-    out = out.concat(to_string(positions::lsp_position_line(end_pos)))
+    out = out.concat(positions::lsp_position_line(end_pos).to_string())
     out = out.concat(String_from(",\"character\":"))
-    out = out.concat(to_string(positions::lsp_position_character(end_pos)))
+    out = out.concat(positions::lsp_position_character(end_pos).to_string())
     out = out.concat(String_from("}},\"newText\":"))
     out = out.concat(json::JsonText::quote(fixed_block))
     out = out.concat(String_from("}]}}}"))
@@ -57,9 +57,9 @@ pub fn build_fix_all_action(uri: String, text: String) -> String {
 }
 
 pub fn request_wants_organize_imports(body: String) -> bool {
-    index_of(clone(body), String_from("source.organizeImports")) >= 0
+    clone(body).index_of(String_from("source.organizeImports")) >= 0
 }
 
 pub fn request_wants_fix_all(body: String) -> bool {
-    index_of(clone(body), String_from("source.fixAll")) >= 0
+    clone(body).index_of(String_from("source.fixAll")) >= 0
 }

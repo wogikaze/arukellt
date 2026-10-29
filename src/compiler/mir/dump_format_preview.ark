@@ -11,7 +11,7 @@ use mir::phi_access
 // Preview parallel-copy lowering that replaces a phi after minimal SSA renaming.
 // Each predecessor edge receives `merge_name <- ssa_operand`; the join block
 // then uses the single merge slot instead of a phi (real insertion is future work).
-use std::prelude::{clone, to_string}
+use std::prelude::{clone}
 fn mir_stdio_print_phi_elimination_preview(f: MirFunction, join_block_id: i32) {
     if join_block_id < 0 || join_block_id >= function_block_queries::MirFunction_block_count(f) {
         return
@@ -34,9 +34,9 @@ fn mir_stdio_print_phi_elimination_preview(f: MirFunction, join_block_id: i32) {
         while ai < ac {
             let a = phi_access::MirPhi_arg_at(phi, ai)
             let mut line = "phi_elim_copy bb"
-            line = line.concat(to_string(phi_access::MirPhiArg_pred_block(a)))
+            line = line.concat(phi_access::MirPhiArg_pred_block(a).to_string())
             line = line.concat("->bb")
-            line = line.concat(to_string(join_block_id))
+            line = line.concat(join_block_id.to_string())
             line = line.concat(": ")
             line = line.concat(clone(merge_name))
             line = line.concat(" <- ")
@@ -45,7 +45,7 @@ fn mir_stdio_print_phi_elimination_preview(f: MirFunction, join_block_id: i32) {
             ai = ai + 1
         }
         let mut tail = "phi_elim_join bb"
-        tail = tail.concat(to_string(join_block_id))
+        tail = tail.concat(join_block_id.to_string())
         tail = tail.concat(": ")
         tail = tail.concat(clone(merge_name))
         tail = tail.concat(" (phi removed)")

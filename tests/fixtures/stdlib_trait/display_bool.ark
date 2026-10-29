@@ -1,7 +1,6 @@
 use std::core::convert
 use std::test::Test
-use std::prelude::{to_string}
 fn main() {
-    Test::assert_eq_string(to_string(true), "true")
-    Test::assert_eq_string(to_string(false), "false")
+    Test::assert_eq_string(true.to_string(), "true")
+    Test::assert_eq_string(false.to_string(), "false")
 }

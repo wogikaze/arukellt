@@ -1,4 +1,4 @@
-use std::prelude::{clone, contains}
+use std::prelude::{clone}
 use mir::lower::entry_emit_method
 use mir::lower::ctx_mono_index
 use mir::lower::entry_fns_mono
@@ -51,7 +51,7 @@ fn mir_emit_method_mono_bodies(
                 method_mono_emit_i = method_mono_emit_i + 1
                 continue
             }
-            if contains(clone(emit_method_name), String_from("?")) {
+            if clone(emit_method_name).contains(String_from("?")) {
                 method_mono_emit_i = method_mono_emit_i + 1
                 continue
             }

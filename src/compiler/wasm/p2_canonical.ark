@@ -22,7 +22,7 @@ use wasm::writer_leb
 // Convert the compiler's private GC string representation to standard32
 // canonical ABI values at a core-module export boundary. The component linker
 // consumes these exports directly; no component adapter module is involved.
-use std::prelude::{clone, contains, eq, starts_with}
+use std::prelude::{clone, eq}
 use std::text
 fn emit_library_wrapper_body(
     mut w: WasmWriter,
@@ -614,16 +614,13 @@ fn emit_struct_input_conversion(
 }
 
 fn p2_variant_family_matches(family: String, variant_name: String) -> bool {
-    starts_with(clone(variant_name), clone(family).concat(String_from("::"))) ||
-    contains(
-        clone(variant_name),
-        String_from("::").concat(clone(family).concat(String_from("::")))
-    )
+    clone(variant_name).starts_with(clone(family).concat(String_from("::"))) ||
+    clone(variant_name).contains(String_from("::").concat(clone(family).concat(String_from("::"))))
 }
 
 fn p2_variant_name_matches(family: String, variant: String, name: String) -> bool {
     let wanted = clone(family).concat(String_from("::").concat(clone(variant)))
-    eq(clone(name), clone(wanted)) || contains(clone(name), String_from("::").concat(clone(wanted)))
+    eq(clone(name), clone(wanted)) || clone(name).contains(String_from("::").concat(clone(wanted)))
 }
 
 fn p2_variant_type_named(

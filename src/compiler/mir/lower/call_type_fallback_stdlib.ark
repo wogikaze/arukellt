@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, contains, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::value_types
@@ -13,7 +13,7 @@ fn set_stdlib_result_type(mut ctx: LowerCtx, dest: i32, type_name: String) {
 
 fn mark_known_stdlib_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32) -> bool {
     let cn = mir_strip_module_prefix(clone(callee_name))
-    if eq(clone(cn), "cmp") || ends_with(clone(cn), String_from("::cmp")) || starts_with(clone(cn), String_from("cmp__")) || contains(clone(cn), String_from("::cmp__")) {
+    if eq(clone(cn), "cmp") || clone(cn).ends_with(String_from("::cmp")) || clone(cn).starts_with(String_from("cmp__")) || clone(cn).contains(String_from("::cmp__")) {
         set_stdlib_result_type(ctx, dest, String_from("enum:Ordering"))
         return true
     }
@@ -33,13 +33,13 @@ fn mark_known_stdlib_result_type(mut ctx: LowerCtx, callee_name: String, dest: i
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_i32"))
         return true
     }
-    if eq(clone(cn), "read_to_string") || eq(clone(cn), "fs_read_file") || eq(clone(cn), "__runtime_abi_fs_read_file") || ends_with(clone(callee_name), String_from("::read_to_string")) {
+    if eq(clone(cn), "read_to_string") || eq(clone(cn), "fs_read_file") || eq(clone(cn), "__runtime_abi_fs_read_file") || clone(callee_name).ends_with(String_from("::read_to_string")) {
         set_stdlib_result_type(ctx, dest, String_from("result:String:String"))
         return true
     }
     // Fs::read_bytes returns Result<Vec<i32>, String>; keep the Vec payload so
     // an unannotated match in user code resolves the byte vector.
-    if ends_with(clone(callee_name), String_from("Fs::read_bytes")) {
+    if clone(callee_name).ends_with(String_from("Fs::read_bytes")) {
         set_stdlib_result_type(ctx, dest, String_from("result:vec:i32:String"))
         return true
     }
@@ -53,7 +53,7 @@ fn mark_known_stdlib_result_type(mut ctx: LowerCtx, callee_name: String, dest: i
     // std::io memory-buffer helper was retired in ADR-085 Phase F (#807).
     if eq(clone(cn), "fs_write_bytes") ||
     eq(clone(cn), "__runtime_abi_fs_write_bytes") ||
-    ends_with(clone(callee_name), String_from("Fs::write_bytes")) {
+    clone(callee_name).ends_with(String_from("Fs::write_bytes")) {
         // Without this, Result dest locals stay Memory64 i64 and ref.null/Ok
         // from the GC intrinsic fails validate (#730 write_compile_output).
         set_stdlib_result_type(ctx, dest, String_from("result:unit:String"))
@@ -64,15 +64,15 @@ fn mark_known_stdlib_result_type(mut ctx: LowerCtx, callee_name: String, dest: i
     // explicit typing the fs file intrinsics get above; without it the MIR
     // temp stays scalar and the emitter stores a Vec/Option ref into an i64
     // local (invalid core Wasm on wasm32-gc) (#917).
-    if eq(clone(cn), "__intrinsic_args") || ends_with(clone(callee_name), String_from("::__intrinsic_args")) {
+    if eq(clone(cn), "__intrinsic_args") || clone(callee_name).ends_with(String_from("::__intrinsic_args")) {
         set_stdlib_result_type(ctx, dest, String_from("vec:String"))
         return true
     }
-    if eq(clone(cn), "__runtime_abi_env_var") || ends_with(clone(callee_name), String_from("::__runtime_abi_env_var")) {
+    if eq(clone(cn), "__runtime_abi_env_var") || clone(callee_name).ends_with(String_from("::__runtime_abi_env_var")) {
         set_stdlib_result_type(ctx, dest, String_from("Option_String"))
         return true
     }
-    if eq(clone(cn), "__intrinsic_arg_at") || ends_with(clone(callee_name), String_from("::__intrinsic_arg_at")) {
+    if eq(clone(cn), "__intrinsic_arg_at") || clone(callee_name).ends_with(String_from("::__intrinsic_arg_at")) {
         set_stdlib_result_type(ctx, dest, String_from("Option_String"))
         return true
     }
@@ -106,20 +106,17 @@ fn is_parse_callee(callee_name: String, leaf: String) -> bool {
     if eq(clone(callee_name), String_from("RawString::").concat(clone(leaf))) {
         return true
     }
-    if ends_with(clone(callee_name), String_from("::raw_").concat(clone(leaf))) {
+    if clone(callee_name).ends_with(String_from("::raw_").concat(clone(leaf))) {
         return true
     }
-    if ends_with(clone(callee_name), String_from("::__intrinsic_").concat(clone(leaf))) {
+    if clone(callee_name).ends_with(String_from("::__intrinsic_").concat(clone(leaf))) {
         return true
     }
-    starts_with(
-        clone(callee_name),
-        String_from("RawString__").concat(clone(leaf)).concat(String_from("__"))
-    )
+    clone(callee_name).starts_with(String_from("RawString__").concat(clone(leaf)).concat(String_from("__")))
 }
 
 fn is_host_fs_write_string_callee(callee_name: String) -> bool {
-    ends_with(clone(callee_name), String_from("Fs::write_string"))
+    clone(callee_name).ends_with(String_from("Fs::write_string"))
 }
 
 fn mark_toml_result_vec_call_type(mut ctx: LowerCtx, callee_name: String, dest: i32) -> bool {
@@ -152,8 +149,8 @@ fn mir_strip_module_prefix(name: String) -> String {
     let n = len(name)
     let mut i = n - 1
     while i >= 0 {
-        if byte_at(name, i) == 58 {
-            return substring(name, i + 1, n)
+        if name.byte_at(i) == 58 {
+            return name.slice(i + 1, n)
         }
         i = i - 1
     }

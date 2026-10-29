@@ -1,6 +1,6 @@
 use std::text
 use std::json
-use std::prelude::{clone, to_string}
+use std::prelude::{clone}
 use lsp::positions
 use lsp::symbol_index_record
 fn symbol_location_json(uri: String, text: String, decl_start: i32, decl_end: i32) -> String {
@@ -9,13 +9,13 @@ fn symbol_location_json(uri: String, text: String, decl_start: i32, decl_end: i3
     let mut out = String_from("{\"uri\":")
     out = out.concat(json::JsonText::quote(uri))
     out = out.concat(String_from(",\"range\":{\"start\":{\"line\":"))
-    out = out.concat(to_string(positions::lsp_position_line(start)))
+    out = out.concat(positions::lsp_position_line(start).to_string())
     out = out.concat(String_from(",\"character\":"))
-    out = out.concat(to_string(positions::lsp_position_character(start)))
+    out = out.concat(positions::lsp_position_character(start).to_string())
     out = out.concat(String_from("},\"end\":{\"line\":"))
-    out = out.concat(to_string(positions::lsp_position_line(end)))
+    out = out.concat(positions::lsp_position_line(end).to_string())
     out = out.concat(String_from(",\"character\":"))
-    out = out.concat(to_string(positions::lsp_position_character(end)))
+    out = out.concat(positions::lsp_position_character(end).to_string())
     out = out.concat(String_from("}}}"))
     out
 }
@@ -24,7 +24,7 @@ fn symbol_information_json(sym: symbol_index_record::IndexedSymbol, text: String
     let mut out = String_from("{\"name\":")
     out = out.concat(json::JsonText::quote(symbol_index_record::indexed_symbol_name(sym)))
     out = out.concat(String_from(",\"kind\":"))
-    out = out.concat(to_string(symbol_index_record::indexed_symbol_kind(sym)))
+    out = out.concat(symbol_index_record::indexed_symbol_kind(sym).to_string())
     out = out.concat(String_from(",\"location\":"))
     if len(text) > 0 && symbol_index_record::indexed_symbol_decl_end(sym) > symbol_index_record::indexed_symbol_decl_start(sym) {
         out = out.concat(
@@ -64,7 +64,7 @@ pub fn build_workspace_symbol_response(id: i32, symbols: Vec<symbol_index_record
         i = i + 1
     }
     let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body = body.concat(to_string(id))
+    body = body.concat(id.to_string())
     body = body.concat(String_from(",\"result\":["))
     body = body.concat(items)
     body = body.concat(String_from("]}"))

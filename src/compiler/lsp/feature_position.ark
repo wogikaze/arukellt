@@ -1,5 +1,5 @@
 use std::json
-use std::prelude::{byte_at, clone}
+use std::prelude::{clone}
 fn extract_position_field(body: String, key: String) -> i32 {
     let p = json::JsonText::find_key_pos(clone(body), String_from("position"), 0)
     if p < 0 {
@@ -11,7 +11,7 @@ fn extract_position_field(body: String, key: String) -> i32 {
     }
     let r = json::JsonText::skip_ws(clone(body), q)
     let n = len(body)
-    if r >= n || byte_at(body, r) != 58 {
+    if r >= n || body.byte_at(r) != 58 {
         return 0
     }
     json::JsonText::parse_int_at(clone(body), r + 1)

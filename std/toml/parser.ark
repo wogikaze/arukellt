@@ -35,7 +35,7 @@
 
 // ─── TomlValue type ──────────────────────────────────────────────────────────
 use std::core::convert
-use std::prelude::{byte_at, eq, i64_to_i32, slice}
+use std::prelude::{eq, i64_to_i32}
 use std::text
 
 pub enum TomlValue {
@@ -248,7 +248,7 @@ fn toml_hex_value(c: i32) -> i32 {
 fn toml_skip_inline_ws(s: String, pos: i32) -> i32 {
     let n = len(s)
     let mut i = pos
-    while i < n && toml_is_inline_ws(byte_at(s, i)) {
+    while i < n && toml_is_inline_ws(s.byte_at(i)) {
         i = i + 1
     }
     i
@@ -259,12 +259,12 @@ fn toml_skip_ws_nl_comments(s: String, pos: i32) -> i32 {
     let n = len(s)
     let mut i = pos
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if toml_is_inline_ws(c) || toml_is_newline(c) {
             i = i + 1
         } else {
             if c == 35 {
-                while i < n && byte_at(s, i) != 10 {
+                while i < n && s.byte_at(i) != 10 {
                     i = i + 1
                 }
             } else {
@@ -286,7 +286,7 @@ fn toml_decode_unicode(s: String, pos: i32, n_digits: i32) -> String {
     let mut cv: i32 = 0
     let mut k = 1
     while k <= n_digits {
-        let d = toml_hex_value(byte_at(s, pos + k))
+        let d = toml_hex_value(s.byte_at(pos + k))
         if d < 0 {
             return ""
         }
@@ -305,9 +305,9 @@ fn toml_decode_basic_content(s: String) -> String {
     let mut result = ""
     let mut i = 0
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if c == 92 && i + 1 < n {
-            let nxt = byte_at(s, i + 1)
+            let nxt = s.byte_at(i + 1)
             if nxt == 34 {
                 result = result.concat("\"")
                 i = i + 2
@@ -345,7 +345,7 @@ fn toml_decode_basic_content(s: String) -> String {
                                                 i = i + 10
                                             } else {
                                                 // Unknown escape: keep the escaped char literally.
-                                                result = result.concat(slice(s, i + 1, i + 2))
+                                                result = result.concat(s.slice(i + 1, i + 2))
                                                 i = i + 2
                                             }
                                         }
@@ -357,7 +357,7 @@ fn toml_decode_basic_content(s: String) -> String {
                 }
             }
         } else {
-            result = result.concat(slice(s, i, i + 1))
+            result = result.concat(s.slice(i, i + 1))
             i = i + 1
         }
     }
@@ -372,7 +372,7 @@ fn toml_find_basic_string_end(s: String, pos: i32) -> i32 {
     let mut i = pos
     let mut esc = false
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if esc {
             esc = false
         } else {
@@ -395,7 +395,7 @@ fn toml_parse_basic_string_at(s: String, pos: i32) -> TomlValStep {
     if end < 0 {
         return TomlValStep::err("unterminated basic string", pos)
     }
-    let content = toml_decode_basic_content(slice(s, pos, end))
+    let content = toml_decode_basic_content(s.slice(pos, end))
     TomlValStep::ok(TomlValue::String(content), end + 1)
 }
 
@@ -404,12 +404,12 @@ fn toml_parse_literal_string_at(s: String, pos: i32) -> TomlValStep {
     let n = len(s)
     let mut i = pos
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if c == 10 || c == 13 {
             return TomlValStep::err("literal string cannot contain newline", pos)
         }
         if c == 39 {
-            return TomlValStep::ok(TomlValue::String(slice(s, pos, i)), i + 1)
+            return TomlValStep::ok(TomlValue::String(s.slice(pos, i)), i + 1)
         }
         i = i + 1
     }
@@ -423,14 +423,14 @@ fn toml_find_multiline_basic_end(s: String, pos: i32) -> i32 {
     let mut i = pos
     let mut esc = false
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if esc {
             esc = false
         } else {
             if c == 92 {
                 esc = true
             } else {
-                if c == 34 && i + 2 < n && byte_at(s, i + 1) == 34 && byte_at(s, i + 2) == 34 {
+                if c == 34 && i + 2 < n && s.byte_at(i + 1) == 34 && s.byte_at(i + 2) == 34 {
                     return i
                 }
             }
@@ -445,10 +445,10 @@ fn toml_find_multiline_basic_end(s: String, pos: i32) -> i32 {
 fn toml_parse_multiline_basic_at(s: String, pos: i32) -> TomlValStep {
     let mut start = pos
     // A leading newline immediately after the opening delimiter is trimmed.
-    if start < len(s) && byte_at(s, start) == 10 {
+    if start < len(s) && s.byte_at(start) == 10 {
         start = start + 1
     } else {
-        if start + 1 < len(s) && byte_at(s, start) == 13 && byte_at(s, start + 1) == 10 {
+        if start + 1 < len(s) && s.byte_at(start) == 13 && s.byte_at(start + 1) == 10 {
             start = start + 2
         }
     }
@@ -456,7 +456,7 @@ fn toml_parse_multiline_basic_at(s: String, pos: i32) -> TomlValStep {
     if end < 0 {
         return TomlValStep::err("unterminated multiline basic string", pos)
     }
-    let content = toml_decode_basic_content(slice(s, start, end))
+    let content = toml_decode_basic_content(s.slice(start, end))
     TomlValStep::ok(TomlValue::String(content), end + 3)
 }
 
@@ -466,8 +466,8 @@ fn toml_find_multiline_literal_end(s: String, pos: i32) -> i32 {
     let n = len(s)
     let mut i = pos
     while i < n {
-        let c = byte_at(s, i)
-        if c == 39 && i + 2 < n && byte_at(s, i + 1) == 39 && byte_at(s, i + 2) == 39 {
+        let c = s.byte_at(i)
+        if c == 39 && i + 2 < n && s.byte_at(i + 1) == 39 && s.byte_at(i + 2) == 39 {
             return i
         }
         i = i + 1
@@ -478,10 +478,10 @@ fn toml_find_multiline_literal_end(s: String, pos: i32) -> i32 {
 /// Parse a multiline literal string `'''…'''`. `pos` is just after opening `'''`.
 fn toml_parse_multiline_literal_at(s: String, pos: i32) -> TomlValStep {
     let mut start = pos
-    if start < len(s) && byte_at(s, start) == 10 {
+    if start < len(s) && s.byte_at(start) == 10 {
         start = start + 1
     } else {
-        if start + 1 < len(s) && byte_at(s, start) == 13 && byte_at(s, start + 1) == 10 {
+        if start + 1 < len(s) && s.byte_at(start) == 13 && s.byte_at(start + 1) == 10 {
             start = start + 2
         }
     }
@@ -489,7 +489,7 @@ fn toml_parse_multiline_literal_at(s: String, pos: i32) -> TomlValStep {
     if end < 0 {
         return TomlValStep::err("unterminated multiline literal string", pos)
     }
-    TomlValStep::ok(TomlValue::String(slice(s, start, end)), end + 3)
+    TomlValStep::ok(TomlValue::String(s.slice(start, end)), end + 3)
 }
 
 // ─── Number / datetime parsing ───────────────────────────────────────────────
@@ -499,9 +499,9 @@ fn toml_strip_underscores(s: String) -> String {
     let mut out = ""
     let mut i = 0
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if c != 95 {
-            out = out.concat(slice(s, i, i + 1))
+            out = out.concat(s.slice(i, i + 1))
         }
         i = i + 1
     }
@@ -515,7 +515,7 @@ fn toml_scan_bare_token(s: String, pos: i32) -> i32 {
     let n = len(s)
     let mut i = pos
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if toml_is_inline_ws(c) || toml_is_newline(c) || c == 44 || c == 93 || c == 125 || c == 35 {
             return i
         }
@@ -532,7 +532,7 @@ fn toml_parse_int_radix(digits: String, radix: i32, neg: bool) -> i64 {
     let mut i = 0
     let rad = i32_to_i64(radix)
     while i < n {
-        let d = toml_hex_value(byte_at(digits, i))
+        let d = toml_hex_value(digits.byte_at(i))
         if d >= 0 {
             result = result * rad + i32_to_i64(d)
         }
@@ -552,7 +552,7 @@ fn toml_parse_float_token(token: String) -> Result<f64, String> {
     let mut exp_at = -1
     let mut i = 0
     while i < n {
-        let c = byte_at(token, i)
+        let c = token.byte_at(i)
         if c == 101 || c == 69 {
             exp_at = i
             break
@@ -565,8 +565,8 @@ fn toml_parse_float_token(token: String) -> Result<f64, String> {
     if exp_at == 0 {
         return Err("invalid float exponent")
     }
-    let mant_raw = slice(token, 0, exp_at)
-    let exp_raw = slice(token, exp_at + 1, n)
+    let mant_raw = token.slice(0, exp_at)
+    let exp_raw = token.slice(exp_at + 1, n)
     if len(exp_raw) == 0 {
         return Err("invalid float exponent")
     }
@@ -596,7 +596,7 @@ fn toml_parse_float_token(token: String) -> Result<f64, String> {
 /// Parse a bare value token (number or datetime) at `pos`.
 fn toml_parse_number_or_datetime_at(s: String, pos: i32) -> TomlValStep {
     let end = toml_scan_bare_token(s, pos)
-    let raw = slice(s, pos, end)
+    let raw = s.slice(pos, end)
     let t = raw.trim()
     let tn = len(t)
     if tn == 0 {
@@ -614,40 +614,40 @@ fn toml_parse_number_or_datetime_at(s: String, pos: i32) -> TomlValStep {
         return TomlValStep::ok(TomlValue::String(t), end)
     }
     // Datetime: contains ':' (time), or YYYY-MM-DD date pattern.
-    if contains(t, ":") {
+    if t.contains(":") {
         return TomlValStep::ok(TomlValue::String(t), end)
     }
-    if tn >= 8 && toml_is_digit(byte_at(t, 0)) && byte_at(t, 4) == 45 {
+    if tn >= 8 && toml_is_digit(t.byte_at(0)) && t.byte_at(4) == 45 {
         return TomlValStep::ok(TomlValue::String(t), end)
     }
     // Hex / octal / binary integers.
-    if tn >= 3 && byte_at(t, 0) == 48 {
-        let p1 = byte_at(t, 1)
+    if tn >= 3 && t.byte_at(0) == 48 {
+        let p1 = t.byte_at(1)
         if p1 == 120 || p1 == 88 {
             let neg = false
-            let digits = slice(t, 2, tn)
+            let digits = t.slice(2, tn)
             return TomlValStep::ok(TomlValue::Integer(toml_parse_int_radix(digits, 16, neg)), end)
         }
         if p1 == 111 {
             let neg = false
-            let digits = slice(t, 2, tn)
+            let digits = t.slice(2, tn)
             return TomlValStep::ok(TomlValue::Integer(toml_parse_int_radix(digits, 8, false)), end)
         }
         if p1 == 98 {
             let neg = false
-            let digits = slice(t, 2, tn)
+            let digits = t.slice(2, tn)
             return TomlValStep::ok(TomlValue::Integer(toml_parse_int_radix(digits, 2, false)), end)
         }
     }
     // Float vs integer. Runtime parse_f64 rejects scientific notation, so
     // expand `e`/`E` exponents here for TOML 1.0 float literals.
-    let has_dot = contains(t, ".")
-    let has_e = contains(t, "e") || contains(t, "E")
+    let has_dot = t.contains(".")
+    let has_e = t.contains("e") || t.contains("E")
     if has_dot || has_e {
         let stripped = toml_strip_underscores(t)
         let mut core = stripped
-        if len(core) > 0 && byte_at(core, 0) == 43 {
-            core = slice(core, 1, len(core))
+        if len(core) > 0 && core.byte_at(0) == 43 {
+            core = core.slice(1, len(core))
         }
         match toml_parse_float_token(core) {
             Result::Ok(f) => return TomlValStep::ok(TomlValue::Float(f), end),
@@ -657,8 +657,8 @@ fn toml_parse_number_or_datetime_at(s: String, pos: i32) -> TomlValStep {
     // Decimal integer.
     let stripped = toml_strip_underscores(t)
     let mut core = stripped
-    if len(core) > 0 && byte_at(core, 0) == 43 {
-        core = slice(core, 1, len(core))
+    if len(core) > 0 && core.byte_at(0) == 43 {
+        core = core.slice(1, len(core))
     }
     match i64::try_from(core) {
         Result::Ok(v) => return TomlValStep::ok(TomlValue::Integer(v), end),
@@ -674,15 +674,15 @@ fn toml_parse_value_at(s: String, pos: i32) -> TomlValStep {
     if p >= n {
         return TomlValStep::err("unexpected end of input", pos)
     }
-    let c = byte_at(s, p)
+    let c = s.byte_at(p)
     if c == 34 {
-        if p + 2 < n && byte_at(s, p + 1) == 34 && byte_at(s, p + 2) == 34 {
+        if p + 2 < n && s.byte_at(p + 1) == 34 && s.byte_at(p + 2) == 34 {
             return toml_parse_multiline_basic_at(s, p + 3)
         }
         return toml_parse_basic_string_at(s, p + 1)
     }
     if c == 39 {
-        if p + 2 < n && byte_at(s, p + 1) == 39 && byte_at(s, p + 2) == 39 {
+        if p + 2 < n && s.byte_at(p + 1) == 39 && s.byte_at(p + 2) == 39 {
             return toml_parse_multiline_literal_at(s, p + 3)
         }
         return toml_parse_literal_string_at(s, p + 1)
@@ -693,10 +693,10 @@ fn toml_parse_value_at(s: String, pos: i32) -> TomlValStep {
     if c == 123 {
         return toml_parse_inline_table_at(s, p + 1)
     }
-    if c == 116 && p + 3 < n && eq(slice(s, p, p + 4), "true") {
+    if c == 116 && p + 3 < n && eq(s.slice(p, p + 4), "true") {
         return TomlValStep::ok(TomlValue::Boolean(true), p + 4)
     }
-    if c == 102 && p + 4 < n && eq(slice(s, p, p + 5), "false") {
+    if c == 102 && p + 4 < n && eq(s.slice(p, p + 5), "false") {
         return TomlValStep::ok(TomlValue::Boolean(false), p + 5)
     }
     toml_parse_number_or_datetime_at(s, p)
@@ -708,7 +708,7 @@ fn toml_parse_array_at(s: String, pos: i32) -> TomlValStep {
     let mut arr = Vec::new<TomlValue>()
     let mut i = toml_skip_ws_nl_comments(s, pos)
     while i < n {
-        if byte_at(s, i) == 93 {
+        if s.byte_at(i) == 93 {
             return TomlValStep::ok(TomlValue::Array(arr), i + 1)
         }
         let vs = toml_parse_value_at(s, i)
@@ -720,11 +720,11 @@ fn toml_parse_array_at(s: String, pos: i32) -> TomlValStep {
             Result::Err(e) => return TomlValStep::err(e, i),
         }
         i = toml_skip_ws_nl_comments(s, i)
-        if i < n && byte_at(s, i) == 44 {
+        if i < n && s.byte_at(i) == 44 {
             i = i + 1
             i = toml_skip_ws_nl_comments(s, i)
         } else {
-            if i < n && byte_at(s, i) == 93 {
+            if i < n && s.byte_at(i) == 93 {
                 return TomlValStep::ok(TomlValue::Array(arr), i + 1)
             }
             if i >= n {
@@ -742,14 +742,14 @@ fn toml_parse_inline_table_at(s: String, pos: i32) -> TomlValStep {
     let fields = Vec::new<TomlField>()
     let mut i = toml_skip_ws_nl_comments(s, pos)
     while i < n {
-        if byte_at(s, i) == 125 {
+        if s.byte_at(i) == 125 {
             return TomlValStep::ok(TomlValue::Table(fields), i + 1)
         }
         let ks = toml_parse_key_at(s, i)
         match ks.parts {
             Result::Ok(parts) => {
                 i = toml_skip_inline_ws(s, ks.next)
-                if i >= n || byte_at(s, i) != 61 {
+                if i >= n || s.byte_at(i) != 61 {
                     return TomlValStep::err("expected '=' in inline table", i)
                 }
                 i = i + 1
@@ -768,11 +768,11 @@ fn toml_parse_inline_table_at(s: String, pos: i32) -> TomlValStep {
             Result::Err(e) => return TomlValStep::err(e, i),
         }
         i = toml_skip_ws_nl_comments(s, i)
-        if i < n && byte_at(s, i) == 44 {
+        if i < n && s.byte_at(i) == 44 {
             i = i + 1
             i = toml_skip_ws_nl_comments(s, i)
         } else {
-            if i < n && byte_at(s, i) == 125 {
+            if i < n && s.byte_at(i) == 125 {
                 return TomlValStep::ok(TomlValue::Table(fields), i + 1)
             }
             if i >= n {
@@ -792,20 +792,20 @@ fn toml_parse_key_at(s: String, pos: i32) -> TomlKeyStep {
     let mut parts = Vec::new<String>()
     let mut i = toml_skip_inline_ws(s, pos)
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if c == 34 {
             let end = toml_find_basic_string_end(s, i + 1)
             if end < 0 {
                 return TomlKeyStep::err("unterminated quoted key", pos)
             }
-            push(parts, toml_decode_basic_content(slice(s, i + 1, end)))
+            push(parts, toml_decode_basic_content(s.slice(i + 1, end)))
             i = end + 1
         } else {
             if c == 39 {
                 let mut j = i + 1
                 let mut found = false
                 while j < n {
-                    let jc = byte_at(s, j)
+                    let jc = s.byte_at(j)
                     if jc == 10 || jc == 13 {
                         return TomlKeyStep::err("literal key cannot contain newline", pos)
                     }
@@ -818,15 +818,15 @@ fn toml_parse_key_at(s: String, pos: i32) -> TomlKeyStep {
                 if !found {
                     return TomlKeyStep::err("unterminated literal key", pos)
                 }
-                push(parts, slice(s, i + 1, j))
+                push(parts, s.slice(i + 1, j))
                 i = j + 1
             } else {
                 if toml_is_bare_key_char(c) {
                     let mut j = i
-                    while j < n && toml_is_bare_key_char(byte_at(s, j)) {
+                    while j < n && toml_is_bare_key_char(s.byte_at(j)) {
                         j = j + 1
                     }
-                    push(parts, slice(s, i, j))
+                    push(parts, s.slice(i, j))
                     i = j
                 } else {
                     return TomlKeyStep::err("expected key", pos)
@@ -834,7 +834,7 @@ fn toml_parse_key_at(s: String, pos: i32) -> TomlKeyStep {
             }
         }
         i = toml_skip_inline_ws(s, i)
-        if i < n && byte_at(s, i) == 46 {
+        if i < n && s.byte_at(i) == 46 {
             i = i + 1
             i = toml_skip_inline_ws(s, i)
         } else {
@@ -853,12 +853,12 @@ fn toml_parse_header_path(s: String, pos: i32, is_array: bool) -> TomlKeyStep {
     match ks.parts {
         Result::Ok(parts) => {
             let mut i = toml_skip_inline_ws(s, ks.next)
-            if i >= n || byte_at(s, i) != 93 {
+            if i >= n || s.byte_at(i) != 93 {
                 return TomlKeyStep::err("expected ']' in table header", i)
             }
             i = i + 1
             if is_array {
-                if i >= n || byte_at(s, i) != 93 {
+                if i >= n || s.byte_at(i) != 93 {
                     return TomlKeyStep::err("expected ']]' in array-of-tables header", i)
                 }
                 i = i + 1
@@ -995,10 +995,10 @@ fn toml_parse_document(s: String) -> Result<TomlValue, String> {
         if i >= n {
             break
         }
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if c == 91 {
             // Table header or array-of-tables header.
-            let is_array = i + 1 < n && byte_at(s, i + 1) == 91
+            let is_array = i + 1 < n && s.byte_at(i + 1) == 91
             let start = if is_array { i + 2 } else { i + 1 }
             let ks = toml_parse_header_path(s, start, is_array)
             match ks.parts {
@@ -1017,8 +1017,8 @@ fn toml_parse_document(s: String) -> Result<TomlValue, String> {
                     current_path = parts
                     i = toml_skip_inline_ws(s, ks.next)
                     // Allow a trailing comment on the header line.
-                    if i < n && byte_at(s, i) == 35 {
-                        while i < n && byte_at(s, i) != 10 {
+                    if i < n && s.byte_at(i) == 35 {
+                        while i < n && s.byte_at(i) != 10 {
                             i = i + 1
                         }
                     }
@@ -1031,7 +1031,7 @@ fn toml_parse_document(s: String) -> Result<TomlValue, String> {
             match ks.parts {
                 Result::Ok(parts) => {
                     let mut j = toml_skip_inline_ws(s, ks.next)
-                    if j >= n || byte_at(s, j) != 61 {
+                    if j >= n || s.byte_at(j) != 61 {
                         return Err("expected '=' after key")
                     }
                     j = j + 1
@@ -1053,8 +1053,8 @@ fn toml_parse_document(s: String) -> Result<TomlValue, String> {
                     }
                     j = toml_skip_inline_ws(s, j)
                     // Allow a trailing comment.
-                    if j < n && byte_at(s, j) == 35 {
-                        while j < n && byte_at(s, j) != 10 {
+                    if j < n && s.byte_at(j) == 35 {
+                        while j < n && s.byte_at(j) != 10 {
                             j = j + 1
                         }
                     }

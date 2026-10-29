@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use mir::function_locals_view
 use mir::local_access
 use mir::lower::closure_cells
@@ -54,13 +54,13 @@ fn core_closure_capture_vts(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
             }
             pvt = ctx_api_local_types::ctx_local_vt(ctx, cli)
             let cap_type = core_closure_lookup_capture_type(ctx, cli)
-            if starts_with(clone(cap_type), "struct:") ||
+            if clone(cap_type).starts_with("struct:") ||
             eq(clone(cap_type), "String") ||
             eq(clone(cap_type), "string") ||
-            starts_with(clone(cap_type), "enum:") ||
-            starts_with(clone(cap_type), "vec:") ||
-            starts_with(clone(cap_type), "Option_") ||
-            starts_with(clone(cap_type), "Result_") {
+            clone(cap_type).starts_with("enum:") ||
+            clone(cap_type).starts_with("vec:") ||
+            clone(cap_type).starts_with("Option_") ||
+            clone(cap_type).starts_with("Result_") {
                 pvt = value_types::VT_GC_REF()
             }
         }

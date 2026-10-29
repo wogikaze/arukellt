@@ -17,7 +17,7 @@
 //     on the post-prune index at reloc-apply time.
 
 use std::prelude::eq
-use std::prelude::{byte_at, clone, substring}
+use std::prelude::{clone}
 use corehir::callee_spelling
 use collections::name_index
 use mir::block_inst_access
@@ -225,8 +225,8 @@ fn emit_inloop_disc_hit(disc: NameIndex, name: String) -> bool {
     let n = len(name)
     let mut i = n - 1
     while i >= 0 {
-        if byte_at(name, i) == 58 {
-            let stripped = substring(name, i + 1, n)
+        if name.byte_at(i) == 58 {
+            let stripped = name.slice(i + 1, n)
             return name_index::name_index_get(disc, stripped) >= 0
         }
         i = i - 1

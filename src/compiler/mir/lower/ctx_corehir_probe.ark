@@ -157,7 +157,7 @@ fn mir_probe_dump_recorded_edges(m: MirModule, edges: Vec<i32>, fn_names: Vec<St
         }
         let caller = function_identity::MirFunction_name(module_functions::MirModule_function_at(m, mir))
         if payload >= 0 {
-            stdio::eprintln("[probeR] ".concat(clone(caller).concat(" -> fid:".concat(to_string(payload)))))
+            stdio::eprintln("[probeR] ".concat(clone(caller).concat(" -> fid:".concat(payload.to_string()))))
             continue
         }
         let ni = 0 - payload - 10
@@ -341,7 +341,7 @@ fn mir_probe_dump_ast_edge_coverage(
         }
         total = total + 1
         let mut hit = name_index::name_index_get(cur_marked, clone(cname)) >= 0
-        if !hit && contains(clone(cname), String_from("::")) {
+        if !hit && clone(cname).contains(String_from("::")) {
             hit = name_index::name_index_get(cur_marked, resolver::use_module_short_name(cname)) >= 0
         }
         if hit {
@@ -358,8 +358,8 @@ fn mir_probe_dump_ast_edge_coverage(
     }
     stdio::eprintln(
         "[probeE] covered=".concat(
-            to_string(covered).concat(
-                "/".concat(to_string(total).concat(" miss=".concat(to_string(missed).concat(" nocaller=".concat(to_string(nocaller).concat(" unresolved=".concat(to_string(unresolved))))))))
+            covered.to_string().concat(
+                "/".concat(total.to_string().concat(" miss=".concat(missed.to_string().concat(" nocaller=".concat(nocaller.to_string().concat(" unresolved=".concat(unresolved.to_string())))))))
             )
         )
     )
@@ -508,8 +508,8 @@ fn mir_probe_dump_ast_reach_diff(
     }
     stdio::eprintln(
         "[probeE-reach] recorded=".concat(
-            to_string(rec_total).concat(
-                " ast=".concat(to_string(ast_total).concat(" under=".concat(to_string(under).concat(" over=".concat(to_string(over).concat(" nocall=".concat(to_string(nocall))))))))
+            rec_total.to_string().concat(
+                " ast=".concat(ast_total.to_string().concat(" under=".concat(under.to_string().concat(" over=".concat(over.to_string().concat(" nocall=".concat(nocall.to_string())))))))
             )
         )
     )

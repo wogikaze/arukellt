@@ -3,7 +3,7 @@
 // monomorphized impl method (e.g. "Token::to_string", "Point::eq") when the
 // receiver type is a user-defined struct carried via enum:/struct: local types.
 
-use std::prelude::{byte_at, clone, contains, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::callee_spelling
 use mir::lower::ctx_fn_exists
@@ -15,40 +15,40 @@ fn mir_bare_receiver_type_name(arg_type: String) -> String {
     if len(arg_type) == 0 {
         return String_new()
     }
-    if starts_with(clone(arg_type), "struct:") {
-        let rest = substring(clone(arg_type), 7, len(arg_type))
+    if clone(arg_type).starts_with("struct:") {
+        let rest = clone(arg_type).slice(7, len(arg_type))
         let n = len(rest)
         let mut i = 0
         while i < n {
-            if byte_at(rest, i) == 58 {
-                return method_resolve::mir_inst_owner_name(substring(rest, 0, i))
+            if rest.byte_at(i) == 58 {
+                return method_resolve::mir_inst_owner_name(rest.slice(0, i))
             }
             i = i + 1
         }
         return method_resolve::mir_inst_owner_name(rest)
     }
-    if starts_with(clone(arg_type), "enum:") {
-        return substring(clone(arg_type), 5, len(arg_type))
+    if clone(arg_type).starts_with("enum:") {
+        return clone(arg_type).slice(5, len(arg_type))
     }
     // Vec locals are typed "vec:i32" / "vec:String"; impl methods are
     // mangled as "Vec::read" / "Vec::seek", not "i32::seek" (#726 seek_to).
-    if starts_with(clone(arg_type), "vec:") {
+    if clone(arg_type).starts_with("vec:") {
         return "Vec"
     }
     if eq(clone(arg_type), "Vec") {
         return "Vec"
     }
-    if starts_with(clone(arg_type), "hashmap:") {
+    if clone(arg_type).starts_with("hashmap:") {
         return "HashMap"
     }
     if eq(clone(arg_type), "HashMap") {
         return "HashMap"
     }
-    if starts_with(clone(arg_type), "option:") {
-        return substring(clone(arg_type), 7, len(arg_type))
+    if clone(arg_type).starts_with("option:") {
+        return clone(arg_type).slice(7, len(arg_type))
     }
-    if starts_with(clone(arg_type), "Option_") {
-        return substring(clone(arg_type), 7, len(arg_type))
+    if clone(arg_type).starts_with("Option_") {
+        return clone(arg_type).slice(7, len(arg_type))
     }
     // Generic-instantiation receivers (SkipMapIter<VecIter>) own impl
     // methods under the per-instantiation owner (SkipMapIter_VecIter),
@@ -138,7 +138,7 @@ fn mir_try_resolve_impl_method(ctx: LowerCtx, bare_method: String, first_arg_idx
 // symbol. Select that symbol from the first argument when it exists; leaving
 // the original name intact preserves ordinary associated functions.
 fn mir_try_resolve_associated_function(ctx: LowerCtx, associated_name: String, first_arg_idx: i32) -> String {
-    if first_arg_idx < 0 || !contains(clone(associated_name), String_from("::")) {
+    if first_arg_idx < 0 || !clone(associated_name).contains(String_from("::")) {
         return associated_name
     }
     let arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)

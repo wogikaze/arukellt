@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 29
+- **Canonical names:** 21
 - **Historical/deprecated names:** 65
-- **Total entries:** 94
+- **Total entries:** 86
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -23,32 +23,24 @@ Current public API names, sorted alphabetically.
 |------|--------|-----------|----------|
 | `assert` | `prelude` | `stable` | Assert |
 | `Box_new` | `prelude` | `stable` | Box |
-| `byte_at` | `prelude` | `stable` | String |
 | `char_to_string` | `prelude` | `stable` | Conversion |
 | `clone` | `prelude` | `stable` | String |
-| `contains` | `prelude` | `stable` | String |
-| `ends_with` | `prelude` | `stable` | String |
 | `eprintln` | `std::host::stdio` | `stable` | Host Stdio |
 | `eq` | `prelude` | `stable` | String |
 | `fd_fdstat_errno` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_seek` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_tell` | `std::host::fs` | `experimental` | Host Fs |
 | `filter_i32` | `prelude` | `provisional` | Collections |
-| `index_of` | `prelude` | `stable` | String |
 | `print` | `std::host::stdio` | `stable` | Host Stdio |
 | `print_bytes` | `std::io` | `stable` | Io |
 | `println` | `std::host::stdio` | `stable` | Host Stdio |
 | `read_stdin` | `std::host::stdio` | `stable` | Host Stdio |
 | `read_stdin_line` | `std::io` | `stable` | Io |
-| `slice` | `prelude` | `stable` | String |
-| `starts_with` | `prelude` | `stable` | String |
 | `stderr` | `std::io` | `stable` | Io |
 | `stdin` | `std::io` | `stable` | Io |
 | `stdout` | `std::io` | `stable` | Io |
 | `String_from` | `prelude` | `stable` | String |
 | `String_new` | `prelude` | `stable` | String |
-| `substring` | `prelude` | `stable` | String |
-| `to_string` | `prelude` | `stable` | Conversion |
 | `unbox` | `prelude` | `stable` | Box |
 
 ---
@@ -141,10 +133,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`assert_ne`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_ne_i32` · [migration guide](migration-guidance.md) |
 | ~~`binary_search`~~ | ⚠️ deprecated | `std::seq` | → `Vec::binary_search` · [migration guide](migration-guidance.md) |
 | `Box_new` | ✅ `stable` | `prelude` | Box |
-| `byte_at` | ✅ `stable` | `prelude` | String |
 | `char_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `clone` | ✅ `stable` | `prelude` | String |
-| `contains` | ✅ `stable` | `prelude` | String |
 | ~~`count_eq`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::count_eq` · [migration guide](migration-guidance.md) |
 | ~~`deque_back`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::back` · [migration guide](migration-guidance.md) |
 | ~~`deque_clear`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::clear` · [migration guide](migration-guidance.md) |
@@ -157,7 +147,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`deque_push_back`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::push_back` · [migration guide](migration-guidance.md) |
 | ~~`deque_push_front`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::push_front` · [migration guide](migration-guidance.md) |
 | ~~`deque_to_vec`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::iter` · [migration guide](migration-guidance.md) |
-| `ends_with` | ✅ `stable` | `prelude` | String |
 | `eprintln` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `eq` | ✅ `stable` | `prelude` | String |
 | ~~`f32_to_f64`~~ | ⚠️ deprecated | `prelude` | → `f32::to_f64` · [migration guide](migration-guidance.md) |
@@ -181,7 +170,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`i32_to_u8`~~ | ⚠️ deprecated | `prelude` | → `i32::to_u8_wrapping` · [migration guide](migration-guidance.md) |
 | ~~`i64_to_i32`~~ | ⚠️ deprecated | `prelude` | → `i64::to_i32_checked` · [migration guide](migration-guidance.md) |
 | ~~`i8_to_i32`~~ | ⚠️ deprecated | `prelude` | → `i8::to_i32` · [migration guide](migration-guidance.md) |
-| `index_of` | ✅ `stable` | `prelude` | String |
 | ~~`len`~~ | ⚠️ deprecated | `prelude` | → `Vec::len` · [migration guide](migration-guidance.md) |
 | ~~`linked_list_back`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::back` · [migration guide](migration-guidance.md) |
 | ~~`linked_list_clear`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::clear` · [migration guide](migration-guidance.md) |
@@ -208,19 +196,15 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`seq_reverse`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::rev` · [migration guide](migration-guidance.md) |
 | ~~`set`~~ | ⚠️ deprecated | `prelude` | → `Vec::set` · [migration guide](migration-guidance.md) |
 | ~~`skip_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::skip` · [migration guide](migration-guidance.md) |
-| `slice` | ✅ `stable` | `prelude` | String |
 | ~~`slice_get`~~ | ⚠️ deprecated | `prelude` | → `Slice::get` · [migration guide](migration-guidance.md) |
 | ~~`slice_len`~~ | ⚠️ deprecated | `prelude` | → `Slice::len` · [migration guide](migration-guidance.md) |
-| `starts_with` | ✅ `stable` | `prelude` | String |
 | `stderr` | ✅ `stable` | `std::io` | Io |
 | `stdin` | ✅ `stable` | `std::io` | Io |
 | `stdout` | ✅ `stable` | `std::io` | Io |
 | `String_from` | ✅ `stable` | `prelude` | String |
 | `String_new` | ✅ `stable` | `prelude` | String |
-| `substring` | ✅ `stable` | `prelude` | String |
 | ~~`sum_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::sum` · [migration guide](migration-guidance.md) |
 | ~~`take_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::take` · [migration guide](migration-guidance.md) |
-| `to_string` | ✅ `stable` | `prelude` | Conversion |
 | ~~`u16_to_i32`~~ | ⚠️ deprecated | `prelude` | → `u16::to_i32` · [migration guide](migration-guidance.md) |
 | ~~`u32_to_u64`~~ | ⚠️ deprecated | `prelude` | → `u32::to_u64` · [migration guide](migration-guidance.md) |
 | ~~`u64_to_u32`~~ | ⚠️ deprecated | `prelude` | → `u64::to_u32_wrapping` · [migration guide](migration-guidance.md) |

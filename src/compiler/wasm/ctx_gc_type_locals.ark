@@ -1,4 +1,4 @@
-use std::prelude::{clone, ends_with, eq, starts_with}
+use std::prelude::{clone, eq}
 use wasm::ctx_record
 use mir::function_identity
 use mir::function_locals_view
@@ -8,10 +8,10 @@ fn SelfEmitCtx_is_vec_string_context(ctx: SelfEmitCtx) -> bool {
     let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
     let name = function_identity::MirFunction_name(f)
     // Functions that operate on Vec<String> rather than Vec<i32>.
-    if starts_with(clone(name), "hashset_str_") ||
-    starts_with(clone(name), "hash_vec_string_") ||
-    starts_with(clone(name), "vec_string_") ||
-    starts_with(clone(name), "hash_map_vec_string_") {
+    if clone(name).starts_with("hashset_str_") ||
+    clone(name).starts_with("hash_vec_string_") ||
+    clone(name).starts_with("vec_string_") ||
+    clone(name).starts_with("hash_map_vec_string_") {
         return true
     }
     false
@@ -21,7 +21,7 @@ fn ctx_has_vec_string_local(ctx: SelfEmitCtx) -> bool {
     let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
     let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
     let name = function_identity::MirFunction_name(f)
-    if ends_with(clone(name), "__String") {
+    if clone(name).ends_with("__String") {
         return true
     }
     let nlocals = function_locals_view::MirFunction_local_count(f)
@@ -41,7 +41,7 @@ fn ctx_has_vec_v128_local(ctx: SelfEmitCtx) -> bool {
     let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
     let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
     let name = function_identity::MirFunction_name(f)
-    if ends_with(clone(name), "__v128") {
+    if clone(name).ends_with("__v128") {
         return true
     }
     let nlocals = function_locals_view::MirFunction_local_count(f)
@@ -61,7 +61,7 @@ fn ctx_has_vec_i64_local(ctx: SelfEmitCtx) -> bool {
     let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
     let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
     let name = function_identity::MirFunction_name(f)
-    if ends_with(clone(name), "__i64") {
+    if clone(name).ends_with("__i64") {
         return true
     }
     let nlocals = function_locals_view::MirFunction_local_count(f)
@@ -81,7 +81,7 @@ fn ctx_has_vec_f64_local(ctx: SelfEmitCtx) -> bool {
     let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
     let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
     let name = function_identity::MirFunction_name(f)
-    if ends_with(clone(name), "__f64") {
+    if clone(name).ends_with("__f64") {
         return true
     }
     let nlocals = function_locals_view::MirFunction_local_count(f)

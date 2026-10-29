@@ -11,7 +11,7 @@ use wasm::intrinsics::helpers_numeric_i32_convert
 // GC implementation of String::lines. Normalize CRLF first, then reuse the
 // exact delimiter splitting implementation so empty lines and trailing lines
 // retain the same behavior as String::split.
-use std::prelude::{byte_at, clone}
+use std::prelude::{clone}
 fn emit_lines(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return false
@@ -45,7 +45,7 @@ fn emit_static_string(mut w: WasmWriter, ctx: SelfEmitCtx, value: String) {
 }
 
 fn string_byte_at(value: String, index: i32) -> i32 {
-    let ch = byte_at(clone(value), index)
+    let ch = clone(value).byte_at(index)
     if ch == '\r' {
         return 13
     }

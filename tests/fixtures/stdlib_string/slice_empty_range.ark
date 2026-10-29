@@ -1,10 +1,9 @@
 use std::test::Test
 use std::test
-use std::prelude::{slice}
 
 fn main() {
     let s = String_from("hello")
-    let sub = slice(s, 2, 2)
+    let sub = s.slice(2, 2)
     Test::assert_eq_i32(len(sub), 0)
     Test::assert_true(sub.is_empty())
 }

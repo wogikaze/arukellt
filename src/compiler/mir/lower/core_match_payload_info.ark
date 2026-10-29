@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
@@ -64,18 +64,18 @@ fn core_prepare_match_payload(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: 
     let scrut_ok_is_f64 = eq(clone(scrut_type), "Result_f64") ||
     eq(clone(scrut_type), "Option_f64") ||
     eq(clone(scrut_type), "option:f64") ||
-    starts_with(clone(scrut_type), "Result_f64_") ||
-    starts_with(clone(scrut_type), "result:f64:")
+    clone(scrut_type).starts_with("Result_f64_") ||
+    clone(scrut_type).starts_with("result:f64:")
     let scrut_ok_is_i64 = eq(clone(scrut_type), "Result_i64") ||
     eq(clone(scrut_type), "Option_i64") ||
     eq(clone(scrut_type), "option:i64") ||
-    starts_with(clone(scrut_type), "Result_i64_") ||
-    starts_with(clone(scrut_type), "result:i64:")
+    clone(scrut_type).starts_with("Result_i64_") ||
+    clone(scrut_type).starts_with("result:i64:")
     let scrut_ok_is_i32 = eq(clone(scrut_type), "Option_i32") ||
     eq(clone(scrut_type), "Result_i32") ||
     eq(clone(scrut_type), "option:i32") ||
-    starts_with(clone(scrut_type), "Result_i32_") ||
-    starts_with(clone(scrut_type), "result:i32:")
+    clone(scrut_type).starts_with("Result_i32_") ||
+    clone(scrut_type).starts_with("result:i32:")
     let scrut_ok_is_ref = core_scrut_type_is_ref(scrut_type)
     // On wasm32 every variant of an enum that declares payloads is a heap
     // record, including payload-less arms like `Opt::None`.  Comparing the
@@ -93,16 +93,16 @@ fn core_prepare_match_payload(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: 
 }
 
 fn core_scrut_type_is_ref(scrut_type: String) -> bool {
-    if starts_with(clone(scrut_type), "Option_") || starts_with(clone(scrut_type), "Result_") {
-        let suffix = substring(clone(scrut_type), 7, len(scrut_type))
+    if clone(scrut_type).starts_with("Option_") || clone(scrut_type).starts_with("Result_") {
+        let suffix = clone(scrut_type).slice(7, len(scrut_type))
         return core_suffix_is_ref(suffix)
     }
-    if starts_with(clone(scrut_type), "option:") {
-        let suffix = substring(clone(scrut_type), 7, len(scrut_type))
+    if clone(scrut_type).starts_with("option:") {
+        let suffix = clone(scrut_type).slice(7, len(scrut_type))
         return core_suffix_is_ref(suffix)
     }
-    if starts_with(clone(scrut_type), "result:") {
-        let suffix = substring(clone(scrut_type), 7, len(scrut_type))
+    if clone(scrut_type).starts_with("result:") {
+        let suffix = clone(scrut_type).slice(7, len(scrut_type))
         return core_suffix_is_ref(suffix)
     }
     false
@@ -116,7 +116,7 @@ fn core_suffix_is_ref(suffix: String) -> bool {
         return false
     }
     // Funcref Option payloads use call_ref, not open GC ref (#831).
-    if eq(clone(suffix), "fnref") || eq(clone(suffix), "fn") || starts_with(clone(suffix), "fn(") {
+    if eq(clone(suffix), "fnref") || eq(clone(suffix), "fn") || clone(suffix).starts_with("fn(") {
         return false
     }
     true

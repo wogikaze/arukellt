@@ -1,4 +1,3 @@
-use std::prelude::{to_string}
 use std::text
 use parser::core_ast_text_fields
 use parser::core_api_expect
@@ -18,7 +17,7 @@ fn parse_multiclause_fn_decl(mut p: Parser, is_pub: bool, is_async: bool) -> Ast
         if nc_param_count != param_count {
             core_api_expect::error(
                 p,
-                "clause has ".concat(to_string(nc_param_count).concat(" parameters but previous clauses have ".concat(to_string(param_count).concat(""))))
+                "clause has ".concat(nc_param_count.to_string().concat(" parameters but previous clauses have ".concat(param_count.to_string().concat(""))))
             )
             let stub = fn_clause::make_clause_error_stub(next_clause, is_pub, is_async)
             clauses = Vec::new<AstNode>()

@@ -9,7 +9,6 @@
 // level checks once instead of after every field.
 
 use std::core::convert
-use std::prelude::{byte_at}
 use std::text
 
 const ASTC_HEADER_LEN: i32 = 20
@@ -22,10 +21,10 @@ fn read_i32(data: String, pos: i32, limit: i32) -> (i32, i32) {
     if pos < 0 || pos > limit - 4 {
         return (0, -1)
     }
-    let b0 = byte_at(data, pos) & 255
-    let b1 = byte_at(data, pos + 1) & 255
-    let b2 = byte_at(data, pos + 2) & 255
-    let b3 = byte_at(data, pos + 3) & 255
+    let b0 = data.byte_at(pos) & 255
+    let b1 = data.byte_at(pos + 1) & 255
+    let b2 = data.byte_at(pos + 2) & 255
+    let b3 = data.byte_at(pos + 3) & 255
     // NOTE: infix `|` is not an expression operator in Ark, and chained
     // bitwise trait calls mis-emit on the wasm32 linear backend (#922
     // family).  Plain arithmetic assembles the same little-endian word.
@@ -39,7 +38,7 @@ fn read_byte(data: String, pos: i32, limit: i32) -> (i32, i32) {
     if pos < 0 || pos >= limit {
         return (0, -1)
     }
-    return (byte_at(data, pos) & 255, pos + 1)
+    return (data.byte_at(pos) & 255, pos + 1)
 }
 
 fn read_string(data: String, pos: i32, limit: i32) -> (String, i32) {
@@ -69,7 +68,7 @@ fn fnv1a_range(data: String, start: i32, end: i32) -> i32 {
     let mut h = FNV_BASIS
     let mut i = start
     while i < end {
-        h = (h * FNV_PRIME).bitxor((byte_at(data, i)).bitand(255))
+        h = (h * FNV_PRIME).bitxor((data.byte_at(i)).bitand(255))
         if h < 0 {
             h = 0 - h
         }
@@ -107,7 +106,7 @@ pub fn deserialize_ast_nodes(data: String) -> Result<Vec<AstNode>, String> {
     if data_len < ASTC_HEADER_LEN {
         return Result::Err(String_from("astc: file smaller than header"))
     }
-    if byte_at(data, 0) != 65 || byte_at(data, 1) != 83 || byte_at(data, 2) != 84 || byte_at(data, 3) != 67 {
+    if data.byte_at(0) != 65 || data.byte_at(1) != 83 || data.byte_at(2) != 84 || data.byte_at(3) != 67 {
         return Result::Err(String_from("astc: bad magic"))
     }
     let (version, p1) = read_i32(data, 4, data_len)

@@ -1,4 +1,4 @@
-use std::prelude::{clone, contains, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use mir::lower::ctx_api_variants
 use mir::lower::ctx_api_emit
@@ -45,7 +45,7 @@ fn core_emit_payload_variant_binds(
             let slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
             if slot >= 0 {
                 let sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, slot))
-                if contains(clone(sig), "_f1_fnref") {
+                if clone(sig).contains("_f1_fnref") {
                     payload_hint = "fnref"
                     scrut_type = "option:fnref"
                     ctx_api_local_types::ctx_set_local_type(ctx, scrut_idx, clone(scrut_type))
@@ -271,27 +271,27 @@ fn core_payload_elem_type_from_scrut(scrut_type: String, is_some_or_ok: bool) ->
     if is_some_or_ok {
         // Normalize Vec_/Vec<T> → vec:T like Result Ok extraction so
         // Option_Vec / option:Vec binds resolve get/push (not bare Vec).
-        if starts_with(clone(scrut_type), "option:") {
+        if clone(scrut_type).starts_with("option:") {
             return core_match_payload_type_extract::normalize_payload_elem_type_name(
-                substring(scrut_type, 7, len(scrut_type))
+                scrut_type.slice(7, len(scrut_type))
             )
         }
-        if starts_with(clone(scrut_type), "Option_") {
+        if clone(scrut_type).starts_with("Option_") {
             return core_match_payload_type_extract::normalize_payload_elem_type_name(
-                substring(scrut_type, 7, len(scrut_type))
+                scrut_type.slice(7, len(scrut_type))
             )
         }
-        if starts_with(clone(scrut_type), "Option:") {
+        if clone(scrut_type).starts_with("Option:") {
             return core_match_payload_type_extract::normalize_payload_elem_type_name(
-                substring(scrut_type, 7, len(scrut_type))
+                scrut_type.slice(7, len(scrut_type))
             )
         }
-        if starts_with(clone(scrut_type), "Result_") || starts_with(clone(scrut_type), "result:") {
+        if clone(scrut_type).starts_with("Result_") || clone(scrut_type).starts_with("result:") {
             return core_match_payload_type_extract::core_extract_first_result_type_param(scrut_type)
         }
         return String_new()
     }
-    if starts_with(clone(scrut_type), "Result_") || starts_with(clone(scrut_type), "result:") {
+    if clone(scrut_type).starts_with("Result_") || clone(scrut_type).starts_with("result:") {
         return core_match_payload_type_extract::core_extract_second_result_type_param(scrut_type)
     }
     String_new()
@@ -312,27 +312,27 @@ fn core_infer_payload_set_type(mut ctx: LowerCtx, elem_ty: String) -> String {
     let mut set_type = clone(elem_ty)
     if !core_match_payload_bind_types::core_payload_scalar_type_name(clone(elem_ty)) {
         if !eq(clone(elem_ty), "String") && !eq(clone(elem_ty), "string") {
-            if starts_with(clone(elem_ty), "tuple:") {
+            if clone(elem_ty).starts_with("tuple:") {
                 // Tuple payloads keep the tuple:<k,...> layout name and must
                 // have the GC struct registered before emit resolves the
                 // Some-bind local type (#890 Option<(A, B)>).
                 aggregate_tuple::ctx_register_tuple_gc_struct_from_keys(
                     ctx,
-                    substring(clone(elem_ty), 6, len(elem_ty))
+                    clone(elem_ty).slice(6, len(elem_ty))
                 )
                 return set_type
             }
-            if !starts_with(clone(elem_ty), "vec:") &&
-            !starts_with(clone(elem_ty), "Vec<") &&
-            !starts_with(clone(elem_ty), "Vec_") &&
+            if !clone(elem_ty).starts_with("vec:") &&
+            !clone(elem_ty).starts_with("Vec<") &&
+            !clone(elem_ty).starts_with("Vec_") &&
             !eq(clone(elem_ty), "Vec") &&
-            !starts_with(clone(elem_ty), "hashmap:") &&
-            !starts_with(clone(elem_ty), "Option_") &&
-            !starts_with(clone(elem_ty), "option:") &&
-            !starts_with(clone(elem_ty), "Option<") &&
-            !starts_with(clone(elem_ty), "Result_") &&
-            !starts_with(clone(elem_ty), "result:") &&
-            !starts_with(clone(elem_ty), "Result<") {
+            !clone(elem_ty).starts_with("hashmap:") &&
+            !clone(elem_ty).starts_with("Option_") &&
+            !clone(elem_ty).starts_with("option:") &&
+            !clone(elem_ty).starts_with("Option<") &&
+            !clone(elem_ty).starts_with("Result_") &&
+            !clone(elem_ty).starts_with("result:") &&
+            !clone(elem_ty).starts_with("Result<") {
                 // Struct payloads keep their layout name so field access can
                 // resolve indices; GC struct slots only exist on GC targets,
                 // so the layout registry must also accept a bare struct name.
@@ -364,7 +364,7 @@ fn core_infer_payload_bind_type(mut ctx: LowerCtx, variant_name: String, bind_lo
     // variants, so that non-String Err payloads (e.g. AppError)
     // get the correct type.
     let current_type = ctx_api_local_types::ctx_get_local_type(ctx, bind_local)
-    if !(len(current_type) == 0 || eq(current_type, "enum:open") || starts_with(current_type, "enum:") || (is_err && eq(current_type, "string"))) {
+    if !(len(current_type) == 0 || eq(current_type, "enum:open") || current_type.starts_with("enum:") || (is_err && eq(current_type, "string"))) {
         return
     }
     let scrut_type = ctx_api_local_types::ctx_get_local_type(ctx, scrut_idx)

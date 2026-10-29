@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::param
 use corehir::type_info_to_mir_value
@@ -32,12 +32,12 @@ fn mir_bind_fn_param(mut ctx: LowerCtx, param: CoreHirParam) {
     if len(local_type_name) > 0 {
         mir_type_name = clone(local_type_name)
         sig_type_name = clone(local_type_name)
-        if starts_with(clone(local_type_name), String_from("vec:")) ||
-        starts_with(clone(local_type_name), String_from("hashmap:")) ||
-        starts_with(clone(local_type_name), String_from("Option_")) ||
-        starts_with(clone(local_type_name), String_from("option:")) ||
-        starts_with(clone(local_type_name), String_from("Result_")) ||
-        starts_with(clone(local_type_name), String_from("result:")) {
+        if clone(local_type_name).starts_with(String_from("vec:")) ||
+        clone(local_type_name).starts_with(String_from("hashmap:")) ||
+        clone(local_type_name).starts_with(String_from("Option_")) ||
+        clone(local_type_name).starts_with(String_from("option:")) ||
+        clone(local_type_name).starts_with(String_from("Result_")) ||
+        clone(local_type_name).starts_with(String_from("result:")) {
             pvt = value_types::VT_GC_REF()
         } else if !mir_param_type_is_fnref(clone(local_type_name)) {
             // fnref-family names (fnref/fnref2/fnsig:/fn() carry the callback
@@ -74,7 +74,7 @@ fn mir_bind_fn_param(mut ctx: LowerCtx, param: CoreHirParam) {
             pvt = value_types::VT_GC_REF()
             mir_type_name = get_unchecked(resolved, 0)
             sig_type_name = get_unchecked(resolved, 1)
-            if starts_with(clone(mir_type_name), String_from("?")) {
+            if clone(mir_type_name).starts_with(String_from("?")) {
                 is_type_var = true
             }
         }
@@ -83,13 +83,13 @@ fn mir_bind_fn_param(mut ctx: LowerCtx, param: CoreHirParam) {
     let param_local = ctx_alloc_local(ctx, clone(param_name), pvt)
     ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(param_name), pvt, sig_type_name))
     ctx_api_local_types::ctx_set_local_type(ctx, param_local, mir_type_name)
-    if starts_with(clone(p_type_name), String_from("HashSet")) {
+    if clone(p_type_name).starts_with(String_from("HashSet")) {
         // Mirror the receiver marker for a `HashSet` argument (e.g. the
         // `other` operand of union / intersection / difference / extend).
         let mut family = String_from("i32")
         if eq(clone(local_type_name), String_from("vec:String")) ||
-        starts_with(clone(p_type_name), String_from("HashSet<String>")) ||
-        starts_with(clone(p_type_name), String_from("HashSet_String")) {
+        clone(p_type_name).starts_with(String_from("HashSet<String>")) ||
+        clone(p_type_name).starts_with(String_from("HashSet_String")) {
             family = String_from("String")
         }
         ctx_api_local_types::ctx_mark_hashset_local(ctx, param_local, family)
@@ -115,7 +115,7 @@ fn mir_bind_fn_param(mut ctx: LowerCtx, param: CoreHirParam) {
     // struct because type checking predates enum registration.  The lowering
     // context has already canonicalized this parameter to enum:<name>, so use
     // that concrete type rather than reintroducing the stale struct TypeId.
-    if starts_with(clone(preserved_type_name), String_from("enum:")) {
+    if clone(preserved_type_name).starts_with(String_from("enum:")) {
         param_mvt = type_info_to_mir_value::vt_to_mir_value(
             table,
             value_types::VT_GC_REF(),
@@ -161,7 +161,7 @@ fn mir_bind_fn_param(mut ctx: LowerCtx, param: CoreHirParam) {
 }
 
 fn mir_param_type_name_is_concrete(type_name: String) -> bool {
-    if len(type_name) == 0 || starts_with(clone(type_name), String_from("?")) {
+    if len(type_name) == 0 || clone(type_name).starts_with(String_from("?")) {
         return false
     }
     !mir_param_name_is_type_param(clone(type_name))
@@ -170,16 +170,16 @@ fn mir_param_type_name_is_concrete(type_name: String) -> bool {
 fn mir_param_type_is_fnref(type_name: String) -> bool {
     eq(clone(type_name), String_from("fnref")) ||
     eq(clone(type_name), String_from("fnref2")) ||
-    starts_with(clone(type_name), String_from("fnref")) ||
-    starts_with(clone(type_name), String_from("fnsig:")) ||
-    starts_with(clone(type_name), String_from("fn("))
+    clone(type_name).starts_with(String_from("fnref")) ||
+    clone(type_name).starts_with(String_from("fnsig:")) ||
+    clone(type_name).starts_with(String_from("fn("))
 }
 
 fn mir_param_type_is_option_fnref(type_name: String) -> bool {
     eq(clone(type_name), String_from("option:fnref")) ||
     eq(clone(type_name), String_from("Option:fnref")) ||
     eq(clone(type_name), String_from("Option:fn")) ||
-    (ends_with(clone(type_name), String_from(":fnref")) && mir_param_type_is_option_container(clone(type_name)))
+    (clone(type_name).ends_with(String_from(":fnref")) && mir_param_type_is_option_container(clone(type_name)))
 }
 
 fn mir_param_type_is_option_container(type_name: String) -> bool {
@@ -187,10 +187,10 @@ fn mir_param_type_is_option_container(type_name: String) -> bool {
     // spellings.  Without the prefix gate, vec:fnref / result:*:fnref
     // params were rewritten to option:fnref and lost their container
     // identity before GC vec emission could see it (#874).
-    starts_with(clone(type_name), String_from("option:")) ||
-    starts_with(clone(type_name), String_from("Option:")) ||
-    starts_with(clone(type_name), String_from("Option_")) ||
-    starts_with(clone(type_name), String_from("Option<"))
+    clone(type_name).starts_with(String_from("option:")) ||
+    clone(type_name).starts_with(String_from("Option:")) ||
+    clone(type_name).starts_with(String_from("Option_")) ||
+    clone(type_name).starts_with(String_from("Option<"))
 }
 
 fn mir_param_resolve_no_local_type(mut ctx: LowerCtx, p_type_name: String) -> Vec<String> {
@@ -230,29 +230,29 @@ fn mir_param_resolve_no_local_type(mut ctx: LowerCtx, p_type_name: String) -> Ve
 }
 
 fn mir_param_normalize_option_result_type_name(type_name: String) -> String {
-    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("result:")) {
+    if clone(type_name).starts_with(String_from("option:")) || clone(type_name).starts_with(String_from("result:")) {
         return type_name
     }
-    if starts_with(clone(type_name), String_from("Option_")) {
-        return String_from("option:").concat(substring(type_name, 7, len(type_name)))
+    if clone(type_name).starts_with(String_from("Option_")) {
+        return String_from("option:").concat(type_name.slice(7, len(type_name)))
     }
-    if starts_with(clone(type_name), String_from("Option:")) {
-        return String_from("option:").concat(substring(type_name, 7, len(type_name)))
+    if clone(type_name).starts_with(String_from("Option:")) {
+        return String_from("option:").concat(type_name.slice(7, len(type_name)))
     }
-    if starts_with(clone(type_name), String_from("?Option:")) {
-        return String_from("option:").concat(substring(type_name, 8, len(type_name)))
+    if clone(type_name).starts_with(String_from("?Option:")) {
+        return String_from("option:").concat(type_name.slice(8, len(type_name)))
     }
-    if starts_with(clone(type_name), String_from("Option<")) && ends_with(clone(type_name), String_from(">")) {
-        return String_from("option:").concat(substring(type_name, 7, len(type_name) - 1))
+    if clone(type_name).starts_with(String_from("Option<")) && clone(type_name).ends_with(String_from(">")) {
+        return String_from("option:").concat(type_name.slice(7, len(type_name) - 1))
     }
-    if starts_with(clone(type_name), String_from("Result:")) {
-        return String_from("result:").concat(substring(type_name, 7, len(type_name)))
+    if clone(type_name).starts_with(String_from("Result:")) {
+        return String_from("result:").concat(type_name.slice(7, len(type_name)))
     }
-    if starts_with(clone(type_name), String_from("?Result:")) {
-        return String_from("result:").concat(substring(type_name, 8, len(type_name)))
+    if clone(type_name).starts_with(String_from("?Result:")) {
+        return String_from("result:").concat(type_name.slice(8, len(type_name)))
     }
-    if starts_with(clone(type_name), String_from("Result_")) {
-        return String_from("result:").concat(substring(type_name, 7, len(type_name)))
+    if clone(type_name).starts_with(String_from("Result_")) {
+        return String_from("result:").concat(type_name.slice(7, len(type_name)))
     }
     String_new()
 }
@@ -272,8 +272,8 @@ fn mir_param_strip_module_prefix(name: String) -> String {
     let n = len(name)
     let mut i = n - 1
     while i >= 0 {
-        if byte_at(name, i) == 58 {
-            return substring(name, i + 1, n)
+        if name.byte_at(i) == 58 {
+            return name.slice(i + 1, n)
         }
         i = i - 1
     }
@@ -284,11 +284,11 @@ fn mir_param_name_is_type_param(name: String) -> bool {
     if len(name) == 0 {
         return false
     }
-    if starts_with(clone(name), String_from("?")) {
-        return mir_param_name_is_type_param(substring(name, 1, len(name)))
+    if clone(name).starts_with(String_from("?")) {
+        return mir_param_name_is_type_param(name.slice(1, len(name)))
     }
     if len(name) == 1 {
-        let ch = byte_at(name, 0)
+        let ch = name.byte_at(0)
         if ch >= 65 && ch <= 90 {
             return true
         }

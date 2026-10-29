@@ -1,8 +1,7 @@
 use std::text
-use std::prelude::{to_string}
 fn build_initialize_response(id: i32) -> String {
     let mut body = "{\"jsonrpc\":\"2.0\",\"id\":"
-    body = body.concat(to_string(id))
+    body = body.concat(id.to_string())
     body = body.concat(",\"result\":{\"capabilities\":{\"textDocumentSync\":1")
     body = body.concat(",\"hoverProvider\":true,\"definitionProvider\":true")
     body = body.concat(",\"typeDefinitionProvider\":true,\"referencesProvider\":true")
@@ -18,14 +17,14 @@ fn build_initialize_response(id: i32) -> String {
 
 fn build_shutdown_response(id: i32) -> String {
     let mut body = "{\"jsonrpc\":\"2.0\",\"id\":"
-    body = body.concat(to_string(id))
+    body = body.concat(id.to_string())
     body = body.concat(",\"result\":null}")
     body
 }
 
 fn build_null_response(id: i32) -> String {
     let mut body = "{\"jsonrpc\":\"2.0\",\"id\":"
-    body = body.concat(to_string(id))
+    body = body.concat(id.to_string())
     body = body.concat(",\"result\":null}")
     body
 }

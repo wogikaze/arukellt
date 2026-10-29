@@ -1,24 +1,23 @@
 use std::host::process::Process
 use std::host::stdio
 use std::text
-use std::prelude::{to_string}
 use mir::dump_format_phi
 use mir::phi_access
 fn mir_expect_phi_args(f: MirFunction, block_id: i32, phi: MirPhi, expected_count: i32, expected_pred0: i32, expected_local0: i32, expected_pred1: i32, expected_local1: i32) {
     let arg_count = phi_access::MirPhi_arg_count(phi)
     if arg_count != expected_count {
-        let mut msg = "phi arg count check failed for bb".concat(to_string(block_id))
+        let mut msg = "phi arg count check failed for bb".concat(block_id.to_string())
         msg = msg.concat(": expected=")
-        msg = msg.concat(to_string(expected_count))
+        msg = msg.concat(expected_count.to_string())
         msg = msg.concat(" actual=")
-        msg = msg.concat(to_string(arg_count))
+        msg = msg.concat(arg_count.to_string())
         stdio::eprintln(msg)
         Process::exit(1)
     }
     if expected_count > 0 {
         let arg0 = phi_access::MirPhi_arg_at(phi, 0)
         if phi_access::MirPhiArg_pred_block(arg0) != expected_pred0 || phi_access::MirPhiArg_local(arg0) != expected_local0 {
-            let msg = "phi arg0 check failed for bb".concat(to_string(block_id).concat(": actual=".concat(dump_format_phi::mir_format_phi(f, phi))))
+            let msg = "phi arg0 check failed for bb".concat(block_id.to_string().concat(": actual=".concat(dump_format_phi::mir_format_phi(f, phi))))
             stdio::eprintln(msg)
             Process::exit(1)
         }
@@ -26,7 +25,7 @@ fn mir_expect_phi_args(f: MirFunction, block_id: i32, phi: MirPhi, expected_coun
     if expected_count > 1 {
         let arg1 = phi_access::MirPhi_arg_at(phi, 1)
         if phi_access::MirPhiArg_pred_block(arg1) != expected_pred1 || phi_access::MirPhiArg_local(arg1) != expected_local1 {
-            let msg = "phi arg1 check failed for bb".concat(to_string(block_id).concat(": actual=".concat(dump_format_phi::mir_format_phi(f, phi))))
+            let msg = "phi arg1 check failed for bb".concat(block_id.to_string().concat(": actual=".concat(dump_format_phi::mir_format_phi(f, phi))))
             stdio::eprintln(msg)
             Process::exit(1)
         }

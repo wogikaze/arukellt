@@ -1,6 +1,6 @@
 use std::host::fs::Fs
 use std::toml
-use std::prelude::{byte_at, clone, ends_with, eq, index_of, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use compiler::wit_identity
 use loader::module_paths
@@ -49,9 +49,9 @@ fn collect_wit_paths_from_manifest(package_root: String) -> Vec<String> {
     let content_len = len(deps_section)
     let mut i = 0
     while i < content_len {
-        if byte_at(deps_section, i) == 10 || i == content_len - 1 {
-            let line_end = if byte_at(deps_section, i) == 10 { i } else { i + 1 }
-            let line = substring(deps_section, line_start, line_end)
+        if deps_section.byte_at(i) == 10 || i == content_len - 1 {
+            let line_end = if deps_section.byte_at(i) == 10 { i } else { i + 1 }
+            let line = deps_section.slice(line_start, line_end)
             wit_collect_line_dependency(paths, clone(package_root), line)
             line_start = i + 1
         }
@@ -63,11 +63,11 @@ fn collect_wit_paths_from_manifest(package_root: String) -> Vec<String> {
 // Side-effecting collector: no bool result. A discarded i32 return was left on
 // the wasm stack under the caller's loop increment (KEEP_CLOCK validate fail).
 fn wit_collect_line_dependency(mut paths: Vec<String>, package_root: String, line: String) {
-    let eq_pos = index_of(clone(line), String_from("="))
+    let eq_pos = clone(line).index_of(String_from("="))
     if eq_pos < 0 {
         return
     }
-    let key = wit_trim_key(substring(line, 0, eq_pos))
+    let key = wit_trim_key(line.slice(0, eq_pos))
     if !is_wit_package_id(clone(key)) {
         return
     }
@@ -85,31 +85,31 @@ fn wit_collect_line_dependency(mut paths: Vec<String>, package_root: String, lin
 
 fn wit_vendor_rel_from_line(line: String) -> String {
     let path_marker = String_from("path = \"")
-    let pos = index_of(clone(line), path_marker)
+    let pos = clone(line).index_of(path_marker)
     if pos < 0 {
         return String_new()
     }
-    let tail = substring(line, pos + len(path_marker), len(line))
-    let end = index_of(clone(tail), String_from("\""))
+    let tail = line.slice(pos + len(path_marker), len(line))
+    let end = clone(tail).index_of(String_from("\""))
     if end < 0 {
         return String_new()
     }
-    substring(tail, 0, end)
+    tail.slice(0, end)
 }
 
 fn wit_trim_key(key: String) -> String {
     let n = len(key)
     let mut start = 0
-    while start < n && byte_at(key, start) == 32 {
+    while start < n && key.byte_at(start) == 32 {
         start = start + 1
     }
     let mut end = n
-    while end > start && byte_at(key, end - 1) == 32 {
+    while end > start && key.byte_at(end - 1) == 32 {
         end = end - 1
     }
-    let trimmed = substring(key, start, end)
-    if len(trimmed) >= 2 && byte_at(trimmed, 0) == 34 && byte_at(trimmed, len(trimmed) - 1) == 34 {
-        return substring(trimmed, 1, len(trimmed) - 1)
+    let trimmed = key.slice(start, end)
+    if len(trimmed) >= 2 && trimmed.byte_at(0) == 34 && trimmed.byte_at(len(trimmed) - 1) == 34 {
+        return trimmed.slice(1, len(trimmed) - 1)
     }
     trimmed
 }
@@ -118,7 +118,7 @@ fn wit_join_path(base: String, rel: String) -> String {
     if len(base) == 0 {
         return rel
     }
-    if ends_with(clone(base), String_from("/")) {
+    if clone(base).ends_with(String_from("/")) {
         return base.concat(rel)
     }
     base.concat(String_from("/")).concat(rel)
@@ -128,12 +128,12 @@ fn wit_resolve_relative_path(base: String, rel: String) -> String {
     if len(rel) == 0 {
         return clone(base)
     }
-    if starts_with(clone(rel), String_from("../")) {
+    if clone(rel).starts_with(String_from("../")) {
         let parent = module_paths::parent_dir(clone(base))
-        return wit_resolve_relative_path(parent, substring(rel, 3, len(rel)))
+        return wit_resolve_relative_path(parent, rel.slice(3, len(rel)))
     }
-    if starts_with(clone(rel), String_from("./")) {
-        return wit_resolve_relative_path(clone(base), substring(rel, 2, len(rel)))
+    if clone(rel).starts_with(String_from("./")) {
+        return wit_resolve_relative_path(clone(base), rel.slice(2, len(rel)))
     }
     wit_join_path(clone(base), rel)
 }

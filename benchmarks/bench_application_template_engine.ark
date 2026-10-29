@@ -4,20 +4,19 @@
 // manipulation (index_of, substring, concat), recursive resolution of
 // nested variable references, and iteration over multiple templates.
 use std::host::stdio
-use std::prelude::{index_of, substring}
 use std::text
 fn expand(s: String, ctx: HashMap<String, String>) -> String {
-    let start: i32 = index_of(s, "{")
+    let start: i32 = s.index_of("{")
     if start < 0 {
         s
     } else {
-        let end: i32 = index_of(s, "}")
+        let end: i32 = s.index_of("}")
         if end < 0 || end <= start {
             s
         } else {
-            let prefix: String = substring(s, 0, start)
-            let var_name: String = substring(s, start + 1, end)
-            let suffix: String = substring(s, end + 1, len(s))
+            let prefix: String = s.slice(0, start)
+            let var_name: String = s.slice(start + 1, end)
+            let suffix: String = s.slice(end + 1, len(s))
             match ctx.get(var_name) {
                 Option::Some(val) => {
                     let expanded_val: String = expand(val, ctx)

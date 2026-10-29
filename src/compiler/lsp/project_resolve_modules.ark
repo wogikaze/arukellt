@@ -1,5 +1,5 @@
 use std::host::fs::Fs
-use std::prelude::{byte_at, clone, eq, substring}
+use std::prelude::{clone, eq}
 use compiler::session_parse
 use lsp::state_docs
 use lsp::state_record
@@ -11,7 +11,7 @@ fn ark_stem_from_path(path: String) -> String {
     let mut last_slash = 0 - 1
     let mut i = n - 1
     while i >= 0 {
-        if byte_at(path, i) == 47 {
+        if path.byte_at(i) == 47 {
             last_slash = i
             i = 0 - 1
         } else {
@@ -23,10 +23,10 @@ fn ark_stem_from_path(path: String) -> String {
     } else {
         last_slash + 1
     }
-    let name = substring(path, start, n)
+    let name = path.slice(start, n)
     let nl = len(name)
-    if nl > 4 && eq(substring(clone(name), nl - 4, nl), ".ark") {
-        return substring(name, 0, nl - 4)
+    if nl > 4 && eq(clone(name).slice(nl - 4, nl), ".ark") {
+        return name.slice(0, nl - 4)
     }
     name
 }

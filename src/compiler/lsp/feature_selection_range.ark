@@ -1,6 +1,6 @@
 use std::text
 use std::json
-use std::prelude::{clone, to_string}
+use std::prelude::{clone}
 use lsp::feature_request
 use lsp::framing
 use lsp::positions
@@ -22,15 +22,15 @@ pub fn handle_selection_range(mut state: LspState, body: String) {
     let line = json::JsonText::get_int(clone(body), String_from("line"))
     let character = json::JsonText::get_int(clone(body), String_from("character"))
     let mut out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    out = out.concat(to_string(req_id))
+    out = out.concat(req_id.to_string())
     out = out.concat(String_from(",\"result\":{\"ranges\":[{\"range\":{\"start\":{\"line\":"))
-    out = out.concat(to_string(line))
+    out = out.concat(line.to_string())
     out = out.concat(String_from(",\"character\":"))
-    out = out.concat(to_string(character))
+    out = out.concat(character.to_string())
     out = out.concat(String_from("},\"end\":{\"line\":"))
-    out = out.concat(to_string(line))
+    out = out.concat(line.to_string())
     out = out.concat(String_from(",\"character\":"))
-    out = out.concat(to_string(character + 1))
+    out = out.concat((character + 1).to_string())
     out = out.concat(String_from("}}}]}}"))
     framing::append_framed(state, out)
 }

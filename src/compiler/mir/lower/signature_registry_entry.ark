@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, index_of, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::kinds
 use corehir::function_id
@@ -219,14 +219,14 @@ fn sig_reg_params_from_fn_info_mono(
         if len(mangled) > 0 {
             type_name = sig_reg_subst_mono_param_type_name(clone(type_name), clone(mangled), mono_instances, type_params)
         }
-        if starts_with(clone(type_name), String_from("hashmap:")) ||
-        starts_with(clone(type_name), String_from("?HashMap:")) {
+        if clone(type_name).starts_with(String_from("hashmap:")) ||
+        clone(type_name).starts_with(String_from("?HashMap:")) {
             type_name = sig_reg_mono_hashmap_param_alias(type_name, clone(mangled), mono_instances)
         }
         let mut vt = param::param_value_type(p)
-        if starts_with(clone(type_name), "vec:") ||
-        starts_with(clone(type_name), "option:") ||
-        starts_with(clone(type_name), "struct:") {
+        if clone(type_name).starts_with("vec:") ||
+        clone(type_name).starts_with("option:") ||
+        clone(type_name).starts_with("struct:") {
             vt = value_types::VT_GC_REF()
         } else if !mono_suffix_parse::is_mono_type_var_name(clone(type_name)) &&
             len(type_name) > 0 {
@@ -252,8 +252,8 @@ fn sig_reg_params_from_fn_info_mono(
             // Vec<fn(i32) -> i32> params spell vec:fnref (#874).
             return sig_reg_subst_via_mono_instance(type_name, mangled, mono_instances, type_params)
         }
-        if starts_with(clone(type_name), "vec:") {
-            let elem = substring(clone(type_name), 4, len(type_name))
+        if clone(type_name).starts_with("vec:") {
+            let elem = clone(type_name).slice(4, len(type_name))
             if !mono_suffix_parse::is_mono_type_var_name(clone(elem)) {
                 return type_name
             }
@@ -263,8 +263,8 @@ fn sig_reg_params_from_fn_info_mono(
             }
             return "vec:".concat(concrete)
         }
-        if starts_with(clone(type_name), "option:") {
-            let elem = substring(clone(type_name), 7, len(type_name))
+        if clone(type_name).starts_with("option:") {
+            let elem = clone(type_name).slice(7, len(type_name))
             if !mono_suffix_parse::is_mono_type_var_name(clone(elem)) {
                 return type_name
             }
@@ -284,7 +284,7 @@ fn sig_reg_params_from_fn_info_mono(
     }
 
     fn sig_reg_resolve_mono_type_key(type_var: String, mono_suffix: String, type_params: Vec<String>) -> String {
-        if starts_with(clone(mono_suffix), "Vec") {
+        if clone(mono_suffix).starts_with("Vec") {
             return mono_suffix
         }
         let keys = mono_suffix_parse::split_mono_suffix(clone(mono_suffix))
@@ -321,8 +321,8 @@ fn sig_reg_params_from_fn_info_mono(
         if type_contracts::MonoInstance_type_arg_count(inst) <= 0 {
             return type_name
         }
-        if starts_with(clone(type_name), "vec:") {
-            let elem = substring(clone(type_name), 4, len(type_name))
+        if clone(type_name).starts_with("vec:") {
+            let elem = clone(type_name).slice(4, len(type_name))
             if !mono_suffix_parse::is_mono_type_var_name(clone(elem)) {
                 return type_name
             }
@@ -332,8 +332,8 @@ fn sig_reg_params_from_fn_info_mono(
             }
             return type_name
         }
-        if starts_with(clone(type_name), "option:") {
-            let elem = substring(clone(type_name), 7, len(type_name))
+        if clone(type_name).starts_with("option:") {
+            let elem = clone(type_name).slice(7, len(type_name))
             if !mono_suffix_parse::is_mono_type_var_name(clone(elem)) {
                 return type_name
             }
@@ -391,12 +391,12 @@ fn sig_reg_params_from_fn_info_mono(
             if len(mangled) > 0 {
                 type_name = sig_reg_subst_mono_param_type_name(clone(type_name), clone(mangled), mono_instances, type_params)
             }
-            if starts_with(clone(type_name), String_from("hashmap:")) {
+            if clone(type_name).starts_with(String_from("hashmap:")) {
                 type_name = sig_reg_mono_hashmap_param_alias(type_name, clone(mangled), mono_instances)
             }
-            let is_container = starts_with(clone(type_name), "vec:") ||
-            starts_with(clone(type_name), "option:") ||
-            starts_with(clone(type_name), "struct:")
+            let is_container = clone(type_name).starts_with("vec:") ||
+            clone(type_name).starts_with("option:") ||
+            clone(type_name).starts_with("struct:")
             let mut vt = param::param_value_type(p)
             if is_container {
                 vt = value_types::VT_GC_REF()
@@ -416,17 +416,17 @@ fn sig_reg_params_from_fn_info_mono(
     // signatures the mangled suffix cannot) and rebuild the canonical
     // hashmap:<pair> alias (#691).
     fn sig_reg_mono_hashmap_param_alias(type_name: String, mangled: String, mono_instances: Vec<MonoInstance>) -> String {
-        let args = if starts_with(clone(type_name), String_from("?HashMap:")) {
-            substring(clone(type_name), 9, len(type_name))
+        let args = if clone(type_name).starts_with(String_from("?HashMap:")) {
+            clone(type_name).slice(9, len(type_name))
         } else {
-            substring(clone(type_name), 8, len(type_name))
+            clone(type_name).slice(8, len(type_name))
         }
-        let colon = index_of(clone(args), String_from(":"))
+        let colon = clone(args).index_of(String_from(":"))
         if colon < 0 {
             return type_name
         }
-        let key_seg = substring(clone(args), 0, colon)
-        let val_seg = substring(clone(args), colon + 1, len(args))
+        let key_seg = clone(args).slice(0, colon)
+        let val_seg = clone(args).slice(colon + 1, len(args))
         if !mono_suffix_parse::is_mono_type_var_name(clone(key_seg)) &&
         !mono_suffix_parse::is_mono_type_var_name(clone(val_seg)) {
             return type_name
@@ -474,10 +474,10 @@ fn sig_reg_params_from_fn_info_mono(
         }
         if eq(clone(seg), String_from("fn")) ||
         eq(clone(seg), String_from("fnref")) ||
-        starts_with(clone(seg), String_from("fn(")) ||
-        starts_with(clone(seg), String_from("fn<")) ||
-        starts_with(clone(seg), String_from("fnsig:")) ||
-        starts_with(clone(seg), String_from("fn_")) {
+        clone(seg).starts_with(String_from("fn(")) ||
+        clone(seg).starts_with(String_from("fn<")) ||
+        clone(seg).starts_with(String_from("fnsig:")) ||
+        clone(seg).starts_with(String_from("fn_")) {
             return type_contracts::TypeInfo_new(lower_kinds::TY_STRUCT(), String_from("fnref"), Vec::new<TypeInfo>())
         }
         type_contracts::TypeInfo_simple(lower_kinds::TY_TYPE_VAR())

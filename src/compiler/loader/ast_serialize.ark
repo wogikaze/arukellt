@@ -31,7 +31,7 @@
 // in ast_serialize_parse.ark must stay in sync (no pub const in Ark).
 
 use std::host::fs::Fs
-use std::prelude::{byte_at, clone, eq, to_string}
+use std::prelude::{clone, eq}
 use std::core::ops
 use loader::ast_serialize_parse
 // The two parser imports read as unused in package builds (type names
@@ -64,7 +64,7 @@ fn buf_push_string(mut buf: Vec<i32>, s: String) {
     buf_push_i32(buf, n)
     let mut i = 0
     while i < n {
-        push(buf, byte_at(s, i) & 255)
+        push(buf, s.byte_at(i) & 255)
         i = i + 1
     }
 }
@@ -123,7 +123,7 @@ fn serialize_node(mut buf: Vec<i32>, node: AstNode) {
     buf_push_i32(buf, node.name_span.end)
     buf_push_string(buf, clone(node.text))
     buf_push_i32(buf, node.int_val)
-    buf_push_string(buf, to_string(node.float_val))
+    buf_push_string(buf, node.float_val.to_string())
     buf_push_i32(buf, node.op)
     let cn = len(node.children)
     buf_push_i32(buf, cn)

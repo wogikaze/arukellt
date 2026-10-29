@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, ends_with, eq, substring}
+use std::prelude::{clone, eq}
 fn mir_core_is_printlike_callee(name: String) -> bool {
     eq(clone(name), "stdio::println") ||
     eq(clone(name), "println") ||
@@ -44,8 +44,8 @@ fn mir_core_call_short_name(name: String) -> String {
     let n = len(name)
     let mut i = n - 1
     while i >= 0 {
-        if byte_at(name, i) == 58 {
-            return substring(name, i + 1, n)
+        if name.byte_at(i) == 58 {
+            return name.slice(i + 1, n)
         }
         i = i - 1
     }
@@ -67,7 +67,7 @@ fn mir_core_call_string_result_name(name: String) -> bool {
     eq(clone(name), "to_lowercase") {
         return true
     }
-    if ends_with(clone(name), "_to_string") || ends_with(clone(name), "_from_string") || ends_with(clone(name), "_from_bytes") || ends_with(clone(name), "_encode") {
+    if clone(name).ends_with("_to_string") || clone(name).ends_with("_from_string") || clone(name).ends_with("_from_bytes") || clone(name).ends_with("_encode") {
         return true
     }
     let short = mir_core_call_short_name(clone(name))

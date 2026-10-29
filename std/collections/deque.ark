@@ -597,7 +597,7 @@ impl<T: Debug> Debug for Queue<T> {
         // nested generic struct field through the shared free function does not
         // lower on wasm32-gc, but the field method call does.
         let rendered: String = self.deque.fmt_debug()
-        String_from("Queue ").concat(slice(rendered, 6, len(rendered)))
+        String_from("Queue ").concat(rendered.slice(6, len(rendered)))
     }
 }
 
@@ -722,7 +722,7 @@ impl<T: Clone> Clone for Stack<T> {
 impl<T: Debug> Debug for Stack<T> {
     fn fmt_debug(self: Stack<T>) -> String {
         let rendered: String = self.deque.fmt_debug()
-        String_from("Stack ").concat(slice(rendered, 6, len(rendered)))
+        String_from("Stack ").concat(rendered.slice(6, len(rendered)))
     }
 }
 

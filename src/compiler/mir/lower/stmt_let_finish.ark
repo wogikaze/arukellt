@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use std::text
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
@@ -103,18 +103,18 @@ fn apply_let_annotation_type(mut ctx: LowerCtx, node: AstNode, local_idx: i32, t
 }
 
 fn let_annotation_is_gc_ref_type(ctx: LowerCtx, local_type_name: String) -> bool {
-    if starts_with(clone(local_type_name), "enum:") {
+    if clone(local_type_name).starts_with("enum:") {
         return true
     }
-    if starts_with(clone(local_type_name), "vec:") || starts_with(clone(local_type_name), "hashmap:") {
+    if clone(local_type_name).starts_with("vec:") || clone(local_type_name).starts_with("hashmap:") {
         return true
     }
-    if starts_with(clone(local_type_name), "Option_") ||
-    starts_with(clone(local_type_name), "option:") ||
-    starts_with(clone(local_type_name), "Option:") ||
-    starts_with(clone(local_type_name), "Result_") ||
-    starts_with(clone(local_type_name), "result:") ||
-    starts_with(clone(local_type_name), "Result:") {
+    if clone(local_type_name).starts_with("Option_") ||
+    clone(local_type_name).starts_with("option:") ||
+    clone(local_type_name).starts_with("Option:") ||
+    clone(local_type_name).starts_with("Result_") ||
+    clone(local_type_name).starts_with("result:") ||
+    clone(local_type_name).starts_with("Result:") {
         return true
     }
     ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(local_type_name)) ||

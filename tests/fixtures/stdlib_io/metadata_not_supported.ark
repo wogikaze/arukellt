@@ -1,9 +1,8 @@
 use std::host::fs::Fs
 use std::test::Test
-use std::prelude::{contains}
 fn main() {
     match Fs::metadata("some_path") {
         Result::Ok(_) => Std::panic("expected error"),
-        Result::Err(err) => Test::assert_true(contains(err, "not yet supported")),
+        Result::Err(err) => Test::assert_true(err.contains("not yet supported")),
     }
 }

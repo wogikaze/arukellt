@@ -1,7 +1,6 @@
 use std::bytes
 use std::io
 use std::test::Test
-use std::prelude::{contains}
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
@@ -11,7 +10,7 @@ fn main() {
     match io::Io::read_exact(r, 5) {
         Result::Ok(_) => Std::panic("expected error"),
         Result::Err(err) => match err {
-            io::IoError::UnexpectedEof(msg) => Test::assert_true(contains(msg, "need 5")),
+            io::IoError::UnexpectedEof(msg) => Test::assert_true(msg.contains("need 5")),
             io::IoError::Other(msg) => Std::panic(msg),
         },
     }

@@ -1,19 +1,19 @@
 use std::text
 use std::json
-use std::prelude::{clone, to_string}
+use std::prelude::{clone}
 use analysis::symbol_references
 use lsp::positions
 fn append_text_edit(edits: String, text: String, start: i32, end: i32, new_text: String) -> String {
     let start_pos = positions::offset_to_position(clone(text), start)
     let end_pos = positions::offset_to_position(text, end)
     let mut item = String_from("{\"range\":{\"start\":{\"line\":")
-    item = item.concat(to_string(positions::lsp_position_line(start_pos)))
+    item = item.concat(positions::lsp_position_line(start_pos).to_string())
     item = item.concat(String_from(",\"character\":"))
-    item = item.concat(to_string(positions::lsp_position_character(start_pos)))
+    item = item.concat(positions::lsp_position_character(start_pos).to_string())
     item = item.concat(String_from("},\"end\":{\"line\":"))
-    item = item.concat(to_string(positions::lsp_position_line(end_pos)))
+    item = item.concat(positions::lsp_position_line(end_pos).to_string())
     item = item.concat(String_from(",\"character\":"))
-    item = item.concat(to_string(positions::lsp_position_character(end_pos)))
+    item = item.concat(positions::lsp_position_character(end_pos).to_string())
     item = item.concat(String_from("}},\"newText\":"))
     item = item.concat(json::JsonText::quote(new_text))
     item = item.concat(String_from("}"))

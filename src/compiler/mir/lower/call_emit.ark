@@ -1,4 +1,4 @@
-use std::prelude::{clone, ends_with, starts_with}
+use std::prelude::{clone}
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
 use mir::inst_call
@@ -27,16 +27,16 @@ fn mir_simd_lane_immediate_argument_index(callee_name: String) -> i32 {
 }
 
 fn mir_is_simd_lane_immediate_callee(callee_name: String) -> bool {
-    if starts_with(clone(callee_name), String_from("__simd_")) && ends_with(clone(callee_name), String_from("_replace_lane")) {
+    if clone(callee_name).starts_with(String_from("__simd_")) && clone(callee_name).ends_with(String_from("_replace_lane")) {
         return true
     }
-    if starts_with(clone(callee_name), String_from("__simd_")) && ends_with(clone(callee_name), String_from("_extract_lane")) {
+    if clone(callee_name).starts_with(String_from("__simd_")) && clone(callee_name).ends_with(String_from("_extract_lane")) {
         return true
     }
-    if starts_with(clone(callee_name), String_from("__simd_")) && ends_with(clone(callee_name), String_from("_extract_lane_s")) {
+    if clone(callee_name).starts_with(String_from("__simd_")) && clone(callee_name).ends_with(String_from("_extract_lane_s")) {
         return true
     }
-    if starts_with(clone(callee_name), String_from("__simd_")) && ends_with(clone(callee_name), String_from("_extract_lane_u")) {
+    if clone(callee_name).starts_with(String_from("__simd_")) && clone(callee_name).ends_with(String_from("_extract_lane_u")) {
         return true
     }
     false

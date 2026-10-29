@@ -1,4 +1,4 @@
-use std::prelude::{clone, to_string}
+use std::prelude::{clone}
 use std::text
 use corehir::body_table
 use corehir::expr_raw
@@ -41,7 +41,7 @@ fn diagnose_first_untyped_expression(
     while i < len(reachable) {
         let expression_id = get_unchecked(reachable, i)
         if expression_id < 0 || expression_id >= len(exprs) {
-            return "TypedCoreHIR reject: invalid reachable expression function=".concat(function_name).concat(" expression_id=".concat(to_string(expression_id)))
+            return "TypedCoreHIR reject: invalid reachable expression function=".concat(function_name).concat(" expression_id=".concat(expression_id.to_string()))
         }
         let expression = get_unchecked(exprs, expression_id)
         let value_type = expr_raw::corehir_expr_val_type(expression)
@@ -49,10 +49,10 @@ fn diagnose_first_untyped_expression(
         let type_id = verified_core_render_primitives::vc_type_id(value_type, clone(type_name))
         if type_id < 0 {
             let mut message = "TypedCoreHIR reject: untyped expression function=".concat(function_name)
-            message = message.concat(" function_index=".concat(to_string(function_index)))
-            message = message.concat(" expression_id=".concat(to_string(expression_id)))
-            message = message.concat(" kind=".concat(to_string(expr_raw::corehir_expr_kind(expression))))
-            message = message.concat(" value_type=".concat(to_string(value_type)))
+            message = message.concat(" function_index=".concat(function_index.to_string()))
+            message = message.concat(" expression_id=".concat(expression_id.to_string()))
+            message = message.concat(" kind=".concat(expr_raw::corehir_expr_kind(expression).to_string()))
+            message = message.concat(" value_type=".concat(value_type.to_string()))
             message = message.concat(" type_name=".concat(type_name))
             message = message.concat(" text=".concat(expr_raw::corehir_expr_text(expression)))
             return message
@@ -82,11 +82,11 @@ fn diagnose_typed_corehir_rejection(program: CoreHirRawProgram) -> String {
         if decl_index >= source_decl_start && decl_index < source_decl_end {
             source_function_count = source_function_count + 1
             if !verified_core_render_safe::vcs_typed_function_exists(program, function_index) {
-                return "TypedCoreHIR reject: missing typed function index=".concat(to_string(function_index))
+                return "TypedCoreHIR reject: missing typed function index=".concat(function_index.to_string())
             }
             let root = verified_core_render_safe::vcs_body_root(program, function_index)
             if !verified_core_render_safe::vcs_body_root_is_valid(program, root) {
-                return "TypedCoreHIR reject: invalid body root function=".concat(to_string(function_index)).concat(" root=".concat(to_string(root)))
+                return "TypedCoreHIR reject: invalid body root function=".concat(function_index.to_string()).concat(" root=".concat(root.to_string()))
             }
             let reachable = verified_core_render_safe::vcs_collect_reachable(program, root)
             if !verified_core_render_safe::vcs_reachable_is_typed(program, reachable) {
@@ -96,15 +96,15 @@ fn diagnose_typed_corehir_rejection(program: CoreHirRawProgram) -> String {
             let return_type_id = verified_core_render_safe::vcs_return_type_id(program, function_index)
             if return_vt < 0 || return_type_id < 0 {
                 return "TypedCoreHIR reject: invalid return type function=".concat(
-                    to_string(function_index)
-                ).concat(" value_type=".concat(to_string(return_vt)).concat(" type_id=".concat(to_string(return_type_id))))
+                    function_index.to_string()
+                ).concat(" value_type=".concat(return_vt.to_string()).concat(" type_id=".concat(return_type_id.to_string())))
             }
             let name = verified_core_render_safe::vcs_function_name(program, function_index)
             if len(clone(name)) == 0 {
-                return "TypedCoreHIR reject: empty function name index=".concat(to_string(function_index))
+                return "TypedCoreHIR reject: empty function name index=".concat(function_index.to_string())
             }
             if !verified_core_render_safe::vcs_parameters_are_valid(program, function_index) {
-                return "TypedCoreHIR reject: invalid parameters function=".concat(to_string(function_index))
+                return "TypedCoreHIR reject: invalid parameters function=".concat(function_index.to_string())
             }
         }
         function_index = function_index + 1

@@ -1,7 +1,6 @@
 use std::host::stdio
 use std::core::iter
 use std::test::Test
-use std::prelude::{to_string}
 use std::text
 fn left_value() -> i32 {
     stdio::println("left")

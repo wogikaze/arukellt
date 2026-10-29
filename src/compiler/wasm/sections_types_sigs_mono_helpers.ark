@@ -1,15 +1,15 @@
 // Mono type signature helper utilities extracted from sections_types_sigs_mono.
-use std::prelude::{byte_at, clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use mir::module_gc_struct
 use wasm::sections_types_gc
 fn mono_method_receiver_name(return_type_name: String, mir: MirModule) -> String {
-    if starts_with(clone(return_type_name), "struct:") {
+    if clone(return_type_name).starts_with("struct:") {
         let mut first_colon = 0 - 1
         let mut last_colon = 0 - 1
         let n = len(return_type_name)
         let mut i = 0
         while i < n {
-            if byte_at(return_type_name, i) == 58 {
+            if return_type_name.byte_at(i) == 58 {
                 if first_colon < 0 {
                     first_colon = i
                 }
@@ -18,7 +18,7 @@ fn mono_method_receiver_name(return_type_name: String, mir: MirModule) -> String
             i = i + 1
         }
         if first_colon >= 0 && last_colon > first_colon {
-            return substring(return_type_name, first_colon + 1, last_colon)
+            return return_type_name.slice(first_colon + 1, last_colon)
         }
         return String_new()
     }

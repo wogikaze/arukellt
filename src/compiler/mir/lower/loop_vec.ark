@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
@@ -8,18 +8,18 @@ use mir::lower::loop_conditions
 use mir::lower::ctx_gc_struct
 use mir::value_types
 fn mir_is_vec_type_name(vec_type: String) -> bool {
-    if eq(clone(vec_type), "Vec") || starts_with(clone(vec_type), "vec:") {
+    if eq(clone(vec_type), "Vec") || clone(vec_type).starts_with("vec:") {
         return true
     }
-    starts_with(clone(vec_type), "Vec<") && ends_with(clone(vec_type), ">")
+    clone(vec_type).starts_with("Vec<") && clone(vec_type).ends_with(">")
 }
 
 fn mir_vec_element_type_name(vec_type: String) -> String {
-    if starts_with(clone(vec_type), "vec:") {
-        return substring(vec_type, 4, len(vec_type))
+    if clone(vec_type).starts_with("vec:") {
+        return vec_type.slice(4, len(vec_type))
     }
-    if starts_with(clone(vec_type), "Vec<") && ends_with(clone(vec_type), ">") {
-        return substring(vec_type, 4, len(vec_type) - 1)
+    if clone(vec_type).starts_with("Vec<") && clone(vec_type).ends_with(">") {
+        return vec_type.slice(4, len(vec_type) - 1)
     }
     "i32"
 }
@@ -34,14 +34,14 @@ fn mir_vec_element_vt(ctx: LowerCtx, elem_type: String) -> i32 {
     if eq(clone(elem_type), "v128") || eq(clone(elem_type), "V128") {
         return value_types::VT_V128()
     }
-    if eq(clone(elem_type), "fnref") || eq(clone(elem_type), "fn") || starts_with(clone(elem_type), "fn(") {
+    if eq(clone(elem_type), "fnref") || eq(clone(elem_type), "fn") || clone(elem_type).starts_with("fn(") {
         return value_types::VT_FUNCREF()
     }
     if eq(clone(elem_type), "i32") || eq(clone(elem_type), "I32") || eq(clone(elem_type), "bool") || eq(clone(elem_type), "char") {
         return value_types::VT_I32()
     }
     if len(elem_type) == 1 {
-        let ch = byte_at(elem_type, 0)
+        let ch = elem_type.byte_at(0)
         if ch >= 65 && ch <= 90 {
             // A declared single-letter element type (struct P) is a ref,
             // not an unsubstituted-param scalar.

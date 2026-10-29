@@ -3,7 +3,7 @@
 // in one file, recommend importing via `use` and calling the short name.
 // Type/enum qualifiers (PascalCase::...) are excluded.
 
-use std::prelude::{byte_at, clone, eq, index_of}
+use std::prelude::{clone, eq}
 use std::text
 use diagnostics::codes
 use diagnostics::record
@@ -15,7 +15,7 @@ use diagnostics::mod as diag_mod
 fn prefer_use_import_threshold() -> i32 { 3 }
 
 fn is_module_style_qualified_path(path: String) -> bool {
-    let pos = index_of(clone(path), "::")
+    let pos = clone(path).index_of("::")
     if pos < 0 {
         return false
     }
@@ -27,7 +27,7 @@ fn is_module_style_qualified_path(path: String) -> bool {
     if len(clone(sym_part)) == 0 {
         return false
     }
-    let c = byte_at(mod_part, 0)
+    let c = mod_part.byte_at(0)
     if c == 95 {
         return true
     }

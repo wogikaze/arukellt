@@ -6,7 +6,7 @@
 // Desugared fns ride the normal resolve / typecheck / MIR pipeline, so no
 // MIR-level synthesis is needed. Only applies when DriverConfig.test_mode
 // is set; normal compiles still skip test decls at MIR per ADR-041 D5.
-use std::prelude::{clone, eq, substring, to_string}
+use std::prelude::{clone, eq}
 use std::text
 use compiler::session_parse
 use parser::ast
@@ -74,7 +74,7 @@ fn test_display_name(prefix: String, name: String) -> String {
 fn synthesize_test_fn(test_node: AstNode, index: i32) -> AstNode {
     let span = core_ast_span_fields::AstNode_span(test_node)
     let mut node = core_ast_factory::AstNode_new(kinds::NK_FN_DECL(), span)
-    core_ast_text_fields::AstNode_set_text(node, "__test_".concat(to_string(index)))
+    core_ast_text_fields::AstNode_set_text(node, "__test_".concat(index.to_string()))
     core_ast_span_fields::AstNode_set_name_span(node, span)
     let child_count = ast::ast_node_child_count(test_node)
     let body = ast::ast_node_child_at(test_node, child_count - 1)
@@ -94,7 +94,7 @@ fn synthesize_test_main(names: Vec<String>, decls: Vec<AstNode>) -> Vec<AstNode>
     let name_count = len(names)
     let mut i = 0
     while i < name_count {
-        src = src.concat("    __test_".concat(to_string(i)))
+        src = src.concat("    __test_".concat(i.to_string()))
         src = src.concat("()\n")
         src = src.concat("    stdio::println(\"  PASS ".concat(escape_test_name(get_unchecked(names, i))))
         src = src.concat("\")\n")
@@ -124,7 +124,7 @@ fn escape_test_name(name: String) -> String {
     let n = len(name)
     let mut i = 0
     while i < n {
-        let ch = substring(clone(name), i, i + 1)
+        let ch = clone(name).slice(i, i + 1)
         if eq(clone(ch), "\\") {
             out = out.concat("\\\\")
         } else if eq(clone(ch), "\"") {

@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq, substring}
+use std::prelude::{clone, eq}
 use lexer::scan
 use parser::core_api_token
 use parser::fstring_nodes
@@ -8,10 +8,10 @@ fn fstring_collect_segments(content: String, span: Span) -> Vec<AstNode> {
     let mut lit_start = 0
     let mut i = 0
     while i < clen {
-        let c = byte_at(content, i)
+        let c = content.byte_at(i)
         if c == 123 {
             if i > lit_start {
-                push(nodes, fstring_nodes::fstring_string_lit(substring(content, lit_start, i), span))
+                push(nodes, fstring_nodes::fstring_string_lit(content.slice(lit_start, i), span))
             }
             i = fstring_push_expr_segment(nodes, content, span, i)
             lit_start = i
@@ -20,7 +20,7 @@ fn fstring_collect_segments(content: String, span: Span) -> Vec<AstNode> {
         }
     }
     if lit_start < clen {
-        push(nodes, fstring_nodes::fstring_string_lit(substring(content, lit_start, clen), span))
+        push(nodes, fstring_nodes::fstring_string_lit(content.slice(lit_start, clen), span))
     }
     nodes
 }
@@ -34,8 +34,8 @@ fn fstring_push_expr_segment(mut nodes: Vec<AstNode>, content: String, span: Spa
     let mut in_char = false
     let mut i = open_idx + 1
     while i < clen && depth > 0 {
-        let ec = byte_at(content, i)
-        let prev = if i > 1 { byte_at(content, i - 1) } else { 0 }
+        let ec = content.byte_at(i)
+        let prev = if i > 1 { content.byte_at(i - 1) } else { 0 }
         if in_string {
             if ec == 34 && prev != 92 {
                 in_string = false
@@ -64,12 +64,12 @@ fn fstring_push_expr_segment(mut nodes: Vec<AstNode>, content: String, span: Spa
     }
     let close_idx = i - 1
     let end_of_expr = if colon_idx >= 1 { colon_idx } else { close_idx }
-    let expr_text = substring(content, expr_start, end_of_expr)
+    let expr_text = content.slice(expr_start, end_of_expr)
     let toks = scan::tokenize(clone(expr_text))
     let mut sub_p = Parser_new(toks)
     let expr = parse_expr(sub_p)
     if colon_idx >= 1 {
-        let spec_text = substring(content, colon_idx + 1, close_idx)
+        let spec_text = content.slice(colon_idx + 1, close_idx)
         let spec = fstring_trim(spec_text)
         if eq(spec, String_from("?")) {
             // `{x:?}` → `x.fmt_debug()` (Debug trait dispatch).
@@ -86,7 +86,7 @@ fn fstring_trim(s: String) -> String {
     let mut start = 0
     let mut end = n
     while start < end {
-        let c = byte_at(s, start)
+        let c = s.byte_at(start)
         if c == 32 || c == 9 || c == 10 || c == 13 {
             start = start + 1
         } else {
@@ -94,12 +94,12 @@ fn fstring_trim(s: String) -> String {
         }
     }
     while end > start {
-        let c = byte_at(s, end - 1)
+        let c = s.byte_at(end - 1)
         if c == 32 || c == 9 || c == 10 || c == 13 {
             end = end - 1
         } else {
             break
         }
     }
-    substring(s, start, end)
+    s.slice(start, end)
 }

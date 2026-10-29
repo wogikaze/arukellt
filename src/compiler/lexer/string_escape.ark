@@ -1,5 +1,4 @@
 use std::text
-use std::prelude::{substring}
 use lexer::tokens
 use lexer::string_escape_chars
 fn lex_escaped_string(mut lex: Lexer, start: i32) -> Token {
@@ -9,7 +8,7 @@ fn lex_escaped_string(mut lex: Lexer, start: i32) -> Token {
         let c = peek(lex)
         if c == 34 {
             if span_start < lex.pos {
-                result = result.concat(substring(lex.src, span_start, lex.pos))
+                result = result.concat(lex.src.slice(span_start, lex.pos))
             }
             lex.pos = lex.pos + 1
             return Token_new(tokens::TK_STRING(), result, start, lex.pos)
@@ -19,7 +18,7 @@ fn lex_escaped_string(mut lex: Lexer, start: i32) -> Token {
         }
         if c == 92 {
             if span_start < lex.pos {
-                result = result.concat(substring(lex.src, span_start, lex.pos))
+                result = result.concat(lex.src.slice(span_start, lex.pos))
             }
             lex.pos = lex.pos + 1
             if lex.pos >= lex.src_len {

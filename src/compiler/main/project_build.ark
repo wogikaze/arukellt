@@ -2,7 +2,7 @@ use std::host::fs::Fs
 use std::toml
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{clone, to_string}
+use std::prelude::{clone}
 use std::text
 use driver::config_record
 use driver::file
@@ -72,7 +72,7 @@ fn write_build_output(entry: String, out_path: String, bytes: Vec<i32>) {
     let write_result: Result<(), String> = Fs::write_bytes(clone(out_path), bytes)
     match write_result {
         Result::Ok(_) => {
-            let size_label = (String_from(" (")).concat(to_string(byte_count).concat(String_from(" bytes)")))
+            let size_label = (String_from(" (")).concat(byte_count.to_string().concat(String_from(" bytes)")))
             let arrow_label = clone(entry).concat(String_from(" -> ").concat(clone(out_path)))
             stdio::eprintln(
                 String_from("built ").concat(arrow_label.concat(size_label))

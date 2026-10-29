@@ -1,6 +1,6 @@
 use std::text
 use std::json
-use std::prelude::{clone, substring, to_string}
+use std::prelude::{clone}
 use analysis::ident_span
 use analysis::symbol_references
 use analysis::symbols
@@ -41,7 +41,7 @@ fn build_prepare_rename_response(id: i32, text: String, offset: i32) -> String {
         let loc = get_unchecked(refs, 0)
         start = symbol_references::reference_location_start(loc)
         end = symbol_references::reference_location_end(loc)
-        name = substring(clone(text), start, end)
+        name = clone(text).slice(start, end)
     } else {
         let span = symbols::ident_span_at_offset(clone(text), offset)
         if !ident_span::ident_span_found(span) {
@@ -54,15 +54,15 @@ fn build_prepare_rename_response(id: i32, text: String, offset: i32) -> String {
     let start_pos = positions::offset_to_position(clone(text), start)
     let end_pos = positions::offset_to_position(text, end)
     let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body = body.concat(to_string(id))
+    body = body.concat(id.to_string())
     body = body.concat(String_from(",\"result\":{\"range\":{\"start\":{\"line\":"))
-    body = body.concat(to_string(positions::lsp_position_line(start_pos)))
+    body = body.concat(positions::lsp_position_line(start_pos).to_string())
     body = body.concat(String_from(",\"character\":"))
-    body = body.concat(to_string(positions::lsp_position_character(start_pos)))
+    body = body.concat(positions::lsp_position_character(start_pos).to_string())
     body = body.concat(String_from("},\"end\":{\"line\":"))
-    body = body.concat(to_string(positions::lsp_position_line(end_pos)))
+    body = body.concat(positions::lsp_position_line(end_pos).to_string())
     body = body.concat(String_from(",\"character\":"))
-    body = body.concat(to_string(positions::lsp_position_character(end_pos)))
+    body = body.concat(positions::lsp_position_character(end_pos).to_string())
     body = body.concat(String_from("}},\"placeholder\":"))
     body = body.concat(json::JsonText::quote(name))
     body = body.concat(String_from("}}"))
@@ -71,7 +71,7 @@ fn build_prepare_rename_response(id: i32, text: String, offset: i32) -> String {
 
 fn build_rename_response(id: i32, changes: String) -> String {
     let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body = body.concat(to_string(id))
+    body = body.concat(id.to_string())
     body = body.concat(String_from(",\"result\":{\"changes\":{"))
     body = body.concat(changes)
     body = body.concat(String_from("}}}"))

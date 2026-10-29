@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::prelude::{clone, contains, substring, to_string}
+use std::prelude::{clone}
 use std::text
 use corehir::fn_info
 use corehir::raw_decls
@@ -39,11 +39,11 @@ fn typed_corehir_render_type(type_id: i32, pointer_width: i32) -> String {
     if n < 1 {
         return rendered
     }
-    substring(rendered, 0, n - 1).concat(",\"bits\":".concat(to_string(bits).concat(",\"signed\":true}")))
+    rendered.slice(0, n - 1).concat(",\"bits\":".concat(bits.to_string().concat(",\"signed\":true}")))
 }
 
 fn render_typed_corehir(program: CoreHirRawProgram, config: DriverConfig) -> String {
-    let pointer_width = if contains(config_record::config_target(config), "64") { 64 } else { 32 }
+    let pointer_width = if config_record::config_target(config).contains("64") { 64 } else { 32 }
     let module_name = if len(config_record::config_source_file(config)) > 0 {
         config_record::config_source_file(config)
     } else {
@@ -62,7 +62,7 @@ fn render_typed_corehir(program: CoreHirRawProgram, config: DriverConfig) -> Str
     let mut out = "{\"schema\":\"arukellt-typed-corehir\",\"schema_version\":1,\"generator\":\"arukellt-selfhost\",\"module\":"
     out = out.concat(verified_core_render_primitives::vc_quote(module_name))
     out = out.concat(",\"target_profile\":{\"integer_model\":\"machine\",\"overflow\":\"compiler-current\",\"floating_point\":\"ieee754\",\"pointer_width\":")
-    out = out.concat(to_string(pointer_width).concat("}"))
+    out = out.concat(pointer_width.to_string().concat("}"))
     out = out.concat(",\"types\":[")
     let mut type_id = 0
     while type_id < verified_core_render_primitives::vc_type_count() {

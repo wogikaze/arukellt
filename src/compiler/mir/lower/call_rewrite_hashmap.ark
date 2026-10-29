@@ -7,13 +7,13 @@ use mir::mono_names
 // pair rewrites to the non-public implementation functions in
 // std::collections::hash_string / hash_fn / hash_str_fn so GC and
 // linear-memory targets share one operation and Option/bool result contract.
-use std::prelude::{byte_at, clone, ends_with, eq, index_of, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 fn mir_rewrite_hashmap_constructor(callee_name: String) -> String {
     // Cheap gate before the spelling probes below: each probe builds
     // several concatenated candidate names, and almost every call site in
     // real programs is not a HashMap constructor at all (#851).
-    if !starts_with(clone(callee_name), String_from("HashMap")) {
+    if !clone(callee_name).starts_with(String_from("HashMap")) {
         return String_new()
     }
     // `with_capacity` is part of the flat-store maintenance surface; the
@@ -181,9 +181,9 @@ fn mir_hashmap_target_is_lowering(callee_name: String) -> bool {
     // Non-public implementation targets whose short name would otherwise be
     // run through mono target resolution. The i32->i32 direct targets use the
     // bare hashmap_* emit names and resolve like the old builtin aliases.
-    starts_with(clone(callee_name), String_from("hash_string::hashmap_")) ||
-    starts_with(clone(callee_name), String_from("hash_fn::hashmap_")) ||
-    starts_with(clone(callee_name), String_from("hash_str_fn::hashmap_"))
+    clone(callee_name).starts_with(String_from("hash_string::hashmap_")) ||
+    clone(callee_name).starts_with(String_from("hash_fn::hashmap_")) ||
+    clone(callee_name).starts_with(String_from("hash_str_fn::hashmap_"))
 }
 
 fn hashmap_constructor_matches(
@@ -225,17 +225,17 @@ fn hashmap_method_name(callee_name: String) -> String {
     if is_hashmap_method_leaf(clone(callee_name)) {
         return strip_hashmap_method_suffix(clone(callee_name))
     }
-    if starts_with(clone(callee_name), String_from("HashMap::")) {
-        return strip_hashmap_method_suffix(substring(callee_name, 9, len(callee_name)))
+    if clone(callee_name).starts_with(String_from("HashMap::")) {
+        return strip_hashmap_method_suffix(callee_name.slice(9, len(callee_name)))
     }
-    if starts_with(clone(callee_name), String_from("HashMap__")) {
-        return strip_hashmap_method_suffix(substring(callee_name, 9, len(callee_name)))
+    if clone(callee_name).starts_with(String_from("HashMap__")) {
+        return strip_hashmap_method_suffix(callee_name.slice(9, len(callee_name)))
     }
     // The capacity / bulk methods are declared on the concrete
     // `impl HashMap<i32, i32>`; impl-method resolution can hand the call
     // over as `HashMap_i32_i32::capacity` (#917).
-    if starts_with(clone(callee_name), String_from("HashMap_i32_i32::")) {
-        return strip_hashmap_method_suffix(substring(callee_name, 17, len(callee_name)))
+    if clone(callee_name).starts_with(String_from("HashMap_i32_i32::")) {
+        return strip_hashmap_method_suffix(callee_name.slice(17, len(callee_name)))
     }
     String_new()
 }
@@ -261,9 +261,9 @@ fn is_hashmap_method_leaf(name: String) -> bool {
 }
 
 fn strip_hashmap_method_suffix(name: String) -> String {
-    let separator = index_of(clone(name), String_from("__"))
+    let separator = clone(name).index_of(String_from("__"))
     if separator >= 0 {
-        return substring(name, 0, separator)
+        return name.slice(0, separator)
     }
     name
 }
@@ -304,17 +304,17 @@ fn hashmap_family_for_type(type_name: String) -> String {
 // while free-function params normalize to hashmap:<pair>. Map the
 // supported pairs onto the same alias so method rewrites resolve (#691).
 fn hashmap_pair_alias_for_type_name(type_name: String) -> String {
-    if !starts_with(clone(type_name), String_from("HashMap<")) ||
-    !ends_with(clone(type_name), String_from(">")) {
+    if !clone(type_name).starts_with(String_from("HashMap<")) ||
+    !clone(type_name).ends_with(String_from(">")) {
         return type_name
     }
-    let inner = substring(clone(type_name), 8, len(type_name) - 1)
+    let inner = clone(type_name).slice(8, len(type_name) - 1)
     let comma = hashmap_angle_comma_index(clone(inner))
     if comma < 0 {
         return type_name
     }
-    let key = hashmap_angle_key_tag(substring(clone(inner), 0, comma))
-    let val = hashmap_angle_val_tag(substring(clone(inner), comma + 1, len(inner)))
+    let key = hashmap_angle_key_tag(clone(inner).slice(0, comma))
+    let val = hashmap_angle_val_tag(clone(inner).slice(comma + 1, len(inner)))
     if len(key) == 0 || len(val) == 0 {
         return type_name
     }
@@ -328,7 +328,7 @@ fn hashmap_angle_comma_index(inner: String) -> i32 {
     let mut i = 0
     let n = len(inner)
     while i < n {
-        let ch = byte_at(clone(inner), i)
+        let ch = clone(inner).byte_at(i)
         if ch == 60 || ch == 40 {
             depth = depth + 1
         }
@@ -346,10 +346,10 @@ fn hashmap_angle_comma_index(inner: String) -> i32 {
 fn hashmap_angle_seg_trim(seg: String) -> String {
     let n = len(seg)
     let mut i = 0
-    while i < n && byte_at(clone(seg), i) == 32 {
+    while i < n && clone(seg).byte_at(i) == 32 {
         i = i + 1
     }
-    substring(seg, i, n)
+    seg.slice(i, n)
 }
 
 fn hashmap_angle_key_tag(seg: String) -> String {
@@ -374,34 +374,34 @@ fn hashmap_angle_val_tag(seg: String) -> String {
     // fn-valued maps share the fnref storage family; every fn spelling
     // (fn, fn(...), fn<...>, fnref, fnsig:) resolves to the same pair tag.
     if eq(clone(s), String_from("fn")) ||
-    starts_with(clone(s), String_from("fn(")) ||
-    starts_with(clone(s), String_from("fn<")) ||
-    starts_with(clone(s), String_from("fnref")) ||
-    starts_with(clone(s), String_from("fnsig:")) {
+    clone(s).starts_with(String_from("fn(")) ||
+    clone(s).starts_with(String_from("fn<")) ||
+    clone(s).starts_with(String_from("fnref")) ||
+    clone(s).starts_with(String_from("fnsig:")) {
         return String_from("fn")
     }
     String_new()
 }
 
 fn hashmap_family_for_callee(callee_name: String) -> String {
-    if ends_with(clone(callee_name), String_from("__i32__i32")) {
+    if clone(callee_name).ends_with(String_from("__i32__i32")) {
         return String_from("hash::ii")
     }
-    if ends_with(clone(callee_name), String_from("__String__i32")) {
+    if clone(callee_name).ends_with(String_from("__String__i32")) {
         return String_from("hash_string::hashmap_str")
     }
-    if ends_with(clone(callee_name), String_from("__i32__String")) {
+    if clone(callee_name).ends_with(String_from("__i32__String")) {
         return String_from("hash_string::hashmap_i32_str")
     }
-    if ends_with(clone(callee_name), String_from("__String__String")) {
+    if clone(callee_name).ends_with(String_from("__String__String")) {
         return String_from("hash_string::hashmap_str_str")
     }
-    if ends_with(clone(callee_name), String_from("__i32__fn")) ||
-    ends_with(mono_names::mono_safe_name(clone(callee_name)), String_from("__i32__fn_i32_i32_")) {
+    if clone(callee_name).ends_with(String_from("__i32__fn")) ||
+    mono_names::mono_safe_name(clone(callee_name)).ends_with(String_from("__i32__fn_i32_i32_")) {
         return String_from("hash_fn::hashmap_i32_fn")
     }
-    if ends_with(clone(callee_name), String_from("__String__fn")) ||
-    ends_with(mono_names::mono_safe_name(clone(callee_name)), String_from("__String__fn_i32_i32_")) {
+    if clone(callee_name).ends_with(String_from("__String__fn")) ||
+    mono_names::mono_safe_name(clone(callee_name)).ends_with(String_from("__String__fn_i32_i32_")) {
         return String_from("hash_str_fn::hashmap_str_fn")
     }
     String_new()

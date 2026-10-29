@@ -1,4 +1,4 @@
-use std::prelude::{clone, contains, eq, starts_with}
+use std::prelude::{clone, eq}
 use std::text
 use mir::function_identity
 use mir::function_param_view
@@ -33,7 +33,7 @@ fn mir_payload_field_vt_for_payload(
     if len(payload_type_name) > 0 && field_idx == 0 {
         if eq(clone(payload_type_name), "fnref") ||
         eq(clone(payload_type_name), "fn") ||
-        starts_with(clone(payload_type_name), "fn(") {
+        clone(payload_type_name).starts_with("fn(") {
             return value_types::VT_FUNCREF()
         }
         if mir_payload_type_name_is_gc_ref_payload(clone(payload_type_name)) {
@@ -99,7 +99,7 @@ fn mir_payload_field_vt_for_payload(
 fn mir_payload_type_name_is_gc_ref_payload(type_name: String) -> bool {
     if eq(clone(type_name), "fnref") ||
     eq(clone(type_name), "fn") ||
-    starts_with(clone(type_name), "fn(") {
+    clone(type_name).starts_with("fn(") {
         return false
     }
     if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
@@ -120,7 +120,7 @@ fn mir_variant_has_fnref_payload_field(ctx: LowerCtx, variant_name: String) -> b
     while i < count {
         if ctx_gc_enum::ctx_gc_enum_variant_names_match(clone(get_unchecked(ctx.gc_enum_variant_names, i)), clone(variant_name)) {
             let sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, i))
-            if contains(clone(sig), "_f1_fnref") {
+            if clone(sig).contains("_f1_fnref") {
                 return true
             }
         }
@@ -138,7 +138,7 @@ fn mir_payload_gc_field_is_ref(ctx: LowerCtx, variant_name: String, field_idx: i
         if mir_payload_scalar_type_name(clone(declared_type)) ||
         eq(clone(declared_type), "fnref") ||
         eq(clone(declared_type), "fn") ||
-        starts_with(clone(declared_type), "fn(") {
+        clone(declared_type).starts_with("fn(") {
             return false
         }
     }
@@ -157,7 +157,7 @@ fn mir_payload_gc_field_is_ref(ctx: LowerCtx, variant_name: String, field_idx: i
             saw_name = true
             let sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, i))
             if field_idx == 0 {
-                if contains(clone(sig), "_f1_ref") || contains(clone(sig), "gcsref") {
+                if clone(sig).contains("_f1_ref") || clone(sig).contains("gcsref") {
                     return true
                 }
             }
@@ -253,7 +253,7 @@ fn mir_report_weak_payload_scrutinee(ctx: LowerCtx, variant_name: String, payloa
     // impl-side params the signature view does not expose.
     let cur_fn = ctx_current_storage::ctx_current_func_value(ctx)
     if function_param_view::MirFunction_has_unsubstituted_generic_param(cur_fn) ||
-    contains(function_identity::MirFunction_name(cur_fn), String_from("?")) {
+    function_identity::MirFunction_name(cur_fn).contains(String_from("?")) {
         return
     }
     let message = String_from("unsupported match on an untyped Option/Result scrutinee: cannot determine the payload type for `").concat(

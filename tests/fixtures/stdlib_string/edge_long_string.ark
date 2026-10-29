@@ -1,10 +1,9 @@
 use std::test::Test
 use std::test
-use std::prelude::{ends_with, starts_with}
 
 fn main() {
     let s = (String_from("abcdefghij")).repeat(10)
     Test::assert_eq_i32(len(s), 100)
-    Test::assert_true(starts_with(s, String_from("abcdefghij")))
-    Test::assert_true(ends_with(s, String_from("abcdefghij")))
+    Test::assert_true(s.starts_with(String_from("abcdefghij")))
+    Test::assert_true(s.ends_with(String_from("abcdefghij")))
 }

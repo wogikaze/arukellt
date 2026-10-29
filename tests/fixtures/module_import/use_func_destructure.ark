@@ -1,14 +1,13 @@
 // Fixture: use_func_destructure.ark
-// Issue #717: `use std::collections::string::{index_of}` imports the function
-// `index_of` directly into scope. Bare call `index_of(s, sep)` resolves to
-// `string::index_of(s, sep)` via the use-alias mechanism.
+// Issue #717: `use std::collections::string::{eq}` imports the function
+// directly into scope. The bare call `eq(...)` resolves to
+// `string::eq(...)` via the use-alias mechanism.
 //
-// Expected output: 1
-use std::collections::string::{index_of}
+// Expected output: true
+use std::collections::string::{eq}
 
 fn main() {
     let s: String = "a,b"
-    let sep: String = ","
-    let index = index_of(s, sep)
-    __intrinsic_println(__intrinsic_i32_to_string(index))
+    let equal = eq(s, "a,b")
+    __intrinsic_println(equal.to_string())
 }

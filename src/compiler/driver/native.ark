@@ -1,11 +1,10 @@
-use std::prelude::{byte_at}
 use std::text
 pub fn native_output_bytes_from_string(text: String) -> Vec<i32> {
     let mut out = Vec::new<i32>()
     let text_len = len(text)
     let mut i = 0
     while i < text_len {
-        push(out, byte_at(text, i))
+        push(out, text.byte_at(i))
         i = i + 1
     }
     out

@@ -1,12 +1,11 @@
 // WIT resource / own / borrow type parsing helpers (#473).
 
-use std::prelude::{byte_at, index_of, starts_with, substring}
 use std::text
 fn wit_trim_ws(text: String) -> String {
     let n = len(text)
     let mut start = 0
     while start < n {
-        let ch = byte_at(text, start)
+        let ch = text.byte_at(start)
         if ch != 32 && ch != 9 && ch != 10 && ch != 13 {
             break
         }
@@ -14,34 +13,34 @@ fn wit_trim_ws(text: String) -> String {
     }
     let mut end = n
     while end > start {
-        let ch = byte_at(text, end - 1)
+        let ch = text.byte_at(end - 1)
         if ch != 32 && ch != 9 && ch != 10 && ch != 13 {
             break
         }
         end = end - 1
     }
-    substring(text, start, end)
+    text.slice(start, end)
 }
 
 fn wit_is_resource_decl(text: String) -> bool {
-    starts_with(wit_trim_ws(text), "resource ")
+    wit_trim_ws(text).starts_with("resource ")
 }
 
 fn wit_is_own_type(text: String) -> bool {
-    starts_with(wit_trim_ws(text), "own<")
+    wit_trim_ws(text).starts_with("own<")
 }
 
 fn wit_is_borrow_type(text: String) -> bool {
-    starts_with(wit_trim_ws(text), "borrow<")
+    wit_trim_ws(text).starts_with("borrow<")
 }
 
 fn wit_own_inner_name(text: String) -> String {
-    let open = index_of(text, "<")
-    let close = index_of(text, ">")
+    let open = text.index_of("<")
+    let close = text.index_of(">")
     if open < 0 || close <= open {
         return String_new()
     }
-    wit_trim_ws(substring(text, open + 1, close))
+    wit_trim_ws(text.slice(open + 1, close))
 }
 
 fn wit_borrow_inner_name(text: String) -> String {

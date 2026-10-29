@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, ends_with, eq, substring, to_string}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::callee_spelling
 use resolver::expr_path
@@ -213,7 +213,7 @@ fn hashset_from_iter_candidate(
     callee_name: String
 ) -> String {
     let is_from_iter = eq(clone(callee_name), String_from("HashSet::from_iter")) ||
-    ends_with(clone(callee_name), String_from("::HashSet::from_iter"))
+    clone(callee_name).ends_with(String_from("::HashSet::from_iter"))
     if !is_from_iter || ast_access::node_child_count(node) < 2 {
         return String_new()
     }
@@ -254,7 +254,7 @@ fn infer_concrete_call_expr(
         unify::type_error_bad_arity(
             env,
             String_from("wrong number of arguments for `").concat(
-                clone(fname).concat(String_from("`: expected ").concat(to_string(param_count).concat(String_from(", found ").concat(to_string(arg_count)))))
+                clone(fname).concat(String_from("`: expected ").concat(param_count.to_string().concat(String_from(", found ").concat(arg_count.to_string()))))
             )
         )
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, arg_count)
@@ -334,7 +334,7 @@ fn infer_prelude_concrete_call_args(
             let mut message = String_from("type mismatch in call to `")
             message = message.concat(clone(callee_name))
             message = message.concat(String_from("`: argument "))
-            message = message.concat(to_string(i + 1))
+            message = message.concat((i + 1).to_string())
             message = message.concat(String_from(" has type "))
             message = message.concat(names::type_display_name(resolved_arg_ty))
             message = message.concat(String_from(", expected "))
@@ -366,8 +366,8 @@ fn tc_strip_module_prefix(name: String) -> String {
     let n = len(name)
     let mut i = n - 1
     while i >= 0 {
-        if byte_at(name, i) == 58 {
-            return substring(name, i + 1, n)
+        if name.byte_at(i) == 58 {
+            return name.slice(i + 1, n)
         }
         i = i - 1
     }

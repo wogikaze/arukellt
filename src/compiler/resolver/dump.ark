@@ -6,7 +6,6 @@ use resolver::names
 use resolver::types
 
 // ── Dump ─────────────────────────────────────────────────────────────────────
-use std::prelude::{to_string}
 use std::text
 fn dump_scope(ctx: ResolveCtx) {
     let scope_count = scope_stack_scopes::ResolveCtx_scope_count(ctx)
@@ -14,7 +13,7 @@ fn dump_scope(ctx: ResolveCtx) {
     while i < scope_count {
         let scope = scope_stack_scopes::ResolveCtx_scope_at(ctx, i)
         let sym_count = scope_stack_scopes::Scope_symbol_count(scope)
-        stdio::eprintln("scope[".concat(to_string(i).concat("] (".concat(to_string(sym_count).concat(" symbols)")))))
+        stdio::eprintln("scope[".concat(i.to_string().concat("] (".concat(sym_count.to_string().concat(" symbols)")))))
         let mut j = 0
         while j < sym_count {
             let sym = scope_stack_scopes::Scope_symbol_at(scope, j)
@@ -32,6 +31,6 @@ fn dump_scope(ctx: ResolveCtx) {
             stdio::eprintln("error: ".concat(context::ResolveCtx_error_at(ctx, ei)))
             ei = ei + 1
         }
-        stdio::eprintln(to_string(error_count).concat(" resolve error(s)"))
+        stdio::eprintln(error_count.to_string().concat(" resolve error(s)"))
     }
 }

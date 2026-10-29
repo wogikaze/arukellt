@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq, substring}
+use std::prelude::{clone, eq}
 use std::text
 use typechecker::ast_access
 use typechecker::call_generic_common
@@ -156,7 +156,7 @@ fn call_owner_segment(name: String) -> String {
     let mut last_separator = 0 - 1
     let mut i = 0
     while i + 1 < n {
-        if byte_at(name, i) == 58 && byte_at(name, i + 1) == 58 {
+        if name.byte_at(i) == 58 && name.byte_at(i + 1) == 58 {
             last_separator = i
             i = i + 2
         } else {
@@ -166,7 +166,7 @@ fn call_owner_segment(name: String) -> String {
     if last_separator < 0 {
         return String_new()
     }
-    substring(name, 0, last_separator)
+    name.slice(0, last_separator)
 }
 
 // Impl binder arity for an inherent/trait associated call. The owner's

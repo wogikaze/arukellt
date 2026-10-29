@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, contains, ends_with, eq, index_of, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_exists
@@ -13,7 +13,7 @@ fn mir_method_name_last_segment(name: String) -> String {
     let mut last_start = 0 - 1
     let mut i = 0
     while i < n - 1 {
-        if byte_at(name, i) == 58 && byte_at(name, i + 1) == 58 {
+        if name.byte_at(i) == 58 && name.byte_at(i + 1) == 58 {
             last_start = i + 2
             i = i + 2
         } else {
@@ -21,7 +21,7 @@ fn mir_method_name_last_segment(name: String) -> String {
         }
     }
     if last_start >= 0 {
-        return substring(name, last_start, n)
+        return name.slice(last_start, n)
     }
     clone(name)
 }
@@ -32,7 +32,7 @@ fn mir_method_name_last_two_segments(name: String) -> String {
     let mut last_start = 0 - 1
     let mut i = 0
     while i < n - 1 {
-        if byte_at(name, i) == 58 && byte_at(name, i + 1) == 58 {
+        if name.byte_at(i) == 58 && name.byte_at(i + 1) == 58 {
             prev_start = last_start
             last_start = i + 2
             i = i + 2
@@ -41,10 +41,10 @@ fn mir_method_name_last_two_segments(name: String) -> String {
         }
     }
     if prev_start >= 0 {
-        return substring(name, prev_start, n)
+        return name.slice(prev_start, n)
     }
     if last_start >= 0 {
-        return substring(name, last_start, n)
+        return name.slice(last_start, n)
     }
     clone(name)
 }
@@ -56,7 +56,7 @@ fn mir_is_all_digits(s: String) -> bool {
     }
     let mut i = 0
     while i < n {
-        let c = byte_at(s, i)
+        let c = s.byte_at(i)
         if c < 48 || c > 57 {
             return false
         }
@@ -73,16 +73,16 @@ fn mir_strip_type_instance_suffix(name: String) -> String {
     let mut last_colon = 0 - 1
     let mut i = n - 1
     while i >= 0 {
-        if byte_at(name, i) == 58 {
+        if name.byte_at(i) == 58 {
             last_colon = i
             i = 0 - 1
         }
         i = i - 1
     }
     if last_colon >= 0 {
-        let suffix = substring(name, last_colon + 1, n)
+        let suffix = name.slice(last_colon + 1, n)
         if mir_is_all_digits(suffix) {
-            return substring(name, 0, last_colon)
+            return name.slice(0, last_colon)
         }
     }
     clone(name)
@@ -90,11 +90,11 @@ fn mir_strip_type_instance_suffix(name: String) -> String {
 
 fn mir_normalize_type_name(t: String) -> String {
     let mut n = clone(t)
-    if starts_with(clone(n), String_from("struct:")) {
-        n = substring(n, 7, len(n))
+    if clone(n).starts_with(String_from("struct:")) {
+        n = n.slice(7, len(n))
     }
-    if starts_with(clone(n), String_from("enum:")) {
-        n = substring(n, 5, len(n))
+    if clone(n).starts_with(String_from("enum:")) {
+        n = n.slice(5, len(n))
     }
     n = mir_strip_type_instance_suffix(clone(n))
     n = mir_method_name_last_segment(clone(n))
@@ -111,13 +111,13 @@ fn mir_inst_owner_name(type_name: String) -> String {
     // to the declared instantiation spelling before splitting on <>.
     let normalized = mir_normalize_type_name(clone(type_name))
     let n = len(normalized)
-    if n < 3 || byte_at(clone(normalized), n - 1) != 62 {
+    if n < 3 || clone(normalized).byte_at(n - 1) != 62 {
         return normalized
     }
     let mut lt = 0 - 1
     let mut i = 0
     while i < n {
-        if byte_at(clone(normalized), i) == 60 {
+        if clone(normalized).byte_at(i) == 60 {
             lt = i
             i = n
         }
@@ -126,8 +126,8 @@ fn mir_inst_owner_name(type_name: String) -> String {
     if lt <= 0 {
         return normalized
     }
-    let base = substring(clone(normalized), 0, lt)
-    let inner = substring(clone(normalized), lt + 1, n - 1)
+    let base = clone(normalized).slice(0, lt)
+    let inner = clone(normalized).slice(lt + 1, n - 1)
     // Vec and HashMap impl targets keep their established owner spellings:
     // Vec<String> -> Vec_String, other Vec<T> -> Vec; HashMap<K, V> with two
     // concrete named args -> HashMap_K_V, otherwise bare HashMap.
@@ -159,8 +159,8 @@ fn mir_bare_owner_name(type_name: String) -> String {
     let n = len(normalized)
     let mut i = 0
     while i < n {
-        if byte_at(clone(normalized), i) == 60 {
-            return substring(normalized, 0, i)
+        if clone(normalized).byte_at(i) == 60 {
+            return normalized.slice(0, i)
         }
         i = i + 1
     }
@@ -179,7 +179,7 @@ fn mir_inst_key_suffix(inner: String) -> String {
     let mut j = 0
     while j <= m {
         let at_end = j == m
-        let ch = if at_end { 44 } else { byte_at(clone(inner), j) }
+        let ch = if at_end { 44 } else { clone(inner).byte_at(j) }
         if ch == 60 {
             depth = depth + 1
         }
@@ -187,7 +187,7 @@ fn mir_inst_key_suffix(inner: String) -> String {
             depth = depth - 1
         }
         if (ch == 44 && depth == 0) || at_end {
-            let seg = substring(clone(inner), seg_start, j)
+            let seg = clone(inner).slice(seg_start, j)
             let key = mir_inst_arg_key(seg)
             if len(key) == 0 {
                 return String_new()
@@ -212,7 +212,7 @@ fn mir_hashmap_decl_owner_name(inner: String) -> String {
     let m = len(inner)
     let mut i = 0
     while i < m {
-        let ch = byte_at(clone(inner), i)
+        let ch = clone(inner).byte_at(i)
         if ch == 60 {
             depth = depth + 1
         }
@@ -230,8 +230,8 @@ fn mir_hashmap_decl_owner_name(inner: String) -> String {
     if comma < 0 {
         return String_from("HashMap")
     }
-    let key_seg = substring(clone(inner), 0, comma)
-    let val_seg = substring(clone(inner), comma + 1, m)
+    let key_seg = clone(inner).slice(0, comma)
+    let val_seg = clone(inner).slice(comma + 1, m)
     if !mir_inst_seg_is_named(clone(key_seg)) {
         return String_from("HashMap")
     }
@@ -252,12 +252,12 @@ fn mir_inst_seg_is_named(seg: String) -> bool {
     if len(seg) == 0 {
         return false
     }
-    if len(seg) == 1 && byte_at(clone(seg), 0) >= 65 && byte_at(clone(seg), 0) <= 90 {
+    if len(seg) == 1 && clone(seg).byte_at(0) >= 65 && clone(seg).byte_at(0) <= 90 {
         return false
     }
     let mut i = 0
     while i < len(seg) {
-        let ch = byte_at(clone(seg), i)
+        let ch = clone(seg).byte_at(i)
         if ch == 60 || ch == 62 || ch == 58 || ch == 63 {
             return false
         }
@@ -273,15 +273,15 @@ fn mir_inst_seg_is_named(seg: String) -> bool {
 fn mir_inst_seg_is_fn(seg: String) -> bool {
     let n = len(seg)
     let mut i = 0
-    while i < n && byte_at(clone(seg), i) == 32 {
+    while i < n && clone(seg).byte_at(i) == 32 {
         i = i + 1
     }
-    let s = substring(clone(seg), i, n)
+    let s = clone(seg).slice(i, n)
     eq(clone(s), String_from("fn")) ||
-    starts_with(clone(s), String_from("fn(")) ||
-    starts_with(clone(s), String_from("fn<")) ||
-    starts_with(clone(s), String_from("fnref")) ||
-    starts_with(clone(s), String_from("fnsig:"))
+    clone(s).starts_with(String_from("fn(")) ||
+    clone(s).starts_with(String_from("fn<")) ||
+    clone(s).starts_with(String_from("fnref")) ||
+    clone(s).starts_with(String_from("fnsig:"))
 }
 
 fn mir_inst_named_seg_key(seg: String) -> String {
@@ -299,8 +299,8 @@ fn mir_inst_arg_key(seg: String) -> String {
     if len(seg) == 0 {
         return String_new()
     }
-    if starts_with(clone(seg), String_from("vec:")) {
-        let inner = substring(clone(seg), 4, len(seg))
+    if clone(seg).starts_with(String_from("vec:")) {
+        let inner = clone(seg).slice(4, len(seg))
         if len(inner) == 0 {
             return String_from("Vec")
         }
@@ -310,52 +310,52 @@ fn mir_inst_arg_key(seg: String) -> String {
         }
         return String_from("Vec_").concat(elem_key)
     }
-    if starts_with(clone(seg), String_from("hashmap:")) {
+    if clone(seg).starts_with(String_from("hashmap:")) {
         let owner = mir_hashmap_impl_owner_name(seg)
         if len(owner) == 0 {
             return String_from("HashMap")
         }
         return owner
     }
-    if starts_with(clone(seg), String_from("struct:")) {
-        let rest = substring(clone(seg), 7, len(seg))
+    if clone(seg).starts_with(String_from("struct:")) {
+        let rest = clone(seg).slice(7, len(seg))
         return mir_inst_arg_key(mir_strip_type_instance_suffix(rest))
     }
-    if starts_with(clone(seg), String_from("enum:")) {
-        return mir_inst_arg_key(substring(clone(seg), 5, len(seg)))
+    if clone(seg).starts_with(String_from("enum:")) {
+        return mir_inst_arg_key(clone(seg).slice(5, len(seg)))
     }
     if eq(clone(seg), String_from("string")) {
         return String_from("String")
     }
-    if byte_at(clone(seg), 0) == 63 {
+    if clone(seg).byte_at(0) == 63 {
         return String_new()
     }
-    if len(seg) == 1 && byte_at(clone(seg), 0) >= 65 && byte_at(clone(seg), 0) <= 90 {
+    if len(seg) == 1 && clone(seg).byte_at(0) >= 65 && clone(seg).byte_at(0) <= 90 {
         return String_new()
     }
     if eq(clone(seg), String_from("fn")) ||
-    starts_with(clone(seg), String_from("fn(")) ||
-    starts_with(clone(seg), String_from("fnsig:")) ||
-    starts_with(clone(seg), String_from("fnref")) {
+    clone(seg).starts_with(String_from("fn(")) ||
+    clone(seg).starts_with(String_from("fnsig:")) ||
+    clone(seg).starts_with(String_from("fnref")) {
         return String_from("fnref")
     }
     let mut k = 0
     while k < len(seg) {
-        if byte_at(clone(seg), k) == 60 {
+        if clone(seg).byte_at(k) == 60 {
             // Nested generic arg: apply the generic key rule directly so
             // Vec<i32> stays Vec_i32 (the Vec/HashMap target-level owner
             // spellings do not apply to argument position). An unkeyable
             // nested arg makes the whole owner fall back to bare.
             let mut arg_end = len(seg)
-            if byte_at(clone(seg), arg_end - 1) == 62 {
+            if clone(seg).byte_at(arg_end - 1) == 62 {
                 arg_end = arg_end - 1
             }
-            let arg_inner = substring(clone(seg), k + 1, arg_end)
+            let arg_inner = clone(seg).slice(k + 1, arg_end)
             let arg_suffix = mir_inst_key_suffix(arg_inner)
             if len(arg_suffix) == 0 {
                 return String_new()
             }
-            return substring(clone(seg), 0, k).concat(String_from("_").concat(arg_suffix))
+            return clone(seg).slice(0, k).concat(String_from("_").concat(arg_suffix))
         }
         k = k + 1
     }
@@ -532,25 +532,25 @@ fn mir_vec_method_prefer_coreop_name(mangled: String) -> String {
         return String_from("")
     }
     let bare_name = mir_bare_method_name(clone(mangled))
-    if eq(clone(bare_name), String_from("push")) || starts_with(clone(bare_name), String_from("push__")) {
+    if eq(clone(bare_name), String_from("push")) || clone(bare_name).starts_with(String_from("push__")) {
         return String_from("push")
     }
-    if eq(clone(bare_name), String_from("len")) || starts_with(clone(bare_name), String_from("len__")) {
+    if eq(clone(bare_name), String_from("len")) || clone(bare_name).starts_with(String_from("len__")) {
         return String_from("raw_array_len")
     }
-    if eq(clone(bare_name), String_from("set")) || starts_with(clone(bare_name), String_from("set__")) {
+    if eq(clone(bare_name), String_from("set")) || clone(bare_name).starts_with(String_from("set__")) {
         return String_from("raw_array_set_unchecked")
     }
-    if eq(clone(bare_name), String_from("pop")) || starts_with(clone(bare_name), String_from("pop__")) {
+    if eq(clone(bare_name), String_from("pop")) || clone(bare_name).starts_with(String_from("pop__")) {
         return String_from("vec_pop")
     }
-    if eq(clone(bare_name), String_from("get")) || starts_with(clone(bare_name), String_from("get__")) {
+    if eq(clone(bare_name), String_from("get")) || clone(bare_name).starts_with(String_from("get__")) {
         return String_from("vec_get")
     }
-    if eq(clone(bare_name), String_from("get_unchecked")) || starts_with(clone(bare_name), String_from("get_unchecked__")) {
+    if eq(clone(bare_name), String_from("get_unchecked")) || clone(bare_name).starts_with(String_from("get_unchecked__")) {
         return String_from("get_unchecked")
     }
-    if eq(clone(bare_name), String_from("is_empty")) || starts_with(clone(bare_name), String_from("is_empty__")) {
+    if eq(clone(bare_name), String_from("is_empty")) || clone(bare_name).starts_with(String_from("is_empty__")) {
         return String_from("is_empty")
     }
     String_from("")
@@ -567,9 +567,9 @@ fn mir_builtin_method_to_intrinsic(mangled: String, bare_name: String) -> String
         // Associated constructors: keep mangled Vec::new__T for wasm
         // is_vec_new_callee fallback (no MIR body; #845).
         if eq(clone(bare_name), String_from("new")) ||
-        starts_with(clone(bare_name), String_from("new__")) ||
+        clone(bare_name).starts_with(String_from("new__")) ||
         eq(clone(bare_name), String_from("with_capacity")) ||
-        starts_with(clone(bare_name), String_from("with_capacity__")) {
+        clone(bare_name).starts_with(String_from("with_capacity__")) {
             return mangled
         }
         return String_from("")
@@ -604,7 +604,7 @@ fn mir_parametric_impl_callee(ctx: LowerCtx, callee_name: String) -> String {
     if len(owner) == 0 || len(method) == 0 {
         return String_new()
     }
-    if !contains(clone(owner), String_from("_")) {
+    if !clone(owner).contains(String_from("_")) {
         return String_new()
     }
     let method_suffix = "::".concat(clone(method))
@@ -613,18 +613,18 @@ fn mir_parametric_impl_callee(ctx: LowerCtx, callee_name: String) -> String {
     while i < inst_count {
         let inst = get_unchecked(ctx.mono_instances, i)
         let inst_fn = mono_instance_shape::mir_mono_instance_fn_name(inst)
-        if ends_with(clone(inst_fn), clone(method_suffix)) {
-            let inst_owner = substring(clone(inst_fn), 0, len(inst_fn) - len(method_suffix))
+        if clone(inst_fn).ends_with(clone(method_suffix)) {
+            let inst_owner = clone(inst_fn).slice(0, len(inst_fn) - len(method_suffix))
             let owner_safe = mono::mono_safe_name(inst_owner)
             let recv_prefix = clone(owner_safe).concat(String_from("_"))
-            if starts_with(clone(owner), clone(recv_prefix)) {
-                let recv_args = substring(clone(owner), len(recv_prefix), len(owner))
+            if clone(owner).starts_with(clone(recv_prefix)) {
+                let recv_args = clone(owner).slice(len(recv_prefix), len(owner))
                 let mangled_safe = mono::mono_safe_name(
                     mono_instance_shape::mir_mono_instance_mangled_name(inst)
                 )
                 let arg_prefix = clone(owner_safe).concat("__".concat(clone(method).concat("__")))
-                if starts_with(clone(mangled_safe), clone(arg_prefix)) {
-                    let inst_args = substring(clone(mangled_safe), len(arg_prefix), len(mangled_safe))
+                if clone(mangled_safe).starts_with(clone(arg_prefix)) {
+                    let inst_args = clone(mangled_safe).slice(len(arg_prefix), len(mangled_safe))
                     if mir_mono_arg_segments_eq(clone(recv_args), inst_args) &&
                     ctx_has_fn_name(ctx, clone(mangled_safe)) {
                         return mangled_safe
@@ -664,8 +664,8 @@ fn mir_mono_arg_segments(args: String) -> Vec<String> {
     let n = len(args)
     let mut i = 0
     while i <= n {
-        if i == n || byte_at(clone(args), i) == 95 {
-            let seg = substring(clone(args), seg_start, i)
+        if i == n || clone(args).byte_at(i) == 95 {
+            let seg = clone(args).slice(seg_start, i)
             if len(seg) > 0 {
                 push(segs, seg)
             }
@@ -677,11 +677,11 @@ fn mir_mono_arg_segments(args: String) -> Vec<String> {
 }
 
 fn mir_bare_method_name(mangled: String) -> String {
-    let pos = index_of(clone(mangled), String_from("::"))
+    let pos = clone(mangled).index_of(String_from("::"))
     if pos < 0 {
         return String_from("")
     }
-    substring(mangled, pos + 2, len(mangled))
+    mangled.slice(pos + 2, len(mangled))
 }
 
 fn mir_is_builtin_type_prefix(mangled: String) -> bool {
@@ -698,9 +698,9 @@ fn mir_is_builtin_type_prefix(mangled: String) -> bool {
 }
 
 fn mir_type_prefix(mangled: String) -> String {
-    let pos = index_of(clone(mangled), String_from("::"))
+    let pos = clone(mangled).index_of(String_from("::"))
     if pos < 0 {
         return String_from("")
     }
-    substring(mangled, 0, pos)
+    mangled.slice(0, pos)
 }

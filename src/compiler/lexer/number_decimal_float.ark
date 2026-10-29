@@ -1,4 +1,4 @@
-use std::prelude::{eq, substring}
+use std::prelude::{eq}
 use lexer::char_class
 fn scan_decimal_float_parts(mut lex: Lexer) -> bool {
     let mut is_float = false
@@ -25,6 +25,6 @@ fn scan_decimal_float_parts(mut lex: Lexer) -> bool {
 }
 
 fn suffix_marks_float(lex: Lexer, suffix_len: i32) -> bool {
-    let suf = substring(lex.src, lex.pos - suffix_len, lex.pos)
+    let suf = lex.src.slice(lex.pos - suffix_len, lex.pos)
     eq(suf, "f64") || eq(suf, "f32")
 }

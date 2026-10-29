@@ -17,7 +17,7 @@ use typechecker::types
 use diagnostics::mod as diag_mod
 // Register declarations before impls so arity and associated-item checks use
 // the same local trait registry as obligation solving.
-use std::prelude::{clone, eq, to_string}
+use std::prelude::{clone, eq}
 
 fn register_trait_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
     let count = len(decls)
@@ -490,7 +490,7 @@ fn validate_trait_arity(mut env: TypeEnv, trait_name: String, actual: i32) -> bo
     report_trait_error(
         env,
         codes::DIAG_TYPE_TRAIT_ARITY(),
-        String_from("trait `").concat(clone(trait_name).concat("` expects ".concat(to_string(expected).concat(" type argument(s), found ".concat(to_string(actual))))))
+        String_from("trait `").concat(clone(trait_name).concat("` expects ".concat(expected.to_string().concat(" type argument(s), found ".concat(actual.to_string())))))
     )
     false
 }

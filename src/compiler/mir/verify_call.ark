@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::function_id
 use mir::function_identity
@@ -109,10 +109,10 @@ fn verify_call_w003_excluded(callee: String) -> bool {
     if host_intrinsic_stub_names::host_intrinsic_stub_is_known(clone(callee)) {
         return true
     }
-    if starts_with(clone(callee), "__intrinsic_") {
+    if clone(callee).starts_with("__intrinsic_") {
         return true
     }
-    if starts_with(clone(callee), "__simd_") {
+    if clone(callee).starts_with("__simd_") {
         return true
     }
     if eq(clone(callee), "print") || eq(clone(callee), "println") {

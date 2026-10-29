@@ -1,6 +1,6 @@
 use std::host::fs::Fs
 use std::host::stdio
-use std::prelude::{clone, i64_to_i32, to_string}
+use std::prelude::{clone, i64_to_i32}
 use std::text
 use component
 use component::wit_parse_text
@@ -63,7 +63,7 @@ fn dump_backend_plan_if_enabled(config: DriverConfig) {
     }
     stdio::eprintln("=== BACKEND PLAN ===")
     let paths = config_record::config_wit_paths(config)
-    stdio::eprintln("wit-imports: ".concat(to_string(len(paths))))
+    stdio::eprintln("wit-imports: ".concat(len(paths).to_string()))
     for i in 0..len(paths) {
         let path = get_unchecked(paths, i)
         let scan_package = match Fs::read_to_string(clone(path)) {
@@ -89,13 +89,13 @@ fn dump_backend_plan_if_enabled(config: DriverConfig) {
         let enums = wit_parse_text::WitParsedInterface_enums(doc)
         let variants = wit_parse_text::WitParsedInterface_variants(doc)
         summary = summary.concat(" funcs=")
-        summary = summary.concat(to_string(len(funcs)))
+        summary = summary.concat(len(funcs).to_string())
         summary = summary.concat(" records=")
-        summary = summary.concat(to_string(len(records)))
+        summary = summary.concat(len(records).to_string())
         summary = summary.concat(" enums=")
-        summary = summary.concat(to_string(len(enums)))
+        summary = summary.concat(len(enums).to_string())
         summary = summary.concat(" variants=")
-        summary = summary.concat(to_string(len(variants)))
+        summary = summary.concat(len(variants).to_string())
         stdio::eprintln(summary)
     }
 }
@@ -159,13 +159,13 @@ pub fn emit_phase_timing(
     t_mir_verify: i64,
     t_emit: i64
 ) {
-    stdio::eprintln("[arukellt] lex: ".concat(to_string(phase_timing_ms(t0, t_lex)).concat("ms")))
-    stdio::eprintln("[arukellt] parse: ".concat(to_string(phase_timing_ms(t_lex, t_parse)).concat("ms")))
-    stdio::eprintln("[arukellt] resolve: ".concat(to_string(phase_timing_ms(t_parse, t_resolve)).concat("ms")))
-    stdio::eprintln("[arukellt] typecheck: ".concat(to_string(phase_timing_ms(t_resolve, t_typecheck)).concat("ms")))
-    stdio::eprintln("[arukellt] lower: ".concat(to_string(phase_timing_ms(t_typecheck, t_lower)).concat("ms")))
-    stdio::eprintln("[arukellt] mir_opt: ".concat(to_string(phase_timing_ms(t_lower, t_mir_opt)).concat("ms")))
-    stdio::eprintln("[arukellt] mir_verify: ".concat(to_string(phase_timing_ms(t_mir_opt, t_mir_verify)).concat("ms")))
-    stdio::eprintln("[arukellt] emit: ".concat(to_string(phase_timing_ms(t_mir_verify, t_emit)).concat("ms")))
-    stdio::eprintln("[arukellt] total: ".concat(to_string(phase_timing_ms(t0, t_emit)).concat("ms")))
+    stdio::eprintln("[arukellt] lex: ".concat(phase_timing_ms(t0, t_lex).to_string().concat("ms")))
+    stdio::eprintln("[arukellt] parse: ".concat(phase_timing_ms(t_lex, t_parse).to_string().concat("ms")))
+    stdio::eprintln("[arukellt] resolve: ".concat(phase_timing_ms(t_parse, t_resolve).to_string().concat("ms")))
+    stdio::eprintln("[arukellt] typecheck: ".concat(phase_timing_ms(t_resolve, t_typecheck).to_string().concat("ms")))
+    stdio::eprintln("[arukellt] lower: ".concat(phase_timing_ms(t_typecheck, t_lower).to_string().concat("ms")))
+    stdio::eprintln("[arukellt] mir_opt: ".concat(phase_timing_ms(t_lower, t_mir_opt).to_string().concat("ms")))
+    stdio::eprintln("[arukellt] mir_verify: ".concat(phase_timing_ms(t_mir_opt, t_mir_verify).to_string().concat("ms")))
+    stdio::eprintln("[arukellt] emit: ".concat(phase_timing_ms(t_mir_verify, t_emit).to_string().concat("ms")))
+    stdio::eprintln("[arukellt] total: ".concat(phase_timing_ms(t0, t_emit).to_string().concat("ms")))
 }

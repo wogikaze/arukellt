@@ -1,4 +1,4 @@
-use std::prelude::{clone, to_string}
+use std::prelude::{clone}
 use std::text
 use typechecker::kinds
 use typechecker::ast_access
@@ -19,7 +19,7 @@ fn infer_local_function_call(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: V
     if actual_arg_count != expected_arg_count {
         unify::type_error_bad_arity(
             env,
-            String_from("wrong number of arguments for local function value: expected ").concat(to_string(expected_arg_count).concat(String_from(", found ").concat(to_string(actual_arg_count))))
+            String_from("wrong number of arguments for local function value: expected ").concat(expected_arg_count.to_string().concat(String_from(", found ").concat(actual_arg_count.to_string())))
         )
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, actual_arg_count)
         return TypeInfo_simple(commands::TY_UNKNOWN())

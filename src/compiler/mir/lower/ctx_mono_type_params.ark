@@ -18,7 +18,7 @@ use mir::type_contracts
 // Convert a TypeInfo to a monomorphization type key string.
 // Primitive types (i32, f64, etc.) carry only a tag with an empty name,
 // so we must use the tag to produce the correct key.
-use std::prelude::{byte_at, clone, contains, ends_with, eq, index_of, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 
 fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
@@ -70,7 +70,7 @@ fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
         // monomorphized signatures and locals resolve the substituted
         // layout instead of the unsubstituted declaration.
         let arg_count = type_contracts::TypeInfo_type_arg_count(ty)
-        if arg_count > 0 && !contains(clone(name), String_from("<")) {
+        if arg_count > 0 && !clone(name).contains(String_from("<")) {
             let mut out = clone(name).concat(String_from("<"))
             let mut ai = 0
             while ai < arg_count {
@@ -127,44 +127,44 @@ fn ctx_register_projection_arg_pairs(mut ctx: LowerCtx, generic_name: String, co
     // (`Vec<I::Item>` vs `vec:i32`); canonicalize before comparing shapes.
     let generic_name = ctx_projection_canonical_wrapper(generic_name)
     let concrete_name = ctx_projection_canonical_wrapper(concrete_name)
-    if starts_with(clone(generic_name), String_from("vec:")) &&
-    starts_with(clone(concrete_name), String_from("vec:")) {
+    if clone(generic_name).starts_with(String_from("vec:")) &&
+    clone(concrete_name).starts_with(String_from("vec:")) {
         ctx_register_projection_segment(
             ctx,
-            substring(clone(generic_name), 4, len(generic_name)),
-            substring(clone(concrete_name), 4, len(concrete_name))
+            clone(generic_name).slice(4, len(generic_name)),
+            clone(concrete_name).slice(4, len(concrete_name))
         )
         return
     }
-    if starts_with(clone(generic_name), String_from("Option_")) &&
-    starts_with(clone(concrete_name), String_from("Option_")) {
+    if clone(generic_name).starts_with(String_from("Option_")) &&
+    clone(concrete_name).starts_with(String_from("Option_")) {
         ctx_register_projection_segment(
             ctx,
-            substring(clone(generic_name), 7, len(generic_name)),
-            substring(clone(concrete_name), 7, len(concrete_name))
+            clone(generic_name).slice(7, len(generic_name)),
+            clone(concrete_name).slice(7, len(concrete_name))
         )
         return
     }
-    let glt = index_of(clone(generic_name), String_from("<"))
-    let clt = index_of(clone(concrete_name), String_from("<"))
+    let glt = clone(generic_name).index_of(String_from("<"))
+    let clt = clone(concrete_name).index_of(String_from("<"))
     if glt <= 0 || clt <= 0 {
         return
     }
-    if !ends_with(clone(generic_name), String_from(">")) ||
-    !ends_with(clone(concrete_name), String_from(">")) {
+    if !clone(generic_name).ends_with(String_from(">")) ||
+    !clone(concrete_name).ends_with(String_from(">")) {
         return
     }
     if !eq(
-        substring(clone(generic_name), 0, glt),
-        substring(clone(concrete_name), 0, clt)
+        clone(generic_name).slice(0, glt),
+        clone(concrete_name).slice(0, clt)
     ) {
         return
     }
     let g_args = ctx_split_top_level_type_args(
-        substring(clone(generic_name), glt + 1, len(generic_name) - 1)
+        clone(generic_name).slice(glt + 1, len(generic_name) - 1)
     )
     let c_args = ctx_split_top_level_type_args(
-        substring(clone(concrete_name), clt + 1, len(concrete_name) - 1)
+        clone(concrete_name).slice(clt + 1, len(concrete_name) - 1)
     )
     if len(g_args) != len(c_args) {
         return
@@ -187,18 +187,18 @@ fn ctx_register_projection_arg_pairs(mut ctx: LowerCtx, generic_name: String, co
 // mono map: `Vec<X>` -> `vec:X`, `Option<X>` -> `Option_X`. User generic
 // structs keep the `Name<args>` form.
 fn ctx_projection_canonical_wrapper(name: String) -> String {
-    if starts_with(clone(name), String_from("Vec<")) &&
-    ends_with(clone(name), String_from(">")) {
-        return String_from("vec:").concat(substring(clone(name), 4, len(name) - 1))
+    if clone(name).starts_with(String_from("Vec<")) &&
+    clone(name).ends_with(String_from(">")) {
+        return String_from("vec:").concat(clone(name).slice(4, len(name) - 1))
     }
-    if starts_with(clone(name), String_from("Option<")) &&
-    ends_with(clone(name), String_from(">")) {
-        return String_from("Option_").concat(substring(clone(name), 7, len(name) - 1))
+    if clone(name).starts_with(String_from("Option<")) &&
+    clone(name).ends_with(String_from(">")) {
+        return String_from("Option_").concat(clone(name).slice(7, len(name) - 1))
     }
     // Local-type spellings use option:payload; canonicalizing lets declared
     // Option_Pair / option:Pair pairs share the Option_ segment path (#860).
-    if starts_with(clone(name), String_from("option:")) {
-        return String_from("Option_").concat(substring(clone(name), 7, len(name)))
+    if clone(name).starts_with(String_from("option:")) {
+        return String_from("Option_").concat(clone(name).slice(7, len(name)))
     }
     name
 }
@@ -208,7 +208,7 @@ fn ctx_register_projection_segment(mut ctx: LowerCtx, generic_seg: String, concr
         return
     }
     if is_plain_type_var_name(clone(generic_seg)) ||
-    starts_with(clone(generic_seg), String_from("?")) {
+    clone(generic_seg).starts_with(String_from("?")) {
         return
     }
     ctx_set_mono_type_projection(ctx, generic_seg, concrete_seg)
@@ -224,7 +224,7 @@ fn ctx_split_top_level_type_args(inner: String) -> Vec<String> {
     while i <= n {
         let at_end = i == n
         if !at_end {
-            let ch = byte_at(clone(inner), i)
+            let ch = clone(inner).byte_at(i)
             if ch == 60 {
                 depth = depth + 1
             }
@@ -232,8 +232,8 @@ fn ctx_split_top_level_type_args(inner: String) -> Vec<String> {
                 depth = depth - 1
             }
         }
-        if (at_end || byte_at(clone(inner), i) == 44) && depth == 0 {
-            push(args, substring(clone(inner), seg_start, i))
+        if (at_end || clone(inner).byte_at(i) == 44) && depth == 0 {
+            push(args, clone(inner).slice(seg_start, i))
             seg_start = i + 1
         }
         i = i + 1
@@ -280,8 +280,8 @@ fn ctx_mono_type_match_segment_index(stored_name: String, query_name: String) ->
     let mut i = 0
     while i <= len(stored_name) {
         let at_end = i == len(stored_name)
-        if at_end || byte_at(clone(stored_name), i) == 58 {
-            let segment = substring(clone(stored_name), segment_start, i)
+        if at_end || clone(stored_name).byte_at(i) == 58 {
+            let segment = clone(stored_name).slice(segment_start, i)
             if eq(ctx_mono_type_var_bare_name(clone(segment)), clone(query)) {
                 return seg_index
             }
@@ -309,7 +309,7 @@ fn ctx_mono_count_colon_segments(name: String) -> i32 {
     let mut count = 1
     let mut i = 0
     while i < len(name) {
-        if byte_at(clone(name), i) == 58 {
+        if clone(name).byte_at(i) == 58 {
             count = count + 1
         }
         i = i + 1
@@ -322,9 +322,9 @@ fn ctx_mono_colon_segment_at(name: String, want: i32) -> String {
     let mut seg_index = 0
     let mut i = 0
     while i <= len(name) {
-        if i == len(name) || byte_at(clone(name), i) == 58 {
+        if i == len(name) || clone(name).byte_at(i) == 58 {
             if seg_index == want {
-                return substring(clone(name), segment_start, i)
+                return clone(name).slice(segment_start, i)
             }
             segment_start = i + 1
             seg_index = seg_index + 1
@@ -335,8 +335,8 @@ fn ctx_mono_colon_segment_at(name: String, want: i32) -> String {
 }
 
 fn ctx_mono_type_var_bare_name(name: String) -> String {
-    if starts_with(clone(name), "?") {
-        return substring(name, 1, len(name))
+    if clone(name).starts_with("?") {
+        return name.slice(1, len(name))
     }
     name
 }
@@ -394,9 +394,9 @@ fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
 
 fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
     let mut result = Vec::new<String>()
-    if starts_with(clone(ty_name), "?") {
-        let stripped = substring(clone(ty_name), 1, len(ty_name))
-        if !contains(clone(stripped), String_from(":")) {
+    if clone(ty_name).starts_with("?") {
+        let stripped = clone(ty_name).slice(1, len(ty_name))
+        if !clone(stripped).contains(String_from(":")) {
             push(result, stripped)
             return result
         }
@@ -411,7 +411,7 @@ fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
     // in both segments: a "f: fn(T) -> U" parameter must contribute T and
     // U to the ordinal pairing, otherwise the mono map leaves U unbound
     // and the fallback ordinal guess picks the wrong concrete type (#860).
-    if starts_with(clone(ty_name), "fnsig:") {
+    if clone(ty_name).starts_with("fnsig:") {
         ctx_push_fnsig_var_segments(clone(ty_name), result)
         return result
     }
@@ -428,9 +428,9 @@ fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
     // Associated-type projections (I::Item) are not themselves type
     // variables, but their head segment is — a local typed I::Item still
     // needs I bound for the ordinal pairing.
-    let proj = index_of(clone(ty_name), String_from("::"))
+    let proj = clone(ty_name).index_of(String_from("::"))
     if proj > 0 {
-        let head = substring(clone(ty_name), 0, proj)
+        let head = clone(ty_name).slice(0, proj)
         if is_plain_type_var_name(clone(head)) {
             push(result, head)
         }
@@ -440,9 +440,9 @@ fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
     // Pair<T,Vec<U>> must still contribute its variables to the ordinal
     // pairing, otherwise the mono map stays empty and struct literals in
     // the body cannot derive their instantiated layout.
-    let lt = index_of(clone(ty_name), String_from("<"))
-    if lt > 0 && ends_with(clone(ty_name), String_from(">")) {
-        let inner = substring(clone(ty_name), lt + 1, len(ty_name) - 1)
+    let lt = clone(ty_name).index_of(String_from("<"))
+    if lt > 0 && clone(ty_name).ends_with(String_from(">")) {
+        let inner = clone(ty_name).slice(lt + 1, len(ty_name) - 1)
         let args = ctx_split_top_level_type_args(inner)
         let mut ai = 0
         while ai < len(args) {
@@ -467,13 +467,13 @@ fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
 // segment is a type position (unlike colon wrappers whose first segment
 // is the wrapper name), so each one contributes its variables.
 fn ctx_push_fnsig_var_segments(ty_name: String, mut result: Vec<String>) {
-    let rest = substring(clone(ty_name), 6, len(ty_name))
+    let rest = clone(ty_name).slice(6, len(ty_name))
     let mut seg_start = 0
     let n = len(rest)
     let mut i = 0
     while i <= n {
-        if i == n || byte_at(clone(rest), i) == 59 {
-            let seg = substring(clone(rest), seg_start, i)
+        if i == n || clone(rest).byte_at(i) == 59 {
+            let seg = clone(rest).slice(seg_start, i)
             ctx_push_var_segment(clone(seg), true, result)
             seg_start = i + 1
         }
@@ -486,12 +486,12 @@ fn ctx_push_fnsig_var_segments(ty_name: String, mut result: Vec<String>) {
 // shapes produced by param_shape_local; Option:/Result: appear as param
 // spellings in mono bodies.
 fn ctx_local_type_is_var_wrapper(ty_name: String) -> bool {
-    starts_with(clone(ty_name), String_from("vec:")) ||
-    starts_with(clone(ty_name), String_from("option:")) ||
-    starts_with(clone(ty_name), String_from("Option:")) ||
-    starts_with(clone(ty_name), String_from("result:")) ||
-    starts_with(clone(ty_name), String_from("Result:")) ||
-    starts_with(clone(ty_name), String_from("hashmap:"))
+    clone(ty_name).starts_with(String_from("vec:")) ||
+    clone(ty_name).starts_with(String_from("option:")) ||
+    clone(ty_name).starts_with(String_from("Option:")) ||
+    clone(ty_name).starts_with(String_from("result:")) ||
+    clone(ty_name).starts_with(String_from("Result:")) ||
+    clone(ty_name).starts_with(String_from("hashmap:"))
 }
 
 // Push type-variable argument segments of a colon-composite spelling.
@@ -507,7 +507,7 @@ fn ctx_push_colon_var_segments(stripped: String, mut result: Vec<String>) {
     let mut depth = 0
     while i <= n {
         let at_end = i == n
-        let ch = if at_end { 58 } else { byte_at(stripped, i) }
+        let ch = if at_end { 58 } else { stripped.byte_at(i) }
         if !at_end && (ch == 60 || ch == 40) {
             depth = depth + 1
         }
@@ -515,7 +515,7 @@ fn ctx_push_colon_var_segments(stripped: String, mut result: Vec<String>) {
             depth = depth - 1
         }
         if (at_end || ch == 58) && depth == 0 {
-            let segment = substring(clone(stripped), segment_start, i)
+            let segment = clone(stripped).slice(segment_start, i)
             ctx_push_var_segment(segment, segment_start > 0, result)
             segment_start = i + 1
         }
@@ -543,7 +543,7 @@ fn is_plain_type_var_name(name: String) -> bool {
     if len(name) != 1 {
         return false
     }
-    let c = byte_at(name, 0)
+    let c = name.byte_at(0)
     c >= 65 && c <= 90
 }
 
@@ -563,20 +563,20 @@ fn ctx_resolve_mono_type_name(ctx: LowerCtx, type_name: String) -> String {
     }
     // Generic-wrapper spellings: ?Pair:T -> Pair<String>, Pair<T> ->
     // Pair<String>. Each argument segment resolves through the mono map.
-    if starts_with(clone(type_name), "?") {
-        let wrapped = ctx_resolve_wrapper_type_vars(ctx, substring(clone(type_name), 1, len(type_name)))
+    if clone(type_name).starts_with("?") {
+        let wrapped = ctx_resolve_wrapper_type_vars(ctx, clone(type_name).slice(1, len(type_name)))
         if len(wrapped) > 0 {
             return wrapped
         }
     }
-    if contains(clone(type_name), String_from("<")) && ends_with(clone(type_name), String_from(">")) {
+    if clone(type_name).contains(String_from("<")) && clone(type_name).ends_with(String_from(">")) {
         let wrapped = ctx_resolve_angle_type_vars(ctx, clone(type_name))
         if len(wrapped) > 0 {
             return wrapped
         }
     }
-    if starts_with(clone(type_name), "vec:") {
-        let elem = substring(clone(type_name), 4, len(type_name))
+    if clone(type_name).starts_with("vec:") {
+        let elem = clone(type_name).slice(4, len(type_name))
         let concrete_elem = ctx_resolve_mono_type_param(ctx, clone(elem))
         if len(concrete_elem) > 0 {
             return "vec:".concat(concrete_elem)
@@ -585,7 +585,7 @@ fn ctx_resolve_mono_type_name(ctx: LowerCtx, type_name: String) -> String {
     // `fnsig:<param>;<return>` spellings resolve segment by segment so a
     // generic `fn(T) -> U` field or parameter specializes alongside the
     // enclosing monomorphization (#860).
-    if starts_with(clone(type_name), "fnsig:") {
+    if clone(type_name).starts_with("fnsig:") {
         let resolved_fnsig = ctx_resolve_fnsig_type_vars(ctx, clone(type_name))
         if len(resolved_fnsig) > 0 {
             return resolved_fnsig
@@ -598,15 +598,15 @@ fn ctx_resolve_mono_type_name(ctx: LowerCtx, type_name: String) -> String {
 // type variables use ctx_resolve_mono_type_param; composite segments
 // (vec:/option:/Name<..>) recurse. Returns empty when nothing changed.
 fn ctx_resolve_fnsig_type_vars(ctx: LowerCtx, type_name: String) -> String {
-    let rest = substring(clone(type_name), 6, len(type_name))
+    let rest = clone(type_name).slice(6, len(type_name))
     let mut out = String_from("fnsig:")
     let mut seg_start = 0
     let n = len(rest)
     let mut i = 0
     let mut changed = false
     while i <= n {
-        if i == n || byte_at(clone(rest), i) == 59 {
-            let seg = substring(clone(rest), seg_start, i)
+        if i == n || clone(rest).byte_at(i) == 59 {
+            let seg = clone(rest).slice(seg_start, i)
             let resolved = ctx_resolve_fnsig_segment(ctx, clone(seg))
             if !eq(clone(resolved), clone(seg)) {
                 changed = true
@@ -633,7 +633,7 @@ fn ctx_resolve_fnsig_segment(ctx: LowerCtx, seg: String) -> String {
     if len(direct) > 0 {
         return direct
     }
-    if contains(clone(seg), String_from(":")) || contains(clone(seg), String_from("<")) {
+    if clone(seg).contains(String_from(":")) || clone(seg).contains(String_from("<")) {
         let resolved_name = ctx_resolve_mono_type_name(ctx, clone(seg))
         // `X::Item` projections resolve through the owner's Iterator::next
         // signature once the head is concrete (#860/#691).
@@ -655,8 +655,8 @@ fn ctx_resolve_wrapper_type_vars(ctx: LowerCtx, name: String) -> String {
     let mut out = String_new()
     let mut seg_index = 0
     while i <= n {
-        if i == n || byte_at(clone(name), i) == 58 {
-            let seg = substring(clone(name), seg_start, i)
+        if i == n || clone(name).byte_at(i) == 58 {
+            let seg = clone(name).slice(seg_start, i)
             if seg_index == 0 {
                 out = clone(seg).concat(String_from("<"))
             } else {
@@ -685,11 +685,11 @@ fn ctx_resolve_wrapper_type_vars(ctx: LowerCtx, name: String) -> String {
 // bound instantiations such as Pair<i32,I::Item> -> Pair<i32,i32> resolve
 // instead of collapsing back to the unsubstituted name (#860).
 fn ctx_resolve_angle_type_vars(ctx: LowerCtx, type_name: String) -> String {
-    let lt = index_of(clone(type_name), String_from("<"))
+    let lt = clone(type_name).index_of(String_from("<"))
     if lt < 0 {
         return String_new()
     }
-    let base = substring(clone(type_name), 0, lt)
+    let base = clone(type_name).slice(0, lt)
     // A base-name projection answers every instantiation spelling in this
     // body: Pair -> Pair<i32,i32> registered directly, or the payload of
     // option:Pair -> option:Pair<i32,i32>, resolves Pair<i32,I::Item>
@@ -699,14 +699,14 @@ fn ctx_resolve_angle_type_vars(ctx: LowerCtx, type_name: String) -> String {
         return base_inst
     }
     let args = ctx_split_top_level_type_args(
-        substring(clone(type_name), lt + 1, len(type_name) - 1)
+        clone(type_name).slice(lt + 1, len(type_name) - 1)
     )
     let mut out = base.concat(String_from("<"))
     let mut arg_index = 0
     while arg_index < len(args) {
         let arg = ctx_trim_type_arg_ws(get_unchecked(args, arg_index))
         let mut concrete = ctx_resolve_mono_type_param(ctx, clone(arg))
-        if len(concrete) == 0 && contains(clone(arg), String_from("<")) {
+        if len(concrete) == 0 && clone(arg).contains(String_from("<")) {
             concrete = ctx_resolve_angle_type_vars(ctx, clone(arg))
         }
         if len(concrete) == 0 {
@@ -761,14 +761,14 @@ fn ctx_resolve_mono_base_projection(ctx: LowerCtx, base: String) -> String {
 // A stored pair of the form prefix+Base -> prefix+C binds the payload
 // base Base -> C inside this mono body.
 fn ctx_wrapper_payload_projection(stored: String, concrete: String, prefix: String, base: String) -> String {
-    if !starts_with(clone(stored), clone(prefix)) || !starts_with(clone(concrete), clone(prefix)) {
+    if !clone(stored).starts_with(clone(prefix)) || !clone(concrete).starts_with(clone(prefix)) {
         return String_new()
     }
     let plen = len(prefix)
-    if !eq(substring(stored, plen, len(stored)), clone(base)) {
+    if !eq(stored.slice(plen, len(stored)), clone(base)) {
         return String_new()
     }
-    substring(concrete, plen, len(concrete))
+    concrete.slice(plen, len(concrete))
 }
 
 // Type argument lists are split on raw commas, so annotation spellings
@@ -776,13 +776,13 @@ fn ctx_wrapper_payload_projection(stored: String, concrete: String, prefix: Stri
 fn ctx_trim_type_arg_ws(seg: String) -> String {
     let mut start = 0
     let mut end = len(seg)
-    while start < end && byte_at(clone(seg), start) == 32 {
+    while start < end && clone(seg).byte_at(start) == 32 {
         start = start + 1
     }
-    while end > start && byte_at(clone(seg), end - 1) == 32 {
+    while end > start && clone(seg).byte_at(end - 1) == 32 {
         end = end - 1
     }
-    substring(seg, start, end)
+    seg.slice(start, end)
 }
 
 // Setup type parameter mapping by collecting type variable names from
@@ -824,7 +824,7 @@ fn ctx_mono_name_has_separator(name: String) -> bool {
     let name_len = len(name)
     let mut i = 0
     while i < name_len - 1 {
-        if byte_at(name, i) == 95 && byte_at(name, i + 1) == 95 {
+        if name.byte_at(i) == 95 && name.byte_at(i + 1) == 95 {
             return true
         }
         i = i + 1
@@ -869,7 +869,7 @@ fn ctx_find_leaf_mono_instance_index(ctx: LowerCtx, leaf_name: String) -> i32 {
     let leaf_sep = find_last_double_colon(clone(leaf_name))
     let mut query_leaf = clone(leaf_name)
     if leaf_sep >= 0 {
-        query_leaf = substring(leaf_name, leaf_sep + 2, len(leaf_name))
+        query_leaf = leaf_name.slice(leaf_sep + 2, len(leaf_name))
     }
     let mut matched_index = 0 - 1
     let mut matched_mangled = String_new()
@@ -890,7 +890,7 @@ fn ctx_find_leaf_mono_instance_index(ctx: LowerCtx, leaf_name: String) -> i32 {
         let inst_sep = find_last_double_colon(clone(inst_name))
         let mut inst_leaf = clone(inst_name)
         if inst_sep >= 0 {
-            inst_leaf = substring(inst_name, inst_sep + 2, len(inst_name))
+            inst_leaf = inst_name.slice(inst_sep + 2, len(inst_name))
         }
         if !eq(inst_leaf, clone(query_leaf)) {
             continue
@@ -978,14 +978,14 @@ fn ctx_resolve_iterator_item_type(ctx: LowerCtx, owner_name: String) -> String {
 // shells so the bare constructor name remains.
 fn ctx_assoc_owner_base_name(owner_name: String) -> String {
     let mut name = clone(owner_name)
-    if starts_with(clone(name), String_from("?")) {
-        name = substring(name, 1, len(name))
+    if clone(name).starts_with(String_from("?")) {
+        name = name.slice(1, len(name))
     }
-    if starts_with(clone(name), String_from("struct:")) || starts_with(clone(name), String_from("enum:")) {
-        let inner = substring(clone(name), index_of(clone(name), String_from(":")) + 1, len(name))
-        let tail = index_of(clone(inner), String_from(":"))
+    if clone(name).starts_with(String_from("struct:")) || clone(name).starts_with(String_from("enum:")) {
+        let inner = clone(name).slice(clone(name).index_of(String_from(":")) + 1, len(name))
+        let tail = clone(inner).index_of(String_from(":"))
         if tail > 0 {
-            return substring(inner, 0, tail)
+            return inner.slice(0, tail)
         }
         return inner
     }
@@ -1009,10 +1009,10 @@ fn ctx_assoc_next_return_type_name(ctx: LowerCtx, fn_name: String) -> String {
 // spelling `Base_arg` tries the raw rest and the `__`-separated form.
 fn ctx_assoc_mono_next_names(owner: String) -> Vec<String> {
     let mut names = Vec::new<String>()
-    let lt = index_of(clone(owner), String_from("<"))
-    if lt > 0 && ends_with(clone(owner), String_from(">")) {
-        let base = substring(clone(owner), 0, lt)
-        let args = ctx_split_top_level_type_args(substring(clone(owner), lt + 1, len(owner) - 1))
+    let lt = clone(owner).index_of(String_from("<"))
+    if lt > 0 && clone(owner).ends_with(String_from(">")) {
+        let base = clone(owner).slice(0, lt)
+        let args = ctx_split_top_level_type_args(clone(owner).slice(lt + 1, len(owner) - 1))
         let mut mangled = base.concat(String_from("__next"))
         let mut ai = 0
         while ai < len(args) {
@@ -1023,10 +1023,10 @@ fn ctx_assoc_mono_next_names(owner: String) -> Vec<String> {
         push(names, mangled)
         return names
     }
-    let us = index_of(clone(owner), String_from("_"))
+    let us = clone(owner).index_of(String_from("_"))
     if us > 0 {
-        let base = substring(clone(owner), 0, us)
-        let rest = substring(clone(owner), us + 1, len(owner))
+        let base = clone(owner).slice(0, us)
+        let rest = clone(owner).slice(us + 1, len(owner))
         push(names, base.concat(String_from("__next__")).concat(clone(rest)))
         // An underscore owner can hide a `__` argument boundary inside a
         // single `_` run (MapIter_String_i32 -> MapIter__next__String__i32).
@@ -1034,10 +1034,10 @@ fn ctx_assoc_mono_next_names(owner: String) -> Vec<String> {
         let mut i = 0
         let n = len(rest)
         while i < n {
-            if byte_at(clone(rest), i) == 95 {
+            if clone(rest).byte_at(i) == 95 {
                 separated = separated.concat(String_from("__"))
             } else {
-                separated = separated.concat(substring(clone(rest), i, i + 1))
+                separated = separated.concat(clone(rest).slice(i, i + 1))
             }
             i = i + 1
         }
@@ -1049,17 +1049,17 @@ fn ctx_assoc_mono_next_names(owner: String) -> Vec<String> {
 // `option:X` / `Option_X` / `Option<X>` / `Option:X` -> X; anything
 // else returns empty so non-Option signatures never resolve.
 fn ctx_option_payload_type_name(rt: String) -> String {
-    if starts_with(clone(rt), String_from("option:")) {
-        return substring(rt, 7, len(rt))
+    if clone(rt).starts_with(String_from("option:")) {
+        return rt.slice(7, len(rt))
     }
-    if starts_with(clone(rt), String_from("Option<")) && ends_with(clone(rt), String_from(">")) {
-        return substring(rt, 7, len(rt) - 1)
+    if clone(rt).starts_with(String_from("Option<")) && clone(rt).ends_with(String_from(">")) {
+        return rt.slice(7, len(rt) - 1)
     }
-    if starts_with(clone(rt), String_from("Option_")) {
-        return substring(rt, 7, len(rt))
+    if clone(rt).starts_with(String_from("Option_")) {
+        return rt.slice(7, len(rt))
     }
-    if starts_with(clone(rt), String_from("Option:")) {
-        return substring(rt, 7, len(rt))
+    if clone(rt).starts_with(String_from("Option:")) {
+        return rt.slice(7, len(rt))
     }
     String_new()
 }
@@ -1073,11 +1073,11 @@ fn ctx_resolve_assoc_projection_type(ctx: LowerCtx, seg: String) -> String {
     if sep < 0 {
         return String_new()
     }
-    let assoc = substring(clone(seg), sep + 2, len(seg))
+    let assoc = clone(seg).slice(sep + 2, len(seg))
     if !eq(clone(assoc), String_from("Item")) {
         return String_new()
     }
-    let mut owner = substring(clone(seg), 0, sep)
+    let mut owner = clone(seg).slice(0, sep)
     let head = ctx_resolve_mono_type_param(ctx, clone(owner))
     if len(head) > 0 {
         owner = head
@@ -1089,7 +1089,7 @@ fn find_last_double_colon(name: String) -> i32 {
     let mut found = 0 - 1
     let mut i = 0
     while i + 1 < len(name) {
-        if byte_at(clone(name), i) == 58 && byte_at(clone(name), i + 1) == 58 {
+        if clone(name).byte_at(i) == 58 && clone(name).byte_at(i + 1) == 58 {
             found = i
             i = i + 2
             continue
@@ -1111,7 +1111,7 @@ fn assoc_ident_char(ch: i32) -> bool {
 // keep their spelling so partially bound instantiations degrade as
 // before (#860/#691).
 fn ctx_resolve_field_type_projections(ctx: LowerCtx, ft: String) -> String {
-    if !contains(clone(ft), String_from("::")) {
+    if !clone(ft).contains(String_from("::")) {
         return ft
     }
     let n = len(ft)
@@ -1125,7 +1125,7 @@ fn ctx_resolve_field_type_projections(ctx: LowerCtx, ft: String) -> String {
     let mut depth = 0
     let mut i = 0
     while i < n {
-        let ch = byte_at(clone(ft), i)
+        let ch = clone(ft).byte_at(i)
         if ch == 60 || ch == 40 {
             depth = depth + 1
             inner_start = i + 1
@@ -1147,19 +1147,19 @@ fn ctx_resolve_field_type_projections(ctx: LowerCtx, ft: String) -> String {
             i = i + 1
             continue
         }
-        if ch == 58 && i + 1 < n && byte_at(clone(ft), i + 1) == 58 {
+        if ch == 58 && i + 1 < n && clone(ft).byte_at(i + 1) == 58 {
             let owner_start = if depth > 0 { inner_start } else { outer_start }
-            let owner = substring(clone(ft), owner_start, i)
+            let owner = clone(ft).slice(owner_start, i)
             let mut assoc_end = i + 2
-            while assoc_end < n && assoc_ident_char(byte_at(clone(ft), assoc_end)) {
+            while assoc_end < n && assoc_ident_char(clone(ft).byte_at(assoc_end)) {
                 assoc_end = assoc_end + 1
             }
-            let assoc = substring(clone(ft), i + 2, assoc_end)
+            let assoc = clone(ft).slice(i + 2, assoc_end)
             let mut resolved = String_new()
             if eq(clone(assoc), String_from("Item")) {
                 resolved = ctx_resolve_iterator_item_type(ctx, clone(owner))
             }
-            out = out.concat(substring(clone(ft), out_start, owner_start))
+            out = out.concat(clone(ft).slice(out_start, owner_start))
             if len(resolved) > 0 {
                 out = out.concat(resolved)
             } else {
@@ -1181,6 +1181,6 @@ fn ctx_resolve_field_type_projections(ctx: LowerCtx, ft: String) -> String {
         }
         i = i + 1
     }
-    out = out.concat(substring(clone(ft), out_start, n))
+    out = out.concat(clone(ft).slice(out_start, n))
     out
 }

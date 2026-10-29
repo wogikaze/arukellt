@@ -4,7 +4,7 @@
 //            cannot be determined from MIR instruction alone; GC-typed structs
 //            like Vec use explicit writer_gc calls in intrinsic files).
 
-use std::prelude::{byte_at, clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use mir::inst_accessors_shape
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
@@ -340,7 +340,7 @@ fn gc_struct_type_from_local_name(f: MirFunction, local_idx: i32, ctx: SelfEmitC
     let type_name = local_access::MirLocal_type_name(
         function_locals_view::MirFunction_local_at(f, local_idx)
     )
-    if !starts_with(clone(type_name), String_from("struct:")) {
+    if !clone(type_name).starts_with(String_from("struct:")) {
         return 0 - 1
     }
     let struct_name = gc_struct_name_without_size(clone(type_name))
@@ -351,12 +351,12 @@ fn gc_struct_type_from_local_name(f: MirFunction, local_idx: i32, ctx: SelfEmitC
 }
 
 fn gc_struct_name_without_size(type_name: String) -> String {
-    let body = substring(type_name, 7, len(type_name))
+    let body = type_name.slice(7, len(type_name))
     let n = len(body)
     let mut last_colon = 0 - 1
     let mut i = 0
     while i < n {
-        if byte_at(body, i) == 58 {
+        if body.byte_at(i) == 58 {
             last_colon = i
         }
         i = i + 1
@@ -369,13 +369,13 @@ fn gc_struct_name_without_size(type_name: String) -> String {
         return String_new()
     }
     while j < n {
-        let ch = byte_at(body, j)
+        let ch = body.byte_at(j)
         if ch < 48 || ch > 57 {
             return body
         }
         j = j + 1
     }
-    substring(body, 0, last_colon)
+    body.slice(0, last_colon)
 }
 use mir::module_gc_enum
 use mir::module_gc_struct

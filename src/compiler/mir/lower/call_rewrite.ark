@@ -1,4 +1,4 @@
-use std::prelude::{clone, contains, ends_with, eq, starts_with}
+use std::prelude::{clone, eq}
 use mir::lower::call_arg_i64
 use mir::lower::call_mono
 use mir::lower::call_mono_by_type
@@ -71,7 +71,7 @@ fn mir_rewrite_call_target(mut ctx: LowerCtx, callee_name: String, first_arg_idx
     eq(clone(callee_name), String_from("std::text::len_bytes")) {
         return MirCallRewrite_new(String_from("text::len_bytes"), return_local, push_i64_needs_extend)
     }
-    if first_arg_idx >= 0 && contains(clone(rewritten), String_from("::")) {
+    if first_arg_idx >= 0 && clone(rewritten).contains(String_from("::")) {
         rewritten = call_rewrite_method::mir_try_resolve_associated_function(ctx, clone(rewritten), first_arg_idx)
     }
     if eq(clone(callee_name), String_from("is_empty")) && hashset_early.len() == 0 {
@@ -83,11 +83,11 @@ fn mir_rewrite_call_target(mut ctx: LowerCtx, callee_name: String, first_arg_idx
             eq(clone(arg_ty), String_from("string")) ||
             (
                 !eq(clone(arg_ty), String_from("Vec")) &&
-                !starts_with(clone(arg_ty), String_from("vec:")) &&
+                !clone(arg_ty).starts_with(String_from("vec:")) &&
                 // HashMap receivers are managed refs too, but is_empty on
                 // them must reach the hashmap adapter rewrite below, not
                 // String::is_empty (#874).
-                !starts_with(clone(arg_ty), String_from("HashMap")) &&
+                !clone(arg_ty).starts_with(String_from("HashMap")) &&
                 call_rewrite_hashmap::hashmap_family_for_type(clone(arg_ty)).len() == 0 &&
                 (
                     ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx) == value_types::VT_REF() ||
@@ -103,7 +103,7 @@ fn mir_rewrite_call_target(mut ctx: LowerCtx, callee_name: String, first_arg_idx
             return MirCallRewrite_new(callee_name, is_empty_local, push_i64_needs_extend)
         }
     }
-    if first_arg_idx >= 0 && !contains(clone(rewritten), String_from("::")) {
+    if first_arg_idx >= 0 && !clone(rewritten).contains(String_from("::")) {
         rewritten = call_rewrite_method::mir_try_resolve_impl_method(ctx, clone(rewritten), first_arg_idx)
     }
     // `String` is a GC array reference, so `push_char` must replace the
@@ -156,9 +156,9 @@ fn mir_rewrite_call_target(mut ctx: LowerCtx, callee_name: String, first_arg_idx
     }
     // write_debug_to is specialized on arg1 (value), not arg0 (buffer).
     let skip_first_arg_mono = eq(clone(rewritten), String_from("write_debug_to")) ||
-    starts_with(clone(rewritten), String_from("write_debug_to__")) ||
-    ends_with(clone(rewritten), String_from("::write_debug_to")) ||
-    contains(clone(rewritten), String_from("write_debug_to__"))
+    clone(rewritten).starts_with(String_from("write_debug_to__")) ||
+    clone(rewritten).ends_with(String_from("::write_debug_to")) ||
+    clone(rewritten).contains(String_from("write_debug_to__"))
     // These qualified aliases have the same short name as scalar math
     // operations.  Generic mono lookup must not erase the module qualifier
     // before FunctionId binding selects the sequence operation.
@@ -190,9 +190,9 @@ fn mir_rewrite_call_target(mut ctx: LowerCtx, callee_name: String, first_arg_idx
     // Only re-dispatch format_debug / format_debug__?t0 shells — applying
     // mono_by_type to every callee regresses modules/multi_import (to_string).
     if eq(clone(rewritten), String_from("format_debug")) ||
-    starts_with(clone(rewritten), String_from("format_debug__")) ||
-    ends_with(clone(rewritten), String_from("::format_debug")) ||
-    contains(clone(rewritten), String_from("format_debug__")) {
+    clone(rewritten).starts_with(String_from("format_debug__")) ||
+    clone(rewritten).ends_with(String_from("::format_debug")) ||
+    clone(rewritten).contains(String_from("format_debug__")) {
         rewritten = call_mono_by_type::mir_resolve_mono_call_by_type(ctx, rewritten, first_arg_idx)
     }
     // write_debug_to<T>(buf, value) is monomorphized on the *value* (2nd arg),
@@ -202,10 +202,10 @@ fn mir_rewrite_call_target(mut ctx: LowerCtx, callee_name: String, first_arg_idx
     // before resolving on the value arg — otherwise i32 sites stay stuck on
     // the String specialization and get pruned wrongly.
     if eq(clone(rewritten), String_from("write_debug_to")) ||
-    starts_with(clone(rewritten), String_from("write_debug_to__")) ||
-    ends_with(clone(rewritten), String_from("::write_debug_to")) ||
-    contains(clone(rewritten), String_from("write_debug_to__")) ||
-    contains(clone(rewritten), String_from("::write_debug_to")) {
+    clone(rewritten).starts_with(String_from("write_debug_to__")) ||
+    clone(rewritten).ends_with(String_from("::write_debug_to")) ||
+    clone(rewritten).contains(String_from("write_debug_to__")) ||
+    clone(rewritten).contains(String_from("::write_debug_to")) {
         rewritten = String_from("write_debug_to")
         let mono_arg = if second_arg_idx >= 0 { second_arg_idx } else { first_arg_idx }
         rewritten = call_mono::mir_resolve_mono_call_target(ctx, rewritten, mono_arg, span_start)
@@ -215,16 +215,16 @@ fn mir_rewrite_call_target(mut ctx: LowerCtx, callee_name: String, first_arg_idx
 }
 
 fn callee_needs_i64_trailing_arg(callee_name: String) -> bool {
-    if ends_with(clone(callee_name), String_from("assert_eq_i64")) {
+    if clone(callee_name).ends_with(String_from("assert_eq_i64")) {
         return true
     }
-    if ends_with(clone(callee_name), String_from("seek_to")) {
+    if clone(callee_name).ends_with(String_from("seek_to")) {
         return true
     }
     if eq(clone(callee_name), String_from("seek")) {
         return true
     }
-    if ends_with(clone(callee_name), String_from("::seek")) {
+    if clone(callee_name).ends_with(String_from("::seek")) {
         return true
     }
     false

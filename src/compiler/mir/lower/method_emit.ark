@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, index_of, starts_with, substring}
+use std::prelude::{clone, eq}
 use mir::lower::call_rewrite
 use mir::lower::call_rewrite_string
 use mir::lower::call_rewrite_vec
@@ -29,7 +29,7 @@ fn mir_emit_method_call(mut ctx: LowerCtx, mut callee_name: String, arg_count: i
     // methods emits an i64 widen the linear target's code does not expect.
     let mut push_value_arg_idx = 0 - 1
     if call_rewrite_vec::is_vec_push_callee(clone(callee_name)) ||
-    starts_with(clone(callee_name), String_from("__core_vec_push_")) {
+    clone(callee_name).starts_with(String_from("__core_vec_push_")) {
         push_value_arg_idx = value_arg_idx
     }
     let call_rewrite = call_rewrite::mir_rewrite_call_target(ctx, clone(callee_name), first_arg_idx, push_value_arg_idx, false, 0)
@@ -75,9 +75,9 @@ fn mir_emit_method_call(mut ctx: LowerCtx, mut callee_name: String, arg_count: i
 }
 
 fn mir_method_bare_name(mangled: String) -> String {
-    let pos = index_of(clone(mangled), "::")
+    let pos = clone(mangled).index_of("::")
     if pos < 0 {
         return clone(mangled)
     }
-    substring(mangled, pos + 2, mangled.len())
+    mangled.slice(pos + 2, mangled.len())
 }

@@ -1,4 +1,4 @@
-use std::prelude::{eq, to_string}
+use std::prelude::{eq}
 use std::text
 use lexer::scan
 use parser::ast_kind_fields
@@ -50,7 +50,7 @@ fn issue652_parser_self_check() -> String {
         return "issue652 parser fail: unexpected parse errors"
     }
     if len(decls) != 3 {
-        return "issue652 parser fail: decl count=".concat(to_string(len(decls)))
+        return "issue652 parser fail: decl count=".concat(len(decls).to_string())
     }
     let wit_alias = issue652_assert_wit_import(get_unchecked(decls, 0), "test:host/math", "host")
     if len(wit_alias) > 0 {

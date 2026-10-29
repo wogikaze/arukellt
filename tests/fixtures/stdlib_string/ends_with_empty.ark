@@ -1,8 +1,7 @@
 use std::test::Test
-use std::prelude::{ends_with}
 fn main() {
     let s = String_from("hello")
-    Test::assert_true(ends_with(s, String_from("")))
-    Test::assert_false(ends_with(String_from(""), String_from("x")))
-    Test::assert_true(ends_with(String_from(""), String_from("")))
+    Test::assert_true(s.ends_with(String_from("")))
+    Test::assert_false(String_from("").ends_with(String_from("x")))
+    Test::assert_true(String_from("").ends_with(String_from("")))
 }

@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, starts_with}
+use std::prelude::{clone, eq}
 use std::text
 use mir::lower::ast_node
 use mir::function_return_view
@@ -83,24 +83,24 @@ fn mir_option_result_scrut_type_is_f64(scrut_type: String) -> bool {
     eq(clone(scrut_type), "Result_f64") ||
     eq(clone(scrut_type), "Option_f64") ||
     eq(clone(scrut_type), "option:f64") ||
-    starts_with(clone(scrut_type), "Result_f64_") ||
-    starts_with(clone(scrut_type), "result:f64:")
+    clone(scrut_type).starts_with("Result_f64_") ||
+    clone(scrut_type).starts_with("result:f64:")
 }
 
 fn mir_option_result_scrut_type_is_i64(scrut_type: String) -> bool {
     eq(clone(scrut_type), "Result_i64") ||
     eq(clone(scrut_type), "Option_i64") ||
     eq(clone(scrut_type), "option:i64") ||
-    starts_with(clone(scrut_type), "Result_i64_") ||
-    starts_with(clone(scrut_type), "result:i64:")
+    clone(scrut_type).starts_with("Result_i64_") ||
+    clone(scrut_type).starts_with("result:i64:")
 }
 
 fn mir_option_result_scrut_type_is_i32(scrut_type: String) -> bool {
     eq(clone(scrut_type), "Option_i32") ||
     eq(clone(scrut_type), "Result_i32") ||
     eq(clone(scrut_type), "option:i32") ||
-    starts_with(clone(scrut_type), "Result_i32_") ||
-    starts_with(clone(scrut_type), "result:i32:")
+    clone(scrut_type).starts_with("Result_i32_") ||
+    clone(scrut_type).starts_with("result:i32:")
 }
 
 fn mir_match_has_variant_pattern(node: AstNode, child_count: i32) -> bool {
@@ -370,7 +370,7 @@ fn mir_arm_is_option_bind_return(arm: AstNode) -> bool {
 
 fn mir_variant_owner_is_option(variant_name: String) -> bool {
     let normalized = ctx_gc_enum::ctx_gc_enum_normalize_variant_name(clone(variant_name))
-    starts_with(normalized, String_from("Option::"))
+    normalized.starts_with(String_from("Option::"))
 }
 
 // Canonical scrutinee type when an arm binds the scrutinee and returns the

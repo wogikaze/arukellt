@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq, index_of}
+use std::prelude::{clone, eq}
 use std::text
 use resolver::scope_lookup
 use resolver::ast_access
@@ -239,7 +239,7 @@ fn reject_unloaded_try_from(ctx: ResolveCtx, path: String, symbol_part: String) 
 }
 
 fn path_has_nested_qualifier(symbol_part: String) -> bool {
-    index_of(clone(symbol_part), String_from("::")) >= 0
+    clone(symbol_part).index_of(String_from("::")) >= 0
 }
 
 // Builtin type names that support Type::method / Type::Variant syntax.

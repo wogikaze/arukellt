@@ -9,7 +9,7 @@
 // because local indices are per-function — the synth flags its own
 // payload shadow under its own frame name.
 
-use std::prelude::{clone, eq, starts_with, to_string}
+use std::prelude::{clone, eq}
 use std::text
 use mir::function_identity
 use mir::inst_draft
@@ -70,7 +70,7 @@ fn ctx_pcell_cell_spelling(ctx: LowerCtx, local_idx: i32) -> String {
     if idx < 0 {
         return String_new()
     }
-    "struct:".concat(clone(get_unchecked(ctx.pcell_cell_names, idx)).concat(":".concat(to_string(closure_env_layout::closure_env_slot_width(get_unchecked(ctx.pcell_vts, idx))))))
+    "struct:".concat(clone(get_unchecked(ctx.pcell_cell_names, idx)).concat(":".concat(closure_env_layout::closure_env_slot_width(get_unchecked(ctx.pcell_vts, idx)).to_string())))
 }
 
 fn ctx_pcell_vt_sig(payload_vt: i32) -> String {
@@ -101,7 +101,7 @@ fn ctx_pcell_vt_sig(payload_vt: i32) -> String {
 fn ctx_pcell_cell_name_for(mut ctx: LowerCtx, payload_type: String, payload_vt: i32) -> String {
     let mut key = clone(payload_type)
     if len(key) == 0 {
-        key = "vt:".concat(to_string(payload_vt))
+        key = "vt:".concat(payload_vt.to_string())
     }
     let mut i = 0
     while i < len(ctx.pcell_reg_keys) {
@@ -110,7 +110,7 @@ fn ctx_pcell_cell_name_for(mut ctx: LowerCtx, payload_type: String, payload_vt: 
         }
         i = i + 1
     }
-    let cell_name = "__cell_".concat(to_string(len(ctx.pcell_reg_cells)))
+    let cell_name = "__cell_".concat(len(ctx.pcell_reg_cells).to_string())
     push(ctx.pcell_reg_keys, key)
     push(ctx.pcell_reg_cells, clone(cell_name))
     push(ctx.pcell_reg_vts, payload_vt)
@@ -164,8 +164,8 @@ fn ctx_promote_capture_cell(mut ctx: LowerCtx, name: String) -> i32 {
     let cell_name = ctx_pcell_cell_name_for(ctx, clone(payload_type), payload_vt)
     let slot_width = closure_env_layout::closure_env_slot_width(payload_vt)
     let ref_vt = closure_env_layout::closure_env_ref_vt(ctx)
-    let cell_local_type = "struct:".concat(clone(cell_name).concat(":".concat(to_string(slot_width))))
-    let ref_name = "__cellref_".concat(clone(name).concat("_".concat(to_string(src_li))))
+    let cell_local_type = "struct:".concat(clone(cell_name).concat(":".concat(slot_width.to_string())))
+    let ref_name = "__cellref_".concat(clone(name).concat("_".concat(src_li.to_string())))
     let ref_li = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(ref_name), ref_vt)
     ctx_api_local_types::ctx_set_local_type(ctx, ref_li, cell_local_type)
     ctx_emit_core::ctx_emit_verbatim(ctx, inst_struct_new::MirInst_struct_new_named(
@@ -193,7 +193,7 @@ fn ctx_promote_capture_cell(mut ctx: LowerCtx, name: String) -> i32 {
 }
 
 fn ctx_pcell_cap_type_is_cell(cap_type: String) -> bool {
-    starts_with(clone(cap_type), "struct:__cell_")
+    clone(cap_type).starts_with("struct:__cell_")
 }
 
 // Param name for a cap whose packed supply carries a promoted cell ref.

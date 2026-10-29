@@ -1,5 +1,5 @@
 use std::host::fs::Fs
-use std::prelude::{clone, eq, index_of, substring}
+use std::prelude::{clone, eq}
 use lsp::lsp_package_definition
 use lsp::state_record
 use lsp::symbol_index_paths
@@ -14,18 +14,18 @@ fn collect_path_dependency_rel_paths(content: String) -> Vec<String> {
     let needle_len = len(needle)
     let mut search_from = 0
     while search_from < content_len {
-        let tail = substring(content, search_from, content_len)
-        let pos = index_of(clone(tail), needle)
+        let tail = content.slice(search_from, content_len)
+        let pos = clone(tail).index_of(needle)
         if pos < 0 {
             return out
         }
         let abs = search_from + pos + needle_len
-        let rest = substring(content, abs, content_len)
-        let end = index_of(clone(rest), "\"")
+        let rest = content.slice(abs, content_len)
+        let end = clone(rest).index_of("\"")
         if end < 0 {
             return out
         }
-        push(out, substring(rest, 0, end))
+        push(out, rest.slice(0, end))
         search_from = abs + end + 1
     }
     out

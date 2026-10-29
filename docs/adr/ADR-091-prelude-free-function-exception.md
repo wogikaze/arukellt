@@ -234,6 +234,45 @@ overlay に convert を追加し、`try_from` を import せずに呼ぶ経路�
 まま残す。§4 の「この wave で退役しない残り」は、この追記の 11 件についてのみ
 更新されたものとして読む。
 
+## 追記: 2026-10-29 `wave/prelude-text2` — text 10 件のうち 8 件の退役
+
+§4 の text 10 件のうち、receiver method の戻り型・lowering が bootstrap pin で
+安定した 8 件を追加で退役した。§3 の 4 件例外は不変である。
+
+| Retired free | Replacement |
+|--------------|-------------|
+| `byte_at(s, i)` | `s.byte_at(i)` |
+| `slice(s, start, end)` | `s.slice(start, end)` |
+| `substring(s, start, end)` | `s.slice(start, end)`（同一の `string.slice` CoreOp） |
+| `to_string(x)` | `x.to_string()`（`Display` impl） |
+| `starts_with(s, prefix)` | `s.starts_with(prefix)` |
+| `ends_with(s, suffix)` | `s.ends_with(suffix)` |
+| `contains(s, sub)` | `s.contains(sub)` |
+| `index_of(s, sub)` | `s.index_of(sub)` |
+
+`std::collections::string` の module-scoped frees は explicit-import の
+compatibility 面として残る。prelude の bare call は E0100 で止まり、上の
+receiver を指す hint を返す。
+
+残る 4 件は次の理由で退役しない。
+
+- `clone`: free `clone` は typechecker の polymorphic special case であり、
+  `Vec<String>` / `Vec<TypeInfo>` / `AstNode` など `Clone` impl を持たない値の
+  唯一の copy 経路である。`s.clone()` は String / scalar / 一部 collection にしか
+  解決せず、compiler 自身の clone を method へ一括移行すると bootstrap が
+  compile できない。
+- `eq`: `String` の `==` は operator を `eq` method へ rewrite して lowering する。
+  bootstrap flat overlay は `std::core::cmp`（`impl Eq for String`）を ship して
+  いないため、free `eq` を消すと pin が `==` を `i32.eq`（参照比較）へ落とし、
+  invalid core Wasm を生成する。overlay の Eq dispatch が安定するまで残す。
+- `Box_new` / `unbox`: generic enum payload の associated function / method が
+  pin の lowering で `T` を推論できず（`cannot infer type parameter T`）、
+  `Box::new` は resolver が enum variant として解決する。ownership checker の
+  名前 special-case だけでは置換できない。ADR-088 §6 の borrowed-Box 拒否も
+  同じ名前 boundary に依存する。
+- `to_string` は退役済みだが、`String` の `Display` impl は
+  `std::core::convert`（overlay ship 済み）に依存する。
+
 ## 参照
 
 - [ADR-014](ADR-014-stability-labels.md)

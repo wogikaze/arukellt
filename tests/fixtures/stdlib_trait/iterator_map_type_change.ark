@@ -4,11 +4,11 @@
 
 use std::core::iter
 use std::test::Test
-use std::prelude::{clone, to_string}
+use std::prelude::{clone}
 use std::host::stdio
 use std::text
 fn itos(value: i32) -> String {
-    "n".concat(to_string(value))
+    "n".concat(value.to_string())
 }
 
 fn slen(value: String) -> i32 {
@@ -55,8 +55,8 @@ fn main() {
 
     stdio::println(get_unchecked(strings, 0))
     stdio::println(get_unchecked(strings, 1))
-    stdio::println(to_string(get_unchecked(lengths, 0)))
-    stdio::println(to_string(get_unchecked(lengths, 1)))
-    stdio::println(to_string(get_unchecked(filtered, 1)))
+    stdio::println(get_unchecked(lengths, 0).to_string())
+    stdio::println(get_unchecked(lengths, 1).to_string())
+    stdio::println(get_unchecked(filtered, 1).to_string())
     stdio::println(get_unchecked(copied, 1))
 }

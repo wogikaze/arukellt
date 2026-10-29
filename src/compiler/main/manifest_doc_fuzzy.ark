@@ -1,4 +1,4 @@
-use std::prelude::{clone, contains, eq, starts_with}
+use std::prelude::{clone, eq}
 use std::text
 use main::manifest_doc_record
 fn doc_qualified_name(module: String, name: String) -> String {
@@ -9,10 +9,10 @@ fn doc_score_name(query: String, candidate: String) -> i32 {
     if eq(clone(query), clone(candidate)) {
         return 0
     }
-    if starts_with(clone(candidate), clone(query)) {
+    if clone(candidate).starts_with(clone(query)) {
         return len(candidate) - len(query)
     }
-    if contains(clone(candidate), clone(query)) {
+    if clone(candidate).contains(clone(query)) {
         return len(candidate)
     }
     len(candidate) + len(query)

@@ -1,7 +1,6 @@
 use std::host::stdio
-use std::prelude::{to_string}
 fn main() {
-    stdio::println(to_string(9001i64))
-    stdio::println(to_string(0i64))
-    stdio::println(to_string(-1i64))
+    stdio::println(9001i64.to_string())
+    stdio::println(0i64.to_string())
+    stdio::println((-1i64).to_string())
 }

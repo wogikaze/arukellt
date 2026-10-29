@@ -1,10 +1,9 @@
 use std::host::stdio
-use std::prelude::{to_string}
 use std::text
 fn main() {
     let a: i32 = 10
     let b: i32 = 20
-    stdio::println("sum = ".concat(to_string(a + b)))
+    stdio::println("sum = ".concat((a + b).to_string()))
     let x: i32 = 5
-    stdio::println(to_string(x).concat(" * 2 = ").concat(to_string(x * 2)))
+    stdio::println(x.to_string().concat(" * 2 = ").concat((x * 2).to_string()))
 }

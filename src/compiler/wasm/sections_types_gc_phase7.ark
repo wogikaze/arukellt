@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 fn gc_struct_ref_array_offset() -> i32 {
     24
@@ -39,7 +39,7 @@ fn gc_vec_enum_ref_type_sig() -> String {
 fn gc_vec_elem_name_is_fnref(elem: String) -> bool {
     eq(clone(elem), "fnref") ||
     eq(clone(elem), "fn") ||
-    starts_with(clone(elem), "fn(")
+    clone(elem).starts_with("fn(")
 }
 
 fn gc_vec_elem_name_is_struct_ref(elem: String) -> bool {
@@ -75,7 +75,7 @@ fn gc_vec_elem_name_is_struct_ref(elem: String) -> bool {
     // Funcref elems use a dedicated (array (mut (ref null $sig))) layout (#832).
     if eq(clone(elem), "fnref") ||
     eq(clone(elem), "fn") ||
-    starts_with(clone(elem), "fn(") {
+    clone(elem).starts_with("fn(") {
         return false
     }
     // Option/Result/enum payloads are GC enum refs (or scalar-backed), not
@@ -97,27 +97,27 @@ fn gc_vec_elem_name_is_enum_like(elem: String) -> bool {
     // `mono_safe_name` encodes Option<T> as `?_T_` because the type tag for
     // Option is currently `?`.  Normalize-aware callers usually decode this
     // first, but keep the raw spelling classified correctly at this boundary.
-    if starts_with(clone(elem), "?_") {
+    if clone(elem).starts_with("?_") {
         return true
     }
     if eq(clone(elem), "Option") || eq(clone(elem), "Result") {
         return true
     }
-    if starts_with(clone(elem), "Option") ||
-    starts_with(clone(elem), "option:") ||
-    starts_with(clone(elem), "Option:") ||
-    starts_with(clone(elem), "Option_") ||
-    starts_with(clone(elem), "Option<") {
+    if clone(elem).starts_with("Option") ||
+    clone(elem).starts_with("option:") ||
+    clone(elem).starts_with("Option:") ||
+    clone(elem).starts_with("Option_") ||
+    clone(elem).starts_with("Option<") {
         return true
     }
-    if starts_with(clone(elem), "Result") ||
-    starts_with(clone(elem), "result:") ||
-    starts_with(clone(elem), "Result:") ||
-    starts_with(clone(elem), "Result_") ||
-    starts_with(clone(elem), "Result<") {
+    if clone(elem).starts_with("Result") ||
+    clone(elem).starts_with("result:") ||
+    clone(elem).starts_with("Result:") ||
+    clone(elem).starts_with("Result_") ||
+    clone(elem).starts_with("Result<") {
         return true
     }
-    if starts_with(clone(elem), "enum:") {
+    if clone(elem).starts_with("enum:") {
         return true
     }
     false
@@ -129,26 +129,26 @@ fn gc_vec_elem_name_is_enum_like(elem: String) -> bool {
 // `Vec_String_` or `?_i32_`.
 fn gc_normalize_vec_element_name(elem: String) -> String {
     let mut normalized = clone(elem)
-    while len(normalized) > 0 && byte_at(normalized, len(normalized) - 1) == 95 {
-        normalized = substring(normalized, 0, len(normalized) - 1)
+    while len(normalized) > 0 && normalized.byte_at(len(normalized) - 1) == 95 {
+        normalized = normalized.slice(0, len(normalized) - 1)
     }
-    if starts_with(clone(normalized), "?_") {
-        return "Option_".concat(substring(normalized, 2, len(normalized)))
+    if clone(normalized).starts_with("?_") {
+        return "Option_".concat(normalized.slice(2, len(normalized)))
     }
     normalized
 }
 
 fn gc_normalize_vec_type_name(type_name: String) -> String {
-    if starts_with(clone(type_name), "vec:") {
-        let elem = substring(clone(type_name), 4, len(type_name))
+    if clone(type_name).starts_with("vec:") {
+        let elem = clone(type_name).slice(4, len(type_name))
         return "vec:".concat(gc_normalize_vec_element_name(elem))
     }
-    if starts_with(clone(type_name), "Vec<") && ends_with(clone(type_name), ">") {
-        let elem = substring(clone(type_name), 4, len(type_name) - 1)
+    if clone(type_name).starts_with("Vec<") && clone(type_name).ends_with(">") {
+        let elem = clone(type_name).slice(4, len(type_name) - 1)
         return "vec:".concat(gc_normalize_vec_element_name(elem))
     }
-    if starts_with(clone(type_name), "Vec_") {
-        let elem = substring(clone(type_name), 4, len(type_name))
+    if clone(type_name).starts_with("Vec_") {
+        let elem = clone(type_name).slice(4, len(type_name))
         return "vec:".concat(gc_normalize_vec_element_name(elem))
     }
     if eq(clone(type_name), "Vec") {
@@ -160,22 +160,22 @@ fn gc_normalize_vec_type_name(type_name: String) -> String {
 fn gc_vec_elem_name_is_type_param(elem: String) -> bool {
     // Single-letter type vars: T, U, K, E, R, A, B, V, ...
     if len(elem) == 1 {
-        let c = byte_at(elem, 0)
+        let c = elem.byte_at(0)
         if c >= 65 && c <= 90 {
             return true
         }
     }
     // Ordinal mono placeholders: t0, t1, ?t0, T0, ...
-    if starts_with(clone(elem), "?") {
-        return gc_vec_elem_name_is_type_param(substring(elem, 1, len(elem)))
+    if clone(elem).starts_with("?") {
+        return gc_vec_elem_name_is_type_param(elem.slice(1, len(elem)))
     }
     if len(elem) >= 2 {
-        let c0 = byte_at(elem, 0)
+        let c0 = elem.byte_at(0)
         if (c0 == 116 || c0 == 84) {
             let mut i = 1
             let mut all_digit = true
             while i < len(elem) {
-                let c = byte_at(elem, i)
+                let c = elem.byte_at(i)
                 if c < 48 || c > 57 {
                     all_digit = false
                 }

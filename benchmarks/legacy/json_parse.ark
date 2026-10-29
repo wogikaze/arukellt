@@ -1,12 +1,11 @@
 use std::host::stdio
-use std::prelude::{byte_at}
 use std::text
 fn count_chars(s: String, c: i32) -> i32 {
     let n: i32 = len(s)
     let mut count: i32 = 0
     let mut i: i32 = 0
     while i < n {
-        if byte_at(s, i) == c {
+        if s.byte_at(i) == c {
             count = count + 1
         }
         i = i + 1
@@ -21,10 +20,10 @@ fn count_json_strings(s: String) -> i32 {
     let mut count: i32 = 0
     let mut i: i32 = 0
     while i < n {
-        if byte_at(s, i) == 34 {
+        if s.byte_at(i) == 34 {
             count = count + 1
             i = i + 1
-            while i < n && byte_at(s, i) != 34 {
+            while i < n && s.byte_at(i) != 34 {
                 i = i + 1
             }
         }

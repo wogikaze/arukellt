@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, contains, eq, substring, to_string}
+use std::prelude::{clone, eq}
 use std::text
 use mir::function_identity
 use mir::function_block_queries
@@ -25,7 +25,7 @@ fn mir_module_stem_from_qualified(name: String) -> String {
     let mut last_colon = 0 - 1
     let mut ci = nlen - 1
     while ci >= 0 {
-        if byte_at(name, ci) == 58 {
+        if name.byte_at(ci) == 58 {
             last_colon = ci
             ci = 0 - 1
         }
@@ -34,7 +34,7 @@ fn mir_module_stem_from_qualified(name: String) -> String {
     if last_colon < 0 {
         return String_new()
     }
-    substring(name, 0, last_colon)
+    name.slice(0, last_colon)
 }
 
 fn mir_count_functions_named(function_name_counts: NameIndex, short_name: String) -> i32 {
@@ -212,7 +212,7 @@ fn mir_resolve_self_delegate_collision(
         return 0 - 1
     }
     let candidate_name = function_identity::MirFunction_name(get_unchecked(functions, candidate_idx))
-    if eq(clone(candidate_name), clone(name)) && contains(clone(name), "::") {
+    if eq(clone(candidate_name), clone(name)) && clone(name).contains("::") {
         return candidate_idx
     }
     let short_name = resolver::use_module_short_name(clone(name))
@@ -262,5 +262,5 @@ fn mir_collision_export_name(functions: Vec<MirFunction>, fn_idx: i32, short_nam
             return stem.concat("__".concat(clone(short_name)))
         }
     }
-    clone(short_name).concat("__").concat(to_string(seen_count))
+    clone(short_name).concat("__").concat(seen_count.to_string())
 }

@@ -1,5 +1,5 @@
 use std::text
-use std::prelude::{clone, eq, to_string}
+use std::prelude::{clone, eq}
 use parser::core_ast_children
 use parser::core_ast_flag_fields
 use parser::core_ast_factory
@@ -32,7 +32,7 @@ fn parse_type(mut p: Parser) -> AstNode {
     if type_token_predicates::is_fn_start(kind) {
         return parse_fn_type(p, t)
     }
-    core_api_expect::error(p, "expected type, got ".concat(to_string(kind)))
+    core_api_expect::error(p, "expected type, got ".concat(kind.to_string()))
     core_ast_factory::AstNode_leaf(kinds::NK_TYPE_NAMED(), "_error", core_api_expect::tok_span(t))
 }
 

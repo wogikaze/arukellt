@@ -1,9 +1,8 @@
 use std::core::convert
 use std::test::Test
-use std::prelude::{to_string}
 fn main() {
-    Test::assert_eq_string(to_string(42), "42")
-    Test::assert_eq_string(to_string(0), "0")
-    Test::assert_eq_string(to_string(-7), "-7")
-    Test::assert_eq_string(to_string(2147483647), "2147483647")
+    Test::assert_eq_string(42.to_string(), "42")
+    Test::assert_eq_string(0.to_string(), "0")
+    Test::assert_eq_string((-7).to_string(), "-7")
+    Test::assert_eq_string(2147483647.to_string(), "2147483647")
 }

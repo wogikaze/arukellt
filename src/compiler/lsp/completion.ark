@@ -1,5 +1,5 @@
 use std::json::parser
-use std::prelude::{byte_at, clone, substring}
+use std::prelude::{clone}
 use lsp::completion_providers
 use lsp::positions
 fn is_ident_char(ch: i32) -> bool {
@@ -22,10 +22,10 @@ fn prefix_at_offset(text: String, offset: i32) -> String {
         end = n
     }
     let mut start = end
-    while start > 0 && is_ident_char(byte_at(text, start - 1)) {
+    while start > 0 && is_ident_char(text.byte_at(start - 1)) {
         start = start - 1
     }
-    substring(text, start, end)
+    text.slice(start, end)
 }
 
 pub fn build_completion_response(state: LspState, id: i32, text: String, offset: i32) -> String {

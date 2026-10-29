@@ -4,7 +4,6 @@
 // Used by `manager.py verify` analysis-api gate to assert that
 // `ide::api::analyze` returns a snapshot with non-zero AST/symbol/type
 // counts and zero diagnostics.
-use std::prelude::{to_string}
 use std::host::stdio
 fn add(a: i32, b: i32) -> i32 {
     a + b
@@ -12,5 +11,5 @@ fn add(a: i32, b: i32) -> i32 {
 
 fn main() {
     let x = add(1, 2)
-    stdio::println(to_string(x))
+    stdio::println(x.to_string())
 }

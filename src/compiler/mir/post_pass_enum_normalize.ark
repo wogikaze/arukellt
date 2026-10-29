@@ -12,7 +12,7 @@ use mir::typed_mir_sync_module
 // When a local receives values from more than one enum variant slot,
 // clear variant_slot and keep an open enum type_name so local declaration
 // (enum_open) matches stores without ref.cast to a specific variant.
-use std::prelude::{clone, contains, eq, starts_with}
+use std::prelude::{clone, eq}
 fn mir_function_normalize_multi_variant_locals(mut f: MirFunction, mut table: TypeTable) -> MirFunction {
     let local_count = function_locals_view::MirFunction_local_count(f)
     // normalize_local_to_open_enum only retypes locals; it adds no writes, so
@@ -32,7 +32,7 @@ fn is_ref_container_type_name(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if starts_with(clone(type_name), "vec:") || starts_with(clone(type_name), "hashmap:") || starts_with(clone(type_name), "struct:") {
+    if clone(type_name).starts_with("vec:") || clone(type_name).starts_with("hashmap:") || clone(type_name).starts_with("struct:") {
         return true
     }
     if eq(clone(type_name), "string") || eq(clone(type_name), "String") {
@@ -47,7 +47,7 @@ fn is_ref_container_type_name(type_name: String) -> bool {
 // distinguishable from ordinary container names so LOCAL_SET propagation can
 // replace it with the producer's concrete type.
 fn is_enum_variant_struct_type_name(type_name: String) -> bool {
-    starts_with(clone(type_name), "struct:") && contains(clone(type_name), "::")
+    clone(type_name).starts_with("struct:") && clone(type_name).contains("::")
 }
 // vec:/hashmap:/struct: locals must not keep enum variant_slot metadata.
 fn mir_function_clear_container_variant_slots(mut f: MirFunction) -> MirFunction {
@@ -88,19 +88,19 @@ fn is_open_enum_container_type_name(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if starts_with(clone(type_name), "enum:") {
+    if clone(type_name).starts_with("enum:") {
         return true
     }
-    if starts_with(clone(type_name), "option:") ||
-    starts_with(clone(type_name), "Option_") ||
-    starts_with(clone(type_name), "Option:") ||
-    starts_with(clone(type_name), "Option<") {
+    if clone(type_name).starts_with("option:") ||
+    clone(type_name).starts_with("Option_") ||
+    clone(type_name).starts_with("Option:") ||
+    clone(type_name).starts_with("Option<") {
         return true
     }
-    if starts_with(clone(type_name), "result:") ||
-    starts_with(clone(type_name), "Result_") ||
-    starts_with(clone(type_name), "Result:") ||
-    starts_with(clone(type_name), "Result<") {
+    if clone(type_name).starts_with("result:") ||
+    clone(type_name).starts_with("Result_") ||
+    clone(type_name).starts_with("Result:") ||
+    clone(type_name).starts_with("Result<") {
         return true
     }
     false
@@ -210,7 +210,7 @@ fn payload_extract_local_keeps_variant_slot(f: MirFunction, local_idx: i32, type
     if eq(clone(type_name), "enum:open") {
         return false
     }
-    if !starts_with(clone(type_name), "enum:") {
+    if !clone(type_name).starts_with("enum:") {
         return false
     }
     let mut get_count = 0
@@ -274,16 +274,16 @@ fn normalize_type_name_to_open_enum(type_name: String) -> String {
     if is_open_enum_container_type_name(clone(type_name)) {
         return clone(type_name)
     }
-    if starts_with(clone(type_name), "Result_") ||
-    starts_with(clone(type_name), "result:") ||
-    starts_with(clone(type_name), "Result:") ||
-    starts_with(clone(type_name), "Result<") {
+    if clone(type_name).starts_with("Result_") ||
+    clone(type_name).starts_with("result:") ||
+    clone(type_name).starts_with("Result:") ||
+    clone(type_name).starts_with("Result<") {
         return "result:"
     }
-    if starts_with(clone(type_name), "Option_") ||
-    starts_with(clone(type_name), "option:") ||
-    starts_with(clone(type_name), "Option:") ||
-    starts_with(clone(type_name), "Option<") {
+    if clone(type_name).starts_with("Option_") ||
+    clone(type_name).starts_with("option:") ||
+    clone(type_name).starts_with("Option:") ||
+    clone(type_name).starts_with("Option<") {
         return "option:"
     }
     if len(type_name) == 0 {

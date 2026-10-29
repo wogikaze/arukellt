@@ -1,4 +1,4 @@
-use std::prelude::{clone, ends_with, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use corehir::function_id
 use corehir::signature_entry
@@ -38,8 +38,8 @@ fn stdlib_resolve_validator_receiver_local(
 }
 
 fn stdlib_resolve_validator_vec_suffix(type_name: String) -> String {
-    if starts_with(clone(type_name), String_from("vec:")) {
-        return substring(clone(type_name), 4, len(type_name))
+    if clone(type_name).starts_with(String_from("vec:")) {
+        return clone(type_name).slice(4, len(type_name))
     }
     String_new()
 }
@@ -83,8 +83,8 @@ fn stdlib_resolve_validator_expected_target(
     if len(fallback) == 0 {
         return String_new()
     }
-    if !starts_with(clone(fallback), String_from("__core_vec_")) ||
-    !ends_with(clone(fallback), String_from("_impl")) {
+    if !clone(fallback).starts_with(String_from("__core_vec_")) ||
+    !clone(fallback).ends_with(String_from("_impl")) {
         return fallback
     }
     if eq(clone(fallback), String_from("__core_vec_pop_impl")) {

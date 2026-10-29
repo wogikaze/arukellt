@@ -2,7 +2,7 @@
 // Field types are encoded as strings: 'i'=i32, 'l'=i64, 'd'=f64.
 
 use std::text
-use std::prelude::{byte_at, clone, eq, to_string}
+use std::prelude::{clone, eq}
 use mir::value_types
 pub struct GcShapeRegistry {
     struct_names: Vec<String>,
@@ -47,7 +47,7 @@ fn GcShapeRegistry_struct_field_count(reg: GcShapeRegistry, idx: i32) -> i32 {
 
 fn GcShapeRegistry_struct_field_type_at(reg: GcShapeRegistry, struct_idx: i32, field_idx: i32) -> i32 {
     let types_code = get_unchecked(reg.struct_field_types, struct_idx)
-    let c = byte_at(clone(types_code), field_idx)
+    let c = clone(types_code).byte_at(field_idx)
     if c == 108 { value_types::VT_I64() }
     else if c == 100 { value_types::VT_F64() }
     else if c == 102 { value_types::VT_F32() }
@@ -67,9 +67,9 @@ fn GcShapeRegistry_struct_sig(reg: GcShapeRegistry, idx: i32) -> String {
     let mut fi = 0
     while fi < fc {
         sig = sig.concat("_f")
-        sig = sig.concat(to_string(fi))
+        sig = sig.concat(fi.to_string())
         sig = sig.concat("_")
-        sig = sig.concat(code_to_gc_sig(byte_at(clone(types_code), fi)))
+        sig = sig.concat(code_to_gc_sig(clone(types_code).byte_at(fi)))
         fi = fi + 1
     }
     sig

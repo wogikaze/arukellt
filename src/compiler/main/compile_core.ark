@@ -1,7 +1,7 @@
 use std::host::stdio
 use std::host::fs::Fs
 use std::host::process::Process
-use std::prelude::{byte_at, clone, contains, eq, substring, to_string}
+use std::prelude::{clone, eq}
 use std::text
 use main::args_record
 use main::commands
@@ -93,12 +93,12 @@ fn should_dump(opts: CliOptions, phase: String) -> bool {
     let phases_len = len(phases)
     let mut i = 0
     while i <= phases_len - phase_len {
-        let sub = substring(clone(phases), i, i + phase_len)
+        let sub = clone(phases).slice(i, i + phase_len)
         if eq(sub, clone(phase)) {
             let at_start = i == 0
-            let after_comma = i > 0 && byte_at(phases, i - 1) == 44
+            let after_comma = i > 0 && phases.byte_at(i - 1) == 44
             let at_end = i + phase_len == phases_len
-            let before_comma = i + phase_len < phases_len && byte_at(phases, i + phase_len) == 44
+            let before_comma = i + phase_len < phases_len && phases.byte_at(i + phase_len) == 44
             if at_start || after_comma && at_end || before_comma {
                 return true
             }
@@ -136,7 +136,7 @@ fn write_compile_output(path: String, bytes: Vec<i32>, json_mode: bool) -> bool 
     match write_result {
         Result::Ok(_) => {
             if !json_mode {
-                stdio::eprintln("wrote ".concat(to_string(len(bytes)).concat(" bytes to ".concat(clone(path)))))
+                stdio::eprintln("wrote ".concat(len(bytes).to_string().concat(" bytes to ".concat(clone(path)))))
             }
             true
         },
@@ -150,9 +150,9 @@ fn write_compile_output(path: String, bytes: Vec<i32>, json_mode: bool) -> bool 
 fn stem_from_input(path: String) -> String {
     let n = len(clone(path))
     if n > 4 {
-        let ext = substring(clone(path), n - 4, n)
+        let ext = clone(path).slice(n - 4, n)
         if eq(ext, ".ark") {
-            return substring(path, 0, n - 4)
+            return path.slice(0, n - 4)
         }
     }
     path
@@ -170,9 +170,9 @@ fn component_path_for_all(opts: CliOptions) -> String {
         let out = args_record::cli_output_file(opts)
         let n = len(clone(out))
         if n > 5 {
-            let ext = substring(clone(out), n - 5, n)
+            let ext = clone(out).slice(n - 5, n)
             if eq(ext, ".wasm") {
-                return substring(out, 0, n - 5).concat(".component.wasm")
+                return out.slice(0, n - 5).concat(".component.wasm")
             }
         }
         return out.concat(".component.wasm")
@@ -218,7 +218,7 @@ fn print_compile_success(input_file: String, result: CompileResult, json_mode: b
         stdio::println(output::format_success_json(clone(input_file), result_record::compile_result_phase_reached(result), result_record::compile_result_output_byte_count(result)))
         return
     }
-    stdio::eprintln("compilation succeeded (phase ".concat(to_string(result_record::compile_result_phase_reached(result)).concat(")")))
+    stdio::eprintln("compilation succeeded (phase ".concat(result_record::compile_result_phase_reached(result).to_string().concat(")")))
 }
 
 fn handle_single_compile_success(opts: CliOptions, input_file: String, result: CompileResult, json_mode: bool) -> i32 {
@@ -230,7 +230,7 @@ fn handle_single_compile_success(opts: CliOptions, input_file: String, result: C
         return 0
     }
     if !json_mode {
-        stdio::println("ok: ".concat(to_string(result_record::compile_result_output_byte_count(result)).concat(" bytes")))
+        stdio::println("ok: ".concat(result_record::compile_result_output_byte_count(result).to_string().concat(" bytes")))
     }
     0
 }
@@ -254,27 +254,27 @@ fn validate_wit_paths(opts: CliOptions) -> bool {
 }
 
 fn source_uses_clock_intrinsics(source: String) -> bool {
-    contains(clone(source), String_from("clock::")) ||
-    contains(clone(source), String_from("monotonic_now")) ||
-    contains(source, String_from("std::host::clock"))
+    clone(source).contains(String_from("clock::")) ||
+    clone(source).contains(String_from("monotonic_now")) ||
+    source.contains(String_from("std::host::clock"))
 }
 
 fn source_uses_random_intrinsics(source: String) -> bool {
-    contains(clone(source), String_from("random::")) ||
-    contains(clone(source), String_from("random_i32")) ||
-    contains(clone(source), String_from("Random::")) ||
-    contains(source, String_from("std::host::random"))
+    clone(source).contains(String_from("random::")) ||
+    clone(source).contains(String_from("random_i32")) ||
+    clone(source).contains(String_from("Random::")) ||
+    source.contains(String_from("std::host::random"))
 }
 
 fn source_uses_process_intrinsics(source: String) -> bool {
-    contains(clone(source), String_from("process::exit")) ||
-    contains(clone(source), String_from("process::abort")) ||
-    contains(clone(source), String_from("Process::exit")) ||
-    contains(clone(source), String_from("Process::abort")) ||
-    contains(clone(source), String_from("Process::id")) ||
-    contains(clone(source), String_from("std::host::process")) ||
-    contains(clone(source), String_from("__runtime_abi_process_exit")) ||
-    contains(source, String_from("__runtime_abi_process_abort"))
+    clone(source).contains(String_from("process::exit")) ||
+    clone(source).contains(String_from("process::abort")) ||
+    clone(source).contains(String_from("Process::exit")) ||
+    clone(source).contains(String_from("Process::abort")) ||
+    clone(source).contains(String_from("Process::id")) ||
+    clone(source).contains(String_from("std::host::process")) ||
+    clone(source).contains(String_from("__runtime_abi_process_exit")) ||
+    source.contains(String_from("__runtime_abi_process_abort"))
 }
 
 fn enforce_capability_denies(opts: CliOptions, input_file: String) -> bool {

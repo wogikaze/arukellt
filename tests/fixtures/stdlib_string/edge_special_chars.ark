@@ -1,8 +1,7 @@
 use std::test::Test
-use std::prelude::{contains}
 fn main() {
     let s = String_from("a.b,c!d@e")
     Test::assert_eq_i32(len(s), 9)
-    Test::assert_true(contains(s, String_from("!")))
-    Test::assert_true(contains(s, String_from("@")))
+    Test::assert_true(s.contains(String_from("!")))
+    Test::assert_true(s.contains(String_from("@")))
 }

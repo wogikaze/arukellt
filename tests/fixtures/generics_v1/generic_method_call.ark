@@ -3,7 +3,6 @@
 // rather than the direct NK_CALL cases already exercised by the other
 // generics_v1 fixtures.
 use std::host::stdio
-use std::prelude::{to_string}
 struct Picker {
     token: i32,
 }
@@ -17,7 +16,7 @@ impl Picker {
 fn main() {
     let picker = Picker { token: 0 }
     let n: i32 = picker.echo(7)
-    stdio::println(to_string(n))
+    stdio::println(n.to_string())
     let s: String = picker.echo(String_from("method mono"))
     stdio::println(s)
 }

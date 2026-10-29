@@ -1,11 +1,10 @@
-use std::prelude::{byte_at, substring}
 fn extract_struct_name_from_type_name(type_name: String) -> String {
     let mut first_colon = 0 - 1
     let mut last_colon = 0 - 1
     let n = len(type_name)
     let mut i = 0
     while i < n {
-        if byte_at(type_name, i) == ':' {
+        if type_name.byte_at(i) == ':' {
             if first_colon < 0 {
                 first_colon = i
             }
@@ -16,7 +15,7 @@ fn extract_struct_name_from_type_name(type_name: String) -> String {
     if first_colon < 0 || last_colon < 0 || first_colon == last_colon {
         return String_new()
     }
-    substring(type_name, first_colon + 1, last_colon)
+    type_name.slice(first_colon + 1, last_colon)
 }
 
 fn extract_struct_byte_size(type_name: String) -> i32 {
@@ -24,7 +23,7 @@ fn extract_struct_byte_size(type_name: String) -> i32 {
     let mut last_colon = 0 - 1
     let mut i = 0
     while i < n {
-        if byte_at(type_name, i) == ':' {
+        if type_name.byte_at(i) == ':' {
             last_colon = i
         }
         i = i + 1
@@ -35,7 +34,7 @@ fn extract_struct_byte_size(type_name: String) -> i32 {
     let mut byte_size = 0
     let mut j = last_colon + 1
     while j < n {
-        let d = byte_at(type_name, j)
+        let d = type_name.byte_at(j)
         if d >= 48 && d <= 57 {
             byte_size = byte_size * 10 + (d - 48)
         } else {

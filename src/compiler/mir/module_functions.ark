@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::prelude::{clone, eq, to_string}
+use std::prelude::{clone, eq}
 use std::text
 use mir::function_core_record
 use mir::module_record
@@ -165,7 +165,7 @@ fn mir_note_receipt_counts(m: MirModule, enabled: i32) {
     }
     stdio::eprintln(
         "[arukellt] mir.counts: functions=".concat(
-            to_string(MirModule_function_count(m)).concat(" locals=".concat(to_string(MirModule_local_count(m)).concat(" insts=".concat(to_string(MirModule_inst_count(m))))))
+            MirModule_function_count(m).to_string().concat(" locals=".concat(MirModule_local_count(m).to_string().concat(" insts=".concat(MirModule_inst_count(m).to_string()))))
         )
     )
 }

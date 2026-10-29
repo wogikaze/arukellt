@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 use std::text
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
@@ -106,10 +106,10 @@ fn emit_tuple_element_extract(mut ctx: LowerCtx, tuple_local: i32, elem_index: i
 }
 
 fn tuple_struct_name_from_type(type_name: String) -> String {
-    if starts_with(clone(type_name), "tuple:") {
+    if clone(type_name).starts_with("tuple:") {
         return type_name
     }
-    if !starts_with(clone(type_name), "struct:") {
+    if !clone(type_name).starts_with("struct:") {
         return String_new()
     }
     let n = len(type_name)
@@ -117,7 +117,7 @@ fn tuple_struct_name_from_type(type_name: String) -> String {
     let mut last = 0 - 1
     let mut i = 0
     while i < n {
-        if byte_at(type_name, i) == 58 {
+        if type_name.byte_at(i) == 58 {
             if first < 0 {
                 first = i
             }
@@ -128,12 +128,12 @@ fn tuple_struct_name_from_type(type_name: String) -> String {
     if first < 0 || last <= first {
         return String_new()
     }
-    let inner = substring(type_name, first + 1, last)
-    if starts_with(clone(inner), "tuple:") {
+    let inner = type_name.slice(first + 1, last)
+    if clone(inner).starts_with("tuple:") {
         return inner
     }
     if eq(clone(inner), "tuple") {
-        let byte_size = substring(type_name, last + 1, n)
+        let byte_size = type_name.slice(last + 1, n)
         return tuple_struct_name_from_byte_size(byte_size)
     }
     String_new()
@@ -168,7 +168,7 @@ fn parse_i32_from_string(s: String) -> i32 {
     let mut value = 0
     let mut i = 0
     while i < n {
-        let d = byte_at(s, i)
+        let d = s.byte_at(i)
         if d >= 48 && d <= 57 {
             value = value * 10 + (d - 48)
         } else {
@@ -213,11 +213,11 @@ fn tuple_field_vt_from_struct_name(ctx: LowerCtx, struct_name: String, elem_inde
     if ctx_gc_struct::gc_struct_field_type_is_fn_value(clone(key)) {
         return value_types::VT_FUNCREF()
     }
-    if starts_with(clone(key), "vec:") ||
-    starts_with(clone(key), "option:") ||
-    starts_with(clone(key), "result:") ||
-    starts_with(clone(key), "hashmap:") ||
-    starts_with(clone(key), "hashset:") {
+    if clone(key).starts_with("vec:") ||
+    clone(key).starts_with("option:") ||
+    clone(key).starts_with("result:") ||
+    clone(key).starts_with("hashmap:") ||
+    clone(key).starts_with("hashset:") {
         return value_types::VT_GC_REF()
     }
     // A declared aggregate is a GC value even when its name is one uppercase
@@ -240,7 +240,7 @@ fn tuple_field_type_name(struct_name: String, elem_index: i32) -> String {
     if len(struct_name) == 0 {
         return String_new()
     }
-    let keys = substring(struct_name, 6, len(struct_name))
+    let keys = struct_name.slice(6, len(struct_name))
     tuple_key_at(keys, elem_index)
 }
 
@@ -250,9 +250,9 @@ fn tuple_key_at(keys: String, index: i32) -> String {
     let mut start = 0
     let mut i = 0
     while i <= n {
-        if i == n || byte_at(keys, i) == 44 {
+        if i == n || keys.byte_at(i) == 44 {
             if cur == index {
-                return substring(keys, start, i)
+                return keys.slice(start, i)
             }
             cur = cur + 1
             start = i + 1
