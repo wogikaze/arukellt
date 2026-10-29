@@ -1,4 +1,4 @@
-use std::seq
+use std::collections::vec
 use std::test
 
 fn main() {
@@ -9,7 +9,8 @@ fn main() {
     push(v, 4)
     push(v, 5)
 
-    let s = seq::sort_by(v)
+    v.sort()
+    let s = v
     test::assert_eq_i32(len(s), 5)
     test::assert_eq_i32(get_unchecked(s, 0), 1)
     test::assert_eq_i32(get_unchecked(s, 1), 2)

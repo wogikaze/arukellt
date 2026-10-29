@@ -1,14 +1,23 @@
+use std::collections::vec
+use std::core::cmp
 use std::host::stdio
-use std::seq
+
+fn descending(a: i32, b: i32) -> Ordering {
+    match a.cmp(b) {
+        Ordering::Less => Ordering::Greater,
+        Ordering::Equal => Ordering::Equal,
+        Ordering::Greater => Ordering::Less,
+    }
+}
 
 fn main() {
     let mut v = Vec::new<i32>()
-    push(v, 3)
-    push(v, 1)
-    push(v, 2)
-    let s = seq::sort_by(v)
-    assert(get_unchecked(s, 0) == 1)
-    assert(get_unchecked(s, 1) == 2)
-    assert(get_unchecked(s, 2) == 3)
+    v.push(3)
+    v.push(1)
+    v.push(2)
+    v.sort_by(descending)
+    assert(v.get_unchecked(0) == 3)
+    assert(v.get_unchecked(1) == 2)
+    assert(v.get_unchecked(2) == 1)
     stdio::println("OK")
 }

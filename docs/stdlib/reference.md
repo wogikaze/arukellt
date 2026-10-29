@@ -9,7 +9,7 @@
 | Tier | Count | Description |
 |------|-------|-------------|
 | `stable` | 112 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
-| `provisional` | 2 | API is usable but may change in minor versions based on feedback. |
+| `provisional` | 1 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 4 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 75 | Superseded — see migration guidance. |
 
@@ -506,7 +506,6 @@ let input = stdio::read_stdin()
 | ~~`seq_contains`~~ ⚠️ Deprecated → `VecIter::contains` | `(Vec<i32>, i32) -> bool` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorContains capability v.iter().contains(target). |
 | ~~`seq_reverse`~~ ⚠️ Deprecated → `VecIter::rev` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().rev().collect(). |
 | ~~`skip_i32`~~ ⚠️ Deprecated → `VecIter::skip` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().skip(n).collect(). |
-| `sort_by` | `(Vec<T>) -> Vec<T>` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Sort v into ascending order under T: Ord (stable insertion sort, in place; returns the same vector).… |
 | ~~`sum_i32`~~ ⚠️ Deprecated → `VecIter::sum` | `(Vec<i32>) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorSum capability v.iter().sum(). |
 | ~~`take_i32`~~ ⚠️ Deprecated → `VecIter::take` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect(). |
 | ~~`unique`~~ ⚠️ Deprecated → `VecIter::unique` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect(). |

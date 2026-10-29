@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 118
+- **Canonical names:** 117
 - **Historical/deprecated names:** 75
-- **Total entries:** 193
+- **Total entries:** 192
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -115,7 +115,6 @@ Current public API names, sorted alphabetically.
 | `replace` | `prelude` | `stable` | String |
 | `sin_approx` | `std::signal` | `stable` | Signal |
 | `slice` | `prelude` | `stable` | String |
-| `sort_by` | `std::seq` | `provisional` | Seq |
 | `split` | `prelude` | `stable` | String |
 | `sqrt` | `prelude` | `stable` | Math |
 | `starts_with` | `prelude` | `stable` | String |
@@ -388,7 +387,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `slice` | ✅ `stable` | `prelude` | String |
 | ~~`slice_get`~~ | ⚠️ deprecated | `prelude` | → `Slice::get` · [migration guide](migration-guidance.md) |
 | ~~`slice_len`~~ | ⚠️ deprecated | `prelude` | → `Slice::len` · [migration guide](migration-guidance.md) |
-| `sort_by` | ✅ `provisional` | `std::seq` | Seq |
 | ~~`sorted_map_contains`~~ | ⚠️ deprecated | `std::collections::ordered` | → `SortedMap::contains` · [migration guide](migration-guidance.md) |
 | ~~`sorted_map_find_idx`~~ | ⚠️ deprecated | `std::collections::ordered` | → `SortedMap::find_idx` · [migration guide](migration-guidance.md) |
 | ~~`sorted_map_get`~~ | ⚠️ deprecated | `std::collections::ordered` | → `SortedMap::get` · [migration guide](migration-guidance.md) |

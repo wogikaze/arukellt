@@ -141,7 +141,7 @@ fn removed_name_specific_hint(name: String) -> String {
     if eq(clone(name), "arg_count") { return "removed module function; import `use std::host::env::Env` and call `Env::arg_count()`" }
     if eq(clone(name), "has_flag") { return "removed module function; import `use std::host::env::Env` and call `Env::has_flag(flag)`" }
     if eq(clone(name), "sort_i32") || eq(clone(name), "sort_i64") || eq(clone(name), "sort_f64") || eq(clone(name), "sort_String") {
-        return "removed free function; use `v.sort_by(cmp)` via `use std::collections::vec`"
+        return "removed free function; use `v.sort()` via `use std::collections::vec`"
     }
     if eq(clone(name), "map_i32_i32") || eq(clone(name), "map_i64_i64") || eq(clone(name), "map_f64_f64") || eq(clone(name), "map_String_String") {
         return "removed free function; use `v.iter().map(f).collect()` via `use std::core::iter`"
@@ -527,6 +527,9 @@ fn removed_private_member_hint(module: String, name: String) -> String {
 }
 
 fn removed_seq_member_hint(name: String) -> String {
+    if eq(clone(name), "sort_by") {
+        return "removed free sort algorithm; use `v.sort()` via `use std::collections::vec`"
+    }
     if eq(clone(name), "binary_search_by") {
         return "removed free function; use `v.binary_search(target)` via `use std::collections::vec`"
     }
@@ -1471,6 +1474,7 @@ test mod "removed_names" {
         assert(len(removed_name_hint("contains_string")) > 0)
     }
     test "retired seq generics have method hints" {
+        assert(len(removed_module_member_hint("std::seq", "sort_by")) > 0)
         assert(len(removed_module_member_hint("std::seq", "binary_search_by")) > 0)
         assert(len(removed_module_member_hint("seq", "binary_search_by_key")) > 0)
         assert(len(removed_module_member_hint("seq", "lower_bound")) > 0)

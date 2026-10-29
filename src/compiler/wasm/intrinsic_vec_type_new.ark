@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
+use std::prelude::{byte_at, clone, contains, ends_with, eq, starts_with, substring}
 use std::text
 use corehir::callee_spelling
 use mir::inst_accessors_operands
@@ -331,6 +331,123 @@ fn find_immediate_store_target_type_name(ctx: SelfEmitCtx, dest_local: i32) -> S
                         }
                         ahead = ahead + 1
                     }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    String_new()
+}
+
+// ---------------------------------------------------------------------------
+// Linear Vec constructor sizing.
+//
+// Linear-memory Vec headers reserve a fixed eight-element buffer next to the
+// inline header, so the allocation size is the element stride times eight.
+// Inside a generic body the destination local is still spelled `vec:T`, which
+// is not evidence of a four-byte element: `Vec<i64>` scratch built there would
+// otherwise get an i32-sized buffer and overflow at the fifth element (#965).
+// Use the same evidence chain as the GC array resolver: annotated local,
+// immediate store target, then the constructor's monomorphized spelling.
+// ---------------------------------------------------------------------------
+
+fn linear_vec_new_heap_bump(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
+    // The linear header publishes an eight-element capacity next to the inline
+    // buffer, so one allocation holds eight element strides.
+    8 * linear_element_stride(resolve_element_type_name_for_new_dest(ctx, dest_local))
+}
+
+// Byte stride of one resolved Vec element in linear memory. Mirrors the typed
+// get/set lanes: i64/f64 are 8 bytes, v128 is 16, other scalars and element
+// handles are 4.
+fn linear_element_stride(elem: String) -> i32 {
+    if eq(clone(elem), String_from("i64")) || eq(clone(elem), String_from("I64")) {
+        return 8
+    }
+    if eq(clone(elem), String_from("f64")) || eq(clone(elem), String_from("F64")) {
+        return 8
+    }
+    if eq(clone(elem), String_from("v128")) || eq(clone(elem), String_from("V128")) {
+        return 16
+    }
+    4
+}
+
+fn resolve_element_type_name_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> String {
+    let local_elem = vec_element_name_from_type_name(local_type_name(ctx, dest_local))
+    if !vec_element_name_is_unresolved(clone(local_elem)) {
+        return local_elem
+    }
+    let store_elem = vec_element_name_from_type_name(
+        find_immediate_store_target_type_name(ctx, dest_local)
+    )
+    if !vec_element_name_is_unresolved(clone(store_elem)) {
+        return store_elem
+    }
+    let constructor_elem = constructor_element_name_for_dest(ctx, dest_local)
+    if !vec_element_name_is_unresolved(clone(constructor_elem)) {
+        return constructor_elem
+    }
+    let return_elem = vec_element_name_from_type_name(raw_ctor_fn_return_vec_type_name(ctx))
+    if !vec_element_name_is_unresolved(clone(return_elem)) {
+        return return_elem
+    }
+    String_from("i32")
+}
+
+fn vec_element_name_from_type_name(type_name: String) -> String {
+    if starts_with(clone(type_name), String_from("array:")) {
+        return sections_types_gc_phase7::gc_normalize_vec_element_name(
+            substring(clone(type_name), 6, len(type_name))
+        )
+    }
+    let normalized = sections_types_gc_phase7::gc_normalize_vec_type_name(type_name)
+    if starts_with(clone(normalized), String_from("vec:")) {
+        return substring(clone(normalized), 4, len(normalized))
+    }
+    String_new()
+}
+
+// A `vec:i32` stamp is the raw-constructor default, not observed evidence;
+// unsubstituted type parameters and projection spellings are equally opaque.
+fn vec_element_name_is_unresolved(elem: String) -> bool {
+    if len(elem) == 0 {
+        return true
+    }
+    if eq(clone(elem), String_from("i32")) {
+        return true
+    }
+    if starts_with(clone(elem), String_from("?")) {
+        return true
+    }
+    if contains(clone(elem), String_from("<")) {
+        return true
+    }
+    if contains(clone(elem), String_from("::")) {
+        return true
+    }
+    sections_types_gc_phase7::gc_vec_elem_name_is_type_param(elem)
+}
+
+fn constructor_element_name_for_dest(ctx: SelfEmitCtx, dest_local: i32) -> String {
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == mir_opcodes::MIR_CALL() &&
+            inst_accessors_operands::MirInst_dest(inst) == dest_local {
+                let elem = constructor_element_name(
+                    inst_accessors_literals::MirInst_str_val(inst)
+                )
+                if len(elem) > 0 {
+                    return sections_types_gc_phase7::gc_normalize_vec_element_name(elem)
                 }
             }
             ii = ii + 1

@@ -1,4 +1,4 @@
-//! Deprecated `Vec<i32>` sequence helpers plus the provisional `sort_by`.
+//! Deprecated `Vec<i32>` sequence helpers.
 //!
 //! `map`/`filter`/`take`/`skip`/`fold`/`sum` and the query helpers
 //! (`binary_search`, `min_i32`, `max_i32`, `seq_reverse`,
@@ -7,14 +7,9 @@
 //! the query helpers keep local i32 loops so this deprecated module stays
 //! independent of the `std::collections::vec` extension surface. Each wrapper
 //! retires with the #703 Wave 2.
-//!
-//! `sort_by<T: Ord>` remains provisional: its `Vec<T: Ord>` method replacement
-//! is not correct for `Vec<i64>` at 5+ elements on every target yet (#965).
-//!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 use std::core
-use std::core::cmp
 use std::core::iter
 
 // ─── Transformation operations ──────────────────────────────────────────────
@@ -128,39 +123,4 @@ pub fn unique(v: Vec<i32>) -> Vec<i32> {
 
 pub fn count_eq(v: Vec<i32>, target: i32) -> i32 {
     v.iter().count_eq(target)
-}
-
-// ── comparison-based algorithms (Ord trait) ─────────────────────────────────
-
-/// Sorts `v` in place into ascending order using the `Ord::cmp` method.
-///
-/// Uses an insertion sort — O(n²) worst case but stable and allocation-free.
-/// The input `Vec<T>` is mutated in place and also returned for convenience.
-///
-/// Retained as `provisional` by #917: the `Vec<T: Ord>` replacement
-/// (`v.sort()`) miscompiles `Vec<i64>` at 5+ elements on the linear and
-/// core-emit paths, so this allocation-free form stays the reachable generic
-/// `Ord` sort until the method scratch layout is fixed (#965).
-pub fn sort_by<T: Ord>(mut v: Vec<T>) -> Vec<T> {
-    let n: i32 = len(v)
-    let mut i: i32 = 1
-    while i < n {
-        let mut j: i32 = i
-        while j > 0 {
-            let cur = get_unchecked(v, j)
-            let prev = get_unchecked(v, j - 1)
-            match prev.cmp(cur) {
-                Ordering::Greater => {
-                    set(v, j, prev)
-                    set(v, j - 1, cur)
-                }
-                _ => {
-                    break
-                }
-            }
-            j = j - 1
-        }
-        i = i + 1
-    }
-    v
 }

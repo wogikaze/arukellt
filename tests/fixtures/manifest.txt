@@ -1617,6 +1617,8 @@ run:stdlib_seq/seq_generic_string_instantiation_wasm32.ark
 run:stdlib_signal/fft.ark
 test:stdlib_sort/sort_f64.ark
 test:stdlib_sort/sort_i64.ark
+test:stdlib_sort/sort_string.ark
+test:stdlib_sort/sort_custom_ord.ark
 run:stdlib_string/byte_at_basic.ark
 run:stdlib_string/byte_len_basic.ark
 run:stdlib_string/char_at_basic.ark
@@ -2116,6 +2118,8 @@ run:stdlib_trait/ord_sort_reverse_len.ark
 run:stdlib_trait/ord_sort_single.ark
 run:stdlib_trait/ord_sort_stress.ark
 run:stdlib_trait/ord_sort_vec_string.ark
+run:stdlib_trait/ord_sort_custom_struct.ark
+run:stdlib_trait/ord_sort_custom_struct_wasm32.ark
 run:stdlib_trait/ord_string.ark
 run:stdlib_trait/ord_string_prefix.ark
 run:stdlib_trait/ord_trait.ark
@@ -3545,6 +3549,7 @@ t3-compile:stdlib_vec/vec_sort_ord_i64.ark
 t3-compile:stdlib_vec/vec_sort_ord_string.ark
 t3-run:stdlib_vec/vec_sort_ord_i64.ark
 t3-run:stdlib_vec/vec_sort_ord_string.ark
+t3-run:stdlib_trait/ord_sort_custom_struct.ark
 run:operators/string_order.ark
 run:operators/string_order_wasm32.ark
 t3-compile:operators/string_order.ark

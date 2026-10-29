@@ -2104,15 +2104,6 @@ params = ["Vec<i32>", "i32"]
 returns = "i32"
 doc = "Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target)."
 
-[[functions]]
-name = "sort_by"
-module = "std::seq"
-doc_category = "seq"
-stability = "provisional"
-params = ["Vec<T>"]
-returns = "Vec<T>"
-doc = "Sort v into ascending order under T: Ord (stable insertion sort, in place; returns the same vector). Retained until the Vec<T: Ord> method surface is correct for Vec<i64> at 5+ elements on every target (#965)."
-
 # === std::wit ===
 #
 # The 16 experimental `wit_type_*` entries were retired by the #917 WIT wave.

@@ -25,6 +25,7 @@ use wasm::intrinsic_string_format
 use wasm::intrinsic_vec
 use wasm::intrinsic_vec_numeric
 use wasm::intrinsic_vec_new_layout
+use wasm::intrinsic_vec_type_new
 use wasm::intrinsic_memory
 use wasm::runtime_abi_env_args
 fn try_emit_clone_intrinsic(
@@ -62,7 +63,9 @@ fn try_emit_name_intrinsic_fallback(
     // Vec::new has no CoreOp by design: ADR-040 removed the old constructor
     // operations. Keep its one backend-only fallback ID out of the registry.
     if is_vec_new_handler(handler_id) {
-        intrinsic_vec_new_layout::emit_vec_new_layout(w, 32, 44, inst, ctx)
+        let dest_local = inst_accessors_operands::MirInst_dest(inst)
+        let heap_bump = intrinsic_vec_type_new::linear_vec_new_heap_bump(ctx, dest_local)
+        intrinsic_vec_new_layout::emit_vec_new_layout(w, heap_bump, heap_bump + 12, inst, ctx)
         inst_ctx::ctx_mark_vec_local(ctx, inst_accessors_operands::MirInst_dest(inst))
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
     }

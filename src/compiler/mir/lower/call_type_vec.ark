@@ -7,24 +7,13 @@ use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_payload
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_layout
-use mir::lower::ctx_current_storage
 use mir::lower::call_type_fallback
 use mir::lower::call_rewrite_vec
-use mir::module_spine
-use mir::typed_mir_compat
 use corehir::callee_spelling
-use corehir::type_info_to_mir_value
 use mir::value_types
 use wasm::sections_types_gc_phase7
-fn is_seq_sort_by_identity_callee(name: String) -> bool {
-    eq(clone(name), String_from("seq::sort_by")) ||
-    starts_with(clone(name), String_from("seq::sort_by__")) ||
-    starts_with(clone(name), String_from("seq__sort_by__"))
-}
-
 // Resolve a mono instance's element spelling to the Vec type name used by
-// the GC layout plan. Shared by Vec::new__T and the identity-return
-// seq::sort_by instance so both sides of a sort keep one layout.
+// the GC layout plan so a constructor result and its dest local agree.
 fn resolved_vec_type_from_element(ctx: LowerCtx, elem: String) -> String {
     let mut normalized = sections_types_gc_phase7::gc_normalize_vec_element_name(elem)
     normalized = decode_mono_vec_element_projection(normalized)
@@ -44,55 +33,6 @@ fn resolved_vec_type_from_element(ctx: LowerCtx, elem: String) -> String {
         set_ty = String_from("vec:String")
     }
     set_ty
-}
-
-// seq::sort_by<T>(v: Vec<T>) -> Vec<T> is the identity on its Vec argument.
-// The receiver's typed-MIR value type carries the concrete Vec layout; the
-// callee's mono return spelling can still fall back to vec:i32 for a generic
-// struct element (Vec<Reverse<i32>>). Copy the receiver's type name and mvt
-// so the dest local and the emitted value use one GC layout (#695).
-fn receiver_vec_type_from_mvt(ctx: LowerCtx, first_arg_idx: i32) -> String {
-    if first_arg_idx < 0 {
-        return String_new()
-    }
-    let mvt = ctx_api_local_types::ctx_local_mvt(ctx, first_arg_idx)
-    if typed_mir_compat::mvt_is_invalid(mvt) {
-        return String_new()
-    }
-    let m = ctx_current_storage::ctx_current_module_value(ctx)
-    let table = module_spine::MirModule_type_table(m)
-    type_info_to_mir_value::mvt_to_type_name(table, mvt)
-}
-
-fn mark_seq_sort_by_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) -> bool {
-    if !is_seq_sort_by_identity_callee(clone(callee_name)) {
-        return false
-    }
-    let mvt_ty = receiver_vec_type_from_mvt(ctx, first_arg_idx)
-    if !starts_with(clone(mvt_ty), "vec:") || mvt_ty.len() <= 4 {
-        return false
-    }
-    let elem = substring(mvt_ty, 4, mvt_ty.len())
-    if sections_types_gc_phase7::gc_vec_elem_name_is_type_param(clone(elem)) {
-        return false
-    }
-    set_seq_sort_by_result(ctx, dest, mvt_ty, first_arg_idx)
-    true
-}
-
-fn set_seq_sort_by_result(mut ctx: LowerCtx, dest: i32, type_name: String, first_arg_idx: i32) {
-    ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name)
-    if ctx_gc_enum::ctx_is_gc_target(ctx) {
-        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
-    } else {
-        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
-    }
-    if first_arg_idx >= 0 {
-        let mvt = ctx_api_local_types::ctx_local_mvt(ctx, first_arg_idx)
-        if !typed_mir_compat::mvt_is_invalid(mvt) {
-            ctx_api_local_types::ctx_set_local_mvt(ctx, dest, mvt)
-        }
-    }
 }
 
 fn mark_vec_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {

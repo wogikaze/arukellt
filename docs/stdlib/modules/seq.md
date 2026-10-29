@@ -40,10 +40,10 @@ let dedup = seq::unique(nums)           // [3, 1, 4, 5, 9]
 ## Module `std::seq`
 
 - Source: [`../../../std/seq/mod.ark`](../../../std/seq/mod.ark)
-- Manifest-backed functions: 14
-- Stability: deprecated 13, provisional 1
+- Manifest-backed functions: 13
+- Stability: deprecated 13
 
-Deprecated `Vec<i32>` sequence helpers plus the provisional `sort_by`.
+Deprecated `Vec<i32>` sequence helpers.
 
 `map`/`filter`/`take`/`skip`/`fold`/`sum` and the query helpers
 (`binary_search`, `min_i32`, `max_i32`, `seq_reverse`,
@@ -52,10 +52,6 @@ entries. The transformation helpers delegate to the lazy iterator methods;
 the query helpers keep local i32 loops so this deprecated module stays
 independent of the `std::collections::vec` extension surface. Each wrapper
 retires with the #703 Wave 2.
-
-`sort_by<T: Ord>` remains provisional: its `Vec<T: Ord>` method replacement
-is not correct for `Vec<i64>` at 5+ elements on every target yet (#965).
-
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 ### `std::seq` — Public API
@@ -75,7 +71,6 @@ is not correct for `Vec<i64>` at 5+ elements on every target yet (#965).
 | ~~`seq_contains`~~ ⚠️ Deprecated → `VecIter::contains` | `(Vec<i32>, i32) -> bool` | `deprecated` | ✅ functional | - |
 | ~~`unique`~~ ⚠️ Deprecated → `VecIter::unique` | `(Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | - |
 | ~~`count_eq`~~ ⚠️ Deprecated → `VecIter::count_eq` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | - |
-| `sort_by` | `(Vec<T>) -> Vec<T>` | `provisional` | ✅ functional | - |
 
 #### `std::seq::map_i32_i32`
 
@@ -128,9 +123,5 @@ Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect().
 #### `std::seq::count_eq`
 
 Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target).
-
-#### `std::seq::sort_by`
-
-Sort v into ascending order under T: Ord (stable insertion sort, in place; returns the same vector). Retained until the Vec<T: Ord> method surface is correct for Vec<i64> at 5+ elements on every target (#965).
 
 > ⚠️ **13 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.

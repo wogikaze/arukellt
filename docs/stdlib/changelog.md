@@ -16,6 +16,31 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-29 — `seq::sort_by` の削除と `Vec<T: Ord>` sort 修正 (#965, wave/vec-sort-custom)
+
+- **Basis**: [ADR-014](../adr/ADR-014-stability-labels.md) の provisional 削除規則
+  （changelog と migration guide の告知。ADR-087 の stable window と W0009 は不要）。
+  対象は `provisional` の `seq::sort_by` のみ。
+- **Fixed prerequisite**: `Vec<T: Ord>` の method sort が custom struct 要素で
+  `Ord::cmp` を解決できず trap し、`Vec<i64>` / `Vec<String>` の 5 要素以上で
+  linear / gc core-test 経路の scratch が不足していた。`get_unchecked` の receiver
+  型を明示して要素型を signature へ通し、linear の Vec 構築時に解決済み要素型から
+  buffer サイズを決めるよう修正した（#965）。`v.sort()` / `v.sort_unstable()` /
+  `v.select_nth()` は i32 / i64 / String / custom struct で両 target 正しい。
+- **Retired (1)**: `sort_by` の manifest entry と `std/seq/mod.ark` の公開宣言を
+  削除した。qualified な旧 call は E0100 と `resolver::removed_names` の method
+  hint（`use std::collections::vec`）を返す。
+- **Replacement**: `v.sort()`（`T: Ord`）。custom order は `v.sort_by(cmp)`、
+  stability 不要なら `v.sort_unstable()`。
+- **Scorecard**: public surface 195 → **194**; manifest public entries 193 →
+  **192**; `pub fn` declarations 216 → **215**; `associated-or-method` 129 →
+  **128**; `must delete` 66、unregistered 2、intrinsic 1 は不変。
+- **Evidence**: `tests/fixtures/stdlib_vec/vec_sort_ord_i64{,_wasm32}.ark` と
+  `vec_sort_ord_string{,_wasm32}.ark` を 5 要素へ拡張、custom struct は
+  `tests/fixtures/stdlib_trait/ord_sort_custom_struct{,_wasm32}.ark`、gc
+  core/test 経路は `test:` fixture の `stdlib_sort/sort_i64.ark` /
+  `sort_string.ark` / `sort_custom_ord.ark` が固定する。
+
 ## 2026-10-29 — `std::seq` の provisional 汎用アルゴリズム削除 (#917, wave/associated-next)
 
 - **Basis**: [ADR-014](../adr/ADR-014-stability-labels.md) の provisional 削除規則

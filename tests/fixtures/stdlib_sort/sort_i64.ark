@@ -1,4 +1,4 @@
-use std::seq
+use std::collections::vec
 use std::test
 
 test "sorts_i64_values_ascending" {
@@ -13,7 +13,7 @@ test "sorts_i64_values_ascending" {
     push(v, c)
     push(v, d)
     push(v, e)
-    v = seq::sort_by(v)
+    v.sort()
     test::assert_eq_i32(len(v), 5)
     test::assert_eq_i64(get_unchecked(v, 0), 10i64)
     test::assert_eq_i64(get_unchecked(v, 1), 20i64)
