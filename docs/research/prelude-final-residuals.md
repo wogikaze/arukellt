@@ -108,6 +108,22 @@ typing bug. See
 hashes and reproduction. The eq retirement therefore stays blocked on the
 pin plus the eq-path operand staging described in §2.
 
+**Update 2026-10-30 (`wave/pin-converge`)**: the pin oracle gap is closed. The
+generation-converged pin `56ff0808…` compiles and runs
+`tests/fixtures/operators/string_eq.ark` on both targets (32/32 lines), and the
+ADR-029 fixpoint is `s2 == s3 == 61aa349b…`. The §2 operand-staging blocker is
+also fixed by the source at this HEAD: an explicit `.eq()` chain with both
+operands from inline `get_unchecked` calls (the exact `accessors_match` shape)
+now compiles and runs on `wasm32` and `wasm32-gc` with the fixed s2. The full
+retirement still requires the source migration itself: 5,509 free `eq(a, b)`
+call sites in `src/compiler` + `std` (453 files), 257 in tests, 448 selective
+`use std::prelude::{…, eq}` imports, 28 generator templates, and the free's
+removal from `std/prelude.ark` / `std/manifest.toml`; the overlay split design
+(`std/core/eq.ark` + `pub use` from `std/core/cmp.ark`) is unchanged. The
+codemod `eq(a, b) -> (a).eq(b)` was dry-run over all 453 files and
+`arukellt fmt --check` passes on the result, so the migration is mechanical;
+it is not landed in this lane.
+
 ## `clone` — `.clone()` has no polymorphic resolution
 
 `clone(x)` is a typechecker special case keyed on the callee name

@@ -83,7 +83,7 @@ Copy files with `/bin/cp -f` (never interactive `cp -iv`).
 ### Bootstrap pin
 
 `bootstrap/arukellt-selfhost.wasm` is the official `wasm32-gc` / `wasi-p2`
-command component (8 550 341 bytes; sha256 `471855ad…`). It runs on Wasmtime's
+command component (8 540 660 bytes; sha256 `56ff0808…`). It runs on Wasmtime's
 GC and compiles the flat overlay through to the stage-2 `wasm32` / `wasi-p1`
 compiler in ~30–34 s warm (quiet host):
 
@@ -91,8 +91,8 @@ compiler in ~30–34 s warm (quiet host):
 python3 scripts/manager.py selfhost build-compiler
 ```
 
-The component's p1 output is byte-identical to the stage-2 s2 the previous pin
-produced for the same source, and it reproduces its own gc core. The Python
+The component's p1 output is the fixed-point stage-2 s2 it was generated from
+(`61aa349b…`), and it reproduces its own gc core (`0ebeb365…`). The Python
 compile path AOT-caches the component and passes the permissive overlay binding
 described above. The previous core pin is recoverable from commit `fb5944edb`
 (see [`bootstrap/PROVENANCE.md`](../../bootstrap/PROVENANCE.md)); the 2026-10-19

@@ -3,7 +3,7 @@
 Status: active — Phase 3 (function-at-a-time) is the remaining gate  
 Owner: overlay / #851 / ADR-053  
 Created: 2026-09-01  
-Last updated: 2026-10-29
+Last updated: 2026-10-30
 
 決定: [`docs/adr/ADR-053-selfhost-compiler-core-rewrite.md`](../adr/ADR-053-selfhost-compiler-core-rewrite.md)  
 追跡: [`issues/open/851-selfhost-compiler-core-rewrite.md`](../../issues/open/851-selfhost-compiler-core-rewrite.md)
@@ -25,6 +25,18 @@ s2 == s3 == `02bd6917…`。`BOOTSTRAP_EMIT_*` は wasm32 / wasi-p1 のまま据
 `62aecf93…` に焼き込んだ。memory32 / memory64 の gc self-build は
 `wasm-tools validate --features gc,function-references,memory64` を通過し、
 p1 identity `d917f7cd…`、gc self-reproduction `3ca4b66e…` を確認した。
+
+2026-10-30 の 4 回目 refresh は generation convergence になった。base
+`96a66db83` の merge が `9ca742d8c` の clone 退役 migration を 8 lowerer file
+で落としており、gc self-build が bare `clone(x)` を `Vec__clone__…` に誤解決
+して invalid core Wasm（func 7686）になっていた。`ba4aa88b1`（lowerer 復旧）と
+`ff4ff6a4f`（bootstrap stub 復旧）の後、gen-1 s2 `e8a0bdb1…` → gen-2 s2
+`61aa349b…` で fixed point に到達。新 pin は `56ff0808…`（component
+8 540 660 B）、p1 identity `61aa349b…`、gc self-reproduction `0ebeb365…`、
+fixpoint s2 == s3 == `61aa349b…`。warm build-compiler は負荷 ~13 で 51.4 s
+（quiet 床は ~30 s）。詳細:
+[`bootstrap/PROVENANCE.md`](../../bootstrap/PROVENANCE.md)、
+[`../research/pin-refresh-blocker-20261030.md`](../research/pin-refresh-blocker-20261030.md)。
 
 ### 現行床（2026-10-29、gc pin、clean `7438a59fb`）
 

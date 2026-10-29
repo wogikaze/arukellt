@@ -266,3 +266,18 @@ instructions（−3.61%）**、生成 wasm は baseline / 最適化版 / pin ビ
 バイト一致。HEAD `1a4690403` で fixpoint PASS（s2 == s3 == `19060c25…`）、
 parity PASS、warm build-compiler **25.5 s**（user 24.6 s、RSS 1.13 GiB）。
 既存の name-scan 除去と合わせ累積 ~−9%。
+
+### 2026-10-30 更新（generation convergence で gc pin refresh 56ff0808）
+
+`96a66db83` 系 source を 2 世代で収束させて pin を refresh した。
+gen-1 s2 `e8a0bdb1…`（committed pin `471855ad…` が生成）→ gen-2 s2
+`61aa349b…`（fixed point）。新 pin component は `56ff0808…` /
+8,540,660 B、p1 identity `61aa349b…`、gc self-reproduction `0ebeb365…`、
+fixpoint s2 == s3 == `61aa349b…`。
+
+この merge は `9ca742d8c` の clone 退役 migration を 8 lowerer file で落として
+おり、bare `clone(x)` が gc self-build で `Vec__clone__…` に誤解決して
+invalid core Wasm を作っていた（func 7686）。`ba4aa88b1` で lowerer を、
+`ff4ff6a4f` で bootstrap stub を復旧した。pin は p1 identity と gc
+self-reproduction の両方が通るまで commit しない。詳細:
+`docs/research/pin-refresh-blocker-20261030.md`。
