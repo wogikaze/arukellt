@@ -1381,15 +1381,16 @@ trait_impls = ["FromIterator", "IntoIterator", "Clone", "Eq", "Debug"]
 #     extended bitset entries were deleted (ADR-014 D4); the replacement is the
 #     BTreeMap / BTreeSet / IndexMap / IndexSet / BitSet method surface, and
 #     qualified old calls fail with E0100 hints.
-#   * the 10 `stable` sorted_map_* / bitset_new|mark|unmark|test entries are
-#     `deprecated` through the ADR-087 window; they stay callable and warn
-#     with W0009 until a later Wave 2 deletion.
+#   * the 10 `stable` sorted_map_* / bitset_new|mark|unmark|test entries were
+#     deprecated with W0009 in the same wave and deleted in the 2026-10-29
+#     Wave 2 (ADR-087 D2: W0009 + migration guide + changelog). Qualified old
+#     calls now fail with E0100 method hints.
 
 [[modules]]
 name = "std::collections::ordered"
 stability = "provisional"
 family = "collections"
-doc = "Ordered collection types backed by flat sorted vectors: SortedMap / BTreeMap (key-sorted i32 maps), BTreeSet / IndexSet (unique i32 values), IndexMap (insertion-order map), and BitSet. The receiver methods are the surface; the stable sorted_map_* / bitset_* free functions are deprecated through the ADR-087 window."
+doc = "Ordered collection types backed by flat sorted vectors: SortedMap / BTreeMap (key-sorted i32 maps), BTreeSet / IndexSet (unique i32 values), IndexMap (insertion-order map), and BitSet. The receiver methods are the only public spelling; the former sorted_map_* / bitset_* frees were retired."
 availability = { t1 = true, t3 = true }
 
 [[types]]
@@ -1440,116 +1441,6 @@ module = "std::collections::ordered"
 stability = "provisional"
 methods = ["new", "with_capacity", "mark", "unmark", "set", "clear", "test", "count", "union", "intersection"]
 
-
-[[functions]]
-name = "sorted_map_new"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "deprecated"
-deprecated_by = "SortedMap::new"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = []
-returns = "Vec<i32>"
-
-[[functions]]
-name = "sorted_map_len"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "deprecated"
-deprecated_by = "SortedMap::len"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["Vec<i32>"]
-returns = "i32"
-
-[[functions]]
-name = "sorted_map_find_idx"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "deprecated"
-deprecated_by = "SortedMap::find_idx"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["Vec<i32>", "i32"]
-returns = "i32"
-
-[[functions]]
-name = "sorted_map_get"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "deprecated"
-deprecated_by = "SortedMap::get"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["Vec<i32>", "i32"]
-returns = "i32"
-
-[[functions]]
-name = "sorted_map_contains"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "deprecated"
-deprecated_by = "SortedMap::contains"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["Vec<i32>", "i32"]
-returns = "bool"
-
-[[functions]]
-name = "sorted_map_insert"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "deprecated"
-deprecated_by = "SortedMap::insert"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["Vec<i32>", "i32", "i32"]
-returns = "()"
-
-[[functions]]
-name = "bitset_new"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "deprecated"
-deprecated_by = "BitSet::new"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = []
-returns = "Vec<i32>"
-
-[[functions]]
-name = "bitset_mark"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "deprecated"
-deprecated_by = "BitSet::mark"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["Vec<i32>", "i32"]
-returns = "()"
-
-[[functions]]
-name = "bitset_unmark"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "deprecated"
-deprecated_by = "BitSet::unmark"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["Vec<i32>", "i32"]
-returns = "()"
-
-[[functions]]
-name = "bitset_test"
-module = "std::collections::ordered"
-doc_category = "collections"
-stability = "deprecated"
-deprecated_by = "BitSet::test"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["Vec<i32>", "i32"]
-returns = "bool"
 
 # ── std::core::iter (v2 lazy iteration, ADR-076) ─────────────────────────────
 
@@ -2371,9 +2262,9 @@ doc = "Copy the legacy i32 list into a `Vec<i32>` in front-to-back order."
 #   layout [head, tail, count, cap, ...data(cap)]
 # The deprecation window comes from [deprecation_policy] (since 0.1.0,
 # removable at 1.0.0); ADR-086 §8 keeps the old layout for that window.
-# The PriorityQueue entries at the end of this section follow the same
-# ADR-087 window and point at the new `std::collections::pq::PriorityQueue<T>`
-# surface.
+# The 7 legacy pq_* entries completed their ADR-087 window and were deleted
+# in the 2026-10-29 collections wave; the replacement surface is
+# `std::collections::pq::PriorityQueue<T>`.
 
 [[functions]]
 name = "deque_new"
@@ -2484,94 +2375,6 @@ deprecated_by = "Deque::iter"
 params = ["Vec<i32>"]
 returns = "Vec<i32>"
 doc = "Copy all deque elements (front to back) into a new Vec<i32>."
-
-# PriorityQueue — legacy binary min-heap backed by Vec<i32>
-# layout: [count, ...heap_data]
-# Deprecated: use `PriorityQueue<T>` from `std::collections::pq`.
-
-[[functions]]
-name = "pq_new"
-module = "std::collections::linear"
-doc_category = "collections"
-stability = "deprecated"
-deprecated_by = "PriorityQueue::new"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = []
-returns = "Vec<i32>"
-doc = "Create a new empty PriorityQueue min-heap (i32, monomorphic)."
-
-[[functions]]
-name = "pq_push"
-module = "std::collections::linear"
-doc_category = "collections"
-stability = "deprecated"
-deprecated_by = "PriorityQueue::push"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["Vec<i32>", "i32"]
-returns = "()"
-doc = "Insert a value into the priority queue."
-
-[[functions]]
-name = "pq_pop"
-module = "std::collections::linear"
-doc_category = "collections"
-stability = "deprecated"
-deprecated_by = "PriorityQueue::pop"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Remove and return the minimum element. Panics if empty."
-
-[[functions]]
-name = "pq_peek"
-module = "std::collections::linear"
-doc_category = "collections"
-stability = "deprecated"
-deprecated_by = "PriorityQueue::peek"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Return the minimum element without removing it. Panics if empty."
-
-[[functions]]
-name = "pq_len"
-module = "std::collections::linear"
-doc_category = "collections"
-stability = "deprecated"
-deprecated_by = "PriorityQueue::len"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Return the number of elements in the priority queue."
-
-[[functions]]
-name = "pq_is_empty"
-module = "std::collections::linear"
-doc_category = "collections"
-stability = "deprecated"
-deprecated_by = "PriorityQueue::is_empty"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["Vec<i32>"]
-returns = "bool"
-doc = "Return true if the priority queue contains no elements."
-
-[[functions]]
-name = "pq_clear"
-module = "std::collections::linear"
-doc_category = "collections"
-stability = "deprecated"
-deprecated_by = "PriorityQueue::clear"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["Vec<i32>"]
-returns = "()"
-doc = "Reset the priority queue to empty (preserves allocated storage)."
 
 # ── std::process ──────────────────────────────────────────────────────────────
 

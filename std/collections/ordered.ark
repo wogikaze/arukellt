@@ -7,10 +7,11 @@
 //! nested generic container does not lower on both targets, so the layout is
 //! packed instead.
 //!
-//! The receiver methods below are the canonical surface. The `sorted_map_*`
-//! and `bitset_*` free functions remain callable as `deprecated` entries
-//! through the ADR-087 window; the `btree_*`, `btree_set_*`, `index_map_*`,
-//! and `index_set_*` free functions were retired with E0100 replacement hints.
+//! The receiver methods below are the canonical surface. The 10 stable
+//! `sorted_map_*` / `bitset_*` frees completed their ADR-087 window and were
+//! retired together with the 27 experimental `btree_*` / `btree_set_*` /
+//! `index_map_*` / `index_set_*` frees. Every qualified old call fails with
+//! E0100 and a method replacement hint.
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
@@ -663,48 +664,6 @@ impl BitSet {
     fn intersection(self: BitSet, other: BitSet) -> BitSet {
         BitSet { store: bitset_intersection_store(self.store, other.store) }
     }
-}
-
-// ── Deprecated free functions (ADR-087 window) ───────────────────────────
-
-pub fn sorted_map_new() -> Vec<i32> {
-    ordered_map_new_store()
-}
-
-pub fn sorted_map_len(entries: Vec<i32>) -> i32 {
-    ordered_map_len(entries)
-}
-
-pub fn sorted_map_find_idx(entries: Vec<i32>, key: i32) -> i32 {
-    ordered_map_find_idx(entries, key)
-}
-
-pub fn sorted_map_get(entries: Vec<i32>, key: i32) -> i32 {
-    ordered_map_get(entries, key)
-}
-
-pub fn sorted_map_contains(entries: Vec<i32>, key: i32) -> bool {
-    ordered_map_contains(entries, key)
-}
-
-pub fn sorted_map_insert(mut entries: Vec<i32>, key: i32, value: i32) {
-    ordered_map_insert(entries, key, value)
-}
-
-pub fn bitset_new() -> Vec<i32> {
-    bitset_store(BITSET_DEFAULT_CAPACITY)
-}
-
-pub fn bitset_mark(mut store: Vec<i32>, bit: i32) {
-    bitset_mark_store(store, bit)
-}
-
-pub fn bitset_unmark(mut store: Vec<i32>, bit: i32) {
-    bitset_unmark_store(store, bit)
-}
-
-pub fn bitset_test(store: Vec<i32>, bit: i32) -> bool {
-    bitset_test_store(store, bit)
 }
 
 test mod "ordered_map" {

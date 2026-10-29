@@ -16,6 +16,54 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-29 — PriorityQueue<T> の land と collections 残 18 件の退役 (#917, wave/collections-remain)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D1（trait / method /
+  associated を正規形とする）、[ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2
+  （W0009 + migration guide + changelog の 0.x 例外）。`std::collections` の残 18 行は
+  7 個の `pq_*`、10 個の already-deprecated `sorted_map_*` / `bitset_*`、source-only の
+  `vec::new_i32` で構成されていた。[ADR-086](../adr/ADR-086-linear-collection-adts.md) §8
+  は PriorityQueue の型化を別 owner に委ねており、本 wave がその surface を land する。
+- **New surface**: `std/collections/pq.ark` に `PriorityQueue<T>`（`impl<T: Ord>`）を追加。
+  `PriorityQueue::new<T>()`、`queue.push(value)`、`queue.pop() -> Option<T>`、
+  `queue.peek() -> Option<T>`、`queue.len()`、`queue.is_empty()`、`queue.clear()`。
+  旧 free の `[count, ...heap]` `Vec<i32>` layout と空 pop の panic は公開契約から外れ、
+  空の pop / peek は `Option::None` を返す。type は `provisional`。
+- **Wave 1 (commit 1)**: 7 個の `pq_*` を manifest で `deprecated` にし
+  （`deprecated_by` は各 `PriorityQueue::<method>`、`deprecated_since = "0.1.0"`、
+  `remove_in = "1.0.0"`）、`src/compiler/lint/deprecated_table.ark` に W0009 の
+  qualified message と unit assertion、両 target の W0009 diagnostic fixture を追加した。
+  既存の `pq_ops` / `pq_sort` / `linear_basic` fixture と新規 `pq_type` pair は
+  type surface へ移行した。
+- **Wave 2 (commit 2)**: 7 個の `pq_*` と 10 個の stable ordered frees、source-only の
+  `vec::new_i32` を削除した。manifest entry、public declaration、W0009 entry を同時に
+  落とし、`resolver::removed_names` に E0100 hint（`removed_pq_member_hint`、
+  `removed_ordered_member_hint` の 10 追加、`vec::new_i32`）を追加した。診断 fixture は
+  E0100 の `removed_*` pair に置き換えた。ordered の 10 件は 2026-10-27 の Wave 1
+  deprecation から in-tree で window を満たしており、pq は同一 wave 内で Wave 1 と
+  Wave 2 を連続させた（ADR-087 D2 の 3 条件は commit 1 の W0009 fixture、この entry、
+  migration-guidance の before/after で満たす）。
+- **Replacement**: `PriorityQueue<T>` methods、`SortedMap` / `BitSet` receiver methods、
+  `Vec::new<i32>()`。移行表は
+  [migration-guidance.md](migration-guidance.md#priorityqueuet-7-pq-frees) に追加し、
+  `docs/language/spec.md` の Collections 節も method 形へ更新した。旧名は E0100 と
+  `resolver::removed_names` の hint で失敗する。
+- **Scorecard**: eradication scope 149 → **131**; `associated-or-method`
+  83 → **65**; manifest public entries 147 → **130**; `pub fn` declarations
+  157 → **139**; unregistered std declarations 2 → **1**; `must delete` 66、
+  `intrinsic-only` 1、`prelude_wrapper` 40 は不変。`std::collections frees` rule は
+  0 行になり削除した。
+- **Evidence**: 最終 tree で 1 回の `selfhost build-compiler`（45.6 s）。`verify fixtures`
+  **1914/1914** compile+validate PASS（110 runtime smoke、38/38 `test:` PASS、2
+  runtime-unsupported、0 FAIL）、`verify lane` PASS、`docs check` 6/6、ADR-029 fixpoint
+  PASS（s2 == s3 at sha256 `4c1c5985dbdca47d121037c39dc721c57229e5a4ca95c275c94c06d5780c591c`、
+  pinned base `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`）。
+  新規 E0100 pair 6 件は diag-parity PASS。`pq_type` pair は wasm32-gc component 実行と
+  `--target wasm32` compile+validate を確認した。
+- **Residual**: diag-parity には本 wave と無関係な既存の stale golden が 4 件ある
+  （`deprecated_assertion_free*` と `removed_test_free*` の `std::test` assertion 文言）。
+  `std::collections::linear` の `deque_*` 11 件は #710 の ADR-014 window のまま残る。
+
 ## 2026-10-29 — prelude free 27 件の退役と安定 free 4 件の限定例外 (#917, wave/prelude-remain)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D1（trait / method /

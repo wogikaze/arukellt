@@ -1,0 +1,6 @@
+// E0100 on the retired source-only vec::new_i32 constructor (#917).
+use std::collections::vec
+
+fn main() {
+    let _values: Vec<i32> = vec::new_i32()
+}

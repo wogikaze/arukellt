@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: linear::pq_new; removed free constructor; use `PriorityQueue::new<i32>()` from `use std::collections::pq::PriorityQueue` instead

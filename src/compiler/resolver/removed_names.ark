@@ -110,6 +110,13 @@ fn removed_name_specific_hint(name: String) -> String {
     if len(clone(ordered_hint)) > 0 {
         return ordered_hint
     }
+    let pq_hint = removed_pq_member_hint(clone(name))
+    if len(clone(pq_hint)) > 0 {
+        return pq_hint
+    }
+    if eq(clone(name), "new_i32") {
+        return "removed free Vec constructor; use `Vec::new<i32>()` instead"
+    }
     if clone(name).starts_with(String_from("HashMap_")) {
         return hashmap_method_replacement_hint()
     }
@@ -505,6 +512,61 @@ fn removed_ordered_member_hint(name: String) -> String {
     if eq(clone(name), "bitset_intersection") {
         return "use `a.intersection(b)` on `BitSet` instead"
     }
+    if eq(clone(name), "sorted_map_new") {
+        return "use `SortedMap::new()` from `use std::collections::ordered::SortedMap` instead"
+    }
+    if eq(clone(name), "sorted_map_len") {
+        return "use `m.len()` on `SortedMap` instead"
+    }
+    if eq(clone(name), "sorted_map_find_idx") {
+        return "use `m.find_idx(key)` on `SortedMap` instead"
+    }
+    if eq(clone(name), "sorted_map_get") {
+        return "use `m.get(key)` on `SortedMap` instead"
+    }
+    if eq(clone(name), "sorted_map_contains") {
+        return "use `m.contains(key)` on `SortedMap` instead"
+    }
+    if eq(clone(name), "sorted_map_insert") {
+        return "use `m.insert(key, value)` on `SortedMap` instead"
+    }
+    if eq(clone(name), "bitset_new") {
+        return "use `BitSet::new()` from `use std::collections::ordered::BitSet` instead"
+    }
+    if eq(clone(name), "bitset_mark") {
+        return "use `bits.mark(bit)` on `BitSet` instead"
+    }
+    if eq(clone(name), "bitset_unmark") {
+        return "use `bits.unmark(bit)` on `BitSet` instead"
+    }
+    if eq(clone(name), "bitset_test") {
+        return "use `bits.test(bit)` on `BitSet` instead"
+    }
+    String_new()
+}
+
+fn removed_pq_member_hint(name: String) -> String {
+    if eq(clone(name), "pq_new") {
+        return "removed free constructor; use `PriorityQueue::new<i32>()` from `use std::collections::pq::PriorityQueue` instead"
+    }
+    if eq(clone(name), "pq_push") {
+        return "removed free function; use `queue.push(value)` on `PriorityQueue<i32>` instead"
+    }
+    if eq(clone(name), "pq_pop") {
+        return "removed free function; use `queue.pop()` on `PriorityQueue<i32>` (`Option<i32>`) instead"
+    }
+    if eq(clone(name), "pq_peek") {
+        return "removed free function; use `queue.peek()` on `PriorityQueue<i32>` (`Option<i32>`) instead"
+    }
+    if eq(clone(name), "pq_len") {
+        return "removed free function; use `queue.len()` on `PriorityQueue<i32>` instead"
+    }
+    if eq(clone(name), "pq_is_empty") {
+        return "removed free function; use `queue.is_empty()` on `PriorityQueue<i32>` instead"
+    }
+    if eq(clone(name), "pq_clear") {
+        return "removed free function; use `queue.clear()` on `PriorityQueue<i32>` instead"
+    }
     String_new()
 }
 
@@ -647,6 +709,15 @@ fn removed_module_member_hint(module: String, name: String) -> String {
     }
     if eq(clone(module), "ordered") || eq(clone(module), "collections::ordered") || eq(clone(module), "std::collections::ordered") {
         return removed_ordered_member_hint(name)
+    }
+    if eq(clone(module), "linear") || eq(clone(module), "collections::linear") || eq(clone(module), "std::collections::linear") {
+        return removed_pq_member_hint(name)
+    }
+    if eq(clone(module), "vec") || eq(clone(module), "collections::vec") || eq(clone(module), "std::collections::vec") {
+        if eq(clone(name), "new_i32") {
+            return "removed free Vec constructor; use `Vec::new<i32>()` instead"
+        }
+        return String_new()
     }
     if eq(clone(module), "clock") || eq(clone(module), "host::clock") || eq(clone(module), "std::host::clock") {
         return removed_host_clock_member_hint(name)
@@ -1465,7 +1536,13 @@ test mod "removed_names" {
         assert(len(removed_name_hint("i32_to_string")) > 0)
         assert(len(removed_name_hint("bool_to_string")) > 0)
     }
-    test "vec ctor" { assert(len(removed_name_hint("Vec_new_i32")) > 0) }
+    test "vec ctor" {
+        assert(len(removed_name_hint("Vec_new_i32")) > 0)
+        assert(len(removed_name_hint("new_i32")) > 0)
+        assert(len(removed_module_member_hint("vec", "new_i32")) > 0)
+        assert(len(removed_module_member_hint("std::collections::vec", "new_i32")) > 0)
+        assert(len(removed_module_member_hint("vec", "unrelated")) == 0)
+    }
     test "hashmap builtins" {
         assert(len(removed_name_hint("HashMap_i32_i32_new")) > 0)
         assert(len(removed_name_hint("HashMap_new_String_i32")) > 0)
@@ -1510,12 +1587,24 @@ test mod "removed_names" {
         assert(len(removed_name_hint("index_set_contains")) > 0)
         assert(len(removed_name_hint("bitset_union")) > 0)
         assert(len(removed_name_hint("bitset_intersection")) > 0)
-        // The 10 stable frees stay callable through the ADR-087 window; they
-        // must keep the W0009 path, not an E0100 removal hint.
-        assert(len(removed_name_hint("sorted_map_new")) == 0)
-        assert(len(removed_name_hint("bitset_new")) == 0)
-        assert(len(removed_module_member_hint("ordered", "sorted_map_get")) == 0)
+        // The 10 stable frees completed their ADR-087 window and were deleted
+        // in the 2026-10-29 Wave 2, so they now carry E0100 hints too.
+        assert(len(removed_name_hint("sorted_map_new")) > 0)
+        assert(len(removed_name_hint("bitset_new")) > 0)
+        assert(len(removed_module_member_hint("ordered", "sorted_map_get")) > 0)
+        assert(len(removed_module_member_hint("ordered", "bitset_test")) > 0)
         assert(len(removed_module_member_hint("ordered", "unrelated")) == 0)
+    }
+    test "removed priority queue frees" {
+        assert(len(removed_module_member_hint("linear", "pq_new")) > 0)
+        assert(len(removed_module_member_hint("collections::linear", "pq_push")) > 0)
+        assert(len(removed_module_member_hint("std::collections::linear", "pq_pop")) > 0)
+        assert(len(removed_name_hint("pq_new")) > 0)
+        assert(len(removed_name_hint("pq_clear")) > 0)
+        // The deque_* frees are still callable through their own ADR-014
+        // window, so they must not gain a removal hint.
+        assert(len(removed_module_member_hint("linear", "deque_new")) == 0)
+        assert(len(removed_module_member_hint("linear", "unrelated")) == 0)
     }
     test "result option helpers" {
         assert(len(removed_name_hint("ok")) > 0)

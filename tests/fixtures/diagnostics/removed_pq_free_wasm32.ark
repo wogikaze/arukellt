@@ -1,0 +1,6 @@
+// E0100 on the retired PriorityQueue free family (#917 collections wave).
+use std::collections::linear
+
+fn main() {
+    let _queue: Vec<i32> = linear::pq_new()
+}

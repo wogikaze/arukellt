@@ -164,14 +164,6 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
     if len(msg5) > 0 {
         return msg5
     }
-    let msg6 = deprecated_ordered_qualified_message(path)
-    if len(msg6) > 0 {
-        return msg6
-    }
-    let msg7 = deprecated_linear_qualified_message(path)
-    if len(msg7) > 0 {
-        return msg7
-    }
     return deprecated_hash_qualified_message(path)
 }
 
@@ -239,76 +231,6 @@ fn deprecated_seq_qualified_message(path: String) -> String {
 fn deprecated_hash_qualified_message(path: String) -> String {
     // std::core::hash exposes no callable free functions after the #917
     // receiver wave; removed names are covered by resolver::removed_names.
-    String_new()
-}
-
-// ── Deprecated std::collections::ordered stable frees (ADR-087 / #917) ──
-
-// The 10 stable sorted_map_* / bitset_new|mark|unmark|test entries stay
-// callable through the ADR-087 window, so a qualified call warns here.
-// The 27 experimental btree / index / extended-bitset frees are already
-// deleted and surface as E0100 with resolver::removed_names hints.
-fn deprecated_ordered_qualified_message(path: String) -> String {
-    if eq(clone(path), "ordered::sorted_map_new") {
-        return "use `SortedMap::new()` from `use std::collections::ordered::SortedMap` instead"
-    }
-    if eq(clone(path), "ordered::sorted_map_len") {
-        return "use `m.len()` on `SortedMap` instead"
-    }
-    if eq(clone(path), "ordered::sorted_map_find_idx") {
-        return "use `m.find_idx(key)` on `SortedMap` instead"
-    }
-    if eq(clone(path), "ordered::sorted_map_get") {
-        return "use `m.get(key)` on `SortedMap` instead"
-    }
-    if eq(clone(path), "ordered::sorted_map_contains") {
-        return "use `m.contains(key)` on `SortedMap` instead"
-    }
-    if eq(clone(path), "ordered::sorted_map_insert") {
-        return "use `m.insert(key, value)` on `SortedMap` instead"
-    }
-    if eq(clone(path), "ordered::bitset_new") {
-        return "use `BitSet::new()` from `use std::collections::ordered::BitSet` instead"
-    }
-    if eq(clone(path), "ordered::bitset_mark") {
-        return "use `bits.mark(bit)` on `BitSet` instead"
-    }
-    if eq(clone(path), "ordered::bitset_unmark") {
-        return "use `bits.unmark(bit)` on `BitSet` instead"
-    }
-    if eq(clone(path), "ordered::bitset_test") {
-        return "use `bits.test(bit)` on `BitSet` instead"
-    }
-    String_new()
-}
-
-// ── Deprecated std::collections::linear PriorityQueue frees (ADR-087 / #917) ──
-
-// The 7 stable pq_* entries were deprecated with the `PriorityQueue<T>`
-// surface in the same #917 wave. They stay callable through the ADR-087
-// window and warn on a qualified call.
-fn deprecated_linear_qualified_message(path: String) -> String {
-    if eq(clone(path), "linear::pq_new") {
-        return "use `PriorityQueue::new<i32>()` from `use std::collections::pq::PriorityQueue` instead"
-    }
-    if eq(clone(path), "linear::pq_push") {
-        return "use `queue.push(value)` on `PriorityQueue<i32>` instead"
-    }
-    if eq(clone(path), "linear::pq_pop") {
-        return "use `queue.pop()` on `PriorityQueue<i32>` (`Option<i32>`, `None` when empty) instead"
-    }
-    if eq(clone(path), "linear::pq_peek") {
-        return "use `queue.peek()` on `PriorityQueue<i32>` (`Option<i32>`, `None` when empty) instead"
-    }
-    if eq(clone(path), "linear::pq_len") {
-        return "use `queue.len()` on `PriorityQueue<i32>` instead"
-    }
-    if eq(clone(path), "linear::pq_is_empty") {
-        return "use `queue.is_empty()` on `PriorityQueue<i32>` instead"
-    }
-    if eq(clone(path), "linear::pq_clear") {
-        return "use `queue.clear()` on `PriorityQueue<i32>` instead"
-    }
     String_new()
 }
 
@@ -484,30 +406,30 @@ test mod "deprecated" {
         assert(len(deprecated_call_message("map_option_String_String")) == 0)
         assert(len(deprecated_call_message("map_result_i32_i32")) == 0)
     }
-    test "ordered_stable_frees_warn_until_wave2" {
-        assert(len(deprecated_qualified_call_message("ordered::sorted_map_new")) > 0)
-        assert(len(deprecated_qualified_call_message("ordered::sorted_map_get")) > 0)
-        assert(len(deprecated_qualified_call_message("ordered::bitset_new")) > 0)
-        assert(len(deprecated_qualified_call_message("ordered::bitset_test")) > 0)
-    }
-    test "removed_ordered_experimental_frees_have_no_w0009_entry" {
-        // The 27 experimental ordered frees are E0100 removals; a live W0009
-        // entry would be a dead warning.
+    test "removed_ordered_frees_have_no_w0009_entry" {
+        // The 27 experimental and the 10 stable ordered frees are E0100
+        // removals now; a live W0009 entry would be a dead warning.
         assert(len(deprecated_qualified_call_message("ordered::btree_new")) == 0)
         assert(len(deprecated_qualified_call_message("ordered::btree_set_insert")) == 0)
         assert(len(deprecated_qualified_call_message("ordered::index_map_get")) == 0)
         assert(len(deprecated_qualified_call_message("ordered::index_set_len")) == 0)
         assert(len(deprecated_qualified_call_message("ordered::bitset_union")) == 0)
+        assert(len(deprecated_qualified_call_message("ordered::sorted_map_new")) == 0)
+        assert(len(deprecated_qualified_call_message("ordered::sorted_map_get")) == 0)
+        assert(len(deprecated_qualified_call_message("ordered::bitset_new")) == 0)
+        assert(len(deprecated_qualified_call_message("ordered::bitset_test")) == 0)
         assert(len(deprecated_qualified_call_message("ordered::Bitset")) == 0)
     }
-    test "pq_stable_frees_warn_until_wave2" {
-        assert(len(deprecated_qualified_call_message("linear::pq_new")) > 0)
-        assert(len(deprecated_qualified_call_message("linear::pq_push")) > 0)
-        assert(len(deprecated_qualified_call_message("linear::pq_pop")) > 0)
-        assert(len(deprecated_qualified_call_message("linear::pq_peek")) > 0)
-        assert(len(deprecated_qualified_call_message("linear::pq_len")) > 0)
-        assert(len(deprecated_qualified_call_message("linear::pq_is_empty")) > 0)
-        assert(len(deprecated_qualified_call_message("linear::pq_clear")) > 0)
+    test "removed_pq_frees_have_no_w0009_entry" {
+        // The 7 pq frees were deleted in the 2026-10-29 Wave 2. The deque_*
+        // frees keep their own ADR-014 window and never had a W0009 entry.
+        assert(len(deprecated_qualified_call_message("linear::pq_new")) == 0)
+        assert(len(deprecated_qualified_call_message("linear::pq_push")) == 0)
+        assert(len(deprecated_qualified_call_message("linear::pq_pop")) == 0)
+        assert(len(deprecated_qualified_call_message("linear::pq_peek")) == 0)
+        assert(len(deprecated_qualified_call_message("linear::pq_len")) == 0)
+        assert(len(deprecated_qualified_call_message("linear::pq_is_empty")) == 0)
+        assert(len(deprecated_qualified_call_message("linear::pq_clear")) == 0)
         assert(len(deprecated_qualified_call_message("linear::deque_new")) == 0)
     }
 

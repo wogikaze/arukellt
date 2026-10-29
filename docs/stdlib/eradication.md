@@ -15,20 +15,20 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 157 `pub fn` declarations under
-`std/**/*.ark`; 155 map to a manifest entry and
-2 are unregistered. Eradication scope = 147 manifest
-public entries + 2 unregistered declarations = **149 symbols**.
+**Real surface denominator:** 139 `pub fn` declarations under
+`std/**/*.ark`; 138 map to a manifest entry and
+1 are unregistered. Eradication scope = 130 manifest
+public entries + 1 unregistered declarations = **131 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 149 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 157 | — |
-| Unregistered std declarations (no manifest entry) | 2 | 0 |
+| Eradication-scope symbols (real std surface) | 131 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 139 | — |
+| Unregistered std declarations (no manifest entry) | 1 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
-| Manifest public entries (registered scope) | 147 | 0 |
+| Manifest public entries (registered scope) | 130 | 0 |
 | `prelude_wrapper` entries | 40 | 0 |
 | Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 36 | 0 |
 | `intrinsic-only` bridges (non-public) | 1 | — |
@@ -38,7 +38,7 @@ public entries + 2 unregistered declarations = **149 symbols**.
 | Class | Meaning | Symbols |
 |-------|---------|---------|
 | `must delete` | Replacement already exists or functionality retires | 66 |
-| `associated-or-method` | Replacement must land as method/associated first | 83 |
+| `associated-or-method` | Replacement must land as method/associated first | 65 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
 ## Execution Rules
@@ -59,7 +59,6 @@ registered entries and unregistered `pub fn` declarations.
 | deprecated std::seq helpers | `must delete` | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) | 13 | 0 | Iterator adapters / Vec methods (#691); the query wrappers delegate to the `Vec` receiver surface (`v.binary_search(target)`, `v.min()`, `v.max()`) |
 | prelude frees (default) | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 27 | 0 | method / associated equivalent on the receiver or namespace type |
 | std::io and host stdio frees | `associated-or-method` | [#693](../../issues/open/693-read-write-traits-io-unification.md) | 9 | 1 | Read / Write / BufRead / Seek trait methods and the typed std::io Stdout / Stderr Write handles. writer_write / writer_write_str were deleted with E0100 hints pointing at io::Stdout::new().write(...) / io::Stderr::new().write(...); the remaining free functions are the host-backed compatibility surface (stdin / stdout / stderr / read_stdin_line / print_bytes / print / println / eprintln), not the target API (#693). |
-| std::collections frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 17 | 1 | collection type methods (HashMap/HashSet/Deque/BTree/SortedMap/Arena/SlotMap/Interner/Bimap/Trie/etc.) |
 | host/core namespace frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 28 | 0 | Fs / Env / Process / Clock / Random / Cli / Path / Signal associated functions and methods; the std::host::env frees are `Env::args` / `Env::var` / `Env::arg_count` / `Env::arg_at` / `Env::var_or_default` / `Env::has_flag` from `use std::host::env::Env`; the std::host::fs and legacy std::fs path frees are `Fs::read_to_string` / `read_bytes` / `write_string` / `write_bytes` / `is_readable_file` / `is_file` / `is_dir` / `read_dir` / `metadata` from `use std::host::fs::Fs`; the std::core range/order/error/hash frees retired behind `Range::new` / `r.contains(value)` / `r.len()` / `RangeInclusive::new` / `r.contains(value)` / `a.cmp(b)` / `e.message()` / `h1.combine_hash(h2)`; the sealed raw bridges are `RawArray` / `RawString` / `RawFloat` associated functions (stdlib-only) |
 
 ## Inventory (manifest entries)
@@ -167,23 +166,6 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `has_flag` | `std::cli` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `option` | `std::cli` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `parse_args` | `std::cli` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `pq_clear` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `pq_is_empty` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `pq_len` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `pq_new` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `pq_peek` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `pq_pop` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `pq_push` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `bitset_mark` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `bitset_new` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `bitset_test` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `bitset_unmark` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `sorted_map_contains` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `sorted_map_find_idx` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `sorted_map_get` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `sorted_map_insert` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `sorted_map_len` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `sorted_map_new` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `fd_fdstat_errno` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `fd_seek` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `fd_tell` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
@@ -225,5 +207,4 @@ manifest-only scorecard could not see before #703.
 
 | Declaration | Source | Module | Class | Rule | Owner |
 |-------------|--------|--------|-------|------|-------|
-| `new_i32` | `std/collections/vec.ark:24` | `std::collections::vec` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `io_error_message` | `std/io/mod.ark:73` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |

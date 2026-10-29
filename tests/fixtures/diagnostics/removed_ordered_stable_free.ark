@@ -1,0 +1,6 @@
+// E0100 on the retired ordered stable free family (#917 collections wave).
+use std::collections::ordered
+
+fn main() {
+    let _map = ordered::sorted_map_new()
+}

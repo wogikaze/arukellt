@@ -24,7 +24,7 @@ The `std::collections` family provides the primary collection data structures fo
 | `Stack::new` / `.push` / `.pop` | LIFO stack newtype over `Deque<T>`. |
 | `LinkedList::new` / `.push_back` / `.iter_mut` | Node-pool doubly-linked list with cursors. |
 | `deque_push_back` / `deque_pop_front` | Legacy monomorphic i32 deque (migration window). |
-| `pq_push` / `pq_pop` | Min-heap priority queue — smallest element first. |
+| `PriorityQueue::new` / `.push` / `.pop` | Generic min-heap — smallest element first, `Option` on empty. |
 | `SortedMap::new` / `.insert` / `.get` | Sorted-vector map for ordered iteration. |
 | `BTreeMap::new` / `.keys` / `.range` | Sorted-vector map with key and range queries. |
 | `BitSet::new` / `.mark` / `.test` | Compact bit-flag set backed by a `Vec<i32>`. |
@@ -330,23 +330,51 @@ Copy the legacy i32 list into a `Vec<i32>` in front-to-back order.
 
 > ⚠️ **11 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
 
+## Module `std::collections::pq`
+
+- Source: [`../../../std/collections/pq.ark`](../../../std/collections/pq.ark)
+- Manifest-backed functions: 0
+- Stability: n/a
+
+`PriorityQueue<T>` — binary min-heap over a flat `Vec<T>`.
+
+The heap stores its elements in level order: the root is the minimum and
+every parent compares less than or equal to its children. `push` sifts the
+new element up from the last slot; `pop` moves the last element into the
+root and sifts it down. Empty `pop` / `peek` return `Option::None`, so
+there is no `0` sentinel and no panic path.
+
+The legacy `std::collections::linear::pq_*` free functions were retired
+under ADR-087; this type is the replacement surface and does not expose
+their `[count, ...heap]` layout.
+
+**Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
+
+### `std::collections::pq` — Public Types
+
+| Name | Kind | Methods | Trait impls | Summary |
+|------|------|---------|-------------|---------|
+| `PriorityQueue` | `struct` | `new`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear` | - | Binary min-heap with Ord-ordered elements. |
+
+_No manifest-backed functions in this module._
+
 ## Module `std::collections::linear`
 
 - Source: [`../../../std/collections/linear.ark`](../../../std/collections/linear.ark)
-- Manifest-backed functions: 18
-- Stability: deprecated 18
+- Manifest-backed functions: 11
+- Stability: deprecated 11
 
-Legacy linear collection helpers: monomorphic deque and priority queue.
+Legacy linear deque helpers: the pre-ADR-086 `deque_*` free functions.
 
-The `deque_*` functions are the pre-ADR-086 free-function surface: an
-`i32` ring buffer laid out as `[head, tail, count, cap, ...data(cap)]`.
-They stay callable through the ADR-014 deprecation window, but new code
-should use `std::collections::deque::Deque<T>` (plus `Queue<T>` /
-`Stack<T>`); the manifest points every `deque_*` entry at its method
-replacement.
+The `deque_*` functions are an `i32` ring buffer laid out as
+`[head, tail, count, cap, ...data(cap)]`. They stay callable through the
+ADR-014 deprecation window, but new code should use
+`std::collections::deque::Deque<T>` (plus `Queue<T>` / `Stack<T>`); the
+manifest points every `deque_*` entry at its method replacement.
 
-`PriorityQueue` (`pq_*`) is a binary min-heap, not a linear ADT, and keeps
-its own owner (ADR-086 §8).
+The former `pq_*` min-heap frees and their `[count, ...heap]` layout were
+retired under ADR-087; the replacement is
+`std::collections::pq::PriorityQueue<T>`.
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
@@ -390,46 +418,6 @@ Return the number of elements in the deque.
 
 Return true if the deque contains no elements.
 
-### `std::collections::linear` — PriorityQueue (min-heap)
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| ~~`pq_new`~~ ⚠️ Deprecated → `PriorityQueue::new` | `() -> Vec<i32>` | `deprecated` | ✅ functional | - |
-| ~~`pq_push`~~ ⚠️ Deprecated → `PriorityQueue::push` | `(Vec<i32>, i32) -> ()` | `deprecated` | ✅ functional | - |
-| ~~`pq_pop`~~ ⚠️ Deprecated → `PriorityQueue::pop` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
-| ~~`pq_peek`~~ ⚠️ Deprecated → `PriorityQueue::peek` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
-| ~~`pq_len`~~ ⚠️ Deprecated → `PriorityQueue::len` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
-| ~~`pq_is_empty`~~ ⚠️ Deprecated → `PriorityQueue::is_empty` | `(Vec<i32>) -> bool` | `deprecated` | ✅ functional | - |
-| ~~`pq_clear`~~ ⚠️ Deprecated → `PriorityQueue::clear` | `(Vec<i32>) -> ()` | `deprecated` | ✅ functional | - |
-
-#### `std::collections::linear::pq_new`
-
-Create a new empty PriorityQueue min-heap (i32, monomorphic).
-
-#### `std::collections::linear::pq_push`
-
-Insert a value into the priority queue.
-
-#### `std::collections::linear::pq_pop`
-
-Remove and return the minimum element. Panics if empty.
-
-#### `std::collections::linear::pq_peek`
-
-Return the minimum element without removing it. Panics if empty.
-
-#### `std::collections::linear::pq_len`
-
-Return the number of elements in the priority queue.
-
-#### `std::collections::linear::pq_is_empty`
-
-Return true if the priority queue contains no elements.
-
-#### `std::collections::linear::pq_clear`
-
-Reset the priority queue to empty (preserves allocated storage).
-
 ### `std::collections::linear` — Additional Deque accessors
 
 | Name | Signature | Stability | Implementation | Summary |
@@ -455,13 +443,13 @@ Reset the deque to empty (preserves allocated capacity).
 
 Copy all deque elements (front to back) into a new Vec<i32>.
 
-> ⚠️ **18 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **11 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
 
 ## Module `std::collections::ordered`
 
 - Source: [`../../../std/collections/ordered.ark`](../../../std/collections/ordered.ark)
-- Manifest-backed functions: 10
-- Stability: deprecated 10
+- Manifest-backed functions: 0
+- Stability: n/a
 
 Ordered collection types backed by flat sorted vectors.
 
@@ -472,10 +460,11 @@ packs bit flags into 32-bit words. Every store is a flat `Vec<i32>`: a
 nested generic container does not lower on both targets, so the layout is
 packed instead.
 
-The receiver methods below are the canonical surface. The `sorted_map_*`
-and `bitset_*` free functions remain callable as `deprecated` entries
-through the ADR-087 window; the `btree_*`, `btree_set_*`, `index_map_*`,
-and `index_set_*` free functions were retired with E0100 replacement hints.
+The receiver methods below are the canonical surface. The 10 stable
+`sorted_map_*` / `bitset_*` frees completed their ADR-087 window and were
+retired together with the 27 experimental `btree_*` / `btree_set_*` /
+`index_map_*` / `index_set_*` frees. Every qualified old call fails with
+E0100 and a method replacement hint.
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
@@ -490,22 +479,7 @@ and `index_set_*` free functions were retired with E0100 replacement hints.
 | `IndexSet` | `struct` | `new`, `insert`, `contains`, `len` | - | Set of unique i32 values that keeps insertion order. |
 | `BitSet` | `struct` | `new`, `with_capacity`, `mark`, `unmark`, `set`, `clear`, `test`, `count`, `union`, `intersection` | - | Fixed-capacity bit array backed by 32-bit words. |
 
-### `std::collections::ordered` — Public API
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| ~~`sorted_map_new`~~ ⚠️ Deprecated → `SortedMap::new` | `() -> Vec<i32>` | `deprecated` | ✅ functional | - |
-| ~~`sorted_map_len`~~ ⚠️ Deprecated → `SortedMap::len` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
-| ~~`sorted_map_find_idx`~~ ⚠️ Deprecated → `SortedMap::find_idx` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | - |
-| ~~`sorted_map_get`~~ ⚠️ Deprecated → `SortedMap::get` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | - |
-| ~~`sorted_map_contains`~~ ⚠️ Deprecated → `SortedMap::contains` | `(Vec<i32>, i32) -> bool` | `deprecated` | ✅ functional | - |
-| ~~`sorted_map_insert`~~ ⚠️ Deprecated → `SortedMap::insert` | `(Vec<i32>, i32, i32) -> ()` | `deprecated` | ✅ functional | - |
-| ~~`bitset_new`~~ ⚠️ Deprecated → `BitSet::new` | `() -> Vec<i32>` | `deprecated` | ✅ functional | - |
-| ~~`bitset_mark`~~ ⚠️ Deprecated → `BitSet::mark` | `(Vec<i32>, i32) -> ()` | `deprecated` | ✅ functional | - |
-| ~~`bitset_unmark`~~ ⚠️ Deprecated → `BitSet::unmark` | `(Vec<i32>, i32) -> ()` | `deprecated` | ✅ functional | - |
-| ~~`bitset_test`~~ ⚠️ Deprecated → `BitSet::test` | `(Vec<i32>, i32) -> bool` | `deprecated` | ✅ functional | - |
-
-> ⚠️ **10 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
+_No manifest-backed functions in this module._
 
 ## Module `std::collections::bimap`
 

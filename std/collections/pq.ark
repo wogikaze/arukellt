@@ -6,10 +6,9 @@
 //! root and sifts it down. Empty `pop` / `peek` return `Option::None`, so
 //! there is no `0` sentinel and no panic path.
 //!
-//! The legacy `std::collections::linear::pq_*` free functions remain callable
-//! through the ADR-087 deprecation window with their `[count, ...heap]`
-//! `Vec<i32>` layout; this type is the replacement surface and does not expose
-//! that layout.
+//! The legacy `std::collections::linear::pq_*` free functions were retired
+//! under ADR-087; this type is the replacement surface and does not expose
+//! their `[count, ...heap]` layout.
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 

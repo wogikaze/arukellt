@@ -6,8 +6,8 @@
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
 - **Canonical names:** 65
-- **Historical/deprecated names:** 82
-- **Total entries:** 147
+- **Historical/deprecated names:** 65
+- **Total entries:** 130
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -101,10 +101,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`assert_eq_str`~~ | `Test::assert_eq_string` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `Test::assert_ne_i32` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `Vec::binary_search` | Seq | [migration-guidance.md](migration-guidance.md) |
-| ~~`bitset_mark`~~ | `BitSet::mark` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`bitset_new`~~ | `BitSet::new` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`bitset_test`~~ | `BitSet::test` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`bitset_unmark`~~ | `BitSet::unmark` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `VecIter::count_eq` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -150,13 +146,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`max_i32`~~ | `Vec::max` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`min_i32`~~ | `Vec::min` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`pq_clear`~~ | `PriorityQueue::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`pq_is_empty`~~ | `PriorityQueue::is_empty` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`pq_len`~~ | `PriorityQueue::len` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`pq_new`~~ | `PriorityQueue::new` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`pq_peek`~~ | `PriorityQueue::peek` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`pq_pop`~~ | `PriorityQueue::pop` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`pq_push`~~ | `PriorityQueue::push` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `VecIter::contains` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `VecIter::rev` | Seq | [migration-guidance.md](migration-guidance.md) |
@@ -164,12 +153,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`skip_i32`~~ | `VecIter::skip` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_get`~~ | `Slice::get` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_len`~~ | `Slice::len` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`sorted_map_contains`~~ | `SortedMap::contains` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`sorted_map_find_idx`~~ | `SortedMap::find_idx` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`sorted_map_get`~~ | `SortedMap::get` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`sorted_map_insert`~~ | `SortedMap::insert` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`sorted_map_len`~~ | `SortedMap::len` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`sorted_map_new`~~ | `SortedMap::new` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`sum_i32`~~ | `VecIter::sum` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`take_i32`~~ | `VecIter::take` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`u16_to_i32`~~ | `u16::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
@@ -198,10 +181,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`assert_eq_str`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_eq_string` · [migration guide](migration-guidance.md) |
 | ~~`assert_ne`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_ne_i32` · [migration guide](migration-guidance.md) |
 | ~~`binary_search`~~ | ⚠️ deprecated | `std::seq` | → `Vec::binary_search` · [migration guide](migration-guidance.md) |
-| ~~`bitset_mark`~~ | ⚠️ deprecated | `std::collections::ordered` | → `BitSet::mark` · [migration guide](migration-guidance.md) |
-| ~~`bitset_new`~~ | ⚠️ deprecated | `std::collections::ordered` | → `BitSet::new` · [migration guide](migration-guidance.md) |
-| ~~`bitset_test`~~ | ⚠️ deprecated | `std::collections::ordered` | → `BitSet::test` · [migration guide](migration-guidance.md) |
-| ~~`bitset_unmark`~~ | ⚠️ deprecated | `std::collections::ordered` | → `BitSet::unmark` · [migration guide](migration-guidance.md) |
 | `Box_new` | ✅ `stable` | `prelude` | Box |
 | `byte_at` | ✅ `stable` | `prelude` | String |
 | `char_to_string` | ✅ `stable` | `prelude` | Conversion |
@@ -282,13 +261,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `parse_i64` | ✅ `stable` | `prelude` | Conversion |
 | `pi` | ✅ `stable` | `std::signal` | Signal |
 | ~~`pop`~~ | ⚠️ deprecated | `prelude` | → `Vec::pop` · [migration guide](migration-guidance.md) |
-| ~~`pq_clear`~~ | ⚠️ deprecated | `std::collections::linear` | → `PriorityQueue::clear` · [migration guide](migration-guidance.md) |
-| ~~`pq_is_empty`~~ | ⚠️ deprecated | `std::collections::linear` | → `PriorityQueue::is_empty` · [migration guide](migration-guidance.md) |
-| ~~`pq_len`~~ | ⚠️ deprecated | `std::collections::linear` | → `PriorityQueue::len` · [migration guide](migration-guidance.md) |
-| ~~`pq_new`~~ | ⚠️ deprecated | `std::collections::linear` | → `PriorityQueue::new` · [migration guide](migration-guidance.md) |
-| ~~`pq_peek`~~ | ⚠️ deprecated | `std::collections::linear` | → `PriorityQueue::peek` · [migration guide](migration-guidance.md) |
-| ~~`pq_pop`~~ | ⚠️ deprecated | `std::collections::linear` | → `PriorityQueue::pop` · [migration guide](migration-guidance.md) |
-| ~~`pq_push`~~ | ⚠️ deprecated | `std::collections::linear` | → `PriorityQueue::push` · [migration guide](migration-guidance.md) |
 | `print` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `print_bytes` | ✅ `stable` | `std::io` | Io |
 | `println` | ✅ `stable` | `std::host::stdio` | Host Stdio |
@@ -307,12 +279,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `slice` | ✅ `stable` | `prelude` | String |
 | ~~`slice_get`~~ | ⚠️ deprecated | `prelude` | → `Slice::get` · [migration guide](migration-guidance.md) |
 | ~~`slice_len`~~ | ⚠️ deprecated | `prelude` | → `Slice::len` · [migration guide](migration-guidance.md) |
-| ~~`sorted_map_contains`~~ | ⚠️ deprecated | `std::collections::ordered` | → `SortedMap::contains` · [migration guide](migration-guidance.md) |
-| ~~`sorted_map_find_idx`~~ | ⚠️ deprecated | `std::collections::ordered` | → `SortedMap::find_idx` · [migration guide](migration-guidance.md) |
-| ~~`sorted_map_get`~~ | ⚠️ deprecated | `std::collections::ordered` | → `SortedMap::get` · [migration guide](migration-guidance.md) |
-| ~~`sorted_map_insert`~~ | ⚠️ deprecated | `std::collections::ordered` | → `SortedMap::insert` · [migration guide](migration-guidance.md) |
-| ~~`sorted_map_len`~~ | ⚠️ deprecated | `std::collections::ordered` | → `SortedMap::len` · [migration guide](migration-guidance.md) |
-| ~~`sorted_map_new`~~ | ⚠️ deprecated | `std::collections::ordered` | → `SortedMap::new` · [migration guide](migration-guidance.md) |
 | `starts_with` | ✅ `stable` | `prelude` | String |
 | `stderr` | ✅ `stable` | `std::io` | Io |
 | `stdin` | ✅ `stable` | `std::io` | Io |

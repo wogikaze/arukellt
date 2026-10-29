@@ -1,1 +1,0 @@
-use `SortedMap::new()` from `use std::collections::ordered::SortedMap` instead

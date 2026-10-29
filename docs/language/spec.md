@@ -2055,26 +2055,32 @@ The former `trie_*` free functions are retired (E0100).
 `deque_is_empty(d: Vec<i32>) -> bool`
 
 **Collections — Priority Queue**:
-`pq_new() -> Vec<i32>`,
-`pq_push(q: Vec<i32>, x: i32)`,
-`pq_pop(q: Vec<i32>) -> i32`,
-`pq_peek(q: Vec<i32>) -> i32`,
-`pq_len(q: Vec<i32>) -> i32`,
-`pq_is_empty(q: Vec<i32>) -> bool`
+`PriorityQueue::new<i32>() -> PriorityQueue<i32>`,
+`queue.push(x: i32)`,
+`queue.pop() -> Option<i32>`,
+`queue.peek() -> Option<i32>`,
+`queue.len() -> i32`,
+`queue.is_empty() -> bool`,
+`queue.clear()`.
+The former `pq_*` free functions are retired (E0100).
 
 **Collections — Bitset**:
-`bitset_new() -> Vec<i32>`,
-`bitset_mark(b: Vec<i32>, idx: i32)`,
-`bitset_unmark(b: Vec<i32>, idx: i32)`,
-`bitset_test(b: Vec<i32>, idx: i32) -> bool`
+`BitSet::new() -> BitSet`,
+`BitSet::with_capacity(bits: i32) -> BitSet`,
+`bits.mark(idx: i32)`,
+`bits.unmark(idx: i32)`,
+`bits.test(idx: i32) -> bool`.
+The former `bitset_new` / `bitset_mark` / `bitset_unmark` / `bitset_test`
+free functions are retired (E0100).
 
 **Collections — Sorted Map**:
-`sorted_map_new() -> Vec<i32>`,
-`sorted_map_insert(m: Vec<i32>, k: i32, v: i32)`,
-`sorted_map_get(m: Vec<i32>, k: i32) -> i32`,
-`sorted_map_contains(m: Vec<i32>, k: i32) -> bool`,
-`sorted_map_find_idx(m: Vec<i32>, k: i32) -> i32`,
-`sorted_map_len(m: Vec<i32>) -> i32`
+`SortedMap::new() -> SortedMap`,
+`m.insert(k: i32, v: i32)`,
+`m.get(k: i32) -> i32`,
+`m.contains(k: i32) -> bool`,
+`m.find_idx(k: i32) -> i32`,
+`m.len() -> i32`.
+The former `sorted_map_*` free functions are retired (E0100).
 
 **Collections — Flat HashMap**:
 `hashmap_new() -> Vec<i32>`,

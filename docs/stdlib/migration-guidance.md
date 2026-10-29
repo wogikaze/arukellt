@@ -1983,16 +1983,17 @@ let mut m = BTreeMap::new()
 m.insert(1, 100)
 ```
 
-### Deprecated (10 stable frees, ADR-087 window)
+### Removed (10 stable frees, ADR-087 Wave 2)
 
-The `sorted_map_*` and `bitset_new/mark/unmark/test` entries stay callable for
-now, emit **W0009** on a qualified call, and carry
-`deprecated_since = "0.1.0"` / `remove_in = "1.0.0"` (the 0.x exception makes
-`remove_in` an upper bound). A later Wave 2 deletion removes them once the
-ADR-087 conditions are reconfirmed.
+The `sorted_map_*` and `bitset_new/mark/unmark/test` entries completed their
+ADR-087 window and were deleted on 2026-10-29. A qualified call now fails with
+**E0100** and the method hint below; W0009 no longer fires because the names do
+not resolve. The 0.x exception applies under
+[ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2: the Wave 1 W0009
+coverage, this guide, and the changelog entry are the three required records.
 
-| Deprecated free | Replacement |
-|-----------------|-------------|
+| Removed free | Replacement |
+|--------------|-------------|
 | `ordered::sorted_map_new()` | `SortedMap::new()` |
 | `ordered::sorted_map_len(m)` | `m.len()` |
 | `ordered::sorted_map_find_idx(m, k)` | `m.find_idx(k)` |
@@ -2005,16 +2006,45 @@ ADR-087 conditions are reconfirmed.
 | `ordered::bitset_test(bs, b)` | `bits.test(b)` |
 
 ```ark
-// Before (deprecated, still callable with W0009)
-use std::collections::ordered
-let mut m = ordered::sorted_map_new()
-ordered::sorted_map_insert(m, 1, 100)
-
-// After
 use std::collections::ordered::SortedMap
 let mut m = SortedMap::new()
 m.insert(1, 100)
 ```
+
+### PriorityQueue<T> (7 pq frees)
+
+The 7 `pq_*` free functions in `std::collections::linear` followed the same
+ADR-087 Wave 1 deprecation / Wave 2 deletion in the 2026-10-29 collections
+wave. The replacement is `PriorityQueue<T>` from
+`use std::collections::pq::PriorityQueue`. The old frees used a
+`[count, ...heap]` `Vec<i32>` layout and returned `i32` from `pop` / `peek`
+(panicking when empty); the type owns `Vec<T>` and returns `Option<T>`.
+
+| Removed free | Replacement |
+|--------------|-------------|
+| `linear::pq_new()` | `PriorityQueue::new<i32>()` |
+| `linear::pq_push(q, x)` | `queue.push(x)` |
+| `linear::pq_pop(q)` | `queue.pop()` (`Option<i32>`) |
+| `linear::pq_peek(q)` | `queue.peek()` (`Option<i32>`) |
+| `linear::pq_len(q)` | `queue.len()` |
+| `linear::pq_is_empty(q)` | `queue.is_empty()` |
+| `linear::pq_clear(q)` | `queue.clear()` |
+
+```ark
+use std::collections::pq::PriorityQueue
+let mut q: PriorityQueue<i32> = PriorityQueue::new<i32>()
+q.push(3)
+match q.pop() {
+    Option::Some(value) => {},
+    Option::None => {},
+}
+```
+
+### Retired source-only `vec::new_i32`
+
+`std::collections::vec::new_i32()` was an unregistered public source helper
+next to the `impl Vec<T>` block. It was retired with an **E0100** hint; the
+spelling is `Vec::new<i32>()`.
 
 ### Behaviour correction in the shared store
 

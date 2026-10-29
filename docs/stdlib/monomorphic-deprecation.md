@@ -51,13 +51,6 @@ helpers are included alongside any other deprecated public entry.
 | `deque_push_back` | `std::collections::linear` | `deprecated` | `Deque::push_back` | `0.1.0` | `1.0.0` | Append a value to the back of the deque. |
 | `deque_push_front` | `std::collections::linear` | `deprecated` | `Deque::push_front` | `0.1.0` | `1.0.0` | Prepend a value to the front of the deque. |
 | `deque_to_vec` | `std::collections::linear` | `deprecated` | `Deque::iter` | `0.1.0` | `1.0.0` | Copy all deque elements (front to back) into a new Vec<i32>. |
-| `pq_clear` | `std::collections::linear` | `deprecated` | `PriorityQueue::clear` | `0.1.0` | `1.0.0` | Reset the priority queue to empty (preserves allocated storage). |
-| `pq_is_empty` | `std::collections::linear` | `deprecated` | `PriorityQueue::is_empty` | `0.1.0` | `1.0.0` | Return true if the priority queue contains no elements. |
-| `pq_len` | `std::collections::linear` | `deprecated` | `PriorityQueue::len` | `0.1.0` | `1.0.0` | Return the number of elements in the priority queue. |
-| `pq_new` | `std::collections::linear` | `deprecated` | `PriorityQueue::new` | `0.1.0` | `1.0.0` | Create a new empty PriorityQueue min-heap (i32, monomorphic). |
-| `pq_peek` | `std::collections::linear` | `deprecated` | `PriorityQueue::peek` | `0.1.0` | `1.0.0` | Return the minimum element without removing it. Panics if empty. |
-| `pq_pop` | `std::collections::linear` | `deprecated` | `PriorityQueue::pop` | `0.1.0` | `1.0.0` | Remove and return the minimum element. Panics if empty. |
-| `pq_push` | `std::collections::linear` | `deprecated` | `PriorityQueue::push` | `0.1.0` | `1.0.0` | Insert a value into the priority queue. |
 | `linked_list_back` | `std::collections::linked_list` | `deprecated` | `LinkedList::back` | `0.1.0` | `1.0.0` | Peek the back value of the legacy i32 list, or the caller's fallback when empty. |
 | `linked_list_clear` | `std::collections::linked_list` | `deprecated` | `LinkedList::clear` | `0.1.0` | `1.0.0` | Remove all elements from the legacy i32 list, keeping node capacity. |
 | `linked_list_front` | `std::collections::linked_list` | `deprecated` | `LinkedList::front` | `0.1.0` | `1.0.0` | Peek the front value of the legacy i32 list, or the caller's fallback when empty. |
@@ -69,16 +62,6 @@ helpers are included alongside any other deprecated public entry.
 | `linked_list_push_back` | `std::collections::linked_list` | `deprecated` | `LinkedList::push_back` | `0.1.0` | `1.0.0` | Push a value to the back of the legacy i32 list. |
 | `linked_list_push_front` | `std::collections::linked_list` | `deprecated` | `LinkedList::push_front` | `0.1.0` | `1.0.0` | Push a value to the front of the legacy i32 list. |
 | `linked_list_to_vec` | `std::collections::linked_list` | `deprecated` | `LinkedList::iter` | `0.1.0` | `1.0.0` | Copy the legacy i32 list into a Vec<i32> in front-to-back order. |
-| `bitset_mark` | `std::collections::ordered` | `deprecated` | `BitSet::mark` | `0.1.0` | `1.0.0` | Superseded API |
-| `bitset_new` | `std::collections::ordered` | `deprecated` | `BitSet::new` | `0.1.0` | `1.0.0` | Superseded API |
-| `bitset_test` | `std::collections::ordered` | `deprecated` | `BitSet::test` | `0.1.0` | `1.0.0` | Superseded API |
-| `bitset_unmark` | `std::collections::ordered` | `deprecated` | `BitSet::unmark` | `0.1.0` | `1.0.0` | Superseded API |
-| `sorted_map_contains` | `std::collections::ordered` | `deprecated` | `SortedMap::contains` | `0.1.0` | `1.0.0` | Superseded API |
-| `sorted_map_find_idx` | `std::collections::ordered` | `deprecated` | `SortedMap::find_idx` | `0.1.0` | `1.0.0` | Superseded API |
-| `sorted_map_get` | `std::collections::ordered` | `deprecated` | `SortedMap::get` | `0.1.0` | `1.0.0` | Superseded API |
-| `sorted_map_insert` | `std::collections::ordered` | `deprecated` | `SortedMap::insert` | `0.1.0` | `1.0.0` | Superseded API |
-| `sorted_map_len` | `std::collections::ordered` | `deprecated` | `SortedMap::len` | `0.1.0` | `1.0.0` | Superseded API |
-| `sorted_map_new` | `std::collections::ordered` | `deprecated` | `SortedMap::new` | `0.1.0` | `1.0.0` | Superseded API |
 | `binary_search` | `std::seq` | `deprecated` | `Vec::binary_search` | `0.1.0` | `1.0.0` | Deprecated monomorphic wrapper. Use v.binary_search(target) over T: Ord. |
 | `count_eq` | `std::seq` | `deprecated` | `VecIter::count_eq` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target). |
 | `filter_i32` | `std::seq` | `deprecated` | `VecIter::filter` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().filter(f).collect(). |
@@ -93,4 +76,4 @@ helpers are included alongside any other deprecated public entry.
 | `take_i32` | `std::seq` | `deprecated` | `VecIter::take` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect(). |
 | `unique` | `std::seq` | `deprecated` | `VecIter::unique` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect(). |
 
-Total deprecated public entries: **82**.
+Total deprecated public entries: **65**.

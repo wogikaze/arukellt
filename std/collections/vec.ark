@@ -20,21 +20,16 @@ use std::core::iter
 use std::core::raw::RawArray
 use std::prelude::{Slice, byte_at}
 
-/// Creates a new empty `Vec<i32>`.
-pub fn new_i32() -> Vec<i32> {
-    RawArray::new<i32>(0)
-}
-
 // ---------------------------------------------------------------------------
 // Inherent impl block for Vec<T> — method syntax (approach (a) for #700).
 //
 // Bodies call free CoreOp aliases (`vec_len` / `push` / …). Those lower via
 // #822 normal_call fallbacks or MIR rewrites to sealed raw.
 //
-// Constructors call `RawArray::new` directly (same as free `new_i32`) so mono
-// bodies lower through the `raw.array_new` CoreOp. Extension helpers with an
-// explicit `self: Vec<T>` receiver instantiate `Vec::with_capacity<T>`
-// correctly and use the source constructor instead.
+// Constructors call `RawArray::new` directly so mono bodies lower through the
+// `raw.array_new` CoreOp. Extension helpers with an explicit `self: Vec<T>`
+// receiver instantiate `Vec::with_capacity<T>` correctly and use the source
+// constructor instead.
 // ---------------------------------------------------------------------------
 
 // `Ordering` results are funnelled through non-generic predicates: a direct

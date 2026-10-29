@@ -264,12 +264,14 @@ replacement = "Read / Write / BufRead / Seek trait methods and the typed std::io
 # The lazy `VecIter` / `Iterator` method surface is the only spelling now;
 # qualified old calls get an E0100 hint from resolver::removed_names.
 
-[[rules]]
-label = "std::collections frees"
-module_pfx = "std::collections"
-class = "associated-or-method"
-owner = "917"
-replacement = "collection type methods (HashMap/HashSet/Deque/BTree/SortedMap/Arena/SlotMap/Interner/Bimap/Trie/etc.)"
+# The 18 std::collections free rows (7 pq, 10 sorted_map / bitset, and the
+# source-only vec new_i32) were retired by #917 on 2026-10-29
+# (wave/collections-remain). The 7 pq frees completed the ADR-087 Wave 1
+# deprecation and Wave 2 deletion around the new
+# `std::collections::pq::PriorityQueue<T>` surface; the 10 ordered frees
+# completed their earlier window; and `new_i32` retired with a
+# `Vec::new<i32>()` hint. No std::collections entry or top-level `pub fn`
+# remains to match, so the family rule is removed.
 
 # The json/toml/csv public free surface is fully retired by #917. The 2026-10-27
 # waves moved the text/constructor helpers onto JsonText / TomlText / JsonValue /

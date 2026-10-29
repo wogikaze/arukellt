@@ -11,7 +11,7 @@
 | `stable` | 61 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 1 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 3 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 82 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 65 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -244,10 +244,6 @@
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | ~~`as_slice`~~ ⚠️ Deprecated → `Vec::as_slice` | `(Vec<T>, i32, i32) -> Slice<T>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`bitset_mark`~~ ⚠️ Deprecated → `BitSet::mark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`bitset_new`~~ ⚠️ Deprecated → `BitSet::new` | `() -> Vec<i32>` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`bitset_test`~~ ⚠️ Deprecated → `BitSet::test` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`bitset_unmark`~~ ⚠️ Deprecated → `BitSet::unmark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
 | ~~`deque_back`~~ ⚠️ Deprecated → `Deque::back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Peek at the back element without removing it. Returns 0 when empty. |
 | ~~`deque_clear`~~ ⚠️ Deprecated → `Deque::clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Reset the deque to empty (preserves allocated capacity). |
 | ~~`deque_front`~~ ⚠️ Deprecated → `Deque::front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Peek at the front element without removing it. Returns 0 when empty. |
@@ -275,23 +271,10 @@
 | ~~`linked_list_push_front`~~ ⚠️ Deprecated → `LinkedList::push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Push a value to the front of the legacy i32 list. |
 | ~~`linked_list_to_vec`~~ ⚠️ Deprecated → `LinkedList::iter` | `(Vec<i32>) -> Vec<i32>` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Copy the legacy i32 list into a Vec<i32> in front-to-back order. |
 | ~~`pop`~~ ⚠️ Deprecated → `Vec::pop` | `(Vec<T>) -> Option<T>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | Remove and return the last element of a Vec. Returns None if the Vec is empty. |
-| ~~`pq_clear`~~ ⚠️ Deprecated → `PriorityQueue::clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Reset the priority queue to empty (preserves allocated storage). |
-| ~~`pq_is_empty`~~ ⚠️ Deprecated → `PriorityQueue::is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Return true if the priority queue contains no elements. |
-| ~~`pq_len`~~ ⚠️ Deprecated → `PriorityQueue::len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Return the number of elements in the priority queue. |
-| ~~`pq_new`~~ ⚠️ Deprecated → `PriorityQueue::new` | `() -> Vec<i32>` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Create a new empty PriorityQueue min-heap (i32, monomorphic). |
-| ~~`pq_peek`~~ ⚠️ Deprecated → `PriorityQueue::peek` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Return the minimum element without removing it. Panics if empty. |
-| ~~`pq_pop`~~ ⚠️ Deprecated → `PriorityQueue::pop` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Remove and return the minimum element. Panics if empty. |
-| ~~`pq_push`~~ ⚠️ Deprecated → `PriorityQueue::push` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Insert a value into the priority queue. |
 | ~~`push`~~ ⚠️ Deprecated → `Vec::push` | `(Vec<T>, T) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | Append an element to the end of a Vec, mutating it in place. |
 | ~~`set`~~ ⚠️ Deprecated → `Vec::set` | `(Vec<T>, i32, T) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | ~~`slice_get`~~ ⚠️ Deprecated → `Slice::get` | `(Slice<T>, i32) -> T` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | ~~`slice_len`~~ ⚠️ Deprecated → `Slice::len` | `(Slice<T>) -> i32` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`sorted_map_contains`~~ ⚠️ Deprecated → `SortedMap::contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`sorted_map_find_idx`~~ ⚠️ Deprecated → `SortedMap::find_idx` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`sorted_map_get`~~ ⚠️ Deprecated → `SortedMap::get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`sorted_map_insert`~~ ⚠️ Deprecated → `SortedMap::insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`sorted_map_len`~~ ⚠️ Deprecated → `SortedMap::len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`sorted_map_new`~~ ⚠️ Deprecated → `SortedMap::new` | `() -> Vec<i32>` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
 
 ### `len` — `prelude`
 
@@ -521,7 +504,7 @@ let input = stdio::read_stdin()
 
 ## Deprecated APIs
 
-> ⚠️ **82 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **65 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -531,10 +514,6 @@ let input = stdio::read_stdin()
 | ~~`assert_eq_str`~~ | `Test::assert_eq_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `Test::assert_ne_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `Vec::binary_search` | [migration-guidance.md](migration-guidance.md) |
-| ~~`bitset_mark`~~ | `BitSet::mark` | [migration-guidance.md](migration-guidance.md) |
-| ~~`bitset_new`~~ | `BitSet::new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`bitset_test`~~ | `BitSet::test` | [migration-guidance.md](migration-guidance.md) |
-| ~~`bitset_unmark`~~ | `BitSet::unmark` | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `VecIter::count_eq` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | [migration-guidance.md](migration-guidance.md) |
@@ -580,13 +559,6 @@ let input = stdio::read_stdin()
 | ~~`max_i32`~~ | `Vec::max` | [migration-guidance.md](migration-guidance.md) |
 | ~~`min_i32`~~ | `Vec::min` | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | [migration-guidance.md](migration-guidance.md) |
-| ~~`pq_clear`~~ | `PriorityQueue::clear` | [migration-guidance.md](migration-guidance.md) |
-| ~~`pq_is_empty`~~ | `PriorityQueue::is_empty` | [migration-guidance.md](migration-guidance.md) |
-| ~~`pq_len`~~ | `PriorityQueue::len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`pq_new`~~ | `PriorityQueue::new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`pq_peek`~~ | `PriorityQueue::peek` | [migration-guidance.md](migration-guidance.md) |
-| ~~`pq_pop`~~ | `PriorityQueue::pop` | [migration-guidance.md](migration-guidance.md) |
-| ~~`pq_push`~~ | `PriorityQueue::push` | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `VecIter::contains` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `VecIter::rev` | [migration-guidance.md](migration-guidance.md) |
@@ -594,12 +566,6 @@ let input = stdio::read_stdin()
 | ~~`skip_i32`~~ | `VecIter::skip` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_get`~~ | `Slice::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_len`~~ | `Slice::len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`sorted_map_contains`~~ | `SortedMap::contains` | [migration-guidance.md](migration-guidance.md) |
-| ~~`sorted_map_find_idx`~~ | `SortedMap::find_idx` | [migration-guidance.md](migration-guidance.md) |
-| ~~`sorted_map_get`~~ | `SortedMap::get` | [migration-guidance.md](migration-guidance.md) |
-| ~~`sorted_map_insert`~~ | `SortedMap::insert` | [migration-guidance.md](migration-guidance.md) |
-| ~~`sorted_map_len`~~ | `SortedMap::len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`sorted_map_new`~~ | `SortedMap::new` | [migration-guidance.md](migration-guidance.md) |
 | ~~`sum_i32`~~ | `VecIter::sum` | [migration-guidance.md](migration-guidance.md) |
 | ~~`take_i32`~~ | `VecIter::take` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u16_to_i32`~~ | `u16::to_i32` | [migration-guidance.md](migration-guidance.md) |

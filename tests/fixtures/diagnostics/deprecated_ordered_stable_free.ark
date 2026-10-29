@@ -1,7 +1,0 @@
-// W0009 on the stable ordered frees: they stay callable through the ADR-087
-// window and point at the SortedMap receiver surface.
-use std::collections::ordered
-
-fn main() {
-    let _map = ordered::sorted_map_new()
-}

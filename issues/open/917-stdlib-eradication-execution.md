@@ -1586,3 +1586,57 @@ classified there, in dependency-safe waves.
   `verify lane` PASS; `docs check` 6/6; ADR-029 fixpoint PASS: s2 == s3 at
   sha256 `304624037927d797311cd09cc42bb26cb85fc08ee59a0da14586cbe9c0c2315e`
   (pinned base `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`).
+
+### Landed slice (wave/collections-remain, 2026-10-29)
+
+- **Group**: `std::collections` — the last 18 `associated-or-method` rows:
+  the 7 stable `pq_*` frees, the 10 already-deprecated stable
+  `sorted_map_*` / `bitset_*` frees, and the source-only `vec::new_i32`.
+- **New surface**: `std/collections/pq.ark` adds `PriorityQueue<T>`
+  (`impl<T: Ord>`) with `PriorityQueue::new<T>()`, `queue.push(value)`,
+  `queue.pop() -> Option<T>`, `queue.peek() -> Option<T>`, `queue.len()`,
+  `queue.is_empty()`, and `queue.clear()`. The legacy `[count, ...heap]`
+  `Vec<i32>` layout and the empty-pop panic are no longer public contracts;
+  empty `pop` / `peek` return `Option::None`. The type is `provisional` and
+  registered in `std/manifest.toml` plus the collections docs generator.
+- **Wave 1 (commit `2a7a34f0e`)**: the 7 `pq_*` manifest entries became
+  `deprecated` with `deprecated_by = "PriorityQueue::<method>"`,
+  `deprecated_since = "0.1.0"`, and `remove_in = "1.0.0"`. W0009 qualified
+  messages and unit assertions landed in
+  `src/compiler/lint/deprecated_table.ark`, with a dual-target
+  `deprecated_pq_stable_free` diagnostic fixture. Existing `pq_ops` /
+  `pq_sort` / `linear_basic` fixtures and a new `pq_type` pair moved to the
+  type surface.
+- **Wave 2 (commit 2)**: deleted the 7 `pq_*`, the 10 stable ordered frees,
+  and `vec::new_i32` from the manifest, source declarations, and W0009 table;
+  `resolver::removed_names` now returns E0100 hints from
+  `removed_pq_member_hint`, 10 new `removed_ordered_member_hint` entries, and
+  the `vec::new_i32` entry. The diagnostic fixtures were replaced by the
+  E0100 `removed_ordered_stable_free`, `removed_pq_free`, and
+  `removed_vec_new_i32` dual-target pairs.
+- **Lifecycle basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md)
+  D1 and [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2. The 10
+  ordered frees had been deprecated since 2026-10-27 and completed their
+  in-tree window; the pq frees landed Wave 1 and Wave 2 in the same wave, with
+  the W0009 fixture, migration guide, and changelog entry as the three D2
+  records. The changelog records the exact symbols and replacements.
+- **Replacement**: `PriorityQueue<T>` methods, `SortedMap` / `BitSet`
+  receiver methods, `Vec::new<i32>()`; `docs/language/spec.md` and
+  `docs/stdlib/migration-guidance.md` show the method spellings. All old
+  qualified names fail with E0100 and the replacement hint.
+- **Scorecard**: eradication scope 149 -> **131**; `associated-or-method`
+  83 -> **65**; manifest public entries 147 -> **130**; `pub fn` declarations
+  157 -> **139**; unregistered std declarations 2 -> **1**; `must delete` 66,
+  `intrinsic-only` 1, and `prelude_wrapper` 40 unchanged. The
+  `std::collections frees` rule is removed because it matches no entry.
+- **Verification**: `verify fixtures` **1914/1914** compile+validate PASS
+  (110 runtime smoke, 38/38 `test:` PASS, 2 runtime-unsupported, 0 FAIL);
+  `verify lane` PASS; `docs check` 6/6; ADR-029 fixpoint PASS (s2 == s3 at
+  sha256 `4c1c5985dbdca47d121037c39dc721c57229e5a4ca95c275c94c06d5780c591c`,
+  pinned base `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`).
+  The 6 new E0100 fixtures pass diag-parity; the 4 diag-parity failures are
+  pre-existing stale `std::test` assertion goldens (`deprecated_assertion_free*`
+  and `removed_test_free*`) unrelated to this wave.
+- **Residual**: the 11 `deque_*` frees remain in `std::collections::linear`
+  under their #710 ADR-014 window; the other `associated-or-method` families
+  (io, host/core, prelude deferrals) are untouched.
