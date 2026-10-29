@@ -1,0 +1,6 @@
+// E0100 on the deleted BTreeMap free family (#917 ordered wave).
+use std::collections::ordered
+
+fn main() {
+    let _map = ordered::btree_new()
+}

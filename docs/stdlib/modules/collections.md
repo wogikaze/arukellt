@@ -25,8 +25,9 @@ The `std::collections` family provides the primary collection data structures fo
 | `LinkedList::new` / `.push_back` / `.iter_mut` | Node-pool doubly-linked list with cursors. |
 | `deque_push_back` / `deque_pop_front` | Legacy monomorphic i32 deque (migration window). |
 | `pq_push` / `pq_pop` | Min-heap priority queue — smallest element first. |
-| `sorted_map_insert` / `sorted_map_get` | Sorted-vector map for ordered iteration. |
-| `bitset_mark` / `bitset_test` | Compact bit-flag set backed by a `Vec<i32>`. |
+| `SortedMap::new` / `.insert` / `.get` | Sorted-vector map for ordered iteration. |
+| `BTreeMap::new` / `.keys` / `.range` | Sorted-vector map with key and range queries. |
+| `BitSet::new` / `.mark` / `.test` | Compact bit-flag set backed by a `Vec<i32>`. |
 
 **Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
@@ -519,194 +520,52 @@ Copy all deque elements (front to back) into a new Vec<i32>.
 ## Module `std::collections::ordered`
 
 - Source: [`../../../std/collections/ordered.ark`](../../../std/collections/ordered.ark)
-- Manifest-backed functions: 37
-- Stability: experimental 27, stable 10
+- Manifest-backed functions: 10
+- Stability: deprecated 10
 
-Ordered collection helpers backed by sorted vectors.
+Ordered collection types backed by flat sorted vectors.
 
-Provides `SortedMap` (sorted-vector map, i32 key/value), `BTreeMap`/
-`BTreeSet` (sorted-vector backed), `IndexMap`/`IndexSet` (insertion-order),
-and `BitSet` (compact bit-flag array).
+`SortedMap` and `BTreeMap` store `i32` key/value pairs sorted by key;
+`BTreeSet` stores sorted unique `i32` values, `IndexSet` stores unique
+values in insertion order, `IndexMap` keeps insertion order, and `BitSet`
+packs bit flags into 32-bit words. Every store is a flat `Vec<i32>`: a
+nested generic container does not lower on both targets, so the layout is
+packed instead.
 
-**Stability:** `sorted_map_*` and `bitset_new/mark/unmark/test` are stable;
-all other APIs in this module are **experimental**.
+The receiver methods below are the canonical surface. The `sorted_map_*`
+and `bitset_*` free functions remain callable as `deprecated` entries
+through the ADR-087 window; the `btree_*`, `btree_set_*`, `index_map_*`,
+and `index_set_*` free functions were retired with E0100 replacement hints.
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
+
+### `std::collections::ordered` — Public Types
+
+| Name | Kind | Methods | Trait impls | Summary |
+|------|------|---------|-------------|---------|
+| `SortedMap` | `struct` | `new`, `len`, `find_idx`, `get`, `contains`, `insert` | - | Map from i32 keys to i32 values, read back in ascending key order. |
+| `BTreeMap` | `struct` | `new`, `insert`, `get`, `remove`, `contains_key`, `len`, `keys`, `range` | - | Map from i32 keys to i32 values with key-sorted iteration. |
+| `BTreeSet` | `struct` | `new`, `insert`, `contains`, `len` | - | Set of unique i32 values, read back in ascending order. |
+| `IndexMap` | `struct` | `new`, `insert`, `get`, `len`, `keys` | - | Map from i32 keys to i32 values that keeps insertion order. |
+| `IndexSet` | `struct` | `new`, `insert`, `contains`, `len` | - | Set of unique i32 values that keeps insertion order. |
+| `BitSet` | `struct` | `new`, `with_capacity`, `mark`, `unmark`, `set`, `clear`, `test`, `count`, `union`, `intersection` | - | Fixed-capacity bit array backed by 32-bit words. |
 
 ### `std::collections::ordered` — Public API
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `sorted_map_new` | `() -> Vec<i32>` | `stable` | ✅ functional | - |
-| `sorted_map_len` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
-| `sorted_map_find_idx` | `(Vec<i32>, i32) -> i32` | `stable` | ✅ functional | - |
-| `sorted_map_get` | `(Vec<i32>, i32) -> i32` | `stable` | ✅ functional | - |
-| `sorted_map_contains` | `(Vec<i32>, i32) -> bool` | `stable` | ✅ functional | - |
-| `sorted_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `stable` | ✅ functional | - |
-
-### `std::collections::ordered` — BTreeMap API (sorted-vector backed, i32 key, i32 value)
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `btree_new` | `() -> Vec<i32>` | `experimental` | ✅ functional | - |
-| `btree_insert` | `(Vec<i32>, i32, i32) -> ()` | `experimental` | ✅ functional | - |
-| `btree_get` | `(Vec<i32>, i32) -> i32` | `experimental` | ✅ functional | - |
-| `btree_remove` | `(Vec<i32>, i32) -> ()` | `experimental` | ✅ functional | - |
-| `btree_contains_key` | `(Vec<i32>, i32) -> bool` | `experimental` | ✅ functional | - |
-| `btree_len` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
-| `btree_keys` | `(Vec<i32>) -> Vec<i32>` | `experimental` | ✅ functional | - |
-| `btree_range` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `experimental` | ✅ functional | - |
-
-#### `std::collections::ordered::btree_new`
-
-Create a new BTreeMap<i32,i32> (sorted-vector backed).
-
-#### `std::collections::ordered::btree_insert`
-
-Insert a key-value pair into a BTreeMap<i32,i32>.
-
-#### `std::collections::ordered::btree_get`
-
-Get a value from a BTreeMap<i32,i32>. Returns 0 if not found.
-
-#### `std::collections::ordered::btree_remove`
-
-Remove a key from a BTreeMap<i32,i32>.
-
-#### `std::collections::ordered::btree_contains_key`
-
-Check if a BTreeMap<i32,i32> contains a key.
-
-#### `std::collections::ordered::btree_len`
-
-Return the number of entries in a BTreeMap<i32,i32>.
-
-#### `std::collections::ordered::btree_keys`
-
-Return all keys of a BTreeMap<i32,i32> in sorted order.
-
-#### `std::collections::ordered::btree_range`
-
-Return keys in [start, end) range from a BTreeMap<i32,i32>.
-
-### `std::collections::ordered` — BTreeSet API (sorted unique values, i32)
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `btree_set_new` | `() -> Vec<i32>` | `experimental` | ✅ functional | - |
-| `btree_set_insert` | `(Vec<i32>, i32) -> bool` | `experimental` | ✅ functional | - |
-| `btree_set_contains` | `(Vec<i32>, i32) -> bool` | `experimental` | ✅ functional | - |
-| `btree_set_len` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
-
-#### `std::collections::ordered::btree_set_new`
-
-Create a new BTreeSet<i32> (sorted unique values).
-
-#### `std::collections::ordered::btree_set_insert`
-
-Insert into a BTreeSet<i32>. Returns true if the value was newly inserted.
-
-#### `std::collections::ordered::btree_set_contains`
-
-Check if a BTreeSet<i32> contains a value.
-
-#### `std::collections::ordered::btree_set_len`
-
-Return the number of elements in a BTreeSet<i32>.
-
-### `std::collections::ordered` — IndexMap API (insertion-order map, i32 key, i32 value)
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `index_map_new` | `() -> Vec<i32>` | `experimental` | ✅ functional | - |
-| `index_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `experimental` | ✅ functional | - |
-| `index_map_get` | `(Vec<i32>, i32) -> i32` | `experimental` | ✅ functional | - |
-| `index_map_len` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
-| `index_map_keys` | `(Vec<i32>) -> Vec<i32>` | `experimental` | ✅ functional | - |
-
-#### `std::collections::ordered::index_map_new`
-
-Create a new IndexMap<i32,i32> (insertion-order map).
-
-#### `std::collections::ordered::index_map_insert`
-
-Insert a key-value pair into an IndexMap<i32,i32>.
-
-#### `std::collections::ordered::index_map_get`
-
-Get a value from an IndexMap<i32,i32>. Returns 0 if not found.
-
-#### `std::collections::ordered::index_map_len`
-
-Return the number of entries in an IndexMap<i32,i32>.
-
-#### `std::collections::ordered::index_map_keys`
-
-Return all keys of an IndexMap<i32,i32> in insertion order.
-
-### `std::collections::ordered` — IndexSet API (insertion-order unique values, i32)
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `index_set_new` | `() -> Vec<i32>` | `experimental` | ✅ functional | - |
-| `index_set_contains` | `(Vec<i32>, i32) -> bool` | `experimental` | ✅ functional | - |
-| `index_set_insert` | `(Vec<i32>, i32) -> bool` | `experimental` | ✅ functional | - |
-| `index_set_len` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
-
-#### `std::collections::ordered::index_set_new`
-
-Create a new IndexSet<i32> (insertion-order unique values).
-
-#### `std::collections::ordered::index_set_contains`
-
-Check if an IndexSet<i32> contains a value.
-
-#### `std::collections::ordered::index_set_insert`
-
-Insert into an IndexSet<i32>. Returns true if the value was newly inserted.
-
-#### `std::collections::ordered::index_set_len`
-
-Return the number of elements in an IndexSet<i32>.
-
-### `std::collections::ordered` — BitSet
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `bitset_new` | `() -> Vec<i32>` | `stable` | ✅ functional | - |
-| `bitset_mark` | `(Vec<i32>, i32) -> ()` | `stable` | ✅ functional | - |
-| `bitset_unmark` | `(Vec<i32>, i32) -> ()` | `stable` | ✅ functional | - |
-| `bitset_test` | `(Vec<i32>, i32) -> bool` | `stable` | ✅ functional | - |
-| `bitset_set` | `(Vec<i32>, i32) -> ()` | `experimental` | ✅ functional | - |
-| `bitset_clear` | `(Vec<i32>, i32) -> ()` | `experimental` | ✅ functional | - |
-| `bitset_with_capacity` | `(i32) -> Vec<i32>` | `experimental` | ✅ functional | - |
-| `bitset_count` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
-| `bitset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `experimental` | ✅ functional | - |
-| `bitset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `experimental` | ✅ functional | - |
-
-#### `std::collections::ordered::bitset_set`
-
-Set a bit in a BitSet (alias for bitset_mark).
-
-#### `std::collections::ordered::bitset_clear`
-
-Clear a bit in a BitSet (alias for bitset_unmark).
-
-#### `std::collections::ordered::bitset_with_capacity`
-
-Create a new BitSet with the given capacity in bits.
-
-#### `std::collections::ordered::bitset_count`
-
-Return the number of set bits in a BitSet.
-
-#### `std::collections::ordered::bitset_union`
-
-Return the union of two BitSets.
-
-#### `std::collections::ordered::bitset_intersection`
-
-Return the intersection of two BitSets.
+| ~~`sorted_map_new`~~ ⚠️ Deprecated → `SortedMap::new` | `() -> Vec<i32>` | `deprecated` | ✅ functional | - |
+| ~~`sorted_map_len`~~ ⚠️ Deprecated → `SortedMap::len` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
+| ~~`sorted_map_find_idx`~~ ⚠️ Deprecated → `SortedMap::find_idx` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | - |
+| ~~`sorted_map_get`~~ ⚠️ Deprecated → `SortedMap::get` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | - |
+| ~~`sorted_map_contains`~~ ⚠️ Deprecated → `SortedMap::contains` | `(Vec<i32>, i32) -> bool` | `deprecated` | ✅ functional | - |
+| ~~`sorted_map_insert`~~ ⚠️ Deprecated → `SortedMap::insert` | `(Vec<i32>, i32, i32) -> ()` | `deprecated` | ✅ functional | - |
+| ~~`bitset_new`~~ ⚠️ Deprecated → `BitSet::new` | `() -> Vec<i32>` | `deprecated` | ✅ functional | - |
+| ~~`bitset_mark`~~ ⚠️ Deprecated → `BitSet::mark` | `(Vec<i32>, i32) -> ()` | `deprecated` | ✅ functional | - |
+| ~~`bitset_unmark`~~ ⚠️ Deprecated → `BitSet::unmark` | `(Vec<i32>, i32) -> ()` | `deprecated` | ✅ functional | - |
+| ~~`bitset_test`~~ ⚠️ Deprecated → `BitSet::test` | `(Vec<i32>, i32) -> bool` | `deprecated` | ✅ functional | - |
+
+> ⚠️ **10 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
 
 ## Module `std::collections::bimap`
 

@@ -213,8 +213,9 @@ let text: String = String::from_utf8_lossy(back) // "hello"
                 ("`LinkedList::new` / `.push_back` / `.iter_mut`", "Node-pool doubly-linked list with cursors."),
                 ("`deque_push_back` / `deque_pop_front`", "Legacy monomorphic i32 deque (migration window)."),
                 ("`pq_push` / `pq_pop`", "Min-heap priority queue — smallest element first."),
-                ("`sorted_map_insert` / `sorted_map_get`", "Sorted-vector map for ordered iteration."),
-                ("`bitset_mark` / `bitset_test`", "Compact bit-flag set backed by a `Vec<i32>`."),
+                ("`SortedMap::new` / `.insert` / `.get`", "Sorted-vector map for ordered iteration."),
+                ("`BTreeMap::new` / `.keys` / `.range`", "Sorted-vector map with key and range queries."),
+                ("`BitSet::new` / `.mark` / `.test`", "Compact bit-flag set backed by a `Vec<i32>`."),
             ],
             "typical_usage": """\
 ```ark

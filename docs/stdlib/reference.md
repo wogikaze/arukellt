@@ -8,10 +8,10 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 164 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 154 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 10 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 31 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 65 | Superseded — see migration guidance. |
+| `experimental` | 4 | API may change without notice. Functionality is available but not finalized. |
+| [deprecated](#deprecated-apis) | 75 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -20,7 +20,10 @@
 | Name | Generic Params | Prelude | Stability | Summary |
 |------|----------------|---------|-----------|---------|
 | `Arena` | - | no | experimental | Bump allocator that hands out stable i32 arena ids; the backing entry vector is private. |
+| `BTreeMap` | - | no | provisional | Sorted-vector i32 map with the historical BTreeMap name. Adds remove, keys, and range to the SortedMap read surface. |
+| `BTreeSet` | - | no | provisional | Sorted set of unique i32 values. insert returns true only when the value was newly added. |
 | `Bimap` | - | no | provisional | Bidirectional map over i32 keys and i32 values backed by a flat pair vector. Lookup, insertion, and removal scan the pairs (O(n)); empty lookups return None and failed removals return false. |
+| `BitSet` | - | no | provisional | Fixed-capacity bit array backed by 32-bit words. new reserves 256 bits and with_capacity takes an explicit bit count. |
 | `Box` | T | yes | provisional | Heap-allocated owned value. |
 | `BufReader` | R | no | experimental | Buffered byte source over a Read handle; implements Read and BufRead, and Seek when the inner handle is Seek. |
 | `BufWriter` | W | no | experimental | Buffered byte sink over a Write handle; flushes at capacity and on flush/into_inner. |
@@ -43,6 +46,8 @@
 | `I32x4` | - | no | experimental | 4 × 32-bit signed integer lane associated operations over v128. |
 | `I64x2` | - | no | experimental | 2 × 64-bit signed integer lane associated operations over v128. |
 | `I8x16` | - | no | experimental | 16 × 8-bit signed integer lane associated operations over v128. |
+| `IndexMap` | - | no | provisional | Insertion-order i32 key/value map. Lookup and insertion scan the flat pair vector linearly. |
+| `IndexSet` | - | no | provisional | Insertion-order set of unique i32 values. insert returns true only when the value was newly added. |
 | `Interner` | - | no | experimental | Value-to-symbol bidirectional map for String values; interning deduplicates and returns a stable i32 symbol. |
 | `Io` | - | no | experimental | Namespace type for receiver-less generic algorithms over the I/O traits: copy, read_exact, read_to_end, read_to_string, and write_all. |
 | `Leb128` | - | no | experimental | Unsigned LEB128 encoding utilities. |
@@ -59,6 +64,7 @@
 | `Section` | - | no | experimental | Section IDs for the standard Wasm sections. |
 | `Slice` | T | yes | provisional | Read-only contiguous view. |
 | `SlotMap` | - | no | experimental | Deletion-safe handle map for i32 values; keys stay stable across removes and removed slots report None. |
+| `SortedMap` | - | no | provisional | Map from i32 keys to i32 values read back in ascending key order. get returns 0 for a missing key and contains returns false. |
 | `Stack` | T | no | provisional | Last-in first-out stack restricted to Deque<T> push / pop at the back. |
 | `Std` | - | yes | stable | Namespace for unrecoverable process control. Use Std::panic(message) to abort. |
 | `Stderr` | - | no | experimental | Typed standard-error handle. Implements Write: write(data) emits the byte image unchanged without appending a newline, write_string(text) emits a string's UTF-8 bytes, and flush is synchronous. Byte-faithful replacement for the tagged stderr() / writer_write path (ADR-085 D9). |
@@ -119,7 +125,10 @@
 | Type | Methods | Trait impls |
 |------|---------|-------------|
 | `Arena` | `new`, `alloc`, `get`, `len` | - |
+| `BTreeMap` | `new`, `insert`, `get`, `remove`, `contains_key`, `len`, `keys`, `range` | - |
+| `BTreeSet` | `new`, `insert`, `contains`, `len` | - |
 | `Bimap` | `new`, `insert`, `get_by_key`, `get_by_value`, `contains_key`, `contains_value`, `remove_by_key`, `remove_by_value`, `len`, `is_empty` | - |
+| `BitSet` | `new`, `with_capacity`, `mark`, `unmark`, `set`, `clear`, `test`, `count`, `union`, `intersection` | - |
 | `BufRead` | `fill_buf`, `consume`, `read_line` | `Read` |
 | `BufReader` | `new` | `Read`, `BufRead`, `Seek` |
 | `BufWriter` | `new`, `write_string`, `into_inner` | `Write` |
@@ -143,6 +152,8 @@
 | `I32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `and`, `or`, `xor`, `not`, `shl`, `shr_s`, `shr_u`, `min_s`, `max_s`, `min_u`, `max_u` | - |
 | `I64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `eq`, `ne`, `lt_s`, `le_s`, `ge_s`, `add`, `sub`, `mul`, `neg`, `abs`, `gt_s`, `shl`, `shr_s`, `shr_u` | - |
 | `I8x16` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt_s`, `gt_s`, `lt_u`, `gt_u`, `min_s`, `min_u`, `max_s`, `max_u`, `shl`, `shr_s`, `shr_u`, `all_true`, `bitmask`, `narrow_i16x8_s`, `narrow_i16x8_u`, `add`, `sub`, `mul`, `neg`, `add_sat_s`, `add_sat_u`, `sub_sat_s`, `sub_sat_u`, `le_s`, `le_u`, `ge_s`, `ge_u` | - |
+| `IndexMap` | `new`, `insert`, `get`, `len`, `keys` | - |
+| `IndexSet` | `new`, `insert`, `contains`, `len` | - |
 | `Interner` | `new`, `intern`, `lookup`, `len` | - |
 | `IntoIterator` | `into_iter` | - |
 | `Io` | `copy`, `read_exact`, `read_to_end`, `read_to_string`, `write_all` | - |
@@ -167,6 +178,7 @@
 | `Section` | `type_id`, `import_id`, `function_id`, `table_id`, `memory_id`, `global_id`, `export_id`, `start_id`, `element_id`, `code_id`, `data_id` | - |
 | `Seek` | `seek`, `position` | - |
 | `SlotMap` | `new`, `insert`, `get`, `remove`, `contains`, `len` | - |
+| `SortedMap` | `new`, `len`, `find_idx`, `get`, `contains`, `insert` | - |
 | `Stack` | `new`, `with_capacity`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
 | `Std` | `panic` | - |
 | `Stderr` | `new`, `write_string` | `Write` |
@@ -227,28 +239,10 @@
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | ~~`as_slice`~~ ⚠️ Deprecated → `Vec::as_slice` | `(Vec<T>, i32, i32) -> Slice<T>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| `bitset_clear` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Clear a bit in a BitSet (alias for bitset_unmark). |
-| `bitset_count` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return the number of set bits in a BitSet. |
-| `bitset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return the intersection of two BitSets. |
-| `bitset_mark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
-| `bitset_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
-| `bitset_set` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Set a bit in a BitSet (alias for bitset_mark). |
-| `bitset_test` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
-| `bitset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return the union of two BitSets. |
-| `bitset_unmark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
-| `bitset_with_capacity` | `(i32) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Create a new BitSet with the given capacity in bits. |
-| `btree_contains_key` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Check if a BTreeMap<i32,i32> contains a key. |
-| `btree_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Get a value from a BTreeMap<i32,i32>. Returns 0 if not found. |
-| `btree_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Insert a key-value pair into a BTreeMap<i32,i32>. |
-| `btree_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return all keys of a BTreeMap<i32,i32> in sorted order. |
-| `btree_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return the number of entries in a BTreeMap<i32,i32>. |
-| `btree_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Create a new BTreeMap<i32,i32> (sorted-vector backed). |
-| `btree_range` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return keys in [start, end) range from a BTreeMap<i32,i32>. |
-| `btree_remove` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Remove a key from a BTreeMap<i32,i32>. |
-| `btree_set_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Check if a BTreeSet<i32> contains a value. |
-| `btree_set_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Insert into a BTreeSet<i32>. Returns true if the value was newly inserted. |
-| `btree_set_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return the number of elements in a BTreeSet<i32>. |
-| `btree_set_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Create a new BTreeSet<i32> (sorted unique values). |
+| ~~`bitset_mark`~~ ⚠️ Deprecated → `BitSet::mark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`bitset_new`~~ ⚠️ Deprecated → `BitSet::new` | `() -> Vec<i32>` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`bitset_test`~~ ⚠️ Deprecated → `BitSet::test` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`bitset_unmark`~~ ⚠️ Deprecated → `BitSet::unmark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
 | ~~`deque_back`~~ ⚠️ Deprecated → `Deque::back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Peek at the back element without removing it. Returns 0 when empty. |
 | ~~`deque_clear`~~ ⚠️ Deprecated → `Deque::clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Reset the deque to empty (preserves allocated capacity). |
 | ~~`deque_front`~~ ⚠️ Deprecated → `Deque::front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Peek at the front element without removing it. Returns 0 when empty. |
@@ -305,15 +299,6 @@
 | `hashset_str_remove` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
 | `hashset_to_vec` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
 | `hashset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `index_map_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Get a value from an IndexMap<i32,i32>. Returns 0 if not found. |
-| `index_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Insert a key-value pair into an IndexMap<i32,i32>. |
-| `index_map_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return all keys of an IndexMap<i32,i32> in insertion order. |
-| `index_map_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return the number of entries in an IndexMap<i32,i32>. |
-| `index_map_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Create a new IndexMap<i32,i32> (insertion-order map). |
-| `index_set_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Check if an IndexSet<i32> contains a value. |
-| `index_set_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Insert into an IndexSet<i32>. Returns true if the value was newly inserted. |
-| `index_set_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return the number of elements in an IndexSet<i32>. |
-| `index_set_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Create a new IndexSet<i32> (insertion-order unique values). |
 | ~~`len`~~ ⚠️ Deprecated → `Vec::len` | `(Vec<T>) -> i32` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | Return the number of elements in a Vec. |
 | ~~`linked_list_back`~~ ⚠️ Deprecated → `LinkedList::back` | `(Vec<i32>, i32) -> i32` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Peek the back value of the legacy i32 list, or the caller's fallback when empty. |
 | ~~`linked_list_clear`~~ ⚠️ Deprecated → `LinkedList::clear` | `(Vec<i32>) -> ()` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Remove all elements from the legacy i32 list, keeping node capacity. |
@@ -338,12 +323,12 @@
 | ~~`set`~~ ⚠️ Deprecated → `Vec::set` | `(Vec<T>, i32, T) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | ~~`slice_get`~~ ⚠️ Deprecated → `Slice::get` | `(Slice<T>, i32) -> T` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | ~~`slice_len`~~ ⚠️ Deprecated → `Slice::len` | `(Slice<T>) -> i32` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| `sorted_map_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
-| `sorted_map_find_idx` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
-| `sorted_map_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
-| `sorted_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
-| `sorted_map_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
-| `sorted_map_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
+| ~~`sorted_map_contains`~~ ⚠️ Deprecated → `SortedMap::contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`sorted_map_find_idx`~~ ⚠️ Deprecated → `SortedMap::find_idx` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`sorted_map_get`~~ ⚠️ Deprecated → `SortedMap::get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`sorted_map_insert`~~ ⚠️ Deprecated → `SortedMap::insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`sorted_map_len`~~ ⚠️ Deprecated → `SortedMap::len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`sorted_map_new`~~ ⚠️ Deprecated → `SortedMap::new` | `() -> Vec<i32>` | `std::collections::ordered` | `deprecated` | `functional` | `builtin` | no | - | - |
 | `values` | `(Vec<i32>) -> Vec<i32>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_values` | - |
 
 ### `len` — `prelude`
@@ -650,7 +635,7 @@ let input = stdio::read_stdin()
 
 ## Deprecated APIs
 
-> ⚠️ **65 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **75 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -660,6 +645,10 @@ let input = stdio::read_stdin()
 | ~~`assert_eq_str`~~ | `std::test::assert_eq_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `std::test::assert_ne_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `std::seq::binary_search_by` | [migration-guidance.md](migration-guidance.md) |
+| ~~`bitset_mark`~~ | `BitSet::mark` | [migration-guidance.md](migration-guidance.md) |
+| ~~`bitset_new`~~ | `BitSet::new` | [migration-guidance.md](migration-guidance.md) |
+| ~~`bitset_test`~~ | `BitSet::test` | [migration-guidance.md](migration-guidance.md) |
+| ~~`bitset_unmark`~~ | `BitSet::unmark` | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `VecIter::count_eq` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | [migration-guidance.md](migration-guidance.md) |
@@ -712,6 +701,12 @@ let input = stdio::read_stdin()
 | ~~`skip_i32`~~ | `VecIter::skip` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_get`~~ | `Slice::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_len`~~ | `Slice::len` | [migration-guidance.md](migration-guidance.md) |
+| ~~`sorted_map_contains`~~ | `SortedMap::contains` | [migration-guidance.md](migration-guidance.md) |
+| ~~`sorted_map_find_idx`~~ | `SortedMap::find_idx` | [migration-guidance.md](migration-guidance.md) |
+| ~~`sorted_map_get`~~ | `SortedMap::get` | [migration-guidance.md](migration-guidance.md) |
+| ~~`sorted_map_insert`~~ | `SortedMap::insert` | [migration-guidance.md](migration-guidance.md) |
+| ~~`sorted_map_len`~~ | `SortedMap::len` | [migration-guidance.md](migration-guidance.md) |
+| ~~`sorted_map_new`~~ | `SortedMap::new` | [migration-guidance.md](migration-guidance.md) |
 | ~~`sum_i32`~~ | `VecIter::sum` | [migration-guidance.md](migration-guidance.md) |
 | ~~`take_i32`~~ | `VecIter::take` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u16_to_i32`~~ | `u16::to_i32` | [migration-guidance.md](migration-guidance.md) |

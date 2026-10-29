@@ -1330,3 +1330,72 @@ classified there, in dependency-safe waves.
   `btree_set_find_idx`, `new_i32`, and `io_error_message`. Generic storage
   for `Bimap<K, V>` / `Trie<V>`, a `Trie::len`, and a public iterator surface
   for either collection remain out of scope.
+
+### Landed slice (wave/ordered-group, 2026-10-29)
+
+- **Group**: `std::collections::ordered` — the **37** manifest free functions
+  and the unregistered `btree_set_find_idx`. Split by lifecycle:
+  - **Retired (27 manifest + 1 declaration)**: the 27 `experimental`
+    `btree_*` / `btree_set_*` / `index_map_*` / `index_set_*` and extended
+    `bitset_set` / `clear` / `with_capacity` / `count` / `union` /
+    `intersection` entries were deleted under ADR-014 D4 (no deprecation
+    window, no W0009). `btree_set_find_idx` was an unregistered top-level
+    declaration with no manifest entry and is deleted directly.
+  - **Deprecated (10)**: the stable `sorted_map_*` and
+    `bitset_new|mark|unmark|test` entries now carry
+    `stability = "deprecated"`, `deprecated_by = "<Type>::<method>"`,
+    `deprecated_since = "0.1.0"`, and `remove_in = "1.0.0"`. They stay
+    callable and warn with **W0009** on `ordered::<name>` until a later
+    Wave 2 deletion; no stable entry was deleted in this slice.
+- **Replacement surface**: `SortedMap` (`new` / `len` / `find_idx` / `get` /
+  `contains` / `insert`), `BTreeMap` (`new` / `insert` / `get` / `remove` /
+  `contains_key` / `len` / `keys` / `range`), `BTreeSet` (`new` / `insert` /
+  `contains` / `len`), `IndexMap` (`new` / `insert` / `get` / `len` /
+  `keys`), `IndexSet` (`new` / `insert` / `contains` / `len`), and `BitSet`
+  (`new` / `with_capacity` / `mark` / `unmark` / `set` / `clear` / `test` /
+  `count` / `union` / `intersection`) in `std/collections/ordered.ark`.
+  All six types keep the flat `Vec<i32>` store in a private field; the
+  manifest registers the module and six provisional structs.
+- **E0100 / W0009**: `resolver::removed_names::removed_ordered_member_hint`
+  covers the 28 deleted names for the `ordered` / `collections::ordered` /
+  `std::collections::ordered` spellings;
+  `lint::deprecated_table::deprecated_ordered_qualified_message` covers the
+  10 legacy names. Six new diag goldens
+  (`diagnostics/{removed_ordered_{map,set}_free,deprecated_ordered_stable_free}*`)
+  assert both paths on both targets.
+- **Behaviour correction**: the sorted pair vector's middle insert/remove
+  shift used a key-only offset, so a key could move without its value and a
+  stale pair remained. The shared helpers now move whole `(key, value)`
+  pairs. `btree_basic` / `btree_keys` / `ordered_basic` expected output and
+  the new `middle_insert_preserves_values` /
+  `remove_preserves_remaining_values` module tests pin the corrected
+  behaviour. Deprecated sorted_map_* frees share the fix.
+- **Fixtures**: migrated 7 existing run fixtures
+  (`stdlib_collections_ordered/*` six + `stdlib_ordered/ordered_basic`) to
+  the method surface and added `stdlib_collections_ordered/
+  {ordered_map_methods,ordered_set_methods}` plus their `_wasm32` partners.
+  Registry 3473 -> **3483**.
+- **Scorecard**: eradication scope 274 -> **246**;
+  `associated-or-method` 208 -> **180** (manifest 204 -> 177, unregistered
+  4 -> 3); `pub fn` declarations 301 -> **273**; manifest public entries
+  270 -> **243**. `must delete` 66, `prelude_wrapper` 64, and
+  `intrinsic-only` 1 are unchanged.
+- **Verification**: `verify fixtures` **1899/1899 PASS**, 0 FAIL (110
+  runtime smoke, 2 runtime-unsupported, 36 `test:` fixtures PASS);
+  `selfhost diag-parity` **220/220** pass including the six new goldens;
+  cross-backend parity **11/11** for the ordered run fixtures (wasm32-gc
+  component vs `--target wasm32`, both `wasm-tools validate` clean);
+  `docs check` 6/6; `verify lane` PASS; `check-stdlib-eradication` 244/244
+  manifest functions and 3/3 unregistered declarations classified;
+  `check-compat-orphans`, `check-comment-policy`, `check-ark-code-quality`,
+  and `check-semantic-debt` clean. `selfhost build-compiler` 53.6s (gc pin);
+  ADR-029 fixpoint PASS at s2 == s3 sha256
+  `be07c1656e786b66b7aa538f7ba77e53bacf6260eced32ffc36b235d08cfccdb`
+  (pinned base `62aecf93…`).
+- **Residuals**: the remaining **180** `associated-or-method` symbols move
+  to the next groups (prelude, hash, test, signal, seq, linear, cli, io,
+  host, and the unregistered `new_i32` / `io_error_message` /
+  `hashmap_entry_pairs` rows). The 10 stable ordered frees wait for a later
+  ADR-087 Wave 2 deletion; `btree_set_find_idx` has no public method (use
+  `contains` / `insert`); generic `BTreeMap<K, V>` / `BTreeSet<T>` storage
+  remains out of scope.

@@ -83,6 +83,10 @@ fn removed_name_specific_hint(name: String) -> String {
     if len(clone(trie_hint)) > 0 {
         return trie_hint
     }
+    let ordered_hint = removed_ordered_member_hint(clone(name))
+    if len(clone(ordered_hint)) > 0 {
+        return ordered_hint
+    }
     if clone(name).starts_with(String_from("HashMap_")) {
         return hashmap_method_replacement_hint()
     }
@@ -386,6 +390,97 @@ fn removed_trie_member_hint(name: String) -> String {
     String_new()
 }
 
+/// Replacement hints for the `std::collections::ordered` free functions
+/// retired by #917 (ordered type surface). `btree_set_find_idx` has no
+/// public method: callers use `contains` / `insert` instead.
+fn removed_ordered_member_hint(name: String) -> String {
+    if eq(clone(name), "btree_new") {
+        return "use `BTreeMap::new()` from `use std::collections::ordered::BTreeMap` instead"
+    }
+    if eq(clone(name), "btree_insert") {
+        return "use `m.insert(key, value)` on `BTreeMap` instead"
+    }
+    if eq(clone(name), "btree_get") {
+        return "use `m.get(key)` on `BTreeMap` instead"
+    }
+    if eq(clone(name), "btree_remove") {
+        return "use `m.remove(key)` on `BTreeMap` instead"
+    }
+    if eq(clone(name), "btree_contains_key") {
+        return "use `m.contains_key(key)` on `BTreeMap` instead"
+    }
+    if eq(clone(name), "btree_len") {
+        return "use `m.len()` on `BTreeMap` instead"
+    }
+    if eq(clone(name), "btree_keys") {
+        return "use `m.keys()` on `BTreeMap` instead"
+    }
+    if eq(clone(name), "btree_range") {
+        return "use `m.range(start, end)` on `BTreeMap` instead"
+    }
+    if eq(clone(name), "btree_set_new") {
+        return "use `BTreeSet::new()` from `use std::collections::ordered::BTreeSet` instead"
+    }
+    if eq(clone(name), "btree_set_insert") {
+        return "use `s.insert(value)` on `BTreeSet` instead"
+    }
+    if eq(clone(name), "btree_set_contains") {
+        return "use `s.contains(value)` on `BTreeSet` instead"
+    }
+    if eq(clone(name), "btree_set_len") {
+        return "use `s.len()` on `BTreeSet` instead"
+    }
+    if eq(clone(name), "btree_set_find_idx") {
+        return "use `s.contains(value)` / `s.insert(value)` on `BTreeSet` instead"
+    }
+    if eq(clone(name), "index_map_new") {
+        return "use `IndexMap::new()` from `use std::collections::ordered::IndexMap` instead"
+    }
+    if eq(clone(name), "index_map_insert") {
+        return "use `m.insert(key, value)` on `IndexMap` instead"
+    }
+    if eq(clone(name), "index_map_get") {
+        return "use `m.get(key)` on `IndexMap` instead"
+    }
+    if eq(clone(name), "index_map_len") {
+        return "use `m.len()` on `IndexMap` instead"
+    }
+    if eq(clone(name), "index_map_keys") {
+        return "use `m.keys()` on `IndexMap` instead"
+    }
+    if eq(clone(name), "index_set_new") {
+        return "use `IndexSet::new()` from `use std::collections::ordered::IndexSet` instead"
+    }
+    if eq(clone(name), "index_set_insert") {
+        return "use `s.insert(value)` on `IndexSet` instead"
+    }
+    if eq(clone(name), "index_set_contains") {
+        return "use `s.contains(value)` on `IndexSet` instead"
+    }
+    if eq(clone(name), "index_set_len") {
+        return "use `s.len()` on `IndexSet` instead"
+    }
+    if eq(clone(name), "bitset_set") {
+        return "use `bits.set(bit)` on `BitSet` instead"
+    }
+    if eq(clone(name), "bitset_clear") {
+        return "use `bits.clear(bit)` on `BitSet` instead"
+    }
+    if eq(clone(name), "bitset_with_capacity") {
+        return "use `BitSet::with_capacity(bits)` instead"
+    }
+    if eq(clone(name), "bitset_count") {
+        return "use `bits.count()` on `BitSet` instead"
+    }
+    if eq(clone(name), "bitset_union") {
+        return "use `a.union(b)` on `BitSet` instead"
+    }
+    if eq(clone(name), "bitset_intersection") {
+        return "use `a.intersection(b)` on `BitSet` instead"
+    }
+    String_new()
+}
+
 fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "fs") || eq(clone(module), "host::fs") || eq(clone(module), "std::fs") || eq(clone(module), "std::host::fs") {
         return removed_host_fs_member_hint(name)
@@ -398,6 +493,9 @@ fn removed_module_member_hint(module: String, name: String) -> String {
     }
     if eq(clone(module), "trie") || eq(clone(module), "collections::trie") || eq(clone(module), "std::collections::trie") {
         return removed_trie_member_hint(name)
+    }
+    if eq(clone(module), "ordered") || eq(clone(module), "collections::ordered") || eq(clone(module), "std::collections::ordered") {
+        return removed_ordered_member_hint(name)
     }
     if eq(clone(module), "clock") || eq(clone(module), "host::clock") || eq(clone(module), "std::host::clock") {
         return removed_host_clock_member_hint(name)
@@ -1251,6 +1349,22 @@ test mod "removed_names" {
         assert(len(removed_name_hint("trie_contains")) > 0)
         assert(len(removed_module_member_hint("bimap", "unrelated")) == 0)
         assert(len(removed_module_member_hint("trie", "unrelated")) == 0)
+    }
+    test "removed ordered frees" {
+        assert(len(removed_module_member_hint("ordered", "btree_new")) > 0)
+        assert(len(removed_module_member_hint("collections::ordered", "btree_range")) > 0)
+        assert(len(removed_module_member_hint("std::collections::ordered", "index_map_insert")) > 0)
+        assert(len(removed_name_hint("btree_set_insert")) > 0)
+        assert(len(removed_name_hint("btree_set_find_idx")) > 0)
+        assert(len(removed_name_hint("index_set_contains")) > 0)
+        assert(len(removed_name_hint("bitset_union")) > 0)
+        assert(len(removed_name_hint("bitset_intersection")) > 0)
+        // The 10 stable frees stay callable through the ADR-087 window; they
+        // must keep the W0009 path, not an E0100 removal hint.
+        assert(len(removed_name_hint("sorted_map_new")) == 0)
+        assert(len(removed_name_hint("bitset_new")) == 0)
+        assert(len(removed_module_member_hint("ordered", "sorted_map_get")) == 0)
+        assert(len(removed_module_member_hint("ordered", "unrelated")) == 0)
     }
     test "result option helpers" {
         assert(len(removed_name_hint("ok")) > 0)

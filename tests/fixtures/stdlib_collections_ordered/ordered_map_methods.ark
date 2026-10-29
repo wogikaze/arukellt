@@ -1,0 +1,48 @@
+// Ordered map type surface (#917, ADR-046).
+use std::collections::ordered::{BTreeMap, IndexMap, SortedMap}
+use std::test
+
+fn main() {
+    let mut sorted = SortedMap::new()
+    sorted.insert(3, 30)
+    sorted.insert(1, 10)
+    sorted.insert(2, 20)
+    test::assert_eq_i32(sorted.len(), 3)
+    test::assert_eq_i32(sorted.get(2), 20)
+    test::assert_false(sorted.contains(9))
+    test::assert_eq_i32(sorted.find_idx(2), 1)
+    test::assert_eq_i32(sorted.find_idx(9), 3)
+
+    let mut tree = BTreeMap::new()
+    tree.insert(30, 300)
+    tree.insert(10, 100)
+    tree.insert(50, 500)
+    tree.insert(20, 200)
+    tree.insert(40, 400)
+    test::assert_eq_i32(tree.len(), 5)
+    test::assert_eq_i32(tree.get(40), 400)
+    test::assert_true(tree.contains_key(50))
+    let keys = tree.keys()
+    test::assert_eq_i32(keys.len(), 5)
+    test::assert_eq_i32(keys.get_unchecked(0), 10)
+    test::assert_eq_i32(keys.get_unchecked(4), 50)
+    let range = tree.range(20, 45)
+    test::assert_eq_i32(range.len(), 3)
+    test::assert_eq_i32(range.get_unchecked(0), 20)
+    test::assert_eq_i32(range.get_unchecked(1), 30)
+    test::assert_eq_i32(range.get_unchecked(2), 40)
+    tree.remove(30)
+    test::assert_false(tree.contains_key(30))
+    test::assert_eq_i32(tree.len(), 4)
+
+    let mut index = IndexMap::new()
+    index.insert(9, 90)
+    index.insert(1, 10)
+    index.insert(9, 99)
+    test::assert_eq_i32(index.len(), 2)
+    test::assert_eq_i32(index.get(9), 99)
+    test::assert_eq_i32(index.get(1), 10)
+    let index_keys = index.keys()
+    test::assert_eq_i32(index_keys.get_unchecked(0), 9)
+    test::assert_eq_i32(index_keys.get_unchecked(1), 1)
+}
