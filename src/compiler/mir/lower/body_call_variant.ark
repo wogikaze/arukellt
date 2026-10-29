@@ -1,4 +1,4 @@
-use std::prelude::{args, byte_at, clone, ends_with, eq, is_err, starts_with, substring}
+use std::prelude::{byte_at, clone, ends_with, eq, is_err, starts_with, substring}
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
@@ -13,6 +13,7 @@ use mir::lower::ctx_fn_index
 use mir::lower::struct_lit
 use mir::lower::value_variants
 use mir::lower_kinds
+
 fn lower_payload_variant_call(mut ctx: LowerCtx, node: AstNode, child_count: i32, var_tag: i32) -> i32 {
     let mut payload_locals = Vec::new<i32>()
     let mut payload_vts = Vec::new<i32>()

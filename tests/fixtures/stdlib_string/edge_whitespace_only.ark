@@ -1,8 +1,8 @@
-use std::test::Test
-use std::prelude::{is_empty, trim}
+use std::test
+
 fn main() {
     let s = String_from("   ")
-    Test::assert_eq_i32(len(s), 3)
-    Test::assert_false(is_empty(s))
-    Test::assert_eq_string(trim(s), "")
+    test::assert_eq_i32(len(s), 3)
+    test::assert_false(s.is_empty())
+    test::assert_eq_string(s.trim(), "")
 }

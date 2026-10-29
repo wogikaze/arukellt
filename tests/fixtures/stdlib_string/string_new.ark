@@ -1,7 +1,7 @@
-use std::test::Test
-use std::prelude::{is_empty}
+use std::test
+
 fn main() {
     let s: String = String_new()
-    Test::assert_eq_i32(len(s), 0)
-    Test::assert_true(is_empty(s))
+    test::assert_eq_i32(len(s), 0)
+    test::assert_true(s.is_empty())
 }

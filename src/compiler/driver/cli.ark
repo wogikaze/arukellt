@@ -2,12 +2,13 @@ use std::host::env::Env
 use std::host::fs::Fs
 use std::host::process
 use std::host::stdio
-use std::prelude::{args, clone, eq}
+use std::prelude::{clone, eq}
 use std::text
 use driver::config_record
 use driver::file
 use driver::cli_args
 use driver::result_record
+
 fn write_legacy_compile_result(output_path: String, result: CompileResult) {
     if result_record::compile_result_success(result) {
         let write: Result<(), String> = Fs::write_bytes(clone(output_path), result_record::compile_result_output_bytes(result))

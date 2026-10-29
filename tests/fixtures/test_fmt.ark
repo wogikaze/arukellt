@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::prelude::{format_i32}
+
 fn main() {
-    stdio::println(format_i32(42))
+    stdio::println((42).to_string())
 }

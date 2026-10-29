@@ -1,8 +1,8 @@
 use std::host::stdio
-use std::prelude::{sqrt}
+
 fn main() {
-    let x: f64 = sqrt(9.0)
-    stdio::println((x).to_string())
-    let y: f64 = sqrt(16.0)
-    stdio::println((y).to_string())
+    let x: f64 = (9.0).sqrt()
+    stdio::println(x.to_string())
+    let y: f64 = (16.0).sqrt()
+    stdio::println(y.to_string())
 }

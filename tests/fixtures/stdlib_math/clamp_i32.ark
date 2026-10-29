@@ -1,9 +1,9 @@
 use std::host::stdio
-use std::prelude::{clamp_i32}
+
 fn main() {
-    stdio::println((clamp_i32(5, 0, 10)).to_string())
-    stdio::println((clamp_i32(-3, 0, 10)).to_string())
-    stdio::println((clamp_i32(15, 0, 10)).to_string())
-    stdio::println((clamp_i32(0, 0, 10)).to_string())
-    stdio::println((clamp_i32(10, 0, 10)).to_string())
+    stdio::println((5).clamp(0, 10).to_string())
+    stdio::println((-3).clamp(0, 10).to_string())
+    stdio::println((15).clamp(0, 10).to_string())
+    stdio::println((0).clamp(0, 10).to_string())
+    stdio::println((10).clamp(0, 10).to_string())
 }

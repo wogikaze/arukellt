@@ -277,40 +277,21 @@ stability = "stable"
 doc_category = "string"
 
 [[functions]]
-name = "to_lower"
+name = "push_char"
 kind = "prelude_wrapper"
-intrinsic = "__intrinsic_to_lower"
-params = ["String"]
-returns = "String"
+intrinsic = "__intrinsic_push_char"
+params = ["String", "char"]
+returns = "()"
 prelude = true
 stability = "stable"
 doc_category = "string"
-
-[[functions]]
-name = "to_upper"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_to_upper"
-params = ["String"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "string"
+doc = "Append a Unicode scalar encoded as canonical UTF-8."
 
 [[functions]]
 name = "slice"
 kind = "prelude_wrapper"
 intrinsic = "__intrinsic_string_slice"
 params = ["String", "i32", "i32"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "trim"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_trim"
-params = ["String"]
 returns = "String"
 prelude = true
 stability = "stable"
@@ -345,58 +326,6 @@ returns = "String"
 prelude = true
 stability = "stable"
 doc_category = "string"
-
-[[functions]]
-name = "replace"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_replace"
-params = ["String", "String", "String"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "split"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_split"
-params = ["String", "String"]
-returns = "Vec<String>"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "join"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_join"
-params = ["Vec<String>", "String"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "push_char"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_push_char"
-params = ["String", "char"]
-returns = "()"
-prelude = true
-stability = "stable"
-doc_category = "string"
-doc = "Append a Unicode scalar encoded as canonical UTF-8."
-
-[[functions]]
-name = "is_empty"
-kind = "builtin"
-params = ["String"]
-returns = "bool"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-# ── Conversion: to string ────────────────────
 
 [[functions]]
 name = "f64_bits_lo"
@@ -618,18 +547,6 @@ stability = "stable"
 doc_category = "conversion"
 doc = "Encode a Unicode scalar as canonical UTF-8."
 
-# Polymorphic to_string — dispatched by emitter based on argument type
-[[functions]]
-name = "to_string"
-kind = "builtin"
-params = ["any"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "conversion"
-
-# ── Conversion: from string (parsing) ────────
-
 [[functions]]
 name = "parse_i32"
 kind = "prelude_wrapper"
@@ -642,7 +559,6 @@ doc_category = "conversion"
 doc = "Parse a decimal string as an i32 integer. Returns Ok(n) on success, or Err with a description on failure."
 errors = "Returns Err if the string is not a valid decimal integer or is out of i32 range."
 availability = { t1 = true, t3 = true }
-examples = [{code = "match parse_i32(\"42\") { Ok(n) => println(i32_to_string(n)), Err(e) => eprintln(e) }", description = "Parse a numeric string", output = "42"}]
 
 [[functions]]
 name = "parse_i64"
@@ -664,20 +580,17 @@ prelude = true
 stability = "stable"
 doc_category = "conversion"
 
-# ── Math ─────────────────────────────────────
-
+# Polymorphic to_string — dispatched by emitter based on argument type
 [[functions]]
-name = "clamp_i32"
-kind = "prelude_wrapper"
-params = ["i32", "i32", "i32"]
-returns = "i32"
+name = "to_string"
+kind = "builtin"
+params = ["any"]
+returns = "String"
 prelude = true
 stability = "stable"
-doc_category = "math"
+doc_category = "conversion"
 
-# ── Control ──────────────────────────────────
-
-# ── Vec operations (direct builtins) ─────────
+# ── Conversion: from string (parsing) ────────
 
 [[functions]]
 name = "push"
@@ -1027,46 +940,6 @@ stability = "provisional"
 generic_params = ["T"]
 
 [[functions]]
-name = "abs"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_abs"
-params = ["i32"]
-returns = "i32"
-prelude = true
-stability = "stable"
-doc_category = "math"
-
-[[functions]]
-name = "min"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_min"
-params = ["i32", "i32"]
-returns = "i32"
-prelude = true
-stability = "stable"
-doc_category = "math"
-
-[[functions]]
-name = "max"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_max"
-params = ["i32", "i32"]
-returns = "i32"
-prelude = true
-stability = "stable"
-doc_category = "math"
-
-[[functions]]
-name = "sqrt"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_sqrt"
-params = ["f64"]
-returns = "f64"
-prelude = true
-stability = "stable"
-doc_category = "math"
-
-[[functions]]
 name = "f32_to_string"
 kind = "prelude_wrapper"
 intrinsic = "__intrinsic_f32_to_string"
@@ -1076,104 +949,6 @@ prelude = true
 stability = "stable"
 doc_category = "convert"
 
-[[functions]]
-name = "format_bool"
-kind = "prelude_wrapper"
-params = ["bool"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "format_i32"
-kind = "builtin"
-params = ["i32"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "lines"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_lines"
-params = ["String"]
-returns = "Vec<String>"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "pad_left"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_pad_left"
-params = ["String", "i32"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "pad_right"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_pad_right"
-params = ["String", "i32"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "repeat"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_repeat"
-params = ["String", "i32"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "trim_start"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_trim_start"
-params = ["String"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "trim_end"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_trim_end"
-params = ["String"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "args"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_args"
-params = []
-returns = "Vec<String>"
-prelude = true
-stability = "stable"
-doc_category = "host_env"
-
-[[functions]]
-name = "exit"
-kind = "builtin"
-params = ["i32"]
-returns = "()"
-prelude = true
-stability = "stable"
-doc_category = "host_process"
-
-# ── std::core Types (v3) ─────────────
 [[types]]
 name = "Error"
 kind = "enum"
@@ -3435,56 +3210,6 @@ returns = "i32"
 prelude = true
 stability = "stable"
 doc_category = "string"
-
-[[functions]]
-name = "byte_len"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_byte_len"
-params = ["String"]
-returns = "i32"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "to_uppercase"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_to_upper"
-params = ["String"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "to_lowercase"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_to_lower"
-params = ["String"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
-[[functions]]
-name = "gcd"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_gcd"
-params = ["i32", "i32"]
-returns = "i32"
-prelude = true
-stability = "stable"
-doc_category = "math"
-
-[[functions]]
-name = "values"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_values"
-params = ["Vec<i32>"]
-returns = "Vec<i32>"
-prelude = true
-stability = "stable"
-doc_category = "collections"
 
 [[functions]]
 name = "i32_to_u32"

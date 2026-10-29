@@ -1,7 +1,8 @@
 use std::text
-use std::prelude::{clone, lines}
+use std::prelude::{clone}
 use fmt::program
 use fmt::whitespace
+
 fn fmt_line_count(text: String) -> i32 {
     len(whitespace::fmt_split_lines(text))
 }

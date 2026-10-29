@@ -1,6 +1,7 @@
-use std::prelude::{args, clone}
+use std::prelude::{clone}
 use driver::cli_arg_options
 use driver::cli_arg_position
+
 struct LegacyCompileArgs {
     input_path: String,
     output_path: String,

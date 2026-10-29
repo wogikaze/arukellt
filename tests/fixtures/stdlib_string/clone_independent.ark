@@ -1,5 +1,6 @@
 use std::test::Test
 use std::prelude::{clone, eq, push_char}
+
 fn main() {
     let mut s = String_from("data")
     let c = clone(s)

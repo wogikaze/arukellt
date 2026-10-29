@@ -1,8 +1,8 @@
-use std::test::Test
-use std::prelude::{is_empty}
+use std::test
+
 fn main() {
-    Test::assert_true(is_empty(String_new()))
-    Test::assert_true(is_empty(String_from("")))
-    Test::assert_false(is_empty(String_from("x")))
-    Test::assert_false(is_empty(String_from("hello")))
+    test::assert_true((String_new()).is_empty())
+    test::assert_true((String_from("")).is_empty())
+    test::assert_false((String_from("x")).is_empty())
+    test::assert_false((String_from("hello")).is_empty())
 }

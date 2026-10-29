@@ -1,8 +1,8 @@
 use std::host::stdio
-use std::prelude::{to_upper}
 use std::core::iter
+
 fn to_upper_wrapper(s: String) -> String {
-    to_upper(s)
+    s.to_upper()
 }
 
 fn main() {

@@ -1,4 +1,4 @@
-use std::prelude::{args, clone, eq, index_of, starts_with, substring}
+use std::prelude::{clone, eq, index_of, starts_with, substring}
 use std::text
 use corehir::kinds
 use corehir::function_id
@@ -21,6 +21,7 @@ use mir::lower::return_typeinfo_names
 use mir::lower_kinds
 use mir::value_types
 use corehir::type_contracts
+
 fn sig_reg_register_fn(
     mut table: TypeTable,
     mut registry: SignatureRegistry,

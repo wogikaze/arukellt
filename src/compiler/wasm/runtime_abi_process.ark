@@ -10,7 +10,7 @@ use wasm::intrinsics::helpers_io_p2
 use wasm::intrinsics::helpers_numeric_i32_convert
 
 // Handler for: process::exit, host::process::exit, __runtime_abi_process_exit
-use std::prelude::{byte_len}
+
 fn emit_process_exit(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     // Exit status is a widened i64 local under Memory64; WASI wants i32.
     helpers_numeric_i32_convert::emit_narrow_i64_operand(w)

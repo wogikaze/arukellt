@@ -1,10 +1,10 @@
-use std::test::Test
-use std::prelude::{is_empty}
+use std::test
 use std::text
+
 fn main() {
     let a = String_from("")
     let b = String_from("")
     let c = a.concat(b)
-    Test::assert_eq_i32(len(c), 0)
-    Test::assert_true(is_empty(c))
+    test::assert_eq_i32(len(c), 0)
+    test::assert_true(c.is_empty())
 }

@@ -15,10 +15,10 @@ use typechecker::names
 use typechecker::trait_bounds
 use typechecker::types
 use diagnostics::mod as diag_mod
-
 // Register declarations before impls so arity and associated-item checks use
 // the same local trait registry as obligation solving.
-use std::prelude::{args, clone, eq, to_string}
+use std::prelude::{clone, eq, to_string}
+
 fn register_trait_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
     let count = len(decls)
     let mut i = 0

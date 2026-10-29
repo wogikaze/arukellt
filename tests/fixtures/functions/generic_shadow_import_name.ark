@@ -7,19 +7,19 @@
 // minting, leaving wasm32-gc to emit an invalid module and wasm32 to silently
 // bind the imported body. The original report used std::core::identity, which
 // the #917 std::core receiver wave removed.
-use std::test::Test
+use std::test
 
 fn to_lower<T>(x: T) -> T {
     x
 }
 
 fn main() {
-    let a: i32 = to_lower(7)
-    let b: String = to_lower(String_from("ok"))
-    let c = to_lower(11)
-    let d = to_lower(String_from("second"))
-    Test::assert_eq_i32(a, 7)
-    Test::assert_eq_string(b, String_from("ok"))
-    Test::assert_eq_i32(c, 11)
-    Test::assert_eq_string(d, String_from("second"))
+    let a: i32 = (7).to_lower()
+    let b: String = (String_from("ok")).to_lower()
+    let c = (11).to_lower()
+    let d = (String_from("second")).to_lower()
+    test::assert_eq_i32(a, 7)
+    test::assert_eq_string(b, String_from("ok"))
+    test::assert_eq_i32(c, 11)
+    test::assert_eq_string(d, String_from("second"))
 }

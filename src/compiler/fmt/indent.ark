@@ -1,5 +1,6 @@
 use std::text
-use std::prelude::{byte_at, clone, index_of, lines, substring}
+use std::prelude::{byte_at, clone, index_of, substring}
+
 struct FmtIndentScan {
     opens: i32,
     closes: i32,

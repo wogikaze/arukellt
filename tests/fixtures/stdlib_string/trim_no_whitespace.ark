@@ -1,7 +1,7 @@
-use std::test::Test
-use std::prelude::{trim, trim_end, trim_start}
+use std::test
+
 fn main() {
-    Test::assert_eq_string(trim(String_from("hello")), "hello")
-    Test::assert_eq_string(trim_start(String_from("hello")), "hello")
-    Test::assert_eq_string(trim_end(String_from("hello")), "hello")
+    test::assert_eq_string((String_from("hello")).trim(), "hello")
+    test::assert_eq_string((String_from("hello")).trim_start(), "hello")
+    test::assert_eq_string((String_from("hello")).trim_end(), "hello")
 }

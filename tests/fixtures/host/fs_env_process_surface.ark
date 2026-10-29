@@ -1,13 +1,13 @@
 use std::host::env::Env
 use std::host::fs::Fs
 use std::host::process
-use std::prelude::{trim}
 use std::host::stdio
+
 fn main() {
     match Fs::read_to_string("tests/fixtures/stdlib_fs/present.txt") {
         Result::Err(_) => Std::panic("read failed"),
         Result::Ok(contents) => {
-            if trim(contents) != "present" {
+            if contents.trim() != "present" {
                 Std::panic("read returned unexpected contents")
             }
         },

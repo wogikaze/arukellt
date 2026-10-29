@@ -1,5 +1,6 @@
 use std::text
-use std::prelude::{byte_at, clone, lines, substring}
+use std::prelude::{byte_at, clone, substring}
+
 fn fmt_normalize_line(line: String) -> String {
     let n = len(clone(line))
     let mut end = n

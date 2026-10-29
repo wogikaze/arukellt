@@ -1,0 +1,5 @@
+// E0100: the prelude `trim` free was retired by ADR-091; the hint names the
+// String receiver method instead of asking for an import of the old name.
+fn main() {
+    let _ = trim(String_from(" x "))
+}

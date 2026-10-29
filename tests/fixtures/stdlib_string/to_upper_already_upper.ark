@@ -1,7 +1,7 @@
-use std::test::Test
-use std::prelude::{to_upper}
+use std::test
+
 fn main() {
     let s = String_from("ALREADY UPPER")
-    Test::assert_eq_string(to_upper(s), "ALREADY UPPER")
-    Test::assert_eq_string(to_upper(String_from("")), "")
+    test::assert_eq_string(s.to_upper(), "ALREADY UPPER")
+    test::assert_eq_string((String_from("")).to_upper(), "")
 }

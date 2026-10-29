@@ -1,10 +1,11 @@
-use std::test::Test
-use std::prelude::{clone, eq, is_empty}
+use std::test
+use std::prelude::{clone, eq}
 use std::text
+
 fn main() {
     let s = String_from("")
-    Test::assert_eq_i32(len(s), 0)
-    Test::assert_true(is_empty(s))
-    Test::assert_true(eq(s, clone(s)))
-    Test::assert_eq_string(s.concat(s), "")
+    test::assert_eq_i32(len(s), 0)
+    test::assert_true(s.is_empty())
+    test::assert_true(eq(s, clone(s)))
+    test::assert_eq_string(s.concat(s), "")
 }

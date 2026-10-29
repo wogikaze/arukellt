@@ -1,6 +1,6 @@
-use std::test::Test
-use std::prelude::{to_uppercase}
+use std::test
+
 fn main() {
-    Test::assert_eq_string(to_uppercase(String_from("abc")), "ABC")
-    Test::assert_eq_string(to_uppercase(String_from("MixEd")), "MIXED")
+    test::assert_eq_string((String_from("abc")).to_upper(), "ABC")
+    test::assert_eq_string((String_from("MixEd")).to_upper(), "MIXED")
 }

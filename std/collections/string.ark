@@ -2,7 +2,7 @@
 //!
 //! Representation-sensitive helpers go through `std::core::raw` (RFC-006).
 use std::core::raw::{RawArray, RawString}
-use std::prelude::{to_lowercase}
+
 pub fn eq(a: String, b: String) -> bool {
     __core_string_eq_impl(a, b)
 }
@@ -622,60 +622,8 @@ pub fn contains(s: String, needle: String) -> bool {
     __core_string_contains_impl(s, needle)
 }
 
-pub fn to_lower(s: String) -> String {
-    __core_string_to_lowercase_impl(s)
-}
-
-pub fn to_upper(s: String) -> String {
-    __core_string_to_uppercase_impl(s)
-}
-
-pub fn trim(s: String) -> String {
-    __core_string_trim_impl(s)
-}
-
-pub fn trim_start(s: String) -> String {
-    __core_string_trim_start_impl(s)
-}
-
-pub fn trim_end(s: String) -> String {
-    __core_string_trim_end_impl(s)
-}
-
-pub fn repeat(s: String, count: i32) -> String {
-    __core_string_repeat_impl(s, count)
-}
-
-pub fn pad_left(s: String, width: i32) -> String {
-    __core_string_pad_left_impl(s, width)
-}
-
-pub fn pad_right(s: String, width: i32) -> String {
-    __core_string_pad_right_impl(s, width)
-}
-
-pub fn replace(s: String, from: String, replacement: String) -> String {
-    __core_string_replace_impl(s, from, replacement)
-}
-
-pub fn split(s: String, delim: String) -> Vec<String> {
-    __core_string_split_impl(s, delim)
-}
-
-pub fn join(parts: Vec<String>, sep: String) -> String {
-    __core_string_join_impl(parts, sep)
-}
-
-pub fn lines(s: String) -> Vec<String> {
-    __core_string_lines_impl(s)
-}
-
 pub fn byte_at(s: String, index: i32) -> i32 {
     __core_string_char_at_impl(s, index)
-}
-
-pub fn push_char(mut s: String, c: char) {
-    __intrinsic_push_char(s, c)
 }
 
 // ---------------------------------------------------------------------------

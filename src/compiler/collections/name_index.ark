@@ -1,4 +1,5 @@
-use std::prelude::{byte_at, clone, values}
+use std::prelude::{byte_at, clone}
+
 pub struct NameIndex {
     capacity: i32,
     buckets: Vec<i32>,

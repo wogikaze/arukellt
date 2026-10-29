@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined name: trim; use `s.trim()` on `String` instead

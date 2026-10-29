@@ -1,6 +1,6 @@
-use std::test::Test
-use std::prelude::{to_upper}
+use std::test
+
 fn main() {
-    Test::assert_eq_string(to_upper(String_from("HeLLo123")), "HELLO123")
-    Test::assert_eq_string(to_upper(String_from("a.b.c")), "A.B.C")
+    test::assert_eq_string((String_from("HeLLo123")).to_upper(), "HELLO123")
+    test::assert_eq_string((String_from("a.b.c")).to_upper(), "A.B.C")
 }

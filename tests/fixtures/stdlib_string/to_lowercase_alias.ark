@@ -1,6 +1,6 @@
-use std::test::Test
-use std::prelude::{to_lowercase}
+use std::test
+
 fn main() {
-    Test::assert_eq_string(to_lowercase(String_from("ABC")), "abc")
-    Test::assert_eq_string(to_lowercase(String_from("MixEd")), "mixed")
+    test::assert_eq_string((String_from("ABC")).to_lower(), "abc")
+    test::assert_eq_string((String_from("MixEd")).to_lower(), "mixed")
 }

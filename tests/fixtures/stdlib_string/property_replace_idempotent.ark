@@ -1,8 +1,9 @@
-use std::test::Test
-use std::prelude::{eq, replace}
+use std::test
+use std::prelude::{eq}
+
 fn main() {
     let s = String_from("hello")
-    let once = replace(s, String_from("zz"), String_from("QQ"))
-    let twice = replace(once, String_from("zz"), String_from("QQ"))
-    Test::assert_true(eq(once, twice))
+    let once = s.replace(String_from("zz"), String_from("QQ"))
+    let twice = once.replace(String_from("zz"), String_from("QQ"))
+    test::assert_true(eq(once, twice))
 }

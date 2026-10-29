@@ -1,11 +1,12 @@
 use std::host::fs::Fs
 use std::toml
 use std::text
-use std::prelude::{byte_at, clone, contains, index_of, replace, substring}
+use std::prelude::{byte_at, clone, contains, index_of, substring}
 use lsp::kinds
 use lsp::state_record
 use lsp::symbol_index_paths
 use lsp::symbol_index_record
+
 struct ManifestParseState {
     section: i32,
     name: String,
@@ -20,7 +21,7 @@ fn ManifestParseState_new() -> ManifestParseState {
 }
 
 fn stdlib_module_to_source_uri(module_path: String) -> String {
-    let rel = replace(clone(module_path), String_from("::"), String_from("/"))
+    let rel = (clone(module_path)).replace(String_from("::"), String_from("/"))
     symbol_index_paths::file_path_to_uri(rel.concat(String_from(".ark")))
 }
 

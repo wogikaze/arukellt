@@ -2,7 +2,7 @@
 // After mono type params are set up, re-substitute type-variable param
 // locals with the concrete monomorphized type.
 
-use std::prelude::{args, byte_at, clone, contains, eq, starts_with, substring}
+use std::prelude::{byte_at, clone, contains, eq, starts_with, substring}
 use std::text
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_api_local_types
@@ -20,6 +20,7 @@ use mir::function_locals_view
 use mir::local_access
 use mir::type_contracts
 use mir::value_types
+
 fn mir_substitute_mono_param_types(mut ctx: LowerCtx) {
     let func = ctx_current_storage::ctx_current_func_value(ctx)
     let fn_name = function_identity::MirFunction_name(func)

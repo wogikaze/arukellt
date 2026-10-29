@@ -1,7 +1,7 @@
-use std::test::Test
-use std::prelude::{join}
+use std::test
+
 fn main() {
     let mut parts: Vec<String> = Vec::new<String>()
     push(parts, String_from("only"))
-    Test::assert_eq_string(join(parts, String_from(",")), "only")
+    test::assert_eq_string(parts.join(String_from(",")), "only")
 }

@@ -100,7 +100,7 @@ impl<T> Vec<T> {
 
     /// Returns true if the vector has no elements.
     fn is_empty(self) -> bool {
-        is_empty(self)
+        self.len() == 0
     }
 
     /// Returns the element at `idx` without bounds checking.

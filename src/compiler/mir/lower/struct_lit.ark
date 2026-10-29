@@ -12,14 +12,14 @@ use mir::inst_struct_new
 use mir::inst_struct_set
 use mir::lower::struct_lit_copy
 use mir::value_types
-
 // Resolve the layout name a struct literal should instantiate. For a
 // generic base (Pair<T>) the monomorphized name (Pair<String>) comes
 // from, in order: an explicit Pair<...> literal spelling, the pending
 // let annotation, the functional-update base, or the field value types
 // bound to the declared parameters. Non-generic names pass through.
-use std::prelude::{args, byte_at, clone, contains, ends_with, eq, index_of, starts_with, substring}
+use std::prelude::{byte_at, clone, contains, ends_with, eq, index_of, starts_with, substring}
 use std::text
+
 fn mir_struct_lit_instance_name(mut ctx: LowerCtx, base_name: String, field_names: Vec<String>, val_idxs: Vec<i32>, base_idx: i32) -> String {
     let canon = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, clone(base_name))
     if len(ctx_struct_mono::generic_inst_base_name(clone(canon))) > 0 {

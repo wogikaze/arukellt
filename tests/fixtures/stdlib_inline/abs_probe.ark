@@ -1,6 +1,4 @@
-use std::prelude::{abs, clamp_i32, f32_to_string, f64_bits_hi, f64_bits_lo, format_bool, is_empty, join, max}
-use std::prelude::{min, parse_f64, parse_i32, parse_i64, push_char}
-use std::prelude::{sqrt, trim_end, trim_start, values}
+use std::prelude::{f32_to_string, f64_bits_hi, f64_bits_lo, push_char, parse_f64, parse_i32, parse_i64}
 use std::collections::vec
 use std::core::{Range}
 use std::core::cmp
@@ -9,19 +7,19 @@ use std::seq
 use std::text
 
 pub fn probe_abs(x: i32) -> i32 {
-    abs(x)
+    x.abs()
 }
 
 pub fn probe_min(a: i32, b: i32) -> i32 {
-    min(a, b)
+    a.min(b)
 }
 
 pub fn probe_max(a: i32, b: i32) -> i32 {
-    max(a, b)
+    a.max(b)
 }
 
 pub fn probe_clamp(x: i32, lo: i32, hi: i32) -> i32 {
-    clamp_i32(x, lo, hi)
+    x.clamp(lo, hi)
 }
 
 pub fn probe_gcd(a: i32, b: i32) -> i32 {
@@ -87,12 +85,12 @@ pub fn probe_string_trim() -> bool {
 }
 
 pub fn probe_string_trim_start() -> bool {
-    let result = trim_start(" \tsemantic ")
+    let result = (" \tsemantic ").trim_start()
     result.len() == 9 && result.char_at(0) == 115 && result.char_at(8) == 32
 }
 
 pub fn probe_string_trim_end() -> bool {
-    let result = trim_end(" semantic\r\n")
+    let result = (" semantic\r\n").trim_end()
     result.len() == 9 && result.char_at(0) == 32 && result.char_at(8) == 99
 }
 
@@ -162,7 +160,7 @@ pub fn probe_scalar_format_ops() -> bool {
 }
 
 pub fn probe_string_join() -> bool {
-    let result = join("a--b--".split("--"), ".")
+    let result = ("a--b--".split("--")).join(".")
     result.len() == 4 && result.char_at(0) == 97 && result.char_at(3) == 46
 }
 
@@ -177,7 +175,7 @@ pub fn probe_vec_read_ops() -> bool {
     push(values, 7)
     set(values, 0, 9)
     values = values.iter().rev().collect()
-    len(values) == 2 && !is_empty(values) && get_unchecked(values, 0) == 7 && get_unchecked(values, 1) == 9
+    len(values) == 2 && !values.is_empty() && get_unchecked(values, 0) == 7 && get_unchecked(values, 1) == 9
 }
 
 pub fn probe_vec_string_mutation() -> bool {
@@ -235,8 +233,8 @@ pub fn probe_seq_sort_i32() -> bool {
 }
 
 pub fn probe_format_bool_ops() -> bool {
-    let true_text = format_bool(true)
-    let false_text = format_bool(false)
+    let true_text = true.to_string()
+    let false_text = false.to_string()
     true_text.len() == 4 &&
     true_text.char_at(0) == 116 &&
     false_text.len() == 5 &&
@@ -257,7 +255,7 @@ pub fn probe_range_new_ops() -> bool {
 }
 
 pub fn probe_sqrt_ops() -> bool {
-    let root = sqrt(4.0)
+    let root = (4.0).sqrt()
     let lo = f64_bits_lo(root)
     let hi = f64_bits_hi(root)
     lo == f64_bits_lo(2.0) && hi == f64_bits_hi(2.0)
@@ -328,7 +326,7 @@ pub fn probe_vec_generic_mutation_ops() -> bool {
     push(values, 5)
     set(values, 0, 9)
     let n = len(values)
-    !is_empty(values) &&
+    !values.is_empty() &&
     n == 2 &&
     get_unchecked(values, 0) == 9 &&
     get_unchecked(values, 1) == 5

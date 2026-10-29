@@ -1,12 +1,12 @@
 use std::text
-use std::prelude::{replace}
 use main::manifest_doc_record
+
 fn doc_site_escape(raw: String) -> String {
-    let mut out = replace(raw, String_from("&"), String_from("&amp;"))
-    out = replace(out, String_from("<"), String_from("&lt;"))
-    out = replace(out, String_from(">"), String_from("&gt;"))
-    out = replace(out, String_from("\""), String_from("&quot;"))
-    replace(out, String_from("'"), String_from("&#39;"))
+    let mut out = raw.replace(String_from("&"), String_from("&amp;"))
+    out = out.replace(String_from("<"), String_from("&lt;"))
+    out = out.replace(String_from(">"), String_from("&gt;"))
+    out = out.replace(String_from("\""), String_from("&quot;"))
+    out.replace(String_from("'"), String_from("&#39;"))
 }
 
 fn doc_site_signature(e: manifest_doc_record::DocFnEntry) -> String {
@@ -133,9 +133,9 @@ pub fn doc_render_stdlib_html(table: manifest_doc_record::DocManifestTable) -> S
     out = out.concat(String_from("</aside><section><div class=\"toolbar\"><input id=\"q\" placeholder=\"Search std APIs\"><select id=\"stability\"><opti"))
     out = out.concat(String_from("on value=\"\">All stability tiers</option><option>stable</option><option>provisional</option><option>experimenta"))
     out = out.concat(String_from("l</option><option>deprecated</option></select></div><div class=\"stats\"><div class=\"stat\"><strong>"))
-    out = out.concat((function_count).to_string())
+    out = out.concat(function_count.to_string())
     out = out.concat(String_from("</strong> functions</div><div class=\"stat\"><strong>"))
-    out = out.concat((module_count).to_string())
+    out = out.concat(module_count.to_string())
     out = out.concat(String_from("</strong> modules</div></div><div id=\"api\" class=\"api-grid\">"))
     let mut i = 0
     while i < function_count {

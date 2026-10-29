@@ -1,0 +1,35 @@
+// Receiver-method replacements for the 27 prelude frees retired by ADR-091
+// (the parse_* frees remain deferred).
+use std::test
+
+fn main() {
+    let s: String = String_from("Ab")
+    test::assert_eq_string(s.clone(), "Ab")
+    test::assert_eq_i32(s.len_bytes(), 2)
+    test::assert_false(s.is_empty())
+
+    let empty: String = String_new()
+    test::assert_true(empty.is_empty())
+    let mut values: Vec<i32> = Vec::new<i32>()
+    test::assert_true(values.is_empty())
+    push(values, 1)
+
+    test::assert_eq_string(String_from(" AbC ").trim().to_lower(), "abc")
+    test::assert_eq_string(String_from("abc").to_upper(), "ABC")
+    test::assert_eq_string(String_from("a,b,c").split(",").join("-"), "a-b-c")
+    test::assert_eq_string(String_from("ab").repeat(2), "abab")
+    test::assert_eq_string(String_from("x").pad_left(3), "  x")
+    test::assert_eq_string(String_from("x").pad_right(3), "x  ")
+    test::assert_eq_string(String_from("aXbX").replace("X", "-"), "a-b-")
+    test::assert_eq_i32(String_from("a\nb").lines().len(), 2)
+
+    test::assert_eq_i32((0 - 5).abs(), 5)
+    test::assert_eq_i32((3).min(7), 3)
+    test::assert_eq_i32((3).max(7), 7)
+    test::assert_eq_i32((15).clamp(0, 10), 10)
+    test::assert_eq_i32((12).gcd(18), 6)
+    test::assert_eq_i32((9.0).sqrt().to_string().len(), 1)
+
+    test::assert_eq_string((true).to_string(), "true")
+    test::assert_eq_string((42).to_string(), "42")
+}

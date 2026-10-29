@@ -47,6 +47,66 @@ normal policy applies and the exception is void. The exception is not a blanket
 three items above. See [Stability Policy](stability-policy.md#deprecation-process)
 and the [changelog](changelog.md).
 
+## Prelude free-function retirement (ADR-091)
+
+The [#917](https://github.com/wogikaze/arukellt/issues/917) `wave/prelude-remain`
+retired 27 `stable` prelude free functions. [ADR-091](../adr/ADR-091-prelude-free-function-exception.md)
+records the narrow ADR-087 D2 exception: the old names fail with **E0100** and a
+replacement hint instead of a W0009 window, because every replacement is a
+receiver method or associated function that is already callable and verified.
+The same wave removed the 13 corresponding `std/collections/string.ark` free
+declarations from the public module surface (12 became private; the duplicate
+`push_char` declaration was deleted because the prelude free remains).
+
+| Removed free call | Replacement |
+|-------------------|-------------|
+| `abs(x)` | `(x).abs()` |
+| `args()` | `Env::args()` via `use std::host::env::Env` |
+| `byte_len(s)` | `s.len_bytes()` |
+| `clamp_i32(x, lo, hi)` | `(x).clamp(lo, hi)` |
+| `exit(code)` | `Process::exit(code)` via `use std::host::process::Process` |
+| `format_bool(b)` | `(b).to_string()` |
+| `format_i32(n)` | `(n).to_string()` |
+| `gcd(a, b)` | `(a).gcd(b)` |
+| `is_empty(x)` | `x.is_empty()` |
+| `join(parts, sep)` | `parts.join(sep)` |
+| `lines(s)` | `s.lines()` |
+| `max(a, b)` | `(a).max(b)` |
+| `min(a, b)` | `(a).min(b)` |
+| `pad_left(s, width)` | `s.pad_left(width)` |
+| `pad_right(s, width)` | `s.pad_right(width)` |
+| `repeat(s, n)` | `s.repeat(n)` |
+| `replace(s, from, to)` | `s.replace(from, to)` |
+| `split(s, sep)` | `s.split(sep)` |
+| `sqrt(x)` | `(x).sqrt()` |
+| `to_lower(s)` | `s.to_lower()` |
+| `to_lowercase(s)` | `s.to_lower()` (ASCII case fold) |
+| `to_upper(s)` | `s.to_upper()` |
+| `to_uppercase(s)` | `s.to_upper()` (ASCII case fold) |
+| `trim(s)` | `s.trim()` |
+| `trim_end(s)` | `s.trim_end()` |
+| `trim_start(s)` | `s.trim_start()` |
+| `values(v)` | No replacement; iterate the value directly with `for x in v` |
+
+The following four prelude free functions remain as the ADR-091 §3 exception:
+`assert(cond)`, `String_from(s)`, `String_new()`, and `char_to_string(c)`.
+They are the v2 stable Prelude set from ADR-072 §1 (after `panic` moved to
+`Std::panic` in ADR-090). `String::new()` was measured to produce invalid core
+Wasm on the current pin, and `char_to_string` preserves the i32-codepoint call
+boundary, so these are not mechanically replaced in this wave.
+
+The following remain `associated-or-method` and are **not** covered by the
+exception: `push_char` (the `s.push_char(c)` receiver method compiles and
+validates, but the grown array does not reach the caller binding because
+`String` is a GC reference; the free lowering rewrites the caller local),
+`parse_i32` / `parse_i64` / `parse_f64` (moving compiler/std call sites to
+`i32::try_from` / `i64::try_from` / `f64::try_from` made the rebuilt s2 trap
+with `unreachable` while compiling any input, in `compile_source` /
+`backend_resolve`), `Box_new` / `unbox`, the six `Option` / `Result` predicates and `unwrap*`
+frees, `f32_to_string`, and the large `clone` / `eq` / `byte_at` /
+`substring` / `to_string` / `starts_with` / `ends_with` / `contains` /
+`index_of` / `slice` migration.
+
 ## Stable-64 deprecation wave (ADR-087, 2026-10-26)
 
 The [#917](https://github.com/wogikaze/arukellt/issues/917) wave converted the

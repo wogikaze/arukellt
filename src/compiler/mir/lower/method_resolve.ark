@@ -1,4 +1,4 @@
-use std::prelude::{args, byte_at, clone, contains, ends_with, eq, index_of, starts_with, substring}
+use std::prelude::{byte_at, clone, contains, ends_with, eq, index_of, starts_with, substring}
 use std::text
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_exists
@@ -7,6 +7,7 @@ use mir::lower::ctx_types
 use mir::mono
 use mir::mono_instance_shape
 use mir::value_types
+
 fn mir_method_name_last_segment(name: String) -> String {
     let n = len(name)
     let mut last_start = 0 - 1

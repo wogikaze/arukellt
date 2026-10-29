@@ -1,11 +1,12 @@
 // WIT -> Arukellt binding source renderer (#672).
 
 use std::text
-use std::prelude::{args, byte_at, clone, contains, eq, index_of, starts_with, substring}
+use std::prelude::{byte_at, clone, contains, eq, index_of, starts_with, substring}
 use component
 use component::wit_names_import
 use component::wit_parse_text
 use component::wit_parse_text_scan
+
 fn wit_binding_generic_inner(t: String) -> String {
     let open = index_of(t, "<")
     if open < 0 { return String_new() }

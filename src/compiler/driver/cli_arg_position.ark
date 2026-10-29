@@ -1,4 +1,5 @@
-use std::prelude::{args, clone, eq}
+use std::prelude::{clone, eq}
+
 fn legacy_arg_start(args: Vec<String>, argc: i32) -> i32 {
     if argc > 0 {
         let first = get_unchecked(args, 0)

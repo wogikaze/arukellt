@@ -1,8 +1,8 @@
 use std::host::env::Env
 use std::host::process
 use std::host::stdio
-use std::prelude::{values}
 use std::text
+
 fn main() {
     let values = Env::args()
     let n = len(values)

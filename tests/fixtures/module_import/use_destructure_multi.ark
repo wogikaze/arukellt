@@ -6,7 +6,6 @@ use std::collections::{string}
 use std::text::{fmt}
 
 fn main() {
-    let parts = string::split("a,b", ",")
-    let n = len(parts)
-    __intrinsic_println((n).to_string())
+    let equal = string::eq("a,b", "a,b")
+    __intrinsic_println(equal.to_string())
 }

@@ -1,4 +1,3 @@
-use std::prelude::{values}
 fn main() -> i32 {
     let values = [1, 2]
     values[0]

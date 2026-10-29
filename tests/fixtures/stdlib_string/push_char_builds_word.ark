@@ -1,5 +1,6 @@
 use std::test::Test
 use std::prelude::{eq, push_char}
+
 fn main() {
     let mut s = String_new()
     push_char(s, 'h')

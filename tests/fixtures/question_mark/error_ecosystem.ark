@@ -1,8 +1,8 @@
 use std::error
 use std::host::stdio
 use std::io
-use std::prelude::{parse_i32}
 use std::text
+use std::prelude::{parse_i32}
 
 enum AppError {
     Io(String),
@@ -39,8 +39,7 @@ impl Error for AppError {
     }
 }
 
-fn parse_count(text: String) -> Result<i32, String> {
-    parse_i32(text)
+fn parse_count(text: String) -> Result<i32, String> {parse_i32(text)
 }
 
 fn read_exact(data: Vec<i32>) -> Result<Vec<i32>, IoError> {

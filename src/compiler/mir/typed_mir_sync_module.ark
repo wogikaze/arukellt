@@ -1,4 +1,4 @@
-use std::prelude::{args, byte_at, clone, eq, starts_with, substring}
+use std::prelude::{byte_at, clone, eq, starts_with, substring}
 use std::text
 use corehir::kinds
 use corehir::mir_value_type
@@ -12,6 +12,7 @@ use mir::local_access
 use mir::local_mutation
 use mir::module_functions
 use mir::module_spine
+
 fn mir_module_sync_all_value_types(mut m: MirModule) {
     if !module_spine::MirModule_signature_spine_populated(m) {
         return

@@ -1,4 +1,4 @@
-use std::prelude::{args, clone, eq}
+use std::prelude::{clone, eq}
 use std::text
 use diagnostics::codes
 use diagnostics::record
@@ -8,6 +8,7 @@ use typechecker::contract_type_access
 use typechecker::names
 use typechecker::unify
 use diagnostics::mod as diag_mod
+
 fn infer_try_expr(mut env: TypeEnv, operand_ty: TypeInfo) -> TypeInfo {
     let resolved_operand = unify::resolve_type_deep(env, operand_ty)
     let resolved_return = unify::resolve_type_deep(env, env.current_fn_return_type)
