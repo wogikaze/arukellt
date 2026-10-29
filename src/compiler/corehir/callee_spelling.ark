@@ -15,6 +15,7 @@
 //! `Vec::new` into an unrelated bare `new`.
 
 use std::prelude::{byte_at, clone, eq, substring}
+use corehir::name_match
 
 fn callee_spelling_segment_count(name: String) -> i32 {
     let n = len(name)
@@ -66,33 +67,71 @@ fn callee_spelling_last_two_segments(name: String) -> String {
 // Namespace spellings for a sealed raw bridge: the canonical CoreOp callee
 // (`raw_array_new`), the module-qualified form, the associated form
 // (`RawArray::new`), and the monomorphized form (`RawArray__new__String`).
+//
+// This runs for every call site during lowering. The spellings are compared in
+// place: building `"::" + name` or `name + "__" + method` here allocated per
+// check and dominated the overlay GC churn.
+fn starts_with_mono_tail(callee: String, owner_name: String, method_name: String) -> bool {
+    let owner_len = len(owner_name)
+    let method_len = len(method_name)
+    if len(callee) < owner_len + 2 + method_len + 2 {
+        return false
+    }
+    name_match::name_region_equal(callee, 0, owner_name, 0, owner_len) &&
+    byte_at(callee, owner_len) == 95 &&
+    byte_at(callee, owner_len + 1) == 95 &&
+    name_match::name_region_equal(callee, owner_len + 2, method_name, 0, method_len) &&
+    byte_at(callee, owner_len + 2 + method_len) == 95 &&
+    byte_at(callee, owner_len + 3 + method_len) == 95
+}
+
+fn contains_mono_qualified(callee: String, owner_name: String, method_name: String) -> bool {
+    let owner_len = len(owner_name)
+    let method_len = len(method_name)
+    let pattern_len = 2 + owner_len + 2 + method_len + 2
+    let callee_len = len(callee)
+    let mut i = 0
+    while i + pattern_len <= callee_len {
+        if byte_at(callee, i) == 58 &&
+        byte_at(callee, i + 1) == 58 &&
+        name_match::name_region_equal(callee, i + 2, owner_name, 0, owner_len) &&
+        byte_at(callee, i + 2 + owner_len) == 95 &&
+        byte_at(callee, i + 3 + owner_len) == 95 &&
+        name_match::name_region_equal(callee, i + 4 + owner_len, method_name, 0, method_len) &&
+        byte_at(callee, i + 4 + owner_len + method_len) == 95 &&
+        byte_at(callee, i + 5 + owner_len + method_len) == 95 {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
 fn is_namespace_member_callee(
     callee: String,
     raw_name: String,
     owner_name: String,
     method_name: String
 ) -> bool {
-    if eq(clone(callee), clone(raw_name)) {
+    if name_match::name_equal(callee, raw_name) {
         return true
     }
-    if ends_with(clone(callee), String_from("::").concat(clone(raw_name))) {
+    if name_match::name_ends_with_qualified(callee, raw_name) {
         return true
     }
-    let associated = clone(owner_name).concat(String_from("::")).concat(clone(method_name))
-    if eq(clone(callee), clone(associated)) {
+    if name_match::name_equals_pair(callee, owner_name, method_name, 58, 58) {
         return true
     }
-    if ends_with(clone(callee), String_from("::").concat(clone(associated))) {
+    if name_match::name_ends_with_qualified_pair(callee, owner_name, method_name, 58, 58) {
         return true
     }
-    let mono = clone(owner_name).concat(String_from("__")).concat(clone(method_name))
-    if eq(clone(callee), clone(mono)) {
+    if name_match::name_equals_pair(callee, owner_name, method_name, 95, 95) {
         return true
     }
-    if starts_with(clone(callee), clone(mono).concat(String_from("__"))) {
+    if starts_with_mono_tail(callee, owner_name, method_name) {
         return true
     }
-    index_of(clone(callee), String_from("::").concat(clone(mono)).concat(String_from("__"))) >= 0
+    contains_mono_qualified(callee, owner_name, method_name)
 }
 
 fn callee_spelling_variants(name: String) -> Vec<String> {

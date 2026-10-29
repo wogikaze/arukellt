@@ -1,5 +1,6 @@
-use std::prelude::{clone, ends_with, eq}
+use std::prelude::{clone, eq}
 use std::text
+use corehir::name_match
 use corehir::kinds
 use corehir::function_id
 use corehir::signature_entry
@@ -178,16 +179,19 @@ fn sig_reg_leaf_instance_name_match(
     qualified_name: String
 ) -> bool {
     if len(qualified_name) > 0 {
-        if eq(clone(inst_name), clone(qualified_name)) {
+        if name_match::name_equal(inst_name, qualified_name) {
             return true
         }
-        if ends_with(clone(inst_name), String_from("::").concat(clone(qualified_name))) ||
-        ends_with(clone(qualified_name), String_from("::").concat(clone(inst_name))) {
+        // Compare the `::`-qualified forms in place; this runs for every
+        // monomorphized method instance and the per-call `"::" + name`
+        // allocations showed up in the overlay GC profile.
+        if name_match::name_ends_with_qualified(inst_name, qualified_name) ||
+        name_match::name_ends_with_qualified(qualified_name, inst_name) {
             return true
         }
         return false
     }
-    eq(inst_name, decl_name)
+    name_match::name_equal(inst_name, decl_name)
 }
 
 fn sig_reg_index_method_mono(
