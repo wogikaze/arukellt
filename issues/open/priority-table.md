@@ -12,8 +12,8 @@ Scoring criteria (0-5 each, total 25):
 | Rank | ID | Title | Track | Blocker | Release | Readiness | Strategic | MA-Suit | Total |
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
 | 1 | 934 | 934 — typechecker resolves calls through a flat, overload-b... | compiler | 5 | 0 | 1 | 5 | 4 | 15 |
-| 2 | 951 | 951 — implement ADR-088: `mut` parameter mode, mutable-plac... | typecheck | 0 | 0 | 5 | 5 | 5 | 15 |
-| 3 | 946 | 946 — single-uppercase type names in impl heads are treated... | typecheck | 0 | 0 | 4 | 5 | 5 | 14 |
+| 2 | 946 | 946 — single-uppercase type names in impl heads are treated... | typecheck | 0 | 0 | 5 | 5 | 5 | 15 |
+| 3 | 951 | 951 — implement ADR-088: `mut` parameter mode, mutable-plac... | typecheck | 0 | 0 | 5 | 5 | 5 | 15 |
 | 4 | 971 | 971 — `Vec::sort_by` cannot sort aggregate elements on wasm... | compiler | 0 | 0 | 3 | 5 | 5 | 13 |
 | 5 | 708 | 708 — `TryFrom` / `TryInto` traits for fallible conversions | stdlib-api | 0 | 0 | 4 | 3 | 5 | 12 |
 | 6 | 943 | 943 — ownership and mutability rules do not hold at functio... | language-design | 0 | 0 | 2 | 5 | 5 | 12 |
@@ -22,9 +22,9 @@ Scoring criteria (0-5 each, total 25):
 | 9 | 930 | 930 — reference-parity execution leg cannot package memory6... | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
 | 10 | 931 | 931 — module-graph compile: sibling files access each other's | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
 | 11 | 948 | 948 — `wasm32-gc` print bump-allocates linear memory per ca... | wasi | 0 | 0 | 3 | 3 | 5 | 11 |
-| 12 | 954 | 954 — wasm32: referencing a top-level `i64` const produces ... | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
-| 13 | 958 | 958 — `--emit wat` silently writes a 0-byte file with the p... | selfhost-infra | 0 | 0 | 1 | 5 | 5 | 11 |
-| 14 | 963 | 963 — `i64.to_string()` is not usable (method dispatch pick... | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
+| 12 | 958 | 958 — `--emit wat` silently writes a 0-byte file with the p... | selfhost-infra | 0 | 0 | 1 | 5 | 5 | 11 |
+| 13 | 963 | 963 — `i64.to_string()` is not usable (method dispatch pick... | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
+| 14 | 966 | 966 — Same-named methods across type specializations resolv... | compiler | 1 | 0 | 1 | 5 | 4 | 11 |
 | 15 | 697 | 697 — `Vec<T>` operation extension (windows / chunks / reta... | stdlib-api | 1 | 0 | 3 | 3 | 3 | 10 |
 | 16 | 728 | 728 — WIR / backend target IR for ADR-007 multi-target sepa... | compiler-internal | 0 | 0 | 1 | 5 | 4 | 10 |
 | 17 | 928 | 928 — bare `clone` callee resolves to `String::clone`; wasm... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
@@ -42,43 +42,42 @@ Scoring criteria (0-5 each, total 25):
 | 29 | 960 | 960 — `String::split` is broken on both targets: runtime OO... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
 | 30 | 962 | 962 — wasm32: a single growing `Vec<i64>` loses elements pa... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
 | 31 | 964 | 964 — `let x: i64 = 0` binds x as i32 (annotation ignored f... | typecheck | 0 | 0 | 1 | 5 | 4 | 10 |
-| 32 | 966 | 966 — Same-named methods across type specializations resolv... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
-| 33 | 967 | 967 — Generic Vec methods on `Vec<String>` and generic `ite... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
-| 34 | 969 | 969 — Rust-style numeric constants (`i32::MAX`, `f64::INFIN... | language-design | 0 | 0 | 1 | 5 | 4 | 10 |
-| 35 | 970 | 970 — Module `const` references: qualified paths and multi-... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
-| 36 | 972 | 972 — `(a..b).rev()` and tuple-of-struct values emit invali... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
-| 37 | 974 | 974 — `HashMap` runtime traps: `for k in map` with `String`... | stdlib-api | 0 | 0 | 1 | 5 | 4 | 10 |
-| 38 | 976 | 976 — Collection mutators (`push`) are reported to resolve ... | language-design | 0 | 0 | 1 | 5 | 4 | 10 |
-| 39 | 685 | 685 — IDE / Playground / Extension product-claim vs compile... | docs-audit | 0 | 0 | 1 | 5 | 3 | 9 |
-| 40 | 702 | 702 — Integrate `to_string` / `clone` / `hash` builtins int... | stdlib-api | 0 | 0 | 4 | 3 | 2 | 9 |
-| 41 | 710 | 710 — Linear collection ADTs: `Deque<T>` / queue / stack / ... | stdlib-api | 1 | 0 | 1 | 5 | 2 | 9 |
-| 42 | 729 | 729 — Intrinsic layer separation (unblocked epic) | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
-| 43 | 850 | 850 — Compiler phase-arena implementation (wasm32-gc host o... | selfhost-infra | 0 | 0 | 1 | 5 | 3 | 9 |
-| 44 | 917 | 917 — Free-function eradication execution (must-delete / as... | stdlib-api | 0 | 0 | 2 | 3 | 4 | 9 |
-| 45 | 919 | 919 — `.expected` to `test:` fixture migration (ADR-041 Pha... | tooling | 0 | 0 | 1 | 5 | 3 | 9 |
-| 46 | 933 | 933 — typechecker results are discarded before lowering; MI... | compiler | 0 | 0 | 1 | 5 | 3 | 9 |
-| 47 | 935 | 935 — arguments of non-generic calls are never checked agai... | compiler | 0 | 0 | 1 | 5 | 3 | 9 |
-| 48 | 939 | 939 — `TY_UNKNOWN` unifies with every type and may survive ... | compiler | 0 | 0 | 1 | 5 | 3 | 9 |
-| 49 | 957 | 957 — `std::host::stdio::read_stdin` body/docs say 'returns... | stdlib-api | 0 | 0 | 1 | 3 | 5 | 9 |
-| 50 | 681 | 681 — Stdlib manifest reachability contract audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
-| 51 | 682 | 682 — Component / WIT product-claim verification audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
-| 52 | 703 | 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046) | stdlib-api | 0 | 0 | 2 | 3 | 3 | 8 |
-| 53 | 711 | 711 — Rich stdlib reference docs with crates.io / docs.rs /... | stdlib-docs | 2 | 0 | 1 | 3 | 2 | 8 |
-| 54 | 712 | 712 — LLM code quality signal gates for readability and std... | tooling-contract | 1 | 0 | 1 | 3 | 3 | 8 |
-| 55 | 713 | 713 — Stdlib and Arukellt code best-practices doc pack | language-docs | 0 | 0 | 1 | 5 | 2 | 8 |
-| 56 | 799 | 799 — CQ-18: code-quality closed-loop strict final audit | code-quality | 0 | 0 | 5 | 1 | 2 | 8 |
-| 57 | 818 | 818 — CoreOpRegistry production scaffold exit | compiler-internal | 0 | 0 | 1 | 5 | 2 | 8 |
-| 58 | 947 | 947 — `wasm32-gc` print leaks a WASI output-stream handle p... | wasi | 0 | 0 | 1 | 3 | 4 | 8 |
-| 59 | 961 | 961 — Competitive-programming input ergonomics: no `split_w... | stdlib-api | 0 | 0 | 1 | 3 | 4 | 8 |
-| 60 | 968 | 968 — `Deque<T>` traps on wasm32-gc in real use; `is_empty`... | stdlib-api | 0 | 0 | 1 | 3 | 4 | 8 |
-| 61 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 2 | 3 | 2 | 7 |
-| 62 | 677 | 677 — Component developer experience (CLI, cookbooks, diagn... | cli | 0 | 0 | 1 | 3 | 3 | 7 |
-| 63 | 680 | 680 — Target tier honesty audit (stable / smoke / scaffold ... | docs-audit | 1 | 0 | 1 | 2 | 3 | 7 |
-| 64 | 959 | 959 — `std/prelude.ark` header still says 'auto-imported in... | docs-audit | 0 | 0 | 1 | 2 | 4 | 7 |
-| 65 | 683 | 683 — User-facing executable example audit (Quickstart / sk... | docs-audit | 0 | 0 | 1 | 2 | 3 | 6 |
-| 66 | 684 | 684 — False-done and limited-scope done issue re-audit program | docs-audit | 0 | 0 | 1 | 2 | 3 | 6 |
-| 67 | 801 | GC 完了までのプラン | gc | 0 | 0 | 1 | 1 | 4 | 6 |
-| 68 | 952 | 952 — glob import (`use path::*`) is not supported, so the ... | parser | 0 | 0 | 1 | 1 | 4 | 6 |
-| 69 | 669 | 669 — WIT import IDE and formatter surface | lsp-navigation | 0 | 0 | 1 | 1 | 3 | 5 |
-| 70 | 699 | 699 — T4 LLVM native SIMD lowering for std::simd | native-feature | 0 | 0 | 1 | 1 | 3 | 5 |
-| 71 | 918 | 918 — `arukellt test` runner UX: filter, no-fail-fast, dire... | tooling | 0 | 0 | 1 | 1 | 3 | 5 |
+| 32 | 967 | 967 — Generic Vec methods on `Vec<String>` and generic `ite... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
+| 33 | 969 | 969 — Rust-style numeric constants (`i32::MAX`, `f64::INFIN... | language-design | 0 | 0 | 1 | 5 | 4 | 10 |
+| 34 | 970 | 970 — Module `const` references: qualified paths and multi-... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
+| 35 | 972 | 972 — `(a..b).rev()` and tuple-of-struct values emit invali... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
+| 36 | 974 | 974 — `HashMap` runtime traps: `for k in map` with `String`... | stdlib-api | 0 | 0 | 1 | 5 | 4 | 10 |
+| 37 | 976 | 976 — Collection mutators (`push`) are reported to resolve ... | language-design | 0 | 0 | 1 | 5 | 4 | 10 |
+| 38 | 685 | 685 — IDE / Playground / Extension product-claim vs compile... | docs-audit | 0 | 0 | 1 | 5 | 3 | 9 |
+| 39 | 702 | 702 — Integrate `to_string` / `clone` / `hash` builtins int... | stdlib-api | 0 | 0 | 4 | 3 | 2 | 9 |
+| 40 | 710 | 710 — Linear collection ADTs: `Deque<T>` / queue / stack / ... | stdlib-api | 1 | 0 | 1 | 5 | 2 | 9 |
+| 41 | 729 | 729 — Intrinsic layer separation (unblocked epic) | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
+| 42 | 850 | 850 — Compiler phase-arena implementation (wasm32-gc host o... | selfhost-infra | 0 | 0 | 1 | 5 | 3 | 9 |
+| 43 | 917 | 917 — Free-function eradication execution (must-delete / as... | stdlib-api | 0 | 0 | 2 | 3 | 4 | 9 |
+| 44 | 919 | 919 — `.expected` to `test:` fixture migration (ADR-041 Pha... | tooling | 0 | 0 | 1 | 5 | 3 | 9 |
+| 45 | 933 | 933 — typechecker results are discarded before lowering; MI... | compiler | 0 | 0 | 1 | 5 | 3 | 9 |
+| 46 | 935 | 935 — arguments of non-generic calls are never checked agai... | compiler | 0 | 0 | 1 | 5 | 3 | 9 |
+| 47 | 939 | 939 — `TY_UNKNOWN` unifies with every type and may survive ... | compiler | 0 | 0 | 1 | 5 | 3 | 9 |
+| 48 | 957 | 957 — `std::host::stdio::read_stdin` body/docs say 'returns... | stdlib-api | 0 | 0 | 1 | 3 | 5 | 9 |
+| 49 | 681 | 681 — Stdlib manifest reachability contract audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
+| 50 | 682 | 682 — Component / WIT product-claim verification audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
+| 51 | 703 | 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046) | stdlib-api | 0 | 0 | 2 | 3 | 3 | 8 |
+| 52 | 711 | 711 — Rich stdlib reference docs with crates.io / docs.rs /... | stdlib-docs | 2 | 0 | 1 | 3 | 2 | 8 |
+| 53 | 712 | 712 — LLM code quality signal gates for readability and std... | tooling-contract | 1 | 0 | 1 | 3 | 3 | 8 |
+| 54 | 713 | 713 — Stdlib and Arukellt code best-practices doc pack | language-docs | 0 | 0 | 1 | 5 | 2 | 8 |
+| 55 | 799 | 799 — CQ-18: code-quality closed-loop strict final audit | code-quality | 0 | 0 | 5 | 1 | 2 | 8 |
+| 56 | 818 | 818 — CoreOpRegistry production scaffold exit | compiler-internal | 0 | 0 | 1 | 5 | 2 | 8 |
+| 57 | 947 | 947 — `wasm32-gc` print leaks a WASI output-stream handle p... | wasi | 0 | 0 | 1 | 3 | 4 | 8 |
+| 58 | 961 | 961 — Competitive-programming input ergonomics: no `split_w... | stdlib-api | 0 | 0 | 1 | 3 | 4 | 8 |
+| 59 | 968 | 968 — `Deque<T>` traps on wasm32-gc in real use; `is_empty`... | stdlib-api | 0 | 0 | 1 | 3 | 4 | 8 |
+| 60 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 2 | 3 | 2 | 7 |
+| 61 | 677 | 677 — Component developer experience (CLI, cookbooks, diagn... | cli | 0 | 0 | 1 | 3 | 3 | 7 |
+| 62 | 680 | 680 — Target tier honesty audit (stable / smoke / scaffold ... | docs-audit | 1 | 0 | 1 | 2 | 3 | 7 |
+| 63 | 959 | 959 — `std/prelude.ark` header still says 'auto-imported in... | docs-audit | 0 | 0 | 1 | 2 | 4 | 7 |
+| 64 | 683 | 683 — User-facing executable example audit (Quickstart / sk... | docs-audit | 0 | 0 | 1 | 2 | 3 | 6 |
+| 65 | 684 | 684 — False-done and limited-scope done issue re-audit program | docs-audit | 0 | 0 | 1 | 2 | 3 | 6 |
+| 66 | 801 | GC 完了までのプラン | gc | 0 | 0 | 1 | 1 | 4 | 6 |
+| 67 | 952 | 952 — glob import (`use path::*`) is not supported, so the ... | parser | 0 | 0 | 1 | 1 | 4 | 6 |
+| 68 | 669 | 669 — WIT import IDE and formatter surface | lsp-navigation | 0 | 0 | 1 | 1 | 3 | 5 |
+| 69 | 699 | 699 — T4 LLVM native SIMD lowering for std::simd | native-feature | 0 | 0 | 1 | 1 | 3 | 5 |
+| 70 | 918 | 918 — `arukellt test` runner UX: filter, no-fail-fast, dire... | tooling | 0 | 0 | 1 | 1 | 3 | 5 |

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-29T14:02:41Z",
+  "generated_at": "2026-10-29T16:59:22Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -521,8 +521,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 4
+        "checked": 1,
+        "unchecked": 3
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -606,8 +606,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 4,
-        "unchecked": 1
+        "checked": 5,
+        "unchecked": 0
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -727,23 +727,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 3
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "none"
-      }
-    },
-    {
-      "id": "954",
-      "path": "954-wasm32-i64-const-invalid-wasm.md",
-      "title": "954 — wasm32: referencing a top-level `i64` const produces invalid Wasm",
-      "track": "compiler",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 2
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -927,30 +910,15 @@
       "track": "compiler",
       "status": "open",
       "depends_on": [],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "967"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 3
       },
       "orchestration": {
         "class": "architecture-implementation",
-        "upstream_notes": "none"
-      }
-    },
-    {
-      "id": "967",
-      "path": "967-generic-collection-methods-string-linear-gaps.md",
-      "title": "967 — Generic Vec methods on `Vec<String>` and generic `iter()` are missing/broken on wasm32",
-      "track": "compiler",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": "none"
       }
     },
@@ -997,8 +965,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 3
+        "checked": 1,
+        "unchecked": 5
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -1197,6 +1165,25 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#934"
+      }
+    },
+    {
+      "id": "967",
+      "path": "967-generic-collection-methods-string-linear-gaps.md",
+      "title": "967 — Generic Vec methods on `Vec<String>` and generic `iter()` are missing/broken on wasm32",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [
+        "966"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#966"
       }
     },
     {

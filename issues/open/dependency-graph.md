@@ -45,7 +45,6 @@ graph LR
   I951["951 951 — implement ADR-088: `mut` parameter mode, mutable-place and same-place conflict checks"]
   I952["952 952 — glob import (`use path::*`) is not supported, so the v2 explicit prelude policy requires long name lists"]
   I953["953 953 — `Ord::cmp` traps at runtime on both targets; `std::collections::sort::sort` is unusable"]
-  I954["954 954 — wasm32: referencing a top-level `i64` const produces invalid Wasm"]
   I955["955 955 — wasm32: two live `Vec<i64>` corrupt the managed heap (out-of-bounds trap)"]
   I956["956 956 — wasm32-gc: `print`/`println` reject strings over 4096 bytes (`Buffer too large for blocking-write-and-flush`)"]
   I957["957 957 — `std::host::stdio::read_stdin` body/docs say 'returns empty', but runtime reads stdin"]
@@ -57,7 +56,6 @@ graph LR
   I963["963 963 — `i64.to_string()` is not usable (method dispatch picks the i32 impl)"]
   I964["964 964 — `let x: i64 = 0` binds x as i32 (annotation ignored for unsuffixed numeric literals)"]
   I966["966 966 — Same-named methods across type specializations resolve to one impl: `Vec::contains` traps and `Vec<String>::sort` runs the i32 sort"]
-  I967["967 967 — Generic Vec methods on `Vec<String>` and generic `iter()` are missing/broken on wasm32"]
   I968["968 968 — `Deque<T>` traps on wasm32-gc in real use; `is_empty`/`len` collide with the Vec methods"]
   I969["969 969 — Rust-style numeric constants (`i32::MAX`, `f64::INFINITY`) and type aliases (`VecDeque<T>`) are not expressible"]
   I970["970 970 — Module `const` references: qualified paths and multi-const imports emit invalid Wasm"]
@@ -71,6 +69,7 @@ graph LR
   I933["933 933 — typechecker results are discarded before lowering; MIR re-infers types from strings"]
   I936["936 936 — prelude core functions have placeholder signatures; checker and emitter dispatch them by name"]
   I937["937 937 — `let` type annotations silently replace a mismatching inferred type"]
+  I967["967 967 — Generic Vec methods on `Vec<String>` and generic `iter()` are missing/broken on wasm32"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
   I935["935 935 — arguments of non-generic calls are never checked against parameter types"]
@@ -83,6 +82,7 @@ graph LR
   I934 --> I933
   I934 --> I936
   I934 --> I937
+  I966 --> I967
   I682 --> I683
   I681 --> I711
   I710 --> I711
@@ -136,7 +136,6 @@ graph LR
 - **951** depends on: none; blocks: none
 - **952** depends on: none; blocks: none
 - **953** depends on: none; blocks: none
-- **954** depends on: none; blocks: none
 - **955** depends on: none; blocks: none
 - **956** depends on: none; blocks: none
 - **957** depends on: none; blocks: none
@@ -147,8 +146,7 @@ graph LR
 - **962** depends on: none; blocks: none
 - **963** depends on: none; blocks: none
 - **964** depends on: none; blocks: none
-- **966** depends on: none; blocks: none
-- **967** depends on: none; blocks: none
+- **966** depends on: none; blocks: 967
 - **968** depends on: none; blocks: none
 - **969** depends on: none; blocks: none
 - **970** depends on: none; blocks: none
@@ -162,6 +160,7 @@ graph LR
 - **933** depends on: 934; blocks: none
 - **936** depends on: 934; blocks: 935, 939
 - **937** depends on: 934; blocks: none
+- **967** depends on: 966; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **711** depends on: 681, 709, 710; blocks: 712, 713
 - **935** depends on: 934, 936; blocks: none

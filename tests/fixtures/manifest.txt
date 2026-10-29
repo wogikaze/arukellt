@@ -995,6 +995,7 @@ run:stdlib_core/cmp_ord_char.ark
 run:stdlib_core/cmp_ord_i32.ark
 run:stdlib_core/cmp_ord_string.ark
 run:stdlib_core/const_limits.ark
+run:stdlib_core/const_reference_lowering.ark
 run:stdlib_core/convert.ark
 run:stdlib_core/convert_bool_to_string.ark
 run:stdlib_core/convert_f64_to_string.ark
@@ -3594,3 +3595,4 @@ diag:diagnostics/removed_prelude_push_char.ark
 diag:diagnostics/removed_prelude_push_char_wasm32.ark
 diag:diagnostics/removed_prelude_text_free.ark
 diag:diagnostics/removed_prelude_text_free_wasm32.ark
+diag:diagnostics/return_type_arg_mismatch.ark
