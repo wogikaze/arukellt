@@ -1,18 +1,22 @@
-// Remove_entry: returns empty Vec for absent key
-use std::collections::hash
+// Remove_entry: absent key returns None and leaves the map unchanged
 use std::test
 
 fn main() {
-    let mut m = hash::hashmap_new()
-    hash::hashmap_set(m, 1, 10)
+    let mut m = HashMap::new<i32, i32>()
+    let _ = m.insert(1, 10)
 
-    let entry = hash::hashmap_remove_entry(m, 999)
-    test::assert_eq_i32(len(entry), 0)
-    test::assert_eq_i32(hash::hashmap_size(m), 1)
-    test::assert_true(hash::hashmap_contains(m, 1))
+    match m.remove_entry(999) {
+        Option::Some(_) => Std::panic("expected None for absent key"),
+        None => {
+        },
+    }
+    test::assert_eq_i32(m.len(), 1)
+    test::assert_true(m.contains_key(1))
 
-    // Remove_entry from empty map
-    let mut m2 = hash::hashmap_new()
-    let entry2 = hash::hashmap_remove_entry(m2, 1)
-    test::assert_eq_i32(len(entry2), 0)
+    let mut m2 = HashMap::new<i32, i32>()
+    match m2.remove_entry(1) {
+        Option::Some(_) => Std::panic("expected None for empty map"),
+        None => {
+        },
+    }
 }

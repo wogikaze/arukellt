@@ -1,16 +1,30 @@
-// Drain: returns all entries, empties the map
-use std::collections::hash
+// Drain: returns every entry as a typed pair and empties the map
 use std::test
 
 fn main() {
-    let mut m = hash::hashmap_new()
-    hash::hashmap_set(m, 1, 10)
-    hash::hashmap_set(m, 2, 20)
+    let mut m = HashMap::new<i32, i32>()
+    let _ = m.insert(1, 10)
+    let _ = m.insert(2, 20)
 
-    let drained = hash::hashmap_drain(m)
-    test::assert_eq_i32(len(drained), 4)  // 2 pairs
-    test::assert_true(hash::hashmap_is_empty(m))
-    test::assert_eq_i32(hash::hashmap_size(m), 0)
-    test::assert_false(hash::hashmap_contains(m, 1))
-    test::assert_false(hash::hashmap_contains(m, 2))
+    let drained = m.drain()
+    test::assert_eq_i32(len(drained), 2)
+    let mut found_1_10 = false
+    let mut found_2_20 = false
+    let mut i = 0
+    while i < len(drained) {
+        let (k, v) = get_unchecked(drained, i)
+        if k == 1 && v == 10 {
+            found_1_10 = true
+        }
+        if k == 2 && v == 20 {
+            found_2_20 = true
+        }
+        i = i + 1
+    }
+    test::assert_true(found_1_10)
+    test::assert_true(found_2_20)
+    test::assert_true(m.is_empty())
+    test::assert_eq_i32(m.len(), 0)
+    test::assert_false(m.contains_key(1))
+    test::assert_false(m.contains_key(2))
 }

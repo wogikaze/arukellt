@@ -2141,8 +2141,62 @@ the receiver spelling.
 | `hash::hashset_str_len(s)` | `s.len()` |
 | `hash::hashset_str_is_empty(s)` | `s.is_empty()` |
 
-The remaining `hash::hashmap_*` flat-store frees are a separate HashMap wave;
-only the HashSet rows above were retired here.
+### `std::collections::hash` HashMap Store Frees (ADR-087 Window)
+
+The 21 `hash::hashmap_*` free functions were the flat `Vec<i32>` store layer
+behind `HashMap<i32, i32>`. They are deprecated with W0009 under the
+[ADR-087](../adr/ADR-087-0x-deprecation-exception.md) 0.x exception; the
+declarations stay callable through the window and the replacement is
+`HashMap::new<i32, i32>()` / `HashMap::with_capacity<i32, i32>(n)` plus the
+receiver methods. The capacity / bulk-maintenance group
+(`with_capacity`, `capacity`, `reserve`, `try_reserve`, `shrink_to_fit`,
+`clear`, `drain`, `remove_entry`, `extend`) is implemented for
+`HashMap<i32, i32>` only: the String and fn-valued stores reject those calls
+at typecheck with `E0200` instead of lowering over the wrong bucket layout.
+
+| Old API | Replacement |
+|---------|-------------|
+| `hash::hashmap_new()` | `HashMap::new<i32, i32>()` |
+| `hash::hashmap_get(m, k)` | `m.get(k)` (`Option<i32>`; the old sentinel was `0`) |
+| `hash::hashmap_get_option(m, k)` | `m.get(k)` |
+| `hash::hashmap_contains(m, k)` | `m.contains_key(k)` |
+| `hash::hashmap_set(m, k, v)` | `m.insert(k, v)` (returns the previous `Option<i32>`, not `bool`) |
+| `hash::hashmap_insert(m, k, v)` | `m.insert(k, v)` |
+| `hash::hashmap_size(m)` | `m.len()` |
+| `hash::hashmap_capacity(m)` | `m.capacity()` |
+| `hash::hashmap_with_capacity(n)` | `HashMap::with_capacity<i32, i32>(n)` |
+| `hash::hashmap_reserve(m, n)` | `m.reserve(n)` |
+| `hash::hashmap_try_reserve(m, n)` | `m.try_reserve(n)` (`true` means the reserve completed) |
+| `hash::hashmap_shrink_to_fit(m)` | `m.shrink_to_fit()` |
+| `hash::hashmap_is_empty(m)` | `m.is_empty()` |
+| `hash::hashmap_clear(m)` | `m.clear()` |
+| `hash::hashmap_keys(m)` | `m.keys()` |
+| `hash::hashmap_values(m)` | `m.values()` |
+| `hash::hashmap_entries(m)` | `m.entries()` (`Vec<(i32, i32)>`, not the flat `Vec<i32>`) |
+| `hash::hashmap_drain(m)` | `m.drain()` (`Vec<(i32, i32)>`, not the flat `Vec<i32>`) |
+| `hash::hashmap_remove(m, k)` | `m.remove(k)` |
+| `hash::hashmap_remove_entry(m, k)` | `m.remove_entry(k)` (`Option<(i32, i32)>`, not a flat `Vec<i32>`) |
+| `hash::hashmap_extend(m, other)` | `m.extend(other)` |
+
+**Before:**
+
+<!-- skip-doc-check reason="historical removed-API example" owner="#917" kind="non-runnable" expires="2026-10-31" -->
+```ark
+let m = hash::hashmap_with_capacity(4)
+let _ = hash::hashmap_set(m, 1, 10)
+let n = hash::hashmap_size(m)
+let cap = hash::hashmap_capacity(m)
+```
+
+**After:**
+
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#917" kind="non-runnable" expires="2026-10-31" -->
+```ark
+let mut m: HashMap<i32, i32> = HashMap::with_capacity<i32, i32>(4)
+let _ = m.insert(1, 10)
+let n = m.len()
+let cap = m.capacity()
+```
 
 ### Option/Result Map
 

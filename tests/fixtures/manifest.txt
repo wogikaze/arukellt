@@ -318,6 +318,8 @@ diag:diagnostics/removed_canonical_free.ark
 diag:diagnostics/removed_canonical_free_wasm32.ark
 diag:diagnostics/removed_hashmap_adapter.ark
 diag:diagnostics/removed_hashmap_adapter_wasm32.ark
+diag:diagnostics/deprecated_hashmap_free.ark
+diag:diagnostics/deprecated_hashmap_free_wasm32.ark
 diag:diagnostics/removed_hashset_adapter.ark
 diag:diagnostics/removed_hashset_adapter_wasm32.ark
 diag:diagnostics/deprecated_time_monotonic_now.ark

@@ -75,7 +75,7 @@ _No manifest-backed functions in this module._
 
 - Source: [`../../../std/collections/hash.ark`](../../../std/collections/hash.ark)
 - Manifest-backed functions: 21
-- Stability: stable 21
+- Stability: deprecated 21
 
 Hash-based collection helpers.
 
@@ -127,31 +127,33 @@ where flags are `0 = empty`, `1 = occupied`.
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `hashmap_new` | `() -> Vec<i32>` | `stable` | ✅ functional | - |
-| `hashmap_get` | `(Vec<i32>, i32) -> i32` | `stable` | ✅ functional | - |
-| `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `stable` | ✅ functional | - |
-| `hashmap_set` | `(Vec<i32>, i32, i32) -> bool` | `stable` | ✅ functional | Insert or update a key. Returns true when the value was stored. |
-| `hashmap_insert` | `(Vec<i32>, i32, i32) -> Option<i32>` | `stable` | ✅ functional | Insert or update a key and return the previous value, matching Rust's |
-| `hashmap_size` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
-| `hashmap_capacity` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | Return the current bucket capacity. |
-| `hashmap_with_capacity` | `(i32) -> Vec<i32>` | `stable` | ✅ functional | Create a new HashMap with a specific initial capacity. |
-| `hashmap_reserve` | `(Vec<i32>, i32) -> ()` | `stable` | ✅ functional | Ensure the map can hold at least additional more inserted keys without |
-| `hashmap_try_reserve` | `(Vec<i32>, i32) -> bool` | `stable` | ✅ functional | Fallible reserve facade. The current Vec-backed implementation has no |
-| `hashmap_shrink_to_fit` | `(Vec<i32>) -> ()` | `stable` | ✅ functional | Shrink buckets to the minimum capacity that preserves the load-factor |
-| `hashmap_get_option` | `(Vec<i32>, i32) -> Option<i32>` | `stable` | ✅ functional | Look up a key and return Some(value) or None. |
-| `hashmap_is_empty` | `(Vec<i32>) -> bool` | `stable` | ✅ functional | Return true if the map contains no entries. |
-| `hashmap_clear` | `(Vec<i32>) -> ()` | `stable` | ✅ functional | Remove all entries from the map, resetting size to 0. |
-| `hashmap_keys` | `(Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | Return a Vec<i32> of all keys currently in the map. |
-| `hashmap_values` | `(Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | Return a Vec<i32> of all values currently in the map. |
-| `hashmap_entries` | `(Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | Return a flat Vec<i32> snapshot of key/value pairs: |
-| `hashmap_drain` | `(Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | Return all entries as flat key/value pairs and clear the map. |
-| `hashmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `stable` | ✅ functional | Remove a key from the map and return its previous value, or None if absent. |
-| `hashmap_remove_entry` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | ✅ functional | Remove a key and return a flat [key, value] pair, or an empty Vec if absent. |
-| `hashmap_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `stable` | ✅ functional | Extend a map with all key/value pairs from another map (other). |
+| ~~`hashmap_new`~~ ⚠️ Deprecated → `HashMap::new` | `() -> Vec<i32>` | `deprecated` | ✅ functional | - |
+| ~~`hashmap_get`~~ ⚠️ Deprecated → `HashMap::get` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | - |
+| ~~`hashmap_contains`~~ ⚠️ Deprecated → `HashMap::contains_key` | `(Vec<i32>, i32) -> bool` | `deprecated` | ✅ functional | - |
+| ~~`hashmap_set`~~ ⚠️ Deprecated → `HashMap::insert` | `(Vec<i32>, i32, i32) -> bool` | `deprecated` | ✅ functional | Insert or update a key. Returns true when the value was stored. |
+| ~~`hashmap_insert`~~ ⚠️ Deprecated → `HashMap::insert` | `(Vec<i32>, i32, i32) -> Option<i32>` | `deprecated` | ✅ functional | Insert or update a key and return the previous value, matching Rust's |
+| ~~`hashmap_size`~~ ⚠️ Deprecated → `HashMap::len` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
+| ~~`hashmap_capacity`~~ ⚠️ Deprecated → `HashMap::capacity` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | Return the current bucket capacity. |
+| ~~`hashmap_with_capacity`~~ ⚠️ Deprecated → `HashMap::with_capacity` | `(i32) -> Vec<i32>` | `deprecated` | ✅ functional | Create a new HashMap with a specific initial capacity. |
+| ~~`hashmap_reserve`~~ ⚠️ Deprecated → `HashMap::reserve` | `(Vec<i32>, i32) -> ()` | `deprecated` | ✅ functional | Ensure the map can hold at least additional more inserted keys without |
+| ~~`hashmap_try_reserve`~~ ⚠️ Deprecated → `HashMap::try_reserve` | `(Vec<i32>, i32) -> bool` | `deprecated` | ✅ functional | Fallible reserve facade. The current Vec-backed implementation has no |
+| ~~`hashmap_shrink_to_fit`~~ ⚠️ Deprecated → `HashMap::shrink_to_fit` | `(Vec<i32>) -> ()` | `deprecated` | ✅ functional | Shrink buckets to the minimum capacity that preserves the load-factor |
+| ~~`hashmap_get_option`~~ ⚠️ Deprecated → `HashMap::get` | `(Vec<i32>, i32) -> Option<i32>` | `deprecated` | ✅ functional | Look up a key and return Some(value) or None. |
+| ~~`hashmap_is_empty`~~ ⚠️ Deprecated → `HashMap::is_empty` | `(Vec<i32>) -> bool` | `deprecated` | ✅ functional | Return true if the map contains no entries. |
+| ~~`hashmap_clear`~~ ⚠️ Deprecated → `HashMap::clear` | `(Vec<i32>) -> ()` | `deprecated` | ✅ functional | Remove all entries from the map, resetting size to 0. |
+| ~~`hashmap_keys`~~ ⚠️ Deprecated → `HashMap::keys` | `(Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | Return a Vec<i32> of all keys currently in the map. |
+| ~~`hashmap_values`~~ ⚠️ Deprecated → `HashMap::values` | `(Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | Return a Vec<i32> of all values currently in the map. |
+| ~~`hashmap_entries`~~ ⚠️ Deprecated → `HashMap::entries` | `(Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | Return a flat Vec<i32> snapshot of key/value pairs: |
+| ~~`hashmap_drain`~~ ⚠️ Deprecated → `HashMap::drain` | `(Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | Return all entries as flat key/value pairs and clear the map. |
+| ~~`hashmap_remove`~~ ⚠️ Deprecated → `HashMap::remove` | `(Vec<i32>, i32) -> Option<i32>` | `deprecated` | ✅ functional | Remove a key from the map and return its previous value, or None if absent. |
+| ~~`hashmap_remove_entry`~~ ⚠️ Deprecated → `HashMap::remove_entry` | `(Vec<i32>, i32) -> Vec<i32>` | `deprecated` | ✅ functional | Remove a key and return a flat [key, value] pair, or an empty Vec if absent. |
+| ~~`hashmap_extend`~~ ⚠️ Deprecated → `HashMap::extend` | `(Vec<i32>, Vec<i32>) -> ()` | `deprecated` | ✅ functional | Extend a map with all key/value pairs from another map (other). |
 
 #### `std::collections::hash::hashmap_extend`
 
 Extend a raw i32->i32 HashMap with all key/value pairs from another map. Existing keys are overwritten by the source map. Mirrors Rust's HashMap::extend.
+
+> ⚠️ **21 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
 
 ## Module `std::collections::hash_set`
 

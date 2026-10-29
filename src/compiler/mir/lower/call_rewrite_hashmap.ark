@@ -10,28 +10,34 @@ use mir::mono_names
 use std::prelude::{byte_at, clone, ends_with, eq, index_of, starts_with, substring}
 use std::text
 fn mir_rewrite_hashmap_constructor(callee_name: String) -> String {
-    // Cheap gate before the six spelling probes below: each probe builds
+    // Cheap gate before the spelling probes below: each probe builds
     // several concatenated candidate names, and almost every call site in
     // real programs is not a HashMap constructor at all (#851).
     if !starts_with(clone(callee_name), String_from("HashMap")) {
         return String_new()
     }
-    if hashmap_constructor_matches(clone(callee_name), "i32", "i32") {
+    // `with_capacity` is part of the flat-store maintenance surface; the
+    // other pairs reject the call at typecheck, so only the i32->i32 target
+    // is reachable here (#917).
+    if hashmap_constructor_matches(clone(callee_name), "with_capacity", "i32", "i32") {
+        return String_from("hashmap_with_capacity")
+    }
+    if hashmap_constructor_matches(clone(callee_name), "new", "i32", "i32") {
         return String_from("hashmap_new")
     }
-    if hashmap_constructor_matches(clone(callee_name), "String", "i32") {
+    if hashmap_constructor_matches(clone(callee_name), "new", "String", "i32") {
         return String_from("hash_string::hashmap_str_i32_new")
     }
-    if hashmap_constructor_matches(clone(callee_name), "i32", "String") {
+    if hashmap_constructor_matches(clone(callee_name), "new", "i32", "String") {
         return String_from("hash_string::hashmap_i32_str_new")
     }
-    if hashmap_constructor_matches(clone(callee_name), "String", "String") {
+    if hashmap_constructor_matches(clone(callee_name), "new", "String", "String") {
         return String_from("hash_string::hashmap_str_str_new")
     }
-    if hashmap_constructor_matches(clone(callee_name), "i32", "fn") {
+    if hashmap_constructor_matches(clone(callee_name), "new", "i32", "fn") {
         return String_from("hash_fn::hashmap_i32_fn_new")
     }
-    if hashmap_constructor_matches(clone(callee_name), "String", "fn") {
+    if hashmap_constructor_matches(clone(callee_name), "new", "String", "fn") {
         return String_from("hash_str_fn::hashmap_str_fn_new")
     }
     String_new()
@@ -87,12 +93,42 @@ fn hashmap_i32_i32_method_target(method: String) -> String {
     if eq(clone(method), String_from("entries")) {
         return String_from("hashmap_entry_pairs")
     }
+    if eq(clone(method), String_from("capacity")) {
+        return String_from("hashmap_capacity")
+    }
+    if eq(clone(method), String_from("reserve")) {
+        return String_from("hashmap_reserve")
+    }
+    if eq(clone(method), String_from("try_reserve")) {
+        return String_from("hashmap_try_reserve")
+    }
+    if eq(clone(method), String_from("shrink_to_fit")) {
+        return String_from("hashmap_shrink_to_fit")
+    }
+    if eq(clone(method), String_from("clear")) {
+        return String_from("hashmap_clear")
+    }
+    if eq(clone(method), String_from("drain")) {
+        return String_from("hashmap_drain_pairs")
+    }
+    if eq(clone(method), String_from("remove_entry")) {
+        return String_from("hashmap_remove_entry_pair")
+    }
+    if eq(clone(method), String_from("extend")) {
+        return String_from("hashmap_extend")
+    }
     String_new()
 }
 
 fn hashmap_family_method_target(family: String, method: String) -> String {
     if eq(clone(family), String_from("hash::ii")) {
         return hashmap_i32_i32_method_target(method)
+    }
+    // The maintenance surface exists only over the flat i32 store. Typecheck
+    // rejects the call on the other pairs; returning empty here keeps an
+    // unresolved path from crossing into the i32 helpers by accident.
+    if hashmap_method_requires_flat_store(clone(method)) {
+        return String_new()
     }
     if eq(clone(family), String_from("hash_string::hashmap_str")) {
         return hashmap_str_i32_method_target(method)
@@ -101,6 +137,17 @@ fn hashmap_family_method_target(family: String, method: String) -> String {
         return clone(family).concat(String_from("_contains"))
     }
     clone(family).concat(String_from("_").concat(method))
+}
+
+fn hashmap_method_requires_flat_store(method: String) -> bool {
+    eq(clone(method), String_from("capacity")) ||
+    eq(clone(method), String_from("reserve")) ||
+    eq(clone(method), String_from("try_reserve")) ||
+    eq(clone(method), String_from("shrink_to_fit")) ||
+    eq(clone(method), String_from("clear")) ||
+    eq(clone(method), String_from("drain")) ||
+    eq(clone(method), String_from("remove_entry")) ||
+    eq(clone(method), String_from("extend"))
 }
 
 // HashMap<String, i32> is the one pair whose implementation names do not
@@ -135,20 +182,30 @@ fn mir_hashmap_target_is_lowering(callee_name: String) -> bool {
     starts_with(clone(callee_name), String_from("hash_str_fn::hashmap_"))
 }
 
-fn hashmap_constructor_matches(callee_name: String, key_name: String, value_name: String) -> bool {
+fn hashmap_constructor_matches(
+    callee_name: String,
+    ctor_name: String,
+    key_name: String,
+    value_name: String
+) -> bool {
     let suffix = String_from("__").concat(key_name.concat(String_from("__").concat(value_name)))
-    let safe_prefix = String_from("HashMap__new").concat(suffix)
-    let source_prefix = String_from("HashMap::new").concat(suffix)
-    let legacy_safe_prefix = String_from("HashMap_new").concat(suffix)
+    let safe_prefix = String_from("HashMap__").concat(ctor_name.clone().concat(suffix.clone()))
+    let source_prefix = String_from("HashMap::").concat(ctor_name.clone().concat(suffix.clone()))
+    let legacy_safe_prefix = String_from("HashMap_").concat(ctor_name.concat(suffix))
     eq(clone(callee_name), safe_prefix) ||
     eq(clone(callee_name), source_prefix) ||
     eq(clone(callee_name), legacy_safe_prefix) ||
     // fn(i32) -> i32 type args mangle with the full signature spelling
     // (fn_i32_i32_), not the bare fn tag used by type names (#691).
-    hashmap_constructor_matches_sig(callee_name, key_name, value_name)
+    hashmap_constructor_matches_sig(callee_name, ctor_name, key_name, value_name)
 }
 
-fn hashmap_constructor_matches_sig(callee_name: String, key_name: String, value_name: String) -> bool {
+fn hashmap_constructor_matches_sig(
+    callee_name: String,
+    ctor_name: String,
+    key_name: String,
+    value_name: String
+) -> bool {
     if !eq(clone(value_name), String_from("fn")) {
         return false
     }
@@ -156,8 +213,8 @@ fn hashmap_constructor_matches_sig(callee_name: String, key_name: String, value_
     // The incoming name may still carry the raw fn<i32,i32> spelling or the
     // HashMap:: prefix; normalize once so every variant compares equal.
     let safe = mono_names::mono_safe_name(callee_name)
-    eq(clone(safe), String_from("HashMap__new").concat(clone(suffix))) ||
-    eq(clone(safe), String_from("HashMap_new").concat(suffix))
+    eq(clone(safe), String_from("HashMap__").concat(ctor_name.clone().concat(suffix.clone()))) ||
+    eq(clone(safe), String_from("HashMap_").concat(ctor_name.concat(suffix)))
 }
 
 fn hashmap_method_name(callee_name: String) -> String {
@@ -169,6 +226,12 @@ fn hashmap_method_name(callee_name: String) -> String {
     }
     if starts_with(clone(callee_name), String_from("HashMap__")) {
         return strip_hashmap_method_suffix(substring(callee_name, 9, len(callee_name)))
+    }
+    // The capacity / bulk methods are declared on the concrete
+    // `impl HashMap<i32, i32>`; impl-method resolution can hand the call
+    // over as `HashMap_i32_i32::capacity` (#917).
+    if starts_with(clone(callee_name), String_from("HashMap_i32_i32::")) {
+        return strip_hashmap_method_suffix(substring(callee_name, 17, len(callee_name)))
     }
     String_new()
 }
@@ -182,7 +245,15 @@ fn is_hashmap_method_leaf(name: String) -> bool {
     eq(clone(name), String_from("keys")) ||
     eq(clone(name), String_from("values")) ||
     eq(clone(name), String_from("entries")) ||
-    eq(clone(name), String_from("is_empty"))
+    eq(clone(name), String_from("is_empty")) ||
+    eq(clone(name), String_from("capacity")) ||
+    eq(clone(name), String_from("reserve")) ||
+    eq(clone(name), String_from("try_reserve")) ||
+    eq(clone(name), String_from("shrink_to_fit")) ||
+    eq(clone(name), String_from("clear")) ||
+    eq(clone(name), String_from("drain")) ||
+    eq(clone(name), String_from("remove_entry")) ||
+    eq(clone(name), String_from("extend"))
 }
 
 fn strip_hashmap_method_suffix(name: String) -> String {
@@ -330,4 +401,25 @@ fn hashmap_family_for_callee(callee_name: String) -> String {
         return String_from("hash_str_fn::hashmap_str_fn")
     }
     String_new()
+}
+
+test mod "hashmap_rewrite" {
+    test "constructor" {
+        assert(mir_rewrite_hashmap_constructor("HashMap__new__i32__i32") == "hashmap_new")
+        assert(mir_rewrite_hashmap_constructor("HashMap__with_capacity__i32__i32") == "hashmap_with_capacity")
+        assert(len(mir_rewrite_hashmap_constructor("HashMap__with_capacity__String__i32")) == 0)
+    }
+    test "store_maintenance_targets" {
+        assert(hashmap_method_name("HashMap_i32_i32::capacity") == "capacity")
+        assert(hashmap_method_name("capacity") == "capacity")
+        assert(hashmap_family_method_target("hash::ii", "capacity") == "hashmap_capacity")
+        assert(hashmap_family_method_target("hash::ii", "drain") == "hashmap_drain_pairs")
+        assert(hashmap_family_method_target("hash::ii", "remove_entry") == "hashmap_remove_entry_pair")
+        assert(hashmap_family_method_target("hash::ii", "extend") == "hashmap_extend")
+    }
+    test "store_maintenance_stays_on_the_flat_pair" {
+        assert(len(hashmap_family_method_target("hash_string::hashmap_str", "capacity")) == 0)
+        assert(len(hashmap_family_method_target("hash_fn::hashmap_i32_fn", "drain")) == 0)
+        assert(len(hashmap_family_method_target("hash_string::hashmap_str", "insert")) > 0)
+    }
 }

@@ -142,11 +142,32 @@ methods = ["panic"]
 [[types]]
 name = "HashMap"
 kind = "struct"
-doc = "Hash-based key/value map."
+doc = "Hash-based key/value map. `new`, `insert`, `get`, `contains_key`, `remove`, `len`, `is_empty`, `keys`, `values`, and `entries` are generic over the supported pairs. The capacity / bulk-maintenance surface (`with_capacity`, `capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `drain`, `remove_entry`, `extend`) is implemented for `HashMap<i32, i32>` only; the other pairs reject it with E0200 instead of lowering over the wrong store layout."
 prelude = true
 stability = "provisional"
 generic_params = ["K", "V"]
 type_id = "hashmap"
+methods = [
+    "new",
+    "insert",
+    "get",
+    "contains_key",
+    "remove",
+    "len",
+    "is_empty",
+    "keys",
+    "values",
+    "entries",
+    "with_capacity",
+    "capacity",
+    "reserve",
+    "try_reserve",
+    "shrink_to_fit",
+    "clear",
+    "drain",
+    "remove_entry",
+    "extend",
+]
 
 # ─────────────────────────────────────────────
 # Prelude values (stable set auto-imported; other entries explicit-import only)
@@ -1625,13 +1646,16 @@ availability = { t1 = true, t3 = true }
 name = "std::collections::hash"
 stability = "stable"
 family = "collections"
-doc = "Implementation layer for `HashMap<i32,i32>` and `HashSet<i32>` (i32-keyed). `HashMap<K,V>` and `HashSet<T>` methods are the canonical surface and lower to these functions; the `hashset_*` store functions are non-public MIR lowering targets after #917. The still-public HashMap frees cover bucket capacity and bulk maintenance (`capacity`, `with_capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `drain`, `remove_entry`, `extend`) plus the flat-store operations the methods lower to (`new`, `get`, `get_option`, `contains`, `set`, `insert`, `size`, `is_empty`, `keys`, `values`, `entries`, `entry_pairs`, `remove`). `hashmap_get_option` distinguishes missing keys from stored zero values and `hashmap_set` returns bool so fixed-capacity insertion failure is explicit. The i32 hash policy matches std::core::hash::hash_i32."
+doc = "Implementation layer for `HashMap<i32,i32>` and `HashSet<i32>` (i32-keyed). `HashMap<K,V>` and `HashSet<T>` methods are the canonical surface and lower to these functions; the `hashset_*` store functions are non-public MIR lowering targets after #917. The 21 HashMap flat-store frees are `deprecated` through the ADR-087 window: their replacements are `HashMap::new<i32, i32>()` / `HashMap::with_capacity<i32, i32>(n)` plus the receiver methods (`m.get(k)`, `m.insert(k, v)`, `m.len()`, `m.keys()`, `m.values()`, `m.entries()`, `m.remove(k)`, `m.capacity()`, `m.reserve(n)`, `m.try_reserve(n)`, `m.shrink_to_fit()`, `m.clear()`, `m.drain()`, `m.remove_entry(k)`, `m.extend(other)`). `hashmap_get_option` distinguishes missing keys from stored zero values and `hashmap_set` returns bool so fixed-capacity insertion failure is explicit; the method contracts are `get`/`remove`/`insert` -> `Option`, `entries`/`drain` -> typed pairs, and `remove_entry` -> `Option<(i32, i32)>`. The i32 hash policy matches std::core::hash::hash_i32."
 
 [[functions]]
 name = "hashmap_new"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::new"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = []
 returns = "Vec<i32>"
 
@@ -1639,7 +1663,10 @@ returns = "Vec<i32>"
 name = "hashmap_get"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::get"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>", "i32"]
 returns = "i32"
 
@@ -1647,7 +1674,10 @@ returns = "i32"
 name = "hashmap_contains"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::contains_key"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>", "i32"]
 returns = "bool"
 
@@ -1655,7 +1685,10 @@ returns = "bool"
 name = "hashmap_set"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::insert"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>", "i32", "i32"]
 returns = "bool"
 
@@ -1663,7 +1696,10 @@ returns = "bool"
 name = "hashmap_insert"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::insert"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>", "i32", "i32"]
 returns = "Option<i32>"
 
@@ -1671,7 +1707,10 @@ returns = "Option<i32>"
 name = "hashmap_size"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::len"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>"]
 returns = "i32"
 
@@ -1679,7 +1718,10 @@ returns = "i32"
 name = "hashmap_capacity"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::capacity"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>"]
 returns = "i32"
 
@@ -1689,7 +1731,10 @@ returns = "i32"
 name = "hashmap_with_capacity"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::with_capacity"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["i32"]
 returns = "Vec<i32>"
 
@@ -1697,7 +1742,10 @@ returns = "Vec<i32>"
 name = "hashmap_reserve"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::reserve"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>", "i32"]
 returns = "()"
 
@@ -1705,7 +1753,10 @@ returns = "()"
 name = "hashmap_try_reserve"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::try_reserve"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>", "i32"]
 returns = "bool"
 
@@ -1713,7 +1764,10 @@ returns = "bool"
 name = "hashmap_shrink_to_fit"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::shrink_to_fit"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>"]
 returns = "()"
 
@@ -1721,7 +1775,10 @@ returns = "()"
 name = "hashmap_get_option"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::get"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>", "i32"]
 returns = "Option<i32>"
 
@@ -1729,7 +1786,10 @@ returns = "Option<i32>"
 name = "hashmap_is_empty"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::is_empty"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>"]
 returns = "bool"
 
@@ -1737,7 +1797,10 @@ returns = "bool"
 name = "hashmap_clear"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::clear"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>"]
 returns = "()"
 
@@ -1745,7 +1808,10 @@ returns = "()"
 name = "hashmap_keys"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::keys"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>"]
 returns = "Vec<i32>"
 
@@ -1753,7 +1819,10 @@ returns = "Vec<i32>"
 name = "hashmap_values"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::values"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>"]
 returns = "Vec<i32>"
 
@@ -1761,7 +1830,10 @@ returns = "Vec<i32>"
 name = "hashmap_entries"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::entries"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>"]
 returns = "Vec<i32>"
 
@@ -1769,7 +1841,10 @@ returns = "Vec<i32>"
 name = "hashmap_drain"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::drain"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>"]
 returns = "Vec<i32>"
 
@@ -1777,7 +1852,10 @@ returns = "Vec<i32>"
 name = "hashmap_remove"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::remove"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>", "i32"]
 returns = "Option<i32>"
 
@@ -1785,7 +1863,10 @@ returns = "Option<i32>"
 name = "hashmap_remove_entry"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::remove_entry"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>", "i32"]
 returns = "Vec<i32>"
 
@@ -1793,7 +1874,10 @@ returns = "Vec<i32>"
 name = "hashmap_extend"
 module = "std::collections::hash"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "HashMap::extend"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc = "Extend a raw i32->i32 HashMap with all key/value pairs from another map. Existing keys are overwritten by the source map. Mirrors Rust's HashMap::extend."
 params = ["Vec<i32>", "Vec<i32>"]
 returns = "()"

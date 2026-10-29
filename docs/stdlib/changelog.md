@@ -16,6 +16,30 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-29 — `HashMap<i32, i32>` の容量・一括操作メソッド面と `hash::hashmap_*` の deprecation (#917, wave/hashmap-surface)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の free-function
+  根絶と [ADR-086](../adr/ADR-086-linear-collection-adts.md) の型・メソッド面。
+- **Surface (9)**: `HashMap<i32, i32>` に `with_capacity` / `capacity` / `reserve` /
+  `try_reserve` / `shrink_to_fit` / `clear` / `drain` / `remove_entry` / `extend` を
+  追加した。`drain` は `Vec<(i32, i32)>`、`remove_entry` は
+  `Option<(i32, i32)>` を返す。`try_reserve` の `true` は「予約が完了した」を意味し、
+  flat store には回復可能な allocation error channel がないことを doc に明記する。
+- **Deprecated (21)**: `hash::hashmap_*` の flat-store free を `stable` から
+  `deprecated` へ移し、W0009 の qualified-call table と
+  `diagnostics/deprecated_hashmap_free*` の両 target golden を追加した。
+  `deprecated_by` は `HashMap::` の method / associated function を指す。
+- **Contract**: `get` は sentinel `0` ではなく `Option<i32>`、`set` は `bool` では
+  なく前の `Option<i32>` を返す `insert`、`entries` / `drain` は typed pair、
+  `remove_entry` は `Option<(i32, i32)>` になる。W0009 のメッセージにもこの差分を
+  記載する。
+- **E0200**: 容量・一括操作の 9 メソッドは `HashMap<i32, i32>` 専用。String / fn
+  値の store は bucket array を非公開の lowering 詳細として持つため、他の pair では
+  `E0200` で reject し、i32 helper を誤った layout に適用しない。
+- **Evidence**: `tests/fixtures/stdlib_hashmap/` の 58 fixture を method surface へ
+  移行し、deprecated diag 2 件を registry に追加した。Wave 2 の削除は次の entry で
+  記録する。
+
 ## 2026-10-29 — `Vec<T: Ord>` の i64 / String sort が wasm32-gc で動作 (#965)
 
 - **Basis**: #917 / [ADR-046](../adr/ADR-046-free-function-eradication.md) で追加した

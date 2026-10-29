@@ -375,6 +375,15 @@ pub fn hashmap_drain(mut m: Vec<i32>) -> Vec<i32> {
     result
 }
 
+/// `HashMap<i32, i32>::drain()` lowering target. Kept separate from the
+/// deprecated flat `hashmap_drain` so the public free keeps its flat
+/// `[key, value, ...]` contract through the ADR-087 window.
+fn hashmap_drain_pairs(mut m: Vec<i32>) -> Vec<(i32, i32)> {
+    let result: Vec<(i32, i32)> = hashmap_entry_pairs(m)
+    hashmap_clear(m)
+    result
+}
+
 /// Remove a key from the map and return its previous value, or None if absent.
 /// Removal is implemented by collecting all live entries, clearing the map,
 /// and re-inserting everything except the removed key (O(n) but correct).
@@ -411,6 +420,16 @@ pub fn hashmap_remove_entry(mut m: Vec<i32>, key: i32) -> Vec<i32> {
         None => {}
     }
     result
+}
+
+/// `HashMap<i32, i32>::remove_entry()` lowering target. Kept separate from
+/// the deprecated flat `hashmap_remove_entry` so the public free keeps its
+/// `[key, value]` Vec contract through the ADR-087 window.
+fn hashmap_remove_entry_pair(mut m: Vec<i32>, key: i32) -> Option<(i32, i32)> {
+    match hashmap_remove(m, key) {
+        Option::Some(v) => Option::Some((key, v)),
+        None => Option::None,
+    }
 }
 
 /// Extend a map with all key/value pairs from another map (`other`).

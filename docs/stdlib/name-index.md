@@ -5,8 +5,8 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 147
-- **Historical/deprecated names:** 75
+- **Canonical names:** 126
+- **Historical/deprecated names:** 96
 - **Total entries:** 222
 
 Related:
@@ -75,27 +75,6 @@ Current public API names, sorted alphabetically.
 | `format_i32` | `prelude` | `stable` | String |
 | `gcd` | `prelude` | `stable` | Math |
 | `has_flag` | `std::cli` | `stable` | Cli |
-| `hashmap_capacity` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_clear` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_contains` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_drain` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_entries` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_extend` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_get` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_get_option` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_insert` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_is_empty` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_keys` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_new` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_remove` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_remove_entry` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_reserve` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_set` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_shrink_to_fit` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_size` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_try_reserve` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_values` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_with_capacity` | `std::collections::hash` | `stable` | Collections |
 | `id` | `std::host::process` | `stable` | Host Process |
 | `ifft` | `std::signal` | `stable` | Signal |
 | `index_of` | `prelude` | `stable` | String |
@@ -207,6 +186,27 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`fold_i32_i32`~~ | `VecIter::fold` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`get`~~ | `Vec::get` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_capacity`~~ | `HashMap::capacity` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_clear`~~ | `HashMap::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_contains`~~ | `HashMap::contains_key` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_drain`~~ | `HashMap::drain` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_entries`~~ | `HashMap::entries` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_extend`~~ | `HashMap::extend` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_get`~~ | `HashMap::get` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_get_option`~~ | `HashMap::get` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_insert`~~ | `HashMap::insert` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_is_empty`~~ | `HashMap::is_empty` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_keys`~~ | `HashMap::keys` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_new`~~ | `HashMap::new` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_remove`~~ | `HashMap::remove` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_remove_entry`~~ | `HashMap::remove_entry` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_reserve`~~ | `HashMap::reserve` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_set`~~ | `HashMap::insert` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_shrink_to_fit`~~ | `HashMap::shrink_to_fit` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_size`~~ | `HashMap::len` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_try_reserve`~~ | `HashMap::try_reserve` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_values`~~ | `HashMap::values` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashmap_with_capacity`~~ | `HashMap::with_capacity` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`i16_to_i32`~~ | `i16::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i16`~~ | `i32::to_i16_wrapping` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i64`~~ | `i32::into` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
@@ -345,27 +345,27 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`get`~~ | ⚠️ deprecated | `prelude` | → `Vec::get` · [migration guide](migration-guidance.md) |
 | ~~`get_unchecked`~~ | ⚠️ deprecated | `prelude` | → `Vec::get_unchecked` · [migration guide](migration-guidance.md) |
 | `has_flag` | ✅ `stable` | `std::cli` | Cli |
-| `hashmap_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_clear` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_contains` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_drain` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_entries` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_extend` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_get` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_get_option` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_insert` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_is_empty` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_keys` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_new` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_remove` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_remove_entry` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_reserve` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_set` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_shrink_to_fit` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_size` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_try_reserve` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_values` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_with_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
+| ~~`hashmap_capacity`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::capacity` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_clear`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::clear` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_contains`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::contains_key` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_drain`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::drain` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_entries`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::entries` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_extend`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::extend` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_get`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::get` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_get_option`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::get` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_insert`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::insert` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_is_empty`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::is_empty` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_keys`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::keys` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_new`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::new` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_remove`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::remove` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_remove_entry`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::remove_entry` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_reserve`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::reserve` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_set`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::insert` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_shrink_to_fit`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::shrink_to_fit` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_size`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::len` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_try_reserve`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::try_reserve` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_values`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::values` · [migration guide](migration-guidance.md) |
+| ~~`hashmap_with_capacity`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashMap::with_capacity` · [migration guide](migration-guidance.md) |
 | ~~`i16_to_i32`~~ | ⚠️ deprecated | `prelude` | → `i16::to_i32` · [migration guide](migration-guidance.md) |
 | ~~`i32_to_i16`~~ | ⚠️ deprecated | `prelude` | → `i32::to_i16_wrapping` · [migration guide](migration-guidance.md) |
 | ~~`i32_to_i64`~~ | ⚠️ deprecated | `prelude` | → `i32::into` · [migration guide](migration-guidance.md) |

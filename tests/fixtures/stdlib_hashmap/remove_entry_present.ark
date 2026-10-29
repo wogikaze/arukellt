@@ -1,17 +1,19 @@
-// Remove_entry: returns [key, value] for present key
-use std::collections::hash
+// Remove_entry: returns the removed (key, value) pair
 use std::test
 
 fn main() {
-    let mut m = hash::hashmap_new()
-    hash::hashmap_set(m, 7, 77)
-    hash::hashmap_set(m, 8, 88)
+    let mut m = HashMap::new<i32, i32>()
+    let _ = m.insert(7, 77)
+    let _ = m.insert(8, 88)
 
-    let entry = hash::hashmap_remove_entry(m, 7)
-    test::assert_eq_i32(len(entry), 2)
-    test::assert_eq_i32(get_unchecked(entry, 0), 7)
-    test::assert_eq_i32(get_unchecked(entry, 1), 77)
-    test::assert_eq_i32(hash::hashmap_size(m), 1)
-    test::assert_false(hash::hashmap_contains(m, 7))
-    test::assert_true(hash::hashmap_contains(m, 8))
+    match m.remove_entry(7) {
+        Option::Some((k, v)) => {
+            test::assert_eq_i32(k, 7)
+            test::assert_eq_i32(v, 77)
+        },
+        None => Std::panic("expected Some(7, 77)"),
+    }
+    test::assert_eq_i32(m.len(), 1)
+    test::assert_false(m.contains_key(7))
+    test::assert_true(m.contains_key(8))
 }

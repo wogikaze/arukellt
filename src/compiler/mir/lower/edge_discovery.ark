@@ -470,7 +470,8 @@ fn edge_call_return_type(ctx: LowerCtx, name: String) -> String {
         // HashMap<i32,i32> lowers to the flat store, whose declared return
         // type is Vec<i32>. The source expression is still a HashMap pair,
         // and the receiver-type dispatch below needs that pair name.
-        if eq(clone(ctor), String_from("hashmap_new")) {
+        if eq(clone(ctor), String_from("hashmap_new")) ||
+        eq(clone(ctor), String_from("hashmap_with_capacity")) {
             return String_from("hashmap:i32i32")
         }
         let crt = edge_fn_index_return_type(ctx, clone(ctor))

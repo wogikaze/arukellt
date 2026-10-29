@@ -3,7 +3,6 @@
 // Invariant: a snapshot of a HashMap is independent of the hash map's
 // iteration order when the snapshot is produced under an explicit
 // normalization rule.
-use std::collections::hash
 use std::test
 
 // Inline ascending insertion sort on a `Vec<i32>`.
@@ -30,8 +29,8 @@ fn sort_asc(mut v: Vec<i32>) {
     }
 }
 
-fn assert_snapshot(m: Vec<i32>) {
-    let mut keys: Vec<i32> = hash::hashmap_keys(m)
+fn assert_snapshot(m: HashMap<i32, i32>) {
+    let mut keys: Vec<i32> = m.keys()
     sort_asc(keys)
     let n: i32 = len(keys)
     test::assert_eq_i32(n, 5)
@@ -44,7 +43,7 @@ fn assert_snapshot(m: Vec<i32>) {
     // Each key must map to key * 10
     for i in 0..n {
         let k: i32 = get_unchecked(keys, i)
-        match hash::hashmap_get_option(m, k) {
+        match m.get(k) {
             Option::Some(v) => test::assert_eq_i32(v, k * 10),
             None => Std::panic("expected Some"),
         }
@@ -53,20 +52,20 @@ fn assert_snapshot(m: Vec<i32>) {
 
 test "sorted_snapshot_is_independent_of_insertion_order" {
     // Build X in one order.
-    let mut x: Vec<i32> = hash::hashmap_new()
-    hash::hashmap_set(x, 7, 70)
-    hash::hashmap_set(x, 3, 30)
-    hash::hashmap_set(x, 11, 110)
-    hash::hashmap_set(x, 5, 50)
-    hash::hashmap_set(x, 1, 10)
+    let mut x: HashMap<i32, i32> = HashMap::new<i32, i32>()
+    let _ = x.insert(7, 70)
+    let _ = x.insert(3, 30)
+    let _ = x.insert(11, 110)
+    let _ = x.insert(5, 50)
+    let _ = x.insert(1, 10)
 
     // Build Y with the SAME logical entries in a DIFFERENT insertion order.
-    let mut y: Vec<i32> = hash::hashmap_new()
-    hash::hashmap_set(y, 1, 10)
-    hash::hashmap_set(y, 11, 110)
-    hash::hashmap_set(y, 3, 30)
-    hash::hashmap_set(y, 5, 50)
-    hash::hashmap_set(y, 7, 70)
+    let mut y: HashMap<i32, i32> = HashMap::new<i32, i32>()
+    let _ = y.insert(1, 10)
+    let _ = y.insert(11, 110)
+    let _ = y.insert(3, 30)
+    let _ = y.insert(5, 50)
+    let _ = y.insert(7, 70)
 
     assert_snapshot(x)
     assert_snapshot(y)

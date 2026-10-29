@@ -147,7 +147,10 @@ fn lower_direct_call_expr(mut ctx: LowerCtx, node: AstNode, callee: AstNode, chi
     fn lower_direct_call_callee_name(callee: AstNode) -> String {
         let callee_name = ast_node::node_text(callee)
         if eq(clone(callee_name), "HashMap::new") {
-            return mir_hashmap_constructor_name(callee)
+            return mir_hashmap_constructor_name(callee, String_from("new"))
+        }
+        if eq(clone(callee_name), "HashMap::with_capacity") {
+            return mir_hashmap_constructor_name(callee, String_from("with_capacity"))
         }
         if !eq(clone(callee_name), "Vec::new") &&
         !eq(clone(callee_name), "Vec::with_capacity") {
@@ -172,9 +175,10 @@ fn lower_direct_call_expr(mut ctx: LowerCtx, node: AstNode, callee: AstNode, chi
         constructor.concat(element_name)
     }
 
-    fn mir_hashmap_constructor_name(callee: AstNode) -> String {
+    fn mir_hashmap_constructor_name(callee: AstNode, ctor_name: String) -> String {
+        let source_name = String_from("HashMap::").concat(clone(ctor_name))
         if ast_node::node_child_count(callee) < 3 {
-            return "HashMap::new"
+            return source_name
         }
         let key_node = ast_node::node_child_at(callee, 1)
         let value_node = ast_node::node_child_at(callee, 2)
@@ -182,9 +186,10 @@ fn lower_direct_call_expr(mut ctx: LowerCtx, node: AstNode, callee: AstNode, chi
         let value_name = mir_hashmap_ctor_type_arg_name(value_node)
         if len(key_name) == 0 || len(value_name) == 0 ||
         contains(clone(key_name), "::") || contains(clone(value_name), "::") {
-            return "HashMap::new"
+            return source_name
         }
-        "HashMap__new__".concat(key_name.concat("__".concat(value_name)))
+        let pair = String_from("__").concat(key_name.concat(String_from("__").concat(value_name)))
+    String_from("HashMap__").concat(ctor_name.concat(pair))
     }
 
     // Type-argument spelling for `HashMap::new<K, V>` callees. fn(i32) -> i32

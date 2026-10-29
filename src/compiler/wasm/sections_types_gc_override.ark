@@ -238,6 +238,10 @@ fn gc_fn_returns_option(fn_name: String) -> bool {
     ends_with(clone(fn_name), "hashmap_i32_i32_remove") {
         return true
     }
+    if eq(clone(fn_name), "hashmap_remove_entry_pair") ||
+    eq(clone(fn_name), "hash::hashmap_remove_entry_pair") {
+        return true
+    }
     if eq(clone(fn_name), "hash_string::hashmap_str_get") ||
     eq(clone(fn_name), "hashmap_str_get") ||
     eq(clone(fn_name), "hash::hashmap_str_get") {

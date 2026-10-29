@@ -1,4 +1,3 @@
-use std::collections::hash
 use std::test
 
 fn assert_none(v: Option<i32>) {
@@ -17,10 +16,10 @@ fn assert_some(v: Option<i32>, expected: i32) {
 }
 
 test "insert_returns_previous_value_when_present" {
-    let mut raw = hash::hashmap_new()
-    assert_none(hash::hashmap_insert(raw, 7, 70))
-    assert_some(hash::hashmap_insert(raw, 7, 700), 70)
-    assert_some(hash::hashmap_get_option(raw, 7), 700)
+    let mut raw = HashMap::new<i32, i32>()
+    assert_none(raw.insert(7, 70))
+    assert_some(raw.insert(7, 700), 70)
+    assert_some(raw.get(7), 700)
 
     let mut m = HashMap::new<i32, i32>()
     assert_none(m.insert(1, 10))

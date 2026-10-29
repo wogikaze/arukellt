@@ -1,29 +1,28 @@
-use std::collections::hash
 use std::test
 
-fn assert_get(m: Vec<i32>, key: i32, expected: i32) {
-    match hash::hashmap_get_option(m, key) {
+fn assert_get(m: HashMap<i32, i32>, key: i32, expected: i32) {
+    match m.get(key) {
         Option::Some(v) => test::assert_eq_i32(v, expected),
         None => Std::panic("expected Some"),
     }
 }
 
 test "reserve_grows_capacity_and_preserves_entries" {
-    let mut m = hash::hashmap_with_capacity(1)
-    test::assert_eq_i32(hash::hashmap_capacity(m), 1)
-    hash::hashmap_reserve(m, 3)
-    test::assert_true(hash::hashmap_capacity(m) >= 4)
-    test::assert_true(hash::hashmap_try_reserve(m, 2))
+    let mut m = HashMap::with_capacity<i32, i32>(1)
+    test::assert_eq_i32(m.capacity(), 1)
+    m.reserve(3)
+    test::assert_true(m.capacity() >= 4)
+    test::assert_true(m.try_reserve(2))
 
-    test::assert_true(hash::hashmap_set(m, 1, 10))
-    test::assert_true(hash::hashmap_set(m, 2, 20))
-    test::assert_true(hash::hashmap_set(m, 3, 30))
+    let _ = m.insert(1, 10)
+    let _ = m.insert(2, 20)
+    let _ = m.insert(3, 30)
     assert_get(m, 1, 10)
     assert_get(m, 2, 20)
     assert_get(m, 3, 30)
 
-    hash::hashmap_shrink_to_fit(m)
-    test::assert_true(hash::hashmap_capacity(m) >= 4)
-    test::assert_eq_i32(hash::hashmap_size(m), 3)
+    m.shrink_to_fit()
+    test::assert_true(m.capacity() >= 4)
+    test::assert_eq_i32(m.len(), 3)
     assert_get(m, 2, 20)
 }

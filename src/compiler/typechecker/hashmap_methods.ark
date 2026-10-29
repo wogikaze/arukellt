@@ -8,8 +8,18 @@ use typechecker::hashmap_api
 use typechecker::mono
 use typechecker::types
 use typechecker::unify
-fn infer_hashmap_constructor_call(mut env: TypeEnv, node: AstNode, callee: AstNode) -> TypeInfo {
-    if !eq(ast_access::node_text(callee), String_from("HashMap::new")) {
+fn infer_hashmap_constructor_call(
+    mut env: TypeEnv,
+    mut scope: LocalScope,
+    fn_sigs: Vec<FnSig>,
+    enum_defs: Vec<EnumInfo>,
+    node: AstNode,
+    callee: AstNode
+) -> TypeInfo {
+    let callee_name = ast_access::node_text(callee)
+    let is_new = eq(clone(callee_name), String_from("HashMap::new"))
+    let is_with_capacity = eq(clone(callee_name), String_from("HashMap::with_capacity"))
+    if !is_new && !is_with_capacity {
         return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
     }
     let type_arg_count = ast_access::node_child_count(callee) - 1
@@ -22,14 +32,38 @@ fn infer_hashmap_constructor_call(mut env: TypeEnv, node: AstNode, callee: AstNo
     push(resolved_types, key_ty)
     push(resolved_types, value_ty)
     let result_ty = hashmap_type(key_ty, value_ty)
-    if !hashmap_api::validate_hashmap_constructor(env, String_from("HashMap::new"), resolved_types) {
+    if is_with_capacity && !hashmap_pair_is_flat_store(key_ty, value_ty) {
+        hashmap_report_unavailable(
+            env,
+            String_from("associated function"),
+            String_from("with_capacity"),
+            key_ty,
+            value_ty
+        )
         return result_ty
     }
-    let mangled_name = mono::record_mono_instance(env, String_from("HashMap::new"), resolved_types)
+    if !hashmap_api::validate_hashmap_constructor(env, clone(callee_name), resolved_types) {
+        return result_ty
+    }
+    if is_with_capacity {
+        if ast_access::node_child_count(node) != 2 {
+            return result_ty
+        }
+        unify_hashmap_method_arg(
+            env,
+            scope,
+            fn_sigs,
+            enum_defs,
+            node,
+            1,
+            contract_type_constructors::TypeInfo_simple(commands::TY_I32())
+        )
+    }
+    let mangled_name = mono::record_mono_instance(env, clone(callee_name), resolved_types)
     mono::record_mono_call_site(
         env,
         ast_access::node_span_start(node),
-        String_from("HashMap::new"),
+        clone(callee_name),
         mangled_name
     )
     result_ty
@@ -57,6 +91,15 @@ fn infer_builtin_hashmap_method(
     }
     let key_ty = contract_type_access::TypeInfo_type_arg_at(recv_ty, 0)
     let value_ty = contract_type_access::TypeInfo_type_arg_at(recv_ty, 1)
+    // The capacity / bulk-maintenance surface is implemented over the flat
+    // i32 store. Reject the other pairs (and unresolved type parameters)
+    // before argument unification can produce a misleading mismatch, so a
+    // call can never be lowered over the String / fn bucket layout.
+    if hashmap_method_needs_flat_store(clone(method_name)) &&
+    !hashmap_pair_is_flat_store(key_ty, value_ty) {
+        hashmap_report_unavailable(env, String_from("method"), method_name, key_ty, value_ty)
+        return hashmap_method_return_type(clone(method_name), key_ty, value_ty)
+    }
     if explicit_args == 1 {
         unify_hashmap_method_arg(env, scope, fn_sigs, enum_defs, node, 1, key_ty)
     }
@@ -76,6 +119,55 @@ fn infer_builtin_hashmap_method(
     hashmap_method_return_type(method_name, key_ty, value_ty)
 }
 
+fn hashmap_report_unavailable(
+    mut env: TypeEnv,
+    kind: String,
+    method_name: String,
+    key_ty: TypeInfo,
+    value_ty: TypeInfo
+) {
+    let pair = String_from("HashMap<").concat(
+        hashmap_type_name(key_ty).concat(
+            String_from(", ").concat(hashmap_type_name(value_ty).concat(String_from(">")))
+        )
+    )
+    let head = kind.concat(String_from(" `").concat(method_name.concat(String_from("` is not available on `"))))
+    let message = head.concat(
+        pair.concat(
+            String_from("`; the capacity/bulk surface is implemented only for `HashMap<i32, i32>`")
+        )
+    )
+    // Speculative inference can visit the same call node more than once;
+    // report the family rejection once per environment.
+    let mut seen = false
+    let mut index = 0
+    while index < len(env.errors) {
+        if eq(get_unchecked(env.errors, index), clone(message)) {
+            seen = true
+        }
+        index = index + 1
+    }
+    if !seen {
+        unify::type_error(env, message)
+    }
+}
+
+fn hashmap_pair_is_flat_store(key_ty: TypeInfo, value_ty: TypeInfo) -> bool {
+    contract_type_access::TypeInfo_tag(key_ty) == commands::TY_I32() &&
+    contract_type_access::TypeInfo_tag(value_ty) == commands::TY_I32()
+}
+
+fn hashmap_method_needs_flat_store(method_name: String) -> bool {
+    eq(clone(method_name), String_from("capacity")) ||
+    eq(clone(method_name), String_from("reserve")) ||
+    eq(clone(method_name), String_from("try_reserve")) ||
+    eq(clone(method_name), String_from("shrink_to_fit")) ||
+    eq(clone(method_name), String_from("clear")) ||
+    eq(clone(method_name), String_from("drain")) ||
+    eq(clone(method_name), String_from("remove_entry")) ||
+    eq(clone(method_name), String_from("extend"))
+}
+
 fn hashmap_type(key_ty: TypeInfo, value_ty: TypeInfo) -> TypeInfo {
     let mut hm = contract_type_constructors::TypeInfo_simple(commands::TY_HASHMAP())
     contract_type_mutation::TypeInfo_push_type_arg(hm, key_ty)
@@ -89,12 +181,20 @@ fn hashmap_method_has_arity(method_name: String, explicit_args: i32) -> bool {
         eq(clone(method_name), String_from("is_empty")) ||
         eq(clone(method_name), String_from("keys")) ||
         eq(clone(method_name), String_from("values")) ||
-        eq(clone(method_name), String_from("entries"))
+        eq(clone(method_name), String_from("entries")) ||
+        eq(clone(method_name), String_from("capacity")) ||
+        eq(clone(method_name), String_from("shrink_to_fit")) ||
+        eq(clone(method_name), String_from("clear")) ||
+        eq(clone(method_name), String_from("drain"))
     }
     if explicit_args == 1 {
         return eq(clone(method_name), String_from("get")) ||
         eq(clone(method_name), String_from("contains_key")) ||
-        eq(clone(method_name), String_from("remove"))
+        eq(clone(method_name), String_from("remove")) ||
+        eq(clone(method_name), String_from("reserve")) ||
+        eq(clone(method_name), String_from("try_reserve")) ||
+        eq(clone(method_name), String_from("remove_entry")) ||
+        eq(clone(method_name), String_from("extend"))
     }
     if explicit_args == 2 {
         return eq(clone(method_name), String_from("insert"))
@@ -118,34 +218,49 @@ fn unify_hashmap_method_arg(
 
 fn hashmap_method_return_type(method_name: String, key_ty: TypeInfo, value_ty: TypeInfo) -> TypeInfo {
     if eq(clone(method_name), String_from("keys")) {
-        let mut keys_vec = contract_type_constructors::TypeInfo_simple(commands::TY_VEC())
-        contract_type_mutation::TypeInfo_push_type_arg(keys_vec, key_ty)
-        return keys_vec
+        return hashmap_vec_type(key_ty)
     }
     if eq(clone(method_name), String_from("values")) {
-        let mut values_vec = contract_type_constructors::TypeInfo_simple(commands::TY_VEC())
-        contract_type_mutation::TypeInfo_push_type_arg(values_vec, value_ty)
-        return values_vec
+        return hashmap_vec_type(value_ty)
     }
-    if eq(clone(method_name), String_from("entries")) {
-        let mut entry_ty = contract_type_constructors::TypeInfo_simple(commands::TY_TUPLE())
-        contract_type_mutation::TypeInfo_push_type_arg(entry_ty, key_ty)
-        contract_type_mutation::TypeInfo_push_type_arg(entry_ty, value_ty)
-        let mut entries_vec = contract_type_constructors::TypeInfo_simple(commands::TY_VEC())
-        contract_type_mutation::TypeInfo_push_type_arg(entries_vec, entry_ty)
-        return entries_vec
+    if eq(clone(method_name), String_from("entries")) ||
+    eq(clone(method_name), String_from("drain")) {
+        return hashmap_vec_type(hashmap_pair_type(key_ty, value_ty))
+    }
+    if eq(clone(method_name), String_from("remove_entry")) {
+        let mut option = contract_type_constructors::TypeInfo_simple(commands::TY_OPTION())
+        contract_type_mutation::TypeInfo_push_type_arg(option, hashmap_pair_type(key_ty, value_ty))
+        return option
     }
     if eq(clone(method_name), String_from("contains_key")) ||
-    eq(clone(method_name), String_from("len")) {
-        if eq(clone(method_name), String_from("len")) {
-            return contract_type_constructors::TypeInfo_simple(commands::TY_I32())
-        }
+    eq(clone(method_name), String_from("is_empty")) ||
+    eq(clone(method_name), String_from("try_reserve")) {
         return contract_type_constructors::TypeInfo_simple(commands::TY_BOOL())
     }
-    if eq(clone(method_name), String_from("is_empty")) {
-        return contract_type_constructors::TypeInfo_simple(commands::TY_BOOL())
+    if eq(clone(method_name), String_from("len")) ||
+    eq(clone(method_name), String_from("capacity")) {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_I32())
+    }
+    if eq(clone(method_name), String_from("reserve")) ||
+    eq(clone(method_name), String_from("shrink_to_fit")) ||
+    eq(clone(method_name), String_from("clear")) ||
+    eq(clone(method_name), String_from("extend")) {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_UNIT())
     }
     let mut option = contract_type_constructors::TypeInfo_simple(commands::TY_OPTION())
     contract_type_mutation::TypeInfo_push_type_arg(option, value_ty)
     option
+}
+
+fn hashmap_pair_type(key_ty: TypeInfo, value_ty: TypeInfo) -> TypeInfo {
+    let mut pair = contract_type_constructors::TypeInfo_simple(commands::TY_TUPLE())
+    contract_type_mutation::TypeInfo_push_type_arg(pair, key_ty)
+    contract_type_mutation::TypeInfo_push_type_arg(pair, value_ty)
+    pair
+}
+
+fn hashmap_vec_type(element_ty: TypeInfo) -> TypeInfo {
+    let mut vec_ty = contract_type_constructors::TypeInfo_simple(commands::TY_VEC())
+    contract_type_mutation::TypeInfo_push_type_arg(vec_ty, element_ty)
+    vec_ty
 }

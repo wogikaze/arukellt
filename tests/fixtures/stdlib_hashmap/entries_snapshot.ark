@@ -1,25 +1,26 @@
-// Entries: returns [key, value, key, value, ...] flat array
-use std::collections::hash
+// Entries: returns the typed (key, value) snapshot
 use std::test
 
 fn main() {
-    let mut m = hash::hashmap_new()
-    hash::hashmap_set(m, 1, 10)
-    hash::hashmap_set(m, 2, 20)
+    let mut m = HashMap::new<i32, i32>()
+    let _ = m.insert(1, 10)
+    let _ = m.insert(2, 20)
 
-    let entries = hash::hashmap_entries(m)
-    test::assert_eq_i32(len(entries), 4)  // 2 pairs
+    let entries = m.entries()
+    test::assert_eq_i32(len(entries), 2)
 
-    // Build a lookup from the flat array
     let mut found_1_10 = false
     let mut found_2_20 = false
     let mut i = 0
     while i < len(entries) {
-        let k = get_unchecked(entries, i)
-        let v = get_unchecked(entries, i + 1)
-        if k == 1 && v == 10 { found_1_10 = true }
-        if k == 2 && v == 20 { found_2_20 = true }
-        i = i + 2
+        let (k, v) = get_unchecked(entries, i)
+        if k == 1 && v == 10 {
+            found_1_10 = true
+        }
+        if k == 2 && v == 20 {
+            found_2_20 = true
+        }
+        i = i + 1
     }
     test::assert_true(found_1_10)
     test::assert_true(found_2_20)

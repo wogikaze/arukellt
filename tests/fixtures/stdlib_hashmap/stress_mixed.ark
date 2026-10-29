@@ -1,44 +1,43 @@
 // Stress: mixed insert/remove/lookup cycle
-use std::collections::hash
 use std::test
 
 fn main() {
-    let mut m = hash::hashmap_new()
+    let mut m = HashMap::new<i32, i32>()
 
     // Phase 1: insert 0-19
     let mut i = 0
     while i < 20 {
-        hash::hashmap_set(m, i, i)
+        let _ = m.insert(i, i)
         i = i + 1
     }
-    test::assert_eq_i32(hash::hashmap_size(m), 20)
+    test::assert_eq_i32(m.len(), 20)
 
     // Phase 2: remove 0-9
     i = 0
     while i < 10 {
-        hash::hashmap_remove(m, i)
+        m.remove(i)
         i = i + 1
     }
-    test::assert_eq_i32(hash::hashmap_size(m), 10)
+    test::assert_eq_i32(m.len(), 10)
 
     // Phase 3: insert 20-29
     i = 20
     while i < 30 {
-        hash::hashmap_set(m, i, i)
+        let _ = m.insert(i, i)
         i = i + 1
     }
-    test::assert_eq_i32(hash::hashmap_size(m), 20)
+    test::assert_eq_i32(m.len(), 20)
 
     // Verify: 0-9 absent, 10-19 present, 20-29 present
     i = 0
     while i < 10 {
-        test::assert_false(hash::hashmap_contains(m, i))
+        test::assert_false(m.contains_key(i))
         i = i + 1
     }
     i = 10
     while i < 30 {
-        test::assert_true(hash::hashmap_contains(m, i))
-        test::assert_eq_i32(hash::hashmap_get(m, i), i)
+        test::assert_true(m.contains_key(i))
+        test::assert_eq_i32(m.get(i).unwrap_or(0), i)
         i = i + 1
     }
 }

@@ -64,7 +64,14 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
         return enum_variant_ty
     }
     let callee_name = ast_access::node_text(callee)
-    let hashmap_ctor_ty = hashmap_methods::infer_hashmap_constructor_call(env, node, callee)
+    let hashmap_ctor_ty = hashmap_methods::infer_hashmap_constructor_call(
+        env,
+        scope,
+        fn_sigs,
+        enum_defs,
+        node,
+        callee
+    )
     if contract_type_access::TypeInfo_tag(hashmap_ctor_ty) != commands::TY_UNKNOWN() {
         return hashmap_ctor_ty
     }

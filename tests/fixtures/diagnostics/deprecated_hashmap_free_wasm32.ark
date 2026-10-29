@@ -1,0 +1,9 @@
+// W0009 on the stable HashMap flat-store frees: they stay callable through
+// the ADR-087 window and point at the HashMap<i32, i32> method surface.
+use std::collections::hash
+
+fn main() {
+    let mut m: HashMap<i32, i32> = HashMap::new<i32, i32>()
+    let _ = m.insert(1, 10)
+    let _ = hash::hashmap_capacity(m)
+}
