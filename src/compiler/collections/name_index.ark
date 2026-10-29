@@ -50,17 +50,27 @@ fn name_index_find_slot(index: NameIndex, name: String) -> i32 {
     }
     // Sample the name for the probe hash. Equality below still checks every
     // character, so collisions remain correct while short-circuiting the
-    // repeated full-string FNV walk on hot lowerer lookups.
+    // repeated full-string FNV walk on hot lowerer lookups. Mangled symbols
+    // share long prefixes and suffixes, so the quarter positions are sampled
+    // too; capacity/modulo probing alone clustered them into long chains.
     let name_len = len(name)
-    let mut hash = name_len * 31
+    let mut hash = name_len * 16777619
     if name_len > 0 {
         hash = hash * 16777619 ^ byte_at(name, 0)
+    }
+    if name_len > 1 {
+        hash = hash * 16777619 ^ byte_at(name, name_len - 1)
     }
     if name_len > 2 {
         hash = hash * 16777619 ^ byte_at(name, name_len / 2)
     }
-    if name_len > 1 {
-        hash = hash * 16777619 ^ byte_at(name, name_len - 1)
+    if name_len > 3 {
+        hash = hash * 16777619 ^ byte_at(name, name_len / 3)
+        hash = hash * 16777619 ^ byte_at(name, (name_len * 2) / 3)
+    }
+    if name_len > 6 {
+        hash = hash * 16777619 ^ byte_at(name, name_len / 4)
+        hash = hash * 16777619 ^ byte_at(name, (name_len * 3) / 4)
     }
     if hash < 0 {
         hash = 0 - hash

@@ -36,6 +36,11 @@ pub struct MirModule {
     gc_enum_variant_names: Vec<String>,
     gc_struct_sigs: Vec<String>,
     gc_struct_names: Vec<String>,
+    // Name -> first slot in gc_struct_names. The type planner calls
+    // MirModule_gc_struct_slot for every candidate spelling; a linear String
+    // scan there showed up as the largest eq caller in the overlay profile.
+    // insert_first preserves the old "first registration wins" answer.
+    gc_struct_slot_index: NameIndex,
     // Module-region split for the wasm type section (#851 Phase 3).
     // sealed_*_count is the number of gc struct / enum variant slots
     // registered by ctx_prep (before body lowering); -1 means the module was
@@ -112,6 +117,7 @@ fn MirModule_new() -> MirModule {
         gc_enum_variant_names: Vec::new<String>(),
         gc_struct_sigs: Vec::new<String>(),
         gc_struct_names: Vec::new<String>(),
+        gc_struct_slot_index: name_index::NameIndex_new(0),
         sealed_gc_struct_count: 0 - 1,
         sealed_gc_enum_count: 0 - 1,
         late_gc_order: Vec::new<i32>(),
