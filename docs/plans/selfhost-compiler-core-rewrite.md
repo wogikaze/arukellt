@@ -88,6 +88,16 @@ wall −4.8% / guest −8.9%。plan の wall 10% ルールには届かないが�
 次は `name_index` の probe 数（5.9%）と enum base index の O(types×variants)
 を削る。
 
+この matcher 変更は pin に焼き込み済み（`35a2585a…`、`22e403cbf`）。
+焼き込み後の build-compiler は warm **28.2 s** / fixpoint **29.2 s** で、
+ユーザー目標 `min(0.3x, 30 s)` の build-compiler 側を満たした。
+続く index/hash 実験（`15606318d`: `MirModule` の gc struct slot index と
+`name_index` の probe hash 強化）は同一条件 quiet A/B で
+wall 30.62 → 32.09 s、guest 27.53 → 28.23 s と改善なしだったため
+revert した（`fca9acf34`、receipts `851-gc-struct-index-{base,opt}-20261029.json`）。
+diffuse な `eq` 呼び出しは個別 index では動かず、Phase 3/4 の構造変更が
+必要という判断。
+
 ## 現行床（2026-09-01）
 
 | 条件 | wall | RSS |

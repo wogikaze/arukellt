@@ -180,5 +180,7 @@ refresh 後の実測（quiet、`.build/pinnew-verify`）:
 
 これでユーザー目標 `min(0.3x, 30 s)` の build-compiler 側（30 s）を満たした。
 gc overlay gate（ADR-053）は quiet 30.25 s で、10 s には Phase 3/4 の
-構造変更が必要。なお v2 の index/hash 変更（`15606318d`）は同一条件
-A/B で wall/guest とも有意差なしだったため revert 済み（`fca9acf34`）。
+構造変更が必要。なお v2 の index/hash 変更（`15606318d`）は同一条件 A/B
+（wall 30.62 vs 32.09 s、guest 27.53 vs 28.23 s）で有意差なしだったため
+revert 済み（`fca9acf34`）。receipts:
+`851-gc-struct-index-{base,opt}-20261029.json`。

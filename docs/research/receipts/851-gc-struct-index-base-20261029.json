@@ -1,0 +1,173 @@
+{
+  "schema": "arukellt-selfhost-overlay-gate-summary-v2",
+  "recorded_at": "2026-10-29T05:08:01Z",
+  "source_sha": "85568bde0c0390a7ebd4d217e110564f16af925e",
+  "source": "src/compiler/main.ark",
+  "host": ".build/kc-host/host.component.wasm",
+  "host_sha256": "fa9ecfb4b45ae531bd2132bff537420dd5d321a1984d088301a2c86bd45f47d7",
+  "overlay": ".build/kc/selfhost/flat-src",
+  "pinned": {
+    "path": "bootstrap/arukellt-selfhost.wasm",
+    "sha256": "3c02d18b254709e25065a0e06c82bf08f8fd54a6ad7378a85a61fb5e433a4ee9"
+  },
+  "target": "wasm32-gc",
+  "wasi_version": "wasi-p2",
+  "source_cacheless": true,
+  "fixpoint": {
+    "s2_sha256": "a2c26ec3e31ba178f1831135da9a7a75ab02d5b68ea2a85f65995c81d362fa5b",
+    "s3_sha256": "a2c26ec3e31ba178f1831135da9a7a75ab02d5b68ea2a85f65995c81d362fa5b",
+    "s2_eq_s3": true,
+    "s3_valid": true
+  },
+  "tooling": {
+    "wasmtime": "wasmtime 46.0.1 (823d1b8f2 2026-06-24)",
+    "wasm_tools": "wasm-tools 1.252.0"
+  },
+  "percentile_method": "linear-interpolation",
+  "samples": [
+    {
+      "run": 1,
+      "rc": 0,
+      "wall_ms": 30621,
+      "rss_max_kb": 1498924,
+      "guest_total_ms": 27528,
+      "output_sha256": "f53982c9ea8307c0ddaf6c79169ce36eb0559b6386e527e7cd5b87a334032d11",
+      "valid": true,
+      "phases_ms": {
+        "lower.fn_index": 1562,
+        "lower.ctx_prep": 196,
+        "lower.edge_table": 254,
+        "lower.edge_bfs": 601,
+        "lower.body_emit": 12244,
+        "lower.decl_emit": 14004,
+        "lower.gc_layout_plan": 2,
+        "lower.inloop_emit": 3139,
+        "lower.reachability": 195,
+        "lower.sync": 0,
+        "lower.propagate": 0,
+        "lower.total": 17341,
+        "emit.strings": 0,
+        "emit.types": 192,
+        "emit.pre_code": 12,
+        "emit.code": 258,
+        "emit.tail": 259,
+        "lex": 0,
+        "parse": 0,
+        "resolve": 3412,
+        "typecheck": 5826,
+        "lower": 17564,
+        "mir_opt": 0,
+        "mir_verify": 0,
+        "emit": 724,
+        "total": 27528
+      }
+    },
+    {
+      "run": 2,
+      "rc": 0,
+      "wall_ms": 32545,
+      "rss_max_kb": 1500988,
+      "guest_total_ms": 29233,
+      "output_sha256": "f53982c9ea8307c0ddaf6c79169ce36eb0559b6386e527e7cd5b87a334032d11",
+      "valid": true,
+      "phases_ms": {
+        "lower.fn_index": 1483,
+        "lower.ctx_prep": 209,
+        "lower.edge_table": 253,
+        "lower.edge_bfs": 581,
+        "lower.body_emit": 12660,
+        "lower.decl_emit": 14354,
+        "lower.gc_layout_plan": 2,
+        "lower.inloop_emit": 3974,
+        "lower.reachability": 234,
+        "lower.sync": 0,
+        "lower.propagate": 0,
+        "lower.total": 18565,
+        "emit.strings": 0,
+        "emit.types": 186,
+        "emit.pre_code": 19,
+        "emit.code": 216,
+        "emit.tail": 280,
+        "lex": 0,
+        "parse": 0,
+        "resolve": 3338,
+        "typecheck": 6402,
+        "lower": 18788,
+        "mir_opt": 0,
+        "mir_verify": 0,
+        "emit": 703,
+        "total": 29233
+      }
+    },
+    {
+      "run": 3,
+      "rc": 0,
+      "wall_ms": 30519,
+      "rss_max_kb": 1480776,
+      "guest_total_ms": 26790,
+      "output_sha256": "f53982c9ea8307c0ddaf6c79169ce36eb0559b6386e527e7cd5b87a334032d11",
+      "valid": true,
+      "phases_ms": {
+        "lower.fn_index": 1764,
+        "lower.ctx_prep": 293,
+        "lower.edge_table": 356,
+        "lower.edge_bfs": 797,
+        "lower.body_emit": 11225,
+        "lower.decl_emit": 13283,
+        "lower.gc_layout_plan": 2,
+        "lower.inloop_emit": 3284,
+        "lower.reachability": 191,
+        "lower.sync": 0,
+        "lower.propagate": 0,
+        "lower.total": 16760,
+        "emit.strings": 0,
+        "emit.types": 165,
+        "emit.pre_code": 12,
+        "emit.code": 166,
+        "emit.tail": 183,
+        "lex": 0,
+        "parse": 0,
+        "resolve": 3380,
+        "typecheck": 5897,
+        "lower": 16982,
+        "mir_opt": 0,
+        "mir_verify": 0,
+        "emit": 529,
+        "total": 26790
+      }
+    }
+  ],
+  "wall_ms": {
+    "median": 30621,
+    "p95": 32352.6,
+    "min": 30519,
+    "max": 32545
+  },
+  "rss_max_kb": {
+    "median": 1498924,
+    "p95": 1500781.6,
+    "min": 1480776,
+    "max": 1500988
+  },
+  "guest_total_ms": {
+    "median": 27528,
+    "p95": 29062.5,
+    "min": 26790,
+    "max": 29233
+  },
+  "output_sha256": [
+    "f53982c9ea8307c0ddaf6c79169ce36eb0559b6386e527e7cd5b87a334032d11"
+  ],
+  "all_runs_exit_zero": true,
+  "all_outputs_valid": true,
+  "all_outputs_same_sha256": true,
+  "user_goal": {
+    "wall_p95_lt_10000": false,
+    "rss_max_lt_1000000": false,
+    "all_runs_exit_zero": true
+  },
+  "canonical_plan_gate": {
+    "wall_median_le_7000": false,
+    "rss_max_le_524288": false
+  }
+}
