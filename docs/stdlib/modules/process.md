@@ -20,7 +20,7 @@ This page covers two closely related host modules: `std::host::process` for proc
 | `Env::var(name)` | Look up an environment variable by name, returning `Option<String>`. |
 | `Env::has_flag(flag)` | Check whether a flag is present in the argument vector. |
 
-**Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: yes. Explicit runtime permission: none beyond providing the documented host profile.
+**Target constraints:** Target/profile availability: mixed — see individual symbols. Host dependency: yes. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 

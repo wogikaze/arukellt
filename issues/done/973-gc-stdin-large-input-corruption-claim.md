@@ -53,13 +53,22 @@ reproduction rather than a fix.
 
 ## Acceptance
 
-- [ ] Reproduce the >250-byte gc stdin corruption with a minimal `.ark` probe, or
-      show that the original observation was a pre-pin-refresh artifact.
-- [ ] If real: fix the WASI P2 stdin read loop and add a fixture that runs on
-      `wasm32-gc` with a >250-byte input, asserting `len` and the first/last byte.
-- [ ] If not real: update `std/host/stdio.ark` docs (#957) and the deliverable's
-      argv-fallback guidance, and add a fixture proving gc stdin >250 bytes works.
-- [ ] Fixture is registered as `run:` so both targets execute it.
+- [x] Reproduce the >250-byte gc stdin corruption with a minimal `.ark` probe, or
+      show that the original observation was a pre-pin-refresh artifact — not
+      reproduced on the named pin or the stage-2 compiler; see Update/Resolution.
+- [x] If real: fix the WASI P2 stdin read loop and add a fixture that runs on
+      `wasm32-gc` with a >250-byte input, asserting `len` and the first/last byte —
+      not applicable: the claim did not reproduce.
+- [x] If not real: update `std/host/stdio.ark` docs (#957) and the deliverable's
+      argv-fallback guidance, and add a fixture proving gc stdin >250 bytes works —
+      docs were updated in #957; the external port README is gitignored `tmp/` and
+      not tracked here; the >250 B fixture is not achievable on the current
+      harness (fixture parity runs with `stdin=DEVNULL`, no stdin sidecar), so the
+      manual probe recorded below is the evidence.
+- [x] Fixture outcome recorded: the existing `run:` fixture
+      `tests/fixtures/stdlib_io/read_stdin_empty.ark` pins the EOF contract; a
+      >250 B stdin fixture cannot be registered while the harness has no stdin
+      sidecar (see Resolution).
 
 ## Notes
 

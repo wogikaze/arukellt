@@ -40,10 +40,29 @@ DEPRECATED_TIER = re.compile(
     re.IGNORECASE,
 )
 SKIP_RE = re.compile(r"<!--\s*skip-doc-check(?:\s+([^>]*))?-->", re.IGNORECASE)
-STRUCTURED_SKIP = re.compile(
-    r'reason\s*=\s*"[^"]+"\s+owner\s*=\s*"[^"]+"\s+kind\s*=\s*"(?:pseudocode|future|non-runnable)"'
-    r'(?:\s+expires\s*=\s*"\d{4}-\d{2}-\d{2}")?'
-)
+# Permanent notation kinds are exempt from the deferral budget and from the
+# owner/expiry contract, matching check-doc-examples.py's #877 marker contract:
+# invalid examples, grammar fragments, and notation are documentation, not
+# deferred work. Only deferral kinds consume a per-file budget.
+NOTATION_KINDS = frozenset({"grammar-fragment", "invalid-example", "notation"})
+DEFERRAL_KINDS = frozenset({"pseudocode", "future", "non-runnable"})
+SKIP_ATTR_RE = re.compile(r'(\w+)\s*=\s*"([^"]*)"')
+
+
+def _skip_attrs(raw: str) -> dict[str, str]:
+    return dict(SKIP_ATTR_RE.findall(raw))
+
+
+def _is_notation_skip(attrs: dict[str, str]) -> bool:
+    return attrs.get("kind", "") in NOTATION_KINDS
+
+
+def _is_structured_skip(attrs: dict[str, str]) -> bool:
+    if not attrs.get("reason", "").strip():
+        return False
+    if _is_notation_skip(attrs):
+        return True
+    return attrs.get("kind", "") in DEFERRAL_KINDS and bool(attrs.get("owner", "").strip())
 
 
 def load_toml(path: Path) -> dict:
@@ -383,31 +402,37 @@ def check_skip_budget(cfg: dict, failures: list[str]) -> None:
             continue
         text = path.read_text(encoding="utf-8")
         matches = list(SKIP_RE.finditer(text))
-        n = len(matches)
-        total_count += n
+        parsed = [_skip_attrs(m.group(1) or "") for m in matches]
+        # Permanent notation is validated below but does not consume the
+        # deferral budget: it is not unpaid documentation debt.
+        n = sum(1 for attrs in parsed if not _is_notation_skip(attrs))
+        total_count += len(matches)
         if n > max_n:
             failures.append(
                 f"skip-doc-check budget exceeded in {entry['path']}: {n} > {max_n}"
             )
-        for m in matches:
-            attrs = (m.group(1) or "").strip()
+        for attrs in parsed:
             if require_structured:
-                if not attrs or not STRUCTURED_SKIP.search(attrs):
+                if not _is_structured_skip(attrs):
                     failures.append(
                         f"unstructured skip-doc-check in {entry['path']}: "
                         f"require reason/owner/kind"
                         + ("/expires" if require_expires else "")
                     )
                     break
-                if require_expires and "expires=" not in attrs:
+                if (
+                    require_expires
+                    and not _is_notation_skip(attrs)
+                    and "expires" not in attrs
+                ):
                     failures.append(
                         f"skip-doc-check missing expires= in {entry['path']}"
                     )
                     break
             elif attrs:
-                if "reason=" in attrs and not STRUCTURED_SKIP.search(attrs):
+                if "reason" in attrs and not _is_structured_skip(attrs):
                     failures.append(
-                        f"structured skip-doc-check malformed in {entry['path']}: {attrs[:80]}"
+                        f"structured skip-doc-check malformed in {entry['path']}: {attrs}"
                     )
 
     if not require_structured:
@@ -439,31 +464,33 @@ def check_skip_budget(cfg: dict, failures: list[str]) -> None:
     for path in sorted((REPO / "docs").rglob("*.md")):
         for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             for match in SKIP_RE.finditer(line):
-                attrs = (match.group(1) or "").strip()
-                if not STRUCTURED_SKIP.fullmatch(attrs):
+                attrs = _skip_attrs(match.group(1) or "")
+                if not _is_structured_skip(attrs):
                     failures.append(
                         f"unstructured skip-doc-check in {rel(path)}:{line_number}: "
                         "require reason/owner/kind/expires"
                     )
                     continue
-                owner_match = re.search(r'owner="([^"]+)"', attrs)
-                if not owner_match or not re.fullmatch(r"#\d+", owner_match.group(1)):
+                if _is_notation_skip(attrs):
+                    continue
+                owner = attrs.get("owner", "")
+                if not re.fullmatch(r"#\d+", owner):
                     failures.append(
                         f"unknown skip-doc-check owner in {rel(path)}:{line_number}: "
-                        f"{owner_match.group(1) if owner_match else 'missing'}"
+                        f"{owner or 'missing'}"
                     )
-                expiry_match = re.search(r'expires="(\d{4}-\d{2}-\d{2})"', attrs)
-                if require_expires and not expiry_match:
+                expiry = attrs.get("expires", "")
+                if require_expires and not expiry:
                     failures.append(f"skip-doc-check missing expires= in {rel(path)}:{line_number}")
-                elif expiry_match:
+                elif expiry:
                     try:
-                        expiry = date.fromisoformat(expiry_match.group(1))
+                        expiry_date = date.fromisoformat(expiry)
                     except ValueError:
                         failures.append(f"invalid skip-doc-check expiry in {rel(path)}:{line_number}")
                     else:
-                        if expiry < date.today():
+                        if expiry_date < date.today():
                             failures.append(
-                                f"expired skip-doc-check in {rel(path)}:{line_number}: {expiry}"
+                                f"expired skip-doc-check in {rel(path)}:{line_number}: {expiry_date}"
                             )
 
 

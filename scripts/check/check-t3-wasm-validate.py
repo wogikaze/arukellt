@@ -245,25 +245,30 @@ def _tool_fingerprint(tool: str) -> str:
 
 
 def _cache_key(
-    compiler_wasm: Path,
+    compiler_hash: str,
+    wasmtime_fingerprint: str,
+    wasm_tools_fingerprint: str,
     fixture_path: Path,
-    wasm_tools: str,
-    wasmtime: str,
 ) -> str:
-    """Compute a cache key from compiler, runtime feature flags, validator, and fixture source."""
+    """Compute a cache key from compiler, runtime feature flags, validator, and fixture source.
+
+    The compiler hash and tool fingerprints are computed once per run; hashing
+    the 12 MB compiler and spawning two ``--version`` processes per fixture made
+    a cold 1000+ fixture cache pass the gate's dominant cost.
+    """
     return hashlib.sha256(
         (
             T3_CACHE_SCHEMA_VERSION
             + ":"
-            + _file_hash(compiler_wasm)
+            + compiler_hash
             + ":"
-            + _tool_fingerprint(wasmtime)
+            + wasmtime_fingerprint
             + ":"
             + " ".join(WASMTIME_COMPILE_FLAGS)
             + ":"
             + T3_TARGET
             + ":"
-            + _tool_fingerprint(wasm_tools)
+            + wasm_tools_fingerprint
             + ":"
             + VALIDATE_FEATURES
             + ":"
@@ -435,6 +440,9 @@ def main() -> int:
     skipped_fixtures: list[str] = []
 
     # Phase 1: Check cache for all fixtures
+    compiler_hash = _file_hash(compiler_wasm) if use_cache else ""
+    wasmtime_fingerprint = _tool_fingerprint(wasmtime) if use_cache else ""
+    wasm_tools_fingerprint = _tool_fingerprint(wasm_tools) if use_cache else ""
     uncached: list[tuple[str, str]] = []  # (fixture, key)
     for fixture in fixtures:
         if fixture in T3_COMPILE_SKIP:
@@ -449,7 +457,9 @@ def main() -> int:
             continue
 
         if use_cache:
-            key = _cache_key(compiler_wasm, src_abs, wasm_tools, wasmtime)
+            key = _cache_key(
+                compiler_hash, wasmtime_fingerprint, wasm_tools_fingerprint, src_abs
+            )
             cached = _cache_lookup(fixture, key)
             if cached is not None:
                 status, detail = cached

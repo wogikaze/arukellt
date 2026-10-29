@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-10-19
-Updated: 2026-10-19
+Updated: 2026-10-29
 ID: 932
 Track: compiler
 Depends on: "#851"
@@ -43,12 +43,32 @@ gc_layout_table_drain_plan; eq held ~10% self.
 
 ## Acceptance
 
-- [ ] wall of the gc-overlay selfhost compile drops measurably vs the
-      pre-fix host under the same conditions
-- [ ] emitted wasm is byte-identical before/after (self-fixpoint) —
-      semantics must not move
-- [ ] wasm-tools validate passes
-- [ ] plan + receipt updated
+- [x] wall of the gc-overlay selfhost compile drops measurably vs the
+      pre-fix host under the same conditions — guest profile samples fell
+      6178 → 2248 (-64%, receipt below); host wall is GC-dominated and noisy
+- [x] emitted wasm is byte-identical before/after (self-fixpoint) —
+      s2 == s3 `729dce4c3b411fefb54053dd92a2558785b6b1b9ecde209cae37da17975bf3bf`
+- [x] wasm-tools validate passes
+- [x] plan + receipt updated (`docs/plans/selfhost-compiler-core-rewrite.md`
+      and `docs/research/receipts/932-per-push-quadratics-20261019.json`)
+
+## Evidence (2026-10-19 close)
+
+Implementation commit `d2d2781c8` (`fix(#932): remove per-push quadratic
+sweeps in fused in-loop emit`); close commit `bb5d48bb4`. Code lives in
+`src/compiler/wasm/ctx_record.ark`, `src/compiler/mir/*` (layout plan /
+reachability index), and the gc layout/canon accessors.
+
+Receipt `docs/research/receipts/932-per-push-quadratics-20261019.json`:
+
+- guest profile samples (10 ms): v28 baseline 6178 → after layout index
+  2695 → after full batch 2248.
+- self fixpoint: s2/s3 both `729dce4c3b411fefb54053dd92a2558785b6b1b9ecde209cae37da17975bf3bf`.
+- `wasm-tools validate` PASS; `arukellt fmt --check` PASS (11 edited files).
+- fixture parity: 18/18 byte-identical across generics, collections,
+  enums, iterator, stdlib_trait, stdlib_string.
+- wall seconds (same source): v28 124.66/127.78 vs fixed 88.12/102.97/140.22
+  — recorded as host-GC dominated, so the guest samples are the stable signal.
 
 ## Implementation notes
 

@@ -69,7 +69,7 @@ artifact left as if it were valid.
 Acceptance items were re-checked on this checkout (default pinned artifact,
 `PATH` with wasmtime 46.0.1):
 
-- `python3 scripts/check/check-cli-guarantees.py compile-validates-output` →
+- Invoked `python3 scripts/check/check-cli-guarantees.py compile-validates-output`;
   exit 0 (rejects the #940 same-name-type repro with W0004, no success line,
   no artifact left; the valid program compiles and validates). The check is
   wired into `check-cli-guarantees.py all` (`scripts/manager.py` quick pass).

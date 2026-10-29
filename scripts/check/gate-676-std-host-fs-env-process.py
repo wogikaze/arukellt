@@ -101,7 +101,7 @@ def main() -> int:
                 "__runtime_abi_env_var",
             ),
         ),
-        ("std/host/process.ark", ("pub fn id() -> Result<i32, String>", "process id is not defined by the WASI 0.2 process model")),
+        ("std/host/process.ark", ("pub struct Process", "fn id() -> Result<i32, String>", "process id is not defined by the WASI 0.2 process model")),
         ("src/compiler/main/args_parse_flags.ark", ("--deny-process", "cli_set_deny_process")),
         ("src/compiler/main/compile_core.ark", ("source_uses_process_intrinsics", "--deny-process: this program uses process-control intrinsics")),
         ("src/compiler/main/usage.ark", ("--deny-process",)),

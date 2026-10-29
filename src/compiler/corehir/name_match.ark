@@ -8,102 +8,107 @@
 //! `substring`.
 use std::prelude::{byte_at, len}
 
-/// Return true when `count` bytes of `a` at `a_start` equal `b` at `b_start`.
-pub fn name_region_equal(a: String, a_start: i32, b: String, b_start: i32, count: i32) -> bool {
-    if count < 0 || a_start < 0 || b_start < 0 {
-        return false
-    }
-    if a_start + count > len(a) || b_start + count > len(b) {
-        return false
-    }
-    let mut i = 0
-    while i < count {
-        if byte_at(a, a_start + i) != byte_at(b, b_start + i) {
+/// Namespace for the allocation-free name matchers (ADR-046).
+pub struct NameMatch {}
+
+impl NameMatch {
+    /// Return true when `count` bytes of `a` at `a_start` equal `b` at `b_start`.
+    fn region_equal(a: String, a_start: i32, b: String, b_start: i32, count: i32) -> bool {
+        if count < 0 || a_start < 0 || b_start < 0 {
             return false
         }
-        i = i + 1
-    }
-    true
-}
-
-/// Return true when `a == b` without allocating.
-pub fn name_equal(a: String, b: String) -> bool {
-    let n = len(a)
-    if n != len(b) {
-        return false
-    }
-    name_region_equal(a, 0, b, 0, n)
-}
-
-/// Return true when `name == first + sep + second` for a two-byte separator.
-pub fn name_equals_pair(
-    name: String,
-    first: String,
-    second: String,
-    sep0: i32,
-    sep1: i32
-) -> bool {
-    let first_len = len(first)
-    let second_len = len(second)
-    if len(name) != first_len + 2 + second_len {
-        return false
-    }
-    name_region_equal(name, 0, first, 0, first_len) &&
-    byte_at(name, first_len) == sep0 &&
-    byte_at(name, first_len + 1) == sep1 &&
-    name_region_equal(name, first_len + 2, second, 0, second_len)
-}
-
-/// Return true when `ends_with(name, "::" + suffix)` without allocating.
-pub fn name_ends_with_qualified(name: String, suffix: String) -> bool {
-    let name_len = len(name)
-    let suffix_len = len(suffix)
-    if suffix_len + 2 > name_len {
-        return false
-    }
-    let start = name_len - suffix_len
-    byte_at(name, start - 2) == 58 &&
-    byte_at(name, start - 1) == 58 &&
-    name_region_equal(name, start, suffix, 0, suffix_len)
-}
-
-/// Return true when `ends_with(name, "::" + first + sep + second)`.
-pub fn name_ends_with_qualified_pair(
-    name: String,
-    first: String,
-    second: String,
-    sep0: i32,
-    sep1: i32
-) -> bool {
-    let first_len = len(first)
-    let second_len = len(second)
-    let suffix_len = 2 + first_len + 2 + second_len
-    let name_len = len(name)
-    if suffix_len > name_len {
-        return false
-    }
-    let start = name_len - suffix_len
-    byte_at(name, start) == 58 &&
-    byte_at(name, start + 1) == 58 &&
-    name_region_equal(name, start + 2, first, 0, first_len) &&
-    byte_at(name, start + 2 + first_len) == sep0 &&
-    byte_at(name, start + 3 + first_len) == sep1 &&
-    name_region_equal(name, start + 4 + first_len, second, 0, second_len)
-}
-
-/// Return the first offset >= `from` where `needle` occurs, or -1.
-pub fn name_find_from(name: String, needle: String, from: i32) -> i32 {
-    let name_len = len(name)
-    let needle_len = len(needle)
-    if needle_len == 0 || needle_len > name_len {
-        return 0 - 1
-    }
-    let mut i = if from < 0 { 0 } else { from }
-    while i + needle_len <= name_len {
-        if name_region_equal(name, i, needle, 0, needle_len) {
-            return i
+        if a_start + count > len(a) || b_start + count > len(b) {
+            return false
         }
-        i = i + 1
+        let mut i = 0
+        while i < count {
+            if byte_at(a, a_start + i) != byte_at(b, b_start + i) {
+                return false
+            }
+            i = i + 1
+        }
+        true
     }
-    0 - 1
+
+    /// Return true when `a == b` without allocating.
+    fn equal(a: String, b: String) -> bool {
+        let n = len(a)
+        if n != len(b) {
+            return false
+        }
+        NameMatch::region_equal(a, 0, b, 0, n)
+    }
+
+    /// Return true when `name == first + sep + second` for a two-byte separator.
+    fn equals_pair(
+        name: String,
+        first: String,
+        second: String,
+        sep0: i32,
+        sep1: i32
+    ) -> bool {
+        let first_len = len(first)
+        let second_len = len(second)
+        if len(name) != first_len + 2 + second_len {
+            return false
+        }
+        NameMatch::region_equal(name, 0, first, 0, first_len) &&
+        byte_at(name, first_len) == sep0 &&
+        byte_at(name, first_len + 1) == sep1 &&
+        NameMatch::region_equal(name, first_len + 2, second, 0, second_len)
+    }
+
+    /// Return true when `ends_with(name, "::" + suffix)` without allocating.
+    fn ends_with_qualified(name: String, suffix: String) -> bool {
+        let name_len = len(name)
+        let suffix_len = len(suffix)
+        if suffix_len + 2 > name_len {
+            return false
+        }
+        let start = name_len - suffix_len
+        byte_at(name, start - 2) == 58 &&
+        byte_at(name, start - 1) == 58 &&
+        NameMatch::region_equal(name, start, suffix, 0, suffix_len)
+    }
+
+    /// Return true when `ends_with(name, "::" + first + sep + second)`.
+    fn ends_with_qualified_pair(
+        name: String,
+        first: String,
+        second: String,
+        sep0: i32,
+        sep1: i32
+    ) -> bool {
+        let first_len = len(first)
+        let second_len = len(second)
+        let suffix_len = 2 + first_len + 2 + second_len
+        let name_len = len(name)
+        if suffix_len > name_len {
+            return false
+        }
+        let start = name_len - suffix_len
+        byte_at(name, start) == 58 &&
+        byte_at(name, start + 1) == 58 &&
+        NameMatch::region_equal(name, start + 2, first, 0, first_len) &&
+        byte_at(name, start + 2 + first_len) == sep0 &&
+        byte_at(name, start + 3 + first_len) == sep1 &&
+        NameMatch::region_equal(name, start + 4 + first_len, second, 0, second_len)
+    }
+
+    /// Return the first offset >= `from` where `needle` occurs, or -1.
+    fn find_from(name: String, needle: String, from: i32) -> i32 {
+        let name_len = len(name)
+        let needle_len = len(needle)
+        if needle_len == 0 || needle_len > name_len {
+            return 0 - 1
+        }
+        let mut i = if from < 0 { 0 } else { from }
+        while i + needle_len <= name_len {
+            if NameMatch::region_equal(name, i, needle, 0, needle_len) {
+                return i
+            }
+            i = i + 1
+        }
+        0 - 1
+    }
 }

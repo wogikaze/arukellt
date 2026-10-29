@@ -29,7 +29,7 @@ fn mir_build_signature_spine_from_view(view: CoreHirMirView, midx: MonoIndex, ex
     let decl_count = decl_source::mir_decl_source_count(decl_source)
     let source = fn_index_source::mir_fn_index_source_from_view(view)
     let sig_source = corehir::mod::view_signature_source(view)
-    let leaf_index = signature_registry_build_mono::sig_reg_leaf_index_build(
+    let leaf_index = signature_registry_build_mono::SigRegLeafIndex::build(
         fn_index_source::mir_fn_index_source_mono_instances(source)
     )
     let mut d = 0
@@ -113,7 +113,7 @@ fn sig_reg_index_top_level_fn(
         // concrete signature instead of the declared vec:T.
         let mut leaf_inst_idx = 0 - 1
         if mono::mono_index_count(midx, clone(decl_name)) == 0 {
-            leaf_inst_idx = signature_registry_build_mono::sig_reg_leaf_instance_index(
+            leaf_inst_idx = signature_registry_build_mono::SigRegLeafIndex::instance_index(
                 leaf_index,
                 fn_index_source::mir_fn_index_source_mono_instances(source),
                 clone(decl_name),

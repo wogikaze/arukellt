@@ -84,6 +84,14 @@ wasm32-gc = "implemented"
 Generated module pages should not emit a single Target badge for mixed modules.
 Use `Availability: mixed — see individual symbols` when symbols differ.
 
+When the differing symbols are namespace-type methods rather than
+`[[functions]]` entries, the function list cannot derive the mixed axis. The
+page definition in `scripts/gen/generate-docs.py` then sets
+`availability_axis = "mixed"` and the generator emits the mixed page-level
+statement; per-symbol tables remain authoritative. Use this only with a
+concrete documented difference (for example `Env::var` is missing on
+`wasm32`, per `docs/platform/target-runtime-and-surfaces.md`).
+
 ---
 
 ## Valid Stability Labels

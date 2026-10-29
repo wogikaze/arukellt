@@ -75,7 +75,7 @@ already been removed, and the current count is zero:
 
 Evidence:
 
-- `python3 scripts/manager.py fmt --check` → exit 0,
+- Invoked `python3 scripts/manager.py fmt --check`; exit 0,
   `fmt: checked=2001 failed=0 baseline-skipped=0` (2026-10-28; other lanes were
   editing `.ark` files in parallel and the run still had zero failures).
 - `grep -rn 'formatter-baseline|parser exception' docs/ scripts/ docs/data/`

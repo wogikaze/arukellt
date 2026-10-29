@@ -2459,7 +2459,7 @@ required = true
 id = "panic"
 visibility = "public"
 classification = { layer = "runtime" }
-binding = { policy = "required" }
+binding = { policy = "optional", reason = "method-only surface after #917 (Std::panic); no user-reachable free function remains", tracking_issue = "917" }
 description = "Abort execution with a message, via the runtime panic handler."
 [operations.signature]
 inputs = [{ name = "message", type = { kind = "ref", name = "string" } }]
