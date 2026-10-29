@@ -122,7 +122,7 @@ fn mir_gc_layout_plan_bind(
 // that replaces the old pairwise duplicate scan: a duplicate TypeId can
 // only exist if some writer bypassed bind(), and then at most one slot
 // can match index_by_raw[raw], so the check still fails closed.
-pub fn mir_gc_layout_plan_validate_binding(plan: MirGcLayoutPlan, index: i32) -> bool {
+fn mir_gc_layout_plan_validate_binding(plan: MirGcLayoutPlan, index: i32) -> bool {
     let binding = get_unchecked(plan.bindings, index)
     let tid = binding.type_id
     if !type_id::type_id_is_valid(tid) {
@@ -148,7 +148,7 @@ pub fn mir_gc_layout_plan_validate_binding(plan: MirGcLayoutPlan, index: i32) ->
 // push with start=plan_seen so every binding is checked once when it
 // first becomes visible, instead of re-validating the whole plan per
 // drain call.
-pub fn mir_gc_layout_plan_validate_range(plan: MirGcLayoutPlan, start: i32) -> bool {
+fn mir_gc_layout_plan_validate_range(plan: MirGcLayoutPlan, start: i32) -> bool {
     let count = len(plan.bindings)
     let mut index = start
     while index < count {

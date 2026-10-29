@@ -9,51 +9,6 @@ use mir::inst_struct_set
 use mir::inst_local_set
 use mir::value_types
 
-// Strip "struct:TypeName:byte_size" → "TypeName" so struct layout lookups
-// match the registered name. Passes through non-"struct:" type names unchanged.
-use std::prelude::{byte_at, clone, starts_with, substring}
-fn strip_struct_type_prefix(type_name: String) -> String {
-    if !starts_with(clone(type_name), "struct:") {
-        return type_name
-    }
-    let n = len(type_name)
-    let mut first_colon = 0 - 1
-    let mut last_colon = 0 - 1
-    let mut i = 0
-    while i < n {
-        if byte_at(type_name, i) == ':' {
-            if first_colon < 0 {
-                first_colon = i
-            }
-            last_colon = i
-        }
-        i = i + 1
-    }
-    if first_colon < 0 || last_colon < 0 || first_colon == last_colon {
-        return type_name
-    }
-    substring(type_name, first_colon + 1, last_colon)
-}
-
-fn strip_module_qualifier(type_name: String) -> String {
-    let n = len(type_name)
-    if n < 2 {
-        return type_name
-    }
-    let mut i = n - 2
-    while i >= 0 {
-        if byte_at(type_name, i) == 58 && byte_at(type_name, i + 1) == 58 {
-            return substring(type_name, i + 2, n)
-        }
-        i = i - 1
-    }
-    type_name
-}
-
-fn canonicalize_struct_layout_name(type_name: String) -> String {
-    strip_module_qualifier(strip_struct_type_prefix(type_name))
-}
-
 fn mir_emit_ident_assign(mut ctx: LowerCtx, name: String, val_idx: i32) {
     let local_idx = ctx_lookup_local(ctx, clone(name))
     if local_idx >= 0 && val_idx >= 0 {

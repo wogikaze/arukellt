@@ -5,6 +5,7 @@ use mir::lower::ast_node
 use mir::lower::call_args
 use mir::lower::call_emit_staged
 use mir::lower::closure_env
+use mir::lower::closure_env_layout
 use mir::lower::core_call_args
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
@@ -133,7 +134,7 @@ fn mir_lower_indirect_call(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
             arg_count + 1,
             dest,
             dest_vt,
-            closure_env::closure_env_ref_vt(ctx),
+            closure_env_layout::closure_env_ref_vt(ctx),
             closure_env::closure_pair_call_hint(ctx, callee_type_name, arg_lis, dest)
         ))
     dest
@@ -166,7 +167,7 @@ fn mir_lower_ast_indirect_call(mut ctx: LowerCtx, node: AstNode, child_count: i3
             arg_count + 1,
             dest,
             dest_vt,
-            closure_env::closure_env_ref_vt(ctx),
+            closure_env_layout::closure_env_ref_vt(ctx),
             closure_env::closure_pair_call_hint(ctx, callee_type_name, arg_lis, dest)
         ))
     dest

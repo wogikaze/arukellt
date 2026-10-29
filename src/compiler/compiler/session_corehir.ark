@@ -1,6 +1,6 @@
 use corehir::mod
 use mir
-use mir::lower::emit_spec
+use mir::emit_spec
 //
 // The single query route for building, validating, and lowering the CoreHIR
 // program. Both the driver pipeline and LSP analysis go through these

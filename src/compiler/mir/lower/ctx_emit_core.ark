@@ -1,0 +1,72 @@
+use mir::function_emit_inst
+use mir::block_inst_access
+use mir::function_block_queries
+use mir::inst_draft
+use mir::function_block_mutation
+use mir::lower::ctx_call_edges
+use mir::lower::ctx_current_storage
+use mir::lower::ctx_typed_mir_sync
+use mir::lower::call_func_id
+use mir::module_block_pool
+use mir::opcodes
+
+// Emission without the closure rewrite hooks. Closure modules import this
+// module instead of ctx_locals_emit so the hook owner (ctx_locals_emit) can
+// depend on them without forming an import cycle.
+fn ctx_emit_verbatim(mut ctx: LowerCtx, mut inst: MirInstDraft) {
+    let mut identified = call_func_id::mir_inst_attach_func_id_if_call(ctx, inst)
+    let enriched = ctx_typed_mir_sync::ctx_enrich_inst_result_types(ctx, identified)
+    ctx_call_edges::ctx_edge_record_inst(ctx, enriched)
+    let mut f = ctx_current_storage::ctx_current_func_value(ctx)
+    function_emit_inst::emit_inst(f, ctx_current_storage::ctx_current_block_value(ctx), enriched)
+    ctx_current_storage::ctx_set_current_func_value(ctx, f)
+}
+
+fn ctx_current_block_ends_with_control_return(ctx: LowerCtx) -> bool {
+    let op = ctx_current_block_last_inst_op(ctx)
+    op == opcodes::MIR_RETURN() || op == opcodes::MIR_UNREACHABLE()
+}
+
+fn ctx_current_block_last_inst_op(ctx: LowerCtx) -> i32 {
+    let f = ctx_current_storage::ctx_current_func_value(ctx)
+    let block = function_block_queries::MirFunction_block_at(
+        f,
+        ctx_current_storage::ctx_current_block_value(ctx)
+    )
+    let count = block_inst_access::MirBlock_inst_count(block)
+    if count <= 0 {
+        return 0 - 1
+    }
+    block_inst_access::MirBlock_inst_op(block, count - 1)
+}
+
+fn ctx_current_block_last_inst_dest(ctx: LowerCtx) -> i32 {
+    let f = ctx_current_storage::ctx_current_func_value(ctx)
+    let block = function_block_queries::MirFunction_block_at(
+        f,
+        ctx_current_storage::ctx_current_block_value(ctx)
+    )
+    let count = block_inst_access::MirBlock_inst_count(block)
+    if count <= 0 {
+        return 0 - 1
+    }
+    block_inst_access::MirBlock_inst_dest(block, count - 1)
+}
+
+fn ctx_alloc_block(mut ctx: LowerCtx) -> i32 {
+    let mut f = ctx_current_storage::ctx_current_func_value(ctx)
+    let idx = function_block_mutation::MirFunction_next_block(f)
+    function_block_mutation::MirFunction_increment_next_block(f)
+    function_block_mutation::MirFunction_push_block(
+        f,
+        module_block_pool::mir_module_take_block(ctx_current_storage::ctx_current_module_value(ctx), idx)
+    )
+    ctx_current_storage::ctx_set_current_func_value(ctx, f)
+    idx
+}
+
+fn ctx_enter_new_block(mut ctx: LowerCtx) -> i32 {
+    let idx = ctx_alloc_block(ctx)
+    ctx_current_storage::ctx_set_current_block_value(ctx, idx)
+    idx
+}

@@ -280,3 +280,64 @@ fn vec_source_local_from_prev_inst(ctx: SelfEmitCtx, block: MirBlock, call_ii: i
     }
     0 - 1
 }
+
+fn resolve_container_elem_gc_type(ctx: SelfEmitCtx, type_name: String) -> i32 {
+    if eq(clone(type_name), "vec:String") ||
+    eq(clone(type_name), "vec:string") ||
+    eq(clone(type_name), "Vec<String>") ||
+    eq(clone(type_name), "Vec<string>") ||
+    eq(clone(type_name), "Vec_String") ||
+    eq(clone(type_name), "Vec_string") {
+        return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    }
+    if eq(clone(type_name), "vec:i64") || eq(clone(type_name), "vec:I64") || eq(clone(type_name), "Vec_i64") {
+        return ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
+    }
+    if eq(clone(type_name), "vec:f64") || eq(clone(type_name), "vec:F64") || eq(clone(type_name), "Vec_f64") {
+        return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
+    }
+    if eq(clone(type_name), "vec:v128") || eq(clone(type_name), "vec:V128") || eq(clone(type_name), "Vec_v128") {
+        return ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
+    }
+    if eq(clone(type_name), "vec:i32") || eq(clone(type_name), "vec:I32") || eq(clone(type_name), "Vec_i32") {
+        return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    }
+    // Bare "Vec" is ambiguous in nested Vec<Vec<String>>; prefer string-vec
+    // when the surrounding module uses Vec_String rows (#726 csv). Fall back
+    // to i32-vec only when no better signal exists.
+    if eq(clone(type_name), "Vec") {
+        return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    }
+    if starts_with(clone(type_name), "vec:") {
+        let elem = substring(clone(type_name), 4, len(type_name))
+        if eq(clone(elem), "String") || eq(clone(elem), "string") || eq(clone(elem), "Vec_String") {
+            return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+        }
+        if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(clone(elem)) {
+            return ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx)
+        }
+        if sections_types_gc_phase7::gc_vec_elem_name_is_enum_like(clone(elem)) {
+            return ctx_gc_type_vec_ref::SelfEmitCtx_vec_enum_ref_type(ctx)
+        }
+        if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) ||
+        starts_with(clone(elem), "vec:") ||
+        starts_with(clone(elem), "Vec") ||
+        ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, clone(elem)) {
+            return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
+        }
+    }
+    if starts_with(clone(type_name), "Vec_") {
+        // Mono names like Vec_String / Vec_Token.
+        if eq(clone(type_name), "Vec_String") || eq(clone(type_name), "Vec_string") {
+            return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+        }
+        return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
+    }
+    // Angle-bracket Vec<T>: route through the vec: spelling so Vec<i32>
+    // resolves to the i32-vec layout instead of falling through to -1.
+    if starts_with(clone(type_name), String_from("Vec<")) && ends_with(clone(type_name), String_from(">")) {
+        let inner = substring(clone(type_name), 4, len(type_name) - 1)
+        return resolve_container_elem_gc_type(ctx, String_from("vec:").concat(inner))
+    }
+    0 - 1
+}

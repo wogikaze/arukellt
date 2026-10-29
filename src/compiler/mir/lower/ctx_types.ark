@@ -1,7 +1,7 @@
 use mir::types
 use mir::source_location_record
 use collections::name_index
-use mir::lower::emit_spec
+use mir::emit_spec
 use mir::post_pass_callee_cache
 use wasm::ctx_record
 

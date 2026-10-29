@@ -4,39 +4,16 @@ use mir::function_locals_view
 use mir::local_access
 use mir::inst_local_set
 use mir::lower::closure_cells
-use mir::lower::closure_env
+use mir::lower::closure_env_layout
 use mir::lower::closure_pcells
+use mir::lower::closure_capture_type
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_struct_layout
-use mir::lower::ctx_types
 use mir::local_factory
 use mir::value_types
-fn mir_closure_lookup_capture_type(mut ctx: LowerCtx, cli: i32) -> String {
-    let mut cap_type = String_new()
-    if cli < 0 {
-        return cap_type
-    }
-    let func = ctx_current_storage::ctx_current_func_value(ctx)
-    if cli < function_locals_view::MirFunction_local_count(func) {
-        let loc = function_locals_view::MirFunction_local_at(func, cli)
-        cap_type = local_access::MirLocal_type_name(loc)
-    }
-    if len(cap_type) == 0 {
-        cap_type = ctx_api_local_types::ctx_get_local_type(ctx, cli)
-    }
-    if len(cap_type) > 0 {
-        cap_type = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(cap_type))
-    } else {
-        if ctx_api_local_types::ctx_local_vt(ctx, cli) == value_types::VT_GC_REF() {
-            cap_type = "String"
-        }
-    }
-    cap_type
-}
-
 fn mir_closure_capture_vts(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
     let cap_n = len(caps)
     let mut cap_vts = Vec::new<i32>()
@@ -49,13 +26,13 @@ fn mir_closure_capture_vts(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
             if closure_pcells::ctx_pcell_is_cell(ctx, cli) {
                 // Promoted borrow cells pass the cell ref as the cap
                 // argument (#891).
-                pvt = closure_env::closure_env_ref_vt(ctx)
+                pvt = closure_env_layout::closure_env_ref_vt(ctx)
                 push(cap_vts, pvt)
                 cvi = cvi + 1
                 continue
             }
             pvt = ctx_api_local_types::ctx_local_vt(ctx, cli)
-            let cap_type = mir_closure_lookup_capture_type(ctx, cli)
+            let cap_type = closure_capture_type::mir_closure_lookup_capture_type(ctx, cli)
             if starts_with(clone(cap_type), "struct:") ||
             eq(clone(cap_type), "String") ||
             eq(clone(cap_type), "string") ||
@@ -86,7 +63,7 @@ fn mir_closure_capture_types(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<String
             cvi = cvi + 1
             continue
         }
-        let cap_type = mir_closure_lookup_capture_type(ctx, cli)
+        let cap_type = closure_capture_type::mir_closure_lookup_capture_type(ctx, cli)
         push(cap_types, cap_type)
         cvi = cvi + 1
     }
@@ -118,16 +95,8 @@ fn mir_emit_closure_captures(mut ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<
     // The synth signature gains a trailing __env param when any capture is
     // rebound: the rebound move captures live in the caller-owned env record
     // (env cells, #874), so the body reads the field at entry and every
-    // return flushes the local back via closure_cells::ctx_env_cell_flush.
+    // return flushes the local back via ctx_env_cells::ctx_env_cell_flush.
     closure_cells::ctx_bind_closure_env_cells(ctx, caps, cap_vts, rebind_flags, env_name)
-}
-
-fn mir_closure_vt_is_snapshot_copy(vt: i32) -> bool {
-    vt == value_types::VT_I32() ||
-    vt == value_types::VT_I64() ||
-    vt == value_types::VT_F64() ||
-    vt == value_types::VT_F32() ||
-    vt == value_types::VT_V128()
 }
 
 // ADR-061 shared-copy capture: a Copy binding is copied at the capture point,
@@ -150,7 +119,7 @@ fn mir_closure_snapshot_copy_captures(mut ctx: LowerCtx, caps: Vec<String>, scop
             ci = ci + 1
             continue
         }
-        if li < 0 || !mir_closure_vt_is_snapshot_copy(ctx_api_local_types::ctx_local_vt(ctx, li)) {
+        if li < 0 || !closure_capture_type::mir_closure_vt_is_snapshot_copy(ctx_api_local_types::ctx_local_vt(ctx, li)) {
             push(out, cname)
             ci = ci + 1
             continue
@@ -158,7 +127,7 @@ fn mir_closure_snapshot_copy_captures(mut ctx: LowerCtx, caps: Vec<String>, scop
         let vt = ctx_api_local_types::ctx_local_vt(ctx, li)
         let snap_name = "__capsnap_".concat(clone(scope)).concat("_".concat(to_string(ci)))
         let snap = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(snap_name), vt)
-        let cap_type = mir_closure_lookup_capture_type(ctx, li)
+        let cap_type = closure_capture_type::mir_closure_lookup_capture_type(ctx, li)
         if len(cap_type) > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, snap, cap_type)
         }

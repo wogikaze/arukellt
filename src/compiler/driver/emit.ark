@@ -11,7 +11,7 @@ use driver::native
 use driver::target
 use native_c
 use wasm
-use wat_disasm
+use driver::wat_disasm
 use driver::checked_program
 use driver::debug
 use resolver::wit_import_bind

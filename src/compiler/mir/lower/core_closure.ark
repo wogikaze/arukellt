@@ -1,6 +1,6 @@
 use std::prelude::{clone, eq}
 use mir::lower::closure_capture_args
-use mir::lower::closure_cells
+use mir::lower::ctx_env_cells
 use mir::lower::closure_pcells
 use mir::lower::closure_registry
 use mir::lower::body_closure_capture
@@ -35,7 +35,7 @@ fn lower_core_closure(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirE
     let packed = closure_capture_args::closure_pack_caps(supply_caps)
     let extra = len(caps)
     let mut mf = core_closure_emit::core_emit_closure_fn(ctx, exprs, synth, expr, caps, eff_rebinds)
-    closure_registry::closure_register_synth_fn(ctx, mf, packed, extra, closure_cells::ctx_has_env_cell(eff_rebinds), caps, eff_rebinds, 0)
+    closure_registry::closure_register_synth_fn(ctx, mf, packed, extra, ctx_env_cells::ctx_has_env_cell(eff_rebinds), caps, eff_rebinds, 0)
 }
 
 fn is_identity_core_closure(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> bool {

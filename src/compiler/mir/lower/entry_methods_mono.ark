@@ -1,6 +1,6 @@
 use std::prelude::{clone, contains}
 use mir::lower::entry_emit_method
-use mir::lower::ctx_api_module
+use mir::lower::ctx_mono_index
 use mir::lower::entry_fns_mono
 use mir::lower::entry_view_method
 use mir::lower::fn_index_method_return_type
@@ -45,7 +45,7 @@ fn mir_emit_method_mono_bodies(
             emit_method_name = mono::mono_safe_name(mono::mono_index_mangled_at(midx, clone(mangled), method_mono_emit_i - 1))
         }
         if method_mono_emit_i > 0 {
-            let emit_inst = ctx_api_module::ctx_mono_instance_at(ctx, clone(emit_method_name))
+            let emit_inst = ctx_mono_index::ctx_mono_instance_at(ctx, clone(emit_method_name))
             if len(type_contracts::MonoInstance_mangled_name(emit_inst)) > 0 &&
             !type_contracts::MonoInstance_demanded(emit_inst) {
                 method_mono_emit_i = method_mono_emit_i + 1

@@ -1,0 +1,39 @@
+use std::prelude::{clone}
+use mir::function_locals_view
+use mir::local_access
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_current_storage
+use mir::lower::ctx_struct_layout
+use mir::value_types
+
+// Resolve the source local's capture type for closure packing. Kept out of
+// body_closure_capture so closure_pcells can use it without importing the
+// module that imports closure_pcells back.
+fn mir_closure_lookup_capture_type(mut ctx: LowerCtx, cli: i32) -> String {
+    let mut cap_type = String_new()
+    if cli < 0 {
+        return cap_type
+    }
+    let func = ctx_current_storage::ctx_current_func_value(ctx)
+    if cli < function_locals_view::MirFunction_local_count(func) {
+        let loc = function_locals_view::MirFunction_local_at(func, cli)
+        cap_type = local_access::MirLocal_type_name(loc)
+    }
+    if len(cap_type) == 0 {
+        cap_type = ctx_api_local_types::ctx_get_local_type(ctx, cli)
+    }
+    if len(cap_type) > 0 {
+        cap_type = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(cap_type))
+    } else if ctx_api_local_types::ctx_local_vt(ctx, cli) == value_types::VT_GC_REF() {
+        cap_type = "String"
+    }
+    cap_type
+}
+
+fn mir_closure_vt_is_snapshot_copy(vt: i32) -> bool {
+    vt == value_types::VT_I32() ||
+    vt == value_types::VT_I64() ||
+    vt == value_types::VT_F64() ||
+    vt == value_types::VT_F32() ||
+    vt == value_types::VT_V128()
+}

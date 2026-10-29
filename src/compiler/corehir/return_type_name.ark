@@ -151,7 +151,7 @@ fn return_index_type_name_with_result_payload(
 
 // Type parameters visible to an impl method: the impl binder first, then
 // the method's own binder in declaration order.
-pub fn return_declared_type_params(impl_node: AstNode, method_node: AstNode) -> Vec<String> {
+fn return_declared_type_params(impl_node: AstNode, method_node: AstNode) -> Vec<String> {
     let names = decl_impl_target::declared_impl_param_names(impl_node)
     let method_names = frontend_fns::build_fn_type_params(method_node)
     let count = len(method_names)

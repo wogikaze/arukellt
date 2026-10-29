@@ -8,7 +8,7 @@ use mir::lower::ctx_api_local_frame
 use mir::lower::ctx_types
 use mir::function_return_mutation
 use mir::lower::body_closure_capture
-use mir::lower::closure_cells
+use mir::lower::ctx_env_cells
 use mir::lower::closure_env
 use mir::lower::body_closure_context
 use mir::lower::body_closure_params
@@ -77,7 +77,7 @@ fn lower_closure_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let packed = closure_capture_args::closure_pack_caps(supply_caps)
     let extra = len(caps)
     let mut mf = mir_emit_closure_fn(ctx, synth, node, caps, eff_rebinds)
-    closure_registry::closure_register_synth_fn(ctx, mf, packed, extra, closure_cells::ctx_has_env_cell(eff_rebinds), caps, eff_rebinds, is_move)
+    closure_registry::closure_register_synth_fn(ctx, mf, packed, extra, ctx_env_cells::ctx_has_env_cell(eff_rebinds), caps, eff_rebinds, is_move)
 }
 
 fn is_identity_closure(node: AstNode) -> bool {

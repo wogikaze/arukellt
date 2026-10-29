@@ -11,7 +11,7 @@ use mir::lower::decl_source
 use mir::lower::ctx_corehir_probe
 use mir::lower::edge_discovery
 use mir::lower::emit_inloop
-use mir::lower::emit_spec
+use mir::emit_spec
 use mir::emit_artifacts
 use mir::module_emit_artifacts
 use mir::lower::entry_context

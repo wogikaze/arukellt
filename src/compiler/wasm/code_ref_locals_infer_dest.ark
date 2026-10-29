@@ -27,7 +27,6 @@ use wasm::emit_target
 use wasm::code_ref_locals_infer_callee
 use wasm::inst_ctx
 use wasm::intrinsic_vec_type
-use wasm::intrinsic_vec_access_gc
 use wasm::sections_types_gc
 use wasm::sections_types_gc_phase7
 fn resolve_fn_index_for_inference(ctx: SelfEmitCtx, callee: String) -> i32 {
@@ -190,7 +189,7 @@ fn infer_get_unchecked_elem_from_vec_arg(f: MirFunction, inst: MirInst, ctx: Sel
     // is itself a Vec, so map it to that vec family's GC struct layout rather
     // than falling through to the String/name guesses (#922 Vec<Vec<i32>>).
     if starts_with(clone(elem), "vec:") || starts_with(clone(elem), "Vec") {
-        let nested_vec = intrinsic_vec_access_gc::resolve_container_elem_gc_type(ctx, clone(elem))
+        let nested_vec = intrinsic_vec_type::resolve_container_elem_gc_type(ctx, clone(elem))
         if nested_vec >= 0 {
             return Option::Some(nested_vec)
         }

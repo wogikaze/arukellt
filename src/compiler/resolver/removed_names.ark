@@ -8,7 +8,7 @@
 use std::prelude::{clone, eq, starts_with, substring}
 use std::text
 
-pub fn removed_name_hint(name: String) -> String {
+fn removed_name_hint(name: String) -> String {
     let specific = removed_name_specific_hint(clone(name))
     if len(clone(specific)) > 0 {
         return specific
@@ -259,7 +259,7 @@ fn removed_host_env_member_hint(name: String) -> String {
     String_new()
 }
 
-pub fn removed_module_member_hint(module: String, name: String) -> String {
+fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "fs") || eq(clone(module), "host::fs") || eq(clone(module), "std::fs") || eq(clone(module), "std::host::fs") {
         return removed_host_fs_member_hint(name)
     }

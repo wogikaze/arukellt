@@ -1,5 +1,5 @@
 use mir::lower::input
-use mir::lower::emit_spec
+use mir::emit_spec
 
 struct MirLowerEntryInput {
     view: CoreHirMirView,

@@ -7,7 +7,7 @@ use corehir::type_id
 use corehir::type_table
 use mir::gc_layout_plan
 use mir::gc_layout_slot_bind
-use mir::lower::aggregate_field
+use mir::lower::ctx_struct_layout
 use mir::gc_layout_plan_validator
 use mir::module_gc_enum
 use mir::module_gc_layout_plan
@@ -86,7 +86,7 @@ fn gc_layout_plan_elem_is_declared_aggregate(table: TypeTable, elem: String) -> 
                 return true
             }
             if starts_with(clone(en), String_from("struct:")) &&
-            eq(aggregate_field::strip_struct_type_prefix(en), clone(elem)) {
+            eq(ctx_struct_layout::strip_struct_type_prefix(en), clone(elem)) {
                 return true
             }
         }

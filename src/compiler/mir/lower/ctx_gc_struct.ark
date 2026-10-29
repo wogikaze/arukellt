@@ -269,7 +269,7 @@ fn gc_struct_scalar_field_suffix(type_name: String) -> String {
 // A field spelling that names a declared aggregate. Single-letter user
 // type names (struct P, enum E) collide with the unsubstituted-type-param
 // heuristics, so declared types must win before the i32 fallbacks apply.
-pub fn gc_struct_field_name_is_declared(ctx: LowerCtx, type_name: String) -> bool {
+fn gc_struct_field_name_is_declared(ctx: LowerCtx, type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
@@ -415,7 +415,7 @@ fn gc_struct_field_type_is_container(type_name: String) -> bool {
 // fn-valued field type names (pair-ABI storage, #872). Mirrors the local
 // type-name detection used by mir_is_funcref_local. Shared by tuple field
 // vt recovery so the fn-key spelling set stays defined in one place.
-pub fn gc_struct_field_type_is_fn_value(type_name: String) -> bool {
+fn gc_struct_field_type_is_fn_value(type_name: String) -> bool {
     if eq(clone(type_name), String_from("fnref")) ||
     eq(clone(type_name), String_from("fnref2")) ||
     eq(clone(type_name), String_from("fnrefss")) ||

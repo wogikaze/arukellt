@@ -185,7 +185,7 @@ fn writer_set_memory64(mut w: WasmWriter, memory64: bool) {
     w.memory64 = memory64
 }
 
-pub fn emit_byte(mut w: WasmWriter, b: i32) {
+fn emit_byte(mut w: WasmWriter, b: i32) {
     push(w.bytes, b % 256)
 }
 

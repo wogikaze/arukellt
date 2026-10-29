@@ -30,7 +30,7 @@ use mir::lower::ctx_call_edges
 use mir::lower::ctx_gc_canon
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_struct
-use mir::lower::emit_spec
+use mir::emit_spec
 use mir::module_block_pool
 use mir::module_canon
 use mir::module_emit_artifacts

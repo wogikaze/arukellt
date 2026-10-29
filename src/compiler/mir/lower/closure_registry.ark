@@ -7,8 +7,9 @@ use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_module
 use mir::lower::ctx_gc_struct
-use mir::lower::body_closure_capture
+use mir::lower::closure_capture_type
 use mir::lower::closure_env
+use mir::lower::closure_env_layout
 use mir::lower::closure_cells
 use mir::lower::ctx_call_edges
 use mir::lower::ctx_current_storage
@@ -51,7 +52,7 @@ fn closure_register_synth_fn(mut ctx: LowerCtx, mut mf: MirFunction, packed: Str
         let li = ctx_api_local_alloc::ctx_lookup_local(ctx, clone(get_unchecked(cap_names, ci)))
         if li >= 0 {
             push(cap_vts, ctx_api_local_types::ctx_local_vt(ctx, li))
-            push(cap_types, body_closure_capture::mir_closure_lookup_capture_type(ctx, li))
+            push(cap_types, closure_capture_type::mir_closure_lookup_capture_type(ctx, li))
         } else {
             push(cap_vts, value_types::VT_I32())
             push(cap_types, String_new())
@@ -72,7 +73,7 @@ fn closure_register_synth_fn(mut ctx: LowerCtx, mut mf: MirFunction, packed: Str
     // source local must be refreshed from that field; move captures own
     // the cell outright, so they register no write-back pairs.
     if wb_is_move == 0 && env_local >= 0 {
-        let env_total = closure_env::closure_env_byte_size(cap_vts)
+        let env_total = closure_env_layout::closure_env_byte_size(cap_vts)
         let mut wb_off = 0
         let mut wi = 0
         while wi < len(cap_names) {
@@ -96,7 +97,7 @@ fn closure_register_synth_fn(mut ctx: LowerCtx, mut mf: MirFunction, packed: Str
                     )
                 }
             }
-            wb_off = wb_off + closure_env::closure_env_slot_width(cvt)
+            wb_off = wb_off + closure_env_layout::closure_env_slot_width(cvt)
             wi = wi + 1
         }
     }

@@ -34,6 +34,7 @@ fn nk_trait_decl() -> i32 { kinds::NK_TRAIT_DECL() }
 fn nk_impl_decl() -> i32 { kinds::NK_IMPL_DECL() }
 fn nk_use() -> i32 { kinds::NK_USE() }
 fn nk_import() -> i32 { kinds::NK_IMPORT() }
+fn nk_impl_generics() -> i32 { kinds::NK_IMPL_GENERICS() }
 fn nk_while() -> i32 { kinds::NK_WHILE() }
 fn nk_loop() -> i32 { kinds::NK_LOOP() }
 fn nk_for() -> i32 { kinds::NK_FOR() }

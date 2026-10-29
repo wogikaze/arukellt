@@ -12,7 +12,7 @@ use mir::lower_kinds
 use mir::mono
 use mir::function_locals_view
 use mir::local_access
-use mir::lower::ctx_api_module
+use mir::lower::ctx_mono_index
 use mir::lower::ctx_struct_layout
 use mir::type_contracts
 
@@ -811,7 +811,7 @@ fn ctx_setup_mono_type_params_by_ordinal(mut ctx: LowerCtx, mangled_name: String
         ctx_clear_mono_type_params(ctx)
         return
     }
-    let inst = ctx_api_module::ctx_mono_instance_at(ctx, mangled_name)
+    let inst = ctx_mono_index::ctx_mono_instance_at(ctx, mangled_name)
     let arg_count = type_contracts::MonoInstance_type_arg_count(inst)
     if arg_count <= 0 {
         ctx_clear_mono_type_params(ctx)

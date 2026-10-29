@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq, starts_with}
 use mir::lower::ctx_struct_lookup
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_mono
@@ -5,58 +6,8 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_gc_enum
-use mir::lower::ctx_types
 use mir::inst_struct_get
 use mir::value_types
-
-// Strip "struct:TypeName:byte_size" → "TypeName" so struct layout lookups
-// (ctx_field_index, ctx_struct_byte_size, etc.) match the registered name.
-// Passes through non-"struct:" type names unchanged.
-use std::prelude::{byte_at, clone, eq, starts_with, substring}
-fn strip_struct_type_prefix(type_name: String) -> String {
-    if !starts_with(clone(type_name), "struct:") {
-        return type_name
-    }
-    let n = len(type_name)
-    let mut first_colon = 0 - 1
-    let mut last_colon = 0 - 1
-    let mut i = 0
-    while i < n {
-        if byte_at(type_name, i) == ':' {
-            if first_colon < 0 {
-                first_colon = i
-            }
-            last_colon = i
-        }
-        i = i + 1
-    }
-    if first_colon < 0 || last_colon < 0 || first_colon == last_colon {
-        return type_name
-    }
-    substring(type_name, first_colon + 1, last_colon)
-}
-
-// Layout tables register bare names. Call return locals may carry
-// `module::Type` (or nested qualifiers); strip the last `::` segment only.
-// Do not strip single `:` — that would break `struct:Name:size` encoding.
-fn strip_module_qualifier(type_name: String) -> String {
-    let n = len(type_name)
-    if n < 2 {
-        return type_name
-    }
-    let mut i = n - 2
-    while i >= 0 {
-        if byte_at(type_name, i) == 58 && byte_at(type_name, i + 1) == 58 {
-            return substring(type_name, i + 2, n)
-        }
-        i = i - 1
-    }
-    type_name
-}
-
-fn canonicalize_struct_layout_name(type_name: String) -> String {
-    strip_module_qualifier(strip_struct_type_prefix(type_name))
-}
 
 fn mir_field_access_dest_vt(ctx: LowerCtx, base_type: String, field_name: String, field_idx: i32, is_f64_field: bool) -> i32 {
     let mut dest_vt = value_types::VT_I32()

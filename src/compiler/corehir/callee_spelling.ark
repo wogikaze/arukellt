@@ -66,7 +66,7 @@ fn callee_spelling_last_two_segments(name: String) -> String {
 // Namespace spellings for a sealed raw bridge: the canonical CoreOp callee
 // (`raw_array_new`), the module-qualified form, the associated form
 // (`RawArray::new`), and the monomorphized form (`RawArray__new__String`).
-pub fn is_namespace_member_callee(
+fn is_namespace_member_callee(
     callee: String,
     raw_name: String,
     owner_name: String,

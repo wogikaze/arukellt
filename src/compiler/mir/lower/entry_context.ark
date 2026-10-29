@@ -1,7 +1,7 @@
 use std::prelude::{clone}
 use mir::lower::ctx_fn_mono
 use mir::lower::ctx_api_init
-use mir::lower::ctx_api_module
+use mir::lower::ctx_mono_index
 use mir::lower::ctx_types
 use mir::lower::ctx_fn_index
 use mir::lower::wit_ctx_init
@@ -33,7 +33,7 @@ fn mir_prepare_lower_ctx(
     )
     ctx_fn_index::ctx_set_const_names(ctx, decls)
     mono_calls::mir_register_mono_rewrites(ctx, mono_view::mir_lower_mono_view_instances(mono_view))
-    ctx_api_module::ctx_set_mono_instances(ctx, mono_view::mir_lower_mono_view_instances(mono_view))
+    ctx_mono_index::ctx_set_mono_instances(ctx, mono_view::mir_lower_mono_view_instances(mono_view))
     wit_ctx_init::mir_init_wit_bindings(ctx, wit_paths, decls)
     entry_trace::mir_log_mono_rewrites_if_needed(mir_tr, ctx)
     ctx

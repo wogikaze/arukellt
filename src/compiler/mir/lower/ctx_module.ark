@@ -17,7 +17,7 @@ use mir::module_spine
 use mir::post_pass_callee_cache
 use mir::post_pass_type_propagate
 use mir::typed_mir_sync_module
-use mir::lower::emit_spec
+use mir::emit_spec
 use mir_opt::optimize_fn
 
 fn ctx_push_module_function(mut ctx: LowerCtx, mut func: MirFunction) {

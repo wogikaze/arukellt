@@ -1,5 +1,5 @@
 use compiler::session_corehir
-use mir::lower::emit_spec
+use mir::emit_spec
 //
 // Owns the post-typecheck CoreHIR artifact shared by the driver pipeline
 // and LSP analysis. Consumers query the session instead of rebuilding the

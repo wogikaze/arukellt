@@ -18,15 +18,14 @@ use mir::inst_local_set
 use mir::inst_struct_get
 use mir::inst_struct_new
 use mir::inst_struct_set
-use mir::lower::aggregate_field
-use mir::lower::body_closure_capture
-use mir::lower::closure_env
-use mir::lower::ctx_api_emit
+use mir::lower::ctx_struct_layout
+use mir::lower::closure_capture_type
+use mir::lower::closure_env_layout
+use mir::lower::ctx_emit_core
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_gc_struct
-use mir::lower::ctx_types
 use mir::opcodes
 use mir::value_types
 
@@ -71,7 +70,7 @@ fn ctx_pcell_cell_spelling(ctx: LowerCtx, local_idx: i32) -> String {
     if idx < 0 {
         return String_new()
     }
-    "struct:".concat(clone(get_unchecked(ctx.pcell_cell_names, idx)).concat(":".concat(to_string(closure_env::closure_env_slot_width(get_unchecked(ctx.pcell_vts, idx))))))
+    "struct:".concat(clone(get_unchecked(ctx.pcell_cell_names, idx)).concat(":".concat(to_string(closure_env_layout::closure_env_slot_width(get_unchecked(ctx.pcell_vts, idx))))))
 }
 
 fn ctx_pcell_vt_sig(payload_vt: i32) -> String {
@@ -161,20 +160,20 @@ fn ctx_promote_capture_cell(mut ctx: LowerCtx, name: String) -> i32 {
         return src_li
     }
     let payload_vt = ctx_api_local_types::ctx_local_vt(ctx, src_li)
-    let payload_type = body_closure_capture::mir_closure_lookup_capture_type(ctx, src_li)
+    let payload_type = closure_capture_type::mir_closure_lookup_capture_type(ctx, src_li)
     let cell_name = ctx_pcell_cell_name_for(ctx, clone(payload_type), payload_vt)
-    let slot_width = closure_env::closure_env_slot_width(payload_vt)
-    let ref_vt = closure_env::closure_env_ref_vt(ctx)
+    let slot_width = closure_env_layout::closure_env_slot_width(payload_vt)
+    let ref_vt = closure_env_layout::closure_env_ref_vt(ctx)
     let cell_local_type = "struct:".concat(clone(cell_name).concat(":".concat(to_string(slot_width))))
     let ref_name = "__cellref_".concat(clone(name).concat("_".concat(to_string(src_li))))
     let ref_li = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(ref_name), ref_vt)
     ctx_api_local_types::ctx_set_local_type(ctx, ref_li, cell_local_type)
-    ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new_named(
+    ctx_emit_core::ctx_emit_verbatim(ctx, inst_struct_new::MirInst_struct_new_named(
             ref_li,
             clone(cell_name),
             slot_width
         ))
-    ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named_idx(
+    ctx_emit_core::ctx_emit_verbatim(ctx, inst_struct_set::MirInst_struct_set_named_idx(
             ref_li,
             src_li,
             clone(cell_name),
@@ -218,7 +217,7 @@ fn ctx_pcell_bind_cap_param(mut ctx: LowerCtx, param_li: i32, cap_type: String, 
     if !ctx_pcell_cap_type_is_cell(clone(cap_type)) {
         return
     }
-    let cell_name = aggregate_field::strip_struct_type_prefix(cap_type)
+    let cell_name = ctx_struct_layout::strip_struct_type_prefix(cap_type)
     let reg = ctx_pcell_reg_lookup(ctx, clone(cell_name))
     if reg < 0 {
         return
@@ -319,7 +318,7 @@ fn ctx_pcell_materialize(mut ctx: LowerCtx, idx: i32, mut out: Vec<MirInstDraft>
             clone(get_unchecked(ctx.pcell_cell_names, idx)),
             0,
             0,
-            closure_env::closure_env_slot_width(get_unchecked(ctx.pcell_vts, idx)),
+            closure_env_layout::closure_env_slot_width(get_unchecked(ctx.pcell_vts, idx)),
             get_unchecked(ctx.pcell_vts, idx),
             tmp
         ))
@@ -336,7 +335,7 @@ fn ctx_pcell_store_inst(ctx: LowerCtx, idx: i32, src_li: i32) -> MirInstDraft {
         clone(get_unchecked(ctx.pcell_cell_names, idx)),
         0,
         0,
-        closure_env::closure_env_slot_width(get_unchecked(ctx.pcell_vts, idx)),
+        closure_env_layout::closure_env_slot_width(get_unchecked(ctx.pcell_vts, idx)),
         get_unchecked(ctx.pcell_vts, idx)
     )
 }

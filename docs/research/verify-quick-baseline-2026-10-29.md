@@ -90,3 +90,34 @@ python3 scripts/manager.py selfhost build-compiler   # fresh worktree で 1 回
 python3 scripts/manager.py verify quick
 python3 scripts/manager.py verify lane
 ```
+
+## 追記: CQ-STRUCT-002 / 005 / 008 の解消（wave/cqstruct）
+
+上の分類のうち、owner: compiler の 3 ルールを `wave/cqstruct` で修正した。
+`python3 scripts/manager.py quality structure` は 27 findings（9 cycle +
+18 boundary）から `errors=0 warnings=0 advisories=0` になった。
+
+- CQ-STRUCT-002: closure 系 lower module から emit hook / env-cell / layout /
+  capture-type を下位 module（`ctx_emit_core`、`ctx_env_cells`、
+  `closure_env_layout`、`closure_capture_type`）へ分離し、`closure_pcells` は
+  rewrite hook を持たない emit core を使う。mono instance index は
+  `ctx_mono_index` へ、container element 解決は `intrinsic_vec_type` へ移した。
+- CQ-STRUCT-005: `emit_spec` を `mir` 境界へ、`wat_disasm` を `driver/` へ移し、
+  child module の 14 個の `pub fn` を内部可視へ戻した。`strip_struct_type_prefix`
+  は `ctx_struct_layout` に集約し、`assign.ark` / `aggregate_field.ark` の重複と
+  未使用 copy を削除した。
+- CQ-STRUCT-008: `decl_impl_target.ark` は `parser::kinds` ではなく
+  `corehir::frontend_kind_map::nk_impl_generics()` を参照する。
+
+確認結果（同一 worktree、`ARUKELLT_CC=clang`）:
+
+- `quality structure`: `errors=0 warnings=0 advisories=0`
+- `verify fixtures`: 1889 compile+validate PASS / 0 FAIL、runtime smoke 109、
+  test 36 PASS
+- `verify lane`: PASS（W0011 ratchet 含む）
+- `docs check`: 6/6 PASS
+- `selfhost fixpoint`: PASS、sha256(s2)==sha256(s3)=
+  `74c8d1c0e4676f8fd097f9082a01a4f9df59c9bdd627c7b968933d38337938c4`
+
+未解消として残るのは、このメモの範囲外である `lines_ge_200`（10 > baseline 2）と
+direct `check src/compiler/main.ark` の E0100 7 件（#931）である。

@@ -1,0 +1,33 @@
+use mir::value_types
+
+// Linear byte width of one env/pair slot, and the GC field index basis.
+// Reference captures (String/Vec/struct/enum/fn) are one pointer slot on
+// both backends; scalars keep their natural width. These helpers live below
+// closure_env so capture-binding and cell modules can size slots without
+// importing closure_env itself.
+fn closure_env_slot_width(vt: i32) -> i32 {
+    if vt == value_types::VT_I64() || vt == value_types::VT_F64() {
+        return 8
+    }
+    if vt == value_types::VT_V128() {
+        return 16
+    }
+    4
+}
+
+fn closure_env_byte_size(cap_vts: Vec<i32>) -> i32 {
+    let mut total = 0
+    let mut i = 0
+    while i < len(cap_vts) {
+        total = total + closure_env_slot_width(get_unchecked(cap_vts, i))
+        i = i + 1
+    }
+    total
+}
+
+fn closure_env_ref_vt(ctx: LowerCtx) -> i32 {
+    if ctx.is_gc_target {
+        return value_types::VT_GC_REF()
+    }
+    value_types::VT_I32()
+}

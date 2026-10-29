@@ -5,7 +5,7 @@
 // Keep in sync with [prelude_policy] stable_functions +
 // intrinsic_compatibility_functions in std/manifest.toml;
 // scripts/check/check-compat-orphans.py verifies both directions.
-pub fn is_stable_prelude_name(name: String) -> bool {
+fn is_stable_prelude_name(name: String) -> bool {
     eq(clone(name), "panic") || eq(clone(name), "assert") ||
     eq(clone(name), "String_from") || eq(clone(name), "String_new") ||
     eq(clone(name), "char_to_string") || eq(clone(name), "len") ||

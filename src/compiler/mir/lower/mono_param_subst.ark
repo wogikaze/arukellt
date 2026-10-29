@@ -6,7 +6,7 @@ use std::prelude::{args, byte_at, clone, contains, eq, starts_with, substring}
 use std::text
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_api_local_types
-use mir::lower::ctx_api_module
+use mir::lower::ctx_mono_index
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_layout
@@ -294,7 +294,7 @@ fn mono_hashmap_arg_type_info(ctx: LowerCtx, arg: String) -> TypeInfo {
         return mono_hashmap_concrete_type_info(arg)
     }
     let func = ctx_current_storage::ctx_current_func_value(ctx)
-    let inst = ctx_api_module::ctx_mono_instance_at(ctx, function_identity::MirFunction_name(func))
+    let inst = ctx_mono_index::ctx_mono_instance_at(ctx, function_identity::MirFunction_name(func))
     let inst_args = type_contracts::MonoInstance_type_arg_count(inst)
     let count = len(ctx.mono_type_param_names)
     let mut i = 0

@@ -3,7 +3,7 @@ use compiler::session
 use corehir::export_surface
 use driver::checked_program
 use driver::config_record
-use mir::lower::emit_spec
+use mir::emit_spec
 use resolver::wit_import_bind
 use wasm::emit_target
 

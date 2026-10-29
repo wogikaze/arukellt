@@ -25,7 +25,7 @@ fn resolve_unknown_name(mut ctx: ResolveCtx, name: String, span_start: i32, span
     resolve_diagnostic(ctx, codes::DIAG_RESOLVE_UNKNOWN_NAME(), "undefined name: ".concat(name), span_start, span_end)
 }
 
-pub fn resolve_unknown_member(mut ctx: ResolveCtx, module: String, name: String, path: String) {
+fn resolve_unknown_member(mut ctx: ResolveCtx, module: String, name: String, path: String) {
     let hint = removed_names::removed_module_member_hint(clone(module), clone(name))
     if len(clone(hint)) > 0 {
         resolve_diagnostic(ctx, codes::DIAG_RESOLVE_UNKNOWN_NAME(), "undefined module member: ".concat(path).concat("; ".concat(hint)), 0, 0)

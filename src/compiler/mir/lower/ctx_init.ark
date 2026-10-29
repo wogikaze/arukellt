@@ -2,7 +2,7 @@ use std::prelude::{clone}
 use mir::function_factory
 use mir::module_functions
 use mir::source_location_record
-use mir::lower::emit_spec
+use mir::emit_spec
 use mir::lower::ctx_types
 use wasm::emit_target
 use wasm::ctx_record

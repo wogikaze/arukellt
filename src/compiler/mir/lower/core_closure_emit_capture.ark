@@ -2,7 +2,7 @@ use std::prelude::{clone, eq, starts_with}
 use mir::function_locals_view
 use mir::local_access
 use mir::lower::closure_cells
-use mir::lower::closure_env
+use mir::lower::closure_env_layout
 use mir::lower::closure_pcells
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
@@ -47,7 +47,7 @@ fn core_closure_capture_vts(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
             if closure_pcells::ctx_pcell_is_cell(ctx, cli) {
                 // Promoted borrow cells pass the cell ref as the cap
                 // argument (#891).
-                pvt = closure_env::closure_env_ref_vt(ctx)
+                pvt = closure_env_layout::closure_env_ref_vt(ctx)
                 push(cap_vts, pvt)
                 cvi = cvi + 1
                 continue

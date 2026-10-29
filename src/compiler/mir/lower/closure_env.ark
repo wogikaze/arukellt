@@ -21,7 +21,7 @@ use mir::lower::ctx_call_edges
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_fn_mono
 use mir::lower::ctx_gc_struct
-use mir::lower::ctx_types
+use mir::lower::closure_env_layout
 use mir::function_factory
 use mir::function_identity
 use mir::function_locals_view
@@ -37,7 +37,7 @@ use mir::inst_struct_new
 use mir::inst_struct_set
 use mir::local_access
 use mir::local_factory
-use mir::lower::aggregate_field
+use mir::lower::ctx_struct_layout
 use mir::module_functions
 use mir::source_location_record
 use mir::value_types
@@ -63,36 +63,6 @@ fn closure_thunk_name(fn_name: String) -> String {
 
 fn closure_pair_byte_size() -> i32 {
     8
-}
-
-// Linear byte width of one env/pair slot, and the GC field index basis.
-// Reference captures (String/Vec/struct/enum/fn) are one pointer slot on
-// both backends; scalars keep their natural width.
-fn closure_env_slot_width(vt: i32) -> i32 {
-    if vt == value_types::VT_I64() || vt == value_types::VT_F64() {
-        return 8
-    }
-    if vt == value_types::VT_V128() {
-        return 16
-    }
-    4
-}
-
-fn closure_env_byte_size(cap_vts: Vec<i32>) -> i32 {
-    let mut total = 0
-    let mut i = 0
-    while i < len(cap_vts) {
-        total = total + closure_env_slot_width(get_unchecked(cap_vts, i))
-        i = i + 1
-    }
-    total
-}
-
-fn closure_env_ref_vt(ctx: LowerCtx) -> i32 {
-    if ctx.is_gc_target {
-        return value_types::VT_GC_REF()
-    }
-    value_types::VT_I32()
 }
 
 fn closure_split_packed(packed: String) -> Vec<String> {
@@ -130,7 +100,7 @@ fn closure_register_env_type(mut ctx: LowerCtx, env_name: String, cap_types: Vec
     while i < len(cap_types) {
         // Capture types arrive as local spellings (struct:Name:size); the
         // layout registry and named GC slots key on the bare name.
-        let cap_type = aggregate_field::strip_struct_type_prefix(clone(get_unchecked(cap_types, i)))
+        let cap_type = ctx_struct_layout::strip_struct_type_prefix(clone(get_unchecked(cap_types, i)))
         sig = sig.concat(ctx_gc_struct::gc_struct_field_sig_for_type(ctx, cap_type, i))
         i = i + 1
     }
@@ -145,9 +115,9 @@ fn closure_emit_env_alloc(mut ctx: LowerCtx, env_name: String, cap_names: Vec<St
     if cap_n == 0 {
         return 0 - 1
     }
-    let env_vt = closure_env_ref_vt(ctx)
+    let env_vt = closure_env_layout::closure_env_ref_vt(ctx)
     let env_local = ctx_api_local_alloc::ctx_fresh_local(ctx, env_vt)
-    let total = closure_env_byte_size(cap_vts)
+    let total = closure_env_layout::closure_env_byte_size(cap_vts)
     // struct:Name:size is the canonical local type spelling; the
     // single-colon form falls back to inference.
     ctx_api_local_types::ctx_set_local_type(
@@ -172,7 +142,7 @@ fn closure_emit_env_alloc(mut ctx: LowerCtx, env_name: String, cap_names: Vec<St
                     cvt
                 ))
         }
-        off = off + closure_env_slot_width(cvt)
+        off = off + closure_env_layout::closure_env_slot_width(cvt)
         i = i + 1
     }
     env_local
@@ -208,7 +178,7 @@ fn closure_emit_pair(mut ctx: LowerCtx, env_local: i32, tramp_name: String) -> i
                 4,
                 1,
                 closure_pair_byte_size(),
-                closure_env_ref_vt(ctx)
+                closure_env_layout::closure_env_ref_vt(ctx)
             ))
     }
     pair
@@ -226,7 +196,7 @@ fn closure_emit_pair_env_arg(mut ctx: LowerCtx, pair_local: i32) {
             4,
             1,
             closure_pair_byte_size(),
-            closure_env_ref_vt(ctx),
+            closure_env_layout::closure_env_ref_vt(ctx),
             0 - 1
         ))
 }
@@ -252,7 +222,7 @@ fn closure_trampoline_frame_begin(mut ctx: LowerCtx, tramp_name: String) -> Lowe
         ctx,
         function_factory::MirFunction_new(clone(tramp_name), source_location_record::SourceLocation_unmapped())
     )
-    let env_vt = closure_env_ref_vt(ctx)
+    let env_vt = closure_env_layout::closure_env_ref_vt(ctx)
     let env_li = ctx_api_local_alloc::ctx_alloc_local(ctx, "__env", env_vt)
     ctx_api_local_types::ctx_set_local_type(ctx, env_li, "structref")
     ctx_api_function_frame::ctx_push_func_param(ctx, local_factory::MirLocal_new("__env", env_vt, "structref"))
@@ -327,7 +297,7 @@ fn closure_synth_env_trampoline(mut ctx: LowerCtx, synth: String, mf: MirFunctio
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(li, li))
         pi = pi + 1
     }
-    let total = closure_env_byte_size(cap_vts)
+    let total = closure_env_layout::closure_env_byte_size(cap_vts)
     let mut off = 0
     let mut ci = 0
     while ci < cap_n {
@@ -344,7 +314,7 @@ fn closure_synth_env_trampoline(mut ctx: LowerCtx, synth: String, mf: MirFunctio
                 cvt,
                 0 - 1
             ))
-        off = off + closure_env_slot_width(cvt)
+        off = off + closure_env_layout::closure_env_slot_width(cvt)
         ci = ci + 1
     }
     let ret_vt = function_return_view::MirFunction_return_type(mf)
