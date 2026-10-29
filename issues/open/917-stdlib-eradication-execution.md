@@ -1218,3 +1218,60 @@ classified there, in dependency-safe waves.
   (pinned base `8df2698c…`), `build-compiler` 1657.7 s. The two
   `diagnostics/removed_env_get_var*` E0100 goldens still match byte-for-byte,
   and the new bare/qualified hints were exercised with `arukellt check`.
+
+### Landed slice (wave/associated-remain, 2026-10-29)
+
+- **Group**: `std::collections::compiler` — the 14 `arena_*` / `slotmap_*` /
+  `interner_*` free functions. All entries were `experimental`, so
+  [ADR-014](../adr/ADR-014-stability-labels.md) D4 allowed direct removal
+  without a deprecation window or W0009 entries; this is the same lifecycle
+  path used for the `std::wasm` memory helpers and the `std::wit` experimental
+  frees.
+- **Replacement surface**: `Arena` (`new` / `alloc` / `get` / `len`),
+  `SlotMap` (`new` / `insert` / `get` / `remove` / `contains` / `len`), and
+  `Interner` (`new` / `intern` / `lookup` / `len`) in
+  `std/collections/compiler.ark`. The backing stores are private fields; the
+  module's `[[types]]` and `[[modules]]` manifest entries document the new
+  surface. `std/component/handle.ark` now stores a `SlotMap` in
+  `HandleTableI32` and calls the receiver methods.
+- **E0100**: `resolver::removed_names::removed_compiler_member_hint` covers
+  the `compiler`, `collections::compiler`, and `std::collections::compiler`
+  spellings (and the bare-name path) with the per-symbol associated / method
+  replacement. Six new diag goldens
+  (`diagnostics/removed_compiler_{arena,slotmap,interner}_free*`) assert the
+  exact hint on both targets.
+- **Migration**: the five `stdlib_collections_compiler` /
+  `stdlib_compiler` fixtures moved to the type surface; expected stdout is
+  unchanged. `docs/stdlib/migration-guidance.md` has the before/after table,
+  and `docs/stdlib/changelog.md` records the wave.
+- **Scorecard**: scope 310 -> **296**; `associated-or-method` 244 ->
+  **230**; `must delete` 66 and `intrinsic-only` 1 unchanged; `pub fn`
+  declarations 337 -> **323**; manifest public entries 285 -> **271**;
+  unregistered declarations stay 25 and `prelude_wrapper` stays 65. The
+  `std::collections frees` rule drops 100 -> **86** manifest entries (20
+  unregistered source rows unchanged).
+- **Verification**: `check-cross-backend-parity.py` reports parity=5 for the
+  migrated compiler-collections fixtures and parity=2 for the two
+  `stdlib_component/handle_basic*` fixtures; every gc component validates with
+  `wasm-tools validate --features gc,function-references,memory64` and every
+  linear core with plain `wasm-tools validate`. `wasmtime` runs the gc
+  components with the same goldens. `verify fixtures` **1891/1891 PASS**, 0
+  FAIL (109 runtime smoke, 2 runtime-unsupported, 36 `test:` fixtures PASS);
+  `selfhost diag-parity` PASS with the six new E0100 goldens; `docs check`
+  6/6; `verify lane` PASS; `check-stdlib-eradication` 272/272 manifest
+  functions and 25/25 unregistered declarations classified; `quality quick`,
+  `check-compat-orphans`, `check-comment-policy`, `check-semantic-debt`, and
+  `check-legacy-dispatch-inventory` clean. `selfhost build-compiler`
+  2145.5 s; ADR-029 fixpoint PASS at s2 == s3 sha256
+  `53fdf6978bada5700fd49993bbf633c8aacefb83295a125ac08a926724750d05`
+  (pinned base `8df2698c…`).
+- **Residuals**: the remaining 230 `associated-or-method` symbols are
+  unchanged by this slice. Manifest-backed 205: prelude 55 (including
+  `panic`), hash 42, ordered 37, test 18, signal 10, seq 9, linear 7, cli 6,
+  io 5, host stdio 4, host random 4, host process 3, host fs 3, legacy
+  process 2. Unregistered source declarations 25: `std::collections::sort`
+  no-argument frees 4, `bimap` 10, `trie` 7, `hashmap_entry_pairs`,
+  `btree_set_find_idx`, `new_i32`, and `io_error_message`. The
+  `std::collections::compiler` module has no free symbol left; the next
+  coherent source-only groups are `bimap` (10) and `trie` (7), which still
+  need type surfaces.

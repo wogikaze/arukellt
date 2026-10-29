@@ -10,7 +10,7 @@
 |------|-------|-------------|
 | `stable` | 165 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 10 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 45 | API may change without notice. Functionality is available but not finalized. |
+| `experimental` | 31 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 65 | Superseded — see migration guidance. |
 
 ## Public Types
@@ -19,6 +19,7 @@
 
 | Name | Generic Params | Prelude | Stability | Summary |
 |------|----------------|---------|-----------|---------|
+| `Arena` | - | no | experimental | Bump allocator that hands out stable i32 arena ids; the backing entry vector is private. |
 | `Box` | T | yes | provisional | Heap-allocated owned value. |
 | `BufReader` | R | no | experimental | Buffered byte source over a Read handle; implements Read and BufRead, and Seek when the inner handle is Seek. |
 | `BufWriter` | W | no | experimental | Buffered byte sink over a Write handle; flushes at capacity and on flush/into_inner. |
@@ -41,6 +42,7 @@
 | `I32x4` | - | no | experimental | 4 × 32-bit signed integer lane associated operations over v128. |
 | `I64x2` | - | no | experimental | 2 × 64-bit signed integer lane associated operations over v128. |
 | `I8x16` | - | no | experimental | 16 × 8-bit signed integer lane associated operations over v128. |
+| `Interner` | - | no | experimental | Value-to-symbol bidirectional map for String values; interning deduplicates and returns a stable i32 symbol. |
 | `Io` | - | no | experimental | Namespace type for receiver-less generic algorithms over the I/O traits: copy, read_exact, read_to_end, read_to_string, and write_all. |
 | `Leb128` | - | no | experimental | Unsigned LEB128 encoding utilities. |
 | `Limits` | - | no | experimental | Memory limits: a minimum page count plus an optional maximum. |
@@ -55,6 +57,7 @@
 | `Reader` | - | no | experimental | In-memory read handle over an owned byte image; implements Read, BufRead, and Seek. |
 | `Section` | - | no | experimental | Section IDs for the standard Wasm sections. |
 | `Slice` | T | yes | provisional | Read-only contiguous view. |
+| `SlotMap` | - | no | experimental | Deletion-safe handle map for i32 values; keys stay stable across removes and removed slots report None. |
 | `Stack` | T | no | provisional | Last-in first-out stack restricted to Deque<T> push / pop at the back. |
 | `Stderr` | - | no | experimental | Typed standard-error handle. Implements Write: write(data) emits the byte image unchanged without appending a newline, write_string(text) emits a string's UTF-8 bytes, and flush is synchronous. Byte-faithful replacement for the tagged stderr() / writer_write path (ADR-085 D9). |
 | `Stdout` | - | no | experimental | Typed standard-output handle. Implements Write: write(data) emits the byte image unchanged, write_string(text) emits a string's UTF-8 bytes, and flush is synchronous. Byte-faithful replacement for the tagged stdout() / writer_write path (ADR-085 D9). |
@@ -112,6 +115,7 @@
 
 | Type | Methods | Trait impls |
 |------|---------|-------------|
+| `Arena` | `new`, `alloc`, `get`, `len` | - |
 | `BufRead` | `fill_buf`, `consume`, `read_line` | `Read` |
 | `BufReader` | `new` | `Read`, `BufRead`, `Seek` |
 | `BufWriter` | `new`, `write_string`, `into_inner` | `Write` |
@@ -135,6 +139,7 @@
 | `I32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `and`, `or`, `xor`, `not`, `shl`, `shr_s`, `shr_u`, `min_s`, `max_s`, `min_u`, `max_u` | - |
 | `I64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `eq`, `ne`, `lt_s`, `le_s`, `ge_s`, `add`, `sub`, `mul`, `neg`, `abs`, `gt_s`, `shl`, `shr_s`, `shr_u` | - |
 | `I8x16` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt_s`, `gt_s`, `lt_u`, `gt_u`, `min_s`, `min_u`, `max_s`, `max_u`, `shl`, `shr_s`, `shr_u`, `all_true`, `bitmask`, `narrow_i16x8_s`, `narrow_i16x8_u`, `add`, `sub`, `mul`, `neg`, `add_sat_s`, `add_sat_u`, `sub_sat_s`, `sub_sat_u`, `le_s`, `le_u`, `ge_s`, `ge_u` | - |
+| `Interner` | `new`, `intern`, `lookup`, `len` | - |
 | `IntoIterator` | `into_iter` | - |
 | `Io` | `copy`, `read_exact`, `read_to_end`, `read_to_string`, `write_all` | - |
 | `IoError` | - | `Display`, `Error` |
@@ -157,6 +162,7 @@
 | `Reader` | `from_bytes`, `new`, `len`, `is_eof`, `into_bytes` | `Read`, `BufRead`, `Seek` |
 | `Section` | `type_id`, `import_id`, `function_id`, `table_id`, `memory_id`, `global_id`, `export_id`, `start_id`, `element_id`, `code_id`, `data_id` | - |
 | `Seek` | `seek`, `position` | - |
+| `SlotMap` | `new`, `insert`, `get`, `remove`, `contains`, `len` | - |
 | `Stack` | `new`, `with_capacity`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
 | `Stderr` | `new`, `write_string` | `Write` |
 | `Stdout` | `new`, `write_string` | `Write` |
@@ -214,10 +220,6 @@
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `arena_alloc` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Allocate a value in the Arena, returning a stable ArenaId. |
-| `arena_get` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Get the value at the given ArenaId. |
-| `arena_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Return the number of allocated entries in the Arena. |
-| `arena_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Create a new Arena (bump allocator for stable i32 IDs). |
 | ~~`as_slice`~~ ⚠️ Deprecated → `Vec::as_slice` | `(Vec<T>, i32, i32) -> Slice<T>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | `bitset_clear` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Clear a bit in a BitSet (alias for bitset_unmark). |
 | `bitset_count` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return the number of set bits in a BitSet. |
@@ -306,10 +308,6 @@
 | `index_set_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Insert into an IndexSet<i32>. Returns true if the value was newly inserted. |
 | `index_set_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return the number of elements in an IndexSet<i32>. |
 | `index_set_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Create a new IndexSet<i32> (insertion-order unique values). |
-| `interner_intern` | `(Vec<String>, String) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Intern a String, returning its stable Symbol (i32 ID). Deduplicates. |
-| `interner_len` | `(Vec<String>) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Return the number of interned strings. |
-| `interner_lookup` | `(Vec<String>, i32) -> Option<String>` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Look up the String for a given Symbol, or None if out of range. |
-| `interner_new` | `() -> Vec<String>` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Create a new Interner (value<->Symbol bidirectional map). |
 | ~~`len`~~ ⚠️ Deprecated → `Vec::len` | `(Vec<T>) -> i32` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | Return the number of elements in a Vec. |
 | ~~`linked_list_back`~~ ⚠️ Deprecated → `LinkedList::back` | `(Vec<i32>, i32) -> i32` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Peek the back value of the legacy i32 list, or the caller's fallback when empty. |
 | ~~`linked_list_clear`~~ ⚠️ Deprecated → `LinkedList::clear` | `(Vec<i32>) -> ()` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Remove all elements from the legacy i32 list, keeping node capacity. |
@@ -334,12 +332,6 @@
 | ~~`set`~~ ⚠️ Deprecated → `Vec::set` | `(Vec<T>, i32, T) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | ~~`slice_get`~~ ⚠️ Deprecated → `Slice::get` | `(Slice<T>, i32) -> T` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | ~~`slice_len`~~ ⚠️ Deprecated → `Slice::len` | `(Slice<T>) -> i32` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| `slotmap_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Return true if the SlotKey is present and active. |
-| `slotmap_get` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Get the value at the given SlotKey, or None if removed. |
-| `slotmap_insert` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Insert a value into the SlotMap, returning a stable SlotKey. |
-| `slotmap_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Return the number of active entries in the SlotMap. |
-| `slotmap_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Create a new SlotMap (deletion-safe handle map for i32 values). |
-| `slotmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Remove and return the value at the given SlotKey, or None if already removed. |
 | `sorted_map_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
 | `sorted_map_find_idx` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
 | `sorted_map_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |

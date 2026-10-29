@@ -2005,10 +2005,10 @@ bulk `memory.copy` / `memory.fill` are compiler intrinsics only
 `seq_reverse(v: Vec<i32>) -> Vec<i32>`
 
 **Collections — Arena**:
-`arena_new() -> Vec<i32>`,
-`arena_alloc(a: Vec<i32>, size: i32) -> i32`,
-`arena_get(a: Vec<i32>, idx: i32) -> i32`,
-`arena_len(a: Vec<i32>) -> i32`
+`Arena::new() -> Arena`,
+`a.alloc(size: i32) -> i32`,
+`a.get(idx: i32) -> i32`,
+`a.len() -> i32`
 
 **Collections — Deque**:
 `deque_new() -> Vec<i32>`,

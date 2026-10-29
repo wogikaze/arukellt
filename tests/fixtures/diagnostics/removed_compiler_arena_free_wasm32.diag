@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: compiler::arena_new; use `Arena::new()` from `use std::collections::compiler::Arena` instead

@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: compiler::interner_new; use `Interner::new()` from `use std::collections::compiler::Interner` instead
