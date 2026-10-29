@@ -1,9 +1,38 @@
+// String equality compares UTF-8 contents, not refs or pointers, on both
+// backends. Equal values are built through different paths so identity
+// equality cannot pass by accident; scalar equality stays a control.
 use std::host::stdio
 use std::prelude::{eq}
+
 fn main() {
-    let a: String = String_from("hello")
-    let b: String = String_from("hello")
-    let c: String = String_from("world")
-    stdio::println((eq(a, b)).to_string())
-    stdio::println((eq(a, c)).to_string())
+    let literal = "apple"
+    let concat = "ap".concat("ple")
+    let dynamic: String = String_from("apple")
+    let other = "pear"
+    let empty = String_new()
+
+    stdio::println((literal == concat).to_string())
+    stdio::println((concat == literal).to_string())
+    stdio::println((literal == dynamic).to_string())
+    stdio::println((dynamic == concat).to_string())
+    stdio::println((literal == other).to_string())
+    stdio::println((literal != other).to_string())
+    stdio::println((literal != concat).to_string())
+    stdio::println((concat != dynamic).to_string())
+
+    stdio::println((empty == String_new()).to_string())
+    stdio::println((empty == "".concat("")).to_string())
+    stdio::println((empty != literal).to_string())
+    stdio::println((empty == literal).to_string())
+
+    stdio::println((eq(literal, dynamic)).to_string())
+    stdio::println((eq(literal, other)).to_string())
+
+    stdio::println((1 == 1).to_string())
+    stdio::println((1 != 2).to_string())
+    stdio::println((1i64 == 1i64).to_string())
+    stdio::println((1.5 == 1.5).to_string())
+    stdio::println((1.5 != 2.5).to_string())
+    stdio::println((true == true).to_string())
+    stdio::println(('a' == 'a').to_string())
 }

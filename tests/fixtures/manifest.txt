@@ -3545,3 +3545,4 @@ run:operators/string_order.ark
 run:operators/string_order_wasm32.ark
 t3-compile:operators/string_order.ark
 t3-run:operators/string_order.ark
+run:operators/string_eq_wasm32.ark

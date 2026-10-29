@@ -16,6 +16,23 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-29 — `String` の `==` / `!=` を content 比較へ修正 (wave/string-eq)
+
+- **Basis**: wave/string-ord (`ad8d46a55`) の residual。`String` の `==` / `!=`
+  は wasm32 linear で ref/pointer の数値比較になり、
+  `"ap".concat("ple") == "apple"` が false を返していた。wasm32-gc は byte 比較の
+  intrinsic で正しかった。
+- **Fixed**: `String` の `==` / `!=` は wasm32-gc と同じ byte-by-byte の
+  string equality intrinsic を linear でも使う。String は ref の `==` / `!=` が
+  比較 binop まで下りる唯一の型で、`Eq` impl を持つ他の型は operator call に
+  なる。`i32` / `i64` / `f64` / `bool` / `char` の equality は従来の wasm
+  数値比較のまま。ordering は wave/string-ord の `String::__cmp_bytes` 経路を
+  維持する。
+- **Evidence**: `tests/fixtures/operators/string_eq.ark` と `_wasm32` 版が
+  literal / dynamic / concat / empty / unequal と scalar control を
+  wasm32-gc component と `--target wasm32` core の両方で検証し、同一 stdout を
+  返す。旧 pinned bootstrap では同じ fixture が linear で不一致になることを確認。
+
 ## 2026-10-29 — `hash::hashmap_*` の Wave 2 削除 (#917, wave/hashmap-surface)
 
 - **Basis**: [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2 の

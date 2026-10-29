@@ -1952,6 +1952,13 @@ agree with `a.cmp(b)` on both targets. They no longer depend on
 and `Ordering` values. `tests/fixtures/operators/string_order.ark` and its
 `_wasm32` counterpart cover all four operators.
 
+`String` equality operators (`==`, `!=`) use the same UTF-8 byte comparison,
+so values built through different paths (`"ap".concat("ple")`,
+`String_from("apple")`, literals) compare by content on both targets. The
+linear target previously compared String refs/pointers. `eq(a, b)` keeps the
+same contract; `tests/fixtures/operators/string_eq.ark` and its `_wasm32`
+counterpart cover both forms.
+
 | Removed free call | Replacement |
 |-------------------|-------------|
 | `sort::sort(v)` | `v.sort()` |
