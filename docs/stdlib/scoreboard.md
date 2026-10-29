@@ -7,7 +7,7 @@
 |--------|------|--------|-------------|--------------|------------|------------------|----------|
 | `prelude` | 85 | 54 | 1 | 0 | 30 | 55/55 (100%) | no |
 | `std::cli` | 6 | 6 | 0 | 0 | 0 | 6/6 (100%) | no |
-| `std::collections::hash` | 42 | 21 | 0 | 0 | 21 | 21/21 (100%) | no |
+| `std::collections::hash` | 21 | 21 | 0 | 0 | 0 | 21/21 (100%) | no |
 | `std::collections::linear` | 18 | 7 | 0 | 0 | 11 | 7/7 (100%) | no |
 | `std::collections::linked_list` | 11 | 0 | 0 | 0 | 11 | 0/0 (—) | no |
 | `std::collections::ordered` | 37 | 10 | 0 | 27 | 0 | 36/37 (97%) | no |
@@ -21,7 +21,7 @@
 | `std::signal` | 10 | 10 | 0 | 0 | 0 | 7/10 (70%) | no |
 | `std::test` | 18 | 17 | 0 | 1 | 0 | 18/18 (100%) | no |
 
-**Total**: 270 APIs, 143 stable, 10 provisional, 31 experimental, 86 deprecated, 176/184 (96%) fixture coverage
+**Total**: 249 APIs, 143 stable, 10 provisional, 31 experimental, 65 deprecated, 176/184 (96%) fixture coverage
 
 ## Legend
 

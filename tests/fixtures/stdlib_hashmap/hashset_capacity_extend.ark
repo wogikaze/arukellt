@@ -1,58 +1,58 @@
-use std::collections::hash
+use std::collections::hash_set::HashSet
 use std::host::stdio
 use std::prelude::{assert_eq}
 fn main() {
-    let mut s = hash::hashset_new()
-    assert(hash::hashset_is_empty(s))
-    assert_eq(hash::hashset_len(s), 0)
-    assert(hash::hashset_capacity(s) >= 1)
+    let mut s = HashSet::new<i32>()
+    assert(s.is_empty())
+    assert_eq(s.len(), 0)
+    assert(s.capacity() >= 1)
 
     // insert / contains / len
-    assert(hash::hashset_insert(s, 1))
-    assert(hash::hashset_insert(s, 2))
-    assert(hash::hashset_insert(s, 3))
-    assert(!hash::hashset_insert(s, 2)) // duplicate returns false
-    assert_eq(hash::hashset_len(s), 3)
-    assert(hash::hashset_contains(s, 1))
-    assert(hash::hashset_contains(s, 2))
-    assert(hash::hashset_contains(s, 3))
-    assert(!hash::hashset_contains(s, 99))
+    assert(s.insert(1))
+    assert(s.insert(2))
+    assert(s.insert(3))
+    assert(!s.insert(2)) // duplicate returns false
+    assert_eq(s.len(), 3)
+    assert(s.contains(1))
+    assert(s.contains(2))
+    assert(s.contains(3))
+    assert(!s.contains(99))
 
     // reserve / capacity grow
-    let cap_before = hash::hashset_capacity(s)
-    hash::hashset_reserve(s, 20)
-    assert(hash::hashset_capacity(s) > cap_before)
+    let cap_before = s.capacity()
+    s.reserve(20)
+    assert(s.capacity() > cap_before)
     // entries preserved after reserve
-    assert_eq(hash::hashset_len(s), 3)
-    assert(hash::hashset_contains(s, 2))
+    assert_eq(s.len(), 3)
+    assert(s.contains(2))
 
     // extend adds elements from another set
-    let mut other = hash::hashset_new()
-    assert(hash::hashset_insert(other, 3)) // duplicate of existing
-    assert(hash::hashset_insert(other, 4))
-    assert(hash::hashset_insert(other, 5))
-    hash::hashset_extend(s, other)
-    assert_eq(hash::hashset_len(s), 5)
-    assert(hash::hashset_contains(s, 4))
-    assert(hash::hashset_contains(s, 5))
+    let mut other = HashSet::new<i32>()
+    assert(other.insert(3)) // duplicate of existing
+    assert(other.insert(4))
+    assert(other.insert(5))
+    s.extend(other)
+    assert_eq(s.len(), 5)
+    assert(s.contains(4))
+    assert(s.contains(5))
 
     // shrink_to_fit reduces capacity, entries preserved
-    let big_cap = hash::hashset_capacity(s)
-    hash::hashset_shrink_to_fit(s)
-    assert(hash::hashset_capacity(s) <= big_cap)
-    assert_eq(hash::hashset_len(s), 5)
+    let big_cap = s.capacity()
+    s.shrink_to_fit()
+    assert(s.capacity() <= big_cap)
+    assert_eq(s.len(), 5)
 
     // remove
-    assert(hash::hashset_remove(s, 3))
-    assert(!hash::hashset_contains(s, 3))
-    assert(!hash::hashset_remove(s, 3)) // removing absent returns false
-    assert_eq(hash::hashset_len(s), 4)
+    assert(s.remove(3))
+    assert(!s.contains(3))
+    assert(!s.remove(3)) // removing absent returns false
+    assert_eq(s.len(), 4)
 
     // clear resets the set
-    hash::hashset_clear(s)
-    assert(hash::hashset_is_empty(s))
-    assert_eq(hash::hashset_len(s), 0)
-    assert(!hash::hashset_contains(s, 1))
+    s.clear()
+    assert(s.is_empty())
+    assert_eq(s.len(), 0)
+    assert(!s.contains(1))
 
     stdio::println("OK")
 }

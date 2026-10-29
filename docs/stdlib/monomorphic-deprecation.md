@@ -40,27 +40,6 @@ helpers are included alongside any other deprecated public entry.
 | `u32_to_u64` | `prelude` | `deprecated` | `u32::to_u64` | `0.1.0` | `1.0.0` | Superseded API |
 | `u64_to_u32` | `prelude` | `deprecated` | `u64::to_u32_wrapping` | `0.1.0` | `1.0.0` | Superseded API |
 | `u8_to_i32` | `prelude` | `deprecated` | `u8::to_i32` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashset_capacity` | `std::collections::hash` | `deprecated` | `HashSet::capacity` | `0.1.0` | `1.0.0` | Return the current bucket capacity of a HashSet<i32>. |
-| `hashset_clear` | `std::collections::hash` | `deprecated` | `HashSet::clear` | `0.1.0` | `1.0.0` | Remove all elements from a HashSet<i32>, resetting size to 0. |
-| `hashset_contains` | `std::collections::hash` | `deprecated` | `HashSet::contains` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashset_difference` | `std::collections::hash` | `deprecated` | `HashSet::difference` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashset_extend` | `std::collections::hash` | `deprecated` | `HashSet::extend` | `0.1.0` | `1.0.0` | Extend a HashSet<i32> with all elements from another set. Mirrors Rust's HashSet::extend. |
-| `hashset_insert` | `std::collections::hash` | `deprecated` | `HashSet::insert` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashset_intersection` | `std::collections::hash` | `deprecated` | `HashSet::intersection` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashset_is_empty` | `std::collections::hash` | `deprecated` | `HashSet::is_empty` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashset_len` | `std::collections::hash` | `deprecated` | `HashSet::len` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashset_new` | `std::collections::hash` | `deprecated` | `HashSet::new` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashset_remove` | `std::collections::hash` | `deprecated` | `HashSet::remove` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashset_reserve` | `std::collections::hash` | `deprecated` | `HashSet::reserve` | `0.1.0` | `1.0.0` | Ensure a HashSet<i32> can hold at least additional more elements without exceeding the load-factor threshold. |
-| `hashset_shrink_to_fit` | `std::collections::hash` | `deprecated` | `HashSet::shrink_to_fit` | `0.1.0` | `1.0.0` | Shrink a HashSet<i32> to the minimum capacity preserving the load-factor invariant. |
-| `hashset_str_contains` | `std::collections::hash` | `deprecated` | `HashSet::contains` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashset_str_insert` | `std::collections::hash` | `deprecated` | `HashSet::insert` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashset_str_is_empty` | `std::collections::hash` | `deprecated` | `HashSet::is_empty` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashset_str_len` | `std::collections::hash` | `deprecated` | `HashSet::len` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashset_str_new` | `std::collections::hash` | `deprecated` | `HashSet::new` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashset_str_remove` | `std::collections::hash` | `deprecated` | `HashSet::remove` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashset_to_vec` | `std::collections::hash` | `deprecated` | `HashSet::to_vec` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashset_union` | `std::collections::hash` | `deprecated` | `HashSet::union` | `0.1.0` | `1.0.0` | Superseded API |
 | `deque_back` | `std::collections::linear` | `deprecated` | `Deque::back` | `0.1.0` | `1.0.0` | Peek at the back element without removing it. Returns 0 when empty. |
 | `deque_clear` | `std::collections::linear` | `deprecated` | `Deque::clear` | `0.1.0` | `1.0.0` | Reset the deque to empty (preserves allocated capacity). |
 | `deque_front` | `std::collections::linear` | `deprecated` | `Deque::front` | `0.1.0` | `1.0.0` | Peek at the front element without removing it. Returns 0 when empty. |
@@ -97,4 +76,4 @@ helpers are included alongside any other deprecated public entry.
 | `take_i32` | `std::seq` | `deprecated` | `VecIter::take` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect(). |
 | `unique` | `std::seq` | `deprecated` | `VecIter::unique` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect(). |
 
-Total deprecated public entries: **86**.
+Total deprecated public entries: **65**.

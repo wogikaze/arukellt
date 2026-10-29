@@ -92,12 +92,19 @@ fn resolve_qualified_path(mut ctx: ResolveCtx, mut node: AstNode, path: String) 
         if full_idx >= 0 {
             if full_kind != commands::SYM_VARIANT() {
                 if !scope_lookup::lookup_is_pub(ctx, clone(path)) {
-                    scope_error::resolve_error(
+                    if !scope_error::resolve_retired_private_member(
                         ctx,
-                        String_from("visibility error: `").concat(
-                            clone(symbol_part).concat(String_from("` is private and cannot be accessed from module `").concat(clone(module_part).concat(String_from("`"))))
+                        clone(module_part),
+                        clone(symbol_part),
+                        clone(path)
+                    ) {
+                        scope_error::resolve_error(
+                            ctx,
+                            String_from("visibility error: `").concat(
+                                clone(symbol_part).concat(String_from("` is private and cannot be accessed from module `").concat(clone(module_part).concat(String_from("`"))))
+                            )
                         )
-                    )
+                    }
                 }
             }
             ref_sites::record_use(ctx, full_idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
@@ -136,10 +143,17 @@ fn resolve_qualified_path(mut ctx: ResolveCtx, mut node: AstNode, path: String) 
     if full_idx >= 0 {
         if head_kind != commands::SYM_ENUM() {
             if !scope_lookup::lookup_is_pub(ctx, clone(path)) {
-                scope_error::resolve_error(
+                if !scope_error::resolve_retired_private_member(
                     ctx,
-                    "visibility error: `".concat(clone(symbol_part).concat("` is private and cannot be accessed from module `".concat(clone(module_part).concat("`"))))
-                )
+                    clone(module_part),
+                    clone(symbol_part),
+                    clone(path)
+                ) {
+                    scope_error::resolve_error(
+                        ctx,
+                        "visibility error: `".concat(clone(symbol_part).concat("` is private and cannot be accessed from module `".concat(clone(module_part).concat("`"))))
+                    )
+                }
             }
         }
         ref_sites::record_use(ctx, full_idx, ast_access::node_span_start(node), ast_access::node_span_end(node))

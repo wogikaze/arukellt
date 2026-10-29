@@ -1330,3 +1330,67 @@ classified there, in dependency-safe waves.
   `btree_set_find_idx`, `new_i32`, and `io_error_message`. Generic storage
   for `Bimap<K, V>` / `Trie<V>`, a `Trie::len`, and a public iterator surface
   for either collection remain out of scope.
+
+### Landed slice (wave/hash-group, 2026-10-29)
+
+- **Group**: `std::collections::hash` — the 21 HashSet free functions
+  (`hashset_*` 15, `hashset_str_*` 6). All entries were `stable`, so this is
+  the ADR-087 two-phase lifecycle: Wave 1 (`0a1ba8c04`) moved the manifest
+  entries to `deprecated` with `deprecated_by = "HashSet::<method>"`,
+  `deprecated_since = "0.1.0"`, `remove_in = "1.0.0"` and added the W0009
+  qualified-call table with dual-target `diagnostics/deprecated_hashset_free*`
+  goldens. Wave 2 deletes the entries and the `pub fn` declarations after
+  that window.
+- **Replacement surface**: the already-landed `HashSet<i32>` /
+  `HashSet<String>` methods (`a2abc9b18`, `03a9a7674`, `c918bc460`):
+  `HashSet::new<i32>()` / `HashSet::new<String>()`, `insert`, `contains`,
+  `remove`, `len`, `is_empty`, `to_vec`, `union`, `intersection`,
+  `difference`, `capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend`.
+  The 21 declarations stay as non-public MIR lowering targets; the duplicate
+  `Vec<String>` facade in `hash.ark` is removed, so `hash_string.ark` owns the
+  String store.
+- **E0100**: `resolver::removed_names::hashset_free_replacement_hint` covers
+  `hash::hashset_*`, `collections::hash::hashset_*`, and
+  `std::collections::hash::hashset_*`. Because the declarations remain
+  private rather than absent, `resolver::scope_error::resolve_retired_private_member`
+  turns the visibility error into the same "removed module member" E0100 with
+  the method replacement. The old `hash_set::` adapter hints are unchanged.
+  Dual-target `diagnostics/removed_hashset_free*` assert the exact message.
+- **Fixtures**: 17 `stdlib_hashmap` fixtures migrated from the free calls to
+  the `HashSet<T>` method surface (the 12 `run:` fixtures compile + validate +
+  run on both targets; the 5 `test:` fixtures pass on both). The fixture
+  registry stays **3475** (2 diag fixtures renamed, not added).
+- **Scorecard**: eradication scope 274 -> **253**; `associated-or-method`
+  208 -> **187**; manifest public entries 270 -> **249**; `pub fn`
+  declarations 301 -> **274** (the 21 names, including the duplicate String
+  declarations); the `std::collections frees` rule drops 86 -> **65**
+  manifest rows; unregistered declarations stay 4, `must delete` 66,
+  `intrinsic-only` 1, `prelude_wrapper` 64. Scoreboard stability:
+  stable 164 -> **143**, deprecated 65 -> **65** (the Wave 1 step raised it to
+  86 before deletion), hash family 42 -> **21** APIs.
+- **Verification**: `verify fixtures` **1895/1895 PASS**, 0 FAIL (110 runtime
+  smoke, 2 runtime-unsupported, 36 `test:` fixtures PASS); both-target
+  `wasm-tools validate` for every migrated `run:` fixture (gc features +
+  plain wasm32) and `arukellt test --target wasm32` PASS for the 5 test
+  fixtures; `selfhost diag-parity` PASS with the two new E0100 goldens;
+  `docs check` **6/6**; `verify lane` PASS; `check-stdlib-eradication`
+  250/250 manifest functions and 4/4 unregistered declarations classified;
+  `check-compat-orphans`, `check-comment-policy`, `check-ark-code-quality`,
+  and `check-semantic-debt` clean. `selfhost build-compiler` 100.2 s (first,
+  after the Wave 2 surface edits) and 56.7 s (second, after the resolver
+  visibility-hint fix); ADR-029 fixpoint PASS at s2 == s3 sha256
+  `e92b912e6251eedbe0c037c3c9086c0f95c72bf275a432949e032c3928ab1c5e`
+  (pinned base `62aecf93…`).
+- **Residuals**: the 21 `hashmap_*` flat-store frees in the same module
+  (`new`, `get`, `get_option`, `contains`, `set`, `insert`, `size`,
+  `is_empty`, `keys`, `values`, `entries`, `remove` plus the
+  capacity/bulk-maintenance group `capacity`, `with_capacity`, `reserve`,
+  `try_reserve`, `shrink_to_fit`, `clear`, `drain`, `remove_entry`,
+  `extend`) stay public until the HashMap capacity/bulk method surface lands;
+  the unregistered `hashmap_entry_pairs` remains public as the lowering
+  target for `entries()` and is outside this 21-row group. Known inference
+  gap, measured: `let u = s.union(t)` with an
+  inferred local traps inside a `test` block (the annotated
+  `let u: HashSet<i32> = ...` form works on both targets), so the migrated
+  fixture uses the annotated form; the unannotated test-block lane is
+  deferred with the method-return type inference.

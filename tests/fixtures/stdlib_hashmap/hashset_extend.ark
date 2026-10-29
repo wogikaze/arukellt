@@ -1,21 +1,21 @@
 // HashSet: extend adds all elements from other set
-use std::collections::hash
+use std::collections::hash_set::HashSet
 use std::test
 
 fn main() {
-    let mut a = hash::hashset_new()
-    hash::hashset_insert(a, 1)
-    hash::hashset_insert(a, 2)
+    let mut a = HashSet::new<i32>()
+    a.insert(1)
+    a.insert(2)
 
-    let mut b = hash::hashset_new()
-    hash::hashset_insert(b, 2)
-    hash::hashset_insert(b, 3)
-    hash::hashset_insert(b, 4)
+    let mut b = HashSet::new<i32>()
+    b.insert(2)
+    b.insert(3)
+    b.insert(4)
 
-    hash::hashset_extend(a, b)
-    test::assert_eq_i32(hash::hashset_len(a), 4)
-    test::assert_true(hash::hashset_contains(a, 1))
-    test::assert_true(hash::hashset_contains(a, 2))
-    test::assert_true(hash::hashset_contains(a, 3))
-    test::assert_true(hash::hashset_contains(a, 4))
+    a.extend(b)
+    test::assert_eq_i32(a.len(), 4)
+    test::assert_true(a.contains(1))
+    test::assert_true(a.contains(2))
+    test::assert_true(a.contains(3))
+    test::assert_true(a.contains(4))
 }

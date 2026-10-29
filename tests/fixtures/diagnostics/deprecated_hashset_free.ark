@@ -1,8 +1,0 @@
-// W0009: the std::collections::hash HashSet frees are deprecated in favour of
-// the HashSet<T> method surface (ADR-087).
-use std::collections::hash
-
-fn main() {
-    let mut s = hash::hashset_new()
-    let _ = hash::hashset_insert(s, 1)
-}

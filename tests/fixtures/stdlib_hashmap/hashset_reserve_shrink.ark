@@ -1,23 +1,23 @@
 // HashSet: reserve and shrink_to_fit
-use std::collections::hash
+use std::collections::hash_set::HashSet
 use std::test
 
 fn main() {
-    let mut s = hash::hashset_new()
-    hash::hashset_insert(s, 1)
-    hash::hashset_insert(s, 2)
+    let mut s = HashSet::new<i32>()
+    s.insert(1)
+    s.insert(2)
 
-    let cap_before = hash::hashset_capacity(s)
-    hash::hashset_reserve(s, 20)
+    let cap_before = s.capacity()
+    s.reserve(20)
     // reserve grows bucket capacity for load-factor headroom, not raw +additional.
-    test::assert_true(hash::hashset_capacity(s) > cap_before)
-    test::assert_eq_i32(hash::hashset_len(s), 2)
-    test::assert_true(hash::hashset_contains(s, 1))
-    test::assert_true(hash::hashset_contains(s, 2))
+    test::assert_true(s.capacity() > cap_before)
+    test::assert_eq_i32(s.len(), 2)
+    test::assert_true(s.contains(1))
+    test::assert_true(s.contains(2))
 
-    hash::hashset_shrink_to_fit(s)
-    test::assert_true(hash::hashset_capacity(s) <= cap_before + 20)
-    test::assert_eq_i32(hash::hashset_len(s), 2)
-    test::assert_true(hash::hashset_contains(s, 1))
-    test::assert_true(hash::hashset_contains(s, 2))
+    s.shrink_to_fit()
+    test::assert_true(s.capacity() <= cap_before + 20)
+    test::assert_eq_i32(s.len(), 2)
+    test::assert_true(s.contains(1))
+    test::assert_true(s.contains(2))
 }

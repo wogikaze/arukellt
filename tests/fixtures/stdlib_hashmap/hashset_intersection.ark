@@ -1,23 +1,23 @@
 // HashSet: intersection contains only common elements
-use std::collections::hash
+use std::collections::hash_set::HashSet
 use std::test
 
 fn main() {
-    let mut a = hash::hashset_new()
-    hash::hashset_insert(a, 1)
-    hash::hashset_insert(a, 2)
-    hash::hashset_insert(a, 3)
-    hash::hashset_insert(a, 4)
+    let mut a = HashSet::new<i32>()
+    a.insert(1)
+    a.insert(2)
+    a.insert(3)
+    a.insert(4)
 
-    let mut b = hash::hashset_new()
-    hash::hashset_insert(b, 3)
-    hash::hashset_insert(b, 4)
-    hash::hashset_insert(b, 5)
+    let mut b = HashSet::new<i32>()
+    b.insert(3)
+    b.insert(4)
+    b.insert(5)
 
-    let inter = hash::hashset_intersection(a, b)
-    test::assert_eq_i32(hash::hashset_len(inter), 2)
-    test::assert_true(hash::hashset_contains(inter, 3))
-    test::assert_true(hash::hashset_contains(inter, 4))
-    test::assert_false(hash::hashset_contains(inter, 1))
-    test::assert_false(hash::hashset_contains(inter, 5))
+    let inter = a.intersection(b)
+    test::assert_eq_i32(inter.len(), 2)
+    test::assert_true(inter.contains(3))
+    test::assert_true(inter.contains(4))
+    test::assert_false(inter.contains(1))
+    test::assert_false(inter.contains(5))
 }

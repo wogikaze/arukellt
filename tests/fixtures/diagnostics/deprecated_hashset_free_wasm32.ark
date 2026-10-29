@@ -1,8 +1,0 @@
-// W0009 on the linear wasm32 target: the HashSet free names the method
-// replacement (ADR-087).
-use std::collections::hash
-
-fn main() {
-    let mut s = hash::hashset_new()
-    let _ = hash::hashset_insert(s, 1)
-}

@@ -73,8 +73,8 @@ _No manifest-backed functions in this module._
 ## Module `std::collections::hash`
 
 - Source: [`../../../std/collections/hash.ark`](../../../std/collections/hash.ark)
-- Manifest-backed functions: 42
-- Stability: deprecated 21, stable 21
+- Manifest-backed functions: 21
+- Stability: stable 21
 
 Hash-based collection helpers.
 
@@ -99,6 +99,14 @@ to the non-public functions in `std::collections::hash_string` / `hash_fn`
 
 The functions in this module operate on `Vec<i32>` and serve as the raw
 implementation layer for the `i32`->`i32` family.
+
+The `hashset_*` store functions are non-public MIR lowering targets for
+`HashSet<i32>`; `std::collections::hash_string` owns the equivalent
+`HashSet<String>` targets. Their public free spellings were retired by
+#917 after the receiver surface landed. The remaining public functions are
+the HashMap capacity / bulk-maintenance helpers (`capacity`,
+`with_capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`,
+`drain`, `remove_entry`, `extend`), which have no method spelling yet.
 
 ### Hash policy
 
@@ -139,53 +147,10 @@ where flags are `0 = empty`, `1 = occupied`.
 | `hashmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `stable` | ✅ functional | Remove a key from the map and return its previous value, or None if absent. |
 | `hashmap_remove_entry` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | ✅ functional | Remove a key and return a flat [key, value] pair, or an empty Vec if absent. |
 | `hashmap_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `stable` | ✅ functional | Extend a map with all key/value pairs from another map (other). |
-| ~~`hashset_new`~~ ⚠️ Deprecated → `HashSet::new` | `() -> Vec<i32>` | `deprecated` | ✅ functional | Create a new empty HashSet. |
-| ~~`hashset_insert`~~ ⚠️ Deprecated → `HashSet::insert` | `(Vec<i32>, i32) -> bool` | `deprecated` | ✅ functional | Insert a value into the set. Returns true if the value was newly added, |
-| ~~`hashset_contains`~~ ⚠️ Deprecated → `HashSet::contains` | `(Vec<i32>, i32) -> bool` | `deprecated` | ✅ functional | Return true if the set contains the given value. |
-| ~~`hashset_remove`~~ ⚠️ Deprecated → `HashSet::remove` | `(Vec<i32>, i32) -> bool` | `deprecated` | ✅ functional | Remove a value from the set. Returns true if the value was present, false otherwise. |
-| ~~`hashset_len`~~ ⚠️ Deprecated → `HashSet::len` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | Return the number of elements in the set. |
-| ~~`hashset_is_empty`~~ ⚠️ Deprecated → `HashSet::is_empty` | `(Vec<i32>) -> bool` | `deprecated` | ✅ functional | Return true if the set is empty. |
-| ~~`hashset_to_vec`~~ ⚠️ Deprecated → `HashSet::to_vec` | `(Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | Return all elements of the set as a Vec<i32>. |
-| ~~`hashset_union`~~ ⚠️ Deprecated → `HashSet::union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | Return the union of two sets (all elements present in a or b). |
-| ~~`hashset_intersection`~~ ⚠️ Deprecated → `HashSet::intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | Return the intersection of two sets (elements present in both a and b). |
-| ~~`hashset_difference`~~ ⚠️ Deprecated → `HashSet::difference` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | Return the difference a - b (elements in a that are not in b). |
-| ~~`hashset_capacity`~~ ⚠️ Deprecated → `HashSet::capacity` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | Return the current bucket capacity of the set. |
-| ~~`hashset_reserve`~~ ⚠️ Deprecated → `HashSet::reserve` | `(Vec<i32>, i32) -> ()` | `deprecated` | ✅ functional | Ensure the set can hold at least additional more elements without |
-| ~~`hashset_shrink_to_fit`~~ ⚠️ Deprecated → `HashSet::shrink_to_fit` | `(Vec<i32>) -> ()` | `deprecated` | ✅ functional | Shrink the set to the minimum capacity preserving the load-factor invariant. |
-| ~~`hashset_clear`~~ ⚠️ Deprecated → `HashSet::clear` | `(Vec<i32>) -> ()` | `deprecated` | ✅ functional | Remove all elements from the set, resetting size to 0. |
-| ~~`hashset_extend`~~ ⚠️ Deprecated → `HashSet::extend` | `(Vec<i32>, Vec<i32>) -> ()` | `deprecated` | ✅ functional | Extend a set with all elements from another set (other). |
-| ~~`hashset_str_new`~~ ⚠️ Deprecated → `HashSet::new` | `() -> Vec<String>` | `deprecated` | ✅ functional | - |
-| ~~`hashset_str_insert`~~ ⚠️ Deprecated → `HashSet::insert` | `(Vec<String>, String) -> bool` | `deprecated` | ✅ functional | - |
-| ~~`hashset_str_contains`~~ ⚠️ Deprecated → `HashSet::contains` | `(Vec<String>, String) -> bool` | `deprecated` | ✅ functional | - |
-| ~~`hashset_str_remove`~~ ⚠️ Deprecated → `HashSet::remove` | `(Vec<String>, String) -> bool` | `deprecated` | ✅ functional | - |
-| ~~`hashset_str_len`~~ ⚠️ Deprecated → `HashSet::len` | `(Vec<String>) -> i32` | `deprecated` | ✅ functional | - |
-| ~~`hashset_str_is_empty`~~ ⚠️ Deprecated → `HashSet::is_empty` | `(Vec<String>) -> bool` | `deprecated` | ✅ functional | - |
 
 #### `std::collections::hash::hashmap_extend`
 
 Extend a raw i32->i32 HashMap with all key/value pairs from another map. Existing keys are overwritten by the source map. Mirrors Rust's HashMap::extend.
-
-#### `std::collections::hash::hashset_capacity`
-
-Return the current bucket capacity of a HashSet<i32>.
-
-#### `std::collections::hash::hashset_reserve`
-
-Ensure a HashSet<i32> can hold at least `additional` more elements without exceeding the load-factor threshold.
-
-#### `std::collections::hash::hashset_shrink_to_fit`
-
-Shrink a HashSet<i32> to the minimum capacity preserving the load-factor invariant.
-
-#### `std::collections::hash::hashset_clear`
-
-Remove all elements from a HashSet<i32>, resetting size to 0.
-
-#### `std::collections::hash::hashset_extend`
-
-Extend a HashSet<i32> with all elements from another set. Mirrors Rust's HashSet::extend.
-
-> ⚠️ **21 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
 
 ## Module `std::collections::hash_set`
 

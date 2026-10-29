@@ -1,23 +1,23 @@
 // HashSet: union contains all elements from both sets
-use std::collections::hash
+use std::collections::hash_set::HashSet
 use std::test
 
 fn main() {
-    let mut a = hash::hashset_new()
-    hash::hashset_insert(a, 1)
-    hash::hashset_insert(a, 2)
-    hash::hashset_insert(a, 3)
+    let mut a = HashSet::new<i32>()
+    a.insert(1)
+    a.insert(2)
+    a.insert(3)
 
-    let mut b = hash::hashset_new()
-    hash::hashset_insert(b, 3)
-    hash::hashset_insert(b, 4)
-    hash::hashset_insert(b, 5)
+    let mut b = HashSet::new<i32>()
+    b.insert(3)
+    b.insert(4)
+    b.insert(5)
 
-    let u = hash::hashset_union(a, b)
-    test::assert_eq_i32(hash::hashset_len(u), 5)
-    test::assert_true(hash::hashset_contains(u, 1))
-    test::assert_true(hash::hashset_contains(u, 2))
-    test::assert_true(hash::hashset_contains(u, 3))
-    test::assert_true(hash::hashset_contains(u, 4))
-    test::assert_true(hash::hashset_contains(u, 5))
+    let u = a.union(b)
+    test::assert_eq_i32(u.len(), 5)
+    test::assert_true(u.contains(1))
+    test::assert_true(u.contains(2))
+    test::assert_true(u.contains(3))
+    test::assert_true(u.contains(4))
+    test::assert_true(u.contains(5))
 }

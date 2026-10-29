@@ -1,14 +1,14 @@
 // HashSet: to_vec returns all elements
-use std::collections::hash
+use std::collections::hash_set::HashSet
 use std::test
 
 fn main() {
-    let mut s = hash::hashset_new()
-    hash::hashset_insert(s, 1)
-    hash::hashset_insert(s, 2)
-    hash::hashset_insert(s, 3)
+    let mut s = HashSet::new<i32>()
+    s.insert(1)
+    s.insert(2)
+    s.insert(3)
 
-    let v = hash::hashset_to_vec(s)
+    let v = s.to_vec()
     test::assert_eq_i32(len(v), 3)
 
     // Every element should be in the set

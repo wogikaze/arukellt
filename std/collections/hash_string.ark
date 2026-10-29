@@ -3,8 +3,9 @@
 //! Uses target-aware builtins (`__hm_si_*`) so open-addressing logic stays in
 //! Ark while backing storage differs between flat `HashMap<String, i32>` (T1) and a GC
 //! struct with parallel arrays (T3). The functions here are non-public MIR
-//! lowering targets for the `impl HashMap<K, V>` methods; the user spelling
-//! is `HashMap::new<K, V>()` plus receiver methods.
+//! lowering targets for the `impl HashMap<K, V>` and `impl HashSet<String>`
+//! methods; the user spelling is `HashMap::new<K, V>()` /
+//! `HashSet::new<String>()` plus receiver methods.
 
 use std::core::hash
 use std::prelude::{clone, eq}
@@ -693,11 +694,11 @@ fn vec_string_remove_at(mut items: Vec<String>, index: i32) {
     let _last: Option<String> = pop(items)
 }
 
-pub fn hashset_str_new() -> Vec<String> {
+fn hashset_str_new() -> Vec<String> {
     Vec::new<String>()
 }
 
-pub fn hashset_str_insert(mut s: Vec<String>, value: String) -> bool {
+fn hashset_str_insert(mut s: Vec<String>, value: String) -> bool {
     if vec_string_index_of(s, clone(value)) >= 0 {
         false
     } else {
@@ -706,11 +707,11 @@ pub fn hashset_str_insert(mut s: Vec<String>, value: String) -> bool {
     }
 }
 
-pub fn hashset_str_contains(s: Vec<String>, value: String) -> bool {
+fn hashset_str_contains(s: Vec<String>, value: String) -> bool {
     vec_string_index_of(s, value) >= 0
 }
 
-pub fn hashset_str_remove(mut s: Vec<String>, value: String) -> bool {
+fn hashset_str_remove(mut s: Vec<String>, value: String) -> bool {
     let idx: i32 = vec_string_index_of(s, value)
     if idx < 0 {
         false
@@ -720,11 +721,11 @@ pub fn hashset_str_remove(mut s: Vec<String>, value: String) -> bool {
     }
 }
 
-pub fn hashset_str_len(s: Vec<String>) -> i32 {
+fn hashset_str_len(s: Vec<String>) -> i32 {
     len(s)
 }
 
-pub fn hashset_str_is_empty(s: Vec<String>) -> bool {
+fn hashset_str_is_empty(s: Vec<String>) -> bool {
     len(s) == 0
 }
 

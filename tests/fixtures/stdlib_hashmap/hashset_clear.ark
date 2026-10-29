@@ -1,23 +1,23 @@
 // HashSet: clear empties the set
-use std::collections::hash
+use std::collections::hash_set::HashSet
 use std::test
 
 fn main() {
-    let mut s = hash::hashset_new()
-    hash::hashset_insert(s, 1)
-    hash::hashset_insert(s, 2)
-    hash::hashset_insert(s, 3)
-    test::assert_eq_i32(hash::hashset_len(s), 3)
+    let mut s = HashSet::new<i32>()
+    s.insert(1)
+    s.insert(2)
+    s.insert(3)
+    test::assert_eq_i32(s.len(), 3)
 
-    hash::hashset_clear(s)
-    test::assert_eq_i32(hash::hashset_len(s), 0)
-    test::assert_true(hash::hashset_is_empty(s))
-    test::assert_false(hash::hashset_contains(s, 1))
-    test::assert_false(hash::hashset_contains(s, 2))
-    test::assert_false(hash::hashset_contains(s, 3))
+    s.clear()
+    test::assert_eq_i32(s.len(), 0)
+    test::assert_true(s.is_empty())
+    test::assert_false(s.contains(1))
+    test::assert_false(s.contains(2))
+    test::assert_false(s.contains(3))
 
     // Reusable after clear
-    hash::hashset_insert(s, 4)
-    test::assert_eq_i32(hash::hashset_len(s), 1)
-    test::assert_true(hash::hashset_contains(s, 4))
+    s.insert(4)
+    test::assert_eq_i32(s.len(), 1)
+    test::assert_true(s.contains(4))
 }

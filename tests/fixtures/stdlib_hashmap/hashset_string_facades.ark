@@ -1,13 +1,12 @@
-use std::collections::hash
 use std::collections::hash_set::HashSet
 use std::test
 
 test "hashset_namespace_and_method_facades_agree" {
-    let mut direct = hash::hashset_str_new()
-    test::assert_true(hash::hashset_str_insert(direct, "red"))
-    test::assert_false(hash::hashset_str_insert(direct, "red"))
-    test::assert_eq_i32(hash::hashset_str_len(direct), 1)
-    test::assert_true(hash::hashset_str_contains(direct, "red"))
+    let mut direct = HashSet::new<String>()
+    test::assert_true(direct.insert("red"))
+    test::assert_false(direct.insert("red"))
+    test::assert_eq_i32(direct.len(), 1)
+    test::assert_true(direct.contains("red"))
 
     let mut compat: HashSet<String> = HashSet::new<String>()
     test::assert_true(compat.insert("green"))

@@ -5,7 +5,7 @@
 // ── Deprecated module paths ─────────────────────────────────────────────
 
 // Returns a non-empty replacement message if the `use` path is deprecated.
-use std::prelude::{clone, eq, starts_with, substring}
+use std::prelude::{clone, eq}
 pub fn deprecated_use_message(path: String) -> String {
     if eq(clone(path), "std::time") {
         return "import `use std::host::clock::Clock` and call `Clock::monotonic_now()`"
@@ -164,10 +164,6 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
     if len(msg5) > 0 {
         return msg5
     }
-    let msg6 = deprecated_hashset_qualified_message(path)
-    if len(msg6) > 0 {
-        return msg6
-    }
     return deprecated_hash_qualified_message(path)
 }
 
@@ -238,56 +234,6 @@ fn deprecated_hash_qualified_message(path: String) -> String {
     String_new()
 }
 
-// The `std::collections::hash` HashSet free functions were deprecated under
-// the ADR-087 0.x exception; the `HashSet<T>` method surface is the only
-// spelling, and the free declarations are deleted after the W0009 window.
-fn deprecated_hashset_qualified_message(path: String) -> String {
-    if !starts_with(clone(path), String_from("hash::hashset_")) {
-        return String_new()
-    }
-    if eq(clone(path), "hash::hashset_new") {
-        return "use `HashSet::new<i32>()` from `use std::collections::hash_set::HashSet` instead"
-    }
-    if eq(clone(path), "hash::hashset_str_new") {
-        return "use `HashSet::new<String>()` from `use std::collections::hash_set::HashSet` instead"
-    }
-    let method = deprecated_hashset_method_name(clone(path))
-    let call = deprecated_hashset_method_call(clone(method))
-    if len(clone(call)) == 0 {
-        return String_new()
-    }
-    String_from("use `").concat(call.concat(String_from("` on the HashSet receiver instead")))
-}
-
-// Strip the `hash::hashset_` (and `str_` family) prefix so the method table
-// stays keyed by the canonical receiver method name.
-fn deprecated_hashset_method_name(path: String) -> String {
-    let prefix = String_from("hash::hashset_")
-    let mut name = substring(path, len(clone(prefix)), len(path))
-    if starts_with(clone(name), String_from("str_")) {
-        name = substring(name, 4, len(name))
-    }
-    name
-}
-
-fn deprecated_hashset_method_call(method: String) -> String {
-    if eq(clone(method), "insert") { return String_from("s.insert(v)") }
-    if eq(clone(method), "contains") { return String_from("s.contains(v)") }
-    if eq(clone(method), "remove") { return String_from("s.remove(v)") }
-    if eq(clone(method), "len") { return String_from("s.len()") }
-    if eq(clone(method), "is_empty") { return String_from("s.is_empty()") }
-    if eq(clone(method), "to_vec") { return String_from("s.to_vec()") }
-    if eq(clone(method), "union") { return String_from("s.union(other)") }
-    if eq(clone(method), "intersection") { return String_from("s.intersection(other)") }
-    if eq(clone(method), "difference") { return String_from("s.difference(other)") }
-    if eq(clone(method), "capacity") { return String_from("s.capacity()") }
-    if eq(clone(method), "reserve") { return String_from("s.reserve(n)") }
-    if eq(clone(method), "shrink_to_fit") { return String_from("s.shrink_to_fit()") }
-    if eq(clone(method), "clear") { return String_from("s.clear()") }
-    if eq(clone(method), "extend") { return String_from("s.extend(other)") }
-    String_new()
-}
-
 test mod "deprecated" {
     test "std_io_import_no_longer_deprecated" {
         // ADR-085 D1: std::io is the canonical abstraction module, so a plain
@@ -353,31 +299,6 @@ test mod "deprecated" {
         assert(len(deprecated_call_message("i32_to_u32")) > 0)
         assert(len(deprecated_call_message("f64_bits_lo")) > 0)
         assert(len(deprecated_call_message("f64_bits_hi")) > 0)
-    }
-    test "hashset_frees_warn_w0009" {
-        assert(len(deprecated_qualified_call_message("hash::hashset_new")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_insert")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_contains")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_remove")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_len")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_is_empty")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_to_vec")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_union")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_intersection")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_difference")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_capacity")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_reserve")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_shrink_to_fit")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_clear")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_extend")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_str_new")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_str_insert")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_str_contains")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_str_remove")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_str_len")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_str_is_empty")) > 0)
-        // The still-live HashMap flat-store frees must not warn.
-        assert(len(deprecated_qualified_call_message("hash::hashmap_set")) == 0)
     }
     test "vec_frees_warn_w0009" {
         assert(len(deprecated_call_message("push")) > 0)
@@ -458,6 +379,14 @@ test mod "deprecated" {
         assert(len(deprecated_call_message("map_option_i32_i32")) == 0)
         assert(len(deprecated_call_message("contains_string")) == 0)
         assert(len(deprecated_call_message("filter_i32")) == 0)
+    }
+    test "removed_hashset_frees_have_no_w0009_entry" {
+        // The 21 HashSet frees moved stable -> deprecated -> deleted in the
+        // same #917 wave; E0100 from resolver::removed_names owns them now,
+        // so a live W0009 entry would be a dead warning.
+        assert(len(deprecated_qualified_call_message("hash::hashset_new")) == 0)
+        assert(len(deprecated_qualified_call_message("hash::hashset_insert")) == 0)
+        assert(len(deprecated_qualified_call_message("hash::hashset_str_is_empty")) == 0)
     }
     test "retired_stale_builtin_entries_are_not_warned" {
         // `clear`, `map_option_String_String`, and `map_result_i32_i32`

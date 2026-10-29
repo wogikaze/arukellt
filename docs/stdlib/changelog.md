@@ -16,6 +16,31 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-29 — `std::collections::hash` HashSet frees の削除 (#917, wave/hash-group)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) と
+  [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) Wave 2。Wave 1 で
+  `deprecated` にした **21** 件（`hashset_*` 15、`hashset_str_*` 6）を
+  manifest と `pub fn` から削除した。ADR-087 D2 の 3 条件（W0009、
+  migration guide、changelog）は Wave 1 で満たしている。
+- **Retained as non-public targets**: `std/collections/hash.ark` の
+  `hashset_*` と `std/collections/hash_string.ark` の `hashset_str_*` は
+  MIR lowering 用の private function として残る。`hash.ark` に重複していた
+  `Vec<String>` facade は削除し、String store は `hash_string.ark` が
+  所有する。
+- **E0100**: qualified `hash::hashset_*` は
+  `resolver::removed_names` の `hashset_free_replacement_hint` が
+  `HashSet<T>` method を案内する。旧 `hash_set::` adapter hint は不変。
+- **Migration**: 17 fixtures を `HashSet<i32>` / `HashSet<String>` の
+  method surface に移行し、両 target の diag goldens
+  `diagnostics/removed_hashset_free*` を追加した（registry 3475 不変）。
+- **Scorecard**: eradication scope 274 → **253**、`associated-or-method`
+  208 → **187**、manifest 公開 entry 270 → **249**、`pub fn` 宣言
+  301 → **274**（HashSet 21 名の重複宣言 6 件を含む）。unregistered 4、
+  `must delete` 66、`intrinsic-only` 1 は不変。
+- **Residual**: 同じ `std::collections::hash` の HashMap flat-store frees
+  21 件（`hashmap_*`）は HashMap method surface の拡張待ちとして残る。
+
 ## 2026-10-29 — `std::collections::hash` HashSet frees の deprecation (#917, wave/hash-group)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の
