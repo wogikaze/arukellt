@@ -166,7 +166,7 @@ fn consume_identifier(mut env: TypeEnv, mut scope: LocalScope, node: AstNode) {
         return
     }
     if scope::scope_binding_is_moved(scope, clone(name)) {
-        report_ownership_error(
+        report_ownership_error_once(
             env,
             codes::DIAG_TYPE_MOVE_AFTER_USE(),
             node,
@@ -203,20 +203,101 @@ fn type_is_borrowed_box(env: TypeEnv, ty: TypeInfo) -> bool {
 // expression, so the same node can reach the walker twice. Suppress the
 // second report for the same span while still allowing two distinct uses.
 fn report_borrowed_box_escape(mut env: TypeEnv, node: AstNode, message: String) {
-    let code = codes::DIAG_TYPE_BORROWED_BOX_ESCAPE()
-    let start = ast_access::node_span_start(node)
-    let end = ast_access::node_span_end(node)
+    report_ownership_error_once(env, codes::DIAG_TYPE_BORROWED_BOX_ESCAPE(), node, message)
+}
+
+// ADR-088 §1: an argument or receiver is read for the call, not moved. A place
+// rooted at a binding that was already moved is still a use of a moved value
+// (E0212), exactly like any other use. The call shape (free call, method call,
+// function value, builtin) does not change the rule, so inference dispatches
+// every call through this single check before resolving the callee.
+fn check_call_place_uses(mut env: TypeEnv, scope: LocalScope, node: AstNode, first_use: i32) {
+    if !env.is_ownership_tracking_enabled {
+        return
+    }
+    let count = ast_access::node_child_count(node)
+    let mut i = first_use
+    while i < count {
+        check_moved_place_use(env, scope, ast_access::node_child_at(node, i))
+        i = i + 1
+    }
+}
+
+fn check_moved_place_use(mut env: TypeEnv, scope: LocalScope, node: AstNode) {
+    if ast_expr_predicates::node_is_ident(node) {
+        let name = ast_access::node_text(node)
+        if is_moved_binding(scope, clone(name)) {
+            report_ownership_error_once(
+                env,
+                codes::DIAG_TYPE_MOVE_AFTER_USE(),
+                node,
+                move_after_use_message(name)
+            )
+        }
+        return
+    }
+    let kind = ast_access::node_kind(node)
+    if kind == kinds::NK_FIELD_ACCESS() || kind == kinds::NK_INDEX() {
+        if ast_access::node_child_count(node) > 0 {
+            check_moved_place_use(env, scope, ast_access::node_child_at(node, 0))
+        }
+    }
+}
+
+fn is_moved_binding(scope: LocalScope, name: String) -> bool {
+    if scope::scope_binding_index(scope, clone(name)) < 0 {
+        return false
+    }
+    if scope::scope_binding_is_copy(scope, clone(name)) {
+        return false
+    }
+    scope::scope_binding_is_moved(scope, name)
+}
+
+// A moved place cannot be a mutable borrow either. The call argument already
+// carries E0212, so the mut-place check must not add a second diagnostic for
+// the same argument.
+fn is_moved_place(scope: LocalScope, node: AstNode) -> bool {
+    if ast_expr_predicates::node_is_ident(node) {
+        return is_moved_binding(scope, ast_access::node_text(node))
+    }
+    let kind = ast_access::node_kind(node)
+    if kind == kinds::NK_FIELD_ACCESS() || kind == kinds::NK_INDEX() {
+        if ast_access::node_child_count(node) < 1 {
+            return false
+        }
+        return is_moved_place(scope, ast_access::node_child_at(node, 0))
+    }
+    false
+}
+
+// Re-inference paths (method resolution fallbacks, the statement and tail
+// passes) can visit the same node twice. A second identical code+span pair is
+// the same finding, not two distinct uses.
+fn report_ownership_error_once(mut env: TypeEnv, code: String, node: AstNode, message: String) {
+    if diagnostic_exists_at(
+        env,
+        clone(code),
+        ast_access::node_span_start(node),
+        ast_access::node_span_end(node)
+    ) {
+        return
+    }
+    report_ownership_error(env, code, node, message)
+}
+
+fn diagnostic_exists_at(env: TypeEnv, code: String, start: i32, end: i32) -> bool {
     let mut i = 0
     while i < len(env.diagnostics) {
         let diag = get_unchecked(env.diagnostics, i)
         if eq(diag_record::diagnostic_code(diag), clone(code)) &&
         diag_record::diagnostic_start(diag) == start &&
         diag_record::diagnostic_end(diag) == end {
-            return
+            return true
         }
         i = i + 1
     }
-    report_ownership_error(env, code, node, message)
+    false
 }
 
 fn borrowed_box_escape_message(name: String) -> String {

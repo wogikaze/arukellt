@@ -124,7 +124,8 @@ fn check_mutable_parameter_places(
     while index < param_count {
         if get_unchecked(requires_mutable, index) {
             let arg_node = ast_access::node_child_at(node, first_arg + index)
-            if !arg_is_mutable_place(scope, arg_node) {
+            if !arg_is_mutable_place(scope, arg_node) &&
+            !ownership::is_moved_place(scope, arg_node) {
                 ownership::report_ownership_error(
                     env,
                     codes::DIAG_TYPE_MUT_PARAM_PLACE(),

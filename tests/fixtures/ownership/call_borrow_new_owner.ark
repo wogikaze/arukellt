@@ -1,0 +1,23 @@
+use std::host::stdio
+
+// ADR-088 §1: a call borrows a live argument, so repeated calls are legal.
+// After `let owner = holder` moves the binding, only the new owner is used.
+struct Holder {
+    name: String,
+    count: i32,
+}
+
+fn name_len(p: Holder) -> i32 {
+    p.name.len()
+}
+
+fn main() {
+    let holder = Holder { name: String_from("moved"), count: 3 }
+    let first = name_len(holder)
+    let size = holder.name.len()
+    let owner = holder
+    let second = name_len(owner)
+    stdio::println(first.to_string())
+    stdio::println(size.to_string())
+    stdio::println(second.to_string())
+}

@@ -1,4 +1,4 @@
-use std::prelude::{eq}
+use std::prelude::{clone, eq}
 use typechecker::kinds
 use typechecker::ast_access
 use typechecker::ownership_types
@@ -43,7 +43,10 @@ fn infer_closure_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSi
     if env.is_ownership_tracking_enabled {
         scope::scope_merge_child_marks(scope, closure_scope)
     }
-    let mut return_ty = body_ty
+    // The closure result is also the inferred body type, so keep `body_ty`
+    // available for the annotated return: moving it into `return_ty` would
+    // make the annotation's `unify` argument a use of a moved value.
+    let mut return_ty = clone(body_ty)
     let mut annotation_index = 0
     let annotation_count = ast_access::node_type_ann_count(node)
     while annotation_index < annotation_count {
@@ -53,7 +56,7 @@ fn infer_closure_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSi
                 let declared_ty = types::resolve_type_ann_node(
                     ast_access::node_child_at(annotation, 0)
                 )
-                return_ty = unify::unify(env, body_ty, declared_ty)
+                return_ty = unify::unify(env, clone(body_ty), declared_ty)
             }
         }
         annotation_index = annotation_index + 1

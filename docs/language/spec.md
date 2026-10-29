@@ -625,9 +625,13 @@ value is assignable to a `mut` position, and the reverse is rejected with
 E0225 at annotated `let` bindings, function arguments, and return positions;
 a module-qualified function path (`prelude::push`) is recovered for the same
 check. A borrowed `Box<T>` parameter cannot be returned, stored in an
-aggregate, or `unbox`ed (E0227). The missing E0212 for some moved arguments is
-tracked by [#944](../../issues/open/944-move-after-use-not-diagnosed.md); see
-[../current-state.md](../current-state.md).
+aggregate, or `unbox`ed (E0227). A moved binding passed as an argument or used
+as a method receiver is E0212; this covers free calls, method calls, calls
+through a function value, and builtins, and follows a field or element place
+back to its root binding. A live argument is only borrowed, so it stays usable.
+Reads outside those call positions (for example a moved binding returned
+directly or used as a binary operand) are not covered by this call-boundary
+check. See [../current-state.md](../current-state.md).
 
 ### 3.6 Method Call
 

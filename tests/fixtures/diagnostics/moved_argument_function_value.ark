@@ -1,0 +1,15 @@
+use std::host::stdio
+
+// ADR-088 §1: arguments of a call through a function value follow the same
+// moved-use rule as a direct free call.
+fn size(text: String) -> i32 {
+    text.len()
+}
+
+fn main() {
+    let measure: fn(String) -> i32 = size
+    let text = String_from("moved")
+    let other = text
+    stdio::println(measure(text).to_string())
+    stdio::println(measure(other).to_string())
+}

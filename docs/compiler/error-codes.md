@@ -489,6 +489,30 @@ fn main() {
 }
 ```
 
+A call argument or method receiver is a use of its place: the call itself
+borrows a live argument (ADR-088 §1), but a binding that was moved earlier is
+E0212 in argument position too. The check runs for free calls, method calls,
+calls through a function value, and builtins, and follows a field or element
+place back to its root binding.
+
+<!-- skip-doc-check kind="invalid-example" reason="E0212 rejects a moved binding passed as a call argument" -->
+```arukellt
+struct Point {
+    s: String,
+}
+
+fn show(p: Point) {
+    // ...
+}
+
+fn main() {
+    let a = Point { s: String_from("a") }
+    let b = a
+    show(a)   // error: E0212, `a` was moved into `b`
+    show(b)   // OK: the call borrows `b`
+}
+```
+
 ### E0213 — borrowed closure capture escapes its enclosing function
 
 | | |
