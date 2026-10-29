@@ -30,10 +30,21 @@ fn core_match_variant_is_some_or_ok(variant_name: String) -> bool {
     false
 }
 
-fn core_payload_field_vt(ctx: LowerCtx, variant_name: String, field_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool, scrut_ok_is_ref: bool) -> i32 {
-    let field_type = ctx_mono_type_params::ctx_resolve_mono_type_name(
+fn core_payload_field_vt(
+    ctx: LowerCtx,
+    variant_name: String,
+    field_idx: i32,
+    scrut_ok_is_f64: bool,
+    scrut_ok_is_i64: bool,
+    scrut_ok_is_ref: bool,
+    scrut_type: String
+) -> i32 {
+    let field_type = match_payload_field_type::mir_variant_payload_type_name_for_scrut(
         ctx,
-        ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+        clone(variant_name),
+        field_idx,
+        String_new(),
+        clone(scrut_type)
     )
     if core_payload_type_is_fnref(clone(field_type)) {
         return value_types::VT_FUNCREF()
@@ -90,14 +101,20 @@ fn core_payload_field_vt(ctx: LowerCtx, variant_name: String, field_idx: i32, sc
             return value_types::VT_I64()
         }
     }
-    if ctx_gc_enum::ctx_is_gc_target(ctx) && core_payload_gc_field_is_ref(ctx, clone(variant_name), field_idx) {
+    if ctx_gc_enum::ctx_is_gc_target(ctx) && core_payload_gc_field_is_ref(ctx, clone(variant_name), field_idx, clone(scrut_type)) {
         return value_types::VT_GC_REF()
     }
     value_types::VT_I32()
 }
 
-fn core_payload_gc_field_is_ref(ctx: LowerCtx, variant_name: String, field_idx: i32) -> bool {
-    let declared_type = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+fn core_payload_gc_field_is_ref(ctx: LowerCtx, variant_name: String, field_idx: i32, scrut_type: String) -> bool {
+    let declared_type = match_payload_field_type::mir_variant_payload_type_name_for_scrut(
+        ctx,
+        clone(variant_name),
+        field_idx,
+        String_new(),
+        clone(scrut_type)
+    )
     if core_payload_scalar_type_name(clone(declared_type)) ||
     core_payload_type_is_fnref(clone(declared_type)) {
         return false

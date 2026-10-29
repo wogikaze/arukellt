@@ -13,6 +13,7 @@ use typechecker::contract_enum_info
 use typechecker::ast_pattern_predicates
 use typechecker::stmt_let
 use typechecker::ownership_types
+use typechecker::instantiate
 fn infer_match_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let child_count = ast_access::node_child_count(node)
     let arm_count = child_count - 1
@@ -144,14 +145,40 @@ fn bind_variant_payload_idents(mut env: TypeEnv, mut scope: LocalScope, enum_def
     let variant_name = ast_access::node_text(pat)
     let enum_info = match_enum_info(enum_defs, scrutinee_ty)
     let variant_index = contract_enum_info::EnumInfo_variant_index(enum_info, clone(variant_name))
+    let type_params = contract_enum_info::EnumInfo_type_params(enum_info)
+    let inst_args = enum_scrutinee_type_args(enum_info, scrutinee_ty)
     let bind_count = ast_access::node_child_count(pat)
     let mut i = 0
     while i < bind_count {
         let bind_pat = ast_access::node_child_at(pat, i)
-        let bind_ty = contract_enum_info::EnumInfo_variant_payload_at(enum_info, variant_index, i)
+        let declared_ty = contract_enum_info::EnumInfo_variant_payload_at(enum_info, variant_index, i)
+        let bind_ty = if len(inst_args) > 0 {
+            instantiate::instantiate_type(declared_ty, type_params, inst_args)
+        } else {
+            declared_ty
+        }
         bind_payload_subpat_idents(env, scope, enum_defs, bind_ty, bind_pat)
         i = i + 1
     }
+}
+
+// Scrutinee type arguments in declared parameter order. Empty when the
+// scrutinee carries no instantiation or its arity disagrees with the
+// declaration, in which case the unsubstituted payload type is the only
+// sound answer.
+fn enum_scrutinee_type_args(enum_info: EnumInfo, scrutinee_ty: TypeInfo) -> Vec<TypeInfo> {
+    let mut args = Vec::new<TypeInfo>()
+    let params = contract_enum_info::EnumInfo_type_params(enum_info)
+    let arg_count = contract_type_access::TypeInfo_type_arg_count(scrutinee_ty)
+    if len(params) == 0 || arg_count != len(params) {
+        return args
+    }
+    let mut i = 0
+    while i < arg_count {
+        push(args, contract_type_access::TypeInfo_type_arg_at(scrutinee_ty, i))
+        i = i + 1
+    }
+    args
 }
 
 // Bind the idents introduced by one payload sub-pattern at type payload_ty.

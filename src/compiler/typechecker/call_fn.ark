@@ -60,8 +60,14 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
                 store_arg = store_arg + 1
             }
         }
-        call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, child_count - 1)
-        return enum_variant_ty
+        let arg_types = call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, child_count - 1)
+        return enum_expr::instantiate_variant_result(
+            env,
+            enum_defs,
+            callee,
+            enum_variant_ty,
+            arg_types
+        )
     }
     let callee_name = ast_access::node_text(callee)
     let hashmap_ctor_ty = hashmap_methods::infer_hashmap_constructor_call(

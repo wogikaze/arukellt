@@ -67,7 +67,8 @@ fn collect_enum_def(node: AstNode) -> EnumInfo {
         variant_names,
         payload_types,
         payload_starts,
-        payload_counts
+        payload_counts,
+        type_params
     )
 }
 

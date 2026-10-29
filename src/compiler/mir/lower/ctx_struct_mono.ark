@@ -34,6 +34,39 @@ fn ctx_struct_name_is_generic(ctx: LowerCtx, base: String) -> bool {
     len(ctx_generic_struct_params(ctx, base)) > 0
 }
 
+// Comma-joined declared type parameter names for a generic enum base, or ""
+// when base is not a registered generic enum.
+fn ctx_generic_enum_params(ctx: LowerCtx, base: String) -> String {
+    let count = len(ctx.generic_enum_names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(ctx.generic_enum_names, i), clone(base)) {
+            return clone(get_unchecked(ctx.generic_enum_params, i))
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+// Split a comma-joined declared parameter list ("T" / "K,V").
+fn ctx_split_declared_params(joined: String) -> Vec<String> {
+    let mut params = Vec::new<String>()
+    let pn = len(joined)
+    if pn == 0 {
+        return params
+    }
+    let mut seg_start = 0
+    let mut k = 0
+    while k <= pn {
+        if k == pn || clone(joined).byte_at(k) == 44 {
+            push(params, clone(joined).slice(seg_start, k))
+            seg_start = k + 1
+        }
+        k = k + 1
+    }
+    params
+}
+
 // "Pair<String>" -> "Pair"; "" when name is not a Name<args> spelling.
 fn generic_inst_base_name(name: String) -> String {
     let n = len(name)
@@ -178,18 +211,7 @@ fn ctx_derive_generic_struct_layout(mut ctx: LowerCtx, inst_name: String) -> boo
         return false
     }
     let args = generic_inst_args(clone(inst_name))
-    let mut params = Vec::new<String>()
-    // Split the comma-joined declared parameter list.
-    let mut seg_start = 0
-    let pn = len(joined)
-    let mut k = 0
-    while k <= pn {
-        if k == pn || clone(joined).byte_at(k) == 44 {
-            push(params, clone(joined).slice(seg_start, k))
-            seg_start = k + 1
-        }
-        k = k + 1
-    }
+    let params = ctx_split_declared_params(clone(joined))
     if len(args) != len(params) || len(args) == 0 {
         return false
     }

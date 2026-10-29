@@ -6,6 +6,10 @@ struct EnumInfo {
     variant_payload_types: Vec<TypeInfo>,
     variant_payload_starts: Vec<i32>,
     variant_payload_counts: Vec<i32>,
+    // Declared type parameter names in declaration order. A match on
+    // `Wrap<i32>` substitutes them into the declared payload types, so the
+    // payload bind sees `i32` instead of the unsubstituted `T`.
+    type_params: Vec<String>,
 }
 
 fn EnumInfo_new(name: String, variant_names: Vec<String>) -> EnumInfo {
@@ -15,6 +19,7 @@ fn EnumInfo_new(name: String, variant_names: Vec<String>) -> EnumInfo {
         variant_payload_types: Vec::new<TypeInfo>(),
         variant_payload_starts: Vec::new<i32>(),
         variant_payload_counts: Vec::new<i32>(),
+        type_params: Vec::new<String>(),
     }
 }
 
@@ -23,7 +28,8 @@ fn EnumInfo_new_with_payloads(
     variant_names: Vec<String>,
     payload_types: Vec<TypeInfo>,
     payload_starts: Vec<i32>,
-    payload_counts: Vec<i32>
+    payload_counts: Vec<i32>,
+    type_params: Vec<String>
 ) -> EnumInfo {
     EnumInfo {
         name: name,
@@ -31,7 +37,12 @@ fn EnumInfo_new_with_payloads(
         variant_payload_types: payload_types,
         variant_payload_starts: payload_starts,
         variant_payload_counts: payload_counts,
+        type_params: type_params,
     }
+}
+
+fn EnumInfo_type_params(info: EnumInfo) -> Vec<String> {
+    clone(info.type_params)
 }
 
 fn EnumInfo_name(info: EnumInfo) -> String {
