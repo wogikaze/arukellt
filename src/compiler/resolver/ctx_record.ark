@@ -15,6 +15,10 @@ struct ResolveCtx {
     use_alias_shorts: Vec<String>,
     use_alias_targets: Vec<String>,
     modules: Vec<ModuleDecls>,
+    // Nominal type names declared by the program. ADR-089 owner keys treat a
+    // single-uppercase impl head name on this list as concrete, and only
+    // undeclared names as ADR-014 window parameters.
+    declared_type_names: Vec<String>,
 }
 
 fn ResolveCtx_new_empty() -> ResolveCtx {
@@ -30,7 +34,8 @@ fn ResolveCtx_new_empty() -> ResolveCtx {
         ref_index: ref_index::RefIndex_new(),
         use_alias_shorts: Vec::new<String>(),
         use_alias_targets: Vec::new<String>(),
-        modules: Vec::new<ModuleDecls>()
+        modules: Vec::new<ModuleDecls>(),
+        declared_type_names: Vec::new<String>()
     }
 }
 
@@ -43,6 +48,14 @@ fn resolve_ctx_set_modules(mut ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
 
 fn resolve_ctx_modules(ctx: ResolveCtx) -> Vec<ModuleDecls> {
     ctx.modules
+}
+
+fn resolve_ctx_set_declared_type_names(mut ctx: ResolveCtx, names: Vec<String>) {
+    ctx.declared_type_names = names
+}
+
+fn resolve_ctx_declared_type_names(ctx: ResolveCtx) -> Vec<String> {
+    ctx.declared_type_names
 }
 
 fn resolve_ctx_ref_index(ctx: ResolveCtx) -> RefIndex {

@@ -94,7 +94,8 @@ fn backend_typecheck(source: String, config: DriverConfig, all_decls: Vec<AstNod
         all_decls,
         resolve_ctx,
         config_record::config_wit_paths(config),
-        config_record::config_bootstrap_shared_param_mutation(config)
+        config_record::config_bootstrap_shared_param_mutation(config),
+        config_record::config_strict_impl_binders(config)
     )
     debug::dump_typed_hir_if_enabled(config, check_result)
     let error_count = session_typecheck_query::session_typecheck_error_count(check_result)

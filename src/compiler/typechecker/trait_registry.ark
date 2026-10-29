@@ -1,6 +1,7 @@
 use std::text
 use diagnostics::codes
 use diagnostics::record
+use corehir::decl_impl_target
 use typechecker::ast_access
 use typechecker::ast_decl_predicates
 use typechecker::contract_associated_type
@@ -187,7 +188,10 @@ fn maybe_register_impl_decl(mut env: TypeEnv, node: AstNode, known_type_names: V
     }
     let trait_node = ast_access::node_type_ann_at(node, 0)
     let self_node = ast_access::node_type_ann_at(node, 1)
-    let type_params = impl_generics::declared_type_param_names(node)
+    let type_params = decl_impl_target::effective_impl_param_names(
+        node,
+        clone(known_type_names)
+    )
     let type_param_bounds = impl_generics::type_param_bounds(node)
     let trait_ref = types::resolve_type_ann_node_generic(trait_node, clone(type_params))
     let self_ty = types::resolve_type_ann_node_generic(self_node, clone(type_params))
@@ -235,43 +239,65 @@ fn maybe_register_impl_decl(mut env: TypeEnv, node: AstNode, known_type_names: V
     }
 }
 
-// ADR-089: a binder-less head no longer gains parameters from its spelling.
-// Names that used to be implicit parameters resolve as ordinary type names;
-// when such a name is undeclared, report the binder form instead of
-// registering a bogus concrete impl. The single-uppercase check only selects
-// the removed migration spelling — name shape never promotes a type to a
-// parameter.
+// ADR-089 during the ADR-014 migration window: a binder-less head that used
+// the retired single-uppercase spelling still infers those names as
+// parameters (corehir::decl_impl_target::effective_impl_param_names), and this
+// reports W0222 with the binder form. A declared nominal name never reaches
+// here, so `impl Copy for S` for a declared `struct S` keeps its #946 meaning.
+// A binder-present undefined name, `--strict`, or a closed window reports
+// E0222 and aborts registration.
 fn report_undefined_impl_head_types(mut env: TypeEnv, node: AstNode, known_type_names: Vec<String>) -> bool {
-    let undefined = impl_generics::undefined_head_type_names(node, known_type_names)
+    let undefined = decl_impl_target::undefined_impl_head_type_names(node, known_type_names)
     let count = len(undefined)
     if count == 0 {
         return false
     }
+    let is_window = !impl_generics::has_binder(node) &&
+    !env.strict_impl_binders &&
+    decl_impl_target::adr089_binder_window_is_open()
     let mut i = 0
     while i < count {
         let name = get_unchecked(undefined, i)
-        let message = String_from("undefined type `").concat(
-            clone(name).concat(
-                String_from("` in impl head: add an explicit impl type parameter binder such as `impl<").concat(
-                    clone(name).concat(String_from(">`"))
+        if is_window {
+            let message = String_from("implicit impl type parameter `").concat(
+                clone(name).concat(
+                    String_from("` is accepted in the ADR-014 migration window; add an explicit impl type parameter binder such as `impl<").concat(
+                        clone(name).concat(String_from(">`"))
+                    )
                 )
             )
-        )
-        report_trait_error_at(env, codes::DIAG_TYPE_IMPL_PARAM(), node, message)
+            report_trait_warning_at(env, codes::DIAG_WARN_IMPL_TYPE_PARAM(), node, message)
+        } else {
+            let message = String_from("undefined type `").concat(
+                clone(name).concat(
+                    String_from("` in impl head: add an explicit impl type parameter binder such as `impl<").concat(
+                        clone(name).concat(String_from(">`"))
+                    )
+                )
+            )
+            report_trait_error_at(env, codes::DIAG_TYPE_IMPL_PARAM(), node, message)
+        }
         i = i + 1
     }
-    true
+    !is_window
 }
 
 fn report_trait_error_at(mut env: TypeEnv, code: String, node: AstNode, message: String) {
     env.error_count = env.error_count + 1
     push(env.errors, clone(message))
+    push(env.diagnostics, trait_diagnostic(code, diag_mod::SEV_ERROR(), node, message))
+}
+
+fn report_trait_warning_at(mut env: TypeEnv, code: String, node: AstNode, message: String) {
+    push(env.warnings, trait_diagnostic(code, diag_mod::SEV_WARNING(), node, message))
+}
+
+fn trait_diagnostic(code: String, severity: i32, node: AstNode, message: String) -> Diagnostic {
     let span = record::DiagnosticSpan_from_raw(
         ast_access::node_span_start(node),
         ast_access::node_span_end(node)
     )
-    let diag = diag_mod::Diagnostic_new(code, diag_mod::SEV_ERROR(), span, message)
-    push(env.diagnostics, diag)
+    diag_mod::Diagnostic_new(code, severity, span, message)
 }
 
 // ADR-078 §2 rejects an impl parameter that never reaches the self type: it

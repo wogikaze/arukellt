@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-10-27
-Updated: 2026-10-29
+Updated: 2026-10-30
 ID: 946
 Track: typecheck
 Depends on: none
@@ -51,13 +51,18 @@ through a migration warning before it becomes an error (ADR-014).
 ## Acceptance
 
 - [x] The rule is decided: ADR-089 (explicit binder required).
-- [ ] Binder-less impl heads with implicit parameters produce a migration
+- [x] Binder-less impl heads with implicit parameters produce a migration
       warning that shows the binder form; the warning becomes an error after
       the migration (ADR-014).
-      Implementation note (2026-10-28): the final hard-error state landed as
-      E0222. The ADR-014 warning window was not run as a separate release
-      because the in-tree corpus was migrated atomically; this item stays open
-      until that window is run or explicitly waived.
+      Implementation note (2026-10-30): the ADR-014 window now runs for 0.x.
+      Binder-less single-uppercase heads infer the parameter and emit W0222
+      with the binder hint; `--strict` closes the window with E0222, and
+      1.0.0 will make E0222 the default. Declared nominal types stay concrete
+      in both modes, so the #946 fix is unchanged. Fixtures:
+      `diagnostics/implicit_impl_type_parameter.ark`,
+      `diagnostics/implicit_inherent_impl_type_parameter.ark`,
+      `diagnostics/implicit_inherent_impl_type_parameter_strict.ark`, and
+      `generics_v1/implicit_binder_window.ark`.
 - [x] stdlib / selfhost impl heads that rely on the implicit form are
       migrated to binders (`impl … for Ctor<T>` and inherent `impl Ctor<T>`
       under `std/` and `src/compiler/`).
@@ -303,4 +308,7 @@ Verification (2026-10-29):
   the hand-written stub in `scripts/selfhost/checks.py`. New functions that
   the compiler calls from that module must be mirrored there; a missed
   mirror compiles to `drop; unreachable` in the compiler itself.
-- The ADR-014 migration-warning window was not run; E0222 is an error.
+- The ADR-014 window is open by default in 0.x (W0222). `--strict` closes it
+  with E0222; 1.0.0 must flip
+  `corehir/decl_impl_target.ark::adr089_binder_window_is_open` to `false` and
+  retire the window fixtures' warning goldens.

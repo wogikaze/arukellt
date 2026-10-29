@@ -117,15 +117,19 @@ exercise coherence, blanket, arity, and dynamic-dispatch boundaries.
 
 Impl type parameters are introduced only by the `impl<…>` binder, for trait
 and inherent impls alike. A binder-less head resolves its names as ordinary
-types, so `impl Copy for S {}` targets a declared `struct S`; the retired
-single-uppercase implicit form is rejected with E0222 and a binder hint.
-Resolver and CoreHIR owner keys use only binder-declared parameters, and a
-`let` copy keeps a one-character nominal storage type. Parameter and return
-encoding, mono substitution, and ordinal collection consult the declared
-binder list and registered nominal layouts before the one-character shape
-fallback, so a declared `struct S` or `enum E` stays concrete while an
-undeclared binder name remains a type parameter. The stdlib and fixture
-corpus is migrated to binders.
+types, so `impl Copy for S {}` targets a declared `struct S`. The ADR-014
+migration window is running for 0.x: a binder-less head that uses the retired
+single-uppercase spelling still infers those undeclared names as parameters
+and reports W0222 with the binder form, while `--strict` closes the window and
+reports E0222. A declared nominal type is never inferred, so the #946 fix
+holds in both modes. Resolver and CoreHIR owner keys use the effective
+parameter set (binder plus window inference), and a `let` copy keeps a
+one-character nominal storage type. Parameter and return encoding, mono
+substitution, and ordinal collection consult the effective parameter list and
+registered nominal layouts before the one-character shape fallback, so a
+declared `struct S` or `enum E` stays concrete while an undeclared binder name
+remains a type parameter. The stdlib and fixture corpus is migrated to
+binders.
 
 Verification: the positive fixtures `trait/single_uppercase_impl_target.ark`,
 `functions/single_uppercase_struct_return.ark`,
@@ -134,19 +138,21 @@ Verification: the positive fixtures `trait/single_uppercase_impl_target.ark`,
 `generics_v1/generic_impl_single_uppercase_struct.ark` run on both
 `wasm32-gc` and `wasm32`; the diagnostic fixtures
 `diagnostics/implicit_impl_type_parameter.ark` and
-`diagnostics/implicit_inherent_impl_type_parameter.ark` assert E0222. The
-ADR-014 warning window was not run, so the diagnostic is an error rather than
-a warning. An associated function of a generic impl that returns its own
-method type parameter (`Wrap<T>::pass<U>(value: U) -> U`) instantiates an impl
-binder absent from the callee signature with the canonical scalar `i32` key, so
-the call mints a mono instance instead of emitting `drop; unreachable`; the
-MIR ordinal map is built from the declared method binder names, so the
-parameter and return keys stay aligned. `generics_v1/generic_associated_self_return.ark`
-covers the associated, self-method, and free-function forms with `S` and
-`Point`. The full fixture gate passes 1890/1890 compile/validate (0 failures,
-109 runtime executions, 2 runtime contracts delegated to native-cpp);
-`verify lane` and `docs check` (6/6) pass, and the ADR-029 fixpoint is
-s2 == s3 (`906a1cfb…`).
+`diagnostics/implicit_inherent_impl_type_parameter.ark` assert W0222, and
+`diagnostics/implicit_inherent_impl_type_parameter_strict.ark` with
+`--strict` asserts E0222. `generics_v1/implicit_binder_window.ark` compiles and
+runs the binder-less inherent, parametric trait, and `Copy` forms on both
+targets (prints `48`). An associated function of a generic impl that returns
+its own method type parameter (`Wrap<T>::pass<U>(value: U) -> U`) instantiates
+an impl binder absent from the callee signature with the canonical scalar
+`i32` key, so the call mints a mono instance instead of emitting
+`drop; unreachable`; the MIR ordinal map is built from the declared method
+binder names, so the parameter and return keys stay aligned.
+`generics_v1/generic_associated_self_return.ark` covers the associated,
+self-method, and free-function forms with `S` and `Point`. The full fixture
+gate passes 1919/1919 compile/validate (0 failures, 110 runtime executions, 2
+runtime contracts delegated to native-cpp); `verify lane` and `docs check`
+(6/6) pass, and the ADR-029 fixpoint is s2 == s3 (`067eaf0f…`).
 
 ### Language v2 call-boundary parameter modes (#951 / ADR-088)
 
@@ -356,8 +362,8 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 - Observed quick gate: `python3 scripts/manager.py verify quick` — 151/151 checks pass.
 - Coverage: not exhaustive runtime or pinned/reference parity; not a release-readiness receipt. Historical failures are not individually resolved by this observation.
 - Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 3541 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1953 registry entries (not proof they fail)
+- Fixture registry: 3544 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1956 registry entries (not proof they fail)
 - Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 3523 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, target capability, ADT fallback runtime, hygienic desugaring, iterator capability diagnostics, linear GC entry-collection, linear GC HashMap-survival, HashMap for-in iteration, generic for-source diagnostic, parametric trait impl, generic struct field-method, generic inherent struct-literal, enum struct-payload field-access, generic struct-item iterator, nested generic iterator adapter, desugared-iteration equivalence, generic struct Vec-field, generic fn-field iterator, item-generic iterator adapter migration, generic Ord seq-algorithm, unbound-typevar clone, HashMap keys/fn-valued-map iteration, closure capture-escape diagnostic, closure copy-capture snapshot, generic inferred struct-literal, generic fn-field Option-step, struct fn-field call, zero-param fn-valued HashMap call, struct option vec fn fields, generic scan iterator, flat-map adapter, peek adapter, and step+scan iterator, and String-lane generic scan iterator, and borrow-rebind write-through, and Option-tuple-payload, and method-level-generics iterator map type-change plus unresolved method type-parameter diagnostic, and zero-param fn-value ref-return, and payload-enum unit-variant match arm, and cyclic graph walk, and spec-example normative-doc, and migration-diagnostic, and match-exhaustiveness, and or-pattern variant-alternative, and nested-closure capture-through, and variant-payload sub-pattern plus variant-payload struct-subpattern diagnostic, and untyped-option-scrutinee fixtures were added, and the untyped-None-scrutinee-bind compile-error fixture was added, plus the prelude-enum name-shadow run fixture and the generic struct-enum shadow diagnostic fixture, and the nested-closure mark-propagation diagnostics and shadow-scope guard fixtures, plus the hashmap-unsupported-pair diagnostic reclassification from t3-compile to diag and the duplicate numeric-implicit-promotion t3-compile removal, and the two-bound distinct-layout GC fixture and the prelude concrete/conversion argument-type diagnostic fixtures were added, so the current registry remainder is 1917, after the stdlib_deque run/t3 fixtures, the typed stdio handle fixtures, and the empty-struct lowering fixture, the ADR-088 mut-parameter fixtures were added, and the ADR-088 §6 Box-escape and §7 function-type-position fixtures were added, and the ADR-089 associated generic-return fixture was added, and the E0212 non-call read-position fixtures were added, and the Vec<T: Ord> i64/String sort fixtures were added (#965), and the HashMap flat-store method-surface migration plus the dual-target deprecated/removed HashMap diagnostics were added (#917). These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
 - Wasm validation is a hard error (W0004)
 - Historical verification: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
@@ -610,6 +616,7 @@ numbers into current contracts.
 - `W0011`: prefer else-if over nested else { if } (warning, `lint-post-resolve`, implemented, emitted)
 - `W0101`: deprecated import syntax; use `use` (warning, `parse`, implemented, emitted)
 - `W0102`: component lowering note (warning, `lint-post-resolve`, declared, not currently emitted)
+- `W0222`: implicit impl type parameter accepted in the ADR-089 migration window; add an explicit binder (warning, `typecheck`, implemented, emitted)
 - Structured diagnostic snapshots are available for tests/docs via `ARUKELLT_DUMP_DIAGNOSTICS=1`
 <!-- END GENERATED:CURRENT_STATE_DIAGNOSTICS -->
 

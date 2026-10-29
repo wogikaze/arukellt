@@ -30,6 +30,8 @@ struct DriverConfig {
     strip_debug: bool,
     // Self-compile bootstrap escape hatch; not a user-facing language mode.
     bootstrap_shared_param_mutation: bool,
+    // Close the ADR-089 ADR-014 migration window (E0222, no implicit inference).
+    strict_impl_binders: bool,
 }
 
 fn DriverConfig_default() -> DriverConfig {
@@ -62,6 +64,7 @@ fn DriverConfig_default() -> DriverConfig {
         cache_dir: "",
         strip_debug: false,
         bootstrap_shared_param_mutation: false,
+        strict_impl_binders: false,
     }
 }
 
@@ -123,5 +126,9 @@ fn config_strip_debug(config: DriverConfig) -> bool { config.strip_debug }
 fn config_bootstrap_shared_param_mutation(config: DriverConfig) -> bool { config.bootstrap_shared_param_mutation }
 fn config_set_bootstrap_shared_param_mutation(mut config: DriverConfig, enabled: bool) {
     config.bootstrap_shared_param_mutation = enabled
+}
+fn config_strict_impl_binders(config: DriverConfig) -> bool { config.strict_impl_binders }
+fn config_set_strict_impl_binders(mut config: DriverConfig, enabled: bool) {
+    config.strict_impl_binders = enabled
 }
 fn config_set_strip_debug(mut config: DriverConfig, strip_debug: bool) { config.strip_debug = strip_debug }

@@ -1,5 +1,6 @@
 // ADR-089: the binder rule covers inherent impls too. `Q` is not a declared
-// type and must not become an implicit type parameter.
+// type, so the ADR-014 window infers it as an impl type parameter and warns;
+// `--strict` reports E0222 for the same source.
 
 impl Q {
     fn value(self: Q) -> i32 {

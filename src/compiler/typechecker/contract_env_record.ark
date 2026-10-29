@@ -47,6 +47,12 @@ struct TypeEnv {
     // strips `mut` modes, so the self-compile pass treats every parameter as a
     // mutable borrow. User compilations always keep the strict ADR-088 rule.
     allow_shared_param_mutation: bool,
+    // Nominal type names declared by the compilation unit. A single-uppercase
+    // impl head name on this list is a type, not an ADR-089 window parameter.
+    declared_type_names: Vec<String>,
+    // `--strict` closes the ADR-089 window: a binderless implicit-parameter
+    // head reports E0222 instead of W0222.
+    strict_impl_binders: bool,
 }
 
 fn TypeEnv_new() -> TypeEnv {
@@ -79,7 +85,9 @@ fn TypeEnv_new() -> TypeEnv {
         current_fn_bounds: Vec::new<TypeParamBounds>(),
         current_fn_return_type: TypeInfo_new(commands::TY_UNKNOWN(), String_new(), Vec::new<TypeInfo>()),
         is_ownership_tracking_enabled: true,
-        allow_shared_param_mutation: false
+        allow_shared_param_mutation: false,
+        declared_type_names: Vec::new<String>(),
+        strict_impl_binders: false
     }
 }
 

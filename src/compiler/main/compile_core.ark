@@ -33,6 +33,10 @@ pub fn build_emit_config(opts: CliOptions, emit_mode: String, include_dumps: boo
         config,
         args_record::cli_bootstrap_shared_param_mutation(opts)
     )
+    config_record::config_set_strict_impl_binders(
+        config,
+        args_record::cli_strict_impl_binders(opts)
+    )
     if include_dumps {
         config_record::config_set_dump_tokens(config, should_dump(opts, "tokens"))
         config_record::config_set_dump_ast(config, should_dump(opts, "ast"))

@@ -1,6 +1,6 @@
 # ADR-089: 言語 v2 の impl 型パラメータは明示 binder でだけ導入する
 
-ステータス: **ACCEPTED** — impl head の型パラメータは `impl<T>` の binder でだけ導入し、名前の形による暗黙の型パラメータ推定を廃止する
+ステータス: **ACCEPTED** — impl head の型パラメータは `impl<T>` の binder でだけ導入し、名前の形による暗黙の型パラメータ推定を廃止する（ADR-014 の移行警告窓を 0.x で実行中。既定は W0222、`--strict` で E0222）
 
 決定日: 2026-10-27
 
@@ -32,6 +32,8 @@ user blanket impl として E0216 で拒否される（#946）。
 - ADR-078 の parametric / blanket の分類は、binder で導入した型パラメータに対して従来どおり適用する。
 
 ## 実装メモ
+
+2026-10-30 に ADR-014 の移行警告窓を実行した。binder のない impl head で、宣言済みでも binder 宣言済みでもない単一大文字名は、0.x の間は impl 型パラメータとして推論され、binder 形を示す W0222 を出す。宣言済みの nominal 型は推論しないため、`impl Copy for S` が宣言済み `struct S` を対象とする #946 の修正は窓の間も維持される。`impl<…>` binder がある head は窓の対象外で、binder 外の未宣言名は直ちに E0222 になる。`--strict` は窓を閉じて E0222 を返し、1.0.0 で E0222 が既定になる（`corehir::decl_impl_target::adr089_binder_window_is_open`）。resolver・CoreHIR・typechecker は同一の実効パラメータ集合（binder + 窓の推論）を owner key と signature に使う。証跡は `tests/fixtures/diagnostics/implicit_impl_type_parameter.ark`（W0222）、`implicit_inherent_impl_type_parameter.ark`（W0222）、`implicit_inherent_impl_type_parameter_strict.ark`（`--strict` で E0222）、`tests/fixtures/generics_v1/implicit_binder_window.ark`（両 target で実行）にある。
 
 2026-10-29 の残差解消で、return・tuple・parameter・mono の符号化は、宣言済み binder、宣言済み struct/enum 名、登録済み集約レイアウトを参照する。
 parameter の初期型付けは宣言済み型パラメータと宣言済み nominal 型を先に区別し、宣言済み enum は `enum:` 綴りを保つ。

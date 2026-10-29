@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{byte_at, clone, eq}
 use std::text
 use corehir::decl_ann_member
 use corehir::decl_ann_children
@@ -28,7 +28,7 @@ fn impl_head_count(decl: AstNode) -> i32 {
     0
 }
 
-fn impl_self_type_name(decl: AstNode) -> String {
+fn impl_self_type_name(decl: AstNode, known_type_names: Vec<String>) -> String {
     let heads = impl_head_count(decl)
     let target = if heads >= 2 {
         decl_ann_member::decl_ann_at(decl, 1)
@@ -37,14 +37,14 @@ fn impl_self_type_name(decl: AstNode) -> String {
     } else {
         return decl_node_identity::decl_name(decl)
     }
-    impl_target_type_name(target, declared_impl_param_names(decl))
+    impl_target_type_name(target, effective_impl_param_names(decl, known_type_names))
 }
 
 // Local-type spelling of the impl head, including its type arguments
 // (`G<T>`). The owner name above stays the bare owner for generic impls so
 // every instantiation shares one symbol; a substituted `Self` return needs
 // the instantiated spelling so MIR can bind the impl's type parameters.
-fn impl_self_local_type_name(decl: AstNode) -> String {
+fn impl_self_local_type_name(decl: AstNode, known_type_names: Vec<String>) -> String {
     let heads = impl_head_count(decl)
     if heads < 1 {
         return String_new()
@@ -56,10 +56,33 @@ fn impl_self_local_type_name(decl: AstNode) -> String {
     if len(local_name) > 0 {
         return local_name
     }
-    impl_self_type_name(decl)
+    impl_self_type_name(decl, known_type_names)
 }
 
-fn declared_impl_param_names(decl: AstNode) -> Vec<String> {
+// ADR-089's ADR-014 migration window. During 0.x the retired binderless
+// spelling keeps its meaning: a single-uppercase head name that the unit does
+// not declare is a type parameter, and the typechecker emits W0222 with the
+// binder form. Declared nominal names are never inferred, so the #946 fix
+// (`impl Copy for S` for a declared `struct S`) stays in force. The window
+// closes at 1.0.0: flip this to false so E0222 is the only path.
+fn adr089_binder_window_is_open() -> bool {
+    true
+}
+
+fn has_impl_binder(decl: AstNode) -> bool {
+    let count = decl_ann_member::decl_ann_count(decl)
+    let mut i = 0
+    while i < count {
+        let ann = decl_ann_member::decl_ann_at(decl, i)
+        if frontend_ast_node::corehir_node_kind(ann) == frontend_kind_map::nk_impl_generics() {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn binder_impl_param_names(decl: AstNode) -> Vec<String> {
     let mut names = Vec::new<String>()
     let count = decl_ann_member::decl_ann_count(decl)
     let mut i = 0
@@ -81,6 +104,114 @@ fn declared_impl_param_names(decl: AstNode) -> Vec<String> {
         i = i + 1
     }
     names
+}
+
+// Head names that the binder and the unit's declarations do not introduce.
+// This is the diagnostic set: a binder-present head can also contain one, and
+// the typechecker rejects that spelling rather than widening the binder.
+fn undefined_impl_head_type_names(decl: AstNode, known_type_names: Vec<String>) -> Vec<String> {
+    let heads = impl_head_count(decl)
+    let declared = binder_impl_param_names(decl)
+    let mut names = Vec::new<String>()
+    if heads >= 1 {
+        collect_undefined_head_type_names(
+            decl_ann_member::decl_ann_at(decl, heads - 1),
+            known_type_names,
+            declared,
+            names
+        )
+    }
+    if heads >= 2 {
+        // The trait head's base names a trait, not a type; only its type
+        // arguments participate in type-name resolution here.
+        let trait_head = decl_ann_member::decl_ann_at(decl, 0)
+        let child_count = type_ann_node::type_ann_child_count(trait_head)
+        let mut i = 1
+        while i < child_count {
+            collect_undefined_head_type_names(
+                type_ann_node::type_ann_child_at(trait_head, i),
+                known_type_names,
+                declared,
+                names
+            )
+            i = i + 1
+        }
+    }
+    names
+}
+
+fn collect_undefined_head_type_names(
+    node: AstNode,
+    known: Vec<String>,
+    declared: Vec<String>,
+    mut names: Vec<String>
+) {
+    if type_ann_node::type_ann_is_named(node) {
+        let name = type_ann_node::type_ann_name(node)
+        if is_single_uppercase_name(clone(name)) &&
+        !string_vec_contains(known, clone(name)) &&
+        !string_vec_contains(declared, clone(name)) &&
+        !string_vec_contains(names, clone(name)) {
+            push(names, clone(name))
+        }
+    }
+    let count = type_ann_node::type_ann_child_count(node)
+    let mut i = 0
+    while i < count {
+        collect_undefined_head_type_names(
+            type_ann_node::type_ann_child_at(node, i),
+            known,
+            declared,
+            names
+        )
+        i = i + 1
+    }
+}
+
+fn is_single_uppercase_name(name: String) -> bool {
+    if len(name) != 1 {
+        return false
+    }
+    let ch = byte_at(name, 0)
+    ch >= 65 && ch <= 90
+}
+
+// The retired binderless spelling inferred parameters only when there was no
+// binder; an explicit binder keeps its declared list.
+fn window_implicit_param_names(decl: AstNode, known_type_names: Vec<String>) -> Vec<String> {
+    if has_impl_binder(decl) || !adr089_binder_window_is_open() {
+        return Vec::new<String>()
+    }
+    undefined_impl_head_type_names(decl, known_type_names)
+}
+
+// The parameters an impl actually carries: the binder plus, while the ADR-014
+// window is open, the names the binderless spelling used to infer.
+fn effective_impl_param_names(decl: AstNode, known_type_names: Vec<String>) -> Vec<String> {
+    let mut names = binder_impl_param_names(decl)
+    let implicit = window_implicit_param_names(decl, known_type_names)
+    let count = len(implicit)
+    let mut i = 0
+    while i < count {
+        let name = get_unchecked(implicit, i)
+        if !string_vec_contains(names, clone(name)) {
+            push(names, clone(name))
+        }
+        i = i + 1
+    }
+    names
+}
+
+fn string_vec_contains(names: Vec<String>, name: String) -> bool {
+    let count = len(names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(names, i), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
 
 fn impl_target_type_name(target: AstNode, declared: Vec<String>) -> String {
@@ -195,28 +326,28 @@ fn impl_semantic_trait_id(decl: AstNode) -> i32 {
 
 // Source-level spelling of an impl method (`Owner::method`), before the
 // conversion-source suffix that keeps overloads distinct.
-fn impl_method_base_name(decl: AstNode, method_name: String) -> String {
-    impl_self_type_name(decl).concat("::".concat(clone(method_name)))
+fn impl_method_base_name(decl: AstNode, method_name: String, known_type_names: Vec<String>) -> String {
+    impl_self_type_name(decl, known_type_names).concat("::".concat(clone(method_name)))
 }
 
 // Trait implementations share the owner's public method namespace.  Conversion
 // traits select an implementation from a source type, so their lowering name
 // must retain that type to keep overloads distinct while preserving the
 // source-level associated-function spelling.
-fn impl_method_mangled_name(decl: AstNode, method_name: String) -> String {
-    let base_name = impl_method_base_name(decl, clone(method_name))
-    let source_name = impl_conversion_source_type_name(decl)
+fn impl_method_mangled_name(decl: AstNode, method_name: String, known_type_names: Vec<String>) -> String {
+    let base_name = impl_method_base_name(decl, clone(method_name), clone(known_type_names))
+    let source_name = impl_conversion_source_type_name(decl, known_type_names)
     if len(source_name) == 0 {
         return base_name
     }
     base_name.concat("__".concat(source_name))
 }
 
-fn impl_conversion_source_type_name(decl: AstNode) -> String {
+fn impl_conversion_source_type_name(decl: AstNode, known_type_names: Vec<String>) -> String {
     if impl_head_count(decl) < 2 {
         return String_new()
     }
-    let declared = declared_impl_param_names(decl)
+    let declared = effective_impl_param_names(decl, known_type_names)
     let trait_ann = decl_ann_member::decl_ann_at(decl, 0)
     let trait_name = decl_ann_name::decl_ann_name(trait_ann)
     if !impl_conversion_trait_has_source_type(clone(trait_name)) ||

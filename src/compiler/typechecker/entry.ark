@@ -8,6 +8,7 @@ use typechecker::context
 use typechecker::module
 use typechecker::module_env_merge
 use typechecker::module_fns
+use typechecker::module_traits
 use typechecker::module_wit
 use typechecker::contract_fn_sig
 use corehir::decl_impl_target
@@ -25,6 +26,7 @@ use resolver::modules
 // module boundaries.
 fn sig_qualified_keys(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Vec<String> {
     let mut keys = Vec::new<String>()
+    let known_type_names = module_traits::collect_declared_type_names(decls)
     let decl_count = len(decls)
     let mut pos = 0
     let module_count = len(modules)
@@ -35,20 +37,35 @@ fn sig_qualified_keys(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Vec<Str
         let mdcount = modules::module_decl_count(m)
         let mut dk = 0
         while dk < mdcount && pos < decl_count {
-            push_sig_index_key(keys, get_unchecked(decls, pos), clone(mname))
+            push_sig_index_key(
+                keys,
+                get_unchecked(decls, pos),
+                clone(mname),
+                clone(known_type_names)
+            )
             pos = pos + 1
             dk = dk + 1
         }
         mi = mi + 1
     }
     while pos < decl_count {
-        push_sig_index_key(keys, get_unchecked(decls, pos), String_new())
+        push_sig_index_key(
+            keys,
+            get_unchecked(decls, pos),
+            String_new(),
+            clone(known_type_names)
+        )
         pos = pos + 1
     }
     keys
 }
 
-fn push_sig_index_key(mut keys: Vec<String>, decl: AstNode, module_name: String) {
+fn push_sig_index_key(
+    mut keys: Vec<String>,
+    decl: AstNode,
+    module_name: String,
+    known_type_names: Vec<String>
+) {
     if ast_decl_predicates::node_is_fn_decl(decl) || ast_decl_predicates::node_is_const_decl(decl) {
         if len(module_name) == 0 {
             push(keys, String_new())
@@ -58,7 +75,7 @@ fn push_sig_index_key(mut keys: Vec<String>, decl: AstNode, module_name: String)
         return
     }
     if ast_decl_predicates::node_is_impl_decl(decl) {
-        let owner_name = decl_impl_target::impl_self_type_name(decl)
+        let owner_name = decl_impl_target::impl_self_type_name(decl, known_type_names)
         let child_count = ast_access::node_child_count(decl)
         let mut ci = 0
         while ci < child_count {
@@ -119,11 +136,14 @@ fn typecheck_module_with_options(
     decls: Vec<AstNode>,
     resolve_ctx: ResolveCtx,
     wit_paths: Vec<String>,
-    allow_shared_param_mutation: bool
+    allow_shared_param_mutation: bool,
+    strict_impl_binders: bool
 ) -> TypeCheckResult {
     let mut result = contract_result_state::TypeCheckResult_new()
     let mut env = context::TypeEnv_new()
     env.allow_shared_param_mutation = allow_shared_param_mutation
+    env.strict_impl_binders = strict_impl_binders
+    env.declared_type_names = module_traits::collect_declared_type_names(decls)
     contract_result_state::typecheck_result_set_errors(result, ctx_record::resolve_ctx_errors(resolve_ctx))
     let decl_count = len(decls)
     module::register_trait_impl_decls(env, decls)
@@ -178,5 +198,5 @@ fn check_impl_methods(mut env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<Enum
 // in the body. Only the bootstrap self-compile pass disables it, because the
 // pin cannot parse parameter modes and the flat overlay strips them.
 fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx, wit_paths: Vec<String>) -> TypeCheckResult {
-    typecheck_module_with_options(decls, resolve_ctx, wit_paths, false)
+    typecheck_module_with_options(decls, resolve_ctx, wit_paths, false, false)
 }

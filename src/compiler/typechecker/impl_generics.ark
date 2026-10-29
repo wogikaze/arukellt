@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{clone}
 use typechecker::ast_access
 use typechecker::contract_type_param_bounds
 use typechecker::kinds
@@ -54,88 +54,11 @@ fn declared_type_param_names(impl_node: AstNode) -> Vec<String> {
     names
 }
 
-// ADR-089: impl type parameters come only from the `impl<...>` binder, so a
-// declared `struct S` stays a type in `impl Copy for S`. Head names that the
-// retired binder-less spelling would have taken as implicit parameters are
-// single-uppercase names neither the binder nor a declaration in this
-// compilation unit introduces; the caller reports them with the binder form.
-fn undefined_head_type_names(impl_node: AstNode, known_type_names: Vec<String>) -> Vec<String> {
-    let declared = declared_type_param_names(impl_node)
-    let heads = head_count(impl_node)
-    let mut names = Vec::new<String>()
-    if heads >= 1 {
-        collect_undefined_head_type_names(
-            ast_access::node_type_ann_at(impl_node, heads - 1),
-            known_type_names,
-            declared,
-            names
-        )
-    }
-    if heads >= 2 {
-        // The trait head's base names a trait, not a type; only its type
-        // arguments participate in type-name resolution here.
-        collect_undefined_trait_arg_type_names(
-            ast_access::node_type_ann_at(impl_node, 0),
-            known_type_names,
-            declared,
-            names
-        )
-    }
-    names
-}
-
-fn collect_undefined_trait_arg_type_names(
-    head: AstNode,
-    known: Vec<String>,
-    declared: Vec<String>,
-    mut names: Vec<String>
-) {
-    let count = ast_access::node_child_count(head)
-    let mut i = 1
-    while i < count {
-        collect_undefined_head_type_names(
-            ast_access::node_child_at(head, i),
-            known,
-            declared,
-            names
-        )
-        i = i + 1
-    }
-}
-
-fn collect_undefined_head_type_names(
-    node: AstNode,
-    known: Vec<String>,
-    declared: Vec<String>,
-    mut names: Vec<String>
-) {
-    let name = ast_access::node_text(node)
-    if ast_access::node_kind_is(node, kinds::NK_TYPE_NAMED()) &&
-    is_single_uppercase_name(clone(name)) &&
-    !string_vec_contains(known, clone(name)) &&
-    !string_vec_contains(declared, clone(name)) &&
-    !string_vec_contains(names, clone(name)) {
-        push(names, clone(name))
-    }
-    let count = ast_access::node_child_count(node)
-    let mut i = 0
-    while i < count {
-        collect_undefined_head_type_names(
-            ast_access::node_child_at(node, i),
-            known,
-            declared,
-            names
-        )
-        i = i + 1
-    }
-}
-
-fn is_single_uppercase_name(name: String) -> bool {
-    if len(name) != 1 {
-        return false
-    }
-    let ch = name.byte_at(0)
-    ch >= 65 && ch <= 90
+// ADR-089: impl type parameters come only from the `impl<...>` binder. The
+// window inference and the diagnostic scan live in corehir::decl_impl_target
+// so resolver, CoreHIR, and typechecker agree on the effective parameter set.
+fn has_binder(impl_node: AstNode) -> bool {
+    generics_index(impl_node) >= 0
 }
 
 // One entry per declared parameter, even without a bound, so the caller can
@@ -171,16 +94,4 @@ fn type_param_bounds(impl_node: AstNode) -> Vec<TypeParamBounds> {
         i = i + 1
     }
     bounds
-}
-
-fn string_vec_contains(names: Vec<String>, name: String) -> bool {
-    let count = len(names)
-    let mut i = 0
-    while i < count {
-        if eq(get_unchecked(names, i), clone(name)) {
-            return true
-        }
-        i = i + 1
-    }
-    false
 }

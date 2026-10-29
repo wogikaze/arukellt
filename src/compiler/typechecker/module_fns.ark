@@ -52,7 +52,10 @@ fn collect_impl_method_sigs(mut fn_sigs: Vec<FnSig>, node: AstNode, env: TypeEnv
 }
 
 fn impl_method_sig(env: TypeEnv, impl_decl: AstNode, method_decl: AstNode) -> FnSig {
-    let impl_type_params = impl_generics::declared_type_param_names(impl_decl)
+    let impl_type_params = decl_impl_target::effective_impl_param_names(
+        impl_decl,
+        clone(env.declared_type_names)
+    )
     let impl_type_param_bounds = impl_generics::type_param_bounds(impl_decl)
     let bare_sig = if len(impl_type_params) > 0 {
         sigs::fn_sig_from_fn_decl_with_impl_type_params(
@@ -66,11 +69,12 @@ fn impl_method_sig(env: TypeEnv, impl_decl: AstNode, method_decl: AstNode) -> Fn
     let typed_sig = impl_self_param_sig(impl_decl, method_decl, bare_sig, impl_type_params)
     let mangled_name = decl_impl_target::impl_method_mangled_name(
         impl_decl,
-        contract_fn_sig::FnSig_name(bare_sig)
+        contract_fn_sig::FnSig_name(bare_sig),
+        clone(env.declared_type_names)
     )
     let named_sig = contract_fn_sig::FnSig_with_name(typed_sig, mangled_name)
     let projected_sig = associated_types::resolve_impl_signature(env, impl_decl, named_sig)
-    associated_types::resolve_impl_self_return(impl_decl, projected_sig)
+    associated_types::resolve_impl_self_return(env, impl_decl, projected_sig)
 }
 
 // A self param carries no type annotation, so it enters method signatures as

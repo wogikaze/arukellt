@@ -1,0 +1,10 @@
+// ADR-089: `--strict` closes the ADR-014 migration window, so the binder-less
+// spelling is the hard E0222 error rather than the W0222 warning.
+
+impl Q {
+    fn value(self: Q) -> i32 {
+        0
+    }
+}
+
+fn main() {}

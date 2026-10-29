@@ -1,0 +1,44 @@
+// ADR-014 migration window for ADR-089: binder-less impl heads still infer a
+// single-uppercase, undeclared name as a type parameter and warn (W0222). The
+// binder form `impl<T> ...` is the migration target; `--strict` reports E0222.
+use std::host::stdio
+
+struct Wrap<T> {
+    item: T,
+}
+
+impl Wrap<T> {
+    fn replace(self: Wrap<T>, value: T) -> Wrap<T> {
+        Wrap { item: value }
+    }
+
+    fn into_item(self: Wrap<T>) -> T {
+        self.item
+    }
+}
+
+trait Label<U> {
+    fn label(self: Wrap<U>) -> i32
+}
+
+impl Label<T> for Wrap<T> {
+    fn label(self: Wrap<T>) -> i32 {
+        40
+    }
+}
+
+struct Pair<T> {
+    first: T,
+}
+
+impl Copy for Pair<T> {}
+
+fn main() {
+    let w: Wrap<i32> = Wrap { item: 1 }
+    let replaced = w.replace(2)
+    let n = replaced.into_item()
+    let label_source: Wrap<i32> = Wrap { item: 0 }
+    let p = Pair { first: 3 }
+    let q = p
+    stdio::println((n + q.first + p.first + label_source.label()).to_string())
+}

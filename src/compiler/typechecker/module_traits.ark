@@ -1,11 +1,13 @@
+use std::prelude::{clone}
 use typechecker::ast_access
 use typechecker::ast_decl_predicates
 use typechecker::trait_registry
 use typechecker::traits
 
-// ADR-089: impl head names resolve as ordinary type names. Struct and enum
-// declarations are collected before impl registration so a single-uppercase
-// declared type is not mistaken for the removed implicit-parameter spelling.
+// ADR-089: impl head names resolve as ordinary type names. Struct, enum, and
+// resource declarations are collected before impl registration so a
+// single-uppercase declared type is not mistaken for the window's implicit
+// spelling.
 fn collect_declared_type_names(decls: Vec<AstNode>) -> Vec<String> {
     let mut names = Vec::new<String>()
     let decl_count = len(decls)
@@ -13,7 +15,8 @@ fn collect_declared_type_names(decls: Vec<AstNode>) -> Vec<String> {
     while i < decl_count {
         let node = get_unchecked(decls, i)
         if ast_decl_predicates::node_is_struct_decl(node) ||
-        ast_decl_predicates::node_is_enum_decl(node) {
+        ast_decl_predicates::node_is_enum_decl(node) ||
+        ast_decl_predicates::node_is_resource_decl(node) {
             push(names, ast_access::node_text(node))
         }
         i = i + 1
@@ -23,12 +26,11 @@ fn collect_declared_type_names(decls: Vec<AstNode>) -> Vec<String> {
 
 fn register_trait_impl_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
     trait_registry::register_trait_decls(env, decls)
-    let known_type_names = collect_declared_type_names(decls)
     let decl_count = len(decls)
     let mut i = 0
     while i < decl_count {
         let node = get_unchecked(decls, i)
-        traits::maybe_register_impl_decl(env, node, known_type_names)
+        traits::maybe_register_impl_decl(env, node, clone(env.declared_type_names))
         i = i + 1
     }
     trait_registry::validate_trait_supertraits(env)

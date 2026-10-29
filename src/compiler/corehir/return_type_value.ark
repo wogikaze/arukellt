@@ -10,10 +10,14 @@ fn return_value_type_tag(node: AstNode) -> i32 {
     return_value_type_tag_declared(node, frontend_fns::build_fn_type_params(node))
 }
 
-fn return_value_type_tag_for_impl(impl_node: AstNode, method_node: AstNode) -> i32 {
+fn return_value_type_tag_for_impl(
+    impl_node: AstNode,
+    method_node: AstNode,
+    known_type_names: Vec<String>
+) -> i32 {
     return_value_type_tag_declared(
         method_node,
-        return_type_name::return_declared_type_params(impl_node, method_node)
+        return_type_name::return_declared_type_params(impl_node, method_node, known_type_names)
     )
 }
 

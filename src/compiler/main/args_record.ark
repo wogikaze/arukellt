@@ -40,6 +40,7 @@ struct CliOptions {
     deny_random: bool,
     deny_process: bool,
     bootstrap_shared_param_mutation: bool,
+    strict_impl_binders: bool,
 }
 
 fn CliOptions_default() -> CliOptions {
@@ -82,6 +83,7 @@ fn CliOptions_default() -> CliOptions {
         deny_random: false,
         deny_process: false,
         bootstrap_shared_param_mutation: false,
+        strict_impl_binders: false,
     }
 }
 
@@ -181,4 +183,8 @@ fn cli_set_deny_process(mut opts: CliOptions, deny_process: bool) { opts.deny_pr
 fn cli_bootstrap_shared_param_mutation(opts: CliOptions) -> bool { opts.bootstrap_shared_param_mutation }
 fn cli_set_bootstrap_shared_param_mutation(mut opts: CliOptions, enabled: bool) {
     opts.bootstrap_shared_param_mutation = enabled
+}
+fn cli_strict_impl_binders(opts: CliOptions) -> bool { opts.strict_impl_binders }
+fn cli_set_strict_impl_binders(mut opts: CliOptions, enabled: bool) {
+    opts.strict_impl_binders = enabled
 }
