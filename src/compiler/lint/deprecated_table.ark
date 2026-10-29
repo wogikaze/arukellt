@@ -424,6 +424,16 @@ test mod "deprecated" {
         assert(len(deprecated_call_message("contains_string")) == 0)
         assert(len(deprecated_call_message("filter_i32")) == 0)
     }
+    test "removed_hashmap_frees_have_no_w0009_entry" {
+        // The 21 HashMap frees moved stable -> deprecated -> deleted in the
+        // same #917 wave; E0100 from resolver::removed_names owns them now,
+        // so a live W0009 entry would be a dead warning.
+        assert(len(deprecated_qualified_call_message("hash::hashmap_new")) == 0)
+        assert(len(deprecated_qualified_call_message("hash::hashmap_set")) == 0)
+        assert(len(deprecated_qualified_call_message("hash::hashmap_capacity")) == 0)
+        assert(len(deprecated_qualified_call_message("hash::hashmap_entries")) == 0)
+        assert(len(deprecated_qualified_call_message("hash::hashmap_extend")) == 0)
+    }
     test "removed_hashset_frees_have_no_w0009_entry" {
         // The 21 HashSet frees moved stable -> deprecated -> deleted in the
         // same #917 wave; E0100 from resolver::removed_names owns them now,

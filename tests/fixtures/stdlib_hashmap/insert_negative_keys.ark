@@ -1,17 +1,17 @@
 // Insert: negative keys are handled correctly
-use std::collections::hash
 use std::test
 
 fn main() {
-    let mut m = hash::hashmap_new()
-    hash::hashmap_set(m, 0 - 1, 100)
-    hash::hashmap_set(m, 0 - 100, 200)
-    hash::hashmap_set(m, 0 - 2147483648, 300)
-    test::assert_eq_i32(hash::hashmap_size(m), 3)
-    test::assert_eq_i32(hash::hashmap_get(m, 0 - 1), 100)
-    test::assert_eq_i32(hash::hashmap_get(m, 0 - 100), 200)
-    test::assert_eq_i32(hash::hashmap_get(m, 0 - 2147483648), 300)
-    test::assert_true(hash::hashmap_contains(m, 0 - 1))
-    test::assert_true(hash::hashmap_contains(m, 0 - 100))
-    test::assert_true(hash::hashmap_contains(m, 0 - 2147483648))
+    let int_min: i32 = (0 - 2147483647) - 1
+    let mut m = HashMap::new<i32, i32>()
+    let _ = m.insert(0 - 1, 100)
+    let _ = m.insert(0 - 100, 200)
+    let _ = m.insert(int_min, 300)
+    test::assert_eq_i32(m.len(), 3)
+    test::assert_eq_i32(m.get(0 - 1).unwrap_or(0), 100)
+    test::assert_eq_i32(m.get(0 - 100).unwrap_or(0), 200)
+    test::assert_eq_i32(m.get(int_min).unwrap_or(0), 300)
+    test::assert_true(m.contains_key(0 - 1))
+    test::assert_true(m.contains_key(0 - 100))
+    test::assert_true(m.contains_key(int_min))
 }

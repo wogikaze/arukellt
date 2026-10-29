@@ -1,20 +1,19 @@
 // Extend: merges other map into self, overwriting duplicates
-use std::collections::hash
 use std::test
 
 fn main() {
-    let mut m1 = hash::hashmap_new()
-    hash::hashmap_set(m1, 1, 10)
-    hash::hashmap_set(m1, 2, 20)
+    let mut m1 = HashMap::new<i32, i32>()
+    let _ = m1.insert(1, 10)
+    let _ = m1.insert(2, 20)
 
-    let mut m2 = hash::hashmap_new()
-    hash::hashmap_set(m2, 2, 200)  // overwrite
-    hash::hashmap_set(m2, 3, 300)  // new
+    let mut m2 = HashMap::new<i32, i32>()
+    m2.insert(2, 200)  // overwrite
+    m2.insert(3, 300)  // new
 
-    hash::hashmap_extend(m1, m2)
+    m1.extend(m2)
 
-    test::assert_eq_i32(hash::hashmap_size(m1), 3)
-    test::assert_eq_i32(hash::hashmap_get(m1, 1), 10)   // original
-    test::assert_eq_i32(hash::hashmap_get(m1, 2), 200)  // overwritten
-    test::assert_eq_i32(hash::hashmap_get(m1, 3), 300)  // new from m2
+    test::assert_eq_i32(m1.len(), 3)
+    test::assert_eq_i32(m1.get(1).unwrap_or(0), 10)   // original
+    test::assert_eq_i32(m1.get(2).unwrap_or(0), 200)  // overwritten
+    test::assert_eq_i32(m1.get(3).unwrap_or(0), 300)  // new from m2
 }

@@ -1,0 +1,9 @@
+// E0100: the std::collections::hash HashMap frees were deleted after the
+// ADR-087 W0009 window; the qualified old call names the method replacement.
+use std::collections::hash
+
+fn main() {
+    let mut m: HashMap<i32, i32> = HashMap::new<i32, i32>()
+    let _ = m.insert(1, 10)
+    let _ = hash::hashmap_capacity(m)
+}

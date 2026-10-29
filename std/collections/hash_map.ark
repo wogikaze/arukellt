@@ -6,6 +6,14 @@
 //! supported pairs lower to the non-public implementation functions in
 //! `std::collections::hash_string` / `hash_fn` / `hash_str_fn`; no typed
 //! adapter is part of the public surface.
+//!
+//! The capacity / bulk-maintenance surface (`with_capacity`, `capacity`,
+//! `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `drain`,
+//! `remove_entry`, `extend`) is declared for `HashMap<i32, i32>` only. The
+//! flat store is the one pair whose bucket counters and bulk helpers are
+//! exposed; the String and fn-valued stores keep their bucket arrays private,
+//! so a call on those pairs is rejected with `E0200` instead of being lowered
+//! over the wrong store layout.
 
 use std::core::iter
 
@@ -40,6 +48,71 @@ impl<K, V> HashMap<K, V> {
 
     fn is_empty(self) -> bool {
         self.is_empty()
+    }
+
+    // Snapshot accessors. `entries` returns typed `(K, V)` pairs; the flat
+    // `[k0, v0, ...]` store spelling is a non-public lowering target.
+    fn keys(self) -> Vec<K> {
+        self.keys()
+    }
+
+    fn values(self) -> Vec<V> {
+        self.values()
+    }
+
+    fn entries(self) -> Vec<(K, V)> {
+        self.entries()
+    }
+}
+
+// The flat-store maintenance surface. MIR rewrites each call to the
+// non-public implementation functions in `std::collections::hash`; the
+// bodies here only carry the source contract and never run.
+impl HashMap<i32, i32> {
+    /// Creates an empty map with at least `cap` bucket slots (minimum 1).
+    fn with_capacity(cap: i32) -> HashMap<i32, i32> {
+        HashMap::with_capacity<i32, i32>(cap)
+    }
+
+    /// Returns the current bucket capacity.
+    fn capacity(self: HashMap<i32, i32>) -> i32 {
+        self.capacity()
+    }
+
+    /// Ensures room for at least `additional` more entries.
+    fn reserve(mut self: HashMap<i32, i32>, additional: i32) {
+        self.reserve(additional)
+    }
+
+    /// Fallible reserve facade. The flat store has no recoverable allocation
+    /// error channel, so `true` means the reserve completed.
+    fn try_reserve(mut self: HashMap<i32, i32>, additional: i32) -> bool {
+        self.try_reserve(additional)
+    }
+
+    /// Shrinks buckets to the minimum that preserves the load factor.
+    fn shrink_to_fit(mut self: HashMap<i32, i32>) {
+        self.shrink_to_fit()
+    }
+
+    /// Removes every entry while keeping the bucket capacity.
+    fn clear(mut self: HashMap<i32, i32>) {
+        self.clear()
+    }
+
+    /// Removes every entry and returns them as typed pairs.
+    fn drain(mut self: HashMap<i32, i32>) -> Vec<(i32, i32)> {
+        self.drain()
+    }
+
+    /// Removes `key` and returns it together with its value.
+    fn remove_entry(mut self: HashMap<i32, i32>, key: i32) -> Option<(i32, i32)> {
+        self.remove_entry(key)
+    }
+
+    /// Inserts every entry of `other`, overwriting existing keys.
+    fn extend(mut self: HashMap<i32, i32>, other: HashMap<i32, i32>) {
+        self.extend(other)
     }
 }
 

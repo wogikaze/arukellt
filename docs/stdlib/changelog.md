@@ -16,25 +16,61 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
-## 2026-10-29 — `String` の ordering 演算子を byte 順比較へ修正 (wave/string-ord)
+## 2026-10-29 — `hash::hashmap_*` の Wave 2 削除 (#917, wave/hashmap-surface)
 
-- **Basis**: #965 の residual。`Vec<T: Ord>` の修正後も、`String` の `<` / `>` /
-  `<=` / `>=` は wasm32 linear と wasm32-gc の両方で ref/pointer の数値比較に
-  なっており、`"apple" < "pear"` が false を返していた。
-- **Fixed**: `String` の ordering 演算子は、`std::collections::string` の内部
-  byte 比較メソッド `String::__cmp_bytes` を直接呼び、結果を 0 と比較する。この
-  method は prelude が常に読み込む String module にあるため、`std::core::cmp` の
-  import なしでも lexicographic になる。`impl Ord for String::cmp` も同じ method
-  を使うため、operator と `a.cmp(b)` の結果は一致する。`i32` / `i64` / `f64` / `bool` / `char` の比較は
-  従来の wasm 数値比較のまま。
-- **Also fixed**: custom `Ord` 型の ordering operator が lowering 時に
-  `Ordering::is_*` projection を reachability へ登録しておらず、emit 時に
-  `unreachable` へ stub していた。operator 候補と同じ site で projection を
-  keep するようにした。
-- **Evidence**: `tests/fixtures/operators/string_order.ark` と `_wasm32` 版が
-  wasm32-gc component と `--target wasm32` core の両方で 25 行の出力を
-  検証し、同一 stdout を返す。cross-backend parity 1/1。旧 pinned bootstrap では
-  同じ fixture が linear で不一致になることを確認。
+- **Basis**: [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2 の
+  W0009 / migration guide / changelog の 3 条件。Wave 1 の deprecation は同じ
+  branch の `50da61673`。
+- **Retired (21)**: `hash::hashmap_new` / `get` / `get_option` / `contains` /
+  `set` / `insert` / `size` / `capacity` / `with_capacity` / `reserve` /
+  `try_reserve` / `shrink_to_fit` / `is_empty` / `clear` / `keys` / `values` /
+  `entries` / `drain` / `remove` / `remove_entry` / `extend` の manifest entry と
+  公開宣言を削除した。宣言は `std/collections/hash.ark` に非公開の MIR lowering
+  target として残るため、旧 qualified call は
+  `resolver::removed_private_member_hint` 経由で E0100 と method surface の hint
+  を返す。`hashmap_entry_pairs` も非公開化した。
+- **Replacement**: `HashMap::new<i32, i32>()` /
+  `HashMap::with_capacity<i32, i32>(n)` と `m.get(k)` / `m.insert(k, v)` /
+  `m.len()` / `m.keys()` / `m.values()` / `m.entries()` / `m.remove(k)` /
+  `m.capacity()` / `m.reserve(n)` / `m.try_reserve(n)` / `m.shrink_to_fit()` /
+  `m.clear()` / `m.drain()` / `m.remove_entry(k)` / `m.extend(other)`。flat
+  free の `Vec<i32>` 契約は method では `Option` / typed pair に変わる。
+- **E0200**: 容量・一括操作の 9 メソッドを String / fn pair で呼ぶと型検査エラー。
+  hidden bucket array を持つ store を i32 helper で処理しないための明示的な
+  capability 境界で、`HashSet<String>` の capacity と同じ扱い。
+- **Evidence**: `stdlib_hashmap/` の 58 fixture は Wave 1 で method surface へ
+  移行済み。`removed_hashmap_free*`（両 target、E0100）と
+  `hashmap_string_capacity*`（両 target、E0200）を追加し、W0009 の
+  `deprecated_hashmap_free*` を削除した。registry 3495 -> 3497。
+- **Scorecard**: eradication scope 225 -> **203**、`associated-or-method`
+  159 -> **137**、manifest 公開 entry 222 -> **201**、`pub fn` 宣言
+  246 -> **224**、unregistered 3 -> **2**、`std::collections frees` rule
+  38+2 -> **17+1**。scoreboard は hash family 21 -> **0** APIs（stable 112、
+  deprecated 75 に戻る）。
+
+## 2026-10-29 — `HashMap<i32, i32>` の容量・一括操作メソッド面と `hash::hashmap_*` の deprecation (#917, wave/hashmap-surface)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の free-function
+  根絶と [ADR-086](../adr/ADR-086-linear-collection-adts.md) の型・メソッド面。
+- **Surface (9)**: `HashMap<i32, i32>` に `with_capacity` / `capacity` / `reserve` /
+  `try_reserve` / `shrink_to_fit` / `clear` / `drain` / `remove_entry` / `extend` を
+  追加した。`drain` は `Vec<(i32, i32)>`、`remove_entry` は
+  `Option<(i32, i32)>` を返す。`try_reserve` の `true` は「予約が完了した」を意味し、
+  flat store には回復可能な allocation error channel がないことを doc に明記する。
+- **Deprecated (21)**: `hash::hashmap_*` の flat-store free を `stable` から
+  `deprecated` へ移し、W0009 の qualified-call table と
+  `diagnostics/deprecated_hashmap_free*` の両 target golden を追加した。
+  `deprecated_by` は `HashMap::` の method / associated function を指す。
+- **Contract**: `get` は sentinel `0` ではなく `Option<i32>`、`set` は `bool` では
+  なく前の `Option<i32>` を返す `insert`、`entries` / `drain` は typed pair、
+  `remove_entry` は `Option<(i32, i32)>` になる。W0009 のメッセージにもこの差分を
+  記載する。
+- **E0200**: 容量・一括操作の 9 メソッドは `HashMap<i32, i32>` 専用。String / fn
+  値の store は bucket array を非公開の lowering 詳細として持つため、他の pair では
+  `E0200` で reject し、i32 helper を誤った layout に適用しない。
+- **Evidence**: `tests/fixtures/stdlib_hashmap/` の 58 fixture を method surface へ
+  移行し、deprecated diag 2 件を registry に追加した。Wave 2 の削除は次の entry で
+  記録する。
 
 ## 2026-10-29 — `Vec<T: Ord>` の i64 / String sort が wasm32-gc で動作 (#965)
 

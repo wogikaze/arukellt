@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 147
+- **Canonical names:** 126
 - **Historical/deprecated names:** 75
-- **Total entries:** 222
+- **Total entries:** 201
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -75,27 +75,6 @@ Current public API names, sorted alphabetically.
 | `format_i32` | `prelude` | `stable` | String |
 | `gcd` | `prelude` | `stable` | Math |
 | `has_flag` | `std::cli` | `stable` | Cli |
-| `hashmap_capacity` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_clear` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_contains` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_drain` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_entries` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_extend` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_get` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_get_option` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_insert` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_is_empty` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_keys` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_new` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_remove` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_remove_entry` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_reserve` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_set` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_shrink_to_fit` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_size` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_try_reserve` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_values` | `std::collections::hash` | `stable` | Collections |
-| `hashmap_with_capacity` | `std::collections::hash` | `stable` | Collections |
 | `id` | `std::host::process` | `stable` | Host Process |
 | `ifft` | `std::signal` | `stable` | Signal |
 | `index_of` | `prelude` | `stable` | String |
@@ -345,27 +324,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`get`~~ | ⚠️ deprecated | `prelude` | → `Vec::get` · [migration guide](migration-guidance.md) |
 | ~~`get_unchecked`~~ | ⚠️ deprecated | `prelude` | → `Vec::get_unchecked` · [migration guide](migration-guidance.md) |
 | `has_flag` | ✅ `stable` | `std::cli` | Cli |
-| `hashmap_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_clear` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_contains` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_drain` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_entries` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_extend` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_get` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_get_option` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_insert` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_is_empty` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_keys` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_new` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_remove` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_remove_entry` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_reserve` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_set` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_shrink_to_fit` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_size` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_try_reserve` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_values` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashmap_with_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
 | ~~`i16_to_i32`~~ | ⚠️ deprecated | `prelude` | → `i16::to_i32` · [migration guide](migration-guidance.md) |
 | ~~`i32_to_i16`~~ | ⚠️ deprecated | `prelude` | → `i32::to_i16_wrapping` · [migration guide](migration-guidance.md) |
 | ~~`i32_to_i64`~~ | ⚠️ deprecated | `prelude` | → `i32::into` · [migration guide](migration-guidance.md) |

@@ -261,6 +261,9 @@ fn is_void_returning_builtin(bare_name: String) -> bool {
     eq(clone(bare_name), "hashmap_str_fn_set") ||
     eq(clone(bare_name), "hashmap_str_str_set") ||
     eq(clone(bare_name), "hashmap_clear") ||
+    eq(clone(bare_name), "hashmap_reserve") ||
+    eq(clone(bare_name), "hashmap_shrink_to_fit") ||
+    eq(clone(bare_name), "hashmap_extend") ||
     eq(clone(bare_name), "hashset_insert") ||
     eq(clone(bare_name), "hashset_remove") ||
     eq(clone(bare_name), "hashset_str_insert") ||

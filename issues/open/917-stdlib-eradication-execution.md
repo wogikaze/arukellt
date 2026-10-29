@@ -1394,3 +1394,78 @@ classified there, in dependency-safe waves.
   `let u: HashSet<i32> = ...` form works on both targets), so the migrated
   fixture uses the annotated form; the unannotated test-block lane is
   deferred with the method-return type inference.
+
+### Landed slice (wave/hashmap-surface, 2026-10-29)
+
+- **Group**: `std::collections::hash` — the remaining 21 HashMap flat-store
+  free functions (`hashmap_*`). All 21 were `stable`, so this is the ADR-087
+  two-phase lifecycle. Wave 1 (`50da61673`) landed the
+  `HashMap<i32, i32>` capacity/bulk method surface, the W0009 table, and the
+  dual-target `diagnostics/deprecated_hashmap_free*` goldens. Wave 2 (this
+  slice) deleted the manifest entries and the public declarations.
+- **Surface (9)**: `HashMap::with_capacity<i32, i32>(n)`, `m.capacity()`,
+  `m.reserve(n)`, `m.try_reserve(n)`, `m.shrink_to_fit()`, `m.clear()`,
+  `m.drain()` (`Vec<(i32, i32)>`), `m.remove_entry(k)`
+  (`Option<(i32, i32)>`), and `m.extend(other)`. `keys` / `values` /
+  `entries` are now declared on the generic shell
+  (`entries() -> Vec<(K, V)>`). The compiler recognizes
+  `HashMap::with_capacity` as a constructor in CoreHIR and MIR and lowers the
+  new methods to `hashmap_capacity` / `hashmap_reserve` /
+  `hashmap_try_reserve` / `hashmap_shrink_to_fit` / `hashmap_clear` /
+  `hashmap_drain_pairs` / `hashmap_remove_entry_pair` / `hashmap_extend`.
+- **Contract changes**: `hashmap_get` (sentinel `0`) and `hashmap_get_option`
+  become `m.get(k) -> Option<i32>`; `hashmap_set` (`bool`) and
+  `hashmap_insert` become `m.insert(k, v) -> Option<i32>`; flat
+  `hashmap_entries` / `hashmap_drain` become typed pair snapshots;
+  `hashmap_remove_entry` (flat `Vec<i32>`) becomes
+  `Option<(i32, i32)>`; `hashmap_size` / `hashmap_is_empty` /
+  `hashmap_contains` become `len` / `is_empty` / `contains_key`.
+  `try_reserve` still returns `bool`; `true` means the reserve completed, and
+  the flat store has no recoverable allocation-error channel.
+- **E0200**: the nine capacity/bulk methods are `HashMap<i32, i32>`-only. The
+  String and fn-valued stores keep their bucket arrays as private lowering
+  details, so the typechecker rejects the call with
+  ``method `capacity` is not available on `HashMap<String, i32>`; the
+  capacity/bulk surface is implemented only for `HashMap<i32, i32>` ``. This
+  mirrors the `HashSet<String>` capacity boundary.
+- **E0100**: `resolver::removed_names::removed_private_member_hint` (restored
+  after the `75e17ff4f` merge dropped it while `scope_error.ark` still called
+  it) maps `hash::hashmap_*` / `std::collections::hash::hashmap_*` calls on the
+  remaining private declarations to the method surface. The `hash_string` /
+  `hash_fn` / `hash_str_fn` `hashmap_*` targets keep the adapter hint.
+- **Fixtures**: the 58 raw-store fixtures were migrated in Wave 1 (typed map
+  locals, `Option` assertions, typed `entries` / `drain` / `remove_entry`
+  pairs); `insert_max_int` / `insert_negative_keys` use an in-range i32
+  INT_MIN expression. Wave 2 adds dual-target `removed_hashmap_free*`
+  (E0100) and `hashmap_string_capacity*` (E0200) diagnostics and removes the
+  Wave 1 W0009 goldens. Registry 3493 -> 3497. Targeted parity
+  **74/74 compile+validate, 19/19 test fixtures PASS**, and diag parity
+  **226/226 PASS**.
+- **Scorecard**: eradication scope 225 -> **203**; `associated-or-method`
+  159 -> **137**; manifest public entries 222 -> **201**; `pub fn`
+  declarations 246 -> **224**; unregistered declarations 3 -> **2**
+  (`hashmap_entry_pairs` became a non-public lowering target); the
+  `std::collections frees` rule drops 38+2 -> **17+1**. Scoreboard: hash family
+  21 -> **0** APIs; stable 133 -> **112**, deprecated 96 -> **75**.
+- **Build/verification note**: `selfhost build-compiler` ran five times on
+  this lane, not once (the fifth re-ran from the formatter-final source and
+  reproduced the identical sha256). The first build exposed a typechecker bug (`extend`
+  unified its map argument with `key_ty`); the second still emitted
+  `unreachable` for `HashMap::with_capacity` in the CoreHIR/component path
+  (mono instance without a generic shell); the third and fourth fixes are
+  included above. Final compiler: `.build/selfhost/arukellt-s2.wasm`
+  sha256 `3274c22c7915da65dc52e5be49263c0a00b4c6924bccd043d1a6aa19cbbf39ac`;
+  the final 32.9 s rebuild reproduces that exact sha from the formatted tree.
+  `verify fixtures` **1903/1903 PASS**, 110 runtime smoke, 36 `test:`
+  fixtures PASS / 0 FAIL, 2 runtime-unsupported (native-cpp contracts); an
+  extra manual both-target runtime comparison of the 40 migrated
+  `main`-style fixtures passed 40/40. `verify lane` PASS. `docs check`
+  **6/6**. ADR-029 fixpoint PASS at s2 == s3 sha256
+  `3274c22c…` (pinned base `62aecf93…`).
+- **Residuals**: the capacity/bulk surface stays i32-only (the String/fn
+  stores have no landed capacity lowering; E0200 is the explicit boundary).
+  A bare `2147483648` literal in a method argument still infers i64 and fails
+  memory32 component validation (the pre-existing i64-arg allowlist only
+  covers the rewritten direct-call names), so the boundary fixtures use
+  `(0 - 2147483647) - 1`. Borrowed `entry` / `iter` / `retain` and
+  `FromIterator` parity remain deferred with the collection iterator design.

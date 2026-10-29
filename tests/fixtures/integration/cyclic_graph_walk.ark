@@ -1,25 +1,27 @@
 use std::host::stdio
-use std::collections::hash
 use std::text
 fn main() {
     // Functional digraph: node -> successor. 2 -> 3 -> 4 -> 2 is a cycle.
-    let mut next = hash::hashmap_new()
-    hash::hashmap_set(next, 0, 1)
-    hash::hashmap_set(next, 1, 2)
-    hash::hashmap_set(next, 2, 3)
-    hash::hashmap_set(next, 3, 4)
-    hash::hashmap_set(next, 4, 2)
-    hash::hashmap_set(next, 5, 6)
+    let mut next: HashMap<i32, i32> = HashMap::new<i32, i32>()
+    let _ = next.insert(0, 1)
+    let _ = next.insert(1, 2)
+    let _ = next.insert(2, 3)
+    let _ = next.insert(3, 4)
+    let _ = next.insert(4, 2)
+    let _ = next.insert(5, 6)
 
     // Walk from 0 until a node repeats: shared heap state across two maps.
-    let mut visited = hash::hashmap_new()
+    let mut visited: HashMap<i32, i32> = HashMap::new<i32, i32>()
     let mut node = 0
     let mut out = String_from("")
     let mut steps = 0
-    while !hash::hashmap_contains(visited, node) && steps < 10 {
-        hash::hashmap_set(visited, node, 1)
+    while !visited.contains_key(node) && steps < 10 {
+        let _ = visited.insert(node, 1)
         out = out.concat((node).to_string().concat(String_from(" ")))
-        node = hash::hashmap_get(next, node)
+        match next.get(node) {
+            Option::Some(successor) => node = successor,
+            None => steps = 10,
+        }
         steps = steps + 1
     }
     stdio::println(out)

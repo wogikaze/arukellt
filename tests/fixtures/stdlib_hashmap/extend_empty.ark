@@ -1,14 +1,13 @@
 // Extend with empty map is a no-op
-use std::collections::hash
 use std::test
 
 fn main() {
-    let mut m1 = hash::hashmap_new()
-    hash::hashmap_set(m1, 1, 10)
+    let mut m1 = HashMap::new<i32, i32>()
+    let _ = m1.insert(1, 10)
 
-    let m2 = hash::hashmap_new()
-    hash::hashmap_extend(m1, m2)
+    let m2 = HashMap::new<i32, i32>()
+    m1.extend(m2)
 
-    test::assert_eq_i32(hash::hashmap_size(m1), 1)
-    test::assert_eq_i32(hash::hashmap_get(m1, 1), 10)
+    test::assert_eq_i32(m1.len(), 1)
+    test::assert_eq_i32(m1.get(1).unwrap_or(0), 10)
 }

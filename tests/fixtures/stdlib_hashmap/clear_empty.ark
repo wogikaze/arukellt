@@ -1,14 +1,13 @@
 // Clear on empty map is a no-op
-use std::collections::hash
 use std::test
 
 fn main() {
-    let mut m = hash::hashmap_new()
-    hash::hashmap_clear(m)
-    test::assert_eq_i32(hash::hashmap_size(m), 0)
-    test::assert_true(hash::hashmap_is_empty(m))
+    let mut m = HashMap::new<i32, i32>()
+    m.clear()
+    test::assert_eq_i32(m.len(), 0)
+    test::assert_true(m.is_empty())
 
     // Double clear
-    hash::hashmap_clear(m)
-    test::assert_eq_i32(hash::hashmap_size(m), 0)
+    m.clear()
+    test::assert_eq_i32(m.len(), 0)
 }

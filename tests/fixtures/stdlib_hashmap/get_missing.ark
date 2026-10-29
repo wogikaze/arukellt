@@ -1,26 +1,25 @@
-// Get: missing key returns 0 (default), get_option returns None
-use std::collections::hash
+// Get: a missing key is None; contains_key stays the presence check
 use std::test
 
 fn main() {
-    let mut m = hash::hashmap_new()
-    hash::hashmap_set(m, 1, 10)
+    let mut m = HashMap::new<i32, i32>()
+    let _ = m.insert(1, 10)
 
     // Missing key
-    test::assert_eq_i32(hash::hashmap_get(m, 2), 0)
-    test::assert_false(hash::hashmap_contains(m, 2))
-    match hash::hashmap_get_option(m, 2) {
+    match m.get(2) {
         Option::Some(_) => Std::panic("expected None for missing key"),
-        None => {}
+        None => {
+        },
     }
+    test::assert_false(m.contains_key(2))
 
     // Missing key after remove
-    hash::hashmap_set(m, 3, 30)
-    hash::hashmap_remove(m, 3)
-    test::assert_eq_i32(hash::hashmap_get(m, 3), 0)
-    test::assert_false(hash::hashmap_contains(m, 3))
-    match hash::hashmap_get_option(m, 3) {
+    let _ = m.insert(3, 30)
+    let _ = m.remove(3)
+    match m.get(3) {
         Option::Some(_) => Std::panic("expected None for removed key"),
-        None => {}
+        None => {
+        },
     }
+    test::assert_false(m.contains_key(3))
 }

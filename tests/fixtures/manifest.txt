@@ -318,6 +318,8 @@ diag:diagnostics/removed_canonical_free.ark
 diag:diagnostics/removed_canonical_free_wasm32.ark
 diag:diagnostics/removed_hashmap_adapter.ark
 diag:diagnostics/removed_hashmap_adapter_wasm32.ark
+diag:diagnostics/removed_hashmap_free.ark
+diag:diagnostics/removed_hashmap_free_wasm32.ark
 diag:diagnostics/removed_hashset_adapter.ark
 diag:diagnostics/removed_hashset_adapter_wasm32.ark
 diag:diagnostics/deprecated_time_monotonic_now.ark
@@ -412,6 +414,8 @@ diag:diagnostics/hashmap_entries_unsupported_pair.ark
 diag:diagnostics/hashmap_unsupported_pair.ark
 diag:diagnostics/hashset_string_capacity.ark
 diag:diagnostics/hashset_string_capacity_wasm32.ark
+diag:diagnostics/hashmap_string_capacity.ark
+diag:diagnostics/hashmap_string_capacity_wasm32.ark
 diag:diagnostics/hashset_string_reserve.ark
 diag:diagnostics/hashset_string_shrink_to_fit.ark
 diag:diagnostics/iterator_methods_no_import.ark

@@ -8,7 +8,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 133 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 112 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 10 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 4 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 75 | Superseded — see migration guidance. |
@@ -40,7 +40,7 @@
 | `Fs` | - | no | provisional | Namespace for the one-shot whole-path host filesystem operations: Fs::read_to_string / read_bytes / write_string / write_bytes / is_readable_file / is_file / is_dir / read_dir / metadata. File owns the image handle and the Read / Write / Seek adapters; read_dir and metadata stay honest unsupported rejections until the corresponding WASI intrinsics land. |
 | `FuncType` | - | no | experimental | A Wasm function signature: parameter types followed by result types. Both lists hold ValType constants. |
 | `HandleTableI32` | - | no | experimental | SlotMap-backed Component Model handle table for i32 payloads; new, insert, get, remove, and len are receiver methods. |
-| `HashMap` | K, V | yes | provisional | Hash-based key/value map. |
+| `HashMap` | K, V | yes | provisional | Hash-based key/value map. new, insert, get, contains_key, remove, len, is_empty, keys, values, and entries are generic over the supported pairs. The capacity / bulk-maintenance surface (with_capacity, capacity, reserve, try_reserve, shrink_to_fit, clear, drain, remove_entry, extend) is implemented for HashMap<i32, i32> only; the other pairs reject it with E0200 instead of lowering over the wrong store layout. |
 | `HashSet` | T | no | provisional | Set of unique i32 / String values; the i32 surface covers membership and the bucket-level aggregates, and the String surface covers membership, the to_vec snapshot used by its trait impls, and union / intersection / difference / clear / extend over its linear store. capacity / reserve / shrink_to_fit are i32-only. Both families implement FromIterator<VecIter<T>>. |
 | `I16x8` | - | no | experimental | 8 × 16-bit signed integer lane associated operations over v128. |
 | `I32x4` | - | no | experimental | 4 × 32-bit signed integer lane associated operations over v128. |
@@ -147,6 +147,7 @@
 | `Fs` | `read_to_string`, `read_bytes`, `write_string`, `write_bytes`, `is_readable_file`, `is_file`, `is_dir`, `read_dir`, `metadata` | - |
 | `FuncType` | `new`, `param_count`, `result_count`, `get_param`, `get_result` | - |
 | `HandleTableI32` | `new`, `insert`, `get`, `remove`, `len` | - |
+| `HashMap` | `new`, `insert`, `get`, `contains_key`, `remove`, `len`, `is_empty`, `keys`, `values`, `entries`, `with_capacity`, `capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `drain`, `remove_entry`, `extend` | - |
 | `HashSet` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend` | `FromIterator`, `IntoIterator`, `Clone`, `Eq`, `Debug` |
 | `I16x8` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `ge_u`, `min_s`, `min_u`, `max_s`, `max_u`, `shl`, `shr_s`, `shr_u`, `extadd_pairwise_i8x16_s`, `extadd_pairwise_i8x16_u`, `extend_low_i8x16_s`, `extend_high_i8x16_s`, `extend_low_i8x16_u`, `extend_high_i8x16_u`, `narrow_i32x4_s`, `narrow_i32x4_u`, `mul`, `neg`, `abs`, `add_sat_s`, `add_sat_u`, `sub_sat_s`, `sub_sat_u`, `eq`, `ne`, `lt_s`, `le_s`, `gt_s`, `ge_s`, `lt_u`, `le_u`, `gt_u` | - |
 | `I32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `and`, `or`, `xor`, `not`, `shl`, `shr_s`, `shr_u`, `min_s`, `max_s`, `min_u`, `max_u` | - |
@@ -257,27 +258,6 @@
 | `filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `prelude` | `provisional` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_i32` | - |
 | ~~`get`~~ ⚠️ Deprecated → `Vec::get` | `(Vec<T>, i32) -> Option<T>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | ~~`get_unchecked`~~ ⚠️ Deprecated → `Vec::get_unchecked` | `(Vec<T>, i32) -> T` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| `hashmap_capacity` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashmap_clear` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashmap_drain` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashmap_entries` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashmap_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | Extend a raw i32->i32 HashMap with all key/value pairs from another map. Existing keys are overwritt… |
-| `hashmap_get` | `(Vec<i32>, i32) -> i32` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashmap_get_option` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashmap_insert` | `(Vec<i32>, i32, i32) -> Option<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashmap_is_empty` | `(Vec<i32>) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashmap_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashmap_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashmap_remove_entry` | `(Vec<i32>, i32) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashmap_reserve` | `(Vec<i32>, i32) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashmap_set` | `(Vec<i32>, i32, i32) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashmap_shrink_to_fit` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashmap_size` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashmap_try_reserve` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashmap_values` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashmap_with_capacity` | `(i32) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
 | ~~`len`~~ ⚠️ Deprecated → `Vec::len` | `(Vec<T>) -> i32` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | Return the number of elements in a Vec. |
 | ~~`linked_list_back`~~ ⚠️ Deprecated → `LinkedList::back` | `(Vec<i32>, i32) -> i32` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Peek the back value of the legacy i32 list, or the caller's fallback when empty. |
 | ~~`linked_list_clear`~~ ⚠️ Deprecated → `LinkedList::clear` | `(Vec<i32>) -> ()` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Remove all elements from the legacy i32 list, keeping node capacity. |

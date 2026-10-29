@@ -1,30 +1,29 @@
 // Remove: all keys one by one, map becomes empty
-use std::collections::hash
 use std::test
 
 fn main() {
-    let mut m = hash::hashmap_new()
+    let mut m = HashMap::new<i32, i32>()
     let mut i = 0
     while i < 10 {
-        hash::hashmap_set(m, i, i * 100)
+        let _ = m.insert(i, i * 100)
         i = i + 1
     }
-    test::assert_eq_i32(hash::hashmap_size(m), 10)
+    test::assert_eq_i32(m.len(), 10)
 
     i = 0
     while i < 10 {
-        match hash::hashmap_remove(m, i) {
+        match m.remove(i) {
             Option::Some(v) => test::assert_eq_i32(v, i * 100),
             None => Std::panic("expected Some on remove"),
         }
         i = i + 1
     }
-    test::assert_eq_i32(hash::hashmap_size(m), 0)
-    test::assert_true(hash::hashmap_is_empty(m))
+    test::assert_eq_i32(m.len(), 0)
+    test::assert_true(m.is_empty())
 
     i = 0
     while i < 10 {
-        test::assert_false(hash::hashmap_contains(m, i))
+        test::assert_false(m.contains_key(i))
         i = i + 1
     }
 }

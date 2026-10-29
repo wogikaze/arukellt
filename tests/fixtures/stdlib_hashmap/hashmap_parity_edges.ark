@@ -1,4 +1,3 @@
-use std::collections::hash
 use std::collections::hash_set::HashSet
 use std::test
 
@@ -18,32 +17,35 @@ fn assert_none(v: Option<i32>) {
 }
 
 test "zero_and_boundary_values_round_trip" {
-    let mut m: Vec<i32> = hash::hashmap_with_capacity(2)
-    test::assert_true(hash::hashmap_set(m, 1, 0))
-    test::assert_true(hash::hashmap_set(m, 3, 30))
-    assert_some(hash::hashmap_get_option(m, 1), 0)
-    assert_some(hash::hashmap_insert(m, 3, 33), 30)
-    assert_some(hash::hashmap_get_option(m, 3), 33)
+    let mut m: HashMap<i32, i32> = HashMap::with_capacity<i32, i32>(2)
+    let _ = m.insert(1, 0)
+    let _ = m.insert(3, 30)
+    assert_some(m.get(1), 0)
+    assert_some(m.insert(3, 33), 30)
+    assert_some(m.get(3), 33)
 
-    let removed_one: Option<i32> = hash::hashmap_remove(m, 1)
+    let removed_one: Option<i32> = m.remove(1)
     assert_some(removed_one, 0)
-    assert_some(hash::hashmap_get_option(m, 3), 33)
+    assert_some(m.get(3), 33)
 
-    test::assert_true(hash::hashmap_set(m, 5, 50))
-    test::assert_eq_i32(hash::hashmap_size(m), 2)
-    test::assert_true(hash::hashmap_contains(m, 5))
+    let _ = m.insert(5, 50)
+    test::assert_eq_i32(m.len(), 2)
+    test::assert_true(m.contains_key(5))
 
-    let entry_pairs: Vec<i32> = hash::hashmap_entries(m)
-    test::assert_eq_i32(len(entry_pairs), 4)
-    let removed_entry: Vec<i32> = hash::hashmap_remove_entry(m, 3)
-    test::assert_eq_i32(len(removed_entry), 2)
-    test::assert_eq_i32(get_unchecked(removed_entry, 0), 3)
-    test::assert_eq_i32(get_unchecked(removed_entry, 1), 33)
-    assert_none(hash::hashmap_get_option(m, 3))
+    let entry_pairs: Vec<(i32, i32)> = m.entries()
+    test::assert_eq_i32(len(entry_pairs), 2)
+    match m.remove_entry(3) {
+        Option::Some((k, v)) => {
+            test::assert_eq_i32(k, 3)
+            test::assert_eq_i32(v, 33)
+        },
+        None => Std::panic("expected Some(3, 33)"),
+    }
+    assert_none(m.get(3))
 
-    let drained: Vec<i32> = hash::hashmap_drain(m)
-    test::assert_eq_i32(len(drained), 2)
-    test::assert_true(hash::hashmap_is_empty(m))
+    let drained: Vec<(i32, i32)> = m.drain()
+    test::assert_eq_i32(len(drained), 1)
+    test::assert_true(m.is_empty())
 
     let mut s: HashSet<String> = HashSet::new<String>()
     test::assert_true(s.insert("alpha"))

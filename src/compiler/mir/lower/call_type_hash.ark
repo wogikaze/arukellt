@@ -102,9 +102,14 @@ fn is_hashmap_strstr_new(callee_name: String) -> bool {
 
 fn is_hashmap_i32i32_new(callee_name: String) -> bool {
     // The i32->i32 pair lowers directly to the flat store, so the rewritten
-    // target is hash::hashmap_new (or its bare emit spelling).
+    // targets are hash::hashmap_new / hashmap_with_capacity (or their bare
+    // emit spellings). `hashmap_with_capacity` is both the flat constructor
+    // free and the `HashMap::with_capacity` lowering target; the method is
+    // the only source-level caller after the fixture migration.
     callee_eq(clone(callee_name), "hashmap_new") ||
-    callee_eq(callee_name, "hash::hashmap_new")
+    callee_eq(clone(callee_name), "hash::hashmap_new") ||
+    callee_eq(clone(callee_name), "hashmap_with_capacity") ||
+    callee_eq(callee_name, "hash::hashmap_with_capacity")
 }
 
 fn is_hashset_i32_new(callee_name: String) -> bool {
@@ -155,24 +160,6 @@ fn is_hash_vec_i32_result(callee_name: String) -> bool {
         return true
     }
     if callee_eq(clone(callee_name), "hash::hashmap_entries") {
-        return true
-    }
-    if callee_eq(clone(callee_name), "hashmap_drain") {
-        return true
-    }
-    if callee_eq(clone(callee_name), "hash::hashmap_drain") {
-        return true
-    }
-    if callee_eq(clone(callee_name), "hashmap_remove_entry") {
-        return true
-    }
-    if callee_eq(clone(callee_name), "hash::hashmap_remove_entry") {
-        return true
-    }
-    if callee_eq(clone(callee_name), "hashmap_with_capacity") {
-        return true
-    }
-    if callee_eq(clone(callee_name), "hash::hashmap_with_capacity") {
         return true
     }
     if callee_eq(clone(callee_name), "hashset_new") {
@@ -254,6 +241,10 @@ fn hash_snapshot_vec_type_name(callee_name: String) -> String {
     }
     if callee_eq(clone(callee_name), "hashmap_entry_pairs") ||
     callee_eq(clone(callee_name), "hash::hashmap_entry_pairs") {
+        return "vec:tuple:i32,i32"
+    }
+    if callee_eq(clone(callee_name), "hashmap_drain_pairs") ||
+    callee_eq(clone(callee_name), "hash::hashmap_drain_pairs") {
         return "vec:tuple:i32,i32"
     }
     if callee_eq(clone(callee_name), "hashmap_str_i32_entries") ||
@@ -366,7 +357,8 @@ fn is_hash_size_query(callee_name: String) -> bool {
     if is_hashmap_method_len(clone(callee_name)) {
         return true
     }
-    if callee_eq(clone(callee_name), "hashmap_size") {
+    if callee_eq(clone(callee_name), "hashmap_size") ||
+    callee_eq(clone(callee_name), "hashmap_capacity") {
         return true
     }
     if callee_eq(clone(callee_name), "hash::hashmap_size") {
@@ -391,10 +383,12 @@ fn is_hash_bool_query(callee_name: String) -> bool {
     if callee_eq(clone(callee_name), "hash::hashmap_contains") {
         return true
     }
-    if callee_eq(clone(callee_name), "hashmap_is_empty") {
+    if callee_eq(clone(callee_name), "hashmap_is_empty") ||
+    callee_eq(clone(callee_name), "hashmap_try_reserve") {
         return true
     }
-    if callee_eq(clone(callee_name), "hash::hashmap_is_empty") {
+    if callee_eq(clone(callee_name), "hash::hashmap_is_empty") ||
+    callee_eq(clone(callee_name), "hash::hashmap_try_reserve") {
         return true
     }
     if callee_eq(clone(callee_name), "hashset_contains") {
@@ -407,6 +401,13 @@ fn is_hash_bool_query(callee_name: String) -> bool {
         return true
     }
     callee_eq(callee_name, "hashmap_str_str_contains")
+}
+
+// `remove_entry` returns Option<(i32, i32)>; the tuple payload keeps its
+// element keys so match arms can bind it as a typed pair.
+fn is_option_pair_i32_hash_query(callee_name: String) -> bool {
+    callee_eq(clone(callee_name), "hashmap_remove_entry_pair") ||
+    callee_eq(callee_name, "hash::hashmap_remove_entry_pair")
 }
 
 fn mark_hash_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32) {
@@ -482,6 +483,12 @@ fn mark_hash_query_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32
     }
     if is_option_fn_hash_query(clone(callee_name)) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, "option:fnref")
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+        }
+    }
+    if is_option_pair_i32_hash_query(clone(callee_name)) {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, "option:tuple:i32,i32")
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
         }

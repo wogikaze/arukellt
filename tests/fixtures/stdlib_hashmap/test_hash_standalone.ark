@@ -1,9 +1,8 @@
-use std::collections::hash
 use std::test
 
 test "direct_hashmap_api_tracks_size" {
-    let mut m = hash::hashmap_new()
-    hash::hashmap_set(m, 1, 42)
-    let s: i32 = hash::hashmap_size(m)
+    let mut m = HashMap::new<i32, i32>()
+    let _ = m.insert(1, 42)
+    let s: i32 = m.len()
     test::assert_eq_i32(s, 1)
 }
