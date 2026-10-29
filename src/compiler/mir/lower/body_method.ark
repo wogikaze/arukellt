@@ -27,7 +27,7 @@ fn lower_method_call_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
         // memory64 keeps the wide local for its i64 parameters (#917).
         let narrow_callee = call_rewrite_hashmap::mir_rewrite_hashmap_method(
             ctx,
-            clone(callee_name),
+            callee_name.clone(),
             receiver_idx
         )
         let mut a = 1
@@ -38,8 +38,8 @@ fn lower_method_call_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
             let arg_is_composed = ast_node::node_kind_is(arg, lower_kinds::NK_METHOD_CALL()) ||
             ast_node::node_kind_is(arg, lower_kinds::NK_CALL())
             let mut method_arg_idx = lower_expr(ctx, arg)
-            if method_arg_idx >= 0 && len(clone(narrow_callee)) > 0 &&
-            call_arg_i64::mir_should_wrap_i64_arg_to_i32(ctx, clone(narrow_callee), a) {
+            if method_arg_idx >= 0 && len(narrow_callee.clone()) > 0 &&
+            call_arg_i64::mir_should_wrap_i64_arg_to_i32(ctx, narrow_callee.clone(), a) {
                 method_arg_idx = binary_cast::mir_wrap_i64_to_i32_if_needed(ctx, method_arg_idx)
             }
             let arg_is_scalar_const = method::mir_method_arg_needs_repush_before_field_access(ctx, method_arg_idx)

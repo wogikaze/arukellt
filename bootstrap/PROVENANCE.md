@@ -16,13 +16,32 @@ image build).
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 8 550 341 bytes |
-| sha256 | `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895` |
-| Built from commit | `36f42b97e` (#965 Vec<Ord> projection, HashSet retirement, resolver fixes) |
+| Size | 8 540 660 bytes |
+| sha256 | `56ff0808171dcc3c521b0e85d07f2b16a349a59419483ad71148a5ee928d23e8` |
+| Built from commit | `ff4ff6a4f` (clone-retirement merge regression and bootstrap stub restored; `ba4aa88b1` + `ff4ff6a4f`) |
 | Build target | `wasm32-gc` / `wasi-p2` component, cm32p2 command wrapper |
-| Producer | The previous gc pin (`62aecf93…`) compiled the overlay to `wasm32-gc` with `--emit component`; `wasm-tools component embed/new` packaged it |
-| p1 identity | Compiling the overlay with `--target wasm32 --wasi-version wasi-p1` writes `353473ae5a24230b1e9c83d23d73b818396c0ae8bdd45c46688ac742a5101739`, byte-identical to the stage-2 s2 the previous pin produced for this source |
-| Self-reproduction | Compiling the overlay to `wasm32-gc --emit component` writes core `c0db44ce037ba87e19c32c15a917f5b93619b00c8274f1ff778957ca5d55a5e7`, the core this component packages |
+| Producer | Generation-2 s2 `61aa349b…` (built by generation-1 s2 `e8a0bdb1…`, itself built by the committed pin `471855ad…`) compiled the overlay to `wasm32-gc` with `--emit component`; `wasm-tools component embed/new` packaged it |
+| p1 identity | Compiling the overlay with `--target wasm32 --wasi-version wasi-p1` writes `61aa349b377432773354e633182648becd8da9c97343e53bbe57cf192b73c62d`, byte-identical to the generation-2 s2 this component was built from (fixed point) |
+| Self-reproduction | Compiling the overlay to `wasm32-gc --emit component` writes core `0ebeb365d2833ae6850ff0482b62a20fbd4298de8001f3d94cc812a817a2fd98`, the core this component packages |
+
+The 2026-10-30 refresh is the first one that needed two s2 generations
+(generation convergence). The committed pin (`471855ad…`, built from
+`36f42b97e`) produced stage-2 `e8a0bdb1…` (11 816 406 B); that s2 produced
+`61aa349b…` (11 817 385 B), which is a fixed point: the packaged component's
+p1 output is `61aa349b…` and its gc self-build is `0ebeb365…` (8 532 895 B;
+component `56ff0808…`, 8 540 660 B). The +842-byte p1 drift is the accumulated
+emission change of the compiler commits between the pin source and this tree,
+not a host difference.
+
+The generation hop also exposed a merge regression: `96a66db83` had kept
+`93582a23e`'s pre-clone versions of eight MIR lowerer files, and the hard-coded
+`mir_lower_ctx_mono_type_params.ark` bootstrap stub still emitted bare
+`clone(x)`. Against the merged prelude's generic `clone<T>` shim the gc
+self-build resolved those calls to unrelated `Vec__clone__…` instances and
+emitted invalid core Wasm (func 7686: `type mismatch: expected (ref null
+$type), found (ref null $type)`). `ba4aa88b1` restores the clone migration in
+the lowerers and `ff4ff6a4f` migrates the stub; with both, the gc self-build
+validates. The pin was not installed until the fixed source converged.
 
 The `3c02d18b` refresh restored the gc host after the 2026-10-28 core pin
 retired it. The `35a2585a` refresh baked in the 2026-10-29 allocation-free
@@ -32,8 +51,8 @@ signature-registry leaf comparisons). The `783be1b8f` refresh baked in the
 #965 Vec<Ord> projection, the HashSet retirement, and the resolver fixes that
 made that series build. Each refresh re-verified p1 identity and
 self-reproduction against the previous pin; the host swap itself does not
-change the emitted s2. The current s2 is `353473ae…` for the `36f42b97e`
-source, and the previous pin produces the same bytes from that source.
+change the emitted s2. The s2 for that `36f42b97e` source was `353473ae…`; the
+current fixed-point s2 is `61aa349b…` for the `ff4ff6a4f` source.
 HEAD advanced while this refresh was prepared (resolver fixes + merged
 HashSet hint restoration); the new pin builds that newer source
 (s2 `1eb4a81c…`, fixpoint PASS, fixture parity PASS).
@@ -139,10 +158,15 @@ previous pinned reference. Refresh procedure for the gc component pin:
    `wasm-tools component new embedded.wasm --reject-legacy-names
    --realloc-via-memory-grow -o <component>`, then validate with
    `wasm-tools validate --features component-model`.
-3. Verify the accelerator contract: the component compiling the overlay to
-   `--target wasm32 --wasi-version wasi-p1` must write the same stage-2 s2 as
-   the previous pin produced, and compiling the overlay to
-   `wasm32-gc --emit component` must reproduce the pin's own core sha256.
+3. Verify the accelerator contract at a fixed point: the component compiling the
+   overlay to `--target wasm32 --wasi-version wasi-p1` must write the same
+   stage-2 s2 it was generated from, and compiling the overlay to
+   `wasm32-gc --emit component` must reproduce the pin's own core sha256. When
+   the pin's source generation is behind the tree, one s2 hop is not enough:
+   compute `s2_1 = pin(source)`, `s2_2 = s2_1(source)`, and repeat until the
+   s2 stops changing; package the gc self-build of the fixed-point s2. A
+   one-step host swap is the special case where `s2_1` is already the fixed
+   point.
 4. Run `selfhost build-compiler`, `selfhost fixpoint`, and
    `python3 scripts/run/selfhost-fixture-test.py --reference` against the
    previous pinned reference; review every difference. If any drift is

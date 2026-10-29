@@ -108,6 +108,39 @@ typing bug. See
 hashes and reproduction. The eq retirement therefore stays blocked on the
 pin plus the eq-path operand staging described in §2.
 
+**Update 2026-10-30 (`wave/pin-converge`)**: the pin oracle gap is closed. The
+generation-converged pin `56ff0808…` compiles and runs
+`tests/fixtures/operators/string_eq.ark` on both targets (32/32 lines), and the
+ADR-029 fixpoint is `s2 == s3 == 61aa349b…`. The §2 operand-staging blocker is
+also fixed by the source at this HEAD: an explicit `.eq()` chain with both
+operands from inline `get_unchecked` calls (the exact `accessors_match` shape)
+now compiles and runs on `wasm32` and `wasm32-gc` with the fixed s2.
+
+The migration was then attempted in full on a scratch branch: split
+`std/core/eq.ark` + `pub use std::core::cmp::Eq`, added the module to the
+overlay closure, deleted the free from `std/prelude.ark` / `std/manifest.toml`,
+added the `a.eq(b)` removal hint, and rewrote 5,729 free calls in 521 files
+(`src/compiler`, `std`, `tests`) plus the selective imports. `selfhost
+build-compiler` with the refreshed pin built an eq-source s2
+(`71162e42…`) in 48 s, but that s2 **traps** inside `is_stdlib_path` while
+compiling `string_eq.ark` on both targets. The producer pin never lowered
+`.eq()` in its own source (the pre-eq tree had zero `.eq()` calls), and
+`(path.slice(0, 5)).eq("std::")` is emitted as an unresolved-call trap stub;
+the pre-eq free `eq(path.slice(0, 5), "std::")` worked because its declared
+`(String, String)` signature staged the inline slice result. A bootstrap-only
+free-`eq` shim appended to the overlay prelude did not change the result
+(`16fbba74…` still traps), so this is receiver-type tracking for the method
+call, not name resolution.
+
+Consequence: the pin refresh alone does **not** unblock the retirement. It
+needs either (a) `.eq()` receiver typing for inline `String::slice(...)`
+results in the MIR call path (the §2 failure shape, one level down), or (b) a
+producer pin already built from an eq-source compiler (two-generation
+bootstrap). The attempt is preserved at
+`.build-lane/pin-converge/eq-attempt.patch` (not committed); the codemod passes
+`fmt --check` over all 453 compiler/std files, so the remaining work is the
+receiver-typing fix, not the mechanical migration.
+
 ## `clone` — `.clone()` has no polymorphic resolution
 
 `clone(x)` is a typechecker special case keyed on the callee name

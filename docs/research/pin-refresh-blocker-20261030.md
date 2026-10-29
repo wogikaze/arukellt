@@ -171,3 +171,52 @@ reproduce its own p1 s2 (`99961a5e…`) and its own gc core. That is a two-step
 refresh because the committed pin's generation is 39 compiler commits stale,
 not a one-step host swap. `bootstrap/arukellt-selfhost.wasm` stays `471855ad…`
 until that convergence is reviewed.
+
+## Resolution — generation convergence (2026-10-30)
+
+The refresh converged on `wave/pin-converge` (base `96a66db83`). Two things
+changed relative to the measurement above:
+
+1. The base is not `93582a23e`. `96a66db83` merges it with `9e8f2ec66`, which
+   carries `9ca742d8c` (re-landed polymorphic `.clone()`, 796 files) and
+   `22071e894` (HashMap wide-literal narrowing). The report's `33cfe196…` /
+   `99961a5e…` therefore do not apply to this tree; the chain was re-derived.
+2. The three-way merge in `96a66db83` kept `93582a23e`'s pre-clone versions of
+   eight MIR lowerer files, losing `9ca742d8c`'s clone migration (215 bare
+   `clone(x)` calls). The hard-coded `mir_lower_ctx_mono_type_params.ark`
+   bootstrap stub also still emitted 162 bare `clone(x)` calls into the flat
+   overlay. Against the merged prelude's generic `clone<T>` shim, the gc
+   self-build resolved those calls to unrelated `Vec__clone__…` mono instances
+   and failed validation at func 7686
+   (`mir_should_wrap_i64_arg_to_i32`: `type mismatch: expected (ref null
+   $type), found (ref null $type)`). The p1 stage-2 built fine; only the gc
+   self-build was affected.
+
+`ba4aa88b1` restores the clone migration in the eight lowerer files (keeping
+the CoreOp typing fix and HashMap narrowing) and `ff4ff6a4f` migrates the stub.
+The regenerated overlay then has no bare `clone(` calls.
+
+Converged chain on the fixed source `ff4ff6a4f`:
+
+| Generation | Producer | Artifact | sha256 | Size |
+|------------|----------|----------|--------|------|
+| committed pin | — | `471855ad…` | `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895` | 8 550 341 |
+| gen-1 s2 | committed pin | `e8a0bdb1…` | `e8a0bdb135aadc426237b81b7d4939ece050d43bed6e4ddde0b756849e41bf5e` | 11 816 406 |
+| gen-2 s2 (fixed point) | gen-1 s2 | `61aa349b…` | `61aa349b377432773354e633182648becd8da9c97343e53bbe57cf192b73c62d` | 11 817 385 |
+| gc self-build | gen-2 s2 | `0ebeb365…` | `0ebeb365d2833ae6850ff0482b62a20fbd4298de8001f3d94cc812a817a2fd98` | 8 532 895 |
+| new pin component | `wasm-tools component embed/new` | `56ff0808…` | `56ff0808171dcc3c521b0e85d07f2b16a349a59419483ad71148a5ee928d23e8` | 8 540 660 |
+
+Acceptance, all measured with `ARUKELLT_BUILD_DIR=$PWD/.build-lane` and
+Wasmtime 46.0.1:
+
+| Contract | Result |
+|----------|--------|
+| p1 identity | PASS — the component compiles the overlay to `61aa349b…`, byte-identical to the gen-2 s2 it was packaged from |
+| gc self-reproduction | PASS — the component rebuilds core `0ebeb365…` in 30.5 s |
+| ADR-029 fixpoint | PASS — `s2 == s3 == 61aa349b…` |
+| warm `build-compiler` | 51.4 s at host load ~13 (quiet floor ~30 s) |
+
+Generation count: **2** s2 generations (`e8a0bdb1…` → `61aa349b…`), plus the
+packaged component. The committed pin is `56ff0808…`; see
+[`bootstrap/PROVENANCE.md`](../../bootstrap/PROVENANCE.md) for the refresh
+procedure and the fixed-point contract.

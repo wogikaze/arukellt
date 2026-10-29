@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{eq}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_return_type
 use mir::lower::ctx_fn_return_vt
@@ -12,14 +12,14 @@ use mir::value_types
 fn mir_core_print_arg_needs_string_conversion(ctx: LowerCtx, arg: CoreHirExpr, arg_idx: i32) -> bool {
     if core_expr_shape_calls::mir_core_expr_is_call(arg) {
         let cn = core_expr_shape_accessors::mir_core_expr_text(arg)
-        if core_call_arg_names::mir_core_call_callee_returns_string(ctx, clone(cn)) {
+        if core_call_arg_names::mir_core_call_callee_returns_string(ctx, cn.clone()) {
             return false
         }
-        let return_type_name = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(cn))
-        if eq(clone(return_type_name), "String") || eq(clone(return_type_name), "str") || eq(clone(return_type_name), "string") {
+        let return_type_name = ctx_fn_return_type::ctx_fn_return_type_name(ctx, cn.clone())
+        if eq(return_type_name.clone(), "String") || eq(return_type_name.clone(), "str") || eq(return_type_name.clone(), "string") {
             return false
         }
-        let rv = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(cn))
+        let rv = ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn.clone())
         if rv == value_types::VT_GC_REF() || rv == value_types::VT_REF() {
             return false
         }
@@ -31,7 +31,7 @@ fn mir_core_print_arg_needs_string_conversion(ctx: LowerCtx, arg: CoreHirExpr, a
     }
     if arg_idx >= 0 {
         let lt = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
-        if eq(clone(lt), "String") || eq(clone(lt), "str") || eq(clone(lt), "string") {
+        if eq(lt.clone(), "String") || eq(lt.clone(), "str") || eq(lt.clone(), "string") {
             return false
         }
         let arg_vt = ctx_api_local_types::ctx_local_vt(ctx, arg_idx)
@@ -46,17 +46,17 @@ fn mir_core_print_arg_needs_string_conversion(ctx: LowerCtx, arg: CoreHirExpr, a
     core_expr_shape_ops::mir_core_expr_is_unary(arg)
     if !needs_convert {
         let lt = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
-        if eq(clone(lt), "char") ||
-        eq(clone(lt), "u8") ||
-        eq(clone(lt), "i8") ||
-        eq(clone(lt), "u16") ||
-        eq(clone(lt), "u32") ||
-        eq(clone(lt), "u64") ||
-        eq(clone(lt), "i16") ||
-        eq(clone(lt), "i32") ||
-        eq(clone(lt), "i64") ||
-        eq(clone(lt), "bool") ||
-        eq(clone(lt), "f64") {
+        if eq(lt.clone(), "char") ||
+        eq(lt.clone(), "u8") ||
+        eq(lt.clone(), "i8") ||
+        eq(lt.clone(), "u16") ||
+        eq(lt.clone(), "u32") ||
+        eq(lt.clone(), "u64") ||
+        eq(lt.clone(), "i16") ||
+        eq(lt.clone(), "i32") ||
+        eq(lt.clone(), "i64") ||
+        eq(lt.clone(), "bool") ||
+        eq(lt.clone(), "f64") {
             needs_convert = true
         }
     }
