@@ -1,5 +1,6 @@
-use std::prelude::{clone, eq}
+use std::prelude::{byte_at, clone, eq, substring}
 use std::text
+use collections::name_index
 use corehir::name_match
 use corehir::kinds
 use corehir::function_id
@@ -123,19 +124,37 @@ fn sig_reg_register_mono_fn(
 
 // A decl emitted under its leaf name resolves its single instantiation
 // through the qualified instance fn_name (seq::sort_by), which mono_index
-// never keys by the leaf. Return the unique non-marker instance index for
-// the decl; -1 when absent or ambiguous. The index is into
-// mir_fn_index_source_mono_instances / ctx.mono_instances.
-fn sig_reg_leaf_instance_index(
-    mono_instances: Vec<MonoInstance>,
-    decl_name: String,
-    qualified_name: String
-) -> i32 {
-    let mut matched = 0 - 1
-    let mut matched_mangled = String_new()
-    let mut ambiguous = false
+// never keys by the leaf. The registry build asks this for every decl without
+// mono instances, so the previous all-instance scan was quadratic on the
+// instance list. Build a leaf-name bucket index once instead: `head` maps a
+// leaf to the newest qualifying instance and `next` chains the older ones.
+pub struct SigRegLeafIndex {
+    head: NameIndex,
+    next: Vec<i32>,
+}
+
+fn sig_reg_leaf_name(name: String) -> String {
+    let name_len = len(name)
+    let mut i = name_len - 1
+    while i >= 1 {
+        if byte_at(name, i) == 58 && byte_at(name, i - 1) == 58 {
+            return substring(name, i + 1, name_len)
+        }
+        i = i - 1
+    }
+    name
+}
+
+pub fn sig_reg_leaf_index_build(mono_instances: Vec<MonoInstance>) -> SigRegLeafIndex {
     let count = len(mono_instances)
+    let mut head = name_index::NameIndex_new(count)
+    let mut next = Vec::new<i32>()
     let mut i = 0
+    while i < count {
+        push(next, 0 - 1)
+        i = i + 1
+    }
+    i = 0
     while i < count {
         let inst = get_unchecked(mono_instances, i)
         i = i + 1
@@ -146,21 +165,50 @@ fn sig_reg_leaf_instance_index(
         if type_contracts::TypeInfo_tag(first_arg) < 0 {
             continue
         }
-        if !sig_reg_leaf_instance_name_match(
+        let leaf = sig_reg_leaf_name(type_contracts::MonoInstance_fn_name(inst))
+        let previous = name_index::name_index_get(head, clone(leaf))
+        set(next, i - 1, previous)
+        name_index::name_index_set(head, leaf, i - 1)
+    }
+    SigRegLeafIndex { head: head, next: next }
+}
+
+// Return the unique non-marker instance index for the decl; -1 when absent or
+// ambiguous. Every spelling `sig_reg_leaf_instance_name_match` accepts has the
+// same leaf segment as the query, so walking the leaf bucket is equivalent to
+// the old full scan.
+pub fn sig_reg_leaf_instance_index(
+    index: SigRegLeafIndex,
+    mono_instances: Vec<MonoInstance>,
+    decl_name: String,
+    qualified_name: String
+) -> i32 {
+    let mut query_name = clone(decl_name)
+    if len(qualified_name) > 0 {
+        query_name = clone(qualified_name)
+    }
+    let query_leaf = sig_reg_leaf_name(query_name)
+    let mut matched = 0 - 1
+    let mut matched_mangled = String_new()
+    let mut ambiguous = false
+    let mut i = name_index::name_index_get(index.head, query_leaf)
+    while i >= 0 {
+        let inst = get_unchecked(mono_instances, i)
+        if sig_reg_leaf_instance_name_match(
             type_contracts::MonoInstance_fn_name(inst),
             clone(decl_name),
             clone(qualified_name)
         ) {
-            continue
+            let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
+            if len(matched_mangled) > 0 && !eq(clone(inst_mangled), clone(matched_mangled)) {
+                ambiguous = true
+            }
+            if len(matched_mangled) == 0 {
+                matched = i
+            }
+            matched_mangled = inst_mangled
         }
-        let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
-        if len(matched_mangled) > 0 && !eq(clone(inst_mangled), clone(matched_mangled)) {
-            ambiguous = true
-        }
-        if len(matched_mangled) == 0 {
-            matched = i - 1
-        }
-        matched_mangled = inst_mangled
+        i = get_unchecked(index.next, i)
     }
     if ambiguous {
         return 0 - 1

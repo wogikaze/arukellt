@@ -9,6 +9,7 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
 use mir::inst_call
+use mir::inst_const_i32
 use mir::inst_local_get
 use mir::inst_op
 use mir::opcodes
@@ -23,6 +24,18 @@ fn mir_emit_overloaded_binary_call(mut ctx: LowerCtx, callee: String) -> i32 {
     }
     call_type_fallback::set_ref_vt_for_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
     ctx_emit(ctx, inst_call::MirInst_call(callee, 2, dest))
+    dest
+}
+
+// The two operands are already on the eval stack. Compare the shared byte
+// order result against zero so all four ordering operators follow Ord::cmp.
+fn mir_emit_string_order_operator(mut ctx: LowerCtx, mir_op: i32) -> i32 {
+    let cmp_result = mir_emit_overloaded_binary_call(ctx, String_from("String::__cmp_bytes"))
+    let zero = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_const_i32::MirInst_const_i32(0, zero))
+    let dest = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_set_local_type(ctx, dest, "bool")
+    ctx_emit(ctx, inst_op::MirInst_binop_typed(mir_op, dest, cmp_result, zero, value_types::VT_I32()))
     dest
 }
 
@@ -90,6 +103,10 @@ fn mir_emit_binary_result(mut ctx: LowerCtx, mir_op: i32, binop_vt: i32, actual_
     dest
 }
 
+fn mir_is_order_comparison_op(mir_op: i32) -> bool {
+    mir_op == opcodes::MIR_LT() || mir_op == opcodes::MIR_LTEQ() || mir_op == opcodes::MIR_GT() || mir_op == opcodes::MIR_GTEQ()
+}
+
 fn mir_is_comparison_op(mir_op: i32) -> bool {
-    mir_op == opcodes::MIR_EQ() || mir_op == opcodes::MIR_NEQ() || mir_op == opcodes::MIR_LT() || mir_op == opcodes::MIR_LTEQ() || mir_op == opcodes::MIR_GT() || mir_op == opcodes::MIR_GTEQ()
+    mir_op == opcodes::MIR_EQ() || mir_op == opcodes::MIR_NEQ() || mir_is_order_comparison_op(mir_op)
 }

@@ -852,6 +852,22 @@ fn edge_push_binary_op_candidates(ctx: LowerCtx, mut out: Vec<String>, op: i32, 
     op == lower_kinds::OP_GT() || op == lower_kinds::OP_GTEQ() {
         edge_add_callee_candidates(ctx, out, "cmp", span_start)
         edge_add_callee_candidates(ctx, out, "partial_cmp", span_start)
+        edge_add_callee_candidates(ctx, out, "String::__cmp_bytes", span_start)
+    }
+    // Ordering operators lower to a T::cmp call plus an Ordering::is_*
+    // projection that no AST node spells; keep that projection body or the
+    // emit-time call stubs to unreachable.
+    if op == lower_kinds::OP_LT() {
+        edge_add_callee_candidates(ctx, out, "Ordering::is_less", span_start)
+    }
+    if op == lower_kinds::OP_LTEQ() {
+        edge_add_callee_candidates(ctx, out, "Ordering::is_less_or_equal", span_start)
+    }
+    if op == lower_kinds::OP_GT() {
+        edge_add_callee_candidates(ctx, out, "Ordering::is_greater", span_start)
+    }
+    if op == lower_kinds::OP_GTEQ() {
+        edge_add_callee_candidates(ctx, out, "Ordering::is_greater_or_equal", span_start)
     }
     if op == lower_kinds::OP_BIT_AND() { edge_add_callee_candidates(ctx, out, "bitand", span_start) }
     if op == lower_kinds::OP_BIT_OR() { edge_add_callee_candidates(ctx, out, "bitor", span_start) }

@@ -29,12 +29,15 @@ fn mir_build_signature_spine_from_view(view: CoreHirMirView, midx: MonoIndex, ex
     let decl_count = decl_source::mir_decl_source_count(decl_source)
     let source = fn_index_source::mir_fn_index_source_from_view(view)
     let sig_source = corehir::mod::view_signature_source(view)
+    let leaf_index = signature_registry_build_mono::sig_reg_leaf_index_build(
+        fn_index_source::mir_fn_index_source_mono_instances(source)
+    )
     let mut d = 0
     let mut fn_counter = 0
     while d < decl_count {
         let decl_name = decl_source::mir_decl_source_name_at(decl_source, d)
         if decl_source::mir_decl_source_is_fn_at(decl_source, d) {
-            sig_reg_index_top_level_fn(table, registry, mono_table, source, sig_source, midx, d, decl_name, fn_counter)
+            sig_reg_index_top_level_fn(table, registry, mono_table, source, sig_source, midx, d, decl_name, fn_counter, leaf_index)
             fn_counter = fn_counter + 1
         }
         if decl_source::mir_decl_source_is_impl_at(decl_source, d) {
@@ -89,7 +92,8 @@ fn sig_reg_index_top_level_fn(
     midx: MonoIndex,
     decl_index: i32,
     decl_name: String,
-    fn_counter: i32
+    fn_counter: i32,
+    leaf_index: signature_registry_build_mono::SigRegLeafIndex
 ) {
     let mut typed_index = fn_counter
     let fn_info_index = fn_index_source::mir_fn_index_source_fn_info_index_for_decl(source, decl_index)
@@ -110,6 +114,7 @@ fn sig_reg_index_top_level_fn(
         let mut leaf_inst_idx = 0 - 1
         if mono::mono_index_count(midx, clone(decl_name)) == 0 {
             leaf_inst_idx = signature_registry_build_mono::sig_reg_leaf_instance_index(
+                leaf_index,
                 fn_index_source::mir_fn_index_source_mono_instances(source),
                 clone(decl_name),
                 clone(qualified_name)

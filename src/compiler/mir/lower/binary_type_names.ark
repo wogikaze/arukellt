@@ -1,5 +1,9 @@
 use std::prelude::{clone, eq, starts_with}
 use mir::value_types
+fn mir_is_string_type_name(type_name: String) -> bool {
+    eq(clone(type_name), "String") || eq(clone(type_name), "string")
+}
+
 fn mir_is_primitive_operator_type(type_name: String) -> bool {
     if len(type_name) == 0 {
         return true
@@ -10,7 +14,7 @@ fn mir_is_primitive_operator_type(type_name: String) -> bool {
     if eq(clone(type_name), "bool") || eq(clone(type_name), "char") {
         return true
     }
-    if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
+    if mir_is_string_type_name(clone(type_name)) {
         return true
     }
     if starts_with(clone(type_name), "vec:") || starts_with(clone(type_name), "option:") {

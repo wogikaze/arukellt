@@ -3537,3 +3537,7 @@ t3-compile:stdlib_vec/vec_sort_ord_i64.ark
 t3-compile:stdlib_vec/vec_sort_ord_string.ark
 t3-run:stdlib_vec/vec_sort_ord_i64.ark
 t3-run:stdlib_vec/vec_sort_ord_string.ark
+run:operators/string_order.ark
+run:operators/string_order_wasm32.ark
+t3-compile:operators/string_order.ark
+t3-run:operators/string_order.ark

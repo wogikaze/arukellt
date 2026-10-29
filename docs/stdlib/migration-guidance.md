@@ -1946,6 +1946,12 @@ The `i32`, `i64`, and `String` lanes are verified on both targets by
 `Ord`, so use `v.sort_by(total_cmp)` as before. The earlier `i64` / `String`
 invalid-Wasm failure on `wasm32-gc` (#965) is resolved.
 
+`String` ordering operators (`<`, `>`, `<=`, `>=`) compare UTF-8 bytes and
+agree with `a.cmp(b)` on both targets. They no longer depend on
+`use std::core::cmp`; that import is still required for explicit `cmp` calls
+and `Ordering` values. `tests/fixtures/operators/string_order.ark` and its
+`_wasm32` counterpart cover all four operators.
+
 | Removed free call | Replacement |
 |-------------------|-------------|
 | `sort::sort(v)` | `v.sort()` |
