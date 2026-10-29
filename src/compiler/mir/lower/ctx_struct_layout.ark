@@ -92,6 +92,33 @@ fn ctx_generic_enum_type_name(ctx: LowerCtx, type_name: String) -> String {
     String_new()
 }
 
+// A concrete instantiation of a generic enum: `Wrap<i32>` (not the
+// declaration spelling `?Wrap:T`) whose head names a registered enum.
+// Call-result and annotation positions keep these arguments so match payload
+// instantiation can substitute the enum's type parameters.
+fn ctx_type_name_is_generic_enum_instance(ctx: LowerCtx, type_name: String) -> bool {
+    if len(type_name) < 3 || type_name.clone().starts_with(String_from("?")) {
+        return false
+    }
+    if !type_name.clone().contains(String_from("<")) || !type_name.clone().ends_with(String_from(">")) {
+        return false
+    }
+    len(ctx_generic_enum_type_name(ctx, type_name)) > 0
+}
+
+// Return positions keep a generic enum's instantiation arguments
+// (`enum:Wrap<i32>`) instead of collapsing to the bare `enum:Wrap`.
+// Mono signature resolution treats a declared return equal to the receiver
+// name as an unsubstituted type variable, so the collapsed spelling makes a
+// constructor like `Wrap<T>::new` return the mono key (`i32`) instead of the
+// enum reference. Storage positions keep the bare spelling.
+fn ctx_maybe_enum_return_type_name_keep_instance(ctx: LowerCtx, type_name: String) -> String {
+    if ctx_type_name_is_generic_enum_instance(ctx, type_name.clone()) {
+        return String_from("enum:").concat(type_name)
+    }
+    ctx_maybe_enum_return_type_name(ctx, type_name)
+}
+
 fn ctx_maybe_enum_return_type_name(mut ctx: LowerCtx, type_name: String) -> String {
     if len(type_name) == 0 {
         return type_name

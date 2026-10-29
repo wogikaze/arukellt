@@ -183,21 +183,22 @@ calls fail with E0100 and a receiver hint:
 | `contains(s, sub)` | `s.contains(sub)` |
 | `index_of(s, sub)` | `s.index_of(sub)` |
 | `clone(x)` | `x.clone()` |
+| `Box_new(x)` | `Box::new(x)`（`use std::prelude::Box`） |
+| `unbox(b)` | `b.take()` |
 
 The `std::collections::string` module-scoped frees for these eight names and
 `clone` were deleted as well, so there is no second free spelling. `clone`
 keeps a private generic identity shim in `std/prelude.ark` for receivers
 without a `Clone` impl; a bare call and `use std::prelude::{clone}` are E0100.
+`Box_new` / `unbox` are retired entirely: `Box::new` and `Box::take` live in
+the prelude impl next to the `Box<T>` enum declaration, and a bare call is
+E0100 with the replacement hint.
 `Vec<T>::clone` is shallow (shared element storage) until the pin refresh
 allows a `T: Clone`-bounded deep impl.
 
 The following remain `associated-or-method` and are **not** covered by the
 exception:
 
-- `Box_new` / `unbox`: the ownership checker special-cases the free names
-  (ADR-088 §6), and the generic `Box<T>` associated-function / method spelling
-  cannot infer `T` under the current lowering. The method form needs an
-  ownership / MIR change.
 - `eq`: `String`'s `==` lowers through the `eq` operator method; the bootstrap
   flat overlay does not ship `std::core::cmp` (`impl Eq for String`), so removing
   the free makes the pin lower String `==` as `i32.eq` (reference comparison)

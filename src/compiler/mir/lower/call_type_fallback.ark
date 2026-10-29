@@ -156,7 +156,15 @@ fn mark_call_result_from_return_type_name(mut ctx: LowerCtx, dest: i32, type_nam
     // layout basename resolve.
     let generic_enum = ctx_struct_layout::ctx_generic_enum_type_name(ctx, cleaned.clone())
     if len(generic_enum) > 0 {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, generic_enum)
+        // A concrete instantiation keeps its arguments so a following match
+        // can substitute the enum's payload type; declaration spellings keep
+        // the bare storage name.
+        let result_type = if ctx_struct_layout::ctx_type_name_is_generic_enum_instance(ctx, cleaned.clone()) {
+            String_from("enum:").concat(cleaned)
+        } else {
+            generic_enum
+        }
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, result_type)
         return
     }
     // `Name<args>` instantiation spellings (VecIter<i32>) register their

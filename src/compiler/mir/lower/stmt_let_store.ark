@@ -1,5 +1,6 @@
 use std::prelude::{eq}
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_struct_layout
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::inst_convert
@@ -95,6 +96,15 @@ fn sync_let_local_type_name(mut ctx: LowerCtx, local_idx: i32, val_idx: i32, pre
             ctx_api_local_types::ctx_set_local_type(ctx, val_idx, existing.clone())
             ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
         }
+        return
+    }
+    // A `Wrap<i32>` annotation is the concrete enum instantiation, not the
+    // bare `enum:Wrap` storage name a call result carries. Keep the arguments
+    // on both locals so match payload lowering can substitute the enum's type
+    // parameters; without them the value takes the unsubstituted `T` layout.
+    if ctx_struct_layout::ctx_type_name_is_generic_enum_instance(ctx, existing.clone()) {
+        ctx_api_local_types::ctx_set_local_type(ctx, val_idx, existing.clone())
+        ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
         return
     }
     // Preserve specific Option_/Result_ annotation types from being overridden

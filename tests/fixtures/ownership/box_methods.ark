@@ -1,0 +1,12 @@
+// Box is an owned generic enum whose new/take live in the prelude impl.
+// Constructing through the associated function and consuming through the
+// receiver method keeps the unique-owner boundary on both targets.
+use std::host::stdio
+use std::prelude::Box
+
+fn main() {
+    let number: Box<i32> = Box::new(41)
+    stdio::println((number.take() + 1).to_string())
+    let word: Box<String> = Box::new(String_from("hi"))
+    stdio::println(word.take())
+}

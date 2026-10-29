@@ -1,0 +1,5 @@
+// E0100: the prelude `Box_new` free was retired by ADR-091; the hint names
+// the associated function on the prelude enum instead.
+fn main() {
+    let _boxed = Box_new(1)
+}

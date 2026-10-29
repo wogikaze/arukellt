@@ -1,12 +1,12 @@
-use std::prelude::{Box_new, unbox}
+use std::prelude::Box
 
-// ADR-088 §6: `unbox` moves the Box out of the parameter and takes the
+// ADR-088 §6: `take` moves the Box out of the parameter and takes the
 // caller's unique owner with it.
 fn open(mut b: Box<i32>) -> i32 {
-    unbox(b)
+    b.take()
 }
 
 fn main() {
-    let mut boxed = Box_new(3)
+    let mut boxed: Box<i32> = Box::new(3)
     let _value = open(boxed)
 }

@@ -6,7 +6,7 @@
 //! and `from_id` / `name_from_ark` are associated functions. The former
 //! `wit_type_*` free functions were retired by the #917 WIT wave.
 
-use std::prelude::{Box, Box_new, eq, unbox}
+use std::prelude::{Box, eq}
 use std::text
 /// A WIT value type (primitive, compound, or named reference).
 pub enum WitType {
@@ -55,12 +55,12 @@ pub struct WitVariantCase {
 impl WitType {
     /// Create a `list<T>` type from its element type.
     fn list(inner: WitType) -> WitType {
-        WitType::List(Box_new(inner))
+        WitType::List(Box::new(inner))
     }
 
     /// Create an `option<T>` type from its payload type.
     fn option(inner: WitType) -> WitType {
-        WitType::Option(Box_new(inner))
+        WitType::Option(Box::new(inner))
     }
 
     /// Return the numeric id used by the component-model type table.
@@ -162,11 +162,11 @@ impl WitType {
             WitType::Char => "char",
             WitType::String => "string",
             WitType::List(inner) => {
-                let inner_ty = unbox(inner)
+                let inner_ty = inner.take()
                 String::concat("list<", String::concat(inner_ty.wit_text(), ">"))
             },
             WitType::Option(inner) => {
-                let inner_ty = unbox(inner)
+                let inner_ty = inner.take()
                 String::concat("option<", String::concat(inner_ty.wit_text(), ">"))
             },
             WitType::Tuple(_) => "tuple",

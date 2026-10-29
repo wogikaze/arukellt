@@ -1,0 +1,5 @@
+// E0100: an explicit selective import of the retired `Box_new` free is
+// rejected instead of resurrecting the removed prelude binding.
+use std::prelude::{Box_new}
+
+fn main() {}

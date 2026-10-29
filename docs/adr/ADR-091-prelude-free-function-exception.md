@@ -146,8 +146,8 @@ i32 codepoint 境界が解消した場合は、この例外を見直す。
   した（`compile_source` / `backend_resolve` の計測）。compiler / std module から
   `TryFrom` を使う経路が安定するまで free を残す。fixture 側の移行も同じ理由で
   この wave では行わない。
-- `Box_new` / `unbox`: ownership checker が free 名を特別扱いしており、
-  method 化には ownership / MIR の変更が必要。
+- `Box_new` / `unbox`: 2026-10-30 に退役した。`Box::new` / `Box::take` は
+  prelude の `impl<T> Box<T>` に置いた（末尾の追記を参照）。
 - `unwrap` / `unwrap_or` / `is_some` / `is_none` / `is_ok` / `is_err`:
   generic な `impl<T> Option<T>` / `impl<T, E> Result<T, E>` の receiver method は
   現行 lowering で実行時に `unreachable` へ落ちる。concrete impl の網羅が前提。
@@ -309,44 +309,47 @@ receiver を指す hint を返す。
   `9cec2ac2523c567cd6b8d4d88d9ada2a7f3bb202fb12dca92062f1783cf9b0bd`、pinned base
   `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`）。
 
-## 追記: 2026-10-30 `wave/deep-clone` — `Vec<T>` deep clone
+## 追記: 2026-10-30 `wave/box-new` — `Box_new` / `unbox` の退役
 
-`Vec<T>::clone` の shallow な prelude inherent 実装を、trait impl による deep
-clone へ置き換えた。prelude の identity shim は pin 用に残す。
+§4 の `Box_new` / `unbox` を退役した。§3 の prelude free 例外は不変である。
 
-- **Deep impl**: `std/core/clone.ark` に
-  `impl<T: Clone> Clone for Vec<T>` を追加した。新しい `Vec<T>` を確保して
-  element ごとに `T::clone` を呼ぶため、要素配列も `String` 要素の buffer も
-  共有しない。`use std::core::clone` が receiver の impl を登録する。
-- **No-import fallback**: checked-in prelude から
-  `impl<T> Vec<T> { fn clone }` を削除した。import なしの `.clone()` は
-  MIR の `mir_emit_clone_identity`（`src/compiler/mir/lower/method_emit.ark`）が
-  identity の local copy へ落とす。bare callee が共有 cache で
-  `String::clone` に化けて invalid core Wasm になっていた #928 の Vec 側を
-  ここで遮断する。意味は shallow（header 共有）だが module は valid。
-- **Bootstrap overlay**: pin は上記 MIR fallback より前の compiler なので、
-  overlay prelude にだけ旧 shallow inherent
-  `impl<T> Vec<T> { fn clone(self) -> Vec<T> { self } }` を注入する
-  （`_patch_bootstrap_prelude_vector_clone_shallow_text`）。checked-in prelude と
-  user-visible semantics は bridge を持たない。`std/core/clone.ark` も overlay に
-  ship する。
-- **Residual**: compiler 自身の `Vec` clone は overlay の shallow bridge を
-  通り、import なしの user code も shallow のまま。element の deep copy は
-  要素型の `Clone` impl に依存する（`String` は deep、`Clone` impl のない
-  user struct は handle copy）。pin の fixture-parity oracle は no-import の
-  Vec clone で invalid wasm を出し得るが、current s2 の PASS 判定とは分離する。
-- **Delete condition**: pin を refresh して MIR identity fallback が pin 側にも
-  入ったら overlay bridge を削除する。`use std::core::clone` を prelude へ
-  移せるようになったら no-import fallback も不要になる。
-- **Evidence** (`ARUKELLT_BUILD_DIR=$PWD/.build-lane`、gc pin):
-  `selfhost build-compiler` PASS（final source build 56.6s）、`verify fixtures`
-  PASS=1928 FAIL=0（38/38 `test:`、111 runtime smoke、2 P2-unsupported。
-  `vec_clone_deep` と `vec_clone_deep_wasm32` を含む）、`verify lane` PASS、
-  `docs check` 6/6、ADR-029 fixpoint PASS（s2 == s3 at sha256
-  `cf6e5f3c6ed2a9daef1c1df36644dec9259239a129ad6225a32179abf49c4f99`、
-  pinned base `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`）。
-  修正前は `vec_clone_deep` が `expected "alpha", got "changed"` で失敗し、
-  clone の `set` が source を書き換えていた。
+- **Root cause**: generic enum の associated constructor
+  `impl<T> Wrap<T> { fn new(value: T) -> Wrap<T> }` は型検査を通るが、
+  `ctx_maybe_enum_return_type_name` が返り値の `Wrap<i32>` を `enum:Wrap` に
+  畳み、`sections_types_sigs_mono::resolve_mono_method_return_value_sig` が
+  それを「receiver を返す generic method」と解釈して mono key の `i32` を
+  Wasm の result type にしていた。本体は enum 参照を返すため
+  `type mismatch: expected i32, found (ref null $type)` で invalid core Wasm
+  になった。`Wrap<String>` では `gcref0`（String）を返し、同じく不一致。
+- **Mechanism**:
+  - 関数の return type name は generic enum の instantiation を保持する
+    `enum:Wrap<i32>` を返し（`ctx_maybe_enum_return_type_name_keep_instance`）、
+    mono method の receiver 判定にかからないようにした。
+  - `let w: Wrap<i32>` の annotation と call result も type argument を保持し、
+    match payload が宣言側 `T` の layout ではなく instantiated layout を読む。
+  - prelude の `Box<T>` enum と同じファイルに `impl<T> Box<T>` を置き、
+    `Box::new` / `take` を公開した。user module の `impl<T> Box<T>` は
+    E0100（`undefined module: Box`）で拒否されるため、declaring module に
+    置く必要がある。
+  - ownership checker の free 名 special case を `Box::new` / `.take()` の
+    sink に置き換えた。borrowed `Box<T>` の E0227 は維持している。
+- **Deleted**: `std/prelude.ark` の `Box_new` / `unbox` と
+  `std/manifest.toml` の該当 entry。bare call は E0100 +
+  `use \`Box::new(value)\`` / `use \`boxed.take()\`` の hint。
+- **Migration**: `std/wit/types.ark`、fixtures、diagnostics を
+  `Box::new` / `.take()` へ移行した。
+- **Fixtures**: `generic_enum/impl_constructor`（annotated / inferred /
+  turbofish、i32 と String）、`ownership/box_methods`、E0100 golden
+  `diagnostics/removed_prelude_free_box_new` /
+  `diagnostics/removed_prelude_free_unbox`。
+- **Evidence**: `verify fixtures` **1926/1926** PASS（111 runtime smoke、
+  38/38 `test:` PASS、2 runtime-unsupported、0 FAIL）。`verify lane` PASS。
+  `docs check` 6/6 PASS。ADR-029 fixpoint PASS: s2 == s3 at sha256
+  `ddf46a2ff3f9a758d4020f0f656667855e719217fc89ef0288f37e4d4dada166`
+  （pinned base `471855ad9db035c1ada136852fc55e896b477cf35303be066f352d9d563a8895`）。
+  `selfhost diag-parity` は 261 PASS / 1 FAIL。FAIL は本 wave 以前から
+  `use std::prelude::{clone}` を拒否できない既存の clone import 検査ギャップで、
+  Box の import は E0100 で拒否する。
 
 ## 参照
 

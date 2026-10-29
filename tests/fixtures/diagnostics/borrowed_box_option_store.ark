@@ -1,4 +1,4 @@
-use std::prelude::Box_new
+use std::prelude::Box
 
 // ADR-088 §6: builtin `Option::Some` stores its payload. The prelude `Option`
 // is not a source enum definition, so the source-enum constructor walk does
@@ -8,6 +8,6 @@ fn stash(b: Box<i32>) -> Option<Box<i32>> {
 }
 
 fn main() {
-    let boxed = Box_new(2)
+    let boxed: Box<i32> = Box::new(2)
     let _stored = stash(boxed)
 }

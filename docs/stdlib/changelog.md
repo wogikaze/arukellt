@@ -16,6 +16,32 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-30 — prelude `Box_new` / `unbox` の退役 (#917 / ADR-091, wave/box-new)
+
+- **Removed**: `Box_new(x)` / `unbox(b)` を `std/prelude.ark` と
+  `std/manifest.toml` から削除した。replacement は `Box::new(x)`（`use
+  std::prelude::Box`）と `b.take()`。どちらも `Box<T>` enum と同じ prelude に
+  おける `impl<T> Box<T>` の associated function / receiver method である。
+- **Migration**: compiler / std / fixture の call site を移行した。bare call は
+  E0100 と `use \`Box::new(value)\`` / `use \`boxed.take()\`` の hint を返す。
+  ownership checker の free 名 special case を `Box::new` / `.take()` の
+  E0227 sink に置き換え、borrowed `Box<T>` の規則を保った。
+- **Root fix**: generic enum の associated constructor が return 型を mono key
+  （`i32` / `String`）へ置換していた MIR signature 解決を、enum instantiation
+  を保持する `enum:Wrap<i32>` で修正した。あわせて let annotation と call
+  result が generic enum の type argument を落とさないようにし、generic ref
+  payload の match が宣言側 `T` layout を読む問題を直した。詳細は
+  [ADR-091](../adr/ADR-091-prelude-free-function-exception.md) 追記。
+- **Fixtures**: `generic_enum/impl_constructor`（annotated / inferred /
+  turbofish）と `ownership/box_methods`、E0100 golden
+  `removed_prelude_free_box_new` / `removed_prelude_free_unbox` /
+  `removed_prelude_import_box_new` / `removed_prelude_import_unbox` を追加。
+  `box_methods` は wasm32-gc と wasm32 の両 target で compile+validate+実行
+  PASS。
+- **Evidence**: `verify fixtures` 1926/1926 PASS（111 runtime smoke、
+  38/38 `test:` PASS）、`verify lane` PASS、`docs check` 6/6、ADR-029 fixpoint
+  PASS（sha256 `ddf46a2ff3f9a758d4020f0f656667855e719217fc89ef0288f37e4d4dada166`）。
+
 ## 2026-10-30 — HashMap の容量境界と wide literal 引数の残件 (#917, wave/hashmap-remain)
 
 - **E0200 boundary**: 容量・一括操作 group は引き続き flat `HashMap<i32, i32>`

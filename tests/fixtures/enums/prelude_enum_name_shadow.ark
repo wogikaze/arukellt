@@ -1,13 +1,18 @@
 use std::host::stdio
-use std::prelude::{Box_new, unbox}
 
 struct Box {
     s: String,
 }
 
+// `Box<args>` still names the prelude enum when a non-generic user struct
+// shadows the bare name (#905). The explicit return annotation also lets the
+// older pin infer `take` without a method turbofish.
+fn make_prelude_box() -> Box<i32> {
+    Box::Owned(41)
+}
+
 fn main() {
     let b = Box { s: "shadow" }
     stdio::println(b.s)
-    let boxed = Box_new(41)
-    stdio::println((unbox(boxed) + 1).to_string())
+    stdio::println((make_prelude_box().take() + 1).to_string())
 }

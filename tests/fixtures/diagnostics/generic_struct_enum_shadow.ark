@@ -1,5 +1,3 @@
-use std::prelude::{Box_new, unbox}
-
 struct Box<T> {
     v: T,
 }

@@ -59,6 +59,18 @@ pub enum Box<T> {
     Owned(T),
 }
 
+impl<T> Box<T> {
+    fn new(value: T) -> Box<T> {
+        Box::Owned(value)
+    }
+
+    fn take(self: Box<T>) -> T {
+        match self {
+            Box::Owned(value) => value,
+        }
+    }
+}
+
 pub enum Slice<T> {
     View(Vec<T>, i32, i32),
 }
@@ -582,18 +594,6 @@ impl Result<i32, i32> {
 fn __prelude_unwrap_panic(message: String) -> i32 {
     Std::panic(message)
     0
-}
-
-// Box is an owned heap wrapper. Its representation is selected by the target
-// backend, while the source-level value remains a unique owner.
-pub fn Box_new<T>(value: T) -> Box<T> {
-    Box::Owned(value)
-}
-
-pub fn unbox<T>(boxed: Box<T>) -> T {
-    match boxed {
-        Box::Owned(value) => value,
-    }
 }
 
 // A slice retains the source collection and a bounded range. The collection

@@ -1,4 +1,4 @@
-use std::prelude::{Box_new, unbox}
+use std::prelude::Box
 
 fn plus_one(n: i32) -> i32 {
     n + 1
@@ -8,11 +8,11 @@ fn plus_one(n: i32) -> i32 {
 // is moved by a sink nested inside an ordinary call argument, not at the
 // initializer root.
 fn bump(b: Box<i32>) -> i32 {
-    let n = plus_one(unbox(b))
+    let n = plus_one(b.take())
     n
 }
 
 fn main() {
-    let boxed = Box_new(2)
+    let boxed: Box<i32> = Box::new(2)
     let _n = bump(boxed)
 }

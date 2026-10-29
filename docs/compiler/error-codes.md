@@ -806,24 +806,25 @@ A borrowed parameter may escape as a shared reference (ADR-088 §6), but
 `Box<T>` is a unique owner (ADR-060 §2), so sharing cannot represent it. A
 `Box<T>` parameter cannot be returned, stored in an aggregate (a struct,
 tuple, array, source enum constructor, or builtin `Option`/`Result`
-constructor such as `Option::Some`, `Ok`, and `Err`), or passed to `unbox`;
-any of these would move the caller's unique owner out of the call scope. The
-walker follows aggregate members and recurses into operands, call arguments,
-and receivers, so a `Box_new`/`unbox` call nested inside a larger expression
-is still a sink. An `if` condition and a `match` scrutinee are read roots;
-their branch values are the escape positions. To transfer ownership, the
-caller passes an owned temporary value instead of a borrowed binding.
+constructor such as `Option::Some`, `Ok`, and `Err`), or consumed with
+`boxed.take()`; any of these would move the caller's unique owner out of the
+call scope. The walker follows aggregate members and recurses into operands,
+call arguments, and receivers, so a `Box::new` / `.take()` sink nested inside a
+larger expression is still an escape. An `if` condition and a `match`
+scrutinee are read roots; their branch values are the escape positions. To
+transfer ownership, the caller passes an owned temporary value instead of a
+borrowed binding.
 
 <!-- skip-doc-check kind="invalid-example" reason="E0227 rejects returning a borrowed Box parameter" -->
 ```arukellt
-use std::prelude::Box_new
+use std::prelude::Box
 
 fn steal(mut b: Box<i32>) -> Box<i32> {
     return b
 }
 
 fn main() {
-    let mut boxed = Box_new(1)
+    let mut boxed: Box<i32> = Box::new(1)
     let _stolen = steal(boxed)
 }
 ```

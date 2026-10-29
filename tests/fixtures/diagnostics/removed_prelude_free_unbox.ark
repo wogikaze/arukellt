@@ -1,0 +1,8 @@
+// E0100: the prelude `unbox` free was retired by ADR-091; the hint names the
+// `take` receiver method instead.
+use std::prelude::Box
+
+fn main() {
+    let boxed: Box<i32> = Box::Owned(1)
+    let _value = unbox(boxed)
+}
