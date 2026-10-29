@@ -20,6 +20,40 @@ core pin の s2 `56e7ff6a…` とバイト一致し、gc self-reproduction は
 `93aa0e6b…` で一致する。`BOOTSTRAP_EMIT_*` は wasm32 / wasi-p1 のまま据え置き。
 残る ≤10 s 目標は Phase 3 以降で詰める。
 
+### 現行床（2026-10-29、gc pin、clean `7438a59fb`）
+
+| 条件 | wall | RSS |
+|---|---:|---:|
+| gc pin cwasm host（AOT、通常 overlay、wasm32-gc 出力） | median **39.1 s** / p95 39.6 s | 1.10 GiB |
+| gc pin wasm host（JIT、通常 overlay） | median **40.7 s** / p95 42.1 s | 1.48 GiB |
+| keep-clock gc host（phase 実測用） | median **39.9 s** / p95 40.2 s | 1.50 GiB |
+
+receipts: `851-gc-pin-overlay-aot-20261029.json` /
+`851-gc-pin-overlay-wasm-20261029.json` /
+`851-gc-pin-keepclock-20261029.json`。
+
+phase 内訳（keep-clock、guest 計 ~35.9 s）:
+
+| phase | s |
+|---|---:|
+| resolve | 4.3 |
+| typecheck | 6.6 |
+| lower.total | 24.3 |
+| — lower.body_emit | 16.2 |
+| — lower.inloop_emit | 5.7 |
+| — lower.fn_index | 2.0 |
+| — lower.edge_bfs | 1.1 |
+| emit（types/code/tail） | 0.8 |
+
+host の GC + startup が wall との差 ~4 s。10 s への主要ギャップは
+**body_emit 16.2 s / typecheck 6.6 s / host GC ~4 s**。
+
+phase 実測用の keep-clock gc host は、overlay を
+`ARUKELLT_OVERLAY_EMIT_TARGET=wasm32-gc ARUKELLT_OVERLAY_KEEP_CLOCK=1`
+で生成し、現行 gc pin で `--emit component` → `wasm-tools component
+embed/new` で再パッケージする。runner も同じ env で実行する（通常 overlay
+のままだと clock が stub され frontend phase が 0 になる）。
+
 ## 現行床（2026-09-01）
 
 | 条件 | wall | RSS |

@@ -117,3 +117,24 @@ wasm32-gc self-build の validation 失敗（`handle_did_change` の local.set�
 - `BOOTSTRAP_EMIT_*` は wasm32 / wasi-p1 のまま（ADR-053 の ≤10s 受入後に翻す）
 
 次の作業: Phase 3（function-at-a-time）で 35 s → 20 s → 12 s を詰める。
+
+### 2026-10-29 更新（gc pin overlay の現行床と phase 分解）
+
+clean `7438a59fb` で 3 本の receipt を取得した。
+
+- gc pin cwasm host（AOT、通常 overlay）: median **39.1 s** / p95 39.6 s / RSS 1.10 GiB
+- gc pin wasm host（JIT）: median **40.7 s** / p95 42.1 s / RSS 1.48 GiB
+- keep-clock gc host（phase 実測）: median **39.9 s** / p95 40.2 s / RSS 1.50 GiB
+
+phase 内訳（guest 計 ~35.9 s）: resolve 4.3 / typecheck 6.6 / lower.total 24.3
+（body_emit 16.2、inloop_emit 5.7、fn_index 2.0、edge_bfs 1.1）/ emit 0.8。
+wall との差 ~4 s は host GC + startup。10 s への主要ギャップは
+**body_emit 16.2 s / typecheck 6.6 s / host GC ~4 s**。
+
+receipts: `docs/research/receipts/851-gc-pin-overlay-{aot,wasm}-20261029.json`、
+`851-gc-pin-keepclock-20261029.json`。通常 overlay は clock が stub され
+frontend phase が 0 になるため、phase 実測は
+`ARUKELLT_OVERLAY_EMIT_TARGET=wasm32-gc ARUKELLT_OVERLAY_KEEP_CLOCK=1` の
+keep-clock gc host で行う（手順は plan に記載）。
+
+次の作業: Phase 3 で body_emit/typecheck を削り、35 s → 20 s を狙う。
