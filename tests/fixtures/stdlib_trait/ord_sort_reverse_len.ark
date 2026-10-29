@@ -1,3 +1,4 @@
+use std::test::Test
 // Focused #695 regression: Vec::sort on a Vec of a generic struct must
 // keep the receiver's Vec layout even when the element is not read back.
 use std::core::cmp
@@ -11,5 +12,5 @@ fn main() {
     r.push(cmp::Reverse { inner: 2 })
     r.sort()
     let sr = r
-    test::assert_eq_i32(sr.len(), 3)
+    Test::assert_eq_i32(sr.len(), 3)
 }

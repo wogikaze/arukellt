@@ -1,3 +1,4 @@
+use std::test::Test
 use std::collections::vec
 use std::test
 
@@ -10,8 +11,8 @@ fn main() {
 
     v.sort()
     let s = v
-    test::assert_eq_i32(len(s), 50)
+    Test::assert_eq_i32(len(s), 50)
     for i in 0..50 {
-        test::assert_eq_i32(get_unchecked(s, i), i)
+        Test::assert_eq_i32(get_unchecked(s, i), i)
     }
 }

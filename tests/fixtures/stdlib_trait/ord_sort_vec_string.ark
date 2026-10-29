@@ -1,3 +1,4 @@
+use std::test::Test
 // Generic Ord-based sort on non-i32 collections (#695):
 // Vec<String> lexicographic order via Vec<T: Ord>::sort, and descending
 // order via the cmp::Reverse<T> wrapper's Ord impl. Uses the v2 method
@@ -13,9 +14,9 @@ fn main() {
     v.push(String_from("cherry"))
     v.sort()
     let s = v
-    test::assert_true(s.get_unchecked(0).eq(String_from("apple")))
-    test::assert_true(s.get_unchecked(1).eq(String_from("banana")))
-    test::assert_true(s.get_unchecked(2).eq(String_from("cherry")))
+    Test::assert_true(s.get_unchecked(0).eq(String_from("apple")))
+    Test::assert_true(s.get_unchecked(1).eq(String_from("banana")))
+    Test::assert_true(s.get_unchecked(2).eq(String_from("cherry")))
 
     let mut r: Vec<cmp::Reverse<i32>> = Vec::new<cmp::Reverse<i32>>()
     r.push(cmp::Reverse { inner: 1 })
@@ -23,7 +24,7 @@ fn main() {
     r.push(cmp::Reverse { inner: 2 })
     r.sort()
     let sr = r
-    test::assert_eq_i32(sr.get_unchecked(0).inner, 3)
-    test::assert_eq_i32(sr.get_unchecked(1).inner, 2)
-    test::assert_eq_i32(sr.get_unchecked(2).inner, 1)
+    Test::assert_eq_i32(sr.get_unchecked(0).inner, 3)
+    Test::assert_eq_i32(sr.get_unchecked(1).inner, 2)
+    Test::assert_eq_i32(sr.get_unchecked(2).inner, 1)
 }
