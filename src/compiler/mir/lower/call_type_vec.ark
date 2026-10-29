@@ -200,7 +200,11 @@ fn mir_vec_receiver_vt(ctx: LowerCtx, receiver_idx: i32) -> i32 {
 }
 
 fn is_get_unchecked_callee(callee_name: String) -> bool {
+    // `mir_rewrite_vec_get_unchecked` lowers a Vec/array accessor to the bare
+    // sealed CoreOp, so this predicate must accept that post-rewrite spelling;
+    // otherwise the result local stays i32 and `==` compares String pointers.
     if eq(clone(callee_name), "vec_get_unchecked") ||
+    eq(clone(callee_name), "raw_array_get_unchecked") ||
     eq(clone(callee_name), "get_unchecked") ||
     eq(clone(callee_name), "__intrinsic_get_unchecked") ||
     callee_spelling::is_namespace_member_callee(
@@ -213,6 +217,7 @@ fn is_get_unchecked_callee(callee_name: String) -> bool {
     }
     starts_with(clone(callee_name), String_from("get_unchecked__")) ||
     starts_with(clone(callee_name), String_from("vec_get_unchecked__")) ||
+    starts_with(clone(callee_name), String_from("raw_array_get_unchecked__")) ||
     starts_with(clone(callee_name), String_from("__intrinsic_get_unchecked__"))
 }
 

@@ -4,6 +4,10 @@
 use std::host::stdio
 use std::prelude::{eq}
 
+fn accessors_match(values: Vec<String>, left: i32, right: i32) -> bool {
+    values.get_unchecked(left) == values.get_unchecked(right)
+}
+
 fn main() {
     let literal = "apple"
     let concat = "ap".concat("ple")
@@ -27,6 +31,31 @@ fn main() {
 
     stdio::println((eq(literal, dynamic)).to_string())
     stdio::println((eq(literal, other)).to_string())
+
+    // Both operands are inline generic accessor calls, so the MIR binop has no
+    // statically peekable ref operand. The result must still compare contents.
+    let mut words: Vec<String> = Vec::new<String>()
+    words.push(String_from("apple"))
+    words.push("ap".concat("ple"))
+    words.push(String_from("pear"))
+    let needle = "apple"
+
+    stdio::println((words.get_unchecked(0) == words.get_unchecked(1)).to_string())
+    stdio::println((words.get_unchecked(0) == words.get_unchecked(2)).to_string())
+    stdio::println((words.get_unchecked(0) != words.get_unchecked(1)).to_string())
+    stdio::println((words.get_unchecked(0) != words.get_unchecked(2)).to_string())
+    stdio::println((words.get_unchecked(0) == needle).to_string())
+    stdio::println((words.get_unchecked(2) == needle).to_string())
+    stdio::println((needle == words.get_unchecked(2)).to_string())
+    stdio::println((accessors_match(words, 0, 1)).to_string())
+    stdio::println((accessors_match(words, 0, 2)).to_string())
+
+    let mut numbers: Vec<i32> = Vec::new<i32>()
+    numbers.push(7)
+    numbers.push(7)
+    numbers.push(8)
+    stdio::println((numbers.get_unchecked(0) == numbers.get_unchecked(1)).to_string())
+    stdio::println((numbers.get_unchecked(0) != numbers.get_unchecked(2)).to_string())
 
     stdio::println((1 == 1).to_string())
     stdio::println((1 != 2).to_string())
