@@ -1,5 +1,5 @@
 // Get: a missing key is None; contains_key stays the presence check
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
@@ -11,7 +11,7 @@ fn main() {
         None => {
         },
     }
-    test::assert_false(m.contains_key(2))
+    Test::assert_false(m.contains_key(2))
 
     // Missing key after remove
     let _ = m.insert(3, 30)
@@ -21,5 +21,5 @@ fn main() {
         None => {
         },
     }
-    test::assert_false(m.contains_key(3))
+    Test::assert_false(m.contains_key(3))
 }

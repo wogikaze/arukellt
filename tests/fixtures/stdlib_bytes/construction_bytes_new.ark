@@ -1,8 +1,8 @@
 use std::bytes
-use std::test
+use std::test::Test
 
 fn main() {
     let b: Vec<i32> = Vec::new<i32>()
-    test::assert_eq_i32(b.len(), 0)
-    test::assert_true(b.equals_bytes(Vec::new<i32>()))
+    Test::assert_eq_i32(b.len(), 0)
+    Test::assert_true(b.equals_bytes(Vec::new<i32>()))
 }

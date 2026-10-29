@@ -1,13 +1,13 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
     let cs = "abc".chars()
-    test::assert_eq_i32(len(cs), 3)
+    Test::assert_eq_i32(len(cs), 3)
     // Empty string
     let cs2 = "".chars()
-    test::assert_eq_i32(len(cs2), 1)
+    Test::assert_eq_i32(len(cs2), 1)
     // Single char
     let cs3 = "x".chars()
-    test::assert_eq_i32(len(cs3), 1)
+    Test::assert_eq_i32(len(cs3), 1)
 }

@@ -1,8 +1,8 @@
 use std::seq
-use std::test
+use std::test::Test
 
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
     let s = seq::sort_by(v)
-    test::assert_eq_i32(len(s), 0)
+    Test::assert_eq_i32(len(s), 0)
 }

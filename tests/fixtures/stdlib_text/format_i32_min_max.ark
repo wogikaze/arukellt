@@ -1,10 +1,10 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
-    test::assert_eq_string((2147483647).to_string(), "2147483647")
-    test::assert_eq_string((-2147483648).to_string(), "-2147483648")
-    test::assert_eq_string((2147483647).to_string(), "2147483647")
-    test::assert_eq_i32(len((2147483647).to_string()), 10)
-    test::assert_eq_i32(len((-2147483648).to_string()), 11)
+    Test::assert_eq_string((2147483647).to_string(), "2147483647")
+    Test::assert_eq_string((-2147483648).to_string(), "-2147483648")
+    Test::assert_eq_string((2147483647).to_string(), "2147483647")
+    Test::assert_eq_i32(len((2147483647).to_string()), 10)
+    Test::assert_eq_i32(len((-2147483648).to_string()), 11)
 }

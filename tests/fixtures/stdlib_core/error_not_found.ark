@@ -1,13 +1,13 @@
 use std::core::error
-use std::test
+use std::test::Test
 
 fn main() {
     let e = Error::NotFound("missing.txt")
-    test::assert_eq_string(e.message(), "NotFound: missing.txt")
+    Test::assert_eq_string(e.message(), "NotFound: missing.txt")
 
     let e2 = Error::WasmError("bad opcode")
-    test::assert_eq_string(e2.message(), "WasmError: bad opcode")
+    Test::assert_eq_string(e2.message(), "WasmError: bad opcode")
 
     let e3 = Error::ComponentError("link failed")
-    test::assert_eq_string(e3.message(), "ComponentError: link failed")
+    Test::assert_eq_string(e3.message(), "ComponentError: link failed")
 }

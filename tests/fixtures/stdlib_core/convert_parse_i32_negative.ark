@@ -1,15 +1,15 @@
 use std::core::convert
-use std::test
+use std::test::Test
 
 fn main() {
     let first: Result<i32, String> = i32::try_from("-42")
     match first {
-        Ok(v) => test::assert_eq_i32(v, -42),
+        Ok(v) => Test::assert_eq_i32(v, -42),
         Err(_) => Std::panic("expected Ok(-42)"),
     }
     let second: Result<i32, String> = i32::try_from("-1")
     match second {
-        Ok(v) => test::assert_eq_i32(v, -1),
+        Ok(v) => Test::assert_eq_i32(v, -1),
         Err(_) => Std::panic("expected Ok(-1)"),
     }
 }

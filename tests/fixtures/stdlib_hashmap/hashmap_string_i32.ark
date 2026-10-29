@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 
 test "string_keys_overwrite_and_lookup_integer_values" {
     let mut m = HashMap::new<String, i32>()
@@ -6,13 +6,13 @@ test "string_keys_overwrite_and_lookup_integer_values" {
     let _ = m.insert("banana", 7)
     let _ = m.insert("cherry", 1)
     let _ = m.insert("banana", 42)
-    test::assert_eq_i32(m.len(), 3)
+    Test::assert_eq_i32(m.len(), 3)
     match m.get("apple") {
-        Option::Some(v) => test::assert_eq_i32(v, 3),
+        Option::Some(v) => Test::assert_eq_i32(v, 3),
         None => Std::panic("expected Some(3)"),
     }
     match m.get("banana") {
-        Option::Some(v) => test::assert_eq_i32(v, 42),
+        Option::Some(v) => Test::assert_eq_i32(v, 42),
         None => Std::panic("expected Some(42)"),
     }
     match m.get("durian") {
@@ -20,6 +20,6 @@ test "string_keys_overwrite_and_lookup_integer_values" {
         None => {
         },
     }
-    test::assert_true(m.contains_key("cherry"))
-    test::assert_false(m.contains_key("mango"))
+    Test::assert_true(m.contains_key("cherry"))
+    Test::assert_false(m.contains_key("mango"))
 }

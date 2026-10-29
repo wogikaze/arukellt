@@ -1,13 +1,13 @@
 // Reserve: increases capacity by at least additional
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::with_capacity<i32, i32>(4)
     let cap_before = m.capacity()
-    test::assert_eq_i32(cap_before, 4)
+    Test::assert_eq_i32(cap_before, 4)
 
     m.reserve(10)
-    test::assert_true(m.capacity() >= cap_before + 10)
-    test::assert_eq_i32(m.len(), 0)
-    test::assert_true(m.is_empty())
+    Test::assert_true(m.capacity() >= cap_before + 10)
+    Test::assert_eq_i32(m.len(), 0)
+    Test::assert_true(m.is_empty())
 }

@@ -1,12 +1,12 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
     // Splitting an empty string yields one empty element
     let parts = "".split(",")
-    test::assert_eq_i32(len(parts), 1)
+    Test::assert_eq_i32(len(parts), 1)
 
     // Splitting empty by empty
     let parts2 = "".split("")
-    test::assert_eq_i32(len(parts2), 1)
+    Test::assert_eq_i32(len(parts2), 1)
 }

@@ -1,5 +1,5 @@
 use std::core::either::{Either}
-use std::test
+use std::test::Test
 
 fn add_one(x: i32) -> i32 { x + 1 }
 fn mul_ten(x: i32) -> i32 { x * 10 }
@@ -7,9 +7,9 @@ fn mul_ten(x: i32) -> i32 { x * 10 }
 fn main() {
     let l = Either::Left(5)
     let result_l = l.fold(add_one, mul_ten)
-    test::assert_eq_i32(result_l, 6)
+    Test::assert_eq_i32(result_l, 6)
 
     let r = Either::Right(5)
     let result_r = r.fold(add_one, mul_ten)
-    test::assert_eq_i32(result_r, 50)
+    Test::assert_eq_i32(result_r, 50)
 }

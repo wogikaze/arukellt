@@ -1,9 +1,9 @@
 use std::text::fmt
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_string(fmt::DebugFormat::option_i32(Some(42)), "Some(42)")
-    test::assert_eq_string(fmt::DebugFormat::option_i32(None), "None")
-    test::assert_eq_string(fmt::DebugFormat::option_string(Some(String_from("hi"))), "Some(\"hi\")")
-    test::assert_eq_string(fmt::DebugFormat::option_string(None), "None")
+    Test::assert_eq_string(fmt::DebugFormat::option_i32(Some(42)), "Some(42)")
+    Test::assert_eq_string(fmt::DebugFormat::option_i32(None), "None")
+    Test::assert_eq_string(fmt::DebugFormat::option_string(Some(String_from("hi"))), "Some(\"hi\")")
+    Test::assert_eq_string(fmt::DebugFormat::option_string(None), "None")
 }

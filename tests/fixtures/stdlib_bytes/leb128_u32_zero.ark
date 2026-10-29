@@ -1,9 +1,9 @@
 use std::bytes
 use std::bytes::Bytes
-use std::test
+use std::test::Test
 
 fn main() {
     let leb: Vec<i32> = Bytes::from_leb128_u32(0)
-    test::assert_eq_i32(leb.len(), 1)
-    test::assert_eq_i32(leb.get_unchecked(0), 0)
+    Test::assert_eq_i32(leb.len(), 1)
+    Test::assert_eq_i32(leb.get_unchecked(0), 0)
 }

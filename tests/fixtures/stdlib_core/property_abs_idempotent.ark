@@ -1,6 +1,6 @@
 // Property: abs(abs(x)) == abs(x) for all x.
 use std::core::convert
-use std::test
+use std::test::Test
 fn main() {
     let vals = [0, 1, -1, 42, -42, 100, -100, 7, -7]
     let mut i = 0
@@ -8,9 +8,9 @@ fn main() {
         let x = get_unchecked(vals, i)
         let a1 = x.abs()
         let a2 = a1.abs()
-        test::assert_eq_i32(a1, a2)
+        Test::assert_eq_i32(a1, a2)
         // abs result is always non-negative
-        test::assert_true(a1 >= 0)
+        Test::assert_true(a1 >= 0)
         i = i + 1
     }
 }

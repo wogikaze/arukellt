@@ -4,7 +4,7 @@
 use std::bytes
 use std::io
 use std::io::{BufWriter, Writer}
-use std::test
+use std::test::Test
 
 fn main() {
     let mut bw1: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 32)
@@ -12,11 +12,11 @@ fn main() {
     let r1: Result<i32, io::IoError> = bw1.write_string("x")
     let r2: Result<i32, io::IoError> = bw2.write_string("x")
     match r1 {
-        Result::Ok(n) => test::assert_eq_i32(n, 1),
+        Result::Ok(n) => Test::assert_eq_i32(n, 1),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     match r2 {
-        Result::Ok(n) => test::assert_eq_i32(n, 1),
+        Result::Ok(n) => Test::assert_eq_i32(n, 1),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     let first_result: Result<(), io::IoError> = bw1.flush()
@@ -31,12 +31,12 @@ fn main() {
     }
     let first_inner: Result<Writer, io::IoError> = bw1.into_inner()
     match first_inner {
-        Result::Ok(inner) => test::assert_eq_string(String::from_utf8_lossy(inner.into_bytes()), "x"),
+        Result::Ok(inner) => Test::assert_eq_string(String::from_utf8_lossy(inner.into_bytes()), "x"),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     let second_inner: Result<Writer, io::IoError> = bw2.into_inner()
     match second_inner {
-        Result::Ok(inner) => test::assert_eq_string(String::from_utf8_lossy(inner.into_bytes()), "x"),
+        Result::Ok(inner) => Test::assert_eq_string(String::from_utf8_lossy(inner.into_bytes()), "x"),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
 }

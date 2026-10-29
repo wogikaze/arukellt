@@ -1,12 +1,12 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 use std::prelude::{is_ok}
 fn validate(n: i32) -> Result<i32, String> {
     if n > 0 { Ok(n) } else { Err(String_from("must be positive")) }
 }
 fn main() {
-    test::assert_true(is_ok(validate(5)))
+    Test::assert_true(is_ok(validate(5)))
     let r = validate(-1)
-    match r { Result::Ok(v) => Std::panic("ok"), Result::Err(e) => test::assert_eq_string(e, String_from("must be positive")) }
+    match r { Result::Ok(v) => Std::panic("ok"), Result::Err(e) => Test::assert_eq_string(e, String_from("must be positive")) }
     stdio::println("ok")
 }

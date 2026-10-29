@@ -1,16 +1,16 @@
 use std::collections::hash_set::HashSet
-use std::test
+use std::test::Test
 
 test "string_set_insert_contains_and_remove" {
     let mut s = HashSet::new<String>()
-    test::assert_true(s.insert("apple"))
-    test::assert_true(s.insert("banana"))
-    test::assert_true(s.insert("cherry"))
-    test::assert_false(s.insert("apple"))
-    test::assert_eq_i32(s.len(), 3)
-    test::assert_true(s.contains("banana"))
-    test::assert_false(s.contains("mango"))
-    test::assert_true(s.remove("banana"))
-    test::assert_false(s.remove("mango"))
-    test::assert_eq_i32(s.len(), 2)
+    Test::assert_true(s.insert("apple"))
+    Test::assert_true(s.insert("banana"))
+    Test::assert_true(s.insert("cherry"))
+    Test::assert_false(s.insert("apple"))
+    Test::assert_eq_i32(s.len(), 3)
+    Test::assert_true(s.contains("banana"))
+    Test::assert_false(s.contains("mango"))
+    Test::assert_true(s.remove("banana"))
+    Test::assert_false(s.remove("mango"))
+    Test::assert_eq_i32(s.len(), 2)
 }

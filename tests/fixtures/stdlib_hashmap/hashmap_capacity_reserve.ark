@@ -1,18 +1,18 @@
-use std::test
+use std::test::Test
 
 fn assert_get(m: HashMap<i32, i32>, key: i32, expected: i32) {
     match m.get(key) {
-        Option::Some(v) => test::assert_eq_i32(v, expected),
+        Option::Some(v) => Test::assert_eq_i32(v, expected),
         None => Std::panic("expected Some"),
     }
 }
 
 test "reserve_grows_capacity_and_preserves_entries" {
     let mut m = HashMap::with_capacity<i32, i32>(1)
-    test::assert_eq_i32(m.capacity(), 1)
+    Test::assert_eq_i32(m.capacity(), 1)
     m.reserve(3)
-    test::assert_true(m.capacity() >= 4)
-    test::assert_true(m.try_reserve(2))
+    Test::assert_true(m.capacity() >= 4)
+    Test::assert_true(m.try_reserve(2))
 
     let _ = m.insert(1, 10)
     let _ = m.insert(2, 20)
@@ -22,7 +22,7 @@ test "reserve_grows_capacity_and_preserves_entries" {
     assert_get(m, 3, 30)
 
     m.shrink_to_fit()
-    test::assert_true(m.capacity() >= 4)
-    test::assert_eq_i32(m.len(), 3)
+    Test::assert_true(m.capacity() >= 4)
+    Test::assert_eq_i32(m.len(), 3)
     assert_get(m, 2, 20)
 }

@@ -1,7 +1,7 @@
-use std::test
+use std::test::Test
 use std::prelude::{is_empty}
 fn main() {
     let v: Vec<i64> = Vec::with_capacity<i64>(8)
-    test::assert_eq_i32(len(v), 0)
-    test::assert_true(is_empty(v))
+    Test::assert_eq_i32(len(v), 0)
+    Test::assert_true(is_empty(v))
 }

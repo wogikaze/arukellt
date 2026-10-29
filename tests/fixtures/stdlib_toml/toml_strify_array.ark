@@ -1,12 +1,12 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 fn main() {
     let t = toml::TomlValue::parse("a = [1, 2, 3]")
     match t {
         Result::Ok(table) => match table.get_field("a") {
-            Option::Some(v) => test::assert_eq_string(v.to_text(), "[1, 2, 3]"),
+            Option::Some(v) => Test::assert_eq_string(v.to_text(), "[1, 2, 3]"),
             None => assert(false),
         },
         Result::Err(_) => assert(false),

@@ -1,19 +1,19 @@
 // Clear: empties the map, capacity preserved or reset
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
     let _ = m.insert(1, 10)
     let _ = m.insert(2, 20)
     let _ = m.insert(3, 30)
-    test::assert_eq_i32(m.len(), 3)
+    Test::assert_eq_i32(m.len(), 3)
 
     m.clear()
-    test::assert_eq_i32(m.len(), 0)
-    test::assert_true(m.is_empty())
-    test::assert_false(m.contains_key(1))
-    test::assert_false(m.contains_key(2))
-    test::assert_false(m.contains_key(3))
-    test::assert_eq_i32(len(m.keys()), 0)
-    test::assert_eq_i32(len(m.values()), 0)
+    Test::assert_eq_i32(m.len(), 0)
+    Test::assert_true(m.is_empty())
+    Test::assert_false(m.contains_key(1))
+    Test::assert_false(m.contains_key(2))
+    Test::assert_false(m.contains_key(3))
+    Test::assert_eq_i32(len(m.keys()), 0)
+    Test::assert_eq_i32(len(m.values()), 0)
 }

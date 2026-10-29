@@ -1,12 +1,12 @@
 use std::core::clone
-use std::test
+use std::test::Test
 
 fn main() {
     let c: char = 'A'
     let cc: char = c.clone()
-    test::assert_eq_i32(cc, 65)
+    Test::assert_eq_i32(cc, 65)
 
     let z: char = 'z'
     let zc: char = z.clone()
-    test::assert_eq_i32(zc, 122)
+    Test::assert_eq_i32(zc, 122)
 }

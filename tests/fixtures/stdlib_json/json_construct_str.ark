@@ -1,12 +1,12 @@
 use std::json
-use std::test
+use std::test::Test
 
 fn main() {
     let v = json::JsonValue::string("hello")
-    test::assert_true(v.is_string())
+    Test::assert_true(v.is_string())
     match v.as_string() {
-        Option::Some(s) => test::assert_eq_string(s, "hello"),
+        Option::Some(s) => Test::assert_eq_string(s, "hello"),
         None => Std::panic("expected string"),
     }
-    test::assert_eq_string(v.to_text(), "\"hello\"")
+    Test::assert_eq_string(v.to_text(), "\"hello\"")
 }

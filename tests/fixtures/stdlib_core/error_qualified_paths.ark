@@ -1,6 +1,6 @@
 use std::core::error
 use std::io
-use std::test
+use std::test::Test
 
 fn nest_ok(v: i32) -> Result<i32, Error> {
     Result::Ok(v)
@@ -13,25 +13,25 @@ fn nest_err() -> Result<i32, Error> {
 fn main() {
     // Fully qualified constructor path (module::Enum::Variant).
     let timeout = error::Error::Timeout
-    test::assert_eq_string(timeout.message(), "Timeout")
+    Test::assert_eq_string(timeout.message(), "Timeout")
 
     // Bare Enum::Variant after `use std::core::error`.
     let bad = Error::InvalidArgument("x")
-    test::assert_eq_string(bad.message(), "InvalidArgument: x")
+    Test::assert_eq_string(bad.message(), "InvalidArgument: x")
 
     // Module-qualified IoError constructors.
     let eof = io::IoError::UnexpectedEof("short")
-    test::assert_eq_string(io::io_error_message(eof), "short")
+    Test::assert_eq_string(io::io_error_message(eof), "short")
     let other = io::IoError::Other("disk")
-    test::assert_eq_string(io::io_error_message(other), "disk")
+    Test::assert_eq_string(io::io_error_message(other), "disk")
 
     // Result nesting with Error payload.
     match nest_ok(3) {
-        Result::Ok(v) => test::assert_eq_i32(v, 3),
+        Result::Ok(v) => Test::assert_eq_i32(v, 3),
         Result::Err(_) => Std::panic("expected Ok"),
     }
     match nest_err() {
         Result::Ok(_) => Std::panic("expected Err"),
-        Result::Err(e) => test::assert_eq_string(e.message(), "NotFound: missing"),
+        Result::Err(e) => Test::assert_eq_string(e.message(), "NotFound: missing"),
     }
 }

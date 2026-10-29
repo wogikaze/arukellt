@@ -1,5 +1,5 @@
 use std::core::iter
-use std::test
+use std::test::Test
 
 fn is_even(x: i32) -> bool { x / 2 * 2 == x }
 
@@ -10,5 +10,5 @@ fn main() {
     push(v, 5)
     push(v, 8)
 
-    test::assert_true(v.iter().any(is_even))
+    Test::assert_true(v.iter().any(is_even))
 }

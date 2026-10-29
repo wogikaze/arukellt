@@ -1,16 +1,16 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
     // to_lower(to_lower(x)) == to_lower(x)
     let s = "HeLLo WoRLd"
-    test::assert_eq_string(s.to_lower().to_lower(), s.to_lower())
+    Test::assert_eq_string(s.to_lower().to_lower(), s.to_lower())
     // to_upper(to_upper(x)) == to_upper(x)
-    test::assert_eq_string(s.to_upper().to_upper(), s.to_upper())
+    Test::assert_eq_string(s.to_upper().to_upper(), s.to_upper())
     // Empty string is idempotent
-    test::assert_eq_string("".to_lower().to_lower(), "")
-    test::assert_eq_string("".to_upper().to_upper(), "")
+    Test::assert_eq_string("".to_lower().to_lower(), "")
+    Test::assert_eq_string("".to_upper().to_upper(), "")
     // Digits and symbols unchanged by both
-    test::assert_eq_string("123!@#".to_lower(), "123!@#")
-    test::assert_eq_string("123!@#".to_upper(), "123!@#")
+    Test::assert_eq_string("123!@#".to_lower(), "123!@#")
+    Test::assert_eq_string("123!@#".to_upper(), "123!@#")
 }

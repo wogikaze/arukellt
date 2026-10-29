@@ -1,23 +1,23 @@
-use std::test
+use std::test::Test
 
 fn main() {
     // No newlines — 1 line
     let r = "hello".clone()
-    test::assert_eq_i32(r.line_count(), 1)
+    Test::assert_eq_i32(r.line_count(), 1)
 
     // Single newline — 2 lines
     let r2 = "line1\nline2".clone()
-    test::assert_eq_i32(r2.line_count(), 2)
+    Test::assert_eq_i32(r2.line_count(), 2)
 
     // Multiple newlines
     let r3 = "a\nb\nc\nd".clone()
-    test::assert_eq_i32(r3.line_count(), 4)
+    Test::assert_eq_i32(r3.line_count(), 4)
 
     // Empty string — 1 line
     let r4 = "".clone()
-    test::assert_eq_i32(r4.line_count(), 1)
+    Test::assert_eq_i32(r4.line_count(), 1)
 
     // Trailing newline
     let r5 = "hello\n".clone()
-    test::assert_eq_i32(r5.line_count(), 2)
+    Test::assert_eq_i32(r5.line_count(), 2)
 }

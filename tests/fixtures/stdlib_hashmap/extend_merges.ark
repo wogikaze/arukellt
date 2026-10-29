@@ -1,5 +1,5 @@
 // Extend: merges other map into self, overwriting duplicates
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m1 = HashMap::new<i32, i32>()
@@ -12,8 +12,8 @@ fn main() {
 
     m1.extend(m2)
 
-    test::assert_eq_i32(m1.len(), 3)
-    test::assert_eq_i32(m1.get(1).unwrap_or(0), 10)   // original
-    test::assert_eq_i32(m1.get(2).unwrap_or(0), 200)  // overwritten
-    test::assert_eq_i32(m1.get(3).unwrap_or(0), 300)  // new from m2
+    Test::assert_eq_i32(m1.len(), 3)
+    Test::assert_eq_i32(m1.get(1).unwrap_or(0), 10)   // original
+    Test::assert_eq_i32(m1.get(2).unwrap_or(0), 200)  // overwritten
+    Test::assert_eq_i32(m1.get(3).unwrap_or(0), 300)  // new from m2
 }

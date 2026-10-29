@@ -1,12 +1,12 @@
 use std::bytes
-use std::test
+use std::test::Test
 
 fn main() {
     let mut b: Vec<i32> = Vec::new<i32>()
-    test::assert_eq_i32(b.len(), 0)
+    Test::assert_eq_i32(b.len(), 0)
     b.push_byte(1)
-    test::assert_eq_i32(b.len(), 1)
+    Test::assert_eq_i32(b.len(), 1)
     b.push_byte(2)
     b.push_byte(3)
-    test::assert_eq_i32(b.len(), 3)
+    Test::assert_eq_i32(b.len(), 3)
 }

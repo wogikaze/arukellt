@@ -1,10 +1,10 @@
 use std::core::convert
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_f64(0.0.sqrt(), 0.0)
-    test::assert_eq_f64(1.0.sqrt(), 1.0)
-    test::assert_eq_f64(4.0.sqrt(), 2.0)
-    test::assert_eq_f64(9.0.sqrt(), 3.0)
-    test::assert_eq_f64(16.0.sqrt(), 4.0)
+    Test::assert_eq_f64(0.0.sqrt(), 0.0)
+    Test::assert_eq_f64(1.0.sqrt(), 1.0)
+    Test::assert_eq_f64(4.0.sqrt(), 2.0)
+    Test::assert_eq_f64(9.0.sqrt(), 3.0)
+    Test::assert_eq_f64(16.0.sqrt(), 4.0)
 }

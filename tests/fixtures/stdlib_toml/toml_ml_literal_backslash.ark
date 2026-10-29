@@ -1,13 +1,13 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 fn main() {
     let t = toml::TomlValue::parse("val = '''a\\b'''")
     match t {
         Result::Ok(table) => match table.get_field("val") {
             Option::Some(v) => match v.as_string() {
-                Option::Some(s) => test::assert_eq_string(s, "a\\b"),
+                Option::Some(s) => Test::assert_eq_string(s, "a\\b"),
                 None => assert(false),
             },
             None => assert(false),

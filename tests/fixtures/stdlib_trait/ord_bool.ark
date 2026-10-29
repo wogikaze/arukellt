@@ -1,5 +1,5 @@
 use std::core::cmp
-use std::test
+use std::test::Test
 
 fn main() {
     // false < true

@@ -1,26 +1,26 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("{\"a\":1,\"b\":2,\"c\":3,\"d\":4,\"e\":5,\"f\":6,\"g\":7,\"h\":8}") {
         Result::Ok(v) => {
             match v.get_field("a") {
                 Option::Some(fv) => match fv.as_i32() {
-                    Option::Some(n) => test::assert_eq_i32(n, 1),
+                    Option::Some(n) => Test::assert_eq_i32(n, 1),
                     None => Std::panic("expected number"),
                 },
                 None => Std::panic("expected key a"),
             }
             match v.get_field("h") {
                 Option::Some(fv) => match fv.as_i32() {
-                    Option::Some(n) => test::assert_eq_i32(n, 8),
+                    Option::Some(n) => Test::assert_eq_i32(n, 8),
                     None => Std::panic("expected number"),
                 },
                 None => Std::panic("expected key h"),
             }
             match v.get_field("d") {
                 Option::Some(fv) => match fv.as_i32() {
-                    Option::Some(n) => test::assert_eq_i32(n, 4),
+                    Option::Some(n) => Test::assert_eq_i32(n, 4),
                     None => Std::panic("expected number"),
                 },
                 None => Std::panic("expected key d"),

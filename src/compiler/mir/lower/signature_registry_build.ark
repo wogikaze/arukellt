@@ -165,7 +165,7 @@ fn sig_reg_index_top_level_fn(
         // own concrete param signature (#914).
         if fn_index_source::mir_fn_index_source_decl_is_generic(source, typed_index) {
             signature_registry_build_mono::sig_reg_index_mono_variants(table, registry, mono_table, source, sig_source, midx, clone(decl_name), typed_index, fn_info_index, decl_index)
-            // Qualified-keyed instances (test::assert_eq_debug__i32, ...) also
+            // Qualified-keyed instances (Test::assert_eq_debug__i32, ...) also
             // need registry entries so call sites can bind variant FunctionIds.
             // The decl keeps the generic signature as the unresolved fallback.
             // Instances can arrive under both keys: a same-module wrapper records

@@ -3,7 +3,7 @@
 // Invariant: for any parsed JSON value, exactly one of is_null, is_bool,
 // is_number, is_string, is_array, is_object returns true.
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn check_exactly_one(v: json::JsonValue) {
     let mut count: i32 = 0
@@ -13,7 +13,7 @@ fn check_exactly_one(v: json::JsonValue) {
     if v.is_string() { count = count + 1 }
     if v.is_array() { count = count + 1 }
     if v.is_object() { count = count + 1 }
-    test::assert_eq_i32(count, 1)
+    Test::assert_eq_i32(count, 1)
 }
 
 fn main() {

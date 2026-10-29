@@ -1,8 +1,8 @@
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     let a: String = String_from("hello")
     let b: String = String_from(" world")
     let c: String = a.concat(b)
-    test::assert_eq_string(c, "hello world")
+    Test::assert_eq_string(c, "hello world")
 }

@@ -1,25 +1,25 @@
 // Construction: hashmap_with_capacity() invariants
-use std::test
+use std::test::Test
 
 fn main() {
     let m0 = HashMap::with_capacity<i32, i32>(0)
-    test::assert_eq_i32(m0.capacity(), 1)
-    test::assert_true(m0.is_empty())
+    Test::assert_eq_i32(m0.capacity(), 1)
+    Test::assert_true(m0.is_empty())
 
     let m1 = HashMap::with_capacity<i32, i32>(1)
-    test::assert_eq_i32(m1.capacity(), 1)
-    test::assert_true(m1.is_empty())
+    Test::assert_eq_i32(m1.capacity(), 1)
+    Test::assert_true(m1.is_empty())
 
     let m8 = HashMap::with_capacity<i32, i32>(8)
-    test::assert_eq_i32(m8.capacity(), 8)
-    test::assert_eq_i32(m8.len(), 0)
+    Test::assert_eq_i32(m8.capacity(), 8)
+    Test::assert_eq_i32(m8.len(), 0)
 
     let m100 = HashMap::with_capacity<i32, i32>(100)
-    test::assert_eq_i32(m100.capacity(), 100)
-    test::assert_true(m100.is_empty())
+    Test::assert_eq_i32(m100.capacity(), 100)
+    Test::assert_true(m100.is_empty())
 
     // with_capacity does not pre-populate any slots
-    test::assert_false(m100.contains_key(0))
-    test::assert_false(m100.contains_key(50))
-    test::assert_false(m100.contains_key(99))
+    Test::assert_false(m100.contains_key(0))
+    Test::assert_false(m100.contains_key(50))
+    Test::assert_false(m100.contains_key(99))
 }

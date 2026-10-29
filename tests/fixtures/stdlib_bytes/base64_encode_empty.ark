@@ -1,6 +1,6 @@
 use std::bytes
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_string(Vec::new<i32>().to_base64(), "")
+    Test::assert_eq_string(Vec::new<i32>().to_base64(), "")
 }

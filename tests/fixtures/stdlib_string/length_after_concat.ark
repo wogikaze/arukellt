@@ -1,10 +1,10 @@
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     let a = String_from("abc")
     let b = String_from("def")
     let c = a.concat(b)
-    test::assert_eq_i32(len(c), 6)
+    Test::assert_eq_i32(len(c), 6)
     let d = c.concat(String_from("gh"))
-    test::assert_eq_i32(len(d), 8)
+    Test::assert_eq_i32(len(d), 8)
 }

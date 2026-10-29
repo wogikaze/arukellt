@@ -1,11 +1,11 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 use std::prelude::{is_none, is_some}
 fn main() {
     for i in 0..20 {
         let opt: Option<i32> = None
-        test::assert_true(is_none(opt))
-        test::assert_false(is_some(opt))
+        Test::assert_true(is_none(opt))
+        Test::assert_false(is_some(opt))
     }
     stdio::println("ok")
 }

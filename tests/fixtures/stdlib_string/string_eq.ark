@@ -1,9 +1,9 @@
-use std::test
+use std::test::Test
 use std::prelude::{eq}
 fn main() {
     let a: String = String_from("test")
     let b: String = String_from("test")
     let c: String = String_from("other")
-    test::assert_true(eq(a, b))
-    test::assert_false(eq(a, c))
+    Test::assert_true(eq(a, b))
+    Test::assert_false(eq(a, c))
 }

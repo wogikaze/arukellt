@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
@@ -7,13 +7,13 @@ fn main() {
     let sb = sb.concat(", ")
     let sb = sb.concat("world")
     let sb = sb.concat("!")
-    test::assert_eq_string(sb, "Hello, world!")
-    test::assert_eq_i32(sb.len(), 13)
+    Test::assert_eq_string(sb, "Hello, world!")
+    Test::assert_eq_i32(sb.len(), 13)
 
     // Append char
     let sb2 = ""
     let sb2 = sb2.concat("Hi")
     let sb2 = sb2.concat(('!').to_string())
-    test::assert_eq_string(sb2, "Hi!")
-    test::assert_eq_i32(sb2.len(), 3)
+    Test::assert_eq_string(sb2, "Hi!")
+    Test::assert_eq_i32(sb2.len(), 3)
 }

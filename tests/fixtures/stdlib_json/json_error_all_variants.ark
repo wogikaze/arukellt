@@ -1,5 +1,5 @@
 use std::json
-use std::test
+use std::test::Test
 
 fn main() {
     // EmptyInput
@@ -21,6 +21,6 @@ fn main() {
         Result::Err(_) => Std::panic("wrong error variant"),
     }
     // parse_error_message produces non-empty string for each variant
-    test::assert_eq_string((json::JsonParseError::EmptyInput).message(), "empty input")
-    test::assert_eq_string((json::JsonParseError::TrailingCharacters).message(), "trailing characters")
+    Test::assert_eq_string((json::JsonParseError::EmptyInput).message(), "empty input")
+    Test::assert_eq_string((json::JsonParseError::TrailingCharacters).message(), "trailing characters")
 }

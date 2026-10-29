@@ -1,9 +1,9 @@
 use std::json
-use std::test
+use std::test::Test
 
 fn main() {
     let v = json::JsonValue::raw("12345")
-    test::assert_eq_string(v.to_text(), "12345")
+    Test::assert_eq_string(v.to_text(), "12345")
     let v2 = json::JsonValue::raw("custom")
-    test::assert_eq_string(v2.to_text(), "custom")
+    Test::assert_eq_string(v2.to_text(), "custom")
 }

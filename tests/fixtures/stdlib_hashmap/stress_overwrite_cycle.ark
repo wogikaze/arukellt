@@ -1,5 +1,5 @@
 // Stress: repeated insert/overwrite cycle
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
@@ -13,10 +13,10 @@ fn main() {
         round = round + 1
     }
     // After 5 rounds of overwriting, size is 20, values are from last round
-    test::assert_eq_i32(m.len(), 20)
+    Test::assert_eq_i32(m.len(), 20)
     let mut i = 0
     while i < 20 {
-        test::assert_eq_i32(m.get(i).unwrap_or(0), 400 + i)
+        Test::assert_eq_i32(m.get(i).unwrap_or(0), 400 + i)
         i = i + 1
     }
 }

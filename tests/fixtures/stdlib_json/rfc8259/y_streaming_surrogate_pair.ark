@@ -1,13 +1,13 @@
 use std::json
-use std::test
+use std::test::Test
 use std::prelude::{byte_at}
 fn main() {
     let parsed = json::JsonText::parse_string_at("\"\\uD83D\\uDE00\"", 0)
-    test::assert_eq_bool(parsed.is_ok(), true)
+    Test::assert_eq_bool(parsed.is_ok(), true)
     let s = parsed.value()
-    test::assert_eq_i32(len(s), 4)
-    test::assert_eq_i32(byte_at(s, 0), 240)
-    test::assert_eq_i32(byte_at(s, 1), 159)
-    test::assert_eq_i32(byte_at(s, 2), 152)
-    test::assert_eq_i32(byte_at(s, 3), 128)
+    Test::assert_eq_i32(len(s), 4)
+    Test::assert_eq_i32(byte_at(s, 0), 240)
+    Test::assert_eq_i32(byte_at(s, 1), 159)
+    Test::assert_eq_i32(byte_at(s, 2), 152)
+    Test::assert_eq_i32(byte_at(s, 3), 128)
 }

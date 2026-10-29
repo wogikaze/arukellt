@@ -1,13 +1,13 @@
 use std::core::ops
-use std::test
+use std::test::Test
 
 fn main() {
     let a: i64 = 5i64
-    test::assert_eq_i64(a.neg(), -5i64)
+    Test::assert_eq_i64(a.neg(), -5i64)
 
     let b: i64 = -5i64
-    test::assert_eq_i64(b.neg(), 5i64)
+    Test::assert_eq_i64(b.neg(), 5i64)
 
     let c: i64 = 0i64
-    test::assert_eq_i64(c.neg(), 0i64)
+    Test::assert_eq_i64(c.neg(), 0i64)
 }

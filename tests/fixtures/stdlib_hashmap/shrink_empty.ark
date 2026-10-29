@@ -1,16 +1,16 @@
 // Shrink_to_fit on empty map
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::with_capacity<i32, i32>(50)
-    test::assert_eq_i32(m.capacity(), 50)
+    Test::assert_eq_i32(m.capacity(), 50)
 
     m.shrink_to_fit()
-    test::assert_true(m.capacity() <= 50)
-    test::assert_eq_i32(m.len(), 0)
-    test::assert_true(m.is_empty())
+    Test::assert_true(m.capacity() <= 50)
+    Test::assert_eq_i32(m.len(), 0)
+    Test::assert_true(m.is_empty())
 
     // Still usable
     let _ = m.insert(1, 10)
-    test::assert_eq_i32(m.get(1).unwrap_or(0), 10)
+    Test::assert_eq_i32(m.get(1).unwrap_or(0), 10)
 }

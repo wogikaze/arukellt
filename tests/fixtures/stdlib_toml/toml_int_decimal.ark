@@ -1,13 +1,13 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 fn main() {
     let t = toml::TomlValue::parse("count = 42")
     match t {
         Result::Ok(table) => match table.get_field("count") {
             Option::Some(v) => match v.as_int() {
-                Option::Some(n) => test::assert_eq_i32(n, 42),
+                Option::Some(n) => Test::assert_eq_i32(n, 42),
                 None => assert(false),
             },
             None => assert(false),

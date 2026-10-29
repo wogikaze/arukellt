@@ -1,5 +1,5 @@
 use std::core::iter
-use std::test
+use std::test::Test
 
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
@@ -10,11 +10,11 @@ fn main() {
     push(v, 50)
 
     let skipped = v.iter().skip(2).collect()
-    test::assert_eq_i32(len(skipped), 3)
-    test::assert_eq_i32(get_unchecked(skipped, 0), 30)
-    test::assert_eq_i32(get_unchecked(skipped, 2), 50)
+    Test::assert_eq_i32(len(skipped), 3)
+    Test::assert_eq_i32(get_unchecked(skipped, 0), 30)
+    Test::assert_eq_i32(get_unchecked(skipped, 2), 50)
 
     // Skip more than available
     let skipped_all = v.iter().skip(100).collect()
-    test::assert_eq_i32(len(skipped_all), 0)
+    Test::assert_eq_i32(len(skipped_all), 0)
 }

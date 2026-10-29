@@ -1,7 +1,7 @@
-use std::test
+use std::test::Test
 use std::prelude::{eq}
 fn main() {
-    test::assert_false(eq(String_from("Hello"), String_from("hello")))
-    test::assert_false(eq(String_from("ABC"), String_from("abc")))
-    test::assert_true(eq(String_from("Hello"), String_from("Hello")))
+    Test::assert_false(eq(String_from("Hello"), String_from("hello")))
+    Test::assert_false(eq(String_from("ABC"), String_from("abc")))
+    Test::assert_true(eq(String_from("Hello"), String_from("Hello")))
 }

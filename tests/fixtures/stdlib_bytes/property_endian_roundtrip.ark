@@ -1,6 +1,6 @@
 use std::bytes
 use std::bytes::Bytes
-use std::test
+use std::test::Test
 
 fn main() {
     let mut vals: Vec<i32> = Vec::new<i32>()
@@ -15,9 +15,9 @@ fn main() {
     while i < n {
         let v = get_unchecked(vals, i)
         let le: Vec<i32> = Bytes::from_u32_le(v)
-        test::assert_eq_i32(le.to_u32_le(), v)
+        Test::assert_eq_i32(le.to_u32_le(), v)
         let be: Vec<i32> = Bytes::from_u32_be(v)
-        test::assert_eq_i32(be.to_u32_be(), v)
+        Test::assert_eq_i32(be.to_u32_be(), v)
         i = i + 1
     }
 }

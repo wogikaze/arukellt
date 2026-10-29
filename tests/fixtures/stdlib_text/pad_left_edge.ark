@@ -1,13 +1,13 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
     // String already meets width — returned unchanged
-    test::assert_eq_string("hello".pad_left_with(3, "0"), "hello")
-    test::assert_eq_string("abc".pad_left_with(3, "0"), "abc")
+    Test::assert_eq_string("hello".pad_left_with(3, "0"), "hello")
+    Test::assert_eq_string("abc".pad_left_with(3, "0"), "abc")
     // Width equals length — no padding needed
-    test::assert_eq_string("ab".pad_left_with(2, "x"), "ab")
+    Test::assert_eq_string("ab".pad_left_with(2, "x"), "ab")
     // Empty string padded to width
-    test::assert_eq_string("".pad_left_with(3, "0"), "000")
-    test::assert_eq_string("".pad_left_with(0, "0"), "")
+    Test::assert_eq_string("".pad_left_with(3, "0"), "000")
+    Test::assert_eq_string("".pad_left_with(0, "0"), "")
 }

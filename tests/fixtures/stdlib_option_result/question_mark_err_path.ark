@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 use std::prelude::{is_err, parse_i32}
 fn parse_and_double(s: String) -> Result<i32, String> {
     let val: i32 = parse_i32(s)?
@@ -8,6 +8,6 @@ fn parse_and_double(s: String) -> Result<i32, String> {
 fn main() {
     let r = parse_and_double(String_from("abc"))
     match r { Result::Ok(v) => Std::panic("ok"), Result::Err(e) => {} }
-    test::assert_true(is_err(r))
+    Test::assert_true(is_err(r))
     stdio::println("ok")
 }

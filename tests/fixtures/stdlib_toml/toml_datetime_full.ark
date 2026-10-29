@@ -1,13 +1,13 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 fn main() {
     let t = toml::TomlValue::parse("dt = 1979-05-27T07:32:00Z")
     match t {
         Result::Ok(table) => match table.get_field("dt") {
             Option::Some(v) => match v.as_string() {
-                Option::Some(s) => test::assert_eq_string(s, "1979-05-27T07:32:00Z"),
+                Option::Some(s) => Test::assert_eq_string(s, "1979-05-27T07:32:00Z"),
                 None => assert(false),
             },
             None => assert(false),

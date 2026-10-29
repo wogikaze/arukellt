@@ -1,20 +1,20 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("[10,20,30,40]") {
         Result::Ok(v) => {
-            test::assert_true(v.is_array())
+            Test::assert_true(v.is_array())
             match v.get_index(0) {
                 Option::Some(e) => match e.as_i32() {
-                    Option::Some(n) => test::assert_eq_i32(n, 10),
+                    Option::Some(n) => Test::assert_eq_i32(n, 10),
                     None => Std::panic("expected number at 0"),
                 },
                 None => Std::panic("expected element at 0"),
             }
             match v.get_index(3) {
                 Option::Some(e) => match e.as_i32() {
-                    Option::Some(n) => test::assert_eq_i32(n, 40),
+                    Option::Some(n) => Test::assert_eq_i32(n, 40),
                     None => Std::panic("expected number at 3"),
                 },
                 None => Std::panic("expected element at 3"),

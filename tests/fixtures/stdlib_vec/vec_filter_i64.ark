@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 
 fn is_even(x: i64) -> bool {
     x % 2i64 == 0i64
@@ -21,7 +21,7 @@ fn main() {
         }
         filter_index = filter_index + 1
     }
-    test::assert_eq_i32(len(result), 2)
-    test::assert_eq_i64(get_unchecked(result, 0), 10i64)
-    test::assert_eq_i64(get_unchecked(result, 1), 20i64)
+    Test::assert_eq_i32(len(result), 2)
+    Test::assert_eq_i64(get_unchecked(result, 0), 10i64)
+    Test::assert_eq_i64(get_unchecked(result, 1), 20i64)
 }

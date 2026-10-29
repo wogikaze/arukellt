@@ -1,5 +1,5 @@
 // Extend empty map with non-empty map
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m1 = HashMap::new<i32, i32>()
@@ -9,7 +9,7 @@ fn main() {
 
     m1.extend(m2)
 
-    test::assert_eq_i32(m1.len(), 2)
-    test::assert_eq_i32(m1.get(1).unwrap_or(0), 10)
-    test::assert_eq_i32(m1.get(2).unwrap_or(0), 20)
+    Test::assert_eq_i32(m1.len(), 2)
+    Test::assert_eq_i32(m1.get(1).unwrap_or(0), 10)
+    Test::assert_eq_i32(m1.get(2).unwrap_or(0), 20)
 }

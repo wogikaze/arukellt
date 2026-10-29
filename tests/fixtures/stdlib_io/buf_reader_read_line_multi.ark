@@ -1,7 +1,7 @@
 use std::bytes
 use std::io
 use std::io::{BufReader, Reader}
-use std::test
+use std::test::Test
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
@@ -14,7 +14,7 @@ fn main() {
     let l1: Result<Option<String>, io::IoError> = br.read_line()
     match l1 {
         Result::Ok(found) => match found {
-            Option::Some(line) => test::assert_eq_string(line, "A"),
+            Option::Some(line) => Test::assert_eq_string(line, "A"),
             Option::None => Std::panic("expected line A"),
         },
         Result::Err(e) => Std::panic(io::io_error_message(e)),
@@ -22,7 +22,7 @@ fn main() {
     let l2: Result<Option<String>, io::IoError> = br.read_line()
     match l2 {
         Result::Ok(found) => match found {
-            Option::Some(line) => test::assert_eq_string(line, "B"),
+            Option::Some(line) => Test::assert_eq_string(line, "B"),
             Option::None => Std::panic("expected line B"),
         },
         Result::Err(e) => Std::panic(io::io_error_message(e)),
@@ -30,7 +30,7 @@ fn main() {
     let l3: Result<Option<String>, io::IoError> = br.read_line()
     match l3 {
         Result::Ok(found) => match found {
-            Option::Some(line) => test::assert_eq_string(line, "C"),
+            Option::Some(line) => Test::assert_eq_string(line, "C"),
             Option::None => Std::panic("expected line C"),
         },
         Result::Err(e) => Std::panic(io::io_error_message(e)),

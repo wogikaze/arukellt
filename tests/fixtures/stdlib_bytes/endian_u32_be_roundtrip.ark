@@ -1,8 +1,8 @@
 use std::bytes
 use std::bytes::Bytes
-use std::test
+use std::test::Test
 
 fn main() {
     let be: Vec<i32> = Bytes::from_u32_be(16909060)
-    test::assert_eq_i32(be.to_u32_be(), 16909060)
+    Test::assert_eq_i32(be.to_u32_be(), 16909060)
 }

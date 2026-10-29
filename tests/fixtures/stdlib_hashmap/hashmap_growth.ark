@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::text
 use std::host::stdio
 
@@ -11,7 +11,7 @@ fn main() {
         let _prev = m.insert("key_".concat((i).to_string()), i * 7)
         i = i + 1
     }
-    test::assert_eq_i32(m.len(), 100)
+    Test::assert_eq_i32(m.len(), 100)
     let mut sum: i32 = 0
     i = 0
     while i < 100 {
@@ -21,7 +21,7 @@ fn main() {
         }
         i = i + 1
     }
-    test::assert_eq_i32(sum, 34650)
+    Test::assert_eq_i32(sum, 34650)
 
     // Remove + reinsert after growth keeps len and lookups consistent.
     i = 0
@@ -32,11 +32,11 @@ fn main() {
         }
         i = i + 1
     }
-    test::assert_eq_i32(m.len(), 70)
-    test::assert_false(m.contains_key("key_5"))
-    test::assert_true(m.contains_key("key_50"))
+    Test::assert_eq_i32(m.len(), 70)
+    Test::assert_false(m.contains_key("key_5"))
+    Test::assert_true(m.contains_key("key_50"))
     let _prev2 = m.insert("key_".concat((200).to_string()), 1)
-    test::assert_eq_i32(m.len(), 71)
+    Test::assert_eq_i32(m.len(), 71)
 
     // The remaining intrinsic families grow through the same Ark path.
     let mut mi = HashMap::new<i32, String>()
@@ -45,9 +45,9 @@ fn main() {
         let _previ = mi.insert(i, "v".concat((i).to_string()))
         i = i + 1
     }
-    test::assert_eq_i32(mi.len(), 60)
+    Test::assert_eq_i32(mi.len(), 60)
     match mi.get(42) {
-        Option::Some(v) => test::assert_eq_string(v, "v42"),
+        Option::Some(v) => Test::assert_eq_string(v, "v42"),
         None => Std::panic("missing grown i32->String entry"),
     }
 
@@ -57,9 +57,9 @@ fn main() {
         let _prevs = ms.insert("s_".concat((i).to_string()), "w_".concat((i).to_string()))
         i = i + 1
     }
-    test::assert_eq_i32(ms.len(), 60)
+    Test::assert_eq_i32(ms.len(), 60)
     match ms.get("s_59") {
-        Option::Some(v) => test::assert_eq_string(v, "w_59"),
+        Option::Some(v) => Test::assert_eq_string(v, "w_59"),
         None => Std::panic("missing grown String->String entry"),
     }
 

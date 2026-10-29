@@ -1,12 +1,12 @@
 use std::core::ops
-use std::test
+use std::test::Test
 
 fn main() {
     let a: i64 = 1000000000000i64
     let b: i64 = 1i64
-    test::assert_eq_i64(a.add(b), 1000000000001i64)
+    Test::assert_eq_i64(a.add(b), 1000000000001i64)
 
     let c: i64 = -5i64
     let d: i64 = 5i64
-    test::assert_eq_i64(c.add(d), 0i64)
+    Test::assert_eq_i64(c.add(d), 0i64)
 }

@@ -1,7 +1,7 @@
 use std::host::clock::Clock
-use std::test
+use std::test::Test
 
 fn main() {
     let t: i64 = Clock::now_ms()
-    test::assert_true(t >= 0i64 || t < 0i64)
+    Test::assert_true(t >= 0i64 || t < 0i64)
 }

@@ -1,6 +1,6 @@
 // HashSet: union contains all elements from both sets
 use std::collections::hash_set::HashSet
-use std::test
+use std::test::Test
 
 fn main() {
     let mut a = HashSet::new<i32>()
@@ -14,10 +14,10 @@ fn main() {
     b.insert(5)
 
     let u = a.union(b)
-    test::assert_eq_i32(u.len(), 5)
-    test::assert_true(u.contains(1))
-    test::assert_true(u.contains(2))
-    test::assert_true(u.contains(3))
-    test::assert_true(u.contains(4))
-    test::assert_true(u.contains(5))
+    Test::assert_eq_i32(u.len(), 5)
+    Test::assert_true(u.contains(1))
+    Test::assert_true(u.contains(2))
+    Test::assert_true(u.contains(3))
+    Test::assert_true(u.contains(4))
+    Test::assert_true(u.contains(5))
 }

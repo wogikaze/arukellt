@@ -1,15 +1,15 @@
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, String>()
     let _ = m.insert(1, "one")
     let _ = m.insert(2, "two")
     let _ = m.insert(1, "uno")
-    test::assert_eq_i32(m.len(), 2)
-    test::assert_true(m.contains_key(1))
-    test::assert_false(m.contains_key(9))
+    Test::assert_eq_i32(m.len(), 2)
+    Test::assert_true(m.contains_key(1))
+    Test::assert_false(m.contains_key(9))
     match m.get(1) {
-        Option::Some(v) => test::assert_eq_string(v, "uno"),
+        Option::Some(v) => Test::assert_eq_string(v, "uno"),
         None => Std::panic("expected Some(uno)"),
     }
     match m.get(9) {
@@ -18,13 +18,13 @@ fn main() {
         },
     }
     match m.remove(2) {
-        Option::Some(v) => test::assert_eq_string(v, "two"),
+        Option::Some(v) => Test::assert_eq_string(v, "two"),
         None => Std::panic("expected Some(two)"),
     }
     let _ = m.insert(2, "dos")
     match m.get(2) {
-        Option::Some(v) => test::assert_eq_string(v, "dos"),
+        Option::Some(v) => Test::assert_eq_string(v, "dos"),
         None => Std::panic("expected Some(dos)"),
     }
-    test::assert_eq_i32(m.len(), 2)
+    Test::assert_eq_i32(m.len(), 2)
 }

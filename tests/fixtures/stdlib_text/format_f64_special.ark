@@ -1,10 +1,10 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
-    test::assert_eq_string((-1.5).to_string(), "-1.5")
-    test::assert_eq_string((-0.25).to_string(), "-0.25")
-    test::assert_eq_string((-100.0).to_string(), "-100")
-    test::assert_eq_string((0.0).to_string(), "0")
-    test::assert_eq_string((-0.0).to_string(), "0")
+    Test::assert_eq_string((-1.5).to_string(), "-1.5")
+    Test::assert_eq_string((-0.25).to_string(), "-0.25")
+    Test::assert_eq_string((-100.0).to_string(), "-100")
+    Test::assert_eq_string((0.0).to_string(), "0")
+    Test::assert_eq_string((-0.0).to_string(), "0")
 }

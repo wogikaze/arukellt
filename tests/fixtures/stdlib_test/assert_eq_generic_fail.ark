@@ -1,5 +1,5 @@
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_debug(1, 2)
+    Test::assert_eq_debug(1, 2)
 }

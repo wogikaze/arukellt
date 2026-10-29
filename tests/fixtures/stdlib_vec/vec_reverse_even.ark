@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::core::iter
 
 fn main() {
@@ -8,8 +8,8 @@ fn main() {
     push(v, 3)
     push(v, 4)
     v = v.iter().rev().collect()
-    test::assert_eq_i32(get_unchecked(v, 0), 4)
-    test::assert_eq_i32(get_unchecked(v, 1), 3)
-    test::assert_eq_i32(get_unchecked(v, 2), 2)
-    test::assert_eq_i32(get_unchecked(v, 3), 1)
+    Test::assert_eq_i32(get_unchecked(v, 0), 4)
+    Test::assert_eq_i32(get_unchecked(v, 1), 3)
+    Test::assert_eq_i32(get_unchecked(v, 2), 2)
+    Test::assert_eq_i32(get_unchecked(v, 3), 1)
 }

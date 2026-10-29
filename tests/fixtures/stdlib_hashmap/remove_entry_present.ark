@@ -1,5 +1,5 @@
 // Remove_entry: returns the removed (key, value) pair
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
@@ -8,12 +8,12 @@ fn main() {
 
     match m.remove_entry(7) {
         Option::Some((k, v)) => {
-            test::assert_eq_i32(k, 7)
-            test::assert_eq_i32(v, 77)
+            Test::assert_eq_i32(k, 7)
+            Test::assert_eq_i32(v, 77)
         },
         None => Std::panic("expected Some(7, 77)"),
     }
-    test::assert_eq_i32(m.len(), 1)
-    test::assert_false(m.contains_key(7))
-    test::assert_true(m.contains_key(8))
+    Test::assert_eq_i32(m.len(), 1)
+    Test::assert_false(m.contains_key(7))
+    Test::assert_true(m.contains_key(8))
 }

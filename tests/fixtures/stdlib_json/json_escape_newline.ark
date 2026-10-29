@@ -1,10 +1,10 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("\"line1\\nline2\"") {
         Result::Ok(v) => match v.as_string() {
-            Option::Some(s) => test::assert_eq_string(s, "line1\nline2"),
+            Option::Some(s) => Test::assert_eq_string(s, "line1\nline2"),
             None => Std::panic("expected string"),
         },
         Result::Err(e) => Std::panic("parse newline failed: ".concat(e.message())),

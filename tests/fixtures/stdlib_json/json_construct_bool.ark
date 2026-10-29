@@ -1,10 +1,10 @@
 use std::json
-use std::test
+use std::test::Test
 
 fn main() {
     let t = json::JsonValue::bool(true)
-    test::assert_true(t.is_bool())
-    test::assert_eq_string(t.to_text(), "true")
+    Test::assert_true(t.is_bool())
+    Test::assert_eq_string(t.to_text(), "true")
     let f = json::JsonValue::bool(false)
-    test::assert_eq_string(f.to_text(), "false")
+    Test::assert_eq_string(f.to_text(), "false")
 }

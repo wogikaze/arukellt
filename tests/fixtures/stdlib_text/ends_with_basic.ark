@@ -1,11 +1,11 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
-    test::assert_true("hello".ends_with("llo"))
-    test::assert_true("hello".ends_with("hello"))
-    test::assert_true("hello".ends_with(""))
-    test::assert_false("hello".ends_with("hel"))
-    test::assert_false("hello".ends_with("xhello"))
-    test::assert_true("abc".ends_with("c"))
+    Test::assert_true("hello".ends_with("llo"))
+    Test::assert_true("hello".ends_with("hello"))
+    Test::assert_true("hello".ends_with(""))
+    Test::assert_false("hello".ends_with("hel"))
+    Test::assert_false("hello".ends_with("xhello"))
+    Test::assert_true("abc".ends_with("c"))
 }

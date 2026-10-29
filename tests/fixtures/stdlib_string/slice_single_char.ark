@@ -1,8 +1,8 @@
-use std::test
+use std::test::Test
 use std::prelude::{slice}
 fn main() {
     let s = String_from("hello")
-    test::assert_eq_string(slice(s, 1, 2), "e")
-    test::assert_eq_string(slice(s, 0, 1), "h")
-    test::assert_eq_string(slice(s, 4, 5), "o")
+    Test::assert_eq_string(slice(s, 1, 2), "e")
+    Test::assert_eq_string(slice(s, 0, 1), "h")
+    Test::assert_eq_string(slice(s, 4, 5), "o")
 }

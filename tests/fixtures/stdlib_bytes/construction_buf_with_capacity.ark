@@ -1,9 +1,9 @@
 use std::bytes
-use std::test
+use std::test::Test
 
 fn main() {
     let mut buf: Vec<i32> = Vec::with_capacity<i32>(64)
-    test::assert_eq_i32(buf.len(), 0)
+    Test::assert_eq_i32(buf.len(), 0)
     buf.push_byte(42)
-    test::assert_eq_i32(buf.len(), 1)
+    Test::assert_eq_i32(buf.len(), 1)
 }

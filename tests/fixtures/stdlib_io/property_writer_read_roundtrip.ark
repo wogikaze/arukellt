@@ -1,17 +1,17 @@
 use std::bytes
 use std::io
-use std::test
+use std::test::Test
 
 fn main() {
     let mut w: io::Writer = io::Writer::new()
     match w.write_string("roundtrip") {
-        Result::Ok(n) => test::assert_eq_i32(n, 9),
+        Result::Ok(n) => Test::assert_eq_i32(n, 9),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     let mut r: io::Reader = w.into_reader()
     let res: Result<Vec<i32>, io::IoError> = io::Io::read_to_end(r)
     match res {
-        Result::Ok(chunk) => test::assert_eq_string(String::from_utf8_lossy(chunk), "roundtrip"),
+        Result::Ok(chunk) => Test::assert_eq_string(String::from_utf8_lossy(chunk), "roundtrip"),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
 }

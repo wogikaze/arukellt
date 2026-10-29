@@ -1,5 +1,5 @@
 // Remove: all keys one by one, map becomes empty
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
@@ -8,22 +8,22 @@ fn main() {
         let _ = m.insert(i, i * 100)
         i = i + 1
     }
-    test::assert_eq_i32(m.len(), 10)
+    Test::assert_eq_i32(m.len(), 10)
 
     i = 0
     while i < 10 {
         match m.remove(i) {
-            Option::Some(v) => test::assert_eq_i32(v, i * 100),
+            Option::Some(v) => Test::assert_eq_i32(v, i * 100),
             None => Std::panic("expected Some on remove"),
         }
         i = i + 1
     }
-    test::assert_eq_i32(m.len(), 0)
-    test::assert_true(m.is_empty())
+    Test::assert_eq_i32(m.len(), 0)
+    Test::assert_true(m.is_empty())
 
     i = 0
     while i < 10 {
-        test::assert_false(m.contains_key(i))
+        Test::assert_false(m.contains_key(i))
         i = i + 1
     }
 }

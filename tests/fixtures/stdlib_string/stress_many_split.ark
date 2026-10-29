@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::prelude::{split}
 use std::text
 fn main() {
@@ -10,5 +10,5 @@ fn main() {
         i = i + 1
     }
     let parts = split(s, String_from(","))
-    test::assert_eq_i32(len(parts), 11)
+    Test::assert_eq_i32(len(parts), 11)
 }

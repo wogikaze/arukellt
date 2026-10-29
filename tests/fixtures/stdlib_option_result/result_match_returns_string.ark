@@ -1,12 +1,12 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     let ok_r: Result<i32, String> = Ok(42)
     let ok_msg: String = match ok_r { Result::Ok(v) => String_from("ok=").concat((v).to_string()), Result::Err(e) => String_from("err=").concat(e) }
-    test::assert_eq_string(ok_msg, String_from("ok=42"))
+    Test::assert_eq_string(ok_msg, String_from("ok=42"))
     let err_r: Result<i32, String> = Err(String_from("fail"))
     let err_msg: String = match err_r { Result::Ok(v) => String_from("ok=").concat((v).to_string()), Result::Err(e) => String_from("err=").concat(e) }
-    test::assert_eq_string(err_msg, String_from("err=fail"))
+    Test::assert_eq_string(err_msg, String_from("err=fail"))
     stdio::println("ok")
 }

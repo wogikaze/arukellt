@@ -1,11 +1,11 @@
 use std::core::convert
-use std::test
+use std::test::Test
 
 fn main() {
     // Explicit wrapping conversion replaces the removed narrowing From impl.
     let narrow: i32 = (9001i64).to_i32_wrapping()
-    test::assert_eq_i32(narrow, 9001)
+    Test::assert_eq_i32(narrow, 9001)
 
     let narrow2: i32 = (0i64).to_i32_wrapping()
-    test::assert_eq_i32(narrow2, 0)
+    Test::assert_eq_i32(narrow2, 0)
 }

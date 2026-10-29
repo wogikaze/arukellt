@@ -1,20 +1,20 @@
 // Free `hash(x)`, the receiver method `x.hash()`, and generic `<T: Hash>`
 // dispatch must resolve to the same registered Hash impl.
 use std::core::hash
-use std::test
+use std::test::Test
 
 fn hash_of<T: Hash>(value: T) -> i32 {
     value.hash()
 }
 
 fn main() {
-    test::assert_eq_i32(hash(42), 42.hash())
-    test::assert_eq_i32(hash(42), hash_of(42))
+    Test::assert_eq_i32(hash(42), 42.hash())
+    Test::assert_eq_i32(hash(42), hash_of(42))
 
     let s = String_from("hello")
-    test::assert_eq_i32(hash(s), s.hash())
-    test::assert_eq_i32(hash(s), hash_of(s))
+    Test::assert_eq_i32(hash(s), s.hash())
+    Test::assert_eq_i32(hash(s), hash_of(s))
 
-    test::assert_eq_i32(hash(true), true.hash())
-    test::assert_eq_i32(hash('a'), ('a').hash())
+    Test::assert_eq_i32(hash(true), true.hash())
+    Test::assert_eq_i32(hash('a'), ('a').hash())
 }

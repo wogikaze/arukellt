@@ -1,15 +1,15 @@
 use std::core::math
-use std::test
+use std::test::Test
 
 fn main() {
     // Normal addition returns Some
     match (5).checked_add(3) {
-        Option::Some(v) => test::assert_eq_i32(v, 8),
+        Option::Some(v) => Test::assert_eq_i32(v, 8),
         None => Std::panic("expected Some(8)"),
     }
     // Adding zero is fine
     match (42).checked_add(0) {
-        Option::Some(v) => test::assert_eq_i32(v, 42),
+        Option::Some(v) => Test::assert_eq_i32(v, 42),
         None => Std::panic("expected Some(42)"),
     }
     // Overflow returns None

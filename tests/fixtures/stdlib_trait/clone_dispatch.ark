@@ -5,7 +5,7 @@
 use std::core::clone
 use std::host::stdio
 use std::prelude::{clone}
-use std::test
+use std::test::Test
 
 struct Pair {
     a: i32,
@@ -20,19 +20,19 @@ impl Clone for Pair {
 
 fn main() {
     let s = String_from("hello")
-    test::assert_eq_string(clone(s), s.clone())
-    test::assert_eq_string(s.clone(), "hello")
+    Test::assert_eq_string(clone(s), s.clone())
+    Test::assert_eq_string(s.clone(), "hello")
 
     let n: i32 = 42
-    test::assert_eq_i32(clone(n), n.clone())
+    Test::assert_eq_i32(clone(n), n.clone())
 
     let p = Pair { a: 1, b: 2 }
     let free_clone = clone(p)
     let method_clone = p.clone()
-    test::assert_eq_i32(free_clone.a, 2)
-    test::assert_eq_i32(free_clone.b, 3)
-    test::assert_eq_i32(method_clone.a, 2)
-    test::assert_eq_i32(method_clone.b, 3)
+    Test::assert_eq_i32(free_clone.a, 2)
+    Test::assert_eq_i32(free_clone.b, 3)
+    Test::assert_eq_i32(method_clone.a, 2)
+    Test::assert_eq_i32(method_clone.b, 3)
 
     stdio::println("OK")
 }

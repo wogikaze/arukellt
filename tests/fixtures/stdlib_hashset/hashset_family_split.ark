@@ -2,38 +2,38 @@
 // bucket-capacity operations stay on HashSet<i32>, while HashSet<String>
 // answers the membership/algebra surface over its Vec<String> store (#917).
 use std::collections::hash_set::HashSet
-use std::test
+use std::test::Test
 
 fn main() {
     let mut ints: HashSet<i32> = HashSet::new<i32>()
-    test::assert_true(ints.insert(7))
+    Test::assert_true(ints.insert(7))
     let capacity_before: i32 = ints.capacity()
     ints.reserve(16)
-    test::assert_true(ints.capacity() >= capacity_before)
-    test::assert_eq_i32(ints.len(), 1)
+    Test::assert_true(ints.capacity() >= capacity_before)
+    Test::assert_eq_i32(ints.len(), 1)
     ints.shrink_to_fit()
-    test::assert_eq_i32(ints.len(), 1)
-    test::assert_true(ints.contains(7))
+    Test::assert_eq_i32(ints.len(), 1)
+    Test::assert_true(ints.contains(7))
 
     let mut words: HashSet<String> = HashSet::new<String>()
-    test::assert_true(words.insert("red"))
-    test::assert_true(words.contains("red"))
-    test::assert_false(words.contains("blue"))
-    test::assert_eq_i32(words.len(), 1)
-    test::assert_false(words.is_empty())
+    Test::assert_true(words.insert("red"))
+    Test::assert_true(words.contains("red"))
+    Test::assert_false(words.contains("blue"))
+    Test::assert_eq_i32(words.len(), 1)
+    Test::assert_false(words.is_empty())
     let snapshot: Vec<String> = words.to_vec()
-    test::assert_eq_i32(len(snapshot), 1)
+    Test::assert_eq_i32(len(snapshot), 1)
 
     let mut more: HashSet<String> = HashSet::new<String>()
-    test::assert_true(more.insert("blue"))
+    Test::assert_true(more.insert("blue"))
     let mut combined: HashSet<String> = words.union(more)
-    test::assert_eq_i32(combined.len(), 2)
-    test::assert_eq_i32(words.intersection(more).len(), 0)
-    test::assert_eq_i32(words.difference(more).len(), 1)
-    test::assert_false(words.remove("blue"))
+    Test::assert_eq_i32(combined.len(), 2)
+    Test::assert_eq_i32(words.intersection(more).len(), 0)
+    Test::assert_eq_i32(words.difference(more).len(), 1)
+    Test::assert_false(words.remove("blue"))
 
     let copy: HashSet<String> = combined.clone()
-    test::assert_true(copy.eq(combined))
+    Test::assert_true(copy.eq(combined))
     combined.clear()
-    test::assert_true(combined.is_empty())
+    Test::assert_true(combined.is_empty())
 }

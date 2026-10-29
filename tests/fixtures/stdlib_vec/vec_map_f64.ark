@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 
 fn square(x: f64) -> f64 {
     x * x
@@ -15,7 +15,7 @@ fn main() {
         push(result, square(get_unchecked(v, map_index)))
         map_index = map_index + 1
     }
-    test::assert_eq_f64(get_unchecked(result, 0), 4.0)
-    test::assert_eq_f64(get_unchecked(result, 1), 9.0)
-    test::assert_eq_f64(get_unchecked(result, 2), 16.0)
+    Test::assert_eq_f64(get_unchecked(result, 0), 4.0)
+    Test::assert_eq_f64(get_unchecked(result, 1), 9.0)
+    Test::assert_eq_f64(get_unchecked(result, 2), 16.0)
 }

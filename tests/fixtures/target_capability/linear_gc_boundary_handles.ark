@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::prelude::{byte_at, clone, eq}
 use std::text
 
@@ -198,9 +198,9 @@ fn main() {
     i = 0
     while i < len(keep) {
         let mut v = get_unchecked(keep, i)
-        test::assert_eq_i32(len(v), 2)
-        test::assert_eq_i32(get_unchecked(v, 0), i * 7 + 3)
-        test::assert_eq_i32(get_unchecked(v, 1), i * 13 + 5)
+        Test::assert_eq_i32(len(v), 2)
+        Test::assert_eq_i32(get_unchecked(v, 0), i * 7 + 3)
+        Test::assert_eq_i32(get_unchecked(v, 1), i * 13 + 5)
         i = i + 1
     }
 
@@ -211,10 +211,10 @@ fn main() {
         i = i + 1
     }
     churn_small(1500000)
-    test::assert_eq_i32(len(keep_empty), 512)
+    Test::assert_eq_i32(len(keep_empty), 512)
     i = 0
     while i < len(keep_empty) {
-        test::assert_true(eq(get_unchecked(keep_empty, i), String_from("")))
+        Test::assert_true(eq(get_unchecked(keep_empty, i), String_from("")))
         i = i + 1
     }
 
@@ -232,7 +232,7 @@ fn main() {
             LoadState_push_loaded(state, clone(path))
         }
         push(state.loading_stack, clone(path))
-        test::assert_eq_i32(stack_scan(state, 1), 0 - 1)
+        Test::assert_eq_i32(stack_scan(state, 1), 0 - 1)
         pop(state.loading_stack)
         let _n = churn_big(524288)
         i = i + 1
@@ -241,7 +241,7 @@ fn main() {
     while i < 96 {
         let stem = String_from("mod").concat(i.to_string())
         let path = String_from("mod/dir/").concat(clone(stem).concat(String_from(".ark")))
-        test::assert_true(LoadState_has_loaded(state, path))
+        Test::assert_true(LoadState_has_loaded(state, path))
         i = i + 1
     }
 }

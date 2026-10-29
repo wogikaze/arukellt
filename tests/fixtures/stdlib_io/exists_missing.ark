@@ -1,6 +1,6 @@
 use std::host::fs::Fs
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_false(Fs::is_readable_file("nonexistent_file_xyz.ark"))
+    Test::assert_false(Fs::is_readable_file("nonexistent_file_xyz.ark"))
 }

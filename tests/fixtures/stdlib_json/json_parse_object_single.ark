@@ -1,13 +1,13 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("{\"key\":\"value\"}") {
         Result::Ok(v) => {
-            test::assert_true(v.is_object())
+            Test::assert_true(v.is_object())
             match v.get_field("key") {
                 Option::Some(fv) => match fv.as_string() {
-                    Option::Some(s) => test::assert_eq_string(s, "value"),
+                    Option::Some(s) => Test::assert_eq_string(s, "value"),
                     None => Std::panic("expected string value"),
                 },
                 None => Std::panic("expected key \"key\""),

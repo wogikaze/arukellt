@@ -1,5 +1,5 @@
 // Clear + reinsert: map is usable after clear
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
@@ -10,8 +10,8 @@ fn main() {
     // Reinsert same and new keys
     let _ = m.insert(1, 100)
     let _ = m.insert(3, 300)
-    test::assert_eq_i32(m.len(), 2)
-    test::assert_eq_i32(m.get(1).unwrap_or(0), 100)
-    test::assert_eq_i32(m.get(3).unwrap_or(0), 300)
-    test::assert_false(m.contains_key(2))
+    Test::assert_eq_i32(m.len(), 2)
+    Test::assert_eq_i32(m.get(1).unwrap_or(0), 100)
+    Test::assert_eq_i32(m.get(3).unwrap_or(0), 300)
+    Test::assert_false(m.contains_key(2))
 }

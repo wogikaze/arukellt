@@ -1,5 +1,5 @@
 use std::core::hash
-use std::test
+use std::test::Test
 
 fn main() {
     let h1: i32 = hash(1)
@@ -7,11 +7,11 @@ fn main() {
     let combined: i32 = h1.combine_hash(h2)
 
     // combine is deterministic
-    test::assert_eq_i32(combined, h1.combine_hash(h2))
+    Test::assert_eq_i32(combined, h1.combine_hash(h2))
 
     // combine is non-negative
-    test::assert_true(combined >= 0)
+    Test::assert_true(combined >= 0)
 
     // hash_combine is an alias for combine
-    test::assert_eq_i32(combined, h1.combine_hash(h2))
+    Test::assert_eq_i32(combined, h1.combine_hash(h2))
 }

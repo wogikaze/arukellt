@@ -1,12 +1,12 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
-    test::assert_eq_string("hello".to_upper(), "HELLO")
-    test::assert_eq_string("Hello World".to_upper(), "HELLO WORLD")
-    test::assert_eq_string("abcdef".to_upper(), "ABCDEF")
-    test::assert_eq_string("already upper".to_upper(), "ALREADY UPPER")
-    test::assert_eq_string("MixedCaseString".to_upper(), "MIXEDCASESTRING")
-    test::assert_eq_string("a".to_upper(), "A")
-    test::assert_eq_string("z".to_upper(), "Z")
+    Test::assert_eq_string("hello".to_upper(), "HELLO")
+    Test::assert_eq_string("Hello World".to_upper(), "HELLO WORLD")
+    Test::assert_eq_string("abcdef".to_upper(), "ABCDEF")
+    Test::assert_eq_string("already upper".to_upper(), "ALREADY UPPER")
+    Test::assert_eq_string("MixedCaseString".to_upper(), "MIXEDCASESTRING")
+    Test::assert_eq_string("a".to_upper(), "A")
+    Test::assert_eq_string("z".to_upper(), "Z")
 }

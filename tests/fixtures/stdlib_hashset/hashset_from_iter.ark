@@ -1,7 +1,7 @@
 // HashSet<T> FromIterator and HashSet<String> trait surface (#917, ADR-086).
 use std::collections::hash_set::HashSet
 use std::core::iter
-use std::test
+use std::test::Test
 
 fn main() {
     let mut values: Vec<i32> = Vec::new<i32>()
@@ -10,16 +10,16 @@ fn main() {
     push(values, 2)
     push(values, 3)
     let set: HashSet<i32> = HashSet::from_iter(values.iter())
-    test::assert_eq_i32(set.len(), 3)
-    test::assert_true(set.contains(1))
-    test::assert_true(set.contains(3))
-    test::assert_false(set.contains(4))
+    Test::assert_eq_i32(set.len(), 3)
+    Test::assert_true(set.contains(1))
+    Test::assert_true(set.contains(3))
+    Test::assert_false(set.contains(4))
 
     let mut total: i32 = 0
     for value in set {
         total = total + value
     }
-    test::assert_eq_i32(total, 6)
+    Test::assert_eq_i32(total, 6)
 
     // A FromIterator result used directly as a `for` source must keep the set
     // marker, not decay to the flat Vec bucket layout.
@@ -27,30 +27,30 @@ fn main() {
     for value in HashSet::from_iter(values.iter()) {
         direct_total = direct_total + value
     }
-    test::assert_eq_i32(direct_total, 6)
+    Test::assert_eq_i32(direct_total, 6)
 
     let mut words: Vec<String> = Vec::new<String>()
     push(words, "apple")
     push(words, "banana")
     push(words, "apple")
     let word_set: HashSet<String> = HashSet::from_iter(words.iter())
-    test::assert_eq_i32(word_set.len(), 2)
-    test::assert_true(word_set.contains("apple"))
-    test::assert_false(word_set.contains("cherry"))
+    Test::assert_eq_i32(word_set.len(), 2)
+    Test::assert_true(word_set.contains("apple"))
+    Test::assert_false(word_set.contains("cherry"))
 
     let snapshot: Vec<String> = word_set.to_vec()
-    test::assert_eq_i32(len(snapshot), 2)
+    Test::assert_eq_i32(len(snapshot), 2)
 
     let copy: HashSet<String> = word_set.clone()
-    test::assert_true(copy.eq(word_set))
-    test::assert_eq_i32(copy.len(), 2)
+    Test::assert_true(copy.eq(word_set))
+    Test::assert_eq_i32(copy.len(), 2)
 
     let rendered: String = word_set.fmt_debug()
-    test::assert_true(len(rendered) > 0)
+    Test::assert_true(len(rendered) > 0)
 
     let mut letters: i32 = 0
     for word in word_set {
         letters = letters + len(word)
     }
-    test::assert_eq_i32(letters, 11)
+    Test::assert_eq_i32(letters, 11)
 }

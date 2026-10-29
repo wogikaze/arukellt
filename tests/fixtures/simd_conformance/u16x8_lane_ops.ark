@@ -1,7 +1,7 @@
 // u16x8 lane surface: construction, arithmetic, saturating arithmetic,
 // comparisons, min/max, and shifts all lower to 0xfd SIMD instructions.
 use std::simd::u16x8::U16x8
-use std::test
+use std::test::Test
 
 fn lane(v: v128, index: i32) -> i32 {
     U16x8::extract_lane(v, index)
@@ -10,40 +10,40 @@ fn lane(v: v128, index: i32) -> i32 {
 fn construct_cases() {
     let a = U16x8::splat(3)
     let b = U16x8::replace_lane(a, 2, 5)
-    test::assert_eq_i32(lane(b, 2), 5)
-    test::assert_eq_i32(lane(U16x8::zero(), 7), 0)
+    Test::assert_eq_i32(lane(b, 2), 5)
+    Test::assert_eq_i32(lane(U16x8::zero(), 7), 0)
     let n = U16x8::new(1, 2, 3, 4, 5, 6, 7, 8)
-    test::assert_eq_i32(lane(n, 0), 1)
-    test::assert_eq_i32(lane(n, 7), 8)
+    Test::assert_eq_i32(lane(n, 0), 1)
+    Test::assert_eq_i32(lane(n, 7), 8)
 }
 
 fn arithmetic_cases() {
     let mut a = U16x8::splat(3)
     let b = U16x8::replace_lane(a, 2, 5)
-    test::assert_eq_i32(lane(U16x8::add(a, b), 2), 8)
-    test::assert_eq_i32(lane(U16x8::sub(b, a), 2), 2)
-    test::assert_eq_i32(lane(U16x8::mul(a, b), 2), 15)
-    test::assert_eq_i32(lane(U16x8::neg(a), 0), 65533)
-    test::assert_eq_i32(lane(U16x8::abs(U16x8::splat(65533)), 0), 3)
-    test::assert_eq_i32(lane(U16x8::add_sat_u(U16x8::splat(65530), U16x8::splat(10)), 0), 65535)
-    test::assert_eq_i32(lane(U16x8::sub_sat_u(U16x8::splat(3), U16x8::splat(10)), 0), 0)
+    Test::assert_eq_i32(lane(U16x8::add(a, b), 2), 8)
+    Test::assert_eq_i32(lane(U16x8::sub(b, a), 2), 2)
+    Test::assert_eq_i32(lane(U16x8::mul(a, b), 2), 15)
+    Test::assert_eq_i32(lane(U16x8::neg(a), 0), 65533)
+    Test::assert_eq_i32(lane(U16x8::abs(U16x8::splat(65533)), 0), 3)
+    Test::assert_eq_i32(lane(U16x8::add_sat_u(U16x8::splat(65530), U16x8::splat(10)), 0), 65535)
+    Test::assert_eq_i32(lane(U16x8::sub_sat_u(U16x8::splat(3), U16x8::splat(10)), 0), 0)
 }
 
 fn comparison_cases() {
     let a = U16x8::splat(3)
-    test::assert_eq_i32(lane(U16x8::eq(a, a), 0), 65535)
-    test::assert_eq_i32(lane(U16x8::ne(a, a), 0), 0)
-    test::assert_eq_i32(lane(U16x8::lt_u(U16x8::splat(1), U16x8::splat(2)), 0), 65535)
-    test::assert_eq_i32(lane(U16x8::le_u(U16x8::splat(2), U16x8::splat(2)), 0), 65535)
-    test::assert_eq_i32(lane(U16x8::gt_u(U16x8::splat(3), U16x8::splat(2)), 0), 65535)
-    test::assert_eq_i32(lane(U16x8::ge_u(U16x8::splat(1), U16x8::splat(2)), 0), 0)
-    test::assert_eq_i32(lane(U16x8::min_u(U16x8::splat(3), U16x8::splat(5)), 0), 3)
-    test::assert_eq_i32(lane(U16x8::max_u(U16x8::splat(3), U16x8::splat(5)), 0), 5)
+    Test::assert_eq_i32(lane(U16x8::eq(a, a), 0), 65535)
+    Test::assert_eq_i32(lane(U16x8::ne(a, a), 0), 0)
+    Test::assert_eq_i32(lane(U16x8::lt_u(U16x8::splat(1), U16x8::splat(2)), 0), 65535)
+    Test::assert_eq_i32(lane(U16x8::le_u(U16x8::splat(2), U16x8::splat(2)), 0), 65535)
+    Test::assert_eq_i32(lane(U16x8::gt_u(U16x8::splat(3), U16x8::splat(2)), 0), 65535)
+    Test::assert_eq_i32(lane(U16x8::ge_u(U16x8::splat(1), U16x8::splat(2)), 0), 0)
+    Test::assert_eq_i32(lane(U16x8::min_u(U16x8::splat(3), U16x8::splat(5)), 0), 3)
+    Test::assert_eq_i32(lane(U16x8::max_u(U16x8::splat(3), U16x8::splat(5)), 0), 5)
 }
 
 fn shift_cases() {
-    test::assert_eq_i32(lane(U16x8::shl(U16x8::splat(1), 3), 0), 8)
-    test::assert_eq_i32(lane(U16x8::shr_u(U16x8::splat(8), 3), 0), 1)
+    Test::assert_eq_i32(lane(U16x8::shl(U16x8::splat(1), 3), 0), 8)
+    Test::assert_eq_i32(lane(U16x8::shr_u(U16x8::splat(8), 3), 0), 1)
 }
 
 test "u16x8_lanes_support_arithmetic_comparison_and_shift" {

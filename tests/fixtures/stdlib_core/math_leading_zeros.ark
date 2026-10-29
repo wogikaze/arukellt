@@ -1,9 +1,9 @@
 use std::core::convert
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_i32(0.leading_zeros(), 32)
-    test::assert_eq_i32(1.leading_zeros(), 31)
-    test::assert_eq_i32(0x40000000.leading_zeros(), 1)
-    test::assert_eq_i32((-1).leading_zeros(), 0)
+    Test::assert_eq_i32(0.leading_zeros(), 32)
+    Test::assert_eq_i32(1.leading_zeros(), 31)
+    Test::assert_eq_i32(0x40000000.leading_zeros(), 1)
+    Test::assert_eq_i32((-1).leading_zeros(), 0)
 }

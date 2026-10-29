@@ -1,10 +1,10 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
-    test::assert_eq_string("ab".repeat(3), "ababab")
-    test::assert_eq_string("x".repeat(5), "xxxxx")
-    test::assert_eq_string("hello".repeat(2), "hellohello")
-    test::assert_eq_string(" ".repeat(4), "    ")
-    test::assert_eq_string("123".repeat(3), "123123123")
+    Test::assert_eq_string("ab".repeat(3), "ababab")
+    Test::assert_eq_string("x".repeat(5), "xxxxx")
+    Test::assert_eq_string("hello".repeat(2), "hellohello")
+    Test::assert_eq_string(" ".repeat(4), "    ")
+    Test::assert_eq_string("123".repeat(3), "123123123")
 }

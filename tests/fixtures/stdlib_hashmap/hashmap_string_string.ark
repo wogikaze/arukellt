@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 
 test "string_keys_map_to_overwritten_string_values" {
     let mut m = HashMap::new<String, String>()
@@ -6,13 +6,13 @@ test "string_keys_map_to_overwritten_string_values" {
     let _ = m.insert("farewell", "goodbye")
     let _ = m.insert("color", "red")
     let _ = m.insert("color", "blue")
-    test::assert_eq_i32(m.len(), 3)
+    Test::assert_eq_i32(m.len(), 3)
     match m.get("greeting") {
-        Option::Some(v) => test::assert_eq_string(v, "hello"),
+        Option::Some(v) => Test::assert_eq_string(v, "hello"),
         None => Std::panic("expected Some(hello)"),
     }
     match m.get("color") {
-        Option::Some(v) => test::assert_eq_string(v, "blue"),
+        Option::Some(v) => Test::assert_eq_string(v, "blue"),
         None => Std::panic("expected Some(blue)"),
     }
     match m.get("missing") {
@@ -20,6 +20,6 @@ test "string_keys_map_to_overwritten_string_values" {
         None => {
         },
     }
-    test::assert_true(m.contains_key("farewell"))
-    test::assert_false(m.contains_key("unknown"))
+    Test::assert_true(m.contains_key("farewell"))
+    Test::assert_false(m.contains_key("unknown"))
 }

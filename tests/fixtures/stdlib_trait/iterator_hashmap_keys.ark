@@ -1,7 +1,7 @@
 // For-in iteration over HashMap<K, V> through IntoIterator.
 // Keys enumerate in bucket order, so every assertion is order-agnostic.
 use std::collections::hash_map
-use std::test
+use std::test::Test
 
 fn main() {
     // HashMap<i32, i32> — flat-map alias path shared by both backends.
@@ -20,9 +20,9 @@ fn main() {
             None => Std::panic("iterated key missing from map"),
         }
     }
-    test::assert_eq_i32(count, 3)
-    test::assert_eq_i32(key_sum, 60)
-    test::assert_eq_i32(value_sum, 600)
+    Test::assert_eq_i32(count, 3)
+    Test::assert_eq_i32(key_sum, 60)
+    Test::assert_eq_i32(value_sum, 600)
 
     // HashMap<String, i32> — String keys over the __hm_si_* slot layout.
     let mut words = HashMap::new<String, i32>()
@@ -33,10 +33,10 @@ fn main() {
     for key in words {
         word_count = word_count + 1
         key_len_total = key_len_total + len(key)
-        test::assert_true(words.contains_key(key))
+        Test::assert_true(words.contains_key(key))
     }
-    test::assert_eq_i32(word_count, 2)
-    test::assert_eq_i32(key_len_total, 9)
+    Test::assert_eq_i32(word_count, 2)
+    Test::assert_eq_i32(key_len_total, 9)
 
     // HashMap<i32, String> — i32 keys over the __hm_is_* slot layout.
     let mut labels = HashMap::new<i32, String>()
@@ -46,7 +46,7 @@ fn main() {
     for key in labels {
         label_sum = label_sum + key
     }
-    test::assert_eq_i32(label_sum, 16)
+    Test::assert_eq_i32(label_sum, 16)
 
     // HashMap<String, String> — String keys over the __hm_ss_* slot layout.
     let mut pairs = HashMap::new<String, String>()
@@ -57,7 +57,7 @@ fn main() {
     for key in pairs {
         pair_len = pair_len + len(key)
     }
-    test::assert_eq_i32(pair_len, 6)
+    Test::assert_eq_i32(pair_len, 6)
 
     // Empty maps iterate zero times.
     let empty = HashMap::new<i32, i32>()
@@ -65,5 +65,5 @@ fn main() {
     for key in empty {
         empty_count = empty_count + 1
     }
-    test::assert_eq_i32(empty_count, 0)
+    Test::assert_eq_i32(empty_count, 0)
 }

@@ -1,18 +1,18 @@
 use std::core::cmp
-use std::test
+use std::test::Test
 
 fn main() {
     match 5.cmp(5) {
         Ordering::Less => Std::panic("expected Equal"),
-        Ordering::Equal => test::assert_true(true),
+        Ordering::Equal => Test::assert_true(true),
         Ordering::Greater => Std::panic("expected Equal"),
     }
     match 0.cmp(0) {
-        Ordering::Equal => test::assert_true(true),
+        Ordering::Equal => Test::assert_true(true),
         _ => Std::panic("expected Equal"),
     }
     match (-3).cmp(-3) {
-        Ordering::Equal => test::assert_true(true),
+        Ordering::Equal => Test::assert_true(true),
         _ => Std::panic("expected Equal"),
     }
 }

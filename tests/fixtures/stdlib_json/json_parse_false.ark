@@ -1,12 +1,12 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("false") {
         Result::Ok(v) => {
-            test::assert_true(v.is_bool())
+            Test::assert_true(v.is_bool())
             match v.as_bool() {
-                Option::Some(b) => test::assert_eq_bool(b, false),
+                Option::Some(b) => Test::assert_eq_bool(b, false),
                 None => Std::panic("expected Some(false)"),
             }
         },

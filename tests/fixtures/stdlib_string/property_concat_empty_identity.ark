@@ -1,8 +1,8 @@
-use std::test
+use std::test::Test
 use std::prelude::{eq}
 use std::text
 fn main() {
     let s = String_from("data")
-    test::assert_true(eq(s.concat(String_from("")), s))
-    test::assert_true(eq(String_from("").concat(s), s))
+    Test::assert_true(eq(s.concat(String_from("")), s))
+    Test::assert_true(eq(String_from("").concat(s), s))
 }

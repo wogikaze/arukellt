@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
@@ -7,18 +7,18 @@ fn main() {
     push(bytes, 72)
     push(bytes, 105)
     let s = String::from_utf8_lossy(bytes)
-    test::assert_eq_string(s, "Hi")
-    test::assert_eq_i32(len(s), 2)
+    Test::assert_eq_string(s, "Hi")
+    Test::assert_eq_i32(len(s), 2)
 
     // Single byte
     let mut bytes2 = Vec::new<i32>()
     push(bytes2, 65)
     let s2 = String::from_utf8_lossy(bytes2)
-    test::assert_eq_string(s2, "A")
+    Test::assert_eq_string(s2, "A")
 
     // Empty byte array
     let bytes3 = Vec::new<i32>()
     let s3 = String::from_utf8_lossy(bytes3)
-    test::assert_eq_string(s3, "")
-    test::assert_eq_i32(len(s3), 0)
+    Test::assert_eq_string(s3, "")
+    Test::assert_eq_i32(len(s3), 0)
 }

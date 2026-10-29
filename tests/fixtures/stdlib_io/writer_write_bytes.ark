@@ -1,6 +1,6 @@
 use std::bytes
 use std::io
-use std::test
+use std::test::Test
 
 fn main() {
     let mut w: io::Writer = io::Writer::new()
@@ -10,11 +10,11 @@ fn main() {
     data.push_byte(67)
     let res: Result<i32, io::IoError> = w.write(data)
     match res {
-        Result::Ok(n) => test::assert_eq_i32(n, 3),
+        Result::Ok(n) => Test::assert_eq_i32(n, 3),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     let b: Vec<i32> = w.into_bytes()
-    test::assert_eq_i32(b.len(), 3)
-    test::assert_eq_i32(b.get_unchecked(0), 65)
-    test::assert_eq_i32(b.get_unchecked(2), 67)
+    Test::assert_eq_i32(b.len(), 3)
+    Test::assert_eq_i32(b.get_unchecked(0), 65)
+    Test::assert_eq_i32(b.get_unchecked(2), 67)
 }

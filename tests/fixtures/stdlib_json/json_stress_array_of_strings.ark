@@ -1,19 +1,19 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("[\"a\",\"bb\",\"ccc\"]") {
         Result::Ok(v) => {
             match v.get_index(0) {
                 Option::Some(e) => match e.as_string() {
-                    Option::Some(s) => test::assert_eq_string(s, "a"),
+                    Option::Some(s) => Test::assert_eq_string(s, "a"),
                     None => Std::panic("expected string"),
                 },
                 None => Std::panic("expected element 0"),
             }
             match v.get_index(2) {
                 Option::Some(e) => match e.as_string() {
-                    Option::Some(s) => test::assert_eq_string(s, "ccc"),
+                    Option::Some(s) => Test::assert_eq_string(s, "ccc"),
                     None => Std::panic("expected string"),
                 },
                 None => Std::panic("expected element 2"),

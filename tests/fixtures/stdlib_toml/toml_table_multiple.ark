@@ -1,17 +1,17 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 fn main() {
     let t = toml::TomlValue::parse("[a]\nx = 1\n[b]\ny = 2")
     match t {
         Result::Ok(table) => {
             let keys = table.table_keys()
-            test::assert_eq_i32(len(keys), 2)
+            Test::assert_eq_i32(len(keys), 2)
             match table.get_field("a") {
                 Option::Some(a) => match a.get_field("x") {
                     Option::Some(v) => match v.as_int() {
-                        Option::Some(n) => test::assert_eq_i32(n, 1),
+                        Option::Some(n) => Test::assert_eq_i32(n, 1),
                         None => assert(false),
                     },
                     None => assert(false),
@@ -21,7 +21,7 @@ fn main() {
             match table.get_field("b") {
                 Option::Some(b) => match b.get_field("y") {
                     Option::Some(v) => match v.as_int() {
-                        Option::Some(n) => test::assert_eq_i32(n, 2),
+                        Option::Some(n) => Test::assert_eq_i32(n, 2),
                         None => assert(false),
                     },
                     None => assert(false),

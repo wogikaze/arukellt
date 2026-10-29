@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::core::iter
 
 fn square(x: i32) -> i32 {
@@ -12,8 +12,8 @@ fn main() {
     push(v, 3)
     push(v, 4)
     let result: Vec<i32> = v.iter().map(square).collect()
-    test::assert_eq_i32(get_unchecked(result, 0), 1)
-    test::assert_eq_i32(get_unchecked(result, 1), 4)
-    test::assert_eq_i32(get_unchecked(result, 2), 9)
-    test::assert_eq_i32(get_unchecked(result, 3), 16)
+    Test::assert_eq_i32(get_unchecked(result, 0), 1)
+    Test::assert_eq_i32(get_unchecked(result, 1), 4)
+    Test::assert_eq_i32(get_unchecked(result, 2), 9)
+    Test::assert_eq_i32(get_unchecked(result, 3), 16)
 }

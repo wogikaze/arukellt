@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 
 fn main() {
     let v: Vec<i32> = Vec::new<i32>()

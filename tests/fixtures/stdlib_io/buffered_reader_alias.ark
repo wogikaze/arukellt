@@ -4,7 +4,7 @@
 use std::bytes
 use std::io
 use std::io::{BufReader, Reader}
-use std::test
+use std::test::Test
 
 fn line_data() -> Vec<i32> {
     let mut data: Vec<i32> = Vec::new<i32>()
@@ -20,14 +20,14 @@ fn main() {
     let l2: Result<Option<String>, io::IoError> = br2.read_line()
     match l1 {
         Result::Ok(found) => match found {
-            Option::Some(line) => test::assert_eq_string(line, "A"),
+            Option::Some(line) => Test::assert_eq_string(line, "A"),
             Option::None => Std::panic("expected line A from capacity 64"),
         },
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     match l2 {
         Result::Ok(found) => match found {
-            Option::Some(line) => test::assert_eq_string(line, "A"),
+            Option::Some(line) => Test::assert_eq_string(line, "A"),
             Option::None => Std::panic("expected line A from capacity 1"),
         },
         Result::Err(e) => Std::panic(io::io_error_message(e)),

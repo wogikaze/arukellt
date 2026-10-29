@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 
 // #896 / ADR-075: the shared metadata arena used to trap at ~4096 committed
 // records regardless of payload size. Churning small allocations now reuses
@@ -25,7 +25,7 @@ fn main() {
         }
         i = i + 1
     }
-    test::assert_eq_i32(len(keep), 4)
-    test::assert_eq_string(get_unchecked(keep, 0), String_from("alive-0"))
-    test::assert_eq_string(get_unchecked(keep, 3), String_from("alive-15000"))
+    Test::assert_eq_i32(len(keep), 4)
+    Test::assert_eq_string(get_unchecked(keep, 0), String_from("alive-0"))
+    Test::assert_eq_string(get_unchecked(keep, 3), String_from("alive-15000"))
 }

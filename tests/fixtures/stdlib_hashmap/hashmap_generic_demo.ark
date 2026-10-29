@@ -1,5 +1,5 @@
 use std::collections::hash_set::HashSet
-use std::test
+use std::test::Test
 
 test "generic_key_value_collections_expose_expected_operations" {
     // --- HashMap<String, i32> via the method surface ---
@@ -7,9 +7,9 @@ test "generic_key_value_collections_expose_expected_operations" {
     let _ = m.insert("alpha", 1)
     let _ = m.insert("beta", 2)
     let _ = m.insert("alpha", 10)
-    test::assert_eq_i32(m.len(), 2)
+    Test::assert_eq_i32(m.len(), 2)
     match m.get("alpha") {
-        Option::Some(v) => test::assert_eq_i32(v, 10),
+        Option::Some(v) => Test::assert_eq_i32(v, 10),
         None => Std::panic("expected Some(10)"),
     }
     match m.get("gamma") {
@@ -17,17 +17,17 @@ test "generic_key_value_collections_expose_expected_operations" {
         None => {
         },
     }
-    test::assert_true(m.contains_key("beta"))
-    test::assert_false(m.contains_key("unknown"))
+    Test::assert_true(m.contains_key("beta"))
+    Test::assert_false(m.contains_key("unknown"))
 
     // --- HashMap<i32, String> via the method surface ---
     let mut m2 = HashMap::new<i32, String>()
     let _ = m2.insert(1, "one")
     let _ = m2.insert(2, "two")
     let _ = m2.insert(1, "ONE")
-    test::assert_eq_i32(m2.len(), 2)
+    Test::assert_eq_i32(m2.len(), 2)
     match m2.get(1) {
-        Option::Some(v) => test::assert_eq_string(v, "ONE"),
+        Option::Some(v) => Test::assert_eq_string(v, "ONE"),
         None => Std::panic("expected Some(\"ONE\")"),
     }
 
@@ -35,23 +35,23 @@ test "generic_key_value_collections_expose_expected_operations" {
     let mut m3 = HashMap::new<String, String>()
     let _ = m3.insert("greeting", "hello")
     let _ = m3.insert("farewell", "goodbye")
-    test::assert_eq_i32(m3.len(), 2)
+    Test::assert_eq_i32(m3.len(), 2)
     match m3.get("greeting") {
-        Option::Some(v) => test::assert_eq_string(v, "hello"),
+        Option::Some(v) => Test::assert_eq_string(v, "hello"),
         None => Std::panic("expected Some(\"hello\")"),
     }
-    test::assert_true(m3.contains_key("farewell"))
+    Test::assert_true(m3.contains_key("farewell"))
 
     // --- HashSet<String> method surface ---
     let mut s: HashSet<String> = HashSet::new<String>()
-    test::assert_true(s.insert("red"))
-    test::assert_true(s.insert("green"))
-    test::assert_false(s.insert("red"))
-    test::assert_eq_i32(s.len(), 2)
-    test::assert_true(s.contains("green"))
-    test::assert_false(s.contains("blue"))
-    test::assert_true(s.remove("green"))
-    test::assert_eq_i32(s.len(), 1)
+    Test::assert_true(s.insert("red"))
+    Test::assert_true(s.insert("green"))
+    Test::assert_false(s.insert("red"))
+    Test::assert_eq_i32(s.len(), 2)
+    Test::assert_true(s.contains("green"))
+    Test::assert_false(s.contains("blue"))
+    Test::assert_true(s.remove("green"))
+    Test::assert_eq_i32(s.len(), 1)
 
     // --- HashSet<i32> operations via the method surface ---
     let mut s2: HashSet<i32> = HashSet::new<i32>()
@@ -63,9 +63,9 @@ test "generic_key_value_collections_expose_expected_operations" {
     let _ = s3.insert(30)
     let _ = s3.insert(40)
     let u: HashSet<i32> = s2.union(s3)
-    test::assert_eq_i32(u.len(), 4)
+    Test::assert_eq_i32(u.len(), 4)
     let i: HashSet<i32> = s2.intersection(s3)
-    test::assert_eq_i32(i.len(), 2)
+    Test::assert_eq_i32(i.len(), 2)
     let d: HashSet<i32> = s2.difference(s3)
-    test::assert_eq_i32(d.len(), 1)
+    Test::assert_eq_i32(d.len(), 1)
 }

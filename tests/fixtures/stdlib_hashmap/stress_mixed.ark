@@ -1,5 +1,5 @@
 // Stress: mixed insert/remove/lookup cycle
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
@@ -10,7 +10,7 @@ fn main() {
         let _ = m.insert(i, i)
         i = i + 1
     }
-    test::assert_eq_i32(m.len(), 20)
+    Test::assert_eq_i32(m.len(), 20)
 
     // Phase 2: remove 0-9
     i = 0
@@ -18,7 +18,7 @@ fn main() {
         m.remove(i)
         i = i + 1
     }
-    test::assert_eq_i32(m.len(), 10)
+    Test::assert_eq_i32(m.len(), 10)
 
     // Phase 3: insert 20-29
     i = 20
@@ -26,18 +26,18 @@ fn main() {
         let _ = m.insert(i, i)
         i = i + 1
     }
-    test::assert_eq_i32(m.len(), 20)
+    Test::assert_eq_i32(m.len(), 20)
 
     // Verify: 0-9 absent, 10-19 present, 20-29 present
     i = 0
     while i < 10 {
-        test::assert_false(m.contains_key(i))
+        Test::assert_false(m.contains_key(i))
         i = i + 1
     }
     i = 10
     while i < 30 {
-        test::assert_true(m.contains_key(i))
-        test::assert_eq_i32(m.get(i).unwrap_or(0), i)
+        Test::assert_true(m.contains_key(i))
+        Test::assert_eq_i32(m.get(i).unwrap_or(0), i)
         i = i + 1
     }
 }

@@ -1,24 +1,24 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     let raw = "[1,\"two\",true,null,42]"
     match json::JsonValue::parse(raw) {
         Result::Ok(v) => {
             let s = v.to_text()
-            test::assert_eq_string(s, raw)
+            Test::assert_eq_string(s, raw)
             match json::JsonValue::parse(s) {
                 Result::Ok(v2) => {
                     match v2.get_index(0) {
                         Option::Some(e) => match e.as_i32() {
-                            Option::Some(n) => test::assert_eq_i32(n, 1),
+                            Option::Some(n) => Test::assert_eq_i32(n, 1),
                             None => Std::panic("expected number"),
                         },
                         None => Std::panic("expected element 0"),
                     }
                     match v2.get_index(4) {
                         Option::Some(e) => match e.as_i32() {
-                            Option::Some(n) => test::assert_eq_i32(n, 42),
+                            Option::Some(n) => Test::assert_eq_i32(n, 42),
                             None => Std::panic("expected number"),
                         },
                         None => Std::panic("expected element 4"),

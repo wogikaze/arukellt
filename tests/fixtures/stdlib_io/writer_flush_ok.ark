@@ -1,5 +1,5 @@
 use std::io
-use std::test
+use std::test::Test
 
 fn main() {
     let mut w: io::Writer = io::Writer::new()

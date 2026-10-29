@@ -1,10 +1,10 @@
 use std::core::cmp
-use std::test
+use std::test::Test
 
 fn main() {
     // Value within range is unchanged
-    test::assert_eq_i32(5.clamp(0, 10), 5)
-    test::assert_eq_i32(0.clamp(0, 10), 0)
-    test::assert_eq_i32(10.clamp(0, 10), 10)
-    test::assert_eq_i32(3.clamp(0, 10), 3)
+    Test::assert_eq_i32(5.clamp(0, 10), 5)
+    Test::assert_eq_i32(0.clamp(0, 10), 0)
+    Test::assert_eq_i32(10.clamp(0, 10), 10)
+    Test::assert_eq_i32(3.clamp(0, 10), 3)
 }

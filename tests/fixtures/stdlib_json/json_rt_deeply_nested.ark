@@ -1,12 +1,12 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     let raw = "{\"a\":{\"b\":{\"c\":[1,2,{\"d\":true}]}}}"
     match json::JsonValue::parse(raw) {
         Result::Ok(v) => {
             let s = v.to_text()
-            test::assert_eq_string(s, raw)
+            Test::assert_eq_string(s, raw)
             match json::JsonValue::parse(s) {
                 Result::Ok(v2) => {
                     match v2.get_field("a") {
@@ -15,7 +15,7 @@ fn main() {
                                 Option::Some(c) => match c.get_index(2) {
                                     Option::Some(obj) => match obj.get_field("d") {
                                         Option::Some(dv) => match dv.as_bool() {
-                                            Option::Some(b2) => test::assert_eq_bool(b2, true),
+                                            Option::Some(b2) => Test::assert_eq_bool(b2, true),
                                             None => Std::panic("expected bool"),
                                         },
                                         None => Std::panic("expected key d"),

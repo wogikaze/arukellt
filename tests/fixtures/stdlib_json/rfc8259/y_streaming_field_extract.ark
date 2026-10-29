@@ -1,11 +1,11 @@
 use std::json
-use std::test
+use std::test::Test
 
 fn main() {
     let body = "{\"id\":7,\"method\":\"textDocument/hover\",\"uri\":\"file:///x.ark\"}"
-    test::assert_eq_i32(json::JsonText::get_int(body, "id"), 7)
-    test::assert_eq_string(json::JsonText::get_str(body, "method"), "textDocument/hover")
-    test::assert_eq_string(json::JsonText::get_str(body, "uri"), "file:///x.ark")
-    test::assert_eq_i32(json::JsonText::skip_ws("  \ttrue", 0), 3)
-    test::assert_eq_i32(json::JsonText::content_length("Content-Length: 12\r\n\r\n"), 12)
+    Test::assert_eq_i32(json::JsonText::get_int(body, "id"), 7)
+    Test::assert_eq_string(json::JsonText::get_str(body, "method"), "textDocument/hover")
+    Test::assert_eq_string(json::JsonText::get_str(body, "uri"), "file:///x.ark")
+    Test::assert_eq_i32(json::JsonText::skip_ws("  \ttrue", 0), 3)
+    Test::assert_eq_i32(json::JsonText::content_length("Content-Length: 12\r\n\r\n"), 12)
 }

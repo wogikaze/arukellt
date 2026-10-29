@@ -1,5 +1,5 @@
 use std::json
-use std::test
+use std::test::Test
 
 fn main() {
     // Raw tab inside a JSON string is illegal (must be \\t).

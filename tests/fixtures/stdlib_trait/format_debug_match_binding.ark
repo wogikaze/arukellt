@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::text::fmt
 
 // A generic call whose argument is a fresh var from the enclosing env
@@ -19,5 +19,5 @@ fn describe<T: Debug>(x: T) -> String {
 }
 
 fn main() {
-    test::assert_eq_string(describe(7), "7")
+    Test::assert_eq_string(describe(7), "7")
 }

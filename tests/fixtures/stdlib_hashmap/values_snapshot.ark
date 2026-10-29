@@ -1,5 +1,5 @@
 // Values: returns snapshot of all values
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
@@ -8,7 +8,7 @@ fn main() {
     let _ = m.insert(3, 333)
 
     let vals = m.values()
-    test::assert_eq_i32(len(vals), 3)
+    Test::assert_eq_i32(len(vals), 3)
 
     let mut found_111 = false
     let mut found_222 = false
@@ -21,7 +21,7 @@ fn main() {
         if v == 333 { found_333 = true }
         i = i + 1
     }
-    test::assert_true(found_111)
-    test::assert_true(found_222)
-    test::assert_true(found_333)
+    Test::assert_true(found_111)
+    Test::assert_true(found_222)
+    Test::assert_true(found_333)
 }

@@ -1,15 +1,15 @@
 use std::core::convert
-use std::test
+use std::test::Test
 
 fn main() {
     let first: Result<f64, String> = f64::try_from("3.14")
     match first {
-        Ok(v) => test::assert_eq_f64(v, 3.14),
+        Ok(v) => Test::assert_eq_f64(v, 3.14),
         Err(_) => Std::panic("expected Ok(3.14)"),
     }
     let zero: Result<f64, String> = f64::try_from("0.0")
     match zero {
-        Ok(v) => test::assert_eq_f64(v, 0.0),
+        Ok(v) => Test::assert_eq_f64(v, 0.0),
         Err(_) => Std::panic("expected Ok(0.0)"),
     }
     let text: Result<f64, String> = f64::try_from("abc")
@@ -17,5 +17,5 @@ fn main() {
         Ok(_) => false,
         Err(_) => true,
     }
-    test::assert_true(rejected)
+    Test::assert_true(rejected)
 }

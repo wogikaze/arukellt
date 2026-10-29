@@ -1,5 +1,5 @@
 use std::core::iter
-use std::test
+use std::test::Test
 
 fn running_sum(state: i32, x: i32) -> Option<i32> {
     let s: i32 = state + x
@@ -19,29 +19,29 @@ fn main() {
 
     // step_by yields every n-th element.
     let stepped = v.iter().step_by(2).collect()
-    test::assert_eq_i32(len(stepped), 3)
-    test::assert_eq_i32(get_unchecked(stepped, 0), 1)
-    test::assert_eq_i32(get_unchecked(stepped, 1), 3)
-    test::assert_eq_i32(get_unchecked(stepped, 2), 5)
+    Test::assert_eq_i32(len(stepped), 3)
+    Test::assert_eq_i32(get_unchecked(stepped, 0), 1)
+    Test::assert_eq_i32(get_unchecked(stepped, 1), 3)
+    Test::assert_eq_i32(get_unchecked(stepped, 2), 5)
 
     // A non-positive step is clamped to 1 instead of stalling.
     let clamped = v.iter().step_by(0).take(2).collect()
-    test::assert_eq_i32(len(clamped), 2)
-    test::assert_eq_i32(get_unchecked(clamped, 0), 1)
-    test::assert_eq_i32(get_unchecked(clamped, 1), 2)
+    Test::assert_eq_i32(len(clamped), 2)
+    Test::assert_eq_i32(get_unchecked(clamped, 0), 1)
+    Test::assert_eq_i32(get_unchecked(clamped, 1), 2)
 
     // scan threads state through f and stops when f returns None.
     let mut it = v.iter().scan(0, running_sum)
     match it.next() {
-        Some(x) => test::assert_eq_i32(x, 1),
+        Some(x) => Test::assert_eq_i32(x, 1),
         None => Std::panic("expected Some"),
     }
     match it.next() {
-        Some(x) => test::assert_eq_i32(x, 3),
+        Some(x) => Test::assert_eq_i32(x, 3),
         None => Std::panic("expected Some"),
     }
     match it.next() {
-        Some(x) => test::assert_eq_i32(x, 6),
+        Some(x) => Test::assert_eq_i32(x, 6),
         None => Std::panic("expected Some"),
     }
     // 6 + 4 = 10 > 6, so f returned None and the adapter stays exhausted.

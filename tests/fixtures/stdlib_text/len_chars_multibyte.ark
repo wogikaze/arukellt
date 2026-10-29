@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
@@ -7,8 +7,8 @@ fn main() {
     push(bytes, 195)
     push(bytes, 169)
     let s = String::from_utf8_lossy(bytes)
-    test::assert_eq_i32(s.len_bytes(), 2)
-    test::assert_eq_i32(s.len_chars(), 1)
+    Test::assert_eq_i32(s.len_bytes(), 2)
+    Test::assert_eq_i32(s.len_chars(), 1)
 
     // Construct a 3-byte UTF-8 sequence (中 = U+4E2D = 0xE4 0xB8 0xAD)
     let mut bytes2 = Vec::new<i32>()
@@ -16,9 +16,9 @@ fn main() {
     push(bytes2, 184)
     push(bytes2, 173)
     let s2 = String::from_utf8_lossy(bytes2)
-    test::assert_eq_i32(s2.len_bytes(), 3)
-    test::assert_eq_i32(s2.len_chars(), 1)
+    Test::assert_eq_i32(s2.len_bytes(), 3)
+    Test::assert_eq_i32(s2.len_chars(), 1)
 
     // Empty string
-    test::assert_eq_i32("".len_chars(), 0)
+    Test::assert_eq_i32("".len_chars(), 0)
 }

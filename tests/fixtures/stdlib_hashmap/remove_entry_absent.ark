@@ -1,5 +1,5 @@
 // Remove_entry: absent key returns None and leaves the map unchanged
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
@@ -10,8 +10,8 @@ fn main() {
         None => {
         },
     }
-    test::assert_eq_i32(m.len(), 1)
-    test::assert_true(m.contains_key(1))
+    Test::assert_eq_i32(m.len(), 1)
+    Test::assert_true(m.contains_key(1))
 
     let mut m2 = HashMap::new<i32, i32>()
     match m2.remove_entry(1) {

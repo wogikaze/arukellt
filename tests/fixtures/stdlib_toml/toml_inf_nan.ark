@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 fn main() {
     let t = toml::TomlValue::parse("a = inf\nb = nan")
@@ -8,14 +8,14 @@ fn main() {
         Result::Ok(table) => {
             match table.get_field("a") {
                 Option::Some(v) => match v.as_string() {
-                    Option::Some(s) => test::assert_eq_string(s, "inf"),
+                    Option::Some(s) => Test::assert_eq_string(s, "inf"),
                     None => assert(false),
                 },
                 None => assert(false),
             }
             match table.get_field("b") {
                 Option::Some(v) => match v.as_string() {
-                    Option::Some(s) => test::assert_eq_string(s, "nan"),
+                    Option::Some(s) => Test::assert_eq_string(s, "nan"),
                     None => assert(false),
                 },
                 None => assert(false),

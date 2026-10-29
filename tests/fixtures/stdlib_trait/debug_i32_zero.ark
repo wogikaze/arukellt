@@ -1,7 +1,7 @@
 use std::text::fmt
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_string((0).fmt_debug(), "0")
-    test::assert_eq_string("val=".concat((0).fmt_debug()), "val=0")
+    Test::assert_eq_string((0).fmt_debug(), "0")
+    Test::assert_eq_string("val=".concat((0).fmt_debug()), "val=0")
 }

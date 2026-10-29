@@ -1,5 +1,5 @@
 // Insert: negative keys are handled correctly
-use std::test
+use std::test::Test
 
 fn main() {
     let int_min: i32 = (0 - 2147483647) - 1
@@ -7,11 +7,11 @@ fn main() {
     let _ = m.insert(0 - 1, 100)
     let _ = m.insert(0 - 100, 200)
     let _ = m.insert(int_min, 300)
-    test::assert_eq_i32(m.len(), 3)
-    test::assert_eq_i32(m.get(0 - 1).unwrap_or(0), 100)
-    test::assert_eq_i32(m.get(0 - 100).unwrap_or(0), 200)
-    test::assert_eq_i32(m.get(int_min).unwrap_or(0), 300)
-    test::assert_true(m.contains_key(0 - 1))
-    test::assert_true(m.contains_key(0 - 100))
-    test::assert_true(m.contains_key(int_min))
+    Test::assert_eq_i32(m.len(), 3)
+    Test::assert_eq_i32(m.get(0 - 1).unwrap_or(0), 100)
+    Test::assert_eq_i32(m.get(0 - 100).unwrap_or(0), 200)
+    Test::assert_eq_i32(m.get(int_min).unwrap_or(0), 300)
+    Test::assert_true(m.contains_key(0 - 1))
+    Test::assert_true(m.contains_key(0 - 100))
+    Test::assert_true(m.contains_key(int_min))
 }

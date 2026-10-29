@@ -1,9 +1,9 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 use std::prelude::{is_none, is_some}
 fn main() {
     let a: Option<i32> = None
-    test::assert_true(is_none(a))
-    test::assert_false(is_some(a))
+    Test::assert_true(is_none(a))
+    Test::assert_false(is_some(a))
     stdio::println("ok")
 }

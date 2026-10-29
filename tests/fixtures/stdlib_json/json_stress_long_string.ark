@@ -1,11 +1,11 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     let raw = "\"abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ\""
     match json::JsonValue::parse(raw) {
         Result::Ok(v) => match v.as_string() {
-            Option::Some(s) => test::assert_eq_i32(len(s), 62),
+            Option::Some(s) => Test::assert_eq_i32(len(s), 62),
             None => Std::panic("expected string"),
         },
         Result::Err(e) => Std::panic("parse long string failed: ".concat(e.message())),

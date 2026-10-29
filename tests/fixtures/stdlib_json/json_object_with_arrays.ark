@@ -1,15 +1,15 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("{\"items\":[1,2,3],\"empty\":[]}") {
         Result::Ok(v) => {
             match v.get_field("items") {
                 Option::Some(arr) => {
-                    test::assert_true(arr.is_array())
+                    Test::assert_true(arr.is_array())
                     match arr.get_index(1) {
                         Option::Some(e) => match e.as_i32() {
-                            Option::Some(n) => test::assert_eq_i32(n, 2),
+                            Option::Some(n) => Test::assert_eq_i32(n, 2),
                             None => Std::panic("expected number"),
                         },
                         None => Std::panic("expected element 1"),
@@ -18,7 +18,7 @@ fn main() {
                 None => Std::panic("expected key items"),
             }
             match v.get_field("empty") {
-                Option::Some(arr) => test::assert_true(arr.is_array()),
+                Option::Some(arr) => Test::assert_true(arr.is_array()),
                 None => Std::panic("expected key empty"),
             }
         },

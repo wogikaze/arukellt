@@ -1,16 +1,16 @@
 use std::core::cmp
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_i32(3.min(7), 3)
-    test::assert_eq_i32(7.min(3), 3)
-    test::assert_eq_i32(5.min(5), 5)
+    Test::assert_eq_i32(3.min(7), 3)
+    Test::assert_eq_i32(7.min(3), 3)
+    Test::assert_eq_i32(5.min(5), 5)
 
-    test::assert_eq_i32(3.max(7), 7)
-    test::assert_eq_i32(7.max(3), 7)
-    test::assert_eq_i32(5.max(5), 5)
+    Test::assert_eq_i32(3.max(7), 7)
+    Test::assert_eq_i32(7.max(3), 7)
+    Test::assert_eq_i32(5.max(5), 5)
 
     // Negative values (parenthesize: unary vs postfix precedence).
-    test::assert_eq_i32((-5).min(3), -5)
-    test::assert_eq_i32((-5).max(3), 3)
+    Test::assert_eq_i32((-5).min(3), -5)
+    Test::assert_eq_i32((-5).max(3), 3)
 }

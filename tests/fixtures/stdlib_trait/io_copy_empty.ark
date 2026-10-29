@@ -1,13 +1,13 @@
 use std::io
-use std::test
+use std::test::Test
 
 fn main() {
     let mut src: io::Reader = io::Reader::new()
     let mut dst: io::Writer = io::Writer::new()
     match io::Io::copy(src, dst) {
-        Result::Ok(copied) => test::assert_eq_i64(copied, 0),
+        Result::Ok(copied) => Test::assert_eq_i64(copied, 0),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     let image: Vec<i32> = dst.into_bytes()
-    test::assert_eq_i32(len(image), 0)
+    Test::assert_eq_i32(len(image), 0)
 }

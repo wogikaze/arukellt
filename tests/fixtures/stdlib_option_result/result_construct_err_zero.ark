@@ -1,8 +1,8 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 use std::prelude::{is_err}
 fn main() {
     let r: Result<i32, i32> = Err(0)
-    test::assert_true(is_err(r))
+    Test::assert_true(is_err(r))
     stdio::println("ok")
 }

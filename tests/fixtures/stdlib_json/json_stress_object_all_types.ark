@@ -1,35 +1,35 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("{\"n\":null,\"b\":true,\"i\":42,\"f\":3.14,\"s\":\"str\",\"a\":[1],\"o\":{\"k\":1}}") {
         Result::Ok(v) => {
             match v.get_field("n") {
-                Option::Some(fv) => test::assert_true(fv.is_null()),
+                Option::Some(fv) => Test::assert_true(fv.is_null()),
                 None => Std::panic("expected key n"),
             }
             match v.get_field("b") {
-                Option::Some(fv) => test::assert_true(fv.is_bool()),
+                Option::Some(fv) => Test::assert_true(fv.is_bool()),
                 None => Std::panic("expected key b"),
             }
             match v.get_field("i") {
-                Option::Some(fv) => test::assert_true(fv.is_number()),
+                Option::Some(fv) => Test::assert_true(fv.is_number()),
                 None => Std::panic("expected key i"),
             }
             match v.get_field("f") {
-                Option::Some(fv) => test::assert_true(fv.is_number()),
+                Option::Some(fv) => Test::assert_true(fv.is_number()),
                 None => Std::panic("expected key f"),
             }
             match v.get_field("s") {
-                Option::Some(fv) => test::assert_true(fv.is_string()),
+                Option::Some(fv) => Test::assert_true(fv.is_string()),
                 None => Std::panic("expected key s"),
             }
             match v.get_field("a") {
-                Option::Some(fv) => test::assert_true(fv.is_array()),
+                Option::Some(fv) => Test::assert_true(fv.is_array()),
                 None => Std::panic("expected key a"),
             }
             match v.get_field("o") {
-                Option::Some(fv) => test::assert_true(fv.is_object()),
+                Option::Some(fv) => Test::assert_true(fv.is_object()),
                 None => Std::panic("expected key o"),
             }
         },

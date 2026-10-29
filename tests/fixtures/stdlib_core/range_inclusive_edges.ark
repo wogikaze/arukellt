@@ -1,17 +1,17 @@
 use std::core::{RangeInclusive}
-use std::test
+use std::test::Test
 
 fn main() {
     // Single-element inclusive range
     let single = RangeInclusive::new(3, 3)
-    test::assert_true(single.contains(3))
-    test::assert_false(single.contains(2))
-    test::assert_false(single.contains(4))
+    Test::assert_true(single.contains(3))
+    Test::assert_false(single.contains(2))
+    Test::assert_false(single.contains(4))
 
     // Negative range
     let neg = RangeInclusive::new(-5, -1)
-    test::assert_true(neg.contains(-5))
-    test::assert_true(neg.contains(-3))
-    test::assert_true(neg.contains(-1))
-    test::assert_false(neg.contains(0))
+    Test::assert_true(neg.contains(-5))
+    Test::assert_true(neg.contains(-3))
+    Test::assert_true(neg.contains(-1))
+    Test::assert_false(neg.contains(0))
 }

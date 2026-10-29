@@ -1,5 +1,5 @@
 use std::core::cmp
-use std::test
+use std::test::Test
 
 fn main() {
     // Shorter string is Less when it is a prefix of the longer

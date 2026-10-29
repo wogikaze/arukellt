@@ -1,28 +1,28 @@
 // TryFrom<String> associated conversions on the linear wasm32 target
 // (ADR-084 / ADR-046).
 use std::core::convert
-use std::test
+use std::test::Test
 
 fn main() {
     let parsed: Result<i32, String> = i32::try_from("42")
     match parsed {
-        Ok(v) => test::assert_eq_i32(v, 42),
-        Err(_) => test::assert_true(false),
+        Ok(v) => Test::assert_eq_i32(v, 42),
+        Err(_) => Test::assert_true(false),
     }
     let wide: Result<i64, String> = i64::try_from("9001")
     match wide {
-        Ok(v) => test::assert_eq_i64(v, 9001i64),
-        Err(_) => test::assert_true(false),
+        Ok(v) => Test::assert_eq_i64(v, 9001i64),
+        Err(_) => Test::assert_true(false),
     }
     let real: Result<f64, String> = f64::try_from("1.5")
     match real {
-        Ok(v) => test::assert_true(v > 1.0),
-        Err(_) => test::assert_true(false),
+        Ok(v) => Test::assert_true(v > 1.0),
+        Err(_) => Test::assert_true(false),
     }
     let rejected: Result<i32, String> = i32::try_from("abc")
     let is_rejected: bool = match rejected {
         Ok(_) => false,
         Err(_) => true,
     }
-    test::assert_true(is_rejected)
+    Test::assert_true(is_rejected)
 }

@@ -1,6 +1,6 @@
 use std::bytes
 use std::io
-use std::test
+use std::test::Test
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
@@ -10,7 +10,7 @@ fn main() {
     let res: Result<Option<String>, io::IoError> = r.read_line()
     match res {
         Result::Ok(found) => match found {
-            Option::Some(line) => test::assert_eq_string(line, ""),
+            Option::Some(line) => Test::assert_eq_string(line, ""),
             Option::None => Std::panic("expected an empty line"),
         },
         Result::Err(e) => Std::panic(io::io_error_message(e)),
@@ -18,7 +18,7 @@ fn main() {
     let res2: Result<Option<String>, io::IoError> = r.read_line()
     match res2 {
         Result::Ok(found) => match found {
-            Option::Some(line) => test::assert_eq_string(line, "X"),
+            Option::Some(line) => Test::assert_eq_string(line, "X"),
             Option::None => Std::panic("expected the trailing line"),
         },
         Result::Err(e) => Std::panic(io::io_error_message(e)),

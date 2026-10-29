@@ -1,12 +1,12 @@
 use std::core::hash
-use std::test
+use std::test::Test
 
 fn main() {
     let strings = ["abc", "hello world", "12345", "A", ""]
     let mut i = 0
     while i < 5 {
         let s = get_unchecked(strings, i)
-        test::assert_eq_i32(s.hash(), s.hash())
+        Test::assert_eq_i32(s.hash(), s.hash())
         i = i + 1
     }
 }

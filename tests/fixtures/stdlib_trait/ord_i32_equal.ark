@@ -1,5 +1,5 @@
 use std::core::cmp
-use std::test
+use std::test::Test
 
 fn main() {
     let o = (5).cmp(5)
@@ -8,5 +8,5 @@ fn main() {
         Ordering::Less => Std::panic("expected Equal"),
         Ordering::Greater => Std::panic("expected Equal"),
     }
-    test::assert_true(true)
+    Test::assert_true(true)
 }

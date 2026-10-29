@@ -1,15 +1,15 @@
 // Construction: hashmap_new() basic invariants
-use std::test
+use std::test::Test
 
 fn main() {
     let m = HashMap::new<i32, i32>()
-    test::assert_true(m.is_empty())
-    test::assert_eq_i32(m.len(), 0)
-    test::assert_eq_i32(m.capacity(), 16)
-    test::assert_false(m.contains_key(0))
-    test::assert_false(m.contains_key(1))
-    test::assert_false(m.contains_key(100))
-    test::assert_eq_i32(len(m.keys()), 0)
-    test::assert_eq_i32(len(m.values()), 0)
-    test::assert_eq_i32(len(m.entries()), 0)
+    Test::assert_true(m.is_empty())
+    Test::assert_eq_i32(m.len(), 0)
+    Test::assert_eq_i32(m.capacity(), 16)
+    Test::assert_false(m.contains_key(0))
+    Test::assert_false(m.contains_key(1))
+    Test::assert_false(m.contains_key(100))
+    Test::assert_eq_i32(len(m.keys()), 0)
+    Test::assert_eq_i32(len(m.values()), 0)
+    Test::assert_eq_i32(len(m.entries()), 0)
 }

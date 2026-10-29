@@ -1,12 +1,12 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("[]") {
         Result::Ok(v) => {
-            test::assert_eq_string(v.to_text(), "[]")
+            Test::assert_eq_string(v.to_text(), "[]")
             match json::JsonValue::parse(v.to_text()) {
-                Result::Ok(v2) => test::assert_true(v2.is_array()),
+                Result::Ok(v2) => Test::assert_true(v2.is_array()),
                 Result::Err(e) => Std::panic("re-parse [] failed: ".concat(e.message())),
             }
         },
@@ -14,9 +14,9 @@ fn main() {
     }
     match json::JsonValue::parse("{}") {
         Result::Ok(v) => {
-            test::assert_eq_string(v.to_text(), "{}")
+            Test::assert_eq_string(v.to_text(), "{}")
             match json::JsonValue::parse(v.to_text()) {
-                Result::Ok(v2) => test::assert_true(v2.is_object()),
+                Result::Ok(v2) => Test::assert_true(v2.is_object()),
                 Result::Err(e) => Std::panic("re-parse {} failed: ".concat(e.message())),
             }
         },

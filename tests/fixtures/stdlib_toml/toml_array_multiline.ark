@@ -1,13 +1,13 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 fn main() {
     let t = toml::TomlValue::parse("vals = [\n  1,\n  2,\n  3,\n]")
     match t {
         Result::Ok(table) => match table.get_field("vals") {
             Option::Some(v) => match v.as_array() {
-                Option::Some(arr) => test::assert_eq_i32(len(arr), 3),
+                Option::Some(arr) => Test::assert_eq_i32(len(arr), 3),
                 None => assert(false),
             },
             None => assert(false),

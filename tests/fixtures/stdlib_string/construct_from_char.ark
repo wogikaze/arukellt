@@ -1,8 +1,8 @@
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_string(char_to_string('A'), "A")
-    test::assert_eq_string(char_to_string('z'), "z")
-    test::assert_eq_string(char_to_string('0'), "0")
-    test::assert_eq_string(char_to_string(' '), " ")
+    Test::assert_eq_string(char_to_string('A'), "A")
+    Test::assert_eq_string(char_to_string('z'), "z")
+    Test::assert_eq_string(char_to_string('0'), "0")
+    Test::assert_eq_string(char_to_string(' '), " ")
 }

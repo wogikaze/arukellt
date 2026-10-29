@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
@@ -6,20 +6,20 @@ fn main() {
     let original = "hello"
     let bytes = original.to_utf8_bytes()
     let restored = String::from_utf8_lossy(bytes)
-    test::assert_eq_string(restored, original)
+    Test::assert_eq_string(restored, original)
 
     // Roundtrip with empty string
     let bytes2 = "".to_utf8_bytes()
     let restored2 = String::from_utf8_lossy(bytes2)
-    test::assert_eq_string(restored2, "")
+    Test::assert_eq_string(restored2, "")
 
     // Roundtrip with special chars
     let original3 = "a b\nc"
     let bytes3 = original3.to_utf8_bytes()
     let restored3 = String::from_utf8_lossy(bytes3)
-    test::assert_eq_string(restored3, original3)
+    Test::assert_eq_string(restored3, original3)
 
     // Byte count matches len_bytes
     let s = "hello world"
-    test::assert_eq_i32(len(s.to_utf8_bytes()), s.len_bytes())
+    Test::assert_eq_i32(len(s.to_utf8_bytes()), s.len_bytes())
 }

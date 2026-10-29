@@ -1,8 +1,8 @@
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_string((0).to_string(), "0")
-    test::assert_eq_string((9999999999).to_string(), "9999999999")
-    test::assert_eq_string((-9999999999).to_string(), "-9999999999")
-    test::assert_eq_string((1).to_string(), "1")
+    Test::assert_eq_string((0).to_string(), "0")
+    Test::assert_eq_string((9999999999).to_string(), "9999999999")
+    Test::assert_eq_string((-9999999999).to_string(), "-9999999999")
+    Test::assert_eq_string((1).to_string(), "1")
 }

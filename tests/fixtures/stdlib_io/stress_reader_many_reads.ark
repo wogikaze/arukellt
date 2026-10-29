@@ -1,6 +1,6 @@
 use std::bytes
 use std::io
-use std::test
+use std::test::Test
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
@@ -18,5 +18,5 @@ fn main() {
             Result::Err(e) => Std::panic(io::io_error_message(e)),
         }
     }
-    test::assert_eq_i32(total, 50)
+    Test::assert_eq_i32(total, 50)
 }

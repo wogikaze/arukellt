@@ -1,6 +1,6 @@
 use std::bytes
 use std::io
-use std::test
+use std::test::Test
 
 fn main() {
     let mut w: io::Writer = io::Writer::new()
@@ -10,5 +10,5 @@ fn main() {
         i = i + 1
     }
     let b: Vec<i32> = w.into_bytes()
-    test::assert_eq_i32(b.len(), 100)
+    Test::assert_eq_i32(b.len(), 100)
 }

@@ -1,23 +1,23 @@
 // Insert: key=0 is a valid key, not a sentinel
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
     let _ = m.insert(0, 42)
-    test::assert_true(m.contains_key(0))
-    test::assert_eq_i32(m.get(0).unwrap_or(0), 42)
-    test::assert_eq_i32(m.len(), 1)
+    Test::assert_true(m.contains_key(0))
+    Test::assert_eq_i32(m.get(0).unwrap_or(0), 42)
+    Test::assert_eq_i32(m.len(), 1)
 
     // Overwrite key=0
     let _ = m.insert(0, 99)
-    test::assert_eq_i32(m.get(0).unwrap_or(0), 99)
-    test::assert_eq_i32(m.len(), 1)
+    Test::assert_eq_i32(m.get(0).unwrap_or(0), 99)
+    Test::assert_eq_i32(m.len(), 1)
 
     // Remove key=0
     match m.remove(0) {
-        Option::Some(v) => test::assert_eq_i32(v, 99),
+        Option::Some(v) => Test::assert_eq_i32(v, 99),
         None => Std::panic("expected Some(99) on remove"),
     }
-    test::assert_false(m.contains_key(0))
-    test::assert_eq_i32(m.len(), 0)
+    Test::assert_false(m.contains_key(0))
+    Test::assert_eq_i32(m.len(), 0)
 }

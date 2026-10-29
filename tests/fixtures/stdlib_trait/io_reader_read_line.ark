@@ -1,5 +1,5 @@
 use std::io
-use std::test
+use std::test::Test
 
 fn main() {
     // "AB\nCD" - read_line returns "AB" and consumes the newline
@@ -13,7 +13,7 @@ fn main() {
 
     match reader.read_line() {
         Result::Ok(found) => match found {
-            Option::Some(line) => test::assert_eq_string(line, "AB"),
+            Option::Some(line) => Test::assert_eq_string(line, "AB"),
             Option::None => Std::panic("expected Ok"),
         },
         Result::Err(_e) => Std::panic("expected Ok"),
@@ -22,7 +22,7 @@ fn main() {
     // Second read should get "CD" (no trailing newline)
     match reader.read_line() {
         Result::Ok(found) => match found {
-            Option::Some(line) => test::assert_eq_string(line, "CD"),
+            Option::Some(line) => Test::assert_eq_string(line, "CD"),
             Option::None => Std::panic("expected Ok"),
         },
         Result::Err(_e) => Std::panic("expected Ok"),

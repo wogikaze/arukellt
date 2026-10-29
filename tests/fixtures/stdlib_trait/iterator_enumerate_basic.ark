@@ -1,5 +1,5 @@
 use std::core::iter
-use std::test
+use std::test::Test
 
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
@@ -10,30 +10,30 @@ fn main() {
     let mut it = v.iter().enumerate()
     match it.next() {
         Some(p) => {
-            test::assert_eq_i32(p.first, 0)
-            test::assert_eq_i32(p.second, 100)
+            Test::assert_eq_i32(p.first, 0)
+            Test::assert_eq_i32(p.second, 100)
         },
         None => Std::panic("expected Some"),
     }
     let mut it2 = v.iter().enumerate()
     match it2.next() {
         Some(p) => {
-            test::assert_eq_i32(p.first, 0)
-            test::assert_eq_i32(p.second, 100)
+            Test::assert_eq_i32(p.first, 0)
+            Test::assert_eq_i32(p.second, 100)
         },
         None => Std::panic("expected Some"),
     }
     match it2.next() {
         Some(p) => {
-            test::assert_eq_i32(p.first, 1)
-            test::assert_eq_i32(p.second, 200)
+            Test::assert_eq_i32(p.first, 1)
+            Test::assert_eq_i32(p.second, 200)
         },
         None => Std::panic("expected Some"),
     }
     match it2.next() {
         Some(p) => {
-            test::assert_eq_i32(p.first, 2)
-            test::assert_eq_i32(p.second, 300)
+            Test::assert_eq_i32(p.first, 2)
+            Test::assert_eq_i32(p.second, 300)
         },
         None => Std::panic("expected Some"),
     }

@@ -1,12 +1,12 @@
 use std::text::fmt
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_string((0).fmt_debug(), "0")
+    Test::assert_eq_string((0).fmt_debug(), "0")
 
     let big: i64 = 1000000000000i64
-    test::assert_eq_string(big.fmt_debug(), (big).to_string())
+    Test::assert_eq_string(big.fmt_debug(), (big).to_string())
 
     let neg: i64 = -99999999999i64
-    test::assert_eq_string(neg.fmt_debug(), (neg).to_string())
+    Test::assert_eq_string(neg.fmt_debug(), (neg).to_string())
 }

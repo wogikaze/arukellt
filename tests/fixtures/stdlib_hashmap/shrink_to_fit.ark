@@ -1,5 +1,5 @@
 // Shrink_to_fit: reduces capacity, preserves data
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::with_capacity<i32, i32>(100)
@@ -9,14 +9,14 @@ fn main() {
     let cap_before = m.capacity()
     m.shrink_to_fit()
     let cap_after = m.capacity()
-    test::assert_true(cap_after <= cap_before)
+    Test::assert_true(cap_after <= cap_before)
 
     // Data preserved
-    test::assert_eq_i32(m.len(), 2)
-    test::assert_eq_i32(m.get(1).unwrap_or(0), 10)
-    test::assert_eq_i32(m.get(2).unwrap_or(0), 20)
+    Test::assert_eq_i32(m.len(), 2)
+    Test::assert_eq_i32(m.get(1).unwrap_or(0), 10)
+    Test::assert_eq_i32(m.get(2).unwrap_or(0), 20)
 
     // Can still insert after shrink
     let _ = m.insert(3, 30)
-    test::assert_eq_i32(m.get(3).unwrap_or(0), 30)
+    Test::assert_eq_i32(m.get(3).unwrap_or(0), 30)
 }

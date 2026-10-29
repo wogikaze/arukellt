@@ -1,25 +1,25 @@
 // Size/is_empty transitions through insert and remove
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
-    test::assert_eq_i32(m.len(), 0)
-    test::assert_true(m.is_empty())
+    Test::assert_eq_i32(m.len(), 0)
+    Test::assert_true(m.is_empty())
 
     let _ = m.insert(1, 10)
-    test::assert_eq_i32(m.len(), 1)
-    test::assert_false(m.is_empty())
+    Test::assert_eq_i32(m.len(), 1)
+    Test::assert_false(m.is_empty())
 
     let _ = m.insert(2, 20)
-    test::assert_eq_i32(m.len(), 2)
+    Test::assert_eq_i32(m.len(), 2)
 
     m.insert(1, 11)  // overwrite, size unchanged
-    test::assert_eq_i32(m.len(), 2)
+    Test::assert_eq_i32(m.len(), 2)
 
     m.remove(2)
-    test::assert_eq_i32(m.len(), 1)
+    Test::assert_eq_i32(m.len(), 1)
 
     m.remove(1)
-    test::assert_eq_i32(m.len(), 0)
-    test::assert_true(m.is_empty())
+    Test::assert_eq_i32(m.len(), 0)
+    Test::assert_true(m.is_empty())
 }

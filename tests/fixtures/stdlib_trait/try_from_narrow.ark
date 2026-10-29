@@ -1,29 +1,29 @@
 // TryFrom<i64> for i32 rejects out-of-range values (ADR-084).
 use std::core::convert
-use std::test
+use std::test::Test
 
 fn main() {
     let big: i64 = 999999999999i64
     let rejected: Result<i32, String> = i32::try_from(big)
     match rejected {
-        Result::Ok(_) => test::assert_true(false),
+        Result::Ok(_) => Test::assert_true(false),
         Result::Err(_) => {},
     }
     let small: i64 = 42i64
     let accepted: Result<i32, String> = i32::try_from(small)
     match accepted {
-        Result::Ok(value) => test::assert_eq_i32(value, 42),
-        Result::Err(_) => test::assert_true(false),
+        Result::Ok(value) => Test::assert_eq_i32(value, 42),
+        Result::Err(_) => Test::assert_true(false),
     }
     // Same-target dispatch also selects from direct literal arguments.
     let rejected_literal: Result<i32, String> = i32::try_from(999999999999i64)
     match rejected_literal {
-        Result::Ok(_) => test::assert_true(false),
+        Result::Ok(_) => Test::assert_true(false),
         Result::Err(_) => {},
     }
     let accepted_literal: Result<i32, String> = i32::try_from(42i64)
     match accepted_literal {
-        Result::Ok(value) => test::assert_eq_i32(value, 42),
-        Result::Err(_) => test::assert_true(false),
+        Result::Ok(value) => Test::assert_eq_i32(value, 42),
+        Result::Err(_) => Test::assert_true(false),
     }
 }

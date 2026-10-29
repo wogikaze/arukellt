@@ -1,8 +1,8 @@
 use std::core::convert
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_string(9001i64.to_string(), "9001")
-    test::assert_eq_string(0i64.to_string(), "0")
-    test::assert_eq_string((-1i64).to_string(), "-1")
+    Test::assert_eq_string(9001i64.to_string(), "9001")
+    Test::assert_eq_string(0i64.to_string(), "0")
+    Test::assert_eq_string((-1i64).to_string(), "-1")
 }

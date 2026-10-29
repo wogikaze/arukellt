@@ -19,7 +19,7 @@ use parser::token_state
 
 // Returns true if the current token is a contextual `test` keyword starting a
 // test declaration. Looks ahead past newlines to disambiguate from `test` used
-// as a regular identifier (e.g. `test::assert_*`, `test()`).
+// as a regular identifier (e.g. `Test::assert_*`, `test()`).
 use std::prelude::{clone, eq}
 fn is_test_decl_start(p: Parser) -> bool {
     if core_api_cursor::peek_kind(p) != tokens::TK_IDENT() {

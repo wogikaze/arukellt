@@ -1,5 +1,5 @@
 // Remove + reinsert: removed slot can be reused
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
@@ -7,18 +7,18 @@ fn main() {
     let _ = m.insert(2, 20)
 
     m.remove(1)
-    test::assert_false(m.contains_key(1))
+    Test::assert_false(m.contains_key(1))
 
     // Reinsert same key with different value
     let _ = m.insert(1, 99)
-    test::assert_true(m.contains_key(1))
-    test::assert_eq_i32(m.get(1).unwrap_or(0), 99)
-    test::assert_eq_i32(m.len(), 2)
+    Test::assert_true(m.contains_key(1))
+    Test::assert_eq_i32(m.get(1).unwrap_or(0), 99)
+    Test::assert_eq_i32(m.len(), 2)
 
     // Insert a new key into the freed slot
     let _ = m.insert(3, 30)
-    test::assert_eq_i32(m.len(), 3)
-    test::assert_eq_i32(m.get(1).unwrap_or(0), 99)
-    test::assert_eq_i32(m.get(2).unwrap_or(0), 20)
-    test::assert_eq_i32(m.get(3).unwrap_or(0), 30)
+    Test::assert_eq_i32(m.len(), 3)
+    Test::assert_eq_i32(m.get(1).unwrap_or(0), 99)
+    Test::assert_eq_i32(m.get(2).unwrap_or(0), 20)
+    Test::assert_eq_i32(m.get(3).unwrap_or(0), 30)
 }

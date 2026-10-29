@@ -1,5 +1,5 @@
 use std::core::iter
-use std::test
+use std::test::Test
 
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
@@ -11,31 +11,31 @@ fn main() {
 
     // Repeated peeks return the same cached item without consuming it.
     match it.peek() {
-        Some(x) => test::assert_eq_i32(x, 1),
+        Some(x) => Test::assert_eq_i32(x, 1),
         None => Std::panic("expected Some"),
     }
     match it.peek() {
-        Some(x) => test::assert_eq_i32(x, 1),
+        Some(x) => Test::assert_eq_i32(x, 1),
         None => Std::panic("expected Some"),
     }
 
     // next drains the cached item first.
     match it.next() {
-        Some(x) => test::assert_eq_i32(x, 1),
+        Some(x) => Test::assert_eq_i32(x, 1),
         None => Std::panic("expected Some"),
     }
     match it.peek() {
-        Some(x) => test::assert_eq_i32(x, 2),
+        Some(x) => Test::assert_eq_i32(x, 2),
         None => Std::panic("expected Some"),
     }
     match it.next() {
-        Some(x) => test::assert_eq_i32(x, 2),
+        Some(x) => Test::assert_eq_i32(x, 2),
         None => Std::panic("expected Some"),
     }
 
     // Uncached items flow through next directly.
     match it.next() {
-        Some(x) => test::assert_eq_i32(x, 3),
+        Some(x) => Test::assert_eq_i32(x, 3),
         None => Std::panic("expected Some"),
     }
     match it.peek() {
@@ -52,7 +52,7 @@ fn main() {
     push(w, 7)
     push(w, 8)
     let drained = w.iter().peekable().collect()
-    test::assert_eq_i32(len(drained), 2)
-    test::assert_eq_i32(get_unchecked(drained, 0), 7)
-    test::assert_eq_i32(get_unchecked(drained, 1), 8)
+    Test::assert_eq_i32(len(drained), 2)
+    Test::assert_eq_i32(get_unchecked(drained, 0), 7)
+    Test::assert_eq_i32(get_unchecked(drained, 1), 8)
 }

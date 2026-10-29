@@ -2,71 +2,71 @@
 // JsonField. Covers quoting/scanning, constructors, pretty printing, and the
 // streaming-result accessors without any free helper.
 use std::json
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_string(json::JsonText::quote("a\"b"), "\"a\\\"b\"")
-    test::assert_eq_string(json::JsonText::escape("a\nb"), "a\\nb")
-    test::assert_eq_string(json::JsonText::hex_byte(65), "41")
-    test::assert_eq_i32(json::JsonText::hex_value(70), 15)
-    test::assert_eq_i32(json::JsonText::skip_ws("  x", 0), 2)
-    test::assert_eq_i32(json::JsonText::parse_int_at("  -12", 0), 0 - 12)
-    test::assert_eq_i32(json::JsonText::find_key_pos("{\"k\":1}", "k", 0), 4)
-    test::assert_eq_i32(json::JsonText::content_length("Content-Length: 12\r\n"), 12)
+    Test::assert_eq_string(json::JsonText::quote("a\"b"), "\"a\\\"b\"")
+    Test::assert_eq_string(json::JsonText::escape("a\nb"), "a\\nb")
+    Test::assert_eq_string(json::JsonText::hex_byte(65), "41")
+    Test::assert_eq_i32(json::JsonText::hex_value(70), 15)
+    Test::assert_eq_i32(json::JsonText::skip_ws("  x", 0), 2)
+    Test::assert_eq_i32(json::JsonText::parse_int_at("  -12", 0), 0 - 12)
+    Test::assert_eq_i32(json::JsonText::find_key_pos("{\"k\":1}", "k", 0), 4)
+    Test::assert_eq_i32(json::JsonText::content_length("Content-Length: 12\r\n"), 12)
 
     let parsed = json::JsonText::parse_string_at("\"ab\\ncd\"", 0)
-    test::assert_true(parsed.is_ok())
-    test::assert_eq_string(parsed.value(), "ab\ncd")
+    Test::assert_true(parsed.is_ok())
+    Test::assert_eq_string(parsed.value(), "ab\ncd")
     let esc = json::JsonText::decode_escape_at("n", 0)
-    test::assert_true(esc.is_ok())
-    test::assert_eq_string(esc.value(), "\n")
-    test::assert_eq_i32(esc.advance(), 1)
-    test::assert_eq_string(json::JsonText::decode_unicode_ascii("u0041", 0), "A")
-    test::assert_eq_string(json::JsonText::get_str("{\"k\":\"v\"}", "k"), "v")
-    test::assert_eq_string(json::JsonText::get_str_after("{\"a\":1,\"k\":\"w\"}", "k", 0), "w")
-    test::assert_eq_string(json::JsonText::get_str_after("{\"k\":\"a\",\"k\":\"b\"}", "k", 5), "b")
-    test::assert_eq_i32(json::JsonText::get_int("{\"k\":3}", "k"), 3)
+    Test::assert_true(esc.is_ok())
+    Test::assert_eq_string(esc.value(), "\n")
+    Test::assert_eq_i32(esc.advance(), 1)
+    Test::assert_eq_string(json::JsonText::decode_unicode_ascii("u0041", 0), "A")
+    Test::assert_eq_string(json::JsonText::get_str("{\"k\":\"v\"}", "k"), "v")
+    Test::assert_eq_string(json::JsonText::get_str_after("{\"a\":1,\"k\":\"w\"}", "k", 0), "w")
+    Test::assert_eq_string(json::JsonText::get_str_after("{\"k\":\"a\",\"k\":\"b\"}", "k", 5), "b")
+    Test::assert_eq_i32(json::JsonText::get_int("{\"k\":3}", "k"), 3)
 
     let n = json::JsonValue::int(7)
-    test::assert_eq_string(n.to_text(), "7")
+    Test::assert_eq_string(n.to_text(), "7")
     let s = json::JsonValue::string("hi")
-    test::assert_eq_string(s.to_text(), "\"hi\"")
+    Test::assert_eq_string(s.to_text(), "\"hi\"")
     let b = json::JsonValue::bool(true)
-    test::assert_eq_string(b.to_text(), "true")
+    Test::assert_eq_string(b.to_text(), "true")
     let nul = json::JsonValue::null()
-    test::assert_eq_string(nul.to_text(), "null")
+    Test::assert_eq_string(nul.to_text(), "null")
     let raw = json::JsonValue::raw("12345")
-    test::assert_eq_string(raw.to_text(), "12345")
+    Test::assert_eq_string(raw.to_text(), "12345")
 
     let mut items = Vec::new<json::JsonValue>()
     push(items, json::JsonValue::int(1))
     push(items, json::JsonValue::string("two"))
     let arr = json::JsonValue::array(items)
-    test::assert_eq_string(arr.to_text(), "[1,\"two\"]")
+    Test::assert_eq_string(arr.to_text(), "[1,\"two\"]")
 
     let mut fields = Vec::new<json::JsonField>()
     push(fields, json::JsonField::new("a", json::JsonValue::int(1)))
     push(fields, json::JsonField::new("b", json::JsonValue::string("x")))
     let obj = json::JsonValue::object(fields)
-    test::assert_eq_string(obj.to_text(), "{\"a\":1,\"b\":\"x\"}")
+    Test::assert_eq_string(obj.to_text(), "{\"a\":1,\"b\":\"x\"}")
 
-    test::assert_eq_string(json::JsonValue::stringify_i32(42), "42")
-    test::assert_eq_string(json::JsonValue::stringify_bool(false), "false")
-    test::assert_eq_string(json::JsonValue::stringify_string("hi"), "\"hi\"")
-    test::assert_eq_string(json::JsonValue::null_text(), "null")
-    test::assert_eq_i32(json::JsonValue::parse_i32("-42"), 0 - 42)
-    test::assert_true(json::JsonValue::parse_bool("true"))
-    test::assert_eq_string(json::JsonValue::encode_string("a\"b"), "\"a\\\"b\"")
-    test::assert_eq_string(json::JsonValue::pretty_text(json::JsonValue::int(1), 2), "1")
+    Test::assert_eq_string(json::JsonValue::stringify_i32(42), "42")
+    Test::assert_eq_string(json::JsonValue::stringify_bool(false), "false")
+    Test::assert_eq_string(json::JsonValue::stringify_string("hi"), "\"hi\"")
+    Test::assert_eq_string(json::JsonValue::null_text(), "null")
+    Test::assert_eq_i32(json::JsonValue::parse_i32("-42"), 0 - 42)
+    Test::assert_true(json::JsonValue::parse_bool("true"))
+    Test::assert_eq_string(json::JsonValue::encode_string("a\"b"), "\"a\\\"b\"")
+    Test::assert_eq_string(json::JsonValue::pretty_text(json::JsonValue::int(1), 2), "1")
 
     // The document entry point is the associated JsonValue::parse. The
     // unannotated match infers the Result payload from the declared return.
     match json::JsonValue::parse("{\"n\":42}") {
-        Result::Ok(v) => test::assert_eq_string(v.to_text(), "{\"n\":42}"),
-        Result::Err(e) => test::assert_eq_string(e.message(), "unexpected failure"),
+        Result::Ok(v) => Test::assert_eq_string(v.to_text(), "{\"n\":42}"),
+        Result::Err(e) => Test::assert_eq_string(e.message(), "unexpected failure"),
     }
     match json::JsonValue::parse("@") {
-        Result::Ok(_) => test::assert_true(false),
-        Result::Err(e) => test::assert_eq_string(e.message(), "unexpected character"),
+        Result::Ok(_) => Test::assert_true(false),
+        Result::Err(e) => Test::assert_eq_string(e.message(), "unexpected character"),
     }
 }

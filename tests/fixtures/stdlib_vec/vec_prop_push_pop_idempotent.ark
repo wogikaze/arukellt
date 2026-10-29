@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
@@ -12,8 +12,8 @@ fn main() {
         None => Std::panic("expected Some, got None"),
     }
     push(v, 30)
-    test::assert_eq_i32(len(v), len_before)
-    test::assert_eq_i32(get_unchecked(v, 0), 10)
-    test::assert_eq_i32(get_unchecked(v, 1), 20)
-    test::assert_eq_i32(get_unchecked(v, 2), 30)
+    Test::assert_eq_i32(len(v), len_before)
+    Test::assert_eq_i32(get_unchecked(v, 0), 10)
+    Test::assert_eq_i32(get_unchecked(v, 1), 20)
+    Test::assert_eq_i32(get_unchecked(v, 2), 30)
 }

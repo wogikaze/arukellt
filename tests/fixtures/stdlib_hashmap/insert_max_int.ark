@@ -1,14 +1,14 @@
 // Insert: i32 max/min boundary keys
-use std::test
+use std::test::Test
 
 fn main() {
     let int_min: i32 = (0 - 2147483647) - 1
     let mut m = HashMap::new<i32, i32>()
     let _ = m.insert(2147483647, 1)
     let _ = m.insert(int_min, 2)
-    test::assert_eq_i32(m.len(), 2)
-    test::assert_eq_i32(m.get(2147483647).unwrap_or(0), 1)
-    test::assert_eq_i32(m.get(int_min).unwrap_or(0), 2)
-    test::assert_true(m.contains_key(2147483647))
-    test::assert_true(m.contains_key(int_min))
+    Test::assert_eq_i32(m.len(), 2)
+    Test::assert_eq_i32(m.get(2147483647).unwrap_or(0), 1)
+    Test::assert_eq_i32(m.get(int_min).unwrap_or(0), 2)
+    Test::assert_true(m.contains_key(2147483647))
+    Test::assert_true(m.contains_key(int_min))
 }

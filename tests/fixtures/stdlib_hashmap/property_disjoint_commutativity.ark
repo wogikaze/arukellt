@@ -2,11 +2,11 @@
 //
 // Invariant: inserting a set of disjoint keys into a fresh HashMap yields
 // the same logical map regardless of insertion order.
-use std::test
+use std::test::Test
 
 fn assert_probe(m: HashMap<i32, i32>, key: i32, expected: i32) {
     match m.get(key) {
-        Option::Some(v) => test::assert_eq_i32(v, expected),
+        Option::Some(v) => Test::assert_eq_i32(v, expected),
         None => Std::panic("expected Some"),
     }
 }
@@ -27,7 +27,7 @@ test "probe_results_are_independent_of_insertion_order" {
     let _ = b.insert(10, 100)
 
     // A and B must agree on size and on every probe.
-    test::assert_eq_i32(a.len(), b.len())
+    Test::assert_eq_i32(a.len(), b.len())
     assert_probe(a, 10, 100)
     assert_probe(b, 10, 100)
     assert_probe(a, 20, 200)

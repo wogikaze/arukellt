@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::text
 use std::host::stdio
 
@@ -22,13 +22,13 @@ fn main() {
         let _p = m.insert(i, f)
         i = i + 1
     }
-    test::assert_eq_i32(m.len(), 40)
+    Test::assert_eq_i32(m.len(), 40)
     match m.get(10) {
-        Some(f) => test::assert_eq_i32(f(5), 10),
+        Some(f) => Test::assert_eq_i32(f(5), 10),
         None => Std::panic("missing grown fn entry"),
     }
     match m.get(39) {
-        Some(f) => test::assert_eq_i32(f(5), 15),
+        Some(f) => Test::assert_eq_i32(f(5), 15),
         None => Std::panic("missing grown fn entry"),
     }
 
@@ -38,9 +38,9 @@ fn main() {
         let _ps = s.insert("f_".concat((i).to_string()), double)
         i = i + 1
     }
-    test::assert_eq_i32(s.len(), 40)
+    Test::assert_eq_i32(s.len(), 40)
     match s.get("f_39") {
-        Some(f) => test::assert_eq_i32(f(7), 14),
+        Some(f) => Test::assert_eq_i32(f(7), 14),
         None => Std::panic("missing grown String->fn entry"),
     }
 

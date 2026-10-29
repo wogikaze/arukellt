@@ -1,6 +1,6 @@
 use std::bytes
 use std::io
-use std::test
+use std::test::Test
 
 fn main() {
     // 300 bytes span more than one COPY_CHUNK_BYTES (256) read, so the copy
@@ -16,12 +16,12 @@ fn main() {
     let mut dst: io::Writer = io::Writer::new()
     let res: Result<i64, io::IoError> = io::Io::copy(src, dst)
     match res {
-        Result::Ok(n) => test::assert_eq_i64(n, 300),
+        Result::Ok(n) => Test::assert_eq_i64(n, 300),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     let b: Vec<i32> = dst.into_bytes()
-    test::assert_eq_i32(b.len(), 300)
-    test::assert_eq_i32(b.get_unchecked(0), 0)
-    test::assert_eq_i32(b.get_unchecked(256), 5)
-    test::assert_eq_i32(b.get_unchecked(299), 48)
+    Test::assert_eq_i32(b.len(), 300)
+    Test::assert_eq_i32(b.get_unchecked(0), 0)
+    Test::assert_eq_i32(b.get_unchecked(256), 5)
+    Test::assert_eq_i32(b.get_unchecked(299), 48)
 }

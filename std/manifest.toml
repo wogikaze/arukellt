@@ -1388,10 +1388,19 @@ returns = "()"
 doc = "Run f for iterations iterations and write a timing summary (total ns + iter count) to stderr. Stdout is unaffected, so fixture expected files remain deterministic."
 availability = { t1 = true, t3 = true }
 
+[[types]]
+name = "Test"
+module = "std::test"
+stability = "stable"
+prelude = false
+kind = "struct"
+doc = "Namespace for the typed assertion and expectation helpers: Test::assert_true / assert_false, the typed equality and inequality assertions, assert_eq_debug, assert_contains, assert_eq_snapshot, assert_msg, the Result/Option expect helpers, and bench. Import `use std::test::Test`; the associated functions are the canonical surface, and the free declarations remain only through the ADR-087 window."
+methods = ["assert_true", "assert_false", "assert_eq_debug", "assert_eq_i32", "assert_eq_i64", "assert_eq_f64", "assert_eq_string", "assert_eq_bool", "assert_ne_i32", "assert_ne_string", "expect_ok_i32", "expect_err_string", "expect_some_i32", "expect_none_i32", "assert_contains", "assert_eq_snapshot", "assert_msg", "bench"]
+
 [[modules]]
 name = "std::test"
 stability = "stable"
-doc = "Typed assertion and expectation helpers for fixture and test code. Includes equality assertions for all primitive types, Result/Option unwrap helpers, string containment checks, snapshot comparison, and bench-lite for quick timing."
+doc = "Typed assertion and expectation helpers for fixture and test code. Import `use std::test::Test` and call the associated functions: equality assertions for all primitive types, Result/Option unwrap helpers, string containment checks, snapshot comparison, and bench-lite for quick timing. The associated functions are the canonical surface; the free declarations remain only through the ADR-087 window."
 availability = { t1 = true, t3 = true }
 
 # === std::text (extended) ===

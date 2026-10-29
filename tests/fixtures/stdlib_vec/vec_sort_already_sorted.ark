@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::collections::vec
 use std::core
 use std::core::cmp
@@ -15,9 +15,9 @@ fn main() {
     push(v, 40)
     push(v, 50)
     v.sort_by(ascending)
-    test::assert_eq_i32(get_unchecked(v, 0), 10)
-    test::assert_eq_i32(get_unchecked(v, 1), 20)
-    test::assert_eq_i32(get_unchecked(v, 2), 30)
-    test::assert_eq_i32(get_unchecked(v, 3), 40)
-    test::assert_eq_i32(get_unchecked(v, 4), 50)
+    Test::assert_eq_i32(get_unchecked(v, 0), 10)
+    Test::assert_eq_i32(get_unchecked(v, 1), 20)
+    Test::assert_eq_i32(get_unchecked(v, 2), 30)
+    Test::assert_eq_i32(get_unchecked(v, 3), 40)
+    Test::assert_eq_i32(get_unchecked(v, 4), 50)
 }

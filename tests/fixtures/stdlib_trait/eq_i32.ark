@@ -1,10 +1,10 @@
 use std::core::cmp
-use std::test
+use std::test::Test
 use std::prelude::{eq}
 fn main() {
-    test::assert_true(eq(42, 42))
-    test::assert_false(eq(42, 43))
-    test::assert_true(eq(0, 0))
-    test::assert_true(eq(-1, -1))
-    test::assert_false(eq(-1, 1))
+    Test::assert_true(eq(42, 42))
+    Test::assert_false(eq(42, 43))
+    Test::assert_true(eq(0, 0))
+    Test::assert_true(eq(-1, -1))
+    Test::assert_false(eq(-1, 1))
 }

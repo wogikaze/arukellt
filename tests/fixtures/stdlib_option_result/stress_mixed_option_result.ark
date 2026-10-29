@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 fn main() {
     let mut sum: i32 = 0
     for i in 0..20 {
@@ -8,6 +8,6 @@ fn main() {
         match opt { Option::Some(v) => sum = sum + v, None => {} }
         match r { Result::Ok(v) => sum = sum + v, Result::Err(e) => {} }
     }
-    test::assert_true(sum > 0)
+    Test::assert_true(sum > 0)
     stdio::println("ok")
 }

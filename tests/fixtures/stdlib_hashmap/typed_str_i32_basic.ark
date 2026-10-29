@@ -1,21 +1,21 @@
 // HashMap<String, i32> method surface: insert/get/contains_key/len.
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<String, i32>()
     let _ = m.insert("apple", 100)
     let _ = m.insert("banana", 200)
 
-    test::assert_eq_i32(m.len(), 2)
-    test::assert_true(m.contains_key("apple"))
-    test::assert_false(m.contains_key("cherry"))
+    Test::assert_eq_i32(m.len(), 2)
+    Test::assert_true(m.contains_key("apple"))
+    Test::assert_false(m.contains_key("cherry"))
 
     match m.get("apple") {
-        Option::Some(v) => test::assert_eq_i32(v, 100),
+        Option::Some(v) => Test::assert_eq_i32(v, 100),
         None => Std::panic("expected Some(100)"),
     }
     match m.get("banana") {
-        Option::Some(v) => test::assert_eq_i32(v, 200),
+        Option::Some(v) => Test::assert_eq_i32(v, 200),
         None => Std::panic("expected Some(200)"),
     }
 }

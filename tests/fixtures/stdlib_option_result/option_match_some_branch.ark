@@ -1,9 +1,9 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 fn main() {
     let a: Option<i32> = Some(5)
     match a {
-        Option::Some(v) => test::assert_eq_i32(v, 5),
+        Option::Some(v) => Test::assert_eq_i32(v, 5),
         None => Std::panic("expected Some"),
     }
     stdio::println("ok")

@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 
 // #874 / ADR-075: on the linear fallback the collector runs at a function
 // entry once 64 MiB of payload has accumulated since the previous sweep.
@@ -23,7 +23,7 @@ fn main() {
         }
         i = i + 1
     }
-    test::assert_eq_i32(len(keep), 5)
-    test::assert_eq_string(get_unchecked(keep, 0), String_from("alive-0"))
-    test::assert_eq_string(get_unchecked(keep, 4), String_from("alive-128"))
+    Test::assert_eq_i32(len(keep), 5)
+    Test::assert_eq_string(get_unchecked(keep, 0), String_from("alive-0"))
+    Test::assert_eq_string(get_unchecked(keep, 4), String_from("alive-128"))
 }

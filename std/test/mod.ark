@@ -1,7 +1,8 @@
 //! Testing utilities for fixture and example code.
 //!
-//! The current module provides typed assertions and expectation helpers for
-//! `Result` and `Option`.
+//! Import `use std::test::Test` and call the typed assertion / expectation
+//! associated functions; `Test` is the canonical surface (ADR-046). The free
+//! declarations in this module remain only through the ADR-087 window.
 use std::core::cmp
 use std::core::convert
 use std::prelude::Std
@@ -169,4 +170,157 @@ pub fn bench(name: String, iterations: i32, f: fn() -> ()) {
     let elapsed: i64 = __intrinsic_clock_now() - start
     let msg = "bench: ".concat(name.concat(": total=".concat((elapsed).to_string().concat("ns iters=".concat((iterations).to_string())))))
     __intrinsic_eprintln(msg)
+}
+
+/// Namespace for the typed assertion and expectation helpers.
+///
+/// `Test` is the canonical API (ADR-046). The free functions above are
+/// deprecated compatibility shims through the ADR-087 window and are
+/// deleted in Wave 2.
+pub struct Test {}
+
+impl Test {
+    fn assert_true(cond: bool) {
+        if !cond {
+            Std::panic("assertion failed: expected true, got false")
+        }
+    }
+
+    fn assert_false(cond: bool) {
+        if cond {
+            Std::panic("assertion failed: expected false, got true")
+        }
+    }
+
+    fn assert_eq_debug<T: Eq + Debug>(actual: T, expected: T) {
+        if !actual.eq(expected) {
+            let msg = "assert_eq failed: expected ".concat(expected.fmt_debug().concat(", got ".concat(actual.fmt_debug())))
+            Std::panic(msg)
+        }
+    }
+
+    fn assert_eq_i32(actual: i32, expected: i32) {
+        if actual != expected {
+            let msg = "assert_eq_i32 failed: expected ".concat((expected).fmt_debug().concat(", got ".concat((actual).fmt_debug())))
+            Std::panic(msg)
+        }
+    }
+
+    fn assert_eq_i64(actual: i64, expected: i64) {
+        if actual != expected {
+            let msg = "assert_eq_i64 failed: expected ".concat((expected).fmt_debug().concat(", got ".concat((actual).fmt_debug())))
+            Std::panic(msg)
+        }
+    }
+
+    fn assert_eq_f64(actual: f64, expected: f64) {
+        if actual != expected {
+            let msg = "assert_eq_f64 failed: expected ".concat((expected).fmt_debug().concat(", got ".concat((actual).fmt_debug())))
+            Std::panic(msg)
+        }
+    }
+
+    fn assert_eq_string(actual: String, expected: String) {
+        if !__intrinsic_string_eq(actual, expected) {
+            let msg = "assert_eq_string failed: expected ".concat((expected).fmt_debug().concat(", got ".concat((actual).fmt_debug())))
+            Std::panic(msg)
+        }
+    }
+
+    fn assert_eq_bool(actual: bool, expected: bool) {
+        if actual != expected {
+            let msg = "assert_eq_bool failed: expected ".concat((expected).fmt_debug().concat(", got ".concat((actual).fmt_debug())))
+            Std::panic(msg)
+        }
+    }
+
+    fn assert_ne_i32(actual: i32, unexpected: i32) {
+        if actual == unexpected {
+            let msg = "assert_ne_i32 failed: values should differ, both are ".concat((actual).to_string())
+            Std::panic(msg)
+        }
+    }
+
+    fn assert_ne_string(actual: String, unexpected: String) {
+        if actual == unexpected {
+            let msg = "assert_ne_string failed: values should differ, both are \"".concat(actual.concat("\""))
+            Std::panic(msg)
+        }
+    }
+
+    fn expect_ok_i32(r: Result<i32, String>) -> i32 {
+        match r {
+            Result::Ok(v) => v,
+            Result::Err(e) => {
+                let msg = "expect_ok_i32: got Err(\"".concat(e.concat("\")"))
+                Std::panic(msg)
+                0
+            },
+        }
+    }
+
+    fn expect_err_string(r: Result<i32, String>) -> String {
+        match r {
+            Result::Ok(v) => {
+                let msg = "expect_err_string: got Ok(".concat((v).to_string().concat(")"))
+                Std::panic(msg)
+                String_new()
+            },
+            Result::Err(e) => e,
+        }
+    }
+
+    fn expect_some_i32(o: Option<i32>) -> i32 {
+        match o {
+            Option::Some(v) => v,
+            None => {
+                Std::panic("expect_some_i32: got None")
+                0
+            },
+        }
+    }
+
+    fn expect_none_i32(o: Option<i32>) {
+        match o {
+            Option::Some(v) => {
+                let msg = "expect_none_i32: got Some(".concat((v).to_string().concat(")"))
+                Std::panic(msg)
+            },
+            None => {
+            },
+        }
+    }
+
+    fn assert_contains(haystack: String, needle: String) {
+        if !contains(haystack, needle) {
+            let msg = "assert_contains failed: \"".concat(haystack.concat("\" does not contain \"".concat(needle.concat("\""))))
+            Std::panic(msg)
+        }
+    }
+
+    fn assert_eq_snapshot(actual: String, expected: String) {
+        if actual != expected {
+            let msg = "snapshot mismatch:\n--- expected ---\n".concat(expected.concat("\n--- actual ---\n".concat(actual)))
+            Std::panic(msg)
+        }
+    }
+
+    fn assert_msg(cond: bool, message: String) {
+        if !cond {
+            Std::panic("assertion failed: ".concat(message))
+        }
+    }
+
+    fn bench(name: String, iterations: i32, f: fn() -> ()) {
+        let start: i64 = __intrinsic_clock_now()
+        let mut i: i32 = 0
+        while i < iterations {
+            f()
+            i = i + 1
+        }
+        let elapsed: i64 = __intrinsic_clock_now() - start
+        let msg = "bench: ".concat(name.concat(": total=".concat((elapsed).to_string().concat("ns iters=".concat((iterations).to_string())))))
+        __intrinsic_eprintln(msg)
+    }
+
 }

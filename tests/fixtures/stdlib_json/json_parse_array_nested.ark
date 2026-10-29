@@ -1,15 +1,15 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("[[1,2],[3,4]]") {
         Result::Ok(v) => {
             match v.get_index(0) {
                 Option::Some(inner) => {
-                    test::assert_true(inner.is_array())
+                    Test::assert_true(inner.is_array())
                     match inner.get_index(0) {
                         Option::Some(e) => match e.as_i32() {
-                            Option::Some(n) => test::assert_eq_i32(n, 1),
+                            Option::Some(n) => Test::assert_eq_i32(n, 1),
                             None => Std::panic("expected 1"),
                         },
                         None => Std::panic("expected inner element 0"),
@@ -20,7 +20,7 @@ fn main() {
             match v.get_index(1) {
                 Option::Some(inner) => match inner.get_index(1) {
                     Option::Some(e) => match e.as_i32() {
-                        Option::Some(n) => test::assert_eq_i32(n, 4),
+                        Option::Some(n) => Test::assert_eq_i32(n, 4),
                         None => Std::panic("expected 4"),
                     },
                     None => Std::panic("expected inner element 1"),

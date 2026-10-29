@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 fn main() {
     let t = toml::TomlValue::parse("[[servers]]\nname = \"a\"\n[servers.ports]\nhttp = 80")
@@ -8,7 +8,7 @@ fn main() {
         Result::Ok(table) => match table.get_field("servers") {
             Option::Some(v) => match v.as_array() {
                 Option::Some(arr) => {
-                    test::assert_eq_i32(len(arr), 1)
+                    Test::assert_eq_i32(len(arr), 1)
                     let first = get_unchecked(arr, 0)
                     let ports_opt: Option<toml::TomlValue> = first.get_field("ports")
                     match ports_opt {
@@ -16,7 +16,7 @@ fn main() {
                             let http_opt: Option<toml::TomlValue> = ports.get_field("http")
                             match http_opt {
                                 Option::Some(h) => match h.as_int() {
-                                    Option::Some(n) => test::assert_eq_i32(n, 80),
+                                    Option::Some(n) => Test::assert_eq_i32(n, 80),
                                     None => assert(false),
                                 },
                                 None => assert(false),

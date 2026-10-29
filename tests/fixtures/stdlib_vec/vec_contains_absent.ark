@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::core::iter
 
 fn main() {
@@ -6,6 +6,6 @@ fn main() {
     push(v, 10)
     push(v, 20)
     push(v, 30)
-    test::assert_false(v.iter().contains(99))
-    test::assert_false(v.iter().contains(0))
+    Test::assert_false(v.iter().contains(99))
+    Test::assert_false(v.iter().contains(0))
 }

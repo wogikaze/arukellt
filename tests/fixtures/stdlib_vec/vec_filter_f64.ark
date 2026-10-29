@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 
 fn is_large(x: f64) -> bool {
     x > 2.5
@@ -19,7 +19,7 @@ fn main() {
         }
         filter_index = filter_index + 1
     }
-    test::assert_eq_i32(len(result), 2)
-    test::assert_eq_f64(get_unchecked(result, 0), 3.0)
-    test::assert_eq_f64(get_unchecked(result, 1), 4.0)
+    Test::assert_eq_i32(len(result), 2)
+    Test::assert_eq_f64(get_unchecked(result, 0), 3.0)
+    Test::assert_eq_f64(get_unchecked(result, 1), 4.0)
 }

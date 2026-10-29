@@ -1,13 +1,13 @@
 use std::json
-use std::test
+use std::test::Test
 
 fn main() {
     match json::JsonValue::parse("xyz") {
         Result::Ok(_) => Std::panic("expected error for xyz"),
-        Result::Err(e) => test::assert_eq_string(e.message(), "unexpected character"),
+        Result::Err(e) => Test::assert_eq_string(e.message(), "unexpected character"),
     }
     match json::JsonValue::parse("@") {
         Result::Ok(_) => Std::panic("expected error for @"),
-        Result::Err(e) => test::assert_eq_string(e.message(), "unexpected character"),
+        Result::Err(e) => Test::assert_eq_string(e.message(), "unexpected character"),
     }
 }

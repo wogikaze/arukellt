@@ -3,7 +3,7 @@
 //! pipeline can change the item type on both backends.
 
 use std::core::iter
-use std::test
+use std::test::Test
 use std::prelude::{clone, to_string}
 use std::host::stdio
 use std::text
@@ -29,29 +29,29 @@ fn main() {
     push(v, 7)
     push(v, 42)
     let strings = v.iter().map(itos).collect()
-    test::assert_eq_i32(len(strings), 2)
-    test::assert_eq_string(get_unchecked(strings, 0), "n7")
-    test::assert_eq_string(get_unchecked(strings, 1), "n42")
+    Test::assert_eq_i32(len(strings), 2)
+    Test::assert_eq_string(get_unchecked(strings, 0), "n7")
+    Test::assert_eq_string(get_unchecked(strings, 1), "n42")
 
     // String -> i32
     let mut w: Vec<String> = Vec::new<String>()
     push(w, String_from("ab"))
     push(w, String_from("cdef"))
     let lengths = w.iter().map(slen).collect()
-    test::assert_eq_i32(len(lengths), 2)
-    test::assert_eq_i32(get_unchecked(lengths, 0), 2)
-    test::assert_eq_i32(get_unchecked(lengths, 1), 4)
+    Test::assert_eq_i32(len(lengths), 2)
+    Test::assert_eq_i32(get_unchecked(lengths, 0), 2)
+    Test::assert_eq_i32(get_unchecked(lengths, 1), 4)
 
     // filter-then-map also carries a method-level item type parameter.
     let filtered = w.iter().filter(non_empty).map(slen).collect()
-    test::assert_eq_i32(len(filtered), 2)
-    test::assert_eq_i32(get_unchecked(filtered, 1), 4)
+    Test::assert_eq_i32(len(filtered), 2)
+    Test::assert_eq_i32(get_unchecked(filtered, 1), 4)
 
     // T -> T still works through the renamed FilterMapIter<T, U> impl,
     // including the Vec<String> from_iter path.
     let copied: Vec<String> = Vec::from_iter(w.iter().filter(non_empty).map(same))
-    test::assert_eq_i32(len(copied), 2)
-    test::assert_eq_string(get_unchecked(copied, 1), "cdef")
+    Test::assert_eq_i32(len(copied), 2)
+    Test::assert_eq_string(get_unchecked(copied, 1), "cdef")
 
     stdio::println(get_unchecked(strings, 0))
     stdio::println(get_unchecked(strings, 1))

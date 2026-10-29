@@ -1,17 +1,17 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
     // to_upper(to_lower(s)) == to_upper(s) and to_lower(to_upper(s)) == to_lower(s)
     let s = "HeLLo"
-    test::assert_eq_string(s.to_lower().to_upper(), s.to_upper())
-    test::assert_eq_string(s.to_upper().to_lower(), s.to_lower())
+    Test::assert_eq_string(s.to_lower().to_upper(), s.to_upper())
+    Test::assert_eq_string(s.to_upper().to_lower(), s.to_lower())
 
     // For ASCII letters, lower then upper recovers original (if originally upper)
     let upper = "ABC"
-    test::assert_eq_string(upper.to_lower().to_upper(), upper)
+    Test::assert_eq_string(upper.to_lower().to_upper(), upper)
 
     // For ASCII letters, upper then lower recovers original (if originally lower)
     let lower = "abc"
-    test::assert_eq_string(lower.to_upper().to_lower(), lower)
+    Test::assert_eq_string(lower.to_upper().to_lower(), lower)
 }

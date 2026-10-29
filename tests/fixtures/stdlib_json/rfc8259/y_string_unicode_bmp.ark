@@ -1,5 +1,5 @@
 use std::json
-use std::test
+use std::test::Test
 use std::prelude::{byte_at}
 use std::text
 fn main() {
@@ -7,9 +7,9 @@ fn main() {
     match json::JsonValue::parse("\"\\u00E9\"") {
         Result::Ok(v) => match v.as_string() {
             Option::Some(s) => {
-                test::assert_eq_i32(len(s), 2)
-                test::assert_eq_i32(byte_at(s, 0), 195)
-                test::assert_eq_i32(byte_at(s, 1), 169)
+                Test::assert_eq_i32(len(s), 2)
+                Test::assert_eq_i32(byte_at(s, 0), 195)
+                Test::assert_eq_i32(byte_at(s, 1), 169)
             },
             None => Std::panic("expected string"),
         },

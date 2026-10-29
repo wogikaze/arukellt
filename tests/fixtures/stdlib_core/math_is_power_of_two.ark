@@ -1,15 +1,15 @@
 use std::core::convert
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_true(1.is_power_of_two())
-    test::assert_true(2.is_power_of_two())
-    test::assert_true(4.is_power_of_two())
-    test::assert_true(8.is_power_of_two())
-    test::assert_true(1024.is_power_of_two())
-    test::assert_false(0.is_power_of_two())
-    test::assert_false(3.is_power_of_two())
-    test::assert_false(6.is_power_of_two())
-    test::assert_false((-1).is_power_of_two())
-    test::assert_false((-4).is_power_of_two())
+    Test::assert_true(1.is_power_of_two())
+    Test::assert_true(2.is_power_of_two())
+    Test::assert_true(4.is_power_of_two())
+    Test::assert_true(8.is_power_of_two())
+    Test::assert_true(1024.is_power_of_two())
+    Test::assert_false(0.is_power_of_two())
+    Test::assert_false(3.is_power_of_two())
+    Test::assert_false(6.is_power_of_two())
+    Test::assert_false((-1).is_power_of_two())
+    Test::assert_false((-4).is_power_of_two())
 }

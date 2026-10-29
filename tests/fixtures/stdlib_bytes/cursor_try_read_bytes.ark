@@ -1,9 +1,9 @@
 use std::bytes
-use std::test
+use std::test::Test
 
 fn assert_some_len(v: Option<Vec<i32>>, expected: i32) {
     match v {
-        Option::Some(chunk) => test::assert_eq_i32(chunk.len(), expected),
+        Option::Some(chunk) => Test::assert_eq_i32(chunk.len(), expected),
         None => Std::panic("expected Some"),
     }
 }

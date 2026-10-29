@@ -1,5 +1,5 @@
 // Typed map: i32->i32 remove
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
@@ -7,10 +7,10 @@ fn main() {
     let _ = m.insert(2, 20)
 
     match m.remove(1) {
-        Option::Some(v) => test::assert_eq_i32(v, 10),
+        Option::Some(v) => Test::assert_eq_i32(v, 10),
         None => Std::panic("expected Some(10)"),
     }
-    test::assert_eq_i32(m.len(), 1)
-    test::assert_false(m.contains_key(1))
-    test::assert_true(m.contains_key(2))
+    Test::assert_eq_i32(m.len(), 1)
+    Test::assert_false(m.contains_key(1))
+    Test::assert_true(m.contains_key(2))
 }

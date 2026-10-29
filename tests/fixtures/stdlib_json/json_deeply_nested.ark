@@ -1,5 +1,5 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("{\"a\":{\"b\":{\"c\":{\"d\":42}}}}") {
@@ -9,7 +9,7 @@ fn main() {
                     Option::Some(b) => match b.get_field("c") {
                         Option::Some(c) => match c.get_field("d") {
                             Option::Some(d) => match d.as_i32() {
-                                Option::Some(n) => test::assert_eq_i32(n, 42),
+                                Option::Some(n) => Test::assert_eq_i32(n, 42),
                                 None => Std::panic("expected number"),
                             },
                             None => Std::panic("expected key d"),

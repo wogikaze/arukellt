@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::core::iter
 
 fn mul(acc: i32, x: i32) -> i32 {
@@ -12,5 +12,5 @@ fn main() {
     push(v, 3)
     push(v, 4)
     let result: i32 = v.iter().fold(1, mul)
-    test::assert_eq_i32(result, 24)
+    Test::assert_eq_i32(result, 24)
 }

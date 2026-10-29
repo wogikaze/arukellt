@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 fn main() {
     let t = toml::TomlValue::parse("[server]\nhost = \"localhost\"\nport = 8080")
@@ -9,14 +9,14 @@ fn main() {
             Option::Some(server) => {
                 match server.get_field("host") {
                     Option::Some(v) => match v.as_string() {
-                        Option::Some(s) => test::assert_eq_string(s, "localhost"),
+                        Option::Some(s) => Test::assert_eq_string(s, "localhost"),
                         None => assert(false),
                     },
                     None => assert(false),
                 }
                 match server.get_field("port") {
                     Option::Some(v) => match v.as_int() {
-                        Option::Some(n) => test::assert_eq_i32(n, 8080),
+                        Option::Some(n) => Test::assert_eq_i32(n, 8080),
                         None => assert(false),
                     },
                     None => assert(false),

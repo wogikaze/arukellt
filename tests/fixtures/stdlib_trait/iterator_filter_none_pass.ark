@@ -1,5 +1,5 @@
 use std::core::iter
-use std::test
+use std::test::Test
 
 fn always_false(x: i32) -> bool { false }
 
@@ -10,5 +10,5 @@ fn main() {
     push(v, 30)
 
     let filtered = v.iter().filter(always_false).collect()
-    test::assert_eq_i32(len(filtered), 0)
+    Test::assert_eq_i32(len(filtered), 0)
 }

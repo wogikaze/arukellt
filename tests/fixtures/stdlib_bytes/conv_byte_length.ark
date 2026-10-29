@@ -1,7 +1,7 @@
 use std::bytes
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_i32("abc".len_bytes(), 3)
-    test::assert_eq_i32("".len_bytes(), 0)
+    Test::assert_eq_i32("abc".len_bytes(), 3)
+    Test::assert_eq_i32("".len_bytes(), 0)
 }

@@ -1,73 +1,73 @@
 // Concrete HashSet<i32> / HashSet<String> type surface (#917, ADR-086).
 use std::collections::hash_set::HashSet
 use std::core::iter
-use std::test
+use std::test::Test
 
 fn main() {
     let mut s: HashSet<i32> = HashSet::new<i32>()
-    test::assert_true(s.is_empty())
-    test::assert_eq_i32(s.len(), 0)
-    test::assert_true(s.insert(1))
-    test::assert_true(s.insert(2))
-    test::assert_true(s.insert(3))
-    test::assert_false(s.insert(1))
-    test::assert_eq_i32(s.len(), 3)
-    test::assert_true(s.contains(2))
-    test::assert_false(s.contains(4))
-    test::assert_true(s.remove(2))
-    test::assert_false(s.remove(2))
-    test::assert_eq_i32(s.len(), 2)
-    test::assert_true(s.contains(1))
+    Test::assert_true(s.is_empty())
+    Test::assert_eq_i32(s.len(), 0)
+    Test::assert_true(s.insert(1))
+    Test::assert_true(s.insert(2))
+    Test::assert_true(s.insert(3))
+    Test::assert_false(s.insert(1))
+    Test::assert_eq_i32(s.len(), 3)
+    Test::assert_true(s.contains(2))
+    Test::assert_false(s.contains(4))
+    Test::assert_true(s.remove(2))
+    Test::assert_false(s.remove(2))
+    Test::assert_eq_i32(s.len(), 2)
+    Test::assert_true(s.contains(1))
 
     let mut other: HashSet<i32> = HashSet::new<i32>()
-    test::assert_true(other.insert(2))
-    test::assert_true(other.insert(3))
-    test::assert_true(other.insert(4))
+    Test::assert_true(other.insert(2))
+    Test::assert_true(other.insert(3))
+    Test::assert_true(other.insert(4))
 
     let union: HashSet<i32> = s.union(other)
-    test::assert_eq_i32(union.len(), 4)
-    test::assert_true(union.contains(1))
-    test::assert_true(union.contains(4))
+    Test::assert_eq_i32(union.len(), 4)
+    Test::assert_true(union.contains(1))
+    Test::assert_true(union.contains(4))
 
     let intersection: HashSet<i32> = s.intersection(other)
-    test::assert_eq_i32(intersection.len(), 1)
-    test::assert_true(intersection.contains(3))
+    Test::assert_eq_i32(intersection.len(), 1)
+    Test::assert_true(intersection.contains(3))
 
     let difference: HashSet<i32> = s.difference(other)
-    test::assert_eq_i32(difference.len(), 1)
-    test::assert_true(difference.contains(1))
+    Test::assert_eq_i32(difference.len(), 1)
+    Test::assert_true(difference.contains(1))
 
-    test::assert_eq_i32(s.union(other).len(), 4)
-    test::assert_true(s.union(other).contains(4))
+    Test::assert_eq_i32(s.union(other).len(), 4)
+    Test::assert_true(s.union(other).contains(4))
 
     let values: Vec<i32> = s.to_vec()
-    test::assert_eq_i32(len(values), 2)
+    Test::assert_eq_i32(len(values), 2)
 
     let capacity_before: i32 = s.capacity()
     s.reserve(20)
-    test::assert_true(s.capacity() > capacity_before)
-    test::assert_eq_i32(s.len(), 2)
+    Test::assert_true(s.capacity() > capacity_before)
+    Test::assert_eq_i32(s.len(), 2)
     s.shrink_to_fit()
-    test::assert_eq_i32(s.len(), 2)
-    test::assert_true(s.contains(3))
+    Test::assert_eq_i32(s.len(), 2)
+    Test::assert_true(s.contains(3))
 
     let mut extended: HashSet<i32> = HashSet::new<i32>()
     extended.extend(other)
-    test::assert_eq_i32(extended.len(), 3)
-    test::assert_true(extended.contains(4))
+    Test::assert_eq_i32(extended.len(), 3)
+    Test::assert_true(extended.contains(4))
 
     let mut cleared: HashSet<i32> = HashSet::new<i32>()
-    test::assert_true(cleared.insert(9))
+    Test::assert_true(cleared.insert(9))
     cleared.clear()
-    test::assert_true(cleared.is_empty())
-    test::assert_eq_i32(cleared.len(), 0)
+    Test::assert_true(cleared.is_empty())
+    Test::assert_eq_i32(cleared.len(), 0)
 
     let copy: HashSet<i32> = s.clone()
-    test::assert_true(copy.eq(s))
-    test::assert_eq_i32(copy.len(), 2)
+    Test::assert_true(copy.eq(s))
+    Test::assert_eq_i32(copy.len(), 2)
 
     let rendered: String = s.fmt_debug()
-    test::assert_true(len(rendered) > 0)
+    Test::assert_true(len(rendered) > 0)
 
     let mut iter: VecIter<i32> = copy.into_iter()
     let mut total: i32 = 0
@@ -77,25 +77,25 @@ fn main() {
             Option::None => { break },
         }
     }
-    test::assert_eq_i32(total, 4)
+    Test::assert_eq_i32(total, 4)
 
     let mut loop_total: i32 = 0
     for value in s {
         loop_total = loop_total + value
     }
-    test::assert_eq_i32(loop_total, 4)
+    Test::assert_eq_i32(loop_total, 4)
 
     let mut words: HashSet<String> = HashSet::new<String>()
-    test::assert_true(words.is_empty())
-    test::assert_eq_i32(words.len(), 0)
-    test::assert_true(words.insert("apple"))
-    test::assert_true(words.insert("banana"))
-    test::assert_false(words.insert("apple"))
-    test::assert_eq_i32(words.len(), 2)
-    test::assert_true(words.contains("banana"))
-    test::assert_false(words.contains("cherry"))
-    test::assert_true(words.remove("banana"))
-    test::assert_false(words.remove("banana"))
-    test::assert_eq_i32(words.len(), 1)
-    test::assert_true(words.contains("apple"))
+    Test::assert_true(words.is_empty())
+    Test::assert_eq_i32(words.len(), 0)
+    Test::assert_true(words.insert("apple"))
+    Test::assert_true(words.insert("banana"))
+    Test::assert_false(words.insert("apple"))
+    Test::assert_eq_i32(words.len(), 2)
+    Test::assert_true(words.contains("banana"))
+    Test::assert_false(words.contains("cherry"))
+    Test::assert_true(words.remove("banana"))
+    Test::assert_false(words.remove("banana"))
+    Test::assert_eq_i32(words.len(), 1)
+    Test::assert_true(words.contains("apple"))
 }

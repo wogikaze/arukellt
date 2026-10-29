@@ -1,12 +1,12 @@
 use std::bytes
 use std::bytes::Bytes
-use std::test
+use std::test::Test
 
 fn main() {
     let d: Vec<i32> = Bytes::from_hex("DEADBEEF")
-    test::assert_eq_i32(d.len(), 4)
-    test::assert_eq_i32(d.get_unchecked(0), 222)
-    test::assert_eq_i32(d.get_unchecked(1), 173)
-    test::assert_eq_i32(d.get_unchecked(2), 190)
-    test::assert_eq_i32(d.get_unchecked(3), 239)
+    Test::assert_eq_i32(d.len(), 4)
+    Test::assert_eq_i32(d.get_unchecked(0), 222)
+    Test::assert_eq_i32(d.get_unchecked(1), 173)
+    Test::assert_eq_i32(d.get_unchecked(2), 190)
+    Test::assert_eq_i32(d.get_unchecked(3), 239)
 }

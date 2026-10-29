@@ -1,7 +1,7 @@
 use std::bytes
-use std::test
+use std::test::Test
 
 fn main() {
     let b: Vec<i32> = "".to_utf8_bytes()
-    test::assert_eq_i32(b.len(), 0)
+    Test::assert_eq_i32(b.len(), 0)
 }

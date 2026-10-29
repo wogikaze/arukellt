@@ -1,5 +1,5 @@
 use std::io
-use std::test
+use std::test::Test
 
 fn main() {
     let mut w: io::Writer = io::Writer::new()
@@ -9,13 +9,13 @@ fn main() {
     push(data, 67)
 
     match w.write(data) {
-        Result::Ok(n) => test::assert_eq_i32(n, 3),
+        Result::Ok(n) => Test::assert_eq_i32(n, 3),
         Result::Err(_e) => Std::panic("expected Ok"),
     }
 
     let out: Vec<i32> = w.into_bytes()
-    test::assert_eq_i32(len(out), 3)
-    test::assert_eq_i32(get_unchecked(out, 0), 65)
-    test::assert_eq_i32(get_unchecked(out, 1), 66)
-    test::assert_eq_i32(get_unchecked(out, 2), 67)
+    Test::assert_eq_i32(len(out), 3)
+    Test::assert_eq_i32(get_unchecked(out, 0), 65)
+    Test::assert_eq_i32(get_unchecked(out, 1), 66)
+    Test::assert_eq_i32(get_unchecked(out, 2), 67)
 }

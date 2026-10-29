@@ -1,12 +1,12 @@
 use std::core::either::{Either}
-use std::test
+use std::test::Test
 
 fn main() {
     let l = Either::Left(0)
     let r = Either::Right(0)
     // is_left / is_right are complementary
-    test::assert_true(l.is_left())
-    test::assert_false(l.is_right())
-    test::assert_false(r.is_left())
-    test::assert_true(r.is_right())
+    Test::assert_true(l.is_left())
+    Test::assert_false(l.is_right())
+    Test::assert_false(r.is_left())
+    Test::assert_true(r.is_right())
 }

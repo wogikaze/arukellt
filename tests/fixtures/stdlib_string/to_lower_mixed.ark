@@ -1,6 +1,6 @@
-use std::test
+use std::test::Test
 use std::prelude::{to_lower}
 fn main() {
-    test::assert_eq_string(to_lower(String_from("HeLLo123")), "hello123")
-    test::assert_eq_string(to_lower(String_from("A.B.C")), "a.b.c")
+    Test::assert_eq_string(to_lower(String_from("HeLLo123")), "hello123")
+    Test::assert_eq_string(to_lower(String_from("A.B.C")), "a.b.c")
 }

@@ -1,12 +1,12 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("0") {
         Result::Ok(v) => {
-            test::assert_true(v.is_number())
+            Test::assert_true(v.is_number())
             match v.as_i32() {
-                Option::Some(n) => test::assert_eq_i32(n, 0),
+                Option::Some(n) => Test::assert_eq_i32(n, 0),
                 None => Std::panic("expected Some(0)"),
             }
         },
@@ -14,14 +14,14 @@ fn main() {
     }
     match json::JsonValue::parse("42") {
         Result::Ok(v) => match v.as_i32() {
-            Option::Some(n) => test::assert_eq_i32(n, 42),
+            Option::Some(n) => Test::assert_eq_i32(n, 42),
             None => Std::panic("expected Some(42)"),
         },
         Result::Err(e) => Std::panic("parse 42 failed: ".concat(e.message())),
     }
     match json::JsonValue::parse("999999") {
         Result::Ok(v) => match v.as_i32() {
-            Option::Some(n) => test::assert_eq_i32(n, 999999),
+            Option::Some(n) => Test::assert_eq_i32(n, 999999),
             None => Std::panic("expected Some(999999)"),
         },
         Result::Err(e) => Std::panic("parse 999999 failed: ".concat(e.message())),

@@ -1,5 +1,5 @@
 use std::io
-use std::test
+use std::test::Test
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
@@ -12,16 +12,16 @@ fn main() {
 
     match r.fill_buf() {
         Result::Ok(filled) => {
-            test::assert_eq_i32(len(filled), 5)
-            test::assert_eq_i32(get_unchecked(filled, 0), 1)
-            test::assert_eq_i32(get_unchecked(filled, 4), 5)
+            Test::assert_eq_i32(len(filled), 5)
+            Test::assert_eq_i32(get_unchecked(filled, 0), 1)
+            Test::assert_eq_i32(get_unchecked(filled, 4), 5)
         },
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
 
     // fill_buf does not consume
     match r.position() {
-        Result::Ok(pos) => test::assert_eq_i64(pos, 0),
+        Result::Ok(pos) => Test::assert_eq_i64(pos, 0),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
 }

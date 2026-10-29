@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 
 fn add(acc: f64, x: f64) -> f64 {
     acc + x
@@ -15,5 +15,5 @@ fn main() {
         result = add(result, get_unchecked(v, fold_index))
         fold_index = fold_index + 1
     }
-    test::assert_eq_f64(result, 7.0)
+    Test::assert_eq_f64(result, 7.0)
 }

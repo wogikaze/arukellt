@@ -1,17 +1,17 @@
 use std::core::either::{Either}
-use std::test
+use std::test::Test
 
 fn double(x: i32) -> i32 { x * 2 }
 
 fn main() {
     let r = Either::Right(21)
     let mapped = r.map_right(double)
-    test::assert_true(mapped.is_right())
-    test::assert_eq_i32(mapped.from_right(-1), 42)
+    Test::assert_true(mapped.is_right())
+    Test::assert_eq_i32(mapped.from_right(-1), 42)
 
     // map_right on Left is a no-op
     let l = Either::Left(99)
     let mapped2 = l.map_right(double)
-    test::assert_true(mapped2.is_left())
-    test::assert_eq_i32(mapped2.from_left(-1), 99)
+    Test::assert_true(mapped2.is_left())
+    Test::assert_eq_i32(mapped2.from_left(-1), 99)
 }

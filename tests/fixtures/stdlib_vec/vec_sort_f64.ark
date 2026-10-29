@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 
 fn main() {
     let mut v: Vec<f64> = Vec::new<f64>()
@@ -19,7 +19,7 @@ fn main() {
         set(v, sort_slot, sort_value)
         sort_index = sort_index + 1
     }
-    test::assert_eq_f64(get_unchecked(v, 0), 1.2)
-    test::assert_eq_f64(get_unchecked(v, 1), 2.8)
-    test::assert_eq_f64(get_unchecked(v, 2), 3.5)
+    Test::assert_eq_f64(get_unchecked(v, 0), 1.2)
+    Test::assert_eq_f64(get_unchecked(v, 1), 2.8)
+    Test::assert_eq_f64(get_unchecked(v, 2), 3.5)
 }

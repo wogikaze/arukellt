@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 
 fn is_hundred(x: i64) -> bool {
     x == 100i64
@@ -28,7 +28,7 @@ fn main() {
     push(v, c)
     let result = find_hundred(v)
     match result {
-        Option::Some(val) => test::assert_eq_i64(val, 100i64),
+        Option::Some(val) => Test::assert_eq_i64(val, 100i64),
         None => Std::panic("expected Some, got None"),
     }
 }

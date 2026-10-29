@@ -1,8 +1,8 @@
 use std::core::convert
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_string(42.to_string(), "42")
-    test::assert_eq_string(0.to_string(), "0")
-    test::assert_eq_string(100.to_string(), "100")
+    Test::assert_eq_string(42.to_string(), "42")
+    Test::assert_eq_string(0.to_string(), "0")
+    Test::assert_eq_string(100.to_string(), "100")
 }

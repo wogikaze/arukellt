@@ -1,8 +1,8 @@
 use std::text::fmt
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_string(String_from("hello").fmt_debug(), "\"hello\"")
-    test::assert_eq_string(String_from("world").fmt_debug(), "\"world\"")
-    test::assert_eq_string("s=".concat(String_from("hi").fmt_debug()), "s=\"hi\"")
+    Test::assert_eq_string(String_from("hello").fmt_debug(), "\"hello\"")
+    Test::assert_eq_string(String_from("world").fmt_debug(), "\"world\"")
+    Test::assert_eq_string("s=".concat(String_from("hi").fmt_debug()), "s=\"hi\"")
 }

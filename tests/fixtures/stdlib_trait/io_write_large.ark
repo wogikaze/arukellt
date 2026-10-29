@@ -1,5 +1,5 @@
 use std::io
-use std::test
+use std::test::Test
 
 fn main() {
     let mut w: io::Writer = io::Writer::new()
@@ -9,19 +9,19 @@ fn main() {
     }
 
     match w.write(data) {
-        Result::Ok(written) => test::assert_eq_i32(written, 100),
+        Result::Ok(written) => Test::assert_eq_i32(written, 100),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
 
     let mut r: io::Reader = w.into_reader()
-    test::assert_eq_i32(r.len(), 100)
+    Test::assert_eq_i32(r.len(), 100)
 
     match r.read(100) {
         Result::Ok(read) => {
-            test::assert_eq_i32(len(read), 100)
-            test::assert_eq_i32(get_unchecked(read, 0), 0)
-            test::assert_eq_i32(get_unchecked(read, 50), 50)
-            test::assert_eq_i32(get_unchecked(read, 99), 99)
+            Test::assert_eq_i32(len(read), 100)
+            Test::assert_eq_i32(get_unchecked(read, 0), 0)
+            Test::assert_eq_i32(get_unchecked(read, 50), 50)
+            Test::assert_eq_i32(get_unchecked(read, 99), 99)
         },
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }

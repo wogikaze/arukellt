@@ -1,7 +1,7 @@
 // Property: cmp defines a total order — for any a, b exactly one of
 // Less, Equal, Greater holds, and cmp(a,b) == Equal iff a == b.
 use std::core::cmp
-use std::test
+use std::test::Test
 fn check_pair(a: i32, b: i32) {
     let result = a.cmp(b)
     // Exactly one variant
@@ -21,7 +21,7 @@ fn check_pair(a: i32, b: i32) {
         _ => {
         },
     }
-    test::assert_eq_i32(count, 1)
+    Test::assert_eq_i32(count, 1)
     // Equal iff a == b
     if a == b {
         match result {

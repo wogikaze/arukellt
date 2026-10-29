@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 
 // A get_unchecked dest temp on wasm32-gc must keep the vector element's GC
 // type regardless of which call follows in the block. The emit path used to
@@ -29,5 +29,5 @@ fn main() {
     push(row, 2)
     push(bodies, row)
     let bag = Bag { bodies: bodies, tag: 1 }
-    test::assert_eq_i32(pick(bag, 0), 3)
+    Test::assert_eq_i32(pick(bag, 0), 3)
 }

@@ -1,6 +1,6 @@
 use std::bytes
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_true(Vec::new<i32>().equals_bytes(Vec::new<i32>()))
+    Test::assert_true(Vec::new<i32>().equals_bytes(Vec::new<i32>()))
 }

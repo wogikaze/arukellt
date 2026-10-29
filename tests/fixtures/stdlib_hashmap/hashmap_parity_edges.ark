@@ -1,9 +1,9 @@
 use std::collections::hash_set::HashSet
-use std::test
+use std::test::Test
 
 fn assert_some(v: Option<i32>, expected: i32) {
     match v {
-        Option::Some(x) => test::assert_eq_i32(x, expected),
+        Option::Some(x) => Test::assert_eq_i32(x, expected),
         None => Std::panic("expected Some"),
     }
 }
@@ -29,28 +29,28 @@ test "zero_and_boundary_values_round_trip" {
     assert_some(m.get(3), 33)
 
     let _ = m.insert(5, 50)
-    test::assert_eq_i32(m.len(), 2)
-    test::assert_true(m.contains_key(5))
+    Test::assert_eq_i32(m.len(), 2)
+    Test::assert_true(m.contains_key(5))
 
     let entry_pairs: Vec<(i32, i32)> = m.entries()
-    test::assert_eq_i32(len(entry_pairs), 2)
+    Test::assert_eq_i32(len(entry_pairs), 2)
     match m.remove_entry(3) {
         Option::Some((k, v)) => {
-            test::assert_eq_i32(k, 3)
-            test::assert_eq_i32(v, 33)
+            Test::assert_eq_i32(k, 3)
+            Test::assert_eq_i32(v, 33)
         },
         None => Std::panic("expected Some(3, 33)"),
     }
     assert_none(m.get(3))
 
     let drained: Vec<(i32, i32)> = m.drain()
-    test::assert_eq_i32(len(drained), 1)
-    test::assert_true(m.is_empty())
+    Test::assert_eq_i32(len(drained), 1)
+    Test::assert_true(m.is_empty())
 
     let mut s: HashSet<String> = HashSet::new<String>()
-    test::assert_true(s.insert("alpha"))
-    test::assert_false(s.insert("alpha"))
-    test::assert_true(s.contains("alpha"))
-    test::assert_true(s.remove("alpha"))
-    test::assert_false(s.contains("alpha"))
+    Test::assert_true(s.insert("alpha"))
+    Test::assert_false(s.insert("alpha"))
+    Test::assert_true(s.contains("alpha"))
+    Test::assert_true(s.remove("alpha"))
+    Test::assert_false(s.contains("alpha"))
 }

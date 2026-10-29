@@ -1,11 +1,11 @@
 use std::json
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_string(json::JsonValue::encode_string("hello"), "\"hello\"")
-    test::assert_eq_string(json::JsonValue::encode_string(""), "\"\"")
-    test::assert_eq_string(json::JsonValue::encode_string("a\"b"), "\"a\\\"b\"")
-    test::assert_eq_string(json::JsonValue::encode_string("a\\b"), "\"a\\\\b\"")
-    test::assert_eq_string(json::JsonValue::encode_string("a\tb"), "\"a\\tb\"")
-    test::assert_eq_string(json::JsonValue::encode_string("a\nb"), "\"a\\nb\"")
+    Test::assert_eq_string(json::JsonValue::encode_string("hello"), "\"hello\"")
+    Test::assert_eq_string(json::JsonValue::encode_string(""), "\"\"")
+    Test::assert_eq_string(json::JsonValue::encode_string("a\"b"), "\"a\\\"b\"")
+    Test::assert_eq_string(json::JsonValue::encode_string("a\\b"), "\"a\\\\b\"")
+    Test::assert_eq_string(json::JsonValue::encode_string("a\tb"), "\"a\\tb\"")
+    Test::assert_eq_string(json::JsonValue::encode_string("a\nb"), "\"a\\nb\"")
 }

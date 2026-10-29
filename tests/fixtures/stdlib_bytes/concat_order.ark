@@ -1,5 +1,5 @@
 use std::bytes
-use std::test
+use std::test::Test
 
 fn main() {
     let mut a: Vec<i32> = Vec::new<i32>()
@@ -9,9 +9,9 @@ fn main() {
     b.push_byte(30)
     b.push_byte(40)
     let r: Vec<i32> = a.concat_bytes(b)
-    test::assert_eq_i32(r.len(), 4)
-    test::assert_eq_i32(r.get_unchecked(0), 10)
-    test::assert_eq_i32(r.get_unchecked(1), 20)
-    test::assert_eq_i32(r.get_unchecked(2), 30)
-    test::assert_eq_i32(r.get_unchecked(3), 40)
+    Test::assert_eq_i32(r.len(), 4)
+    Test::assert_eq_i32(r.get_unchecked(0), 10)
+    Test::assert_eq_i32(r.get_unchecked(1), 20)
+    Test::assert_eq_i32(r.get_unchecked(2), 30)
+    Test::assert_eq_i32(r.get_unchecked(3), 40)
 }

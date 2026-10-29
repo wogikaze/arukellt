@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 fn main() {
     let t = toml::TomlValue::parse("meta = { name = \"tom\", role = \"admin\" }")
@@ -8,7 +8,7 @@ fn main() {
         Result::Ok(table) => match table.get_field("meta") {
             Option::Some(m) => match m.get_field("name") {
                 Option::Some(v) => match v.as_string() {
-                    Option::Some(s) => test::assert_eq_string(s, "tom"),
+                    Option::Some(s) => Test::assert_eq_string(s, "tom"),
                     None => assert(false),
                 },
                 None => assert(false),

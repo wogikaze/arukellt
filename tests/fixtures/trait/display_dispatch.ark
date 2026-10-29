@@ -1,17 +1,17 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 use std::prelude::{to_string}
 
 // #702: the free-function and method forms of `to_string` must agree for
 // every builtin Display impl, including the String identity case. This
 // guards the dual-dispatch path until the builtin rewrite is retired.
 fn main() {
-    test::assert_eq_string(42.to_string(), to_string(42))
-    test::assert_eq_string((9001i64).to_string(), to_string(9001i64))
-    test::assert_eq_string((1.5).to_string(), to_string(1.5))
-    test::assert_eq_string(true.to_string(), to_string(true))
-    test::assert_eq_string(('a').to_string(), to_string('a'))
-    test::assert_eq_string(
+    Test::assert_eq_string(42.to_string(), to_string(42))
+    Test::assert_eq_string((9001i64).to_string(), to_string(9001i64))
+    Test::assert_eq_string((1.5).to_string(), to_string(1.5))
+    Test::assert_eq_string(true.to_string(), to_string(true))
+    Test::assert_eq_string(('a').to_string(), to_string('a'))
+    Test::assert_eq_string(
         String_from("hello").to_string(),
         to_string(String_from("hello"))
     )

@@ -1,17 +1,17 @@
-use std::test
+use std::test::Test
 use std::text::fmt
 
 fn main() {
     // Some(i32) -> "Some(42)"
-    test::assert_eq_string(fmt::DebugFormat::option_i32(Option::Some(42)), "Some(42)")
+    Test::assert_eq_string(fmt::DebugFormat::option_i32(Option::Some(42)), "Some(42)")
     // None -> "None"
-    test::assert_eq_string(fmt::DebugFormat::option_i32(None), "None")
+    Test::assert_eq_string(fmt::DebugFormat::option_i32(None), "None")
     // Some with negative
-    test::assert_eq_string(fmt::DebugFormat::option_i32(Option::Some(-1)), "Some(-1)")
+    Test::assert_eq_string(fmt::DebugFormat::option_i32(Option::Some(-1)), "Some(-1)")
     // Some with zero
-    test::assert_eq_string(fmt::DebugFormat::option_i32(Option::Some(0)), "Some(0)")
+    Test::assert_eq_string(fmt::DebugFormat::option_i32(Option::Some(0)), "Some(0)")
 
     // Option<String>
-    test::assert_eq_string(fmt::DebugFormat::option_string(Option::Some("hi")), "Some(\"hi\")")
-    test::assert_eq_string(fmt::DebugFormat::option_string(None), "None")
+    Test::assert_eq_string(fmt::DebugFormat::option_string(Option::Some("hi")), "Some(\"hi\")")
+    Test::assert_eq_string(fmt::DebugFormat::option_string(None), "None")
 }

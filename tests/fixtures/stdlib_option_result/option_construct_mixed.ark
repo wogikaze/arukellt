@@ -1,12 +1,12 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 use std::prelude::{is_none, is_some}
 fn main() {
     let s: Option<i32> = Some(10)
     let n: Option<i32> = None
-    test::assert_true(is_some(s))
-    test::assert_true(is_none(n))
-    test::assert_false(is_none(s))
-    test::assert_false(is_some(n))
+    Test::assert_true(is_some(s))
+    Test::assert_true(is_none(n))
+    Test::assert_false(is_none(s))
+    Test::assert_false(is_some(n))
     stdio::println("ok")
 }

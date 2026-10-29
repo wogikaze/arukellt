@@ -1,8 +1,8 @@
-use std::test
+use std::test::Test
 
 test "direct_hashmap_api_tracks_size" {
     let mut m = HashMap::new<i32, i32>()
     let _ = m.insert(1, 42)
     let s: i32 = m.len()
-    test::assert_eq_i32(s, 1)
+    Test::assert_eq_i32(s, 1)
 }

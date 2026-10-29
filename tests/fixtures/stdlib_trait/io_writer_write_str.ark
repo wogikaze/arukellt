@@ -1,16 +1,16 @@
 use std::io
-use std::test
+use std::test::Test
 
 fn main() {
     let mut w: io::Writer = io::Writer::new()
 
     match w.write_string("hello") {
-        Result::Ok(n) => test::assert_eq_i32(n, 5),
+        Result::Ok(n) => Test::assert_eq_i32(n, 5),
         Result::Err(_e) => Std::panic("expected Ok"),
     }
 
     let out: Vec<i32> = w.into_bytes()
-    test::assert_eq_i32(len(out), 5)
-    test::assert_eq_i32(get_unchecked(out, 0), 104)
-    test::assert_eq_i32(get_unchecked(out, 4), 111)
+    Test::assert_eq_i32(len(out), 5)
+    Test::assert_eq_i32(get_unchecked(out, 0), 104)
+    Test::assert_eq_i32(get_unchecked(out, 4), 111)
 }

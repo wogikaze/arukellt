@@ -1,11 +1,11 @@
 use std::core::convert
-use std::test
+use std::test::Test
 
 fn main() {
     // 1 to any power is 1
-    test::assert_eq_i32(1.pow(100), 1)
-    test::assert_eq_i32(1.pow(0), 1)
-    test::assert_eq_i32(1.pow(5), 1)
+    Test::assert_eq_i32(1.pow(100), 1)
+    Test::assert_eq_i32(1.pow(0), 1)
+    Test::assert_eq_i32(1.pow(5), 1)
     // base to power 1 is base
-    test::assert_eq_i32(7.pow(1), 7)
+    Test::assert_eq_i32(7.pow(1), 7)
 }

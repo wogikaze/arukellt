@@ -1,11 +1,11 @@
 use std::core::error
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_string(Error::InvalidArgument("bad").message(), "InvalidArgument: bad")
-    test::assert_eq_string(Error::Timeout.message(), "Timeout")
-    test::assert_eq_string(Error::Utf8Error.message(), "Utf8Error")
-    test::assert_eq_string(Error::IoError("disk full").message(), "IoError: disk full")
-    test::assert_eq_string(Error::AlreadyExists("file").message(), "AlreadyExists: file")
-    test::assert_eq_string(Error::PermissionDenied("root").message(), "PermissionDenied: root")
+    Test::assert_eq_string(Error::InvalidArgument("bad").message(), "InvalidArgument: bad")
+    Test::assert_eq_string(Error::Timeout.message(), "Timeout")
+    Test::assert_eq_string(Error::Utf8Error.message(), "Utf8Error")
+    Test::assert_eq_string(Error::IoError("disk full").message(), "IoError: disk full")
+    Test::assert_eq_string(Error::AlreadyExists("file").message(), "AlreadyExists: file")
+    Test::assert_eq_string(Error::PermissionDenied("root").message(), "PermissionDenied: root")
 }

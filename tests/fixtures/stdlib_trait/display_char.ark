@@ -1,9 +1,9 @@
 use std::core::convert
-use std::test
+use std::test::Test
 use std::prelude::{to_string}
 fn main() {
-    test::assert_eq_string(to_string('A'), "A")
-    test::assert_eq_string(to_string('z'), "z")
-    test::assert_eq_string(to_string('1'), "1")
-    test::assert_eq_string(to_string(' '), " ")
+    Test::assert_eq_string(to_string('A'), "A")
+    Test::assert_eq_string(to_string('z'), "z")
+    Test::assert_eq_string(to_string('1'), "1")
+    Test::assert_eq_string(to_string(' '), " ")
 }

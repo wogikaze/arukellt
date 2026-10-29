@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 /// Nested table sections and array-of-tables are accepted by full TOML 1.0.
 fn main() {
@@ -10,7 +10,7 @@ fn main() {
             match table.get_field("database") {
                 Option::Some(db) => match db.get_field("port") {
                     Option::Some(p) => match p.as_int() {
-                        Option::Some(n) => test::assert_eq_i32(n, 5432),
+                        Option::Some(n) => Test::assert_eq_i32(n, 5432),
                         None => assert(false),
                     },
                     None => assert(false),
@@ -20,7 +20,7 @@ fn main() {
             match table.get_field("server") {
                 Option::Some(srv) => match srv.get_field("host") {
                     Option::Some(h) => match h.as_string() {
-                        Option::Some(s) => test::assert_eq_string(s, "example.com"),
+                        Option::Some(s) => Test::assert_eq_string(s, "example.com"),
                         None => assert(false),
                     },
                     None => assert(false),
@@ -36,7 +36,7 @@ fn main() {
         Result::Ok(table) => match table.get_field("package") {
             Option::Some(pkg) => match pkg.get_field("name") {
                 Option::Some(v) => match v.as_string() {
-                    Option::Some(s) => test::assert_eq_string(s, "arukellt"),
+                    Option::Some(s) => Test::assert_eq_string(s, "arukellt"),
                     None => assert(false),
                 },
                 None => assert(false),

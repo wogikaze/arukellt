@@ -1,9 +1,9 @@
 use std::core::hash
-use std::test
+use std::test::Test
 
 fn main() {
     let combined = 0.combine_hash(0)
-    test::assert_true(combined >= 0)
+    Test::assert_true(combined >= 0)
     // combine_hash is deterministic
-    test::assert_eq_i32(0.combine_hash(0), combined)
+    Test::assert_eq_i32(0.combine_hash(0), combined)
 }

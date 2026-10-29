@@ -1,6 +1,6 @@
 // HashSet: extend adds all elements from other set
 use std::collections::hash_set::HashSet
-use std::test
+use std::test::Test
 
 fn main() {
     let mut a = HashSet::new<i32>()
@@ -13,9 +13,9 @@ fn main() {
     b.insert(4)
 
     a.extend(b)
-    test::assert_eq_i32(a.len(), 4)
-    test::assert_true(a.contains(1))
-    test::assert_true(a.contains(2))
-    test::assert_true(a.contains(3))
-    test::assert_true(a.contains(4))
+    Test::assert_eq_i32(a.len(), 4)
+    Test::assert_true(a.contains(1))
+    Test::assert_true(a.contains(2))
+    Test::assert_true(a.contains(3))
+    Test::assert_true(a.contains(4))
 }

@@ -1,5 +1,5 @@
 use std::core::iter
-use std::test
+use std::test::Test
 
 fn double(x: i32) -> i32 { x * 2 }
 fn is_even(x: i32) -> bool { x / 2 * 2 == x }
@@ -14,8 +14,8 @@ fn main() {
 
     // map(double) then filter(is_even): [2,4,6,8,10]
     let result = v.iter().map(double).filter(is_even).collect()
-    test::assert_eq_i32(len(result), 5)
-    test::assert_eq_i32(get_unchecked(result, 0), 2)
-    test::assert_eq_i32(get_unchecked(result, 1), 4)
-    test::assert_eq_i32(get_unchecked(result, 4), 10)
+    Test::assert_eq_i32(len(result), 5)
+    Test::assert_eq_i32(get_unchecked(result, 0), 2)
+    Test::assert_eq_i32(get_unchecked(result, 1), 4)
+    Test::assert_eq_i32(get_unchecked(result, 4), 10)
 }

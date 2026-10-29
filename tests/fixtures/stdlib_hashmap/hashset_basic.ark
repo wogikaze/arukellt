@@ -1,21 +1,21 @@
 use std::collections::hash_set::HashSet
-use std::test
+use std::test::Test
 
 test "insert_remove_and_membership_transitions" {
     let mut s: HashSet<i32> = HashSet::new<i32>()
-    test::assert_true(s.is_empty())
-    test::assert_true(s.insert(1))
-    test::assert_true(s.insert(2))
-    test::assert_true(s.insert(3))
-    test::assert_false(s.insert(2))
-    test::assert_eq_i32(s.len(), 3)
-    test::assert_true(s.contains(1))
-    test::assert_false(s.contains(99))
-    test::assert_true(s.remove(2))
-    test::assert_eq_i32(s.len(), 2)
-    test::assert_false(s.remove(99))
-    test::assert_eq_i32(len(s.to_vec()), 2)
+    Test::assert_true(s.is_empty())
+    Test::assert_true(s.insert(1))
+    Test::assert_true(s.insert(2))
+    Test::assert_true(s.insert(3))
+    Test::assert_false(s.insert(2))
+    Test::assert_eq_i32(s.len(), 3)
+    Test::assert_true(s.contains(1))
+    Test::assert_false(s.contains(99))
+    Test::assert_true(s.remove(2))
+    Test::assert_eq_i32(s.len(), 2)
+    Test::assert_false(s.remove(99))
+    Test::assert_eq_i32(len(s.to_vec()), 2)
     let _ = s.remove(1)
     let _ = s.remove(3)
-    test::assert_true(s.is_empty())
+    Test::assert_true(s.is_empty())
 }

@@ -1,9 +1,9 @@
 use std::bytes
-use std::test
+use std::test::Test
 
 fn assert_some(v: Option<i32>, expected: i32) {
     match v {
-        Option::Some(n) => test::assert_eq_i32(n, expected),
+        Option::Some(n) => Test::assert_eq_i32(n, expected),
         None => Std::panic("expected Some"),
     }
 }

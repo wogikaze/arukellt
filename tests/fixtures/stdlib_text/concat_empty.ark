@@ -1,14 +1,14 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
     // Concat with empty on both sides
-    test::assert_eq_string("".concat(""), "")
+    Test::assert_eq_string("".concat(""), "")
     // Concat empty + non-empty
-    test::assert_eq_string("".concat("x"), "x")
+    Test::assert_eq_string("".concat("x"), "x")
     // Concat non-empty + empty
-    test::assert_eq_string("x".concat(""), "x")
+    Test::assert_eq_string("x".concat(""), "x")
     // Length checks
-    test::assert_eq_i32(len("".concat("")), 0)
-    test::assert_eq_i32(len("ab".concat("cd")), 4)
+    Test::assert_eq_i32(len("".concat("")), 0)
+    Test::assert_eq_i32(len("ab".concat("cd")), 4)
 }

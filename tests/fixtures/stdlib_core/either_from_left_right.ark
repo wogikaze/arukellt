@@ -1,13 +1,13 @@
 use std::core::either::{Either}
-use std::test
+use std::test::Test
 
 fn main() {
     let l = Either::Left(42)
     let r = Either::Right(99)
     // from_left extracts Left value, returns fallback for Right
-    test::assert_eq_i32(l.from_left(-1), 42)
-    test::assert_eq_i32(r.from_left(-1), -1)
+    Test::assert_eq_i32(l.from_left(-1), 42)
+    Test::assert_eq_i32(r.from_left(-1), -1)
     // from_right extracts Right value, returns fallback for Left
-    test::assert_eq_i32(r.from_right(-1), 99)
-    test::assert_eq_i32(l.from_right(-1), -1)
+    Test::assert_eq_i32(r.from_right(-1), 99)
+    Test::assert_eq_i32(l.from_right(-1), -1)
 }

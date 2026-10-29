@@ -1,5 +1,5 @@
 // Stress: insert 100, remove even keys, verify odd remain
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
@@ -15,20 +15,20 @@ fn main() {
         m.remove(i)
         i = i + 2
     }
-    test::assert_eq_i32(m.len(), 50)
+    Test::assert_eq_i32(m.len(), 50)
 
     // Verify odd keys remain
     i = 1
     while i < 100 {
-        test::assert_true(m.contains_key(i))
-        test::assert_eq_i32(m.get(i).unwrap_or(0), i)
+        Test::assert_true(m.contains_key(i))
+        Test::assert_eq_i32(m.get(i).unwrap_or(0), i)
         i = i + 2
     }
 
     // Verify even keys are gone
     i = 0
     while i < 100 {
-        test::assert_false(m.contains_key(i))
+        Test::assert_false(m.contains_key(i))
         i = i + 2
     }
 }

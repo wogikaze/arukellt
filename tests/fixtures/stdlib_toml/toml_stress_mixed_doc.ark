@@ -1,16 +1,16 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 fn main() {
     let doc = "title = \"mix\"\nnums = [1, 2]\n[owner]\nname = \"bob\"\n[[items]]\nid = 1\n[[items]]\nid = 2"
     match toml::TomlValue::parse(doc) {
         Result::Ok(table) => {
             let keys = table.table_keys()
-            test::assert_eq_i32(len(keys), 4)
+            Test::assert_eq_i32(len(keys), 4)
             match table.get_field("items") {
                 Option::Some(v) => match v.as_array() {
-                    Option::Some(arr) => test::assert_eq_i32(len(arr), 2),
+                    Option::Some(arr) => Test::assert_eq_i32(len(arr), 2),
                     None => assert(false),
                 },
                 None => assert(false),

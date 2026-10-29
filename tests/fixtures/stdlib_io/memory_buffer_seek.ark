@@ -1,7 +1,7 @@
 use std::bytes
 use std::io
 use std::io::SeekFrom
-use std::test
+use std::test::Test
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
@@ -10,18 +10,18 @@ fn main() {
     data.push_byte(30)
     let mut r: io::Reader = io::Reader::from_bytes(data)
     match r.seek(SeekFrom::Start(1i64)) {
-        Result::Ok(pos) => test::assert_eq_i64(pos, 1),
+        Result::Ok(pos) => Test::assert_eq_i64(pos, 1),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     match r.position() {
-        Result::Ok(pos) => test::assert_eq_i64(pos, 1),
+        Result::Ok(pos) => Test::assert_eq_i64(pos, 1),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     let read: Result<Vec<i32>, io::IoError> = r.read(2)
     match read {
         Result::Ok(chunk) => {
-            test::assert_eq_i32(chunk.get_unchecked(0), 20)
-            test::assert_eq_i32(chunk.get_unchecked(1), 30)
+            Test::assert_eq_i32(chunk.get_unchecked(0), 20)
+            Test::assert_eq_i32(chunk.get_unchecked(1), 30)
         },
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }

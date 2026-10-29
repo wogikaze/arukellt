@@ -1,9 +1,9 @@
 use std::core::convert
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_i32(0.abs(), 0)
+    Test::assert_eq_i32(0.abs(), 0)
     // abs and abs_i32 are aliases
-    test::assert_eq_i32(0.abs(), 0)
-    test::assert_eq_i32(0.abs(), 0.abs())
+    Test::assert_eq_i32(0.abs(), 0)
+    Test::assert_eq_i32(0.abs(), 0.abs())
 }

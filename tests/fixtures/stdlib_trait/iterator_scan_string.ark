@@ -1,5 +1,5 @@
 use std::core::iter
-use std::test
+use std::test::Test
 use std::text
 fn concat_str(a: String, b: String) -> Option<String> {
     Some(a.concat(b))
@@ -12,7 +12,7 @@ fn main() {
     let it = v.iter()
     let mut scanned = it.scan(String_from(""), concat_str)
     let out = scanned.collect()
-    test::assert_eq_i32(len(out), 2)
-    test::assert_eq_string(get_unchecked(out, 0), "a")
-    test::assert_eq_string(get_unchecked(out, 1), "ab")
+    Test::assert_eq_i32(len(out), 2)
+    Test::assert_eq_string(get_unchecked(out, 0), "a")
+    Test::assert_eq_string(get_unchecked(out, 1), "ab")
 }

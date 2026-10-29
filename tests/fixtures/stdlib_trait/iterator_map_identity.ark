@@ -1,5 +1,5 @@
 use std::core::iter
-use std::test
+use std::test::Test
 
 fn identity(x: i32) -> i32 { x }
 
@@ -10,8 +10,8 @@ fn main() {
     push(v, 30)
 
     let mapped = v.iter().map(identity).collect()
-    test::assert_eq_i32(len(mapped), 3)
-    test::assert_eq_i32(get_unchecked(mapped, 0), 10)
-    test::assert_eq_i32(get_unchecked(mapped, 1), 20)
-    test::assert_eq_i32(get_unchecked(mapped, 2), 30)
+    Test::assert_eq_i32(len(mapped), 3)
+    Test::assert_eq_i32(get_unchecked(mapped, 0), 10)
+    Test::assert_eq_i32(get_unchecked(mapped, 1), 20)
+    Test::assert_eq_i32(get_unchecked(mapped, 2), 30)
 }

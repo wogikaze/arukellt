@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 
 // A statement-position `if` still stores each branch's last ref temp into the
 // shared join local (mir_begin_if_expr allocates one result local before the
@@ -21,5 +21,5 @@ fn main() {
     let mut v = Vec::new<i32>()
     push(v, 7)
     push_in_branch(vv, v, 1)
-    test::assert_eq_i32(len(vv), 1)
+    Test::assert_eq_i32(len(vv), 1)
 }

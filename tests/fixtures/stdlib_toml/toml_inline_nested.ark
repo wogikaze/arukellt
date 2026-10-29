@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 fn main() {
     let t = toml::TomlValue::parse("outer = { inner = { val = 9 } }")
@@ -9,7 +9,7 @@ fn main() {
             Option::Some(o) => match o.get_field("inner") {
                 Option::Some(i) => match i.get_field("val") {
                     Option::Some(v) => match v.as_int() {
-                        Option::Some(n) => test::assert_eq_i32(n, 9),
+                        Option::Some(n) => Test::assert_eq_i32(n, 9),
                         None => assert(false),
                     },
                     None => assert(false),

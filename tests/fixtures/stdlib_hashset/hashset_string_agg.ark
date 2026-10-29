@@ -1,6 +1,6 @@
 // HashSet<String> aggregate set algebra over the Vec<String> store (#917).
 use std::collections::hash_set::HashSet
-use std::test
+use std::test::Test
 
 fn main() {
     let mut a: HashSet<String> = HashSet::new<String>()
@@ -11,52 +11,52 @@ fn main() {
     let _ = b.insert("green")
 
     let combined: HashSet<String> = a.union(b)
-    test::assert_eq_i32(combined.len(), 3)
-    test::assert_true(combined.contains("red"))
-    test::assert_true(combined.contains("green"))
-    test::assert_false(combined.contains("black"))
+    Test::assert_eq_i32(combined.len(), 3)
+    Test::assert_true(combined.contains("red"))
+    Test::assert_true(combined.contains("green"))
+    Test::assert_false(combined.contains("black"))
     // Neither operand is consumed by the aggregate.
-    test::assert_eq_i32(a.len(), 2)
-    test::assert_eq_i32(b.len(), 2)
+    Test::assert_eq_i32(a.len(), 2)
+    Test::assert_eq_i32(b.len(), 2)
 
     let common: HashSet<String> = a.intersection(b)
-    test::assert_eq_i32(common.len(), 1)
-    test::assert_true(common.contains("blue"))
+    Test::assert_eq_i32(common.len(), 1)
+    Test::assert_true(common.contains("blue"))
 
     let only_a: HashSet<String> = a.difference(b)
-    test::assert_eq_i32(only_a.len(), 1)
-    test::assert_true(only_a.contains("red"))
-    test::assert_false(only_a.contains("blue"))
+    Test::assert_eq_i32(only_a.len(), 1)
+    Test::assert_true(only_a.contains("red"))
+    Test::assert_false(only_a.contains("blue"))
 
     // Empty operands: union keeps `a`, intersection and difference are empty.
     let empty: HashSet<String> = HashSet::new<String>()
-    test::assert_eq_i32(a.union(empty).len(), 2)
-    test::assert_eq_i32(a.intersection(empty).len(), 0)
-    test::assert_eq_i32(a.difference(empty).len(), 2)
-    test::assert_eq_i32(empty.difference(a).len(), 0)
+    Test::assert_eq_i32(a.union(empty).len(), 2)
+    Test::assert_eq_i32(a.intersection(empty).len(), 0)
+    Test::assert_eq_i32(a.difference(empty).len(), 2)
+    Test::assert_eq_i32(empty.difference(a).len(), 0)
 
     // A chained aggregate result must keep the set marker.
     let trimmed: HashSet<String> = a.union(b).difference(common)
-    test::assert_eq_i32(trimmed.len(), 2)
-    test::assert_true(trimmed.contains("red"))
-    test::assert_false(trimmed.contains("blue"))
+    Test::assert_eq_i32(trimmed.len(), 2)
+    Test::assert_true(trimmed.contains("red"))
+    Test::assert_false(trimmed.contains("blue"))
 
     // Clone / Eq work on an aggregate result.
     let copy: HashSet<String> = combined.clone()
-    test::assert_true(copy.eq(combined))
+    Test::assert_true(copy.eq(combined))
 
     // clear and extend over the String store.
     let mut grown: HashSet<String> = HashSet::new<String>()
     let _ = grown.insert("cyan")
     grown.extend(a)
-    test::assert_eq_i32(grown.len(), 3)
-    test::assert_true(grown.contains("cyan"))
-    test::assert_true(grown.contains("red"))
+    Test::assert_eq_i32(grown.len(), 3)
+    Test::assert_true(grown.contains("cyan"))
+    Test::assert_true(grown.contains("red"))
     // Self-extend goes through a clone: ADR-088 §5 rejects passing the same
     // place to a `mut self` receiver and another parameter.
     grown.extend(grown.clone())
-    test::assert_eq_i32(grown.len(), 3)
+    Test::assert_eq_i32(grown.len(), 3)
     grown.clear()
-    test::assert_eq_i32(grown.len(), 0)
-    test::assert_true(grown.is_empty())
+    Test::assert_eq_i32(grown.len(), 0)
+    Test::assert_true(grown.is_empty())
 }

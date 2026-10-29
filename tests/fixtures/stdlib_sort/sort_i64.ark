@@ -1,5 +1,5 @@
 use std::seq
-use std::test
+use std::test::Test
 
 test "sorts_i64_values_ascending" {
     let mut v: Vec<i64> = Vec::new<i64>()
@@ -14,10 +14,10 @@ test "sorts_i64_values_ascending" {
     push(v, d)
     push(v, e)
     v = seq::sort_by(v)
-    test::assert_eq_i32(len(v), 5)
-    test::assert_eq_i64(get_unchecked(v, 0), 10i64)
-    test::assert_eq_i64(get_unchecked(v, 1), 20i64)
-    test::assert_eq_i64(get_unchecked(v, 2), 30i64)
-    test::assert_eq_i64(get_unchecked(v, 3), 40i64)
-    test::assert_eq_i64(get_unchecked(v, 4), 50i64)
+    Test::assert_eq_i32(len(v), 5)
+    Test::assert_eq_i64(get_unchecked(v, 0), 10i64)
+    Test::assert_eq_i64(get_unchecked(v, 1), 20i64)
+    Test::assert_eq_i64(get_unchecked(v, 2), 30i64)
+    Test::assert_eq_i64(get_unchecked(v, 3), 40i64)
+    Test::assert_eq_i64(get_unchecked(v, 4), 50i64)
 }

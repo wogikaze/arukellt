@@ -1,9 +1,9 @@
-use std::test
+use std::test::Test
 use std::prelude::{ends_with, starts_with}
 fn main() {
     let s: String = String_from("hello world")
-    test::assert_true(starts_with(s, String_from("hello")))
-    test::assert_false(starts_with(s, String_from("world")))
-    test::assert_true(ends_with(s, String_from("world")))
-    test::assert_false(ends_with(s, String_from("hello")))
+    Test::assert_true(starts_with(s, String_from("hello")))
+    Test::assert_false(starts_with(s, String_from("world")))
+    Test::assert_true(ends_with(s, String_from("world")))
+    Test::assert_false(ends_with(s, String_from("hello")))
 }

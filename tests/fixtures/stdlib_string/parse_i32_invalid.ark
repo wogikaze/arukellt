@@ -1,9 +1,9 @@
-use std::test
+use std::test::Test
 use std::prelude::{parse_i32}
 fn main() {
     let r: Result<i32, String> = parse_i32(String_from("abc"))
     match r {
         Result::Ok(v) => Std::panic("expected Err"),
-        Result::Err(e) => test::assert_true(true),
+        Result::Err(e) => Test::assert_true(true),
     }
 }

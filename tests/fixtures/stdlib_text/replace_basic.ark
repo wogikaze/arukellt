@@ -1,8 +1,8 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
-    test::assert_eq_string("hello world".replace("world", "there"), "hello there")
-    test::assert_eq_string("abc".replace("b", "X"), "aXc")
-    test::assert_eq_string("foo bar foo".replace("foo", "baz"), "baz bar baz")
+    Test::assert_eq_string("hello world".replace("world", "there"), "hello there")
+    Test::assert_eq_string("abc".replace("b", "X"), "aXc")
+    Test::assert_eq_string("foo bar foo".replace("foo", "baz"), "baz bar baz")
 }

@@ -1,5 +1,5 @@
 // Stress: insert beyond initial capacity triggers resize, data preserved
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::with_capacity<i32, i32>(4)
@@ -8,13 +8,13 @@ fn main() {
         let _ = m.insert(i, i * 10)
         i = i + 1
     }
-    test::assert_eq_i32(m.len(), 50)
-    test::assert_true(m.capacity() >= 50)
+    Test::assert_eq_i32(m.len(), 50)
+    Test::assert_true(m.capacity() >= 50)
 
     // All data accessible after resize
     i = 0
     while i < 50 {
-        test::assert_eq_i32(m.get(i).unwrap_or(0), i * 10)
+        Test::assert_eq_i32(m.get(i).unwrap_or(0), i * 10)
         i = i + 1
     }
 }

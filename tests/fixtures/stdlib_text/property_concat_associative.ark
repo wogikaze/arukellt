@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
@@ -8,11 +8,11 @@ fn main() {
     let c = "world"
     let left = a.concat(b.concat(c))
     let right = a.concat(b).concat(c)
-    test::assert_eq_string(left, right)
-    test::assert_eq_string(left, "hello world")
+    Test::assert_eq_string(left, right)
+    Test::assert_eq_string(left, "hello world")
 
     // concat with empty is identity
-    test::assert_eq_string("abc".concat(""), "abc")
-    test::assert_eq_string("".concat("abc"), "abc")
-    test::assert_eq_string("".concat(""), "")
+    Test::assert_eq_string("abc".concat(""), "abc")
+    Test::assert_eq_string("".concat("abc"), "abc")
+    Test::assert_eq_string("".concat(""), "")
 }

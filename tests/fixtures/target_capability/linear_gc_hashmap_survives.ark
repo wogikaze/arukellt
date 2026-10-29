@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 
 // #874 / ADR-075: a linear HashMap<String,String> keeps its flat slot
 // array inside the managed Vec<i32> backing, so keys and values are
@@ -29,18 +29,18 @@ fn main() {
         i = i + 1
     }
 
-    test::assert_eq_i32(m.len(), 4)
+    Test::assert_eq_i32(m.len(), 4)
     match m.get("gree".concat("ting")) {
-        Option::Some(v) => test::assert_eq_string(v, "hello"),
+        Option::Some(v) => Test::assert_eq_string(v, "hello"),
         None => Std::panic("expected Some(hello)"),
     }
     match m.get("color") {
-        Option::Some(v) => test::assert_eq_string(v, "blue"),
+        Option::Some(v) => Test::assert_eq_string(v, "blue"),
         None => Std::panic("expected Some(blue)"),
     }
     match m.get("late") {
-        Option::Some(v) => test::assert_eq_string(v, "value"),
+        Option::Some(v) => Test::assert_eq_string(v, "value"),
         None => Std::panic("expected Some(value)"),
     }
-    test::assert_true(m.contains_key("farewell"))
+    Test::assert_true(m.contains_key("farewell"))
 }

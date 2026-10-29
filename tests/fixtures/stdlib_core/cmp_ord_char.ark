@@ -1,18 +1,18 @@
 use std::core::cmp
-use std::test
+use std::test::Test
 
 fn main() {
     // Ord trait dispatch for char
     match 'a'.cmp('b') {
-        Ordering::Less => test::assert_true(true),
+        Ordering::Less => Test::assert_true(true),
         _ => Std::panic("expected Less"),
     }
     match 'a'.cmp('a') {
-        Ordering::Equal => test::assert_true(true),
+        Ordering::Equal => Test::assert_true(true),
         _ => Std::panic("expected Equal"),
     }
     match 'z'.cmp('a') {
-        Ordering::Greater => test::assert_true(true),
+        Ordering::Greater => Test::assert_true(true),
         _ => Std::panic("expected Greater"),
     }
 }

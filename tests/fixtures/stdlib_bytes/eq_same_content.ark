@@ -1,5 +1,5 @@
 use std::bytes
-use std::test
+use std::test::Test
 
 fn main() {
     let mut a: Vec<i32> = Vec::new<i32>()
@@ -8,5 +8,5 @@ fn main() {
     let mut b: Vec<i32> = Vec::new<i32>()
     b.push_byte(1)
     b.push_byte(2)
-    test::assert_true(a.equals_bytes(b))
+    Test::assert_true(a.equals_bytes(b))
 }

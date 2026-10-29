@@ -1,14 +1,14 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 use std::prelude::{contains}
 fn main() {
     let t = toml::TomlValue::parse("name = \"x\"\nport = 80")
     match t {
         Result::Ok(table) => {
             let s = table.to_text()
-            test::assert_true(contains(s, "name = \"x\""))
-            test::assert_true(contains(s, "port = 80"))
+            Test::assert_true(contains(s, "name = \"x\""))
+            Test::assert_true(contains(s, "port = 80"))
         },
         Result::Err(_) => assert(false),
     }

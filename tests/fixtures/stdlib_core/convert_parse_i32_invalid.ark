@@ -1,5 +1,5 @@
 use std::core::convert
-use std::test
+use std::test::Test
 
 fn main() {
     let text: Result<i32, String> = i32::try_from("abc")
@@ -7,19 +7,19 @@ fn main() {
         Ok(_) => false,
         Err(_) => true,
     }
-    test::assert_true(rejected_text)
+    Test::assert_true(rejected_text)
 
     let empty: Result<i32, String> = i32::try_from("")
     let rejected_empty: bool = match empty {
         Ok(_) => false,
         Err(_) => true,
     }
-    test::assert_true(rejected_empty)
+    Test::assert_true(rejected_empty)
 
     let decimal: Result<i32, String> = i32::try_from("12.5")
     let rejected_decimal: bool = match decimal {
         Ok(_) => false,
         Err(_) => true,
     }
-    test::assert_true(rejected_decimal)
+    Test::assert_true(rejected_decimal)
 }

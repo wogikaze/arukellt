@@ -133,16 +133,16 @@ fn deprecated_vec_call_message(name: String) -> String {
 
 fn deprecated_assert_call_message(name: String) -> String {
     if eq(clone(name), "assert_eq") {
-        return "use `std::test::assert_eq_i32(actual, expected)` instead"
+        return "use `std::Test::assert_eq_i32(actual, expected)` instead"
     }
     if eq(clone(name), "assert_ne") {
-        return "use `std::test::assert_ne_i32(actual, unexpected)` instead"
+        return "use `std::Test::assert_ne_i32(actual, unexpected)` instead"
     }
     if eq(clone(name), "assert_eq_i64") {
-        return "use `std::test::assert_eq_i64(actual, expected)` instead"
+        return "use `std::Test::assert_eq_i64(actual, expected)` instead"
     }
     if eq(clone(name), "assert_eq_str") {
-        return "use `std::test::assert_eq_string(actual, expected)` instead"
+        return "use `std::Test::assert_eq_string(actual, expected)` instead"
     }
     String_new()
 }

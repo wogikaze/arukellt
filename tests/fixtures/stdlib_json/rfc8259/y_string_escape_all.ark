@@ -1,20 +1,20 @@
 use std::json
-use std::test
+use std::test::Test
 use std::prelude::{byte_at}
 use std::text
 fn main() {
     match json::JsonValue::parse("\"\\\"\\\\\\/\\b\\f\\n\\r\\t\"") {
         Result::Ok(v) => match v.as_string() {
             Option::Some(s) => {
-                test::assert_eq_i32(len(s), 8)
-                test::assert_eq_i32(byte_at(s, 0), 34)
-                test::assert_eq_i32(byte_at(s, 1), 92)
-                test::assert_eq_i32(byte_at(s, 2), 47)
-                test::assert_eq_i32(byte_at(s, 3), 8)
-                test::assert_eq_i32(byte_at(s, 4), 12)
-                test::assert_eq_i32(byte_at(s, 5), 10)
-                test::assert_eq_i32(byte_at(s, 6), 13)
-                test::assert_eq_i32(byte_at(s, 7), 9)
+                Test::assert_eq_i32(len(s), 8)
+                Test::assert_eq_i32(byte_at(s, 0), 34)
+                Test::assert_eq_i32(byte_at(s, 1), 92)
+                Test::assert_eq_i32(byte_at(s, 2), 47)
+                Test::assert_eq_i32(byte_at(s, 3), 8)
+                Test::assert_eq_i32(byte_at(s, 4), 12)
+                Test::assert_eq_i32(byte_at(s, 5), 10)
+                Test::assert_eq_i32(byte_at(s, 6), 13)
+                Test::assert_eq_i32(byte_at(s, 7), 9)
             },
             None => Std::panic("expected string"),
         },

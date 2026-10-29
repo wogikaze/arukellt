@@ -1,9 +1,9 @@
 // Keys/values/entries on empty map return empty
-use std::test
+use std::test::Test
 
 fn main() {
     let m = HashMap::new<i32, i32>()
-    test::assert_eq_i32(len(m.keys()), 0)
-    test::assert_eq_i32(len(m.values()), 0)
-    test::assert_eq_i32(len(m.entries()), 0)
+    Test::assert_eq_i32(len(m.keys()), 0)
+    Test::assert_eq_i32(len(m.values()), 0)
+    Test::assert_eq_i32(len(m.entries()), 0)
 }

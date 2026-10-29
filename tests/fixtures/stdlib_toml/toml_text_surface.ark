@@ -1,28 +1,28 @@
 // #917 / ADR-046: TOML text scanning moved onto the TomlText namespace.
-use std::test
+use std::test::Test
 use std::toml
 
 fn main() {
-    test::assert_eq_string(toml::TomlText::parse_line("# c"), "")
-    test::assert_true(len(toml::TomlText::parse_line("a = 1")) > 0)
-    test::assert_eq_string(toml::TomlText::find_value("a = \"x\"\n", "a"), "x")
-    test::assert_eq_string(toml::TomlText::find_section("[s]\na = 1\n", "s"), "a = 1\n")
-    test::assert_eq_string(toml::TomlText::find_raw_value("a = [1, 2]\n", "a"), "[1, 2]")
+    Test::assert_eq_string(toml::TomlText::parse_line("# c"), "")
+    Test::assert_true(len(toml::TomlText::parse_line("a = 1")) > 0)
+    Test::assert_eq_string(toml::TomlText::find_value("a = \"x\"\n", "a"), "x")
+    Test::assert_eq_string(toml::TomlText::find_section("[s]\na = 1\n", "s"), "a = 1\n")
+    Test::assert_eq_string(toml::TomlText::find_raw_value("a = [1, 2]\n", "a"), "[1, 2]")
     let arr = toml::TomlText::parse_string_array("[\"x\", \"y\"]")
-    test::assert_eq_i32(len(arr), 2)
-    test::assert_eq_string(get_unchecked(arr, 0), "x")
-    test::assert_eq_string(get_unchecked(arr, 1), "y")
+    Test::assert_eq_i32(len(arr), 2)
+    Test::assert_eq_string(get_unchecked(arr, 0), "x")
+    Test::assert_eq_string(get_unchecked(arr, 1), "y")
 
     // The document entry points are TomlValue::parse and v.to_text(); the
     // unannotated match infers the Result payload from the declared return.
     match toml::TomlValue::parse("n = 42\ns = \"hi\"") {
         Result::Ok(v) => {
-            test::assert_eq_string(v.to_text(), "n = 42\ns = \"hi\"")
+            Test::assert_eq_string(v.to_text(), "n = 42\ns = \"hi\"")
             match v.get_field("n") {
-                Option::Some(n) => test::assert_eq_string(n.to_text(), "42"),
-                Option::None => test::assert_true(false),
+                Option::Some(n) => Test::assert_eq_string(n.to_text(), "42"),
+                Option::None => Test::assert_true(false),
             }
         },
-        Result::Err(e) => test::assert_eq_string(e, "unexpected failure"),
+        Result::Err(e) => Test::assert_eq_string(e, "unexpected failure"),
     }
 }

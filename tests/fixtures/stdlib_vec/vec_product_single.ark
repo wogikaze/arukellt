@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::core::iter
 
 fn mul_i32(a: i32, b: i32) -> i32 {
@@ -8,5 +8,5 @@ fn mul_i32(a: i32, b: i32) -> i32 {
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 7)
-    test::assert_eq_i32(v.iter().fold(1, mul_i32), 7)
+    Test::assert_eq_i32(v.iter().fold(1, mul_i32), 7)
 }

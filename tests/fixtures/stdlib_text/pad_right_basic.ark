@@ -1,10 +1,10 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
-    test::assert_eq_string("42".pad_right_with(5, "0"), "42000")
-    test::assert_eq_string("abc".pad_right_with(6, " "), "abc   ")
-    test::assert_eq_string("x".pad_right_with(4, "-"), "x---")
-    test::assert_eq_string("hi".pad_right_with(4, "0"), "hi00")
-    test::assert_eq_string("test".pad_right_with(8, "ab"), "testabab")
+    Test::assert_eq_string("42".pad_right_with(5, "0"), "42000")
+    Test::assert_eq_string("abc".pad_right_with(6, " "), "abc   ")
+    Test::assert_eq_string("x".pad_right_with(4, "-"), "x---")
+    Test::assert_eq_string("hi".pad_right_with(4, "0"), "hi00")
+    Test::assert_eq_string("test".pad_right_with(8, "ab"), "testabab")
 }

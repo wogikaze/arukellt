@@ -1,5 +1,5 @@
 // Insert: hashmap_insert returns None for new key
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
@@ -11,5 +11,5 @@ fn main() {
         Option::Some(_) => Std::panic("expected None for new key"),
         None => {}
     }
-    test::assert_eq_i32(m.len(), 2)
+    Test::assert_eq_i32(m.len(), 2)
 }

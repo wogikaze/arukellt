@@ -1,11 +1,11 @@
 use std::core::{Range}
-use std::test
+use std::test::Test
 
 fn main() {
     let r = Range::new(0, 5)
     // Half-open: [0, 5)
-    test::assert_true(r.contains(0))
-    test::assert_true(r.contains(4))
-    test::assert_false(r.contains(5))
-    test::assert_false(r.contains(-1))
+    Test::assert_true(r.contains(0))
+    Test::assert_true(r.contains(4))
+    Test::assert_false(r.contains(5))
+    Test::assert_false(r.contains(-1))
 }

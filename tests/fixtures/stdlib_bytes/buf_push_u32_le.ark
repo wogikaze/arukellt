@@ -1,10 +1,10 @@
 use std::bytes
-use std::test
+use std::test::Test
 
 fn main() {
     let mut buf: Vec<i32> = Vec::new<i32>()
     buf.push_u32_le(305419896)
-    test::assert_eq_i32(buf.len(), 4)
-    test::assert_eq_i32(buf.get_unchecked(0), 120)
-    test::assert_eq_i32(buf.get_unchecked(3), 18)
+    Test::assert_eq_i32(buf.len(), 4)
+    Test::assert_eq_i32(buf.get_unchecked(0), 120)
+    Test::assert_eq_i32(buf.get_unchecked(3), 18)
 }

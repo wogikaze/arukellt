@@ -1,5 +1,5 @@
 use std::core::iter
-use std::test
+use std::test::Test
 
 fn double(x: i32) -> i32 { x * 2 }
 fn add(a: i32, b: i32) -> i32 { a + b }
@@ -9,14 +9,14 @@ fn main() {
     for i in 0..100 {
         push(v, i)
     }
-    test::assert_eq_i32(len(v), 100)
+    Test::assert_eq_i32(len(v), 100)
 
     let doubled = v.iter().map(double).collect()
-    test::assert_eq_i32(len(doubled), 100)
-    test::assert_eq_i32(get_unchecked(doubled, 0), 0)
-    test::assert_eq_i32(get_unchecked(doubled, 50), 100)
-    test::assert_eq_i32(get_unchecked(doubled, 99), 198)
+    Test::assert_eq_i32(len(doubled), 100)
+    Test::assert_eq_i32(get_unchecked(doubled, 0), 0)
+    Test::assert_eq_i32(get_unchecked(doubled, 50), 100)
+    Test::assert_eq_i32(get_unchecked(doubled, 99), 198)
 
     let sum = v.iter().fold(0, add)
-    test::assert_eq_i32(sum, 4950)
+    Test::assert_eq_i32(sum, 4950)
 }

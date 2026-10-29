@@ -1,21 +1,21 @@
-use std::test
+use std::test::Test
 use std::text::fmt
 
 fn main() {
     // Debug for i32 mirrors Display (no quoting)
-    test::assert_eq_string((42).fmt_debug(), "42")
-    test::assert_eq_string((-7).fmt_debug(), "-7")
-    test::assert_eq_string((0).fmt_debug(), "0")
+    Test::assert_eq_string((42).fmt_debug(), "42")
+    Test::assert_eq_string((-7).fmt_debug(), "-7")
+    Test::assert_eq_string((0).fmt_debug(), "0")
 
     // Debug for bool
-    test::assert_eq_string(true.fmt_debug(), "true")
-    test::assert_eq_string(false.fmt_debug(), "false")
+    Test::assert_eq_string(true.fmt_debug(), "true")
+    Test::assert_eq_string(false.fmt_debug(), "false")
 
     // Debug for String — quoted with double quotes
-    test::assert_eq_string("hello".fmt_debug(), "\"hello\"")
-    test::assert_eq_string("".fmt_debug(), "\"\"")
+    Test::assert_eq_string("hello".fmt_debug(), "\"hello\"")
+    Test::assert_eq_string("".fmt_debug(), "\"\"")
 
     // write_debug_to appends to buffer
-    test::assert_eq_string("value=".concat((42).fmt_debug()), "value=42")
-    test::assert_eq_string("s=".concat("hi".fmt_debug()), "s=\"hi\"")
+    Test::assert_eq_string("value=".concat((42).fmt_debug()), "value=42")
+    Test::assert_eq_string("s=".concat("hi".fmt_debug()), "s=\"hi\"")
 }

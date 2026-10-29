@@ -1,6 +1,6 @@
 use std::bytes
 use std::io
-use std::test
+use std::test::Test
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
@@ -12,11 +12,11 @@ fn main() {
     let res: Result<Vec<i32>, io::IoError> = io::Io::read_exact(r, 4)
     match res {
         Result::Ok(chunk) => {
-            test::assert_eq_i32(chunk.len(), 4)
-            test::assert_eq_i32(chunk.get_unchecked(0), 1)
-            test::assert_eq_i32(chunk.get_unchecked(3), 4)
+            Test::assert_eq_i32(chunk.len(), 4)
+            Test::assert_eq_i32(chunk.get_unchecked(0), 1)
+            Test::assert_eq_i32(chunk.get_unchecked(3), 4)
         },
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
-    test::assert_true(r.is_eof())
+    Test::assert_true(r.is_eof())
 }

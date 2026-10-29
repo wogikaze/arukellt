@@ -1,9 +1,9 @@
 use std::core::ops
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_i32((12).bitxor(10), 6)
-    test::assert_eq_i32((255).bitxor(255), 0)
-    test::assert_eq_i32((0).bitxor(0), 0)
-    test::assert_eq_i32((0).bitxor(1), 1)
+    Test::assert_eq_i32((12).bitxor(10), 6)
+    Test::assert_eq_i32((255).bitxor(255), 0)
+    Test::assert_eq_i32((0).bitxor(0), 0)
+    Test::assert_eq_i32((0).bitxor(1), 1)
 }

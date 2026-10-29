@@ -1,6 +1,6 @@
 // Trie type surface (#917, ADR-046).
 use std::collections::trie::Trie
-use std::test
+use std::test::Test
 
 fn main() {
     let mut t = Trie::new()
@@ -9,19 +9,19 @@ fn main() {
     t.insert("carton", 3)
     t.insert("dog", 4)
 
-    test::assert_true(t.contains("car"))
-    test::assert_true(t.contains("carton"))
-    test::assert_false(t.contains("ca"))
-    test::assert_true(t.has_prefix("car"))
-    test::assert_true(t.has_prefix(""))
-    test::assert_false(t.has_prefix("cat"))
-    test::assert_eq_i32(t.count_with_prefix(""), 4)
-    test::assert_eq_i32(t.count_with_prefix("car"), 3)
-    test::assert_eq_i32(t.count_with_prefix("do"), 1)
-    test::assert_eq_i32(t.count_with_prefix("x"), 0)
+    Test::assert_true(t.contains("car"))
+    Test::assert_true(t.contains("carton"))
+    Test::assert_false(t.contains("ca"))
+    Test::assert_true(t.has_prefix("car"))
+    Test::assert_true(t.has_prefix(""))
+    Test::assert_false(t.has_prefix("cat"))
+    Test::assert_eq_i32(t.count_with_prefix(""), 4)
+    Test::assert_eq_i32(t.count_with_prefix("car"), 3)
+    Test::assert_eq_i32(t.count_with_prefix("do"), 1)
+    Test::assert_eq_i32(t.count_with_prefix("x"), 0)
 
     match t.get("cart") {
-        Option::Some(v) => test::assert_eq_i32(v, 2),
+        Option::Some(v) => Test::assert_eq_i32(v, 2),
         None => Std::panic("expected Some(2)"),
     }
     match t.get("ca") {
@@ -33,14 +33,14 @@ fn main() {
     // A stored key update keeps the shared prefix path intact.
     t.insert("car", 9)
     match t.get("car") {
-        Option::Some(v) => test::assert_eq_i32(v, 9),
+        Option::Some(v) => Test::assert_eq_i32(v, 9),
         None => Std::panic("expected Some(9)"),
     }
 
-    test::assert_true(t.remove("cart"))
-    test::assert_false(t.contains("cart"))
-    test::assert_eq_i32(t.count_with_prefix("car"), 2)
-    test::assert_false(t.remove("cart"))
-    test::assert_true(t.contains("car"))
-    test::assert_true(t.contains("carton"))
+    Test::assert_true(t.remove("cart"))
+    Test::assert_false(t.contains("cart"))
+    Test::assert_eq_i32(t.count_with_prefix("car"), 2)
+    Test::assert_false(t.remove("cart"))
+    Test::assert_true(t.contains("car"))
+    Test::assert_true(t.contains("carton"))
 }

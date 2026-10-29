@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
@@ -8,11 +8,11 @@ fn main() {
     let sb = sb.concat("line2").concat("\n")
     let sb = sb.concat("line3")
     let result = sb
-    test::assert_eq_string(result, "line1\nline2\nline3")
-    test::assert_eq_i32(result.len(), 17)
+    Test::assert_eq_string(result, "line1\nline2\nline3")
+    Test::assert_eq_i32(result.len(), 17)
 
     // Single append_line
     let sb2 = ""
     let sb2 = sb2.concat("hello").concat("\n")
-    test::assert_eq_string(sb2, "hello\n")
+    Test::assert_eq_string(sb2, "hello\n")
 }

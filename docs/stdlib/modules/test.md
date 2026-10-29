@@ -7,34 +7,34 @@ Source-backed docs for assertion and expectation helpers.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::test` module provides typed assertion and expectation helpers for fixture and test code. It includes equality assertions for all primitive types, unwrap helpers for `Result` and `Option`, string containment checks, and snapshot comparison.
+The `std::test` module provides typed assertion and expectation helpers for fixture and test code through the `Test` namespace: equality assertions for all primitive types, unwrap helpers for `Result` and `Option`, string containment checks, and snapshot comparison. Import `use std::test::Test` and call the associated functions.
 
 **Recommended API highlights:**
 
 | API | Purpose |
 |-----|---------|
-| `assert_eq_i32(a, b)` / `assert_eq_string(a, b)` | Assert typed equality; panics with a message on mismatch. |
-| `assert_true(cond)` / `assert_false(cond)` | Assert boolean conditions. |
-| `expect_ok_i32(result)` | Unwrap a `Result<i32, String>` or panic on `Err`. |
-| `expect_some_i32(option)` | Unwrap an `Option<i32>` or panic on `None`. |
-| `assert_contains(haystack, needle)` | Assert that a string contains a substring. |
-| `assert_eq_snapshot(actual, expected)` | Line-by-line string comparison with diff on failure. |
+| `Test::assert_eq_i32(a, b)` / `Test::assert_eq_string(a, b)` | Assert typed equality; panics with a message on mismatch. |
+| `Test::assert_true(cond)` / `Test::assert_false(cond)` | Assert boolean conditions. |
+| `Test::expect_ok_i32(result)` | Unwrap a `Result<i32, String>` or panic on `Err`. |
+| `Test::expect_some_i32(option)` | Unwrap an `Option<i32>` or panic on `None`. |
+| `Test::assert_contains(haystack, needle)` | Assert that a string contains a substring. |
+| `Test::assert_eq_snapshot(actual, expected)` | Line-by-line string comparison with diff on failure. |
 
 **Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 
-> ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
+> ⚠️ **Eradication scope (ADR-046):** `Test` is the canonical associated surface. The free helpers remain callable only through the ADR-087 window — [scorecard](../eradication.md) (issue #917).
 
 ```ark
-import std::test
+use std::test::Test
 
-assert_eq_i32(1 + 1, 2)
-assert_eq_string(trim(" hi "), "hi")
-assert_true(10 > 5)
+Test::assert_eq_i32(1 + 1, 2)
+Test::assert_eq_string(trim(" hi "), "hi")
+Test::assert_true(10 > 5)
 
 let result: Result<i32, String> = Ok(42)
-let value = expect_ok_i32(result)  // 42
+let value = Test::expect_ok_i32(result)  // 42
 ```
 
 ---
@@ -47,8 +47,15 @@ let value = expect_ok_i32(result)  // 42
 
 Testing utilities for fixture and example code.
 
-The current module provides typed assertions and expectation helpers for
-`Result` and `Option`.
+Import `use std::test::Test` and call the typed assertion / expectation
+associated functions; `Test` is the canonical surface (ADR-046). The free
+declarations in this module remain only through the ADR-087 window.
+
+### `std::test` — Public Types
+
+| Name | Kind | Methods | Trait impls | Summary |
+|------|------|---------|-------------|---------|
+| `Test` | `struct` | `assert_true`, `assert_false`, `assert_eq_debug`, `assert_eq_i32`, `assert_eq_i64`, `assert_eq_f64`, `assert_eq_string`, `assert_eq_bool`, `assert_ne_i32`, `assert_ne_string`, `expect_ok_i32`, `expect_err_string`, `expect_some_i32`, `expect_none_i32`, `assert_contains`, `assert_eq_snapshot`, `assert_msg`, `bench` | - | Namespace for the typed assertion and expectation helpers. |
 
 ### `std::test` — Public API
 

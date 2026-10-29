@@ -1,31 +1,31 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     let raw = "{\"x\":1,\"y\":true,\"z\":null}"
     match json::JsonValue::parse(raw) {
         Result::Ok(v) => {
             let s = v.to_text()
-            test::assert_eq_string(s, raw)
+            Test::assert_eq_string(s, raw)
             // Re-parse and verify
             match json::JsonValue::parse(s) {
                 Result::Ok(v2) => {
                     match v2.get_field("x") {
                         Option::Some(fv) => match fv.as_i32() {
-                            Option::Some(n) => test::assert_eq_i32(n, 1),
+                            Option::Some(n) => Test::assert_eq_i32(n, 1),
                             None => Std::panic("expected number"),
                         },
                         None => Std::panic("expected key x"),
                     }
                     match v2.get_field("y") {
                         Option::Some(fv) => match fv.as_bool() {
-                            Option::Some(b) => test::assert_eq_bool(b, true),
+                            Option::Some(b) => Test::assert_eq_bool(b, true),
                             None => Std::panic("expected bool"),
                         },
                         None => Std::panic("expected key y"),
                     }
                     match v2.get_field("z") {
-                        Option::Some(fv) => test::assert_true(fv.is_null()),
+                        Option::Some(fv) => Test::assert_true(fv.is_null()),
                         None => Std::panic("expected key z"),
                     }
                 },

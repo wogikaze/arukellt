@@ -1,8 +1,8 @@
-use std::test
+use std::test::Test
 use std::prelude::{clone, eq}
 fn main() {
     let s = String_new()
     let c = clone(s)
-    test::assert_eq_i32(len(c), 0)
-    test::assert_true(eq(s, c))
+    Test::assert_eq_i32(len(c), 0)
+    Test::assert_true(eq(s, c))
 }

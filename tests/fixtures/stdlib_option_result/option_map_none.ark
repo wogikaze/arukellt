@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 use std::core::container
 
 fn double(x: i32) -> i32 { x * 2 }

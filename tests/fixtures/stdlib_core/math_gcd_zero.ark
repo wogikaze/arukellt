@@ -1,9 +1,9 @@
 use std::core::convert
-use std::test
+use std::test::Test
 
 fn main() {
     // gcd(x, 0) = x, gcd(0, 0) = 0
-    test::assert_eq_i32(5.gcd(0), 5)
-    test::assert_eq_i32(0.gcd(5), 5)
-    test::assert_eq_i32(0.gcd(0), 0)
+    Test::assert_eq_i32(5.gcd(0), 5)
+    Test::assert_eq_i32(0.gcd(5), 5)
+    Test::assert_eq_i32(0.gcd(0), 0)
 }

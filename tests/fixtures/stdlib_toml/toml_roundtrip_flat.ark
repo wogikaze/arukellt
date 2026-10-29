@@ -1,11 +1,11 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 fn main() {
     let doc = "name = \"arukellt\"\ncount = 42"
     match toml::TomlValue::parse(doc) {
-        Result::Ok(table) => test::assert_eq_string(table.to_text(), doc),
+        Result::Ok(table) => Test::assert_eq_string(table.to_text(), doc),
         Result::Err(_) => assert(false),
     }
     stdio::println("OK")

@@ -1,14 +1,14 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
     let parts = "a,b,c".split(",")
-    test::assert_eq_i32(len(parts), 3)
-    test::assert_eq_string(parts.join("-"), "a-b-c")
+    Test::assert_eq_i32(len(parts), 3)
+    Test::assert_eq_string(parts.join("-"), "a-b-c")
 
     let parts2 = "hello world foo".split(" ")
-    test::assert_eq_i32(len(parts2), 3)
+    Test::assert_eq_i32(len(parts2), 3)
 
     let parts3 = "one::two::three".split("::")
-    test::assert_eq_i32(len(parts3), 3)
+    Test::assert_eq_i32(len(parts3), 3)
 }

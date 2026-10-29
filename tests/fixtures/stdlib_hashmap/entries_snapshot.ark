@@ -1,5 +1,5 @@
 // Entries: returns the typed (key, value) snapshot
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
@@ -7,7 +7,7 @@ fn main() {
     let _ = m.insert(2, 20)
 
     let entries = m.entries()
-    test::assert_eq_i32(len(entries), 2)
+    Test::assert_eq_i32(len(entries), 2)
 
     let mut found_1_10 = false
     let mut found_2_20 = false
@@ -22,6 +22,6 @@ fn main() {
         }
         i = i + 1
     }
-    test::assert_true(found_1_10)
-    test::assert_true(found_2_20)
+    Test::assert_true(found_1_10)
+    Test::assert_true(found_2_20)
 }

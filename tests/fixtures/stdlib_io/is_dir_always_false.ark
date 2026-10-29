@@ -1,7 +1,7 @@
 use std::host::fs::Fs
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_false(Fs::is_dir("some_path"))
-    test::assert_false(Fs::is_dir(""))
+    Test::assert_false(Fs::is_dir("some_path"))
+    Test::assert_false(Fs::is_dir(""))
 }

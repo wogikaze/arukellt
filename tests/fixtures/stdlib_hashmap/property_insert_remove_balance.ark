@@ -4,7 +4,7 @@
 // keys, the map is empty (size 0, is_empty true) and every removed key is
 // reported absent. Each `hashmap_remove` must also return the value that
 // was inserted for that key.
-use std::test
+use std::test::Test
 
 test "insert_then_remove_restores_empty_map" {
     let mut m: HashMap<i32, i32> = HashMap::new<i32, i32>()
@@ -13,20 +13,20 @@ test "insert_then_remove_restores_empty_map" {
     for i in 1..17 {
         let _ = m.insert(i, i * 10)
     }
-    test::assert_eq_i32(m.len(), 16)
+    Test::assert_eq_i32(m.len(), 16)
 
     // Remove the same 16 keys. Each remove must return the inserted value.
     for i in 1..17 {
         match m.remove(i) {
-            Option::Some(v) => test::assert_eq_i32(v, i * 10),
+            Option::Some(v) => Test::assert_eq_i32(v, i * 10),
             None => Std::panic("expected Some on remove"),
         }
     }
 
     // Post-condition: map is empty, and every removed key is now absent.
-    test::assert_eq_i32(m.len(), 0)
-    test::assert_true(m.is_empty())
+    Test::assert_eq_i32(m.len(), 0)
+    Test::assert_true(m.is_empty())
     for i in 1..17 {
-        test::assert_false(m.contains_key(i))
+        Test::assert_false(m.contains_key(i))
     }
 }

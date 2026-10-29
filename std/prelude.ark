@@ -352,13 +352,13 @@ pub fn assert(cond: bool) {
     }
 }
 
-/// Legacy i32 equality assertion (compat). Prefer `test::assert_eq_i32` or
-/// generic `test::assert_eq_debug` (#696) for Debug-backed diagnostics.
+/// Legacy i32 equality assertion (compat). Prefer `Test::assert_eq_i32` or
+/// generic `Test::assert_eq_debug` (#696) for Debug-backed diagnostics.
 ///
 /// Residual: bare `assert_eq` call sites are still CoreOp-inlined today, so
 /// this Ark body is not what most call sites execute. A generic named exactly
 /// `assert_eq` also mis-lowers scalar monomorphizations — use
-/// `test::assert_eq_debug` instead. Do not `use std::core::convert` here:
+/// `Test::assert_eq_debug` instead. Do not `use std::core::convert` here:
 /// pulling Convert/Debug into the auto-prelude regresses W0011 on clean fixtures.
 pub fn assert_eq(a: i32, b: i32) {
     if a != b {
@@ -374,7 +374,7 @@ pub fn assert_ne(a: i32, b: i32) {
     }
 }
 
-/// Legacy i64 equality assertion (compat). Prefer `test::assert_eq_i64`.
+/// Legacy i64 equality assertion (compat). Prefer `Test::assert_eq_i64`.
 pub fn assert_eq_i64(a: i64, b: i64) {
     if a != b {
         let expected = (b).to_string().concat(", got ".concat((a).to_string()))
@@ -383,7 +383,7 @@ pub fn assert_eq_i64(a: i64, b: i64) {
     }
 }
 
-/// Legacy String equality assertion (compat). Prefer `test::assert_eq_string`.
+/// Legacy String equality assertion (compat). Prefer `Test::assert_eq_string`.
 pub fn assert_eq_str(a: String, b: String) {
     if a != b {
         let expected = b.concat("\", got \"".concat(a.concat("\"")))

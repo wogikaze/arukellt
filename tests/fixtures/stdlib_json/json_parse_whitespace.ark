@@ -1,20 +1,20 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("  42  ") {
         Result::Ok(v) => match v.as_i32() {
-            Option::Some(n) => test::assert_eq_i32(n, 42),
+            Option::Some(n) => Test::assert_eq_i32(n, 42),
             None => Std::panic("expected number"),
         },
         Result::Err(e) => Std::panic("parse with spaces failed: ".concat(e.message())),
     }
     match json::JsonValue::parse("\n\t{\"a\":1}\n") {
-        Result::Ok(v) => test::assert_true(v.is_object()),
+        Result::Ok(v) => Test::assert_true(v.is_object()),
         Result::Err(e) => Std::panic("parse with newlines failed: ".concat(e.message())),
     }
     match json::JsonValue::parse("   [1, 2, 3]   ") {
-        Result::Ok(v) => test::assert_true(v.is_array()),
+        Result::Ok(v) => Test::assert_true(v.is_array()),
         Result::Err(e) => Std::panic("parse array with spaces failed: ".concat(e.message())),
     }
 }

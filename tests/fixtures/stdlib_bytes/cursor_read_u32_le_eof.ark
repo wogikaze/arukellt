@@ -1,10 +1,10 @@
 use std::bytes
-use std::test
+use std::test::Test
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
     data.push_byte(1)
     data.push_byte(2)
     let mut c: Vec<i32> = data.byte_cursor()
-    test::assert_eq_i32(c.read_u32_le(), 0 - 1)
+    Test::assert_eq_i32(c.read_u32_le(), 0 - 1)
 }

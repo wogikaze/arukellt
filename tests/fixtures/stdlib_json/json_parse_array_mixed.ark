@@ -1,32 +1,32 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("[1,\"two\",true,null]") {
         Result::Ok(v) => {
             match v.get_index(0) {
                 Option::Some(e) => match e.as_i32() {
-                    Option::Some(n) => test::assert_eq_i32(n, 1),
+                    Option::Some(n) => Test::assert_eq_i32(n, 1),
                     None => Std::panic("expected number at 0"),
                 },
                 None => Std::panic("expected element at 0"),
             }
             match v.get_index(1) {
                 Option::Some(e) => match e.as_string() {
-                    Option::Some(s) => test::assert_eq_string(s, "two"),
+                    Option::Some(s) => Test::assert_eq_string(s, "two"),
                     None => Std::panic("expected string at 1"),
                 },
                 None => Std::panic("expected element at 1"),
             }
             match v.get_index(2) {
                 Option::Some(e) => match e.as_bool() {
-                    Option::Some(b) => test::assert_eq_bool(b, true),
+                    Option::Some(b) => Test::assert_eq_bool(b, true),
                     None => Std::panic("expected bool at 2"),
                 },
                 None => Std::panic("expected element at 2"),
             }
             match v.get_index(3) {
-                Option::Some(e) => test::assert_true(e.is_null()),
+                Option::Some(e) => Test::assert_true(e.is_null()),
                 None => Std::panic("expected element at 3"),
             }
         },

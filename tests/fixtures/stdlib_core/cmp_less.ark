@@ -1,14 +1,14 @@
 use std::core::cmp
-use std::test
+use std::test::Test
 
 fn main() {
     match 1.cmp(2) {
-        Ordering::Less => test::assert_true(true),
+        Ordering::Less => Test::assert_true(true),
         Ordering::Equal => Std::panic("expected Less"),
         Ordering::Greater => Std::panic("expected Less"),
     }
     match (-5).cmp(0) {
-        Ordering::Less => test::assert_true(true),
+        Ordering::Less => Test::assert_true(true),
         Ordering::Equal => Std::panic("expected Less"),
         Ordering::Greater => Std::panic("expected Less"),
     }

@@ -1,13 +1,13 @@
 // Typed stdout keeps the empty-write count contract: zero bytes accepted and
 // nothing emitted.
 use std::io::{io_error_message, IoError, Stdout, Write}
-use std::test
+use std::test::Test
 
 fn main() {
     let out: Stdout = Stdout::new()
     let res: Result<i32, IoError> = out.write(Vec::new<i32>())
     match res {
-        Result::Ok(count) => test::assert_eq_i32(count, 0),
+        Result::Ok(count) => Test::assert_eq_i32(count, 0),
         Result::Err(e) => Std::panic(io_error_message(e)),
     }
 }

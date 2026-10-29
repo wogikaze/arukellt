@@ -1,17 +1,17 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
     // Tab whitespace
-    test::assert_eq_string("\thello\t".trim(), "hello")
-    test::assert_eq_string("\thello".trim_start(), "hello")
-    test::assert_eq_string("hello\t".trim_end(), "hello")
+    Test::assert_eq_string("\thello\t".trim(), "hello")
+    Test::assert_eq_string("\thello".trim_start(), "hello")
+    Test::assert_eq_string("hello\t".trim_end(), "hello")
     // Newline whitespace
-    test::assert_eq_string("\nhello\n".trim(), "hello")
-    test::assert_eq_string("\nhello".trim_start(), "hello")
-    test::assert_eq_string("hello\n".trim_end(), "hello")
+    Test::assert_eq_string("\nhello\n".trim(), "hello")
+    Test::assert_eq_string("\nhello".trim_start(), "hello")
+    Test::assert_eq_string("hello\n".trim_end(), "hello")
     // Carriage return
-    test::assert_eq_string("\rhello\r".trim(), "hello")
+    Test::assert_eq_string("\rhello\r".trim(), "hello")
     // Mixed whitespace
-    test::assert_eq_string(" \t\n hello \r\n ".trim(), "hello")
+    Test::assert_eq_string(" \t\n hello \r\n ".trim(), "hello")
 }

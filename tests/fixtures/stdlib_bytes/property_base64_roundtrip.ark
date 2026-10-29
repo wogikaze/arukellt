@@ -1,6 +1,6 @@
 use std::bytes
 use std::bytes::Bytes
-use std::test
+use std::test::Test
 
 fn main() {
     let mut b: Vec<i32> = Vec::new<i32>()
@@ -11,5 +11,5 @@ fn main() {
     b.push_byte(5)
     let enc: String = b.to_base64()
     let dec: Vec<i32> = Bytes::from_base64(enc)
-    test::assert_true(b.equals_bytes(dec))
+    Test::assert_true(b.equals_bytes(dec))
 }

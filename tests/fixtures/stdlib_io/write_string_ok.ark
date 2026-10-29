@@ -1,14 +1,14 @@
 use std::bytes
 use std::io
-use std::test
+use std::test::Test
 
 fn main() {
     let mut w: io::Writer = io::Writer::new()
     let res: Result<i32, io::IoError> = w.write_string("test")
     match res {
-        Result::Ok(n) => test::assert_eq_i32(n, 4),
+        Result::Ok(n) => Test::assert_eq_i32(n, 4),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     let b: Vec<i32> = w.into_bytes()
-    test::assert_eq_string(String::from_utf8_lossy(b), "test")
+    Test::assert_eq_string(String::from_utf8_lossy(b), "test")
 }

@@ -1,5 +1,5 @@
 use std::core::iter
-use std::test
+use std::test::Test
 
 fn negate(x: i32) -> i32 { 0 - x }
 
@@ -11,9 +11,9 @@ fn main() {
     push(v, -4)
 
     let mapped = v.iter().map(negate).collect()
-    test::assert_eq_i32(len(mapped), 4)
-    test::assert_eq_i32(get_unchecked(mapped, 0), -1)
-    test::assert_eq_i32(get_unchecked(mapped, 1), 2)
-    test::assert_eq_i32(get_unchecked(mapped, 2), -3)
-    test::assert_eq_i32(get_unchecked(mapped, 3), 4)
+    Test::assert_eq_i32(len(mapped), 4)
+    Test::assert_eq_i32(get_unchecked(mapped, 0), -1)
+    Test::assert_eq_i32(get_unchecked(mapped, 1), 2)
+    Test::assert_eq_i32(get_unchecked(mapped, 2), -3)
+    Test::assert_eq_i32(get_unchecked(mapped, 3), 4)
 }

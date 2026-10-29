@@ -1,15 +1,15 @@
-use std::test
+use std::test::Test
 
 test "keys_values_and_removal_update_size" {
     let mut m: HashMap<i32, i32> = HashMap::with_capacity<i32, i32>(4)
     let _ = m.insert(10, 100)
     let _ = m.insert(20, 200)
-    test::assert_eq_i32(m.len(), 2)
+    Test::assert_eq_i32(m.len(), 2)
     let mut empty: HashMap<i32, i32> = HashMap::new<i32, i32>()
-    test::assert_true(empty.is_empty())
+    Test::assert_true(empty.is_empty())
     let _ = empty.insert(5, 50)
     match empty.get(5) {
-        Option::Some(v) => test::assert_eq_i32(v, 50),
+        Option::Some(v) => Test::assert_eq_i32(v, 50),
         None => Std::panic("expected Some(50)"),
     }
     match empty.get(99) {
@@ -21,19 +21,19 @@ test "keys_values_and_removal_update_size" {
     let _ = m2.insert(1, 10)
     let _ = m2.insert(2, 20)
     let _ = m2.insert(3, 30)
-    test::assert_eq_i32(m2.len(), 3)
-    test::assert_eq_i32(len(m2.keys()), 3)
-    test::assert_eq_i32(len(m2.values()), 3)
+    Test::assert_eq_i32(m2.len(), 3)
+    Test::assert_eq_i32(len(m2.keys()), 3)
+    Test::assert_eq_i32(len(m2.values()), 3)
     match m2.remove(2) {
-        Option::Some(v) => test::assert_eq_i32(v, 20),
+        Option::Some(v) => Test::assert_eq_i32(v, 20),
         None => Std::panic("expected Some(20)"),
     }
-    test::assert_eq_i32(m2.len(), 2)
+    Test::assert_eq_i32(m2.len(), 2)
     match m2.remove(99) {
         Option::Some(v) => Std::panic("expected None"),
         None => {
         },
     }
     m2.clear()
-    test::assert_true(m2.is_empty())
+    Test::assert_true(m2.is_empty())
 }

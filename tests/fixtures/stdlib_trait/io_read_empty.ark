@@ -1,14 +1,14 @@
 use std::io
-use std::test
+use std::test::Test
 
 fn main() {
     let mut r: io::Reader = io::Reader::new()
     match r.read(10) {
-        Result::Ok(read) => test::assert_eq_i32(len(read), 0),
+        Result::Ok(read) => Test::assert_eq_i32(len(read), 0),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     match r.position() {
-        Result::Ok(pos) => test::assert_eq_i64(pos, 0),
+        Result::Ok(pos) => Test::assert_eq_i64(pos, 0),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
 }

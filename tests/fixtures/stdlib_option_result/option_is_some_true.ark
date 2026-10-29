@@ -1,9 +1,9 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 use std::prelude::{is_some}
 fn main() {
-    test::assert_true(is_some(Some(1)))
-    test::assert_true(is_some(Some(0)))
-    test::assert_true(is_some(Some(-1)))
+    Test::assert_true(is_some(Some(1)))
+    Test::assert_true(is_some(Some(0)))
+    Test::assert_true(is_some(Some(-1)))
     stdio::println("ok")
 }

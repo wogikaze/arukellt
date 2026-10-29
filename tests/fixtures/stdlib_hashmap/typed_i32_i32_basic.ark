@@ -1,18 +1,18 @@
 // Typed map: i32->i32 basic operations
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
-    test::assert_true(m.is_empty())
+    Test::assert_true(m.is_empty())
 
     let _ = m.insert(1, 100)
     let _ = m.insert(2, 200)
-    test::assert_eq_i32(m.len(), 2)
+    Test::assert_eq_i32(m.len(), 2)
 
     match m.get(1) {
-        Option::Some(v) => test::assert_eq_i32(v, 100),
+        Option::Some(v) => Test::assert_eq_i32(v, 100),
         None => Std::panic("expected Some(100)"),
     }
-    test::assert_true(m.contains_key(1))
-    test::assert_false(m.contains_key(99))
+    Test::assert_true(m.contains_key(1))
+    Test::assert_false(m.contains_key(99))
 }

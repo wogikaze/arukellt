@@ -1,5 +1,5 @@
 // Property: insert N keys, size == N (no duplicates)
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
@@ -8,7 +8,7 @@ fn main() {
         let _ = m.insert(i, i)
         i = i + 1
     }
-    test::assert_eq_i32(m.len(), 30)
+    Test::assert_eq_i32(m.len(), 30)
 
     // Re-insert same keys, size unchanged
     i = 0
@@ -16,12 +16,12 @@ fn main() {
         let _ = m.insert(i, i + 1000)
         i = i + 1
     }
-    test::assert_eq_i32(m.len(), 30)
+    Test::assert_eq_i32(m.len(), 30)
 
     // Values updated
     i = 0
     while i < 30 {
-        test::assert_eq_i32(m.get(i).unwrap_or(0), i + 1000)
+        Test::assert_eq_i32(m.get(i).unwrap_or(0), i + 1000)
         i = i + 1
     }
 }

@@ -1,10 +1,10 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
     // Empty builder
     let sb = ""
-    test::assert_eq_i32(sb.len(), 0)
-    test::assert_eq_string(sb, "")
-    test::assert_true(sb.is_empty())
+    Test::assert_eq_i32(sb.len(), 0)
+    Test::assert_eq_string(sb, "")
+    Test::assert_true(sb.is_empty())
 }

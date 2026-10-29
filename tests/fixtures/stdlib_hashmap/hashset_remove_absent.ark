@@ -1,16 +1,16 @@
 // HashSet: remove absent returns false
 use std::collections::hash_set::HashSet
-use std::test
+use std::test::Test
 
 fn main() {
     let mut s = HashSet::new<i32>()
     s.insert(1)
 
-    test::assert_false(s.remove(999))
-    test::assert_eq_i32(s.len(), 1)
-    test::assert_true(s.contains(1))
+    Test::assert_false(s.remove(999))
+    Test::assert_eq_i32(s.len(), 1)
+    Test::assert_true(s.contains(1))
 
     // Remove from empty set
     let mut s2 = HashSet::new<i32>()
-    test::assert_false(s2.remove(1))
+    Test::assert_false(s2.remove(1))
 }

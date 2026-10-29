@@ -1,10 +1,10 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("\"a\\tb\\nc\\\\d\\\"e\"") {
         Result::Ok(v) => match v.as_string() {
-            Option::Some(s) => test::assert_eq_string(s, "a\tb\nc\\d\"e"),
+            Option::Some(s) => Test::assert_eq_string(s, "a\tb\nc\\d\"e"),
             None => Std::panic("expected string"),
         },
         Result::Err(e) => Std::panic("parse multiple escapes failed: ".concat(e.message())),

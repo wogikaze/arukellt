@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 use std::prelude::{parse_i32}
 fn main() {
     let r: Result<i32, String> = parse_i32(String_from("abc"))

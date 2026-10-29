@@ -1,18 +1,18 @@
 // HashSet: contains after insert, absent after remove
 use std::collections::hash_set::HashSet
-use std::test
+use std::test::Test
 
 fn main() {
     let mut s = HashSet::new<i32>()
     s.insert(10)
     s.insert(20)
 
-    test::assert_true(s.contains(10))
-    test::assert_true(s.contains(20))
-    test::assert_false(s.contains(30))
+    Test::assert_true(s.contains(10))
+    Test::assert_true(s.contains(20))
+    Test::assert_false(s.contains(30))
 
-    test::assert_true(s.remove(10))
-    test::assert_false(s.contains(10))
-    test::assert_true(s.contains(20))
-    test::assert_eq_i32(s.len(), 1)
+    Test::assert_true(s.remove(10))
+    Test::assert_false(s.contains(10))
+    Test::assert_true(s.contains(20))
+    Test::assert_eq_i32(s.len(), 1)
 }

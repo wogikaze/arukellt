@@ -1,7 +1,7 @@
-use std::test
+use std::test::Test
 use std::prelude::{eq, to_lower, to_upper}
 fn main() {
     let s = String_from("RoundTrip")
     let up = to_upper(s)
-    test::assert_true(eq(to_lower(up), String_from("roundtrip")))
+    Test::assert_true(eq(to_lower(up), String_from("roundtrip")))
 }

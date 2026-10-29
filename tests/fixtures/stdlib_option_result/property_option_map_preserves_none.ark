@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 use std::core::container
 
 fn double(x: i32) -> i32 { x * 2 }
@@ -10,7 +10,7 @@ fn main() {
         if i % 3 == 0 {
             match m { Option::Some(v) => Std::panic("some"), None => {} }
         } else {
-            match m { Option::Some(v) => test::assert_eq_i32(v, i * 2), None => Std::panic("none") }
+            match m { Option::Some(v) => Test::assert_eq_i32(v, i * 2), None => Std::panic("none") }
         }
     }
     stdio::println("ok")

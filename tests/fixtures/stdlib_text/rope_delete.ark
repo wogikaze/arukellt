@@ -1,17 +1,17 @@
-use std::test
+use std::test::Test
 
 fn main() {
     let r = "hello world".clone()
     // Delete from middle
     let r2 = r.delete_range(5, 11)
-    test::assert_eq_string(r2.clone(), "hello")
+    Test::assert_eq_string(r2.clone(), "hello")
     // Delete from beginning
     let r3 = r.delete_range(0, 6)
-    test::assert_eq_string(r3.clone(), "world")
+    Test::assert_eq_string(r3.clone(), "world")
     // Delete entire string
     let r4 = r.delete_range(0, 11)
-    test::assert_eq_string(r4.clone(), "")
+    Test::assert_eq_string(r4.clone(), "")
     // Delete with out-of-bounds (clamped)
     let r5 = r.delete_range(0, 100)
-    test::assert_eq_string(r5.clone(), "")
+    Test::assert_eq_string(r5.clone(), "")
 }

@@ -1,10 +1,10 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 fn process(o: Option<i32>) -> i32 {
     match o { Option::Some(v) => v * 10, None => -1 }
 }
 fn main() {
-    test::assert_eq_i32(process(Some(5)), 50)
-    test::assert_eq_i32(process(None), -1)
+    Test::assert_eq_i32(process(Some(5)), 50)
+    Test::assert_eq_i32(process(None), -1)
     stdio::println("ok")
 }

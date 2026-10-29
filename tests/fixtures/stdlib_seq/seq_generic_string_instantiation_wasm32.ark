@@ -6,7 +6,7 @@
 // linear: i32 body on struct pointers). Regression coverage for the
 // dual-instantiation mis-bind.
 use std::collections::vec
-use std::test
+use std::test::Test
 
 fn key_self(x: String) -> String {
     x
@@ -18,19 +18,19 @@ fn main() {
     push(s, String_from("beta"))
     push(s, String_from("gamma"))
 
-    test::assert_eq_i32(s.binary_search(String_from("beta")), 1)
-    test::assert_eq_i32(s.binary_search(String_from("zed")), 0 - 1)
-    test::assert_eq_i32(s.lower_bound(String_from("beta")), 1)
-    test::assert_eq_i32(s.lower_bound(String_from("aaa")), 0)
-    test::assert_eq_i32(s.upper_bound(String_from("beta")), 2)
-    test::assert_eq_i32(s.upper_bound(String_from("zzz")), 3)
-    test::assert_eq_i32(
+    Test::assert_eq_i32(s.binary_search(String_from("beta")), 1)
+    Test::assert_eq_i32(s.binary_search(String_from("zed")), 0 - 1)
+    Test::assert_eq_i32(s.lower_bound(String_from("beta")), 1)
+    Test::assert_eq_i32(s.lower_bound(String_from("aaa")), 0)
+    Test::assert_eq_i32(s.upper_bound(String_from("beta")), 2)
+    Test::assert_eq_i32(s.upper_bound(String_from("zzz")), 3)
+    Test::assert_eq_i32(
         s.binary_search_by_key(String_from("gamma"), key_self),
         2
     )
 
-    test::assert_eq_string(s.min(), String_from("alpha"))
-    test::assert_eq_string(s.max(), String_from("gamma"))
-    test::assert_eq_string(s.min_by_key(key_self), String_from("alpha"))
-    test::assert_eq_string(s.max_by_key(key_self), String_from("gamma"))
+    Test::assert_eq_string(s.min(), String_from("alpha"))
+    Test::assert_eq_string(s.max(), String_from("gamma"))
+    Test::assert_eq_string(s.min_by_key(key_self), String_from("alpha"))
+    Test::assert_eq_string(s.max_by_key(key_self), String_from("gamma"))
 }

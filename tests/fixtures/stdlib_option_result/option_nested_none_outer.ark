@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 fn main() {
     let a: Option<Option<i32>> = None
     match a {

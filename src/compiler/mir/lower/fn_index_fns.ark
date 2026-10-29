@@ -47,7 +47,7 @@ fn mir_index_top_level_fn(
         if fn_index_source::mir_fn_index_source_decl_is_generic(source, typed_index) {
             fn_index_mono::mir_index_mono_variants(fn_names, fn_return_vts, fn_return_type_names, midx, clone(decl_name), rvt, clone(rtn), mono_instances, generic_return_ty)
             // Instances of a module member record under the qualified fn_name
-            // (test::assert_eq_debug), which the decl-keyed index above never
+            // (Test::assert_eq_debug), which the decl-keyed index above never
             // sees. With two or more distinct instantiations the leaf emit is a
             // generic stub, so publish the variant names under the qualified key
             // — call-site resolution and emit both look them up by that name.

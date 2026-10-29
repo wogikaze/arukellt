@@ -1,7 +1,7 @@
 use std::bytes
 use std::io
 use std::io::{BufReader, Reader}
-use std::test
+use std::test::Test
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
@@ -11,7 +11,7 @@ fn main() {
     let res: Result<Option<String>, io::IoError> = br.read_line()
     match res {
         Result::Ok(found) => match found {
-            Option::Some(line) => test::assert_eq_string(line, "L"),
+            Option::Some(line) => Test::assert_eq_string(line, "L"),
             Option::None => Std::panic("expected line L"),
         },
         Result::Err(e) => Std::panic(io::io_error_message(e)),

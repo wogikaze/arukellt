@@ -70,6 +70,7 @@
 | `Stderr` | - | no | experimental | Typed standard-error handle. Implements Write: write(data) emits the byte image unchanged without appending a newline, write_string(text) emits a string's UTF-8 bytes, and flush is synchronous. Byte-faithful replacement for the tagged stderr() / writer_write path (ADR-085 D9). |
 | `Stdout` | - | no | experimental | Typed standard-output handle. Implements Write: write(data) emits the byte image unchanged, write_string(text) emits a string's UTF-8 bytes, and flush is synchronous. Byte-faithful replacement for the tagged stdout() / writer_write path (ADR-085 D9). |
 | `String` | - | yes | stable | UTF-8 string value. |
+| `Test` | - | no | stable | Namespace for the typed assertion and expectation helpers: Test::assert_true / assert_false, the typed equality and inequality assertions, assert_eq_debug, assert_contains, assert_eq_snapshot, assert_msg, the Result/Option expect helpers, and bench. Import use std::test::Test; the associated functions are the canonical surface, and the free declarations remain only through the ADR-087 window. |
 | `Trie` | - | no | provisional | Prefix tree over String keys and i32 values backed by a private 256-way node pool. has_prefix / count_with_prefix walk the byte key, and remove clears the value flag without pruning nodes. |
 | `U16x8` | - | no | experimental | 8 × 16-bit unsigned integer lane associated operations over v128. |
 | `U32x4` | - | no | experimental | 4 × 32-bit unsigned integer lane associated operations over v128. |
@@ -184,6 +185,7 @@
 | `Std` | `panic` | - |
 | `Stderr` | `new`, `write_string` | `Write` |
 | `Stdout` | `new`, `write_string` | `Write` |
+| `Test` | `assert_true`, `assert_false`, `assert_eq_debug`, `assert_eq_i32`, `assert_eq_i64`, `assert_eq_f64`, `assert_eq_string`, `assert_eq_bool`, `assert_ne_i32`, `assert_ne_string`, `expect_ok_i32`, `expect_err_string`, `expect_some_i32`, `expect_none_i32`, `assert_contains`, `assert_eq_snapshot`, `assert_msg`, `bench` | - |
 | `TomlValue` | `parse`, `to_text`, `as_string`, `as_int`, `as_bool`, `as_float`, `as_array`, `as_table`, `get_field`, `table_keys` | - |
 | `Trie` | `new`, `insert`, `get`, `contains`, `has_prefix`, `remove`, `count_with_prefix` | - |
 | `U16x8` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `add_sat_u`, `sub_sat_u`, `eq`, `ne`, `lt_u`, `le_u`, `gt_u`, `ge_u`, `min_u`, `max_u`, `shl`, `shr_u` | - |

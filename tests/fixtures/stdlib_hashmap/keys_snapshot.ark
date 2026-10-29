@@ -1,5 +1,5 @@
 // Keys: returns snapshot of all keys
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
@@ -8,7 +8,7 @@ fn main() {
     let _ = m.insert(30, 300)
 
     let keys = m.keys()
-    test::assert_eq_i32(len(keys), 3)
+    Test::assert_eq_i32(len(keys), 3)
 
     // Every key should be present in the map
     let mut found_10 = false
@@ -22,7 +22,7 @@ fn main() {
         if k == 30 { found_30 = true }
         i = i + 1
     }
-    test::assert_true(found_10)
-    test::assert_true(found_20)
-    test::assert_true(found_30)
+    Test::assert_true(found_10)
+    Test::assert_true(found_20)
+    Test::assert_true(found_30)
 }

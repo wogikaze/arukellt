@@ -1,11 +1,11 @@
 use std::core::{Range}
 use std::core::iter
-use std::test
+use std::test::Test
 
 fn main() {
     let r = Range::new(0, 5)
     let collected = r.into_iter().collect()
-    test::assert_eq_i32(len(collected), 5)
-    test::assert_eq_i32(get_unchecked(collected, 0), 0)
-    test::assert_eq_i32(get_unchecked(collected, 4), 4)
+    Test::assert_eq_i32(len(collected), 5)
+    Test::assert_eq_i32(get_unchecked(collected, 0), 0)
+    Test::assert_eq_i32(get_unchecked(collected, 4), 4)
 }

@@ -1,7 +1,7 @@
 use std::bytes
 use std::io
 use std::io::SeekFrom
-use std::test
+use std::test::Test
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
@@ -13,11 +13,11 @@ fn main() {
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     match r.seek(SeekFrom::Start(0i64)) {
-        Result::Ok(pos) => test::assert_eq_i64(pos, 0),
+        Result::Ok(pos) => Test::assert_eq_i64(pos, 0),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     match r.position() {
-        Result::Ok(pos) => test::assert_eq_i64(pos, 0),
+        Result::Ok(pos) => Test::assert_eq_i64(pos, 0),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
 }

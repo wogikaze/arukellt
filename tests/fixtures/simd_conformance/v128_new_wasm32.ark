@@ -2,12 +2,12 @@
 // the all-zero constant vector.
 use std::simd::i8x16::I8x16
 use std::simd::v128::V128
-use std::test
+use std::test::Test
 
 test "v128_constructs_lanes_and_zero_initialises" {
     let v = V128::new(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
-    test::assert_eq_i32(I8x16::extract_lane(v, 0), 1)
-    test::assert_eq_i32(I8x16::extract_lane(v, 7), 8)
-    test::assert_eq_i32(I8x16::extract_lane(v, 15), 16)
-    test::assert_eq_i32(I8x16::extract_lane(V128::zero(), 0), 0)
+    Test::assert_eq_i32(I8x16::extract_lane(v, 0), 1)
+    Test::assert_eq_i32(I8x16::extract_lane(v, 7), 8)
+    Test::assert_eq_i32(I8x16::extract_lane(v, 15), 16)
+    Test::assert_eq_i32(I8x16::extract_lane(V128::zero(), 0), 0)
 }

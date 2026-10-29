@@ -12,7 +12,7 @@
 // get / len) are covered by collections/vec_method_replacements.ark.
 use std::core::container
 use std::core::iter
-use std::test
+use std::test::Test
 
 fn double(value: i32) -> i32 {
     value * 2
@@ -49,24 +49,24 @@ fn main() {
     push(values, 2)
 
     let mapped: Vec<i32> = values.iter().map(double).collect()
-    test::assert_eq_i32(len(mapped), 3)
-    test::assert_eq_i32(get_unchecked(mapped, 2), 4)
+    Test::assert_eq_i32(len(mapped), 3)
+    Test::assert_eq_i32(get_unchecked(mapped, 2), 4)
     let filtered: Vec<i32> = values.iter().filter(is_even).collect()
-    test::assert_eq_i32(len(filtered), 1)
+    Test::assert_eq_i32(len(filtered), 1)
 
-    test::assert_eq_i32(values.iter().fold(0, add), 6)
-    test::assert_eq_i32(values.iter().sum(), 6)
-    test::assert_eq_i32(values.iter().fold(1, mul), 6)
-    test::assert_true(values.iter().any(is_even))
-    test::assert_eq_i32(values.iter().find(is_two).unwrap_or(0), 2)
-    test::assert_true(values.iter().contains(2))
-    test::assert_eq_i32(values.iter().rev().count(), 3)
-    test::assert_eq_i32(values.iter().rev().sum(), 6)
+    Test::assert_eq_i32(values.iter().fold(0, add), 6)
+    Test::assert_eq_i32(values.iter().sum(), 6)
+    Test::assert_eq_i32(values.iter().fold(1, mul), 6)
+    Test::assert_true(values.iter().any(is_even))
+    Test::assert_eq_i32(values.iter().find(is_two).unwrap_or(0), 2)
+    Test::assert_true(values.iter().contains(2))
+    Test::assert_eq_i32(values.iter().rev().count(), 3)
+    Test::assert_eq_i32(values.iter().rev().sum(), 6)
 
     let some: Option<i32> = Some(2)
-    test::assert_eq_i32(some.map(double).unwrap_or(0), 4)
+    Test::assert_eq_i32(some.map(double).unwrap_or(0), 4)
     let mut text = String_from("hello")
-    test::assert_true(text.contains(String_from("ell")))
+    Test::assert_true(text.contains(String_from("ell")))
     let result: Result<i32, i32> = Ok(1)
-    test::assert_eq_i32(result.map(increment).unwrap_or(0), 2)
+    Test::assert_eq_i32(result.map(increment).unwrap_or(0), 2)
 }

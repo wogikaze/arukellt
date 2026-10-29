@@ -3,38 +3,38 @@
 // sidecar selects wasm32.
 use std::bytes
 use std::bytes::Bytes
-use std::test
+use std::test::Test
 
 fn main() {
     let mut b: Vec<i32> = Vec::new<i32>()
     b.push_byte(300)
-    test::assert_eq_i32(b.len(), 1)
-    test::assert_eq_i32(b.get_unchecked(0), 44)
+    Test::assert_eq_i32(b.len(), 1)
+    Test::assert_eq_i32(b.get_unchecked(0), 44)
 
     let a: Vec<i32> = "ab".to_utf8_bytes()
-    test::assert_true(a.equals_bytes("ab".to_utf8_bytes()))
-    test::assert_eq_i32(a.concat_bytes("cd".to_utf8_bytes()).len(), 4)
-    test::assert_eq_string(a.to_hex(), "6162")
-    test::assert_eq_i32(Bytes::from_hex("DEAD").len(), 2)
-    test::assert_eq_string(a.to_base64(), "YWI=")
-    test::assert_true(Bytes::from_base64("YWI=").equals_bytes(a))
+    Test::assert_true(a.equals_bytes("ab".to_utf8_bytes()))
+    Test::assert_eq_i32(a.concat_bytes("cd".to_utf8_bytes()).len(), 4)
+    Test::assert_eq_string(a.to_hex(), "6162")
+    Test::assert_eq_i32(Bytes::from_hex("DEAD").len(), 2)
+    Test::assert_eq_string(a.to_base64(), "YWI=")
+    Test::assert_true(Bytes::from_base64("YWI=").equals_bytes(a))
 
-    test::assert_eq_i32(Bytes::from_u16_le(258).to_u16_le(), 258)
-    test::assert_eq_i32(Bytes::from_u32_le(70000).to_u32_le(), 70000)
-    test::assert_eq_i32(Bytes::from_u32_be(70000).to_u32_be(), 70000)
+    Test::assert_eq_i32(Bytes::from_u16_le(258).to_u16_le(), 258)
+    Test::assert_eq_i32(Bytes::from_u32_le(70000).to_u32_le(), 70000)
+    Test::assert_eq_i32(Bytes::from_u32_be(70000).to_u32_be(), 70000)
 
     let leb: Vec<i32> = Bytes::from_leb128_u32(624485)
-    test::assert_eq_i32(leb.byte_cursor().read_leb128_u32(), 624485)
+    Test::assert_eq_i32(leb.byte_cursor().read_leb128_u32(), 624485)
 
     let mut cursor: Vec<i32> = "abcd".to_utf8_bytes().byte_cursor()
-    test::assert_eq_i32(cursor.read_u8(), 97)
-    test::assert_eq_i32(cursor.read_u16_le(), 25442)
-    test::assert_eq_i32(cursor.cursor_remaining(), 1)
+    Test::assert_eq_i32(cursor.read_u8(), 97)
+    Test::assert_eq_i32(cursor.read_u16_le(), 25442)
+    Test::assert_eq_i32(cursor.cursor_remaining(), 1)
     let chunk: Vec<i32> = "abcd".to_utf8_bytes().byte_cursor().read_bytes(2)
-    test::assert_eq_i32(chunk.len(), 2)
+    Test::assert_eq_i32(chunk.len(), 2)
 
     let mut empty: Vec<i32> = Vec::new<i32>().byte_cursor()
-    test::assert_eq_i32(match empty.try_read_u8() {
+    Test::assert_eq_i32(match empty.try_read_u8() {
             Option::Some(v) => v,
             Option::None => 0 - 1,
         }, 0 - 1)
@@ -44,6 +44,6 @@ fn main() {
     buf.push_u32_le(1)
     buf.extend_bytes(a)
     let frozen: Vec<i32> = buf.freeze()
-    test::assert_eq_i32(frozen.len(), 8)
-    test::assert_eq_i32(frozen.slice_bytes(0, 2).to_u16_le(), 258)
+    Test::assert_eq_i32(frozen.len(), 8)
+    Test::assert_eq_i32(frozen.slice_bytes(0, 2).to_u16_le(), 258)
 }

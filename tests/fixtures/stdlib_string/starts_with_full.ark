@@ -1,7 +1,7 @@
-use std::test
+use std::test::Test
 use std::prelude::{starts_with}
 fn main() {
     let s = String_from("hello")
-    test::assert_true(starts_with(s, String_from("hello")))
-    test::assert_false(starts_with(s, String_from("hellox")))
+    Test::assert_true(starts_with(s, String_from("hello")))
+    Test::assert_false(starts_with(s, String_from("hellox")))
 }

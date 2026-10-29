@@ -1,9 +1,9 @@
 use std::core::convert
-use std::test
+use std::test::Test
 
 fn main() {
     // gcd with negatives uses absolute values
-    test::assert_eq_i32((-12).gcd(8), 4)
-    test::assert_eq_i32(12.gcd(-8), 4)
-    test::assert_eq_i32((-12).gcd(-8), 4)
+    Test::assert_eq_i32((-12).gcd(8), 4)
+    Test::assert_eq_i32(12.gcd(-8), 4)
+    Test::assert_eq_i32((-12).gcd(-8), 4)
 }

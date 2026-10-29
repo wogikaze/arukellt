@@ -1,8 +1,8 @@
 use std::json
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_string(json::JsonValue::stringify_string("hello"), "\"hello\"")
-    test::assert_eq_string(json::JsonValue::stringify_string(""), "\"\"")
-    test::assert_eq_string(json::JsonValue::stringify_string("a b c"), "\"a b c\"")
+    Test::assert_eq_string(json::JsonValue::stringify_string("hello"), "\"hello\"")
+    Test::assert_eq_string(json::JsonValue::stringify_string(""), "\"\"")
+    Test::assert_eq_string(json::JsonValue::stringify_string("a b c"), "\"a b c\"")
 }

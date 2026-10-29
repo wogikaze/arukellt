@@ -1,5 +1,5 @@
 use std::json
-use std::test
+use std::test::Test
 use std::prelude::{byte_at}
 use std::text
 fn main() {
@@ -8,11 +8,11 @@ fn main() {
         Result::Ok(v) => match v.as_string() {
             Option::Some(s) => {
                 // UTF-8 encoding is 4 bytes: F0 9F 98 80
-                test::assert_eq_i32(len(s), 4)
-                test::assert_eq_i32(byte_at(s, 0), 240)
-                test::assert_eq_i32(byte_at(s, 1), 159)
-                test::assert_eq_i32(byte_at(s, 2), 152)
-                test::assert_eq_i32(byte_at(s, 3), 128)
+                Test::assert_eq_i32(len(s), 4)
+                Test::assert_eq_i32(byte_at(s, 0), 240)
+                Test::assert_eq_i32(byte_at(s, 1), 159)
+                Test::assert_eq_i32(byte_at(s, 2), 152)
+                Test::assert_eq_i32(byte_at(s, 3), 128)
             },
             None => Std::panic("expected string"),
         },

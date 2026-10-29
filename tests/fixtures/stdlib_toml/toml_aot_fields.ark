@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 fn main() {
     let t = toml::TomlValue::parse("[[items]]\nname = \"first\"\nid = 1\n[[items]]\nname = \"second\"\nid = 2")
@@ -8,12 +8,12 @@ fn main() {
         Result::Ok(table) => match table.get_field("items") {
             Option::Some(v) => match v.as_array() {
                 Option::Some(arr) => {
-                    test::assert_eq_i32(len(arr), 2)
+                    Test::assert_eq_i32(len(arr), 2)
                     let first = get_unchecked(arr, 0)
                     let id_opt: Option<toml::TomlValue> = first.get_field("id")
                     match id_opt {
                         Option::Some(id) => match id.as_int() {
-                            Option::Some(n) => test::assert_eq_i32(n, 1),
+                            Option::Some(n) => Test::assert_eq_i32(n, 1),
                             None => assert(false),
                         },
                         None => assert(false),
@@ -22,7 +22,7 @@ fn main() {
                     let name_opt: Option<toml::TomlValue> = second.get_field("name")
                     match name_opt {
                         Option::Some(nm) => match nm.as_string() {
-                            Option::Some(s) => test::assert_eq_string(s, "second"),
+                            Option::Some(s) => Test::assert_eq_string(s, "second"),
                             None => assert(false),
                         },
                         None => assert(false),

@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 use std::prelude::{eq, is_ok}
 use std::text
 fn try_parse(s: String) -> Result<i32, String> {
@@ -7,7 +7,7 @@ fn try_parse(s: String) -> Result<i32, String> {
 }
 fn main() {
     let r = try_parse(String_from("42"))
-    test::assert_true(is_ok(r))
-    match r { Result::Ok(v) => test::assert_eq_i32(v, 42), Result::Err(e) => Std::panic(e) }
+    Test::assert_true(is_ok(r))
+    match r { Result::Ok(v) => Test::assert_eq_i32(v, 42), Result::Err(e) => Std::panic(e) }
     stdio::println("ok")
 }

@@ -1,15 +1,15 @@
 use std::core::hash
-use std::test
+use std::test::Test
 
 fn main() {
     // Free `hash(...)` is not the Hash trait entry; use method form (ADR-046).
     let h1: i32 = String_from("hello").hash()
     let h2: i32 = String_from("hello").hash()
-    test::assert_eq_i32(h1, h2)
+    Test::assert_eq_i32(h1, h2)
 
     let h3: i32 = String_from("world").hash()
-    test::assert_true(h1 != h3)
+    Test::assert_true(h1 != h3)
 
     let h_empty: i32 = String_from("").hash()
-    test::assert_true(h_empty >= 0)
+    Test::assert_true(h_empty >= 0)
 }

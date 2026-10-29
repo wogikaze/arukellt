@@ -1,13 +1,13 @@
 use std::bytes
 use std::bytes::Bytes
-use std::test
+use std::test::Test
 
 fn main() {
     let a: Vec<i32> = Bytes::from_hex("zz61")
-    test::assert_eq_i32(a.len(), 1)
-    test::assert_eq_i32(a.get_unchecked(0), 97)
+    Test::assert_eq_i32(a.len(), 1)
+    Test::assert_eq_i32(a.get_unchecked(0), 97)
     let b: Vec<i32> = Bytes::from_hex("61zz62")
-    test::assert_eq_i32(b.len(), 2)
-    test::assert_eq_i32(b.get_unchecked(0), 97)
-    test::assert_eq_i32(b.get_unchecked(1), 98)
+    Test::assert_eq_i32(b.len(), 2)
+    Test::assert_eq_i32(b.get_unchecked(0), 97)
+    Test::assert_eq_i32(b.get_unchecked(1), 98)
 }

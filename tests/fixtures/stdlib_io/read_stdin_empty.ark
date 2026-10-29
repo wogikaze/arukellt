@@ -1,7 +1,7 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 
 fn main() {
     let s: String = stdio::read_stdin()
-    test::assert_eq_string(s, "")
+    Test::assert_eq_string(s, "")
 }

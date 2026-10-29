@@ -1,15 +1,15 @@
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<String, String>()
     let _ = m.insert("k1", "v1")
     let _ = m.insert("k2", "v2")
     let _ = m.insert("k1", "v1b")
-    test::assert_eq_i32(m.len(), 2)
-    test::assert_true(m.contains_key("k1"))
-    test::assert_false(m.contains_key("missing"))
+    Test::assert_eq_i32(m.len(), 2)
+    Test::assert_true(m.contains_key("k1"))
+    Test::assert_false(m.contains_key("missing"))
     match m.get("k1") {
-        Option::Some(v) => test::assert_eq_string(v, "v1b"),
+        Option::Some(v) => Test::assert_eq_string(v, "v1b"),
         None => Std::panic("expected Some(v1b)"),
     }
     match m.get("missing") {
@@ -18,13 +18,13 @@ fn main() {
         },
     }
     match m.remove("k2") {
-        Option::Some(v) => test::assert_eq_string(v, "v2"),
+        Option::Some(v) => Test::assert_eq_string(v, "v2"),
         None => Std::panic("expected Some(v2)"),
     }
     let _ = m.insert("k2", "v2b")
     match m.get("k2") {
-        Option::Some(v) => test::assert_eq_string(v, "v2b"),
+        Option::Some(v) => Test::assert_eq_string(v, "v2b"),
         None => Std::panic("expected Some(v2b)"),
     }
-    test::assert_eq_i32(m.len(), 2)
+    Test::assert_eq_i32(m.len(), 2)
 }

@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::core::iter
 
 fn is_even(x: i32) -> bool {
@@ -16,17 +16,17 @@ fn main() {
     push(v, 3)
     push(v, 4)
     let has_even: bool = v.iter().any(is_even)
-    test::assert_true(has_even)
+    Test::assert_true(has_even)
 
     let found = v.iter().find(is_even)
     match found {
-        Option::Some(x) => test::assert_eq_i32(x, 2),
+        Option::Some(x) => Test::assert_eq_i32(x, 2),
         None => Std::panic("expected Some, got None"),
     }
 
     let empty = Vec::new<i32>()
     let any_empty: bool = empty.iter().any(is_even)
-    test::assert_false(any_empty)
+    Test::assert_false(any_empty)
 
     let find_neg = v.iter().find(is_negative)
     match find_neg {

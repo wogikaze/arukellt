@@ -1,14 +1,14 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
     // Not found returns -1
-    test::assert_eq_i32("hello".index_of("xyz"), -1)
+    Test::assert_eq_i32("hello".index_of("xyz"), -1)
     // Empty needle returns 0
-    test::assert_eq_i32("hello".index_of(""), 0)
-    test::assert_eq_i32("".index_of(""), 0)
+    Test::assert_eq_i32("hello".index_of(""), 0)
+    Test::assert_eq_i32("".index_of(""), 0)
     // Needle longer than haystack returns -1
-    test::assert_eq_i32("ab".index_of("abc"), -1)
+    Test::assert_eq_i32("ab".index_of("abc"), -1)
     // Non-empty needle in empty haystack
-    test::assert_eq_i32("".index_of("a"), -1)
+    Test::assert_eq_i32("".index_of("a"), -1)
 }

@@ -1,8 +1,8 @@
-use std::test
+use std::test::Test
 use std::prelude::{eq, push_char}
 fn main() {
     let mut s = String_from("hi")
     push_char(s, '!')
     push_char(s, '!')
-    test::assert_true(eq(s, String_from("hi!!")))
+    Test::assert_true(eq(s, String_from("hi!!")))
 }

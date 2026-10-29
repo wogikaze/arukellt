@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 
 // #922 / ADR-075: the page-chain arena used to be append-only — every
 // committed record pushed {record,next} nodes into a bounded bump arena
@@ -14,5 +14,5 @@ fn main() {
         push(v, i)
         i = i + 1
     }
-    test::assert_eq_i32(i, 6000000)
+    Test::assert_eq_i32(i, 6000000)
 }

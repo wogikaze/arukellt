@@ -1,6 +1,6 @@
 // HashSet: to_vec returns all elements
 use std::collections::hash_set::HashSet
-use std::test
+use std::test::Test
 
 fn main() {
     let mut s = HashSet::new<i32>()
@@ -9,7 +9,7 @@ fn main() {
     s.insert(3)
 
     let v = s.to_vec()
-    test::assert_eq_i32(len(v), 3)
+    Test::assert_eq_i32(len(v), 3)
 
     // Every element should be in the set
     let mut found_1 = false
@@ -23,7 +23,7 @@ fn main() {
         if x == 3 { found_3 = true }
         i = i + 1
     }
-    test::assert_true(found_1)
-    test::assert_true(found_2)
-    test::assert_true(found_3)
+    Test::assert_true(found_1)
+    Test::assert_true(found_2)
+    Test::assert_true(found_3)
 }

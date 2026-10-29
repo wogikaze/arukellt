@@ -1,7 +1,7 @@
-use std::test
+use std::test::Test
 
 test "direct_hash_api_reports_size" {
     let mut m = HashMap::new<i32, i32>()
     let _ = m.insert(42, 100)
-    test::assert_eq_i32(m.len(), 1)
+    Test::assert_eq_i32(m.len(), 1)
 }

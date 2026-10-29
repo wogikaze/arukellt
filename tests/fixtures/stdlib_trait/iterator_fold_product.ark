@@ -1,5 +1,5 @@
 use std::core::iter
-use std::test
+use std::test::Test
 
 fn mul(a: i32, b: i32) -> i32 { a * b }
 
@@ -10,5 +10,5 @@ fn main() {
     push(v, 4)
 
     let product = v.iter().fold(1, mul)
-    test::assert_eq_i32(product, 24)
+    Test::assert_eq_i32(product, 24)
 }

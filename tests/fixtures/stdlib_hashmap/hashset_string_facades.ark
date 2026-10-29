@@ -1,22 +1,22 @@
 use std::collections::hash_set::HashSet
-use std::test
+use std::test::Test
 
 test "hashset_namespace_and_method_facades_agree" {
     let mut direct = HashSet::new<String>()
-    test::assert_true(direct.insert("red"))
-    test::assert_false(direct.insert("red"))
-    test::assert_eq_i32(direct.len(), 1)
-    test::assert_true(direct.contains("red"))
+    Test::assert_true(direct.insert("red"))
+    Test::assert_false(direct.insert("red"))
+    Test::assert_eq_i32(direct.len(), 1)
+    Test::assert_true(direct.contains("red"))
 
     let mut compat: HashSet<String> = HashSet::new<String>()
-    test::assert_true(compat.insert("green"))
-    test::assert_true(compat.remove("green"))
-    test::assert_eq_i32(compat.len(), 0)
-    test::assert_false(compat.contains("green"))
+    Test::assert_true(compat.insert("green"))
+    Test::assert_true(compat.remove("green"))
+    Test::assert_eq_i32(compat.len(), 0)
+    Test::assert_false(compat.contains("green"))
 
     let mut second: HashSet<String> = HashSet::new<String>()
-    test::assert_true(second.insert("blue"))
-    test::assert_false(second.remove("missing"))
-    test::assert_eq_i32(second.len(), 1)
-    test::assert_true(second.contains("blue"))
+    Test::assert_true(second.insert("blue"))
+    Test::assert_false(second.remove("missing"))
+    Test::assert_eq_i32(second.len(), 1)
+    Test::assert_true(second.contains("blue"))
 }

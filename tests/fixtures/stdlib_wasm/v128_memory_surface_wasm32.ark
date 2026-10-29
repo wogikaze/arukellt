@@ -6,7 +6,7 @@ use std::simd::i8x16::I8x16
 use std::simd::i16x8::I16x8
 use std::simd::i32x4::I32x4
 use std::simd::i64x2::I64x2
-use std::test
+use std::test::Test
 use std::wasm::V128Memory
 
 // 1 MiB sits above this fixture's small heap and below the 512 MiB minimum
@@ -19,15 +19,15 @@ fn roundtrip_cases() {
     let value = I32x4::new(11, 22, 33, 44)
     V128Memory::store(scratch(), 0, value)
     let loaded = V128Memory::load(scratch(), 0)
-    test::assert_eq_i32(I32x4::extract_lane(loaded, 0), 11)
-    test::assert_eq_i32(I32x4::extract_lane(loaded, 1), 22)
-    test::assert_eq_i32(I32x4::extract_lane(loaded, 2), 33)
-    test::assert_eq_i32(I32x4::extract_lane(loaded, 3), 44)
+    Test::assert_eq_i32(I32x4::extract_lane(loaded, 0), 11)
+    Test::assert_eq_i32(I32x4::extract_lane(loaded, 1), 22)
+    Test::assert_eq_i32(I32x4::extract_lane(loaded, 2), 33)
+    Test::assert_eq_i32(I32x4::extract_lane(loaded, 3), 44)
 
     // The offset stays a runtime operand: it is added to the address.
     V128Memory::store(scratch(), 16, value)
     let offset_loaded = V128Memory::load(scratch(), 16)
-    test::assert_eq_i32(I32x4::extract_lane(offset_loaded, 3), 44)
+    Test::assert_eq_i32(I32x4::extract_lane(offset_loaded, 3), 44)
 }
 
 fn lane_cases() {
@@ -35,47 +35,47 @@ fn lane_cases() {
     let zero = I32x4::splat(0)
     // load_lane moves the 32-bit value at address + offset into `lane`.
     let loaded_lane = V128Memory::load_lane(scratch(), 40, zero, 2)
-    test::assert_eq_i32(I32x4::extract_lane(loaded_lane, 0), 0)
-    test::assert_eq_i32(I32x4::extract_lane(loaded_lane, 2), 33)
+    Test::assert_eq_i32(I32x4::extract_lane(loaded_lane, 0), 0)
+    Test::assert_eq_i32(I32x4::extract_lane(loaded_lane, 2), 33)
 
     // store_lane writes the selected lane as one 32-bit memory value.
     let merged = I32x4::replace_lane(zero, 1, 7)
     V128Memory::store_lane(scratch(), 56, merged, 1)
     let stored = V128Memory::load(scratch(), 56)
-    test::assert_eq_i32(I32x4::extract_lane(stored, 0), 7)
+    Test::assert_eq_i32(I32x4::extract_lane(stored, 0), 7)
     let mirrored = V128Memory::load_lane(scratch(), 56, zero, 3)
-    test::assert_eq_i32(I32x4::extract_lane(mirrored, 3), 7)
+    Test::assert_eq_i32(I32x4::extract_lane(mirrored, 3), 7)
 }
 
 fn splat_cases() {
     V128Memory::store(scratch(), 64, I8x16::splat(42))
     let splatted = V128Memory::load_splat(scratch(), 64)
-    test::assert_eq_i32(I8x16::extract_lane(splatted, 0), 42)
-    test::assert_eq_i32(I8x16::extract_lane(splatted, 15), 42)
+    Test::assert_eq_i32(I8x16::extract_lane(splatted, 0), 42)
+    Test::assert_eq_i32(I8x16::extract_lane(splatted, 15), 42)
 }
 
 fn widening_cases() {
     V128Memory::store(scratch(), 80, I8x16::new(255, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0))
     let signed8 = V128Memory::load8x8_s(scratch(), 80)
     let unsigned8 = V128Memory::load8x8_u(scratch(), 80)
-    test::assert_eq_i32(I16x8::extract_lane(signed8, 0), -1)
-    test::assert_eq_i32(I16x8::extract_lane(unsigned8, 0), 255)
+    Test::assert_eq_i32(I16x8::extract_lane(signed8, 0), -1)
+    Test::assert_eq_i32(I16x8::extract_lane(unsigned8, 0), 255)
 
     V128Memory::store(scratch(), 96, I16x8::new(1, 65535, 0, 0, 0, 0, 0, 0))
     let signed16 = V128Memory::load16x4_s(scratch(), 96)
     let unsigned16 = V128Memory::load16x4_u(scratch(), 96)
-    test::assert_eq_i32(I32x4::extract_lane(signed16, 0), 1)
-    test::assert_eq_i32(I32x4::extract_lane(signed16, 1), -1)
-    test::assert_eq_i32(I32x4::extract_lane(unsigned16, 0), 1)
-    test::assert_eq_i32(I32x4::extract_lane(unsigned16, 1), 65535)
+    Test::assert_eq_i32(I32x4::extract_lane(signed16, 0), 1)
+    Test::assert_eq_i32(I32x4::extract_lane(signed16, 1), -1)
+    Test::assert_eq_i32(I32x4::extract_lane(unsigned16, 0), 1)
+    Test::assert_eq_i32(I32x4::extract_lane(unsigned16, 1), 65535)
 
     V128Memory::store(scratch(), 112, I32x4::new(-1, 9, 0, 0))
     let signed32 = V128Memory::load32x2_s(scratch(), 112)
     let unsigned32 = V128Memory::load32x2_u(scratch(), 112)
-    test::assert_eq_i64(I64x2::extract_lane(signed32, 0), -1)
-    test::assert_eq_i64(I64x2::extract_lane(signed32, 1), 9)
-    test::assert_eq_i64(I64x2::extract_lane(unsigned32, 0), 4294967295)
-    test::assert_eq_i64(I64x2::extract_lane(unsigned32, 1), 9)
+    Test::assert_eq_i64(I64x2::extract_lane(signed32, 0), -1)
+    Test::assert_eq_i64(I64x2::extract_lane(signed32, 1), 9)
+    Test::assert_eq_i64(I64x2::extract_lane(unsigned32, 0), 4294967295)
+    Test::assert_eq_i64(I64x2::extract_lane(unsigned32, 1), 9)
 }
 
 fn main() {

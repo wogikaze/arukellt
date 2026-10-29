@@ -1,10 +1,10 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("\"\\u0041\"") {
         Result::Ok(v) => match v.as_string() {
-            Option::Some(s) => test::assert_eq_string(s, "A"),
+            Option::Some(s) => Test::assert_eq_string(s, "A"),
             None => Std::panic("expected string"),
         },
         Result::Err(e) => Std::panic("parse unicode failed: ".concat(e.message())),

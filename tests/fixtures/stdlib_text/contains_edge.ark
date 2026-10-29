@@ -1,13 +1,13 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
     // Empty needle is always found
-    test::assert_true("hello".contains(""))
-    test::assert_true("".contains(""))
+    Test::assert_true("hello".contains(""))
+    Test::assert_true("".contains(""))
     // Non-empty needle in empty haystack is not found
-    test::assert_false("".contains("a"))
+    Test::assert_false("".contains("a"))
     // Single char haystack
-    test::assert_true("a".contains("a"))
-    test::assert_false("a".contains("b"))
+    Test::assert_true("a".contains("a"))
+    Test::assert_false("a".contains("b"))
 }

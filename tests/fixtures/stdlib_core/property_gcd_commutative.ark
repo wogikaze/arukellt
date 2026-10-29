@@ -1,6 +1,6 @@
 // Property: gcd is commutative — gcd(a, b) == gcd(b, a).
 use std::core::convert
-use std::test
+use std::test::Test
 fn main() {
     let vals = [0, 1, 12, 8, 15, 25, 7, 13, 100, 0]
     let mut i = 0
@@ -9,7 +9,7 @@ fn main() {
         let mut j = 0
         while j < 10 {
             let b = get_unchecked(vals, j)
-            test::assert_eq_i32(a.gcd(b), b.gcd(a))
+            Test::assert_eq_i32(a.gcd(b), b.gcd(a))
             j = j + 1
         }
         i = i + 1

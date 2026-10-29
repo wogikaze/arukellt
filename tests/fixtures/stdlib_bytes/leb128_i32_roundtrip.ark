@@ -1,6 +1,6 @@
 use std::bytes
 use std::bytes::Bytes
-use std::test
+use std::test::Test
 
 fn main() {
     let mut vals: Vec<i32> = Vec::new<i32>()
@@ -16,7 +16,7 @@ fn main() {
         let enc: Vec<i32> = Bytes::from_leb128_i32(v)
         let mut c: Vec<i32> = enc.byte_cursor()
         let dec: i32 = c.read_leb128_i32()
-        test::assert_eq_i32(dec, v)
+        Test::assert_eq_i32(dec, v)
         i = i + 1
     }
 }

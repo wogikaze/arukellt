@@ -1,21 +1,21 @@
 // Remove: present key returns Some(value), decreases size
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
     let _ = m.insert(1, 10)
     let _ = m.insert(2, 20)
     let _ = m.insert(3, 30)
-    test::assert_eq_i32(m.len(), 3)
+    Test::assert_eq_i32(m.len(), 3)
 
     match m.remove(2) {
-        Option::Some(v) => test::assert_eq_i32(v, 20),
+        Option::Some(v) => Test::assert_eq_i32(v, 20),
         None => Std::panic("expected Some(20) on remove"),
     }
-    test::assert_eq_i32(m.len(), 2)
-    test::assert_false(m.contains_key(2))
+    Test::assert_eq_i32(m.len(), 2)
+    Test::assert_false(m.contains_key(2))
 
     // Remaining keys still accessible
-    test::assert_eq_i32(m.get(1).unwrap_or(0), 10)
-    test::assert_eq_i32(m.get(3).unwrap_or(0), 30)
+    Test::assert_eq_i32(m.get(1).unwrap_or(0), 10)
+    Test::assert_eq_i32(m.get(3).unwrap_or(0), 30)
 }

@@ -1,15 +1,15 @@
 // Try_reserve: returns true on success
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::with_capacity<i32, i32>(4)
-    test::assert_true(m.try_reserve(8))
-    test::assert_true(m.capacity() >= 12)
+    Test::assert_true(m.try_reserve(8))
+    Test::assert_true(m.capacity() >= 12)
 
     // Try_reserve with 0 additional
-    test::assert_true(m.try_reserve(0))
+    Test::assert_true(m.try_reserve(0))
 
     // Try_reserve with large additional
-    test::assert_true(m.try_reserve(1000))
-    test::assert_true(m.capacity() >= 1000)
+    Test::assert_true(m.try_reserve(1000))
+    Test::assert_true(m.capacity() >= 1000)
 }

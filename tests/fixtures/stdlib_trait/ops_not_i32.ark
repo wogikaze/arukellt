@@ -1,8 +1,8 @@
 use std::core::ops
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_i32((0).not(), -1)
-    test::assert_eq_i32((-1).not(), 0)
-    test::assert_eq_i32((1).not(), -2)
+    Test::assert_eq_i32((0).not(), -1)
+    Test::assert_eq_i32((-1).not(), 0)
+    Test::assert_eq_i32((1).not(), -2)
 }

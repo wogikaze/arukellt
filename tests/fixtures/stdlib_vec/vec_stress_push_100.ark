@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
@@ -7,8 +7,8 @@ fn main() {
         push(v, i * 2)
         i = i + 1
     }
-    test::assert_eq_i32(len(v), 100)
-    test::assert_eq_i32(get_unchecked(v, 0), 0)
-    test::assert_eq_i32(get_unchecked(v, 50), 100)
-    test::assert_eq_i32(get_unchecked(v, 99), 198)
+    Test::assert_eq_i32(len(v), 100)
+    Test::assert_eq_i32(get_unchecked(v, 0), 0)
+    Test::assert_eq_i32(get_unchecked(v, 50), 100)
+    Test::assert_eq_i32(get_unchecked(v, 99), 198)
 }

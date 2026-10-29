@@ -1,12 +1,12 @@
 use std::core::convert
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_i32(1.next_power_of_two(), 1)
-    test::assert_eq_i32(2.next_power_of_two(), 2)
-    test::assert_eq_i32(3.next_power_of_two(), 4)
-    test::assert_eq_i32(5.next_power_of_two(), 8)
-    test::assert_eq_i32(9.next_power_of_two(), 16)
-    test::assert_eq_i32(0.next_power_of_two(), 1)
-    test::assert_eq_i32((-5).next_power_of_two(), 1)
+    Test::assert_eq_i32(1.next_power_of_two(), 1)
+    Test::assert_eq_i32(2.next_power_of_two(), 2)
+    Test::assert_eq_i32(3.next_power_of_two(), 4)
+    Test::assert_eq_i32(5.next_power_of_two(), 8)
+    Test::assert_eq_i32(9.next_power_of_two(), 16)
+    Test::assert_eq_i32(0.next_power_of_two(), 1)
+    Test::assert_eq_i32((-5).next_power_of_two(), 1)
 }

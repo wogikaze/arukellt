@@ -1,7 +1,7 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 use std::prelude::{is_some}
 fn main() {
-    test::assert_false(is_some(None))
+    Test::assert_false(is_some(None))
     stdio::println("ok")
 }

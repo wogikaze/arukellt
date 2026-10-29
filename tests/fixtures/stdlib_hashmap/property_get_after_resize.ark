@@ -1,5 +1,5 @@
 // Property: after resize, all keys remain accessible
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::with_capacity<i32, i32>(2)
@@ -8,12 +8,12 @@ fn main() {
         let _ = m.insert(i * 7, i)
         i = i + 1
     }
-    test::assert_eq_i32(m.len(), 100)
+    Test::assert_eq_i32(m.len(), 100)
 
     // All keys accessible
     i = 0
     while i < 100 {
-        test::assert_eq_i32(m.get(i * 7).unwrap_or(0), i)
+        Test::assert_eq_i32(m.get(i * 7).unwrap_or(0), i)
         i = i + 1
     }
 }

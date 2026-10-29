@@ -1,6 +1,6 @@
 use std::io
 use std::io::{BufWriter, Writer}
-use std::test
+use std::test::Test
 
 fn main() {
     let mut bw: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 64)

@@ -1,6 +1,6 @@
 use std::bytes
 use std::bytes::Bytes
-use std::test
+use std::test::Test
 
 fn main() {
     let mut xs: Vec<i32> = Vec::new<i32>()
@@ -11,5 +11,5 @@ fn main() {
     push(xs, 16)
     push(xs, 255)
     let b: Vec<i32> = Bytes::from_array(xs)
-    test::assert_eq_string(b.to_hex(), "00090a0f10ff")
+    Test::assert_eq_string(b.to_hex(), "00090a0f10ff")
 }

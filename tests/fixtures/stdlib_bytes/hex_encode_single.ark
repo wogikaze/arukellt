@@ -1,8 +1,8 @@
 use std::bytes
-use std::test
+use std::test::Test
 
 fn main() {
     let mut b: Vec<i32> = Vec::new<i32>()
     b.push_byte(255)
-    test::assert_eq_string(b.to_hex(), "ff")
+    Test::assert_eq_string(b.to_hex(), "ff")
 }

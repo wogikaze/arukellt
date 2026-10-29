@@ -1,13 +1,13 @@
 // Integer method surface on the linear wasm32 target. Same source-level
 // expectations as integer_methods.ark; the .flags sidecar selects wasm32.
 use std::core::convert
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_i32(12.gcd(8), 4)
-    test::assert_eq_i32(4.lcm(6), 12)
-    test::assert_eq_i32(5.next_power_of_two(), 8)
-    test::assert_eq_i32(0.leading_zeros(), 32)
-    test::assert_eq_i32(8.trailing_zeros(), 3)
-    test::assert_eq_i32(255.popcount(), 8)
+    Test::assert_eq_i32(12.gcd(8), 4)
+    Test::assert_eq_i32(4.lcm(6), 12)
+    Test::assert_eq_i32(5.next_power_of_two(), 8)
+    Test::assert_eq_i32(0.leading_zeros(), 32)
+    Test::assert_eq_i32(8.trailing_zeros(), 3)
+    Test::assert_eq_i32(255.popcount(), 8)
 }

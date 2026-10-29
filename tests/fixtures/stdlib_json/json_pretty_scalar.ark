@@ -1,21 +1,21 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("null") {
-        Result::Ok(v) => test::assert_eq_string(json::JsonValue::pretty_text(v, 2), "null"),
+        Result::Ok(v) => Test::assert_eq_string(json::JsonValue::pretty_text(v, 2), "null"),
         Result::Err(e) => Std::panic("parse null failed: ".concat(e.message())),
     }
     match json::JsonValue::parse("true") {
-        Result::Ok(v) => test::assert_eq_string(json::JsonValue::pretty_text(v, 2), "true"),
+        Result::Ok(v) => Test::assert_eq_string(json::JsonValue::pretty_text(v, 2), "true"),
         Result::Err(e) => Std::panic("parse true failed: ".concat(e.message())),
     }
     match json::JsonValue::parse("42") {
-        Result::Ok(v) => test::assert_eq_string(json::JsonValue::pretty_text(v, 2), "42"),
+        Result::Ok(v) => Test::assert_eq_string(json::JsonValue::pretty_text(v, 2), "42"),
         Result::Err(e) => Std::panic("parse 42 failed: ".concat(e.message())),
     }
     match json::JsonValue::parse("\"hi\"") {
-        Result::Ok(v) => test::assert_eq_string(json::JsonValue::pretty_text(v, 2), "\"hi\""),
+        Result::Ok(v) => Test::assert_eq_string(json::JsonValue::pretty_text(v, 2), "\"hi\""),
         Result::Err(e) => Std::panic("parse string failed: ".concat(e.message())),
     }
 }

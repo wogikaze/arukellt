@@ -1,5 +1,5 @@
 use std::core::iter
-use std::test
+use std::test::Test
 
 fn sum_iter<T: iter::Iterator + iter::IteratorSum<i32, i32>>(mut iterator: T) -> i32 {
     iterator.sum()
@@ -32,19 +32,19 @@ fn main() {
     for x in it {
         total = total + x
     }
-    test::assert_eq_i32(total, 60)
+    Test::assert_eq_i32(total, 60)
 
     let manual_total = sum_iter(v.iter())
-    test::assert_eq_i32(manual_total, total)
+    Test::assert_eq_i32(manual_total, total)
 
     let generic_for_total = sum_for(v.iter())
-    test::assert_eq_i32(generic_for_total, total)
+    Test::assert_eq_i32(generic_for_total, total)
 
     let mut generic_into_source: Vec<i32> = Vec::new<i32>()
     push(generic_into_source, 6)
     push(generic_into_source, 7)
     let generic_into_total = sum_into_for(generic_into_source)
-    test::assert_eq_i32(generic_into_total, 13)
+    Test::assert_eq_i32(generic_into_total, 13)
 
     let mut direct_source: Vec<i32> = Vec::new<i32>()
     push(direct_source, 4)
@@ -53,5 +53,5 @@ fn main() {
     for x in direct_source {
         direct_total = direct_total + x
     }
-    test::assert_eq_i32(direct_total, 9)
+    Test::assert_eq_i32(direct_total, 9)
 }

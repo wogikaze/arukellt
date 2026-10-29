@@ -1,11 +1,11 @@
-use std::test
+use std::test::Test
 
 fn main() {
     let r = ""
-    test::assert_eq_i32(r.len(), 0)
-    test::assert_eq_string(r.clone(), "")
+    Test::assert_eq_i32(r.len(), 0)
+    Test::assert_eq_string(r.clone(), "")
 
     let r2 = "hello".clone()
-    test::assert_eq_i32(r2.len(), 5)
-    test::assert_eq_string(r2.clone(), "hello")
+    Test::assert_eq_i32(r2.len(), 5)
+    Test::assert_eq_string(r2.clone(), "hello")
 }

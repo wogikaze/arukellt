@@ -1,11 +1,11 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
-    test::assert_true("hello world".contains("world"))
-    test::assert_true("hello world".contains("hello"))
-    test::assert_true("abc".contains("b"))
-    test::assert_true("abc".contains("abc"))
-    test::assert_false("hello".contains("xyz"))
-    test::assert_false("abc".contains("abcd"))
+    Test::assert_true("hello world".contains("world"))
+    Test::assert_true("hello world".contains("hello"))
+    Test::assert_true("abc".contains("b"))
+    Test::assert_true("abc".contains("abc"))
+    Test::assert_false("hello".contains("xyz"))
+    Test::assert_false("abc".contains("abcd"))
 }

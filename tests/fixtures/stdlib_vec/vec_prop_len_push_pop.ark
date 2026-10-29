@@ -1,22 +1,22 @@
-use std::test
+use std::test::Test
 
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
-    test::assert_eq_i32(len(v), 0)
+    Test::assert_eq_i32(len(v), 0)
     push(v, 1)
-    test::assert_eq_i32(len(v), 1)
+    Test::assert_eq_i32(len(v), 1)
     push(v, 2)
-    test::assert_eq_i32(len(v), 2)
+    Test::assert_eq_i32(len(v), 2)
     match pop(v) {
         Option::Some(_) => {
         },
         None => Std::panic("expected Some, got None"),
     }
-    test::assert_eq_i32(len(v), 1)
+    Test::assert_eq_i32(len(v), 1)
     match pop(v) {
         Option::Some(_) => {
         },
         None => Std::panic("expected Some, got None"),
     }
-    test::assert_eq_i32(len(v), 0)
+    Test::assert_eq_i32(len(v), 0)
 }

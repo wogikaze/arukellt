@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::core::iter
 
 fn is_negative(x: i32) -> bool {
@@ -10,5 +10,5 @@ fn main() {
     push(v, 1)
     push(v, 2)
     push(v, 3)
-    test::assert_false(v.iter().any(is_negative))
+    Test::assert_false(v.iter().any(is_negative))
 }

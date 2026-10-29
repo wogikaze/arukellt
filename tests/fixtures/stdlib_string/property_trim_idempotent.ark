@@ -1,7 +1,7 @@
-use std::test
+use std::test::Test
 use std::prelude::{eq, trim}
 fn main() {
     let s = String_from("  hi  ")
     let t = trim(s)
-    test::assert_true(eq(trim(t), t))
+    Test::assert_true(eq(trim(t), t))
 }

@@ -1,6 +1,6 @@
 use std::bytes
 use std::io
-use std::test
+use std::test::Test
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
@@ -11,9 +11,9 @@ fn main() {
     let mut dst: io::Writer = io::Writer::new()
     let res: Result<i64, io::IoError> = io::Io::copy(src, dst)
     match res {
-        Result::Ok(n) => test::assert_eq_i64(n, 3),
+        Result::Ok(n) => Test::assert_eq_i64(n, 3),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
     let b: Vec<i32> = dst.into_bytes()
-    test::assert_eq_string(String::from_utf8_lossy(b), "hij")
+    Test::assert_eq_string(String::from_utf8_lossy(b), "hij")
 }

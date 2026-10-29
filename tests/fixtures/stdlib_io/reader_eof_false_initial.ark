@@ -1,6 +1,6 @@
 use std::bytes
 use std::io
-use std::test
+use std::test::Test
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
@@ -8,5 +8,5 @@ fn main() {
     data.push_byte(20)
     data.push_byte(30)
     let r: io::Reader = io::Reader::from_bytes(data)
-    test::assert_false(r.is_eof())
+    Test::assert_false(r.is_eof())
 }

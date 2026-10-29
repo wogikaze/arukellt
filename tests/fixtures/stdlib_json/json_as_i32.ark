@@ -1,17 +1,17 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("42") {
         Result::Ok(v) => match v.as_i32() {
-            Option::Some(n) => test::assert_eq_i32(n, 42),
+            Option::Some(n) => Test::assert_eq_i32(n, 42),
             None => Std::panic("expected Some(42)"),
         },
         Result::Err(e) => Std::panic("parse failed: ".concat(e.message())),
     }
     match json::JsonValue::parse("-7") {
         Result::Ok(v) => match v.as_i32() {
-            Option::Some(n) => test::assert_eq_i32(n, -7),
+            Option::Some(n) => Test::assert_eq_i32(n, -7),
             None => Std::panic("expected Some(-7)"),
         },
         Result::Err(e) => Std::panic("parse -7 failed: ".concat(e.message())),

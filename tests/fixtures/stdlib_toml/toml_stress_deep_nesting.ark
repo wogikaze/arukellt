@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 fn main() {
     let doc = "[a.b.c.d.e]\nval = 1"
@@ -12,7 +12,7 @@ fn main() {
                         Option::Some(d) => match d.get_field("e") {
                             Option::Some(e) => match e.get_field("val") {
                                 Option::Some(v) => match v.as_int() {
-                                    Option::Some(n) => test::assert_eq_i32(n, 1),
+                                    Option::Some(n) => Test::assert_eq_i32(n, 1),
                                     None => assert(false),
                                 },
                                 None => assert(false),

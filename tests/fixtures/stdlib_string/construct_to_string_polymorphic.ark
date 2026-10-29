@@ -1,8 +1,8 @@
-use std::test
+use std::test::Test
 use std::prelude::{to_string}
 fn main() {
-    test::assert_eq_string(to_string(42), "42")
-    test::assert_eq_string(to_string(true), "true")
-    test::assert_eq_string(to_string('X'), "X")
-    test::assert_eq_string(to_string(3.5), "3.5")
+    Test::assert_eq_string(to_string(42), "42")
+    Test::assert_eq_string(to_string(true), "true")
+    Test::assert_eq_string(to_string('X'), "X")
+    Test::assert_eq_string(to_string(3.5), "3.5")
 }

@@ -1,6 +1,6 @@
 // HashSet: stress with 50 elements
 use std::collections::hash_set::HashSet
-use std::test
+use std::test::Test
 
 fn main() {
     let mut s = HashSet::new<i32>()
@@ -9,12 +9,12 @@ fn main() {
         s.insert(i)
         i = i + 1
     }
-    test::assert_eq_i32(s.len(), 50)
+    Test::assert_eq_i32(s.len(), 50)
 
     // All present
     i = 0
     while i < 50 {
-        test::assert_true(s.contains(i))
+        Test::assert_true(s.contains(i))
         i = i + 1
     }
 
@@ -24,17 +24,17 @@ fn main() {
         s.remove(i)
         i = i + 2
     }
-    test::assert_eq_i32(s.len(), 25)
+    Test::assert_eq_i32(s.len(), 25)
 
     // Odd remain, even gone
     i = 1
     while i < 50 {
-        test::assert_true(s.contains(i))
+        Test::assert_true(s.contains(i))
         i = i + 2
     }
     i = 0
     while i < 50 {
-        test::assert_false(s.contains(i))
+        Test::assert_false(s.contains(i))
         i = i + 2
     }
 }

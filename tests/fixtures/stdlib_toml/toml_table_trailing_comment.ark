@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 fn main() {
     let t = toml::TomlValue::parse("[server] # comment\nhost = \"x\"")
@@ -8,7 +8,7 @@ fn main() {
         Result::Ok(table) => match table.get_field("server") {
             Option::Some(s) => match s.get_field("host") {
                 Option::Some(v) => match v.as_string() {
-                    Option::Some(str) => test::assert_eq_string(str, "x"),
+                    Option::Some(str) => Test::assert_eq_string(str, "x"),
                     None => assert(false),
                 },
                 None => assert(false),

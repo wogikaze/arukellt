@@ -1,11 +1,11 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("{}") {
         Result::Ok(v) => {
-            test::assert_true(v.is_object())
-            test::assert_false(v.is_array())
+            Test::assert_true(v.is_object())
+            Test::assert_false(v.is_array())
             match v.get_field("x") {
                 Option::Some(_) => Std::panic("expected None for empty object"),
                 None => {},

@@ -1,5 +1,5 @@
 use std::json
-use std::test
+use std::test::Test
 
 fn main() {
     match json::JsonValue::parse("{") {

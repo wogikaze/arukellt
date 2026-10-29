@@ -1,11 +1,11 @@
 use std::core::hash
-use std::test
+use std::test::Test
 
 fn main() {
     let h1 = "a".hash()
     let h2 = "a".hash()
-    test::assert_eq_i32(h1, h2)
+    Test::assert_eq_i32(h1, h2)
     // Different single chars should likely differ
     let h3 = "b".hash()
-    test::assert_true(h1 != h3)
+    Test::assert_true(h1 != h3)
 }

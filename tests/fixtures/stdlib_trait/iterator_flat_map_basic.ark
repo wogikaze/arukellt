@@ -1,5 +1,5 @@
 use std::core::iter
-use std::test
+use std::test::Test
 
 fn dup(n: i32) -> Vec<i32> {
     let mut v: Vec<i32> = Vec::new<i32>()
@@ -20,15 +20,15 @@ fn main() {
 
     let mut it = v.iter().flat_map(dup)
     match it.next() {
-        Some(x) => test::assert_eq_i32(x, 1),
+        Some(x) => Test::assert_eq_i32(x, 1),
         None => Std::panic("expected Some"),
     }
     match it.next() {
-        Some(x) => test::assert_eq_i32(x, 10),
+        Some(x) => Test::assert_eq_i32(x, 10),
         None => Std::panic("expected Some"),
     }
     match it.next() {
-        Some(x) => test::assert_eq_i32(x, 2),
+        Some(x) => Test::assert_eq_i32(x, 2),
         None => Std::panic("expected Some"),
     }
 
@@ -44,19 +44,19 @@ fn main() {
     push(ev, 2)
     let mut it3 = ev.iter().flat_map(dup)
     match it3.next() {
-        Some(x) => test::assert_eq_i32(x, 0),
+        Some(x) => Test::assert_eq_i32(x, 0),
         None => Std::panic("expected Some"),
     }
     match it3.next() {
-        Some(x) => test::assert_eq_i32(x, 0),
+        Some(x) => Test::assert_eq_i32(x, 0),
         None => Std::panic("expected Some"),
     }
     match it3.next() {
-        Some(x) => test::assert_eq_i32(x, 2),
+        Some(x) => Test::assert_eq_i32(x, 2),
         None => Std::panic("expected Some"),
     }
     match it3.next() {
-        Some(x) => test::assert_eq_i32(x, 20),
+        Some(x) => Test::assert_eq_i32(x, 20),
         None => Std::panic("expected Some"),
     }
     match it3.next() {
@@ -68,17 +68,17 @@ fn main() {
     let mut w: Vec<i32> = Vec::new<i32>()
     push(w, 3)
     let drained = w.iter().flat_map(dup).collect()
-    test::assert_eq_i32(len(drained), 2)
-    test::assert_eq_i32(get_unchecked(drained, 0), 3)
-    test::assert_eq_i32(get_unchecked(drained, 1), 30)
+    Test::assert_eq_i32(len(drained), 2)
+    Test::assert_eq_i32(get_unchecked(drained, 0), 3)
+    Test::assert_eq_i32(get_unchecked(drained, 1), 30)
 
     // Receiver pipeline composes with take.
     let mut z: Vec<i32> = Vec::new<i32>()
     push(z, 1)
     push(z, 2)
     let taken = z.iter().flat_map(dup).take(3).collect()
-    test::assert_eq_i32(len(taken), 3)
-    test::assert_eq_i32(get_unchecked(taken, 0), 1)
-    test::assert_eq_i32(get_unchecked(taken, 1), 10)
-    test::assert_eq_i32(get_unchecked(taken, 2), 2)
+    Test::assert_eq_i32(len(taken), 3)
+    Test::assert_eq_i32(get_unchecked(taken, 0), 1)
+    Test::assert_eq_i32(get_unchecked(taken, 1), 10)
+    Test::assert_eq_i32(get_unchecked(taken, 2), 2)
 }

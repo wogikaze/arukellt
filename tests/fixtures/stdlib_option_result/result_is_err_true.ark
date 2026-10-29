@@ -1,8 +1,8 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 use std::prelude::{is_err}
 fn main() {
-    test::assert_true(is_err(Err(1)))
-    test::assert_true(is_err(Err(0)))
+    Test::assert_true(is_err(Err(1)))
+    Test::assert_true(is_err(Err(0)))
     stdio::println("ok")
 }

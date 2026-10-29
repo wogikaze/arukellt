@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::core::iter
 
 fn double(x: i32) -> i32 {
@@ -11,8 +11,8 @@ fn main() {
     push(v, 2)
     push(v, 3)
     let doubled: Vec<i32> = v.iter().map(double).collect()
-    test::assert_eq_i32(len(doubled), 3)
-    test::assert_eq_i32(get_unchecked(doubled, 0), 2)
-    test::assert_eq_i32(get_unchecked(doubled, 1), 4)
-    test::assert_eq_i32(get_unchecked(doubled, 2), 6)
+    Test::assert_eq_i32(len(doubled), 3)
+    Test::assert_eq_i32(get_unchecked(doubled, 0), 2)
+    Test::assert_eq_i32(get_unchecked(doubled, 1), 4)
+    Test::assert_eq_i32(get_unchecked(doubled, 2), 6)
 }

@@ -1,5 +1,5 @@
 use std::core::iter
-use std::test
+use std::test::Test
 
 fn double(x: i32) -> i32 { x * 2 }
 
@@ -10,8 +10,8 @@ fn main() {
     push(v, 3)
 
     let doubled = v.iter().map(double).collect()
-    test::assert_eq_i32(len(doubled), 3)
-    test::assert_eq_i32(get_unchecked(doubled, 0), 2)
-    test::assert_eq_i32(get_unchecked(doubled, 1), 4)
-    test::assert_eq_i32(get_unchecked(doubled, 2), 6)
+    Test::assert_eq_i32(len(doubled), 3)
+    Test::assert_eq_i32(get_unchecked(doubled, 0), 2)
+    Test::assert_eq_i32(get_unchecked(doubled, 1), 4)
+    Test::assert_eq_i32(get_unchecked(doubled, 2), 6)
 }

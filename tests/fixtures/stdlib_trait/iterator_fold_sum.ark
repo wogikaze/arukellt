@@ -1,5 +1,5 @@
 use std::core::iter
-use std::test
+use std::test::Test
 
 fn add(a: i32, b: i32) -> i32 { a + b }
 
@@ -12,5 +12,5 @@ fn main() {
     push(v, 5)
 
     let sum = v.iter().fold(0, add)
-    test::assert_eq_i32(sum, 15)
+    Test::assert_eq_i32(sum, 15)
 }

@@ -1,18 +1,18 @@
 use std::core::cmp
-use std::test
+use std::test::Test
 
 fn main() {
     // Ord trait dispatch for String — lexicographic comparison
     match String_from("abc").cmp(String_from("abd")) {
-        Ordering::Less => test::assert_true(true),
+        Ordering::Less => Test::assert_true(true),
         _ => Std::panic("expected Less"),
     }
     match String_from("abc").cmp(String_from("abc")) {
-        Ordering::Equal => test::assert_true(true),
+        Ordering::Equal => Test::assert_true(true),
         _ => Std::panic("expected Equal"),
     }
     match String_from("abd").cmp(String_from("abc")) {
-        Ordering::Greater => test::assert_true(true),
+        Ordering::Greater => Test::assert_true(true),
         _ => Std::panic("expected Greater"),
     }
 }

@@ -1,9 +1,9 @@
 use std::bytes
-use std::test
+use std::test::Test
 
 fn main() {
     let b: Vec<i32> = "hi".to_utf8_bytes()
-    test::assert_eq_i32(b.len(), 2)
-    test::assert_eq_i32(b.get_unchecked(0), 104)
-    test::assert_eq_i32(b.get_unchecked(1), 105)
+    Test::assert_eq_i32(b.len(), 2)
+    Test::assert_eq_i32(b.get_unchecked(0), 104)
+    Test::assert_eq_i32(b.get_unchecked(1), 105)
 }

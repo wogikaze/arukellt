@@ -1,6 +1,6 @@
 use std::io
 use std::io::SeekFrom
-use std::test
+use std::test::Test
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
@@ -9,14 +9,14 @@ fn main() {
     push(data, 3)
     let mut r: io::Reader = io::Reader::from_bytes(data)
 
-    test::assert_eq_i32(r.len(), 3)
+    Test::assert_eq_i32(r.len(), 3)
     match r.seek(SeekFrom::Start(3i64)) {
-        Result::Ok(pos) => test::assert_eq_i64(pos, 3),
+        Result::Ok(pos) => Test::assert_eq_i64(pos, 3),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
 
     match r.read(1) {
-        Result::Ok(one) => test::assert_eq_i32(len(one), 0),
+        Result::Ok(one) => Test::assert_eq_i32(len(one), 0),
         Result::Err(e) => Std::panic(io::io_error_message(e)),
     }
 }

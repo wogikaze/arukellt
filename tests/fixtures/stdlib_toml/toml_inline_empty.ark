@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 fn main() {
     let t = toml::TomlValue::parse("cfg = {}")
@@ -8,7 +8,7 @@ fn main() {
         Result::Ok(table) => match table.get_field("cfg") {
             Option::Some(cfg) => {
                 let keys = cfg.table_keys()
-                test::assert_eq_i32(len(keys), 0)
+                Test::assert_eq_i32(len(keys), 0)
             },
             None => assert(false),
         },

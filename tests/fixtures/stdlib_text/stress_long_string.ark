@@ -1,20 +1,20 @@
-use std::test
+use std::test::Test
 use std::text
 
 fn main() {
     // Build a long string by repeating and verify length
     let s = "abcdefghij".repeat(100)
-    test::assert_eq_i32(s.len_bytes(), 1000)
+    Test::assert_eq_i32(s.len_bytes(), 1000)
 
     // Split and rejoin
     let parts = s.split("j")
-    test::assert_eq_i32(len(parts), 101)
+    Test::assert_eq_i32(len(parts), 101)
     let rejoined = parts.join("j")
-    test::assert_eq_string(rejoined, s)
+    Test::assert_eq_string(rejoined, s)
 
     // Replace in long string
     let mut replaced = s.replace("abc", "XYZ")
-    test::assert_eq_i32(replaced.len_bytes(), 1000)
-    test::assert_false(replaced.contains("abc"))
-    test::assert_true(replaced.contains("XYZ"))
+    Test::assert_eq_i32(replaced.len_bytes(), 1000)
+    Test::assert_false(replaced.contains("abc"))
+    Test::assert_true(replaced.contains("XYZ"))
 }

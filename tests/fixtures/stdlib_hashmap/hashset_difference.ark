@@ -1,6 +1,6 @@
 // HashSet: difference a - b contains elements in a not in b
 use std::collections::hash_set::HashSet
-use std::test
+use std::test::Test
 
 fn main() {
     let mut a = HashSet::new<i32>()
@@ -14,9 +14,9 @@ fn main() {
     b.insert(4)
 
     let diff = a.difference(b)
-    test::assert_eq_i32(diff.len(), 2)
-    test::assert_true(diff.contains(1))
-    test::assert_true(diff.contains(3))
-    test::assert_false(diff.contains(2))
-    test::assert_false(diff.contains(4))
+    Test::assert_eq_i32(diff.len(), 2)
+    Test::assert_true(diff.contains(1))
+    Test::assert_true(diff.contains(3))
+    Test::assert_false(diff.contains(2))
+    Test::assert_false(diff.contains(4))
 }

@@ -1,16 +1,16 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 fn main() {
     let t = toml::TomlValue::parse("a = 1\nb = 2\nc = 3")
     match t {
         Result::Ok(table) => {
             let keys = table.table_keys()
-            test::assert_eq_i32(len(keys), 3)
-            test::assert_eq_string(get_unchecked(keys, 0), "a")
-            test::assert_eq_string(get_unchecked(keys, 1), "b")
-            test::assert_eq_string(get_unchecked(keys, 2), "c")
+            Test::assert_eq_i32(len(keys), 3)
+            Test::assert_eq_string(get_unchecked(keys, 0), "a")
+            Test::assert_eq_string(get_unchecked(keys, 1), "b")
+            Test::assert_eq_string(get_unchecked(keys, 2), "c")
         },
         Result::Err(_) => assert(false),
     }

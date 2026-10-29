@@ -3,7 +3,7 @@
 // binary_search_by_key, and min_by_key/max_by_key on the concrete i32
 // instantiation. sort is covered by the ord_sort_* fixtures instead.
 use std::collections::vec
-use std::test
+use std::test::Test
 
 fn key_identity(x: i32) -> i32 {
     x
@@ -20,24 +20,24 @@ fn main() {
     push(v, 5)
     push(v, 7)
 
-    test::assert_eq_i32(v.lower_bound(5), 2)
-    test::assert_eq_i32(v.lower_bound(4), 2)
-    test::assert_eq_i32(v.lower_bound(9), 4)
-    test::assert_eq_i32(v.upper_bound(5), 3)
-    test::assert_eq_i32(v.upper_bound(4), 2)
-    test::assert_eq_i32(v.upper_bound(7), 4)
+    Test::assert_eq_i32(v.lower_bound(5), 2)
+    Test::assert_eq_i32(v.lower_bound(4), 2)
+    Test::assert_eq_i32(v.lower_bound(9), 4)
+    Test::assert_eq_i32(v.upper_bound(5), 3)
+    Test::assert_eq_i32(v.upper_bound(4), 2)
+    Test::assert_eq_i32(v.upper_bound(7), 4)
 
-    test::assert_eq_i32(v.binary_search(5), 2)
-    test::assert_eq_i32(v.binary_search(4), 0 - 1)
+    Test::assert_eq_i32(v.binary_search(5), 2)
+    Test::assert_eq_i32(v.binary_search(4), 0 - 1)
 
-    test::assert_eq_i32(v.min(), 1)
-    test::assert_eq_i32(v.max(), 7)
+    Test::assert_eq_i32(v.min(), 1)
+    Test::assert_eq_i32(v.max(), 7)
 
-    test::assert_eq_i32(v.binary_search_by_key(5, key_identity), 2)
-    test::assert_eq_i32(v.binary_search_by_key(4, key_identity), 0 - 1)
+    Test::assert_eq_i32(v.binary_search_by_key(5, key_identity), 2)
+    Test::assert_eq_i32(v.binary_search_by_key(4, key_identity), 0 - 1)
 
-    test::assert_eq_i32(v.min_by_key(key_identity), 1)
-    test::assert_eq_i32(v.max_by_key(key_identity), 7)
-    test::assert_eq_i32(v.min_by_key(key_negate), 7)
-    test::assert_eq_i32(v.max_by_key(key_negate), 1)
+    Test::assert_eq_i32(v.min_by_key(key_identity), 1)
+    Test::assert_eq_i32(v.max_by_key(key_identity), 7)
+    Test::assert_eq_i32(v.min_by_key(key_negate), 7)
+    Test::assert_eq_i32(v.max_by_key(key_negate), 1)
 }

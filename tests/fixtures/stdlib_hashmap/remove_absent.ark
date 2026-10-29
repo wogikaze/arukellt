@@ -1,17 +1,17 @@
 // Remove: absent key returns None, size unchanged
-use std::test
+use std::test::Test
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
     let _ = m.insert(1, 10)
-    test::assert_eq_i32(m.len(), 1)
+    Test::assert_eq_i32(m.len(), 1)
 
     match m.remove(999) {
         Option::Some(_) => Std::panic("expected None for absent key"),
         None => {}
     }
-    test::assert_eq_i32(m.len(), 1)
-    test::assert_true(m.contains_key(1))
+    Test::assert_eq_i32(m.len(), 1)
+    Test::assert_true(m.contains_key(1))
 
     // Remove from empty map
     let mut m2 = HashMap::new<i32, i32>()
@@ -19,5 +19,5 @@ fn main() {
         Option::Some(_) => Std::panic("expected None for empty map"),
         None => {}
     }
-    test::assert_eq_i32(m2.len(), 0)
+    Test::assert_eq_i32(m2.len(), 0)
 }

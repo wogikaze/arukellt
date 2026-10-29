@@ -1,4 +1,4 @@
-use std::test
+use std::test::Test
 use std::collections::vec
 
 fn main() {
@@ -7,7 +7,7 @@ fn main() {
     push(v, 20)
     push(v, 30)
     v.drain(0, 0 + 1)
-    test::assert_eq_i32(len(v), 2)
-    test::assert_eq_i32(get_unchecked(v, 0), 20)
-    test::assert_eq_i32(get_unchecked(v, 1), 30)
+    Test::assert_eq_i32(len(v), 2)
+    Test::assert_eq_i32(get_unchecked(v, 0), 20)
+    Test::assert_eq_i32(get_unchecked(v, 1), 30)
 }

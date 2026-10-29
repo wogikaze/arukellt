@@ -1,13 +1,13 @@
 use std::host::stdio
 use std::toml
-use std::test
+use std::test::Test
 
 fn main() {
     let t = toml::TomlValue::parse("flag = false")
     match t {
         Result::Ok(table) => match table.get_field("flag") {
             Option::Some(v) => match v.as_bool() {
-                Option::Some(b) => test::assert_false(b),
+                Option::Some(b) => Test::assert_false(b),
                 None => assert(false),
             },
             None => assert(false),

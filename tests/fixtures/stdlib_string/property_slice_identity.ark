@@ -1,6 +1,6 @@
-use std::test
+use std::test::Test
 use std::prelude::{eq, slice}
 fn main() {
     let s = String_from("identity")
-    test::assert_true(eq(slice(s, 0, len(s)), s))
+    Test::assert_true(eq(slice(s, 0, len(s)), s))
 }

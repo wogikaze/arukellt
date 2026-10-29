@@ -1,5 +1,5 @@
 use std::io
-use std::test
+use std::test::Test
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
@@ -11,9 +11,9 @@ fn main() {
 
     match io::Io::read_to_end(reader) {
         Result::Ok(bytes) => {
-            test::assert_eq_i32(len(bytes), 4)
-            test::assert_eq_i32(get_unchecked(bytes, 0), 1)
-            test::assert_eq_i32(get_unchecked(bytes, 3), 4)
+            Test::assert_eq_i32(len(bytes), 4)
+            Test::assert_eq_i32(get_unchecked(bytes, 0), 1)
+            Test::assert_eq_i32(get_unchecked(bytes, 3), 4)
         },
         Result::Err(_e) => Std::panic("expected Ok"),
     }

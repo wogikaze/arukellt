@@ -1,8 +1,8 @@
-use std::test
+use std::test::Test
 use std::prelude::{index_of}
 fn main() {
     let s = String_from("hello")
-    test::assert_eq_i32(index_of(s, String_from("ll")), 2)
-    test::assert_eq_i32(index_of(s, String_from("hello")), 0)
-    test::assert_eq_i32(index_of(s, String_from("o")), 4)
+    Test::assert_eq_i32(index_of(s, String_from("ll")), 2)
+    Test::assert_eq_i32(index_of(s, String_from("hello")), 0)
+    Test::assert_eq_i32(index_of(s, String_from("o")), 4)
 }

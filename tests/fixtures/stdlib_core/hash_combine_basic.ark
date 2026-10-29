@@ -1,11 +1,11 @@
 use std::core::hash
-use std::test
+use std::test::Test
 
 fn main() {
     let h1 = 42.hash()
     let h2 = "hello".hash()
     let combined = h1.combine_hash(h2)
-    test::assert_true(combined >= 0)
+    Test::assert_true(combined >= 0)
     // combine_hash is deterministic
-    test::assert_eq_i32(combined, h1.combine_hash(h2))
+    Test::assert_eq_i32(combined, h1.combine_hash(h2))
 }

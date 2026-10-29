@@ -1,21 +1,21 @@
 // Bimap type surface (#917, ADR-046).
 use std::collections::bimap::Bimap
-use std::test
+use std::test::Test
 
 fn main() {
     let mut bm = Bimap::new()
-    test::assert_true(bm.is_empty())
-    test::assert_eq_i32(bm.len(), 0)
+    Test::assert_true(bm.is_empty())
+    Test::assert_eq_i32(bm.len(), 0)
 
     // insert
     bm.insert(1, 100)
     bm.insert(2, 200)
     bm.insert(3, 300)
-    test::assert_eq_i32(bm.len(), 3)
+    Test::assert_eq_i32(bm.len(), 3)
 
     // get_by_key
     match bm.get_by_key(1) {
-        Option::Some(v) => test::assert_eq_i32(v, 100),
+        Option::Some(v) => Test::assert_eq_i32(v, 100),
         None => Std::panic("expected Some(100)"),
     }
     match bm.get_by_key(99) {
@@ -26,34 +26,34 @@ fn main() {
 
     // get_by_value
     match bm.get_by_value(200) {
-        Option::Some(k) => test::assert_eq_i32(k, 2),
+        Option::Some(k) => Test::assert_eq_i32(k, 2),
         None => Std::panic("expected Some(2)"),
     }
 
     // contains
-    test::assert_true(bm.contains_key(1))
-    test::assert_false(bm.contains_key(99))
-    test::assert_true(bm.contains_value(100))
-    test::assert_false(bm.contains_value(999))
+    Test::assert_true(bm.contains_key(1))
+    Test::assert_false(bm.contains_key(99))
+    Test::assert_true(bm.contains_value(100))
+    Test::assert_false(bm.contains_value(999))
 
     // insert overwriting key removes old value association
     bm.insert(1, 999)
     match bm.get_by_key(1) {
-        Option::Some(v) => test::assert_eq_i32(v, 999),
+        Option::Some(v) => Test::assert_eq_i32(v, 999),
         None => Std::panic("expected Some(999)"),
     }
-    test::assert_false(bm.contains_value(100))
+    Test::assert_false(bm.contains_value(100))
 
     // remove_by_key
-    test::assert_true(bm.remove_by_key(2))
-    test::assert_false(bm.contains_key(2))
-    test::assert_false(bm.contains_value(200))
-    test::assert_false(bm.remove_by_key(99))
+    Test::assert_true(bm.remove_by_key(2))
+    Test::assert_false(bm.contains_key(2))
+    Test::assert_false(bm.contains_value(200))
+    Test::assert_false(bm.remove_by_key(99))
 
     // remove_by_value
-    test::assert_true(bm.remove_by_value(300))
-    test::assert_false(bm.contains_key(3))
-    test::assert_true(bm.remove_by_value(999))
-    test::assert_false(bm.contains_key(1))
-    test::assert_false(bm.remove_by_value(999))
+    Test::assert_true(bm.remove_by_value(300))
+    Test::assert_false(bm.contains_key(3))
+    Test::assert_true(bm.remove_by_value(999))
+    Test::assert_false(bm.contains_key(1))
+    Test::assert_false(bm.remove_by_value(999))
 }

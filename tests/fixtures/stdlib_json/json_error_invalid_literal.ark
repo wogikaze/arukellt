@@ -1,17 +1,17 @@
 use std::json
-use std::test
+use std::test::Test
 
 fn main() {
     match json::JsonValue::parse("tru") {
         Result::Ok(_) => Std::panic("expected error for tru"),
-        Result::Err(e) => test::assert_eq_string(e.message(), "invalid true"),
+        Result::Err(e) => Test::assert_eq_string(e.message(), "invalid true"),
     }
     match json::JsonValue::parse("fals") {
         Result::Ok(_) => Std::panic("expected error for fals"),
-        Result::Err(e) => test::assert_eq_string(e.message(), "invalid false"),
+        Result::Err(e) => Test::assert_eq_string(e.message(), "invalid false"),
     }
     match json::JsonValue::parse("nul") {
         Result::Ok(_) => Std::panic("expected error for nul"),
-        Result::Err(e) => test::assert_eq_string(e.message(), "invalid null"),
+        Result::Err(e) => Test::assert_eq_string(e.message(), "invalid null"),
     }
 }

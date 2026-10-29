@@ -1,7 +1,7 @@
 use std::core::ops
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_false(true.not())
-    test::assert_true(false.not())
+    Test::assert_false(true.not())
+    Test::assert_true(false.not())
 }

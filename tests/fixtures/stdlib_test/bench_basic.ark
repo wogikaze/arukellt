@@ -1,14 +1,14 @@
 use std::host::stdio
-use std::test
+use std::test::Test
 
 fn add_one(x: i32) -> i32 {
     x + 1
 }
 
 fn main() {
-    test::bench("noop", 10, || {
+    Test::bench("noop", 10, || {
     })
-    test::bench("add_loop", 5, || {
+    Test::bench("add_loop", 5, || {
         let _v = add_one(42)
     })
     stdio::println("bench ok")

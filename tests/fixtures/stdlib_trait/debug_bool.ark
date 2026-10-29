@@ -1,9 +1,9 @@
 use std::text::fmt
-use std::test
+use std::test::Test
 
 fn main() {
-    test::assert_eq_string(true.fmt_debug(), "true")
-    test::assert_eq_string(false.fmt_debug(), "false")
-    test::assert_eq_string("b=".concat(true.fmt_debug()), "b=true")
-    test::assert_eq_string("b=".concat(false.fmt_debug()), "b=false")
+    Test::assert_eq_string(true.fmt_debug(), "true")
+    Test::assert_eq_string(false.fmt_debug(), "false")
+    Test::assert_eq_string("b=".concat(true.fmt_debug()), "b=true")
+    Test::assert_eq_string("b=".concat(false.fmt_debug()), "b=false")
 }

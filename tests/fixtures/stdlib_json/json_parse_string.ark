@@ -1,12 +1,12 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("\"hello\"") {
         Result::Ok(v) => {
-            test::assert_true(v.is_string())
+            Test::assert_true(v.is_string())
             match v.as_string() {
-                Option::Some(s) => test::assert_eq_string(s, "hello"),
+                Option::Some(s) => Test::assert_eq_string(s, "hello"),
                 None => Std::panic("expected Some(\"hello\")"),
             }
         },
@@ -14,14 +14,14 @@ fn main() {
     }
     match json::JsonValue::parse("\"\"") {
         Result::Ok(v) => match v.as_string() {
-            Option::Some(s) => test::assert_eq_string(s, ""),
+            Option::Some(s) => Test::assert_eq_string(s, ""),
             None => Std::panic("expected Some(\"\")"),
         },
         Result::Err(e) => Std::panic("parse empty string failed: ".concat(e.message())),
     }
     match json::JsonValue::parse("\"hello world\"") {
         Result::Ok(v) => match v.as_string() {
-            Option::Some(s) => test::assert_eq_string(s, "hello world"),
+            Option::Some(s) => Test::assert_eq_string(s, "hello world"),
             None => Std::panic("expected Some(\"hello world\")"),
         },
         Result::Err(e) => Std::panic("parse spaced string failed: ".concat(e.message())),

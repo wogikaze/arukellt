@@ -1,12 +1,12 @@
 use std::json
-use std::test
+use std::test::Test
 use std::text
 fn main() {
     match json::JsonValue::parse("null") {
         Result::Ok(v) => {
-            test::assert_true(v.is_null())
-            test::assert_false(v.is_bool())
-            test::assert_false(v.is_string())
+            Test::assert_true(v.is_null())
+            Test::assert_false(v.is_bool())
+            Test::assert_false(v.is_string())
         },
         Result::Err(e) => Std::panic("parse null failed: ".concat(e.message())),
     }
