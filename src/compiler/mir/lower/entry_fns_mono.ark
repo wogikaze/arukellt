@@ -27,7 +27,7 @@ fn mir_emit_top_level_fn_mono_bodies(
     // Instances can be recorded under two keys for one decl: a same-module
     // wrapper records the bare name (binary_search_by__i32 under
     // binary_search_by) while a downstream call records the qualified
-    // spelling (seq::binary_search_by__String under seq::binary_search_by).
+    // spelling (Vec::binary_search__String under Vec::binary_search).
     // Emitting only one key drops the other instantiations, and their call
     // sites then bind the first-registered specialization (#908). Emit the
     // dedup'd union of both keys' mangled names; a single qualified
@@ -109,7 +109,7 @@ fn mir_emit_top_level_fn_mono_bodies(
     let mut leaf_rt_type_name = clone(generic_rt_type_name)
     // A generic emitted under its leaf name reaches this branch because its
     // instances were recorded under the qualified caller spelling
-    // (seq::sort_by -> seq::sort_by__i32 while the decl is sort_by). The
+    // (Vec::sort -> Vec::sort__i32 while the decl is sort). The
     // emitted body still belongs to one concrete instantiation: keep the
     // recorded return type concrete so callee-propagation hands callers
     // vec:i32 instead of the declared vec:T, which would declare the

@@ -862,8 +862,8 @@ fn ctx_setup_mono_type_params_by_ordinal_names(
 
 // Index into ctx.mono_instances of the unique non-marker instance whose fn
 // leaf name matches leaf_name; -1 when absent or ambiguous. Generic decls
-// emitted under their leaf name (sort_by inside std::seq, instantiated via
-// the qualified seq::sort_by call) resolve their binding through this
+// emitted under their leaf name (sort inside std::collections::vec,
+// instantiated via the qualified Vec::sort call) resolve their binding through this
 // instead of the mangled-name lookup.
 fn ctx_find_leaf_mono_instance_index(ctx: LowerCtx, leaf_name: String) -> i32 {
     let leaf_sep = find_last_double_colon(clone(leaf_name))
@@ -912,8 +912,8 @@ fn ctx_find_leaf_mono_instance_index(ctx: LowerCtx, leaf_name: String) -> i32 {
 
 // A body emitted under the unqualified leaf name carries no __ suffix,
 // so the mangled-name lookup above cannot find its instance. That happens
-// when a generic decl is emitted inside its own module (sort_by) while
-// callers instantiated it through the qualified path (seq::sort_by).
+// when a generic decl is emitted inside its own module (sort) while
+// callers instantiated it through the qualified path (Vec::sort).
 // When the instance list holds exactly one distinct non-marker instance
 // whose leaf fn name matches, its type arguments bind this body's type
 // variables; zero or multiple matches leave the map untouched.

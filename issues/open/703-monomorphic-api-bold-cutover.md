@@ -110,6 +110,12 @@ registered entries owned by #917).
       and the `Vec<String>` reverse/contains lanes use the documented explicit
       loop / `std::seq::sort_by` fallback because those emitter lanes still
       emit invalid Wasm. `filter_i32` remains callable.
+      Update 2026-10-29 (#917, wave/associated-next): the 8 provisional
+      `std::seq` query / min / max generics were removed; `sort_by` remains
+      provisional because the `v.sort()` replacement miscompiles `Vec<i64>` at
+      5+ elements on the linear and core-emit paths (#965). Use
+      `seq::sort_by` for that lane and `v.sort()` for `i32` / `String` /
+      smaller i64 vectors. See the #917 `wave/associated-next` slice.
 
 ### Wave 2 — delete inside the 1.0.0 window
 

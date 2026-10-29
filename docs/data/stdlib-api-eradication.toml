@@ -135,8 +135,8 @@ replacement = "Vec / iterator methods: v.sort_by(cmp), v.iter().map(f).collect()
 # fail with E0100 hints from resolver::removed_names. `filter_i32` stays
 # provisional (deferred) and is the only row this rule still matches. The
 # i64/f64 numeric iterator lanes remain planned, so the replacement text
-# describes the target shape plus the reachable loop / std::seq::sort_by
-# fallback recorded in docs/stdlib/migration-guidance.md.
+# describes the target shape plus the reachable loop / v.sort() fallback
+# recorded in docs/stdlib/migration-guidance.md.
 
 [[rules]]
 label = "monomorphic numeric conversions"
@@ -177,7 +177,19 @@ module = "std::seq"
 deprecated = true
 class = "must delete"
 owner = "703"
-replacement = "Iterator adapters / Vec methods (#691)"
+replacement = "Iterator adapters / Vec methods (#691); the query wrappers delegate to the `Vec` receiver surface (`v.binary_search(target)`, `v.min()`, `v.max()`)"
+
+# The 8 provisional generic std::seq algorithms (binary_search_by,
+# binary_search_by_key, lower_bound, upper_bound, min_by, max_by, min_by_key,
+# max_by_key) were retired by #917 on 2026-10-29 under ADR-014's provisional
+# notice rule (changelog + migration guide, no W0009 or ADR-087 window). Their
+# replacements are the `Vec<T: Ord>` receiver methods (binary_search /
+# binary_search_by_key / lower_bound / upper_bound / min / max / min_by_key /
+# max_by_key). The 13 deprecated i32 helpers remain on the rule above until
+# their #703 Wave 2. `sort_by` stays `provisional`: the `v.sort()` replacement
+# miscompiles `Vec<i64>` at 5+ elements on the linear and core-emit paths, so
+# the allocation-free free stays until the method scratch layout is fixed
+# (#965). It is matched by the `std::seq remaining` rule below.
 
 # The std::text free surface was fully retired by #917 on 2026-10-27.
 #   String methods: len_bytes, trim/trim_start/trim_end, replace, lines,
@@ -235,7 +247,7 @@ label = "std::seq remaining"
 module = "std::seq"
 class = "associated-or-method"
 owner = "917"
-replacement = "Slice/Vec methods (sort_by, binary_search family)"
+replacement = "Vec<T: Ord> methods (sort / binary_search / bounds / min / max / keyed variants); `sort_by` stays provisional because `v.sort()` miscompiles Vec<i64> at 5+ elements on the linear and core-emit paths (#965)"
 
 # The 44 eager std::core::iter constructor / collector frees were retired by
 # #917 on 2026-10-27. They were `provisional`, source-declared and manifest

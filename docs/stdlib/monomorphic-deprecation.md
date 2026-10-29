@@ -72,13 +72,13 @@ helpers are included alongside any other deprecated public entry.
 | `sorted_map_insert` | `std::collections::ordered` | `deprecated` | `SortedMap::insert` | `0.1.0` | `1.0.0` | Superseded API |
 | `sorted_map_len` | `std::collections::ordered` | `deprecated` | `SortedMap::len` | `0.1.0` | `1.0.0` | Superseded API |
 | `sorted_map_new` | `std::collections::ordered` | `deprecated` | `SortedMap::new` | `0.1.0` | `1.0.0` | Superseded API |
-| `binary_search` | `std::seq` | `deprecated` | `std::seq::binary_search_by` | `0.1.0` | `1.0.0` | Deprecated monomorphic wrapper. Use the generic std::seq::binary_search_by(v, target) over T: Ord. |
+| `binary_search` | `std::seq` | `deprecated` | `Vec::binary_search` | `0.1.0` | `1.0.0` | Deprecated monomorphic wrapper. Use v.binary_search(target) over T: Ord. |
 | `count_eq` | `std::seq` | `deprecated` | `VecIter::count_eq` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target). |
 | `filter_i32` | `std::seq` | `deprecated` | `VecIter::filter` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().filter(f).collect(). |
 | `fold_i32_i32` | `std::seq` | `deprecated` | `VecIter::fold` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the IteratorFold capability v.iter().fold(init, f). |
 | `map_i32_i32` | `std::seq` | `deprecated` | `VecIter::map` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().map(f).collect(). |
-| `max_i32` | `std::seq` | `deprecated` | `std::seq::max_by` | `0.1.0` | `1.0.0` | Deprecated monomorphic wrapper. Use the generic std::seq::max_by(v) over T: Ord. |
-| `min_i32` | `std::seq` | `deprecated` | `std::seq::min_by` | `0.1.0` | `1.0.0` | Deprecated monomorphic wrapper. Use the generic std::seq::min_by(v) over T: Ord. |
+| `max_i32` | `std::seq` | `deprecated` | `Vec::max` | `0.1.0` | `1.0.0` | Deprecated monomorphic wrapper. Use v.max() over T: Ord. |
+| `min_i32` | `std::seq` | `deprecated` | `Vec::min` | `0.1.0` | `1.0.0` | Deprecated monomorphic wrapper. Use v.min() over T: Ord. |
 | `seq_contains` | `std::seq` | `deprecated` | `VecIter::contains` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the IteratorContains capability v.iter().contains(target). |
 | `seq_reverse` | `std::seq` | `deprecated` | `VecIter::rev` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().rev().collect(). |
 | `skip_i32` | `std::seq` | `deprecated` | `VecIter::skip` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().skip(n).collect(). |

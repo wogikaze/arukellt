@@ -54,7 +54,7 @@ fn mir_index_top_level_fn(
             // One decl can hold instances under both keys: a wrapper inside the
             // same module records the bare name (binary_search →
             // binary_search_by__i32) while a downstream call records the
-            // qualified name (seq::binary_search_by__String). Publish the
+            // qualified name (Vec::binary_search__String). Publish the
             // qualified-keyed variants whenever they are not served by the
             // single-instance leaf path; otherwise the extra instantiation is
             // dropped and callers bind the first-registered specialization

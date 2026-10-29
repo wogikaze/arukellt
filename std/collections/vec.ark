@@ -804,17 +804,148 @@ impl<T: Ord> Vec<T> {
             }
         }
     }
+
+    /// Returns the index of an element equal to `target`, or `-1`.
+    ///
+    /// The vector must be sorted in non-decreasing order.
+    fn binary_search(self: Vec<T>, target: T) -> i32 {
+        let mut lo: i32 = 0
+        let mut hi: i32 = self.len() - 1
+        let mut found: i32 = 0 - 1
+        while lo <= hi {
+            let mid: i32 = lo + (hi - lo) / 2
+            match self.get_unchecked(mid).cmp(target) {
+                Ordering::Equal => {
+                    found = mid
+                    lo = hi + 1
+                }
+                Ordering::Less => {
+                    lo = mid + 1
+                }
+                Ordering::Greater => {
+                    hi = mid - 1
+                }
+            }
+        }
+        found
+    }
+
+    /// Returns the first index whose element is >= `target` in a sorted vector.
+    ///
+    /// Returns `len()` when every element is smaller than `target`.
+    fn lower_bound(self: Vec<T>, target: T) -> i32 {
+        let mut lo: i32 = 0
+        let mut hi: i32 = self.len()
+        while lo < hi {
+            let mid: i32 = lo + (hi - lo) / 2
+            if ordering_is_less(self.get_unchecked(mid).cmp(target)) {
+                lo = mid + 1
+            } else {
+                hi = mid
+            }
+        }
+        lo
+    }
+
+    /// Returns the first index whose element is > `target` in a sorted vector.
+    ///
+    /// Returns `len()` when every element is at most `target`.
+    fn upper_bound(self: Vec<T>, target: T) -> i32 {
+        let mut lo: i32 = 0
+        let mut hi: i32 = self.len()
+        while lo < hi {
+            let mid: i32 = lo + (hi - lo) / 2
+            if ordering_is_greater(self.get_unchecked(mid).cmp(target)) {
+                hi = mid
+            } else {
+                lo = mid + 1
+            }
+        }
+        lo
+    }
+
+    /// Returns the minimum element by `Ord` ordering.
+    ///
+    /// Traps if the vector is empty, matching the removed `std::seq::min_by`.
+    fn min(self: Vec<T>) -> T {
+        let count: i32 = self.len()
+        let mut best = self.get_unchecked(0)
+        let mut index: i32 = 1
+        while index < count {
+            let current = self.get_unchecked(index)
+            if ordering_is_less(current.cmp(best)) {
+                best = current
+            }
+            index = index + 1
+        }
+        best
+    }
+
+    /// Returns the maximum element by `Ord` ordering.
+    ///
+    /// Traps if the vector is empty, matching the removed `std::seq::max_by`.
+    fn max(self: Vec<T>) -> T {
+        let count: i32 = self.len()
+        let mut best = self.get_unchecked(0)
+        let mut index: i32 = 1
+        while index < count {
+            let current = self.get_unchecked(index)
+            if ordering_is_greater(current.cmp(best)) {
+                best = current
+            }
+            index = index + 1
+        }
+        best
+    }
+
+    /// Returns the element whose `key(element)` is minimal by `Ord`.
+    ///
+    /// Traps if the vector is empty.
+    fn min_by_key<K: Ord>(self: Vec<T>, key: fn(T) -> K) -> T {
+        let count: i32 = self.len()
+        let mut best = self.get_unchecked(0)
+        let mut best_key = key(best)
+        let mut index: i32 = 1
+        while index < count {
+            let current = self.get_unchecked(index)
+            let current_key = key(current)
+            if ordering_is_less(current_key.cmp(best_key)) {
+                best = current
+                best_key = current_key
+            }
+            index = index + 1
+        }
+        best
+    }
+
+    /// Returns the element whose `key(element)` is maximal by `Ord`.
+    ///
+    /// Traps if the vector is empty.
+    fn max_by_key<K: Ord>(self: Vec<T>, key: fn(T) -> K) -> T {
+        let count: i32 = self.len()
+        let mut best = self.get_unchecked(0)
+        let mut best_key = key(best)
+        let mut index: i32 = 1
+        while index < count {
+            let current = self.get_unchecked(index)
+            let current_key = key(current)
+            if ordering_is_greater(current_key.cmp(best_key)) {
+                best = current
+                best_key = current_key
+            }
+            index = index + 1
+        }
+        best
+    }
 }
 
 // ---------------------------------------------------------------------------
-// Specialized i32 search / dedup surface.
+// Specialized i32 surface.
 //
-// The generic `Ord` algorithms live in the bounded `impl<T: Ord>` above. These
-// remaining i32 helpers stay specialized because generic `<` still lowers to
-// invalid Wasm on wasm32-gc (issue #965). Calling module-level `vec_*` helpers
-// from this specialized impl body lowers to an unreachable stub, so bodies use
-// the builtin sibling methods (`self.len()` / `self.get_unchecked()` /
-// `self.set()`), which lower to intrinsics.
+// `dedup` stays on `Vec<i32>`; the generic comparison algorithms live in the
+// bounded `impl<T: Ord>` block above. Its body uses the builtin sibling
+// methods (`self.len()` / `self.get_unchecked()` / `self.set()`), which lower
+// to intrinsics from a specialized impl body.
 // ---------------------------------------------------------------------------
 
 impl Vec<i32> {
@@ -846,35 +977,5 @@ impl Vec<i32> {
                 Option::None => { break },
             }
         }
-    }
-
-    /// Returns the first index whose element is >= `target` in a sorted vector.
-    fn lower_bound(self: Vec<i32>, target: i32) -> i32 {
-        let mut lo: i32 = 0
-        let mut hi: i32 = self.len()
-        while lo < hi {
-            let mid: i32 = lo + (hi - lo) / 2
-            if self.get_unchecked(mid) < target {
-                lo = mid + 1
-            } else {
-                hi = mid
-            }
-        }
-        lo
-    }
-
-    /// Returns the first index whose element is > `target` in a sorted vector.
-    fn upper_bound(self: Vec<i32>, target: i32) -> i32 {
-        let mut lo: i32 = 0
-        let mut hi: i32 = self.len()
-        while lo < hi {
-            let mid: i32 = lo + (hi - lo) / 2
-            if target < self.get_unchecked(mid) {
-                hi = mid
-            } else {
-                lo = mid + 1
-            }
-        }
-        lo
     }
 }
