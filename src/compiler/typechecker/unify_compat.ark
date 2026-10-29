@@ -1,0 +1,113 @@
+use typechecker::associated_types
+use typechecker::contract_type_access
+use typechecker::names
+use typechecker::unify_resolve
+
+// The single "same type" answer for checks that compare a declared type with
+// an inferred one (return values, `let` annotations). unify() also walks type
+// arguments, but it binds type variables and emits its own message, so it
+// cannot answer these yes/no questions without side effects. Keeping one
+// predicate here avoids a second definition of type identity drifting from
+// unification. Type arguments are compared recursively because `Vec<i32>` and
+// `Vec<String>` share the outer constructor: tag equality alone is not
+// identity (#937, #938).
+fn is_type_compatible(env: TypeEnv, expected: TypeInfo, actual: TypeInfo) -> bool {
+    let a = unify_resolve::resolve_type(env, expected)
+    let b = unify_resolve::resolve_type(env, actual)
+    let a_tag = contract_type_access::TypeInfo_tag(a)
+    let b_tag = contract_type_access::TypeInfo_tag(b)
+    // An unknown type has not been inferred yet, and an unbound type variable
+    // stands for a type only instantiation can decide. Neither proves a
+    // mismatch, so both defer to the later checks that see the concrete type.
+    if a_tag == commands::TY_UNKNOWN() || b_tag == commands::TY_UNKNOWN() {
+        return true
+    }
+    if a_tag == commands::TY_TYPE_VAR() || b_tag == commands::TY_TYPE_VAR() {
+        return true
+    }
+    // A projection spelling such as `T::Item` stays symbolic when
+    // normalize_projection_ty cannot reduce it before instantiation, so it
+    // does not prove that the two sides differ. Deferring here keeps a generic
+    // body (`fn collect<T: Iterator>(...) -> Vec<T::Item>`) from being rejected
+    // against its weakly inferred body type (#938; weak inference is #934).
+    if is_symbolic_projection(a) || is_symbolic_projection(b) {
+        return true
+    }
+    // The unit literal is an empty tuple; unify() canonicalizes the two
+    // spellings, so identity must as well.
+    if is_unit_vs_empty_tuple(a, b) {
+        return true
+    }
+    // unify() treats a struct and an enum with the same nominal name as one
+    // aggregate until layout distinguishes them; mirror that rule here so a
+    // return check is not stricter than an argument check.
+    if is_cross_aggregate_tag(a_tag, b_tag) {
+        return names::same_nominal_type(a, b) && type_args_compatible(env, a, b)
+    }
+    if a_tag != b_tag {
+        return false
+    }
+    if a_tag == commands::TY_STRUCT() || a_tag == commands::TY_ENUM() || a_tag == commands::TY_RESOURCE() {
+        if !names::same_named_type(a, b) {
+            return false
+        }
+    }
+    type_args_compatible(env, a, b)
+}
+
+fn type_args_compatible(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> bool {
+    let a_count = contract_type_access::TypeInfo_type_arg_count(a)
+    let b_count = contract_type_access::TypeInfo_type_arg_count(b)
+    // A side written without type arguments (`Vec::new()` before inference,
+    // or a bare generic name) carries no argument identity that could
+    // contradict the other side; the annotated side supplies the arguments.
+    if a_count == 0 || b_count == 0 {
+        return true
+    }
+    if a_count != b_count {
+        return false
+    }
+    let mut i = 0
+    while i < a_count {
+        let a_arg = contract_type_access::TypeInfo_type_arg_at(a, i)
+        let b_arg = contract_type_access::TypeInfo_type_arg_at(b, i)
+        if !is_type_compatible(env, a_arg, b_arg) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn is_unit_vs_empty_tuple(a: TypeInfo, b: TypeInfo) -> bool {
+    if contract_type_access::TypeInfo_tag(a) == commands::TY_UNIT() {
+        return is_empty_tuple(b)
+    }
+    if contract_type_access::TypeInfo_tag(b) == commands::TY_UNIT() {
+        return is_empty_tuple(a)
+    }
+    false
+}
+
+fn is_empty_tuple(ty: TypeInfo) -> bool {
+    contract_type_access::TypeInfo_tag(ty) == commands::TY_TUPLE() &&
+    contract_type_access::TypeInfo_type_arg_count(ty) == 0
+}
+
+fn is_cross_aggregate_tag(a_tag: i32, b_tag: i32) -> bool {
+    if a_tag == commands::TY_STRUCT() && b_tag == commands::TY_ENUM() {
+        return true
+    }
+    a_tag == commands::TY_ENUM() && b_tag == commands::TY_STRUCT()
+}
+
+// Unreduced associated-type projections are encoded as an aggregate whose name
+// keeps the `Owner::Assoc` spelling (see associated_types::normalize_projection_ty).
+// Reusing projection_sep_index keeps one definition of that spelling.
+fn is_symbolic_projection(ty: TypeInfo) -> bool {
+    let tag = contract_type_access::TypeInfo_tag(ty)
+    if tag != commands::TY_STRUCT() && tag != commands::TY_ENUM() {
+        return false
+    }
+    associated_types::projection_sep_index(contract_type_access::TypeInfo_name(ty)) >= 0
+}

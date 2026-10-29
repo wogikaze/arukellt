@@ -1,44 +1,29 @@
-use std::prelude::{clone, eq}
-use std::text
-use typechecker::kinds
+use std::prelude::clone
 use typechecker::contract_type_access
-use typechecker::names
+use typechecker::name_display
 use typechecker::unify
+use typechecker::unify_compat
 fn check_return_type_compat(mut env: TypeEnv, fn_name: String, ret_type: TypeInfo, val_ty: TypeInfo) {
-    let resolved_ret = unify::resolve_type(env, ret_type)
-    let resolved_val = unify::resolve_type(env, val_ty)
-    let ret_tag = contract_type_access::TypeInfo_tag(resolved_ret)
-    let val_tag = contract_type_access::TypeInfo_tag(resolved_val)
-    if ret_tag == commands::TY_UNKNOWN() || val_tag == commands::TY_UNKNOWN() {
+    if unify_compat::is_type_compatible(env, ret_type, val_ty) {
         return
     }
-    if ret_tag == commands::TY_I32() && val_tag == commands::TY_CHAR() {
+    if returns_char_as_i32(env, ret_type, val_ty) {
         return
     }
-    if (ret_tag == commands::TY_STRUCT() && val_tag == commands::TY_ENUM()) ||
-    (ret_tag == commands::TY_ENUM() && val_tag == commands::TY_STRUCT()) {
-        if names::same_type_name(
-            contract_type_access::TypeInfo_name(resolved_ret),
-            contract_type_access::TypeInfo_name(resolved_val)
-        ) {
-            return
-        }
-    }
-    if ret_tag != val_tag {
-        let ret_name = names::type_display_name(resolved_ret)
-        let val_name = names::type_display_name(resolved_val)
-        let prefix = String_from("return type mismatch: '").concat(clone(fn_name))
-        let expected = prefix.concat(String_from("' declared to return ").concat(ret_name))
-        unify::type_error(env, expected.concat(String_from(" but body returns ").concat(val_name)))
-        return
-    }
-    if (ret_tag == commands::TY_STRUCT() || ret_tag == commands::TY_ENUM() || ret_tag == commands::TY_RESOURCE())
-    && !names::same_type_name(contract_type_access::TypeInfo_name(resolved_ret), contract_type_access::TypeInfo_name(resolved_val)) {
-        let prefix = String_from("return type mismatch: '").concat(clone(fn_name))
-        let expected = prefix.concat(String_from("' declared to return ").concat(contract_type_access::TypeInfo_name(resolved_ret)))
-        unify::type_error(
-            env,
-            expected.concat(String_from(" but body returns ").concat(contract_type_access::TypeInfo_name(resolved_val)))
-        )
-    }
+    let ret_name = name_display::type_display_name_with_args(unify::resolve_type(env, ret_type))
+    let val_name = name_display::type_display_name_with_args(unify::resolve_type(env, val_ty))
+    let prefix = String_from("return type mismatch: '").concat(clone(fn_name))
+    let expected = prefix.concat(String_from("' declared to return ").concat(ret_name))
+    unify::type_error(env, expected.concat(String_from(" but body returns ").concat(val_name)))
+}
+
+// `char` is i32-representable, and std's `Hash for char` identity impl returns
+// the code unit as `i32`. Only this direction and only in return position has
+// ever been allowed; it stays outside the shared identity predicate so `let`
+// annotations keep rejecting it. Tracked in #938 until the stdlib impl and an
+// ADR settle whether the coercion stays.
+fn returns_char_as_i32(env: TypeEnv, ret_type: TypeInfo, val_ty: TypeInfo) -> bool {
+    let ret_tag = contract_type_access::TypeInfo_tag(unify::resolve_type(env, ret_type))
+    let val_tag = contract_type_access::TypeInfo_tag(unify::resolve_type(env, val_ty))
+    ret_tag == commands::TY_I32() && val_tag == commands::TY_CHAR()
 }

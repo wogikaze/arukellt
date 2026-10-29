@@ -7,3 +7,60 @@ fn type_display_name(ty: TypeInfo) -> String {
     }
     name_tags::type_tag_name(contract_type_access::TypeInfo_tag(ty))
 }
+
+// A mismatch diagnostic must show the type arguments: `Vec<String>` and
+// `Vec<i32>` differ only there, so the outer name alone would hide the reason.
+// mono_key::mono_type_key is the mangling key, not a user-facing spelling, so
+// diagnostics get their own rendering.
+fn type_display_name_with_args(ty: TypeInfo) -> String {
+    let tag = contract_type_access::TypeInfo_tag(ty)
+    let arg_count = contract_type_access::TypeInfo_type_arg_count(ty)
+    if tag == commands::TY_TUPLE() {
+        return tuple_display_name(ty, arg_count)
+    }
+    let base = type_display_base_name(tag, ty)
+    if arg_count == 0 {
+        return base
+    }
+    let mut out = base.concat("<")
+    let mut i = 0
+    while i < arg_count {
+        if i > 0 {
+            out = out.concat(", ")
+        }
+        out = out.concat(type_display_name_with_args(contract_type_access::TypeInfo_type_arg_at(ty, i)))
+        i = i + 1
+    }
+    out.concat(">")
+}
+
+// Option/Result/HashMap have no primitive tag name, and name_tags has no
+// mapping for them, so their display would otherwise collapse to "?".
+fn type_display_base_name(tag: i32, ty: TypeInfo) -> String {
+    if tag == commands::TY_OPTION() {
+        return "Option"
+    }
+    if tag == commands::TY_RESULT() {
+        return "Result"
+    }
+    if tag == commands::TY_HASHMAP() {
+        return "HashMap"
+    }
+    type_display_name(ty)
+}
+
+fn tuple_display_name(ty: TypeInfo, arg_count: i32) -> String {
+    if arg_count == 0 {
+        return "()"
+    }
+    let mut out = "("
+    let mut i = 0
+    while i < arg_count {
+        if i > 0 {
+            out = out.concat(", ")
+        }
+        out = out.concat(type_display_name_with_args(contract_type_access::TypeInfo_type_arg_at(ty, i)))
+        i = i + 1
+    }
+    out.concat(")")
+}
