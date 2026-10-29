@@ -2,196 +2,239 @@
 //!
 //! Provides Arena (bump allocator), SlotMap (deletion-safe handle map), and
 //! Interner (value-to-symbol bidirectional map) suitable for compiler/IDE
-//! toolchain use.
+//! toolchain use. The public surface is the associated constructor plus the
+//! receiver methods on each type; the former free functions were retired by
+//! #917 with E0100 replacement hints.
 //!
 //! **Stability:** All APIs in this module are **experimental** and may change
 //! in v4+.
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
-// --- Arena (bump allocator) ---
-//
-// Layout of backing Vec<i32>: [count, value_0, value_1, ...]
-// ArenaId = i32 index (monotonically increasing).
 use std::prelude::{eq}
-pub fn arena_new() -> Vec<i32> {
-    let mut a: Vec<i32> = Vec::new<i32>()
-    push(a, 0)
-    a
-}
 
-pub fn arena_alloc(mut a: Vec<i32>, val: i32) -> i32 {
-    let idx: i32 = get_unchecked(a, 0)
-    push(a, val)
-    set(a, 0, idx + 1)
-    idx
-}
-
-pub fn arena_get(a: Vec<i32>, idx: i32) -> i32 {
-    get_unchecked(a, 1 + idx)
-}
-
-pub fn arena_len(a: Vec<i32>) -> i32 {
-    get_unchecked(a, 0)
-}
-
-// --- SlotMap (deletion-safe handle map, monomorphic i32 values) ---
+// ── Arena (bump allocator) ───────────────────────────────────────────────────
 //
-// Layout of backing Vec<i32>:
+// Layout of the backing store: [count, value_0, value_1, ...]
+// ArenaId = i32 index (monotonically increasing).
+/// A bump allocator that hands out stable `i32` ids.
+pub struct Arena {
+    entries: Vec<i32>,
+}
+
+impl Arena {
+    /// Creates an empty arena.
+    fn new() -> Arena {
+        let mut entries: Vec<i32> = Vec::new<i32>()
+        push(entries, 0)
+        Arena { entries: entries }
+    }
+
+    /// Allocates `value` and returns its stable `ArenaId`.
+    fn alloc(mut self: Arena, value: i32) -> i32 {
+        let idx: i32 = get_unchecked(self.entries, 0)
+        push(self.entries, value)
+        set(self.entries, 0, idx + 1)
+        idx
+    }
+
+    /// Returns the value at `idx`.
+    fn get(self: Arena, idx: i32) -> i32 {
+        get_unchecked(self.entries, 1 + idx)
+    }
+
+    /// Returns the number of allocated entries.
+    fn len(self: Arena) -> i32 {
+        get_unchecked(self.entries, 0)
+    }
+}
+
+// ── SlotMap (deletion-safe handle map, monomorphic i32 values) ──────────────
+//
+// Layout of the backing store:
 //   [count, max_key, value_0, alive_0, value_1, alive_1, ...]
 // SlotKey = i32 (the slot index, stable across removes).
 // alive_N = 1 if slot N is active, 0 if removed.
-pub fn slotmap_new() -> Vec<i32> {
-    let mut m: Vec<i32> = Vec::new<i32>()
-    push(m, 0)
-    push(m, 0)
-    m
+/// A deletion-safe handle map for `i32` values.
+pub struct SlotMap {
+    slots: Vec<i32>,
 }
 
-pub fn slotmap_insert(mut m: Vec<i32>, value: i32) -> i32 {
-    let key: i32 = get_unchecked(m, 1)
-    push(m, value)
-    push(m, 1)
-    set(m, 1, key + 1)
-    let count: i32 = get_unchecked(m, 0)
-    set(m, 0, count + 1)
-    key
-}
-
-pub fn slotmap_get(m: Vec<i32>, key: i32) -> Option<i32> {
-    let max_key: i32 = get_unchecked(m, 1)
-    if key < 0 || key >= max_key {
-        return None
+impl SlotMap {
+    /// Creates an empty slot map.
+    fn new() -> SlotMap {
+        let mut slots: Vec<i32> = Vec::new<i32>()
+        push(slots, 0)
+        push(slots, 0)
+        SlotMap { slots: slots }
     }
-    let is_alive: i32 = get_unchecked(m, 2 + key * 2 + 1)
-    if is_alive == 0 {
-        return None
+
+    /// Inserts `value` and returns its stable `SlotKey`.
+    fn insert(mut self: SlotMap, value: i32) -> i32 {
+        let key: i32 = get_unchecked(self.slots, 1)
+        push(self.slots, value)
+        push(self.slots, 1)
+        set(self.slots, 1, key + 1)
+        let count: i32 = get_unchecked(self.slots, 0)
+        set(self.slots, 0, count + 1)
+        key
     }
-    Some(get_unchecked(m, 2 + key * 2))
+
+    /// Returns the value at `key`, or `None` when the key is out of range or
+    /// has been removed.
+    fn get(self: SlotMap, key: i32) -> Option<i32> {
+        let max_key: i32 = get_unchecked(self.slots, 1)
+        if key < 0 || key >= max_key {
+            return None
+        }
+        let is_alive: i32 = get_unchecked(self.slots, 2 + key * 2 + 1)
+        if is_alive == 0 {
+            return None
+        }
+        Some(get_unchecked(self.slots, 2 + key * 2))
+    }
+
+    /// Removes and returns the value at `key`, or `None` when the key is out
+    /// of range or already removed.
+    fn remove(mut self: SlotMap, key: i32) -> Option<i32> {
+        let max_key: i32 = get_unchecked(self.slots, 1)
+        if key < 0 || key >= max_key {
+            return None
+        }
+        let slot_alive: i32 = get_unchecked(self.slots, 2 + key * 2 + 1)
+        if slot_alive == 0 {
+            return None
+        }
+        let val: i32 = get_unchecked(self.slots, 2 + key * 2)
+        set(self.slots, 2 + key * 2 + 1, 0)
+        let count: i32 = get_unchecked(self.slots, 0)
+        set(self.slots, 0, count - 1)
+        Some(val)
+    }
+
+    /// Returns true when `key` is in range and still active.
+    fn contains(self: SlotMap, key: i32) -> bool {
+        let max_key: i32 = get_unchecked(self.slots, 1)
+        if key < 0 || key >= max_key {
+            return false
+        }
+        get_unchecked(self.slots, 2 + key * 2 + 1) == 1
+    }
+
+    /// Returns the number of active entries.
+    fn len(self: SlotMap) -> i32 {
+        get_unchecked(self.slots, 0)
+    }
 }
 
-pub fn slotmap_remove(mut m: Vec<i32>, key: i32) -> Option<i32> {
-    let max_key: i32 = get_unchecked(m, 1)
-    if key < 0 || key >= max_key {
-        return None
-    }
-    let slot_alive: i32 = get_unchecked(m, 2 + key * 2 + 1)
-    if slot_alive == 0 {
-        return None
-    }
-    let val: i32 = get_unchecked(m, 2 + key * 2)
-    set(m, 2 + key * 2 + 1, 0)
-    let count: i32 = get_unchecked(m, 0)
-    set(m, 0, count - 1)
-    Some(val)
-}
-
-pub fn slotmap_contains(m: Vec<i32>, key: i32) -> bool {
-    let max_key: i32 = get_unchecked(m, 1)
-    if key < 0 || key >= max_key {
-        return false
-    }
-    get_unchecked(m, 2 + key * 2 + 1) == 1
-}
-
-pub fn slotmap_len(m: Vec<i32>) -> i32 {
-    get_unchecked(m, 0)
-}
-
-// --- Interner (value <-> Symbol bidirectional map, String values) ---
+// ── Interner (value <-> Symbol bidirectional map, String values) ────────────
 //
 // Backed by Vec<String>: index = Symbol (i32).
 // intern returns the existing Symbol if value was already interned.
 // lookup returns Option<String> for the given Symbol.
-pub fn interner_new() -> Vec<String> {
-    Vec::new<String>()
+/// A value-to-symbol bidirectional map for `String` values.
+pub struct Interner {
+    values: Vec<String>,
 }
 
-pub fn interner_intern(mut i: Vec<String>, value: String) -> i32 {
-    let n: i32 = len(i)
-    let mut idx: i32 = 0
-    while idx < n {
-        if eq(get_unchecked(i, idx), value) {
-            return idx
+impl Interner {
+    /// Creates an empty interner.
+    fn new() -> Interner {
+        Interner { values: Vec::new<String>() }
+    }
+
+    /// Interns `value` and returns its stable `Symbol`.
+    ///
+    /// The first occurrence assigns the next symbol; repeated values return
+    /// the existing symbol.
+    fn intern(mut self: Interner, value: String) -> i32 {
+        let n: i32 = len(self.values)
+        let mut idx: i32 = 0
+        while idx < n {
+            if eq(get_unchecked(self.values, idx), value) {
+                return idx
+            }
+            idx = idx + 1
         }
-        idx = idx + 1
+        push(self.values, value)
+        n
     }
-    push(i, value)
-    n
-}
 
-pub fn interner_lookup(i: Vec<String>, sym: i32) -> Option<String> {
-    let n: i32 = len(i)
-    if sym < 0 || sym >= n {
-        return None
+    /// Returns the string for `sym`, or `None` when out of range.
+    fn lookup(self: Interner, sym: i32) -> Option<String> {
+        let n: i32 = len(self.values)
+        if sym < 0 || sym >= n {
+            return None
+        }
+        Some(get_unchecked(self.values, sym))
     }
-    Some(get_unchecked(i, sym))
-}
 
-pub fn interner_len(i: Vec<String>) -> i32 {
-    len(i)
+    /// Returns the number of interned strings.
+    fn len(self: Interner) -> i32 {
+        len(self.values)
+    }
 }
 
 test mod "arena" {
     test "alloc_returns_sequential_ids" {
-        let mut a = arena_new()
-        assert(arena_alloc(a, 100) == 0)
-        assert(arena_alloc(a, 200) == 1)
-        assert(arena_alloc(a, 300) == 2)
+        let mut a = Arena::new()
+        assert(a.alloc(100) == 0)
+        assert(a.alloc(200) == 1)
+        assert(a.alloc(300) == 2)
     }
     test "get_reads_stored_value" {
-        let mut a = arena_new()
-        let idx = arena_alloc(a, 77)
-        assert(arena_get(a, idx) == 77)
+        let mut a = Arena::new()
+        let idx = a.alloc(77)
+        assert(a.get(idx) == 77)
     }
     test "len_tracks_allocs" {
-        let mut a = arena_new()
-        arena_alloc(a, 1)
-        arena_alloc(a, 2)
-        assert(arena_len(a) == 2)
+        let mut a = Arena::new()
+        a.alloc(1)
+        a.alloc(2)
+        assert(a.len() == 2)
     }
 }
 
 test mod "slotmap" {
     test "insert_returns_key" {
-        let mut m = slotmap_new()
-        let k = slotmap_insert(m, 42)
-        let r = match slotmap_get(m, k) {
+        let mut m = SlotMap::new()
+        let k = m.insert(42)
+        let r = match m.get(k) {
             Option::Some(v) => v,
             Option::None => 0 - 1,
         }
         assert(r == 42)
     }
     test "get_missing_key_is_none" {
-        let m = slotmap_new()
-        let r = match slotmap_get(m, 0) {
+        let m = SlotMap::new()
+        let r = match m.get(0) {
             Option::Some(v) => 1,
             Option::None => 2,
         }
         assert(r == 2)
     }
     test "remove_drops_entry" {
-        let mut m = slotmap_new()
-        let k = slotmap_insert(m, 5)
-        let removed = match slotmap_remove(m, k) {
+        let mut m = SlotMap::new()
+        let k = m.insert(5)
+        let removed = match m.remove(k) {
             Option::Some(v) => v,
             Option::None => 0 - 1,
         }
         assert(removed == 5)
-        assert(slotmap_contains(m, k) == false)
+        assert(m.contains(k) == false)
     }
     test "contains_and_len" {
-        let mut m = slotmap_new()
-        let k1 = slotmap_insert(m, 1)
-        slotmap_insert(m, 2)
-        assert(slotmap_contains(m, k1))
-        assert(slotmap_len(m) == 2)
+        let mut m = SlotMap::new()
+        let k1 = m.insert(1)
+        m.insert(2)
+        assert(m.contains(k1))
+        assert(m.len() == 2)
     }
     test "keys_stable_across_remove" {
-        let mut m = slotmap_new()
-        let k1 = slotmap_insert(m, 10)
-        let k2 = slotmap_insert(m, 20)
-        slotmap_remove(m, k1)
-        let r = match slotmap_get(m, k2) {
+        let mut m = SlotMap::new()
+        let k1 = m.insert(10)
+        let k2 = m.insert(20)
+        m.remove(k1)
+        let r = match m.get(k2) {
             Option::Some(v) => v,
             Option::None => 0 - 1,
         }
@@ -201,32 +244,32 @@ test mod "slotmap" {
 
 test mod "interner" {
     test "intern_dedup_same_string" {
-        let mut i = interner_new()
-        let a = interner_intern(i, "sym")
-        let b = interner_intern(i, "sym")
+        let mut i = Interner::new()
+        let a = i.intern("sym")
+        let b = i.intern("sym")
         assert(a == b)
-        assert(interner_len(i) == 1)
+        assert(i.len() == 1)
     }
     test "intern_distinct_strings" {
-        let mut i = interner_new()
-        let a = interner_intern(i, "x")
-        let b = interner_intern(i, "y")
+        let mut i = Interner::new()
+        let a = i.intern("x")
+        let b = i.intern("y")
         assert(a != b)
-        assert(interner_len(i) == 2)
+        assert(i.len() == 2)
     }
     test "lookup_roundtrip" {
-        let mut i = interner_new()
-        let sym = interner_intern(i, "name")
-        let r = match interner_lookup(i, sym) {
+        let mut i = Interner::new()
+        let sym = i.intern("name")
+        let r = match i.lookup(sym) {
             Option::Some(s) => s,
             Option::None => "missing",
         }
         assert(r == "name")
     }
     test "lookup_out_of_range_is_none" {
-        let mut i = interner_new()
-        interner_intern(i, "a")
-        let r = match interner_lookup(i, 99) {
+        let mut i = Interner::new()
+        i.intern("a")
+        let r = match i.lookup(99) {
             Option::Some(s) => 1,
             Option::None => 2,
         }

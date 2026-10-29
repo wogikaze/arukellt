@@ -245,7 +245,7 @@ label = "std::collections frees"
 module_pfx = "std::collections"
 class = "associated-or-method"
 owner = "917"
-replacement = "collection type methods (HashMap/HashSet/Deque/BTree/SortedMap/etc.)"
+replacement = "collection type methods (HashMap/HashSet/Deque/BTree/SortedMap/Arena/SlotMap/Interner/etc.)"
 
 # The json/toml/csv public free surface is fully retired by #917. The 2026-10-27
 # waves moved the text/constructor helpers onto JsonText / TomlText / JsonValue /

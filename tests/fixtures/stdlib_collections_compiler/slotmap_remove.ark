@@ -1,48 +1,48 @@
-use std::collections::compiler
+use std::collections::compiler::SlotMap
 use std::host::stdio
 
 fn main() {
-    let mut m = compiler::slotmap_new()
-    let k0 = compiler::slotmap_insert(m, 10)
-    let k1 = compiler::slotmap_insert(m, 20)
-    let k2 = compiler::slotmap_insert(m, 30)
-    stdio::println((compiler::slotmap_len(m)).to_string())
+    let mut m = SlotMap::new()
+    let k0 = m.insert(10)
+    let k1 = m.insert(20)
+    let k2 = m.insert(30)
+    stdio::println((m.len()).to_string())
     // Remove middle element
-    let r1 = compiler::slotmap_remove(m, k1)
+    let r1 = m.remove(k1)
     match r1 {
         Option::Some(v) => stdio::println((v).to_string()),
         None => stdio::println("not found"),
     }
-    stdio::println((compiler::slotmap_len(m)).to_string())
+    stdio::println((m.len()).to_string())
     // Verify removed slot is gone
-    stdio::println((compiler::slotmap_contains(m, k1)).to_string())
+    stdio::println((m.contains(k1)).to_string())
     // Verify other slots still work
-    let g0 = compiler::slotmap_get(m, k0)
+    let g0 = m.get(k0)
     match g0 {
         Option::Some(v) => stdio::println((v).to_string()),
         None => stdio::println("not found"),
     }
-    let g2 = compiler::slotmap_get(m, k2)
+    let g2 = m.get(k2)
     match g2 {
         Option::Some(v) => stdio::println((v).to_string()),
         None => stdio::println("not found"),
     }
     // Try to get removed slot
-    let g1 = compiler::slotmap_get(m, k1)
+    let g1 = m.get(k1)
     match g1 {
         Option::Some(v) => stdio::println((v).to_string()),
         None => stdio::println("not found"),
     }
     // Double remove should return None
-    let r1_again = compiler::slotmap_remove(m, k1)
+    let r1_again = m.remove(k1)
     match r1_again {
         Option::Some(v) => stdio::println((v).to_string()),
         None => stdio::println("not found"),
     }
     // Insert after remove
-    let k3 = compiler::slotmap_insert(m, 40)
-    stdio::println((compiler::slotmap_len(m)).to_string())
-    let g3 = compiler::slotmap_get(m, k3)
+    let k3 = m.insert(40)
+    stdio::println((m.len()).to_string())
+    let g3 = m.get(k3)
     match g3 {
         Option::Some(v) => stdio::println((v).to_string()),
         None => stdio::println("not found"),

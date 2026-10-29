@@ -1,0 +1,5 @@
+use std::collections::compiler
+
+fn main() {
+    let _m = compiler::slotmap_new()
+}

@@ -1703,6 +1703,45 @@ treatment the fs file intrinsics already had. The temporary `Option<String>`
 bindings in `Env::var` / `Env::arg_at` are gone, and `Env::args` is a plain
 `__intrinsic_args()` call that validates on both targets.
 
+## std::collections::compiler type surface (ADR-046, 2026-10-29)
+
+The 14 `std::collections::compiler` free functions were removed by #917 in the
+ADR-014 `experimental` window. The replacement is the `Arena` / `SlotMap` /
+`Interner` type surface; import the type and call the associated constructor
+or receiver method.
+
+| Removed free | Replacement |
+|--------------|-------------|
+| `compiler::arena_new()` | `Arena::new()` |
+| `compiler::arena_alloc(a, value)` | `a.alloc(value)` |
+| `compiler::arena_get(a, idx)` | `a.get(idx)` |
+| `compiler::arena_len(a)` | `a.len()` |
+| `compiler::slotmap_new()` | `SlotMap::new()` |
+| `compiler::slotmap_insert(m, value)` | `m.insert(value)` |
+| `compiler::slotmap_get(m, key)` | `m.get(key)` |
+| `compiler::slotmap_remove(m, key)` | `m.remove(key)` |
+| `compiler::slotmap_contains(m, key)` | `m.contains(key)` |
+| `compiler::slotmap_len(m)` | `m.len()` |
+| `compiler::interner_new()` | `Interner::new()` |
+| `compiler::interner_intern(i, value)` | `i.intern(value)` |
+| `compiler::interner_lookup(i, sym)` | `i.lookup(sym)` |
+| `compiler::interner_len(i)` | `i.len()` |
+
+```ark
+// Before
+use std::collections::compiler
+let mut a: Vec<i32> = compiler::arena_new()
+let id = compiler::arena_alloc(a, 42)
+
+// After
+use std::collections::compiler::Arena
+let mut a: Arena = Arena::new()
+let id = a.alloc(42)
+```
+
+Qualified old calls fail with **E0100** and the
+`resolver::removed_names::removed_compiler_member_hint` replacement hint.
+
 ## Planned Deprecations
 
 The following APIs are scheduled for deprecation via the same monomorphic →

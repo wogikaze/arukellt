@@ -42,104 +42,31 @@ let exists = map.contains_key(42) // true
 ## Module `std::collections::compiler`
 
 - Source: [`../../../std/collections/compiler.ark`](../../../std/collections/compiler.ark)
-- Manifest-backed functions: 14
-- Stability: experimental 14
+- Manifest-backed functions: 0
+- Stability: n/a
 
 Experimental compiler-oriented collections.
 
 Provides Arena (bump allocator), SlotMap (deletion-safe handle map), and
 Interner (value-to-symbol bidirectional map) suitable for compiler/IDE
-toolchain use.
+toolchain use. The public surface is the associated constructor plus the
+receiver methods on each type; the former free functions were retired by
+#917 with E0100 replacement hints.
 
 **Stability:** All APIs in this module are **experimental** and may change
 in v4+.
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
-### `std::collections::compiler` — Arena (bump allocator)
+### `std::collections::compiler` — Public Types
 
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `arena_new` | `() -> Vec<i32>` | `experimental` | ✅ functional | - |
-| `arena_alloc` | `(Vec<i32>, i32) -> i32` | `experimental` | ✅ functional | - |
-| `arena_get` | `(Vec<i32>, i32) -> i32` | `experimental` | ✅ functional | - |
-| `arena_len` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
+| Name | Kind | Methods | Trait impls | Summary |
+|------|------|---------|-------------|---------|
+| `Arena` | `struct` | `new`, `alloc`, `get`, `len` | - | A bump allocator that hands out stable i32 ids. |
+| `SlotMap` | `struct` | `new`, `insert`, `get`, `remove`, `contains`, `len` | - | A deletion-safe handle map for i32 values. |
+| `Interner` | `struct` | `new`, `intern`, `lookup`, `len` | - | A value-to-symbol bidirectional map for String values. |
 
-#### `std::collections::compiler::arena_new`
-
-Create a new Arena (bump allocator for stable i32 IDs).
-
-#### `std::collections::compiler::arena_alloc`
-
-Allocate a value in the Arena, returning a stable ArenaId.
-
-#### `std::collections::compiler::arena_get`
-
-Get the value at the given ArenaId.
-
-#### `std::collections::compiler::arena_len`
-
-Return the number of allocated entries in the Arena.
-
-### `std::collections::compiler` — SlotMap (deletion-safe handle map, monomorphic i32 values)
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `slotmap_new` | `() -> Vec<i32>` | `experimental` | ✅ functional | - |
-| `slotmap_insert` | `(Vec<i32>, i32) -> i32` | `experimental` | ✅ functional | - |
-| `slotmap_get` | `(Vec<i32>, i32) -> Option<i32>` | `experimental` | ✅ functional | - |
-| `slotmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `experimental` | ✅ functional | - |
-| `slotmap_contains` | `(Vec<i32>, i32) -> bool` | `experimental` | ✅ functional | - |
-| `slotmap_len` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
-
-#### `std::collections::compiler::slotmap_new`
-
-Create a new SlotMap (deletion-safe handle map for i32 values).
-
-#### `std::collections::compiler::slotmap_insert`
-
-Insert a value into the SlotMap, returning a stable SlotKey.
-
-#### `std::collections::compiler::slotmap_get`
-
-Get the value at the given SlotKey, or None if removed.
-
-#### `std::collections::compiler::slotmap_remove`
-
-Remove and return the value at the given SlotKey, or None if already removed.
-
-#### `std::collections::compiler::slotmap_contains`
-
-Return true if the SlotKey is present and active.
-
-#### `std::collections::compiler::slotmap_len`
-
-Return the number of active entries in the SlotMap.
-
-### `std::collections::compiler` — Interner (value <-> Symbol bidirectional map, String values)
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `interner_new` | `() -> Vec<String>` | `experimental` | ✅ functional | - |
-| `interner_intern` | `(Vec<String>, String) -> i32` | `experimental` | ✅ functional | - |
-| `interner_lookup` | `(Vec<String>, i32) -> Option<String>` | `experimental` | ✅ functional | - |
-| `interner_len` | `(Vec<String>) -> i32` | `experimental` | ✅ functional | - |
-
-#### `std::collections::compiler::interner_new`
-
-Create a new Interner (value<->Symbol bidirectional map).
-
-#### `std::collections::compiler::interner_intern`
-
-Intern a String, returning its stable Symbol (i32 ID). Deduplicates.
-
-#### `std::collections::compiler::interner_lookup`
-
-Look up the String for a given Symbol, or None if out of range.
-
-#### `std::collections::compiler::interner_len`
-
-Return the number of interned strings.
+_No manifest-backed functions in this module._
 
 ## Module `std::collections::hash`
 

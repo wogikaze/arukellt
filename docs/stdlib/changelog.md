@@ -16,6 +16,31 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-29 — compiler collections type surface (#917, wave/associated-remain)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の
+  free-function 根絶。対象は `std::collections::compiler` の **14** free
+  functions（`arena_*` 4、`slotmap_*` 6、`interner_*` 4）。全 entry が
+  `experimental` なので、[ADR-014](../adr/ADR-014-stability-labels.md) D4 に
+  より deprecation window なしで同時削除した（W0009 は対象外）。
+- **Replacement**: `Arena::new()` / `a.alloc(value)` / `a.get(idx)` /
+  `a.len()`、`SlotMap::new()` / `m.insert(value)` / `m.get(key)` /
+  `m.remove(key)` / `m.contains(key)` / `m.len()`、`Interner::new()` /
+  `i.intern(value)` / `i.lookup(sym)` / `i.len()`。backing store は各型の
+  private field に閉じ、`HandleTableI32` も `SlotMap` を保持する。
+- **E0100**: 旧 `arena_*` / `slotmap_*` / `interner_*` 名は
+  `resolver::removed_names::removed_compiler_member_hint` が
+  `compiler` / `collections::compiler` / `std::collections::compiler` の
+  各綴りで新しい associated / method 名を案内する。
+- **Evidence**: `stdlib_collections_compiler/{arena,slotmap,slotmap_remove,interner}_basic`
+  と `stdlib_compiler/compiler_basic` を method surface へ移行し、
+  wasm32-gc component と `--target wasm32` の両方で compile・validate・
+  execute した。`diagnostics/removed_compiler_{arena,slotmap,interner}_free*`
+  は両 target の E0100 golden として追加した。
+- **Scorecard**: eradication scope 310 → **296**、`associated-or-method`
+  244 → **230**、manifest 公開 entry 285 → **271**、`pub fn` 宣言
+  337 → **323**。unregistered 25、`prelude_wrapper` 65 は不変。
+
 ## 2026-10-28 — `__intrinsic_arg_at` indexes real argv on wasm32-gc (#807, ADR-046)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) retired

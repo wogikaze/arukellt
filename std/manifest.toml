@@ -3498,132 +3498,42 @@ doc = "Return the intersection of two BitSets."
 # ─────────────────────────────────────────────
 # std::collections::compiler — Arena, SlotMap, Interner
 # ─────────────────────────────────────────────
+#
+# The 14 free functions were retired by #917 (wave/associated-remain) in the
+# ADR-014 experimental window. The public surface is the type constructors and
+# receiver methods; the old `arena_*` / `slotmap_*` / `interner_*` names fail
+# resolution with E0100 hints.
 
-[[functions]]
-name = "arena_new"
-module = "std::collections::compiler"
-doc_category = "collections"
+[[modules]]
+name = "std::collections::compiler"
 stability = "experimental"
-params = []
-returns = "Vec<i32>"
-doc = "Create a new Arena (bump allocator for stable i32 IDs)."
+family = "collections"
+doc = "Experimental compiler-oriented collections: Arena (bump allocator), SlotMap (deletion-safe handle map), and Interner (value-to-symbol map). The public surface is the Arena / SlotMap / Interner type methods; the former free functions were retired by #917 with E0100 hints."
+availability = { t1 = true, t3 = true }
 
-[[functions]]
-name = "arena_alloc"
+[[types]]
+name = "Arena"
 module = "std::collections::compiler"
-doc_category = "collections"
 stability = "experimental"
-params = ["Vec<i32>", "i32"]
-returns = "i32"
-doc = "Allocate a value in the Arena, returning a stable ArenaId."
+kind = "struct"
+doc = "Bump allocator that hands out stable i32 arena ids; the backing entry vector is private."
+methods = ["new", "alloc", "get", "len"]
 
-[[functions]]
-name = "arena_get"
+[[types]]
+name = "SlotMap"
 module = "std::collections::compiler"
-doc_category = "collections"
 stability = "experimental"
-params = ["Vec<i32>", "i32"]
-returns = "i32"
-doc = "Get the value at the given ArenaId."
+kind = "struct"
+doc = "Deletion-safe handle map for i32 values; keys stay stable across removes and removed slots report None."
+methods = ["new", "insert", "get", "remove", "contains", "len"]
 
-[[functions]]
-name = "arena_len"
+[[types]]
+name = "Interner"
 module = "std::collections::compiler"
-doc_category = "collections"
 stability = "experimental"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Return the number of allocated entries in the Arena."
-
-[[functions]]
-name = "slotmap_new"
-module = "std::collections::compiler"
-doc_category = "collections"
-stability = "experimental"
-params = []
-returns = "Vec<i32>"
-doc = "Create a new SlotMap (deletion-safe handle map for i32 values)."
-
-[[functions]]
-name = "slotmap_insert"
-module = "std::collections::compiler"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>", "i32"]
-returns = "i32"
-doc = "Insert a value into the SlotMap, returning a stable SlotKey."
-
-[[functions]]
-name = "slotmap_get"
-module = "std::collections::compiler"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>", "i32"]
-returns = "Option<i32>"
-doc = "Get the value at the given SlotKey, or None if removed."
-
-[[functions]]
-name = "slotmap_remove"
-module = "std::collections::compiler"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>", "i32"]
-returns = "Option<i32>"
-doc = "Remove and return the value at the given SlotKey, or None if already removed."
-
-[[functions]]
-name = "slotmap_contains"
-module = "std::collections::compiler"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>", "i32"]
-returns = "bool"
-doc = "Return true if the SlotKey is present and active."
-
-[[functions]]
-name = "slotmap_len"
-module = "std::collections::compiler"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<i32>"]
-returns = "i32"
-doc = "Return the number of active entries in the SlotMap."
-
-[[functions]]
-name = "interner_new"
-module = "std::collections::compiler"
-doc_category = "collections"
-stability = "experimental"
-params = []
-returns = "Vec<String>"
-doc = "Create a new Interner (value<->Symbol bidirectional map)."
-
-[[functions]]
-name = "interner_intern"
-module = "std::collections::compiler"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<String>", "String"]
-returns = "i32"
-doc = "Intern a String, returning its stable Symbol (i32 ID). Deduplicates."
-
-[[functions]]
-name = "interner_lookup"
-module = "std::collections::compiler"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<String>", "i32"]
-returns = "Option<String>"
-doc = "Look up the String for a given Symbol, or None if out of range."
-
-[[functions]]
-name = "interner_len"
-module = "std::collections::compiler"
-doc_category = "collections"
-stability = "experimental"
-params = ["Vec<String>"]
-returns = "i32"
-doc = "Return the number of interned strings."
+kind = "struct"
+doc = "Value-to-symbol bidirectional map for String values; interning deduplicates and returns a stable i32 symbol."
+methods = ["new", "intern", "lookup", "len"]
 
 # ─────────────────────────────────────────────
 # std::simd — lane namespace types (ADR-046 / #917)

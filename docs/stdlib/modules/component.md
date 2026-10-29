@@ -84,10 +84,11 @@ _No manifest-backed functions in this module._
 Resource handle table for Component Model boundaries (#044, #473).
 
 `HandleTable<T>` is monomorphized per payload type. The i32 table uses
-SlotMap layout from `std::collections::compiler` and exposes receiver
+the `SlotMap` store from `std::collections::compiler` and exposes receiver
 methods on `HandleTableI32` (ADR-044/ADR-046). The former untyped
 `handle_*` and `handle_table_i32_*` free functions were retired by the
-#917 component wave.
+#917 component wave; the `slotmap_*` free functions were retired by the
+#917 compiler-collections wave.
 
 ### `std::component::handle` — Public Types
 

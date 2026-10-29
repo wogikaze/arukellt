@@ -77,6 +77,10 @@ fn removed_name_specific_hint(name: String) -> String {
     if len(clone(core_hint)) > 0 {
         return core_hint
     }
+    let compiler_hint = removed_compiler_member_hint(clone(name))
+    if len(clone(compiler_hint)) > 0 {
+        return compiler_hint
+    }
     if clone(name).starts_with(String_from("HashMap_")) {
         return hashmap_method_replacement_hint()
     }
@@ -259,9 +263,60 @@ fn removed_host_env_member_hint(name: String) -> String {
     String_new()
 }
 
+/// Replacement hints for the `std::collections::compiler` free functions
+/// retired by #917 (Arena / SlotMap / Interner type surface).
+fn removed_compiler_member_hint(name: String) -> String {
+    if eq(clone(name), "arena_new") {
+        return "use `Arena::new()` from `use std::collections::compiler::Arena` instead"
+    }
+    if eq(clone(name), "arena_alloc") {
+        return "use `a.alloc(value)` on `Arena` instead"
+    }
+    if eq(clone(name), "arena_get") {
+        return "use `a.get(idx)` on `Arena` instead"
+    }
+    if eq(clone(name), "arena_len") {
+        return "use `a.len()` on `Arena` instead"
+    }
+    if eq(clone(name), "slotmap_new") {
+        return "use `SlotMap::new()` from `use std::collections::compiler::SlotMap` instead"
+    }
+    if eq(clone(name), "slotmap_insert") {
+        return "use `m.insert(value)` on `SlotMap` instead"
+    }
+    if eq(clone(name), "slotmap_get") {
+        return "use `m.get(key)` on `SlotMap` instead"
+    }
+    if eq(clone(name), "slotmap_remove") {
+        return "use `m.remove(key)` on `SlotMap` instead"
+    }
+    if eq(clone(name), "slotmap_contains") {
+        return "use `m.contains(key)` on `SlotMap` instead"
+    }
+    if eq(clone(name), "slotmap_len") {
+        return "use `m.len()` on `SlotMap` instead"
+    }
+    if eq(clone(name), "interner_new") {
+        return "use `Interner::new()` from `use std::collections::compiler::Interner` instead"
+    }
+    if eq(clone(name), "interner_intern") {
+        return "use `i.intern(value)` on `Interner` instead"
+    }
+    if eq(clone(name), "interner_lookup") {
+        return "use `i.lookup(sym)` on `Interner` instead"
+    }
+    if eq(clone(name), "interner_len") {
+        return "use `i.len()` on `Interner` instead"
+    }
+    String_new()
+}
+
 fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "fs") || eq(clone(module), "host::fs") || eq(clone(module), "std::fs") || eq(clone(module), "std::host::fs") {
         return removed_host_fs_member_hint(name)
+    }
+    if eq(clone(module), "compiler") || eq(clone(module), "collections::compiler") || eq(clone(module), "std::collections::compiler") {
+        return removed_compiler_member_hint(name)
     }
     if eq(clone(module), "clock") || eq(clone(module), "host::clock") || eq(clone(module), "std::host::clock") {
         return removed_host_clock_member_hint(name)
@@ -1094,6 +1149,15 @@ test mod "removed_names" {
     test "removed env module member" {
         assert(len(removed_module_member_hint("std::env", "get_var")) > 0)
         assert(len(removed_module_member_hint("std::host::env", "get_var")) > 0)
+    }
+    test "removed compiler collections frees" {
+        assert(len(removed_module_member_hint("compiler", "arena_new")) > 0)
+        assert(len(removed_module_member_hint("collections::compiler", "slotmap_get")) > 0)
+        assert(len(removed_module_member_hint("std::collections::compiler", "interner_lookup")) > 0)
+        assert(len(removed_name_hint("arena_alloc")) > 0)
+        assert(len(removed_name_hint("slotmap_contains")) > 0)
+        assert(len(removed_name_hint("interner_intern")) > 0)
+        assert(len(removed_module_member_hint("compiler", "unrelated")) == 0)
     }
     test "result option helpers" {
         assert(len(removed_name_hint("ok")) > 0)

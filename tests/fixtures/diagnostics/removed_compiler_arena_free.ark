@@ -1,0 +1,5 @@
+use std::collections::compiler
+
+fn main() {
+    let _a = compiler::arena_new()
+}

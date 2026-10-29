@@ -296,6 +296,12 @@ diag:diagnostics/removed_component_free.ark
 diag:diagnostics/removed_component_free_wasm32.ark
 diag:diagnostics/removed_component_handle_free.ark
 diag:diagnostics/removed_component_handle_free_wasm32.ark
+diag:diagnostics/removed_compiler_arena_free.ark
+diag:diagnostics/removed_compiler_arena_free_wasm32.ark
+diag:diagnostics/removed_compiler_slotmap_free.ark
+diag:diagnostics/removed_compiler_slotmap_free_wasm32.ark
+diag:diagnostics/removed_compiler_interner_free.ark
+diag:diagnostics/removed_compiler_interner_free_wasm32.ark
 diag:diagnostics/removed_canonical_free.ark
 diag:diagnostics/removed_canonical_free_wasm32.ark
 diag:diagnostics/removed_hashmap_adapter.ark

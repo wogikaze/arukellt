@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 220
+- **Canonical names:** 206
 - **Historical/deprecated names:** 65
-- **Total entries:** 285
+- **Total entries:** 271
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -25,10 +25,6 @@ Current public API names, sorted alphabetically.
 | `abort` | `std::process` | `stable` | Process |
 | `abs` | `prelude` | `stable` | Math |
 | `approx_eq` | `std::signal` | `stable` | Signal |
-| `arena_alloc` | `std::collections::compiler` | `experimental` | Collections |
-| `arena_get` | `std::collections::compiler` | `experimental` | Collections |
-| `arena_len` | `std::collections::compiler` | `experimental` | Collections |
-| `arena_new` | `std::collections::compiler` | `experimental` | Collections |
 | `arg_at` | `std::cli` | `stable` | Cli |
 | `arg_count` | `std::cli` | `stable` | Cli |
 | `args` | `prelude` | `stable` | Host Env |
@@ -155,10 +151,6 @@ Current public API names, sorted alphabetically.
 | `index_set_insert` | `std::collections::ordered` | `experimental` | Collections |
 | `index_set_len` | `std::collections::ordered` | `experimental` | Collections |
 | `index_set_new` | `std::collections::ordered` | `experimental` | Collections |
-| `interner_intern` | `std::collections::compiler` | `experimental` | Collections |
-| `interner_len` | `std::collections::compiler` | `experimental` | Collections |
-| `interner_lookup` | `std::collections::compiler` | `experimental` | Collections |
-| `interner_new` | `std::collections::compiler` | `experimental` | Collections |
 | `is_empty` | `prelude` | `stable` | String |
 | `is_err` | `prelude` | `stable` | Option Result |
 | `is_none` | `prelude` | `stable` | Option Result |
@@ -204,12 +196,6 @@ Current public API names, sorted alphabetically.
 | `replace` | `prelude` | `stable` | String |
 | `sin_approx` | `std::signal` | `stable` | Signal |
 | `slice` | `prelude` | `stable` | String |
-| `slotmap_contains` | `std::collections::compiler` | `experimental` | Collections |
-| `slotmap_get` | `std::collections::compiler` | `experimental` | Collections |
-| `slotmap_insert` | `std::collections::compiler` | `experimental` | Collections |
-| `slotmap_len` | `std::collections::compiler` | `experimental` | Collections |
-| `slotmap_new` | `std::collections::compiler` | `experimental` | Collections |
-| `slotmap_remove` | `std::collections::compiler` | `experimental` | Collections |
 | `sort_by` | `std::seq` | `provisional` | Seq |
 | `sorted_map_contains` | `std::collections::ordered` | `stable` | Collections |
 | `sorted_map_find_idx` | `std::collections::ordered` | `stable` | Collections |
@@ -328,10 +314,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `abort` | ✅ `stable` | `std::process` | Process |
 | `abs` | ✅ `stable` | `prelude` | Math |
 | `approx_eq` | ✅ `stable` | `std::signal` | Signal |
-| `arena_alloc` | ✅ `experimental` | `std::collections::compiler` | Collections |
-| `arena_get` | ✅ `experimental` | `std::collections::compiler` | Collections |
-| `arena_len` | ✅ `experimental` | `std::collections::compiler` | Collections |
-| `arena_new` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `arg_at` | ✅ `stable` | `std::cli` | Cli |
 | `arg_count` | ✅ `stable` | `std::cli` | Cli |
 | `args` | ✅ `stable` | `prelude` | Host Env |
@@ -493,10 +475,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `index_set_insert` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `index_set_len` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `index_set_new` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `interner_intern` | ✅ `experimental` | `std::collections::compiler` | Collections |
-| `interner_len` | ✅ `experimental` | `std::collections::compiler` | Collections |
-| `interner_lookup` | ✅ `experimental` | `std::collections::compiler` | Collections |
-| `interner_new` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `is_empty` | ✅ `stable` | `prelude` | String |
 | `is_err` | ✅ `stable` | `prelude` | Option Result |
 | `is_none` | ✅ `stable` | `prelude` | Option Result |
@@ -565,12 +543,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `slice` | ✅ `stable` | `prelude` | String |
 | ~~`slice_get`~~ | ⚠️ deprecated | `prelude` | → `Slice::get` · [migration guide](migration-guidance.md) |
 | ~~`slice_len`~~ | ⚠️ deprecated | `prelude` | → `Slice::len` · [migration guide](migration-guidance.md) |
-| `slotmap_contains` | ✅ `experimental` | `std::collections::compiler` | Collections |
-| `slotmap_get` | ✅ `experimental` | `std::collections::compiler` | Collections |
-| `slotmap_insert` | ✅ `experimental` | `std::collections::compiler` | Collections |
-| `slotmap_len` | ✅ `experimental` | `std::collections::compiler` | Collections |
-| `slotmap_new` | ✅ `experimental` | `std::collections::compiler` | Collections |
-| `slotmap_remove` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `sort_by` | ✅ `provisional` | `std::seq` | Seq |
 | `sorted_map_contains` | ✅ `stable` | `std::collections::ordered` | Collections |
 | `sorted_map_find_idx` | ✅ `stable` | `std::collections::ordered` | Collections |
