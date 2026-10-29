@@ -1,5 +1,4 @@
 use std::text
-use std::prelude::{eq}
 use corehir::decl_impl_target
 use typechecker::ast_access
 use typechecker::contract_associated_type
@@ -96,7 +95,7 @@ fn resolve_impl_self_return(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnS
 fn resolve_self_type(self_ty: TypeInfo, ty: TypeInfo) -> TypeInfo {
     let tag = contract_type_access::TypeInfo_tag(ty)
     if tag == commands::TY_TYPE_VAR() || tag == commands::TY_STRUCT() {
-        if eq(contract_type_access::TypeInfo_name(ty), String_from("Self")) {
+        if contract_type_access::TypeInfo_name(ty).eq(String_from("Self")) {
             return self_ty
         }
     }
@@ -176,7 +175,7 @@ fn resolve_trait_method_type(
     let tag = contract_type_access::TypeInfo_tag(ty)
     if tag == commands::TY_TYPE_VAR() {
         let name = contract_type_access::TypeInfo_name(ty)
-        if eq(name.clone(), "Self") {
+        if name.clone().eq("Self") {
             return receiver
         }
         let param_index = trait_type_param_index(sig, trait_param_count, name.clone())
@@ -230,10 +229,7 @@ fn resolve_trait_method_type(
 fn trait_type_param_index(sig: FnSig, count: i32, name: String) -> i32 {
     let mut i = 0
     while i < count {
-        if eq(
-            contract_fn_sig::FnSig_type_param_at(sig, i),
-            name.clone()
-        ) {
+        if contract_fn_sig::FnSig_type_param_at(sig, i).eq(name.clone()) {
             return i
         }
         i = i + 1
@@ -249,7 +245,7 @@ fn resolve_projection(
 ) -> TypeInfo {
     let tag = contract_type_access::TypeInfo_tag(ty)
     if tag == commands::TY_TYPE_VAR() {
-        if eq(contract_type_access::TypeInfo_name(ty), "Self") {
+        if contract_type_access::TypeInfo_name(ty).eq("Self") {
             return receiver
         }
         return ty
@@ -371,7 +367,7 @@ fn generic_type_var_index(names: Vec<String>, target: String) -> i32 {
     let count = len(names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(names, i), target.clone()) {
+        if get_unchecked(names, i).eq(target.clone()) {
             return i
         }
         i = i + 1
@@ -390,10 +386,7 @@ fn resolve_bound_projection(
     let mut i = 0
     while i < bound_count {
         let bound_info = contract_fn_sig::FnSig_type_param_bound_at(sig, i)
-        if eq(
-            contract_type_param_bounds::TypeParamBounds_name(bound_info),
-            type_param.clone()
-        ) {
+        if contract_type_param_bounds::TypeParamBounds_name(bound_info).eq(type_param.clone()) {
             let trait_count = contract_type_param_bounds::TypeParamBounds_bound_count(bound_info)
             let mut j = 0
             while j < trait_count {
@@ -432,10 +425,7 @@ fn lookup_associated_type(
         if names::same_type_name(
             contract_associated_type::trait_associated_type_info_trait_name(entry),
             trait_name.clone()
-        ) && eq(
-            contract_associated_type::trait_associated_type_info_name(entry),
-            assoc_name.clone()
-        ) && same_type(
+        ) && contract_associated_type::trait_associated_type_info_name(entry).eq(assoc_name.clone()) && same_type(
             contract_associated_type::trait_associated_type_info_self_ty(entry),
             receiver
         ) {
@@ -453,10 +443,7 @@ fn lookup_associated_type(
         if names::same_type_name(
             contract_associated_type::trait_associated_type_info_trait_name(entry),
             trait_name.clone()
-        ) && eq(
-            contract_associated_type::trait_associated_type_info_name(entry),
-            assoc_name.clone()
-        ) {
+        ) && contract_associated_type::trait_associated_type_info_name(entry).eq(assoc_name.clone()) {
             // The entry's self pattern can degrade impl type variables to
             // named structs (I spelled as a struct), which hides the
             // pattern from type_contains_var. The trait_impls entry keeps
@@ -574,10 +561,7 @@ fn projection_owner_ty(
     let bound_count = len(var_names)
     let mut b = 0
     while b < bound_count {
-        if eq(
-            projection_bare_name(get_unchecked(var_names, b)),
-            projection_bare_name(owner_name.clone())
-        ) {
+        if projection_bare_name(get_unchecked(var_names, b)).eq(projection_bare_name(owner_name.clone())) {
             return get_unchecked(var_types, b)
         }
         b = b + 1
@@ -661,10 +645,7 @@ fn lookup_assoc_for_ctor(env: TypeEnv, receiver: TypeInfo, assoc_name: String) -
     while i < count {
         let entry = get_unchecked(env.associated_types, i)
         let entry_self = contract_associated_type::trait_associated_type_info_self_ty(entry)
-        if eq(
-            contract_associated_type::trait_associated_type_info_name(entry),
-            assoc_name.clone()
-        ) && names::same_type_name(
+        if contract_associated_type::trait_associated_type_info_name(entry).eq(assoc_name.clone()) && names::same_type_name(
             contract_type_access::TypeInfo_name(entry_self),
             ctor.clone()
         ) {
@@ -752,7 +733,7 @@ fn match_pattern_collect_vars(
         let bound_count = len(names)
         let mut i = 0
         while i < bound_count {
-            if eq(get_unchecked(names, i), var_name.clone()) {
+            if get_unchecked(names, i).eq(var_name.clone()) {
                 return same_type(get_unchecked(types, i), actual)
             }
             i = i + 1

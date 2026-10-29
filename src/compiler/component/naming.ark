@@ -1,5 +1,4 @@
 use std::text
-use std::prelude::{eq}
 use component::constants_wit_values
 use mir::function_return_view
 use mir::local_access
@@ -21,10 +20,10 @@ fn comp_export_name(name: String) -> String {
 }
 
 fn comp_should_export_func(name: String) -> bool {
-    if eq(name.clone(), String_from("main")) || eq(name.clone(), String_from("_start")) {
+    if name.clone().eq(String_from("main")) || name.clone().eq(String_from("_start")) {
         return false
     }
-    if eq(name.clone(), String_from("print")) || eq(name.clone(), String_from("println")) || eq(name.clone(), String_from("eprintln")) {
+    if name.clone().eq(String_from("print")) || name.clone().eq(String_from("println")) || name.clone().eq(String_from("eprintln")) {
         return false
     }
     // Std host/env helpers lower to short MIR names. Counting them as library
@@ -39,13 +38,13 @@ fn comp_should_export_func(name: String) -> bool {
 }
 
 fn comp_is_std_host_helper_name(name: String) -> bool {
-    if eq(name.clone(), String_from("var")) || eq(name.clone(), String_from("get_var")) {
+    if name.clone().eq(String_from("var")) || name.clone().eq(String_from("get_var")) {
         return true
     }
-    if eq(name.clone(), String_from("var_or_default")) || eq(name.clone(), String_from("args")) {
+    if name.clone().eq(String_from("var_or_default")) || name.clone().eq(String_from("args")) {
         return true
     }
-    if eq(name.clone(), String_from("arg_count")) || eq(name.clone(), String_from("arg_at")) {
+    if name.clone().eq(String_from("arg_count")) || name.clone().eq(String_from("arg_at")) {
         return true
     }
     false
@@ -68,70 +67,70 @@ fn val_type_to_comp(val_type: i32) -> i32 {
 }
 
 fn comp_wit_type_from_name(type_name: String, fallback_vt: i32) -> i32 {
-    if eq(type_name.clone(), String_from("bool")) {
+    if type_name.clone().eq(String_from("bool")) {
         return constants_wit_values::WIT_VAL_BOOL()
     }
-    if eq(type_name.clone(), String_from("char")) {
+    if type_name.clone().eq(String_from("char")) {
         return constants_wit_values::WIT_VAL_CHAR()
     }
-    if eq(type_name.clone(), String_from("u8")) {
+    if type_name.clone().eq(String_from("u8")) {
         return constants_wit_values::WIT_VAL_U8()
     }
-    if eq(type_name.clone(), String_from("u16")) {
+    if type_name.clone().eq(String_from("u16")) {
         return constants_wit_values::WIT_VAL_U16()
     }
-    if eq(type_name.clone(), String_from("u32")) {
+    if type_name.clone().eq(String_from("u32")) {
         return constants_wit_values::WIT_VAL_U32()
     }
-    if eq(type_name.clone(), String_from("u64")) {
+    if type_name.clone().eq(String_from("u64")) {
         return constants_wit_values::WIT_VAL_U64()
     }
-    if eq(type_name.clone(), String_from("i8")) {
+    if type_name.clone().eq(String_from("i8")) {
         return constants_wit_values::WIT_VAL_S8()
     }
-    if eq(type_name.clone(), String_from("i16")) {
+    if type_name.clone().eq(String_from("i16")) {
         return constants_wit_values::WIT_VAL_S16()
     }
-    if eq(type_name.clone(), String_from("i32")) {
+    if type_name.clone().eq(String_from("i32")) {
         return constants_wit_values::WIT_VAL_S32()
     }
-    if eq(type_name.clone(), String_from("i64")) {
+    if type_name.clone().eq(String_from("i64")) {
         return constants_wit_values::WIT_VAL_S64()
     }
-    if eq(type_name.clone(), String_from("f32")) {
+    if type_name.clone().eq(String_from("f32")) {
         return constants_wit_values::WIT_VAL_FLOAT32()
     }
-    if eq(type_name.clone(), String_from("f64")) {
+    if type_name.clone().eq(String_from("f64")) {
         return constants_wit_values::WIT_VAL_FLOAT64()
     }
-    if eq(type_name.clone(), String_from("string")) || eq(type_name.clone(), String_from("String")) {
+    if type_name.clone().eq(String_from("string")) || type_name.clone().eq(String_from("String")) {
         return constants_wit_values::WIT_VAL_STRING()
     }
     val_type_to_comp(fallback_vt)
 }
 
 fn comp_type_name_is_option_i32(type_name: String) -> bool {
-    eq(type_name.clone(), String_from("Option")) || eq(type_name.clone(), String_from("Option:i32"))
+    type_name.clone().eq(String_from("Option")) || type_name.clone().eq(String_from("Option:i32"))
 }
 
 fn comp_type_name_is_option_bool(type_name: String) -> bool {
-    eq(type_name.clone(), String_from("Option:bool"))
+    type_name.clone().eq(String_from("Option:bool"))
 }
 
 fn comp_type_name_is_option_i64(type_name: String) -> bool {
-    eq(type_name.clone(), String_from("Option:i64"))
+    type_name.clone().eq(String_from("Option:i64"))
 }
 
 fn comp_type_name_is_result_bool_bool(type_name: String) -> bool {
-    eq(type_name.clone(), String_from("Result:bool:bool"))
+    type_name.clone().eq(String_from("Result:bool:bool"))
 }
 
 fn comp_type_name_is_result_i32_i32(type_name: String) -> bool {
-    eq(type_name.clone(), String_from("Result")) || eq(type_name.clone(), String_from("Result:i32:i32"))
+    type_name.clone().eq(String_from("Result")) || type_name.clone().eq(String_from("Result:i32:i32"))
 }
 
 fn comp_type_name_is_result_i32_string(type_name: String) -> bool {
-    eq(type_name.clone(), String_from("Result:i32:String"))
+    type_name.clone().eq(String_from("Result:i32:String"))
 }
 
 fn comp_param_wit_type(fn_name: String, param: MirLocal) -> i32 {

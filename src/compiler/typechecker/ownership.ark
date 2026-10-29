@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use typechecker::kinds
 use typechecker::ast_access
@@ -56,7 +55,7 @@ fn check_assignment_target(mut env: TypeEnv, mut scope: LocalScope, target: AstN
 }
 
 fn shared_param_mutation_message(name: String) -> String {
-    if eq(name.clone(), "self") {
+    if name.clone().eq("self") {
         return "cannot assign through shared receiver `self`; declare the method `mut self`"
     }
     "cannot assign through shared parameter `".concat(
@@ -83,7 +82,7 @@ fn consume_expr(mut env: TypeEnv, mut scope: LocalScope, node: AstNode) {
         // `boxed.take()` consumes its receiver like the retired `unbox(b)`.
         // A user type may also define a `take` method; only the prelude
         // `Box<T>` receiver is the unique-owner boundary.
-        if eq(ast_access::node_text(node), "take") &&
+        if ast_access::node_text(node).eq("take") &&
         ast_access::node_child_count(node) > 0 &&
         box_typed_identifier(env, scope, ast_access::node_child_at(node, 0)) {
             consume_expr(env, scope, ast_access::node_child_at(node, 0))
@@ -130,7 +129,7 @@ fn consume_box_boundary_argument(mut env: TypeEnv, mut scope: LocalScope, node: 
 // `Box::new(value)` is the associated-function replacement for `Box_new`.
 // Module-qualified spellings may extend the path, so accept any suffix.
 fn is_box_new_callee(callee_name: String) -> bool {
-    eq(callee_name.clone(), "Box::new") ||
+    callee_name.clone().eq("Box::new") ||
     callee_name.clone().ends_with(String_from("::Box::new"))
 }
 
@@ -225,7 +224,7 @@ fn type_is_box(env: TypeEnv, ty: TypeInfo) -> bool {
     if tag != commands::TY_STRUCT() && tag != commands::TY_ENUM() {
         return false
     }
-    if !eq(contract_type_access::TypeInfo_name(resolved), String_from("Box")) {
+    if !contract_type_access::TypeInfo_name(resolved).eq(String_from("Box")) {
         return false
     }
     contract_type_access::TypeInfo_type_arg_count(resolved) >= 1
@@ -343,7 +342,7 @@ fn diagnostic_exists_at(env: TypeEnv, code: String, start: i32, end: i32) -> boo
     let mut i = 0
     while i < len(env.diagnostics) {
         let diag = get_unchecked(env.diagnostics, i)
-        if eq(diag_record::diagnostic_code(diag), code.clone()) &&
+        if diag_record::diagnostic_code(diag).eq(code.clone()) &&
         diag_record::diagnostic_start(diag) == start &&
         diag_record::diagnostic_end(diag) == end {
             return true
@@ -440,7 +439,7 @@ fn check_borrowed_box_nested_escape(mut env: TypeEnv, scope: LocalScope, node: A
         return
     }
     if kind == kinds::NK_METHOD_CALL() {
-        if eq(ast_access::node_text(node), "take") && ast_access::node_child_count(node) > 0 {
+        if ast_access::node_text(node).eq("take") && ast_access::node_child_count(node) > 0 {
             check_borrowed_box_escape(env, scope, ast_access::node_child_at(node, 0))
         }
         check_borrowed_box_nested_children(env, scope, node, 1)
@@ -510,7 +509,7 @@ fn is_borrowed_box_sink_callee(callee_name: String) -> bool {
         return true
     }
     let leaf = names::unqualified_type_name(callee_name)
-    eq(leaf.clone(), "Some") || eq(leaf.clone(), "Ok") || eq(leaf, "Err")
+    leaf.clone().eq("Some") || leaf.clone().eq("Ok") || leaf.eq("Err")
 }
 
 fn check_borrowed_box_escape_call_args(mut env: TypeEnv, scope: LocalScope, node: AstNode) {

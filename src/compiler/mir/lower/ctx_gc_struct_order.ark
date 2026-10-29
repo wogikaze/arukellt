@@ -4,7 +4,6 @@ use mir::lower::ctx_types
 // higher slots. Wasm type indices forbid those forward refs outside a rec group.
 // Reorder deps-first and rewrite gcsref slot numbers before flush.
 
-use std::prelude::{eq}
 use std::text
 fn ctx_reorder_gc_structs_deps_first(mut ctx: LowerCtx) {
     let count = len(ctx.gc_struct_names)
@@ -128,7 +127,7 @@ fn gc_struct_at_gcsref_marker(sig: String, i: i32) -> bool {
     if i + 6 > len(sig) {
         return false
     }
-    eq(sig.clone().slice(i, i + 6), "gcsref")
+    sig.clone().slice(i, i + 6).eq("gcsref")
 }
 
 // Returns [slot, end_index] after parsing digits at `start`.

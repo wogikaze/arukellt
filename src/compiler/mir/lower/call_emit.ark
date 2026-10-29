@@ -13,10 +13,10 @@ use mir::value_types
 // when the callee has none. The SIMD lane intrinsics put the lane second;
 // the v128 memory lane intrinsics are (address, offset, value, lane).
 fn mir_simd_lane_immediate_argument_index(callee_name: String) -> i32 {
-    if eq(callee_name.clone(), "__wasm_v128_load_lane") {
+    if callee_name.clone().eq("__wasm_v128_load_lane") {
         return 4
     }
-    if eq(callee_name.clone(), "__wasm_v128_store_lane") {
+    if callee_name.clone().eq("__wasm_v128_store_lane") {
         return 4
     }
     if mir_is_simd_lane_immediate_callee(callee_name.clone()) {

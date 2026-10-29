@@ -35,7 +35,6 @@ use corehir::type_info_to_mir_value
 // #829: CalleePropCache makes per-CALL callee lookup O(1) instead of scanning
 // the whole MirModule (and each callee body) on every fixpoint iteration.
 
-use std::prelude::{eq}
 fn mir_module_propagate_local_types(mut m: MirModule) {
     mir_module_propagate_local_types_report(m, 0)
 }
@@ -172,17 +171,17 @@ fn propagate_from_local(mut f: MirFunction, dest: i32, source: i32, mut table: T
     // String/vec/hashmap payload locals must not inherit enum variant slots;
     // that makes emit cast field values to the enclosing Ok/Some/String variant.
     let dst_is_payload_container = post_pass_enum_normalize::is_ref_container_type_name(dst_type_name.clone()) ||
-    eq(dst_type_name.clone(), "string") ||
-    eq(dst_type_name.clone(), "String")
+    dst_type_name.clone().eq("string") ||
+    dst_type_name.clone().eq("String")
     let src_is_payload_container = post_pass_enum_normalize::is_ref_container_type_name(src_type_name.clone()) ||
-    eq(src_type_name.clone(), "string") ||
-    eq(src_type_name.clone(), "String")
+    src_type_name.clone().eq("string") ||
+    src_type_name.clone().eq("String")
     let destination_has_string_fallback =
-    eq(dst_type_name.clone(), "string") ||
-    eq(dst_type_name.clone(), "String")
+    dst_type_name.clone().eq("string") ||
+    dst_type_name.clone().eq("String")
     let source_is_string =
-    eq(src_type_name.clone(), "string") ||
-    eq(src_type_name.clone(), "String")
+    src_type_name.clone().eq("string") ||
+    src_type_name.clone().eq("String")
     let destination_is_variant_struct =
     post_pass_enum_normalize::is_enum_variant_struct_type_name(dst_type_name.clone())
     if !dst_is_payload_container && !src_is_payload_container {
@@ -207,15 +206,15 @@ fn propagate_from_local(mut f: MirFunction, dest: i32, source: i32, mut table: T
     let should_replace_type_name =
     len(src_type_name) > 0 &&
     (len(dst_type_name) == 0 ||
-        (destination_is_temporary && !eq(dst_type_name.clone(), src_type_name.clone())) ||
+        (destination_is_temporary && !dst_type_name.clone().eq(src_type_name.clone())) ||
         (destination_is_variant_struct && src_is_payload_container &&
-            !eq(dst_type_name.clone(), src_type_name.clone())) ||
+            !dst_type_name.clone().eq(src_type_name.clone())) ||
         (destination_has_string_fallback &&
             !source_is_string &&
-            !eq(dst_type_name.clone(), src_type_name.clone())))
+            !dst_type_name.clone().eq(src_type_name.clone())))
     let should_sync_value_type =
     len(spine_type_name) > 0 &&
-    (should_replace_type_name || eq(dst_type_name.clone(), src_type_name.clone())) &&
+    (should_replace_type_name || dst_type_name.clone().eq(src_type_name.clone())) &&
     !mir_value_types_equal(source_value_type, destination_value_type)
     if should_replace_type_name || should_sync_value_type {
         if should_replace_type_name {

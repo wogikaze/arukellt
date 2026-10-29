@@ -231,18 +231,6 @@ prelude = true
 stability = "stable"
 doc_category = "string"
 
-# ── String comparison ────────────────────────
-
-[[functions]]
-name = "eq"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_string_eq"
-params = ["String", "String"]
-returns = "bool"
-prelude = true
-stability = "stable"
-doc_category = "string"
-
 # ── String operations ────────────────────────
 
 [[functions]]

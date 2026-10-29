@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use corehir::param
 use corehir::type_info_to_mir_value
@@ -108,7 +107,7 @@ fn mir_bind_method_param(mut ctx: LowerCtx, struct_name: String, param: CoreHirP
         // HashSet operand (the `other` side of union / eq / extend) so its
         // own `len` / `is_empty` stay on the hash store (#917).
         let mut family = String_from("i32")
-        if eq(local_type_name.clone(), String_from("vec:String")) ||
+        if local_type_name.clone().eq(String_from("vec:String")) ||
         p_type_name.clone().starts_with(String_from("HashSet<String>")) ||
         p_type_name.clone().starts_with(String_from("HashSet_String")) {
             family = String_from("String")
@@ -161,7 +160,7 @@ fn mir_bind_method_self_param(mut ctx: LowerCtx, struct_name: String, param: Cor
             self_type_name = struct_name.clone().concat(String_from("<").concat(impl_params.concat(String_from(">"))))
         }
         // Bare Vec / HashMap / HashSet without element annotation → i32 vec.
-        if eq(struct_name.clone(), "Vec") || eq(struct_name.clone(), "HashMap") || eq(struct_name.clone(), "HashSet") {
+        if struct_name.clone().eq("Vec") || struct_name.clone().eq("HashMap") || struct_name.clone().eq("HashSet") {
             self_vt = value_types::VT_GC_REF()
             self_type_name = "vec:i32"
         }
@@ -195,8 +194,8 @@ fn mir_bind_method_self_param(mut ctx: LowerCtx, struct_name: String, param: Cor
         // Concrete impl owners reach here as HashSet_i32 / HashSet_String,
         // generic shells as HashSet (#917).
         let mut family = String_from("i32")
-        if eq(self_type_name.clone(), String_from("vec:String")) ||
-        eq(local_type_name.clone(), String_from("vec:String")) ||
+        if self_type_name.clone().eq(String_from("vec:String")) ||
+        local_type_name.clone().eq(String_from("vec:String")) ||
         self_type_name.clone().starts_with(String_from("HashSet<String>")) ||
         self_type_name.clone().starts_with(String_from("HashSet_String")) {
             family = String_from("String")

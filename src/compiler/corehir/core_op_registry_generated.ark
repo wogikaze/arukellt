@@ -1,7 +1,7 @@
 // Generated from data/core-ops.toml by scripts/gen/generate-core-ops-registry.py.
 // Compact table + index. Do not edit by hand.
 
-use std::prelude::{byte_at, eq, substring}
+use std::prelude::{byte_at, substring}
 use std::text
 use corehir::table_blob
 
@@ -752,7 +752,7 @@ fn core_op_registry_has_fallback_symbol(symbol: String) -> bool {
     let count = core_op_registry_entry_count()
     let mut index = 0
     while index < count {
-        if eq(symbol.clone(), core_op_registry_fallback_symbol_at(index)) {
+        if symbol.clone().eq(core_op_registry_fallback_symbol_at(index)) {
             return true
         }
         index = index + 1
@@ -2178,7 +2178,7 @@ fn core_op_registry_lookup_index(name: String) -> i32 {
         if idx < 0 {
             return 0 - 1
         }
-        if eq(name.clone(), core_op_registry_canonical_id_at(idx)) {
+        if name.clone().eq(core_op_registry_canonical_id_at(idx)) {
             return idx
         }
         slot = (slot + 1) % capacity

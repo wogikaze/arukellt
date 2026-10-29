@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
@@ -62,7 +61,7 @@ fn lower_core_literal_value(mut ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
         let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("bool"))
         let mut bval = 0
-        if eq(core_expr_shape_accessors::mir_core_expr_text(expr), "true") {
+        if core_expr_shape_accessors::mir_core_expr_text(expr).eq("true") {
             bval = 1
         }
         ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(bval, dest))

@@ -1,6 +1,5 @@
 //! Target lowering for the sealed `raw_array_grow` / `raw_array_set_len` /
 //! `raw_array_new` primitives.
-use std::prelude::{eq}
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_record

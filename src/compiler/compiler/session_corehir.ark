@@ -6,7 +6,6 @@ use mir::emit_spec
 // program. Both the driver pipeline and LSP analysis go through these
 // functions, so compile and analyze share one build_checked_program path.
 
-use std::prelude::{eq}
 fn session_lower_mir_fallback(all_decls: Vec<AstNode>) -> MirLowerFallbackSource {
     let mut legacy_decls = Vec::new<MirLowerLegacyDecl>()
     for i in 0..len(all_decls) {
@@ -26,7 +25,7 @@ fn session_lower_mir(
     emit_spec: MirLowerEmitSpec
 ) -> MirModule {
     let view = mod::mir_view_from_program(program)
-    if eq(target.clone(), String_from("wasm32-gc")) {
+    if target.clone().eq(String_from("wasm32-gc")) {
         mod::raw_program_release_body_table(program)
     }
     let mut input = mir::mir_lower_input_new(
@@ -55,7 +54,7 @@ fn session_lower_mir_component(
     emit_spec: MirLowerEmitSpec
 ) -> MirModule {
     let view = mod::mir_view_from_program(program)
-    if eq(target.clone(), String_from("wasm32-gc")) {
+    if target.clone().eq(String_from("wasm32-gc")) {
         mod::raw_program_release_body_table(program)
     }
     let mut input = mir::mir_lower_input_new(

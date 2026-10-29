@@ -1,6 +1,5 @@
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{eq}
 use std::text
 use corehir::kinds
 use corehir::type_id
@@ -15,18 +14,18 @@ use mir::module_gc_struct
 use mir::module_spine
 use wasm::emit_target
 fn gc_layout_plan_name_is_fn(name: String) -> bool {
-    eq(name.clone(), "fn") ||
-    eq(name.clone(), "fnref") ||
+    name.clone().eq("fn") ||
+    name.clone().eq("fnref") ||
     name.clone().starts_with("fnsig:") ||
     name.starts_with("fn(")
 }
 
 fn gc_layout_plan_name_is_i32(name: String) -> bool {
-    eq(name.clone(), "i32") || eq(name.clone(), "I32") ||
-    eq(name.clone(), "bool") || eq(name.clone(), "char") ||
-    eq(name.clone(), "u8") || eq(name.clone(), "i8") ||
-    eq(name.clone(), "u16") || eq(name.clone(), "u32") ||
-    eq(name.clone(), "i16")
+    name.clone().eq("i32") || name.clone().eq("I32") ||
+    name.clone().eq("bool") || name.clone().eq("char") ||
+    name.clone().eq("u8") || name.clone().eq("i8") ||
+    name.clone().eq("u16") || name.clone().eq("u32") ||
+    name.clone().eq("i16")
 }
 
 fn gc_layout_plan_vec_offset_from_elem(table: TypeTable, elem_id: TypeId) -> i32 {
@@ -45,9 +44,9 @@ fn gc_layout_plan_vec_offset_from_elem(table: TypeTable, elem_id: TypeId) -> i32
         return 30
     }
     if kind == kinds::TYPE_KIND_PRIMITIVE() {
-        if eq(name.clone(), "v128") || eq(name.clone(), "V128") { return 21 }
-        if eq(name.clone(), "i64") || eq(name.clone(), "I64") { return 22 }
-        if eq(name.clone(), "f64") || eq(name.clone(), "F64") { return 23 }
+        if name.clone().eq("v128") || name.clone().eq("V128") { return 21 }
+        if name.clone().eq("i64") || name.clone().eq("I64") { return 22 }
+        if name.clone().eq("f64") || name.clone().eq("F64") { return 23 }
         if gc_layout_plan_name_is_fn(name.clone()) { return 28 }
         if gc_layout_plan_name_is_i32(name) { return 10 }
     }
@@ -82,11 +81,11 @@ fn gc_layout_plan_elem_is_declared_aggregate(table: TypeTable, elem: String) -> 
         let k = type_table::type_entry_kind(e)
         if k == kinds::TYPE_KIND_STRUCT() || k == kinds::TYPE_KIND_ENUM() {
             let en = type_table::type_entry_name(e)
-            if eq(en.clone(), elem.clone()) {
+            if en.clone().eq(elem.clone()) {
                 return true
             }
             if en.clone().starts_with(String_from("struct:")) &&
-            eq(ctx_struct_layout::strip_struct_type_prefix(en), elem.clone()) {
+            ctx_struct_layout::strip_struct_type_prefix(en).eq(elem.clone()) {
                 return true
             }
         }

@@ -1,5 +1,4 @@
 use std::host::stdio
-use std::prelude::{eq}
 use std::text
 use mir::function_core_record
 use mir::module_record
@@ -39,7 +38,7 @@ fn MirModule_has_export_name(m: MirModule, name: String) -> bool {
     }
     let mut i = 0
     while i < len(m.export_names) {
-        if eq(get_unchecked(m.export_names, i).clone(), name.clone()) {
+        if get_unchecked(m.export_names, i).clone().eq(name.clone()) {
             return true
         }
         i = i + 1
@@ -100,7 +99,7 @@ fn MirModule_discovery_fn_ret_names(m: MirModule) -> Vec<String> {
 fn MirModule_record_diagnostic(mut m: MirModule, message: String) {
     let mut i = 0
     while i < len(m.diagnostics) {
-        if eq(get_unchecked(m.diagnostics, i), message.clone()) {
+        if get_unchecked(m.diagnostics, i).eq(message.clone()) {
             return
         }
         i = i + 1

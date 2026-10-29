@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use corehir::param
 use corehir::type_info_to_mir_value
@@ -87,7 +86,7 @@ fn mir_bind_fn_param(mut ctx: LowerCtx, param: CoreHirParam) {
         // Mirror the receiver marker for a `HashSet` argument (e.g. the
         // `other` operand of union / intersection / difference / extend).
         let mut family = String_from("i32")
-        if eq(local_type_name.clone(), String_from("vec:String")) ||
+        if local_type_name.clone().eq(String_from("vec:String")) ||
         p_type_name.clone().starts_with(String_from("HashSet<String>")) ||
         p_type_name.clone().starts_with(String_from("HashSet_String")) {
             family = String_from("String")
@@ -168,17 +167,17 @@ fn mir_param_type_name_is_concrete(type_name: String) -> bool {
 }
 
 fn mir_param_type_is_fnref(type_name: String) -> bool {
-    eq(type_name.clone(), String_from("fnref")) ||
-    eq(type_name.clone(), String_from("fnref2")) ||
+    type_name.clone().eq(String_from("fnref")) ||
+    type_name.clone().eq(String_from("fnref2")) ||
     type_name.clone().starts_with(String_from("fnref")) ||
     type_name.clone().starts_with(String_from("fnsig:")) ||
     type_name.clone().starts_with(String_from("fn("))
 }
 
 fn mir_param_type_is_option_fnref(type_name: String) -> bool {
-    eq(type_name.clone(), String_from("option:fnref")) ||
-    eq(type_name.clone(), String_from("Option:fnref")) ||
-    eq(type_name.clone(), String_from("Option:fn")) ||
+    type_name.clone().eq(String_from("option:fnref")) ||
+    type_name.clone().eq(String_from("Option:fnref")) ||
+    type_name.clone().eq(String_from("Option:fn")) ||
     (type_name.clone().ends_with(String_from(":fnref")) && mir_param_type_is_option_container(type_name.clone()))
 }
 

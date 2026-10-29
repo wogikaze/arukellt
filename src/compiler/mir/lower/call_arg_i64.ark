@@ -9,7 +9,6 @@ use wasm::hash_aliases
 
 // True when callee param at param_idx (0-based) is i64 per signature spine.
 // Used to force bare int literals to CONST_I64 / extend i32 locals before call.
-use std::prelude::{eq}
 fn mir_callee_param_is_i64(ctx: LowerCtx, callee_name: String, param_idx: i32) -> bool {
     let decided = mir_callee_param_i64_decision(ctx, callee_name.clone(), param_idx)
     // 1 = i64, 0 = not i64, -1 = spine miss
@@ -42,8 +41,8 @@ fn mir_should_force_int_lit_i64(ctx: LowerCtx, callee_name: String, param_idx: i
 }
 
 fn mir_is_vec_with_capacity_callee(callee_name: String) -> bool {
-    if eq(callee_name.clone(), String_from("Vec::with_capacity")) ||
-    eq(callee_name.clone(), String_from("Vec__with_capacity")) {
+    if callee_name.clone().eq(String_from("Vec::with_capacity")) ||
+    callee_name.clone().eq(String_from("Vec__with_capacity")) {
         return true
     }
     if callee_name.clone().starts_with(String_from("Vec::with_capacity__")) ||
@@ -78,7 +77,7 @@ fn mir_callee_name_accepts_i32_narrow_from_i64(callee_name: String) -> bool {
     callee_name.clone().contains(String_from("hashmap_try_reserve")) {
         return true
     }
-    if eq(callee_name.clone(), String_from("assert_eq_i32")) ||
+    if callee_name.clone().eq(String_from("assert_eq_i32")) ||
     callee_name.clone().ends_with(String_from("::assert_eq_i32")) {
         return true
     }
@@ -99,7 +98,7 @@ fn mir_callee_param_mvt(ctx: LowerCtx, callee_name: String, param_idx: i32) -> M
     let mut param_mvt = spine_lookup::function_param_mvt(m, callee_name.clone(), param_idx)
     if typed_mir_compat::mvt_is_invalid(param_mvt) {
         let short = mir_callee_short_name(callee_name.clone())
-        if !eq(short.clone(), callee_name.clone()) {
+        if !short.clone().eq(callee_name.clone()) {
             param_mvt = spine_lookup::function_param_mvt(m, short, param_idx)
         }
     }
@@ -109,11 +108,11 @@ fn mir_callee_param_mvt(ctx: LowerCtx, callee_name: String, param_idx: i32) -> M
         // signature. Resolve the same alias here or bare fn args lose their
         // fn-typed parameter slot and lower to 0-param calls (#874).
         let alias = hash_aliases::hashmap_builtin_alias(callee_name.clone())
-        if !eq(alias.clone(), callee_name.clone()) {
+        if !alias.clone().eq(callee_name.clone()) {
             param_mvt = spine_lookup::function_param_mvt(m, alias, param_idx)
             if typed_mir_compat::mvt_is_invalid(param_mvt) {
                 let alias_short = mir_callee_short_name(alias.clone())
-                if !eq(alias_short.clone(), alias.clone()) {
+                if !alias_short.clone().eq(alias.clone()) {
                     param_mvt = spine_lookup::function_param_mvt(m, alias_short, param_idx)
                 }
             }
@@ -167,7 +166,7 @@ fn mir_callee_name_suggests_i64_args(callee_name: String) -> bool {
     if callee_name.clone().contains(String_from("i64")) {
         return true
     }
-    if eq(callee_name.clone(), String_from("seek")) {
+    if callee_name.clone().eq(String_from("seek")) {
         return true
     }
     callee_name.clone().ends_with(String_from("::seek"))

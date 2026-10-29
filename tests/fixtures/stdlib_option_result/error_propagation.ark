@@ -1,9 +1,8 @@
 use std::host::stdio
 use std::test::Test
-use std::prelude::{eq}
 
 fn inner(s: String) -> Result<i32, String> {
-    if eq(s, "ok") { Ok(1) } else { Err(String_from("inner fail")) }
+    if s.eq("ok") { Ok(1) } else { Err(String_from("inner fail")) }
 }
 fn outer(s: String) -> Result<i32, String> {
     let v: i32 = inner(s)?

@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use corehir::kinds
 use corehir::mir_value_type
@@ -57,7 +56,7 @@ fn mir_sync_type_name_alias(type_name: String) -> String {
 
 fn mir_local_name_is_string(loc: MirLocal) -> bool {
     let type_name = local_access::MirLocal_type_name(loc)
-    eq(type_name.clone(), "String") || eq(type_name, "string")
+    type_name.clone().eq("String") || type_name.eq("string")
 }
 
 fn mir_canonical_string_type_id(table: TypeTable) -> TypeId {

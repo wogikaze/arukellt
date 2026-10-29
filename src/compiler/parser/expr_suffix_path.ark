@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use lexer::tokens
 use parser::core_ast_text_fields
@@ -58,10 +57,10 @@ pub fn parse_path_suffix(mut p: Parser, lhs: AstNode) -> AstNode {
     // String::from(x) → String_from, i32::from(s) → parse_i32.
     // This lets the resolver/typechecker/lowering see the prelude function directly.
     let final_text = core_ast_text_fields::AstNode_text(node)
-    if eq(final_text.clone(), "String::from") {
+    if final_text.clone().eq("String::from") {
         core_ast_text_fields::AstNode_set_text(node, "String_from")
     }
-    if eq(final_text.clone(), "i32::from") {
+    if final_text.clone().eq("i32::from") {
         core_ast_text_fields::AstNode_set_text(node, "parse_i32")
     }
     node

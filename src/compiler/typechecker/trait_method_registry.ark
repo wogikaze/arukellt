@@ -4,7 +4,6 @@
 // bounds can resolve `x.method()` calls against the trait's method
 // signature when the receiver type is a type variable.
 
-use std::prelude::{eq}
 use typechecker::ast_access
 use typechecker::ast_decl_predicates
 use typechecker::contract_env_record
@@ -92,10 +91,7 @@ fn lookup_trait_method_direct(env: TypeEnv, trait_name: String, method_name: Str
         if names::same_type_name(
             contract_trait_method_record::trait_method_entry_trait_name(entry),
             trait_name.clone()
-        ) && eq(
-            contract_trait_method_record::trait_method_entry_method_name(entry),
-            method_name.clone()
-        ) {
+        ) && contract_trait_method_record::trait_method_entry_method_name(entry).eq(method_name.clone()) {
             return entry
         }
         i = i + 1

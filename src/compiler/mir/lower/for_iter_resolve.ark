@@ -7,7 +7,6 @@ use mir::lower::method_resolve
 // Resolve the concrete IntoIterator owner used by a `for` source. The
 // lowering runs after monomorphisation, so this is a concrete type lookup;
 // generic type variables must not be turned into guessed method names.
-use std::prelude::{eq}
 use std::text
 fn mir_for_into_iterator_owner(source_type: String) -> String {
     let normalized = method_resolve::mir_normalize_type_name(source_type.clone())
@@ -16,10 +15,10 @@ fn mir_for_into_iterator_owner(source_type: String) -> String {
     }
     if loop_vec::mir_is_vec_type_name(source_type.clone()) {
         let element_type = loop_vec::mir_vec_element_type_name(source_type.clone())
-        if eq(element_type.clone(), "i32") || eq(element_type.clone(), "I32") {
+        if element_type.clone().eq("i32") || element_type.clone().eq("I32") {
             return String_from("Vec")
         }
-        if eq(element_type.clone(), "String") || eq(element_type.clone(), "string") {
+        if element_type.clone().eq("String") || element_type.clone().eq("string") {
             return String_from("Vec_String")
         }
         return String_from("")
@@ -59,7 +58,7 @@ fn mir_for_into_iterator_callee(mut ctx: LowerCtx, span_start: i32, source_type:
         }
     }
     let bare = method_resolve::mir_bare_owner_name(source_type)
-    if len(bare) == 0 || eq(bare.clone(), owner.clone()) {
+    if len(bare) == 0 || bare.clone().eq(owner.clone()) {
         return String_new()
     }
     mir_for_desugar_callee(ctx, span_start, bare.concat("::into_iter"))
@@ -74,7 +73,7 @@ fn mir_for_next_callee(mut ctx: LowerCtx, span_start: i32, iterator_type: String
         return resolved
     }
     let bare_next = method_resolve::mir_bare_owner_name(iterator_type).concat("::next")
-    if eq(bare_next.clone(), inst_next.clone()) {
+    if bare_next.clone().eq(inst_next.clone()) {
         return String_new()
     }
     mir_for_desugar_callee(ctx, span_start, bare_next)

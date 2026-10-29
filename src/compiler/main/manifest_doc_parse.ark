@@ -1,5 +1,4 @@
 use std::toml
-use std::prelude::{eq}
 use lsp::symbol_index_paths
 use lsp::symbol_index_stdlib
 use main::manifest_doc_record
@@ -95,7 +94,7 @@ fn doc_flush_fn(mut out: Vec<manifest_doc_record::DocFnEntry>, state: DocParseFn
     if len(state.name) == 0 || len(state.module) == 0 {
         return
     }
-    if eq(state.kind.clone(), String_from("intrinsic")) {
+    if state.kind.clone().eq(String_from("intrinsic")) {
         return
     }
     push(

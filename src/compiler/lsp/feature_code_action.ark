@@ -1,6 +1,5 @@
 use std::text
 use std::json
-use std::prelude::{eq}
 use analysis::ident_span
 use analysis::symbols
 use lsp::feature_request
@@ -40,7 +39,7 @@ fn build_import_actions_json(state: LspState, uri: String, text: String, name: S
     let mut actions = String_new()
     while j < sn {
         let sym = get_unchecked(stdlib, j)
-        if eq(symbol_index_record::stdlib_indexed_symbol_name(sym), name.clone()) {
+        if symbol_index_record::stdlib_indexed_symbol_name(sym).eq(name.clone()) {
             let module_path = symbol_index_record::stdlib_indexed_symbol_module_path(sym)
             if len(module_path) > 0 {
                 let import_path = import_graph::stdlib_import_path(module_path.clone(), name.clone())

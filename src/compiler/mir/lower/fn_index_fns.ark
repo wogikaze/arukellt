@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::fn_index_mono
 use mir::lower::fn_index_source
 use mir::lower::stdlib_body_defer
@@ -23,7 +22,7 @@ fn mir_index_top_level_fn(
     let generic_return_ty = fn_index_source::mir_fn_index_source_typed_return_type(source, typed_index)
     let mono_instances = fn_index_source::mir_fn_index_source_mono_instances(source)
     let entry_main_decl_index = fn_index_source::mir_fn_index_source_entry_main_decl_index(source)
-    let skip_shadow_main = eq(decl_name.clone(), "main") && decl_index != entry_main_decl_index
+    let skip_shadow_main = decl_name.clone().eq("main") && decl_index != entry_main_decl_index
     let skip_join_vec = if fn_info_index >= 0 {
         let param_count = fn_index_source::mir_fn_index_source_fn_param_count_at(source, fn_info_index)
         if param_count > 0 {
@@ -63,7 +62,7 @@ fn mir_index_top_level_fn(
                 let mono_qualified_name = fn_index_source::mir_fn_index_source_fn_qualified_name_at(source, fn_info_index)
                 let bare_mono_count = mono::mono_index_count(midx, decl_name.clone())
                 let mut qualified_mono_count = 0
-                if len(mono_qualified_name) > 0 && !eq(mono_qualified_name.clone(), decl_name.clone()) {
+                if len(mono_qualified_name) > 0 && !mono_qualified_name.clone().eq(decl_name.clone()) {
                     qualified_mono_count = mono::mono_index_count(midx, mono_qualified_name.clone())
                 }
                 if qualified_mono_count > 1 || (bare_mono_count > 0 && qualified_mono_count > 0) {

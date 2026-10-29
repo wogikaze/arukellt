@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use parser::ast_kind_fields
 use parser::core_ast_text_fields
@@ -29,10 +28,10 @@ fn issue504_parser_self_check() -> String {
     }
     let impl_trait = core_ast_type_ann::AstNode_type_ann_at(impl_decl, 0)
     let impl_target = core_ast_type_ann::AstNode_type_ann_at(impl_decl, 1)
-    if !eq(core_ast_text_fields::AstNode_text(impl_trait), "Foo") {
+    if !core_ast_text_fields::AstNode_text(impl_trait).eq("Foo") {
         return "issue504 parser fail: impl trait"
     }
-    if !eq(core_ast_text_fields::AstNode_text(impl_target), "MyStruct") {
+    if !core_ast_text_fields::AstNode_text(impl_target).eq("MyStruct") {
         return "issue504 parser fail: impl target"
     }
     let fn_decl = get_unchecked(decls, 1)
@@ -43,14 +42,14 @@ fn issue504_parser_self_check() -> String {
         return "issue504 parser fail: missing type params"
     }
     let type_param = core_ast_type_ann::AstNode_type_ann_at(fn_decl, 0)
-    if !eq(core_ast_text_fields::AstNode_text(type_param), "T") {
+    if !core_ast_text_fields::AstNode_text(type_param).eq("T") {
         return "issue504 parser fail: type param name"
     }
     if core_ast_type_ann::AstNode_type_ann_count(type_param) != 1 {
         return "issue504 parser fail: missing type param bound"
     }
     let bound = core_ast_type_ann::AstNode_type_ann_at(type_param, 0)
-    if !eq(core_ast_text_fields::AstNode_text(bound), "Foo") {
+    if !core_ast_text_fields::AstNode_text(bound).eq("Foo") {
         return "issue504 parser fail: wrong bound"
     }
     "issue504 parser ok: impl Foo for MyStruct / fn f<T: Foo>(x: T)"

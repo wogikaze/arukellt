@@ -10,7 +10,7 @@
 //! stdlib-visible entry points. GC/LM representation differences are absorbed
 //! by the CoreOp / target intrinsic handlers behind those helpers (RFC-006 D5).
 
-use std::prelude::{Std, eq, f32_to_f64}
+use std::prelude::{Std, f32_to_f64}
 
 fn raw_array_new<T>(cap: i32) -> Vec<T> {
     Std::panic(String_new()); return raw_array_new(cap)
@@ -241,7 +241,7 @@ test mod "raw_storage" {
         let text = RawString::from_bytes(bytes)
         assert(RawString::len_bytes(text) == 2)
         assert(RawString::byte_at_unchecked(text, 0) == 79)
-        assert(eq(RawString::clone(text), "OK"))
+        assert(RawString::clone(text).eq("OK"))
         assert(RawString::len_bytes(RawString::new()) == 0)
     }
 
@@ -249,7 +249,7 @@ test mod "raw_storage" {
         assert(RawFloat::sqrt(9.0) == 3.0)
         assert(RawFloat::bits_lo(1.0) == 0)
         assert(RawFloat::bits_hi(1.0) == 1072693248)
-        assert(eq(RawFloat::to_string(1.5), "1.5"))
+        assert(RawFloat::to_string(1.5).eq("1.5"))
         assert(RawFloat::promote_f32(1.5f32) == 1.5f64)
 
         match RawString::parse_i32("42") {

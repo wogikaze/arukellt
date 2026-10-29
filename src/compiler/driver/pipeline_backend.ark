@@ -1,6 +1,5 @@
 use std::host::clock::Clock
 use std::host::stdio
-use std::prelude::{eq}
 use compiler::phases
 use driver::config_record
 use driver::errors_phase
@@ -52,7 +51,7 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     if backend_resolve::resolve_result_should_return(resolved) {
         return backend_resolve::resolve_result_result(resolved)
     }
-    if eq(config_record::config_emit_mode(config), "resolve") {
+    if config_record::config_emit_mode(config).eq("resolve") {
         mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
         return result_record::CompileResult_ok(phases::PHASE_RESOLVE())
     }
@@ -68,7 +67,7 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     if backend_typecheck::typecheck_result_should_return(checked) {
         return backend_typecheck::typecheck_result_result(checked)
     }
-    if eq(config_record::config_emit_mode(config), "typecheck") {
+    if config_record::config_emit_mode(config).eq("typecheck") {
         mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
         return result_record::CompileResult_ok(phases::PHASE_TYPECHECK())
     }
@@ -78,16 +77,16 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
         backend_resolve::resolve_result_loaded_modules(resolved),
         backend_resolve::resolve_result_module_stdlib_flags(resolved),
         decls,
-        eq(config_record::config_emit_mode(config).clone(), "typed-corehir") ||
-        !eq(config_record::config_target(config).clone(), "wasm32-gc")
+        config_record::config_emit_mode(config).clone().eq("typed-corehir") ||
+        !config_record::config_target(config).clone().eq("wasm32-gc")
     )
     backend_typecheck::typecheck_result_release_check_result(checked)
     backend_resolve::resolve_result_release_ctx(resolved)
-    if eq(config_record::config_emit_mode(config), "check") {
+    if config_record::config_emit_mode(config).eq("check") {
         mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
         return result_record::CompileResult_ok(phases::PHASE_TYPECHECK())
     }
-    if eq(config_record::config_emit_mode(config), "typed-corehir") {
+    if config_record::config_emit_mode(config).eq("typed-corehir") {
         let rendered = typed_corehir_render::render_typed_corehir(
             checked_program::checked_program_core_program(program),
             config
@@ -131,7 +130,7 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     if config_record::config_show_timing(config) {
         module_functions::mir_note_receipt_counts(mir_module, 1)
     }
-    if eq(config_record::config_emit_mode(config), "mir") {
+    if config_record::config_emit_mode(config).eq("mir") {
         return result_record::CompileResult_ok(phases::PHASE_LOWER())
     }
     debug::dump_backend_plan_if_enabled(config)

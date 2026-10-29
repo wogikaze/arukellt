@@ -1,5 +1,4 @@
 // Wasm emitter context data record.
-use std::prelude::{eq}
 use corehir::signature_registry
 use mir::local_write_index
 use corehir::type_table
@@ -638,7 +637,7 @@ fn SelfEmitCtx_rebuild_gc_struct_name_index(mut ctx: SelfEmitCtx) {
             let full_name = get_unchecked(names, i).clone()
             name_index::name_index_insert_first(index, full_name, type_idx)
             let bare = SelfEmitCtx_bare_suffix(full_name)
-            if len(bare) > 0 && !eq(bare.clone(), full_name.clone()) {
+            if len(bare) > 0 && !bare.clone().eq(full_name.clone()) {
                 name_index::name_index_insert_first(index, bare, type_idx)
             }
         }

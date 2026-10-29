@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use corehir::kinds
 use corehir::mir_value_type
 use corehir::type_id
@@ -82,19 +81,19 @@ fn collection_type_sig(mir: MirModule, type_name: String, target: String) -> Str
         return String_new()
     }
     if type_name.clone().starts_with("vec:") {
-        if eq(type_name.clone(), "vec:String") || eq(type_name.clone(), "vec:string") {
+        if type_name.clone().eq("vec:String") || type_name.clone().eq("vec:string") {
             return sections_types_gc::gc_vec_string_type_sig()
         }
-        if eq(type_name.clone(), "vec:i64") || eq(type_name.clone(), "vec:I64") {
+        if type_name.clone().eq("vec:i64") || type_name.clone().eq("vec:I64") {
             return sections_types_gc::gc_vec_i64_type_sig()
         }
-        if eq(type_name.clone(), "vec:f64") || eq(type_name.clone(), "vec:F64") {
+        if type_name.clone().eq("vec:f64") || type_name.clone().eq("vec:F64") {
             return sections_types_gc::gc_vec_f64_type_sig()
         }
-        if eq(type_name.clone(), "vec:v128") || eq(type_name.clone(), "vec:V128") {
+        if type_name.clone().eq("vec:v128") || type_name.clone().eq("vec:V128") {
             return sections_types_gc::gc_vec_v128_type_sig()
         }
-        if eq(type_name.clone(), "vec:fnref") || eq(type_name.clone(), "vec:fn") {
+        if type_name.clone().eq("vec:fnref") || type_name.clone().eq("vec:fn") {
             return sections_types_gc::gc_vec_fnref_type_sig()
         }
         let elem = type_name.clone().slice(4, len(type_name))
@@ -105,7 +104,7 @@ fn collection_type_sig(mir: MirModule, type_name: String, target: String) -> Str
             return sections_types_gc::gc_vec_enum_ref_type_sig()
         }
         if sections_types_gc_phase7::gc_vec_elem_name_is_struct_ref(elem.clone()) ||
-        eq(elem.clone(), "Vec") ||
+        elem.clone().eq("Vec") ||
         elem.clone().starts_with("vec:") ||
         module_gc_struct::MirModule_gc_struct_slot(mir, elem.clone()) >= 0 {
             return sections_types_gc_phase7::gc_vec_struct_ref_type_sig()

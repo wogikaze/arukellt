@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use resolver::scope_error
 use resolver::scope_lookup
@@ -27,15 +26,15 @@ fn register_use_decl(mut ctx: ResolveCtx, d: AstNode) {
 fn register_use_reject_retired_prelude(ctx: ResolveCtx, d: AstNode) {
     let use_path = ast_access::node_text(d)
     let parent = paths::use_module_parent_path(use_path.clone())
-    if !eq(parent.clone(), "std::prelude") && !eq(parent.clone(), "prelude") {
+    if !parent.clone().eq("std::prelude") && !parent.clone().eq("prelude") {
         return
     }
     let name = paths::use_module_short_name(use_path)
     // `clone` keeps a private prelude shim and is still imported by compiler
     // modules; only the Box free pair is fully retired here.
-    let hint = if eq(name.clone(), "Box_new") {
+    let hint = if name.clone().eq("Box_new") {
         String_from("use `Box::new(value)` instead")
-    } else if eq(name.clone(), "unbox") {
+    } else if name.clone().eq("unbox") {
         String_from("use `boxed.take()` instead")
     } else {
         String_new()
@@ -75,7 +74,7 @@ fn register_use_module_alias(mut ctx: ResolveCtx, d: AstNode) {
     if existing_mod < 0 {
         scope_define::define(ctx, short_name.clone(), commands::SYM_MODULE())
     }
-    if !eq(short_name.clone(), default_name.clone()) {
+    if !short_name.clone().eq(default_name.clone()) {
         ctx_record::resolve_ctx_add_use_alias(ctx, short_name.clone(), default_name.clone())
     }
     register_type_use_alias(ctx, full_path, short_name.clone(), existing_kind)
@@ -130,7 +129,7 @@ fn register_local_import_decl(mut ctx: ResolveCtx, d: AstNode) {
     if existing_mod < 0 {
         scope_define::define(ctx, alias.clone(), commands::SYM_MODULE())
     }
-    if !eq(alias.clone(), default_name.clone()) {
+    if !alias.clone().eq(default_name.clone()) {
         ctx_record::resolve_ctx_add_use_alias(ctx, alias, default_name)
     }
 }
@@ -185,8 +184,8 @@ fn register_use_func_alias(mut ctx: ResolveCtx, child_path: String, child_short:
     // free itself is retired (ADR-091). The scope resolver would otherwise let
     // an explicit selective import resurrect it; reject the import instead of
     // silently binding a non-public lowering target.
-    if eq(child_short.clone(), "clone") &&
-    (eq(parent_short.clone(), "prelude") || eq(parent_short.clone(), "std::prelude")) {
+    if child_short.clone().eq("clone") &&
+    (parent_short.clone().eq("prelude") || parent_short.clone().eq("std::prelude")) {
         scope_error::resolve_error(
             ctx,
             String_from("removed prelude free function: clone; use `x.clone()` on the value instead")

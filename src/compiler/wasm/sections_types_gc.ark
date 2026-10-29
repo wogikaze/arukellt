@@ -6,7 +6,6 @@
 //   SubF{N}_S_...   - final subtype of type at index {N} with struct body S_...
 //   SubF_GS_f...    - final struct with no supertype (user-defined structs)
 
-use std::prelude::{eq}
 use std::text
 use mir::module_gc_enum
 use mir::module_gc_order
@@ -69,7 +68,7 @@ fn emit_array_type_entry(mut type_sec: WasmWriter, sig: String, gc_type_base: i3
 }
 
 fn emit_array_elem_type(mut type_sec: WasmWriter, elem_type: String, gc_type_base: i32, gc_struct_type_map: Vec<i32>) {
-    if eq(elem_type.clone(), "structref") {
+    if elem_type.clone().eq("structref") {
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
         writer_core::emit_byte(type_sec, constants::WASM_STRUCTREF())
         return
@@ -269,7 +268,7 @@ fn gc_struct_sig_as_final(sig: String) -> String {
     // A zero-field user struct has the bare `GS` sig. It must still be a
     // final struct type; the unprefixed form falls through to the function
     // type branch, which has no body.
-    if eq(sig.clone(), String_from("GS")) {
+    if sig.clone().eq(String_from("GS")) {
         return String_from("SubF_GS")
     }
     sig

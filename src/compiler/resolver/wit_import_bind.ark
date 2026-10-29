@@ -1,6 +1,5 @@
 // WIT import binding collection for MIR and Wasm emit (#653, #706).
 
-use std::prelude::{eq}
 use std::text
 use component::wit_parse_text
 use resolver::ast_decl_predicates
@@ -88,19 +87,19 @@ fn wit_push_bindings_for_import(mut bindings: Vec<WitImportBinding>, wit_paths: 
         wit_push_bindings_for_doc(bindings, alias.clone(), doc)
         return
     }
-    if eq(package_id.clone(), "test:host/math") {
+    if package_id.clone().eq("test:host/math") {
         push(bindings, WitImportBinding_new("i32_i32_1i32", "test:host/math", "test:host/math", "test:host/math", "add", alias.clone().concat("::add")))
         return
     }
-    if eq(package_id.clone(), "test:doc/parse") {
+    if package_id.clone().eq("test:doc/parse") {
         push(bindings, WitImportBinding_new("String_1i32", "test:doc/parse", "test:doc/parse", "test:doc/parse", "parse-markdown", alias.clone().concat("::parse_markdown")))
         return
     }
-    if eq(package_id.clone(), "test:host/host") {
+    if package_id.clone().eq("test:host/host") {
         push(bindings, WitImportBinding_new("i32_0", "test:host/host", "test:host/host", "test:host/host", "set-perms", alias.clone().concat("::set_perms")))
         return
     }
-    if eq(package_id.clone(), "test:host/handles") {
+    if package_id.clone().eq("test:host/handles") {
         push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "take", alias.clone().concat("::take")))
         push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "peek", alias.clone().concat("::peek")))
     }

@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use lexer::tokens
 use parser::kinds
@@ -45,7 +44,7 @@ pub fn parse_prefix(mut p: Parser) -> AstNode {
 }
 
 fn is_move_closure_prefix(p: Parser, t: Token, kind: i32) -> bool {
-    if kind != tokens::TK_IDENT() || !eq(token_state::Token_text(t), "move") {
+    if kind != tokens::TK_IDENT() || !token_state::Token_text(t).eq("move") {
         return false
     }
     let next = state_record::parser_position(p) + 1

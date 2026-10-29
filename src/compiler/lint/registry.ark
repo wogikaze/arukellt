@@ -2,7 +2,6 @@
 // Defines all lint rules with id, severity, category, and description.
 // Used by `arukellt lint --list` and severity override filtering.
 use std::text
-use std::prelude::{eq}
 use diagnostics::codes
 use diagnostics::severity
 fn LINT_ALLOW() -> i32 {
@@ -118,7 +117,7 @@ fn lint_rule_index_by_code(code: String) -> i32 {
     let count = lint_rule_count()
     let mut i = 0
     while i < count {
-        if eq(lint_rule_code(lint_rule_at(i)), code.clone()) {
+        if lint_rule_code(lint_rule_at(i)).eq(code.clone()) {
             return i
         }
         i = i + 1
@@ -131,7 +130,7 @@ fn lint_rule_index_by_name(name: String) -> i32 {
     let count = lint_rule_count()
     let mut i = 0
     while i < count {
-        if eq(lint_rule_name(lint_rule_at(i)), name.clone()) {
+        if lint_rule_name(lint_rule_at(i)).eq(name.clone()) {
             return i
         }
         i = i + 1
@@ -183,7 +182,7 @@ pub fn effective_severity(code: String, allow_codes: Vec<String>, deny_codes: Ve
     let allow_count = len(allow_codes)
     let mut ai = 0
     while ai < allow_count {
-        if eq(get_unchecked(allow_codes, ai).clone(), code.clone()) {
+        if get_unchecked(allow_codes, ai).clone().eq(code.clone()) {
             return LINT_ALLOW()
         }
         ai = ai + 1
@@ -191,7 +190,7 @@ pub fn effective_severity(code: String, allow_codes: Vec<String>, deny_codes: Ve
     let deny_count = len(deny_codes)
     let mut di = 0
     while di < deny_count {
-        if eq(get_unchecked(deny_codes, di).clone(), code.clone()) {
+        if get_unchecked(deny_codes, di).clone().eq(code.clone()) {
             return LINT_DENY()
         }
         di = di + 1
@@ -210,11 +209,11 @@ pub fn should_suppress(code: String, allow_codes: Vec<String>) -> bool {
     let mut i = 0
     while i < count {
         let entry = get_unchecked(allow_codes, i)
-        if eq(entry.clone(), code.clone()) {
+        if entry.clone().eq(code.clone()) {
             return true
         }
         let resolved = resolve_rule_code(entry.clone())
-        if len(resolved.clone()) > 0 && eq(resolved.clone(), code.clone()) {
+        if len(resolved.clone()) > 0 && resolved.clone().eq(code.clone()) {
             return true
         }
         i = i + 1
@@ -229,11 +228,11 @@ pub fn should_deny(code: String, deny_codes: Vec<String>) -> bool {
     let mut i = 0
     while i < count {
         let entry = get_unchecked(deny_codes, i)
-        if eq(entry.clone(), code.clone()) {
+        if entry.clone().eq(code.clone()) {
             return true
         }
         let resolved = resolve_rule_code(entry.clone())
-        if len(resolved.clone()) > 0 && eq(resolved.clone(), code.clone()) {
+        if len(resolved.clone()) > 0 && resolved.clone().eq(code.clone()) {
             return true
         }
         i = i + 1

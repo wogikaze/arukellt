@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use corehir::function_id
 use corehir::signature_entry
 use corehir::signature_registry
@@ -37,7 +36,7 @@ fn mir_fnref_type_name_for_function(ctx: LowerCtx, fn_name: String) -> String {
     let mut i = 0
     while i < n {
         let f = module_functions::MirModule_function_at(m, i)
-        if eq(function_identity::MirFunction_name(f), fn_name.clone()) {
+        if function_identity::MirFunction_name(f).eq(fn_name.clone()) {
             return closure_registry::closure_funcref_type_name(f, 0)
         }
         i = i + 1
@@ -64,7 +63,7 @@ fn mir_function_parameter_count(ctx: LowerCtx, fn_name: String) -> i32 {
     let mut i = 0
     while i < n {
         let f = module_functions::MirModule_function_at(m, i)
-        if eq(function_identity::MirFunction_name(f), fn_name.clone()) {
+        if function_identity::MirFunction_name(f).eq(fn_name.clone()) {
             return function_param_view::MirFunction_param_count(f)
         }
         i = i + 1

@@ -1,5 +1,4 @@
 use std::host::fs::Fs
-use std::prelude::{eq}
 use lsp::lsp_package_definition
 use lsp::state_record
 use lsp::symbol_index_paths
@@ -46,7 +45,7 @@ fn roots_contains(roots: Vec<String>, path: String) -> bool {
     let n = len(roots)
     let mut i = 0
     while i < n {
-        if eq(get_unchecked(roots, i), path.clone()) {
+        if get_unchecked(roots, i).eq(path.clone()) {
             return true
         }
         i = i + 1

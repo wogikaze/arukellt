@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use lexer::tokens
 use parser::core_api_cursor
@@ -27,7 +26,7 @@ fn parse_proof_contract_block(mut p: Parser, mut node: AstNode) -> bool {
         }
         let kind_token = core_api_cursor::bump(p)
         let kind_name = token_state::Token_text(kind_token)
-        if !eq(kind_name.clone(), "requires") && !eq(kind_name.clone(), "ensures") {
+        if !kind_name.clone().eq("requires") && !kind_name.clone().eq("ensures") {
             core_api_expect::error(p, "unsupported proof contract kind: ".concat(kind_name))
             return false
         }

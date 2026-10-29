@@ -1,11 +1,10 @@
-use std::prelude::{eq}
 use std::text
 pub fn is_stdlib_path(path: String) -> bool {
     let n = len(path)
     if n < 5 {
         return false
     }
-    eq(path.slice(0, 5), "std::")
+    path.slice(0, 5).eq("std::")
 }
 
 pub fn stdlib_path_to_file(path: String) -> String {
@@ -32,5 +31,5 @@ pub fn stdlib_mod_fallback_path(primary: String) -> String {
 test mod "stdlib_path" {
     test "is_std" { assert(is_stdlib_path("std::core")) }
     test "not_std" { assert(is_stdlib_path("local::m") == false) }
-    test "to_file" { assert(eq(stdlib_path_to_file("std::core"), "std/core.ark")) }
+    test "to_file" { assert(stdlib_path_to_file("std::core").eq("std/core.ark")) }
 }

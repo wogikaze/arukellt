@@ -7,12 +7,12 @@
 // std/manifest.toml;
 // scripts/check/check-compat-orphans.py verifies both directions.
 fn is_stable_prelude_name(name: String) -> bool {
-    eq(name.clone(), "Std") || eq(name.clone(), "assert") ||
-    eq(name.clone(), "String_from") || eq(name.clone(), "String_new") ||
-    eq(name.clone(), "char_to_string") || eq(name.clone(), "len") ||
-    eq(name.clone(), "push") || eq(name.clone(), "pop") ||
-    eq(name.clone(), "get") || eq(name.clone(), "set") ||
-    eq(name.clone(), "get_unchecked")
+    name.clone().eq("Std") || name.clone().eq("assert") ||
+    name.clone().eq("String_from") || name.clone().eq("String_new") ||
+    name.clone().eq("char_to_string") || name.clone().eq("len") ||
+    name.clone().eq("push") || name.clone().eq("pop") ||
+    name.clone().eq("get") || name.clone().eq("set") ||
+    name.clone().eq("get_unchecked")
 }
 
 test mod "prelude_stable" {

@@ -7,7 +7,6 @@
 //! plus receiver methods.
 
 use std::core::hash
-use std::prelude::{eq}
 fn hashmap_str_fn_new() -> HashMap<String, fn(i32) -> i32> {
     __hm_sf_new()
 }
@@ -64,7 +63,7 @@ fn hashmap_str_fn_set_probe(
             __hm_sf_set_size(m, __hm_sf_size(m) + 1)
             done = true
             probes = cap
-        } else if eq(__hm_sf_get_key(m, idx), key) {
+        } else if __hm_sf_get_key(m, idx).eq(key) {
             __hm_sf_set_val(m, idx, value)
             done = true
             probes = cap
@@ -91,7 +90,7 @@ fn hashmap_str_fn_get(
             probes = cap
         } else if flag == 1 {
             let k: String = __hm_sf_get_key(m, idx)
-            if eq(k, key) {
+            if k.eq(key) {
                 result = Some(__hm_sf_get_val(m, idx))
                 probes = cap
             } else {
@@ -118,7 +117,7 @@ fn hashmap_str_fn_contains(m: HashMap<String, fn(i32) -> i32>, key: String) -> b
             probes = cap
         } else if flag == 1 {
             let k: String = __hm_sf_get_key(m, idx)
-            if eq(k, key) {
+            if k.eq(key) {
                 found = true
                 probes = cap
             } else {
@@ -148,7 +147,7 @@ fn hashmap_str_fn_remove(
             probes = cap
         } else if flag == 1 {
             let k: String = __hm_sf_get_key(m, idx)
-            if eq(k, key) {
+            if k.eq(key) {
                 result = Some(__hm_sf_get_val(m, idx))
                 __hm_sf_set_flag(m, idx, 2)
                 __hm_sf_set_size(m, __hm_sf_size(m) - 1)

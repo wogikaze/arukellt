@@ -2,7 +2,7 @@
 // The method form must emit valid core Wasm on wasm32-gc exactly like the
 // free-function form; the wildcard receiver copy is the regression shape.
 use std::host::stdio
-use std::prelude::{eq, get_unchecked, len}
+use std::prelude::{get_unchecked, len}
 
 pub enum Node {
     Leaf(String),
@@ -71,12 +71,12 @@ fn main() {
 
     assert(branch.child_count() == 2)
     assert(free_child_count(branch) == 2)
-    assert(eq(branch.child_at(0).first_leaf_name(), String_from("a")))
-    assert(eq(branch.child_at(1).first_leaf_name(), String_from("b")))
-    assert(eq(branch.child_at(9).first_leaf_name(), String_from("oob")))
-    assert(eq(branch.first_leaf_name(), String_from("a")))
+    assert(branch.child_at(0).first_leaf_name().eq(String_from("a")))
+    assert(branch.child_at(1).first_leaf_name().eq(String_from("b")))
+    assert(branch.child_at(9).first_leaf_name().eq(String_from("oob")))
+    assert(branch.first_leaf_name().eq(String_from("a")))
     assert(first.child_count() == 0)
-    assert(eq(free_first_leaf_name(first), String_from("a")))
+    assert(free_first_leaf_name(first).eq(String_from("a")))
 
     stdio::println(String_from("OK"))
 }

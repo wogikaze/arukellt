@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::ast_node
 use mir::lower::ann_types
 use mir::lower::ctx_api_local_alloc
@@ -54,8 +53,8 @@ fn mir_emit_closure_params(mut ctx: LowerCtx, clos: AstNode, child_count: i32) {
 // fnref-family spellings (fnref/fnref2/fnsig:/fn() mark a callback ABI
 // param; they must keep VT_FUNCREF rather than widening to a data ref.
 fn closure_param_type_is_fnref(type_name: String) -> bool {
-    eq(type_name.clone(), String_from("fnref")) ||
-    eq(type_name.clone(), String_from("fnref2")) ||
+    type_name.clone().eq(String_from("fnref")) ||
+    type_name.clone().eq(String_from("fnref2")) ||
     type_name.clone().starts_with(String_from("fnref")) ||
     type_name.clone().starts_with(String_from("fnsig:")) ||
     type_name.clone().starts_with(String_from("fn("))

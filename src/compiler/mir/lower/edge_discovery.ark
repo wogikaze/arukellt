@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use collections::name_index
 use wasm::hash_aliases
@@ -99,7 +98,7 @@ fn edge_type_memo_find(memo: EdgeTypeMemo, span_start: i32, span_end: i32, name:
     while i < len(memo.starts) {
         if get_unchecked(memo.starts, i) == span_start &&
         get_unchecked(memo.ends, i) == span_end &&
-        eq(get_unchecked(memo.names, i).clone(), name.clone()) {
+        get_unchecked(memo.names, i).clone().eq(name.clone()) {
             if found >= 0 {
                 return 0 - 1
             }
@@ -289,7 +288,7 @@ fn edge_emit_names_for_fn_decl(
     let bare_count = mono::mono_index_count(midx, decl_name.clone())
     let qualified_name = entry_view_fn::mir_entry_fn_qualified_name_at(entry_view, fn_info_index, String_new())
     let mut qualified_count = 0
-    if len(qualified_name) > 0 && !eq(qualified_name.clone(), decl_name.clone()) {
+    if len(qualified_name) > 0 && !qualified_name.clone().eq(decl_name.clone()) {
         qualified_count = mono::mono_index_count(midx, qualified_name.clone())
     }
     if bare_count <= 0 && qualified_count <= 1 {
@@ -333,10 +332,10 @@ fn edge_emit_names_for_method(mangled: String, midx: MonoIndex) -> Vec<String> {
 // Span-rewrite sources compare on the bare name only (the text after the
 // last ':'), so HashMap::insert and insert name the same source.
 fn edge_mono_sources_match(candidate: String, requested: String) -> bool {
-    if eq(candidate.clone(), requested.clone()) {
+    if candidate.clone().eq(requested.clone()) {
         return true
     }
-    eq(ctx_mono_rewrites::mono_bare_source(candidate), ctx_mono_rewrites::mono_bare_source(requested))
+    ctx_mono_rewrites::mono_bare_source(candidate).eq(ctx_mono_rewrites::mono_bare_source(requested))
 }
 
 // Every span rewrite whose source matches raw, concretized to emit
@@ -390,7 +389,7 @@ fn edge_add_callee_candidates(ctx: LowerCtx, mut out: Vec<String>, raw: String, 
     }
     push(out, raw.clone())
     let alias = hash_aliases::hashmap_builtin_alias(raw.clone())
-    if !eq(alias.clone(), raw.clone()) {
+    if !alias.clone().eq(raw.clone()) {
         push(out, alias)
     }
 }
@@ -411,7 +410,7 @@ fn edge_add_callee_candidates(ctx: LowerCtx, mut out: Vec<String>, raw: String, 
 fn edge_env_get(names: Vec<String>, types: Vec<String>, name: String) -> String {
     let mut i = 0
     while i < len(names) {
-        if eq(get_unchecked(names, i).clone(), name.clone()) {
+        if get_unchecked(names, i).clone().eq(name.clone()) {
             return get_unchecked(types, i).clone()
         }
         i = i + 1
@@ -422,7 +421,7 @@ fn edge_env_get(names: Vec<String>, types: Vec<String>, name: String) -> String 
 fn edge_env_set(mut names: Vec<String>, mut types: Vec<String>, name: String, ty: String) {
     let mut i = 0
     while i < len(names) {
-        if eq(get_unchecked(names, i).clone(), name.clone()) {
+        if get_unchecked(names, i).clone().eq(name.clone()) {
             set(types, i, ty)
             return
         }
@@ -470,8 +469,8 @@ fn edge_call_return_type(ctx: LowerCtx, name: String) -> String {
         // HashMap<i32,i32> lowers to the flat store, whose declared return
         // type is Vec<i32>. The source expression is still a HashMap pair,
         // and the receiver-type dispatch below needs that pair name.
-        if eq(ctor.clone(), String_from("hashmap_new")) ||
-        eq(ctor.clone(), String_from("hashmap_with_capacity")) {
+        if ctor.clone().eq(String_from("hashmap_new")) ||
+        ctor.clone().eq(String_from("hashmap_with_capacity")) {
             return String_from("hashmap:i32i32")
         }
         let crt = edge_fn_index_return_type(ctx, ctor.clone())
@@ -484,7 +483,7 @@ fn edge_call_return_type(ctx: LowerCtx, name: String) -> String {
         return direct
     }
     let alias = hash_aliases::hashmap_builtin_alias(name.clone())
-    if !eq(alias.clone(), name.clone()) {
+    if !alias.clone().eq(name.clone()) {
         return edge_fn_index_return_type(ctx, alias.clone())
     }
     String_new()
@@ -574,7 +573,7 @@ fn edge_push_typed_method_candidates(mut out: Vec<String>, recv_ty: String, meth
     // GenTakeIter_VecIter::m); differs from bare_owner only for generic
     // receivers the pair form did not already cover.
     let inst_owner = method_resolve::mir_inst_owner_name(recv_ty.clone())
-    if len(inst_owner) > 0 && !eq(inst_owner.clone(), bare_owner.clone()) {
+    if len(inst_owner) > 0 && !inst_owner.clone().eq(bare_owner.clone()) {
         push(out, inst_owner.clone().concat(String_from("::").concat(method.clone())))
     }
 }
@@ -666,7 +665,7 @@ fn edge_resolve_method_site(
             declared.clone(),
             method.clone()
         )
-        if len(intr) > 0 && !eq(intr.clone(), declared.clone()) {
+        if len(intr) > 0 && !intr.clone().eq(declared.clone()) {
             edge_push_resolved_once(out, intr)
         }
         oi = oi + 1
@@ -1036,7 +1035,7 @@ fn edge_subst_param_type(ty: String, emit_name: String) -> String {
         if mono_suffix_parse::is_mono_type_var_name(val_seg.clone()) {
             val_out = get_unchecked(keys, 1).clone()
         }
-        if eq(key_out.clone(), key_seg.clone()) && eq(val_out.clone(), val_seg.clone()) {
+        if key_out.clone().eq(key_seg.clone()) && val_out.clone().eq(val_seg.clone()) {
             return ty
         }
         return String_from("HashMap_").concat(key_out.clone().concat(String_from("_").concat(val_out)))
@@ -1044,7 +1043,7 @@ fn edge_subst_param_type(ty: String, emit_name: String) -> String {
     if work.clone().contains(String_from("<")) {
         let keys = mono_suffix_parse::split_mono_suffix(suffix.clone())
         let substituted = edge_subst_angle_args(work.clone(), keys)
-        if !eq(substituted.clone(), work.clone()) {
+        if !substituted.clone().eq(work.clone()) {
             return substituted
         }
         return ty
@@ -1080,12 +1079,12 @@ fn edge_env_substitute(mut env_types: Vec<String>, emit_name: String) {
 // impl call leaves the module — so a desugar candidate for a known
 // scalar op only over-keeps every impl in the family.
 fn edge_is_scalar_type_name(ty: String) -> bool {
-    eq(ty.clone(), String_from("i32")) ||
-    eq(ty.clone(), String_from("i64")) ||
-    eq(ty.clone(), String_from("f64")) ||
-    eq(ty.clone(), String_from("f32")) ||
-    eq(ty.clone(), String_from("bool")) ||
-    eq(ty.clone(), String_from("char"))
+    ty.clone().eq(String_from("i32")) ||
+    ty.clone().eq(String_from("i64")) ||
+    ty.clone().eq(String_from("f64")) ||
+    ty.clone().eq(String_from("f32")) ||
+    ty.clone().eq(String_from("bool")) ||
+    ty.clone().eq(String_from("char"))
 }
 
 // #-prefixed candidates are site-resolved emit names: the desugar
@@ -1534,7 +1533,7 @@ fn mir_ast_edge_table_build(mut ctx: LowerCtx, mut body_source: MirLowerEntryBod
 // hashmap_entries_values regression).
 fn edge_rewrite_targets(name: String, mut out: Vec<String>) {
     let alias = hash_aliases::hashmap_builtin_alias(name.clone())
-    if !eq(alias.clone(), name.clone()) {
+    if !alias.clone().eq(name.clone()) {
         push(out, alias)
     }
     let ctor = call_rewrite_hashmap::mir_rewrite_hashmap_constructor(name.clone())
@@ -1644,7 +1643,7 @@ fn edge_resolve_spelling(ctx: LowerCtx, table: AstEdgeTable, spelling: String, m
         }
     }
     let alias = hash_aliases::hashmap_builtin_alias(spelling.clone())
-    if !eq(alias.clone(), spelling.clone()) {
+    if !alias.clone().eq(spelling.clone()) {
         let ai = ctx_fn_index::ctx_fn_index_find(ctx, alias.clone())
         if ai >= 0 {
             edge_resolve_push(ctx, table, ctx_fn_index::ctx_fn_index_name_at(ctx, ai), seen, out)
@@ -1706,7 +1705,7 @@ fn edge_resolve_precise(ctx: LowerCtx, table: AstEdgeTable, name: String, mut se
         return
     }
     let alias = hash_aliases::hashmap_builtin_alias(name.clone())
-    if !eq(alias.clone(), name.clone()) {
+    if !alias.clone().eq(name.clone()) {
         let ai = ctx_fn_index::ctx_fn_index_find(ctx, alias.clone())
         if ai >= 0 {
             edge_resolve_push(ctx, table, ctx_fn_index::ctx_fn_index_name_at(ctx, ai), seen, out)

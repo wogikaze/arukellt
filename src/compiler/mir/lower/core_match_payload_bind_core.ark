@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use mir::lower::ctx_api_variants
 use mir::lower::ctx_api_emit
@@ -69,7 +68,7 @@ fn core_emit_payload_variant_binds(
         // are tag conditions, not bindings.
         if core_expr_shape_patterns::mir_core_expr_is_pat_ident(bind_pat) {
             let ident_name = core_expr_shape_accessors::mir_core_expr_text(bind_pat)
-            if !eq(ident_name.clone(), "_") && ctx_api_variants::ctx_variant_tag(ctx, ident_name.clone()) >= 0 {
+            if !ident_name.clone().eq("_") && ctx_api_variants::ctx_variant_tag(ctx, ident_name.clone()) >= 0 {
                 bi = bi + 1
                 continue
             }
@@ -134,7 +133,7 @@ fn core_emit_payload_variant_binds(
         }
         // Named binds only — see the AST-side loop for the rationale.
         if !is_composite_bind && core_expr_shape_patterns::mir_core_expr_is_pat_ident(bind_pat) &&
-        !eq(core_expr_shape_accessors::mir_core_expr_text(bind_pat), String_from("_")) {
+        !core_expr_shape_accessors::mir_core_expr_text(bind_pat).eq(String_from("_")) {
             match_payload_field_type::mir_report_weak_payload_scrutinee(ctx, variant_name.clone(), payload_hint.clone())
         }
         core_match_payload_bind_emit::emit_payload_field_bind(ctx, variant_name, bi, scrut_idx, bind_vt, bind_local)
@@ -232,7 +231,7 @@ fn core_subpat_load_field(
 fn core_emit_subpat_binds(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, val_idx: i32) {
     if core_expr_shape_patterns::mir_core_expr_is_pat_ident(pat) {
         let name = core_expr_shape_accessors::mir_core_expr_text(pat)
-        if eq(name.clone(), "_") {
+        if name.clone().eq("_") {
             return
         }
         if ctx_api_variants::ctx_variant_tag(ctx, name.clone()) >= 0 {
@@ -280,7 +279,7 @@ fn core_emit_subpat_binds(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreH
             }
             let field_local = core_subpat_load_field(ctx, variant_name.clone(), val_idx, bi, is_f64, is_i64, is_i32, is_ref, scrut_type.clone())
             if core_expr_shape_patterns::mir_core_expr_is_pat_ident(bind_pat) &&
-            !eq(core_expr_shape_accessors::mir_core_expr_text(bind_pat), String_from("_")) {
+            !core_expr_shape_accessors::mir_core_expr_text(bind_pat).eq(String_from("_")) {
                 let subpat_hint = if bi == 0 {
                     core_payload_elem_type_from_scrut(scrut_type.clone(), core_match_payload_bind_types::core_match_variant_is_some_or_ok(variant_name.clone()))
                 } else {
@@ -341,7 +340,7 @@ fn core_infer_payload_set_type(mut ctx: LowerCtx, elem_ty: String) -> String {
     }
     let mut set_type = elem_ty.clone()
     if !core_match_payload_bind_types::core_payload_scalar_type_name(elem_ty.clone()) {
-        if !eq(elem_ty.clone(), "String") && !eq(elem_ty.clone(), "string") {
+        if !elem_ty.clone().eq("String") && !elem_ty.clone().eq("string") {
             if elem_ty.clone().starts_with("tuple:") {
                 // Tuple payloads keep the tuple:<k,...> layout name and must
                 // have the GC struct registered before emit resolves the
@@ -355,7 +354,7 @@ fn core_infer_payload_set_type(mut ctx: LowerCtx, elem_ty: String) -> String {
             if !elem_ty.clone().starts_with("vec:") &&
             !elem_ty.clone().starts_with("Vec<") &&
             !elem_ty.clone().starts_with("Vec_") &&
-            !eq(elem_ty.clone(), "Vec") &&
+            !elem_ty.clone().eq("Vec") &&
             !elem_ty.clone().starts_with("hashmap:") &&
             !elem_ty.clone().starts_with("Option_") &&
             !elem_ty.clone().starts_with("option:") &&
@@ -394,7 +393,7 @@ fn core_infer_payload_bind_type(mut ctx: LowerCtx, variant_name: String, bind_lo
     // variants, so that non-String Err payloads (e.g. AppError)
     // get the correct type.
     let current_type = ctx_api_local_types::ctx_get_local_type(ctx, bind_local)
-    if !(len(current_type) == 0 || eq(current_type, "enum:open") || current_type.starts_with("enum:") || (is_err && eq(current_type, "string"))) {
+    if !(len(current_type) == 0 || current_type.eq("enum:open") || current_type.starts_with("enum:") || (is_err && current_type.eq("string"))) {
         return
     }
     let scrut_type = ctx_api_local_types::ctx_get_local_type(ctx, scrut_idx)
@@ -403,7 +402,7 @@ fn core_infer_payload_bind_type(mut ctx: LowerCtx, variant_name: String, bind_lo
         return
     }
     let mut set_type = core_infer_payload_set_type(ctx, elem_ty.clone())
-    if eq(elem_ty.clone(), "unit") || eq(elem_ty.clone(), "()") || eq(elem_ty.clone(), "void") {
+    if elem_ty.clone().eq("unit") || elem_ty.clone().eq("()") || elem_ty.clone().eq("void") {
         set_type = "i32"
     }
     if core_match_payload_bind_types::core_payload_type_is_fnref(elem_ty.clone()) {
@@ -414,9 +413,9 @@ fn core_infer_payload_bind_type(mut ctx: LowerCtx, variant_name: String, bind_lo
     ctx_api_local_types::ctx_set_local_type(ctx, bind_local, set_type)
     // Fix vt for scalars: preserve i64/f64 width (#726 debug_vec).
     if core_match_payload_bind_types::core_payload_scalar_type_name(elem_ty.clone()) {
-        if eq(elem_ty.clone(), "i64") || eq(elem_ty.clone(), "I64") {
+        if elem_ty.clone().eq("i64") || elem_ty.clone().eq("I64") {
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I64())
-        } else if eq(elem_ty.clone(), "f64") || eq(elem_ty.clone(), "F64") {
+        } else if elem_ty.clone().eq("f64") || elem_ty.clone().eq("F64") {
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_F64())
         } else {
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I32())

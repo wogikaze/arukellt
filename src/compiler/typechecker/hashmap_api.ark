@@ -7,7 +7,6 @@ use typechecker::unify
 // are statically specialized. Keep that representation boundary explicit: a
 // type variable is deferred to the enclosing generic body, while a concrete
 // unsupported pair is rejected before it can create a mono instance.
-use std::prelude::{eq}
 use std::text
 fn validate_hashmap_constructor(mut env: TypeEnv, fn_name: String, type_args: Vec<TypeInfo>) -> bool {
     if !is_hashmap_api_name(fn_name.clone()) {
@@ -76,8 +75,8 @@ fn is_supported_hashmap_value(ty: TypeInfo) -> bool {
         return true
     }
     let name = contract_type_access::TypeInfo_name(ty)
-    eq(name.clone(), String_from("fnref")) ||
-    eq(name.clone(), String_from("fn")) ||
+    name.clone().eq(String_from("fnref")) ||
+    name.clone().eq(String_from("fn")) ||
     name.clone().starts_with(String_from("fn("))
 }
 

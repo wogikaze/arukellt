@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::inst_call_ref
 use mir::inst_local_get
 use mir::lower::ast_node
@@ -20,11 +19,11 @@ fn mir_is_funcref_local(ctx: LowerCtx, local_idx: i32) -> bool {
     }
     let type_name = ctx_api_local_types::ctx_get_local_type(ctx, local_idx)
     // fnref2 = binary fold callbacks; must take call_ref, not direct CALL (#807).
-    eq(type_name.clone(), String_from("fnref")) ||
-    eq(type_name.clone(), String_from("fnref2")) ||
+    type_name.clone().eq(String_from("fnref")) ||
+    type_name.clone().eq(String_from("fnref2")) ||
     type_name.clone().starts_with(String_from("fnref")) ||
     type_name.clone().starts_with(String_from("fnsig:")) ||
-    eq(type_name.clone(), String_from("fn")) ||
+    type_name.clone().eq(String_from("fn")) ||
     type_name.clone().starts_with(String_from("fn("))
 }
 
@@ -32,7 +31,7 @@ fn mark_indirect_callback_result_type(mut ctx: LowerCtx, callee_type_name: Strin
     if dest < 0 {
         return
     }
-    if eq(callee_type_name.clone(), String_from("fnrefss")) {
+    if callee_type_name.clone().eq(String_from("fnrefss")) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("String"))
         let string_vt = if ctx_gc_enum::ctx_is_gc_target(ctx) {
             value_types::VT_GC_REF()
@@ -42,7 +41,7 @@ fn mark_indirect_callback_result_type(mut ctx: LowerCtx, callee_type_name: Strin
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, string_vt)
         return
     }
-    if eq(callee_type_name.clone(), String_from("fnrefsb")) {
+    if callee_type_name.clone().eq(String_from("fnrefsb")) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("bool"))
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
     }
@@ -67,25 +66,25 @@ fn mark_fnsig_callback_result_type(mut ctx: LowerCtx, callee_type_name: String, 
     if len(ret_seg) == 0 {
         return
     }
-    if eq(ret_seg.clone(), String_from("i32")) || eq(ret_seg.clone(), String_from("bool")) ||
-    eq(ret_seg.clone(), String_from("char")) || eq(ret_seg.clone(), String_from("u8")) ||
-    eq(ret_seg.clone(), String_from("i8")) || eq(ret_seg.clone(), String_from("u16")) ||
-    eq(ret_seg.clone(), String_from("u32")) {
+    if ret_seg.clone().eq(String_from("i32")) || ret_seg.clone().eq(String_from("bool")) ||
+    ret_seg.clone().eq(String_from("char")) || ret_seg.clone().eq(String_from("u8")) ||
+    ret_seg.clone().eq(String_from("i8")) || ret_seg.clone().eq(String_from("u16")) ||
+    ret_seg.clone().eq(String_from("u32")) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, ret_seg)
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
         return
     }
-    if eq(ret_seg.clone(), String_from("i64")) || eq(ret_seg.clone(), String_from("u64")) {
+    if ret_seg.clone().eq(String_from("i64")) || ret_seg.clone().eq(String_from("u64")) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, ret_seg)
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I64())
         return
     }
-    if eq(ret_seg.clone(), String_from("f64")) {
+    if ret_seg.clone().eq(String_from("f64")) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, ret_seg)
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_F64())
         return
     }
-    if eq(ret_seg.clone(), String_from("f32")) {
+    if ret_seg.clone().eq(String_from("f32")) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, ret_seg)
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_F32())
         return

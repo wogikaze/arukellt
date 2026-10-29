@@ -2,7 +2,6 @@
 // `std::wit::names::kebab_name` edges in a full compiler compile.
 
 use std::text
-use std::prelude::{eq}
 fn wit_kebab_name(name: String) -> String {
     let mut out = String_from("")
     let n = len(name)
@@ -42,44 +41,44 @@ fn wit_type_name(name: String) -> String {
 }
 
 fn wit_type_name_is_reserved(name: String) -> bool {
-    eq(name.clone(), "bool") ||
-    eq(name.clone(), "u8") ||
-    eq(name.clone(), "s8") ||
-    eq(name.clone(), "u16") ||
-    eq(name.clone(), "s16") ||
-    eq(name.clone(), "u32") ||
-    eq(name.clone(), "s32") ||
-    eq(name.clone(), "u64") ||
-    eq(name.clone(), "s64") ||
-    eq(name.clone(), "u128") ||
-    eq(name.clone(), "s128") ||
-    eq(name.clone(), "float32") ||
-    eq(name.clone(), "float64") ||
-    eq(name.clone(), "char") ||
-    eq(name.clone(), "string") ||
-    eq(name.clone(), "list") ||
-    eq(name.clone(), "option") ||
-    eq(name.clone(), "result") ||
-    eq(name.clone(), "tuple") ||
-    eq(name.clone(), "resource") ||
-    eq(name.clone(), "record") ||
-    eq(name.clone(), "variant") ||
-    eq(name.clone(), "enum") ||
-    eq(name.clone(), "flags") ||
-    eq(name.clone(), "type") ||
-    eq(name.clone(), "interface") ||
-    eq(name.clone(), "world") ||
-    eq(name.clone(), "use") ||
-    eq(name.clone(), "include") ||
-    eq(name.clone(), "import") ||
-    eq(name.clone(), "export") ||
-    eq(name.clone(), "package") ||
-    eq(name.clone(), "constructor") ||
-    eq(name.clone(), "func") ||
-    eq(name.clone(), "async") ||
-    eq(name.clone(), "stream") ||
-    eq(name.clone(), "future") ||
-    eq(name.clone(), "own") ||
-    eq(name.clone(), "borrow") ||
-    eq(name.clone(), "static")
+    name.clone().eq("bool") ||
+    name.clone().eq("u8") ||
+    name.clone().eq("s8") ||
+    name.clone().eq("u16") ||
+    name.clone().eq("s16") ||
+    name.clone().eq("u32") ||
+    name.clone().eq("s32") ||
+    name.clone().eq("u64") ||
+    name.clone().eq("s64") ||
+    name.clone().eq("u128") ||
+    name.clone().eq("s128") ||
+    name.clone().eq("float32") ||
+    name.clone().eq("float64") ||
+    name.clone().eq("char") ||
+    name.clone().eq("string") ||
+    name.clone().eq("list") ||
+    name.clone().eq("option") ||
+    name.clone().eq("result") ||
+    name.clone().eq("tuple") ||
+    name.clone().eq("resource") ||
+    name.clone().eq("record") ||
+    name.clone().eq("variant") ||
+    name.clone().eq("enum") ||
+    name.clone().eq("flags") ||
+    name.clone().eq("type") ||
+    name.clone().eq("interface") ||
+    name.clone().eq("world") ||
+    name.clone().eq("use") ||
+    name.clone().eq("include") ||
+    name.clone().eq("import") ||
+    name.clone().eq("export") ||
+    name.clone().eq("package") ||
+    name.clone().eq("constructor") ||
+    name.clone().eq("func") ||
+    name.clone().eq("async") ||
+    name.clone().eq("stream") ||
+    name.clone().eq("future") ||
+    name.clone().eq("own") ||
+    name.clone().eq("borrow") ||
+    name.clone().eq("static")
 }

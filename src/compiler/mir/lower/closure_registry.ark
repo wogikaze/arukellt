@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use mir::lower::ctx_fn_mono
 use corehir::type_ann_node
@@ -169,10 +168,10 @@ fn closure_funcref_type_name(mf: MirFunction, cap_count: i32) -> String {
     if len(param_seg) == 0 {
         param_seg = "i32"
     }
-    if eq(param_seg.clone(), String_from("String")) && eq(ret_seg.clone(), String_from("String")) {
+    if param_seg.clone().eq(String_from("String")) && ret_seg.clone().eq(String_from("String")) {
         return String_from("fnrefss")
     }
-    if eq(param_seg.clone(), String_from("String")) && eq(ret_seg.clone(), String_from("bool")) {
+    if param_seg.clone().eq(String_from("String")) && ret_seg.clone().eq(String_from("bool")) {
         return String_from("fnrefsb")
     }
     if type_ann_node::fn_sig_segment_is_i32_family(param_seg.clone()) &&
@@ -189,8 +188,8 @@ fn ctx_closure_lookup(ctx: LowerCtx, name: String) -> i32 {
     let count = closure_storage::closure_storage_bind_count(ctx)
     let mut i = count - 1
     while i >= 0 {
-        if eq(closure_storage::closure_storage_bind_name_at(ctx, i), name.clone()) &&
-        eq(closure_storage::closure_storage_bind_fn_at(ctx, i), cur_fn.clone()) {
+        if closure_storage::closure_storage_bind_name_at(ctx, i).eq(name.clone()) &&
+        closure_storage::closure_storage_bind_fn_at(ctx, i).eq(cur_fn.clone()) {
             return i
         }
         i = i - 1

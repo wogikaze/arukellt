@@ -5,11 +5,10 @@
 //
 // Expected output: true
 use std::text::{concat, is_empty}
-use std::prelude::{eq}
 
 fn main() {
     let s: String = "a,b,c"
     let joined = concat(s, "!")
     let empty = is_empty("")
-    __intrinsic_println((eq(joined, "a,b,c!") && !empty).to_string())
+    __intrinsic_println((joined.eq("a,b,c!") && !empty).to_string())
 }

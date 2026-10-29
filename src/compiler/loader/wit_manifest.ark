@@ -1,6 +1,5 @@
 use std::host::fs::Fs
 use std::toml
-use std::prelude::{eq}
 use std::text
 use compiler::wit_identity
 use loader::module_paths
@@ -28,7 +27,7 @@ fn wit_push_unique(mut paths: Vec<String>, path: String) {
         return
     }
     for i in 0..len(paths) {
-        if eq(get_unchecked(paths, i), path.clone()) {
+        if get_unchecked(paths, i).eq(path.clone()) {
             return
         }
     }

@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::function_identity
 use mir::inst_draft
 use mir::inst_struct_set
@@ -21,7 +20,7 @@ fn ctx_env_cell_flush(ctx: LowerCtx, inst: MirInstDraft) -> Vec<MirInstDraft> {
     let fn_name = function_identity::MirFunction_name(func)
     let mut i = 0
     while i < len(ctx.cell_fn_names) {
-        if eq(get_unchecked(ctx.cell_fn_names, i), fn_name.clone()) {
+        if get_unchecked(ctx.cell_fn_names, i).eq(fn_name.clone()) {
             push(out, inst_struct_set::MirInst_struct_set_named_idx(
                     get_unchecked(ctx.cell_env_locals, i),
                     get_unchecked(ctx.cell_local_indices, i),

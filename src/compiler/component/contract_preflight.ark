@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use component::contract
 use component::wit_text
@@ -17,7 +16,7 @@ fn world_spec_has_command_entry(decls: Vec<AstNode>) -> bool {
         if wit_decl::wit_decl_is_func(decl) {
             let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
             let name = wit_decl::wit_func_name(f)
-            if eq(name.clone(), "main") || eq(name.clone(), "_start") { return true }
+            if name.clone().eq("main") || name.clone().eq("_start") { return true }
         }
     }
     false
@@ -25,7 +24,7 @@ fn world_spec_has_command_entry(decls: Vec<AstNode>) -> bool {
 
 fn world_spec_export_roots_satisfy_run(export_roots: Vec<String>, decls: Vec<AstNode>) -> bool {
     for i in 0..len(export_roots) {
-        if eq(get_unchecked(export_roots, i).clone(), "run") { return true }
+        if get_unchecked(export_roots, i).clone().eq("run") { return true }
     }
     world_spec_has_command_entry(decls)
 }
@@ -41,6 +40,6 @@ fn preflight_frontend(config_emit_mode: String, wit_paths: Vec<String>, decls: V
             return "world `".concat(world.clone().concat("` requires export `wasi:cli/run/run`, but no matching function found"))
         }
     }
-    if eq(config_emit_mode.clone(), "component") { return contract::validate_export_surface(decls) }
+    if config_emit_mode.clone().eq("component") { return contract::validate_export_surface(decls) }
     ""
 }

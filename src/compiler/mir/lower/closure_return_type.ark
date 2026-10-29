@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::function_locals_view
 use mir::function_return_mutation
 use mir::local_access
@@ -34,8 +33,8 @@ fn mir_set_closure_return_from_local(mut ctx: LowerCtx, mut f: MirFunction, res_
         }
     }
     if ret_type.clone().starts_with("struct:") ||
-    eq(ret_type.clone(), "String") ||
-    eq(ret_type.clone(), "string") ||
+    ret_type.clone().eq("String") ||
+    ret_type.clone().eq("string") ||
     ret_type.clone().starts_with("enum:") ||
     ret_type.clone().starts_with("vec:") ||
     ret_type.clone().starts_with("Option_") ||

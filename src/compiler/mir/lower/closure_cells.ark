@@ -19,7 +19,6 @@ use mir::lower::ctx_current_storage
 // per-function — a nested closure body lowering under a different frame
 // name never matches the parent's cells.
 
-use std::prelude::{eq}
 fn ctx_register_env_cell(mut ctx: LowerCtx, fn_name: String, local_idx: i32, env_local: i32, env_name: String, offset: i32, field_idx: i32, total: i32, vt: i32) {
     push(ctx.cell_fn_names, fn_name)
     push(ctx.cell_local_indices, local_idx)
@@ -128,7 +127,7 @@ fn ctx_emit_closure_writeback(mut ctx: LowerCtx, synth: String) {
     }
     let mut i = 0
     while i < len(ctx.wb_synths) {
-        if eq(get_unchecked(ctx.wb_synths, i), synth.clone()) {
+        if get_unchecked(ctx.wb_synths, i).eq(synth.clone()) {
             ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(
                     get_unchecked(ctx.wb_env_lis, i),
                     get_unchecked(ctx.wb_env_names, i).clone(),

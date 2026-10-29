@@ -4,7 +4,6 @@ use typechecker::contract_types_record
 // inference. Field types keep the declaration's type parameters as
 // TY_TYPE_VAR; instantiate_type binds them to the receiver's concrete
 // arguments at the access site.
-use std::prelude::{eq}
 struct StructInfo {
     name: String,
     type_params: Vec<String>,
@@ -33,7 +32,7 @@ fn StructInfo_field_index(info: StructInfo, field_name: String) -> i32 {
     let count = len(info.field_names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(info.field_names, i), field_name.clone()) {
+        if get_unchecked(info.field_names, i).eq(field_name.clone()) {
             return i
         }
         i = i + 1

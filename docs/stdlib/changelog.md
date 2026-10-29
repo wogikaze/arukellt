@@ -16,6 +16,36 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-30 — prelude free `eq` の退役 (#917 / ADR-091, wave/eq-retire)
+
+- **Removed**: `std/prelude.ark` の `eq(a, b)` と `std/manifest.toml` の
+  prelude entry を削除した。replacement は `a.eq(b)`。bare call は E0100 と
+  `use \`a.eq(b)\` on the \`String\` value instead` の hint を返す。
+- **Migration**: compiler / std / tests の free `eq` call site 5,729 件を
+  `.eq()` へ移した。codemod が付けた不要な grouping parens は postfix
+  receiver から落とした（`(x).eq(y)` → `x.eq(y)`）。括弧付き receiver は
+  `if` 文の `END` 直後の最初の式で composed receiver と認識されず、receiver の
+  `LOCAL_GET` が落ちて unresolved-call stub / `i32::eq` になるため（詳細は
+  [ADR-091](../adr/ADR-091-prelude-free-function-exception.md) 追記）。
+- **Module split**: `std/core/cmp.ark` の `trait Eq` と impl を
+  `std/core/eq.ark` へ分離し、`cmp` は `pub use std::core::eq` で再公開する。
+  prelude は `use std::core::eq` を持つ。bootstrap overlay は
+  `std/core/eq.ark` を ship し、free `eq` shim を削除した。埋め込み
+  static-dispatch stub と target-contract generator も `.eq()` へ移した。
+- **Fixtures**: `operators/string_eq`（gc / wasm32、32/32 行）と
+  `stdlib_trait/eq_*`。qualified `string::eq` は module_import fixture 用に
+  public のまま残し、`docs/data/stdlib-api-eradication.toml` で
+  `must delete` / #917 に分類した。
+- **Scorecard**: `docs/stdlib/eradication.md` の生成値で `prelude_wrapper`
+  entries は 27 → **26**、`prelude frees (default)` は 5 → **4**、
+  `associated-or-method` は 18 → **17**。
+- **Evidence**: `verify fixtures` **1928/1928** compile+validate PASS
+  （111 runtime smoke、38/38 `test:` PASS、2 runtime-unsupported、0 FAIL）、
+  `verify lane` PASS、`docs check` 6/6、ADR-029 fixpoint PASS
+  （s2 == s3 at sha256
+  `f2b2159d70b3adad954ce9746e888b558f4607001a5ee1fae8ec4da7e16fac2c`、
+  pinned base `56ff0808171dcc3c521b0e85d07f2b16a349a59419483ad71148a5ee928d23e8`）。
+
 ## 2026-10-30 — prelude `Box_new` / `unbox` の退役 (#917 / ADR-091, wave/box-new)
 
 - **Removed**: `Box_new(x)` / `unbox(b)` を `std/prelude.ark` と

@@ -1,5 +1,4 @@
 use std::host::stdio
-use std::prelude::{eq}
 use std::text
 use mir::function_block_queries
 use mir::function_identity
@@ -88,8 +87,8 @@ fn verify_mir_pipeline(m: MirModule) -> i32 {
 }
 
 fn verify_mir_is_representative_fixture(fn_name: String) -> bool {
-    if eq(fn_name.clone(), "display_trait_vec") { return true }
-    if eq(fn_name.clone(), "two_params") { return true }
-    if eq(fn_name.clone(), "fs_read_error") { return true }
+    if fn_name.clone().eq("display_trait_vec") { return true }
+    if fn_name.clone().eq("two_params") { return true }
+    if fn_name.clone().eq("fs_read_error") { return true }
     false
 }

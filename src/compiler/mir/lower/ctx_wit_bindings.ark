@@ -1,10 +1,9 @@
 // MIR WIT call binding table accessors (#653).
 
-use std::prelude::{eq}
 use mir::lower::ctx_types
 fn ctx_wit_call_index(ctx: LowerCtx, qualified_name: String) -> i32 {
     for i in 0..len(ctx.wit_call_names) {
-        if eq(get_unchecked(ctx.wit_call_names, i), qualified_name.clone()) {
+        if get_unchecked(ctx.wit_call_names, i).eq(qualified_name.clone()) {
             return i
         }
     }

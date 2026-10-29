@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use lsp::feature_code_action
 use lsp::feature_completion
 use lsp::feature_formatting
@@ -7,59 +6,59 @@ use lsp::feature_signature_help
 use lsp::feature_workspace_symbol
 use lsp::features
 fn dispatch_core_features(mut state: LspState, body: String, method: String) -> bool {
-    if eq(method.clone(), "textDocument/hover") {
+    if method.clone().eq("textDocument/hover") {
         features::handle_hover(state, body.clone())
         return true
     }
-    if eq(method.clone(), "textDocument/definition") {
+    if method.clone().eq("textDocument/definition") {
         features::handle_definition(state, body.clone())
         return true
     }
-    if eq(method.clone(), "textDocument/completion") {
+    if method.clone().eq("textDocument/completion") {
         features::handle_completion(state, body.clone())
         return true
     }
-    if eq(method.clone(), "textDocument/signatureHelp") {
+    if method.clone().eq("textDocument/signatureHelp") {
         feature_signature_help::handle_signature_help(state, body.clone())
         return true
     }
-    if eq(method.clone(), "textDocument/codeAction") {
+    if method.clone().eq("textDocument/codeAction") {
         feature_code_action::handle_code_action(state, body.clone())
         return true
     }
-    if eq(method.clone(), "workspace/symbol") {
+    if method.clone().eq("workspace/symbol") {
         features::handle_workspace_symbol(state, body.clone())
         return true
     }
-    if eq(method.clone(), "textDocument/references") {
+    if method.clone().eq("textDocument/references") {
         features::handle_references(state, body.clone())
         return true
     }
-    if eq(method.clone(), "textDocument/documentHighlight") {
+    if method.clone().eq("textDocument/documentHighlight") {
         features::handle_document_highlight(state, body.clone())
         return true
     }
-    if eq(method.clone(), "textDocument/codeLens") {
+    if method.clone().eq("textDocument/codeLens") {
         features::handle_code_lens(state, body.clone())
         return true
     }
-    if eq(method.clone(), "textDocument/typeDefinition") {
+    if method.clone().eq("textDocument/typeDefinition") {
         features::handle_type_definition(state, body.clone())
         return true
     }
-    if eq(method.clone(), "textDocument/prepareRename") {
+    if method.clone().eq("textDocument/prepareRename") {
         feature_rename::handle_prepare_rename(state, body.clone())
         return true
     }
-    if eq(method.clone(), "textDocument/rename") {
+    if method.clone().eq("textDocument/rename") {
         feature_rename::handle_rename(state, body.clone())
         return true
     }
-    if eq(method.clone(), "textDocument/formatting") {
+    if method.clone().eq("textDocument/formatting") {
         feature_formatting::handle_formatting(state, body.clone())
         return true
     }
-    if eq(method.clone(), "textDocument/rangeFormatting") {
+    if method.clone().eq("textDocument/rangeFormatting") {
         feature_formatting::handle_range_formatting(state, body.clone())
         return true
     }

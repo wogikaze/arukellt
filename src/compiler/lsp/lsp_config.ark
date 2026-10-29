@@ -1,5 +1,4 @@
 use std::json
-use std::prelude::{eq}
 use std::text
 use lsp::state_record
 fn parse_bool_field(body: String, key: String, default_value: bool) -> bool {
@@ -13,7 +12,7 @@ fn parse_bool_field(body: String, key: String, default_value: bool) -> bool {
         }
         return default_value
     }
-    if eq(raw.clone(), String_from("false")) {
+    if raw.clone().eq(String_from("false")) {
         return false
     }
     true
@@ -27,11 +26,11 @@ pub fn apply_initialize_config(mut state: LspState, body: String) {
     state_record::lsp_state_set_enable_code_lens(state, parse_bool_field(body.clone(), String_from("enableCodeLens"), true))
     state_record::lsp_state_set_check_on_save(state, parse_bool_field(body.clone(), String_from("checkOnSave"), true))
     let report = json::JsonText::get_str(body.clone(), String_from("diagnosticsReportLevel"))
-    if eq(report.clone(), String_from("errors")) {
+    if report.clone().eq(String_from("errors")) {
         state_record::lsp_state_set_diagnostics_errors_only(state, true)
     }
 }
 
 pub fn hover_detail_minimal(state: LspState) -> bool {
-    eq(state_record::lsp_state_hover_detail_level(state), String_from("minimal"))
+    state_record::lsp_state_hover_detail_level(state).eq(String_from("minimal"))
 }

@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 fn is_gc_container_type_name(type_name: String) -> bool {
     if type_name.clone().starts_with("vec:") || type_name.clone().starts_with("hashmap:") {
         return true
@@ -11,7 +10,7 @@ fn is_option_type_name(type_name: String) -> bool {
     type_name.clone().starts_with("option:") ||
     type_name.clone().starts_with("Option:") ||
     type_name.clone().starts_with("Option<") ||
-    eq(type_name.clone(), "enum:Option") {
+    type_name.clone().eq("enum:Option") {
         return true
     }
     false

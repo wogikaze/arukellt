@@ -1,17 +1,16 @@
-use std::prelude::{eq}
 use mir::value_types
 fn mir_is_string_type_name(type_name: String) -> bool {
-    eq(type_name.clone(), "String") || eq(type_name.clone(), "string")
+    type_name.clone().eq("String") || type_name.clone().eq("string")
 }
 
 fn mir_is_primitive_operator_type(type_name: String) -> bool {
     if len(type_name) == 0 {
         return true
     }
-    if eq(type_name.clone(), "i32") || eq(type_name.clone(), "i64") || eq(type_name.clone(), "f64") {
+    if type_name.clone().eq("i32") || type_name.clone().eq("i64") || type_name.clone().eq("f64") {
         return true
     }
-    if eq(type_name.clone(), "bool") || eq(type_name.clone(), "char") {
+    if type_name.clone().eq("bool") || type_name.clone().eq("char") {
         return true
     }
     if mir_is_string_type_name(type_name.clone()) {
@@ -24,26 +23,26 @@ fn mir_is_primitive_operator_type(type_name: String) -> bool {
 }
 
 fn mir_is_builtin_type_name(name: String) -> bool {
-    if eq(name.clone(), "i32") { return true }
-    if eq(name.clone(), "i64") { return true }
-    if eq(name.clone(), "f64") { return true }
-    if eq(name.clone(), "f32") { return true }
-    if eq(name.clone(), "bool") { return true }
-    if eq(name.clone(), "String") { return true }
-    if eq(name.clone(), "string") { return true }
-    if eq(name.clone(), "char") { return true }
-    if eq(name.clone(), "u8") { return true }
-    if eq(name.clone(), "u16") { return true }
-    if eq(name.clone(), "u32") { return true }
-    if eq(name.clone(), "u64") { return true }
-    if eq(name.clone(), "i8") { return true }
-    if eq(name.clone(), "i16") { return true }
-    if eq(name.clone(), "Vec") { return true }
-    if eq(name.clone(), "fnref") { return true }
-    if eq(name.clone(), "fnref2") { return true }
+    if name.clone().eq("i32") { return true }
+    if name.clone().eq("i64") { return true }
+    if name.clone().eq("f64") { return true }
+    if name.clone().eq("f32") { return true }
+    if name.clone().eq("bool") { return true }
+    if name.clone().eq("String") { return true }
+    if name.clone().eq("string") { return true }
+    if name.clone().eq("char") { return true }
+    if name.clone().eq("u8") { return true }
+    if name.clone().eq("u16") { return true }
+    if name.clone().eq("u32") { return true }
+    if name.clone().eq("u64") { return true }
+    if name.clone().eq("i8") { return true }
+    if name.clone().eq("i16") { return true }
+    if name.clone().eq("Vec") { return true }
+    if name.clone().eq("fnref") { return true }
+    if name.clone().eq("fnref2") { return true }
     if name.clone().starts_with("vec:") { return true }
     if name.clone().starts_with("hashmap:") { return true }
-    if eq(name.clone(), "enum") { return true }
+    if name.clone().eq("enum") { return true }
     if name.clone().starts_with("enum:") { return true }
     false
 }

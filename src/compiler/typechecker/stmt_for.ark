@@ -18,7 +18,6 @@ use typechecker::unify
 // A `for` source is accepted when its concrete type participates in either
 // the conversion protocol or the iterator protocol. Range syntax is a
 // built-in source form and is lowered separately from those trait calls.
-use std::prelude::{eq}
 use std::text
 fn check_for_source(
     mut env: TypeEnv,
@@ -201,7 +200,7 @@ fn record_for_method_mono(
     // emitted mono variant directly, including fn-valued pairs whose
     // arg-segment spellings differ (fnref vs fn_i32_i32_) (#691).
     let inst_owner = call_method::type_name_for_mangling(owner_ty)
-    if len(inst_owner) > 0 && !eq(inst_owner.clone(), owner_name.clone()) {
+    if len(inst_owner) > 0 && !inst_owner.clone().eq(owner_name.clone()) {
         mono::record_mono_call_site(
             env,
             span,
@@ -216,7 +215,7 @@ fn lookup_bound_type_var(names: Vec<String>, types: Vec<TypeInfo>, name: String)
     let count = len(names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(names, i), name.clone()) {
+        if get_unchecked(names, i).eq(name.clone()) {
             return get_unchecked(types, i)
         }
         i = i + 1

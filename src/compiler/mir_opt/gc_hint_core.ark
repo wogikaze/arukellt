@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use corehir::mir_value_type
 use corehir::type_id
 use mir::block_inst_access
@@ -52,7 +51,7 @@ fn gc_hint_instruction_equal(a: MirInstDraft, b: MirInstDraft) -> bool {
     }
     if inst_draft::MirInstDraft_int_val(a) != inst_draft::MirInstDraft_int_val(b) ||
     inst_draft::MirInstDraft_float_val(a) != inst_draft::MirInstDraft_float_val(b) ||
-    !eq(inst_draft::MirInstDraft_str_val(a), inst_draft::MirInstDraft_str_val(b)) {
+    !inst_draft::MirInstDraft_str_val(a).eq(inst_draft::MirInstDraft_str_val(b)) {
         return false
     }
     if inst_draft::MirInstDraft_val_type(a) != inst_draft::MirInstDraft_val_type(b) ||

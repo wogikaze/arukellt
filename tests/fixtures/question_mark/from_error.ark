@@ -10,7 +10,6 @@ use std::host::stdio
 //
 // The From<String> for AppError impl wraps the string in AppError::Io.
 
-use std::prelude::{eq}
 enum AppError {
     Io(String),
     Parse,
@@ -23,7 +22,7 @@ impl From<String> for AppError {
 }
 
 fn read_line(s: String) -> Result<String, String> {
-    if eq(s, "ok") {
+    if s.eq("ok") {
         Ok(String_from("data"))
     } else {
         Err(String_from("read failed"))
@@ -50,7 +49,7 @@ fn main() {
         Result::Ok(_) => assert(false),
         Result::Err(e) => {
             match e {
-                AppError::Io(msg) => assert(eq(msg, String_from("read failed"))),
+                AppError::Io(msg) => assert(msg.eq(String_from("read failed"))),
                 AppError::Parse => assert(false),
             }
         },

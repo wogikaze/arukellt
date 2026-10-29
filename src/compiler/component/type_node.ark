@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use component::ast_node
 struct ComponentTypeNode {
     node: AstNode,
@@ -33,7 +32,7 @@ fn type_node_child_at(ty: ComponentTypeNode, index: i32) -> ComponentTypeNode {
 }
 
 fn type_node_is_named(ty: ComponentTypeNode, name: String) -> bool {
-    type_node_is_named_kind(ty) && eq(type_node_text(ty), name)
+    type_node_is_named_kind(ty) && type_node_text(ty).eq(name)
 }
 
 fn type_node_is_tuple_pair(ty: ComponentTypeNode, left_name: String, right_name: String) -> bool {
@@ -46,14 +45,14 @@ fn type_node_is_tuple_pair(ty: ComponentTypeNode, left_name: String, right_name:
 }
 
 fn type_node_is_generic_named_unary(ty: ComponentTypeNode, generic_name: String, elem_name: String) -> bool {
-    if type_node_is_generic_kind(ty) && eq(type_node_text(ty), generic_name) && type_node_child_count(ty) > 1 {
+    if type_node_is_generic_kind(ty) && type_node_text(ty).eq(generic_name) && type_node_child_count(ty) > 1 {
         return type_node_is_named(type_node_child_at(ty, 1), elem_name)
     }
     false
 }
 
 fn type_node_is_generic_named_pair(ty: ComponentTypeNode, generic_name: String, left_name: String, right_name: String) -> bool {
-    if type_node_is_generic_kind(ty) && eq(type_node_text(ty), generic_name) && type_node_child_count(ty) > 2 {
+    if type_node_is_generic_kind(ty) && type_node_text(ty).eq(generic_name) && type_node_child_count(ty) > 2 {
         let left = type_node_child_at(ty, 1)
         let right = type_node_child_at(ty, 2)
         return type_node_is_named(left, left_name) && type_node_is_named(right, right_name)

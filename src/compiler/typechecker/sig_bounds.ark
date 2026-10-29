@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use typechecker::ast_access
 use typechecker::contract_type_param_bounds
 use typechecker::kinds
@@ -14,7 +13,7 @@ fn collect_type_param_bounds(type_ann: Vec<AstNode>) -> Vec<TypeParamBounds> {
             continue
         }
         let ann_name = ast_access::node_text(ann)
-        if !eq(ann_name.clone(), "__return") {
+        if !ann_name.clone().eq("__return") {
             let mut info = contract_type_param_bounds::TypeParamBounds_new(ann_name)
             let ann_bound_count = ast_access::node_type_ann_count(ann)
             let mut j = 0

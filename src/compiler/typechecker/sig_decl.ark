@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use collections::vec_extend
 use parser::ast
 use typechecker::kinds
@@ -70,7 +69,7 @@ fn fn_sig_from_fn_decl_with_params(
     j = 0
     while j < ann_count {
         let ann = ast_access::node_type_ann_at(node, j)
-        if eq(ast_access::node_text(ann), "__return") {
+        if ast_access::node_text(ann).eq("__return") {
             if ast_access::node_child_count(ann) > 0 {
                 let ret_node = ast_access::node_child_at(ann, 0)
                 return_type = types::resolve_type_ann_node_generic(ret_node, type_params)
@@ -95,7 +94,7 @@ fn fn_sig_from_const_decl(node: AstNode) -> FnSig {
     let mut j = 0
     while j < ann_count {
         let ann = ast_access::node_type_ann_at(node, j)
-        if eq(ast_access::node_text(ann), "__return") {
+        if ast_access::node_text(ann).eq("__return") {
             if ast_access::node_child_count(ann) > 0 {
                 let ret_node = ast_access::node_child_at(ann, 0)
                 return_type = types::resolve_type_ann_node_generic(ret_node, Vec::new<String>())
@@ -163,7 +162,7 @@ fn string_vec_contains(names: Vec<String>, name: String) -> bool {
     let count = len(names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(names, i), name.clone()) {
+        if get_unchecked(names, i).eq(name.clone()) {
             return true
         }
         i = i + 1
@@ -183,7 +182,7 @@ fn merge_type_params(impl_params: Vec<String>, method_params: Vec<String>) -> Ve
         let mut found = false
         let mut j = 0
         while j < impl_count {
-            if eq(get_unchecked(impl_params, j).clone(), mp.clone()) {
+            if get_unchecked(impl_params, j).clone().eq(mp.clone()) {
                 found = true
             }
             j = j + 1

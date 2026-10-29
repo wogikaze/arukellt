@@ -1,5 +1,4 @@
 // GC ref local scan helpers.
-use std::prelude::{eq}
 use mir::block_inst_access
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
@@ -132,7 +131,7 @@ fn type_name_is_ref(type_name: String) -> bool {
     if type_name.clone().starts_with("hashmap:") {
         return true
     }
-    if eq(type_name.clone(), "string") || eq(type_name.clone(), "String") {
+    if type_name.clone().eq("string") || type_name.clone().eq("String") {
         return true
     }
     if type_name.clone().starts_with("vec:") {
@@ -592,10 +591,10 @@ fn cached_local_is_vec_constructor_dest(ctx: SelfEmitCtx, local_idx: i32) -> i32
 }
 
 fn is_vec_constructor_name(callee: String) -> bool {
-    eq(callee.clone(), String_from("Vec::new")) ||
-    eq(callee.clone(), String_from("Vec__new")) ||
-    eq(callee.clone(), String_from("Vec::with_capacity")) ||
-    eq(callee.clone(), String_from("Vec__with_capacity")) ||
+    callee.clone().eq(String_from("Vec::new")) ||
+    callee.clone().eq(String_from("Vec__new")) ||
+    callee.clone().eq(String_from("Vec::with_capacity")) ||
+    callee.clone().eq(String_from("Vec__with_capacity")) ||
     callee.clone().starts_with(String_from("Vec::new__")) ||
     callee.clone().starts_with(String_from("Vec__new__")) ||
     callee.clone().starts_with(String_from("Vec::with_capacity__")) ||

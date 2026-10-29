@@ -1,7 +1,6 @@
 // GC type from type names.
 // Contract: infer_* returns Option<i32> — Some(idx) = Wasm GC type, None = unknown.
 // See docs/research/infer-local-gc-type-option.md.
-use std::prelude::{eq}
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
 fn infer_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> Option<i32> {
@@ -73,22 +72,22 @@ fn infer_hashmap_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> 
 }
 
 fn infer_vec_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> Option<i32> {
-    if eq(type_name.clone(), "string") || eq(type_name.clone(), "String") {
+    if type_name.clone().eq("string") || type_name.clone().eq("String") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
     }
     if !type_name.clone().starts_with("vec:") {
         return Option::None
     }
-    if eq(type_name.clone(), "vec:String") || eq(type_name.clone(), "vec:string") {
+    if type_name.clone().eq("vec:String") || type_name.clone().eq("vec:string") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_string_type(ctx))
     }
-    if eq(type_name.clone(), "vec:v128") || eq(type_name.clone(), "vec:V128") {
+    if type_name.clone().eq("vec:v128") || type_name.clone().eq("vec:V128") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx))
     }
-    if eq(type_name.clone(), "vec:i64") || eq(type_name.clone(), "vec:I64") {
+    if type_name.clone().eq("vec:i64") || type_name.clone().eq("vec:I64") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx))
     }
-    if eq(type_name.clone(), "vec:f64") || eq(type_name.clone(), "vec:F64") {
+    if type_name.clone().eq("vec:f64") || type_name.clone().eq("vec:F64") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx))
     }
     let elem_name = type_name.clone().slice(4, len(type_name))

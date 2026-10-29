@@ -1,6 +1,5 @@
 // Self-check for #654 — WIT import Wasm emit wiring.
 
-use std::prelude::{eq}
 use resolver::wit_import_bind
 fn issue654_assert_wit_emit_sources() -> String {
     let mut bindings = Vec::new<WitImportBinding>()
@@ -8,16 +7,16 @@ fn issue654_assert_wit_emit_sources() -> String {
     if len(bindings) != 1 {
         return "binding table empty"
     }
-    if !eq(wit_import_bind::wit_import_binding_interface_id(get_unchecked(bindings, 0)), "test:host/math") {
+    if !wit_import_bind::wit_import_binding_interface_id(get_unchecked(bindings, 0)).eq("test:host/math") {
         return "interface id mismatch"
     }
-    if !eq(wit_import_bind::wit_import_binding_component_interface_id(get_unchecked(bindings, 0)), "test:host/math") {
+    if !wit_import_bind::wit_import_binding_component_interface_id(get_unchecked(bindings, 0)).eq("test:host/math") {
         return "component interface id mismatch"
     }
-    if !eq(wit_import_bind::wit_import_binding_wit_import_id(get_unchecked(bindings, 0)), "test:host/math") {
+    if !wit_import_bind::wit_import_binding_wit_import_id(get_unchecked(bindings, 0)).eq("test:host/math") {
         return "WIT import id mismatch"
     }
-    if !eq(wit_import_bind::wit_import_binding_wit_func_name(get_unchecked(bindings, 0)), "add") {
+    if !wit_import_bind::wit_import_binding_wit_func_name(get_unchecked(bindings, 0)).eq("add") {
         return "wit func name mismatch"
     }
     String_new()

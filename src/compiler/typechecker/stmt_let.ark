@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use typechecker::kinds
 use diagnostics::codes
 use typechecker::ast_access
@@ -39,7 +38,7 @@ fn fn_type_of_initializer(env: TypeEnv, fn_sigs: Vec<FnSig>, bind_ty: TypeInfo, 
 
 fn check_let_stmt(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
     let bind_name = ast_access::node_text(node)
-    if eq(bind_name.clone(), "__tuple_destructure") {
+    if bind_name.clone().eq("__tuple_destructure") {
         check_tuple_destructure_let(env, scope, fn_sigs, enum_defs, node)
         return
     }
@@ -106,7 +105,7 @@ fn check_let_stmt(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, 
             ownership::check_borrowed_box_escape(env, scope, ast_access::node_child_at(node, 0))
         }
     }
-    if !eq(bind_name.clone(), "_") {
+    if !bind_name.clone().eq("_") {
         let borrow_mode = if ast_access::node_child_count(node) > 0 {
             closure_capture::value_borrow_mode(
                 env,
@@ -178,7 +177,7 @@ fn bind_tuple_pat_identifiers(env: TypeEnv, mut scope: LocalScope, pat: AstNode,
         let elem = ast_access::node_child_at(pat, i)
         if ast_access::node_kind_is(elem, kinds::NK_PAT_IDENT()) {
             let name = ast_access::node_text(elem)
-            if !eq(name.clone(), "_") {
+            if !name.clone().eq("_") {
                 let elem_ty = tuple_element_type_at(tuple_ty, i)
                 scope::scope_define_with_flags(
                     scope,

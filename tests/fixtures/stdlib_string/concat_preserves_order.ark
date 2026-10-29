@@ -1,9 +1,8 @@
 use std::test::Test
-use std::prelude::{eq}
 use std::text
 fn main() {
     let a = String_from("123")
     let b = String_from("456")
     Test::assert_eq_string(a.concat(b), "123456")
-    Test::assert_false(eq(a.concat(b), b.concat(a)))
+    Test::assert_false(a.concat(b).eq(b.concat(a)))
 }

@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use lexer::tokens
 use lexer::char_class
 use lexer::keywords
@@ -8,7 +7,7 @@ fn lex_ident(mut lex: Lexer) -> Token {
         lex.pos = lex.pos + 1
     }
     let word = lex.src.slice(start, lex.pos)
-    if eq(word.clone(), "f") {
+    if word.clone().eq("f") {
         if lex.pos < lex.src_len && peek(lex) == 34 {
             return lex_fstring(lex, start)
         }

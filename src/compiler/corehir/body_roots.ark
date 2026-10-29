@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use corehir::body
 use corehir::body_builder
 use corehir::decl_children
@@ -18,7 +17,7 @@ fn lower_fn_contracts(mut builder: CoreHirBodyTable, decl: AstNode) -> i32 {
                 let expression = frontend_ast_node::corehir_node_child_at(annotation, 0)
                 let root = corehir_build_expr(builder, expression)
                 let kind = frontend_ast_node::corehir_node_text(annotation)
-                let result_name = if eq(kind.clone(), "ensures") {
+                let result_name = if kind.clone().eq("ensures") {
                     "result"
                 } else {
                     ""

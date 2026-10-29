@@ -1,10 +1,9 @@
-use std::prelude::{eq}
 // The user-reachable HashMap_<K>_<V>_* builtins were retired by #917, so this
 // table now only maps the non-public __hm_* storage bridge. The two families
 // lower differently on linear targets, so they keep separate tables.
 fn hashmap_builtin_alias(name: String) -> String {
     let constructor = hashmap_new_builtin_alias(name.clone())
-    if !eq(constructor.clone(), name.clone()) {
+    if !constructor.clone().eq(name.clone()) {
         return constructor
     }
     hashmap_with_capacity_builtin_alias(name)
@@ -16,11 +15,11 @@ fn hashmap_builtin_alias(name: String) -> String {
 // so without this edge the pruner drops it and the emitted call index
 // resolves to an import.
 fn hashmap_new_builtin_alias(name: String) -> String {
-    if eq(name.clone(), "__hm_si_new") ||
-    eq(name.clone(), "__hm_is_new") ||
-    eq(name.clone(), "__hm_if_new") ||
-    eq(name.clone(), "__hm_sf_new") ||
-    eq(name.clone(), "__hm_ss_new") {
+    if name.clone().eq("__hm_si_new") ||
+    name.clone().eq("__hm_is_new") ||
+    name.clone().eq("__hm_if_new") ||
+    name.clone().eq("__hm_sf_new") ||
+    name.clone().eq("__hm_ss_new") {
         return "hashmap_new"
     }
     name.clone()
@@ -29,11 +28,11 @@ fn hashmap_new_builtin_alias(name: String) -> String {
 // __hm_*_new_with_cap lowers to the flat Vec<i32> constructor with a
 // caller-supplied capacity on linear targets (#895 growth donor).
 fn hashmap_with_capacity_builtin_alias(name: String) -> String {
-    if eq(name.clone(), "__hm_si_new_with_cap") ||
-    eq(name.clone(), "__hm_is_new_with_cap") ||
-    eq(name.clone(), "__hm_if_new_with_cap") ||
-    eq(name.clone(), "__hm_sf_new_with_cap") ||
-    eq(name.clone(), "__hm_ss_new_with_cap") {
+    if name.clone().eq("__hm_si_new_with_cap") ||
+    name.clone().eq("__hm_is_new_with_cap") ||
+    name.clone().eq("__hm_if_new_with_cap") ||
+    name.clone().eq("__hm_sf_new_with_cap") ||
+    name.clone().eq("__hm_ss_new_with_cap") {
         return "hashmap_with_capacity"
     }
     name.clone()

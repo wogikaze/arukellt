@@ -20,7 +20,6 @@ use corehir::mod as corehir_mod
 // insert of the compiler-overlay late set (tick 166 first emit) grew hello
 // from 2312B to 2341B. A full Option/Result/Vec walk (tick 165) added
 // unused payloads and broke s2=s3. Only tuples plus ref14/ref25 Ok/Some.
-use std::prelude::{eq}
 fn mir_register_view_late_gc_types(mut ctx: LowerCtx, view: CoreHirMirView) {
     if !ctx_gc_struct::ctx_is_gc_target(ctx) {
         return
@@ -150,7 +149,7 @@ fn typed_fn_index_for_name(ts: CoreHirMirTypeSource, fn_name: String) -> i32 {
     let mut fi = 0
     while fi < fn_count {
         let tf = type_source::mir_type_source_typed_fn_at(ts, fi)
-        if eq(tf.name.clone(), fn_name.clone()) {
+        if tf.name.clone().eq(fn_name.clone()) {
             return fi
         }
         fi = fi + 1
@@ -199,7 +198,7 @@ fn register_open_or_vec_payload(mut ctx: LowerCtx, ty: TypeInfo, variant_name: S
     }
     let type_name = return_typeinfo::mir_return_type_name_from_type_info(payload_ty)
     let field_sig = ctx_gc_enum_sig::gc_enum_field_sig_for_type_ctx(ctx, type_name.clone())
-    if !eq(field_sig.clone(), "_f1_ref14") && !eq(field_sig.clone(), "_f1_ref25") {
+    if !field_sig.clone().eq("_f1_ref14") && !field_sig.clone().eq("_f1_ref25") {
         return
     }
     let mut payload_vts = Vec::new<i32>()

@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
 use mir::inst_record
@@ -271,7 +270,7 @@ fn mir_enqueue_call_edges_from_insts(
 ) {
     let call_op = opcodes::MIR_CALL()
     let ref_op = opcodes::MIR_REF_FUNC()
-    let skip_fallback = eq(target.clone(), String_from("wasm32-gc"))
+    let skip_fallback = target.clone().eq(String_from("wasm32-gc"))
     let block_count = function_block_queries::MirFunction_block_count(f)
     let mut bi = 0
     while bi < block_count {
@@ -353,7 +352,7 @@ fn mir_enqueue_symbol(
         return
     }
     let alias = hash_aliases::hashmap_builtin_alias(symbol.clone())
-    if eq(alias.clone(), symbol.clone()) {
+    if alias.clone().eq(symbol.clone()) {
         return
     }
     if mir_reachability_skips_hashmap_alias_bodies(target.clone()) {

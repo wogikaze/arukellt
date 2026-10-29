@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::call_type_fallback
 use mir::lower::call_type_hash
 use mir::lower::call_rewrite_hashset
@@ -26,11 +25,11 @@ fn mir_mark_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32, 
 }
 
 fn is_clone_result_callee(callee_name: String) -> bool {
-    eq(callee_name.clone(), "clone") ||
-    eq(callee_name.clone(), "__intrinsic_clone") ||
-    eq(callee_name.clone(), "__intrinsic_string_clone") ||
-    eq(callee_name.clone(), "__core_string_clone_impl") ||
-    eq(callee_name.clone(), "raw_string_clone") ||
+    callee_name.clone().eq("clone") ||
+    callee_name.clone().eq("__intrinsic_clone") ||
+    callee_name.clone().eq("__intrinsic_string_clone") ||
+    callee_name.clone().eq("__core_string_clone_impl") ||
+    callee_name.clone().eq("raw_string_clone") ||
     callee_name.clone().ends_with("::clone") ||
     callee_name.clone().ends_with("__clone") ||
     callee_name.clone().ends_with("::raw_string_clone") ||
@@ -90,45 +89,45 @@ fn mir_callee_returns_string(ctx: LowerCtx, callee_name: String) -> bool {
     if core_call_arg_names::mir_core_call_callee_returns_string(ctx, callee_name.clone()) {
         return true
     }
-    if eq(callee_name.clone(), "String_from") ||
-    eq(callee_name.clone(), "concat") ||
-    eq(callee_name.clone(), "String::concat") ||
-    eq(callee_name.clone(), "std::text::String::concat") ||
-    eq(callee_name.clone(), "__intrinsic_concat") ||
-    eq(callee_name.clone(), "text::concat") ||
-    eq(callee_name.clone(), "text::builder_append") ||
-    eq(callee_name.clone(), "to_string") ||
-    eq(callee_name.clone(), "i32_to_string") ||
-    eq(callee_name.clone(), "i64_to_string") ||
-    eq(callee_name.clone(), "text::format_i32") ||
-    eq(callee_name.clone(), "convert::i32_to_string") ||
-    eq(callee_name.clone(), "to_upper") ||
-    eq(callee_name.clone(), "to_lower") ||
-    eq(callee_name.clone(), "to_uppercase") ||
-    eq(callee_name.clone(), "to_lowercase") ||
-    eq(callee_name.clone(), "char_to_string") ||
-    eq(callee_name.clone(), "bool_to_string") ||
-    eq(callee_name.clone(), "f32_to_string") ||
-    eq(callee_name.clone(), "f64_to_string") ||
-    eq(callee_name.clone(), "slice") ||
-    eq(callee_name.clone(), "substring") ||
-    eq(callee_name.clone(), "__intrinsic_string_slice") ||
-    eq(callee_name.clone(), "trim") ||
-    eq(callee_name.clone(), "replace") ||
-    eq(callee_name.clone(), "string::repeat") ||
-    eq(callee_name.clone(), "stdio::read_stdin") ||
-    eq(callee_name.clone(), "__intrinsic_stdin_read_to_string") ||
-    eq(callee_name.clone(), "__intrinsic_i32_to_string") ||
-    eq(callee_name.clone(), "__intrinsic_i64_to_string") ||
-    eq(callee_name.clone(), "__intrinsic_f64_to_string") ||
-    eq(callee_name.clone(), "__intrinsic_bool_to_string") ||
-    eq(callee_name.clone(), "__intrinsic_char_to_string") ||
-    eq(callee_name.clone(), "join") ||
-    eq(callee_name.clone(), "text::join") ||
-    eq(callee_name.clone(), "__intrinsic_join") ||
-    eq(callee_name.clone(), "string_from_bytes") ||
-    eq(callee_name.clone(), "__intrinsic_string_from_bytes") ||
-    eq(callee_name.clone(), "bytes::string_from_bytes") {
+    if callee_name.clone().eq("String_from") ||
+    callee_name.clone().eq("concat") ||
+    callee_name.clone().eq("String::concat") ||
+    callee_name.clone().eq("std::text::String::concat") ||
+    callee_name.clone().eq("__intrinsic_concat") ||
+    callee_name.clone().eq("text::concat") ||
+    callee_name.clone().eq("text::builder_append") ||
+    callee_name.clone().eq("to_string") ||
+    callee_name.clone().eq("i32_to_string") ||
+    callee_name.clone().eq("i64_to_string") ||
+    callee_name.clone().eq("text::format_i32") ||
+    callee_name.clone().eq("convert::i32_to_string") ||
+    callee_name.clone().eq("to_upper") ||
+    callee_name.clone().eq("to_lower") ||
+    callee_name.clone().eq("to_uppercase") ||
+    callee_name.clone().eq("to_lowercase") ||
+    callee_name.clone().eq("char_to_string") ||
+    callee_name.clone().eq("bool_to_string") ||
+    callee_name.clone().eq("f32_to_string") ||
+    callee_name.clone().eq("f64_to_string") ||
+    callee_name.clone().eq("slice") ||
+    callee_name.clone().eq("substring") ||
+    callee_name.clone().eq("__intrinsic_string_slice") ||
+    callee_name.clone().eq("trim") ||
+    callee_name.clone().eq("replace") ||
+    callee_name.clone().eq("string::repeat") ||
+    callee_name.clone().eq("stdio::read_stdin") ||
+    callee_name.clone().eq("__intrinsic_stdin_read_to_string") ||
+    callee_name.clone().eq("__intrinsic_i32_to_string") ||
+    callee_name.clone().eq("__intrinsic_i64_to_string") ||
+    callee_name.clone().eq("__intrinsic_f64_to_string") ||
+    callee_name.clone().eq("__intrinsic_bool_to_string") ||
+    callee_name.clone().eq("__intrinsic_char_to_string") ||
+    callee_name.clone().eq("join") ||
+    callee_name.clone().eq("text::join") ||
+    callee_name.clone().eq("__intrinsic_join") ||
+    callee_name.clone().eq("string_from_bytes") ||
+    callee_name.clone().eq("__intrinsic_string_from_bytes") ||
+    callee_name.clone().eq("bytes::string_from_bytes") {
         return true
     }
     callee_name.clone().ends_with("::to_string")

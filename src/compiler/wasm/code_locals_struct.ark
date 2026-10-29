@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use wasm::constants
 use wasm::ctx_record
@@ -104,14 +103,14 @@ fn enum_payload_type_name(type_name: String) -> bool {
     if !type_name.clone().starts_with("enum:") {
         return false
     }
-    if eq(type_name.clone(), "enum:open") {
+    if type_name.clone().eq("enum:open") {
         return false
     }
     true
 }
 fn local_has_result_option_enum_type_name(type_name: String) -> bool {
-    eq(type_name.clone(), "Option") ||
-    eq(type_name.clone(), "Result") ||
+    type_name.clone().eq("Option") ||
+    type_name.clone().eq("Result") ||
     type_name.clone().starts_with(String_from("enum:")) ||
     type_name.clone().starts_with(String_from("option:")) ||
     type_name.clone().starts_with(String_from("Option_")) ||
@@ -130,7 +129,7 @@ fn local_has_container_type_name(type_name: String) -> bool {
     if type_name.clone().starts_with("vec:") || type_name.clone().starts_with("hashmap:") || type_name.clone().starts_with("struct:") {
         return true
     }
-    if eq(type_name.clone(), "string") || eq(type_name.clone(), "String") {
+    if type_name.clone().eq("string") || type_name.clone().eq("String") {
         return true
     }
     false
@@ -158,7 +157,7 @@ fn emit_gc_local_named_type(mut body: WasmWriter, type_name: String, vt: i32, f:
             return true
         }
     }
-    if eq(type_name.clone(), "string") || eq(type_name.clone(), "String") {
+    if type_name.clone().eq("string") || type_name.clone().eq("String") {
         if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx) {
             // Local is reused for i32 — skip ref type, try inference fallback.
         } else {
@@ -174,8 +173,8 @@ fn emit_gc_local_named_type(mut body: WasmWriter, type_name: String, vt: i32, f:
 }
 // GC-target local val type for struct:/raw struct names, with inference fallback.
 fn emit_gc_local_struct_type(mut body: WasmWriter, type_name: String, vt: i32, f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
-    if eq(type_name.clone(), "HashMap") ||
-    eq(type_name.clone(), "HashSet") ||
+    if type_name.clone().eq("HashMap") ||
+    type_name.clone().eq("HashSet") ||
     type_name.clone().starts_with("struct:HashMap:") ||
     type_name.clone().starts_with("struct:HashSet:") {
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
@@ -237,7 +236,7 @@ fn lookup_struct_byte_size(f: MirFunction, struct_name: String, ctx: SelfEmitCtx
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
             if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_STRUCT_NEW() {
                 let name = inst_accessors_literals::MirInst_str_val(inst)
-                if eq(name.clone(), struct_name.clone()) {
+                if name.clone().eq(struct_name.clone()) {
                     return inst_accessors_literals::MirInst_int_val(inst)
                 }
             }

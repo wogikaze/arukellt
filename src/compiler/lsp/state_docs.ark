@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 pub struct LspDoc {
     uri: String,
     text: String,
@@ -22,7 +21,7 @@ fn lsp_doc_index_of(store: LspDocStore, uri: String) -> i32 {
     let mut i = 0
     while i < n {
         let d = get_unchecked(store.docs, i)
-        if eq(d.uri.clone(), uri.clone()) {
+        if d.uri.clone().eq(uri.clone()) {
             return i
         }
         i = i + 1

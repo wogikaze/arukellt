@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use typechecker::ast_access
 use typechecker::ast_expr_predicates
 use typechecker::contract_fn_sig
@@ -444,7 +443,7 @@ fn place_keys_overlap(left: String, right: String) -> bool {
     if len(left) == 0 || len(right) == 0 {
         return false
     }
-    if eq(left.clone(), right.clone()) {
+    if left.clone().eq(right.clone()) {
         return true
     }
     let left_dot = left.clone().concat(".")

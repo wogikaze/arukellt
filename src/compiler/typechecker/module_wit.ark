@@ -1,6 +1,5 @@
 // WIT function signature collection for typecheck (#653, #664, #671, #672).
 
-use std::prelude::{eq}
 use std::text
 use collections::vec_extend
 use typechecker::ast_decl_predicates
@@ -54,11 +53,11 @@ fn wit_push_fn_sigs_for_import(mut sigs: Vec<FnSig>, wit_paths: Vec<String>, pac
         wit_push_fn_sigs_for_doc(sigs, alias.clone(), doc)
         return
     }
-    if eq(package_id.clone(), "test:host/host") {
+    if package_id.clone().eq("test:host/host") {
         push(sigs, wit_fn_sig_flags_param(alias.clone(), "set_perms"))
         return
     }
-    if eq(package_id.clone(), "test:host/handles") {
+    if package_id.clone().eq("test:host/handles") {
         push(sigs, wit_fn_sig_i32_param(alias.clone(), "take"))
         push(sigs, wit_fn_sig_i32_param(alias.clone(), "peek"))
     }
@@ -107,13 +106,13 @@ fn wit_binding_generic_args(name: String) -> Vec<String> {
 }
 
 fn wit_binding_type_info(name: String) -> TypeInfo {
-    if eq(name.clone(), "()") || len(name) == 0 {
+    if name.clone().eq("()") || len(name) == 0 {
         return contract_type_constructors::TypeInfo_simple(commands::TY_UNIT())
     }
     let open = name.index_of("<")
     if open > 0 {
         let base = name.slice(0, open)
-        let mut ty = if eq(base.clone(), "Tuple") {
+        let mut ty = if base.clone().eq("Tuple") {
             contract_type_constructors::TypeInfo_named(commands::TY_TUPLE(), String_new())
         } else {
             type_names::resolve_type_name(base)

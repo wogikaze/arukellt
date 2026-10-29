@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::call_rewrite
 use mir::lower::call_rewrite_string
 use mir::lower::call_rewrite_vec
@@ -15,7 +14,7 @@ use mir::inst_local_get
 use mir::value_types
 fn mir_emit_method_call(mut ctx: LowerCtx, mut callee_name: String, arg_count: i32, first_arg_idx: i32, value_arg_idx: i32) -> i32 {
     let bare_method = mir_method_bare_name(callee_name.clone())
-    if eq(bare_method.clone(), "to_string") {
+    if bare_method.clone().eq("to_string") {
         let string_rewrite = call_rewrite_string::mir_rewrite_to_string(ctx, "to_string", first_arg_idx)
         let return_local = call_rewrite_string::mir_string_call_rewrite_return_local(string_rewrite)
         if return_local >= 0 {
@@ -86,14 +85,14 @@ fn mir_emit_method_call(mut ctx: LowerCtx, mut callee_name: String, arg_count: i
 }
 
 fn mir_should_emit_clone_identity(ctx: LowerCtx, callee_name: String, bare_method: String, first_arg_idx: i32) -> bool {
-    if !eq(bare_method, String_from("clone")) || first_arg_idx < 0 {
+    if !bare_method.eq(String_from("clone")) || first_arg_idx < 0 {
         return false
     }
     let recv_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
     if !mir_is_concrete_clone_receiver(recv_type.clone()) {
         return false
     }
-    if eq(callee_name.clone(), String_from("clone")) {
+    if callee_name.clone().eq(String_from("clone")) {
         return true
     }
     mir_is_string_clone_callee(callee_name)
@@ -109,10 +108,10 @@ fn mir_is_concrete_clone_receiver(type_name: String) -> bool {
 }
 
 fn mir_is_string_clone_callee(name: String) -> bool {
-    eq(name.clone(), "String::clone") ||
-    eq(name.clone(), "__intrinsic_string_clone") ||
-    eq(name.clone(), "__core_string_clone_impl") ||
-    eq(name.clone(), "raw_string_clone") ||
+    name.clone().eq("String::clone") ||
+    name.clone().eq("__intrinsic_string_clone") ||
+    name.clone().eq("__core_string_clone_impl") ||
+    name.clone().eq("raw_string_clone") ||
     name.clone().ends_with("::raw_string_clone")
 }
 

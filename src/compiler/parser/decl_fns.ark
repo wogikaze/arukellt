@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use lexer::tokens
 use parser::core_ast_children
 use parser::core_ast_factory
@@ -66,7 +65,7 @@ fn parse_fn_members_until_rbrace(mut p: Parser, mut node: AstNode) {
 
 fn is_associated_type_start(p: Parser) -> bool {
     core_api_cursor::peek_kind(p) == tokens::TK_IDENT() &&
-    eq(core_api_cursor::peek_text(p), "type")
+    core_api_cursor::peek_text(p).eq("type")
 }
 
 fn parse_associated_type_member(mut p: Parser, mut node: AstNode) {

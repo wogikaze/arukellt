@@ -1,23 +1,22 @@
-use std::prelude::{eq}
 use typechecker::kinds
 use typechecker::contract_type_constructors
 fn resolve_container_type_name(name: String) -> TypeInfo {
-    if eq(name.clone(), "Vec") {
+    if name.clone().eq("Vec") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_VEC())
     }
-    if eq(name.clone(), "Option") {
+    if name.clone().eq("Option") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_OPTION())
     }
-    if eq(name.clone(), "Result") {
+    if name.clone().eq("Result") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_RESULT())
     }
-    if eq(name.clone(), "HashMap") {
+    if name.clone().eq("HashMap") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_HASHMAP())
     }
-    if eq(name.clone(), "Future") {
+    if name.clone().eq("Future") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_FUTURE())
     }
-    if eq(name.clone(), "Stream") {
+    if name.clone().eq("Stream") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_STREAM())
     }
     contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())

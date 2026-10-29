@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use wasm::ctx_record
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
@@ -46,21 +45,21 @@ fn vec_ref_target_type_from_name(ctx: SelfEmitCtx, tname: String) -> i32 {
         ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, elem.clone()) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
         }
-        if eq(elem.clone(), "String") || eq(elem.clone(), "string") {
+        if elem.clone().eq("String") || elem.clone().eq("string") {
             return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
         }
-        if eq(elem.clone(), "i64") || eq(elem.clone(), "I64") {
+        if elem.clone().eq("i64") || elem.clone().eq("I64") {
             return ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
         }
-        if eq(elem.clone(), "f64") || eq(elem.clone(), "F64") {
+        if elem.clone().eq("f64") || elem.clone().eq("F64") {
             return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
         }
-        if eq(elem.clone(), "v128") || eq(elem.clone(), "V128") {
+        if elem.clone().eq("v128") || elem.clone().eq("V128") {
             return ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
         }
         return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
     }
-    if eq(tname.clone(), "string") || eq(tname.clone(), "String") {
+    if tname.clone().eq("string") || tname.clone().eq("String") {
         return ctx_gc_type::SelfEmitCtx_string_type(ctx)
     }
     if tname.clone().starts_with("enum:") ||

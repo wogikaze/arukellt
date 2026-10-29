@@ -8,7 +8,6 @@ use typechecker::unify_env
 
 // Canonical protocol names used by language syntax. Keep this table aligned
 // with ADR-065; operator syntax must not search an inherent method namespace.
-use std::prelude::{eq}
 use std::text
 fn binary_trait_name(op: i32) -> String {
     if op == kinds::OP_ADD() { return "Add" }
@@ -107,7 +106,7 @@ fn enforce_operator_trait(
         let mut declared = false
         let mut pi = 0
         while pi < len(env.current_fn_type_params) {
-            if eq(get_unchecked(env.current_fn_type_params, pi), contract_type_access::TypeInfo_name(resolved_ty)) {
+            if get_unchecked(env.current_fn_type_params, pi).eq(contract_type_access::TypeInfo_name(resolved_ty)) {
                 declared = true
             }
             pi = pi + 1
@@ -146,7 +145,7 @@ fn enforce_operator_trait(
 // linear pointer arithmetic) (#885).
 fn is_builtin_operator_type(ty: TypeInfo, trait_name: String) -> bool {
     let tag = contract_type_access::TypeInfo_tag(ty)
-    if eq(trait_name.clone(), String_from("Eq")) || eq(trait_name.clone(), String_from("Ord")) {
+    if trait_name.clone().eq(String_from("Eq")) || trait_name.clone().eq(String_from("Ord")) {
         return tag == commands::TY_I32() ||
         tag == commands::TY_I64() ||
         tag == commands::TY_F64() ||
@@ -155,17 +154,17 @@ fn is_builtin_operator_type(ty: TypeInfo, trait_name: String) -> bool {
         tag == commands::TY_CHAR() ||
         tag == commands::TY_STRING()
     }
-    if eq(trait_name.clone(), String_from("Not")) {
+    if trait_name.clone().eq(String_from("Not")) {
         return tag == commands::TY_BOOL() ||
         tag == commands::TY_I32() ||
         tag == commands::TY_I64()
     }
-    if eq(trait_name.clone(), String_from("BitAnd")) ||
-    eq(trait_name.clone(), String_from("BitOr")) ||
-    eq(trait_name.clone(), String_from("BitXor")) ||
-    eq(trait_name.clone(), String_from("Shl")) ||
-    eq(trait_name.clone(), String_from("Shr")) ||
-    eq(trait_name.clone(), String_from("BitNot")) {
+    if trait_name.clone().eq(String_from("BitAnd")) ||
+    trait_name.clone().eq(String_from("BitOr")) ||
+    trait_name.clone().eq(String_from("BitXor")) ||
+    trait_name.clone().eq(String_from("Shl")) ||
+    trait_name.clone().eq(String_from("Shr")) ||
+    trait_name.clone().eq(String_from("BitNot")) {
         return tag == commands::TY_I32() || tag == commands::TY_I64()
     }
     // Arithmetic family (Add/Sub/Mul/Div/Rem/Neg): numeric scalars only.

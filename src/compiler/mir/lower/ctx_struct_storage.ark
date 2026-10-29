@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use collections::name_index
 fn ctx_struct_layout_count(ctx: LowerCtx) -> i32 {
     len(ctx.struct_names)
@@ -64,7 +63,7 @@ fn ctx_struct_layout_is_enum_base_at(ctx: LowerCtx, index: i32) -> bool {
         return false
     }
     let off = ctx_struct_layout_field_offset_at(ctx, index)
-    eq(ctx_struct_field_name_at_offset(ctx, off), "_tag")
+    ctx_struct_field_name_at_offset(ctx, off).eq("_tag")
 }
 
 // Index of the first non-enum-base layout registered under `struct_name`,

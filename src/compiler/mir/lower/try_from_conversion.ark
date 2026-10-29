@@ -28,13 +28,12 @@ use mir::function_return_view
 // ADR-039 D2 / RFC-004 §6: language-syntax desugaring resolves by canonical
 // SemanticTraitId::From on SignatureEntry (import-independent). The callee
 // mangled name is the lookup result, not a string invented at the use site.
-use std::prelude::{eq}
 fn try_resolve_from_conversion(ctx: LowerCtx, inner_idx: i32) -> String {
     let inner_type_name = ctx_api_local_types::ctx_get_local_type(ctx, inner_idx)
     let fn_return_type_name = function_return_view::MirFunction_return_type_name(ctx_current_storage::ctx_current_func_value(ctx))
     let source_err_type = try_extract_err_payload_type(inner_type_name.clone())
     let target_err_type = try_extract_err_payload_type(fn_return_type_name.clone())
-    if len(source_err_type) == 0 || len(target_err_type) == 0 || eq(source_err_type.clone(), target_err_type.clone()) {
+    if len(source_err_type) == 0 || len(target_err_type) == 0 || source_err_type.clone().eq(target_err_type.clone()) {
         return String_new()
     }
     let module = ctx_api_module::ctx_current_module(ctx)
@@ -101,12 +100,12 @@ fn try_identity_result_needs_rebuild(source_result_type: String, target_result_t
     if !try_is_result_type(source_result_type.clone()) || !try_is_result_type(target_result_type.clone()) {
         return false
     }
-    if eq(source_result_type.clone(), target_result_type.clone()) {
+    if source_result_type.clone().eq(target_result_type.clone()) {
         return false
     }
     let source_err_type = try_extract_err_payload_type(source_result_type.clone())
     let target_err_type = try_extract_err_payload_type(target_result_type.clone())
-    len(source_err_type) > 0 && eq(source_err_type.clone(), target_err_type.clone())
+    len(source_err_type) > 0 && source_err_type.clone().eq(target_err_type.clone())
 }
 
 fn try_is_result_type(type_name: String) -> bool {
@@ -213,16 +212,16 @@ fn try_err_payload_vt_gc(err_type_name: String) -> i32 {
     if len(err_type_name) == 0 {
         return value_types::VT_I32()
     }
-    if eq(err_type_name.clone(), "f64") || eq(err_type_name.clone(), "F64") {
+    if err_type_name.clone().eq("f64") || err_type_name.clone().eq("F64") {
         return value_types::VT_F64()
     }
-    if eq(err_type_name.clone(), "i64") || eq(err_type_name.clone(), "I64") {
+    if err_type_name.clone().eq("i64") || err_type_name.clone().eq("I64") {
         return value_types::VT_I64()
     }
-    if eq(err_type_name.clone(), "i32") ||
-    eq(err_type_name.clone(), "I32") ||
-    eq(err_type_name.clone(), "bool") ||
-    eq(err_type_name.clone(), "Bool") {
+    if err_type_name.clone().eq("i32") ||
+    err_type_name.clone().eq("I32") ||
+    err_type_name.clone().eq("bool") ||
+    err_type_name.clone().eq("Bool") {
         return value_types::VT_I32()
     }
     value_types::VT_GC_REF()

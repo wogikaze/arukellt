@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_exists
@@ -131,14 +130,14 @@ fn mir_inst_owner_name(type_name: String) -> String {
     // Vec and HashMap impl targets keep their established owner spellings:
     // Vec<String> -> Vec_String, other Vec<T> -> Vec; HashMap<K, V> with two
     // concrete named args -> HashMap_K_V, otherwise bare HashMap.
-    if eq(base.clone(), String_from("Vec")) {
-        if eq(inner.clone(), String_from("String")) ||
-        eq(inner.clone(), String_from("string")) {
+    if base.clone().eq(String_from("Vec")) {
+        if inner.clone().eq(String_from("String")) ||
+        inner.clone().eq(String_from("string")) {
             return String_from("Vec_String")
         }
         return String_from("Vec")
     }
-    if eq(base.clone(), String_from("HashMap")) {
+    if base.clone().eq(String_from("HashMap")) {
         return mir_hashmap_decl_owner_name(inner)
     }
     let suffix = mir_inst_key_suffix(inner)
@@ -277,7 +276,7 @@ fn mir_inst_seg_is_fn(seg: String) -> bool {
         i = i + 1
     }
     let s = seg.clone().slice(i, n)
-    eq(s.clone(), String_from("fn")) ||
+    s.clone().eq(String_from("fn")) ||
     s.clone().starts_with(String_from("fn(")) ||
     s.clone().starts_with(String_from("fn<")) ||
     s.clone().starts_with(String_from("fnref")) ||
@@ -285,7 +284,7 @@ fn mir_inst_seg_is_fn(seg: String) -> bool {
 }
 
 fn mir_inst_named_seg_key(seg: String) -> String {
-    if eq(seg.clone(), String_from("string")) {
+    if seg.clone().eq(String_from("string")) {
         return String_from("String")
     }
     seg
@@ -324,7 +323,7 @@ fn mir_inst_arg_key(seg: String) -> String {
     if seg.clone().starts_with(String_from("enum:")) {
         return mir_inst_arg_key(seg.clone().slice(5, len(seg)))
     }
-    if eq(seg.clone(), String_from("string")) {
+    if seg.clone().eq(String_from("string")) {
         return String_from("String")
     }
     if seg.clone().byte_at(0) == 63 {
@@ -333,7 +332,7 @@ fn mir_inst_arg_key(seg: String) -> String {
     if len(seg) == 1 && seg.clone().byte_at(0) >= 65 && seg.clone().byte_at(0) <= 90 {
         return String_new()
     }
-    if eq(seg.clone(), String_from("fn")) ||
+    if seg.clone().eq(String_from("fn")) ||
     seg.clone().starts_with(String_from("fn(")) ||
     seg.clone().starts_with(String_from("fnsig:")) ||
     seg.clone().starts_with(String_from("fnref")) {
@@ -363,27 +362,27 @@ fn mir_inst_arg_key(seg: String) -> String {
 }
 
 fn mir_is_vec_string_type(type_name: String) -> bool {
-    eq(type_name.clone(), String_from("vec:String")) ||
-    eq(type_name.clone(), String_from("vec:Vec_String"))
+    type_name.clone().eq(String_from("vec:String")) ||
+    type_name.clone().eq(String_from("vec:Vec_String"))
 }
 
 fn mir_is_vec_string_iteration_method(method_name: String) -> bool {
-    eq(method_name.clone(), String_from("iter")) ||
-    eq(method_name.clone(), String_from("into_iter"))
+    method_name.clone().eq(String_from("iter")) ||
+    method_name.clone().eq(String_from("into_iter"))
 }
 
 fn mir_is_vec_string_from_iter_source(type_name: String) -> bool {
-    eq(type_name.clone(), String_from("VecIter_String")) ||
-    eq(type_name.clone(), String_from("MapIter_String_String")) ||
-    eq(type_name.clone(), String_from("FilterIter_String")) ||
-    eq(type_name.clone(), String_from("TakeIter_MapIter_String_String")) ||
-    eq(type_name.clone(), String_from("TakeIter_FilterIter_String")) ||
-    eq(type_name.clone(), String_from("MapFilterIter_String_String")) ||
-    eq(type_name.clone(), String_from("FilterMapIter_String_String")) ||
-    eq(type_name.clone(), String_from("TakeIter_MapFilterIter_String_String")) ||
-    eq(type_name.clone(), String_from("TakeIter_FilterMapIter_String_String")) ||
-    eq(type_name.clone(), String_from("SkipMapIter_VecIter_String")) ||
-    eq(type_name.clone(), String_from("SkipFilterIter_VecIter_String"))
+    type_name.clone().eq(String_from("VecIter_String")) ||
+    type_name.clone().eq(String_from("MapIter_String_String")) ||
+    type_name.clone().eq(String_from("FilterIter_String")) ||
+    type_name.clone().eq(String_from("TakeIter_MapIter_String_String")) ||
+    type_name.clone().eq(String_from("TakeIter_FilterIter_String")) ||
+    type_name.clone().eq(String_from("MapFilterIter_String_String")) ||
+    type_name.clone().eq(String_from("FilterMapIter_String_String")) ||
+    type_name.clone().eq(String_from("TakeIter_MapFilterIter_String_String")) ||
+    type_name.clone().eq(String_from("TakeIter_FilterMapIter_String_String")) ||
+    type_name.clone().eq(String_from("SkipMapIter_VecIter_String")) ||
+    type_name.clone().eq(String_from("SkipFilterIter_VecIter_String"))
 }
 
 // Concrete HashMap<K, V> locals carry the hashmap:<pair> or HashMap_K_V
@@ -393,22 +392,22 @@ fn mir_is_vec_string_from_iter_source(type_name: String) -> bool {
 // (HashMap_i32_fnref::into_iter etc.) that impl registration produces
 // for HashMap<K, fn> impl targets (#691).
 fn mir_hashmap_impl_owner_name(type_name: String) -> String {
-    if eq(type_name.clone(), "hashmap:i32i32") || eq(type_name.clone(), "HashMap_i32_i32") {
+    if type_name.clone().eq("hashmap:i32i32") || type_name.clone().eq("HashMap_i32_i32") {
         return String_from("HashMap_i32_i32")
     }
-    if eq(type_name.clone(), "hashmap:si32") || eq(type_name.clone(), "HashMap_String_i32") {
+    if type_name.clone().eq("hashmap:si32") || type_name.clone().eq("HashMap_String_i32") {
         return String_from("HashMap_String_i32")
     }
-    if eq(type_name.clone(), "hashmap:i32str") || eq(type_name.clone(), "HashMap_i32_String") {
+    if type_name.clone().eq("hashmap:i32str") || type_name.clone().eq("HashMap_i32_String") {
         return String_from("HashMap_i32_String")
     }
-    if eq(type_name.clone(), "hashmap:strstr") || eq(type_name.clone(), "HashMap_String_String") {
+    if type_name.clone().eq("hashmap:strstr") || type_name.clone().eq("HashMap_String_String") {
         return String_from("HashMap_String_String")
     }
-    if eq(type_name.clone(), "hashmap:i32fn") || eq(type_name.clone(), "HashMap_i32_fnref") {
+    if type_name.clone().eq("hashmap:i32fn") || type_name.clone().eq("HashMap_i32_fnref") {
         return String_from("HashMap_i32_fnref")
     }
-    if eq(type_name.clone(), "hashmap:strfn") || eq(type_name.clone(), "HashMap_String_fnref") {
+    if type_name.clone().eq("hashmap:strfn") || type_name.clone().eq("HashMap_String_fnref") {
         return String_from("HashMap_String_fnref")
     }
     String_from("")
@@ -421,14 +420,14 @@ fn mir_resolve_short_method_name(ctx: LowerCtx, name: String) -> String {
         return ctx_fn_index::ctx_fn_index_name_at(ctx, exact).clone()
     }
     let last_two = mir_method_name_last_two_segments(norm.clone())
-    if !eq(last_two.clone(), norm.clone()) {
+    if !last_two.clone().eq(norm.clone()) {
         let found = ctx_fn_index::ctx_fn_index_find(ctx, last_two.clone())
         if found >= 0 {
             return ctx_fn_index::ctx_fn_index_name_at(ctx, found).clone()
         }
     }
     let last = mir_method_name_last_segment(norm.clone())
-    if !eq(last.clone(), norm.clone()) {
+    if !last.clone().eq(norm.clone()) {
         let found = ctx_fn_index::ctx_fn_index_find(ctx, last.clone())
         if found >= 0 {
             return ctx_fn_index::ctx_fn_index_name_at(ctx, found).clone()
@@ -452,7 +451,7 @@ fn mir_method_mono_type_key(ctx: LowerCtx, first_method_arg_idx: i32) -> String 
             method_mono_type_key = String_from("i32")
         }
     }
-    if eq(method_mono_type_key.clone(), String_from("string")) {
+    if method_mono_type_key.clone().eq(String_from("string")) {
         method_mono_type_key = String_from("String")
     }
     method_mono_type_key
@@ -478,8 +477,8 @@ fn mir_resolve_method_callee(mut ctx: LowerCtx, callee_name: String, first_metho
     // before span-based mono lookup so `get_unchecked(v, i).len()` does not
     // reuse the receiver call's `get_unchecked__String` specialization.
     let bare_builtin = mir_bare_method_name(callee_name.clone())
-    if eq(mir_type_prefix(callee_name.clone()), String_from("String")) &&
-    (eq(bare_builtin.clone(), String_from("len")) || eq(bare_builtin.clone(), String_from("char_at"))) {
+    if mir_type_prefix(callee_name.clone()).eq(String_from("String")) &&
+    (bare_builtin.clone().eq(String_from("len")) || bare_builtin.clone().eq(String_from("char_at"))) {
         return bare_builtin
     }
     let mono_target = ctx_mono_lookup_call(ctx, span_start, callee_name.clone())
@@ -528,29 +527,29 @@ fn mir_resolve_method_callee(mut ctx: LowerCtx, callee_name: String, first_metho
 }
 
 fn mir_vec_method_prefer_coreop_name(mangled: String) -> String {
-    if !eq(mir_type_prefix(mangled.clone()), String_from("Vec")) {
+    if !mir_type_prefix(mangled.clone()).eq(String_from("Vec")) {
         return String_from("")
     }
     let bare_name = mir_bare_method_name(mangled.clone())
-    if eq(bare_name.clone(), String_from("push")) || bare_name.clone().starts_with(String_from("push__")) {
+    if bare_name.clone().eq(String_from("push")) || bare_name.clone().starts_with(String_from("push__")) {
         return String_from("push")
     }
-    if eq(bare_name.clone(), String_from("len")) || bare_name.clone().starts_with(String_from("len__")) {
+    if bare_name.clone().eq(String_from("len")) || bare_name.clone().starts_with(String_from("len__")) {
         return String_from("raw_array_len")
     }
-    if eq(bare_name.clone(), String_from("set")) || bare_name.clone().starts_with(String_from("set__")) {
+    if bare_name.clone().eq(String_from("set")) || bare_name.clone().starts_with(String_from("set__")) {
         return String_from("raw_array_set_unchecked")
     }
-    if eq(bare_name.clone(), String_from("pop")) || bare_name.clone().starts_with(String_from("pop__")) {
+    if bare_name.clone().eq(String_from("pop")) || bare_name.clone().starts_with(String_from("pop__")) {
         return String_from("vec_pop")
     }
-    if eq(bare_name.clone(), String_from("get")) || bare_name.clone().starts_with(String_from("get__")) {
+    if bare_name.clone().eq(String_from("get")) || bare_name.clone().starts_with(String_from("get__")) {
         return String_from("vec_get")
     }
-    if eq(bare_name.clone(), String_from("get_unchecked")) || bare_name.clone().starts_with(String_from("get_unchecked__")) {
+    if bare_name.clone().eq(String_from("get_unchecked")) || bare_name.clone().starts_with(String_from("get_unchecked__")) {
         return String_from("get_unchecked")
     }
-    if eq(bare_name.clone(), String_from("is_empty")) || bare_name.clone().starts_with(String_from("is_empty__")) {
+    if bare_name.clone().eq(String_from("is_empty")) || bare_name.clone().starts_with(String_from("is_empty__")) {
         return String_from("is_empty")
     }
     String_from("")
@@ -559,16 +558,16 @@ fn mir_vec_method_prefer_coreop_name(mangled: String) -> String {
 fn mir_builtin_method_to_intrinsic(mangled: String, bare_name: String) -> String {
     let prefix = mir_type_prefix(mangled)
     // Vec methods: some intrinsics use bare name, others use vec_ prefix.
-    if eq(prefix.clone(), String_from("Vec")) {
+    if prefix.clone().eq(String_from("Vec")) {
         let preferred = mir_vec_method_prefer_coreop_name(mangled.clone())
         if len(preferred) > 0 {
             return preferred
         }
         // Associated constructors: keep mangled Vec::new__T for wasm
         // is_vec_new_callee fallback (no MIR body; #845).
-        if eq(bare_name.clone(), String_from("new")) ||
+        if bare_name.clone().eq(String_from("new")) ||
         bare_name.clone().starts_with(String_from("new__")) ||
-        eq(bare_name.clone(), String_from("with_capacity")) ||
+        bare_name.clone().eq(String_from("with_capacity")) ||
         bare_name.clone().starts_with(String_from("with_capacity__")) {
             return mangled
         }
@@ -577,12 +576,12 @@ fn mir_builtin_method_to_intrinsic(mangled: String, bare_name: String) -> String
     // String methods: len, char_at, etc. use bare name — no mapping needed.
     // Scalar methods: map trait dispatch names to compare intrinsics so
     // prelude String `eq` is not used for i32/i64/f64/bool/char receivers.
-    if eq(bare_name.clone(), String_from("eq")) {
-        if eq(prefix.clone(), String_from("i32")) { return String_from("__intrinsic_i32_eq") }
-        if eq(prefix.clone(), String_from("i64")) { return String_from("__intrinsic_i64_eq") }
-        if eq(prefix.clone(), String_from("f64")) { return String_from("__intrinsic_f64_eq") }
-        if eq(prefix.clone(), String_from("bool")) { return String_from("__intrinsic_i32_eq") }
-        if eq(prefix.clone(), String_from("char")) { return String_from("__intrinsic_i32_eq") }
+    if bare_name.clone().eq(String_from("eq")) {
+        if prefix.clone().eq(String_from("i32")) { return String_from("__intrinsic_i32_eq") }
+        if prefix.clone().eq(String_from("i64")) { return String_from("__intrinsic_i64_eq") }
+        if prefix.clone().eq(String_from("f64")) { return String_from("__intrinsic_f64_eq") }
+        if prefix.clone().eq(String_from("bool")) { return String_from("__intrinsic_i32_eq") }
+        if prefix.clone().eq(String_from("char")) { return String_from("__intrinsic_i32_eq") }
     }
     // Hash dispatch resolves through the registered `Type::hash` impl, which
     // shares the owner method namespace checked before this fallback. The
@@ -650,7 +649,7 @@ fn mir_mono_arg_segments_eq(recv_args: String, inst_args: String) -> bool {
     }
     let mut i = 0
     while i < len(recv_segs) {
-        if !eq(get_unchecked(recv_segs, i), get_unchecked(inst_segs, i)) {
+        if !get_unchecked(recv_segs, i).eq(get_unchecked(inst_segs, i)) {
             return false
         }
         i = i + 1
@@ -686,14 +685,14 @@ fn mir_bare_method_name(mangled: String) -> String {
 
 fn mir_is_builtin_type_prefix(mangled: String) -> bool {
     let prefix = mir_type_prefix(mangled)
-    if eq(prefix.clone(), String_from("Vec")) { return true }
-    if eq(prefix.clone(), String_from("String")) { return true }
-    if eq(prefix.clone(), String_from("i32")) { return true }
-    if eq(prefix.clone(), String_from("i64")) { return true }
-    if eq(prefix.clone(), String_from("f64")) { return true }
-    if eq(prefix.clone(), String_from("f32")) { return true }
-    if eq(prefix.clone(), String_from("bool")) { return true }
-    if eq(prefix.clone(), String_from("char")) { return true }
+    if prefix.clone().eq(String_from("Vec")) { return true }
+    if prefix.clone().eq(String_from("String")) { return true }
+    if prefix.clone().eq(String_from("i32")) { return true }
+    if prefix.clone().eq(String_from("i64")) { return true }
+    if prefix.clone().eq(String_from("f64")) { return true }
+    if prefix.clone().eq(String_from("f32")) { return true }
+    if prefix.clone().eq(String_from("bool")) { return true }
+    if prefix.clone().eq(String_from("char")) { return true }
     false
 }
 

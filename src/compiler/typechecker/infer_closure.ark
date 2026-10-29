@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use typechecker::kinds
 use typechecker::ast_access
 use typechecker::ownership_types
@@ -51,7 +50,7 @@ fn infer_closure_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSi
     let annotation_count = ast_access::node_type_ann_count(node)
     while annotation_index < annotation_count {
         let annotation = ast_access::node_type_ann_at(node, annotation_index)
-        if eq(ast_access::node_text(annotation), "__return") {
+        if ast_access::node_text(annotation).eq("__return") {
             if ast_access::node_child_count(annotation) > 0 {
                 let declared_ty = types::resolve_type_ann_node(
                     ast_access::node_child_at(annotation, 0)

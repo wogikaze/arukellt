@@ -1,5 +1,4 @@
 use std::host::fs::Fs
-use std::prelude::{eq}
 use compiler::session_parse
 use lsp::symbol_index_extract
 use lsp::symbol_index_paths
@@ -44,7 +43,7 @@ pub fn lookup_stdlib_source_span(uri: String, name: String) -> SourceSpan {
             let mut i = 0
             while i < n {
                 let sym = get_unchecked(extracted, i)
-                if eq(symbol_index_record::indexed_symbol_name(sym), name.clone()) {
+                if symbol_index_record::indexed_symbol_name(sym).eq(name.clone()) {
                     return SourceSpan_found(symbol_index_record::indexed_symbol_decl_start(sym), symbol_index_record::indexed_symbol_decl_end(sym))
                 }
                 i = i + 1

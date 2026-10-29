@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use typechecker::kinds
 use typechecker::contract_type_access
@@ -15,11 +14,11 @@ fn occurs_in_type_depth(env: TypeEnv, var_name: String, ty: TypeInfo, depth: i32
         return false
     }
     if contract_type_access::TypeInfo_tag(ty) == commands::TY_TYPE_VAR() {
-        if eq(contract_type_access::TypeInfo_name(ty), var_name.clone()) {
+        if contract_type_access::TypeInfo_name(ty).eq(var_name.clone()) {
             return true
         }
         let resolved = unify_resolve::resolve_type(env, ty)
-        if contract_type_access::TypeInfo_tag(resolved) == commands::TY_TYPE_VAR() && !eq(contract_type_access::TypeInfo_name(resolved), contract_type_access::TypeInfo_name(ty)) {
+        if contract_type_access::TypeInfo_tag(resolved) == commands::TY_TYPE_VAR() && !contract_type_access::TypeInfo_name(resolved).eq(contract_type_access::TypeInfo_name(ty)) {
             return occurs_in_type_depth(env, var_name, resolved, depth + 1)
         }
         return false
@@ -45,7 +44,7 @@ fn bind_var(mut env: TypeEnv, var_name: String, ty: TypeInfo) {
     let mut i = 0
     while i < count {
         let mut tv = contract_env_vars_record::type_env_var_at(env, i)
-        if eq(contract_typevar::TypeVar_bound_name(tv), var_name.clone()) || eq(contract_typevar::TypeVar_name(tv), var_name.clone()) {
+        if contract_typevar::TypeVar_bound_name(tv).eq(var_name.clone()) || contract_typevar::TypeVar_name(tv).eq(var_name.clone()) {
             contract_typevar::TypeVar_bind(tv, ty)
             return
         }

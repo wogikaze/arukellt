@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use lsp::state_record
 use lsp::symbol_index_record
@@ -38,7 +37,7 @@ fn results_contains(results: Vec<symbol_index_record::IndexedSymbol>, uri: Strin
     while i < n {
         let sym = get_unchecked(results, i)
         let existing = result_key(symbol_index_record::indexed_symbol_uri(sym), symbol_index_record::indexed_symbol_name(sym))
-        if eq(existing, key.clone()) {
+        if existing.eq(key.clone()) {
             return true
         }
         i = i + 1

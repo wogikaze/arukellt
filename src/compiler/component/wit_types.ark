@@ -1,5 +1,4 @@
 use std::text
-use std::prelude::{eq}
 use component::type_node
 use component::wit_names
 fn component_wit_type_to_text(ty: ComponentTypeNode) -> String {
@@ -9,23 +8,23 @@ fn component_wit_type_to_text(ty: ComponentTypeNode) -> String {
     }
     if type_node::type_node_is_generic_kind(ty) {
         let name = type_node::type_node_text(ty)
-        if eq(name.clone(), "Vec") && child_count > 1 {
+        if name.clone().eq("Vec") && child_count > 1 {
             let child_type = component_wit_type_to_text(type_node::type_node_child_at(ty, 1))
             return "list<".concat(child_type.concat(">"))
         }
-        if eq(name.clone(), "Option") && child_count > 1 {
+        if name.clone().eq("Option") && child_count > 1 {
             let child_type = component_wit_type_to_text(type_node::type_node_child_at(ty, 1))
             return "option<".concat(child_type.concat(">"))
         }
-        if eq(name.clone(), "Result") && child_count > 2 {
+        if name.clone().eq("Result") && child_count > 2 {
             let ok_type = component_wit_type_to_text(type_node::type_node_child_at(ty, 1))
             let error_type = component_wit_type_to_text(type_node::type_node_child_at(ty, 2))
             return "result<".concat(ok_type.concat(", ".concat(error_type.concat(">"))))
         }
-        if eq(name.clone(), "Future") && child_count > 1 {
+        if name.clone().eq("Future") && child_count > 1 {
             return "future<".concat(component_wit_type_to_text(type_node::type_node_child_at(ty, 1)).concat(">"))
         }
-        if eq(name.clone(), "Stream") && child_count > 1 {
+        if name.clone().eq("Stream") && child_count > 1 {
             return "stream<".concat(component_wit_type_to_text(type_node::type_node_child_at(ty, 1)).concat(">"))
         }
         return wit_names::wit_type_name(name)
@@ -47,43 +46,43 @@ fn component_wit_type_to_text(ty: ComponentTypeNode) -> String {
 }
 
 fn wit_named_type(name: String) -> String {
-    if eq(name.clone(), "i32") {
+    if name.clone().eq("i32") {
         return "s32"
     }
-    if eq(name.clone(), "i64") {
+    if name.clone().eq("i64") {
         return "s64"
     }
-    if eq(name.clone(), "f32") {
+    if name.clone().eq("f32") {
         return "f32"
     }
-    if eq(name.clone(), "f64") {
+    if name.clone().eq("f64") {
         return "f64"
     }
-    if eq(name.clone(), "bool") {
+    if name.clone().eq("bool") {
         return "bool"
     }
-    if eq(name.clone(), "char") {
+    if name.clone().eq("char") {
         return "char"
     }
-    if eq(name.clone(), "u8") {
+    if name.clone().eq("u8") {
         return "u8"
     }
-    if eq(name.clone(), "u16") {
+    if name.clone().eq("u16") {
         return "u16"
     }
-    if eq(name.clone(), "u32") {
+    if name.clone().eq("u32") {
         return "u32"
     }
-    if eq(name.clone(), "u64") {
+    if name.clone().eq("u64") {
         return "u64"
     }
-    if eq(name.clone(), "i8") {
+    if name.clone().eq("i8") {
         return "s8"
     }
-    if eq(name.clone(), "i16") {
+    if name.clone().eq("i16") {
         return "s16"
     }
-    if eq(name.clone(), "String") || eq(name.clone(), "string") {
+    if name.clone().eq("String") || name.clone().eq("string") {
         return "string"
     }
     wit_names::wit_type_name(name)

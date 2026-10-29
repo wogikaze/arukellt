@@ -1,10 +1,9 @@
-use std::prelude::{eq}
 use lexer::tokens
 pub fn keyword_kind_literal(word: String) -> i32 {
-    if eq(word, "true") {
+    if word.eq("true") {
         return tokens::TK_BOOL()
     }
-    if eq(word, "false") {
+    if word.eq("false") {
         return tokens::TK_BOOL()
     }
     0 - 1

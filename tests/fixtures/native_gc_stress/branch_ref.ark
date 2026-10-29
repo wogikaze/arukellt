@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 fn main() -> i32 {
     let left = String_from("left")
     let right = String_from("right")
@@ -6,5 +5,5 @@ fn main() -> i32 {
     if len(right) > 0 {
         chosen = right
     }
-    if eq(chosen, String_from("right")) { 0 } else { 1 }
+    if chosen.eq(String_from("right")) { 0 } else { 1 }
 }

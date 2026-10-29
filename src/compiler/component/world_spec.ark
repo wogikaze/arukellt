@@ -1,8 +1,7 @@
 use std::text
-use std::prelude::{eq}
 use component::constants_world_spec
 fn world_spec_kind(world: String) -> i32 {
-    if eq(world.clone(), "wasi:cli/command") { return constants_world_spec::WORLD_KIND_CLI_COMMAND() }
+    if world.clone().eq("wasi:cli/command") { return constants_world_spec::WORLD_KIND_CLI_COMMAND() }
     constants_world_spec::WORLD_KIND_NONE()
 }
 
@@ -55,6 +54,6 @@ fn world_target_error(world: String, target: String, emit_mode: String) -> Strin
     if len(world) == 0 { return String_new() }
     let unknown = world_spec_parse_error(world.clone())
     if len(unknown) > 0 { return unknown }
-    if !eq(target.clone(), "wasm32-gc") { return "--world requires --target wasm32-gc" }
+    if !target.clone().eq("wasm32-gc") { return "--world requires --target wasm32-gc" }
     String_new()
 }

@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_offset
@@ -81,7 +80,7 @@ fn ctx_generic_enum_type_name(ctx: LowerCtx, type_name: String) -> String {
     let gc = len(ctx.generic_struct_names)
     let mut gi = 0
     while gi < gc {
-        if eq(get_unchecked(ctx.generic_struct_names, gi), base.clone()) {
+        if get_unchecked(ctx.generic_struct_names, gi).eq(base.clone()) {
             return String_new()
         }
         gi = gi + 1
@@ -143,7 +142,7 @@ fn ctx_maybe_enum_return_type_name(mut ctx: LowerCtx, type_name: String) -> Stri
     // name as a struct would strip a qualified element name (`vec:types::T`)
     // to `T` and turn Vec<T> into the element struct itself.
     let normalized = ctx_normalize_generic_type_name(type_name.clone())
-    if !eq(normalized.clone(), type_name.clone()) {
+    if !normalized.clone().eq(type_name.clone()) {
         return ctx_maybe_enum_return_type_name(ctx, normalized)
     }
     if type_name.clone().starts_with("vec:") ||
@@ -156,7 +155,7 @@ fn ctx_maybe_enum_return_type_name(mut ctx: LowerCtx, type_name: String) -> Stri
         return type_name
     }
     let resolved_layout = ctx_resolve_struct_layout_name(ctx, type_name.clone())
-    if !eq(resolved_layout.clone(), type_name.clone()) {
+    if !resolved_layout.clone().eq(type_name.clone()) {
         return ctx_maybe_enum_return_type_name(ctx, resolved_layout)
     }
     // Normalize angle-bracket forms so GC locals / match payload see
@@ -167,13 +166,13 @@ fn ctx_maybe_enum_return_type_name(mut ctx: LowerCtx, type_name: String) -> Stri
     if type_name.clone().starts_with("hashmap:") {
         return type_name
     }
-    if eq(type_name.clone(), "HashMap") {
+    if type_name.clone().eq("HashMap") {
         return type_name
     }
-    if eq(type_name.clone(), "HashSet") {
+    if type_name.clone().eq("HashSet") {
         return type_name
     }
-    if eq(type_name.clone(), "Vec") {
+    if type_name.clone().eq("Vec") {
         return type_name
     }
     if type_name.clone().starts_with("struct:") {
@@ -200,25 +199,25 @@ fn ctx_maybe_enum_return_type_name(mut ctx: LowerCtx, type_name: String) -> Stri
 }
 
 fn is_builtin_type_name(type_name: String) -> bool {
-    eq(type_name.clone(), "String") ||
-    eq(type_name.clone(), "string") ||
-    eq(type_name.clone(), "bool") ||
-    eq(type_name.clone(), "char") ||
-    eq(type_name.clone(), "i32") ||
-    eq(type_name.clone(), "i64") ||
-    eq(type_name.clone(), "f32") ||
-    eq(type_name.clone(), "f64") ||
-    eq(type_name.clone(), "u8") ||
-    eq(type_name.clone(), "i8") ||
-    eq(type_name.clone(), "u16") ||
-    eq(type_name.clone(), "u32") ||
-    eq(type_name.clone(), "u64") ||
-    eq(type_name.clone(), "i16") ||
-    eq(type_name.clone(), "unit") ||
-    eq(type_name.clone(), "()") ||
-    eq(type_name.clone(), "v128") ||
-    eq(type_name.clone(), "fn") ||
-    eq(type_name.clone(), "fnref") ||
+    type_name.clone().eq("String") ||
+    type_name.clone().eq("string") ||
+    type_name.clone().eq("bool") ||
+    type_name.clone().eq("char") ||
+    type_name.clone().eq("i32") ||
+    type_name.clone().eq("i64") ||
+    type_name.clone().eq("f32") ||
+    type_name.clone().eq("f64") ||
+    type_name.clone().eq("u8") ||
+    type_name.clone().eq("i8") ||
+    type_name.clone().eq("u16") ||
+    type_name.clone().eq("u32") ||
+    type_name.clone().eq("u64") ||
+    type_name.clone().eq("i16") ||
+    type_name.clone().eq("unit") ||
+    type_name.clone().eq("()") ||
+    type_name.clone().eq("v128") ||
+    type_name.clone().eq("fn") ||
+    type_name.clone().eq("fnref") ||
     type_name.clone().starts_with(String_from("fnref")) ||
     type_name.clone().starts_with(String_from("fnsig:"))
 }
@@ -322,11 +321,11 @@ fn ctx_count_layout_matches(ctx: LowerCtx, candidate: String) -> i32 {
     let mut si = 0
     while si < sc {
         let name = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si)
-        if eq(name.clone(), candidate.clone()) {
+        if name.clone().eq(candidate.clone()) {
             count = count + 1
         } else {
             let basename = ctx_struct_basename(name)
-            if eq(basename.clone(), candidate.clone()) {
+            if basename.clone().eq(candidate.clone()) {
                 count = count + 1
             }
         }
@@ -340,7 +339,7 @@ fn ctx_find_layout_name(ctx: LowerCtx, candidate: String) -> String {
     let mut si = 0
     while si < sc {
         let name = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si)
-        if eq(name.clone(), candidate.clone()) {
+        if name.clone().eq(candidate.clone()) {
             return name
         }
         si = si + 1
@@ -349,7 +348,7 @@ fn ctx_find_layout_name(ctx: LowerCtx, candidate: String) -> String {
     while si < sc {
         let name = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si)
         let basename = ctx_struct_basename(name)
-        if eq(basename.clone(), candidate.clone()) {
+        if basename.clone().eq(candidate.clone()) {
             return name
         }
         si = si + 1
@@ -397,7 +396,7 @@ fn ctx_is_registered_enum_type(ctx: LowerCtx, enum_name: String) -> bool {
         return false
     }
     let off = ctx_struct_storage::ctx_struct_layout_field_offset_at(ctx, si)
-    eq(ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, off), "_tag")
+    ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, off).eq("_tag")
 }
 
 // Strip "struct:TypeName:byte_size" → "TypeName" so struct layout lookups

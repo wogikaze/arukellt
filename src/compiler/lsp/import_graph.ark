@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use compiler::session_parse
 use loader::module_import_paths
@@ -6,7 +5,7 @@ fn path_is_imported(paths: Vec<String>, import_path: String) -> bool {
     let n = len(paths)
     let mut i = 0
     while i < n {
-        if eq(get_unchecked(paths, i), import_path.clone()) {
+        if get_unchecked(paths, i).eq(import_path.clone()) {
             return true
         }
         i = i + 1

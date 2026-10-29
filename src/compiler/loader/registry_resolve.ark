@@ -1,5 +1,4 @@
 use std::host::fs::Fs
-use std::prelude::{eq}
 use std::text
 use loader::registry_config
 fn registry_error_unreachable(url: String, reason: String) -> String {
@@ -19,7 +18,7 @@ fn starts_with_file(url: String) -> bool {
 }
 
 fn file_registry_root(package_root: String, registry_url: String) -> String {
-    if eq(registry_url.clone(), "file://.") {
+    if registry_url.clone().eq("file://.") {
         return package_root.clone()
     }
     if registry_url.clone().starts_with("file://./") {

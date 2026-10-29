@@ -9,7 +9,6 @@
 // direct-call path keeps working. Named functions coerce through a
 // __fnthunk_<name> shim that ignores the env slot.
 
-use std::prelude::{eq}
 use std::text
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_function_frame
@@ -353,7 +352,7 @@ fn closure_find_module_function(ctx: LowerCtx, fn_name: String) -> i32 {
     let mut i = 0
     while i < n {
         let f = module_functions::MirModule_function_at(m, i)
-        if eq(function_identity::MirFunction_name(f), fn_name.clone()) {
+        if function_identity::MirFunction_name(f).eq(fn_name.clone()) {
             return i
         }
         i = i + 1
@@ -366,7 +365,7 @@ fn closure_ensure_fn_thunk(mut ctx: LowerCtx, fn_name: String) -> String {
     let thunk = closure_thunk_name(fn_name)
     let mut i = 0
     while i < len(ctx.closure_thunk_names) {
-        if eq(get_unchecked(ctx.closure_thunk_names, i), fn_name.clone()) {
+        if get_unchecked(ctx.closure_thunk_names, i).eq(fn_name.clone()) {
             return thunk
         }
         i = i + 1
@@ -482,11 +481,11 @@ fn closure_pair_call_hint(ctx: LowerCtx, type_name: String, arg_lis: Vec<i32>, d
 }
 
 fn closure_type_name_is_fn_value(type_name: String) -> bool {
-    if eq(type_name.clone(), "fnref") ||
-    eq(type_name.clone(), "fnref2") ||
-    eq(type_name.clone(), "fnrefss") ||
-    eq(type_name.clone(), "fnrefsb") ||
-    eq(type_name.clone(), "fn") {
+    if type_name.clone().eq("fnref") ||
+    type_name.clone().eq("fnref2") ||
+    type_name.clone().eq("fnrefss") ||
+    type_name.clone().eq("fnrefsb") ||
+    type_name.clone().eq("fn") {
         return true
     }
     type_name.clone().starts_with("fnref") ||

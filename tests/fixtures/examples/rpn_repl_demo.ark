@@ -1,6 +1,5 @@
 // RPN demo for playground — edit DEMO_INPUT to try expressions (no stdin).
 use std::core::convert
-use std::prelude::{eq}
 use std::host::stdio
 use std::text
 
@@ -21,8 +20,8 @@ fn print_stack_count_error(count: i32) {
 fn print_result(val: i32) { stdio::println("ok: result = ".concat(val.to_string())) }
 
 fn operator_from_token(tok: String) -> RpnOp {
-    if eq(tok, "+") { RpnOp::Add }
-    else { if eq(tok, "-") { RpnOp::Sub } else { if eq(tok, "*") { RpnOp::Mul } else { RpnOp::Invalid } } }
+    if tok.eq("+") { RpnOp::Add }
+    else { if tok.eq("-") { RpnOp::Sub } else { if tok.eq("*") { RpnOp::Mul } else { RpnOp::Invalid } } }
 }
 
 fn apply_op_values(op: RpnOp, a: i32, b: i32) -> i32 {

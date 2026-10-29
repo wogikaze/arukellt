@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_api_local_alloc
@@ -79,7 +78,7 @@ fn sync_let_local_type_name(mut ctx: LowerCtx, local_idx: i32, val_idx: i32, pre
     if existing.clone().starts_with("enum:") {
         let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
         let init_vt = ctx_api_local_types::ctx_local_vt(ctx, val_idx)
-        let is_enum_annotation = eq(existing.clone(), "enum:Option") || eq(existing.clone(), "enum:Result")
+        let is_enum_annotation = existing.clone().eq("enum:Option") || existing.clone().eq("enum:Result")
         let init_is_result = init_type.clone().starts_with("option:") ||
         init_type.clone().starts_with("result:") ||
         init_type.clone().starts_with("Option_") ||
@@ -112,7 +111,7 @@ fn sync_let_local_type_name(mut ctx: LowerCtx, local_idx: i32, val_idx: i32, pre
     // annotation to a scalar/empty call-result temp. A trait method returning
     // Result<T, E> otherwise registers its call dest as the i64 default while
     // the callee actually returns the Result ref (#708).
-    if eq(existing.clone(), "Option") || eq(existing.clone(), "Result") ||
+    if existing.clone().eq("Option") || existing.clone().eq("Result") ||
     existing.clone().starts_with("Option_") ||
     existing.clone().starts_with("Result_") ||
     existing.clone().starts_with("option:") ||

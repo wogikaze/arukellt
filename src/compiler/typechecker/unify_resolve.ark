@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use typechecker::kinds
 use typechecker::contract_type_constructors
 use typechecker::contract_type_access
@@ -20,7 +19,7 @@ fn resolve_type_depth(env: TypeEnv, ty: TypeInfo, depth: i32) -> TypeInfo {
     let mut i = 0
     while i < count {
         let tv = contract_env_vars_record::type_env_var_at(env, i)
-        if eq(contract_typevar::TypeVar_name(tv), contract_type_access::TypeInfo_name(ty)) {
+        if contract_typevar::TypeVar_name(tv).eq(contract_type_access::TypeInfo_name(ty)) {
             if contract_typevar::TypeVar_is_bound(tv) {
                 return resolve_type_depth(env, contract_typevar::TypeVar_bound(tv), depth + 1)
             }

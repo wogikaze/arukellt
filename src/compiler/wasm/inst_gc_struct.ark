@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::inst_accessors_shape
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
@@ -31,7 +30,7 @@ fn gc_variant_field_is_i32(ctx: SelfEmitCtx, type_slot: i32, field_idx: i32) -> 
     if field_idx < 0 || field_idx >= len(fields) {
         return false
     }
-    eq(get_unchecked(fields, field_idx), "i32")
+    get_unchecked(fields, field_idx).eq("i32")
 }
 
 fn emit_gc_struct_new(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {

@@ -2,7 +2,6 @@
 // backends. Equal values are built through different paths so identity
 // equality cannot pass by accident; scalar equality stays a control.
 use std::host::stdio
-use std::prelude::{eq}
 
 fn accessors_match(values: Vec<String>, left: i32, right: i32) -> bool {
     values.get_unchecked(left) == values.get_unchecked(right)
@@ -29,8 +28,8 @@ fn main() {
     stdio::println((empty != literal).to_string())
     stdio::println((empty == literal).to_string())
 
-    stdio::println((eq(literal, dynamic)).to_string())
-    stdio::println((eq(literal, other)).to_string())
+    stdio::println((literal.eq(dynamic)).to_string())
+    stdio::println((literal.eq(other)).to_string())
 
     // Both operands are inline generic accessor calls, so the MIR binop has no
     // statically peekable ref operand. The result must still compare contents.

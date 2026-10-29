@@ -1,11 +1,10 @@
-use std::prelude::{eq}
 use resolver::bindings_pattern
 use resolver::scope_define
 use resolver::ast_access
 use resolver::kinds
 fn resolve_let(mut ctx: ResolveCtx, node: AstNode) {
     let binding_name = ast_access::node_text(node)
-    let is_tuple_destructure = eq(binding_name.clone(), "__tuple_destructure")
+    let is_tuple_destructure = binding_name.clone().eq("__tuple_destructure")
     let child_count = ast_access::node_child_count(node)
     if is_tuple_destructure {
         if child_count > 0 {
@@ -22,7 +21,7 @@ fn resolve_let(mut ctx: ResolveCtx, node: AstNode) {
         let mut init = ast_access::node_child_at(node, 0)
         resolve_node(ctx, init)
     }
-    if !eq(binding_name.clone(), "_") {
+    if !binding_name.clone().eq("_") {
         scope_define::define_span(ctx, binding_name, commands::SYM_LOCAL(), ast_access::node_decl_name_span_start(node), ast_access::node_decl_name_span_end(node))
     }
 }

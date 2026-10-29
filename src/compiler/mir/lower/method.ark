@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_types
@@ -61,7 +60,7 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     if struct_name.clone().starts_with("hashmap:") {
         struct_name = "HashMap"
     }
-    if eq(struct_name.clone(), "string") {
+    if struct_name.clone().eq("string") {
         struct_name = "String"
     }
     // An Option call result carries the canonical `option:<T>` encoding from
@@ -106,8 +105,8 @@ fn mir_resolve_method_callee(mut ctx: LowerCtx, callee_name: String, first_metho
 // replaces the receiver local. A field receiver is materialized into a load
 // temp, so the caller must store that replaced value back into its owner.
 fn mir_method_replaces_string_receiver(callee_name: String) -> bool {
-    eq(callee_name.clone(), String_from("String::push_char")) ||
-    eq(callee_name.clone(), String_from("push_char"))
+    callee_name.clone().eq(String_from("String::push_char")) ||
+    callee_name.clone().eq(String_from("push_char"))
 }
 
 fn mir_emit_method_call(mut ctx: LowerCtx, mut callee_name: String, arg_count: i32, first_arg_idx: i32, value_arg_idx: i32) -> i32 {

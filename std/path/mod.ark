@@ -11,7 +11,6 @@
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 use std::text
-use std::prelude::{eq}
 
 /// Joins two path segments with a single `/` separator.
 fn path_join(base: String, child: String) -> String {
@@ -23,7 +22,7 @@ fn path_join(base: String, child: String) -> String {
         } else {
             let base_len = len(base)
             let last_char = base.slice(base_len - 1, base_len)
-            if eq(last_char, "/") {
+            if last_char.eq("/") {
                 base.concat(child)
             } else {
                 base.concat("/").concat(child)
@@ -78,7 +77,7 @@ fn path_is_absolute(p: String) -> bool {
     if p.is_empty() {
         false
     } else {
-        eq(p.slice(0, 1), "/")
+        p.slice(0, 1).eq("/")
     }
 }
 
@@ -122,9 +121,9 @@ fn path_normalize(p: String) -> String {
     let mut i = 0
     while i < n {
         let part = get_unchecked(parts, i)
-        if eq(part, ".") || part.is_empty() {
+        if part.eq(".") || part.is_empty() {
         } else {
-            if eq(part, "..") {
+            if part.eq("..") {
                 if len(out) > 0 {
                     let _ = pop(out)
                 }
@@ -248,7 +247,7 @@ fn last_index_of(s: String, needle: String) -> i32 {
                         i = 0 - 1
                     } else {
                         let sub = s.slice(i, i + nlen)
-                        if eq(sub, needle) {
+                        if sub.eq(needle) {
                             result = i
                             i = 0 - 1
                         } else {

@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 struct Inner {
     label: String,
 }
@@ -14,5 +13,5 @@ fn main() -> i32 {
         let _junk = String_from("pad")
         i = i + 1
     }
-    if eq(outer.inner.label, String_from("nested")) { 0 } else { 1 }
+    if outer.inner.label.eq(String_from("nested")) { 0 } else { 1 }
 }

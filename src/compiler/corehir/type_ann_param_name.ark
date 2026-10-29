@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use corehir::frontend_ast_identity
 use corehir::frontend_type_kind
@@ -36,7 +35,7 @@ fn type_ann_shape_param_type_name(ty: AstNode) -> String {
         if type_ann_node::type_ann_is_name(ty, String_from("Option")) && type_ann_node::type_ann_child_count(ty) >= 2 {
             let elem = type_ann_node::type_ann_child_at(ty, 1)
             if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(elem)) ||
-            eq(type_ann_node::type_ann_name(elem), String_from("fnref")) {
+            type_ann_node::type_ann_name(elem).eq(String_from("fnref")) {
                 return String_from("Option:fnref")
             }
             return String_from("Option:").concat(type_ann_node::type_ann_name(elem))

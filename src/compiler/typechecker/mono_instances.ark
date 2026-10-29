@@ -1,5 +1,4 @@
 use std::text
-use std::prelude::{eq}
 use collections::name_index
 use typechecker::associated_types
 use typechecker::contract_fn_sig
@@ -49,7 +48,7 @@ fn record_mono_instance(mut env: TypeEnv, fn_name: String, resolved_types: Vec<T
     let mut j = 0
     while j < mi_count {
         let mut mi = contract_env_mono_record::type_env_mono_instance_at(env, j)
-        if eq(contract_mono::MonoInstance_mangled_name(mi), mangled.clone()) {
+        if contract_mono::MonoInstance_mangled_name(mi).eq(mangled.clone()) {
             if !contract_mono::MonoInstance_demanded(mi) {
                 // An instance minted without demand (module merge or a
                 // call-site marker) turned out to be a real call target:
@@ -95,8 +94,8 @@ fn record_template_site_if_generic(mut env: TypeEnv, fn_name: String, mangled_na
     let mut s = 0
     while s < site_count {
         let site = get_unchecked(env.mono_template_sites, s)
-        if eq(site.mangled_name.clone(), mangled_name.clone()) &&
-        eq(site.enclosing_fn.clone(), env.current_fn_name.clone()) {
+        if site.mangled_name.clone().eq(mangled_name.clone()) &&
+        site.enclosing_fn.clone().eq(env.current_fn_name.clone()) {
             return
         }
         s = s + 1
@@ -134,8 +133,8 @@ fn record_var_method_site(mut env: TypeEnv, method_name: String, recv_ty: TypeIn
     let mut s = 0
     while s < site_count {
         let site = get_unchecked(env.mono_template_sites, s)
-        if eq(site.mangled_name.clone(), mangled.clone()) &&
-        eq(site.enclosing_fn.clone(), env.current_fn_name.clone()) {
+        if site.mangled_name.clone().eq(mangled.clone()) &&
+        site.enclosing_fn.clone().eq(env.current_fn_name.clone()) {
             return
         }
         s = s + 1
@@ -168,7 +167,7 @@ fn is_var_projection_receiver(env: TypeEnv, recv_ty: TypeInfo) -> bool {
     let count = len(env.current_fn_type_params)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(env.current_fn_type_params, i), owner.clone()) {
+        if get_unchecked(env.current_fn_type_params, i).eq(owner.clone()) {
             return true
         }
         i = i + 1
@@ -227,16 +226,16 @@ fn erase_impl_owner_args(name: String) -> String {
 // unqualified compare collapses every `cmp`/`next`/`eq` impl into one
 // bucket and the mint chain explodes (#920 emit-phase stall).
 fn enclosing_matches_instantiation(site_name: String, fn_name: String) -> bool {
-    if eq(site_name.clone(), fn_name.clone()) {
+    if site_name.clone().eq(fn_name.clone()) {
         return true
     }
     let site_erased = erase_impl_owner_args(site_name.clone())
     let fn_erased = erase_impl_owner_args(fn_name.clone())
-    if eq(site_erased.clone(), fn_erased.clone()) {
+    if site_erased.clone().eq(fn_erased.clone()) {
         return true
     }
     if site_name.clone().index_of(String_from("::")) < 0 {
-        if eq(names::unqualified_type_name(fn_erased.clone()), site_name.clone()) {
+        if names::unqualified_type_name(fn_erased.clone()).eq(site_name.clone()) {
             return true
         }
     }
@@ -363,10 +362,7 @@ fn mono_instance_return_type_by_mangled(env: TypeEnv, mangled_name: String) -> T
     let mut i = 0
     while i < count {
         let instance = contract_env_mono_record::type_env_mono_instance_at(env, i)
-        if eq(
-            contract_mono::MonoInstance_mangled_name(instance),
-            mangled_name.clone()
-        ) {
+        if contract_mono::MonoInstance_mangled_name(instance).eq(mangled_name.clone()) {
             return contract_mono::MonoInstance_return_type(instance)
         }
         i = i + 1
@@ -379,10 +375,7 @@ fn record_mono_return_type(env: TypeEnv, mangled_name: String, return_type: Type
     let mut i = 0
     while i < count {
         let mut instance = contract_env_mono_record::type_env_mono_instance_at(env, i)
-        if eq(
-            contract_mono::MonoInstance_mangled_name(instance),
-            mangled_name.clone()
-        ) {
+        if contract_mono::MonoInstance_mangled_name(instance).eq(mangled_name.clone()) {
             contract_mono::MonoInstance_set_return_type(instance, return_type)
             return
         }
@@ -415,10 +408,7 @@ fn mint_trait_method_instance(mut env: TypeEnv, entry: TraitMethodEntry, method_
     while i < impl_count {
         let impl_info = get_unchecked(env.trait_impls, i)
         let self_ty = contract_trait_impl::TraitImplInfo_self_ty(impl_info)
-        if eq(
-            contract_trait_impl::TraitImplInfo_trait_name(impl_info),
-            trait_name.clone()
-        ) && names::same_type_name(
+        if contract_trait_impl::TraitImplInfo_trait_name(impl_info).eq(trait_name.clone()) && names::same_type_name(
             contract_type_access::TypeInfo_name(self_ty),
             contract_type_access::TypeInfo_name(receiver.clone())
         ) {
@@ -559,7 +549,7 @@ fn has_mono_instance_for(mono_instances: Vec<MonoInstance>, fn_name: String) -> 
     let mut i = 0
     while i < count {
         let mi = get_unchecked(mono_instances, i)
-        if eq(contract_mono::MonoInstance_fn_name(mi), fn_name.clone()) {
+        if contract_mono::MonoInstance_fn_name(mi).eq(fn_name.clone()) {
             return true
         }
         i = i + 1

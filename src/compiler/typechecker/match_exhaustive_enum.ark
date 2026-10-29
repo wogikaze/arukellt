@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use typechecker::contract_enum_info
 use typechecker::contract_type_access
@@ -38,7 +37,7 @@ fn enum_def_exists(resolved_scrutinee: TypeInfo, enum_defs: Vec<EnumInfo>) -> bo
 }
 
 fn enum_name_matches(resolved_name: String, declared_name: String) -> bool {
-    if eq(resolved_name.clone(), declared_name.clone()) {
+    if resolved_name.clone().eq(declared_name.clone()) {
         return true
     }
     if resolved_name.ends_with("::".concat(declared_name)) {

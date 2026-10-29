@@ -1,6 +1,5 @@
 use std::host::stdio
 use std::host::clock::Clock
-use std::prelude::{eq}
 use std::text
 use compiler::phases
 use driver::config_record
@@ -40,7 +39,7 @@ fn emit_output(
     if len(component_error) > 0 {
         return result_record::CompileResult_err(phases::PHASE_EMIT(), component_error)
     }
-    if eq(emit_mode.clone(), "wit") {
+    if emit_mode.clone().eq("wit") {
         return emit_wit_output(
             checked_program::checked_program_wit_decls(program),
             config,
@@ -54,13 +53,13 @@ fn emit_output(
             t_mir_verify
         )
     }
-    if eq(emit_mode.clone(), "wat") {
+    if emit_mode.clone().eq("wat") {
         return emit_wat_output(mir_module, program, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
     }
-    if eq(emit_mode.clone(), "wasm") {
+    if emit_mode.clone().eq("wasm") {
         return emit_wasm_output(mir_module, program, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
     }
-    if eq(emit_mode.clone(), "component") {
+    if emit_mode.clone().eq("component") {
         return emit_component_output(mir_module, program, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
     }
     result_record::CompileResult_err(phases::PHASE_EMIT(), String_from("unsupported emit mode: ").concat(emit_mode.clone()))
@@ -106,7 +105,7 @@ fn emit_component_output(
 }
 
 fn normalize_emit_mode(emit_mode: String) -> String {
-    if eq(emit_mode.clone(), String_from("core-wasm")) {
+    if emit_mode.clone().eq(String_from("core-wasm")) {
         return String_from("wasm")
     }
     emit_mode
@@ -117,17 +116,17 @@ fn world_target_error(config: DriverConfig, emit_mode: String) -> String {
 }
 
 fn component_target_error(config: DriverConfig, emit_mode: String) -> String {
-    if eq(config_record::config_wasi_version(config), String_from("wasi-p3")) {
+    if config_record::config_wasi_version(config).eq(String_from("wasi-p3")) {
         return String_from("host profile wasi-p3 is not yet implemented")
     }
-    if eq(emit_mode.clone(), "component") &&
-    eq(config_record::config_memory_width(config), String_from("memory64")) {
+    if emit_mode.clone().eq("component") &&
+    config_record::config_memory_width(config).eq(String_from("memory64")) {
         return String_from("component emission requires memory32; use --memory-width memory32 or auto")
     }
-    if eq(emit_mode.clone(), "component") && !eq(config_record::config_wasi_version(config), String_from("wasi-p2")) {
+    if emit_mode.clone().eq("component") && !config_record::config_wasi_version(config).eq(String_from("wasi-p2")) {
         return String_from("component emission requires the official wasi-p2 host profile")
     }
-    if eq(emit_mode.clone(), "component") && !eq(config_record::config_target(config), String_from("wasm32-gc")) {
+    if emit_mode.clone().eq("component") && !config_record::config_target(config).eq(String_from("wasm32-gc")) {
         return String_from("component model requires --target wasm32-gc")
     }
     String_new()

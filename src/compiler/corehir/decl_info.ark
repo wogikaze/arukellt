@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use corehir::kinds
 use corehir::fn_info
 struct CoreHirDeclInfo {
@@ -39,7 +38,7 @@ fn entry_main_decl_index(decl_infos: Vec<CoreHirDeclInfo>, fn_infos: Vec<CoreHir
     while i < decl_count {
         let info = get_unchecked(decl_infos, i)
         if info.kind == commands::COREHIR_DECL_FN() {
-            if eq(info.name.clone(), "main") {
+            if info.name.clone().eq("main") {
                 entry_main = i
             }
         }

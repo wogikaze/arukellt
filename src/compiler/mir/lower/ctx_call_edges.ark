@@ -11,7 +11,6 @@ use wasm::hash_aliases
 // Unused LowerCtx.fn_indices / gc_type_base hold CALL edges. Adding a field
 // to MirFunction makes wasm32 KEEP_CLOCK self-emit trap in NameIndex_new.
 // Official 10s path is stub clocks; edge_names is only extra LowerCtx storage.
-use std::prelude::{eq}
 fn ctx_edge_stack_slots() -> i32 {
     8
 }
@@ -128,7 +127,7 @@ fn ctx_edge_record_name(mut ctx: LowerCtx, name: String) {
         return
     }
     let alias = hash_aliases::hashmap_builtin_alias(name.clone())
-    if !eq(alias.clone(), name.clone()) {
+    if !alias.clone().eq(name.clone()) {
         let alias_ni = ctx_fn_index::ctx_fn_index_find(ctx, alias.clone())
         if alias_ni >= 0 {
             ctx_edge_record_callee(ctx, ctx_edge_name_tag(alias_ni))
@@ -157,7 +156,7 @@ fn ctx_edge_record_inst(mut ctx: LowerCtx, inst: MirInstDraft) {
     if op != opcodes::MIR_CALL() {
         return
     }
-    if eq(ctx.lower_target.clone(), String_from("wasm32-gc")) {
+    if ctx.lower_target.clone().eq(String_from("wasm32-gc")) {
         return
     }
     let m = ctx_current_storage::ctx_current_module_value(ctx)

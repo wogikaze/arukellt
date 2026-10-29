@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use typechecker::contract_fn_sig
 use typechecker::contract_type_param_bounds
@@ -76,10 +75,7 @@ fn env_type_var_has_trait_bound(env: TypeEnv, type_param_name: String, trait_nam
     let mut i = 0
     while i < bound_count {
         let param = get_unchecked(env.current_fn_bounds, i)
-        if eq(
-            contract_type_param_bounds::TypeParamBounds_name(param),
-            type_param_name.clone()
-        ) && type_param_bounds_has_trait(param, trait_name.clone()) {
+        if contract_type_param_bounds::TypeParamBounds_name(param).eq(type_param_name.clone()) && type_param_bounds_has_trait(param, trait_name.clone()) {
             return true
         }
         i = i + 1
@@ -214,7 +210,7 @@ fn impl_bounds_satisfied(
 // parameter does not occur in the pattern.
 fn match_impl_param(pattern: TypeInfo, actual: TypeInfo, param_name: String) -> TypeInfo {
     if contract_type_access::TypeInfo_tag(pattern) == commands::TY_TYPE_VAR() {
-        if eq(contract_type_access::TypeInfo_name(pattern), param_name.clone()) {
+        if contract_type_access::TypeInfo_name(pattern).eq(param_name.clone()) {
             return actual
         }
         return type_names::type_info_simple(commands::TY_UNKNOWN())
@@ -311,7 +307,7 @@ fn trait_type_tags_match(pattern_tag: i32, actual_tag: i32) -> bool {
 }
 
 fn is_builtin_trait_impl(ty: TypeInfo, bound: TypeInfo) -> bool {
-    if !eq(contract_type_access::TypeInfo_name(bound), "Ord") {
+    if !contract_type_access::TypeInfo_name(bound).eq("Ord") {
         return false
     }
     let tag = contract_type_access::TypeInfo_tag(ty)

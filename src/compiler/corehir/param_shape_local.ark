@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use corehir::decl_ann_children
 use corehir::type_ann_local_name
@@ -43,13 +42,13 @@ fn param_named_local_type_name(
         if param_shape_declared::corehir_nominal_types_has_struct(nominal_types, name.clone()) {
             return name
         }
-        if !eq(name.clone(), "i32") &&
-        !eq(name.clone(), "f64") &&
-        !eq(name.clone(), "i64") &&
-        !eq(name.clone(), "bool") &&
-        !eq(name.clone(), "String") &&
-        !eq(name.clone(), "u8") &&
-        !eq(name.clone(), "char") &&
+        if !name.clone().eq("i32") &&
+        !name.clone().eq("f64") &&
+        !name.clone().eq("i64") &&
+        !name.clone().eq("bool") &&
+        !name.clone().eq("String") &&
+        !name.clone().eq("u8") &&
+        !name.clone().eq("char") &&
         len(name) > 1 {
             return name
         }
@@ -219,7 +218,7 @@ fn method_param_local_type_name(
         if decl_ann_name::decl_ann_is_name(ann, String_from("Option")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem2 = decl_ann_children::decl_ann_child_at(ann, 1)
             if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(elem2)) ||
-            eq(decl_ann_name::decl_ann_name(elem2), String_from("fnref")) {
+            decl_ann_name::decl_ann_name(elem2).eq(String_from("fnref")) {
                 return String_from("option:fnref")
             }
             if decl_ann_name::decl_ann_is_name(elem2, String_from("i64")) {

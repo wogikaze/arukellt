@@ -1,7 +1,6 @@
 // Issue #705: Full TOML 1.0 table header parsing.
 use std::host::stdio
 use std::toml
-use std::prelude::{eq}
 use std::text
 fn main() {
     // Table header + key=value entries
@@ -14,7 +13,7 @@ fn main() {
                     match server.get_field(String_from("host")) {
                         Option::Some(host) => {
                             match host.as_string() {
-                                Option::Some(s) => assert(eq(s, String_from("localhost"))),
+                                Option::Some(s) => assert(s.eq(String_from("localhost"))),
                                 None => assert(false),
                             }
                         },
@@ -41,11 +40,11 @@ fn main() {
 
     // find_toml_section public API
     let section = toml::TomlText::find_section(input, String_from("server"))
-    assert(eq(section, String_from("host = \"localhost\"\nport = 8080")))
+    assert(section.eq(String_from("host = \"localhost\"\nport = 8080")))
 
     // find_toml_value extracts quoted string values from raw text
     let val = toml::TomlText::find_value(input, String_from("host"))
-    assert(eq(val, String_from("localhost")))
+    assert(val.eq(String_from("localhost")))
 
     stdio::println(String_from("OK"))
 }

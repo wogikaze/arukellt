@@ -1,9 +1,8 @@
-use std::prelude::{eq}
 fn vec_has(v: Vec<String>, name: String) -> bool {
     let count = len(v)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(v, i).clone(), name.clone()) {
+        if get_unchecked(v, i).clone().eq(name.clone()) {
             return true
         }
         i = i + 1
@@ -46,7 +45,7 @@ fn load_state_probe(keys: Vec<String>, slots: Vec<i32>, name: String) -> i32 {
         if bucket == 0 {
             return slot
         }
-        if eq(get_unchecked(keys, bucket - 1), name.clone()) {
+        if get_unchecked(keys, bucket - 1).eq(name.clone()) {
             return slot
         }
         slot = (slot + 1) % capacity

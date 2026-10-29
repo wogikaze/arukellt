@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 pub struct TypeSectionPlan {
     host_type_map: Vec<i32>,
     fn_type_map: Vec<i32>,
@@ -430,25 +429,25 @@ fn val_type_to_target_sig(vt: i32, is_gc_target: bool, memory64: bool) -> String
 }
 
 fn sig_to_wasm_type(sig: String) -> i32 {
-    if eq(sig.clone(), "i32") {
+    if sig.clone().eq("i32") {
         return constants::WASM_I32()
     }
-    if eq(sig.clone(), "i64") {
+    if sig.clone().eq("i64") {
         return constants::WASM_I64()
     }
-    if eq(sig.clone(), "f64") {
+    if sig.clone().eq("f64") {
         return constants::WASM_F64()
     }
-    if eq(sig.clone(), "f32") {
+    if sig.clone().eq("f32") {
         return constants::WASM_F32()
     }
-    if eq(sig.clone(), "funcref") {
+    if sig.clone().eq("funcref") {
         return constants::WASM_FUNCREF()
     }
-    if eq(sig.clone(), "v128") {
+    if sig.clone().eq("v128") {
         return constants::WASM_V128()
     }
-    if eq(sig.clone(), "i8") {
+    if sig.clone().eq("i8") {
         return constants::WASM_I8()
     }
     constants::WASM_I32()

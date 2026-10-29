@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
@@ -61,19 +60,19 @@ fn core_prepare_match_payload(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: 
     let is_payload_match = core_match_has_payload_pattern(exprs, expr)
     let has_variant_arm = core_match_has_variant_pattern(exprs, expr)
     let scrut_type = ctx_api_local_types::ctx_get_local_type(ctx, scrut_idx)
-    let scrut_ok_is_f64 = eq(scrut_type.clone(), "Result_f64") ||
-    eq(scrut_type.clone(), "Option_f64") ||
-    eq(scrut_type.clone(), "option:f64") ||
+    let scrut_ok_is_f64 = scrut_type.clone().eq("Result_f64") ||
+    scrut_type.clone().eq("Option_f64") ||
+    scrut_type.clone().eq("option:f64") ||
     scrut_type.clone().starts_with("Result_f64_") ||
     scrut_type.clone().starts_with("result:f64:")
-    let scrut_ok_is_i64 = eq(scrut_type.clone(), "Result_i64") ||
-    eq(scrut_type.clone(), "Option_i64") ||
-    eq(scrut_type.clone(), "option:i64") ||
+    let scrut_ok_is_i64 = scrut_type.clone().eq("Result_i64") ||
+    scrut_type.clone().eq("Option_i64") ||
+    scrut_type.clone().eq("option:i64") ||
     scrut_type.clone().starts_with("Result_i64_") ||
     scrut_type.clone().starts_with("result:i64:")
-    let scrut_ok_is_i32 = eq(scrut_type.clone(), "Option_i32") ||
-    eq(scrut_type.clone(), "Result_i32") ||
-    eq(scrut_type.clone(), "option:i32") ||
+    let scrut_ok_is_i32 = scrut_type.clone().eq("Option_i32") ||
+    scrut_type.clone().eq("Result_i32") ||
+    scrut_type.clone().eq("option:i32") ||
     scrut_type.clone().starts_with("Result_i32_") ||
     scrut_type.clone().starts_with("result:i32:")
     let scrut_ok_is_ref = core_scrut_type_is_ref(scrut_type)
@@ -109,14 +108,14 @@ fn core_scrut_type_is_ref(scrut_type: String) -> bool {
 }
 
 fn core_suffix_is_ref(suffix: String) -> bool {
-    if eq(suffix.clone(), "string") || eq(suffix.clone(), "String") || eq(suffix.clone(), "str") {
+    if suffix.clone().eq("string") || suffix.clone().eq("String") || suffix.clone().eq("str") {
         return true
     }
-    if eq(suffix.clone(), "i32") || eq(suffix.clone(), "i64") || eq(suffix.clone(), "f64") || eq(suffix.clone(), "bool") || eq(suffix.clone(), "char") {
+    if suffix.clone().eq("i32") || suffix.clone().eq("i64") || suffix.clone().eq("f64") || suffix.clone().eq("bool") || suffix.clone().eq("char") {
         return false
     }
     // Funcref Option payloads use call_ref, not open GC ref (#831).
-    if eq(suffix.clone(), "fnref") || eq(suffix.clone(), "fn") || suffix.clone().starts_with("fn(") {
+    if suffix.clone().eq("fnref") || suffix.clone().eq("fn") || suffix.clone().starts_with("fn(") {
         return false
     }
     true
@@ -172,10 +171,10 @@ fn core_match_has_variant_pattern(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) ->
 }
 
 fn core_ident_is_unit_variant_name(name: String) -> bool {
-    eq(name.clone(), String_from("None")) ||
-    eq(name.clone(), String_from("Some")) ||
-    eq(name.clone(), String_from("Ok")) ||
-    eq(name.clone(), String_from("Err"))
+    name.clone().eq(String_from("None")) ||
+    name.clone().eq(String_from("Some")) ||
+    name.clone().eq(String_from("Ok")) ||
+    name.clone().eq(String_from("Err"))
 }
 
 fn core_match_has_payload_pattern(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> bool {

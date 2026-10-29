@@ -7,7 +7,6 @@
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
-use std::prelude::{eq}
 /// Marker trait for values that may be copied implicitly at an ownership boundary.
 ///
 /// Scalar types are Copy by language rule. User-defined structs and enums must
@@ -103,13 +102,15 @@ impl<T: Clone> Clone for Vec<T> {
 test mod "clone" {
     test "i32" { let x: i32 = 7; assert(x.clone() == 7) }
     test "bool" { assert(true.clone() == true) }
-    test "str" { assert(eq("ok".clone(), "ok")) }
+    test "str" { assert("ok".clone().eq("ok")) }
     test "vec" {
         let mut values: Vec<String> = Vec::new<String>()
         values.push(String_from("source"))
         let mut copy = values.clone()
         copy.set(0, String_from("copy"))
-        assert(eq(get_unchecked(values, 0), "source"))
-        assert(eq(get_unchecked(copy, 0), "copy"))
+        let original: String = get_unchecked(values, 0)
+        let copied: String = get_unchecked(copy, 0)
+        assert(original.eq("source"))
+        assert(copied.eq("copy"))
     }
 }

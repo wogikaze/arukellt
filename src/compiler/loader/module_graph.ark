@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use loader::module_state_loading
 use loader::module_import_paths
 use loader::module_local_decls
@@ -25,10 +24,10 @@ pub fn load_stdlib_module(stdlib_path: String, mut state: LoadState) {
 }
 
 fn stdlib_adapter_needs_flat_hashmap(stdlib_path: String) -> bool {
-    eq(stdlib_path.clone(), "std::collections::hash_map") ||
-    eq(stdlib_path.clone(), "std::collections::hash_string") ||
-    eq(stdlib_path.clone(), "std::collections::hash_fn") ||
-    eq(stdlib_path.clone(), "std::collections::hash_str_fn")
+    stdlib_path.clone().eq("std::collections::hash_map") ||
+    stdlib_path.clone().eq("std::collections::hash_string") ||
+    stdlib_path.clone().eq("std::collections::hash_fn") ||
+    stdlib_path.clone().eq("std::collections::hash_str_fn")
 }
 
 pub fn load_imported_modules(decls: Vec<AstNode>, base_dir: String, mut state: LoadState) {
@@ -135,7 +134,7 @@ fn load_local_module_or_parent(
 // there before reporting a miss. Runs after the sibling candidates so
 // existing resolution order is unchanged.
 fn try_load_at_package_root(module_name: String, tried_dir: String, root_dir: String, mut state: LoadState) -> bool {
-    if eq(tried_dir.clone(), root_dir.clone()) {
+    if tried_dir.clone().eq(root_dir.clone()) {
         return false
     }
     if module_local_decls::should_skip_local_module_read(module_name.clone(), root_dir.clone(), state) {

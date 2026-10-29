@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use corehir::kinds
 use corehir::function_id
@@ -27,7 +26,7 @@ fn sig_reg_registry_has_mangled(registry: SignatureRegistry, name: String) -> bo
     let count = signature_registry::signature_registry_entry_count(registry)
     let mut i = 0
     while i < count {
-        if eq(name.clone(), signature_registry::signature_registry_mangled_at(registry, i)) {
+        if name.clone().eq(signature_registry::signature_registry_mangled_at(registry, i)) {
             return true
         }
         i = i + 1
@@ -67,11 +66,11 @@ fn sig_reg_host_return_mvt(mut table: TypeTable, name: String) -> MirValueType {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "bool", Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
     }
-    if eq(name.clone(), String_from("clock_now")) {
+    if name.clone().eq(String_from("clock_now")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "i64", Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
     }
-    if eq(name.clone(), String_from("args")) {
+    if name.clone().eq(String_from("args")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_VEC(), "Vec<String>", Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
@@ -85,16 +84,16 @@ fn sig_reg_host_return_mvt(mut table: TypeTable, name: String) -> MirValueType {
 }
 
 fn sig_reg_host_returns_bool(name: String) -> bool {
-    eq(name.clone(), String_from("exists")) ||
-    eq(name.clone(), String_from("is_file")) ||
-    eq(name.clone(), String_from("is_dir")) ||
-    eq(name.clone(), String_from("is_readable_file"))
+    name.clone().eq(String_from("exists")) ||
+    name.clone().eq(String_from("is_file")) ||
+    name.clone().eq(String_from("is_dir")) ||
+    name.clone().eq(String_from("is_readable_file"))
 }
 
 fn sig_reg_host_returns_option_string(name: String) -> bool {
-    eq(name.clone(), String_from("arg_at")) ||
-    eq(name.clone(), String_from("var")) ||
-    eq(name.clone(), String_from("get_var"))
+    name.clone().eq(String_from("arg_at")) ||
+    name.clone().eq(String_from("var")) ||
+    name.clone().eq(String_from("get_var"))
 }
 
 fn sig_reg_log_stub_diff(registry: SignatureRegistry, stub_count: i32) {

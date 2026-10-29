@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use typechecker::ast_access
 use typechecker::ast_expr_predicates
@@ -31,7 +30,7 @@ fn proof_contract_scope(env: TypeEnv, node: AstNode, sig: FnSig) -> LocalScope {
 }
 
 fn proof_expression_uses_result(node: AstNode) -> bool {
-    if ast_expr_predicates::node_is_ident(node) && eq(ast_access::node_text(node), "result") {
+    if ast_expr_predicates::node_is_ident(node) && ast_access::node_text(node).eq("result") {
         return true
     }
     let child_count = ast_access::node_child_count(node)
@@ -90,7 +89,7 @@ fn check_proof_contracts(
         let contract = get_unchecked(contracts, i)
         let kind_name = ast_access::node_text(contract)
         let mut contract_scope = proof_contract_scope(env, node, sig)
-        if eq(kind_name.clone(), "ensures") {
+        if kind_name.clone().eq("ensures") {
             scope::scope_define(
                 contract_scope,
                 "result",
@@ -103,7 +102,7 @@ fn check_proof_contracts(
             continue
         }
         let expression = ast_access::node_child_at(contract, 0)
-        if eq(kind_name.clone(), "requires") && proof_expression_uses_result(expression) {
+        if kind_name.clone().eq("requires") && proof_expression_uses_result(expression) {
             unify::type_error(env, "result is only available in ensures contracts")
             i = i + 1
             continue

@@ -1,5 +1,4 @@
 use std::host::fs::Fs
-use std::prelude::{eq}
 use std::text
 use component::wit_parse_flags
 struct ComposeWitFuncSig {
@@ -92,7 +91,7 @@ fn compose_wit_load_world(path: String) -> ComposeWitWorld {
 
 fn compose_wit_find_export(exports: Vec<ComposeWitFuncSig>, name: String) -> i32 {
     for i in 0..len(exports) {
-        if eq(get_unchecked(exports, i).name.clone(), name.clone()) {
+        if get_unchecked(exports, i).name.clone().eq(name.clone()) {
             return i
         }
     }
@@ -109,7 +108,7 @@ fn compose_wit_validate_imports(socket_imports: Vec<ComposeWitFuncSig>, provider
             return "error: compose conflict: socket import '".concat(imp.name.clone().concat("' has no matching provider export".concat(String_new())))
         }
         let exp = get_unchecked(provider_exports, export_idx)
-        if !eq(imp.signature.clone(), exp.signature.clone()) {
+        if !imp.signature.clone().eq(exp.signature.clone()) {
             return "error: compose conflict: import/export type mismatch for '".concat(
                 imp.name.clone().concat("': socket expects ".concat(imp.signature.clone().concat(" but provider exports ".concat(exp.signature.clone()))))
             )

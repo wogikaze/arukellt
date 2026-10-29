@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use wasm::ctx_record
 use mir::function_identity
 use mir::function_locals_view
@@ -29,7 +28,7 @@ fn ctx_has_vec_string_local(ctx: SelfEmitCtx) -> bool {
     while li < nlocals {
         let loc = function_locals_view::MirFunction_local_at(f, li)
         let tname = local_access::MirLocal_type_name(loc)
-        if eq(tname.clone(), "vec:String") || eq(tname.clone(), "vec:string") {
+        if tname.clone().eq("vec:String") || tname.clone().eq("vec:string") {
             return true
         }
         li = li + 1
@@ -49,7 +48,7 @@ fn ctx_has_vec_v128_local(ctx: SelfEmitCtx) -> bool {
     while li < nlocals {
         let loc = function_locals_view::MirFunction_local_at(f, li)
         let tname = local_access::MirLocal_type_name(loc)
-        if eq(tname.clone(), "vec:v128") || eq(tname.clone(), "vec:V128") {
+        if tname.clone().eq("vec:v128") || tname.clone().eq("vec:V128") {
             return true
         }
         li = li + 1
@@ -69,7 +68,7 @@ fn ctx_has_vec_i64_local(ctx: SelfEmitCtx) -> bool {
     while li < nlocals {
         let loc = function_locals_view::MirFunction_local_at(f, li)
         let tname = local_access::MirLocal_type_name(loc)
-        if eq(tname.clone(), "vec:i64") || eq(tname.clone(), "vec:I64") {
+        if tname.clone().eq("vec:i64") || tname.clone().eq("vec:I64") {
             return true
         }
         li = li + 1
@@ -89,7 +88,7 @@ fn ctx_has_vec_f64_local(ctx: SelfEmitCtx) -> bool {
     while li < nlocals {
         let loc = function_locals_view::MirFunction_local_at(f, li)
         let tname = local_access::MirLocal_type_name(loc)
-        if eq(tname.clone(), "vec:f64") || eq(tname.clone(), "vec:F64") {
+        if tname.clone().eq("vec:f64") || tname.clone().eq("vec:F64") {
             return true
         }
         li = li + 1

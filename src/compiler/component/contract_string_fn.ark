@@ -1,27 +1,26 @@
-use std::prelude::{eq}
 use component::contract_helpers
 fn component_fn_is_string_unary(f: ComponentExportFunc) -> bool {
     contract_helpers::component_export_param_count_is(f, 1) &&
-    eq(contract_helpers::component_export_param_type_name_at(f, 0), "String") &&
-    eq(contract_helpers::component_export_return_type_name(f), "String")
+    contract_helpers::component_export_param_type_name_at(f, 0).eq("String") &&
+    contract_helpers::component_export_return_type_name(f).eq("String")
 }
 
 fn component_fn_is_i32_to_string(f: ComponentExportFunc) -> bool {
     contract_helpers::component_export_param_count_is(f, 1) &&
-    eq(contract_helpers::component_export_param_type_name_at(f, 0), "i32") &&
-    eq(contract_helpers::component_export_return_type_name(f), "String")
+    contract_helpers::component_export_param_type_name_at(f, 0).eq("i32") &&
+    contract_helpers::component_export_return_type_name(f).eq("String")
 }
 
 fn component_fn_is_string_to_i32(f: ComponentExportFunc) -> bool {
     contract_helpers::component_export_param_count_is(f, 1) &&
-    eq(contract_helpers::component_export_param_type_name_at(f, 0), "String") &&
-    eq(contract_helpers::component_export_return_type_name(f), "i32")
+    contract_helpers::component_export_param_type_name_at(f, 0).eq("String") &&
+    contract_helpers::component_export_return_type_name(f).eq("i32")
 }
 
 fn component_fn_is_string_to_named_i32(f: ComponentExportFunc, ret_name: String) -> bool {
     contract_helpers::component_export_param_count_is(f, 1) &&
-    eq(contract_helpers::component_export_param_type_name_at(f, 0), "String") &&
-    eq(contract_helpers::component_export_return_type_name(f), ret_name)
+    contract_helpers::component_export_param_type_name_at(f, 0).eq("String") &&
+    contract_helpers::component_export_return_type_name(f).eq(ret_name)
 }
 
 fn component_fn_is_string_to_narrow_i32(f: ComponentExportFunc) -> bool {
@@ -34,36 +33,36 @@ fn component_fn_is_string_to_narrow_i32(f: ComponentExportFunc) -> bool {
 
 fn component_fn_is_string_to_f64(f: ComponentExportFunc) -> bool {
     contract_helpers::component_export_param_count_is(f, 1) &&
-    eq(contract_helpers::component_export_param_type_name_at(f, 0), "String") &&
-    eq(contract_helpers::component_export_return_type_name(f), "f64")
+    contract_helpers::component_export_param_type_name_at(f, 0).eq("String") &&
+    contract_helpers::component_export_return_type_name(f).eq("f64")
 }
 
 fn component_fn_is_string_to_i64(f: ComponentExportFunc) -> bool {
     contract_helpers::component_export_param_count_is(f, 1) &&
-    eq(contract_helpers::component_export_param_type_name_at(f, 0), "String") &&
-    eq(contract_helpers::component_export_return_type_name(f), "i64")
+    contract_helpers::component_export_param_type_name_at(f, 0).eq("String") &&
+    contract_helpers::component_export_return_type_name(f).eq("i64")
 }
 
 fn component_fn_is_string_to_u64(f: ComponentExportFunc) -> bool {
     contract_helpers::component_export_param_count_is(f, 1) &&
-    eq(contract_helpers::component_export_param_type_name_at(f, 0), "String") &&
-    eq(contract_helpers::component_export_return_type_name(f), "u64")
+    contract_helpers::component_export_param_type_name_at(f, 0).eq("String") &&
+    contract_helpers::component_export_return_type_name(f).eq("u64")
 }
 
 fn component_fn_is_string_to_f32(f: ComponentExportFunc) -> bool {
     contract_helpers::component_export_param_count_is(f, 1) &&
-    eq(contract_helpers::component_export_param_type_name_at(f, 0), "String") &&
-    eq(contract_helpers::component_export_return_type_name(f), "f32")
+    contract_helpers::component_export_param_type_name_at(f, 0).eq("String") &&
+    contract_helpers::component_export_return_type_name(f).eq("f32")
 }
 
 fn component_fn_is_string_to_bool(f: ComponentExportFunc) -> bool {
     contract_helpers::component_export_param_count_is(f, 1) &&
-    eq(contract_helpers::component_export_param_type_name_at(f, 0), "String") &&
-    eq(contract_helpers::component_export_return_type_name(f), "bool")
+    contract_helpers::component_export_param_type_name_at(f, 0).eq("String") &&
+    contract_helpers::component_export_return_type_name(f).eq("bool")
 }
 
 fn component_fn_is_string_to_char(f: ComponentExportFunc) -> bool {
     contract_helpers::component_export_param_count_is(f, 1) &&
-    eq(contract_helpers::component_export_param_type_name_at(f, 0), "String") &&
-    eq(contract_helpers::component_export_return_type_name(f), "char")
+    contract_helpers::component_export_param_type_name_at(f, 0).eq("String") &&
+    contract_helpers::component_export_return_type_name(f).eq("char")
 }

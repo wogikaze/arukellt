@@ -203,7 +203,7 @@ fn mir_probe_dump_return_table_diff(mut ctx: LowerCtx, module: MirModule) {
             continue
         }
         let got = function_return_view::MirFunction_return_type_name(module_functions::MirModule_function_at(module, mir))
-        if !eq(got.clone(), want.clone()) {
+        if !got.clone().eq(want.clone()) {
             stdio::eprintln(
                 "[probeT] ".concat(name.clone().concat(" : mir=".concat(got.clone().concat(" fnidx=".concat(want.clone())))))
             )
@@ -379,7 +379,7 @@ fn mir_probe_ast_enqueue_by_name(
     let mut i = 0
     while i < len(functions) {
         let fname = function_identity::MirFunction_name(get_unchecked(functions, i))
-        if eq(fname.clone(), name.clone()) || eq(resolver::use_module_short_name(fname), want.clone()) {
+        if fname.clone().eq(name.clone()) || resolver::use_module_short_name(fname).eq(want.clone()) {
             if get_unchecked(ast_reach, i) == 0 {
                 set(ast_reach, i, 1)
                 push(ast_queue, i)

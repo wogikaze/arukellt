@@ -141,6 +141,39 @@ bootstrap). The attempt is preserved at
 `fmt --check` over all 453 compiler/std files, so the remaining work is the
 receiver-typing fix, not the mechanical migration.
 
+### Resolution 2026-10-30 (`wave/eq-retire`) — the parentheses were the trigger
+
+The receiver-typing loss was not about `String::slice` typing or the overlay
+closure. The migration codemod emitted `(receiver).eq(rhs)`, and a
+parenthesized receiver is a distinct AST node, so
+`lower_method_call_expr`'s composed-receiver check skipped the receiver
+`LOCAL_GET`. The emitter's stack compose rescues that shape when the call is
+a standalone expression, but not for the first expression after an `if`
+statement: the `END` breaks the compose, and the call lowers to
+`drop`/`unreachable` or `i32::eq`. A minimal probe shows it directly:
+
+```ark
+fn check(path: String) -> bool {
+    if len(path) < 5 { return false }
+    (path.slice(0, 5)).eq("std::")   // trap stub / i32::eq
+}
+```
+
+`path.slice(0, 5).eq("std::")` (and `path.clone().eq(...)`,
+`name.clone().eq(...)`) lowers correctly, as does the same parentheses form
+before any `if`. So the unblock is to drop the unnecessary grouping
+parentheses in the migration (5,422 receivers; only numeric literals keep
+theirs). With that, the pin builds a non-trapping eq-source s2
+(`12ba70e6…`), and `operators/string_eq` runs 32/32 on `wasm32-gc` and
+`wasm32`.
+
+Residuals: `std::collections::string::eq` stays public for the qualified-call
+fixtures and is classified `must delete` (#917) in
+`docs/data/stdlib-api-eradication.toml`; the underlying composed-receiver
+bug in `lower_method_call_expr` / the emitter is still present for
+parenthesized receivers after `if`, so the migration avoids the shape rather
+than fixing it.
+
 ## `clone` — `.clone()` has no polymorphic resolution
 
 `clone(x)` is a typechecker special case keyed on the callee name

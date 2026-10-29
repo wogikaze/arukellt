@@ -3,12 +3,10 @@ use corehir::function_id
 use corehir::signature_registry
 use mir::function_identity
 use mir::module_spine
-
 use resolver
 
 // Explicit FunctionId.raw → MirFunction index. Never assume raw == mir index:
 // SignatureRegistry also holds core-op aliases without Mir bodies (#823).
-use std::prelude::{eq}
 struct MirReachabilityIndex {
     name_to_mir: NameIndex,
     fid_to_mir: Vec<i32>,
@@ -56,7 +54,7 @@ fn mir_reachability_index_bind_fid(
 fn mir_reachability_index_bind_name(mut name_to_mir: NameIndex, fname: String, fi: i32) {
     name_index::name_index_insert_first(name_to_mir, fname.clone(), fi)
     let short = resolver::use_module_short_name(fname.clone())
-    if !eq(short.clone(), fname.clone()) {
+    if !short.clone().eq(fname.clone()) {
         name_index::name_index_insert_first(name_to_mir, short, fi)
     }
 }
@@ -180,7 +178,7 @@ fn mir_reachability_enqueue_by_name(
         return mir_reachability_try_enqueue(reachable, queue, exact)
     }
     let short = resolver::use_module_short_name(name.clone())
-    if eq(short.clone(), name.clone()) {
+    if short.clone().eq(name.clone()) {
         return false
     }
     let short_hit = name_index::name_index_get(index.name_to_mir, short)

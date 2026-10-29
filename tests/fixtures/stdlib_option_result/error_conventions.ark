@@ -1,12 +1,11 @@
 use std::host::stdio
-use std::prelude::{eq}
 use std::text
 
 fn try_parse(s: String) -> Result<i32, String> {
-    if eq(s, "42") {
+    if s.eq("42") {
         Ok(42)
     } else {
-        if eq(s, "0") {
+        if s.eq("0") {
             Ok(0)
         } else {
             Err("parse error: ".concat(s))

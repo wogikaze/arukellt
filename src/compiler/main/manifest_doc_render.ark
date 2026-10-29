@@ -1,15 +1,14 @@
 use std::host::stdio
 use std::text
 use std::json
-use std::prelude::{eq}
 use main::manifest_doc_lookup
 use main::manifest_doc_record
 fn doc_target_is_p1(target: String) -> bool {
-    eq(target.clone(), String_from("wasm32"))
+    target.clone().eq(String_from("wasm32"))
 }
 
 fn doc_target_is_p2(target: String) -> bool {
-    eq(target.clone(), String_from("wasm32-gc"))
+    target.clone().eq(String_from("wasm32-gc"))
 }
 
 fn doc_target_warning(e: manifest_doc_record::DocFnEntry, filter_target: String) -> String {
@@ -142,7 +141,7 @@ pub fn doc_print_module(table: manifest_doc_record::DocManifestTable, module: St
     let mut i = 0
     while i < n {
         let e = manifest_doc_record::DocManifestTable_function_at(table, i)
-        if eq(manifest_doc_record::DocFnEntry_module(e), module.clone()) {
+        if manifest_doc_record::DocFnEntry_module(e).eq(module.clone()) {
             let warn = doc_target_warning(e, filter_target.clone())
             let mut line = String_from("    ").concat(doc_format_signature(e))
             if len(warn) > 0 {

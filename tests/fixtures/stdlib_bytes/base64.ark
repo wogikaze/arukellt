@@ -1,7 +1,6 @@
 use std::bytes
 use std::bytes::Bytes
 use std::host::stdio
-use std::prelude::{eq}
 fn main() {
     let mut b: Vec<i32> = Vec::new<i32>()
     b.push_byte(77)
@@ -22,7 +21,7 @@ fn main() {
     let enc2: String = two.to_base64()
     stdio::println(enc2)
     let empty_enc: String = Vec::new<i32>().to_base64()
-    stdio::println((eq(empty_enc, "")).to_string())
+    stdio::println((empty_enc.eq("")).to_string())
     let back: Vec<i32> = Bytes::from_base64("TQ==")
     stdio::println((back.len()).to_string())
     stdio::println((back.get_unchecked(0)).to_string())

@@ -1,11 +1,10 @@
 use std::host::fs::Fs
-use std::prelude::{eq}
 use lsp::symbol_index_paths
 fn roots_contains(roots: Vec<String>, path: String) -> bool {
     let n = len(roots)
     let mut i = 0
     while i < n {
-        if eq(get_unchecked(roots, i), path.clone()) {
+        if get_unchecked(roots, i).eq(path.clone()) {
             return true
         }
         i = i + 1
@@ -87,7 +86,7 @@ pub fn find_package_root(start_dir: String) -> String {
         Result::Err(_) => {},
     }
     let parent = loader::module_paths::parent_dir(start_dir.clone())
-    if eq(parent.clone(), start_dir.clone()) {
+    if parent.clone().eq(start_dir.clone()) {
         return String_new()
     }
     find_package_root(parent)

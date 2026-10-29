@@ -12,7 +12,6 @@ use mir::typed_mir_sync_module
 // When a local receives values from more than one enum variant slot,
 // clear variant_slot and keep an open enum type_name so local declaration
 // (enum_open) matches stores without ref.cast to a specific variant.
-use std::prelude::{eq}
 fn mir_function_normalize_multi_variant_locals(mut f: MirFunction, mut table: TypeTable) -> MirFunction {
     let local_count = function_locals_view::MirFunction_local_count(f)
     // normalize_local_to_open_enum only retypes locals; it adds no writes, so
@@ -35,7 +34,7 @@ fn is_ref_container_type_name(type_name: String) -> bool {
     if type_name.clone().starts_with("vec:") || type_name.clone().starts_with("hashmap:") || type_name.clone().starts_with("struct:") {
         return true
     }
-    if eq(type_name.clone(), "string") || eq(type_name.clone(), "String") {
+    if type_name.clone().eq("string") || type_name.clone().eq("String") {
         return true
     }
     false
@@ -207,7 +206,7 @@ fn process_local_set_variant_slot(
 }
 
 fn payload_extract_local_keeps_variant_slot(f: MirFunction, local_idx: i32, type_name: String) -> bool {
-    if eq(type_name.clone(), "enum:open") {
+    if type_name.clone().eq("enum:open") {
         return false
     }
     if !type_name.clone().starts_with("enum:") {

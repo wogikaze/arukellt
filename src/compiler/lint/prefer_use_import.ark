@@ -3,7 +3,6 @@
 // in one file, recommend importing via `use` and calling the short name.
 // Type/enum qualifiers (PascalCase::...) are excluded.
 
-use std::prelude::{eq}
 use std::text
 use diagnostics::codes
 use diagnostics::record
@@ -61,7 +60,7 @@ fn collect_paths(node: AstNode, mut paths: Vec<String>, mut starts: Vec<i32>, mu
 fn path_seen_before(paths: Vec<String>, path: String, before: i32) -> bool {
     let mut j = 0
     while j < before {
-        if eq(get_unchecked(paths, j).clone(), path.clone()) {
+        if get_unchecked(paths, j).clone().eq(path.clone()) {
             return true
         }
         j = j + 1
@@ -74,7 +73,7 @@ fn count_same_path(paths: Vec<String>, path: String) -> i32 {
     let mut uses = 0
     let mut k = 0
     while k < n {
-        if eq(get_unchecked(paths, k).clone(), path.clone()) {
+        if get_unchecked(paths, k).clone().eq(path.clone()) {
             uses = uses + 1
         }
         k = k + 1

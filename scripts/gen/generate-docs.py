@@ -1689,14 +1689,14 @@ def render_compiler_target_contract(state: dict) -> str:
     ]
     for target in canonical:
         lines.extend([
-            f'    if eq(input.clone(), "{_ark_string(target)}") {{',
+            f'    if input.clone().eq("{_ark_string(target)}") {{',
             "        return true",
             "    }",
         ])
     lines.extend(["    false", "}", "", "fn target_alias_policy(input: String) -> String {"])
     for alias in aliases:
         lines.extend([
-            f'    if eq(input.clone(), "{_ark_string(alias["input"])}") {{',
+            f'    if input.clone().eq("{_ark_string(alias["input"])}") {{',
             f'        return "{_ark_string(alias["policy"])}"',
             "    }",
         ])
@@ -1704,7 +1704,7 @@ def render_compiler_target_contract(state: dict) -> str:
     for alias in aliases:
         if alias["policy"] == "warning":
             lines.extend([
-                f'    if eq(input.clone(), "{_ark_string(alias["input"])}") {{',
+                f'    if input.clone().eq("{_ark_string(alias["input"])}") {{',
                 f'        return "{_ark_string(alias["canonical_target"])}"',
                 "    }",
             ])
@@ -1713,7 +1713,7 @@ def render_compiler_target_contract(state: dict) -> str:
         host = profile.get("default_host_profile")
         if host:
             lines.extend([
-                f'    if eq(input.clone(), "{_ark_string(profile["id"])}") {{',
+                f'    if input.clone().eq("{_ark_string(profile["id"])}") {{',
                 f'        return "{_ark_string(host)}"',
                 "    }",
             ])
@@ -1721,7 +1721,7 @@ def render_compiler_target_contract(state: dict) -> str:
     for alias in aliases:
         if alias["policy"] == "warning":
             lines.extend([
-                f'    if eq(input.clone(), "{_ark_string(alias["input"])}") {{',
+                f'    if input.clone().eq("{_ark_string(alias["input"])}") {{',
                 f'        return "{_ark_string(alias["host_profile"])}"',
                 "    }",
             ])
@@ -1732,7 +1732,7 @@ def render_compiler_target_contract(state: dict) -> str:
         else:
             message = f'target `{alias["input"]}` is not accepted; {alias["replacement"]}'
         lines.extend([
-            f'    if eq(input.clone(), "{_ark_string(alias["input"])}") {{',
+            f'    if input.clone().eq("{_ark_string(alias["input"])}") {{',
             f'        return "{_ark_string(message)}"',
             "    }",
         ])
@@ -1741,31 +1741,31 @@ def render_compiler_target_contract(state: dict) -> str:
         target_id = _ark_string(profile["id"])
         display = _ark_string(profile.get("display", profile.get("role", "")))
         lines.extend([
-            f'    if eq(input.clone(), "{target_id}") {{',
+            f'    if input.clone().eq("{target_id}") {{',
             f'        return "  {target_id}  {display}"',
             "    }",
         ])
     lines.extend(["    String_new()", "}", "", "fn target_gc_availability(input: String) -> String {"])
     for profile in state.get("target_profiles", []):
         lines.extend([
-            f'    if eq(input.clone(), String_from("{_ark_string(profile["id"])}")) {{',
+            f'    if input.clone().eq(String_from("{_ark_string(profile["id"])}")) {{',
             f'        return String_from("{_ark_string(profile["gc_availability"])}")',
             "    }",
         ])
     lines.extend(["    String_new()", "}", "", "fn target_default_memory_width(input: String) -> String {"])
     for profile in state.get("target_profiles", []):
         lines.extend([
-            f'    if eq(input.clone(), String_from("{_ark_string(profile["id"])}")) {{',
+            f'    if input.clone().eq(String_from("{_ark_string(profile["id"])}")) {{',
             f'        return String_from("{_ark_string(profile["default_memory_width"])}")',
             "    }",
         ])
     lines.extend(["    String_new()", "}", "", "fn target_allows_memory_width(target: String, width: String) -> bool {"])
     for profile in state.get("target_profiles", []):
         target_id = _ark_string(profile["id"])
-        lines.append(f'    if eq(target.clone(), String_from("{target_id}")) {{')
+        lines.append(f'    if target.clone().eq(String_from("{target_id}")) {{')
         for width in profile.get("allowed_memory_widths", []):
             lines.extend([
-                f'        if eq(width.clone(), String_from("{_ark_string(width)}")) {{',
+                f'        if width.clone().eq(String_from("{_ark_string(width)}")) {{',
                 "            return true",
                 "        }",
             ])
@@ -1774,7 +1774,7 @@ def render_compiler_target_contract(state: dict) -> str:
     for profile in state.get("target_profiles", []):
         allowed = ", ".join(profile.get("allowed_memory_widths", []))
         lines.extend([
-            f'    if eq(input.clone(), String_from("{_ark_string(profile["id"])}")) {{',
+            f'    if input.clone().eq(String_from("{_ark_string(profile["id"])}")) {{',
             f'        return String_from("{_ark_string(allowed)}")',
             "    }",
         ])
@@ -1782,7 +1782,7 @@ def render_compiler_target_contract(state: dict) -> str:
     for profile in state.get("host_profiles", []):
         for target in profile.get("supported_targets", []):
             lines.extend([
-                f'    if eq(target.clone(), String_from("{_ark_string(target)}")) && eq(host.clone(), String_from("{_ark_string(profile["id"])}")) {{',
+                f'    if target.clone().eq(String_from("{_ark_string(target)}")) && host.clone().eq(String_from("{_ark_string(profile["id"])}")) {{',
                 "        return true",
                 "    }",
             ])
@@ -1790,24 +1790,24 @@ def render_compiler_target_contract(state: dict) -> str:
     for profile in state.get("target_profiles", []):
         supported = "true" if profile.get("run_supported") else "false"
         lines.extend([
-            f'    if eq(input.clone(), String_from("{_ark_string(profile["id"])}")) {{',
+            f'    if input.clone().eq(String_from("{_ark_string(profile["id"])}")) {{',
             f"        return {supported}",
             "    }",
         ])
     lines.extend(["    false", "}", "", "fn target_default_emit_kind(input: String) -> String {"])
     for profile in state.get("target_profiles", []):
         lines.extend([
-            f'    if eq(input.clone(), String_from("{_ark_string(profile["id"])}")) {{',
+            f'    if input.clone().eq(String_from("{_ark_string(profile["id"])}")) {{',
             f'        return String_from("{_ark_string(profile["default_emit_kind"])}")',
             "    }",
         ])
     lines.extend(['    String_from("wasm")', "}", "", "fn target_allows_emit_kind(target: String, emit_kind: String) -> bool {"])
     for profile in state.get("target_profiles", []):
         target_id = _ark_string(profile["id"])
-        lines.append(f'    if eq(target.clone(), String_from("{target_id}")) {{')
+        lines.append(f'    if target.clone().eq(String_from("{target_id}")) {{')
         for kind in profile.get("allowed_emit_kinds", []):
             lines.extend([
-                f'        if eq(emit_kind.clone(), String_from("{_ark_string(kind)}")) {{',
+                f'        if emit_kind.clone().eq(String_from("{_ark_string(kind)}")) {{',
                 "            return true",
                 "        }",
             ])
@@ -1816,7 +1816,7 @@ def render_compiler_target_contract(state: dict) -> str:
     for profile in state.get("target_profiles", []):
         allowed = ", ".join(profile.get("allowed_emit_kinds", []))
         lines.extend([
-            f'    if eq(input.clone(), String_from("{_ark_string(profile["id"])}")) {{',
+            f'    if input.clone().eq(String_from("{_ark_string(profile["id"])}")) {{',
             f'        return String_from("{_ark_string(allowed)}")',
             "    }",
         ])
@@ -1833,13 +1833,13 @@ def render_compiler_target_contract(state: dict) -> str:
         default_emit = _ark_string(profile["default_emit_kind"])
         run_supported = "true" if profile.get("run_supported") else "false"
         lines.append(
-            f'    test "gc_availability_{index}" {{ assert(eq(target_gc_availability(String_from("{target_id}")), String_from("{gc_availability}"))) }}'
+            f'    test "gc_availability_{index}" {{ assert(target_gc_availability(String_from("{target_id}")).eq(String_from("{gc_availability}"))) }}'
         )
         lines.append(
-            f'    test "default_memory_width_{index}" {{ assert(eq(target_default_memory_width(String_from("{target_id}")), String_from("{default_memory_width}"))) }}'
+            f'    test "default_memory_width_{index}" {{ assert(target_default_memory_width(String_from("{target_id}")).eq(String_from("{default_memory_width}"))) }}'
         )
         lines.append(
-            f'    test "default_emit_{index}" {{ assert(eq(target_default_emit_kind(String_from("{target_id}")), String_from("{default_emit}"))) }}'
+            f'    test "default_emit_{index}" {{ assert(target_default_emit_kind(String_from("{target_id}")).eq(String_from("{default_emit}"))) }}'
         )
         lines.append(
             f'    test "run_supported_{index}" {{ assert(target_run_supported(String_from("{target_id}")) == {run_supported}) }}'
@@ -1860,14 +1860,14 @@ def render_compiler_target_contract(state: dict) -> str:
     for index, alias in enumerate(aliases):
         spelling = _ark_string(alias["input"])
         lines.append(
-            f'    test "policy_{index}" {{ assert(eq(target_alias_policy("{spelling}"), "{alias["policy"]}")) }}'
+            f'    test "policy_{index}" {{ assert(target_alias_policy("{spelling}").eq("{alias["policy"]}")) }}'
         )
         if alias["policy"] == "warning":
             lines.append(
-                f'    test "canonicalize_{index}" {{ assert(eq(target_alias_canonical_target("{spelling}"), "{_ark_string(alias["canonical_target"])}")) }}'
+                f'    test "canonicalize_{index}" {{ assert(target_alias_canonical_target("{spelling}").eq("{_ark_string(alias["canonical_target"])}")) }}'
             )
             lines.append(
-                f'    test "host_{index}" {{ assert(eq(target_alias_host_profile("{spelling}"), "{_ark_string(alias["host_profile"])}")) }}'
+                f'    test "host_{index}" {{ assert(target_alias_host_profile("{spelling}").eq("{_ark_string(alias["host_profile"])}")) }}'
             )
             lines.append(
                 f'    test "warning_{index}" {{ assert(contains(target_alias_message("{spelling}"), "W0002")) }}'

@@ -1,34 +1,33 @@
 use std::text
-use std::prelude::{eq}
 use diagnostics::record
 use diagnostics::severity
 use diagnostics::source_map_offsets
 fn diagnostic_phase_name(code: String, msg: String) -> String {
-    if eq(code.clone(), String_from("E0500")) {
-        if len(msg) >= 8 && eq(msg.clone().slice(0, 8), String_from("module `")) {
+    if code.clone().eq(String_from("E0500")) {
+        if len(msg) >= 8 && msg.clone().slice(0, 8).eq(String_from("module `")) {
             return String_from("resolve")
         }
         return String_from("emit")
     }
-    if eq(code.clone(), String_from("W0101")) {
+    if code.clone().eq(String_from("W0101")) {
         return String_from("parse")
     }
-    if len(code) >= 1 && eq(code.clone().slice(0, 1), String_from("W")) {
+    if len(code) >= 1 && code.clone().slice(0, 1).eq(String_from("W")) {
         return String_from("typecheck")
     }
     if len(code) >= 3 {
         let family = code.clone().slice(1, 3)
-        if eq(family, String_from("00")) {
+        if family.eq(String_from("00")) {
             return String_from("parse")
         }
-        if eq(family, String_from("01")) {
+        if family.eq(String_from("01")) {
             return String_from("resolve")
         }
-        if eq(family, String_from("02")) {
+        if family.eq(String_from("02")) {
             return String_from("typecheck")
         }
     }
-    if len(code) >= 1 && eq(code.clone().slice(0, 1), String_from("W")) {
+    if len(code) >= 1 && code.clone().slice(0, 1).eq(String_from("W")) {
         return String_from("typecheck")
     }
     String_from("unknown")

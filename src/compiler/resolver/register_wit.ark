@@ -1,6 +1,5 @@
 // WIT import registration in resolver scope (#653, #663, #670).
 
-use std::prelude::{eq}
 use std::text
 use resolver::scope_lookup
 use resolver::scope_define
@@ -11,7 +10,7 @@ use resolver::ast_access
 use resolver::wit_register
 fn wit_seen_name(items: Vec<String>, name: String) -> bool {
     for i in 0..len(items) {
-        if eq(get_unchecked(items, i), name.clone()) {
+        if get_unchecked(items, i).eq(name.clone()) {
             return true
         }
     }
@@ -74,19 +73,19 @@ fn register_one_wit_import(mut ctx: ResolveCtx, wit_paths: Vec<String>, package_
         wit_register::register_wit_doc(ctx, alias.clone(), doc)
         return
     }
-    if eq(package_id.clone(), "test:host/math") {
+    if package_id.clone().eq("test:host/math") {
         register_wit_host_math(ctx, alias.clone())
         return
     }
-    if eq(package_id.clone(), "test:doc/parse") {
+    if package_id.clone().eq("test:doc/parse") {
         register_wit_doc_parse(ctx, alias.clone())
         return
     }
-    if eq(package_id.clone(), "test:host/host") {
+    if package_id.clone().eq("test:host/host") {
         register_wit_host_flags(ctx, alias.clone())
         return
     }
-    if eq(package_id.clone(), "test:host/handles") {
+    if package_id.clone().eq("test:host/handles") {
         register_wit_host_resource_handles(ctx, alias.clone())
     }
 }

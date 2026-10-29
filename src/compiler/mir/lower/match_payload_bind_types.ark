@@ -1,5 +1,4 @@
 // MIR match payload bind types.
-use std::prelude::{eq}
 use std::text
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
@@ -21,7 +20,7 @@ fn set_gc_payload_bind_type_if_needed(mut ctx: LowerCtx, variant_name: String, b
     }
     // Prefer the scrutinee-derived payload type when layout lookup is ambiguous.
     if len(payload_type_name) > 0 {
-        if eq(payload_type_name.clone(), "String") || eq(payload_type_name.clone(), "string") {
+        if payload_type_name.clone().eq("String") || payload_type_name.clone().eq("string") {
             ctx_set_local_type(ctx, bind_local, "string")
             return
         }
@@ -46,7 +45,7 @@ fn set_gc_payload_bind_type_if_needed(mut ctx: LowerCtx, variant_name: String, b
             return
         }
     }
-    if eq(field_type.clone(), "String") || eq(field_type.clone(), "string") {
+    if field_type.clone().eq("String") || field_type.clone().eq("string") {
         ctx_set_local_type(ctx, bind_local, "string")
         return
     }
@@ -87,7 +86,7 @@ fn normalize_payload_vec_type_name(field_type: String) -> String {
     if field_type.clone().starts_with("vec:") {
         return field_type
     }
-    if eq(field_type.clone(), "Vec") {
+    if field_type.clone().eq("Vec") {
         return "vec:i32"
     }
     if field_type.clone().starts_with("Vec<") && field_type.clone().ends_with(">") {
@@ -132,7 +131,7 @@ fn set_narrow_int_payload_bind_type_if_needed(mut ctx: LowerCtx, variant_name: S
 }
 
 fn normalize_payload_elem_type_name(elem_ty: String) -> String {
-    if eq(elem_ty.clone(), "Vec") {
+    if elem_ty.clone().eq("Vec") {
         return "vec:i32"
     }
     if elem_ty.clone().starts_with("Vec<") && elem_ty.clone().ends_with(">") {
@@ -149,7 +148,7 @@ fn payload_bind_needs_variant_slot(type_name: String, variant_name: String) -> b
     if match_payload_field_type::mir_match_variant_is_some_or_ok(variant_name.clone()) || match_payload_field_type::mir_match_variant_is_err(variant_name.clone()) {
         return false
     }
-    if len(type_name) == 0 || eq(type_name.clone(), "enum:open") {
+    if len(type_name) == 0 || type_name.clone().eq("enum:open") {
         return false
     }
     // Nested enum payloads (enum:Inner from Outer::Wrap) must stay
@@ -214,13 +213,13 @@ fn payload_type_name_is_gc_ref(ctx: LowerCtx, bind_local: i32) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if eq(type_name.clone(), "string") || eq(type_name.clone(), "String") {
+    if type_name.clone().eq("string") || type_name.clone().eq("String") {
         return true
     }
     if type_name.clone().starts_with("vec:") ||
     type_name.clone().starts_with("Vec<") ||
     type_name.clone().starts_with("Vec_") ||
-    eq(type_name.clone(), "Vec") {
+    type_name.clone().eq("Vec") {
         return true
     }
     if type_name.clone().starts_with("hashmap:") {

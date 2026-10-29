@@ -336,6 +336,21 @@ replacement = "No public replacement: the fd_* helpers are experimental, `wasm32
 #   migration guide + changelog) instead of a W0009 window. Only the three
 #   experimental `std::host::fs` fd_* helpers remain in this family.
 
+# -- Qualified String equality helper --
+
+# `std::collections::string::eq` backed the retired prelude wrapper (the
+# prelude free is gone as of 2026-10-30; `a.eq(b)` is the receiver surface).
+# It stays public only because the module_import fixtures use the qualified
+# `string::eq(...)` spelling to cover qualified-call resolution; it is removal
+# work once those fixtures cover another qualified function.
+[[rules]]
+label = "qualified String equality helper"
+path = "std/collections/string.ark"
+name = "eq"
+class = "must delete"
+owner = "917"
+replacement = "`a.eq(b)` on the String receiver"
+
 # -- Catch-all for unregistered std declarations --
 #
 # A top-level `pub fn` under std/**/*.ark whose name has no manifest entry

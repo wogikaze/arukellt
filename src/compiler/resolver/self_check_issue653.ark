@@ -1,6 +1,5 @@
 // Resolver/typecheck self-checks for issue #653 (WIT import resolver + MIR).
 
-use std::prelude::{eq}
 use lexer::scan
 use parser::core_api_token
 use parser::decl
@@ -18,21 +17,21 @@ fn issue653_parse_source(src: String) -> Vec<AstNode> {
 
 fn issue653_parse_host_math() -> String {
     let doc = component::parse_wit_import_file("tests/fixtures/wit_import/host_math.wit")
-    if !eq(doc.package.clone(), "test:host") {
+    if !doc.package.clone().eq("test:host") {
         return "issue653 fail: package"
     }
-    if !eq(doc.interface.clone(), "math") {
+    if !doc.interface.clone().eq("math") {
         return "issue653 fail: interface"
     }
     if len(doc.funcs) != 1 {
         return "issue653 fail: func count"
     }
     let func = get_unchecked(doc.funcs, 0)
-    if !eq(func.ark_name.clone(), "add") {
+    if !func.ark_name.clone().eq("add") {
         return "issue653 fail: func name"
     }
     let sig = wit_type_map::wit_func_type_sig(func.param_wit_types, func.ret_wit_type, doc)
-    if !eq(sig.clone(), "i32_i32_1i32") {
+    if !sig.clone().eq("i32_i32_1i32") {
         return "issue653 fail: func type sig"
     }
     String_new()

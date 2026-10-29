@@ -1,4 +1,3 @@
-use std::prelude::{eq}
 use std::text
 use mir::function_local_alloc
 use mir::lower::ctx_current_storage
@@ -19,7 +18,7 @@ fn ctx_lookup_local(ctx: LowerCtx, name: String) -> i32 {
     let mut i = count - 1
     while i >= 0 {
         let n = ctx_local_index_storage::ctx_local_index_name_at(ctx, i)
-        if eq(n.clone(), name.clone()) {
+        if n.clone().eq(name.clone()) {
             return ctx_local_index_storage::ctx_local_index_value_at(ctx, i)
         }
         i = i - 1

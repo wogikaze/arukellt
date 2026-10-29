@@ -1,5 +1,4 @@
 use std::text
-use std::prelude::{eq}
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_sig
 use mir::lower::ctx_mono_type_params
@@ -15,7 +14,7 @@ fn ctx_ensure_gc_enum_payload_variant(mut ctx: LowerCtx, variant_name: String, p
         if len(layout_field_sigs) > 0 {
             let existing_sig = get_unchecked(ctx.gc_enum_variant_sigs, name_slot).clone()
             let existing_payload = ctx_gc_enum_sig::gc_enum_payload_suffix_after_prefix(existing_sig.clone(), "SubF+14_S_f0_i32")
-            if eq(existing_payload.clone(), layout_field_sigs.clone()) {
+            if existing_payload.clone().eq(layout_field_sigs.clone()) {
                 return name_slot
             }
         }
@@ -71,7 +70,7 @@ fn gc_enum_payload_typed_resolve_field_sigs(mut ctx: LowerCtx, variant_name: Str
     // Only reuse layout field sigs when the typed want is still open/enum-open
     // and the layout itself was selected for this payload type. Never let a
     // first-name Option::Some(String) layout override a concrete Inner want.
-    let typed_is_open = len(type_name) == 0 || eq(type_name.clone(), "enum:open")
+    let typed_is_open = len(type_name) == 0 || type_name.clone().eq("enum:open")
     if len(layout_field_sigs) > 0 && typed_is_open {
         if layout_field_sigs.clone().contains("ref") || layout_field_sigs.clone().contains("gcsref") {
             if !(is_vec_container && layout_field_sigs.clone().contains("ref14")) {
@@ -100,7 +99,7 @@ fn gc_enum_payload_typed_find_slot(ctx: LowerCtx, variant_name: String, normaliz
     let count = len(ctx.gc_enum_variant_sigs)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(ctx.gc_enum_variant_sigs, i), want_sig.clone()) {
+        if get_unchecked(ctx.gc_enum_variant_sigs, i).eq(want_sig.clone()) {
             if ctx_gc_enum::ctx_gc_enum_variant_names_match(get_unchecked(ctx.gc_enum_variant_names, i).clone(), normalized.clone()) {
                 return i
             }
@@ -112,7 +111,7 @@ fn gc_enum_payload_typed_find_slot(ctx: LowerCtx, variant_name: String, normaliz
         if ctx_gc_enum::ctx_gc_enum_variant_names_match(get_unchecked(ctx.gc_enum_variant_names, i).clone(), normalized.clone()) {
             let existing_sig = get_unchecked(ctx.gc_enum_variant_sigs, i).clone()
             let existing_payload = ctx_gc_enum_sig::gc_enum_payload_suffix_after_prefix(existing_sig.clone(), "SubF+14_S_f0_i32")
-            if eq(existing_payload.clone(), field_sigs.clone()) {
+            if existing_payload.clone().eq(field_sigs.clone()) {
                 return i
             }
         }
@@ -132,14 +131,14 @@ fn gc_enum_payload_typed_find_slot(ctx: LowerCtx, variant_name: String, normaliz
         if is_vec_container && existing_payload.clone().contains("ref14") && field_sigs.clone().contains("ref25") {
             // fall through to register a fresh typed slot
         } else {
-            if len(layout_field_sigs) > 0 && eq(existing_payload.clone(), layout_field_sigs.clone()) {
-                if len(field_sigs) == 0 || eq(existing_payload.clone(), field_sigs.clone()) {
+            if len(layout_field_sigs) > 0 && existing_payload.clone().eq(layout_field_sigs.clone()) {
+                if len(field_sigs) == 0 || existing_payload.clone().eq(field_sigs.clone()) {
                     return name_slot
                 }
             }
-            if (len(type_name) == 0 || eq(type_name.clone(), "enum:open")) && len(existing_payload) > 0 {
-                if len(layout_field_sigs) == 0 || eq(existing_payload.clone(), layout_field_sigs.clone()) {
-                    if len(field_sigs) == 0 || eq(existing_payload.clone(), field_sigs.clone()) {
+            if (len(type_name) == 0 || type_name.clone().eq("enum:open")) && len(existing_payload) > 0 {
+                if len(layout_field_sigs) == 0 || existing_payload.clone().eq(layout_field_sigs.clone()) {
+                    if len(field_sigs) == 0 || existing_payload.clone().eq(field_sigs.clone()) {
                         if existing_payload.clone().contains("ref") || existing_payload.clone().contains("gcsref") {
                             return name_slot
                         }
@@ -169,7 +168,7 @@ fn gc_enum_build_payload_field_sigs_for_type(mut ctx: LowerCtx, variant_name: St
     let mut li = 0
     let mut first_sig = String_new()
     while li < layout_count {
-        if eq(get_unchecked(ctx.struct_names, li), layout_name.clone()) || eq(get_unchecked(ctx.struct_names, li), variant_name.clone()) {
+        if get_unchecked(ctx.struct_names, li).eq(layout_name.clone()) || get_unchecked(ctx.struct_names, li).eq(variant_name.clone()) {
             let field_count = get_unchecked(ctx.struct_field_counts, li)
             let mut row_sig = String_new()
             let mut payload_ft = String_new()
