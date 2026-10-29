@@ -23,6 +23,8 @@ fn main() {
     test::assert_eq_i32(esc.advance(), 1)
     test::assert_eq_string(json::JsonText::decode_unicode_ascii("u0041", 0), "A")
     test::assert_eq_string(json::JsonText::get_str("{\"k\":\"v\"}", "k"), "v")
+    test::assert_eq_string(json::JsonText::get_str_after("{\"a\":1,\"k\":\"w\"}", "k", 0), "w")
+    test::assert_eq_string(json::JsonText::get_str_after("{\"k\":\"a\",\"k\":\"b\"}", "k", 5), "b")
     test::assert_eq_i32(json::JsonText::get_int("{\"k\":3}", "k"), 3)
 
     let n = json::JsonValue::int(7)

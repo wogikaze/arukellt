@@ -5061,18 +5061,27 @@ def _compile_with_gc_pin(
     The host is a component, so it needs a P2 runtime, unlike the core pins.
     Its p1 output is byte-identical to the official pin's stage-2 output; it
     is a build accelerator, not a different compiler.
+
+    The component is JIT-compiled on every invocation unless an AOT image is
+    reused, which costs seconds at this size, so use the same cwasm cache as
+    the core paths. The flat overlay strips parameter modes, so a gc pin that
+    was built from the current source needs the pre-ADR-088 permissive body
+    binding; the core pins predate that flag and do not take the gc path.
     """
     workspace = _prepare_bootstrap_workspace(root)
     guest_out = "bootstrap-out.wasm"
+    run_wasm = _ensure_aot_cwasm(gc_pin)
+    precompiled_args = ["--allow-precompiled"] if run_wasm.suffix == ".cwasm" else []
     argv = [
         wasmtime,
         "run",
+        *precompiled_args,
         *WASMTIME_SELFHOST_WASM_FLAGS,
         "--wasm",
         "max-wasm-stack=16777216",
         "--dir",
         str(workspace),
-        str(gc_pin),
+        str(run_wasm),
         "--",
         "compile",
         SELFHOST_SOURCE_REL,
@@ -5080,6 +5089,7 @@ def _compile_with_gc_pin(
         BOOTSTRAP_EMIT_TARGET,
         "--wasi-version",
         BOOTSTRAP_EMIT_WASI_VERSION,
+        BOOTSTRAP_SHARED_PARAM_FLAG,
         "-o",
         guest_out,
     ]

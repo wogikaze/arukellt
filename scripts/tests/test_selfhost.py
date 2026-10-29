@@ -158,5 +158,46 @@ class TestPinAwareCaches(unittest.TestCase):
         )
 
 
+class TestGcPinCompilePath(unittest.TestCase):
+    """The gc-host pin compile must reuse AOT and pass the overlay-mode flag."""
+
+    def _compile_argv(self, *, aot: bool) -> list[str]:
+        sys.path.insert(0, str(REPO_ROOT / "scripts"))
+        from selfhost import checks
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            pin = root / "bootstrap" / "arukellt-selfhost.wasm"
+            pin.parent.mkdir(parents=True)
+            pin.write_bytes(b"component placeholder")
+            workspace = root / "workspace"
+            workspace.mkdir()
+            run_path = pin.with_suffix(".collector-copying.cwasm") if aot else pin
+            captured: dict[str, list[str]] = {}
+
+            def record(argv: list[str], _root: Path, *, timeout: int | None = None):
+                captured["argv"] = list(argv)
+                return subprocess.CompletedProcess(argv, 0, "", "")
+
+            with patch.object(checks, "_prepare_bootstrap_workspace", return_value=workspace):
+                with patch.object(checks, "_ensure_aot_cwasm", return_value=run_path):
+                    with patch.object(checks, "_run", side_effect=record):
+                        checks._compile_with_gc_pin("wasmtime", root, "out.wasm", pin)
+
+        return captured["argv"]
+
+    def test_gc_pin_compile_reuses_aot_image(self) -> None:
+        argv = self._compile_argv(aot=True)
+        self.assertIn("--allow-precompiled", argv)
+
+    def test_gc_pin_compile_passes_shared_param_overlay_flag(self) -> None:
+        sys.path.insert(0, str(REPO_ROOT / "scripts"))
+        from selfhost import checks
+
+        for aot in (True, False):
+            argv = self._compile_argv(aot=aot)
+            self.assertIn(checks.BOOTSTRAP_SHARED_PARAM_FLAG, argv)
+
+
 if __name__ == "__main__":
     unittest.main()

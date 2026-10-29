@@ -158,6 +158,10 @@ def run_one(
         "wasm32-gc",
         "--wasi-version",
         "wasi-p2",
+        # The canonical overlay strips parameter modes for the bootstrap pin;
+        # hosts built from the current source (s2/s3/gc pin after #951) must
+        # run with the permissive body binding or the run stops at E0226.
+        checks.BOOTSTRAP_SHARED_PARAM_FLAG,
         "--time",
         "-o",
         guest_output,

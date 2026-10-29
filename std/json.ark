@@ -199,6 +199,11 @@ impl JsonText {
         json_text_get_str(json, key)
     }
 
+    /// Extract a string field by key, searching from byte offset `from`.
+    fn get_str_after(json: String, key: String, from: i32) -> String {
+        json_text_get_str_after(json, key, from)
+    }
+
     /// Extract an integer field by key from a JSON object text.
     fn get_int(json: String, key: String) -> i32 {
         json_text_get_int(json, key)
