@@ -168,10 +168,6 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
     if len(msg6) > 0 {
         return msg6
     }
-    let msg7 = deprecated_hashmap_qualified_message(path)
-    if len(msg7) > 0 {
-        return msg7
-    }
     return deprecated_hash_qualified_message(path)
 }
 
@@ -232,76 +228,6 @@ fn deprecated_seq_qualified_message(path: String) -> String {
     }
     if eq(clone(path), "seq::count_eq") {
         return "use `v.iter().count_eq(target)` instead"
-    }
-    String_new()
-}
-
-// The 21 `std::collections::hash` HashMap flat-store frees were deprecated
-// under the ADR-087 0.x exception. The method surface is the replacement;
-// Wave 2 deletes the declarations after the W0009 window.
-fn deprecated_hashmap_qualified_message(path: String) -> String {
-    if eq(clone(path), "hash::hashmap_new") {
-        return "use `HashMap::new<i32, i32>()` instead"
-    }
-    if eq(clone(path), "hash::hashmap_with_capacity") {
-        return "use `HashMap::with_capacity<i32, i32>(n)` instead"
-    }
-    if eq(clone(path), "hash::hashmap_get") {
-        return "use `m.get(key)` (Option<i32>) instead of the sentinel getter"
-    }
-    if eq(clone(path), "hash::hashmap_get_option") {
-        return "use `m.get(key)` on the HashMap receiver instead"
-    }
-    if eq(clone(path), "hash::hashmap_contains") {
-        return "use `m.contains_key(key)` instead"
-    }
-    if eq(clone(path), "hash::hashmap_set") {
-        return "use `m.insert(key, value)` (returns the previous Option<i32>) instead"
-    }
-    if eq(clone(path), "hash::hashmap_insert") {
-        return "use `m.insert(key, value)` instead"
-    }
-    if eq(clone(path), "hash::hashmap_size") {
-        return "use `m.len()` instead"
-    }
-    if eq(clone(path), "hash::hashmap_capacity") {
-        return "use `m.capacity()` instead"
-    }
-    if eq(clone(path), "hash::hashmap_reserve") {
-        return "use `m.reserve(n)` instead"
-    }
-    if eq(clone(path), "hash::hashmap_try_reserve") {
-        return "use `m.try_reserve(n)` instead"
-    }
-    if eq(clone(path), "hash::hashmap_shrink_to_fit") {
-        return "use `m.shrink_to_fit()` instead"
-    }
-    if eq(clone(path), "hash::hashmap_is_empty") {
-        return "use `m.is_empty()` instead"
-    }
-    if eq(clone(path), "hash::hashmap_clear") {
-        return "use `m.clear()` instead"
-    }
-    if eq(clone(path), "hash::hashmap_keys") {
-        return "use `m.keys()` instead"
-    }
-    if eq(clone(path), "hash::hashmap_values") {
-        return "use `m.values()` instead"
-    }
-    if eq(clone(path), "hash::hashmap_entries") {
-        return "use `m.entries()` (Vec<(i32, i32)>) instead of the flat Vec"
-    }
-    if eq(clone(path), "hash::hashmap_drain") {
-        return "use `m.drain()` (Vec<(i32, i32)>) instead of the flat Vec"
-    }
-    if eq(clone(path), "hash::hashmap_remove") {
-        return "use `m.remove(key)` instead"
-    }
-    if eq(clone(path), "hash::hashmap_remove_entry") {
-        return "use `m.remove_entry(key)` (Option<(i32, i32)>) instead"
-    }
-    if eq(clone(path), "hash::hashmap_extend") {
-        return "use `m.extend(other)` instead"
     }
     String_new()
 }
@@ -498,31 +424,15 @@ test mod "deprecated" {
         assert(len(deprecated_call_message("contains_string")) == 0)
         assert(len(deprecated_call_message("filter_i32")) == 0)
     }
-    test "hashmap_frees_warn_w0009" {
-        assert(len(deprecated_qualified_call_message("hash::hashmap_new")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_get")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_get_option")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_contains")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_set")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_insert")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_size")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_capacity")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_with_capacity")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_reserve")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_try_reserve")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_shrink_to_fit")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_is_empty")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_clear")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_keys")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_values")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_entries")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_drain")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_remove")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_remove_entry")) > 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_extend")) > 0)
-        // The unregistered `hashmap_entry_pairs` lowering target was never
-        // a deprecated callable.
-        assert(len(deprecated_qualified_call_message("hash::hashmap_entry_pairs")) == 0)
+    test "removed_hashmap_frees_have_no_w0009_entry" {
+        // The 21 HashMap frees moved stable -> deprecated -> deleted in the
+        // same #917 wave; E0100 from resolver::removed_names owns them now,
+        // so a live W0009 entry would be a dead warning.
+        assert(len(deprecated_qualified_call_message("hash::hashmap_new")) == 0)
+        assert(len(deprecated_qualified_call_message("hash::hashmap_set")) == 0)
+        assert(len(deprecated_qualified_call_message("hash::hashmap_capacity")) == 0)
+        assert(len(deprecated_qualified_call_message("hash::hashmap_entries")) == 0)
+        assert(len(deprecated_qualified_call_message("hash::hashmap_extend")) == 0)
     }
     test "removed_hashset_frees_have_no_w0009_entry" {
         // The 21 HashSet frees moved stable -> deprecated -> deleted in the

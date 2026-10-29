@@ -22,10 +22,10 @@ functions in `std::collections::hash_string` / `hash_fn` / `hash_str_fn` for
 the concrete GC pairs. The typed `hash_map::hashmap_*` adapter frees were
 retired by #917; the receiver methods are the only user spelling.
 
-The 21 `hash::hashmap_*` flat-store frees are `deprecated` through the
-ADR-087 window. Their declarations remain as non-public MIR lowering targets
-until the Wave 2 deletion; the user spelling is the `HashMap<i32, i32>`
-method surface.
+The 21 `hash::hashmap_*` flat-store frees were retired through the ADR-087
+two-phase lifecycle (W0009 deprecation, then deletion). Their declarations
+remain as non-public MIR lowering targets, so qualified old calls fail with
+E0100; the user spelling is the `HashMap<i32, i32>` method surface.
 
 ## Hashing Policy
 

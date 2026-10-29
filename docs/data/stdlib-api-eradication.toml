@@ -88,9 +88,15 @@ owner = "none"
 # `hashset_str_*` 6) were deprecated with W0009 and deleted by #917 on
 # 2026-10-29 (wave/hash-group). The declarations stay as non-public MIR
 # lowering targets behind `HashSet<i32>` / `HashSet<String>`, so no `pub fn`
-# remains for those names. The same module's HashMap flat-store frees
-# (`hashmap_*`, 21) stay public until the HashMap capacity/bulk method
-# surface lands; they remain on the `std::collections frees` rule below.
+# remains for those names.
+#
+# The same module's 21 HashMap flat-store frees (`hashmap_*`) completed the
+# identical ADR-087 two-phase lifecycle on 2026-10-29 (wave/hashmap-surface):
+# Wave 1 landed the `HashMap<i32, i32>` capacity/bulk method surface and the
+# W0009 table, and Wave 2 deleted the manifest entries and made the
+# declarations non-public lowering targets. The unregistered
+# `hashmap_entry_pairs` lowering target is non-public too, so the module has
+# no remaining `pub fn`; the only public HashMap names are the type methods.
 
 # -- Prelude overrides (evaluated before the prelude default) --
 #

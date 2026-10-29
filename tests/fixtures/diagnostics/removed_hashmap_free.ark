@@ -1,5 +1,5 @@
-// W0009 on the stable HashMap flat-store frees: they stay callable through
-// the ADR-087 window and point at the HashMap<i32, i32> method surface.
+// E0100: the std::collections::hash HashMap frees were deleted after the
+// ADR-087 W0009 window; the qualified old call names the method replacement.
 use std::collections::hash
 
 fn main() {

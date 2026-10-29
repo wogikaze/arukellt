@@ -1,0 +1,7 @@
+// `capacity` maintains the i32 bucket layout; the String store must reject
+// the call instead of running the flat-store helper.
+fn main() {
+    let mut m: HashMap<String, i32> = HashMap::new<String, i32>()
+    let _ = m.insert("a", 1)
+    let _ = m.capacity()
+}

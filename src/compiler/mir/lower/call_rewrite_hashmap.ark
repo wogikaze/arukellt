@@ -18,8 +18,12 @@ fn mir_rewrite_hashmap_constructor(callee_name: String) -> String {
     }
     // `with_capacity` is part of the flat-store maintenance surface; the
     // other pairs reject the call at typecheck, so only the i32->i32 target
-    // is reachable here (#917).
-    if hashmap_constructor_matches(clone(callee_name), "with_capacity", "i32", "i32") {
+    // is reachable here (#917). The CoreHIR path can drop the explicit type
+    // arguments, so match the bare associated spelling as well.
+    if eq(clone(callee_name), "HashMap::with_capacity") ||
+    eq(clone(callee_name), "HashMap__with_capacity") ||
+    eq(clone(callee_name), "HashMap_with_capacity") ||
+    hashmap_constructor_matches(clone(callee_name), "with_capacity", "i32", "i32") {
         return String_from("hashmap_with_capacity")
     }
     if hashmap_constructor_matches(clone(callee_name), "new", "i32", "i32") {

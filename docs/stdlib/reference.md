@@ -11,7 +11,7 @@
 | `stable` | 112 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 10 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 4 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 96 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 75 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -258,27 +258,6 @@
 | `filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `prelude` | `provisional` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_i32` | - |
 | ~~`get`~~ ⚠️ Deprecated → `Vec::get` | `(Vec<T>, i32) -> Option<T>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | ~~`get_unchecked`~~ ⚠️ Deprecated → `Vec::get_unchecked` | `(Vec<T>, i32) -> T` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`hashmap_capacity`~~ ⚠️ Deprecated → `HashMap::capacity` | `(Vec<i32>) -> i32` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hashmap_clear`~~ ⚠️ Deprecated → `HashMap::clear` | `(Vec<i32>) -> ()` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hashmap_contains`~~ ⚠️ Deprecated → `HashMap::contains_key` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hashmap_drain`~~ ⚠️ Deprecated → `HashMap::drain` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hashmap_entries`~~ ⚠️ Deprecated → `HashMap::entries` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hashmap_extend`~~ ⚠️ Deprecated → `HashMap::extend` | `(Vec<i32>, Vec<i32>) -> ()` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | Extend a raw i32->i32 HashMap with all key/value pairs from another map. Existing keys are overwritt… |
-| ~~`hashmap_get`~~ ⚠️ Deprecated → `HashMap::get` | `(Vec<i32>, i32) -> i32` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hashmap_get_option`~~ ⚠️ Deprecated → `HashMap::get` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hashmap_insert`~~ ⚠️ Deprecated → `HashMap::insert` | `(Vec<i32>, i32, i32) -> Option<i32>` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hashmap_is_empty`~~ ⚠️ Deprecated → `HashMap::is_empty` | `(Vec<i32>) -> bool` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hashmap_keys`~~ ⚠️ Deprecated → `HashMap::keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hashmap_new`~~ ⚠️ Deprecated → `HashMap::new` | `() -> Vec<i32>` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hashmap_remove`~~ ⚠️ Deprecated → `HashMap::remove` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hashmap_remove_entry`~~ ⚠️ Deprecated → `HashMap::remove_entry` | `(Vec<i32>, i32) -> Vec<i32>` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hashmap_reserve`~~ ⚠️ Deprecated → `HashMap::reserve` | `(Vec<i32>, i32) -> ()` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hashmap_set`~~ ⚠️ Deprecated → `HashMap::insert` | `(Vec<i32>, i32, i32) -> bool` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hashmap_shrink_to_fit`~~ ⚠️ Deprecated → `HashMap::shrink_to_fit` | `(Vec<i32>) -> ()` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hashmap_size`~~ ⚠️ Deprecated → `HashMap::len` | `(Vec<i32>) -> i32` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hashmap_try_reserve`~~ ⚠️ Deprecated → `HashMap::try_reserve` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hashmap_values`~~ ⚠️ Deprecated → `HashMap::values` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hashmap_with_capacity`~~ ⚠️ Deprecated → `HashMap::with_capacity` | `(i32) -> Vec<i32>` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
 | ~~`len`~~ ⚠️ Deprecated → `Vec::len` | `(Vec<T>) -> i32` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | Return the number of elements in a Vec. |
 | ~~`linked_list_back`~~ ⚠️ Deprecated → `LinkedList::back` | `(Vec<i32>, i32) -> i32` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Peek the back value of the legacy i32 list, or the caller's fallback when empty. |
 | ~~`linked_list_clear`~~ ⚠️ Deprecated → `LinkedList::clear` | `(Vec<i32>) -> ()` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Remove all elements from the legacy i32 list, keeping node capacity. |
@@ -615,7 +594,7 @@ let input = stdio::read_stdin()
 
 ## Deprecated APIs
 
-> ⚠️ **96 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **75 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -649,27 +628,6 @@ let input = stdio::read_stdin()
 | ~~`fold_i32_i32`~~ | `VecIter::fold` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get`~~ | `Vec::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_capacity`~~ | `HashMap::capacity` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_clear`~~ | `HashMap::clear` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_contains`~~ | `HashMap::contains_key` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_drain`~~ | `HashMap::drain` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_entries`~~ | `HashMap::entries` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_extend`~~ | `HashMap::extend` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_get`~~ | `HashMap::get` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_get_option`~~ | `HashMap::get` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_insert`~~ | `HashMap::insert` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_is_empty`~~ | `HashMap::is_empty` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_keys`~~ | `HashMap::keys` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_new`~~ | `HashMap::new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_remove`~~ | `HashMap::remove` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_remove_entry`~~ | `HashMap::remove_entry` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_reserve`~~ | `HashMap::reserve` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_set`~~ | `HashMap::insert` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_shrink_to_fit`~~ | `HashMap::shrink_to_fit` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_size`~~ | `HashMap::len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_try_reserve`~~ | `HashMap::try_reserve` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_values`~~ | `HashMap::values` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hashmap_with_capacity`~~ | `HashMap::with_capacity` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i16_to_i32`~~ | `i16::to_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i16`~~ | `i32::to_i16_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i64`~~ | `i32::into` | [migration-guidance.md](migration-guidance.md) |

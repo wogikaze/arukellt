@@ -59,13 +59,20 @@ fn infer_hashmap_constructor_call(
             contract_type_constructors::TypeInfo_simple(commands::TY_I32())
         )
     }
-    let mangled_name = mono::record_mono_instance(env, clone(callee_name), resolved_types)
-    mono::record_mono_call_site(
-        env,
-        ast_access::node_span_start(node),
-        clone(callee_name),
-        mangled_name
-    )
+    // `with_capacity` has no generic shell declaration (the method is
+    // declared on `impl HashMap<i32, i32>`), so a mono instance named
+    // `HashMap::with_capacity` would have no body to instantiate. The MIR
+    // constructor rewrite owns the callee instead; recording a call site
+    // here leaves an unresolved `unreachable` at the call.
+    if !is_with_capacity {
+        let mangled_name = mono::record_mono_instance(env, clone(callee_name), resolved_types)
+        mono::record_mono_call_site(
+            env,
+            ast_access::node_span_start(node),
+            clone(callee_name),
+            mangled_name
+        )
+    }
     result_ty
 }
 
@@ -100,10 +107,14 @@ fn infer_builtin_hashmap_method(
         hashmap_report_unavailable(env, String_from("method"), method_name, key_ty, value_ty)
         return hashmap_method_return_type(clone(method_name), key_ty, value_ty)
     }
-    if explicit_args == 1 {
+    if eq(clone(method_name), String_from("extend")) {
+        // `extend` takes another map, not a key: unify the argument with the
+        // receiver's pair so the previous key-typed default does not report
+        // `i32` vs `HashMap<...>` for the shell body (#917).
+        unify_hashmap_method_arg(env, scope, fn_sigs, enum_defs, node, 1, recv_ty)
+    } else if explicit_args == 1 {
         unify_hashmap_method_arg(env, scope, fn_sigs, enum_defs, node, 1, key_ty)
-    }
-    if explicit_args == 2 {
+    } else if explicit_args == 2 {
         unify_hashmap_method_arg(env, scope, fn_sigs, enum_defs, node, 1, key_ty)
         unify_hashmap_method_arg(env, scope, fn_sigs, enum_defs, node, 2, value_ty)
     }

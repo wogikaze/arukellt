@@ -1,0 +1,1 @@
+error[E0200|typecheck]: method `capacity` is not available on `HashMap<String, i32>`; the capacity/bulk surface is implemented only for `HashMap<i32, i32>`

@@ -70,6 +70,7 @@ fn mir_callee_name_accepts_i32_narrow_from_i64(callee_name: String) -> bool {
         return true
     }
     if contains(clone(callee_name), String_from("hashmap_set")) ||
+    contains(clone(callee_name), String_from("hashmap_insert")) ||
     contains(clone(callee_name), String_from("hashmap_get")) ||
     contains(clone(callee_name), String_from("hashmap_contains")) {
         return true

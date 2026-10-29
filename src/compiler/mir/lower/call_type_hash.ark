@@ -162,18 +162,6 @@ fn is_hash_vec_i32_result(callee_name: String) -> bool {
     if callee_eq(clone(callee_name), "hash::hashmap_entries") {
         return true
     }
-    if callee_eq(clone(callee_name), "hashmap_drain") {
-        return true
-    }
-    if callee_eq(clone(callee_name), "hash::hashmap_drain") {
-        return true
-    }
-    if callee_eq(clone(callee_name), "hashmap_remove_entry") {
-        return true
-    }
-    if callee_eq(clone(callee_name), "hash::hashmap_remove_entry") {
-        return true
-    }
     if callee_eq(clone(callee_name), "hashset_new") {
         return true
     }

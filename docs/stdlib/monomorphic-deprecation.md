@@ -40,27 +40,6 @@ helpers are included alongside any other deprecated public entry.
 | `u32_to_u64` | `prelude` | `deprecated` | `u32::to_u64` | `0.1.0` | `1.0.0` | Superseded API |
 | `u64_to_u32` | `prelude` | `deprecated` | `u64::to_u32_wrapping` | `0.1.0` | `1.0.0` | Superseded API |
 | `u8_to_i32` | `prelude` | `deprecated` | `u8::to_i32` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_capacity` | `std::collections::hash` | `deprecated` | `HashMap::capacity` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_clear` | `std::collections::hash` | `deprecated` | `HashMap::clear` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_contains` | `std::collections::hash` | `deprecated` | `HashMap::contains_key` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_drain` | `std::collections::hash` | `deprecated` | `HashMap::drain` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_entries` | `std::collections::hash` | `deprecated` | `HashMap::entries` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_extend` | `std::collections::hash` | `deprecated` | `HashMap::extend` | `0.1.0` | `1.0.0` | Extend a raw i32->i32 HashMap with all key/value pairs from another map. Existing keys are overwritten by the source map. Mirrors Rust's HashMap::extend. |
-| `hashmap_get` | `std::collections::hash` | `deprecated` | `HashMap::get` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_get_option` | `std::collections::hash` | `deprecated` | `HashMap::get` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_insert` | `std::collections::hash` | `deprecated` | `HashMap::insert` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_is_empty` | `std::collections::hash` | `deprecated` | `HashMap::is_empty` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_keys` | `std::collections::hash` | `deprecated` | `HashMap::keys` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_new` | `std::collections::hash` | `deprecated` | `HashMap::new` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_remove` | `std::collections::hash` | `deprecated` | `HashMap::remove` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_remove_entry` | `std::collections::hash` | `deprecated` | `HashMap::remove_entry` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_reserve` | `std::collections::hash` | `deprecated` | `HashMap::reserve` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_set` | `std::collections::hash` | `deprecated` | `HashMap::insert` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_shrink_to_fit` | `std::collections::hash` | `deprecated` | `HashMap::shrink_to_fit` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_size` | `std::collections::hash` | `deprecated` | `HashMap::len` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_try_reserve` | `std::collections::hash` | `deprecated` | `HashMap::try_reserve` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_values` | `std::collections::hash` | `deprecated` | `HashMap::values` | `0.1.0` | `1.0.0` | Superseded API |
-| `hashmap_with_capacity` | `std::collections::hash` | `deprecated` | `HashMap::with_capacity` | `0.1.0` | `1.0.0` | Superseded API |
 | `deque_back` | `std::collections::linear` | `deprecated` | `Deque::back` | `0.1.0` | `1.0.0` | Peek at the back element without removing it. Returns 0 when empty. |
 | `deque_clear` | `std::collections::linear` | `deprecated` | `Deque::clear` | `0.1.0` | `1.0.0` | Reset the deque to empty (preserves allocated capacity). |
 | `deque_front` | `std::collections::linear` | `deprecated` | `Deque::front` | `0.1.0` | `1.0.0` | Peek at the front element without removing it. Returns 0 when empty. |
@@ -107,4 +86,4 @@ helpers are included alongside any other deprecated public entry.
 | `take_i32` | `std::seq` | `deprecated` | `VecIter::take` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect(). |
 | `unique` | `std::seq` | `deprecated` | `VecIter::unique` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect(). |
 
-Total deprecated public entries: **96**.
+Total deprecated public entries: **75**.

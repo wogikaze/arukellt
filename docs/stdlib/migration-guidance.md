@@ -2144,11 +2144,13 @@ the receiver spelling.
 ### `std::collections::hash` HashMap Store Frees (ADR-087 Window)
 
 The 21 `hash::hashmap_*` free functions were the flat `Vec<i32>` store layer
-behind `HashMap<i32, i32>`. They are deprecated with W0009 under the
-[ADR-087](../adr/ADR-087-0x-deprecation-exception.md) 0.x exception; the
-declarations stay callable through the window and the replacement is
-`HashMap::new<i32, i32>()` / `HashMap::with_capacity<i32, i32>(n)` plus the
-receiver methods. The capacity / bulk-maintenance group
+behind `HashMap<i32, i32>`. They were deprecated with W0009 under the
+[ADR-087](../adr/ADR-087-0x-deprecation-exception.md) 0.x exception and
+deleted in the same #917 wave (2026-10-29); the declarations stay as
+non-public MIR lowering targets, and qualified old calls fail with E0100 and
+a method hint. The replacement is `HashMap::new<i32, i32>()` /
+`HashMap::with_capacity<i32, i32>(n)` plus the receiver methods. The capacity
+/ bulk-maintenance group
 (`with_capacity`, `capacity`, `reserve`, `try_reserve`, `shrink_to_fit`,
 `clear`, `drain`, `remove_entry`, `extend`) is implemented for
 `HashMap<i32, i32>` only: the String and fn-valued stores reject those calls

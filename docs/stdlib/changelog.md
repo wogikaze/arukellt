@@ -16,6 +16,38 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-29 — `hash::hashmap_*` の Wave 2 削除 (#917, wave/hashmap-surface)
+
+- **Basis**: [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2 の
+  W0009 / migration guide / changelog の 3 条件。Wave 1 の deprecation は同じ
+  branch の `50da61673`。
+- **Retired (21)**: `hash::hashmap_new` / `get` / `get_option` / `contains` /
+  `set` / `insert` / `size` / `capacity` / `with_capacity` / `reserve` /
+  `try_reserve` / `shrink_to_fit` / `is_empty` / `clear` / `keys` / `values` /
+  `entries` / `drain` / `remove` / `remove_entry` / `extend` の manifest entry と
+  公開宣言を削除した。宣言は `std/collections/hash.ark` に非公開の MIR lowering
+  target として残るため、旧 qualified call は
+  `resolver::removed_private_member_hint` 経由で E0100 と method surface の hint
+  を返す。`hashmap_entry_pairs` も非公開化した。
+- **Replacement**: `HashMap::new<i32, i32>()` /
+  `HashMap::with_capacity<i32, i32>(n)` と `m.get(k)` / `m.insert(k, v)` /
+  `m.len()` / `m.keys()` / `m.values()` / `m.entries()` / `m.remove(k)` /
+  `m.capacity()` / `m.reserve(n)` / `m.try_reserve(n)` / `m.shrink_to_fit()` /
+  `m.clear()` / `m.drain()` / `m.remove_entry(k)` / `m.extend(other)`。flat
+  free の `Vec<i32>` 契約は method では `Option` / typed pair に変わる。
+- **E0200**: 容量・一括操作の 9 メソッドを String / fn pair で呼ぶと型検査エラー。
+  hidden bucket array を持つ store を i32 helper で処理しないための明示的な
+  capability 境界で、`HashSet<String>` の capacity と同じ扱い。
+- **Evidence**: `stdlib_hashmap/` の 58 fixture は Wave 1 で method surface へ
+  移行済み。`removed_hashmap_free*`（両 target、E0100）と
+  `hashmap_string_capacity*`（両 target、E0200）を追加し、W0009 の
+  `deprecated_hashmap_free*` を削除した。registry 3495 -> 3497。
+- **Scorecard**: eradication scope 225 -> **203**、`associated-or-method`
+  159 -> **137**、manifest 公開 entry 222 -> **201**、`pub fn` 宣言
+  246 -> **224**、unregistered 3 -> **2**、`std::collections frees` rule
+  38+2 -> **17+1**。scoreboard は hash family 21 -> **0** APIs（stable 112、
+  deprecated 75 に戻る）。
+
 ## 2026-10-29 — `HashMap<i32, i32>` の容量・一括操作メソッド面と `hash::hashmap_*` の deprecation (#917, wave/hashmap-surface)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の free-function
