@@ -124,9 +124,12 @@ is the ADR-014 addendum that defines the exception:
 A narrow ADR may replace condition (1) with a stronger **E0100** migration
 diagnostic when the replacement is already callable and the exception names
 its exact symbols. [ADR-090](../adr/ADR-090-std-namespace-and-panic-association.md) §3
-did this for `panic` (one symbol), and
-[ADR-091](../adr/ADR-091-prelude-free-function-exception.md) §2 does it for the
-27 method-replaceable prelude frees retired in `wave/prelude-remain` (plus the deferred `push_char` / `parse_*`).
+did this for `panic` (one symbol),
+[ADR-091](../adr/ADR-091-prelude-free-function-exception.md) §2 did it for the
+27 method-replaceable prelude frees retired in `wave/prelude-remain` (plus the deferred `push_char` / `parse_*`), and
+[ADR-092](../adr/ADR-092-host-core-namespace-free-exception.md) §3 does it for the
+25 host/core namespace frees retired in `wave/host-core3` (the three experimental
+`std::host::fs` fd helpers stay free under §4).
 Conditions (2) and (3) remain mandatory, and the exception never applies
 outside its named symbol list.
 

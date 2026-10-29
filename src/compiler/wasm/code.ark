@@ -1,5 +1,5 @@
 use std::host::clock::Clock
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::prelude::{clone, eq, i64_to_i32, to_string}
 use std::text
@@ -220,7 +220,7 @@ fn code_apply_pending_relocs(mut ctx: SelfEmitCtx, wit_import_count: i32) {
         }
         if value < 0 {
             stdio::eprintln("compiler ICE: unresolved body reloc")
-            process::exit(1)
+            Process::exit(1)
         }
         let body = get_unchecked(ctx.body_bytes, fi)
         if ctx_reloc::reloc_kind_is_sleb(kind) {

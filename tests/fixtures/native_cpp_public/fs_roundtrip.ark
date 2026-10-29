@@ -1,5 +1,5 @@
 use std::host::fs::Fs
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::prelude::{clone}
 fn main() {
@@ -9,7 +9,7 @@ fn main() {
         },
         Result::Err(err) => {
             stdio::eprintln(err)
-            process::exit(2)
+            Process::exit(2)
         },
     }
     match Fs::read_to_string(path) {
@@ -18,7 +18,7 @@ fn main() {
         },
         Result::Err(err) => {
             stdio::eprintln(err)
-            process::exit(3)
+            Process::exit(3)
         },
     }
 }

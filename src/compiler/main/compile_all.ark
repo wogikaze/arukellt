@@ -1,4 +1,4 @@
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::prelude::{clone}
 use driver::file
@@ -8,7 +8,7 @@ use main::compile_core
 use main::output
 fn cmd_compile_all(opts: CliOptions) {
     if !compile_core::validate_wit_paths(opts) {
-        process::exit(1)
+        Process::exit(1)
         return
     }
     let input_file = args_record::cli_input_file(opts)
@@ -17,22 +17,22 @@ fn cmd_compile_all(opts: CliOptions) {
     let wasm_result = file::compile_file(clone(input_file), wasm_config)
     if !result_record::compile_result_success(wasm_result) {
         compile_core::print_compile_diagnostics(clone(input_file), wasm_result, json_mode)
-        process::exit(1)
+        Process::exit(1)
         return
     }
     let mut comp_config = compile_core::build_emit_config(opts, "component", false)
     let comp_result = file::compile_file(clone(input_file), comp_config)
     if !result_record::compile_result_success(comp_result) {
         compile_core::print_compile_diagnostics(clone(input_file), comp_result, json_mode)
-        process::exit(1)
+        Process::exit(1)
         return
     }
     if !compile_core::write_compile_output(compile_core::wasm_path_for_all(opts), result_record::compile_result_output_bytes(wasm_result), json_mode) {
-        process::exit(1)
+        Process::exit(1)
         return
     }
     if !compile_core::write_compile_output(compile_core::component_path_for_all(opts), result_record::compile_result_output_bytes(comp_result), json_mode) {
-        process::exit(1)
+        Process::exit(1)
         return
     }
     if json_mode {

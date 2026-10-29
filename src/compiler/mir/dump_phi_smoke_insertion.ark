@@ -1,4 +1,4 @@
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use mir::dominance
 use mir::dump_core
@@ -22,7 +22,7 @@ fn run_phi_insertion_smoke() {
     dominance::mir_compute_dominance_for_function(f)
     if !ssa::mir_try_insert_simple_join_phi(f, join_bb, join_val) {
         stdio::eprintln("simple join phi insertion failed")
-        process::exit(1)
+        Process::exit(1)
     }
     ssa::mir_ssa_rename_function(f)
     dump_expect::mir_expect_preds(f, join_bb, 2, then_bb, else_bb)

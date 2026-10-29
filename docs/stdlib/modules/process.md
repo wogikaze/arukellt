@@ -7,33 +7,35 @@ Source-backed docs for process control and runtime environment helpers.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-This page covers two closely related host modules: `std::host::process` for process lifecycle control (exit, abort) and `std::host::env` for runtime environment access (CLI arguments, environment variables). Both are host-bound and require WASI capabilities. For the full host family overview, see [io.md](io.md).
+This page covers two closely related host modules: `std::host::process` for process lifecycle control through the `Process` namespace, and `std::host::env` for runtime environment access through the `Env` namespace. Both are host-bound and require WASI capabilities. Import the namespace types explicitly (`use std::host::process::Process`, `use std::host::env::Env`); the modules expose no free function. For the full host family overview, see [io.md](io.md).
 
 **Recommended API highlights:**
 
 | API | Purpose |
 |-----|---------|
-| `exit(code)` | Request process termination with the given exit code. |
-| `abort()` | Abort execution immediately by panicking. |
-| `args()` | Retrieve the CLI argument vector (excluding argv[0]). |
-| `var(name)` | Look up an environment variable by name, returning `Option<String>`. |
-| `has_flag(flag)` | Check whether a flag is present in the argument vector. |
+| `Process::exit(code)` | Request process termination with the given exit code. |
+| `Process::abort()` | Abort execution immediately with the abnormal-termination signal. |
+| `Process::id()` | Return the documented `Result::Err` because WASI 0.2 has no portable process id. |
+| `Env::args()` | Retrieve the CLI argument vector (excluding argv[0]). |
+| `Env::var(name)` | Look up an environment variable by name, returning `Option<String>`. |
+| `Env::has_flag(flag)` | Check whether a flag is present in the argument vector. |
 
 **Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: yes. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 
 ```ark
-import std::host::env
-import std::host::process
+use std::host::env::Env
+use std::host::process::Process
+use std::host::stdio
 
-if has_flag("--help") {
-    println("Usage: myapp [options]")
-    exit(0)
+if Env::has_flag("--help") {
+    stdio::println("Usage: myapp [options]")
+    Process::exit(0)
 }
 
-let name = var("USER").unwrap_or("unknown")
-println("Running as: " + name)
+let name = Env::var_or_default("USER", "unknown")
+stdio::println("Running as: ".concat(name))
 ```
 
 ---
@@ -41,36 +43,28 @@ println("Running as: " + name)
 ## Module `std::host::process`
 
 - Source: [`../../../std/host/process.ark`](../../../std/host/process.ark)
-- Manifest-backed functions: 3
-- Stability: stable 3
+- Manifest-backed functions: 0
+- Stability: n/a
 
 > 🎯 **Availability:** `wasm32` and `wasm32-gc` · ✅ **Status:** implemented
 
 Host process-control helpers.
 
 WASI 0.2 provides process exit semantics but does not expose a portable
-POSIX-style process identifier. `id()` therefore has a stable rejection
-contract instead of returning a fabricated value.
+POSIX-style process identifier. `Process::id` therefore has a stable
+rejection contract instead of returning a fabricated value.
 
-### `std::host::process` — Public API
+`Process` is the namespace type for process control (ADR-046):
+`Process::exit`, `Process::abort`, and `Process::id`. The module exposes no
+free function.
 
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `exit` | `(i32) -> ()` | `stable` | ✅ functional | - |
-| `abort` | `() -> ()` | `stable` | ✅ functional | - |
-| `id` | `() -> Result<i32, String>` | `stable` | ✅ functional | - |
+### `std::host::process` — Public Types
 
-#### `std::host::process::exit`
+| Name | Kind | Methods | Trait impls | Summary |
+|------|------|---------|-------------|---------|
+| `Process` | `struct` | `exit`, `abort`, `id` | - | Namespace for the host process-control operations. |
 
-Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure.
-
-#### `std::host::process::abort`
-
-Abort the process immediately with an abnormal-termination signal (non-zero exit).
-
-#### `std::host::process::id`
-
-Return a stable Err on WASI 0.2 because the portable process model does not expose a POSIX-style process identifier.
+_No manifest-backed functions in this module._
 
 ## Module `std::host::env`
 

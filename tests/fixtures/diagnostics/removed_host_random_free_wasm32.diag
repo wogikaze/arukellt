@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: random::random_bool; use `Random::random_bool()` from `use std::host::random::Random` instead

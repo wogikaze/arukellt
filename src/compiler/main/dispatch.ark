@@ -1,4 +1,4 @@
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use main::args_record
 use main::commands
@@ -22,13 +22,13 @@ pub fn dispatch(mut opts: CliOptions) {
 fn dispatch_preflight(opts: CliOptions, command: i32) -> bool {
     if command == kinds::CMD_NOT_YET() {
         stdio::eprintln("error: command not yet implemented in selfhost compiler")
-        process::exit(1)
+        Process::exit(1)
         return false
     }
     if !args_record::cli_has_input_file(opts) && !dispatch_command_allows_missing_input(opts, command) {
         stdio::eprintln("error: no input file specified")
         usage::print_usage()
-        process::exit(2)
+        Process::exit(2)
         return false
     }
     true

@@ -6,20 +6,15 @@
 | Family | APIs | Stable | Provisional | Experimental | Deprecated | Fixture Coverage | Host Dep |
 |--------|------|--------|-------------|--------------|------------|------------------|----------|
 | `prelude` | 58 | 27 | 1 | 0 | 30 | 28/28 (100%) | no |
-| `std::cli` | 6 | 6 | 0 | 0 | 0 | 6/6 (100%) | no |
 | `std::collections::linear` | 18 | 7 | 0 | 0 | 11 | 7/7 (100%) | no |
 | `std::collections::linked_list` | 11 | 0 | 0 | 0 | 11 | 0/0 (—) | no |
 | `std::collections::ordered` | 10 | 0 | 0 | 0 | 10 | 0/0 (—) | no |
 | `std::host::fs` | 3 | 0 | 0 | 3 | 0 | **0/3 (0%)** | yes |
-| `std::host::process` | 3 | 3 | 0 | 0 | 0 | 3/3 (100%) | yes |
-| `std::host::random` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
 | `std::host::stdio` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
 | `std::io` | 5 | 5 | 0 | 0 | 0 | 4/5 (80%) | no |
-| `std::process` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | no |
 | `std::seq` | 13 | 0 | 0 | 0 | 13 | 0/0 (—) | no |
-| `std::signal` | 10 | 10 | 0 | 0 | 0 | 7/10 (70%) | no |
 
-**Total**: 147 APIs, 68 stable, 1 provisional, 3 experimental, 75 deprecated, 65/72 (90%) fixture coverage
+**Total**: 122 APIs, 43 stable, 1 provisional, 3 experimental, 75 deprecated, 43/47 (91%) fixture coverage
 
 ## Legend
 

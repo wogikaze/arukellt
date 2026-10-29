@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::host::fs::Fs
-use std::host::process
+use std::host::process::Process
 use std::prelude::{byte_at, clone, contains, eq, substring, to_string}
 use std::text
 use main::args_record
@@ -183,7 +183,7 @@ fn component_path_for_all(opts: CliOptions) -> String {
 pub fn cmd_compile_single(opts: CliOptions) {
     let status = cmd_compile_single_status(opts)
     if status != 0 {
-        process::exit(status)
+        Process::exit(status)
     }
 }
 
@@ -262,12 +262,16 @@ fn source_uses_clock_intrinsics(source: String) -> bool {
 fn source_uses_random_intrinsics(source: String) -> bool {
     contains(clone(source), String_from("random::")) ||
     contains(clone(source), String_from("random_i32")) ||
+    contains(clone(source), String_from("Random::")) ||
     contains(source, String_from("std::host::random"))
 }
 
 fn source_uses_process_intrinsics(source: String) -> bool {
     contains(clone(source), String_from("process::exit")) ||
     contains(clone(source), String_from("process::abort")) ||
+    contains(clone(source), String_from("Process::exit")) ||
+    contains(clone(source), String_from("Process::abort")) ||
+    contains(clone(source), String_from("Process::id")) ||
     contains(clone(source), String_from("std::host::process")) ||
     contains(clone(source), String_from("__runtime_abi_process_exit")) ||
     contains(source, String_from("__runtime_abi_process_abort"))

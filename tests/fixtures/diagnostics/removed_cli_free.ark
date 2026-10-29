@@ -1,0 +1,7 @@
+// E0100: std::cli moved argument reads to Env and scanners to Cli.
+use std::cli
+
+fn main() {
+    let v: Vec<String> = Vec::new<String>()
+    let _ = cli::option(v, "--name")
+}

@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: cli::option; use `Cli::option(args, name)` from `use std::cli::Cli` instead

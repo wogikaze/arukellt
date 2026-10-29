@@ -422,26 +422,26 @@ Fs::write_string("output.txt", "hello")
             "highlights": [
                 ("`std::host::stdio` — `println(s)`", "Write a line to stdout."),
                 ("`std::host::stdio` — `eprintln(s)`", "Write a line to stderr."),
-                ("`std::host::fs` — `read_to_string(path)`", "Read a whole file as a UTF-8 string."),
-                ("`std::host::fs` — `write_string(path, content)`", "Write or replace a UTF-8 file."),
-                ("`std::host::env` — `args()`", "Retrieve the CLI argument vector."),
-                ("`std::host::env` — `var(name)`", "Look up an environment variable."),
+                ("`std::host::fs` — `Fs::read_to_string(path)`", "Read a whole file as a UTF-8 string."),
+                ("`std::host::fs` — `Fs::write_string(path, content)`", "Write or replace a UTF-8 file."),
+                ("`std::host::env` — `Env::args()`", "Retrieve the CLI argument vector."),
+                ("`std::host::env` — `Env::var(name)`", "Look up an environment variable."),
+                ("`std::host::process` — `Process::exit(code)`", "Terminate the process with an explicit exit code."),
                 ("`std::host::clock` — `Clock::monotonic_now()`", "High-resolution monotonic timestamp (nanoseconds)."),
-                ("`std::host::random` — `random_i32()`", "Host-entropy random integer."),
+                ("`std::host::random` — `Random::random_i32()`", "Host-entropy random integer."),
             ],
             "typical_usage": """\
 ```ark
-import std::host::stdio
-import std::host::fs
-import std::host::env
+use std::host::env::Env
+use std::host::fs::Fs
+use std::host::stdio
 
-let name = var("USER").unwrap_or("world")
-println("Hello, " + name + "!")
+let name = Env::var_or_default("USER", "world")
+stdio::println("Hello, ".concat(name).concat("!"))
 
-let content = read_to_string("/etc/hostname")
-match content {
-    Ok(text) => println(text),
-    Err(e)   => eprintln("error: " + e),
+match Fs::read_to_string("hostname") {
+    Result::Ok(text) => stdio::println(text),
+    Result::Err(e) => stdio::eprintln("error: ".concat(e)),
 }
 ```""",
         },
@@ -523,29 +523,33 @@ let dir  = Path::new("/home/user/data.txt").parent()    // "/home/user"
         "overview": {
             "summary": (
                 "This page covers two closely related host modules: `std::host::process` for "
-                "process lifecycle control (exit, abort) and `std::host::env` for runtime "
-                "environment access (CLI arguments, environment variables). Both are host-bound "
-                "and require WASI capabilities. For the full host family overview, see [io.md](io.md)."
+                "process lifecycle control through the `Process` namespace, and `std::host::env` "
+                "for runtime environment access through the `Env` namespace. Both are host-bound "
+                "and require WASI capabilities. Import the namespace types explicitly "
+                "(`use std::host::process::Process`, `use std::host::env::Env`); the modules "
+                "expose no free function. For the full host family overview, see [io.md](io.md)."
             ),
             "highlights": [
-                ("`exit(code)`", "Request process termination with the given exit code."),
-                ("`abort()`", "Abort execution immediately by panicking."),
-                ("`args()`", "Retrieve the CLI argument vector (excluding argv[0])."),
-                ("`var(name)`", "Look up an environment variable by name, returning `Option<String>`."),
-                ("`has_flag(flag)`", "Check whether a flag is present in the argument vector."),
+                ("`Process::exit(code)`", "Request process termination with the given exit code."),
+                ("`Process::abort()`", "Abort execution immediately with the abnormal-termination signal."),
+                ("`Process::id()`", "Return the documented `Result::Err` because WASI 0.2 has no portable process id."),
+                ("`Env::args()`", "Retrieve the CLI argument vector (excluding argv[0])."),
+                ("`Env::var(name)`", "Look up an environment variable by name, returning `Option<String>`."),
+                ("`Env::has_flag(flag)`", "Check whether a flag is present in the argument vector."),
             ],
             "typical_usage": """\
 ```ark
-import std::host::env
-import std::host::process
+use std::host::env::Env
+use std::host::process::Process
+use std::host::stdio
 
-if has_flag("--help") {
-    println("Usage: myapp [options]")
-    exit(0)
+if Env::has_flag("--help") {
+    stdio::println("Usage: myapp [options]")
+    Process::exit(0)
 }
 
-let name = var("USER").unwrap_or("unknown")
-println("Running as: " + name)
+let name = Env::var_or_default("USER", "unknown")
+stdio::println("Running as: ".concat(name))
 ```""",
         },
     },
@@ -560,7 +564,8 @@ println("Running as: " + name)
                 "take an explicit seed, making results reproducible across runs. The canonical "
                 "API is the `Rng` receiver type: `Rng::new(seed)` then `next`, `range`, or "
                 "`shuffle`. For host-entropy (non-deterministic) random numbers, use "
-                "`std::host::random` instead (see [host family overview](io.md))."
+                "`Random::random_i32()` from `use std::host::random::Random` instead (see "
+                "[host family overview](io.md))."
             ),
             "highlights": [
                 ("`Rng::new(seed).next()`", "Generate a pseudo-random `i32` from a seed value."),

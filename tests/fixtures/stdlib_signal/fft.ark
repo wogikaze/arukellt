@@ -1,8 +1,8 @@
 use std::host::stdio
-use std::signal
+use std::signal::Signal
 use std::text
 fn assert_close(actual: f64, expected: f64) {
-    if !signal::approx_eq(actual, expected, 0.001) {
+    if !Signal::approx_eq(actual, expected, 0.001) {
         Std::panic("expected ".concat((expected).to_string().concat(", got ".concat((actual).to_string()))))
     }
 }
@@ -24,15 +24,15 @@ fn main() {
     push(impulse, 0.0)
     push(impulse, 0.0)
     push(impulse, 0.0)
-    let mut impulse_r = signal::clone_f64(impulse)
-    let mut impulse_i = signal::zeros(len(impulse))
-    signal::fft(impulse_r, impulse_i)
+    let mut impulse_r = Signal::clone_f64(impulse)
+    let mut impulse_i = Signal::zeros(len(impulse))
+    Signal::fft(impulse_r, impulse_i)
     let mut ones = Vec::new<f64>()
     push(ones, 1.0)
     push(ones, 1.0)
     push(ones, 1.0)
     push(ones, 1.0)
-    let zeros = signal::zeros(4)
+    let zeros = Signal::zeros(4)
     assert_vec_close(impulse_r, ones)
     assert_vec_close(impulse_i, zeros)
     let mut shifted = Vec::new<f64>()
@@ -40,9 +40,9 @@ fn main() {
     push(shifted, 1.0)
     push(shifted, 0.0)
     push(shifted, 0.0)
-    let mut shift_r = signal::clone_f64(shifted)
-    let mut shift_i = signal::zeros(len(shifted))
-    signal::fft(shift_r, shift_i)
+    let mut shift_r = Signal::clone_f64(shifted)
+    let mut shift_i = Signal::zeros(len(shifted))
+    Signal::fft(shift_r, shift_i)
     let mut expected_shift_r = Vec::new<f64>()
     push(expected_shift_r, 1.0)
     push(expected_shift_r, 0.0)
@@ -60,10 +60,10 @@ fn main() {
     push(seq, 2.0)
     push(seq, 3.0)
     push(seq, 4.0)
-    let mut roundtrip_r = signal::clone_f64(seq)
-    let mut roundtrip_i = signal::zeros(len(seq))
-    signal::fft(roundtrip_r, roundtrip_i)
-    signal::ifft(roundtrip_r, roundtrip_i)
+    let mut roundtrip_r = Signal::clone_f64(seq)
+    let mut roundtrip_i = Signal::zeros(len(seq))
+    Signal::fft(roundtrip_r, roundtrip_i)
+    Signal::ifft(roundtrip_r, roundtrip_i)
     let mut expected_seq = Vec::new<f64>()
     push(expected_seq, 1.0)
     push(expected_seq, 2.0)

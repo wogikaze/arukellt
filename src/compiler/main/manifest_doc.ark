@@ -1,5 +1,5 @@
 use std::host::fs::Fs
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::prelude::{clone}
 use std::text
@@ -19,7 +19,7 @@ fn doc_load_manifest() -> DocManifestTable {
         },
         Result::Err(e) => {
             stdio::eprintln("error: could not load stdlib manifest: ".concat(e))
-            process::exit(1)
+            Process::exit(1)
             manifest_doc_record::DocManifestTable_new(Vec::new<DocFnEntry>(), Vec::new<DocModuleEntry>())
         },
     }
@@ -48,7 +48,7 @@ pub fn cmd_manifest_doc(symbol: String, json_out: bool, filter_target: String) {
                 ci = ci + 1
             }
         }
-        process::exit(1)
+        Process::exit(1)
     }
     let e = manifest_doc_record::DocManifestTable_function_at(table, get_unchecked(hits, 0))
     if json_out {

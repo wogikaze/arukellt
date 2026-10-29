@@ -1,0 +1,10 @@
+// E0100: the std::signal spectral frees moved to the Signal namespace.
+use std::signal
+
+fn main() {
+    let mut real = Vec::new<f64>()
+    push(real, 1.0)
+    let mut imag = Vec::new<f64>()
+    push(imag, 0.0)
+    signal::fft(real, imag)
+}

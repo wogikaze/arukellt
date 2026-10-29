@@ -1,5 +1,5 @@
 use std::host::fs::Fs
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::prelude::{clone, eq, substring, to_string}
 use std::text
@@ -32,7 +32,7 @@ fn print_run_compile_errors(input_file: String, result: CompileResult) {
 
 fn exit_run_compile_error(input_file: String, result: CompileResult) {
     print_run_compile_errors(input_file, result)
-    process::exit(1)
+    Process::exit(1)
 }
 
 fn run_output_path(opts: CliOptions, input_file: String) -> String {
@@ -59,7 +59,7 @@ fn write_run_output(input_file: String, out_path: String, bytes: Vec<i32>) {
         },
         Result::Err(e) => {
             stdio::eprintln("error writing output: ".concat(e))
-            process::exit(1)
+            Process::exit(1)
         },
     }
 }
@@ -100,11 +100,11 @@ fn build_test_driver_config(opts: CliOptions) -> DriverConfig {
 fn exit_missing_test_input() {
     stdio::eprintln("test: specify .ark file(s) to test")
     stdio::eprintln("  usage: arukellt-s1 test <file.ark>")
-    process::exit(2)
+    Process::exit(2)
 }
 
 fn exit_test_failure() {
-    process::exit(1)
+    Process::exit(1)
 }
 
 fn print_test_start(input_file: String) {
@@ -138,7 +138,7 @@ pub fn cmd_test(opts: CliOptions) {
     }
     if test_count == 0 {
         stdio::eprintln("test: no test declarations found")
-        process::exit(2)
+        Process::exit(2)
     }
     let out_path = run_output_path(opts, clone(input_file))
     write_run_output(input_file, out_path, result_record::compile_result_output_bytes(result))

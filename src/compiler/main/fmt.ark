@@ -1,5 +1,5 @@
 use std::host::fs::Fs
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::prelude::{clone, eq}
 use std::text
@@ -71,12 +71,12 @@ pub fn cmd_fmt(opts: CliOptions) {
         let single = args_record::cli_input_file(opts)
         if len(single) == 0 {
             stdio::eprintln("usage: arukellt fmt <file.ark>... [--check] [--fix]")
-            process::exit(2)
+            Process::exit(2)
             return
         }
         let rc = cmd_fmt_one(opts, single)
         if rc != 0 {
-            process::exit(1)
+            Process::exit(1)
         }
         return
     }
@@ -94,7 +94,7 @@ pub fn cmd_fmt(opts: CliOptions) {
     }
     stdio::eprintln("fmt: checked=".concat((checked).to_string().concat(" failed=".concat((failed).to_string()))))
     if failed > 0 {
-        process::exit(1)
+        Process::exit(1)
     }
 }
 

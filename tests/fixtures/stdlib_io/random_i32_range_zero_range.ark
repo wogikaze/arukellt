@@ -1,7 +1,7 @@
-use std::host::random
+use std::host::random::Random
 use std::test::Test
 
 fn main() {
-    let r: i32 = random::random_i32_range(5, 5)
+    let r: i32 = Random::random_i32_range(5, 5)
     Test::assert_eq_i32(r, 5)
 }

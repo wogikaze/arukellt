@@ -1,6 +1,6 @@
 use std::host::fs::Fs
 use std::toml
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::prelude::{clone, to_string}
 use std::text
@@ -31,17 +31,17 @@ fn print_project_compile_errors(entry: String, result: CompileResult) {
 
 fn exit_missing_build_entry() {
     stdio::eprintln(String_from("error: no 'path' (under [bin]) or 'entry' field found in ark.toml"))
-    process::exit(1)
+    Process::exit(1)
 }
 
 fn exit_build_manifest_read_error(manifest_path: String, error: String) {
     stdio::eprintln(String_from("error: cannot read ").concat(clone(manifest_path).concat(String_from(": ").concat(error))))
-    process::exit(1)
+    Process::exit(1)
 }
 
 fn exit_project_compile_error(entry: String, result: CompileResult) {
     print_project_compile_errors(entry, result)
-    process::exit(1)
+    Process::exit(1)
 }
 
 fn print_build_start(info: ProjectBuildManifest, manifest_path: String, entry: String) {
@@ -80,7 +80,7 @@ fn write_build_output(entry: String, out_path: String, bytes: Vec<i32>) {
         },
         Result::Err(e) => {
             stdio::eprintln(String_from("error writing output: ").concat(e))
-            process::exit(1)
+            Process::exit(1)
         },
     }
 }

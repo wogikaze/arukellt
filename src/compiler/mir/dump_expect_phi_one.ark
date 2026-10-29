@@ -1,4 +1,4 @@
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::text
 use std::prelude::{to_string}
@@ -16,7 +16,7 @@ fn mir_expect_single_phi(f: MirFunction, block_id: i32, expected_dest: i32, expe
         msg = msg.concat(": expected phi count=1 actual=")
         msg = msg.concat(to_string(actual_count))
         stdio::eprintln(msg)
-        process::exit(1)
+        Process::exit(1)
     }
     let phi = block_phi_access::MirBlock_phi_at(block, 0)
     if phi_access::MirPhi_op(phi) != opcodes::MIR_PHI() || phi_access::MirPhi_dest(phi) != expected_dest || phi_access::MirPhi_val_type(phi) != expected_vt {
@@ -28,7 +28,7 @@ fn mir_expect_single_phi(f: MirFunction, block_id: i32, expected_dest: i32, expe
         msg = msg.concat(" actual=")
         msg = msg.concat(dump_format_phi::mir_format_phi(f, phi))
         stdio::eprintln(msg)
-        process::exit(1)
+        Process::exit(1)
     }
     phi
 }

@@ -1,8 +1,8 @@
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 
 fn main() {
     stdio::println("before exit")
-    process::exit(1)
+    Process::exit(1)
     stdio::println("after exit")
 }

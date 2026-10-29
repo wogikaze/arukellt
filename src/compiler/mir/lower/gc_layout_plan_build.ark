@@ -1,4 +1,4 @@
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::prelude::{byte_at, clone, contains, ends_with, eq, starts_with, substring}
 use std::text
@@ -270,7 +270,7 @@ fn mir_module_build_gc_layout_plan(mut module: MirModule, target: String) {
     }
     if !gc_layout_plan_validator::mir_gc_layout_plan_valid(plan) {
         stdio::eprintln("compiler ICE: invalid MIR GC layout plan")
-        process::exit(1)
+        Process::exit(1)
     }
     module_gc_layout_plan::MirModule_set_gc_layout_plan(module, plan)
 }

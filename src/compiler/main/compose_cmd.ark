@@ -1,5 +1,5 @@
 use std::host::fs::Fs
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::prelude::{clone}
 use std::text
@@ -91,15 +91,15 @@ pub fn cmd_compose(opts: CliOptions) {
     let validate_only = args_record::cli_compose_validate_only(opts)
     if len(plug_provider) == 0 || len(socket) == 0 || len(output) == 0 {
         compose_print_usage()
-        process::exit(2)
+        Process::exit(2)
         return
     }
     if !compose_validate_paths(clone(plug_provider), clone(socket), clone(output)) {
-        process::exit(1)
+        Process::exit(1)
         return
     }
     if !compose_validate_wit_surfaces(clone(plug_provider), clone(socket)) {
-        process::exit(1)
+        Process::exit(1)
         return
     }
     compose_print_graph(clone(plug_provider), clone(socket), clone(output))

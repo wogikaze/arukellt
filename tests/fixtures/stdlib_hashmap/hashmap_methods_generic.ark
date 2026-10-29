@@ -1,4 +1,4 @@
-use std::host::process
+use std::host::process::Process
 
 fn expect_i32(value: Option<i32>) -> i32 {
     match value {
@@ -9,19 +9,19 @@ fn expect_i32(value: Option<i32>) -> i32 {
 
 fn require_i32(actual: i32, expected: i32) {
     if actual != expected {
-        process::exit(1)
+        Process::exit(1)
     }
 }
 
 fn require_true(condition: bool) {
     if !condition {
-        process::exit(1)
+        Process::exit(1)
     }
 }
 
 fn require_false(condition: bool) {
     if condition {
-        process::exit(1)
+        Process::exit(1)
     }
 }
 

@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::host::process
+use std::host::process::Process
 use wasm::ctx_record
 use wasm::gc_layout_table
 
@@ -17,6 +17,6 @@ fn gc_layout_audit_print_summary(ctx: SelfEmitCtx) {
     stdio::eprintln(line)
     if conflict_count > 0 {
         stdio::eprintln(String_from("compiler ICE: conflicting explicit backend GC layout plan"))
-        process::exit(1)
+        Process::exit(1)
     }
 }

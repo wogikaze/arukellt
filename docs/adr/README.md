@@ -89,6 +89,7 @@
 | [ADR-089-language-v2-explicit-impl-type-parameter-binders.md](ADR-089-language-v2-explicit-impl-type-parameter-binders.md) | ADR-089: 言語 v2 の impl 型パラメータは明示 binder でだけ導入する | impl head は impl<T: Bound> Trait for Ctor<T> の明示 binder を持てる。 一方、binder のない impl Trait for Ctor<T> では、head に現れる大文字 1 文字の名前を暗黙の型パラメータとみなす慣習が実装に残っている。 |
 | [ADR-090-std-namespace-and-panic-association.md](ADR-090-std-namespace-and-panic-association.md) | ADR-090: Std 名前空間型と Std::panic への制御 API 移動 | ADR-046 D1 は、レシーバを持たない公開操作も free function のまま残さず、型またはモジュール名前空間の associated function へ寄せる ことを要求している。例外は非公開 intrinsic のみである（D2）。 |
 | [ADR-091-prelude-free-function-exception.md](ADR-091-prelude-free-function-exception.md) | ADR-091: prelude の安定 free function 例外と method 移行 | ADR-046 D1 は、公開 API を trait / method / associated function に限り、ユーザー可達の free function を残さないことを要求する。 |
+| [ADR-092-host-core-namespace-free-exception.md](ADR-092-host-core-namespace-free-exception.md) | ADR-092: host/core 名前空間型への free function 退役と E0100 移行例外 | ADR-046 D1 は、レシーバを持たない公開操作も free function のまま残さず、型または モジュール名前空間の associated function へ寄せることを要求している。例外は非公開 intrinsic のみである（D2）。docs/stdlib/eradication.md の host/core namespace frees 規則は、 |
 
 ## 提案
 

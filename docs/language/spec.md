@@ -1926,11 +1926,13 @@ the ADR-014 migration window and are not the recommended source form.
 
 ### 9.20 Host — Random (`std::host::random`)
 
+The `Random` namespace type is the only public surface (`use std::host::random::Random`):
+
 | Signature | Description |
 |-----------|-------------|
-| `random_i32() -> i32` | Random i32 |
-| `random_i32_range(lo: i32, hi: i32) -> i32` | Random in range |
-| `random_bool() -> bool` | Random boolean |
+| `Random::random_i32() -> i32` | Random i32 |
+| `Random::random_i32_range(lo: i32, hi: i32) -> i32` | Random in range |
+| `Random::random_bool() -> bool` | Random boolean |
 
 ### 9.21 Pure Library Functions (non-prelude)
 

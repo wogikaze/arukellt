@@ -16,6 +16,37 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-29 — host/core free 25 件の名前空間型退役 (#917, wave/host-core3)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D1（trait / method /
+  associated を正規形とする）と D2（例外は個別 ADR）、
+  [ADR-092](../adr/ADR-092-host-core-namespace-free-exception.md)。ADR-092 は
+  [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2 の 0.x 例外の限定版として、
+  対象 25 件を W0009 ではなく E0100 + 具体的な namespace hint で削除する。
+- **Retired (25)**: `std::host::process` の `exit` / `abort` / `id`、legacy
+  `std::process` の `exit` / `abort`、`std::host::random` の `random_i32` /
+  `random_i32_range` / `random_bool` / `next_f64`、`std::cli` の `parse_args` /
+  `arg_count` / `arg_at` / `has_flag` / `flag` / `option`、`std::signal` の
+  `pi` / `tau` / `sin_approx` / `cos_approx` / `clone_f64` / `zeros` / `fft` /
+  `ifft` / `magnitude` / `approx_eq` の manifest entry と std 宣言を削除した。
+  `std::process` は `Process` を再エクスポートする facade として残す。
+- **Replacement**: `Process::exit` / `Process::abort` / `Process::id`（`use
+  std::host::process::Process`）、`Random::*`（`use std::host::random::Random`）、
+  `Env::args` / `arg_count` / `arg_at` / `has_flag`（`use std::host::env::Env`）、
+  `Cli::flag` / `Cli::option`（`use std::cli::Cli`）、`Signal::*`（`use
+  std::signal::Signal`）。全 25 件の before/after は
+  [migration-guidance.md](migration-guidance.md#hostcore-namespace-retirement-adr-092)
+  に記録した。旧名は E0100 と `resolver::removed_names` の hint で失敗する。
+- **Retained exception (3)**: `std::host::fs` の experimental `fd_seek` / `fd_tell` /
+  `fd_fdstat_errno` は free のまま残す。`wasm32` / WASI P1 専用で wasm32-gc の
+  parity fixture を持たず、`Fs` へ移すと primary target で lower しない表面を約束する
+  ことになる。ADR-092 §4 の正確な例外リストであり、他の host/core free には適用しない。
+- **Scorecard**: eradication scope 149 → **124**; `associated-or-method`
+  83 → **58**; manifest public entries 147 → **122**; `pub fn` declarations
+  157 → **132**; monomorphic `*_i32` / `*_f64` helpers 36 → **32**;
+  `host/core namespace frees` family 28 → **3**; unregistered 2、
+  `must delete` 66、`intrinsic-only` 1、`prelude_wrapper` 40 は不変。
+
 ## 2026-10-29 — prelude free 27 件の退役と安定 free 4 件の限定例外 (#917, wave/prelude-remain)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D1（trait / method /

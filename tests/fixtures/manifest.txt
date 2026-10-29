@@ -276,6 +276,16 @@ diag:diagnostics/removed_time_free.ark
 diag:diagnostics/removed_time_free_wasm32.ark
 diag:diagnostics/removed_random_free.ark
 diag:diagnostics/removed_random_free_wasm32.ark
+diag:diagnostics/removed_host_random_free.ark
+diag:diagnostics/removed_host_random_free_wasm32.ark
+diag:diagnostics/removed_host_process_free.ark
+diag:diagnostics/removed_host_process_free_wasm32.ark
+diag:diagnostics/removed_process_legacy_free.ark
+diag:diagnostics/removed_process_legacy_free_wasm32.ark
+diag:diagnostics/removed_cli_free.ark
+diag:diagnostics/removed_cli_free_wasm32.ark
+diag:diagnostics/removed_signal_free.ark
+diag:diagnostics/removed_signal_free_wasm32.ark
 diag:diagnostics/deprecated_seq_monomorphic.ark
 diag:diagnostics/deprecated_seq_monomorphic_wasm32.ark
 diag:diagnostics/removed_io_tagged_writer_write.ark
@@ -663,6 +673,7 @@ run:host/process/exit_code_127.ark
 run:host/process/exit_from_branch.ark
 run:host/process/exit_nonzero.ark
 run:host/process/exit_zero.ark
+run:host/process/id_rejected.ark
 run:integration/calculator.ark
 run:integration/cyclic_graph_walk.ark
 run:integration/fibonacci.ark
@@ -1617,6 +1628,7 @@ run:stdlib_seq/seq_take_skip_collect_wasm32.ark
 run:stdlib_seq/seq_generic_string_instantiation.ark
 run:stdlib_seq/seq_generic_string_instantiation_wasm32.ark
 run:stdlib_signal/fft.ark
+run:stdlib_signal/signal_namespace.ark
 test:stdlib_sort/sort_f64.ark
 test:stdlib_sort/sort_i64.ark
 test:stdlib_sort/sort_string.ark

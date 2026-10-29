@@ -7,7 +7,7 @@ Source-backed docs for pseudo-random utilities.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::random` module provides deterministic pseudo-random helpers that take an explicit seed, making results reproducible across runs. The canonical API is the `Rng` receiver type: `Rng::new(seed)` then `next`, `range`, or `shuffle`. For host-entropy (non-deterministic) random numbers, use `std::host::random` instead (see [host family overview](io.md)).
+The `std::random` module provides deterministic pseudo-random helpers that take an explicit seed, making results reproducible across runs. The canonical API is the `Rng` receiver type: `Rng::new(seed)` then `next`, `range`, or `shuffle`. For host-entropy (non-deterministic) random numbers, use `Random::random_i32()` from `use std::host::random::Random` instead (see [host family overview](io.md)).
 
 **Recommended API highlights:**
 

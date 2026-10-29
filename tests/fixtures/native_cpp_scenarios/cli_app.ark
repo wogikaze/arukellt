@@ -1,5 +1,5 @@
 use std::host::env::Env
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use std::text
 
@@ -8,7 +8,7 @@ fn main() {
     let n = len(values)
     if n >= 2 {
         stdio::println(String_from("hello=").concat(get_unchecked(values, 1)))
-        process::exit(0)
+        Process::exit(0)
     }
     stdio::println(String_from("hello=default"))
 }

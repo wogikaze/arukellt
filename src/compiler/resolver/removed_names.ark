@@ -306,6 +306,82 @@ fn removed_host_env_member_hint(name: String) -> String {
     String_new()
 }
 
+// Process control moved to the `Process` namespace in the 2026-10-29
+// host/core wave (#917, ADR-092). The legacy `std::process` facade dispatches
+// here too, so both qualified old spellings name the same replacement.
+fn removed_host_process_member_hint(name: String) -> String {
+    if eq(clone(name), "exit") {
+        return String_from("use `Process::exit(code)` from `use std::host::process::Process` instead")
+    }
+    if eq(clone(name), "abort") {
+        return String_from("use `Process::abort()` from `use std::host::process::Process` instead")
+    }
+    if eq(clone(name), "id") {
+        return String_from("use `Process::id()` from `use std::host::process::Process` instead")
+    }
+    String_new()
+}
+
+// Host entropy moved to the `Random` namespace in the 2026-10-29 host/core
+// wave (#917, ADR-092). The deterministic `std::random` module keeps its own
+// Rng hints in removed_random_member_hint.
+fn removed_host_random_member_hint(name: String) -> String {
+    if eq(clone(name), "random_i32") {
+        return String_from("use `Random::random_i32()` from `use std::host::random::Random` instead")
+    }
+    if eq(clone(name), "random_i32_range") {
+        return String_from("use `Random::random_i32_range(lo, hi)` from `use std::host::random::Random` instead")
+    }
+    if eq(clone(name), "random_bool") {
+        return String_from("use `Random::random_bool()` from `use std::host::random::Random` instead")
+    }
+    if eq(clone(name), "next_f64") {
+        return String_from("use `Random::next_f64()` from `use std::host::random::Random` instead")
+    }
+    String_new()
+}
+
+// `std::cli` moved its argument-vector reads behind `Env` and its
+// explicit-vector scanners behind `Cli` in the 2026-10-29 host/core wave
+// (#917, ADR-092).
+fn removed_cli_member_hint(name: String) -> String {
+    if eq(clone(name), "parse_args") {
+        return String_from("use `Env::args()` from `use std::host::env::Env` instead")
+    }
+    if eq(clone(name), "arg_count") {
+        return String_from("use `Env::arg_count()` from `use std::host::env::Env` instead")
+    }
+    if eq(clone(name), "arg_at") {
+        return String_from("use `Env::arg_at(index)` from `use std::host::env::Env` instead")
+    }
+    if eq(clone(name), "has_flag") {
+        return String_from("use `Env::has_flag(flag)` from `use std::host::env::Env` instead")
+    }
+    if eq(clone(name), "flag") {
+        return String_from("use `Cli::flag(args, name)` from `use std::cli::Cli` instead")
+    }
+    if eq(clone(name), "option") {
+        return String_from("use `Cli::option(args, name)` from `use std::cli::Cli` instead")
+    }
+    String_new()
+}
+
+// The spectral helpers moved to the `Signal` namespace in the 2026-10-29
+// host/core wave (#917, ADR-092).
+fn removed_signal_member_hint(name: String) -> String {
+    if eq(clone(name), "pi") { return String_from("use `Signal::pi()` from `use std::signal::Signal` instead") }
+    if eq(clone(name), "tau") { return String_from("use `Signal::tau()` from `use std::signal::Signal` instead") }
+    if eq(clone(name), "sin_approx") { return String_from("use `Signal::sin_approx(x)` from `use std::signal::Signal` instead") }
+    if eq(clone(name), "cos_approx") { return String_from("use `Signal::cos_approx(x)` from `use std::signal::Signal` instead") }
+    if eq(clone(name), "clone_f64") { return String_from("use `Signal::clone_f64(v)` from `use std::signal::Signal` instead") }
+    if eq(clone(name), "zeros") { return String_from("use `Signal::zeros(n)` from `use std::signal::Signal` instead") }
+    if eq(clone(name), "fft") { return String_from("use `Signal::fft(real, imag)` from `use std::signal::Signal` instead") }
+    if eq(clone(name), "ifft") { return String_from("use `Signal::ifft(real, imag)` from `use std::signal::Signal` instead") }
+    if eq(clone(name), "magnitude") { return String_from("use `Signal::magnitude(real, imag)` from `use std::signal::Signal` instead") }
+    if eq(clone(name), "approx_eq") { return String_from("use `Signal::approx_eq(a, b, eps)` from `use std::signal::Signal` instead") }
+    String_new()
+}
+
 /// Replacement hints for the `std::collections::compiler` free functions
 /// retired by #917 (Arena / SlotMap / Interner type surface).
 fn removed_compiler_member_hint(name: String) -> String {
@@ -654,6 +730,18 @@ fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "env") || eq(clone(module), "host::env") || eq(clone(module), "std::env") || eq(clone(module), "std::host::env") {
         return removed_host_env_member_hint(name)
     }
+    if eq(clone(module), "process") || eq(clone(module), "host::process") || eq(clone(module), "std::process") || eq(clone(module), "std::host::process") {
+        return removed_host_process_member_hint(name)
+    }
+    if eq(clone(module), "host::random") || eq(clone(module), "std::host::random") {
+        return removed_host_random_member_hint(name)
+    }
+    if eq(clone(module), "cli") || eq(clone(module), "std::cli") {
+        return removed_cli_member_hint(name)
+    }
+    if eq(clone(module), "signal") || eq(clone(module), "std::signal") {
+        return removed_signal_member_hint(name)
+    }
     if is_retired_hashmap_module(clone(module)) {
         return hashmap_method_replacement_hint()
     }
@@ -719,8 +807,15 @@ fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "time") {
         return removed_time_member_hint(name)
     }
-    if eq(clone(module), "random") {
-        return removed_random_member_hint(name)
+    if eq(clone(module), "random") || eq(clone(module), "std::random") {
+        // The alias `random` is shared by std::random (seeded Rng helpers) and
+        // std::host::random (host entropy). The leaf names do not overlap, so
+        // try the deterministic hints first and fall through to the host ones.
+        let seeded_hint = removed_random_member_hint(clone(name))
+        if len(clone(seeded_hint)) > 0 {
+            return seeded_hint
+        }
+        return removed_host_random_member_hint(name)
     }
     if eq(clone(module), "raw") {
         return removed_raw_member_hint(name)
@@ -1479,6 +1574,26 @@ test mod "removed_names" {
     test "removed env module member" {
         assert(len(removed_module_member_hint("std::env", "get_var")) > 0)
         assert(len(removed_module_member_hint("std::host::env", "get_var")) > 0)
+    }
+    test "removed host core namespace frees" {
+        assert(len(removed_module_member_hint("std::host::process", "exit")) > 0)
+        assert(len(removed_module_member_hint("std::process", "abort")) > 0)
+        assert(len(removed_module_member_hint("process", "id")) > 0)
+        assert(len(removed_module_member_hint("std::host::random", "random_i32")) > 0)
+        assert(len(removed_module_member_hint("std::host::random", "next_f64")) > 0)
+        // The bare `random` alias can be either module; both hint families
+        // must be reachable through it.
+        assert(len(removed_module_member_hint("random", "random_bool")) > 0)
+        assert(len(removed_module_member_hint("random", "seeded_random")) > 0)
+        assert(len(removed_module_member_hint("std::cli", "parse_args")) > 0)
+        assert(len(removed_module_member_hint("std::cli", "option")) > 0)
+        assert(len(removed_module_member_hint("std::signal", "fft")) > 0)
+        assert(len(removed_module_member_hint("std::signal", "approx_eq")) > 0)
+        // The deterministic std::random module keeps its own Rng hints, and the
+        // experimental fd helpers stay callable.
+        assert(len(removed_module_member_hint("std::random", "seeded_random")) > 0)
+        assert(len(removed_module_member_hint("std::host::fs", "fd_seek")) == 0)
+        assert(len(removed_module_member_hint("std::signal", "unrelated")) == 0)
     }
     test "removed compiler collections frees" {
         assert(len(removed_module_member_hint("compiler", "arena_new")) > 0)

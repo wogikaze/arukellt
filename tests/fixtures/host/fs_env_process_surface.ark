@@ -1,6 +1,6 @@
 use std::host::env::Env
 use std::host::fs::Fs
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 
 fn main() {
@@ -18,7 +18,7 @@ fn main() {
         Option::Some(_) => {
         },
     }
-    match process::id() {
+    match Process::id() {
         Result::Ok(_) => Std::panic("WASI process id must not be fabricated"),
         Result::Err(_) => {
         },

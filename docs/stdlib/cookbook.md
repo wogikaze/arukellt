@@ -718,11 +718,11 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 fn main() {
     stdio::println("before exit")
-    process::exit(0)
+    Process::exit(0)
     // この行以降は実行されない
 }
 ```
@@ -738,12 +738,12 @@ fn main() {
 ```ark
 use std::host::stdio
 use std::host::clock::Clock
-use std::host::random as host_random
+use std::host::random::Random
 fn main() {
     let t = Clock::monotonic_now()
     stdio::println(t.to_string())
 
-    let r = host_random::random_i32()
+    let r = Random::random_i32()
     stdio::println(r.to_string())
 }
 ```

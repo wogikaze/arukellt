@@ -1,10 +1,11 @@
-use std::cli
+use std::cli::Cli
+use std::host::env::Env
 use std::host::stdio
 
 fn main() {
-    stdio::println((cli::arg_count()).to_string())
-    stdio::println((cli::has_flag("--verbose")).to_string())
-    match cli::arg_at(0) {
+    stdio::println((Env::arg_count()).to_string())
+    stdio::println((Env::has_flag("--verbose")).to_string())
+    match Env::arg_at(0) {
         Option::Some(s) => stdio::println(s),
         None => stdio::println("no arg"),
     }
@@ -12,15 +13,15 @@ fn main() {
     push(args, "--debug")
     push(args, "--output")
     push(args, "out.txt")
-    stdio::println((cli::flag(args, "--debug")).to_string())
-    stdio::println((cli::flag(args, "--verbose")).to_string())
-    match cli::option(args, "--output") {
+    stdio::println((Cli::flag(args, "--debug")).to_string())
+    stdio::println((Cli::flag(args, "--verbose")).to_string())
+    match Cli::option(args, "--output") {
         Option::Some(v) => stdio::println(v),
         None => stdio::println("not found"),
     }
     let mut args2 = Vec::new<String>()
     push(args2, "--name=world")
-    match cli::option(args2, "--name") {
+    match Cli::option(args2, "--name") {
         Option::Some(v) => stdio::println(v),
         None => stdio::println("not found"),
     }

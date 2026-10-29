@@ -1,4 +1,4 @@
-use std::host::process
+use std::host::process::Process
 use std::host::stdio
 use mir::dominance
 use mir::dump_core
@@ -25,11 +25,11 @@ fn run_phi_insertion_nested_join_smoke() {
     dominance::mir_compute_dominance_for_function(f)
     if !ssa::mir_try_insert_simple_join_phi(f, inner_join_bb, inner_join_val) {
         stdio::eprintln("nested join phi insertion failed at inner join")
-        process::exit(1)
+        Process::exit(1)
     }
     if !ssa::mir_try_insert_simple_join_phi(f, outer_join_bb, outer_join_val) {
         stdio::eprintln("nested join phi insertion failed at outer join")
-        process::exit(1)
+        Process::exit(1)
     }
     ssa::mir_ssa_rename_function(f)
     dump_expect::mir_expect_phi(f, inner_join_bb, inner_join_val, value_types::VT_I32(), 2, inner_then_bb, inner_then_val, inner_else_bb, inner_else_val)

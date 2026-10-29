@@ -379,21 +379,22 @@ compose する。
 | `stdio::eprintln` | ✓ | ✓ |
 | `Clock::monotonic_now` | ✓ | ✓ |
 | `Clock::now_ms` | ✓ | ✓ |
-| `random::random_i32` | ✓ | ✓ |
-| `random::random_i32_range` | ✓ | ✓ |
-| `random::random_bool` | ✓ | ✓ |
-| `env::args` | ✓ | ✓ |
-| `env::arg_count` | ✓ | ✓ |
-| `env::arg_at` | ✓ | ✓ |
-| `env::var` | ✗ | ✓ |
-| `env::has_flag` | ✓ | ✓ |
+| `Random::random_i32` | ✓ | ✓ |
+| `Random::random_i32_range` | ✓ | ✓ |
+| `Random::random_bool` | ✓ | ✓ |
+| `Env::args` | ✓ | ✓ |
+| `Env::arg_count` | ✓ | ✓ |
+| `Env::arg_at` | ✓ | ✓ |
+| `Env::var` | ✗ | ✓ |
+| `Env::has_flag` | ✓ | ✓ |
 | `Fs::read_to_string` | ✓ | ✓ |
 | `Fs::write_string` | ✓ | ✓ |
 | `Fs::write_bytes` | ✓ | ✓ |
-| `process::exit` | ✓ | ✓ |
-| `process::abort` | ✓ | ✓ |
+| `Process::exit` | ✓ | ✓ |
+| `Process::abort` | ✓ | ✓ |
+| `Process::id` | ✓ | ✓ |
 
-`env::var` は現在の `wasm32` **実装**では未対応である。WASI Preview 1 自体は
+`Env::var` は現在の `wasm32` **実装**では未対応である。WASI Preview 1 自体は
 `environ_get` / `environ_sizes_get` を定義している。未対応の理由（emitter・harness・
 stdlib adapter 等）と進捗は `docs/current-state.md` に記録する。
 
