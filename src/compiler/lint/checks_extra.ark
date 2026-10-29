@@ -43,7 +43,12 @@ fn check_deprecated_api_in_node(node: AstNode, mut warnings: Vec<Diagnostic>) {
     // Check qualified path calls (e.g., math::abs_i32, cmp::min, hash::hash_i32)
     if ast_expr_predicates::node_is_path(node) {
         let path = ast_access::node_text(node)
-        let dep_msg = deprecated_table::deprecated_qualified_call_message(clone(path))
+        let mut dep_msg = deprecated_table::deprecated_qualified_call_message(clone(path))
+        // A bare callee such as `assert_eq` parses as a path node, so the
+        // unqualified table must also be consulted before giving up.
+        if len(clone(dep_msg)) == 0 {
+            dep_msg = deprecated_table::deprecated_call_message(clone(path))
+        }
         if len(clone(dep_msg)) > 0 {
             let span = record::DiagnosticSpan_from_raw(ast_access::node_span_start(node), ast_access::node_span_end(node))
             push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_API(), diag_mod::SEV_WARNING(), span, dep_msg))
