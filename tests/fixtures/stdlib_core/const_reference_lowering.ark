@@ -1,0 +1,27 @@
+// Const references keep their declared value type when they are lowered.
+// File-scope i32/i64/f64 consts and multi-const imports must reach the
+// backend as values, not as i32-typed call results.
+use std::core::f64::{INF, NEG_INF, NAN}
+use std::core::i32::{MAX}
+use std::test::Test
+
+const LIMIT: i64 = 4096i64
+const COUNT: i32 = 7
+const RATIO: f64 = 0.5
+
+fn twice(value: i64) -> i64 {
+    value * 2i64
+}
+
+fn main() {
+    Test::assert_eq_i64(LIMIT, 4096i64)
+    Test::assert_eq_i64(LIMIT * 2i64, 8192i64)
+    Test::assert_eq_i64(twice(LIMIT), 8192i64)
+    Test::assert_eq_i32(COUNT + 1, 8)
+    Test::assert_eq_f64(RATIO * 2.0, 1.0)
+
+    Test::assert_eq_i32(MAX, 2147483647)
+    Test::assert_true(INF > 1.0)
+    Test::assert_true(NEG_INF < 0.0)
+    Test::assert_false(NAN == NAN)
+}

@@ -10,6 +10,8 @@ use mir::lower::ctx_api_variants
 use mir::lower::closure_env
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_fn_index
+use mir::lower::ctx_fn_return_type
+use mir::lower::ctx_fn_return_vt
 use mir::function_identity
 use mir::function_param_view
 use mir::inst_call
@@ -70,6 +72,50 @@ fn mir_function_parameter_count(ctx: LowerCtx, fn_name: String) -> i32 {
     0 - 1
 }
 
+// A const decl is indexed as a nullary fn, but a reference to it is a value:
+// lower it to a call whose result type is the declared const type. Reading the
+// destination type from the CoreHIR expr instead left i64/f64 consts in i32
+// locals (the frontend has no type for a const ident), so binary operands
+// extended the wrong side and validation failed (#954, #970).
+fn lower_core_const_reference(mut ctx: LowerCtx, const_name: String) -> i32 {
+    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, ctx_fn_return_vt(ctx, clone(const_name)))
+    let type_name = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(const_name))
+    if len(type_name) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(type_name))
+    }
+    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(const_name, 0, dest))
+    dest
+}
+
+// Qualified const spellings (`i32::MAX`, `f64::INF`) reach MIR as a path, and
+// the flat fn index keys consts by bare name, so the path branch cannot use
+// the bare lookup. The leaf segment is what the const decl registered, and the
+// qualified index resolves the module spelling to the decl's signature.
+fn lower_core_qualified_const_reference(mut ctx: LowerCtx, path_name: String, leaf_name: String) -> i32 {
+    if !ctx_fn_index::ctx_is_const_name(ctx, clone(leaf_name)) {
+        return 0 - 2
+    }
+    if ctx_fn_index::ctx_qualified_fn_index_find(ctx, clone(path_name)) < 0 {
+        return 0 - 2
+    }
+    lower_core_const_reference(ctx, path_name)
+}
+
+fn const_path_leaf(name: String) -> String {
+    let name_len = len(name)
+    let mut leaf_start = 0
+    let mut i = 0
+    while i + 1 < name_len {
+        if name.byte_at(i) == 58 && name.byte_at(i + 1) == 58 {
+            leaf_start = i + 2
+            i = i + 2
+        } else {
+            i = i + 1
+        }
+    }
+    name.slice(leaf_start, name_len)
+}
+
 fn lower_core_name_value(mut ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_atoms::mir_core_expr_is_ident(expr) {
         let raw_name = core_expr_shape_accessors::mir_core_expr_text(expr)
@@ -91,6 +137,9 @@ fn lower_core_name_value(mut ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
         let fn_name = core_expr_shape_accessors::mir_core_expr_text(expr)
         let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, clone(fn_name))
         if fn_idx >= 0 {
+            if ctx_fn_index::ctx_is_const_name(ctx, clone(fn_name)) {
+                return lower_core_const_reference(ctx, fn_name)
+            }
             let expr_vt = core_expr_shape_accessors::mir_core_expr_val_type(expr)
             if expr_vt != value_types::VT_FUNCREF() &&
             mir_function_parameter_count(ctx, clone(fn_name)) <= 0 {
@@ -123,6 +172,10 @@ fn lower_core_name_value(mut ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
             return variants::lower_variant_value(ctx, variant_name, tag)
         }
         let fn_name = core_expr_shape_accessors::mir_core_expr_text(expr)
+        let const_ref = lower_core_qualified_const_reference(ctx, clone(fn_name), const_path_leaf(clone(fn_name)))
+        if const_ref != 0 - 2 {
+            return const_ref
+        }
         let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, clone(fn_name))
         if fn_idx >= 0 {
             let type_name = mir_fnref_type_name_for_function(ctx, clone(fn_name))

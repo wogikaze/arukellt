@@ -8,6 +8,7 @@ use mir::lower::entry_fns
 use mir::lower::entry_methods
 use mir::lower::entry_timing
 use mir::lower::entry_view_fn
+use mir::lower::ctx_fn_index
 use mir::lower::fn_index
 fn mir_emit_view_decls(
     mut ctx: LowerCtx,
@@ -54,6 +55,13 @@ fn mir_emit_view_decls(
                     ),
                     emit_keep
                 )
+            }
+            // A const reference lowers to a call of the decl's zero-argument
+            // body, and a value path such as `i32::MAX` is not an AST call edge,
+            // so the stdlib edge prune would drop the callee and the emitted
+            // call would trap (#970).
+            if ctx_fn_index::ctx_is_const_name(ctx, clone(decl_name)) {
+                emit_bodies = true
             }
             if emit_bodies {
                 keep_n = keep_n + 1
