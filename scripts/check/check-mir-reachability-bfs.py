@@ -26,10 +26,21 @@ AB_WORKLOAD = "src/compiler/main.ark"
 
 def _ensure_compiler() -> Path:
     sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    from lib.build_paths import selfhost_dir
     from selfhost import checks
 
-    runtime = REPO_ROOT / checks.S2_RUNTIME_WASM_REL
-    if runtime.is_file():
+    # Resolve through the lane build dir and an explicit ARUKELLT_SELFHOST_WASM
+    # before rebuilding. The old hardcoded `.build` path ignored
+    # ARUKELLT_BUILD_DIR, so every lane run force-rebuilt the runtime in the
+    # lane while sibling quick checks were reading it.
+    candidates: list[Path] = []
+    env_runtime = os.environ.get("ARUKELLT_SELFHOST_WASM", "").strip()
+    if env_runtime:
+        candidates.append(Path(env_runtime))
+    candidates.append(selfhost_dir(REPO_ROOT) / "arukellt-s2-runtime.wasm")
+    for runtime in candidates:
+        if not runtime.is_file():
+            continue
         invalid = checks._reject_invalid_compiler_wasm(runtime)
         if not invalid:
             os.environ["ARUKELLT_SELFHOST_WASM"] = str(runtime)
