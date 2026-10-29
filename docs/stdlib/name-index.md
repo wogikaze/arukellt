@@ -5,8 +5,8 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 205
-- **Historical/deprecated names:** 65
+- **Canonical names:** 184
+- **Historical/deprecated names:** 86
 - **Total entries:** 270
 
 Related:
@@ -118,27 +118,6 @@ Current public API names, sorted alphabetically.
 | `hashmap_try_reserve` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_values` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_with_capacity` | `std::collections::hash` | `stable` | Collections |
-| `hashset_capacity` | `std::collections::hash` | `stable` | Collections |
-| `hashset_clear` | `std::collections::hash` | `stable` | Collections |
-| `hashset_contains` | `std::collections::hash` | `stable` | Collections |
-| `hashset_difference` | `std::collections::hash` | `stable` | Collections |
-| `hashset_extend` | `std::collections::hash` | `stable` | Collections |
-| `hashset_insert` | `std::collections::hash` | `stable` | Collections |
-| `hashset_intersection` | `std::collections::hash` | `stable` | Collections |
-| `hashset_is_empty` | `std::collections::hash` | `stable` | Collections |
-| `hashset_len` | `std::collections::hash` | `stable` | Collections |
-| `hashset_new` | `std::collections::hash` | `stable` | Collections |
-| `hashset_remove` | `std::collections::hash` | `stable` | Collections |
-| `hashset_reserve` | `std::collections::hash` | `stable` | Collections |
-| `hashset_shrink_to_fit` | `std::collections::hash` | `stable` | Collections |
-| `hashset_str_contains` | `std::collections::hash` | `stable` | Collections |
-| `hashset_str_insert` | `std::collections::hash` | `stable` | Collections |
-| `hashset_str_is_empty` | `std::collections::hash` | `stable` | Collections |
-| `hashset_str_len` | `std::collections::hash` | `stable` | Collections |
-| `hashset_str_new` | `std::collections::hash` | `stable` | Collections |
-| `hashset_str_remove` | `std::collections::hash` | `stable` | Collections |
-| `hashset_to_vec` | `std::collections::hash` | `stable` | Collections |
-| `hashset_union` | `std::collections::hash` | `stable` | Collections |
 | `id` | `std::host::process` | `stable` | Host Process |
 | `ifft` | `std::signal` | `stable` | Signal |
 | `index_map_get` | `std::collections::ordered` | `experimental` | Collections |
@@ -261,6 +240,27 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`fold_i32_i32`~~ | `VecIter::fold` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`get`~~ | `Vec::get` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_capacity`~~ | `HashSet::capacity` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_clear`~~ | `HashSet::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_contains`~~ | `HashSet::contains` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_difference`~~ | `HashSet::difference` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_extend`~~ | `HashSet::extend` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_insert`~~ | `HashSet::insert` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_intersection`~~ | `HashSet::intersection` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_is_empty`~~ | `HashSet::is_empty` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_len`~~ | `HashSet::len` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_new`~~ | `HashSet::new` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_remove`~~ | `HashSet::remove` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_reserve`~~ | `HashSet::reserve` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_shrink_to_fit`~~ | `HashSet::shrink_to_fit` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_str_contains`~~ | `HashSet::contains` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_str_insert`~~ | `HashSet::insert` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_str_is_empty`~~ | `HashSet::is_empty` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_str_len`~~ | `HashSet::len` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_str_new`~~ | `HashSet::new` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_str_remove`~~ | `HashSet::remove` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_to_vec`~~ | `HashSet::to_vec` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_union`~~ | `HashSet::union` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`i16_to_i32`~~ | `i16::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i16`~~ | `i32::to_i16_wrapping` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i64`~~ | `i32::into` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
@@ -432,27 +432,27 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `hashmap_try_reserve` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_values` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_with_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_clear` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_contains` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_difference` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_extend` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_insert` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_intersection` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_is_empty` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_len` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_new` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_remove` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_reserve` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_shrink_to_fit` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_str_contains` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_str_insert` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_str_is_empty` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_str_len` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_str_new` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_str_remove` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_to_vec` | ✅ `stable` | `std::collections::hash` | Collections |
-| `hashset_union` | ✅ `stable` | `std::collections::hash` | Collections |
+| ~~`hashset_capacity`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::capacity` · [migration guide](migration-guidance.md) |
+| ~~`hashset_clear`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::clear` · [migration guide](migration-guidance.md) |
+| ~~`hashset_contains`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::contains` · [migration guide](migration-guidance.md) |
+| ~~`hashset_difference`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::difference` · [migration guide](migration-guidance.md) |
+| ~~`hashset_extend`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::extend` · [migration guide](migration-guidance.md) |
+| ~~`hashset_insert`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::insert` · [migration guide](migration-guidance.md) |
+| ~~`hashset_intersection`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::intersection` · [migration guide](migration-guidance.md) |
+| ~~`hashset_is_empty`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::is_empty` · [migration guide](migration-guidance.md) |
+| ~~`hashset_len`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::len` · [migration guide](migration-guidance.md) |
+| ~~`hashset_new`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::new` · [migration guide](migration-guidance.md) |
+| ~~`hashset_remove`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::remove` · [migration guide](migration-guidance.md) |
+| ~~`hashset_reserve`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::reserve` · [migration guide](migration-guidance.md) |
+| ~~`hashset_shrink_to_fit`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::shrink_to_fit` · [migration guide](migration-guidance.md) |
+| ~~`hashset_str_contains`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::contains` · [migration guide](migration-guidance.md) |
+| ~~`hashset_str_insert`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::insert` · [migration guide](migration-guidance.md) |
+| ~~`hashset_str_is_empty`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::is_empty` · [migration guide](migration-guidance.md) |
+| ~~`hashset_str_len`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::len` · [migration guide](migration-guidance.md) |
+| ~~`hashset_str_new`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::new` · [migration guide](migration-guidance.md) |
+| ~~`hashset_str_remove`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::remove` · [migration guide](migration-guidance.md) |
+| ~~`hashset_to_vec`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::to_vec` · [migration guide](migration-guidance.md) |
+| ~~`hashset_union`~~ | ⚠️ deprecated | `std::collections::hash` | → `HashSet::union` · [migration guide](migration-guidance.md) |
 | ~~`i16_to_i32`~~ | ⚠️ deprecated | `prelude` | → `i16::to_i32` · [migration guide](migration-guidance.md) |
 | ~~`i32_to_i16`~~ | ⚠️ deprecated | `prelude` | → `i32::to_i16_wrapping` · [migration guide](migration-guidance.md) |
 | ~~`i32_to_i64`~~ | ⚠️ deprecated | `prelude` | → `i32::into` · [migration guide](migration-guidance.md) |

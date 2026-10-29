@@ -16,6 +16,28 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-29 — `std::collections::hash` HashSet frees の deprecation (#917, wave/hash-group)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の
+  free-function 根絶と [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) の
+  0.x 例外。対象は `std::collections::hash` の HashSet free functions **21**
+  件（`hashset_*` 15、`hashset_str_*` 6）。すべて `stable` のため、W0009 の
+  deprecation window を先に開く。
+- **Deprecated**: manifest の 21 entry を `stability = "deprecated"` にし、
+  `deprecated_by` を `HashSet<T>` の method、`deprecated_since = "0.1.0"`、
+  `remove_in = "1.0.0"` に設定した。W0009 の qualified-call table が
+  `hash::hashset_*` / `hash::hashset_str_*` を検出し、method replacement を
+  案内する。
+- **Replacement**: `HashSet::new<i32>()` / `HashSet::new<String>()` と
+  receiver methods（`insert` / `contains` / `remove` / `len` / `is_empty` /
+  `to_vec` / `union` / `intersection` / `difference` / `capacity` /
+  `reserve` / `shrink_to_fit` / `clear` / `extend`）。
+- **Evidence**: 両 target の diag goldens
+  `diagnostics/deprecated_hashset_free*` が W0009 を固定する。
+- **Window**: 物理削除は後続の Wave 2 commit。deprecation のみのため
+  eradication scorecard は不変（public surface 274、
+  `associated-or-method` 208）。
+
 ## 2026-10-29 — `Std::panic` と Vec no-argument sort (#917, wave/sort-panic)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の free-function

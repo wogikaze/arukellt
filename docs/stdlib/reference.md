@@ -8,10 +8,10 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 164 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 143 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 10 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 31 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 65 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 86 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -284,27 +284,27 @@
 | `hashmap_try_reserve` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
 | `hashmap_values` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
 | `hashmap_with_capacity` | `(i32) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_capacity` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | Return the current bucket capacity of a HashSet<i32>. |
-| `hashset_clear` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | Remove all elements from a HashSet<i32>, resetting size to 0. |
-| `hashset_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_difference` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | Extend a HashSet<i32> with all elements from another set. Mirrors Rust's HashSet::extend. |
-| `hashset_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_is_empty` | `(Vec<i32>) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_len` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_remove` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_reserve` | `(Vec<i32>, i32) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | Ensure a HashSet<i32> can hold at least additional more elements without exceeding the load-factor… |
-| `hashset_shrink_to_fit` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | Shrink a HashSet<i32> to the minimum capacity preserving the load-factor invariant. |
-| `hashset_str_contains` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_str_insert` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_str_is_empty` | `(Vec<String>) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_str_len` | `(Vec<String>) -> i32` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_str_new` | `() -> Vec<String>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_str_remove` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_to_vec` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `hashset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| ~~`hashset_capacity`~~ ⚠️ Deprecated → `HashSet::capacity` | `(Vec<i32>) -> i32` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | Return the current bucket capacity of a HashSet<i32>. |
+| ~~`hashset_clear`~~ ⚠️ Deprecated → `HashSet::clear` | `(Vec<i32>) -> ()` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | Remove all elements from a HashSet<i32>, resetting size to 0. |
+| ~~`hashset_contains`~~ ⚠️ Deprecated → `HashSet::contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`hashset_difference`~~ ⚠️ Deprecated → `HashSet::difference` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`hashset_extend`~~ ⚠️ Deprecated → `HashSet::extend` | `(Vec<i32>, Vec<i32>) -> ()` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | Extend a HashSet<i32> with all elements from another set. Mirrors Rust's HashSet::extend. |
+| ~~`hashset_insert`~~ ⚠️ Deprecated → `HashSet::insert` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`hashset_intersection`~~ ⚠️ Deprecated → `HashSet::intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`hashset_is_empty`~~ ⚠️ Deprecated → `HashSet::is_empty` | `(Vec<i32>) -> bool` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`hashset_len`~~ ⚠️ Deprecated → `HashSet::len` | `(Vec<i32>) -> i32` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`hashset_new`~~ ⚠️ Deprecated → `HashSet::new` | `() -> Vec<i32>` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`hashset_remove`~~ ⚠️ Deprecated → `HashSet::remove` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`hashset_reserve`~~ ⚠️ Deprecated → `HashSet::reserve` | `(Vec<i32>, i32) -> ()` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | Ensure a HashSet<i32> can hold at least additional more elements without exceeding the load-factor… |
+| ~~`hashset_shrink_to_fit`~~ ⚠️ Deprecated → `HashSet::shrink_to_fit` | `(Vec<i32>) -> ()` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | Shrink a HashSet<i32> to the minimum capacity preserving the load-factor invariant. |
+| ~~`hashset_str_contains`~~ ⚠️ Deprecated → `HashSet::contains` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`hashset_str_insert`~~ ⚠️ Deprecated → `HashSet::insert` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`hashset_str_is_empty`~~ ⚠️ Deprecated → `HashSet::is_empty` | `(Vec<String>) -> bool` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`hashset_str_len`~~ ⚠️ Deprecated → `HashSet::len` | `(Vec<String>) -> i32` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`hashset_str_new`~~ ⚠️ Deprecated → `HashSet::new` | `() -> Vec<String>` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`hashset_str_remove`~~ ⚠️ Deprecated → `HashSet::remove` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`hashset_to_vec`~~ ⚠️ Deprecated → `HashSet::to_vec` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`hashset_union`~~ ⚠️ Deprecated → `HashSet::union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
 | `index_map_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Get a value from an IndexMap<i32,i32>. Returns 0 if not found. |
 | `index_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Insert a key-value pair into an IndexMap<i32,i32>. |
 | `index_map_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return all keys of an IndexMap<i32,i32> in insertion order. |
@@ -650,7 +650,7 @@ let input = stdio::read_stdin()
 
 ## Deprecated APIs
 
-> ⚠️ **65 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **86 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -680,6 +680,27 @@ let input = stdio::read_stdin()
 | ~~`fold_i32_i32`~~ | `VecIter::fold` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get`~~ | `Vec::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_capacity`~~ | `HashSet::capacity` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_clear`~~ | `HashSet::clear` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_contains`~~ | `HashSet::contains` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_difference`~~ | `HashSet::difference` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_extend`~~ | `HashSet::extend` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_insert`~~ | `HashSet::insert` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_intersection`~~ | `HashSet::intersection` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_is_empty`~~ | `HashSet::is_empty` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_len`~~ | `HashSet::len` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_new`~~ | `HashSet::new` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_remove`~~ | `HashSet::remove` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_reserve`~~ | `HashSet::reserve` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_shrink_to_fit`~~ | `HashSet::shrink_to_fit` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_str_contains`~~ | `HashSet::contains` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_str_insert`~~ | `HashSet::insert` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_str_is_empty`~~ | `HashSet::is_empty` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_str_len`~~ | `HashSet::len` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_str_new`~~ | `HashSet::new` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_str_remove`~~ | `HashSet::remove` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_to_vec`~~ | `HashSet::to_vec` | [migration-guidance.md](migration-guidance.md) |
+| ~~`hashset_union`~~ | `HashSet::union` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i16_to_i32`~~ | `i16::to_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i16`~~ | `i32::to_i16_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i64`~~ | `i32::into` | [migration-guidance.md](migration-guidance.md) |
