@@ -243,12 +243,15 @@ def _rewrite_bootstrap_wit_type_paths_text(text: str) -> str:
 def _patch_bootstrap_host_env_paths(workspace_root: Path) -> None:
     """Route the bootstrap compiler's ``Env::*`` calls through the free builtins.
 
-    The pin (``8df2698c…``) was compiled from source that predates #917's MIR
-    env call-result typing: its ``mir/lower/call_type_fallback_stdlib.ark`` and
-    ``call_type_vec.ark`` do not type ``__intrinsic_args`` / ``Env::args`` as
-    ``vec:String``. A reachable ``Env::args`` therefore stores the Vec ref in
-    an i64 temp, and the generated compiler fails ``wasm-tools validate`` with
-    ``expected i64, found (ref null $type)``. Rewriting to the free builtin
+    The core trust-anchor/override pins (``a2803831…``, ``8df2698c…``) were
+    compiled from source that predates #917's MIR env call-result typing: their
+    ``mir/lower/call_type_fallback_stdlib.ark`` and ``call_type_vec.ark`` do not
+    type ``__intrinsic_args`` / ``Env::args`` as ``vec:String``. A reachable
+    ``Env::args`` therefore stores the Vec ref in an i64 temp, and the generated
+    compiler fails ``wasm-tools validate`` with ``expected i64, found (ref null
+    $type)``. The flat overlay is shared with the official gc pin, whose source
+    already includes #917, so the rewrite remains to keep the stage-2 source
+    and emitted s2 byte-identical across pins. Rewriting to the free builtin
     spelling (and the module import) keeps the checked-in ``Env`` namespace for
     user code and stage-3.
 
@@ -258,8 +261,9 @@ def _patch_bootstrap_host_env_paths(workspace_root: Path) -> None:
     currently normalizes imports only. Keep it as the guard for any reachable
     ``Env::*`` call added to the compiler.
 
-    Delete condition: a pin built from source that includes #917's env
-    call-result typing. Verify with a probe that ``Env::args`` lowers to
+    Delete condition: the core trust-anchor/override pins are retired, or the
+    overlay becomes pin-aware and ships the real ``Env`` namespace to pins that
+    include #917's typing. Verify with a probe that ``Env::args`` lowers to
     ``call $Env::args`` (not the unresolved fallback) and validates before
     removing this patch.
     """
@@ -4772,19 +4776,22 @@ def _patch_bootstrap_main_host_to_prelude(compiler_out: Path) -> None:
 def _strip_bootstrap_param_modes(overlay_root: Path) -> None:
     """Strip ADR-088 parameter modes from the flat bootstrap overlay.
 
-    The official pin (``8df2698c…``, source at ``be7f6d3d9``) predates the
-    #951 parser, so it rejects ``mut p`` / ``mut self`` / ``|mut v|`` /
-    ``fn(mut T)`` even though the checked-in source now uses them. The pin
-    only has to parse the compiler enough to build s2: its typechecker binds
+    The core trust-anchor/override pins (``a2803831…``, ``8df2698c…``) predate
+    the #951 parser, so they reject ``mut p`` / ``mut self`` / ``|mut v|`` /
+    ``fn(mut T)`` even though the checked-in source now uses them. Those pins
+    only have to parse the compiler enough to build s2: their typechecker binds
     every parameter mutable and never enforces the callee-side rule, so
     removing the mode token from the overlay copies leaves the same parameter
-    list and body. s2, which includes the #951 parser and rule, compiles the
+    list and body. The official gc pin now includes parser #951, but the flat
+    overlay is shared with the core pins, so the strip remains to keep the
+    stage-2 source and emitted s2 byte-identical across pins. s2 compiles the
     real checked-in source for fixtures; the self-compile stage reuses the
     stripped overlay with ``BOOTSTRAP_SHARED_PARAM_FLAG``.
 
-    Delete condition: a pin built from source that includes the #951
-    parameter-mode parser. Probe with ``fn bump(mut p: Point)`` and remove the
-    patch when the pin accepts it.
+    Delete condition: the core trust-anchor/override pins are retired, or the
+    overlay becomes pin-aware and ships real modes to the #951-capable gc pin.
+    Probe with ``fn bump(mut p: Point)`` and remove the patch when every
+    supported pin accepts it.
     """
     for path in sorted(overlay_root.rglob("*.ark")):
         text = path.read_text(encoding="utf-8")

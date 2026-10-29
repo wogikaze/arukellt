@@ -59,7 +59,7 @@ pinned selfhost wasm and `scripts/manager.py selfhost` commands.
 | **Fixture test / CLI / diag parity** | ADR-057 / ADR-029 gates | ✅ Reached when gates are green |
 
 emitter / Memory64 / T3 作業で s2 を更新するときは
-`python3 scripts/manager.py selfhost build-compiler`（stage-2 のみ、~50s）。
+`python3 scripts/manager.py selfhost build-compiler`（stage-2 のみ、gc pin で ~28–30 s、quiet host）。
 `selfhost fixpoint --build` は ADR-029 ゲート用（s2+s3）であり、日常の再ビルドには使わない。
 stage-3 単独でも現状は数十分かかり得る（2026-07-20 ≈ 23.5 min；#829 後は cold ≈33 s）。
 速度改善の親テーマ [#829](../../issues/done/829-selfhost-latency-phase-reprofile-hotspot.md) は done
