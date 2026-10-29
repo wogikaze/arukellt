@@ -253,19 +253,57 @@ fn infer_prelude_len_call(
         ast_access::node_child_at(node, 1)
     )
     let tag = contract_type_access::TypeInfo_tag(recv_ty)
-    // An unbound type variable may later become a Vec through another use;
-    // the call keeps the historical unchecked path for that deferred case.
-    if tag == commands::TY_STRING() || tag == commands::TY_VEC() ||
-    tag == commands::TY_TYPE_VAR() || tag == commands::TY_UNKNOWN() {
+    if tag == commands::TY_STRING() || tag == commands::TY_VEC() {
         return simple_type(commands::TY_I32())
     }
-    unify::type_error(
-        env,
-        String_from("type mismatch in call to `len`: argument 1 has type ").concat(
-            names::type_display_name(recv_ty).concat(String_from(", expected String or Vec<T>"))
-        )
-    )
+    // A type variable may still bind to String or Vec later in the same body,
+    // so the owner is not decided at the call. Keep the receiver for the body
+    // finalizer instead of accepting the call or rejecting it outright (#936).
+    if tag == commands::TY_TYPE_VAR() {
+        push(env.deferred_len_receiver_types, recv_ty)
+        return simple_type(commands::TY_I32())
+    }
+    // Unresolved after another diagnostic is an error-recovery value, not a
+    // receiver owner (#939 owns the general unknown-type rule).
+    if tag == commands::TY_UNKNOWN() {
+        return simple_type(commands::TY_I32())
+    }
+    unify::type_error(env, len_receiver_mismatch_message(recv_ty))
     simple_type(commands::TY_I32())
+}
+
+// A `len` receiver that was still a type variable at its call is resolved
+// here, after the whole body has run: a later argument position may have bound
+// it to String or Vec. A type parameter of the enclosing body never binds
+// during its own check, so an owner that is still undecided is rejected
+// instead of letting backend name dispatch pick one (#936).
+fn finalize_deferred_len_receivers(mut env: TypeEnv) {
+    let count = len(env.deferred_len_receiver_types)
+    let mut i = 0
+    while i < count {
+        let resolved = unify::resolve_type(env, get_unchecked(env.deferred_len_receiver_types, i))
+        let tag = contract_type_access::TypeInfo_tag(resolved)
+        let has_owner = tag == commands::TY_STRING() || tag == commands::TY_VEC()
+        let is_recovery = tag == commands::TY_UNKNOWN()
+        if !has_owner && !is_recovery {
+            if tag == commands::TY_TYPE_VAR() {
+                unify::type_error(
+                    env,
+                    String_from("cannot infer the type of the `len` receiver: argument 1 must be String or Vec<T>")
+                )
+            } else {
+                unify::type_error(env, len_receiver_mismatch_message(resolved))
+            }
+        }
+        i = i + 1
+    }
+    env.deferred_len_receiver_types = Vec::new<TypeInfo>()
+}
+
+fn len_receiver_mismatch_message(recv_ty: TypeInfo) -> String {
+    String_from("type mismatch in call to `len`: argument 1 has type ").concat(
+        names::type_display_name(recv_ty).concat(String_from(", expected String or Vec<T>"))
+    )
 }
 
 // Concrete FromIterator impls carry their source type in the symbol

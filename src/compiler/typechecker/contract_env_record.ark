@@ -13,6 +13,10 @@ use collections::name_index
 use diagnostics::mod as diag_mod
 struct TypeEnv {
     vars: Vec<TypeVar>,
+    // `len` receivers that were still type variables at their call. The body
+    // may bind such a variable to String or Vec afterwards, so the owner
+    // contract is finalized once the whole body has run (#936).
+    deferred_len_receiver_types: Vec<TypeInfo>,
     // Shared monotonic counter backing fresh inference-var ids. Envs derived
     // for nested inference (generic-call scratch envs, per-fn check envs)
     // share the parent box so t<id> names can never collide across scopes
@@ -59,6 +63,7 @@ fn TypeEnv_new() -> TypeEnv {
     push(var_id_box, 0)
     TypeEnv {
         vars: Vec::new<TypeVar>(),
+        deferred_len_receiver_types: Vec::new<TypeInfo>(),
         var_id_box: var_id_box,
         errors: Vec::new<String>(),
         error_count: 0,

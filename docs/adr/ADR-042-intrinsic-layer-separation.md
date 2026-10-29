@@ -369,7 +369,10 @@ close gate はファイル名や特定の構文ではなく、次の semantic in
 2026-10-30 の #936 increment では、prelude の安定 Vec free
 （`push` / `get` / `pop`、既存の `get_unchecked` / `set`）の宣言を実 generic
 signature にし、typechecker が実引数をその signature で検査するようにした。
-`len` は receiver の owner（`String` / `Vec<T>`）で契約を選ぶ。
+`len` は receiver の owner（`String` / `Vec<T>`）で契約を選ぶ。receiver が
+呼び出し時点で型変数の場合は body 終了時に owner を確定し、`String` /
+`Vec<T>` に束縛されないままなら E0200 にする。owner を決められない呼び出しを
+backend の名前 dispatch に渡さないためである。
 ただし backend は未だ callee 名で intrinsic を選んでおり
 （`data/core-ops.toml` の `len` → `string.len`、`call_rewrite_vec*`）、
 D6 の「call lowering が診断用途以外で callee 文字列を参照しない」は未達である。
