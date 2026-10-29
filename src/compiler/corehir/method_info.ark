@@ -10,6 +10,7 @@ struct CoreHirMethodInfo {
     mangled_name: String,
     param_count: i32,
     type_param_count: i32,
+    type_params: Vec<String>,
     params: Vec<CoreHirParam>,
     body_index: i32,
     return_vt: i32,
@@ -25,6 +26,7 @@ fn CoreHirMethodInfo_new(
     mangled_name: String,
     param_count: i32,
     type_param_count: i32,
+    type_params: Vec<String>,
     params: Vec<CoreHirParam>,
     body_index: i32,
     return_vt: i32,
@@ -39,6 +41,7 @@ fn CoreHirMethodInfo_new(
         mangled_name: mangled_name,
         param_count: param_count,
         type_param_count: type_param_count,
+        type_params: type_params,
         params: params,
         body_index: body_index,
         return_vt: return_vt,
@@ -89,6 +92,18 @@ fn method_info_type_param_count_at(method_infos: Vec<CoreHirMethodInfo>, info_in
         return get_unchecked(method_infos, info_index).type_param_count
     }
     fallback
+}
+
+// Declared binder names in the order the typechecker uses for MonoInstance
+// type arguments (impl binders first, then method binders). Callers that
+// build the ordinal mono map must use this list: a local-derived list drops
+// an impl binder that the signature never mentions and shifts every later
+// parameter key (#946).
+fn method_info_type_params_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32) -> Vec<String> {
+    if info_index >= 0 && info_index < len(method_infos) {
+        return get_unchecked(method_infos, info_index).type_params
+    }
+    Vec::new<String>()
 }
 
 fn method_info_param_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32, param_index: i32) -> CoreHirParam {

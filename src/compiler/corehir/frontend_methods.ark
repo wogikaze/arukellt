@@ -72,6 +72,7 @@ fn build_method_infos(
                         mangled,
                         param_count,
                         type_param_count,
+                        clone(type_params),
                         params,
                         body_index,
                         return_vt,
