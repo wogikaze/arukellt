@@ -1934,11 +1934,12 @@ Import the namespace explicitly:
 
 ```ark
 use std::host::fs::Fs
+use std::host::stdio::Stdio
 
 let text = Fs::read_to_string("data.txt")
 match text {
-    Ok(contents) => println(contents),
-    Err(message) => eprintln(message),
+    Ok(contents) => Stdio::println(contents),
+    Err(message) => Stdio::eprintln(message),
 }
 ```
 

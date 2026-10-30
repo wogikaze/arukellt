@@ -9,7 +9,7 @@ accepted only as a migration form and emits `W0101` at parse phase.
 use std::core
 use std::text as t
 use std::collections::string
-use std::collections::string::{split, join}
+use std::collections::deque::{Deque, Queue, Stack}
 ```
 
 `use path::to::module` loads the module and uses its final path segment as the
@@ -126,19 +126,21 @@ std/
 
 ## Function-level destructuring (v4 — issue #717)
 
-`use path::module::{fn_a, fn_b}` imports functions directly into scope,
-allowing bare calls without module qualification:
+`use path::module::{fn_a, fn_b}` imports public free functions directly into
+scope, allowing bare calls without module qualification. Most of the std
+surface is method/associated-function shaped (ADR-046); the retained
+experimental fd helpers are the current module-free example:
 
 ```arukellt
-use std::collections::string::{split, join}
+use std::host::fs::{fd_seek, fd_tell}
 
 fn main() {
-    let parts = split("a,b", ",")    // resolves to string::split
-    let result = join(parts, ",")    // resolves to string::join
+    let offset = fd_tell(0)              // resolves to fs::fd_tell
+    let new_offset = fd_seek(0, offset, 0)  // resolves to fs::fd_seek
 }
 ```
 
-The resolver registers a use-alias mapping the short name (`split`) to
-the qualified path (`string::split`). When a bare name is encountered in
+The resolver registers a use-alias mapping the short name (`fd_tell`) to
+the qualified path (`fs::fd_tell`). When a bare name is encountered in
 a path expression, the resolver rewrites it to the qualified path before
 typechecking and MIR lowering. Locals and parameters shadow use-aliases.

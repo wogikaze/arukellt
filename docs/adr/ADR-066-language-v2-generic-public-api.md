@@ -25,7 +25,7 @@ HashMap もこの二つの契約に従う必要がある。
 ユーザーが記述する HashMap の正規形を次で固定する。
 
 ```ark
-let map = HashMap::new<i32, i32>()
+let mut map = HashMap::new<i32, i32>()
 let previous = map.insert(1, 10)
 let current = map.get(1)
 let present = map.contains_key(1)
