@@ -1,1 +1,1 @@
-error[E0100|resolve]: removed prelude free function: as_slice; use `v.as_slice(start, end)` on the `Vec<T>` receiver instead
+error[E0100|resolve]: removed prelude free function: as_slice; use `v.as_slice(start, end)` on the `Vec<T>` receiver (via `use std::collections::vec`) instead

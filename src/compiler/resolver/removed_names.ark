@@ -1605,6 +1605,14 @@ fn removed_gated_prelude_hint(name: String) -> String {
 
 // The three Vec mutation frees share their replacement text with the
 // explicit-import rejection in register_use, so the hint lives in one place.
+// The Slice constructor and accessor frees keep their hints in this small
+// table so the prelude hint chain stays below the monomorphization budget.
+pub fn removed_slice_free_hint(name: String) -> String {
+    if name.clone().eq("as_slice") { return String_from("use `v.as_slice(start, end)` on the `Vec<T>` receiver instead") }
+    if name.clone().eq("slice_get") { return String_from("use `view.get(idx)` on the `Slice<T>` receiver instead") }
+    String_new()
+}
+
 pub fn removed_vec_mutation_free_hint(name: String) -> String {
     if name.clone().eq("push") { return String_from("use `v.push(x)` on the `Vec<T>` receiver instead") }
     if name.clone().eq("pop") { return String_from("use `v.pop()` on the `Vec<T>` receiver instead") }
@@ -1620,6 +1628,10 @@ fn removed_prelude_free_hint(name: String) -> String {
     let vec_mutation = removed_vec_mutation_free_hint(name.clone())
     if vec_mutation.clone().len() > 0 {
         return vec_mutation
+    }
+    let slice = removed_slice_free_hint(name.clone())
+    if slice.clone().len() > 0 {
+        return slice
     }
     if name.clone().eq("abs") { return String_from("use `x.abs()` on the `i32` value instead") }
     if name.clone().eq("args") { return String_from("use `Env::args()` from `use std::host::env::Env` instead") }

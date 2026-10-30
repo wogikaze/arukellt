@@ -1,1 +1,1 @@
-error[E0100|resolve]: removed prelude free function: slice_get; use `view.get(idx)` on the `Slice<T>` receiver instead
+error[E0100|resolve]: removed prelude free function: slice_get; use `view.get(idx)` on the `Slice<T>` view (via `use std::collections::vec`) instead
