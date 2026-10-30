@@ -25,8 +25,8 @@ pub struct PriorityQueue<T> {
 fn pq_sift_up<T: Ord>(mut items: Vec<T>, mut index: i32) {
     while index > 0 {
         let parent: i32 = (index - 1) / 2
-        let child: T = get_unchecked(items, index)
-        let parent_value: T = get_unchecked(items, parent)
+        let child: T = items.get_unchecked(index)
+        let parent_value: T = items.get_unchecked(parent)
         let mut is_less: bool = false
         match child.cmp(parent_value) {
             Ordering::Less => {
@@ -52,7 +52,7 @@ fn pq_sift_down<T: Ord>(mut items: Vec<T>, mut index: i32) {
         let mut smallest: i32 = index
         if left < count {
             let mut is_less: bool = false
-            match get_unchecked(items, left).cmp(get_unchecked(items, smallest)) {
+            match items.get_unchecked(left).cmp(items.get_unchecked(smallest)) {
                 Ordering::Less => {
                     is_less = true
                 }
@@ -64,7 +64,7 @@ fn pq_sift_down<T: Ord>(mut items: Vec<T>, mut index: i32) {
         }
         if right < count {
             let mut is_less: bool = false
-            match get_unchecked(items, right).cmp(get_unchecked(items, smallest)) {
+            match items.get_unchecked(right).cmp(items.get_unchecked(smallest)) {
                 Ordering::Less => {
                     is_less = true
                 }
@@ -77,8 +77,8 @@ fn pq_sift_down<T: Ord>(mut items: Vec<T>, mut index: i32) {
         if smallest == index {
             continue_down = false
         } else {
-            let displaced: T = get_unchecked(items, index)
-            items.set(index, get_unchecked(items, smallest))
+            let displaced: T = items.get_unchecked(index)
+            items.set(index, items.get_unchecked(smallest))
             items.set(smallest, displaced)
             index = smallest
         }
@@ -112,8 +112,8 @@ impl<T: Ord> PriorityQueue<T> {
         if count == 0 {
             return Option::None
         }
-        let result: T = get_unchecked(self.items, 0)
-        let last: T = get_unchecked(self.items, count - 1)
+        let result: T = self.items.get_unchecked(0)
+        let last: T = self.items.get_unchecked(count - 1)
         self.items.set(0, last)
         let _: Option<T> = self.items.pop()
         pq_sift_down(self.items, 0)
@@ -125,7 +125,7 @@ impl<T: Ord> PriorityQueue<T> {
         if self.items.len() == 0 {
             return Option::None
         }
-        Option::Some(get_unchecked(self.items, 0))
+        Option::Some(self.items.get_unchecked(0))
     }
 
     /// Returns the number of elements.

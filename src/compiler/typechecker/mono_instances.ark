@@ -39,7 +39,7 @@ fn record_mono_instance(mut env: TypeEnv, fn_name: String, resolved_types: Vec<T
     let count = resolved_types.len()
     let mut i = 0
     while i < count {
-        let ty = get_unchecked(resolved_types, i)
+        let ty = resolved_types.get_unchecked(i)
         mangled = mangled.concat("__".concat(mono_key::mono_type_key(ty)))
         i = i + 1
     }
@@ -82,7 +82,7 @@ fn record_template_site_if_generic(mut env: TypeEnv, fn_name: String, mangled_na
     let count = resolved_types.len()
     let mut i = 0
     while i < count {
-        if associated_types::type_contains_var(get_unchecked(resolved_types, i)) {
+        if associated_types::type_contains_var(resolved_types.get_unchecked(i)) {
             mentions_var = true
         }
         i = i + 1
@@ -93,7 +93,7 @@ fn record_template_site_if_generic(mut env: TypeEnv, fn_name: String, mangled_na
     let site_count = env.mono_template_sites.len()
     let mut s = 0
     while s < site_count {
-        let site = get_unchecked(env.mono_template_sites, s)
+        let site = env.mono_template_sites.get_unchecked(s)
         if site.mangled_name.clone().eq(mangled_name.clone()) &&
         site.enclosing_fn.clone().eq(env.current_fn_name.clone()) {
             return
@@ -132,7 +132,7 @@ fn record_var_method_site(mut env: TypeEnv, method_name: String, recv_ty: TypeIn
     let site_count = env.mono_template_sites.len()
     let mut s = 0
     while s < site_count {
-        let site = get_unchecked(env.mono_template_sites, s)
+        let site = env.mono_template_sites.get_unchecked(s)
         if site.mangled_name.clone().eq(mangled.clone()) &&
         site.enclosing_fn.clone().eq(env.current_fn_name.clone()) {
             return
@@ -167,7 +167,7 @@ fn is_var_projection_receiver(env: TypeEnv, recv_ty: TypeInfo) -> bool {
     let count = env.current_fn_type_params.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(env.current_fn_type_params, i).eq(owner.clone()) {
+        if env.current_fn_type_params.get_unchecked(i).eq(owner.clone()) {
             return true
         }
         i = i + 1
@@ -253,7 +253,7 @@ fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_t
     let arg_count = resolved_types.len()
     let mut a = 0
     while a < arg_count {
-        if associated_types::type_contains_var(get_unchecked(resolved_types, a)) {
+        if associated_types::type_contains_var(resolved_types.get_unchecked(a)) {
             return
         }
         a = a + 1
@@ -261,7 +261,7 @@ fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_t
     let site_count = env.mono_template_sites.len()
     let mut s = 0
     while s < site_count {
-        let site = get_unchecked(env.mono_template_sites, s)
+        let site = env.mono_template_sites.get_unchecked(s)
         if enclosing_matches_instantiation(site.enclosing_fn.clone(), fn_name.clone()) {
             let site_vars = site.enclosing_vars.clone()
             if site_vars.len() == arg_count {
@@ -274,7 +274,7 @@ fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_t
                             site_vars.clone(),
                             resolved_types.clone(),
                             instantiate::instantiate_type(
-                                get_unchecked(site_args, b),
+                                site_args.get_unchecked(b),
                                 site_vars.clone(),
                                 resolved_types.clone()
                             )
@@ -292,7 +292,7 @@ fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_t
                         _rebound = resolve_var_method_site(
                             env,
                             site.fn_name.clone(),
-                            get_unchecked(bound_args, 0)
+                            bound_args.get_unchecked(0)
                         )
                     }
                 } else {
@@ -313,7 +313,7 @@ fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_t
                                 env,
                                 trait_entry,
                                 site.fn_name.clone().slice(sep + 2, site.fn_name.len()),
-                                get_unchecked(bound_args, 0)
+                                bound_args.get_unchecked(0)
                             )
                             resolved_via_trait = true
                         }
@@ -403,7 +403,7 @@ fn mint_trait_method_instance(mut env: TypeEnv, entry: TraitMethodEntry, method_
     let impl_count = env.trait_impls.len()
     let mut i = 0
     while i < impl_count {
-        let impl_info = get_unchecked(env.trait_impls, i)
+        let impl_info = env.trait_impls.get_unchecked(i)
         let self_ty = contract_trait_impl::TraitImplInfo_self_ty(impl_info)
         if contract_trait_impl::TraitImplInfo_trait_name(impl_info).eq(trait_name.clone()) && names::same_type_name(
             contract_type_access::TypeInfo_name(self_ty),
@@ -486,7 +486,7 @@ fn resolve_var_method_site(mut env: TypeEnv, method_name: String, receiver: Type
     let impl_count = env.trait_impls.len()
     let mut i = 0
     while i < impl_count {
-        let impl_info = get_unchecked(env.trait_impls, i)
+        let impl_info = env.trait_impls.get_unchecked(i)
         let self_ty = contract_trait_impl::TraitImplInfo_self_ty(impl_info)
         let trait_name = contract_trait_impl::TraitImplInfo_trait_name(impl_info)
         if trait_name.len() > 0 && names::same_type_name(
@@ -525,7 +525,7 @@ fn propagated_trait_bound(
     let mut i = 0
     while i < arg_count {
         concrete_args.push(instantiate::instantiate_type(
-                get_unchecked(arg_patterns, i),
+                arg_patterns.get_unchecked(i),
                 var_names.clone(),
                 var_types.clone()
             ))
@@ -542,7 +542,7 @@ fn has_mono_instance_for(mono_instances: Vec<MonoInstance>, fn_name: String) -> 
     let count = mono_instances.len()
     let mut i = 0
     while i < count {
-        let mi = get_unchecked(mono_instances, i)
+        let mi = mono_instances.get_unchecked(i)
         if contract_mono::MonoInstance_fn_name(mi).eq(fn_name.clone()) {
             return true
         }

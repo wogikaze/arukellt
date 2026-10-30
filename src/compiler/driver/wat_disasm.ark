@@ -13,7 +13,7 @@
 //
 // 失敗時も trap せず、WAT コメント `;; GAP:` を差し込んで未対応箇所を残す。
 
-use std::prelude::{get_unchecked, String_from}
+use std::prelude::{String_from}
 
 // ---------------------------------------------------------------------------
 // 定数
@@ -133,7 +133,7 @@ fn read_byte(mut r: Rd) -> i32 {
     if r.p >= r.n {
         return 0
     }
-    let v: i32 = get_unchecked(r.b, r.p)
+    let v: i32 = r.b.get_unchecked(r.p)
     r.p = r.p + 1
     return v
 }
@@ -142,7 +142,7 @@ fn peek_byte(r: Rd) -> i32 {
     if r.p >= r.n {
         return -1
     }
-    return get_unchecked(r.b, r.p)
+    return r.b.get_unchecked(r.p)
 }
 
 fn skip_bytes(mut r: Rd, count: i32) {
@@ -363,7 +363,7 @@ fn u64_hex(v: i64) -> String {
     let mut reversed: Vec<String> = Vec::new<String>()
     let mut i: i32 = digits.len() - 1
     while i >= 0 {
-        reversed.push(get_unchecked(digits, i))
+        reversed.push(digits.get_unchecked(i))
         i = i - 1
     }
     return reversed.join(String_from(""))
@@ -703,7 +703,7 @@ fn const_expr_text(mut r: Rd) -> String {
         return "(i32.const 0)"
     }
     if parts.len() == 1 {
-        return "(".concat(get_unchecked(parts, 0)).concat(")")
+        return "(".concat(parts.get_unchecked(0)).concat(")")
     }
     return parts.join(String_from(" "))
 }
@@ -1658,7 +1658,7 @@ fn instr_text(mut r: Rd) -> String {
 
 // 未対応 opcode の説明文（プレフィックス付きならサブオペコードも出す）。
 fn opcode_label(b: Vec<i32>, start: i32) -> String {
-    let op: i32 = get_unchecked(b, start)
+    let op: i32 = b.get_unchecked(start)
     if op == DISASM_PREFIX_GC || op == DISASM_PREFIX_MISC || op == DISASM_PREFIX_SIMD || op == DISASM_PREFIX_ATOMIC {
         return opcode_text(op).concat("/").concat(text_u32(u32_at(b, start + 1)))
     }
@@ -1671,7 +1671,7 @@ fn u32_at(b: Vec<i32>, start: i32) -> i32 {
     let mut p: i32 = start
     let mut i: i32 = 0
     while i < 5 && p < b.len() {
-        let v: i32 = get_unchecked(b, p)
+        let v: i32 = b.get_unchecked(p)
         p = p + 1
         result = result | ((v & 0x7f) << shift)
         shift = shift + 7
@@ -1968,7 +1968,7 @@ fn emit_code_section(mut r: Rd, mut o: Out, func_types: Vec<i32>) {
         }
         let mut typeidx: i32 = 0
         if i < func_types.len() {
-            typeidx = get_unchecked(func_types, i)
+            typeidx = func_types.get_unchecked(i)
         }
         put(o, 1, "(func (type ".concat(text_u32(typeidx)).concat(")").concat(locals_text(r)))
         emit_body(r, o, body_end)
@@ -2009,16 +2009,16 @@ fn header_is_valid(b: Vec<i32>, n: i32) -> bool {
     if n < 8 {
         return false
     }
-    if get_unchecked(b, 0) != 0x00 || get_unchecked(b, 1) != 0x61 {
+    if b.get_unchecked(0) != 0x00 || b.get_unchecked(1) != 0x61 {
         return false
     }
-    if get_unchecked(b, 2) != 0x73 || get_unchecked(b, 3) != 0x6d {
+    if b.get_unchecked(2) != 0x73 || b.get_unchecked(3) != 0x6d {
         return false
     }
-    if get_unchecked(b, 4) != 0x01 || get_unchecked(b, 5) != 0x00 {
+    if b.get_unchecked(4) != 0x01 || b.get_unchecked(5) != 0x00 {
         return false
     }
-    if get_unchecked(b, 6) != 0x00 || get_unchecked(b, 7) != 0x00 {
+    if b.get_unchecked(6) != 0x00 || b.get_unchecked(7) != 0x00 {
         return false
     }
     return true

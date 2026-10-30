@@ -11,7 +11,7 @@ fn resolved_calls_from_check_result(check_result: TypeCheckResult) -> Vec<CoreHi
     let count = owners.len()
     let mut i = 0
     while i < count {
-        let owner = get_unchecked(owners, i)
+        let owner = owners.get_unchecked(i)
         calls.push(raw_dto::CoreHirResolvedCall_new(
                 contract_resolved_call::ResolvedCallOwner_decl_index(owner.clone()),
                 contract_resolved_call::ResolvedCallOwner_body_child_index(owner.clone()),

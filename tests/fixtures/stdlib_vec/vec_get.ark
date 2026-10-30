@@ -5,11 +5,11 @@ fn main() {
     v.push(10)
     v.push(20)
     v.push(30)
-    match get(v, 1) {
+    match v.get(1) {
         Option::Some(val) => Test::assert_eq_i32(val, 20),
         None => Std::panic("expected Some, got None"),
     }
-    match get(v, 5) {
+    match v.get(5) {
         Option::Some(val) => Std::panic("expected None, got Some"),
         None => {
         },

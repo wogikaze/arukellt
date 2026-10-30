@@ -2063,3 +2063,52 @@ classified there, in dependency-safe waves.
   validates and prints `3` on both targets; `stdlib_core/to_string_value_contexts.ark`
   (`run:` + `t3-run:`) covers int/float `to_string()` in print, assignment,
   call-argument, and match contexts.
+
+### Landed slice (wave/seq-fd-remain, 2026-10-30)
+
+- **Feasibility**: yes for the five vec intrinsic-compat frees and the
+  provisional `filter_i32`. The 2026-10-30 probes on the rebuilt s2 show
+  `v.get(idx)` / `v.get_unchecked(idx)` bind nested, function, struct, and
+  String element types; `v.as_slice(...)` + `view.len()` / `view.get(i)`
+  compile, validate, and run on wasm32-gc and `--target wasm32`.
+- **Landed**: `get`, `get_unchecked`, `as_slice`, `slice_len`, `slice_get`
+  manifest entries and `pub fn` declarations are deleted; `get` /
+  `get_unchecked` remain as private receiver-method signature anchors.
+  `filter_i32` retired onto `v.iter().filter(f).collect()`.
+- **Migration**: 1,424 free `get` / `get_unchecked` call sites across 177
+  files; the six `filter_i32` fixtures moved to the iterator pipeline; the
+  `ownership/adt_probe` slice calls moved to `values.as_slice(...)` /
+  `view.len()` / `view.get(0)`.
+- **E0100**: `resolver::removed_names` and `resolver::register_use` now name
+  the receiver methods, `lint::deprecated_table` drops the five W0009 rows,
+  and `resolver::prelude_stable` drops `get` / `get_unchecked`.
+- **Retained exception**: the three experimental `std::host::fs` fd frees are
+  exactly the ADR-092 §4 exception list. The eradication rule carries
+  `retained_exception = "ADR-092"` and the generated scorecard reports
+  `ADR retained exceptions (not must-delete) = 3`; they are not part of the
+  must-delete count.
+- **Scorecard**: eradication scope 13 -> **7** (`must delete` 6 -> **0**),
+  manifest public entries 13 -> **7**, `pub fn` declarations 13 -> 7,
+  `prelude_wrapper` 5 -> 4, monomorphic helpers 2 -> 1. The vec
+  intrinsic-compat rule and the monomorphic seq/combinator rule had no live
+  match and were removed from `docs/data/stdlib-api-eradication.toml`.
+- **Fixtures**: E0100 goldens on both targets for `get`, `slice_len`, and
+  `filter_i32`, plus `removed_as_slice_free`, `removed_slice_get_free`,
+  `removed_get_unchecked_free{,_wasm32}` / `_import`, and
+  `removed_vec_free_import`. New both-target run fixtures
+  `stdlib_vec/get_element_types`, `stdlib_vec/get_unchecked_element_types`,
+  and `stdlib_vec/slice_method_surface`; `ownership/adt_probe` joins the
+  `t3-run` (linear) set.
+- **Bootstrap**: the pinned compiler's method lowering still needs overlay-only
+  `get` / `get_unchecked` / `len` declarations; user programs see the retired
+  surface only. Delete the shims at the next pin refresh (ADR-029).
+- **Verification**: `verify fixtures` 1959/1959 compile+validate PASS (112
+  runtime smoke, 43/43 `test:`, 0 FAIL, 2 runtime-unsupported); `verify lane`
+  PASS; `docs check` 6/6; `selfhost diag-parity` 283/283 PASS; ADR-029
+  fixpoint PASS (s2 == s3 sha256
+  `7140d22dff39522f29b3a481019e2bb64744e27213113d5a2631a49651d4051d`, pinned
+  base `56ff0808…`). Changed `.ark` files were run through the formatter.
+- **Residuals**: `docs/sample/parser.ark` keeps its stale free `get` /
+  `get_unchecked` calls (the sample already fails current typechecking at
+  HEAD), matching the earlier `len` wave. The 7 remaining public symbols are
+  the ADR-091 stable-free exception (4) and the ADR-092 fd exception (3).

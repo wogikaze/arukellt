@@ -73,12 +73,12 @@ fn emit_type_section(
     let linear_gc_sig_count = if linear_gc_enabled { 8 } else { 0 }
     let p2_runtime_start = type_map.len() - 2 - linear_gc_sig_count - pair_sig_count
     let p2_realloc_type_idx = if emit_target::is_p2_wasi(wasi_version.clone()) {
-        get_unchecked(type_map, p2_runtime_start)
+        type_map.get_unchecked(p2_runtime_start)
     } else {
         0 - 1
     }
     let p2_initialize_type_idx = if emit_target::is_p2_wasi(wasi_version.clone()) {
-        get_unchecked(type_map, p2_runtime_start + 1)
+        type_map.get_unchecked(p2_runtime_start + 1)
     } else {
         0 - 1
     }
@@ -102,17 +102,17 @@ fn emit_type_section(
     let gc_enum_variant_type_map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(mir)
     let mut gc_struct_base = 0 - 1
     if gc_struct_count > 0 {
-        gc_struct_base = get_unchecked(gc_struct_type_map, 0)
+        gc_struct_base = gc_struct_type_map.get_unchecked(0)
     }
     let mut gc_enum_variant_base = 0 - 1
     if enum_variant_count > 0 {
-        gc_enum_variant_base = get_unchecked(gc_enum_variant_type_map, 0)
+        gc_enum_variant_base = gc_enum_variant_type_map.get_unchecked(0)
     }
     // Pair-call signatures occupy the last pair_sig_count type_map slots.
     let mut pair_call_type_map = Vec::new<i32>()
     let mut pci = type_map.len() - pair_sig_count
     while pci < type_map.len() {
-        pair_call_type_map.push(get_unchecked(type_map, pci))
+        pair_call_type_map.push(type_map.get_unchecked(pci))
         pci = pci + 1
     }
     let mut plan = sections_type_plan::build_type_section_plan(
@@ -172,7 +172,7 @@ fn build_linear_gc_type_map(
     let count = 8
     let mut i = 0
     while i < count {
-        linear_map.push(get_unchecked(type_map, start + i))
+        linear_map.push(type_map.get_unchecked(start + i))
         i = i + 1
     }
     linear_map
@@ -249,7 +249,7 @@ fn build_type_sigs(
     // same (env, args...) -> ret signature.
     let mut psi = 0
     while psi < pair_sigs.len() {
-        type_sigs.push(get_unchecked(pair_sigs, psi))
+        type_sigs.push(pair_sigs.get_unchecked(psi))
         psi = psi + 1
     }
     type_sigs
@@ -265,7 +265,7 @@ fn canonicalize_type_sigs(mut mir: MirModule, type_sigs: Vec<String>) -> TypeCan
     let ts_count = type_sigs.len()
     let mut tsi = 0
     while tsi < ts_count {
-        type_map.push(module_canon::MirModule_canon_ensure(mir, get_unchecked(type_sigs, tsi).clone()))
+        type_map.push(module_canon::MirModule_canon_ensure(mir, type_sigs.get_unchecked(tsi).clone()))
         tsi = tsi + 1
     }
     TypeCanonPlan_new(module_canon::MirModule_canon_sigs(mir), type_map)
@@ -273,7 +273,7 @@ fn canonicalize_type_sigs(mut mir: MirModule, type_sigs: Vec<String>) -> TypeCan
 
 fn first_gc_type_index(canon_types: Vec<String>) -> i32 {
     for i in 0..canon_types.len() {
-        let sig = get_unchecked(canon_types, i)
+        let sig = canon_types.get_unchecked(i)
         if sig.clone().byte_at(0) == 65 {
             return i
         }

@@ -4,12 +4,12 @@ fn main() {
     let mut items = Vec::new<Option<i32>>()
     items = items.push(Some(9))
     items = items.push(None)
-    let first: Option<i32> = get_unchecked(items, 0)
+    let first: Option<i32> = items.get_unchecked(0)
     match first {
         Option::Some(n) => { Stdio::println(n.to_string()) }
         None => { Stdio::println(String_from("none")) }
     }
-    let second: Option<i32> = get_unchecked(items, 1)
+    let second: Option<i32> = items.get_unchecked(1)
     match second {
         Option::Some(n) => { Stdio::println(n.to_string()) }
         None => { Stdio::println(String_from("none")) }

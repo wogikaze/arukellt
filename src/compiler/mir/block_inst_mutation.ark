@@ -22,7 +22,7 @@ fn mir_block_store_str(mut block: MirBlock, idx: i32, text: String, reuse: bool)
         return
     }
     if reuse {
-        let old_id = get_unchecked(block.str_ids, idx)
+        let old_id = block.str_ids.get_unchecked(idx)
         if old_id >= 0 && old_id < block.str_pool.len() {
             block.str_pool.set(old_id, text)
             return
@@ -50,7 +50,7 @@ fn mir_block_store_result_types(mut block: MirBlock, reuse: bool, result_types: 
         block.type_nulls.push(0)
         return
     }
-    let first = get_unchecked(result_types, 0)
+    let first = result_types.get_unchecked(0)
     let tid = type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(first))
     let repr = mir_value_type::mir_value_type_repr(first)
     let nulls = mir_value_type::mir_value_type_nullability(first)
@@ -82,7 +82,7 @@ fn mir_block_append_draft(mut block: MirBlock, inst: MirInstDraft) {
         block.arg0s.set(idx, arg0)
         block.arg1s.set(idx, arg1)
         block.int_vals.set(idx, int_val)
-        block_record::mir_float_box_set_value(get_unchecked(block.float_vals, idx), float_val)
+        block_record::mir_float_box_set_value(block.float_vals.get_unchecked(idx), float_val)
         block.val_types.set(idx, val_type)
         block.func_ids.set(idx, func_id)
     }
@@ -110,7 +110,7 @@ fn MirBlock_set_instructions(mut block: MirBlock, instructions: Vec<MirInstDraft
     let n = instructions.len()
     let mut i = 0
     while i < n {
-        mir_block_append_draft(block, get_unchecked(instructions, i))
+        mir_block_append_draft(block, instructions.get_unchecked(i))
         i = i + 1
     }
 }

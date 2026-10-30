@@ -7,7 +7,7 @@ fn mir_init_wit_bindings(mut ctx: LowerCtx, wit_paths: Vec<String>, decls: Vec<A
     let count = bindings.len()
     let mut i = 0
     while i < count {
-        let binding = get_unchecked(bindings, i)
+        let binding = bindings.get_unchecked(i)
         ctx.wit_call_names.push(wit_import_bind::wit_import_binding_qualified_name(binding))
         ctx.wit_call_iface_ids.push(wit_import_bind::wit_import_binding_interface_id(binding))
         ctx.wit_call_func_names.push(wit_import_bind::wit_import_binding_wit_func_name(binding))

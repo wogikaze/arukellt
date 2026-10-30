@@ -44,10 +44,7 @@ stable_functions = [
     "String_new",
     "char_to_string",
 ]
-intrinsic_compatibility_functions = [
-    "get",
-    "get_unchecked",
-]
+intrinsic_compatibility_functions = []
 
 # ─────────────────────────────────────────────
 # Prelude types (stable set auto-imported; other entries explicit-import only)
@@ -262,80 +259,6 @@ prelude = true
 stability = "stable"
 doc_category = "conversion"
 doc = "Encode a Unicode scalar as canonical UTF-8."
-
-[[functions]]
-name = "get"
-kind = "builtin"
-params = ["Vec<T>", "i32"]
-returns = "Option<T>"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Vec::get"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "get_unchecked"
-kind = "builtin"
-params = ["Vec<T>", "i32"]
-returns = "T"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Vec::get_unchecked"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-# NOTE: clear is in the prelude function registry but lacks a typechecker
-# function signature.
-[[functions]]
-name = "as_slice"
-kind = "builtin"
-params = ["Vec<T>", "i32", "i32"]
-returns = "Slice<T>"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Vec::as_slice"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "slice_len"
-kind = "builtin"
-params = ["Slice<T>"]
-returns = "i32"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Slice::len"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "slice_get"
-kind = "builtin"
-params = ["Slice<T>", "i32"]
-returns = "T"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Slice::get"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-# ── Vec higher-order (i32) — filter_i32 remains provisional ──
-
-[[functions]]
-name = "filter_i32"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_filter_i32"
-params = ["Vec<i32>", "fn(i32) -> bool"]
-returns = "Vec<i32>"
-prelude = true
-stability = "provisional"
-doc_category = "collections"
 
 # ── Assertions ───────────────────────────────
 

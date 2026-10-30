@@ -19,7 +19,7 @@ fn emit_struct_type_entry(mut type_sec: WasmWriter, sig: String, gc_type_base: i
     let field_sigs = struct_field_sigs(sig)
     writer_core::emit_leb128_u(type_sec, field_sigs.len())
     for fi in 0..field_sigs.len() {
-        emit_struct_field_type(type_sec, get_unchecked(field_sigs, fi), gc_type_base)
+        emit_struct_field_type(type_sec, field_sigs.get_unchecked(fi), gc_type_base)
     }
 }
 
@@ -76,7 +76,7 @@ fn emit_array_elem_type(mut type_sec: WasmWriter, elem_type: String, gc_type_bas
     if elem_type.clone().starts_with("gcsref") {
         let slot = parse_type_sig_int(elem_type.slice(6, elem_type.len()))
         if slot < gc_struct_type_map.len() {
-            let type_idx = get_unchecked(gc_struct_type_map, slot)
+            let type_idx = gc_struct_type_map.get_unchecked(slot)
             writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
             writer_core::emit_leb128_s(type_sec, type_idx)
             return
@@ -318,17 +318,17 @@ fn gc_module_emit_slots(mir: MirModule) -> Vec<i32> {
     i = 0
     let order = module_gc_order::MirModule_late_gc_order(mir)
     while i < order.len() {
-        let packed = get_unchecked(order, i)
+        let packed = order.get_unchecked(i)
         let slot = packed / 2
         if packed % 2 == 0 {
             if slot >= sealed_structs && slot < struct_total &&
-            get_unchecked(seen_struct, slot) == 0 {
+            seen_struct.get_unchecked(slot) == 0 {
                 seen_struct.set(slot, 1)
                 emit_slots.push(packed)
             }
         } else {
             if slot >= sealed_enums && slot < enum_total &&
-            get_unchecked(seen_enum, slot) == 0 {
+            seen_enum.get_unchecked(slot) == 0 {
                 seen_enum.set(slot, 1)
                 emit_slots.push(packed)
             }
@@ -337,14 +337,14 @@ fn gc_module_emit_slots(mir: MirModule) -> Vec<i32> {
     }
     i = sealed_structs
     while i < struct_total {
-        if get_unchecked(seen_struct, i) == 0 {
+        if seen_struct.get_unchecked(i) == 0 {
             emit_slots.push(i * 2)
         }
         i = i + 1
     }
     i = sealed_enums
     while i < enum_total {
-        if get_unchecked(seen_enum, i) == 0 {
+        if seen_enum.get_unchecked(i) == 0 {
             emit_slots.push(i * 2 + 1)
         }
         i = i + 1
@@ -356,7 +356,7 @@ fn append_module_gc_type_sigs(mut type_sigs: Vec<String>, mir: MirModule) {
     let emit_slots = gc_module_emit_slots(mir)
     let mut i = 0
     while i < emit_slots.len() {
-        let packed = get_unchecked(emit_slots, i)
+        let packed = emit_slots.get_unchecked(i)
         let slot = packed / 2
         if packed % 2 == 0 {
             let sig = module_gc_struct::MirModule_gc_struct_sig_at(mir, slot)

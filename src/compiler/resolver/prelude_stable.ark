@@ -9,8 +9,7 @@
 fn is_stable_prelude_name(name: String) -> bool {
     name.clone().eq("Std") || name.clone().eq("assert") ||
     name.clone().eq("String_from") || name.clone().eq("String_new") ||
-    name.clone().eq("char_to_string") ||
-    name.clone().eq("get") || name.clone().eq("get_unchecked")
+    name.clone().eq("char_to_string")
 }
 
 test mod "prelude_stable" {
@@ -25,7 +24,8 @@ test mod "prelude_stable" {
         assert(!is_stable_prelude_name("push"))
         assert(!is_stable_prelude_name("pop"))
         assert(!is_stable_prelude_name("set"))
-        assert(is_stable_prelude_name("get_unchecked"))
+        assert(!is_stable_prelude_name("get"))
+        assert(!is_stable_prelude_name("get_unchecked"))
     }
     test "legacy names are not stable" {
         assert(!is_stable_prelude_name("concat"))

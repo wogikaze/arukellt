@@ -140,13 +140,13 @@ fn merge_type_param_bounds(
     let impl_count = impl_bounds.len()
     let mut i = 0
     while i < impl_count {
-        merged.push(get_unchecked(impl_bounds, i))
+        merged.push(impl_bounds.get_unchecked(i))
         i = i + 1
     }
     let method_count = method_bounds.len()
     let mut j = 0
     while j < method_count {
-        let info = get_unchecked(method_bounds, j)
+        let info = method_bounds.get_unchecked(j)
         if !string_vec_contains(
             impl_params.clone(),
             contract_type_param_bounds::TypeParamBounds_name(info)
@@ -162,7 +162,7 @@ fn string_vec_contains(names: Vec<String>, name: String) -> bool {
     let count = names.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(names, i).eq(name.clone()) {
+        if names.get_unchecked(i).eq(name.clone()) {
             return true
         }
         i = i + 1
@@ -178,11 +178,11 @@ fn merge_type_params(impl_params: Vec<String>, method_params: Vec<String>) -> Ve
     let method_count = method_params.len()
     let mut k = 0
     while k < method_count {
-        let mp = get_unchecked(method_params, k).clone()
+        let mp = method_params.get_unchecked(k).clone()
         let mut found = false
         let mut j = 0
         while j < impl_count {
-            if get_unchecked(impl_params, j).clone().eq(mp.clone()) {
+            if impl_params.get_unchecked(j).clone().eq(mp.clone()) {
                 found = true
             }
             j = j + 1

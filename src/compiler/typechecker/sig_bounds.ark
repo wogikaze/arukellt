@@ -7,7 +7,7 @@ fn collect_type_param_bounds(type_ann: Vec<AstNode>) -> Vec<TypeParamBounds> {
     let ann_count = type_ann.len()
     let mut i = 0
     while i < ann_count {
-        let ann = get_unchecked(type_ann, i)
+        let ann = type_ann.get_unchecked(i)
         if ast_access::node_kind_is(ann, kinds::NK_PROOF_CONTRACT()) {
             i = i + 1
             continue
@@ -34,7 +34,7 @@ fn collect_type_param_names(bound_infos: Vec<TypeParamBounds>) -> Vec<String> {
     let count = bound_infos.len()
     let mut i = 0
     while i < count {
-        let info = get_unchecked(bound_infos, i)
+        let info = bound_infos.get_unchecked(i)
         names.push(contract_type_param_bounds::TypeParamBounds_name(info))
         i = i + 1
     }

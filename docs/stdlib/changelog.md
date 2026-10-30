@@ -16,6 +16,57 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-30 — vec intrinsic-compat / provisional seq free の退役と ADR-092 例外の記録 (ADR-046, ADR-087, ADR-091, ADR-092, #917, wave/seq-fd-remain)
+
+- **Removed**: prelude の vec intrinsic-compat free
+  `get(v, i)` / `get_unchecked(v, i)` / `as_slice(v, s, e)` / `slice_len(view)` /
+  `slice_get(view, i)` と、provisional の `filter_i32(v, f)`。manifest entry と
+  `std/prelude.ark` の `pub fn` 宣言を削除した。bare call と明示 import
+  （`use std::prelude::{get}` など）は **E0100** と receiver method hint
+  （`v.get(i)` / `v.get_unchecked(i)` / `v.as_slice(s, e)` / `view.len()` /
+  `view.get(i)`、`filter_i32` は `v.iter().filter(f).collect()`）で失敗する。
+  `get` / `get_unchecked` の宣言は private の receiver-method signature anchor
+  として残し、nested / struct / String element の型束縛を維持する。
+- **Migration**: compiler / std / fixtures / benchmarks の free `get` /
+  `get_unchecked` 呼び出し 1,424 箇所を receiver method へ移行した（177 files）。
+  `filter_i32` の 6 fixture は `use std::core::iter` +
+  `v.iter().filter(f).collect()` へ移行した。Slice の in-tree 呼び出しは
+  `ownership/adt_probe` だけで、`values.as_slice(...)` / `view.len()` /
+  `view.get(0)` へ移した。
+- **Retained exception**: `std::host::fs` の experimental `fd_seek` /
+  `fd_tell` / `fd_fdstat_errno` は [ADR-092](../adr/ADR-092-host-core-namespace-free-exception.md)
+  §4 の exact exception list として据え置く。`wasm32` / WASI P1 専用で
+  wasm32-gc parity fixture を持たないため、`Fs` へ移すと primary target で
+  lower しない surface を約束することになる。eradication data の
+  `retained_exception = "ADR-092"` と生成 scorecard の
+  `ADR retained exceptions` 行で must-delete と区別する。
+- **Scorecard**: 13 -> **7** public free symbols、`must delete` 6 -> **0**、
+  manifest public entries 13 -> **7**、`pub fn` declarations 13 -> 7、
+  `prelude_wrapper` entries 5 -> 4、monomorphic helpers 2 -> 1。
+  vec intrinsic-compat rule と monomorphic seq/combinator rule は
+  どちらも live match がなくなったため削除した。
+- **Diagnostics / fixtures**: `resolver::removed_names` と
+  `resolver::register_use` に E0100 hint を追加し、`lint::deprecated_table`
+  から 5 つの W0009 行を削除した。E0100 goldens
+  `diagnostics/removed_vec_get_free{,_wasm32}`（旧 `deprecated_vec_intrinsic*`）、
+  `removed_get_unchecked_free{,_wasm32}`、`removed_get_unchecked_import`、
+  `removed_slice_len_free{,_wasm32}`、`removed_as_slice_free`、
+  `removed_slice_get_free`、`removed_filter_i32_free{,_wasm32}`、
+  `removed_vec_free_import` を登録した。run fixture
+  `stdlib_vec/get_element_types` / `stdlib_vec/get_unchecked_element_types` /
+  `stdlib_vec/slice_method_surface` は wasm32-gc と `--target wasm32` の
+  両方で compile + run し、`ownership/adt_probe` も両 target で実行する。
+- **Bootstrap**: pinned compiler の method lowering は bare `get` を経由する
+  ため、flat overlay の prelude に overlay-only の `get` 宣言
+  （`BOOTSTRAP_PRELUDE_GET_SHIM`）を追加した。user program は退役後の
+  surface（E0100 + receiver method）だけを見る。pin 更新時に削除する。
+- **Gates**: `verify fixtures` 1959/1959 compile+validate PASS（112 runtime
+  smoke、43/43 test、0 FAIL、2 runtime-unsupported）、`verify lane` PASS、
+  `docs check` 6/6、`selfhost diag-parity` 283/283 PASS、ADR-029 fixpoint
+  PASS（s2 == s3 sha256
+  `7140d22dff39522f29b3a481019e2bb64744e27213113d5a2631a49651d4051d`、
+  pinned base `56ff0808…`）。
+
 ## 2026-10-30 — prelude free `push` / `pop` / `set` の退役 (ADR-046, ADR-087, ADR-088, #917, wave/vec-push-pop-set)
 
 - **Removed**: prelude の free `push(v, x)` / `pop(v)` / `set(v, i, x)`。

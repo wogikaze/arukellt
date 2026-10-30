@@ -121,15 +121,15 @@ pub fn probe_string_replace() -> bool {
 
 pub fn probe_string_split() -> bool {
     let parts = "a--b--".split("--")
-    parts.len() == 3 && get_unchecked(parts, 0).len() == 1 && get_unchecked(parts, 2).len() == 0
+    parts.len() == 3 && parts.get_unchecked(0).len() == 1 && parts.get_unchecked(2).len() == 0
 }
 
 pub fn probe_string_lines() -> bool {
     let parts = "a\r\nb\n".lines()
     parts.len() == 3 &&
-    get_unchecked(parts, 0).len() == 1 &&
-    get_unchecked(parts, 1).char_at(0) == 98 &&
-    get_unchecked(parts, 2).len() == 0
+    parts.get_unchecked(0).len() == 1 &&
+    parts.get_unchecked(1).char_at(0) == 98 &&
+    parts.get_unchecked(2).len() == 0
 }
 
 pub fn probe_string_storage_ops() -> bool {
@@ -143,8 +143,8 @@ pub fn probe_string_storage_ops() -> bool {
     copied.len_bytes() == 2 &&
     text.eq(copied) &&
     chars.len() == 2 &&
-    get_unchecked(chars, 0).char_at(0) == 79 &&
-    get_unchecked(chars, 1).char_at(0) == 75
+    chars.get_unchecked(0).char_at(0) == 79 &&
+    chars.get_unchecked(1).char_at(0) == 75
 }
 
 pub fn probe_scalar_format_ops() -> bool {
@@ -174,7 +174,7 @@ pub fn probe_vec_read_ops() -> bool {
     values.push(7)
     values.set(0, 9)
     values = values.iter().rev().collect()
-    values.len() == 2 && !values.is_empty() && get_unchecked(values, 0) == 7 && get_unchecked(values, 1) == 9
+    values.len() == 2 && !values.is_empty() && values.get_unchecked(0) == 7 && values.get_unchecked(1) == 9
 }
 
 pub fn probe_vec_string_mutation() -> bool {
@@ -188,8 +188,8 @@ pub fn probe_vec_string_mutation() -> bool {
         reverse_lo = reverse_lo + 1
         reverse_hi = reverse_hi - 1
     }
-    let first = get_unchecked(values, 0)
-    let second = get_unchecked(values, 1)
+    let first = values.get_unchecked(0)
+    let second = values.get_unchecked(1)
     first.len() == 5 &&
     first.char_at(0) == 114 &&
     second.len() == 4 &&
@@ -232,7 +232,7 @@ pub fn probe_seq_sort_i32() -> bool {
     i32_values.push(2)
     i32_values.push(4)
     i32_values.sort_by(ascending)
-    get_unchecked(i32_values, 0) == 2 && get_unchecked(i32_values, 2) == 7
+    i32_values.get_unchecked(0) == 2 && i32_values.get_unchecked(2) == 7
 }
 
 pub fn probe_format_bool_ops() -> bool {
@@ -292,7 +292,7 @@ pub fn probe_sort_i64_ops() -> bool {
     values.push(10_i64)
     values.push(20_i64)
     values.sort()
-    values.len() == 3 && get_unchecked(values, 0) == 10_i64 && get_unchecked(values, 1) == 20_i64 && get_unchecked(values, 2) == 30_i64
+    values.len() == 3 && values.get_unchecked(0) == 10_i64 && values.get_unchecked(1) == 20_i64 && values.get_unchecked(2) == 30_i64
 }
 
 pub fn probe_sort_f64_ops() -> bool {
@@ -302,16 +302,16 @@ pub fn probe_sort_f64_ops() -> bool {
     values.push(2.0)
     let mut sort_index = 1
     while sort_index < values.len() {
-        let sort_value = get_unchecked(values, sort_index)
+        let sort_value = values.get_unchecked(sort_index)
         let mut sort_slot = sort_index
-        while sort_slot > 0 && get_unchecked(values, sort_slot - 1) > sort_value {
-            values.set(sort_slot, get_unchecked(values, sort_slot - 1))
+        while sort_slot > 0 && values.get_unchecked(sort_slot - 1) > sort_value {
+            values.set(sort_slot, values.get_unchecked(sort_slot - 1))
             sort_slot = sort_slot - 1
         }
         values.set(sort_slot, sort_value)
         sort_index = sort_index + 1
     }
-    values.len() == 3 && get_unchecked(values, 0) == 1.0 && get_unchecked(values, 1) == 2.0 && get_unchecked(values, 2) == 3.0
+    values.len() == 3 && values.get_unchecked(0) == 1.0 && values.get_unchecked(1) == 2.0 && values.get_unchecked(2) == 3.0
 }
 
 pub fn probe_remove_i32_ops() -> bool {
@@ -320,7 +320,7 @@ pub fn probe_remove_i32_ops() -> bool {
     values.push(2)
     values.push(3)
     values.drain(1, 2)
-    values.len() == 2 && get_unchecked(values, 0) == 1 && get_unchecked(values, 1) == 3
+    values.len() == 2 && values.get_unchecked(0) == 1 && values.get_unchecked(1) == 3
 }
 
 pub fn probe_vec_generic_mutation_ops() -> bool {
@@ -331,8 +331,8 @@ pub fn probe_vec_generic_mutation_ops() -> bool {
     let n = values.len()
     !values.is_empty() &&
     n == 2 &&
-    get_unchecked(values, 0) == 9 &&
-    get_unchecked(values, 1) == 5
+    values.get_unchecked(0) == 9 &&
+    values.get_unchecked(1) == 5
 }
 
 pub fn probe_vec_typed_push_get_ops() -> bool {
@@ -343,11 +343,11 @@ pub fn probe_vec_typed_push_get_ops() -> bool {
     f64s.push(1.5)
     f64s.push(2.5)
     i64s.len() == 2 &&
-    get_unchecked(i64s, 0) == 7_i64 &&
-    get_unchecked(i64s, 1) == 8_i64 &&
+    i64s.get_unchecked(0) == 7_i64 &&
+    i64s.get_unchecked(1) == 8_i64 &&
     f64s.len() == 2 &&
-    get_unchecked(f64s, 0) == 1.5 &&
-    get_unchecked(f64s, 1) == 2.5
+    f64s.get_unchecked(0) == 1.5 &&
+    f64s.get_unchecked(1) == 2.5
 }
 
 pub fn probe_vec_push_pop_get_ops() -> bool {
@@ -355,11 +355,11 @@ pub fn probe_vec_push_pop_get_ops() -> bool {
     values.push(1)
     values.push(2)
     values.push(3)
-    let mid = match get(values, 1) {
+    let mid = match values.get(1) {
         Some(n) => n == 2,
         None => false,
     }
-    let missing = match get(values, 9) {
+    let missing = match values.get(9) {
         Some(_) => false,
         None => true,
     }
@@ -367,7 +367,7 @@ pub fn probe_vec_push_pop_get_ops() -> bool {
         Some(n) => n == 3,
         None => false,
     }
-    mid && missing && popped && values.len() == 2 && get_unchecked(values, 0) == 1 && get_unchecked(values, 1) == 2
+    mid && missing && popped && values.len() == 2 && values.get_unchecked(0) == 1 && values.get_unchecked(1) == 2
 }
 
 pub fn probe_vec_new_capacity_ops() -> bool {
@@ -377,9 +377,9 @@ pub fn probe_vec_new_capacity_ops() -> bool {
     a.push(10)
     b.push(20)
     c.push(30_i64)
-    a.len() == 1 && get_unchecked(a, 0) == 10 &&
-    b.len() == 1 && get_unchecked(b, 0) == 20 &&
-    c.len() == 1 && get_unchecked(c, 0) == 30_i64
+    a.len() == 1 && a.get_unchecked(0) == 10 &&
+    b.len() == 1 && b.get_unchecked(0) == 20 &&
+    c.len() == 1 && c.get_unchecked(0) == 30_i64
 }
 
 pub fn probe_parse_ops() -> bool {

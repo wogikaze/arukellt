@@ -38,12 +38,12 @@ fn set_linear_enum_type(mut ctx: LowerCtx, dest: i32, variant_name: String) {
 
 fn lower_gc_payload_variant_from_locals(mut ctx: LowerCtx, tag: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, variant_name: String) -> i32 {
     let type_slot = if payload_vts.len() > 0 {
-        let first_local = get_unchecked(payload_locals, 0)
+        let first_local = payload_locals.get_unchecked(0)
         let payload_type_name = ctx_mono_type_params::ctx_resolve_mono_type_name(
             ctx,
             ctx_api_local_types::ctx_get_local_type(ctx, first_local)
         )
-        let first_vt = get_unchecked(payload_vts, 0)
+        let first_vt = payload_vts.get_unchecked(0)
         let typed_name = gc_payload_typed_variant_name(ctx, first_local, payload_type_name.clone(), variant_name.clone(), first_vt)
         if typed_name.len() > 0 {
             let effective_vts = gc_payload_vts_with_first(payload_vts, gc_payload_promote_vt(ctx, first_local, first_vt, typed_name.clone()))
@@ -342,7 +342,7 @@ fn gc_payload_vts_with_first(payload_vts: Vec<i32>, first_vt: i32) -> Vec<i32> {
     result.push(first_vt)
     let mut i = 1
     while i < payload_vts.len() {
-        result.push(get_unchecked(payload_vts, i))
+        result.push(payload_vts.get_unchecked(i))
         i = i + 1
     }
     result
@@ -363,8 +363,8 @@ fn emit_gc_variant_payload_fields(mut ctx: LowerCtx, dest: i32, type_slot: i32, 
     let mut fi = 0
     let child_count = payload_locals.len()
     while fi < child_count {
-        let mut field_local = get_unchecked(payload_locals, fi)
-        let field_vt = get_unchecked(payload_vts, fi)
+        let mut field_local = payload_locals.get_unchecked(fi)
+        let field_vt = payload_vts.get_unchecked(fi)
         let mut set_vt = value_types::VT_VOID()
         let mut needs_i64_widen = false
         if field_vt == value_types::VT_I32() {

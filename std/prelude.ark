@@ -29,8 +29,10 @@
 //     Std::panic  (associated control operation)
 //     String_from, String_new
 //     char_to_string  (essential conversion)
-//     plus push, pop, get, set, get_unchecked
-//       (`len` is a receiver method only: `s.len()` / `v.len()`)
+//
+// Vec / String collection operations are receiver methods only. Private
+// generic declarations below stay as signature anchors for the checker; they
+// are not auto-imported and bare calls fail with E0100 hints.
 //
 // ## Legacy / explicit-import section
 //
@@ -44,9 +46,9 @@
 // `v.iter().filter(f).collect()`, `v.iter().fold(init, f)`, `v.iter().sum()`,
 // `v.iter().any(f)`, `v.iter().find(f)`, `v.iter().contains(x)`,
 // `v.iter().rev().collect()`, and `v.drain(i, i + 1)`; Option::map lives in
-// `std::core::container`. `filter_i32` remains provisional (individual
-// deferral). Vec constructors (`Vec_new_*`) were removed in #845; use
-// `Vec::new<T>()`.
+// `std::core::container`. The provisional `filter_i32` retired on 2026-10-30
+// (`v.iter().filter(f).collect()`); bare calls fail E0100. Vec constructors
+// (`Vec_new_*`) were removed in #845; use `Vec::new<T>()`.
 //
 // Design ADR:    docs/adr/ADR-036-trait-stdlib-redesign.md
 // Prelude design: docs/stdlib/prelude.md
@@ -181,34 +183,31 @@ impl Std {
 // =============================================================================
 // Legacy compatibility bodies. The remaining private `__core_*` functions are
 // core-op fallbacks; their public prelude wrappers were deleted in the
-// ADR-087 Wave 2. `filter_i32` is the one still-public provisional entry.
+// ADR-087 Wave 2. The vec intrinsic-compat frees and `filter_i32` retired on
+// 2026-10-30; no public compatibility free remains.
 // =============================================================================
 // Core-op fallback for seq.sort_i32 (public wrapper deleted in ADR-087 Wave 2).
 fn __core_seq_sort_i32_impl(mut v: Vec<i32>) {
     let mut index = 1
     while index < v.len() {
-        let value = get_unchecked(v, index)
+        let value = v.get_unchecked(index)
         let mut insertion = index
-        while insertion > 0 && get_unchecked(v, insertion - 1) > value {
-            v.set(insertion, get_unchecked(v, insertion - 1))
+        while insertion > 0 && v.get_unchecked(insertion - 1) > value {
+            v.set(insertion, v.get_unchecked(insertion - 1))
             insertion = insertion - 1
         }
         v.set(insertion, value)
         index = index + 1
     }
 }
-// Provisional individual deferral (#703): the eager i32 filter stays callable.
-pub fn filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32> {
-    __intrinsic_filter_i32(v, f)
-}
 // Core-op fallback for seq.sort_i64 (public wrapper deleted in ADR-087 Wave 2).
 fn __core_seq_sort_i64_impl(mut v: Vec<i64>) {
     let mut index = 1
     while index < v.len() {
-        let value = get_unchecked(v, index)
+        let value = v.get_unchecked(index)
         let mut insertion = index
-        while insertion > 0 && get_unchecked(v, insertion - 1) > value {
-            v.set(insertion, get_unchecked(v, insertion - 1))
+        while insertion > 0 && v.get_unchecked(insertion - 1) > value {
+            v.set(insertion, v.get_unchecked(insertion - 1))
             insertion = insertion - 1
         }
         v.set(insertion, value)
@@ -219,10 +218,10 @@ fn __core_seq_sort_i64_impl(mut v: Vec<i64>) {
 fn __core_seq_sort_f64_impl(mut v: Vec<f64>) {
     let mut index = 1
     while index < v.len() {
-        let value = get_unchecked(v, index)
+        let value = v.get_unchecked(index)
         let mut insertion = index
-        while insertion > 0 && get_unchecked(v, insertion - 1) > value {
-            v.set(insertion, get_unchecked(v, insertion - 1))
+        while insertion > 0 && v.get_unchecked(insertion - 1) > value {
+            v.set(insertion, v.get_unchecked(insertion - 1))
             insertion = insertion - 1
         }
         v.set(insertion, value)
@@ -338,8 +337,8 @@ fn __core_vec_reverse_string_impl(mut v: Vec<String>) {
     let mut lo: i32 = 0
     let mut hi: i32 = n - 1
     while lo < hi {
-        let tmp: String = get_unchecked(v, lo)
-        v.set(lo, get_unchecked(v, hi))
+        let tmp: String = v.get_unchecked(lo)
+        v.set(lo, v.get_unchecked(hi))
         v.set(hi, tmp)
         lo = lo + 1
         hi = hi - 1
@@ -360,7 +359,7 @@ fn __core_seq_sum_i32_impl(v: Vec<i32>) -> i32 {
     let mut total: i32 = 0
     let mut i: i32 = 0
     while i < v.len() {
-        total = total + get_unchecked(v, i)
+        total = total + v.get_unchecked(i)
         i = i + 1
     }
     total
@@ -369,7 +368,7 @@ fn __core_seq_product_i32_impl(v: Vec<i32>) -> i32 {
     let mut total: i32 = 1
     let mut i: i32 = 0
     while i < v.len() {
-        total = total * get_unchecked(v, i)
+        total = total * v.get_unchecked(i)
         i = i + 1
     }
     total
@@ -401,14 +400,18 @@ fn push<T>(mut v: Vec<T>, val: T) {
     raw_array_set_unchecked(grown, count, val)
 }
 
-pub fn get<T>(v: Vec<T>, idx: i32) -> Option<T> {
+// Receiver-method signature anchors (#936): the typechecker binds
+// `v.get(idx)` / `v.get_unchecked(idx)` from these generic declarations for
+// String / struct / nested element types. They stay private so the retired
+// free names cannot be called or imported; E0100 points at the methods.
+fn get<T>(v: Vec<T>, idx: i32) -> Option<T> {
     if idx < 0 || idx >= raw_array_len(v) {
         return None
     }
     Some(raw_array_get_unchecked(v, idx))
 }
 
-pub fn get_unchecked<T>(v: Vec<T>, idx: i32) -> T {
+fn get_unchecked<T>(v: Vec<T>, idx: i32) -> T {
     return v[idx]
 }
 
@@ -509,24 +512,9 @@ fn __prelude_unwrap_panic(message: String) -> i32 {
 // A slice retains the source collection and a bounded range. The collection
 // reference is shared by the backend representation; the source binding is
 // not consumed at this language boundary.
-pub fn as_slice<T>(source: Vec<T>, start: i32, end: i32) -> Slice<T> {
-    Slice::View(source, start, end)
-}
-
-pub fn slice_len<T>(view: Slice<T>) -> i32 {
-    match view {
-        Slice::View(_, start, end) => end - start,
-    }
-}
-
-pub fn slice_get<T>(view: Slice<T>, index: i32) -> T {
-    match view {
-        Slice::View(source, start, _) => get_unchecked(source, start + index),
-    }
-}
-
-// Receiver methods for the slice view. The free helpers above remain the
-// deprecated compatibility spelling until the slice family is retired.
+//
+// `Vec::as_slice` and the `Slice` receiver methods are the only public
+// spelling: the former frees were retired with E0100 hints.
 impl<T> Slice<T> {
     /// Returns the number of elements covered by this view.
     fn len(self: Slice<T>) -> i32 {
@@ -538,7 +526,7 @@ impl<T> Slice<T> {
     /// Returns the element at `index` within this view.
     fn get(self: Slice<T>, index: i32) -> T {
         match self {
-            Slice::View(source, start, _) => get_unchecked(source, start + index),
+            Slice::View(source, start, _) => source.get_unchecked(start + index),
         }
     }
 }

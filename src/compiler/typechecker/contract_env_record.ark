@@ -119,7 +119,7 @@ fn type_env_mark_binding_used(mut env: TypeEnv, name: String) {
     let count = env.tracked_binding_names.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(env.tracked_binding_names, i).eq(name.clone()) {
+        if env.tracked_binding_names.get_unchecked(i).eq(name.clone()) {
             env.tracked_binding_used.set(i, 1)
             return
         }
@@ -147,8 +147,8 @@ fn type_env_const_type(env: TypeEnv, name: String) -> TypeInfo {
     let count = env.const_names.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(env.const_names, i).eq(name.clone()) {
-            return get_unchecked(env.const_types, i)
+        if env.const_names.get_unchecked(i).eq(name.clone()) {
+            return env.const_types.get_unchecked(i)
         }
         i = i + 1
     }
@@ -159,7 +159,7 @@ fn type_env_is_const_name(env: TypeEnv, name: String) -> bool {
     let count = env.const_names.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(env.const_names, i).eq(name.clone()) {
+        if env.const_names.get_unchecked(i).eq(name.clone()) {
             return true
         }
         i = i + 1
@@ -171,10 +171,10 @@ fn type_env_finalize_unused_bindings(mut env: TypeEnv) {
     let count = env.tracked_binding_names.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(env.tracked_binding_used, i) == 0 {
-            let name = get_unchecked(env.tracked_binding_names, i).clone()
-            let span_start = get_unchecked(env.tracked_binding_spans_start, i)
-            let span_end = get_unchecked(env.tracked_binding_spans_end, i)
+        if env.tracked_binding_used.get_unchecked(i) == 0 {
+            let name = env.tracked_binding_names.get_unchecked(i).clone()
+            let span_start = env.tracked_binding_spans_start.get_unchecked(i)
+            let span_end = env.tracked_binding_spans_end.get_unchecked(i)
             let msg = "unused binding `".concat(name.concat("`"))
             let span = record::DiagnosticSpan_from_raw(span_start, span_end)
             let warn = diag_mod::Diagnostic_new(codes::DIAG_WARN_UNUSED_BINDING(), diag_mod::SEV_WARNING(), span, msg)

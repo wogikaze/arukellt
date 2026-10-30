@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined name: filter_i32; removed free function; use `v.iter().filter(f).collect()` via `use std::core::iter`

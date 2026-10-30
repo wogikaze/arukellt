@@ -586,6 +586,23 @@ pub fn get_unchecked<T>(v: Vec<T>, idx: i32) -> T {
 }
 """
 
+# The checked-in prelude also retired the `get` free. The pin lowers the
+# `v.get(idx)` receiver method through the bare free name, so the flat overlay
+# keeps this declaration for the compiler's own source. It bodies the same
+# checked bounds logic as the private anchor; user programs see only the E0100
+# hint plus `v.get(idx)`. Delete it when the pin refreshes past that method
+# lowering.
+BOOTSTRAP_PRELUDE_GET_SHIM = """
+// Bootstrap-only compatibility declaration for the pinned compiler's
+// `.get()` lowering; the checked-in prelude retires the free.
+pub fn get<T>(v: Vec<T>, idx: i32) -> Option<T> {
+    if idx < 0 || idx >= raw_array_len(v) {
+        return None
+    }
+    Some(raw_array_get_unchecked(v, idx))
+}
+"""
+
 CLI_HELP_GOLDEN_REL = "tests/snapshots/selfhost/cli-help.txt"
 
 # Per-module AST parse cache directory (relative to root).
@@ -4792,6 +4809,7 @@ def _prepare_flattened_selfhost_source_locked(
         )
         prelude_text = prelude_text.rstrip() + "\n" + BOOTSTRAP_PRELUDE_LEN_SHIM
         prelude_text = prelude_text.rstrip() + "\n" + BOOTSTRAP_PRELUDE_GET_UNCHECKED_SHIM
+        prelude_text = prelude_text.rstrip() + "\n" + BOOTSTRAP_PRELUDE_GET_SHIM
         (std_dst / "prelude.ark").write_text(prelude_text, encoding="utf-8")
     # Copy std/toml.ark (top-level scanner file without pub enum) so the
     # compiler's toml helpers are not stubbed.  This file has no `use`

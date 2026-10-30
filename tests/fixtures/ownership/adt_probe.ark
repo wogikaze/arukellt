@@ -1,5 +1,6 @@
 use std::host::stdio::Stdio
-use std::prelude::{Box, as_slice, slice_get, slice_len}
+use std::prelude::{Box}
+use std::collections::vec
 
 fn main() {
     let boxed: Box<i32> = Box::new(42)
@@ -9,13 +10,13 @@ fn main() {
 
     let mut values: Vec<i32> = Vec::new<i32>()
     values.push(7)
-    let view = as_slice(values, 0, 1)
-    Stdio::println((slice_len(view)).to_string())
+    let view = values.as_slice(0, 1)
+    Stdio::println((view.len()).to_string())
     Stdio::println((values.len()).to_string())
 
     let mut values_again: Vec<i32> = Vec::new<i32>()
     values_again.push(8)
-    let view_again = as_slice(values_again, 0, 1)
-    let viewed = slice_get(view_again, 0)
+    let view_again = values_again.as_slice(0, 1)
+    let viewed = view_again.get(0)
     Stdio::println(viewed.to_string())
 }

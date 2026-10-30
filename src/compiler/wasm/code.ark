@@ -188,14 +188,14 @@ fn code_configure_linear_gc_writer(
 fn code_apply_pending_relocs(mut ctx: SelfEmitCtx, wit_import_count: i32) {
     let mut i = ctx.reloc_func.len() - 1
     while i >= 0 {
-        let fi = get_unchecked(ctx.reloc_func, i)
-        let off = get_unchecked(ctx.reloc_off, i)
-        let kind = get_unchecked(ctx.reloc_kind, i)
-        let ikey = get_unchecked(ctx.reloc_ikey, i)
-        let ikey2 = get_unchecked(ctx.reloc_ikey2, i)
-        let ikey3 = get_unchecked(ctx.reloc_ikey3, i)
-        let skey = get_unchecked(ctx.reloc_skey, i).clone()
-        let skey2 = get_unchecked(ctx.reloc_skey2, i).clone()
+        let fi = ctx.reloc_func.get_unchecked(i)
+        let off = ctx.reloc_off.get_unchecked(i)
+        let kind = ctx.reloc_kind.get_unchecked(i)
+        let ikey = ctx.reloc_ikey.get_unchecked(i)
+        let ikey2 = ctx.reloc_ikey2.get_unchecked(i)
+        let ikey3 = ctx.reloc_ikey3.get_unchecked(i)
+        let skey = ctx.reloc_skey.get_unchecked(i).clone()
+        let skey2 = ctx.reloc_skey2.get_unchecked(i).clone()
         let mut value = 0 - 1
         if kind == ctx_reloc::RELOC_KIND_STR_TRUE() {
             value = ctx_string_view::SelfEmitCtx_true_string_offset(ctx)
@@ -221,7 +221,7 @@ fn code_apply_pending_relocs(mut ctx: SelfEmitCtx, wit_import_count: i32) {
             Stdio::eprintln("compiler ICE: unresolved body reloc")
             Process::exit(1)
         }
-        let body = get_unchecked(ctx.body_bytes, fi)
+        let body = ctx.body_bytes.get_unchecked(fi)
         if ctx_reloc::reloc_kind_is_sleb(kind) {
             ctx.body_bytes.set(fi, ctx_reloc::reloc_splice_i32(body, off, value))
         } else {
@@ -249,7 +249,7 @@ fn resolve_ref_func_reloc(ctx: SelfEmitCtx, fn_name: String, wit_import_count: i
     let mut mir_fn_idx = 0 - 1
     let mut i = 0
     while i < fn_count {
-        if function_identity::MirFunction_name(get_unchecked(functions, i)).eq(fn_name.clone()) {
+        if function_identity::MirFunction_name(functions.get_unchecked(i)).eq(fn_name.clone()) {
             mir_fn_idx = i
         }
         i = i + 1
@@ -290,8 +290,8 @@ fn emit_ctx_adopt_inloop_artifacts(mut ctx: SelfEmitCtx, art: MirEmitArtifacts) 
         let mut bodies = Vec::new<Vec<i32>>()
         let mut oi = 0
         while oi < map.len() {
-            if get_unchecked(map, oi) >= 0 {
-                bodies.push(get_unchecked(art.body_bytes, oi))
+            if map.get_unchecked(oi) >= 0 {
+                bodies.push(art.body_bytes.get_unchecked(oi))
             }
             oi = oi + 1
         }
@@ -306,16 +306,16 @@ fn emit_ctx_adopt_inloop_artifacts(mut ctx: SelfEmitCtx, art: MirEmitArtifacts) 
         let mut rs2 = Vec::new<String>()
         let mut ri = 0
         while ri < art.reloc_func.len() {
-            let mapped = get_unchecked(map, get_unchecked(art.reloc_func, ri))
+            let mapped = map.get_unchecked(art.reloc_func.get_unchecked(ri))
             if mapped >= 0 {
                 rfunc.push(mapped)
-                roff.push(get_unchecked(art.reloc_off, ri))
-                rkind.push(get_unchecked(art.reloc_kind, ri))
-                ri1.push(get_unchecked(art.reloc_ikey, ri))
-                ri2.push(get_unchecked(art.reloc_ikey2, ri))
-                ri3.push(get_unchecked(art.reloc_ikey3, ri))
-                rs1.push(get_unchecked(art.reloc_skey, ri).clone())
-                rs2.push(get_unchecked(art.reloc_skey2, ri).clone())
+                roff.push(art.reloc_off.get_unchecked(ri))
+                rkind.push(art.reloc_kind.get_unchecked(ri))
+                ri1.push(art.reloc_ikey.get_unchecked(ri))
+                ri2.push(art.reloc_ikey2.get_unchecked(ri))
+                ri3.push(art.reloc_ikey3.get_unchecked(ri))
+                rs1.push(art.reloc_skey.get_unchecked(ri).clone())
+                rs2.push(art.reloc_skey2.get_unchecked(ri).clone())
             }
             ri = ri + 1
         }
@@ -333,12 +333,12 @@ fn emit_ctx_adopt_inloop_artifacts(mut ctx: SelfEmitCtx, art: MirEmitArtifacts) 
         let mut cnames = Vec::new<String>()
         let mut cii = 0
         while cii < art.call_reloc_funcs.len() {
-            let mapped = get_unchecked(map, get_unchecked(art.call_reloc_funcs, cii))
+            let mapped = map.get_unchecked(art.call_reloc_funcs.get_unchecked(cii))
             if mapped >= 0 {
-                coffs.push(get_unchecked(art.call_reloc_offs, cii))
-                cfids.push(get_unchecked(art.call_reloc_fids, cii))
+                coffs.push(art.call_reloc_offs.get_unchecked(cii))
+                cfids.push(art.call_reloc_fids.get_unchecked(cii))
                 cfuncs.push(mapped)
-                cnames.push(get_unchecked(art.call_reloc_names, cii).clone())
+                cnames.push(art.call_reloc_names.get_unchecked(cii).clone())
             }
             cii = cii + 1
         }
@@ -497,12 +497,12 @@ fn emit_code_section(
         // (post-adoption, compacted to post-prune indices). Keep the detach
         // sweep so the MIR footprint after emit matches the legacy loop.
         while ci < fn_count {
-            module_block_pool::mir_function_detach_blocks(get_unchecked(functions, ci), mir)
+            module_block_pool::mir_function_detach_blocks(functions.get_unchecked(ci), mir)
             ci = ci + 1
         }
     } else {
         while ci < fn_count {
-            let mut f = get_unchecked(functions, ci)
+            let mut f = functions.get_unchecked(ci)
             ctx_record::SelfEmitCtx_set_current_func_idx(ctx, ci)
             let t_fn = Clock::monotonic_now()
             // #851 Phase 3: declared bodies emit into a per-fn scratch writer so
@@ -545,7 +545,7 @@ fn emit_code_section(
     while bi2 < fn_count {
         offsets.push(writer_core::writer_size(code_sec))
         let size_off = emit_sized_code_body_begin(code_sec)
-        writer_core::emit_bytes(code_sec, get_unchecked(ctx.body_bytes, bi2))
+        writer_core::emit_bytes(code_sec, ctx.body_bytes.get_unchecked(bi2))
         emit_sized_code_body_end(code_sec, size_off)
         bi2 = bi2 + 1
     }

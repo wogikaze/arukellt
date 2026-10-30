@@ -6,6 +6,6 @@ fn main() {
     inner.push(3)
     inner.push(4)
     outer.push(inner)
-    let got = get_unchecked(outer, 0)
-    Stdio::println((get_unchecked(got, 1)).to_string())
+    let got = outer.get_unchecked(0)
+    Stdio::println((got.get_unchecked(1)).to_string())
 }

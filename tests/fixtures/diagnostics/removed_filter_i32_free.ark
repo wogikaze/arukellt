@@ -1,0 +1,10 @@
+// E0100: the provisional `filter_i32` free was retired; the iterator
+// pipeline is the replacement and the hint names it.
+fn is_even(x: i32) -> bool {
+    x % 2 == 0
+}
+
+fn main() {
+    let values: Vec<i32> = Vec::new<i32>()
+    let _filtered: Vec<i32> = filter_i32(values, is_even)
+}

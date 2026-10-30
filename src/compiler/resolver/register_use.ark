@@ -66,6 +66,21 @@ fn retired_prelude_import_hint(name: String) -> String {
     if eq(name.clone(), "len") {
         return String_from("use `s.len()` on `String` or `v.len()` on `Vec<T>` instead")
     }
+    if eq(name.clone(), "get") {
+        return String_from("use `v.get(idx)` on the `Vec<T>` receiver instead")
+    }
+    if eq(name.clone(), "get_unchecked") {
+        return String_from("use `v.get_unchecked(idx)` on the `Vec<T>` receiver instead")
+    }
+    if eq(name.clone(), "as_slice") {
+        return String_from("use `v.as_slice(start, end)` on the `Vec<T>` receiver (via `use std::collections::vec`) instead")
+    }
+    if eq(name.clone(), "slice_len") {
+        return String_from("use `view.len()` on the `Slice<T>` view (via `use std::collections::vec`) instead")
+    }
+    if eq(name.clone(), "slice_get") {
+        return String_from("use `view.get(idx)` on the `Slice<T>` view (via `use std::collections::vec`) instead")
+    }
     let vec_mutation = removed_names::removed_vec_mutation_free_hint(name.clone())
     if vec_mutation.clone().len() > 0 {
         return vec_mutation

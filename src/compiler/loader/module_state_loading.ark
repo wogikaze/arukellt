@@ -2,7 +2,7 @@ fn vec_has(v: Vec<String>, name: String) -> bool {
     let count = v.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(v, i).clone().eq(name.clone()) {
+        if v.get_unchecked(i).clone().eq(name.clone()) {
             return true
         }
         i = i + 1
@@ -41,11 +41,11 @@ fn load_state_probe(keys: Vec<String>, slots: Vec<i32>, name: String) -> i32 {
     let mut slot = load_state_string_hash(name) % capacity
     let mut probes = 0
     while probes < capacity {
-        let bucket = get_unchecked(slots, slot)
+        let bucket = slots.get_unchecked(slot)
         if bucket == 0 {
             return slot
         }
-        if get_unchecked(keys, bucket - 1).eq(name.clone()) {
+        if keys.get_unchecked(bucket - 1).eq(name.clone()) {
             return slot
         }
         slot = (slot + 1) % capacity
@@ -68,7 +68,7 @@ fn load_state_rehash(keys: Vec<String>, capacity: i32) -> Vec<i32> {
     let mut slots = load_state_zero_slots(capacity)
     let mut i = 0
     while i < keys.len() {
-        let slot = load_state_probe(keys.clone(), slots, get_unchecked(keys, i).clone())
+        let slot = load_state_probe(keys.clone(), slots, keys.get_unchecked(i).clone())
         slots.set(slot, i + 1)
         i = i + 1
     }
@@ -97,7 +97,7 @@ fn LoadState_has_loaded(state: LoadState, name: String) -> bool {
     if slot < 0 {
         return false
     }
-    get_unchecked(state.loaded_slots, slot) > 0
+    state.loaded_slots.get_unchecked(slot) > 0
 }
 
 fn LoadState_has_loading(state: LoadState, name: String) -> bool {

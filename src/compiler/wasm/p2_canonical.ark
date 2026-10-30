@@ -85,7 +85,7 @@ fn emit_wrapper_local_decls(
     let mut local_refs = Vec::new<i32>()
     append_ref_markers(local_refs, canonical_param_count, 0 - 1)
     for i in 0..ref_markers.len() {
-        local_refs.push(get_unchecked(ref_markers, i))
+        local_refs.push(ref_markers.get_unchecked(i))
     }
     append_ref_markers(local_refs, 3, 0 - 1)
     writer_core::writer_begin_function_locals(w, local_refs)
@@ -95,7 +95,7 @@ fn local_decl_group_count(ref_markers: Vec<i32>) -> i32 {
     let mut count = 1
     let mut i = 0
     while i < ref_markers.len() {
-        if i == 0 || get_unchecked(ref_markers, i) != get_unchecked(ref_markers, i - 1) {
+        if i == 0 || ref_markers.get_unchecked(i) != ref_markers.get_unchecked(i - 1) {
             count = count + 1
         }
         i = i + 1
@@ -106,9 +106,9 @@ fn local_decl_group_count(ref_markers: Vec<i32>) -> i32 {
 fn emit_ref_decl_groups(mut w: WasmWriter, ref_markers: Vec<i32>) {
     let mut i = 0
     while i < ref_markers.len() {
-        let marker = get_unchecked(ref_markers, i)
+        let marker = ref_markers.get_unchecked(i)
         let mut end = i + 1
-        while end < ref_markers.len() && get_unchecked(ref_markers, end) == marker {
+        while end < ref_markers.len() && ref_markers.get_unchecked(end) == marker {
             end = end + 1
         }
         writer_core::emit_leb128_u(w, end - i)
@@ -354,9 +354,9 @@ fn p2_struct_type(ctx: SelfEmitCtx, type_name: String, mir: MirModule) -> i32 {
     let maps = module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
     let mut i = 0
     while i < names.len() && i < maps.len() {
-        if get_unchecked(names, i).clone().eq(query.clone()) ||
-        get_unchecked(names, i).clone().eq(type_name.clone()) {
-            return get_unchecked(maps, i)
+        if names.get_unchecked(i).clone().eq(query.clone()) ||
+        names.get_unchecked(i).clone().eq(type_name.clone()) {
+            return maps.get_unchecked(i)
         }
         i = i + 1
     }
@@ -364,7 +364,7 @@ fn p2_struct_type(ctx: SelfEmitCtx, type_name: String, mir: MirModule) -> i32 {
     let mut size = 0
     let mut fi = 0
     while fi < fields.len() {
-        let width = p2_field_width(get_unchecked(fields, fi))
+        let width = p2_field_width(fields.get_unchecked(fi))
         if width == 8 && size % 8 != 0 {
             size = size + (8 - size % 8)
         }
@@ -396,9 +396,9 @@ fn p2_struct_fields(ctx: SelfEmitCtx, type_name: String, mir: MirModule) -> Vec<
     let sigs = ctx_record::SelfEmitCtx_gc_struct_sigs(ctx)
     let mut i = 0
     while i < names.len() && i < sigs.len() {
-        if get_unchecked(names, i).clone().eq(query.clone()) ||
-        get_unchecked(names, i).clone().eq(type_name.clone()) {
-            return sections_types_gc::struct_field_sigs(get_unchecked(sigs, i))
+        if names.get_unchecked(i).clone().eq(query.clone()) ||
+        names.get_unchecked(i).clone().eq(type_name.clone()) {
+            return sections_types_gc::struct_field_sigs(sigs.get_unchecked(i))
         }
         i = i + 1
     }
@@ -443,7 +443,7 @@ fn p2_param_ref_extra_count(type_name: String, value_type: i32, ctx: SelfEmitCtx
         let mut count = 0
         let mut i = 0
         while i < fields.len() {
-            if get_unchecked(fields, i).clone().eq(String_from("ref0")) {
+            if fields.get_unchecked(i).clone().eq(String_from("ref0")) {
                 count = count + 1
             }
             i = i + 1
@@ -511,7 +511,7 @@ fn return_has_string_payload_name(type_name: String, mir: MirModule) -> bool {
         )
     }
     let payload = sections_types_sigs_detail::p2_enum_payload_sigs(type_name.clone(), mir)
-    payload.len() > 0 && get_unchecked(payload, 0).clone().eq(String_from("ref0"))
+    payload.len() > 0 && payload.get_unchecked(0).clone().eq(String_from("ref0"))
 }
 
 fn canonical_param_count(f: MirFunction, mir: MirModule) -> i32 {
@@ -549,7 +549,7 @@ fn wrapper_ref_markers(f: MirFunction, ctx: SelfEmitCtx, mir: MirModule) -> Vec<
                 let fields = p2_struct_fields(ctx, type_name.clone(), mir)
                 let mut fi = 0
                 while fi < fields.len() {
-                    if get_unchecked(fields, fi).clone().eq(String_from("ref0")) {
+                    if fields.get_unchecked(fi).clone().eq(String_from("ref0")) {
                         markers.push(ctx_gc_type::SelfEmitCtx_string_type(ctx))
                     }
                     fi = fi + 1
@@ -585,7 +585,7 @@ fn emit_struct_input_conversion(
     let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
     let mut fi = 0
     while fi < fields.len() {
-        let field = get_unchecked(fields, fi)
+        let field = fields.get_unchecked(fi)
         if field.clone().eq(String_from("ref0")) {
             emit_string_input_copy(
                 w,
@@ -630,14 +630,14 @@ fn p2_variant_type_named(
     let maps = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     let mut i = 0
     while i < names.len() && i < sigs.len() && i < maps.len() {
-        if p2_variant_name_matches(family.clone(), variant.clone(), get_unchecked(names, i)) {
-            let fields = sections_types_gc::struct_field_sigs(get_unchecked(sigs, i))
+        if p2_variant_name_matches(family.clone(), variant.clone(), names.get_unchecked(i)) {
+            let fields = sections_types_gc::struct_field_sigs(sigs.get_unchecked(i))
             if payload_field.len() == 0 && fields.len() == 1 {
-                return get_unchecked(maps, i)
+                return maps.get_unchecked(i)
             }
             if payload_field.len() > 0 && fields.len() > 1 &&
-            get_unchecked(fields, 1).clone().eq(payload_field.clone()) {
-                return get_unchecked(maps, i)
+            fields.get_unchecked(1).clone().eq(payload_field.clone()) {
+                return maps.get_unchecked(i)
             }
         }
         i = i + 1
@@ -651,9 +651,9 @@ fn p2_variant_type_at_ordinal(ctx: SelfEmitCtx, family: String, ordinal: i32) ->
     let mut seen = 0
     let mut i = 0
     while i < names.len() && i < maps.len() {
-        if p2_variant_family_matches(family.clone(), get_unchecked(names, i)) {
+        if p2_variant_family_matches(family.clone(), names.get_unchecked(i)) {
             if seen == ordinal {
-                return get_unchecked(maps, i)
+                return maps.get_unchecked(i)
             }
             seen = seen + 1
         }
@@ -667,7 +667,7 @@ fn p2_variant_count(ctx: SelfEmitCtx, family: String) -> i32 {
     let mut count = 0
     let mut i = 0
     while i < names.len() {
-        if p2_variant_family_matches(family.clone(), get_unchecked(names, i)) {
+        if p2_variant_family_matches(family.clone(), names.get_unchecked(i)) {
             count = count + 1
         }
         i = i + 1
@@ -680,10 +680,10 @@ fn p2_variant_payload_field(ctx: SelfEmitCtx, type_idx: i32) -> String {
     let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
     let mut i = 0
     while i < maps.len() && i < sigs.len() {
-        if get_unchecked(maps, i) == type_idx {
-            let fields = sections_types_gc::struct_field_sigs(get_unchecked(sigs, i))
+        if maps.get_unchecked(i) == type_idx {
+            let fields = sections_types_gc::struct_field_sigs(sigs.get_unchecked(i))
             if fields.len() > 1 {
-                return get_unchecked(fields, 1)
+                return fields.get_unchecked(1)
             }
             return String_new()
         }
@@ -1104,7 +1104,7 @@ fn emit_struct_result_conversion(
     let mut align = 4
     let mut fi = 0
     while fi < fields.len() {
-        let field_width = p2_field_width(get_unchecked(fields, fi))
+        let field_width = p2_field_width(fields.get_unchecked(fi))
         if field_width == 8 && size % 8 != 0 {
             size = size + (8 - size % 8)
         }
@@ -1121,7 +1121,7 @@ fn emit_struct_result_conversion(
     let mut offset = 0
     fi = 0
     while fi < fields.len() {
-        let field = get_unchecked(fields, fi)
+        let field = fields.get_unchecked(fi)
         let width = p2_field_width(field.clone())
         if width == 8 && offset % 8 != 0 {
             offset = offset + (8 - offset % 8)
@@ -1253,7 +1253,7 @@ fn p2_variant_output_payload_name(type_name: String, mir: MirModule) -> String {
     if payload.len() == 0 {
         return String_new()
     }
-    let field = get_unchecked(payload, 0)
+    let field = payload.get_unchecked(0)
     if field.clone().eq(String_from("ref0")) {
         return String_from("String")
     }

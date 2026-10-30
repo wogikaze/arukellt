@@ -70,8 +70,8 @@ fn wit_import_serialized_doc(serialized: String) -> WitParsedInterface {
     if records.len() == 0 {
         return wit_parse_text::WitParsedInterface_empty()
     }
-    let header = wit_import_serialized_fields(get_unchecked(records, 0))
-    if header.len() < 4 || !get_unchecked(header, 0).eq("header") {
+    let header = wit_import_serialized_fields(records.get_unchecked(0))
+    if header.len() < 4 || !header.get_unchecked(0).eq("header") {
         return wit_parse_text::WitParsedInterface_empty()
     }
 
@@ -81,13 +81,13 @@ fn wit_import_serialized_doc(serialized: String) -> WitParsedInterface {
     let mut variants = Vec::new<WitParsedVariant>()
     let mut i = 1
     while i < records.len() {
-        let fields = wit_import_serialized_fields(get_unchecked(records, i))
+        let fields = wit_import_serialized_fields(records.get_unchecked(i))
         if fields.len() >= 2 {
-            let kind = get_unchecked(fields, 0)
-            let name = get_unchecked(fields, 1)
+            let kind = fields.get_unchecked(0)
+            let name = fields.get_unchecked(1)
             if kind.eq("func") && fields.len() >= 4 {
-                let params = wit_import_serialized_list(get_unchecked(fields, 2))
-                let result = get_unchecked(fields, 3)
+                let params = wit_import_serialized_list(fields.get_unchecked(2))
+                let result = fields.get_unchecked(3)
                 funcs.push(wit_parse_text::WitParsedFunc_new(
                         name.clone(),
                         wit_names_import::wit_import_func_name(name),
@@ -95,8 +95,8 @@ fn wit_import_serialized_doc(serialized: String) -> WitParsedInterface {
                         result
                     ))
             } else if kind.eq("record") && fields.len() >= 4 {
-                let field_names = wit_import_serialized_list(get_unchecked(fields, 2))
-                let field_types = wit_import_serialized_list(get_unchecked(fields, 3))
+                let field_names = wit_import_serialized_list(fields.get_unchecked(2))
+                let field_types = wit_import_serialized_list(fields.get_unchecked(3))
                 records_out.push(wit_parse_text::WitParsedRecord_new(
                         name.clone(),
                         wit_names_import::wit_record_type_name(name),
@@ -104,10 +104,10 @@ fn wit_import_serialized_doc(serialized: String) -> WitParsedInterface {
                         field_types
                     ))
             } else if kind.eq("enum") && fields.len() >= 3 {
-                let variant_names = wit_import_serialized_list(get_unchecked(fields, 2))
+                let variant_names = wit_import_serialized_list(fields.get_unchecked(2))
                 let mut variant_ark_names = Vec::new<String>()
                 for vi in 0..variant_names.len() {
-                    variant_ark_names.push(wit_names_import::wit_enum_variant_name(get_unchecked(variant_names, vi)))
+                    variant_ark_names.push(wit_names_import::wit_enum_variant_name(variant_names.get_unchecked(vi)))
                 }
                 enums.push(wit_parse_text::WitParsedEnum_new(
                         name.clone(),
@@ -116,11 +116,11 @@ fn wit_import_serialized_doc(serialized: String) -> WitParsedInterface {
                         variant_ark_names
                     ))
             } else if kind.eq("variant") && fields.len() >= 4 {
-                let case_names = wit_import_serialized_list(get_unchecked(fields, 2))
-                let payload_types = wit_import_serialized_list(get_unchecked(fields, 3))
+                let case_names = wit_import_serialized_list(fields.get_unchecked(2))
+                let payload_types = wit_import_serialized_list(fields.get_unchecked(3))
                 let mut case_ark_names = Vec::new<String>()
                 for ci in 0..case_names.len() {
-                    case_ark_names.push(wit_names_import::wit_enum_variant_name(get_unchecked(case_names, ci)))
+                    case_ark_names.push(wit_names_import::wit_enum_variant_name(case_names.get_unchecked(ci)))
                 }
                 variants.push(wit_parse_text::WitParsedVariant_new(
                         name.clone(),
@@ -134,13 +134,13 @@ fn wit_import_serialized_doc(serialized: String) -> WitParsedInterface {
         i = i + 1
     }
     let mut doc = wit_parse_text::WitParsedInterface_new(
-        get_unchecked(header, 1),
-        get_unchecked(header, 3),
+        header.get_unchecked(1),
+        header.get_unchecked(3),
         funcs,
         records_out,
         enums
     )
-    doc.package_version = get_unchecked(header, 2)
+    doc.package_version = header.get_unchecked(2)
     doc.variants = variants
     doc
 }

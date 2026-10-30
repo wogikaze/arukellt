@@ -280,7 +280,7 @@ through the `__intrinsic_*` conversion bridges (ADR-067).
 | `f64_bits_lo(x)` | `(x).to_bits_lo()` |
 | `f64_bits_hi(x)` | `(x).to_bits_hi()` |
 
-### Vec intrinsic-compat frees (`len`, `slice_len`, `push`, `pop`, `set` retired 2026-10-30)
+### Vec intrinsic-compat frees (all retired 2026-10-30)
 
 `len` retired in `wave/vec-intrinsic-len`. Bare calls and selective
 `use std::prelude::{len}` imports now fail with **E0100** and the
@@ -289,27 +289,29 @@ receiver-method hint; the same wave migrated 5,701 in-tree call sites
 served both `String` and `Vec` receivers; the checker selected the
 owner, so both are covered by one method name.
 
-`slice_len` retired in `wave/vec-intrinsics`. `push`, `pop` and `set`
-retired in `wave/vec-push-pop-set`; the same wave migrated 4,041 free
-calls in the compiler, std and fixtures to the receiver methods. The
-method-call operand stack had to be fixed first: a module constant
-argument lowers through its accessor call and is materialized into the
-argument local, so `v.set(0, K)` / `v.push(NIL)` emitted invalid core
-Wasm. The private generic declarations in `std/prelude.ark` remain as
-receiver-method signature anchors; they are not importable.
+`slice_len` retired in `wave/vec-intrinsics`, `push`, `pop` and `set` in
+`wave/vec-push-pop-set`, and `get`, `get_unchecked`, `as_slice` and
+`slice_get` in `wave/seq-fd-remain`. The last wave migrated 1,424 free
+`get` / `get_unchecked` calls and moved the slice call sites to the
+`Vec::as_slice` / `Slice::len` / `Slice::get` receiver methods. The
+private generic declarations in `std/prelude.ark` remain as
+receiver-method signature anchors; they are not importable and the bare
+names fail E0100. Slice views need `use std::collections::vec` at the call
+site so the concrete `Slice<T>` layout is loaded; without it the method form
+can emit an invalid struct payload on `wasm32-gc`.
 
 | Deprecated API | Replacement |
 |----------------|-------------|
 | `push(v, x)` | `v.push(x)` (retired 2026-10-30) |
 | `pop(v)` | `v.pop()` (retired 2026-10-30) |
 | `len(v)` / `len(s)` | `v.len()` / `s.len()` (retired 2026-10-30) |
-| `get(v, i)` | `v.get(i)` |
+| `get(v, i)` | `v.get(i)` (retired 2026-10-30) |
 | `set(v, i, x)` | `v.set(i, x)` (retired 2026-10-30) |
-| `get_unchecked(v, i)` | `v.get_unchecked(i)` |
+| `get_unchecked(v, i)` | `v.get_unchecked(i)` (retired 2026-10-30) |
 | `clear(v)` | `v.clear()` — stale non-callable entry, retired |
-| `as_slice(v, s, e)` | `v.as_slice(s, e)` |
+| `as_slice(v, s, e)` | `v.as_slice(s, e)` (retired 2026-10-30) |
 | `slice_len(view)` | `view.len()` (retired 2026-10-30) |
-| `slice_get(view, i)` | `view.get(i)` |
+| `slice_get(view, i)` | `view.get(i)` (retired 2026-10-30) |
 
 ### Assertion frees (4) — retired 2026-10-30
 
@@ -371,8 +373,9 @@ qualified `test::assert_eq_i32(...)` call now fails with **E0100** and a
 
 The 31 callable `stable` entries were deprecated in Wave 1 and deleted on
 2026-10-27 under ADR-087 D2/D3 (#703 / #917). Bare calls now fail with
-**E0100** and a `resolver::removed_names` hint; `filter_i32` remains
-provisional (individual deferral) and is not part of this removal.
+**E0100** and a `resolver::removed_names` hint. The provisional `filter_i32`
+completed its individual deferral on 2026-10-30 (`wave/seq-fd-remain`); it is
+retired with the same E0100 hint.
 
 The `i32` producer/consumer lanes and the `Vec<String>` `map` / `filter` /
 `any` / `find` lanes are verified on both targets. The `i64` / `f64` numeric
@@ -393,6 +396,7 @@ path, so `seq::sort_by` was retired (#965).
 | `map_i64_i64(v, f)` | explicit `while` loop over `v.get_unchecked(i)` (the i64 lane is pending) |
 | `map_f64_f64(v, f)` | explicit `while` loop over `v.get_unchecked(i)` (the f64 lane is pending) |
 | `map_String_String(v, f)` | `v.iter().map(f).collect()` |
+| `filter_i32(v, f)` | `v.iter().filter(f).collect()` (retired 2026-10-30) |
 | `filter_i64(v, f)` | explicit `while` loop (the i64 lane is pending) |
 | `filter_f64(v, f)` | explicit `while` loop (the f64 lane is pending) |
 | `filter_String(v, f)` | `v.iter().filter(f).collect()` |

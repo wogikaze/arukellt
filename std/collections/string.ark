@@ -100,7 +100,7 @@ fn __core_string_utf8_width_vec_impl(bytes: Vec<i32>, index: i32) -> i32 {
     if index < 0 || index >= byte_len {
         return 0
     }
-    let first = get_unchecked(bytes, index)
+    let first = bytes.get_unchecked(index)
     if first < 0 || first > 255 {
         return 0
     }
@@ -111,7 +111,7 @@ fn __core_string_utf8_width_vec_impl(bytes: Vec<i32>, index: i32) -> i32 {
         if index + 1 >= byte_len {
             return 0
         }
-        if __core_string_is_continuation_byte(get_unchecked(bytes, index + 1)) {
+        if __core_string_is_continuation_byte(bytes.get_unchecked(index + 1)) {
             return 2
         }
         return 0
@@ -120,8 +120,8 @@ fn __core_string_utf8_width_vec_impl(bytes: Vec<i32>, index: i32) -> i32 {
         if index + 2 >= byte_len {
             return 0
         }
-        let second = get_unchecked(bytes, index + 1)
-        let third = get_unchecked(bytes, index + 2)
+        let second = bytes.get_unchecked(index + 1)
+        let third = bytes.get_unchecked(index + 2)
         if !__core_string_is_continuation_byte(second) ||
         !__core_string_is_continuation_byte(third) {
             return 0
@@ -138,9 +138,9 @@ fn __core_string_utf8_width_vec_impl(bytes: Vec<i32>, index: i32) -> i32 {
         if index + 3 >= byte_len {
             return 0
         }
-        let second = get_unchecked(bytes, index + 1)
-        let third = get_unchecked(bytes, index + 2)
-        let fourth = get_unchecked(bytes, index + 3)
+        let second = bytes.get_unchecked(index + 1)
+        let third = bytes.get_unchecked(index + 2)
+        let fourth = bytes.get_unchecked(index + 3)
         if !__core_string_is_continuation_byte(second) ||
         !__core_string_is_continuation_byte(third) ||
         !__core_string_is_continuation_byte(fourth) {
@@ -519,11 +519,11 @@ fn __core_string_join_impl(parts: Vec<String>, separator: String) -> String {
     if part_count == 0 {
         return String_from("")
     }
-    let mut out = get_unchecked(parts, 0)
+    let mut out = parts.get_unchecked(0)
     let mut index = 1
     while index < part_count {
         out = concat(out, separator)
-        out = concat(out, get_unchecked(parts, index))
+        out = concat(out, parts.get_unchecked(index))
         index = index + 1
     }
     out
@@ -628,7 +628,7 @@ impl String {
             } else {
                 let mut offset = 0
                 while offset < width {
-                    result.push(get_unchecked(bytes, index + offset))
+                    result.push(bytes.get_unchecked(index + offset))
                     offset = offset + 1
                 }
                 index = index + width
@@ -649,7 +649,7 @@ impl String {
             }
             let mut offset = 0
             while offset < width {
-                result.push(get_unchecked(bytes, index + offset))
+                result.push(bytes.get_unchecked(index + offset))
                 offset = offset + 1
             }
             index = index + width

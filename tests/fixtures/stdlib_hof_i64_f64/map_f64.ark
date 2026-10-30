@@ -12,12 +12,12 @@ fn main() {
     let mut squared: Vec<f64> = Vec::new<f64>()
     let mut map_index: i32 = 0
     while map_index < v.len() {
-        squared.push(square(get_unchecked(v, map_index)))
+        squared.push(square(v.get_unchecked(map_index)))
         map_index = map_index + 1
     }
     let mut i: i32 = 0
     while i < squared.len() {
-        Stdio::println((get_unchecked(squared, i)).to_string())
+        Stdio::println((squared.get_unchecked(i)).to_string())
         i = i + 1
     }
 }

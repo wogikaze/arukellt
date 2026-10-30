@@ -229,7 +229,7 @@ impl Read for Reader {
         let mut out: Vec<i32> = Vec::new<i32>()
         let mut i: i32 = 0
         while i < count {
-            out.push(get_unchecked(self.bytes, self.cursor + i))
+            out.push(self.bytes.get_unchecked(self.cursor + i))
             i = i + 1
         }
         self.cursor = self.cursor + count
@@ -243,7 +243,7 @@ impl BufRead for Reader {
         let mut out: Vec<i32> = Vec::new<i32>()
         let mut i: i32 = self.cursor
         while i < total {
-            out.push(get_unchecked(self.bytes, i))
+            out.push(self.bytes.get_unchecked(i))
             i = i + 1
         }
         Ok(out)
@@ -271,7 +271,7 @@ impl BufRead for Reader {
         let mut pos: i32 = self.cursor
         let mut found_newline: bool = false
         while pos < total && !found_newline {
-            let byte: i32 = get_unchecked(self.bytes, pos)
+            let byte: i32 = self.bytes.get_unchecked(pos)
             pos = pos + 1
             if byte == NEWLINE_BYTE {
                 found_newline = true
@@ -343,7 +343,7 @@ impl Write for Writer {
         let count: i32 = data.len()
         let mut i: i32 = 0
         while i < count {
-            self.bytes.push(get_unchecked(data, i) & BYTE_MASK)
+            self.bytes.push(data.get_unchecked(i) & BYTE_MASK)
             i = i + 1
         }
         Ok(count)
@@ -487,7 +487,7 @@ impl Io {
             }
             let mut i: i32 = 0
             while i < chunk.len() {
-                out.push(get_unchecked(chunk, i))
+                out.push(chunk.get_unchecked(i))
                 i = i + 1
             }
             remaining = remaining - chunk.len()
@@ -510,7 +510,7 @@ impl Io {
             } else {
                 let mut i: i32 = 0
                 while i < chunk.len() {
-                    out.push(get_unchecked(chunk, i))
+                    out.push(chunk.get_unchecked(i))
                     i = i + 1
                 }
             }
@@ -529,7 +529,7 @@ impl Io {
             let mut rest: Vec<i32> = Vec::new<i32>()
             let mut i: i32 = offset
             while i < total {
-                rest.push(get_unchecked(data, i))
+                rest.push(data.get_unchecked(i))
                 i = i + 1
             }
             let write_result: Result<i32, IoError> = to.write(rest)
@@ -642,7 +642,7 @@ impl<R: Read> Read for BufReader<R> {
             let take: i32 = if wanted < available { wanted } else { available }
             let mut i: i32 = 0
             while i < take {
-                out.push(get_unchecked(self.buffer, self.start + i))
+                out.push(self.buffer.get_unchecked(self.start + i))
                 i = i + 1
             }
             self.start = self.start + take
@@ -663,7 +663,7 @@ impl<R: Read> BufRead for BufReader<R> {
         let mut out: Vec<i32> = Vec::new<i32>()
         let mut i: i32 = self.start
         while i < self.end {
-            out.push(get_unchecked(self.buffer, i))
+            out.push(self.buffer.get_unchecked(i))
             i = i + 1
         }
         Ok(out)
@@ -697,7 +697,7 @@ impl<R: Read> BufRead for BufReader<R> {
             }
             let mut pos: i32 = self.start
             while pos < self.end && !found_newline {
-                let byte: i32 = get_unchecked(self.buffer, pos)
+                let byte: i32 = self.buffer.get_unchecked(pos)
                 pos = pos + 1
                 if byte == NEWLINE_BYTE {
                     found_newline = true
@@ -793,7 +793,7 @@ impl<W: Write> BufWriter<W> {
         let count: i32 = data.len()
         let mut i: i32 = 0
         while i < count {
-            self.buffer.push(get_unchecked(data, i) & BYTE_MASK)
+            self.buffer.push(data.get_unchecked(i) & BYTE_MASK)
             i = i + 1
         }
         if self.capacity <= 0 || self.buffer.len() >= self.capacity {

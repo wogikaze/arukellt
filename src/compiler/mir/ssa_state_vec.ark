@@ -16,7 +16,7 @@ fn mir_i32_vec_replace_at(values: Vec<i32>, at: i32, value: i32) -> Vec<i32> {
         if i == at {
             out.push(value)
         } else {
-            out.push(get_unchecked(values, i))
+            out.push(values.get_unchecked(i))
         }
         i = i + 1
     }

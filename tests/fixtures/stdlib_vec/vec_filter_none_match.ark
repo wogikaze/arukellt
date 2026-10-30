@@ -1,5 +1,5 @@
 use std::test::Test
-use std::prelude::{filter_i32}
+use std::core::iter
 fn is_negative(x: i32) -> bool {
     x < 0
 }
@@ -9,6 +9,6 @@ fn main() {
     v.push(1)
     v.push(2)
     v.push(3)
-    let result: Vec<i32> = filter_i32(v, is_negative)
+    let result: Vec<i32> = v.iter().filter(is_negative).collect()
     Test::assert_eq_i32(result.len(), 0)
 }

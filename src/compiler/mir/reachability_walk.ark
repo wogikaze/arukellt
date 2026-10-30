@@ -64,12 +64,12 @@ fn mir_build_recorded_edge_lists(edges: Vec<i32>, fn_count: i32) -> Vec<i32> {
     let mark = mir_edge_map_mark()
     let mut i = header
     while i < n {
-        if get_unchecked(edges, i) == mark {
+        if edges.get_unchecked(i) == mark {
             if i + 2 >= n {
                 i = n
             } else {
-                let frame = get_unchecked(edges, i + 1)
-                let mir = get_unchecked(edges, i + 2)
+                let frame = edges.get_unchecked(i + 1)
+                let mir = edges.get_unchecked(i + 2)
                 if frame >= 0 {
                     mir_edge_ensure_i32_len(frame_to_mir, frame + 1, 0 - 1)
                     frame_to_mir.set(frame, mir)
@@ -85,7 +85,7 @@ fn mir_build_recorded_edge_lists(edges: Vec<i32>, fn_count: i32) -> Vec<i32> {
     }
     i = header
     while i < n {
-        if get_unchecked(edges, i) == mark {
+        if edges.get_unchecked(i) == mark {
             if i + 2 >= n {
                 i = n
             } else {
@@ -94,12 +94,12 @@ fn mir_build_recorded_edge_lists(edges: Vec<i32>, fn_count: i32) -> Vec<i32> {
         } else if i + 1 >= n {
             i = n
         } else {
-            let frame = get_unchecked(edges, i)
+            let frame = edges.get_unchecked(i)
             if frame >= 0 && frame < frame_to_mir.len() {
-                let mir = get_unchecked(frame_to_mir, frame)
+                let mir = frame_to_mir.get_unchecked(frame)
                 if mir >= 0 && mir < fn_count {
                     recorded.set(mir, 1)
-                    counts.set(mir, get_unchecked(counts, mir) + 1)
+                    counts.set(mir, counts.get_unchecked(mir) + 1)
                 }
             }
             i = i + 2
@@ -107,26 +107,26 @@ fn mir_build_recorded_edge_lists(edges: Vec<i32>, fn_count: i32) -> Vec<i32> {
     }
     fi = 0
     while fi < fn_count {
-        packed.push(get_unchecked(recorded, fi))
+        packed.push(recorded.get_unchecked(fi))
         fi = fi + 1
     }
     let mut running = 1 + fn_count + fn_count + 1
     fi = 0
     while fi < fn_count {
         packed.push(running)
-        running = running + get_unchecked(counts, fi)
+        running = running + counts.get_unchecked(fi)
         fi = fi + 1
     }
     packed.push(running)
     let mut cursor = Vec::new<i32>()
     fi = 0
     while fi < fn_count {
-        cursor.push(get_unchecked(packed, 1 + fn_count + fi))
+        cursor.push(packed.get_unchecked(1 + fn_count + fi))
         fi = fi + 1
     }
     i = header
     while i < n {
-        if get_unchecked(edges, i) == mark {
+        if edges.get_unchecked(i) == mark {
             if i + 2 >= n {
                 i = n
             } else {
@@ -135,12 +135,12 @@ fn mir_build_recorded_edge_lists(edges: Vec<i32>, fn_count: i32) -> Vec<i32> {
         } else if i + 1 >= n {
             i = n
         } else {
-            let frame = get_unchecked(edges, i)
-            let fid = get_unchecked(edges, i + 1)
+            let frame = edges.get_unchecked(i)
+            let fid = edges.get_unchecked(i + 1)
             if frame >= 0 && frame < frame_to_mir.len() {
-                let mir = get_unchecked(frame_to_mir, frame)
+                let mir = frame_to_mir.get_unchecked(frame)
                 if mir >= 0 && mir < fn_count {
-                    let at = get_unchecked(cursor, mir)
+                    let at = cursor.get_unchecked(mir)
                     mir_edge_ensure_i32_len(packed, at + 1, 0)
                     packed.set(at, fid)
                     cursor.set(mir, at + 1)
@@ -165,7 +165,7 @@ fn mir_enqueue_call_edges(
     fn_names: Vec<String>,
     edge_names: Vec<String>
 ) {
-    if packed.len() > 0 && fi >= 0 && fi < get_unchecked(packed, 0) {
+    if packed.len() > 0 && fi >= 0 && fi < packed.get_unchecked(0) {
         mir_enqueue_recorded_callees(
             m,
             index,
@@ -210,7 +210,7 @@ fn mir_enqueue_recorded_payload(
                 functions,
                 reachable,
                 queue,
-                get_unchecked(fn_names, tagged).clone()
+                fn_names.get_unchecked(tagged).clone()
             )
         }
         return
@@ -222,7 +222,7 @@ fn mir_enqueue_recorded_payload(
             functions,
             reachable,
             queue,
-            get_unchecked(edge_names, overflow).clone()
+            edge_names.get_unchecked(overflow).clone()
         )
     }
 }
@@ -239,9 +239,9 @@ fn mir_enqueue_recorded_callees(
     fn_names: Vec<String>,
     edge_names: Vec<String>
 ) {
-    let fn_count = get_unchecked(packed, 0)
-    let off = get_unchecked(packed, 1 + fn_count + fi)
-    let off_end = get_unchecked(packed, 1 + fn_count + fi + 1)
+    let fn_count = packed.get_unchecked(0)
+    let off = packed.get_unchecked(1 + fn_count + fi)
+    let off_end = packed.get_unchecked(1 + fn_count + fi + 1)
     let mut i = off
     while i < off_end && i < packed.len() {
         mir_enqueue_recorded_payload(
@@ -250,7 +250,7 @@ fn mir_enqueue_recorded_callees(
             functions,
             reachable,
             queue,
-            get_unchecked(packed, i),
+            packed.get_unchecked(i),
             target.clone(),
             fn_names,
             edge_names

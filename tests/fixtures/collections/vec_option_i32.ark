@@ -3,7 +3,7 @@ use std::host::stdio::Stdio
 fn main() {
     let mut xs: Vec<Option<i32>> = Vec::new<i32>()
     xs.push(Some(7))
-    match get_unchecked(xs, 0) {
+    match xs.get_unchecked(0) {
         Some(n) => Stdio::println(n.to_string()),
         None => Stdio::println(String_from("none")),
     }
