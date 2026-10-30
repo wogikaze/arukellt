@@ -120,13 +120,13 @@ fn mark_call_result_from_return_type_name(mut ctx: LowerCtx, dest: i32, type_nam
         set_vt_for_resolved_type_name(ctx, dest, cleaned.clone())
         return
     }
-    // A HashSet<T> value is its flat store alias (Vec<i32> / Vec<String>),
-    // not a nominal struct layout. Resolving `HashSet<i32>` through the
-    // struct registry would type the call result as a String-like ref and
-    // break the store functions it feeds (#917).
+    // A HashSet<T> value is its store alias (vec:i32 or hashmap:si32), not a
+    // nominal struct layout. Resolving `HashSet<String>` through the struct
+    // registry would type the call result as a String-like ref and break the
+    // bucket-store functions it feeds (#917).
     if cleaned.clone().starts_with("HashSet") {
         let store_type = if cleaned.clone().contains(String_from("String")) {
-            String_from("vec:String")
+            String_from("hashmap:si32")
         } else {
             String_from("vec:i32")
         }

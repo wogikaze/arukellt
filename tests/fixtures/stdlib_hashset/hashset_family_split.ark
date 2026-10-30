@@ -1,6 +1,6 @@
-// The HashSet method surface follows the receiver's element family: the
-// bucket-capacity operations stay on HashSet<i32>, while HashSet<String>
-// answers the membership/algebra surface over its Vec<String> store (#917).
+// Both HashSet element families expose the capacity group over their own
+// stores: HashSet<i32> uses the flat vec:i32 buckets, while HashSet<String>
+// shares the String-keyed HashMap bucket arrays (#917).
 use std::collections::hash_set::HashSet
 use std::test::Test
 
@@ -10,6 +10,7 @@ fn main() {
     let capacity_before: i32 = ints.capacity()
     ints.reserve(16)
     Test::assert_true(ints.capacity() >= capacity_before)
+    Test::assert_true(ints.try_reserve(1))
     Test::assert_eq_i32(ints.len(), 1)
     ints.shrink_to_fit()
     Test::assert_eq_i32(ints.len(), 1)
@@ -23,6 +24,15 @@ fn main() {
     Test::assert_false(words.is_empty())
     let snapshot: Vec<String> = words.to_vec()
     Test::assert_eq_i32(len(snapshot), 1)
+
+    let word_capacity: i32 = words.capacity()
+    words.reserve(20)
+    Test::assert_true(words.capacity() > word_capacity)
+    Test::assert_true(words.try_reserve(1))
+    Test::assert_eq_i32(words.len(), 1)
+    words.shrink_to_fit()
+    Test::assert_eq_i32(words.len(), 1)
+    Test::assert_true(words.contains("red"))
 
     let mut more: HashSet<String> = HashSet::new<String>()
     Test::assert_true(more.insert("blue"))

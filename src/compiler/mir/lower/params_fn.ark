@@ -87,6 +87,7 @@ fn mir_bind_fn_param(mut ctx: LowerCtx, param: CoreHirParam) {
         // `other` operand of union / intersection / difference / extend).
         let mut family = String_from("i32")
         if local_type_name.clone().eq(String_from("vec:String")) ||
+        local_type_name.clone().eq(String_from("hashmap:si32")) ||
         p_type_name.clone().starts_with(String_from("HashSet<String>")) ||
         p_type_name.clone().starts_with(String_from("HashSet_String")) {
             family = String_from("String")

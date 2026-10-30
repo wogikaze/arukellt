@@ -456,9 +456,9 @@ fn edge_fn_index_return_type(ctx: LowerCtx, name: String) -> String {
 fn edge_call_return_type(ctx: LowerCtx, name: String) -> String {
     let hs_ctor = call_rewrite_hashset::mir_rewrite_hashset_constructor(name.clone())
     if len(hs_ctor) > 0 {
-        // HashSet<i32> / HashSet<String> lowers to the flat store, whose
-        // declared return is Vec<i32> / Vec<String>; the source expression
-        // keeps the set type for receiver dispatch (#917).
+        // HashSet<i32> / HashSet<String> lowers to vec:i32 or hashmap:si32,
+        // but the source expression keeps the set type for receiver
+        // dispatch (#917).
         let hs_rt = call_rewrite_hashset::mir_hashset_constructor_type_name(name.clone())
         if len(hs_rt) > 0 {
             return hs_rt

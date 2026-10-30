@@ -66,9 +66,13 @@ declarations stay on the flat pair and the typechecker's HashMap method table
 accepts the other pairs, because the pinned bootstrap must still typecheck
 `std/collections/hash_map.ark`; MIR picks the implementation from the
 receiver's pair. `drain` and `remove_entry` return typed pairs, so no caller
-sees the bucket layout. This does not weaken the separate `HashSet<String>`
-boundary: that facade has no bucket layout and still rejects capacity
-methods.
+sees the bucket layout.
+
+`HashSet<String>` shares that String-keyed bucket store: it is a key view
+with the value slot fixed at 0, so `capacity`, `reserve`, `try_reserve`,
+`shrink_to_fit`, `clear`, and `extend` lower to the same counters and
+load-factor rehash as `HashMap<String, i32>`. No parallel linear facade is
+kept.
 
 No capability was lost in the free-function retirement: the 21 retired
 `hashmap_*` frees were i32-keyed and i32-valued.
@@ -111,10 +115,15 @@ deferred until the language/runtime has the necessary abstraction layer.
 ## HashSet
 
 Rust implements `HashSet<T>` as a set facade over `HashMap<T, ()>`.
-Arukellt currently uses:
+Arukellt uses:
 
 - `HashSet<i32>` as the raw `i32 -> i32` map with sentinel value `1`.
-- `HashSet<String>` as a compatibility `Vec<String>` facade.
+- `HashSet<String>` as a key view over `HashMap<String, i32>` with sentinel
+  value `0`.
 
+The String set therefore shares the String-keyed map's bucket arrays and
+0.75 load-factor growth instead of keeping a parallel `Vec<String>` facade.
+Its `to_vec`, `IntoIterator`, `Clone`, and `Debug` snapshot in bucket order,
+which is implementation-defined; compare sets with `Eq`, not iteration order.
 A true unit-value set representation should be addressed with a later
 collection representation cleanup.

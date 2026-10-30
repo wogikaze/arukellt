@@ -6,9 +6,11 @@ fn SelfEmitCtx_is_vec_string_context(ctx: SelfEmitCtx) -> bool {
     let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
     let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
     let name = function_identity::MirFunction_name(f)
-    // Functions that operate on Vec<String> rather than Vec<i32>.
-    if name.clone().starts_with("hashset_str_") ||
-    name.clone().starts_with("hash_vec_string_") ||
+    // Functions that operate on Vec<String> rather than Vec<i32>. The
+    // hashset_str_* store functions operate on hashmap:si32; their Vec<String>
+    // snapshots carry the concrete local type instead, so the prefix must not
+    // force every Vec intrinsic in those bodies to String (#917).
+    if name.clone().starts_with("hash_vec_string_") ||
     name.clone().starts_with("vec_string_") ||
     name.clone().starts_with("hash_map_vec_string_") {
         return true
