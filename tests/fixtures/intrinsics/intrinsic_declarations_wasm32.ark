@@ -1,0 +1,43 @@
+// The string, stdin and fs intrinsics have sealed prelude declarations, so a
+// direct call typechecks like any other function and lowers to its intrinsic
+// handler (#936).
+use std::host::stdio::Stdio
+use std::test::Test
+
+fn main() {
+    let mut bytes: Vec<i32> = Vec::new<i32>()
+    bytes.push(79)
+    bytes.push(75)
+    let text: String = __intrinsic_string_from_bytes(bytes)
+    Test::assert_eq_string(text, "OK")
+
+    // The fixture runner closes stdin, so the intrinsic observes EOF.
+    let stdin_text: String = __intrinsic_stdin_read_to_string()
+    Test::assert_eq_string(stdin_text, "")
+
+    let path = String_from("intrinsic_declarations_wasm32.out.txt")
+    let write: Result<(), String> = __runtime_abi_fs_write_file(path, text)
+    match write {
+        Result::Ok(_) => Test::assert_true(true),
+        Result::Err(_) => Test::assert_true(false),
+    }
+    match __runtime_abi_fs_read_file(String_from("intrinsic_declarations_wasm32.out.txt")) {
+        Result::Ok(contents) => Test::assert_eq_string(contents, "OK"),
+        Result::Err(_) => Test::assert_true(false),
+    }
+
+    let mut byte_image: Vec<i32> = Vec::new<i32>()
+    byte_image.push(65)
+    let bytes_path = String_from("intrinsic_declarations_wasm32.out.bin")
+    let write_bytes: Result<(), String> = __runtime_abi_fs_write_bytes(bytes_path, byte_image)
+    match write_bytes {
+        Result::Ok(_) => Test::assert_true(true),
+        Result::Err(_) => Test::assert_true(false),
+    }
+    match __runtime_abi_fs_read_file(String_from("intrinsic_declarations_wasm32.out.bin")) {
+        Result::Ok(contents) => Test::assert_eq_i32(contents.len_bytes(), 1),
+        Result::Err(_) => Test::assert_true(false),
+    }
+
+    Stdio::println("intrinsic-declarations-ok")
+}

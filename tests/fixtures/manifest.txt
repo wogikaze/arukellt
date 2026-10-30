@@ -245,6 +245,8 @@ diag:diagnostics/removed_numeric_conversion.ark
 diag:diagnostics/removed_numeric_conversion_wasm32.ark
 diag:diagnostics/concrete_call_arg_type.ark
 diag:diagnostics/concrete_call_arg_type_wasm32.ark
+diag:diagnostics/intrinsic_call_arg_type.ark
+diag:diagnostics/intrinsic_call_arg_type_wasm32.ark
 diag:diagnostics/prelude_concrete_arg_type.ark
 diag:diagnostics/option_payload_type_mismatch.ark
 diag:diagnostics/option_payload_type_mismatch_wasm32.ark
@@ -726,6 +728,8 @@ run:integration/fibonacci.ark
 run:integration/linked_list.ark
 run:integration/sort_vec.ark
 run:integration/word_counter.ark
+run:intrinsics/intrinsic_declarations.ark
+run:intrinsics/intrinsic_declarations_wasm32.ark
 run:iterator/custom_iterator.ark
 run:iterator/seq_method_replacements.ark
 run:iterator/generic_scan_iter.ark

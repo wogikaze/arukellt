@@ -10,21 +10,18 @@ fn simple_type(tag: i32) -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(tag)
 }
 
-// Declaration-less compiler intrinsics have no FnSig the checker could read a
-// return type from, so this table (and the family derivations below) supplies
-// it. Every name that has an Ark declaration resolves through that signature
-// instead: an entry here for a declared name would only re-introduce the
-// name-keyed exemption the declaration already covers (#936).
+// The string, stdin, and fs intrinsics now have sealed declarations in
+// std/prelude.ark, so their calls resolve through a real FnSig and the general
+// concrete-call path supplies the return type and checks the arguments (#936).
+//
+// What remains here is the pair of compiler-owned intrinsic families whose
+// spellings are enumerated by the resolver and lowered by the wasm emitters
+// rather than an Ark declaration: the non-public __hm_* storage bridge and the
+// __simd_* / __wasm_v128_* lane intrinsics. Their family derivations encode the
+// pair/lane-dependent result type; declaring every spelling in portable
+// prelude source would duplicate the resolver registry and the target v128 /
+// bucket ABI. This table is the only remaining name-keyed return typing.
 fn builtin_call_return_type(name: String) -> TypeInfo {
-    if name.clone().eq("__intrinsic_string_from_bytes") ||
-    name.clone().eq("string_from_bytes") ||
-    name.clone().eq("bytes::string_from_bytes") ||
-    name.clone().eq("__intrinsic_stdin_read_to_string") {
-        return simple_type(commands::TY_STRING())
-    }
-    if name.clone().eq("__runtime_abi_fs_read_file") || name.clone().eq("__runtime_abi_fs_write_file") || name.clone().eq("__runtime_abi_fs_write_bytes") {
-        return simple_type(commands::TY_RESULT())
-    }
     let hash_ty = builtins_hash::hashmap_builtin_return_type(name.clone())
     if contract_type_access::TypeInfo_tag(hash_ty) != commands::TY_UNKNOWN() {
         return hash_ty

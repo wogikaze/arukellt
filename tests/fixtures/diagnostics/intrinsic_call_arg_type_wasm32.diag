@@ -1,0 +1,10 @@
+error[E0200|typecheck]: type mismatch in call to `__intrinsic_string_from_bytes`: argument 1 has type i32, expected Vec<i32>
+  --> tests/fixtures/diagnostics/intrinsic_call_arg_type_wasm32.ark
+error[E0200|typecheck]: type mismatch in call to `__runtime_abi_fs_read_file`: argument 1 has type i32, expected String
+  --> tests/fixtures/diagnostics/intrinsic_call_arg_type_wasm32.ark
+error[E0200|typecheck]: type mismatch in call to `__runtime_abi_fs_write_file`: argument 1 has type i32, expected String
+  --> tests/fixtures/diagnostics/intrinsic_call_arg_type_wasm32.ark
+error[E0200|typecheck]: type mismatch in call to `__runtime_abi_fs_write_file`: argument 2 has type i32, expected String
+  --> tests/fixtures/diagnostics/intrinsic_call_arg_type_wasm32.ark
+error[E0200|typecheck]: type mismatch in call to `__runtime_abi_fs_write_bytes`: argument 2 has type i32, expected Vec<i32>
+  --> tests/fixtures/diagnostics/intrinsic_call_arg_type_wasm32.ark

@@ -1,0 +1,9 @@
+// The string, stdin and fs intrinsics declare their real ABI contracts in
+// std/prelude.ark, so a wrong argument is E0200 at the call instead of reaching
+// the intrinsic lowering unchecked (#936).
+fn main() {
+    let _text: String = __intrinsic_string_from_bytes(1)
+    let _read: Result<String, String> = __runtime_abi_fs_read_file(1)
+    let _write_text: Result<(), String> = __runtime_abi_fs_write_file(1, 2)
+    let _write_bytes: Result<(), String> = __runtime_abi_fs_write_bytes(String_from("x"), 1)
+}
