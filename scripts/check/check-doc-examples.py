@@ -6,7 +6,19 @@ Usage:
 
 - Extracts ```ark ... ``` fenced code blocks (language tag exactly "ark").
 - Skips blocks immediately preceded by an HTML comment <!-- skip-doc-check -->.
-- Runs `arukellt check <snippet> --target wasm32` on each block.
+- Wraps statement-only snippets in a synthetic `fn main()` before checking:
+  `arukellt check` treats a file as a script and does not visit top-level
+  statements, so an unwrapped snippet would pass without being typechecked
+  (issue #683). Wrapped snippets are also compiled, because the synthetic
+  main makes them complete programs. Leading `use` / `import` declarations
+  stay at file scope; complete modules (a block that declares `fn`,
+  `struct`, ...) are checked unchanged.
+- Blocks whose body deliberately shows non-compilable notation keep the
+  same contract without an HTML marker: `// reject:` (ADR-067 rejection
+  lines) and `// before` / `// after` (migration guidance alternatives) are
+  reported as notation skips rather than wrapped.
+- Runs `arukellt check <snippet> --target wasm32` on each block, then
+  `arukellt compile --target wasm32` for wrapped statement-only snippets.
 - Reports failures as "FAIL: <file> block <N>: <error>".
 - Exits 0 if all non-skipped blocks pass and every marker is valid.
 
@@ -62,6 +74,23 @@ DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 # Skip kinds that denote permanent notation rather than deferred work.
 # They are exempt from the owner/exit requirements (issue #877).
 NOTATION_KINDS = {"grammar-fragment", "invalid-example", "notation"}
+
+# A complete module declares at least one top-level item; wrapping it in a
+# synthetic main would nest the declaration. Only column-0 items count, so
+# indented statements in a snippet body are not mistaken for declarations.
+TOP_LEVEL_ITEM_PATTERN = re.compile(
+    r"^(?:pub\s+)?(?:fn|struct|enum|trait|impl|const|static|type|mod|"
+    r"extern|intrinsic|macro)\b"
+)
+TOP_LEVEL_IMPORT_PATTERN = re.compile(r"^(?:pub\s+)?(?:use|import|export)\b")
+# In-snippet notation markers. `// reject:` documents code that must not
+# typecheck (ADR-067); `// before` / `// after` shows alternative migration
+# shapes. Wrapping either in main would turn the documented intent into a
+# false failure, so they keep the existing skip contract.
+NON_CANONICAL_BODY_PATTERN = re.compile(
+    r"(?:^[ \t]*//[ \t]*(?:before|after)[ \t]*$)|(?://[ \t]*reject[ \t]*:)",
+    re.IGNORECASE | re.MULTILINE,
+)
 
 FIXTURE_MANIFEST = ROOT / "tests" / "fixtures" / "manifest.txt"
 FIXTURES_ROOT = ROOT / "tests" / "fixtures"
@@ -213,6 +242,53 @@ def find_arukellt() -> str:
     return "arukellt"  # fall back; will produce a clear error
 
 
+def is_non_canonical_body(code: str) -> bool:
+    """True when the snippet deliberately documents non-compilable notation."""
+    return NON_CANONICAL_BODY_PATTERN.search(code) is not None
+
+
+def has_top_level_item(code: str) -> bool:
+    """True when the snippet declares a module item and is a complete file."""
+    return any(TOP_LEVEL_ITEM_PATTERN.match(line) for line in code.splitlines())
+
+
+def wrap_statement_snippet(code: str) -> str | None:
+    """Put statement-only code inside a synthetic main.
+
+    Returns None when there is nothing to wrap: a complete module must stay
+    unchanged, and an imports/comments-only block has no statements for the
+    typechecker to reach. Leading imports stay at file scope because `use`
+    inside a function is not part of the snippet contract.
+    """
+    if has_top_level_item(code):
+        return None
+
+    preamble: list[str] = []
+    body: list[str] = []
+    in_preamble = True
+    for line in code.splitlines():
+        stripped = line.strip()
+        is_preamble_line = (
+            not stripped
+            or stripped.startswith("//")
+            or TOP_LEVEL_IMPORT_PATTERN.match(line)
+        )
+        if in_preamble and is_preamble_line:
+            preamble.append(line)
+            continue
+        in_preamble = False
+        body.append(line)
+
+    if not any(line.strip() for line in body):
+        return None
+
+    prefix = "\n".join(preamble).rstrip()
+    wrapped_body = "\n".join(body)
+    if prefix:
+        return f"{prefix}\n\nfn main() {{\n{wrapped_body}\n}}\n"
+    return f"fn main() {{\n{wrapped_body}\n}}\n"
+
+
 def extract_blocks(md_path: Path) -> list[tuple[int, str, bool]]:
     """Return list of (block_index, code, should_skip) for each ```ark block."""
     text = md_path.read_text(encoding="utf-8")
@@ -237,16 +313,35 @@ def extract_blocks(md_path: Path) -> list[tuple[int, str, bool]]:
     return results
 
 
+def summarize_error(output: str) -> str:
+    """Pick a stable one-line failure summary from compiler output."""
+    for line in output.splitlines():
+        if line.startswith("error"):
+            return line
+    return output.splitlines()[0] if output else "(no output)"
+
+
 def check_block(
-    arukellt: str, code: str, md_path: Path, block_idx: int, target: str
+    arukellt: str,
+    code: str,
+    md_path: Path,
+    block_idx: int,
+    target: str,
+    compile_check: bool = False,
 ) -> tuple[bool, str]:
-    """Run arukellt check on a code snippet. Returns (passed, error_output)."""
+    """Run arukellt check (and optionally compile) on a snippet.
+
+    Returns (passed, error_output). Synthetic-main snippets are complete
+    programs, so they are also compile-checked to catch codegen failures
+    that typechecking misses.
+    """
     TMP_DIR.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile(
         suffix=".ark", mode="w", encoding="utf-8", delete=False, dir=TMP_DIR
     ) as f:
         f.write(code)
         tmp_path = Path(f.name)
+    wasm_path = tmp_path.with_suffix(".wasm")
 
     try:
         arg_path = str(tmp_path.relative_to(ROOT))
@@ -263,12 +358,31 @@ def check_block(
             cwd=ROOT,
             env=env,
         )
+        if result.returncode != 0:
+            return False, (result.stderr or result.stdout).strip()
+        if not compile_check:
+            return True, ""
+        result = subprocess.run(
+            [
+                arukellt,
+                "compile",
+                arg_path,
+                "--target",
+                target,
+                "-o",
+                str(wasm_path.relative_to(ROOT)),
+            ],
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
+            env=env,
+        )
         if result.returncode == 0:
             return True, ""
-        error_output = (result.stderr or result.stdout).strip()
-        return False, error_output
+        return False, (result.stderr or result.stdout).strip()
     finally:
         tmp_path.unlink(missing_ok=True)
+        wasm_path.unlink(missing_ok=True)
 
 
 def main() -> int:
@@ -299,6 +413,8 @@ def main() -> int:
     pass_count = 0
     fail_count = 0
     skip_count = 0
+    notation_skip_count = 0
+    wrapped_count = 0
     marker_failures: list[str] = []
     marker_warnings: list[str] = []
     manifest_paths = load_manifest_paths()
@@ -328,13 +444,30 @@ def main() -> int:
                 skip_count += 1
                 continue
 
-            passed, error_output = check_block(arukellt, code, md, idx, args.target)
+            if is_non_canonical_body(code):
+                notation_skip_count += 1
+                skip_count += 1
+                continue
+
+            wrapped = wrap_statement_snippet(code)
+            if wrapped is not None:
+                code = wrapped
+                wrapped_count += 1
+
+            passed, error_output = check_block(
+                arukellt,
+                code,
+                md,
+                idx,
+                args.target,
+                compile_check=wrapped is not None,
+            )
             if passed:
                 pass_count += 1
             else:
                 fail_count += 1
                 # Report first line of error as the inline summary, full output below
-                first_line = error_output.splitlines()[0] if error_output else "(no output)"
+                first_line = summarize_error(error_output)
                 print(f"FAIL: {rel} block {idx}: {first_line}")
                 if error_output:
                     # Indent continuation lines for readability
@@ -347,7 +480,8 @@ def main() -> int:
         print(f"MARKER-WARN: {msg}")
     print(
         f"\nDoc example check: {pass_count} pass, {fail_count} fail, "
-        f"{skip_count} skip, {len(marker_failures)} marker-fail, "
+        f"{skip_count} skip ({notation_skip_count} notation), "
+        f"{wrapped_count} wrapped+compiled, {len(marker_failures)} marker-fail, "
         f"{len(marker_warnings)} marker-warn"
     )
     return 0 if fail_count == 0 and not marker_failures else 1
