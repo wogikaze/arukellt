@@ -32,6 +32,8 @@ fn mir_vec_call_target_is_intrinsic(callee_name: String) -> bool {
     callee_name.clone().eq(String_from("vec_get_unchecked_i64")) ||
     callee_name.clone().eq(String_from("vec_get_unchecked_f64")) ||
     callee_name.clone().eq(String_from("vec_len")) ||
+    callee_name.clone().eq(String_from("Vec::len")) ||
+    callee_name.clone().eq(String_from("String::len")) ||
     callee_name.clone().eq(String_from("raw_array_len")) ||
     callee_name.clone().eq(String_from("raw_array_get_unchecked")) ||
     callee_name.clone().eq(String_from("raw_array_set_unchecked")) ||
@@ -62,7 +64,9 @@ fn is_vec_len_callee(name: String) -> bool {
     name.clone().eq(String_from("len")) ||
     name.clone().eq(String_from("Vec::len")) ||
     name.clone().starts_with(String_from("Vec::len__")) ||
-    name.clone().starts_with(String_from("len__"))
+    name.clone().starts_with(String_from("len__")) ||
+    name.clone().eq(String_from("prelude::len")) ||
+    name.clone().eq(String_from("std::prelude::len"))
 }
 
 fn is_vec_pop_callee(name: String) -> bool {
@@ -152,7 +156,7 @@ fn mir_rewrite_vec_call(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i
     )
     let mut push_i64_needs_extend = false
     if is_vec_len_callee(rewritten.clone()) {
-        rewritten = mir_rewrite_vec_len(ctx, rewritten, first_arg_idx)
+        rewritten = mir_rewrite_vec_len(ctx, first_arg_idx)
     }
     if is_vec_push_callee(rewritten.clone()) {
         // Normalize to bare `push` so element-type rewrite (vec_push / push_i64)
@@ -227,17 +231,21 @@ fn mir_rewrite_vec_is_empty_to_local(mut ctx: LowerCtx, first_arg_idx: i32) -> i
     eqz_dest
 }
 
-fn mir_rewrite_vec_len(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
+// The prelude `len` free is signature-only and serves two receiver owners. Bind
+// the call to the owner's sealed CoreOp spelling so the emitter never has to
+// recover the owner from the bare `len` name (#936 item 3). The owner is the
+// receiver type the checker unified the argument with; an unscoped receiver
+// keeps the declaration's own String contract, matching the pre-owner binding.
+fn mir_rewrite_vec_len(ctx: LowerCtx, first_arg_idx: i32) -> String {
     if first_arg_idx >= 0 {
         let arg_type_len = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
         if arg_type_len.clone().eq(String_from("Vec")) ||
         arg_type_len.clone().starts_with("vec:") ||
         arg_type_len.clone().starts_with("array:") {
-            // Prefer sealed raw at the call site so GC sees the concrete vec local.
-            return String_from("raw_array_len")
+            return String_from("Vec::len")
         }
     }
-    callee_name
+    String_from("String::len")
 }
 
 fn mir_rewrite_vec_basic(callee_name: String) -> String {

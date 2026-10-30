@@ -1,0 +1,29 @@
+// `len` is a signature-only prelude free with two receiver owners. The owner
+// selected from the receiver type binds String::len or Vec::len instead of a
+// bare `len` name (#936 / #933).
+use std::host::stdio
+use std::prelude::{len, push}
+use std::test::Test
+
+fn items_len<T>(items: Vec<T>) -> i32 {
+    len(items)
+}
+
+fn main() {
+    let text: String = String_from("hello")
+    Test::assert_eq_i32(len(text), 5)
+    let empty_numbers: Vec<i32> = Vec::new<i32>()
+    Test::assert_eq_i32(len(empty_numbers), 0)
+    let mut numbers: Vec<i32> = Vec::new<i32>()
+    push(numbers, 7)
+    push(numbers, 8)
+    Test::assert_eq_i32(len(numbers), 2)
+    Test::assert_eq_i32(items_len(numbers), 2)
+    let empty_words: Vec<String> = Vec::new<String>()
+    Test::assert_eq_i32(len(empty_words), 0)
+    let mut words: Vec<String> = Vec::new<String>()
+    push(words, String_from("a"))
+    push(words, String_from("bb"))
+    Test::assert_eq_i32(items_len(words), 2)
+    stdio::println("len owner dispatch ok")
+}

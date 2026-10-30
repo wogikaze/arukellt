@@ -168,6 +168,13 @@ fn stdlib_specialize_vec_fallback(
     if fallback.clone().eq(String_from("__core_vec_pop_impl")) {
         return String_new()
     }
+    // `vec.len` is emitted by its registry handler for every element type. The
+    // generic `__core_vec_len_impl<T>` mono body is not present in the MIR
+    // module at this point, so specializing to `__core_vec_len_impl__i32`
+    // leaves an unpatched call; keep the CoreOp callee.
+    if fallback.clone().eq(String_from("__core_vec_len_impl")) {
+        return String_new()
+    }
     let recv = stdlib_resolve_call_receiver_local(block, call_index, call)
     if recv < 0 || recv >= function_locals_view::MirFunction_local_count(f) {
         return fallback
