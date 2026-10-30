@@ -28,9 +28,9 @@ fn signature_registry_entry_count(registry: SignatureRegistry) -> i32 {
 
 fn signature_registry_register(mut registry: SignatureRegistry, entry: SignatureEntry, mangled_name: String) -> FunctionId {
     name_index::name_index_insert_first(registry.mangled_to_id, mangled_name.clone(), registry.next_id)
-    push(registry.entries, entry)
-    push(registry.id_to_mangled, mangled_name)
-    push(registry.signature_only, false)
+    registry.entries.push(entry)
+    registry.id_to_mangled.push(mangled_name)
+    registry.signature_only.push(false)
     let id = FunctionId_new(registry.next_id)
     registry.next_id = registry.next_id + 1
     id
@@ -43,7 +43,7 @@ fn signature_registry_register(mut registry: SignatureRegistry, entry: Signature
 // the deferred decl's FunctionId and its own fid stays unmapped.
 fn signature_registry_mark_signature_only(mut registry: SignatureRegistry, index: i32) {
     if index >= 0 && index < registry.signature_only.len() {
-        set(registry.signature_only, index, true)
+        registry.signature_only.set(index, true)
     }
 }
 
@@ -61,7 +61,7 @@ fn signature_registry_entry_at(registry: SignatureRegistry, index: i32) -> Signa
 fn signature_registry_set_core_op_id_at(mut registry: SignatureRegistry, index: i32, core_op_id: CoreOpId) {
     let mut entry = registry.entries.get_unchecked(index)
     signature_entry::signature_entry_set_core_op_id(entry, core_op_id)
-    set(registry.entries, index, entry)
+    registry.entries.set(index, entry)
 }
 
 fn signature_registry_mangled_at(registry: SignatureRegistry, index: i32) -> String {

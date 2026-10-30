@@ -6,8 +6,8 @@ fn corehir_build_children(mut table: CoreHirBodyTable, nodes: Vec<AstNode>, mut 
     let mut i = 0
     let mut unsupported = false
     while i < child_count {
-        let child_index = corehir_build_expr(table, nodes.get_unchecked(i))
-        push(children, child_index)
+        let child_index = corehir_build_expr(table, get_unchecked(nodes, i))
+        children.push(child_index)
         let child_expr = corehir_body_expr_at(table, child_index)
         if expr_predicates::expr_is_unsupported(child_expr) {
             unsupported = true
@@ -23,7 +23,7 @@ fn corehir_build_node_children(mut table: CoreHirBodyTable, node: AstNode, mut c
     let mut unsupported = false
     while i < child_count {
         let child_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, i))
-        push(children, child_index)
+        children.push(child_index)
         let child_expr = corehir_body_expr_at(table, child_index)
         if expr_predicates::expr_is_unsupported(child_expr) {
             unsupported = true

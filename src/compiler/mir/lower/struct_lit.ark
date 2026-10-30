@@ -62,8 +62,8 @@ fn mir_struct_lit_instance_name(mut ctx: LowerCtx, base_name: String, field_name
     let mut bound = Vec::new<bool>()
     let mut pi = 0
     while pi < params.len() {
-        push(args, String_new())
-        push(bound, false)
+        args.push(String_new())
+        bound.push(false)
         pi = pi + 1
     }
     let mut i = 0
@@ -246,7 +246,7 @@ fn struct_lit_split_colon_top(name: String) -> Vec<String> {
             continue
         }
         if (at_end || ch == 58 || ch == 59) && depth == 0 {
-            push(result, name.clone().slice(seg_start, i))
+            result.push(name.clone().slice(seg_start, i))
             seg_start = i + 1
         }
         i = i + 1
@@ -270,14 +270,14 @@ fn struct_lit_fnref_value_spelling(f: String, v: String, params: Vec<String>) ->
     }
     let mut family = Vec::new<String>()
     if v.clone().eq(String_from("fnref")) {
-        push(family, String_from("i32"))
-        push(family, String_from("i32"))
+        family.push(String_from("i32"))
+        family.push(String_from("i32"))
     } else if v.clone().eq(String_from("fnrefss")) {
-        push(family, String_from("String"))
-        push(family, String_from("String"))
+        family.push(String_from("String"))
+        family.push(String_from("String"))
     } else if v.clone().eq(String_from("fnrefsb")) {
-        push(family, String_from("String"))
-        push(family, String_from("bool"))
+        family.push(String_from("String"))
+        family.push(String_from("bool"))
     } else {
         return v
     }
@@ -317,8 +317,8 @@ fn struct_lit_unify_segments(ft: String, vt: String, params: Vec<String>, mut ar
         struct_lit_field_type_mentions_params(vt.clone(), params) {
             return false
         }
-        set(args, direct, vt)
-        set(bound, direct, true)
+        args.set(direct, vt)
+        bound.set(direct, true)
         return true
     }
     let f = struct_lit_canonical_type_spelling(ft)
@@ -392,7 +392,7 @@ fn struct_lit_split_params(joined: String) -> Vec<String> {
     let mut i = 0
     while i <= n {
         if i == n || joined.clone().byte_at(i) == 44 {
-            push(params, joined.clone().slice(seg_start, i))
+            params.push(joined.clone().slice(seg_start, i))
             seg_start = i + 1
         }
         i = i + 1

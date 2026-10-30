@@ -53,8 +53,8 @@ fn lower_core_struct_lit(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreH
             // Materialize the stack-composed value before the next
             // producer; deferred field sets read these locals.
             ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(val_idx))
-            push(field_names, field_name)
-            push(field_vals, val_idx)
+            field_names.push(field_name)
+            field_vals.push(val_idx)
         }
         i = i + 1
     }

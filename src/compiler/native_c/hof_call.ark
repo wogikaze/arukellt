@@ -258,7 +258,7 @@ fn native_c_collect_funcref_typedefs(mir_module: MirModule) -> String {
                     scan = scan + 1
                 }
                 if !already {
-                    push(emitted_names, typedef_name.clone())
+                    emitted_names.push(typedef_name.clone())
                     let decl = abi::native_c_funcref_typedef_decl(table, signature, heap_enum_flags)
                     if decl.len() > 0 {
                         out = out.concat(decl)

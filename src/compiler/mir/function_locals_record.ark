@@ -41,16 +41,16 @@ fn mir_function_new_local(f: MirFunction, name: String, vt: i32) -> MirLocal {
 }
 
 fn mir_function_push_local(mut f: MirFunction, mut local: MirLocal) {
-    push(f.locals, mir_function_attach_local(f, local))
+    f.locals.push(mir_function_attach_local(f, local))
 }
 
 fn mir_function_alloc_local(mut f: MirFunction, name: String, vt: i32) -> i32 {
     let idx = f.next_local
     f.next_local = f.next_local + 1
-    push(f.locals, mir_function_new_local(f, name, vt))
+    f.locals.push(mir_function_new_local(f, name, vt))
     idx
 }
 
 fn mir_function_set_local(mut f: MirFunction, local_id: i32, mut local: MirLocal) {
-    set(f.locals, local_id, mir_function_attach_local(f, local))
+    f.locals.set(local_id, mir_function_attach_local(f, local))
 }

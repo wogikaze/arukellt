@@ -97,9 +97,7 @@ fn doc_flush_fn(mut out: Vec<manifest_doc_record::DocFnEntry>, state: DocParseFn
     if state.kind.clone().eq(String_from("intrinsic")) {
         return
     }
-    push(
-        out,
-        manifest_doc_record::DocFnEntry_new(
+    out.push(manifest_doc_record::DocFnEntry_new(
             state.name,
             state.module,
             state.params,
@@ -111,8 +109,7 @@ fn doc_flush_fn(mut out: Vec<manifest_doc_record::DocFnEntry>, state: DocParseFn
             state.avail_t1,
             state.avail_t3,
             state.avail_note
-        )
-    )
+        ))
 }
 
 fn doc_apply_mod_fields(mut state: DocParseModState, line: String) -> DocParseModState {
@@ -133,7 +130,7 @@ fn doc_flush_mod(mut out: Vec<manifest_doc_record::DocModuleEntry>, state: DocPa
     if state.name.len() == 0 {
         return
     }
-    push(out, manifest_doc_record::DocModuleEntry_new(state.name, state.stability, state.target, state.doc))
+    out.push(manifest_doc_record::DocModuleEntry_new(state.name, state.stability, state.target, state.doc))
 }
 
 pub fn doc_parse_manifest(content: String) -> DocManifestTable {

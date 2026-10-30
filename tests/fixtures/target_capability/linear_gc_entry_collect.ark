@@ -9,7 +9,7 @@ use std::test::Test
 use std::text
 fn churn(slots: i32) -> i32 {
     let mut junk: Vec<i32> = Vec::with_capacity<i32>(slots)
-    push(junk, slots)
+    junk.push(slots)
     junk.len()
 }
 
@@ -19,7 +19,7 @@ fn main() {
     while i < 160 {
         let _n = churn(262144)
         if i % 32 == 0 {
-            push(keep, String_from("alive-").concat(i.to_string()))
+            keep.push(String_from("alive-").concat(i.to_string()))
         }
         i = i + 1
     }

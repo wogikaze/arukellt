@@ -67,7 +67,7 @@ fn propagate_typed_io_failure() -> Result<i32, AppError> {
 
 fn main() {
     let mut input: Vec<i32> = Vec::new<i32>()
-    push(input, 1)
+    input.push(1)
     match read_and_parse(input, String_from("1")) {
         Ok(value) => assert(value == 2),
         Err(_) => assert(false),
@@ -80,7 +80,7 @@ fn main() {
     }
 
     let mut invalid_input: Vec<i32> = Vec::new<i32>()
-    push(invalid_input, 1)
+    invalid_input.push(1)
     match read_and_parse(invalid_input, String_from("bad")) {
         Ok(_) => assert(false),
         Err(_) => assert(true),

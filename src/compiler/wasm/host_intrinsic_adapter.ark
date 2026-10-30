@@ -82,13 +82,13 @@ fn host_intrinsic_spec_for(name: String) -> HostIntrinsicSpec {
     let i32_mvt = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
     if abi == kinds::HOST_ABI_GC_REF() || abi == kinds::HOST_ABI_LINEAR_MEMORY_PTR() {
         let string_mvt = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
-        push(returns, string_mvt)
+        returns.push(string_mvt)
         // Canonical memory32 boundary: ptr (+ optional len) as i32 scalars.
-        push(boundary_returns, i32_mvt)
-        push(boundary_returns, i32_mvt)
+        boundary_returns.push(i32_mvt)
+        boundary_returns.push(i32_mvt)
     } else {
-        push(returns, i32_mvt)
-        push(boundary_returns, i32_mvt)
+        returns.push(i32_mvt)
+        boundary_returns.push(i32_mvt)
     }
     // Pointer width comes from the adapter's canonical memory index type (memory32),
     // not from the guest target name.

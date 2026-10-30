@@ -44,14 +44,11 @@ fn build_fn_params(
     let mut params = Vec::new<CoreHirParam>()
     let mut i = 0
     while i < param_count {
-        push(
-            params,
-            param_shape::fn_param_from_node(
+        params.push(param_shape::fn_param_from_node(
                 decl_children::decl_child_at(decl, i),
                 type_params.clone(),
                 nominal_types
-            )
-        )
+            ))
         i = i + 1
     }
     params
@@ -70,7 +67,7 @@ fn build_fn_type_params(decl: AstNode) -> Vec<String> {
         if frontend_ast_node::corehir_node_kind(annotation) != frontend_kind_map::nk_proof_contract() {
             let annotation_name = frontend_ast_node::corehir_node_text(annotation)
             if !annotation_name.clone().eq("__return") {
-                push(names, annotation_name)
+                names.push(annotation_name)
             }
         }
         i = i + 1
@@ -152,7 +149,7 @@ fn build_fn_infos(
                 body_index,
                 i == entry_main_decl_index
             )
-            push(infos, info)
+            infos.push(info)
             typed_fn_index = typed_fn_index + 1
         }
         // Note: impl methods do NOT get TypedFn entries (the typechecker only

@@ -32,7 +32,7 @@ fn scan_locals_in_node(node: AstNode, mut locals: Vec<CoreHirTypedLocal>) {
         if frontend_ast_type_ann::corehir_node_type_ann_count(node) > 0 {
             ty.name = frontend_ast_identity::corehir_node_text(frontend_ast_type_ann::corehir_node_type_ann_at(node, 0))
         }
-        push(locals, raw_dto::CoreHirTypedLocal_new(name, ty))
+        locals.push(raw_dto::CoreHirTypedLocal_new(name, ty))
     }
     let child_count = frontend_ast_children::corehir_node_child_count(node)
     let mut ci = 0

@@ -7,17 +7,17 @@ pub fn user_add_seven(x: i32) -> i32 {
 
 pub fn user_search() -> i32 {
     let mut values = Vec::new<i32>()
-    push(values, 2)
-    push(values, 5)
-    push(values, 9)
+    values.push(2)
+    values.push(5)
+    values.push(9)
     values.binary_search(5)
 }
 
 pub fn user_sequence_checks() -> bool {
     let mut values = Vec::new<i32>()
-    push(values, 4)
-    push(values, 2)
-    push(values, 4)
+    values.push(4)
+    values.push(2)
+    values.push(4)
     values.iter().count_eq(4) == 2 &&
     values.min() == 2 &&
     values.max() == 4

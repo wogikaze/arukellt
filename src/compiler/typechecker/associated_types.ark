@@ -39,15 +39,12 @@ fn resolve_impl_signature(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnSig
     let param_count = contract_fn_sig::FnSig_param_count(sig)
     let mut i = 0
     while i < param_count {
-        push(
-            params,
-            resolve_projection(
+        params.push(resolve_projection(
                 env,
                 trait_name.clone(),
                 self_ty,
                 contract_fn_sig::FnSig_param_at(sig, i)
-            )
-        )
+            ))
         i = i + 1
     }
     let return_type = resolve_projection(
@@ -83,7 +80,7 @@ fn resolve_impl_self_return(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnS
     let param_count = contract_fn_sig::FnSig_param_count(sig)
     let mut i = 0
     while i < param_count {
-        push(params, contract_fn_sig::FnSig_param_at(sig, i))
+        params.push(contract_fn_sig::FnSig_param_at(sig, i))
         i = i + 1
     }
     contract_fn_sig::FnSig_with_types(sig, params, return_type)
@@ -137,9 +134,7 @@ fn resolve_trait_method_signature(
     let param_count = contract_fn_sig::FnSig_param_count(sig)
     let mut i = 0
     while i < param_count {
-        push(
-            params,
-            resolve_trait_method_type(
+        params.push(resolve_trait_method_type(
                 env,
                 trait_name.clone(),
                 bound,
@@ -147,8 +142,7 @@ fn resolve_trait_method_signature(
                 sig,
                 trait_param_count,
                 contract_fn_sig::FnSig_param_at(sig, i)
-            )
-        )
+            ))
         i = i + 1
     }
     let return_type = resolve_trait_method_type(
@@ -595,15 +589,12 @@ fn projection_owner_ty(
                     depth = depth - 1
                 }
                 if (ch == 44 && depth == 0) || at_end {
-                    push(
-                        args,
-                        projection_owner_ty(
+                    args.push(projection_owner_ty(
                             env,
                             var_names.clone(),
                             var_types.clone(),
                             trim_type_ws(inner.clone().slice(seg_start, j))
-                        )
-                    )
+                        ))
                     seg_start = j + 1
                 }
                 j = j + 1
@@ -738,8 +729,8 @@ fn match_pattern_collect_vars(
             }
             i = i + 1
         }
-        push(names, var_name)
-        push(types, actual)
+        names.push(var_name)
+        types.push(actual)
         return true
     }
     if !associated_type_tags_match(

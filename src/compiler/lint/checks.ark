@@ -41,7 +41,7 @@ fn collect_use_decls_in_node(node: AstNode, mut uses: Vec<UseDeclInfo>) {
             String_new()
         }
         let effective_name = if alias_name.clone().len() > 0 { alias_name } else { short }
-        push(uses, UseDeclInfo_new(effective_name, path, ast_access::node_span_start(node), ast_access::node_span_end(node)))
+        uses.push(UseDeclInfo_new(effective_name, path, ast_access::node_span_start(node), ast_access::node_span_end(node)))
         let child_count = ast_access::node_child_count(node)
         let mut ci = 0
         while ci < child_count {
@@ -49,7 +49,7 @@ fn collect_use_decls_in_node(node: AstNode, mut uses: Vec<UseDeclInfo>) {
             if ast_decl_predicates::node_is_use(child) {
                 let child_path = ast_access::node_text(child)
                 let child_short = paths::use_module_short_name(child_path.clone())
-                push(uses, UseDeclInfo_new(child_short, child_path, ast_access::node_span_start(child), ast_access::node_span_end(child)))
+                uses.push(UseDeclInfo_new(child_short, child_path, ast_access::node_span_start(child), ast_access::node_span_end(child)))
             }
             ci = ci + 1
         }
@@ -79,7 +79,7 @@ fn collect_referenced_modules_in_node(node: AstNode, mut referenced: Vec<String>
         let path = ast_access::node_text(node)
         let mod_part = paths::path_module_part(path.clone())
         if mod_part.clone().len() > 0 {
-            push(referenced, mod_part)
+            referenced.push(mod_part)
         }
         return
     }
@@ -121,7 +121,7 @@ pub fn check_unused_imports(decls: Vec<AstNode>) -> Vec<Diagnostic> {
             let path = use_decl_info_path(info)
             let msg = "unused import `".concat(path.clone().concat("`"))
             let span = record::DiagnosticSpan_from_raw(use_decl_info_span_start(info), use_decl_info_span_end(info))
-            push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_UNUSED_IMPORT(), diag_mod::SEV_WARNING(), span, msg))
+            warnings.push(diag_mod::Diagnostic_new(codes::DIAG_WARN_UNUSED_IMPORT(), diag_mod::SEV_WARNING(), span, msg))
         }
         i = i + 1
     }

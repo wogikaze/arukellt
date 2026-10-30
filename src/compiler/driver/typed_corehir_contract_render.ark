@@ -14,24 +14,21 @@ fn tccr_collect_reachable(
     let exprs = body_table::corehir_body_table_exprs(table)
     let mut reachable = Vec::new<i32>()
     let mut stack = Vec::new<i32>()
-    push(stack, root)
+    stack.push(root)
 
     let contract_count = body_table::corehir_body_table_fn_contract_count(table, function_index)
     let mut contract_index = 0
     while contract_index < contract_count {
-        push(
-            stack,
-            body_table::corehir_body_table_fn_contract_root_at(
+        stack.push(body_table::corehir_body_table_fn_contract_root_at(
                 table,
                 function_index,
                 contract_index
-            )
-        )
+            ))
         contract_index = contract_index + 1
     }
 
     while stack.len() > 0 {
-        let id = match pop(stack) {
+        let id = match stack.pop() {
             Some(value) => value,
             None => return reachable,
         }
@@ -46,13 +43,13 @@ fn tccr_collect_reachable(
             }
         }
         if !already_seen {
-            push(reachable, id)
+            reachable.push(id)
             if id >= 0 && id < exprs.len() {
                 let expression = exprs.get_unchecked(id)
                 let child_count = expr_raw::corehir_expr_child_count(expression)
                 let mut child_index = 0
                 while child_index < child_count {
-                    push(stack, expr_raw::corehir_expr_child(expression, child_index))
+                    stack.push(expr_raw::corehir_expr_child(expression, child_index))
                     child_index = child_index + 1
                 }
             }

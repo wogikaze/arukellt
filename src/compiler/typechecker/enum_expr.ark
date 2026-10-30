@@ -64,7 +64,7 @@ fn instantiate_variant_result(mut env: TypeEnv, enum_defs: Vec<EnumInfo>, callee
     let mut inst_args = Vec::new<TypeInfo>()
     let mut param_index = 0
     while param_index < type_params.len() {
-        push(inst_args, unify::fresh_var(infer_env))
+        inst_args.push(unify::fresh_var(infer_env))
         param_index = param_index + 1
     }
     let payload_count = contract_enum_info::EnumInfo_variant_payload_count(enum_def, variant_index)
@@ -86,7 +86,7 @@ fn instantiate_variant_result(mut env: TypeEnv, enum_defs: Vec<EnumInfo>, callee
         if contract_type_access::TypeInfo_tag(arg_ty) == commands::TY_TYPE_VAR() {
             return base_ty
         }
-        push(resolved_args, arg_ty)
+        resolved_args.push(arg_ty)
         resolve_index = resolve_index + 1
     }
     let mut result_ty = base_ty

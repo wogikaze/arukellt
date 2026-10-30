@@ -10,7 +10,7 @@ fn first<T>(v: Vec<T>) -> Option<T> {
 
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
-    push(v, 99)
+    v.push(99)
     match first(v) {
         Option::Some(val) => Stdio::println((val).to_string()),
         None => Stdio::println("empty"),

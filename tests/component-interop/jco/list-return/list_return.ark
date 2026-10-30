@@ -2,8 +2,8 @@
 
 export fn numbers_after(n: i32) -> Vec<i32> {
     let mut out: Vec<i32> = Vec::new<i32>()
-    push(out, n)
-    push(out, n + 1)
+    out.push(n)
+    out.push(n + 1)
     out
 }
 

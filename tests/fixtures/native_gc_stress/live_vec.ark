@@ -1,10 +1,10 @@
 fn main() -> i32 {
     let mut values = Vec::new<i32>()
-    push(values, 7)
+    values.push(7)
     let mut i = 0
     while i < 64 {
         let mut junk = Vec::new<i32>()
-        push(junk, i)
+        junk.push(i)
         i = i + 1
     }
     if values.get_unchecked(0) == 7 { 0 } else { 1 }

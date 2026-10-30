@@ -11,7 +11,7 @@ pub fn json_text(s: String) -> String {
 
 pub fn json_object(s: String) -> String {
     let mut fields = Vec::new<json::JsonField>()
-    push(fields, json::JsonField::new("k", json::JsonValue::string(s)))
+    fields.push(json::JsonField::new("k", json::JsonValue::string(s)))
     json::JsonValue::object(fields).to_text()
 }
 

@@ -30,14 +30,14 @@ fn set_fn_type_params_from_sig(mut env: TypeEnv, sig: FnSig) {
     let type_param_count = contract_fn_sig::FnSig_type_param_count(sig)
     let mut type_param_index = 0
     while type_param_index < type_param_count {
-        push(type_params, contract_fn_sig::FnSig_type_param_at(sig, type_param_index))
+        type_params.push(contract_fn_sig::FnSig_type_param_at(sig, type_param_index))
         type_param_index = type_param_index + 1
     }
     let mut bounds = Vec::new<TypeParamBounds>()
     let bound_count = contract_fn_sig::FnSig_type_param_bound_count(sig)
     let mut bound_index = 0
     while bound_index < bound_count {
-        push(bounds, contract_fn_sig::FnSig_type_param_bound_at(sig, bound_index))
+        bounds.push(contract_fn_sig::FnSig_type_param_bound_at(sig, bound_index))
         bound_index = bound_index + 1
     }
     env.current_fn_type_params = type_params

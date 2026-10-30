@@ -2,6 +2,6 @@ use std::host::stdio::Stdio
 
 fn main() {
     let mut xs: Vec<String> = Vec::new<String>()
-    push(xs, String_from("hi"))
-    Stdio::println(xs.get_unchecked(0))
+    xs.push(String_from("hi"))
+    Stdio::println(get_unchecked(xs, 0))
 }

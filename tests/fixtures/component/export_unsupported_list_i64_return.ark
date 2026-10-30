@@ -3,7 +3,7 @@
 // Expected: E0401 compile-time error.
 export fn wide_numbers(n: i64) -> Vec<i64> {
     let mut out: Vec<i64> = Vec::new<i64>()
-    push(out, n)
+    out.push(n)
     out
 }
 

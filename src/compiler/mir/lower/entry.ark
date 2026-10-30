@@ -121,14 +121,11 @@ fn lower_entry_input_to_mir(mut input: MirLowerEntryInput, export_roots: Vec<Str
     let mut disc_names = module_functions::MirModule_discovery_fn_names(m)
     let mut disc_ret_names = module_functions::MirModule_discovery_fn_ret_names(m)
     while disc_i < disc_count {
-        push(disc_names, ctx_fn_index::ctx_fn_index_name_at(ctx, disc_i))
-        push(
-            disc_ret_names,
-            ctx_struct_layout::ctx_maybe_enum_return_type_name(
+        disc_names.push(ctx_fn_index::ctx_fn_index_name_at(ctx, disc_i))
+        disc_ret_names.push(ctx_struct_layout::ctx_maybe_enum_return_type_name(
                 ctx,
                 ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, disc_i)
-            )
-        )
+            ))
         disc_i = disc_i + 1
     }
     // Seed the incremental callee cache now that the discovery table is on
@@ -276,7 +273,7 @@ fn clone_export_roots(export_roots: Vec<String>) -> Vec<String> {
     let mut cloned = Vec::new<String>()
     let mut i = 0
     while i < export_roots.len() {
-        push(cloned, export_roots.get_unchecked(i).clone())
+        cloned.push(get_unchecked(export_roots, i).clone())
         i = i + 1
     }
     cloned

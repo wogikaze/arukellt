@@ -31,21 +31,21 @@ fn begin_function_local_gc_cache(mut ctx: SelfEmitCtx, f: MirFunction) {
     let mut i = 0
     while i < local_count {
         // Private encoding: -2 = not yet inferred (see cached_infer_*).
-        push(infer, 0 - 2)
-        push(struct_new, 0)
-        push(has_ref, 0)
-        push(vec_constructor_flags, 0)
-        push(direct_storage, 0 - 2)
-        push(copied_storage, 0 - 2)
-        push(def_block, 0 - 1)
-        push(def_inst, 0 - 1)
+        infer.push(0 - 2)
+        struct_new.push(0)
+        has_ref.push(0)
+        vec_constructor_flags.push(0)
+        direct_storage.push(0 - 2)
+        copied_storage.push(0 - 2)
+        def_block.push(0 - 1)
+        def_inst.push(0 - 1)
         i = i + 1
     }
     seed_has_ref_from_params(f, has_ref)
     let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
-        let block = f.blocks.get_unchecked(bi)
+        let block = get_unchecked(f.blocks, bi)
         let inst_count = block_inst_access::MirBlock_inst_count(block)
         let mut ii = 0
         while ii < inst_count {
@@ -56,12 +56,12 @@ fn begin_function_local_gc_cache(mut ctx: SelfEmitCtx, f: MirFunction) {
             code_ref_locals_scan::is_vec_constructor_name(inst_accessors_literals::MirInst_str_val(inst)) {
                 // The callee suffix may encode an element type, but the
                 // result is still the Vec header stored in this local.
-                set(vec_constructor_flags, dest, 1)
+                vec_constructor_flags.set(dest, 1)
             }
             if op == opcodes::MIR_GC_STRUCT_NEW() ||
             op == opcodes::MIR_STRUCT_NEW() {
                 if dest >= 0 && dest < local_count {
-                    set(struct_new, dest, 1)
+                    struct_new.set(dest, 1)
                 }
             }
             if op == opcodes::MIR_STRUCT_NEW() {
@@ -118,15 +118,15 @@ fn record_struct_new_size(mut names: Vec<String>, mut sizes: Vec<i32>, struct_na
     if struct_new_size_index(names, struct_name.clone()) >= 0 {
         return
     }
-    push(names, struct_name)
-    push(sizes, byte_size)
+    names.push(struct_name)
+    sizes.push(byte_size)
 }
 
 fn struct_new_size_index(names: Vec<String>, struct_name: String) -> i32 {
     let count = names.len()
     let mut i = 0
     while i < count {
-        if names.get_unchecked(i).eq(struct_name.clone()) {
+        if get_unchecked(names, i).eq(struct_name.clone()) {
             return i
         }
         i = i + 1
@@ -142,7 +142,7 @@ fn cached_struct_new_byte_size(ctx: SelfEmitCtx, struct_name: String) -> i32 {
     if idx < 0 {
         return 0
     }
-    ctx_record::SelfEmitCtx_struct_new_sizes(ctx).get_unchecked(idx)
+    get_unchecked(ctx_record::SelfEmitCtx_struct_new_sizes(ctx), idx)
 }
 
 fn seed_has_ref_from_params(f: MirFunction, mut has_ref: Vec<i32>) {
@@ -151,7 +151,7 @@ fn seed_has_ref_from_params(f: MirFunction, mut has_ref: Vec<i32>) {
     while pi < param_count {
         let param_type_name = function_param_view::MirFunction_param_type_name(f, pi)
         if param_type_name.len() > 0 && code_ref_locals_scan::type_name_is_ref(param_type_name) {
-            set(has_ref, pi, 1)
+            has_ref.set(pi, 1)
         }
         pi = pi + 1
     }
@@ -172,11 +172,11 @@ fn record_local_def_site(
     if op == opcodes::MIR_GC_STRUCT_SET() || op == opcodes::MIR_STRUCT_SET() {
         return
     }
-    if def_block.get_unchecked(local_idx) >= 0 {
+    if get_unchecked(def_block, local_idx) >= 0 {
         return
     }
-    set(def_block, local_idx, block_idx)
-    set(def_inst, local_idx, inst_idx)
+    def_block.set(local_idx, block_idx)
+    def_inst.set(local_idx, inst_idx)
 }
 
 fn propagate_has_ref_assignments(f: MirFunction, mut has_ref: Vec<i32>, max_passes: i32) {
@@ -186,7 +186,7 @@ fn propagate_has_ref_assignments(f: MirFunction, mut has_ref: Vec<i32>, max_pass
         let block_count = f.blocks.len()
         let mut bi = 0
         while bi < block_count {
-            let block = f.blocks.get_unchecked(bi)
+            let block = get_unchecked(f.blocks, bi)
             let inst_count = block_inst_access::MirBlock_inst_count(block)
             let mut ii = 0
             while ii < inst_count {
@@ -217,22 +217,22 @@ fn local_inst_marks_ref(f: MirFunction, inst: MirInst, mut has_ref: Vec<i32>) ->
         op == opcodes::MIR_CALL() ||
         op == opcodes::MIR_REF_CAST() ||
         op == opcodes::MIR_REF_TEST() {
-            if has_ref.get_unchecked(dest) == 0 {
-                set(has_ref, dest, 1)
+            if get_unchecked(has_ref, dest) == 0 {
+                has_ref.set(dest, 1)
                 return true
             }
         }
         if op == opcodes::MIR_GC_STRUCT_GET() && code_ref_locals_scan::local_has_ref_type_name(f, dest) {
-            if has_ref.get_unchecked(dest) == 0 {
-                set(has_ref, dest, 1)
+            if get_unchecked(has_ref, dest) == 0 {
+                has_ref.set(dest, 1)
                 return true
             }
         }
         if op == opcodes::MIR_LOCAL_GET() {
             let src = inst_accessors_operands::MirInst_arg0(inst)
-            if src >= 0 && src < has_ref.len() && has_ref.get_unchecked(src) == 1 {
-                if has_ref.get_unchecked(dest) == 0 {
-                    set(has_ref, dest, 1)
+            if src >= 0 && src < has_ref.len() && get_unchecked(has_ref, src) == 1 {
+                if get_unchecked(has_ref, dest) == 0 {
+                    has_ref.set(dest, 1)
                     return true
                 }
             }
@@ -240,9 +240,9 @@ fn local_inst_marks_ref(f: MirFunction, inst: MirInst, mut has_ref: Vec<i32>) ->
     }
     if op == opcodes::MIR_LOCAL_SET() && arg0 >= 0 && arg0 < has_ref.len() {
         let source = inst_accessors_operands::MirInst_arg1(inst)
-        if source >= 0 && source < has_ref.len() && has_ref.get_unchecked(source) == 1 {
-            if has_ref.get_unchecked(arg0) == 0 {
-                set(has_ref, arg0, 1)
+        if source >= 0 && source < has_ref.len() && get_unchecked(has_ref, source) == 1 {
+            if get_unchecked(has_ref, arg0) == 0 {
+                has_ref.set(arg0, 1)
                 return true
             }
         }
@@ -283,7 +283,7 @@ fn cached_body_has_i64_stack_set(ctx: SelfEmitCtx, local_idx: i32) -> bool {
     if local_idx < 0 || local_idx >= flags.len() {
         return false
     }
-    flags.get_unchecked(local_idx) == 1
+    get_unchecked(flags, local_idx) == 1
 }
 
 fn cached_def_block(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
@@ -291,7 +291,7 @@ fn cached_def_block(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     if local_idx < 0 || local_idx >= blocks.len() {
         return 0 - 1
     }
-    blocks.get_unchecked(local_idx)
+    get_unchecked(blocks, local_idx)
 }
 
 fn cached_def_inst(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
@@ -299,7 +299,7 @@ fn cached_def_inst(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     if local_idx < 0 || local_idx >= insts.len() {
         return 0 - 1
     }
-    insts.get_unchecked(local_idx)
+    get_unchecked(insts, local_idx)
 }
 
 // Encoded Option<i32> for local_direct_producer_storage_type. -3 means the
@@ -309,7 +309,7 @@ fn cached_direct_producer_storage(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     if local_idx < 0 || local_idx >= cache.len() {
         return 0 - 3
     }
-    cache.get_unchecked(local_idx)
+    get_unchecked(cache, local_idx)
 }
 
 fn set_cached_direct_producer_storage(ctx: SelfEmitCtx, local_idx: i32, value: Option<i32>) {
@@ -318,8 +318,8 @@ fn set_cached_direct_producer_storage(ctx: SelfEmitCtx, local_idx: i32, value: O
         return
     }
     match value {
-        Option::Some(type_idx) => set(cache, local_idx, type_idx),
-        Option::None => set(cache, local_idx, 0 - 1),
+        Option::Some(type_idx) => cache.set(local_idx, type_idx),
+        Option::None => cache.set(local_idx, 0 - 1),
     }
 }
 
@@ -331,7 +331,7 @@ fn cached_copied_storage(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     if local_idx < 0 || local_idx >= cache.len() {
         return 0 - 3
     }
-    cache.get_unchecked(local_idx)
+    get_unchecked(cache, local_idx)
 }
 
 fn set_cached_copied_storage(ctx: SelfEmitCtx, local_idx: i32, value: Option<i32>) {
@@ -340,8 +340,8 @@ fn set_cached_copied_storage(ctx: SelfEmitCtx, local_idx: i32, value: Option<i32
         return
     }
     match value {
-        Option::Some(type_idx) => set(cache, local_idx, type_idx),
-        Option::None => set(cache, local_idx, 0 - 1),
+        Option::Some(type_idx) => cache.set(local_idx, type_idx),
+        Option::None => cache.set(local_idx, 0 - 1),
     }
 }
 
@@ -361,7 +361,7 @@ fn cached_infer_get(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     if local_idx < 0 || local_idx >= cache.len() {
         return infer_cache_uncomputed()
     }
-    cache.get_unchecked(local_idx)
+    get_unchecked(cache, local_idx)
 }
 
 fn cached_infer_is_computed(ctx: SelfEmitCtx, local_idx: i32) -> bool {
@@ -383,10 +383,10 @@ fn cached_infer_set(ctx: SelfEmitCtx, local_idx: i32, value: Option<i32>) {
     }
     match value {
         Option::Some(v) => {
-            set(cache, local_idx, v)
+            cache.set(local_idx, v)
         }
         Option::None => {
-            set(cache, local_idx, infer_cache_miss())
+            cache.set(local_idx, infer_cache_miss())
         }
     }
 }

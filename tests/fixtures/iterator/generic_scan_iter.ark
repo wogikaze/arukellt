@@ -10,9 +10,9 @@ fn join_state(state: String, x: String) -> Option<String> {
 
 fn main() {
     let mut v: Vec<String> = Vec::new<String>()
-    push(v, String_from("a"))
-    push(v, String_from("b"))
-    push(v, String_from("cc"))
+    v.push(String_from("a"))
+    v.push(String_from("b"))
+    v.push(String_from("cc"))
     let mut sc = v.iter().scan(String_from(""), join_state)
     match sc.next() {
         Some(x) => Stdio::println(x),

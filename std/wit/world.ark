@@ -46,7 +46,7 @@ impl Interface {
 
     /// Append a function to the interface body.
     fn add_func(mut self: Interface, func: WitFunc) {
-        push(self.functions, func)
+        self.functions.push(func)
     }
 }
 
@@ -62,12 +62,12 @@ impl World {
 
     /// Append an imported interface to the world.
     fn add_import(mut self: World, iface: Interface) {
-        push(self.imports, iface)
+        self.imports.push(iface)
     }
 
     /// Append an exported interface to the world.
     fn add_export(mut self: World, iface: Interface) {
-        push(self.exports, iface)
+        self.exports.push(iface)
     }
 
     /// Return the world name.

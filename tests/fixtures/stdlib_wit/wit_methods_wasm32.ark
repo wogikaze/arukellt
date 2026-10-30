@@ -9,7 +9,7 @@ use std::wit::world
 fn main() {
     let mut math = world::Interface::new(String_from("math"))
     let mut params = Vec::new<WitParam>()
-    push(params, types::WitParam::new(String_from("a"), types::WitType::U32))
+    params.push(types::WitParam::new(String_from("a"), types::WitType::U32))
     let add = world::WitFunc::new(String_from("add"), params, Some(types::WitType::U32))
     math.add_func(add)
 

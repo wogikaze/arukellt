@@ -340,7 +340,7 @@ impl<K, V> Iterator for HashMapIter<K, V> {
         let mut result: Vec<(K, V)> = Vec::new<(K, V)>()
         while true {
             match self.next() {
-                Option::Some(pair) => push(result, pair),
+                Option::Some(pair) => result.push(pair),
                 Option::None => { break },
             }
         }

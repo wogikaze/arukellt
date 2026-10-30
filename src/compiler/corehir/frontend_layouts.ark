@@ -14,7 +14,7 @@ fn build_struct_layout(decl: AstNode) -> CoreHirLayoutDecl {
     let mut i = 0
     while i < field_count {
         let field = decl_layout_shape::decl_layout_field_at(decl, i)
-        push(fields, layout_field::CoreHirLayoutField_new(decl_layout_shape::decl_layout_member_name(field), decl_layout_shape::decl_layout_field_type_name(field)))
+        fields.push(layout_field::CoreHirLayoutField_new(decl_layout_shape::decl_layout_member_name(field), decl_layout_shape::decl_layout_field_type_name(field)))
         i = i + 1
     }
     // Generic parameters are stored as the decl's own type annotations
@@ -23,7 +23,7 @@ fn build_struct_layout(decl: AstNode) -> CoreHirLayoutDecl {
     let mut pi = 0
     while pi < param_count {
         let param = decl_type_annotations::member_type_ann_at(decl, pi)
-        push(type_params, decl_layout_shape::decl_layout_member_name(param))
+        type_params.push(decl_layout_shape::decl_layout_member_name(param))
         pi = pi + 1
     }
     layout_decl::CoreHirLayoutDecl_new(commands::COREHIR_DECL_STRUCT(), decl_layout_shape::decl_layout_name(decl), fields, variants, type_params)
@@ -36,7 +36,7 @@ fn build_variant_layout(variant: AstNode) -> CoreHirLayoutVariant {
     let mut i = 0
     while i < payload_count {
         let payload = decl_layout_shape::decl_layout_member_type_ann_at(variant, i)
-        push(payload_types, decl_layout_shape::decl_layout_payload_field_type_name(payload))
+        payload_types.push(decl_layout_shape::decl_layout_payload_field_type_name(payload))
         i = i + 1
     }
     // Record variants: payload info is in children (field nodes with type anns).
@@ -48,8 +48,8 @@ fn build_variant_layout(variant: AstNode) -> CoreHirLayoutVariant {
             let field_node = decl_layout_shape::decl_layout_variant_child_at(variant, ci)
             let field_name = decl_layout_shape::decl_layout_member_name(field_node)
             let field_type = decl_layout_shape::decl_layout_field_type_name(field_node)
-            push(payload_field_names, field_name)
-            push(payload_types, field_type)
+            payload_field_names.push(field_name)
+            payload_types.push(field_type)
             ci = ci + 1
         }
     }
@@ -62,7 +62,7 @@ fn build_enum_layout(decl: AstNode) -> CoreHirLayoutDecl {
     let variant_count = decl_layout_shape::decl_layout_variant_count(decl)
     let mut i = 0
     while i < variant_count {
-        push(variants, build_variant_layout(decl_layout_shape::decl_layout_variant_at(decl, i)))
+        variants.push(build_variant_layout(decl_layout_shape::decl_layout_variant_at(decl, i)))
         i = i + 1
     }
     // Generic parameters are recorded like a struct's: MIR payload lowering
@@ -73,7 +73,7 @@ fn build_enum_layout(decl: AstNode) -> CoreHirLayoutDecl {
     let mut pi = 0
     while pi < param_count {
         let param = decl_type_annotations::member_type_ann_at(decl, pi)
-        push(type_params, decl_layout_shape::decl_layout_member_name(param))
+        type_params.push(decl_layout_shape::decl_layout_member_name(param))
         pi = pi + 1
     }
     layout_decl::CoreHirLayoutDecl_new(commands::COREHIR_DECL_ENUM(), decl_layout_shape::decl_layout_name(decl), fields, variants, type_params)
@@ -86,10 +86,10 @@ fn build_layout_decls(decls: Vec<AstNode>) -> Vec<CoreHirLayoutDecl> {
     while i < decl_count {
         let decl = decls.get_unchecked(i)
         if decl_node::decl_is_struct(decl) || decl_node::decl_is_resource(decl) {
-            push(layouts, build_struct_layout(decl))
+            layouts.push(build_struct_layout(decl))
         }
         if decl_node::decl_is_enum(decl) {
-            push(layouts, build_enum_layout(decl))
+            layouts.push(build_enum_layout(decl))
         }
         i = i + 1
     }

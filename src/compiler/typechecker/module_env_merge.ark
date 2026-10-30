@@ -9,9 +9,9 @@ fn merge_mono_instances(mut dst: TypeEnv, src: TypeEnv) {
     let count = src_instances.len()
     let mut i = 0
     while i < count {
-        let incoming = src_instances.get_unchecked(i)
+        let incoming = get_unchecked(src_instances, i)
         if is_mono_call_site_marker(incoming) {
-            push(dst.mono_instances, incoming)
+            dst.mono_instances.push(incoming)
             i = i + 1
             continue
         }
@@ -21,14 +21,14 @@ fn merge_mono_instances(mut dst: TypeEnv, src: TypeEnv) {
         let mut found = false
         let mut j = 0
         while j < dst_count {
-            let existing = dst_instances.get_unchecked(j)
+            let existing = get_unchecked(dst_instances, j)
             if contract_mono::MonoInstance_mangled_name(existing).eq(incoming_mangled.clone()) {
                 found = true
             }
             j = j + 1
         }
         if !found {
-            push(dst.mono_instances, incoming)
+            dst.mono_instances.push(incoming)
             // Rebind only for demanded instances (#912): a body that is
             // never emitted must not pull its callees into the demanded
             // set, and non-demanded marker records carry sentinel type
@@ -51,14 +51,14 @@ fn merge_mono_template_sites(mut dst: TypeEnv, src: TypeEnv) {
     let src_count = src.mono_template_sites.len()
     let mut i = 0
     while i < src_count {
-        let incoming = src.mono_template_sites.get_unchecked(i)
+        let incoming = get_unchecked(src.mono_template_sites, i)
         let incoming_mangled = incoming.mangled_name.clone()
         let incoming_enclosing = incoming.enclosing_fn.clone()
         let dst_count = dst.mono_template_sites.len()
         let mut found = false
         let mut j = 0
         while j < dst_count {
-            let existing = dst.mono_template_sites.get_unchecked(j)
+            let existing = get_unchecked(dst.mono_template_sites, j)
             if existing.mangled_name.clone().eq(incoming_mangled.clone()) &&
             existing.enclosing_fn.clone().eq(incoming_enclosing.clone()) {
                 found = true
@@ -66,7 +66,7 @@ fn merge_mono_template_sites(mut dst: TypeEnv, src: TypeEnv) {
             j = j + 1
         }
         if !found {
-            push(dst.mono_template_sites, incoming)
+            dst.mono_template_sites.push(incoming)
         }
         i = i + 1
     }
@@ -83,7 +83,7 @@ fn merge_type_env(mut dst: TypeEnv, src: TypeEnv) {
     let err_count = src.error_count
     let mut e = 0
     while e < err_count {
-        push(dst.errors, src.errors.get_unchecked(e).clone())
+        dst.errors.push(get_unchecked(src.errors, e).clone())
         dst.error_count = dst.error_count + 1
         e = e + 1
     }
@@ -95,7 +95,7 @@ fn merge_type_env(mut dst: TypeEnv, src: TypeEnv) {
     let owner_count = src.resolved_call_owners.len()
     let mut oi = 0
     while oi < owner_count {
-        push(dst.resolved_call_owners, src.resolved_call_owners.get_unchecked(oi))
+        dst.resolved_call_owners.push(get_unchecked(src.resolved_call_owners, oi))
         oi = oi + 1
     }
 }

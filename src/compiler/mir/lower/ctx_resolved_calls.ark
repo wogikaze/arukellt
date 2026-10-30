@@ -20,7 +20,7 @@ fn ctx_register_resolved_calls(mut ctx: LowerCtx, calls: Vec<CoreHirResolvedCall
         )
         if name_index::name_index_get(ctx.resolved_call_index, key.clone()) < 0 {
             name_index::name_index_set(ctx.resolved_call_index, key, ctx.resolved_call_owners.len())
-            push(ctx.resolved_call_owners, raw_dto::CoreHirResolvedCall_owner_name(call))
+            ctx.resolved_call_owners.push(raw_dto::CoreHirResolvedCall_owner_name(call))
         }
         i = i + 1
     }

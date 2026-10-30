@@ -55,7 +55,7 @@ fn fmt_indent_apply(lines: Vec<String>) -> Vec<String> {
         let raw = lines.get_unchecked(i)
         let trimmed = fmt_indent_trimmed(raw)
         if trimmed.len() == 0 {
-            push(out, String_new())
+            out.push(String_new())
             i = i + 1
             continue
         }
@@ -75,7 +75,7 @@ fn fmt_indent_apply(lines: Vec<String>) -> Vec<String> {
             prefix = prefix.concat("    ")
             d = d + 1
         }
-        push(out, prefix.concat(trimmed))
+        out.push(prefix.concat(trimmed))
         if closes_else {
             indent = line_indent + 1
         } else {

@@ -8,8 +8,8 @@ struct Point {
 fn main() {
     let text = String_from("ab").concat(String_from("c"))
     let mut numbers = Vec::new<i32>()
-    push(numbers, 1)
-    push(numbers, 2)
+    numbers.push(1)
+    numbers.push(2)
     let point = Point { x: 3, y: 4 }
     Stdio::println(
         text.concat(String_from("|").concat(numbers.len().to_string().concat(String_from("|").concat(point.x.to_string().concat(String_from(",").concat(point.y.to_string()))))))

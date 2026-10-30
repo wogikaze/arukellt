@@ -24,7 +24,7 @@ fn collect_path_dependency_rel_paths(content: String) -> Vec<String> {
         if end < 0 {
             return out
         }
-        push(out, rest.slice(0, end))
+        out.push(rest.slice(0, end))
         search_from = abs + end + 1
     }
     out
@@ -35,7 +35,7 @@ fn tail_strings(items: Vec<String>) -> Vec<String> {
     let n = items.len()
     let mut i = 1
     while i < n {
-        push(out, items.get_unchecked(i))
+        out.push(get_unchecked(items, i))
         i = i + 1
     }
     out
@@ -45,7 +45,7 @@ fn roots_contains(roots: Vec<String>, path: String) -> bool {
     let n = roots.len()
     let mut i = 0
     while i < n {
-        if roots.get_unchecked(i).eq(path.clone()) {
+        if get_unchecked(roots, i).eq(path.clone()) {
             return true
         }
         i = i + 1
@@ -57,7 +57,7 @@ fn roots_push_unique(mut roots: Vec<String>, path: String) -> Vec<String> {
     if path.len() == 0 || roots_contains(roots, path.clone()) {
         return roots
     }
-    push(roots, path)
+    roots.push(path)
     roots
 }
 
@@ -66,7 +66,7 @@ fn discover_path_dependency_roots(seed_root: String) -> Vec<String> {
     let mut visited = Vec::new<String>()
     let mut pending = roots_push_unique(Vec::new<String>(), seed_root.clone())
     while pending.len() > 0 {
-        let next = pending.get_unchecked(0)
+        let next = get_unchecked(pending, 0)
         pending = tail_strings(pending)
         if roots_contains(visited, next.clone()) {
             continue
@@ -81,7 +81,7 @@ fn discover_path_dependency_roots(seed_root: String) -> Vec<String> {
                 let dn = deps.len()
                 let mut di = 0
                 while di < dn {
-                    let dep_rel = deps.get_unchecked(di)
+                    let dep_rel = get_unchecked(deps, di)
                     let dep_start = symbol_index_paths::resolve_relative_path(next.clone(), dep_rel)
                     let dep_root = lsp_package_definition::find_package_root(dep_start)
                     if dep_root.len() > 0 {
@@ -101,14 +101,14 @@ fn discover_workspace_package_roots(workspace_roots: Vec<String>) -> Vec<String>
     let n = workspace_roots.len()
     let mut i = 0
     while i < n {
-        let seed = workspace_roots.get_unchecked(i)
+        let seed = get_unchecked(workspace_roots, i)
         let project_root = lsp_package_definition::find_package_root(seed.clone())
         if project_root.len() > 0 {
             let discovered = discover_path_dependency_roots(project_root.clone())
             let dn = discovered.len()
             let mut di = 0
             while di < dn {
-                out = roots_push_unique(out, discovered.get_unchecked(di).clone())
+                out = roots_push_unique(out, get_unchecked(discovered, di).clone())
                 di = di + 1
             }
         }
@@ -122,7 +122,7 @@ fn build_workspace_seeds(state: LspState) -> Vec<String> {
     let n = state_record::lsp_state_workspace_roots_len(state)
     let mut i = 0
     while i < n {
-        push(out, state_record::lsp_state_workspace_root_at(state, i))
+        out.push(state_record::lsp_state_workspace_root_at(state, i))
         i = i + 1
     }
     if out.len() > 0 {
@@ -130,7 +130,7 @@ fn build_workspace_seeds(state: LspState) -> Vec<String> {
     }
     let project_root = state_record::lsp_state_project_root(state)
     if project_root.len() > 0 {
-        push(out, project_root)
+        out.push(project_root)
     }
     out
 }
@@ -141,7 +141,7 @@ pub fn rebuild_workspace_package_index(mut state: LspState) {
     let n = package_roots.len()
     let mut i = 0
     while i < n {
-        symbol_index_project::symbol_index_load_project(state, package_roots.get_unchecked(i))
+        symbol_index_project::symbol_index_load_project(state, get_unchecked(package_roots, i))
         i = i + 1
     }
 }
@@ -149,7 +149,7 @@ pub fn rebuild_workspace_package_index(mut state: LspState) {
 pub fn initialize_workspace_index(mut state: LspState, body: String) {
     let workspace_roots = lsp_package_definition::workspace_roots_from_initialize(body.clone())
     let primary = if workspace_roots.len() > 0 {
-        workspace_roots.get_unchecked(0)
+        get_unchecked(workspace_roots, 0)
     } else {
         String_new()
     }

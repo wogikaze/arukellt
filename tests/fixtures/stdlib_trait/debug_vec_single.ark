@@ -3,10 +3,10 @@ use std::test::Test
 
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
-    push(v, 42)
+    v.push(42)
     Test::assert_eq_string(fmt::DebugFormat::vec_i32(v), "[42]")
 
     let mut vs: Vec<String> = Vec::new<String>()
-    push(vs, String_from("a"))
+    vs.push(String_from("a"))
     Test::assert_eq_string(fmt::DebugFormat::vec_string(vs), "[\"a\"]")
 }

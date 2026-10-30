@@ -54,22 +54,22 @@ pub struct Deque<T> {
 fn deque_at<T>(deque: Deque<T>, index: i32) -> T {
     let front_len: i32 = deque.front_items.len()
     if index < front_len {
-        return deque.front_items.get_unchecked(front_len - 1 - index)
+        return get_unchecked(deque.front_items, front_len - 1 - index)
     }
-    deque.back_items.get_unchecked(index - front_len)
+    get_unchecked(deque.back_items, index - front_len)
 }
 
 fn deque_replace_at<T>(mut deque: Deque<T>, index: i32, value: T) -> T {
     let front_len: i32 = deque.front_items.len()
     if index < front_len {
         let slot: i32 = front_len - 1 - index
-        let old: T = deque.front_items.get_unchecked(slot)
-        set(deque.front_items, slot, value)
+        let old: T = get_unchecked(deque.front_items, slot)
+        deque.front_items.set(slot, value)
         return old
     }
     let slot: i32 = index - front_len
-    let old: T = deque.back_items.get_unchecked(slot)
-    set(deque.back_items, slot, value)
+    let old: T = get_unchecked(deque.back_items, slot)
+    deque.back_items.set(slot, value)
     old
 }
 
@@ -87,14 +87,14 @@ fn deque_items_eq<T: Eq>(left: Deque<T>, right: Deque<T>) -> bool {
     let mut index: i32 = 0
     while index < count {
         let left_value: T = if index < left_front {
-            left.front_items.get_unchecked(left_front - 1 - index)
+            get_unchecked(left.front_items, left_front - 1 - index)
         } else {
-            left.back_items.get_unchecked(index - left_front)
+            get_unchecked(left.back_items, index - left_front)
         }
         let right_value: T = if index < right_front {
-            right.front_items.get_unchecked(right_front - 1 - index)
+            get_unchecked(right.front_items, right_front - 1 - index)
         } else {
-            right.back_items.get_unchecked(index - right_front)
+            get_unchecked(right.back_items, index - right_front)
         }
         if !left_value.eq(right_value) {
             return false
@@ -124,13 +124,13 @@ impl<T> Deque<T> {
 
     /// Inserts `value` at the back.
     fn push_back(mut self: Deque<T>, value: T) {
-        push(self.back_items, value)
+        self.back_items.push(value)
         self.note_growth()
     }
 
     /// Inserts `value` at the front.
     fn push_front(mut self: Deque<T>, value: T) {
-        push(self.front_items, value)
+        self.front_items.push(value)
         self.note_growth()
     }
 
@@ -138,35 +138,35 @@ impl<T> Deque<T> {
     fn pop_back(mut self: Deque<T>) -> Option<T> {
         if self.back_items.len() == 0 {
             while self.front_items.len() > 0 {
-                match pop(self.front_items) {
-                    Option::Some(value) => push(self.back_items, value),
+                match self.front_items.pop() {
+                    Option::Some(value) => self.back_items.push(value),
                     Option::None => { break },
                 }
             }
         }
-        pop(self.back_items)
+        self.back_items.pop()
     }
 
     /// Removes and returns the front element, or `None` when empty.
     fn pop_front(mut self: Deque<T>) -> Option<T> {
         if self.front_items.len() == 0 {
             while self.back_items.len() > 0 {
-                match pop(self.back_items) {
-                    Option::Some(value) => push(self.front_items, value),
+                match self.back_items.pop() {
+                    Option::Some(value) => self.front_items.push(value),
                     Option::None => { break },
                 }
             }
         }
-        pop(self.front_items)
+        self.front_items.pop()
     }
 
     /// Peeks at the front element without removing it.
     fn front(self: Deque<T>) -> Option<T> {
         if self.front_items.len() > 0 {
-            return Option::Some(self.front_items.get_unchecked(self.front_items.len() - 1))
+            return Option::Some(get_unchecked(self.front_items, self.front_items.len() - 1))
         }
         if self.back_items.len() > 0 {
-            return Option::Some(self.back_items.get_unchecked(0))
+            return Option::Some(get_unchecked(self.back_items, 0))
         }
         Option::None
     }
@@ -174,10 +174,10 @@ impl<T> Deque<T> {
     /// Peeks at the back element without removing it.
     fn back(self: Deque<T>) -> Option<T> {
         if self.back_items.len() > 0 {
-            return Option::Some(self.back_items.get_unchecked(self.back_items.len() - 1))
+            return Option::Some(get_unchecked(self.back_items, self.back_items.len() - 1))
         }
         if self.front_items.len() > 0 {
-            return Option::Some(self.front_items.get_unchecked(0))
+            return Option::Some(get_unchecked(self.front_items, 0))
         }
         Option::None
     }
@@ -218,15 +218,15 @@ impl<T> Deque<T> {
         let back_cap: i32 = needed - front_cap
         let mut new_front: Vec<T> = Vec::with_capacity<T>(front_cap)
         while self.front_items.len() > 0 {
-            match pop(self.front_items) {
-                Option::Some(value) => push(new_front, value),
+            match self.front_items.pop() {
+                Option::Some(value) => new_front.push(value),
                 Option::None => { break },
             }
         }
         let mut new_back: Vec<T> = Vec::with_capacity<T>(back_cap)
         while self.back_items.len() > 0 {
-            match pop(self.back_items) {
-                Option::Some(value) => push(new_back, value),
+            match self.back_items.pop() {
+                Option::Some(value) => new_back.push(value),
                 Option::None => { break },
             }
         }
@@ -259,7 +259,7 @@ impl<T> Deque<T> {
 
 fn pop_all<T>(mut values: Vec<T>) {
     while values.len() > 0 {
-        match pop(values) {
+        match values.pop() {
             Option::Some(_) => {},
             Option::None => { break },
         }
@@ -289,7 +289,7 @@ impl<T> Iterator for DequeIter<T> {
         let mut out: Vec<T> = Vec::new<T>()
         let count: i32 = self.deque.front_items.len() + self.deque.back_items.len()
         while self.index < count {
-            push(out, deque_at(self.deque, self.index))
+            out.push(deque_at(self.deque, self.index))
             self.index = self.index + 1
         }
         out
@@ -343,7 +343,7 @@ impl<T> Iterator for DequeIterMut<T> {
         let mut out: Vec<T> = Vec::new<T>()
         let count: i32 = self.deque.front_items.len() + self.deque.back_items.len()
         while self.index < count {
-            push(out, deque_at(self.deque, self.index))
+            out.push(deque_at(self.deque, self.index))
             self.index = self.index + 1
         }
         out
@@ -392,7 +392,7 @@ impl<T> Iterator for DequeIntoIter<T> {
         let mut out: Vec<T> = Vec::new<T>()
         while true {
             match self.deque.pop_front() {
-                Option::Some(value) => push(out, value),
+                Option::Some(value) => out.push(value),
                 Option::None => { break },
             }
         }

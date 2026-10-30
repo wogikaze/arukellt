@@ -66,11 +66,11 @@ fn resolve_ctx_scope_count(ctx: ResolveCtx) -> i32 {
 }
 
 fn resolve_ctx_scope_at(ctx: ResolveCtx, index: i32) -> Scope {
-    ctx.scopes.get_unchecked(index)
+    get_unchecked(ctx.scopes, index)
 }
 
 fn resolve_ctx_push_scope_value(mut ctx: ResolveCtx, scope: Scope) {
-    push(ctx.scopes, scope)
+    ctx.scopes.push(scope)
 }
 
 fn resolve_ctx_current_depth(ctx: ResolveCtx) -> i32 {
@@ -109,11 +109,11 @@ fn resolve_ctx_pop_depth(mut ctx: ResolveCtx) {
 
 fn resolve_ctx_push_error(mut ctx: ResolveCtx, msg: String) {
     ctx.error_count = ctx.error_count + 1
-    push(ctx.errors, msg)
+    ctx.errors.push(msg)
 }
 
 fn resolve_ctx_push_diagnostic(mut ctx: ResolveCtx, diag: Diagnostic) {
-    push(ctx.diagnostics, diag)
+    ctx.diagnostics.push(diag)
 }
 
 fn resolve_ctx_errors(ctx: ResolveCtx) -> Vec<String> {
@@ -133,29 +133,29 @@ fn resolve_ctx_reported_error_count(ctx: ResolveCtx) -> i32 {
 }
 
 fn resolve_ctx_error_at(ctx: ResolveCtx, index: i32) -> String {
-    ctx.errors.get_unchecked(index).clone()
+    get_unchecked(ctx.errors, index).clone()
 }
 
 fn resolve_ctx_add_use_alias(mut ctx: ResolveCtx, short_name: String, target: String) {
     let count = ctx.use_alias_shorts.len()
     let mut i = 0
     while i < count {
-        if ctx.use_alias_shorts.get_unchecked(i).clone().eq(short_name.clone()) {
-            set(ctx.use_alias_targets, i, target)
+        if get_unchecked(ctx.use_alias_shorts, i).clone().eq(short_name.clone()) {
+            ctx.use_alias_targets.set(i, target)
             return
         }
         i = i + 1
     }
-    push(ctx.use_alias_shorts, short_name)
-    push(ctx.use_alias_targets, target)
+    ctx.use_alias_shorts.push(short_name)
+    ctx.use_alias_targets.push(target)
 }
 
 fn resolve_ctx_lookup_use_alias(ctx: ResolveCtx, short_name: String) -> String {
     let count = ctx.use_alias_shorts.len()
     let mut i = 0
     while i < count {
-        if ctx.use_alias_shorts.get_unchecked(i).clone().eq(short_name.clone()) {
-            return ctx.use_alias_targets.get_unchecked(i).clone()
+        if get_unchecked(ctx.use_alias_shorts, i).clone().eq(short_name.clone()) {
+            return get_unchecked(ctx.use_alias_targets, i).clone()
         }
         i = i + 1
     }

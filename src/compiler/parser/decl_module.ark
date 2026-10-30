@@ -65,7 +65,7 @@ fn parse_module_impl(mut p: Parser) -> Vec<AstNode> {
         let err_before = state_record::parser_error_count(p)
         let pos_before = state_record::parser_position(p)
         let d = decl_dispatch::parse_decl(p)
-        push(decls, d)
+        decls.push(d)
         if state_record::parser_error_count(p) > err_before {
             if state_record::parser_position(p) == pos_before {
                 state_record::parser_advance(p)

@@ -16,7 +16,7 @@ fn ctx_fid_map_build_registry_chains(
     let registry_count = signature_registry::signature_registry_entry_count(registry)
     let mut raw = 0
     while raw < registry_count {
-        push(registry_next, 0 - 1)
+        registry_next.push(0 - 1)
         // Signature-only entries never produce a MirFunction; leaving them
         // in the chain shifts every emitted same-name fn to the wrong
         // FunctionId (#920).
@@ -29,7 +29,7 @@ fn ctx_fid_map_build_registry_chains(
         if tail < 0 {
             name_index::name_index_insert_first(registry_heads, name.clone(), raw)
         } else {
-            set(registry_next, tail, raw)
+            registry_next.set(tail, raw)
         }
         name_index::name_index_set(registry_tails, name, raw)
         raw = raw + 1
@@ -42,7 +42,7 @@ fn SelfEmitCtx_build_fid_to_mir(mut ctx: SelfEmitCtx) {
     let mut fid_to_mir = Vec::new<i32>()
     let mut si = 0
     while si < registry_count {
-        push(fid_to_mir, 0 - 1)
+        fid_to_mir.push(0 - 1)
         si = si + 1
     }
     let mut registry_heads = name_index::NameIndex_new(registry_count)
@@ -53,16 +53,16 @@ fn SelfEmitCtx_build_fid_to_mir(mut ctx: SelfEmitCtx) {
     let fn_count = functions.len()
     let mut fi = 0
     while fi < fn_count {
-        let fname = function_identity::MirFunction_name(functions.get_unchecked(fi))
+        let fname = function_identity::MirFunction_name(get_unchecked(functions, fi))
         let raw = name_index::name_index_get(registry_heads, fname.clone())
         if raw >= 0 {
-            if fid_to_mir.get_unchecked(raw) < 0 {
-                set(fid_to_mir, raw, fi)
+            if get_unchecked(fid_to_mir, raw) < 0 {
+                fid_to_mir.set(raw, fi)
             }
             name_index::name_index_set(
                 registry_heads,
                 fname,
-                registry_next.get_unchecked(raw)
+                get_unchecked(registry_next, raw)
             )
         }
         fi = fi + 1
@@ -89,7 +89,7 @@ fn SelfEmitCtx_bind_spine_incremental(
     let mut fid_to_mir = Vec::new<i32>()
     let mut si = 0
     while si < registry_count {
-        push(fid_to_mir, 0 - 1)
+        fid_to_mir.push(0 - 1)
         si = si + 1
     }
     let mut registry_heads = name_index::NameIndex_new(registry_count)

@@ -23,8 +23,8 @@ fn infer_closure_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSi
         } else {
             unify::fresh_var(env)
         }
-        push(param_types, param_ty)
-        push(param_modes, ast_access::node_is_mut(param))
+        param_types.push(param_ty)
+        param_modes.push(ast_access::node_is_mut(param))
         scope::scope_define_with_flags(
             closure_scope,
             ast_access::node_text(param),

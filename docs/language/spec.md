@@ -1749,16 +1749,20 @@ Non-prelude: `f32_to_string(f: f32) -> String`.
 | `Vec_with_capacity_i32(cap: i32) -> Vec<i32>` | Alias for Vec_new_i32_with_cap |
 | `Vec_with_capacity_String(cap: i32) -> Vec<String>` | Pre-allocated String vector |
 
-### 9.6 Vec — Operations (prelude)
+### 9.6 Vec — Operations
+
+`push`, `pop`, `len` and `set` are receiver methods; their free prelude
+spellings are retired and fail with E0100. `get` / `get_unchecked` / `as_slice`
+remain prelude frees for now (ADR-046 migration).
 
 | Signature | Description |
 |-----------|-------------|
-| `push(v: Vec<T>, x: T)` | Append element |
-| `pop(v: Vec<T>) -> Option<T>` | Remove and return last |
-| `len(v: Vec<T>) -> i32` | Length |
+| `v.push(x: T)` | Append element |
+| `v.pop() -> Option<T>` | Remove and return last |
+| `v.len() -> i32` | Length |
 | `get(v: Vec<T>, i: i32) -> Option<T>` | Bounds-checked access |
 | `get_unchecked(v: Vec<T>, i: i32) -> T` | Unchecked access |
-| `set(v: Vec<T>, i: i32, x: T)` | Set element at index |
+| `v.set(i: i32, x: T)` | Set element at index |
 | `clear(v: Vec<T>)` | Remove all elements |
 | `as_slice(v: Vec<T>) -> Vec<T>` | View as slice |
 

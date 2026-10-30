@@ -15,7 +15,7 @@ pub fn Vec_extend_i32(mut dst: Vec<i32>, src: Vec<i32>) {
     let n = src.len()
     let mut i = 0
     while i < n {
-        push(dst, src.get_unchecked(i))
+        dst.push(get_unchecked(src, i))
         i = i + 1
     }
 }
@@ -24,7 +24,7 @@ pub fn Vec_extend_String(mut dst: Vec<String>, src: Vec<String>) {
     let n = src.len()
     let mut i = 0
     while i < n {
-        push(dst, src.get_unchecked(i))
+        dst.push(get_unchecked(src, i))
         i = i + 1
     }
 }
@@ -35,7 +35,7 @@ pub fn Vec_extend_String_clone(mut dst: Vec<String>, src: Vec<String>) {
     let n = src.len()
     let mut i = 0
     while i < n {
-        push(dst, src.get_unchecked(i).clone())
+        dst.push(get_unchecked(src, i).clone())
         i = i + 1
     }
 }
@@ -46,7 +46,7 @@ pub fn Vec_extend_Diagnostic(mut dst: Vec<Diagnostic>, src: Vec<Diagnostic>) {
     let n = src.len()
     let mut i = 0
     while i < n {
-        push(dst, src.get_unchecked(i))
+        dst.push(get_unchecked(src, i))
         i = i + 1
     }
 }
@@ -55,7 +55,7 @@ pub fn Vec_extend_MirInst(mut dst: Vec<MirInst>, src: Vec<MirInst>) {
     let n = src.len()
     let mut i = 0
     while i < n {
-        push(dst, src.get_unchecked(i))
+        dst.push(get_unchecked(src, i))
         i = i + 1
     }
 }
@@ -64,7 +64,7 @@ pub fn Vec_extend_FnSig(mut dst: Vec<FnSig>, src: Vec<FnSig>) {
     let n = src.len()
     let mut i = 0
     while i < n {
-        push(dst, src.get_unchecked(i))
+        dst.push(get_unchecked(src, i))
         i = i + 1
     }
 }
@@ -73,7 +73,7 @@ pub fn Vec_extend_EnumInfo(mut dst: Vec<EnumInfo>, src: Vec<EnumInfo>) {
     let n = src.len()
     let mut i = 0
     while i < n {
-        push(dst, src.get_unchecked(i))
+        dst.push(get_unchecked(src, i))
         i = i + 1
     }
 }
@@ -82,7 +82,7 @@ pub fn Vec_extend_AstNode(mut dst: Vec<AstNode>, src: Vec<AstNode>) {
     let n = src.len()
     let mut i = 0
     while i < n {
-        push(dst, src.get_unchecked(i))
+        dst.push(get_unchecked(src, i))
         i = i + 1
     }
 }
@@ -91,7 +91,7 @@ fn Vec_extend_MonoCallSite(mut dst: Vec<MonoCallSite>, src: Vec<MonoCallSite>) {
     let n = src.len()
     let mut i = 0
     while i < n {
-        push(dst, src.get_unchecked(i))
+        dst.push(get_unchecked(src, i))
         i = i + 1
     }
 }

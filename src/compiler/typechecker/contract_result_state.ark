@@ -30,16 +30,16 @@ fn typecheck_result_set_errors(mut result: TypeCheckResult, errors: Vec<String>)
 }
 
 fn typecheck_result_push_error(mut result: TypeCheckResult, error: String) {
-    push(result.errors, error)
+    result.errors.push(error)
     result.error_count = result.error_count + 1
 }
 
 fn typecheck_result_push_diagnostic(mut result: TypeCheckResult, diagnostic: Diagnostic) {
-    push(result.diagnostics, diagnostic)
+    result.diagnostics.push(diagnostic)
 }
 
 fn typecheck_result_push_warning(mut result: TypeCheckResult, warning: Diagnostic) {
-    push(result.warnings, warning)
+    result.warnings.push(warning)
 }
 
 fn typecheck_result_set_mono_instances(mut result: TypeCheckResult, instances: Vec<MonoInstance>) {
@@ -47,7 +47,7 @@ fn typecheck_result_set_mono_instances(mut result: TypeCheckResult, instances: V
 }
 
 fn typecheck_result_push_typed_fn(mut result: TypeCheckResult, name: String, param_types: Vec<TypeInfo>, return_type: TypeInfo) {
-    push(result.typed_fns, contract_typed_fn::TypedFn_new(name, param_types, return_type))
+    result.typed_fns.push(contract_typed_fn::TypedFn_new(name, param_types, return_type))
 }
 
 fn typecheck_result_error_count(result: TypeCheckResult) -> i32 {

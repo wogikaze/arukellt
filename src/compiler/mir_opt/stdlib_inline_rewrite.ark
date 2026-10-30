@@ -28,7 +28,7 @@ fn stdlib_inline_call_arg_locals(block: MirBlock, call_index: i32, call: MirInst
     let mut args = Vec::new<i32>()
     let count = inst_accessors_literals::MirInst_int_val(call)
     if count == 1 {
-        push(args, stdlib_inline_find_single_arg_local(block, call_index))
+        args.push(stdlib_inline_find_single_arg_local(block, call_index))
         return args
     }
     let mut index = 0
@@ -41,7 +41,7 @@ fn stdlib_inline_call_arg_locals(block: MirBlock, call_index: i32, call: MirInst
         if inst_accessors_shape::MirInst_op(staged) != opcodes::MIR_LOCAL_GET() {
             return Vec::new<i32>()
         }
-        push(args, inst_accessors_operands::MirInst_arg0(staged))
+        args.push(inst_accessors_operands::MirInst_arg0(staged))
         index = index + 1
     }
     args
@@ -64,19 +64,16 @@ fn stdlib_inline_append_call(
     if inst_accessors_literals::MirInst_int_val(call) > 1 {
         let mut drop_index = 0
         while drop_index < args.len() {
-            push(output, inst_misc_control::MirInst_drop())
+            output.push(inst_misc_control::MirInst_drop())
             drop_index = drop_index + 1
         }
     }
     let mut param_index = 0
     while param_index < param_count {
-        push(
-            output,
-            inst_local_set::MirInst_local_set_from(
+        output.push(inst_local_set::MirInst_local_set_from(
                 stdlib_inline_locals::stdlib_inline_remap_local(local_map, param_index),
-                args.get_unchecked(param_index)
-            )
-        )
+                get_unchecked(args, param_index)
+            ))
         param_index = param_index + 1
     }
     let body_index = stdlib_inline_eligibility::stdlib_inline_candidate_body_block(callee)
@@ -86,9 +83,7 @@ fn stdlib_inline_append_call(
     while instruction_index < instruction_count - 1 {
         let source = block_inst_access::MirBlock_inst_at(body, instruction_index)
         let mut source_draft = block_inst_access::MirBlock_export_draft(body, instruction_index)
-        push(
-            output,
-            inst_draft::MirInstDraft_copy_with_locals(
+        output.push(inst_draft::MirInstDraft_copy_with_locals(
                 source_draft,
                 stdlib_inline_locals::stdlib_inline_remap_local(
                     local_map,
@@ -102,8 +97,7 @@ fn stdlib_inline_append_call(
                     local_map,
                     inst_accessors_operands::MirInst_arg1(source)
                 )
-            )
-        )
+            ))
         instruction_index = instruction_index + 1
     }
     let return_inst = block_inst_access::MirBlock_inst_at(body, instruction_count - 1)
@@ -113,7 +107,7 @@ fn stdlib_inline_append_call(
     )
     let call_dest = inst_accessors_operands::MirInst_dest(call)
     if return_local >= 0 && call_dest >= 0 {
-        push(output, inst_local_set::MirInst_local_set_from(call_dest, return_local))
+        output.push(inst_local_set::MirInst_local_set_from(call_dest, return_local))
     }
     true
 }

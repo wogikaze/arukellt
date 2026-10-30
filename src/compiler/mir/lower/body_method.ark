@@ -5,6 +5,8 @@ use mir::lower::body_aggregate_assign_field
 use mir::lower::call_arg_i64
 use mir::lower::call_rewrite_hashmap
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_fn_index
 use mir::lower::method
 use mir::inst_local_get
 use mir::lower_kinds
@@ -44,6 +46,7 @@ fn lower_method_call_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
             }
             let arg_is_scalar_const = method::mir_method_arg_needs_repush_before_field_access(ctx, method_arg_idx)
             if (arg_is_composed && method_arg_idx >= 0) ||
+            mir_method_arg_is_materialized_const(ctx, arg) ||
             method::mir_method_arg_leaves_no_stack(ctx, method_arg_idx) {
                 ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(method_arg_idx))
             }
@@ -84,4 +87,21 @@ fn lower_method_call_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
         return call_result
     }
     0 - 1
+}
+
+// A module constant is not an atomic stack producer: `lower_atomic_const`
+// emits a call into the constant's accessor local, and the call-store policy
+// materializes that result before the enclosing call. Without a reload the
+// method's operand stack is one value short (`v.set(0, K)` / `v.push(NIL)`
+// emitted invalid core Wasm). Locals shadow constants in `lower_atomic_ident`,
+// so only an unresolved local is a constant.
+fn mir_method_arg_is_materialized_const(ctx: LowerCtx, arg: AstNode) -> bool {
+    if !ast_node::node_kind_is(arg, lower_kinds::NK_IDENT()) {
+        return false
+    }
+    let name = ast_node::node_text(arg)
+    if ctx_api_local_alloc::ctx_lookup_local(ctx, name.clone()) >= 0 {
+        return false
+    }
+    ctx_fn_index::ctx_is_const_name(ctx, name)
 }

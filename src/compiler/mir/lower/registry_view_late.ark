@@ -40,7 +40,7 @@ fn register_body_tuple_gc_types(mut ctx: LowerCtx, view: CoreHirMirView) {
     let expr_count = exprs.len()
     let mut ei = 0
     while ei < expr_count {
-        let expr = exprs.get_unchecked(ei)
+        let expr = get_unchecked(exprs, ei)
         if core_expr_shape_aggregate::mir_core_expr_is_tuple(expr) {
             register_one_body_tuple(ctx, exprs, expr)
         }
@@ -60,7 +60,7 @@ fn register_one_body_tuple(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
         if child_idx < 0 || child_idx >= exprs.len() {
             return
         }
-        push(field_vts, expr_access_types::expr_val_type(exprs.get_unchecked(child_idx)))
+        field_vts.push(expr_access_types::expr_val_type(get_unchecked(exprs, child_idx)))
         ci = ci + 1
     }
     aggregate_tuple::ctx_register_tuple_gc_struct_from_field_vts(ctx, field_vts)
@@ -71,7 +71,7 @@ fn register_body_only_known_tuples(mut ctx: LowerCtx) {
     let mut i = 0
     let mut has_tuple = false
     while i < count {
-        if ctx.gc_struct_names.get_unchecked(i).clone().starts_with("tuple:") {
+        if get_unchecked(ctx.gc_struct_names, i).clone().starts_with("tuple:") {
             has_tuple = true
             i = count
         }
@@ -106,7 +106,7 @@ fn register_mono_late_gc_types(mut ctx: LowerCtx, ts: CoreHirMirTypeSource) {
     let mono_count = instances.len()
     let mut mi = 0
     while mi < mono_count {
-        let inst = instances.get_unchecked(mi)
+        let inst = get_unchecked(instances, mi)
         let arg_count = type_contracts::MonoInstance_type_arg_count(inst)
         let mut ai = 0
         while ai < arg_count {
@@ -202,7 +202,7 @@ fn register_open_or_vec_payload(mut ctx: LowerCtx, ty: TypeInfo, variant_name: S
         return
     }
     let mut payload_vts = Vec::new<i32>()
-    push(payload_vts, value_types::VT_GC_REF())
+    payload_vts.push(value_types::VT_GC_REF())
     let _slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(
         ctx,
         variant_name,

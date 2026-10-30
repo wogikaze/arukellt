@@ -36,16 +36,13 @@ fn closure_storage_set_pending_identity(mut ctx: LowerCtx) {
 }
 
 fn closure_storage_push_bind(mut ctx: LowerCtx, bind_name: String) {
-    push(ctx.closure_bind_names, bind_name)
-    push(ctx.closure_bind_synth, ctx.closure_last_synth.clone())
-    push(ctx.closure_bind_caps, ctx.closure_last_caps.clone())
-    push(ctx.closure_bind_extra, ctx.closure_last_extra)
-    push(ctx.closure_bind_identity, ctx.closure_last_identity)
-    push(ctx.closure_bind_env, ctx.closure_last_env)
-    push(
-        ctx.closure_bind_fns,
-        function_identity::MirFunction_name(ctx_current_storage::ctx_current_func_value(ctx))
-    )
+    ctx.closure_bind_names.push(bind_name)
+    ctx.closure_bind_synth.push(ctx.closure_last_synth.clone())
+    ctx.closure_bind_caps.push(ctx.closure_last_caps.clone())
+    ctx.closure_bind_extra.push(ctx.closure_last_extra)
+    ctx.closure_bind_identity.push(ctx.closure_last_identity)
+    ctx.closure_bind_env.push(ctx.closure_last_env)
+    ctx.closure_bind_fns.push(function_identity::MirFunction_name(ctx_current_storage::ctx_current_func_value(ctx)))
 }
 
 fn closure_storage_bind_count(ctx: LowerCtx) -> i32 {

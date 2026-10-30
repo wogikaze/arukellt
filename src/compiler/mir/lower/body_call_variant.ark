@@ -55,8 +55,8 @@ fn lower_payload_variant_call(mut ctx: LowerCtx, node: AstNode, child_count: i32
             ctx_api_local_types::ctx_set_local_variant_slot(ctx, save_local, 0 - 1)
         }
         ctx_emit(ctx, inst_local_set::MirInst_local_set_from(save_local, p_idx))
-        push(payload_locals, save_local)
-        push(payload_vts, p_vt)
+        payload_locals.push(save_local)
+        payload_vts.push(p_vt)
         if p_vt == value_types::VT_F64() || p_vt == value_types::VT_I64() {
             total_bytes = total_bytes + 8
         } else {
@@ -180,7 +180,7 @@ fn mir_expected_enum_split_args(inner: String) -> Vec<String> {
             }
         }
         if (i == n || inner.clone().byte_at(i) == 44) && angle_depth == 0 && paren_depth == 0 {
-            push(args, inner.clone().slice(seg_start, i))
+            args.push(inner.clone().slice(seg_start, i))
             seg_start = i + 1
         }
         i = i + 1

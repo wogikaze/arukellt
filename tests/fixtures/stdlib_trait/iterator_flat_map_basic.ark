@@ -3,8 +3,8 @@ use std::test::Test
 
 fn dup(n: i32) -> Vec<i32> {
     let mut v: Vec<i32> = Vec::new<i32>()
-    push(v, n)
-    push(v, n * 10)
+    v.push(n)
+    v.push(n * 10)
     v
 }
 
@@ -14,9 +14,9 @@ fn empty(_n: i32) -> Vec<i32> {
 
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
-    push(v, 1)
-    push(v, 2)
-    push(v, 3)
+    v.push(1)
+    v.push(2)
+    v.push(3)
 
     let mut it = v.iter().flat_map(dup)
     match it.next() {
@@ -40,8 +40,8 @@ fn main() {
     }
 
     let mut ev: Vec<i32> = Vec::new<i32>()
-    push(ev, 0)
-    push(ev, 2)
+    ev.push(0)
+    ev.push(2)
     let mut it3 = ev.iter().flat_map(dup)
     match it3.next() {
         Some(x) => Test::assert_eq_i32(x, 0),
@@ -66,7 +66,7 @@ fn main() {
 
     // Drained collect preserves expansion order.
     let mut w: Vec<i32> = Vec::new<i32>()
-    push(w, 3)
+    w.push(3)
     let drained = w.iter().flat_map(dup).collect()
     Test::assert_eq_i32(drained.len(), 2)
     Test::assert_eq_i32(drained.get_unchecked(0), 3)
@@ -74,8 +74,8 @@ fn main() {
 
     // Receiver pipeline composes with take.
     let mut z: Vec<i32> = Vec::new<i32>()
-    push(z, 1)
-    push(z, 2)
+    z.push(1)
+    z.push(2)
     let taken = z.iter().flat_map(dup).take(3).collect()
     Test::assert_eq_i32(taken.len(), 3)
     Test::assert_eq_i32(taken.get_unchecked(0), 1)

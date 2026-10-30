@@ -13,7 +13,7 @@ fn main() {
     Test::assert_true(empty.is_empty())
     let mut values: Vec<i32> = Vec::new<i32>()
     Test::assert_true(values.is_empty())
-    push(values, 1)
+    values.push(1)
 
     Test::assert_eq_string(String_from(" AbC ").trim().to_lower(), "abc")
     Test::assert_eq_string(String_from("abc").to_upper(), "ABC")

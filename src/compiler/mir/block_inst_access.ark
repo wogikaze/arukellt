@@ -9,44 +9,44 @@ fn MirBlock_inst_count(block: MirBlock) -> i32 {
 }
 
 fn MirBlock_inst_op(block: MirBlock, idx: i32) -> i32 {
-    block.ops.get_unchecked(idx)
+    get_unchecked(block.ops, idx)
 }
 
 fn MirBlock_inst_dest(block: MirBlock, idx: i32) -> i32 {
-    block.dests.get_unchecked(idx)
+    get_unchecked(block.dests, idx)
 }
 
 fn MirBlock_inst_arg0(block: MirBlock, idx: i32) -> i32 {
-    block.arg0s.get_unchecked(idx)
+    get_unchecked(block.arg0s, idx)
 }
 
 fn MirBlock_inst_arg1(block: MirBlock, idx: i32) -> i32 {
-    block.arg1s.get_unchecked(idx)
+    get_unchecked(block.arg1s, idx)
 }
 
 fn MirBlock_inst_int_val(block: MirBlock, idx: i32) -> i32 {
-    block.int_vals.get_unchecked(idx)
+    get_unchecked(block.int_vals, idx)
 }
 
 fn MirBlock_inst_float_val(block: MirBlock, idx: i32) -> f64 {
-    block_record::mir_float_box_value(block.float_vals.get_unchecked(idx))
+    block_record::mir_float_box_value(get_unchecked(block.float_vals, idx))
 }
 
 fn MirBlock_inst_val_type(block: MirBlock, idx: i32) -> i32 {
-    block.val_types.get_unchecked(idx)
+    get_unchecked(block.val_types, idx)
 }
 
 fn MirBlock_inst_func_id(block: MirBlock, idx: i32) -> i32 {
-    block.func_ids.get_unchecked(idx)
+    get_unchecked(block.func_ids, idx)
 }
 
 fn MirBlock_inst_str_val(block: MirBlock, idx: i32) -> String {
-    let str_id = block.str_ids.get_unchecked(idx)
+    let str_id = get_unchecked(block.str_ids, idx)
     if str_id < 0 || str_id >= block.str_pool.len() {
         return String_new()
     }
     // See mir_inst_str_val: pooled names are returned without cloning.
-    block.str_pool.get_unchecked(str_id)
+    get_unchecked(block.str_pool, str_id)
 }
 
 fn MirBlock_inst_at(block: MirBlock, idx: i32) -> MirInst {
@@ -55,19 +55,16 @@ fn MirBlock_inst_at(block: MirBlock, idx: i32) -> MirInst {
 
 fn mir_block_export_packed_result(block: MirBlock, idx: i32) -> Vec<MirValueType> {
     // INV-1: never export a result type whose TypeId is invalid.
-    let stored = block.type_ids.get_unchecked(idx)
+    let stored = get_unchecked(block.type_ids, idx)
     if !type_id::type_id_is_valid(type_id::TypeId_new(stored)) {
         return Vec::new<MirValueType>()
     }
     let mut result = Vec::new<MirValueType>()
-    push(
-        result,
-        mir_value_type::MirValueType_new(
+    result.push(mir_value_type::MirValueType_new(
             type_id::TypeId_new(stored),
-            block.type_reprs.get_unchecked(idx),
-            block.type_nulls.get_unchecked(idx)
-        )
-    )
+            get_unchecked(block.type_reprs, idx),
+            get_unchecked(block.type_nulls, idx)
+        ))
     result
 }
 
@@ -95,7 +92,7 @@ fn MirBlock_export_drafts(block: MirBlock) -> Vec<MirInstDraft> {
     let n = MirBlock_inst_count(block)
     let mut i = 0
     while i < n {
-        push(out, MirBlock_export_draft(block, i))
+        out.push(MirBlock_export_draft(block, i))
         i = i + 1
     }
     out
@@ -106,7 +103,7 @@ fn MirBlock_instructions(block: MirBlock) -> Vec<MirInst> {
     let n = MirBlock_inst_count(block)
     let mut i = 0
     while i < n {
-        push(out, inst_record::MirInst_ref(block, i))
+        out.push(inst_record::MirInst_ref(block, i))
         i = i + 1
     }
     out
@@ -121,7 +118,7 @@ fn MirBlock_drafts_from_refs(refs: Vec<MirInst>) -> Vec<MirInstDraft> {
     let n = refs.len()
     let mut i = 0
     while i < n {
-        push(out, MirInst_as_draft(refs.get_unchecked(i)))
+        out.push(MirInst_as_draft(get_unchecked(refs, i)))
         i = i + 1
     }
     out

@@ -16,8 +16,8 @@ fn LoadState_modules(state: LoadState) -> Vec<ModuleDecls> {
 // this struct corrupts the shared layout. Stdlib provenance rides in the
 // parallel LoadState.module_stdlib_flags vec instead.
 fn LoadState_add_module(mut state: LoadState, name: String, decls: Vec<AstNode>, is_stdlib: bool) {
-    push(state.modules, ModuleDecls_new(name, decls))
-    push(state.module_stdlib_flags, is_stdlib)
+    state.modules.push(ModuleDecls_new(name, decls))
+    state.module_stdlib_flags.push(is_stdlib)
 }
 
 // Stdlib provenance per registered module, index-aligned with modules. The

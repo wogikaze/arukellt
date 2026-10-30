@@ -5,17 +5,17 @@ use std::io
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
-    push(data, 72)   // 'H'
-    push(data, 101)  // 'e'
-    push(data, 108)  // 'l'
-    push(data, 108)  // 'l'
-    push(data, 111)  // 'o'
-    push(data, 32)   // ' '
-    push(data, 87)   // 'W'
-    push(data, 111)  // 'o'
-    push(data, 114)  // 'r'
-    push(data, 108)  // 'l'
-    push(data, 100)  // 'd'
+    data.push(72)   // 'H'
+    data.push(101)  // 'e'
+    data.push(108)  // 'l'
+    data.push(108)  // 'l'
+    data.push(111)  // 'o'
+    data.push(32)   // ' '
+    data.push(87)   // 'W'
+    data.push(111)  // 'o'
+    data.push(114)  // 'r'
+    data.push(108)  // 'l'
+    data.push(100)  // 'd'
     let mut src: io::Reader = io::Reader::from_bytes(data)
     let mut dst: io::Writer = io::Writer::new()
     match io::Io::copy(src, dst) {

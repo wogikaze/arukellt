@@ -125,10 +125,10 @@ fn path_normalize(p: String) -> String {
         } else {
             if part.eq("..") {
                 if out.len() > 0 {
-                    let _ = pop(out)
+                    let _ = out.pop()
                 }
             } else {
-                push(out, part)
+                out.push(part)
             }
         }
         i = i + 1
@@ -155,7 +155,7 @@ fn path_components(p: String) -> Vec<String> {
     while i < n {
         let part = raw.get_unchecked(i)
         if !part.is_empty() {
-            push(out, part)
+            out.push(part)
         }
         i = i + 1
     }

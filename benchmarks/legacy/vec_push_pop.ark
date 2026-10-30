@@ -4,14 +4,14 @@ fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < 100000 {
-        push(v, i)
+        v.push(i)
         i = i + 1
     }
     let count: i32 = v.len()
     Stdio::println((count).to_string())
     let mut j: i32 = 0
     while j < 100000 {
-        let _popped: Option<i32> = pop(v)
+        let _popped: Option<i32> = v.pop()
         j = j + 1
     }
     Stdio::println((v.len()).to_string())

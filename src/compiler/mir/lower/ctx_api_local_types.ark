@@ -18,12 +18,12 @@ fn ctx_mark_hashset_local(mut ctx: LowerCtx, local_idx: i32, family: String) {
         return
     }
     while ctx.hashset_locals.len() <= local_idx {
-        push(ctx.hashset_locals, 0)
+        ctx.hashset_locals.push(0)
     }
     if family.clone().eq(String_from("String")) {
-        set(ctx.hashset_locals, local_idx, 2)
+        ctx.hashset_locals.set(local_idx, 2)
     } else {
-        set(ctx.hashset_locals, local_idx, 1)
+        ctx.hashset_locals.set(local_idx, 1)
     }
 }
 

@@ -9,11 +9,11 @@ test "sorts_i64_values_ascending" {
     let c: i64 = 50i64
     let d: i64 = 20i64
     let e: i64 = 40i64
-    push(v, a)
-    push(v, b)
-    push(v, c)
-    push(v, d)
-    push(v, e)
+    v.push(a)
+    v.push(b)
+    v.push(c)
+    v.push(d)
+    v.push(e)
     v.sort()
     Test::assert_eq_i32(v.len(), 5)
     Test::assert_eq_i64(v.get_unchecked(0), 10i64)

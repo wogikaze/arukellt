@@ -102,7 +102,7 @@ fn collect_prune_import_entries(text: String, decls: Vec<AstNode>) -> Vec<PruneI
             }
             let line_end = prune_import_line_end(text.clone(), line_begin)
             let group = prune_import_sort_group(path.clone(), has_alias)
-            push(out, prune_import_entry_new(line_begin, line_end, path, group, has_alias))
+            out.push(prune_import_entry_new(line_begin, line_end, path, group, has_alias))
         }
         i = i + 1
     }

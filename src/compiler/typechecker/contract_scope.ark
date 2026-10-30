@@ -179,5 +179,5 @@ fn LocalScope_binding_at(scope: LocalScope, index: i32) -> VarBinding {
 }
 
 fn LocalScope_push_binding(mut scope: LocalScope, binding: VarBinding) {
-    push(scope.bindings, binding)
+    scope.bindings.push(binding)
 }

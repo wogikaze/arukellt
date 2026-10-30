@@ -225,7 +225,7 @@ fn struct_field_sigs(sig: String) -> Vec<String> {
                 while type_end < sig_len && sig.clone().byte_at(type_end) != 95 {
                     type_end = type_end + 1
                 }
-                push(fields, sig.clone().slice(type_start, type_end))
+                fields.push(sig.clone().slice(type_start, type_end))
                 si = type_end
             } else {
                 si = si + 2

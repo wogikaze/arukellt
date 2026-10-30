@@ -111,8 +111,8 @@ fn ctx_set_mono_type_projection(mut ctx: LowerCtx, generic_name: String, concret
     if generic_name.len() == 0 || concrete_name.len() == 0 || generic_name.clone().eq(concrete_name.clone()) {
         return
     }
-    push(ctx.mono_type_param_names, generic_name.clone())
-    push(ctx.mono_type_param_types, concrete_name.clone())
+    ctx.mono_type_param_names.push(generic_name.clone())
+    ctx.mono_type_param_types.push(concrete_name.clone())
     ctx_register_projection_arg_pairs(ctx, generic_name, concrete_name)
 }
 
@@ -169,8 +169,8 @@ fn ctx_register_projection_arg_pairs(mut ctx: LowerCtx, generic_name: String, co
     while i < g_args.len() {
         ctx_register_projection_segment(
             ctx,
-            g_args.get_unchecked(i),
-            c_args.get_unchecked(i)
+            get_unchecked(g_args, i),
+            get_unchecked(c_args, i)
         )
         i = i + 1
     }
@@ -229,7 +229,7 @@ fn ctx_split_top_level_type_args(inner: String) -> Vec<String> {
             }
         }
         if (at_end || inner.clone().byte_at(i) == 44) && depth == 0 {
-            push(args, inner.clone().slice(seg_start, i))
+            args.push(inner.clone().slice(seg_start, i))
             seg_start = i + 1
         }
         i = i + 1
@@ -249,15 +249,15 @@ fn ctx_resolve_mono_type_param(ctx: LowerCtx, type_var_name: String) -> String {
     let count = ctx.mono_type_param_names.len()
     let mut i = 0
     while i < count {
-        let stored_name = ctx.mono_type_param_names.get_unchecked(i).clone()
+        let stored_name = get_unchecked(ctx.mono_type_param_names, i).clone()
         if stored_name.clone().eq(type_var_name.clone()) {
-            return ctx.mono_type_param_types.get_unchecked(i).clone()
+            return get_unchecked(ctx.mono_type_param_types, i).clone()
         }
         let seg_idx = ctx_mono_type_match_segment_index(stored_name, type_var_name.clone())
         if seg_idx >= 0 {
             return ctx_mono_type_segment_value(
-                ctx.mono_type_param_names.get_unchecked(i).clone(),
-                ctx.mono_type_param_types.get_unchecked(i).clone(),
+                get_unchecked(ctx.mono_type_param_names, i).clone(),
+                get_unchecked(ctx.mono_type_param_types, i).clone(),
                 seg_idx
             )
         }
@@ -359,7 +359,7 @@ fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
         let local_var_count = local_vars.len()
         let mut vi = 0
         while vi < local_var_count {
-            let var_name = local_vars.get_unchecked(vi)
+            let var_name = get_unchecked(local_vars, vi)
             // A one-uppercase local spelling can name a declared struct or
             // enum. The layout registries are the declaration evidence; it
             // must not consume an ordinal slot meant for a type parameter
@@ -373,13 +373,13 @@ fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
             let rcount = result.len()
             let mut k = 0
             while k < rcount {
-                if result.get_unchecked(k).eq(var_name.clone()) {
+                if get_unchecked(result, k).eq(var_name.clone()) {
                     found = true
                 }
                 k = k + 1
             }
             if !found {
-                push(result, var_name.clone())
+                result.push(var_name.clone())
             }
             vi = vi + 1
         }
@@ -393,14 +393,14 @@ fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
     if ty_name.clone().starts_with("?") {
         let stripped = ty_name.clone().slice(1, ty_name.len())
         if !stripped.clone().contains(String_from(":")) {
-            push(result, stripped)
+            result.push(stripped)
             return result
         }
         ctx_push_colon_var_segments(stripped, result)
         return result
     }
     if is_plain_type_var_name(ty_name.clone()) {
-        push(result, ty_name)
+        result.push(ty_name)
         return result
     }
     // fnsig:<param>;<return> locals carry the function's type variables
@@ -428,7 +428,7 @@ fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
     if proj > 0 {
         let head = ty_name.clone().slice(0, proj)
         if is_plain_type_var_name(head.clone()) {
-            push(result, head)
+            result.push(head)
         }
     }
     // Generic-instantiation spellings carry their type variables as
@@ -442,14 +442,14 @@ fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
         let args = ctx_split_top_level_type_args(inner)
         let mut ai = 0
         while ai < args.len() {
-            let arg = args.get_unchecked(ai)
+            let arg = get_unchecked(args, ai)
             if is_plain_type_var_name(arg.clone()) {
-                push(result, arg.clone())
+                result.push(arg.clone())
             } else {
                 let nested = ctx_type_var_names_from_local_type(arg.clone())
                 let mut ni = 0
                 while ni < nested.len() {
-                    push(result, nested.get_unchecked(ni))
+                    result.push(get_unchecked(nested, ni))
                     ni = ni + 1
                 }
             }
@@ -524,13 +524,13 @@ fn ctx_push_var_segment(segment: String, is_arg: bool, mut result: Vec<String>) 
         return
     }
     if is_plain_type_var_name(segment.clone()) {
-        push(result, segment)
+        result.push(segment)
         return
     }
     let nested = ctx_type_var_names_from_local_type(segment)
     let mut i = 0
     while i < nested.len() {
-        push(result, nested.get_unchecked(i))
+        result.push(get_unchecked(nested, i))
         i = i + 1
     }
 }
@@ -700,7 +700,7 @@ fn ctx_resolve_angle_type_vars(ctx: LowerCtx, type_name: String) -> String {
     let mut out = base.concat(String_from("<"))
     let mut arg_index = 0
     while arg_index < args.len() {
-        let arg = ctx_trim_type_arg_ws(args.get_unchecked(arg_index))
+        let arg = ctx_trim_type_arg_ws(get_unchecked(args, arg_index))
         let mut concrete = ctx_resolve_mono_type_param(ctx, arg.clone())
         if concrete.len() == 0 && arg.clone().contains(String_from("<")) {
             concrete = ctx_resolve_angle_type_vars(ctx, arg.clone())
@@ -730,15 +730,15 @@ fn ctx_resolve_mono_base_projection(ctx: LowerCtx, base: String) -> String {
     let count = ctx.mono_type_param_names.len()
     let mut i = 0
     while i < count {
-        if ctx.mono_type_param_names.get_unchecked(i).eq(base.clone()) {
-            return ctx.mono_type_param_types.get_unchecked(i).clone()
+        if get_unchecked(ctx.mono_type_param_names, i).eq(base.clone()) {
+            return get_unchecked(ctx.mono_type_param_types, i).clone()
         }
         i = i + 1
     }
     i = 0
     while i < count {
-        let stored = ctx.mono_type_param_names.get_unchecked(i).clone()
-        let concrete = ctx.mono_type_param_types.get_unchecked(i).clone()
+        let stored = get_unchecked(ctx.mono_type_param_names, i).clone()
+        let concrete = get_unchecked(ctx.mono_type_param_types, i).clone()
         let mut hit = ctx_wrapper_payload_projection(stored.clone(), concrete.clone(), String_from("option:"), base.clone())
         if hit.len() == 0 {
             hit = ctx_wrapper_payload_projection(stored.clone(), concrete.clone(), String_from("Option_"), base.clone())
@@ -849,8 +849,8 @@ fn ctx_setup_mono_type_params_by_ordinal_names(
     while j < arg_count && j < type_var_names.len() {
         let ty = type_contracts::MonoInstance_type_arg_at(inst, j)
         let ty_name = mir_type_info_to_mono_key(ty)
-        push(names, type_var_names.get_unchecked(j).clone())
-        push(types, ty_name)
+        names.push(get_unchecked(type_var_names, j).clone())
+        types.push(ty_name)
         j = j + 1
     }
     ctx_set_mono_type_params(ctx, names, types)
@@ -873,7 +873,7 @@ fn ctx_find_leaf_mono_instance_index(ctx: LowerCtx, leaf_name: String) -> i32 {
     let count = ctx.mono_instances.len()
     let mut i = 0
     while i < count {
-        let inst = ctx.mono_instances.get_unchecked(i)
+        let inst = get_unchecked(ctx.mono_instances, i)
         i = i + 1
         if type_contracts::MonoInstance_type_arg_count(inst) <= 0 {
             continue
@@ -922,15 +922,15 @@ fn ctx_setup_mono_type_params_leaf_instance(mut ctx: LowerCtx, emit_name: String
     if matched_index < 0 {
         return
     }
-    let inst = ctx.mono_instances.get_unchecked(matched_index)
+    let inst = get_unchecked(ctx.mono_instances, matched_index)
     let arg_count = type_contracts::MonoInstance_type_arg_count(inst)
     let mut names = Vec::new<String>()
     let mut types = Vec::new<String>()
     let mut j = 0
     while j < arg_count && j < type_var_names.len() {
         let ty = type_contracts::MonoInstance_type_arg_at(inst, j)
-        push(names, type_var_names.get_unchecked(j).clone())
-        push(types, mir_type_info_to_mono_key(ty))
+        names.push(get_unchecked(type_var_names, j).clone())
+        types.push(mir_type_info_to_mono_key(ty))
         j = j + 1
     }
     ctx_set_mono_type_params(ctx, names, types)
@@ -958,7 +958,7 @@ fn ctx_resolve_iterator_item_type(ctx: LowerCtx, owner_name: String) -> String {
         let candidates = ctx_assoc_mono_next_names(owner.clone())
         let mut ci = 0
         while ci < candidates.len() {
-            let found = ctx_assoc_next_return_type_name(ctx, candidates.get_unchecked(ci))
+            let found = ctx_assoc_next_return_type_name(ctx, get_unchecked(candidates, ci))
             if found.len() > 0 {
                 rt = found
                 ci = candidates.len()
@@ -1012,18 +1012,18 @@ fn ctx_assoc_mono_next_names(owner: String) -> Vec<String> {
         let mut mangled = base.concat(String_from("__next"))
         let mut ai = 0
         while ai < args.len() {
-            let arg = ctx_trim_type_arg_ws(args.get_unchecked(ai))
+            let arg = ctx_trim_type_arg_ws(get_unchecked(args, ai))
             mangled = mangled.concat(String_from("__").concat(mono::mono_safe_name(arg)))
             ai = ai + 1
         }
-        push(names, mangled)
+        names.push(mangled)
         return names
     }
     let us = owner.clone().index_of(String_from("_"))
     if us > 0 {
         let base = owner.clone().slice(0, us)
         let rest = owner.clone().slice(us + 1, owner.len())
-        push(names, base.concat(String_from("__next__")).concat(rest.clone()))
+        names.push(base.concat(String_from("__next__")).concat(rest.clone()))
         // An underscore owner can hide a `__` argument boundary inside a
         // single `_` run (MapIter_String_i32 -> MapIter__next__String__i32).
         let mut separated = String_new()
@@ -1037,7 +1037,7 @@ fn ctx_assoc_mono_next_names(owner: String) -> Vec<String> {
             }
             i = i + 1
         }
-        push(names, base.concat(String_from("__next__")).concat(separated))
+        names.push(base.concat(String_from("__next__")).concat(separated))
     }
     names
 }

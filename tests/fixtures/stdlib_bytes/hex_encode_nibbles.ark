@@ -4,12 +4,12 @@ use std::test::Test
 
 fn main() {
     let mut xs: Vec<i32> = Vec::new<i32>()
-    push(xs, 0)
-    push(xs, 9)
-    push(xs, 10)
-    push(xs, 15)
-    push(xs, 16)
-    push(xs, 255)
+    xs.push(0)
+    xs.push(9)
+    xs.push(10)
+    xs.push(15)
+    xs.push(16)
+    xs.push(255)
     let b: Vec<i32> = Bytes::from_array(xs)
     Test::assert_eq_string(b.to_hex(), "00090a0f10ff")
 }

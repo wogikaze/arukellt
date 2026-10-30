@@ -218,7 +218,7 @@ fn check_shared_mut_alias(mut env: TypeEnv, scope: LocalScope, let_node: AstNode
         let msg = "possible unintended sharing of reference type"
         let span = diag_record::DiagnosticSpan_from_raw(ast_access::node_span_start(init), ast_access::node_span_end(init))
         let warn = diag_mod::Diagnostic_new(codes::DIAG_WARN_SHARED_MUT_ALIAS(), diag_mod::SEV_WARNING(), span, msg)
-        push(env.warnings, warn)
+        env.warnings.push(warn)
     }
 }
 

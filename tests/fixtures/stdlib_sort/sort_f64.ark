@@ -7,26 +7,26 @@ test "sorts_f64_values_ascending" {
     let c: f64 = 5.0
     let d: f64 = 2.8
     let e: f64 = 4.1
-    push(v, a)
-    push(v, b)
-    push(v, c)
-    push(v, d)
-    push(v, e)
+    v.push(a)
+    v.push(b)
+    v.push(c)
+    v.push(d)
+    v.push(e)
     let mut sort_index = 1
     while sort_index < v.len() {
-        let sort_value = v.get_unchecked(sort_index)
+        let sort_value = get_unchecked(v, sort_index)
         let mut sort_slot = sort_index
-        while sort_slot > 0 && v.get_unchecked(sort_slot - 1) > sort_value {
-            set(v, sort_slot, v.get_unchecked(sort_slot - 1))
+        while sort_slot > 0 && get_unchecked(v, sort_slot - 1) > sort_value {
+            v.set(sort_slot, get_unchecked(v, sort_slot - 1))
             sort_slot = sort_slot - 1
         }
-        set(v, sort_slot, sort_value)
+        v.set(sort_slot, sort_value)
         sort_index = sort_index + 1
     }
     Test::assert_eq_i32(v.len(), 5)
-    Test::assert_eq_f64(v.get_unchecked(0), 1.2)
-    Test::assert_eq_f64(v.get_unchecked(1), 2.8)
-    Test::assert_eq_f64(v.get_unchecked(2), 3.5)
-    Test::assert_eq_f64(v.get_unchecked(3), 4.1)
-    Test::assert_eq_f64(v.get_unchecked(4), 5.0)
+    Test::assert_eq_f64(get_unchecked(v, 0), 1.2)
+    Test::assert_eq_f64(get_unchecked(v, 1), 2.8)
+    Test::assert_eq_f64(get_unchecked(v, 2), 3.5)
+    Test::assert_eq_f64(get_unchecked(v, 3), 4.1)
+    Test::assert_eq_f64(get_unchecked(v, 4), 5.0)
 }

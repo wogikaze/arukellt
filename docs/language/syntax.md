@@ -170,8 +170,9 @@ let v: Vec<i32> = Vec::new<i32>()
 ```
 
 `push(v, 42)` や `to_string(n)` のような free function 形式は、
-#917 で退役が進められている compatibility surface です。
-新しいコードではメソッド / associated function 形式を使ってください。
+#917 で退役した compatibility surface です（削除済みの名前は E0100）。
+新しいコードでは `v.push(42)` / `n.to_string()` のメソッド /
+associated function 形式を使ってください。
 
 ## match
 

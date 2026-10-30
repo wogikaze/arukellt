@@ -104,21 +104,21 @@ impl WitNode {
                 if index < 0 || index >= items.len() {
                     WitNode::Error(String_from("child_at: index out of bounds"))
                 } else {
-                    items.get_unchecked(index)
+                    get_unchecked(items, index)
                 }
             },
             WitNode::World(_, items) => {
                 if index < 0 || index >= items.len() {
                     WitNode::Error(String_from("child_at: index out of bounds"))
                 } else {
-                    items.get_unchecked(index)
+                    get_unchecked(items, index)
                 }
             },
             WitNode::Interface(_, items) => {
                 if index < 0 || index >= items.len() {
                     WitNode::Error(String_from("child_at: index out of bounds"))
                 } else {
-                    items.get_unchecked(index)
+                    get_unchecked(items, index)
                 }
             },
             WitNode::Record(_, _) |
@@ -143,11 +143,11 @@ impl WitNode {
             WitNode::Interface(name, _) => name.clone(),
             WitNode::Package(_, items) => {
                 for i in 0..items.len() {
-                    match items.get_unchecked(i) {
+                    match get_unchecked(items, i) {
                         WitNode::Interface(name, _) => return name.clone(),
                         WitNode::World(_, world_items) => {
                             for j in 0..world_items.len() {
-                                match world_items.get_unchecked(j) {
+                                match get_unchecked(world_items, j) {
                                     WitNode::Interface(name, _) => return name.clone(),
                                     _ => {},
                                 }
@@ -160,7 +160,7 @@ impl WitNode {
             },
             WitNode::World(_, items) => {
                 for i in 0..items.len() {
-                    match items.get_unchecked(i) {
+                    match get_unchecked(items, i) {
                         WitNode::Interface(name, _) => return name.clone(),
                         _ => {},
                     }
@@ -188,14 +188,14 @@ impl WitNode {
                 if index < 0 || index >= fields.len() {
                     String_new()
                 } else {
-                    fields.get_unchecked(index).name.clone()
+                    get_unchecked(fields, index).name.clone()
                 }
             },
             WitNode::Resource(_, fields) => {
                 if index < 0 || index >= fields.len() {
                     String_new()
                 } else {
-                    fields.get_unchecked(index).name.clone()
+                    get_unchecked(fields, index).name.clone()
                 }
             },
             WitNode::Package(_, _) |
@@ -220,14 +220,14 @@ impl WitNode {
                 if index < 0 || index >= fields.len() {
                     WitType::Unknown(0)
                 } else {
-                    fields.get_unchecked(index).ty
+                    get_unchecked(fields, index).ty
                 }
             },
             WitNode::Resource(_, fields) => {
                 if index < 0 || index >= fields.len() {
                     WitType::Unknown(0)
                 } else {
-                    fields.get_unchecked(index).ty
+                    get_unchecked(fields, index).ty
                 }
             },
             WitNode::Package(_, _) |
@@ -252,7 +252,7 @@ impl WitNode {
                 if index < 0 || index >= variants.len() {
                     String_new()
                 } else {
-                    variants.get_unchecked(index).clone()
+                    get_unchecked(variants, index).clone()
                 }
             },
             WitNode::Package(_, _) |
@@ -278,7 +278,7 @@ impl WitNode {
                 if index < 0 || index >= members.len() {
                     String_new()
                 } else {
-                    members.get_unchecked(index).clone()
+                    get_unchecked(members, index).clone()
                 }
             },
             WitNode::Package(_, _) |
@@ -304,7 +304,7 @@ impl WitNode {
                 if index < 0 || index >= cases.len() {
                     String_new()
                 } else {
-                    cases.get_unchecked(index).name.clone()
+                    get_unchecked(cases, index).name.clone()
                 }
             },
             WitNode::Package(_, _) |
@@ -330,7 +330,7 @@ impl WitNode {
                 if index < 0 || index >= cases.len() {
                     return false
                 }
-                let case_ty: Option<types::WitType> = cases.get_unchecked(index).ty
+                let case_ty: Option<types::WitType> = get_unchecked(cases, index).ty
                 match case_ty {
                     Option::Some(_) => true,
                     Option::None => false,
@@ -359,7 +359,7 @@ impl WitNode {
                 if index < 0 || index >= cases.len() {
                     return WitType::Unknown(0)
                 }
-                let case_ty: Option<types::WitType> = cases.get_unchecked(index).ty
+                let case_ty: Option<types::WitType> = get_unchecked(cases, index).ty
                 match case_ty {
                     Option::Some(ty) => ty,
                     Option::None => WitType::Unknown(0),
@@ -408,7 +408,7 @@ impl WitNode {
                 if index < 0 || index >= params.len() {
                     String_new()
                 } else {
-                    params.get_unchecked(index).name.clone()
+                    get_unchecked(params, index).name.clone()
                 }
             },
             WitNode::Package(_, _) |
@@ -434,7 +434,7 @@ impl WitNode {
                 if index < 0 || index >= params.len() {
                     WitType::Unknown(0)
                 } else {
-                    params.get_unchecked(index).ty
+                    get_unchecked(params, index).ty
                 }
             },
             WitNode::Package(_, _) |
@@ -625,7 +625,7 @@ fn wit_import_serialized_string_list(values: Vec<String>) -> String {
         if i > 0 {
             out = String::concat(out, String_from("~"))
         }
-        out = String::concat(out, values.get_unchecked(i).clone())
+        out = String::concat(out, get_unchecked(values, i).clone())
     }
     out
 }
@@ -636,7 +636,7 @@ fn wit_import_serialized_param_types(params: Vec<types::WitParam>) -> String {
         if i > 0 {
             out = String::concat(out, String_from("~"))
         }
-        out = String::concat(out, params.get_unchecked(i).ty.wit_text())
+        out = String::concat(out, get_unchecked(params, i).ty.wit_text())
     }
     out
 }
@@ -644,7 +644,7 @@ fn wit_import_serialized_param_types(params: Vec<types::WitParam>) -> String {
 fn wit_import_serialized_field_names(fields: Vec<types::WitField>) -> String {
     let mut names = Vec::new<String>()
     for i in 0..fields.len() {
-        push(names, fields.get_unchecked(i).name.clone())
+        names.push(get_unchecked(fields, i).name.clone())
     }
     wit_import_serialized_string_list(names)
 }
@@ -655,7 +655,7 @@ fn wit_import_serialized_field_types(fields: Vec<types::WitField>) -> String {
         if i > 0 {
             out = String::concat(out, String_from("~"))
         }
-        out = String::concat(out, fields.get_unchecked(i).ty.wit_text())
+        out = String::concat(out, get_unchecked(fields, i).ty.wit_text())
     }
     out
 }
@@ -667,7 +667,7 @@ fn wit_import_serialized_enum_variants(variants: Vec<String>) -> String {
 fn wit_import_serialized_variant_names(cases: Vec<types::WitVariantCase>) -> String {
     let mut names = Vec::new<String>()
     for i in 0..cases.len() {
-        push(names, cases.get_unchecked(i).name.clone())
+        names.push(get_unchecked(cases, i).name.clone())
     }
     wit_import_serialized_string_list(names)
 }
@@ -678,7 +678,7 @@ fn wit_import_serialized_variant_payloads(cases: Vec<types::WitVariantCase>) -> 
         if i > 0 {
             out = String::concat(out, String_from("~"))
         }
-        let case_ty: Option<types::WitType> = cases.get_unchecked(i).ty
+        let case_ty: Option<types::WitType> = get_unchecked(cases, i).ty
         let payload = match case_ty {
             Option::Some(ty) => ty.wit_text(),
             Option::None => String_new(),
@@ -706,7 +706,7 @@ fn wit_import_serialized_interface(package: String, name: String, items: Vec<Wit
     out = String::concat(out, String_from("|"))
     out = String::concat(out, String::concat(name, String_from(";")))
     for i in 0..items.len() {
-        match items.get_unchecked(i) {
+        match get_unchecked(items, i) {
             WitNode::Func(func_name, params, result) => {
                 let r: Option<types::WitType> = result
                 let result_text = match r {
@@ -752,13 +752,13 @@ fn wit_import_serialized_interface(package: String, name: String, items: Vec<Wit
 
 fn wit_import_serialized_container(package: String, items: Vec<WitNode>) -> String {
     for i in 0..items.len() {
-        match items.get_unchecked(i) {
+        match get_unchecked(items, i) {
             WitNode::Interface(name, interface_items) => {
                 return wit_import_serialized_interface(package, name, interface_items)
             },
             WitNode::World(_, world_items) => {
                 for j in 0..world_items.len() {
-                    match world_items.get_unchecked(j) {
+                    match get_unchecked(world_items, j) {
                         WitNode::Interface(name, interface_items) => {
                             return wit_import_serialized_interface(package.clone(), name, interface_items)
                         },
@@ -969,7 +969,7 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
         i = p_skip_ws_comments(s, i + 1)
         while i < n && s.byte_at(i) != 62 {
             let (item, p6) = p_type(s, i)
-            push(items, item)
+            items.push(item)
             i = p_skip_ws_comments(s, p6)
             if i < n && s.byte_at(i) == 44 {
                 i = p_skip_ws_comments(s, i + 1)
@@ -1052,7 +1052,7 @@ fn p_params(s: String, pos: i32) -> (Vec<types::WitParam>, i32) {
         }
         i = p_skip_ws_comments(s, i + 1)
         let (ty, p2) = p_type(s, i)
-        push(params, WitParam::new(pname, ty))
+        params.push(WitParam::new(pname, ty))
         i = p_skip_ws_comments(s, p2)
         if i < n && s.byte_at(i) == 44 {
             i = i + 1
@@ -1108,7 +1108,7 @@ fn p_record_fields(s: String, pos: i32) -> (Vec<types::WitField>, i32) {
         }
         i = p_skip_ws_comments(s, i + 1)
         let (ty, p2) = p_type(s, i)
-        push(fields, types::WitField { name: fname, ty: ty })
+        fields.push(types::WitField { name: fname, ty: ty })
         i = p_skip_ws_comments(s, p2)
         if i < n && s.byte_at(i) == 44 {
             i = i + 1
@@ -1129,7 +1129,7 @@ fn p_enum_variants(s: String, pos: i32) -> (Vec<String>, i32) {
         }
         let (vname, p1) = p_word(s, i)
         if vname.len() > 0 {
-            push(variants, vname)
+            variants.push(vname)
         }
         i = p_skip_ws_comments(s, p1)
         if i < n && s.byte_at(i) == 44 {
@@ -1161,7 +1161,7 @@ fn p_variant_cases(s: String, pos: i32) -> (Vec<types::WitVariantCase>, i32) {
                 i = i + 1
             }
         }
-        push(cases, types::WitVariantCase { name: cname, ty: payload })
+        cases.push(types::WitVariantCase { name: cname, ty: payload })
         i = p_skip_ws_comments(s, i)
         if i < n && s.byte_at(i) == 44 {
             i = i + 1
@@ -1399,7 +1399,7 @@ fn p_body(s: String, pos: i32) -> (Vec<WitNode>, i32) {
         }
         let (node, p1) = p_decl(s, i)
         if !node.kind().eq("error") {
-            push(items, node)
+            items.push(node)
         } else {
             // Check if it's just a closing brace marker
             if node.name().eq("}") {
@@ -1506,18 +1506,18 @@ fn parse_wit_document(source: String) -> WitNode {
             let (kw, _) = p_word(source, i)
             if kw.eq("world") {
                 let (node, p2) = p_world(source, i)
-                push(items, node)
+                items.push(node)
                 i = p2
             } else {
                 if kw.eq("interface") {
                     let (node, p2) = p_interface(source, i)
-                    push(items, node)
+                    items.push(node)
                     i = p2
                 } else {
                     // Try generic decl
                     let (node, p2) = p_decl(source, i)
                     if !node.kind().eq("error") {
-                        push(items, node)
+                        items.push(node)
                     }
                     i = p2
                 }

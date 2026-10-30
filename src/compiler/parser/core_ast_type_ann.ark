@@ -1,7 +1,7 @@
 use parser::ast_node_record
 
 fn AstNode_push_type_ann(mut node: AstNode, ann: AstNode) {
-    push(node.type_ann, ann)
+    node.type_ann.push(ann)
 }
 
 fn AstNode_type_ann_count(node: AstNode) -> i32 {

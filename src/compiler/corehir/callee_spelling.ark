@@ -141,7 +141,7 @@ fn callee_spelling_variants(name: String) -> Vec<String> {
     }
     let last_two = callee_spelling_last_two_segments(name.clone())
     if last_two.len() > 0 && !last_two.clone().eq(name.clone()) {
-        push(variants, last_two.clone())
+        variants.push(last_two.clone())
     }
     let after_first = callee_spelling_after_first_segment(name.clone())
     if after_first.len() > 0 && !after_first.clone().eq(name.clone()) {
@@ -156,7 +156,7 @@ fn callee_spelling_variants(name: String) -> Vec<String> {
             }
         }
         if !seen {
-            push(variants, after_first)
+            variants.push(after_first)
         }
     }
     variants

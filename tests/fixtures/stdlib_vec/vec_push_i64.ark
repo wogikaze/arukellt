@@ -4,8 +4,8 @@ fn main() {
     let mut v: Vec<i64> = Vec::new<i64>()
     let a: i64 = 100i64
     let b: i64 = 200i64
-    push(v, a)
-    push(v, b)
+    v.push(a)
+    v.push(b)
     Test::assert_eq_i32(v.len(), 2)
     Test::assert_eq_i64(v.get_unchecked(0), 100i64)
     Test::assert_eq_i64(v.get_unchecked(1), 200i64)

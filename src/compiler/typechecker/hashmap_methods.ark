@@ -32,8 +32,8 @@ fn infer_hashmap_constructor_call(
     let key_ty = types::resolve_type_ann_node_generic(ast_access::node_child_at(callee, 1), type_params.clone())
     let value_ty = types::resolve_type_ann_node_generic(ast_access::node_child_at(callee, 2), type_params)
     let mut resolved_types = Vec::new<TypeInfo>()
-    push(resolved_types, key_ty)
-    push(resolved_types, value_ty)
+    resolved_types.push(key_ty)
+    resolved_types.push(value_ty)
     let result_ty = hashmap_type(key_ty, value_ty)
     if !hashmap_api::validate_hashmap_constructor(env, callee_name.clone(), resolved_types) {
         return result_ty
@@ -133,8 +133,8 @@ fn infer_builtin_hashmap_method(
         return hashmap_method_return_type(method_name.clone(), key_ty, value_ty)
     }
     let mut resolved_types = Vec::new<TypeInfo>()
-    push(resolved_types, key_ty)
-    push(resolved_types, value_ty)
+    resolved_types.push(key_ty)
+    resolved_types.push(value_ty)
     let mono_name = String_from("HashMap::").concat(method_name)
     let mangled_name = mono::record_mono_instance(env, mono_name.clone(), resolved_types)
     mono::record_mono_call_site(env, ast_access::node_span_start(node), mono_name, mangled_name)

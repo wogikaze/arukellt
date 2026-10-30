@@ -7,7 +7,7 @@ fn mir_intersect_block_id_sets(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
     while i < count {
         let block_id = a.get_unchecked(i)
         if dom_set_query::mir_block_ids_contains(b, block_id) {
-            push(out, block_id)
+            out.push(block_id)
         }
         i = i + 1
     }

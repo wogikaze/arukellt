@@ -3,9 +3,9 @@ use std::test::Test
 use std::text
 fn main() {
     let mut items = Vec::new<json::JsonValue>()
-    push(items, json::JsonValue::int(1))
-    push(items, json::JsonValue::int(2))
-    push(items, json::JsonValue::int(3))
+    items.push(json::JsonValue::int(1))
+    items.push(json::JsonValue::int(2))
+    items.push(json::JsonValue::int(3))
     let s = json::JsonValue::array(items).to_text()
     Test::assert_eq_string(s, "[1,2,3]")
     // Verify the constructed array parses back correctly

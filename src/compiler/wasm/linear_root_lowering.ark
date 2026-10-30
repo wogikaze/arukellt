@@ -60,13 +60,13 @@ fn emit_frame_enter_and_push(mut w: WasmWriter, f: MirFunction, ctx: SelfEmitCtx
     let mut local_idx = 0
     while local_idx < local_count {
         if is_root_local(f, local_idx) {
-            push(slot_offsets, constants::LINEAR_GC_ROOT_SLOT_BYTES() * (rank + 1))
+            slot_offsets.push(constants::LINEAR_GC_ROOT_SLOT_BYTES() * (rank + 1))
             rank = rank + 1
             writer_core::emit_local_get(w, local_idx)
             emit_call(w, writer_core::writer_linear_gc_root_push_function_index(w))
             writer_core::emit_byte(w, opcodes::OP_DROP())
         } else {
-            push(slot_offsets, 0 - 1)
+            slot_offsets.push(0 - 1)
         }
         local_idx = local_idx + 1
     }

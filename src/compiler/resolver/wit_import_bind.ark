@@ -62,7 +62,7 @@ fn wit_collect_bindings(wit_paths: Vec<String>, decls: Vec<AstNode>) -> Vec<WitI
     let count = decls.len()
     let mut i = 0
     while i < count {
-        let d = decls.get_unchecked(i)
+        let d = get_unchecked(decls, i)
         if ast_decl_predicates::node_is_wit_import(d) {
             wit_push_bindings_for_import(bindings, wit_paths, ast_access::node_text(d), wit_import_alias(d))
         }
@@ -88,20 +88,20 @@ fn wit_push_bindings_for_import(mut bindings: Vec<WitImportBinding>, wit_paths: 
         return
     }
     if package_id.clone().eq("test:host/math") {
-        push(bindings, WitImportBinding_new("i32_i32_1i32", "test:host/math", "test:host/math", "test:host/math", "add", alias.clone().concat("::add")))
+        bindings.push(WitImportBinding_new("i32_i32_1i32", "test:host/math", "test:host/math", "test:host/math", "add", alias.clone().concat("::add")))
         return
     }
     if package_id.clone().eq("test:doc/parse") {
-        push(bindings, WitImportBinding_new("String_1i32", "test:doc/parse", "test:doc/parse", "test:doc/parse", "parse-markdown", alias.clone().concat("::parse_markdown")))
+        bindings.push(WitImportBinding_new("String_1i32", "test:doc/parse", "test:doc/parse", "test:doc/parse", "parse-markdown", alias.clone().concat("::parse_markdown")))
         return
     }
     if package_id.clone().eq("test:host/host") {
-        push(bindings, WitImportBinding_new("i32_0", "test:host/host", "test:host/host", "test:host/host", "set-perms", alias.clone().concat("::set_perms")))
+        bindings.push(WitImportBinding_new("i32_0", "test:host/host", "test:host/host", "test:host/host", "set-perms", alias.clone().concat("::set_perms")))
         return
     }
     if package_id.clone().eq("test:host/handles") {
-        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "take", alias.clone().concat("::take")))
-        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "peek", alias.clone().concat("::peek")))
+        bindings.push(WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "take", alias.clone().concat("::take")))
+        bindings.push(WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "peek", alias.clone().concat("::peek")))
     }
 }
 
@@ -111,8 +111,8 @@ fn wit_push_bindings_for_doc(mut bindings: Vec<WitImportBinding>, alias: String,
     let wit_import_id = wit_surface::wit_import_id(doc)
     let funcs = wit_parse_text::WitParsedInterface_funcs(doc)
     for fi in 0..funcs.len() {
-        let func = funcs.get_unchecked(fi)
-        push(bindings, WitImportBinding_new(
+        let func = get_unchecked(funcs, fi)
+        bindings.push(WitImportBinding_new(
                 wit_register::wit_binding_type_sig(func, doc),
                 interface_id.clone(),
                 component_interface_id.clone(),

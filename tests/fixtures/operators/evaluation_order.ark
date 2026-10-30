@@ -11,7 +11,7 @@ struct Cell {
 }
 
 fn observe(mut log: Vec<i32>, marker: i32) -> i32 {
-    push(log, marker)
+    log.push(marker)
     marker
 }
 
@@ -20,14 +20,14 @@ fn combine(left: i32, right: i32) -> i32 {
 }
 
 fn make_values(mut log: Vec<i32>) -> Vec<i32> {
-    push(log, 7)
+    log.push(7)
     let mut values = Vec::new<i32>()
-    push(values, 42)
+    values.push(42)
     values
 }
 
 fn make_cell(mut log: Vec<i32>, value: i32) -> Cell {
-    push(log, value)
+    log.push(value)
     Cell { value: value }
 }
 

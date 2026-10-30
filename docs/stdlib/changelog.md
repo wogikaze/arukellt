@@ -16,51 +16,45 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
-## 2026-10-30 — vec intrinsic-compat `get_unchecked` free の退役 (ADR-046, ADR-087, ADR-091, #917, #936, wave/vec-get-unchecked)
+## 2026-10-30 — prelude free `push` / `pop` / `set` の退役 (ADR-046, ADR-087, ADR-088, #917, wave/vec-push-pop-set)
 
-- **Removed**: prelude の builtin-compat free
-  `get_unchecked<T>(v: Vec<T>, idx: i32) -> T`。bare call と
-  `use std::prelude::{get_unchecked}` は **E0100** と receiver method hint
-  （`v.get_unchecked(idx)`）で失敗する。manifest entry と
-  `std/prelude.ark` 宣言を削除した。
-- **Replacement**: `v.get_unchecked(i)`（`Vec<T>`）。MIR lowering は
-  method を sealed raw accessor `raw_array_get_unchecked` へ直接 bind し、
-  element type を receiver local の layout から取る。flat bootstrap overlay
-  では free 名に element suffix が付かず再型付けできないため、早期の
-  CoreOp 名 rewrite が suffix を落とす経路を廃止した。checker は retired
-  free の代わりに receiver から `(Vec<T>, i32) -> T` の method contract を
-  組み立て、nested / struct / String element を束縛する。
-- **Migration**: compiler / std / fixtures / benchmarks の free
-  `get_unchecked(...)` 呼び出し 3,282 箇所を receiver method へ移行した
-  （767 files）。`get_unchecked` を列挙していた
-  `use std::prelude::{...}` も整理した。stale な
-  `docs/sample/parser.ark` は HEAD で既に現行型検査を通らないため、len
-  wave と同じく対象外として free 呼び出しを残す。
-- **Grouped receiver**: pin は `if`（else なし）直後の
-  `(module::fn(...)).method()` を `if` の postfix として取り込む
-  parser fix 以前のビルドである。migration が付けた不要な括弧を
-  `module::fn(...).method()` へ外し、`drop; unreachable` 化を回避した。
-- **Bootstrap**: pinned compiler は `v.get_unchecked(i)` を未だ bare
-  `get_unchecked` declaration 経由で lower するため、flat overlay の
-  prelude に overlay-only の `get_unchecked` 宣言を残す
-  （`scripts/selfhost/checks.py` の
-  `BOOTSTRAP_PRELUDE_GET_UNCHECKED_SHIM`）。user program は退役後の
-  surface（E0100 + receiver method）だけを見る。pin 更新時に削除する。
+- **Removed**: prelude の free `push(v, x)` / `pop(v)` / `set(v, i, x)`。
+  manifest entry と `std/prelude.ark` の `pub fn` 宣言を削除した。bare call
+  と `use std::prelude::{push|pop|set}` は **E0100** と receiver method hint
+  （`v.push(x)` / `v.pop()` / `v.set(i, x)`）で失敗する。宣言自体は
+  `Vec<T>` receiver method の signature anchor として private で残す
+  （String / struct / nested element の method 型付けに必要）。
+- **Migration**: compiler / std / fixtures / benchmarks の
+  free call 4,065 箇所を receiver method へ移行した。codemod は
+  `v.push(x)` / `v.pop()` / `v.set(i, x)` を生成し、`use std::prelude::{...}`
+  から 3 名を除去する。
+- **Root cause**: receiver method の call は引数を operand stack で渡すが、
+  module 定数は accessor call の結果が local に materialize されるため
+  stack に残らない。`v.set(0, K)` / `v.push(NIL)` は operand が 1 個不足し、
+  pin で build した s2 が invalid core Wasm を出していた。AST / typed CoreHIR
+  の両 method lowering で const 引数を reload し、CoreHIR direct call の
+  staged const も二重 copy しないようにした。linear `wasm32` の
+  `Stdio::println(x.to_string())` は printlike call の引数を stage して
+  修正した（wave/to-string-linear の fix を前提として取り込む）。
+- **Bootstrap**: pinned compiler は linear target で `Vec<String>` への
+  field-access 引数 push を materialize するため、compiler source の
+  `module_names.push(md.name)` は local へ hoist した。pin 更新時に戻す。
 - **Diagnostics / fixtures**: `resolver::removed_names` と
-  `resolver::register_use` に E0100 hint を追加し、W0009 行と
-  `prelude_stable` の stable 判定を削除した。
-  `diagnostics/removed_get_unchecked_free{,_wasm32}` と
-  `diagnostics/removed_get_unchecked_import` を追加した。
-- **Scorecard**: real std surface 16 → **15**、`pub fn` declarations
-  16 → 15、manifest public entries 16 → 15、`must delete` 9 → **8**、
-  `deprecated` 8 → 7。vec intrinsic-compat rule は 8 → 7 symbols。
-- **Gates**: `verify fixtures` 1955/1955 PASS（112 runtime、43/43 test、
-  0 FAIL、2 runtime-contract delegations）、`verify lane` PASS、
-  `docs check` 6/6 PASS、`selfhost diag-parity` PASS、ADR-029 fixpoint
-  s2 == s3 at sha256
-  `3f749f5caccb72f5e72fb818109c56cead9453a4d47f3dbef189935ba7bd8db6`
-  （pin `56ff0808`）。`check-stdlib-eradication`、
-  `check-compat-orphans`、ark code quality ratchet も clean。
+  `resolver::register_use` に E0100 hint を追加し、W0009 行を削除した。
+  `stdlib_vec/prelude_const_argument{,_wasm32}` を追加し、const 引数の
+  `push` / `set` / `pop` を両 target で検証する。残差として
+  `docs/sample/parser.ark` は len 退役時点から型検査が通らない stale sample
+  のため、free `push` / `pop` 呼び出しを残す（sample 修復とは分離）。
+- **Scorecard**: real std surface 16 → **13**、`pub fn` declarations
+  16 → **13**、manifest public entries 16 → **13**、`must delete`
+  9 → **6**、vec intrinsic-compat rule 8 → **5**。
+- **Gates**: pin `56ff0808…` から build した s2 で `verify fixtures`
+  1956/1956 PASS（112 runtime、43/43 test、0 FAIL、runtime-contract
+  delegation 2）、`verify lane` PASS、`docs check` 6/6、
+  `selfhost diag-parity` PASS=273、ADR-029 fixpoint は
+  s2 == s3 = sha256 `6e0c6b60372cf82e2d17113c4bb529506fd2fefcaab614a6a77e213275198e6d`。
+  追加 fixture: `stdlib_vec/prelude_const_argument{,_wasm32}` と
+  `diagnostics/removed_vec_mutation_{free,import}`。
 
 ## 2026-10-30 — vec intrinsic-compat `len` free の退役 (ADR-046, ADR-087, ADR-091, #917, #936, wave/vec-intrinsic-len)
 

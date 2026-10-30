@@ -1,6 +1,6 @@
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
-    push(v, 1)
+    v.push(1)
     let alias = v
     // Read through the shared alias; reusing `v` here would be E0212 and
     // would suppress this fixture's W0001 golden.

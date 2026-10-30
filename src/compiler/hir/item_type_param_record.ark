@@ -25,7 +25,7 @@ fn hir_type_param_name(param: HirTypeParam) -> String {
 }
 
 fn hir_type_param_push_bound(mut param: HirTypeParam, bound: HirTraitBound) {
-    push(param.bounds, bound)
+    param.bounds.push(bound)
 }
 
 fn hir_type_param_bound_count(param: HirTypeParam) -> i32 {

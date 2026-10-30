@@ -28,7 +28,7 @@ fn LocalWriteIndex_build(f: MirFunction, local_count: i32) -> LocalWriteIndex {
     let mut counts = Vec::new<i32>()
     let mut ci = 0
     while ci < local_count {
-        push(counts, 0)
+        counts.push(0)
         ci = ci + 1
     }
     write_index_count_writes(f, counts, local_count)
@@ -36,21 +36,21 @@ fn LocalWriteIndex_build(f: MirFunction, local_count: i32) -> LocalWriteIndex {
     let mut running = 0
     let mut oi = 0
     while oi < local_count {
-        push(offsets, running)
-        running = running + counts.get_unchecked(oi)
+        offsets.push(running)
+        running = running + get_unchecked(counts, oi)
         oi = oi + 1
     }
-    push(offsets, running)
+    offsets.push(running)
     let mut entries = Vec::new<i32>()
     let mut ei = 0
     while ei < running * 2 {
-        push(entries, 0)
+        entries.push(0)
         ei = ei + 1
     }
     let mut cursors = Vec::new<i32>()
     let mut ki = 0
     while ki < local_count {
-        push(cursors, offsets.get_unchecked(ki))
+        cursors.push(get_unchecked(offsets, ki))
         ki = ki + 1
     }
     write_index_fill_entries(f, entries, cursors, local_count)
@@ -68,22 +68,22 @@ fn local_write_index_begin(index: LocalWriteIndex, local_idx: i32) -> i32 {
     if local_idx < 0 || local_idx + 1 >= index.offsets.len() {
         return 0
     }
-    index.offsets.get_unchecked(local_idx)
+    get_unchecked(index.offsets, local_idx)
 }
 
 fn local_write_index_end(index: LocalWriteIndex, local_idx: i32) -> i32 {
     if local_idx < 0 || local_idx + 1 >= index.offsets.len() {
         return 0
     }
-    index.offsets.get_unchecked(local_idx + 1)
+    get_unchecked(index.offsets, local_idx + 1)
 }
 
 fn local_write_index_block_at(index: LocalWriteIndex, write: i32) -> i32 {
-    index.entries.get_unchecked(write * 2)
+    get_unchecked(index.entries, write * 2)
 }
 
 fn local_write_index_inst_at(index: LocalWriteIndex, write: i32) -> i32 {
-    index.entries.get_unchecked(write * 2 + 1)
+    get_unchecked(index.entries, write * 2 + 1)
 }
 
 fn write_index_count_writes(f: MirFunction, mut counts: Vec<i32>, local_count: i32) {
@@ -99,11 +99,11 @@ fn write_index_count_writes(f: MirFunction, mut counts: Vec<i32>, local_count: i
             let dest = inst_accessors_operands::MirInst_dest(inst)
             let indexed_dest = write_index_should_record_dest(op, dest, local_count)
             if indexed_dest {
-                set(counts, dest, counts.get_unchecked(dest) + 1)
+                counts.set(dest, get_unchecked(counts, dest) + 1)
             }
             let arg0 = inst_accessors_operands::MirInst_arg0(inst)
             if write_index_should_record_local_set(op, arg0, dest, local_count, indexed_dest) {
-                set(counts, arg0, counts.get_unchecked(arg0) + 1)
+                counts.set(arg0, get_unchecked(counts, arg0) + 1)
             }
             ii = ii + 1
         }
@@ -167,9 +167,9 @@ fn write_index_should_record_local_set(
 }
 
 fn write_index_append_site(mut entries: Vec<i32>, mut cursors: Vec<i32>, local_idx: i32, bi: i32, ii: i32) {
-    let slot = cursors.get_unchecked(local_idx)
+    let slot = get_unchecked(cursors, local_idx)
     let base = slot * 2
-    set(entries, base, bi)
-    set(entries, base + 1, ii)
-    set(cursors, local_idx, slot + 1)
+    entries.set(base, bi)
+    entries.set(base + 1, ii)
+    cursors.set(local_idx, slot + 1)
 }

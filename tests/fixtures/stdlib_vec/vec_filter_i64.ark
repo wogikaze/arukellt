@@ -9,15 +9,15 @@ fn main() {
     let a: i64 = 10i64
     let b: i64 = 15i64
     let c: i64 = 20i64
-    push(v, a)
-    push(v, b)
-    push(v, c)
+    v.push(a)
+    v.push(b)
+    v.push(c)
     let mut result: Vec<i64> = Vec::new<i64>()
     let mut filter_index: i32 = 0
     while filter_index < v.len() {
         let filter_value = v.get_unchecked(filter_index)
         if is_even(filter_value) {
-            push(result, filter_value)
+            result.push(filter_value)
         }
         filter_index = filter_index + 1
     }

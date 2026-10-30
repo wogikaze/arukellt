@@ -18,8 +18,8 @@ fn GcShapeRegistry_add_struct(reg: GcShapeRegistry, struct_name: String, field_t
     if existing >= 0 {
         return existing
     }
-    push(reg.struct_names.clone(), struct_name)
-    push(reg.struct_field_types.clone(), field_types_code)
+    reg.struct_names.clone().push(struct_name)
+    reg.struct_field_types.clone().push(field_types_code)
     reg.struct_names.len() - 1
 }
 
@@ -28,7 +28,7 @@ fn GcShapeRegistry_add_array(reg: GcShapeRegistry, elem_type: i32) -> i32 {
     if existing >= 0 {
         return existing
     }
-    push(reg.array_elem_types.clone(), elem_type)
+    reg.array_elem_types.clone().push(elem_type)
     reg.array_elem_types.len() - 1
 }
 

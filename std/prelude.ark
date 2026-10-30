@@ -29,9 +29,8 @@
 //     Std::panic  (associated control operation)
 //     String_from, String_new
 //     char_to_string  (essential conversion)
-//     plus push, pop, get, set
-//       (`len` and `get_unchecked` are receiver methods only:
-//        `s.len()` / `v.len()` and `v.get_unchecked(i)`)
+//     plus push, pop, get, set, get_unchecked
+//       (`len` is a receiver method only: `s.len()` / `v.len()`)
 //
 // ## Legacy / explicit-import section
 //
@@ -188,13 +187,13 @@ impl Std {
 fn __core_seq_sort_i32_impl(mut v: Vec<i32>) {
     let mut index = 1
     while index < v.len() {
-        let value = v.get_unchecked(index)
+        let value = get_unchecked(v, index)
         let mut insertion = index
-        while insertion > 0 && v.get_unchecked(insertion - 1) > value {
-            set(v, insertion, v.get_unchecked(insertion - 1))
+        while insertion > 0 && get_unchecked(v, insertion - 1) > value {
+            v.set(insertion, get_unchecked(v, insertion - 1))
             insertion = insertion - 1
         }
-        set(v, insertion, value)
+        v.set(insertion, value)
         index = index + 1
     }
 }
@@ -206,13 +205,13 @@ pub fn filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32> {
 fn __core_seq_sort_i64_impl(mut v: Vec<i64>) {
     let mut index = 1
     while index < v.len() {
-        let value = v.get_unchecked(index)
+        let value = get_unchecked(v, index)
         let mut insertion = index
-        while insertion > 0 && v.get_unchecked(insertion - 1) > value {
-            set(v, insertion, v.get_unchecked(insertion - 1))
+        while insertion > 0 && get_unchecked(v, insertion - 1) > value {
+            v.set(insertion, get_unchecked(v, insertion - 1))
             insertion = insertion - 1
         }
-        set(v, insertion, value)
+        v.set(insertion, value)
         index = index + 1
     }
 }
@@ -220,13 +219,13 @@ fn __core_seq_sort_i64_impl(mut v: Vec<i64>) {
 fn __core_seq_sort_f64_impl(mut v: Vec<f64>) {
     let mut index = 1
     while index < v.len() {
-        let value = v.get_unchecked(index)
+        let value = get_unchecked(v, index)
         let mut insertion = index
-        while insertion > 0 && v.get_unchecked(insertion - 1) > value {
-            set(v, insertion, v.get_unchecked(insertion - 1))
+        while insertion > 0 && get_unchecked(v, insertion - 1) > value {
+            v.set(insertion, get_unchecked(v, insertion - 1))
             insertion = insertion - 1
         }
-        set(v, insertion, value)
+        v.set(insertion, value)
         index = index + 1
     }
 }
@@ -339,9 +338,9 @@ fn __core_vec_reverse_string_impl(mut v: Vec<String>) {
     let mut lo: i32 = 0
     let mut hi: i32 = n - 1
     while lo < hi {
-        let tmp: String = v.get_unchecked(lo)
-        set(v, lo, v.get_unchecked(hi))
-        set(v, hi, tmp)
+        let tmp: String = get_unchecked(v, lo)
+        v.set(lo, get_unchecked(v, hi))
+        v.set(hi, tmp)
         lo = lo + 1
         hi = hi - 1
     }
@@ -353,7 +352,7 @@ fn __core_vec_remove_i32_impl(mut v: Vec<i32>, index: i32) {
         raw_array_set_unchecked(v, i, raw_array_get_unchecked(v, i + 1))
         i = i + 1
     }
-    pop(v)
+    v.pop()
 }
 // Core-op fallbacks for seq.sum_i32 / seq.product_i32 (public wrappers deleted
 // in the ADR-087 Wave 2).
@@ -361,7 +360,7 @@ fn __core_seq_sum_i32_impl(v: Vec<i32>) -> i32 {
     let mut total: i32 = 0
     let mut i: i32 = 0
     while i < v.len() {
-        total = total + v.get_unchecked(i)
+        total = total + get_unchecked(v, i)
         i = i + 1
     }
     total
@@ -370,7 +369,7 @@ fn __core_seq_product_i32_impl(v: Vec<i32>) -> i32 {
     let mut total: i32 = 1
     let mut i: i32 = 0
     while i < v.len() {
-        total = total * v.get_unchecked(i)
+        total = total * get_unchecked(v, i)
         i = i + 1
     }
     total
@@ -389,7 +388,14 @@ fn __core_seq_product_i32_impl(v: Vec<i32>) -> i32 {
 // (#936). Each body is the operation's sealed fallback on the raw API
 // (ADR-042 D2); MIR lowering still defers it under RFC-005 D3, so call sites
 // bind the owner-qualified CoreOp instead of this declaration.
-pub fn push<T>(mut v: Vec<T>, val: T) {
+//
+// `push` / `pop` / `set` are retired from the public surface. The private
+// generic declarations stay as receiver-method signature anchors: the
+// typechecker binds `v.push(x)` / `v.pop()` / `v.set(i, x)` from the
+// `Vec<T>` receiver here, which the concrete `__core_vec_*_i32_impl` shells
+// cannot do for String / struct / nested element types. Bare calls fail
+// E0100 and the declarations are not importable (ADR-091, ADR-046).
+fn push<T>(mut v: Vec<T>, val: T) {
     let count: i32 = raw_array_len(v)
     let mut grown: Vec<T> = raw_array_grow(v, count + 1)
     raw_array_set_unchecked(grown, count, val)
@@ -402,7 +408,11 @@ pub fn get<T>(v: Vec<T>, idx: i32) -> Option<T> {
     Some(raw_array_get_unchecked(v, idx))
 }
 
-pub fn pop<T>(mut v: Vec<T>) -> Option<T> {
+pub fn get_unchecked<T>(v: Vec<T>, idx: i32) -> T {
+    return v[idx]
+}
+
+fn pop<T>(mut v: Vec<T>) -> Option<T> {
     let count: i32 = raw_array_len(v)
     if count == 0 {
         return None
@@ -414,7 +424,7 @@ pub fn pop<T>(mut v: Vec<T>) -> Option<T> {
     Some(value)
 }
 
-pub fn set<T>(mut v: Vec<T>, idx: i32, val: T) {
+fn set<T>(mut v: Vec<T>, idx: i32, val: T) {
     raw_array_set_unchecked(v, idx, val)
 }
 
@@ -511,7 +521,7 @@ pub fn slice_len<T>(view: Slice<T>) -> i32 {
 
 pub fn slice_get<T>(view: Slice<T>, index: i32) -> T {
     match view {
-        Slice::View(source, start, _) => source.get_unchecked(start + index),
+        Slice::View(source, start, _) => get_unchecked(source, start + index),
     }
 }
 
@@ -528,7 +538,7 @@ impl<T> Slice<T> {
     /// Returns the element at `index` within this view.
     fn get(self: Slice<T>, index: i32) -> T {
         match self {
-            Slice::View(source, start, _) => source.get_unchecked(start + index),
+            Slice::View(source, start, _) => get_unchecked(source, start + index),
         }
     }
 }

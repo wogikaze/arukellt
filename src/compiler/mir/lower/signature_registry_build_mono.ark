@@ -92,10 +92,7 @@ fn sig_reg_register_mono_fn(
             return_vt = fn_index_method_return_type::method_return_vt_from_type_name(return_type_name.clone())
         }
     }
-    push(
-        returns,
-        type_info_to_mir_value::vt_to_mir_value(table, return_vt, return_type_name)
-    )
+    returns.push(type_info_to_mir_value::vt_to_mir_value(table, return_vt, return_type_name))
     let mono_id = mono_instance_build::mono_instance_table_register_from_instances(
         mono_table,
         table,
@@ -151,7 +148,7 @@ impl SigRegLeafIndex {
         let mut next = Vec::new<i32>()
         let mut i = 0
         while i < count {
-            push(next, 0 - 1)
+            next.push(0 - 1)
             i = i + 1
         }
         i = 0
@@ -167,7 +164,7 @@ impl SigRegLeafIndex {
             }
             let leaf = sig_reg_leaf_name(type_contracts::MonoInstance_fn_name(inst))
             let previous = name_index::name_index_get(head, leaf.clone())
-            set(next, i - 1, previous)
+            next.set(i - 1, previous)
             name_index::name_index_set(head, leaf, i - 1)
         }
         SigRegLeafIndex { head: head, next: next }

@@ -169,7 +169,7 @@ fn find_vec_local_from_call_args(ctx: SelfEmitCtx, block: MirBlock, ii: i32, cur
         let prev = block_inst_access::MirBlock_inst_at(block, ii - look)
         let pop = inst_accessors_shape::MirInst_op(prev)
         if pop == mir_opcodes::MIR_LOCAL_GET() {
-            push(arg_srcs, inst_accessors_operands::MirInst_arg0(prev))
+            arg_srcs.push(inst_accessors_operands::MirInst_arg0(prev))
             gets_seen = gets_seen + 1
         }
         look = look + 1

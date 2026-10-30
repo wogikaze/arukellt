@@ -7,10 +7,10 @@ use std::io::{Stdout, Write}
 fn main() {
     let out: Stdout = Stdout::new()
     let mut bytes: Vec<i32> = Vec::new<i32>()
-    push(bytes, 65)
-    push(bytes, 10)
-    push(bytes, 66)
-    push(bytes, 10)
+    bytes.push(65)
+    bytes.push(10)
+    bytes.push(66)
+    bytes.push(10)
     match out.write(bytes) {
         Result::Ok(count) => Stdio::println((count).to_string()),
         Result::Err(_) => Stdio::println("stdout write failed"),

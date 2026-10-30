@@ -42,8 +42,8 @@ fn wit_record_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> 
     let records = wit_parse_text::WitParsedInterface_records(doc)
     let mut names = Vec::new<String>()
     for ri in 0..records.len() {
-        let rec = records.get_unchecked(ri)
-        push(names, rec.wit_name.clone())
+        let rec = get_unchecked(records, ri)
+        names.push(rec.wit_name.clone())
     }
     names
 }
@@ -52,8 +52,8 @@ fn wit_record_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> 
     let records = wit_parse_text::WitParsedInterface_records(doc)
     let mut names = Vec::new<String>()
     for ri in 0..records.len() {
-        let rec = records.get_unchecked(ri)
-        push(names, rec.ark_name.clone())
+        let rec = get_unchecked(records, ri)
+        names.push(rec.ark_name.clone())
     }
     names
 }
@@ -62,8 +62,8 @@ fn wit_enum_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let enums = wit_parse_text::WitParsedInterface_enums(doc)
     let mut names = Vec::new<String>()
     for ei in 0..enums.len() {
-        let en = enums.get_unchecked(ei)
-        push(names, en.wit_name.clone())
+        let en = get_unchecked(enums, ei)
+        names.push(en.wit_name.clone())
     }
     names
 }
@@ -72,8 +72,8 @@ fn wit_enum_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let enums = wit_parse_text::WitParsedInterface_enums(doc)
     let mut names = Vec::new<String>()
     for ei in 0..enums.len() {
-        let en = enums.get_unchecked(ei)
-        push(names, en.ark_name.clone())
+        let en = get_unchecked(enums, ei)
+        names.push(en.ark_name.clone())
     }
     names
 }
@@ -82,8 +82,8 @@ fn wit_variant_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String>
     let variants = wit_parse_text::WitParsedInterface_variants(doc)
     let mut names = Vec::new<String>()
     for vi in 0..variants.len() {
-        let variant = variants.get_unchecked(vi)
-        push(names, variant.wit_name.clone())
+        let variant = get_unchecked(variants, vi)
+        names.push(variant.wit_name.clone())
     }
     names
 }
@@ -92,8 +92,8 @@ fn wit_variant_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String>
     let variants = wit_parse_text::WitParsedInterface_variants(doc)
     let mut names = Vec::new<String>()
     for vi in 0..variants.len() {
-        let variant = variants.get_unchecked(vi)
-        push(names, variant.ark_name.clone())
+        let variant = get_unchecked(variants, vi)
+        names.push(variant.ark_name.clone())
     }
     names
 }
@@ -114,12 +114,12 @@ fn wit_generic_args(t: String) -> Vec<String> {
         if ch == 60 { depth = depth + 1 }
         if ch == 62 { depth = depth - 1 }
         if ch == 44 && depth == 0 {
-            push(args, wit_trim_type(inner.slice(start, i)))
+            args.push(wit_trim_type(inner.slice(start, i)))
             start = i + 1
         }
         i = i + 1
     }
-    if start < inner.len() { push(args, wit_trim_type(inner.slice(start, inner.len()))) }
+    if start < inner.len() { args.push(wit_trim_type(inner.slice(start, inner.len()))) }
     args
 }
 
@@ -127,7 +127,7 @@ fn wit_render_ark_generic(base: String, args: Vec<String>, alias: String, doc: w
     let mut out = base.concat("<")
     for i in 0..args.len() {
         if i > 0 { out = out.concat(",") }
-        out = out.concat(wit_type_to_ark(args.get_unchecked(i), alias.clone(), doc))
+        out = out.concat(wit_type_to_ark(get_unchecked(args, i), alias.clone(), doc))
     }
     out.concat(">")
 }
@@ -148,11 +148,11 @@ fn wit_type_to_ark(wit_type: String, alias: String, doc: wit_parse_text::WitPars
     if t.clone().starts_with("future<") { return wit_render_ark_generic("Future", wit_generic_args(t), alias, doc) }
     if t.clone().starts_with("stream<") { return wit_render_ark_generic("Stream", wit_generic_args(t), alias, doc) }
     let rec_idx = wit_record_index(rec_wit, t.clone())
-    if rec_idx >= 0 { return alias.clone().concat("::".concat(rec_ark.get_unchecked(rec_idx).clone())) }
+    if rec_idx >= 0 { return alias.clone().concat("::".concat(get_unchecked(rec_ark, rec_idx).clone())) }
     let enum_idx = wit_enum_index(enum_wit, t.clone())
-    if enum_idx >= 0 { return alias.clone().concat("::".concat(enum_ark.get_unchecked(enum_idx).clone())) }
+    if enum_idx >= 0 { return alias.clone().concat("::".concat(get_unchecked(enum_ark, enum_idx).clone())) }
     let variant_idx = wit_enum_index(variant_wit, t.clone())
-    if variant_idx >= 0 { return alias.clone().concat("::".concat(variant_ark.get_unchecked(variant_idx).clone())) }
+    if variant_idx >= 0 { return alias.clone().concat("::".concat(get_unchecked(variant_ark, variant_idx).clone())) }
     let primitive = wit_primitive_to_ark(t.clone())
     if !primitive.clone().eq(t.clone()) { return primitive }
     // Named aliases/resources that are not primitives still need a stable module-qualified
@@ -163,16 +163,16 @@ fn wit_type_to_ark(wit_type: String, alias: String, doc: wit_parse_text::WitPars
 fn wit_generic_inner(t: String) -> String {
     let args = wit_generic_args(t)
     if args.len() == 0 { return String_new() }
-    args.get_unchecked(0)
+    get_unchecked(args, 0)
 }
 
 fn wit_record_index(names: Vec<String>, wit_name: String) -> i32 {
-    for i in 0..names.len() { if names.get_unchecked(i).eq(wit_name.clone()) { return i } }
+    for i in 0..names.len() { if get_unchecked(names, i).eq(wit_name.clone()) { return i } }
     0 - 1
 }
 
 fn wit_enum_index(names: Vec<String>, wit_name: String) -> i32 {
-    for i in 0..names.len() { if names.get_unchecked(i).eq(wit_name.clone()) { return i } }
+    for i in 0..names.len() { if get_unchecked(names, i).eq(wit_name.clone()) { return i } }
     0 - 1
 }
 
@@ -203,7 +203,7 @@ fn wit_func_type_sig(param_wit_types: Vec<String>, ret_wit_type: String, doc: wi
     let mut sig = String_new()
     for pi in 0..param_wit_types.len() {
         if pi > 0 { sig = sig.concat("_") }
-        sig = sig.concat(wit_type_to_valtype(param_wit_types.get_unchecked(pi), doc))
+        sig = sig.concat(wit_type_to_valtype(get_unchecked(param_wit_types, pi), doc))
     }
     let ret = wit_trim_type(ret_wit_type)
     if ret.len() == 0 {

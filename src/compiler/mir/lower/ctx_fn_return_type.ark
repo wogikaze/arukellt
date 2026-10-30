@@ -77,7 +77,7 @@ fn mono_strip_suffix_for_lookup(name: String) -> String {
     let mut i = 0
     while i < name_len - 1 {
         if name.byte_at(i) == 95 && name.byte_at(i + 1) == 95 {
-            push(sep_positions, i)
+            sep_positions.push(i)
         }
         i = i + 1
     }

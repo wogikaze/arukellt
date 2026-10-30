@@ -95,7 +95,7 @@ fn emit_payload_field_bind_gc(mut ctx: LowerCtx, variant_name: String, bi: i32, 
         let first_payload_type = emit_payload_field_bind_gc_resolve_type(ctx, variant_name.clone(), 0, bind_local)
         if first_payload_type.len() > 0 {
             let mut typed_vts = Vec::new<i32>()
-            push(typed_vts, core_payload_type_value_type(first_payload_type.clone()))
+            typed_vts.push(core_payload_type_value_type(first_payload_type.clone()))
             let typed_slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(
                 ctx,
                 variant_name.clone(),
@@ -135,7 +135,7 @@ fn emit_payload_field_bind_gc(mut ctx: LowerCtx, variant_name: String, bi: i32, 
                 ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
             }
             let mut payload_vts = Vec::new<i32>()
-            push(payload_vts, eff_vt)
+            payload_vts.push(eff_vt)
             let payload_slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, variant_name.clone(), payload_vts, typed_payload_name.clone())
             if payload_slot >= 0 {
                 type_slot = payload_slot

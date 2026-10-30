@@ -44,15 +44,12 @@ fn register_trait_methods(mut env: TypeEnv, trait_node: AstNode) {
                 child,
                 trait_type_params.clone()
             )
-            push(
-                env.trait_methods,
-                contract_trait_method_record::TraitMethodEntry_new(
+            env.trait_methods.push(contract_trait_method_record::TraitMethodEntry_new(
                     trait_name.clone(),
                     method_name.clone(),
                     sig,
                     trait_type_param_count
-                )
-            )
+                ))
         }
         i = i + 1
     }
@@ -66,7 +63,7 @@ fn trait_type_param_names(trait_node: AstNode) -> Vec<String> {
         let ann = ast_access::node_type_ann_at(trait_node, i)
         if !ast_access::node_kind_is(ann, kinds::NK_ASSOC_TYPE()) &&
         !ast_access::node_kind_is(ann, kinds::NK_TRAIT_SUPER()) {
-            push(names, ast_access::node_text(ann))
+            names.push(ast_access::node_text(ann))
         }
         i = i + 1
     }

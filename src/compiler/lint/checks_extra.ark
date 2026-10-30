@@ -14,7 +14,7 @@ pub fn check_deprecated_api(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     let count = decls.len()
     let mut i = 0
     while i < count {
-        check_deprecated_api_in_node(decls.get_unchecked(i), warnings)
+        check_deprecated_api_in_node(get_unchecked(decls, i), warnings)
         i = i + 1
     }
     warnings
@@ -26,7 +26,7 @@ fn check_deprecated_api_in_node(node: AstNode, mut warnings: Vec<Diagnostic>) {
         let dep_msg = deprecated_table::deprecated_use_message(path.clone())
         if dep_msg.clone().len() > 0 {
             let span = record::DiagnosticSpan_from_raw(ast_access::node_span_start(node), ast_access::node_span_end(node))
-            push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_API(), diag_mod::SEV_WARNING(), span, dep_msg))
+            warnings.push(diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_API(), diag_mod::SEV_WARNING(), span, dep_msg))
         }
         return
     }
@@ -35,7 +35,7 @@ fn check_deprecated_api_in_node(node: AstNode, mut warnings: Vec<Diagnostic>) {
         let dep_msg = deprecated_table::deprecated_call_message(name.clone())
         if dep_msg.clone().len() > 0 {
             let span = record::DiagnosticSpan_from_raw(ast_access::node_span_start(node), ast_access::node_span_end(node))
-            push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_API(), diag_mod::SEV_WARNING(), span, dep_msg))
+            warnings.push(diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_API(), diag_mod::SEV_WARNING(), span, dep_msg))
         }
         return
     }
@@ -50,7 +50,7 @@ fn check_deprecated_api_in_node(node: AstNode, mut warnings: Vec<Diagnostic>) {
         }
         if dep_msg.clone().len() > 0 {
             let span = record::DiagnosticSpan_from_raw(ast_access::node_span_start(node), ast_access::node_span_end(node))
-            push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_API(), diag_mod::SEV_WARNING(), span, dep_msg))
+            warnings.push(diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_API(), diag_mod::SEV_WARNING(), span, dep_msg))
         }
         return
     }
@@ -70,13 +70,13 @@ pub fn check_unused_symbols(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     let count = decls.len()
     let mut i = 0
     while i < count {
-        let node = decls.get_unchecked(i)
+        let node = get_unchecked(decls, i)
         if ast_decl_predicates::node_is_fn_decl(node) && !ast_access::node_is_pub(node) {
             let name = ast_access::node_text(node)
             if !name.clone().eq("main") {
-                push(fn_names, name.clone())
-                push(fn_spans_start, ast_access::node_decl_name_span_start(node))
-                push(fn_spans_end, ast_access::node_decl_name_span_end(node))
+                fn_names.push(name.clone())
+                fn_spans_start.push(ast_access::node_decl_name_span_start(node))
+                fn_spans_end.push(ast_access::node_decl_name_span_end(node))
             }
         }
         i = i + 1
@@ -85,18 +85,18 @@ pub fn check_unused_symbols(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     let dcount = decls.len()
     let mut di = 0
     while di < dcount {
-        collect_referenced_idents(decls.get_unchecked(di), referenced)
+        collect_referenced_idents(get_unchecked(decls, di), referenced)
         di = di + 1
     }
     let fn_count = fn_names.len()
     let mut fi = 0
     while fi < fn_count {
-        let name = fn_names.get_unchecked(fi).clone()
+        let name = get_unchecked(fn_names, fi).clone()
         if !name_in_vec(name.clone(), referenced) &&
         !core_op_registry_generated::core_op_registry_has_fallback_symbol(name.clone()) {
             let msg = "unused symbol `".concat(name.clone().concat("`"))
-            let span = record::DiagnosticSpan_from_raw(fn_spans_start.get_unchecked(fi), fn_spans_end.get_unchecked(fi))
-            push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_UNUSED_SYMBOL(), diag_mod::SEV_WARNING(), span, msg))
+            let span = record::DiagnosticSpan_from_raw(get_unchecked(fn_spans_start, fi), get_unchecked(fn_spans_end, fi))
+            warnings.push(diag_mod::Diagnostic_new(codes::DIAG_WARN_UNUSED_SYMBOL(), diag_mod::SEV_WARNING(), span, msg))
         }
         fi = fi + 1
     }
@@ -105,14 +105,14 @@ pub fn check_unused_symbols(decls: Vec<AstNode>) -> Vec<Diagnostic> {
 
 fn collect_referenced_idents(node: AstNode, mut referenced: Vec<String>) {
     if ast_expr_predicates::node_is_ident(node) {
-        push(referenced, ast_access::node_text(node))
+        referenced.push(ast_access::node_text(node))
         return
     }
     if ast_expr_predicates::node_is_path(node) {
         let path = ast_access::node_text(node)
         let sym_part = paths::path_symbol_part(path.clone())
         if sym_part.clone().len() > 0 {
-            push(referenced, sym_part)
+            referenced.push(sym_part)
         }
         return
     }
@@ -137,7 +137,7 @@ pub fn check_capability_stubs(decls: Vec<AstNode>, target: String) -> Vec<Diagno
     let count = decls.len()
     let mut i = 0
     while i < count {
-        let node = decls.get_unchecked(i)
+        let node = get_unchecked(decls, i)
         if ast_decl_predicates::node_is_fn_decl(node) &&
         ast_access::node_is_pub(node) &&
         !ast_access::node_is_component_export(node) {
@@ -153,7 +153,7 @@ pub fn check_capability_stubs(decls: Vec<AstNode>, target: String) -> Vec<Diagno
             }
             let msg = "non-exportable function `".concat(name.clone().concat("` will be skipped from component exports"))
             let span = record::DiagnosticSpan_from_raw(ast_access::node_decl_name_span_start(node), ast_access::node_decl_name_span_end(node))
-            push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_CAPABILITY_STUB(), diag_mod::SEV_WARNING(), span, msg))
+            warnings.push(diag_mod::Diagnostic_new(codes::DIAG_WARN_CAPABILITY_STUB(), diag_mod::SEV_WARNING(), span, msg))
         }
         i = i + 1
     }

@@ -87,7 +87,7 @@ fn scope_merge_child_marks(mut parent: LocalScope, child: LocalScope) {
         if contract_scope::VarBinding_has_borrow_captures(child_binding) {
             contract_scope::VarBinding_set_has_borrow_captures(parent_binding, true)
         }
-        set(parent.bindings, i, parent_binding)
+        parent.bindings.set(i, parent_binding)
         i = i + 1
     }
 }
@@ -240,7 +240,7 @@ fn scope_mark_has_captures(mut scope: LocalScope, name: String, has_caps: bool) 
     }
     let mut binding = contract_scope::LocalScope_binding_at(scope, index)
     contract_scope::VarBinding_set_has_captures(binding, has_caps)
-    set(scope.bindings, index, binding)
+    scope.bindings.set(index, binding)
 }
 
 fn scope_binding_has_borrow_captures(scope: LocalScope, name: String) -> bool {
@@ -258,7 +258,7 @@ fn scope_mark_has_borrow_captures(mut scope: LocalScope, name: String, has_borro
     }
     let mut binding = contract_scope::LocalScope_binding_at(scope, index)
     contract_scope::VarBinding_set_has_borrow_captures(binding, has_borrow_caps)
-    set(scope.bindings, index, binding)
+    scope.bindings.set(index, binding)
 }
 
 fn scope_mark_moved(mut scope: LocalScope, name: String, is_moved: bool) {
@@ -268,7 +268,7 @@ fn scope_mark_moved(mut scope: LocalScope, name: String, is_moved: bool) {
     }
     let mut binding = contract_scope::LocalScope_binding_at(scope, index)
     contract_scope::VarBinding_set_moved(binding, is_moved)
-    set(scope.bindings, index, binding)
+    scope.bindings.set(index, binding)
 }
 
 fn scope_mark_shared_borrow(mut scope: LocalScope, name: String, has_borrow: bool) {
@@ -278,7 +278,7 @@ fn scope_mark_shared_borrow(mut scope: LocalScope, name: String, has_borrow: boo
     }
     let mut binding = contract_scope::LocalScope_binding_at(scope, index)
     contract_scope::VarBinding_set_shared_borrow(binding, has_borrow)
-    set(scope.bindings, index, binding)
+    scope.bindings.set(index, binding)
 }
 
 fn scope_mark_mutable_borrow(mut scope: LocalScope, name: String, has_borrow: bool) {
@@ -288,7 +288,7 @@ fn scope_mark_mutable_borrow(mut scope: LocalScope, name: String, has_borrow: bo
     }
     let mut binding = contract_scope::LocalScope_binding_at(scope, index)
     contract_scope::VarBinding_set_mutable_borrow(binding, has_borrow)
-    set(scope.bindings, index, binding)
+    scope.bindings.set(index, binding)
 }
 
 fn scope_lookup(scope: LocalScope, name: String) -> TypeInfo {
@@ -331,7 +331,7 @@ fn instantiate_scheme(mut env: TypeEnv, scheme: TypeScheme) -> TypeInfo {
     let mut var_types = Vec::new<TypeInfo>()
     let mut i = 0
     while i < var_count {
-        push(var_types, unify::fresh_var(env))
+        var_types.push(unify::fresh_var(env))
         i = i + 1
     }
     instantiate::instantiate_type(scheme.body, scheme.vars, var_types)
@@ -354,7 +354,7 @@ fn collect_free_type_var_names(env: TypeEnv, ty: TypeInfo) -> Vec<String> {
     if contract_type_access::TypeInfo_tag(resolved) == commands::TY_TYPE_VAR() {
         let name = contract_type_access::TypeInfo_name(resolved)
         if name.len() > 0 {
-            push(names, name)
+            names.push(name)
         }
         return names
     }
@@ -369,7 +369,7 @@ fn collect_free_type_var_names(env: TypeEnv, ty: TypeInfo) -> Vec<String> {
         while j < nested.len() {
             let name = nested.get_unchecked(j)
             if !type_name_is_present(names, name.clone()) {
-                push(names, name.clone())
+                names.push(name.clone())
             }
             j = j + 1
         }
@@ -398,7 +398,7 @@ fn scope_free_type_var_names(env: TypeEnv, scope: LocalScope) -> Vec<String> {
             let name = binding_names.get_unchecked(j)
             if !type_name_is_present(quantified, name.clone()) &&
             !type_name_is_present(names, name.clone()) {
-                push(names, name.clone())
+                names.push(name.clone())
             }
             j = j + 1
         }
@@ -409,7 +409,7 @@ fn scope_free_type_var_names(env: TypeEnv, scope: LocalScope) -> Vec<String> {
     while generic_index < generic_count {
         let name = env.current_fn_type_params.get_unchecked(generic_index)
         if !type_name_is_present(names, name.clone()) {
-            push(names, name.clone())
+            names.push(name.clone())
         }
         generic_index = generic_index + 1
     }
@@ -424,7 +424,7 @@ fn generalize(env: TypeEnv, scope: LocalScope, ty: TypeInfo) -> TypeScheme {
     while i < candidates.len() {
         let name = candidates.get_unchecked(i)
         if !type_name_is_present(environment_names, name.clone()) {
-            push(vars, name.clone())
+            vars.push(name.clone())
         }
         i = i + 1
     }

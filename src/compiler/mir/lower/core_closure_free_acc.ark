@@ -8,6 +8,6 @@ fn core_closure_push_unique_cap(mut acc: Vec<String>, name: String) {
         j = j - 1
     }
     if !dup {
-        push(acc, name)
+        acc.push(name)
     }
 }

@@ -44,8 +44,8 @@ fn collect_nested_else_if(node: AstNode, mut starts: Vec<i32>, mut ends: Vec<i32
         if ast_access::node_child_count(node) >= 3 {
             let else_node = ast_access::node_child_at(node, 2)
             if is_else_block_with_sole_if(else_node) {
-                push(starts, ast_access::node_span_start(else_node))
-                push(ends, ast_access::node_span_end(else_node))
+                starts.push(ast_access::node_span_start(else_node))
+                ends.push(ast_access::node_span_end(else_node))
             }
         }
     }
@@ -72,7 +72,7 @@ pub fn check_prefer_else_if(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     while i < n {
         let span = record::DiagnosticSpan_from_raw(starts.get_unchecked(i), ends.get_unchecked(i))
         let msg = "nested else { if ... } can be written as else if; prefer else-if chaining"
-        push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_PREFER_ELSE_IF(), diag_mod::SEV_WARNING(), span, msg))
+        warnings.push(diag_mod::Diagnostic_new(codes::DIAG_WARN_PREFER_ELSE_IF(), diag_mod::SEV_WARNING(), span, msg))
         i = i + 1
     }
     warnings

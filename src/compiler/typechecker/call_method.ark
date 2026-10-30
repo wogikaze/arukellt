@@ -361,7 +361,7 @@ fn receiver_has_iterator_contract(mut env: TypeEnv, recv_ty: TypeInfo) -> bool {
 
 fn string_vec_type() -> TypeInfo {
     let mut type_args = Vec::new<TypeInfo>()
-    push(type_args, simple_type(commands::TY_STRING()))
+    type_args.push(simple_type(commands::TY_STRING()))
     contract_types_record::TypeInfo_new(commands::TY_VEC(), String_from("Vec"), type_args)
 }
 

@@ -56,7 +56,7 @@ fn register_trait_decl(mut env: TypeEnv, node: AstNode) {
         }
         i = i + 1
     }
-    push(env.trait_defs, info)
+    env.trait_defs.push(info)
 }
 
 // ADR-062 keeps default methods out of the v2 trait core. The parser records
@@ -164,15 +164,12 @@ fn register_trait_impl_entry(
         }
         i = i + 1
     }
-    push(
-        env.trait_impls,
-        contract_trait_impl::TraitImplInfo_new(
+    env.trait_impls.push(contract_trait_impl::TraitImplInfo_new(
             trait_name,
             trait_args,
             self_ty,
             type_param_bounds
-        )
-    )
+        ))
 }
 
 fn maybe_register_impl_decl(mut env: TypeEnv, node: AstNode, known_type_names: Vec<String>) {
@@ -283,12 +280,12 @@ fn report_undefined_impl_head_types(mut env: TypeEnv, node: AstNode, known_type_
 
 fn report_trait_error_at(mut env: TypeEnv, code: String, node: AstNode, message: String) {
     env.error_count = env.error_count + 1
-    push(env.errors, message.clone())
-    push(env.diagnostics, trait_diagnostic(code, diag_mod::SEV_ERROR(), node, message))
+    env.errors.push(message.clone())
+    env.diagnostics.push(trait_diagnostic(code, diag_mod::SEV_ERROR(), node, message))
 }
 
 fn report_trait_warning_at(mut env: TypeEnv, code: String, node: AstNode, message: String) {
-    push(env.warnings, trait_diagnostic(code, diag_mod::SEV_WARNING(), node, message))
+    env.warnings.push(trait_diagnostic(code, diag_mod::SEV_WARNING(), node, message))
 }
 
 fn trait_diagnostic(code: String, severity: i32, node: AstNode, message: String) -> Diagnostic {
@@ -428,15 +425,12 @@ fn register_impl_associated_types(
                 String_from("duplicate associated type definition: `").concat(assoc_name.clone().concat("`"))
             )
         } else {
-            push(
-                env.associated_types,
-                contract_associated_type::TraitAssociatedTypeInfo_new(
+            env.associated_types.push(contract_associated_type::TraitAssociatedTypeInfo_new(
                     trait_name.clone(),
                     self_ty,
                     assoc_name.clone(),
                     value_ty
-                )
-            )
+                ))
         }
         i = i + 1
     }
@@ -554,7 +548,7 @@ fn type_args(ty: TypeInfo) -> Vec<TypeInfo> {
     let count = contract_type_access::TypeInfo_type_arg_count(ty)
     let mut i = 0
     while i < count {
-        push(args, contract_type_access::TypeInfo_type_arg_at(ty, i))
+        args.push(contract_type_access::TypeInfo_type_arg_at(ty, i))
         i = i + 1
     }
     args
@@ -617,7 +611,7 @@ fn collect_type_var_names(ty: TypeInfo, mut out: Vec<String>) {
     if contract_type_access::TypeInfo_tag(ty) == commands::TY_TYPE_VAR() {
         let name = contract_type_access::TypeInfo_name(ty)
         if !string_vec_contains(out, name.clone()) {
-            push(out, name)
+            out.push(name)
         }
         return
     }
@@ -672,10 +666,10 @@ fn trait_type_tags_match(a_tag: i32, b_tag: i32) -> bool {
 
 fn report_trait_error(mut env: TypeEnv, code: String, message: String) {
     env.error_count = env.error_count + 1
-    push(env.errors, message.clone())
+    env.errors.push(message.clone())
     let span = record::DiagnosticSpan_from_raw(0, 0)
     let diag = diag_mod::Diagnostic_new(code, diag_mod::SEV_ERROR(), span, message)
-    push(env.diagnostics, diag)
+    env.diagnostics.push(diag)
 }
 
 fn reject_dyn_in_sig(mut env: TypeEnv, sig: FnSig) {

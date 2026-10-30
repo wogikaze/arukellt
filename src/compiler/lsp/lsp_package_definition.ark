@@ -16,7 +16,7 @@ fn roots_push_unique(mut roots: Vec<String>, path: String) -> Vec<String> {
     if path.len() == 0 || roots_contains(roots, path.clone()) {
         return roots
     }
-    push(roots, path)
+    roots.push(path)
     roots
 }
 

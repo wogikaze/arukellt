@@ -43,9 +43,9 @@ fn ctx_register_gc_struct(mut ctx: LowerCtx, struct_name: String, sig: String) {
         }
         i = i + 1
     }
-    push(ctx.gc_struct_names, struct_name.clone())
-    push(ctx.gc_struct_sigs, sig)
-    push(ctx.gc_struct_sig_pending, false)
+    ctx.gc_struct_names.push(struct_name.clone())
+    ctx.gc_struct_sigs.push(sig)
+    ctx.gc_struct_sig_pending.push(false)
     ctx_gc_note_late_struct(ctx, ctx.gc_struct_names.len() - 1)
     ctx_intern_gc_struct_type(ctx, struct_name)
     if ctx.gc_seal_done {
@@ -90,8 +90,8 @@ fn ctx_set_gc_struct_sig(mut ctx: LowerCtx, struct_name: String, sig: String) {
                 Stdio::eprintln("compiler ICE: post-seal gc struct sig update after materialize")
                 Process::exit(1)
             }
-            set(ctx.gc_struct_sigs, i, sig)
-            set(ctx.gc_struct_sig_pending, i, false)
+            ctx.gc_struct_sigs.set(i, sig)
+            ctx.gc_struct_sig_pending.set(i, false)
             if ctx.gc_seal_done {
                 ctx_gc_struct_materialize_ready(ctx)
             }
@@ -99,9 +99,9 @@ fn ctx_set_gc_struct_sig(mut ctx: LowerCtx, struct_name: String, sig: String) {
         }
         i = i + 1
     }
-    push(ctx.gc_struct_names, struct_name)
-    push(ctx.gc_struct_sigs, sig)
-    push(ctx.gc_struct_sig_pending, false)
+    ctx.gc_struct_names.push(struct_name)
+    ctx.gc_struct_sigs.push(sig)
+    ctx.gc_struct_sig_pending.push(false)
     ctx_gc_note_late_struct(ctx, ctx.gc_struct_names.len() - 1)
     if ctx.gc_seal_done {
         ctx_gc_struct_materialize_ready(ctx)
@@ -113,9 +113,9 @@ fn ctx_set_gc_struct_sig(mut ctx: LowerCtx, struct_name: String, sig: String) {
 // unmaterialized — and blocks the drain — until the real sig lands, so a
 // nested ensure that finalizes first cannot jump the canon order.
 fn ctx_gc_struct_push_pending(mut ctx: LowerCtx, struct_name: String) {
-    push(ctx.gc_struct_names, struct_name.clone())
-    push(ctx.gc_struct_sigs, "GS")
-    push(ctx.gc_struct_sig_pending, true)
+    ctx.gc_struct_names.push(struct_name.clone())
+    ctx.gc_struct_sigs.push("GS")
+    ctx.gc_struct_sig_pending.push(true)
     ctx_gc_note_late_struct(ctx, ctx.gc_struct_names.len() - 1)
     ctx_intern_gc_struct_type(ctx, struct_name)
 }

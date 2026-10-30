@@ -1,6 +1,6 @@
 fn ctx_local_type_push(mut ctx: LowerCtx, local_idx: i32, type_name: String) {
-    push(ctx.local_types, type_name.clone())
-    push(ctx.local_type_indices, local_idx)
+    ctx.local_types.push(type_name.clone())
+    ctx.local_type_indices.push(local_idx)
 }
 
 fn ctx_local_type_count(ctx: LowerCtx) -> i32 {

@@ -4,26 +4,26 @@ fn ctx_mono_span_rewrite_count(ctx: LowerCtx) -> i32 {
 }
 
 fn ctx_mono_span_rewrite_start_at(ctx: LowerCtx, index: i32) -> i32 {
-    ctx.mono_call_starts.get_unchecked(index)
+    get_unchecked(ctx.mono_call_starts, index)
 }
 
 fn ctx_mono_span_rewrite_target_at(ctx: LowerCtx, index: i32) -> String {
-    ctx.mono_call_span_targets.get_unchecked(index).clone()
+    get_unchecked(ctx.mono_call_span_targets, index).clone()
 }
 
 fn ctx_mono_span_rewrite_source_at(ctx: LowerCtx, index: i32) -> String {
-    ctx.mono_call_span_sources.get_unchecked(index).clone()
+    get_unchecked(ctx.mono_call_span_sources, index).clone()
 }
 
 fn ctx_mono_mark_span_rewrite_used(mut ctx: LowerCtx, index: i32) {
-    set(ctx.mono_call_span_used, index, 1)
+    ctx.mono_call_span_used.set(index, 1)
 }
 
 fn ctx_mono_push_span_rewrite(mut ctx: LowerCtx, span_start: i32, source: String, target: String) {
-    push(ctx.mono_call_starts, span_start)
-    push(ctx.mono_call_span_sources, source)
-    push(ctx.mono_call_span_targets, target)
-    push(ctx.mono_call_span_used, 0)
+    ctx.mono_call_starts.push(span_start)
+    ctx.mono_call_span_sources.push(source)
+    ctx.mono_call_span_targets.push(target)
+    ctx.mono_call_span_used.push(0)
     ctx_mono_span_hash_insert(ctx, span_start)
 }
 
@@ -31,7 +31,7 @@ fn ctx_mono_span_hash_insert(mut ctx: LowerCtx, span_start: i32) {
     if ctx.mono_span_buckets.len() == 0 {
         let mut i = 0
         while i < 1024 {
-            push(ctx.mono_span_buckets, 0)
+            ctx.mono_span_buckets.push(0)
             i = i + 1
         }
     }
@@ -41,9 +41,9 @@ fn ctx_mono_span_hash_insert(mut ctx: LowerCtx, span_start: i32) {
         slot = 0
     }
     slot = slot % capacity
-    let head = ctx.mono_span_buckets.get_unchecked(slot)
-    push(ctx.mono_span_next, head)
-    set(ctx.mono_span_buckets, slot, ctx.mono_call_starts.len())
+    let head = get_unchecked(ctx.mono_span_buckets, slot)
+    ctx.mono_span_next.push(head)
+    ctx.mono_span_buckets.set(slot, ctx.mono_call_starts.len())
 }
 
 fn ctx_mono_span_hash_head(ctx: LowerCtx, span_start: i32) -> i32 {
@@ -55,7 +55,7 @@ fn ctx_mono_span_hash_head(ctx: LowerCtx, span_start: i32) -> i32 {
     if slot < 0 {
         slot = 0
     }
-    ctx.mono_span_buckets.get_unchecked(slot % capacity)
+    get_unchecked(ctx.mono_span_buckets, slot % capacity)
 }
 
 fn ctx_mono_name_rewrite_count(ctx: LowerCtx) -> i32 {
@@ -63,33 +63,33 @@ fn ctx_mono_name_rewrite_count(ctx: LowerCtx) -> i32 {
 }
 
 fn ctx_mono_name_rewrite_source_at(ctx: LowerCtx, index: i32) -> String {
-    ctx.mono_call_sources.get_unchecked(index).clone()
+    get_unchecked(ctx.mono_call_sources, index).clone()
 }
 
 fn ctx_mono_name_rewrite_target_at(ctx: LowerCtx, index: i32) -> String {
-    ctx.mono_call_name_targets.get_unchecked(index).clone()
+    get_unchecked(ctx.mono_call_name_targets, index).clone()
 }
 
 fn ctx_mono_name_rewrite_used_at(ctx: LowerCtx, index: i32) -> i32 {
-    ctx.mono_call_used.get_unchecked(index)
+    get_unchecked(ctx.mono_call_used, index)
 }
 
 fn ctx_mono_mark_name_rewrite_used(mut ctx: LowerCtx, index: i32) {
-    set(ctx.mono_call_used, index, 1)
+    ctx.mono_call_used.set(index, 1)
 }
 
 fn ctx_mono_push_name_rewrite(mut ctx: LowerCtx, source: String, target: String) {
     let index = ctx.mono_call_sources.len()
     let bare = mono_bare_source(source.clone())
-    push(ctx.mono_call_sources, source)
-    push(ctx.mono_call_name_targets, target)
-    push(ctx.mono_call_used, 0)
-    push(ctx.mono_call_bare_next, 0 - 1)
+    ctx.mono_call_sources.push(source)
+    ctx.mono_call_name_targets.push(target)
+    ctx.mono_call_used.push(0)
+    ctx.mono_call_bare_next.push(0 - 1)
     let tail = name_index::name_index_get(ctx.mono_call_bare_tail, bare.clone())
     if tail < 0 {
         name_index::name_index_set(ctx.mono_call_bare_head, bare.clone(), index)
     } else {
-        set(ctx.mono_call_bare_next, tail, index)
+        ctx.mono_call_bare_next.set(tail, index)
     }
     name_index::name_index_set(ctx.mono_call_bare_tail, bare, index)
 }
@@ -101,7 +101,7 @@ fn ctx_mono_name_rewrite_first_for_source(ctx: LowerCtx, source: String) -> i32 
 
 // Next rewrite index with the same bare source after `index`, or -1.
 fn ctx_mono_name_rewrite_next_same_source(ctx: LowerCtx, index: i32) -> i32 {
-    ctx.mono_call_bare_next.get_unchecked(index)
+    get_unchecked(ctx.mono_call_bare_next, index)
 }
 
 // Text after the last `:`; `mod:fn` and `fn` name the same mono source.

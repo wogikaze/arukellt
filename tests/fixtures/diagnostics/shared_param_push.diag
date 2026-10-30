@@ -1,1 +1,1 @@
-error[E0223|typecheck]: cannot pass an immutable place to a `mut` parameter
+error[E0223|typecheck]: cannot call a `mut self` method on an immutable place

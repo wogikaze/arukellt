@@ -78,7 +78,7 @@ fn gc_layout_table_drain_plan(
         Process::exit(1)
     }
     while table.plan_seen < count {
-        push(table.plan_pending, table.plan_seen)
+        table.plan_pending.push(table.plan_seen)
         table.plan_seen = table.plan_seen + 1
     }
     // Rescan pending only when its outcome can change (#851): a new canon
@@ -106,7 +106,7 @@ fn gc_layout_table_drain_plan(
                     Stdio::eprintln("compiler ICE: GC layout plan references an unavailable type-section slot")
                     Process::exit(1)
                 }
-                push(still_pending, index)
+                still_pending.push(index)
             } else {
                 let layout_id = gc_layout_table::gc_layout_table_register_key(
                     table,

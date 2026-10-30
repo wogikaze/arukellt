@@ -3,13 +3,13 @@ use std::test::Test
 
 fn main() {
     let mut a: Vec<i32> = Vec::new<i32>()
-    push(a, 1)
-    push(a, 2)
-    push(a, 3)
+    a.push(1)
+    a.push(2)
+    a.push(3)
     let mut b: Vec<i32> = Vec::new<i32>()
-    push(b, 10)
-    push(b, 20)
-    push(b, 30)
+    b.push(10)
+    b.push(20)
+    b.push(30)
 
     let mut it = a.iter().zip(b.iter())
     match it.next() {

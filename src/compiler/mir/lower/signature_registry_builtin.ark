@@ -51,7 +51,7 @@ fn sig_reg_register_builtin_entry(
     ret: MirValueType
 ) {
     let mut returns = Vec::new<MirValueType>()
-    push(returns, ret)
+    returns.push(ret)
     let params = Vec::new<MirValueType>()
     let receiver = mir_value_type::MirValueType_new(
         type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "void", Vec::new<TypeId>()),
@@ -176,24 +176,24 @@ fn sig_reg_register_option_returns(mut table: TypeTable, mut registry: Signature
 
 fn sig_reg_names1(a: String) -> Vec<String> {
     let mut names = Vec::new<String>()
-    push(names, a)
+    names.push(a)
     names
 }
 
 fn sig_reg_names3(a: String, b: String, c: String) -> Vec<String> {
     let mut names = Vec::new<String>()
-    push(names, a)
-    push(names, b)
-    push(names, c)
+    names.push(a)
+    names.push(b)
+    names.push(c)
     names
 }
 
 fn sig_reg_names4(a: String, b: String, c: String, d: String) -> Vec<String> {
     let mut names = Vec::new<String>()
-    push(names, a)
-    push(names, b)
-    push(names, c)
-    push(names, d)
+    names.push(a)
+    names.push(b)
+    names.push(c)
+    names.push(d)
     names
 }
 
@@ -239,13 +239,13 @@ fn sig_reg_hm_ss_names() -> Vec<String> {
 
 fn sig_reg_option_return_names() -> Vec<String> {
     let mut names = Vec::new<String>()
-    push(names, "vec_pop")
-    push(names, "vec_get")
-    push(names, "find_i32")
-    push(names, "find_i64")
-    push(names, "find_f64")
-    push(names, "find_String")
-    push(names, "parse_u64")
+    names.push("vec_pop")
+    names.push("vec_get")
+    names.push("find_i32")
+    names.push("find_i64")
+    names.push("find_f64")
+    names.push("find_String")
+    names.push("parse_u64")
     names
 }
 
@@ -254,18 +254,18 @@ fn sig_reg_option_return_names() -> Vec<String> {
 // lookup_intrinsic_return_type_name → type_name → layout at emit time.
 fn sig_reg_builtin_string_return_names() -> Vec<String> {
     let mut names = Vec::new<String>()
-    push(names, "String_new")
-    push(names, "String_from")
-    push(names, "__intrinsic_String_new")
-    push(names, "__intrinsic_String_from")
-    push(names, "string::String_new")
-    push(names, "string::String_from")
-    push(names, "to_string")
-    push(names, "__intrinsic_to_string")
-    push(names, "i32_to_string")
-    push(names, "i64_to_string")
-    push(names, "f64_to_string")
-    push(names, "bool_to_string")
-    push(names, "char_to_string")
+    names.push("String_new")
+    names.push("String_from")
+    names.push("__intrinsic_String_new")
+    names.push("__intrinsic_String_from")
+    names.push("string::String_new")
+    names.push("string::String_from")
+    names.push("to_string")
+    names.push("__intrinsic_to_string")
+    names.push("i32_to_string")
+    names.push("i64_to_string")
+    names.push("f64_to_string")
+    names.push("bool_to_string")
+    names.push("char_to_string")
     names
 }

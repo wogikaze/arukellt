@@ -30,10 +30,7 @@ impl io::Write for OneByteWriter {
         if data.len() == 0 {
             return Ok(0)
         }
-        match data.get(0) {
-            Option::Some(byte) => push(self.bytes, byte),
-            Option::None => return Ok(0),
-        }
+        self.bytes.push(get_unchecked(data, 0))
         Ok(1)
     }
 
@@ -44,11 +41,11 @@ impl io::Write for OneByteWriter {
 
 fn payload() -> Vec<i32> {
     let mut data: Vec<i32> = Vec::new<i32>()
-    push(data, 104)
-    push(data, 101)
-    push(data, 108)
-    push(data, 108)
-    push(data, 111)
+    data.push(104)
+    data.push(101)
+    data.push(108)
+    data.push(108)
+    data.push(111)
     data
 }
 
@@ -68,14 +65,8 @@ fn main() {
     print_copy_count(Reader::from_bytes(payload()), writer)
     let image: Vec<i32> = writer.into_bytes()
     Stdio::println((image.len()).to_string())
-    match image.get(0) {
-        Option::Some(byte) => Stdio::println(byte.to_string()),
-        Option::None => Stdio::println("missing"),
-    }
-    match image.get(4) {
-        Option::Some(byte) => Stdio::println(byte.to_string()),
-        Option::None => Stdio::println("missing"),
-    }
+    Stdio::println((get_unchecked(image, 0)).to_string())
+    Stdio::println((get_unchecked(image, 4)).to_string())
 
     print_copy_count(Reader::new(), Writer::new())
 
@@ -87,14 +78,8 @@ fn main() {
     let mut rest_writer: Writer = Writer::new()
     print_copy_count(partial, rest_writer)
     let rest: Vec<i32> = rest_writer.into_bytes()
-    match rest.get(0) {
-        Option::Some(byte) => Stdio::println(byte.to_string()),
-        Option::None => Stdio::println("missing"),
-    }
-    match rest.get(2) {
-        Option::Some(byte) => Stdio::println(byte.to_string()),
-        Option::None => Stdio::println("missing"),
-    }
+    Stdio::println((get_unchecked(rest, 0)).to_string())
+    Stdio::println((get_unchecked(rest, 2)).to_string())
 
     match Io::read_to_end(Reader::from_bytes(payload())) {
         Result::Ok(bytes) => Stdio::println((bytes.len()).to_string()),
@@ -102,8 +87,8 @@ fn main() {
     }
 
     let mut small: Vec<i32> = Vec::new<i32>()
-    push(small, 65)
-    push(small, 66)
+    small.push(65)
+    small.push(66)
     match Io::read_exact(Reader::from_bytes(small), 3) {
         Result::Ok(bytes) => Stdio::println((bytes.len()).to_string()),
         Result::Err(err) => Stdio::println(err.message()),
@@ -122,7 +107,7 @@ fn main() {
         Result::Err(err) => Stdio::println(err.message()),
     }
     let mut invalid: Vec<i32> = Vec::new<i32>()
-    push(invalid, 255)
+    invalid.push(255)
     match Io::read_to_string(Reader::from_bytes(invalid)) {
         Result::Ok(_) => Stdio::println("unexpected utf8 success"),
         Result::Err(err) => Stdio::println(err.message()),
@@ -133,10 +118,7 @@ fn main() {
         Result::Ok(_) => {
             let all: Vec<i32> = all_writer.into_bytes()
             Stdio::println((all.len()).to_string())
-            match all.get(0) {
-                Option::Some(byte) => Stdio::println(byte.to_string()),
-                Option::None => Stdio::println("missing"),
-            }
+            Stdio::println((get_unchecked(all, 0)).to_string())
         },
         Result::Err(err) => Stdio::println(err.message()),
     }

@@ -26,7 +26,7 @@ fn mir_closure_capture_vts(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
                 // Promoted borrow cells pass the cell ref as the cap
                 // argument (#891).
                 pvt = closure_env_layout::closure_env_ref_vt(ctx)
-                push(cap_vts, pvt)
+                cap_vts.push(pvt)
                 cvi = cvi + 1
                 continue
             }
@@ -42,7 +42,7 @@ fn mir_closure_capture_vts(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
                 pvt = value_types::VT_GC_REF()
             }
         }
-        push(cap_vts, pvt)
+        cap_vts.push(pvt)
         cvi = cvi + 1
     }
     cap_vts
@@ -58,12 +58,12 @@ fn mir_closure_capture_types(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<String
         if cli >= 0 && closure_pcells::ctx_pcell_is_cell(ctx, cli) {
             // Promoted cap params declare the cell ref type so direct
             // calls and the env trampoline pass the shared cell (#891).
-            push(cap_types, closure_pcells::ctx_pcell_cell_spelling(ctx, cli))
+            cap_types.push(closure_pcells::ctx_pcell_cell_spelling(ctx, cli))
             cvi = cvi + 1
             continue
         }
         let cap_type = closure_capture_type::mir_closure_lookup_capture_type(ctx, cli)
-        push(cap_types, cap_type)
+        cap_types.push(cap_type)
         cvi = cvi + 1
     }
     cap_types
@@ -114,12 +114,12 @@ fn mir_closure_snapshot_copy_captures(mut ctx: LowerCtx, caps: Vec<String>, scop
         if li >= 0 && closure_pcells::ctx_pcell_is_cell(ctx, li) {
             // Promoted borrow cells pack the cell-ref local's own name so
             // the env carries the shared place, not a payload read (#891).
-            push(out, closure_pcells::ctx_pcell_ref_name(ctx, li))
+            out.push(closure_pcells::ctx_pcell_ref_name(ctx, li))
             ci = ci + 1
             continue
         }
         if li < 0 || !closure_capture_type::mir_closure_vt_is_snapshot_copy(ctx_api_local_types::ctx_local_vt(ctx, li)) {
-            push(out, cname)
+            out.push(cname)
             ci = ci + 1
             continue
         }
@@ -131,7 +131,7 @@ fn mir_closure_snapshot_copy_captures(mut ctx: LowerCtx, caps: Vec<String>, scop
             ctx_api_local_types::ctx_set_local_type(ctx, snap, cap_type)
         }
         ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(snap, li))
-        push(out, snap_name)
+        out.push(snap_name)
         ci = ci + 1
     }
     out

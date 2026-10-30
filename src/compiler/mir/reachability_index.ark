@@ -48,7 +48,7 @@ fn mir_reachability_index_bind_fid(
     if fid_to_mir.get_unchecked(raw) >= 0 {
         return
     }
-    set(fid_to_mir, raw, fi)
+    fid_to_mir.set(raw, fi)
 }
 
 fn mir_reachability_index_bind_name(mut name_to_mir: NameIndex, fname: String, fi: i32) {
@@ -79,15 +79,15 @@ fn mir_reachability_index_build(m: MirModule, functions: Vec<MirFunction>) -> Mi
         let mut ri = 0
         while ri < registry_count {
             if signature_registry::signature_registry_is_signature_only(registry, ri) {
-                push(fid_chain_next, 0 - 1)
+                fid_chain_next.push(0 - 1)
             } else {
                 let rname = signature_registry::signature_registry_mangled_at(registry, ri)
                 let tail = name_index::name_index_get(fid_chain_tail, rname.clone())
-                push(fid_chain_next, 0 - 1)
+                fid_chain_next.push(0 - 1)
                 if tail < 0 {
                     name_index::name_index_set(fid_chain_head, rname.clone(), ri)
                 } else {
-                    set(fid_chain_next, tail, ri)
+                    fid_chain_next.set(tail, ri)
                 }
                 name_index::name_index_set(fid_chain_tail, rname, ri)
             }
@@ -96,7 +96,7 @@ fn mir_reachability_index_build(m: MirModule, functions: Vec<MirFunction>) -> Mi
     }
     let mut si = 0
     while si < registry_count {
-        push(fid_to_mir, 0 - 1)
+        fid_to_mir.push(0 - 1)
         si = si + 1
     }
     let mut fi = 0
@@ -137,8 +137,8 @@ fn mir_reachability_try_enqueue(mut reachable: Vec<i32>, mut queue: Vec<i32>, mi
     if reachable.get_unchecked(mir_index) != 0 {
         return false
     }
-    set(reachable, mir_index, 1)
-    push(queue, mir_index)
+    reachable.set(mir_index, 1)
+    queue.push(mir_index)
     true
 }
 

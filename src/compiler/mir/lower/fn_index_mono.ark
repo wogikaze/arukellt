@@ -65,9 +65,9 @@ fn mir_index_mono_variants_with_method_fallback(
                     mono_rvt = fn_index_method_return_type::method_return_vt_from_type_name(suffix_rtn.clone())
                 }
             }
-            push(fn_names, safe_name)
-            push(fn_return_vts, mono_rvt)
-            push(fn_return_type_names, mono_rtn)
+            fn_names.push(safe_name)
+            fn_return_vts.push(mono_rvt)
+            fn_return_type_names.push(mono_rtn)
             mono_i = mono_i + 1
         }
     }

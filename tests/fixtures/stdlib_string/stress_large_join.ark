@@ -5,7 +5,7 @@ fn main() {
     let mut parts: Vec<String> = Vec::new<String>()
     let mut i = 0
     while i < 10 {
-        push(parts, String_from("item"))
+        parts.push(String_from("item"))
         i = i + 1
     }
     let r = parts.join(String_from("-"))

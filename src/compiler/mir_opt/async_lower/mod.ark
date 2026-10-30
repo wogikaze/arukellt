@@ -15,7 +15,7 @@ fn async_lower_optimize_module(mut m: MirModule) -> MirModule {
     let mut fi = 0
     while fi < fn_count {
         let f = module_functions::MirModule_function_at(m, fi)
-        push(updated, async_lower_fn(f))
+        updated.push(async_lower_fn(f))
         fi = fi + 1
     }
     module_functions::MirModule_set_functions(m, updated)
@@ -64,9 +64,7 @@ fn lower_async_ops(f: MirFunction) -> MirFunction {
             let inst = before.get_unchecked(ii)
             let op = inst_draft::MirInstDraft_op(inst)
             if op == opcodes::MIR_AWAIT() || op == opcodes::MIR_FUTURE_NEW() {
-                push(
-                    filtered,
-                    inst_factory::MirInst_full(
+                filtered.push(inst_factory::MirInst_full(
                         opcodes::MIR_LOCAL_SET(),
                         0 - 1,
                         inst_draft::MirInstDraft_dest(inst),
@@ -75,10 +73,9 @@ fn lower_async_ops(f: MirFunction) -> MirFunction {
                         0.0,
                         String_new(),
                         value_types::VT_VOID()
-                    )
-                )
+                    ))
             } else {
-                push(filtered, inst)
+                filtered.push(inst)
             }
             ii = ii + 1
         }

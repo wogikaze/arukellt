@@ -36,7 +36,7 @@ fn infer_vec_ctor_turbofish_call(mut env: TypeEnv, node: AstNode, callee: AstNod
         return vec_ty
     }
     let mut resolved = Vec::new<TypeInfo>()
-    push(resolved, elem_ty)
+    resolved.push(elem_ty)
     let fn_name = ast_access::node_text(callee)
     let mangled = mono::record_mono_instance(env, fn_name.clone(), resolved)
     mono::record_mono_call_site(env, ast_access::node_span_start(node), fn_name, mangled)

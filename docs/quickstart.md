@@ -68,26 +68,29 @@ fn main() {
 
 ## Vec
 
-> **API note**: `Vec_new_i32()` は現行 bootstrap で動く provisional
-> constructorです。`Vec::new<i32>()`は未実装のplanned APIであり、current
-> replacementではありません。
+> **API note**: `Vec::new<i32>()` と receiver method（`v.push(x)`、
+> `v.len()`）が正規の surface です。monomorphic な `Vec_new_i32()`
+> constructor と free `push` / `pop` / `set` は退役した compatibility
+> 形式で、E0100 で失敗します。
 
 <!-- fixture: quickstart/vec_basic.ark -->
 ```ark
+// deprecated prelude `get` / `get_unchecked` remain available; the
+// receiver-method form is preferred.
 use std::host::stdio::Stdio
 
 fn main() {
-    let v: Vec<i32> = Vec_new_i32()
-    push(v, 10)
-    push(v, 20)
+    let mut v: Vec<i32> = Vec::new<i32>()
+    v.push(10)
+    v.push(20)
 
-    let first: Option<i32> = get(v, 0)
+    let first: Option<i32> = v.get(0)
     match first {
-        Some(x) => Stdio::println(to_string(x)),
+        Some(x) => Stdio::println(x.to_string()),
         None => Stdio::println(String_from("empty")),
     }
 
-    Stdio::println(to_string(len(v)))
+    Stdio::println(v.len().to_string())
 }
 ```
 

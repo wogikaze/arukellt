@@ -21,7 +21,7 @@ fn stdlib_inline_build_local_map(mut caller: MirFunction, callee: MirFunction) -
             local_access::MirLocal_ssa_version(source)
         )
         function_local_mutation::MirFunction_set_local(caller, mapped, copied)
-        push(local_map, mapped)
+        local_map.push(mapped)
         index = index + 1
     }
     local_map

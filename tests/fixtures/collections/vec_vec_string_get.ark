@@ -4,8 +4,8 @@ use std::host::stdio::Stdio
 fn main() {
     let mut outer: Vec<Vec<String>> = Vec::new<i32>()
     let mut inner: Vec<String> = Vec::new<i32>()
-    push(inner, String_from("ok"))
-    push(outer, inner)
+    inner.push(String_from("ok"))
+    outer.push(inner)
     match get(outer, 0) {
         Some(row) => Stdio::println(row.get_unchecked(0)),
         None => Stdio::println("none"),

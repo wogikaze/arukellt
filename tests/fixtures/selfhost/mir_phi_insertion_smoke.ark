@@ -25,7 +25,7 @@ fn Phi_new(ssa_name: String, dest_version: i32, val_type: i32) -> Phi {
 }
 
 fn phi_add_arg(mut phi: Phi, pred_block: i32, version: i32) {
-    push(phi.args, PhiArg { pred_block: pred_block, version: version })
+    phi.args.push(PhiArg { pred_block: pred_block, version: version })
 }
 
 fn block_ids_contains(ids: Vec<i32>, block_id: i32) -> bool {
@@ -87,10 +87,10 @@ fn main() {
     let mut then_block = Block { id: 1, preds: Vec::new<i32>(), dom_frontier: Vec::new<i32>(), last_value: 1 }
     let mut else_block = Block { id: 2, preds: Vec::new<i32>(), dom_frontier: Vec::new<i32>(), last_value: 2 }
     let mut join_block = Block { id: 3, preds: Vec::new<i32>(), dom_frontier: Vec::new<i32>(), last_value: 0 - 1 }
-    push(join_block.preds, then_block.id)
-    push(join_block.preds, else_block.id)
-    push(then_block.dom_frontier, join_block.id)
-    push(else_block.dom_frontier, join_block.id)
+    join_block.preds.push(then_block.id)
+    join_block.preds.push(else_block.id)
+    then_block.dom_frontier.push(join_block.id)
+    else_block.dom_frontier.push(join_block.id)
     let phi = try_insert_simple_join_phi(join_block, then_block, else_block, String_from("join_val"), 1)
     Stdio::println(String_from("diamond join bb3"))
     Stdio::println(String_from("const.i32 -> ").concat(format_ssa_value(String_from("join_val"), 1)))

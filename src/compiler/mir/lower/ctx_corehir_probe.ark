@@ -43,23 +43,23 @@ fn mir_probe_corehir_call_names(exprs: Vec<CoreHirExpr>, root: i32) -> Vec<Strin
         return names
     }
     let mut queue = Vec::new<i32>()
-    push(queue, root)
+    queue.push(root)
     let mut qi = 0
     while qi < queue.len() {
-        let idx = queue.get_unchecked(qi)
+        let idx = get_unchecked(queue, qi)
         qi = qi + 1
         if idx < 0 || idx >= exprs.len() {
             continue
         }
-        let e = exprs.get_unchecked(idx)
+        let e = get_unchecked(exprs, idx)
         let k = expr_raw::corehir_expr_kind(e)
         if k == kinds::COREHIR_EXPR_CALL() || k == kinds::COREHIR_EXPR_METHOD_CALL() {
-            push(names, expr_raw::corehir_expr_text(e))
+            names.push(expr_raw::corehir_expr_text(e))
         }
         let cc = expr_raw::corehir_expr_child_count(e)
         let mut ci = 0
         while ci < cc {
-            push(queue, expr_raw::corehir_expr_child(e, ci))
+            queue.push(expr_raw::corehir_expr_child(e, ci))
             ci = ci + 1
         }
     }
@@ -70,7 +70,7 @@ fn mir_probe_dump_body_calls(caller: String, exprs: Vec<CoreHirExpr>, root: i32)
     let names = mir_probe_corehir_call_names(exprs, root)
     let mut i = 0
     while i < names.len() {
-        Stdio::eprintln("[probeK] ".concat(caller.clone().concat(" -> ".concat(names.get_unchecked(i).clone()))))
+        Stdio::eprintln("[probeK] ".concat(caller.clone().concat(" -> ".concat(get_unchecked(names, i).clone()))))
         i = i + 1
     }
 }
@@ -83,7 +83,7 @@ fn mir_probe_dump_ast_calls(caller: String, node: AstNode) {
     mir_probe_ast_call_names(node, names)
     let mut i = 0
     while i < names.len() {
-        Stdio::eprintln("[probeA] ".concat(caller.clone().concat(" -> ".concat(names.get_unchecked(i).clone()))))
+        Stdio::eprintln("[probeA] ".concat(caller.clone().concat(" -> ".concat(get_unchecked(names, i).clone()))))
         i = i + 1
     }
 }
@@ -97,10 +97,10 @@ fn mir_probe_ast_call_names(node: AstNode, mut names: Vec<String>) {
     if frontend_expr_kind::corehir_kind_is_expr_call(kind) &&
     frontend_ast_children::corehir_node_child_count(node) > 0 {
         let callee = frontend_ast_children::corehir_node_child_at(node, 0)
-        push(names, frontend_ast_identity::corehir_node_text(callee))
+        names.push(frontend_ast_identity::corehir_node_text(callee))
     }
     if frontend_expr_kind::corehir_kind_is_expr_method_call(kind) {
-        push(names, "m:".concat(frontend_ast_identity::corehir_node_text(node)))
+        names.push("m:".concat(frontend_ast_identity::corehir_node_text(node)))
     }
     let child_count = frontend_ast_children::corehir_node_child_count(node)
     let mut ci = 0
@@ -121,14 +121,14 @@ fn mir_probe_dump_recorded_edges(m: MirModule, edges: Vec<i32>, fn_names: Vec<St
     let mut frame_to_mir = Vec::new<i32>()
     let mut i = header
     while i < n {
-        if edges.get_unchecked(i) == mark && i + 2 < n {
-            let frame = edges.get_unchecked(i + 1)
-            let mir = edges.get_unchecked(i + 2)
+        if get_unchecked(edges, i) == mark && i + 2 < n {
+            let frame = get_unchecked(edges, i + 1)
+            let mir = get_unchecked(edges, i + 2)
             if frame >= 0 {
                 while frame_to_mir.len() <= frame {
-                    push(frame_to_mir, 0 - 1)
+                    frame_to_mir.push(0 - 1)
                 }
-                set(frame_to_mir, frame, mir)
+                frame_to_mir.set(frame, mir)
             }
             i = i + 3
         } else {
@@ -137,7 +137,7 @@ fn mir_probe_dump_recorded_edges(m: MirModule, edges: Vec<i32>, fn_names: Vec<St
     }
     i = header
     while i < n {
-        if edges.get_unchecked(i) == mark {
+        if get_unchecked(edges, i) == mark {
             i = i + 3
             continue
         }
@@ -145,13 +145,13 @@ fn mir_probe_dump_recorded_edges(m: MirModule, edges: Vec<i32>, fn_names: Vec<St
             i = n
             continue
         }
-        let frame = edges.get_unchecked(i)
-        let payload = edges.get_unchecked(i + 1)
+        let frame = get_unchecked(edges, i)
+        let payload = get_unchecked(edges, i + 1)
         i = i + 2
         if frame < 0 || frame >= frame_to_mir.len() {
             continue
         }
-        let mir = frame_to_mir.get_unchecked(frame)
+        let mir = get_unchecked(frame_to_mir, frame)
         if mir < 0 || mir >= module_functions::MirModule_function_count(m) {
             continue
         }
@@ -165,12 +165,12 @@ fn mir_probe_dump_recorded_edges(m: MirModule, edges: Vec<i32>, fn_names: Vec<St
             continue
         }
         if ni < bias && ni < fn_names.len() {
-            Stdio::eprintln("[probeR] ".concat(caller.clone().concat(" -> ".concat(fn_names.get_unchecked(ni).clone()))))
+            Stdio::eprintln("[probeR] ".concat(caller.clone().concat(" -> ".concat(get_unchecked(fn_names, ni).clone()))))
             continue
         }
         let oi = ni - bias
         if oi >= 0 && oi < edge_names.len() {
-            Stdio::eprintln("[probeR] ".concat(caller.clone().concat(" -> ".concat(edge_names.get_unchecked(oi).clone()))))
+            Stdio::eprintln("[probeR] ".concat(caller.clone().concat(" -> ".concat(get_unchecked(edge_names, oi).clone()))))
         }
     }
 }
@@ -244,14 +244,14 @@ fn mir_probe_dump_ast_edge_coverage(
     let mut frame_to_mir = Vec::new<i32>()
     let mut i = header
     while i < n {
-        if edges.get_unchecked(i) == mark && i + 2 < n {
-            let frame = edges.get_unchecked(i + 1)
-            let mir = edges.get_unchecked(i + 2)
+        if get_unchecked(edges, i) == mark && i + 2 < n {
+            let frame = get_unchecked(edges, i + 1)
+            let mir = get_unchecked(edges, i + 2)
             if frame >= 0 {
                 while frame_to_mir.len() <= frame {
-                    push(frame_to_mir, 0 - 1)
+                    frame_to_mir.push(0 - 1)
                 }
-                set(frame_to_mir, frame, mir)
+                frame_to_mir.set(frame, mir)
             }
             i = i + 3
         } else {
@@ -263,7 +263,7 @@ fn mir_probe_dump_ast_edge_coverage(
     let mut dbg = 0
     while dbg < functions.len() {
         Stdio::eprintln(
-            "[probeE-fn] ".concat(function_identity::MirFunction_name(functions.get_unchecked(dbg)))
+            "[probeE-fn] ".concat(function_identity::MirFunction_name(get_unchecked(functions, dbg)))
         )
         dbg = dbg + 1
     }
@@ -279,7 +279,7 @@ fn mir_probe_dump_ast_edge_coverage(
     let mut cur_marked = name_index::NameIndex_new(4)
     i = header
     while i < n {
-        if edges.get_unchecked(i) == mark {
+        if get_unchecked(edges, i) == mark {
             i = i + 3
             continue
         }
@@ -287,19 +287,19 @@ fn mir_probe_dump_ast_edge_coverage(
             i = n
             continue
         }
-        let frame = edges.get_unchecked(i)
-        let payload = edges.get_unchecked(i + 1)
+        let frame = get_unchecked(edges, i)
+        let payload = get_unchecked(edges, i + 1)
         i = i + 2
         if frame < 0 || frame >= frame_to_mir.len() {
             continue
         }
-        let mir = frame_to_mir.get_unchecked(frame)
+        let mir = get_unchecked(frame_to_mir, frame)
         if mir < 0 || mir >= functions.len() {
             continue
         }
         if mir != cur_mir {
             cur_mir = mir
-            cur_caller = function_identity::MirFunction_name(functions.get_unchecked(mir))
+            cur_caller = function_identity::MirFunction_name(get_unchecked(functions, mir))
             let cidx = edge_discovery::mir_ast_edge_table_caller_find(table, cur_caller.clone())
             if cidx < 0 {
                 cur_state = 0 - 1
@@ -318,17 +318,17 @@ fn mir_probe_dump_ast_edge_coverage(
         if payload >= 0 {
             let c_mir = reachability_index::mir_reachability_lookup_by_func_id(index, payload)
             if c_mir >= 0 && c_mir < functions.len() {
-                cname = function_identity::MirFunction_name(functions.get_unchecked(c_mir))
+                cname = function_identity::MirFunction_name(get_unchecked(functions, c_mir))
             }
         } else {
             let tagged = 0 - payload - 10
             if tagged >= 0 && tagged < bias && tagged < fn_names.len() {
-                cname = fn_names.get_unchecked(tagged).clone()
+                cname = get_unchecked(fn_names, tagged).clone()
             }
             if tagged >= bias {
                 let oi = tagged - bias
                 if oi >= 0 && oi < edge_names.len() {
-                    cname = edge_names.get_unchecked(oi).clone()
+                    cname = get_unchecked(edge_names, oi).clone()
                 }
             }
         }
@@ -378,11 +378,11 @@ fn mir_probe_ast_enqueue_by_name(
     let want = resolver::use_module_short_name(name.clone())
     let mut i = 0
     while i < functions.len() {
-        let fname = function_identity::MirFunction_name(functions.get_unchecked(i))
+        let fname = function_identity::MirFunction_name(get_unchecked(functions, i))
         if fname.clone().eq(name.clone()) || resolver::use_module_short_name(fname).eq(want.clone()) {
-            if ast_reach.get_unchecked(i) == 0 {
-                set(ast_reach, i, 1)
-                push(ast_queue, i)
+            if get_unchecked(ast_reach, i) == 0 {
+                ast_reach.set(i, 1)
+                ast_queue.push(i)
             }
         }
         i = i + 1
@@ -414,7 +414,7 @@ fn mir_probe_dump_ast_reach_diff(
     let mut rec_reach = Vec::new<i32>()
     let mut zi = 0
     while zi < fn_count {
-        push(rec_reach, 0)
+        rec_reach.push(0)
         zi = zi + 1
     }
     let mut rec_queue = Vec::new<i32>()
@@ -426,7 +426,7 @@ fn mir_probe_dump_ast_reach_diff(
     let packed = reachability_walk::mir_build_recorded_edge_lists(edges, fn_count)
     let mut qh = 0
     while qh < rec_queue.len() {
-        let fi = rec_queue.get_unchecked(qh)
+        let fi = get_unchecked(rec_queue, qh)
         qh = qh + 1
         reachability_walk::mir_enqueue_call_edges(
             m,
@@ -434,7 +434,7 @@ fn mir_probe_dump_ast_reach_diff(
             functions,
             rec_reach,
             rec_queue,
-            functions.get_unchecked(fi),
+            get_unchecked(functions, fi),
             target.clone(),
             packed,
             fi,
@@ -445,7 +445,7 @@ fn mir_probe_dump_ast_reach_diff(
     let mut ast_reach = Vec::new<i32>()
     zi = 0
     while zi < fn_count {
-        push(ast_reach, 0)
+        ast_reach.push(0)
         zi = zi + 1
     }
     let mut ast_queue = Vec::new<i32>()
@@ -454,9 +454,9 @@ fn mir_probe_dump_ast_reach_diff(
     let mut printed = 0
     qh = 0
     while qh < ast_queue.len() {
-        let fi = ast_queue.get_unchecked(qh)
+        let fi = get_unchecked(ast_queue, qh)
         qh = qh + 1
-        let caller = function_identity::MirFunction_name(functions.get_unchecked(fi))
+        let caller = function_identity::MirFunction_name(get_unchecked(functions, fi))
         let cidxs = edge_discovery::mir_ast_edge_table_caller_find_all(table, caller.clone())
         if cidxs.len() == 0 {
             nocall = nocall + 1
@@ -468,10 +468,10 @@ fn mir_probe_dump_ast_reach_diff(
         }
         let mut ci = 0
         while ci < cidxs.len() {
-            let names = edge_discovery::mir_ast_edge_table_resolve_caller_names(ctx, table, cidxs.get_unchecked(ci))
+            let names = edge_discovery::mir_ast_edge_table_resolve_caller_names(ctx, table, get_unchecked(cidxs, ci))
             let mut ni = 0
             while ni < names.len() {
-                mir_probe_ast_enqueue_by_name(functions, ast_reach, ast_queue, names.get_unchecked(ni).clone())
+                mir_probe_ast_enqueue_by_name(functions, ast_reach, ast_queue, get_unchecked(names, ni).clone())
                 ni = ni + 1
             }
             ci = ci + 1
@@ -484,8 +484,8 @@ fn mir_probe_dump_ast_reach_diff(
     let mut uprint = 0
     let mut fi2 = 0
     while fi2 < fn_count {
-        let rr = rec_reach.get_unchecked(fi2)
-        let ar = ast_reach.get_unchecked(fi2)
+        let rr = get_unchecked(rec_reach, fi2)
+        let ar = get_unchecked(ast_reach, fi2)
         if rr != 0 {
             rec_total = rec_total + 1
         }
@@ -496,7 +496,7 @@ fn mir_probe_dump_ast_reach_diff(
             under = under + 1
             if uprint < 60 {
                 Stdio::eprintln(
-                    "[probeE-ureach] ".concat(function_identity::MirFunction_name(functions.get_unchecked(fi2)))
+                    "[probeE-ureach] ".concat(function_identity::MirFunction_name(get_unchecked(functions, fi2)))
                 )
                 uprint = uprint + 1
             }

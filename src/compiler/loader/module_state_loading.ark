@@ -2,7 +2,7 @@ fn vec_has(v: Vec<String>, name: String) -> bool {
     let count = v.len()
     let mut i = 0
     while i < count {
-        if v.get_unchecked(i).clone().eq(name.clone()) {
+        if get_unchecked(v, i).clone().eq(name.clone()) {
             return true
         }
         i = i + 1
@@ -41,11 +41,11 @@ fn load_state_probe(keys: Vec<String>, slots: Vec<i32>, name: String) -> i32 {
     let mut slot = load_state_string_hash(name) % capacity
     let mut probes = 0
     while probes < capacity {
-        let bucket = slots.get_unchecked(slot)
+        let bucket = get_unchecked(slots, slot)
         if bucket == 0 {
             return slot
         }
-        if keys.get_unchecked(bucket - 1).eq(name.clone()) {
+        if get_unchecked(keys, bucket - 1).eq(name.clone()) {
             return slot
         }
         slot = (slot + 1) % capacity
@@ -58,7 +58,7 @@ fn load_state_zero_slots(size: i32) -> Vec<i32> {
     let mut slots = Vec::new<i32>()
     let mut i = 0
     while i < size {
-        push(slots, 0)
+        slots.push(0)
         i = i + 1
     }
     slots
@@ -68,8 +68,8 @@ fn load_state_rehash(keys: Vec<String>, capacity: i32) -> Vec<i32> {
     let mut slots = load_state_zero_slots(capacity)
     let mut i = 0
     while i < keys.len() {
-        let slot = load_state_probe(keys.clone(), slots, keys.get_unchecked(i).clone())
-        set(slots, slot, i + 1)
+        let slot = load_state_probe(keys.clone(), slots, get_unchecked(keys, i).clone())
+        slots.set(slot, i + 1)
         i = i + 1
     }
     slots
@@ -97,7 +97,7 @@ fn LoadState_has_loaded(state: LoadState, name: String) -> bool {
     if slot < 0 {
         return false
     }
-    state.loaded_slots.get_unchecked(slot) > 0
+    get_unchecked(state.loaded_slots, slot) > 0
 }
 
 fn LoadState_has_loading(state: LoadState, name: String) -> bool {
@@ -105,21 +105,21 @@ fn LoadState_has_loading(state: LoadState, name: String) -> bool {
 }
 
 fn LoadState_push_loading(mut state: LoadState, name: String) {
-    push(state.loading_stack, name)
+    state.loading_stack.push(name)
 }
 
 fn LoadState_pop_loading(mut state: LoadState) {
     if state.loading_stack.len() > 0 {
-        pop(state.loading_stack)
+        state.loading_stack.pop()
     }
 }
 
 fn LoadState_push_loaded(mut state: LoadState, name: String) {
-    push(state.loaded_names, name)
+    state.loaded_names.push(name)
     load_state_ensure_loaded_index(state)
     let slot = load_state_probe(state.loaded_names.clone(), state.loaded_slots.clone(), name.clone())
     if slot < 0 {
         return
     }
-    set(state.loaded_slots, slot, state.loaded_names.len())
+    state.loaded_slots.set(slot, state.loaded_names.len())
 }

@@ -11,21 +11,21 @@ fn add(a: i32, b: i32) -> i32 { a + b }
 fn running_sum(acc: i32, x: i32) -> Option<i32> { Some(acc + x) }
 fn dup(x: i32) -> Vec<i32> {
     let mut out: Vec<i32> = Vec::new<i32>()
-    push(out, x)
-    push(out, x)
+    out.push(x)
+    out.push(x)
     out
 }
 
 fn main() {
     let mut a: Vec<i32> = Vec::new<i32>()
-    push(a, 1)
-    push(a, 2)
-    push(a, 3)
-    push(a, 4)
+    a.push(1)
+    a.push(2)
+    a.push(3)
+    a.push(4)
     let mut b: Vec<i32> = Vec::new<i32>()
-    push(b, 10)
-    push(b, 20)
-    push(b, 30)
+    b.push(10)
+    b.push(20)
+    b.push(30)
     let empty: Vec<i32> = Vec::new<i32>()
 
     Test::assert_eq_i32(a.iter().count(), 4)
@@ -57,7 +57,7 @@ fn main() {
     Test::assert_eq_i32(zipped.get_unchecked(2).first, 3)
     Test::assert_eq_i32(zipped.get_unchecked(2).second, 30)
     let mut short: Vec<i32> = Vec::new<i32>()
-    push(short, 99)
+    short.push(99)
     let narrow = a.iter().zip(short.iter()).collect()
     Test::assert_eq_i32(narrow.len(), 1)
     Test::assert_eq_i32(narrow.get_unchecked(0).second, 99)

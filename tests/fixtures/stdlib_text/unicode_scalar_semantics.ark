@@ -43,21 +43,21 @@ fn main() {
     }
 
     let mut valid_bytes = Vec::new<i32>()
-    push(valid_bytes, 195)
-    push(valid_bytes, 169)
+    valid_bytes.push(195)
+    valid_bytes.push(169)
     match String::try_from_utf8(valid_bytes) {
         Option::Some(value) => Test::assert_eq_string(value, "é"),
         Option::None => assert(false),
     }
 
     let mut invalid_bytes = Vec::new<i32>()
-    push(invalid_bytes, 65)
-    push(invalid_bytes, 195)
-    push(invalid_bytes, 40)
+    invalid_bytes.push(65)
+    invalid_bytes.push(195)
+    invalid_bytes.push(40)
     let mut lossy_input = Vec::new<i32>()
-    push(lossy_input, 65)
-    push(lossy_input, 195)
-    push(lossy_input, 40)
+    lossy_input.push(65)
+    lossy_input.push(195)
+    lossy_input.push(40)
     match String::try_from_utf8(invalid_bytes) {
         Option::Some(_) => assert(false),
         Option::None => {},

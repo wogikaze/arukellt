@@ -17,7 +17,7 @@ fn corehir_build_struct_lit_expr(mut table: CoreHirBodyTable, node: AstNode) -> 
             } else {
                 let base_index = corehir_build_expr(table, expr_node_access::expr_child_at(field, 0))
                 let mut base_children = Vec::new<i32>()
-                push(base_children, base_index)
+                base_children.push(base_index)
                 let base_expr = corehir_body_expr_at(table, base_index)
                 if expr_predicates::expr_is_unsupported(base_expr) {
                     unsupported = true
@@ -26,7 +26,7 @@ fn corehir_build_struct_lit_expr(mut table: CoreHirBodyTable, node: AstNode) -> 
                     table,
                     expr_builder_structs::corehir_expr_struct_base(expr_node_access::expr_text(node), expr_node_access::expr_span_start(field), base_children)
                 )
-                push(children, base_field_index)
+                children.push(base_field_index)
             }
         } else {
             if !expr_node_predicates::expr_is_ident(field) || expr_node_access::expr_child_count(field) < 1 {
@@ -34,7 +34,7 @@ fn corehir_build_struct_lit_expr(mut table: CoreHirBodyTable, node: AstNode) -> 
             } else {
                 let value_index = corehir_build_expr(table, expr_node_access::expr_child_at(field, 0))
                 let mut field_children = Vec::new<i32>()
-                push(field_children, value_index)
+                field_children.push(value_index)
                 let value_expr = corehir_body_expr_at(table, value_index)
                 if expr_predicates::expr_is_unsupported(value_expr) {
                     unsupported = true
@@ -43,7 +43,7 @@ fn corehir_build_struct_lit_expr(mut table: CoreHirBodyTable, node: AstNode) -> 
                     table,
                     expr_builder_structs::corehir_expr_struct_field(expr_node_access::expr_text(field), value_expr, expr_node_access::expr_span_start(field), field_children)
                 )
-                push(children, field_index)
+                children.push(field_index)
             }
         }
         i = i + 1

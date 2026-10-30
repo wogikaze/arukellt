@@ -1,10 +1,12 @@
+// deprecated prelude `get` / `get_unchecked` remain available; the
+// receiver-method form is preferred.
 use std::host::stdio::Stdio
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
-    push(v, 10)
-    push(v, 20)
+    v.push(10)
+    v.push(20)
 
-    let first: Option<i32> = get(v, 0)
+    let first: Option<i32> = v.get(0)
     match first {
         Some(x) => Stdio::println(x.to_string()),
         None => Stdio::println(String_from("empty")),

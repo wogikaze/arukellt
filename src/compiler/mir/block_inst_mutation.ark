@@ -15,54 +15,54 @@ fn mir_block_clear_insts(mut block: MirBlock) {
 fn mir_block_store_str(mut block: MirBlock, idx: i32, text: String, reuse: bool) {
     if text.len() == 0 {
         if reuse {
-            set(block.str_ids, idx, 0 - 1)
+            block.str_ids.set(idx, 0 - 1)
             return
         }
-        push(block.str_ids, 0 - 1)
+        block.str_ids.push(0 - 1)
         return
     }
     if reuse {
-        let old_id = block.str_ids.get_unchecked(idx)
+        let old_id = get_unchecked(block.str_ids, idx)
         if old_id >= 0 && old_id < block.str_pool.len() {
-            set(block.str_pool, old_id, text)
+            block.str_pool.set(old_id, text)
             return
         }
     }
     if reuse {
-        set(block.str_ids, idx, block.str_pool.len())
-        push(block.str_pool, text)
+        block.str_ids.set(idx, block.str_pool.len())
+        block.str_pool.push(text)
         return
     }
-    push(block.str_ids, block.str_pool.len())
-    push(block.str_pool, text)
+    block.str_ids.push(block.str_pool.len())
+    block.str_pool.push(text)
 }
 
 fn mir_block_store_result_types(mut block: MirBlock, reuse: bool, result_types: Vec<MirValueType>) {
     if result_types.len() == 0 {
         if reuse {
-            set(block.type_ids, block.inst_count, 0 - 1)
-            set(block.type_reprs, block.inst_count, 0)
-            set(block.type_nulls, block.inst_count, 0)
+            block.type_ids.set(block.inst_count, 0 - 1)
+            block.type_reprs.set(block.inst_count, 0)
+            block.type_nulls.set(block.inst_count, 0)
             return
         }
-        push(block.type_ids, 0 - 1)
-        push(block.type_reprs, 0)
-        push(block.type_nulls, 0)
+        block.type_ids.push(0 - 1)
+        block.type_reprs.push(0)
+        block.type_nulls.push(0)
         return
     }
-    let first = result_types.get_unchecked(0)
+    let first = get_unchecked(result_types, 0)
     let tid = type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(first))
     let repr = mir_value_type::mir_value_type_repr(first)
     let nulls = mir_value_type::mir_value_type_nullability(first)
     if reuse {
-        set(block.type_ids, block.inst_count, tid)
-        set(block.type_reprs, block.inst_count, repr)
-        set(block.type_nulls, block.inst_count, nulls)
+        block.type_ids.set(block.inst_count, tid)
+        block.type_reprs.set(block.inst_count, repr)
+        block.type_nulls.set(block.inst_count, nulls)
         return
     }
-    push(block.type_ids, tid)
-    push(block.type_reprs, repr)
-    push(block.type_nulls, nulls)
+    block.type_ids.push(tid)
+    block.type_reprs.push(repr)
+    block.type_nulls.push(nulls)
 }
 
 fn mir_block_append_draft(mut block: MirBlock, inst: MirInstDraft) {
@@ -77,24 +77,24 @@ fn mir_block_append_draft(mut block: MirBlock, inst: MirInstDraft) {
     let val_type = inst_draft::MirInstDraft_val_type(inst)
     let func_id = inst_draft::MirInstDraft_func_id_raw(inst)
     if reuse {
-        set(block.ops, idx, op)
-        set(block.dests, idx, dest)
-        set(block.arg0s, idx, arg0)
-        set(block.arg1s, idx, arg1)
-        set(block.int_vals, idx, int_val)
-        block_record::mir_float_box_set_value(block.float_vals.get_unchecked(idx), float_val)
-        set(block.val_types, idx, val_type)
-        set(block.func_ids, idx, func_id)
+        block.ops.set(idx, op)
+        block.dests.set(idx, dest)
+        block.arg0s.set(idx, arg0)
+        block.arg1s.set(idx, arg1)
+        block.int_vals.set(idx, int_val)
+        block_record::mir_float_box_set_value(get_unchecked(block.float_vals, idx), float_val)
+        block.val_types.set(idx, val_type)
+        block.func_ids.set(idx, func_id)
     }
     if !reuse {
-        push(block.ops, op)
-        push(block.dests, dest)
-        push(block.arg0s, arg0)
-        push(block.arg1s, arg1)
-        push(block.int_vals, int_val)
-        push(block.float_vals, block_record::MirFloatBox_new(float_val))
-        push(block.val_types, val_type)
-        push(block.func_ids, func_id)
+        block.ops.push(op)
+        block.dests.push(dest)
+        block.arg0s.push(arg0)
+        block.arg1s.push(arg1)
+        block.int_vals.push(int_val)
+        block.float_vals.push(block_record::MirFloatBox_new(float_val))
+        block.val_types.push(val_type)
+        block.func_ids.push(func_id)
     }
     mir_block_store_str(block, idx, inst_draft::MirInstDraft_str_val(inst), reuse)
     mir_block_store_result_types(block, reuse, inst_draft::MirInstDraft_result_types(inst))
@@ -110,7 +110,7 @@ fn MirBlock_set_instructions(mut block: MirBlock, instructions: Vec<MirInstDraft
     let n = instructions.len()
     let mut i = 0
     while i < n {
-        mir_block_append_draft(block, instructions.get_unchecked(i))
+        mir_block_append_draft(block, get_unchecked(instructions, i))
         i = i + 1
     }
 }

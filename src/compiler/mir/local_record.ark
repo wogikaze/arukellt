@@ -70,7 +70,7 @@ fn mir_local_intern_string(mut pool: MirStrPool, text: String) -> i32 {
         return found
     }
     let id = pool.strings.len()
-    push(pool.strings, text.clone())
+    pool.strings.push(text.clone())
     if id + 1 == str_pool_linear_limit() {
         mir_str_pool_build_index(pool)
     } else if id + 1 > str_pool_linear_limit() {

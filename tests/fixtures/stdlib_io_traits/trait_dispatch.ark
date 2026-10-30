@@ -43,11 +43,11 @@ struct WriteReport {
 
 fn sample_data() -> Vec<i32> {
     let mut data: Vec<i32> = Vec::new<i32>()
-    push(data, 97)
-    push(data, 98)
-    push(data, 10)
-    push(data, 99)
-    push(data, 100)
+    data.push(97)
+    data.push(98)
+    data.push(10)
+    data.push(99)
+    data.push(100)
     data
 }
 
@@ -222,7 +222,7 @@ fn main() {
     }
 
     let mut newline: Vec<i32> = Vec::new<i32>()
-    push(newline, 10)
+    newline.push(10)
     match line_report(io::Reader::from_bytes(newline)) {
         Result::Ok(report) => {
             Stdio::println((report.first_has_line).to_string())

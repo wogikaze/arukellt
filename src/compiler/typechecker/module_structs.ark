@@ -35,7 +35,7 @@ fn register_struct_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
                 contract_struct_info::StructInfo_name(info),
                 contract_struct_info::StructInfo_type_params(info)
             )
-            push(env.struct_defs, info)
+            env.struct_defs.push(info)
         }
         i = i + 1
     }
@@ -65,7 +65,7 @@ fn report_struct_enum_shadow_conflict(mut env: TypeEnv, decls: Vec<AstNode>, nod
             struct_name.clone().concat(String_from("': only a non-generic struct may shadow a generic enum; rename the struct or drop its type parameters"))
         )
         env.error_count = env.error_count + 1
-        push(env.errors, message.clone())
+        env.errors.push(message.clone())
         let span = record::DiagnosticSpan_from_raw(
             ast_access::node_span_start(node),
             ast_access::node_span_end(node)
@@ -76,7 +76,7 @@ fn report_struct_enum_shadow_conflict(mut env: TypeEnv, decls: Vec<AstNode>, nod
             span,
             message
         )
-        push(env.diagnostics, diag)
+        env.diagnostics.push(diag)
         j = j + 1
     }
 }
@@ -89,17 +89,14 @@ fn collect_struct_def(node: AstNode) -> StructInfo {
     let mut i = 0
     while i < field_count {
         let field = ast_access::node_child_at(node, i)
-        push(field_names, ast_access::node_text(field))
+        field_names.push(ast_access::node_text(field))
         if ast_access::node_type_ann_count(field) > 0 {
-            push(
-                field_types,
-                types::resolve_type_ann_node_generic(
+            field_types.push(types::resolve_type_ann_node_generic(
                     ast_access::node_type_ann_at(field, 0),
                     type_params
-                )
-            )
+                ))
         } else {
-            push(field_types, contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN()))
+            field_types.push(contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN()))
         }
         i = i + 1
     }
@@ -143,7 +140,7 @@ fn recv_type_args(recv_ty: TypeInfo) -> Vec<TypeInfo> {
     let arg_count = contract_type_access::TypeInfo_type_arg_count(recv_ty)
     let mut i = 0
     while i < arg_count {
-        push(args, contract_type_access::TypeInfo_type_arg_at(recv_ty, i))
+        args.push(contract_type_access::TypeInfo_type_arg_at(recv_ty, i))
         i = i + 1
     }
     args
@@ -185,7 +182,7 @@ fn infer_generic_literal_args(env: TypeEnv, mut aggregate_ty: TypeInfo, node: As
         let mut var_types = Vec::new<TypeInfo>()
         let mut pi = 0
         while pi < type_params.len() {
-            push(var_types, unify::fresh_var(infer_env))
+            var_types.push(unify::fresh_var(infer_env))
             pi = pi + 1
         }
         let lit_field_count = ast_access::node_child_count(node)

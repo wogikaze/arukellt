@@ -15,16 +15,16 @@ fn sort_asc(mut v: Vec<i32>) {
         while k > 0 {
             let prev: i32 = v.get_unchecked(k - 1)
             if prev > key {
-                set(v, k, prev)
+                v.set(k, prev)
                 k = k - 1
             } else {
-                set(v, k, key)
+                v.set(k, key)
                 k = 0
                 placed = true
             }
         }
         if !placed {
-            set(v, 0, key)
+            v.set(0, key)
         }
     }
 }

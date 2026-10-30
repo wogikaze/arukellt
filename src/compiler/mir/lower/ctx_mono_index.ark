@@ -15,7 +15,7 @@ fn ctx_set_mono_instances(mut ctx: LowerCtx, instances: Vec<MonoInstance>) {
     let mut buckets = Vec::new<i32>()
     let mut bi = 0
     while bi < capacity {
-        push(buckets, 0)
+        buckets.push(0)
         bi = bi + 1
     }
     ctx.mono_inst_keys = Vec::new<String>()
@@ -41,9 +41,9 @@ fn ctx_mono_inst_insert_first(mut ctx: LowerCtx, name: String, value: i32) {
     if ctx.mono_inst_buckets.get_unchecked(slot) != 0 {
         return
     }
-    push(ctx.mono_inst_keys, name)
-    push(ctx.mono_inst_vals, value)
-    set(ctx.mono_inst_buckets, slot, ctx.mono_inst_keys.len())
+    ctx.mono_inst_keys.push(name)
+    ctx.mono_inst_vals.push(value)
+    ctx.mono_inst_buckets.set(slot, ctx.mono_inst_keys.len())
 }
 
 fn ctx_mono_inst_probe_slot(ctx: LowerCtx, name: String) -> i32 {

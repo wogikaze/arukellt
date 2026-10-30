@@ -5,10 +5,10 @@ use std::test::Test
 
 fn main() {
     let mut values: Vec<i32> = Vec::new<i32>()
-    push(values, 1)
-    push(values, 2)
-    push(values, 2)
-    push(values, 3)
+    values.push(1)
+    values.push(2)
+    values.push(2)
+    values.push(3)
     let set: HashSet<i32> = HashSet::from_iter(values.iter())
     Test::assert_eq_i32(set.len(), 3)
     Test::assert_true(set.contains(1))
@@ -30,9 +30,9 @@ fn main() {
     Test::assert_eq_i32(direct_total, 6)
 
     let mut words: Vec<String> = Vec::new<String>()
-    push(words, "apple")
-    push(words, "banana")
-    push(words, "apple")
+    words.push("apple")
+    words.push("banana")
+    words.push("apple")
     let word_set: HashSet<String> = HashSet::from_iter(words.iter())
     Test::assert_eq_i32(word_set.len(), 2)
     Test::assert_true(word_set.contains("apple"))

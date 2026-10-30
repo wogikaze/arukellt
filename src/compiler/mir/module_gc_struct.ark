@@ -22,11 +22,11 @@ fn MirModule_gc_struct_sigs(m: MirModule) -> Vec<String> {
 
 fn MirModule_push_gc_struct(mut m: MirModule, name: String, sig: String) {
     name_index::name_index_insert_first(m.gc_struct_slot_index, name.clone(), m.gc_struct_names.len())
-    push(m.gc_struct_names, name)
-    push(m.gc_struct_sigs, sig)
+    m.gc_struct_names.push(name)
+    m.gc_struct_sigs.push(sig)
     // Canon idx is -1 until ordered ensure runs (sealed: inline at flush;
     // late: in late_gc_order order via ctx_gc_canon_ensure_late).
-    push(m.gc_struct_canon_idx, 0 - 1)
+    m.gc_struct_canon_idx.push(0 - 1)
     // The emit-side derived indexes key off name arrivals too, not just
     // canon assignments, so pushes bump the same version (#851).
     m.gc_canon_version = m.gc_canon_version + 1
@@ -49,7 +49,7 @@ fn MirModule_set_gc_struct_canon_idx(mut m: MirModule, slot: i32, canon_idx: i32
     if canon_idx >= 0 && m.gc_struct_canon_idx.get_unchecked(slot) < 0 {
         m.gc_canon_version = m.gc_canon_version + 1
     }
-    set(m.gc_struct_canon_idx, slot, canon_idx)
+    m.gc_struct_canon_idx.set(slot, canon_idx)
 }
 
 fn MirModule_gc_struct_canon_idxs(m: MirModule) -> Vec<i32> {

@@ -17,11 +17,11 @@ fn corehir_nominal_types_from_decls(decls: Vec<AstNode>) -> CoreHirNominalTypes 
     let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
-        let decl = decls.get_unchecked(i)
+        let decl = get_unchecked(decls, i)
         if decl_node::decl_is_struct(decl) || decl_node::decl_is_resource(decl) {
-            push(structs, decl_node_identity::decl_name(decl))
+            structs.push(decl_node_identity::decl_name(decl))
         } else if decl_node::decl_is_enum(decl) {
-            push(enums, decl_node_identity::decl_name(decl))
+            enums.push(decl_node_identity::decl_name(decl))
         }
         i = i + 1
     }
@@ -35,13 +35,13 @@ fn corehir_nominal_type_names(types: CoreHirNominalTypes) -> Vec<String> {
     let struct_count = types.structs.len()
     let mut i = 0
     while i < struct_count {
-        push(names, types.structs.get_unchecked(i))
+        names.push(get_unchecked(types.structs, i))
         i = i + 1
     }
     let enum_count = types.enums.len()
     let mut j = 0
     while j < enum_count {
-        push(names, types.enums.get_unchecked(j))
+        names.push(get_unchecked(types.enums, j))
         j = j + 1
     }
     names
@@ -64,7 +64,7 @@ fn corehir_nominal_type_list_contains(names: Vec<String>, name: String) -> bool 
     let count = names.len()
     let mut i = 0
     while i < count {
-        if names.get_unchecked(i).eq(name.clone()) {
+        if get_unchecked(names, i).eq(name.clone()) {
             return true
         }
         i = i + 1

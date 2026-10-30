@@ -28,9 +28,9 @@ fn MirModule_string_constant_at(m: MirModule, idx: i32) -> String {
 
 fn MirModule_push_string_constant(mut m: MirModule, s: String) {
     assert_string_constant_sane(s)
-    push(m.string_data_rel, m.string_data_next + 4)
+    m.string_data_rel.push(m.string_data_next + 4)
     m.string_data_next = m.string_data_next + 4 + s.len()
-    push(m.string_constants, s)
+    m.string_constants.push(s)
 }
 
 fn MirModule_string_data_rel_at(m: MirModule, idx: i32) -> i32 {

@@ -136,7 +136,7 @@ fn native_c_function_state_new() -> NativeCFunctionEmitState {
 fn native_c_value_stack_contains(state: NativeCFunctionEmitState, local: i32) -> bool {
     let mut index = 0
     while index < state.value_stack.len() {
-        if state.value_stack.get_unchecked(index) == local {
+        if get_unchecked(state.value_stack, index) == local {
             return true
         }
         index = index + 1
@@ -147,20 +147,20 @@ fn native_c_value_stack_contains(state: NativeCFunctionEmitState, local: i32) ->
 fn native_c_emit_pending_root_clears(mut state: NativeCFunctionEmitState, instruction: MirInst) {
     let order = state.instruction_order
     if order >= 0 && order < state.root_clear_count.len() {
-        let count = state.root_clear_count.get_unchecked(order)
-        let start = state.root_clear_start.get_unchecked(order)
+        let count = get_unchecked(state.root_clear_count, order)
+        let start = get_unchecked(state.root_clear_start, order)
         let mut clear_slots = Vec::new<i32>()
         let mut clear_index = 0
         while clear_index < count {
-            let local = state.root_clear_locals.get_unchecked(start + clear_index)
+            let local = get_unchecked(state.root_clear_locals, start + clear_index)
             // Stack-resident locals stay live across the upcoming safepoint.
             if state.root_emit_enabled_for_fn &&
             !native_c_value_stack_contains(state, local) &&
             local >= 0 &&
             local < state.root_slot_of_local.len() {
-                let slot = state.root_slot_of_local.get_unchecked(local)
+                let slot = get_unchecked(state.root_slot_of_local, local)
                 if slot >= 0 {
-                    push(clear_slots, slot)
+                    clear_slots.push(slot)
                 }
             }
             clear_index = clear_index + 1
@@ -185,7 +185,7 @@ fn native_c_emit_pending_root_clears(mut state: NativeCFunctionEmitState, instru
                 }
                 native_c_append(
                     state,
-                    (clear_slots.get_unchecked(slot_index)).to_string().concat(String_from("u"))
+                    (get_unchecked(clear_slots, slot_index)).to_string().concat(String_from("u"))
                 )
                 slot_index = slot_index + 1
             }
@@ -288,12 +288,12 @@ fn native_c_function_emit_source(state: NativeCFunctionEmitState) -> String {
     let mut bytes = Vec::new<i32>()
     let mut index = 0
     while index < state.temporary_declarations.len() {
-        push(bytes, state.temporary_declarations.get_unchecked(index))
+        bytes.push(get_unchecked(state.temporary_declarations, index))
         index = index + 1
     }
     index = 0
     while index < state.source.len() {
-        push(bytes, state.source.get_unchecked(index))
+        bytes.push(get_unchecked(state.source, index))
         index = index + 1
     }
     __intrinsic_string_from_bytes(bytes)
@@ -308,7 +308,7 @@ fn native_c_append(mut state: NativeCFunctionEmitState, source: String) {
     let length = source.len()
     let mut index = 0
     while index < length {
-        push(state.source, source.byte_at(index))
+        state.source.push(source.byte_at(index))
         index = index + 1
     }
 }
@@ -316,59 +316,59 @@ fn native_c_append(mut state: NativeCFunctionEmitState, source: String) {
 fn native_c_note_use(mut state: NativeCFunctionEmitState, local: i32) {
     if !state.record_effects { return }
     if local < 0 || local >= state.reference_locals.len() { return }
-    if state.reference_locals.get_unchecked(local) == 0 { return }
+    if get_unchecked(state.reference_locals, local) == 0 { return }
     let mut index = 0
     while index < state.current_uses.len() {
-        if state.current_uses.get_unchecked(index) == local { return }
+        if get_unchecked(state.current_uses, index) == local { return }
         index = index + 1
     }
-    push(state.current_uses, local)
+    state.current_uses.push(local)
 }
 
 fn native_c_note_def(mut state: NativeCFunctionEmitState, local: i32) {
     if !state.record_effects { return }
     if local < 0 || local >= state.reference_locals.len() { return }
-    if state.reference_locals.get_unchecked(local) == 0 { return }
+    if get_unchecked(state.reference_locals, local) == 0 { return }
     let mut index = 0
     while index < state.current_defs.len() {
-        if state.current_defs.get_unchecked(index) == local { return }
+        if get_unchecked(state.current_defs, index) == local { return }
         index = index + 1
     }
-    push(state.current_defs, local)
+    state.current_defs.push(local)
 }
 
 fn native_c_effects_flush(mut state: NativeCFunctionEmitState, instruction: MirInst) {
     if !state.record_effects { return }
     let op = inst_accessors_shape::MirInst_op(instruction)
-    push(state.effect_block_ids, state.current_block_id)
+    state.effect_block_ids.push(state.current_block_id)
     if state.is_unreachable {
-        push(state.effect_reachable, 0)
+        state.effect_reachable.push(0)
     } else {
-        push(state.effect_reachable, 1)
+        state.effect_reachable.push(1)
     }
     if root_liveness::native_c_is_safepoint_op(op) {
-        push(state.effect_is_safepoint, 1)
+        state.effect_is_safepoint.push(1)
     } else {
-        push(state.effect_is_safepoint, 0)
+        state.effect_is_safepoint.push(0)
     }
-    push(state.effect_opcodes, op)
-    push(state.effect_use_start, state.effect_use_locals.len())
-    push(state.effect_use_count, state.current_uses.len())
+    state.effect_opcodes.push(op)
+    state.effect_use_start.push(state.effect_use_locals.len())
+    state.effect_use_count.push(state.current_uses.len())
     let mut index = 0
     while index < state.current_uses.len() {
-        push(state.effect_use_locals, state.current_uses.get_unchecked(index))
+        state.effect_use_locals.push(get_unchecked(state.current_uses, index))
         index = index + 1
     }
-    push(state.effect_def_start, state.effect_def_locals.len())
-    push(state.effect_def_count, state.current_defs.len())
+    state.effect_def_start.push(state.effect_def_locals.len())
+    state.effect_def_count.push(state.current_defs.len())
     index = 0
     while index < state.current_defs.len() {
-        push(state.effect_def_locals, state.current_defs.get_unchecked(index))
+        state.effect_def_locals.push(get_unchecked(state.current_defs, index))
         index = index + 1
     }
     // Reset per-instruction buffers without reallocating when possible.
-    while state.current_uses.len() > 0 { pop(state.current_uses) }
-    while state.current_defs.len() > 0 { pop(state.current_defs) }
+    while state.current_uses.len() > 0 { state.current_uses.pop() }
+    while state.current_defs.len() > 0 { state.current_defs.pop() }
 }
 
 fn native_c_build_effects_from_state(state: NativeCFunctionEmitState) -> NativeCInstructionEffects {
@@ -377,26 +377,26 @@ fn native_c_build_effects_from_state(state: NativeCFunctionEmitState) -> NativeC
     while order < state.effect_block_ids.len() {
         let mut uses = Vec::new<i32>()
         let mut defs = Vec::new<i32>()
-        let use_start = state.effect_use_start.get_unchecked(order)
-        let use_count = state.effect_use_count.get_unchecked(order)
+        let use_start = get_unchecked(state.effect_use_start, order)
+        let use_count = get_unchecked(state.effect_use_count, order)
         let mut index = 0
         while index < use_count {
-            push(uses, state.effect_use_locals.get_unchecked(use_start + index))
+            uses.push(get_unchecked(state.effect_use_locals, use_start + index))
             index = index + 1
         }
-        let def_start = state.effect_def_start.get_unchecked(order)
-        let def_count = state.effect_def_count.get_unchecked(order)
+        let def_start = get_unchecked(state.effect_def_start, order)
+        let def_count = get_unchecked(state.effect_def_count, order)
         index = 0
         while index < def_count {
-            push(defs, state.effect_def_locals.get_unchecked(def_start + index))
+            defs.push(get_unchecked(state.effect_def_locals, def_start + index))
             index = index + 1
         }
         root_liveness::native_c_effects_push(
             effects,
-            state.effect_block_ids.get_unchecked(order),
-            state.effect_reachable.get_unchecked(order) != 0,
-            state.effect_is_safepoint.get_unchecked(order) != 0,
-            state.effect_opcodes.get_unchecked(order),
+            get_unchecked(state.effect_block_ids, order),
+            get_unchecked(state.effect_reachable, order) != 0,
+            get_unchecked(state.effect_is_safepoint, order) != 0,
+            get_unchecked(state.effect_opcodes, order),
             uses,
             defs
         )
@@ -426,7 +426,7 @@ fn native_c_allocate_temporary(mut state: NativeCFunctionEmitState, c_type: Stri
         let declaration = String_from("    ").concat(c_type.concat(String_from(" ").concat(native_c_local_name(encoded_id).concat(String_from(";\n")))))
         let mut index = 0
         while index < declaration.len() {
-            push(state.temporary_declarations, declaration.byte_at(index))
+            state.temporary_declarations.push(declaration.byte_at(index))
             index = index + 1
         }
     }
@@ -434,7 +434,7 @@ fn native_c_allocate_temporary(mut state: NativeCFunctionEmitState, c_type: Stri
 }
 
 fn native_c_stack_push(mut state: NativeCFunctionEmitState, local_id: i32) {
-    push(state.value_stack, local_id)
+    state.value_stack.push(local_id)
 }
 
 fn native_c_stack_pop(mut state: NativeCFunctionEmitState, context: String) -> i32 {
@@ -446,15 +446,15 @@ fn native_c_stack_pop(mut state: NativeCFunctionEmitState, context: String) -> i
         return 0 - 1
     }
     let index = state.value_stack.len() - 1
-    let local_id = state.value_stack.get_unchecked(index)
-    pop(state.value_stack)
+    let local_id = get_unchecked(state.value_stack, index)
+    state.value_stack.pop()
     native_c_note_use(state, local_id)
     local_id
 }
 
 fn native_c_stack_discard_to(mut state: NativeCFunctionEmitState, depth: i32) {
     while state.value_stack.len() > depth {
-        pop(state.value_stack)
+        state.value_stack.pop()
     }
 }
 
@@ -475,10 +475,10 @@ fn native_c_emit_label(mut state: NativeCFunctionEmitState, label: String) {
 fn native_c_control_push(mut state: NativeCFunctionEmitState, kind: i32) -> i32 {
     let control_id = state.next_control_id
     state.next_control_id = state.next_control_id + 1
-    push(state.control_kinds, kind)
-    push(state.control_ids, control_id)
-    push(state.control_stack_depths, state.value_stack.len())
-    push(state.control_has_else, 0)
+    state.control_kinds.push(kind)
+    state.control_ids.push(control_id)
+    state.control_stack_depths.push(state.value_stack.len())
+    state.control_has_else.push(0)
     control_id
 }
 
@@ -488,8 +488,8 @@ fn native_c_control_target(mut state: NativeCFunctionEmitState, depth: i32) -> S
         native_c_fail(state, "compiler ICE: native-cpp branch depth exceeds control stack")
         return String_new()
     }
-    let control_id = state.control_ids.get_unchecked(index)
-    if state.control_kinds.get_unchecked(index) == opcodes::MIR_LOOP() {
+    let control_id = get_unchecked(state.control_ids, index)
+    if get_unchecked(state.control_kinds, index) == opcodes::MIR_LOOP() {
         return native_c_control_label(control_id, "loop")
     }
     native_c_control_label(control_id, "end")
@@ -612,10 +612,10 @@ fn native_c_value_member_for_emission(
     local_id: i32
 ) -> String {
     if local_id >= 0 && local_id < state.reference_locals.len() &&
-    state.reference_locals.get_unchecked(local_id) != 0 {
+    get_unchecked(state.reference_locals, local_id) != 0 {
         // Funcref locals must not be treated as heap refs for ark_value member selection.
         if local_id < state.funcref_locals.len() &&
-        state.funcref_locals.get_unchecked(local_id) != 0 {
+        get_unchecked(state.funcref_locals, local_id) != 0 {
             return String_from("i64")
         }
         let local_member = native_c_value_member_for_local(function, local_id)
@@ -625,7 +625,7 @@ fn native_c_value_member_for_emission(
         return String_from("ref")
     }
     if local_id >= 0 && local_id < state.funcref_locals.len() &&
-    state.funcref_locals.get_unchecked(local_id) != 0 {
+    get_unchecked(state.funcref_locals, local_id) != 0 {
         return String_from("i64")
     }
     native_c_value_member_for_local(function, local_id)
@@ -715,7 +715,7 @@ fn native_c_self_alias_intrinsic_expression(
     let short = native_c_short_callee_name(function_name)
     let argument_count = arguments.len()
     if argument_count == 1 {
-        return native_c_self_alias_unary_intrinsic(function, short, arguments.get_unchecked(0))
+        return native_c_self_alias_unary_intrinsic(function, short, get_unchecked(arguments, 0))
     }
     if argument_count == 2 && short.eq(String_from("eq")) {
         return native_c_self_alias_string_eq_expression(function, arguments)
@@ -724,8 +724,8 @@ fn native_c_self_alias_intrinsic_expression(
 }
 
 fn native_c_self_alias_string_eq_expression(function: MirFunction, arguments: Vec<i32>) -> String {
-    let left = arguments.get_unchecked(0)
-    let right = arguments.get_unchecked(1)
+    let left = get_unchecked(arguments, 0)
+    let right = get_unchecked(arguments, 1)
     // Heap object locals use value-member "ref" (ark_object_header *), not "ptr".
     if native_c_value_member_for_local(function, left).eq(String_from("ref")) &&
     native_c_value_member_for_local(function, right).eq(String_from("ref")) {
@@ -921,7 +921,7 @@ fn native_c_struct_get_member(
     // local is already a heap-shaped type_name.
     if base >= 0 &&
     base < state.reference_locals.len() &&
-    state.reference_locals.get_unchecked(base) != 0 &&
+    get_unchecked(state.reference_locals, base) != 0 &&
     destination >= 0 &&
     destination < function_locals_view::MirFunction_local_count(function) {
         let dest_local = function_locals_view::MirFunction_local_at(function, destination)
@@ -1018,8 +1018,8 @@ fn native_c_emit_struct(
         if member.clone().eq(String_from("ref")) &&
         destination >= 0 &&
         destination < state.reference_locals.len() &&
-        state.reference_locals.get_unchecked(destination) == 0 {
-            set(state.reference_locals, destination, 1)
+        get_unchecked(state.reference_locals, destination) == 0 {
+            state.reference_locals.set(destination, 1)
         }
         let expression = "ark_rt_struct_get(".concat(native_c_local_name(base).concat(", UINT32_C(".concat((native_c_struct_field_index(instruction)).to_string().concat(")).".concat(member)))))
         native_c_emit_assignment(state, destination, expression)
@@ -1034,9 +1034,9 @@ fn native_c_emit_struct(
         // base remains the expression result (Option/Result construction).
         let value = if explicit_value >= 0 {
             if state.value_stack.len() > 0 {
-                let top = state.value_stack.get_unchecked(state.value_stack.len() - 1)
+                let top = get_unchecked(state.value_stack, state.value_stack.len() - 1)
                 if top == explicit_value {
-                    pop(state.value_stack)
+                    state.value_stack.pop()
                 }
             }
             explicit_value
@@ -1206,10 +1206,10 @@ fn native_c_emit_local(
             if source != destination {
                 let source_is_ref = source >= 0 &&
                 source < state.reference_locals.len() &&
-                state.reference_locals.get_unchecked(source) != 0
+                get_unchecked(state.reference_locals, source) != 0
                 let dest_is_ref = destination >= 0 &&
                 destination < state.reference_locals.len() &&
-                state.reference_locals.get_unchecked(destination) != 0
+                get_unchecked(state.reference_locals, destination) != 0
                 // Match/if arms can local_set a heap scrutinee into a scalar
                 // arm local that is never read (e.g. None => panic(...)).
                 if source_is_ref && !dest_is_ref {
@@ -1320,9 +1320,9 @@ fn native_c_emit_binary(mut state: NativeCFunctionEmitState, instruction: MirIns
         let operator = native_c_binary_operator(op)
         if operator.len() == 0 { return false }
         let compares_references = (left_id >= 0 && left_id < state.reference_locals.len() &&
-            state.reference_locals.get_unchecked(left_id) != 0) ||
+            get_unchecked(state.reference_locals, left_id) != 0) ||
         (right_id >= 0 && right_id < state.reference_locals.len() &&
-            state.reference_locals.get_unchecked(right_id) != 0)
+            get_unchecked(state.reference_locals, right_id) != 0)
         if compares_references && (op == opcodes::MIR_EQ() || op == opcodes::MIR_NEQ()) {
             expression = "(".concat(left.concat(" ".concat(operator.concat(" ".concat(right.concat(")"))))))
             native_c_emit_assignment(state, destination, expression)
@@ -1438,12 +1438,12 @@ fn native_c_emit_hof(
     let mut arguments = Vec::new<i32>()
     let mut argument_index = 0
     while argument_index < argument_count {
-        push(arguments, state.value_stack.get_unchecked(first_argument + argument_index))
+        arguments.push(get_unchecked(state.value_stack, first_argument + argument_index))
         argument_index = argument_index + 1
     }
     argument_index = 0
     while argument_index < argument_count {
-        native_c_note_use(state, arguments.get_unchecked(argument_index))
+        native_c_note_use(state, get_unchecked(arguments, argument_index))
         argument_index = argument_index + 1
     }
     native_c_note_use(state, callee_local)
@@ -1850,7 +1850,7 @@ fn native_c_emit_call(
     // Prefer the encoded local only when it disagrees with the stack top.
     let explicit_first_arg = inst_accessors_operands::MirInst_arg0(instruction)
     let stack_top_arg = if state.value_stack.len() > 0 {
-        state.value_stack.get_unchecked(state.value_stack.len() - 1)
+        get_unchecked(state.value_stack, state.value_stack.len() - 1)
     } else {
         0 - 1
     }
@@ -1884,11 +1884,11 @@ fn native_c_emit_call(
     let mut arguments = Vec::new<i32>()
     let mut argument_index = 0
     if use_explicit_first_arg {
-        push(arguments, explicit_first_arg)
+        arguments.push(explicit_first_arg)
     } else {
         while argument_index < argument_count {
-            let argument_local = state.value_stack.get_unchecked(first_argument + argument_index)
-            push(arguments, argument_local)
+            let argument_local = get_unchecked(state.value_stack, first_argument + argument_index)
+            arguments.push(argument_local)
             // Do not upgrade scalar locals to GC roots just because a callee
             // parameter is typed as a pointer (unit-enum tags stay i32 and cast).
             argument_index = argument_index + 1
@@ -1907,7 +1907,7 @@ fn native_c_emit_call(
         if alias_expr.len() > 0 {
             argument_index = 0
             while argument_index < argument_count {
-                native_c_note_use(state, arguments.get_unchecked(argument_index))
+                native_c_note_use(state, get_unchecked(arguments, argument_index))
                 argument_index = argument_index + 1
             }
             native_c_stack_discard_to(state, first_argument)
@@ -1942,7 +1942,7 @@ fn native_c_emit_call(
     if !is_specialized {
         while argument_index < argument_count {
             if argument_index > 0 { call = call.concat(String_from(", ")) }
-            let argument_local = arguments.get_unchecked(argument_index)
+            let argument_local = get_unchecked(arguments, argument_index)
             let mut argument_expr = native_c_local_name(argument_local)
             // Unit-enum tags are i32 constants; callee params still use object
             // pointers from the type table. Pass the tag via intptr_t.
@@ -1958,7 +1958,7 @@ fn native_c_emit_call(
             ).eq(String_from("ark_object_header *")) &&
             argument_local >= 0 &&
             argument_local < state.reference_locals.len() &&
-            state.reference_locals.get_unchecked(argument_local) == 0 {
+            get_unchecked(state.reference_locals, argument_local) == 0 {
                 let param_vt = signature_entry::signature_entry_param_at(signature, argument_index)
                 let param_type_id = type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(param_vt))
                 let mut deny_tag_cast = false
@@ -1988,7 +1988,7 @@ fn native_c_emit_call(
     // discard_to alone would drop args without recording uses.
     argument_index = 0
     while argument_index < argument_count {
-        native_c_note_use(state, arguments.get_unchecked(argument_index))
+        native_c_note_use(state, get_unchecked(arguments, argument_index))
         argument_index = argument_index + 1
     }
     native_c_stack_discard_to(state, first_argument)
@@ -2007,7 +2007,7 @@ fn native_c_emit_call(
         native_c_emit_assignment(
             state,
             destination,
-            native_c_local_name(arguments.get_unchecked(0))
+            native_c_local_name(get_unchecked(arguments, 0))
         )
         native_c_stack_push(state, destination)
     } else if is_specialized && destination >= 0 {
@@ -2057,7 +2057,7 @@ fn native_c_emit_control(mut state: NativeCFunctionEmitState, instruction: MirIn
     }
     if op == opcodes::MIR_ELSE() {
         let index = state.control_ids.len() - 1
-        if index < 0 || state.control_kinds.get_unchecked(index) != opcodes::MIR_IF() {
+        if index < 0 || get_unchecked(state.control_kinds, index) != opcodes::MIR_IF() {
             native_c_fail(
                 state,
                 String_from(
@@ -2066,9 +2066,9 @@ fn native_c_emit_control(mut state: NativeCFunctionEmitState, instruction: MirIn
             )
             return true
         }
-        let control_id = state.control_ids.get_unchecked(index)
-        native_c_stack_discard_to(state, state.control_stack_depths.get_unchecked(index))
-        set(state.control_has_else, index, 1)
+        let control_id = get_unchecked(state.control_ids, index)
+        native_c_stack_discard_to(state, get_unchecked(state.control_stack_depths, index))
+        state.control_has_else.set(index, 1)
         native_c_append(
             state,
             "    goto ".concat(native_c_control_label(control_id, "end").concat(";\n"))
@@ -2082,17 +2082,17 @@ fn native_c_emit_control(mut state: NativeCFunctionEmitState, instruction: MirIn
             native_c_fail(state, "compiler ICE: native-cpp MIR_END has no matching control marker")
             return true
         }
-        let kind = state.control_kinds.get_unchecked(index)
-        let control_id = state.control_ids.get_unchecked(index)
-        native_c_stack_discard_to(state, state.control_stack_depths.get_unchecked(index))
-        if kind == opcodes::MIR_IF() && state.control_has_else.get_unchecked(index) == 0 {
+        let kind = get_unchecked(state.control_kinds, index)
+        let control_id = get_unchecked(state.control_ids, index)
+        native_c_stack_discard_to(state, get_unchecked(state.control_stack_depths, index))
+        if kind == opcodes::MIR_IF() && get_unchecked(state.control_has_else, index) == 0 {
             native_c_emit_label(state, native_c_control_label(control_id, "false"))
         }
         native_c_emit_label(state, native_c_control_label(control_id, "end"))
-        pop(state.control_kinds)
-        pop(state.control_ids)
-        pop(state.control_stack_depths)
-        pop(state.control_has_else)
+        state.control_kinds.pop()
+        state.control_ids.pop()
+        state.control_stack_depths.pop()
+        state.control_has_else.pop()
         return true
     }
     if op == opcodes::MIR_BR() || op == opcodes::MIR_BR_IF() {
@@ -2170,8 +2170,8 @@ fn native_c_emit_instruction(
     signature: SignatureEntry,
     instruction: MirInst
 ) {
-    while state.current_uses.len() > 0 { pop(state.current_uses) }
-    while state.current_defs.len() > 0 { pop(state.current_defs) }
+    while state.current_uses.len() > 0 { state.current_uses.pop() }
+    while state.current_defs.len() > 0 { state.current_defs.pop() }
     // Always advance through the clear plan so shadow markers and emits stay aligned.
     native_c_emit_pending_root_clears(state, instruction)
     let op = inst_accessors_shape::MirInst_op(instruction)
@@ -2327,14 +2327,11 @@ fn native_c_emit_local_declarations(
     while producer_index < local_count {
         let producer_local = function_locals_view::MirFunction_local_at(function, producer_index)
         let prior_reference = if producer_index < state.reference_locals.len() {
-            state.reference_locals.get_unchecked(producer_index)
+            get_unchecked(state.reference_locals, producer_index)
         } else {
             0
         }
-        push(
-            reference_producers,
-            if prior_reference != 0 || abi::native_c_type_for_local(table, producer_local, state.heap_enum_flags).eq(String_from("ark_object_header *")) { 1 } else { 0 }
-        )
+        reference_producers.push(if prior_reference != 0 || abi::native_c_type_for_local(table, producer_local, state.heap_enum_flags).eq(String_from("ark_object_header *")) { 1 } else { 0 })
         producer_index = producer_index + 1
     }
     let block_count = function_block_queries::MirFunction_block_count(function)
@@ -2406,8 +2403,8 @@ fn native_c_emit_local_declarations(
                     }
                 }
                 if destination >= 0 && destination < local_count && produces_reference &&
-                reference_producers.get_unchecked(destination) == 0 {
-                    set(reference_producers, destination, 1)
+                get_unchecked(reference_producers, destination) == 0 {
+                    reference_producers.set(destination, 1)
                     changed = true
                 }
                 let mut copy_destination = 0 - 1
@@ -2421,22 +2418,22 @@ fn native_c_emit_local_declarations(
                 }
                 if copy_destination >= 0 && copy_destination < local_count &&
                 copy_source >= 0 && copy_source < local_count &&
-                (reference_producers.get_unchecked(copy_destination) != 0 ||
-                    reference_producers.get_unchecked(copy_source) != 0) {
-                    if reference_producers.get_unchecked(copy_destination) == 0 {
-                        set(reference_producers, copy_destination, 1)
+                (get_unchecked(reference_producers, copy_destination) != 0 ||
+                    get_unchecked(reference_producers, copy_source) != 0) {
+                    if get_unchecked(reference_producers, copy_destination) == 0 {
+                        reference_producers.set(copy_destination, 1)
                         changed = true
                     }
-                    if reference_producers.get_unchecked(copy_source) == 0 {
-                        set(reference_producers, copy_source, 1)
+                    if get_unchecked(reference_producers, copy_source) == 0 {
+                        reference_producers.set(copy_source, 1)
                         changed = true
                     }
                 }
                 if op == opcodes::MIR_RETURN() && return_is_reference {
                     let returned_local = inst_accessors_operands::MirInst_arg0(instruction)
                     if returned_local >= 0 && returned_local < local_count &&
-                    reference_producers.get_unchecked(returned_local) == 0 {
-                        set(reference_producers, returned_local, 1)
+                    get_unchecked(reference_producers, returned_local) == 0 {
+                        reference_producers.set(returned_local, 1)
                         changed = true
                     }
                 }
@@ -2454,9 +2451,9 @@ fn native_c_emit_local_declarations(
     while funcref_index < local_count {
         let local = function_locals_view::MirFunction_local_at(function, funcref_index)
         if abi::native_c_type_name_is_funcref(local_record::mir_local_type_name(local)) {
-            push(funcref_locals, 1)
+            funcref_locals.push(1)
         } else {
-            push(funcref_locals, 0)
+            funcref_locals.push(0)
         }
         funcref_index = funcref_index + 1
     }
@@ -2474,26 +2471,26 @@ fn native_c_emit_local_declarations(
                 if op == opcodes::MIR_REF_FUNC() {
                     let destination = inst_accessors_operands::MirInst_dest(instruction)
                     if destination >= 0 && destination < local_count &&
-                    funcref_locals.get_unchecked(destination) == 0 {
-                        set(funcref_locals, destination, 1)
+                    get_unchecked(funcref_locals, destination) == 0 {
+                        funcref_locals.set(destination, 1)
                         funcref_changed = true
                     }
                 }
                 if op == opcodes::MIR_CALL_INDIRECT() {
                     let callee = inst_accessors_operands::MirInst_arg0(instruction)
-                    if callee >= 0 && callee < local_count && funcref_locals.get_unchecked(callee) == 0 {
-                        set(funcref_locals, callee, 1)
+                    if callee >= 0 && callee < local_count && get_unchecked(funcref_locals, callee) == 0 {
+                        funcref_locals.set(callee, 1)
                         funcref_changed = true
                     }
                 }
                 if op == opcodes::MIR_ARRAY_GET() || op == opcodes::MIR_STRUCT_GET() {
                     let destination = inst_accessors_operands::MirInst_dest(instruction)
                     if destination >= 0 && destination < local_count &&
-                    funcref_locals.get_unchecked(destination) == 0 {
+                    get_unchecked(funcref_locals, destination) == 0 {
                         let dest_local = function_locals_view::MirFunction_local_at(function, destination)
                         if abi::native_c_type_name_is_funcref(local_record::mir_local_type_name(dest_local)) ||
                         local_record::mir_local_val_type(dest_local) == value_types::VT_FUNCREF() {
-                            set(funcref_locals, destination, 1)
+                            funcref_locals.set(destination, 1)
                             funcref_changed = true
                         } else if op == opcodes::MIR_ARRAY_GET() {
                             // Vec<fn(..)> elements are funcrefs; Option/Result<fn> bases are heap refs.
@@ -2504,7 +2501,7 @@ fn native_c_emit_local_declarations(
                                 )
                                 if base_type.clone().starts_with(String_from("vec:fn(")) ||
                                 base_type.clone().starts_with(String_from("Vec<fn(")) {
-                                    set(funcref_locals, destination, 1)
+                                    funcref_locals.set(destination, 1)
                                     funcref_changed = true
                                 }
                             }
@@ -2522,14 +2519,14 @@ fn native_c_emit_local_declarations(
                 }
                 if copy_destination >= 0 && copy_destination < local_count &&
                 copy_source >= 0 && copy_source < local_count &&
-                (funcref_locals.get_unchecked(copy_destination) != 0 ||
-                    funcref_locals.get_unchecked(copy_source) != 0) {
-                    if funcref_locals.get_unchecked(copy_destination) == 0 {
-                        set(funcref_locals, copy_destination, 1)
+                (get_unchecked(funcref_locals, copy_destination) != 0 ||
+                    get_unchecked(funcref_locals, copy_source) != 0) {
+                    if get_unchecked(funcref_locals, copy_destination) == 0 {
+                        funcref_locals.set(copy_destination, 1)
                         funcref_changed = true
                     }
-                    if funcref_locals.get_unchecked(copy_source) == 0 {
-                        set(funcref_locals, copy_source, 1)
+                    if get_unchecked(funcref_locals, copy_source) == 0 {
+                        funcref_locals.set(copy_source, 1)
                         funcref_changed = true
                     }
                 }
@@ -2545,7 +2542,7 @@ fn native_c_emit_local_declarations(
     let mut scalar_i32_locals = Vec::new<i32>()
     let mut scalar_index = 0
     while scalar_index < local_count {
-        push(scalar_i32_locals, 0)
+        scalar_i32_locals.push(0)
         scalar_index = scalar_index + 1
     }
     let mut scalar_pass = 0
@@ -2562,9 +2559,9 @@ fn native_c_emit_local_declarations(
                 if op == opcodes::MIR_CONST_I32() || op == opcodes::MIR_CONST_BOOL() {
                     let destination = inst_accessors_operands::MirInst_dest(instruction)
                     if destination >= 0 && destination < local_count &&
-                    scalar_i32_locals.get_unchecked(destination) == 0 &&
+                    get_unchecked(scalar_i32_locals, destination) == 0 &&
                     native_c_local_allows_unit_enum_tag(table, function, destination) {
-                        set(scalar_i32_locals, destination, 1)
+                        scalar_i32_locals.set(destination, 1)
                         scalar_changed = true
                     }
                 }
@@ -2579,10 +2576,10 @@ fn native_c_emit_local_declarations(
                 }
                 if copy_destination >= 0 && copy_destination < local_count &&
                 copy_source >= 0 && copy_source < local_count &&
-                scalar_i32_locals.get_unchecked(copy_source) != 0 &&
+                get_unchecked(scalar_i32_locals, copy_source) != 0 &&
                 native_c_local_allows_unit_enum_tag(table, function, copy_destination) {
-                    if scalar_i32_locals.get_unchecked(copy_destination) == 0 {
-                        set(scalar_i32_locals, copy_destination, 1)
+                    if get_unchecked(scalar_i32_locals, copy_destination) == 0 {
+                        scalar_i32_locals.set(copy_destination, 1)
                         scalar_changed = true
                     }
                 }
@@ -2594,8 +2591,8 @@ fn native_c_emit_local_declarations(
     }
     let mut clear_index = 0
     while clear_index < local_count {
-        if scalar_i32_locals.get_unchecked(clear_index) != 0 {
-            set(reference_producers, clear_index, 0)
+        if get_unchecked(scalar_i32_locals, clear_index) != 0 {
+            reference_producers.set(clear_index, 0)
         }
         clear_index = clear_index + 1
     }
@@ -2604,16 +2601,16 @@ fn native_c_emit_local_declarations(
     while local_id < local_count {
         let local = function_locals_view::MirFunction_local_at(function, local_id)
         let local_type_name = local_record::mir_local_type_name(local)
-        let is_funcref_local = funcref_locals.get_unchecked(local_id) != 0 ||
+        let is_funcref_local = get_unchecked(funcref_locals, local_id) != 0 ||
         abi::native_c_type_name_is_funcref(local_type_name.clone()) ||
         local_record::mir_local_val_type(local) == value_types::VT_FUNCREF()
-        let c_type = if scalar_i32_locals.get_unchecked(local_id) != 0 {
+        let c_type = if get_unchecked(scalar_i32_locals, local_id) != 0 {
             String_from("int32_t")
         } else if is_funcref_local {
             // Option/Result<fn> match binds are funcrefs even when also
             // reference-propagated from the enum payload path.
             String_from("intptr_t")
-        } else if reference_producers.get_unchecked(local_id) != 0 {
+        } else if get_unchecked(reference_producers, local_id) != 0 {
             String_from("ark_object_header *")
         } else {
             abi::native_c_type_for_local(table, local, state.heap_enum_flags)
@@ -2629,7 +2626,7 @@ fn native_c_emit_local_declarations(
             state,
             "    ".concat(c_type.concat(" ".concat(native_c_local_name(local_id).concat(";\n"))))
         )
-        if reference_producers.get_unchecked(local_id) != 0 && !is_funcref_local {
+        if get_unchecked(reference_producers, local_id) != 0 && !is_funcref_local {
             native_c_append(
                 state,
                 String_from("    ").concat(native_c_local_name(local_id).concat(String_from(" = NULL;\n")))
@@ -2649,9 +2646,9 @@ fn native_c_emit_local_declarations(
     let mut root_count = 0
     let mut root_scan = 0
     while root_scan < local_count {
-        if reference_producers.get_unchecked(root_scan) != 0 {
+        if get_unchecked(reference_producers, root_scan) != 0 {
             let root_local = function_locals_view::MirFunction_local_at(function, root_scan)
-            let root_is_funcref = funcref_locals.get_unchecked(root_scan) != 0 ||
+            let root_is_funcref = get_unchecked(funcref_locals, root_scan) != 0 ||
             abi::native_c_type_name_is_funcref(local_record::mir_local_type_name(root_local)) ||
             local_record::mir_local_val_type(root_local) == value_types::VT_FUNCREF()
             if !root_is_funcref {
@@ -2669,23 +2666,23 @@ fn native_c_emit_local_declarations(
         (String_from("    ark_gc_push_frame((size_t)")).concat((root_count).to_string().concat(String_from(");\n")))
     )
     while state.root_slot_of_local.len() > 0 {
-        pop(state.root_slot_of_local)
+        state.root_slot_of_local.pop()
     }
     let mut map_local = 0
     while map_local < local_count {
-        push(state.root_slot_of_local, 0 - 1)
+        state.root_slot_of_local.push(0 - 1)
         map_local = map_local + 1
     }
     let mut root_slot = 0
     let mut root_local = 0
     while root_local < local_count {
-        if reference_producers.get_unchecked(root_local) != 0 {
+        if get_unchecked(reference_producers, root_local) != 0 {
             let rooted = function_locals_view::MirFunction_local_at(function, root_local)
-            let rooted_is_funcref = funcref_locals.get_unchecked(root_local) != 0 ||
+            let rooted_is_funcref = get_unchecked(funcref_locals, root_local) != 0 ||
             abi::native_c_type_name_is_funcref(local_record::mir_local_type_name(rooted)) ||
             local_record::mir_local_val_type(rooted) == value_types::VT_FUNCREF()
             if !rooted_is_funcref {
-                set(state.root_slot_of_local, root_local, root_slot)
+                state.root_slot_of_local.set(root_local, root_slot)
                 native_c_append(
                     state,
                     (String_from("    ark_gc_set_root((size_t)")).concat((root_slot).to_string().concat(String_from(", &").concat(native_c_local_name(root_local).concat(String_from(");\n")))))
@@ -2792,7 +2789,7 @@ fn native_c_emit_function_body(
     let mut root_count = 0
     let mut root_scan = 0
     while root_scan < state.reference_locals.len() {
-        if state.reference_locals.get_unchecked(root_scan) != 0 {
+        if get_unchecked(state.reference_locals, root_scan) != 0 {
             root_count = root_count + 1
         }
         root_scan = root_scan + 1

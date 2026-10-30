@@ -5,8 +5,8 @@
 // they are enum variant constructors, not regular functions.
 
 fn push_core_string_tail_builtin_symbol_names(mut names: Vec<String>) {
-    push(names, "Some")
-    push(names, "None")
-    push(names, "Ok")
-    push(names, "Err")
+    names.push("Some")
+    names.push("None")
+    names.push("Ok")
+    names.push("Err")
 }

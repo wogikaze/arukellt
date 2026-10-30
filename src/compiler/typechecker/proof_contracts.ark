@@ -16,7 +16,7 @@ fn proof_contract_nodes(node: AstNode) -> Vec<AstNode> {
     while i < count {
         let ann = ast_access::node_type_ann_at(node, i)
         if ast_access::node_kind(ann) == kinds::NK_PROOF_CONTRACT() {
-            push(contracts, ann)
+            contracts.push(ann)
         }
         i = i + 1
     }

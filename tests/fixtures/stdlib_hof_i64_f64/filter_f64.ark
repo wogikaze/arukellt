@@ -6,16 +6,16 @@ fn is_large(x: f64) -> bool {
 
 fn main() {
     let mut v: Vec<f64> = Vec::new<f64>()
-    push(v, 1.5)
-    push(v, 7.0)
-    push(v, 3.0)
-    push(v, 10.5)
+    v.push(1.5)
+    v.push(7.0)
+    v.push(3.0)
+    v.push(10.5)
     let mut large: Vec<f64> = Vec::new<f64>()
     let mut filter_index: i32 = 0
     while filter_index < v.len() {
         let filter_value = v.get_unchecked(filter_index)
         if is_large(filter_value) {
-            push(large, filter_value)
+            large.push(filter_value)
         }
         filter_index = filter_index + 1
     }

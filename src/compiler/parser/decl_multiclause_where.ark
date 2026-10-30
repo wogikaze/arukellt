@@ -13,7 +13,7 @@ fn parse_optional_where_block(mut p: Parser) -> Vec<AstNode> {
     core_api_cursor::skip_only_newlines(p)
     while decl_multiclause_where_probe::next_token_starts_where_binding(p) {
         let binding = decl_multiclause_where_binding::parse_where_binding(p)
-        push(bindings, binding)
+        bindings.push(binding)
         core_api_cursor::skip_only_newlines(p)
         if core_api_cursor::peek_kind(p) == tokens::TK_SEMI() {
             p.pos = p.pos + 1

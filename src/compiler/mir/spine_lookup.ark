@@ -187,7 +187,7 @@ fn copy_return_types_from_mono(entry: MonoInstanceEntry) -> Vec<MirValueType> {
     let mut result = Vec::new<MirValueType>()
     let mut i = 0
     while i < count {
-        push(result, typed_mir_compat::mvt_copy(mono_instance_table::mono_instance_entry_return_at(entry, i)))
+        result.push(typed_mir_compat::mvt_copy(mono_instance_table::mono_instance_entry_return_at(entry, i)))
         i = i + 1
     }
     result
@@ -198,7 +198,7 @@ fn copy_return_types_from_entry(entry: SignatureEntry) -> Vec<MirValueType> {
     let mut result = Vec::new<MirValueType>()
     let mut i = 0
     while i < count {
-        push(result, typed_mir_compat::mvt_copy(signature_entry::signature_entry_return_at(entry, i)))
+        result.push(typed_mir_compat::mvt_copy(signature_entry::signature_entry_return_at(entry, i)))
         i = i + 1
     }
     result

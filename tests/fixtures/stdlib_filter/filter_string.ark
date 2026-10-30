@@ -7,11 +7,11 @@ fn is_long(s: String) -> bool {
 
 fn main() {
     let mut v: Vec<String> = Vec::new<String>()
-    push(v, String_from("hi"))
-    push(v, String_from("hello"))
-    push(v, String_from("ok"))
-    push(v, String_from("world"))
-    push(v, String_from("no"))
+    v.push(String_from("hi"))
+    v.push(String_from("hello"))
+    v.push(String_from("ok"))
+    v.push(String_from("world"))
+    v.push(String_from("no"))
     let result: Vec<String> = v.iter().filter(is_long).collect()
     let mut i: i32 = 0
     while i < result.len() {

@@ -34,10 +34,10 @@ fn licm_hoist_region(insts: Vec<MirInst>, region: LoopRegion) -> LicmBlockResult
     let mut hoist_count = 0
     let mut i = start + 1
     while i < end {
-        let inst = insts.get_unchecked(i)
+        let inst = get_unchecked(insts, i)
         if licm_predicates::licm_is_hoistable_inst(inst) {
             if !licm_predicates::licm_inst_depends_on_any(inst, modified) {
-                push(hoist_marks, i)
+                hoist_marks.push(i)
                 hoist_count = hoist_count + 1
             }
         }
@@ -49,17 +49,17 @@ fn licm_hoist_region(insts: Vec<MirInst>, region: LoopRegion) -> LicmBlockResult
     let mut out = Vec::new<MirInst>()
     i = 0
     while i < start {
-        push(out, insts.get_unchecked(i))
+        out.push(get_unchecked(insts, i))
         i = i + 1
     }
     for hi in 0..hoist_marks.len() {
-        let idx = hoist_marks.get_unchecked(hi)
-        push(out, insts.get_unchecked(idx))
+        let idx = get_unchecked(hoist_marks, hi)
+        out.push(get_unchecked(insts, idx))
     }
     i = start
     while i < insts.len() {
         if !licm_predicates::licm_inst_marked_hoist(i, hoist_marks) {
-            push(out, insts.get_unchecked(i))
+            out.push(get_unchecked(insts, i))
         }
         i = i + 1
     }
@@ -73,7 +73,7 @@ fn licm_optimize_block_insts(insts: Vec<MirInst>) -> LicmBlockResult {
     let mut total = 0
     let mut validation_failures = 0
     for ri in 0..ordered.len() {
-        let region = ordered.get_unchecked(ri)
+        let region = get_unchecked(ordered, ri)
         let result = licm_hoist_region(current, region)
         if licm_translation_validation::licm_translation_valid(
             current,
@@ -103,7 +103,7 @@ fn licm_optimize_function(mut f: MirFunction) -> OptimizationSummary {
         block_inst_mutation::MirBlock_set_from_refs(block, result.instructions)
         total_hoisted = total_hoisted + result.hoisted
         validation_failures = validation_failures + result.validation_failures
-        push(updated_blocks, block)
+        updated_blocks.push(block)
         bi = bi + 1
     }
     function_block_mutation::MirFunction_set_blocks(f, updated_blocks)

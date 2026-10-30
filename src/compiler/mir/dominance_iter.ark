@@ -27,7 +27,7 @@ fn mir_compute_block_dom_set(f: MirFunction, block: MirBlock) -> Vec<i32> {
     let pred_count = block_pred_access::MirBlock_pred_count(block)
     let mut new_set = Vec::new<i32>()
     if pred_count == 0 {
-        push(new_set, block_identity::MirBlock_id(block))
+        new_set.push(block_identity::MirBlock_id(block))
     } else {
         let first_pred = block_pred_access::MirBlock_pred_at(block, 0)
         let first_pred_block = function_block_queries::MirFunction_block_at(f, first_pred)

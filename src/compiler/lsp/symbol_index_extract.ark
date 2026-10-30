@@ -90,9 +90,16 @@ fn push_decl_symbol(mut out: Vec<symbol_index_record::IndexedSymbol>, uri: Strin
             }
         }
     }
-    push(
-        out,
-        symbol_index_record::IndexedSymbol_new(uri, name, kinds::lsp_kind_for_nk(node_kind(node), is_method), node_decl_name_span_start(node), node_decl_name_span_end(node), detail, String_new())
+    out.push(
+        symbol_index_record::IndexedSymbol_new(
+            uri,
+            name,
+            kinds::lsp_kind_for_nk(node_kind(node), is_method),
+            node_decl_name_span_start(node),
+            node_decl_name_span_end(node),
+            detail,
+            String_new()
+        )
     )
 }
 

@@ -53,7 +53,7 @@ fn shuffle_i32_from(v: Vec<i32>, seed_val: i32) -> Vec<i32> {
     let mut result = Vec::new<i32>()
     let mut i = 0
     while i < n {
-        push(result, v.get_unchecked(i))
+        result.push(get_unchecked(v, i))
         i = i + 1
     }
     let mut seed = normalize_seed(seed_val)
@@ -61,9 +61,9 @@ fn shuffle_i32_from(v: Vec<i32>, seed_val: i32) -> Vec<i32> {
     while j > 0 {
         seed = next_seeded(seed)
         let idx = seeded_range_from(seed, 0, j + 1)
-        let tmp = result.get_unchecked(j)
-        set(result, j, result.get_unchecked(idx))
-        set(result, idx, tmp)
+        let tmp = get_unchecked(result, j)
+        result.set(j, get_unchecked(result, idx))
+        result.set(idx, tmp)
         j = j - 1
     }
     result

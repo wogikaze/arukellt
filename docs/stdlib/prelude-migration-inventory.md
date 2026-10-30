@@ -83,14 +83,14 @@ are already thin wrappers; prefer the explicit module path in doc examples.
 
 ### std::collections (Vec helpers)
 
-Low-level `Vec` manipulation is legitimately in the tiny prelude for now.
-New examples should prefer the typed helpers from `std::collections` when
-operating on `Vec<T>` above the byte-buffer level.
+The free `push` / `pop` / `set` / `len` prelude helpers were retired under
+#917; the `Vec<T>` receiver methods are the only spelling. This section is
+retained as the historical inventory that drove that migration.
 
 | Prelude helper             | Preferred wrapper                     | Notes |
 |----------------------------|---------------------------------------|-------|
-| `push(v, x)` on `Vec<T>`  | `collections::vec::push(v, x)`        | tiny-prelude `push`/`pop` may remain for internal impl; `len` is a receiver method |
-| `get_unchecked(v, i)`      | index syntax or `collections::vec::get(v, i)` | prefer bounds-checked form in examples |
+| `push(v, x)` on `Vec<T>`  | `v.push(x)` | retired 2026-10-30 (E0100) |
+| `get_unchecked(v, i)`      | `v.get_unchecked(i)` or index syntax | free and receiver method both exist |
 
 ### Families where the prelude is still acceptable
 

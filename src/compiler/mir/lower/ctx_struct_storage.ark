@@ -27,9 +27,9 @@ fn ctx_struct_push_layout(mut ctx: LowerCtx, struct_name: String, field_count: i
         ctx.struct_layout_field_offsets.get_unchecked(index - 1) + ctx.struct_field_counts.get_unchecked(index - 1)
     }
     name_index::name_index_insert_first(ctx.struct_layout_first_index, struct_name.clone(), index)
-    push(ctx.struct_layout_field_offsets, field_offset)
-    push(ctx.struct_names, struct_name)
-    push(ctx.struct_field_counts, field_count)
+    ctx.struct_layout_field_offsets.push(field_offset)
+    ctx.struct_names.push(struct_name)
+    ctx.struct_field_counts.push(field_count)
     ctx_struct_layout_name_memo_reset(ctx)
     if field_count == 0 {
         ctx_struct_layout_record_struct_index(ctx, index)
@@ -107,12 +107,12 @@ fn ctx_struct_layout_name_memo_value_at(ctx: LowerCtx, slot: i32) -> String {
 
 fn ctx_struct_layout_name_memo_put(mut ctx: LowerCtx, type_name: String, resolved: String) {
     name_index::name_index_set(ctx.struct_layout_name_memo, type_name, ctx.struct_layout_name_memo_values.len())
-    push(ctx.struct_layout_name_memo_values, resolved)
+    ctx.struct_layout_name_memo_values.push(resolved)
 }
 
 fn ctx_struct_push_field(mut ctx: LowerCtx, field_name: String, field_type: String) {
-    push(ctx.struct_all_fields, field_name)
-    push(ctx.struct_field_types, field_type)
+    ctx.struct_all_fields.push(field_name)
+    ctx.struct_field_types.push(field_type)
     let index = ctx.struct_names.len() - 1
     if index >= 0 {
         let field_count = ctx.struct_field_counts.get_unchecked(index)

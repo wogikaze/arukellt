@@ -76,14 +76,14 @@ fn SelfEmitCtx_push_reloc(
     skey: String,
     skey2: String
 ) {
-    push(ctx.reloc_func, ctx_record::SelfEmitCtx_current_func_idx(ctx))
-    push(ctx.reloc_off, body_off)
-    push(ctx.reloc_kind, kind)
-    push(ctx.reloc_ikey, ikey)
-    push(ctx.reloc_ikey2, ikey2)
-    push(ctx.reloc_ikey3, ikey3)
-    push(ctx.reloc_skey, skey)
-    push(ctx.reloc_skey2, skey2)
+    ctx.reloc_func.push(ctx_record::SelfEmitCtx_current_func_idx(ctx))
+    ctx.reloc_off.push(body_off)
+    ctx.reloc_kind.push(kind)
+    ctx.reloc_ikey.push(ikey)
+    ctx.reloc_ikey2.push(ikey2)
+    ctx.reloc_ikey3.push(ikey3)
+    ctx.reloc_skey.push(skey)
+    ctx.reloc_skey2.push(skey2)
 }
 
 // Emit an i32/i64 const whose operand is a reloc placeholder: opcode first,
@@ -157,7 +157,7 @@ fn reloc_splice_i32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
     let mut out_v = Vec::new<i32>()
     let mut i = 0
     while i < off {
-        push(out_v, body.get_unchecked(i))
+        out_v.push(get_unchecked(body, i))
         i = i + 1
     }
     let mut sw = writer_core::WasmWriter_new()
@@ -165,14 +165,14 @@ fn reloc_splice_i32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
     let enc = writer_core::writer_bytes(sw)
     let mut j = 0
     while j < enc.len() {
-        push(out_v, enc.get_unchecked(j))
+        out_v.push(get_unchecked(enc, j))
         j = j + 1
     }
     // The placeholder operand is always the 1-byte sleb(0); skip exactly
     // one byte.
     let mut k = off + 1
     while k < body.len() {
-        push(out_v, body.get_unchecked(k))
+        out_v.push(get_unchecked(body, k))
         k = k + 1
     }
     out_v
@@ -183,7 +183,7 @@ fn reloc_splice_u32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
     let mut out_v = Vec::new<i32>()
     let mut i = 0
     while i < off {
-        push(out_v, body.get_unchecked(i))
+        out_v.push(get_unchecked(body, i))
         i = i + 1
     }
     let mut sw = writer_core::WasmWriter_new()
@@ -191,12 +191,12 @@ fn reloc_splice_u32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
     let enc = writer_core::writer_bytes(sw)
     let mut j = 0
     while j < enc.len() {
-        push(out_v, enc.get_unchecked(j))
+        out_v.push(get_unchecked(enc, j))
         j = j + 1
     }
     let mut k = off + 1
     while k < body.len() {
-        push(out_v, body.get_unchecked(k))
+        out_v.push(get_unchecked(body, k))
         k = k + 1
     }
     out_v
@@ -218,7 +218,7 @@ fn reloc_patch_leb_u_fixed(mut body: Vec<i32>, off: i32, v: i32) {
         if i < 4 {
             b = b + 128
         }
-        set(body, off + i, b)
+        body.set(off + i, b)
         i = i + 1
     }
 }

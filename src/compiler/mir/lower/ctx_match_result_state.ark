@@ -18,8 +18,8 @@ fn ctx_match_result_state_get(ctx: LowerCtx, result: i32) -> i32 {
 }
 
 fn ctx_match_result_state_set(mut ctx: LowerCtx, result: i32, state: i32) {
-    push(ctx.match_result_indices, result)
-    push(ctx.match_result_states, state)
+    ctx.match_result_indices.push(result)
+    ctx.match_result_states.push(state)
 }
 
 fn ctx_match_result_state_reset(mut ctx: LowerCtx) {

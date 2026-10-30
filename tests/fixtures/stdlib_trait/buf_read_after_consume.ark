@@ -3,10 +3,10 @@ use std::test::Test
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
-    push(data, 10)
-    push(data, 20)
-    push(data, 30)
-    push(data, 40)
+    data.push(10)
+    data.push(20)
+    data.push(30)
+    data.push(40)
     let mut r: io::Reader = io::Reader::from_bytes(data)
 
     // Consume 2 bytes

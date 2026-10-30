@@ -100,7 +100,7 @@ fn __core_string_utf8_width_vec_impl(bytes: Vec<i32>, index: i32) -> i32 {
     if index < 0 || index >= byte_len {
         return 0
     }
-    let first = bytes.get_unchecked(index)
+    let first = get_unchecked(bytes, index)
     if first < 0 || first > 255 {
         return 0
     }
@@ -111,7 +111,7 @@ fn __core_string_utf8_width_vec_impl(bytes: Vec<i32>, index: i32) -> i32 {
         if index + 1 >= byte_len {
             return 0
         }
-        if __core_string_is_continuation_byte(bytes.get_unchecked(index + 1)) {
+        if __core_string_is_continuation_byte(get_unchecked(bytes, index + 1)) {
             return 2
         }
         return 0
@@ -120,8 +120,8 @@ fn __core_string_utf8_width_vec_impl(bytes: Vec<i32>, index: i32) -> i32 {
         if index + 2 >= byte_len {
             return 0
         }
-        let second = bytes.get_unchecked(index + 1)
-        let third = bytes.get_unchecked(index + 2)
+        let second = get_unchecked(bytes, index + 1)
+        let third = get_unchecked(bytes, index + 2)
         if !__core_string_is_continuation_byte(second) ||
         !__core_string_is_continuation_byte(third) {
             return 0
@@ -138,9 +138,9 @@ fn __core_string_utf8_width_vec_impl(bytes: Vec<i32>, index: i32) -> i32 {
         if index + 3 >= byte_len {
             return 0
         }
-        let second = bytes.get_unchecked(index + 1)
-        let third = bytes.get_unchecked(index + 2)
-        let fourth = bytes.get_unchecked(index + 3)
+        let second = get_unchecked(bytes, index + 1)
+        let third = get_unchecked(bytes, index + 2)
+        let fourth = get_unchecked(bytes, index + 3)
         if !__core_string_is_continuation_byte(second) ||
         !__core_string_is_continuation_byte(third) ||
         !__core_string_is_continuation_byte(fourth) {
@@ -316,13 +316,13 @@ fn __core_string_push_range(mut bytes: Vec<i32>, s: String, start: i32, end: i32
     let mut index = start
     while index < end {
         // Concrete i32 push CoreOp body (generic Vec<T> push is unreachable on LM).
-        push(bytes, RawString::byte_at_unchecked(s, index))
+        bytes.push(RawString::byte_at_unchecked(s, index))
         index = index + 1
     }
 }
 
 fn __core_string_push_byte(mut bytes: Vec<i32>, byte: i32) {
-    push(bytes, byte)
+    bytes.push(byte)
 }
 
 fn __core_string_slice_impl(s: String, start: i32, end: i32) -> String {
@@ -356,7 +356,7 @@ fn __core_string_ascii_case_impl(s: String, to_lowercase: bool) -> String {
         if !to_lowercase && byte >= 97 && byte <= 122 {
             byte = byte - 32
         }
-        push(bytes, byte)
+        bytes.push(byte)
         index = index + 1
     }
     RawString::from_bytes(bytes)
@@ -519,11 +519,11 @@ fn __core_string_join_impl(parts: Vec<String>, separator: String) -> String {
     if part_count == 0 {
         return String_from("")
     }
-    let mut out = parts.get_unchecked(0)
+    let mut out = get_unchecked(parts, 0)
     let mut index = 1
     while index < part_count {
         out = concat(out, separator)
-        out = concat(out, parts.get_unchecked(index))
+        out = concat(out, get_unchecked(parts, index))
         index = index + 1
     }
     out
@@ -621,14 +621,14 @@ impl String {
         while index < byte_len {
             let width = __core_string_utf8_width_vec_impl(bytes, index)
             if width == 0 {
-                push(result, 239)
-                push(result, 191)
-                push(result, 189)
+                result.push(239)
+                result.push(191)
+                result.push(189)
                 index = index + 1
             } else {
                 let mut offset = 0
                 while offset < width {
-                    push(result, bytes.get_unchecked(index + offset))
+                    result.push(get_unchecked(bytes, index + offset))
                     offset = offset + 1
                 }
                 index = index + width
@@ -649,7 +649,7 @@ impl String {
             }
             let mut offset = 0
             while offset < width {
-                push(result, bytes.get_unchecked(index + offset))
+                result.push(get_unchecked(bytes, index + offset))
                 offset = offset + 1
             }
             index = index + width
@@ -814,7 +814,7 @@ impl String {
         let byte_len = __core_string_len_bytes_impl(self)
         let mut index = 0
         while index < byte_len {
-            push(result, __core_string_char_at_impl(self, index))
+            result.push(__core_string_char_at_impl(self, index))
             index = index + 1
         }
         result

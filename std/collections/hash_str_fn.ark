@@ -175,7 +175,7 @@ fn hashmap_str_fn_keys(m: HashMap<String, fn(i32) -> i32>) -> Vec<String> {
     let mut i: i32 = 0
     while i < cap {
         if __hm_sf_get_flag(m, i) == 1 {
-            push(result, __hm_sf_get_key(m, i))
+            result.push(__hm_sf_get_key(m, i))
         }
         i = i + 1
     }
@@ -190,7 +190,7 @@ fn hashmap_str_fn_values(m: HashMap<String, fn(i32) -> i32>) -> Vec<fn(i32) -> i
     let mut i: i32 = 0
     while i < cap {
         if __hm_sf_get_flag(m, i) == 1 {
-            push(result, __hm_sf_get_val(m, i))
+            result.push(__hm_sf_get_val(m, i))
         }
         i = i + 1
     }
@@ -205,7 +205,7 @@ fn hashmap_str_fn_entries(m: HashMap<String, fn(i32) -> i32>) -> Vec<(String, fn
     let mut i: i32 = 0
     while i < cap {
         if __hm_sf_get_flag(m, i) == 1 {
-            push(result, (__hm_sf_get_key(m, i), __hm_sf_get_val(m, i)))
+            result.push((__hm_sf_get_key(m, i), __hm_sf_get_val(m, i)))
         }
         i = i + 1
     }
@@ -348,7 +348,7 @@ fn hashmap_str_fn_retain(mut map: HashMap<String, fn(i32) -> i32>, keep: fn((Str
         let key: String = keys.get_unchecked(index)
         let value: fn(i32) -> i32 = values.get_unchecked(index)
         if keep((key, value)) == false {
-            push(drop_indices, index)
+            drop_indices.push(index)
         }
         index = index + 1
     }

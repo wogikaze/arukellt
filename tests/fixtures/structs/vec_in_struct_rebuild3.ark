@@ -8,10 +8,10 @@ struct Holder {
 
 fn main() {
     let mut h = Holder { name: String_from("test"), items: Vec::new<String>() }
-    h = Holder { name: h.name, items: push(h.items, String_from("alpha")) }
-    h = Holder { name: h.name, items: push(h.items, String_from("beta")) }
-    h = Holder { name: h.name, items: push(h.items, String_from("gamma")) }
-    Stdio::println(h.items.get_unchecked(0))
-    Stdio::println(h.items.get_unchecked(1))
-    Stdio::println(h.items.get_unchecked(2))
+    h = Holder { name: h.name, items: h.items.push(String_from("alpha")) }
+    h = Holder { name: h.name, items: h.items.push(String_from("beta")) }
+    h = Holder { name: h.name, items: h.items.push(String_from("gamma")) }
+    Stdio::println(get_unchecked(h.items, 0))
+    Stdio::println(get_unchecked(h.items, 1))
+    Stdio::println(get_unchecked(h.items, 2))
 }

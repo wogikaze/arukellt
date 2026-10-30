@@ -45,10 +45,10 @@ fn tokenize(source: String) -> Vec<Token> {
     while !done {
         let tok = next_token(lex)
         if token_state::Token_kind(tok) == tokens::TK_EOF() {
-            push(tokens, tok)
+            tokens.push(tok)
             done = true
         } else {
-            push(tokens, tok)
+            tokens.push(tok)
         }
     }
     tokens

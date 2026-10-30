@@ -13,7 +13,7 @@
 //
 // 失敗時も trap せず、WAT コメント `;; GAP:` を差し込んで未対応箇所を残す。
 
-use std::prelude::{push, String_from}
+use std::prelude::{get_unchecked, String_from}
 
 // ---------------------------------------------------------------------------
 // 定数
@@ -78,7 +78,7 @@ struct Out {
 }
 
 fn put(mut o: Out, depth: i32, text: String) {
-    push(o.lines, indent_of(depth).concat(text))
+    o.lines.push(indent_of(depth).concat(text))
 }
 
 fn put_gap(mut o: Out, depth: i32, message: String) {
@@ -133,7 +133,7 @@ fn read_byte(mut r: Rd) -> i32 {
     if r.p >= r.n {
         return 0
     }
-    let v: i32 = r.b.get_unchecked(r.p)
+    let v: i32 = get_unchecked(r.b, r.p)
     r.p = r.p + 1
     return v
 }
@@ -142,7 +142,7 @@ fn peek_byte(r: Rd) -> i32 {
     if r.p >= r.n {
         return -1
     }
-    return r.b.get_unchecked(r.p)
+    return get_unchecked(r.b, r.p)
 }
 
 fn skip_bytes(mut r: Rd, count: i32) {
@@ -271,7 +271,7 @@ fn quoted_bytes(mut r: Rd, count: i32) -> String {
     let mut parts: Vec<String> = Vec::new<String>()
     let mut i: i32 = 0
     while i < count && r.p < r.n {
-        push(parts, escape_byte(read_byte(r)))
+        parts.push(escape_byte(read_byte(r)))
         i = i + 1
     }
     return "\"".concat(parts.join(String_from("")).concat("\""))
@@ -357,13 +357,13 @@ fn u64_hex(v: i64) -> String {
     let mut digits: Vec<String> = Vec::new<String>()
     let mut x: i64 = v
     while x > 0i64 {
-        push(digits, hex_digit(__intrinsic_i64_to_i32(x & 15i64)))
+        digits.push(hex_digit(__intrinsic_i64_to_i32(x & 15i64)))
         x = x >> 4i64
     }
     let mut reversed: Vec<String> = Vec::new<String>()
     let mut i: i32 = digits.len() - 1
     while i >= 0 {
-        push(reversed, digits.get_unchecked(i))
+        reversed.push(get_unchecked(digits, i))
         i = i - 1
     }
     return reversed.join(String_from(""))
@@ -373,7 +373,7 @@ fn u64_hex_pad(v: i64, digits: i32) -> String {
     let mut out: Vec<String> = Vec::new<String>()
     let mut i: i32 = digits - 1
     while i >= 0 {
-        push(out, hex_digit(__intrinsic_i64_to_i32((v >> __intrinsic_i32_to_i64(i * 4)) & 15i64)))
+        out.push(hex_digit(__intrinsic_i64_to_i32((v >> __intrinsic_i32_to_i64(i * 4)) & 15i64)))
         i = i - 1
     }
     return out.join(String_from(""))
@@ -689,7 +689,7 @@ fn const_expr_parts(mut r: Rd) -> Vec<String> {
             if text == "" {
                 done = true
             } else {
-                push(parts, text)
+                parts.push(text)
             }
         }
     }
@@ -703,7 +703,7 @@ fn const_expr_text(mut r: Rd) -> String {
         return "(i32.const 0)"
     }
     if parts.len() == 1 {
-        return "(".concat(parts.get_unchecked(0)).concat(")")
+        return "(".concat(get_unchecked(parts, 0)).concat(")")
     }
     return parts.join(String_from(" "))
 }
@@ -1658,7 +1658,7 @@ fn instr_text(mut r: Rd) -> String {
 
 // 未対応 opcode の説明文（プレフィックス付きならサブオペコードも出す）。
 fn opcode_label(b: Vec<i32>, start: i32) -> String {
-    let op: i32 = b.get_unchecked(start)
+    let op: i32 = get_unchecked(b, start)
     if op == DISASM_PREFIX_GC || op == DISASM_PREFIX_MISC || op == DISASM_PREFIX_SIMD || op == DISASM_PREFIX_ATOMIC {
         return opcode_text(op).concat("/").concat(text_u32(u32_at(b, start + 1)))
     }
@@ -1671,7 +1671,7 @@ fn u32_at(b: Vec<i32>, start: i32) -> i32 {
     let mut p: i32 = start
     let mut i: i32 = 0
     while i < 5 && p < b.len() {
-        let v: i32 = b.get_unchecked(p)
+        let v: i32 = get_unchecked(b, p)
         p = p + 1
         result = result | ((v & 0x7f) << shift)
         shift = shift + 7
@@ -1770,7 +1770,7 @@ fn read_function_section(mut r: Rd) -> Vec<i32> {
     let mut types: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < count && r.p < r.n {
-        push(types, read_u32(r))
+        types.push(read_u32(r))
         i = i + 1
     }
     return types
@@ -1968,7 +1968,7 @@ fn emit_code_section(mut r: Rd, mut o: Out, func_types: Vec<i32>) {
         }
         let mut typeidx: i32 = 0
         if i < func_types.len() {
-            typeidx = func_types.get_unchecked(i)
+            typeidx = get_unchecked(func_types, i)
         }
         put(o, 1, "(func (type ".concat(text_u32(typeidx)).concat(")").concat(locals_text(r)))
         emit_body(r, o, body_end)
@@ -1993,7 +1993,7 @@ fn locals_text(mut r: Rd) -> String {
         let vt: String = read_valtype_text(r)
         let mut j: i32 = 0
         while j < count && r.p < r.n {
-            push(parts, vt)
+            parts.push(vt)
             j = j + 1
         }
         i = i + 1
@@ -2009,16 +2009,16 @@ fn header_is_valid(b: Vec<i32>, n: i32) -> bool {
     if n < 8 {
         return false
     }
-    if b.get_unchecked(0) != 0x00 || b.get_unchecked(1) != 0x61 {
+    if get_unchecked(b, 0) != 0x00 || get_unchecked(b, 1) != 0x61 {
         return false
     }
-    if b.get_unchecked(2) != 0x73 || b.get_unchecked(3) != 0x6d {
+    if get_unchecked(b, 2) != 0x73 || get_unchecked(b, 3) != 0x6d {
         return false
     }
-    if b.get_unchecked(4) != 0x01 || b.get_unchecked(5) != 0x00 {
+    if get_unchecked(b, 4) != 0x01 || get_unchecked(b, 5) != 0x00 {
         return false
     }
-    if b.get_unchecked(6) != 0x00 || b.get_unchecked(7) != 0x00 {
+    if get_unchecked(b, 6) != 0x00 || get_unchecked(b, 7) != 0x00 {
         return false
     }
     return true

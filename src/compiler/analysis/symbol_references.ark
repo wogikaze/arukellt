@@ -32,7 +32,7 @@ pub fn collect_semantic_references(text: String, offset: i32) -> Vec<ReferenceLo
     while di < dn {
         let site = ref_sites::decl_site_at(ctx, di)
         if ref_record::decl_site_decl_index(site) == target {
-            push(out, ReferenceLocation_new(ref_record::decl_site_start(site), ref_record::decl_site_end(site)))
+            out.push(ReferenceLocation_new(ref_record::decl_site_start(site), ref_record::decl_site_end(site)))
         }
         di = di + 1
     }
@@ -41,7 +41,7 @@ pub fn collect_semantic_references(text: String, offset: i32) -> Vec<ReferenceLo
     while ui < un {
         let site = ref_sites::use_site_at(ctx, ui)
         if ref_record::use_site_decl_index(site) == target {
-            push(out, ReferenceLocation_new(ref_record::use_site_start(site), ref_record::use_site_end(site)))
+            out.push(ReferenceLocation_new(ref_record::use_site_start(site), ref_record::use_site_end(site)))
         }
         ui = ui + 1
     }

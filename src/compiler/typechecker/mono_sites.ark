@@ -17,6 +17,6 @@ fn record_mono_call_site(mut env: TypeEnv, span_start: i32, fn_name: String, man
     }
     contract_env_mono_record::type_env_push_mono_call_site(env, contract_mono::MonoCallSite_new(span_start, fn_name.clone(), mangled_name.clone()))
     let mut marker_args = Vec::new<TypeInfo>()
-    push(marker_args, simple_type(0 - span_start - 1000))
+    marker_args.push(simple_type(0 - span_start - 1000))
     contract_env_mono_record::type_env_push_mono_instance(env, contract_mono::MonoInstance_new(fn_name.clone(), mangled_name, marker_args))
 }

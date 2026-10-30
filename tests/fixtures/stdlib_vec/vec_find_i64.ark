@@ -23,9 +23,9 @@ fn main() {
     let a: i64 = 50i64
     let b: i64 = 100i64
     let c: i64 = 150i64
-    push(v, a)
-    push(v, b)
-    push(v, c)
+    v.push(a)
+    v.push(b)
+    v.push(c)
     let result = find_hundred(v)
     match result {
         Option::Some(val) => Test::assert_eq_i64(val, 100i64),

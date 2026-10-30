@@ -1,6 +1,4 @@
-use std::prelude::push
-
 fn main() {
-    let mut values: Vec<i32> = Vec::new<i32>()
-    push(values, 1)
+    let values: Vec<i32> = Vec::new<i32>()
+    let _first = get(values, 0)
 }

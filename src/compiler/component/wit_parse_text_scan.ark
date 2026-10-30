@@ -105,13 +105,13 @@ fn wit_split_csv_items_txt(inner: String) -> Vec<String> {
             depth = depth - 1
         }
         if ch == 44 && depth == 0 {
-            push(items, wit_trim_txt(inner.slice(start, i)))
+            items.push(wit_trim_txt(inner.slice(start, i)))
             start = i + 1
         }
         i = i + 1
     }
     if start < n {
-        push(items, wit_trim_txt(inner.slice(start, n)))
+        items.push(wit_trim_txt(inner.slice(start, n)))
     }
     items
 }

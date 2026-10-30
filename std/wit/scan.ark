@@ -94,13 +94,13 @@ impl WitText {
                 depth = depth - 1
             }
             if ch == 44 && depth == 0 {
-                push(items, WitText::trim(inner.slice(start, i)))
+                items.push(WitText::trim(inner.slice(start, i)))
                 start = i + 1
             }
             i = i + 1
         }
         if start < n {
-            push(items, WitText::trim(inner.slice(start, n)))
+            items.push(WitText::trim(inner.slice(start, n)))
         }
         items
     }

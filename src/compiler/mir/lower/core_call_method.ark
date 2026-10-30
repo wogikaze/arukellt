@@ -2,10 +2,13 @@ use mir::lower::binary_cast
 use mir::lower::call_arg_i64
 use mir::lower::call_rewrite_hashmap
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_fn_index
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_aggregate
+use mir::lower::core_expr_shape_atoms
 use mir::lower::core_expr_shape_calls
 use mir::lower::core_expr_shape_ops
+use mir::lower::core_names
 use mir::inst_local_get
 use mir::lower::method
 
@@ -68,6 +71,7 @@ fn lower_core_method_arg_indices(
         }
         let arg_is_scalar_const = method::mir_method_arg_needs_repush_before_field_access(ctx, method_arg_idx)
         if (arg_is_composed && method_arg_idx >= 0) ||
+        mir_core_method_arg_is_materialized_const(ctx, method_arg_expr) ||
         method::mir_method_arg_leaves_no_stack(ctx, method_arg_idx) {
             ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(method_arg_idx))
         }
@@ -91,6 +95,20 @@ fn lower_core_method_arg_indices(
     indices.push(first_method_arg_idx)
     indices.push(last_method_arg_idx)
     indices
+}
+
+// Mirror of body_method::mir_method_arg_is_materialized_const for the CoreHIR
+// path: a module constant lowers through its accessor call and is materialized
+// in a local, so the method operand stack is one value short without a reload
+// (`v.push(K)` on the linear target).
+fn mir_core_method_arg_is_materialized_const(ctx: LowerCtx, arg_expr: CoreHirExpr) -> bool {
+    if !core_expr_shape_atoms::mir_core_expr_is_ident(arg_expr) {
+        return false
+    }
+    if core_names::mir_core_lookup_local(ctx, arg_expr) >= 0 {
+        return false
+    }
+    ctx_fn_index::ctx_is_const_name(ctx, core_expr_shape_accessors::mir_core_expr_text(arg_expr))
 }
 
 // Leading-shape mirror of method::mir_expr_leads_with_field_access for the

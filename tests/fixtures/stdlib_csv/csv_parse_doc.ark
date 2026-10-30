@@ -7,8 +7,8 @@ fn main() {
         Result::Err(e) => Stdio::println(e),
     }
     let mut rows = Vec::new<Vec<String>>()
-    push(rows, csv::Csv::parse_row("x,y"))
-    push(rows, csv::Csv::parse_row("1,2"))
+    rows.push(csv::Csv::parse_row("x,y"))
+    rows.push(csv::Csv::parse_row("1,2"))
     Stdio::println(csv::Csv::stringify(rows))
 }
 // csv_parse row count

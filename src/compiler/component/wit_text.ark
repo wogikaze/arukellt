@@ -27,7 +27,7 @@ fn emit_wit_imports(wit_paths: Vec<String>, decls: Vec<AstNode>) -> String {
     let bindings = wit_import_bind::wit_collect_bindings(wit_paths, decls)
     let mut out = String_new()
     for i in 0..bindings.len() {
-        let binding = bindings.get_unchecked(i)
+        let binding = get_unchecked(bindings, i)
         let import_id = wit_import_bind::wit_import_binding_wit_import_id(binding)
         if import_id.len() > 0 {
             let line = "    import ".concat(import_id.concat(";\n"))
@@ -50,9 +50,9 @@ fn emit_wit_func_exports_with_world(decls: Vec<AstNode>, world: String) -> Strin
     if !world_spec::world_spec_is_cli_command(world.clone()) { return emit_wit_func_exports(decls) }
     let mut out = ""
     for i in 0..decls.len() {
-        let decl = wit_decl::wit_decl_from_node(decls.get_unchecked(i))
+        let decl = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
         if wit_decl::wit_decl_is_func(decl) {
-            let f = wit_decl::wit_func_from_node(decls.get_unchecked(i))
+            let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
             let fname = wit_decl::wit_func_name(f)
             if fname.clone().eq("main") || fname.clone().eq("_start") {
                 let export_key = "    export wasi:cli/run@0.2.0;\n"
@@ -78,9 +78,9 @@ fn emit_wit_func_exports_with_world(decls: Vec<AstNode>, world: String) -> Strin
 fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
     let mut out = ""
     for i in 0..decls.len() {
-        let decl = wit_decl::wit_decl_from_node(decls.get_unchecked(i))
+        let decl = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
         if wit_decl::wit_decl_is_func(decl) {
-            let f = wit_decl::wit_func_from_node(decls.get_unchecked(i))
+            let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
             let fname = wit_decl::wit_func_name(f)
             if wit_decl::wit_func_is_export(f) {
                 out = out.concat("  export ")
@@ -126,10 +126,10 @@ fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
 fn collect_export_roots(decls: Vec<AstNode>) -> Vec<String> {
     let mut export_roots = Vec::new<String>()
     for i in 0..decls.len() {
-        let decl = wit_decl::wit_decl_from_node(decls.get_unchecked(i))
+        let decl = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
         if wit_decl::wit_decl_is_func(decl) {
-            let f = wit_decl::wit_func_from_node(decls.get_unchecked(i))
-            if wit_decl::wit_func_is_export(f) { push(export_roots, wit_decl::wit_func_name(f)) }
+            let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
+            if wit_decl::wit_func_is_export(f) { export_roots.push(wit_decl::wit_func_name(f)) }
         }
     }
     export_roots
@@ -137,13 +137,13 @@ fn collect_export_roots(decls: Vec<AstNode>) -> Vec<String> {
 
 fn string_to_bytes(text: String) -> Vec<i32> {
     let mut bytes = Vec::new<i32>()
-    for i in 0..text.len() { push(bytes, text.byte_at(i)) }
+    for i in 0..text.len() { bytes.push(text.byte_at(i)) }
     bytes
 }
 
 fn validate_wit_import_surface(paths: Vec<String>) -> String {
     for i in 0..paths.len() {
-        let path = paths.get_unchecked(i)
+        let path = get_unchecked(paths, i)
         let read_result = Fs::read_to_string(path.clone())
         match read_result {
             Result::Err(e) => {

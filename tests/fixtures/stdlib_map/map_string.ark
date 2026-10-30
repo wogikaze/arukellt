@@ -7,9 +7,9 @@ fn to_upper_wrapper(s: String) -> String {
 
 fn main() {
     let mut v: Vec<String> = Vec::new<String>()
-    push(v, String_from("hello"))
-    push(v, String_from("world"))
-    push(v, String_from("foo"))
+    v.push(String_from("hello"))
+    v.push(String_from("world"))
+    v.push(String_from("foo"))
     let result: Vec<String> = v.iter().map(to_upper_wrapper).collect()
     let mut i: i32 = 0
     while i < result.len() {

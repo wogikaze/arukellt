@@ -64,8 +64,8 @@ fn free_first_leaf_name(node: Node) -> String {
 fn main() {
     let first = Node::Leaf(String_from("a"))
     let mut items = Vec::new<Node>()
-    push(items, first)
-    push(items, Node::Leaf(String_from("b")))
+    items.push(first)
+    items.push(Node::Leaf(String_from("b")))
     let branch = Node::Branch(String_from("root"), items)
 
     assert(branch.child_count() == 2)

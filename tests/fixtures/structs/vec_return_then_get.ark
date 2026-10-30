@@ -10,7 +10,7 @@ fn empty_items() -> Vec<Item> {
 
 fn make_items() -> Vec<Item> {
     let mut items: Vec<Item> = empty_items()
-    push(items, Item { n: 7 })
+    items.push(Item { n: 7 })
     items
 }
 

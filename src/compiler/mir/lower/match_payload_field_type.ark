@@ -212,12 +212,12 @@ fn mir_split_colon_type_args(inner: String) -> Vec<String> {
                 i = i + 2
                 continue
             }
-            push(args, inner.clone().slice(seg_start, i))
+            args.push(inner.clone().slice(seg_start, i))
             seg_start = i + 1
         }
         i = i + 1
     }
-    push(args, inner.clone().slice(seg_start, n))
+    args.push(inner.clone().slice(seg_start, n))
     args
 }
 

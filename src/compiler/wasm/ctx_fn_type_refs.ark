@@ -44,7 +44,7 @@ fn SelfEmitCtx_param_ref_type(ctx: SelfEmitCtx, type_idx: i32, param_idx: i32) -
     if type_idx < 0 || type_idx >= canon_sigs.len() {
         return 0 - 1
     }
-    let sig = canon_sigs.get_unchecked(type_idx)
+    let sig = get_unchecked(canon_sigs, type_idx)
     if !canon_sig_is_fn_type(sig.clone()) {
         return 0 - 1
     }
@@ -53,7 +53,7 @@ fn SelfEmitCtx_param_ref_type(ctx: SelfEmitCtx, type_idx: i32, param_idx: i32) -
         return 0 - 1
     }
     sections_types_emit::sig_ref_null_type_index(
-        segs.get_unchecked(param_idx),
+        get_unchecked(segs, param_idx),
         ctx_record::SelfEmitCtx_gc_type_base(ctx),
         module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
     )
@@ -65,7 +65,7 @@ fn SelfEmitCtx_result_ref_type(ctx: SelfEmitCtx, type_idx: i32) -> i32 {
     if type_idx < 0 || type_idx >= canon_sigs.len() {
         return 0 - 1
     }
-    let sig = canon_sigs.get_unchecked(type_idx)
+    let sig = get_unchecked(canon_sigs, type_idx)
     if !canon_sig_is_fn_type(sig.clone()) {
         return 0 - 1
     }
@@ -105,14 +105,11 @@ fn SelfEmitCtx_fn_sig_param_ref_types(ctx: SelfEmitCtx, f: MirFunction) -> Vec<i
     let struct_canon_idxs = module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
     let mut i = 0
     while i < segs.len() {
-        push(
-            out,
-            sections_types_emit::sig_ref_null_type_index(
-                segs.get_unchecked(i),
+        out.push(sections_types_emit::sig_ref_null_type_index(
+                get_unchecked(segs, i),
                 gc_type_base,
                 struct_canon_idxs
-            )
-        )
+            ))
         i = i + 1
     }
     out

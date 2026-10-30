@@ -6,18 +6,18 @@ fn square(x: f64) -> f64 {
 
 fn main() {
     let mut v: Vec<f64> = Vec::new<f64>()
-    push(v, 2.0)
-    push(v, 3.0)
-    push(v, 4.0)
+    v.push(2.0)
+    v.push(3.0)
+    v.push(4.0)
     let mut squared: Vec<f64> = Vec::new<f64>()
     let mut map_index: i32 = 0
     while map_index < v.len() {
-        push(squared, square(v.get_unchecked(map_index)))
+        squared.push(square(get_unchecked(v, map_index)))
         map_index = map_index + 1
     }
     let mut i: i32 = 0
     while i < squared.len() {
-        Stdio::println((squared.get_unchecked(i)).to_string())
+        Stdio::println((get_unchecked(squared, i)).to_string())
         i = i + 1
     }
 }

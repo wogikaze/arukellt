@@ -58,9 +58,9 @@ pub fn release_body_expr_subtree(exprs: Vec<CoreHirExpr>, root: i32) {
         return
     }
     let mut pending = Vec::new<i32>()
-    push(pending, root)
+    pending.push(root)
     while pending.len() > 0 {
-        let current = match pop(pending) {
+        let current = match pending.pop() {
             Some(value) => value,
             None => 0 - 1,
         }
@@ -71,7 +71,7 @@ pub fn release_body_expr_subtree(exprs: Vec<CoreHirExpr>, root: i32) {
         let child_count = expr_raw::corehir_expr_child_count(expr)
         let mut child_index = 0
         while child_index < child_count {
-            push(pending, expr_raw::corehir_expr_child(expr, child_index))
+            pending.push(expr_raw::corehir_expr_child(expr, child_index))
             child_index = child_index + 1
         }
         expr_raw::corehir_expr_release_payload(expr)

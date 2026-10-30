@@ -37,14 +37,11 @@ fn sig_reg_register_fn(
     // duplicate TypeInfo/TypedFn structs in the flat selfhost overlay.
     let params = sig_reg_params_from_fn_info(sig_source, fn_info_index, table)
     let mut returns = Vec::new<MirValueType>()
-    push(
-        returns,
-        type_info_to_mir_value::vt_to_mir_value(
+    returns.push(type_info_to_mir_value::vt_to_mir_value(
             table,
             fn_index_source::mir_fn_index_source_typed_return_vt(source, typed_index),
             fn_index_source::mir_fn_index_source_typed_return_type_name(source, typed_index)
-        )
-    )
+        ))
     let receiver = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
     let entry = signature_entry::SignatureEntry_new(
         function_id::FunctionId_new(0),
@@ -102,10 +99,7 @@ fn sig_reg_register_fn_leaf_instance(
         return_vt = return_typeinfo::mir_return_vt_from_type_info(concrete_ret)
         return_type_name = return_typeinfo::mir_return_type_name_from_type_info(concrete_ret)
     }
-    push(
-        returns,
-        type_info_to_mir_value::vt_to_mir_value(table, return_vt, return_type_name)
-    )
+    returns.push(type_info_to_mir_value::vt_to_mir_value(table, return_vt, return_type_name))
     let mono_id = mono_instance_build::mono_instance_table_register_from_instances(
         mono_table,
         table,
@@ -163,7 +157,7 @@ fn sig_reg_register_method(
             return_vt = fn_index_method_return_type::method_return_vt_from_type_name(return_type_name.clone())
         }
     }
-    push(returns, type_info_to_mir_value::vt_to_mir_value(table, return_vt, return_type_name))
+    returns.push(type_info_to_mir_value::vt_to_mir_value(table, return_vt, return_type_name))
     let mono_id = mono_instance_build::mono_instance_table_register_from_instances(
         mono_table,
         table,
@@ -231,7 +225,7 @@ fn sig_reg_params_from_fn_info_mono(
             type_name.len() > 0 {
                 vt = fn_index_method_return_type::method_return_vt_from_type_name(type_name.clone())
             }
-            push(result, type_info_to_mir_value::vt_to_mir_value(table, vt, type_name))
+            result.push(type_info_to_mir_value::vt_to_mir_value(table, vt, type_name))
             pi = pi + 1
         }
         result
@@ -402,7 +396,7 @@ fn sig_reg_params_from_fn_info_mono(
             } else if type_name.len() > 0 && !mono_suffix_parse::is_mono_type_var_name(type_name.clone()) {
                 vt = fn_index_method_return_type::method_return_vt_from_type_name(type_name.clone())
             }
-            push(result, type_info_to_mir_value::vt_to_mir_value(table, vt, type_name))
+            result.push(type_info_to_mir_value::vt_to_mir_value(table, vt, type_name))
             pi = pi + 1
         }
         result

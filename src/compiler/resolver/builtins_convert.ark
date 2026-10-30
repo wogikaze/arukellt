@@ -5,5 +5,5 @@
 // std::host::stdio::Stdio::read_stdin.
 
 fn push_convert_builtin_symbol_names(mut names: Vec<String>) {
-    push(names, "__intrinsic_stdin_read_to_string")
+    names.push("__intrinsic_stdin_read_to_string")
 }

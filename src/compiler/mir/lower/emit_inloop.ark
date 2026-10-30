@@ -69,7 +69,7 @@ fn emit_inloop_start_fn_index(kept: Vec<MirFunction>) -> i32 {
     let mut main_idx = 0 - 1
     let mut mi = 0
     while mi < kept.len() {
-        let f = kept.get_unchecked(mi)
+        let f = get_unchecked(kept, mi)
         if start_names::is_wasm_start_function_name(function_identity::MirFunction_name(f)) {
             main_idx = mi
         }
@@ -83,7 +83,7 @@ fn emit_inloop_needs_start_wrapper(kept: Vec<MirFunction>) -> i32 {
     let mut needs_wrapper = 0
     let mut i = 0
     while i < kept.len() {
-        let f = kept.get_unchecked(i)
+        let f = get_unchecked(kept, i)
         if start_names::is_wasm_start_function_name(function_identity::MirFunction_name(f)) {
             if function_return_view::MirFunction_return_type(f) != 0 {
                 needs_wrapper = 1
@@ -151,12 +151,14 @@ fn emit_inloop_prepare(mut ctx: LowerCtx) {
             module_canon::MirModule_canon_sigs(m)))
     let mut gc_struct_base = 0 - 1
     if module_gc_struct::MirModule_gc_struct_sig_count(m) > 0 {
-        gc_struct_base = module_gc_struct::MirModule_gc_struct_canon_idxs(m).get_unchecked(0)
+        gc_struct_base = get_unchecked(
+            module_gc_struct::MirModule_gc_struct_canon_idxs(m), 0)
     }
     wasm_context::emit_wasm_context_set_gc_struct_base(ectx, gc_struct_base)
     let mut gc_enum_variant_base = 0 - 1
     if module_gc_enum::MirModule_gc_enum_variant_sig_count(m) > 0 {
-        gc_enum_variant_base = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(m).get_unchecked(0)
+        gc_enum_variant_base = get_unchecked(
+            module_gc_enum::MirModule_gc_enum_variant_canon_idxs(m), 0)
     }
     wasm_context::emit_wasm_context_set_gc_enum_variant_base(
         ectx, gc_enum_variant_base)
@@ -207,7 +209,7 @@ fn emit_inloop_disc_hit(disc: NameIndex, name: String) -> bool {
     let variants = callee_spelling::callee_spelling_variants(name.clone())
     let mut vi = 0
     while vi < variants.len() {
-        if name_index::name_index_get(disc, variants.get_unchecked(vi).clone()) >= 0 {
+        if name_index::name_index_get(disc, get_unchecked(variants, vi).clone()) >= 0 {
             return true
         }
         vi = vi + 1
@@ -323,7 +325,7 @@ fn emit_inloop_push(
 ) {
     let mut m = ctx.module
     let mut art = module_emit_artifacts::MirModule_emit_artifacts(m)
-    push(art.body_bytes, Vec::new<i32>())
+    art.body_bytes.push(Vec::new<i32>())
     if !emittable {
         return
     }
@@ -335,7 +337,7 @@ fn emit_inloop_push(
     code_body::emit_function_body(
         body_w, func, ectx,
         emit_spec::mir_lower_emit_spec_bindings(spec))
-    set(art.body_bytes, mir_index, writer_core::writer_bytes(body_w))
+    art.body_bytes.set(mir_index, writer_core::writer_bytes(body_w))
     // Arena reset (#851 Phase 3): the emitted body is durable as wasm
     // bytes now, so its MIR blocks go back to the module pool for the
     // next lowering take. Deferred bodies stay live for the drain.
@@ -365,7 +367,7 @@ fn emit_inloop_drain(
     let fns_for_opt = module_functions::MirModule_functions(module)
     let mut opt_i = art.opt_fn_count
     while opt_i < fns_for_opt.len() {
-        let mut opt_f = fns_for_opt.get_unchecked(opt_i)
+        let mut opt_f = get_unchecked(fns_for_opt, opt_i)
         let mut opt_f = mir_opt::optimize_fn(module, opt_f, opt_level, target.clone())
         module_functions::MirModule_set_function_at(module, opt_i, opt_f)
         opt_i = opt_i + 1
@@ -395,8 +397,8 @@ fn emit_inloop_drain(
     let mut kept = Vec::new<MirFunction>()
     let mut ki = 0
     while ki < fn_count {
-        if marks.len() == 0 || marks.get_unchecked(ki) != 0 {
-            push(kept, functions.get_unchecked(ki))
+        if marks.len() == 0 || get_unchecked(marks, ki) != 0 {
+            kept.push(get_unchecked(functions, ki))
         }
         ki = ki + 1
     }
@@ -417,11 +419,11 @@ fn emit_inloop_drain(
     let mut pair_sigs = Vec::new<String>()
     let mut pr = 0
     while pr < art.pair_ref_fn.len() {
-        let owner = art.pair_ref_fn.get_unchecked(pr)
-        if marks.len() == 0 || marks.get_unchecked(owner) != 0 {
+        let owner = get_unchecked(art.pair_ref_fn, pr)
+        if marks.len() == 0 || get_unchecked(marks, owner) != 0 {
             let sig = call_indirect::pair_call_sig_from_hint(
-                art.pair_ref_hint.get_unchecked(pr).clone(),
-                art.pair_ref_vt.get_unchecked(pr),
+                get_unchecked(art.pair_ref_hint, pr).clone(),
+                get_unchecked(art.pair_ref_vt, pr),
                 memory64,
                 gc_names.clone()
             )
@@ -429,13 +431,13 @@ fn emit_inloop_drain(
                 let mut seen = false
                 let mut si = 0
                 while si < pair_sigs.len() {
-                    if sig.clone().eq(pair_sigs.get_unchecked(si).clone()) {
+                    if sig.clone().eq(get_unchecked(pair_sigs, si).clone()) {
                         seen = true
                     }
                     si = si + 1
                 }
                 if !seen {
-                    push(pair_sigs, sig)
+                    pair_sigs.push(sig)
                 }
             }
         }
@@ -449,8 +451,8 @@ fn emit_inloop_drain(
     let mut late_kept = Vec::new<MirFunction>()
     let mut li = art.opt_fn_count
     while li < fn_count {
-        if marks.len() == 0 || marks.get_unchecked(li) != 0 {
-            push(late_kept, functions.get_unchecked(li))
+        if marks.len() == 0 || get_unchecked(marks, li) != 0 {
+            late_kept.push(get_unchecked(functions, li))
         }
         li = li + 1
     }
@@ -463,17 +465,17 @@ fn emit_inloop_drain(
     )
     let mut lsi = 0
     while lsi < late_pair_sigs.len() {
-        let late_sig = late_pair_sigs.get_unchecked(lsi)
+        let late_sig = get_unchecked(late_pair_sigs, lsi)
         let mut seen = false
         let mut si = 0
         while si < pair_sigs.len() {
-            if late_sig.clone().eq(pair_sigs.get_unchecked(si).clone()) {
+            if late_sig.clone().eq(get_unchecked(pair_sigs, si).clone()) {
                 seen = true
             }
             si = si + 1
         }
         if !seen {
-            push(pair_sigs, late_sig)
+            pair_sigs.push(late_sig)
         }
         lsi = lsi + 1
     }
@@ -520,12 +522,12 @@ fn emit_inloop_drain(
     wasm_context::emit_wasm_context_set_gc_type_base(ectx, sections_types::first_gc_type_index(module_canon::MirModule_canon_sigs(module)))
     let mut gc_struct_base = 0 - 1
     if module_gc_struct::MirModule_gc_struct_sig_count(module) > 0 {
-        gc_struct_base = module_gc_struct::MirModule_gc_struct_canon_idxs(module).get_unchecked(0)
+        gc_struct_base = get_unchecked(module_gc_struct::MirModule_gc_struct_canon_idxs(module), 0)
     }
     wasm_context::emit_wasm_context_set_gc_struct_base(ectx, gc_struct_base)
     let mut gc_enum_variant_base = 0 - 1
     if module_gc_enum::MirModule_gc_enum_variant_sig_count(module) > 0 {
-        gc_enum_variant_base = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(module).get_unchecked(0)
+        gc_enum_variant_base = get_unchecked(module_gc_enum::MirModule_gc_enum_variant_canon_idxs(module), 0)
     }
     wasm_context::emit_wasm_context_set_gc_enum_variant_base(ectx, gc_enum_variant_base)
     wasm_context::emit_wasm_context_finalize_gc_indexes(ectx)
@@ -577,15 +579,15 @@ fn emit_inloop_drain(
     let mut fi = 0
     while fi < fn_count {
         while ectx.body_bytes.len() <= fi {
-            push(ectx.body_bytes, Vec::new<i32>())
+            ectx.body_bytes.push(Vec::new<i32>())
         }
-        if marks.len() == 0 || marks.get_unchecked(fi) != 0 {
-            if ectx.body_bytes.get_unchecked(fi).len() == 0 {
-                let mut f = functions.get_unchecked(fi)
+        if marks.len() == 0 || get_unchecked(marks, fi) != 0 {
+            if get_unchecked(ectx.body_bytes, fi).len() == 0 {
+                let mut f = get_unchecked(functions, fi)
                 ctx_record::SelfEmitCtx_set_current_func_idx(ectx, fi)
                 let mut body_w = writer_core::WasmWriter_with_memory64(memory64)
                 code_body::emit_function_body(body_w, f, ectx, bindings)
-                set(ectx.body_bytes, fi, writer_core::writer_bytes(body_w))
+                ectx.body_bytes.set(fi, writer_core::writer_bytes(body_w))
                 // Arena reset for deferred ctx-pushed bodies (#851 Phase
                 // 3): emitted here, detach now. Late fns (>= opt_fn_count)
                 // never recorded body evidence, so their MIR stays live

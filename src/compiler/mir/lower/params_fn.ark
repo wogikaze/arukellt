@@ -197,33 +197,33 @@ fn mir_param_resolve_no_local_type(mut ctx: LowerCtx, p_type_name: String) -> Ve
     let mut result = Vec::new<String>()
     let tuple_type = aggregate_tuple::tuple_type_name_from_param_alias(ctx, p_type_name.clone())
     if tuple_type.len() > 0 {
-        push(result, tuple_type.clone())
-        push(result, tuple_type.clone())
+        result.push(tuple_type.clone())
+        result.push(tuple_type.clone())
         return result
     }
     // Surface Option:/Result: forms must become option:/result: — never
     // "?Option:..." which makes is_generic_function emit unreachable bodies.
     let normalized = mir_param_normalize_option_result_type_name(p_type_name.clone())
     if normalized.len() > 0 {
-        push(result, normalized.clone())
-        push(result, normalized.clone())
+        result.push(normalized.clone())
+        result.push(normalized.clone())
         return result
     }
     if ctx_struct_layout::ctx_is_registered_struct_type(ctx, p_type_name.clone()) {
-        push(result, p_type_name.clone())
-        push(result, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, p_type_name.clone()))
+        result.push(p_type_name.clone())
+        result.push(ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, p_type_name.clone()))
         return result
     }
     if ctx_struct_layout::ctx_is_registered_enum_type(ctx, p_type_name.clone()) {
         let mt = String_from("enum:").concat(p_type_name)
-        push(result, mt)
-        push(result, mt.clone())
+        result.push(mt)
+        result.push(mt.clone())
         return result
     }
     if !binary_type_names::mir_is_builtin_type_name(p_type_name.clone()) && p_type_name.len() > 0 {
         let mt = String_from("?").concat(p_type_name.clone())
-        push(result, mt)
-        push(result, mt.clone())
+        result.push(mt)
+        result.push(mt.clone())
         return result
     }
     result

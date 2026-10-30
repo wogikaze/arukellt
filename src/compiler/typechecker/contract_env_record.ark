@@ -70,7 +70,7 @@ struct TypeEnv {
 
 fn TypeEnv_new() -> TypeEnv {
     let mut var_id_box = Vec::new<i32>()
-    push(var_id_box, 0)
+    var_id_box.push(0)
     TypeEnv {
         vars: Vec::new<TypeVar>(),
         deferred_len_receivers: Vec::new<DeferredLenReceiver>(),
@@ -109,18 +109,18 @@ fn TypeEnv_new() -> TypeEnv {
 }
 
 fn type_env_track_binding(mut env: TypeEnv, name: String, span_start: i32, span_end: i32) {
-    push(env.tracked_binding_names, name)
-    push(env.tracked_binding_spans_start, span_start)
-    push(env.tracked_binding_spans_end, span_end)
-    push(env.tracked_binding_used, 0)
+    env.tracked_binding_names.push(name)
+    env.tracked_binding_spans_start.push(span_start)
+    env.tracked_binding_spans_end.push(span_end)
+    env.tracked_binding_used.push(0)
 }
 
 fn type_env_mark_binding_used(mut env: TypeEnv, name: String) {
     let count = env.tracked_binding_names.len()
     let mut i = 0
     while i < count {
-        if env.tracked_binding_names.get_unchecked(i).eq(name.clone()) {
-            set(env.tracked_binding_used, i, 1)
+        if get_unchecked(env.tracked_binding_names, i).eq(name.clone()) {
+            env.tracked_binding_used.set(i, 1)
             return
         }
         i = i + 1
@@ -139,16 +139,16 @@ fn type_env_release_tracked_bindings(mut env: TypeEnv) {
 // kept on a side table so expression inference can type a bare const ident
 // as its value type instead of a function signature.
 fn type_env_register_const(mut env: TypeEnv, name: String, const_type: TypeInfo) {
-    push(env.const_names, name)
-    push(env.const_types, const_type)
+    env.const_names.push(name)
+    env.const_types.push(const_type)
 }
 
 fn type_env_const_type(env: TypeEnv, name: String) -> TypeInfo {
     let count = env.const_names.len()
     let mut i = 0
     while i < count {
-        if env.const_names.get_unchecked(i).eq(name.clone()) {
-            return env.const_types.get_unchecked(i)
+        if get_unchecked(env.const_names, i).eq(name.clone()) {
+            return get_unchecked(env.const_types, i)
         }
         i = i + 1
     }
@@ -159,7 +159,7 @@ fn type_env_is_const_name(env: TypeEnv, name: String) -> bool {
     let count = env.const_names.len()
     let mut i = 0
     while i < count {
-        if env.const_names.get_unchecked(i).eq(name.clone()) {
+        if get_unchecked(env.const_names, i).eq(name.clone()) {
             return true
         }
         i = i + 1
@@ -171,14 +171,14 @@ fn type_env_finalize_unused_bindings(mut env: TypeEnv) {
     let count = env.tracked_binding_names.len()
     let mut i = 0
     while i < count {
-        if env.tracked_binding_used.get_unchecked(i) == 0 {
-            let name = env.tracked_binding_names.get_unchecked(i).clone()
-            let span_start = env.tracked_binding_spans_start.get_unchecked(i)
-            let span_end = env.tracked_binding_spans_end.get_unchecked(i)
+        if get_unchecked(env.tracked_binding_used, i) == 0 {
+            let name = get_unchecked(env.tracked_binding_names, i).clone()
+            let span_start = get_unchecked(env.tracked_binding_spans_start, i)
+            let span_end = get_unchecked(env.tracked_binding_spans_end, i)
             let msg = "unused binding `".concat(name.concat("`"))
             let span = record::DiagnosticSpan_from_raw(span_start, span_end)
             let warn = diag_mod::Diagnostic_new(codes::DIAG_WARN_UNUSED_BINDING(), diag_mod::SEV_WARNING(), span, msg)
-            push(env.warnings, warn)
+            env.warnings.push(warn)
         }
         i = i + 1
     }

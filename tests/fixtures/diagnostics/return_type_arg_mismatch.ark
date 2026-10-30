@@ -2,7 +2,7 @@ use std::host::stdio::Stdio
 
 fn strs() -> Vec<String> {
     let mut v = Vec::new<i32>()
-    push(v, 7)
+    v.push(7)
     v
 }
 

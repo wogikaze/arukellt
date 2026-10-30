@@ -163,13 +163,13 @@ fn gc_layout_table_entry_index_by_key(table: GcLayoutTable, key: GcLayoutKey) ->
     if raw < 0 || raw >= table.head_by_type_id.len() {
         return gc_layout_table_no_entry()
     }
-    let mut i = table.head_by_type_id.get_unchecked(raw)
+    let mut i = get_unchecked(table.head_by_type_id, raw)
     while i >= 0 {
-        let entry = table.entries.get_unchecked(i)
+        let entry = get_unchecked(table.entries, i)
         if gc_member_key_eq(entry.key.member, key.member) {
             return i
         }
-        i = table.next_same_type_id.get_unchecked(i)
+        i = get_unchecked(table.next_same_type_id, i)
     }
     gc_layout_table_no_entry()
 }
@@ -177,14 +177,14 @@ fn gc_layout_table_entry_index_by_key(table: GcLayoutTable, key: GcLayoutKey) ->
 fn gc_layout_table_link_entry(mut table: GcLayoutTable, key: GcLayoutKey, entry_index: i32) {
     let raw = type_id::TypeId_raw(key.type_id)
     if raw < 0 {
-        push(table.next_same_type_id, gc_layout_table_no_entry())
+        table.next_same_type_id.push(gc_layout_table_no_entry())
         return
     }
     while table.head_by_type_id.len() <= raw {
-        push(table.head_by_type_id, gc_layout_table_no_entry())
+        table.head_by_type_id.push(gc_layout_table_no_entry())
     }
-    push(table.next_same_type_id, table.head_by_type_id.get_unchecked(raw))
-    set(table.head_by_type_id, raw, entry_index)
+    table.next_same_type_id.push(get_unchecked(table.head_by_type_id, raw))
+    table.head_by_type_id.set(raw, entry_index)
 }
 
 fn gc_layout_table_observe_typed_lookup(mut table: GcLayoutTable) {
@@ -228,7 +228,7 @@ fn gc_layout_table_register_key(
         struct_type_idx: struct_type_idx,
         field_layouts: Vec::new<FieldLayout>()
     }
-    push(table.entries, entry)
+    table.entries.push(entry)
     gc_layout_table_link_entry(table, key, entry_index)
     id
 }
@@ -242,7 +242,7 @@ fn gc_layout_table_find_by_key(table: GcLayoutTable, key: GcLayoutKey) -> GcLayo
     if entry_index < 0 {
         return GC_LAYOUT_ID_INVALID()
     }
-    table.entries.get_unchecked(entry_index).id
+    get_unchecked(table.entries, entry_index).id
 }
 
 fn gc_layout_table_entry_by_type_id(table: GcLayoutTable, type_id: TypeId) -> GcLayoutEntry {
@@ -254,7 +254,7 @@ fn gc_layout_table_entry_by_key(table: GcLayoutTable, key: GcLayoutKey) -> GcLay
     if entry_index < 0 {
         return gc_layout_table_missing_entry()
     }
-    table.entries.get_unchecked(entry_index)
+    get_unchecked(table.entries, entry_index)
 }
 
 fn gc_layout_table_missing_entry() -> GcLayoutEntry {
@@ -271,7 +271,7 @@ fn gc_layout_table_entry_by_id(table: GcLayoutTable, id: GcLayoutId) -> GcLayout
     if id.raw < 0 || id.raw >= table.entries.len() {
         return gc_layout_table_missing_entry()
     }
-    table.entries.get_unchecked(id.raw)
+    get_unchecked(table.entries, id.raw)
 }
 
 fn gc_layout_entry_wasm_ref_type(entry: GcLayoutEntry) -> WasmRefType {

@@ -1,6 +1,6 @@
 fn ctx_local_index_push(mut ctx: LowerCtx, name: String, index: i32) {
-    push(ctx.local_names, name.clone())
-    push(ctx.local_indices, index)
+    ctx.local_names.push(name.clone())
+    ctx.local_indices.push(index)
     ctx_local_hash_set(ctx, name, index)
 }
 
@@ -44,7 +44,7 @@ fn ctx_local_hash_clear(mut ctx: LowerCtx) {
     }
     let mut i = 0
     while i < capacity {
-        set(ctx.local_name_buckets, i, 0)
+        ctx.local_name_buckets.set(i, 0)
         i = i + 1
     }
 }
@@ -71,7 +71,7 @@ fn ctx_local_hash_set(mut ctx: LowerCtx, name: String, _value: i32) {
     }
     // Newest stack slot wins, same as scan-from-end. Leave older entries intact
     // so frame snapshots still restore the pre-shadow index.
-    set(ctx.local_name_buckets, slot, ctx.local_names.len())
+    ctx.local_name_buckets.set(slot, ctx.local_names.len())
 }
 
 fn ctx_local_hash_grow(mut ctx: LowerCtx) {
@@ -90,7 +90,7 @@ fn ctx_local_hash_reinsert_all(mut ctx: LowerCtx) {
     while i < count {
         let slot = ctx_local_hash_probe_slot(ctx, ctx.local_names.get_unchecked(i))
         if slot >= 0 {
-            set(ctx.local_name_buckets, slot, i + 1)
+            ctx.local_name_buckets.set(slot, i + 1)
         }
         i = i + 1
     }
@@ -100,7 +100,7 @@ fn ctx_local_hash_fresh_buckets(capacity: i32) -> Vec<i32> {
     let mut buckets = Vec::new<i32>()
     let mut i = 0
     while i < capacity {
-        push(buckets, 0)
+        buckets.push(0)
         i = i + 1
     }
     buckets

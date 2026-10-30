@@ -6,6 +6,7 @@ use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_module
 use mir::lower::ctx_types
+use mir::inst_local_get
 use mir::inst_local_set
 use mir::module_spine
 use mir::typed_mir_compat
@@ -34,7 +35,25 @@ fn mir_convert_print_arg_to_string(mut ctx: LowerCtx, arg: AstNode, arg_idx: i32
     call_arg_print_convert::mir_convert_print_arg_to_string(ctx, arg, arg_idx)
 }
 
-fn mir_stage_call_arg(mut ctx: LowerCtx, mut staged_arg_locals: Vec<i32>, arg_idx: i32) -> i32 {
+fn mir_stage_call_arg(mut ctx: LowerCtx, staged_arg_locals: Vec<i32>, arg_idx: i32) -> i32 {
+    mir_stage_call_arg_mode(ctx, staged_arg_locals, arg_idx, true)
+}
+
+// Staging for a source that was not lowered (a bare local or constant name):
+// no value is on the operand stack, so the copy must emit its own local.get.
+// `local_set_from` would let the emitter's copy peephole consume an earlier
+// producer of the same local that the enclosing call still needs
+// (`v.push(get_unchecked(v, 0))` lost the push receiver).
+fn mir_stage_call_arg_from_local(mut ctx: LowerCtx, staged_arg_locals: Vec<i32>, arg_idx: i32) -> i32 {
+    mir_stage_call_arg_mode(ctx, staged_arg_locals, arg_idx, false)
+}
+
+fn mir_stage_call_arg_mode(
+    mut ctx: LowerCtx,
+    mut staged_arg_locals: Vec<i32>,
+    arg_idx: i32,
+    source_on_stack: bool
+) -> i32 {
     let staged_vt = mir_stage_call_arg_vt(ctx, arg_idx)
     let staged_local = ctx_api_local_alloc::ctx_fresh_local(ctx, staged_vt)
     let staged_type = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
@@ -48,8 +67,15 @@ fn mir_stage_call_arg(mut ctx: LowerCtx, mut staged_arg_locals: Vec<i32>, arg_id
         staged_local,
         ctx_api_local_types::ctx_local_mvt(ctx, arg_idx)
     )
+    if !source_on_stack {
+        // Protect any earlier producer of the same local that the enclosing
+        // call still needs: the explicit get is what the copy peephole
+        // consumes. Keep `local_set_from` so the local-type pass still sees
+        // the source index.
+        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(arg_idx))
+    }
     ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(staged_local, arg_idx))
-    push(staged_arg_locals, staged_local)
+    staged_arg_locals.push(staged_local)
     staged_local
 }
 

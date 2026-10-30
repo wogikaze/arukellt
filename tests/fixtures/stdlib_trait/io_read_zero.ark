@@ -3,8 +3,8 @@ use std::test::Test
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
-    push(data, 1)
-    push(data, 2)
+    data.push(1)
+    data.push(2)
     let mut r: io::Reader = io::Reader::from_bytes(data)
     match r.read(0) {
         Result::Ok(read) => Test::assert_eq_i32(read.len(), 0),

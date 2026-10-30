@@ -26,7 +26,7 @@ fn MirPhi_new(dest: i32, val_type: i32) -> MirPhi {
 }
 
 fn mir_phi_add_arg(mut phi: MirPhi, pred_block: i32, local: i32) {
-    push(phi.args, MirPhiArg { pred_block: pred_block, local: local })
+    phi.args.push(MirPhiArg { pred_block: pred_block, local: local })
 }
 
 fn mir_value_type_name(vt: i32) -> String {

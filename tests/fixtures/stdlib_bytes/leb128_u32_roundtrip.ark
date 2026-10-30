@@ -4,11 +4,11 @@ use std::test::Test
 
 fn main() {
     let mut vals: Vec<i32> = Vec::new<i32>()
-    push(vals, 0)
-    push(vals, 1)
-    push(vals, 127)
-    push(vals, 128)
-    push(vals, 624485)
+    vals.push(0)
+    vals.push(1)
+    vals.push(127)
+    vals.push(128)
+    vals.push(624485)
     let n = vals.len()
     let mut i = 0
     while i < n {

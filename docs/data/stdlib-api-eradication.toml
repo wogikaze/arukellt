@@ -114,20 +114,24 @@ owner = "none"
 # overlay keeps an overlay-only declaration for the pinned compiler's method
 # lowering; user programs see only the receiver methods.
 #
-# `get_unchecked` was the method-lowering sibling: `wave/vec-get-unchecked`
-# migrated its 3,282 in-tree free calls to `v.get_unchecked(i)` and retired the
-# public declaration with an E0100 hint. The compiler now lowers the method to
-# the sealed `raw_array_get_unchecked` accessor instead of a bare name, and the
-# bootstrap overlay keeps an overlay-only declaration for the pinned
-# compiler's method lowering. `get` remains as the generic Vec typing anchor.
+# `push` / `pop` / `set` were retired by #917 on 2026-10-30
+# (wave/vec-push-pop-set). The 4,065 in-tree sites now spell `v.push(x)`,
+# `v.pop()` and `v.set(idx, value)`. The root cause that kept them was the
+# method-call operand stack: a module constant argument lowers through its
+# accessor call and is materialized into the argument local, so the method
+# emit underflowed and produced invalid core Wasm (`v.set(0, K)`,
+# `v.push(NIL)`). The MIR method lowering now reloads those constant
+# arguments. The private generic declarations in std/prelude.ark stay as
+# receiver-method signature anchors; they are not importable and bare calls
+# fail with E0100 hints.
 
 [[rules]]
 label = "vec intrinsic-compat frees"
 module_less = true
-name = ["push", "pop", "get", "set", "clear", "as_slice", "slice_len", "slice_get"]
+name = ["get", "get_unchecked", "clear", "as_slice", "slice_len", "slice_get"]
 class = "must delete"
 owner = "917"
-replacement = "Vec<T> methods: v.push(x), v.pop(), v.len(), v.get(idx), v.set(idx, val), v.get_unchecked(idx), v.as_slice(start, end); Slice<T> methods: view.len(), view.get(idx). `len` was retired with an E0100 hint onto `s.len()` / `v.len()`; `get_unchecked` was retired with an E0100 hint onto `v.get_unchecked(idx)`; `clear` was a stale non-callable entry and was retired directly."
+replacement = "Vec<T> methods: v.get(idx), v.get_unchecked(idx), v.as_slice(start, end); Slice<T> methods: view.len(), view.get(idx). `len` was retired with an E0100 hint onto `s.len()` / `v.len()`; `push` / `pop` / `set` were retired with E0100 hints onto `v.push(x)` / `v.pop()` / `v.set(idx, value)`; `clear` was a stale non-callable entry and was retired directly."
 
 # The 4 deprecated prelude assertion wrappers (`assert_eq`, `assert_ne`,
 # `assert_eq_i64`, `assert_eq_str`) completed their ADR-087 Wave 2 deletion on

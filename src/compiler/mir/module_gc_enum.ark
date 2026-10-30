@@ -23,9 +23,9 @@ fn MirModule_gc_enum_variant_sigs(m: MirModule) -> Vec<String> {
 }
 
 fn MirModule_push_gc_enum_variant(mut m: MirModule, name: String, sig: String) {
-    push(m.gc_enum_variant_names, name)
-    push(m.gc_enum_variant_sigs, sig)
-    push(m.gc_enum_variant_canon_idx, 0 - 1)
+    m.gc_enum_variant_names.push(name)
+    m.gc_enum_variant_sigs.push(sig)
+    m.gc_enum_variant_canon_idx.push(0 - 1)
     // The emit-side derived indexes key off name arrivals too, not just
     // canon assignments, so pushes bump the same version (#851).
     m.gc_canon_version = m.gc_canon_version + 1
@@ -48,7 +48,7 @@ fn MirModule_set_gc_enum_variant_canon_idx(mut m: MirModule, slot: i32, canon_id
     if canon_idx >= 0 && m.gc_enum_variant_canon_idx.get_unchecked(slot) < 0 {
         m.gc_canon_version = m.gc_canon_version + 1
     }
-    set(m.gc_enum_variant_canon_idx, slot, canon_idx)
+    m.gc_enum_variant_canon_idx.set(slot, canon_idx)
 }
 
 fn MirModule_gc_enum_variant_canon_idxs(m: MirModule) -> Vec<i32> {

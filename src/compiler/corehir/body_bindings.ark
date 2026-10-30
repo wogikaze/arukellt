@@ -27,7 +27,7 @@ fn corehir_build_let_expr(mut table: CoreHirBodyTable, node: AstNode) -> i32 {
     let mut vt = types::corehir_vt_from_type_name(type_name.clone())
     if expr_node_access::expr_child_count(node) >= 1 {
         let child_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 0))
-        push(children, child_index)
+        children.push(child_index)
         let child_expr = corehir_body_expr_at(table, child_index)
         if expr_predicates::expr_is_unsupported(child_expr) {
             return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))

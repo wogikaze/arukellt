@@ -2,7 +2,7 @@ use std::core::iter
 
 fn main() {
     let mut source: Vec<String> = Vec::new<String>()
-    push(source, String_from("value"))
+    source.push(String_from("value"))
     let total = source.iter().sum()
     let _ = total
 }

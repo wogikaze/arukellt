@@ -23,14 +23,14 @@ fn main() -> i32 {
     let mut it: Countdown = Countdown { left: 4 }
     while true {
         match it.next() {
-            Some(x) => push(manual, x),
+            Some(x) => manual.push(x),
             None => { break },
         }
     }
     let mut desugared: Vec<i32> = Vec::new<i32>()
     let it2: Countdown = Countdown { left: 4 }
     for x in it2 {
-        push(desugared, x)
+        desugared.push(x)
     }
     Stdio::println(manual.len().to_string())
     Stdio::println(desugared.len().to_string())

@@ -10,7 +10,7 @@ fn collect_enum_defs(decls: Vec<AstNode>) -> Vec<EnumInfo> {
     while i < decl_count {
         let node = decls.get_unchecked(i)
         if ast_decl_predicates::node_is_enum_decl(node) {
-            push(enum_defs, collect_enum_def(node))
+            enum_defs.push(collect_enum_def(node))
         }
         i = i + 1
     }
@@ -27,19 +27,16 @@ fn collect_enum_def(node: AstNode) -> EnumInfo {
     let mut vi = 0
     while vi < vc {
         let variant = ast_access::node_child_at(node, vi)
-        push(variant_names, ast_access::node_text(variant))
-        push(payload_starts, payload_types.len())
+        variant_names.push(ast_access::node_text(variant))
+        payload_starts.push(payload_types.len())
         let mut payload_count = 0
         let ann_count = ast_access::node_type_ann_count(variant)
         let mut ai = 0
         while ai < ann_count {
-            push(
-                payload_types,
-                types::resolve_type_ann_node_generic(
+            payload_types.push(types::resolve_type_ann_node_generic(
                     ast_access::node_type_ann_at(variant, ai),
                     type_params
-                )
-            )
+                ))
             payload_count = payload_count + 1
             ai = ai + 1
         }
@@ -48,18 +45,15 @@ fn collect_enum_def(node: AstNode) -> EnumInfo {
         while fi < field_count {
             let field = ast_access::node_child_at(variant, fi)
             if ast_access::node_type_ann_count(field) > 0 {
-                push(
-                    payload_types,
-                    types::resolve_type_ann_node_generic(
+                payload_types.push(types::resolve_type_ann_node_generic(
                         ast_access::node_type_ann_at(field, 0),
                         type_params
-                    )
-                )
+                    ))
                 payload_count = payload_count + 1
             }
             fi = fi + 1
         }
-        push(payload_counts, payload_count)
+        payload_counts.push(payload_count)
         vi = vi + 1
     }
     contract_enum_info::EnumInfo_new_with_payloads(
@@ -78,7 +72,7 @@ fn enum_type_param_names(node: AstNode) -> Vec<String> {
     let mut i = 0
     while i < count {
         let ann = ast_access::node_type_ann_at(node, i)
-        push(names, ast_access::node_text(ann))
+        names.push(ast_access::node_text(ann))
         i = i + 1
     }
     names

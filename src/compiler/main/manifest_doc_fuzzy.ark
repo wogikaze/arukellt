@@ -52,7 +52,7 @@ pub fn doc_find_closest(table: DocManifestTable, query: String, limit: i32) -> V
             emitted = limit
         } else {
             let pick = manifest_doc_record::DocManifestTable_function_at(table, best)
-            push(out, doc_qualified_name(manifest_doc_record::DocFnEntry_module(pick), manifest_doc_record::DocFnEntry_name(pick)))
+            out.push(doc_qualified_name(manifest_doc_record::DocFnEntry_module(pick), manifest_doc_record::DocFnEntry_name(pick)))
             emitted = emitted + 1
         }
     }

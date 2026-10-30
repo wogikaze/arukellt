@@ -34,7 +34,7 @@ fn fmt_collapse_blank_lines(lines: Vec<String>) -> Vec<String> {
         let processed = fmt_normalize_line(raw)
         let is_blank = processed.len() == 0
         if !(is_blank && prev_blank) {
-            push(out_lines, processed)
+            out_lines.push(processed)
         }
         prev_blank = is_blank
         j = j + 1
@@ -72,11 +72,11 @@ fn fmt_split_lines(input: String) -> Vec<String> {
     let mut i = 0
     while i < n {
         if input.clone().byte_at(i) == 10 {
-            push(lines, input.clone().slice(start, i))
+            lines.push(input.clone().slice(start, i))
             start = i + 1
         }
         i = i + 1
     }
-    push(lines, input.clone().slice(start, n))
+    lines.push(input.clone().slice(start, n))
     lines
 }

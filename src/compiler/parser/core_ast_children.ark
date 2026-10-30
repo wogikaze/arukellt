@@ -1,7 +1,7 @@
 use parser::ast_node_record
 
 fn AstNode_push_child(mut node: AstNode, child: AstNode) {
-    push(node.children, child)
+    node.children.push(child)
 }
 
 fn AstNode_child_count(node: AstNode) -> i32 {

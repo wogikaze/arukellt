@@ -68,7 +68,7 @@ fn compose_wit_scan_entries(text: String, keyword: String) -> Vec<ComposeWitFunc
         }
         let sig_end = sig_start + semi_rel
         let signature = compose_wit_normalize_sig(text.slice(sig_start, sig_end))
-        push(funcs, ComposeWitFuncSig_new(name, signature))
+        funcs.push(ComposeWitFuncSig_new(name, signature))
         pos = sig_end + 1
     }
     funcs

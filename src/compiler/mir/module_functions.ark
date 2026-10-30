@@ -24,7 +24,7 @@ fn MirModule_set_functions(mut m: MirModule, functions: Vec<MirFunction>) {
 fn MirModule_set_function_at(mut m: MirModule, idx: i32, f: MirFunction) {
     // In-place slot update: rebuilding the whole functions Vec per call is
     // Θ(F) alloc+copy and compounds under bump allocation (#823 / #730).
-    set(m.functions, idx, f)
+    m.functions.set(idx, f)
 }
 
 fn MirModule_set_export_names(mut m: MirModule, names: Vec<String>) {
@@ -47,11 +47,11 @@ fn MirModule_has_export_name(m: MirModule, name: String) -> bool {
 }
 
 fn MirModule_push_function(mut m: MirModule, f: MirFunction) {
-    push(m.functions, f)
+    m.functions.push(f)
     // Keep 'return_variant_slots' parallel: 'unrecorded' marks functions
     // pushed outside the ctx lower path (smoke fixtures, ad-hoc modules)
     // so consumers fall back to deriving the slot from the body.
-    push(m.return_variant_slots, mir_return_variant_slot_unrecorded())
+    m.return_variant_slots.push(mir_return_variant_slot_unrecorded())
 }
 
 // Sentinel for MirModule.return_variant_slots entries that were registered
@@ -71,7 +71,7 @@ fn MirModule_set_return_variant_slot_at(mut m: MirModule, idx: i32, slot: i32) {
     if idx < 0 || idx >= m.return_variant_slots.len() {
         return
     }
-    set(m.return_variant_slots, idx, slot)
+    m.return_variant_slots.set(idx, slot)
 }
 
 fn MirModule_return_variant_slots(m: MirModule) -> Vec<i32> {
@@ -104,7 +104,7 @@ fn MirModule_record_diagnostic(mut m: MirModule, message: String) {
         }
         i = i + 1
     }
-    push(m.diagnostics, message)
+    m.diagnostics.push(message)
 }
 
 // Takes the recorded diagnostics out of the module, leaving an empty

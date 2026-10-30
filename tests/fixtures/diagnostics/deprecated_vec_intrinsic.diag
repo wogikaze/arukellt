@@ -1,1 +1,1 @@
-use the Vec method `v.push(x)` instead
+use the Vec method `v.get(idx)` instead

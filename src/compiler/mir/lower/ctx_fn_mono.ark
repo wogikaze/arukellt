@@ -34,9 +34,9 @@ fn ctx_register_fn_signature(mut ctx: LowerCtx, name: String, return_vt: i32, re
     // by per-fn callee lookups before their bodies exist.
     let m = ctx_current_storage::ctx_current_module_value(ctx)
     let mut names = module_functions::MirModule_discovery_fn_names(m)
-    push(names, name.clone())
+    names.push(name.clone())
     let mut ret_names = module_functions::MirModule_discovery_fn_ret_names(m)
-    push(ret_names, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, return_type_name.clone()))
+    ret_names.push(ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, return_type_name.clone()))
     // The seeded cache index is not rebuilt on growth; register the new
     // name so tier-2 lookups find it too.
     name_index::name_index_insert_first(ctx.prop_cache.disc_names, name.clone(), names.len() - 1)

@@ -43,7 +43,7 @@ fn wit_flags_member_names(text: String) -> Vec<String> {
         if ch == 44 {
             let trimmed = wit_trim_ws(part)
             if trimmed.len() > 0 {
-                push(names, trimmed)
+                names.push(trimmed)
             }
             part = String_new()
         } else {
@@ -52,7 +52,7 @@ fn wit_flags_member_names(text: String) -> Vec<String> {
     }
     let trimmed = wit_trim_ws(part)
     if trimmed.len() > 0 {
-        push(names, trimmed)
+        names.push(trimmed)
     }
     names
 }

@@ -58,7 +58,7 @@ fn ctx_split_declared_params(joined: String) -> Vec<String> {
     let mut k = 0
     while k <= pn {
         if k == pn || joined.clone().byte_at(k) == 44 {
-            push(params, joined.clone().slice(seg_start, k))
+            params.push(joined.clone().slice(seg_start, k))
             seg_start = k + 1
         }
         k = k + 1
@@ -127,7 +127,7 @@ fn generic_inst_args(name: String) -> Vec<String> {
             depth = depth - 1
         }
         if (at_end || ch == 44) && depth == 0 {
-            push(result, inner.clone().slice(seg_start, j))
+            result.push(inner.clone().slice(seg_start, j))
             seg_start = j + 1
         }
         j = j + 1
@@ -181,7 +181,7 @@ fn generic_inst_args_for_param_count(name: String, param_count: i32) -> Vec<Stri
                 absorbed = absorbed + 1
             }
         }
-        push(merged, arg)
+        merged.push(arg)
         j = j + 1
     }
     merged

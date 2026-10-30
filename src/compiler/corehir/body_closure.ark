@@ -18,7 +18,7 @@ fn corehir_build_closure_expr(mut table: CoreHirBodyTable, node: AstNode) -> i32
             unsupported = true
         } else {
             let child_index = corehir_build_expr(table, child)
-            push(children, child_index)
+            children.push(child_index)
             let child_expr = corehir_body_expr_at(table, child_index)
             if expr_predicates::expr_is_unsupported(child_expr) {
                 unsupported = true

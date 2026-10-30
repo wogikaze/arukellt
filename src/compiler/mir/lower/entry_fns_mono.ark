@@ -42,14 +42,14 @@ fn mir_emit_top_level_fn_mono_bodies(
         let mut emit_mangled_list = Vec::new<String>()
         let mut bare_i = 0
         while bare_i < bare_count {
-            push(emit_mangled_list, mono::mono_index_mangled_at(midx, decl_name.clone(), bare_i))
+            emit_mangled_list.push(mono::mono_index_mangled_at(midx, decl_name.clone(), bare_i))
             bare_i = bare_i + 1
         }
         let mut qualified_i = 0
         while qualified_i < qualified_count {
             let mangled = mono::mono_index_mangled_at(midx, mono_qualified_name.clone(), qualified_i)
             if !string_vec_contains(emit_mangled_list.clone(), mangled.clone()) {
-                push(emit_mangled_list, mangled)
+                emit_mangled_list.push(mangled)
             }
             qualified_i = qualified_i + 1
         }

@@ -11,7 +11,7 @@ fn main() {
     let mut i = 0
     while i < 6000000 {
         let mut v = Vec::new<i32>()
-        push(v, i)
+        v.push(i)
         i = i + 1
     }
     Test::assert_eq_i32(i, 6000000)

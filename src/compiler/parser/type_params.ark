@@ -42,7 +42,7 @@ fn parse_generic_params(mut p: Parser) -> Vec<AstNode> {
         }
         first = false
         core_api_cursor::skip_newlines(p)
-        push(params, parse_type_param(p))
+        params.push(parse_type_param(p))
         core_api_cursor::skip_newlines(p)
     }
     core_api_expect::consume_closing_gt(p)

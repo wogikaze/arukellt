@@ -47,7 +47,7 @@ fn declared_type_param_names(impl_node: AstNode) -> Vec<String> {
     let count = ast_access::node_child_count(binder)
     let mut i = 0
     while i < count {
-        push(names, ast_access::node_text(ast_access::node_child_at(binder, i)))
+        names.push(ast_access::node_text(ast_access::node_child_at(binder, i)))
         i = i + 1
     }
     names
@@ -89,7 +89,7 @@ fn type_param_bounds(impl_node: AstNode) -> Vec<TypeParamBounds> {
             )
             j = j + 1
         }
-        push(bounds, info)
+        bounds.push(info)
         i = i + 1
     }
     bounds

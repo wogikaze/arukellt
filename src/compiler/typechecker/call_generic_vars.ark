@@ -7,8 +7,8 @@ fn append_generic_type_vars(mut infer_env: TypeEnv, sig: FnSig, mut var_names: V
     while k < tp_count {
         let tp_name = contract_fn_sig::FnSig_type_param_at(sig, k)
         let tv = unify::fresh_var(infer_env)
-        push(var_names, tp_name)
-        push(var_types, tv)
+        var_names.push(tp_name)
+        var_types.push(tv)
         k = k + 1
     }
 }

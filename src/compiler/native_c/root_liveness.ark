@@ -106,7 +106,7 @@ fn native_c_bitset_new(width: i32) -> Vec<i32> {
     let mut bits = Vec::new<i32>()
     let mut index = 0
     while index < width {
-        push(bits, 0)
+        bits.push(0)
         index = index + 1
     }
     bits
@@ -115,7 +115,7 @@ fn native_c_bitset_new(width: i32) -> Vec<i32> {
 fn native_c_bitset_clear(mut bits: Vec<i32>) {
     let mut index = 0
     while index < bits.len() {
-        set(bits, index, 0)
+        bits.set(index, 0)
         index = index + 1
     }
 }
@@ -123,8 +123,8 @@ fn native_c_bitset_clear(mut bits: Vec<i32>) {
 fn native_c_bitset_set_ref(mut bits: Vec<i32>, local: i32, reference_locals: Vec<i32>) {
     if local < 0 || local >= bits.len() { return }
     if local >= reference_locals.len() { return }
-    if reference_locals.get_unchecked(local) == 0 { return }
-    set(bits, local, 1)
+    if get_unchecked(reference_locals, local) == 0 { return }
+    bits.set(local, 1)
 }
 
 fn native_c_effects_push(
@@ -136,22 +136,22 @@ fn native_c_effects_push(
     uses: Vec<i32>,
     defs: Vec<i32>
 ) {
-    push(effects.block_ids, block_id)
-    if reachable { push(effects.reachable, 1) } else { push(effects.reachable, 0) }
-    if is_safepoint { push(effects.is_safepoint, 1) } else { push(effects.is_safepoint, 0) }
-    push(effects.opcodes, opcode)
-    push(effects.use_start, effects.use_locals.len())
-    push(effects.use_count, uses.len())
+    effects.block_ids.push(block_id)
+    if reachable { effects.reachable.push(1) } else { effects.reachable.push(0) }
+    if is_safepoint { effects.is_safepoint.push(1) } else { effects.is_safepoint.push(0) }
+    effects.opcodes.push(opcode)
+    effects.use_start.push(effects.use_locals.len())
+    effects.use_count.push(uses.len())
     let mut index = 0
     while index < uses.len() {
-        push(effects.use_locals, uses.get_unchecked(index))
+        effects.use_locals.push(get_unchecked(uses, index))
         index = index + 1
     }
-    push(effects.def_start, effects.def_locals.len())
-    push(effects.def_count, defs.len())
+    effects.def_start.push(effects.def_locals.len())
+    effects.def_count.push(defs.len())
     index = 0
     while index < defs.len() {
-        push(effects.def_locals, defs.get_unchecked(index))
+        effects.def_locals.push(get_unchecked(defs, index))
         index = index + 1
     }
 }
@@ -198,7 +198,7 @@ fn native_c_plan_root_clears_from_effects(
     let mut reference_count = 0
     let mut local_index = 0
     while local_index < local_count && local_index < reference_locals.len() {
-        if reference_locals.get_unchecked(local_index) != 0 {
+        if get_unchecked(reference_locals, local_index) != 0 {
             reference_count = reference_count + 1
         }
         local_index = local_index + 1
@@ -208,8 +208,8 @@ fn native_c_plan_root_clears_from_effects(
     plan.instruction_count = instruction_total
     let mut pad = 0
     while pad < instruction_total {
-        push(plan.clear_start, 0)
-        push(plan.clear_count, 0)
+        plan.clear_start.push(0)
+        plan.clear_count.push(0)
         pad = pad + 1
     }
     if reference_count == 0 || instruction_total == 0 {
@@ -229,29 +229,29 @@ fn native_c_plan_root_clears_from_effects(
     let mut control_stack = Vec::new<i32>()
     let mut scan = 0
     while scan < instruction_total {
-        let op = effects.opcodes.get_unchecked(scan)
+        let op = get_unchecked(effects.opcodes, scan)
         if op == opcodes::MIR_LOOP() || op == opcodes::MIR_IF() || op == opcodes::MIR_BLOCK() {
-            push(control_stack, op)
+            control_stack.push(op)
         }
         if op == opcodes::MIR_END() && control_stack.len() > 0 {
-            pop(control_stack)
+            control_stack.pop()
         }
         let mut loop_depth = 0
         let mut ci = 0
         while ci < control_stack.len() {
-            if control_stack.get_unchecked(ci) == opcodes::MIR_LOOP() {
+            if get_unchecked(control_stack, ci) == opcodes::MIR_LOOP() {
                 loop_depth = loop_depth + 1
             }
             ci = ci + 1
         }
-        if loop_depth > 0 && effects.reachable.get_unchecked(scan) != 0 {
-            let use_start = effects.use_start.get_unchecked(scan)
-            let use_n = effects.use_count.get_unchecked(scan)
+        if loop_depth > 0 && get_unchecked(effects.reachable, scan) != 0 {
+            let use_start = get_unchecked(effects.use_start, scan)
+            let use_n = get_unchecked(effects.use_count, scan)
             let mut u = 0
             while u < use_n {
-                let local = effects.use_locals.get_unchecked(use_start + u)
+                let local = get_unchecked(effects.use_locals, use_start + u)
                 if local >= 0 && local < local_count {
-                    set(used_in_loop, local, 1)
+                    used_in_loop.set(local, 1)
                 }
                 u = u + 1
             }
@@ -262,19 +262,19 @@ fn native_c_plan_root_clears_from_effects(
     let mut last_use = Vec::new<i32>()
     local_index = 0
     while local_index < local_count {
-        push(last_use, 0 - 1)
+        last_use.push(0 - 1)
         local_index = local_index + 1
     }
     let mut absolute = 0
     while absolute < instruction_total {
-        if effects.reachable.get_unchecked(absolute) != 0 {
-            let use_start = effects.use_start.get_unchecked(absolute)
-            let use_n = effects.use_count.get_unchecked(absolute)
+        if get_unchecked(effects.reachable, absolute) != 0 {
+            let use_start = get_unchecked(effects.use_start, absolute)
+            let use_n = get_unchecked(effects.use_count, absolute)
             let mut u = 0
             while u < use_n {
-                let local = effects.use_locals.get_unchecked(use_start + u)
+                let local = get_unchecked(effects.use_locals, use_start + u)
                 if local >= 0 && local < local_count {
-                    set(last_use, local, absolute)
+                    last_use.set(local, absolute)
                 }
                 u = u + 1
             }
@@ -284,36 +284,36 @@ fn native_c_plan_root_clears_from_effects(
 
     absolute = 0
     while absolute < instruction_total {
-        if effects.reachable.get_unchecked(absolute) != 0 &&
-        effects.is_safepoint.get_unchecked(absolute) != 0 {
+        if get_unchecked(effects.reachable, absolute) != 0 &&
+        get_unchecked(effects.is_safepoint, absolute) != 0 {
             plan.safepoint_count = plan.safepoint_count + 1
-            let op = effects.opcodes.get_unchecked(absolute)
+            let op = get_unchecked(effects.opcodes, absolute)
             let may_emit_clear = native_c_is_clear_emit_safepoint_op(op)
-            let use_start = effects.use_start.get_unchecked(absolute)
-            let use_n = effects.use_count.get_unchecked(absolute)
+            let use_start = get_unchecked(effects.use_start, absolute)
+            let use_n = get_unchecked(effects.use_count, absolute)
             let clear_at = plan.clear_locals.len()
-            set(plan.clear_start, absolute, clear_at)
+            plan.clear_start.set(absolute, clear_at)
             let mut clear_n = 0
             if may_emit_clear {
                 local_index = 0
                 while local_index < local_count {
                     // Parameters and loop-touched locals stay rooted.
                     if local_index >= parameter_count &&
-                    reference_locals.get_unchecked(local_index) != 0 &&
-                    used_in_loop.get_unchecked(local_index) == 0 {
+                    get_unchecked(reference_locals, local_index) != 0 &&
+                    get_unchecked(used_in_loop, local_index) == 0 {
                         let mut used_here = false
                         let mut u = 0
                         while u < use_n {
-                            if effects.use_locals.get_unchecked(use_start + u) == local_index {
+                            if get_unchecked(effects.use_locals, use_start + u) == local_index {
                                 used_here = true
                             }
                             u = u + 1
                         }
-                        let last = last_use.get_unchecked(local_index)
+                        let last = get_unchecked(last_use, local_index)
                         // Dead at this alloc safepoint: no later use and not an operand.
                         if !used_here && last < absolute {
                             if store_clear_locals {
-                                push(plan.clear_locals, local_index)
+                                plan.clear_locals.push(local_index)
                             }
                             clear_n = clear_n + 1
                             plan.cleared_root_count = plan.cleared_root_count + 1
@@ -322,7 +322,7 @@ fn native_c_plan_root_clears_from_effects(
                     local_index = local_index + 1
                 }
             }
-            set(plan.clear_count, absolute, clear_n)
+            plan.clear_count.set(absolute, clear_n)
             if clear_n > 0 {
                 plan.clear_site_count = plan.clear_site_count + 1
             }

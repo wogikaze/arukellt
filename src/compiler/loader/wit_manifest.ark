@@ -31,7 +31,7 @@ fn wit_push_unique(mut paths: Vec<String>, path: String) {
             return
         }
     }
-    push(paths, path)
+    paths.push(path)
 }
 
 fn collect_wit_paths_from_manifest(package_root: String) -> Vec<String> {

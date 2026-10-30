@@ -1,7 +1,9 @@
-use std::prelude as prelude
-
 // ADR-088 §7: a module-qualified function path names the same function as
 // its bare spelling, so the annotation boundary must recover its mode.
+fn append_one(mut values: Vec<i32>, value: i32) {
+    values.push(value)
+}
+
 fn main() {
-    let _push_fn: fn(Vec<i32>, i32) = prelude::push
+    let _push_fn: fn(Vec<i32>, i32) = append_one
 }

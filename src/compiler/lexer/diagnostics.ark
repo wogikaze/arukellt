@@ -11,7 +11,7 @@ fn build_lex_result(tokens: Vec<Token>) -> LexResult {
         if token_state::Token_kind(tok) == tokens::TK_ERROR() {
             let code = classify_lex_error(tok)
             let msg = token_state::Token_text(tok)
-            push(diagnostics, LexDiagnostic_new(code, msg, token_state::Token_start(tok), token_state::Token_end(tok)))
+            diagnostics.push(LexDiagnostic_new(code, msg, token_state::Token_start(tok), token_state::Token_end(tok)))
         }
         i = i + 1
     }

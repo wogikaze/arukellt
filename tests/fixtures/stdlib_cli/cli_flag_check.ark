@@ -10,9 +10,9 @@ fn main() {
         None => Stdio::println("no arg"),
     }
     let mut args = Vec::new<String>()
-    push(args, "--debug")
-    push(args, "--output")
-    push(args, "out.txt")
+    args.push("--debug")
+    args.push("--output")
+    args.push("out.txt")
     Stdio::println((Cli::flag(args, "--debug")).to_string())
     Stdio::println((Cli::flag(args, "--verbose")).to_string())
     match Cli::option(args, "--output") {
@@ -20,7 +20,7 @@ fn main() {
         None => Stdio::println("not found"),
     }
     let mut args2 = Vec::new<String>()
-    push(args2, "--name=world")
+    args2.push("--name=world")
     match Cli::option(args2, "--name") {
         Option::Some(v) => Stdio::println(v),
         None => Stdio::println("not found"),

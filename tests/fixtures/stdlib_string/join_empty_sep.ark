@@ -3,8 +3,8 @@ use std::test
 
 fn main() {
     let mut parts: Vec<String> = Vec::new<String>()
-    push(parts, String_from("a"))
-    push(parts, String_from("b"))
-    push(parts, String_from("c"))
+    parts.push(String_from("a"))
+    parts.push(String_from("b"))
+    parts.push(String_from("c"))
     Test::assert_eq_string(parts.join(String_from("")), "abc")
 }

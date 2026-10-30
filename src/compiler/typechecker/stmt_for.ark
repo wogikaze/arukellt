@@ -188,8 +188,8 @@ fn record_for_method_mono(
         if contract_type_access::TypeInfo_tag(bound_ty) == commands::TY_UNKNOWN() {
             return unknown
         }
-        push(param_names, param_name)
-        push(resolved, bound_ty)
+        param_names.push(param_name)
+        resolved.push(bound_ty)
         i = i + 1
     }
     let mangled = mono::record_mono_instance(env, fn_name.clone(), resolved)

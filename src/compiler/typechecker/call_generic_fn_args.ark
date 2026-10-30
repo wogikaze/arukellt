@@ -65,7 +65,7 @@ fn constrain_generic_fn_args(
         let projected_param = associated_types::resolve_generic_call_type(env, infer_env, sig, var_names, var_types, inst_param)
         let resolved_param = unify::resolve_type(infer_env, projected_param.clone())
         arg_ty = adapt_int_literal_arg_type(arg_node, arg_ty, resolved_param)
-        push(arg_types, arg_ty.clone())
+        arg_types.push(arg_ty.clone())
         param_mode::check_fn_type_value(
             env,
             scope,

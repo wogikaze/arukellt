@@ -17,6 +17,7 @@ use mir::lower::core_literals
 use mir::lower::core_names
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_fn_index
 use mir::lower::loop_vec
 use mir::lower::method
 use mir::lower::struct_lit
@@ -113,13 +114,23 @@ fn lower_core_direct_call_args(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
         } else {
             0 - 1
         }
+        // A module constant lowers through its accessor call and is
+        // materialized in a local, so it is never on the operand stack. The
+        // staged copy would underflow and the unstaged call would lose the
+        // operand (`v.push(K)` on the linear target).
+        let arg_is_const_ident = core_expr_shape_atoms::mir_core_expr_is_ident(arg_expr) &&
+        core_names::mir_core_lookup_local(ctx, arg_expr) < 0 &&
+        ctx_fn_index::ctx_is_const_name(ctx, core_expr_shape_accessors::mir_core_expr_text(arg_expr))
+        let mut arg_source_on_stack = true
         if staged_ident_local >= 0 {
             // Staging already copies a local with local.set.  Avoid an
             // intermediate local.get, which composes multiple arguments on
             // the value stack in the wrong order.
             arg_idx = staged_ident_local
+            arg_source_on_stack = false
         } else if needs_print_convert {
             arg_idx = core_names::mir_core_lookup_local(ctx, arg_expr)
+            arg_source_on_stack = false
         } else if core_expr_shape_atoms::mir_core_expr_is_int(arg_expr) && call_arg_i64::mir_should_force_int_lit_i64(ctx, callee_name.clone(), param_idx) {
             arg_idx = core_literals::lower_core_int_literal_forced_i64(ctx, arg_expr)
         } else if core_expr_shape_ops::mir_core_expr_is_unary(arg_expr) &&
@@ -144,6 +155,9 @@ fn lower_core_direct_call_args(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
                     if !stage_call_args && method::mir_method_arg_leaves_no_stack(ctx, arg_idx) {
                         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(arg_idx))
                     }
+                    if !stage_call_args && arg_is_const_ident && arg_idx >= 0 {
+                        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(arg_idx))
+                    }
                 }
                 if arg_idx >= 0 && call_arg_i64::mir_should_wrap_i64_arg_to_i32(ctx, callee_name.clone(), param_idx) {
                     arg_idx = binary_cast::mir_wrap_i64_to_i32_if_needed(ctx, arg_idx)
@@ -165,9 +179,26 @@ fn lower_core_direct_call_args(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
                 if stage_call_args && arg_idx >= 0 {
                     staged_arg_now = true
                 }
-                arg_idx = core_call_direct_arg::mir_lower_core_direct_stage_arg(ctx, staged_arg_locals, arg_idx, stage_call_args)
+                if stage_call_args && arg_is_const_ident && arg_idx >= 0 {
+                    // Already a materialized local; copying it would consume a
+                    // stack operand that does not exist. Stage the local itself.
+                    staged_arg_locals.push(arg_idx)
+                } else if stage_call_args && !arg_source_on_stack && arg_idx >= 0 {
+                    arg_idx = core_call_args::mir_core_stage_call_arg_from_local(
+                        ctx,
+                        staged_arg_locals,
+                        arg_idx
+                    )
+                } else {
+                    arg_idx = core_call_direct_arg::mir_lower_core_direct_stage_arg(
+                        ctx,
+                        staged_arg_locals,
+                        arg_idx,
+                        stage_call_args
+                    )
+                }
                 if staged_arg_now {
-                    push(arg_widen_i64, if needs_i64_arg_widen { 1 } else { 0 })
+                    arg_widen_i64.push(if needs_i64_arg_widen { 1 } else { 0 })
                 }
                 if a == 1 {
                     first_arg_idx = arg_idx
